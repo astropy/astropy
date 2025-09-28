@@ -28,6 +28,13 @@ PyObject *Scaler_vectorcall(
         return PyFloat_FromDouble(PyFloat_AS_DOUBLE(obj) * self->factor);
     }
     else if (PyArray_CheckExact(obj)) {
+        if (self->A_factor == NULL) {
+            npy_intp const dims[0];
+            self->A_factor = PyArray_SimpleNewFromData(0, dims, NPY_FLOAT64, &self->factor);
+            if (self->A_factor == NULL) {
+                return NULL;
+            }
+        }
         return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, self->A_factor);
     }
     else if (PyLong_CheckExact(obj)) {
@@ -36,6 +43,14 @@ PyObject *Scaler_vectorcall(
             return NULL;
         }
         return PyFloat_FromDouble(d * self->factor);
+    }
+    // For cases without special treatment, we need the float object, so
+    // construct it ahead of time.
+    if (self->O_factor == NULL) {
+        self->O_factor = PyFloat_FromDouble(self->factor);
+        if (self->O_factor == NULL) {
+            return NULL;
+        }
     }
     // fast path, go directly for the slot, to avoid PyNumber call.
     if (Py_TYPE(obj)->tp_as_number != NULL) {
@@ -54,31 +69,21 @@ PyObject *Scaler_vectorcall(
 
 static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    ScalerObject *self;
-    self = (ScalerObject *)type->tp_alloc(type, 0);
+    if (kwds != NULL || PyTuple_Size(args) != 1) {
+        PyErr_SetString(PyExc_TypeError, "Scaler takes exactly 1 positional argument.");
+        return NULL;
+    }
+    double factor = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
+    if (factor == -1.0 && PyErr_Occurred()) {
+        return NULL;
+    }
+    ScalerObject *self = (ScalerObject *)type->tp_alloc(type, 0);
     if (self == NULL) {
         return NULL;
     }
-    static char *kwlist[] = {"factor", NULL};
-    int res = PyArg_ParseTupleAndKeywords(args, kwds, "d", kwlist, &self->factor);
-    if (!res) {
-        Py_DECREF(self);
-        return NULL;
-    }
-    // For cases without special treatment, we need the float object, so
-    // construct it ahead of time.
-    self->O_factor = PyFloat_FromDouble(self->factor);
-    if (self->O_factor == NULL) {
-        Py_DECREF(self);
-        return NULL;
-    }
-    PyArray_Descr *dtype = PyArray_DescrFromType(NPY_FLOAT64); // cannot fail;
-    self->A_factor = PyArray_FromAny(self->O_factor, dtype, 0, 0, 0, NULL);
-    if (self->A_factor == NULL) {
-        Py_DECREF(self);
-        Py_DECREF(self->O_factor);
-        return NULL;
-    }
+    self->factor = factor;
+    self->O_factor = NULL;
+    self->A_factor = NULL;
     self->vectorcall = (vectorcallfunc)&Scaler_vectorcall;
     return (PyObject *)self;
 }
