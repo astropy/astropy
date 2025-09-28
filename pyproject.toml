@@ -83,7 +83,7 @@ all = [
     "dask[array]>=2022.5.1",
     "h5py>=3.9.0",  # older versions used deprecated np.product()
     "pyarrow>=10.0.1",
-    "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
+    "beautifulsoup4>=4.9.3,!= 4.14.0", # lower bound imposed by pandas==2.0, 4.14.0 excluded because of https://github.com/astropy/astropy/issues/18646
     "html5lib>=1.1",
     "bleach>=3.2.1",
     "pandas>=2.0",
