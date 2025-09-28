@@ -5,8 +5,47 @@
 typedef struct {
     PyObject_HEAD
     /* Type-specific fields go here. */
-    PyObject *factor;
+    double factor;
+    PyObject *O_factor;
+    vectorcallfunc vectorcall;
 } ScalerObject;
+
+PyObject *Scaler_vectorcall(
+    ScalerObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
+)
+{
+    PyObject *obj = args[0];
+    if (PyVectorcall_NARGS(len_args) != 1) {
+        PyErr_Format(
+            PyExc_TypeError, "scaler() takes 1 argument, not %d", PyVectorcall_NARGS(len_args)
+        );
+        return NULL;
+    }
+    // fastest paths: special-case known objects.
+    if (PyFloat_CheckExact(obj)) {
+        return PyFloat_FromDouble(PyFloat_AS_DOUBLE(obj) * self->factor);
+    }
+    else if (PyLong_CheckExact(obj)) {
+        double d = PyLong_AsDouble(obj);
+        if (d == -1.0 && PyErr_Occurred()) {
+            return NULL;
+        }
+        return PyFloat_FromDouble(d * self->factor);
+    }
+    // fast path, go directly for the slot, to avoid PyNumber call.
+    if (Py_TYPE(obj)->tp_as_number != NULL) {
+        binaryfunc slotv = Py_TYPE(obj)->tp_as_number->nb_multiply;
+        if (slotv != NULL) {
+            PyObject *res = slotv(obj, self->O_factor);
+            if (res != Py_NotImplemented) {
+                return res;
+            }
+            // Fall back to slow path, which will almost certainly raise.
+            Py_DECREF(res);
+        }
+    }
+    return PyNumber_Multiply(obj, self->O_factor);
+}
 
 static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
@@ -16,58 +55,32 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
     static char *kwlist[] = {"factor", NULL};
-    double factor;
-    int res = PyArg_ParseTupleAndKeywords(args, kwds, "d", kwlist, &factor);
+    int res = PyArg_ParseTupleAndKeywords(args, kwds, "d", kwlist, &self->factor);
     if (!res) {
         Py_DECREF(self);
         return NULL;
     }
-    self->factor = PyFloat_FromDouble(factor);
-    if (self->factor == NULL) {
+    // For cases without special treatment, we need the float object, so
+    // construct it ahead of time.
+    self->O_factor = PyFloat_FromDouble(self->factor);
+    if (self->O_factor == NULL) {
         Py_DECREF(self);
         return NULL;
     }
+    self->vectorcall = (vectorcallfunc)&Scaler_vectorcall;
     return (PyObject *)self;
 }
 
 static void Scaler_dealloc(ScalerObject *self)
 {
-    Py_XDECREF(self->factor);
+    Py_XDECREF(self->O_factor);
     Py_TYPE(self)->tp_free(self);
-}
-
-PyObject *Scaler_call(ScalerObject *self, PyObject *args, PyObject *kwds)
-{
-    PyObject *obj, *mul, *res;
-    static char *kwlist[] = {"x", NULL};
-    if (PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist, &obj) < 0) {
-        return NULL;
-    }
-    mul = PyObject_GetAttrString(obj, "__mul__");
-    if (mul == NULL) {
-        return NULL;
-    }
-    res = PyObject_CallOneArg(mul, self->factor);
-    Py_DECREF(mul);
-    if (res == Py_NotImplemented) {
-        // Fairly unlikely to happen, but int cannot multiply with float.
-        Py_DECREF(res);
-        mul = PyObject_GetAttrString(self->factor, "__rmul__");
-        res = PyObject_CallOneArg(mul, obj);
-        Py_DECREF(mul);
-        if (res == Py_NotImplemented) { // Not sure I can hit this.
-            Py_DECREF(res);
-            PyErr_Format(PyExc_TypeError, "cannot scale type '%T'", obj);
-            res = NULL;
-        }
-    }
-    return res;
 }
 
 static PyMemberDef Scaler_members[] = {
     {"factor",
      Py_T_OBJECT_EX,
-     offsetof(ScalerObject, factor),
+     offsetof(ScalerObject, O_factor),
      Py_READONLY,
      "factor with which input is multiplied"},
     {NULL},
@@ -78,10 +91,11 @@ static PyTypeObject ScalerType = {
     .tp_doc = PyDoc_STR("Multiplies input by the given scale factor"),
     .tp_basicsize = sizeof(ScalerObject),
     .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL,
     .tp_new = Scaler_new,
     .tp_dealloc = (destructor)Scaler_dealloc,
-    .tp_call = (ternaryfunc)Scaler_call,
+    .tp_vectorcall_offset = offsetof(ScalerObject, vectorcall),
+    .tp_call = &PyVectorcall_Call,
     .tp_members = Scaler_members,
 };
 
