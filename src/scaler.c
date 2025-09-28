@@ -1,4 +1,5 @@
 #define PY_SSIZE_T_CLEAN
+#include "numpy/arrayobject.h"
 #include <Python.h>
 #include <stddef.h> /* for offsetof() */
 
@@ -7,6 +8,7 @@ typedef struct {
     /* Type-specific fields go here. */
     double factor;
     PyObject *O_factor;
+    PyObject *A_factor;
     vectorcallfunc vectorcall;
 } ScalerObject;
 
@@ -24,6 +26,9 @@ PyObject *Scaler_vectorcall(
     // fastest paths: special-case known objects.
     if (PyFloat_CheckExact(obj)) {
         return PyFloat_FromDouble(PyFloat_AS_DOUBLE(obj) * self->factor);
+    }
+    else if (PyArray_CheckExact(obj)) {
+        return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, self->A_factor);
     }
     else if (PyLong_CheckExact(obj)) {
         double d = PyLong_AsDouble(obj);
@@ -67,6 +72,13 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         Py_DECREF(self);
         return NULL;
     }
+    PyArray_Descr *dtype = PyArray_DescrFromType(NPY_FLOAT64); // cannot fail;
+    self->A_factor = PyArray_FromAny(self->O_factor, dtype, 0, 0, 0, NULL);
+    if (self->A_factor == NULL) {
+        Py_DECREF(self);
+        Py_DECREF(self->O_factor);
+        return NULL;
+    }
     self->vectorcall = (vectorcallfunc)&Scaler_vectorcall;
     return (PyObject *)self;
 }
@@ -74,6 +86,7 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static void Scaler_dealloc(ScalerObject *self)
 {
     Py_XDECREF(self->O_factor);
+    Py_XDECREF(self->A_factor);
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -129,5 +142,6 @@ static PyModuleDef scaler_module = {
 
 PyMODINIT_FUNC PyInit_scaler(void)
 {
+    import_array();
     return PyModuleDef_Init(&scaler_module);
 }
