@@ -40,7 +40,7 @@ def _numpy_to_pandas_dtype(dtype: np.dtype) -> str:
     dtype_name = dtype.name
     # Special case needed for uint -> UInt
     if dtype_name.startswith("uint"):
-        return "UI" + dtype_name[2:]
+        return "UInt" + dtype_name.removeprefix("uint")
     return dtype.name.title()
 
 
