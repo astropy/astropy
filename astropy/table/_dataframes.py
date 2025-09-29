@@ -302,7 +302,7 @@ def from_df(
 
         if isinstance(dtype, nw.Int128):
             raise ValueError(
-                "Astropy Table does not support Int128, please use a smaller integer type."
+                "Astropy Table does not support narwhals.Int128, please use a smaller integer type."
             )
 
         # Handle nullable integers
