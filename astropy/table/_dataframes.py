@@ -6,6 +6,8 @@ and various DataFrame formats (pandas, polars, pyarrow, etc) via the narwhals
 library.
 """
 
+from __future__ import annotations
+
 import math
 import warnings
 from collections.abc import Mapping
@@ -42,7 +44,7 @@ def _numpy_to_pandas_dtype(dtype: np.dtype) -> str:
     return dtype.name.title()
 
 
-def _encode_mixins(tbl: "Table") -> "Table":
+def _encode_mixins(tbl: Table) -> Table:
     """Encode mixin columns to basic columns for DataFrame compatibility."""
     from astropy.time import TimeBase, TimeDelta
 
@@ -97,7 +99,7 @@ def _is_pandas_like(
 
 
 def _validate_columns_for_backend(
-    table: "Table",
+    table: Table,
     *,
     backend_impl: IntoBackend[EagerAllowed] | PandasLikeSentinel = PANDAS_LIKE,
 ) -> None:
@@ -128,7 +130,7 @@ def _validate_columns_for_backend(
 
 
 def _handle_index_argument(
-    table: "Table",
+    table: Table,
     *,
     index: bool | str | None,
     backend_impl: IntoBackend[EagerAllowed] | PandasLikeSentinel,
@@ -168,7 +170,7 @@ def _handle_index_argument(
 
 
 def to_df(
-    table: "Table",
+    table: Table,
     *,
     backend: str,
     index: bool | str | None = None,
@@ -245,8 +247,8 @@ def to_df(
 
 
 def from_df(
-    df: Any, *, index: bool = False, units: Mapping[str, "UnitLike"] | None = None
-) -> "Table":
+    df: Any, *, index: bool = False, units: Mapping[str, UnitLike] | None = None
+) -> Table:
     """Create a Table from any narwhals-compatible DataFrame."""
     from .table import Table
 
@@ -358,7 +360,7 @@ def from_df(
 
 
 def to_pandas(
-    table: "Table", *, index: bool | str | None = None, use_nullable_int: bool = True
+    table: Table, *, index: bool | str | None = None, use_nullable_int: bool = True
 ):
     """Convert an Astropy Table to a pandas DataFrame.
 
@@ -429,8 +431,8 @@ def to_pandas(
 
 
 def from_pandas(
-    dataframe: Any, index: bool = False, units: Mapping[str, "UnitLike"] | None = None
-) -> "Table":
+    dataframe: Any, index: bool = False, units: Mapping[str, UnitLike] | None = None
+) -> Table:
     """Create a Table from a pandas DataFrame."""
     from .table import Table
 
