@@ -698,7 +698,8 @@ class NDArithmeticMixin:
         """
         Convert an operand to the specified class, first converting Python
         scalars to a NumPy dtype that preserves their expected casting behaviour
-        under arithmetic with a reference operand or dtype (see NEP 50).
+        under arithmetic with a reference operand or dtype (see NEP 50,
+        https://numpy.org/neps/nep-0050-scalar-promotion.html).
 
         Parameters
         ----------
