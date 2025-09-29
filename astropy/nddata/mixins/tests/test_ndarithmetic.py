@@ -34,7 +34,7 @@ class StdDevUncertaintyUncorrelated(StdDevUncertainty):
 
 
 # Correspondence between NDArithmetic & Python method/function names:
-operator_mapping = {
+STR_TO_OPERATOR = {
     "add": operator.add,
     "subtract": operator.sub,
     "multiply": operator.mul,
@@ -58,7 +58,7 @@ operator_mapping = {
         (np.arange(1000).reshape(20, 5, 10), np.ones((20, 5, 10)) * 3),
     ],
 )
-@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+@pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
 def test_arithmetics_data(data1, data2, meth, op):
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
@@ -109,7 +109,7 @@ def test_arithmetics_data_invalid():
         (np.array(5), np.array(10) * u.s / u.h),
     ],
 )
-@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+@pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
 def test_arithmetics_data_unit_identical(data1, data2, meth, op):
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
@@ -144,7 +144,7 @@ def test_arithmetics_data_unit_identical(data1, data2, meth, op):
         (np.array(5), np.array(10) * u.s),
     ],
 )
-@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+@pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
 def test_arithmetics_data_unit_not_identical(data1, data2, meth, op):
     nd1 = NDDataArithmetic(data1)
     nd2 = NDDataArithmetic(data2)
@@ -183,7 +183,7 @@ def test_arithmetics_data_unit_not_identical(data1, data2, meth, op):
         nd_testing.create_two_unequal_wcs(naxis=2),
     ],
 )
-@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+@pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
 def test_arithmetics_data_wcs(wcs1, wcs2, meth, op):
     nd1 = NDDataArithmetic(1, wcs=wcs1)
     nd2 = NDDataArithmetic(1, wcs=wcs2)
@@ -237,7 +237,7 @@ def test_arithmetics_data_wcs(wcs1, wcs2, meth, op):
         ),
     ],
 )
-@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+@pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
 def test_arithmetics_data_masks(mask1, mask2, meth, op):
     nd1 = NDDataArithmetic(1, mask=mask1)
     nd2 = NDDataArithmetic(1, mask=mask2)
@@ -1355,7 +1355,7 @@ def test_nddata_bitmask_arithmetic():
         np.array(2.0, dtype=np.float32),
     ],
 )
-@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+@pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
 def test_arithmetics_dtypes_with_scalar(data1, data2, meth, op):
     out = getattr(data1, meth)(data2)
     ref = op(data1.data, data2)
@@ -1386,7 +1386,7 @@ def test_arithmetics_dtypes_with_scalar(data1, data2, meth, op):
 )
 @pytest.mark.parametrize(
     ("meth", "op"),
-    ((k, v) for k, v in operator_mapping.items() if k in ("add", "subtract")),
+    ((k, v) for k, v in STR_TO_OPERATOR.items() if k in ("add", "subtract")),
 )
 def test_add_quantity_matching_dtype(data1, data2, meth, op):
     out = getattr(data1, meth)(data2)
@@ -1418,7 +1418,7 @@ def test_add_quantity_matching_dtype(data1, data2, meth, op):
 )
 @pytest.mark.parametrize(
     ("meth", "op"),
-    ((k, v) for k, v in operator_mapping.items() if k in ("multiply", "divide")),
+    ((k, v) for k, v in STR_TO_OPERATOR.items() if k in ("multiply", "divide")),
 )
 def test_scale_dtypes_with_units(data1, data2, meth, op):
     out = getattr(data1, meth)(data2)
@@ -1429,7 +1429,7 @@ def test_scale_dtypes_with_units(data1, data2, meth, op):
     assert_array_almost_equal(out.data, ref)
 
 
-# Provide input for the following test sets without lots of cutting & pasting:
+# Provide input for the following test sets without lots of replication:
 def generate_simple_ndds_with_uncert_mask(nout=1):
     for values in itertools.product(
         (
@@ -1471,7 +1471,7 @@ def generate_simple_ndds_with_uncert_mask(nout=1):
         np.array(2.0, dtype=np.float32),
     ],
 )
-@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+@pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
 def test_dtypes_uncert_mask_with_scalars(data1, data2, meth, op):
     out = getattr(data1, meth)(data2)
 
@@ -1508,7 +1508,7 @@ def test_dtypes_uncert_mask_with_scalars(data1, data2, meth, op):
 @pytest.mark.parametrize(
     ("data1", "data2"), generate_simple_ndds_with_uncert_mask(nout=2)
 )
-@pytest.mark.parametrize(("meth", "op"), operator_mapping.items())
+@pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
 def test_arithmetics_dtypes_uncert_mask(data1, data2, meth, op):
     ref_dat = op(data1.data, data2.data)
 
