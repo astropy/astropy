@@ -33,6 +33,13 @@ the ``numpy`` array of its data will have the shape of (400, 300).
 Examples
 --------
 
+.. note::
+
+    The ``astropy.io.fits.util.get_testdata_filepath()`` function,
+    used in the examples here, is for accessing data shipped with ``astropy``.
+    To work with your own data instead, please use :func:`astropy.io.fits.open`,
+    which takes either the relative or absolute path.
+
 ..
   EXAMPLE START
   Image Data as an Array in astropy.io.fits
