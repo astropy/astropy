@@ -86,22 +86,13 @@ Example
   EXAMPLE START
   Reading a FITS Table with astropy.io.fits
 
-To read a FITS Table::
-
 .. testsetup::
-
-    from astropy.io import fits
-    fits_table_filename = fits.util.get_testdata_filepath('btable.fits')
-
-.. doctest::
-    :hide:
 
     >>> from astropy.io import fits
     >>> fits_table_filename = fits.util.get_testdata_filepath('btable.fits')
-    >>> hdul = fits.open(fits_table_filename)  # open a FITS file
-    >>> hdul.close()
+    >>> hdul = fits.open(fits_table_filename)
 
-.. doctest::
+To read a FITS Table::
 
     >>> from astropy.io import fits
     >>> hdul = fits.open("btable.fits")  # doctest: +SKIP
