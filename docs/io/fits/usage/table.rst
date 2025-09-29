@@ -90,13 +90,12 @@ Example
 
     >>> from astropy.io import fits
     >>> fits_table_filename = fits.util.get_testdata_filepath('btable.fits')
-    >>> hdul = fits.open(fits_table_filename)
 
-To read a FITS Table::
+To read a FITS Table (see :func:`~astropy.io.fits.open` for acceptable inputs)::
 
     >>> from astropy.io import fits
-    >>> hdul = fits.open("btable.fits")  # doctest: +SKIP
-    >>> # Note: filename must be a string
+    >>> fits_table_filename = "btable.fits"  # doctest: +SKIP
+    >>> hdul = fits.open(fits_table_filename)
     >>> data = hdul[1].data  # assume the first extension is a table
     >>> # show the first two rows
     >>> first_two_rows = data[:2]
