@@ -20,7 +20,7 @@ from .column import Column, MaskedColumn
 __all__ = ["from_df", "from_pandas", "to_df", "to_pandas"]
 
 if TYPE_CHECKING:
-    import narwhals as nw
+    from narwhals.typing import EagerAllowed, IntoBackend
     from units.typing import UnitLike
 
     from .table import Table
@@ -91,7 +91,7 @@ def _get_backend_impl(backend: str):
     return nw.Implementation.from_backend(backend)
 
 
-def _is_pandas_like(backend_impl: "nw.Implementation" | PandasLikeSentinel) -> bool:
+def _is_pandas_like(backend_impl: IntoBackend[EagerAllowed] | PandasLikeSentinel) -> bool:
     return backend_impl is PANDAS_LIKE or (
         not isinstance(backend_impl, str)
         and getattr(backend_impl, "is_pandas_like", lambda: False)()
@@ -101,7 +101,7 @@ def _is_pandas_like(backend_impl: "nw.Implementation" | PandasLikeSentinel) -> b
 def _validate_columns_for_backend(
     table: "Table",
     *,
-    backend_impl: "nw.Implementation" | PandasLikeSentinel = PANDAS_LIKE,
+    backend_impl: IntoBackend[EagerAllowed] | PandasLikeSentinel = PANDAS_LIKE,
 ) -> None:
     """Validate that table columns are compatible with the target backend.
 
@@ -133,7 +133,7 @@ def _handle_index_argument(
     table: "Table",
     *,
     index: bool | str | None,
-    backend_impl: "nw.Implementation" | PandasLikeSentinel,
+    backend_impl: IntoBackend[EagerAllowed] | PandasLikeSentinel,
 ) -> bool | str:
     """Process the index argument for DataFrame conversion."""
     if index is False:
