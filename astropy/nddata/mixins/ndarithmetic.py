@@ -383,11 +383,13 @@ class NDArithmeticMixin:
                 result = operation(
                     # Convert between units if necessary. This previously used
                     # the << operator, but that can produce unwanted type
-                    # upcasting, so we need to specify dtype=None explicitly.
+                    # upcasting, so we need to specify dtype=None explicitly,
+                    # effectively handing off dtype introspection to numpy at
+                    # runtime.
                     Quantity(
                         self.data,
                         unit=dimensionless_unscaled,
-                        dtype=None,  # use "normal numpy.dtype introspection"
+                        dtype=None,
                         copy=COPY_IF_NEEDED,
                     ),
                     Quantity(
