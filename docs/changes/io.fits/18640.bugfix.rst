@@ -1,1 +1,1 @@
-iFix slicing FITS compressed file with .section when data is scaled.
+Fix slicing FITS compressed file with ``.section`` when data is scaled.
