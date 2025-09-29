@@ -8,3 +8,4 @@ In both cases you can supply ``units`` and ``description`` arguments as a
 the table. Previously, if the input table did not contain a column that
 was specified in the ``units`` or ``description`` dict, a ``ValueError`` 
 was raised. Now, such columns are simply ignored.
+
