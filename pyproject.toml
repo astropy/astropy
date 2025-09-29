@@ -81,9 +81,9 @@ all = [
     "astropy[jupyter]",
     # Install all remaining optional dependencies
     "certifi>=2022.6.15.1",
+    "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
     "h5py>=3.9.0",  # older versions used deprecated np.product()
     "pyarrow>=14.0.2",
-    "dask[dataframe]>=2024.8.0",
     "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
     "html5lib>=1.1",
     "bleach>=3.2.1",
@@ -121,9 +121,8 @@ test_all = [
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 ]
 typing = [
-    # keep in sync with dependency-groups.dataframe
     "pandas-stubs>=2.0.0",
-    "narwhals>=1.42.0"
+    "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
@@ -180,6 +179,7 @@ build-backend = "setuptools.build_meta"
 # that can be converted to and from via narwhals
 dataframe = [
     # keep in sync with project.optional-dependencies.recommended
+    # and project.optional-dependencies.all
     # and project.optional-dependencies.typing
     "narwhals>=1.42.0",
     "pyarrow>=14.0.2",
