@@ -91,7 +91,9 @@ def _get_backend_impl(backend: str):
     return nw.Implementation.from_backend(backend)
 
 
-def _is_pandas_like(backend_impl: IntoBackend[EagerAllowed] | PandasLikeSentinel) -> bool:
+def _is_pandas_like(
+    backend_impl: IntoBackend[EagerAllowed] | PandasLikeSentinel,
+) -> bool:
     return backend_impl is PANDAS_LIKE or (
         not isinstance(backend_impl, str)
         and getattr(backend_impl, "is_pandas_like", lambda: False)()
