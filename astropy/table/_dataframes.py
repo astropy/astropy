@@ -78,10 +78,6 @@ def _encode_mixins(tbl: "Table") -> "Table":
 
 def _get_backend_impl(backend: str):
     """Get the narwhals backend implementation."""
-    # Ensure backend is string
-    if not isinstance(backend, str):
-        raise TypeError("backend must be a string")
-
     if not HAS_NARWHALS:
         raise ModuleNotFoundError(
             "The narwhals library is required for generic DataFrame conversion."
