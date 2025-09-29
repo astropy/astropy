@@ -95,7 +95,7 @@ To read a FITS Table (see :func:`~astropy.io.fits.open` for acceptable inputs)::
 
     >>> from astropy.io import fits
     >>> fits_table_filename = "btable.fits"  # doctest: +SKIP
-    >>> hdul = fits.open(fits_table_filename)
+    >>> hdul = fits.open(fits_table_filename)  # open a FITS file
     >>> data = hdul[1].data  # assume the first extension is a table
     >>> # show the first two rows
     >>> first_two_rows = data[:2]
