@@ -3093,16 +3093,29 @@ def test_table_attribute_fail():
             colnames = TableAttribute()  # Conflicts with built-in property
 
 
-def test_set_units_fail():
+def test_set_units_and_descriptions():
     dat = [[1.0, 2.0], ["aa", "bb"]]
+
+    # Wrong number of units should raise ValueError
     with pytest.raises(
         ValueError, match="sequence of unit values must match number of columns"
     ):
         Table(dat, units=[u.m])
-    with pytest.raises(
-        ValueError, match="invalid column name c for setting unit attribute"
-    ):
-        Table(dat, units={"c": u.m})
+
+    # Now setting a unit for a non-existing column should NOT raise an error
+    t = Table(
+        dat,
+        names=["x", "y"],
+        units={"x": u.m, "c": u.kg},
+        descriptions={"y": "Y", "d": "D"},
+    )
+
+    assert t["x"].unit == u.m
+    assert t["y"].description == "Y"
+
+    # Column 'c' and 'd' should not exist in the table
+    assert "c" not in t.colnames
+    assert "d" not in t.colnames
 
 
 def test_set_units():
