@@ -977,9 +977,13 @@ class TableLoc:
         Indexed table to use
     """
 
-    def __init__(self, table):
+    def __init__(self, table, index_key=None):
         self.table = table
         self.indices = table.indices
+        self.index_key = index_key
+
+    def __call__(self, *index_key):
+        return TableLoc(self.table, index_key)
 
     def _get_row_idxs_as_list(self, key, item):
         """
@@ -989,8 +993,6 @@ class TableLoc:
             raise ValueError("Can only use TableLoc for a table with indices")
 
         index = self.indices[key]
-        if len(index.columns) > 1:
-            raise ValueError("Cannot use .loc on multi-column indices")
 
         if isinstance(item, slice):
             # None signifies no upper/lower bound
@@ -1003,7 +1005,9 @@ class TableLoc:
             # item should be a list or ndarray of values
             rows = []
             for index_key in item:
-                p = index.find((index_key,))
+                p = index.find(
+                    index_key if isinstance(index_key, tuple) else (index_key,)
+                )
                 if len(p) == 0:
                     raise KeyError(f"No matches found for key {index_key}")
                 else:
@@ -1017,10 +1021,13 @@ class TableLoc:
         """
         # This handles ``tbl.loc[<item>]`` and ``tbl.loc[<key>, <item>]`` (and the same
         # for ``tbl.loc_indices``).
-        if isinstance(item, tuple):
-            key, item = item
+        if self.index_key is not None:
+            key = self.index_key
         else:
-            key = self.table.primary_key
+            if isinstance(item, tuple):
+                key, item = item
+            else:
+                key = self.table.primary_key
 
         item_is_sequence = isinstance(item, (list, np.ndarray))
 
