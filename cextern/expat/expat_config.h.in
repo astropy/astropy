@@ -15,13 +15,13 @@
 /* Define to 1 if you have the `arc4random_buf' function. */
 #undef HAVE_ARC4RANDOM_BUF
 
-/* Define to 1 if you have the <dlfcn.h> header file. */
-#undef HAVE_DLFCN_H
+/* define if the compiler supports basic C++11 syntax */
+#undef HAVE_CXX11
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define to 1 if you have the `getpagesize' function. */
+/* Define to 1 if you have the 'getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
 /* Define to 1 if you have the `getrandom' function. */
@@ -30,10 +30,10 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `bsd' library (-lbsd). */
+/* Define to 1 if you have the 'bsd' library (-lbsd). */
 #undef HAVE_LIBBSD
 
-/* Define to 1 if you have a working `mmap' system call. */
+/* Define to 1 if you have a working 'mmap' system call. */
 #undef HAVE_MMAP
 
 /* Define to 1 if you have the <stdint.h> header file. */
@@ -66,9 +66,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to the sub-directory where libtool stores uninstalled libraries. */
-#undef LT_OBJDIR
-
 /* Name of package */
 #undef PACKAGE
 
@@ -90,7 +87,7 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
@@ -115,7 +112,7 @@
 #undef XML_ATTR_INFO
 
 /* Define to specify how much context to retain around the current parse
-   point. */
+   point, 0 to disable. */
 #undef XML_CONTEXT_BYTES
 
 /* Define to include code reading entropy from `/dev/urandom'. */
@@ -124,16 +121,16 @@
 /* Define to make parameter entity parsing functionality available. */
 #undef XML_DTD
 
+/* Define as 1/0 to enable/disable support for general entities. */
+#undef XML_GE
+
 /* Define to make XML Namespaces functionality available. */
 #undef XML_NS
 
-/* Define to empty if `const' does not conform to ANSI C. */
+/* Define to empty if 'const' does not conform to ANSI C. */
 #undef const
 
-/* Define to `long int' if <sys/types.h> does not define. */
+/* Define to 'long int' if <sys/types.h> does not define. */
 #undef off_t
-
-/* Define to `unsigned int' if <sys/types.h> does not define. */
-#undef size_t
 
 #endif // ndef EXPAT_CONFIG_H
