@@ -272,9 +272,9 @@ def extract_array(
 
     # Extracting on the edges is presumably a rare case, so treat special here
     if (extracted_array.shape != shape) and (mode == "partial"):
-        extracted_array = np.zeros(shape, dtype=array_large.dtype)
+        extracted_array_large = np.zeros(shape, dtype=extracted_array.dtype)
         try:
-            extracted_array[:] = fill_value
+            extracted_array_large[:] = fill_value
         except ValueError as exc:
             exc.args += (
                 "fill_value is inconsistent with the data type of "
@@ -285,7 +285,8 @@ def extract_array(
             )
             raise exc
 
-        extracted_array[small_slices] = array_large[large_slices]
+        extracted_array_large[small_slices] = extracted_array
+        extracted_array = extracted_array_large
         if return_position:
             new_position = [i + s.start for i, s in zip(new_position, small_slices)]
     if return_position:
