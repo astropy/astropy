@@ -2558,17 +2558,21 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         assert_allclose(copy.wcs._unit_scaling, self.scale)
 
     def test_sub(self):
-
         # Check that taking e.g. .celestial, .spectral, and more generally .sub
         # will pass the preserve_units to the new WCS object.
 
-        assert_allclose(self.wcs_preserve.celestial.wcs._unit_scaling, np.array([1 / 3600, 1 / 3600]))
+        assert_allclose(
+            self.wcs_preserve.celestial.wcs._unit_scaling,
+            np.array([1 / 3600, 1 / 3600]),
+        )
 
-        assert_allclose(self.wcs_preserve.spectral.wcs._unit_scaling, np.array([1e9, 1e-9]))
+        assert_allclose(
+            self.wcs_preserve.spectral.wcs._unit_scaling, np.array([1e9, 1e-9])
+        )
 
         assert_allclose(
             self.wcs_preserve.sub([1, 2, 0, 3, 4, 5]).wcs._unit_scaling,
-            np.array([1 / 3600, 1e9, 1., 1 / 3600, 1e-9, 1])
+            np.array([1 / 3600, 1e9, 1.0, 1 / 3600, 1e-9, 1]),
         )
 
 
