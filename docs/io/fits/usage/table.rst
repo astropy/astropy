@@ -85,9 +85,9 @@ Example
 .. note::
 
     The ``astropy.io.fits.util.get_testdata_filepath()`` function,
-    used in the examples here, is for accessing data shipped with ``astropy``.
-    To work with your own data instead, please use :func:`astropy.io.fits.open`,
-    which takes either the relative or absolute path.
+    used in the examples here, returns file path for test data shipped with ``astropy``.
+    To work with your own data instead, please use :func:`astropy.io.fits.open` or :ref:`io-fits-intro-convenience-functions`,
+    which take either the relative or absolute path as string or :term:`python:path-like object`.
 
 ..
   EXAMPLE START
