@@ -1335,28 +1335,31 @@ def test_nddata_bitmask_arithmetic():
 # Covers different dtypes with various types of scalars as the 2nd operand
 # (issue #18384):
 @pytest.mark.parametrize(
-    "data1",
-    [
-        NDDataRef(np.array([1, 2, 3, 4], dtype=np.uint16)),
-        NDDataRef(np.array([1, 2, 3, 4], dtype=np.float32)),
-        NDDataRef(np.array([1, 2, 3, 4], dtype=np.float64)),
-    ],
+    "ndd_type",
+    (
+        pytest.param(np.uint16),
+        pytest.param(np.float32),
+        pytest.param(np.float64),
+    ),
 )
 @pytest.mark.parametrize(
-    "data2",
-    [
-        2,
-        2.0,
-        np.uint8(2),
-        np.int16(2),
-        np.float32(2.0),
-        np.float64(2.0),
-        np.array(2, dtype=np.int16),
-        np.array(2.0, dtype=np.float32),
-    ],
+    "scalar_type",
+    (
+        pytest.param(int, id="int"),
+        pytest.param(float, id="float"),
+        pytest.param(np.uint8, id="uint8"),
+        pytest.param(np.int16, id="int16"),
+        pytest.param(np.float32, id="float32"),
+        pytest.param(np.float64, id="float64"),
+        pytest.param(lambda v: np.array(v, dtype=np.int16), id="int16_0D_array"),
+        pytest.param(lambda v: np.array(v, dtype=np.float32), id="float32_0D_array"),
+    ),
 )
 @pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
-def test_arithmetics_dtypes_with_scalar(data1, data2, meth, op):
+def test_arithmetics_dtypes_with_scalar(ndd_type, scalar_type, meth, op):
+    data1 = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type))
+    data2 = scalar_type(2)
+
     out = getattr(data1, meth)(data2)
     ref = op(data1.data, data2)
 
@@ -1367,28 +1370,15 @@ def test_arithmetics_dtypes_with_scalar(data1, data2, meth, op):
 
 
 # Covers adding scalar quantity matching non-default dtypes:
-@pytest.mark.parametrize(
-    ("data1", "data2"),
-    [
-        (
-            NDDataRef(np.array([1, 2, 3, 4], dtype=np.uint16), unit=u.adu),
-            u.Quantity(2, dtype=np.uint16, unit=u.adu),
-        ),
-        (
-            NDDataRef(np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32), unit=u.adu),
-            u.Quantity(2.0, dtype=np.float32, unit=u.adu),
-        ),
-        (
-            NDDataRef(np.array([1.0, 2.0, 3.0, 4.0]), unit=u.adu),
-            2.0 * u.adu,
-        ),
-    ],
-)
+@pytest.mark.parametrize("ndd_type", (np.uint16, np.float32, np.float64))
 @pytest.mark.parametrize(
     ("meth", "op"),
     ((k, v) for k, v in STR_TO_OPERATOR.items() if k in ("add", "subtract")),
 )
-def test_add_quantity_matching_dtype(data1, data2, meth, op):
+def test_add_quantity_matching_dtype(ndd_type, meth, op):
+    data1 = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type), unit=u.adu)
+    data2 = u.Quantity(2, dtype=ndd_type, unit=u.adu)
+
     out = getattr(data1, meth)(data2)
     ref = op(data1.data, data2.value)
 
@@ -1398,29 +1388,16 @@ def test_add_quantity_matching_dtype(data1, data2, meth, op):
 
 
 # Covers scaling with units and non-default dtypes:
-@pytest.mark.parametrize(
-    "data1",
-    [
-        NDDataRef(np.array([1, 2, 3, 4], dtype=np.uint16), unit=u.adu),
-        NDDataRef(np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32), unit=u.adu),
-        NDDataRef(np.array([1.0, 2.0, 3.0, 4.0]), unit=u.adu),
-    ],
-)
-@pytest.mark.parametrize(
-    "data2",
-    [
-        2,
-        2.0,
-        np.uint16(2),
-        np.float32(2.0),
-        np.float64(2.0),
-    ],
-)
+@pytest.mark.parametrize("ndd_type", (np.uint16, np.float32, np.float64))
+@pytest.mark.parametrize("scalar_type", (int, float, np.uint16, np.float32, np.float64))
 @pytest.mark.parametrize(
     ("meth", "op"),
     ((k, v) for k, v in STR_TO_OPERATOR.items() if k in ("multiply", "divide")),
 )
-def test_scale_dtypes_with_units(data1, data2, meth, op):
+def test_scale_dtypes_with_units(ndd_type, scalar_type, meth, op):
+    data1 = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type), unit=u.adu)
+    data2 = scalar_type(2)
+
     out = getattr(data1, meth)(data2)
     ref = op(data1.data, data2)
 
@@ -1461,18 +1438,20 @@ def generate_simple_ndds_with_uncert_mask(nout=1):
 # Covers non-default dtypes + uncert + mask with various scalar types
 @pytest.mark.parametrize(("data1",), generate_simple_ndds_with_uncert_mask(nout=1))
 @pytest.mark.parametrize(
-    "data2",
-    [
-        2,
-        2.0,
-        np.uint16(2),
-        np.float32(2.0),
-        np.array(2, dtype=np.uint16),
-        np.array(2.0, dtype=np.float32),
-    ],
+    "scalar_type",
+    (
+        pytest.param(int, id="int"),
+        pytest.param(float, id="float"),
+        pytest.param(np.uint16, id="uint16"),
+        pytest.param(np.float32, id="float32"),
+        pytest.param(lambda v: np.array(v, dtype=np.uint16), id="uint16_0D_array"),
+        pytest.param(lambda v: np.array(v, dtype=np.float32), id="float32_0D_array"),
+    ),
 )
 @pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
-def test_dtypes_uncert_mask_with_scalars(data1, data2, meth, op):
+def test_dtypes_uncert_mask_with_scalars(data1, scalar_type, meth, op):
+    data2 = scalar_type(2)
+
     out = getattr(data1, meth)(data2)
 
     ref_dat = op(data1.data, data2)
