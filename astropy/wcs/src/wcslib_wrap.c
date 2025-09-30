@@ -755,7 +755,6 @@ PyWcsprm_copy(
   }
 }
 
-
 static PyWcsprm* PyWcsprm_copy_with_patched_units(PyWcsprm* source) {
 
     // This function returns a copy of a PyWcsprm with units patched
