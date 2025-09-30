@@ -1406,6 +1406,27 @@ def test_scale_dtypes_with_units(ndd_type, scalar_type, meth, op):
     assert_array_almost_equal(out.data, ref)
 
 
+# Covers adding scalar Quantity to NDData with default float dtypes for both.
+# While these two classes live in different modules with their own defaults,
+# we'd probably like to know about the unlikely event of their becoming
+# inconsistent, which could break downstream assumptions. This also checks
+# Quantity constructed in the common way, rather than programmatically as above.
+@pytest.mark.parametrize(
+    ("meth", "op"),
+    ((k, v) for k, v in STR_TO_OPERATOR.items() if k in ("add", "subtract")),
+)
+def test_add_quantity_default_dtypes(meth, op):
+    data1 = NDDataRef(np.array([1.0, 2.0, 3.0, 4.0]), unit=u.adu)
+    data2 = 2.0 * u.adu
+
+    out = getattr(data1, meth)(data2)
+    ref = op(data1.data, data2.value)
+
+    assert out.data.shape == data1.data.shape
+    assert out.data.dtype == data1.data.dtype
+    assert_array_equal(out.data, ref)
+
+
 # Provide input for the following test sets without lots of replication:
 def generate_simple_ndds_with_uncert_mask(nout=1):
     for values in itertools.product(
