@@ -2545,6 +2545,14 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         else:
             assert wcs_preserve.wcs._unit_scaling is None
 
+    def test_sub_unit_scaling(self):
+
+        # Check that taking e.g. .celestial, .spectral, and more generally .sub
+        # will pass the preserve_units to the new WCS object.
+
+        assert_allclose(self.wcs_preserve.celestial.wcs._unit_scaling, np.array([1/3600, 1/3600]))
+
+
 
 def test_thread_safe_conversions():
     # This is a regression test for a bug which caused wcsset to be called
