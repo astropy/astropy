@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import math
+
 import erfa
 import numpy as np
 
@@ -104,26 +106,19 @@ class FK4NoETerms(BaseRADecFrame):
         """
         # tropical years
         t1 = (oldequinox.byear - 1850.0) / 1000.0
-        t2 = (newequinox.byear - 1850.0) / 1000.0
-        dt = t2 - t1
+        dt = (newequinox.byear - 1850.0) / 1000.0 - t1
+        dt_over_3600 = dt / 3600
 
-        zeta1 = 23035.545 + t1 * 139.720 + 0.060 * t1 * t1
-        zeta2 = 30.240 - 0.27 * t1
-        zeta3 = 17.995
-        pzeta = (zeta3, zeta2, zeta1, 0)
-        zeta = np.polyval(pzeta, dt) / 3600
+        z1 = zeta1 = (0.060 * t1 + 139.720) * t1 + 23035.545
+        zeta2 = -0.27 * t1 + 30.240
+        zeta = ((17.995 * dt + zeta2) * dt + zeta1) * dt_over_3600
 
-        z1 = 23035.545 + t1 * 139.720 + 0.060 * t1 * t1
         z2 = 109.480 + 0.39 * t1
-        z3 = 18.325
-        pz = (z3, z2, z1, 0)
-        z = np.polyval(pz, dt) / 3600
+        z = ((18.325 * dt + z2) * dt + z1) * dt_over_3600
 
-        theta1 = 20051.12 - 85.29 * t1 - 0.37 * t1 * t1
-        theta2 = -42.65 - 0.37 * t1
-        theta3 = -41.8
-        ptheta = (theta3, theta2, theta1, 0)
-        theta = np.polyval(ptheta, dt) / 3600
+        theta1 = (-0.37 * t1 - 85.29) * t1 + 20051.12
+        theta2 = -0.37 * t1 - 42.65
+        theta = ((-41.8 * dt + theta2) * dt + theta1) * dt_over_3600
 
         return (
             rotation_matrix(-z, "z")
@@ -157,23 +152,19 @@ def fk4_e_terms(equinox):
     # Constant of aberration at J2000; from Explanatory Supplement to the
     # Astronomical Almanac (Seidelmann, 2005).
     k = 0.0056932  # in degrees (v_earth/c ~ 1e-4 rad ~ 0.0057 deg)
-    k = np.radians(k)
 
     # Explanatory Supplement to the Astronomical Almanac: P. Kenneth
     #  Seidelmann (ed), University Science Books (1992).
     T = (equinox.jd - jd1950) / 36525.0
     # Eccentricity of the Earth's orbit
-    e = np.polyval((-0.000000126, -0.00004193, 0.01673011), T)
+    ek = math.radians(k) * ((-0.000000126 * T - 0.00004193) * T + 0.01673011)
     # Mean longitude of perigee of the solar orbit
-    g = np.radians(np.polyval((0.012, 1.65, 6190.67, 1015489.951), T) / 3600.0)
+    g = np.radians((((0.012 * T + 1.65) * T + 6190.67) * T + 1015489.951) / 3600.0)
+    minus_ek_cos_g = -ek * np.cos(g)
     # Obliquity of the ecliptic
     o = erfa.obl80(equinox.jd, 0)
 
-    return (
-        e * k * np.sin(g),
-        -e * k * np.cos(g) * np.cos(o),
-        -e * k * np.cos(g) * np.sin(o),
-    )
+    return (ek * np.sin(g), minus_ek_cos_g * np.cos(o), minus_ek_cos_g * np.sin(o))
 
 
 @frame_transform_graph.transform(
@@ -252,9 +243,9 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         copy=False,
     )
 
-    rep0 = rep.copy()
+    eterms_a_plus_rep_ini = eterms_a + rep
     for _ in range(10):
-        rep = (eterms_a + rep0) / (1.0 + eterms_a.dot(rep))
+        rep = eterms_a_plus_rep_ini / (1.0 + eterms_a.dot(rep))
 
     # Find new distance (for re-normalization)
     d_new = rep.norm()
