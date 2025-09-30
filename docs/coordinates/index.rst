@@ -577,7 +577,7 @@ coordinate systems implemented here include:
 * `USNO Circular 179 <https://arxiv.org/abs/astro-ph/0602086>`_
     A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
     related problems in precision coordinate system work.
-* `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
+* `Standards Of Fundamental Astronomy <https://www.iausofa.org/>`_
     The definitive implementation of IAU-defined algorithms. The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.
