@@ -28,6 +28,7 @@ from astropy.table import (
 )
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time, TimeDelta
+from astropy.utils import minversion
 from astropy.utils.compat import NUMPY_LT_1_25
 from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.data import get_pkg_data_filename
@@ -2079,13 +2080,22 @@ class TestPandas:
 
         d = t.to_pandas()
 
+        if minversion("pandas", "3.0.0.dev"):
+            # upstream feature of pandas
+            import pandas as pd
+
+            pandas_string_dtype = pd.StringDtype(na_value=np.nan)
+        else:
+            # PANDAS_LT_3_0
+            pandas_string_dtype = np.dtype("O")
+
         for column in t.columns:
             if column == "u":
                 assert np.all(t["u"] == np.array(["a", "b", "c"]))
-                assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
+                assert d[column].dtype == pandas_string_dtype
             elif column == "s":
                 assert np.all(t["s"] == np.array(["a", "b", "c"]))
-                assert d[column].dtype == np.dtype("O")  # upstream feature of pandas
+                assert d[column].dtype == pandas_string_dtype
             else:
                 # We should be able to compare exact values here
                 assert np.all(t[column] == d[column])
