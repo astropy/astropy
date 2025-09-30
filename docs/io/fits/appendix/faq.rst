@@ -586,7 +586,7 @@ The `astropy.io.fits` module (originally PyFITS) is a "pure Python" FITS
 reader in that all of the code for parsing the FITS file format is in Python,
 though ``numpy`` is used to provide access to the FITS data via the
 `~numpy.ndarray` interface. `astropy.io.fits` currently also accesses the
-`CFITSIO <https://heasarc.gsfc.nasa.gov/fitsio/fitsio.html>`_ to support the
+`CFITSIO <https://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html>`_ to support the
 FITS Tile Compression convention, but this feature is optional. It does not
 use CFITSIO outside of reading compressed images.
 
