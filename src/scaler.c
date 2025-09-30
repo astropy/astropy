@@ -1,6 +1,9 @@
+#define NPY_TARGET_VERSION NPY_2_0_API_VERSION
 #define PY_SSIZE_T_CLEAN
 #include "numpy/arrayobject.h"
 #include <Python.h>
+#include <numpy/ndarrayobject.h>
+#include <numpy/ufuncobject.h>
 #include <stddef.h> /* for offsetof() */
 
 typedef struct {
@@ -12,11 +15,57 @@ typedef struct {
     vectorcallfunc vectorcall;
 } ScalerObject;
 
-PyObject *Scaler_vectorcall(
+static PyUFuncObject *multiply = NULL;
+
+static PyObject *use_contiguous_loop(PyArrayObject *arr, double *factor)
+{
+    static PyUFuncGenericFunction loop = NULL; // [NPY_CDOUBLE] = {NULL};
+    const char type_num = PyArray_DESCR(arr)->type_num;
+    if (loop == NULL) {
+        // Unfortunately, new-style loops are not exposed, so get legacy one.
+        int nargs = multiply->nargs;
+        const char *types = multiply->types;
+        int i, j;
+        for (i = 0; i < multiply->ntypes; ++i) {
+            for (j = 0; j < nargs; ++j) {
+                if (types[j] != type_num) {
+                    break;
+                }
+            }
+            if (j == nargs) {
+                loop = multiply->functions[i];
+                break;
+            }
+            types += nargs;
+        }
+        if (i == multiply->ntypes) {
+            PyErr_SetString(PyExc_RuntimeError, "could not find loop");
+            return NULL;
+        }
+    }
+    // do it!
+    PyObject *res =
+        PyArray_EMPTY(PyArray_NDIM(arr), PyArray_DIMS(arr), type_num, PyArray_ISFORTRAN(arr));
+    char *data[3] = {PyArray_DATA(arr), (char *)factor, PyArray_DATA((PyArrayObject *)res)};
+    npy_intp n = PyArray_SIZE(arr);
+    npy_intp strides[3] = {PyArray_ITEMSIZE(arr), 0, PyArray_ITEMSIZE(arr)};
+    PyUFunc_clearfperr();
+    loop(data, &n, strides, NULL);
+    int fpe_errors = PyUFunc_getfperr();
+    if (fpe_errors) {
+        if (PyUFunc_GiveFloatingpointErrors("multiply", fpe_errors) < 0) {
+            Py_DECREF(res);
+            return NULL;
+        }
+    }
+    return res;
+}
+
+static PyObject *Scaler_vectorcall(
     ScalerObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
 )
 {
-    PyObject *obj = args[0];
+    PyObject *const obj = args[0];
     if (PyVectorcall_NARGS(len_args) != 1) {
         PyErr_Format(
             PyExc_TypeError, "scaler() takes 1 argument, not %d", PyVectorcall_NARGS(len_args)
@@ -28,14 +77,23 @@ PyObject *Scaler_vectorcall(
         return PyFloat_FromDouble(PyFloat_AS_DOUBLE(obj) * self->factor);
     }
     else if (PyArray_CheckExact(obj)) {
+        PyArrayObject *const arr = (PyArrayObject *)obj;
+        if (PyArray_DESCR(arr)->type_num == NPY_FLOAT64 && PyArray_ISONESEGMENT(arr)) {
+            // speed up over ufunc by using strided loop directly.
+            return use_contiguous_loop(arr, &self->factor);
+        }
         if (self->A_factor == NULL) {
             npy_intp const dims[0];
             self->A_factor = PyArray_SimpleNewFromData(0, dims, NPY_FLOAT64, &self->factor);
             if (self->A_factor == NULL) {
-                return NULL;
+                npy_intp const dims[0];
+                self->A_factor = PyArray_SimpleNewFromData(0, dims, NPY_FLOAT64, &self->factor);
+                if (self->A_factor == NULL) {
+                    return NULL;
+                }
             }
+            return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, self->A_factor);
         }
-        return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, self->A_factor);
     }
     else if (PyLong_CheckExact(obj)) {
         double d = PyLong_AsDouble(obj);
@@ -97,8 +155,8 @@ static void Scaler_dealloc(ScalerObject *self)
 
 static PyMemberDef Scaler_members[] = {
     {"factor",
-     Py_T_OBJECT_EX,
-     offsetof(ScalerObject, O_factor),
+     Py_T_DOUBLE,
+     offsetof(ScalerObject, factor),
      Py_READONLY,
      "factor with which input is multiplied"},
     {NULL},
@@ -147,6 +205,19 @@ static PyModuleDef scaler_module = {
 
 PyMODINIT_FUNC PyInit_scaler(void)
 {
-    import_array();
+    if (PyUFunc_ImportUFuncAPI() < 0) {
+        return NULL;
+    }
+    if (PyArray_ImportNumPyAPI() < 0) {
+        return NULL;
+    }
+    PyObject *mod = PyImport_ImportModule("numpy");
+    if (mod != NULL) {
+        multiply = (PyUFuncObject *)PyObject_GetAttrString(mod, "multiply");
+        Py_DECREF(mod);
+    }
+    if (multiply == NULL) {
+        return NULL;
+    }
     return PyModuleDef_Init(&scaler_module);
 }
