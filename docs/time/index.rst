@@ -384,7 +384,7 @@ local  Local Time Scale          (LOCAL)
 
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] |SOFA| Time Scale and Calendar Tools
-       `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
+       `(PDF) <https://starlink.eao.hawaii.edu/star/share/sofa/sofa_ts_c.pdf>`_
 
 .. note:: The ``local`` time scale is meant for free-running clocks or
    simulation times (i.e., to represent a time without a properly defined
@@ -1100,7 +1100,7 @@ Transformation Offsets
 Time scale transformations that cross one of the orange circles in the image
 above require an additional offset time value that is model or
 observation dependent. See |SOFA| `Time Scale and Calendar Tools
-<http://www.iausofa.org/sofa_ts_c.pdf>`_ for further details.
+<https://starlink.eao.hawaii.edu/star/share/sofa/sofa_ts_c.pdf>`_ for further details.
 
 The two attributes :attr:`~astropy.time.Time.delta_ut1_utc` and
 :attr:`~astropy.time.Time.delta_tdb_tt` provide a way to set
@@ -1155,7 +1155,7 @@ Example
 .. EXAMPLE START: Transformation Offsets in Time Objects
 
 The following code replicates an example in the |SOFA| `Time Scale and Calendar
-Tools <http://www.iausofa.org/sofa_ts_c.pdf>`_ document. It does the transform
+Tools <https://starlink.eao.hawaii.edu/star/share/sofa/sofa_ts_c.pdf>`_ document. It does the transform
 from UTC to all supported time scales (TAI, TCB, TCG, TDB, TT, UT1, UTC). This
 requires an observer location (here, latitude and longitude).
 ::
@@ -1799,4 +1799,4 @@ under the terms of the "BSD-three clauses" license.
 
 The |ERFA| library is derived, with permission, from the International
 Astronomical Union's "Standards of Fundamental Astronomy" (|SOFA|) library,
-available from http://www.iausofa.org.
+available from https://www.iausofa.org.
