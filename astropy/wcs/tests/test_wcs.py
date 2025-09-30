@@ -2557,7 +2557,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         copy = self.wcs_preserve.deepcopy()
         assert_allclose(copy.wcs._unit_scaling, self.scale)
 
-    def test_sub_unit_scaling(self):
+    def test_sub(self):
 
         # Check that taking e.g. .celestial, .spectral, and more generally .sub
         # will pass the preserve_units to the new WCS object.
