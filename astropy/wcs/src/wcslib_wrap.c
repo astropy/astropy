@@ -713,6 +713,33 @@ PyWcsprm_copy(
   status = wcscopy(1, &self->x, &copy->x);
   wcsprm_c2python(&self->x);
 
+  // Also copy over any information related to preserving units
+
+  copy->preserve_units = self->preserve_units;
+
+  if (self->original_cunit != NULL) {
+    copy->original_cunit = malloc(copy->x.naxis * sizeof(*copy->original_cunit));
+    if (self->original_cunit == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    for (int i = 0; i < copy->x.naxis; ++i) {
+        strncpy(copy->original_cunit[i], self->original_cunit[i], 72);
+    }
+  }
+
+  if (self->unit_scaling != NULL) {
+      copy->unit_scaling = malloc(copy->x.naxis * sizeof(double));
+      if (copy->unit_scaling == NULL) {
+          PyErr_NoMemory();
+          return NULL;
+      }
+    for (int i = 0; i < copy->x.naxis; ++i) {
+        copy->unit_scaling[i] = self->unit_scaling[i];
+    }
+  }
+
+
   if (status == 0) {
     if (PyWcsprm_cset(copy, 0)) {
       Py_XDECREF((PyObject*)copy);
@@ -727,6 +754,7 @@ PyWcsprm_copy(
     return NULL;
   }
 }
+
 
 static PyWcsprm* PyWcsprm_copy_with_patched_units(PyWcsprm* source) {
 
@@ -2254,6 +2282,39 @@ PyWcsprm_sub(
   wcsprm_python2c(&self->x);
   status = wcssub(1, &self->x, &nsub, axes, &py_dest_wcs->x);
   wcsprm_c2python(&self->x);
+
+  // At this point, we need to copy over any relevant preserve_units
+  // information, but we need to be careful since axes may have been removed or
+  // re-ordered
+
+  py_dest_wcs->preserve_units = self->preserve_units;
+
+  // We check whether original_cunit is allocated to know whether we need to copy
+  // anything over - if it is not allocated then nothing needs to be done even
+  // if preserve_units is set.
+
+  if (self->original_cunit != NULL) {
+
+  initialize_preserve_units(py_dest_wcs);
+
+  // Now override original_unit with the actual original units from the original WCS
+
+  for (int i = 0; i < py_dest_wcs->x.naxis; ++i) {
+
+    // The axis variable has now been modified by wcssub to give the mapping
+    // from new axis to original axis, with the axis numbers being 1-based.
+    // If axis is zero, this means that the axis is a new one and we should
+    // not do anything.
+
+    if (axes[i] > 0) {
+          strncpy(py_dest_wcs->original_cunit[i], self->original_cunit[axes[i] - 1], 72);
+    }
+
+  }
+
+    check_unit_changes(py_dest_wcs);
+
+}
   if (PyWcsprm_cset(py_dest_wcs, 0)) {
     status = -1;
     goto exit;
