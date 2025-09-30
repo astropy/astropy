@@ -71,6 +71,8 @@ _WARNING_ACTIONS: Final[dict[str, str]] = {
     "raise": "error",
 }
 
+_CONVERTER_CACHE = {}
+
 
 class UnitBase:
     """
@@ -562,18 +564,26 @@ class UnitBase:
 
     def _get_converter(self, other, equivalencies=[]):
         # Private function of above that requires other to be a Unit.
-        # First see if it is just a scaling.
+        # Check if we have cached this -- we do this only with simple
+        # scalings, since equivalencies can come and go.
+        if (converter := _CONVERTER_CACHE.get((self, other))) is not None:
+            return converter
+        # If not cached, first see if it is just a scaling.
         try:
             scale = self._to(other)
         except UnitsError:
             pass
         else:
+            # Yes, it is a simple scaling.
             if scale == 1.0:
                 # If no conversion is necessary, returns ``unit_scale_converter``
                 # (which is used as a check in quantity helpers).
-                return unit_scale_converter
+                converter = unit_scale_converter
             else:
-                return lambda val: scale * _condition_arg(val)
+                converter = lambda val: scale * _condition_arg(val)
+            # Cache the converter before returning it.
+            _CONVERTER_CACHE[(self, other)] = converter
+            return converter
 
         # if that doesn't work, maybe we can do it with equivalencies?
         try:
