@@ -241,8 +241,12 @@ class TestDataFrameConversion:
                 df = pl.DataFrame(
                     [pl.Series(name="x", values=range(10), dtype=pl.Int128)]
                 )
-            case _:
+
+            case "pandas" | "pyarrow" | "dask" | "duckdb":
                 return
+
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
 
         with pytest.raises(
             ValueError,
