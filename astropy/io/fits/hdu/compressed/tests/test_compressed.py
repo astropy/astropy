@@ -1258,6 +1258,31 @@ def test_section_unwritten():
     assert hdu.section[3, 4] == data[3, 4]
 
 
+def test_section_scaling(tmp_path):
+    data = (np.arange(200 * 200).reshape(200, 200) - 20_000).astype(np.int16)
+    chdu = fits.CompImageHDU(data=data)
+    chdu._scale_internal(bzero=1.234, bscale=0.0002, blank=32767)
+    chdu.writeto(tmp_path / "compressed.fits")
+
+    with fits.open(tmp_path / "compressed.fits") as hdul:
+        section = hdul[1].section
+        # underlying data is int16 but accessing it triggers scaling
+        assert section.dtype == np.int16
+        assert section[:10].dtype == np.float32
+        # behavior should remain the same after data has been accessed
+        assert section.dtype == np.int16
+        assert section[:10].dtype == np.float32
+
+    with fits.open(tmp_path / "compressed.fits") as hdul:
+        section = hdul[1].section
+        # underlying data is int16 but accessing it triggers scaling
+        assert section.dtype == np.int16
+        assert section[...].dtype == np.float32
+        # behavior should remain the same after data has been accessed
+        assert section.dtype == np.int16
+        assert section[...].dtype == np.float32
+
+
 EXPECTED_HEADER = """
 XTENSION= 'IMAGE   '           / Image extension
 BITPIX  =                   16 / data type of original image
