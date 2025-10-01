@@ -217,8 +217,8 @@ class TestDataFrameConversion:
                     io.StringIO(
                         json.dumps(
                             [
-                                dict(zip(data.keys(), values))
-                                for values in zip(*data.values())
+                                dict(zip(data.keys(), values, strict=True))
+                                for values in zip(*data.values(), strict=True)
                             ]
                         )
                     )
@@ -385,8 +385,8 @@ class TestDataFrameConversion:
                     io.StringIO(
                         json.dumps(
                             [
-                                dict(zip(data.keys(), values))
-                                for values in zip(*data.values())
+                                dict(zip(data.keys(), values), strict=True)
+                                for values in zip(*data.values(), strict=True)
                             ]
                         )
                     )
