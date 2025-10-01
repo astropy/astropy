@@ -294,16 +294,17 @@ def from_df(
     # Iterate over Narwhals columns
     for column in df_nw.iter_columns():
         # Unpack relevant data
-        data = column.to_numpy()
         name = column.name
         dtype = column.dtype
         nw_mask = column.is_null()
         unit = units.get(name)
 
+        # Check first if the dtype is supported
         if isinstance(dtype, nw.Int128):
             raise ValueError(
                 "Astropy Table does not support narwhals.Int128, please use a smaller integer type."
             )
+        data = column.to_numpy()
 
         # Handle nullable integers
         if dtype.is_integer() and nw_mask.any():

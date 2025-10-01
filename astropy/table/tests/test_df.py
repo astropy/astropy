@@ -182,6 +182,74 @@ class TestDataFrameConversion:
             else:
                 assert t2[column].dtype == t[column].dtype.newbyteorder()
 
+    def test_from_df_simple(self, backend, use_legacy_pandas_api):
+        data = {"a": [1, 2, 3], "b": [4.0, 5.0, 6.0], "c": ["x", "y", "z"]}
+        match backend:
+            case "pandas":
+                import pandas as pd
+
+                df = pd.DataFrame(data)
+            case "polars":
+                import polars as pl
+
+                df = pl.DataFrame(data)
+            case "pyarrow":
+                import pyarrow as pa
+
+                df = pa.Table.from_pydict(data)
+            case "dask":
+                import dask.array as da
+                import dask.dataframe as dd
+
+                df = dd.concat(
+                    [
+                        dd.from_dask_array(
+                            da.from_array(arr, chunks="auto"), columns=col
+                        )
+                        for col, arr in data.items()
+                    ],
+                    axis=1,
+                )
+            case "duckdb":
+                import duckdb
+
+                df = duckdb.read_json(
+                    io.StringIO(
+                        json.dumps(
+                            [
+                                dict(zip(data.keys(), values))
+                                for values in zip(*data.values())
+                            ]
+                        )
+                    )
+                )
+
+            case _:
+                raise ValueError(f"Unknown backend: {backend}")
+
+        # Test if the columns are as expected
+        tb = self._from_dataframe(df, backend, use_legacy_pandas_api)
+
+        for col in tb.colnames:
+            assert_array_equal(tb[col], data[col])
+
+    def test_int128(self, backend, use_legacy_pandas_api):
+        match backend:
+            case "polars":
+                import polars as pl
+
+                df = pl.DataFrame(
+                    [pl.Series(name="x", values=range(10), dtype=pl.Int128)]
+                )
+            case _:
+                return
+
+        with pytest.raises(
+            ValueError,
+            match="Astropy Table does not support narwhals.Int128",
+        ):
+            _ = self._from_dataframe(df, backend, use_legacy_pandas_api)
+
     @pytest.mark.parametrize("use_IndexedTable", [False, True])
     def test_to_df_index(self, backend, use_legacy_pandas_api, use_IndexedTable):
         """Test indexing options for both legacy pandas and generic backends."""
@@ -296,14 +364,29 @@ class TestDataFrameConversion:
                 import dask.dataframe as dd
 
                 # Need to aggregate data into 2D dask array
-                df = dd.from_dask_array(
-                    da.stack(list(data.values()), axis=1), columns=list(data.keys())
+                df = dd.concat(
+                    [
+                        dd.from_dask_array(
+                            da.from_array(arr, chunks="auto"), columns=col
+                        )
+                        for col, arr in data.items()
+                    ],
+                    axis=1,
                 )
             case "duckdb":
                 import duckdb
 
                 # DuckDB can't read directly from dict, need to stream via JSON
-                df = duckdb.read_json(io.StringIO(json.dumps(data)))
+                df = duckdb.read_json(
+                    io.StringIO(
+                        json.dumps(
+                            [
+                                dict(zip(data.keys(), values))
+                                for values in zip(*data.values())
+                            ]
+                        )
+                    )
+                )
             case _:
                 raise ValueError(f"Unknown backend: {backend}")
 
