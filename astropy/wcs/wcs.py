@@ -442,7 +442,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         `WCS.fix` for more information about this parameter.  Only
         effective when ``fix`` is `True`.
 
-    preserve_units : str, optional
+    preserve_units : bool, optional
         By default, some units are converted to SI, for example spectral
         axes in units of nm might be converted to m, and celestial axes
         in units of arcsec might be converted to deg. If ``preserve_units``
@@ -519,11 +519,11 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         fix=True,
         translate_units="",
         _do_set=True,
-        preserve_units=None,
+        preserve_units=False,
     ):
         close_fds = []
 
-        self._preserve_units = False if preserve_units is None else preserve_units
+        self._preserve_units = preserve_units
 
         # these parameters are stored to be used when unpickling a WCS object:
         self._init_kwargs = {
