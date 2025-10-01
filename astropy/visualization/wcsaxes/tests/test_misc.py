@@ -8,6 +8,7 @@ import pytest
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.contour import QuadContourSet
 from matplotlib.figure import Figure
+from numpy.testing import assert_allclose
 from packaging.version import Version
 
 from astropy import units as u
@@ -798,3 +799,39 @@ def test_simplify_cases(before, after):
 
     ticklabels.simplify_labels()
     assert ticklabels.text["axis"] == after
+
+
+def test_get_transform_unit_mismatch():
+    """
+    Regression test for a bug that caused get_transform to ignore differences
+    in WCS units.
+
+    https://github.com/astropy/astropy/issues/18246
+    """
+
+    wcs_deg = WCS(naxis=2, preserve_units=True)
+    wcs_deg.wcs.ctype = "RA---TAN", "DEC--TAN"
+    wcs_deg.wcs.crval = 20, 30
+    wcs_deg.wcs.cunit = "deg", "deg"
+    wcs_deg.wcs.crpix = 1, 1
+    wcs_deg.wcs.cdelt = 1 / 60, 1 / 60
+
+    wcs_arcmin = WCS(naxis=2, preserve_units=True)
+    wcs_arcmin.wcs.ctype = "RA---TAN", "DEC--TAN"
+    wcs_arcmin.wcs.crval = 1200, 1800
+    wcs_arcmin.wcs.cunit = "arcmin", "arcmin"
+    wcs_arcmin.wcs.crpix = 1, 1
+    wcs_arcmin.wcs.cdelt = 1, 1
+
+    fig = Figure(figsize=(6, 6))
+    ax = fig.add_subplot(projection=wcs_arcmin)
+    transform1 = ax.get_transform(wcs_arcmin)
+    transform2 = ax.get_transform(wcs_deg)
+
+    # Since the two WCS are equivalent, the returned transforms should also
+    # be equivalent
+
+    rng = np.random.default_rng(12345)
+    pixels = rng.uniform(0, 100, (2, 100))
+
+    assert_allclose(transform1.transform(pixels), transform2.transform(pixels))
