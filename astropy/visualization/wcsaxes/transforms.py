@@ -65,10 +65,13 @@ class CurvedTransform(Transform, metaclass=abc.ABCMeta):
 class CoordinateTransform(CurvedTransform):
     has_inverse = True
 
-    def __init__(self, input_system, output_system):
+    def __init__(self, input_system, input_units, output_system, output_units):
         super().__init__()
         self._input_system_name = input_system
         self._output_system_name = output_system
+        self._input_units = [u.Unit(unit) for unit in input_units]
+        self._output_units = [u.Unit(unit) for unit in output_units]
+        self.same_units = input_units == output_units
 
         if isinstance(self._input_system_name, str):
             frame_cls = frame_transform_graph.lookup_name(self._input_system_name)
@@ -116,24 +119,31 @@ class CoordinateTransform(CurvedTransform):
         """
         Transform one set of coordinates to another.
         """
-        if self.same_frames:
+        if self.same_frames and self.same_units:
             return input_coords
 
-        input_coords = input_coords * u.deg
-        x_in, y_in = input_coords[:, 0], input_coords[:, 1]
+        x_in = input_coords[:, 0] * u.Unit(self._input_units[0])
+        y_in = input_coords[:, 1] * u.Unit(self._input_units[1])
 
-        c_in = SkyCoord(
-            UnitSphericalRepresentation(x_in, y_in), frame=self.input_system
-        )
+        if self.same_frames:
+            lon = x_in
+            lat = y_in
+        else:
+            c_in = SkyCoord(
+                UnitSphericalRepresentation(x_in, y_in), frame=self.input_system
+            )
 
-        # We often need to transform arrays that contain NaN values, and filtering
-        # out the NaN values would have a performance hit, so instead we just pass
-        # on all values and just ignore Numpy warnings
-        with np.errstate(all="ignore"):
-            c_out = c_in.transform_to(self.output_system)
+            # We often need to transform arrays that contain NaN values, and filtering
+            # out the NaN values would have a performance hit, so instead we just pass
+            # on all values and just ignore Numpy warnings
+            with np.errstate(all="ignore"):
+                c_out = c_in.transform_to(self.output_system)
 
-        lon = c_out.spherical.lon.deg
-        lat = c_out.spherical.lat.deg
+            lon = c_out.spherical.lon
+            lat = c_out.spherical.lat
+
+        lon = lon.to_value(self._output_units[0])
+        lat = lat.to_value(self._output_units[1])
 
         return np.concatenate((lon[:, np.newaxis], lat[:, np.newaxis]), axis=1)
 
@@ -143,7 +153,12 @@ class CoordinateTransform(CurvedTransform):
         """
         Return the inverse of the transform.
         """
-        return CoordinateTransform(self._output_system_name, self._input_system_name)
+        return CoordinateTransform(
+            self._output_system_name,
+            self._output_units,
+            self._input_system_name,
+            self._input_units,
+        )
 
 
 class World2PixelTransform(CurvedTransform, metaclass=abc.ABCMeta):
