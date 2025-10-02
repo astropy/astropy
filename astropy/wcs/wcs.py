@@ -3687,8 +3687,10 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         Indicates whether the ``WCS`` class is preserving the original units.
 
-        If `True`, units are always kept as specified, whereas is `False`, some
-        units may in some cases be converted to SI or degrees.
+        If `True`, units are always kept as specified, whereas is `False`,
+        units will in some cases be converted to SI/degrees - for example units
+        for celestial axes are converted to degrees, spectral frequencies to
+        Hz, and wavelengths to meters.
         """
         return self._preserve_units
 
