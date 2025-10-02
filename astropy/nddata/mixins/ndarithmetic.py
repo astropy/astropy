@@ -3,6 +3,7 @@
 
 import warnings
 from copy import deepcopy
+from typing import TypeVar
 
 import numpy as np
 
@@ -99,6 +100,9 @@ _arit_doc = """
 
     ``"first_found"`` can also be abbreviated with ``"ff"``.
     """
+
+
+T_NDArith = TypeVar("T_NDArith", bound="NDArithmeticMixin")
 
 
 class NDArithmeticMixin:
@@ -694,26 +698,28 @@ class NDArithmeticMixin:
         )
 
     @sharedmethod
-    def _convert_operand_class_with_suitable_dtype(self, cls, operand, ref=None):
+    def _convert_operand_class_with_suitable_dtype(
+        self_or_cls, target_cls: type[T_NDArith], operand, ref=None
+    ) -> T_NDArith:
         """
-        Convert an operand to the specified class, first converting Python
-        scalars to a NumPy dtype that preserves their expected casting behaviour
-        under arithmetic with a reference operand or dtype (see NEP 50,
+        Convert an operand to the target class, first converting Python scalars
+        to a NumPy dtype that preserves their expected casting behaviour under
+        arithmetic with a reference operand or dtype (see NEP 50,
         https://numpy.org/neps/nep-0050-scalar-promotion.html).
 
         Parameters
         ----------
-        cls : class
+        target_cls : class
             Class to create an instance of, with ``operand`` as the argument.
 
-        operand : object convertible to ``cls`` (`~astropy.nddata.NDData`-like)
+        operand : object convertible to ``target_cls`` (`~astropy.nddata.NDData`-like)
 
         ref : ``NDData``-like, `~numpy.ndarray`-like or `~numpy.dtype`, optional
             Reference operand/dtype with which arithmetic is to be performed.
 
         Returns
         -------
-        result : instance of ``cls``
+        result : instance of ``target_cls``
         """
         # Python scalars receive special "weak typing" treatment in NumPy 2
         # (NEP 50) and need to be cast explicitly to the appropriate dtype
@@ -746,7 +752,7 @@ class NDArithmeticMixin:
             # Convert scalar operand to a dtype appropriate for the ref:
             operand = np.array(operand, dtype=dtype)
 
-        return cls(operand)
+        return target_cls(operand)
 
     @sharedmethod
     def _prepare_then_do_arithmetic(
