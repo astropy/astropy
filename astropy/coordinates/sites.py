@@ -127,15 +127,6 @@ class SiteRegistry(Mapping):
         return reg
 
 
-def get_builtin_sites() -> SiteRegistry:
-    """
-    Load observatory database from data/observatories.json and parse them into
-    a SiteRegistry.
-    """
-    jsondb = json.loads(get_pkg_data_contents("data/sites.json"))
-    return SiteRegistry.from_json(jsondb)
-
-
 def get_downloaded_sites(jsonurl: str | None = None) -> SiteRegistry:
     """
     Load observatory database from data.astropy.org and parse into a SiteRegistry.
