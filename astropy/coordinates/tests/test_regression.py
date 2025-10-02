@@ -40,7 +40,7 @@ from astropy.coordinates import (
     get_body,
     get_sun,
 )
-from astropy.coordinates.sites import get_builtin_sites
+from astropy.coordinates.sites import _GREENWICH
 from astropy.table import Table
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
@@ -316,9 +316,9 @@ def test_regression_4293():
 
 def test_regression_4926():
     times = Time("2010-01-1") + np.arange(20) * u.day
-    green = get_builtin_sites()["greenwich"]
+
     # this is the regression test
-    moon = get_body("moon", times, green)
+    moon = get_body("moon", times, _GREENWICH)
 
     # this is an additional test to make sure the GCRS->ICRS transform works for complex shapes
     moon.transform_to(ICRS())
@@ -447,11 +447,8 @@ def test_regression_5743():
 
 def test_regression_5889_5890():
     # ensure we can represent all Representations and transform to ND frames
-    greenwich = EarthLocation(
-        *u.Quantity([3980608.90246817, -102.47522911, 4966861.27310067], unit=u.m)
-    )
     times = Time("2017-03-20T12:00:00") + np.linspace(-2, 2, 3) * u.hour
-    moon = get_body("moon", times, location=greenwich)
+    moon = get_body("moon", times, location=_GREENWICH)
     targets = SkyCoord([350.7 * u.deg, 260.7 * u.deg], [18.4 * u.deg, 22.4 * u.deg])
     targs2d = targets[:, np.newaxis]
     targs2d.transform_to(moon)

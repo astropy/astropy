@@ -1,40 +1,23 @@
+from pathlib import Path
+from threading import Lock
+
 import pytest
 
 from astropy import units as u
-from astropy.coordinates import EarthLocation, Latitude, Longitude
-from astropy.coordinates.sites import (
-    SiteRegistry,
-    get_builtin_sites,
-    get_downloaded_sites,
-)
+from astropy.config import set_temp_cache
+from astropy.coordinates import EarthLocation, Latitude, Longitude, UnknownSiteException
+from astropy.coordinates.sites import SiteRegistry, get_downloaded_sites
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.units import allclose as quantity_allclose
-from astropy.utils.exceptions import AstropyUserWarning
+
+SITE_DATA_LOCK = Lock()
 
 
-@pytest.fixture
-def earthlocation_without_site_registry(monkeypatch):
-    monkeypatch.setattr(EarthLocation, "_site_registry", None)
-
-
-def test_builtin_sites():
-    reg = get_builtin_sites()
-
-    greenwich = reg["greenwich"]
-    lon, lat, el = greenwich.to_geodetic()
-    assert_quantity_allclose(lon, Longitude("0:0:0", unit=u.deg), atol=10 * u.arcsec)
-    assert_quantity_allclose(lat, Latitude("51:28:40", unit=u.deg), atol=1 * u.arcsec)
-    assert_quantity_allclose(el, 46 * u.m, atol=1 * u.m)
-
-    names = reg.names
-    assert "greenwich" in names
-    assert "example_site" in names
-
-    with pytest.raises(
-        KeyError,
-        match="Site 'nonexistent' not in database. Use the 'names' attribute to see",
-    ):
-        reg["nonexistent"]
+@pytest.fixture(scope="function")
+def local_site_data(monkeypatch):
+    with SITE_DATA_LOCK:
+        monkeypatch.setattr(EarthLocation, "_site_registry", None)
+        with set_temp_cache(Path(__file__).with_name("data") / "sites"):
+            yield
 
 
 @pytest.mark.remote_data(source="astropy")
@@ -71,9 +54,7 @@ def test_online_sites():
         reg["kec"]
 
 
-@pytest.mark.remote_data(source="astropy")
-# this will *try* the online so we have to make it remote_data, even though it
-# could fall back on the non-remote version
+@pytest.mark.usefixtures("local_site_data")
 def test_EarthLocation_basic():
     greenwichel = EarthLocation.of_site("greenwich")
     lon, lat, el = greenwichel.to_geodetic()
@@ -110,67 +91,26 @@ def test_Earthlocation_refresh_cache_is_mandatory_kwarg(class_method, args):
         class_method(*args, False)
 
 
-@pytest.mark.parametrize(
-    "class_method,args",
-    [(EarthLocation.get_site_names, []), (EarthLocation.of_site, ["greenwich"])],
-)
-@pytest.mark.parametrize("refresh_cache", [False, True])
-def test_Earthlocation_refresh_cache(class_method, args, refresh_cache, monkeypatch):
-    def get_site_registry_monkeypatched(force_download, force_builtin=False):
-        assert force_download is refresh_cache
-        return get_builtin_sites()
-
-    monkeypatch.setattr(
-        EarthLocation, "_get_site_registry", get_site_registry_monkeypatched
-    )
-
-    class_method(*args, refresh_cache=refresh_cache)
+@pytest.mark.xfail(reason="regression test for #18572", raises=AssertionError)
+@pytest.mark.usefixtures("local_site_data")
+def test_Earthlocation_get_site_names_refresh_cache():
+    assert len(EarthLocation.get_site_names()) == 3
+    # Regression test for #18572 - refresh_cache=True had no effect
+    assert len(EarthLocation.get_site_names(refresh_cache=True)) > 3
 
 
-@pytest.mark.parametrize(
-    "force_download,expectation",
-    [
-        (
-            False,
-            pytest.warns(
-                AstropyUserWarning, match=r"use the option 'refresh_cache=True'\.$"
-            ),
-        ),
-        (True, pytest.raises(OSError, match=r"^fail for test$")),
-        ("url", pytest.raises(OSError, match=r"^fail for test$")),
-    ],
-)
-@pytest.mark.parametrize(
-    "class_method,args",
-    [(EarthLocation.get_site_names, []), (EarthLocation.of_site, ["greenwich"])],
-)
-def test_EarthLocation_site_registry_connection_fail(
-    force_download,
-    expectation,
-    class_method,
-    args,
-    earthlocation_without_site_registry,
-    monkeypatch,
-):
-    def fail_download(*args, **kwargs):
-        raise OSError("fail for test")
-
-    monkeypatch.setattr(get_downloaded_sites, "__code__", fail_download.__code__)
-    with expectation:
-        class_method(*args, refresh_cache=force_download)
+@pytest.mark.usefixtures("local_site_data")
+def test_Earthlocation_of_site_no_refresh_cache():
+    with pytest.raises(UnknownSiteException, match="^Site 'keck' not in database"):
+        EarthLocation.of_site("keck")
 
 
-@pytest.mark.parametrize(
-    "registry_kwarg",
-    ["force_builtin", pytest.param("force_download", marks=pytest.mark.remote_data)],
-)
-def test_EarthLocation_state(earthlocation_without_site_registry, registry_kwarg):
-    EarthLocation._get_site_registry(**{registry_kwarg: True})
-    assert isinstance(EarthLocation._site_registry, SiteRegistry)
-
-    oldreg = EarthLocation._site_registry
-    assert oldreg is EarthLocation._get_site_registry()
-    assert oldreg is not EarthLocation._get_site_registry(**{registry_kwarg: True})
+@pytest.mark.xfail(reason="regression test for #18572", raises=UnknownSiteException)
+@pytest.mark.usefixtures("local_site_data")
+def test_Earthlocation_of_site_refresh_cache():
+    # Regression test for #18572 - refresh_cache=True had no effect
+    keck = EarthLocation.of_site("keck", refresh_cache=True)
+    assert_quantity_allclose(keck.lon, -155.47833333 * u.deg)
 
 
 def test_registry():
@@ -184,6 +124,7 @@ def test_registry():
     assert reg["sIte a"] is loc
 
 
+@pytest.mark.usefixtures("local_site_data")
 def test_non_EarthLocation():
     """
     A regression test for a typo bug pointed out at the bottom of
@@ -193,63 +134,14 @@ def test_non_EarthLocation():
     class EarthLocation2(EarthLocation):
         pass
 
-    # This lets keeps us from needing to do remote_data
-    # note that this does *not* mess up the registry for EarthLocation because
-    # registry is cached on a per-class basis
-    EarthLocation2._get_site_registry(force_builtin=True)
-
     el2 = EarthLocation2.of_site("greenwich")
     assert type(el2) is EarthLocation2
     assert el2.info.name == "Royal Observatory Greenwich"
 
 
-def check_builtin_matches_remote(download_url=True):
-    """
-    This function checks that the builtin sites registry is consistent with the
-    remote registry (or a registry at some other location).
-
-    Note that current this is *not* run by the testing suite (because it
-    doesn't start with "test", and is instead meant to be used as a check
-    before merging changes in astropy-data)
-    """
-    builtin_registry = EarthLocation._get_site_registry(force_builtin=True)
-    dl_registry = EarthLocation._get_site_registry(force_download=download_url)
-
-    in_dl = {}
-    matches = {}
-    for name in builtin_registry.names:
-        in_dl[name] = name in dl_registry
-        if in_dl[name]:
-            matches[name] = quantity_allclose(
-                builtin_registry[name].geocentric, dl_registry[name].geocentric
-            )
-        else:
-            matches[name] = False
-
-    if not all(matches.values()):
-        # this makes sure we actually see which don't match
-        print("In builtin registry but not in download:")
-        for name, is_in_dl in in_dl.items():
-            if not is_in_dl:
-                print("    ", name)
-        print("In both but not the same value:")
-        for name, match in matches.items():
-            if not match and in_dl[name]:
-                print(
-                    "    ",
-                    name,
-                    "builtin:",
-                    builtin_registry[name],
-                    "download:",
-                    dl_registry[name],
-                )
-        raise AssertionError(
-            "Builtin and download registry aren't consistent - failures printed to stdout"
-        )
-
-
+@pytest.mark.usefixtures("local_site_data")
 def test_meta_present():
     assert (
-        get_builtin_sites()["greenwich"].info.meta["source"]
+        EarthLocation.of_site("greenwich").info.meta["source"]
         == "Ordnance Survey via http://gpsinformation.net/main/greenwich.htm and UNESCO"
     )

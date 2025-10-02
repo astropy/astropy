@@ -13,13 +13,18 @@ updating the ``location.json`` file.
 import json
 from collections.abc import Iterator, Mapping
 from difflib import get_close_matches
-from typing import Any, Self
+from typing import Any, Final, Self
 
 from astropy import units as u
 from astropy.utils.data import get_file_contents, get_pkg_data_contents
 
 from .earth import EarthLocation
 from .errors import UnknownSiteException
+
+# An EarthLocation instance for the tests that need one.
+_GREENWICH: Final = EarthLocation(
+    lon=-0.001475 * u.deg, lat=51.477811 * u.deg, height=46 * u.m
+)
 
 
 class SiteRegistry(Mapping):
@@ -120,15 +125,6 @@ class SiteRegistry(Mapping):
 
             reg.add_site([site] + aliases, location)
         return reg
-
-
-def get_builtin_sites() -> SiteRegistry:
-    """
-    Load observatory database from data/observatories.json and parse them into
-    a SiteRegistry.
-    """
-    jsondb = json.loads(get_pkg_data_contents("data/sites.json"))
-    return SiteRegistry.from_json(jsondb)
 
 
 def get_downloaded_sites(jsonurl: str | None = None) -> SiteRegistry:
