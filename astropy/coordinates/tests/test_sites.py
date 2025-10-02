@@ -8,7 +8,6 @@ from astropy.config import set_temp_cache
 from astropy.coordinates import EarthLocation, Latitude, Longitude, UnknownSiteException
 from astropy.coordinates.sites import SiteRegistry, get_downloaded_sites
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.units import allclose as quantity_allclose
 
 SITE_DATA_LOCK = Lock()
 
@@ -138,51 +137,6 @@ def test_non_EarthLocation():
     el2 = EarthLocation2.of_site("greenwich")
     assert type(el2) is EarthLocation2
     assert el2.info.name == "Royal Observatory Greenwich"
-
-
-def check_builtin_matches_remote(download_url=True):
-    """
-    This function checks that the builtin sites registry is consistent with the
-    remote registry (or a registry at some other location).
-
-    Note that current this is *not* run by the testing suite (because it
-    doesn't start with "test", and is instead meant to be used as a check
-    before merging changes in astropy-data)
-    """
-    builtin_registry = EarthLocation._get_site_registry(force_builtin=True)
-    dl_registry = EarthLocation._get_site_registry(force_download=download_url)
-
-    in_dl = {}
-    matches = {}
-    for name in builtin_registry.names:
-        in_dl[name] = name in dl_registry
-        if in_dl[name]:
-            matches[name] = quantity_allclose(
-                builtin_registry[name].geocentric, dl_registry[name].geocentric
-            )
-        else:
-            matches[name] = False
-
-    if not all(matches.values()):
-        # this makes sure we actually see which don't match
-        print("In builtin registry but not in download:")
-        for name, is_in_dl in in_dl.items():
-            if not is_in_dl:
-                print("    ", name)
-        print("In both but not the same value:")
-        for name, match in matches.items():
-            if not match and in_dl[name]:
-                print(
-                    "    ",
-                    name,
-                    "builtin:",
-                    builtin_registry[name],
-                    "download:",
-                    dl_registry[name],
-                )
-        raise AssertionError(
-            "Builtin and download registry aren't consistent - failures printed to stdout"
-        )
 
 
 @pytest.mark.usefixtures("local_site_data")
