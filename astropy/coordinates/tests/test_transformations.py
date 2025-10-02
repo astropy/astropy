@@ -25,6 +25,7 @@ from astropy.coordinates.builtin_frames import (
     Galactic,
 )
 from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates.sites import _GREENWICH
 from astropy.coordinates.transformations.composite import _combine_affine_params
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
@@ -430,17 +431,14 @@ def test_unit_spherical_with_differentials(rep):
 
 def test_vel_transformation_obstime_err():
     # TODO: replace after a final decision on PR #6280
-    from astropy.coordinates.sites import get_builtin_sites
 
     diff = r.CartesianDifferential([0.1, 0.2, 0.3] * u.km / u.s)
     rep = r.CartesianRepresentation([1, 2, 3] * u.au, differentials=diff)
 
-    loc = get_builtin_sites()["example_site"]
-
-    aaf = AltAz(obstime="J2010", location=loc)
-    aaf2 = AltAz(obstime=aaf.obstime + 3 * u.day, location=loc)
-    aaf3 = AltAz(obstime=aaf.obstime + np.arange(3) * u.day, location=loc)
-    aaf4 = AltAz(obstime=aaf.obstime, location=loc)
+    aaf = AltAz(obstime="J2010", location=_GREENWICH)
+    aaf2 = AltAz(obstime=aaf.obstime + 3 * u.day, location=_GREENWICH)
+    aaf3 = AltAz(obstime=aaf.obstime + np.arange(3) * u.day, location=_GREENWICH)
+    aaf4 = AltAz(obstime=aaf.obstime, location=_GREENWICH)
 
     aa = aaf.realize_frame(rep)
 

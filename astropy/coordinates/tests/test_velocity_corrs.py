@@ -4,7 +4,7 @@ import pytest
 from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.coordinates import Distance, EarthLocation, SkyCoord
-from astropy.coordinates.sites import get_builtin_sites
+from astropy.coordinates.sites import _GREENWICH
 from astropy.table import Table
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
@@ -29,15 +29,16 @@ def input_radecs():
 @pytest.mark.parametrize("kind", ["heliocentric", "barycentric"])
 def test_basic(kind):
     t0 = Time("2015-1-1")
-    loc = get_builtin_sites()["example_site"]
 
-    sc = SkyCoord(0, 0, unit=u.deg, obstime=t0, location=loc)
+    sc = SkyCoord(0, 0, unit=u.deg, obstime=t0, location=_GREENWICH)
     rvc0 = sc.radial_velocity_correction(kind)
 
     assert rvc0.shape == ()
     assert rvc0.unit.is_equivalent(u.km / u.s)
 
-    scs = SkyCoord(0, 0, unit=u.deg, obstime=t0 + np.arange(10) * u.day, location=loc)
+    scs = SkyCoord(
+        0, 0, unit=u.deg, obstime=t0 + np.arange(10) * u.day, location=_GREENWICH
+    )
     rvcs = scs.radial_velocity_correction(kind)
     assert rvcs.shape == (10,)
     assert rvcs.unit.is_equivalent(u.km / u.s)
