@@ -1,6 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import itertools
 import operator
 from copy import deepcopy
 
@@ -1428,36 +1427,49 @@ def test_add_quantity_default_dtypes(meth, op):
 
 
 # Provide input for the following test sets without lots of replication:
-def generate_simple_ndds_with_uncert_mask(nout=1):
-    for values in itertools.product(
-        (
-            NDDataRef(
-                np.array([1, 2, 3, 4], dtype=np.uint16),
-                uncertainty=VarianceUncertainty(
-                    np.array([1, 2, 3, 4], dtype=np.uint16)
-                ),
-                mask=np.array([0, 1, 0, 0], dtype=np.uint8),
-            ),
-            NDDataRef(
-                np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32),
-                uncertainty=StdDevUncertainty(
-                    np.array([1.0, 1.41, 1.73, 2.0], dtype=np.float32)
-                ),
-                mask=np.array([0, 0, 1, 0], dtype=np.uint16),
-            ),
-            NDDataRef(
-                np.array([1.0, 2.0, 3.0, 4.0]),
-                uncertainty=VarianceUncertainty(np.array([1.0, 2.0, 3.0, 4.0])),
-                mask=np.array([0, 1, 0, 0], dtype=np.uint16),
-            ),
+NDDATA_REF_PARAMS = [
+    pytest.param(
+        NDDataRef(
+            np.array([1, 2, 3, 4], dtype="uint16"),
+            uncertainty=VarianceUncertainty(np.array([1, 2, 3, 4], dtype="uint16")),
+            mask=np.array([0, 1, 0, 0], dtype="uint8"),
         ),
-        repeat=nout,
-    ):
-        yield tuple(deepcopy(val) for val in values)  # pass independent objs
+        id="u16dat_u16var_u8msk",
+    ),
+    pytest.param(
+        NDDataRef(
+            np.array([1.0, 2.0, 3.0, 4.0], dtype="float32"),
+            uncertainty=StdDevUncertainty(
+                np.array([1.0, 1.41, 1.73, 2.0], dtype="float32")
+            ),
+            mask=np.array([0, 0, 1, 0], dtype="uint16"),
+        ),
+        id="f32dat_f32var_u16msk",
+    ),
+    pytest.param(
+        NDDataRef(
+            np.array([1.0, 2.0, 3.0, 4.0], dtype="float64"),
+            uncertainty=VarianceUncertainty(
+                np.array([1.0, 2.0, 3.0, 4.0], dtype="float64")
+            ),
+            mask=np.array([0, 1, 0, 0], dtype="uint16"),
+        ),
+        id="f64dat_f64var_u16msk",
+    ),
+]
+
+
+@pytest.fixture(params=NDDATA_REF_PARAMS)
+def nddata_ref1(request):
+    return deepcopy(request.param)
+
+
+@pytest.fixture(params=NDDATA_REF_PARAMS)
+def nddata_ref2(request):
+    return deepcopy(request.param)
 
 
 # Covers non-default dtypes + uncert + mask with various scalar types
-@pytest.mark.parametrize(("data1",), generate_simple_ndds_with_uncert_mask(nout=1))
 @pytest.mark.parametrize(
     "scalar_type",
     (
@@ -1470,7 +1482,8 @@ def generate_simple_ndds_with_uncert_mask(nout=1):
     ),
 )
 @pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
-def test_dtypes_uncert_mask_with_scalars(data1, scalar_type, meth, op):
+def test_dtypes_uncert_mask_with_scalars(nddata_ref1, scalar_type, meth, op):
+    data1 = nddata_ref1
     data2 = scalar_type(2)
 
     out = getattr(data1, meth)(data2)
@@ -1505,11 +1518,10 @@ def test_dtypes_uncert_mask_with_scalars(data1, scalar_type, meth, op):
 
 
 # Covers arithmetic with different dtype pairs + uncert + mask
-@pytest.mark.parametrize(
-    ("data1", "data2"), generate_simple_ndds_with_uncert_mask(nout=2)
-)
 @pytest.mark.parametrize(("meth", "op"), STR_TO_OPERATOR.items())
-def test_arithmetics_dtypes_uncert_mask(data1, data2, meth, op):
+def test_arithmetics_dtypes_uncert_mask(nddata_ref1, nddata_ref2, meth, op):
+    data1 = nddata_ref1
+    data2 = nddata_ref2
     ref_dat = op(data1.data, data2.data)
 
     # Deal with uncertainty, converting the data2 uncertainty class to match
