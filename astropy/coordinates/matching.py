@@ -28,19 +28,6 @@ __all__ = [
 class CoordinateMatchResult(NamedTuple):
     """Results of matching a set of sources to a catalog.
 
-    Parameters
-    ----------
-    indices_to_catalog : int array
-        For each source the index of the match in the catalog.
-    angular_separation : `~astropy.coordinates.Angle`
-        The angular separation between each source and its match
-        in the catalog.
-    physical_separation : `~astropy.units.Quantity`
-        The physical separation between each source and its match
-        in the catalog. If the sources or the catalog lack distances
-        then the physical separations are computed assuming all
-        coordinates are points on the unit sphere.
-
     See Also
     --------
     astropy.coordinates.match_coordinates_3d
@@ -231,22 +218,6 @@ def match_coordinates_sky(
 
 class CoordinateSearchResult(NamedTuple):
     """Results of searching close pairs between two sets of sources.
-
-    Parameters
-    ----------
-    indices_to_first_set : int array
-        Indices of the elements of the found pairs in the first set of
-        sources.
-    indices_to_second_set : int array
-        Indices of the elements of the found pairs in the second set of
-        sources.
-    angular_separation : `~astropy.coordinates.Angle`
-        The angular separations between the paired sources.
-    physical_separation : `~astropy.units.Quantity`
-        The physical separations between the paired sources. If either
-        of the source sets lack distances then the physical separations
-        are computed assuming all coordinates are points on the unit
-        sphere.
 
     See Also
     --------
