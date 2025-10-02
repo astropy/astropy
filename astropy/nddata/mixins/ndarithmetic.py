@@ -2,6 +2,7 @@
 # This module implements the Arithmetic mixin to the NDData class.
 
 import warnings
+from collections.abc import Buffer
 from copy import deepcopy
 from typing import TypeVar
 
@@ -727,12 +728,11 @@ class NDArithmeticMixin:
         # 64 bits, leading to unwanted upcasting in subsequent arithmetic,
         # compared with NumPy. This weak typing does not apply to *lists* of
         # Python scalars etc., which NumPy converts to arrays in the default
-        # way when doing arithmetic. The "__getitem__" check below excludes
-        # "scalars" that are NumPy types, strings or buffers.
+        # way when doing arithmetic.
         if (
             ref is not None
             and np.isscalar(operand)
-            and not hasattr(operand, "__getitem__")
+            and not isinstance(operand, (np.number, str, Buffer))
         ):
             # The arg for result_type() has to be convertible to an ndarray
             # (including sub-classes like Quantity) or dtype, but cannot be
