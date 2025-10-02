@@ -746,7 +746,7 @@ class NDArithmeticMixin:
                 ref = ref.data
             try:
                 dtype = np.result_type(ref, operand)
-            except TypeError:  # in case arg is a list/tuple
+            except TypeError:  # in case arg is a list/tuple/...
                 dtype = np.result_type(np.array(ref), operand)
 
             # Convert scalar operand to a dtype appropriate for the ref:
