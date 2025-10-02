@@ -722,6 +722,15 @@ class NDArithmeticMixin:
         -------
         result : instance of ``target_cls``
         """
+        # No need to do any special type conversion unless the operand is a
+        # numeric, non-numpy scalar:
+        if (
+            ref is None
+            or not np.isscalar(operand)
+            or isinstance(operand, (np.number, str, Buffer))
+        ):
+            return target_cls(operand)
+
         # Python scalars receive special "weak typing" treatment in NumPy 2
         # (NEP 50) and need to be cast explicitly to the appropriate dtype
         # before conversion to NDData, otherwise the instance just defaults to
@@ -729,28 +738,23 @@ class NDArithmeticMixin:
         # compared with NumPy. This weak typing does not apply to *lists* of
         # Python scalars etc., which NumPy converts to arrays in the default
         # way when doing arithmetic.
-        if (
-            ref is not None
-            and np.isscalar(operand)
-            and not isinstance(operand, (np.number, str, Buffer))
-        ):
-            # The arg for result_type() has to be convertible to an ndarray
-            # (including sub-classes like Quantity) or dtype, but cannot be
-            # a Python sequence (because it takes a list of args). Also, we
-            # can't do isinstance(ref, NDData) here, because it produces a
-            # circular import, but the following is at least as general:
-            if hasattr(ref, "data") and (
-                hasattr(ref.data, "__array__")
-                or hasattr(ref.data, "__array_interface__")
-            ):
-                ref = ref.data
-            try:
-                dtype = np.result_type(ref, operand)
-            except TypeError:  # in case arg is a list/tuple/...
-                dtype = np.result_type(np.array(ref), operand)
 
-            # Convert scalar operand to a dtype appropriate for the ref:
-            operand = np.array(operand, dtype=dtype)
+        # The arg for result_type() below has to be convertible to an ndarray
+        # (including sub-classes like Quantity) or dtype, but cannot be a
+        # Python sequence (because it takes a list of args). Also, we can't do
+        # isinstance(ref, NDData) here, because it produces a circular import,
+        # but the following is at least as general:
+        if hasattr(ref, "data") and (
+            hasattr(ref.data, "__array__") or hasattr(ref.data, "__array_interface__")
+        ):
+            ref = ref.data  # grab ref array from NDData-like container
+        try:
+            dtype = np.result_type(ref, operand)
+        except TypeError:  # in case arg is a list/tuple/...
+            dtype = np.result_type(np.array(ref), operand)
+
+        # Convert scalar operand to a dtype appropriate for the ref:
+        operand = np.array(operand, dtype=dtype)
 
         return target_cls(operand)
 
