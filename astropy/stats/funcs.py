@@ -1145,7 +1145,9 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
     """
     from scipy.integrate import quad
     from scipy.optimize import brentq
-    from scipy.special import factorial
+    from scipy.special import factorial, gammaln
+
+    B = float(B)
 
     def eqn8(N: int, B: float) -> float:
         n = np.arange(N + 1, dtype=np.float64)
@@ -1156,11 +1158,13 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
     # eqn7 is called hundred times so "caching" these values yields a
     # significant speedup (factor 10).
     eqn8_res = eqn8(N, B)
-    factorial_N = float(math.factorial(N))
 
     def eqn7(S: float, N: int, B: float) -> float:
         SpB = S + B
-        return eqn8_res * (math.exp(-SpB) * SpB**N / factorial_N)
+        # We use gammaln to avoid overflow for large N.
+        # It is identical to eqn8_res * (math.exp(-SpB) * SpB**N / factorial_N)
+        # See https://en.wikipedia.org/wiki/Poisson_distribution#Computational_methods
+        return eqn8_res * np.exp(N * np.log(SpB) - SpB - gammaln(N + 1))
 
     def eqn9_left(S_min: float, S_max: float, N: int, B: float) -> tuple[float, float]:
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
@@ -1185,7 +1189,7 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
         out = eqn9_left(s_min, s, N, B)
         return out[0] - CL
 
-    S_max = brentq(func, N - B, 100)
+    S_max = brentq(func, N - B, max(100, np.sqrt(N - B) * 10 + N))
     S_min = find_s_min(S_max, N, B)
     return S_min, S_max
 
