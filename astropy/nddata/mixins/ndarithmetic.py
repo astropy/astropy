@@ -2,7 +2,6 @@
 # This module implements the Arithmetic mixin to the NDData class.
 
 import warnings
-from collections.abc import Buffer
 from copy import deepcopy
 from typing import TypeVar
 
@@ -723,11 +722,12 @@ class NDArithmeticMixin:
         result : instance of ``target_cls``
         """
         # No need to do any special type conversion unless the operand is a
-        # numeric, non-numpy scalar:
+        # numeric, non-numpy scalar (NB. when deprecating PYTHON_LT_3_12,
+        # "bytes" & "memoryview" *could* be replaced with "Buffer" here):
         if (
             ref is None
             or not np.isscalar(operand)
-            or isinstance(operand, (np.number, str, Buffer))
+            or isinstance(operand, (np.number, str, bytes, memoryview))
         ):
             return target_cls(operand)
 
