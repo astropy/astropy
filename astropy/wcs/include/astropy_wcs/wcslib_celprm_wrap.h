@@ -6,9 +6,9 @@
 
 extern PyObject* PyCelprmType;
 
-typedef struct {
-    PyObject_HEAD
-    struct celprm* x;
+typedef struct
+{
+    PyObject_HEAD struct celprm* x;
     int* prefcount;
     PyObject* owner;
 } PyCelprm;

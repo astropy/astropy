@@ -6,9 +6,9 @@
 
 extern PyObject* PyPrjprmType;
 
-typedef struct {
-    PyObject_HEAD
-    struct prjprm* x;
+typedef struct
+{
+    PyObject_HEAD struct prjprm* x;
     int* prefcount;
     PyObject* owner;
 } PyPrjprm;
