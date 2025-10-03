@@ -666,6 +666,12 @@ def test_scipy_poisson_limit():
         (0, 10.67),
         rtol=1e-3,
     )
+    # Regression test for gh-13334
+    assert_allclose(
+        funcs._scipy_kraft_burrows_nousek(98, 3.8, 0.95),
+        (76.04, 114.92),
+        rtol=1e-3,
+    )
     conf = funcs.poisson_conf_interval(
         [5, 6],
         "kraft-burrows-nousek",
