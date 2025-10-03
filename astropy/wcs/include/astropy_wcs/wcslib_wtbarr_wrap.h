@@ -11,14 +11,13 @@
 
 extern PyObject* PyWtbarrType;
 
-typedef struct {
-  PyObject_HEAD
-  struct wtbarr* x;
-  PyObject* owner;
+typedef struct
+{
+    PyObject_HEAD struct wtbarr* x;
+    PyObject* owner;
 } PyWtbarr;
 
-PyWtbarr*
-PyWtbarr_cnew(PyObject* wcsprm, struct wtbarr* x);
+PyWtbarr* PyWtbarr_cnew(PyObject* wcsprm, struct wtbarr* x);
 
 int _setup_wtbarr_type(PyObject* m);
 

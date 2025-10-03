@@ -23,13 +23,10 @@
 
 #include "isnan.h"
 
-#undef	CLAMP
-#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+#undef CLAMP
+#define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
-void set_invalid_to_nan(
-    const int ncoord,
-    const int nelem,
-    double* const data,
-    const int* const stat);
+void set_invalid_to_nan(const int ncoord, const int nelem, double* const data,
+                        const int* const stat);
 
 #endif /* __UTIL_H__ */

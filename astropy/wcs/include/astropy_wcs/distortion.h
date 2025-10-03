@@ -17,21 +17,21 @@
 /**
 A structure to contain the information for a single distortion lookup table
  */
-typedef struct {
-  unsigned int                   naxis[NAXES]; /* size of distortion image */
-  double                         crpix[NAXES];
-  double                         crval[NAXES];
-  double                         cdelt[NAXES];
-  /* The data is not "owned" by this structure.  It is the user's
-     responsibility to free it. */
-  /*@shared@*/ /*@null@*/ float *data;
+typedef struct
+{
+    unsigned int naxis[NAXES]; /* size of distortion image */
+    double crpix[NAXES];
+    double crval[NAXES];
+    double cdelt[NAXES];
+    /* The data is not "owned" by this structure.  It is the user's
+       responsibility to free it. */
+    /*@shared@*/ /*@null@*/ float* data;
 } distortion_lookup_t;
 
 /**
 Initialize a lookup table to reasonable default values.
  */
-int
-distortion_lookup_t_init(distortion_lookup_t* lookup);
+int distortion_lookup_t_init(distortion_lookup_t* lookup);
 
 /**
 Cleanup after a lookup table.  Currently does nothing, but may do
@@ -39,8 +39,7 @@ something in the future, so please call it when you are done with
 the lookup table.  It does not free the data pointed to be the
 lookup table -- it is the user's responsibility to free that array.
  */
-void
-distortion_lookup_t_free(distortion_lookup_t* lookup);
+void distortion_lookup_t_free(distortion_lookup_t* lookup);
 
 /**
 Lookup the distortion offset for a particular pixel coordinate in
@@ -53,10 +52,8 @@ the lookup table.
 @return The offset as determined by binlinear interpolation in the
 lookup table
 */
-double
-get_distortion_offset(
-    const distortion_lookup_t * const lookup,
-    const double * const img /* [NAXES] */);
+double get_distortion_offset(const distortion_lookup_t* const lookup,
+                             const double* const img /* [NAXES] */);
 
 /**
 Perform just the distortion table part of the FITS WCS distortion paper.
@@ -73,13 +70,9 @@ Perform just the distortion table part of the FITS WCS distortion paper.
 
 @return A wcslib error code
 */
-int
-p4_pix2foc(
-    const unsigned int naxes,
-    const distortion_lookup_t** lookups, /* [NAXES] */
-    const unsigned int nelem,
-    const double* pix, /* [NAXES][nelem] */
-    double *foc /* [NAXES][nelem] */);
+int p4_pix2foc(const unsigned int naxes, const distortion_lookup_t** lookups, /* [NAXES] */
+               const unsigned int nelem, const double* pix,                   /* [NAXES][nelem] */
+               double* foc /* [NAXES][nelem] */);
 
 /**
 Perform just the distortion table part of the FITS WCS distortion paper, by
@@ -97,12 +90,8 @@ adding distortion to the values already in place in foc.
 
 @return A wcslib error code
 */
-int
-p4_pix2deltas(
-    const unsigned int naxes,
-    const distortion_lookup_t** lookups, /* [NAXES] */
-    const unsigned int nelem,
-    const double* pix, /* [NAXES][nelem] */
-    double *foc /* [NAXES][nelem] */);
+int p4_pix2deltas(const unsigned int naxes, const distortion_lookup_t** lookups, /* [NAXES] */
+                  const unsigned int nelem, const double* pix, /* [NAXES][nelem] */
+                  double* foc /* [NAXES][nelem] */);
 
 #endif /* __DISTORTION_H__ */
