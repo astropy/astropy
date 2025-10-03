@@ -9,6 +9,7 @@ repos:
       - id: check-added-large-files
         args: ["--enforce-all", "--maxkb=300"]
         exclude: "^(\
+            cextern/expat/lib/xmlparse.c|\
             cextern/wcslib/C/flexed/.*|\
             CHANGES.rst|\
         )$"
