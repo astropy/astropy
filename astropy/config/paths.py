@@ -119,7 +119,7 @@ class _SetTempPath:
     # This base class serves as a deduplication layer for its only two intended
     # children (set_temp_cache and set_temp_config)
     _directory_type: Literal["cache", "config"]
-    _xdg_env_dir: Literal["XDG_CACHE_HOME", "XDG_CONFIG_HOME"]
+    _directory_env_var: Literal["XDG_CACHE_HOME", "XDG_CONFIG_HOME"]
 
     def __init__(
         self, path: os.PathLike[str] | str | None = None, delete: bool = False
@@ -169,7 +169,7 @@ class _SetTempPath:
             return path.resolve()
 
         linkto: Path | None = None
-        env_dir = cls._xdg_env_dir
+        env_dir = cls._directory_env_var
         if (dir_ := os.getenv(env_dir)) is not None:
             if (xch := Path(dir_)).is_dir():
                 if not (xchpth := xch / rootname).is_symlink():
@@ -244,7 +244,7 @@ class set_temp_config(_SetTempPath):
     """
 
     _directory_type = "config"
-    _xdg_env_dir = "XDG_CONFIG_HOME"
+    _directory_env_var = "XDG_CONFIG_HOME"
 
     def __enter__(self) -> str:
         # Special case for the config case, where we need to reset all the
@@ -300,4 +300,4 @@ class set_temp_cache(_SetTempPath):
     """
 
     _directory_type = "cache"
-    _xdg_env_dir = "XDG_CACHE_HOME"
+    _directory_env_var = "XDG_CACHE_HOME"
