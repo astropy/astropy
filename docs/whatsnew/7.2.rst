@@ -13,6 +13,7 @@ the 7.1 release.
 In particular, this release includes:
 
 * `Faster ECSV reader with support for different engines <#faster-ecsv-readers>`_
+* `Generic DataFrame conversion methods with multi-backend support <#generic-dataframe-conversion>`_
 * ...
 * ...
 
@@ -74,6 +75,59 @@ engine=...)``, where ``engine`` is one of ``"io.ascii"``, ``"pyarrow"``, or
 You can also write an `astropy.table.Table` or `astropy.table.QTable` using
 ``format="ecsv"``, but this is just a thin wrapper around the ``format="ascii.ecsv"``
 writer.
+
+Generic DataFrame conversion methods
+====================================
+
+Astropy 7.2 introduces new generic DataFrame conversion methods that support multiple
+DataFrame backends through the `Narwhals <https://narwhals-dev.github.io/narwhals/>`_
+library. These new methods complement the existing pandas-specific methods:
+
+* **New generic methods**: :meth:`~astropy.table.Table.to_df` and
+  :meth:`~astropy.table.Table.from_df` support multiple DataFrame libraries
+* **Existing pandas methods**: :meth:`~astropy.table.Table.to_pandas` and
+  :meth:`~astropy.table.Table.from_pandas` remain available for pandas-specific workflows
+
+The generic methods require the ``narwhals`` package to be installed::
+
+    python -m pip install narwhals
+
+Supported DataFrame backends include:
+
+* **pandas** - Full feature support with DataFrame indexing
+* **polars** - High-performance DataFrames with multidimensional array support
+* **pyarrow** - In-memory columnar format (limited to 1D arrays)
+* **modin** - Distributed pandas-compatible DataFrames
+* **cudf** - GPU-accelerated DataFrames
+
+.. note::
+   Currently, only **pandas**, **polars**, and **pyarrow** are explicitly tested in the
+   Astropy test suite. Other narwhals-compatible backends should work in principle but
+   may exhibit unexpected behavior.
+
+Example usage::
+
+    from astropy.table import Table
+    t = Table({'a': [1, 2, 3], 'b': ['x', 'y', 'z']})
+
+    # Convert to different backends
+    df_pandas = t.to_df("pandas")
+    df_polars = t.to_df("polars")
+    df_pyarrow = t.to_df("pyarrow")
+
+    # You can also specify the backend with a module
+    import polars as pl
+    df_polars = t.to_df(pl)
+
+    # Convert back from any supported DataFrame
+    t2 = Table.from_df(df_polars)
+
+The pandas-specific methods are still maintained for legacy applications.
+The generic methods provide the same
+feature set while enabling broader DataFrame ecosystem compatibility through a
+unified API.
+
+See :ref:`df_narwhals` for detailed documentation and examples.
 
 Cosmology
 =========
