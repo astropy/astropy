@@ -26,6 +26,7 @@ attribute which is initially ``True`` indicating that the index is not sliced.
 
 The ``Table.indices`` property is a convenience method that returns a dynamically
 created `TableIndices` object that collects the indices from table columns.
+`TableIndices` is a list of `SlicedIndex` that also allows access by ``index_name``.
 
 The ``Table.loc`` and ``Table.iloc`` properties return a new instance of
 `TableLoc(table)` or `TableILoc(table)` each time.
@@ -33,9 +34,10 @@ The ``Table.loc`` and ``Table.iloc`` properties return a new instance of
 Key Components
 --------------
 
-Index Classes:
+Core Classes:
     - `Index`: Wraps different engines and provides core index functions.
     - `SlicedIndex`: Contains an Index and handles original or sliced tables.
+    - `TableIndices`: Container for all table indices, accessible by number and name.
 
 Index Engines:
     - `SortedArray`: Array-based sorted container implementation (default)
@@ -44,7 +46,7 @@ Index Engines:
 
 Query Interface Classes:
     - `TableLoc`: Value-based row retrieval using ``.loc[]``.
-    - `TableLocIndices`: Return row indices (not table slices) for ``.loc_indices[]``
+    - `TableLocIndices`: Return row indices (not table rows) for ``.loc_indices[]``
     - `TableILoc`: Return rows in based on sorted index order for ``.iloc[]``
 
 Core Functionality
@@ -71,6 +73,15 @@ Value-Based Lookups with TableLoc:
     rows where indexed values are between 2 and 5 - ``t.loc[:3]`` returns rows where
     values are ≤ 3 - ``t.loc[4:]`` returns rows where values are ≥ 4.
 
+Value-Based Lookups with TableLocIndices:
+    The `TableLocIndices` class provides the `.loc_indices[]` interface for value-based
+    queries that return row indices instead of table rows. All of the examples for
+    `t.loc` apply here as well, but with ``t.loc_indices`` returning indices instead::
+
+      t.loc_indices[3]  # Find row index where indexed column 'a' equals 3
+
+    This is useful when only row positions are needed.
+
 Position-Based Access with TableILoc:
     The `TableILoc` class provides `.iloc[]` for accessing rows by their position in the
     sorted index order (not original table order)::
@@ -80,7 +91,7 @@ Position-Based Access with TableILoc:
         t.iloc[1:3]  # Rows 1-2 in sorted order
 
 Index Management:
-    - `TableIndices`: Container class that allows retrieval of indexes by column name
+    - `TableIndices`: Container class that allows retrieval of indexes by index name
     - `get_index()`: Utility function to find existing indexes on specified columns
     - `get_index_by_names()`: Find index by exact column name match
 
@@ -110,14 +121,13 @@ When a query is performed using `.loc[]`:
 1. **Index Selection**: The system identifies which index to use based on the query key.
    If no key is specified, the primary key index is used.
 
-2. **Query Type Detection**: The system determines the query type:
-   - Single value: `t.loc[5]` → exact match lookup
-   - Multiple values: `t.loc[[1, 3, 5]]` → multiple exact matches
-   - Range query: `t.loc[2:6]` → range lookup with inclusive bounds
+2. **Query Type Detection**: The system determines the query type: - Single value:
+   `t.loc[5]` → exact match lookup - Multiple values: `t.loc[[1, 3, 5]]` → multiple
+   exact matches - Range query: `t.loc[2:6]` → range lookup with inclusive bounds
 
-3. **Index Lookup**: The appropriate index engine performs the search:
-   - Single/multiple lookups use `find()` method
-   - Range queries use `range()` method with MinValue/MaxValue sentinels
+3. **Index Lookup**: The appropriate index engine performs the search: - Single/multiple
+   lookups use `find()` method - Range queries use `range()` method with
+   MinValue/MaxValue sentinels
 
 4. **Coordinate Translation**: For sliced tables, row indices are translated from
    original coordinates to sliced coordinates using `sliced_coords()`
@@ -977,6 +987,12 @@ class TableIndices(list):
         return super().__getitem__(item)
 
 
+def interpret_item_as_index_name_and_item(item):
+    """Interpret the item as a (index_name, item) tuple."""
+    index_name, item = item
+    return index_name, item
+
+
 class TableLoc:
     """
     Pseudo-list of Table rows allowing for retrieval of rows by indexed column values.
@@ -997,6 +1013,15 @@ class TableLoc:
 
     def __call__(self, *index_name):
         return TableLoc(self.table, index_name)
+
+    def _get_index_name_and_item(self, item):
+        index_name = self.index_name
+        if self.index_name is None:
+            if isinstance(item, tuple):
+                index_name, item = interpret_item_as_index_name_and_item(item)
+            else:
+                index_name = self.table.primary_key
+        return index_name, item
 
     def _get_row_idxs_as_list(self, index_name: tuple, item) -> list[int]:
         """
@@ -1052,13 +1077,7 @@ class TableLoc:
         """
         # This handles ``tbl.loc[<item>]`` and ``tbl.loc[<key>, <item>]`` (and the same
         # for ``tbl.loc_indices``).
-        if self.index_name is not None:
-            index_name = self.index_name
-        else:
-            if isinstance(item, tuple):
-                index_name, item = item
-            else:
-                index_name = self.table.primary_key
+        index_name, item = self._get_index_name_and_item(item)
 
         item_is_sequence = isinstance(item, (list, np.ndarray))
 
@@ -1159,11 +1178,8 @@ class TableILoc(TableLoc):
         if len(self.indices) == 0:
             raise ValueError("Can only use TableILoc for a table with indices")
 
-        if isinstance(item, tuple):
-            key, item = item
-        else:
-            key = self.table.primary_key
-        index = self.indices[key]
+        index_name, item = self._get_index_name_and_item(item)
+        index = self.indices[index_name]
         rows = index.sorted_data()[item]
         table_slice = self.table[rows]
 
