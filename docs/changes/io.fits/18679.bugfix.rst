@@ -1,1 +1,1 @@
-Verify checksum and datasum on `BinTableHDU`s taking heap data into account.
+Verify checksum and datasum on ``BinTableHDU`` taking heap data into account.
