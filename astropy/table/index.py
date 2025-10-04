@@ -1012,7 +1012,7 @@ class TableLoc:
         self.index_name = index_name
 
     def __call__(self, *index_name):
-        return TableLoc(self.table, index_name)
+        return self.__class__(self.table, index_name)
 
     def _get_index_name_and_item(self, item):
         index_name = self.index_name
@@ -1170,9 +1170,6 @@ class TableILoc(TableLoc):
     table : Table
         Indexed table to use
     """
-
-    def __init__(self, table):
-        super().__init__(table)
 
     def __getitem__(self, item):
         if len(self.indices) == 0:
