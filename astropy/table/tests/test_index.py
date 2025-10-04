@@ -668,14 +668,18 @@ def test_index_name_item_deprecation_and_call_method(method, item):
     index_name = ("a", "b")
     t.add_index(index_name)
     prop = getattr(t, method)
-    out_call = prop(*index_name)[item]
+    # Test calling like t.loc("a", "b") and t.loc(("a", "b")).
+    out_call_1 = prop(*index_name)[item]
+    out_call_2 = prop(index_name)[item]
     with pytest.warns(
         AstropyDeprecationWarning,
         match=r"Calling `Table.loc/iloc/loc_indices\[index_name, item\]`",
     ):
         out_depr = prop[index_name, item]
-    assert type(out_depr) is type(out_call)
-    assert out_depr == out_call
+    assert type(out_depr) is type(out_call_1)
+    assert out_depr == out_call_1
+    assert type(out_call_1) is type(out_call_2)
+    assert out_call_1 == out_call_2
 
 
 @pytest.mark.parametrize(

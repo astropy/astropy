@@ -1022,6 +1022,8 @@ class TableLoc:
         self.index_name = index_name
 
     def __call__(self, *index_name):
+        if len(index_name) == 1 and isinstance(index_name[0], (tuple, list)):
+            index_name = tuple(index_name[0])
         return self.__class__(self.table, index_name)
 
     def _get_index_name_and_item(self, item):
