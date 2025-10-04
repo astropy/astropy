@@ -3,16 +3,12 @@ from math import exp, log
 from numbers import Number
 
 import numpy as np
+from numpy.typing import ArrayLike
 
+from astropy.cosmology._src.scipy_compat import quad
+from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
-from astropy.utils.compat.optional_deps import HAS_SCIPY
-
-if HAS_SCIPY:
-    from scipy.integrate import quad
-else:
-
-    def quad(*args, **kwargs):
-        raise ModuleNotFoundError("No module named 'scipy.integrate'")
+from astropy.units import Quantity
 
 
 class DarkEnergyComponent:
@@ -22,7 +18,7 @@ class DarkEnergyComponent:
 
     @abstractmethod
     @deprecated_keywords("z", since="7.0")
-    def w(self, z):
+    def w(self, z: Quantity | ArrayLike) -> FArray:
         r"""The dark energy equation of state.
 
         Parameters
@@ -50,7 +46,7 @@ class DarkEnergyComponent:
         """
         raise NotImplementedError("w(z) is not implemented")
 
-    def _w_integrand(self, ln1pz, /):
+    def _w_integrand(self, ln1pz: float | FArray, /) -> FArray:
         """Internal convenience function for w(z) integral (eq. 5 of [1]_).
 
         Parameters
@@ -70,7 +66,7 @@ class DarkEnergyComponent:
         return 1.0 + self.w(exp(ln1pz) - 1.0)
 
     @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z):
+    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -125,7 +121,7 @@ class DarkEnergyComponent:
             return exp(3 * ival)
 
     @deprecated_keywords("z", since="7.0")
-    def Ode(self, z):
+    def Ode(self, z: Quantity | ArrayLike) -> FArray | float:
         """Return the density parameter for dark energy at redshift ``z``.
 
         Parameters

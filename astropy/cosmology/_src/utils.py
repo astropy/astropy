@@ -3,12 +3,12 @@
 __all__: list[str] = []  # nothing is publicly scoped
 
 import functools
-import operator
 from collections.abc import Callable
 from numbers import Number
-from typing import Any, TypeVar
+from typing import Any, ParamSpec, Protocol, TypeVar
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from astropy.units import Quantity
 
@@ -17,7 +17,8 @@ import astropy.cosmology._src.units as cu
 
 from .signature_deprecations import _depr_kws_wrap
 
-_F = TypeVar("_F", bound=Callable[..., Any])
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 def vectorize_redshift_method(func=None, nin=1):
@@ -66,7 +67,13 @@ def vectorize_redshift_method(func=None, nin=1):
     return wrapper
 
 
-def aszarr(z):
+class HasShape(Protocol):
+    shape: tuple[int, ...]
+
+
+def aszarr(
+    z: Number | np.generic | HasShape | ArrayLike,
+) -> Number | np.generic | NDArray[Any]:
     """Redshift as a `~numbers.Number` or |ndarray| / |Quantity| / |Column|.
 
     Allows for any ndarray ducktype by checking for attribute "shape".
@@ -86,13 +93,9 @@ def aszarr(z):
     return Quantity(z, cu.redshift).value
 
 
-def all_cls_vars(obj: object | type, /) -> dict[str, Any]:
-    """Return all variables in the whole class hierarchy."""
-    cls = obj if isinstance(obj, type) else obj.__class__
-    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
-
-
-def deprecated_keywords(*kws, since):
+def deprecated_keywords(
+    *kws: str, since: str | float | tuple[str | float, ...]
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Deprecate calling one or more arguments as keywords.
 
     Parameters
@@ -106,7 +109,12 @@ def deprecated_keywords(*kws, since):
     return functools.partial(_depr_kws, kws=kws, since=since)
 
 
-def _depr_kws(func: _F, /, kws: tuple[str, ...], since: str) -> _F:
+def _depr_kws(
+    func: Callable[P, R],
+    /,
+    kws: tuple[str, ...],
+    since: str | float | tuple[str | float, ...],
+) -> Callable[P, R]:
     wrapper = _depr_kws_wrap(func, kws, since)
     functools.update_wrapper(wrapper, func)
     return wrapper

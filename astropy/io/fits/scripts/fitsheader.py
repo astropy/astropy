@@ -404,8 +404,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    # TODO: pass color and suggest_on_error as kwargs when PYTHON_LT_14 is dropped
-    parser.color = True
+    # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
     parser.suggest_on_error = True
 
     parser.add_argument(

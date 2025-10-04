@@ -43,8 +43,8 @@ keywords = [
 ]
 dependencies = [
     "numpy>=1.24",
-    "pyerfa>=2.0.1.1",
-    "astropy-iers-data>=0.2025.6.30.0.39.40",
+    "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
+    "astropy-iers-data>=0.2025.9.29.0.35.48",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
 ]
@@ -54,6 +54,7 @@ dependencies = [
 recommended = [
     "scipy>=1.9.2",
     "matplotlib>=3.8.0",
+    "narwhals>=1.42.0",  # keep in sync with dependency-groups.dataframe
 ]
 # Optional IPython-related behavior is in many places in Astropy. IPython is a complex
 # dependency that occasionally requires pinning one of it's upstream dependencies. If
@@ -70,7 +71,7 @@ jupyter = [  # these are optional dependencies for utils.console and table
     # jupyter-core is a transitive dependency via ipykernel, we declare it as
     # a direct dependency in order to set a lower bound for oldest-deps testing
     "jupyter-core>=4.11.2",
-    "pandas>=1.5.0",
+    "pandas>=2.0.0",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
@@ -80,13 +81,12 @@ all = [
     "astropy[jupyter]",
     # Install all remaining optional dependencies
     "certifi>=2022.6.15.1",
-    "dask[array]>=2022.5.1",
-    "h5py>=3.8.0",
-    "pyarrow>=10.0.1",
+    "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
+    "h5py>=3.9.0",  # older versions used deprecated np.product()
+    "pyarrow>=14.0.2",
     "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
     "html5lib>=1.1",
     "bleach>=3.2.1",
-    "pandas>=2.0",
     "sortedcontainers>=1.5.7", # (older versions may work)
     "pytz>=2016.10", # (older versions may work)
     "jplephem>=2.15",
@@ -121,7 +121,8 @@ test_all = [
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 ]
 typing = [
-    "pandas-stubs>=2.0",
+    "pandas-stubs>=2.0.0",
+    "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
@@ -169,8 +170,24 @@ requires = ["setuptools>=77.0.0",
             "setuptools_scm>=8.0.0",
             "cython>=3.0.0, <4",
             "numpy>=2.0.0, <3",
-            "extension-helpers>=1.4,<2"]
+            "extension-helpers>=1.4,<2",
+            "pyerfa>=2.0.1.1"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+# a dev-only set of *tested* import/export target dataframe implementations
+# that can be converted to and from via narwhals
+dataframe = [
+    # keep in sync with project.optional-dependencies.recommended
+    # and project.optional-dependencies.all
+    # and project.optional-dependencies.typing
+    "narwhals>=1.42.0",
+    "pyarrow>=14.0.2",
+    "pandas>=2.0.0",
+    "polars>=1.0.0",
+    "duckdb>=1.1.0",
+    "dask[dataframe]>=2024.8.0"
+]
 
 [tool.setuptools]
 include-package-data = true
@@ -239,10 +256,12 @@ doctest_subpackage_requires = [
     "astropy/cosmology/_src/io/builtin/mapping.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/cosmology/_src/io/builtin/row.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/cosmology/_src/io/builtin/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
+    "astropy/cosmology/_src/traits/curvature.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 18232)
     "astropy/table/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/table/mixins/dask.py = dask",
     "docs/* = numpy>=2",   # not NUMPY_LT_2_0 (PR 15065)
     "docs/units/type_hints.rst = python<=3.13",  # PYTHON_LT_3_14 (PR 18140)
+    "docs/units/structured_units.rst = pyerfa<2.0.1.7",  # PYERFA_LT_2_0_1_7
     "docs/timeseries/index.rst = numpy<2.2.0.dev0",  # NUMPY_LT_2_2 (PR 17364)
     "astropy/stats/info_theory.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/stats/jackknife.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
@@ -257,6 +276,8 @@ doctest_subpackage_requires = [
     "docs/coordinates/example_gallery_plot_mars_coordinate_frame.rst = matplotlib",
     "docs/coordinates/example_gallery_plot_obs_planning.rst = matplotlib",
     "docs/coordinates/example_gallery_plot_sgr_coordinate_frame.rst = matplotlib",
+    "docs/io/unified_table_hdf5.rst = h5py",
+    "docs/io/unified_table_parquet.rst = pandas pyarrow",
 ]
 markers = [
     "mpl_image_compare",
@@ -266,6 +287,8 @@ markers = [
 # We disable testing for the following wheels:
 # - MuslLinux (tests hang non-deterministically)
 test-skip = "*-musllinux_x86_64"
+enable = ["cpython-prerelease"] # this line can be removed when cibuildwheel is bumped to 3.1.0 or newer
+skip = ["cp*t-*"] # https://github.com/astropy/astropy/issues/16916
 environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
 [tool.cibuildwheel.macos]
@@ -458,9 +481,6 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 
     # flake8-todos (TD)
     "TD002",  # Missing author in TODO
-
-    # PyUpgrade (UP)
-    "UP038",  # non-pep604-isinstance  # NOTE: this rule is deprecated
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
@@ -711,3 +731,8 @@ ignore-words-list = """
     te,
     wirth,
 """
+
+[tool.uv]
+constraint-dependencies = [
+    "pyparsing<3.3.0a1",  # https://github.com/astropy/astropy/issues/18652
+]

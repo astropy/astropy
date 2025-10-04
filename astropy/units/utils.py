@@ -6,19 +6,14 @@ None of the functions in the module are meant for use outside of the
 package.
 """
 
-from __future__ import annotations
-
 from fractions import Fraction
-from typing import TYPE_CHECKING, SupportsFloat
+from typing import SupportsFloat
 
 import numpy as np
 from numpy import finfo
 
 from .errors import UnitScaleError
-
-if TYPE_CHECKING:
-    from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
-
+from .typing import UnitPower, UnitPowerLike, UnitScale, UnitScaleLike
 
 _float_finfo = finfo(float)
 # take float here to ensure comparison with another float is fast

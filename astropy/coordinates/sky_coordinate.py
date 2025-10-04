@@ -16,14 +16,16 @@ from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
-from .angles import Angle
+from .angles import Angle, offset_by
 from .baseframe import (
     BaseCoordinateFrame,
     CoordinateFrameInfo,
     GenericFrame,
     frame_transform_graph,
 )
+from .builtin_frames import SkyOffsetFrame
 from .distances import Distance
+from .errors import ConvertError
 from .representation import (
     SphericalDifferential,
     SphericalRepresentation,
@@ -501,8 +503,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
             If there is no possible transformation route.
 
         """
-        from astropy.coordinates.errors import ConvertError
-
         frame_kwargs = {}
 
         # Frame name (string) or frame class?  Coerce into an instance.
@@ -1127,8 +1127,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
             inverse operation for the ``separation`` component
 
         """
-        from .angles import offset_by
-
         slat = self.represent_as(UnitSphericalRepresentation).lat
         slon = self.represent_as(UnitSphericalRepresentation).lon
 
@@ -1162,20 +1160,13 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
         Returns
         -------
-        idx : int array
-            Indices into ``catalogcoord`` to get the matched points for
-            each of this object's coordinates. Shape matches this
-            object.
-        sep2d : `~astropy.coordinates.Angle`
-            The on-sky separation between the closest match for each
-            element in this object in ``catalogcoord``. Shape matches
-            this object.
-        dist3d : `~astropy.units.Quantity` ['length']
-            The 3D distance between the closest match for each element
-            in this object in ``catalogcoord``. Shape matches this
-            object. Unless both this and ``catalogcoord`` have associated
-            distances, this quantity assumes that all sources are at a
-            distance of 1 (dimensionless).
+        CoordinateMatchResult
+            A `~typing.NamedTuple` with attributes representing for each
+            source in this |SkyCoord| the indices and angular and
+            physical separations of the match in ``catalogcoord``. If
+            either the |SkyCoord| or ``catalogcoord`` don't have
+            distances, the physical separation is the 3D distance on the
+            unit sphere, rather than a true distance.
 
         Notes
         -----
@@ -1230,18 +1221,10 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
         Returns
         -------
-        idx : int array
-            Indices into ``catalogcoord`` to get the matched points for
-            each of this object's coordinates. Shape matches this
-            object.
-        sep2d : `~astropy.coordinates.Angle`
-            The on-sky separation between the closest match for each
-            element in this object in ``catalogcoord``. Shape matches
-            this object.
-        dist3d : `~astropy.units.Quantity` ['length']
-            The 3D distance between the closest match for each element
-            in this object in ``catalogcoord``. Shape matches this
-            object.
+        CoordinateMatchResult
+            A `~typing.NamedTuple` with attributes representing for each
+            source in this |SkyCoord| the indices and angular and physical
+            separations of the match in ``catalogcoord``.
 
         Notes
         -----
@@ -1292,20 +1275,13 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
         Returns
         -------
-        idxsearcharound : int array
-            Indices into ``searcharoundcoords`` that match the
-            corresponding elements of ``idxself``. Shape matches
-            ``idxself``.
-        idxself : int array
-            Indices into ``self`` that match the
-            corresponding elements of ``idxsearcharound``. Shape matches
-            ``idxsearcharound``.
-        sep2d : `~astropy.coordinates.Angle`
-            The on-sky separation between the coordinates. Shape matches
-            ``idxsearcharound`` and ``idxself``.
-        dist3d : `~astropy.units.Quantity` ['length']
-            The 3D distance between the coordinates. Shape matches
-            ``idxsearcharound`` and ``idxself``.
+        CoordinateSearchResult
+            A `~typing.NamedTuple` with attributes representing the
+            indices of the elements of found pairs in the other set of
+            coordinates and this |SkyCoord| and angular and physical
+            separations of the pairs. If either set of sources lack
+            distances, the physical separation is the 3D distance on the
+            unit sphere, rather than a true distance.
 
         Notes
         -----
@@ -1352,20 +1328,11 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
         Returns
         -------
-        idxsearcharound : int array
-            Indices into ``searcharoundcoords`` that match the
-            corresponding elements of ``idxself``. Shape matches
-            ``idxself``.
-        idxself : int array
-            Indices into ``self`` that match the
-            corresponding elements of ``idxsearcharound``. Shape matches
-            ``idxsearcharound``.
-        sep2d : `~astropy.coordinates.Angle`
-            The on-sky separation between the coordinates. Shape matches
-            ``idxsearcharound`` and ``idxself``.
-        dist3d : `~astropy.units.Quantity` ['length']
-            The 3D distance between the coordinates. Shape matches
-            ``idxsearcharound`` and ``idxself``.
+        CoordinateSearchResult
+            A `~typing.NamedTuple` with attributes representing the
+            indices of the elements of found pairs in the other set of
+            coordinates and this |SkyCoord| and angular and physical
+            separations of the pairs.
 
         Notes
         -----
@@ -1407,8 +1374,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
             this object has an ICRS coordinate, the resulting frame is
             SkyOffsetICRS, with the origin set to this object)
         """
-        from .builtin_frames.skyoffset import SkyOffsetFrame
-
         return SkyOffsetFrame(origin=self, rotation=rotation)
 
     def get_constellation(self, short_name=False, constellation_list="iau"):
@@ -1541,8 +1506,6 @@ class SkyCoord(MaskableShapedLikeNDArray):
             ymax, xmax = image.shape
         else:
             xmax, ymax = wcs._naxis
-
-        import warnings
 
         with warnings.catch_warnings():
             #  Suppress warnings since they just mean we didn't find the coordinate

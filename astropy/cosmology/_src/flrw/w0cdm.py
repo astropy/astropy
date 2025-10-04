@@ -3,10 +3,13 @@
 
 import numpy as np
 from numpy import sqrt
+from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
+from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
@@ -83,7 +86,7 @@ class wCDM(FLRW):
         default=-1.0, doc="Dark energy equation of state.", fvalidate="float"
     )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
@@ -91,7 +94,7 @@ class wCDM(FLRW):
         if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
             inv_efunc_scalar_args = (self.Om0, self.Ode0, self.Ok0, self.w0)
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -107,9 +110,9 @@ class wCDM(FLRW):
                 self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.w0,
             )
 
@@ -117,7 +120,7 @@ class wCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     @deprecated_keywords("z", since="7.0")
-    def w(self, z):
+    def w(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -145,7 +148,7 @@ class wCDM(FLRW):
         return self.w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
 
     @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z):
+    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -171,7 +174,7 @@ class wCDM(FLRW):
         return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self.w0))
 
     @deprecated_keywords("z", since="7.0")
-    def efunc(self, z):
+    def efunc(self, z: Quantity | ArrayLike) -> FArray | float:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -191,7 +194,7 @@ class wCDM(FLRW):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -202,7 +205,7 @@ class wCDM(FLRW):
         )
 
     @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z):
+    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -222,7 +225,7 @@ class wCDM(FLRW):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -298,7 +301,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
     wCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
     """
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
@@ -306,7 +309,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
             inv_efunc_scalar_args = (self.Om0, self.Ode0, self.w0)
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -320,16 +323,16 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
                 self.Om0,
                 self.Ode0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.w0,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     @deprecated_keywords("z", since="7.0")
-    def efunc(self, z):
+    def efunc(self, z: Quantity | ArrayLike) -> FArray | float:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -349,7 +352,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -359,7 +362,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         )
 
     @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z):
+    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray | float:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -379,7 +382,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])

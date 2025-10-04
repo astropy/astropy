@@ -4,14 +4,12 @@
 Handles the "Console" unit format.
 """
 
-from __future__ import annotations
+from typing import ClassVar, Literal
 
-from typing import TYPE_CHECKING, ClassVar, Literal
+from astropy.units.core import UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 
 from . import base
-
-if TYPE_CHECKING:
-    from astropy.units import UnitBase
 
 
 class Console(base.Base):
@@ -56,7 +54,10 @@ class Console(base.Base):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Change default of fraction to False, i.e., we typeset
         # without a fraction by default.

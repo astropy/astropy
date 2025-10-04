@@ -6,16 +6,24 @@ Image Data
 Reading and writing CCD image data in the unified I/O interface is supported
 though the :ref:`CCDData class <ccddata>` using FITS file format:
 
-.. doctest-skip::
+.. testsetup::
+    >>> from astropy.nddata import CCDData
+    >>> ccd = CCDData([1, 2, 3], unit='adu')
+    >>> ccd.write('image.fits')
+
+::
 
     >>> # Read CCD image
     >>> from astropy.nddata import CCDData
     >>> ccd = CCDData.read('image.fits')
 
-.. doctest-skip::
-
     >>> # Write back CCD image
     >>> ccd.write('new_image.fits')
+
+.. testcleanup::
+    >>> del ccd
+    >>> import os
+    >>> os.remove('new_image.fits')
 
 Note that the unit is stored in the ``BUNIT`` keyword in the header on saving,
 and is read from the header if it is present.

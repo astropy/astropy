@@ -4,21 +4,17 @@
 Handles the "FITS" unit format.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 import numpy as np
 
-from astropy.units.core import CompositeUnit
+from astropy.units.core import CompositeUnit, UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitScaleError
 from astropy.utils import classproperty
 
 from . import Base, utils
 from .generic import _GenericParserMixin
-
-if TYPE_CHECKING:
-    from astropy.units import UnitBase
 
 
 class FITS(Base, _GenericParserMixin):
@@ -63,7 +59,10 @@ class FITS(Base, _GenericParserMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)

@@ -846,7 +846,7 @@ class FITS_rec(np.recarray):
                         vla_first = int(len(dummy[idx]) / np.prod(vla_dim))
                         dummy[idx] = dummy[idx].reshape((vla_first,) + vla_dim)
 
-                dummy[idx].dtype = dummy[idx].dtype.newbyteorder(">")
+                dummy[idx] = dummy[idx].view(dummy[idx].dtype.newbyteorder(">"))
                 # Each array in the field may now require additional
                 # scaling depending on the other scaling parameters
                 # TODO: The same scaling parameters apply to every

@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numbers
+from functools import cached_property
 
 import numpy as np
 
@@ -11,7 +12,6 @@ from astropy.units import (
     UnitTypeError,
     dimensionless_unscaled,
 )
-from astropy.utils import lazyproperty
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 from .core import FunctionQuantity, FunctionUnitBase
@@ -47,7 +47,7 @@ class LogUnit(FunctionUnitBase):
     """
 
     # the four essential overrides of FunctionUnitBase
-    @lazyproperty
+    @cached_property
     def _default_function_unit(self):
         from .units import dex
 
@@ -145,7 +145,7 @@ class MagUnit(LogUnit):
         unit such as ``2 mag``.
     """
 
-    @lazyproperty
+    @cached_property
     def _default_function_unit(self):
         from .units import mag
 
@@ -170,7 +170,7 @@ class DexUnit(LogUnit):
         unit such as ``0.5 dex``.
     """
 
-    @lazyproperty
+    @cached_property
     def _default_function_unit(self):
         from .units import dex
 
@@ -187,7 +187,7 @@ class DexUnit(LogUnit):
             else:
                 return f"[{self.physical_unit.to_string(format=format)}]"
         else:
-            return super().to_string()
+            return super().to_string(format=format)
 
 
 class DecibelUnit(LogUnit):
@@ -204,7 +204,7 @@ class DecibelUnit(LogUnit):
         unit such as ``2 dB``.
     """
 
-    @lazyproperty
+    @cached_property
     def _default_function_unit(self):
         from .units import dB
 

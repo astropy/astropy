@@ -1,11 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import math
+
+import erfa
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import earth_orientation as earth
 from astropy.coordinates.attributes import TimeAttribute
 from astropy.coordinates.baseframe import base_doc, frame_transform_graph
+from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import (
     CartesianRepresentation,
     UnitSphericalRepresentation,
@@ -14,6 +17,7 @@ from astropy.coordinates.transformations import (
     DynamicMatrixTransform,
     FunctionTransformWithFiniteDifference,
 )
+from astropy.time import Time
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import format_doc
 
@@ -22,6 +26,7 @@ from .utils import EQUINOX_B1950
 
 __all__ = ["FK4", "FK4NoETerms"]
 
+jd1950 = Time("B1950").jd
 
 doc_footer_fk4 = """
     Other parameters
@@ -99,7 +104,27 @@ class FK4NoETerms(BaseRADecFrame):
         newcoord : array
             The precession matrix to transform to the new equinox
         """
-        return earth._precession_matrix_besselian(oldequinox.byear, newequinox.byear)
+        # tropical years
+        t1 = (oldequinox.byear - 1850.0) / 1000.0
+        dt = (newequinox.byear - 1850.0) / 1000.0 - t1
+        dt_over_3600 = dt / 3600
+
+        z1 = zeta1 = (0.060 * t1 + 139.720) * t1 + 23035.545
+        zeta2 = -0.27 * t1 + 30.240
+        zeta = ((17.995 * dt + zeta2) * dt + zeta1) * dt_over_3600
+
+        z2 = 109.480 + 0.39 * t1
+        z = ((18.325 * dt + z2) * dt + z1) * dt_over_3600
+
+        theta1 = (-0.37 * t1 - 85.29) * t1 + 20051.12
+        theta2 = -0.37 * t1 - 42.65
+        theta = ((-41.8 * dt + theta2) * dt + theta1) * dt_over_3600
+
+        return (
+            rotation_matrix(-z, "z")
+            @ rotation_matrix(theta, "y")
+            @ rotation_matrix(-zeta, "z")
+        )
 
 
 # the "self" transform
@@ -127,24 +152,19 @@ def fk4_e_terms(equinox):
     # Constant of aberration at J2000; from Explanatory Supplement to the
     # Astronomical Almanac (Seidelmann, 2005).
     k = 0.0056932  # in degrees (v_earth/c ~ 1e-4 rad ~ 0.0057 deg)
-    k = np.radians(k)
 
+    # Explanatory Supplement to the Astronomical Almanac: P. Kenneth
+    #  Seidelmann (ed), University Science Books (1992).
+    T = (equinox.jd - jd1950) / 36525.0
     # Eccentricity of the Earth's orbit
-    e = earth.eccentricity(equinox.jd)
-
+    ek = math.radians(k) * ((-0.000000126 * T - 0.00004193) * T + 0.01673011)
     # Mean longitude of perigee of the solar orbit
-    g = earth.mean_lon_of_perigee(equinox.jd)
-    g = np.radians(g)
-
+    g = np.radians((((0.012 * T + 1.65) * T + 6190.67) * T + 1015489.951) / 3600.0)
+    minus_ek_cos_g = -ek * np.cos(g)
     # Obliquity of the ecliptic
-    o = earth.obliquity(equinox.jd, algorithm=1980)
-    o = np.radians(o)
+    o = erfa.obl80(equinox.jd, 0)
 
-    return (
-        e * k * np.sin(g),
-        -e * k * np.cos(g) * np.cos(o),
-        -e * k * np.cos(g) * np.sin(o),
-    )
+    return (ek * np.sin(g), minus_ek_cos_g * np.cos(o), minus_ek_cos_g * np.sin(o))
 
 
 @frame_transform_graph.transform(
@@ -223,9 +243,9 @@ def fk4_no_e_to_fk4(fk4noecoord, fk4frame):
         copy=False,
     )
 
-    rep0 = rep.copy()
+    eterms_a_plus_rep_ini = eterms_a + rep
     for _ in range(10):
-        rep = (eterms_a + rep0) / (1.0 + eterms_a.dot(rep))
+        rep = eterms_a_plus_rep_ini / (1.0 + eterms_a.dot(rep))
 
     # Find new distance (for re-normalization)
     d_new = rep.norm()

@@ -491,7 +491,9 @@ class CompImageHDU(ImageHDU):
 
         # Since .section has general code to load any arbitrary part of the
         # data, we can just use this
-        return self.section[...]
+        data = self.section[...]
+        self._update_header_scale_info(data.dtype)
+        return data
 
     @data.setter
     def data(self, data):

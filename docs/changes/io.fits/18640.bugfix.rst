@@ -1,0 +1,1 @@
+Fix slicing FITS compressed file with ``.section`` when data is scaled.
