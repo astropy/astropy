@@ -1153,3 +1153,36 @@ def test_write_read_psf(tmp_path):
     ccd_disk = CCDData.read(filename, hdu_psf="PSFOTHER")
     np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
     np.testing.assert_array_equal(ccd_data.psf, ccd_disk.psf)
+
+def test_read_unit_matches_bunit_no_log(tmp_path, caplog):
+    # Create a fake FITS file with BUNIT='adu'
+    data = np.ones((5, 5), dtype=float)
+    hdu = fits.PrimaryHDU(data=data)
+    hdu.header["BUNIT"] = "adu"
+    filename = tmp_path / "test.fits"
+    hdu.writeto(filename)
+
+    # Call CCDData.read with matching unit
+    caplog.clear()
+    with caplog.at_level("INFO", logger="astropy"):
+        ccd = CCDData.read(filename, unit="adu")
+
+    # Ensure the CCDData has the correct unit
+    assert ccd.unit == u.adu
+
+    # Ensure no INFO log was emitted
+    assert not any("using the unit" in rec.message for rec in caplog.records)
+
+def test_read_unit_differs_bunit_logs(tmp_path, caplog):
+    data = np.ones((5, 5), dtype=float)
+    hdu = fits.PrimaryHDU(data=data)
+    hdu.header["BUNIT"] = "adu"
+    filename = tmp_path / "test_diff.fits"
+    hdu.writeto(filename)
+
+    caplog.clear()
+    with caplog.at_level("INFO", logger="astropy"):
+        ccd = CCDData.read(filename, unit="electron")
+
+    assert ccd.unit == u.electron
+    assert any("using the unit" in rec.message for rec in caplog.records)
