@@ -1039,7 +1039,7 @@ class Table:
             return self.copy()
 
     @property
-    def indices(self):
+    def indices(self) -> TableIndices:
         """
         Return the indices associated with columns of the table
         as a TableIndices object.
@@ -1052,7 +1052,7 @@ class Table:
         return TableIndices(lst)
 
     @property
-    def loc(self):
+    def loc(self) -> TableLoc:
         """
         Return a TableLoc object that can be used for retrieving
         rows by index in a given data range. Note that both loc
@@ -1061,7 +1061,7 @@ class Table:
         return TableLoc(self)
 
     @property
-    def loc_indices(self):
+    def loc_indices(self) -> TableLocIndices:
         """
         Return a TableLocIndices object that can be used for retrieving
         the row indices corresponding to given table index key value or values.
@@ -1069,7 +1069,7 @@ class Table:
         return TableLocIndices(self)
 
     @property
-    def iloc(self):
+    def iloc(self) -> TableILoc:
         """
         Return a TableILoc object that can be used for retrieving
         indexed rows in the order they appear in the index.

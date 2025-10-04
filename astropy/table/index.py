@@ -188,12 +188,18 @@ Column creation: - Column(c) -> deep copy of indices - c[[1, 2]] -> deep copy an
 reordering of indices - c[1:2] -> reference - array.view(Column) -> no indices
 """
 
+from __future__ import annotations
+
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from .bst import MaxValue, MinValue
 from .sorted_array import SortedArray
+
+if TYPE_CHECKING:
+    from . import Table
 
 
 class QueryError(ValueError):
@@ -811,17 +817,21 @@ def get_index(table, table_copy=None, names=None):
     return None
 
 
-def get_index_by_names(table, names):
+def get_index_by_names(table: Table, names: tuple | list) -> SlicedIndex | None:
     """
-    Returns an index in ``table`` corresponding to the ``names`` columns or None
-    if no such index exists.
+    Return index in ``table`` keyed by ``names``, or `None` if not found.
 
     Parameters
     ----------
     table : `Table`
         Input table
-    nmaes : tuple, list
-        Column names
+    names : tuple, list
+        Key names of table index to find
+
+    Returns
+    -------
+    SlicedIndex or None
+        Table Index or None
     """
     names = list(names)
     for index in table.indices:
@@ -940,7 +950,7 @@ class TableIndices(list):
     def __init__(self, lst):
         super().__init__(lst)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> Index:
         """
         Retrieve an item from the list of indices.
 
@@ -975,24 +985,47 @@ class TableLoc:
     ----------
     table : Table
         Indexed table to use
+    index_name : tuple or None
+        If not None, the index name as a tuple to use for all retrievals. If None
+        (default), the primary key index is used.
     """
 
-    def __init__(self, table, index_key=None):
+    def __init__(self, table: Table, index_name: tuple | None = None):
         self.table = table
         self.indices = table.indices
-        self.index_key = index_key
+        self.index_name = index_name
 
-    def __call__(self, *index_key):
-        return TableLoc(self.table, index_key)
+    def __call__(self, *index_name):
+        return TableLoc(self.table, index_name)
 
-    def _get_row_idxs_as_list(self, key, item):
+    def _get_row_idxs_as_list(self, index_name: tuple, item) -> list[int]:
         """
-        Retrieve Table rows indexes by value slice.
+        Retrieve Table rows indexes for ``item`` as a list of integers.
+
+        Parameters
+        ----------
+        index_name : tuple
+            Name of the index to use
+        item : column element, list, ndarray, or slice
+            Can be a value in the table index, a list/ndarray of such values, or a value
+            slice (both endpoints are included).
+
+        Returns
+        -------
+        list of int
+            List of row indices corresponding to the input item.
+
+        Raises
+        ------
+        ValueError
+            If the table has no indices.
+        KeyError
+            If no matches are found for a given key.
         """
         if len(self.indices) == 0:
             raise ValueError("Can only use TableLoc for a table with indices")
 
-        index = self.indices[key]
+        index = self.indices[index_name]
 
         if isinstance(item, slice):
             # None signifies no upper/lower bound
@@ -1004,30 +1037,28 @@ class TableLoc:
                 item = [item]
             # item should be a list or ndarray of values
             rows = []
-            for index_key in item:
-                p = index.find(
-                    index_key if isinstance(index_key, tuple) else (index_key,)
-                )
-                if len(p) == 0:
-                    raise KeyError(f"No matches found for key {index_key}")
+            for value in item:
+                ii = index.find(value if isinstance(value, tuple) else (value,))
+                if len(ii) == 0:
+                    raise KeyError(f"No matches found for key {value}")
                 else:
-                    rows.extend(p)
+                    rows.extend(ii)
         return rows
 
-    def _get_row_idxs_as_list_or_int(self, item):
+    def _get_row_idxs_as_list_or_int(self, item) -> list[int] | int:
         """Internal function to retrieve row indices for ``item`` as a list or int.
 
         See ``__getitem__`` for details on the input item.
         """
         # This handles ``tbl.loc[<item>]`` and ``tbl.loc[<key>, <item>]`` (and the same
         # for ``tbl.loc_indices``).
-        if self.index_key is not None:
-            key = self.index_key
+        if self.index_name is not None:
+            index_name = self.index_name
         else:
             if isinstance(item, tuple):
-                key, item = item
+                index_name, item = item
             else:
-                key = self.table.primary_key
+                index_name = self.table.primary_key
 
         item_is_sequence = isinstance(item, (list, np.ndarray))
 
@@ -1035,16 +1066,16 @@ class TableLoc:
         if item_is_sequence and len(item) == 0:
             return []
 
-        rows = self._get_row_idxs_as_list(key, item)
+        row_idxs = self._get_row_idxs_as_list(index_name, item)
         # If ``item`` is a sequence of keys or a slice then always returns a list of
         # rows, where zero rows is OK. Otherwise check output and possibly return a
         # scalar.
-        if not (item_is_sequence or isinstance(item, slice)) and len(rows) == 1:
-            rows = rows[0]
+        if not (item_is_sequence or isinstance(item, slice)) and len(row_idxs) == 1:
+            row_idxs = row_idxs[0]
 
-        return rows
+        return row_idxs
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> Table | Table.Row:
         """
         Retrieve Table rows by value slice.
 
