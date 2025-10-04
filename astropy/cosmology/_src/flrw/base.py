@@ -253,7 +253,7 @@ class FLRW(
             # to do integrals with (perhaps surprisingly! But small python lists
             # are more efficient than small NumPy arrays).
             if has_massive_nu:
-                nu_y = (self.m_nu[massive].value / (kB_evK * self.Tnu0)).value
+                nu_y = (self.m_nu[massive] / (kB_evK * self.Tnu0)).to_value(u.one)
                 nu_y_list = nu_y.tolist()
             else:
                 nu_y = nu_y_list = None
