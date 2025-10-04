@@ -1273,7 +1273,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             - 2 - no ``DATASUM`` keyword present
         """
         if "DATASUM" in self._header:
-            datasum = self._calculate_datasum()
+            if self._header.get("XTENSION") == "BINTABLE" and not self.is_image:
+                datasum = self._calculate_datasum_with_heap()
+            else:
+                datasum = self._calculate_datasum()
             if datasum == int(self._header["DATASUM"]):
                 return 1
             else:
@@ -1296,7 +1299,10 @@ class _ValidHDU(_BaseHDU, _Verify):
         """
         if "CHECKSUM" in self._header:
             if "DATASUM" in self._header:
-                datasum = self._calculate_datasum()
+                if self._header.get("XTENSION") == "BINTABLE" and not self.is_image:
+                    datasum = self._calculate_datasum_with_heap()
+                else:
+                    datasum = self._calculate_datasum()
             else:
                 datasum = 0
             checksum = self._calculate_checksum(datasum)
