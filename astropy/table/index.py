@@ -205,6 +205,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated
+
 from .bst import MaxValue, MinValue
 from .sorted_array import SortedArray
 
@@ -987,6 +989,14 @@ class TableIndices(list):
         return super().__getitem__(item)
 
 
+@deprecated(
+    since="7.2.0",
+    message="""\
+Calling `Table.loc/iloc/loc_indices[index_name, item]` to select `item` from index
+`index_name` is deprecated. Instead select the index using the syntax
+`Table.loc/iloc/loc_indices(index_name)[item]`.
+""",
+)
 def interpret_item_as_index_name_and_item(item):
     """Interpret the item as a (index_name, item) tuple."""
     index_name, item = item
