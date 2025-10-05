@@ -217,6 +217,19 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert checksum == hdul[1]._checksum
             assert datasum == hdul[1]._datasum
 
+    def test_variable_length_table_data3(self):
+        """regression test for #14396"""
+
+        testfile = self.temp("tmp.fits")
+        col1 = fits.Column(name="a", format="1A", array=["a"])
+        col2 = fits.Column(name="b", format="QD", array=[[1]])
+        tab = fits.BinTableHDU.from_columns(name="test", columns=[col1, col2])
+
+        tab.writeto(testfile, checksum=True)
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[1].header["DATASUM"] == "1648357376"
+            assert hdul[1].header["CHECKSUM"] == "2CoL4BnL2BnL2BnL"
+
     def test_ascii_table_data(self):
         a1 = np.array(["abc", "def"])
         r1 = np.array([11.0, 12.0])
