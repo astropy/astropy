@@ -656,8 +656,8 @@ def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length,
         ("loc_indices", (2, 5)),
     ],
 )
-def test_index_name_item_deprecation_and_call_method(method, item):
-    """t.loc/iloc/loc_indices[index_name, item] raises a deprecation warning.
+def test_index_id_item_deprecation_and_call_method(method, item):
+    """t.loc/iloc/loc_indices[index_id, item] raises a deprecation warning.
 
     Also test that these methods
     """
@@ -665,17 +665,17 @@ def test_index_name_item_deprecation_and_call_method(method, item):
     t["a"] = [1, 2, 3]
     t["b"] = [4, 5, 6]
     t["c"] = ["x", "y", "z"]
-    index_name = ("a", "b")
-    t.add_index(index_name)
+    index_id = ("a", "b")
+    t.add_index(index_id)
     prop = getattr(t, method)
     # Test calling like t.loc("a", "b") and t.loc(("a", "b")).
-    out_call_1 = prop(*index_name)[item]
-    out_call_2 = prop(index_name)[item]
+    out_call_1 = prop(*index_id)[item]
+    out_call_2 = prop(index_id)[item]
     with pytest.warns(
         AstropyDeprecationWarning,
         match=r"Calling `Table.loc/iloc/loc_indices\[index_id, item\]`",
     ):
-        out_depr = prop[index_name, item]
+        out_depr = prop[index_id, item]
     assert type(out_depr) is type(out_call_1)
     assert out_depr == out_call_1
     assert type(out_call_1) is type(out_call_2)
