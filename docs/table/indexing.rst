@@ -101,7 +101,7 @@ range of column values (*including* the bounds), or a :class:`list` or
 Using multiple indices
 ----------------------
 By default, `~astropy.table.Table.loc` uses the primary index, which
-here is column ``'a'``. You can use a different index with the `~astropy.table.Table.index.TableLoc.with_index` method as shown below::
+here is column ``'a'``. You can use a different index with the ``with_index`` method as shown below::
 
    >>> t.add_index('b')
    >>> t.loc.with_index('b')[8:10]
@@ -113,42 +113,42 @@ here is column ``'a'``. You can use a different index with the `~astropy.table.T
        4     9
        1    10
 
-The `~astropy.table.Table.index.TableLoc.with_index` method takes an index identifier as
-input, where the format is flexible as shown in these examples::
+The ``with_index`` method takes an index identifier as input, where the format is
+flexible as shown in these examples::
 
->>> t.loc  # defaults to primary key
-<TableLoc index_id='a' id(table)=...>
->>> t.loc.with_index('b')
-<TableLoc index_id='b' id(table)=...>
->>> t.loc.with_index(['b'])
-<TableLoc index_id='b' id(table)=...>
->>> t.loc.with_index('a', 'b')
-<TableLoc index_id=('a', 'b') id(table)=...>
->>> t.loc.with_index(['a', 'b'])
-<TableLoc index_id=('a', 'b') id(table)=...>
->>> index_id = ('a', 'b')
->>> t.loc.with_index(index_id)
-<TableLoc index_id=('a', 'b') id(table)=...>
+   >>> t.loc  # defaults to primary key
+   <TableLoc index_id='a' id(table)=...>
+   >>> t.loc.with_index('b')
+   <TableLoc index_id='b' id(table)=...>
+   >>> t.loc.with_index(['b'])
+   <TableLoc index_id='b' id(table)=...>
+   >>> t.loc.with_index('a', 'b')
+   <TableLoc index_id=('a', 'b') id(table)=...>
+   >>> t.loc.with_index(['a', 'b'])
+   <TableLoc index_id=('a', 'b') id(table)=...>
+   >>> index_id = ('a', 'b')
+   >>> t.loc.with_index(index_id)
+   <TableLoc index_id=('a', 'b') id(table)=...>
 
 Using a multi-column index
 --------------------------
 You can create an index on multiple table columns and select table rows that match all
 values of the indexed columns::
 
->>> t.add_index(["a", "b"])
->>> t.loc.with_index("a", "b")[3, 9]
-<Row index=2>
-  a     b
-int64 int64
------ -----
-    3     9
->>> t.loc.with_index("a", "b")[[(3, 9), (4, 9)]]
-<Table length=2>
-  a     b
-int64 int64
------ -----
-    3     9
-    4     9
+   >>> t.add_index(["a", "b"])
+   >>> t.loc.with_index("a", "b")[3, 9]
+   <Row index=2>
+     a     b
+   int64 int64
+   ----- -----
+       3     9
+   >>> t.loc.with_index("a", "b")[[(3, 9), (4, 9)]]
+   <Table length=2>
+     a     b
+   int64 int64
+   ----- -----
+       3     9
+       4     9
 
 The property `~astropy.table.Table.iloc` works similarly, except that the
 retrieval information must be either an integer or a :class:`slice`, and

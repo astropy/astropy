@@ -126,13 +126,14 @@ When a query is performed using `.loc[]`:
 1. **Index Selection**: The system identifies which index to use based on the index id.
    If no id is specified, the primary key index is used.
 
-2. **Query Type Detection**: The system determines the query type: - Single value:
-   `t.loc[5]` → exact match lookup - Multiple values: `t.loc[[1, 3, 5]]` → multiple
-   exact matches - Range query: `t.loc[2:6]` → range lookup with inclusive bounds
+2. **Query Type Detection**: The system determines the query type:
+   - Single value: `t.loc[5]` → exact match lookup
+   - Multiple values: `t.loc[[1, 3, 5]]` → multiple exact matches
+   - Range query: `t.loc[2:6]` → range lookup with inclusive bounds
 
-3. **Index Lookup**: The appropriate index engine performs the search: - Single/multiple
-   lookups use `find()` method - Range queries use `range()` method with
-   MinValue/MaxValue sentinels
+3. **Index Lookup**: The appropriate index engine performs the search:
+   - Single/multiple lookups use `find()` method
+   - Range queries use `range()` method with MinValue/MaxValue sentinels
 
 4. **Coordinate Translation**: For sliced tables, row indices are translated from
    original coordinates to sliced coordinates using `sliced_coords()`
