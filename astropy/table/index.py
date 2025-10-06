@@ -13,7 +13,7 @@ narrative docs.
 
 Overview
 --------
-The astropy Table class supports creating indexes on one or more columns to enable fast
+The astropy Table class supports creating indices on one or more columns to enable fast
 data retrieval operations. When an index is created on a column (or combination of
 columns), a sorted data structure is built that maps column values to their
 corresponding row numbers in the original table.
@@ -58,8 +58,8 @@ Core Functionality
 ------------------
 As a reminder of basic functionality.
 
-Creating Indexes:
-    Tables support adding indexes via ``Table.add_index()``::
+Creating indices:
+    Tables support adding indices via ``Table.add_index()``::
 
       t = Table({'a': [1, 3, 2, 5], 'b': ['x', 'y', 'z', 'w']})
       t.add_index('a')  # Single column index
@@ -96,8 +96,8 @@ Position-Based Access with TableILoc:
         t.iloc[1:3]  # Rows 1-2 in sorted order
 
 Index Management:
-    - `TableIndices`: Container class that allows retrieval of indexes by index name
-    - `get_index()`: Utility function to find existing indexes on specified columns
+    - `TableIndices`: Container class that allows retrieval of indices by index name
+    - `get_index()`: Utility function to find existing indices on specified columns
     - `get_index_by_names()`: Find index by exact column name match
 
 Sliced Table Handling
@@ -105,7 +105,7 @@ Sliced Table Handling
 
 When a table is sliced (e.g., `t_slice = t[2:8]`), the resulting table uses a
 `SlicedIndex` that maintains a reference to the original table's index. This approach
-avoids rebuilding indexes for sliced views while ensuring lookup operations work
+avoids rebuilding indices for sliced views while ensuring lookup operations work
 correctly.
 
 The `SlicedIndex` class handles coordinate translation between the sliced view and the
@@ -145,8 +145,8 @@ Data Structure Integration
 -------------------------
 
 The indexing system integrates with the Table's data management:
-    - Indexes are automatically updated when rows are added or removed
-    - Column value changes invalidate affected indexes via the `replace()` method
+    - indices are automatically updated when rows are added or removed
+    - Column value changes invalidate affected indices via the `replace()` method
     - Sliced tables maintain consistent index behavior through coordinate mapping
     - Memory usage is optimized by sharing index data between sliced views
 

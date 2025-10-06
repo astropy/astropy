@@ -14,7 +14,7 @@ improved performance for certain table operations.
 Creating an Index
 =================
 
-.. EXAMPLE START: Creating Indexes on Table Columns
+.. EXAMPLE START: Creating Indices on Table Columns
 
 To create an index on a table, use the |add_index| method::
 
