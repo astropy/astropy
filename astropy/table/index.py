@@ -71,8 +71,8 @@ Value-Based Lookups with TableLoc:
       t.loc[3]  # Find row where indexed column 'a' equals 3
       t.loc[2:4]  # Range query: rows where 'a' is between 2 and 4 (inclusive)
       t.loc[[1, 3, 5]]  # Multiple specific values
-      t.loc[('a', 3)]  # Explicitly specify index column and value
-      t.loc[(['a', 'b'], (2, 'z'))]  # Multi-column composite key lookup
+      t.loc.with_index('a')[3]  # Explicitly specify index column and value
+      t.loc.with_index('a', 'b')[2, 'z']  # Multi-column composite key lookup
 
     Range queries support slice notation with inclusive bounds: - ``t.loc[2:5]`` returns
     rows where indexed values are between 2 and 5 - ``t.loc[:3]`` returns rows where
@@ -1003,10 +1003,10 @@ class TableIndices(list):
     message="""\
 Calling `Table.loc/iloc/loc_indices[index_id, item]` to select `item` from index
 `index_id` is deprecated. Instead select the index using the syntax
-`Table.loc/iloc/loc_indices(index_id)[item]`.
+`Table.loc/iloc/loc_indices.with_index(index_id)[item]`.
 """,
 )
-def interpret_item_as_index_id_and_item(item):
+def interpret_item_as_index_id_and_item(item: tuple) -> tuple:
     """Interpret the item as a (index_id, item) tuple."""
     index_id, item = item
     return index_id, item
@@ -1030,7 +1030,24 @@ class TableLoc:
         self.indices = table.indices
         self.index_id = index_id
 
-    def __call__(self, *index_id):
+    def with_index(self, *index_id):
+        """Return a new instance of this class for ``index_id``
+
+        Parameters
+        ----------
+        index_id : str, tuple[str], or list[str]
+            Identifier of the index to use
+
+        Examples
+        --------
+        >>> from astropy.table import Table
+        >>> t = Table({'a': [1, 2, 3], 'b': [4, 5, 6], 'c': [7, 8, 9]})
+        >>> t.add_index('a')
+        >>> t.add_index(['b', 'c'])
+        >>> t.loc.with_index('a')[2]  # doctest: +IGNORE_OUTPUT
+        >>> t.loc.with_index('b', 'c')[5, 8]  # doctest: +IGNORE_OUTPUT
+        >>> t.loc.with_index(['b', 'c'])[5, 8]  # doctest: +IGNORE_OUTPUT
+        """
         if len(index_id) == 1 and isinstance(index_id[0], (tuple, list)):
             index_id = tuple(index_id[0])
         return self.__class__(self.table, index_id)
@@ -1046,7 +1063,7 @@ class TableLoc:
 
     def _get_row_idxs_as_list(self, index_id: tuple, item) -> list[int]:
         """
-        Retrieve Table rows indexes for ``item`` as a list of integers.
+        Retrieve Table row indices for ``item`` as a list of integers.
 
         Parameters
         ----------
@@ -1166,7 +1183,7 @@ class TableLoc:
 class TableLocIndices(TableLoc):
     def __getitem__(self, item):
         """
-        Retrieve Table row's indices by value slice.
+        Retrieve Table row indices by value slice.
 
         Parameters
         ----------
