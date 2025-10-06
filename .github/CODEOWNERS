@@ -19,14 +19,14 @@ astropy/convolution         @larrybradley
 astropy/cosmology           @astropy/cosmology
 astropy/io/ascii            @taldcroft          @dhomeier
 astropy/io/fits             @saimn
-astropy/io/misc             @WilliamJamieson    @matteobachetti
-astropy/io/registry         @nstarman
+astropy/io/misc             @WilliamJamieson    @matteobachetti    @neutrinoceros
+astropy/io/registry         @nstarman           @neutrinoceros
 # astropy/io/votable
 astropy/modeling            @astropy/modeling
 # astropy/nddata
 # astropy/samp
 astropy/stats               @larrybradley
-astropy/table               @taldcroft
+astropy/table               @taldcroft    @neutrinoceros
 astropy/time                @taldcroft
 # astropy/timeseries
 # astropy/uncertainty
@@ -47,7 +47,7 @@ docs/modeling               @astropy/modeling
 # docs/nddata
 # docs/samp
 docs/stats                  @larrybradley
-docs/table                  @taldcroft
+docs/table                  @taldcroft    @neutrinoceros
 docs/time                   @taldcroft
 # docs/timeseries
 # docs/uncertainty
@@ -56,5 +56,10 @@ docs/time                   @taldcroft
 docs/visualization          @astrofrog      @larrybradley
 docs/wcs                    @mcara
 
-.pre-commit-config.yaml     @WilliamJamieson    @nstarman
-.ruff.toml                   @WilliamJamieson    @nstarman
+pyproject.toml              @neutrinoceros
+setup.py                    @neutrinoceros
+MANIFEST.in                 @neutrinoceros
+tox.ini                     @neutrinoceros
+*.git*                      @neutrinoceros # git files and .github dir
+.pre-commit-config.yaml     @WilliamJamieson    @nstarman    @neutrinoceros
+.ruff.toml                  @WilliamJamieson    @nstarman    @neutrinoceros
