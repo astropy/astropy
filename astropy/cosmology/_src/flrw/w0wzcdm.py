@@ -137,7 +137,7 @@ class w0wzCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray | float:
+    def w(self, z: Quantity | ArrayLike) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -150,9 +150,8 @@ class w0wzCDM(FLRW):
 
         Returns
         -------
-        w : ndarray or float
+        w : ndarray
             The dark energy equation of state.
-            Returns `float` if the input is scalar.
 
         Notes
         -----
@@ -164,7 +163,7 @@ class w0wzCDM(FLRW):
         return self.w0 + self.wz * aszarr(z)
 
     @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
+    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -177,9 +176,8 @@ class w0wzCDM(FLRW):
 
         Returns
         -------
-        I : ndarray or float
+        I : ndarray
             The scaling of the energy density of dark energy with redshift.
-            Returns `float` if the input is scalar.
 
         References
         ----------
