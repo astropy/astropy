@@ -1084,8 +1084,8 @@ class Table:
 
         Parameters
         ----------
-        colnames : str or list
-            List of column names (or a single column name) to index
+        colnames : str or tuple[str, ...] or list[str]
+            Single column name or tuple or list of column names to index.
         engine : type or None
             Indexing engine class to use, either `~astropy.table.SortedArray`,
             `~astropy.table.BST`, or `~astropy.table.SCEngine`. If the supplied
@@ -1102,9 +1102,9 @@ class Table:
             If unique=True and duplicate rows are found.
 
         """
-        if isinstance(colnames, str):
-            colnames = (colnames,)
-        columns = self.columns[tuple(colnames)].values()
+        # Ensure colnames (and later self.primary_key) is a tuple from here forward
+        colnames = (colnames,) if isinstance(colnames, str) else tuple(colnames)
+        columns = self.columns[colnames].values()
 
         # make sure all columns support indexing
         for col in columns:
