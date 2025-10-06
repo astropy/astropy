@@ -134,7 +134,9 @@ Table index improvements and deprecation
 
 A new method has been added for accessing a table index for tables with multiple
 indices. You can now select the index with the ``with_index(index_id)`` method of the
-``.loc``, ``.iloc``, and ``.loc_indices`` properties. In addition, support has been added for using these indexed search properties with an index based on two or more key columns. Previously this raised a ``ValueError``
+``.loc``, ``.iloc``, and ``.loc_indices`` properties. In addition, support has been
+added for using these indexed search properties with an index based on two or more key
+columns. Previously this raised a ``ValueError``
 
 The example below illustrates both of these new features:
 

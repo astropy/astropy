@@ -96,7 +96,7 @@ Position-Based Access with TableILoc:
         t.iloc[1:3]  # Rows 1-2 in sorted order
 
 Index Management:
-    - `TableIndices`: Container class that allows retrieval of indices by index name
+    - `TableIndices`: Container class that allows retrieval of indices by index id
     - `get_index()`: Utility function to find existing indices on specified columns
     - `get_index_by_names()`: Find index by exact column name match
 
@@ -647,7 +647,7 @@ class SlicedIndex:
             raise TypeError("index_slice must be tuple or slice")
 
     @property
-    def id(self) -> tuple[str]:
+    def id(self) -> tuple[str, ...]:
         """Identifier for this index as tuple of index column names"""
         return tuple(col.info.name for col in self.columns)
 
@@ -1050,11 +1050,11 @@ class TableLoc:
     table : Table
         Indexed table to use
     index_id : tuple or None
-        If not None, the index name as a tuple to use for all retrievals. If None
+        If not None, the index id as a tuple to use for all retrievals. If None
         (default), the primary key index is used.
     """
 
-    def __init__(self, table: Table, index_id: tuple | None = None):
+    def __init__(self, table: Table, index_id: tuple[str, ...] | None = None):
         self.table = table
         self.indices = table.indices
         self.index_id = index_id
@@ -1075,7 +1075,7 @@ class TableLoc:
 
         Parameters
         ----------
-        index_id : str, tuple[str], or list[str]
+        index_id : str, tuple[str, ...], or list[str]
             Identifier of the index to use
 
         Examples
@@ -1107,8 +1107,8 @@ class TableLoc:
 
         Parameters
         ----------
-        index_id : tuple
-            Name of the index to use
+        index_id : tuple of str
+            Identifier of the index to use.
         item : column element, list, ndarray, or slice
             Can be a value in the table index, a list/ndarray of such values, or a value
             slice (both endpoints are included).
