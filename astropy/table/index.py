@@ -207,7 +207,7 @@ reordering of indices - c[1:2] -> reference - array.view(Column) -> no indices
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import numpy as np
 
@@ -218,6 +218,24 @@ from .sorted_array import SortedArray
 
 if TYPE_CHECKING:
     from . import Table
+
+
+@runtime_checkable
+class IndexEngine(Protocol):
+    """Protocol defining an index engine class"""
+
+    # Taken from soco.py
+    def __init__(self, data, row_index, unique=False): ...
+    def add(self, key, value): ...
+    def find(self, key): ...
+    def remove(self, key, data=None): ...
+    def shift_left(self, row): ...
+    def shift_right(self, row): ...
+    def items(self): ...
+    def sort(self): ...
+    def sorted_data(self): ...
+    def range(self, lower, upper, bounds=(True, True)): ...
+    def replace_rows(self, row_map): ...
 
 
 class QueryError(ValueError):
@@ -255,15 +273,25 @@ class Index:
         if columns is not None:
             columns = list(columns)
 
-        if engine is not None and not isinstance(engine, type):
+        # by default, use SortedArray
+        if engine is None:
+            engine = SortedArray
+
+        # Validate engine. This catches an easy mistake of `t.add_index("a", "b")`.
+        engine_cls = engine if isinstance(engine, type) else engine.__class__
+        if not issubclass(engine_cls, IndexEngine):
+            raise TypeError(
+                f"engine must be an Engine class or instance, got {engine!r} instead."
+            )
+
+        if engine is not engine_cls:
             # create from data
-            self.engine = engine.__class__
+            self.engine = engine_cls
             self.data = engine
             self.columns = columns
             return
 
-        # by default, use SortedArray
-        self.engine = engine or SortedArray
+        self.engine = engine
 
         if columns is None:  # this creates a special exception for deep copying
             columns = []

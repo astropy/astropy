@@ -682,6 +682,17 @@ def test_index_id_item_deprecation_and_with_index(method, item):
     assert out_call_1 == out_call_2
 
 
+def test_engine_type_error():
+    t = Table()
+    t["a"] = [1, 2]
+    t["b"] = [3, 4]
+    with pytest.raises(
+        TypeError,
+        match=r"engine must be an Engine class or instance, got 'b' instead.",
+    ):
+        t.add_index("a", "b")  # Easy mistake, too bad engine= is not keyword-only
+
+
 @pytest.mark.parametrize(
     "masked",
     [pytest.param(False, id="raw-array"), pytest.param(True, id="masked array")],
