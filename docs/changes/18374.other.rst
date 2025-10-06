@@ -1,0 +1,2 @@
+Pre-built binaries (wheels) for Linux are now built using the ``manylinux_2_28``
+image (previously, ``manylinux2014`` was used).
