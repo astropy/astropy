@@ -205,6 +205,8 @@ manager. There are currently three indexing modes: ``'freeze'``,
 The ``'freeze'`` mode prevents automatic index updates whenever a column of the
 index is modified, and all indices refresh themselves after the context ends::
 
+  >>> t = Table([(1, 2, 3, 4), (10, 1, 9, 9)], names=('a', 'b'), dtype=['i8', 'i8'])
+  >>> t.add_index('a')
   >>> with t.index_mode('freeze'):
   ...    t['a'][0] = 0
   ...    print(t.indices['a']) # unmodified
