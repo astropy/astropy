@@ -1030,6 +1030,17 @@ class TableLoc:
         self.indices = table.indices
         self.index_id = index_id
 
+    def __repr__(self):
+        index_id = self.index_id
+        if index_id is None:
+            index_id = self.table.primary_key
+        id_repr = index_id[0] if len(index_id) == 1 else index_id
+
+        return (
+            f"<{self.__class__.__name__} index_id={repr(id_repr)} "
+            f"id(table)={id(self.table)}>"
+        )
+
     def with_index(self, *index_id):
         """Return a new instance of this class for ``index_id``
 
