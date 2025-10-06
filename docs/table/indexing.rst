@@ -116,19 +116,12 @@ here is column ``'a'``. You can use a different index with the ``with_index`` me
 The ``with_index`` method takes an index identifier as input, where the format is
 flexible as shown in these examples::
 
-   >>> t.loc  # defaults to primary key
-   <TableLoc index_id='a' id(table)=...>
-   >>> t.loc.with_index('b')
-   <TableLoc index_id='b' id(table)=...>
-   >>> t.loc.with_index(['b'])
-   <TableLoc index_id='b' id(table)=...>
-   >>> t.loc.with_index('a', 'b')
-   <TableLoc index_id=('a', 'b') id(table)=...>
-   >>> t.loc.with_index(['a', 'b'])
-   <TableLoc index_id=('a', 'b') id(table)=...>
-   >>> index_id = ('a', 'b')
-   >>> t.loc.with_index(index_id)
-   <TableLoc index_id=('a', 'b') id(table)=...>
+   >>> t.add_index(['a', 'b'])
+   >>> t.loc  # defaults to primary key  # doctest: +IGNORE_OUTPUT
+   >>> t.loc.with_index('b')[10]  # doctest: +IGNORE_OUTPUT
+   >>> t.loc.with_index(['b'])[[10, 9]]  # doctest: +IGNORE_OUTPUT
+   >>> t.loc.with_index('a', 'b')[1, 10]  # doctest: +IGNORE_OUTPUT
+   >>> t.loc.with_index(['a', 'b'])[1, 10]  # doctest: +IGNORE_OUTPUT
 
 Using a multi-column index
 --------------------------
