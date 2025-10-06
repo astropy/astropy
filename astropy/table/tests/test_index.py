@@ -673,7 +673,7 @@ def test_index_name_item_deprecation_and_call_method(method, item):
     out_call_2 = prop(index_name)[item]
     with pytest.warns(
         AstropyDeprecationWarning,
-        match=r"Calling `Table.loc/iloc/loc_indices\[index_name, item\]`",
+        match=r"Calling `Table.loc/iloc/loc_indices\[index_id, item\]`",
     ):
         out_depr = prop[index_name, item]
     assert type(out_depr) is type(out_call_1)
