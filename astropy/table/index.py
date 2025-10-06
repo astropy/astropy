@@ -621,7 +621,7 @@ class SlicedIndex:
     @property
     def id(self) -> tuple[str]:
         """Identifier for this index as tuple of index column names"""
-        return tuple(col.name for col in self.columns)
+        return tuple(col.info.name for col in self.columns)
 
     @property
     def length(self):
