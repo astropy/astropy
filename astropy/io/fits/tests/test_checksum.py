@@ -205,8 +205,11 @@ class TestChecksumFunctions(BaseChecksumTests):
 
         testfile2 = self.temp("tmp2.fits")
         with fits.open(testfile, checksum=True) as hdul:
-            checksum = hdul[1]._checksum
             datasum = hdul[1]._datasum
+            assert datasum == "2998821219"
+            checksum = hdul[1]._checksum
+            assert checksum == "7aC39YA37aA37YA3"
+
             # so write again the file but here data was not loaded so checksum
             # is computed directly from the file bytes, which was producing
             # a correct checksum. Below we compare both to make sure they are
@@ -214,11 +217,13 @@ class TestChecksumFunctions(BaseChecksumTests):
             hdul.writeto(testfile2, checksum=True)
 
         with fits.open(testfile2, checksum=True) as hdul:
-            assert checksum == hdul[1]._checksum
             assert datasum == hdul[1]._datasum
+            assert checksum == hdul[1]._checksum
 
     def test_variable_length_table_data3(self):
         """regression test for #14396"""
+        # This is testing specifically a scenario where the start of the heap
+        # is not aligned with 4-byte blocks
 
         testfile = self.temp("tmp.fits")
         col1 = fits.Column(name="a", format="1A", array=["a"])
