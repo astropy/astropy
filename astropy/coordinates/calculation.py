@@ -6,6 +6,7 @@ import re
 import textwrap
 import warnings
 from datetime import datetime
+from typing import Final
 from urllib.request import Request, urlopen
 
 # Third-party
@@ -14,7 +15,7 @@ from astropy.utils.console import _color_text, color_print
 
 from .funcs import get_sun
 
-__all__ = []
+__all__: Final[list[str]] = []
 
 
 class HumanError(ValueError):

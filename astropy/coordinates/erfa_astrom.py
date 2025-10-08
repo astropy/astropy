@@ -7,6 +7,7 @@ expense of accuracy.
 
 import functools
 import warnings
+from typing import Final
 
 import erfa
 import numpy as np
@@ -25,7 +26,7 @@ from .builtin_frames.utils import (
 )
 from .matrix_utilities import rotation_matrix
 
-__all__ = []
+__all__: Final[list[str]] = []
 
 
 def _refco(frame_or_coord):
