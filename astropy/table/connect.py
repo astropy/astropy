@@ -86,6 +86,9 @@ class TableRead(registry.UnifiedReadWrite):
         out._set_column_attribute("unit", units)
         out._set_column_attribute("description", descriptions)
 
+        if "__table_indices__" in out.meta:
+            create_indices_from_meta(out)
+
         return out
 
 
@@ -141,6 +144,58 @@ class TableWrite(registry.UnifiedReadWrite):
             self.registry.write(tbl, *args, **kwargs)
 
 
+def create_indices_from_meta(tbl: Table):
+    """
+    Create indices on a table based on the ``__table_indices__`` meta data.
+
+    This is the inverse of `copy_and_serialize_indices`.
+
+    Parameters
+    ----------
+    tbl : Table
+        Table in which to create indices.
+    """
+    from astropy.table.index import SlicedIndex
+    from astropy.table.soco import SCEngine
+    from astropy.table.sorted_array import SortedArray
+
+    indices = []
+
+    for index_info in tbl.meta["__table_indices__"]:
+        match index_info["engine"]:
+            case "SortedArray":
+                engine_cls = SortedArray
+            case "SCEngine":
+                engine_cls = SCEngine
+            case _:
+                warnings.warn(
+                    f'Cannot restore index with engine "{index_info["engine"]}".  '
+                    "Index not created.",
+                    AstropyWarning,
+                )
+        row_index_colname = index_info["row_index_colname"]
+        row_index = tbl[row_index_colname]
+        colnames = index_info["colnames"]
+
+        data = tbl[colnames][row_index]
+
+        index = engine_cls(
+            data=data,  # index columns sorted by index
+            row_index=row_index,
+            unique=index_info["unique"],
+        )
+        sliced_index = SlicedIndex(index, index_slice=slice(None), original=True)
+        indices.append(sliced_index)
+
+        del tbl[row_index_colname]
+    del tbl.meta["__table_indices__"]
+
+    for index in indices:
+        # Add index to table by adding to each column indices.
+        for colname in index.id:
+            tbl[colname].info.indices.append(index)
+
+
 def copy_and_serialize_indices(tbl: Table):
     """
     Make a copy of a table with indices serialized as new columns and meta data.
@@ -168,17 +223,7 @@ def copy_and_serialize_indices(tbl: Table):
 
     ii_index = 0
     for index in tbl.indices:
-        # Get sorted row data for SortedArray and SCEngine engines
-        try:
-            rows = index.data.row_index
-        except AttributeError:
-            try:
-                rows = index.data.sorted_data()
-            except AttributeError:
-                warnings.warn(
-                    AstropyWarning,
-                    "index.data is not SortedArray or SCEngine so cannot serialize, skipping",
-                )
+        rows = index.data.sorted_data()
 
         # Find unique column name for the index row data
         while True:
@@ -191,9 +236,10 @@ def copy_and_serialize_indices(tbl: Table):
         tbl_out[colname] = rows
         tbl_out.meta["__table_indices__"].append(
             {
-                "colname": colname,
-                "id": index.id,
+                "row_index_colname": colname,
+                "colnames": index.id,
                 "engine": index.data.__class__.__name__,
+                "unique": index.data.unique,
             }
         )
     return tbl_out
