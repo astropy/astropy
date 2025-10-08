@@ -1039,7 +1039,7 @@ class Table:
             return self.copy()
 
     @property
-    def indices(self):
+    def indices(self) -> TableIndices:
         """
         Return the indices associated with columns of the table
         as a TableIndices object.
@@ -1052,7 +1052,7 @@ class Table:
         return TableIndices(lst)
 
     @property
-    def loc(self):
+    def loc(self) -> TableLoc:
         """
         Return a TableLoc object that can be used for retrieving
         rows by index in a given data range. Note that both loc
@@ -1061,7 +1061,7 @@ class Table:
         return TableLoc(self)
 
     @property
-    def loc_indices(self):
+    def loc_indices(self) -> TableLocIndices:
         """
         Return a TableLocIndices object that can be used for retrieving
         the row indices corresponding to given table index key value or values.
@@ -1069,7 +1069,7 @@ class Table:
         return TableLocIndices(self)
 
     @property
-    def iloc(self):
+    def iloc(self) -> TableILoc:
         """
         Return a TableILoc object that can be used for retrieving
         indexed rows in the order they appear in the index.
@@ -1084,8 +1084,8 @@ class Table:
 
         Parameters
         ----------
-        colnames : str or list
-            List of column names (or a single column name) to index
+        colnames : str or tuple[str, ...] or list[str]
+            Single column name or tuple or list of column names to index.
         engine : type or None
             Indexing engine class to use, either `~astropy.table.SortedArray`,
             `~astropy.table.BST`, or `~astropy.table.SCEngine`. If the supplied
@@ -1102,9 +1102,9 @@ class Table:
             If unique=True and duplicate rows are found.
 
         """
-        if isinstance(colnames, str):
-            colnames = (colnames,)
-        columns = self.columns[tuple(colnames)].values()
+        # Ensure colnames (and later self.primary_key) is a tuple from here forward
+        colnames = (colnames,) if isinstance(colnames, str) else tuple(colnames)
+        columns = self.columns[colnames].values()
 
         # make sure all columns support indexing
         for col in columns:
