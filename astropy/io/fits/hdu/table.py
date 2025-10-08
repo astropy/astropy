@@ -453,7 +453,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         else:
             return len(self.data)
 
-    @lazyproperty
+    @property
     def _theap(self):
         size = self._header["NAXIS1"] * self._header["NAXIS2"]
         return self._header.get("THEAP", size)
@@ -878,7 +878,7 @@ class BinTableHDU(_TableBaseHDU):
             # by adding a block starting with zeros, and then the first few
             # bytes of the heap.
             heap_data = data._get_heap_data()
-            if extra := len(base_as_bytes) % 4:
+            if extra := self._theap % 4:
                 first_part = np.zeros(4, "u1")
                 first_part[extra:] = heap_data[: 4 - extra]
                 csum = self._compute_checksum(first_part, csum)
