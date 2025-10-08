@@ -870,12 +870,15 @@ class BinTableHDU(_TableBaseHDU):
 
             # Now add in the heap data to the checksum. We can skip any gap
             # between the table and the heap since it's all zeros and doesn't
-            # contribute to the checksum. However, the regular data may not
-            # have ended on a boundary between the 4-byte blocks used for the
-            # checksum (32 bits).  If so, it was padded with zeros while it
-            # should have had the start of the heap.  We correct that here,
-            # by adding a block starting with zeros, and then the first few
-            # bytes of the heap.
+            # contribute to the checksum. However, the heap may not start at a
+            # boundary between the 4-byte blocks used for the checksum (32 bits),
+            # either because there's no THEAP keyword and the main table data
+            # ends in the middle of a 4-byte block, or because the THEAP keyword
+            # exists and it's not a multiple of 4. In those cases, we must pad
+            # the heap data with zeros, such that it is aligned correctly
+            # for the checksum calculation. We do this by padding the first few
+            # bytes of the heap (if necessary), then calculating the checksum for
+            # the rest of the heap data normally.
             heap_data = data._get_heap_data()
             if extra := self._theap % 4:
                 first_part = np.zeros(4, "u1")
