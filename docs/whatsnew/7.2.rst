@@ -12,9 +12,9 @@ the 7.1 release.
 
 In particular, this release includes:
 
-* `Faster ECSV reader with support for different engines <#faster-ecsv-readers>`_
-* `Generic DataFrame conversion methods with multi-backend support <#generic-dataframe-conversion>`_
-* ...
+* `Faster ECSV reader with support for different engines <#faster-ecsv-table-reader>`_
+* `Generic DataFrame conversion methods with multi-backend support <#generic-dataframe-conversion-methods>`_
+* `Table index improvements and deprecation <#table-index-improvements-and-deprecation>`_
 * ...
 
 In addition to these major changes, Astropy v7.2 includes a large number of
@@ -128,6 +128,33 @@ feature set while enabling broader DataFrame ecosystem compatibility through a
 unified API.
 
 See :ref:`df_narwhals` for detailed documentation and examples.
+
+Table index improvements and deprecation
+========================================
+
+A new method has been added for accessing a table index for tables with multiple
+indices. You can now select the index with the ``with_index(index_id)`` method of the
+``.loc``, ``.iloc``, and ``.loc_indices`` properties. In addition, support has been
+added for using these indexed search properties with an index based on two or more key
+columns. Previously this raised a ``ValueError``
+
+The example below illustrates both of these new features:
+
+>>> from astropy.table import QTable
+>>> t = QTable({"a": ["x", "z", "y"], "b": [2.0, 1.0, 1.5], "c": ["a", "b", "c"]})
+>>> t.add_index("a")
+>>> t.add_index(["a", "b"])
+>>> t.loc.with_index("a", "b")["y", 1.5]  # select index ("a", "b")
+<Row index=2>
+ a      b     c
+str1 float64 str1
+---- ------- ----
+   y     1.5    c
+
+The previous syntax for selecting the index is now deprecated and planned for removal in
+astropy 9.0.  Here the index identifier was the first element of the item, e.g.,
+``t.loc["a", "z"]`` to use the index on column ``"a"`` to find rows with
+``t["a"] == "z"``.
 
 Cosmology
 =========

@@ -14,6 +14,7 @@ from astropy.table.soco import SCEngine
 from astropy.table.sorted_array import SortedArray
 from astropy.time import Time
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_table import SetupData
 
@@ -418,12 +419,12 @@ class TestIndex(SetupData):
         assert_col_equal(t2["a"], [1, 4, 2])
         t2 = t.loc[self.make_val(3) : self.make_val(5)]  # range search
         assert_col_equal(t2["a"], [3, 4, 5])
-        t2 = t.loc["b", 5.0:7.0]
+        t2 = t.loc.with_index("b")[5.0:7.0]
         assert_col_equal(t2["b"], [5.1, 6.2, 7.0])
         # search by sorted index
         t2 = t.iloc[0:2]  # two smallest rows by column 'a'
         assert_col_equal(t2["a"], [1, 2])
-        t2 = t.iloc["b", 2:]  # exclude two smallest rows in column 'b'
+        t2 = t.iloc.with_index("b")[2:]  # exclude two smallest rows in column 'b'
         assert_col_equal(t2["b"], [5.1, 6.2, 7.0])
 
         for t2 in (t.loc[:], t.iloc[:]):
@@ -636,10 +637,8 @@ def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length,
 
     Tests fix for #18037.
     """
-    if key is not None:
-        item = (key, item)
-
-    tloc = simple_table.loc[item]
+    loc = simple_table.loc.with_index(key) if key is not None else simple_table.loc
+    tloc = loc[item]
     assert isinstance(tloc, cls)
     assert tloc.colnames == simple_table.colnames
 
@@ -647,6 +646,51 @@ def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length,
     if cls is Table:
         assert len(tloc) == length
         assert len(rows) == length
+
+
+@pytest.mark.parametrize(
+    "method,item",
+    [
+        ("loc", (2, 5)),
+        ("iloc", 1),
+        ("loc_indices", (2, 5)),
+    ],
+)
+def test_index_id_item_deprecation_and_with_index(method, item):
+    """t.loc/iloc/loc_indices[index_id, item] raises a deprecation warning.
+
+    Also test that these methods
+    """
+    t = Table()
+    t["a"] = [1, 2, 3]
+    t["b"] = [4, 5, 6]
+    t["c"] = ["x", "y", "z"]
+    index_id = ("a", "b")
+    t.add_index(index_id)
+    prop = getattr(t, method)
+    # Test calling like t.loc.with_index("a", "b") and t.loc.with_index(("a", "b")).
+    out_call_1 = prop.with_index(*index_id)[item]
+    out_call_2 = prop.with_index(index_id)[item]
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Calling `Table.loc/iloc/loc_indices\[index_id, item\]`",
+    ):
+        out_depr = prop[index_id, item]
+    assert type(out_depr) is type(out_call_1)
+    assert out_depr == out_call_1
+    assert type(out_call_1) is type(out_call_2)
+    assert out_call_1 == out_call_2
+
+
+def test_engine_type_error():
+    t = Table()
+    t["a"] = [1, 2]
+    t["b"] = [3, 4]
+    with pytest.raises(
+        TypeError,
+        match=r"engine must be an Engine class or instance, got 'b' instead.",
+    ):
+        t.add_index("a", "b")  # Easy mistake, too bad engine= is not keyword-only
 
 
 @pytest.mark.parametrize(
