@@ -1,8 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from __future__ import annotations
+
+import warnings
+from typing import TYPE_CHECKING
+
 from astropy.io import registry
+from astropy.utils.exceptions import AstropyWarning
 
 from .info import serialize_method_as
+
+if TYPE_CHECKING:
+    from astropy.table import Table
 
 __all__ = ["TableRead", "TableWrite"]
 __doctest_skip__ = ["TableRead", "TableWrite"]
@@ -125,6 +134,66 @@ class TableWrite(registry.UnifiedReadWrite):
         # uses default global registry
 
     def __call__(self, *args, serialize_method=None, **kwargs):
-        instance = self._instance
-        with serialize_method_as(instance, serialize_method):
-            self.registry.write(instance, *args, **kwargs)
+        tbl = self._instance
+        with serialize_method_as(tbl, serialize_method):
+            if tbl.indices:
+                tbl = copy_and_serialize_indices(tbl)
+            self.registry.write(tbl, *args, **kwargs)
+
+
+def copy_and_serialize_indices(tbl: Table):
+    """
+    Make a copy of a table with indices serialized as new columns and meta data.
+
+    This creates a light copy of the table with columns added for each index that
+    contains the row indices in sorted order.  The new columns are given names
+    ``__index__0``, ``__index__1``, etc (ensuring these do not conflict with existing
+    columns).  The table ``meta['__table_indices__']`` is also updated to include
+    information about the new columns and the index engine.
+
+    Parameters
+    ----------
+    tbl : Table
+        Table with indices to serialize
+
+    Returns
+    -------
+    tbl_out : Table
+        Copy of input table with index columns added and meta updated.
+    """
+    with tbl.index_mode("discard_on_copy"):
+        tbl_out = tbl.copy(copy_data=False)
+
+    tbl_out.meta["__table_indices__"] = []
+
+    ii_index = 0
+    for index in tbl.indices:
+        # Get sorted row data for SortedArray and SCEngine engines
+        try:
+            rows = index.data.row_index
+        except AttributeError:
+            try:
+                rows = index.data.sorted_data()
+            except AttributeError:
+                warnings.warn(
+                    AstropyWarning,
+                    "index.data is not SortedArray or SCEngine so cannot serialize, skipping",
+                )
+
+        # Find unique column name for the index row data
+        while True:
+            colname = f"__index__{ii_index}"
+            if colname not in tbl_out.colnames:
+                break
+            ii_index += 1
+
+        # Make new column and add meta
+        tbl_out[colname] = rows
+        tbl_out.meta["__table_indices__"].append(
+            {
+                "colname": colname,
+                "id": index.id,
+                "engine": index.data.__class__.__name__,
+            }
+        )
+    return tbl_out
