@@ -155,7 +155,7 @@ def create_indices_from_meta(tbl: Table):
     tbl : Table
         Table in which to create indices.
     """
-    from astropy.table.index import SlicedIndex
+    from astropy.table.index import Index, SlicedIndex
     from astropy.table.soco import SCEngine
     from astropy.table.sorted_array import SortedArray
 
@@ -177,17 +177,20 @@ def create_indices_from_meta(tbl: Table):
         row_index = tbl[row_index_colname]
         colnames = index_info["colnames"]
 
-        data = tbl[colnames][row_index]
+        # Colnames slice of tbl (cols are by reference, no copy)
+        tbl_colnames = tbl[colnames]
 
-        index = engine_cls(
-            data=data,  # index columns sorted by index
+        engine = engine_cls(
+            data=tbl_colnames[row_index],  # index columns sorted by index
             row_index=row_index,
             unique=index_info["unique"],
         )
+        index = Index(columns=list(tbl_colnames.itercols()), engine=engine)
         sliced_index = SlicedIndex(index, index_slice=slice(None), original=True)
         indices.append(sliced_index)
 
         del tbl[row_index_colname]
+
     del tbl.meta["__table_indices__"]
 
     for index in indices:
