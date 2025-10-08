@@ -18,13 +18,13 @@
 A structure to contain the information for a single distortion lookup table
  */
 typedef struct {
-  unsigned int                   naxis[NAXES]; /* size of distortion image */
-  double                         crpix[NAXES];
-  double                         crval[NAXES];
-  double                         cdelt[NAXES];
-  /* The data is not "owned" by this structure.  It is the user's
-     responsibility to free it. */
-  /*@shared@*/ /*@null@*/ float *data;
+    unsigned int naxis[NAXES]; /* size of distortion image */
+    double crpix[NAXES];
+    double crval[NAXES];
+    double cdelt[NAXES];
+    /* The data is not "owned" by this structure.  It is the user's
+       responsibility to free it. */
+    /*@shared@*/ /*@null@*/ float* data;
 } distortion_lookup_t;
 
 /**
@@ -54,9 +54,8 @@ the lookup table.
 lookup table
 */
 double
-get_distortion_offset(
-    const distortion_lookup_t * const lookup,
-    const double * const img /* [NAXES] */);
+get_distortion_offset(const distortion_lookup_t* const lookup,
+                      const double* const img /* [NAXES] */);
 
 /**
 Perform just the distortion table part of the FITS WCS distortion paper.
@@ -74,12 +73,9 @@ Perform just the distortion table part of the FITS WCS distortion paper.
 @return A wcslib error code
 */
 int
-p4_pix2foc(
-    const unsigned int naxes,
-    const distortion_lookup_t** lookups, /* [NAXES] */
-    const unsigned int nelem,
-    const double* pix, /* [NAXES][nelem] */
-    double *foc /* [NAXES][nelem] */);
+p4_pix2foc(const unsigned int naxes, const distortion_lookup_t** lookups, /* [NAXES] */
+           const unsigned int nelem, const double* pix,                   /* [NAXES][nelem] */
+           double* foc /* [NAXES][nelem] */);
 
 /**
 Perform just the distortion table part of the FITS WCS distortion paper, by
@@ -98,11 +94,8 @@ adding distortion to the values already in place in foc.
 @return A wcslib error code
 */
 int
-p4_pix2deltas(
-    const unsigned int naxes,
-    const distortion_lookup_t** lookups, /* [NAXES] */
-    const unsigned int nelem,
-    const double* pix, /* [NAXES][nelem] */
-    double *foc /* [NAXES][nelem] */);
+p4_pix2deltas(const unsigned int naxes, const distortion_lookup_t** lookups, /* [NAXES] */
+              const unsigned int nelem, const double* pix,                   /* [NAXES][nelem] */
+              double* foc /* [NAXES][nelem] */);
 
 #endif /* __DISTORTION_H__ */

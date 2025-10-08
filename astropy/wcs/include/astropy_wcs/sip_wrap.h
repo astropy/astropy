@@ -12,12 +12,11 @@
 extern PyObject* PySipType;
 
 typedef struct {
-  PyObject_HEAD
-  sip_t x;
+    PyObject_HEAD
+    sip_t x;
 } PySip;
 
 int
-_setup_sip_type(
-    PyObject* m);
+_setup_sip_type(PyObject* m);
 
 #endif
