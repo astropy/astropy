@@ -884,8 +884,9 @@ class BinTableHDU(_TableBaseHDU):
                 first_part = np.zeros(4, "u1")
                 first_part[extra:] = heap_data[: 4 - extra]
                 csum = self._compute_checksum(first_part, csum)
+                return self._compute_checksum(heap_data[4 - extra :], csum)
 
-            return self._compute_checksum(heap_data[4 - extra if extra else 0 :], csum)
+            return self._compute_checksum(heap_data, csum)
 
     def _calculate_datasum(self):
         """
