@@ -1534,22 +1534,55 @@ class ColDefs(NotifierMixin):
             ftype = array.dtype.fields[cname][0]
 
             if ftype.kind == "O":
-                dtypes = {np.array(array[cname][i]).dtype for i in range(len(array))}
-                if (len(dtypes) > 1) or (np.dtype("O") in dtypes):
+                dtypes = {
+                    np.array(array[cname][i]).dtype
+                    for i in range(len(array))
+                    if array[cname][i] is not None
+                }
+
+                if not dtypes:
+                    raise TypeError(
+                        f"Column '{cname}' contains only None or masked values"
+                    )
+
+                # All entries are strings (unicode or byte)
+                if all(dt.kind in ("U", "S") for dt in dtypes):
+                    # Check if we have arrays of strings
+                    has_arrays = any(
+                        isinstance(v, (list, np.ndarray)) and np.ndim(v) > 0
+                        for v in array[cname]
+                        if v is not None
+                    )
+
+                    if has_arrays:
+                        format = "PA()"
+                    else:
+                        # Single strings: use max length from dtypes
+                        max_len = max(
+                            dt.itemsize // 4 if dt.kind == "U" else dt.itemsize
+                            for dt in dtypes
+                        )
+                        format = f"{max_len}A"
+
+                # Homogeneous non-string type
+                elif len(dtypes) == 1:
+                    ftype_inner = dtypes.pop()
+                    format_code = self._col_format_cls.from_recformat(ftype_inner)
+                    format = f"P{format_code}()"
+
+                # Mixed or unsupported types
+                else:
                     raise TypeError(
                         f"Column '{cname}' contains unsupported object types or "
                         f"mixed types: {dtypes}"
                     )
-                ftype = dtypes.pop()
-                format = self._col_format_cls.from_recformat(ftype)
-                format = f"P{format}()"
             else:
                 format = self._col_format_cls.from_recformat(ftype)
 
             # Determine the appropriate dimensions for items in the column
             dim = array.dtype[idx].shape[::-1]
             if dim and (len(dim) > 0 or "A" in format):
-                if "A" in format:
+                if "A" in format and ftype.subdtype is not None:
                     # should take into account multidimensional items in the column
                     dimel = int(re.findall("[0-9]+", str(ftype.subdtype[0]))[0])
                     # n x m string arrays must include the max string

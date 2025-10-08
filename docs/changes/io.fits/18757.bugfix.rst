@@ -1,0 +1,1 @@
+Fix TypeError when writing object dtype columns with variable-length strings to FITS binary tables
