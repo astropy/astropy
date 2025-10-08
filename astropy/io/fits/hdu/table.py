@@ -866,18 +866,24 @@ class BinTableHDU(_TableBaseHDU):
         Calculate the value for the ``DATASUM`` card given the input data.
         """
         with _binary_table_byte_swap(self.data) as data:
-            csum = self._compute_checksum(data.view(type=np.ndarray, dtype=np.ubyte))
+            base_as_bytes = data.view(type=np.ndarray, dtype=np.ubyte)
+            csum = self._compute_checksum(base_as_bytes)
 
             # Now add in the heap data to the checksum. We can skip any gap
             # between the table and the heap since it's all zeros and doesn't
-            # contribute to the checksum. However, the start of the heap may not
-            # be aligned with the 4-byte blocks used for the checksum (32 bits).
-            # In those cases, we need to shift the bytes.
+            # contribute to the checksum. However, the regular data may not
+            # have ended on a boundary between the 4-byte blocks used for the
+            # checksum (32 bits).  If so, it was padded with zeros while it
+            # should have had the start of the heap.  We correct that here,
+            # by adding a block starting with zeros, and then the first few
+            # bytes of the heap.
             heap_data = data._get_heap_data()
-            if extra := self._theap % 4:
-                heap_data = np.insert(heap_data, 0, [0] * extra)
+            if extra := len(base_as_bytes) % 4:
+                first_part = np.zeros(4, "u1")
+                first_part[extra:] = heap_data[: 4 - extra]
+                csum = self._compute_checksum(first_part, csum)
 
-            return self._compute_checksum(heap_data, csum)
+            return self._compute_checksum(heap_data[4 - extra if extra else 0 :], csum)
 
     def _calculate_datasum(self):
         """
