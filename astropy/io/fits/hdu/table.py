@@ -881,7 +881,7 @@ class BinTableHDU(_TableBaseHDU):
             # the rest of the heap data normally.
             heap_data = data._get_heap_data()
             if extra := self._theap % 4:
-                first_part = np.zeros(4, "u1")
+                first_part = np.zeros(4, dtype=np.ubyte)
                 first_part[extra:] = heap_data[: 4 - extra]
                 csum = self._compute_checksum(first_part, csum)
                 return self._compute_checksum(heap_data[4 - extra :], csum)
