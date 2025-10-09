@@ -650,8 +650,3 @@ ignore-words-list = """
     te,
     wirth,
 """
-
-[tool.uv]
-constraint-dependencies = [
-    "pyparsing<3.3.0a1",  # https://github.com/astropy/astropy/issues/18652
-]
