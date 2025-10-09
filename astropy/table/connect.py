@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from astropy.io import registry
 from astropy.utils.exceptions import AstropyWarning
@@ -12,6 +12,7 @@ from .info import serialize_method_as
 
 if TYPE_CHECKING:
     from astropy.table import Table
+    from astropy.table.index import SlicedIndex
 
 __all__ = ["TableRead", "TableWrite"]
 __doctest_skip__ = ["TableRead", "TableWrite"]
@@ -86,8 +87,7 @@ class TableRead(registry.UnifiedReadWrite):
         out._set_column_attribute("unit", units)
         out._set_column_attribute("description", descriptions)
 
-        if "__table_indices__" in out.meta:
-            construct_indices(out)
+        construct_indices(out)
 
         return out
 
@@ -150,68 +150,148 @@ def construct_indices(tbl: Table) -> None:
     """
     Create indices on a table based on the ``__table_indices__`` meta data.
 
-    This is the inverse of `copy_and_serialize_indices`.
+    This is the inverse of `represent_indices`.
 
     Parameters
     ----------
     tbl : Table
         Table in which to create indices (in-place).
     """
+    indices: dict[tuple, SlicedIndex] = {}
+
+    primary_key = None
+
+    row_index_colnames = set()
+    for col in tbl.itercols():
+        if not col.info.meta or "__indices__" not in col.info.meta:
+            continue
+
+        for index_info in col.info.meta["__indices__"]:
+            if index_info["primary"]:
+                primary_key = index_info["colnames"]
+            indices.setdefault(index_info["colnames"], get_index(tbl, index_info))
+            row_index_colnames.add(index_info["row_index_colname"])
+
+    for index in indices.values():
+        # Add index to table by adding to each column indices and clean up column meta.
+        for colname in index.id:
+            tbl[colname].info.indices.append(index)
+            tbl[colname].info.meta.pop("__indices__", None)
+
+    tbl.primary_key = primary_key
+    tbl.remove_columns(row_index_colnames)
+
+
+def get_index(tbl: Table, index_info: dict[str, Any]) -> SlicedIndex:
+    """
+    Create an index (SlicedIndex) for a table from serialized index information.
+
+    This function reconstructs a SlicedIndex object for a table using the
+    provided index metadata, including the engine type, column names, and
+    row index column. It is used when deserializing tables with indices
+    from formats that store index metadata in column meta information.
+
+    Parameters
+    ----------
+    tbl : Table
+        Table containing the columns and row index data.
+    index_info : dict[str, Any]
+        Dictionary containing index metadata, including:
+        - 'engine': Name of the index engine class.
+        - 'row_index_colname': Name of the column with row indices.
+        - 'colnames': Tuple of column names for the index.
+        - 'unique': Whether the index is unique.
+        - 'primary': Whether the index is the primary key index (not used here).
+
+    Returns
+    -------
+    SlicedIndex
+        The reconstructed SlicedIndex object for the table.
+
+    Warns
+    -----
+    AstropyWarning
+        If the engine type is not recognized, a warning is issued and
+        no index is created.
+    """
     from astropy.table.index import Index, SlicedIndex
     from astropy.table.soco import SCEngine
     from astropy.table.sorted_array import SortedArray
 
-    indices = []
-    indices_meta = tbl.meta["__table_indices__"]
+    match index_info["engine"]:
+        case "SortedArray":
+            engine_cls = SortedArray
+        case "SCEngine":
+            engine_cls = SCEngine
+        case _:
+            warnings.warn(
+                f'Cannot restore index with engine "{index_info["engine"]}".  '
+                "Index not created.",
+                AstropyWarning,
+            )
+    row_index_colname = index_info["row_index_colname"]
+    row_index = tbl[row_index_colname]
+    colnames = index_info["colnames"]
 
-    for index_info in indices_meta["indices"]:
-        match index_info["engine"]:
-            case "SortedArray":
-                engine_cls = SortedArray
-            case "SCEngine":
-                engine_cls = SCEngine
-            case _:
-                warnings.warn(
-                    f'Cannot restore index with engine "{index_info["engine"]}".  '
-                    "Index not created.",
-                    AstropyWarning,
-                )
-        row_index_colname = index_info["row_index_colname"]
-        row_index = tbl[row_index_colname]
-        colnames = index_info["colnames"]
+    # Colnames slice of tbl (cols are by reference, no copy)
+    index_columns = tbl[colnames]
 
-        # Colnames slice of tbl (cols are by reference, no copy)
-        tbl_colnames = tbl[colnames]
+    engine = engine_cls(
+        data=index_columns[row_index],  # index columns sorted by index
+        row_index=row_index,
+        unique=index_info["unique"],
+    )
+    index = Index(columns=list(index_columns.itercols()), engine=engine)
+    sliced_index = SlicedIndex(index, index_slice=slice(None), original=True)
 
-        engine = engine_cls(
-            data=tbl_colnames[row_index],  # index columns sorted by index
-            row_index=row_index,
-            unique=index_info["unique"],
-        )
-        index = Index(columns=list(tbl_colnames.itercols()), engine=engine)
-        sliced_index = SlicedIndex(index, index_slice=slice(None), original=True)
-        indices.append(sliced_index)
-
-        del tbl[row_index_colname]
-
-    for index in indices:
-        # Add index to table by adding to each column indices.
-        for colname in index.id:
-            tbl[colname].info.indices.append(index)
-
-    tbl.primary_key = indices_meta["primary_key"]
-    del tbl.meta["__table_indices__"]
+    return sliced_index
 
 
 def represent_indices(tbl: Table) -> Table:
     """
-    Make a copy of a table with indices serialized as new columns and meta data.
+    Return table with indices serialized as new columns and meta data.
 
     This creates a light copy of the table with columns added for each index that
     contains the row indices in sorted order.  The new columns are given names
     ``__index__0``, ``__index__1``, etc (ensuring these do not conflict with existing
-    columns).  The table ``meta['__table_indices__']`` is also updated to include
-    information about the new columns and the index engine.
+    columns).
+
+    For each column with indices, ``meta['__indices__']`` is create to include
+    information about the index. For multi-key indices this results in repeated data in
+    the header.
+
+    The key advantage of putting data into column meta is that the FITS writer
+    automatically serializes column meta into YAML comments, while table meta is assumed
+    to be FITS keyword files.
+
+    The format is most easily illustrated via the ECSV output in this example::
+
+      >>> from astropy.table import QTable
+      >>> import sys
+      >>> t = QTable()
+      >>> t["a"] = [2, 3, 1]
+      >>> t["b"] = [3, 5, 4]
+      >>> t.add_index("a")
+      >>> t.write(sys.stdout, format="ecsv", write_indices=True)
+      # %ECSV 1.0
+      # ---
+      # datatype:
+      # - name: a
+      #   datatype: int64
+      #   meta: !!omap
+      #   - __indices__:
+      #     - colnames: !!python/tuple [a]
+      #       engine: SortedArray
+      #       primary: true
+      #       row_index_colname: __index__0
+      #       unique: false
+      # - {name: b, datatype: int64}
+      # - {name: __index__0, datatype: int64}
+      # schema: astropy-2.0
+      a b __index__0
+      2 3 2
+      3 5 0
+      1 4 1
 
     Parameters
     ----------
@@ -238,7 +318,7 @@ def represent_indices(tbl: Table) -> Table:
                 break
             ii_index += 1
 
-        # Make new column and add meta
+        # Make new column for row_index and add meta describing index
         tbl_out[colname] = row_index
         indices_info.append(
             {
@@ -246,11 +326,13 @@ def represent_indices(tbl: Table) -> Table:
                 "colnames": index.id,
                 "engine": index.data.__class__.__name__,
                 "unique": index.data.unique,
+                "primary": index.id == tbl.primary_key,
             }
         )
 
-    tbl_out.meta["__table_indices__"] = {
-        "primary_key": tbl.primary_key,
-        "indices": indices_info,
-    }
+    for index_info in indices_info:
+        for colname in index_info["colnames"]:
+            col_meta_indices = tbl_out[colname].info.meta.setdefault("__indices__", [])
+            col_meta_indices.append(index_info)
+
     return tbl_out
