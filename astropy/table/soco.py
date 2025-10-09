@@ -6,11 +6,17 @@ Index engine for Tables.
 """
 
 from collections import OrderedDict
+from typing import TYPE_CHECKING
 
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
 if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from . import Row
 
 
 class Node:
@@ -80,22 +86,22 @@ class SCEngine:
         self._nodes = SortedList(map(Node, node_keys, row_index))
         self._unique = unique
 
-    def add(self, key, value):
+    def add(self, key: tuple, row: int) -> None:
         """
         Add a key, value pair.
         """
         if self._unique and (key in self._nodes):
             message = f"duplicate {key!r} in unique index"
             raise ValueError(message)
-        self._nodes.add(Node(key, value))
+        self._nodes.add(Node(key, row))
 
-    def find(self, key):
+    def find(self, key: tuple) -> list["Row"]:
         """
         Find rows corresponding to the given key.
         """
         return [node.value for node in self._nodes.irange(key, key)]
 
-    def remove(self, key, data=None):
+    def remove(self, key: tuple, data: int) -> bool:
         """
         Remove data from the given key.
         """
@@ -111,7 +117,7 @@ class SCEngine:
             self._nodes.remove(item)
         return bool(items)
 
-    def shift_left(self, row):
+    def shift_left(self, row: int) -> None:
         """
         Decrement rows larger than the given row.
         """
@@ -119,7 +125,7 @@ class SCEngine:
             if node.value > row:
                 node.value -= 1
 
-    def shift_right(self, row):
+    def shift_right(self, row: int) -> None:
         """
         Increment rows greater than or equal to the given row.
         """
@@ -127,7 +133,7 @@ class SCEngine:
             if node.value >= row:
                 node.value += 1
 
-    def items(self):
+    def items(self) -> "Iterable[tuple[str, list[Row]]]":
         """
         Return a list of key, data tuples.
         """
@@ -139,7 +145,7 @@ class SCEngine:
                 result[node.key] = [node.value]
         return result.items()
 
-    def sort(self):
+    def sort(self) -> None:
         """
         Make row order align with key order.
         """
@@ -152,14 +158,16 @@ class SCEngine:
         """
         return [node.value for node in self._nodes]
 
-    def range(self, lower, upper, bounds=(True, True)):
+    def range(
+        self, lower: tuple[int, int], upper: tuple[int, int], bounds: tuple[bool, bool]
+    ) -> list[int]:
         """
         Return row values in the given range.
         """
         iterator = self._nodes.irange(lower, upper, bounds)
         return [node.value for node in iterator]
 
-    def replace_rows(self, row_map):
+    def replace_rows(self, row_map: "Mapping[int, int]") -> None:
         """
         Replace rows with the values in row_map.
         """
