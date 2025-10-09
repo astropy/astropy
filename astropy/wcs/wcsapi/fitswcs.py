@@ -410,8 +410,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         )
 
         # If the cache is present, we need to check that the 'hash' matches.
-        if getattr(self, "_components_and_classes_cache", None) is not None:
-            cache = self._components_and_classes_cache
+        if (cache := getattr(self, "_components_and_classes_cache", None)) is not None:
             if cache[0] == wcs_hash:
                 return cache[1]
             else:
