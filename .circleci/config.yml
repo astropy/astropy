@@ -14,7 +14,8 @@ jobs:
     docker:
       - image: cimg/python:3.11
     environment:
-      TOXENV=<< parameters.jobname >>
+      TOXENV: << parameters.jobname >>
+      PY_COLORS: "1"
     steps:
       - checkout
       - run:
@@ -50,6 +51,7 @@ jobs:
       - image: cimg/python:3.11
     environment:
       TOXENV: << parameters.jobname >>
+      PY_COLORS: "1"
       GIT_SSH_COMMAND: ssh -i ~/.ssh/id_rsa_bfaaefe38d95110b75c79252bafbe0fc
     steps:
       - checkout
