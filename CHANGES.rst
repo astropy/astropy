@@ -1,3 +1,128 @@
+Version 7.1.1 (2025-10-10)
+==========================
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Writing zero-row BinTableHDU with string columns no longer raises a broadcast error in _ascii_encode() [#18230]
+
+- Compute maximum absolute and relative differences reported by ``ImageDataDiff``
+  on the full arrays instead of only a few values. [#18451]
+
+- Fix slicing FITS compressed file with ``.section`` when data is scaled. [#18640]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Fixed a bug where coordinate frame objects could not be serialized to YAML. This caused
+  an exception when saving a ``SkyCoord`` object in particular frames like
+  ``galactocentric`` in which frame attributes are themselves a frame. [#18526]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Fix handling of bounded variable-length char arrays in BINARY2 format which were previously treated as fixed length. [#18105]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fixed key error with numpy functions ``np.min``, ``np.max``, ``np.mean``, and ``np.sum``. [#18424]
+
+- Fix partial cutouts with FITS compressed file and scaled data. [#18640]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fixed a bug in ``table.table_helpers.ArrayWrapper`` where byteorder of the
+  underlying data was not necessarily preserved through roundtrips. [#18139]
+
+- Fix bug #10732 where removing rows on an indexed table that was subsequently sliced
+  (e.g. ``t.add_index("a"); ts = t[1:5]; ts.remove_row(2)``) was giving incorrect results
+  or failing. [#18511]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Ensure that the fast C parser for ``Time`` works also with numpy 2.3.0, fixing
+  a bug in our implementation which had no effect in previous numpy versions. [#18265]
+
+astropy.timeseries
+^^^^^^^^^^^^^^^^^^
+
+- Fixed the ``aggregate_downsample`` performance degradation when
+  non-default ``aggregate_func`` is used. [#18188]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Fixed the LaTeX representation of ``DexUnit`` in ``astropy.units``,
+  and thus also how it is represented in, e.g., jupyter notebooks. [#18627]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fix a bug that caused ``WCSAxes.get_transform`` to not return the correct
+  transform when using WCS instances with celestial axes that were not in
+  degrees. [#18311]
+
+- Fixed a bug that under certain conditions could lead to ticks being incorrectly
+  labelled with a single "$" dollar sign in WCSAxes. [#18313]
+
+- Fixed WCSAxes.get_transform() in the case of 1D WCS [#18327]
+
+- Fixed a bug that caused the default format unit to be incorrect for RA/Dec WCSes with non-degree units [#18346]
+
+- Fix a bug where the units of the ``values=`` keyword argument to ``set_ticks`` was not respected. [#18577]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed an issue which caused calls to WCS coordinate conversion routines to not be thread-safe due to calls to WCS.wcs.set() from multiple threads. [#16411]
+
+- Fix a bug that caused the output of ``WCS.wcs.print_contents()`` to be truncated
+  and to then cause the output of subsequent ``print_contents()`` calls (on
+  ``WCS.wcs`` or other wcs objects such as ``WCS.wcs.wtb``) to be corrupted. [#18350]
+
+- Fixed a bug in ``WCS.pixel_to_world`` for spectral WCS where ``restfrq`` was
+  defined but CTYPE was ``VOPT``, and likewise where ``restwav`` was defined but
+  CTYPE was ``VRAD``. [#18352]
+
+- Fixed a bug where world->pixel conversions did not work correctly on a 1D WCS
+  sliced via ``SlicedLowLevelWCS``. [#18394]
+
+- Fixed a bug that caused slicing of WCS objects with an ellipsis to not return a WCS
+  object but instead a SlicedLowLevelWCS object. [#18417]
+
+- Fixed a bug in ``wcs.py`` that caused the WCS object to not properly initialize
+  the `_naxis` attribute when the header was empty or did not contain any WCS
+  information. This could lead to crashes when attempting to take a slice of a 3D
+  WCS object or it could lead unexpected behavior when accessing pixel shape
+  or other properties that depend on the number of axes. [#18419]
+
+- Fixed a race condition when using the APE-14 API for the ``WCS`` class in a multi-threaded environment. [#18692]
+
+
+Performance Improvements
+------------------------
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Improved performance of ``modeling.rotations.spherical2cartesian()`` by 11-18% depending on the size of the input data arrays. [#18238]
+
+
+Other Changes and Additions
+---------------------------
+
+- Fixed errors with building the package from source on Windows via
+  ``python -m build`` and similar commands. [#18253]
+
+- Pre-built binaries (wheels) for Linux are now built using the ``manylinux_2_28``
+  image (previously, ``manylinux2014`` was used). [#18374]
+
 Version 7.1.0 (2025-05-20)
 ==========================
 

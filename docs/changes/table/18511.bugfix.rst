@@ -1,3 +1,0 @@
-Fix bug #10732 where removing rows on an indexed table that was subsequently sliced
-(e.g. ``t.add_index("a"); ts = t[1:5]; ts.remove_row(2)``) was giving incorrect results
-or failing.
