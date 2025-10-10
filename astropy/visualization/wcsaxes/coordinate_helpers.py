@@ -642,6 +642,12 @@ class CoordinateHelper:
         """
         self._ticks.set_visible(visible)
 
+    def get_ticks_visible(self):
+        """
+        Get whether the ticks are currently visible.
+        """
+        return self._ticks.get_visible()
+
     def set_ticklabel(
         self,
         color=None,
@@ -680,6 +686,12 @@ class CoordinateHelper:
             self._ticklabels.set_exclude_overlapping(exclude_overlapping)
         self._ticklabels.set_simplify(simplify)
         self._ticklabels.set(**kwargs)
+
+    def get_ticklabel_visible(self):
+        """
+        Get whether the tick labels are currently visible.
+        """
+        return self._ticklabels.get_visible()
 
     def set_ticklabel_position(self, position):
         """
@@ -762,6 +774,12 @@ class CoordinateHelper:
         else:
             return self._axislabels.get_text()
 
+    def get_axislabel_visible(self):
+        """
+        Get whether the axis label is currently visible.
+        """
+        return self._axislabels.get_visible()
+
     def set_auto_axislabel(self, auto_label):
         """
         Render default axis labels if no explicit label is provided.
@@ -828,6 +846,43 @@ class CoordinateHelper:
             will only be drawn if tick labels were drawn on that axis.
         """
         self._axislabels.set_visibility_rule(rule)
+
+    def set_visible(self, visible):
+        """
+        Set the visibility for ticks, tick labels, and axis labels.
+
+        Parameters
+        ----------
+        visible : bool
+            If 'True', show all elements.
+            If 'False', hide all elements.
+        """
+        if isinstance(visible, bool):
+            self.set_ticks_visible(visible)
+            self.set_ticklabel_visible(visible)
+            self._axislabels.set_visible(visible)
+        else:
+            raise TypeError("visible must be a boolean")
+
+    def set_position(self, position):
+        """
+        Set the position for ticks, tick labels, and axis labels.
+
+        Parameters
+        ----------
+        position : str
+            Show all elements at the given position string (e.g. 't', 'lb', '#').
+        """
+        if isinstance(position, str):
+            self.set_ticks_position(position)
+            self.set_ticklabel_position(position)
+            self.set_axislabel_position(position)
+
+            self.set_ticks_visible(True)
+            self.set_ticklabel_visible(True)
+            self._axislabels.set_visible(True)
+        else:
+            raise TypeError("position must be a string")
 
     def get_axislabel_visibility_rule(self, rule):
         """
