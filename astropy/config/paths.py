@@ -12,6 +12,7 @@ from inspect import cleandoc
 from pathlib import Path
 from types import TracebackType
 from typing import Literal, ParamSpec
+from warnings import warn
 
 __all__ = [
     "get_cache_dir",
@@ -167,20 +168,27 @@ class _SetTempPath:
                 path.mkdir(exist_ok=True)
             return path.resolve()
 
-        if (
-            (dir_ := os.getenv(cls._directory_env_var)) is not None
-            and (xch := Path(dir_)).exists()
-            and not (xchpth := xch / rootname).is_symlink()
-        ):
-            if xchpth.exists():
-                return xchpth.resolve()
+        env_dir = cls._directory_env_var
+        if (dir_ := os.getenv(env_dir)) is None:
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-            # symlink will be set to this if the directory is created
-            linkto = xchpth
+        if not (xch := Path(dir_)).is_dir():
+            warn(
+                f"{env_dir} is set to {dir_!r}, but no such directory was found. "
+                "So, this environment variable is ignored.",
+                category=UserWarning,
+                stacklevel=3,
+            )
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
+
+        if (xchpth := xch / rootname).is_symlink():
+            return cls._find_or_create_root_dir(linkto=xchpth, pkgname=rootname)
         else:
-            linkto = None
-
-        return cls._find_or_create_root_dir(linkto, rootname)
+            # at this point, xchpth represents $(XDG_X_HOME)/astropy, where
+            # - $(XDG_X_HOME) points to an existing dir
+            # - the subdir `astropy` is *not* a symlink (but may be missing)
+            xchpth.mkdir(exist_ok=True)
+            return xchpth.resolve()
 
     @classmethod
     def _find_or_create_root_dir(
