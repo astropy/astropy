@@ -1,3 +1,0 @@
-Fixed a bug in ``WCS.pixel_to_world`` for spectral WCS where ``restfrq`` was
-defined but CTYPE was ``VOPT``, and likewise where ``restwav`` was defined but
-CTYPE was ``VRAD``.

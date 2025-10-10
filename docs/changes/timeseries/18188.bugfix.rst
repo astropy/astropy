@@ -1,2 +1,0 @@
-Fixed the ``aggregate_downsample`` performance degradation when
-non-default ``aggregate_func`` is used.

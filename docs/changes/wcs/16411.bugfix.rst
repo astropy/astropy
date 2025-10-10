@@ -1,1 +1,0 @@
-Fixed an issue which caused calls to WCS coordinate conversion routines to not be thread-safe due to calls to WCS.wcs.set() from multiple threads.
