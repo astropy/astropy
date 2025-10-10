@@ -1,1 +1,0 @@
-Fixed a race condition when using the APE-14 API for the ``WCS`` class in a multi-threaded environment.
