@@ -125,9 +125,11 @@ class LombScargle(BasePeriodogram):
 
         self.t = t
 
-        if isinstance(self.t, Time):
+        if isinstance(self.t, Time) or isinstance(self.t[0], Time):
             self._tstart = self.t[0]
-            trel = (self.t - self._tstart).to(u.day)
+            # Casting self.t into a Time object. If it is already a Time
+            # object, nothing happens, if not, it is turned into a Time object.
+            trel = (Time(self.t) - self._tstart).to(u.day)
         else:
             self._tstart = None
             trel = self.t
