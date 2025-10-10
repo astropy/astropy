@@ -275,6 +275,11 @@ archs = ["x86_64", "arm64"]
 [tool.cibuildwheel.linux]
 archs = ["auto", "aarch64"]
 
+[[tool.cibuildwheel.overrides]]
+# https://github.com/pypa/cibuildwheel/issues/2612
+select = "cp314-macosx_x86_64"
+inherit.environment="append"
+environment = {MACOSX_DEPLOYMENT_TARGET="10.15"}
 
 [tool.docformatter]
     # The ``summaries`` are not (yet) 75 characters because the summary lines can't be
