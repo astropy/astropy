@@ -3634,3 +3634,14 @@ def test_table_from_records_nd_quantity():
     assert t["q0d"].unit == u.m
     assert t["q1d"].unit == u.s
     assert t["q2d"].unit == u.TeV
+
+
+def test_meta_writes_npstr_ecsv(tmp_path):
+    """Regression test for #18235"""
+    t = Table(dict(a=[1, 2, 3], b=["a", "b", "c"]))
+    t.meta["foo"] = np.str_("hello")
+    table_filename = tmp_path / "foo.ecsv"
+    # Write the table out with Table.write()
+    t.write(table_filename, overwrite=True)
+    t2 = Table.read(table_filename)
+    assert t2.meta["foo"] == t.meta["foo"]

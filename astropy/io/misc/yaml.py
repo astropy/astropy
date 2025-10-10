@@ -282,6 +282,7 @@ AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_, yaml.representer.SafeRepresenter.represent_bool)
+AstropyDumper.add_representer(np.str_, yaml.representer.SafeRepresenter.represent_str)
 for np_type in [
     np.intc,
     np.intp,
