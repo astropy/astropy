@@ -3,6 +3,7 @@
 This module includes helper functions for array operations.
 """
 
+import functools
 from copy import deepcopy
 
 import numpy as np
@@ -11,7 +12,6 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io.fits.hdu.compressed import CompImageSection
 from astropy.io.fits.hdu.image import Section
-from astropy.utils import lazyproperty
 from astropy.wcs import Sip
 from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
 
@@ -816,7 +816,7 @@ class Cutout2D:
             (slices[1].start, slices[1].stop - 1),
         )
 
-    @lazyproperty
+    @functools.cached_property
     def origin_original(self):
         """
         The ``(x, y)`` index of the origin pixel of the cutout with
@@ -826,7 +826,7 @@ class Cutout2D:
         """
         return (self.slices_original[1].start, self.slices_original[0].start)
 
-    @lazyproperty
+    @functools.cached_property
     def origin_cutout(self):
         """
         The ``(x, y)`` index of the origin pixel of the cutout with
@@ -846,7 +846,7 @@ class Cutout2D:
         """
         return int(np.floor(a + 0.5))
 
-    @lazyproperty
+    @functools.cached_property
     def position_original(self):
         """
         The ``(x, y)`` position index (rounded to the nearest pixel) in
@@ -857,7 +857,7 @@ class Cutout2D:
             self._round(self.input_position_original[1]),
         )
 
-    @lazyproperty
+    @functools.cached_property
     def position_cutout(self):
         """
         The ``(x, y)`` position index (rounded to the nearest pixel) in
@@ -868,7 +868,7 @@ class Cutout2D:
             self._round(self.input_position_cutout[1]),
         )
 
-    @lazyproperty
+    @functools.cached_property
     def center_original(self):
         """
         The central ``(x, y)`` position of the cutout array with respect
@@ -877,7 +877,7 @@ class Cutout2D:
         """
         return self._calc_center(self.slices_original)
 
-    @lazyproperty
+    @functools.cached_property
     def center_cutout(self):
         """
         The central ``(x, y)`` position of the cutout array with respect
@@ -886,7 +886,7 @@ class Cutout2D:
         """
         return self._calc_center(self.slices_cutout)
 
-    @lazyproperty
+    @functools.cached_property
     def bbox_original(self):
         """
         The bounding box ``((ymin, ymax), (xmin, xmax))`` of the minimal
@@ -896,7 +896,7 @@ class Cutout2D:
         """
         return self._calc_bbox(self.slices_original)
 
-    @lazyproperty
+    @functools.cached_property
     def bbox_cutout(self):
         """
         The bounding box ``((ymin, ymax), (xmin, xmax))`` of the minimal
