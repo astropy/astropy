@@ -372,3 +372,7 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
             return pixel_values[0]
         else:
             return pixel_values
+
+    def world_classes_order(self):
+        """The types and order of high level coordinate objects required by ``world_to_pixel``"""
+        return tuple(v[0] for v in self.low_level_wcs.world_axis_object_classes.values())
