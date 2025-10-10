@@ -1,1 +1,0 @@
-Fix partial cutouts with FITS compressed file and scaled data.
