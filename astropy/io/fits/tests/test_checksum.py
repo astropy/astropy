@@ -205,8 +205,11 @@ class TestChecksumFunctions(BaseChecksumTests):
 
         testfile2 = self.temp("tmp2.fits")
         with fits.open(testfile, checksum=True) as hdul:
-            checksum = hdul[1]._checksum
             datasum = hdul[1]._datasum
+            assert datasum == "2998821219"
+            checksum = hdul[1]._checksum
+            assert checksum == "7aC39YA37aA37YA3"
+
             # so write again the file but here data was not loaded so checksum
             # is computed directly from the file bytes, which was producing
             # a correct checksum. Below we compare both to make sure they are
@@ -214,8 +217,50 @@ class TestChecksumFunctions(BaseChecksumTests):
             hdul.writeto(testfile2, checksum=True)
 
         with fits.open(testfile2, checksum=True) as hdul:
-            assert checksum == hdul[1]._checksum
             assert datasum == hdul[1]._datasum
+            assert checksum == hdul[1]._checksum
+
+    def test_variable_length_table_data3(self):
+        """regression test for #14396"""
+        # This is testing specifically a scenario where the start of the heap
+        # is not aligned with 4-byte blocks (32 bit integers)
+
+        # By default, the heap starts immediately after the table, which is at
+        # NAXIS1 x NAXIS2, or byte 17 in this case. This is not aligned with
+        # the 4-byte blocks
+        testfile = self.temp("tmp.fits")
+        col1 = fits.Column(name="a", format="1A", array=["a"])
+        col2 = fits.Column(name="b", format="QD", array=[[1]])
+        tab = fits.BinTableHDU.from_columns(name="test", columns=[col1, col2])
+
+        tab.writeto(testfile, checksum=True)
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[1].header["DATASUM"] == "1648357376"
+            assert hdul[1].header["CHECKSUM"] == "2CoL4BnL2BnL2BnL"
+
+        # Here we force the heap to be aligned with the 4-byte blocks by using
+        # the THEAP keyword. This shows that we cannot always calculate DATASUM
+        # by simple concatenating the table data with the heap data.
+        testfile = self.temp("tmp2.fits")
+        col1 = fits.Column(name="a", format="1A", array=["a"])
+        col2 = fits.Column(name="b", format="QD", array=[[1]])
+        tab = fits.BinTableHDU.from_columns(name="test", columns=[col1, col2])
+        tab.header["THEAP"] = 20
+        tab.writeto(testfile, checksum=True)
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[1].header["DATASUM"] == "2716860416"
+            assert hdul[1].header["CHECKSUM"] == "jIAFjI19jI8CjI89"
+
+        # Here we take the previous table and just update the THEAP value to 17.
+        # This should put the heap in the same position as the first case and
+        # thus the DATASUM should be the same. However, the CHECKSUM should be
+        # different, as the header is different (it now has the THEAP keyword).
+        testfile = self.temp("tmp3.fits")
+        tab.header["THEAP"] = 17
+        tab.writeto(testfile, checksum=True)
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[1].header["DATASUM"] == "1648357376"
+            assert hdul[1].header["CHECKSUM"] == "jcdDjZZBjabBjYZB"
 
     def test_ascii_table_data(self):
         a1 = np.array(["abc", "def"])

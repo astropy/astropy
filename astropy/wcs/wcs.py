@@ -442,7 +442,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         `WCS.fix` for more information about this parameter.  Only
         effective when ``fix`` is `True`.
 
-    preserve_units : str, optional
+    preserve_units : bool, optional
         By default, some units are converted to SI, for example spectral
         axes in units of nm might be converted to m, and celestial axes
         in units of arcsec might be converted to deg. If ``preserve_units``
@@ -522,6 +522,8 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         preserve_units=False,
     ):
         close_fds = []
+
+        self._preserve_units = preserve_units
 
         # these parameters are stored to be used when unpickling a WCS object:
         self._init_kwargs = {
@@ -3679,6 +3681,18 @@ reduce these to 2 dimensions using the naxis kwarg.
         pccd = np.dot(cdelt, pc)
 
         return pccd
+
+    @property
+    def preserve_units(self):
+        """
+        Indicates whether the ``WCS`` class is preserving the original units.
+
+        If `True`, units are always kept as specified, whereas is `False`,
+        units will in some cases be converted to SI/degrees - for example units
+        for celestial axes are converted to degrees, spectral frequencies to
+        Hz, and wavelengths to meters.
+        """
+        return self._preserve_units
 
     def footprint_contains(self, coord, **kwargs):
         """
