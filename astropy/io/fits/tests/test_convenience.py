@@ -325,20 +325,20 @@ class TestConvenience(FitsTestCase):
             '               ""               ""               ""              \n'
         )
         # copy fits file to the temp directory
-        self.copy_file("tb.fits")
+        fn = self.copy_file("tb.fits")
 
         # test without datafile
-        fits.tabledump(self.temp("tb.fits"))
+        fits.tabledump(fn)
         assert os.path.isfile(self.temp("tb_1.txt"))
 
         # test with datafile
-        fits.tabledump(self.temp("tb.fits"), datafile=self.temp("test_tb.txt"))
+        fits.tabledump(fn, datafile=self.temp("test_tb.txt"))
         assert os.path.isfile(self.temp("test_tb.txt"))
 
         # test with datafile and cdfile
         datafile = self.temp("data.txt")
         cdfile = self.temp("coldefs.txt")
-        fits.tabledump(self.temp("tb.fits"), datafile, cdfile)
+        fits.tabledump(fn, datafile, cdfile)
         assert os.path.isfile(datafile)
         with open(datafile) as data:
             assert data.read() == datastr
@@ -353,16 +353,16 @@ class TestConvenience(FitsTestCase):
         """
 
         # copy fits file to the temp directory
-        self.copy_file(tablename)
+        fn = self.copy_file(tablename)
 
         datafile = self.temp("data.txt")
         cdfile = self.temp("coldefs.txt")
         hfile = self.temp("header.txt")
-        fits.tabledump(self.temp(tablename), datafile, cdfile, hfile)
+        fits.tabledump(fn, datafile, cdfile, hfile)
 
         new_tbhdu = fits.tableload(datafile, cdfile, hfile)
 
-        with fits.open(self.temp(tablename)) as hdul:
+        with fits.open(fn) as hdul:
             _assert_attr_col(new_tbhdu, hdul[1])
 
     def test_append_filename(self, home_is_temp):

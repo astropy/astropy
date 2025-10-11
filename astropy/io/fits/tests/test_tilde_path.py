@@ -37,8 +37,7 @@ class TestTildePaths(FitsTestCase):
         fits.getheader(self.data("tb.fits"), ext=1)
 
     def test_fits_get_set_del_val(self, home_is_temp):
-        self.copy_file("test0.fits")
-        filename = self.temp("test0.fits")
+        filename = self.copy_file("test0.fits")
         assert fits.getval(filename, "shutter") == "B"
 
         fits.setval(filename, "shutter", value="C")
@@ -92,8 +91,7 @@ class TestTildePaths(FitsTestCase):
             self.temp("data.txt"), self.temp("cdfile.txt"), self.temp("hfile.txt")
         )
 
-        self.copy_file("tb.fits")
-        with fits.open(self.temp("tb.fits")) as hdul:
+        with fits.open(self.copy_file("tb.fits")) as hdul:
             hdu = hdul[1]
             hdu.dump()
         assert os.path.exists(os.path.expanduser(self.temp("tb.txt")))
@@ -133,24 +131,24 @@ class TestTildePaths(FitsTestCase):
         hdu.writeto(self.temp("table.fits"), overwrite=True)
 
     def fits_tabledump(self, home_is_temp):
-        self.copy_file("tb.fits")
+        fn = self.copy_file("tb.fits")
 
         fits.tabledump(
-            self.temp("tb.fits"),
+            fn,
             self.temp("data.txt"),
             self.temp("cdfile.txt"),
             self.temp("hfile.txt"),
         )
         with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
             fits.tabledump(
-                self.temp("tb.fits"),
+                fn,
                 self.temp("data.txt"),
                 self.temp("cdfile.txt"),
                 self.temp("hfile.txt"),
                 overwrite=False,
             )
         fits.tabledump(
-            self.temp("tb.fits"),
+            fn,
             self.temp("data.txt"),
             self.temp("cdfile.txt"),
             self.temp("hfile.txt"),
