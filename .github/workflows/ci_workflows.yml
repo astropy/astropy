@@ -56,6 +56,7 @@ jobs:
       setenv: |
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
+        PY_COLORS: "1"
       submodules: false
       coverage: ''
       libraries: |
@@ -110,6 +111,7 @@ jobs:
       setenv: |
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
+        PY_COLORS: "1"
       submodules: false
       coverage: ''
       libraries: |
