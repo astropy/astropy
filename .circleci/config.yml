@@ -16,7 +16,8 @@ jobs:
     environment:
       TOXENV=<< parameters.jobname >>
     steps:
-      - checkout
+      - checkout:
+          method: blobless
       - run:
           name: Install dependencies
           command: |
@@ -52,7 +53,8 @@ jobs:
       TOXENV: << parameters.jobname >>
       GIT_SSH_COMMAND: ssh -i ~/.ssh/id_rsa_bfaaefe38d95110b75c79252bafbe0fc
     steps:
-      - checkout
+      - checkout:
+          method: blobless
       - run:
           name: Install dependencies
           command: |
