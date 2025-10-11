@@ -3,12 +3,14 @@
 
 import warnings
 from copy import deepcopy
+from typing import TypeVar
 
 import numpy as np
 
 from astropy.nddata.nduncertainty import NDUncertainty
-from astropy.units import dimensionless_unscaled
+from astropy.units import Quantity, dimensionless_unscaled
 from astropy.utils import format_doc, sharedmethod
+from astropy.utils.compat.numpycompat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import Masked
 
@@ -98,6 +100,9 @@ _arit_doc = """
 
     ``"first_found"`` can also be abbreviated with ``"ff"``.
     """
+
+
+T_NDArith = TypeVar("T_NDArith", bound="NDArithmeticMixin")
 
 
 class NDArithmeticMixin:
@@ -397,17 +402,56 @@ class NDArithmeticMixin:
                 result = operation(self.data, operand.data)
             else:
                 result = operation(
-                    self.data << dimensionless_unscaled, operand.data << operand.unit
+                    # Convert between units if necessary. This previously used
+                    # the << operator, but that can produce unwanted type
+                    # upcasting, so we need to specify dtype=None explicitly,
+                    # effectively handing off dtype introspection to numpy at
+                    # runtime.
+                    Quantity(
+                        self.data,
+                        unit=dimensionless_unscaled,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED,
+                    ),
+                    Quantity(
+                        operand.data,
+                        unit=operand.unit,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED,
+                    ),
                 )
         elif hasattr(operand, "unit"):
             if operand.unit is not None:
-                result = operation(self.data << self.unit, operand.data << operand.unit)
+                result = operation(
+                    Quantity(
+                        self.data, unit=self.unit, dtype=None, copy=COPY_IF_NEEDED
+                    ),
+                    Quantity(
+                        operand.data, unit=operand.unit, dtype=None, copy=COPY_IF_NEEDED
+                    ),
+                )
             else:
                 result = operation(
-                    self.data << self.unit, operand.data << dimensionless_unscaled
+                    Quantity(
+                        self.data,
+                        unit=self.unit,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED,
+                    ),
+                    Quantity(
+                        operand.data,
+                        unit=dimensionless_unscaled,
+                        dtype=None,
+                        copy=COPY_IF_NEEDED,
+                    ),
                 )
         elif operand is not None:
-            result = operation(self.data << self.unit, operand.data << operand.unit)
+            result = operation(
+                Quantity(self.data, unit=self.unit, dtype=None, copy=COPY_IF_NEEDED),
+                Quantity(
+                    operand.data, unit=operand.unit, dtype=None, copy=COPY_IF_NEEDED
+                ),
+            )
         else:
             result = operation(self.data, axis=kwds["axis"])
 
@@ -671,6 +715,67 @@ class NDArithmeticMixin:
         )
 
     @sharedmethod
+    def _convert_operand_class_with_suitable_dtype(
+        self_or_cls, target_cls: type[T_NDArith], operand, ref=None
+    ) -> T_NDArith:
+        """
+        Convert an operand to the target class, first converting Python scalars
+        to a NumPy dtype that preserves their expected casting behaviour under
+        arithmetic with a reference operand or dtype (see NEP 50,
+        https://numpy.org/neps/nep-0050-scalar-promotion.html).
+
+        Parameters
+        ----------
+        target_cls : class
+            Class to create an instance of, with ``operand`` as the argument.
+
+        operand : object convertible to ``target_cls`` (`~astropy.nddata.NDData`-like)
+
+        ref : ``NDData``-like, `~numpy.ndarray`-like or `~numpy.dtype`, optional
+            Reference operand/dtype with which arithmetic is to be performed.
+
+        Returns
+        -------
+        result : instance of ``target_cls``
+        """
+        # No need to do any special type conversion unless the operand is a
+        # numeric, non-numpy scalar (NB. when deprecating PYTHON_LT_3_12,
+        # "bytes" & "memoryview" *could* be replaced with "Buffer" here):
+        if (
+            ref is None
+            or not np.isscalar(operand)
+            or isinstance(operand, (np.number, str, bytes, memoryview))
+        ):
+            return target_cls(operand)
+
+        # Python scalars receive special "weak typing" treatment in NumPy 2
+        # (NEP 50) and need to be cast explicitly to the appropriate dtype
+        # before conversion to NDData, otherwise the instance just defaults to
+        # 64 bits, leading to unwanted upcasting in subsequent arithmetic,
+        # compared with NumPy. This weak typing does not apply to *lists* of
+        # Python scalars etc., which NumPy converts to arrays in the default
+        # way when doing arithmetic.
+
+        # The arg for result_type() below has to be convertible to an ndarray
+        # (including sub-classes like Quantity) or dtype, but cannot be a
+        # Python sequence (because it takes a list of args). Also, we can't do
+        # isinstance(ref, NDData) here, because it produces a circular import,
+        # but the following is at least as general:
+        if hasattr(ref, "data") and (
+            hasattr(ref.data, "__array__") or hasattr(ref.data, "__array_interface__")
+        ):
+            ref = ref.data  # grab ref array from NDData-like container
+        try:
+            dtype = np.result_type(ref, operand)
+        except TypeError:  # in case arg is a list/tuple/...
+            dtype = np.result_type(np.array(ref), operand)
+
+        # Convert scalar operand to a dtype appropriate for the ref:
+        operand = np.array(operand, dtype=dtype)
+
+        return target_cls(operand)
+
+    @sharedmethod
     def _prepare_then_do_arithmetic(
         self_or_cls, operation, operand=None, operand2=None, **kwargs
     ):
@@ -721,7 +826,9 @@ class NDArithmeticMixin:
                 # Convert the first operand to the class of this method.
                 # This is important so that always the correct _arithmetics is
                 # called later that method.
-                operand = cls(operand)
+                operand = self_or_cls._convert_operand_class_with_suitable_dtype(
+                    cls, operand, ref=operand2
+                )
 
         else:
             # It was used as classmethod so self_or_cls represents the cls
@@ -735,7 +842,9 @@ class NDArithmeticMixin:
                 )
 
             # Convert to this class. See above comment why.
-            operand = cls(operand)
+            operand = self_or_cls._convert_operand_class_with_suitable_dtype(
+                cls, operand, ref=operand2
+            )
 
         # At this point operand, operand2, kwargs and cls are determined.
         if operand2 is not None and not issubclass(
@@ -745,7 +854,9 @@ class NDArithmeticMixin:
             # arithmetic operations with numbers, lists, numpy arrays, numpy masked
             # arrays, astropy quantities, masked quantities and of other subclasses
             # of NDData.
-            operand2 = cls(operand2)
+            operand2 = self_or_cls._convert_operand_class_with_suitable_dtype(
+                cls, operand2, ref=operand.data
+            )
 
             # Now call the _arithmetics method to do the arithmetic.
             result, init_kwds = operand._arithmetic(operation, operand2, **kwargs)
