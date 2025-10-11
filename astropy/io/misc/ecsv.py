@@ -64,13 +64,13 @@ import os
 import re
 import warnings
 from collections.abc import Iterable
-from contextlib import ExitStack
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final, NamedTuple
 
 import numpy as np
 import numpy.typing as npt
+
+from astropy.utils.data import get_readable_fileobj
 
 if TYPE_CHECKING:
     from astropy.table import SerializedColumn, Table
@@ -441,8 +441,7 @@ def get_header_lines(
     ----------
     input_file : str | os.PathLike | io.BytesIO
         The input file path or file-like object to read. If a file path is
-        provided, the function automatically handles compressed files with
-        extensions `.gz` or `.bz2`.
+        provided, the function automatically handles compressed files.
     encoding : str, optional
         The encoding used to decode the file content. Default is "utf-8".
 
@@ -463,25 +462,8 @@ def get_header_lines(
     n_empty = 0
     n_comment = 0
 
-    with ExitStack() as stack:
-        # Get a file-like object as tmp_input_file
-        if isinstance(input_file, (str, os.PathLike)):
-            ext = Path(input_file).suffix
-            if ext == ".gz":
-                import gzip
-
-                opener = gzip.open
-            elif ext == ".bz2":
-                import bz2
-
-                opener = bz2.open
-            else:
-                opener = open
-            tmp_input_file = stack.enter_context(opener(input_file, "rb"))
-        else:
-            tmp_input_file = input_file
-
-        for idx, line in enumerate(tmp_input_file):
+    with get_readable_fileobj(input_file, encoding="binary") as f:
+        for idx, line in enumerate(f):
             line_strip = line.strip()
             if line_strip.startswith(header_prefix):
                 lines.append(line_strip[2:].decode(encoding))
