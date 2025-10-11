@@ -214,16 +214,16 @@ class TestCompressedImage(FitsTestCase):
         """
 
         # Copy the original file before making any possible changes to it
-        self.copy_file("comp.fits")
-        mtime = os.stat(self.temp("comp.fits")).st_mtime
+        fn = self.copy_file("comp.fits")
+        mtime = os.stat(fn).st_mtime
 
         time.sleep(1)
 
-        fits.open(self.temp("comp.fits"), mode="update").close()
+        fits.open(fn, mode="update").close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
-        assert mtime == os.stat(self.temp("comp.fits")).st_mtime
+        assert mtime == os.stat(fn).st_mtime
 
     @pytest.mark.slow
     def test_open_scaled_in_update_mode_compressed(self):
@@ -432,57 +432,57 @@ class TestCompressedImage(FitsTestCase):
         https://github.com/spacetelescope/PyFITS/issues/23
         """
 
-        self.copy_file("comp.fits")
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        fn = self.copy_file("comp.fits")
+        with fits.open(fn, mode="update") as hdul:
             assert isinstance(hdul[1], fits.CompImageHDU)
             hdul[1].header["test1"] = "test"
             hdul[1]._header["test2"] = "test2"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert "test1" in hdul[1].header
             assert hdul[1].header["test1"] == "test"
             assert "test2" in hdul[1].header
             assert hdul[1].header["test2"] == "test2"
 
         # Test update via index now:
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(fn, mode="update") as hdul:
             hdr = hdul[1].header
             hdr[hdr.index("TEST1")] = "foo"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert hdul[1].header["TEST1"] == "foo"
 
         # Test slice updates
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(fn, mode="update") as hdul:
             hdul[1].header["TEST*"] = "qux"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert list(hdul[1].header["TEST*"].values()) == ["qux", "qux"]
 
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(fn, mode="update") as hdul:
             hdr = hdul[1].header
             idx = hdr.index("TEST1")
             hdr[idx : idx + 2] = "bar"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert list(hdul[1].header["TEST*"].values()) == ["bar", "bar"]
 
         # Test updating a specific COMMENT card duplicate
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(fn, mode="update") as hdul:
             hdul[1].header[("COMMENT", 1)] = "I am fire. I am death!"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert hdul[1].header["COMMENT"][1] == "I am fire. I am death!"
             assert hdul[1]._header["COMMENT"][1] == "I am fire. I am death!"
 
         # Test deleting by keyword and by slice
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(fn, mode="update") as hdul:
             hdr = hdul[1].header
             del hdr["COMMENT"]
             idx = hdr.index("TEST1")
             del hdr[idx : idx + 2]
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert "COMMENT" not in hdul[1].header
             assert "COMMENT" not in hdul[1]._header
             assert "TEST1" not in hdul[1].header
@@ -960,13 +960,13 @@ class TestCompressedImage(FitsTestCase):
             assert hdul[1].shape == (120, 150)
 
     def test_inplace_data_modify(self, tmp_path):
-        self.copy_file("comp.fits")
+        fn = self.copy_file("comp.fits")
 
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(fn, mode="update") as hdul:
             data = hdul[1].data
             data[0] = 0
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert hdul[1].data[0, 0] == 0
 
     def test_summary_noload(self):

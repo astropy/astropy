@@ -926,14 +926,14 @@ class TestImageFunctions(FitsTestCase):
         """
 
         # Copy the original file before saving to it
-        self.copy_file("test0.fits")
-        with fits.open(self.temp("test0.fits"), mode="update") as hdul:
+        fn = self.copy_file("test0.fits")
+        with fits.open(fn, mode="update") as hdul:
             orig_data = hdul[1].data.copy()
             hdr_copy = hdul[1].header.copy()
             del hdr_copy["NAXIS*"]
             hdul[1].header = hdr_copy
 
-        with fits.open(self.temp("test0.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert (orig_data == hdul[1].data).all()
 
     def test_open_scaled_in_update_mode(self):
@@ -947,28 +947,28 @@ class TestImageFunctions(FitsTestCase):
         """
 
         # Copy the original file before making any possible changes to it
-        self.copy_file("scale.fits")
-        mtime = os.stat(self.temp("scale.fits")).st_mtime
+        fn = self.copy_file("scale.fits")
+        mtime = os.stat(fn).st_mtime
 
         time.sleep(1)
 
-        fits.open(self.temp("scale.fits"), mode="update").close()
+        fits.open(fn, mode="update").close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
-        assert mtime == os.stat(self.temp("scale.fits")).st_mtime
+        assert mtime == os.stat(fn).st_mtime
 
         # Insert a slight delay to ensure the mtime does change when the file
         # is changed
         time.sleep(1)
 
-        hdul = fits.open(self.temp("scale.fits"), "update")
+        hdul = fits.open(fn, "update")
         orig_data = hdul[0].data
         hdul.close()
 
         # Now the file should be updated with the rescaled data
-        assert mtime != os.stat(self.temp("scale.fits")).st_mtime
-        hdul = fits.open(self.temp("scale.fits"), mode="update")
+        assert mtime != os.stat(fn).st_mtime
+        hdul = fits.open(fn, mode="update")
         assert hdul[0].data.dtype == np.dtype(">f4")
         assert hdul[0].header["BITPIX"] == -32
         assert "BZERO" not in hdul[0].header
@@ -980,7 +980,7 @@ class TestImageFunctions(FitsTestCase):
         hdul[0].data.shape = (42, 10)
         hdul.close()
 
-        hdul = fits.open(self.temp("scale.fits"))
+        hdul = fits.open(fn)
         assert hdul[0].shape == (42, 10)
         assert hdul[0].data.dtype == np.dtype(">f4")
         assert hdul[0].header["BITPIX"] == -32
@@ -994,15 +994,15 @@ class TestImageFunctions(FitsTestCase):
         The scale_back feature for image HDUs.
         """
 
-        self.copy_file("scale.fits")
-        with fits.open(self.temp("scale.fits"), mode="update", scale_back=True) as hdul:
+        fn = self.copy_file("scale.fits")
+        with fits.open(fn, mode="update", scale_back=True) as hdul:
             orig_bitpix = hdul[0].header["BITPIX"]
             orig_bzero = hdul[0].header["BZERO"]
             orig_bscale = hdul[0].header["BSCALE"]
             orig_data = hdul[0].data.copy()
             hdul[0].data[0] = 0
 
-        with fits.open(self.temp("scale.fits"), do_not_scale_image_data=True) as hdul:
+        with fits.open(fn, do_not_scale_image_data=True) as hdul:
             assert hdul[0].header["BITPIX"] == orig_bitpix
             assert hdul[0].header["BZERO"] == orig_bzero
             assert hdul[0].header["BSCALE"] == orig_bscale
@@ -1010,7 +1010,7 @@ class TestImageFunctions(FitsTestCase):
             zero_point = math.floor(-orig_bzero / orig_bscale)
             assert (hdul[0].data[0] == zero_point).all()
 
-        with fits.open(self.temp("scale.fits")) as hdul:
+        with fits.open(fn) as hdul:
             assert (hdul[0].data[1:] == orig_data[1:]).all()
 
     def test_image_none(self):
