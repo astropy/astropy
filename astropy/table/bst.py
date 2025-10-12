@@ -179,16 +179,16 @@ class BST:
         for key, row in zip(data, row_index):
             self.add(tuple(key), row)
 
-    def add(self, key: tuple, row: int | None = None) -> None:
+    def add(self, key: tuple, data: int | None = None) -> None:
         """
         Add a key, data pair.
         """
-        if row is None:
+        if data is None:
             # nothing about this branch conforms to the IndexEngine protocol
-            row = key
+            data = key
 
         self.size += 1
-        node = self.NodeClass(key, row)
+        node = self.NodeClass(key, data)
         curr_node = self.root
         if curr_node is None:
             self.root = node
