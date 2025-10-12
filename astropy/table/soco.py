@@ -14,7 +14,9 @@ if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
+    from collections.abc import Collection, Iterable, Mapping
+
+    from numpy import int64 as i64
 
     from . import Row
 
@@ -95,7 +97,7 @@ class SCEngine:
             raise ValueError(message)
         self._nodes.add(Node(key, row))
 
-    def find(self, key: tuple) -> list["Row"]:
+    def find(self, key: tuple) -> Collection[i64]:
         """
         Find rows corresponding to the given key.
         """

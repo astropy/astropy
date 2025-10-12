@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Collection, Mapping
+
+    from numpy import int64 as i64
 
     from .table import Column, Row, Table
 
@@ -134,7 +136,7 @@ class SortedArray:
 
         return begin
 
-    def find(self, key: tuple) -> list["Row"]:
+    def find(self, key: tuple) -> Collection[i64]:
         """
         Find all rows matching the given key.
 

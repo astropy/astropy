@@ -3,7 +3,9 @@ import operator
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Collection, Mapping
+
+    from numpy import int64 as i64
 
     from . import Row
 
@@ -210,7 +212,7 @@ class BST:
                 curr_node.data = sorted(curr_node.data)
                 return
 
-    def find(self, key: tuple) -> list["Row"]:
+    def find(self, key: tuple) -> Collection[i64]:
         """
         Return all data values corresponding to a given key.
 
