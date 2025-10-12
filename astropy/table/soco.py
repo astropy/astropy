@@ -6,17 +6,14 @@ Index engine for Tables.
 """
 
 from collections import OrderedDict
-from typing import TYPE_CHECKING
+from collections.abc import Collection, Hashable, Mapping
+
+from numpy import int64 as i64
 
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
 if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
-
-if TYPE_CHECKING:
-    from collections.abc import Collection, Hashable, Mapping
-
-    from numpy import int64 as i64
 
 
 class Node:

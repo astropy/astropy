@@ -1,12 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import operator
-from typing import TYPE_CHECKING
+from collections.abc import Collection, Hashable, Mapping
 
-if TYPE_CHECKING:
-    from collections.abc import Collection, Hashable, Mapping
-
-    from numpy import int64 as i64
-
+from numpy import int64 as i64
 
 __all__ = ["BST"]
 

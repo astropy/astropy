@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from collections.abc import Collection, Hashable, Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
+from numpy import int64 as i64
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Hashable, Mapping
-
-    from numpy import int64 as i64
-
     from .table import Column, Table
 
 
