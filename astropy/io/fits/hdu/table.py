@@ -868,6 +868,9 @@ class BinTableHDU(_TableBaseHDU):
         with _binary_table_byte_swap(self.data) as data:
             csum = self._compute_checksum(data.view(type=np.ndarray, dtype=np.ubyte))
 
+            # determine if we can read the heap data from the file on disk
+            try_from_disk = self._manages_own_heap or not self._data_loaded
+
             # Now add in the heap data to the checksum. We can skip any gap
             # between the table and the heap since it's all zeros and doesn't
             # contribute to the checksum. However, the heap may not start at a
@@ -879,7 +882,6 @@ class BinTableHDU(_TableBaseHDU):
             # for the checksum calculation. We do this by padding the first few
             # bytes of the heap (if necessary), then calculating the checksum for
             # the rest of the heap data normally.
-            try_from_disk = self._manages_own_heap or not self._data_loaded
             heap_data = data._get_heap_data(try_from_disk)
             if extra := self._theap % 4:
                 first_part = np.zeros(4, dtype=np.ubyte)
@@ -928,7 +930,9 @@ class BinTableHDU(_TableBaseHDU):
 
             nbytes = data._gap
 
+            # determine of we can read the heap data from the file on disk
             try_from_disk = self._manages_own_heap or not self._data_loaded
+
             heap_data = data._get_heap_data(try_from_disk)
             if len(heap_data) > 0:
                 nbytes += len(heap_data)

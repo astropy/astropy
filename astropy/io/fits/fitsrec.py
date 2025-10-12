@@ -1034,7 +1034,11 @@ class FITS_rec(np.recarray):
 
     def _get_heap_data(self, try_from_disk=True):
         """
-        Returns a pointer into the table's raw data to its heap (if present).
+        Returns heap data (if present).
+
+        If ``try_from_disk=True`` and if data is read from a file, heap data
+        is a pointer into the table's raw data.
+        Otherwise it is computed from the in-memory arrays.
 
         This is returned as a numpy byte array.
         """
