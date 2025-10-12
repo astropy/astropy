@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Mapping
+    from collections.abc import Collection, Hashable, Mapping
 
     from numpy import int64 as i64
 
@@ -172,7 +172,10 @@ class SortedArray:
         return self.row_index[begin:end]
 
     def range(
-        self, lower: tuple[int, int], upper: tuple[int, int], bounds: tuple[bool, bool]
+        self,
+        lower: tuple[Hashable, ...],
+        upper: tuple[Hashable, ...],
+        bounds: tuple[bool, bool],
     ) -> list[int]:
         """
         Find values in the given range.

@@ -217,7 +217,7 @@ from .bst import MaxValue, MinValue
 from .sorted_array import SortedArray
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterable, Mapping
+    from collections.abc import Collection, Hashable, Iterable, Mapping
 
     from numpy import int64 as i64
 
@@ -239,7 +239,10 @@ class IndexEngine(Protocol):
     def sort(self) -> None: ...
     def sorted_data(self) -> None: ...
     def range(
-        self, lower: tuple[int, int], upper: tuple[int, int], bounds: tuple[bool, bool]
+        self,
+        lower: tuple[Hashable, ...],
+        upper: tuple[Hashable, ...],
+        bounds: tuple[bool, bool],
     ) -> list[int]: ...
     def replace_rows(self, row_map: Mapping[int, int]) -> None: ...
 

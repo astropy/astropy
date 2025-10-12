@@ -3,7 +3,7 @@ import operator
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Mapping
+    from collections.abc import Collection, Hashable, Mapping
 
     from numpy import int64 as i64
 
@@ -401,8 +401,8 @@ class BST:
 
     def range(
         self,
-        lower: tuple[int, int],
-        upper: tuple[int, int],
+        lower: tuple[Hashable, ...],
+        upper: tuple[Hashable, ...],
         bounds: tuple[bool, bool] = (True, True),
     ) -> list[int]:
         """

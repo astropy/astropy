@@ -14,7 +14,7 @@ if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Iterable, Mapping
+    from collections.abc import Collection, Hashable, Iterable, Mapping
 
     from numpy import int64 as i64
 
@@ -161,7 +161,10 @@ class SCEngine:
         return [node.value for node in self._nodes]
 
     def range(
-        self, lower: tuple[int, int], upper: tuple[int, int], bounds: tuple[bool, bool]
+        self,
+        lower: tuple[Hashable, ...],
+        upper: tuple[Hashable, ...],
+        bounds: tuple[bool, bool],
     ) -> list[int]:
         """
         Return row values in the given range.
