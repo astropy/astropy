@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
     from numpy import int64 as i64
 
-    from .table import Column, Row, Table
+    from .table import Column, Table
 
 
 def _searchsorted(array, val, side="left"):
@@ -283,7 +283,7 @@ class SortedArray:
         self.data = self.data[keep_rows]
         self.row_index = np.array([row_map[x] for x in self.row_index[keep_rows]])
 
-    def items(self) -> list[tuple[str, list["Row"]]]:
+    def items(self) -> list[tuple[Hashable, list[i64]]]:
         """
         Retrieve all array items as a list of pairs of the form
         [(key, [row 1, row 2, ...]), ...].

@@ -14,11 +14,9 @@ if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Hashable, Iterable, Mapping
+    from collections.abc import Collection, Hashable, Mapping
 
     from numpy import int64 as i64
-
-    from . import Row
 
 
 class Node:
@@ -135,7 +133,7 @@ class SCEngine:
             if node.value >= row:
                 node.value += 1
 
-    def items(self) -> "Iterable[tuple[str, list[Row]]]":
+    def items(self) -> list[tuple[Hashable, list[i64]]]:
         """
         Return a list of key, data tuples.
         """
@@ -145,7 +143,7 @@ class SCEngine:
                 result[node.key].append(node.value)
             else:
                 result[node.key] = [node.value]
-        return result.items()
+        return list(result.items())
 
     def sort(self) -> None:
         """

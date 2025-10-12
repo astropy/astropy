@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 
     from numpy import int64 as i64
 
-    from . import Row
 
 __all__ = ["BST"]
 
@@ -287,7 +286,7 @@ class BST:
             return self._postorder(self.root, [])
         raise ValueError(f'Invalid traversal method: "{order}"')
 
-    def items(self) -> list[tuple[str, list["Row"]]]:
+    def items(self) -> list[tuple[Hashable, list[i64]]]:
         """
         Return BST items in order as (key, data) pairs.
         """
