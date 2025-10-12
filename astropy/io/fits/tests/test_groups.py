@@ -59,16 +59,16 @@ class TestGroupsFunctions(FitsTestCase):
         """
 
         # Copy the original file before making any possible changes to it
-        fn = self.copy_file("random_groups.fits")
-        mtime = os.stat(fn).st_mtime
+        testfile = self.copy_file("random_groups.fits")
+        mtime = os.stat(testfile).st_mtime
 
         time.sleep(1)
 
-        fits.open(fn, mode="update", memmap=False).close()
+        fits.open(testfile, mode="update", memmap=False).close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
-        assert mtime == os.stat(fn).st_mtime
+        assert mtime == os.stat(testfile).st_mtime
 
     def test_random_groups_data_update(self):
         """
@@ -76,11 +76,11 @@ class TestGroupsFunctions(FitsTestCase):
         for https://github.com/spacetelescope/PyFITS/issues/102
         """
 
-        fn = self.copy_file("random_groups.fits")
-        with fits.open(fn, mode="update") as h:
+        testfile = self.copy_file("random_groups.fits")
+        with fits.open(testfile, mode="update") as h:
             h[0].data["UU"] = 0.42
 
-        with fits.open(fn, mode="update") as h:
+        with fits.open(testfile, mode="update") as h:
             assert np.all(h[0].data["UU"] == 0.42)
 
     def test_parnames_round_trip(self):
@@ -94,15 +94,15 @@ class TestGroupsFunctions(FitsTestCase):
         # Because this test tries to update the random_groups.fits file, let's
         # make a copy of it first (so that the file doesn't actually get
         # modified in the off chance that the test fails
-        fn = self.copy_file("random_groups.fits")
+        testfile = self.copy_file("random_groups.fits")
 
         parameters = ["UU", "VV", "WW", "BASELINE", "DATE"]
-        with fits.open(fn, mode="update") as h:
+        with fits.open(testfile, mode="update") as h:
             assert h[0].parnames == parameters
             h.flush()
         # Open again just in read-only mode to ensure the parnames didn't
         # change
-        with fits.open(fn) as h:
+        with fits.open(testfile) as h:
             assert h[0].parnames == parameters
             h.writeto(self.temp("test.fits"))
 

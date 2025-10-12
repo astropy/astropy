@@ -333,9 +333,9 @@ def test_fitsdiff_openfile(tmp_path):
 
 class Test_FITSDiff(FitsTestCase):
     def test_FITSDiff_report(self, home_is_temp):
-        fn = self.copy_file("test0.fits")
-        fits.setval(fn, "TESTKEY", value="testval")
-        d = FITSDiff(self.data("test0.fits"), fn)
+        testfile = self.copy_file("test0.fits")
+        fits.setval(testfile, "TESTKEY", value="testval")
+        d = FITSDiff(self.data("test0.fits"), testfile)
         assert not d.identical
         d.report(self.temp("diff_report.txt"))
 

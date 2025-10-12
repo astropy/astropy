@@ -1150,22 +1150,22 @@ class TestFileFunctions(FitsTestCase):
         object.
         """
 
-        fn = self.copy_file("test0.fits")
+        testfile = self.copy_file("test0.fits")
 
         # Opening in text mode should outright fail
         for mode in ("r", "w", "a"):
-            with open(fn, mode) as f:
+            with open(testfile, mode) as f:
                 pytest.raises(ValueError, fits.HDUList.fromfile, f)
 
         # Need to re-copy the file since opening it in 'w' mode blew it away
-        fn = self.copy_file("test0.fits")
+        testfile = self.copy_file("test0.fits")
 
-        with open(fn, "rb") as f:
+        with open(testfile, "rb") as f:
             with fits.HDUList.fromfile(f) as h:
                 assert h.fileinfo(0)["filemode"] == "readonly"
 
         for mode in ("wb", "ab"):
-            with open(fn, mode) as f:
+            with open(testfile, mode) as f:
                 with fits.HDUList.fromfile(f) as h:
                     # Basically opening empty files for output streaming
                     assert len(h) == 0
@@ -1178,12 +1178,12 @@ class TestFileFunctions(FitsTestCase):
                 assert len(h) == 0
 
         # Need to re-copy the file since opening it in 'w' mode blew it away
-        fn = self.copy_file("test0.fits")
-        with open(fn, "rb+") as f:
+        testfile = self.copy_file("test0.fits")
+        with open(testfile, "rb+") as f:
             with fits.HDUList.fromfile(f) as h:
                 assert h.fileinfo(0)["filemode"] == "update"
 
-        with open(fn, "ab+") as f:
+        with open(testfile, "ab+") as f:
             with fits.HDUList.fromfile(f) as h:
                 assert h.fileinfo(0)["filemode"] == "append"
 
@@ -1205,17 +1205,17 @@ class TestFileFunctions(FitsTestCase):
         _File.__dict__["_mmap_available"]._cache.clear()
 
         try:
-            fn = self.copy_file("test0.fits")
+            testfile = self.copy_file("test0.fits")
             with pytest.warns(
                 AstropyUserWarning, match=r"mmap\.flush is unavailable"
             ) as w:
-                with fits.open(fn, mode="update", memmap=True) as h:
+                with fits.open(testfile, mode="update", memmap=True) as h:
                     h[1].data[0, 0] = 999
 
             assert len(w) == 1
 
             # Double check that writing without mmap still worked
-            with fits.open(fn) as h:
+            with fits.open(testfile) as h:
                 assert h[1].data[0, 0] == 999
         finally:
             mmap.mmap = old_mmap

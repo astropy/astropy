@@ -309,15 +309,15 @@ class TestChecksumFunctions(BaseChecksumTests):
         update mode, even though no changes were made to the file.
         """
 
-        fn = self.copy_file("checksum.fits")
+        testfile = self.copy_file("checksum.fits")
 
-        with fits.open(fn) as hdul:
+        with fits.open(testfile) as hdul:
             data = hdul[1].data.copy()
 
-        hdul = fits.open(fn, mode="update")
+        hdul = fits.open(testfile, mode="update")
         hdul.close()
 
-        with fits.open(fn) as hdul:
+        with fits.open(testfile) as hdul:
             assert "CHECKSUM" in hdul[1].header
             assert "DATASUM" in hdul[1].header
             assert comparerecords(data, hdul[1].data)
@@ -333,16 +333,16 @@ class TestChecksumFunctions(BaseChecksumTests):
         opened with checksum='remove'.
         """
 
-        fn = self.copy_file("checksum.fits")
-        with fits.open(fn) as hdul:
+        testfile = self.copy_file("checksum.fits")
+        with fits.open(testfile) as hdul:
             header = hdul[1].header.copy()
             data = hdul[1].data.copy()
 
-        with fits.open(fn, mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdul[1].header["FOO"] = "BAR"
             hdul[1].data[0]["TIME"] = 42
 
-        with fits.open(fn) as hdul:
+        with fits.open(testfile) as hdul:
             header2 = hdul[1].header
             data2 = hdul[1].data
             assert header2[:-3] == header[:-2]
@@ -352,10 +352,10 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert (data2["TIME"][1:] == data["TIME"][1:]).all()
             assert data2["TIME"][0] == 42
 
-        with fits.open(fn, mode="update", checksum="remove") as hdul:
+        with fits.open(testfile, mode="update", checksum="remove") as hdul:
             pass
 
-        with fits.open(fn) as hdul:
+        with fits.open(testfile) as hdul:
             header2 = hdul[1].header
             data2 = hdul[1].data
             assert header2[:-1] == header[:-2]

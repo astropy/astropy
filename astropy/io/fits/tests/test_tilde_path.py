@@ -131,24 +131,24 @@ class TestTildePaths(FitsTestCase):
         hdu.writeto(self.temp("table.fits"), overwrite=True)
 
     def fits_tabledump(self, home_is_temp):
-        fn = self.copy_file("tb.fits")
+        testfile = self.copy_file("tb.fits")
 
         fits.tabledump(
-            fn,
+            testfile,
             self.temp("data.txt"),
             self.temp("cdfile.txt"),
             self.temp("hfile.txt"),
         )
         with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
             fits.tabledump(
-                fn,
+                testfile,
                 self.temp("data.txt"),
                 self.temp("cdfile.txt"),
                 self.temp("hfile.txt"),
                 overwrite=False,
             )
         fits.tabledump(
-            fn,
+            testfile,
             self.temp("data.txt"),
             self.temp("cdfile.txt"),
             self.temp("hfile.txt"),
