@@ -26,6 +26,9 @@ Reference/API
 
 .. automodapi:: astropy.units.physical
 
+.. automodapi:: astropy.units._physical_core
+   :noindex:
+
 .. automodapi:: astropy.units.format
 
 .. automodapi:: astropy.units.required_by_vounit
