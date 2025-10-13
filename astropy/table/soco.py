@@ -6,9 +6,8 @@ Index engine for Tables.
 """
 
 from collections import OrderedDict
-from collections.abc import Collection, Hashable, Mapping
-
-from numpy import int64 as i64
+from collections.abc import Hashable, Mapping, Sequence
+from numbers import Integral
 
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
@@ -92,7 +91,7 @@ class SCEngine:
             raise ValueError(message)
         self._nodes.add(Node(key, row))
 
-    def find(self, key: tuple) -> Collection[i64]:
+    def find(self, key: tuple) -> Sequence[Integral]:
         """
         Find rows corresponding to the given key.
         """
@@ -130,7 +129,7 @@ class SCEngine:
             if node.value >= row:
                 node.value += 1
 
-    def items(self) -> list[tuple[Hashable, list[i64]]]:
+    def items(self) -> list[tuple[Hashable, list[Integral]]]:
         """
         Return a list of key, data tuples.
         """

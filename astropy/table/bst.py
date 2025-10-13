@@ -1,8 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import operator
-from collections.abc import Collection, Hashable, Mapping
-
-from numpy import int64 as i64
+from collections.abc import Hashable, Mapping, Sequence
+from numbers import Integral
 
 __all__ = ["BST"]
 
@@ -207,7 +206,7 @@ class BST:
                 curr_node.data = sorted(curr_node.data)
                 return
 
-    def find(self, key: tuple) -> Collection[i64]:
+    def find(self, key: tuple) -> Sequence[Integral]:
         """
         Return all data values corresponding to a given key.
 
@@ -282,7 +281,7 @@ class BST:
             return self._postorder(self.root, [])
         raise ValueError(f'Invalid traversal method: "{order}"')
 
-    def items(self) -> list[tuple[Hashable, list[i64]]]:
+    def items(self) -> list[tuple[Hashable, list[Integral]]]:
         """
         Return BST items in order as (key, data) pairs.
         """

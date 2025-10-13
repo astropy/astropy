@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from collections.abc import Collection, Hashable, Mapping
+from collections.abc import Hashable, Mapping, Sequence
+from numbers import Integral
 from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy import int64 as i64
 
 if TYPE_CHECKING:
     from .table import Column, Table
@@ -134,7 +134,7 @@ class SortedArray:
 
         return begin
 
-    def find(self, key: tuple) -> Collection[i64]:
+    def find(self, key: tuple) -> Sequence[Integral]:
         """
         Find all rows matching the given key.
 
@@ -281,7 +281,7 @@ class SortedArray:
         self.data = self.data[keep_rows]
         self.row_index = np.array([row_map[x] for x in self.row_index[keep_rows]])
 
-    def items(self) -> list[tuple[Hashable, list[i64]]]:
+    def items(self) -> list[tuple[Hashable, list[Integral]]]:
         """
         Retrieve all array items as a list of pairs of the form
         [(key, [row 1, row 2, ...]), ...].
