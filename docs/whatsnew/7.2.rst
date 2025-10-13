@@ -37,8 +37,8 @@ API, please see the :ref:`changelog`.
 
 .. _whatsnew-7.2-faster-ecsv-tab-rdr:
 
-Faster ECSV table reader
-========================
+Faster ECSV reader with support for different engines
+=====================================================
 
 A new :ref:`ECSV <ecsv_format>` table reading module has been added that supports
 different backend engines for the CSV data parsing. In addition to the default
@@ -84,8 +84,8 @@ writer.
 
 .. _whatsnew-7.2-generic-df-conv:
 
-Generic DataFrame conversion methods
-====================================
+Generic DataFrame conversion methods with multi-backend support
+===============================================================
 
 Astropy 7.2 introduces new generic DataFrame conversion methods that support multiple
 DataFrame backends through the `Narwhals <https://narwhals-dev.github.io/narwhals/>`_
@@ -194,10 +194,12 @@ str1 float64 str1
 ---- ------- ----
    x     2.0    a
 
-Cosmology
-=========
+.. _whatsnew-7.2-cosmology
 
-The :mod:`~astropy.cosmology.traits` module provides reusable components, called
+Cosmology traits
+================
+
+The :mod:`~astropy.cosmology.traits` module now provides reusable components, called
 :term:`traits <trait type>`, that encapsulate specific cosmological properties or
 behaviors. For example, the :class:`~astropy.cosmology.traits.HubbleParameter` trait
 provides the Hubble constant (``H0``) and related methods, while
