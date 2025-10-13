@@ -1529,6 +1529,7 @@ class Table:
         table.primary_key = self.primary_key
 
         newcols = []
+        new_indices = {}
         for col in self.columns.values():
             newcol = col[slice_]
 
@@ -1541,6 +1542,16 @@ class Table:
                 # Why isn't that just sent as an arg to the function?
                 col.info._copy_indices = self._copy_indices
                 newcol = col.info.slice_indices(newcol, slice_, len(col))
+
+                # The line above (unfortunately) makes a new *independent* index in each
+                # column for a multi-column index. This causes confusion later in
+                # Table.indices since that property checks for object uniqueness of each
+                # index. The root cause of making new independent indices should be
+                # fixed but this is not so easy. Since this is a less-common case, for
+                # now we do a post-facto fix of simply forcing indices to be one object,
+                # namely the first instance encountered in processing, keyed by id.
+                for ii, index in enumerate(newcol.info.indices):
+                    newcol.info.indices[ii] = new_indices.setdefault(index.id, index)
 
                 # Don't understand why this is forcing a value on the original column.
                 # Normally col.info does not even have a _copy_indices attribute.  Tests
