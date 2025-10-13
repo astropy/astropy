@@ -157,7 +157,7 @@ def construct_indices(tbl: Table) -> None:
     tbl : Table
         Table in which to create indices (in-place).
     """
-    indices: dict[tuple, SlicedIndex] = {}
+    indices: list[SlicedIndex] = []
 
     primary_key = None
 
@@ -168,11 +168,11 @@ def construct_indices(tbl: Table) -> None:
 
         for index_info in col.info.meta["__indices__"]:
             if index_info["primary"]:
-                primary_key = index_info["colnames"]
-            indices.setdefault(index_info["colnames"], get_index(tbl, index_info))
+                primary_key = tuple(index_info["colnames"])
+            indices.append(construct_sliced_index(tbl, index_info))
             row_index_colnames.add(index_info["row_index_colname"])
 
-    for index in indices.values():
+    for index in indices:
         # Add index to table by adding to each column indices and clean up column meta.
         for colname in index.id:
             tbl[colname].info.indices.append(index)
@@ -182,9 +182,9 @@ def construct_indices(tbl: Table) -> None:
     tbl.remove_columns(row_index_colnames)
 
 
-def get_index(tbl: Table, index_info: dict[str, Any]) -> SlicedIndex:
+def construct_sliced_index(tbl: Table, index_info: dict[str, Any]) -> SlicedIndex:
     """
-    Create an index (SlicedIndex) for a table from serialized index information.
+    Construct an index (SlicedIndex) for a table from serialized index information.
 
     This function reconstructs a SlicedIndex object for a table using the
     provided index metadata, including the engine type, column names, and
@@ -331,8 +331,10 @@ def represent_indices(tbl: Table) -> Table:
         )
 
     for index_info in indices_info:
-        for colname in index_info["colnames"]:
-            col_meta_indices = tbl_out[colname].info.meta.setdefault("__indices__", [])
-            col_meta_indices.append(index_info)
+        # Store the index information on the first column in the index. This is somewhat
+        # arbitrary but eliminates duplication of index_info for multi-column indices.
+        colname = index_info["colnames"][0]
+        col_meta_indices = tbl_out[colname].info.meta.setdefault("__indices__", [])
+        col_meta_indices.append(index_info)
 
     return tbl_out
