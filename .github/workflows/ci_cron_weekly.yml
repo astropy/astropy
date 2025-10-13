@@ -27,6 +27,7 @@ concurrency:
 
 env:
   IS_CRON: 'true'
+  PY_COLORS: "1"
 
 permissions:
   contents: read

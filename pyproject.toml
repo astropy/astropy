@@ -235,7 +235,6 @@ doctest_plus = "enabled"
 text_file_format = "rst"
 remote_data_strict = true
 addopts = [
-    "--color=yes",
     "--doctest-rst",
     "--strict-config",
     "--strict-markers",
