@@ -1,0 +1,4 @@
+Support writing table indices to FITS, HDF5, and ECSV formats and subsequently reading
+them back to round-trip the original indexed table. This stores the index data as
+temporary columns in the output, similar to the mechanism for serializing mixin columns
+like ``SkyCoord``.
