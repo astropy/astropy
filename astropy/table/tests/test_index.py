@@ -798,3 +798,19 @@ def test_slice_an_indexed_table(index_first):
         "  0   g    1",
         "  1   b    2>>",
     ]
+
+
+def test_unique_indices_after_multicol_index_slice():
+    """Test that table indices after slicing are correct.
+
+    This tests code in Table._new_from_slice() that ensures uniqueness of table index
+    objects when slicing (via slice, ndarray, list etc) a table with a multi-column
+    index.
+    """
+    t = Table()
+    t["a"] = [2, 3]
+    t["b"] = [3, 5]
+    t.add_index(["a", "b"])
+    t2 = t[:1]
+    assert len(t2.indices) == 1  # without fix would be 2, both with id ("a", "b").
+    assert t2.indices[0].id == ("a", "b")
