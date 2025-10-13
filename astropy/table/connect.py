@@ -313,7 +313,7 @@ def represent_indices(tbl: Table) -> Table:
 
         # Find unique column name for the index row data
         while True:
-            colname = f"__index__{ii_index}"
+            colname = "__index__" + ("" if ii_index == 0 else str(ii_index))
             if colname not in tbl_out.colnames:
                 break
             ii_index += 1
