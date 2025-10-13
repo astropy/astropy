@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-7.2-cosmology`
 * :ref:`whatsnew-7.2-fits-wcs-units`
 * :ref:`whatsnew-7.2-cls-concat-stack`
+* :ref:`whatsnew-7.2-write-table-indices`
 * ...
 
 In addition to these major changes, Astropy v7.2 includes a large number of
@@ -165,7 +166,33 @@ astropy 9.0.  Here the index identifier was the first element of the item, e.g.,
 ``t.loc["a", "z"]`` to use the index on column ``"a"`` to find rows with
 ``t["a"] == "z"``.
 
-.. _whatsnew-7.2-cosmology:
+.. _whatsnew-7.2-write-table-indices:
+
+Write table indices to FITS, HDF5 and ECSV formats
+==================================================
+
+It is now possible to write `~astropy.table.Table` indices to FITS, HDF5, and ECSV
+formats and subsequently read them back in order to round-trip the original indexed
+table. This stores the index data as temporary columns in the output and includes other
+relevant metadata in the file output, similar to the mechanism for serializing mixin
+columns like ``SkyCoord``.
+
+This functionality is enabled by passing ``write_indices=True`` to the table
+`~astropy.table.Table.write` method. For example:
+
+>>> import io
+>>> from astropy.table import QTable
+>>> t = QTable({"a": ["x", "z", "y"], "b": [2.0, 1.0, 1.5], "c": ["a", "b", "c"]})
+>>> t.add_index("a")
+>>> out = io.StringIO()
+>>> t.write(out, format="ecsv", write_indices=True)
+>>> t2 = QTable.read(out.getvalue(), format="ecsv")
+>>> t2.loc["x"]
+<Row index=0>
+ a      b     c
+str1 float64 str1
+---- ------- ----
+   x     2.0    a
 
 Cosmology
 =========
