@@ -323,7 +323,7 @@ def represent_indices(tbl: Table) -> Table:
         indices_info.append(
             {
                 "row_index_colname": colname,
-                "colnames": index.id,
+                "colnames": list(index.id),
                 "engine": index.data.__class__.__name__,
                 "unique": index.data.unique,
                 "primary": index.id == tbl.primary_key,
