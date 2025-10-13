@@ -1368,7 +1368,7 @@ def test_arithmetics_dtypes_with_scalar(ndd_type, scalar_type, meth):
     assert_array_equal(out.data, ref)
 
 
-# Covers adding scalar quantity matching non-default dtypes:
+# Covers adding scalar quantity with matching, non-default dtypes:
 @pytest.mark.parametrize("ndd_type", (np.uint16, np.float32, np.float64))
 @pytest.mark.parametrize("meth", ("add", "subtract"))
 def test_add_quantity_matching_dtype(ndd_type, meth):
@@ -1378,8 +1378,8 @@ def test_add_quantity_matching_dtype(ndd_type, meth):
     out = getattr(nddata, meth)(quantity)
     ref = STR_TO_OPERATOR[meth](nddata.data, quantity.value)
 
-    assert out.data.shape == nddata.data.shape
-    assert out.data.dtype == nddata.data.dtype  # expect no change in this case
+    assert out.data.shape == nddata.data.shape == ref.shape
+    assert out.data.dtype == nddata.data.dtype == ref.dtype
     assert_array_equal(out.data, ref)
 
 
@@ -1494,13 +1494,13 @@ def test_dtypes_uncert_mask_with_scalars(nddata_ref1, scalar_type, meth):
     # Enforce the same behaviour as NumPy, rather than fixed behaviour:
     assert out.data.shape == ref_dat.shape
     assert out.data.dtype == ref_dat.dtype
-    # A quirk of NumPy 1 arithmetic causes int uncertainty (admittedly a corner
-    # case) to get cast to float64 when float32 is expected (see #18392):
     if not (
         NUMPY_LT_2_0
         and nddata.uncertainty.array.dtype.kind in "biu"
         and isinstance(scalar, (np.float16, np.float32))
     ):
+        # A quirk of NumPy 1 arithmetic causes int uncertainty (admittedly a corner
+        # case) to get cast to float64 when float32 is expected (see #18392):
         assert out.uncertainty.array.dtype == ref_unc.dtype
     assert out.mask.dtype == ref_msk.dtype
     assert np.ma.allclose(out.data, ref_dat)
