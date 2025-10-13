@@ -1356,11 +1356,11 @@ def test_nddata_bitmask_arithmetic():
 )
 @pytest.mark.parametrize("meth", STR_TO_OPERATOR)
 def test_arithmetics_dtypes_with_scalar(ndd_type, scalar_type, meth):
-    data1 = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type))
-    data2 = scalar_type(2)
+    nddata = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type))
+    scalar = scalar_type(2)
 
-    out = getattr(data1, meth)(data2)
-    ref = STR_TO_OPERATOR[meth](data1.data, data2)
+    out = getattr(nddata, meth)(scalar)
+    ref = STR_TO_OPERATOR[meth](nddata.data, scalar)
 
     # Enforce the same behaviour as NumPy, rather than fixed behaviour:
     assert out.data.shape == ref.shape
@@ -1372,14 +1372,14 @@ def test_arithmetics_dtypes_with_scalar(ndd_type, scalar_type, meth):
 @pytest.mark.parametrize("ndd_type", (np.uint16, np.float32, np.float64))
 @pytest.mark.parametrize("meth", ("add", "subtract"))
 def test_add_quantity_matching_dtype(ndd_type, meth):
-    data1 = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type), unit=u.adu)
-    data2 = u.Quantity(2, dtype=ndd_type, unit=u.adu)
+    nddata = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type), unit=u.adu)
+    quantity = u.Quantity(2, dtype=ndd_type, unit=u.adu)
 
-    out = getattr(data1, meth)(data2)
-    ref = STR_TO_OPERATOR[meth](data1.data, data2.value)
+    out = getattr(nddata, meth)(quantity)
+    ref = STR_TO_OPERATOR[meth](nddata.data, quantity.value)
 
-    assert out.data.shape == data1.data.shape
-    assert out.data.dtype == data1.data.dtype  # expect no change in this case
+    assert out.data.shape == nddata.data.shape
+    assert out.data.dtype == nddata.data.dtype  # expect no change in this case
     assert_array_equal(out.data, ref)
 
 
@@ -1388,11 +1388,11 @@ def test_add_quantity_matching_dtype(ndd_type, meth):
 @pytest.mark.parametrize("scalar_type", (int, float, np.uint16, np.float32, np.float64))
 @pytest.mark.parametrize("meth", ("multiply", "divide"))
 def test_scale_dtypes_with_units(ndd_type, scalar_type, meth):
-    data1 = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type), unit=u.adu)
-    data2 = scalar_type(2)
+    nddata = NDDataRef(np.array([1, 2, 3, 4], dtype=ndd_type), unit=u.adu)
+    scalar = scalar_type(2)
 
-    out = getattr(data1, meth)(data2)
-    ref = STR_TO_OPERATOR[meth](data1.data, data2)
+    out = getattr(nddata, meth)(scalar)
+    ref = STR_TO_OPERATOR[meth](nddata.data, scalar)
 
     assert out.data.shape == ref.shape
     assert out.data.dtype == ref.dtype
@@ -1406,14 +1406,14 @@ def test_scale_dtypes_with_units(ndd_type, scalar_type, meth):
 # Quantity constructed in the common way, rather than programmatically as above.
 @pytest.mark.parametrize("meth", ("add", "subtract"))
 def test_add_quantity_default_dtypes(meth):
-    data1 = NDDataRef(np.array([1.0, 2.0, 3.0, 4.0]), unit=u.adu)
-    data2 = 2.0 * u.adu
+    nddata = NDDataRef(np.array([1.0, 2.0, 3.0, 4.0]), unit=u.adu)
+    quantity = 2.0 * u.adu
 
-    out = getattr(data1, meth)(data2)
-    ref = STR_TO_OPERATOR[meth](data1.data, data2.value)
+    out = getattr(nddata, meth)(quantity)
+    ref = STR_TO_OPERATOR[meth](nddata.data, quantity.value)
 
-    assert out.data.shape == data1.data.shape
-    assert out.data.dtype == data1.data.dtype
+    assert out.data.shape == nddata.data.shape
+    assert out.data.dtype == nddata.data.dtype
     assert_array_equal(out.data, ref)
 
 
@@ -1474,22 +1474,22 @@ def nddata_ref2(request):
 )
 @pytest.mark.parametrize("meth", STR_TO_OPERATOR)
 def test_dtypes_uncert_mask_with_scalars(nddata_ref1, scalar_type, meth):
-    data1 = nddata_ref1
-    data2 = scalar_type(2)
+    nddata = nddata_ref1
+    scalar = scalar_type(2)
 
-    out = getattr(data1, meth)(data2)
+    out = getattr(nddata, meth)(scalar)
 
-    ref_dat = STR_TO_OPERATOR[meth](data1.data, data2)
+    ref_dat = STR_TO_OPERATOR[meth](nddata.data, scalar)
 
     if meth in ("multiply", "divide"):
-        vscale = data2
-        if isinstance(data1.uncertainty, VarianceUncertainty):
-            vscale = vscale * data2  # copy to avoid modifying data2
-        ref_unc = STR_TO_OPERATOR[meth](data1.uncertainty.array, vscale)
+        vscale = scalar
+        if isinstance(nddata.uncertainty, VarianceUncertainty):
+            vscale = vscale * scalar  # copy to avoid modifying scalar
+        ref_unc = STR_TO_OPERATOR[meth](nddata.uncertainty.array, vscale)
     else:
-        ref_unc = data1.uncertainty.array
+        ref_unc = nddata.uncertainty.array
 
-    ref_msk = data1.mask
+    ref_msk = nddata.mask
 
     # Enforce the same behaviour as NumPy, rather than fixed behaviour:
     assert out.data.shape == ref_dat.shape
@@ -1498,8 +1498,8 @@ def test_dtypes_uncert_mask_with_scalars(nddata_ref1, scalar_type, meth):
     # case) to get cast to float64 when float32 is expected (see #18392):
     if not (
         NUMPY_LT_2_0
-        and data1.uncertainty.array.dtype.kind in "biu"
-        and isinstance(data2, (np.float16, np.float32))
+        and nddata.uncertainty.array.dtype.kind in "biu"
+        and isinstance(scalar, (np.float16, np.float32))
     ):
         assert out.uncertainty.array.dtype == ref_unc.dtype
     assert out.mask.dtype == ref_msk.dtype
@@ -1511,43 +1511,43 @@ def test_dtypes_uncert_mask_with_scalars(nddata_ref1, scalar_type, meth):
 # Covers arithmetic with different dtype pairs + uncert + mask
 @pytest.mark.parametrize("meth", STR_TO_OPERATOR)
 def test_arithmetics_dtypes_uncert_mask(nddata_ref1, nddata_ref2, meth):
-    data1 = nddata_ref1
-    data2 = nddata_ref2
-    ref_dat = STR_TO_OPERATOR[meth](data1.data, data2.data)
+    nd1 = nddata_ref1
+    nd2 = nddata_ref2
+    ref_dat = STR_TO_OPERATOR[meth](nd1.data, nd2.data)
 
-    # Deal with uncertainty, converting the data2 uncertainty class to match
-    # data1, otherwise arithmetic fails. With both operands being arrays, we
+    # Deal with uncertainty, converting the nd2 uncertainty class to match
+    # nd1, otherwise arithmetic fails. With both operands being arrays, we
     # cannot use NumPy as a reference for the "correct" output dtype for
     # uncertainty, since it doesn't natively propagate errors and the result
     # type depends on the exact calculation used, but we can check that the
     # values are close those expected, given the input dtypes. Establishing
     # the intended casting behaviour for uncertainty is left for other tests.
-    if isinstance(data1.uncertainty, VarianceUncertainty):
-        if isinstance(data2.uncertainty, StdDevUncertainty):
-            data2.uncertainty = VarianceUncertainty(
-                np.multiply(data2.uncertainty.array, data2.uncertainty.array)
+    if isinstance(nd1.uncertainty, VarianceUncertainty):
+        if isinstance(nd2.uncertainty, StdDevUncertainty):
+            nd2.uncertainty = VarianceUncertainty(
+                np.multiply(nd2.uncertainty.array, nd2.uncertainty.array)
             )
         if meth in ("multiply", "divide"):
             ref_unc = ref_dat**2 * (
-                data1.uncertainty.array / data1.data**2
-                + data2.uncertainty.array / data2.data**2
+                nd1.uncertainty.array / nd1.data**2
+                + nd2.uncertainty.array / nd2.data**2
             )
         else:
-            ref_unc = data1.uncertainty.array + data2.uncertainty.array
+            ref_unc = nd1.uncertainty.array + nd2.uncertainty.array
     else:
-        if isinstance(data2.uncertainty, VarianceUncertainty):
-            data2.uncertainty = StdDevUncertainty(np.sqrt(data2.uncertainty.array))
+        if isinstance(nd2.uncertainty, VarianceUncertainty):
+            nd2.uncertainty = StdDevUncertainty(np.sqrt(nd2.uncertainty.array))
         if meth in ("multiply", "divide"):
             ref_unc = ref_dat * np.sqrt(
-                (data1.uncertainty.array / data1.data) ** 2
-                + (data2.uncertainty.array / data2.data) ** 2
+                (nd1.uncertainty.array / nd1.data) ** 2
+                + (nd2.uncertainty.array / nd2.data) ** 2
             )
         else:
-            ref_unc = np.sqrt(data1.uncertainty.array**2 + data2.uncertainty.array**2)
+            ref_unc = np.sqrt(nd1.uncertainty.array**2 + nd2.uncertainty.array**2)
 
-    ref_msk = np.logical_or(data1.mask, data2.mask)  # default op for arith mixin
+    ref_msk = np.logical_or(nd1.mask, nd2.mask)  # default op for arith mixin
 
-    out = getattr(data1, meth)(data2)
+    out = getattr(nd1, meth)(nd2)
 
     # Enforce the same behaviour as NumPy, rather than fixed behaviour:
     assert out.data.shape == ref_dat.shape
