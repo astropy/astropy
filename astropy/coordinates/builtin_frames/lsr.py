@@ -37,25 +37,20 @@ doc_footer_lsr = """
 
 @format_doc(base_doc, components=doc_components_radec, footer=doc_footer_lsr)
 class LSR(BaseRADecFrame):
-    r"""A coordinate or frame in the Local Standard of Rest (LSR).
+    r"""A frame in the Local Standard of Rest (LSR).
 
-    This coordinate frame is axis-aligned and co-spatial with
-    `~astropy.coordinates.ICRS`, but has a velocity offset relative to the
-    solar system barycenter to remove the peculiar motion of the sun relative
-    to the LSR. Roughly, the LSR is the mean velocity of the stars in the solar
-    neighborhood, but the precise definition of which depends on the study. As
-    defined in Schönrich et al. (2010): "The LSR is the rest frame at the
+    As defined in Schönrich et al. (2010): "The LSR is the rest frame at the
     location of the Sun of a star that would be on a circular orbit in the
     gravitational potential one would obtain by azimuthally averaging away
-    non-axisymmetric features in the actual Galactic potential." No such orbit
-    truly exists, but it is still a commonly used velocity frame.
+    non-axisymmetric features in the actual Galactic potential."
 
-    We use default values from Schönrich et al. (2010) for the barycentric
-    velocity relative to the LSR, which is defined in Galactic (right-handed)
-    cartesian velocity components
-    :math:`(U, V, W) = (11.1, 12.24, 7.25)~{{\rm km}}~{{\rm s}}^{{-1}}`. These
-    values are customizable via the ``v_bary`` argument which specifies the
-    velocity of the solar system barycenter with respect to the LSR.
+    The components of the solar motion relative to the LSR are determined
+    from observations. By default this frame uses values from Schönrich
+    et al. (2010), which are in Galactic (right-handed) Cartesian velocity
+    components
+    :math:`(U, V, W) = (11.1, 12.24, 7.25)~{{\rm km}}~{{\rm s}}^{{-1}}`, but
+    a different solar motion can be specified with the ``v_bary`` argument.
+    This frame is axis-aligned and co-spatial with `~astropy.coordinates.ICRS`.
 
     The frame attributes are listed under **Other Parameters**.
 
@@ -114,26 +109,21 @@ doc_components_gal = """
 
 @format_doc(base_doc, components=doc_components_gal, footer=doc_footer_lsr)
 class GalacticLSR(BaseCoordinateFrame):
-    r"""A coordinate or frame in the Local Standard of Rest (LSR), axis-aligned
-    to the Galactic frame.
+    r"""A frame in the Local Standard of Rest (LSR), aligned to the Galactic frame.
 
-    This coordinate frame is axis-aligned and co-spatial with
-    `~astropy.coordinates.ICRS`, but has a velocity offset relative to the
-    solar system barycenter to remove the peculiar motion of the sun relative
-    to the LSR. Roughly, the LSR is the mean velocity of the stars in the solar
-    neighborhood, but the precise definition of which depends on the study. As
-    defined in Schönrich et al. (2010): "The LSR is the rest frame at the
+    As defined in Schönrich et al. (2010): "The LSR is the rest frame at the
     location of the Sun of a star that would be on a circular orbit in the
     gravitational potential one would obtain by azimuthally averaging away
-    non-axisymmetric features in the actual Galactic potential." No such orbit
-    truly exists, but it is still a commonly used velocity frame.
+    non-axisymmetric features in the actual Galactic potential."
 
-    We use default values from Schönrich et al. (2010) for the barycentric
-    velocity relative to the LSR, which is defined in Galactic (right-handed)
-    cartesian velocity components
-    :math:`(U, V, W) = (11.1, 12.24, 7.25)~{{\rm km}}~{{\rm s}}^{{-1}}`. These
-    values are customizable via the ``v_bary`` argument which specifies the
-    velocity of the solar system barycenter with respect to the LSR.
+    The components of the solar motion relative to the LSR are determined
+    from observations. By default this frame uses values from Schönrich
+    et al. (2010), which are in Galactic (right-handed) Cartesian velocity
+    components
+    :math:`(U, V, W) = (11.1, 12.24, 7.25)~{{\rm km}}~{{\rm s}}^{{-1}}`, but
+    a different solar motion can be specified with the ``v_bary`` argument.
+    This frame is axis-aligned and co-spatial with the
+    `~astropy.coordinates.Galactic` frame.
 
     The frame attributes are listed under **Other Parameters**.
 
@@ -174,27 +164,22 @@ def galacticlsr_to_galactic(lsr_coord, galactic_frame):
 
 # ------------------------------------------------------------------------------
 
-# The LSRK velocity frame, defined as having a velocity of 20 km/s towards
-# RA=270 Dec=30 (B1900) relative to the solar system Barycenter. This is defined
-# in:
-#
-#   Gordon 1975, Methods of Experimental Physics: Volume 12:
-#   Astrophysics, Part C: Radio Observations - Section 6.1.5.
-
 
 class LSRK(BaseRADecFrame):
-    r"""A coordinate or frame in the Kinematic Local Standard of Rest (LSR).
+    """A frame in the Kinematic Local Standard of Rest (LSR).
 
-    This frame is defined as having a velocity of 20 km/s towards RA=270 Dec=30
-    (B1900) relative to the solar system Barycenter. This is defined in:
+    Conceptually the kinematic LSR is a frame where the average motion
+    of the stars in the solar neighborhood is zero. In practice, the
+    observed average motion is different for different spectral types,
+    which has historically justified using convenient rounded values for
+    the solar motion relative to the LSR. This LSRK frame uses the
+    definition from
 
         Gordon 1975, Methods of Experimental Physics: Volume 12:
         Astrophysics, Part C: Radio Observations - Section 6.1.5.
 
-    This coordinate frame is axis-aligned and co-spatial with
-    `~astropy.coordinates.ICRS`, but has a velocity offset relative to the
-    solar system barycenter to remove the peculiar motion of the sun relative
-    to the LSRK.
+    meaning the solar motion is 20 km/s towards RA=270 Dec=30 (B1900).
+    The frame is axis-aligned and co-spatial with `~astropy.coordinates.ICRS`.
 
     """
 
@@ -230,28 +215,22 @@ def lsrk_to_icrs(lsr_coord, icrs_frame):
 
 # ------------------------------------------------------------------------------
 
-# The LSRD velocity frame, defined as a velocity of U=9 km/s, V=12 km/s,
-# and W=7 km/s in Galactic coordinates or 16.552945 km/s
-# towards l=53.13 b=25.02. This is defined in:
-#
-#   Delhaye 1965, Solar Motion and Velocity Distribution of
-#   Common Stars.
-
 
 class LSRD(BaseRADecFrame):
-    r"""A coordinate or frame in the Dynamical Local Standard of Rest (LSRD).
+    r"""A frame in the Dynamical Local Standard of Rest (LSR).
 
-    This frame is defined as a velocity of U=9 km/s, V=12 km/s,
-    and W=7 km/s in Galactic coordinates or 16.552945 km/s
-    towards l=53.13 b=25.02. This is defined in:
+    Conceptually the dynamical LSR is a frame moving at the circular
+    velocity at the Sun's location. In practice, the concept of a
+    circular velocity in a non-axisymmetric galaxy is not trivial.
+    This LSRD frame uses the historical definition from
 
        Delhaye 1965, Solar Motion and Velocity Distribution of
-       Common Stars.
+       Common Stars - Section 2.1.
 
-    This coordinate frame is axis-aligned and co-spatial with
-    `~astropy.coordinates.ICRS`, but has a velocity offset relative to the
-    solar system barycenter to remove the peculiar motion of the sun relative
-    to the LSRD.
+    meaning the solar motion is
+    :math:`(U, V, W) = (9, 12, 7)~{{\rm km}}~{{\rm s}}^{{-1}}`,
+    or 16.5 km/s towards l=53 b=25. The frame is axis-aligned and
+    co-spatial with `~astropy.coordinates.ICRS`.
 
     """
 
