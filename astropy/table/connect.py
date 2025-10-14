@@ -214,6 +214,7 @@ def construct_sliced_index(tbl: Table, index_info: dict[str, Any]) -> SlicedInde
         If the engine type is not recognized, a warning is issued and
         no index is created.
     """
+    from astropy.table import Table
     from astropy.table.index import Index, SlicedIndex
     from astropy.table.soco import SCEngine
     from astropy.table.sorted_array import SortedArray
@@ -233,8 +234,13 @@ def construct_sliced_index(tbl: Table, index_info: dict[str, Any]) -> SlicedInde
     row_index = tbl[row_index_colname]
     colnames = index_info["colnames"]
 
-    # Colnames slice of tbl (cols are by reference, no copy)
-    index_columns = tbl[colnames]
+    # By-reference Table of tbl index columns for input to engine. The current
+    # Index.__init__() requires index_columns here to be a Table even if tbl is a
+    # QTable. Changing Table to QTable in index.py breaks tests, in particular in
+    # TableLoc._get_row_idxs_as_list(): if a slice range has no explicit min or max then
+    # a special value from BST is used (MinValue(), MaxValue()), but this does not work
+    # with Quantity.searchsorted().
+    index_columns = Table([tbl[colname] for colname in colnames], copy=False)
 
     engine = engine_cls(
         data=index_columns[row_index],  # index columns sorted by index
@@ -333,8 +339,10 @@ def represent_indices(tbl: Table) -> Table:
     for index_info in indices_info:
         # Store the index information on the first column in the index. This is somewhat
         # arbitrary but eliminates duplication of index_info for multi-column indices.
-        colname = index_info["colnames"][0]
-        col_meta_indices = tbl_out[colname].info.meta.setdefault("__indices__", [])
+        col = tbl_out[index_info["colnames"][0]]
+        if col.info.meta is None:
+            col.info.meta = {}
+        col_meta_indices = col.info.meta.setdefault("__indices__", [])
         col_meta_indices.append(index_info)
 
     return tbl_out
