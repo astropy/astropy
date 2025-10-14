@@ -10,6 +10,7 @@ from astropy import table
 from astropy import units as u
 from astropy.table import MaskedColumn, Table
 from astropy.time import Time, TimeDelta
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import (
     HAS_DASK,
     HAS_DUCKDB,
@@ -125,6 +126,15 @@ class TestDataFrameConversion:
         # Basic round-trip test
         t2 = self._from_dataframe(d, backend, use_legacy_pandas_api)
 
+        if minversion("pandas", "3.0.0.dev"):
+            # upstream feature of pandas
+            import pandas as pd
+
+            pandas_string_dtype = pd.StringDtype(na_value=np.nan)
+        else:
+            # PANDAS_LT_3_0
+            pandas_string_dtype = np.dtype("O")
+
         for column in t.columns:
             original_col = t[column]
             roundtrip_col = t2[column]
@@ -133,8 +143,7 @@ class TestDataFrameConversion:
                 assert_array_equal(roundtrip_col, original_col)
                 if backend == "pandas":
                     # Pandas-specific checks
-                    # Upstream feature of pandas
-                    assert d[column].dtype == np.dtype("O")
+                    assert d[column].dtype == pandas_string_dtype
             else:
                 # Generic comparison with tolerance
                 assert_allclose(roundtrip_col, original_col)
