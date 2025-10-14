@@ -34,13 +34,13 @@ permissions:
 
 jobs:
 
-  tests_more_architectures:
+  tests_more_arch_bundled_lib:
 
     # Goal is to test big endian using bundled external lib.
     # This is a variant and subset of weekly cron.
 
     runs-on: ubuntu-24.04
-    name: Emulated arch
+    name: Emulated arch bundled lib
     # keep condition in sync with test_arm64
     if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
     env:
