@@ -557,6 +557,14 @@ def test_get_index():
         get_index(t, names=None, table_copy=None)
 
 
+def test_index_with_quantity(engine):
+    t = QTable()
+    t["a"] = [3, 1, 2] * u.m
+    t["b"] = [1, 2, 3]
+    t.add_index("a", engine=engine)
+    assert np.all(t.loc[:]["a"] == [1, 2, 3] * u.m)
+
+
 def test_table_index_time_warning(engine):
     # Make sure that no ERFA warnings are emitted when indexing a table by
     # a Time column with a non-default time scale

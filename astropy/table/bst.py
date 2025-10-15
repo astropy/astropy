@@ -26,6 +26,14 @@ class MaxValue:
     def __le__(self, other):
         return False
 
+    def __float__(self):
+        # Make numpy treat this as infinity
+        return np.inf
+
+    # Let NumPy see this as +inf
+    def __array__(self, dtype=None):
+        return np.array(np.inf, dtype=dtype)
+
     def __repr__(self):
         return "MAX"
 
@@ -58,6 +66,10 @@ class MinValue:
 
     def __repr__(self):
         return "MIN"
+
+    # Let NumPy see this as +inf
+    def __array__(self, dtype=None):
+        return np.array(np.inf, dtype=dtype)
 
     def to_value(self, unit):
         """Convert to a value of the given unit."""
