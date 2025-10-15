@@ -1582,3 +1582,21 @@ def test_restfrq_restwav():
         ),
     ):
         scoord3 = wcs.pixel_to_world(5)
+
+
+def test_conversions_return_arrays():
+    # Regression test for a bug that caused world_to_array_index to return lists
+    # instead of Numpy arrays
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+
+    coord = SkyCoord([10, 12], [20, 22], unit="deg", frame="icrs")
+
+    i, j = wcs.world_to_array_index(coord)
+    assert isinstance(i, np.ndarray)
+    assert isinstance(j, np.ndarray)
+
+    x, y = wcs.world_to_pixel(coord)
+    assert isinstance(x, np.ndarray)
+    assert isinstance(x, np.ndarray)
