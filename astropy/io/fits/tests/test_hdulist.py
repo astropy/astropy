@@ -827,11 +827,9 @@ class TestHDUListFunctions(FitsTestCase):
         Save backup of file before flushing changes.
         """
 
-        self.copy_file("scale.fits")
+        testfile = self.copy_file("scale.fits")
 
-        with fits.open(
-            self.temp("scale.fits"), mode="update", save_backup=True
-        ) as hdul:
+        with fits.open(testfile, mode="update", save_backup=True) as hdul:
             # Make some changes to the original file to force its header
             # and data to be rewritten
             hdul[0].header["TEST"] = "TEST"
@@ -847,9 +845,7 @@ class TestHDUListFunctions(FitsTestCase):
                 assert hdul1[0].header == hdul2[0].header
                 assert (hdul1[0].data == hdul2[0].data).all()
 
-        with fits.open(
-            self.temp("scale.fits"), mode="update", save_backup=True
-        ) as hdul:
+        with fits.open(testfile, mode="update", save_backup=True) as hdul:
             # One more time to see if multiple backups are made
             hdul[0].header["TEST2"] = "TEST"
             hdul[0].data[0] = 1

@@ -97,15 +97,18 @@ class FitsTestCase:
         fits.conf.reset("strip_header_whitespace")
         fits.conf.reset("use_memmap")
 
-    def copy_file(self, filename):
+    def copy_file(self, filename, new_filename=None):
         """Copies a backup of a test data file to the temp dir and sets its
-        mode to writeable.
+        mode to writeable. Can optionally change the file's name.
         """
+        new_filename = filename if new_filename is None else new_filename
+        p = self.temp(new_filename)
         shutil.copy(
             os.path.expanduser(self.data(filename)),
-            os.path.expanduser(self.temp(filename)),
+            os.path.expanduser(p),
         )
-        os.chmod(os.path.expanduser(self.temp(filename)), stat.S_IREAD | stat.S_IWRITE)
+        os.chmod(os.path.expanduser(p), stat.S_IREAD | stat.S_IWRITE)
+        return p
 
     def data(self, filename):
         """Returns the path to a test data file."""
