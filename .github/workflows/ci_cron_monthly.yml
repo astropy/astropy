@@ -36,8 +36,8 @@ jobs:
 
   tests_more_arch_bundled_lib:
 
-    # Goal is to test big endian using bundled external lib.
-    # This is a variant and subset of weekly cron.
+    # Testing exotic architectures using bundled external libs, i.e. without setting ASTROPY_USE_SYSTEM_ALL.
+    # This is a variant and subset of weekly cron, currently only including the big endian s390x arch.
 
     runs-on: ubuntu-24.04
     name: Emulated arch bundled lib
