@@ -220,7 +220,7 @@ if TYPE_CHECKING:
     from collections.abc import Hashable, Mapping, Sequence
     from numbers import Integral
 
-    from . import Table
+    from . import QTable, Table
 
 
 @runtime_checkable
@@ -277,11 +277,16 @@ class Index:
         Whether the values of the index must be unique
     """
 
-    def __init__(self, columns, engine=None, unique=False):
+    def __init__(
+        self,
+        columns,
+        engine=None,
+        unique=False,
+    ):
         # Local imports to avoid import problems.
         from astropy.time import Time
 
-        from .table import Column, Table
+        from .table import Column
 
         if columns is not None:
             columns = list(columns)
@@ -312,11 +317,14 @@ class Index:
             row_index = []
         elif len(columns) == 0:
             raise ValueError("Cannot create index without at least one column")
-        elif len(columns) == 1:
+
+        self.columns = columns
+
+        if len(columns) == 1:
             col = columns[0]
             row_index = Column(col.argsort(kind="stable"))
-            data = Table([col[row_index]])
-        else:
+            data = self.table_cls([col[row_index]])
+        elif len(columns) > 1:
             num_rows = len(columns[0])
 
             # replace Time columns with approximate form and remainder
@@ -332,7 +340,7 @@ class Index:
                     new_columns.append(col)
 
             # sort the table lexicographically and keep row numbers
-            table = Table(columns + [np.arange(num_rows)], copy_indices=False)
+            table = self.table_cls(columns + [np.arange(num_rows)], copy_indices=False)
             sort_columns = new_columns[::-1]
             try:
                 lines = table[np.lexsort(sort_columns)]
@@ -342,13 +350,24 @@ class Index:
             row_index = lines[lines.colnames[-1]]
 
         self.data = self.engine(data, row_index, unique=unique)
-        self.columns = columns
 
     def __len__(self):
         """
         Number of rows in index.
         """
         return len(self.columns[0])
+
+    @property
+    def table_cls(self) -> type[Table | QTable]:
+        """
+        The Table class (Table or QTable) corresponding to the
+        type of columns in this index.
+        """
+        from astropy.table import QTable, Table
+        from astropy.units import Quantity
+
+        has_quantity = any(isinstance(col, Quantity) for col in self.columns)
+        return QTable if has_quantity else Table
 
     def replace_col(self, prev_col, new_col):
         """
@@ -646,7 +665,7 @@ class SlicedIndex:
         slice retains the length of the actual index despite modification.
     """
 
-    def __init__(self, index, index_slice, original=False):
+    def __init__(self, index: Index, index_slice, original=False):
         self.index = index
         self.original = original
         self._frozen = False
@@ -814,13 +833,11 @@ class SlicedIndex:
         item : list or ndarray
             Slice for retrieval
         """
-        from .table import Table
-
         if len(self.columns) == 1:
             index = Index([col_slice], engine=self.data.__class__)
             return self.__class__(index, slice(0, 0, None), original=True)
 
-        t = Table(self.columns, copy_indices=False)
+        t = self.index.table_cls(self.columns, copy_indices=False)
         with t.index_mode("discard_on_copy"):
             new_cols = t[item].columns.values()
         index = Index(new_cols, engine=self.data.__class__)
@@ -1093,8 +1110,8 @@ class TableLoc:
 
         Examples
         --------
-        >>> from astropy.table import Table
-        >>> t = Table({'a': [1, 2, 3], 'b': [4, 5, 6], 'c': [7, 8, 9]})
+        >>> from astropy.table import QTable
+        >>> t = QTable({'a': [1, 2, 3], 'b': [4, 5, 6], 'c': [7, 8, 9]})
         >>> t.add_index('a')
         >>> t.add_index(['b', 'c'])
         >>> t.loc.with_index('a')[2]  # doctest: +IGNORE_OUTPUT
@@ -1114,7 +1131,12 @@ class TableLoc:
                 index_id = self.table.primary_key
         return index_id, item
 
-    def _get_row_idxs_as_list(self, index_id: tuple, item) -> list[int]:
+    def _get_row_idxs_as_list(
+        self,
+        index_id: tuple,
+        item,
+        item_is_sequence: bool,
+    ) -> list[int]:
         """
         Retrieve Table row indices for ``item`` as a list of integers.
 
@@ -1125,6 +1147,8 @@ class TableLoc:
         item : column element, list, ndarray, or slice
             Can be a value in the table index, a list/ndarray of such values, or a value
             slice (both endpoints are included).
+        item_is_sequence : bool
+            Whether ``item`` is a sequence (list or ndarray with ndim > 0) of values.
 
         Returns
         -------
@@ -1149,7 +1173,7 @@ class TableLoc:
             stop = MaxValue() if item.stop is None else item.stop
             rows = index.range((start,), (stop,))
         else:
-            if not isinstance(item, (list, np.ndarray)):  # single element
+            if not item_is_sequence:  # single element
                 item = [item]
             # item should be a list or ndarray of values
             rows = []
@@ -1170,13 +1194,15 @@ class TableLoc:
         # for ``tbl.loc_indices``).
         index_id, item = self._get_index_id_and_item(item)
 
-        item_is_sequence = isinstance(item, (list, np.ndarray))
+        item_is_sequence = (
+            isinstance(item, np.ndarray) and item.ndim > 0
+        ) or isinstance(item, list)
 
         # Short-circuit for case like tbl.loc[[]], returns tbl[[]]
         if item_is_sequence and len(item) == 0:
             return []
 
-        row_idxs = self._get_row_idxs_as_list(index_id, item)
+        row_idxs = self._get_row_idxs_as_list(index_id, item, item_is_sequence)
         # If ``item`` is a sequence of keys or a slice then always returns a list of
         # rows, where zero rows is OK. Otherwise check output and possibly return a
         # scalar.

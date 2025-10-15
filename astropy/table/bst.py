@@ -3,6 +3,8 @@ import operator
 from collections.abc import Hashable, Mapping, Sequence
 from numbers import Integral
 
+import numpy as np
+
 __all__ = ["BST"]
 
 
@@ -27,6 +29,12 @@ class MaxValue:
     def __repr__(self):
         return "MAX"
 
+    def to_value(self, unit):
+        """Convert to a value of the given unit."""
+        # This is needed to support Quantity comparisons, in particular
+        # Quantity.searchsorted(MAX).
+        return np.float64(np.inf)
+
     __str__ = __repr__
 
 
@@ -50,6 +58,12 @@ class MinValue:
 
     def __repr__(self):
         return "MIN"
+
+    def to_value(self, unit):
+        """Convert to a value of the given unit."""
+        # This is needed to support Quantity comparisons, in particular
+        # Quantity.searchsorted(MIN).
+        return -np.float64(np.inf)
 
     __str__ = __repr__
 
