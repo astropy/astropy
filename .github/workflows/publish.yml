@@ -68,6 +68,7 @@ jobs:
         # Windows wheels
         - cp3*-win32
         - cp3*-win_amd64
+        - cp3*-win_arm64
 
     secrets:
       pypi_token: ${{ secrets.pypi_token }}
