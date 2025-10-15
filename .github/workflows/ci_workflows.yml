@@ -5,6 +5,7 @@ on:
     branches:
     - main
     - 'v*'
+    - arm64-runner
     tags:
     - '*'
   pull_request:
@@ -104,6 +105,15 @@ jobs:
             ARCH_ON_CI: "arm64"
             IS_CRON: "false"
 
+        - name: Python 3.12 with all optional dependencies (Windows-arm)
+          windows: py312-test-alldeps
+          runs-on: windows-11-arm
+          posargs: --durations=50
+          posargs: -n=4
+          setenv: |
+            ARCH_ON_CI: "arm64"
+            IS_CRON: "false"
+
   allowed_failures:
     needs: [initial_checks]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@930ac90540ecc5f43ba6d3d176efd25cd5f3c6c2  # v2.2.2
@@ -149,6 +159,7 @@ jobs:
             - ubuntu-latest
             - macos-latest
             - windows-latest
+            - windows-11-arm
     runs-on: ${{ matrix.os }}
     name: Python 3.11 (build only, partial) with limited API (${{ matrix.os }})
     needs: [initial_checks]
