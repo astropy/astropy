@@ -1292,24 +1292,7 @@ def test_required_by_vounit_not_in_find_equivalent_units(unit):
     assert unit not in unit.represents.bases[0].find_equivalent_units()
 
 
-@pytest.mark.parametrize(
-    "format_",
-    [
-        "cds",
-        pytest.param(
-            "fits", marks=pytest.mark.xfail(reason="regression test to reveal a bug")
-        ),
-        pytest.param(
-            "generic", marks=pytest.mark.xfail(reason="regression test to reveal a bug")
-        ),
-        pytest.param(
-            "ogip", marks=pytest.mark.xfail(reason="regression test to reveal a bug")
-        ),
-        pytest.param(
-            "vounit", marks=pytest.mark.xfail(reason="regression test to reveal a bug")
-        ),
-    ],
-)
+@pytest.mark.parametrize("format_", ["cds", "fits", "generic", "ogip", "vounit"])
 def test_parsing_as(format_):
     # The symbol for the attosecond is "as", which can be problematic because it
     # happens to be a Python keyword.
