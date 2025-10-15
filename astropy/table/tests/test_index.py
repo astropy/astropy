@@ -557,11 +557,16 @@ def test_get_index():
         get_index(t, names=None, table_copy=None)
 
 
-def test_index_with_quantity(engine):
+def test_index_loc_with_quantity(engine):
     t = QTable()
     t["a"] = [3, 1, 2] * u.m
     t["b"] = [1, 2, 3]
     t.add_index("a", engine=engine)
+
+    assert tuple(t.loc[1 * u.m]) == (1 * u.m, 2)
+    assert np.all(t.loc_indices[[1 * u.m, 3 * u.m]] == [1, 0])
+    assert tuple(t.iloc[1]) == (2 * u.m, 3)
+    assert len(t.loc[:]) == 3
     assert np.all(t.loc[:]["a"] == [1, 2, 3] * u.m)
 
 
