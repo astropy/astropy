@@ -5,8 +5,8 @@
 These are transformations that cannot be represented as an affine transformation.
 """
 
-from contextlib import suppress
-from inspect import signature
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Union
 from warnings import warn
 
 from astropy import units as u
@@ -16,6 +16,11 @@ from astropy.coordinates.representation import (
 )
 from astropy.coordinates.transformations.base import CoordinateTransform
 from astropy.utils.exceptions import AstropyWarning
+
+if TYPE_CHECKING:
+    from astropy.coordinates import BaseCoordinateFrame
+
+    from .graph import TransformGraph
 
 __all__ = ["FunctionTransform", "FunctionTransformWithFiniteDifference"]
 
@@ -53,26 +58,27 @@ class FunctionTransform(CoordinateTransform):
 
     """
 
-    def __init__(self, func, fromsys, tosys, priority=1, register_graph=None):
+    def __init__(
+        self,
+        func: Callable[
+            ["BaseCoordinateFrame", "BaseCoordinateFrame"], "BaseCoordinateFrame"
+        ],
+        fromsys: type["BaseCoordinateFrame"],
+        tosys: type["BaseCoordinateFrame"],
+        priority: float = 1,
+        register_graph: Union["TransformGraph", None] = None,
+    ) -> None:
         if not callable(func):
             raise TypeError("func must be callable")
-
-        with suppress(TypeError):
-            sig = signature(func)
-            kinds = [x.kind for x in sig.parameters.values()]
-            if (
-                len(x for x in kinds if x == sig.POSITIONAL_ONLY) != 2
-                and sig.VAR_POSITIONAL not in kinds
-            ):
-                raise ValueError("provided function does not accept two arguments")
-
         self.func = func
 
         super().__init__(
             fromsys, tosys, priority=priority, register_graph=register_graph
         )
 
-    def __call__(self, fromcoord, toframe):
+    def __call__(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> "BaseCoordinateFrame":
         res = self.func(fromcoord, toframe)
         if not isinstance(res, self.tosys):
             raise TypeError(
@@ -133,26 +139,31 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
 
     def __init__(
         self,
-        func,
-        fromsys,
-        tosys,
-        priority=1,
-        register_graph=None,
-        finite_difference_frameattr_name="obstime",
-        finite_difference_dt=1 * u.second,
-        symmetric_finite_difference=True,
-    ):
+        func: Callable[
+            ["BaseCoordinateFrame", "BaseCoordinateFrame"], "BaseCoordinateFrame"
+        ],
+        fromsys: type["BaseCoordinateFrame"],
+        tosys: type["BaseCoordinateFrame"],
+        priority: float = 1,
+        register_graph: Union["TransformGraph", None] = None,
+        finite_difference_frameattr_name: str | None = "obstime",
+        finite_difference_dt: (
+            u.Quantity
+            | Callable[["BaseCoordinateFrame", "BaseCoordinateFrame"], u.Quantity]
+        ) = 1 * u.second,
+        symmetric_finite_difference: bool = True,
+    ) -> None:
         super().__init__(func, fromsys, tosys, priority, register_graph)
         self.finite_difference_frameattr_name = finite_difference_frameattr_name
         self.finite_difference_dt = finite_difference_dt
         self.symmetric_finite_difference = symmetric_finite_difference
 
     @property
-    def finite_difference_frameattr_name(self):
+    def finite_difference_frameattr_name(self) -> str | None:
         return self._finite_difference_frameattr_name
 
     @finite_difference_frameattr_name.setter
-    def finite_difference_frameattr_name(self, value):
+    def finite_difference_frameattr_name(self, value: str | None) -> None:
         if value is None:
             self._diff_attr_in_fromsys = self._diff_attr_in_tosys = False
         else:
@@ -168,7 +179,9 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
                 )
         self._finite_difference_frameattr_name = value
 
-    def __call__(self, fromcoord, toframe):
+    def __call__(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> "BaseCoordinateFrame":
         supcall = self.func
         if not fromcoord.data.differentials:
             return supcall(fromcoord, toframe)
