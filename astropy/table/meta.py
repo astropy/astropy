@@ -1,5 +1,6 @@
 import copy
 import json
+import textwrap
 from collections import OrderedDict
 
 import numpy as np
@@ -420,10 +421,10 @@ def get_header_from_yaml(lines):
     if stripped_lines and stripped_lines[0].lstrip().startswith("%ECSV"):
         stripped_lines = stripped_lines[1:]
 
-    # Strip leading whitespace from each line before joining, since ECSV
-    # comment processing may leave leading spaces.
-    stripped_lines = [line.lstrip() for line in stripped_lines]
-    header_yaml = "\n".join(stripped_lines)
+    # Use textwrap.dedent to remove common leading whitespace while preserving
+    # YAML indentation structure. ECSV comment processing leaves a single leading
+    # space that needs to be removed, but relative indentation must be preserved.
+    header_yaml = textwrap.dedent("\n".join(stripped_lines))
     try:
         header = yaml.load(header_yaml, Loader=TableLoader)
     except Exception as err:
