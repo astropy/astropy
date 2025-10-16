@@ -575,6 +575,22 @@ def test_index_loc_with_quantity(engine, table_type):
         assert np.all(t_loc["b"] == [2, 3, 1])
 
 
+def test_index_loc_with_string(engine):
+    t = Table()
+    t["a"] = ["z", "a", "m"]
+    t["b"] = [1, 2, 3]
+    t.add_index("a", engine=engine)
+
+    assert tuple(t.loc["a"]) == ("a", 2)
+    assert np.all(t.loc_indices[["a", "z"]] == [1, 0])
+    assert tuple(t.iloc[1]) == ("m", 3)
+    for loc in (t.loc, t.iloc):
+        t_loc = loc[:]
+        assert len(t_loc) == 3
+        assert np.all(t_loc["a"] == ["a", "m", "z"])
+        assert np.all(t_loc["b"] == [2, 3, 1])
+
+
 def test_table_index_time_warning(engine):
     # Make sure that no ERFA warnings are emitted when indexing a table by
     # a Time column with a non-default time scale
