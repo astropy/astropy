@@ -10,7 +10,7 @@ from .frame import RectangularFrame
 
 
 class AxisLabels(Text):
-    def __init__(self, frame, minpad=1, *args, **kwargs):
+    def __init__(self, frame, minpad=1, loc="center", *args, **kwargs):
         # Use rcParams if the following parameters were not specified explicitly
         if "weight" not in kwargs:
             kwargs["weight"] = rcParams["axes.labelweight"]
@@ -23,9 +23,8 @@ class AxisLabels(Text):
         super().__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes("all")
-        self.set_ha("center")
-        self.set_va("center")
         self.set_minpad(minpad)
+        self.set_loc(loc)
         self.set_visibility_rule("labels")
 
     def get_minpad(self, axis):
@@ -33,6 +32,9 @@ class AxisLabels(Text):
             return self._minpad[axis]
         except TypeError:
             return self._minpad
+
+    def get_loc(self):
+        return self._loc
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = self._frame._validate_positions(visible_axes)
@@ -45,6 +47,13 @@ class AxisLabels(Text):
 
     def set_minpad(self, minpad):
         self._minpad = minpad
+
+    def set_loc(self, loc):
+        if loc != "center":
+            raise NotImplementedError("Only loc = 'center' is implemented at the moment")
+        self._loc = loc
+        self.set_ha(loc)
+        self.set_va(loc)
 
     def set_visibility_rule(self, value):
         allowed = ["always", "labels", "ticks"]
