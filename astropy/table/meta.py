@@ -411,8 +411,17 @@ def get_header_from_yaml(lines):
         """
 
     TableLoader.add_constructor("tag:yaml.org,2002:omap", _construct_odict)
-    # Now actually load the YAML data structure into `meta`
-    header_yaml = textwrap.dedent("\n".join(lines))
+    # Now actually load the YAML data structure into `meta`.
+    # Some ECSV writers include a first line like "%ECSV 1.0" which is not a
+    # valid YAML directive and will cause PyYAML to raise a ScannerError.  The
+    # ECSV header format requires this line but it should be stripped before
+    # passing the remainder to the YAML loader.  Be robust to leading
+    # whitespace.
+    stripped_lines = list(lines)
+    if stripped_lines and stripped_lines[0].lstrip().startswith("%ECSV"):
+        stripped_lines = stripped_lines[1:]
+
+    header_yaml = textwrap.dedent("\n".join(stripped_lines))
     try:
         header = yaml.load(header_yaml, Loader=TableLoader)
     except Exception as err:
