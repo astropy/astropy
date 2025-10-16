@@ -31,7 +31,7 @@ class MaxValue:
         return np.inf
 
     # Let NumPy see this as +inf
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         return np.array(np.inf, dtype=dtype)
 
     def __repr__(self):
@@ -68,8 +68,8 @@ class MinValue:
         return "MIN"
 
     # Let NumPy see this as +inf
-    def __array__(self, dtype=None):
-        return np.array(np.inf, dtype=dtype)
+    def __array__(self, dtype=None, copy=None):
+        return np.array(-np.inf, dtype=dtype)
 
     def to_value(self, unit):
         """Convert to a value of the given unit."""
