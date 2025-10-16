@@ -1402,10 +1402,12 @@ def _copy_of_mask(a):
     return mask.copy() if mask is not None else False
 
 
-@dispatched_function
-def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-    mask = _copy_of_mask(ar1).ravel()
-    return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
+if NUMPY_LT_2_4:
+
+    @dispatched_function
+    def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
+        mask = _copy_of_mask(ar1).ravel()
+        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
 
 
 @dispatched_function
