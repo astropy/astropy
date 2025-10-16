@@ -487,7 +487,7 @@ class TestRoundtripOGIP(RoundtripBase):
 
 @pytest.mark.parametrize(
     "unit_formatter_class,n_units",
-    [(u_format.FITS, 765), (u_format.VOUnit, 1303), (u_format.CDS, 3326)],
+    [(u_format.FITS, 766), (u_format.VOUnit, 1304), (u_format.CDS, 3326)],
 )
 def test_units_available(unit_formatter_class, n_units):
     assert len(unit_formatter_class._units) == n_units

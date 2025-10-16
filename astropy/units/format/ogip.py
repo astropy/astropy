@@ -30,7 +30,6 @@ from astropy.units.typing import UnitScale
 from astropy.utils import classproperty, parsing
 from astropy.utils.parsing import ThreadSafeParser
 
-from . import utils
 from .base import Base, _ParsingFormatMixin
 
 
@@ -63,6 +62,15 @@ class OGIP(Base, _ParsingFormatMixin):
     def _units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
+        names = {"as": u.attosecond}
+        for non_prefixed_unit in [
+            "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
+            "byte", "chan", "count", "d", "deg", "erg", "G",
+            "h", "lyr", "mag", "min", "photon", "pixel",
+            "voxel", "yr",
+        ]:  # fmt: skip
+            names[non_prefixed_unit] = getattr(u, non_prefixed_unit)
+
         bases = [
             "A", "C", "cd", "eV", "F", "g", "H", "Hz", "J",
             "Jy", "K", "lm", "lx", "m", "mol", "N", "ohm", "Pa",
@@ -73,17 +81,9 @@ class OGIP(Base, _ParsingFormatMixin):
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y",
         ]  # fmt: skip
 
-        names = {
-            unit: getattr(u, unit)
-            for unit, _ in utils.get_non_keyword_units(bases, prefixes)
-        }
-        simple_units = [
-            "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
-            "byte", "chan", "count", "d", "deg", "erg", "G",
-            "h", "lyr", "mag", "min", "photon", "pixel",
-            "voxel", "yr",
-        ]  # fmt: skip
-        names.update((unit, getattr(u, unit)) for unit in simple_units)
+        for name in (prefix + base for base in bases for prefix in prefixes):
+            if name not in names:
+                names[name] = getattr(u, name)
 
         # Create a separate, disconnected unit for the special case of
         # Crab and mCrab, since OGIP doesn't define their quantities.
