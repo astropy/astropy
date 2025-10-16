@@ -47,6 +47,7 @@ from astropy.utils.compat import (
     NUMPY_LT_2_0,
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
+    NUMPY_LT_2_4,
 )
 
 if NUMPY_LT_2_0:
@@ -1199,12 +1200,14 @@ def isin(element, test_elements, *args, **kwargs):
     return (ar1, ar2) + args, kwargs, None, None
 
 
-@function_helper  # np.in1d deprecated in not NUMPY_LT_2_0.
-def in1d(ar1, ar2, *args, **kwargs):
-    # This tests whether ar1 is in ar2, so we should change the unit of
-    # ar1 to that of ar2.
-    (ar2, ar1), unit = _quantities2arrays(ar2, ar1)
-    return (ar1, ar2) + args, kwargs, None, None
+if NUMPY_LT_2_4:
+    # np.in1d deprecated in not NUMPY_LT_2_0, removed in not NUMPY_LT_24
+    @function_helper
+    def in1d(ar1, ar2, *args, **kwargs):
+        # This tests whether ar1 is in ar2, so we should change the unit of
+        # ar1 to that of ar2.
+        (ar2, ar1), unit = _quantities2arrays(ar2, ar1)
+        return (ar1, ar2) + args, kwargs, None, None
 
 
 @dispatched_function
