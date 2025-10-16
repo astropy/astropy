@@ -25,8 +25,8 @@ class AxisLabels(Text):
         self.set_visible_axes("all")
         self.set_ha("center")
         self.set_va("center")
-        self._minpad = minpad
-        self._visibility_rule = "labels"
+        self.set_minpad(minpad)
+        self.set_visibility_rule("labels")
 
     def get_minpad(self, axis):
         try:
