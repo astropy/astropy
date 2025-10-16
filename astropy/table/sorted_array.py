@@ -190,8 +190,10 @@ class SortedArray:
             argument corresponds to an inclusive lower bound,
             and the second argument to an inclusive upper bound.
         """
-        lower_pos = self.find_pos(lower, 0)
-        upper_pos = self.find_pos(upper, 0)
+        # use ternary expressions for concise assignments
+        lower_pos = 0 if lower is None else self.find_pos(lower, 0)
+        upper_pos = len(self.row_index) if upper is None else self.find_pos(upper, 0)
+
         if lower_pos == len(self.row_index):
             return []
 

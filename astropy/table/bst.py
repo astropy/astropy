@@ -26,14 +26,6 @@ class MaxValue:
     def __le__(self, other):
         return False
 
-    def __float__(self):
-        # Make numpy treat this as infinity
-        return np.inf
-
-    # Let NumPy see this as +inf
-    def __array__(self, dtype=None, copy=None):
-        return np.array(np.inf, dtype=dtype)
-
     def __repr__(self):
         return "MAX"
 
@@ -66,16 +58,6 @@ class MinValue:
 
     def __repr__(self):
         return "MIN"
-
-    # Let NumPy see this as +inf
-    def __array__(self, dtype=None, copy=None):
-        return np.array(-np.inf, dtype=dtype)
-
-    def to_value(self, unit):
-        """Convert to a value of the given unit."""
-        # This is needed to support Quantity comparisons, in particular
-        # Quantity.searchsorted(MIN).
-        return -np.float64(np.inf)
 
     __str__ = __repr__
 
@@ -440,6 +422,10 @@ class BST:
             argument corresponds to an inclusive lower bound,
             and the second argument to an inclusive upper bound.
         """
+        if lower is None:
+            lower = (MinValue(),)
+        if upper is None:
+            upper = (MaxValue(),)
         nodes = self.range_nodes(lower, upper, bounds)
         return [x for node in nodes for x in node.data]
 

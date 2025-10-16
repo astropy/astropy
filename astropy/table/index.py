@@ -1168,10 +1168,9 @@ class TableLoc:
         index = self.indices[index_id]
 
         if isinstance(item, slice):
-            # None signifies no upper/lower bound
-            start = MinValue() if item.start is None else item.start
-            stop = MaxValue() if item.stop is None else item.stop
-            rows = index.range((start,), (stop,))
+            start = None if item.start is None else (item.start,)
+            stop = None if item.stop is None else (item.stop,)
+            rows = index.range(start, stop)
         else:
             if not item_is_sequence:  # single element
                 item = [item]
