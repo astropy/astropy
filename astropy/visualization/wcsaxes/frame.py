@@ -114,21 +114,43 @@ class Spine:
         """
         Return the x, y, normal_angle values halfway along the spine.
         """
+        return self._barycentric_x_y_angle(0.5)
+
+    def _barycentric_x_y_angle(self, bary=0.5):
+        """
+        Return the x, y, normal_angle values at a barycentric coordinate in [0,1]
+        along the spine.
+
+        Parameters
+        ----------
+        bary : float
+            Barycentric coordinate, must be between 0 and 1. Default 0.5
+        """
+        if not 0 <= bary <= 1:
+            raise ValueError(
+                f"Given barycentric coordinate {bary} does not lie within the [0,1] range"
+            )
         pixel = self._get_pixel()
+        normal_angle = self.normal_angle
+        # Flip pixels if element vectors are not well oriented
+        if np.all(np.abs((self.normal_angle - 135) % 360 - 180) <= 90.0, axis=0):
+            pixel = pixel[::-1]
+            normal_angle = normal_angle[::-1]
         x_disp, y_disp = pixel[:, 0], pixel[:, 1]
         # Get distance along the path
         d = np.hstack(
             [0.0, np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))]
         )
-        xcen = np.interp(d[-1] / 2.0, d, x_disp)
-        ycen = np.interp(d[-1] / 2.0, d, y_disp)
+        dbary = bary * d[-1]
+        xbary = np.interp(dbary, d, x_disp)
+        ybary = np.interp(dbary, d, y_disp)
 
-        # Find segment along which the mid-point lies
-        imin = np.searchsorted(d, d[-1] / 2.0) - 1
+        # Find segment along which the barycentric point lies
+        imin = min(0, np.searchsorted(d, dbary) - 1)
 
         # Find normal of the axis label facing outwards on that segment
-        normal_angle = self.normal_angle[imin] + 180.0
-        return xcen, ycen, normal_angle
+        normal_angle = normal_angle[imin] + 180.0
+        return xbary, ybary, normal_angle
 
 
 class SpineXAligned(Spine):

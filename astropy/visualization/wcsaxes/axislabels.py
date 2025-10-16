@@ -1,16 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
 
 import matplotlib.transforms as mtransforms
 import numpy as np
-from matplotlib import rcParams
+from matplotlib import _api, rcParams
 from matplotlib.text import Text
 
 from .frame import RectangularFrame
 
 
 class AxisLabels(Text):
-    def __init__(self, frame, minpad=1, *args, **kwargs):
+    def __init__(self, frame, minpad=1, loc="center", *args, **kwargs):
         # Use rcParams if the following parameters were not specified explicitly
         if "weight" not in kwargs:
             kwargs["weight"] = rcParams["axes.labelweight"]
@@ -23,16 +24,22 @@ class AxisLabels(Text):
         super().__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes("all")
-        self.set_ha("center")
-        self.set_va("center")
-        self._minpad = minpad
-        self._visibility_rule = "labels"
+        self.set_minpad(minpad)
+        self.set_loc(loc)
+        self.set_rotation_mode("anchor")
+        self.set_visibility_rule("labels")
 
     def get_minpad(self, axis):
         try:
             return self._minpad[axis]
         except TypeError:
             return self._minpad
+
+    def get_loc(self, axis):
+        try:
+            return self._loc[axis]
+        except TypeError:
+            return self._loc
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = self._frame._validate_positions(visible_axes)
@@ -45,6 +52,9 @@ class AxisLabels(Text):
 
     def set_minpad(self, minpad):
         self._minpad = minpad
+
+    def set_loc(self, loc):
+        self._loc = loc
 
     def set_visibility_rule(self, value):
         allowed = ["always", "labels", "ticks"]
@@ -90,15 +100,45 @@ class AxisLabels(Text):
 
             padding = text_size * self.get_minpad(axis)
 
+            loc = self.get_loc(axis)
+            if axis in "tbhc":
+                loc = loc if loc is not None else rcParams["xaxis.labellocation"]
+                _api.check_in_list(("left", "center", "right"), loc=loc)
+
+                bary = {
+                    "left": 0,
+                    "center": 0.5,
+                    "right": 1,
+                }[loc]
+            elif axis in "lrv":
+                loc = loc if loc is not None else rcParams["yaxis.labellocation"]
+                _api.check_in_list(("bottom", "center", "top"), loc=loc)
+
+                bary, loc = {
+                    "bottom": (0, "right"),
+                    "center": (0.5, "center"),
+                    "top": (1, "left"),
+                }[loc]
+            else:
+                if loc != "center":
+                    warnings.warn(
+                        f"Only loc = 'center' is implemented at the moment for axis '{axis}'"
+                    )
+                loc = "center"
+                bary = 0.5
+
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
             # parameter.
-            x, y, normal_angle = self._frame[axis]._halfway_x_y_angle()
+            x, y, normal_angle = self._frame[axis]._barycentric_x_y_angle(bary)
 
             label_angle = (normal_angle - 90.0) % 360.0
             if 135 < label_angle < 225:
                 label_angle += 180
             self.set_rotation(label_angle)
+            if 45 < label_angle < 135:
+                loc = {"left": "right", "center": "center", "right": "left"}[loc]
+            self.set_ha(loc)
 
             # Find label position by looking at the bounding box of ticks'
             # labels and the image. It sets the default padding at 1 times the
