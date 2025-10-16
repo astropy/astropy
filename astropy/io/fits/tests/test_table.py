@@ -3420,6 +3420,23 @@ class TestVLATables(FitsTestCase):
             assert arr.tolist() == [[], [0], [0, 1]]
             assert arr[1].dtype == np.int32
 
+    def test_vla_update(self):
+        """Check that heap is correctly updated after a VLA is modified.
+
+        Regression test for https://github.com/astropy/astropy/issues/18479
+
+        """
+        filename = self.data("variable_length_table.fits")
+        with fits.open(filename) as hdul:
+            for _v in hdul[1].data["var"]:
+                _v[:] = 0
+            hdul.writeto(self.temp("test.fits"), checksum=True)
+
+        with fits.open(self.temp("test.fits"), checksum=True) as hdul:
+            np.testing.assert_array_equal(hdul[1].data["var"][0], 0)
+            np.testing.assert_array_equal(hdul[1].data["var"][1], 0)
+            assert hdul[1].header["DATASUM"] == "1507344"
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
