@@ -6,8 +6,6 @@ These are transformations that cannot be represented as an affine transformation
 """
 
 from collections.abc import Callable
-from contextlib import suppress
-from inspect import signature
 from typing import TYPE_CHECKING, Union
 from warnings import warn
 
@@ -72,16 +70,6 @@ class FunctionTransform(CoordinateTransform):
     ) -> None:
         if not callable(func):
             raise TypeError("func must be callable")
-
-        with suppress(TypeError):
-            sig = signature(func)
-            kinds = [x.kind for x in sig.parameters.values()]
-            if (
-                len(x for x in kinds if x == sig.POSITIONAL_ONLY) != 2
-                and sig.VAR_POSITIONAL not in kinds
-            ):
-                raise ValueError("provided function does not accept two arguments")
-
         self.func = func
 
         super().__init__(
