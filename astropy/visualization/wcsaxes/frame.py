@@ -120,11 +120,12 @@ class Spine:
         d = np.hstack(
             [0.0, np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))]
         )
-        xcen = np.interp(d[-1] / 2.0, d, x_disp)
-        ycen = np.interp(d[-1] / 2.0, d, y_disp)
+        dcen = d[-1] / 2.0
+        xcen = np.interp(dcen, d, x_disp)
+        ycen = np.interp(dcen, d, y_disp)
 
         # Find segment along which the mid-point lies
-        imin = np.searchsorted(d, d[-1] / 2.0) - 1
+        imin = np.searchsorted(d, dcen) - 1
 
         # Find normal of the axis label facing outwards on that segment
         normal_angle = self.normal_angle[imin] + 180.0
