@@ -113,7 +113,65 @@ would be rather surprising!).  As noted above, however, masked elements are
 skipped for operations for which this is well defined, such as for getting the
 mean and other sample properties such as the variance and standard deviation.
 
-A third difference is more conceptual.  For `~numpy.ma.MaskedArray`, the
+A third difference is what happens when one sets the mask attribute.  For
+`~numpy.ma.MaskedArray`, this attempts to change the mask inplace::
+
+  >>> np_ma = np.ma.MaskedArray([1., 2., 3.], mask=[False, True, False])
+  >>> np_ma_mask_ref = np_ma.mask
+  >>> np_ma.mask = False
+  >>> np_ma_mask_ref
+  array([False, False, False])
+
+In contrast, if one sets the mask on a |Masked| class, it just sets it::
+
+  >>> ma = Masked([1., 2., 3.], mask=[False, True, False])
+  >>> ma_mask_ref = ma.mask
+  >>> ma.mask = False
+  >>> ma.mask
+  array([False, False, False])
+  >>> ma_mask_ref
+  array([False,  True, False])
+
+This has a consequence for setting the mask on a slice: for
+`~numpy.ma.MaskedArray` it propagates back, but for |Masked| it does not::
+
+  >>> np_ma = np.ma.MaskedArray([1., 2., 3.], mask=[False, True, False])
+  >>> np_ma_view = np_ma[2:3]
+  >>> np_ma_view.mask = True
+  >>> np_ma_view
+  masked_array(data=[--],
+               mask=[ True],
+         fill_value=1e+20,
+              dtype=float64)
+  >>> np_ma
+  masked_array(data=[1.0, --, --],
+               mask=[False,  True,  True],
+         fill_value=1e+20)
+
+  >>> ma = Masked([1., 2., 3.], mask=[False, True, False])
+  >>> ma_view = ma[2:3]
+  >>> ma_view.mask = True
+  >>> ma_view
+  MaskedNDArray([——])
+  >>> ma
+  MaskedNDArray([1., ——, 3.])
+
+In order for the mask to be set in-place, one should do it explicitly::
+
+  >>> ma[1:2].mask[...] = True
+  >>> ma.mask
+  array([False,  True, False])
+
+The reason for not attempting to propagate is partially just that assignment
+should be just that, assignment. But also that it is tricky to get right.
+Indeed, also for `~numpy.ma.MaskedArray` it does not always work::
+
+  >>> np_ma[0].mask = True
+  Traceback (most recent call last):
+  ...
+  AttributeError: 'numpy.float64' object has no attribute 'mask' and no __dict__ for setting new attributes
+
+A fourth difference is more conceptual.  For `~numpy.ma.MaskedArray`, the
 instance that is created is a masked version of the unmasked instance, i.e.,
 `~numpy.ma.MaskedArray` remembers that is has wrapped a subclass like
 |Quantity|, but does not share any of its methods.  Hence, even though the
