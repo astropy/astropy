@@ -103,8 +103,6 @@ class AxisLabels(Text):
 
             loc = self.get_loc(axis)
 
-            self.set_ha(loc)
-
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
             # parameter.
@@ -114,6 +112,7 @@ class AxisLabels(Text):
             if 135 < label_angle < 225:
                 label_angle += 180
             self.set_rotation(label_angle)
+            self.set_ha(loc)
 
             # Find label position by looking at the bounding box of ticks'
             # labels and the image. It sets the default padding at 1 times the
