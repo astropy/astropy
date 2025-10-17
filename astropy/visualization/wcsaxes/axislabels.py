@@ -100,10 +100,10 @@ class AxisLabels(Text):
                     continue
 
             padding = text_size * self.get_minpad(axis)
+
             loc = self.get_loc(axis)
 
-            ha = loc
-            self.set_ha(ha)
+            self.set_ha(loc)
 
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
