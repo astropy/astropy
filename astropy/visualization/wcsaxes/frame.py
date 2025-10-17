@@ -129,6 +129,11 @@ class Spine:
         if not 0 <= bary <= 1:
             raise ValueError(f"Given barycentric coordinate {bary} does not lie within the [0,1] range")
         pixel = self._get_pixel()
+        normal_angle = self.normal_angle
+        # Flip pixels if element vectors are not well oriented
+        if np.all(np.abs((self.normal_angle - 135) % 360 - 180) <= 90., axis=0):
+            pixel = pixel[::-1]
+            normal_angle = normal_angle[::-1]
         x_disp, y_disp = pixel[:, 0], pixel[:, 1]
         # Get distance along the path
         d = np.hstack(
@@ -142,7 +147,7 @@ class Spine:
         imin = min(0, np.searchsorted(d, dbary) - 1)
 
         # Find normal of the axis label facing outwards on that segment
-        normal_angle = self.normal_angle[imin] + 180.0
+        normal_angle = normal_angle[imin] + 180.0
         return xbary, ybary, normal_angle
 
 
