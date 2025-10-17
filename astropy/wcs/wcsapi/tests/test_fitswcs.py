@@ -30,6 +30,7 @@ from astropy.units import Quantity, UnitsWarning
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.masked import Masked
 from astropy.wcs.wcs import WCS, WCSLIB_VERSION, FITSFixedWarning, NoConvergence, Sip
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES, custom_ctype_to_ucd_mapping
 
@@ -1582,3 +1583,24 @@ def test_restfrq_restwav():
         ),
     ):
         scoord3 = wcs.pixel_to_world(5)
+
+
+class TestMaskedData:
+    wcs = WCS_SIMPLE_CELESTIAL
+
+    def test_pixel_to_world(self):
+        mask = [False, True]
+        x = Masked([4.907, -75.09299637], mask=mask)
+        y = Masked([73.8485, 223.84849637], mask=mask)
+        world = self.wcs.pixel_to_world(x, y)
+        assert_array_equal(world.mask, mask)
+
+    def test_world_to_pixel(self):
+        coord = SkyCoord(
+            l=Masked([0, 1] * u.deg, mask=[False, True]),
+            b=Masked([0, 1] * u.deg, mask=[False, True]),
+            frame="galactic",
+        )
+        x, y = self.wcs.world_to_pixel(coord)
+        assert_array_equal(x.mask, coord.mask)
+        assert_array_equal(y.mask, coord.mask)
