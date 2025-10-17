@@ -1,9 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
 
 import matplotlib.transforms as mtransforms
 import numpy as np
-from matplotlib import rcParams
+from matplotlib import rcParams, _api
 from matplotlib.text import Text
 
 from .frame import RectangularFrame
@@ -53,8 +54,6 @@ class AxisLabels(Text):
         self._minpad = minpad
 
     def set_loc(self, loc):
-        if loc != "center":
-            raise NotImplementedError("Only loc = 'center' is implemented at the moment")
         self._loc = loc
 
     def set_visibility_rule(self, value):
@@ -102,16 +101,48 @@ class AxisLabels(Text):
             padding = text_size * self.get_minpad(axis)
 
             loc = self.get_loc(axis)
+            if axis in 'tbhc':
+                loc = (loc if loc is not None
+                       else rcParams['xaxis.labellocation'])
+                _api.check_in_list(('left', 'center', 'right'), loc=loc)
+
+                bary = {
+                    'left': 0,
+                    'center': 0.5,
+                    'right': 1,
+                }[loc]
+            elif axis in 'lrv':
+                pass
+                loc = (loc if loc is not None
+                       else rcParams['yaxis.labellocation'])
+                _api.check_in_list(('bottom', 'center', 'top'), loc=loc)
+
+                bary, loc = {
+                    'bottom': (0, 'right'),
+                    'center': (0.5, 'center'),
+                    'top': (1, 'left')
+                }[loc]
+            else:
+                if loc != "center":
+                    warnings.warn(f"Only loc = 'center' is implemented at the moment for axis '{axis}'")
+                loc = 'center'
+                bary = 0.5
 
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
             # parameter.
-            x, y, normal_angle = self._frame[axis]._halfway_x_y_angle()
+            x, y, normal_angle = self._frame[axis]._barycentric_x_y_angle(bary)
 
             label_angle = (normal_angle - 90.0) % 360.0
             if 135 < label_angle < 225:
                 label_angle += 180
             self.set_rotation(label_angle)
+            if  45 < label_angle < 135:
+                loc = {
+                    'left': 'right',
+                    'center': 'center',
+                    'right': 'left'
+                }[loc]
             self.set_ha(loc)
 
             # Find label position by looking at the bounding box of ticks'
