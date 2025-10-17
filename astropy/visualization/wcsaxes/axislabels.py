@@ -33,8 +33,11 @@ class AxisLabels(Text):
         except TypeError:
             return self._minpad
 
-    def get_loc(self):
-        return self._loc
+    def get_loc(self, axis):
+        try:
+            return self._loc[axis]
+        except TypeError:
+            return self._loc
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = self._frame._validate_positions(visible_axes)
@@ -52,8 +55,6 @@ class AxisLabels(Text):
         if loc != "center":
             raise NotImplementedError("Only loc = 'center' is implemented at the moment")
         self._loc = loc
-        self.set_ha(loc)
-        self.set_va(loc)
 
     def set_visibility_rule(self, value):
         allowed = ["always", "labels", "ticks"]
@@ -98,6 +99,7 @@ class AxisLabels(Text):
                     continue
 
             padding = text_size * self.get_minpad(axis)
+            loc = self.get_loc(axis)
 
             # Find position of the axis label. For now we pick the mid-point
             # along the path but in future we could allow this to be a
@@ -108,6 +110,10 @@ class AxisLabels(Text):
             if 135 < label_angle < 225:
                 label_angle += 180
             self.set_rotation(label_angle)
+
+            ha = va = loc
+            self.set_ha(ha)
+            self.set_va(va)
 
             # Find label position by looking at the bounding box of ticks'
             # labels and the image. It sets the default padding at 1 times the

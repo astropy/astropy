@@ -716,7 +716,7 @@ class CoordinateHelper:
         """
         self._ticklabels.set_visible(visible)
 
-    def set_axislabel(self, text, minpad=1, **kwargs):
+    def set_axislabel(self, text, minpad=1, loc="center", **kwargs):
         """
         Set the text and optionally visual properties for the axis label.
 
@@ -739,10 +739,20 @@ class CoordinateHelper:
         if minpad is None:
             minpad = 1
 
+        protected_kw = ['x', 'y', 'horizontalalignment', 'ha', 'verticalalignment', 'va']
+        if {*kwargs} & {*protected_kw}:
+            warnings.warn(
+                 "Any of the axis label low level keyword arguments "
+                f"({protected_kw}) of the 'loc' keyword argument will be "
+                 "overwritten during the rendering. Use the 'loc' keyword "
+                 "argument instead."
+            )
+
         self._axislabel_set = True
 
         self._axislabels.set_text(text)
         self._axislabels.set_minpad(minpad)
+        self._axislabels.set_loc(loc)
         self._axislabels.set(**kwargs)
 
         if fontdict is not None:
