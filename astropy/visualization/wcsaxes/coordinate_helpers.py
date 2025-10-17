@@ -726,6 +726,10 @@ class CoordinateHelper:
             The axis label text.
         minpad : float, optional
             The padding for the label in terms of axis label font size.
+        loc : 'str', optional
+            The label position relative to the axis. This is equivalent to
+            matplotlib's corresponding keyword argument availably in their
+            label setter.
         **kwargs
             Keywords are passed to :class:`matplotlib.text.Text`. These
             can include keywords to set the ``color``, ``size``, ``weight``, and
