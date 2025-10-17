@@ -578,7 +578,7 @@ def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
 @pytest.mark.parametrize("atol", [0.2, 1.0e-8])
 def test_bbox_size(atol):
     # Test for the size of a WCSAxes bbox (only have Matplotlib >= 3.0 now)
-    extents = [11.38888888888889, 3.5, 576.0, 432.0]
+    extents = [7.38888888888889, 7.5, 576.0, 432.0]
 
     fig = Figure()
     canvas = FigureCanvasAgg(fig)
