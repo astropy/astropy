@@ -25,6 +25,7 @@ class AxisLabels(Text):
         self.set_visible_axes("all")
         self.set_minpad(minpad)
         self.set_loc(loc)
+        self.set_rotation_mode('anchor')
         self.set_visibility_rule("labels")
 
     def get_minpad(self, axis):
@@ -111,9 +112,8 @@ class AxisLabels(Text):
                 label_angle += 180
             self.set_rotation(label_angle)
 
-            ha = va = loc
+            ha = loc
             self.set_ha(ha)
-            self.set_va(va)
 
             # Find label position by looking at the bounding box of ticks'
             # labels and the image. It sets the default padding at 1 times the
