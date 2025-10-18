@@ -3,8 +3,8 @@
 astropy.io.fits History
 ***********************
 
-Prior to its inclusion in Astropy, the `astropy.io.fits` package was a stand-
-alone package called `PyFITS`_.  PyFITS is no longer actively maintained, and
+Prior to its inclusion in Astropy, the `astropy.io.fits` package was a
+stand-alone package called `PyFITS`_.  PyFITS is no longer actively maintained, and
 its development is now solely in Astropy.
 This page documents the release history of PyFITS prior to its merge into
 Astropy.
@@ -1487,8 +1487,8 @@ Bug Fixes
 
 - Added support for binary table fields with zero width (#42)
 
-- Added support for wider integer types in ASCII tables; although this is non-
-  standard, some GEIS images require it (#45)
+- Added support for wider integer types in ASCII tables; although this is
+  non-standard, some GEIS images require it (#45)
 
 - Fixed a bug that caused the index_of() method of HDULists to crash when the
   HDUList object is created from scratch (#48)

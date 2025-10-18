@@ -1,13 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# ruff: noqa: RUF009
 
 
 from numpy import exp
+from numpy.typing import ArrayLike
 
 from astropy.cosmology import units as cu
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
+from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
@@ -117,7 +119,7 @@ class wpwaCDM(FLRW):
         unit=cu.redshift,
     )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
@@ -133,7 +135,7 @@ class wpwaCDM(FLRW):
                 apiv,
                 self.wa,
             )
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -151,9 +153,9 @@ class wpwaCDM(FLRW):
                 self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.wp,
                 apiv,
                 self.wa,
@@ -162,7 +164,7 @@ class wpwaCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
     @deprecated_keywords("z", since="7.0")
-    def w(self, z):
+    def w(self, z: Quantity | ArrayLike) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -175,9 +177,8 @@ class wpwaCDM(FLRW):
 
         Returns
         -------
-        w : ndarray or float
+        w : ndarray
             The dark energy equation of state
-            Returns `float` if the input is scalar.
 
         Notes
         -----
@@ -191,7 +192,7 @@ class wpwaCDM(FLRW):
         return self.wp + self.wa * (apiv - 1.0 / (aszarr(z) + 1.0))
 
     @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z):
+    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -204,9 +205,8 @@ class wpwaCDM(FLRW):
 
         Returns
         -------
-        I : ndarray or float
+        I : ndarray
             The scaling of the energy density of dark energy with redshift.
-            Returns `float` if the input is scalar.
 
         Notes
         -----
@@ -308,7 +308,7 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
         of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
     """
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
 
         # Please see :ref:`astropy-cosmology-fast-integrals` for discussion
@@ -323,7 +323,7 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
                 apiv,
                 self.wa,
             )
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.fwpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -339,9 +339,9 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
                 self.Om0,
                 self.Ode0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.wp,
                 apiv,
                 self.wa,

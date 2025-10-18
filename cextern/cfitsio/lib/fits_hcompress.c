@@ -723,7 +723,8 @@ int stat;
 	 * write nbitplanes
 	 */
 	if (0 == qwrite(outfile, (char *) nbitplanes, sizeof(nbitplanes))) {
-	        *nlength = noutchar;
+		free(signbits);
+		*nlength = noutchar;
 		ffpmsg("encode: output buffer too small");
 		return(DATA_COMPRESSION_ERR);
         }
@@ -885,7 +886,8 @@ int stat;
 	 */
 
 	if (0 == qwrite(outfile, (char *) nbitplanes, sizeof(nbitplanes))) {
-	        *nlength = noutchar;
+		free(signbits);
+		*nlength = noutchar;
 		ffpmsg("encode: output buffer too small");
 		return(DATA_COMPRESSION_ERR);
         }
@@ -1311,9 +1313,14 @@ unsigned char *scratch, *buffer;
 	 * Buffer is used to store string of codes for output.
 	 */
 	scratch = (unsigned char *) malloc(2*bmax);
+	if (scratch == (unsigned char *) NULL) {		
+		ffpmsg("qtree_encode: insufficient memory");
+		return(DATA_COMPRESSION_ERR);
+	}
+
 	buffer = (unsigned char *) malloc(bmax);
-	if ((scratch == (unsigned char *) NULL) ||
-		(buffer  == (unsigned char *) NULL)) {		
+	if (buffer  == (unsigned char *) NULL) {
+		free(scratch);
 		ffpmsg("qtree_encode: insufficient memory");
 		return(DATA_COMPRESSION_ERR);
 	}
@@ -1430,12 +1437,18 @@ unsigned char *scratch, *buffer;
 	 * Buffer is used to store string of codes for output.
 	 */
 	scratch = (unsigned char *) malloc(2*bmax);
-	buffer = (unsigned char *) malloc(bmax);
-	if ((scratch == (unsigned char *) NULL) ||
-		(buffer  == (unsigned char *) NULL)) {
+	if (scratch == (unsigned char *) NULL)  {
 		ffpmsg("qtree_encode64: insufficient memory");
 		return(DATA_COMPRESSION_ERR);
 	}
+
+	buffer = (unsigned char *) malloc(bmax);
+	if (buffer  == (unsigned char *) NULL) {
+		free(scratch);
+		ffpmsg("qtree_encode64: insufficient memory");
+		return(DATA_COMPRESSION_ERR);
+	}
+
 	/*
 	 * now encode each bit plane, starting with the top
 	 */

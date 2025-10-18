@@ -56,7 +56,7 @@ Example
 Reading a VOTable containing a MIVOT block
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To read in a VOTable file containing or not a MIVOT Resource, pass a file path to`~astropy.io.votable.parse`:
+To read in a VOTable file containing or not a MIVOT Resource, pass a file path to `~astropy.io.votable.parse`:
 
 .. code-block:: python
 

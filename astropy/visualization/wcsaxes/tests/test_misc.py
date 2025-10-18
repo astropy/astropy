@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import warnings
-from contextlib import nullcontext
+from unittest.mock import MagicMock
 
 import matplotlib as mpl
 import numpy as np
@@ -8,6 +8,7 @@ import pytest
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.contour import QuadContourSet
 from matplotlib.figure import Figure
+from numpy.testing import assert_allclose
 from packaging.version import Version
 
 from astropy import units as u
@@ -32,8 +33,6 @@ FREETYPE_261 = ft_version == Version("2.6.1")
 # We cannot use matplotlib.checkdep_usetex() anymore, see
 # https://github.com/matplotlib/matplotlib/issues/23244
 TEX_UNAVAILABLE = True
-
-MATPLOTLIB_LT_3_7 = Version(mpl.__version__) < Version("3.7")
 
 
 def test_grid_regression(ignore_matplotlibrc):
@@ -341,16 +340,7 @@ def test_contour_empty():
     fig = Figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
-
-    if MATPLOTLIB_LT_3_7:
-        ctx = pytest.warns(
-            UserWarning, match="No contour levels were found within the data range"
-        )
-    else:
-        ctx = nullcontext()
-
-    with ctx:
-        ax.contour(np.zeros((4, 4)), transform=ax.get_transform("world"))
+    ax.contour(np.zeros((4, 4)), transform=ax.get_transform("world"))
 
 
 def test_iterate_coords(ignore_matplotlibrc):
@@ -532,7 +522,7 @@ def test_simplify_labels_minus_sign(
     if usetex and TEX_UNAVAILABLE:
         pytest.skip("TeX is unavailable")
 
-    ticklabels = TickLabels(None)
+    ticklabels = TickLabels(frame=MagicMock())
     expected_labels = []
     for i in range(1, 6):
         label = label_str.format(i)
@@ -728,3 +718,109 @@ def test_plot_coord_slicing(ignore_matplotlibrc):
 
     c = SkyCoord(52 * u.deg, 30.5 * u.deg)
     ax.plot_coord(c, "o")
+
+
+SIMPLIFY_CASES = [
+    (["13d14m15s", "13d14m15s"], ["13d14m15s", "15s"]),
+    (["13d14m5s", "13d14m15s"], ["13d14m5s", "15s"]),
+    (
+        ["−29°25'55\"", "−29°25'54\"", "−29°25'53\"", "−29°25'52\"", "−29°25'51\""],
+        ["−29°25'55\"", '54"', '53"', '52"', '51"'],
+    ),
+    (
+        [
+            r"0$\mathregular{^h}$",
+            r"10$\mathregular{^h}$",
+            r"10$\mathregular{^h}$",
+            r"5$\mathregular{^h}$",
+        ],
+        [
+            r"0$\mathregular{^h}$",
+            r"10$\mathregular{^h}$",
+            r"10$\mathregular{^h}$",
+            r"5$\mathregular{^h}$",
+        ],
+    ),
+    (
+        [
+            r"0$\mathregular{^h}$10$\mathregular{^m}$5$\mathregular{^m}$",
+            r"0$\mathregular{^h}$10$\mathregular{^m}$10$\mathregular{^m}$",
+            r"0$\mathregular{^h}$10$\mathregular{^m}$15$\mathregular{^m}$",
+            r"0$\mathregular{^h}$10$\mathregular{^m}$15$\mathregular{^m}$",
+        ],
+        [
+            r"0$\mathregular{^h}$10$\mathregular{^m}$5$\mathregular{^m}$",
+            r"10$\mathregular{^m}$",
+            r"15$\mathregular{^m}$",
+            r"15$\mathregular{^m}$",
+        ],
+    ),
+    (
+        [
+            "$17^{\\mathrm{h}}47^{\\mathrm{m}}53.8^{\\mathrm{s}}$",
+            "$17^{\\mathrm{h}}47^{\\mathrm{m}}53.6^{\\mathrm{s}}$",
+        ],
+        [
+            "$17^{\\mathrm{h}}47^{\\mathrm{m}}53.8^{\\mathrm{s}}$",
+            "$53.6^{\\mathrm{s}}$",
+        ],
+    ),
+]
+
+
+@pytest.mark.parametrize(("before", "after"), SIMPLIFY_CASES)
+def test_simplify_cases(before, after):
+    # Regression test for a bug that caused the simplification to not work
+    # correctly in the presence of dollar signs in LaTeX strings.
+
+    ticklabels = TickLabels(frame=MagicMock())
+    expected_labels = []
+
+    for i, label in enumerate(before):
+        ticklabels.add(
+            axis="axis",
+            world=0,
+            angle=0,
+            text=label,
+            axis_displacement=i,
+            data=(i, i),
+        )
+
+    ticklabels.simplify_labels()
+    assert ticklabels.text["axis"] == after
+
+
+def test_get_transform_unit_mismatch():
+    """
+    Regression test for a bug that caused get_transform to ignore differences
+    in WCS units.
+
+    https://github.com/astropy/astropy/issues/18246
+    """
+
+    wcs_deg = WCS(naxis=2, preserve_units=True)
+    wcs_deg.wcs.ctype = "RA---TAN", "DEC--TAN"
+    wcs_deg.wcs.crval = 20, 30
+    wcs_deg.wcs.cunit = "deg", "deg"
+    wcs_deg.wcs.crpix = 1, 1
+    wcs_deg.wcs.cdelt = 1 / 60, 1 / 60
+
+    wcs_arcmin = WCS(naxis=2, preserve_units=True)
+    wcs_arcmin.wcs.ctype = "RA---TAN", "DEC--TAN"
+    wcs_arcmin.wcs.crval = 1200, 1800
+    wcs_arcmin.wcs.cunit = "arcmin", "arcmin"
+    wcs_arcmin.wcs.crpix = 1, 1
+    wcs_arcmin.wcs.cdelt = 1, 1
+
+    fig = Figure(figsize=(6, 6))
+    ax = fig.add_subplot(projection=wcs_arcmin)
+    transform1 = ax.get_transform(wcs_arcmin)
+    transform2 = ax.get_transform(wcs_deg)
+
+    # Since the two WCS are equivalent, the returned transforms should also
+    # be equivalent
+
+    rng = np.random.default_rng(12345)
+    pixels = rng.uniform(0, 100, (2, 100))
+
+    assert_allclose(transform1.transform(pixels), transform2.transform(pixels))

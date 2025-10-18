@@ -10,7 +10,7 @@ from astropy.time import Time, TimeDelta
 from astropy.timeseries.binned import BinnedTimeSeries
 from astropy.timeseries.sampled import TimeSeries
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.utils.masked import get_data_and_mask
+from astropy.utils.masked import Masked, get_data_and_mask
 
 __all__ = ["aggregate_downsample"]
 
@@ -43,8 +43,10 @@ def nanmean_reduceat(data, indices):
     if out_mask is not None:
         result[out_mask] = np.nan
     if data_mask is not None:  # Had masked input.
-        result = data.__class__(result, mask=out_mask, copy=False)
-
+        # use of Masked is needed for case data is astropy.utils.masked.core.MaskedNDArray,
+        # to avoid a TypeError from MaskedNDArray
+        cls = Masked if isinstance(data, Masked) else data.__class__
+        result = cls(result, mask=out_mask, copy=False)
     return result
 
 
@@ -291,7 +293,12 @@ def aggregate_downsample(
         # Should we return that by default, instead of using np.nan?
         if isinstance(values, u.Quantity):
             data = np.full_like(values, np.nan, shape=(n_bins,))
-            data[unique_indices] = reduceat(values, groups, aggregate_func)
+            # Pass ndarray (`values.value`) instead of Quantity (`values`)
+            # reduceat() to avoid significant performance hit for cases
+            # aggregate_func does not have optimized reduceat, e.g., np.nanmean.
+            data[unique_indices] = u.Quantity(
+                reduceat(values.value, groups, aggregate_func), values.unit, copy=False
+            )
         else:
             data = np.ma.zeros(n_bins, dtype=values.dtype)
             data[unique_indices] = reduceat(values, groups, aggregate_func)

@@ -2,24 +2,18 @@
 
 """Parameter test mixin classes."""
 
-from __future__ import annotations
-
 import copy
-from typing import TYPE_CHECKING
+from inspect import BoundArguments
 
 import numpy as np
 import pytest
 
+import astropy.constants as const
 import astropy.units as u
-from astropy.cosmology import FlatFLRWMixin, Parameter
+from astropy.cosmology import Cosmology, FlatFLRWMixin, Parameter
 from astropy.cosmology._src.parameter import MISSING
 from astropy.cosmology._src.tests.test_core import ParameterTestMixin
 from astropy.tests.helper import assert_quantity_allclose
-
-if TYPE_CHECKING:
-    from inspect import BoundArguments
-
-    from astropy.cosmology import Cosmology
 
 
 class ParameterH0TestMixin(ParameterTestMixin):
@@ -308,14 +302,17 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         # set differently depending on the other inputs
         if cosmo.Tnu0.value == 0:
             assert cosmo.m_nu is None
-        elif not cosmo._massivenu:  # only massless
+        elif not cosmo._nu_info.has_massive_nu:  # only massless
             assert_quantity_allclose(cosmo.m_nu, 0 * u.eV)
-        elif self._nmasslessnu == 0:  # only massive
-            assert cosmo.m_nu == cosmo._massivenu_mass
+        elif self._nu_info.n_massless_nu == 0:  # only massive
+            assert cosmo.m_nu == cosmo._nu_info.nu_y * const.k_B * cosmo.Tnu0
         else:  # a mix -- the most complicated case
-            assert_quantity_allclose(cosmo.m_nu[: self._nmasslessnu], 0 * u.eV)
             assert_quantity_allclose(
-                cosmo.m_nu[self._nmasslessnu], cosmo._massivenu_mass
+                cosmo.m_nu[: self._nu_info.n_massless_nu], 0 * u.eV
+            )
+            assert_quantity_allclose(
+                cosmo.m_nu[self._nu_info.n_massless_nu],
+                cosmo._nu_info.nu_y * const.k_B * cosmo.Tnu0,
             )
 
     def test_init_m_nu(self, cosmo_cls: type[Cosmology], ba: BoundArguments):

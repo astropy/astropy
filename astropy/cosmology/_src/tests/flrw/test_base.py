@@ -18,7 +18,7 @@ import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology import FLRW, FlatLambdaCDM, LambdaCDM, Planck18
 from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, dataclass_decorator
-from astropy.cosmology._src.flrw.base import _a_B_c2, quad
+from astropy.cosmology._src.flrw.base import a_B_c2
 from astropy.cosmology._src.tests.helper import get_redshift_methods
 from astropy.cosmology._src.tests.test_core import (
     CosmologyTest,
@@ -43,16 +43,6 @@ from .test_parameters import (
 
 ##############################################################################
 # TESTS
-##############################################################################
-
-
-@pytest.mark.skipif(HAS_SCIPY, reason="scipy is installed")
-def test_optional_deps_functions():
-    """Test stand-in functions when optional dependencies not installed."""
-    with pytest.raises(ModuleNotFoundError, match="No module named 'scipy.integrate'"):
-        quad()
-
-
 ##############################################################################
 
 
@@ -166,7 +156,7 @@ class FLRWTest(
         if cosmo.Tnu0 == 0:
             assert cosmo.has_massive_nu is False
         else:
-            assert cosmo.has_massive_nu is cosmo._massivenu
+            assert cosmo.has_massive_nu is cosmo._nu_info.has_massive_nu
 
     def test_h(self, cosmo_cls, cosmo):
         """Test ``cached_property`` ``h``."""
@@ -210,7 +200,7 @@ class FLRWTest(
 
         # on the instance
         # Ogamma cor \propto T^4/rhocrit
-        expect = _a_B_c2 * cosmo.Tcmb0.value**4 / cosmo.critical_density0.value
+        expect = a_B_c2 * cosmo.Tcmb0.value**4 / cosmo.critical_density0.value
         assert np.allclose(cosmo.Ogamma0, expect)
         # check absolute equality to 0 if Tcmb0 is 0
         if cosmo.Tcmb0 == 0:

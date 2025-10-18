@@ -1,6 +1,7 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
+#include <stdlib.h>  // malloc/free
 #include <numpy/arrayobject.h>
 #include "numpy/ufuncobject.h"
 #include "compute_bounds.h"
@@ -106,7 +107,7 @@ static void _sigma_clip_fast(
     double *mad_buffer = NULL;
 
     // data_buffer is used to store the current values being sigma clipped
-    data_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
+    data_buffer = (double *)malloc(n_i * sizeof(double));
     if (data_buffer == NULL) {
         PyErr_NoMemory();
         return;
@@ -135,7 +136,7 @@ static void _sigma_clip_fast(
             // that is used in the calculation. We just need to allocate this once
             // and can use it in any future loop iteration that needs it.
             if (((npy_bool *)use_mad_std) && mad_buffer == NULL) {
-                mad_buffer = (double *)PyArray_malloc(n_i * sizeof(double));
+                mad_buffer = (double *)malloc(n_i * sizeof(double));
                 if (mad_buffer == NULL) {
                     PyErr_NoMemory();
                     return;
@@ -154,8 +155,8 @@ static void _sigma_clip_fast(
             *(double *)bound_high = NPY_NAN;
         }
     }
-    PyArray_free((void *)data_buffer);
+    free((void *)data_buffer);
     if (mad_buffer != NULL) {
-        PyArray_free((void *)mad_buffer);
+        free((void *)mad_buffer);
     }
 }

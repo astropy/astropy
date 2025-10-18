@@ -6,18 +6,12 @@ Methods for selecting the bin width of histograms.
 Ported from the astroML project: https://www.astroml.org/
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from typing import Literal
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from .bayesian_blocks import bayesian_blocks
-
-if TYPE_CHECKING:
-    from typing import Literal
-
-    from numpy.typing import ArrayLike, NDArray
 
 __all__ = [
     "calculate_bin_edges",

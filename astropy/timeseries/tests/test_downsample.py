@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import sys
+import warnings
 
 import numpy as np
 import pytest
@@ -72,15 +73,15 @@ def test_nanmean_reduceat():
 
     data = data.astype("float")
     data[::2] = np.nan
-    with np.testing.suppress_warnings() as sup:
-        sup.filter(RuntimeWarning, "Mean of empty slice")
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", "Mean of empty slice", RuntimeWarning)
         reduceat_output2 = reduceat(data, indices, np.nanmean)
     nanmean_output2 = nanmean_reduceat(data, indices)
     assert_equal(reduceat_output2, nanmean_output2)
 
     data[:] = np.nan
-    with np.testing.suppress_warnings() as sup:
-        sup.filter(RuntimeWarning, "Mean of empty slice")
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", "Mean of empty slice", RuntimeWarning)
         reduceat_output3 = reduceat(data, indices, np.nanmean)
     nanmean_output3 = nanmean_reduceat(data, indices)
     assert_equal(reduceat_output3, nanmean_output3)
@@ -348,15 +349,30 @@ def test_downsample_edge_cases(time, time_bin_start, time_bin_end):
         )  # single-valued time series falls in *first* bin
 
 
-@pytest.mark.parametrize("masked_cls", [MaskedColumn, Masked(u.Quantity)])
-def test_downsample_with_masked_array(masked_cls):
+@pytest.mark.parametrize(
+    "masked_cls, aggregate_func",
+    [
+        (MaskedColumn, None),
+        (Masked(u.Quantity), None),
+        # test case aggregate_func=np.nanmean,
+        # to ensure the non-optimized code path is functionally correct
+        # (the default is an optimized nanmean)
+        # FIXME: comment out for now, as it causes TypeError in edge cases with MaskedColumn
+        # (MaskedColumn, np.nanmean),
+        (Masked(u.Quantity), np.nanmean),
+    ],
+)
+def test_downsample_with_masked_array(masked_cls, aggregate_func):
     # See gh-17991
     m = masked_cls([0.0, 1.0, -np.inf, 3.0, 4.0], mask=False)
     m.mask[2] = True
     ts = TimeSeries(time=INPUT_TIME, data=[m], names=["m"])
     assert isinstance(ts["m"], masked_cls)
     down = aggregate_downsample(
-        ts, time_bin_start=INPUT_TIME[:-1:2], time_bin_end=INPUT_TIME[1::2]
+        ts,
+        time_bin_start=INPUT_TIME[:-1:2],
+        time_bin_end=INPUT_TIME[1::2],
+        aggregate_func=aggregate_func,
     )
     expected = masked_cls([0.5, 3.0], mask=False)
     assert_masked_equal(down["m"], expected)
@@ -365,7 +381,10 @@ def test_downsample_with_masked_array(masked_cls):
     m.mask[3] = True
     ts2 = TimeSeries(time=INPUT_TIME, data=[m], names=["m"])
     down2 = aggregate_downsample(
-        ts2, time_bin_start=INPUT_TIME[:-1:2], time_bin_end=INPUT_TIME[1::2]
+        ts2,
+        time_bin_start=INPUT_TIME[:-1:2],
+        time_bin_end=INPUT_TIME[1::2],
+        aggregate_func=aggregate_func,
     )
     expected2 = masked_cls([0.5, np.nan], mask=[False, True])
     assert_masked_equal(down2["m"], expected2)
@@ -375,7 +394,10 @@ def test_downsample_with_masked_array(masked_cls):
     m[3] = np.nan
     ts3 = TimeSeries(time=INPUT_TIME, data=[m], names=["m"])
     down3 = aggregate_downsample(
-        ts3, time_bin_start=INPUT_TIME[:-1:2], time_bin_end=INPUT_TIME[1::2]
+        ts3,
+        time_bin_start=INPUT_TIME[:-1:2],
+        time_bin_end=INPUT_TIME[1::2],
+        aggregate_func=aggregate_func,
     )
     expected3 = masked_cls([0.5, np.nan], mask=[False, True])
     assert_masked_equal(down3["m"], expected3)

@@ -9,14 +9,18 @@ possible for the non-prefixed unit, ``astropy.units.solMass``.
 """
 
 from . import astrophys
-from .core import UnitBase, _add_prefixes
-from .utils import generate_prefixonly_unit_summary, generate_unit_summary
+from .core import _add_prefixes
+from .docgen import (
+    generate_dunder_all,
+    generate_prefixonly_unit_summary,
+    generate_unit_summary,
+)
 
 _add_prefixes(astrophys.solMass, namespace=globals(), prefixes=True)
 _add_prefixes(astrophys.solRad, namespace=globals(), prefixes=True)
 _add_prefixes(astrophys.solLum, namespace=globals(), prefixes=True)
 
-__all__ = [name for (name, member) in globals().items() if isinstance(member, UnitBase)]
+__all__ = generate_dunder_all(globals())  # noqa: PLE0605
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

@@ -326,15 +326,15 @@ large, we will need to design a mechanism for removing test data immediately.
 Tests that use the file cache
 -----------------------------
 
-By default, the Astropy test runner sets up a clean file cache in a temporary
+By default, Astropy's test configuration sets up a clean file cache in a temporary
 directory that is used only for that test run and then destroyed.  This is to
 ensure consistency between test runs, as well as to not clutter users' caches
-(i.e. the cache directory returned by `~astropy.config.get_cache_dir`) with
+(i.e., the cache directory returned by `~astropy.config.get_cache_dir`) with
 test files.
 
 However, some test authors (especially for affiliated packages) may find it
 desirable to cache files downloaded during a test run in a more permanent
-location (e.g. for large data sets).  To this end the
+location (e.g., for large data sets).  To this end the
 `~astropy.config.set_temp_cache` helper may be used.  It can be used either as
 a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
@@ -351,7 +351,7 @@ Some tests involve writing files. These files should not be saved permanently.
 The :ref:`pytest 'tmp_path' fixture <pytest:tmp_path>` allows for the
 convenient creation of temporary directories, which ensures test files will be
 cleaned up. Temporary directories can also be helpful in the case where the
-tests are run in an environment where the runner would otherwise not have write
+tests are run in an environment where ``pytest`` would otherwise not have write
 access.
 
 
@@ -638,7 +638,7 @@ Testing configuration parameters
 ================================
 
 In order to ensure reproducibility of tests, all configuration items
-are reset to their default values when the test runner starts up.
+are reset to their default values when ``pytest`` starts up.
 
 Sometimes you'll want to test the behavior of code when a certain
 configuration item is set to a particular value.  In that case, you
@@ -680,7 +680,7 @@ hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
 
-    tox -e py311-test-image-mpl360-cov
+    tox -e py311-test-image-mpl380-cov
 
 However, note that the output can be sensitive to the operating system and
 specific version of libraries such as freetype. In general, using tox will
@@ -745,7 +745,7 @@ generate it, you should run the tests the first time with::
 
 for example::
 
-    tox -e py311-test-image-mpl360-cov -- --mpl-generate-hash-library=astropy/tests/figures/py311-test-image-mpl360-cov.json
+    tox -e py311-test-image-mpl380-cov -- --mpl-generate-hash-library=astropy/tests/figures/py311-test-image-mpl380-cov.json
 
 Then add and commit the new JSON file and try running the tests again. The tests
 may fail in the continuous integration if e.g. the freetype version does not

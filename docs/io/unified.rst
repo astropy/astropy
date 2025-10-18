@@ -35,12 +35,22 @@ unless the format can be uniquely determined from the file name or file content.
 The example below shows how to read a table in the specialized DAOphot format and write
 it back to FITS format. Notice that FITS is a format where the interface recognizes the
 format automatically from the file name, so the ``format`` argument is not needed.
-
-.. doctest-skip::
+In this example we use a file that is installed with astropy::
 
     >>> from astropy.table import Table
-    >>> t = Table.read('photometry.dat', format='ascii.daophot')
-    >>> t.write('photometry.fits')
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> photometry_file = get_pkg_data_filename('data/daophot.dat',
+    ...                                         package='astropy.io.ascii.tests')
+    >>> t = Table.read(photometry_file, format='ascii.daophot')
+    >>> t.write('photometry.fits')  # doctest: +IGNORE_WARNINGS
+
+The FITS writer will issue a few warnings because the units read from the DAOphot
+file do not match the FITS conventions, but the data in the file is perfectly fine.
+
+.. testcleanup::
+
+    >>> import os
+    >>> os.remove('photometry.fits')
 
 Each file format is handled by a specific reader or writer, and each of those
 functions will have its own set of arguments.
@@ -51,12 +61,10 @@ To get help on the available arguments for each format, use the ``help()`` metho
 appropriate ``read()`` or ``write()`` class method, e.g., `astropy.table.Table.read`.
 In the examples below we do not show the long output:
 
-.. doctest-skip::
-
     >>> from astropy.table import Table
     >>> from astropy.nddata import CCDData
-    >>> CCDData.read.help('fits')
-    >>> Table.read.help('ascii')
-    >>> Table.read.help('ascii.latex')
-    >>> Table.write.help('hdf5')
-    >>> Table.write.help('csv')
+    >>> CCDData.read.help('fits')  # doctest: +IGNORE_OUTPUT
+    >>> Table.read.help('ascii')  # doctest: +IGNORE_OUTPUT
+    >>> Table.read.help('ascii.latex')  # doctest: +IGNORE_OUTPUT
+    >>> Table.write.help('hdf5')  # doctest: +IGNORE_OUTPUT
+    >>> Table.write.help('csv')  # doctest: +IGNORE_OUTPUT

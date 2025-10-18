@@ -16,29 +16,22 @@ FITS files
 <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`__.
 """
 
-from __future__ import annotations
-
 import math
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import ClassVar, Literal
 
-from astropy.units.core import CompositeUnit
+import numpy as np
+
+from astropy.extern.ply.lex import Lexer
+from astropy.units.core import CompositeUnit, UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitParserWarning, UnitsWarning
+from astropy.units.typing import UnitScale
 from astropy.utils import classproperty, parsing
+from astropy.utils.parsing import ThreadSafeParser
 
-from . import utils
 from .base import Base, _ParsingFormatMixin
-
-if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
-    import numpy as np
-
-    from astropy.extern.ply.lex import Lexer
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitScale
-    from astropy.utils.parsing import ThreadSafeParser
 
 
 class OGIP(Base, _ParsingFormatMixin):
@@ -70,6 +63,15 @@ class OGIP(Base, _ParsingFormatMixin):
     def _units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
+        names = {"as": u.attosecond}
+        for non_prefixed_unit in [
+            "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
+            "byte", "chan", "count", "d", "deg", "erg", "G",
+            "h", "lyr", "mag", "min", "photon", "pixel",
+            "voxel", "yr",
+        ]:  # fmt: skip
+            names[non_prefixed_unit] = getattr(u, non_prefixed_unit)
+
         bases = [
             "A", "C", "cd", "eV", "F", "g", "H", "Hz", "J",
             "Jy", "K", "lm", "lx", "m", "mol", "N", "ohm", "Pa",
@@ -80,17 +82,9 @@ class OGIP(Base, _ParsingFormatMixin):
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y",
         ]  # fmt: skip
 
-        names = {
-            unit: getattr(u, unit)
-            for unit, _ in utils.get_non_keyword_units(bases, prefixes)
-        }
-        simple_units = [
-            "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
-            "byte", "chan", "count", "d", "deg", "erg", "G",
-            "h", "lyr", "mag", "min", "photon", "pixel",
-            "voxel", "yr",
-        ]  # fmt: skip
-        names.update((unit, getattr(u, unit)) for unit in simple_units)
+        for name in (prefix + base for base in bases for prefix in prefixes):
+            if name not in names:
+                names[name] = getattr(u, name)
 
         # Create a separate, disconnected unit for the special case of
         # Crab and mCrab, since OGIP doesn't define their quantities.
@@ -344,10 +338,13 @@ class OGIP(Base, _ParsingFormatMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = "inline"
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = "inline",
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        unit = cls._decompose_to_known_units(unit, deprecations)
 
         if isinstance(unit, CompositeUnit):
             # Can't use np.log10 here, because p[0] may be a Python long.
@@ -364,12 +361,3 @@ class OGIP(Base, _ParsingFormatMixin):
         cls, val: UnitScale | np.number, format_spec: str = "g"
     ) -> str:
         return format(val, format_spec)
-
-    @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        if unit in cls._deprecated_units:
-            warnings.warn(
-                f"The unit '{unit}' has been deprecated in the OGIP standard.",
-                UnitsWarning,
-            )
-        return super()._validate_unit(unit, detailed_exception)

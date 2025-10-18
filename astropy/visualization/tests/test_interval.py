@@ -11,6 +11,7 @@ from astropy.visualization.interval import (
     ManualInterval,
     MinMaxInterval,
     PercentileInterval,
+    SymmetricInterval,
     ZScaleInterval,
 )
 
@@ -75,6 +76,28 @@ class TestInterval:
             vmin, vmax = interval.get_limits(self.data)
         assert_allclose(vmin, -14.367676767676768)
         assert_allclose(vmax, 40.266666666666666)
+
+    def test_symmetric_interval_manual(self):
+        interval = SymmetricInterval(radius=40)
+        vmin, vmax = interval.get_limits(self.data)
+        assert_allclose(vmin, -40.0)
+        assert_allclose(vmax, +40.0)
+
+        interval = SymmetricInterval(radius=100, midpoint=10)
+        vmin, vmax = interval.get_limits(self.data)
+        assert_allclose(vmin, -90.0)
+        assert_allclose(vmax, +110.0)
+
+    def test_symmetric_interval_auto(self):
+        interval = SymmetricInterval()
+        vmin, vmax = interval.get_limits(self.data)
+        assert_allclose(vmin, -60.0)
+        assert_allclose(vmax, +60.0)
+
+        interval = SymmetricInterval(midpoint=50)
+        vmin, vmax = interval.get_limits(self.data)
+        assert_allclose(vmin, -20.0)
+        assert_allclose(vmax, +120.0)
 
 
 class TestIntervalList(TestInterval):

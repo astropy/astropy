@@ -846,7 +846,7 @@ class FITS_rec(np.recarray):
                         vla_first = int(len(dummy[idx]) / np.prod(vla_dim))
                         dummy[idx] = dummy[idx].reshape((vla_first,) + vla_dim)
 
-                dummy[idx].dtype = dummy[idx].dtype.newbyteorder(">")
+                dummy[idx] = dummy[idx].view(dummy[idx].dtype.newbyteorder(">"))
                 # Each array in the field may now require additional
                 # scaling depending on the other scaling parameters
                 # TODO: The same scaling parameters apply to every
@@ -1032,14 +1032,21 @@ class FITS_rec(np.recarray):
 
         return field
 
-    def _get_heap_data(self):
+    def _get_heap_data(self, try_from_disk=True):
         """
-        Returns a pointer into the table's raw data to its heap (if present).
+        Returns heap data (if present).
+
+        If ``try_from_disk=True`` and if data is read from a file, heap data
+        is a pointer into the table's raw data.
+        Otherwise it is computed from the in-memory arrays.
 
         This is returned as a numpy byte array.
         """
-        raw_data = self._get_raw_data()
-        if self._heapsize and raw_data is not None:
+        if (
+            try_from_disk
+            and self._heapsize
+            and (raw_data := self._get_raw_data()) is not None
+        ):
             # Read the heap from disk
             raw_data = raw_data.view(np.ubyte)
             heap_end = self._heapoffset + self._heapsize
@@ -1382,6 +1389,8 @@ def _ascii_encode(inarray, out=None):
     out_dtype = np.dtype((f"S{inarray.dtype.itemsize // 4}", inarray.dtype.shape))
     if out is not None:
         out = out.view(out_dtype)
+    if inarray.size == 0:
+        return out
 
     op_dtypes = [inarray.dtype, out_dtype]
     op_flags = [["readonly"], ["writeonly", "allocate"]]

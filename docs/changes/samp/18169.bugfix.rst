@@ -1,0 +1,2 @@
+``SAMPHubServer._call_and_wait`` raises a new ``SAMPProxyTimeoutError`` (derived from ``SAMPProxyError``) exception on timeout.
+This allows client code to more easily distinguish timeouts from other kind of exceptions.

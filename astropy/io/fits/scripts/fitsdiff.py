@@ -98,6 +98,8 @@ def handle_options(argv=None):
         epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
+    parser.suggest_on_error = True
 
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"

@@ -9,6 +9,8 @@
 #include <unquantize.h>
 #include <ricecomp.h>
 
+/* The following is needed in order to avoid compilation warnings related to calloc() */
+#include <stdlib.h>
 
 /* Define docstrings */
 static char module_docstring[] = "Core compression/decompression functions wrapped from cfitsio.";

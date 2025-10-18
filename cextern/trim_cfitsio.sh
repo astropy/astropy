@@ -34,6 +34,7 @@ rm -f cfitsio/docs/*.toc
 rm -f cfitsio/docs/*.odt
 rm -rf cfitsio/[^L]*.*
 rm -rf cfitsio/utilities
+rm -rf cfitsio/cmake
 rm -rf cfitsio/config
 rm -rf cfitsio/m4
 

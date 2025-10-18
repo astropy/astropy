@@ -10,16 +10,14 @@ Both the units and magnitudes are available in (and should be used
 through) the `astropy.units` namespace.
 
 """
-# avoid ruff complaints about undefined names defined by def_unit
-# ruff: noqa: F821
 
 import numpy as np
 
 from astropy.constants.si import L_bol0
 
 from . import astrophys, cgs, si
-from .core import UnitBase, def_unit
-from .utils import generate_unit_summary
+from .core import def_unit
+from .docgen import generate_dunder_all, generate_unit_summary
 
 __all__ = []  #  Units are added at the end
 
@@ -74,7 +72,7 @@ def_unit(
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 
 if __doc__ is not None:

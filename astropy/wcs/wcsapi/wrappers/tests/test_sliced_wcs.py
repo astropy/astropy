@@ -876,6 +876,10 @@ def test_1d_sliced_low_level(time_1d_wcs):
     assert isinstance(world, np.ndarray)
     assert np.allclose(world, [27, 29])
 
+    pixel = sll.world_to_pixel_values(world)
+    assert isinstance(pixel, np.ndarray)
+    assert np.allclose(pixel, [1, 2])
+
 
 def validate_info_dict(result, expected):
     result_value = result.pop("value")

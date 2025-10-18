@@ -1213,7 +1213,7 @@ def test_optimizers(fitter_class):
 
 @mk.patch.multiple(Optimization, __abstractmethods__=set())
 def test_Optimization_abstract_call():
-    optimization = Optimization(mk.MagicMock())
+    optimization = Optimization()
     MESSAGE = r"Subclasses should implement this method"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         optimization()

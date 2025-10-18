@@ -4,23 +4,17 @@
 Handles the "FITS" unit format.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from typing import Literal
 
 import numpy as np
 
-from astropy.units.core import CompositeUnit
+from astropy.units.core import CompositeUnit, UnitBase
+from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitScaleError
 from astropy.utils import classproperty
 
-from . import Base, utils
+from . import Base
 from .generic import _GenericParserMixin
-
-if TYPE_CHECKING:
-    from typing import Literal
-
-    from astropy.units import UnitBase
 
 
 class FITS(Base, _GenericParserMixin):
@@ -35,9 +29,12 @@ class FITS(Base, _GenericParserMixin):
     def _units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
-        # add some units up-front for which we don't want to use prefixes
-        # and that have different names from the astropy default.
-        names = {"Celsius": u.deg_C, "deg C": u.deg_C}
+        names = {
+            "Celsius": u.deg_C,
+            "deg C": u.deg_C,
+            "dbyte": u.Unit("dbyte", 0.1 * u.byte),
+            "as": u.attosecond,
+        }
         bases = [
             "m", "g", "s", "rad", "sr", "K", "A", "mol", "cd",
             "Hz", "J", "W", "V", "N", "Pa", "C", "Ohm", "S",
@@ -49,10 +46,9 @@ class FITS(Base, _GenericParserMixin):
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y",
         ]  # fmt: skip
 
-        special_cases = {"dbyte": u.Unit("dbyte", 0.1 * u.byte)}
-
-        for key, _ in utils.get_non_keyword_units(bases, prefixes):
-            names[key] = special_cases[key] if key in special_cases else getattr(u, key)
+        for key in (prefix + base for base in bases for prefix in prefixes):
+            if key not in names:
+                names[key] = getattr(u, key)
         simple_units = [
             "deg", "arcmin", "arcsec", "mas", "min", "h", "d", "Ry",
             "solMass", "u", "solLum", "solRad", "AU", "lyr", "count",
@@ -65,7 +61,10 @@ class FITS(Base, _GenericParserMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Remove units that aren't known to the format
         unit = cls._decompose_to_known_units(unit)

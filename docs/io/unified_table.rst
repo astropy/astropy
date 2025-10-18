@@ -28,10 +28,26 @@ then call the :class:`~astropy.table.Table`
 :meth:`~astropy.table.Table.read` method with the name of the file and
 the file format, for instance ``'ascii.daophot'``:
 
-.. doctest-skip::
-
+.. testsetup::
+    >>> import os
+    >>> with open('photometry.dat', 'w') as f: # doctest: +IGNORE_OUTPUT
+    ...     f.write("#N ID    XCENTER   YCENTER\n")
+    ...     f.write("#U ##    pixel     pixel \n")
+    ...     f.write("#F %-9d  %-10.3f   %-10.3f\n")
+    ...     f.write("#\n")
+    ...     f.write("14       138.538   256.405\n")
+    ...     f.write("18       18.114    280.170\n")
     >>> from astropy.table import Table
     >>> t = Table.read('photometry.dat', format='ascii.daophot')
+    >>> t.write('table.tex', format='latex')
+
+>>> from astropy.table import Table
+>>> t = Table.read('photometry.dat', format='ascii.daophot')
+
+
+.. testcleanup::
+
+    >>> os.remove('photometry.dat')
 
 ..
   EXAMPLE END
@@ -54,7 +70,7 @@ example, download tables from Vizier catalogues in CDS format
 For certain file formats the format can be automatically detected, for
 example, from the filename extension::
 
-    >>> t = Table.read('table.tex')  # doctest: +SKIP
+    >>> t = Table.read('table.tex')
 
 ..
   EXAMPLE END
@@ -65,7 +81,13 @@ example, from the filename extension::
 
 For writing a table, the format can be explicitly specified::
 
-    >>> t.write(filename, format='latex')  # doctest: +SKIP
+    >>> t.write('some_filename', format='latex')
+
+.. testcleanup::
+
+    >>> import pathlib
+    >>> pathlib.Path.unlink('table.tex')
+    >>> pathlib.Path.unlink('some_filename')
 
 As for the :meth:`~astropy.table.Table.read` method, the format may
 be automatically identified in some cases.
@@ -98,8 +120,8 @@ A full list of the supported formats and corresponding classes is shown in the
 table below. The ``Write`` column indicates those formats that support write
 functionality, and the ``Suffix`` column indicates the filename suffix
 indicating a particular format. If the value of ``Suffix`` is ``auto``, the
-format is auto-detected from the file itself. Not all formats support auto-
-detection.
+format is auto-detected from the file itself. Not all formats support
+auto-detection.
 
 ===========================  =====  ======  ============================================================================================
            Format            Write  Suffix                                          Description

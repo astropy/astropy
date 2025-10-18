@@ -63,7 +63,6 @@ def test_sigma_clip():
         assert filtered_data.count() == 25
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_axis_none():
     """
     For masked=False and axis=None, masked elements should be removed

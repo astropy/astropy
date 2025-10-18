@@ -12,6 +12,8 @@ All units are also available in (and should be used through) the
 `astropy.units` namespace.
 """
 
+import unicodedata
+
 from astropy.units import photometric
 from astropy.units.core import CompositeUnit, UnitBase, _add_prefixes
 
@@ -70,12 +72,16 @@ m_bol.__doc__ = (
 ###########################################################################
 # DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, (UnitBase, MagUnit))]
+__all__ += [
+    n
+    for n, v in _ns.items()
+    if isinstance(v, (UnitBase, MagUnit)) and unicodedata.normalize("NFKC", n) == n
+]
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the
     # standard units defined here.
-    from astropy.units.utils import generate_unit_summary as _generate_unit_summary
+    from astropy.units.docgen import generate_unit_summary as _generate_unit_summary
 
     def _description(unit):
         pu = unit.physical_unit.represents

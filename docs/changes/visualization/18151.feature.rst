@@ -1,0 +1,1 @@
+Enable color and suggestion-on-typos in ``fits2bitmap`` CLI for Python 3.14

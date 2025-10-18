@@ -3,40 +3,30 @@
 Handles the "VOUnit" unit format.
 """
 
-from __future__ import annotations
-
 import re
 import warnings
-from typing import TYPE_CHECKING
+from re import Pattern
+from typing import ClassVar, Literal
 
+import numpy as np
+
+from astropy.extern.ply.lex import LexToken
 from astropy.units.core import (
     CompositeUnit,
     NamedUnit,
     PrefixUnit,
+    UnitBase,
     def_unit,
     dimensionless_unscaled,
     si_prefixes,
 )
-from astropy.units.errors import (
-    UnitParserWarning,
-    UnitScaleError,
-    UnitsError,
-    UnitsWarning,
-)
+from astropy.units.enums import DeprecatedUnitAction
+from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
+from astropy.units.typing import UnitScale
 from astropy.utils import classproperty
 
-from . import Base, utils
+from . import Base
 from .generic import _GenericParserMixin
-
-if TYPE_CHECKING:
-    from re import Pattern
-    from typing import ClassVar, Literal
-
-    import numpy as np
-
-    from astropy.extern.ply.lex import LexToken
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitScale
 
 
 class VOUnit(Base, _GenericParserMixin):
@@ -60,7 +50,7 @@ class VOUnit(Base, _GenericParserMixin):
         from astropy import units as u
         from astropy.units import required_by_vounit as uvo
 
-        names = {}
+        names = {"as": u.attosecond}
         deprecated_names = set()
         # The tropical year is missing here compared to the standard
         bases = [
@@ -81,13 +71,14 @@ class VOUnit(Base, _GenericParserMixin):
         deprecated_units = {"angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta"}
 
         def do_defines(bases, prefixes, skips=[]):
-            for key, base in utils.get_non_keyword_units(bases, prefixes):
-                if key not in skips:
-                    names[key] = getattr(u if hasattr(u, key) else uvo, key)
-                    if base in deprecated_units:
-                        deprecated_names.add(key)
+            for base in bases:
+                for prefix in prefixes:
+                    if (key := prefix + base) not in skips:
+                        names[key] = getattr(u if hasattr(u, key) else uvo, key)
+                        if base in deprecated_units:
+                            deprecated_names.add(key)
 
-        do_defines(bases, si_prefixes, ["pct", "pcount", "yd"])
+        do_defines(bases, si_prefixes, ["pct", "pcount", "yd", "as"])
         do_defines(binary_bases, si_prefixes + binary_prefixes, ["dB", "dbyte"])
         do_defines(simple_units, [""])
 
@@ -135,7 +126,11 @@ class VOUnit(Base, _GenericParserMixin):
             raise
 
     @classmethod
-    def _decompose_to_known_units(cls, unit: CompositeUnit | NamedUnit) -> UnitBase:
+    def _decompose_to_known_units(
+        cls,
+        unit: CompositeUnit | NamedUnit,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
+    ) -> UnitBase:
         # The da- and d- prefixes are discouraged.  This has the
         # effect of adding a scale to value in the result.
         if isinstance(unit, PrefixUnit) and unit._represents.scale in (0.1, 10.0):
@@ -145,7 +140,7 @@ class VOUnit(Base, _GenericParserMixin):
             and unit._get_format_name(cls.name) in cls._custom_units
         ):
             return unit
-        return super()._decompose_to_known_units(unit)
+        return super()._decompose_to_known_units(unit, deprecations)
 
     @classmethod
     def _def_custom_unit(cls, unit: str) -> UnitBase:
@@ -201,10 +196,13 @@ class VOUnit(Base, _GenericParserMixin):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         # Remove units that aren't known to the format
-        unit = cls._decompose_to_known_units(unit)
+        unit = cls._decompose_to_known_units(unit, deprecations)
 
         if unit.physical_type == "dimensionless" and unit.scale != 1:
             raise UnitScaleError(
@@ -222,14 +220,3 @@ class VOUnit(Base, _GenericParserMixin):
             if x in cls._deprecated_units
             else [x]
         )
-
-    @classmethod
-    def _validate_unit(cls, unit: str, detailed_exception: bool = True) -> UnitBase:
-        if unit in cls._deprecated_units:
-            warnings.warn(
-                UnitsWarning(
-                    f"The unit '{unit}' has been deprecated in the VOUnit standard."
-                    f" Suggested: {cls.to_string(cls._units[unit]._represents)}."
-                )
-            )
-        return super()._validate_unit(unit, detailed_exception)

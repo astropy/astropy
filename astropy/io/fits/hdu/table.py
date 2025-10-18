@@ -453,7 +453,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         else:
             return len(self.data)
 
-    @lazyproperty
+    @property
     def _theap(self):
         size = self._header["NAXIS1"] * self._header["NAXIS2"]
         return self._header.get("THEAP", size)
@@ -774,8 +774,7 @@ class TableHDU(_TableBaseHDU):
 
             d = np.append(bytes_array, padding)
 
-            cs = self._compute_checksum(d)
-            return cs
+            return self._compute_checksum(d)
         else:
             # This is the case where the data has not been read from the file
             # yet.  We can handle that in a generic manner so we do it in the
@@ -869,11 +868,28 @@ class BinTableHDU(_TableBaseHDU):
         with _binary_table_byte_swap(self.data) as data:
             csum = self._compute_checksum(data.view(type=np.ndarray, dtype=np.ubyte))
 
-            # Now add in the heap data to the checksum (we can skip any gap
+            # determine if we can read the heap data from the file on disk
+            try_from_disk = self._manages_own_heap or not self._data_loaded
+
+            # Now add in the heap data to the checksum. We can skip any gap
             # between the table and the heap since it's all zeros and doesn't
-            # contribute to the checksum
-            csum = self._compute_checksum(data._get_heap_data(), csum)
-            return csum
+            # contribute to the checksum. However, the heap may not start at a
+            # boundary between the 4-byte blocks used for the checksum (32 bits),
+            # either because there's no THEAP keyword and the main table data
+            # ends in the middle of a 4-byte block, or because the THEAP keyword
+            # exists and it's not a multiple of 4. In those cases, we must pad
+            # the heap data with zeros, such that it is aligned correctly
+            # for the checksum calculation. We do this by padding the first few
+            # bytes of the heap (if necessary), then calculating the checksum for
+            # the rest of the heap data normally.
+            heap_data = data._get_heap_data(try_from_disk)
+            if extra := self._theap % 4:
+                first_part = np.zeros(4, dtype=np.ubyte)
+                first_part[extra:] = heap_data[: 4 - extra]
+                csum = self._compute_checksum(first_part, csum)
+                return self._compute_checksum(heap_data[4 - extra :], csum)
+
+            return self._compute_checksum(heap_data, csum)
 
     def _calculate_datasum(self):
         """
@@ -914,7 +930,10 @@ class BinTableHDU(_TableBaseHDU):
 
             nbytes = data._gap
 
-            heap_data = data._get_heap_data()
+            # determine of we can read the heap data from the file on disk
+            try_from_disk = self._manages_own_heap or not self._data_loaded
+
+            heap_data = data._get_heap_data(try_from_disk)
             if len(heap_data) > 0:
                 nbytes += len(heap_data)
                 fileobj.writearray(heap_data)

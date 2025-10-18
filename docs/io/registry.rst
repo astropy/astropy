@@ -51,8 +51,8 @@ Here we assume that we are trying to write a reader/writer for the
 
 Such a function can then be registered with the I/O registry::
 
-    from astropy.io import registry
-    registry.register_reader('my-table-format', Table, my_table_reader)
+    >>> from astropy.io import registry
+    >>> registry.register_reader('my-table-format', Table, my_table_reader)
 
 where the first argument is the name of the format, the second argument is the
 class that the function returns an instance for, and the third argument is the
@@ -60,7 +60,7 @@ reader itself.
 
 We can then read in a table with::
 
-    d = Table.read('my_table_file.mtf', format='my-table-format')
+    >>> d = Table.read('my_table_file.mtf', format='my-table-format')  # doctest: +SKIP
 
 In practice, it would be nice to have the ``read`` method automatically
 identify that this file is in the ``my-table-format`` format, so we can
@@ -81,11 +81,11 @@ expected for the format. In our example, we want to automatically recognize
 files with filenames ending in ``.mtf`` as being in the ``my-table-format``
 format::
 
-    import os
-
-    def identify_mtf(origin, *args, **kwargs):
-        return (isinstance(args[0], str) and
-                os.path.splitext(args[0].lower())[1] == '.mtf')
+    >>> import os
+    >>>
+    >>> def identify_mtf(origin, *args, **kwargs):
+    ...     return (isinstance(args[0], str) and
+    ...             os.path.splitext(args[0].lower())[1] == '.mtf')
 
 .. note::
 
@@ -95,11 +95,11 @@ format::
 
 We then register this identifier function, similarly to the reader function::
 
-    registry.register_identifier('my-table-format', Table, identify_mtf)
+    >>> registry.register_identifier('my-table-format', Table, identify_mtf)
 
 Having registered this function, we can then do::
 
-    t = Table.read('catalog.mtf')
+    >>> t = Table.read('catalog.mtf')  # doctest: +SKIP
 
 If multiple formats match the current input, then an exception is
 raised, and similarly if no format matches the current input. In that
@@ -109,9 +109,9 @@ keyword argument.
 It is also possible to create custom writers. To go with our custom reader
 above, we can write a custom writer::
 
-   def my_table_writer(table, filename, overwrite=False):
-       ...  # Write the table out to a file
-       return ...  # generally None, but other values are not forbidden.
+    >>> def my_table_writer(table, filename, overwrite=False):
+    ...     # Write the table out to a file
+    ...     return None  # generally None, but other values are not forbidden.
 
 Writer functions should take a dataset object (either an instance of the
 :class:`~astropy.table.Table` or :class:`~astropy.nddata.NDData`
@@ -121,15 +121,24 @@ be used.
 
 We then register the writer::
 
-   registry.register_writer('my-custom-format', Table, my_table_writer)
+   >>> registry.register_writer('my-table-format', Table, my_table_writer)
 
-We can write the table out to a file::
+We can write the table out to a file:
 
-   t.write('catalog_new.mtf', format='my-table-format')
+.. testsetup::
+    >>> t = Table()
+
+>>> t.write('catalog_new.mtf', format='my-table-format')
 
 Since we have already registered the identifier function, we can also do::
 
-   t.write('catalog_new.mtf')
+    >>> t.write('catalog_new.mtf')
+
+.. testcleanup::
+    >>> registry.unregister_reader('my-table-format', Table)
+    >>> registry.unregister_writer('my-table-format', Table)
+    >>> registry.unregister_identifier('my-table-format', Table)
+
 
 ..
   EXAMPLE END

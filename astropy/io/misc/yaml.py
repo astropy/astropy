@@ -55,6 +55,7 @@ Examples
 """
 
 import base64
+import itertools
 
 import numpy as np
 import yaml
@@ -78,8 +79,7 @@ def _unit_constructor(loader, node):
 
 
 def _serialized_column_representer(dumper, obj):
-    out = dumper.represent_mapping("!astropy.table.SerializedColumn", obj)
-    return out
+    return dumper.represent_mapping("!astropy.table.SerializedColumn", obj)
 
 
 def _serialized_column_constructor(loader, node):
@@ -94,8 +94,7 @@ def _time_representer(dumper, obj):
 
 def _time_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = Time.info._construct_from_dict(map)
-    return out
+    return Time.info._construct_from_dict(map)
 
 
 def _timedelta_representer(dumper, obj):
@@ -105,8 +104,7 @@ def _timedelta_representer(dumper, obj):
 
 def _timedelta_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = TimeDelta.info._construct_from_dict(map)
-    return out
+    return TimeDelta.info._construct_from_dict(map)
 
 
 def _ndarray_representer(dumper, obj):
@@ -181,14 +179,12 @@ def _quantity_constructor(cls):
 
 def _skycoord_representer(dumper, obj):
     map = obj.info._represent_as_dict()
-    out = dumper.represent_mapping("!astropy.coordinates.sky_coordinate.SkyCoord", map)
-    return out
+    return dumper.represent_mapping("!astropy.coordinates.sky_coordinate.SkyCoord", map)
 
 
 def _skycoord_constructor(loader, node):
     map = loader.construct_mapping(node)
-    out = coords.SkyCoord.info._construct_from_dict(map)
-    return out
+    return coords.SkyCoord.info._construct_from_dict(map)
 
 
 # Straight from yaml's Representer
@@ -281,6 +277,7 @@ AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_, yaml.representer.SafeRepresenter.represent_bool)
+AstropyDumper.add_representer(np.str_, yaml.representer.SafeRepresenter.represent_str)
 for np_type in [
     np.intc,
     np.intp,
@@ -333,15 +330,22 @@ for cls, tag in (
     AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
     AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
-for cls in list(coords.representation.REPRESENTATION_CLASSES.values()) + list(
-    coords.representation.DIFFERENTIAL_CLASSES.values()
-):
+# Add representations, differentials, and built-in frames defined in astropy and in the
+# ``astropy.coordinates`` public API.
+cls_coords = [
+    cls
+    for cls in itertools.chain(
+        coords.representation.REPRESENTATION_CLASSES.values(),
+        coords.representation.DIFFERENTIAL_CLASSES.values(),
+        coords.frame_transform_graph.frame_set,
+    )
+    if cls.__name__ in dir(coords)
+]
+for cls in cls_coords:
     name = cls.__name__
-    # Add representations/differentials defined in astropy.
-    if name in coords.representation.__all__:
-        tag = "!astropy.coordinates." + name
-        AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
-        AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
+    tag = "!astropy.coordinates." + name
+    AstropyDumper.add_multi_representer(cls, _quantity_representer(tag))
+    AstropyLoader.add_constructor(tag, _quantity_constructor(cls))
 
 
 def load(stream):
