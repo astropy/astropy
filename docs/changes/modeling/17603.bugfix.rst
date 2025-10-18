@@ -1,0 +1,2 @@
+* Fixed an issue where a model created via ``fix_inputs`` did not have
+  ``fittable = True`` even if the underlying model was fittable.
