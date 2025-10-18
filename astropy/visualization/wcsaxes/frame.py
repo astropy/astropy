@@ -127,11 +127,13 @@ class Spine:
             Barycentric coordinate, must be between 0 and 1. Default 0.5
         """
         if not 0 <= bary <= 1:
-            raise ValueError(f"Given barycentric coordinate {bary} does not lie within the [0,1] range")
+            raise ValueError(
+                f"Given barycentric coordinate {bary} does not lie within the [0,1] range"
+            )
         pixel = self._get_pixel()
         normal_angle = self.normal_angle
         # Flip pixels if element vectors are not well oriented
-        if np.all(np.abs((self.normal_angle - 135) % 360 - 180) <= 90., axis=0):
+        if np.all(np.abs((self.normal_angle - 135) % 360 - 180) <= 90.0, axis=0):
             pixel = pixel[::-1]
             normal_angle = normal_angle[::-1]
         x_disp, y_disp = pixel[:, 0], pixel[:, 1]

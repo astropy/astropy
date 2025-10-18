@@ -743,13 +743,20 @@ class CoordinateHelper:
         if minpad is None:
             minpad = 1
 
-        protected_kw = ['x', 'y', 'rotation', 'horizontalalignment', 'ha', 'rotation_mode']
+        protected_kw = [
+            "x",
+            "y",
+            "rotation",
+            "horizontalalignment",
+            "ha",
+            "rotation_mode",
+        ]
         if {*kwargs} & {*protected_kw}:
             warnings.warn(
-                 "Any of the axis label low level keyword arguments "
+                "Any of the axis label low level keyword arguments "
                 f"({protected_kw}) of the 'loc' keyword argument will be "
-                 "overwritten during the rendering. Use the 'loc' keyword "
-                 "argument instead."
+                "overwritten during the rendering. Use the 'loc' keyword "
+                "argument instead."
             )
 
         self._axislabel_set = True

@@ -26,7 +26,7 @@ class AxisLabels(Text):
         self.set_visible_axes("all")
         self.set_minpad(minpad)
         self.set_loc(loc)
-        self.set_rotation_mode('anchor')
+        self.set_rotation_mode("anchor")
         self.set_visibility_rule("labels")
 
     def get_minpad(self, axis):
@@ -101,30 +101,30 @@ class AxisLabels(Text):
             padding = text_size * self.get_minpad(axis)
 
             loc = self.get_loc(axis)
-            if axis in 'tbhc':
-                loc = (loc if loc is not None
-                       else rcParams['xaxis.labellocation'])
-                _api.check_in_list(('left', 'center', 'right'), loc=loc)
+            if axis in "tbhc":
+                loc = loc if loc is not None else rcParams["xaxis.labellocation"]
+                _api.check_in_list(("left", "center", "right"), loc=loc)
 
                 bary = {
-                    'left': 0,
-                    'center': 0.5,
-                    'right': 1,
+                    "left": 0,
+                    "center": 0.5,
+                    "right": 1,
                 }[loc]
-            elif axis in 'lrv':
-                loc = (loc if loc is not None
-                       else rcParams['yaxis.labellocation'])
-                _api.check_in_list(('bottom', 'center', 'top'), loc=loc)
+            elif axis in "lrv":
+                loc = loc if loc is not None else rcParams["yaxis.labellocation"]
+                _api.check_in_list(("bottom", "center", "top"), loc=loc)
 
                 bary, loc = {
-                    'bottom': (0, 'right'),
-                    'center': (0.5, 'center'),
-                    'top': (1, 'left')
+                    "bottom": (0, "right"),
+                    "center": (0.5, "center"),
+                    "top": (1, "left"),
                 }[loc]
             else:
                 if loc != "center":
-                    warnings.warn(f"Only loc = 'center' is implemented at the moment for axis '{axis}'")
-                loc = 'center'
+                    warnings.warn(
+                        f"Only loc = 'center' is implemented at the moment for axis '{axis}'"
+                    )
+                loc = "center"
                 bary = 0.5
 
             # Find position of the axis label. For now we pick the mid-point
@@ -136,12 +136,8 @@ class AxisLabels(Text):
             if 135 < label_angle < 225:
                 label_angle += 180
             self.set_rotation(label_angle)
-            if  45 < label_angle < 135:
-                loc = {
-                    'left': 'right',
-                    'center': 'center',
-                    'right': 'left'
-                }[loc]
+            if 45 < label_angle < 135:
+                loc = {"left": "right", "center": "center", "right": "left"}[loc]
             self.set_ha(loc)
 
             # Find label position by looking at the bounding box of ticks'
