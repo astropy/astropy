@@ -4,7 +4,7 @@ import warnings
 
 import matplotlib.transforms as mtransforms
 import numpy as np
-from matplotlib import rcParams, _api
+from matplotlib import _api, rcParams
 from matplotlib.text import Text
 
 from .frame import RectangularFrame
@@ -112,7 +112,6 @@ class AxisLabels(Text):
                     'right': 1,
                 }[loc]
             elif axis in 'lrv':
-                pass
                 loc = (loc if loc is not None
                        else rcParams['yaxis.labellocation'])
                 _api.check_in_list(('bottom', 'center', 'top'), loc=loc)
