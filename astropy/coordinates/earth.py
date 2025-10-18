@@ -6,7 +6,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from typing import NamedTuple
-from warnings import warn
 
 import numpy as np
 
@@ -15,7 +14,6 @@ from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
 from astropy.utils.compat import COPY_IF_NEEDED
-from astropy.utils.exceptions import AstropyUserWarning
 
 from .angles import Angle, Latitude, Longitude
 from .errors import UnknownSiteException
@@ -542,11 +540,10 @@ class EarthLocation(u.Quantity):
         return cls._get_site_registry(force_download=refresh_cache).names
 
     @classmethod
-    def _get_site_registry(cls, force_download=False, force_builtin=False):
+    def _get_site_registry(cls, force_download=False):
         """
-        Gets the site registry.  The first time this either downloads or loads
-        from the data file packaged with astropy.  Subsequent calls will use the
-        cached version unless explicitly overridden.
+        Gets the site registry.  The first time this tries to download the data.
+        Subsequent calls will use the cached version unless explicitly overridden.
 
         Parameters
         ----------
@@ -554,39 +551,18 @@ class EarthLocation(u.Quantity):
             If not False, force replacement of the cached registry with a
             downloaded version. If a str, that will be used as the URL to
             download from (if just True, the default URL will be used).
-        force_builtin : bool
-            If True, load from the data file bundled with astropy and set the
-            cache to that.
 
         Returns
         -------
         reg : astropy.coordinates.sites.SiteRegistry
         """
         # need to do this here at the bottom to avoid circular dependencies
-        from .sites import get_builtin_sites, get_downloaded_sites
+        from .sites import get_downloaded_sites
 
-        if force_builtin and force_download:
-            raise ValueError("Cannot have both force_builtin and force_download True")
-
-        if force_builtin:
-            cls._site_registry = get_builtin_sites()
-        else:
-            if force_download or not cls._site_registry:
-                try:
-                    if isinstance(force_download, str):
-                        cls._site_registry = get_downloaded_sites(force_download)
-                    else:
-                        cls._site_registry = get_downloaded_sites()
-                except OSError:
-                    if force_download:
-                        raise
-                    msg = (
-                        "Could not access the main site list. Falling back on the "
-                        "built-in version, which is rather limited. If you want to "
-                        "retry the download, use the option 'refresh_cache=True'."
-                    )
-                    warn(msg, AstropyUserWarning)
-                    cls._site_registry = get_builtin_sites()
+        if force_download or not cls._site_registry:
+            cls._site_registry = get_downloaded_sites(
+                force_download if isinstance(force_download, str) else None
+            )
         return cls._site_registry
 
     @property

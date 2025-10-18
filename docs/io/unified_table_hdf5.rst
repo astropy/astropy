@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _table_io_hdf5:
 
 HDF5
@@ -23,7 +21,17 @@ Examples
   Reading from and Writing to HDF5 Files
 
 To read a table called ``data`` from an HDF5 file named ``observations.hdf5``,
-you can do::
+you can do:
+
+.. testsetup::
+    >>> from astropy.table import QTable
+    >>> tab = QTable({'col1': [1, 2, 3], 'col2': ['a', 'b', 'c']})
+    >>> from astropy.utils.compat.optional_deps import HAS_H5PY
+    >>> if HAS_H5PY:
+    ...     tab.write('observations.hdf5', path='data')
+    ...     tab.write('observations.hdf5', path='group/data', append=True)
+
+::
 
     >>> from astropy.table import QTable
     >>> t = QTable.read('observations.hdf5', path='data')
@@ -48,7 +56,7 @@ file that has multiple datasets, use *both* the ``overwrite=True`` and
 Finally, when writing to HDF5 files, the ``compression=`` argument can be
 used to ensure that the data is compressed on disk::
 
-    >>> t.write('new_file.hdf5', path='updated_data', compression=True)
+    >>> t.write('new_file.hdf5', path='updated_data', compression=True, overwrite=True)
 
 ..
   EXAMPLE END
@@ -77,7 +85,7 @@ in a separate HDF5 dataset, contained in the same file, which is named
 ``<path>.__table_column_meta__``. Here ``path`` is the argument provided in
 the call to ``write()``::
 
-    >>> t.write('observations.hdf5', path='data', serialize_meta=True)
+    >>> t.write('observations.hdf5', path='data', serialize_meta=True, overwrite=True)
 
 The table metadata are stored as a dataset of strings by serializing the
 metadata in YAML following the `ECSV header format
@@ -93,3 +101,9 @@ to HDF5 tables that contain :ref:`mixin_columns` such as `~astropy.time.Time` or
 .. note::
     Certain kind of metadata (e.g., numpy object arrays) cannot be serialized correctly
     using YAML.
+
+.. testcleanup::
+    >>> import os
+    >>> if HAS_H5PY:
+    ...     os.remove('new_file.hdf5')
+    ...     os.remove('observations.hdf5')

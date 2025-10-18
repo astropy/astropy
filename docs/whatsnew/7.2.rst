@@ -12,8 +12,9 @@ the 7.1 release.
 
 In particular, this release includes:
 
-* `Faster ECSV reader with support for different engines <#faster-ecsv-readers>`_
-* ...
+* `Faster ECSV reader with support for different engines <#faster-ecsv-table-reader>`_
+* `Generic DataFrame conversion methods with multi-backend support <#generic-dataframe-conversion-methods>`_
+* `Table index improvements and deprecation <#table-index-improvements-and-deprecation>`_
 * ...
 
 In addition to these major changes, Astropy v7.2 includes a large number of
@@ -74,6 +75,86 @@ engine=...)``, where ``engine`` is one of ``"io.ascii"``, ``"pyarrow"``, or
 You can also write an `astropy.table.Table` or `astropy.table.QTable` using
 ``format="ecsv"``, but this is just a thin wrapper around the ``format="ascii.ecsv"``
 writer.
+
+Generic DataFrame conversion methods
+====================================
+
+Astropy 7.2 introduces new generic DataFrame conversion methods that support multiple
+DataFrame backends through the `Narwhals <https://narwhals-dev.github.io/narwhals/>`_
+library. These new methods complement the existing pandas-specific methods:
+
+* **New generic methods**: :meth:`~astropy.table.Table.to_df` and
+  :meth:`~astropy.table.Table.from_df` support multiple DataFrame libraries
+* **Existing pandas methods**: :meth:`~astropy.table.Table.to_pandas` and
+  :meth:`~astropy.table.Table.from_pandas` remain available for pandas-specific workflows
+
+The generic methods require the ``narwhals`` package to be installed::
+
+    python -m pip install narwhals
+
+Supported DataFrame backends include:
+
+* **pandas** - Full feature support with DataFrame indexing
+* **polars** - High-performance DataFrames with multidimensional array support
+* **pyarrow** - In-memory columnar format (limited to 1D arrays)
+* **modin** - Distributed pandas-compatible DataFrames
+* **cudf** - GPU-accelerated DataFrames
+
+.. note::
+   Currently, only **pandas**, **polars**, and **pyarrow** are explicitly tested in the
+   Astropy test suite. Other narwhals-compatible backends should work in principle but
+   may exhibit unexpected behavior.
+
+Example usage::
+
+    from astropy.table import Table
+    t = Table({'a': [1, 2, 3], 'b': ['x', 'y', 'z']})
+
+    # Convert to different backends
+    df_pandas = t.to_df("pandas")
+    df_polars = t.to_df("polars")
+    df_pyarrow = t.to_df("pyarrow")
+
+    # You can also specify the backend with a module
+    import polars as pl
+    df_polars = t.to_df(pl)
+
+    # Convert back from any supported DataFrame
+    t2 = Table.from_df(df_polars)
+
+The pandas-specific methods are still maintained for legacy applications.
+The generic methods provide the same
+feature set while enabling broader DataFrame ecosystem compatibility through a
+unified API.
+
+See :ref:`df_narwhals` for detailed documentation and examples.
+
+Table index improvements and deprecation
+========================================
+
+A new method has been added for accessing a table index for tables with multiple
+indices. You can now select the index with the ``with_index(index_id)`` method of the
+``.loc``, ``.iloc``, and ``.loc_indices`` properties. In addition, support has been
+added for using these indexed search properties with an index based on two or more key
+columns. Previously this raised a ``ValueError``
+
+The example below illustrates both of these new features:
+
+>>> from astropy.table import QTable
+>>> t = QTable({"a": ["x", "z", "y"], "b": [2.0, 1.0, 1.5], "c": ["a", "b", "c"]})
+>>> t.add_index("a")
+>>> t.add_index(["a", "b"])
+>>> t.loc.with_index("a", "b")["y", 1.5]  # select index ("a", "b")
+<Row index=2>
+ a      b     c
+str1 float64 str1
+---- ------- ----
+   y     1.5    c
+
+The previous syntax for selecting the index is now deprecated and planned for removal in
+astropy 9.0.  Here the index identifier was the first element of the item, e.g.,
+``t.loc["a", "z"]`` to use the index on column ``"a"`` to find rows with
+``t["a"] == "z"``.
 
 Cosmology
 =========
@@ -166,3 +247,25 @@ object::
 When using this, any input/output world coordinates will now be in these
 units, and accessing any of the parameters such as ``wcs.wcs.crval`` will
 return values in the original header units.
+
+Concatenation and stacking of astropy classes
+=============================================
+
+Support has been added to apply numpy functions such as `~numpy.concatenate`
+and `~numpy.stack` to sequences of |SkyCoord|, |Time|, as well as coordinate
+representations and frames.
+
+Note that a current limitation is that instance attributes like ``location``
+for |Time| and ``obstime`` for |SkyCoord| must be the same (and scalar) for
+all instances that are being concatenated or stacked. These constraints are
+the same as for setting elements of an existing instance.
+
+For coordinates, this new ability replaces the existing functions
+``astropy.coordinates.concatenate_representations`` and
+``astropy.coordinates.concatenate``, and hence using these will now lead to a
+pending deprecation warning. Note that there are small differences in
+behaviour. In general, the new route is more flexible, but an exception is
+that the existing functions allowed one to concatenate scalars together with
+one-dimensional arrays, while this is not allowed with `~numpy.concatenate`.
+Instead, like for arrays, one has to explicitly ensure arrays, e.g., by using
+``np.concatenate(np.atleast_1d(coords))``.

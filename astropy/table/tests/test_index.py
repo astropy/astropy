@@ -14,6 +14,7 @@ from astropy.table.soco import SCEngine
 from astropy.table.sorted_array import SortedArray
 from astropy.time import Time
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .test_table import SetupData
 
@@ -418,12 +419,12 @@ class TestIndex(SetupData):
         assert_col_equal(t2["a"], [1, 4, 2])
         t2 = t.loc[self.make_val(3) : self.make_val(5)]  # range search
         assert_col_equal(t2["a"], [3, 4, 5])
-        t2 = t.loc["b", 5.0:7.0]
+        t2 = t.loc.with_index("b")[5.0:7.0]
         assert_col_equal(t2["b"], [5.1, 6.2, 7.0])
         # search by sorted index
         t2 = t.iloc[0:2]  # two smallest rows by column 'a'
         assert_col_equal(t2["a"], [1, 2])
-        t2 = t.iloc["b", 2:]  # exclude two smallest rows in column 'b'
+        t2 = t.iloc.with_index("b")[2:]  # exclude two smallest rows in column 'b'
         assert_col_equal(t2["b"], [5.1, 6.2, 7.0])
 
         for t2 in (t.loc[:], t.iloc[:]):
@@ -636,10 +637,8 @@ def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length,
 
     Tests fix for #18037.
     """
-    if key is not None:
-        item = (key, item)
-
-    tloc = simple_table.loc[item]
+    loc = simple_table.loc.with_index(key) if key is not None else simple_table.loc
+    tloc = loc[item]
     assert isinstance(tloc, cls)
     assert tloc.colnames == simple_table.colnames
 
@@ -647,6 +646,51 @@ def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length,
     if cls is Table:
         assert len(tloc) == length
         assert len(rows) == length
+
+
+@pytest.mark.parametrize(
+    "method,item",
+    [
+        ("loc", (2, 5)),
+        ("iloc", 1),
+        ("loc_indices", (2, 5)),
+    ],
+)
+def test_index_id_item_deprecation_and_with_index(method, item):
+    """t.loc/iloc/loc_indices[index_id, item] raises a deprecation warning.
+
+    Also test that these methods
+    """
+    t = Table()
+    t["a"] = [1, 2, 3]
+    t["b"] = [4, 5, 6]
+    t["c"] = ["x", "y", "z"]
+    index_id = ("a", "b")
+    t.add_index(index_id)
+    prop = getattr(t, method)
+    # Test calling like t.loc.with_index("a", "b") and t.loc.with_index(("a", "b")).
+    out_call_1 = prop.with_index(*index_id)[item]
+    out_call_2 = prop.with_index(index_id)[item]
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Calling `Table.loc/iloc/loc_indices\[index_id, item\]`",
+    ):
+        out_depr = prop[index_id, item]
+    assert type(out_depr) is type(out_call_1)
+    assert out_depr == out_call_1
+    assert type(out_call_1) is type(out_call_2)
+    assert out_call_1 == out_call_2
+
+
+def test_engine_type_error():
+    t = Table()
+    t["a"] = [1, 2]
+    t["b"] = [3, 4]
+    with pytest.raises(
+        TypeError,
+        match=r"engine must be an Engine class or instance, got 'b' instead.",
+    ):
+        t.add_index("a", "b")  # Easy mistake, too bad engine= is not keyword-only
 
 
 @pytest.mark.parametrize(
@@ -665,3 +709,108 @@ def test_nd_columun_as_index(masked):
         ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
     ):
         t.add_index("arr")
+
+
+@pytest.mark.parametrize("index_first", [True, False])
+def test_slice_an_indexed_table(index_first):
+    """Test slicing a table that is already indexed.
+
+    Test of fix for https://github.com/astropy/astropy/issues/10732.
+
+    #10732 is the case index_first=True, but also test slicing first (index_first=False)
+    since we're at it.
+    """
+    t = Table()
+    t["a"] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    t["b"] = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+    t["c"] = ["e", "f", "g", "h", "i", "j", "k", "a", "b", "c"]
+
+    if index_first:
+        t.add_index("a")
+        t.add_index(["b", "c"])
+        ts = t[::2]
+    else:
+        ts = t[::2]
+        ts.add_index("a")
+        ts.add_index(["b", "c"])
+
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  5   0   i",
+        "  3   1   k",
+        "  1   1   b",
+    ]
+    # Index access works
+    assert str(ts.loc[5]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  5   0   i",
+    ]
+
+    # Remove row 2 (a==5), check index access still works
+    ts.remove_row(2)
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  3   1   k",
+        "  1   1   b",
+    ]
+    assert str(ts.loc[1]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  1   1   b",
+    ]
+
+    # Remove row 2 (now a==3), check index access still works
+    ts.remove_row(2)
+    assert ts.pformat() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  9   0   e",
+        "  7   0   g",
+        "  1   1   b",
+    ]
+    assert str(ts.loc[7]).splitlines() == [
+        " a   b   c ",
+        "--- --- ---",
+        "  7   0   g",
+    ]
+
+    # Make sure primary index and secondary index look right (with original=True)
+    assert str(ts.indices[0]).splitlines() == [
+        "<SlicedIndex original=True index=<Index columns=('a',) data=<SortedArray length=3>",
+        " a  rows",
+        "--- ----",
+        "  1    2",
+        "  7    1",
+        "  9    0>>",
+    ]
+    assert str(ts.indices[1]).splitlines() == [
+        "<SlicedIndex original=True index=<Index columns=('b', 'c') data=<SortedArray length=3>",
+        " b   c  rows",
+        "--- --- ----",
+        "  0   e    0",
+        "  0   g    1",
+        "  1   b    2>>",
+    ]
+
+
+def test_unique_indices_after_multicol_index_slice():
+    """Test that table indices after slicing are correct.
+
+    This tests code in Table._new_from_slice() that ensures uniqueness of table index
+    objects when slicing (via slice, ndarray, list etc) a table with a multi-column
+    index.
+    """
+    t = Table()
+    t["a"] = [2, 3]
+    t["b"] = [3, 5]
+    t.add_index(["a", "b"])
+    t2 = t[:1]
+    assert len(t2.indices) == 1  # without fix would be 2, both with id ("a", "b").
+    assert t2.indices[0].id == ("a", "b")

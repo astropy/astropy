@@ -133,6 +133,14 @@ class ImageNormalize(Normalize):
             if self.vmax is None:
                 self.vmax = _vmax
 
+    # Override the matplotlib method
+    def autoscale_None(self, A):
+        """
+        If vmin or vmax are not set, set them according to the interval.
+        If no interval is set, set them to the min/max of the data array.
+        """
+        self._set_limits(A)
+
     def __call__(self, values, clip=None, invalid=None):
         """
         Transform values using this normalization.

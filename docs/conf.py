@@ -532,17 +532,17 @@ links_to_become_substitutions: dict[str, str] = {
     "PEP8": "https://www.python.org/dev/peps/pep-0008",
     # Astropy
     "Astropy mailing list": "https://mail.python.org/mailman/listinfo/astropy",
-    "astropy-dev mailing list": "http://groups.google.com/group/astropy-dev",
+    "astropy-dev mailing list": "https://groups.google.com/group/astropy-dev",
     # NumPy
     "NumPy": "https://numpy.org",
     "numpydoc": "https://pypi.org/project/numpydoc",
     # erfa
     "ERFA": "https://github.com/liberfa/erfa",
-    "PyERFA": "http://pyerfa.readthedocs.org",
+    "PyERFA": "https://pyerfa.readthedocs.io",
     # matplotlib
     "Matplotlib": "https://matplotlib.org",
     # sofa
-    "SOFA": "http://www.iausofa.org/index.html",
+    "SOFA": "https://www.iausofa.org",
     # scipy
     "SciPy": "https://www.scipy.org",
     # packaging
@@ -576,7 +576,7 @@ links_to_become_substitutions: dict[str, str] = {
     "OpenAstronomy Packaging Guide": "https://packaging-guide.openastronomy.org/en/latest",
     # Miscellaneous
     "HDF5": "https://www.hdfgroup.org/HDF5",
-    "h5py": "http://www.h5py.org",
+    "h5py": "https://www.h5py.org",
     "Parquet": "https://parquet.apache.org",
 }
 

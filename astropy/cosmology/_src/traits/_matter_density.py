@@ -1,3 +1,8 @@
+"""Matter component."""
+
+from numpy.typing import ArrayLike
+
+from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
@@ -9,7 +14,7 @@ class _MatterComponent:
     """Omega matter; matter density/critical density at z=0."""
 
     @deprecated_keywords("z", since="7.0")
-    def Om(self, z):
+    def Om(self, z: Quantity | ArrayLike) -> FArray:
         """Return the density parameter for non-relativistic matter at redshift ``z``.
 
         Parameters
@@ -22,10 +27,9 @@ class _MatterComponent:
 
         Returns
         -------
-        Om : ndarray or float
+        Om : ndarray
             The density of non-relativistic matter relative to the critical
             density at each redshift.
-            Returns `float` if the input is scalar.
 
         Notes
         -----

@@ -262,3 +262,24 @@ def test_set_position_invalid_gridline():
         r"or a tuple, e.g. \('my-grid-line',\).",
     ):
         ax.coords[1].set_ticks_position("my-grid-line")
+
+
+def test_set_ticks_values():
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    xticks = [1795, 1780, 1783] * u.arcsec
+    ax.coords[0].set_format_unit(u.arcsec)
+    ax.coords[0].set_ticks(xticks)
+
+    # Force a draw to calculate the tick positions
+    _canvas.draw()
+    # This attribute only exists after a draw
+    lbl_world = ax.coords[0]._lbl_world
+    lbl_world1 = lbl_world[: len(lbl_world) // 2]
+
+    lbl_locations = u.Quantity(lbl_world1, unit=u.deg)
+    assert u.allclose(lbl_locations, ax.coords[0]._formatter_locator.values)
+    assert u.Quantity(lbl_world).unit is xticks.unit

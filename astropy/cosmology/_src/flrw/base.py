@@ -4,20 +4,20 @@ __all__ = ["FLRW", "FlatFLRWMixin"]
 
 import inspect
 import warnings
-from collections.abc import Mapping
 from dataclasses import field
 from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
-from typing import Self, TypeVar, overload
+from typing import Any, Final, NamedTuple, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
+from numpy.typing import ArrayLike, NDArray
 
 import astropy.constants as const
 import astropy.units as u
-from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.cosmology._src.typing import CosmoMeta, FArray
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -32,7 +32,9 @@ from astropy.cosmology._src.parameter import (
     validate_non_negative,
     validate_with_unit,
 )
+from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.traits import (
+    CurvatureComponent,
     DarkEnergyComponent,
     HubbleParameter,
     ScaleFactor,
@@ -47,15 +49,6 @@ from astropy.cosmology._src.utils import (
     vectorize_redshift_method,
 )
 
-# isort: split
-if HAS_SCIPY:
-    from scipy.integrate import quad
-else:
-
-    def quad(*args, **kwargs):
-        raise ModuleNotFoundError("No module named 'scipy.integrate'")
-
-
 __doctest_requires__ = {"*": ["scipy"]}
 _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number)
 
@@ -67,17 +60,65 @@ _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number
 # the initialization rather than have every object do them.
 
 # angle conversions
-_radian_in_arcsec = (1 * u.rad).to(u.arcsec)
-_radian_in_arcmin = (1 * u.rad).to(u.arcmin)
+RAD_IN_ARCSEC: Final = (1 * u.rad).to(u.arcsec)
+RAD_IN_ARCMIN: Final = (1 * u.rad).to(u.arcmin)
 # Radiation parameter over c^2 in cgs (g cm^-3 K^-4)
-_a_B_c2 = (4 * const.sigma_sb / const.c**3).cgs.value
+a_B_c2: Final = (4 * const.sigma_sb / const.c**3).cgs.value
 # Boltzmann constant in eV / K
-_kB_evK = const.k_B.to(u.eV / u.K)
+kB_evK: Final = const.k_B.to(u.eV / u.K)
 
+# See Komatsu et al. 2011, eq 26 and the surrounding discussion for an explanation of
+# what this does. However, this is modified to handle multiple neutrino masses by
+# computing the above for each mass, then summing
+NEUTRINO_FERMI_DIRAC_CORRECTION: Final = 0.22710731766  # 7/8 (4/11)^4/3
+
+# These are purely fitting constants -- see the Komatsu paper
+KOMATSU_P: Final = 1.83
+KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
+KOMATSU_K: Final = 0.3173
 
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")
 _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
+
+
+##############################################################################
+
+
+class NeutrinoInfo(NamedTuple):
+    """A container for neutrino information.
+
+    This is Private API.
+
+    """
+
+    n_nu: int
+    """Number of neutrino species (floor of Neff)."""
+
+    neff_per_nu: float | None
+    """Number of effective neutrino species per neutrino.
+
+    We are going to share Neff between the neutrinos equally. In detail this is not
+    correct, but it is a standard assumption because properly calculating it is a)
+    complicated b) depends on the details of the massive neutrinos (e.g., their weak
+    interactions, which could be unusual if one is considering sterile neutrinos).
+    """
+
+    has_massive_nu: bool
+    """Boolean of which neutrinos are massive."""
+
+    n_massive_nu: int
+    """Number of massive neutrinos."""
+
+    n_massless_nu: int
+    """Number of massless neutrinos."""
+
+    nu_y: NDArray[np.floating] | None
+    """The ratio m_nu / (kB T_nu) for each massive neutrino."""
+
+    nu_y_list: list[float] | None
+    """The ratio m_nu / (kB T_nu) for each massive neutrino as a list."""
+
 
 ##############################################################################
 
@@ -91,12 +132,14 @@ ParameterOde0 = Parameter(
 @dataclass_decorator
 class FLRW(
     Cosmology,
+    # Traits
+    _BaryonComponent,
+    _CriticalDensity,
+    _MatterComponent,
+    CurvatureComponent,
+    DarkEnergyComponent,
     HubbleParameter,
     ScaleFactor,
-    _CriticalDensity,
-    _BaryonComponent,
-    _MatterComponent,
-    DarkEnergyComponent,
     TemperatureCMB,
 ):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
@@ -187,53 +230,52 @@ class FLRW(
         doc="Omega baryon; baryonic matter density/critical density at z=0.",
     )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Compute neutrino parameters:
         if self.m_nu is None:
-            nneutrinos = 0
-            neff_per_nu = None
-            massivenu = False
-            massivenu_mass = None
-            nmassivenu = nmasslessnu = None
+            nu_info = NeutrinoInfo(
+                n_nu=0,
+                neff_per_nu=None,
+                has_massive_nu=False,
+                n_massive_nu=0,
+                n_massless_nu=0,
+                nu_y=None,
+                nu_y_list=None,
+            )
         else:
-            nneutrinos = floor(self.Neff)
-
-            # We are going to share Neff between the neutrinos equally. In
-            # detail this is not correct, but it is a standard assumption
-            # because properly calculating it is a) complicated b) depends on
-            # the details of the massive neutrinos (e.g., their weak
-            # interactions, which could be unusual if one is considering
-            # sterile neutrinos).
-            neff_per_nu = self.Neff / nneutrinos
-
-            # Now figure out if we have massive neutrinos to deal with, and if
-            # so, get the right number of masses. It is worth keeping track of
-            # massless ones separately (since they are easy to deal with, and a
-            # common use case is to have only one massive neutrino).
+            n_nu = floor(self.Neff)
             massive = np.nonzero(self.m_nu.value > 0)[0]
-            massivenu = massive.size > 0
-            nmassivenu = len(massive)
-            massivenu_mass = self.m_nu[massive].value if massivenu else None
-            nmasslessnu = nneutrinos - nmassivenu
+            has_massive_nu = massive.size > 0
+            n_massive_nu = len(massive)
 
-        object.__setattr__(self, "_nneutrinos", nneutrinos)
-        object.__setattr__(self, "_neff_per_nu", neff_per_nu)
-        object.__setattr__(self, "_massivenu", massivenu)
-        object.__setattr__(self, "_massivenu_mass", massivenu_mass)
-        object.__setattr__(self, "_nmassivenu", nmassivenu)
-        object.__setattr__(self, "_nmasslessnu", nmasslessnu)
+            # Compute Neutrino Omega and total relativistic component for massive
+            # neutrinos. We also store a list version, since that is more efficient
+            # to do integrals with (perhaps surprisingly! But small python lists
+            # are more efficient than small NumPy arrays).
+            if has_massive_nu:
+                nu_y = (self.m_nu[massive] / (kB_evK * self.Tnu0)).to_value(u.one)
+                nu_y_list = nu_y.tolist()
+            else:
+                nu_y = nu_y_list = None
 
-        # Compute Neutrino Omega and total relativistic component for massive
-        # neutrinos. We also store a list version, since that is more efficient
-        # to do integrals with (perhaps surprisingly! But small python lists
-        # are more efficient than small NumPy arrays).
-        if self._massivenu:  # (`_massivenu` set in `m_nu`)
-            nu_y = (self._massivenu_mass / (_kB_evK * self.Tnu0)).value
-            nu_y_list = nu_y.tolist()
-        else:
-            nu_y = nu_y_list = None
-        object.__setattr__(self, "_nu_y", nu_y)
-        object.__setattr__(self, "_nu_y_list", nu_y_list)
+            nu_info = NeutrinoInfo(
+                n_nu=n_nu,
+                # We share Neff between the neutrinos equally. In detail this is not
+                # correct. See NeutrinoInfo for more info.
+                neff_per_nu=self.Neff / n_nu,
+                # Now figure out if we have massive neutrinos to deal with, and if
+                # so, get the right number of masses. It is worth keeping track of
+                # massless ones separately (since they are easy to deal with, and a
+                # common use case is to have only one massive neutrino).
+                has_massive_nu=has_massive_nu,
+                n_massive_nu=n_massive_nu,
+                n_massless_nu=n_nu - n_massive_nu,
+                nu_y=nu_y,
+                nu_y_list=nu_y_list,
+            )
+
+        self._nu_info: NeutrinoInfo
+        object.__setattr__(self, "_nu_info", nu_info)
 
         # Subclasses should override this reference if they provide
         #  more efficient scalar versions of inv_efunc.
@@ -244,7 +286,7 @@ class FLRW(
     # Parameter details
 
     @Ob0.validator
-    def Ob0(self, param, value):
+    def Ob0(self, param: Parameter, value: Any) -> float:
         """Validate baryon density to a non-negative float > matter density."""
         if value is None:
             warnings.warn(
@@ -263,7 +305,7 @@ class FLRW(
         return value
 
     @m_nu.validator
-    def m_nu(self, param, value):
+    def m_nu(self, param: Parameter, value: Any) -> FArray | None:
         """Validate neutrino masses to right value, units, and shape.
 
         There are no neutrinos if floor(Neff) or Tcmb0 are 0. The number of
@@ -271,24 +313,24 @@ class FLRW(
         negative.
         """
         # Check if there are any neutrinos
-        if (nneutrinos := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
+        if (n_nu := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
             return None  # None, regardless of input
 
         # Validate / set units
         value = validate_with_unit(self, param, value)
 
         # Check values and data shapes
-        if value.shape not in ((), (nneutrinos,)):
+        if value.shape not in ((), (n_nu,)):
             raise ValueError(
                 "unexpected number of neutrino masses — "
-                f"expected {nneutrinos}, got {len(value)}."
+                f"expected {n_nu}, got {len(value)}."
             )
         elif np.any(value.value < 0):
             raise ValueError("invalid (negative) neutrino mass encountered.")
 
         # scalar -> array
         if value.isscalar:
-            value = np.full_like(value, value, shape=nneutrinos)
+            value = np.full_like(value, value, shape=n_nu)
 
         return value
 
@@ -297,7 +339,7 @@ class FLRW(
 
     @property
     def is_flat(self) -> bool:
-        """Return bool; `True` if the cosmology is flat."""
+        """Return `bool`; `True` if the cosmology is globally flat."""
         return bool((self.Ok0 == 0.0) and (self.Otot0 == 1.0))
 
     @property
@@ -311,7 +353,7 @@ class FLRW(
         return self.Om0 - self.Ob0
 
     @cached_property
-    def Ok0(self) -> float:
+    def Ok0(self) -> float | np.floating:
         """Omega curvature; the effective curvature density/critical density at z=0."""
         return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
@@ -327,7 +369,7 @@ class FLRW(
         """Does this cosmology have at least one massive neutrino species?"""
         if self.Tnu0.value == 0:
             return False
-        return self._massivenu
+        return self._nu_info.has_massive_nu
 
     @cached_property
     def critical_density0(self) -> u.Quantity:
@@ -343,23 +385,23 @@ class FLRW(
     def Ogamma0(self) -> float:
         """Omega gamma; the density/critical density of photons at z=0."""
         # photon density from Tcmb
-        return _a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
+        return a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
 
     @cached_property
     def Onu0(self) -> float:
         """Omega nu; the density/critical density of neutrinos at z=0."""
-        if self._massivenu:  # (`_massivenu` set in `m_nu`)
+        if self._nu_info.has_massive_nu:
             return self.Ogamma0 * self.nu_relative_density(0)
         else:
             # This case is particularly simple, so do it directly The 0.2271...
             # is 7/8 (4/11)^(4/3) -- the temperature bit ^4 (blackbody energy
             # density) times 7/8 for FD vs. BE statistics.
-            return 0.22710731766 * self.Neff * self.Ogamma0
+            return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * self.Ogamma0
 
     # ---------------------------------------------------------------
 
     @deprecated_keywords("z", since="7.0")
-    def Otot(self, z):
+    def Otot(self, z: u.Quantity | ArrayLike) -> FArray:
         """The total density parameter at redshift ``z``.
 
         Parameters
@@ -372,14 +414,13 @@ class FLRW(
 
         Returns
         -------
-        Otot : ndarray or float
+        Otot : array
             The total density relative to the critical density at each redshift.
-            Returns float if input scalar.
         """
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
     @deprecated_keywords("z", since="7.0")
-    def Odm(self, z):
+    def Odm(self, z: u.Quantity | ArrayLike) -> FArray:
         """Return the density parameter for dark matter at redshift ``z``.
 
         Parameters
@@ -392,10 +433,9 @@ class FLRW(
 
         Returns
         -------
-        Odm : ndarray or float
+        Odm : array
             The density of non-relativistic dark matter relative to the
             critical density at each redshift.
-            Returns `float` if the input is scalar.
 
         Notes
         -----
@@ -406,30 +446,7 @@ class FLRW(
         return self.Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
-    def Ok(self, z):
-        """Return the equivalent density parameter for curvature at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Ok : ndarray or float
-            The equivalent density parameter for curvature at each redshift.
-            Returns `float` if the input is scalar.
-        """
-        z = aszarr(z)
-        if self.Ok0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
-        return self.Ok0 * (z + 1.0) ** 2 * self.inv_efunc(z) ** 2
-
-    @deprecated_keywords("z", since="7.0")
-    def Ogamma(self, z):
+    def Ogamma(self, z: u.Quantity | ArrayLike) -> FArray:
         """Return the density parameter for photons at redshift ``z``.
 
         Parameters
@@ -442,16 +459,15 @@ class FLRW(
 
         Returns
         -------
-        Ogamma : ndarray or float
+        Ogamma : array
             The energy density of photons relative to the critical density at
             each redshift.
-            Returns `float` if the input is scalar.
         """
         z = aszarr(z)
         return self.Ogamma0 * (z + 1.0) ** 4 * self.inv_efunc(z) ** 2
 
     @deprecated_keywords("z", since="7.0")
-    def Onu(self, z):
+    def Onu(self, z: u.Quantity | ArrayLike) -> FArray:
         r"""Return the density parameter for neutrinos at redshift ``z``.
 
         Parameters
@@ -464,21 +480,20 @@ class FLRW(
 
         Returns
         -------
-        Onu : ndarray or float
+        Onu : ndarray
             The energy density of neutrinos relative to the critical density at
             each redshift. Note that this includes their kinetic energy (if
             they have mass), so it is not equal to the commonly used
             :math:`\sum \frac{m_{\nu}}{94 eV}`, which does not include
             kinetic energy.
-            Returns `float` if the input is scalar.
         """
         z = aszarr(z)
         if self.Onu0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
+            return np.zeros_like(z)
         return self.Ogamma(z) * self.nu_relative_density(z)
 
     @deprecated_keywords("z", since="7.0")
-    def Tnu(self, z):
+    def Tnu(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Return the neutrino temperature at redshift ``z``.
 
         Parameters
@@ -497,7 +512,7 @@ class FLRW(
         return self.Tnu0 * (aszarr(z) + 1.0)
 
     @deprecated_keywords("z", since="7.0")
-    def nu_relative_density(self, z):
+    def nu_relative_density(self, z: u.Quantity | ArrayLike) -> FArray:
         r"""Neutrino density function relative to the energy density in photons.
 
         Parameters
@@ -510,10 +525,9 @@ class FLRW(
 
         Returns
         -------
-        f : ndarray or float
+        f : array
             The neutrino density scaling factor relative to the density in
             photons at each redshift.
-            Only returns `float` if z is scalar.
 
         Notes
         -----
@@ -543,33 +557,20 @@ class FLRW(
         # this in scalar_inv_efuncs.pyx, so if you find a problem in this
         # you need to update there too.
 
-        # See Komatsu et al. 2011, eq 26 and the surrounding discussion
-        # for an explanation of what we are doing here.
-        # However, this is modified to handle multiple neutrino masses
-        # by computing the above for each mass, then summing
-        prefac = 0.22710731766  # 7/8 (4/11)^4/3 -- see any cosmo book
-
         # The massive and massless contribution must be handled separately
         # But check for common cases first
         z = aszarr(z)
-        if not self._massivenu:
-            return (
-                prefac * self.Neff * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
-            )
+        if not self._nu_info.has_massive_nu:
+            return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * np.ones_like(z)
 
-        # These are purely fitting constants -- see the Komatsu paper
-        p = 1.83
-        invp = 0.54644808743  # 1.0 / p
-        k = 0.3173
+        curr_nu_y = self._nu_info.nu_y / (1.0 + np.expand_dims(z, axis=-1))
+        rel_mass_per = (1.0 + (KOMATSU_K * curr_nu_y) ** KOMATSU_P) ** KOMATSU_INVP
+        rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
-        curr_nu_y = self._nu_y / (1.0 + np.expand_dims(z, axis=-1))
-        rel_mass_per = (1.0 + (k * curr_nu_y) ** p) ** invp
-        rel_mass = rel_mass_per.sum(-1) + self._nmasslessnu
-
-        return prefac * self._neff_per_nu * rel_mass
+        return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
 
     @deprecated_keywords("z", since="7.0")
-    def efunc(self, z):
+    def efunc(self, z: u.Quantity | ArrayLike) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -582,9 +583,8 @@ class FLRW(
 
         Returns
         -------
-        E : ndarray or float
+        E : array
             The redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
 
         Notes
@@ -594,7 +594,7 @@ class FLRW(
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -605,7 +605,7 @@ class FLRW(
         )
 
     @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z):
+    def inv_efunc(self, z: u.Quantity | ArrayLike) -> FArray:
         """Inverse of ``efunc``.
 
         Parameters
@@ -618,14 +618,13 @@ class FLRW(
 
         Returns
         -------
-        E : ndarray or float
+        E : array
             The redshift scaling of the inverse Hubble constant.
-            Returns `float` if the input is scalar.
         """
         # Avoid the function overhead by repeating code
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -635,7 +634,7 @@ class FLRW(
             + self.Ode0 * self.de_density_scale(z)
         ) ** (-0.5)
 
-    def _lookback_time_integrand_scalar(self, z, /):
+    def _lookback_time_integrand_scalar(self, z: float, /) -> float:
         """Integrand of the lookback time (equation 30 of [1]_).
 
         Parameters
@@ -659,7 +658,7 @@ class FLRW(
         return self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args) / (z + 1.0)
 
     @deprecated_keywords("z", since="7.0")
-    def lookback_time_integrand(self, z):
+    def lookback_time_integrand(self, z: u.Quantity | ArrayLike) -> FArray:
         """Integrand of the lookback time (equation 30 of [1]_).
 
         Parameters
@@ -672,7 +671,7 @@ class FLRW(
 
         Returns
         -------
-        I : float or array
+        I : array
             The integrand for the lookback time.
 
         References
@@ -683,7 +682,7 @@ class FLRW(
         z = aszarr(z)
         return self.inv_efunc(z) / (z + 1.0)
 
-    def _abs_distance_integrand_scalar(self, z, /):
+    def _abs_distance_integrand_scalar(self, z: u.Quantity | ArrayLike, /) -> float:
         """Integrand of the absorption distance (eq. 4, [1]_).
 
         Parameters
@@ -706,7 +705,7 @@ class FLRW(
         return (z + 1.0) ** 2 * self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args)
 
     @deprecated_keywords("z", since="7.0")
-    def abs_distance_integrand(self, z):
+    def abs_distance_integrand(self, z: u.Quantity | ArrayLike) -> FArray:
         """Integrand of the absorption distance (eq. 4, [1]_).
 
         Parameters
@@ -719,7 +718,7 @@ class FLRW(
 
         Returns
         -------
-        dX : float or array
+        dX : array
             The integrand for the absorption distance (dimensionless).
 
         References
@@ -730,7 +729,7 @@ class FLRW(
         return (z + 1.0) ** 2 * self.inv_efunc(z)
 
     @deprecated_keywords("z", since="7.0")
-    def lookback_time(self, z):
+    def lookback_time(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Lookback time in Gyr to redshift ``z``.
 
         The lookback time is the difference between the age of the Universe now
@@ -755,7 +754,7 @@ class FLRW(
         """
         return self._lookback_time(z)
 
-    def _lookback_time(self, z, /):
+    def _lookback_time(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
         """Lookback time in Gyr to redshift ``z``.
 
         The lookback time is the difference between the age of the Universe now
@@ -777,7 +776,7 @@ class FLRW(
         return self.hubble_time * self._integral_lookback_time(z)
 
     @vectorize_redshift_method
-    def _integral_lookback_time(self, z, /):
+    def _integral_lookback_time(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Lookback time to redshift ``z``. Value in units of Hubble time.
 
         The lookback time is the difference between the age of the Universe now
@@ -793,14 +792,13 @@ class FLRW(
 
         Returns
         -------
-        t : float or ndarray
+        t : ndarray
             Lookback time to each input redshift in Hubble time units.
-            Returns `float` if input scalar, `~numpy.ndarray` otherwise.
         """
         return quad(self._lookback_time_integrand_scalar, 0, z)[0]
 
     @deprecated_keywords("z", since="7.0")
-    def lookback_distance(self, z):
+    def lookback_distance(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """The lookback distance is the light travel time distance to a given redshift.
 
         It is simply c * lookback_time. It may be used to calculate
@@ -823,7 +821,7 @@ class FLRW(
         return (self.lookback_time(z) * const.c).to(u.Mpc)
 
     @deprecated_keywords("z", since="7.0")
-    def age(self, z):
+    def age(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Age of the universe in Gyr at redshift ``z``.
 
         Parameters
@@ -845,7 +843,7 @@ class FLRW(
         """
         return self._age(z)
 
-    def _age(self, z, /):
+    def _age(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
         """Age of the universe in Gyr at redshift ``z``.
 
         This internal function exists to be re-defined for optimizations.
@@ -866,7 +864,7 @@ class FLRW(
         return self.hubble_time * self._integral_age(z)
 
     @vectorize_redshift_method
-    def _integral_age(self, z, /):
+    def _integral_age(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Age of the universe at redshift ``z``. Value in units of Hubble time.
 
         Calculated using explicit integration.
@@ -878,9 +876,8 @@ class FLRW(
 
         Returns
         -------
-        t : float or ndarray
+        t : array
             The age of the universe at each input redshift in Hubble time units.
-            Returns `float` if input scalar, `~numpy.ndarray` otherwise.
 
         See Also
         --------
@@ -923,7 +920,9 @@ class FLRW(
         z1, z2 = (0.0, z) if z2 is None else (z, z2)
         return self._comoving_distance_z1z2(z1, z2)
 
-    def _comoving_distance_z1z2(self, z1, z2, /):
+    def _comoving_distance_z1z2(
+        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
+    ) -> u.Quantity:
         """Comoving line-of-sight distance in Mpc between redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects
@@ -944,7 +943,9 @@ class FLRW(
         """
         return self._integral_comoving_distance_z1z2(z1, z2)
 
-    def _integral_comoving_distance_z1z2(self, z1, z2, /):
+    def _integral_comoving_distance_z1z2(
+        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
+    ) -> u.Quantity:
         """Comoving line-of-sight distance (Mpc) between objects at redshifts z1 and z2.
 
         The comoving distance along the line-of-sight between two objects remains
@@ -966,7 +967,9 @@ class FLRW(
         return self.hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
 
     @vectorize_redshift_method(nin=2)
-    def _integral_comoving_distance_z1z2_scalar(self, z1, z2, /):
+    def _integral_comoving_distance_z1z2_scalar(
+        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
+    ) -> FArray:
         """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects
@@ -982,16 +985,15 @@ class FLRW(
 
         Returns
         -------
-        d : float or ndarray
+        d : array
             Comoving distance in Mpc between each input redshift.
-            Returns `float` if input scalar, `~numpy.ndarray` otherwise.
         """
         return quad(self._inv_efunc_scalar, z1, z2, args=self._inv_efunc_scalar_args)[0]
 
     # ---------------------------------------------------------------
 
     @deprecated_keywords("z", since="7.0")
-    def comoving_transverse_distance(self, z):
+    def comoving_transverse_distance(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         r"""Comoving transverse distance in Mpc at a given redshift.
 
         This value is the transverse comoving distance at redshift ``z``
@@ -1018,7 +1020,9 @@ class FLRW(
         """
         return self._comoving_transverse_distance_z1z2(0, z)
 
-    def _comoving_transverse_distance_z1z2(self, z1, z2, /):
+    def _comoving_transverse_distance_z1z2(
+        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
+    ) -> u.Quantity:
         r"""Comoving transverse distance in Mpc between two redshifts.
 
         This value is the transverse comoving distance at redshift ``z2`` as
@@ -1055,7 +1059,7 @@ class FLRW(
             return dh / sqrtOk0 * sin(sqrtOk0 * dc.value / dh.value)
 
     @deprecated_keywords("z", since="7.0")
-    def angular_diameter_distance(self, z):
+    def angular_diameter_distance(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Angular diameter distance in Mpc at a given redshift.
 
         This gives the proper (sometimes called 'physical') transverse
@@ -1085,7 +1089,7 @@ class FLRW(
         return self.comoving_transverse_distance(z) / (z + 1.0)
 
     @deprecated_keywords("z", since="7.0")
-    def luminosity_distance(self, z):
+    def luminosity_distance(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Luminosity distance in Mpc at redshift ``z``.
 
         This is the distance to use when converting between the bolometric flux
@@ -1115,7 +1119,9 @@ class FLRW(
         z = aszarr(z)
         return (z + 1.0) * self.comoving_transverse_distance(z)
 
-    def angular_diameter_distance_z1z2(self, z1, z2):
+    def angular_diameter_distance_z1z2(
+        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike
+    ) -> u.Quantity:
         """Angular diameter distance between objects at 2 redshifts.
 
         Useful for gravitational lensing, for example computing the angular
@@ -1145,7 +1151,7 @@ class FLRW(
         return self._comoving_transverse_distance_z1z2(z1, z2) / (z2 + 1.0)
 
     @vectorize_redshift_method
-    def absorption_distance(self, z, /):
+    def absorption_distance(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Absorption distance at redshift ``z`` (eq. 4, [1]_).
 
         This is used to calculate the number of objects with some cross section
@@ -1159,9 +1165,8 @@ class FLRW(
 
         Returns
         -------
-        X : float or ndarray
+        X : array
             Absorption distance (dimensionless) at each input redshift.
-            Returns `float` if input scalar, `~numpy.ndarray` otherwise.
 
         References
         ----------
@@ -1170,7 +1175,7 @@ class FLRW(
         return quad(self._abs_distance_integrand_scalar, 0, z)[0]
 
     @deprecated_keywords("z", since="7.0")
-    def distmod(self, z):
+    def distmod(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Distance modulus at redshift ``z``.
 
         The distance modulus is defined as the (apparent magnitude - absolute
@@ -1201,7 +1206,7 @@ class FLRW(
         return u.Quantity(val, u.mag)
 
     @deprecated_keywords("z", since="7.0")
-    def comoving_volume(self, z):
+    def comoving_volume(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         r"""Comoving volume in cubic Mpc at redshift ``z``.
 
         This is the volume of the universe encompassed by redshifts less than
@@ -1237,7 +1242,7 @@ class FLRW(
             return term1 * (term2 - 1.0 / sqrt(abs(Ok0)) * np.arcsin(term3))
 
     @deprecated_keywords("z", since="7.0")
-    def differential_comoving_volume(self, z):
+    def differential_comoving_volume(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Differential comoving volume at redshift z.
 
         Useful for calculating the effective comoving volume.
@@ -1264,7 +1269,7 @@ class FLRW(
         return self.hubble_distance * (dm**2.0) / (self.efunc(z) << u.steradian)
 
     @deprecated_keywords("z", since="7.0")
-    def kpc_comoving_per_arcmin(self, z):
+    def kpc_comoving_per_arcmin(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Separation in transverse comoving kpc equal to an arcmin at redshift ``z``.
 
         Parameters
@@ -1281,10 +1286,10 @@ class FLRW(
             The distance in comoving kpc corresponding to an arcmin at each
             input redshift.
         """
-        return self.comoving_transverse_distance(z).to(u.kpc) / _radian_in_arcmin
+        return self.comoving_transverse_distance(z).to(u.kpc) / RAD_IN_ARCMIN
 
     @deprecated_keywords("z", since="7.0")
-    def kpc_proper_per_arcmin(self, z):
+    def kpc_proper_per_arcmin(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Separation in transverse proper kpc equal to an arcminute at redshift ``z``.
 
         Parameters
@@ -1301,10 +1306,10 @@ class FLRW(
             The distance in proper kpc corresponding to an arcmin at each input
             redshift.
         """
-        return self.angular_diameter_distance(z).to(u.kpc) / _radian_in_arcmin
+        return self.angular_diameter_distance(z).to(u.kpc) / RAD_IN_ARCMIN
 
     @deprecated_keywords("z", since="7.0")
-    def arcsec_per_kpc_comoving(self, z):
+    def arcsec_per_kpc_comoving(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Angular separation in arcsec equal to a comoving kpc at redshift ``z``.
 
         Parameters
@@ -1321,10 +1326,10 @@ class FLRW(
             The angular separation in arcsec corresponding to a comoving kpc at
             each input redshift.
         """
-        return _radian_in_arcsec / self.comoving_transverse_distance(z).to(u.kpc)
+        return RAD_IN_ARCSEC / self.comoving_transverse_distance(z).to(u.kpc)
 
     @deprecated_keywords("z", since="7.0")
-    def arcsec_per_kpc_proper(self, z):
+    def arcsec_per_kpc_proper(self, z: u.Quantity | ArrayLike) -> u.Quantity:
         """Angular separation in arcsec corresponding to a proper kpc at redshift ``z``.
 
         Parameters
@@ -1341,7 +1346,7 @@ class FLRW(
             The angular separation in arcsec corresponding to a proper kpc at
             each input redshift.
         """
-        return _radian_in_arcsec / self.angular_diameter_distance(z).to(u.kpc)
+        return RAD_IN_ARCSEC / self.angular_diameter_distance(z).to(u.kpc)
 
 
 @dataclass_decorator
@@ -1362,7 +1367,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         repr=False,
     )
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         super().__init_subclass__()
 
         # Check that Ode0 is not in __init__
@@ -1377,7 +1382,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
             msg = "subclasses of `FlatFLRWMixin` cannot have `Ode0` in `__init__`"
             raise TypeError(msg)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.__dict__["Ode0"] = 0
         super().__post_init__()
         # Do some twiddling after the fact to get flatness
@@ -1401,12 +1406,12 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         return inst
 
     @property
-    def Otot0(self):
+    def Otot0(self) -> float:
         """Omega total; the total density/critical density at z=0."""
         return 1.0
 
     @deprecated_keywords("z", since="7.0")
-    def Otot(self, z):
+    def Otot(self, z: u.Quantity | ArrayLike) -> FArray:
         """The total density parameter at redshift ``z``.
 
         Parameters
@@ -1419,16 +1424,13 @@ class FlatFLRWMixin(FlatCosmologyMixin):
 
         Returns
         -------
-        Otot : ndarray or float
-            Returns float if input scalar. Value of 1.
+        Otot : array
         """
-        return (
-            1.0 if isinstance(z, (Number, np.generic)) else np.ones_like(z, subok=False)
-        )
+        return np.ones_like(aszarr(z), subok=True)
 
     def clone(
-        self, *, meta: Mapping | None = None, to_nonflat: bool = False, **kwargs
-    ) -> Self:
+        self, *, meta: CosmoMeta | None = None, to_nonflat: bool = False, **kwargs: Any
+    ) -> "FLRW":
         if not to_nonflat and kwargs.get("Ode0") is not None:
             msg = "Cannot set 'Ode0' in clone unless 'to_nonflat=True'. "
             raise ValueError(msg)

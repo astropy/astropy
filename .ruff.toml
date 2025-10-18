@@ -136,6 +136,8 @@ lint.ignore = [
     "RUF002",  # ambiguous-unicode-character-docstring
     "RUF010",  # use conversion in f-string
     "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
+    "RUF043",  # pytest-raises-ambiguous-pattern
+    "RUF059",  # unused-unpacked-variable
 
     # flake8-bandit (S)
     "S101",  # Use of `assert` detected

@@ -1046,9 +1046,8 @@ class CoordinateHelper:
                 )
 
         # format tick labels, add to scene
-        text = self.formatter(
-            self._lbl_world * tick_world_coordinates.unit, spacing=self._fl_spacing
-        )
+        text = self.formatter(u.Quantity(self._lbl_world), spacing=self._fl_spacing)
+
         for kwargs, txt in zip(self._lblinfo, text):
             self._ticklabels.add(text=txt, **kwargs)
 
@@ -1138,7 +1137,9 @@ class CoordinateHelper:
                             axis_displacement=imin + frac,
                         )
                     )
-                    self._lbl_world.append(world)
+                    self._lbl_world.append(
+                        (world * self.coord_unit).to(tick_world_coordinates.unit)
+                    )
 
                 else:
                     self._ticks.add_minor(

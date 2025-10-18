@@ -2,6 +2,7 @@
 
 import re
 
+import numpy as np
 import pytest
 
 from astropy import __version__ as version
@@ -41,8 +42,7 @@ class TestFitscheck(FitsTestCase):
         assert "OK" in stderr
 
     def test_remove_checksums(self, capsys):
-        self.copy_file("checksum.fits")
-        testfile = self.temp("checksum.fits")
+        testfile = self.copy_file("checksum.fits")
         assert fitscheck.main([testfile, "--checksum", "remove"]) == 1
         assert fitscheck.main([testfile]) == 1
         stdout, stderr = capsys.readouterr()
@@ -78,9 +78,16 @@ class TestFitscheck(FitsTestCase):
             hdul.writeto(testfile)
 
         assert fitscheck.main([testfile]) == 1
-        assert re.match(
-            r"BAD.*Checksum verification failed for HDU", caplog.records[0].message
-        )
+        for i in range(2):
+            assert re.match(
+                r"BAD.*Checksum verification failed for HDU",
+                caplog.records[i * 2].message,
+            )
+            assert re.match(
+                r"BAD.*Datasum verification failed for HDU",
+                caplog.records[i * 2 + 1].message,
+            )
+        assert re.match(r"4 errors", caplog.records[4].message)
         caplog.clear()
 
         with pytest.warns(AstropyUserWarning):
@@ -92,3 +99,32 @@ class TestFitscheck(FitsTestCase):
 
         # check that the file was fixed
         assert fitscheck.main([testfile]) == 0
+
+    def test_missing_invalid(self, caplog):
+        """
+        from https://github.com/astropy/astropy/issues/16551
+        written by Zach Claytor
+        """
+        # Test with a file where primary HDU has no checksum/datasum and image
+        # extension contains valid checksum/datasum
+        testfile = self.temp("test.fits")
+        hdul = fits.HDUList([fits.PrimaryHDU()])
+        ext = fits.ImageHDU(data=np.arange(10))
+        ext.header["THINGY"] = 123
+        ext.add_datasum()
+        ext.add_checksum()
+        hdul.append(ext)
+        hdul.writeto(testfile)
+
+        assert fitscheck.main([testfile]) == 1
+
+        assert re.match(
+            r"MISSING '.*test\.fits' .. Checksum not found in HDU #0",
+            caplog.records[0].message,
+        )
+        assert re.match(
+            r"MISSING '.*test\.fits' .. Datasum not found in HDU #0",
+            caplog.records[1].message,
+        )
+        assert caplog.records[2].message == "2 errors"
+        caplog.clear()

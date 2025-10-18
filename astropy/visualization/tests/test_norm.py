@@ -340,3 +340,22 @@ def test_imshow_norm():
     imres, norm = imshow_norm(image, ax=None)
 
     assert isinstance(norm, ImageNormalize)
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_norm_without_data():
+    from matplotlib.figure import Figure
+
+    image = np.arange(10).reshape((1, 10))
+    interval = ManualInterval(2, 5)
+    norm_without_data = ImageNormalize(interval=interval)
+
+    assert norm_without_data.vmin is None
+    assert norm_without_data.vmax is None
+
+    fig = Figure()
+    ax = fig.add_subplot()
+    ax.imshow(image, norm=norm_without_data)  # calls norm_without_data.autoscale_None()
+
+    assert norm_without_data.vmin == interval.vmin
+    assert norm_without_data.vmax == interval.vmax

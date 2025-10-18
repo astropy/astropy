@@ -184,30 +184,6 @@ with warnings.catch_warnings():
     test = TestRunner.make_test_runner_in(__path__[0])
 
 
-# if we are *not* in setup mode, import the logger and possibly populate the
-# configuration file with the defaults
-def _initialize_astropy():
-    try:
-        from .utils import _compiler
-    except ImportError:
-        # If this __init__.py file is in ./astropy/ then import is within a source
-        # dir .astropy-root is a file distributed with the source, but that should
-        # not installed
-        if (Path(__file__).parent.parent / ".astropy-root").exists():
-            raise ImportError(
-                "You appear to be trying to import astropy from "
-                "within a source checkout or from an editable "
-                "installation without building the extension "
-                "modules first. Either run:\n\n"
-                "  pip install -e .\n\nor\n\n"
-                "  python setup.py build_ext --inplace\n\n"
-                "to make sure the extension modules are built "
-            ) from None
-
-        # Outright broken installation, just raise standard error
-        raise
-
-
 # Set the bibtex entry to the article referenced in CITATION.
 def _get_bibtex():
     refs = (Path(__file__).parent / "CITATION").read_text().split("@ARTICLE")[1:]
@@ -219,8 +195,6 @@ __citation__ = __bibtex__ = _get_bibtex()
 from .logger import _init_log, _teardown_log
 
 log = _init_log()
-
-_initialize_astropy()
 
 from types import ModuleType as __module_type__
 

@@ -111,8 +111,7 @@ def main(args=None):
         """
         )
     )
-    # TODO: pass color and suggest_on_error as kwargs when PYTHON_LT_14 is dropped
-    parser.color = True
+    # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
     parser.suggest_on_error = True
 
     addarg = parser.add_argument

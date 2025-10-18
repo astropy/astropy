@@ -1,0 +1,101 @@
+name: Monthly cron
+
+on:
+  workflow_dispatch:
+  schedule:
+    # run every first of month at 6am UTC
+    - cron: '0 6 1 * *'
+  pull_request:
+    # We also want this workflow triggered if the 'Extra CI' label is added
+    # or present when PR is updated
+    types:
+      - synchronize
+      - labeled
+  push:
+    # We want this workflow to always run on release branches as well as
+    # all tags since we want to be really sure we don't introduce
+    # regressions on the release branches, and it's also important to run
+    # this on pre-release and release tags.
+    branches:
+    - 'v*'
+    tags:
+    - '*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IS_CRON: 'true'
+  PY_COLORS: "1"
+
+permissions:
+  contents: read
+
+jobs:
+
+  tests_more_arch_bundled_lib:
+
+    # Testing exotic architectures using bundled external libs, i.e. without setting ASTROPY_USE_SYSTEM_ALL.
+    # This is a variant and subset of weekly cron, currently only including the big endian s390x arch.
+
+    runs-on: ubuntu-24.04
+    name: Emulated arch bundled lib
+    # keep condition in sync with test_arm64
+    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    env:
+      ARCH_ON_CI: ${{ matrix.arch }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: s390x
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: uraimo/run-on-arch-action@d94c13912ea685de38fccc1109385b83fd79427d # v3.0.1
+        name: Run tests
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ubuntu_rolling
+
+          shell: /bin/bash
+          env: |
+            ARCH_ON_CI: ${{ env.ARCH_ON_CI }}
+            IS_CRON: ${{ env.IS_CRON }}
+
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y gnupg2
+            apt-get update -q -y
+            apt-get install -q -y --no-install-recommends \
+                                  git \
+                                  g++ \
+                                  pkg-config \
+                                  python3 \
+                                  python3-erfa \
+                                  python3-extension-helpers \
+                                  python3-jinja2 \
+                                  python3-numpy \
+                                  python3-pytest-astropy \
+                                  python3-setuptools-scm \
+                                  python3-yaml \
+                                  python3-venv \
+                                  python3-wheel
+
+          run: |
+            uname -a
+            echo "LONG_BIT="$(getconf LONG_BIT)
+            python3 -m venv --system-site-packages tests
+            source tests/bin/activate
+            # cython and pyerfa versions in ubuntu repos are too old currently
+            pip install -U cython setuptools packaging
+            pip install -U --no-build-isolation pyerfa
+            pip install -v --no-build-isolation -e .[test]
+            pip list
+            python3 -m pytest --pyargs astropy -m "not hypothesis"
