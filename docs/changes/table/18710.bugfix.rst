@@ -1,0 +1,4 @@
+Fixed a bug where reading an ECSV file with a column name starting with ``#``
+would raise an ``InconsistentTableError`` due to the YAML parser failing on the
+``%ECSV`` preamble line. The ECSV reader now correctly strips the preamble before
+parsing the YAML header, ensuring compatibility across different PyYAML versions.

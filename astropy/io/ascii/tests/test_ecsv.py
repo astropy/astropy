@@ -1216,3 +1216,22 @@ def test_register_bad_engine():
         class BadEngine(ECSVEngine):
             name = 1
             format = "ascii.ecsv"
+
+
+def test_ecsv_roundtrip_column_name_starts_with_hash(tmp_path):
+    """Regression test for #18710: writing and reading an ECSV where a column name
+    begins with '#' should succeed (previously raised InconsistentTableError).
+    """
+    p = tmp_path / "test_hash_column.ecsv"
+    t = Table({"#sdfafds": [1, 2, 3], "a": [1, 2, 3]})
+    t.write(p, overwrite=True)
+
+    # Ensure the file exists and has content
+    assert p.exists()
+    content = p.read_text()
+    assert "%ECSV" in content
+
+    # Reading back should not raise and should preserve the columns/values
+    t2 = Table.read(p)
+    assert t2.colnames == ["#sdfafds", "a"]
+    assert list(t2["#sdfafds"]) == [1, 2, 3]
