@@ -1,25 +1,25 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__: list[str] = []  # nothing is publicly scoped
 
 import functools
-import operator
 from collections.abc import Callable
 from numbers import Number
-from typing import Any, TypeVar
+from typing import Any, Final, ParamSpec, Protocol, TypeAlias, TypeVar
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from astropy.units import Quantity
+from astropy.utils.compat import COPY_IF_NEEDED
 
 # isort: split
 import astropy.cosmology._src.units as cu
 
 from .signature_deprecations import _depr_kws_wrap
 
-_F = TypeVar("_F", bound=Callable[..., Any])
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 def vectorize_redshift_method(func=None, nin=1):
@@ -68,33 +68,45 @@ def vectorize_redshift_method(func=None, nin=1):
     return wrapper
 
 
-def aszarr(z):
-    """Redshift as a `~numbers.Number` or |ndarray| / |Quantity| / |Column|.
+# ===================================================================
+
+ScalarTypes: TypeAlias = Number | np.generic
+SCALAR_TYPES: Final = (float, int, np.generic, Number)  # arranged for speed
+
+
+class HasShape(Protocol):
+    shape: tuple[int, ...]
+
+
+def aszarr(
+    z: Quantity | NDArray[Any] | ArrayLike | ScalarTypes | HasShape, /
+) -> NDArray[Any]:
+    """Redshift as an Array duck type.
 
     Allows for any ndarray ducktype by checking for attribute "shape".
     """
-    if isinstance(z, (Number, np.generic)):  # scalars
+    # Scalars
+    if isinstance(z, SCALAR_TYPES):
+        return np.asarray(z)
+
+    # Quantities. We do this before checking for normal ndarray because Quantity is a
+    # subclass of ndarray.
+    elif isinstance(z, Quantity):
+        return z.to_value(cu.redshift)[...]
+
+    # Arrays
+    elif isinstance(z, np.ndarray):
         return z
-    elif hasattr(z, "shape"):  # ducktypes NumPy array
-        if getattr(z, "__module__", "").startswith("pandas"):
-            # See https://github.com/astropy/astropy/issues/15576. Pandas does not play
-            # well with others and will ignore unit-ful calculations so we need to
-            # convert to it's underlying value.
-            z = z.values
-        if hasattr(z, "unit"):  # Quantity Column
-            return (z << cu.redshift).value  # for speed only use enabled equivs
-        return z
-    # not one of the preferred types: Number / array ducktype
-    return Quantity(z, cu.redshift).value
+
+    return Quantity(z, cu.redshift, copy=COPY_IF_NEEDED, subok=True).view(np.ndarray)
 
 
-def all_cls_vars(obj: object | type, /) -> dict[str, Any]:
-    """Return all variables in the whole class hierarchy."""
-    cls = obj if isinstance(obj, type) else obj.__class__
-    return functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))
+# ===================================================================
 
 
-def deprecated_keywords(*kws, since):
+def deprecated_keywords(
+    *kws: str, since: str | float | tuple[str | float, ...]
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Deprecate calling one or more arguments as keywords.
 
     Parameters
@@ -108,7 +120,12 @@ def deprecated_keywords(*kws, since):
     return functools.partial(_depr_kws, kws=kws, since=since)
 
 
-def _depr_kws(func: _F, /, kws: tuple[str, ...], since: str) -> _F:
+def _depr_kws(
+    func: Callable[P, R],
+    /,
+    kws: tuple[str, ...],
+    since: str | float | tuple[str | float, ...],
+) -> Callable[P, R]:
     wrapper = _depr_kws_wrap(func, kws, since)
     functools.update_wrapper(wrapper, func)
     return wrapper

@@ -19,6 +19,8 @@ def hub_script(timeout=0):
     This main function is executed by the ``samp_hub`` command line tool.
     """
     parser = argparse.ArgumentParser(prog="samp_hub " + __version__)
+    # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
+    parser.suggest_on_error = True
 
     parser.add_argument(
         "-k", "--secret", dest="secret", metavar="CODE", help="custom secret code."

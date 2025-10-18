@@ -21,7 +21,7 @@ from astropy.coordinates.builtin_frames.galactic_transforms import (
     _gal_to_fk5,
     fk5_to_gal,
 )
-from astropy.coordinates.sites import get_builtin_sites
+from astropy.coordinates.sites import _GREENWICH
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 
@@ -180,7 +180,7 @@ def test_gcrs_diffs():
 
 def test_altaz_diffs():
     time = Time("J2015") + np.linspace(-1, 1, 1000) * u.day
-    aa = AltAz(obstime=time, location=get_builtin_sites()["greenwich"])
+    aa = AltAz(obstime=time, location=_GREENWICH)
 
     icoo = ICRS(
         np.zeros(time.shape) * u.deg,

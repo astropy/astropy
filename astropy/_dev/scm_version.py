@@ -5,6 +5,6 @@ from pathlib import Path
 try:
     from setuptools_scm import get_version
 
-    version = get_version(root=Path(__file__).parents[1], relative_to=__file__)
+    version = get_version(root=Path(__file__).parents[2])
 except Exception:
     raise ImportError("setuptools_scm broken or not installed")

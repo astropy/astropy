@@ -19,6 +19,7 @@ _optional_deps = [
     "bz2",  # stdlib
     "certifi",
     "dask",
+    "duckdb",
     "fsspec",
     "h5py",
     "html5lib",
@@ -30,8 +31,10 @@ _optional_deps = [
     "lxml",
     "matplotlib",
     "mpmath",
+    "narwhals",
     "pandas",
     "PIL",
+    "polars",
     "pytz",
     "s3fs",
     "scipy",

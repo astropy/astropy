@@ -5,8 +5,10 @@ import copy
 import numpy as np
 import pytest
 
+import astropy.constants as const
 import astropy.units as u
-from astropy.constants import Constant
+from astropy import astronomical_constants, physical_constants
+from astropy.constants import Constant, EMConstant
 
 
 def test_c():
@@ -22,6 +24,39 @@ def test_c():
     assert c.name
     assert c.reference
     assert c.unit
+
+
+# Check that if a constant is defined (uncertainty 0) in some version,
+# it is also defined in the current, most up-to-date one.
+@pytest.mark.parametrize(
+    "version",
+    sorted(
+        set(physical_constants._versions.values())
+        | set(astronomical_constants._versions.values())
+    ),
+)
+def test_defined_constants_do_not_change(version):
+    """Check that any defined constants do not change their value
+
+    (the exception is mu0, which went from derived to measured in CODATA2018).
+    """
+    version_mod = getattr(const, version)
+    defined_constants = [
+        (name, constant)
+        for (name, constant) in version_mod.__dict__.items()
+        if isinstance(constant, Constant)
+        and not isinstance(constant, EMConstant)
+        and constant.uncertainty == 0
+        and name != "mu0"
+    ]
+    for name, constant in defined_constants:
+        current_constant = getattr(const, name)
+        assert current_constant.uncertainty == 0
+        if version == "iau2012" and name in ("pc", "kpc"):
+            pytest.xfail(
+                reason="different conversion from error-less au to pc and kpc."
+            )
+        assert current_constant.value == constant.value
 
 
 def test_h():

@@ -11,8 +11,8 @@ from fractions import Fraction
 import numpy as np
 
 from . import si
-from .core import UnitBase, def_unit
-from .utils import generate_unit_summary
+from .core import def_unit
+from .docgen import generate_dunder_all, generate_unit_summary
 
 __all__: list[str] = []  #  Units are added at the end
 
@@ -184,7 +184,7 @@ bases = {cm, g, s, rad, cd, K, mol}
 ###########################################################################
 # ALL & DOCSTRING
 
-__all__ += [n for n, v in _ns.items() if isinstance(v, UnitBase)]
+__all__ += generate_dunder_all(globals())  # noqa: PLE0605
 
 if __doc__ is not None:
     # This generates a docstring for this module that describes all of the

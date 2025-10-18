@@ -1150,43 +1150,40 @@ class TestFileFunctions(FitsTestCase):
         object.
         """
 
-        self.copy_file("test0.fits")
+        testfile = self.copy_file("test0.fits")
 
         # Opening in text mode should outright fail
         for mode in ("r", "w", "a"):
-            with open(self.temp("test0.fits"), mode) as f:
+            with open(testfile, mode) as f:
                 pytest.raises(ValueError, fits.HDUList.fromfile, f)
 
         # Need to re-copy the file since opening it in 'w' mode blew it away
-        self.copy_file("test0.fits")
+        testfile = self.copy_file("test0.fits")
 
-        with open(self.temp("test0.fits"), "rb") as f:
+        with open(testfile, "rb") as f:
             with fits.HDUList.fromfile(f) as h:
                 assert h.fileinfo(0)["filemode"] == "readonly"
 
         for mode in ("wb", "ab"):
-            with open(self.temp("test0.fits"), mode) as f:
+            with open(testfile, mode) as f:
                 with fits.HDUList.fromfile(f) as h:
                     # Basically opening empty files for output streaming
                     assert len(h) == 0
 
         # Need to re-copy the file since opening it in 'w' mode blew it away
-        self.copy_file("test0.fits")
-
-        with open(self.temp("test0.fits"), "wb+") as f:
+        with open(self.copy_file("test0.fits"), "wb+") as f:
             with fits.HDUList.fromfile(f) as h:
                 # wb+ still causes an existing file to be overwritten so there
                 # are no HDUs
                 assert len(h) == 0
 
         # Need to re-copy the file since opening it in 'w' mode blew it away
-        self.copy_file("test0.fits")
-
-        with open(self.temp("test0.fits"), "rb+") as f:
+        testfile = self.copy_file("test0.fits")
+        with open(testfile, "rb+") as f:
             with fits.HDUList.fromfile(f) as h:
                 assert h.fileinfo(0)["filemode"] == "update"
 
-        with open(self.temp("test0.fits"), "ab+") as f:
+        with open(testfile, "ab+") as f:
             with fits.HDUList.fromfile(f) as h:
                 assert h.fileinfo(0)["filemode"] == "append"
 
@@ -1208,19 +1205,17 @@ class TestFileFunctions(FitsTestCase):
         _File.__dict__["_mmap_available"]._cache.clear()
 
         try:
-            self.copy_file("test0.fits")
+            testfile = self.copy_file("test0.fits")
             with pytest.warns(
                 AstropyUserWarning, match=r"mmap\.flush is unavailable"
             ) as w:
-                with fits.open(
-                    self.temp("test0.fits"), mode="update", memmap=True
-                ) as h:
+                with fits.open(testfile, mode="update", memmap=True) as h:
                     h[1].data[0, 0] = 999
 
             assert len(w) == 1
 
             # Double check that writing without mmap still worked
-            with fits.open(self.temp("test0.fits")) as h:
+            with fits.open(testfile) as h:
                 assert h[1].data[0, 0] == 999
         finally:
             mmap.mmap = old_mmap
@@ -1500,12 +1495,7 @@ class TestFileFunctions(FitsTestCase):
         return lzmafile
 
     def _make_lzw_file(self, new_filename=None):
-        lzwfile = "lzw.fits.Z"
-        self.copy_file(lzwfile)
-        if new_filename is not None:
-            shutil.move(self.temp(lzwfile), self.temp(new_filename))
-            return self.temp(new_filename)
-        return self.temp(lzwfile)
+        return self.copy_file("lzw.fits.Z", new_filename)
 
     def test_simulateonly(self):
         """Write to None simulates writing."""

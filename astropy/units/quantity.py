@@ -5,15 +5,14 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
-from __future__ import annotations
-
 import builtins
 import numbers
 import operator
 import re
 import warnings
+from collections.abc import Collection
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import Self
 
 import numpy as np
 
@@ -34,13 +33,8 @@ from .quantity_helper.function_helpers import (
     UNSUPPORTED_FUNCTIONS,
 )
 from .structured import StructuredUnit, _structured_unit_like_dtype
+from .typing import QuantityLike
 from .utils import is_effectively_unity
-
-if TYPE_CHECKING:
-    from collections.abc import Collection
-    from typing import Self
-
-    from .typing import QuantityLike
 
 __all__ = [
     "Quantity",
@@ -1264,13 +1258,7 @@ class Quantity(np.ndarray):
                 f"'{self.__class__.__name__}' object with a scalar value is not"
                 " iterable"
             )
-
-        # Otherwise return a generator
-        def quantity_iter():
-            for val in self.value:
-                yield self._new_view(val)
-
-        return quantity_iter()
+        return map(self._new_view, self.value)
 
     def __getitem__(self, key):
         if isinstance(key, str) and isinstance(self.unit, StructuredUnit):

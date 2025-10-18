@@ -158,7 +158,7 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
 Mixin Attributes
 ================
 
-The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, and
+The usual column attributes ``name``, ``dtype``, ``unit``, ``format``, ``meta``, and
 ``description`` are available in any mixin column via the ``info`` property::
 
   >>> qt['velocity'].info.name

@@ -200,8 +200,10 @@ byear        :class:`~astropy.time.TimeBesselianEpoch`          1950.0
 byear_str    :class:`~astropy.time.TimeBesselianEpochString`    'B1950.0'
 cxcsec       :class:`~astropy.time.TimeCxcSec`                  63072064.184
 datetime     :class:`~astropy.time.TimeDatetime`                datetime(2000, 1, 2, 12, 0, 0)
+datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2000-01-01T01:01:01')
 decimalyear  :class:`~astropy.time.TimeDecimalYear`             2000.45
 fits         :class:`~astropy.time.TimeFITS`                    '2000-01-01T00:00:00.000'
+galexsec     :class:`~astropy.time.TimeGalexSec`                758738047.995
 gps          :class:`~astropy.time.TimeGPS`                     630720013.0
 iso          :class:`~astropy.time.TimeISO`                     '2000-01-01 00:00:00.000'
 isot         :class:`~astropy.time.TimeISOT`                    '2000-01-01T00:00:00.000'
@@ -214,7 +216,6 @@ unix         :class:`~astropy.time.TimeUnix`                    946684800.0
 unix_tai     :class:`~astropy.time.TimeUnixTai`                 946684800.0
 yday         :class:`~astropy.time.TimeYearDayTime`             2000:001:00:00:00.000
 ymdhms       :class:`~astropy.time.TimeYMDHMS`                  {'year': 2010, 'month': 3, 'day': 1}
-datetime64   :class:`~astropy.time.TimeDatetime64`              np.datetime64('2000-01-01T01:01:01')
 ===========  =================================================  =====================================
 
 .. note:: The :class:`~astropy.time.TimeFITS` format implements most
@@ -383,7 +384,7 @@ local  Local Time Scale          (LOCAL)
 
 .. [#] Wikipedia `time standard <https://en.wikipedia.org/wiki/Time_standard>`_ article
 .. [#] |SOFA| Time Scale and Calendar Tools
-       `(PDF) <http://www.iausofa.org/sofa_ts_c.pdf>`_
+       `(PDF) <https://www.iausofa.org/s/sofa_ts_c.pdf>`_
 
 .. note:: The ``local`` time scale is meant for free-running clocks or
    simulation times (i.e., to represent a time without a properly defined
@@ -1099,7 +1100,7 @@ Transformation Offsets
 Time scale transformations that cross one of the orange circles in the image
 above require an additional offset time value that is model or
 observation dependent. See |SOFA| `Time Scale and Calendar Tools
-<http://www.iausofa.org/sofa_ts_c.pdf>`_ for further details.
+<https://www.iausofa.org/s/sofa_ts_c.pdf>`_ for further details.
 
 The two attributes :attr:`~astropy.time.Time.delta_ut1_utc` and
 :attr:`~astropy.time.Time.delta_tdb_tt` provide a way to set
@@ -1154,7 +1155,7 @@ Example
 .. EXAMPLE START: Transformation Offsets in Time Objects
 
 The following code replicates an example in the |SOFA| `Time Scale and Calendar
-Tools <http://www.iausofa.org/sofa_ts_c.pdf>`_ document. It does the transform
+Tools <https://www.iausofa.org/s/sofa_ts_c.pdf>`_ document. It does the transform
 from UTC to all supported time scales (TAI, TCB, TCG, TDB, TT, UT1, UTC). This
 requires an observer location (here, latitude and longitude).
 ::
@@ -1798,4 +1799,4 @@ under the terms of the "BSD-three clauses" license.
 
 The |ERFA| library is derived, with permission, from the International
 Astronomical Union's "Standards of Fundamental Astronomy" (|SOFA|) library,
-available from http://www.iausofa.org.
+available from https://www.iausofa.org.

@@ -108,7 +108,9 @@ class CdsHeader(core.BaseHeader):
                         # Iterate on names to find if one matches the tablename
                         # including wildcards.
                         for pattern in names:
-                            if fnmatch.fnmatch(self.data.table_name, pattern):
+                            if fnmatch.fnmatch(
+                                self.data.table_name.removesuffix(".gz"), pattern
+                            ):
                                 in_header = True
                                 lines.append(line)
                                 break
@@ -394,7 +396,6 @@ class Cds(core.BaseReader):
             for data_start in range(len(lines)):
                 self.data.start_line = data_start
                 with suppress(Exception):
-                    table = super().read(lines)
-                    return table
+                    return super().read(lines)
         else:
             return super().read(table)

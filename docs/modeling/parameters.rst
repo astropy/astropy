@@ -89,7 +89,7 @@ Constraints can also be set when the model is initialized. For example::
 
     >>> g = Gaussian1D(amplitude=10.2, mean=2.3, stddev=1.2,
     ...                fixed={'stddev': True},
-    ... 	        bounds={'mean': (2.2, 2.4)})
+    ...                bounds={'mean': (2.2, 2.4)})
     >>> g.stddev.fixed
     True
     >>> g.mean.bounds

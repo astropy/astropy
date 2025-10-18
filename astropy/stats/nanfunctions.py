@@ -5,22 +5,15 @@ functions using the optional bottleneck package if it is installed. If
 bottleneck is not installed, then the np.nan* functions are used.
 """
 
-from __future__ import annotations
-
 import functools
-from typing import TYPE_CHECKING
+from collections.abc import Callable
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats.funcs import mad_std
 from astropy.units import Quantity
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from numpy.typing import ArrayLike, NDArray
-
 
 if HAS_BOTTLENECK:
     import bottleneck

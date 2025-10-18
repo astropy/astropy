@@ -440,9 +440,17 @@ def test_poisson_conf_interval_rootn():
     assert_allclose(funcs.poisson_conf_interval(16, interval="root-n"), (12, 20))
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize(
-    "interval", ["root-n-0", "pearson", "sherpagehrels", "frequentist-confidence"]
+    "interval",
+    [
+        "root-n-0",
+        "pearson",
+        "sherpagehrels",
+        pytest.param(
+            "frequentist-confidence",
+            marks=pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy"),
+        ),
+    ],
 )
 def test_poisson_conf_large(interval):
     n = 100
@@ -658,6 +666,12 @@ def test_scipy_poisson_limit():
         (0, 10.67),
         rtol=1e-3,
     )
+    # Regression test for gh-13334
+    assert_allclose(
+        funcs._scipy_kraft_burrows_nousek(98, 3.8, 0.95),
+        (76.04, 114.92),
+        rtol=1e-3,
+    )
     conf = funcs.poisson_conf_interval(
         [5, 6],
         "kraft-burrows-nousek",
@@ -731,7 +745,6 @@ def test_mpmath_poisson_limit():
     _ = funcs._mpmath_kraft_burrows_nousek(1000.0, 900.0, 0.9)
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_poisson_conf_value_errors():
     with pytest.raises(ValueError, match="Only sigma=1 supported"):
         funcs.poisson_conf_interval([5, 6], "root-n", sigma=2)
@@ -748,7 +761,6 @@ def test_poisson_conf_value_errors():
         funcs.poisson_conf_interval(1, "foo")
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_poisson_conf_kbn_value_errors():
     with pytest.raises(ValueError, match="number between 0 and 1"):
         funcs.poisson_conf_interval(
@@ -867,7 +879,6 @@ def test_histogram():
         assert chi2(len(h)).sf(c2) > 0.01
 
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize(
     "ii,rr",
     [

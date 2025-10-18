@@ -379,8 +379,8 @@ compliant files, multiple aspects of the standard are taken into consideration.
 Time coordinate columns strictly compliant with the two-vector JD subset of the
 standard (described in the `Details`_ section below) can be read as native
 `~astropy.time.Time` objects. The other subsets of the standard are also
-supported by ``astropy``; a thorough examination of the FITS standard time-
-related keywords is done and the time data is interpreted accordingly.
+supported by ``astropy``; a thorough examination of the FITS standard
+time-related keywords is done and the time data is interpreted accordingly.
 
 The standard describes the various components in the specification of time:
 

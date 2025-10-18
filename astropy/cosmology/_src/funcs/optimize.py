@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Convenience functions for `astropy.cosmology`."""
 
-from __future__ import annotations
-
 import warnings
-from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypeAlias, TypedDict
 
 import numpy as np
 import numpy.typing as npt
+from numpy.typing import ArrayLike
 
 from astropy.units import Quantity
 from astropy.utils.exceptions import AstropyUserWarning
@@ -15,12 +15,10 @@ from astropy.utils.exceptions import AstropyUserWarning
 # isort: split
 from astropy.cosmology import units as cu
 from astropy.cosmology._src.core import CosmologyError
+from astropy.cosmology._src.typing import FArray
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import TypeAlias
-
-    from scipy.optimize import OptimizeResult
+    import scipy.optimize
 
 __all__ = ["z_at_value"]
 
@@ -36,7 +34,7 @@ class _CustomSolverCallable(Protocol):
 
     def __call__(
         self, fun: Callable[..., Any], args: tuple[Any, ...], **kwargs: Any
-    ) -> OptimizeResult: ...
+    ) -> "scipy.optimize.OptimizeResult": ...
 
 
 _BracketSingle: TypeAlias = tuple[float, float] | tuple[float, float, float]
@@ -51,13 +49,13 @@ class _ZAtValueKWArgs(TypedDict):  # noqa: PYI049
     :func:`~astropy.cosmology.z_at_value`.
     """
 
-    zmin: NotRequired[npt.ArrayLike]
+    zmin: NotRequired[ArrayLike]
     """The lower search limit for ``z``."""
 
-    zmax: NotRequired[npt.ArrayLike]
+    zmax: NotRequired[ArrayLike]
     """The upper search limit for ``z``."""
 
-    ztol: NotRequired[float | npt.NDArray[np.float64]]
+    ztol: NotRequired[float | FArray]
     """The relative error in ``z`` acceptable for convergence."""
 
     maxfun: NotRequired[int | npt.NDArray[np.integer]]
@@ -92,10 +90,10 @@ class _ZAtValueKWArgs(TypedDict):  # noqa: PYI049
 
 def _z_at_scalar_value(
     func,
-    fval: float | npt.NDArray[np.floating] | Quantity,
-    zmin: float | npt.NDArray[np.floating] | Quantity = 1e-8,
-    zmax: float | npt.NDArray[np.floating] | Quantity = 1000,
-    ztol: float | npt.NDArray[np.floating] = 1e-8,
+    fval: float | FArray | Quantity,
+    zmin: float | FArray | Quantity = 1e-8,
+    zmax: float | FArray | Quantity = 1000,
+    ztol: float | FArray = 1e-8,
     maxfun: int | npt.NDArray[np.integer] = 500,
     method: str | _CustomSolverCallable = "Brent",
     bracket: _BracketSingle | None = None,
@@ -199,9 +197,9 @@ def _z_at_scalar_value(
 def z_at_value(
     func,
     fval,
-    zmin: npt.ArrayLike = 1e-8,
-    zmax: npt.ArrayLike = 1000,
-    ztol: npt.ArrayLike = 1e-8,
+    zmin: ArrayLike = 1e-8,
+    zmax: ArrayLike = 1000,
+    ztol: ArrayLike = 1e-8,
     maxfun: int | npt.NDArray[np.integer] = 500,
     method: str | _CustomSolverCallable = "Brent",
     bracket: npt.NDArray[np.void] | _BracketSingle | None = None,

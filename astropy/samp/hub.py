@@ -16,7 +16,7 @@ from urllib.parse import urlunparse
 from astropy import log
 
 from .constants import SAMP_STATUS_OK, __profile_version__
-from .errors import SAMPHubError, SAMPProxyError, SAMPWarning
+from .errors import SAMPHubError, SAMPProxyError, SAMPProxyTimeoutError, SAMPWarning
 from .lockfile_helpers import create_lock_file, read_lockfile
 from .standard_profile import ThreadingXMLRPCServer
 from .utils import ServerProxyPool, _HubAsClient, internet_on
@@ -1207,7 +1207,7 @@ class SAMPHubServer:
             while self._is_running:
                 if 0 < timeout <= time.time() - now:
                     del self._sync_msg_ids_heap[msg_id]
-                    raise SAMPProxyError(1, "Timeout expired!")
+                    raise SAMPProxyTimeoutError(1, "Timeout expired!")
 
                 if self._sync_msg_ids_heap[msg_id] is not None:
                     response = copy.deepcopy(self._sync_msg_ids_heap[msg_id])

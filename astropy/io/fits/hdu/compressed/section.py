@@ -69,9 +69,8 @@ class CompImageSection:
             )
             if self.hdu._do_not_scale_image_data:
                 return data
-            scaled_data = self.hdu._scale_data(data)
-            self.hdu._update_header_scale_info(scaled_data.dtype)
-            return scaled_data
+            else:
+                return self.hdu._scale_data(data)
 
         index = simplify_basic_index(index, shape=self._data_shape)
 
@@ -128,7 +127,5 @@ class CompImageSection:
 
         if self.hdu._do_not_scale_image_data:
             return data
-
-        scaled_data = self.hdu._scale_data(data)
-        self.hdu._update_header_scale_info(scaled_data.dtype)
-        return scaled_data
+        else:
+            return self.hdu._scale_data(data)

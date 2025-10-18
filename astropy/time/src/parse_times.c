@@ -366,9 +366,11 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
     }
     return;
 
-  error:
+  error:;
+    PyGILState_STATE state = PyGILState_Ensure();
     PyErr_Format(PyExc_ValueError,
                  "fast C time string parser failed: %s", msgs[status-1]);
+    PyGILState_Release(state);
     return;
 }
 
@@ -399,7 +401,7 @@ create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
     if (name == NULL) {
         name = "fast_parser";
     }
-    Py_INCREF(dt_pars);
+    Py_INCREF((PyObject*)dt_pars);
     pars_array = (PyArrayObject *)PyArray_FromAny(pars, dt_pars, 1, 1,
                      (NPY_ARRAY_CARRAY | NPY_ARRAY_ENSURECOPY), NULL);
     if (pars_array == NULL) {
@@ -430,8 +432,8 @@ create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
     return (PyObject *)gufunc;
 
   fail:
-    Py_XDECREF(pars_array);
-    Py_XDECREF(gufunc);
+    Py_XDECREF((PyObject*)pars_array);
+    Py_XDECREF((PyObject*)gufunc);
     return NULL;
 }
 
@@ -511,8 +513,8 @@ PyMODINIT_FUNC PyInit__parse_times(void) {
     m = NULL;
 
   decref:
-    Py_XDECREF(dt_pars);
-    Py_XDECREF(dt_u1);
-    Py_XDECREF(dt_ymdhms);
+    Py_XDECREF((PyObject*)dt_pars);
+    Py_XDECREF((PyObject*)dt_u1);
+    Py_XDECREF((PyObject*)dt_ymdhms);
     return m;
 }

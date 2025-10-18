@@ -3,13 +3,12 @@
 Regression tests for the units.format package
 """
 
-from __future__ import annotations
-
 import re
 import warnings
+from collections.abc import Iterable
 from contextlib import nullcontext
 from fractions import Fraction
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 import pytest
@@ -22,6 +21,7 @@ from astropy.units import (
     Unit,
     UnitBase,
     UnitParserWarning,
+    UnitsError,
     UnitsWarning,
     cds,
     dex,
@@ -29,9 +29,6 @@ from astropy.units import (
 from astropy.units import format as u_format
 from astropy.units.utils import is_effectively_unity
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 class FormatStringPair(NamedTuple):
@@ -360,11 +357,12 @@ class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
             output_format = self.format_.name
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")  # Same warning shows up multiple times
-            s = unit.to_string(output_format)
-
+        s = unit.to_string(output_format, deprecations="silent")
         if s in self.format_._deprecated_units:
+            with pytest.raises(UnitsError, match="deprecated"):
+                unit.to_string(output_format, deprecations="raise")
+            with pytest.warns(UnitsWarning, match="deprecated"):
+                assert unit.to_string(output_format) == s
             with pytest.warns(UnitsWarning, match="deprecated") as w:
                 a = Unit(s, format=self.format_)
             assert len(w) == 1
@@ -491,7 +489,7 @@ class TestRoundtripOGIP(RoundtripBase):
 
 @pytest.mark.parametrize(
     "unit_formatter_class,n_units",
-    [(u_format.FITS, 765), (u_format.VOUnit, 1303), (u_format.CDS, 3326)],
+    [(u_format.FITS, 766), (u_format.VOUnit, 1304), (u_format.CDS, 3326)],
 )
 def test_units_available(unit_formatter_class, n_units):
     assert len(unit_formatter_class._units) == n_units
@@ -615,7 +613,7 @@ def test_multiline_fraction_different_if_available(format_spec):
 @pytest.mark.parametrize("format_spec", u_format.Base.registry)
 def test_unknown_fraction_style(format_spec):
     fluxunit = u.W / u.m**2
-    msg = "fraction can only be False, 'inline', or 'multiline', not 'parrot'"
+    msg = r"^fraction can only be False, 'inline', or 'multiline', not 'parrot'\.$"
     with pytest.raises(ValueError, match=msg):
         fluxunit.to_string(format_spec, fraction="parrot")
 
@@ -742,6 +740,40 @@ def test_deprecated_did_you_mean_units():
     with pytest.warns(UnitsWarning, match=r".* 0\.1nm\.") as w:
         u.Unit("angstrom", format="vounit")
     assert len(w) == 1
+
+
+def test_invalid_deprecated_units_handling():
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"^invalid deprecation handling option: 'ignore'\. Valid options are "
+            r"'silent', 'warn', 'raise', 'convert'\.$"
+        ),
+    ):
+        u.erg.to_string(format="vounit", deprecations="ignore")
+
+
+@pytest.mark.parametrize(
+    "unit,string",
+    [
+        pytest.param(u.erg, "cm**2.g.s**-2", id="simple unit"),
+        pytest.param(u.erg / u.s, "cm**2.g.s**-3", id="composite unit"),
+    ],
+)
+def test_deprecated_units_conversion_success(unit, string):
+    assert unit.to_string(format="vounit", deprecations="convert") == string
+
+
+def test_deprecated_units_conversion_failure():
+    Crab = u_format.OGIP._units["Crab"]
+    with pytest.warns(
+        UnitsWarning,
+        match=(
+            r"^The unit 'Crab' has been deprecated in the OGIP standard\. "
+            r"It cannot be automatically converted\.$"
+        ),
+    ):
+        assert Crab.to_string(format="ogip", deprecations="convert") == "Crab"
 
 
 @pytest.mark.parametrize("string", ["mag(ct/s)", "dB(mW)", "dex(cm s**-2)"])
@@ -1105,8 +1137,8 @@ def test_celsius_fits():
     "test_pair",
     list_format_string_pairs(
         ("generic", "dB(1 / m)"),
-        ("latex", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{\frac{1}{m}} \right)}$"),
-        ("latex_inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
+        ("latex", r"$\mathrm{dB\left(\frac{1}{m}\right)}$"),
+        ("latex_inline", r"$\mathrm{dB\left(m^{-1}\right)}$"),
         ("console", "dB(m^-1)"),
         ("unicode", "dB(m⁻¹)"),
     ),
@@ -1125,8 +1157,8 @@ def test_function_format_styles(test_pair: FormatStringPair):
         ("console", "inline", "dB(1 / m)"),
         ("unicode", "multiline", "   1\ndB(─)\n   m"),
         ("unicode", "inline", "dB(1 / m)"),
-        ("latex", False, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
-        ("latex", "inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{1 / m} \right)}$"),
+        ("latex", False, r"$\mathrm{dB\left(m^{-1}\right)}$"),
+        ("latex", "inline", r"$\mathrm{dB\left(1 / m\right)}$"),
     ],
 )
 def test_function_format_styles_non_default_fraction(format_spec, fraction, string):
@@ -1165,3 +1197,8 @@ def test_Fits_name_deprecation():
     ):
         from astropy.units.format import Fits
     assert Fits is u.format.FITS
+
+
+@pytest.mark.parametrize("format_spec", ["generic", "unicode"])
+def test_liter(format_spec):
+    assert format(u.liter, format_spec) == "l"

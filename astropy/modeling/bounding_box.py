@@ -4,23 +4,16 @@
 This module is to contain an improved bounding box.
 """
 
-from __future__ import annotations
-
 import abc
 import copy
 import warnings
-from typing import TYPE_CHECKING, NamedTuple
+from collections.abc import Callable
+from typing import Any, NamedTuple, Self
 
 import numpy as np
 
-from astropy.units import Quantity
+from astropy.units import Quantity, UnitBase
 from astropy.utils.compat import COPY_IF_NEEDED
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Any, Self
-
-    from astropy.units import UnitBase
 
 __all__ = ["CompoundBoundingBox", "ModelBoundingBox"]
 

@@ -657,8 +657,8 @@ for the ``data`` argument.
 
 **dict-like**
     The keys of the ``data`` object define the base column names. The
-    corresponding values can be |Column| objects, ``numpy`` arrays, or list-
-    like objects. The ``names`` list (optional) can be used to select
+    corresponding values can be |Column| objects, ``numpy`` arrays, or
+    list-like objects. The ``names`` list (optional) can be used to select
     particular fields and/or reorder the base names. The ``dtype`` list
     (optional) must match the length of ``names`` and is used to override
     the existing or default data types.

@@ -273,6 +273,42 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
             if spine.data_func:
                 spine.data = spine.data_func(spine)
 
+    def _validate_positions(self, positions):
+        """
+        Given a string with single character positions or an iterable with
+        single or multi-character positions, emit a warning for any
+        unrecognized positions and return a list of valid positions.
+        """
+        if positions == "all":
+            return positions
+
+        valid_positions = []
+        invalid_positions = []
+        for position in positions:
+            if position in self or position == "#":
+                valid_positions.append(position)
+            else:
+                invalid_positions.append(position)
+
+        if invalid_positions:
+            if isinstance(positions, str) and positions in self:
+                hint = (
+                    f"It looks like '{positions}' matches the name of a single "
+                    f"axis. If you are trying to specify a multi-character axis "
+                    f"name, use a list or a tuple, e.g. ('{positions}',)."
+                )
+            else:
+                hint = ""
+
+            warnings.warn(
+                f"Ignoring unrecognized position(s): {invalid_positions}, should "
+                f"be one of {'/'.join(self.keys())}. In future this will "
+                f"raise an error. {hint}",
+                AstropyDeprecationWarning,
+            )
+
+        return valid_positions
+
 
 class RectangularFrame1D(BaseFrame):
     """

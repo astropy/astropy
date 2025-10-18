@@ -708,7 +708,11 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdul[0].header == orig_header[:-1]
             assert (hdul[0].data == data).all()
 
-        if sys.platform.startswith("win") and not NUMPY_LT_2_0:
+        if (
+            sys.platform.startswith("win")
+            and sys.version_info < (3, 14)
+            and not NUMPY_LT_2_0
+        ):
             ctx = pytest.warns(
                 UserWarning,
                 match="Memory map object was closed but appears to still be referenced",
@@ -823,11 +827,9 @@ class TestHDUListFunctions(FitsTestCase):
         Save backup of file before flushing changes.
         """
 
-        self.copy_file("scale.fits")
+        testfile = self.copy_file("scale.fits")
 
-        with fits.open(
-            self.temp("scale.fits"), mode="update", save_backup=True
-        ) as hdul:
+        with fits.open(testfile, mode="update", save_backup=True) as hdul:
             # Make some changes to the original file to force its header
             # and data to be rewritten
             hdul[0].header["TEST"] = "TEST"
@@ -843,9 +845,7 @@ class TestHDUListFunctions(FitsTestCase):
                 assert hdul1[0].header == hdul2[0].header
                 assert (hdul1[0].data == hdul2[0].data).all()
 
-        with fits.open(
-            self.temp("scale.fits"), mode="update", save_backup=True
-        ) as hdul:
+        with fits.open(testfile, mode="update", save_backup=True) as hdul:
             # One more time to see if multiple backups are made
             hdul[0].header["TEST2"] = "TEST"
             hdul[0].data[0] = 1
@@ -1183,6 +1183,22 @@ class TestHDUListFunctions(FitsTestCase):
 
         with pytest.raises(OSError):
             fits.open(filename, ignore_missing_end=True)
+
+    def test_warning_raised_extra_bytes_after_last_hdu(self):
+        filename = "test_extra_bytes.fits"
+        fits.writeto(self.temp(filename), np.arange(100))
+        # write some extra bytes to the end of the file
+        with open(self.temp(filename), "ab") as f:
+            f.write(b"extra bytes")
+
+        # this should not raise a DeprecationWarning about the indent
+        # function (#18607)
+        match = "There may be extra bytes after the last HDU"
+        with (
+            pytest.warns(VerifyWarning, match=match),
+            fits.open(self.temp(filename)) as hdul,
+        ):
+            assert len(hdul) == 1
 
     def test_pop_with_lazy_load(self):
         filename = self.data("checksum.fits")

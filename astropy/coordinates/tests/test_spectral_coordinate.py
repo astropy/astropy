@@ -19,7 +19,7 @@ from astropy.coordinates import (
     SpectralQuantity,
     get_body_barycentric_posvel,
 )
-from astropy.coordinates.sites import get_builtin_sites
+from astropy.coordinates.sites import _GREENWICH
 from astropy.coordinates.spectral_coordinate import (
     NoDistanceWarning,
     NoVelocityWarning,
@@ -32,8 +32,6 @@ from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning, AstropyWarning
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES as FITSWCS_VELOCITY_FRAMES
-
-GREENWICH = get_builtin_sites()["greenwich"]
 
 
 def assert_frame_allclose(
@@ -755,7 +753,7 @@ def test_spectral_coord_jupiter():
     Checks radial velocity between Earth and Jupiter
     """
     obstime = time.Time("2018-12-13 9:00")
-    obs = GREENWICH.get_gcrs(obstime)
+    obs = _GREENWICH.get_gcrs(obstime)
 
     pos, vel = get_body_barycentric_posvel("jupiter", obstime)
     jupiter = SkyCoord(
@@ -776,7 +774,7 @@ def test_spectral_coord_alphacen():
     Checks radial velocity between Earth and Alpha Centauri
     """
     obstime = time.Time("2018-12-13 9:00")
-    obs = GREENWICH.get_gcrs(obstime)
+    obs = _GREENWICH.get_gcrs(obstime)
 
     # Coordinates were obtained from the following then hard-coded to avoid download
     # acen = SkyCoord.from_name('alpha cen')
@@ -802,7 +800,7 @@ def test_spectral_coord_m31():
     Checks radial velocity between Earth and M31
     """
     obstime = time.Time("2018-12-13 9:00")
-    obs = GREENWICH.get_gcrs(obstime)
+    obs = _GREENWICH.get_gcrs(obstime)
 
     # Coordinates were obtained from the following then hard-coded to avoid download
     # m31 = SkyCoord.from_name('M31')
@@ -851,7 +849,7 @@ def test_shift_to_rest_star_withobserver():
     rest_line_wls = [5007, 6563] * u.AA
 
     obstime = time.Time("2018-12-13 9:00")
-    obs = GREENWICH.get_gcrs(obstime)
+    obs = _GREENWICH.get_gcrs(obstime)
     acen = SkyCoord(
         ra=219.90085 * u.deg,
         dec=-60.83562 * u.deg,
@@ -883,7 +881,7 @@ def test_shift_to_rest_star_withobserver():
         frame=barycentric_spc.target.realize_frame(None),
     )
     vcorr = barytarg.radial_velocity_correction(
-        kind="barycentric", obstime=obstime, location=GREENWICH
+        kind="barycentric", obstime=obstime, location=_GREENWICH
     )
 
     drv = baryrest_spc.radial_velocity - observed_spc.radial_velocity

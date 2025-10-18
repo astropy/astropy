@@ -69,6 +69,8 @@ def handle_options(args):
     parser = argparse.ArgumentParser(
         description=DESCRIPTION, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
+    parser.suggest_on_error = True
 
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
@@ -163,33 +165,42 @@ def verify_checksums(filename):
     """
     Prints a message if any HDU in `filename` has a bad checksum or datasum.
     """
-    with warnings.catch_warnings(record=True) as wlist:
+    checksum_errors = 0
+
+    # _verify_checksum_datasum issues warnings when checksums are wrong so we
+    # catch those to avoid duplicates, since we are using logging here to
+    # report problems.
+    with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
         with fits.open(filename, checksum=OPTIONS.checksum_kind) as hdulist:
             for i, hdu in enumerate(hdulist):
                 # looping on HDUs is needed to read them and verify the
                 # checksums
-                if not OPTIONS.ignore_missing:
-                    if not hdu._checksum:
-                        log.warning(
-                            f"MISSING {filename!r} .. Checksum not found in HDU #{i}"
-                        )
-                        return 1
-                    if not hdu._datasum:
-                        log.warning(
-                            f"MISSING {filename!r} .. Datasum not found in HDU #{i}"
-                        )
-                        return 1
+                if not OPTIONS.ignore_missing and not hdu._checksum:
+                    checksum_errors += 1
+                    log.warning(
+                        f"MISSING {filename!r} .. Checksum not found in HDU #{i}",
+                    )
+                elif hdu._checksum and not hdu._checksum_valid:
+                    checksum_errors += 1
+                    log.warning(
+                        f"BAD {filename!r} Checksum verification failed for HDU {i}"
+                    )
 
-    for w in wlist:
-        if str(w.message).startswith(
-            ("Checksum verification failed", "Datasum verification failed")
-        ):
-            log.warning("BAD %r %s", filename, str(w.message))
-            return 1
+                if not OPTIONS.ignore_missing and not hdu._datasum:
+                    checksum_errors += 1
+                    log.warning(
+                        f"MISSING {filename!r} .. Datasum not found in HDU #{i}",
+                    )
+                elif hdu._datasum and not hdu._datasum_valid:
+                    checksum_errors += 1
+                    log.warning(
+                        f"BAD {filename!r} Datasum verification failed for HDU {i}"
+                    )
 
-    log.info(f"OK {filename!r}")
-    return 0
+    if not checksum_errors:
+        log.info(f"OK {filename!r}")
+    return checksum_errors
 
 
 def verify_compliance(filename):

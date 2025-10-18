@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from __future__ import annotations
-
 __all__ = [
     "validate_non_negative",
     "validate_to_float",
@@ -10,15 +8,22 @@ __all__ = [
 ]
 
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from numpy.typing import NDArray
 
 import astropy.units as u
+
+if TYPE_CHECKING:
+    import astropy.cosmology
 
 FValidateCallable = Callable[[object, object, Any], Any]
 _REGISTRY_FVALIDATORS: dict[str, FValidateCallable] = {}
 
 
-def _register_validator(key, fvalidate=None):
+def _register_validator(
+    key: str, fvalidate: FValidateCallable | None = None
+) -> FValidateCallable | Callable[[FValidateCallable], FValidateCallable]:
     """Decorator to register a new kind of validator function.
 
     Parameters
@@ -65,7 +70,11 @@ def _register_validator(key, fvalidate=None):
 
 
 @_register_validator("default")
-def validate_with_unit(cosmology, param, value):
+def validate_with_unit(
+    cosmology: "astropy.cosmology.Cosmology",
+    param: "astropy.cosmology.Parameter",
+    value: Any,
+) -> Any:
     """Default Parameter value validator.
 
     Adds/converts units if Parameter has a unit.
@@ -77,15 +86,23 @@ def validate_with_unit(cosmology, param, value):
 
 
 @_register_validator("float")
-def validate_to_float(cosmology, param, value):
+def validate_to_float(
+    cosmology: "astropy.cosmology.Cosmology",
+    param: "astropy.cosmology.Parameter",
+    value: Any,
+) -> float:
     """Parameter value validator with units, and converted to float."""
     value = validate_with_unit(cosmology, param, value)
     return float(value)
 
 
 @_register_validator("scalar")
-def validate_to_scalar(cosmology, param, value):
-    """"""
+def validate_to_scalar(
+    cosmology: "astropy.cosmology.Cosmology",
+    param: "astropy.cosmology.Parameter",
+    value: Any,
+) -> NDArray:
+    """Parameter value validator where value is a scalar."""
     value = validate_with_unit(cosmology, param, value)
     if not value.isscalar:
         raise ValueError(f"{param.name} is a non-scalar quantity")
@@ -93,7 +110,11 @@ def validate_to_scalar(cosmology, param, value):
 
 
 @_register_validator("non-negative")
-def validate_non_negative(cosmology, param, value):
+def validate_non_negative(
+    cosmology: "astropy.cosmology.Cosmology",
+    param: "astropy.cosmology.Parameter",
+    value: Any,
+) -> float:
     """Parameter value validator where value is a positive float."""
     value = validate_to_float(cosmology, param, value)
     if value < 0.0:

@@ -502,8 +502,8 @@ representations, frames, and a high-level class. Representations
 classes are a particular way of storing a three-dimensional data point
 (or points), such as Cartesian coordinates or spherical polar
 coordinates. Frames are particular reference frames like FK5 or ICRS,
-which may store their data in different representations, but have well-
-defined transformations between each other. These transformations are
+which may store their data in different representations, but have
+well-defined transformations between each other. These transformations are
 all stored in the ``astropy.coordinates.frame_transform_graph``, and new
 transformations can be created by users. Finally, the high-level class
 (|SkyCoord|) uses the frame classes, but provides a more accessible
@@ -577,7 +577,7 @@ coordinate systems implemented here include:
 * `USNO Circular 179 <https://arxiv.org/abs/astro-ph/0602086>`_
     A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
     related problems in precision coordinate system work.
-* `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
+* `Standards Of Fundamental Astronomy <https://www.iausofa.org/>`_
     The definitive implementation of IAU-defined algorithms. The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.

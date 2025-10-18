@@ -1777,7 +1777,7 @@ def download_files_in_parallel(
                 cache=cache,
                 show_progress=False,
                 timeout=timeout,
-                sources=sources.get(u, None),
+                sources=sources.get(u),
                 pkgname=pkgname,
                 temp_cache=astropy.config.paths.set_temp_cache._temp_path,
                 temp_config=astropy.config.paths.set_temp_config._temp_path,

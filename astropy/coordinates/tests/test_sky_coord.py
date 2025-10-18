@@ -155,7 +155,7 @@ def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
     }
     # also, if any are None, fill in with defaults
     for attrnm in frame0.frame_attributes:
-        if attrs0.get(attrnm, None) is None:
+        if attrs0.get(attrnm) is None:
             if attrnm == "obstime" and frame0.get_frame_attr_defaults()[attrnm] is None:
                 if "equinox" in attrs0:
                     attrs0[attrnm] = attrs0["equinox"]

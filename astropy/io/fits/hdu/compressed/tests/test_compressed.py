@@ -7,7 +7,6 @@ import pickle
 import re
 import time
 from io import BytesIO
-from itertools import product
 
 import numpy as np
 import pytest
@@ -215,16 +214,16 @@ class TestCompressedImage(FitsTestCase):
         """
 
         # Copy the original file before making any possible changes to it
-        self.copy_file("comp.fits")
-        mtime = os.stat(self.temp("comp.fits")).st_mtime
+        testfile = self.copy_file("comp.fits")
+        mtime = os.stat(testfile).st_mtime
 
         time.sleep(1)
 
-        fits.open(self.temp("comp.fits"), mode="update").close()
+        fits.open(testfile, mode="update").close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
-        assert mtime == os.stat(self.temp("comp.fits")).st_mtime
+        assert mtime == os.stat(testfile).st_mtime
 
     @pytest.mark.slow
     def test_open_scaled_in_update_mode_compressed(self):
@@ -433,57 +432,57 @@ class TestCompressedImage(FitsTestCase):
         https://github.com/spacetelescope/PyFITS/issues/23
         """
 
-        self.copy_file("comp.fits")
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        testfile = self.copy_file("comp.fits")
+        with fits.open(testfile, mode="update") as hdul:
             assert isinstance(hdul[1], fits.CompImageHDU)
             hdul[1].header["test1"] = "test"
             hdul[1]._header["test2"] = "test2"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert "test1" in hdul[1].header
             assert hdul[1].header["test1"] == "test"
             assert "test2" in hdul[1].header
             assert hdul[1].header["test2"] == "test2"
 
         # Test update via index now:
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdr = hdul[1].header
             hdr[hdr.index("TEST1")] = "foo"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert hdul[1].header["TEST1"] == "foo"
 
         # Test slice updates
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdul[1].header["TEST*"] = "qux"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert list(hdul[1].header["TEST*"].values()) == ["qux", "qux"]
 
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdr = hdul[1].header
             idx = hdr.index("TEST1")
             hdr[idx : idx + 2] = "bar"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert list(hdul[1].header["TEST*"].values()) == ["bar", "bar"]
 
         # Test updating a specific COMMENT card duplicate
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdul[1].header[("COMMENT", 1)] = "I am fire. I am death!"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert hdul[1].header["COMMENT"][1] == "I am fire. I am death!"
             assert hdul[1]._header["COMMENT"][1] == "I am fire. I am death!"
 
         # Test deleting by keyword and by slice
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdr = hdul[1].header
             del hdr["COMMENT"]
             idx = hdr.index("TEST1")
             del hdr[idx : idx + 2]
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert "COMMENT" not in hdul[1].header
             assert "COMMENT" not in hdul[1]._header
             assert "TEST1" not in hdul[1].header
@@ -496,14 +495,6 @@ class TestCompressedImage(FitsTestCase):
         Ensure that setting reserved keywords related to the table data
         structure on CompImageHDU image headers fails.
         """
-
-        def test_set_keyword(hdr, keyword, value):
-            with pytest.warns(UserWarning) as w:
-                hdr[keyword] = value
-            assert len(w) == 1
-            assert str(w[0].message).startswith(f"Keyword {keyword!r} is reserved")
-            assert keyword not in hdr
-
         with fits.open(self.data("comp.fits")) as hdul:
             hdr = hdul[1].header
             hdr["TFIELDS"] = 8
@@ -864,9 +855,8 @@ class TestCompressedImage(FitsTestCase):
         new = fits.getdata(testfile)
         np.testing.assert_array_equal(data, new)
 
-    @pytest.mark.parametrize(
-        ("dtype", "compression_type"), product(("f", "i4"), COMPRESSION_TYPES)
-    )
+    @pytest.mark.parametrize("dtype", ["f", "i4"])
+    @pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
     def test_write_non_contiguous_data(self, dtype, compression_type):
         """
         Regression test for https://github.com/astropy/astropy/issues/2150
@@ -970,13 +960,13 @@ class TestCompressedImage(FitsTestCase):
             assert hdul[1].shape == (120, 150)
 
     def test_inplace_data_modify(self, tmp_path):
-        self.copy_file("comp.fits")
+        testfile = self.copy_file("comp.fits")
 
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             data = hdul[1].data
             data[0] = 0
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert hdul[1].data[0, 0] == 0
 
     def test_summary_noload(self):
@@ -1256,6 +1246,31 @@ def test_section_unwritten():
     hdu = fits.CompImageHDU(data, header, compression_type="RICE_1", tile_shape=(5, 6))
     assert_equal(hdu.section[...], data)
     assert hdu.section[3, 4] == data[3, 4]
+
+
+def test_section_scaling(tmp_path):
+    data = (np.arange(200 * 200).reshape(200, 200) - 20_000).astype(np.int16)
+    chdu = fits.CompImageHDU(data=data)
+    chdu._scale_internal(bzero=1.234, bscale=0.0002, blank=32767)
+    chdu.writeto(tmp_path / "compressed.fits")
+
+    with fits.open(tmp_path / "compressed.fits") as hdul:
+        section = hdul[1].section
+        # underlying data is int16 but accessing it triggers scaling
+        assert section.dtype == np.int16
+        assert section[:10].dtype == np.float32
+        # behavior should remain the same after data has been accessed
+        assert section.dtype == np.int16
+        assert section[:10].dtype == np.float32
+
+    with fits.open(tmp_path / "compressed.fits") as hdul:
+        section = hdul[1].section
+        # underlying data is int16 but accessing it triggers scaling
+        assert section.dtype == np.int16
+        assert section[...].dtype == np.float32
+        # behavior should remain the same after data has been accessed
+        assert section.dtype == np.int16
+        assert section[...].dtype == np.float32
 
 
 EXPECTED_HEADER = """

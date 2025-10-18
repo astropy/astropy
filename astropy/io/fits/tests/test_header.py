@@ -11,6 +11,7 @@ import pytest
 from astropy.io import fits
 from astropy.io.fits.card import _pad
 from astropy.io.fits.header import _pad_length
+from astropy.io.fits.scripts import fitsheader
 from astropy.io.fits.util import encode_ascii
 from astropy.io.fits.verify import VerifyError, VerifyWarning
 from astropy.utils.exceptions import AstropyUserWarning
@@ -191,8 +192,14 @@ class TestHeaderFunctions(FitsTestCase):
 
     def test_keyword_too_long(self):
         """Test that long Card keywords are allowed, but with a warning"""
-
-        pytest.warns(UserWarning, fits.Card, "abcdefghi", "long")
+        with pytest.warns(
+            UserWarning,
+            match=(
+                r"^Keyword name 'abcdefghi' is greater than 8 characters or contains "
+                r"characters not allowed by the FITS standard; a HIERARCH card will be created\.$"
+            ),
+        ):
+            fits.Card("abcdefghi", "long")
 
     def test_illegal_characters_in_key(self):
         """
@@ -3133,8 +3140,6 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     def test_fitsheader_script(self):
         """Tests the basic functionality of the `fitsheader` script."""
-        from astropy.io.fits.scripts import fitsheader
-
         # Can an extension by specified by the EXTNAME keyword?
         hf = fitsheader.HeaderFormatter(self.data("zerowidth.fits"))
         output = hf.parse(extensions=["AIPS FQ"])
@@ -3184,9 +3189,6 @@ class TestRecordValuedKeywordCards(FitsTestCase):
 
     def test_fitsheader_table_feature(self):
         """Tests the `--table` feature of the `fitsheader` script."""
-        from astropy.io import fits
-        from astropy.io.fits.scripts import fitsheader
-
         test_filename = self.data("zerowidth.fits")
 
         formatter = fitsheader.TableHeaderFormatter(test_filename)

@@ -485,8 +485,8 @@ Maintaining Bug Fix Releases
 
 Astropy releases, as recommended for most Python projects, follows a
 <major>.<minor>.<micro> version scheme, where the "micro" version is also
-known as a "bug fix" release.  Bug fix releases should not change any user-
-visible interfaces.  They should only fix bugs on the previous major/minor
+known as a "bug fix" release.  Bug fix releases should not change any
+user-visible interfaces.  They should only fix bugs on the previous major/minor
 release and may also refactor internal APIs or include omissions from previous
 releases--that is, features that were documented to exist but were accidentally
 left out of the previous release. They may also include changes to docstrings
