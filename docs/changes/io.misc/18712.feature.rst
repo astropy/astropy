@@ -1,0 +1,1 @@
+Change ecsv reader to handle compressed data via ``utils.data``.
