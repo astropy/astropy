@@ -3614,6 +3614,28 @@ class TestColumnFunctions(FitsTestCase):
         assert cols["a"] == cols[0]
         assert cols["b"] == cols[1]
 
+    def test_column_membership(self):
+        """Tests that the membership operator can be used for `ColDefs`."""
+
+        a = fits.Column(name="a", format="D")
+        b = fits.Column(name="b", format="D")
+        c = fits.Column(name="c", format="D")
+
+        cols = fits.ColDefs([a, b])
+
+        # String tests
+        assert "a" in cols
+        assert "b" in cols
+        assert "c" not in cols
+        # Column tests
+        assert a in cols
+        assert b in cols
+        assert c not in cols
+        # General case (false)
+        assert 1 not in cols
+        assert cols not in cols
+        assert [a, b] not in cols
+
     def test_column_attribute_change_after_removal(self):
         """
         This is a test of the column attribute change notification system.
