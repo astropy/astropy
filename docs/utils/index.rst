@@ -25,9 +25,10 @@ The exceptions are below:
    :maxdepth: 1
 
    data
-   masked/index
 
 :ref:`utils-iers`
+
+:ref:`utils-masked`
 
 .. note:: The ``astropy.utils.compat`` subpackage is not included in this
     documentation. It contains utility modules for compatibility with
