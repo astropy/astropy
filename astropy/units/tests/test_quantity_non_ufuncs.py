@@ -27,6 +27,7 @@ from astropy.utils.compat import (
     NUMPY_LT_2_0,
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
+    NUMPY_LT_2_4,
 )
 
 VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
@@ -2287,6 +2288,7 @@ class TestSetOpsFunctions:
         self.check2(np.setdiff1d)
 
     @needs_array_function
+    @pytest.mark.skipif(not NUMPY_LT_2_4, reason="in1d was removed in numpy 2.4")
     @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
         self.check2(np.in1d, unit=None)  # noqa: NPY201
