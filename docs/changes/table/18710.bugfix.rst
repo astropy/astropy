@@ -1,4 +1,7 @@
 Fixed a bug where reading an ECSV file with a column name starting with ``#``
-would raise an ``InconsistentTableError`` due to the YAML parser failing on the
-``%ECSV`` preamble line. The ECSV reader now correctly strips the preamble before
-parsing the YAML header, ensuring compatibility across different PyYAML versions.
+would raise an ``InconsistentTableError``. The fix includes two improvements:
+(1) The ECSV reader's comment regex now correctly requires a space after ``#``
+per the ECSV specification, preventing column names like ``#col`` from being
+treated as comment lines. (2) The ECSV writer now quotes column names that
+start with ``#`` to prevent any ambiguity. This ensures that tables with such
+column names can be successfully written and read back. [#18710]

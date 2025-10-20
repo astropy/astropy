@@ -49,6 +49,9 @@ class EcsvHeader(basic.BasicHeader):
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
 
+    comment = r"\s*# "
+    write_comment = "# "
+
     def process_lines(self, lines):
         """Return only non-blank lines that start with the comment regexp.  For these
         lines strip out the matching characters and leading/trailing whitespace.
@@ -105,7 +108,18 @@ class EcsvHeader(basic.BasicHeader):
         ] + meta.get_yaml_from_header(header)
 
         lines.extend([self.write_comment + line for line in header_yaml_lines])
-        lines.append(self.splitter.join([x.info.name for x in self.cols]))
+
+        # Quote column names that start with '#' to avoid ambiguity with comment lines
+        col_names = []
+        for col in self.cols:
+            name = col.info.name
+            # Quote names that start with # or contain the delimiter or quotes
+            if name.startswith('#') or self.splitter.delimiter in name or '"' in name:
+                # Use double quotes and escape any internal quotes
+                name = '"' + name.replace('"', '""') + '"'
+            col_names.append(name)
+
+        lines.append(self.splitter.join(col_names))
 
     def write_comments(self, lines, meta):
         """
