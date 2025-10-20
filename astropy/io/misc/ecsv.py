@@ -409,7 +409,10 @@ class ECSVEnginePandas(ECSVEngine):
 
         kw["na_values"] = null_values
         kw["keep_default_na"] = False
-        kw["skiprows"] = header.n_header
+        kw["comment"] = "#"
+        # Would prefer `kw["skiprows"] = header.n_header` here, but there is a bug in
+        # pandas.read_csv where skiprows does not behave expectedly.
+        # https://github.com/pandas-dev/pandas/issues/62739
         kw["dtype"] = converters
         return kw
 
