@@ -1,11 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import operator
 from collections.abc import Hashable, Mapping, Sequence
+from dataclasses import dataclass
 from numbers import Integral
 
-__all__ = ["BST"]
+__all__ = ["BST", "Bottom", "Top"]
 
 
+@dataclass(frozen=True, eq=False, slots=True)
 class MaxValue:
     """
     Represents an infinite value for purposes
@@ -29,7 +31,14 @@ class MaxValue:
 
     __str__ = __repr__
 
+    def __hash__(self):
+        return hash(str(self))
 
+
+Top = MaxValue()
+
+
+@dataclass(frozen=True, eq=False, slots=True)
 class MinValue:
     """
     The opposite of MaxValue, i.e. a representation of
@@ -53,40 +62,11 @@ class MinValue:
 
     __str__ = __repr__
 
+    def __hash__(self):
+        return hash(str(self))
 
-class Epsilon:
-    """
-    Represents the "next largest" version of a given value,
-    so that for all valid comparisons we have
-    x < y < Epsilon(y) < z whenever x < y < z and x, z are
-    not Epsilon objects.
 
-    Parameters
-    ----------
-    val : object
-        Original value
-    """
-
-    __slots__ = ("val",)
-
-    def __init__(self, val):
-        self.val = val
-
-    def __lt__(self, other):
-        if self.val == other:
-            return False
-        return self.val < other
-
-    def __gt__(self, other):
-        if self.val == other:
-            return True
-        return self.val > other
-
-    def __eq__(self, other):
-        return False
-
-    def __repr__(self):
-        return repr(self.val) + " + epsilon"
+Bottom = MinValue()
 
 
 class Node:
