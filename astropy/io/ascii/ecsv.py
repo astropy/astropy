@@ -201,6 +201,13 @@ class EcsvHeader(basic.BasicHeader):
             header_line = ""
             header_names = []
 
+        # Strip quotes from column names if present (from CSV quoting)
+        # Column names that start with # or contain delimiters are quoted when written
+        header_names = [
+            name[1:-1].replace('""', '"') if name.startswith('"') and name.endswith('"') else name
+            for name in header_names
+        ]
+
         # Check for consistency of the ECSV vs. CSV header column names
         if header_names != self.names:
             raise core.InconsistentTableError(
