@@ -181,9 +181,7 @@ class _SetTempPath:
             )
             return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-        if (path := env_dir_path / rootname).is_file():
-            raise FileExistsError
-
+        path = env_dir_path / rootname
         path.mkdir(exist_ok=True)
         if not path.is_symlink():
             return path.resolve()
