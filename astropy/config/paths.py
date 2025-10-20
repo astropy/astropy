@@ -168,27 +168,27 @@ class _SetTempPath:
                 path.mkdir(exist_ok=True)
             return path.resolve()
 
-        env_dir = cls._directory_env_var
-        if (dir_ := os.getenv(env_dir)) is None:
+        if (env_dir_str := os.getenv(cls._directory_env_var)) is None:
             return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-        if not (xch := Path(dir_)).is_dir():
+        if not (env_dir_path := Path(env_dir_str)).is_dir():
             warn(
-                f"{env_dir} is set to {dir_!r}, but no such directory was found. "
-                "So, this environment variable is ignored.",
+                f"{cls._directory_env_var} is set to {env_dir_str!r}, "
+                "but no such directory was found. "
+                "This environment variable will be ignored.",
                 category=UserWarning,
                 stacklevel=3,
             )
             return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-        if (xchpth := xch / rootname).is_symlink():
-            return cls._find_or_create_root_dir(linkto=xchpth, pkgname=rootname)
+        if (path := env_dir_path / rootname).is_symlink():
+            return cls._find_or_create_root_dir(linkto=path, pkgname=rootname)
         else:
             # at this point, xchpth represents $(XDG_X_HOME)/astropy, where
             # - $(XDG_X_HOME) points to an existing dir
             # - the subdir `astropy` is *not* a symlink (but may be missing)
-            xchpth.mkdir(exist_ok=True)
-            return xchpth.resolve()
+            path.mkdir(exist_ok=True)
+            return path.resolve()
 
     @classmethod
     def _find_or_create_root_dir(
