@@ -2077,9 +2077,7 @@ class TestQuantitySubclassAboveAndBelow:
     def setup_class(cls):
         class MyArray(np.ndarray):
             def __array_finalize__(self, obj):
-                super_array_finalize = super().__array_finalize__
-                if super_array_finalize is not None:
-                    super_array_finalize(obj)
+                super().__array_finalize__(obj)
                 if hasattr(obj, "my_attr"):
                     self.my_attr = obj.my_attr
 
