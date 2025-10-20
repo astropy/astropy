@@ -1240,6 +1240,9 @@ def write_ecsv(tbl, output, **kwargs):
         options like ``delimiter``, ``encoding``, and others supported by the
         `astropy.io.ascii.Ecsv` writer.
     """
+    # Calling writer like `t.write(out, format="ecsv", engine="pyarrow")` needs to drop
+    # the engine kwarg.
+    kwargs.pop("engine", None)
     tbl.write(output, format="ascii.ecsv", **kwargs)
 
 

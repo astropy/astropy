@@ -195,7 +195,7 @@ def test_write_read_roundtrip(format_engine):
 
     for delimiter in DELIMITERS:
         out = StringIO()
-        t.write(out, format="ascii.ecsv", delimiter=delimiter)
+        t.write(out, delimiter=delimiter, **format_engine)
 
         t2s = [
             Table.read(out.getvalue(), **format_engine),
