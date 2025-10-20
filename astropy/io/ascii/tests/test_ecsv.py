@@ -237,7 +237,7 @@ def test_bad_delimiter():
 
 @pytest.mark.parametrize("name", ["# name", ' #name " '])
 @pytest.mark.parametrize("delimiter", [" ", ","])
-def test_stressing_colname_starts_with_hash_etc(name, delimiter):
+def test_stressing_colname_starts_with_hash_etc(format_engine, name, delimiter):
     """Column name starting with # that looks like a comment, see #18710.
 
     Also names that contain leading/trailing whitespace and a quote character.
@@ -246,9 +246,9 @@ def test_stressing_colname_starts_with_hash_etc(name, delimiter):
     t = Table()
     t[name] = [1, 2]
     t["a"] = [3, 4]
-    t.write(out, delimiter=delimiter, format="ascii.ecsv")
+    t.write(out, delimiter=delimiter, **format_engine)
     out.seek(0)
-    t2 = Table.read(out.getvalue(), format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), **format_engine)
     assert t2.colnames == [name, "a"]
 
 
