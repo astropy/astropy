@@ -181,14 +181,13 @@ class _SetTempPath:
             )
             return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-        if (path := env_dir_path / rootname).is_symlink():
-            return cls._find_or_create_root_dir(linkto=path, pkgname=rootname)
+        if not (path := env_dir_path / rootname).is_symlink():
+            if path.exists():
+                return path.resolve()
+            else:
+                return cls._find_or_create_root_dir(linkto=path, pkgname=rootname)
         else:
-            # at this point, xchpth represents $(XDG_X_HOME)/astropy, where
-            # - $(XDG_X_HOME) points to an existing dir
-            # - the subdir `astropy` is *not* a symlink (but may be missing)
-            path.mkdir(exist_ok=True)
-            return path.resolve()
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
     @classmethod
     def _find_or_create_root_dir(
