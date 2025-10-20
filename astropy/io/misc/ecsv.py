@@ -365,6 +365,7 @@ class ECSVEngineIoAscii(ECSVEngine):
         # encoding. Converters are required, e.g. for a string column that looks like
         # floats. Would be nice to fix this, but in mean time use Python CSV reader.
         kw["fast_reader"] = False
+        kw["strip_column_names"] = False
         return kw
 
 
