@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-
 import matplotlib.transforms as mtransforms
 import numpy as np
 from matplotlib import _api, rcParams
@@ -11,7 +9,7 @@ from .frame import RectangularFrame
 
 
 class AxisLabels(Text):
-    def __init__(self, frame, minpad=1, *args,  loc="center", **kwargs):
+    def __init__(self, frame, minpad=1, *args, loc="center", **kwargs):
         # Use rcParams if the following parameters were not specified explicitly
         if "weight" not in kwargs:
             kwargs["weight"] = rcParams["axes.labelweight"]
@@ -122,7 +120,7 @@ class AxisLabels(Text):
                     "top": (1, "left"),
                 }[loc]
             elif loc != "center":
-                raise NotImplementError(
+                raise NotImplementedError(
                     f"Received unsupported value {loc=!r}. "
                     f"Only loc='center' is implemented for {axis=!r}"
                 )
