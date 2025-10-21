@@ -110,7 +110,7 @@ class AxisLabels(Text):
                     "center": 0.5,
                     "right": 1,
                 }[loc]
-            elif axis in "lrv":
+            elif axis in {"l", "r", "v"}:
                 loc = loc if loc is not None else rcParams["yaxis.labellocation"]
                 _api.check_in_list(("bottom", "center", "top"), loc=loc)
 
