@@ -119,11 +119,12 @@ class AxisLabels(Text):
                     "center": (0.5, "center"),
                     "top": (1, "left"),
                 }[loc]
+            elif loc != "center":
+                raise NotImplementError(
+                    f"Received unsupported value {loc=!r}. "
+                    f"Only loc='center' is implemented for {axis=!r}"
+                )
             else:
-                if loc != "center":
-                    warnings.warn(
-                        f"Only loc = 'center' is implemented at the moment for axis '{axis}'"
-                    )
                 loc = "center"
                 bary = 0.5
 
@@ -137,7 +138,7 @@ class AxisLabels(Text):
                 label_angle += 180
             self.set_rotation(label_angle)
             if 45 < label_angle < 135:
-                loc = {"left": "right", "center": "center", "right": "left"}[loc]
+                loc = {"left": "right", "right": "left"}.get(loc, loc)
             self.set_ha(loc)
 
             # Find label position by looking at the bounding box of ticks'
