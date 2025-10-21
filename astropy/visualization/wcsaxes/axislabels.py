@@ -24,10 +24,12 @@ class AxisLabels(Text):
         super().__init__(*args, **kwargs)
         self.set_clip_on(True)
         self.set_visible_axes("all")
-        self.set_minpad(minpad)
-        self.set_loc(loc)
-        self.set_rotation_mode("anchor")
-        self.set_visibility_rule("labels")
+        self.set(
+            minpad=minpad,
+            loc=loc,
+            rotation_mode="anchor",
+            visibility_rule="labels",
+        )
 
     def get_minpad(self, axis):
         try:
