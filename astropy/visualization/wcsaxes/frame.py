@@ -116,7 +116,7 @@ class Spine:
         """
         return self._barycentric_x_y_angle(0.5)
 
-    def _barycentric_x_y_angle(self, bary=0.5):
+    def _barycentric_x_y_angle(self, bary=0.5, /):
         """
         Return the x, y, normal_angle values at a barycentric coordinate in [0,1]
         along the spine.
