@@ -108,8 +108,8 @@ def test_env_variables_setup(monkeypatch, tmp_path, astropy_env_var, func):
 
     assert not expected_path.exists()
     path = func()
-    assert path == expected_path
     assert expected_path.is_dir()
+    assert path == expected_path
 
     # finally, check what happens if we request a location that's already
     # taken, but is a file
