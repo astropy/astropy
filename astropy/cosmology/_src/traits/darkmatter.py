@@ -1,10 +1,4 @@
-"""Dark matter component.
-
-This is private API. See `~astropy.cosmology.traits` for public API.
-
-"""
-
-__all__ = ["_DarkMatterComponent"]
+__all__ = ["DarkMatterComponent"]
 
 from collections.abc import Callable
 from typing import Any
@@ -16,7 +10,7 @@ from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
 
-class _DarkMatterComponent:
+class DarkMatterComponent:
     """The cosmology has attributes and methods for the dark matter density.
 
     This trait provides an ``Odm`` method that returns the dark matter

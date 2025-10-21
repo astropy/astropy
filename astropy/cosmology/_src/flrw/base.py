@@ -36,12 +36,12 @@ from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.traits import (
     CurvatureComponent,
     DarkEnergyComponent,
+    DarkMatterComponent,
     HubbleParameter,
     ScaleFactor,
     TemperatureCMB,
     _BaryonComponent,
     _CriticalDensity,
-    _DarkMatterComponent,
     _MatterComponent,
 )
 from astropy.cosmology._src.utils import (
@@ -135,13 +135,13 @@ class FLRW(
     Cosmology,
     # Traits
     _BaryonComponent,
-    _DarkMatterComponent,
     _CriticalDensity,
     _MatterComponent,
     CurvatureComponent,
     DarkEnergyComponent,
     HubbleParameter,
     ScaleFactor,
+    DarkMatterComponent,
     TemperatureCMB,
 ):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
