@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-
 import matplotlib.transforms as mtransforms
 import numpy as np
 from matplotlib import _api, rcParams
@@ -11,7 +9,7 @@ from .frame import RectangularFrame
 
 
 class AxisLabels(Text):
-    def __init__(self, frame, minpad=1, loc="center", *args, **kwargs):
+    def __init__(self, frame, minpad=1, *args, loc="center", **kwargs):
         # Use rcParams if the following parameters were not specified explicitly
         if "weight" not in kwargs:
             kwargs["weight"] = rcParams["axes.labelweight"]
@@ -22,12 +20,14 @@ class AxisLabels(Text):
 
         self._frame = frame
         super().__init__(*args, **kwargs)
-        self.set_clip_on(True)
-        self.set_visible_axes("all")
-        self.set_minpad(minpad)
-        self.set_loc(loc)
-        self.set_rotation_mode("anchor")
-        self.set_visibility_rule("labels")
+        self.set(
+            clip_on=True,
+            visible_axes="all",
+            minpad=minpad,
+            loc=loc,
+            rotation_mode="anchor",
+            visibility_rule="labels",
+        )
 
     def get_minpad(self, axis):
         try:
@@ -101,7 +101,7 @@ class AxisLabels(Text):
             padding = text_size * self.get_minpad(axis)
 
             loc = self.get_loc(axis)
-            if axis in "tbhc":
+            if axis in {"t", "b", "h", "c"}:
                 loc = loc if loc is not None else rcParams["xaxis.labellocation"]
                 _api.check_in_list(("left", "center", "right"), loc=loc)
 
@@ -110,7 +110,7 @@ class AxisLabels(Text):
                     "center": 0.5,
                     "right": 1,
                 }[loc]
-            elif axis in "lrv":
+            elif axis in {"l", "r", "v"}:
                 loc = loc if loc is not None else rcParams["yaxis.labellocation"]
                 _api.check_in_list(("bottom", "center", "top"), loc=loc)
 
@@ -119,11 +119,12 @@ class AxisLabels(Text):
                     "center": (0.5, "center"),
                     "top": (1, "left"),
                 }[loc]
+            elif loc != "center":
+                raise NotImplementedError(
+                    f"Received unsupported value {loc=!r}. "
+                    f"Only loc='center' is implemented for {axis=!r}"
+                )
             else:
-                if loc != "center":
-                    warnings.warn(
-                        f"Only loc = 'center' is implemented at the moment for axis '{axis}'"
-                    )
                 loc = "center"
                 bary = 0.5
 
@@ -137,7 +138,7 @@ class AxisLabels(Text):
                 label_angle += 180
             self.set_rotation(label_angle)
             if 45 < label_angle < 135:
-                loc = {"left": "right", "center": "center", "right": "left"}[loc]
+                loc = {"left": "right", "right": "left"}.get(loc, loc)
             self.set_ha(loc)
 
             # Find label position by looking at the bounding box of ticks'
