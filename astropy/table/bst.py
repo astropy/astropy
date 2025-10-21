@@ -403,8 +403,8 @@ class BST:
 
     def range(
         self,
-        lower: tuple[Hashable, ...],
-        upper: tuple[Hashable, ...],
+        lower: tuple[Hashable, ...] | None,
+        upper: tuple[Hashable, ...] | None,
         bounds: tuple[bool, bool] = (True, True),
     ) -> list[int]:
         """
@@ -412,10 +412,10 @@ class BST:
 
         Parameters
         ----------
-        lower : tuple
-            Lower bound
-        upper : tuple
-            Upper bound
+        lower : tuple, None
+            Lower bound (no lower bound if None)
+        upper : tuple, None
+            Upper bound (no upper bound if None)
         bounds : (2,) tuple of bool
             Indicates whether the search should be inclusive or
             exclusive with respect to the endpoints. The first

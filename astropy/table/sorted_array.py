@@ -171,8 +171,8 @@ class SortedArray:
 
     def range(
         self,
-        lower: tuple[Hashable, ...],
-        upper: tuple[Hashable, ...],
+        lower: tuple[Hashable, ...] | None,
+        upper: tuple[Hashable, ...] | None,
         bounds: tuple[bool, bool],
     ) -> list[int]:
         """
@@ -180,17 +180,18 @@ class SortedArray:
 
         Parameters
         ----------
-        lower : tuple
-            Lower search bound
-        upper : tuple
-            Upper search bound
+        lower : tuple, None
+            Lower search bound (no lower bound if None)
+        upper : tuple, None
+            Upper search bound (no upper bound if None)
         bounds : (2,) tuple of bool
             Indicates whether the search should be inclusive or
             exclusive with respect to the endpoints. The first
             argument corresponds to an inclusive lower bound,
             and the second argument to an inclusive upper bound.
         """
-        # use ternary expressions for concise assignments
+        # Find initial positions for lower and upper bounds. Just like a slice object,
+        # None values for `lower` or `upper` correspond to no bound in that direction.
         lower_pos = 0 if lower is None else self.find_pos(lower, 0)
         upper_pos = len(self.row_index) if upper is None else self.find_pos(upper, 0)
 

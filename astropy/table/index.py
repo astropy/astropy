@@ -244,8 +244,8 @@ class IndexEngine(Protocol):
     def sorted_data(self) -> None: ...
     def range(
         self,
-        lower: tuple[Hashable, ...],
-        upper: tuple[Hashable, ...],
+        lower: tuple[Hashable, ...] | None,
+        upper: tuple[Hashable, ...] | None,
         bounds: tuple[bool, bool],
     ) -> list[int]: ...
     def replace_rows(self, row_map: Mapping[int, int]) -> None: ...
