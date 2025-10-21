@@ -12,6 +12,7 @@ __all__ = [
     "TemperatureCMB",
     "_BaryonComponent",
     "_CriticalDensity",
+    "_DarkMatterComponent",
     "_MatterComponent",
 ]
 
@@ -19,6 +20,7 @@ from ._matter_density import _MatterComponent
 from .baryons import _BaryonComponent
 from .curvature import CurvatureComponent
 from .darkenergy import DarkEnergyComponent
+from .darkmatter import _DarkMatterComponent
 from .hubble import HubbleParameter
 from .rhocrit import _CriticalDensity
 from .scale_factor import ScaleFactor
