@@ -302,7 +302,7 @@ class Csv(Basic):
     header_class = CsvHeader
     data_class = CsvData
 
-    def __init__(self, strip_column_names=True):
+    def __init__(self, *, strip_column_names=True):
         super().__init__()
         if not strip_column_names:
             self.header.splitter.process_val = None
