@@ -110,13 +110,15 @@ class Spine:
         dy = pixel[1:, 1] - pixel[:-1, 1]
         self.normal_angle = np.degrees(np.arctan2(dx, -dy))
 
-    def _halfway_x_y_angle(self):
+    def _halfway_x_y_angle(self) -> tuple[float, float, float]:
         """
         Return the x, y, normal_angle values halfway along the spine.
         """
         return self._barycentric_x_y_angle(0.5)
 
-    def _barycentric_x_y_angle(self, bary=0.5):
+    def _barycentric_x_y_angle(
+        self, bary: float = 0.5, /
+    ) -> tuple[float, float, float]:
         """
         Return the x, y, normal_angle values at a barycentric coordinate in [0,1]
         along the spine.
