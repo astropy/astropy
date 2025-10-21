@@ -103,20 +103,20 @@ def test_env_variables_setup(monkeypatch, tmp_path, astropy_env_var, func):
     # this time, have the env var point to a writable location,
     # where an 'astropy' subdir is missing, but can be created silently
     target_dir = tmp_path
-    excepted_path = tmp_path / "astropy"
+    expected_path = tmp_path / "astropy"
     monkeypatch.setenv(astropy_env_var, str(target_dir))
 
-    assert not excepted_path.exists()
+    assert not expected_path.exists()
     path = func()
-    assert path == excepted_path
-    assert excepted_path.is_dir()
+    assert path == expected_path
+    assert expected_path.is_dir()
 
     # finally, check what happens if we request a location that's already
     # taken, but is a file
     target_dir = tmp_path / "subdir"
     target_dir.mkdir()
-    excepted_path = target_dir / "astropy"
-    excepted_path.touch()  # create a file
+    expected_path = target_dir / "astropy"
+    expected_path.touch()  # create a file
 
     monkeypatch.setenv(astropy_env_var, str(target_dir))
     with pytest.raises(FileExistsError):
