@@ -20,9 +20,9 @@ class AxisLabels(Text):
 
         self._frame = frame
         super().__init__(*args, **kwargs)
-        self.set_clip_on(True)
-        self.set_visible_axes("all")
         self.set(
+            clip_on=True,
+            visible_axes="all",
             minpad=minpad,
             loc=loc,
             rotation_mode="anchor",
