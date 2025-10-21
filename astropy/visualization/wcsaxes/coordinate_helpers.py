@@ -15,7 +15,7 @@ from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from astropy import units as u
 from astropy.utils.decorators import deprecated_renamed_argument
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning 
 
 from .axislabels import AxisLabels
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
@@ -769,7 +769,8 @@ class CoordinateHelper:
                 "Any of the axis label low level keyword arguments "
                 f"({protected_kw}) of the 'loc' keyword argument will be "
                 "overwritten during the rendering. Use the 'loc' keyword "
-                "argument instead."
+                "argument instead.",
+                AstropyUserWarning
             )
 
         self._axislabel_set = True
