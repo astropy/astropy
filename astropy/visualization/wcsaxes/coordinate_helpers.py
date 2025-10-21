@@ -764,7 +764,7 @@ class CoordinateHelper:
             "ha",
             "rotation_mode",
         ]
-        if {*kwargs} & {*protected_kw}:
+        if set(kwargs).intersection(protected_kw):
             warnings.warn(
                 "Any of the axis label low level keyword arguments "
                 f"({protected_kw}) of the 'loc' keyword argument will be "
