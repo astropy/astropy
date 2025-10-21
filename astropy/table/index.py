@@ -277,12 +277,7 @@ class Index:
         Whether the values of the index must be unique
     """
 
-    def __init__(
-        self,
-        columns,
-        engine=None,
-        unique=False,
-    ):
+    def __init__(self, columns, engine=None, unique=False):
         # Local imports to avoid import problems.
         from astropy.time import Time
 
