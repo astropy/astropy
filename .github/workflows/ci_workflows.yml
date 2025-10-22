@@ -105,15 +105,6 @@ jobs:
             ARCH_ON_CI: "arm64"
             IS_CRON: "false"
 
-        - name: Python 3.12 with all optional dependencies (Windows-arm)
-          windows: py312-test-alldeps
-          runs-on: windows-11-arm
-          posargs: --durations=50
-          posargs: -n=4
-          setenv: |
-            ARCH_ON_CI: "arm64"
-            IS_CRON: "false"
-
   allowed_failures:
     needs: [initial_checks]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@930ac90540ecc5f43ba6d3d176efd25cd5f3c6c2  # v2.2.2
