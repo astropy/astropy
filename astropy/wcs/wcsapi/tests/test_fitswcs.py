@@ -1591,7 +1591,7 @@ def test_array_index_conversions_arrays_1d():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ("FREQ",)
 
-    coord = SpectralCoord([10, 12], unit="GHz")
+    coord = SpectralCoord([10, 12], unit="Hz")
 
     with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         i = wcs.world_to_array_index(coord)
@@ -1626,7 +1626,7 @@ def test_array_index_conversions_scalars_1d():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ("FREQ",)
 
-    coord = SpectralCoord(10, unit="GHz")
+    coord = SpectralCoord(10, unit="Hz")
 
     with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         i = wcs.world_to_array_index(coord)
