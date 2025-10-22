@@ -12,9 +12,11 @@ behaviors. For example, the :class:`~astropy.cosmology.traits.HubbleParameter` t
 provides the Hubble constant (``H0``) and related methods, while
 :class:`~astropy.cosmology.traits.ScaleFactor`,
 :class:`~astropy.cosmology.traits.TemperatureCMB`,
-:class:`~astropy.cosmology.traits.DarkEnergyComponent` and
-:class:`~astropy.cosmology.traits.DarkMatterComponent` provide the scale factor, the
-temperature or the CMB, the Dark Energy component, and the Dark Matter component,
+:class:`~astropy.cosmology.traits.DarkEnergyComponent`
+:class:`~astropy.cosmology.traits.DarkMatterComponent`
+:class:`~astropy.cosmology.traits.BaryonComponent`,
+:class:`~astropy.cosmology.traits.MatterComponent`, and
+:class:`~astropy.cosmology.traits.CriticalDensity` traits provide the scale factor, the temperature or the CMB, the Dark Energy component, and the Dark Matter component,
 respectively.
 
 By combining these traits, you can easily construct custom cosmology classes with
