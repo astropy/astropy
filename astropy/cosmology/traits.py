@@ -4,6 +4,7 @@
 __all__ = [
     "CurvatureComponent",
     "DarkEnergyComponent",
+    "DarkMatterComponent",
     "HubbleParameter",
     "ScaleFactor",
     "TemperatureCMB",
@@ -12,6 +13,7 @@ __all__ = [
 from ._src.traits import (
     CurvatureComponent,
     DarkEnergyComponent,
+    DarkMatterComponent,
     HubbleParameter,
     ScaleFactor,
     TemperatureCMB,
