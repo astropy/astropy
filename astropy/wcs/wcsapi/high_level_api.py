@@ -128,10 +128,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         if self.low_level_wcs.pixel_n_dim == 1:
             return _toindex(self.world_to_pixel(*world_objects))
         else:
-            return tuple(
-                np.asarray(x)
-                for x in _toindex(self.world_to_pixel(*world_objects)[::-1])
-            )
+            return tuple(_toindex(self.world_to_pixel(*world_objects)[::-1]).tolist())
 
 
 def high_level_objects_to_values(*world_objects, low_level_wcs):
