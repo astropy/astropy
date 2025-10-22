@@ -12,9 +12,12 @@ the 7.1 release.
 
 In particular, this release includes:
 
-* `Faster ECSV reader with support for different engines <#faster-ecsv-table-reader>`_
-* `Generic DataFrame conversion methods with multi-backend support <#generic-dataframe-conversion-methods>`_
-* `Table index improvements and deprecation <#table-index-improvements-and-deprecation>`_
+* :ref:`whatsnew-7.2-faster-ecsv-tab-rdr`
+* :ref:`whatsnew-7.2-generic-df-conv`
+* :ref:`whatsnew-7.2-table-index`
+* :ref:`whatsnew-7.2-cosmology`
+* :ref:`whatsnew-7.2-fits-wcs-units`
+* :ref:`whatsnew-7.2-cls-concat-stack`
 * ...
 
 In addition to these major changes, Astropy v7.2 includes a large number of
@@ -30,6 +33,8 @@ Full change log
 
 To see a detailed list of all changes in version v7.2, including changes in
 API, please see the :ref:`changelog`.
+
+.. _whatsnew-7.2-faster-ecsv-tab-rdr:
 
 Faster ECSV table reader
 ========================
@@ -75,6 +80,8 @@ engine=...)``, where ``engine`` is one of ``"io.ascii"``, ``"pyarrow"``, or
 You can also write an `astropy.table.Table` or `astropy.table.QTable` using
 ``format="ecsv"``, but this is just a thin wrapper around the ``format="ascii.ecsv"``
 writer.
+
+.. _whatsnew-7.2-generic-df-conv:
 
 Generic DataFrame conversion methods
 ====================================
@@ -129,6 +136,8 @@ unified API.
 
 See :ref:`df_narwhals` for detailed documentation and examples.
 
+.. _whatsnew-7.2-table-index:
+
 Table index improvements and deprecation
 ========================================
 
@@ -156,8 +165,11 @@ astropy 9.0.  Here the index identifier was the first element of the item, e.g.,
 ``t.loc["a", "z"]`` to use the index on column ``"a"`` to find rows with
 ``t["a"] == "z"``.
 
+.. _whatsnew-7.2-cosmology:
+
 Cosmology
 =========
+
 A traits class in cosmology for the Hubble Parameter. Which provides H0 as a trait along with additional methods.
 The :mod:`~astropy.cosmology.traits` module provides reusable components, called
 :term:`traits <trait type>`, that encapsulate specific cosmological properties or
@@ -201,8 +213,10 @@ Here is an example of how to use the
 By combining these traits, you can easily construct custom cosmology classes with
 precisely the features you need, without having to reimplement common functionality.
 
+.. _whatsnew-7.2-fits-wcs-units:
+
 Preserving units in FITS-WCS
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+============================
 
 By default, the :class:`~astropy.wcs.WCS` class always converts units into degrees
 for angles, and SI units for other physical types::
@@ -248,8 +262,10 @@ When using this, any input/output world coordinates will now be in these
 units, and accessing any of the parameters such as ``wcs.wcs.crval`` will
 return values in the original header units.
 
-Concatenation and stacking of astropy classes
-=============================================
+.. _whatsnew-7.2-cls-concat-stack:
+
+Concatenation and stacking of coordinates and time classes
+==========================================================
 
 Support has been added to apply numpy functions such as `~numpy.concatenate`
 and `~numpy.stack` to sequences of |SkyCoord|, |Time|, as well as coordinate
