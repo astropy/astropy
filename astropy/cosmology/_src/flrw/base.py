@@ -421,7 +421,7 @@ class FLRW(
         """
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
-    # Odm is provided by the _DarkMatterComponent trait
+    # Odm is provided by the DarkMatterComponent trait
 
     @deprecated_keywords("z", since="7.0")
     def Ogamma(self, z: u.Quantity | ArrayLike) -> FArray:
