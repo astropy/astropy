@@ -34,15 +34,15 @@ from astropy.cosmology._src.parameter import (
 )
 from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.traits import (
+    BaryonComponent,
+    CriticalDensity,
     CurvatureComponent,
     DarkEnergyComponent,
     DarkMatterComponent,
     HubbleParameter,
+    MatterComponent,
     ScaleFactor,
     TemperatureCMB,
-    _BaryonComponent,
-    _CriticalDensity,
-    _MatterComponent,
 )
 from astropy.cosmology._src.utils import (
     aszarr,
@@ -134,9 +134,9 @@ ParameterOde0 = Parameter(
 class FLRW(
     Cosmology,
     # Traits
-    _BaryonComponent,
-    _CriticalDensity,
-    _MatterComponent,
+    BaryonComponent,
+    CriticalDensity,
+    MatterComponent,
     CurvatureComponent,
     DarkEnergyComponent,
     HubbleParameter,
