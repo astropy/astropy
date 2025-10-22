@@ -1241,17 +1241,15 @@ def test_1d_plot_1d_sliced_low_level_wcs(
     """
     Test that a SLLWCS through a coupled 2D WCS plots as line OK.
     """
-    import matplotlib.pyplot as plt
-
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle[slices])
     (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
 
     # Draw to trigger rendering the ticks.
-    plt.draw()
+    canvas.draw()
 
     assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
-
     return fig
 
 
@@ -1271,17 +1269,15 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(
     change, and a set of lat ticks on the top because it does but it's the
     correlated axis not the actual one you are plotting against.
     """
-    import matplotlib.pyplot as plt
-
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle, slices=slices)
-    (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
+    ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
 
     # Draw to trigger rendering the ticks.
-    plt.draw()
+    canvas.draw()
 
     assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
-
     return fig
 
 
