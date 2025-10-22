@@ -11,9 +11,11 @@ The :mod:`~astropy.cosmology.traits` module provides reusable components, called
 behaviors. For example, the :class:`~astropy.cosmology.traits.HubbleParameter` trait
 provides the Hubble constant (``H0``) and related methods, while
 :class:`~astropy.cosmology.traits.ScaleFactor`,
-:class:`~astropy.cosmology.traits.TemperatureCMB` and
-:class:`~astropy.cosmology.traits.DarkEnergyComponent` provide the scale factor, the
-temperature or the CMB, and the Dark Energy component, respectively.
+:class:`~astropy.cosmology.traits.TemperatureCMB`,
+:class:`~astropy.cosmology.traits.DarkEnergyComponent` and
+:class:`~astropy.cosmology.traits.DarkMatterComponent` provide the scale factor, the
+temperature or the CMB, the Dark Energy component, and the Dark Matter component,
+respectively.
 
 By combining these traits, you can easily construct custom cosmology classes with
 precisely the features you need, without having to reimplement common functionality.
@@ -22,19 +24,21 @@ precisely the features you need, without having to reimplement common functional
 Here is an example of how to use the
 :class:`~astropy.cosmology.traits.HubbleParameter`,
 :class:`~astropy.cosmology.traits.ScaleFactor`,
-:class:`~astropy.cosmology.traits.TemperatureCMB` and
-:class:`~astropy.cosmology.traits.DarkEnergyComponent` traits in a custom cosmology class:
+:class:`~astropy.cosmology.traits.TemperatureCMB`,
+:class:`~astropy.cosmology.traits.DarkEnergyComponent` and
+:class:`~astropy.cosmology.traits.DarkMatterComponent` traits in a custom cosmology class:
 
 >>> import astropy.units as u
->>> from astropy.cosmology.traits import HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent
+>>> from astropy.cosmology.traits import HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent, DarkMatterComponent
 >>> from astropy.cosmology import Cosmology
 >>> import numpy as np
 >>>
->>> class CustomCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent):
-...     def __init__(self, Om0, Ode0, H0=70, Tcmb0=2.725):
+>>> class CustomCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent, DarkMatterComponent):
+...     def __init__(self, Om0, Ode0, Odm, H0=70, Tcmb0=2.725):
 ...         self.H0 = H0 << (u.km / u.s / u.Mpc)
 ...         self.Om0 = Om0
 ...         self.Ode0 = Ode0
+...         self.Odm = Odm
 ...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
 ...         super().__init__()
 ...
@@ -44,7 +48,7 @@ Here is an example of how to use the
 ...
 ...     is_flat = False
 
->>> cosmo = CustomCosmology(H0=70, Om0=0.3, Ode0=0.7)
+>>> cosmo = CustomCosmology(H0=70, Om0=0.3, Ode0=0.7, Odm=0.0)
 >>> cosmo.H0
 <Quantity 70. km / (Mpc s)>
 >>> cosmo.scale_factor(0)
