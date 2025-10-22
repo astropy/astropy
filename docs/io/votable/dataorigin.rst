@@ -13,15 +13,46 @@ This API retrieves Metadata from INFO in VOTable.
 Getting Started
 ---------------
 
-To extract DataOrigin from VOTable
+To extract DataOrigin from VOTable:
+
+.. testsetup::
+    >>> from astropy.io.votable.dataorigin import add_data_origin_info
+    >>> from astropy.io.votable.tree import VOTableFile
+    >>> from astropy.table import Column, Table
+    >>> table = Table([
+    ...     Column(name="id", data=[1, 2, 3, 4]),
+    ...     Column(name="bmag", unit="mag", data=[5.6, 7.9, 12.4, 11.3])])
+    >>> votable = VOTableFile().from_table(table)
+    >>> votable.description = "Period variations of 32 contact binaries (Hong+, 2024)"
+    >>> # Order is important here for the example.
+    >>> add_data_origin_info(votable, "ivoid", "ivo://cds.vizier/j/aj/167/18",
+    ...                      content="IVOID of underlying data collection")
+    >>> add_data_origin_info(votable, "creator", "Hong K.",
+    ...                      content="First author or institution")
+    >>> add_data_origin_info(votable, "cites", "bibcode:2024AJ....167...18H",
+    ...                      content="Article or Data origin sources")
+    >>> add_data_origin_info(votable, "editor", "Astronomical Journal (AAS)",
+    ...                      content="Editor name (article)")
+    >>> add_data_origin_info(votable, "original_date", "2024",
+    ...                      content="Year of the article publication")
+    >>> # The rest in alphabetical order.
+    >>> add_data_origin_info(votable, "citation", "doi:10.26093/cds/vizier.51670018")
+    >>> add_data_origin_info(votable, "contact", "cds-question@unistra.fr")
+    >>> add_data_origin_info(votable, "publication_date", "2024-11-06")
+    >>> add_data_origin_info(votable, "publisher", "CDS")
+    >>> add_data_origin_info(votable, "reference_url", "https://cdsarc.cds.unistra.fr/viz-bin/cat/J/AJ/167/18")
+    >>> add_data_origin_info(votable, "request_date", "2025-03-05T14:18:05")
+    >>> add_data_origin_info(votable, "rights_uri", "https://cds.unistra.fr/vizier-org/licences_vizier.html")
+    >>> add_data_origin_info(votable, "server_software", "7.4.5")
+    >>> add_data_origin_info(votable, "service_protocol", "ivo://ivoa.net/std/ConeSearch/v1.03")
 
 Example: VizieR catalogue J/AJ/167/18
 
-.. doctest-remote-data-all::
+::
 
     >>> from astropy.io.votable import parse
     >>> from astropy.io.votable.dataorigin import extract_data_origin
-    >>> votable = parse("https://vizier.cds.unistra.fr/viz-bin/conesearch/J/AJ/167/18/table4?RA=265.51&DEC=-22.71&SR=0.1")
+    >>> votable = parse("https://vizier.cds.unistra.fr/viz-bin/conesearch/J/AJ/167/18/table4?RA=265.51&DEC=-22.71&SR=0.1")  # doctest: +SKIP
     >>> data_origin = extract_data_origin(votable)
     >>> print(data_origin)  # doctest: +IGNORE_OUTPUT
     publisher: CDS
@@ -93,8 +124,6 @@ The following example extracts the citation from the header (in APA style).
 
 * Add Data Origin INFO into VOTable:
 
-.. doctest-skip::
-
-    >>> votable = parse("votable.xml")
+    >>> from astropy.io.votable import dataorigin
     >>> dataorigin.add_data_origin_info(votable, "query", "Data center name")
     >>> dataorigin.add_data_origin_info(votable.resources[0], "creator", "Author name")
