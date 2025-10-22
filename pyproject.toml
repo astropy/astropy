@@ -167,6 +167,7 @@ volint = "astropy.io.votable.volint:main"
 wcslint = "astropy.wcs.wcslint:main"
 
 [build-system]
+# keep in sync with .github/workflows/publish.yml
 requires = ["setuptools>=77.0.0",
             "setuptools_scm>=8.0.0",
             "cython>=3.0.0, <4",
