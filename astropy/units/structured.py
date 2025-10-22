@@ -494,6 +494,9 @@ class StructuredUnit:
     def __repr__(self):
         return f'Unit("{self.to_string()}")'
 
+    def __hash__(self):
+        return hash(self.values())
+
     def __eq__(self, other):
         try:
             other = StructuredUnit(other)
