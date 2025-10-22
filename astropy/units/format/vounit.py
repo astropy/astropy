@@ -25,7 +25,7 @@ from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
 from astropy.units.typing import UnitScale
 from astropy.utils import classproperty
 
-from . import Base, utils
+from . import Base
 from .generic import _GenericParserMixin
 
 
@@ -50,7 +50,7 @@ class VOUnit(Base, _GenericParserMixin):
         from astropy import units as u
         from astropy.units import required_by_vounit as uvo
 
-        names = {}
+        names = {"as": u.attosecond}
         deprecated_names = set()
         # The tropical year is missing here compared to the standard
         bases = [
@@ -71,13 +71,14 @@ class VOUnit(Base, _GenericParserMixin):
         deprecated_units = {"angstrom", "Angstrom", "Ba", "barn", "erg", "G", "ta"}
 
         def do_defines(bases, prefixes, skips=[]):
-            for key, base in utils.get_non_keyword_units(bases, prefixes):
-                if key not in skips:
-                    names[key] = getattr(u if hasattr(u, key) else uvo, key)
-                    if base in deprecated_units:
-                        deprecated_names.add(key)
+            for base in bases:
+                for prefix in prefixes:
+                    if (key := prefix + base) not in skips:
+                        names[key] = getattr(u if hasattr(u, key) else uvo, key)
+                        if base in deprecated_units:
+                            deprecated_names.add(key)
 
-        do_defines(bases, si_prefixes, ["pct", "pcount", "yd"])
+        do_defines(bases, si_prefixes, ["pct", "pcount", "yd", "as"])
         do_defines(binary_bases, si_prefixes + binary_prefixes, ["dB", "dbyte"])
         do_defines(simple_units, [""])
 

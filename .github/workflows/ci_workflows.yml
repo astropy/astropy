@@ -133,6 +133,18 @@ jobs:
           linux: py313-test-devdeps
           posargs: --remote-data=any --verbose
 
+  stub_tests:
+    needs: [initial_checks]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@28e947497bed4d6ec3fa1d66d198e95a1d17bc63  # v2.2.1
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+      submodules: false
+      envs: |
+        - name: Stubs for unit definition modules
+          linux: stubtest
+
   test_wheel_building:
     needs: [initial_checks]
     # This ensures that a couple of wheel targets work fine in pull requests and pushes

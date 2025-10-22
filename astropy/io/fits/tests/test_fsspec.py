@@ -7,6 +7,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.io import fits
 from astropy.nddata import Cutout2D
+from astropy.table import Table
 from astropy.utils.compat.optional_deps import HAS_FSSPEC, HAS_S3FS
 from astropy.utils.data import get_pkg_data_filename
 
@@ -79,6 +80,7 @@ class TestFsspecRemote:
         # change due to reprocessing.
         self.http_url = "https://mast.stsci.edu/api/v0.1/Download/file/?uri=mast:HST/product/ibxl50020_jif.fits"
         self.s3_uri = "s3://stpubdata/hst/public/ibxl/ibxl50020/ibxl50020_jif.fits"
+        self.s3_uri_table = "s3://stpubdata/jwst/public/jw02565/jw02565001001/jw02565001001_03101_00002_nrs2_x1d.fits"
         # Random slice was selected for testing:
         self.slice = (slice(31, 33), slice(27, 30))
         # The expected cutout array below was obtained by downloading the URIs
@@ -124,3 +126,21 @@ class TestFsspecRemote:
                 assert_array_equal(hdul2[1].section[self.slice], self.expected_cutout)
                 assert "partially read" in repr(hdul)
                 assert "partially read" in str(hdul)
+
+    @pytest.mark.skipif(not HAS_S3FS, reason="requires s3fs")
+    def test_fsspec_s3_table(self):
+        """Can we use fsspec to open a FITS table in a public Amazon S3 bucket?"""
+
+        # s3:// paths should default to use_fsspec=True
+        with fits.open(self.s3_uri_table, fsspec_kwargs={"anon": True}) as hdul:
+            t1 = Table(hdul[1].data)
+
+        assert len(t1) == 424
+        assert len(t1.colnames) == 18
+
+        t2 = Table.read(
+            self.s3_uri_table, fsspec_kwargs={"anon": True}, format="fits", hdu=1
+        )
+
+        assert len(t2) == 424
+        assert t1.colnames == t2.colnames
