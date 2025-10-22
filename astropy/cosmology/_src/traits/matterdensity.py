@@ -34,7 +34,7 @@ class MatterComponent:
         Notes
         -----
         This does not include neutrinos, even if non-relativistic at the
-        redshift of interest; see `Onu`.
+        redshift of interest.
         """
         z = aszarr(z)
         return self.Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
