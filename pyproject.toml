@@ -90,9 +90,8 @@ all = [
     "bleach>=3.2.1",
     "sortedcontainers>=1.5.7", # (older versions may work)
     "pytz>=2016.10", # (older versions may work)
-    "jplephem>=2.15",
+    "jplephem>=2.17.0",
     "mpmath>=1.2.1",
-    "asdf>=2.8.3", # via asdf-astropy==0.3.*
     "asdf-astropy>=0.3",
     "bottleneck>=1.3.3",
     "fsspec[http]>=2023.4.0",
@@ -115,8 +114,8 @@ test_all = [
     "astropy[all]",  # installs all optional run-time dependencies
     "astropy[test]",
     # Install all remaining dependencies
-    "objgraph>=1.6.0",
-    "skyfield>=1.20",
+    "objgraph>=3.1.2",
+    "skyfield>=1.42.0",
     "sgp4>=2.3",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
@@ -131,7 +130,7 @@ docs = [
     "sphinx-astropy[confv2]>=1.9.1",
     "pytest>=8.0.0",
     "sphinx-changelog>=1.2.0",
-    "sphinx_design",
+    "sphinx_design>=0.6.1",
     "Jinja2>=3.1.3",
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
@@ -144,7 +143,7 @@ dev = [
     "astropy[typing]",
 ]
 dev_all = [
-    "tox",
+    "tox>=4.22.0", # keep in sync with tox.minversion in tox.ini
     "astropy[dev]",
     "astropy[test_all]",
 ]
@@ -732,3 +731,31 @@ ignore-words-list = """
     te,
     wirth,
 """
+
+[tool.uv]
+# never build the following packages from source. Prefer more recent versions
+# with binary distributions even with --resolution=lowest[-direct]
+no-build-package = [
+    "bottleneck",
+    "coverage",
+    "h5py",
+    "numpy",
+    "matplotlib",
+    "pandas",
+    "polars",
+    "scipy",
+    "sgp4",
+]
+
+# ensure that uv resolves envs that are compatible with macOS arm64,
+# even in drastic conditions like --resolution=lowest[-direct],
+# taking into account tool.uv.no-build-package
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+# constrain acceptable versions of some known-problematic, indirect dependencies
+constraint-dependencies = [
+    "asdf>=2.12.0",
+    "asdf-coordinates-schemas>=0.2.0",
+]
