@@ -6,10 +6,12 @@ from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
+from .hubble import _HasH0overH
+
 __all__ = ["MatterComponent"]
 
 
-class MatterComponent:
+class MatterComponent(_HasH0overH):
     Om0: Quantity
     """Omega matter; matter density/critical density at z=0."""
 
