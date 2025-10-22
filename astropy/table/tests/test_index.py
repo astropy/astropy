@@ -3,6 +3,7 @@
 import warnings
 
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from astropy import units as u
@@ -49,6 +50,15 @@ def assert_col_equal(col, array):
         assert np.all(col == Time(array, format="jyear"))
     else:
         assert np.all(col == col.__class__(array))
+
+
+def assert_tables_equal(t1: Table, t2: Table):
+    # Check table colnames equal and values equal
+    vals_eq = t1.values_equal(t2)  # this raises if colnames not equal
+    for col_eq in vals_eq.itercols():
+        npt.assert_equal(col_eq, True)
+
+    assert t1.meta == t2.meta
 
 
 @pytest.mark.usefixtures("table_types")
@@ -709,6 +719,63 @@ def test_nd_columun_as_index(masked):
         ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
     ):
         t.add_index("arr")
+
+
+@pytest.mark.parametrize("engine", [SortedArray, SCEngine])
+@pytest.mark.parametrize("fmt", ["fits", "ecsv", "hdf5"])
+def test_roundtrip_through_file(fmt, engine, tmp_path):
+    t = QTable()
+    t["a"] = Time([1, 3, 2, 2], format="cxcsec")
+    t["b"] = [3, 2, 2, 1]
+    t["c"] = [3, 1, 4, 2]
+    indices_colnames = [
+        ["a"],
+        ["b", "a"],
+        ["a", "b", "c"],
+        ["c"],
+    ]
+    for colnames in indices_colnames:
+        t.add_index(colnames, engine=engine)
+
+    path = tmp_path / f"out.{fmt}"
+    kwargs = {"serialize_meta": True, "path": "root"} if fmt == "hdf5" else {}
+    t.write(path, format=fmt, write_indices=True, **kwargs)
+
+    kwargs = {"astropy_native": True} if fmt == "fits" else {}
+    t2 = QTable.read(path, format=fmt, **kwargs)
+    if fmt == "fits":
+        # FITS does not round-trip the format
+        t2["a"].format = "cxcsec"
+
+    assert len(t.indices) == len(t2.indices)
+    assert t.primary_key == t2.primary_key
+
+    for colnames in indices_colnames:
+        index = t.indices[colnames]
+        index2 = t2.indices[colnames]
+        assert index.id == index2.id
+        # Table rows sorted in index order
+        assert_tables_equal(
+            t.iloc.with_index(colnames)[:], t2.iloc.with_index(colnames)[:]
+        )
+        # Check that the engine row_index column/list is identical
+        assert np.all(index.data.sorted_data() == index2.data.sorted_data())
+        # Check engine items as a list of pairs of the form
+        # [(key, [row 1, row 2, ...]), ...].
+        assert index.data.items() == index2.data.items()
+
+        key0 = tuple(t.iloc.with_index(colnames)[0][colnames])
+        key1 = tuple(t.iloc.with_index(colnames)[-1][colnames])
+        assert t.loc.with_index(colnames)[key0] == t2.loc.with_index(colnames)[key0]
+        assert t.loc.with_index(colnames)[key1] == t2.loc.with_index(colnames)[key1]
+        # assert (
+        #     t.loc_indices.with_index(colnames)[key0]
+        #     == t2.loc_indices.with_index(colnames)[key0]
+        # )
+        # assert (
+        #     t.loc_indices.with_index(colnames)[key1]
+        #     == t2.loc_indices.with_index(colnames)[key1]
+        # )
 
 
 @pytest.mark.parametrize("index_first", [True, False])
