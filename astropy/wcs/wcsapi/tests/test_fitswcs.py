@@ -1585,12 +1585,11 @@ def test_restfrq_restwav():
 
 
 def test_array_index_conversions_arrays_1d():
-
     # Regression test for a bug that caused world_to_array_index to return lists
     # instead of Numpy arrays - 1D version
 
     wcs = WCS(naxis=1)
-    wcs.wcs.ctype = "FREQ",
+    wcs.wcs.ctype = ("FREQ",)
 
     coord = SpectralCoord([10, 12], unit="GHz")
 
@@ -1604,7 +1603,6 @@ def test_array_index_conversions_arrays_1d():
 
 
 def test_array_index_conversions_arrays_2d():
-
     # Regression test for a bug that caused world_to_array_index to return lists
     # instead of Numpy arrays - 2D versions
 
@@ -1623,11 +1621,10 @@ def test_array_index_conversions_arrays_2d():
 
 
 def test_array_index_conversions_scalars_1d():
-
     # And check that things works properly for scalars (1D)
 
     wcs = WCS(naxis=1)
-    wcs.wcs.ctype = "FREQ",
+    wcs.wcs.ctype = ("FREQ",)
 
     coord = SpectralCoord(10, unit="GHz")
 
@@ -1641,7 +1638,6 @@ def test_array_index_conversions_scalars_1d():
 
 
 def test_array_index_conversions_scalars_2d():
-
     # And check that things works properly for scalars (2D)
 
     wcs = WCS(naxis=2)
