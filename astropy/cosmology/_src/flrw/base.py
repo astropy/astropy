@@ -36,6 +36,7 @@ from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.traits import (
     CurvatureComponent,
     DarkEnergyComponent,
+    DarkMatterComponent,
     HubbleParameter,
     ScaleFactor,
     TemperatureCMB,
@@ -140,6 +141,7 @@ class FLRW(
     DarkEnergyComponent,
     HubbleParameter,
     ScaleFactor,
+    DarkMatterComponent,
     TemperatureCMB,
 ):
     """An isotropic and homogeneous (Friedmann-Lemaitre-Robertson-Walker) cosmology.
@@ -419,31 +421,7 @@ class FLRW(
         """
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
-    @deprecated_keywords("z", since="7.0")
-    def Odm(self, z: u.Quantity | ArrayLike) -> FArray:
-        """Return the density parameter for dark matter at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Odm : array
-            The density of non-relativistic dark matter relative to the
-            critical density at each redshift.
-
-        Notes
-        -----
-        This does not include neutrinos, even if non-relativistic at the
-        redshift of interest.
-        """
-        z = aszarr(z)
-        return self.Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2
+    # Odm is provided by the DarkMatterComponent trait
 
     @deprecated_keywords("z", since="7.0")
     def Ogamma(self, z: u.Quantity | ArrayLike) -> FArray:

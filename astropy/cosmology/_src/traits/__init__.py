@@ -7,6 +7,7 @@ The public API is provided by `astropy.cosmology.traits`.
 __all__ = [
     "CurvatureComponent",
     "DarkEnergyComponent",
+    "DarkMatterComponent",
     "HubbleParameter",
     "ScaleFactor",
     "TemperatureCMB",
@@ -19,6 +20,7 @@ from ._matter_density import _MatterComponent
 from .baryons import _BaryonComponent
 from .curvature import CurvatureComponent
 from .darkenergy import DarkEnergyComponent
+from .darkmatter import DarkMatterComponent
 from .hubble import HubbleParameter
 from .rhocrit import _CriticalDensity
 from .scale_factor import ScaleFactor
