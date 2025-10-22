@@ -90,7 +90,7 @@ all = [
     "bleach>=3.2.1",
     "sortedcontainers>=1.5.7", # (older versions may work)
     "pytz>=2016.10", # (older versions may work)
-    "jplephem>=2.17.0", # first version with a wheel
+    "jplephem>=2.17.0",
     "mpmath>=1.2.1",
     "asdf-astropy>=0.3",
     "bottleneck>=1.3.3",
@@ -114,8 +114,8 @@ test_all = [
     "astropy[all]",  # installs all optional run-time dependencies
     "astropy[test]",
     # Install all remaining dependencies
-    "objgraph>=3.1.2", # first version with a py3 wheel
-    "skyfield>=1.42.0", # first version with a wheel
+    "objgraph>=3.1.2",
+    "skyfield>=1.42.0",
     "sgp4>=2.3",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
@@ -755,6 +755,6 @@ required-environments = [
 
 # constrain acceptable versions of some known-problematic, indirect dependencies
 constraint-dependencies = [
-    "asdf>=2.12.0", # first version without a runtime dependency on setuptools
-    "asdf-coordinates-schemas>=0.2.0", # first version with a wheel
+    "asdf>=2.12.0",
+    "asdf-coordinates-schemas>=0.2.0",
 ]
