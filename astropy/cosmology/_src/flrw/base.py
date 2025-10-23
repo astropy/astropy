@@ -366,17 +366,20 @@ class FLRW(
         return bool((self.Ok0 == 0.0) and (self.Otot0 == 1.0))
 
     # ---------------------------------------------------------------
+    # Dark Matter
+
+    @cached_property
+    def Odm0(self) -> float:
+        """Omega dark matter; dark matter density/critical density at z=0."""
+        return self.Om0 - self.Ob0
+
+    # ---------------------------------------------------------------
     # properties
 
     @property
     def Otot0(self) -> float:
         """Omega total; the total density/critical density at z=0."""
         return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
-
-    @cached_property
-    def Odm0(self) -> float:
-        """Omega dark matter; dark matter density/critical density at z=0."""
-        return self.Om0 - self.Ob0
 
     @cached_property
     def Tnu0(self) -> u.Quantity:
