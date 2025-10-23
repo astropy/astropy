@@ -1,11 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Critical density.
+"""Critical density component."""
 
-This is private API. See `~astropy.cosmology.traits` for public API.
-
-"""
-
-__all__ = ["_CriticalDensity"]
+__all__ = ["CriticalDensity"]
 
 from collections.abc import Callable
 from typing import Any
@@ -16,7 +12,7 @@ from astropy.cosmology._src.utils import deprecated_keywords
 from astropy.units import Quantity
 
 
-class _CriticalDensity:
+class CriticalDensity:
     """The object has attributes and methods for the critical density."""
 
     critical_density0: Quantity

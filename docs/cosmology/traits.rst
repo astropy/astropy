@@ -12,9 +12,11 @@ behaviors. For example, the :class:`~astropy.cosmology.traits.HubbleParameter` t
 provides the Hubble constant (``H0``) and related methods, while
 :class:`~astropy.cosmology.traits.ScaleFactor`,
 :class:`~astropy.cosmology.traits.TemperatureCMB`,
-:class:`~astropy.cosmology.traits.DarkEnergyComponent` and
-:class:`~astropy.cosmology.traits.DarkMatterComponent` provide the scale factor, the
-temperature or the CMB, the Dark Energy component, and the Dark Matter component,
+:class:`~astropy.cosmology.traits.DarkEnergyComponent`
+:class:`~astropy.cosmology.traits.DarkMatterComponent`
+:class:`~astropy.cosmology.traits.BaryonComponent`,
+:class:`~astropy.cosmology.traits.MatterComponent`, and
+:class:`~astropy.cosmology.traits.CriticalDensity` traits provide the scale factor, the temperature or the CMB, the Dark Energy component, and the Dark Matter component,
 respectively.
 
 By combining these traits, you can easily construct custom cosmology classes with
@@ -25,40 +27,53 @@ Here is an example of how to use the
 :class:`~astropy.cosmology.traits.HubbleParameter`,
 :class:`~astropy.cosmology.traits.ScaleFactor`,
 :class:`~astropy.cosmology.traits.TemperatureCMB`,
-:class:`~astropy.cosmology.traits.DarkEnergyComponent` and
-:class:`~astropy.cosmology.traits.DarkMatterComponent` traits in a custom cosmology class:
+:class:`~astropy.cosmology.traits.DarkEnergyComponent`
+:class:`~astropy.cosmology.traits.DarkMatterComponent`
+:class:`~astropy.cosmology.traits.BaryonComponent`,
+:class:`~astropy.cosmology.traits.MatterComponent`, and
+:class:`~astropy.cosmology.traits.CriticalDensity` traits in custom cosmology classes:
 
->>> import astropy.units as u
->>> from astropy.cosmology.traits import HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent, DarkMatterComponent
+>>> from astropy import units as u
 >>> from astropy.cosmology import Cosmology
->>> import numpy as np
->>>
->>> class CustomCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB, DarkEnergyComponent, DarkMatterComponent):
-...     def __init__(self, Om0, Ode0, Odm, H0=70, Tcmb0=2.725):
+>>> from astropy.cosmology.traits import (
+...     HubbleParameter,
+...     ScaleFactor,
+...     TemperatureCMB,
+...     DarkEnergyComponent,
+...     DarkMatterComponent,
+...     BaryonComponent,
+...     MatterComponent,
+...     CriticalDensity,
+... )
+>>> class CustomStandardCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB,
+...                              DarkEnergyComponent, DarkMatterComponent, BaryonComponent,
+...                              MatterComponent, CriticalDensity):
+...     """Mimics standard ΛCDM cosmology with Planck 2018 parameters."""
+...     def __init__(self, H0=67.66, Om0=0.3111, Ode0=0.6889, Ob0=0.0490, Tcmb0=2.7255):
 ...         self.H0 = H0 << (u.km / u.s / u.Mpc)
 ...         self.Om0 = Om0
 ...         self.Ode0 = Ode0
-...         self.Odm = Odm
+...         self.Ob0 = Ob0
+...         self.Odm = Om0 - Ob0  # Dark matter density
 ...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
 ...         super().__init__()
 ...
 ...     def w(self, z):
-...         # Example: equation of state varies with redshift
-...         return -1 + 0.1 * np.sin(z)
+...         """Standard cosmological constant."""
+...         return -1.0
 ...
-...     is_flat = False
+...     is_flat = True  # Standard ΛCDM is flat
 
->>> cosmo = CustomCosmology(H0=70, Om0=0.3, Ode0=0.7, Odm=0.0)
->>> cosmo.H0
-<Quantity 70. km / (Mpc s)>
->>> cosmo.scale_factor(0)
+>>> # Create and test standard cosmology
+>>> std_cosmo = CustomStandardCosmology()
+>>> std_cosmo.H0
+<Quantity 67.66 km / (Mpc s)>
+>>> std_cosmo.scale_factor(0)
 <Quantity 1.>
->>> cosmo.Tcmb(1)
-<Quantity 5.45 K>
->>> cosmo.hubble_time
-<Quantity 13.96846031 Gyr>
->>> cosmo.w(0.5)
-np.float64(-0.9520574461395797)
+>>> std_cosmo.Tcmb(1)
+<Quantity 5.451 K>
+>>> std_cosmo.w(0.5)
+-1.0
 
 Reference/API
 *************
