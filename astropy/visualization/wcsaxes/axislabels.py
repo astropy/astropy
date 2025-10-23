@@ -9,7 +9,7 @@ from .frame import RectangularFrame
 
 
 class AxisLabels(Text):
-    def __init__(self, frame, minpad=1, *args, loc="center", **kwargs):
+    def __init__(self, frame, minpad=1, *args, loc=None, **kwargs):
         # Use rcParams if the following parameters were not specified explicitly
         if "weight" not in kwargs:
             kwargs["weight"] = rcParams["axes.labelweight"]
@@ -17,6 +17,8 @@ class AxisLabels(Text):
             kwargs["size"] = rcParams["axes.labelsize"]
         if "color" not in kwargs:
             kwargs["color"] = rcParams["axes.labelcolor"]
+        if "verticalalignment" not in kwargs and "va" not in kwargs:
+            kwargs["verticalalignment"] = "center"
 
         self._frame = frame
         super().__init__(*args, **kwargs)
@@ -30,15 +32,15 @@ class AxisLabels(Text):
         )
 
     def get_minpad(self, axis):
-        try:
+        if isinstance(self._minpad, dict):
             return self._minpad[axis]
-        except TypeError:
+        else:
             return self._minpad
 
     def get_loc(self, axis):
-        try:
+        if isinstance(self._loc, dict):
             return self._loc[axis]
-        except TypeError:
+        else:
             return self._loc
 
     def set_visible_axes(self, visible_axes):
@@ -101,7 +103,7 @@ class AxisLabels(Text):
             padding = text_size * self.get_minpad(axis)
 
             loc = self.get_loc(axis)
-            if axis in {"t", "b", "h", "c"}:
+            if axis in {"t", "b", "h"}:
                 loc = loc if loc is not None else rcParams["xaxis.labellocation"]
                 _api.check_in_list(("left", "center", "right"), loc=loc)
 
@@ -119,7 +121,7 @@ class AxisLabels(Text):
                     "center": (0.5, "center"),
                     "top": (1, "left"),
                 }[loc]
-            elif loc != "center":
+            elif loc is not None:
                 raise NotImplementedError(
                     f"Received unsupported value {loc=!r}. "
                     f"Only loc='center' is implemented for {axis=!r}"
