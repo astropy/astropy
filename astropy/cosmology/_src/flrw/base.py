@@ -353,12 +353,20 @@ class FLRW(
         return (3 * self.H0**2 / (8 * pi * const.G)).cgs
 
     # ---------------------------------------------------------------
-    # properties
+    # Curvature
+
+    @cached_property
+    def Ok0(self) -> float | np.floating:
+        """Omega curvature; the effective curvature density/critical density at z=0."""
+        return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
     @property
     def is_flat(self) -> bool:
         """Return `bool`; `True` if the cosmology is globally flat."""
         return bool((self.Ok0 == 0.0) and (self.Otot0 == 1.0))
+
+    # ---------------------------------------------------------------
+    # properties
 
     @property
     def Otot0(self) -> float:
@@ -369,11 +377,6 @@ class FLRW(
     def Odm0(self) -> float:
         """Omega dark matter; dark matter density/critical density at z=0."""
         return self.Om0 - self.Ob0
-
-    @cached_property
-    def Ok0(self) -> float | np.floating:
-        """Omega curvature; the effective curvature density/critical density at z=0."""
-        return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
     @cached_property
     def Tnu0(self) -> u.Quantity:
