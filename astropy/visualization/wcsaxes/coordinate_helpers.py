@@ -729,7 +729,7 @@ class CoordinateHelper:
         """
         self._ticklabels.set_visible(visible)
 
-    def set_axislabel(self, text, minpad=1, *, loc="center", **kwargs):
+    def set_axislabel(self, text, minpad=1, *, loc=None, **kwargs):
         """
         Set the text and optionally visual properties for the axis label.
 
