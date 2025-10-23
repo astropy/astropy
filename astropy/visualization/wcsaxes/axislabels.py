@@ -32,15 +32,15 @@ class AxisLabels(Text):
         )
 
     def get_minpad(self, axis):
-        try:
+        if isinstance(self._minpad, dict):
             return self._minpad[axis]
-        except TypeError:
+        else:
             return self._minpad
 
     def get_loc(self, axis):
-        try:
+        if isinstance(self._loc, dict):
             return self._loc[axis]
-        except TypeError:
+        else:
             return self._loc
 
     def set_visible_axes(self, visible_axes):
