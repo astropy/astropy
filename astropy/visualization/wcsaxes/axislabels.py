@@ -9,7 +9,7 @@ from .frame import RectangularFrame
 
 
 class AxisLabels(Text):
-    def __init__(self, frame, minpad=1, *args, loc="center", **kwargs):
+    def __init__(self, frame, minpad=1, *args, loc=None, **kwargs):
         # Use rcParams if the following parameters were not specified explicitly
         if "weight" not in kwargs:
             kwargs["weight"] = rcParams["axes.labelweight"]
