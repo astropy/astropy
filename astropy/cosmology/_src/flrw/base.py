@@ -287,25 +287,6 @@ class FLRW(
     # ---------------------------------------------------------------
     # Parameter details
 
-    @Ob0.validator
-    def Ob0(self, param: Parameter, value: Any) -> float:
-        """Validate baryon density to a non-negative float > matter density."""
-        if value is None:
-            warnings.warn(
-                "Ob0=None is deprecated, use Ob0=0 instead, "
-                "which never causes methods to raise exceptions.",
-                category=DeprecationWarning,
-                stacklevel=2,
-            )
-            return 0.0
-
-        value = validate_non_negative(self, param, value)
-        if value > self.Om0:
-            raise ValueError(
-                "baryonic density can not be larger than total matter density."
-            )
-        return value
-
     @m_nu.validator
     def m_nu(self, param: Parameter, value: Any) -> FArray | None:
         """Validate neutrino masses to right value, units, and shape.
@@ -334,6 +315,28 @@ class FLRW(
         if value.isscalar:
             value = np.full_like(value, value, shape=n_nu)
 
+        return value
+
+    # ---------------------------------------------------------------
+    # Baryons
+
+    @Ob0.validator
+    def Ob0(self, param: Parameter, value: Any) -> float:
+        """Validate baryon density to a non-negative float > matter density."""
+        if value is None:
+            warnings.warn(
+                "Ob0=None is deprecated, use Ob0=0 instead, "
+                "which never causes methods to raise exceptions.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return 0.0
+
+        value = validate_non_negative(self, param, value)
+        if value > self.Om0:
+            raise ValueError(
+                "baryonic density can not be larger than total matter density."
+            )
         return value
 
     # ---------------------------------------------------------------
