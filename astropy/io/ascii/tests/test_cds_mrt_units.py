@@ -17,8 +17,8 @@ Byte-by-byte Description of file: datafile.txt
 --------------------------------------------------------------------------------
  Bytes Format Units   Label   Explanations
 --------------------------------------------------------------------------------
- 1-  5 F5.1   J/m/s/kpc2 SBCONT  Surface brightness continuum
- 7- 11 F5.1   J/s/kpc2   SBLINE  Surface brightness line
+ 1-  5 F5.1   10+3J/m/s/kpc2 SBCONT  Surface brightness continuum
+ 7- 11 F5.1   10-7J/s/kpc2   SBLINE  Surface brightness line
 --------------------------------------------------------------------------------
   1.0   2.0
 """.strip()
@@ -26,6 +26,5 @@ Byte-by-byte Description of file: datafile.txt
     fh = io.StringIO(content)
     t = Table.read(fh, format="ascii.cds")
 
-    assert t["SBCONT"].unit == (1e0 * u.J / u.m / u.s / (u.kpc**2))
-    assert t["SBLINE"].unit == (1e0 * u.J / u.s / (u.kpc**2))
-
+    assert t["SBCONT"].unit == (1e3 * u.J / u.m / u.s / (u.kpc**2))
+    assert t["SBLINE"].unit == (1e-7 * u.J / u.s / (u.kpc**2))
