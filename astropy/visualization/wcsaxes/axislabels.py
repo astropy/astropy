@@ -17,6 +17,8 @@ class AxisLabels(Text):
             kwargs["size"] = rcParams["axes.labelsize"]
         if "color" not in kwargs:
             kwargs["color"] = rcParams["axes.labelcolor"]
+        if "verticalalignment" not in kwargs and "va" not in kwargs:
+            kwargs["verticalalignment"] = "center"
 
         self._frame = frame
         super().__init__(*args, **kwargs)
