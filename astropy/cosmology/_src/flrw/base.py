@@ -374,6 +374,74 @@ class FLRW(
         return self.Om0 - self.Ob0
 
     # ---------------------------------------------------------------
+    # Hubble Parameter
+
+    @deprecated_keywords("z", since="7.0")
+    def efunc(self, z: u.Quantity | ArrayLike) -> FArray:
+        """Function used to calculate H(z), the Hubble parameter.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        E : array
+            The redshift scaling of the Hubble constant.
+            Defined such that :math:`H(z) = H_0 E(z)`.
+
+        Notes
+        -----
+        It is not necessary to override this method, but if de_density_scale
+        takes a particularly simple form, it may be advantageous to.
+        """
+        Or = self.Ogamma0 + (
+            self.Onu0
+            if not self._nu_info.has_massive_nu
+            else self.Ogamma0 * self.nu_relative_density(z)
+        )
+        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
+
+        return np.sqrt(
+            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
+            + self.Ode0 * self.de_density_scale(z)
+        )
+
+    @deprecated_keywords("z", since="7.0")
+    def inv_efunc(self, z: u.Quantity | ArrayLike) -> FArray:
+        """Inverse of ``efunc``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        E : array
+            The redshift scaling of the inverse Hubble constant.
+        """
+        # Avoid the function overhead by repeating code
+        Or = self.Ogamma0 + (
+            self.Onu0
+            if not self._nu_info.has_massive_nu
+            else self.Ogamma0 * self.nu_relative_density(z)
+        )
+        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
+
+        return (
+            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
+            + self.Ode0 * self.de_density_scale(z)
+        ) ** (-0.5)
+
+    # ---------------------------------------------------------------
     # properties
 
     @property
@@ -558,71 +626,6 @@ class FLRW(
         rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
         return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
-
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: u.Quantity | ArrayLike) -> FArray:
-        """Function used to calculate H(z), the Hubble parameter.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        E : array
-            The redshift scaling of the Hubble constant.
-            Defined such that :math:`H(z) = H_0 E(z)`.
-
-        Notes
-        -----
-        It is not necessary to override this method, but if de_density_scale
-        takes a particularly simple form, it may be advantageous to.
-        """
-        Or = self.Ogamma0 + (
-            self.Onu0
-            if not self._nu_info.has_massive_nu
-            else self.Ogamma0 * self.nu_relative_density(z)
-        )
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
-        return np.sqrt(
-            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
-            + self.Ode0 * self.de_density_scale(z)
-        )
-
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: u.Quantity | ArrayLike) -> FArray:
-        """Inverse of ``efunc``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        E : array
-            The redshift scaling of the inverse Hubble constant.
-        """
-        # Avoid the function overhead by repeating code
-        Or = self.Ogamma0 + (
-            self.Onu0
-            if not self._nu_info.has_massive_nu
-            else self.Ogamma0 * self.nu_relative_density(z)
-        )
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
-        return (
-            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
-            + self.Ode0 * self.de_density_scale(z)
-        ) ** (-0.5)
 
     def _lookback_time_integrand_scalar(self, z: float, /) -> float:
         """Integrand of the lookback time (equation 30 of [1]_).
