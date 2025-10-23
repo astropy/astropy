@@ -183,10 +183,11 @@ class _SetTempPath:
 
         path = env_dir_path / rootname
         if path.is_symlink():
-            return cls._find_or_create_root_dir(linkto=path, pkgname=rootname)
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
         else:
-            path.mkdir(exist_ok=True)
-            return path.resolve()
+            if path.exists():
+                return path.resolve()
+            return cls._find_or_create_root_dir(linkto=path, pkgname=rootname)
 
     @classmethod
     def _find_or_create_root_dir(
