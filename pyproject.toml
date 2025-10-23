@@ -195,7 +195,6 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["astropy*"]
-exclude = ["astropy._dev*"]
 namespaces = true
 
 [tool.setuptools.package-data]
@@ -229,7 +228,6 @@ norecursedirs = [
     "docs[\\/]_build",
     "docs[\\/]generated",
     "astropy[\\/]extern",
-    "astropy[\\/]_dev",
 ]
 astropy_header = true
 doctest_plus = "enabled"
