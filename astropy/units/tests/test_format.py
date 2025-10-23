@@ -392,6 +392,18 @@ def test_cds_units_available():
     u_format.CDS._units
 
 
+def test_cds_left_associative_division():
+    # Ensure chained divisions are parsed as left-associative
+    assert u.Unit("J/m/s/kpc2", format="cds") == (u.J / u.m / u.s / (u.kpc**2))
+    assert u.Unit("erg/AA/s/kpc2", format="cds") == (u.erg / u.AA / u.s / (u.kpc**2))
+    assert u.Unit("W/m2/Hz", format="cds") == (u.W / (u.m**2) / u.Hz)
+    # Leading inverse
+    assert u.Unit("/pixel/s", format="cds") == (1.0 / (u.pixel * u.s))
+    # Factors with divisions and exponents
+    assert u.Unit("10+3J/m/s/kpc2", format="cds") == (1e3 * u.J / u.m / u.s / (u.kpc**2))
+    assert u.Unit("10-7J/s/kpc2", format="cds") == (1e-7 * u.J / u.s / (u.kpc**2))
+
+
 def test_cds_non_ascii_unit():
     """Regression test for #5350.  This failed with a decoding error as
     μas could not be represented in ascii."""

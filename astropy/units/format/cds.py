@@ -164,14 +164,13 @@ class CDS(Base):
 
         def p_combined_units(p):
             """
-            combined_units : product_of_units
-                           | division_of_units
+            combined_units : division_product_of_units
             """
             p[0] = p[1]
 
         def p_product_of_units(p):
             """
-            product_of_units : unit_expression PRODUCT combined_units
+            product_of_units : unit_expression PRODUCT product_of_units
                              | unit_expression
             """
             if len(p) == 4:
@@ -179,15 +178,18 @@ class CDS(Base):
             else:
                 p[0] = p[1]
 
-        def p_division_of_units(p):
+        def p_division_product_of_units(p):
             """
-            division_of_units : DIVISION unit_expression
-                              | unit_expression DIVISION combined_units
+            division_product_of_units : division_product_of_units DIVISION product_of_units
+                                      | product_of_units
+                                      | DIVISION unit_expression
             """
-            if len(p) == 3:
+            if len(p) == 4:
+                p[0] = p[1] / p[3]
+            elif len(p) == 3:
                 p[0] = p[2] ** -1
             else:
-                p[0] = p[1] / p[3]
+                p[0] = p[1]
 
         def p_unit_expression(p):
             """
