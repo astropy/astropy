@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from inspect import cleandoc
+from pathlib import Path
 from threading import Lock
 
 import pytest
@@ -19,7 +20,7 @@ _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
 
 
 @pytest.fixture
-def ignore_config_paths_global_state(monkeypatch):
+def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
     # ignore global state of the test session
     # and preserve thread safety across all users of this fixture
     with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
@@ -28,6 +29,15 @@ def ignore_config_paths_global_state(monkeypatch):
 
         monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
         monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
+
+        # also mock $HOME as it's part of the global state taken into account
+        # for path detection
+        mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME")
+
+        def mock_home():
+            return mock_home_dir
+
+        monkeypatch.setattr(Path, "home", mock_home)
 
         yield
 
@@ -71,54 +81,62 @@ def test_xdg_variables(monkeypatch, tmp_path, environment_variable, func):
     assert func() == config_dir
 
 
-@pytest.mark.parametrize(
-    "astropy_env_var, func",
-    [
-        pytest.param(
-            "XDG_CACHE_HOME",
-            paths.get_cache_dir_path,
-            id="xdg-cache",
-        ),
-        pytest.param(
-            "XDG_CONFIG_HOME",
-            paths.get_config_dir_path,
-            id="xdg-config",
-        ),
-    ],
-)
+ENV_VAR_AND_FUNC = [
+    pytest.param(
+        "XDG_CACHE_HOME",
+        paths.get_cache_dir_path,
+        id="xdg-cache",
+    ),
+    pytest.param(
+        "XDG_CONFIG_HOME",
+        paths.get_config_dir_path,
+        id="xdg-config",
+    ),
+]
+
+
+@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_env_variables_setup(monkeypatch, tmp_path, astropy_env_var, func):
+def test_env_variables_setup(monkeypatch, tmp_path, env_var, func):
     default_path = func()
     target_dir = tmp_path / "nonexistent"
-    monkeypatch.setenv(astropy_env_var, str(target_dir))
+    monkeypatch.setenv(env_var, str(target_dir))
 
     with pytest.warns(
         UserWarning,
-        match=rf"^{astropy_env_var} is set to '",
+        match=rf"^{env_var} is set to '",
     ):
         new_path = func()
 
     assert new_path == default_path
 
-    # this time, have the env var point to a writable location,
+
+@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_env_variables_setup_writable_but_missing(monkeypatch, tmp_path, env_var, func):
+    # have the env var point to a writable location,
     # where an 'astropy' subdir is missing, but can be created silently
     target_dir = tmp_path
     expected_path = tmp_path / "astropy"
-    monkeypatch.setenv(astropy_env_var, str(target_dir))
+    monkeypatch.setenv(env_var, str(target_dir))
 
     assert not expected_path.exists()
     path = func()
     assert expected_path.is_dir()
     assert path == expected_path
 
-    # finally, check what happens if we request a location that's already
+
+@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_env_variables_setup_file_exists(monkeypatch, tmp_path, env_var, func):
+    # check what happens if we request a location that's already
     # taken, but is a file
     target_dir = tmp_path / "subdir"
     target_dir.mkdir()
     expected_path = target_dir / "astropy"
     expected_path.touch()  # create a file
 
-    monkeypatch.setenv(astropy_env_var, str(target_dir))
+    monkeypatch.setenv(env_var, str(target_dir))
     with pytest.raises(FileExistsError):
         path = func()
 
