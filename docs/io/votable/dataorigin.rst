@@ -13,12 +13,14 @@ This API retrieves Metadata from INFO in VOTable.
 Getting Started
 ---------------
 
-To extract DataOrigin from VOTable:
+For the following example, we would first reconstruct a VOTable DataOrigin based on a query to
+VizieR catalogue J/AJ/167/18. In practice, you would obtain this table directly from
+the VO service of interest::
 
-.. testsetup::
     >>> from astropy.io.votable.dataorigin import add_data_origin_info
     >>> from astropy.io.votable.tree import VOTableFile
     >>> from astropy.table import Column, Table
+    >>> # For this example, the table data itself is irrelevant.
     >>> table = Table([
     ...     Column(name="id", data=[1, 2, 3, 4]),
     ...     Column(name="bmag", unit="mag", data=[5.6, 7.9, 12.4, 11.3])])
@@ -46,28 +48,28 @@ To extract DataOrigin from VOTable:
     >>> add_data_origin_info(votable, "server_software", "7.4.5")
     >>> add_data_origin_info(votable, "service_protocol", "ivo://ivoa.net/std/ConeSearch/v1.03")
 
-Example: VizieR catalogue J/AJ/167/18
 
-::
+To extract DataOrigin from VOTable::
 
-    >>> from astropy.io.votable import parse
     >>> from astropy.io.votable.dataorigin import extract_data_origin
-    >>> votable = parse("https://vizier.cds.unistra.fr/viz-bin/conesearch/J/AJ/167/18/table4?RA=265.51&DEC=-22.71&SR=0.1")  # doctest: +SKIP
     >>> data_origin = extract_data_origin(votable)
-    >>> print(data_origin)  # doctest: +IGNORE_OUTPUT
+    >>> print(data_origin)
     publisher: CDS
     server_software: 7.4.5
     service_protocol: ivo://ivoa.net/std/ConeSearch/v1.03
     request_date: 2025-03-05T14:18:05
     contact: cds-question@unistra.fr
-    publisher: CDS
-
+    <BLANKLINE>
     ivoid: ivo://cds.vizier/j/aj/167/18
     citation: doi:10.26093/cds/vizier.51670018
     reference_url: https://cdsarc.cds.unistra.fr/viz-bin/cat/J/AJ/167/18
     rights_uri: https://cds.unistra.fr/vizier-org/licences_vizier.html
     creator: Hong K.
-    ...
+    editor: Astronomical Journal (AAS)
+    cites: bibcode:2024AJ....167...18H
+    original_date: 2024
+    publication_date: 2024-11-06
+
 
 Contents and metadata
 ---------------------
@@ -78,14 +80,14 @@ Contents and metadata
   ``QueryOrigin`` is considered to be unique for the whole VOTable.
   It includes metadata like  the publisher, the contact, date of execution, query, etc.
 
-*  a list of `astropy.io.votable.dataorigin.DatasetOrigin` (class) container for each Element having DataOrigin information.
-   ``DataSetOrigin`` is a basic provenance of the datasets queried. Each attribute is a list.
-   It includes metadata like authors, ivoid, landing pages, ....
+* a list of `astropy.io.votable.dataorigin.DatasetOrigin` (class) container for each Element having DataOrigin information.
+  ``DataSetOrigin`` is a basic provenance of the datasets queried. Each attribute is a list.
+  It includes metadata like authors, ivoid, landing pages, ....
 
 Examples
 --------
 
-Get the (Data Center) publisher and the Creator of the dataset
+Get the (Data Center) publisher and the Creator of the dataset::
 
     >>> print(data_origin.query.publisher)
     CDS
@@ -97,8 +99,7 @@ Other capabilities
 
 DataOrigin container includes VO Elements:
 
-* Extract list of `astropy.io.votable.tree.Info`
-
+* Extract list of `astropy.io.votable.tree.Info`:
 
     >>> # get DataOrigin with the description of each INFO
     >>> for dataset_origin in data_origin.origin:
@@ -111,9 +112,8 @@ DataOrigin container includes VO Elements:
     original_date: 2024 (Year of the article publication)
     ...
 
-* Extract tree node `astropy.io.votable.tree.Element`
-
-The following example extracts the citation from the header (in APA style).
+* Extract tree node `astropy.io.votable.tree.Element`;
+  The following example extracts the citation from the header (in APA style):
 
     >>> # get the Title retrieved in Element
     >>> origin = data_origin.origin[0]
