@@ -771,6 +771,7 @@ class CoordinateHelper:
                 "overwritten during the rendering. Use the 'loc' keyword "
                 "argument instead.",
                 AstropyUserWarning,
+                stacklevel=2,
             )
 
         self._axislabel_set = True
