@@ -14,7 +14,7 @@ from matplotlib.path import Path
 from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from astropy import units as u
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .axislabels import AxisLabels
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
@@ -728,7 +728,7 @@ class CoordinateHelper:
         """
         self._ticklabels.set_visible(visible)
 
-    def set_axislabel(self, text, minpad=1, **kwargs):
+    def set_axislabel(self, text, minpad=1, *, loc="center", **kwargs):
         """
         Set the text and optionally visual properties for the axis label.
 
@@ -738,6 +738,10 @@ class CoordinateHelper:
             The axis label text.
         minpad : float, optional
             The padding for the label in terms of axis label font size.
+        loc : 'str', optional
+            The label position relative to the axis. This is equivalent to
+            matplotlib's corresponding keyword argument availably in their
+            label setter.
         **kwargs
             Keywords are passed to :class:`matplotlib.text.Text`. These
             can include keywords to set the ``color``, ``size``, ``weight``, and
@@ -751,10 +755,29 @@ class CoordinateHelper:
         if minpad is None:
             minpad = 1
 
+        protected_kw = [
+            "x",
+            "y",
+            "rotation",
+            "horizontalalignment",
+            "ha",
+            "rotation_mode",
+        ]
+        if set(kwargs).intersection(protected_kw):
+            warnings.warn(
+                "Any of the axis label low level keyword arguments "
+                f"({protected_kw}) of the 'loc' keyword argument will be "
+                "overwritten during the rendering. Use the 'loc' keyword "
+                "argument instead.",
+                AstropyUserWarning,
+                stacklevel=2,
+            )
+
         self._axislabel_set = True
 
         self._axislabels.set_text(text)
         self._axislabels.set_minpad(minpad)
+        self._axislabels.set_loc(loc)
         self._axislabels.set(**kwargs)
 
         if fontdict is not None:
