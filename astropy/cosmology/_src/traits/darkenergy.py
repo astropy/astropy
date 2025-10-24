@@ -9,8 +9,10 @@ from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
+from .hubble import _HasH0overH
 
-class DarkEnergyComponent:
+
+class DarkEnergyComponent(_HasH0overH):
     # Subclasses should use `Parameter` to make this a parameter of the cosmology.
     Ode0: float
     """Omega dark energy; dark energy density/critical density at z=0."""
@@ -138,8 +140,4 @@ class DarkEnergyComponent:
         z = aszarr(z)
         if self.Ode0 == 0:  # Common enough to be worth checking explicitly
             return np.zeros_like(z)
-        # Ensure self.inv_efunc is implemented by the main class
-        if not hasattr(self, "inv_efunc") or not callable(self.inv_efunc):
-            msg = "The main class must implement an 'inv_efunc(z)' method."
-            raise NotImplementedError(msg)
         return self.Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2
