@@ -3,17 +3,28 @@
 """Affine coordinate transformations."""
 
 from abc import abstractmethod
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 from astropy.coordinates.representation import (
+    BaseRepresentation,
     CartesianDifferential,
+    CartesianRepresentation,
     RadialDifferential,
     SphericalCosLatDifferential,
     SphericalDifferential,
     UnitSphericalRepresentation,
 )
 from astropy.coordinates.transformations.base import CoordinateTransform
+from astropy.coordinates.typing import Matrix3x3
+
+if TYPE_CHECKING:
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
+
+    from .graph import TransformGraph
 
 __all__ = [
     "AffineTransform",
@@ -38,7 +49,12 @@ class BaseAffineTransform(CoordinateTransform):
 
     """
 
-    def _apply_transform(self, fromcoord, matrix, offset):
+    def _apply_transform(
+        self,
+        fromcoord: "BaseCoordinateFrame",
+        matrix: ArrayLike | None,
+        offset: CartesianRepresentation | None,
+    ) -> BaseRepresentation:
         data = fromcoord.data
         has_velocity = "s" in data.differentials
 
@@ -200,13 +216,17 @@ class BaseAffineTransform(CoordinateTransform):
 
         return newrep
 
-    def __call__(self, fromcoord, toframe):
+    def __call__(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> "BaseCoordinateFrame":
         params = self._affine_params(fromcoord, toframe)
         newrep = self._apply_transform(fromcoord, *params)
         return toframe.realize_frame(newrep)
 
     @abstractmethod
-    def _affine_params(self, fromcoord, toframe):
+    def _affine_params(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> tuple[ArrayLike | None, CartesianRepresentation | None]:
         pass
 
 
@@ -245,7 +265,17 @@ class AffineTransform(BaseAffineTransform):
 
     """
 
-    def __init__(self, transform_func, fromsys, tosys, priority=1, register_graph=None):
+    def __init__(
+        self,
+        transform_func: Callable[
+            ["BaseCoordinateFrame", "BaseCoordinateFrame"],
+            tuple[Matrix3x3, CartesianRepresentation],
+        ],
+        fromsys: type["BaseCoordinateFrame"],
+        tosys: type["BaseCoordinateFrame"],
+        priority: float = 1,
+        register_graph: Union["TransformGraph", None] = None,
+    ) -> None:
         if not callable(transform_func):
             raise TypeError("transform_func is not callable")
         self.transform_func = transform_func
@@ -254,7 +284,9 @@ class AffineTransform(BaseAffineTransform):
             fromsys, tosys, priority=priority, register_graph=register_graph
         )
 
-    def _affine_params(self, fromcoord, toframe):
+    def _affine_params(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> tuple[Matrix3x3, CartesianRepresentation]:
         return self.transform_func(fromcoord, toframe)
 
 
@@ -291,7 +323,14 @@ class StaticMatrixTransform(BaseAffineTransform):
 
     """
 
-    def __init__(self, matrix, fromsys, tosys, priority=1, register_graph=None):
+    def __init__(
+        self,
+        matrix: Matrix3x3 | Callable[[], Matrix3x3],
+        fromsys: type["BaseCoordinateFrame"],
+        tosys: type["BaseCoordinateFrame"],
+        priority: float = 1,
+        register_graph: Union["TransformGraph", None] = None,
+    ) -> None:
         if callable(matrix):
             matrix = matrix()
         self.matrix = np.array(matrix)
@@ -303,7 +342,9 @@ class StaticMatrixTransform(BaseAffineTransform):
             fromsys, tosys, priority=priority, register_graph=register_graph
         )
 
-    def _affine_params(self, fromcoord, toframe):
+    def _affine_params(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> tuple[Matrix3x3, None]:
         return self.matrix, None
 
 
@@ -339,7 +380,16 @@ class DynamicMatrixTransform(BaseAffineTransform):
 
     """
 
-    def __init__(self, matrix_func, fromsys, tosys, priority=1, register_graph=None):
+    def __init__(
+        self,
+        matrix_func: Callable[
+            ["BaseCoordinateFrame", "BaseCoordinateFrame"], Matrix3x3
+        ],
+        fromsys: type["BaseCoordinateFrame"],
+        tosys: type["BaseCoordinateFrame"],
+        priority: float = 1,
+        register_graph: Union["TransformGraph", None] = None,
+    ) -> None:
         if not callable(matrix_func):
             raise TypeError("matrix_func is not callable")
         self.matrix_func = matrix_func
@@ -348,5 +398,7 @@ class DynamicMatrixTransform(BaseAffineTransform):
             fromsys, tosys, priority=priority, register_graph=register_graph
         )
 
-    def _affine_params(self, fromcoord, toframe):
+    def _affine_params(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> tuple[Matrix3x3, None]:
         return self.matrix_func(fromcoord, toframe), None
