@@ -355,14 +355,7 @@ def test_ogip_ohm():
 
 @pytest.mark.parametrize(
     "string",
-    [
-        pytest.param("m**(-0.5)", id="float"),
-        pytest.param(
-            "m**(-1/2)",
-            id="fraction",
-            marks=pytest.mark.xfail(reason="regression test to reveal a bug"),
-        ),
-    ],
+    [pytest.param("m**(-0.5)", id="float"), pytest.param("m**(-1/2)", id="fraction")],
 )
 def test_ogip_negative_powers(string):
     # Regression test for #18776 - negative fractions were not recognized
