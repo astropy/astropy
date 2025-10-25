@@ -133,7 +133,7 @@ When a query is performed using `.loc[]`:
 
 3. **Index Lookup**: The appropriate index engine performs the search:
    - Single/multiple lookups use `find()` method
-   - Range queries use `range()` method with MinValue/MaxValue sentinels
+   - Range queries use `range()` method with Top/Bottom sentinels
 
 4. **Coordinate Translation**: For sliced tables, row indices are translated from
    original coordinates to sliced coordinates using `sliced_coords()`
@@ -213,7 +213,7 @@ import numpy as np
 
 from astropy.utils.decorators import deprecated
 
-from .bst import MaxValue, MinValue
+from .bst import Bottom, Top
 from .sorted_array import SortedArray
 
 if TYPE_CHECKING:
@@ -510,8 +510,8 @@ class Index:
         """
         n = len(lower)
         ncols = len(self.columns)
-        a = MinValue() if bounds[0] else MaxValue()
-        b = MaxValue() if bounds[1] else MinValue()
+        a = Bottom if bounds[0] else Top
+        b = Top if bounds[1] else Bottom
         # [x, y] search corresponds to [(x, min), (y, max)]
         # (x, y) search corresponds to ((x, max), (x, min))
         lower = lower + tuple((ncols - n) * [a])
@@ -1145,8 +1145,8 @@ class TableLoc:
 
         if isinstance(item, slice):
             # None signifies no upper/lower bound
-            start = MinValue() if item.start is None else item.start
-            stop = MaxValue() if item.stop is None else item.stop
+            start = Bottom if item.start is None else item.start
+            stop = Top if item.stop is None else item.stop
             rows = index.range((start,), (stop,))
         else:
             if not isinstance(item, (list, np.ndarray)):  # single element
