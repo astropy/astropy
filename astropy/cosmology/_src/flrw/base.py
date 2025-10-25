@@ -287,25 +287,6 @@ class FLRW(
     # ---------------------------------------------------------------
     # Parameter details
 
-    @Ob0.validator
-    def Ob0(self, param: Parameter, value: Any) -> float:
-        """Validate baryon density to a non-negative float > matter density."""
-        if value is None:
-            warnings.warn(
-                "Ob0=None is deprecated, use Ob0=0 instead, "
-                "which never causes methods to raise exceptions.",
-                category=DeprecationWarning,
-                stacklevel=2,
-            )
-            return 0.0
-
-        value = validate_non_negative(self, param, value)
-        if value > self.Om0:
-            raise ValueError(
-                "baryonic density can not be larger than total matter density."
-            )
-        return value
-
     @m_nu.validator
     def m_nu(self, param: Parameter, value: Any) -> FArray | None:
         """Validate neutrino masses to right value, units, and shape.
@@ -337,27 +318,136 @@ class FLRW(
         return value
 
     # ---------------------------------------------------------------
-    # properties
+    # Baryons
+
+    @Ob0.validator
+    def Ob0(self, param: Parameter, value: Any) -> float:
+        """Validate baryon density to a non-negative float > matter density."""
+        if value is None:
+            warnings.warn(
+                "Ob0=None is deprecated, use Ob0=0 instead, "
+                "which never causes methods to raise exceptions.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return 0.0
+
+        value = validate_non_negative(self, param, value)
+        if value > self.Om0:
+            raise ValueError(
+                "baryonic density can not be larger than total matter density."
+            )
+        return value
+
+    # ---------------------------------------------------------------
+    # Critical Density
+
+    @cached_property
+    def critical_density0(self) -> u.Quantity:
+        r"""Critical mass density at z=0.
+
+        The critical density is the density of the Universe at which the Universe is
+        flat. It is defined as :math:`\rho_{\text{crit}} = 3 H_0^2 / (8 \pi G)`.
+
+        """
+        return (3 * self.H0**2 / (8 * pi * const.G)).cgs
+
+    # ---------------------------------------------------------------
+    # Curvature
+
+    @cached_property
+    def Ok0(self) -> float | np.floating:
+        """Omega curvature; the effective curvature density/critical density at z=0."""
+        return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
     @property
     def is_flat(self) -> bool:
         """Return `bool`; `True` if the cosmology is globally flat."""
         return bool((self.Ok0 == 0.0) and (self.Otot0 == 1.0))
 
-    @property
-    def Otot0(self) -> float:
-        """Omega total; the total density/critical density at z=0."""
-        return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
+    # ---------------------------------------------------------------
+    # Dark Matter
 
     @cached_property
     def Odm0(self) -> float:
         """Omega dark matter; dark matter density/critical density at z=0."""
         return self.Om0 - self.Ob0
 
-    @cached_property
-    def Ok0(self) -> float | np.floating:
-        """Omega curvature; the effective curvature density/critical density at z=0."""
-        return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
+    # ---------------------------------------------------------------
+    # Hubble Parameter
+
+    @deprecated_keywords("z", since="7.0")
+    def efunc(self, z: u.Quantity | ArrayLike) -> FArray:
+        """Function used to calculate H(z), the Hubble parameter.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        E : array
+            The redshift scaling of the Hubble constant.
+            Defined such that :math:`H(z) = H_0 E(z)`.
+
+        Notes
+        -----
+        It is not necessary to override this method, but if de_density_scale
+        takes a particularly simple form, it may be advantageous to.
+        """
+        Or = self.Ogamma0 + (
+            self.Onu0
+            if not self._nu_info.has_massive_nu
+            else self.Ogamma0 * self.nu_relative_density(z)
+        )
+        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
+
+        return np.sqrt(
+            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
+            + self.Ode0 * self.de_density_scale(z)
+        )
+
+    @deprecated_keywords("z", since="7.0")
+    def inv_efunc(self, z: u.Quantity | ArrayLike) -> FArray:
+        """Inverse of ``efunc``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+        Returns
+        -------
+        E : array
+            The redshift scaling of the inverse Hubble constant.
+        """
+        # Avoid the function overhead by repeating code
+        Or = self.Ogamma0 + (
+            self.Onu0
+            if not self._nu_info.has_massive_nu
+            else self.Ogamma0 * self.nu_relative_density(z)
+        )
+        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
+
+        return (
+            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
+            + self.Ode0 * self.de_density_scale(z)
+        ) ** (-0.5)
+
+    # ---------------------------------------------------------------
+    # properties
+
+    @property
+    def Otot0(self) -> float:
+        """Omega total; the total density/critical density at z=0."""
+        return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
 
     @cached_property
     def Tnu0(self) -> u.Quantity:
@@ -372,16 +462,6 @@ class FLRW(
         if self.Tnu0.value == 0:
             return False
         return self._nu_info.has_massive_nu
-
-    @cached_property
-    def critical_density0(self) -> u.Quantity:
-        r"""Critical mass density at z=0.
-
-        The critical density is the density of the Universe at which the Universe is
-        flat. It is defined as :math:`\rho_{\text{crit}} = 3 H_0^2 / (8 \pi G)`.
-
-        """
-        return (3 * self.H0**2 / (8 * pi * const.G)).cgs
 
     @cached_property
     def Ogamma0(self) -> float:
@@ -546,71 +626,6 @@ class FLRW(
         rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
         return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
-
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: u.Quantity | ArrayLike) -> FArray:
-        """Function used to calculate H(z), the Hubble parameter.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        E : array
-            The redshift scaling of the Hubble constant.
-            Defined such that :math:`H(z) = H_0 E(z)`.
-
-        Notes
-        -----
-        It is not necessary to override this method, but if de_density_scale
-        takes a particularly simple form, it may be advantageous to.
-        """
-        Or = self.Ogamma0 + (
-            self.Onu0
-            if not self._nu_info.has_massive_nu
-            else self.Ogamma0 * self.nu_relative_density(z)
-        )
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
-        return np.sqrt(
-            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
-            + self.Ode0 * self.de_density_scale(z)
-        )
-
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: u.Quantity | ArrayLike) -> FArray:
-        """Inverse of ``efunc``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        E : array
-            The redshift scaling of the inverse Hubble constant.
-        """
-        # Avoid the function overhead by repeating code
-        Or = self.Ogamma0 + (
-            self.Onu0
-            if not self._nu_info.has_massive_nu
-            else self.Ogamma0 * self.nu_relative_density(z)
-        )
-        zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
-
-        return (
-            zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0)
-            + self.Ode0 * self.de_density_scale(z)
-        ) ** (-0.5)
 
     def _lookback_time_integrand_scalar(self, z: float, /) -> float:
         """Integrand of the lookback time (equation 30 of [1]_).
