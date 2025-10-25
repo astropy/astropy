@@ -1760,6 +1760,14 @@ class ColDefs(NotifierMixin):
         else:
             return ColDefs(x)
 
+    def __contains__(self, key):
+        if isinstance(key, str):
+            return key.lower().rstrip() in (n.lower().rstrip() for n in self.names)
+        elif isinstance(key, Column):
+            return key in self.columns
+        else:
+            return False
+
     def __len__(self):
         return len(self.columns)
 
