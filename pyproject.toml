@@ -101,11 +101,15 @@ all = [
 # The base set of test-time dependencies.
 test = [
     "coverage>=6.4.4",
+    "hypothesis>=6.83.2",
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
     "pytest>=8.0.0",
     "pytest-doctestplus>=1.4.0",
     "pytest-astropy-header>=0.2.1",
     "pytest-astropy>=0.10.0",
+    "pytest-arraydiff>=0.2",
+    "pytest-openfiles>= 0.4.0",
+    "pytest-remotedata>=0.3.2",
     "pytest-xdist>=2.5.0",
     "threadpoolctl>=3.0.0",
 ]
@@ -245,6 +249,9 @@ filterwarnings = [
     "error",
     # https://github.com/astropy/astropy/issues/18126
     "ignore:'_UnionGenericAlias' is deprecated and slated for removal in Python 3.17:DeprecationWarning", # not PYTHON_LT_3_14
+    'ignore:_SixMetaPathImporter\.find_spec\(\) not found; falling back to find_module\(\):ImportWarning', # from hypothesis
+    "ignore:distutils Version classes are deprecated. Use packaging.version instead.:DeprecationWarning",
+    "ignore: module 'sre_constants' is deprecated:DeprecationWarning", # from matplotlib 3.6.0 via pyparsing 3.0.0 
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
@@ -736,10 +743,12 @@ ignore-words-list = """
 no-build-package = [
     "bottleneck",
     "coverage",
+    "contourpy",
     "h5py",
     "numpy",
     "matplotlib",
     "pandas",
+    "pillow",
     "polars",
     "scipy",
     "sgp4",
