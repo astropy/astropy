@@ -2264,7 +2264,65 @@ def _makep(array, descr_output, format, nrows=None):
         if format.dtype == "S":
             data_output[idx] = chararray.array(encode_ascii(rowval), itemsize=1)
         else:
-            data_output[idx] = np.array(rowval, dtype=format.dtype)
+            # Special handling for logical (boolean) variable-length arrays.
+            # FITS specifies that logical values are stored as ASCII 'T' or
+            # 'F' (bytes 84 and 70 respectively) and a 0 byte indicates a
+            # NULL value. For VLA columns we must therefore convert any
+            # incoming booleans, strings like 'T'/'F', numeric 0/1, and
+            # None into the appropriate byte codes before storing in the
+            # heap.  Previously this path simply cast the input to the
+            # numeric dtype which produced 1/0 for True/False and did not
+            # support None or 'T'/'F' characters correctly.
+            if format.format == "L":
+                # rowval may be any sequence (list, ndarray, etc.)
+                try:
+                    seq = list(rowval)
+                except Exception:
+                    # If it's a scalar, treat it as a single-element list
+                    seq = [rowval]
+
+                codes = []
+                for el in seq:
+                    # NULL value
+                    if el is None:
+                        codes.append(0)
+                        continue
+
+                    # bytes/str values like 'T' or 'F'
+                    if isinstance(el, (bytes, bytearray)):
+                        try:
+                            ch = el.decode("ascii")[0]
+                        except Exception:
+                            # fallback: treat as True
+                            codes.append(ord("T"))
+                            continue
+                        ch = ch.upper()
+                        codes.append(ord(ch))
+                        continue
+                    if isinstance(el, str):
+                        if len(el) == 0:
+                            codes.append(0)
+                        else:
+                            codes.append(ord(el[0].upper()))
+                        continue
+
+                    # booleans
+                    if isinstance(el, (bool, np.bool_)):
+                        codes.append(ord("T") if el else ord("F"))
+                        continue
+
+                    # numbers: treat 0 as False, non-zero as True
+                    try:
+                        ival = int(el)
+                    except Exception:
+                        # fallback: consider non-numeric as True
+                        codes.append(ord("T"))
+                    else:
+                        codes.append(ord("F") if ival == 0 else ord("T"))
+
+                data_output[idx] = np.array(codes, dtype=format.dtype)
+            else:
+                data_output[idx] = np.array(rowval, dtype=format.dtype)
 
         nelem = data_output[idx].shape
         descr_output[idx, 0] = np.prod(nelem)
