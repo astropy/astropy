@@ -319,6 +319,57 @@ def test_logical_vla_object_with_complex_type(tmp_path):
         assert vals.tolist() == [True, False, True]
 
 
+def test_logical_vla_heap_conversion_all_values(tmp_path):
+    """Test _get_heap_data conversion path with all logical values (None/False/True)."""
+
+    fn = tmp_path / "logical_vla_heap_all.fits"
+
+    # Create file with all three logical values to hit all branches in _get_heap_data
+    col = fits.Column(
+        name="all",
+        format="PL",
+        array=[
+            [None],  # Tests the `if val is None` branch
+            [False],  # Tests the `elif val is False` branch
+            [True],  # Tests the `else` branch (True)
+        ],
+    )
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    # Open and flush to trigger _get_heap_data conversion
+    with fits.open(fn, mode="update") as hdul:
+        # Accessing the data triggers conversion
+        _ = hdul[1].data["all"]
+        hdul.flush()  # This triggers _scale_back -> _get_heap_data
+
+    # Verify values are still correct after conversion
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        assert data["all"][0].tolist() == [None]
+        assert data["all"][1].tolist() == [False]
+        assert data["all"][2].tolist() == [True]
+
+
+def test_logical_vla_read_conversion_exception(tmp_path):
+    """Test exception handling in _convert_other when value can't be converted to int."""
+
+    fn = tmp_path / "logical_vla_exception.fits"
+
+    # Create a file with logical VLA
+    col = fits.Column(name="exc", format="PL", array=[[True, False, None]])
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    # Reading should handle all values correctly
+    # The exception path is triggered when numpy can't convert to int
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        result = data["exc"][0]
+        # All values should be properly converted
+        assert result.tolist() == [True, False, None]
+
+
 def test_fixed_width_logical_roundtrip(tmp_path):
     """Ensure fixed-width logical columns (TFORM='L') still roundtrip
     as boolean arrays (regression test)."""
