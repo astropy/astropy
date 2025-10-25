@@ -394,7 +394,42 @@ class FITS_rec(np.recarray):
                     _wrapx(inarr, outarr, recformat.repeat)
                     continue
             elif isinstance(recformat, _FormatP):
-                data._cache_field(name, _makep(inarr, field, recformat, nrows=nrows))
+                # Variable-length array. For logical ('L') base type, FITS
+                # requires ASCII 'T'/'F' bytes in the heap. Align behavior with
+                # fixed-width logical columns by converting boolean inputs to
+                # their ASCII byte codes before packing into the heap.
+                if fitsformat.p_format == "L":
+                    # Build a list of per-row arrays with ASCII codes for T/F.
+                    # Only transform when the input row is boolean-typed; for
+                    # other dtypes, preserve existing behavior for compatibility.
+                    transformed = []
+                    for row in inarr:
+                        r = np.asanyarray(row)
+                        if r.dtype == bool:
+                            transformed.append(
+                                np.where(r, ord("T"), ord("F")).astype(np.int8)
+                            )
+                        elif np.issubdtype(r.dtype, np.integer):
+                            # Interpret non-zero as True, zero as False, for
+                            # backward-compat with existing inputs while
+                            # ensuring FITS-compliant ASCII storage.
+                            transformed.append(
+                                np.where(r != 0, ord("T"), ord("F")).astype(np.int8)
+                            )
+                        elif np.issubdtype(r.dtype, np.floating):
+                            # Floats: treat exact zero as False, others as True
+                            transformed.append(
+                                np.where(r != 0.0, ord("T"), ord("F")).astype(np.int8)
+                            )
+                        else:
+                            transformed.append(r)
+                    inarr_to_write = np.array(transformed, dtype=object)
+                else:
+                    inarr_to_write = inarr
+
+                data._cache_field(
+                    name, _makep(inarr_to_write, field, recformat, nrows=nrows)
+                )
                 continue
             # TODO: Find a better way of determining that the column is meant
             # to be FITS L formatted
@@ -587,7 +622,7 @@ class FITS_rec(np.recarray):
         if isinstance(value, FITS_record):
             for idx in range(self._nfields):
                 self.field(self.names[idx])[key] = value.field(self.names[idx])
-        elif isinstance(value, (tuple, list, np.void)):
+        elif isinstance(value, tuple | list | np.void):
             if self._nfields == len(value):
                 for idx in range(self._nfields):
                     self.field(idx)[key] = value[idx]
@@ -837,6 +872,7 @@ class FITS_rec(np.recarray):
                 dt = np.dtype(recformat.dtype)
                 arr_len = count * dt.itemsize
                 dummy[idx] = raw_data[offset : offset + arr_len].view(dt)
+
                 if column.dim and len(vla_shape) > 1:
                     # The VLA is reshaped consistently with TDIM instructions
                     if vla_shape[0] == 1:
@@ -857,6 +893,16 @@ class FITS_rec(np.recarray):
                 # that it does--the recformat variable only applies to the P
                 # format not the X format
                 dummy[idx] = self._convert_other(column, dummy[idx], recformat)
+
+        # For logical VLA ('PL'/'QL'), present boolean arrays to the user by
+        # interpreting ASCII 'T'/'F' entries as True/False. This mirrors the
+        # behavior for fixed-width logical ('L') columns.
+        if recformat.format == "L":
+            out = np.empty(len(self), dtype=object)
+            for i, arr in enumerate(dummy):
+                # Map ASCII 'T' (84) to True and anything else (e.g., 'F'/0) to False
+                out[i] = (np.asanyarray(arr) == ord("T")).astype(bool)
+            return out
 
         return dummy
 
@@ -1060,12 +1106,38 @@ class FITS_rec(np.recarray):
             for idx in range(self._nfields):
                 # data should already be byteswapped from the caller
                 # using _binary_table_byte_swap
-                if not isinstance(self.columns._recformats[idx], _FormatP):
+                recfmt = self.columns._recformats[idx]
+                if not isinstance(recfmt, _FormatP):
                     continue
 
+                is_logical_vla = getattr(recfmt, "format", None) == "L"
                 for row in self.field(idx):
                     if len(row) > 0:
-                        data.append(row.view(type=np.ndarray, dtype=np.ubyte))
+                        arr = np.asanyarray(row)
+                        if is_logical_vla:
+                            # Ensure heap contains ASCII 'T'/'F' bytes regardless
+                            # of how logical data are stored in memory.
+                            if arr.dtype == bool:
+                                b = np.where(arr, ord("T"), ord("F")).astype(np.uint8)
+                            elif np.issubdtype(arr.dtype, np.integer):
+                                # If clearly 0/1, map to 'F'/'T'. Otherwise assume
+                                # values are already ASCII codes and preserve.
+                                u = np.unique(arr)
+                                if set(u.tolist()) <= {0, 1}:
+                                    b = np.where(arr != 0, ord("T"), ord("F")).astype(
+                                        np.uint8
+                                    )
+                                else:
+                                    b = arr.astype(np.uint8, copy=False)
+                            elif np.issubdtype(arr.dtype, np.floating):
+                                b = np.where(arr != 0.0, ord("T"), ord("F")).astype(
+                                    np.uint8
+                                )
+                            else:
+                                b = arr.astype(np.uint8, copy=False)
+                            data.append(b.view(type=np.ndarray, dtype=np.ubyte))
+                        else:
+                            data.append(arr.view(type=np.ndarray, dtype=np.ubyte))
 
             if data:
                 return np.concatenate(data)
