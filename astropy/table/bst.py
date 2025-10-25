@@ -3,6 +3,8 @@ import operator
 from collections.abc import Hashable, Mapping, Sequence
 from numbers import Integral
 
+import numpy as np
+
 __all__ = ["BST"]
 
 
@@ -26,6 +28,12 @@ class MaxValue:
 
     def __repr__(self):
         return "MAX"
+
+    def to_value(self, unit):
+        """Convert to a value of the given unit."""
+        # This is needed to support Quantity comparisons, in particular
+        # Quantity.searchsorted(MAX).
+        return np.float64(np.inf)
 
     __str__ = __repr__
 
@@ -395,8 +403,8 @@ class BST:
 
     def range(
         self,
-        lower: tuple[Hashable, ...],
-        upper: tuple[Hashable, ...],
+        lower: tuple[Hashable, ...] | None,
+        upper: tuple[Hashable, ...] | None,
         bounds: tuple[bool, bool] = (True, True),
     ) -> list[int]:
         """
@@ -404,16 +412,20 @@ class BST:
 
         Parameters
         ----------
-        lower : tuple
-            Lower bound
-        upper : tuple
-            Upper bound
+        lower : tuple, None
+            Lower bound (no lower bound if None)
+        upper : tuple, None
+            Upper bound (no upper bound if None)
         bounds : (2,) tuple of bool
             Indicates whether the search should be inclusive or
             exclusive with respect to the endpoints. The first
             argument corresponds to an inclusive lower bound,
             and the second argument to an inclusive upper bound.
         """
+        if lower is None:
+            lower = (MinValue(),)
+        if upper is None:
+            upper = (MaxValue(),)
         nodes = self.range_nodes(lower, upper, bounds)
         return [x for node in nodes for x in node.data]
 
