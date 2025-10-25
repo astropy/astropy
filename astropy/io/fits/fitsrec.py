@@ -1161,7 +1161,10 @@ class FITS_rec(np.recarray):
         # or if it is a P/Q (variable-length) format whose p_format is 'L'.
         # This ensures VLAs with logical element types are treated as
         # boolean/logical columns for conversion purposes.
-        _bool = column.format.format == "L" or getattr(column.format, "p_format", None) == "L"
+        _bool = (
+            column.format.format == "L"
+            or getattr(column.format, "p_format", None) == "L"
+        )
 
         _number = not (_bool or _str)
         bscale = column.bscale
