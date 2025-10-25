@@ -246,6 +246,11 @@ filterwarnings = [
     "error",
     # https://github.com/astropy/astropy/issues/18126
     "ignore:'_UnionGenericAlias' is deprecated and slated for removal in Python 3.17:DeprecationWarning", # not PYTHON_LT_3_14
+    # warnings showing up in oldestdeps runs (last checked with not PYTHON_LT_3_11)
+    'ignore:_SixMetaPathImporter\.find_spec\(\) not found; falling back to find_module\(\):ImportWarning', # from hypothesis
+    'ignore:_SixMetaPathImporter\.exec_module\(\) not found; falling back to load_module\(\):ImportWarning', # from prompt-toolkit
+    "ignore:distutils Version classes are deprecated. Use packaging.version instead.:DeprecationWarning",
+    "ignore: module 'sre_constants' is deprecated:DeprecationWarning", # from matplotlib 3.6.0 via pyparsing 3.0.0
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
