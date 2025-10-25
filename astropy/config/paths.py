@@ -12,6 +12,7 @@ from inspect import cleandoc
 from pathlib import Path
 from types import TracebackType
 from typing import Literal, ParamSpec
+from warnings import warn
 
 __all__ = [
     "get_cache_dir",
@@ -167,20 +168,26 @@ class _SetTempPath:
                 path.mkdir(exist_ok=True)
             return path.resolve()
 
-        if (
-            (dir_ := os.getenv(cls._directory_env_var)) is not None
-            and (xch := Path(dir_)).exists()
-            and not (xchpth := xch / rootname).is_symlink()
-        ):
-            if xchpth.exists():
-                return xchpth.resolve()
+        if (env_dir_str := os.getenv(cls._directory_env_var)) is None:
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-            # symlink will be set to this if the directory is created
-            linkto = xchpth
+        if not (env_dir_path := Path(env_dir_str)).is_dir():
+            warn(
+                f"{cls._directory_env_var} is set to {env_dir_str!r}, "
+                "but no such directory was found. "
+                "This environment variable will be ignored.",
+                category=UserWarning,
+                stacklevel=3,
+            )
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
+
+        path = env_dir_path / rootname
+        if path.is_symlink():
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
         else:
-            linkto = None
-
-        return cls._find_or_create_root_dir(linkto, rootname)
+            if path.exists():
+                return path.resolve()
+            return cls._find_or_create_root_dir(linkto=path, pkgname=rootname)
 
     @classmethod
     def _find_or_create_root_dir(
