@@ -740,10 +740,12 @@ ignore-words-list = """
 no-build-package = [
     "bottleneck",
     "coverage",
+    "contourpy",
     "h5py",
     "numpy",
     "matplotlib",
     "pandas",
+    "pillow",
     "polars",
     "scipy",
     "sgp4",
