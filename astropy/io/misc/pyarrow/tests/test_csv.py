@@ -11,7 +11,7 @@ from numpy.testing import assert_array_equal
 
 from astropy.io.misc.pyarrow.csv import strip_comment_lines
 from astropy.table import Table
-from astropy.utils.compat.optional_deps import HAS_PYARROW
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA, HAS_PYARROW
 
 if HAS_PYARROW:
     import pyarrow as pa
@@ -718,3 +718,48 @@ def test_read_whitespace_handling():
         "     3     4.0  w z ",
     ]
     assert out.pformat(show_dtype=True) == exp
+
+
+@pytest.mark.parametrize(
+    "compressed_filename",
+    [
+        "test.csv.gz",
+        pytest.param(
+            "test.csv.bz2",
+            marks=pytest.mark.xfail(not HAS_BZ2, reason="no bz2 support"),
+        ),
+        pytest.param(
+            "test.csv.xz",
+            marks=pytest.mark.xfail(not HAS_LZMA, reason="no lzma support"),
+        ),
+    ],
+)
+def test_compressed_files(tbl, tmp_path, compressed_filename):
+    filename = tmp_path / "test.csv"
+    tbl.write(filename)
+
+    compressed_filename = tmp_path / compressed_filename
+    if compressed_filename.suffix == ".gz":
+        import gzip
+
+        opener = gzip.open
+    elif compressed_filename.suffix == ".bz2":
+        import bz2
+
+        opener = bz2.open
+    elif compressed_filename.suffix == ".xz":
+        import lzma
+
+        opener = lzma.open
+    else:
+        # Shouldn't really happen
+        opener = open
+
+    # Compress ecsv file
+    with open(filename, "rb") as f_in:
+        with opener(compressed_filename, "wb") as f_out:
+            f_out.writelines(f_in)
+
+    # Open compressed file and compare to ensure it's read correctly
+    t_comp = Table.read(compressed_filename, format="pyarrow.csv")
+    assert_array_equal(tbl, t_comp)
