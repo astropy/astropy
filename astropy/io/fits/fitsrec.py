@@ -622,7 +622,7 @@ class FITS_rec(np.recarray):
         if isinstance(value, FITS_record):
             for idx in range(self._nfields):
                 self.field(self.names[idx])[key] = value.field(self.names[idx])
-        elif isinstance(value, (tuple, list, np.void)):
+        elif isinstance(value, tuple | list | np.void):
             if self._nfields == len(value):
                 for idx in range(self._nfields):
                     self.field(idx)[key] = value[idx]
@@ -872,7 +872,7 @@ class FITS_rec(np.recarray):
                 dt = np.dtype(recformat.dtype)
                 arr_len = count * dt.itemsize
                 dummy[idx] = raw_data[offset : offset + arr_len].view(dt)
-                
+
                 if column.dim and len(vla_shape) > 1:
                     # The VLA is reshaped consistently with TDIM instructions
                     if vla_shape[0] == 1:
