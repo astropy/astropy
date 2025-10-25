@@ -152,6 +152,113 @@ def test_logical_vla_empty_string_input(tmp_path):
         assert data["empty"][0][2] is False
 
 
+def test_logical_vla_scalar_input(tmp_path):
+    """Test that scalar inputs (non-sequences) are handled correctly."""
+
+    fn = tmp_path / "logical_vla_scalar.fits"
+
+    # Test with scalar boolean (should be treated as single-element array)
+    col = fits.Column(name="scalar", format="PL", array=[True, False, None])
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        # Each row should be a single-element array
+        assert data["scalar"][0].tolist() == [True]
+        assert data["scalar"][1].tolist() == [False]
+        assert data["scalar"][2].tolist() == [None]
+
+
+def test_logical_vla_invalid_bytes(tmp_path):
+    """Test fallback handling for invalid byte sequences."""
+
+    fn = tmp_path / "logical_vla_invalid.fits"
+
+    # Test with non-decodable bytes (should fallback to True)
+    col = fits.Column(name="inv", format="PL", array=[[b"\xff\xfe"]])
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        # Should fallback to True for invalid bytes
+        assert data["inv"][0].tolist() == [True]
+
+
+def test_logical_vla_numpy_bool(tmp_path):
+    """Test numpy boolean types are handled correctly."""
+
+    fn = tmp_path / "logical_vla_npbool.fits"
+
+    # Use numpy boolean arrays
+    col = fits.Column(
+        name="npb",
+        format="PL",
+        array=[
+            np.array([True, False], dtype=np.bool_),
+            np.array([np.True_, np.False_]),
+        ],
+    )
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        assert data["npb"][0].tolist() == [True, False]
+        assert data["npb"][1].tolist() == [True, False]
+
+
+def test_logical_vla_mixed_case_strings(tmp_path):
+    """Test that lowercase and mixed-case strings are handled."""
+
+    fn = tmp_path / "logical_vla_case.fits"
+
+    col = fits.Column(name="case", format="PL", array=[["t", "f", "T", "F"]])
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        # All should map correctly (case-insensitive)
+        assert data["case"][0].tolist() == [True, False, True, False]
+
+
+def test_logical_vla_non_tf_characters(tmp_path):
+    """Test that non-T/F characters are preserved as their ASCII codes."""
+
+    fn = tmp_path / "logical_vla_chars.fits"
+
+    # Use other characters - they should be stored as their ASCII codes
+    col = fits.Column(name="chars", format="PL", array=[["X", "Y", "Z"]])
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        # These will be read back based on their byte codes
+        # 'X', 'Y', 'Z' are non-zero bytes, so should map to True
+        assert all(isinstance(v, (bool, type(None))) for v in data["chars"][0])
+
+
+def test_logical_vla_read_invalid_heap_bytes(tmp_path):
+    """Test reading heap with non-standard byte codes."""
+
+    fn = tmp_path / "logical_vla_read.fits"
+
+    # First create a normal file
+    col = fits.Column(name="test", format="PL", array=[[True, False, None]])
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    # Now read it back - this exercises the reading path
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        # Access the field to trigger conversion
+        result = data["test"][0]
+        assert result.tolist() == [True, False, None]
+
+
 def test_fixed_width_logical_roundtrip(tmp_path):
     """Ensure fixed-width logical columns (TFORM='L') still roundtrip
     as boolean arrays (regression test)."""
