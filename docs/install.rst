@@ -214,8 +214,6 @@ installed.
 
 The following packages can optionally be used when testing:
 
-- |pytest-astropy|: See :ref:`sourcebuildtest`
-
 - `pytest-xdist <https://pypi.org/project/pytest-xdist/>`_: Used for
   distributed testing.
 

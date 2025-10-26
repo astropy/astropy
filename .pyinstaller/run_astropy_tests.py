@@ -119,7 +119,6 @@ sys.exit(
     pytest.main(
         ["astropy_tests", "-k " + " and ".join("not " + test for test in SKIP_TESTS)],
         plugins=[
-            "pytest_astropy.plugin",
             "pytest_doctestplus.plugin",
             "pytest_remotedata.plugin",
             "pytest_astropy_header.display",
