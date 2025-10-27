@@ -286,6 +286,9 @@ class TestStructuredUnitAsMapping(StructuredTestBaseWithUnits):
         with pytest.raises(TypeError, match="item assignment"):
             self.pv_t_unit["t"] = u.Gyr
 
+    def test_hashing(self):
+        assert hash(self.pv_unit) != hash(self.pv_t_unit)
+
 
 class TestStructuredUnitMethods(StructuredTestBaseWithUnits):
     def test_physical_type_id(self):
