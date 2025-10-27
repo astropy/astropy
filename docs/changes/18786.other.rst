@@ -1,3 +1,1 @@
-Windows arm64 tests have been added to ``ci_workflows.yml``, arm64 wheel builds
-have been added to ``publish.yml``, and the OpenAstronomy/github-actions-workflows
-commit hash for ``publish.yml`` has been bumped to allow windows arm64 builds.
+Wheels are now provided for Windows arm64.
