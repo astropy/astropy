@@ -161,7 +161,6 @@ jobs:
             - ubuntu-latest
             - macos-latest
             - windows-latest
-            - windows-11-arm
     runs-on: ${{ matrix.os }}
     name: Python 3.11 (build only, partial) with limited API (${{ matrix.os }})
     needs: [initial_checks]
