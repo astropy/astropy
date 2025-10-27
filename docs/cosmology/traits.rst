@@ -15,6 +15,7 @@ provides the Hubble constant (``H0``) and related methods, while
 :class:`~astropy.cosmology.traits.DarkEnergyComponent`
 :class:`~astropy.cosmology.traits.DarkMatterComponent`
 :class:`~astropy.cosmology.traits.BaryonComponent`,
+:class:`~astropy.cosmology.traits.PhotonComponent`,
 :class:`~astropy.cosmology.traits.MatterComponent`, and
 :class:`~astropy.cosmology.traits.CriticalDensity` traits provide the scale factor, the temperature or the CMB, the Dark Energy component, and the Dark Matter component,
 respectively.
@@ -30,6 +31,7 @@ Here is an example of how to use the
 :class:`~astropy.cosmology.traits.DarkEnergyComponent`
 :class:`~astropy.cosmology.traits.DarkMatterComponent`
 :class:`~astropy.cosmology.traits.BaryonComponent`,
+:class:`~astropy.cosmology.traits.PhotonComponent`,
 :class:`~astropy.cosmology.traits.MatterComponent`, and
 :class:`~astropy.cosmology.traits.CriticalDensity` traits in custom cosmology classes:
 
@@ -44,23 +46,31 @@ Here is an example of how to use the
 ...     BaryonComponent,
 ...     MatterComponent,
 ...     CriticalDensity,
+...     PhotonComponent,
 ... )
 >>> class CustomStandardCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB,
 ...                              DarkEnergyComponent, DarkMatterComponent, BaryonComponent,
-...                              MatterComponent, CriticalDensity):
+...                              MatterComponent, CriticalDensity, PhotonComponent):
 ...     """Mimics standard ΛCDM cosmology with Planck 2018 parameters."""
-...     def __init__(self, H0=67.66, Om0=0.3111, Ode0=0.6889, Ob0=0.0490, Tcmb0=2.7255):
+...     def __init__(self, H0=67.66, Om0=0.3111, Ode0=0.6889, Ob0=0.0490, Tcmb0=2.7255, Ogamma0=5.38e-5):
 ...         self.H0 = H0 << (u.km / u.s / u.Mpc)
 ...         self.Om0 = Om0
 ...         self.Ode0 = Ode0
 ...         self.Ob0 = Ob0
 ...         self.Odm = Om0 - Ob0  # Dark matter density
 ...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
+...         self.Ogamma0 = Ogamma0  # Photon density parameter
 ...         super().__init__()
 ...
 ...     def w(self, z):
 ...         """Standard cosmological constant."""
 ...         return -1.0
+...
+...     def inv_efunc(self, z):
+...         """Inverse expansion function for flat ΛCDM."""
+...         import numpy as np
+...         zp1 = np.asarray(z) + 1.0
+...         return 1.0 / np.sqrt(self.Om0 * zp1**3 + self.Ogamma0 * zp1**4 + self.Ode0)
 ...
 ...     is_flat = True  # Standard ΛCDM is flat
 
@@ -74,6 +84,8 @@ Here is an example of how to use the
 <Quantity 5.451 K>
 >>> std_cosmo.w(0.5)
 -1.0
+>>> std_cosmo.Ogamma(0)  # Photon density at z=0
+np.float64(5.37...e-05)
 
 Reference/API
 *************
