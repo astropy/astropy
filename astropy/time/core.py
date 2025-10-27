@@ -1256,8 +1256,8 @@ class TimeBase(MaskableShapedLikeNDArray):
             raise TypeError(
                 "'other' argument must support subtraction with Time "
                 "and return a value that supports comparison with "
-                f"{atol.__class__.__name__}: {err}"
-            )
+                f"{atol.__class__.__name__}"
+            ) from err
 
         return out
 
@@ -1804,12 +1804,12 @@ class TimeBase(MaskableShapedLikeNDArray):
             try:
                 # check the value can be broadcast to the shape of self.
                 val = np.broadcast_to(val, self.shape, subok=True)
-            except Exception:
+            except Exception as err:
                 raise ValueError(
                     "Attribute shape must match or be broadcastable to that of "
                     "Time object. Typically, give either a single value or "
                     "one for each time."
-                )
+                ) from err
 
         return val
 
@@ -2037,8 +2037,8 @@ class Time(TimeBase):
                     )
                 except Exception as err:
                     raise ValueError(
-                        f"cannot convert value to a compatible Time object: {err}"
-                    )
+                        f"cannot convert value to a compatible Time object"
+                    ) from err
         return value
 
     @classmethod
@@ -2232,10 +2232,10 @@ class Time(TimeBase):
         # get location of observatory in ITRS coordinates at this Time
         try:
             itrs = location.get_itrs(obstime=self)
-        except Exception:
+        except Exception as err:
             raise ValueError(
                 "Supplied location does not have a valid `get_itrs` method"
-            )
+            ) from err
 
         with solar_system_ephemeris.set(ephemeris):
             if kind.lower() == "heliocentric":
@@ -3274,8 +3274,8 @@ class TimeDelta(TimeBase):
                 value = self.__class__(value, scale=self.scale, format=self.format)
             except Exception as err:
                 raise ValueError(
-                    f"cannot convert value to a compatible TimeDelta object: {err}"
-                )
+                    f"cannot convert value to a compatible TimeDelta object"
+                ) from err
         return value
 
     def isclose(self, other, atol=None, rtol=0.0):
@@ -3300,7 +3300,7 @@ class TimeDelta(TimeBase):
         try:
             other_day = other.to_value(u.day)
         except Exception as err:
-            raise TypeError(f"'other' argument must support conversion to days: {err}")
+            raise TypeError(f"'other' argument must support conversion to days") from err
 
         if atol is None:
             atol = np.finfo(float).eps * u.day
