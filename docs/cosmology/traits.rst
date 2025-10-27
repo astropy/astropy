@@ -35,6 +35,7 @@ Here is an example of how to use the
 :class:`~astropy.cosmology.traits.MatterComponent`, and
 :class:`~astropy.cosmology.traits.CriticalDensity` traits in custom cosmology classes:
 
+>>> import numpy as np
 >>> from astropy import units as u
 >>> from astropy.cosmology import Cosmology
 >>> from astropy.cosmology.traits import (
@@ -67,8 +68,6 @@ Here is an example of how to use the
 ...         return -1.0
 ...
 ...     def inv_efunc(self, z):
-...         """Inverse expansion function for flat ΛCDM."""
-...         import numpy as np
 ...         zp1 = np.asarray(z) + 1.0
 ...         return 1.0 / np.sqrt(self.Om0 * zp1**3 + self.Ogamma0 * zp1**4 + self.Ode0)
 ...
