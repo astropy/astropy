@@ -17,7 +17,9 @@ jobs:
     steps:
     - name: Label PR
       uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b  # v6.0.1
-      if: github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'meeseeksmachine'
+      if: |
+        github.event_name == 'pull_request_target' &&
+        github.event.pull_request.user.login != 'meeseeksmachine'
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
     - name: 'Reviewer Checklist'
