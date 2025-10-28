@@ -7,16 +7,20 @@ This module is meant for internal use only (in setup.py).
 
 __all__: list[str] = []
 
+import inspect
 from collections.abc import Iterable
 from pathlib import Path
-from types import ModuleType
+from types import FunctionType, ModuleType
 from typing import Final
 
 from astropy import units as u
+from astropy.units import cds
 
 UNIT_DEFINITION_MODULES: Final = (
     u.astrophys,
+    cds,
     u.cgs,
+    u.imperial,
     u.misc,
     u.photometric,
     u.required_by_vounit,
@@ -26,10 +30,18 @@ UNIT_DEFINITION_MODULES: Final = (
 
 
 def generate_stub(output_dir: Path, module: ModuleType) -> None:
-    members = {name: type(getattr(module, name)) for name in module.__all__}
+    members = {}
+    functions = {}
+    for name in module.__all__:
+        member = getattr(module, name)
+        if isinstance(member, FunctionType):
+            # Neither of the functions in unit definition modules have any parameters.
+            functions[name] = inspect.get_annotations(member)["return"]
+        else:
+            members[name] = type(member)
     import_lines = sorted(
         f"from {cls.__module__} import {cls.__name__}\n"
-        for cls in set(members.values())
+        for cls in set(members.values()).union(functions.values())
     )
     with (
         output_dir.joinpath(*module.__name__.split("."))
@@ -47,6 +59,11 @@ def generate_stub(output_dir: Path, module: ModuleType) -> None:
 
         stub_file.writelines(
             f"{member}: {cls.__name__}\n" for member, cls in members.items()
+        )
+
+        stub_file.writelines(
+            f"\ndef {name}() -> {return_type.__name__}: ...\n"
+            for name, return_type in functions.items()
         )
 
 
