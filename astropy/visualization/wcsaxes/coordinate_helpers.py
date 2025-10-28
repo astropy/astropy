@@ -884,10 +884,18 @@ class CoordinateHelper:
         else:
             raise TypeError("position must be a string")
 
-    def get_axislabel_visibility_rule(self, rule):
+    def get_axislabel_visibility_rule(self, *args, **kwargs):
         """
         Get the rule used to determine when the axis label is drawn.
         """
+        if args or kwargs:
+            warnings.warn(
+                "The method get_axislabel_visibility_rule used to take"
+                "arguments unnecessarily, this will be removed in future"
+                "versions",
+                category=AstropyDeprecationWarning,
+                stacklevel=2,
+            )
         return self._axislabels.get_visibility_rule()
 
     @property
