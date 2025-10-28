@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
 import warnings
 
 import numpy as np
@@ -721,19 +722,99 @@ def test_nd_columun_as_index(masked):
         t.add_index("arr")
 
 
+def test_indices_serialization_representation_single():
+    """Add explicit test of serialization representation for single-index case.
+
+    The `primary` key is not included in this case.
+    """
+    t = Table()
+    t["a"] = [1, 3, 2]
+    t.add_index("a")
+    out = io.StringIO()
+    t.write(out, format="ecsv", write_indices=True)
+    assert out.getvalue().splitlines() == [
+        "# %ECSV 1.0",
+        "# ---",
+        "# datatype:",
+        "# - name: a",
+        "#   datatype: int64",
+        "#   meta: !!omap",
+        "#   - __indices__:",
+        "#     - colnames: [a]",
+        "#       engine: SortedArray",
+        "#       index_colname: __index__",
+        "#       unique: false",
+        "# - {name: __index__, datatype: int64}",
+        "# schema: astropy-2.0",
+        "a __index__",
+        "1 0",
+        "3 2",
+        "2 1",
+    ]
+
+
+def test_indices_serialization_representation_multiple():
+    """Add explicit test of serialization representation for single-index case.
+
+    This includes the `primary` key and a collision.
+    """
+    t = Table()
+    t["a"] = [1, 3, 2]
+    t["__index__1"] = [5, 4, 3]
+    t.add_index(["a", "__index__1"])
+    t.add_index("a")
+    out = io.StringIO()
+    t.write(out, format="ecsv", write_indices=True)
+    assert out.getvalue().splitlines() == [
+        "# %ECSV 1.0",
+        "# ---",
+        "# datatype:",
+        "# - name: a",
+        "#   datatype: int64",
+        "#   meta: !!omap",
+        "#   - __indices__:",
+        "#     - colnames: [a, __index__1]",
+        "#       engine: SortedArray",
+        "#       index_colname: __index__",
+        "#       primary: true",
+        "#       unique: false",
+        "#     - colnames: [a]",
+        "#       engine: SortedArray",
+        "#       index_colname: __index__2",
+        "#       unique: false",
+        "# - {name: __index__1, datatype: int64}",
+        "# - {name: __index__, datatype: int64}",
+        "# - {name: __index__2, datatype: int64}",
+        "# schema: astropy-2.0",
+        "a __index__1 __index__ __index__2",
+        "1 5 0 0",
+        "3 4 2 2",
+        "2 3 1 1",
+    ]
+
+
+@pytest.mark.parametrize("single_index", [True, False])
 @pytest.mark.parametrize("engine", [SortedArray, SCEngine])
 @pytest.mark.parametrize("fmt", ["fits", "ecsv", "hdf5"])
-def test_roundtrip_through_file(fmt, engine, tmp_path):
+def test_roundtrip_through_file(single_index, fmt, engine, tmp_path):
+    if single_index and fmt != "ecsv":
+        # Save a few compute cycles, since single_index is really impacting just the
+        # serialization data and the engine and fmt don't matter.
+        return
+
     t = QTable()
     t["a"] = Time([1, 3, 2, 2], format="cxcsec")
     t["b"] = [3, 2, 2, 1]
-    t["c"] = [3, 1, 4, 2]
+    t["__index__"] = [3, 1, 4, 2]  # Force a collision
     indices_colnames = [
         ["a"],
         ["b", "a"],
-        ["a", "b", "c"],
-        ["c"],
+        ["a", "b", "__index__"],
+        ["__index__"],
     ]
+    if single_index:
+        indices_colnames = indices_colnames[:1]
+
     for colnames in indices_colnames:
         t.add_index(colnames, engine=engine)
 
@@ -768,14 +849,14 @@ def test_roundtrip_through_file(fmt, engine, tmp_path):
         key1 = tuple(t.iloc.with_index(colnames)[-1][colnames])
         assert t.loc.with_index(colnames)[key0] == t2.loc.with_index(colnames)[key0]
         assert t.loc.with_index(colnames)[key1] == t2.loc.with_index(colnames)[key1]
-        # assert (
-        #     t.loc_indices.with_index(colnames)[key0]
-        #     == t2.loc_indices.with_index(colnames)[key0]
-        # )
-        # assert (
-        #     t.loc_indices.with_index(colnames)[key1]
-        #     == t2.loc_indices.with_index(colnames)[key1]
-        # )
+        assert (
+            t.loc_indices.with_index(colnames)[key0]
+            == t2.loc_indices.with_index(colnames)[key0]
+        )
+        assert (
+            t.loc_indices.with_index(colnames)[key1]
+            == t2.loc_indices.with_index(colnames)[key1]
+        )
 
 
 @pytest.mark.parametrize("index_first", [True, False])
