@@ -213,7 +213,6 @@ import numpy as np
 
 from astropy.utils.decorators import deprecated
 
-from .bst import MaxValue, MinValue
 from .sorted_array import SortedArray
 
 if TYPE_CHECKING:
@@ -524,6 +523,8 @@ class Index:
             argument x corresponds to an inclusive lower bound,
             and the second argument y to an inclusive upper bound.
         """
+        from .bst import MaxValue, MinValue
+
         n = len(lower)
         ncols = len(self.columns)
         a = MinValue() if bounds[0] else MaxValue()
@@ -534,16 +535,21 @@ class Index:
         upper = upper + tuple((ncols - n) * [b])
         return self.data.range(lower, upper, bounds)
 
-    def range(self, lower, upper, bounds=(True, True)):
+    def range(
+        self,
+        lower: tuple[Hashable, ...] | None,
+        upper: tuple[Hashable, ...] | None,
+        bounds: tuple[bool, bool] = (True, True),
+    ) -> list[int]:
         """
         Return rows within the given range.
 
         Parameters
         ----------
-        lower : tuple
-            Lower prefix bound
-        upper : tuple
-            Upper prefix bound
+        lower : tuple, None
+            Lower search bound (no lower bound if None)
+        upper : tuple, None
+            Upper search bound (no upper bound if None)
         bounds : tuple (x, y) of bools
             Indicates whether the search should be inclusive or
             exclusive with respect to the endpoints. The first
