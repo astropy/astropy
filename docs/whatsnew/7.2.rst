@@ -194,7 +194,7 @@ str1 float64 str1
 ---- ------- ----
    x     2.0    a
 
-.. _whatsnew-7.2-cosmology
+.. _whatsnew-7.2-cosmology:
 
 Cosmology traits
 ================
