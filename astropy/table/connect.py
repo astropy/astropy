@@ -167,10 +167,10 @@ def construct_indices(tbl: Table) -> None:
             continue
 
         for index_info in col.info.meta["__indices__"]:
-            if index_info["primary"]:
+            if index_info.get("primary", False):
                 primary_key = tuple(index_info["colnames"])
             indices.append(construct_sliced_index(tbl, index_info))
-            row_index_colnames.add(index_info["row_index_colname"])
+            row_index_colnames.add(index_info["index_colname"])
 
     for index in indices:
         # Add index to table by adding to each column indices and clean up column meta.
@@ -201,7 +201,7 @@ def construct_sliced_index(tbl: Table, index_info: dict[str, Any]) -> SlicedInde
         - 'row_index_colname': Name of the column with row indices.
         - 'colnames': Tuple of column names for the index.
         - 'unique': Whether the index is unique.
-        - 'primary': Whether the index is the primary key index (not used here).
+        - 'primary': Whether index is the primary key index (default=False).
 
     Returns
     -------
@@ -230,7 +230,7 @@ def construct_sliced_index(tbl: Table, index_info: dict[str, Any]) -> SlicedInde
                 "Index not created.",
                 AstropyWarning,
             )
-    row_index_colname = index_info["row_index_colname"]
+    row_index_colname = index_info["index_colname"]
     row_index = tbl[row_index_colname]
     colnames = index_info["colnames"]
 
@@ -326,15 +326,15 @@ def represent_indices(tbl: Table) -> Table:
 
         # Make new column for row_index and add meta describing index
         tbl_out[colname] = row_index
-        indices_info.append(
-            {
-                "row_index_colname": colname,
-                "colnames": list(index.id),
-                "engine": index.data.__class__.__name__,
-                "unique": index.data.unique,
-                "primary": index.id == tbl.primary_key,
-            }
-        )
+        index_info = {
+            "index_colname": colname,
+            "colnames": list(index.id),
+            "engine": index.data.__class__.__name__,
+            "unique": index.data.unique,
+        }
+        if index.id == tbl.primary_key:
+            index_info["primary"] = True
+        indices_info.append(index_info)
 
     for index_info in indices_info:
         # Store the index information on the first column in the index. This is somewhat
