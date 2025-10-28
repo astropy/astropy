@@ -121,7 +121,7 @@ class AxisLabels(Text):
                     "center": (0.5, "center"),
                     "top": (1, "left"),
                 }[loc]
-            elif loc != "center":
+            elif loc is not None:
                 raise NotImplementedError(
                     f"Received unsupported value {loc=!r}. "
                     f"Only loc='center' is implemented for {axis=!r}"
