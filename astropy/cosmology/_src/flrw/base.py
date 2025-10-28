@@ -42,6 +42,7 @@ from astropy.cosmology._src.traits import (
     HubbleParameter,
     MatterComponent,
     PhotonComponent,
+    _TotalComponent,
     ScaleFactor,
     TemperatureCMB,
 )
@@ -136,6 +137,7 @@ class FLRW(
     Cosmology,
     # Traits
     BaryonComponent,
+    _TotalComponent,
     CriticalDensity,
     MatterComponent,
     CurvatureComponent,
@@ -484,24 +486,7 @@ class FLRW(
 
     # ---------------------------------------------------------------
 
-    @deprecated_keywords("z", since="7.0")
-    def Otot(self, z: u.Quantity | ArrayLike) -> FArray:
-        """The total density parameter at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshifts.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Otot : array
-            The total density relative to the critical density at each redshift.
-        """
-        return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
+    # Otot is provided by the TotalComponent trait
 
     # Odm is provided by the DarkMatterComponent trait
     # Ogamma is provided by the PhotonComponent trait
