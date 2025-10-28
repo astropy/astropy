@@ -47,6 +47,15 @@ def format_engine(request):
     return request.param
 
 
+def patch_format_write(format_engine):
+    """Return a compatible format_engine dict for available writers"""
+    out = format_engine.copy()
+    if out["format"] == "ecsv":
+        # "io.ascii" is the only supported engine for writing via "ecsv" format.
+        out["engine"] = "io.ascii"
+    return out
+
+
 DTYPES = [
     "bool",
     "int8",
@@ -195,7 +204,7 @@ def test_write_read_roundtrip(format_engine):
 
     for delimiter in DELIMITERS:
         out = StringIO()
-        t.write(out, format="ascii.ecsv", delimiter=delimiter)
+        t.write(out, delimiter=delimiter, **patch_format_write(format_engine))
 
         t2s = [
             Table.read(out.getvalue(), **format_engine),
@@ -237,7 +246,7 @@ def test_bad_delimiter():
 
 @pytest.mark.parametrize("name", ["# name", ' #name " '])
 @pytest.mark.parametrize("delimiter", [" ", ","])
-def test_stressing_colname_starts_with_hash_etc(name, delimiter):
+def test_stressing_colname_starts_with_hash_etc(format_engine, name, delimiter):
     """Column name starting with # that looks like a comment, see #18710.
 
     Also names that contain leading/trailing whitespace and a quote character.
@@ -246,10 +255,20 @@ def test_stressing_colname_starts_with_hash_etc(name, delimiter):
     t = Table()
     t[name] = [1, 2]
     t["a"] = [3, 4]
-    t.write(out, delimiter=delimiter, format="ascii.ecsv")
+    t.write(out, delimiter=delimiter, **patch_format_write(format_engine))
     out.seek(0)
-    t2 = Table.read(out.getvalue(), format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), **format_engine)
     assert t2.colnames == [name, "a"]
+
+
+def test_unavailable_ecsv_engine_for_writing():
+    out = io.StringIO()
+    t = Table()
+    with pytest.raises(
+        ValueError,
+        match=r"^engine='pyarrow' is not a supported engine for writing, use 'io.ascii'$",
+    ):
+        t.write(out, format="ecsv", engine="pyarrow")
 
 
 def test_bad_header_start(format_engine):

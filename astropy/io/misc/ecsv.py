@@ -365,6 +365,7 @@ class ECSVEngineIoAscii(ECSVEngine):
         # encoding. Converters are required, e.g. for a string column that looks like
         # floats. Would be nice to fix this, but in mean time use Python CSV reader.
         kw["fast_reader"] = False
+        kw["strip_column_names"] = False
         return kw
 
 
@@ -393,7 +394,6 @@ class ECSVEnginePandas(ECSVEngine):
         header: ECSVHeader,
         null_values: list[str],
     ) -> dict[str, Any]:
-        kw = {}
         fill_values = get_null_values_per_column(
             header.cols, header.table_meta, null_values
         )
@@ -407,11 +407,17 @@ class ECSVEnginePandas(ECSVEngine):
                 for nan in ("nan", "NaN"):
                     null_values[col_name].append(nan)
 
-        kw["na_values"] = null_values
-        kw["keep_default_na"] = False
-        kw["skiprows"] = header.n_header
-        kw["dtype"] = converters
-        return kw
+        kw = {
+            "na_values": null_values,
+            "keep_default_na": False,
+            "comment": "#",
+            "dtype": converters,
+        }
+        # Would prefer setting `"skiprows": header.n_header` above (as in the original
+        # implementation prior to #18756) instead of "comment": "#". However there is a
+        # bug in pandas.read_csv where skiprows does not work when the line includes a
+        # quote character, see https://github.com/pandas-dev/pandas/issues/62739.
+        return kw  # noqa: RET504
 
 
 def is_numpy_dtype(np_type: str) -> bool:
@@ -1226,7 +1232,7 @@ def read_ecsv(
     return table  # noqa: RET504
 
 
-def write_ecsv(tbl, output, **kwargs):
+def write_ecsv(tbl, output, engine="io.ascii", **kwargs):
     """Thin wrapper around the ``io.ascii`` ECSV writer to write ECSV files.
 
     Parameters
@@ -1235,11 +1241,18 @@ def write_ecsv(tbl, output, **kwargs):
         The table to write to ECSV format.
     output : str or os.PathLike or file-like object
         The output file path or file-like object to write the ECSV data to.
+    engine : str, optional
+        The engine to use for writing the CSV data. Default is "io.ascii", which uses
+        astropy to write the CSV data. Currently this is the only option.
     **kwargs : dict, optional
         Additional keyword arguments passed to the ECSV writer. These can include
         options like ``delimiter``, ``encoding``, and others supported by the
         `astropy.io.ascii.Ecsv` writer.
     """
+    if engine != "io.ascii":
+        raise ValueError(
+            f"{engine=} is not a supported engine for writing, use 'io.ascii'"
+        )
     tbl.write(output, format="ascii.ecsv", **kwargs)
 
 
