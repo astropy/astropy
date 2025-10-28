@@ -42,9 +42,9 @@ from astropy.cosmology._src.traits import (
     HubbleParameter,
     MatterComponent,
     PhotonComponent,
-    _TotalComponent,
     ScaleFactor,
     TemperatureCMB,
+    _TotalComponent,
 )
 from astropy.cosmology._src.utils import (
     aszarr,

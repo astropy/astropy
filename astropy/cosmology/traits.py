@@ -25,5 +25,4 @@ from ._src.traits import (
     PhotonComponent,
     ScaleFactor,
     TemperatureCMB,
-    _TotalComponent,
 )
