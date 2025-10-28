@@ -495,6 +495,7 @@ class Index:
         """
         return self.data.find(key)
 
+    @deprecated(since="7.2.0")
     def same_prefix(self, key):
         """
         Return rows whose keys contain the supplied key as a prefix.
@@ -506,6 +507,7 @@ class Index:
         """
         return self.same_prefix_range(key, key, (True, True))
 
+    @deprecated(since="7.2.0")
     def same_prefix_range(self, lower, upper, bounds=(True, True)):
         """
         Return rows whose keys have a prefix in the given range.
