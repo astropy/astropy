@@ -160,17 +160,23 @@ def construct_indices(tbl: Table) -> None:
     indices: list[SlicedIndex] = []
 
     primary_key = None
-
     row_index_colnames = set()
     for col in tbl.itercols():
         if not col.info.meta or "__indices__" not in col.info.meta:
             continue
 
         for index_info in col.info.meta["__indices__"]:
-            if index_info.get("primary", False):
+            if index_info.get("primary"):
                 primary_key = tuple(index_info["colnames"])
             indices.append(construct_sliced_index(tbl, index_info))
             row_index_colnames.add(index_info["index_colname"])
+
+    # No indices, do nothing
+    if not indices:
+        return
+
+    if primary_key is None:
+        primary_key = indices[0].id
 
     for index in indices:
         # Add index to table by adding to each column indices and clean up column meta.
@@ -332,7 +338,7 @@ def represent_indices(tbl: Table) -> Table:
             "engine": index.data.__class__.__name__,
             "unique": index.data.unique,
         }
-        if index.id == tbl.primary_key:
+        if len(tbl.indices) > 1 and index.id == tbl.primary_key:
             index_info["primary"] = True
         indices_info.append(index_info)
 
