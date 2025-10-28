@@ -1250,7 +1250,9 @@ def write_ecsv(tbl, output, engine="io.ascii", **kwargs):
         `astropy.io.ascii.Ecsv` writer.
     """
     if engine != "io.ascii":
-        raise ValueError("'io.ascii' is the only available `engine` for writing")
+        raise ValueError(
+            f"{engine=} is not a supported engine for writing, use 'io.ascii'"
+        )
     tbl.write(output, format="ascii.ecsv", **kwargs)
 
 

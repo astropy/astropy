@@ -47,7 +47,7 @@ def format_engine(request):
     return request.param
 
 
-def format_engine_write(format_engine):
+def patch_format_write(format_engine):
     """Return a compatible format_engine dict for available writers"""
     out = format_engine.copy()
     if out["format"] == "ecsv":
@@ -204,7 +204,7 @@ def test_write_read_roundtrip(format_engine):
 
     for delimiter in DELIMITERS:
         out = StringIO()
-        t.write(out, delimiter=delimiter, **format_engine_write(format_engine))
+        t.write(out, delimiter=delimiter, **patch_format_write(format_engine))
 
         t2s = [
             Table.read(out.getvalue(), **format_engine),
@@ -255,7 +255,7 @@ def test_stressing_colname_starts_with_hash_etc(format_engine, name, delimiter):
     t = Table()
     t[name] = [1, 2]
     t["a"] = [3, 4]
-    t.write(out, delimiter=delimiter, **format_engine_write(format_engine))
+    t.write(out, delimiter=delimiter, **patch_format_write(format_engine))
     out.seek(0)
     t2 = Table.read(out.getvalue(), **format_engine)
     assert t2.colnames == [name, "a"]
@@ -266,7 +266,7 @@ def test_unavailable_ecsv_engine_for_writing():
     t = Table()
     with pytest.raises(
         ValueError,
-        match=r"'io.ascii' is the only available `engine` for writing",
+        match=r"^engine='pyarrow' is not a supported engine for writing, use 'io.ascii'$",
     ):
         t.write(out, format="ecsv", engine="pyarrow")
 
