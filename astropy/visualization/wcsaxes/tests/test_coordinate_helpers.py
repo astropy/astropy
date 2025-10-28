@@ -9,10 +9,12 @@ from matplotlib.figure import Figure
 
 from astropy import units as u
 from astropy.io import fits
+from astropy.tests.figures import figure_test
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
+from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.wcs import WCS
 
 MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename("data/msx_header"))
@@ -396,3 +398,77 @@ def test_set_ticks_values():
     lbl_locations = u.Quantity(lbl_world1, unit=u.deg)
     assert u.allclose(lbl_locations, ax.coords[0]._formatter_locator.values)
     assert u.Quantity(lbl_world).unit is xticks.unit
+
+
+@figure_test
+def test_left_bottom_loc_labels():
+    # Test axislabel loc on default WCSAxes with left xlabel and bottom ylabel
+    fig = Figure(figsize=(6, 6))
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+    ax.coords[0].set_axislabel_position("tb")
+    ax.coords[1].set_axislabel_position("lr")
+    ax.coords[0].set_axislabel("X", loc="left")
+    ax.coords[1].set_axislabel("Y", loc="bottom")
+    canvas.draw()
+    return fig
+
+
+@figure_test
+def test_right_top_loc_labels():
+    # Test axislabel loc on default WCSAxes with right xlabel and top ylabel
+    fig = Figure(figsize=(6, 6))
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+    ax.coords[0].set_axislabel_position("tb")
+    ax.coords[1].set_axislabel_position("lr")
+    ax.coords[0].set_axislabel("X", loc="right")
+    ax.coords[1].set_axislabel("Y", loc="top")
+    canvas.draw()
+    return fig
+
+
+@figure_test
+def test_multi_loc_labels():
+    # Test axislabel loc on default WCSAxes with xlabel/ylabel in multiple locations
+    fig = Figure(figsize=(6, 6))
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
+    fig.add_axes(ax)
+    ax.coords[0].set_axislabel_position("tb")
+    ax.coords[1].set_axislabel_position("lr")
+    ax.coords[0].set_axislabel(
+        "X",
+        loc={
+            "t": "left",
+            "b": "right",
+        },
+    )
+    ax.coords[1].set_axislabel(
+        "Y",
+        loc={
+            "l": "bottom",
+            "r": "top",
+        },
+    )
+    canvas.draw()
+    return fig
+
+
+@figure_test
+def test_left_bottom_loc_labels_elliptical():
+    # Test axislabel loc on EllipticalFrame WCSAxes horizontal and vertical axes
+    fig = Figure(figsize=(6, 6))
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal", frame_class=EllipticalFrame)
+    fig.add_axes(ax)
+    ax.coords[0].set_axislabel_visibility_rule("always")
+    ax.coords[0].set_axislabel_position("h")
+    ax.coords[0].set_axislabel("X", loc="left")
+    ax.coords[1].set_axislabel_visibility_rule("always")
+    ax.coords[1].set_axislabel_position("v")
+    ax.coords[1].set_axislabel("Y", loc="bottom")
+    canvas.draw()
+    return fig
