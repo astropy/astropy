@@ -103,7 +103,7 @@ class AxisLabels(Text):
             padding = text_size * self.get_minpad(axis)
 
             loc = self.get_loc(axis)
-            if axis in {"t", "b", "h", "c"}:
+            if axis in {"t", "b", "h"}:
                 loc = loc if loc is not None else rcParams["xaxis.labellocation"]
                 _api.check_in_list(("left", "center", "right"), loc=loc)
 
