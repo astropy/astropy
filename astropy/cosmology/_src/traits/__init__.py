@@ -12,6 +12,7 @@ __all__ = [
     "DarkMatterComponent",
     "HubbleParameter",
     "MatterComponent",
+    "PhotonComponent",
     "ScaleFactor",
     "TemperatureCMB",
 ]
@@ -22,6 +23,7 @@ from .darkenergy import DarkEnergyComponent
 from .darkmatter import DarkMatterComponent
 from .hubble import HubbleParameter
 from .matterdensity import MatterComponent
+from .photoncomponent import PhotonComponent
 from .rhocrit import CriticalDensity
 from .scale_factor import ScaleFactor
 from .tcmb import TemperatureCMB
