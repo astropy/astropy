@@ -7,7 +7,6 @@ from abc import abstractmethod
 from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
 
@@ -24,8 +23,8 @@ class TotalComponent:
         """Omega total; the total density/critical density at z=0."""
         raise NotImplementedError  # pragma: no cover
 
-    @deprecated_keywords("z", since="7.0")
-    def Otot(self, z: Quantity | ArrayLike) -> FArray:
+    @abstractmethod
+    def Otot(self, z: Quantity | ArrayLike, /) -> FArray:
         """The total density parameter at redshift ``z``.
 
         Parameters
@@ -42,6 +41,4 @@ class TotalComponent:
             The total density relative to the critical density at each
             redshift.
         """
-        z = aszarr(z)
-        # Sum all density components at redshift z
         raise NotImplementedError  # pragma: no cover
