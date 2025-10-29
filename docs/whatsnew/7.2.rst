@@ -212,10 +212,11 @@ Here is an example of how to use the
 ...     MatterComponent,
 ...     CriticalDensity,
 ...     PhotonComponent,
+...     TotalComponent,
 ... )
 >>> class CustomStandardCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB,
 ...                              DarkEnergyComponent, DarkMatterComponent, BaryonComponent,
-...                              MatterComponent, CriticalDensity, PhotonComponent):
+...                              MatterComponent, CriticalDensity, PhotonComponent, TotalComponent):
 ...     """Mimics standard ΛCDM cosmology with Planck 2018 parameters."""
 ...     def __init__(self, H0=67.66, Om0=0.3111, Ode0=0.6889, Ob0=0.0490, Tcmb0=2.7255, Ogamma0=5.38e-5):
 ...         self.H0 = H0 << (u.km / u.s / u.Mpc)

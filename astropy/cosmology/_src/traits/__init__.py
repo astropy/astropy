@@ -15,7 +15,7 @@ __all__ = [
     "PhotonComponent",
     "ScaleFactor",
     "TemperatureCMB",
-    "_TotalComponent",
+    "TotalComponent",
 ]
 
 from .baryons import BaryonComponent
@@ -28,4 +28,4 @@ from .photoncomponent import PhotonComponent
 from .rhocrit import CriticalDensity
 from .scale_factor import ScaleFactor
 from .tcmb import TemperatureCMB
-from .totalcomponent import _TotalComponent
+from .totalcomponent import TotalComponent
