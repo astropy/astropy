@@ -346,10 +346,7 @@ class EarthLocation(u.Quantity):
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
             If the cache already exists the function will use it even if the
             version in the astropy-data repository has been updated unless the
-            ``refresh_cache=True`` option is used.  If there is no cache and the
-            online version cannot be reached, this function falls back on a
-            built-in list, which currently only contains the Greenwich Royal
-            Observatory as an example case.
+            ``refresh_cache=True`` option is used.
 
         Parameters
         ----------
@@ -514,10 +511,7 @@ class EarthLocation(u.Quantity):
             `astropy-data repository <https://github.com/astropy/astropy-data>`_ .
             If the cache already exists the function will use it even if the
             version in the astropy-data repository has been updated unless the
-            ``refresh_cache=True`` option is used.  If there is no cache and the
-            online version cannot be reached, this function falls back on a
-            built-in list, which currently only contains the Greenwich Royal
-            Observatory as an example case.
+            ``refresh_cache=True`` option is used.
 
         Parameters
         ----------
