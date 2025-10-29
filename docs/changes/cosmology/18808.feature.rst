@@ -1,0 +1,6 @@
+Added a new ``DistanceMeasures`` trait class to ``astropy.cosmology`` that provides
+cosmological distance measure methods. This trait comprises distance-related
+functionality (such as lookback time, comoving distance, angular diameter distance, and
+related measurements) that was previously contained directly in the ``FLRW`` class. The
+``FLRW`` class now inherits from this trait, maintaining backward compatibility while
+allowing the distance measures to be reused in other cosmological models.
