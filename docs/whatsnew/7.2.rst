@@ -180,6 +180,7 @@ provides the Hubble constant (``H0``) and related methods, while
 :class:`~astropy.cosmology.traits.DarkMatterComponent`
 :class:`~astropy.cosmology.traits.BaryonComponent`,
 :class:`~astropy.cosmology.traits.PhotonComponent`,
+:class:`~astropy.cosmology.traits.TotalComponent`,
 :class:`~astropy.cosmology.traits.MatterComponent`, and
 :class:`~astropy.cosmology.traits.CriticalDensity` traits provide the scale factor, the temperature or the CMB, the Dark Energy component, and the Dark Matter component,
 respectively.
@@ -196,6 +197,7 @@ Here is an example of how to use the
 :class:`~astropy.cosmology.traits.DarkMatterComponent`
 :class:`~astropy.cosmology.traits.BaryonComponent`,
 :class:`~astropy.cosmology.traits.PhotonComponent`,
+:class:`~astropy.cosmology.traits.TotalComponent`,
 :class:`~astropy.cosmology.traits.MatterComponent`, and
 :class:`~astropy.cosmology.traits.CriticalDensity` traits in custom cosmology classes:
 
