@@ -44,5 +44,4 @@ class TotalComponent:
         """
         z = aszarr(z)
         # Sum all density components at redshift z
-        # This relies on the cosmology having the appropriate component traits
-        return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
+        raise NotImplementedError  # pragma: no cover
