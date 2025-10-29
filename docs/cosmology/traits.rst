@@ -77,6 +77,7 @@ Here is an example of how to use the
 ...         return -1.0
 ...
 ...     def inv_efunc(self, z):
+...         """Standard cosmological constant."""
 ...         zp1 = np.asarray(z) + 1.0
 ...         return 1.0 / np.sqrt(self.Om0 * zp1**3 + self.Ogamma0 * zp1**4 + self.Ode0)
 ...
@@ -85,6 +86,12 @@ Here is an example of how to use the
 ...         """Total density parameter at z=0 as the sum of the defined components."""
 ...         return np.float64(self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0)
 ...
+...     def Otot(self, z):
+...         """Total density parameter at redshift z as the sum of all components."""
+...         z = np.asarray(z)
+...         zp1 = z + 1.0
+...         return (self.Om0 * zp1**3 + self.Ogamma0 * zp1**4 +
+...                 self.Onu0 * zp1**4 + self.Ode0 + self.Ok0 * zp1**2)
 ...
 ...     # `is_flat` is set on the instance in ``__init__`` based on `Otot0`.
 
@@ -104,6 +111,11 @@ np.float64(5.37...e-05)
 np.float64(1.0000537999999999)
 >>> std_cosmo.is_flat
 False
+>>> # Calculate total density at different redshifts
+>>> std_cosmo.Otot([0, 1, 2])  # Total density at z=0, 1, and 2
+array([1.0000538, 3.1785608, 9.0929578])
+>>> std_cosmo.Otot(1.5)  # Total density at z=1.5
+np.float64(5.5519390625)
 
 Reference/API
 *************
