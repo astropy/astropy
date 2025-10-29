@@ -654,7 +654,8 @@ class SplineInterpolateFitter(_SplineFitter):
 
         if model.user_knots:
             warnings.warn(
-                "The current user specified knots maybe ignored for interpolating data",
+                "The user-specified knots from the input model "
+                "will be ignored for interpolating data.",
                 AstropyUserWarning,
             )
             model.user_knots = False
@@ -720,7 +721,8 @@ class SplineSmoothingFitter(_SplineFitter):
 
         if model.user_knots:
             warnings.warn(
-                "The current user specified knots maybe ignored for smoothing data",
+                "The user-specified knots from the input model "
+                "will be ignored for smoothing data.",
                 AstropyUserWarning,
             )
             model.user_knots = False
@@ -782,8 +784,9 @@ class SplineExactKnotsFitter(_SplineFitter):
         if t is not None:
             if model.user_knots:
                 warnings.warn(
-                    "The current user specified knots will be "
-                    "overwritten for by knots passed into this function",
+                    "The user-specified knots from the input model "
+                    "will be overwritten by knots passed into this "
+                    "function",
                     AstropyUserWarning,
                 )
         else:
@@ -871,8 +874,9 @@ class SplineSplrepFitter(_SplineFitter):
         if t is not None:
             if model.user_knots:
                 warnings.warn(
-                    "The current user specified knots will be "
-                    "overwritten for by knots passed into this function",
+                    "The user-specified knots from the input model "
+                    "will be overwritten by knots passed into this "
+                    "function",
                     AstropyUserWarning,
                 )
         else:
