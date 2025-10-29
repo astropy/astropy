@@ -56,14 +56,20 @@ Here is an example of how to use the
 ...                              DarkEnergyComponent, DarkMatterComponent, BaryonComponent,
 ...                              MatterComponent, CriticalDensity, PhotonComponent, TotalComponent):
 ...     """Mimics standard ΛCDM cosmology with Planck 2018 parameters."""
+...     is_flat = False
 ...     def __init__(self, H0=67.66, Om0=0.3111, Ode0=0.6889, Ob0=0.0490, Tcmb0=2.7255, Ogamma0=5.38e-5):
 ...         self.H0 = H0 << (u.km / u.s / u.Mpc)
 ...         self.Om0 = Om0
 ...         self.Ode0 = Ode0
 ...         self.Ob0 = Ob0
-...         self.Odm = Om0 - Ob0  # Dark matter density
+...         # Dark matter density at z=0
+...         self.Odm0 = Om0 - Ob0
+...         # neutrinos and curvature are not provided in this simple example
+...         self.Onu0 = 0.0
+...         self.Ok0 = 0.0
 ...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
 ...         self.Ogamma0 = Ogamma0  # Photon density parameter
+...         self.is_flat = bool(abs(self.Otot0 - 1.0) < 1e-12)
 ...         super().__init__()
 ...
 ...     def w(self, z):
@@ -74,7 +80,13 @@ Here is an example of how to use the
 ...         zp1 = np.asarray(z) + 1.0
 ...         return 1.0 / np.sqrt(self.Om0 * zp1**3 + self.Ogamma0 * zp1**4 + self.Ode0)
 ...
-...     is_flat = True  # Standard ΛCDM is flat
+...     @property
+...     def Otot0(self):
+...         """Total density parameter at z=0 as the sum of the defined components."""
+...         return np.float64(self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0)
+...
+...
+...     # `is_flat` is set on the instance in ``__init__`` based on `Otot0`.
 
 >>> # Create and test standard cosmology
 >>> std_cosmo = CustomStandardCosmology()
@@ -88,6 +100,10 @@ Here is an example of how to use the
 -1.0
 >>> std_cosmo.Ogamma(0)  # Photon density at z=0
 np.float64(5.37...e-05)
+>>> std_cosmo.Otot0  # Total density at z=0
+np.float64(1.0000537999999999)
+>>> std_cosmo.is_flat
+False
 
 Reference/API
 *************
