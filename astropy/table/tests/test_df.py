@@ -139,9 +139,11 @@ class TestDataFrameConversion:
             original_col = t[column]
             roundtrip_col = t2[column]
 
-            if column in ("u", "s"):
+            assert roundtrip_col.dtype.kind == original_col.dtype.kind
+
+            if original_col.dtype.kind in ("U", "S"):
                 assert_array_equal(roundtrip_col, original_col)
-                if backend == "pandas":
+                if original_col.dtype.kind == "U" and backend == "pandas":
                     # Pandas-specific checks
                     assert d[column].dtype == pandas_string_dtype
             else:
