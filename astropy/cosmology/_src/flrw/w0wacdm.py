@@ -7,7 +7,7 @@ from numpy.typing import ArrayLike
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
@@ -143,8 +143,7 @@ class w0waCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -154,6 +153,9 @@ class w0waCDM(FLRW):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -171,17 +173,19 @@ class w0waCDM(FLRW):
         z = aszarr(z)
         return self.w0 + self.wa * z / (z + 1.0)
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'] or array-like, positional-only
+        z : Quantity-like ['redshift'] or array-like
             Input redshift.
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------

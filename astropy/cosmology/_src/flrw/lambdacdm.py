@@ -11,7 +11,7 @@ from numpy.typing import ArrayLike, NDArray
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.scipy_compat import ellipkinc, hyp2f1
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
@@ -142,8 +142,7 @@ class LambdaCDM(FLRW):
         object.__setattr__(self, "_age", age)
         object.__setattr__(self, "_lookback_time", lookback_time)
 
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -153,6 +152,9 @@ class LambdaCDM(FLRW):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -169,8 +171,7 @@ class LambdaCDM(FLRW):
         """
         return np.full_like(aszarr(z), -1.0)
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -180,6 +181,9 @@ class LambdaCDM(FLRW):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -209,11 +213,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'] or array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -281,11 +282,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'] or array-like
             Input redshifts. Must be 1D or scalar.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -316,11 +314,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'] or array-like
             Input redshifts. Must be 1D or scalar.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -351,11 +346,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'] or array-like
             Input redshifts.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -410,11 +402,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -432,11 +421,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -458,11 +444,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -494,11 +477,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -524,11 +504,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -549,11 +526,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -562,8 +536,7 @@ class LambdaCDM(FLRW):
         """
         return self._flat_age(0) - self._flat_age(z)
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: Quantity | ArrayLike) -> FArray:
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -573,6 +546,9 @@ class LambdaCDM(FLRW):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -591,8 +567,7 @@ class LambdaCDM(FLRW):
 
         return np.sqrt(zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0) + self.Ode0)
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray:
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -602,6 +577,9 @@ class LambdaCDM(FLRW):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -735,8 +713,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: Quantity | ArrayLike) -> FArray:
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -746,6 +723,9 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -764,8 +744,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
 
         return np.sqrt(zp1**3 * (Or * zp1 + self.Om0) + self.Ode0)
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray:
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -775,6 +754,9 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------

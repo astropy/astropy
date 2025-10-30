@@ -11,7 +11,7 @@ __all__ = ["ScaleFactor"]
 from numpy.typing import ArrayLike
 
 import astropy.units as u
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 
 
 class ScaleFactor:
@@ -33,8 +33,7 @@ class ScaleFactor:
         """
         return 1 << u.one
 
-    @deprecated_keywords("z", since="7.0")
-    def scale_factor(self, z: u.Quantity | ArrayLike) -> u.Quantity:
+    def scale_factor(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
         """Compute the scale factor at redshift ``z``.
 
         The scale factor is defined as :math:`a = a_0 / (1 + z)`.
@@ -46,6 +45,9 @@ class ScaleFactor:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
