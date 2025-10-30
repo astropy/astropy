@@ -4033,7 +4033,7 @@ def test_object_column_variable_length_strings(tmp_path):
     assert hdu1.header["TFORM1"] == "5A"
     assert hdu1.header["TFORM2"] == "E"
 
-    hdu1.writeto(tmp_path / "test1.fits", overwrite=True)
+    hdu1.writeto(tmp_path / "test1.fits")
     with fits.open(tmp_path / "test1.fits") as hdul:
         assert hdul[1].header["TFORM1"] == "5A"
         actual = np.array([v.strip() for v in hdul[1].data["type"]])
@@ -4051,7 +4051,7 @@ def test_object_column_variable_length_strings(tmp_path):
     assert hdu2.header["TFORM1"] == "16A"
     assert hdu2.header["TFORM2"] == "D"
 
-    hdu2.writeto(tmp_path / "test2.fits", overwrite=True)
+    hdu2.writeto(tmp_path / "test2.fits")
     with fits.open(tmp_path / "test2.fits") as hdul:
         assert hdul[1].header["TFORM1"] == "16A"
         actual = np.array([v.strip() for v in hdul[1].data["name"]])
@@ -4070,7 +4070,7 @@ def test_object_column_variable_length_strings(tmp_path):
     assert hdu3.header["TFORM2"] == "10A"
     assert hdu3.header["TFORM3"] == "J"
 
-    hdu3.writeto(tmp_path / "test3.fits", overwrite=True)
+    hdu3.writeto(tmp_path / "test3.fits")
     with fits.open(tmp_path / "test3.fits") as hdul:
         assert hdul[1].header["TFORM1"] == "3A"
         assert hdul[1].header["TFORM2"] == "10A"
@@ -4090,7 +4090,7 @@ def test_object_column_variable_length_strings(tmp_path):
     assert hdu4.header["TFORM1"] == "1A"
     assert hdu4.header["TFORM2"] == "J"
 
-    hdu4.writeto(tmp_path / "test4.fits", overwrite=True)
+    hdu4.writeto(tmp_path / "test4.fits")
     with fits.open(tmp_path / "test4.fits") as hdul:
         assert hdul[1].header["TFORM1"] == "1A"
         np.testing.assert_array_equal(
