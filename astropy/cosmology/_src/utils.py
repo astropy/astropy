@@ -10,6 +10,7 @@ from typing import Any, Final, ParamSpec, Protocol, TypeAlias, TypeVar, overload
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from astropy.cosmology._src.typing import FArray
 from astropy.units import Quantity
 from astropy.utils.compat import COPY_IF_NEEDED
 
@@ -24,18 +25,22 @@ R = TypeVar("R")
 ScalarTypes: TypeAlias = Number | np.generic
 SCALAR_TYPES: Final = (float, int, np.generic, Number)  # arranged for speed
 
+RedshiftMethod: TypeAlias = Callable[P, FArray]
+
 
 @overload  # Method
-def vectorize_redshift_method(func: Callable, *, nin: int = 1) -> Callable: ...
+def vectorize_redshift_method(
+    func: RedshiftMethod, *, nin: int = 1
+) -> RedshiftMethod: ...
 @overload  # Partial - returns a decorator
 def vectorize_redshift_method(
     func: None, *, nin: int = 1
-) -> Callable[[Callable], Callable]: ...
+) -> Callable[[RedshiftMethod], RedshiftMethod]: ...
 
 
 def vectorize_redshift_method(
-    func: Callable | None = None, *, nin: int = 1
-) -> Callable | Callable[[Callable], Callable]:
+    func: RedshiftMethod | None = None, *, nin: int = 1
+) -> RedshiftMethod | Callable[[RedshiftMethod], RedshiftMethod]:
     """Vectorize a method of redshift(s).
 
     Parameters
