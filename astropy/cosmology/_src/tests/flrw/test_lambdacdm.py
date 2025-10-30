@@ -535,7 +535,7 @@ def test_angular_diameter_distance_z1z2():
     # Test deprecated method
     with pytest.warns(
         AstropyDeprecationWarning,
-        match=re.escape("Use `angular_diameter_distance(z1, z2)` instead"),
+        match=re.escape("Use ``angular_diameter_distance(z1, z2)`` instead"),
     ):
         tcos.angular_diameter_distance_z1z2(z1, z2)
 
