@@ -15,6 +15,7 @@ from pprint import pformat
 import numpy as np
 import pytest
 import yaml
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.io import ascii
@@ -28,7 +29,12 @@ from astropy.table.table_helpers import simple_table
 from astropy.time import Time
 from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW
+from astropy.utils.compat.optional_deps import (
+    HAS_BZ2,
+    HAS_LZMA,
+    HAS_PANDAS,
+    HAS_PYARROW,
+)
 from astropy.utils.masked import Masked
 
 ENGINE_PARAMS = [
@@ -1216,3 +1222,49 @@ def test_register_bad_engine():
         class BadEngine(ECSVEngine):
             name = 1
             format = "ascii.ecsv"
+
+
+@pytest.mark.parametrize(
+    "compressed_filename",
+    [
+        "test.ecsv.gz",
+        pytest.param(
+            "test.ecsv.bz2",
+            marks=pytest.mark.xfail(not HAS_BZ2, reason="no bz2 support"),
+        ),
+        pytest.param(
+            "test.ecsv.xz",
+            marks=pytest.mark.xfail(not HAS_LZMA, reason="no lzma support"),
+        ),
+    ],
+)
+def test_compressed_files(tmp_path, format_engine, compressed_filename):
+    filename = tmp_path / "test.ecsv"
+    t = simple_table()
+    t.write(filename, format="ascii.ecsv")
+
+    compressed_filename = tmp_path / compressed_filename
+    if compressed_filename.suffix == ".gz":
+        import gzip
+
+        opener = gzip.open
+    elif compressed_filename.suffix == ".bz2":
+        import bz2
+
+        opener = bz2.open
+    elif compressed_filename.suffix == ".xz":
+        import lzma
+
+        opener = lzma.open
+    else:
+        # Shouldn't really happen
+        opener = open
+
+    # Compress ecsv file
+    with open(filename, "rb") as f_in:
+        with opener(compressed_filename, "wb") as f_out:
+            f_out.writelines(f_in)
+
+    # Open compressed file and compare to ensure it's read correctly
+    t_comp = Table.read(compressed_filename, **format_engine)
+    assert_array_equal(t, t_comp)
