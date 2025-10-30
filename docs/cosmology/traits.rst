@@ -89,9 +89,7 @@ Here is an example of how to use the
 ...     def Otot(self, z):
 ...         """Total density parameter at redshift z as the sum of all components."""
 ...         z = np.asarray(z)
-...         return (
-...             self.Om(z) + self.Ogamma(z) + self.Ode(z)
-...         )
+...         return self.Om(z) + self.Ogamma(z) + self.Ode(z)
 
 >>> # Create and test standard cosmology
 >>> std_cosmo = CustomStandardCosmology()
