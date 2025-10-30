@@ -868,7 +868,7 @@ class FLRW(
 
         Parameters
         ----------
-        z, z2 : Quantity ['redshift']
+        z, z2 : Quantity ['redshift'], array-like
             Input redshifts. If one argument ``z`` is given, the distance
             :math:`d_c(0, z)` is returned. If two arguments ``z1, z2`` are
             given, the distance :math:`d_c(z_1, z_2)` is returned.
@@ -950,18 +950,30 @@ class FLRW(
 
     # ---------------------------------------------------------------
 
-    def comoving_transverse_distance(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
-        r"""Comoving transverse distance in Mpc at a given redshift.
+    @overload
+    def comoving_transverse_distance(self, z: _InputT, /) -> u.Quantity: ...
 
-        This value is the transverse comoving distance at redshift ``z``
-        corresponding to an angular separation of 1 radian. This is the same as
-        the comoving distance if :math:`\Omega_k` is zero (as in the current
-        concordance Lambda-CDM model).
+    @overload
+    def comoving_transverse_distance(
+        self, z: _InputT, z2: _InputT, /
+    ) -> u.Quantity: ...
+
+    def comoving_transverse_distance(
+        self, z: _InputT, z2: _InputT | None = None, /
+    ) -> u.Quantity:
+        r"""Comoving transverse distance :math:`d(z1, z2)` in Mpc.
+
+        This value is the transverse comoving distance between redshifts ``z1`` and
+        ``z2`` corresponding to an angular separation of 1 radian. This is the same as
+        the comoving distance if :math:`\Omega_k` is zero (as in the current concordance
+        Lambda-CDM model).
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
+        z, z2 : Quantity ['redshift'], array-like
+            Input redshifts. If one argument ``z`` is given, the distance :math:`d(0,
+            z)` is returned. If two arguments ``z1, z2`` are given, the distance
+            :math:`d(z_1, z_2)` is returned.
 
         Returns
         -------
@@ -972,7 +984,8 @@ class FLRW(
         -----
         This quantity is also called the 'proper motion distance' in some texts.
         """
-        return self._comoving_transverse_distance_z1z2(0, z)
+        z1, z2 = (0.0, z) if z2 is None else (z, z2)
+        return self._comoving_transverse_distance_z1z2(z1, z2)
 
     def _comoving_transverse_distance_z1z2(
         self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
