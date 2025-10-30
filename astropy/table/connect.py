@@ -148,7 +148,7 @@ class TableWrite(registry.UnifiedReadWrite):
 
 def construct_indices(tbl: Table) -> None:
     """
-    Create indices on a table based on the ``__table_indices__`` meta data.
+    Create indices on a table froml column meta ``__indices__`` values.
 
     This is the inverse of `represent_indices`.
 
