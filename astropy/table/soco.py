@@ -156,12 +156,15 @@ class SCEngine:
 
     def range(
         self,
-        lower: tuple[Hashable, ...],
-        upper: tuple[Hashable, ...],
+        lower: tuple[Hashable, ...] | None,
+        upper: tuple[Hashable, ...] | None,
         bounds: tuple[bool, bool],
     ) -> list[int]:
         """
         Return row values in the given range.
+
+        A ``None`` value for ``lower`` or ``upper`` corresponds to no limit just like
+        slicing.
         """
         iterator = self._nodes.irange(lower, upper, bounds)
         return [node.value for node in iterator]
