@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__: list[str] = []  # nothing is publicly scoped
+__all__: tuple[str, ...] = ()  # nothing is publicly scoped
 
 import functools
 from collections.abc import Callable
 from numbers import Number
-from typing import Any, Final, ParamSpec, Protocol, TypeAlias, TypeVar
+from typing import Any, Final, ParamSpec, Protocol, TypeAlias, TypeVar, overload
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -20,8 +20,21 @@ from .signature_deprecations import _depr_kws_wrap
 P = ParamSpec("P")
 R = TypeVar("R")
 
+ScalarTypes: TypeAlias = Number | np.generic
+SCALAR_TYPES: Final = (float, int, np.generic, Number)  # arranged for speed
 
-def vectorize_redshift_method(func=None, nin=1):
+
+@overload  # Method
+def vectorize_redshift_method(func: Callable, *, nin: int = 1) -> Callable: ...
+@overload  # Partial - returns a decorator
+def vectorize_redshift_method(
+    func: None, *, nin: int = 1
+) -> Callable[[Callable], Callable]: ...
+
+
+def vectorize_redshift_method(
+    func: Callable | None = None, *, nin: int = 1
+) -> Callable | Callable[[Callable], Callable]:
     """Vectorize a method of redshift(s).
 
     Parameters
@@ -56,7 +69,7 @@ def vectorize_redshift_method(func=None, nin=1):
             for z in args[:nin]
         ]
         # scalar inputs
-        if all(isinstance(z, (Number, np.generic)) for z in zs):
+        if all(isinstance(z, SCALAR_TYPES) for z in zs):
             return func(self, *zs, *args[nin:], **kwargs)
         # non-scalar. use vectorized func
         return wrapper.__vectorized__(self, *zs, *args[nin:], **kwargs)
@@ -68,9 +81,6 @@ def vectorize_redshift_method(func=None, nin=1):
 
 
 # ===================================================================
-
-ScalarTypes: TypeAlias = Number | np.generic
-SCALAR_TYPES: Final = (float, int, np.generic, Number)  # arranged for speed
 
 
 class HasShape(Protocol):
