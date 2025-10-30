@@ -84,16 +84,14 @@ Here is an example of how to use the
 ...     @property
 ...     def Otot0(self):
 ...         """Total density parameter at z=0 as the sum of the defined components."""
-...         return np.float64(self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0)
+...         return np.float64(1.0 - self.Ok0)
 ...
 ...     def Otot(self, z):
 ...         """Total density parameter at redshift z as the sum of all components."""
 ...         z = np.asarray(z)
-...         zp1 = z + 1.0
-...         return (self.Om0 * zp1**3 + self.Ogamma0 * zp1**4 +
-...                 self.Onu0 * zp1**4 + self.Ode0 + self.Ok0 * zp1**2)
-...
-...     # `is_flat` is set on the instance in ``__init__`` based on `Otot0`.
+...         return (
+...             self.Om(z) + self.Ogamma(z) + self.Ode(z)
+...         )
 
 >>> # Create and test standard cosmology
 >>> std_cosmo = CustomStandardCosmology()
@@ -108,14 +106,14 @@ Here is an example of how to use the
 >>> std_cosmo.Ogamma(0)  # Photon density at z=0
 np.float64(5.37...e-05)
 >>> std_cosmo.Otot0  # Total density at z=0
-np.float64(1.0000537999999999)
+np.float64(1.0)
 >>> std_cosmo.is_flat
-False
+True
 >>> # Calculate total density at different redshifts
 >>> std_cosmo.Otot([0, 1, 2])  # Total density at z=0, 1, and 2
-array([1.0000538, 3.1785608, 9.0929578])
+array([1., 1., 1.])
 >>> std_cosmo.Otot(1.5)  # Total density at z=1.5
-np.float64(5.5519390625)
+np.float64(1...)
 
 Reference/API
 *************

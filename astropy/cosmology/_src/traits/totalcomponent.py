@@ -32,9 +32,6 @@ class TotalComponent:
         z : Quantity-like ['redshift'], array-like
             Input redshifts.
 
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
         Returns
         -------
         Otot : array
