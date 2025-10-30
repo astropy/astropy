@@ -126,19 +126,19 @@ class LambdaCDM(FLRW):
         #    for Omega_M=0 would lead to an infinity in its argument.
         # The EdS case is three times faster than the hypergeometric.
         if self.Om0 == 0:
-            comoving_distance_z1z2 = self._dS_comoving_distance_z1z2
+            comoving_distance = self._dS_comoving_distance_z1z2
             age = self._dS_age
             lookback_time = self._dS_lookback_time
         elif self.Om0 == 1:
-            comoving_distance_z1z2 = self._EdS_comoving_distance_z1z2
+            comoving_distance = self._EdS_comoving_distance_z1z2
             age = self._EdS_age
             lookback_time = self._EdS_lookback_time
         else:
-            comoving_distance_z1z2 = self._hypergeometric_comoving_distance_z1z2
+            comoving_distance = self._hypergeometric_comoving_distance_z1z2
             age = self._flat_age
             lookback_time = self._flat_lookback_time
 
-        object.__setattr__(self, "_comoving_distance_z1z2", comoving_distance_z1z2)
+        object.__setattr__(self, "_comoving_distance_z1z2", comoving_distance)
         object.__setattr__(self, "_age", age)
         object.__setattr__(self, "_lookback_time", lookback_time)
 
