@@ -109,11 +109,14 @@ np.float64(5.37...e-05)
 np.float64(1.0)
 >>> std_cosmo.is_flat
 True
->>> # Calculate total density at different redshifts
->>> std_cosmo.Otot([0, 1, 2])  # Total density at z=0, 1, and 2
-array([1., 1., 1.])
->>> std_cosmo.Otot(1.5)  # Total density at z=1.5
-np.float64(1...)
+
+.. doctest-requires:: scipy
+
+    >>> # Calculate total density at different redshifts
+    >>> std_cosmo.Otot([0, 1, 2])  # Total density at z=0, 1, and 2
+    array([1., 1., 1.])
+    >>> std_cosmo.Otot(1.5)  # Total density at z=1.5
+    np.float64(1...)
 
 Reference/API
 *************
