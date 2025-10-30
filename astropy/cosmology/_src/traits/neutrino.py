@@ -13,7 +13,6 @@ from typing import Any, Final
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-import astropy.units as u
 from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
