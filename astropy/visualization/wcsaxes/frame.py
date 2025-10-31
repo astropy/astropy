@@ -135,7 +135,7 @@ class Spine:
         pixel = self._get_pixel()
         normal_angle = self.normal_angle
         # Flip pixels if element vectors are not well oriented
-        if np.all(np.abs((self.normal_angle - 135) % 360 - 180) <= 90.0, axis=0):
+        if np.all(np.abs((normal_angle - 135) % 360 - 180) <= 90.0, axis=0):
             pixel = pixel[::-1]
             normal_angle = normal_angle[::-1]
         x_disp, y_disp = pixel[:, 0], pixel[:, 1]

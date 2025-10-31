@@ -37,7 +37,7 @@ class AxisLabels(Text):
         else:
             return self._minpad
 
-    def get_loc(self, axis):
+    def get_loc(self, axis) -> Literal[...] | None:
         if isinstance(self._loc, dict):
             return self._loc[axis]
         else:
@@ -55,7 +55,7 @@ class AxisLabels(Text):
     def set_minpad(self, minpad):
         self._minpad = minpad
 
-    def set_loc(self, loc):
+    def set_loc(self, loc: Literal[...] | None) -> None:
         self._loc = loc
 
     def set_visibility_rule(self, value):
@@ -139,8 +139,12 @@ class AxisLabels(Text):
             if 135 < label_angle < 225:
                 label_angle += 180
             self.set_rotation(label_angle)
-            if 45 < label_angle < 135:
-                loc = {"left": "right", "right": "left"}.get(loc, loc)
+            elif 45 < label_angle < 135:
+                match loc:
+                    case "left":
+                        loc = "right"
+                    case "right":
+                        loc = "left"
             self.set_ha(loc)
 
             # Find label position by looking at the bounding box of ticks'
