@@ -483,8 +483,10 @@ def convolve_fft(
     dealias=False,
 ):
     """
-    Convolve an ndarray with an nd-kernel. Returns a convolved image
-    with ``shape = array.shape``. Assumes kernel is centered.
+    Convolve an ndarray with an nd-kernel.
+
+    Returns a convolved image with ``shape = array.shape``. Assumes
+    kernel is centered.
 
     `convolve_fft` is very similar to `convolve` in that it replaces
     ``NaN`` values in the original image with interpolated values using
@@ -505,14 +507,14 @@ def convolve_fft(
       returned)
     * It lets you use your own fft, e.g., `pyFFTW
       <https://pypi.org/project/pyFFTW/>`_ or `pyFFTW3
-      <https://pypi.org/project/PyFFTW3/0.2.1/>`_ , which can lead to
+      <https://pypi.org/project/PyFFTW3/0.2.1/>`_, which can lead to
       performance improvements, depending on your system configuration.
       pyFFTW3 is threaded, and therefore may yield significant
-      performance benefits on multi-core machines at the cost of
+      performance benefits on multicore machines at the cost of
       greater memory requirements. Specify the ``fftn`` and ``ifftn``
       keywords to override the default, which is `numpy.fft.fftn` and
       `numpy.fft.ifftn`. The `scipy.fft` functions also offer somewhat
-      better performance and a multi-threaded option.
+      better performance and a multithreaded option.
 
     Parameters
     ----------
