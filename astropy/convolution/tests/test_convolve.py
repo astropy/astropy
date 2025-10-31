@@ -369,7 +369,7 @@ class TestConvolve1D:
     )
     def test_zero_sum_kernel(self, boundary, normalize_kernel):
         """
-        Test that convolve works correctly with zero sum kernels.
+        Test that convolve works correctly with zero-sum kernels.
         """
 
         if normalize_kernel:
