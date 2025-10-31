@@ -105,7 +105,11 @@ class Spine:
 
     def _update_normal(self):
         pixel = self._get_pixel()
-        # Find angle normal to border and inwards, in display coordinate
+        # Find angle normal to border and inwards, in display coordinate, such that:
+        # -   0° corresponds to a vertical vector from top to bottom
+        # -  90° corresponds to a horizontal vector from left to right
+        # - 180° corresponds to a vertical vector from bottom to top
+        # - -90° corresponds to a horizontal vector from right to left
         dx = pixel[1:, 0] - pixel[:-1, 0]
         dy = pixel[1:, 1] - pixel[:-1, 1]
         self.normal_angle = np.degrees(np.arctan2(dx, -dy))
@@ -123,6 +127,15 @@ class Spine:
         Return the x, y, normal_angle values at a barycentric coordinate in [0,1]
         along the spine.
 
+        If possible, the corresponding position will reflect an orientation of
+        the spine relative to the parent figure such that:
+        - the coordinate 0 returns the position located on the lower or left end
+        of the spine,
+        - and the coordinate 1 returns the position located on the upper or right
+        end of the spine.
+        This criteria does not apply to spines that are curved in such a way that
+        no specific orientation can be determined.
+
         Parameters
         ----------
         bary : float
@@ -134,7 +147,11 @@ class Spine:
             )
         pixel = self._get_pixel()
         normal_angle = self.normal_angle
-        # Flip pixels if element vectors are not well oriented
+        # Flip pixels if element vectors are not oriented from lower/left to upper/right;
+        # the orientation can be determined by testing the normal angle of each vector,
+        # verifying if they all fall around -45°±90°, modulo 360°, which would indicate
+        # that they are oriented from upper/right to lower/left, and that the pixels must
+        # be flipped in order to orient the spine from lower/left to upper/right.
         if np.all(np.abs((normal_angle - 135) % 360 - 180) <= 90.0, axis=0):
             pixel = pixel[::-1]
             normal_angle = normal_angle[::-1]
