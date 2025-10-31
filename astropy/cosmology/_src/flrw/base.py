@@ -44,12 +44,6 @@ from astropy.cosmology._src.traits import (
     TemperatureCMB,
     TotalComponent,
 )
-from astropy.cosmology._src.traits.neutrino import (
-    KOMATSU_INVP,
-    KOMATSU_K,
-    KOMATSU_P,
-    NEUTRINO_FERMI_DIRAC_CORRECTION,
-)
 from astropy.cosmology._src.utils import (
     aszarr,
     deprecated_keywords,
