@@ -1425,12 +1425,8 @@ def test_non_finite_error(fitter, weights):
 
     # No exception if the check is deactivated
     fit = fitter(check_non_finite=False)
-    if fitter == LevMarLSQFitter:
-        exc, msg = RuntimeWarning, "invalid value encountered in multiply"
-    else:
-        exc, msg = ValueError, "Residuals are not finite in the initial point."
 
-    with pytest.raises(exc, match=msg):
+    with pytest.raises(RuntimeWarning, match="invalid value encountered in multiply"):
         fit(m_init, x, y, weights=weights)
 
 
