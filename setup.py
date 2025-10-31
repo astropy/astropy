@@ -21,7 +21,7 @@ def install_stubs(build_lib, output_dir):
     try:
         from astropy.units.typing_utils import create_stubs  # noqa: PLC0415
 
-        create_stubs(Path(output_dir) / "astropy" / "units")
+        create_stubs(Path(output_dir))
     finally:
         # Undo the path modification.
         sys.path.pop(0)

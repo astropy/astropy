@@ -15,22 +15,14 @@ import warnings
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
+from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
-    from numpy.lib.function_base import (
-        _check_interpolation_as_method,
-        _quantile_is_valid,
-        _ureduce,
-    )
+    from numpy.lib.function_base import _quantile_is_valid, _ureduce
 else:
     import numpy._core as np_core
-    from numpy.lib._function_base_impl import (
-        _check_interpolation_as_method,
-        _quantile_is_valid,
-        _ureduce,
-    )
+    from numpy.lib._function_base_impl import _quantile_is_valid, _ureduce
 
 
 # This module should not really be imported, but we define __all__
@@ -807,10 +799,15 @@ def _preprocess_quantile(a, q, axis=None, out=None, **kwargs):
     if not _quantile_is_valid(q):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
-    if (interpolation := kwargs.pop("interpolation")) is not None:
+    if (interpolation := kwargs.pop("interpolation", None)) is not None:
         # we have to duplicate logic from np.quantile here to avoid
         # passing down the 'interpolation' keyword argument, as it's not
         # supported by np.lib._function_base_impl._quantile_unchecked
+        if NUMPY_LT_2_0:
+            from numpy.lib.function_base import _check_interpolation_as_method
+        else:
+            assert NUMPY_LT_2_4  # 'interpolation' kwarg was removed in numpy 2.4
+            from numpy.lib._function_base_impl import _check_interpolation_as_method
         kwargs["method"] = _check_interpolation_as_method(
             kwargs.get("method", "linear"), interpolation, "quantile"
         )
@@ -844,7 +841,7 @@ if NUMPY_LT_2_0:
         result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
         return result, None, None
 
-else:
+elif NUMPY_LT_2_4:
 
     @dispatched_function
     def quantile(
@@ -869,6 +866,33 @@ else:
             keepdims=keepdims,
             weights=weights,
             interpolation=interpolation,
+        )
+        result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
+        return result, None, None
+
+else:
+
+    @dispatched_function
+    def quantile(
+        a,
+        q,
+        axis=None,
+        out=None,
+        overwrite_input=False,
+        method="linear",
+        keepdims=False,
+        *,
+        weights=None,
+    ):
+        a, q, axis, out, kwargs = _preprocess_quantile(
+            a,
+            q,
+            axis,
+            out,
+            overwrite_input=overwrite_input,
+            method=method,
+            keepdims=keepdims,
+            weights=weights,
         )
         result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
         return result, None, None
@@ -1402,10 +1426,12 @@ def _copy_of_mask(a):
     return mask.copy() if mask is not None else False
 
 
-@dispatched_function
-def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-    mask = _copy_of_mask(ar1).ravel()
-    return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
+if NUMPY_LT_2_4:
+
+    @dispatched_function
+    def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
+        mask = _copy_of_mask(ar1).ravel()
+        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
 
 
 @dispatched_function

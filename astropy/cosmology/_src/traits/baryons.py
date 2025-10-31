@@ -1,11 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Baryon component.
+"""Baryon component."""
 
-This is private API. See `~astropy.cosmology.traits` for public API.
-
-"""
-
-__all__ = ["_BaryonComponent"]
+__all__ = ["BaryonComponent"]
 
 from collections.abc import Callable
 from typing import Any
@@ -17,7 +13,7 @@ from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
 
-class _BaryonComponent:
+class BaryonComponent:
     """The cosmology has attributes and methods for the baryon density."""
 
     Ob0: float

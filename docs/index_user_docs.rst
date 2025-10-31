@@ -43,6 +43,7 @@ User Guide
    utils/iers
    visualization/index
    stats/index
+   utils/masked/index
    samp/index
 
 .. toctree::
