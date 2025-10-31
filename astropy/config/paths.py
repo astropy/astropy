@@ -7,11 +7,14 @@ import os
 import shutil
 import sys
 from collections.abc import Callable
-from functools import wraps
+from functools import partial, wraps
 from inspect import cleandoc
 from pathlib import Path
 from types import TracebackType
 from typing import Literal, ParamSpec
+from warnings import warn
+
+from astropy.utils.exceptions import AstropyUserWarning
 
 __all__ = [
     "get_cache_dir",
@@ -159,6 +162,21 @@ class _SetTempPath:
 
         return wrapper
 
+    @staticmethod
+    def _warn_env_var_is_ignored(
+        reason: str, *, env_var_name: str, stacklevel: int = 4
+    ) -> None:
+        env_var_value = os.getenv(env_var_name)
+        warning_msg_template = (
+            f"{env_var_name} is set to '{env_var_value}', "
+            "but {reason}. This environment variable will be ignored."
+        )
+        warn(
+            warning_msg_template.format(reason=reason),
+            category=AstropyUserWarning,
+            stacklevel=stacklevel,
+        )
+
     @classmethod
     def _get_dir_path(cls, rootname: str) -> Path:
         if (xch := cls._temp_path) is not None:
@@ -167,20 +185,34 @@ class _SetTempPath:
                 path.mkdir(exist_ok=True)
             return path.resolve()
 
-        if (
-            (dir_ := os.getenv(cls._directory_env_var)) is not None
-            and (xch := Path(dir_)).exists()
-            and not (xchpth := xch / rootname).is_symlink()
-        ):
-            if xchpth.exists():
-                return xchpth.resolve()
+        if (env_dir_str := os.getenv(cls._directory_env_var)) is None:
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
 
-            # symlink will be set to this if the directory is created
-            linkto = xchpth
-        else:
+        warn = partial(
+            cls._warn_env_var_is_ignored, env_var_name=cls._directory_env_var
+        )
+        if not (env_dir_path := Path(env_dir_str)).is_dir():
+            warn("no such directory was found")
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
+
+        path = env_dir_path / rootname
+        if path.is_symlink():
+            return cls._find_or_create_root_dir(linkto=None, pkgname=rootname)
+        elif path.is_dir():
+            return path.resolve()
+
+        linkto: Path | None
+        if path.is_file():
+            warn(
+                f"this directory already contains a file under '{path.name}', "
+                "where a directory was expected"
+            )
+            # renounce linking early to avoid redundant warnings
             linkto = None
+        else:
+            linkto = path
 
-        return cls._find_or_create_root_dir(linkto, rootname)
+        return cls._find_or_create_root_dir(linkto=linkto, pkgname=rootname)
 
     @classmethod
     def _find_or_create_root_dir(
@@ -195,6 +227,21 @@ class _SetTempPath:
             raise OSError(
                 f"Intended {pkgname} {cls._directory_type} directory {maindir} is actually a file."
             )
+
+        warn = partial(
+            cls._warn_env_var_is_ignored, env_var_name=cls._directory_env_var
+        )
+        if linkto is not None:
+            assert not linkto.exists()
+            if sys.platform.startswith("win"):
+                warn("is not supported on Windows")
+                linkto = None
+            elif maindir.is_dir():
+                warn(
+                    f"the default location, {maindir}, already exists, and takes precedence"
+                )
+                linkto = None
+
         if not maindir.is_dir():
             # first create .astropy dir if needed
             if innerdir.is_file():
@@ -202,11 +249,7 @@ class _SetTempPath:
                     f"Intended {pkgname} {cls._directory_type} directory {maindir} is actually a file."
                 )
             maindir.mkdir(parents=True, exist_ok=True)
-            if (
-                not sys.platform.startswith("win")
-                and linkto is not None
-                and not linkto.exists()
-            ):
+            if linkto is not None:
                 linkto.symlink_to(maindir)
 
         return maindir.resolve()
