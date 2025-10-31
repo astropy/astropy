@@ -14,8 +14,8 @@ from matplotlib.path import Path
 from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from astropy import units as u
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.decorators import deprecated_renamed_argument
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .axislabels import AxisLabels
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
@@ -885,7 +885,7 @@ class CoordinateHelper:
         else:
             raise TypeError("position must be a string")
 
-    @deprecated_renamed_argument('rule', None, '7.2.0')
+    @deprecated_renamed_argument("rule", None, "7.2.0")
     def get_axislabel_visibility_rule(self, rule):
         """
         Get the rule used to determine when the axis label is drawn.
