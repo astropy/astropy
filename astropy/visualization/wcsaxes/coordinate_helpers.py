@@ -776,7 +776,7 @@ class CoordinateHelper:
             "ha",
             "rotation_mode",
         ]
-        if (ignored:=set(kwargs).intersection(protected_kw)):
+        if ignored := set(kwargs).intersection(protected_kw):
             warnings.warn(
                 "The following low level keyword arguments "
                 "will be overwritten during the rendering."
