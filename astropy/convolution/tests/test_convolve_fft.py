@@ -84,7 +84,7 @@ def expected_dealias_error(boundary=None, dealias=False):
 def assert_floatclose(x, y):
     """Assert arrays are close to within expected floating point rounding.
 
-    Check that the result is correct at the precision expected for 64 bit
+    Check that the result is correct at the precision expected for 64-bit
     numbers, taking account that the tolerance has to reflect that all powers
     in the FFTs enter our values.
     """
