@@ -44,6 +44,7 @@ from astropy.cosmology._src.traits import (
     PhotonComponent,
     ScaleFactor,
     TemperatureCMB,
+    TotalComponent,
 )
 from astropy.cosmology._src.utils import (
     aszarr,
@@ -136,6 +137,7 @@ class FLRW(
     Cosmology,
     # Traits
     BaryonComponent,
+    TotalComponent,
     CriticalDensity,
     MatterComponent,
     CurvatureComponent,

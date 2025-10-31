@@ -12,6 +12,7 @@ __all__ = [
     "PhotonComponent",
     "ScaleFactor",
     "TemperatureCMB",
+    "TotalComponent",
 ]
 
 from ._src.traits import (
@@ -25,4 +26,5 @@ from ._src.traits import (
     PhotonComponent,
     ScaleFactor,
     TemperatureCMB,
+    TotalComponent,
 )
