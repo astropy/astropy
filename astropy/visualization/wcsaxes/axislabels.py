@@ -1,11 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from typing import Literal
+
 import matplotlib.transforms as mtransforms
 import numpy as np
 from matplotlib import _api, rcParams
 from matplotlib.text import Text
 
 from .frame import RectangularFrame
+
+LocLiteral = Literal["center", "left", "right", "bottom", "top"] | None
 
 
 class AxisLabels(Text):
@@ -37,7 +41,7 @@ class AxisLabels(Text):
         else:
             return self._minpad
 
-    def get_loc(self, axis):
+    def get_loc(self, axis) -> LocLiteral:
         if isinstance(self._loc, dict):
             return self._loc[axis]
         else:
@@ -55,7 +59,7 @@ class AxisLabels(Text):
     def set_minpad(self, minpad):
         self._minpad = minpad
 
-    def set_loc(self, loc):
+    def set_loc(self, loc: LocLiteral | dict[str, LocLiteral]) -> None:
         self._loc = loc
 
     def set_visibility_rule(self, value):
@@ -121,7 +125,7 @@ class AxisLabels(Text):
                     "center": (0.5, "center"),
                     "top": (1, "left"),
                 }[loc]
-            elif loc is not None:
+            elif loc is not None and loc != "center":
                 raise NotImplementedError(
                     f"Received unsupported value {loc=!r}. "
                     f"Only loc='center' is implemented for {axis=!r}"
@@ -140,7 +144,11 @@ class AxisLabels(Text):
                 label_angle += 180
             self.set_rotation(label_angle)
             if 45 < label_angle < 135:
-                loc = {"left": "right", "right": "left"}.get(loc, loc)
+                match loc:
+                    case "left":
+                        loc = "right"
+                    case "right":
+                        loc = "left"
             self.set_ha(loc)
 
             # Find label position by looking at the bounding box of ticks'

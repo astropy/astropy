@@ -776,12 +776,12 @@ class CoordinateHelper:
             "ha",
             "rotation_mode",
         ]
-        if set(kwargs).intersection(protected_kw):
+        if ignored := set(kwargs).intersection(protected_kw):
             warnings.warn(
-                "Any of the axis label low level keyword arguments "
-                f"({protected_kw}) of the 'loc' keyword argument will be "
-                "overwritten during the rendering. Use the 'loc' keyword "
-                "argument instead.",
+                "The following low level keyword arguments "
+                "will be overwritten during the rendering."
+                f"{ignored}.\n"
+                "Use the 'loc' keyword argument instead.",
                 AstropyUserWarning,
                 stacklevel=2,
             )
