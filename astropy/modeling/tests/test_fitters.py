@@ -35,7 +35,7 @@ from astropy.modeling.fitting import (
 )
 from astropy.modeling.optimizers import Optimization
 from astropy.stats import sigma_clip
-from astropy.utils import NumpyRNGContext
+from astropy.utils import NumpyRNGContext, minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
@@ -1426,7 +1426,14 @@ def test_non_finite_error(fitter, weights):
     # No exception if the check is deactivated
     fit = fitter(check_non_finite=False)
 
-    with pytest.raises(RuntimeWarning, match="invalid value encountered in multiply"):
+    # old versions of scipy are raising a different error for some fitters, not
+    # sure when exactly they started raising the same error...
+    if minversion("scipy", "1.10") or fitter == LevMarLSQFitter:
+        exc, msg = RuntimeWarning, "invalid value encountered in multiply"
+    else:
+        exc, msg = ValueError, "Residuals are not finite in the initial point."
+
+    with pytest.raises(exc, match=msg):
         fit(m_init, x, y, weights=weights)
 
 
