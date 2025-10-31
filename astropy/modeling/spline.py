@@ -620,13 +620,42 @@ class SplineInterpolateFitter(_SplineFitter):
     Fit an interpolating spline.
     """
 
+    def __call__(self, model, x, y, **kwargs):
+        """
+        Fit an interpolating spline to data.
+
+        Parameters
+        ----------
+        model : `Spline1D`
+            The spline model to fit.
+        x : array-like
+            The x data values.
+        y : array-like
+            The y data values.
+        **kwargs : dict, optional
+            Additional keyword arguments:
+
+            - ``weights`` : array-like, optional
+                Weights for the data points.
+            - ``bbox`` : array-like, optional
+                The bounding box limits as ``[xmin, xmax]``. Default is
+                ``[None, None]``.
+
+        Returns
+        -------
+        fitted_model : `Spline1D`
+            A copy of the input model with fitted parameters.
+        """
+        return super().__call__(model, x, y, **kwargs)
+
     def _fit_method(self, model, x, y, **kwargs):
         weights = kwargs.pop("weights", None)
         bbox = kwargs.pop("bbox", [None, None])
 
         if model.user_knots:
             warnings.warn(
-                "The current user specified knots maybe ignored for interpolating data",
+                "The user-specified knots from the input model "
+                "will be ignored for interpolating data.",
                 AstropyUserWarning,
             )
             model.user_knots = False
@@ -649,6 +678,42 @@ class SplineSmoothingFitter(_SplineFitter):
     Fit a smoothing spline.
     """
 
+    def __call__(self, model, x, y, **kwargs):
+        """
+        Fit a smoothing spline to data.
+
+        Parameters
+        ----------
+        model : `Spline1D`
+            The spline model to fit.
+        x : array-like
+            The x data values.
+        y : array-like
+            The y data values.
+        s : float, optional
+            Positive smoothing factor used to choose the number
+            of knots. The parameter can be used to control the
+            tradeoff between closeness and smoothness of fit.
+            Larger ``s`` means more smoothing while smaller values
+            of ``s`` indicate less smoothing. automatically. A
+            value of 0 results in an interpolating spline. See
+            `scipy.interpolate.UnivariateSpline` for details.
+        **kwargs : dict, optional
+            Additional keyword arguments:
+
+            - ``weights`` : array-like, optional
+                Weights for the data points.
+            - ``bbox`` : array-like, optional
+                The bounding box limits as ``[xmin, xmax]``. Default is
+                ``[None, None]``.
+
+        Returns
+        -------
+        fitted_model : `Spline1D`
+            A copy of the input model with fitted parameters.
+        """
+        return super().__call__(model, x, y, **kwargs)
+
     def _fit_method(self, model, x, y, **kwargs):
         s = kwargs.pop("s", None)
         weights = kwargs.pop("weights", None)
@@ -656,7 +721,8 @@ class SplineSmoothingFitter(_SplineFitter):
 
         if model.user_knots:
             warnings.warn(
-                "The current user specified knots maybe ignored for smoothing data",
+                "The user-specified knots from the input model "
+                "will be ignored for smoothing data.",
                 AstropyUserWarning,
             )
             model.user_knots = False
@@ -677,6 +743,39 @@ class SplineExactKnotsFitter(_SplineFitter):
     Fit a spline using least-squares regression.
     """
 
+    def __call__(self, model, x, y, **kwargs):
+        """
+        Fit a spline to data using least-squares with exact knots.
+
+        Parameters
+        ----------
+        model : `Spline1D`
+            The spline model to fit.
+        x : array-like
+            The x data values.
+        y : array-like
+            The y data values.
+        **kwargs : dict, optional
+            Additional keyword arguments:
+
+            - ``t`` : array-like, optional
+                Interior knots for the spline. If not provided, the
+                model's existing interior knots (``t_interior``) are
+                used if available. See
+                `scipy.interpolate.LSQUnivariateSpline` for details.
+            - ``weights`` : array-like, optional
+                Weights for the data points.
+            - ``bbox`` : array-like, optional
+                The bounding box limits as ``[xmin, xmax]``. Default is
+                ``[None, None]``.
+
+        Returns
+        -------
+        fitted_model : `Spline1D`
+            A copy of the input model with fitted parameters.
+        """
+        return super().__call__(model, x, y, **kwargs)
+
     def _fit_method(self, model, x, y, **kwargs):
         t = kwargs.pop("t", None)
         weights = kwargs.pop("weights", None)
@@ -685,8 +784,9 @@ class SplineExactKnotsFitter(_SplineFitter):
         if t is not None:
             if model.user_knots:
                 warnings.warn(
-                    "The current user specified knots will be "
-                    "overwritten for by knots passed into this function",
+                    "The user-specified knots from the input model "
+                    "will be overwritten by knots passed into this "
+                    "function",
                     AstropyUserWarning,
                 )
         else:
@@ -715,6 +815,55 @@ class SplineSplrepFitter(_SplineFitter):
         super().__init__()
         self.fit_info = {"fp": None, "ier": None, "msg": None}
 
+    def __call__(self, model, x, y, **kwargs):
+        """
+        Fit a spline to data using the splrep interface.
+
+        Parameters
+        ----------
+        model : `Spline1D`
+            The spline model to fit.
+        x : array-like
+            The x data values.
+        y : array-like
+            The y data values.
+        task : int, optional
+            Task parameter for splrep. Default is 0. See
+            `scipy.interpolate.splrep` for details.
+        t : array-like, optional
+            The interior knots needed for ``task=-1``. If given,
+            then ``task`` is automatically set to -1. see
+            `scipy.interpolate.splrep` for details. Interior knots for
+            the spline. If not provided, the model's existing interior
+            knots (``t_interior``) are used if available.
+        s : float, optional
+            Positive smoothing factor used to choose the number of
+            knots. The user can use ``s`` to control the tradeoff
+            between closeness and smoothness of fit. Larger ``s`` means
+            more smoothing while smaller values of ``s`` indicate less
+            smoothing. If not provided or `None`, ``s`` is calculated
+            automatically based on the data.
+        **kwargs : dict, optional
+            Additional keyword arguments:
+
+            - ``weights`` : array-like, optional
+                Weights for the data points.
+            - ``bbox`` : array-like, optional
+                The bounding box limits as ``[xmin, xmax]``. Default is
+                ``[None, None]``.
+
+        Returns
+        -------
+        fitted_copy : `Spline1D`
+            A copy of the input model with fitted parameters.
+
+        Notes
+        -----
+        The fit information (fp, ier, msg) from splrep is stored in
+        the ``fit_info`` attribute of the fitter instance.
+        """
+        return super().__call__(model, x, y, **kwargs)
+
     def _fit_method(self, model, x, y, **kwargs):
         t = kwargs.pop("t", None)
         s = kwargs.pop("s", None)
@@ -725,8 +874,9 @@ class SplineSplrepFitter(_SplineFitter):
         if t is not None:
             if model.user_knots:
                 warnings.warn(
-                    "The current user specified knots will be "
-                    "overwritten for by knots passed into this function",
+                    "The user-specified knots from the input model "
+                    "will be overwritten by knots passed into this "
+                    "function",
                     AstropyUserWarning,
                 )
         else:

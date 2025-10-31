@@ -276,6 +276,9 @@ class Csv(Basic):
     from the typical default for `astropy.io.ascii` in which missing values are
     indicated by ``--``.
 
+    By default leading or trailing whitespace in column names is stripped. If
+    you pass ``strip_column_names=False`` then this is disabled.
+
     Since the `CSV format <https://tools.ietf.org/html/rfc4180>`_ does not
     formally support comments, any comments defined for the table via
     ``tbl.meta['comments']`` are ignored by default. If you would still like to
@@ -298,6 +301,11 @@ class Csv(Basic):
 
     header_class = CsvHeader
     data_class = CsvData
+
+    def __init__(self, *, strip_column_names=True):
+        super().__init__()
+        if not strip_column_names:
+            self.header.splitter.process_val = None
 
     def inconsistent_handler(self, str_vals, ncols):
         """
