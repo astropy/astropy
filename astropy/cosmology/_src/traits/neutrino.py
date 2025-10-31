@@ -28,6 +28,7 @@ KOMATSU_P: Final = 1.83
 KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
 KOMATSU_K: Final = 0.3173
 
+TEMP_NEUTRINO: Final = 0.7137658555036082 #(4/11)^1/3 
 
 class NeutrinoComponent:
     """The cosmology has attributes and methods for the neutrino density.
@@ -102,7 +103,7 @@ class NeutrinoComponent:
         """
         # The constant in front is (4/11)^1/3 -- see any cosmology book for an
         # explanation -- for example, Weinberg 'Cosmology' p 154 eq (3.1.21).
-        return 0.7137658555036082 * self.Tcmb0
+        return TEMP_NEUTRINO * self.Tcmb0
 
     @property
     def has_massive_nu(self) -> bool:

@@ -1,15 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-__all__ = [
-    "FLRW",
-    "FlatFLRWMixin",
-    # Neutrino constants (re-exported for backward compatibility)
-    "KOMATSU_INVP",
-    "KOMATSU_K",
-    "KOMATSU_P",
-    "NEUTRINO_FERMI_DIRAC_CORRECTION",
-]
-
 import inspect
 import warnings
 from dataclasses import field
