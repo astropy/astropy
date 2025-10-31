@@ -15,6 +15,7 @@ from numpy.typing import ArrayLike, NDArray
 
 import astropy.units as u
 from astropy import constants as const
+from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import deprecated_keywords
 from astropy.units import Quantity
 
@@ -26,6 +27,8 @@ class HubbleParameter:
     """Hubble Parameter at redshift 0."""
 
     efunc: Callable[[Any], NDArray[Any]]
+
+    inv_efunc: Callable[[Any], FArray | float]
 
     @deprecated_keywords("z", since="7.0")
     def H(self, z: Quantity | ArrayLike) -> Quantity:
