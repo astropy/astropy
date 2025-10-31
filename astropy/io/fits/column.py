@@ -2291,19 +2291,28 @@ def _makep(array, descr_output, format, nrows=None):
                     # bytes/str values like 'T' or 'F'
                     if isinstance(el, (bytes, bytearray)):
                         try:
-                            ch = el.decode("ascii")[0]
+                            s = el.decode("ascii").strip()
                         except Exception:
                             # fallback: treat as True
                             codes.append(ord("T"))
                             continue
-                        ch = ch.upper()
-                        codes.append(ord(ch))
+                        # Explicitly check for False values, everything else is True
+                        s_upper = s.upper()
+                        if s_upper in ("F", "FALSE"):
+                            codes.append(ord("F"))
+                        else:
+                            codes.append(ord("T"))
                         continue
                     if isinstance(el, str):
                         if len(el) == 0:
                             codes.append(0)
                         else:
-                            codes.append(ord(el[0].upper()))
+                            # Explicitly check for False values, everything else is True
+                            s_upper = el.strip().upper()
+                            if s_upper in ("F", "FALSE"):
+                                codes.append(ord("F"))
+                            else:
+                                codes.append(ord("T"))
                         continue
 
                     # booleans

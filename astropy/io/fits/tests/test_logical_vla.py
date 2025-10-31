@@ -171,19 +171,26 @@ def test_logical_vla_scalar_input(tmp_path):
 
 
 def test_logical_vla_invalid_bytes(tmp_path):
-    """Test fallback handling for invalid byte sequences."""
+    """Test fallback handling for invalid byte sequences and arbitrary bytes."""
 
     fn = tmp_path / "logical_vla_invalid.fits"
 
-    # Test with non-decodable bytes (should fallback to True)
-    col = fits.Column(name="inv", format="PL", array=[[b"\xff\xfe"]])
+    # Test with various byte values:
+    # - Non-decodable bytes (should fallback to True)
+    # - Arbitrary decodable bytes (should become True unless 'F'/'False')
+    col = fits.Column(
+        name="inv",
+        format="PL",
+        array=[[b"\xff\xfe", b"X", b"abc", b"F", b"false"]],
+    )
     tab = fits.BinTableHDU.from_columns([col])
     tab.writeto(fn, overwrite=True)
 
     with fits.open(fn) as hdul:
         data = hdul[1].data
-        # Should fallback to True for invalid bytes
-        assert data["inv"][0].tolist() == [True]
+        # All should become True except 'F' and 'false'
+        expected = [True, True, True, False, False]
+        assert data["inv"][0].tolist() == expected
 
 
 def test_logical_vla_numpy_bool(tmp_path):
@@ -225,20 +232,44 @@ def test_logical_vla_mixed_case_strings(tmp_path):
 
 
 def test_logical_vla_non_tf_characters(tmp_path):
-    """Test that non-T/F characters are preserved as their ASCII codes."""
+    """Test that arbitrary strings (not 'F'/'False') are treated as True."""
 
     fn = tmp_path / "logical_vla_chars.fits"
 
-    # Use other characters - they should be stored as their ASCII codes
-    col = fits.Column(name="chars", format="PL", array=[["X", "Y", "Z"]])
+    # Use arbitrary strings - they should all be treated as True
+    # Only 'F' or 'False' (case insensitive) should become False
+    col = fits.Column(
+        name="chars",
+        format="PL",
+        array=[["X", "abc", "123", "True", "yes", "F", "False", "false"]],
+    )
     tab = fits.BinTableHDU.from_columns([col])
     tab.writeto(fn, overwrite=True)
 
     with fits.open(fn) as hdul:
         data = hdul[1].data
-        # These will be read back based on their byte codes
-        # 'X', 'Y', 'Z' are non-zero bytes, so should map to True
-        assert all(isinstance(v, (bool, type(None))) for v in data["chars"][0])
+        # All non-F/False strings should map to True
+        expected = [True, True, True, True, True, False, False, False]
+        assert data["chars"][0].tolist() == expected
+
+        # Verify heap bytes are correct (all should be 'T' or 'F')
+        raw_data = hdul[1].data._get_raw_data()
+        heap_offset = hdul[1].data._heapoffset
+        heap_size = hdul[1].data._heapsize
+        heap_data = np.frombuffer(
+            raw_data[heap_offset : heap_offset + heap_size], dtype=np.uint8
+        )
+        expected_bytes = [
+            ord("T"),
+            ord("T"),
+            ord("T"),
+            ord("T"),
+            ord("T"),
+            ord("F"),
+            ord("F"),
+            ord("F"),
+        ]
+        assert heap_data.tolist() == expected_bytes
 
 
 def test_logical_vla_read_invalid_heap_bytes(tmp_path):
