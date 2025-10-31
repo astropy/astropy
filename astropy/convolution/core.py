@@ -12,7 +12,7 @@ which can then be applied to binned data.
 The model is centered on the array and should have an amplitude such that the array
 integrates to one per default.
 
-Currently only symmetric 2D kernels are supported.
+Currently, only symmetric 2D kernels are supported.
 """
 
 import copy
