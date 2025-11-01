@@ -598,3 +598,47 @@ def test_logical_vla_empty_row_in_heap(tmp_path):
         assert data["mixed"][2].tolist() == [False, None]
         assert data["mixed"][3].tolist() == []
         assert data["mixed"][4].tolist() == [None, False, True, None, True]
+
+
+def test_logical_vla_object_dtype_all_branches(tmp_path):
+    """Test _get_heap_data with explicit object dtype to hit all if/elif/else branches.
+
+    This test specifically targets lines in _get_heap_data that convert:
+    - if val is None: converted_row[i] = 0
+    - elif val is False: converted_row[i] = ord("F")
+    - else: converted_row[i] = ord("T")
+    """
+    fn = tmp_path / "logical_vla_branches.fits"
+
+    # Create multiple rows with object dtype to ensure all branches are hit
+    # Row 0: All three types mixed
+    # Row 1: Only None values
+    # Row 2: Only False values
+    # Row 3: Only True values (including truthy values)
+    data_arrays = [
+        np.array([None, False, True, None, False, True], dtype=object),
+        np.array([None, None, None], dtype=object),
+        np.array([False, False, False], dtype=object),
+        np.array([True, True, True], dtype=object),
+        np.array([True, None, False, True, None, False], dtype=object),
+    ]
+
+    col = fits.Column(name="branches", format="PL", array=data_arrays)
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    # Verify all conversions worked correctly
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        assert data["branches"][0].tolist() == [None, False, True, None, False, True]
+        assert data["branches"][1].tolist() == [None, None, None]
+        assert data["branches"][2].tolist() == [False, False, False]
+        assert data["branches"][3].tolist() == [True, True, True]
+        assert data["branches"][4].tolist() == [True, None, False, True, None, False]
+
+        # Verify heap bytes are correct
+        heap = data._get_heap_data()
+        # Should contain only 0, 70 (F), and 84 (T) bytes
+        unique_bytes = set(heap.tolist())
+        assert unique_bytes.issubset({0, 70, 84})
+
