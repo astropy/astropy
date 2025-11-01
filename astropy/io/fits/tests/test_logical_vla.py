@@ -541,3 +541,60 @@ def test_logical_vla_corrupt_heap_with_object_array(tmp_path):
         # If the conversion fails, that's also okay - we're testing edge cases
         # The important thing is we exercised the code paths
         pass
+
+
+def test_logical_vla_update_mode_heap_regeneration(tmp_path):
+    """Test that writing logical VLA data with object dtype exercises heap conversion.
+
+    This exercises the _get_heap_data conversion paths ensuring all branches
+    (None, False, True) in the if/elif/else are covered.
+    """
+    fn = tmp_path / "logical_vla_update.fits"
+
+    # Create data directly as object dtype to force the conversion path
+    # This ensures the is_logical_vla and row.dtype == object branch is hit
+    data_arrays = [
+        np.array([None, None, None], dtype=object),  # All None
+        np.array([False, False], dtype=object),  # All False
+        np.array([True, True, True, True], dtype=object),  # All True
+        np.array([None, False, True], dtype=object),  # Mixed
+    ]
+
+    col = fits.Column(name="obj_test", format="PL", array=data_arrays)
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    # Verify the data was written and reads correctly
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        assert data["obj_test"][0].tolist() == [None, None, None]
+        assert data["obj_test"][1].tolist() == [False, False]
+        assert data["obj_test"][2].tolist() == [True, True, True, True]
+        assert data["obj_test"][3].tolist() == [None, False, True]
+def test_logical_vla_empty_row_in_heap(tmp_path):
+    """Test logical VLA with empty rows to cover the len(row) > 0 check."""
+    fn = tmp_path / "logical_vla_empty_row.fits"
+
+    # Create data with both empty and non-empty rows
+    col = fits.Column(
+        name="mixed",
+        format="PL",
+        array=[
+            [],  # Empty row
+            [True],  # Single element
+            [False, None],  # Two elements
+            [],  # Another empty row
+            [None, False, True, None, True],  # Multiple elements
+        ],
+    )
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    # Verify all rows are correct
+    with fits.open(fn) as hdul:
+        data = hdul[1].data
+        assert data["mixed"][0].tolist() == []
+        assert data["mixed"][1].tolist() == [True]
+        assert data["mixed"][2].tolist() == [False, None]
+        assert data["mixed"][3].tolist() == []
+        assert data["mixed"][4].tolist() == [None, False, True, None, True]
