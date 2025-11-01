@@ -571,6 +571,8 @@ def test_logical_vla_update_mode_heap_regeneration(tmp_path):
         assert data["obj_test"][1].tolist() == [False, False]
         assert data["obj_test"][2].tolist() == [True, True, True, True]
         assert data["obj_test"][3].tolist() == [None, False, True]
+
+
 def test_logical_vla_empty_row_in_heap(tmp_path):
     """Test logical VLA with empty rows to cover the len(row) > 0 check."""
     fn = tmp_path / "logical_vla_empty_row.fits"
@@ -641,4 +643,3 @@ def test_logical_vla_object_dtype_all_branches(tmp_path):
         # Should contain only 0, 70 (F), and 84 (T) bytes
         unique_bytes = set(heap.tolist())
         assert unique_bytes.issubset({0, 70, 84})
-
