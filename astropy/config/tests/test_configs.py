@@ -2,17 +2,46 @@
 
 import io
 import os
+import re
 import subprocess
 import sys
+from contextlib import nullcontext
 from inspect import cleandoc
+from pathlib import Path
+from threading import Lock
 
 import pytest
 
 from astropy.config import configuration, create_config_file, paths, set_temp_config
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 OLD_CONFIG = {}
+
+_IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
+
+
+@pytest.fixture
+def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
+    # ignore global state of the test session
+    # and preserve thread safety across all users of this fixture
+    with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
+        monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
+        monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+
+        monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
+        monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
+
+        # also mock $HOME as it's part of the global state taken into account
+        # for path detection
+        mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME")
+
+        def mock_home():
+            return mock_home_dir
+
+        monkeypatch.setattr(Path, "home", mock_home)
+
+        yield
 
 
 def setup_module():
@@ -25,6 +54,7 @@ def teardown_module():
     configuration._cfgobjs.update(OLD_CONFIG)
 
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_paths():
     assert "astropy" in paths.get_config_dir()
     assert "astropy" in paths.get_cache_dir()
@@ -37,26 +67,184 @@ def test_paths():
     assert "testpkg" in paths.get_cache_dir(rootname="testpkg")
 
 
-@pytest.mark.parametrize(
-    "environment_variable,func",
-    [
-        # Regression test for #17514 - XDG_CACHE_HOME had no effect
-        pytest.param("XDG_CACHE_HOME", paths.get_cache_dir_path, id="cache"),
-        pytest.param("XDG_CONFIG_HOME", paths.get_config_dir_path, id="config"),
-    ],
-)
-def test_xdg_variables(monkeypatch, tmp_path, environment_variable, func):
-    config_dir = tmp_path / "astropy"
-    config_dir.mkdir()
-    monkeypatch.setenv(environment_variable, str(tmp_path))
-    assert func() == config_dir
+ENV_VAR_AND_FUNC = [
+    pytest.param(
+        "XDG_CACHE_HOME",
+        paths.get_cache_dir_path,
+        id="xdg-cache",
+    ),
+    pytest.param(
+        "XDG_CONFIG_HOME",
+        paths.get_config_dir_path,
+        id="xdg-config",
+    ),
+]
 
 
-def test_set_temp_config(tmp_path, monkeypatch):
+@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_xdg_variables(monkeypatch, tmp_path, env_var, func):
+    # Regression test for #17514 - XDG_CACHE_HOME had no effect
+    target_dir = tmp_path / "astropy"
+    target_dir.mkdir()
+    monkeypatch.setenv(env_var, str(tmp_path))
+    assert func() == target_dir
+
+
+@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_env_variables_missing_dir(monkeypatch, tmp_path, env_var, func):
+    default_path = func()
+    target_dir = tmp_path / "nonexistent"
+    monkeypatch.setenv(env_var, str(target_dir))
+
+    expected_msg = (
+        rf"^{env_var} is set to '{re.escape(str(target_dir))}', "
+        rf"but no such directory was found\. "
+        r"This environment variable will be ignored\.$"
+    )
+    with pytest.warns(AstropyUserWarning, match=expected_msg):
+        new_path = func()
+
+    assert new_path == default_path
+
+
+def get_directory_type(func) -> str:
+    for t in ["cache", "config"]:
+        if t in func.__name__:
+            return t
+    raise RuntimeError
+
+
+@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_env_variables_missing_subdir_and_default(monkeypatch, tmp_path, env_var, func):
+    # have the env var point to a writable location,
+    # where an 'astropy' subdir is missing, but can be created silently
+    default_parent_dir = Path.home() / ".astropy"
+    assert not default_parent_dir.exists()
+
+    target_dir = tmp_path
+    monkeypatch.setenv(env_var, str(target_dir))
+
+    expected_location = target_dir / "astropy"
+    default_location = default_parent_dir / get_directory_type(func)
+
+    assert not expected_location.exists()
+
+    if sys.platform.startswith("win"):
+        # FIXME: legacy behavior is to never symlink on windows...
+        # should we never symlink anywhere instead for consistency
+        # (not to mention simplicity) ?
+        expected_msg = (
+            rf"^{env_var} is set to '{re.escape(str(target_dir))}', "
+            rf"but is not supported on Windows\. "
+            r"This environment variable will be ignored\.$"
+        )
+        ctx = pytest.warns(AstropyUserWarning, match=expected_msg)
+    else:
+        ctx = nullcontext()
+
+    with ctx:
+        ret = func()
+
+    assert ret.is_dir()
+
+    # FIXME: should the environment variable *completely* take precedence here,
+    # and should we *avoid* silently creating (and linking) the default location ?
+    # see https://github.com/astropy/astropy/issues/18791
+    assert ret == default_location
+
+    if sys.platform.startswith("win"):
+        assert not expected_location.exists()
+        return
+
+    assert expected_location.is_dir()
+    assert default_location.is_dir()
+    assert expected_location.exists()
+    assert expected_location.is_dir()
+    assert expected_location.is_symlink()
+    assert expected_location.resolve() == default_location
+
+
+@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_env_variables_missing_subdir_but_default_exists(
+    monkeypatch, tmp_path, env_var, func
+):
+    # have the env var point to a writable location,
+    # where an 'astropy' subdir is missing, but can be created silently
+    default_parent_dir = Path.home() / ".astropy"
+
+    target_dir = tmp_path
+    monkeypatch.setenv(env_var, str(target_dir))
+
+    expected_location = target_dir / "astropy"
+    default_location = default_parent_dir / get_directory_type(func)
+
+    # this is the crucial variation in setup
+    # as compared to test_env_variables_missing_subdir_and_default
+    default_location.mkdir(parents=True)
+
+    assert not expected_location.exists()
+
+    expected_msg_template = (
+        rf"^{env_var} is set to '{re.escape(str(target_dir))}', "
+        r"but {reason}. "
+        r"This environment variable will be ignored\.$"
+    )
+    if sys.platform.startswith("win"):
+        # FIXME: legacy behavior is to never symlink on windows...
+        # should we never symlink anywhere instead for consistency
+        # (not to mention simplicity) ?
+        reason = "is not supported on Windows"
+    else:
+        reason = (
+            rf"the default location, {re.escape(str(default_location))}, "
+            "already exists, and takes precedence"
+        )
+
+    expected_msg = expected_msg_template.format(reason=reason)
+
+    with pytest.warns(AstropyUserWarning, match=expected_msg):
+        ret = func()
+
+    assert ret.is_dir()
+
+    # FIXME: should the environment variable *completely* take precedent here,
+    # ignoring the existence of default_parent_dir ?
+    # see https://github.com/astropy/astropy/issues/18791
+    assert not expected_location.exists()
+
+
+@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_env_variables_setup_file_exists(monkeypatch, tmp_path, env_var, func):
+    # check what happens if we request a location that's already
+    # taken, but is a file
+    default_path = func()
+    target_dir = tmp_path / "subdir"
+    target_dir.mkdir()
+    expected_path = target_dir / "astropy"
+    expected_path.touch()  # create a file
+
+    monkeypatch.setenv(env_var, str(target_dir))
+
+    expected_msg = (
+        rf"^{env_var} is set to '{re.escape(str(target_dir))}', "
+        rf"but this directory already contains a file under '{expected_path.name}', "
+        r"where a directory was expected\. "
+        r"This environment variable will be ignored\.$"
+    )
+    with pytest.warns(AstropyUserWarning, match=expected_msg):
+        new_path = func()
+    assert new_path == default_path
+
+
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_set_temp_config(tmp_path):
     # Check that we start in an understood state.
     assert configuration._cfgobjs == OLD_CONFIG
-    # Temporarily remove any temporary overrides of the configuration dir.
-    monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
 
     orig_config_dir = paths.get_config_dir(rootname="astropy")
     (temp_config_dir := tmp_path / "config").mkdir()
@@ -84,9 +272,8 @@ def test_set_temp_config(tmp_path, monkeypatch):
     assert configuration._cfgobjs == OLD_CONFIG
 
 
-def test_set_temp_cache(tmp_path, monkeypatch):
-    monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
-
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_set_temp_cache(tmp_path):
     orig_cache_dir = paths.get_cache_dir(rootname="astropy")
     (temp_cache_dir := tmp_path / "cache").mkdir()
     temp_astropy_cache = temp_cache_dir / "astropy"
@@ -118,6 +305,7 @@ def test_set_temp_cache_resets_on_exception(tmp_path):
     assert t == paths.get_cache_dir()
 
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_file():
     from astropy.config.configuration import get_config, reload_config
 
@@ -437,16 +625,12 @@ def test_help_invalid_config_item():
         conf.help("bad_name")
 
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_noastropy_fallback(monkeypatch):
     """
     Tests to make sure configuration items fall back to their defaults when
     there's a problem accessing the astropy directory
     """
-
-    # make sure the config directory is not searched
-    monkeypatch.setenv("XDG_CONFIG_HOME", "foo")
-    monkeypatch.delenv("XDG_CONFIG_HOME")
-    monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
 
     # make sure the _find_or_create_root_dir function fails as though the
     # astropy dir could not be accessed
