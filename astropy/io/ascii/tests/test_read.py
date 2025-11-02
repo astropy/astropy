@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 import locale
 import pathlib
 import platform
 import re
+import sys
 from io import BytesIO, StringIO
 
 import numpy as np
@@ -28,6 +28,14 @@ from astropy.utils.exceptions import AstropyWarning
 from .common import (
     setup_function,  # noqa: F401
     teardown_function,  # noqa: F401
+)
+
+SKIPIF_OPTIMIZED_PYTHON = pytest.mark.skipif(
+    sys.flags.optimize >= 2, reason="docstrings are not available at runtime"
+)
+ONLY_OPTIMIZED_PYTHON = pytest.mark.skipif(
+    sys.flags.optimize < 2,
+    reason="checking behavior specifically if docstrings are not present",
 )
 
 
@@ -2089,6 +2097,7 @@ def test_read_converters_simplified():
             )
 
 
+@SKIPIF_OPTIMIZED_PYTHON
 def test_table_read_help_ascii():
     """
     Test dynamically created documentation help via the I/O registry for 'ascii'.
@@ -2103,6 +2112,7 @@ def test_table_read_help_ascii():
     assert "Character-delimited table with a single header line" in doc
 
 
+@SKIPIF_OPTIMIZED_PYTHON
 def test_table_read_help_ascii_html():
     """
     Test dynamically created documentation help via the I/O registry for 'ascii.html'.
@@ -2117,6 +2127,7 @@ def test_table_read_help_ascii_html():
     assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
 
 
+@SKIPIF_OPTIMIZED_PYTHON
 def test_table_write_help_ascii():
     """
     Test dynamically created documentation help via the I/O registry for 'ascii'.
@@ -2131,6 +2142,7 @@ def test_table_write_help_ascii():
     assert "Character-delimited table with a single header line" in doc
 
 
+@SKIPIF_OPTIMIZED_PYTHON
 def test_table_write_help_ascii_html():
     """
     Test dynamically created documentation help via the I/O registry for 'ascii.html'.
@@ -2143,6 +2155,19 @@ def test_table_write_help_ascii_html():
     assert "Parameters" in doc
     assert "ASCII writer 'ascii.html' details" in doc
     assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
+
+
+@ONLY_OPTIMIZED_PYTHON
+@pytest.mark.parametrize("method", [ascii.read, ascii.write])
+@pytest.mark.parametrize("format", ["ascii", "html"])
+def test_table_read_write_help_ascii_optimized_mode(method, format):
+    out = StringIO()
+    with pytest.raises(
+        RuntimeError,
+        match="The help method is not available under Python's optimized mode.",
+    ):
+        method.help(format, out=out)
+    assert out.getvalue() == ""
 
 
 @pytest.mark.parametrize(
