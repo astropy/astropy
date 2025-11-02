@@ -210,6 +210,7 @@ class _SetTempPath:
             # renounce linking early to avoid redundant warnings
             linkto = None
         else:
+            # symlink will be set to this if the directory is created
             linkto = path
 
         return cls._find_or_create_root_dir(linkto=linkto, pkgname=rootname)
@@ -231,8 +232,10 @@ class _SetTempPath:
         warn = partial(
             cls._warn_env_var_is_ignored, env_var_name=cls._directory_env_var
         )
+
+        # At this point, linkto is either None or a path that doesn't exist yet
+        # Other linkto conditions already filtered in _get_dir_path() above.
         if linkto is not None:
-            assert not linkto.exists()
             if sys.platform.startswith("win"):
                 warn("is not supported on Windows")
                 linkto = None
@@ -240,7 +243,7 @@ class _SetTempPath:
                 warn(
                     f"the default location, {maindir}, already exists, and takes precedence"
                 )
-                linkto = None
+                linkto = None  # redundant, but shouldn't make a difference
 
         if not maindir.is_dir():
             # first create .astropy dir if needed
