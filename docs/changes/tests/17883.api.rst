@@ -1,1 +1,1 @@
-Removed ``astropy.tests.command`` module that was deprecated in v6.0.
+Removed ``astropy.tests.command`` module that was deprecated in v6.0. In addition, ``astropy.test``, ``astropy.tests.runner.TestRunnerBase``, and ``astropy.tests.runner.TestRunner`` are now officially deprecated. This will also affect downstream ``packagename.test`` generated using ``TestRunner``. The deprecated functionality will be removed in a future release after a deprecation period as per Astropy deprecation policy.
