@@ -1,0 +1,28 @@
+.. _whatsnew-8.0:
+
+**************************
+What's New in Astropy 8.0?
+**************************
+
+Overview
+========
+
+Astropy 8.0 is a release that adds significant new functionality since
+the 7.2 release.
+
+In particular, this release includes:
+
+
+In addition to these major changes, Astropy v8.0 includes a large number of
+smaller improvements and bug fixes, which are described in the :ref:`changelog`.
+By the numbers:
+
+* X issues have been closed since v7.2
+* X pull requests have been merged since v7.2
+* X distinct people have contributed code
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v8.0, including changes in
+API, please see the :ref:`changelog`.
