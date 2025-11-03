@@ -46,6 +46,7 @@ jobs:
           })
     - name: Greet new contributors
       uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d  # v3.1.0
+      if: github.event_name != 'pull_request_target' || github.event.pull_request.base.ref == "main"
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         issue_message: |
