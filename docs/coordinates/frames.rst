@@ -176,9 +176,8 @@ if it is present, it can be accessed from the ``data`` attribute::
     <UnitSphericalRepresentation (lon, lat) in deg
         (1.1, 2.2)>
 
-All of the above methods can also accept array data (in the form of
-class:`~astropy.units.Quantity`, or other Python sequences) to create arrays of
-coordinates::
+All of the above methods can also accept array data (in the form of |Quantity|,
+or other Python sequences) to create arrays of coordinates::
 
     >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
