@@ -1184,7 +1184,7 @@ class MaskedFormat:
         return cls(_get_format_function(data, **options))
 
 
-def _array2string(a, options, separator=" ", prefix=""):
+def _array2string_impl(a, options, separator=" ", prefix=""):
     # Mostly copied from numpy.core.arrayprint, except:
     # - The format function is wrapped in a mask-aware class;
     # - Arrays scalars are not cast as arrays.
@@ -1222,8 +1222,7 @@ def _array2string(a, options, separator=" ", prefix=""):
     return lst
 
 
-@dispatched_function
-def array2string(
+def _array2string_main(
     a,
     max_line_width=None,
     precision=None,
@@ -1240,7 +1239,7 @@ def array2string(
     *,
     legacy=None,
 ):
-    # Copied from numpy.core.arrayprint, but using _array2string above.
+    # Copied from numpy.core.arrayprint, but using _array2string_impl above.
     if NUMPY_LT_2_1:
         if NUMPY_LT_2_0:
             from numpy.core.arrayprint import _format_options
@@ -1280,9 +1279,81 @@ def array2string(
     if a.size == 0:
         result = "[]"
     else:
-        result = _array2string(a, options, separator, prefix)
+        result = _array2string_impl(a, options, separator, prefix)
 
     return result, None, None
+
+
+if not NUMPY_LT_2_4:
+
+    @dispatched_function
+    def array2string(
+        a,
+        max_line_width=None,
+        precision=None,
+        suppress_small=None,
+        separator=" ",
+        prefix="",
+        formatter=None,
+        threshold=None,
+        edgeitems=None,
+        sign=None,
+        floatmode=None,
+        suffix="",
+        *,
+        legacy=None,
+    ):
+        return _array2string_main(
+            a,
+            max_line_width=max_line_width,
+            precision=precision,
+            suppress_small=suppress_small,
+            separator=separator,
+            prefix=prefix,
+            formatter=formatter,
+            threshold=threshold,
+            edgeitems=edgeitems,
+            sign=sign,
+            floatmode=floatmode,
+            suffix=suffix,
+            legacy=legacy,
+        )
+else:
+
+    @dispatched_function
+    def array2string(
+        a,
+        max_line_width=None,
+        precision=None,
+        suppress_small=None,
+        separator=" ",
+        prefix="",
+        style=np._NoValue,  # removed in numpy 2.4
+        formatter=None,
+        threshold=None,
+        edgeitems=None,
+        sign=None,
+        floatmode=None,
+        suffix="",
+        *,
+        legacy=None,
+    ):
+        return _array2string_main(
+            a,
+            max_line_width=max_line_width,
+            precision=precision,
+            suppress_small=suppress_small,
+            separator=separator,
+            prefix=prefix,
+            style=style,
+            formatter=formatter,
+            threshold=threshold,
+            edgeitems=edgeitems,
+            sign=sign,
+            floatmode=floatmode,
+            suffix=suffix,
+            legacy=legacy,
+        )
 
 
 def _array_str_scalar(x):
