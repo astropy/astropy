@@ -1224,20 +1224,20 @@ def _array2string_impl(a, options, separator=" ", prefix=""):
 
 def _array2string_main(
     a,
-    max_line_width=None,
-    precision=None,
-    suppress_small=None,
-    separator=" ",
-    prefix="",
-    style=np._NoValue,
-    formatter=None,
-    threshold=None,
-    edgeitems=None,
-    sign=None,
-    floatmode=None,
-    suffix="",
-    *,
-    legacy=None,
+    *,  # make most arguments keyword only to minimize the risk of a human mistake
+    max_line_width,
+    precision,
+    suppress_small,
+    separator,
+    prefix,
+    formatter,
+    threshold,
+    edgeitems,
+    sign,
+    floatmode,
+    suffix,
+    legacy,
+    style=np._NoValue,  # deprecated, removed in numpy 2.4
 ):
     # Copied from numpy.core.arrayprint, but using _array2string_impl above.
     if NUMPY_LT_2_1:
@@ -1262,11 +1262,11 @@ def _array2string_main(
         edgeitems,
         max_line_width,
         suppress_small,
-        None,
-        None,
-        sign,
-        formatter,
-        floatmode,
+        nanstr=None,
+        infstr=None,
+        sign=sign,
+        formatter=formatter,
+        floatmode=floatmode,
     )
     options.update(overrides)
 
