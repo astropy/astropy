@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-7.2-cosmology`
 * :ref:`whatsnew-7.2-fits-wcs-units`
 * :ref:`whatsnew-7.2-cls-concat-stack`
+* :ref:`whatsnew-7.2-write-table-indices`
 * ...
 
 In addition to these major changes, Astropy v7.2 includes a large number of
@@ -36,8 +37,8 @@ API, please see the :ref:`changelog`.
 
 .. _whatsnew-7.2-faster-ecsv-tab-rdr:
 
-Faster ECSV table reader
-========================
+Faster ECSV reader with support for different engines
+=====================================================
 
 A new :ref:`ECSV <ecsv_format>` table reading module has been added that supports
 different backend engines for the CSV data parsing. In addition to the default
@@ -83,8 +84,8 @@ writer.
 
 .. _whatsnew-7.2-generic-df-conv:
 
-Generic DataFrame conversion methods
-====================================
+Generic DataFrame conversion methods with multi-backend support
+===============================================================
 
 Astropy 7.2 introduces new generic DataFrame conversion methods that support multiple
 DataFrame backends through the `Narwhals <https://narwhals-dev.github.io/narwhals/>`_
@@ -165,12 +166,40 @@ astropy 9.0.  Here the index identifier was the first element of the item, e.g.,
 ``t.loc["a", "z"]`` to use the index on column ``"a"`` to find rows with
 ``t["a"] == "z"``.
 
+.. _whatsnew-7.2-write-table-indices:
+
+Write table indices to FITS, HDF5 and ECSV formats
+==================================================
+
+It is now possible to write `~astropy.table.Table` indices to FITS, HDF5, and ECSV
+formats and subsequently read them back in order to round-trip the original indexed
+table. This stores the index data as temporary columns in the output and includes other
+relevant metadata in the file output, similar to the mechanism for serializing mixin
+columns like ``SkyCoord``.
+
+This functionality is enabled by passing ``write_indices=True`` to the table
+`~astropy.table.Table.write` method. For example:
+
+>>> import io
+>>> from astropy.table import QTable
+>>> t = QTable({"a": ["x", "z", "y"], "b": [2.0, 1.0, 1.5], "c": ["a", "b", "c"]})
+>>> t.add_index("a")
+>>> out = io.StringIO()
+>>> t.write(out, format="ecsv", write_indices=True)
+>>> t2 = QTable.read(out.getvalue(), format="ecsv")
+>>> t2.loc["x"]
+<Row index=0>
+ a      b     c
+str1 float64 str1
+---- ------- ----
+   x     2.0    a
+
 .. _whatsnew-7.2-cosmology:
 
-Cosmology
-=========
+Cosmology traits
+================
 
-The :mod:`~astropy.cosmology.traits` module provides reusable components, called
+The :mod:`~astropy.cosmology.traits` module now provides reusable components, called
 :term:`traits <trait type>`, that encapsulate specific cosmological properties or
 behaviors. For example, the :class:`~astropy.cosmology.traits.HubbleParameter` trait
 provides the Hubble constant (``H0``) and related methods, while

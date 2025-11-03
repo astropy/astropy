@@ -676,7 +676,7 @@ class SlicedIndex:
         if isinstance(index_slice, tuple):
             self.start, self._stop, self.step = index_slice
         elif isinstance(index_slice, slice):  # index_slice is an actual slice
-            num_rows = len(index.columns[0])
+            num_rows = len(index)
             self.start, self._stop, self.step = index_slice.indices(num_rows)
         else:
             raise TypeError("index_slice must be tuple or slice")

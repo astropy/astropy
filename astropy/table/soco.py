@@ -86,7 +86,7 @@ class SCEngine:
         """
         Add a key, value pair.
         """
-        if self._unique and (key in self._nodes):
+        if self.unique and (key in self._nodes):
             message = f"duplicate {key!r} in unique index"
             raise ValueError(message)
         self._nodes.add(Node(key, row))
@@ -186,3 +186,10 @@ class SCEngine:
             nodes = self._nodes
         nodes_str = ", ".join(str(node) for node in nodes)
         return f"<{self.__class__.__name__} nodes={nodes_str}>"
+
+    @property
+    def unique(self):
+        return self._unique
+
+    def __len__(self):
+        return len(self._nodes)
