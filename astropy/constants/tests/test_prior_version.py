@@ -145,7 +145,12 @@ def test_masses():
     """Ensure mass values are set up correctly.
     https://github.com/astropy/astropy/issues/8920
     """
-    from astropy.constants import astropyconst13, astropyconst20, astropyconst40
+    from astropy.constants import (
+        astropyconst13,
+        astropyconst20,
+        astropyconst40,
+        astropyconst80,
+    )
 
     ref_text = "Allen's Astrophysical Quantities 4th Ed."
     assert (
@@ -166,6 +171,13 @@ def test_masses():
         astropyconst40.M_sun.reference == ref_text
         and astropyconst40.M_jup.reference == ref_text
         and astropyconst40.M_earth.reference == ref_text
+    )
+
+    ref_text = "IAU 2015 Resolution B 3 + CODATA 2022"
+    assert (
+        astropyconst80.M_sun.reference == ref_text
+        and astropyconst80.M_jup.reference == ref_text
+        and astropyconst80.M_earth.reference == ref_text
     )
 
 
