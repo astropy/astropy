@@ -40,7 +40,13 @@ import numpy as np
 
 from astropy.constants import si as _si
 
-from .core import binary_prefixes, def_unit, set_enabled_units, si_prefixes
+from .core import (
+    _UnitContext,
+    binary_prefixes,
+    def_unit,
+    set_enabled_units,
+    si_prefixes,
+)
 from .docgen import generate_dunder_all, generate_unit_summary
 
 _ns = globals()
@@ -192,7 +198,7 @@ if __doc__ is not None:
     __doc__ += generate_unit_summary(globals())
 
 
-def enable():
+def enable() -> _UnitContext:
     """
     Enable CDS units so they appear in results of
     `~astropy.units.UnitBase.find_equivalent_units` and

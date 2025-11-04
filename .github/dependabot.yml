@@ -7,6 +7,11 @@ version: 2
 updates:
   - package-ecosystem: "github-actions" # See documentation for possible values
     directory: ".github/workflows" # Location of package manifests
+    labels:
+      - dependencies
+      - dev-automation
+      - github_actions
+      - no-changelog-entry-needed
     schedule:
       interval: "monthly"
     groups:

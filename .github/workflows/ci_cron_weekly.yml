@@ -35,7 +35,13 @@ permissions:
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    if: |
+      github.repository == 'astropy/astropy' && (
+        github.event_name == 'schedule' ||
+        github.event_name == 'push' ||
+        github.event_name == 'workflow_dispatch' ||
+        contains(github.event.pull_request.labels.*.name, 'Extra CI')
+      )
     env:
       ARCH_ON_CI: "normal"
     strategy:
@@ -110,7 +116,13 @@ jobs:
     runs-on: ubuntu-24.04
     name: Emulated arch
     # keep condition in sync with test_arm64
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    if: |
+      github.repository == 'astropy/astropy' && (
+        github.event_name == 'schedule' ||
+        github.event_name == 'push' ||
+        github.event_name == 'workflow_dispatch' ||
+        contains(github.event.pull_request.labels.*.name, 'Extra CI')
+      )
     env:
       ARCH_ON_CI: ${{ matrix.arch }}
 

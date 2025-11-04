@@ -41,8 +41,10 @@ from astropy.cosmology._src.traits import (
     DarkMatterComponent,
     HubbleParameter,
     MatterComponent,
+    PhotonComponent,
     ScaleFactor,
     TemperatureCMB,
+    TotalComponent,
 )
 from astropy.cosmology._src.utils import (
     aszarr,
@@ -135,11 +137,13 @@ class FLRW(
     Cosmology,
     # Traits
     BaryonComponent,
+    TotalComponent,
     CriticalDensity,
     MatterComponent,
     CurvatureComponent,
     DarkEnergyComponent,
     HubbleParameter,
+    PhotonComponent,
     ScaleFactor,
     DarkMatterComponent,
     TemperatureCMB,
@@ -502,27 +506,7 @@ class FLRW(
         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
 
     # Odm is provided by the DarkMatterComponent trait
-
-    @deprecated_keywords("z", since="7.0")
-    def Ogamma(self, z: u.Quantity | ArrayLike) -> FArray:
-        """Return the density parameter for photons at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Ogamma : array
-            The energy density of photons relative to the critical density at
-            each redshift.
-        """
-        z = aszarr(z)
-        return self.Ogamma0 * (z + 1.0) ** 4 * self.inv_efunc(z) ** 2
+    # Ogamma is provided by the PhotonComponent trait
 
     @deprecated_keywords("z", since="7.0")
     def Onu(self, z: u.Quantity | ArrayLike) -> FArray:

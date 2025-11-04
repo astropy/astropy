@@ -16,6 +16,7 @@ from pprint import pformat
 import numpy as np
 import pytest
 import yaml
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.io import ascii
@@ -29,7 +30,12 @@ from astropy.table.table_helpers import simple_table
 from astropy.time import Time
 from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW
+from astropy.utils.compat.optional_deps import (
+    HAS_BZ2,
+    HAS_LZMA,
+    HAS_PANDAS,
+    HAS_PYARROW,
+)
 from astropy.utils.masked import Masked
 
 ENGINE_PARAMS = [
@@ -45,6 +51,15 @@ if HAS_PYARROW:
 @pytest.fixture(scope="module", params=ENGINE_PARAMS)
 def format_engine(request):
     return request.param
+
+
+def patch_format_write(format_engine):
+    """Return a compatible format_engine dict for available writers"""
+    out = format_engine.copy()
+    if out["format"] == "ecsv":
+        # "io.ascii" is the only supported engine for writing via "ecsv" format.
+        out["engine"] = "io.ascii"
+    return out
 
 
 DTYPES = [
@@ -195,7 +210,7 @@ def test_write_read_roundtrip(format_engine):
 
     for delimiter in DELIMITERS:
         out = StringIO()
-        t.write(out, format="ascii.ecsv", delimiter=delimiter)
+        t.write(out, delimiter=delimiter, **patch_format_write(format_engine))
 
         t2s = [
             Table.read(out.getvalue(), **format_engine),
@@ -237,7 +252,7 @@ def test_bad_delimiter():
 
 @pytest.mark.parametrize("name", ["# name", ' #name " '])
 @pytest.mark.parametrize("delimiter", [" ", ","])
-def test_stressing_colname_starts_with_hash_etc(name, delimiter):
+def test_stressing_colname_starts_with_hash_etc(format_engine, name, delimiter):
     """Column name starting with # that looks like a comment, see #18710.
 
     Also names that contain leading/trailing whitespace and a quote character.
@@ -246,10 +261,20 @@ def test_stressing_colname_starts_with_hash_etc(name, delimiter):
     t = Table()
     t[name] = [1, 2]
     t["a"] = [3, 4]
-    t.write(out, delimiter=delimiter, format="ascii.ecsv")
+    t.write(out, delimiter=delimiter, **patch_format_write(format_engine))
     out.seek(0)
-    t2 = Table.read(out.getvalue(), format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), **format_engine)
     assert t2.colnames == [name, "a"]
+
+
+def test_unavailable_ecsv_engine_for_writing():
+    out = io.StringIO()
+    t = Table()
+    with pytest.raises(
+        ValueError,
+        match=r"^engine='pyarrow' is not a supported engine for writing, use 'io.ascii'$",
+    ):
+        t.write(out, format="ecsv", engine="pyarrow")
 
 
 def test_bad_header_start(format_engine):
@@ -1234,3 +1259,49 @@ def test_register_bad_engine():
         class BadEngine(ECSVEngine):
             name = 1
             format = "ascii.ecsv"
+
+
+@pytest.mark.parametrize(
+    "compressed_filename",
+    [
+        "test.ecsv.gz",
+        pytest.param(
+            "test.ecsv.bz2",
+            marks=pytest.mark.xfail(not HAS_BZ2, reason="no bz2 support"),
+        ),
+        pytest.param(
+            "test.ecsv.xz",
+            marks=pytest.mark.xfail(not HAS_LZMA, reason="no lzma support"),
+        ),
+    ],
+)
+def test_compressed_files(tmp_path, format_engine, compressed_filename):
+    filename = tmp_path / "test.ecsv"
+    t = simple_table()
+    t.write(filename, format="ascii.ecsv")
+
+    compressed_filename = tmp_path / compressed_filename
+    if compressed_filename.suffix == ".gz":
+        import gzip
+
+        opener = gzip.open
+    elif compressed_filename.suffix == ".bz2":
+        import bz2
+
+        opener = bz2.open
+    elif compressed_filename.suffix == ".xz":
+        import lzma
+
+        opener = lzma.open
+    else:
+        # Shouldn't really happen
+        opener = open
+
+    # Compress ecsv file
+    with open(filename, "rb") as f_in:
+        with opener(compressed_filename, "wb") as f_out:
+            f_out.writelines(f_in)
+
+    # Open compressed file and compare to ensure it's read correctly
+    t_comp = Table.read(compressed_filename, **format_engine)
+    assert_array_equal(t, t_comp)
