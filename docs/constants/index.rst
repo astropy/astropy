@@ -25,7 +25,7 @@ You can import a :class:`~astropy.constants.Constant` directly from the
       Value  = 6.6743e-11
       Uncertainty  = 1.5e-15
       Unit  = m3 / (kg s2)
-      Reference = CODATA 2018
+      Reference = CODATA 2022
 
 Or, if you want to avoid having to explicitly import all of the constants you
 need, you can do::
@@ -58,7 +58,7 @@ done if needed::
       Value  = 299792458.0
       Uncertainty  = 0.0
       Unit  = m / s
-      Reference = CODATA 2018
+      Reference = CODATA 2022
 
     >>> print(const.c.to('km/s'))
     299792.458 km / s

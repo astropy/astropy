@@ -1,0 +1,1 @@
+CODATA 2022 has replaced CODATA 2018 as default. ``astropyconst80`` is available for ``constants`` science state, combining CODATA 2022 with IAU 2015.
