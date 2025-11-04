@@ -1392,11 +1392,8 @@ class Column(NotifierMixin):
                 else:
                     return _convert_array(array, np.dtype(format.recformat))
             elif "L" in format:
-                # boolean needs to be scaled back to storage values ('T', 'F')
-                if array.dtype == np.dtype("bool"):
-                    return np.where(array == np.False_, ord("F"), ord("T"))
-                else:
-                    return np.where(array == 0, ord("F"), ord("T"))
+                codes = _encode_logical_col(array)
+                return np.array(codes, dtype=np.dtype("uint8"))
             elif "X" in format:
                 return _convert_array(array, np.dtype("uint8"))
             else:
@@ -2281,53 +2278,7 @@ def _makep(array, descr_output, format, nrows=None):
                     # If it's a scalar, treat it as a single-element list
                     seq = [rowval]
 
-                codes = []
-                for el in seq:
-                    # NULL value
-                    if el is None:
-                        codes.append(0)
-                        continue
-
-                    # bytes/str values like 'T' or 'F'
-                    if isinstance(el, (bytes, bytearray)):
-                        try:
-                            s = el.decode("ascii").strip()
-                        except Exception:
-                            # fallback: treat as True
-                            codes.append(ord("T"))
-                            continue
-                        # Explicitly check for False values, everything else is True
-                        s_upper = s.upper()
-                        if s_upper in ("F", "FALSE"):
-                            codes.append(ord("F"))
-                        else:
-                            codes.append(ord("T"))
-                        continue
-                    if isinstance(el, str):
-                        if len(el) == 0:
-                            codes.append(0)
-                        else:
-                            # Explicitly check for False values, everything else is True
-                            s_upper = el.strip().upper()
-                            if s_upper in ("F", "FALSE"):
-                                codes.append(ord("F"))
-                            else:
-                                codes.append(ord("T"))
-                        continue
-
-                    # booleans
-                    if isinstance(el, (bool, np.bool_)):
-                        codes.append(ord("T") if el else ord("F"))
-                        continue
-
-                    # numbers: treat 0 as False, non-zero as True
-                    try:
-                        ival = int(el)
-                    except Exception:
-                        # fallback: consider non-numeric as True
-                        codes.append(ord("T"))
-                    else:
-                        codes.append(ord("F") if ival == 0 else ord("T"))
+                codes = _encode_logical_row(seq)
 
                 data_output[idx] = np.array(codes, dtype=format.dtype)
             else:
@@ -2349,6 +2300,73 @@ def _makep(array, descr_output, format, nrows=None):
         _offset += descr_output[idx, 0] * _nbytes
 
     return data_output
+
+
+def _encode_logical_row(row):
+    codes = []
+    for el in row:
+        # NULL value
+        if el is None:
+            codes.append(0)
+            continue
+
+        # bytes/str values like 'T' or 'F'
+        if isinstance(el, (bytes, bytearray)):
+            try:
+                s = el.decode("ascii").strip()
+            except Exception:
+                # fallback: treat as True
+                codes.append(ord("T"))
+                continue
+            # Explicitly check for False values, everything else is True
+            s_upper = s.upper()
+            if s_upper in ("F", "FALSE"):
+                codes.append(ord("F"))
+            else:
+                codes.append(ord("T"))
+            continue
+        if isinstance(el, str):
+            if len(el) == 0:
+                codes.append(0)
+            else:
+                # Explicitly check for False values, everything else is True
+                s_upper = el.strip().upper()
+                if s_upper in ("F", "FALSE"):
+                    codes.append(ord("F"))
+                else:
+                    codes.append(ord("T"))
+            continue
+
+        # booleans
+        if isinstance(el, (bool, np.bool_)):
+            codes.append(ord("T") if el else ord("F"))
+            continue
+
+        # numbers: treat 0 as False, non-zero as True
+        try:
+            ival = int(el)
+        except Exception:
+            # fallback: consider non-numeric as True
+            codes.append(ord("T"))
+        else:
+            codes.append(ord("F") if ival == 0 else ord("T"))
+
+    return codes
+
+
+def _encode_logical_col(array):
+    codes = []
+    for rowval in array:
+        # rowval may be any sequence (list, ndarray, etc.)
+        try:
+            seq = list(rowval)
+        except Exception:
+            # If it's a scalar, treat it as a single-element list
+            seq = [rowval]
+
+        codes.append(_encode_logical_row(seq))
+
+    return codes
 
 
 def _parse_tformat(tform):

@@ -900,6 +900,24 @@ class FITS_rec(np.recarray):
 
         return dummy
 
+    def _convert_bool_helper(self, field):
+        out = []
+        for val in field:
+            # Some fields may be numpy scalars; convert to int
+            try:
+                ival = int(val)
+            except Exception:
+                # If we can't interpret, treat as True
+                out.append(True)
+                continue
+
+            if ival == 0:
+                out.append(None)
+            else:
+                out.append(ival == ord("T"))
+
+        return out
+
     def _convert_other(self, column, field, recformat):
         """Perform conversions on any other fixed-width column data types.
 
@@ -1027,24 +1045,19 @@ class FITS_rec(np.recarray):
             # array where 'T' -> True and anything else -> False).
             if isinstance(recformat, _FormatP):
                 # Map codes to Python objects (None/False/True)
-                out = []
-                for val in field:
-                    # Some fields may be numpy scalars; convert to int
-                    try:
-                        ival = int(val)
-                    except Exception:
-                        # If we can't interpret, treat as True
-                        out.append(True)
-                        continue
-
-                    if ival == 0:
-                        out.append(None)
-                    else:
-                        out.append(ival == ord("T"))
+                out = self._convert_bool_helper(field)
 
                 field = np.array(out, dtype=object)
             else:
-                field = np.equal(field, ord("T"))
+                out = []
+                for rowval in field:
+                    try:
+                        rowval = list(rowval)
+                    except Exception:
+                        rowval = [rowval]
+                    out.append(self._convert_bool_helper(rowval))
+                field = np.array(out, dtype=object)
+
         elif _str:
             if not self._character_as_bytes:
                 with suppress(UnicodeDecodeError):
@@ -1063,6 +1076,18 @@ class FITS_rec(np.recarray):
                 field.shape = (field.shape[0],) + dim
 
         return field
+
+    def _decode_bool_row(self, row):
+        converted_row = np.empty(len(row), dtype=np.int8)
+        for i, val in enumerate(row):
+            if val is None:
+                converted_row[i] = 0
+            elif val is False:
+                converted_row[i] = ord("F")
+            else:
+                converted_row[i] = ord("T")
+
+        return converted_row
 
     def _get_heap_data(self, try_from_disk=True):
         """
@@ -1105,14 +1130,7 @@ class FITS_rec(np.recarray):
                     if len(row) > 0:
                         # For logical VLAs, convert None/False/True back to 0/70/84 bytes
                         if is_logical_vla and row.dtype == object:
-                            converted_row = np.empty(len(row), dtype=np.int8)
-                            for i, val in enumerate(row):
-                                if val is None:
-                                    converted_row[i] = 0
-                                elif val is False:
-                                    converted_row[i] = ord("F")
-                                else:
-                                    converted_row[i] = ord("T")
+                            converted_row = self._decode_bool_row(row)
                             data.append(converted_row.view(dtype=np.ubyte))
                         else:
                             data.append(row.view(type=np.ndarray, dtype=np.ubyte))
@@ -1284,11 +1302,13 @@ class FITS_rec(np.recarray):
                 # happens in _get_heap_data, so skip the np.choose here
                 # which would fail on object arrays
                 if not isinstance(recformat, _FormatP):
-                    choices = (
-                        np.array([ord("F")], dtype=np.int8)[0],
-                        np.array([ord("T")], dtype=np.int8)[0],
-                    )
-                    raw_field[:] = np.choose(field, choices)
+                    converted_field = []
+                    for row in field:
+                        if len(row) > 0:
+                            converted_row = self._decode_bool_row(row)
+                            converted_field.append(converted_row)
+
+                    raw_field[:] = converted_field
 
         # Store the updated heapsize
         self._heapsize = heapsize
