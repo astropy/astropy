@@ -2066,9 +2066,11 @@ class TestStringFunctions:
         expected2 = "[0.0 Jy, 1.0 Jy, 2.0 Jy]"
         assert out2 == expected2
         # Also as positional argument (no, nobody will do this!)
-        out3 = np.array2string(
-            self.q, None, None, None, ", ", "", np._NoValue, {"float": str}
-        )
+        if NUMPY_LT_2_4:
+            args = (self.q, None, None, None, ", ", "", np._NoValue, {"float": str})
+        else:
+            args = (self.q, None, None, None, ", ", "", {"float": str})
+        out3 = np.array2string(*args)
         assert out3 == expected2
         # But not if the formatter is not relevant for us.
         out4 = np.array2string(self.q, separator=", ", formatter={"int": str})

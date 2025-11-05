@@ -328,7 +328,7 @@ class TestArrayCreation(MaskedArraySetup):
         assert o.shape == (2, 3)
         assert isinstance(o, Masked)
         assert isinstance(o, np.ndarray)
-        o2 = np.empty_like(prototype=self.ma)
+        o2 = np.empty_like(self.ma)
         assert o2.shape == (2, 3)
         assert isinstance(o2, Masked)
         assert isinstance(o2, np.ndarray)
@@ -1299,9 +1299,11 @@ class TestStringFunctions:
         out2 = np.array2string(self.ma, separator=", ", formatter={"all": hex})
         assert out2 == "[———, 0x1, 0x2]"
         # Also as positional argument (no, nobody will do this!)
-        out3 = np.array2string(
-            self.ma, None, None, None, ", ", "", np._NoValue, {"int": hex}
-        )
+        if NUMPY_LT_2_4:
+            args = (self.ma, None, None, None, ", ", "", np._NoValue, {"int": hex})
+        else:
+            args = (self.ma, None, None, None, ", ", "", {"int": hex})
+        out3 = np.array2string(*args)
         assert out3 == out2
         # But not if the formatter is not relevant for us.
         out4 = np.array2string(self.ma, separator=", ", formatter={"float": hex})
