@@ -328,7 +328,7 @@ class TestArrayCreation(MaskedArraySetup):
         assert o.shape == (2, 3)
         assert isinstance(o, Masked)
         assert isinstance(o, np.ndarray)
-        o2 = np.empty_like(prototype=self.ma)
+        o2 = np.empty_like(self.ma)
         assert o2.shape == (2, 3)
         assert isinstance(o2, Masked)
         assert isinstance(o2, np.ndarray)

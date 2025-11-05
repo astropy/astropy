@@ -297,9 +297,8 @@ def outer(a, b, out=None):
 
 if not NUMPY_LT_2_0:
 
-    @dispatched_function
-    def empty_like(
-        prototype, dtype=None, order="K", subok=True, shape=None, *, device=None
+    def empty_like_impl(
+        prototype, /, dtype=None, order="K", subok=True, shape=None, *, device=None
     ):
         """Return a new array with the same shape and type as a given array.
 
@@ -329,6 +328,35 @@ if not NUMPY_LT_2_0:
         )
 
         return unmasked, mask, None
+
+    if not NUMPY_LT_2_4:
+
+        @dispatched_function
+        def empty_like(
+            prototype, /, dtype=None, order="K", subok=True, shape=None, *, device=None
+        ):
+            return empty_like_impl(
+                prototype,
+                dtype=dtype,
+                order=order,
+                subok=subok,
+                shape=shape,
+                device=device,
+            )
+    else:
+
+        @dispatched_function
+        def empty_like(
+            prototype, dtype=None, order="K", subok=True, shape=None, *, device=None
+        ):
+            return empty_like_impl(
+                prototype,
+                dtype=dtype,
+                order=order,
+                subok=subok,
+                shape=shape,
+                device=device,
+            )
 
     @dispatched_function
     def zeros_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
@@ -457,8 +485,7 @@ def put(a, ind, v, mode="raise"):
     np.put(a.mask, ind, v_mask, mode=mode)
 
 
-@dispatched_function
-def putmask(a, mask, values):
+def putmask_impl(a, /, mask, values):
     """Changes elements of an array based on conditional and input values.
 
     Like `numpy.putmask`, but for masked array ``a`` and possibly masked
@@ -475,6 +502,18 @@ def putmask(a, mask, values):
         values_data, values_mask = get_data_and_mask(values)
         np.putmask(a.unmasked, mask, values_data)
     np.putmask(a.mask, mask, values_mask)
+
+
+if not NUMPY_LT_2_4:
+
+    @dispatched_function
+    def putmask(a, /, mask, values):
+        return putmask_impl(a, mask=mask, values=values)
+else:
+
+    @dispatched_function
+    def putmask(a, mask, values):
+        return putmask_impl(a, mask=mask, values=values)
 
 
 @dispatched_function
@@ -518,14 +557,14 @@ def copyto(dst, src, casting="same_kind", where=True):
 
 
 @dispatched_function
-def packbits(a, *args, **kwargs):
+def packbits(a, /, *args, **kwargs):
     result = np.packbits(a.unmasked, *args, **kwargs)
     mask = np.packbits(a.mask, *args, **kwargs).astype(bool)
     return result, mask, None
 
 
 @dispatched_function
-def unpackbits(a, *args, **kwargs):
+def unpackbits(a, /, *args, **kwargs):
     result = np.unpackbits(a.unmasked, *args, **kwargs)
     mask = np.zeros(a.shape, dtype="u1")
     mask[a.mask] = 255
@@ -534,7 +573,7 @@ def unpackbits(a, *args, **kwargs):
 
 
 @dispatched_function
-def bincount(x, weights=None, minlength=0):
+def bincount(x, /, weights=None, minlength=0):
     """Count number of occurrences of each value in array of non-negative ints.
 
     Like `numpy.bincount`, but masked entries in ``x`` will be skipped.
@@ -600,8 +639,7 @@ def sort_complex(a):
     return result, None, None
 
 
-@dispatched_function
-def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+def concatenate_impl(arrays, /, axis=0, out=None, *, dtype=None, casting="same_kind"):
     data, masks = _get_data_and_mask_arrays(arrays)
     if out is None:
         return (
@@ -617,6 +655,22 @@ def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
         np.concatenate(masks, out=out.mask, axis=axis)
         np.concatenate(data, out=out.unmasked, axis=axis, dtype=dtype, casting=casting)
         return out, None, None
+
+
+if NUMPY_LT_2_4:
+
+    @dispatched_function
+    def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+        return concatenate_impl(
+            arrays, axis=axis, out=out, dtype=dtype, casting=casting
+        )
+else:
+
+    @dispatched_function
+    def concatenate(arrays, /, axis=0, out=None, *, dtype=None, casting="same_kind"):
+        return concatenate_impl(
+            arrays, axis=axis, out=out, dtype=dtype, casting=casting
+        )
 
 
 @apply_to_both
@@ -923,7 +977,7 @@ def array_equiv(a1, a2):
 
 
 @dispatched_function
-def where(condition, *args):
+def where(condition, /, *args):
     from astropy.utils.masked import Masked, get_data_and_mask
 
     if not args:
