@@ -1256,7 +1256,7 @@ class TimeBase(MaskableShapedLikeNDArray):
             raise TypeError(
                 "'other' argument must support subtraction with Time "
                 "and return a value that supports comparison with "
-                f"{atol.__class__.__name__}"
+                f"{atol.__class__.__name__}: {err}"
             ) from err
 
         return out
@@ -2037,7 +2037,7 @@ class Time(TimeBase):
                     )
                 except Exception as err:
                     raise ValueError(
-                        "cannot convert value to a compatible Time object"
+                       f"cannot convert value to a compatible Time object: {err}"
                     ) from err
         return value
 
@@ -3274,7 +3274,7 @@ class TimeDelta(TimeBase):
                 value = self.__class__(value, scale=self.scale, format=self.format)
             except Exception as err:
                 raise ValueError(
-                    "cannot convert value to a compatible TimeDelta object"
+                    f"cannot convert value to a compatible TimeDelta object: {err}"
                 ) from err
         return value
 
@@ -3300,7 +3300,7 @@ class TimeDelta(TimeBase):
         try:
             other_day = other.to_value(u.day)
         except Exception as err:
-            raise TypeError("'other' argument must support conversion to days") from err
+            raise TypeError(f"'other' argument must support conversion to days: {err}") from err
 
         if atol is None:
             atol = np.finfo(float).eps * u.day
