@@ -2037,7 +2037,7 @@ class Time(TimeBase):
                     )
                 except Exception as err:
                     raise ValueError(
-                       f"cannot convert value to a compatible Time object: {err}"
+                        f"cannot convert value to a compatible Time object: {err}"
                     ) from err
         return value
 
@@ -3300,7 +3300,9 @@ class TimeDelta(TimeBase):
         try:
             other_day = other.to_value(u.day)
         except Exception as err:
-            raise TypeError(f"'other' argument must support conversion to days: {err}") from err
+            raise TypeError(
+                f"'other' argument must support conversion to days: {err}"
+            ) from err
 
         if atol is None:
             atol = np.finfo(float).eps * u.day
