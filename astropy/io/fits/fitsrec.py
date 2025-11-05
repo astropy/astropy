@@ -908,13 +908,13 @@ class FITS_rec(np.recarray):
                 ival = int(val)
             except Exception:
                 # If we can't interpret, treat as True
-                out.append(True)
+                out.append(np.True_)
                 continue
 
             if ival == 0:
                 out.append(None)
             else:
-                out.append(ival == ord("T"))
+                out.append(np.bool_(ival == ord("T")))
 
         return out
 
@@ -1049,13 +1049,7 @@ class FITS_rec(np.recarray):
 
                 field = np.array(out, dtype=object)
             else:
-                out = []
-                for rowval in field:
-                    try:
-                        rowval = list(rowval)
-                    except Exception:
-                        rowval = [rowval]
-                    out.append(self._convert_bool_helper(rowval))
+                out = self._convert_bool_helper(field)
                 field = np.array(out, dtype=object)
 
         elif _str:
@@ -1082,7 +1076,7 @@ class FITS_rec(np.recarray):
         for i, val in enumerate(row):
             if val is None:
                 converted_row[i] = 0
-            elif val is False:
+            elif val is np.False_:
                 converted_row[i] = ord("F")
             else:
                 converted_row[i] = ord("T")
@@ -1302,11 +1296,8 @@ class FITS_rec(np.recarray):
                 # happens in _get_heap_data, so skip the np.choose here
                 # which would fail on object arrays
                 if not isinstance(recformat, _FormatP):
-                    converted_field = []
-                    for row in field:
-                        if len(row) > 0:
-                            converted_row = self._decode_bool_row(row)
-                            converted_field.append(converted_row)
+                    if len(field) > 0:
+                        converted_field = self._decode_bool_row(field)
 
                     raw_field[:] = converted_field
 

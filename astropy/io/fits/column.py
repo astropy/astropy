@@ -1392,7 +1392,7 @@ class Column(NotifierMixin):
                 else:
                     return _convert_array(array, np.dtype(format.recformat))
             elif "L" in format:
-                codes = _encode_logical_col(array)
+                codes = _encode_logical_row(array)
                 return np.array(codes, dtype=np.dtype("uint8"))
             elif "X" in format:
                 return _convert_array(array, np.dtype("uint8"))
@@ -2350,21 +2350,6 @@ def _encode_logical_row(row):
             codes.append(ord("T"))
         else:
             codes.append(ord("F") if ival == 0 else ord("T"))
-
-    return codes
-
-
-def _encode_logical_col(array):
-    codes = []
-    for rowval in array:
-        # rowval may be any sequence (list, ndarray, etc.)
-        try:
-            seq = list(rowval)
-        except Exception:
-            # If it's a scalar, treat it as a single-element list
-            seq = [rowval]
-
-        codes.append(_encode_logical_row(seq))
 
     return codes
 
