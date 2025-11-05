@@ -45,10 +45,10 @@ jobs:
             - [ ] At the time of adding the milestone, if the milestone set requires a backport to release branch(es), apply the appropriate "backport-X.Y.x" label(s) *before* merge.`
           })
     - name: Greet new contributors
-      uses: actions/first-interaction@753c925c8d1ac6fede23781875376600628d9b5d  # v3.0.0
+      uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d  # v3.1.0
       with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
-        issue-message: >
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        issue_message: |
             Welcome to Astropy 👋 and thank you for your first issue!
 
 
@@ -72,7 +72,7 @@ jobs:
             the issue is urgent or sensitive in nature (e.g., a security
             vulnerability) please send an e-mail directly to the private e-mail
             feedback@astropy.org.
-        pr-message: >
+        pr_message: |
             Welcome to Astropy 👋 and congratulations on your first pull
             request! 🎉
 

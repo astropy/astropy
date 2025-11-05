@@ -45,7 +45,7 @@ keywords = [
 dependencies = [
     "numpy>=1.24",
     "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
-    "astropy-iers-data>=0.2025.9.29.0.35.48",
+    "astropy-iers-data>=0.2025.10.27.0.39.10",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
 ]
@@ -88,7 +88,7 @@ all = [
     "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
     "html5lib>=1.1",
     "bleach>=3.2.1",
-    "sortedcontainers>=1.5.7", # (older versions may work)
+    "sortedcontainers>=2.1.0", # imposed by testing with hypothesis
     "pytz>=2016.10", # (older versions may work)
     "jplephem>=2.17.0",
     "mpmath>=1.2.1",
