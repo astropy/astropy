@@ -11,7 +11,7 @@ import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
 
-from ._codecs import JPEGXL, PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
+from ._codecs import JPEGXL, JPEGLS, JPEG2K, PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
 from ._quantization import DITHER_METHODS, QuantizationFailedException, Quantize
 from .utils import _data_shape, _iter_array_tiles, _tile_shape
 
@@ -23,6 +23,8 @@ ALGORITHMS = {
     "PLIO_1": PLIO1,
     "HCOMPRESS_1": HCompress1,
     "JPEGXL": JPEGXL,
+    "JPEGLS": JPEGLS,
+    "JPEG2K": JPEG2K,
     "NOCOMPRESS": NoCompress,
 }
 
@@ -48,7 +50,8 @@ def _decompress_tile(buf, *, algorithm: str, **settings):
     settings
         Any parameters for the given compression algorithm
     """
-    return ALGORITHMS[algorithm](**settings).decode(buf)
+    ret =  ALGORITHMS[algorithm](**settings).decode(buf)
+    return ret
 
 
 def _compress_tile(buf, *, algorithm: str, **settings):
@@ -84,6 +87,10 @@ def _header_to_settings(header):
         settings["smooth"] = _get_compression_setting(header, "SMOOTH", 0)
     elif compression_type == "JPEGXL":
         settings["bytepix"] = _get_compression_setting(header, "BYTEPIX", 2)
+        settings["effort"] = int(_get_compression_setting(header, "EFFORT", 7))
+    elif compression_type in ["JPEGLS", "JPEG2K"]:
+        settings["bytepix"] = _get_compression_setting(header, "BYTEPIX", 2)
+        settings["naxes"] = header["ZNAXIS"]
 
     return settings
 
