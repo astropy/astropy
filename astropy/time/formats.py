@@ -557,12 +557,12 @@ class TimeNumeric(TimeFormat):
         if convert is not None:
             try:
                 val1, val2 = convert(val1, val2)
-            except Exception:
+            except Exception as err:
                 raise TypeError(
                     f"for {self.name} class, input should be (long) doubles, string, "
                     "or Decimal, and second values are only allowed for "
                     "(long) doubles."
-                )
+                ) from err
 
         return val1, val2
 
