@@ -617,12 +617,37 @@ def require(a, dtype=None, requirements=None):
     return (a, dtype, requirements), {}, out_unit, None
 
 
-@function_helper
-def array(object, dtype=None, *, copy=True, order="K", subok=False, ndmin=0):
+if not NUMPY_LT_2_4:
+
+    @function_helper
+    def array(
+        object, dtype=None, *, copy=True, order="K", subok=False, ndmin=0, ndmax=0
+    ):
+        return array_impl(
+            object,
+            dtype=dtype,
+            copy=copy,
+            order=order,
+            subok=subok,
+            ndmin=ndmin,
+            ndmax=ndmax,
+        )
+else:
+
+    @function_helper
+    def array(object, dtype=None, *, copy=True, order="K", subok=False, ndmin=0):
+        return array_impl(
+            object, dtype=dtype, copy=copy, order=order, subok=subok, ndmin=ndmin
+        )
+
+
+def array_impl(object, *, dtype, copy, order, subok, ndmin, ndmax=0):
     out_unit = getattr(object, "unit", UNIT_FROM_LIKE_ARG)
     if out_unit is not UNIT_FROM_LIKE_ARG:
         object = _as_quantity(object).value
     kwargs = {"copy": copy, "order": order, "subok": subok, "ndmin": ndmin}
+    if not NUMPY_LT_2_4:
+        kwargs |= {"ndmax": ndmax}
     return (object, dtype), kwargs, out_unit, None
 
 
