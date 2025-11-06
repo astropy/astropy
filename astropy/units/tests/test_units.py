@@ -54,7 +54,7 @@ def test_U_alias():
 
     # Test compound units
     assert U.m / U.s == u.m / u.s
-    assert U.m ** 2 == u.m ** 2
+    assert U.m**2 == u.m**2
 
     # Test with Quantity creation
     q1 = 1.0 * U.m

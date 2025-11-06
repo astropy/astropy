@@ -73,4 +73,4 @@ set_enabled_units(
 import sys
 
 U = sys.modules[__name__]
-__all__.append("U")
+__all__ += ["U"]
