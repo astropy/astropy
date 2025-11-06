@@ -1106,6 +1106,8 @@ class TableLoc:
     def with_index(self, *index_id):
         """Return a new instance of this class for ``index_id``
 
+        .. versionadded:: 7.0.0
+
         Parameters
         ----------
         index_id : str, tuple[str, ...], or list[str]

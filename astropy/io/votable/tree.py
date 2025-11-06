@@ -4174,6 +4174,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         """
         Configuration used to construct this object. Will always include the
         version check values.
+
+        .. versionadded:: 7.0.0
         """
         return self._config
 

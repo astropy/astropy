@@ -35,6 +35,10 @@ def rotation_matrix(angle, axis="z", unit=None):
     """
     Generate matrices for rotation by some angle around some axis.
 
+    .. versionadded:: 7.0.0
+        This function was made available from the
+        `astropy.coordinates` namespace.
+
     Parameters
     ----------
     angle : angle-like
@@ -130,6 +134,10 @@ def is_rotation_or_reflection(matrix, atol=None):
     a reflection) could be distinguished by the sign of the determinant,
     but this function does not bother with that because both preserve
     lengths of vectors.
+
+    .. versionadded:: 7.0.0
+        This function was made available from the
+        `astropy.coordinates` namespace.
 
     Parameters
     ----------
