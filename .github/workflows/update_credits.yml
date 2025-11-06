@@ -1,0 +1,65 @@
+# Regularly update the credits.rst file, to reduce maintenance burden at the time
+# of release. This will allow issues with the .mailmap issues to be spotted early.
+
+name: Auto-update credits
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  update-credits:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+    name: Auto-update credits
+    runs-on: ubuntu-latest
+    if: github.repository == 'astropy/astropy'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      with:
+        fetch-depth: 0   # fetch full history
+        persist-credentials: false
+    - name: Set up Python
+      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c  # v6.0.0
+      with:
+        python-version: 3.x
+    - name: Run update script
+      run: python .github/workflows/update_credits.py
+    - name: Commit changes
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add docs/credits.rst
+        if ! git diff --cached --exit-code; then
+          git commit -m "Update docs/credits.rst with new contributors"
+        fi
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e  # v7.0.8
+      with:
+        branch: update-credits
+        branch-suffix: timestamp
+        delete-branch: true
+        labels: no-changelog-entry-needed, Docs
+        title: Update credits to add new contributors
+        body: |
+          This is an automated update of the credits for the core package.
+
+          Checklist:
+
+          * [ ] Apply backport labels to any active backport branches for v7.2.x or later
+          * [ ] Close and re-open this pull request to trigger the CI
+          * [ ] Check the resulting docs/credits.rst, and update the .mailmap file for any duplicates or missing names
+          * [ ] If you update .mailmap, re-run:
+
+          ```
+          python .github/workflows/update_credits.py
+          ```
+
+          and commit and push the changes to this branch.
