@@ -41,6 +41,12 @@ To create a |Quantity| object::
     >>> np.array([1., 2., 3.]) * u.m  # doctest: +FLOAT_CMP
     <Quantity [1., 2., 3.] m>
 
+Alternatively, you can import the module alias ``U`` directly for more concise code::
+
+    >>> from astropy.units import U
+    >>> 42.0 * U.meter  # doctest: +FLOAT_CMP
+    <Quantity  42. m>
+
 You can get the unit and value from a |Quantity| using the unit and
 value members::
 

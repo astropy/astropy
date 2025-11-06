@@ -13,7 +13,7 @@ from numpy.testing import assert_allclose
 
 from astropy import constants as c
 from astropy import units as u
-from astropy.units import cds, utils
+from astropy.units import U, cds, utils
 from astropy.units.required_by_vounit import GsolLum, ksolMass, nsolRad
 from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -39,6 +39,36 @@ def test_initialisation():
     assert u.Unit("10 m") == ten_meter
 
     assert u.Unit() == u.dimensionless_unscaled
+
+
+def test_U_alias():
+    """Test that the U alias works identically to u (the units module)."""
+    # Test that U is the same module as u
+    assert U is u
+
+    # Test basic unit access
+    assert U.m == u.m
+    assert U.s == u.s
+    assert U.kg == u.kg
+    assert U.K == u.K
+
+    # Test compound units
+    assert U.m / U.s == u.m / u.s
+    assert U.m ** 2 == u.m ** 2
+
+    # Test with Quantity creation
+    q1 = 1.0 * U.m
+    q2 = 1.0 * u.m
+    assert q1 == q2
+
+    # Test unit conversions
+    assert (1.0 * U.km).to(U.m) == (1.0 * u.km).to(u.m)
+
+    # Test that U has the same attributes as u
+    assert hasattr(U, "Quantity")
+    assert hasattr(U, "Unit")
+    assert U.Quantity is u.Quantity
+    assert U.Unit is u.Unit
 
 
 @pytest.mark.parametrize(

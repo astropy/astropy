@@ -67,3 +67,10 @@ globals()["__all__"].sort()
 set_enabled_units(
     [si, cgs, astrophys, function.units, misc, photometric, required_by_vounit]
 )
+
+# Create module alias 'U' for convenient access to units
+# This allows: from astropy.units import U; x = 1.0 * U.m
+import sys
+
+U = sys.modules[__name__]
+__all__.append("U")

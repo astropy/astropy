@@ -23,6 +23,12 @@ To create a |Quantity| to represent 15 m/s:
     >>> 15 * u.m / u.s  # doctest: +FLOAT_CMP
     <Quantity 15. m / s>
 
+Alternatively, you can use the ``U`` alias for more concise imports:
+
+    >>> from astropy.units import U
+    >>> 15 * U.m / U.s  # doctest: +FLOAT_CMP
+    <Quantity 15. m / s>
+
 This extends as expected to division by a unit, or using ``numpy`` arrays or
 `Python sequences <https://docs.python.org/3/library/stdtypes.html#typesseq>`_:
 
