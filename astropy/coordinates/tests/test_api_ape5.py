@@ -18,20 +18,27 @@ from numpy import testing as npt
 from astropy import coordinates as coords
 from astropy import time
 from astropy import units as u
+from astropy.coordinates import (
+    FK5,
+    ICRS,
+    Angle,
+    BaseCoordinateFrame,
+    CartesianRepresentation,
+    Distance,
+    DynamicMatrixTransform,
+    Latitude,
+    Longitude,
+    PhysicsSphericalRepresentation,
+    SphericalRepresentation,
+    UnitSphericalRepresentation,
+    frame_transform_graph,
+)
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_representations_api():
-    from astropy.coordinates import Angle, Distance, Latitude, Longitude
-    from astropy.coordinates.representation import (
-        CartesianRepresentation,
-        PhysicsSphericalRepresentation,
-        SphericalRepresentation,
-        UnitSphericalRepresentation,
-    )
-
     # <-----------------Classes for representation of coordinate data-------------->
     # These classes inherit from a common base class and internally contain Quantity
     # objects, which are arrays (although they may act as scalars, like numpy's
@@ -158,12 +165,6 @@ def test_representations_api():
 
 
 def test_frame_api():
-    from astropy.coordinates.builtin_frames import FK5, ICRS
-    from astropy.coordinates.representation import (
-        SphericalRepresentation,
-        UnitSphericalRepresentation,
-    )
-
     # <--------------------Reference Frame/"Low-level" classes--------------------->
     # The low-level classes have a dual role: they act as specifiers of coordinate
     # frames and they *may* also contain data as one of the representation objects,
@@ -249,11 +250,6 @@ def test_frame_api():
 
 
 def test_transform_api():
-    from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
-    from astropy.coordinates.builtin_frames import FK5, ICRS
-    from astropy.coordinates.representation import UnitSphericalRepresentation
-    from astropy.coordinates.transformations import DynamicMatrixTransform
-
     # <------------------------Transformations------------------------------------->
     # Transformation functionality is the key to the whole scheme: they transform
     # low-level classes from one frame to another.
