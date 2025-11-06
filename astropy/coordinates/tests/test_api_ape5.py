@@ -19,6 +19,7 @@ from astropy import coordinates as coords
 from astropy import time
 from astropy import units as u
 from astropy.coordinates import (
+    FK4,
     FK5,
     ICRS,
     Angle,
@@ -36,6 +37,7 @@ from astropy.coordinates import (
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_representations_api():
@@ -449,7 +451,7 @@ def test_highlevel_api():
 
 @pytest.mark.remote_data
 def test_highlevel_api_remote():
-    m31icrs = coords.SkyCoord.from_name("M31", frame="icrs")
+    m31icrs = coords.SkyCoord.from_name("M31")
 
     m31str = str(m31icrs)
     assert m31str.startswith("<SkyCoord (ICRS): (ra, dec) in deg\n    (")
@@ -461,7 +463,11 @@ def test_highlevel_api_remote():
     # to fail
     # assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
 
-    m31fk4 = coords.SkyCoord.from_name("M31", frame="fk4")
 
-    assert not m31icrs.is_equivalent_frame(m31fk4)
-    assert np.abs(m31icrs.ra - m31fk4.ra) > 0.5 * u.deg
+@pytest.mark.remote_data
+def test_from_name_frame_deprecation():
+    with pytest.warns(AstropyDeprecationWarning, match='^"frame" was deprecated'):
+        m31fk4 = coords.SkyCoord.from_name("M31", frame="fk4")
+
+    assert type(m31fk4.frame) is FK4
+    npt.assert_allclose(m31fk4.ra.deg, 10.000396)
