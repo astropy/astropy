@@ -106,7 +106,7 @@ test = [
     "pytest-doctestplus>=1.4.0",
     "pytest-astropy-header>=0.2.1",
     "pytest-astropy>=0.10.0",
-    "pytest-xdist>=2.5.0",
+    "pytest-xdist>=3.6.0",
     "threadpoolctl>=3.0.0",
 ]
 test_all = [
