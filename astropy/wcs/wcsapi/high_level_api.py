@@ -4,7 +4,7 @@ from collections import OrderedDict, defaultdict
 
 import numpy as np
 
-from astropy.utils.masked import Masked, MaskedNDArray, combine_masks
+from astropy.utils.masked import Masked, MaskedNDArray, combine_masks, get_data_and_mask
 
 from .utils import deserialize_class
 
@@ -361,7 +361,15 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         return self
 
     def world_to_pixel(self, *world_objects):
-        values, masks = MaskedNDArray._get_data_and_masks(world_objects)
+        values = []
+        masks = []
+        for world_object in world_objects:
+            if getattr(world_object, "masked", True):
+                value, mask = get_data_and_mask(world_object)
+                values.append(value)
+                masks.append(mask)
+            else:
+                values.append(world_object)
         world_values = high_level_objects_to_values(
             *values, low_level_wcs=self.low_level_wcs
         )
@@ -386,7 +394,6 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         pixel_values = values_to_high_level_objects(
             *world_values, low_level_wcs=self.low_level_wcs
         )
-
         if len(pixel_values) == 1:
             return pixel_values[0]
         else:
