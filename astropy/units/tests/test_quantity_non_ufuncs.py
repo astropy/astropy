@@ -3037,6 +3037,10 @@ class CheckSignatureCompatibilityBase:
                 # that do not matter. We let such cases slip by.
                 continue
             pt = params_target[name]
+            if target.__name__ == "arange" and name == "step":
+                # this case is extremely peculiar, special-case skip it
+                # for we don't want to generalize the pattern as accepted
+                continue
             assert ph.default == pt.default, (
                 f"Default value mismatch for argument {name!r}. "
                 f"Helper has {ph.default!r}, target has {pt.default!r}"

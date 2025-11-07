@@ -36,6 +36,7 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 import functools
 import operator
+from enum import Enum, auto
 
 import numpy as np
 from numpy.lib import recfunctions as rfn
@@ -514,68 +515,139 @@ def _block(arrays, max_depth, result_ndim, depth=0):
 
 UNIT_FROM_LIKE_ARG = object()
 
-if NUMPY_LT_2_0:
+
+class ArangeDefaults(Enum):
+    # np.arange had a change in step's default argument in version 2.4
+    # In order to make the logic of our wrapper as robust as possible
+    # (essentially, avoiding branching multiple times on numpy's version),
+    # we'll use a single-member-enum as a singleton that can, crucially, be
+    # matched against.
+    #
+    # Note that a simple sentinel object() wouldn't do, as its name may be
+    # rebinded locally within a `case` statement.
+    #
+    # It should be possible to remove this class completely once
+    # NUMPY_LT_2_4 is dropped.
+    STEP = auto()
+
+
+if not NUMPY_LT_2_4:
 
     @function_helper
-    def arange(*args, start=None, stop=None, step=None, dtype=None):
-        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype)
+    def arange(
+        start_or_stop,
+        /,
+        stop=None,
+        step=1,
+        *,
+        dtype=None,
+        device=None,
+    ):
+        if step == 1:
+            step = ArangeDefaults.STEP
+        return arange_impl(
+            start_or_stop, stop=stop, step=step, dtype=dtype, device=device
+        )
+elif not NUMPY_LT_2_0:
+
+    @function_helper
+    def arange(start_or_stop, /, stop=None, step=None, dtype=None, device=None):
+        if step == None:
+            step = ArangeDefaults.STEP
+        return arange_impl(
+            start_or_stop, stop=stop, step=step, dtype=dtype, device=device
+        )
 else:
 
     @function_helper
-    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None):
-        return arange_impl(
-            *args, start=start, stop=stop, step=step, dtype=dtype, device=device
+    def arange(start_or_stop, /, stop=None, step=None, dtype=None):
+        if step == None:
+            step = ArangeDefaults.STEP
+        return arange_impl(start_or_stop, stop=stop, step=step, dtype=dtype)
+
+
+def arange_impl(start_or_stop, /, *, stop, step, dtype, device=None):
+    # Because this wrapper requires exceptional amounts of additional logic
+    # to decode/encode its complicated signature, we'll sprinkle a few
+    # sanity checks in the form of `assert` statements, which should help making
+    # heads or tails of what's happening in the event of an unexpected exception.
+
+    def parse_start_stop_step(*, start_or_stop, _stop, _step):
+        # handle the perilous task of disentangling original arguments
+        # This isn't trivial because start_or_stop may actually bind to two
+        # different inputs, as the name suggests.
+        # We (ab)use structural pattern matching here to bind output variables
+        # (start, stop, step), so no additional logic is actually needed after
+        # a match is found.
+        match (start_or_stop, _stop, _step):
+            case (stop, None as start, ArangeDefaults.STEP as step):
+                pass
+            case (start, stop, ArangeDefaults.STEP as step):
+                pass
+            case (start, stop, step):
+                pass
+
+        # purely defensive programming
+        assert stop is not None, "Please report this."
+        return start, stop, step
+
+    start, stop, step = parse_start_stop_step(
+        start_or_stop=start_or_stop, _stop=stop, _step=step
+    )
+    out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
+
+    if out_unit is UNIT_FROM_LIKE_ARG and (
+        hasattr(start, "unit") or hasattr(step, "unit")
+    ):
+        raise TypeError(
+            "stop without a unit cannot be combined with start or step with a unit."
         )
 
+    def wrapup_arguments(*, start, stop, step):
+        # do the reverse operation than parse_start_stop_step
+        # this is needed because start_or_stop *must* be passed as positional
+        # (starting in numpy 2.4)
 
-def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
-    # NumPy is supposed to validate the input parameters before this dispatched
-    # function is reached. Nevertheless, we'll sprinkle a few rundundant
-    # sanity checks in the form of `assert` statements.
-    # As they are not part of the business logic, it is fine if they are
-    # compiled-away (e.g. the Python interpreter runs with -O)
-    assert len(args) <= 4
+        # purely defensive programming
+        assert stop is not None, "Please report this."
 
-    # bind positional arguments to their meaningful names
-    # following the (complex) logic of np.arange
-    match args:
-        case (pos1,):
-            assert stop is None or start is None
-            if stop is None:
-                stop = pos1
-            elif start is None:
-                start = pos1
-        case start, stop, *rest:
-            if start is not None and stop is None:
-                start, stop = stop, start
-            match rest:
-                # rebind step and dtype if possible
-                case (step,):
-                    pass
-                case step, dtype:
-                    pass
+        match start, stop, step:
+            case (None, _, ArangeDefaults.STEP):
+                qty_args = (stop,)
+                kwargs = {}
+            case (_, _, ArangeDefaults.STEP):
+                qty_args = (start, stop)
+                kwargs = {}
+            case (None, _, _):
+                qty_args = (stop,)
+                kwargs = {"step": step}
+            case _:
+                qty_args = (start, stop)
+                kwargs = {"step": step}
 
-    # as the only required argument, we want stop to set the unit of the output
-    # so it's important that it comes first in the qty_kwargs
-    qty_kwargs = {
-        k: v
-        for k, v in (("stop", stop), ("start", start), ("step", step))
-        if v is not None
-    }
-    out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is UNIT_FROM_LIKE_ARG:
-        if hasattr(start, "unit") or hasattr(step, "unit"):
-            raise TypeError(
-                "stop without a unit cannot be combined with start or step with a unit."
-            )
-        kwargs.update(qty_kwargs)
-    else:
-        # Convert possible start, step to stop units.
-        new_values, _ = _quantities2arrays(*qty_kwargs.values())
-        kwargs.update(zip(qty_kwargs.keys(), new_values))
+        # reverse positional arguments so `stop`` always comes first
+        # this is done to ensure that the arrays are first converted to the
+        # expected unit, which we guarantee should be stop's
+        args_rev, out_unit_loc = _quantities2arrays(*reversed(qty_args))
+        if out_unit is not UNIT_FROM_LIKE_ARG:
+            assert out_unit_loc == out_unit
+        if hasattr(stop, "unit"):
+            assert out_unit_loc == stop.unit
+
+        # reverse args again to restore initial order
+        args = tuple(reversed(args_rev))
+
+        if "step" in kwargs:
+            kwargs["step"] = step.to_value(out_unit)
+        return args, kwargs
+
+    args, kwargs = wrapup_arguments(start=start, stop=stop, step=step)
 
     kwargs["dtype"] = dtype
-    return (), kwargs, out_unit, None
+    if not NUMPY_LT_2_0:
+        kwargs["device"] = device
+
+    return args, kwargs, out_unit, None
 
 
 if NUMPY_LT_2_0:
