@@ -399,19 +399,22 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
                 (10 * u.radian, None),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 1 None",
+                id="pos: stop, None",
             ),
             pytest.param(
-                (10 * u.radian, None, None),
+                (10 * u.radian, None, None if NUMPY_LT_2_4 else 1),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 2 None",
+                id="pos: stop, None, <default-step>",
             ),
             pytest.param(
                 (10 * u.radian, None, None, None),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 3 None",
+                id="pos: stop, None, None, None",
+                marks=pytest.mark.skipif(
+                    not NUMPY_LT_2_4, reason="dtype is keyword-only in 2.4+"
+                ),
             ),
         ],
     )
@@ -434,6 +437,7 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert arr.dtype == np.dtype(float)
         assert_array_equal(arr.value, np.arange(10))
 
+    @pytest.mark.skipif(not NUMPY_LT_2_4, reason="dtype is keyword-only in 2.4+")
     def test_arange_pos_dtype(self):
         arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
         assert type(arr) is u.Quantity
@@ -455,10 +459,12 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
 
     def test_arange_unit_from_stop(self):
         Q = 1 * u.km
-        a = np.arange(start=1 * u.s, stop=10 * u.min, like=Q)
-        b = np.arange(stop=10 * u.min, start=1 * u.s, like=Q)
-        assert a.unit == u.min
-        assert b.unit == u.min
+        start = 1 * u.s
+        stop = 10 * u.min
+        a = np.arange(start, stop, like=Q)
+        b = np.arange(start, stop=stop, like=Q)
+        assert a.unit == stop.unit
+        assert b.unit == stop.unit
         assert_array_equal(a.value, b.value)
 
 
@@ -3037,10 +3043,6 @@ class CheckSignatureCompatibilityBase:
                 # that do not matter. We let such cases slip by.
                 continue
             pt = params_target[name]
-            if target.__name__ == "arange" and name == "step":
-                # this case is extremely peculiar, special-case skip it
-                # for we don't want to generalize the pattern as accepted
-                continue
             assert ph.default == pt.default, (
                 f"Default value mismatch for argument {name!r}. "
                 f"Helper has {ph.default!r}, target has {pt.default!r}"
