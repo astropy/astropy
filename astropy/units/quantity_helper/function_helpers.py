@@ -345,8 +345,7 @@ def full_like(a, fill_value, *args, **kwargs):
     return (a.view(np.ndarray), a._to_own_unit(fill_value)) + args, kwargs, unit, None
 
 
-@function_helper
-def putmask(a, mask, values):
+def putmask_impl(a, /, mask, values):
     from astropy.units import Quantity
 
     if isinstance(a, Quantity):
@@ -355,6 +354,18 @@ def putmask(a, mask, values):
         return (a, mask, values.to_value(dimensionless_unscaled)), {}, None, None
     else:
         raise NotImplementedError
+
+
+if not NUMPY_LT_2_4:
+
+    @function_helper
+    def putmask(a, /, mask, values):
+        return putmask_impl(a, mask=mask, values=values)
+else:
+
+    @function_helper
+    def putmask(a, mask, values):
+        return putmask_impl(a, mask=mask, values=values)
 
 
 @function_helper
@@ -468,12 +479,26 @@ def _iterable_helper(*args, out=None, **kwargs):
     return arrays, kwargs, unit, out
 
 
-@function_helper
-def concatenate(arrays, axis=0, out=None, **kwargs):
-    # TODO: make this smarter by creating an appropriately shaped
-    # empty output array and just filling it.
-    arrays, kwargs, unit, out = _iterable_helper(*arrays, out=out, axis=axis, **kwargs)
-    return (arrays,), kwargs, unit, out
+if NUMPY_LT_2_4:
+
+    @function_helper
+    def concatenate(arrays, axis=0, out=None, **kwargs):
+        # TODO: make this smarter by creating an appropriately shaped
+        # empty output array and just filling it.
+        arrays, kwargs, unit, out = _iterable_helper(
+            *arrays, out=out, axis=axis, **kwargs
+        )
+        return (arrays,), kwargs, unit, out
+else:
+
+    @function_helper
+    def concatenate(arrays, /, axis=0, out=None, **kwargs):
+        # TODO: make this smarter by creating an appropriately shaped
+        # empty output array and just filling it.
+        arrays, kwargs, unit, out = _iterable_helper(
+            *arrays, out=out, axis=axis, **kwargs
+        )
+        return (arrays,), kwargs, unit, out
 
 
 def _block(arrays, max_depth, result_ndim, depth=0):
@@ -592,12 +617,37 @@ def require(a, dtype=None, requirements=None):
     return (a, dtype, requirements), {}, out_unit, None
 
 
-@function_helper
-def array(object, dtype=None, *, copy=True, order="K", subok=False, ndmin=0):
+if not NUMPY_LT_2_4:
+
+    @function_helper
+    def array(
+        object, dtype=None, *, copy=True, order="K", subok=False, ndmin=0, ndmax=0
+    ):
+        return array_impl(
+            object,
+            dtype=dtype,
+            copy=copy,
+            order=order,
+            subok=subok,
+            ndmin=ndmin,
+            ndmax=ndmax,
+        )
+else:
+
+    @function_helper
+    def array(object, dtype=None, *, copy=True, order="K", subok=False, ndmin=0):
+        return array_impl(
+            object, dtype=dtype, copy=copy, order=order, subok=subok, ndmin=ndmin
+        )
+
+
+def array_impl(object, *, dtype, copy, order, subok, ndmin, ndmax=0):
     out_unit = getattr(object, "unit", UNIT_FROM_LIKE_ARG)
     if out_unit is not UNIT_FROM_LIKE_ARG:
         object = _as_quantity(object).value
     kwargs = {"copy": copy, "order": order, "subok": subok, "ndmin": ndmin}
+    if not NUMPY_LT_2_4:
+        kwargs |= {"ndmax": ndmax}
     return (object, dtype), kwargs, out_unit, None
 
 
@@ -777,7 +827,7 @@ def pad(array, pad_width, mode="constant", **kwargs):
 
 
 @function_helper
-def where(condition, *args):
+def where(condition, /, *args):
     from astropy.units import Quantity
 
     if isinstance(condition, Quantity) or len(args) != 2:
@@ -880,14 +930,14 @@ def cross_like_a_b(a, b, *args, **kwargs):
     return (a.view(np.ndarray), b.view(np.ndarray)) + args, kwargs, unit, None
 
 
-@function_helper(
-    helps={
-        np.inner,
-        np.vdot,
-        np.correlate,
-        np.convolve,
-    }
-)
+@function_helper(helps={np.inner, np.vdot})
+def cross_like_a_b_posonly(a, b, /):
+    a, b = _as_quantities(a, b)
+    unit = a.unit * b.unit
+    return (a.view(np.ndarray), b.view(np.ndarray)), {}, unit, None
+
+
+@function_helper(helps={np.correlate, np.convolve})
 def cross_like_a_v(a, v, *args, **kwargs):
     a, v = _as_quantities(a, v)
     unit = a.unit * v.unit
@@ -911,7 +961,7 @@ def einsum(*operands, out=None, **kwargs):
 
 
 @function_helper
-def bincount(x, weights=None, minlength=0):
+def bincount(x, /, weights=None, minlength=0):
     from astropy.units import Quantity
 
     if isinstance(x, Quantity):
@@ -1277,7 +1327,15 @@ def array2string(a, *args, **kwargs):
     # also work around this by passing on a formatter (as is done in Angle).
     # So, we do nothing if the formatter argument is present and has the
     # relevant formatter for our dtype.
-    formatter = args[6] if len(args) >= 7 else kwargs.get("formatter")
+    import inspect
+
+    sig = inspect.signature(np.array2string)
+    formatter_arg_pos = list(sig.parameters).index("formatter") - 1
+    formatter = (
+        args[formatter_arg_pos]
+        if len(args) >= formatter_arg_pos
+        else kwargs.get("formatter")
+    )
 
     if formatter is None:
         a = a.value
