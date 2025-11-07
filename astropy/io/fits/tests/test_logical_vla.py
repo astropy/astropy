@@ -643,3 +643,58 @@ def test_logical_vla_object_dtype_all_branches(tmp_path):
         # Should contain only 0, 70 (F), and 84 (T) bytes
         unique_bytes = set(heap.tolist())
         assert unique_bytes.issubset({0, 70, 84})
+
+
+def test_logical_vla_backward_compatibility_old_format(tmp_path):
+    """Test backward compatibility: reading files with old invalid byte values.
+
+    Astropy < 8.0 incorrectly wrote 1 for True and 0 for False (or NULL).
+    This test ensures we can still read those files with a warning.
+    """
+    import warnings
+
+    from astropy.utils.exceptions import AstropyUserWarning
+
+    fn = tmp_path / "old_format.fits"
+
+    # Create a FITS file and manually write old-style byte values
+    col = fits.Column(name="old_data", format="PL", array=[[True, False, True]])
+    tab = fits.BinTableHDU.from_columns([col])
+    tab.writeto(fn, overwrite=True)
+
+    # Manually modify the heap to use old byte values (1 instead of 84)
+    with open(fn, "r+b") as f:
+        # Read the entire file
+        f.seek(0)
+        content = bytearray(f.read())
+
+        # Find and replace heap bytes (search for pattern: 84, 70, 84 → 1, 70, 1)
+        # The heap typically starts after 2 HDUs (primary + table)
+        for i in range(len(content) - 2):
+            if content[i] == 84 and content[i + 1] == 70 and content[i + 2] == 84:
+                # Found the heap pattern, replace T (84) with 1
+                content[i] = 1
+                content[i + 2] = 1
+                break
+
+        # Write back
+        f.seek(0)
+        f.write(content)
+
+    # Reading should produce a warning but still work
+    with warnings.catch_warnings(record=True) as warning_list:
+        warnings.simplefilter("always")
+        with fits.open(fn) as hdul:
+            data = hdul[1].data
+            result = data["old_data"][0]
+
+            # Should read as [True, False, True] despite invalid bytes (1, 70, 1)
+            assert result.tolist() == [True, False, True]
+
+    # Verify warning was issued
+    assert len(warning_list) > 0
+    assert any(
+        issubclass(w.category, AstropyUserWarning)
+        and "Non-standard logical byte value" in str(w.message)
+        for w in warning_list
+    )

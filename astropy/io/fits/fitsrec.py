@@ -1039,8 +1039,27 @@ class FITS_rec(np.recarray):
 
                     if ival == 0:
                         out.append(None)
+                    elif ival == ord("T"):  # 84
+                        out.append(True)
+                    elif ival == ord("F"):  # 70
+                        out.append(False)
                     else:
-                        out.append(ival == ord("T"))
+                        # Non-standard byte value detected - backward compatibility
+                        from warnings import warn
+
+                        from astropy.utils.exceptions import AstropyUserWarning
+
+                        warn(
+                            f"Non-standard logical byte value {ival} detected in VLA. "
+                            f"FITS standard requires 0 (NULL), 70 ('F'), or 84 ('T'). "
+                            f"Astropy < 8.0 incorrectly wrote 1 for True and 0 for False. "
+                            f"Interpreting for backward compatibility: 0→NULL, 1→True, other→True. "
+                            f"Consider regenerating this file with Astropy 8.0+.",
+                            AstropyUserWarning,
+                            stacklevel=4,
+                        )
+                        # Backward compatibility: treat 1 as True, anything else as True
+                        out.append(ival != 0)
 
                 field = np.array(out, dtype=object)
             else:
