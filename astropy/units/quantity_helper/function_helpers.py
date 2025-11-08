@@ -516,7 +516,7 @@ def _block(arrays, max_depth, result_ndim, depth=0):
 UNIT_FROM_LIKE_ARG = object()
 
 
-if not NUMPY_LT_2_4:
+if not NUMPY_LT_2_0:
 
     @function_helper
     def arange(
@@ -531,13 +531,7 @@ if not NUMPY_LT_2_4:
         return arange_impl(
             start_or_stop, stop=stop, step=step, dtype=dtype, device=device
         )
-elif not NUMPY_LT_2_0:
 
-    @function_helper
-    def arange(start_or_stop, /, stop=None, step=1, dtype=None, device=None):
-        return arange_impl(
-            start_or_stop, stop=stop, step=step, dtype=dtype, device=device
-        )
 else:
 
     @function_helper
