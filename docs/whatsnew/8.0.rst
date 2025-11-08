@@ -41,6 +41,7 @@ The following deprecated modules have been removed:
 - ``astropy.cosmology.core``
 - ``astropy.cosmology.flrw``
 - ``astropy.cosmology.funcs``
+- ``astropy.cosmology.parameter``
 
 **Migration Guide**
 
