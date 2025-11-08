@@ -3,23 +3,21 @@
 
 __all__ = ["BaryonComponent"]
 
-from collections.abc import Callable
-from typing import Any
 
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
+from .hubble import _HasH0overH
 
-class BaryonComponent:
+
+class BaryonComponent(_HasH0overH):
     """The cosmology has attributes and methods for the baryon density."""
 
     Ob0: float
     """Omega baryons: density of baryonic matter in units of the critical density at z=0."""
-
-    inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
 
     @deprecated_keywords("z", since="7.0")
     def Ob(self, z: Quantity | ArrayLike) -> FArray:

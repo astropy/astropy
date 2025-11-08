@@ -15,8 +15,10 @@ from numpy.typing import ArrayLike, NDArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
+from .hubble import _HasH0overH
 
-class CurvatureComponent:
+
+class CurvatureComponent(_HasH0overH):
     """The object has attributes and methods related to the global curvature.
 
     This is a trait class; it is not meant to be instantiated directly, but

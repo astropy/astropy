@@ -8,7 +8,7 @@ __all__ = ["HubbleParameter"]
 
 from collections.abc import Callable
 from functools import cached_property
-from typing import Any
+from typing import Any, Protocol
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -18,6 +18,18 @@ from astropy import constants as const
 from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import deprecated_keywords
 from astropy.units import Quantity
+
+
+class _HasHoverH0(Protocol):  # noqa: PYI046
+    """Protocol for objects that have method ``efunc``."""
+
+    def efunc(self, z: Quantity | ArrayLike, /) -> NDArray[Any]: ...
+
+
+class _HasH0overH(Protocol):  # noqa: PYI046
+    """Protocol for objects that have method ``inv_efunc``."""
+
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> NDArray[Any]: ...
 
 
 class HubbleParameter:
