@@ -6,25 +6,6 @@ import warnings
 import pytest
 
 
-def test_connect():
-    """Test `astropy.cosmology.connect`."""
-    from astropy.cosmology import connect
-
-    try:
-        del connect.CosmologyFromFormat
-    except Exception:
-        pass
-
-    with (
-        warnings.catch_warnings(),  # Always raise warning so 2x test sees it too.
-        pytest.deprecated_call(
-            match=re.escape("The module `astropy.cosmology.connect` is deprecated"),
-        ),
-    ):
-        warnings.simplefilter("always")
-        from astropy.cosmology.connect import CosmologyFromFormat  # noqa: F401
-
-
 def test_core():
     """Test `astropy.cosmology.core`."""
     from astropy.cosmology import core
