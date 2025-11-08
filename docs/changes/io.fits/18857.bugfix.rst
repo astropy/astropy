@@ -1,0 +1,1 @@
+Fixed FITS card string regex to properly handle escaped quotes within string values.
