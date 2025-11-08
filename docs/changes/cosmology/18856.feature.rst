@@ -1,3 +1,4 @@
 Removed deprecated module-level shim files (``astropy.cosmology.connect``,
-``astropy.cosmology.core``), which were deprecated in v7.1. All cosmology classes and
-functions should be imported directly from ``astropy.cosmology``.
+``astropy.cosmology.core``, ``astropy.cosmology.flrw``), which were deprecated in v7.1.
+All cosmology classes and functions should be imported directly from
+``astropy.cosmology``.

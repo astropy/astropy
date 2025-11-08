@@ -6,25 +6,6 @@ import warnings
 import pytest
 
 
-def test_flrw():
-    """Test `astropy.cosmology.core`."""
-    from astropy.cosmology import flrw
-
-    try:
-        del flrw.FLRW
-    except Exception:
-        pass
-
-    with (
-        warnings.catch_warnings(),  # Always raise warning so 2x test sees it too.
-        pytest.deprecated_call(
-            match=re.escape("The module `astropy.cosmology.flrw` is deprecated"),
-        ),
-    ):
-        warnings.simplefilter("always")
-        from astropy.cosmology.flrw import FLRW  # noqa: F401
-
-
 def test_funcs():
     """Test `astropy.cosmology.core`."""
     from astropy.cosmology import funcs

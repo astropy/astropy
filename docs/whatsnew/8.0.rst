@@ -39,6 +39,7 @@ The following deprecated modules have been removed:
 
 - ``astropy.cosmology.connect``
 - ``astropy.cosmology.core``
+- ``astropy.cosmology.flrw``
 
 **Migration Guide**
 
@@ -49,10 +50,11 @@ Before:
 
 .. code-block:: python
 
+    from astropy.cosmology.flrw import FlatLambdaCDM
     from astropy.cosmology.core import Cosmology
 
 After:
 
 .. code-block:: python
 
-    from astropy.cosmology import Cosmology
+    from astropy.cosmology import Cosmology, FlatLambdaCDM
