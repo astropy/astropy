@@ -402,13 +402,13 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
                 id="pos: stop, None",
             ),
             pytest.param(
-                (10 * u.radian, None, None if NUMPY_LT_2_4 else 1),
+                (10 * u.radian, None, 1),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, None, <default-step>",
+                id="pos: stop, None, 1",
             ),
             pytest.param(
-                (10 * u.radian, None, None, None),
+                (10 * u.radian, None, 1, None),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
                 id="pos: stop, None, None, None",

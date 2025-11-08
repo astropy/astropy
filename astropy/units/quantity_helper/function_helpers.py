@@ -36,7 +36,6 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 import functools
 import operator
-from enum import Enum, auto
 
 import numpy as np
 from numpy.lib import recfunctions as rfn
@@ -516,21 +515,6 @@ def _block(arrays, max_depth, result_ndim, depth=0):
 UNIT_FROM_LIKE_ARG = object()
 
 
-class ArangeDefaults(Enum):
-    # np.arange had a change in step's default argument in version 2.4
-    # In order to make the logic of our wrapper as robust as possible
-    # (essentially, avoiding branching multiple times on numpy's version),
-    # we'll use a single-member-enum as a singleton that can, crucially, be
-    # matched against.
-    #
-    # Note that a simple sentinel object() wouldn't do, as its name may be
-    # rebinded locally within a `case` statement.
-    #
-    # It should be possible to remove this class completely once
-    # NUMPY_LT_2_4 is dropped.
-    STEP = auto()
-
-
 if not NUMPY_LT_2_4:
 
     @function_helper
@@ -543,26 +527,20 @@ if not NUMPY_LT_2_4:
         dtype=None,
         device=None,
     ):
-        if step == 1:
-            step = ArangeDefaults.STEP
         return arange_impl(
             start_or_stop, stop=stop, step=step, dtype=dtype, device=device
         )
 elif not NUMPY_LT_2_0:
 
     @function_helper
-    def arange(start_or_stop, /, stop=None, step=None, dtype=None, device=None):
-        if step == None:
-            step = ArangeDefaults.STEP
+    def arange(start_or_stop, /, stop=None, step=1, dtype=None, device=None):
         return arange_impl(
             start_or_stop, stop=stop, step=step, dtype=dtype, device=device
         )
 else:
 
     @function_helper
-    def arange(start_or_stop, /, stop=None, step=None, dtype=None):
-        if step == None:
-            step = ArangeDefaults.STEP
+    def arange(start_or_stop, /, stop=None, step=1, dtype=None):
         return arange_impl(start_or_stop, stop=stop, step=step, dtype=dtype)
 
 
@@ -580,9 +558,9 @@ def arange_impl(start_or_stop, /, *, stop, step, dtype, device=None):
         # (start, stop, step), so no additional logic is actually needed after
         # a match is found.
         match (start_or_stop, _stop, _step):
-            case (stop, None as start, ArangeDefaults.STEP as step):
+            case (stop, None as start, 1 as step):
                 pass
-            case (start, stop, ArangeDefaults.STEP as step):
+            case (start, stop, 1 as step):
                 pass
             case (start, stop, step):
                 pass
@@ -612,10 +590,10 @@ def arange_impl(start_or_stop, /, *, stop, step, dtype, device=None):
         assert stop is not None, "Please report this."
 
         match start, stop, step:
-            case (None, _, ArangeDefaults.STEP):
+            case (None, _, 1):
                 qty_args = (stop,)
                 kwargs = {}
-            case (_, _, ArangeDefaults.STEP):
+            case (_, _, 1):
                 qty_args = (start, stop)
                 kwargs = {}
             case (None, _, _):
