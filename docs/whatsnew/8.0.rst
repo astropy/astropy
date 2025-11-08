@@ -38,3 +38,21 @@ cosmology classes and functions must be imported directly from ``astropy.cosmolo
 The following deprecated modules have been removed:
 
 - ``astropy.cosmology.connect``
+- ``astropy.cosmology.core``
+
+**Migration Guide**
+
+If your code was still using the old import paths, you need to update them to import
+directly from ``astropy.cosmology``.
+
+Before:
+
+.. code-block:: python
+
+    from astropy.cosmology.core import Cosmology
+
+After:
+
+.. code-block:: python
+
+    from astropy.cosmology import Cosmology
