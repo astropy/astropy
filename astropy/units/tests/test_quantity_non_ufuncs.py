@@ -407,15 +407,6 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
                 id="pos: stop, None, 1",
             ),
-            pytest.param(
-                (10 * u.radian, None, 1, None),
-                {},
-                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, None, None, None",
-                marks=pytest.mark.skipif(
-                    not NUMPY_LT_2_4, reason="dtype is keyword-only in 2.4+"
-                ),
-            ),
         ],
     )
     def test_arange(self, args, kwargs, expected):
@@ -435,14 +426,6 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert type(arr) is AngularUnits
         assert arr.unit == u.radian
         assert arr.dtype == np.dtype(float)
-        assert_array_equal(arr.value, np.arange(10))
-
-    @pytest.mark.skipif(not NUMPY_LT_2_4, reason="dtype is keyword-only in 2.4+")
-    def test_arange_pos_dtype(self):
-        arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
-        assert type(arr) is u.Quantity
-        assert arr.unit == u.s
-        assert arr.dtype == np.dtype(int)
         assert_array_equal(arr.value, np.arange(10))
 
     def test_arange_default_unit(self):

@@ -535,7 +535,7 @@ if not NUMPY_LT_2_0:
 else:
 
     @function_helper
-    def arange(start_or_stop, /, stop=None, step=1, dtype=None):
+    def arange(start_or_stop, /, stop=None, step=1, *, dtype=None):
         return arange_impl(start_or_stop, stop=stop, step=step, dtype=dtype)
 
 
