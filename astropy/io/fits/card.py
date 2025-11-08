@@ -66,7 +66,8 @@ class Card(_Verify):
 
     # Used in cards using the CONTINUE convention which expect a string
     # followed by an optional comment
-    _strg = r"\'(?P<strg>([ -~]+?|\'\'|) *?)\'(?=$|/| )"
+    _strg = r"\'(?P<strg>(?:[ -&(-~]|\'\')*?)\'(?= *(?:$|/| ))"
+
     _comm_field = r"(?P<comm_field>(?P<sepr>/ *)(?P<comm>(.|\n)*))"
     _strg_comment_RE = re.compile(f"({_strg})? *{_comm_field}?$")
 
