@@ -36,6 +36,7 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 import functools
 import operator
+from collections import Counter
 
 import numpy as np
 from numpy.lib import recfunctions as rfn
@@ -544,33 +545,111 @@ else:
         return arange_impl(start_or_stop, stop=stop, step=step, dtype=dtype)
 
 
+Missing = object()
+
+
+def unwrap_arange_args_v1(
+    *args, start_=Missing, stop_=Missing, step_=Missing, dtype_=Missing
+):
+    n_args = len(args)
+    n_missing = Counter((start_, stop_, step_, dtype_))[Missing]
+
+    assert n_args <= 4
+    assert len(args) == n_missing
+
+    if dtype_ is Missing:
+        dtype = None
+    else:
+        dtype = dtype_
+
+    # bind positional arguments to their meaningful names
+    # following the (complex) logic of np.arange
+    match args:
+        case (pos1,):
+            assert stop_ is Missing or start_ is Missing
+            if stop_ is Missing:
+                stop = pos1
+            elif start_ is Missing:
+                start = pos1
+        case start, stop, *rest:
+            if start is not Missing and stop is Missing:
+                start, stop = stop, start
+            match rest:
+                # rebind step and dtype if possible
+                case (step,):
+                    pass
+                case step, dtype:
+                    assert dtype_ is Missing
+
+    return start, stop, step, dtype
+
+
+def unwrap_arange_args_v2(*, start_or_stop, stop_, step_):
+    # handle the perilous task of disentangling original arguments
+    # This isn't trivial because start_or_stop may actually bind to two
+    # different inputs, as the name suggests.
+    # We (ab)use structural pattern matching here to bind output variables
+    # (start, stop, step), so no additional logic is actually needed after
+    # a match is found.
+    match (start_or_stop, stop_, step_):
+        case (stop, None as start, 1 as step):
+            pass
+        case (start, stop, 1 as step):
+            pass
+        case (start, stop, step):
+            pass
+
+    # purely defensive programming
+    assert stop is not None, "Please report this."
+    return start, stop, step
+
+
+def wrap_arange_args(*, start, stop, step, expected_out_unit):
+    # do the reverse operation than unwrap_arange_args
+    # this is needed because start_or_stop *must* be passed as positional
+    # (starting in numpy 2.4)
+
+    # purely defensive programming
+    assert stop is not None, "Please report this."
+
+    match start, stop, step:
+        case (None, _, 1):
+            qty_args = (stop,)
+            kwargs = {}
+        case (_, _, 1):
+            qty_args = (start, stop)
+            kwargs = {}
+        case (None, _, _):
+            qty_args = (stop,)
+            kwargs = {"step": step}
+        case _:
+            qty_args = (start, stop)
+            kwargs = {"step": step}
+
+    # reverse positional arguments so `stop`` always comes first
+    # this is done to ensure that the arrays are first converted to the
+    # expected unit, which we guarantee should be stop's
+    args_rev, out_unit = _quantities2arrays(*reversed(qty_args))
+    if expected_out_unit is not UNIT_FROM_LIKE_ARG:
+        assert out_unit == expected_out_unit
+    if hasattr(stop, "unit"):
+        assert out_unit == stop.unit
+
+    # reverse args again to restore initial order
+    args = tuple(reversed(args_rev))
+
+    if "step" in kwargs:
+        kwargs["step"] = step.to_value(out_unit)
+    return args, kwargs
+
+
 def arange_impl(start_or_stop, /, *, stop, step, dtype, device=None):
     # Because this wrapper requires exceptional amounts of additional logic
     # to decode/encode its complicated signature, we'll sprinkle a few
     # sanity checks in the form of `assert` statements, which should help making
     # heads or tails of what's happening in the event of an unexpected exception.
-
-    def parse_start_stop_step(*, start_or_stop, _stop, _step):
-        # handle the perilous task of disentangling original arguments
-        # This isn't trivial because start_or_stop may actually bind to two
-        # different inputs, as the name suggests.
-        # We (ab)use structural pattern matching here to bind output variables
-        # (start, stop, step), so no additional logic is actually needed after
-        # a match is found.
-        match (start_or_stop, _stop, _step):
-            case (stop, None as start, 1 as step):
-                pass
-            case (start, stop, 1 as step):
-                pass
-            case (start, stop, step):
-                pass
-
-        # purely defensive programming
-        assert stop is not None, "Please report this."
-        return start, stop, step
-
-    start, stop, step = parse_start_stop_step(
-        start_or_stop=start_or_stop, _stop=stop, _step=step
+    start, stop, step = unwrap_arange_args_v2(
+        start_or_stop=start_or_stop, stop_=stop, step_=step
     )
     out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
 
@@ -581,45 +660,9 @@ def arange_impl(start_or_stop, /, *, stop, step, dtype, device=None):
             "stop without a unit cannot be combined with start or step with a unit."
         )
 
-    def wrapup_arguments(*, start, stop, step):
-        # do the reverse operation than parse_start_stop_step
-        # this is needed because start_or_stop *must* be passed as positional
-        # (starting in numpy 2.4)
-
-        # purely defensive programming
-        assert stop is not None, "Please report this."
-
-        match start, stop, step:
-            case (None, _, 1):
-                qty_args = (stop,)
-                kwargs = {}
-            case (_, _, 1):
-                qty_args = (start, stop)
-                kwargs = {}
-            case (None, _, _):
-                qty_args = (stop,)
-                kwargs = {"step": step}
-            case _:
-                qty_args = (start, stop)
-                kwargs = {"step": step}
-
-        # reverse positional arguments so `stop`` always comes first
-        # this is done to ensure that the arrays are first converted to the
-        # expected unit, which we guarantee should be stop's
-        args_rev, out_unit_loc = _quantities2arrays(*reversed(qty_args))
-        if out_unit is not UNIT_FROM_LIKE_ARG:
-            assert out_unit_loc == out_unit
-        if hasattr(stop, "unit"):
-            assert out_unit_loc == stop.unit
-
-        # reverse args again to restore initial order
-        args = tuple(reversed(args_rev))
-
-        if "step" in kwargs:
-            kwargs["step"] = step.to_value(out_unit)
-        return args, kwargs
-
-    args, kwargs = wrapup_arguments(start=start, stop=stop, step=step)
+    args, kwargs = wrap_arange_args(
+        start=start, stop=stop, step=step, expected_out_unit=out_unit
+    )
 
     kwargs["dtype"] = dtype
     if not NUMPY_LT_2_0:
