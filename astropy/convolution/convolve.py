@@ -321,8 +321,10 @@ def convolve(
     # computation. Since nan_treatment = 'interpolate', is the default
     # check whether it is even needed, if not, don't interpolate.
     # NB: np.isnan(array_internal.sum()) is faster than np.isnan(array_internal).any()
-    nan_interpolate = (nan_treatment == "interpolate") and np.isnan(
-        array_internal.sum()
+    # if the boundary is filled with nans, we also need interpolate (i.e.,
+    # ignore nans) enabled
+    nan_interpolate = (nan_treatment == "interpolate") and (
+        (boundary == "fill" and np.isnan(fill_value)) or np.isnan(array_internal.sum())
     )
 
     # Check if kernel is normalizable
