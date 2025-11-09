@@ -640,7 +640,9 @@ collapse_ignore_masked = permute // len(collapse_ignore_masked) * collapse_ignor
 
 @pytest.mark.parametrize(
     "mask, unit, propagate_uncertainties, operation_ignores_mask",
-    zip(collapse_masks, collapse_units, collapse_propagate, collapse_ignore_masked),
+    list(
+        zip(collapse_masks, collapse_units, collapse_propagate, collapse_ignore_masked)
+    ),
 )
 def test_collapse(mask, unit, propagate_uncertainties, operation_ignores_mask):
     # unique set of combinations of each of the N-1 axes for an N-D cube:

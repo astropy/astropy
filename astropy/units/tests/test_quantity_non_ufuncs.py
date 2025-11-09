@@ -2873,14 +2873,16 @@ def test_testing_completeness():
 class TestFunctionHelpersCompleteness:
     @pytest.mark.parametrize(
         "one, two",
-        itertools.combinations(
-            (
-                SUBCLASS_SAFE_FUNCTIONS,
-                UNSUPPORTED_FUNCTIONS,
-                set(FUNCTION_HELPERS.keys()),
-                set(DISPATCHED_FUNCTIONS.keys()),
+        list(
+            itertools.combinations(
+                (
+                    SUBCLASS_SAFE_FUNCTIONS,
+                    UNSUPPORTED_FUNCTIONS,
+                    set(FUNCTION_HELPERS.keys()),
+                    set(DISPATCHED_FUNCTIONS.keys()),
+                ),
+                2,
             ),
-            2,
         ),
     )
     def test_no_duplicates(self, one, two):
