@@ -29,6 +29,7 @@ from astropy.coordinates.builtin_frames import (
     HCRS,
     ICRS,
     ITRS,
+    LSR,
     AltAz,
     Galactic,
     Galactocentric,
@@ -177,6 +178,35 @@ def test_differentialattribute():
     frame2 = TestFrame2(attrtest=dif)
     with pytest.raises(TypeError):
         TestFrame2(attrtest=vel)
+
+
+@pytest.mark.parametrize(
+    "frame, vel_name, extra_kwargs",
+    [
+        (Galactocentric, "galcen_v_sun", {"galcen_distance": 8.34 * u.kpc}),
+        (LSR, "v_bary", {}),
+    ],
+)
+class TestCartesianVelocity:
+    def test_wrong_units_for_v_sun(self, frame, vel_name, extra_kwargs):
+        # Regression test for gh-17969.  No unit and wrong unit give different errors.
+        kwargs = {vel_name: [12.0, 11.0, 10.0]} | extra_kwargs
+        with pytest.raises(TypeError, match="set.*not have a unit"):
+            frame(**kwargs)
+
+        kwargs[vel_name] *= u.km
+        with pytest.raises(
+            u.UnitConversionError, match="'km'.*and 'km / s'.*convertible"
+        ):
+            frame(**kwargs)
+
+    def test_using_differential_representation(self, frame, vel_name, extra_kwargs):
+        # For backward compatibility, allow DifferentialRepresentation.
+        kwargs = {vel_name: [12.0, 11.0, 10.0] * u.km / u.s} | extra_kwargs
+        exp = frame(**kwargs)
+        kwargs[vel_name] = r.CartesianDifferential(kwargs[vel_name])
+        got = frame(**kwargs)
+        assert got == exp
 
 
 def test_create_data_frames():
