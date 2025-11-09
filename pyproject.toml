@@ -754,6 +754,11 @@ constraint-dependencies = [
     "asdf>=2.12.0",
     "asdf-coordinates-schemas>=0.2.0",
 
+    # via pytest
+    # iniconfig 1.0.1 is the first version with proper wheels
+    # this constraint can be removed once pytest>=9.0 is required
+    "iniconfig>=1.0.1",
+
     # reproduce IPython minimal requirements on its dependencies
     # as of version 9.7.0 (dev), the earliest time at which lower bounds
     # started being consistently declared and tested.
