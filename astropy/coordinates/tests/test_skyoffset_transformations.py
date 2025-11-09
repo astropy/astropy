@@ -225,13 +225,15 @@ def test_skycoord_skyoffset_frame():
 
 @pytest.mark.parametrize(
     "from_origin,to_origin",
-    combinations(
-        (
-            ICRS(10.6847929 * u.deg, 41.2690650 * u.deg, M31_DISTANCE),
-            FK5(10.6847929 * u.deg, 41.2690650 * u.deg, M31_DISTANCE),
-            Galactic(121.1744050 * u.deg, -21.5729360 * u.deg, M31_DISTANCE),
-        ),
-        r=2,
+    list(
+        combinations(
+            (
+                ICRS(10.6847929 * u.deg, 41.2690650 * u.deg, M31_DISTANCE),
+                FK5(10.6847929 * u.deg, 41.2690650 * u.deg, M31_DISTANCE),
+                Galactic(121.1744050 * u.deg, -21.5729360 * u.deg, M31_DISTANCE),
+            ),
+            r=2,
+        )
     ),
 )
 def test_m31_coord_transforms(from_origin, to_origin):
