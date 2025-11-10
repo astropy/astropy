@@ -95,13 +95,13 @@ class CCDData(NDDataArray):
 
     uncertainty : `~astropy.nddata.StdDevUncertainty`, \
             `~astropy.nddata.VarianceUncertainty`, \
-            `~astropy.nddata.InverseVariance`, `numpy.ndarray` or \
+            `~astropy.nddata.InverseVariance`, `~numpy.ndarray` or \
             None, optional
-        Uncertainties on the data. If the uncertainty is a `numpy.ndarray`, it
+        Uncertainties on the data. If the uncertainty is a `~numpy.ndarray`, it
         it assumed to be, and stored as, a `~astropy.nddata.StdDevUncertainty`.
         Default is ``None``.
 
-    mask : `numpy.ndarray` or None, optional
+    mask : `~numpy.ndarray` or None, optional
         Mask for the data, given as a boolean Numpy array with a shape
         matching that of the data. The values must be `False` where
         the data is *valid* and `True` when it is not (like Numpy
@@ -110,7 +110,7 @@ class CCDData(NDDataArray):
         ignored.
         Default is ``None``.
 
-    flags : `numpy.ndarray` or `~astropy.nddata.FlagCollection` or None, \
+    flags : `~numpy.ndarray` or `~astropy.nddata.FlagCollection` or None, \
             optional
         Flags giving information about each pixel. These can be specified
         either as a Numpy array of any type with a shape matching that of the
@@ -137,7 +137,7 @@ class CCDData(NDDataArray):
             If the unit is ``None`` or not otherwise specified it will raise a
             ``ValueError``
 
-    psf : `numpy.ndarray` or None, optional
+    psf : `~numpy.ndarray` or None, optional
         Image representation of the PSF at the center of this image. In order
         for convolution to be flux-preserving, this should generally be
         normalized to sum to unity.
@@ -340,12 +340,12 @@ class CCDData(NDDataArray):
         Raises
         ------
         ValueError
-            - If ``self.mask`` is set but not a `numpy.ndarray`.
+            - If ``self.mask`` is set but not a `~numpy.ndarray`.
             - If ``self.uncertainty`` is set but not a astropy uncertainty
               type.
             - If ``self.uncertainty`` is set but has another unit then
               ``self.data``.
-            - If ``self.flags`` is set but not a `numpy.ndarray` or
+            - If ``self.flags`` is set but not a `~numpy.ndarray` or
               `~astropy.nddata.FlagCollection`.
 
         Returns
@@ -637,7 +637,7 @@ def fits_ccddata_reader(
     hdu_flags : str or None, optional
         FITS extension name (or prefix) from which flags should be
         initialized. If a single extension with this exact name exists, flags
-        will be loaded as a `numpy.ndarray`. If multiple extensions exist
+        will be loaded as a `~numpy.ndarray`. If multiple extensions exist
         with names starting with this prefix (e.g., ``'FLAGS_*'``), they will
         be loaded into a `~astropy.nddata.FlagCollection` where the flag
         names are derived by removing the prefix and underscore.
@@ -698,9 +698,7 @@ def fits_ccddata_reader(
             # extensions (FlagCollection)
             # First, look for extensions that start with hdu_flags prefix
             flag_extensions = [
-                name
-                for name in hdus.info(output=False)
-                if isinstance(name[1], str) and name[1].startswith(f"{hdu_flags}_")
+                hdu.name for hdu in hdus if hdu.name.startswith(f"{hdu_flags}_")
             ]
 
             if hdu_flags in hdus and not flag_extensions:
@@ -712,8 +710,7 @@ def fits_ccddata_reader(
                 data_shape = hdus[hdu].data.shape
                 flags = FlagCollection(shape=data_shape)
 
-                for ext_info in flag_extensions:
-                    ext_name = ext_info[1]
+                for ext_name in flag_extensions:
                     # Remove the prefix and underscore to get flag name
                     flag_name = ext_name[len(hdu_flags) + 1 :]
                     flags[flag_name] = hdus[ext_name].data
@@ -841,12 +838,12 @@ def fits_ccddata_writer(
     Raises
     ------
     ValueError
-        - If ``self.mask`` is set but not a `numpy.ndarray`.
+        - If ``self.mask`` is set but not a `~numpy.ndarray`.
         - If ``self.uncertainty`` is set but not a
           `~astropy.nddata.StdDevUncertainty`.
         - If ``self.uncertainty`` is set but has another unit then
           ``self.data``.
-        - If ``self.flags`` is set but not a `numpy.ndarray` or
+        - If ``self.flags`` is set but not a `~numpy.ndarray` or
           `~astropy.nddata.FlagCollection`.
     """
     hdu = ccd_data.to_hdu(

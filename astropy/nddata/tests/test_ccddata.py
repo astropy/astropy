@@ -1195,6 +1195,8 @@ def test_write_read_with_flag_collection(tmp_path):
     assert isinstance(ccd_after.flags, FlagCollection)
     assert len(ccd_after.flags.keys()) == len(ccd_data.flags.keys())
     assert ccd_after.flags.shape == ccd_data.flags.shape
+    assert ccd_after.flags["BAD_PIXEL"].dtype == np.uint8
+    assert ccd_after.flags["SATURATED"].dtype == ">i8"
     np.testing.assert_array_equal(
         ccd_data.flags["BAD_PIXEL"], ccd_after.flags["BAD_PIXEL"]
     )
