@@ -213,8 +213,10 @@ class DistanceMeasures(HubbleParameter):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
+        z, z2 : Quantity ['redshift'], positional-only
+            Input redshifts. If one argument ``z`` is given, the distance
+            :math:`d_M(0, z)` is returned. If two arguments ``z1, z2`` are
+            given, the distance :math:`d_M(z_1, z_2)` is returned.
 
         Returns
         -------
