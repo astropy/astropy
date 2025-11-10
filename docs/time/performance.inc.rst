@@ -14,10 +14,11 @@ using `astropy.time`.
 Broadcasting
 ------------
 
-Like most of Astropy's classes, |Time| can be array-valued and fully supports
-NumPy's `numpy broadcasting <https://numpy.org/doc/stable/user/basics.broadcasting.html>`_.
-The best performance is generally achieved by making full use of broadcasting.
-For example, when calculating light travel times for many sources, it is much
-faster to group all coordinates into a single |SkyCoord| array and call
-:meth:`~astropy.time.Time.light_travel_time` once, rather than looping over
-individual coordinates.
+Like most of Astropy's classes, |Time| can be array-valued and fully
+supports NumPy's `broadcasting <https://numpy.org/doc/stable/user/basics.broadcasting.html>`_ rules.
+The best performance will generally be had when making full use of that.
+For instance, when one wants to calculate the light travel time for
+a large number of sources, rather than loop over them, it is substantially
+faster to put all the sources inside a single |SkyCoord| instance and
+pass that to :meth:`~astropy.time.Time.light_travel_time`. For a detailed
+example, see :ref:`sphx_glr_generated_examples_coordinates_plot_obs-planning.py`.
