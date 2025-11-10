@@ -1,0 +1,2 @@
+Added docstring examples to cosmology traits (``BaryonComponent``), improving
+documentation and demonstrating their usage.
