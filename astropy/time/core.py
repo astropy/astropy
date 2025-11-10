@@ -2203,16 +2203,7 @@ class Time(TimeBase):
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.
             Also, the time conversion to BJD will then include the relativistic correction as well.
-            If ``skycoord`` is an array, the returned ``TimeDelta`` will have the
-            same shape as the input coordinates.
-
-        Notes
-        -----
-        For optimal performance with large arrays of sky coordinates, pass all
-        coordinates as a single `~astropy.coordinates.SkyCoord` array rather than
-        looping over individual coordinates. The vectorized approach is typically
-        10-100x faster for arrays with >1000 sources. See the documentation for
-        examples of efficient usage patterns.
+            The shape will be the broadcast shape of ``skycoord`` and ``location``.
         """
         if kind.lower() not in ("barycentric", "heliocentric"):
             raise ValueError(
