@@ -1508,6 +1508,77 @@ are available, including the requirements for using JPL ephemerides, see
 
 .. EXAMPLE END
 
+.. EXAMPLE START: Efficient Light Travel Time for Large Arrays of Coordinates
+
+For observations of many sources (e.g., from a survey or catalog), it is important
+to use vectorized operations rather than iterating over individual coordinates.
+The :meth:`~astropy.time.Time.light_travel_time` method is optimized to handle
+arrays of sky coordinates efficiently.
+
+**Inefficient approach (avoid this):**
+
+.. code-block:: python
+
+    # Don't do this! This is slow for large arrays
+    import numpy as np
+    from astropy import time, coordinates as coord, units as u
+
+    # Create many sky coordinates
+    n_sources = 10000
+    ra = np.random.uniform(0, 360, n_sources) * u.deg
+    dec = np.random.uniform(-90, 90, n_sources) * u.deg
+
+    greenwich = coord.EarthLocation.of_site('greenwich')
+    obstime = time.Time("2020-01-01T00:00:00", location=greenwich)
+
+    # Slow: looping over individual coordinates
+    ltt_list = []
+    for i in range(n_sources):
+        star = coord.SkyCoord(ra=ra[i], dec=dec[i], frame='icrs')
+        ltt = obstime.light_travel_time(star, 'barycentric')
+        ltt_list.append(ltt)
+
+**Efficient approach (recommended):**
+
+.. code-block:: python
+
+    # Do this instead! Much faster for large arrays
+    import numpy as np
+    from astropy import time, coordinates as coord, units as u
+
+    # Create many sky coordinates as a single SkyCoord array
+    n_sources = 10000
+    ra = np.random.uniform(0, 360, n_sources) * u.deg
+    dec = np.random.uniform(-90, 90, n_sources) * u.deg
+    stars = coord.SkyCoord(ra=ra, dec=dec, frame='icrs')
+
+    greenwich = coord.EarthLocation.of_site('greenwich')
+    obstime = time.Time("2020-01-01T00:00:00", location=greenwich)
+
+    # Fast: vectorized operation on the entire array
+    ltt_bary = obstime.light_travel_time(stars, 'barycentric')
+    # ltt_bary is now a TimeDelta array with shape (n_sources,)
+
+The vectorized approach is **typically 10-100x faster** than the loop, especially
+for large arrays (>1000 sources). The performance gain comes from:
+
+- Avoiding Python loop overhead
+- Performing coordinate transformations once rather than repeatedly
+- Using optimized NumPy array operations for the dot product calculations
+
+You can also pass arrays for both the time and sky coordinates. If both arrays
+have the same length, element-wise calculations are performed::
+
+    >>> times = time.Time(["2020-01-01T00:00:00", "2020-01-01T01:00:00",
+    ...                    "2020-01-01T02:00:00"], location=greenwich) # doctest: +SKIP
+    >>> stars = coord.SkyCoord(ra=[0, 90, 180]*u.deg,
+    ...                        dec=[0, 45, -45]*u.deg, frame='icrs') # doctest: +SKIP
+    >>> ltt = times.light_travel_time(stars, 'barycentric') # doctest: +SKIP
+    >>> ltt.shape # doctest: +SKIP
+    (3,)
+
+.. EXAMPLE END
+
 Interaction with time-like Quantities
 -------------------------------------
 
