@@ -615,6 +615,44 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring(c.image)
         assert c.value == testval
 
+    def test_card_string_with_escaped_quotes(self):
+        """
+        Test that strings with escaped quotes (doubled single quotes) are 
+        parsed correctly. Regression test for issue #18831.
+        """
+        # String with escaped quote in the middle
+        c = fits.Card.fromstring("TEST    = 'a '' b'")
+        assert c.value == "a ' b" 
+        
+        # Multiple escaped quotes
+        c = fits.Card.fromstring("TEST    = 'it''s a ''test'''")
+        assert c.value == "it's a 'test'"  
+        
+        # String with escaped quote and comment
+        c = fits.Card.fromstring("TEST    = 'val''ue' / comment")
+        assert c.value == "val'ue"  
+        assert c.comment == "comment"
+        
+        # Empty string should still work
+        c = fits.Card.fromstring("TEST    = ''")
+        assert c.value == ""
+        
+    def test_card_string_invalid_quotes(self):
+        """Test that strings with unmatched quotes raise VerifyError."""
+        c = fits.Card.fromstring("TEST = 'a ' b ' /c'")
+        with pytest.raises(VerifyError):
+            _ = c.value  # Access value to trigger parsing
+
+    def test_card_string_ending_with_escaped_quote(self):
+        """Test string ending with escaped quote."""
+        c = fits.Card.fromstring("TEST = 'test'''")
+        assert c.value == "test'"
+
+    def test_card_string_no_comment(self):
+        """Test string without comment separator."""
+        c = fits.Card.fromstring("TEST = 'value'")
+        assert c.value == "value"
+        
     def test_continue_card_with_equals_in_value(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/117
