@@ -26,6 +26,14 @@ class BasicHeader(core.BaseHeader):
     comment = r"\s*#"
     write_comment = "# "
 
+    def write_comments(self, lines, meta):
+        """Write comment lines, skipping empty or whitespace-only ones."""
+        comments = meta.get("comments", [])
+        for line in comments:
+            if line and line.strip():  # only write non-empty comments
+                lines.append(self.write_comment + line)
+
+
 
 class BasicData(core.BaseData):
     """
