@@ -1,0 +1,1 @@
+Clarified that ``Time.light_travel_time()`` is optimized for arrays of sky coordinates. The method docstring and documentation now explicitly show how to efficiently process large catalogues (>1000 sources) using vectorised operations instead of loops, providing 10-100x performance improvements.
