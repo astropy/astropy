@@ -15,7 +15,6 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
-from astropy.units.quantity_helper.helpers import helper_sqrt
 from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -147,7 +146,7 @@ class TestUfuncHelpers:
             return np.sqrt(*args, **kwargs)
 
         def register():
-            return {dummy_ufunc: helper_sqrt}
+            return {dummy_ufunc: qh.UFUNC_HELPERS[np.sqrt]}
 
         workers = 8
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
@@ -163,7 +162,7 @@ class TestUfuncHelpers:
                     for i in range(workers)
                 ]
                 values = [future.result() for future in futures]
-                assert values == [helper_sqrt] * workers
+                assert values == [qh.UFUNC_HELPERS[np.sqrt]] * workers
 
 
 class TestQuantityTrigonometricFuncs:
