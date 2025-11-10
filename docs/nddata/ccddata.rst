@@ -120,8 +120,41 @@ included in arithmetic operations or aggregation).
 Flags are one or more additional arrays (of any type) whose shape matches the
 shape of the data. One particularly useful type of flag is a bit planes; for
 more details about bit planes and the functions ``astropy`` provides for
-converting them to binary masks, see :ref:`bitmask_details`. For more details
-on setting flags, see `~astropy.nddata.NDData`.
+converting them to binary masks, see :ref:`bitmask_details`.
+
+A simple example on how to set flags can be:
+
+    >>> rng = np.random.default_rng()
+    >>> data = rng.normal(size=(10, 10), loc=1.0, scale=0.1)
+    >>> ccd = CCDData(data, unit="electron")
+
+    >>> flags = rng.random(size=(10, 10))  # Create a simple flags array
+    >>> ccd = CCDData(data, unit='adu', flags=flags)
+
+Flags can be also set using `~astropy.nddata.FlagCollection`, which provides a
+convenient interface for managing multiple flags.
+
+    >>> ccd = CCDData(data, unit="electron")
+
+    >>> # Create a FlagCollection with different flag types
+    >>> from astropy.nddata import FlagCollection
+    >>> flags = FlagCollection(shape=(100, 100))
+
+    >>> # Add different types of flags
+    >>> flags['COSMIC_RAY'] = rng.integers(0, 2, (100, 100), dtype=bool)
+    >>> flags['SATURATED'] = rng.integers(0, 2, (100, 100), dtype=int)
+    >>> flags['BAD_PIXEL'] = np.zeros((100, 100), dtype=bool)
+    >>> flags['BAD_PIXEL'][50:60, 50:60] = True  # Mark a region as bad
+
+
+Flags support FITS files storing as additional image HDU extensions. In order
+to do this, the user must explicitly provide a key or name for the flags HDU
+when creating the `~astropy.nddata.CCDData` object using the ``hdu_flags``. In
+case that multiple flags are set using `~astropy.nddata.FlagCollection`, they will be stored in a multiple HDUs using the flag collection names, but user
+must still provide a non-empty string to ``hdu_flags`` to indicate that flags should be saved.
+
+    >>> ccd.write('example_flag_collection.fits', hdu_flags='FLAGS')
+    >>> ccd_r = CCDData.read('example_flag_collection.fits', hdu_flags='FLAGS')
 
 WCS
 +++
