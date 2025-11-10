@@ -1112,9 +1112,6 @@ class TestInplaceUfuncs:
         a[:2] += q  # This used to fail
         assert_array_equal(a, np.array([0.125, 1.25, 2.0]))
 
-    @pytest.mark.xfail(
-        reason="Regression test that reveals a bug", raises=u.UnitTypeError
-    )
     def test_ndarray_inplace_op_with_dimensionless_quantity(self):
         # Regression test for #18866 - multiplying a bare array inplace with
         # a dimensionless Quantity required the unit to be u.dimensionless_unscaled.
