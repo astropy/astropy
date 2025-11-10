@@ -6,6 +6,7 @@ __all__ = ["PhotonComponent"]
 from collections.abc import Callable
 from typing import Any
 
+import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.cosmology._src.typing import FArray
@@ -16,7 +17,7 @@ from astropy.units import Quantity
 class PhotonComponent:
     """The cosmology has attributes and methods for the photon density."""
 
-    Ogamma0: float
+    Ogamma0: float | np.floating
     """Omega gamma; the density/critical density of photons at z=0."""
 
     inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
