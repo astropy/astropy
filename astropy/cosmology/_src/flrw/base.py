@@ -327,15 +327,6 @@ class FLRW(
     @Ob0.validator
     def Ob0(self, param: Parameter, value: Any) -> float:
         """Validate baryon density to a non-negative float > matter density."""
-        if value is None:
-            warnings.warn(
-                "Ob0=None is deprecated, use Ob0=0 instead, "
-                "which never causes methods to raise exceptions.",
-                category=DeprecationWarning,
-                stacklevel=2,
-            )
-            return 0.0
-
         value = validate_non_negative(self, param, value)
         if value > self.Om0:
             raise ValueError(
