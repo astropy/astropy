@@ -59,7 +59,6 @@ class TestHelioBaryCentric:
         assert hval_arr[1] - hval2 < 1.0 * u.us
         assert bval_arr[0] - bval1 < 1.0 * u.us
         assert bval_arr[1] - bval2 < 1.0 * u.us
-        
 
     @pytest.mark.remote_data
     @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
