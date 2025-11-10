@@ -12,6 +12,7 @@ the 7.2 release.
 
 In particular, this release includes:
 
+* :ref:`whatsnew-8.0-cosmo-simplification`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -27,9 +28,10 @@ Full change log
 To see a detailed list of all changes in version v8.0, including changes in
 API, please see the :ref:`changelog`.
 
+.. _whatsnew-8.0-cosmo-simplification:
 
 Cosmology Module Simplification
-================================
+===============================
 
 The deprecated module-level shim files in ``astropy.cosmology`` have been removed. These
 compatibility modules were originally deprecated in v7.1. With this release, all
