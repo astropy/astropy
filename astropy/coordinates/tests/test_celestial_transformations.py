@@ -303,7 +303,7 @@ def test_lsr_sanity():
     cart_lsr_vel = lsr_diff.represent_as(CartesianRepresentation, base=lsr.data)
     lsr_vel = ICRS(cart_lsr_vel)
     gal_lsr = lsr_vel.transform_to(Galactic()).cartesian.xyz
-    assert allclose(gal_lsr.to(u.km / u.s, u.dimensionless_angles()), lsr.v_bary.d_xyz)
+    assert allclose(gal_lsr.to(u.km / u.s, u.dimensionless_angles()), lsr.v_bary.xyz)
 
     # moving with LSR velocity
     lsr = LSR(
@@ -320,9 +320,7 @@ def test_lsr_sanity():
     cart_vel = icrs_diff.represent_as(CartesianRepresentation, base=icrs.data)
     vel = ICRS(cart_vel)
     gal_icrs = vel.transform_to(Galactic()).cartesian.xyz
-    assert allclose(
-        gal_icrs.to(u.km / u.s, u.dimensionless_angles()), -lsr.v_bary.d_xyz
-    )
+    assert allclose(gal_icrs.to(u.km / u.s, u.dimensionless_angles()), -lsr.v_bary.xyz)
 
 
 def test_hcrs_icrs_differentials():
@@ -387,7 +385,7 @@ def test_lsr_loopback(frame):
     xyz = CartesianRepresentation(1, 2, 3) * u.AU
     xyz = xyz.with_differentials(CartesianDifferential(4, 5, 6) * u.km / u.s)
 
-    v_bary = CartesianDifferential(5, 10, 15) * u.km / u.s
+    v_bary = CartesianRepresentation(5, 10, 15) * u.km / u.s
 
     # Test that the loopback properly handles a change in v_bary
     from_coo = frame(xyz)  # default v_bary
