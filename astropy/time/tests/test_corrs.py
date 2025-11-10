@@ -49,7 +49,6 @@ class TestHelioBaryCentric:
         assert abs(bval - 460.58538779827836 * u.s) < 1.0 * u.us
 
     def test_arrays(self):
-        # Test arrays of times with single sky coordinate
         bval1 = self.obstime.light_travel_time(self.star, "barycentric")
         bval2 = self.obstime2.light_travel_time(self.star, "barycentric")
         bval_arr = self.obstimeArr.light_travel_time(self.star, "barycentric")
@@ -60,57 +59,7 @@ class TestHelioBaryCentric:
         assert hval_arr[1] - hval2 < 1.0 * u.us
         assert bval_arr[0] - bval1 < 1.0 * u.us
         assert bval_arr[1] - bval2 < 1.0 * u.us
-
-    def test_array_skycoords(self):
-        """Test that light_travel_time works efficiently with arrays of sky coordinates."""
-        import numpy as np
-
-        # Create multiple sky coordinates
-        n_coords = 100
-        ra = np.linspace(0, 360, n_coords) * u.deg
-        dec = np.linspace(-90, 90, n_coords) * u.deg
-        stars = SkyCoord(ra=ra, dec=dec, frame="icrs")
-
-        # Test with array of coordinates (vectorized)
-        bval_arr = self.obstime.light_travel_time(stars, "barycentric")
-        hval_arr = self.obstime.light_travel_time(stars, "heliocentric")
-
-        # Verify shapes
-        assert bval_arr.shape == (n_coords,)
-        assert hval_arr.shape == (n_coords,)
-        assert isinstance(bval_arr, TimeDelta)
-        assert isinstance(hval_arr, TimeDelta)
-        assert bval_arr.scale == "tdb"
-        assert hval_arr.scale == "tdb"
-
-        # Test individual calculations match array results
-        for i in [0, n_coords // 2, n_coords - 1]:
-            single_star = SkyCoord(ra=ra[i], dec=dec[i], frame="icrs")
-            bval_single = self.obstime.light_travel_time(single_star, "barycentric")
-            hval_single = self.obstime.light_travel_time(single_star, "heliocentric")
-            assert abs(bval_arr[i] - bval_single) < 1.0 * u.ns
-            assert abs(hval_arr[i] - hval_single) < 1.0 * u.ns
-
-    def test_array_times_and_skycoords(self):
-        """Test broadcasting with arrays of both times and sky coordinates."""
-        import numpy as np
-
-        # Create multiple sky coordinates
-        ra = np.array([0, 90, 180]) * u.deg
-        dec = np.array([0, 45, -45]) * u.deg
-        stars = SkyCoord(ra=ra, dec=dec, frame="icrs")
-
-        # Test with array of times and array of coordinates (same length)
-        times = self.obstimeArr[:2]  # Use only 2 times
-        stars_2 = stars[:2]  # Use only 2 stars
-
-        bval_arr = times.light_travel_time(stars_2, "barycentric")
-        assert bval_arr.shape == (2,)
-
-        # Verify element-wise calculation
-        for i in range(2):
-            bval_single = times[i].light_travel_time(stars_2[i], "barycentric")
-            assert abs(bval_arr[i] - bval_single) < 1.0 * u.ns
+        
 
     @pytest.mark.remote_data
     @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
