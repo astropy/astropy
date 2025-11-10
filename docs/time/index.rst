@@ -1506,6 +1506,8 @@ should be suitable for most purposes. For more details about what ephemerides
 are available, including the requirements for using JPL ephemerides, see
 :ref:`astropy-coordinates-solarsystem`.
 
+.. EXAMPLE END
+
 Interaction with time-like Quantities
 -------------------------------------
 
