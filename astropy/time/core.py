@@ -2184,13 +2184,11 @@ class Time(TimeBase):
         Parameters
         ----------
         skycoord : `~astropy.coordinates.SkyCoord`
-            The sky location to calculate the correction for. Can be a scalar
-            or an array of coordinates. For large arrays (>1000 sources), this
-            method is optimized to use vectorized operations rather than looping.
+            The sky location(s) to calculate the correction for.
         kind : str, optional
             ``'barycentric'`` (default) or ``'heliocentric'``
         location : `~astropy.coordinates.EarthLocation`, optional
-            The location of the observatory to calculate the correction for.
+            The location(s) of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
         ephemeris : str, optional
