@@ -18,21 +18,16 @@ In particular, this release includes:
 * :ref:`whatsnew-7.2-cosmology`
 * :ref:`whatsnew-7.2-fits-wcs-units`
 * :ref:`whatsnew-7.2-cls-concat-stack`
-* ...
 
 In addition to these major changes, Astropy v7.2 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* X issues have been closed since v7.1
-* X pull requests have been merged since v7.1
-* X distinct people have contributed code
-
-Full change log
-===============
-
-To see a detailed list of all changes in version v7.2, including changes in
-API, please see the :ref:`changelog`.
+* 830 commits have been added since 7.1
+* 140 issues have been closed since 7.1
+* 310 pull requests have been merged since 7.1
+* 49 people have contributed since 7.1
+* 22 of which are new contributors
 
 .. _whatsnew-7.2-faster-ecsv-tab-rdr:
 
@@ -167,8 +162,8 @@ astropy 9.0.  Here the index identifier was the first element of the item, e.g.,
 
 .. _whatsnew-7.2-cosmology:
 
-Cosmology
-=========
+Cosmology traits
+================
 
 The :mod:`~astropy.cosmology.traits` module provides reusable components, called
 :term:`traits <trait type>`, that encapsulate specific cosmological properties or
@@ -325,3 +320,68 @@ that the existing functions allowed one to concatenate scalars together with
 one-dimensional arrays, while this is not allowed with `~numpy.concatenate`.
 Instead, like for arrays, one has to explicitly ensure arrays, e.g., by using
 ``np.concatenate(np.atleast_1d(coords))``.
+
+Full change log
+===============
+
+To see a detailed list of all changes in version v7.2, including changes in
+API, please see the :ref:`changelog`.
+
+Contributors to the 7.2 release
+===============================
+
+The people who have contributed to the code for this release are:
+
+.. hlist::
+  :columns: 4
+
+  -  Adrien Thob  *
+  -  Albert Y. Shih
+  -  Alex Fox  *
+  -  Antonio Bento Pereira  *
+  -  Benjamin Scully  *
+  -  Brigitta Sipőcz
+  -  Caspar van Leeuwen  *
+  -  Chiara Marmo
+  -  Clément Robert
+  -  Eero Vaher
+  -  Elise Chavez  *
+  -  Emily Hu  *
+  -  Evan Jones  *
+  -  Everett Schlawin  *
+  -  Finn Womack  *
+  -  Hans Moritz Günther
+  -  Harshada Raut  *
+  -  Igor Lemos
+  -  Jackson Hayward  *
+  -  James Turner
+  -  Kim Searle  *
+  -  Larry Bradley
+  -  Leo Singer
+  -  Manon Marchand
+  -  Marten van Kerkwijk
+  -  Matthieu Bec
+  -  Maximilian Linhoff
+  -  Michael Belfrage  *
+  -  Mihai Cara
+  -  Mohsin Mehmood  *
+  -  Nathaniel Starkman
+  -  P\. L\. Lim
+  -  Peter Scicluna  *
+  -  Pieter Eendebak  *
+  -  Preshanth Jagannathan  *
+  -  Raphael Erik Hviding  *
+  -  Sam Lee
+  -  Shreeharsh Shinde  *
+  -  Simon Conseil
+  -  Sonu Singh  *
+  -  Stelios Voutsinas  *
+  -  Stuart Mumford
+  -  Thomas Robitaille
+  -  Tiago Gomes
+  -  Tim Jenness
+  -  Tom Aldcroft
+  -  Varun Nikam
+  -  William Jamieson
+
+Where a * indicates that this release contains their first contribution to astropy.
