@@ -5,8 +5,19 @@
 
 .. _astropy-time-performance:
 
-.. Performance Tips
-.. ================
-..
-.. Here we provide some tips and tricks for how to optimize performance of code
-.. using `astropy.time`.
+Performance Tips
+================
+
+Here we provide some tips and tricks for how to optimize performance of code
+using `astropy.time`.
+
+Broadcasting
+------------
+
+Like most of Astropy’s classes, |Time| can be array-valued and fully supports
+NumPy’s :ref:`broadcasting rules <numpy:basics.broadcasting>`.
+The best performance is generally achieved by making full use of broadcasting.
+For example, when calculating light travel times for many sources, it is much
+faster to group all coordinates into a single |SkyCoord| array and call
+:meth:`~astropy.time.Time.light_travel_time` once, rather than looping over
+individual coordinates.
