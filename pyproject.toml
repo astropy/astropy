@@ -325,6 +325,9 @@ archs = ["auto", "aarch64"]
             "*/astropy/utils/compat/*",
             "*/astropy/version*",
             "*/astropy/wcs/docstrings*",
+            # generated test files
+            "*/test_parsing_lextab_*.py",
+            "*/test_parsing_parsetab_*.py",
         ]
 
     [tool.coverage.report]
