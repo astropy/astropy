@@ -136,11 +136,11 @@ affected test(s).
 Test coverage reports
 ---------------------
 
-Coverage reports can be generated using the `pytest-cov
-<https://pypi.org/project/pytest-cov/>`_ plugin (which is installed
-automatically when installing pytest-astropy) by using e.g.::
+Coverage reports can be generated using the coverage (which is installed
+automatically when installing astropy with the ``test`` extra) by using e.g.::
 
-    pytest --cov astropy --cov-report html
+    coverage run -m pytest astropy
+    coverage html
 
 There is some configuration inside the ``pyproject.toml`` file that
 defines files to omit as well as lines to exclude.
