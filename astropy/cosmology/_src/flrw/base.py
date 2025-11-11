@@ -64,9 +64,6 @@ a_B_c2: Final = (4 * const.sigma_sb / const.c**3).cgs.value
 # Boltzmann constant in eV / K
 kB_evK: Final = const.k_B.to(u.eV / u.K)
 
-# Note: Neutrino physics constants (NEUTRINO_FERMI_DIRAC_CORRECTION, KOMATSU_P, etc.)
-# are now defined in astropy.cosmology._src.traits.neutrino and imported above.
-# They are re-exported from this module for backward compatibility.
 
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")

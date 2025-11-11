@@ -17,6 +17,7 @@ provides the Hubble constant (``H0``) and related methods, while
 :class:`~astropy.cosmology.traits.BaryonComponent`,
 :class:`~astropy.cosmology.traits.PhotonComponent`,
 :class:`~astropy.cosmology.traits.TotalComponent`,
+:class:`~astropy.cosmology.traits.NeutrinoComponent`,
 :class:`~astropy.cosmology.traits.MatterComponent`, and
 :class:`~astropy.cosmology.traits.CriticalDensity` traits provide the scale factor, the temperature or the CMB, the Dark Energy component, and the Dark Matter component,
 respectively.
@@ -34,6 +35,7 @@ Here is an example of how to use the
 :class:`~astropy.cosmology.traits.BaryonComponent`,
 :class:`~astropy.cosmology.traits.PhotonComponent`,
 :class:`~astropy.cosmology.traits.TotalComponent`,
+:class:`~astropy.cosmology.traits.NeutrinoComponent`,
 :class:`~astropy.cosmology.traits.MatterComponent`, and
 :class:`~astropy.cosmology.traits.CriticalDensity` traits in custom cosmology classes:
 
@@ -50,14 +52,15 @@ Here is an example of how to use the
 ...     MatterComponent,
 ...     CriticalDensity,
 ...     PhotonComponent,
+...     NeutrinoComponent,
 ...     TotalComponent,
 ... )
 >>> class CustomStandardCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB,
 ...                              DarkEnergyComponent, DarkMatterComponent, BaryonComponent,
-...                              MatterComponent, CriticalDensity, PhotonComponent, TotalComponent):
+...                              MatterComponent, CriticalDensity, PhotonComponent,
+...                              TotalComponent, NeutrinoComponent):
 ...     """Mimics standard ΛCDM cosmology with Planck 2018 parameters."""
-...     is_flat = False
-...     def __init__(self, H0=67.66, Om0=0.3111, Ode0=0.6889, Ob0=0.0490, Tcmb0=2.7255, Ogamma0=5.38e-5):
+...     def __init__(self, H0=67.66, Om0=0.3111, Ode0=0.6889, Ob0=0.0490, Tcmb0=2.7255, Ogamma0=5.38e-5, Onu0=3.046):
 ...         self.H0 = H0 << (u.km / u.s / u.Mpc)
 ...         self.Om0 = Om0
 ...         self.Ode0 = Ode0
@@ -69,7 +72,6 @@ Here is an example of how to use the
 ...         self.Ok0 = 0.0
 ...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
 ...         self.Ogamma0 = Ogamma0  # Photon density parameter
-...         self.is_flat = bool(abs(self.Otot0 - 1.0) < 1e-12)
 ...         super().__init__()
 ...
 ...     def w(self, z):
@@ -87,9 +89,13 @@ Here is an example of how to use the
 ...         return np.float64(1.0 - self.Ok0)
 ...
 ...     def Otot(self, z):
-...         """Total density parameter at redshift z as the sum of all components."""
-...         z = np.asarray(z)
-...         return self.Om(z) + self.Ogamma(z) + self.Ode(z)
+...         """Total density parameter at redshift z using curvature relation."""
+...         return 1.0 - self.Ok(z)
+...
+...     @property
+...     def is_flat(self):
+...         """Return True if the cosmology is flat."""
+...         return bool(abs(self.Ok0) < 1e-12)
 
 >>> # Create and test standard cosmology
 >>> std_cosmo = CustomStandardCosmology()
@@ -107,6 +113,8 @@ np.float64(5.37...e-05)
 np.float64(1.0)
 >>> std_cosmo.is_flat
 True
+>>> std_cosmo.Onu(0)  # Neutrino density at z=0
+np.float64(3.046)
 
 .. doctest-requires:: scipy
 

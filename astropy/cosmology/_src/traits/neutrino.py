@@ -293,26 +293,3 @@ class NeutrinoComponent:
         rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
         return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
-
-    # Additional dependency that needs to be satisfied by parent or PhotonComponent
-    def Ogamma(self, z: Quantity | ArrayLike) -> FArray:
-        """Return the density parameter for photons at redshift z.
-
-        This method signature is provided to indicate the dependency on
-        PhotonComponent. The actual implementation should come from
-        PhotonComponent trait mixed into the parent class.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-        Returns
-        -------
-        Ogamma : ndarray
-            The density of photons relative to the critical density.
-        """
-        # This will be provided by PhotonComponent trait in the parent class
-        raise NotImplementedError(
-            "Ogamma(z) must be provided by PhotonComponent trait or parent class"
-        )
