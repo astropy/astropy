@@ -583,7 +583,7 @@ def wrap_arange_args(*, start, stop, step, expected_out_unit):
         assert out_unit == stop.unit
 
     # reverse args again to restore initial order
-    args = tuple(reversed(args_rev))
+    args = args_rev[::-1]
 
     if "step" in kwargs:
         kwargs["step"] = step_val
