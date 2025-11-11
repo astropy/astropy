@@ -576,7 +576,7 @@ def wrap_arange_args(*, start, stop, step, expected_out_unit):
     # reverse positional arguments so `stop` always comes first
     # this is done to ensure that the arrays are first converted to the
     # expected unit, which we guarantee should be stop's
-    args_rev, out_unit = _quantities2arrays(*reversed(qty_args))
+    args_rev, out_unit = _quantities2arrays(*qty_args[::-1])
     if expected_out_unit is not UNIT_FROM_LIKE_ARG:
         assert out_unit == expected_out_unit
     if hasattr(stop, "unit"):
