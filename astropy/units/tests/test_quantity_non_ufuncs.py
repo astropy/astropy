@@ -396,6 +396,12 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
                 id="pos: start; kw: stop",
             ),
             pytest.param(
+                (10,),
+                {"step": 2},
+                np.arange(10, step=2, dtype=float) * ARCSEC_PER_DEGREE,
+                id="pos: stop; kw: step; unit from like",
+            ),
+            pytest.param(
                 (10 * u.radian, None),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
@@ -412,7 +418,11 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
     def test_arange(self, args, kwargs, expected):
         arr = np.arange(*args, **kwargs, like=u.Quantity([], u.degree))
         assert type(arr) is u.Quantity
-        assert arr.unit == u.radian
+        if any(hasattr(arg, "unit") for arg in itertools.chain(args, kwargs.keys())):
+            expected_unit = u.radian
+        else:
+            expected_unit = u.degree
+        assert arr.unit == expected_unit
         assert arr.dtype == expected.dtype
         assert_allclose(arr.to_value(u.arcsec), expected)
 
