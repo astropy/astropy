@@ -1,2 +1,2 @@
-Added docstring examples to cosmology traits (``BaryonComponent``), improving
-documentation and demonstrating their usage.
+Added docstring examples to cosmology traits (``BaryonComponent``,
+``CurvatureComponent``), improving documentation and demonstrating their usage.
