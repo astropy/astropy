@@ -1302,15 +1302,10 @@ def array2string(a, *args, **kwargs):
     # also work around this by passing on a formatter (as is done in Angle).
     # So, we do nothing if the formatter argument is present and has the
     # relevant formatter for our dtype.
-    import inspect
-
-    sig = inspect.signature(np.array2string)
-    formatter_arg_pos = list(sig.parameters).index("formatter") - 1
-    formatter = (
-        args[formatter_arg_pos]
-        if len(args) >= formatter_arg_pos
-        else kwargs.get("formatter")
-    )
+    if NUMPY_LT_2_4:
+        formatter = args[6] if len(args) >= 7 else kwargs.get("formatter")
+    else:
+        formatter = kwargs.get("formatter")
 
     if formatter is None:
         a = a.value
