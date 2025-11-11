@@ -47,6 +47,18 @@ jobs:
             core.info(`PR opened correctly against ${allowed_basebranch}`);
           }
 
+    - name: Check for merge commits
+      if: github.event_name == 'pull_request' && github.repository == 'astropy/astropy'
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+
+    - name: Run merge commit check
+      if: github.event_name == 'pull_request' && github.repository == 'astropy/astropy'
+      run: |
+        python .github/workflows/check_merge_commits.py
+
   tests:
     needs: [initial_checks]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0

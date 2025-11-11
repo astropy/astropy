@@ -514,6 +514,102 @@ You can use ``git status`` as above or jump right to staging and committing::
     git commit -m "Add changelog entry"
     git push
 
+.. _git_rebase_instead_of_merge:
+
+Keeping your branch up to date: Use rebase, not merge
+======================================================
+
+During the review process, the ``main`` branch may have moved forward with new
+commits. You should keep your feature branch up to date with ``main``, but it is
+**important to use rebase instead of merge**.
+
+Why rebase instead of merge?
+-----------------------------
+
++ **Linear history**: Rebasing creates a clean, linear commit history that is
+  easier to understand and review.
++ **CI requirement**: Astropy's continuous integration (CI) system automatically
+  checks for merge commits in pull requests and will **fail the build** if any
+  are detected.
++ **Cleaner diffs**: When maintainers review your PR, they see only your changes
+  without merge commits cluttering the history.
+
+How to update your branch with rebase
+--------------------------------------
+
+If your branch is behind ``main``, follow these steps to update it::
+
+    # Make sure you're on your feature branch
+    git switch fix-1761
+
+    # Fetch the latest changes from upstream
+    git fetch upstream
+
+    # Rebase your branch on top of the latest main
+    git rebase upstream/main
+
+    # If you've already pushed your branch, you'll need to force push
+    # (use --force-with-lease for safety)
+    git push --force-with-lease origin fix-1761
+
+.. warning::
+    **Never use** ``git merge main`` **or** ``git merge upstream/main`` **to update
+    your feature branch!** This creates merge commits that will cause the CI checks
+    to fail.
+
+Resolving rebase conflicts
+---------------------------
+
+If there are conflicts during rebase, git will pause and let you resolve them:
+
+1. Edit the conflicting files to resolve the conflicts
+2. Stage the resolved files with ``git add <file>``
+3. Continue the rebase with ``git rebase --continue``
+4. Repeat until all conflicts are resolved
+
+If you get stuck, you can always abort the rebase with ``git rebase --abort``
+and ask for help on the |astropy-dev mailing list|.
+
+What if I already have merge commits?
+--------------------------------------
+
+If the CI check fails because your PR contains merge commits, you'll need to
+clean up your branch history. Here's how:
+
+**Option 1: Interactive rebase (recommended for cleaning history)**::
+
+    # Backup your branch first
+    git branch backup-my-branch
+
+    # Start interactive rebase from main
+    git fetch upstream
+    git rebase -i upstream/main
+
+    # In the editor that opens, remove lines with merge commits
+    # or use 'drop' for those commits, save and close
+
+    # Force push the cleaned branch
+    git push --force-with-lease origin fix-1761
+
+**Option 2: Create a new clean branch (simpler)**::
+
+    # Backup your branch
+    git branch backup-my-branch
+
+    # Create a new branch from main with your changes
+    git fetch upstream
+    git switch -c fix-1761-clean upstream/main
+
+    # Cherry-pick your non-merge commits
+    # (you can find commit hashes with: git log backup-my-branch)
+    git cherry-pick <commit-hash-1> <commit-hash-2> ...
+
+    # Force push the new clean branch
+    git push --force origin fix-1761-clean
+
+If you're unsure which commits to keep, run ``git log --oneline --graph`` to
+visualize your commit history, or ask for help on the |astropy-dev mailing list|.
+
 Revise and push as necessary
 ============================
 
