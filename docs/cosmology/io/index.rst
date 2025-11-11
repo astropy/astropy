@@ -153,4 +153,4 @@ More details are provided in the following pages:
 Reference/API
 =============
 
-.. automodapi:: astropy.cosmology.connect
+.. automodapi:: astropy.cosmology.io
