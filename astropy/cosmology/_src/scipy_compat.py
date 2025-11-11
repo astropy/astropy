@@ -1,10 +1,10 @@
 """Scipy compatibility."""
 
+__all__ = ("ellipkinc", "hyp2f1", "quad")
+
 from typing import Any, Never
 
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-
-__all__ = ("ellipkinc", "hyp2f1", "quad")
 
 if HAS_SCIPY:
     from scipy.integrate import quad
