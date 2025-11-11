@@ -20,7 +20,44 @@ from astropy.units import Quantity
 
 
 class HubbleParameter:
-    """The object has attributes and methods for the Hubble parameter."""
+    """The object has attributes and methods for the Hubble parameter.
+
+    This is a trait class; it is not meant to be instantiated directly, but instead to
+    be used as a mixin to other classes.
+
+    Examples
+    --------
+    For an example of a real cosmology that implements this trait, see
+    :class:`~astropy.cosmology.LambdaCDM`. Here we will define an illustrative example
+    class that meets the minimum API requirements, but is not cosmologically meaningful:
+
+    >>> import astropy.units as u
+    >>> from astropy.cosmology.traits import HubbleParameter
+    >>> import dataclasses
+
+    >>> @dataclasses.dataclass(frozen=True)
+    ... class ExampleHasHubble(HubbleParameter):
+    ...     H0: u.Quantity
+    ...     def efunc(self, z): return np.ones_like(z)
+    ...     def inv_efunc(self, z): return np.ones_like(z)
+
+    >>> cosmo = ExampleHasHubble(H0=70 * u.km / u.s / u.Mpc)
+    >>> cosmo.H0
+    <Quantity 70. km / (Mpc s)>
+
+    >>> cosmo.H([0.0, 1.0, 2.0])
+    <Quantity [70., 70., 70.] km / (Mpc s)>
+
+    >>> float(cosmo.h)
+    0.7
+
+    >>> cosmo.hubble_time.round(2)
+    <Quantity 13.97 Gyr>
+
+    >>> cosmo.hubble_distance.round(2)
+    <Quantity 4282.75 Mpc>
+
+    """
 
     H0: Quantity
     """Hubble Parameter at redshift 0."""
