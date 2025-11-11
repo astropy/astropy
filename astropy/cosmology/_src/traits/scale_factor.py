@@ -19,6 +19,27 @@ class ScaleFactor:
 
     The scale factor is defined as :math:`a = a_0 / (1 + z)`.
 
+    Examples
+    --------
+    For an example of a real cosmology that implements this trait, see
+    :class:`~astropy.cosmology.LambdaCDM`. Here we will define an illustrative example
+    class that meets the minimum API requirements, but is not cosmologically meaningful:
+
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.cosmology.traits import ScaleFactor
+    >>> import dataclasses
+
+    >>> @dataclasses.dataclass(frozen=True)
+    ... class ExampleHasScaleFactor(ScaleFactor): pass
+
+    >>> cosmo = ExampleHasScaleFactor()
+    >>> cosmo.scale_factor0
+    <Quantity 1.>
+
+    >>> cosmo.scale_factor([0.0, 1.0, 2.0])
+    <Quantity [1.        , 0.5       , 0.33333333]>
+
     """
 
     @property
