@@ -2068,10 +2068,8 @@ class TestStringFunctions:
         # Also as positional argument (no, nobody will do this!)
         if NUMPY_LT_2_4:
             args = (self.q, None, None, None, ", ", "", np._NoValue, {"float": str})
-        else:
-            args = (self.q, None, None, None, ", ", "", {"float": str})
-        out3 = np.array2string(*args)
-        assert out3 == expected2
+            out3 = np.array2string(*args)
+            assert out3 == expected2
         # But not if the formatter is not relevant for us.
         out4 = np.array2string(self.q, separator=", ", formatter={"int": str})
         assert out4 == expected1
