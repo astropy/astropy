@@ -403,6 +403,31 @@ def test_gravitational_redshift():
         someloc.gravitational_redshift(sometime, masses=masses)
 
 
+def test_gravitational_redshift_exception_note():
+    """Test that exception notes are added for UnitsError in gravitational_redshift."""
+    someloc = EarthLocation(lon=-87.7 * u.deg, lat=37 * u.deg)
+    sometime = Time("2017-8-21 18:26:40")
+
+    # Test with wrong units to trigger UnitsError
+    masses = {
+        "sun": constants.G * constants.M_sun,
+        "jupiter": 1 * u.km,  # wrong units - should be mass or G*mass
+    }
+
+    with pytest.raises(u.UnitsError) as exc_info:
+        someloc.gravitational_redshift(sometime, masses=masses)
+
+    # Check that the exception has a note attached
+    exc = exc_info.value
+    assert hasattr(exc, "__notes__"), "Exception should have notes"
+    assert len(exc.__notes__) > 0, "Exception should have at least one note"
+
+    # Check that the note contains helpful context
+    note_text = " ".join(exc.__notes__)
+    assert "masses" in note_text
+    assert "gravitational parameters" in note_text or "mass" in note_text
+
+
 def test_read_only_input():
     lon = np.array([80.0, 440.0]) * u.deg
     lat = np.array([45.0]) * u.deg

@@ -821,11 +821,9 @@ class EarthLocation(u.Quantity):
             except KeyError as err:
                 raise KeyError(f'body "{body}" does not have a mass.') from err
             except u.UnitsError as exc:
-                exc.args += (
-                    (
-                        '"masses" argument values must be masses or '
-                        "gravitational parameters."
-                    ),
+                exc.add_note(
+                    '"masses" argument values must be masses or '
+                    "gravitational parameters."
                 )
                 raise
 
