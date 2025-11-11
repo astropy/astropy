@@ -546,9 +546,7 @@ def unwrap_arange_args(*, start_or_stop, stop_, step_):
     # (start, stop, step), so no additional logic is actually needed after
     # a match is found.
     match (start_or_stop, stop_, step_):
-        case (stop, None as start, 1 as step):
-            pass
-        case (start, stop, 1 as step):
+        case (stop, None as start, step):
             pass
         case (start, stop, step):
             pass
@@ -571,7 +569,9 @@ def wrap_arange_args(*, start, stop, step, expected_out_unit):
         case _:
             qty_args = (start, stop)
 
-    kwargs = {} if step == 1 else {"step": step}
+    step_val = step.to_value(expected_out_unit) if hasattr(step, "unit") else step
+
+    kwargs = {} if step == 1 else {"step": step_val}
 
     # reverse positional arguments so `stop` always comes first
     # this is done to ensure that the arrays are first converted to the
@@ -586,7 +586,7 @@ def wrap_arange_args(*, start, stop, step, expected_out_unit):
     args = tuple(reversed(args_rev))
 
     if "step" in kwargs:
-        kwargs["step"] = step.to_value(out_unit)
+        kwargs["step"] = step_val
     return args, kwargs
 
 
