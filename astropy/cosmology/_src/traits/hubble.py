@@ -4,7 +4,7 @@
 This is private API. See `~astropy.cosmology.traits` for public API.
 """
 
-__all__ = ["HubbleParameter"]
+__all__ = ("HubbleParameter",)
 
 from collections.abc import Callable
 from functools import cached_property

@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Photon component."""
 
-__all__ = ["PhotonComponent"]
+__all__ = ("PhotonComponent",)
 
 from collections.abc import Callable
 from typing import Any

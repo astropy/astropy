@@ -1,4 +1,6 @@
-__all__ = ["DarkMatterComponent"]
+"""Trait for dark matter component of cosmology."""
+
+__all__ = ("DarkMatterComponent",)
 
 from collections.abc import Callable
 from typing import Any

@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+__all__ = ("Flatw0wzCDM", "w0wzCDM")
 
 from numpy import exp
 from numpy.typing import ArrayLike
@@ -12,8 +13,6 @@ from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
-
-__all__ = ["Flatw0wzCDM", "w0wzCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
