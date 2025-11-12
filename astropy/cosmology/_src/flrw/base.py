@@ -6,11 +6,11 @@ from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
-from typing import Any, Final, NamedTuple, TypeVar, overload
+from typing import Any, Final, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 
 import astropy.constants as const
 import astropy.units as u
@@ -71,43 +71,7 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 
 
 ##############################################################################
-
-
-class NeutrinoInfo(NamedTuple):
-    """A container for neutrino information.
-
-    This is Private API.
-
-    """
-
-    n_nu: int
-    """Number of neutrino species (floor of Neff)."""
-
-    neff_per_nu: float | None
-    """Number of effective neutrino species per neutrino.
-
-    We are going to share Neff between the neutrinos equally. In detail this is not
-    correct, but it is a standard assumption because properly calculating it is a)
-    complicated b) depends on the details of the massive neutrinos (e.g., their weak
-    interactions, which could be unusual if one is considering sterile neutrinos).
-    """
-
-    has_massive_nu: bool
-    """Boolean of which neutrinos are massive."""
-
-    n_massive_nu: int
-    """Number of massive neutrinos."""
-
-    n_massless_nu: int
-    """Number of massless neutrinos."""
-
-    nu_y: NDArray[np.floating] | None
-    """The ratio m_nu / (kB T_nu) for each massive neutrino."""
-
-    nu_y_list: list[float] | None
-    """The ratio m_nu / (kB T_nu) for each massive neutrino as a list."""
-
-
+# NeutrinoInfo is now defined in traits.neutrino and imported above
 ##############################################################################
 
 
