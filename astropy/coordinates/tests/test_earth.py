@@ -417,8 +417,8 @@ def test_gravitational_redshift_exception_note():
     # pytest 8.0+ supports matching exception notes with the match parameter
 
     with pytest.raises(u.UnitsError, match="masses.*gravitational parameters"):
-
         someloc.gravitational_redshift(sometime, masses=masses)
+
 
 def test_read_only_input():
     lon = np.array([80.0, 440.0]) * u.deg
