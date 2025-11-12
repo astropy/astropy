@@ -4,15 +4,18 @@
 This is private API. See `~astropy.cosmology.traits` for public API.
 """
 
-__all__ = ["NeutrinoComponent"]
+__all__ = ["NeutrinoComponent", "NeutrinoInfo"]
 
 from collections.abc import Callable
 from functools import cached_property
-from typing import Any, Final
+from math import floor
+from typing import Any, Final, NamedTuple
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+import astropy.constants as const
+import astropy.units as u
 from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
@@ -29,6 +32,50 @@ KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
 KOMATSU_K: Final = 0.3173
 
 TEMP_NEUTRINO: Final = 0.7137658555036082  # (4/11)^1/3
+
+# Boltzmann constant in eV / K (for neutrino mass calculations)
+KB_EVK: Final = const.k_B.to(u.eV / u.K)
+
+
+##############################################################################
+
+
+class NeutrinoInfo(NamedTuple):
+    """A container for neutrino information.
+
+    This is Private API.
+
+    """
+
+    n_nu: int
+    """Number of neutrino species (floor of Neff)."""
+
+    neff_per_nu: float | None
+    """Number of effective neutrino species per neutrino.
+
+    We are going to share Neff between the neutrinos equally. In detail this is not
+    correct, but it is a standard assumption because properly calculating it is a)
+    complicated b) depends on the details of the massive neutrinos (e.g., their weak
+    interactions, which could be unusual if one is considering sterile neutrinos).
+    """
+
+    has_massive_nu: bool
+    """Boolean of which neutrinos are massive."""
+
+    n_massive_nu: int
+    """Number of massive neutrinos."""
+
+    n_massless_nu: int
+    """Number of massless neutrinos."""
+
+    nu_y: NDArray[np.floating] | None
+    """The ratio m_nu / (kB T_nu) for each massive neutrino."""
+
+    nu_y_list: list[float] | None
+    """The ratio m_nu / (kB T_nu) for each massive neutrino as a list."""
+
+
+##############################################################################
 
 
 class NeutrinoComponent:
@@ -80,7 +127,81 @@ class NeutrinoComponent:
     Tcmb0: Quantity
     Ogamma0: float
     inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
-    _nu_info: Any  # NeutrinoInfo NamedTuple
+
+    def _compute_nu_info(self) -> NeutrinoInfo:
+        """Compute neutrino information from cosmology parameters.
+
+        This method computes the NeutrinoInfo structure from the cosmology's
+        neutrino-related parameters (Neff, m_nu, Tnu0).
+
+        Returns
+        -------
+        NeutrinoInfo
+            A named tuple containing all computed neutrino information.
+
+        Notes
+        -----
+        This method is called automatically to populate the _nu_info cached property.
+        Subclasses can override _nu_info in __post_init__ if they need custom behavior.
+        """
+        if self.m_nu is None:
+            return NeutrinoInfo(
+                n_nu=0,
+                neff_per_nu=None,
+                has_massive_nu=False,
+                n_massive_nu=0,
+                n_massless_nu=0,
+                nu_y=None,
+                nu_y_list=None,
+            )
+
+        n_nu = floor(self.Neff)
+        massive = np.nonzero(self.m_nu.value > 0)[0]
+        has_massive_nu = massive.size > 0
+        n_massive_nu = len(massive)
+
+        # Compute Neutrino Omega and total relativistic component for massive
+        # neutrinos. We also store a list version, since that is more efficient
+        # to do integrals with (perhaps surprisingly! But small python lists
+        # are more efficient than small NumPy arrays).
+        if has_massive_nu:
+            nu_y = (self.m_nu[massive] / (KB_EVK * self.Tnu0)).to_value(u.one)
+            nu_y_list = nu_y.tolist()
+        else:
+            nu_y = nu_y_list = None
+
+        return NeutrinoInfo(
+            n_nu=n_nu,
+            # We share Neff between the neutrinos equally. In detail this is not
+            # correct. See NeutrinoInfo for more info.
+            neff_per_nu=self.Neff / n_nu,
+            # Now figure out if we have massive neutrinos to deal with, and if
+            # so, get the right number of masses. It is worth keeping track of
+            # massless ones separately (since they are easy to deal with, and a
+            # common use case is to have only one massive neutrino).
+            has_massive_nu=has_massive_nu,
+            n_massive_nu=n_massive_nu,
+            n_massless_nu=n_nu - n_massive_nu,
+            nu_y=nu_y,
+            nu_y_list=nu_y_list,
+        )
+
+    @cached_property
+    def _nu_info(self) -> NeutrinoInfo:
+        """Neutrino information structure.
+
+        Returns
+        -------
+        NeutrinoInfo
+            A named tuple containing computed neutrino information including
+            the number of species, masses, and other derived quantities.
+
+        Notes
+        -----
+        This is computed automatically from Neff, m_nu, and Tnu0.
+        Subclasses can override by setting _nu_info in __post_init__.
+        """
+        return self._compute_nu_info()
 
     @cached_property
     def Tnu0(self) -> Quantity:

@@ -112,34 +112,66 @@ Here is an example of how to use the
 ...     BaryonComponent,
 ...     MatterComponent,
 ...     CriticalDensity,
+...     CurvatureComponent,
 ...     PhotonComponent,
 ...     TotalComponent,
 ...     NeutrinoComponent,
 ... )
 >>> class CustomStandardCosmology(Cosmology, HubbleParameter, ScaleFactor, TemperatureCMB,
 ...                              DarkEnergyComponent, DarkMatterComponent, BaryonComponent,
-...                              MatterComponent, CriticalDensity, PhotonComponent, TotalComponent,
-...                              NeutrinoComponent):
+...                              MatterComponent, CriticalDensity, CurvatureComponent,
+...                              PhotonComponent, TotalComponent, NeutrinoComponent):
 ...     """Mimics standard ΛCDM cosmology with Planck 2018 parameters."""
-...     def __init__(self, H0=67.66, Om0=0.3111, Ode0=0.6889, Ob0=0.0490, Tcmb0=2.7255, Ogamma0=5.38e-5, Onu0=3.046):
+...     def __init__(self, H0=67.66, Om0=0.3111, Ob0=0.0490, Tcmb0=2.7255, Neff=3.046):
+...         import astropy.constants as const
+...         from astropy.cosmology._src.flrw.base import a_B_c2
+...         from math import pi
+...         # Set basic parameters
 ...         self.H0 = H0 << (u.km / u.s / u.Mpc)
 ...         self.Om0 = Om0
-...         self.Ode0 = Ode0
 ...         self.Ob0 = Ob0
-...         self.Odm = Om0 - Ob0  # Dark matter density
+...         self.Odm0 = Om0 - Ob0
+...         self.Neff = Neff
+...         self.m_nu = None  # massless neutrinos
 ...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
-...         self.Ogamma0 = Ogamma0  # Photon density parameter
+...         # Compute critical_density0 (needed by CriticalDensity trait)
+...         self.critical_density0 = (3.0 * self.H0**2 / (8.0 * pi * const.G)).cgs
+...         # Compute Ogamma0 (needed by PhotonComponent trait)
+...         self.Ogamma0 = a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
+...         self.Ode0 = 0.0  # temporary
 ...         super().__init__()
+...         # Compute Ode0 to ensure flatness (Ok0 will be ~0)
+...         self.Ode0 = 1.0 - (self.Om0 + self.Ogamma0 + self.Onu0)
+...
+...     @property
+...     def Ok0(self):
+...         """Omega curvature; residual from other components."""
+...         return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 ...
 ...     def w(self, z):
 ...         """Standard cosmological constant."""
 ...         return -1.0
 ...
 ...     def inv_efunc(self, z):
+...         """Inverse E-function for standard ΛCDM."""
+...         # Total radiation density (photons + neutrinos)
+...         Or = self.Ogamma0 + self.Onu0
 ...         zp1 = np.asarray(z) + 1.0
-...         return 1.0 / np.sqrt(self.Om0 * zp1**3 + self.Ogamma0 * zp1**4 + self.Ode0)
+...         return 1.0 / np.sqrt(Or * zp1**4 + self.Om0 * zp1**3 + self.Ode0)
 ...
-...     is_flat = True  # Standard ΛCDM is flat
+...     @property
+...     def Otot0(self):
+...         """Total density parameter at z=0."""
+...         return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
+...
+...     def Otot(self, z):
+...         """Total density parameter at redshift z."""
+...         return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
+...
+...     @property
+...     def is_flat(self):
+...         """Return True if the cosmology is flat."""
+...         return True
 
 >>> # Create and test standard cosmology
 >>> std_cosmo = CustomStandardCosmology()
@@ -152,9 +184,11 @@ Here is an example of how to use the
 >>> std_cosmo.w(0.5)
 -1.0
 >>> std_cosmo.Ogamma(0)  # Photon density at z=0
-np.float64(5.37...e-05)
+np.float64(5.40...e-05)
+>>> std_cosmo.Neff  # Effective number of neutrino species
+3.046
 >>> std_cosmo.Onu(0)  # Neutrino density at z=0
-np.float64(3.046)
+np.float64(3.7...e-05)
 >>> std_cosmo.Otot0  # Total density at z=0
 np.float64(1.0)
 >>> std_cosmo.is_flat
