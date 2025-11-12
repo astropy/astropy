@@ -1301,10 +1301,8 @@ class TestStringFunctions:
         # Also as positional argument (no, nobody will do this!)
         if NUMPY_LT_2_4:
             args = (self.ma, None, None, None, ", ", "", np._NoValue, {"int": hex})
-        else:
-            args = (self.ma, None, None, None, ", ", "", {"int": hex})
-        out3 = np.array2string(*args)
-        assert out3 == out2
+            out3 = np.array2string(*args)
+            assert out3 == out2
         # But not if the formatter is not relevant for us.
         out4 = np.array2string(self.ma, separator=", ", formatter={"float": hex})
         assert out4 == out1
