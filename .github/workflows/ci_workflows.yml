@@ -92,7 +92,7 @@ jobs:
 
         - name: Python 3.12 with all optional dependencies (MacOS X)
           macos: py312-test-alldeps
-          posargs: --durations=50 --run-slow
+          posargs: --durations=50
           runs-on: macos-latest
 
         # FIXME: Add aarch64 to name when bump Python version.
