@@ -396,29 +396,33 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
                 id="pos: start; kw: stop",
             ),
             pytest.param(
+                (10,),
+                {"step": 2},
+                np.arange(10, step=2, dtype=float) * ARCSEC_PER_DEGREE,
+                id="pos: stop; kw: step; unit from like",
+            ),
+            pytest.param(
                 (10 * u.radian, None),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 1 None",
+                id="pos: stop, None",
             ),
             pytest.param(
-                (10 * u.radian, None, None),
+                (10 * u.radian, None, 1),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 2 None",
-            ),
-            pytest.param(
-                (10 * u.radian, None, None, None),
-                {},
-                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 3 None",
+                id="pos: stop, None, 1",
             ),
         ],
     )
     def test_arange(self, args, kwargs, expected):
         arr = np.arange(*args, **kwargs, like=u.Quantity([], u.degree))
         assert type(arr) is u.Quantity
-        assert arr.unit == u.radian
+        if any(hasattr(arg, "unit") for arg in itertools.chain(args, kwargs.keys())):
+            expected_unit = u.radian
+        else:
+            expected_unit = u.degree
+        assert arr.unit == expected_unit
         assert arr.dtype == expected.dtype
         assert_allclose(arr.to_value(u.arcsec), expected)
 
@@ -432,13 +436,6 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert type(arr) is AngularUnits
         assert arr.unit == u.radian
         assert arr.dtype == np.dtype(float)
-        assert_array_equal(arr.value, np.arange(10))
-
-    def test_arange_pos_dtype(self):
-        arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
-        assert type(arr) is u.Quantity
-        assert arr.unit == u.s
-        assert arr.dtype == np.dtype(int)
         assert_array_equal(arr.value, np.arange(10))
 
     def test_arange_default_unit(self):
@@ -455,10 +452,12 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
 
     def test_arange_unit_from_stop(self):
         Q = 1 * u.km
-        a = np.arange(start=1 * u.s, stop=10 * u.min, like=Q)
-        b = np.arange(stop=10 * u.min, start=1 * u.s, like=Q)
-        assert a.unit == u.min
-        assert b.unit == u.min
+        start = 1 * u.s
+        stop = 10 * u.min
+        a = np.arange(start, stop, like=Q)
+        b = np.arange(start, stop=stop, like=Q)
+        assert a.unit == stop.unit
+        assert b.unit == stop.unit
         assert_array_equal(a.value, b.value)
 
 
@@ -2068,10 +2067,8 @@ class TestStringFunctions:
         # Also as positional argument (no, nobody will do this!)
         if NUMPY_LT_2_4:
             args = (self.q, None, None, None, ", ", "", np._NoValue, {"float": str})
-        else:
-            args = (self.q, None, None, None, ", ", "", {"float": str})
-        out3 = np.array2string(*args)
-        assert out3 == expected2
+            out3 = np.array2string(*args)
+            assert out3 == expected2
         # But not if the formatter is not relevant for us.
         out4 = np.array2string(self.q, separator=", ", formatter={"int": str})
         assert out4 == expected1

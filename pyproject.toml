@@ -100,7 +100,7 @@ all = [
 ]
 # The base set of test-time dependencies.
 test = [
-    "coverage>=6.4.4",
+    "coverage>=7.2.0",
     "pytest>=8.0.0",
     "pytest-doctestplus>=1.4.0",
     "pytest-astropy-header>=0.2.1",
@@ -328,9 +328,7 @@ archs = ["auto", "aarch64"]
         ]
 
     [tool.coverage.report]
-        exclude_lines = [
-            # Have to re-enable the standard pragma
-            "pragma: no cover",
+        exclude_also = [
             # Don't complain about packages we have installed
             "except ImportError",
             # Don't complain if tests don't hit defensive assertion code:
@@ -343,7 +341,7 @@ archs = ["auto", "aarch64"]
             # Don't complain about IPython completion helper
             "def _ipython_key_completions_",
             # typing.TYPE_CHECKING is False at runtime
-            "if TYPE_CHECKING:",
+            "if TYPE_CHECKING:", # TODO: drop this line when coverage>=7.10.1 is required
             # Ignore typing overloads
             "@overload",
         ]
