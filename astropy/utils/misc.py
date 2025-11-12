@@ -25,8 +25,8 @@ from urllib.parse import urlencode
 
 import numpy as np
 
+from astropy._version import version as __version__
 from astropy.utils import deprecated
-from astropy.version import version as __version__
 
 __all__ = [
     "JsonCustomEncoder",
