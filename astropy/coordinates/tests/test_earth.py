@@ -414,19 +414,11 @@ def test_gravitational_redshift_exception_note():
         "jupiter": 1 * u.km,  # wrong units - should be mass or G*mass
     }
 
-    with pytest.raises(u.UnitsError) as exc_info:
+    # pytest 8.0+ supports matching exception notes with the match parameter
+
+    with pytest.raises(u.UnitsError, match="masses.*gravitational parameters"):
+
         someloc.gravitational_redshift(sometime, masses=masses)
-
-    # Check that the exception has a note attached
-    exc = exc_info.value
-    assert hasattr(exc, "__notes__"), "Exception should have notes"
-    assert len(exc.__notes__) > 0, "Exception should have at least one note"
-
-    # Check that the note contains helpful context
-    note_text = " ".join(exc.__notes__)
-    assert "masses" in note_text
-    assert "gravitational parameters" in note_text or "mass" in note_text
-
 
 def test_read_only_input():
     lon = np.array([80.0, 440.0]) * u.deg
