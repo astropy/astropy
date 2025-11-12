@@ -101,10 +101,11 @@ all = [
 # The base set of test-time dependencies.
 test = [
     "coverage>=7.2.0",
+    "hypothesis>=6.84.0",
     "pytest>=8.0.0",
     "pytest-doctestplus>=1.4.0",
     "pytest-astropy-header>=0.2.1",
-    "pytest-astropy>=0.10.0",
+    "pytest-astropy>=0.11.0",
     "pytest-xdist>=3.6.0",
     "threadpoolctl>=3.0.0",
 ]
