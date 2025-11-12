@@ -104,4 +104,4 @@ jobs:
             pip install -U --no-build-isolation pyerfa
             pip install -v --no-build-isolation -e .[test]
             pip list
-            python3 -m pytest --pyargs astropy -m "not hypothesis"
+            python3 -m pytest --strict-markers --pyargs astropy -m "not hypothesis"
