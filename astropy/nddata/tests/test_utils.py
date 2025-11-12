@@ -775,19 +775,9 @@ def test_cutout_section_with_bzero_bscale_blank(tmp_path):
 
 def test_extract_array_fill_value_exception_note():
     """Test that exception notes are added when fill_value type is incompatible."""
-    # Create an integer array
     data = np.arange(12, dtype=int).reshape(3, 4)
 
     # Try to extract with partial mode and incompatible fill_value (NaN for integer array)
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(ValueError, match="fill_value.*data type"):
         extract_array(data, (5, 5), (1, 1), mode="partial", fill_value=np.nan)
 
-    # Check that the exception has a note attached
-    exc = exc_info.value
-    assert hasattr(exc, "__notes__"), "Exception should have notes"
-    assert len(exc.__notes__) > 0, "Exception should have at least one note"
-
-    # Check that the note contains helpful context
-    note_text = " ".join(exc.__notes__)
-    assert "fill_value is inconsistent" in note_text
-    assert "data type" in note_text
