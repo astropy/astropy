@@ -33,7 +33,9 @@ class TestSpectralQuantity:
         ):
             SpectralQuantity(1 * unit)
 
-    @pytest.mark.parametrize(("unit1", "unit2"), zip(SPECTRAL_UNITS, SPECTRAL_UNITS))
+    @pytest.mark.parametrize(
+        ("unit1", "unit2"), list(zip(SPECTRAL_UNITS, SPECTRAL_UNITS))
+    )
     def test_spectral_conversion(self, unit1, unit2):
         sq1 = SpectralQuantity(1 * unit1)
         sq2 = sq1.to(unit2)
