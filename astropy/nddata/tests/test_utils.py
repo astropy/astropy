@@ -780,4 +780,3 @@ def test_extract_array_fill_value_exception_note():
     # Try to extract with partial mode and incompatible fill_value (NaN for integer array)
     with pytest.raises(ValueError, match="fill_value.*data type"):
         extract_array(data, (5, 5), (1, 1), mode="partial", fill_value=np.nan)
-
