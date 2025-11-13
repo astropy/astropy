@@ -6,7 +6,7 @@ coordinates in astropy.
 """
 
 import functools
-from typing import Any, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 
@@ -49,7 +49,7 @@ class dms_tuple(NamedTuple):
 class signed_dms_tuple(NamedTuple):
     """A named tuple of (sign, degree, minute, second) values."""
 
-    sign: float | np.integer[Any]
+    sign: float | np.integer
     """The sign of the angle, either -1 or +1."""
 
     d: float | np.floating
