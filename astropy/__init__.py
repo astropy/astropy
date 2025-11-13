@@ -62,7 +62,7 @@ def __dir__():
 
 
 from . import config as _config
-from ._version import version as __version__
+from .version import version as __version__
 
 
 class Conf(_config.ConfigNamespace):
