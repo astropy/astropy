@@ -34,6 +34,7 @@ VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
 POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
 KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
 POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
+EMPTY_DEFAULT = inspect.Parameter.empty
 
 ARCSEC_PER_DEGREE = 60 * 60
 ARCSEC_PER_RADIAN = ARCSEC_PER_DEGREE * np.rad2deg(1)
@@ -3014,12 +3015,18 @@ class CheckSignatureCompatibilityBase:
             self.get_param_group(params_helper, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
         )
 
-        # additional private keyword-only argument are allowed because
-        # they are only intended for testing purposes.
+        # additional private keyword-only argument are allowed, as long as they
+        # have default values. They are only intended for testing purposes.
         # For instance, quantile has such a parameter '_q_unit'
-        keyword_allowed_helper = {
-            name for name in keyword_allowed_helper if not name.startswith("_")
+        private_kwargs = {
+            name for name in keyword_allowed_helper if name.startswith("_")
         }
+        for pk in private_kwargs:
+            assert params_helper[pk].default is not EMPTY_DEFAULT, (
+                f"private argument {pk} must provide a default value"
+            )
+
+        keyword_allowed_helper -= private_kwargs
 
         diff = keyword_allowed_helper - keyword_allowed_target
         assert not diff, (
