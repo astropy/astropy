@@ -6,7 +6,7 @@ coordinates in astropy.
 """
 
 import functools
-from typing import Any, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 
@@ -23,42 +23,42 @@ __all__ = ["Angle", "Latitude", "Longitude"]
 class hms_tuple(NamedTuple):
     """A named tuple of (hour, minute, second) values."""
 
-    h: float | np.floating[Any]
+    h: float | np.floating
     """The hour value."""
 
-    m: float | np.floating[Any]
+    m: float | np.floating
     """The minute value."""
 
-    s: float | np.floating[Any]
+    s: float | np.floating
     """The second value."""
 
 
 class dms_tuple(NamedTuple):
     """A named tuple of (degree, minute, second) values."""
 
-    d: float | np.floating[Any]
+    d: float | np.floating
     """The degree value."""
 
-    m: float | np.floating[Any]
+    m: float | np.floating
     """The minute value."""
 
-    s: float | np.floating[Any]
+    s: float | np.floating
     """The second value."""
 
 
 class signed_dms_tuple(NamedTuple):
     """A named tuple of (sign, degree, minute, second) values."""
 
-    sign: float | np.integer[Any]
+    sign: float | np.integer
     """The sign of the angle, either -1 or +1."""
 
-    d: float | np.floating[Any]
+    d: float | np.floating
     """The degree value."""
 
-    m: float | np.floating[Any]
+    m: float | np.floating
     """The minute value."""
 
-    s: float | np.floating[Any]
+    s: float | np.floating
     """The second value."""
 
 
