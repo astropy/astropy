@@ -732,11 +732,13 @@ ignore-words-list = """
 # with binary distributions even with --resolution=lowest[-direct]
 no-build-package = [
     "bottleneck",
+    "contourpy",
     "coverage",
     "h5py",
     "numpy",
     "matplotlib",
     "pandas",
+    "pillow",
     "polars",
     "scipy",
     "sgp4",
