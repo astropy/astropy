@@ -2927,7 +2927,10 @@ class CheckSignatureCompatibilityBase:
         try:
             sig_target = inspect.signature(target)
         except ValueError:
-            pytest.skip("Non Python function cannot be inspected at runtime")
+            if NUMPY_LT_2_4:
+                pytest.skip("Non Python function cannot be inspected at runtime")
+            else:
+                raise
 
         params_target = sig_target.parameters
         sig_helper = inspect.signature(helper)
@@ -2988,7 +2991,10 @@ class CheckSignatureCompatibilityBase:
         try:
             sig_target = inspect.signature(target)
         except ValueError:
-            pytest.skip("Non Python function cannot be inspected at runtime")
+            if NUMPY_LT_2_4:
+                pytest.skip("Non Python function cannot be inspected at runtime")
+            else:
+                raise
 
         params_target = sig_target.parameters
         sig_helper = inspect.signature(helper)
