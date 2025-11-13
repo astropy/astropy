@@ -405,11 +405,6 @@ lint.extend-select = [
     "W",     # pycodestyle
     "YTT",   # flake8-2020
 ]
-exclude=[
-    "astropy/extern/*",
-    "*_parsetab.py",
-    "*_lextab.py"
-]
 lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml` instead.
 
     # flake8-builtins (A) : shadowing a Python built-in.
@@ -476,6 +471,11 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 
     # flake8-todos (TD)
     "TD002",  # Missing author in TODO
+]
+exclude = [
+    "astropy/extern/*",
+    "*_parsetab.py",
+    "*_lextab.py"
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
