@@ -11,6 +11,7 @@ from astropy.io.fits import FITSDiff, HDUList, Header, ImageHDU
 from astropy.io.fits.convenience import writeto
 from astropy.io.fits.hdu import PrimaryHDU, hdulist
 from astropy.io.fits.scripts import fitsdiff
+from astropy.utils.compat.optional_deps import HAS_UNCOMPRESSPY
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 from .conftest import FitsTestCase
@@ -236,7 +237,6 @@ No differences found.
         assert out == ""
         assert err == ""
 
-    @pytest.mark.slow
     def test_path(self, capsys):
         os.mkdir(self.temp("sub/"))
         tmp_b = self.temp("sub/ascii.fits")
@@ -256,7 +256,9 @@ No differences found.
         tmp_d = self.temp("sub/")
         assert fitsdiff.main(["-q", self.data_dir, tmp_d]) == 1
         assert fitsdiff.main(["-q", tmp_d, self.data_dir]) == 1
-        assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == 0
+
+        expected_retv = int(not HAS_UNCOMPRESSPY)
+        assert fitsdiff.main(["-q", self.data_dir, self.data_dir]) == expected_retv
 
         # no match
         tmp_c = self.data("arange.fits")
@@ -272,6 +274,43 @@ No differences found.
         tmp_f = self.data("tb.fits")
         assert fitsdiff.main(["-q", tmp_f, self.data_dir]) == 0
         assert fitsdiff.main(["-q", self.data_dir, tmp_f]) == 0
+
+    @pytest.mark.filterwarnings("ignore:unclosed file:ResourceWarning")
+    def test_warning_unreadable_file(self, capsys, monkeypatch):
+        # simulate not having uncompresspy installed regardless of the actual state
+        monkeypatch.setattr(fits.file, "HAS_UNCOMPRESSPY", False)
+
+        Zfile = self.data("lzw.fits.Z")
+        assert fitsdiff.main([Zfile, Zfile]) != 0
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert err == f"Warning: failed to open {Zfile}. Skipping.\n"
+
+        os.mkdir(self.temp("sub/"))
+        tmp = self.temp("sub/ascii.fits")
+        tmp_h = self.data("group.fits")
+        with hdulist.fitsopen(tmp_h) as hdu:
+            hdu.writeto(tmp)
+
+        assert fitsdiff.main([Zfile, tmp]) != 0
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert err == f"Warning: failed to open {Zfile} (or {tmp}). Skipping.\n"
+
+        assert fitsdiff.main(["-q", Zfile, tmp]) != 0
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert err == ""
+
+        assert fitsdiff.main([tmp, Zfile]) != 0
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert err == f"Warning: failed to open {tmp} (or {Zfile}). Skipping.\n"
+
+        assert fitsdiff.main(["-q", tmp, Zfile]) != 0
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert err == ""
 
     def test_ignore_hdus(self):
         a = np.arange(100).reshape(10, 10)

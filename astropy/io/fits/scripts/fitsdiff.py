@@ -400,20 +400,29 @@ def main(args=None):
     try:
         for a, b in files:
             # TODO: pass in any additional arguments here too
-            diff = fits.diff.FITSDiff(
-                a,
-                b,
-                ignore_hdus=opts.ignore_hdus,
-                ignore_keywords=opts.ignore_keywords,
-                ignore_comments=opts.ignore_comments,
-                ignore_fields=opts.ignore_fields,
-                numdiffs=opts.numdiffs,
-                rtol=opts.rtol,
-                atol=opts.atol,
-                ignore_blanks=opts.ignore_blanks,
-                ignore_blank_cards=opts.ignore_blank_cards,
-            )
-
+            try:
+                diff = fits.diff.FITSDiff(
+                    a,
+                    b,
+                    ignore_hdus=opts.ignore_hdus,
+                    ignore_keywords=opts.ignore_keywords,
+                    ignore_comments=opts.ignore_comments,
+                    ignore_fields=opts.ignore_fields,
+                    numdiffs=opts.numdiffs,
+                    rtol=opts.rtol,
+                    atol=opts.atol,
+                    ignore_blanks=opts.ignore_blanks,
+                    ignore_blank_cards=opts.ignore_blank_cards,
+                )
+            except OSError:
+                if not opts.quiet:
+                    msg = f"Warning: failed to open {a}"
+                    if b != a:
+                        msg += f" (or {b})"
+                    msg += ". Skipping."
+                    print(msg, file=sys.stderr)
+                identical.append(None)
+                continue
             diff.report(fileobj=out_file)
             identical.append(diff.identical)
 
