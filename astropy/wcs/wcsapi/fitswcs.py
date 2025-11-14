@@ -7,6 +7,7 @@ import warnings
 
 import numpy as np
 
+from astropy import log
 from astropy import units as u
 from astropy.constants import c
 from astropy.coordinates import ICRS, Galactic, SpectralCoord
@@ -541,7 +542,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 try:
                     observer.transform_to(ICRS())
                 except Exception:
-                    warnings.warn(
+                    log.debug(
                         "observer cannot be converted to ICRS, so will "
                         "not be set on SpectralCoord",
                         AstropyUserWarning,
@@ -552,7 +553,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 try:
                     target.transform_to(ICRS())
                 except Exception:
-                    warnings.warn(
+                    log.debug(
                         "target cannot be converted to ICRS, so will "
                         "not be set on SpectralCoord",
                         AstropyUserWarning,
