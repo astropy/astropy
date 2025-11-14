@@ -665,3 +665,18 @@ class TestDataFrameConversion:
 
         assert val == 2
         assert nulls_first_two.all()
+
+
+@pytest.mark.skipif(
+    not HAS_PANDAS or not HAS_NARWHALS,
+    reason="requires pandas and narwhals",
+)
+@pytest.mark.parametrize("method", ["from_df", "from_pandas"])
+def test_from_pandas_df_with_qtable(method):
+    """Test fix for QTable.from_pandas / from_df returns Table not QTable #18909"""
+    t = table.QTable()
+    t["a"] = [1, 2]
+    t["q"] = [3.0, 4.0]
+    df = t.to_pandas()
+    qt = getattr(table.QTable, method)(df)
+    assert isinstance(qt, table.QTable)
