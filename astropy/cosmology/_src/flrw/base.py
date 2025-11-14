@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ("FLRW", "FlatFLRWMixin")
+__all__ = ["FLRW", "FlatFLRWMixin"]
 
 import inspect
 import warnings
@@ -41,6 +41,7 @@ from astropy.cosmology._src.traits import (
     DarkMatterComponent,
     HubbleParameter,
     MatterComponent,
+    NeutrinoComponent,
     PhotonComponent,
     ScaleFactor,
     TemperatureCMB,
@@ -74,7 +75,6 @@ kB_evK: Final = const.k_B.to(u.eV / u.K)
 # what this does. However, this is modified to handle multiple neutrino masses by
 # computing the above for each mass, then summing
 NEUTRINO_FERMI_DIRAC_CORRECTION: Final = 0.22710731766  # 7/8 (4/11)^4/3
-
 # These are purely fitting constants -- see the Komatsu paper
 KOMATSU_P: Final = 1.83
 KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
@@ -86,12 +86,13 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 
 
 ##############################################################################
+# NeutrinoInfo - FLRW-specific implementation detail
 
 
 class NeutrinoInfo(NamedTuple):
     """A container for neutrino information.
 
-    This is Private API.
+    This is Private API - internal to FLRW cosmologies.
 
     """
 
@@ -144,6 +145,7 @@ class FLRW(
     DarkEnergyComponent,
     HubbleParameter,
     PhotonComponent,
+    NeutrinoComponent,
     ScaleFactor,
     DarkMatterComponent,
     TemperatureCMB,
@@ -444,12 +446,8 @@ class FLRW(
         """Omega total; the total density/critical density at z=0."""
         return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
 
-    @cached_property
-    def Tnu0(self) -> u.Quantity:
-        """Temperature of the neutrino background as |Quantity| at z=0."""
-        # The constant in front is (4/11)^1/3 -- see any cosmology book for an
-        # explanation -- for example, Weinberg 'Cosmology' p 154 eq (3.1.21).
-        return 0.7137658555036082 * self.Tcmb0
+    # ---------------------------------------------------------------
+    # Neutrino - implementing NeutrinoComponent abstract methods
 
     @property
     def has_massive_nu(self) -> bool:
@@ -457,12 +455,6 @@ class FLRW(
         if self.Tnu0.value == 0:
             return False
         return self._nu_info.has_massive_nu
-
-    @cached_property
-    def Ogamma0(self) -> float:
-        """Omega gamma; the density/critical density of photons at z=0."""
-        # photon density from Tcmb
-        return a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
 
     @cached_property
     def Onu0(self) -> float:
@@ -474,6 +466,33 @@ class FLRW(
             # is 7/8 (4/11)^(4/3) -- the temperature bit ^4 (blackbody energy
             # density) times 7/8 for FD vs. BE statistics.
             return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * self.Ogamma0
+
+    def nu_relative_density(self, z: u.Quantity | ArrayLike) -> FArray:
+        r"""Neutrino density function relative to the energy density in photons."""
+        # Note that there is also a scalar-z-only cython implementation of
+        # this in scalar_inv_efuncs.pyx, so if you find a problem in this
+        # you need to update there too.
+
+        # The massive and massless contribution must be handled separately
+        # But check for common cases first
+        z = aszarr(z)
+        if not self._nu_info.has_massive_nu:
+            return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * np.ones_like(z)
+
+        curr_nu_y = self._nu_info.nu_y / (1.0 + np.expand_dims(z, axis=-1))
+        rel_mass_per = (1.0 + (KOMATSU_K * curr_nu_y) ** KOMATSU_P) ** KOMATSU_INVP
+        rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
+
+        return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
+
+    # ---------------------------------------------------------------
+    # Photon
+
+    @cached_property
+    def Ogamma0(self) -> float:
+        """Omega gamma; the density/critical density of photons at z=0."""
+        # photon density from Tcmb
+        return a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
 
     # ---------------------------------------------------------------
 
@@ -498,109 +517,7 @@ class FLRW(
 
     # Odm is provided by the DarkMatterComponent trait
     # Ogamma is provided by the PhotonComponent trait
-
-    @deprecated_keywords("z", since="7.0")
-    def Onu(self, z: u.Quantity | ArrayLike) -> FArray:
-        r"""Return the density parameter for neutrinos at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Onu : ndarray
-            The energy density of neutrinos relative to the critical density at
-            each redshift. Note that this includes their kinetic energy (if
-            they have mass), so it is not equal to the commonly used
-            :math:`\sum \frac{m_{\nu}}{94 eV}`, which does not include
-            kinetic energy.
-        """
-        z = aszarr(z)
-        if self.Onu0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros_like(z)
-        return self.Ogamma(z) * self.nu_relative_density(z)
-
-    @deprecated_keywords("z", since="7.0")
-    def Tnu(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Return the neutrino temperature at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Tnu : Quantity ['temperature']
-            The temperature of the cosmic neutrino background in K.
-        """
-        return self.Tnu0 * (aszarr(z) + 1.0)
-
-    @deprecated_keywords("z", since="7.0")
-    def nu_relative_density(self, z: u.Quantity | ArrayLike) -> FArray:
-        r"""Neutrino density function relative to the energy density in photons.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        f : array
-            The neutrino density scaling factor relative to the density in
-            photons at each redshift.
-
-        Notes
-        -----
-        The density in neutrinos is given by
-
-        .. math::
-
-           \rho_{\nu} \left(a\right) = 0.2271 \, N_{eff} \,
-           f\left(m_{\nu} a / T_{\nu 0} \right) \,
-           \rho_{\gamma} \left( a \right)
-
-        where
-
-        .. math::
-
-           f \left(y\right) = \frac{120}{7 \pi^4}
-           \int_0^{\infty} \, dx \frac{x^2 \sqrt{x^2 + y^2}}
-           {e^x + 1}
-
-        assuming that all neutrino species have the same mass.
-        If they have different masses, a similar term is calculated for each
-        one. Note that ``f`` has the asymptotic behavior :math:`f(0) = 1`. This
-        method returns :math:`0.2271 f` using an analytical fitting formula
-        given in Komatsu et al. 2011, ApJS 192, 18.
-        """
-        # Note that there is also a scalar-z-only cython implementation of
-        # this in scalar_inv_efuncs.pyx, so if you find a problem in this
-        # you need to update there too.
-
-        # The massive and massless contribution must be handled separately
-        # But check for common cases first
-        z = aszarr(z)
-        if not self._nu_info.has_massive_nu:
-            return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * np.ones_like(z)
-
-        curr_nu_y = self._nu_info.nu_y / (1.0 + np.expand_dims(z, axis=-1))
-        rel_mass_per = (1.0 + (KOMATSU_K * curr_nu_y) ** KOMATSU_P) ** KOMATSU_INVP
-        rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
-
-        return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
+    # Onu, Tnu, and nu_relative_density are provided by NeutrinoComponent trait
 
     def _lookback_time_integrand_scalar(self, z: float, /) -> float:
         """Integrand of the lookback time (equation 30 of [1]_).
