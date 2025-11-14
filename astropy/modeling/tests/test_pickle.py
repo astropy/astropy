@@ -22,7 +22,7 @@ from astropy.modeling import (
 from astropy.modeling.math_functions import ArctanhUfunc
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-MATH_FUNCTIONS = (func for func in math_functions.__all__ if func != "ArctanhUfunc")
+MATH_FUNCTIONS = [func for func in math_functions.__all__ if func != "ArctanhUfunc"]
 
 
 PROJ_TO_REMOVE = (
@@ -45,7 +45,7 @@ PROJ_TO_REMOVE = (
     + [f"Sky2Pix_{code}" for code in projections.projcodes]
 )
 
-PROJECTIONS = (func for func in projections.__all__ if func not in PROJ_TO_REMOVE)
+PROJECTIONS = [func for func in projections.__all__ if func not in PROJ_TO_REMOVE]
 
 OTHER_MODELS = [
     mappings.Mapping((1, 0)),

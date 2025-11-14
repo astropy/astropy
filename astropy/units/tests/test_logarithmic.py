@@ -36,7 +36,7 @@ class TestLogUnitCreation:
         assert u.dex.to(u.mag) == -2.5
         assert u.mag.to(u.dB) == -4
 
-    @pytest.mark.parametrize("lu_unit, lu_cls", zip(lu_units, lu_subclasses))
+    @pytest.mark.parametrize("lu_unit, lu_cls", list(zip(lu_units, lu_subclasses)))
     def test_callable_units(self, lu_unit, lu_cls):
         assert isinstance(lu_unit, u.UnitBase)
         assert callable(lu_unit)
@@ -510,7 +510,8 @@ def test_hashable():
 
 class TestLogQuantityCreation:
     @pytest.mark.parametrize(
-        "lq, lu", zip(lq_subclasses + [u.LogQuantity], lu_subclasses + [u.LogUnit])
+        "lq, lu",
+        list(zip(lq_subclasses + [u.LogQuantity], lu_subclasses + [u.LogUnit])),
     )
     def test_logarithmic_quantities(self, lq, lu):
         """Check logarithmic quantities are all set up correctly"""
