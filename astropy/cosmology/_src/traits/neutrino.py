@@ -33,16 +33,13 @@ class NeutrinoComponent:
     and massive neutrinos (with complex evolution).
 
     This is an abstract trait. Subclasses must implement:
+
     - `has_massive_nu` (property): Whether there are massive neutrinos
     - `Onu0` (property): Neutrino density parameter at z=0
-    - `nu_relative_density(z)`: Neutrino-to-photon density ratio at redshift z
+    - `nu_relative_density` (method): Neutrino-to-photon density ratio at redshift z
 
-    Required Dependencies from Parent
-    ----------------------------------
-    Tcmb0 : Quantity
-        CMB temperature at z=0.
-    Ogamma : callable
-        Method to compute photon density at redshift z.
+    The parent class must provide ``Tcmb0`` (CMB temperature) and ``Ogamma``
+    (method to compute photon density at redshift z).
 
     Notes
     -----
