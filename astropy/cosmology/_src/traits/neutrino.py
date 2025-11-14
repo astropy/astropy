@@ -1,5 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Neutrino component trait.
+r"""Neutrino component trait.
 
 This is private API. See `~astropy.cosmology.traits` for public API.
 """
@@ -27,7 +27,7 @@ NEUTRINO_FERMI_DIRAC_CORRECTION: Final = 0.22710731766  # 7/8 (4/11)^4/3
 
 
 class NeutrinoComponent:
-    """The cosmology has attributes and methods for the neutrino density.
+    r"""The cosmology has attributes and methods for the neutrino density.
 
     This trait handles both massless neutrinos (relativistic, radiation-like)
     and massive neutrinos (with complex evolution).
@@ -43,21 +43,30 @@ class NeutrinoComponent:
 
     Notes
     -----
-    The density in neutrinos is given by
+    The density in neutrinos is given by:
+
     .. math::
-       \rho_{\nu} \\left(a\right) = 0.2271 \\, N_{eff} \\,
-       f\\left(m_{\nu} a / T_{\nu 0} \right) \\,
-       \rho_{\\gamma} \\left( a \right)
+
+        \rho_{\nu} \left(a\right) = 0.2271 \, N_{eff} \,
+        f\left(m_{\nu} a / T_{\nu 0} \right) \,
+        \rho_{\\gamma} \left( a \right)
+
     where
+
     .. math::
-       f \\left(y\right) = \frac{120}{7 \\pi^4}
-       \\int_0^{\\infty} \\, dx \frac{x^2 \\sqrt{x^2 + y^2}}
-       {e^x + 1}
+
+        f \left(y\right) = \frac{120}{7 \pi^4}
+        \int_0^{\\infty} \, dx \frac{x^2 \\sqrt{x^2 + y^2}}
+        {e^x + 1}
+
     assuming that all neutrino species have the same mass.
+
     If they have different masses, a similar term is calculated for each
-    one. Note that ``f`` has the asymptotic behavior :math:`f(0) = 1`. This
+    one.
+
+    Note that ``f`` has the asymptotic behavior :math:`f(0) = 1`. This
     method returns :math:`0.2271 f` using an analytical fitting formula
-    given in Komatsu et al. 2011, ApJS 192, 18.
+    (Komatsu et al., 2011), ApJS, 192, 18.
 
     The neutrino density evolution depends on whether neutrinos are massive or massless:
 
@@ -67,13 +76,36 @@ class NeutrinoComponent:
 
     - **Massive neutrinos**: Have complex evolution that transitions from relativistic
       (radiation-like) at early times to non-relativistic (matter-like) at late times.
-      The implementation typically uses the Komatsu fitting formula [1]_ for
-      computational efficiency.
+      The implementation typically uses the Komatsu fitting formula (Komatsu
+      et al., 2011) for computational efficiency.
 
     References
     ----------
-    .. [1] Komatsu et al. (2011). Seven-Year Wilkinson Microwave Anisotropy Probe
-           (WMAP) Observations: Cosmological Interpretation. ApJS, 192, 18.
+    Komatsu et al. (2011), "Seven-Year Wilkinson Microwave Anisotropy Probe
+    (WMAP) Observations: Cosmological Interpretation", ApJS, 192, 18.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.cosmology.traits import NeutrinoComponent
+    >>> NEUTRINO_FERMI_DIRAC_CORRECTION = 0.22710731766  # 7/8 (4/11)^4/3
+    >>>
+    >>> class ExampleNeutrinoCosmology(NeutrinoComponent):
+    ...     def __init__(self):
+    ...         self.Tcmb0 = 2.7255 * u.K
+    ...         self.Neff = 3.046
+    ...         self.Ogamma0 = 5e-5
+    ...     @property
+    ...     def has_massive_nu(self):
+    ...         return False
+    ...     @property
+    ...     def Onu0(self):
+    ...         return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * self.Ogamma0
+    ...     def nu_relative_density(self, z):
+    ...         return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * np.ones_like(np.asarray(z))
+    ...     def Ogamma(self, z):
+    ...         return self.Ogamma0 * (np.asarray(z) + 1.0) ** 4
     """
 
     # Type annotations for dependencies (provided by parent class)
