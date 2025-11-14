@@ -60,10 +60,9 @@ class wCDM(FLRW):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -268,10 +267,9 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
