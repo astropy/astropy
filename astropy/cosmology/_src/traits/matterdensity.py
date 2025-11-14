@@ -1,5 +1,6 @@
 """Matter component."""
 
+import numpy as np
 from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.typing import FArray
@@ -10,7 +11,7 @@ __all__ = ["MatterComponent"]
 
 
 class MatterComponent:
-    Om0: Quantity
+    Om0: float | np.floating
     """Omega matter; matter density/critical density at z=0."""
 
     @deprecated_keywords("z", since="7.0")
