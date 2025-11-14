@@ -22,7 +22,7 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
 __all__: list[str] = ["enable"]  #  Units are added at the end
 
 from . import si
-from .core import add_enabled_units, def_unit
+from .core import _UnitContext, add_enabled_units, def_unit
 from .docgen import generate_dunder_all, generate_unit_summary
 
 _ns = globals()
@@ -165,7 +165,7 @@ if __doc__ is not None:
     __doc__ += generate_unit_summary(globals())
 
 
-def enable():
+def enable() -> _UnitContext:
     """
     Enable Imperial units so they appear in results of
     `~astropy.units.UnitBase.find_equivalent_units` and

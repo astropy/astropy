@@ -131,7 +131,7 @@ the nearest integer values::
 
     >>> index = wcs.world_to_array_index(coord)  # doctest: +REMOTE_DATA
     >>> index  # doctest: +REMOTE_DATA
-    (357, 357)
+    (array(357), array(357))
     >>> hdu.data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
     np.float32(563.7532)
     >>> hdulist.close()  # doctest: +REMOTE_DATA
@@ -200,7 +200,7 @@ And as before we can index array values using::
 
     >>> index = wcs.world_to_array_index(coord, 3000 * u.m / u.s)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
     >>> index  # doctest: +REMOTE_DATA
-    (7, 71, 8)
+    (array(7), array(71), array(8))
     >>> hdu.data[index]  # doctest: +REMOTE_DATA +FLOAT_CMP
     np.float32(0.22262384)
     >>> hdulist.close()  # doctest: +REMOTE_DATA

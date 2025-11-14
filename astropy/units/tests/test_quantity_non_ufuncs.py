@@ -21,13 +21,20 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
+from astropy.utils.compat import (
+    NUMPY_LT_1_25,
+    NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
+    NUMPY_LT_2_4,
+)
 
 VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
 VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
 POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
 KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
 POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
+EMPTY_DEFAULT = inspect.Parameter.empty
 
 ARCSEC_PER_DEGREE = 60 * 60
 ARCSEC_PER_RADIAN = ARCSEC_PER_DEGREE * np.rad2deg(1)
@@ -390,29 +397,33 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
                 id="pos: start; kw: stop",
             ),
             pytest.param(
+                (10,),
+                {"step": 2},
+                np.arange(10, step=2, dtype=float) * ARCSEC_PER_DEGREE,
+                id="pos: stop; kw: step; unit from like",
+            ),
+            pytest.param(
                 (10 * u.radian, None),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 1 None",
+                id="pos: stop, None",
             ),
             pytest.param(
-                (10 * u.radian, None, None),
+                (10 * u.radian, None, 1),
                 {},
                 np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 2 None",
-            ),
-            pytest.param(
-                (10 * u.radian, None, None, None),
-                {},
-                np.rad2deg(np.arange(10, dtype=float) * ARCSEC_PER_DEGREE),
-                id="pos: stop, followed by 3 None",
+                id="pos: stop, None, 1",
             ),
         ],
     )
     def test_arange(self, args, kwargs, expected):
         arr = np.arange(*args, **kwargs, like=u.Quantity([], u.degree))
         assert type(arr) is u.Quantity
-        assert arr.unit == u.radian
+        if any(hasattr(arg, "unit") for arg in itertools.chain(args, kwargs.keys())):
+            expected_unit = u.radian
+        else:
+            expected_unit = u.degree
+        assert arr.unit == expected_unit
         assert arr.dtype == expected.dtype
         assert_allclose(arr.to_value(u.arcsec), expected)
 
@@ -426,13 +437,6 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         assert type(arr) is AngularUnits
         assert arr.unit == u.radian
         assert arr.dtype == np.dtype(float)
-        assert_array_equal(arr.value, np.arange(10))
-
-    def test_arange_pos_dtype(self):
-        arr = np.arange(0 * u.s, 10 * u.s, 1 * u.s, int, like=u.Quantity([], u.radian))
-        assert type(arr) is u.Quantity
-        assert arr.unit == u.s
-        assert arr.dtype == np.dtype(int)
         assert_array_equal(arr.value, np.arange(10))
 
     def test_arange_default_unit(self):
@@ -449,10 +453,12 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
 
     def test_arange_unit_from_stop(self):
         Q = 1 * u.km
-        a = np.arange(start=1 * u.s, stop=10 * u.min, like=Q)
-        b = np.arange(stop=10 * u.min, start=1 * u.s, like=Q)
-        assert a.unit == u.min
-        assert b.unit == u.min
+        start = 1 * u.s
+        stop = 10 * u.min
+        a = np.arange(start, stop, like=Q)
+        b = np.arange(start, stop=stop, like=Q)
+        assert a.unit == stop.unit
+        assert b.unit == stop.unit
         assert_array_equal(a.value, b.value)
 
 
@@ -2060,10 +2066,10 @@ class TestStringFunctions:
         expected2 = "[0.0 Jy, 1.0 Jy, 2.0 Jy]"
         assert out2 == expected2
         # Also as positional argument (no, nobody will do this!)
-        out3 = np.array2string(
-            self.q, None, None, None, ", ", "", np._NoValue, {"float": str}
-        )
-        assert out3 == expected2
+        if NUMPY_LT_2_4:
+            args = (self.q, None, None, None, ", ", "", np._NoValue, {"float": str})
+            out3 = np.array2string(*args)
+            assert out3 == expected2
         # But not if the formatter is not relevant for us.
         out4 = np.array2string(self.q, separator=", ", formatter={"int": str})
         assert out4 == expected1
@@ -2282,6 +2288,7 @@ class TestSetOpsFunctions:
         self.check2(np.setdiff1d)
 
     @needs_array_function
+    @pytest.mark.skipif(not NUMPY_LT_2_4, reason="in1d was removed in numpy 2.4")
     @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
         self.check2(np.in1d, unit=None)  # noqa: NPY201
@@ -2864,14 +2871,16 @@ def test_testing_completeness():
 class TestFunctionHelpersCompleteness:
     @pytest.mark.parametrize(
         "one, two",
-        itertools.combinations(
-            (
-                SUBCLASS_SAFE_FUNCTIONS,
-                UNSUPPORTED_FUNCTIONS,
-                set(FUNCTION_HELPERS.keys()),
-                set(DISPATCHED_FUNCTIONS.keys()),
+        list(
+            itertools.combinations(
+                (
+                    SUBCLASS_SAFE_FUNCTIONS,
+                    UNSUPPORTED_FUNCTIONS,
+                    set(FUNCTION_HELPERS.keys()),
+                    set(DISPATCHED_FUNCTIONS.keys()),
+                ),
+                2,
             ),
-            2,
         ),
     )
     def test_no_duplicates(self, one, two):
@@ -2919,7 +2928,10 @@ class CheckSignatureCompatibilityBase:
         try:
             sig_target = inspect.signature(target)
         except ValueError:
-            pytest.skip("Non Python function cannot be inspected at runtime")
+            if NUMPY_LT_2_4:
+                pytest.skip("Non Python function cannot be inspected at runtime")
+            else:
+                raise
 
         params_target = sig_target.parameters
         sig_helper = inspect.signature(helper)
@@ -2980,7 +2992,10 @@ class CheckSignatureCompatibilityBase:
         try:
             sig_target = inspect.signature(target)
         except ValueError:
-            pytest.skip("Non Python function cannot be inspected at runtime")
+            if NUMPY_LT_2_4:
+                pytest.skip("Non Python function cannot be inspected at runtime")
+            else:
+                raise
 
         params_target = sig_target.parameters
         sig_helper = inspect.signature(helper)
@@ -3006,12 +3021,18 @@ class CheckSignatureCompatibilityBase:
             self.get_param_group(params_helper, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
         )
 
-        # additional private keyword-only argument are allowed because
-        # they are only intended for testing purposes.
+        # additional private keyword-only argument are allowed, as long as they
+        # have default values. They are only intended for testing purposes.
         # For instance, quantile has such a parameter '_q_unit'
-        keyword_allowed_helper = {
-            name for name in keyword_allowed_helper if not name.startswith("_")
+        private_kwargs = {
+            name for name in keyword_allowed_helper if name.startswith("_")
         }
+        for pk in private_kwargs:
+            assert params_helper[pk].default is not EMPTY_DEFAULT, (
+                f"private argument {pk} must provide a default value"
+            )
+
+        keyword_allowed_helper -= private_kwargs
 
         diff = keyword_allowed_helper - keyword_allowed_target
         assert not diff, (

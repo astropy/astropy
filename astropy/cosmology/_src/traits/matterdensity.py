@@ -6,10 +6,10 @@ from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
-__all__ = ["_MatterComponent"]
+__all__ = ["MatterComponent"]
 
 
-class _MatterComponent:
+class MatterComponent:
     Om0: Quantity
     """Omega matter; matter density/critical density at z=0."""
 
@@ -34,7 +34,7 @@ class _MatterComponent:
         Notes
         -----
         This does not include neutrinos, even if non-relativistic at the
-        redshift of interest; see `Onu`.
+        redshift of interest.
         """
         z = aszarr(z)
         return self.Om0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2

@@ -64,13 +64,13 @@ import os
 import re
 import warnings
 from collections.abc import Iterable
-from contextlib import ExitStack
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final, NamedTuple
 
 import numpy as np
 import numpy.typing as npt
+
+from astropy.utils.data import get_readable_fileobj
 
 if TYPE_CHECKING:
     from astropy.table import SerializedColumn, Table
@@ -365,6 +365,7 @@ class ECSVEngineIoAscii(ECSVEngine):
         # encoding. Converters are required, e.g. for a string column that looks like
         # floats. Would be nice to fix this, but in mean time use Python CSV reader.
         kw["fast_reader"] = False
+        kw["strip_column_names"] = False
         return kw
 
 
@@ -393,7 +394,6 @@ class ECSVEnginePandas(ECSVEngine):
         header: ECSVHeader,
         null_values: list[str],
     ) -> dict[str, Any]:
-        kw = {}
         fill_values = get_null_values_per_column(
             header.cols, header.table_meta, null_values
         )
@@ -407,11 +407,17 @@ class ECSVEnginePandas(ECSVEngine):
                 for nan in ("nan", "NaN"):
                     null_values[col_name].append(nan)
 
-        kw["na_values"] = null_values
-        kw["keep_default_na"] = False
-        kw["skiprows"] = header.n_header
-        kw["dtype"] = converters
-        return kw
+        kw = {
+            "na_values": null_values,
+            "keep_default_na": False,
+            "comment": "#",
+            "dtype": converters,
+        }
+        # Would prefer setting `"skiprows": header.n_header` above (as in the original
+        # implementation prior to #18756) instead of "comment": "#". However there is a
+        # bug in pandas.read_csv where skiprows does not work when the line includes a
+        # quote character, see https://github.com/pandas-dev/pandas/issues/62739.
+        return kw  # noqa: RET504
 
 
 def is_numpy_dtype(np_type: str) -> bool:
@@ -441,8 +447,8 @@ def get_header_lines(
     ----------
     input_file : str | os.PathLike | io.BytesIO
         The input file path or file-like object to read. If a file path is
-        provided, the function automatically handles compressed files with
-        extensions `.gz` or `.bz2`.
+        provided, the function automatically handles compressed file formats
+        that are supported by `~astropy.utils.data.get_readable_fileobj`.
     encoding : str, optional
         The encoding used to decode the file content. Default is "utf-8".
 
@@ -463,25 +469,8 @@ def get_header_lines(
     n_empty = 0
     n_comment = 0
 
-    with ExitStack() as stack:
-        # Get a file-like object as tmp_input_file
-        if isinstance(input_file, (str, os.PathLike)):
-            ext = Path(input_file).suffix
-            if ext == ".gz":
-                import gzip
-
-                opener = gzip.open
-            elif ext == ".bz2":
-                import bz2
-
-                opener = bz2.open
-            else:
-                opener = open
-            tmp_input_file = stack.enter_context(opener(input_file, "rb"))
-        else:
-            tmp_input_file = input_file
-
-        for idx, line in enumerate(tmp_input_file):
+    with get_readable_fileobj(input_file, encoding="binary") as f:
+        for idx, line in enumerate(f):
             line_strip = line.strip()
             if line_strip.startswith(header_prefix):
                 lines.append(line_strip[2:].decode(encoding))
@@ -1226,7 +1215,7 @@ def read_ecsv(
     return table  # noqa: RET504
 
 
-def write_ecsv(tbl, output, **kwargs):
+def write_ecsv(tbl, output, engine="io.ascii", **kwargs):
     """Thin wrapper around the ``io.ascii`` ECSV writer to write ECSV files.
 
     Parameters
@@ -1235,11 +1224,18 @@ def write_ecsv(tbl, output, **kwargs):
         The table to write to ECSV format.
     output : str or os.PathLike or file-like object
         The output file path or file-like object to write the ECSV data to.
+    engine : str, optional
+        The engine to use for writing the CSV data. Default is "io.ascii", which uses
+        astropy to write the CSV data. Currently this is the only option.
     **kwargs : dict, optional
         Additional keyword arguments passed to the ECSV writer. These can include
         options like ``delimiter``, ``encoding``, and others supported by the
         `astropy.io.ascii.Ecsv` writer.
     """
+    if engine != "io.ascii":
+        raise ValueError(
+            f"{engine=} is not a supported engine for writing, use 'io.ascii'"
+        )
     tbl.write(output, format="ascii.ecsv", **kwargs)
 
 

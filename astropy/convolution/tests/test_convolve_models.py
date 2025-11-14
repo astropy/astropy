@@ -54,8 +54,8 @@ class TestConvolve1DModels:
     def test_sum_of_gaussians(self, mode):
         """
         Test that convolving N(a, b) with N(c, d) gives N(a + c, b + d),
-        where N(., .) stands for Gaussian probability density function,
-        in which a and c are their means and b and d are their variances.
+        where N is a Gaussian probability density function, in which a
+        and c are their means and b and d are their variances.
         """
 
         kernel = models.Gaussian1D(1 / math.sqrt(2 * np.pi), 1, 1)

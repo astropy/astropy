@@ -15,7 +15,6 @@ from pathlib import Path
 from astropy.utils import deprecated, find_current_module
 from astropy.utils.exceptions import (
     AstropyDeprecationWarning,
-    AstropyPendingDeprecationWarning,
     AstropyWarning,
 )
 
@@ -52,7 +51,7 @@ class keyword:
         return keyword
 
 
-@deprecated("7.2", alternative="pytest", pending=True)
+@deprecated("8.0", alternative="pytest")
 class TestRunnerBase:
     """
     The base class for the TestRunner.
@@ -166,7 +165,7 @@ class TestRunnerBase:
 
         This method builds arguments for and then calls ``pytest.main``.
 
-        .. deprecated:: 7.2
+        .. deprecated:: 8.0
             Use pytest instead.
 
         Parameters
@@ -210,8 +209,8 @@ class TestRunnerBase:
         # This method is weirdly hooked into various things with docstring
         # overrides, so we keep it simple and not use @deprecated here.
         warnings.warn(
-            "The test runner will be deprecated in a future version.\n        Use pytest instead.",
-            AstropyPendingDeprecationWarning,
+            "The test runner is deprecated in v8.0 and may be removed in a future version.\n        Use pytest instead.",
+            AstropyDeprecationWarning,
         )
 
         # The following option will include eggs inside a .eggs folder in
@@ -304,7 +303,7 @@ class TestRunnerBase:
         return test
 
 
-@deprecated("7.2", alternative="pytest", pending=True)
+@deprecated("8.0", alternative="pytest")
 class TestRunner(TestRunnerBase):
     """
     A test runner for astropy tests.

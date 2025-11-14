@@ -570,7 +570,7 @@ class TestArithmetic:
         self.t2 = self.__class__.t2[use_mask]
         self.jd = self.__class__.jd[use_mask]
 
-    @pytest.mark.parametrize("kw, func", itertools.product(kwargs, functions))
+    @pytest.mark.parametrize("kw, func", list(itertools.product(kwargs, functions)))
     def test_argfuncs(self, kw, func, use_mask):
         """
         Test that ``np.argfunc(jd, **kw)`` is the same as ``t0.argfunc(**kw)``
@@ -594,7 +594,7 @@ class TestArithmetic:
         assert t0v.shape == jdv.shape
         assert t1v.shape == jdv.shape
 
-    @pytest.mark.parametrize("kw, func", itertools.product(kwargs, functions))
+    @pytest.mark.parametrize("kw, func", list(itertools.product(kwargs, functions)))
     def test_funcs(self, kw, func, use_mask):
         """
         Test that ``np.func(jd, **kw)`` is the same as ``t1.func(**kw)`` where

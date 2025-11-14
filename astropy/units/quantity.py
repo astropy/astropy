@@ -558,12 +558,7 @@ class Quantity(np.ndarray):
             return value.to(unit)
 
     def __array_finalize__(self, obj):
-        # Check whether super().__array_finalize should be called
-        # (sadly, ndarray.__array_finalize__ is None; we cannot be sure
-        # what is above us).
-        super_array_finalize = super().__array_finalize__
-        if super_array_finalize is not None:
-            super_array_finalize(obj)
+        super().__array_finalize__(obj)
 
         # If we're a new object or viewing an ndarray, nothing has to be done.
         if obj is None or obj.__class__ is np.ndarray:

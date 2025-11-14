@@ -379,9 +379,11 @@ def test_self_conversion_via_variance_supported(UncertClass):
 
 @pytest.mark.parametrize(
     "UncertClass,to_variance_func",
-    zip(
-        uncertainty_types_with_conversion_support,
-        (lambda x: x**2, lambda x: x, lambda x: 1 / x),
+    list(
+        zip(
+            uncertainty_types_with_conversion_support,
+            (lambda x: x**2, lambda x: x, lambda x: 1 / x),
+        )
     ),
 )
 def test_conversion_to_from_variance_supported(UncertClass, to_variance_func):

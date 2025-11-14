@@ -76,7 +76,7 @@ Astropy Test Runner
 
 .. warning::
 
-    ``astropy.test``, ``TestRunner``, and ``TestRunnerBase`` are pending deprecation.
+    ``astropy.test``, ``TestRunner``, and ``TestRunnerBase`` are deprecated as of v8.0.
     This will also affect downstream ``packagename.test`` generated using ``TestRunner``.
     If you use any of the API referenced in this section, please consider
     switching away to using ``pytest`` natively.

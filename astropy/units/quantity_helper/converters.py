@@ -375,7 +375,7 @@ def check_output(output, unit, inputs, function=None):
 
     else:
         # output is not a Quantity, so cannot obtain a unit.
-        if not (unit is None or unit is dimensionless_unscaled):
+        if not (unit is None or unit == dimensionless_unscaled):
             raise UnitTypeError(
                 "Cannot store quantity with dimension "
                 "{}in a non-Quantity instance.".format(

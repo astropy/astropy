@@ -329,10 +329,8 @@ Both :meth:`~astropy.coordinates.EarthLocation.of_site` and
 :meth:`~astropy.coordinates.EarthLocation.get_site_names`,
 `astropy.coordinates` attempt to access the site registry from the
 `astropy-data repository <https://github.com/astropy/astropy-data>`_ and will
-save the registry in the user's local cache (see :ref:`utils-data`).  If
-there is no local cache and Internet connection is not available, a built-in
-list (consisting of only the Greenwich Royal Observatory as an example case) is
-loaded. The cached version of the site registry is not updated automatically,
+save the registry in the user's local cache (see :ref:`utils-data`).
+The cached version of the site registry is not updated automatically,
 but the latest version may be downloaded using the ``refresh_cache=True``
 option of these methods. If you would like a site to be added to the registry,
 issue a pull request to the `astropy-data repository

@@ -353,6 +353,15 @@ def test_ogip_ohm():
     assert u_format.OGIP.to_string(u.ohm) == "ohm"
 
 
+@pytest.mark.parametrize(
+    "string",
+    [pytest.param("m**(-0.5)", id="float"), pytest.param("m**(-1/2)", id="fraction")],
+)
+def test_ogip_negative_powers(string):
+    # Regression test for #18776 - negative fractions were not recognized
+    assert u_format.OGIP.parse(string) == u.m**-0.5
+
+
 class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
