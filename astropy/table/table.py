@@ -4192,7 +4192,7 @@ class Table:
         """
         from ._dataframes import from_df
 
-        return from_df(df, index=index, units=units)
+        return from_df(cls, df, index=index, units=units)
 
     def to_pandas(
         self, index: bool | str | None = None, use_nullable_int: bool = True
@@ -4333,7 +4333,7 @@ class Table:
         """
         from ._dataframes import from_pandas
 
-        return from_pandas(dataframe, index=index, units=units)
+        return from_pandas(cls, dataframe, index=index, units=units)
 
     info = TableInfo()
 

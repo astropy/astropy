@@ -247,11 +247,13 @@ def to_df(
 
 
 def from_df(
-    df: Any, *, index: bool = False, units: Mapping[str, UnitLike] | None = None
+    cls: type[Table],
+    df: Any,
+    *,
+    index: bool = False,
+    units: Mapping[str, UnitLike] | None = None,
 ) -> Table:
-    """Create a Table from any narwhals-compatible DataFrame."""
-    from .table import Table
-
+    """Create an instance of ``cls`` from any narwhals-compatible DataFrame."""
     if not HAS_NARWHALS:
         raise ModuleNotFoundError(
             "The narwhals library is required for the generic from_df method. "
@@ -357,7 +359,7 @@ def from_df(
         else:
             out[name] = Column(data=data, unit=unit, copy=False)
 
-    return Table(out)
+    return cls(out)
 
 
 def to_pandas(
@@ -432,11 +434,12 @@ def to_pandas(
 
 
 def from_pandas(
-    dataframe: Any, index: bool = False, units: Mapping[str, UnitLike] | None = None
+    cls: type[Table],
+    dataframe: Any,
+    index: bool = False,
+    units: Mapping[str, UnitLike] | None = None,
 ) -> Table:
-    """Create a Table from a pandas DataFrame."""
-    from .table import Table
-
+    """Create an instance of ``cls`` from a pandas DataFrame."""
     out = {}
 
     names = list(dataframe.columns)
@@ -514,4 +517,4 @@ def from_pandas(
             else:
                 out[name] = Column(data=data, name=name, unit=unit)
 
-    return Table(out)
+    return cls(out)
