@@ -25,6 +25,7 @@ from ._src.flrw import (
 )
 from ._src.funcs import cosmology_equal, z_at_value
 from ._src.parameter import Parameter
+from ._src.pedagogical import MatterOnlyCosmology
 from .realizations import available, default_cosmology
 
 __all__ = [  #  noqa: RUF100, RUF022
@@ -66,6 +67,8 @@ __all__ = [  #  noqa: RUF100, RUF022
     "Planck13",
     "Planck15",
     "Planck18",
+    # Pedagogical
+    "MatterOnlyCosmology",
 ]
 
 

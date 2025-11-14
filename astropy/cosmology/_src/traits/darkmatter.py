@@ -3,10 +3,11 @@ __all__ = ["DarkMatterComponent"]
 from collections.abc import Callable
 from typing import Any
 
+import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 
@@ -17,22 +18,18 @@ class DarkMatterComponent:
     density parameter (i.e., total matter minus baryons) at redshift ``z``.
     """
 
-    Odm0: float
+    Odm0: float | np.floating
     """Omega dark matter: dark matter density/critical density at z=0."""
 
     inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
 
-    @deprecated_keywords("z", since="7.0")
-    def Odm(self, z: Quantity | ArrayLike) -> FArray:
+    def Odm(self, z: Quantity | ArrayLike, /) -> FArray:
         """Return the density parameter for dark matter at redshift ``z``.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
