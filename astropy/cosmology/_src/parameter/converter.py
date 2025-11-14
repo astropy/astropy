@@ -1,11 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = [
+__all__ = (
     "validate_non_negative",
     "validate_to_float",
     "validate_to_scalar",
     "validate_with_unit",
-]
+)
 
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any

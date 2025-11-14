@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+__all__ = ("FlatLambdaCDM", "LambdaCDM")
+
 from math import acos, cos, inf, sin, sqrt
 from numbers import Number
 
@@ -16,8 +18,6 @@ from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
-
-__all__ = ["FlatLambdaCDM", "LambdaCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
