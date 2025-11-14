@@ -145,7 +145,7 @@ jobs:
       upload_to_pypi: false
       upload_to_anaconda: false
       test_extras: test
-      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
+      test_command: pytest -Wdefault --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --strict-markers --pyargs astropy
       targets: |
         - cp311-manylinux_x86_64
 
