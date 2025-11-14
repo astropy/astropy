@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+__all__ = ["FLRW", "FlatFLRWMixin"]
 import inspect
 import warnings
 from dataclasses import field
@@ -6,11 +7,11 @@ from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
 from numbers import Number
-from typing import Any, Final, TypeVar, overload
+from typing import Any, Final, NamedTuple, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 import astropy.constants as const
 import astropy.units as u
@@ -64,6 +65,14 @@ a_B_c2: Final = (4 * const.sigma_sb / const.c**3).cgs.value
 # Boltzmann constant in eV / K
 kB_evK: Final = const.k_B.to(u.eV / u.K)
 
+# Neutrino physics constants for FLRW calculations
+# See Komatsu et al. 2011, eq 26 and the surrounding discussion
+NEUTRINO_FERMI_DIRAC_CORRECTION: Final = 0.22710731766  # 7/8 (4/11)^4/3
+# Komatsu fitting constants
+KOMATSU_P: Final = 1.83
+KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
+KOMATSU_K: Final = 0.3173
+
 
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")
@@ -71,7 +80,45 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 
 
 ##############################################################################
-# NeutrinoInfo is now defined in traits.neutrino and imported above
+# NeutrinoInfo - FLRW-specific implementation detail
+##############################################################################
+
+
+class NeutrinoInfo(NamedTuple):
+    """A container for neutrino information.
+
+    This is Private API - internal to FLRW cosmologies.
+
+    """
+
+    n_nu: int
+    """Number of neutrino species (floor of Neff)."""
+
+    neff_per_nu: float | None
+    """Number of effective neutrino species per neutrino.
+
+    We are going to share Neff between the neutrinos equally. In detail this is not
+    correct, but it is a standard assumption because properly calculating it is a)
+    complicated b) depends on the details of the massive neutrinos (e.g., their weak
+    interactions, which could be unusual if one is considering sterile neutrinos).
+    """
+
+    has_massive_nu: bool
+    """Boolean of which neutrinos are massive."""
+
+    n_massive_nu: int
+    """Number of massive neutrinos."""
+
+    n_massless_nu: int
+    """Number of massless neutrinos."""
+
+    nu_y: NDArray[np.floating] | None
+    """The ratio m_nu / (kB T_nu) for each massive neutrino."""
+
+    nu_y_list: list[float] | None
+    """The ratio m_nu / (kB T_nu) for each massive neutrino as a list."""
+
+
 ##############################################################################
 
 
@@ -398,15 +445,53 @@ class FLRW(
         """Omega total; the total density/critical density at z=0."""
         return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
 
-    # Tnu0 and has_massive_nu are now provided by NeutrinoComponent trait
+    # ---------------------------------------------------------------
+    # Neutrino - implementing NeutrinoComponent abstract methods
+
+    @property
+    def has_massive_nu(self) -> bool:
+        """Does this cosmology have at least one massive neutrino species?"""
+        if self.Tnu0.value == 0:
+            return False
+        return self._nu_info.has_massive_nu
+
+    @cached_property
+    def Onu0(self) -> float:
+        """Omega nu; the density/critical density of neutrinos at z=0."""
+        if self._nu_info.has_massive_nu:
+            return self.Ogamma0 * self.nu_relative_density(0)
+        else:
+            # This case is particularly simple, so do it directly The 0.2271...
+            # is 7/8 (4/11)^(4/3) -- the temperature bit ^4 (blackbody energy
+            # density) times 7/8 for FD vs. BE statistics.
+            return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * self.Ogamma0
+
+    def nu_relative_density(self, z: u.Quantity | ArrayLike) -> FArray:
+        r"""Neutrino density function relative to the energy density in photons."""
+        # Note that there is also a scalar-z-only cython implementation of
+        # this in scalar_inv_efuncs.pyx, so if you find a problem in this
+        # you need to update there too.
+
+        # The massive and massless contribution must be handled separately
+        # But check for common cases first
+        z = aszarr(z)
+        if not self._nu_info.has_massive_nu:
+            return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * np.ones_like(z)
+
+        curr_nu_y = self._nu_info.nu_y / (1.0 + np.expand_dims(z, axis=-1))
+        rel_mass_per = (1.0 + (KOMATSU_K * curr_nu_y) ** KOMATSU_P) ** KOMATSU_INVP
+        rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
+
+        return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
+
+    # ---------------------------------------------------------------
+    # Photon
 
     @cached_property
     def Ogamma0(self) -> float:
         """Omega gamma; the density/critical density of photons at z=0."""
         # photon density from Tcmb
         return a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
-
-    # Onu0 is now provided by NeutrinoComponent trait
 
     # ---------------------------------------------------------------
 
