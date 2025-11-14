@@ -561,7 +561,6 @@ links_to_become_substitutions: dict[str, str] = {
     "miniconda": "https://docs.conda.io/en/latest/miniconda.html",
     # pytest
     "pytest": "https://pytest.org/en/latest/index.html",
-    "pytest-astropy": "https://github.com/astropy/pytest-astropy",
     "pytest-doctestplus": "https://github.com/astropy/pytest-doctestplus",
     "pytest-remotedata": "https://github.com/astropy/pytest-remotedata",
     # fsspec

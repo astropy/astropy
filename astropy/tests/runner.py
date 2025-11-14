@@ -180,12 +180,7 @@ class TestRunnerBase:
         "pytest_doctestplus",
         "pytest_astropy_header",
     ]
-    _missing_dependancy_error = (
-        "Test dependencies are missing: {}. You should install the "
-        "'pytest-astropy' package (you may need to update the package if you "
-        "have a previous version installed, e.g., "
-        "'pip install pytest-astropy --upgrade' or the equivalent with conda)."
-    )
+    _missing_dependancy_error = "Test dependencies are missing: {}. "
 
     @classmethod
     def _has_test_dependencies(cls):  # pragma: no cover
@@ -202,8 +197,10 @@ class TestRunnerBase:
                 pluginmanager = pytest.PytestPluginManager()
                 try:
                     pluginmanager.import_plugin(module)
-                except ImportError:
-                    raise RuntimeError(cls._missing_dependancy_error.format(module))
+                except ImportError as exc:
+                    raise RuntimeError(
+                        cls._missing_dependancy_error.format(module)
+                    ) from exc
 
     def run_tests(self, **kwargs):
         # This method is weirdly hooked into various things with docstring
