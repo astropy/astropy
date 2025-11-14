@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 __all__ = ["FLRW", "FlatFLRWMixin"]
+
 import inspect
 import warnings
 from dataclasses import field
@@ -65,14 +67,14 @@ a_B_c2: Final = (4 * const.sigma_sb / const.c**3).cgs.value
 # Boltzmann constant in eV / K
 kB_evK: Final = const.k_B.to(u.eV / u.K)
 
-# Neutrino physics constants for FLRW calculations
-# See Komatsu et al. 2011, eq 26 and the surrounding discussion
+# See Komatsu et al. 2011, eq 26 and the surrounding discussion for an explanation of
+# what this does. However, this is modified to handle multiple neutrino masses by
+# computing the above for each mass, then summing
 NEUTRINO_FERMI_DIRAC_CORRECTION: Final = 0.22710731766  # 7/8 (4/11)^4/3
-# Komatsu fitting constants
+# These are purely fitting constants -- see the Komatsu paper
 KOMATSU_P: Final = 1.83
 KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
 KOMATSU_K: Final = 0.3173
-
 
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")
@@ -80,7 +82,9 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 
 
 ##############################################################################
+
 # NeutrinoInfo - FLRW-specific implementation detail
+
 ##############################################################################
 
 
