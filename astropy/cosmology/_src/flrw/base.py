@@ -82,10 +82,7 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 
 
 ##############################################################################
-
 # NeutrinoInfo - FLRW-specific implementation detail
-
-##############################################################################
 
 
 class NeutrinoInfo(NamedTuple):
