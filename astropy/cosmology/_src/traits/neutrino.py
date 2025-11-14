@@ -43,6 +43,22 @@ class NeutrinoComponent:
 
     Notes
     -----
+    The density in neutrinos is given by
+    .. math::
+       \rho_{\nu} \\left(a\right) = 0.2271 \\, N_{eff} \\,
+       f\\left(m_{\nu} a / T_{\nu 0} \right) \\,
+       \rho_{\\gamma} \\left( a \right)
+    where
+    .. math::
+       f \\left(y\right) = \frac{120}{7 \\pi^4}
+       \\int_0^{\\infty} \\, dx \frac{x^2 \\sqrt{x^2 + y^2}}
+       {e^x + 1}
+    assuming that all neutrino species have the same mass.
+    If they have different masses, a similar term is calculated for each
+    one. Note that ``f`` has the asymptotic behavior :math:`f(0) = 1`. This
+    method returns :math:`0.2271 f` using an analytical fitting formula
+    given in Komatsu et al. 2011, ApJS 192, 18.
+
     The neutrino density evolution depends on whether neutrinos are massive or massless:
 
     - **Massless neutrinos**: Behave like radiation with density scaling as (1+z)^4.
