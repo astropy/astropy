@@ -777,4 +777,7 @@ constraint-dependencies = [
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
     "typing_extensions>=4.6; python_version<'3.12'",
+
+    # via fsspec[http]
+    "aiohttp>=3.6.O", # arbitrary first guess
 ]
