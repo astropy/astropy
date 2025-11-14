@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ["TotalComponent"]
+__all__ = ("TotalComponent",)
 
 from abc import abstractmethod
 

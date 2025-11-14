@@ -1,7 +1,7 @@
 """Cosmological Parameters. Private API."""
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = [  # noqa: RUF100, RUF022
+__all__ = (  # noqa: RUF100, RUF022
     "Parameter",
     "ParametersAttribute",
     "MISSING",
@@ -11,7 +11,7 @@ __all__ = [  # noqa: RUF100, RUF022
     "validate_to_float",
     "validate_to_scalar",
     "validate_non_negative",
-]
+)
 
 from .converter import (
     validate_non_negative,

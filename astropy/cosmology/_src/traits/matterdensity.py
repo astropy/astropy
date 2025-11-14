@@ -7,7 +7,7 @@ from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr, deprecated_keywords
 from astropy.units import Quantity
 
-__all__ = ["MatterComponent"]
+__all__ = ("MatterComponent",)
 
 
 class MatterComponent:

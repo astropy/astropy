@@ -5,7 +5,7 @@ This is private API. See `~astropy.cosmology.traits` for public API.
 
 """
 
-__all__ = ["ScaleFactor"]
+__all__ = ("ScaleFactor",)
 
 
 from numpy.typing import ArrayLike
