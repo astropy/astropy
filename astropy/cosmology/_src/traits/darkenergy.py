@@ -12,7 +12,7 @@ from astropy.units import Quantity
 
 class DarkEnergyComponent:
     # Subclasses should use `Parameter` to make this a parameter of the cosmology.
-    Ode0: float
+    Ode0: float | np.floating
     """Omega dark energy; dark energy density/critical density at z=0."""
 
     @abstractmethod
