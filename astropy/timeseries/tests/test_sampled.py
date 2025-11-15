@@ -396,6 +396,33 @@ def test_required_columns():
                                  "'time' as the first column but found 'banana'")
 
 
+def test_required_columns_error_message():
+    """Test that error messages for missing required columns are clear and informative."""
+
+    # Test case from issue: removing a required column from a TimeSeries with multiple required columns
+    ts = TimeSeries(time=INPUT_TIME, data={'flux': [99.9, 99.8, 99.7]})
+    ts._required_columns = ['time', 'flux']
+
+    # Test removing a single required column (not the first one)
+    with pytest.raises(ValueError) as exc:
+        ts.copy().remove_column('flux')
+    assert exc.value.args[0] == "TimeSeries object is invalid - missing required column: 'flux'"
+
+    # Test removing multiple required columns
+    ts2 = TimeSeries(time=INPUT_TIME, data={'flux': [99.9, 99.8, 99.7], 'mag': [1.0, 2.0, 3.0]})
+    ts2._required_columns = ['time', 'flux', 'mag']
+
+    with pytest.raises(ValueError) as exc:
+        ts2.copy().remove_columns(['flux', 'mag'])
+    assert exc.value.args[0] == "TimeSeries object is invalid - missing required columns: 'flux', 'mag'"
+
+    # Test removing all required columns
+    with pytest.raises(ValueError) as exc:
+        ts.copy().remove_columns(['time', 'flux'])
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected 'time' "
+                                 "as the first column but time series has no columns")
+
+
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
 def test_periodogram(cls):
 

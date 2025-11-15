@@ -76,9 +76,28 @@ class BaseTimeSeries(QTable):
 
             elif self.colnames[:len(required_columns)] != required_columns:
 
-                raise ValueError("{} object is invalid - expected '{}' "
-                                 "as the first column{} but found '{}'"
-                                 .format(self.__class__.__name__, required_columns[0], plural, self.colnames[0]))
+                # Determine which columns are missing or incorrect
+                missing_columns = []
+                for i, col in enumerate(required_columns):
+                    if i >= len(self.colnames) or self.colnames[i] != col:
+                        missing_columns.append(col)
+
+                if len(missing_columns) == len(required_columns):
+                    # All required columns are missing or wrong
+                    if len(self.colnames) > 0:
+                        raise ValueError("{} object is invalid - expected '{}' "
+                                         "as the first column{} but found '{}'"
+                                         .format(self.__class__.__name__, required_columns[0], plural, self.colnames[0]))
+                    else:
+                        raise ValueError("{} object is invalid - expected '{}' "
+                                         "as the first column{} but time series has no columns"
+                                         .format(self.__class__.__name__, required_columns[0], plural))
+                else:
+                    # Some required columns are missing
+                    missing_str = "', '".join(missing_columns)
+                    plural_missing = 's' if len(missing_columns) > 1 else ''
+                    raise ValueError("{} object is invalid - missing required column{}: '{}'"
+                                     .format(self.__class__.__name__, plural_missing, missing_str))
 
             if (self._required_columns_relax
                     and self._required_columns == self.colnames[:len(self._required_columns)]):

@@ -294,6 +294,25 @@ def test_read():
     assert timeseries['B'].sum() == 1151.54
 
 
+def test_required_columns_error_message():
+    """Test that error messages for missing required columns are clear and informative."""
+
+    # BinnedTimeSeries has two required columns by default: time_bin_start and time_bin_size
+    ts = BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31',
+                          time_bin_size=3 * u.s, data=[[1, 4, 3]], names=['flux'])
+
+    # Test removing a single required column (not the first one)
+    with pytest.raises(ValueError) as exc:
+        ts.copy().remove_column('time_bin_size')
+    assert exc.value.args[0] == "BinnedTimeSeries object is invalid - missing required column: 'time_bin_size'"
+
+    # Test removing both required columns
+    with pytest.raises(ValueError) as exc:
+        ts.copy().remove_columns(['time_bin_start', 'time_bin_size'])
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - expected 'time_bin_start' "
+                                 "as the first columns but time series has no columns")
+
+
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
 def test_periodogram(cls):
 
