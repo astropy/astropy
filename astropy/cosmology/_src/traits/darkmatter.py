@@ -9,7 +9,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 
@@ -25,8 +25,7 @@ class DarkMatterComponent:
 
     inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
 
-    @deprecated_keywords("z", since="7.0")
-    def Odm(self, z: Quantity | ArrayLike) -> FArray:
+    def Odm(self, z: Quantity | ArrayLike, /) -> FArray:
         """Return the density parameter for dark matter at redshift ``z``.
 
         Parameters
@@ -36,6 +35,9 @@ class DarkMatterComponent:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
