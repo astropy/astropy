@@ -148,3 +148,64 @@ def test_custom_model_separable():
 
     assert not model_c().separable
     assert np.all(separability_matrix(model_c()) == [True, True])
+
+
+def test_nested_compound_model_separability():
+    """
+    Test that nested CompoundModels maintain correct separability.
+
+    Regression test for issue where nested CompoundModels would incorrectly
+    show inputs/outputs as non-separable when they should be separable.
+    """
+    # Create a simple separable compound model
+    cm = models.Linear1D(10) & models.Linear1D(5)
+
+    # Verify the simple compound model is separable
+    expected_simple = np.array([
+        [True, False],
+        [False, True]
+    ])
+    assert_allclose(separability_matrix(cm), expected_simple)
+
+    # Create a non-nested version for comparison
+    direct = models.Pix2Sky_TAN() & models.Linear1D(10) & models.Linear1D(5)
+    expected_direct = np.array([
+        [True, True, False, False],
+        [True, True, False, False],
+        [False, False, True, False],
+        [False, False, False, True]
+    ])
+    assert_allclose(separability_matrix(direct), expected_direct)
+
+    # Now test the nested version - this should give the same result as direct
+    nested = models.Pix2Sky_TAN() & cm
+    expected_nested = np.array([
+        [True, True, False, False],
+        [True, True, False, False],
+        [False, False, True, False],
+        [False, False, False, True]
+    ])
+    assert_allclose(separability_matrix(nested), expected_nested)
+
+    # Additional test: nested on the left side
+    cm_left = models.Linear1D(10) & models.Linear1D(5)
+    nested_left = cm_left & models.Pix2Sky_TAN()
+    expected_nested_left = np.array([
+        [True, False, False, False],
+        [False, True, False, False],
+        [False, False, True, True],
+        [False, False, True, True]
+    ])
+    assert_allclose(separability_matrix(nested_left), expected_nested_left)
+
+    # Test with multiple levels of nesting
+    cm1 = models.Linear1D(1) & models.Linear1D(2)
+    cm2 = models.Linear1D(3) & models.Linear1D(4)
+    deeply_nested = cm1 & cm2
+    expected_deeply_nested = np.array([
+        [True, False, False, False],
+        [False, True, False, False],
+        [False, False, True, False],
+        [False, False, False, True]
+    ])
+    assert_allclose(separability_matrix(deeply_nested), expected_deeply_nested)
