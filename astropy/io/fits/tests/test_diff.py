@@ -601,6 +601,28 @@ class TestDiff(FitsTestCase):
         assert "13 different table data element(s) found (65.00% different)" in report
         assert report.count("more indices") == 1
 
+    def test_identical_files_with_vla(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/XXXXX
+        Test that comparing a file with VLA (variable-length array) columns
+        to itself reports no differences. This tests both 'P' and 'Q' format VLAs.
+        """
+        # Test Q format VLA (binary table with 64-bit descriptors)
+        col_q = Column("a", format="QD", array=[[0], [0, 0]])
+        hdu_q = BinTableHDU.from_columns([col_q])
+        hdu_q.writeto(self.temp("test_vla_q.fits"), overwrite=True)
+
+        diff_q = FITSDiff(self.temp("test_vla_q.fits"), self.temp("test_vla_q.fits"))
+        assert diff_q.identical, "VLA Q format: file should be identical to itself"
+
+        # Test P format VLA (binary table with 32-bit descriptors)
+        col_p = Column("b", format="PI", array=[[1, 2], [3, 4, 5]])
+        hdu_p = BinTableHDU.from_columns([col_p])
+        hdu_p.writeto(self.temp("test_vla_p.fits"), overwrite=True)
+
+        diff_p = FITSDiff(self.temp("test_vla_p.fits"), self.temp("test_vla_p.fits"))
+        assert diff_p.identical, "VLA P format: file should be identical to itself"
+
     def test_identical_files_basic(self):
         """Test identicality of two simple, extensionless files."""
 
