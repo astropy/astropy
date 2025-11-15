@@ -417,7 +417,7 @@ def test_z_at_value_roundtrip(cosmo):
     if isinstance(getattr(cosmo, "name", None), str):
         z2 = 2.0
         func_z1z2 = [
-            lambda z1: cosmo._comoving_distance_z1z2(z1, z2),
+            lambda z1: cosmo.comoving_distance(z1, z2),
             lambda z1: cosmo._comoving_transverse_distance_z1z2(z1, z2),
             lambda z1: cosmo.angular_diameter_distance_z1z2(z1, z2),
         ]
