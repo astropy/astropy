@@ -1,0 +1,9 @@
+Hashing scalar ``Quantity`` instances (including instances of subclasses) is
+error-prone because equal quantities can nonetheless have different hash
+values, which contradicts important assumptions Python makes about hashable
+objects.
+Furthermore, the hash value of a ``Quantity`` can change during its lifetime,
+which allows repeated insertions into a ``set`` or a ``dict``.
+Because the behavior is fundamentally broken then it is now deprecated, and the
+functionality may be removed in a future version.
+Hashing non-scalar ``Quantity`` instances is already impossible.
