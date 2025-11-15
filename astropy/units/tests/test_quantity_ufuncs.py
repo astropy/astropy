@@ -1404,3 +1404,110 @@ if HAS_SCIPY:
                 ),
             ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+
+class TestDuckArrayInteroperability:
+    """Test that Quantity.__array_ufunc__ properly returns NotImplemented for duck arrays.
+
+    This ensures that duck-typed arrays can interact properly with Quantity through
+    the NumPy array protocol, particularly when units need conversion.
+
+    See: https://github.com/astropy/astropy/issues/XXXXX
+    """
+
+    def test_duck_array_with_equivalent_units(self):
+        """Test that Quantity returns NotImplemented for unconvertible duck arrays.
+
+        When a Quantity on the left encounters a duck array on the right with
+        equivalent but different units, and the converter cannot handle the duck
+        array's type, __array_ufunc__ should return NotImplemented to allow the
+        duck array's reflected operator to handle the operation.
+        """
+        import dataclasses
+
+        @dataclasses.dataclass
+        class DuckArray(np.lib.mixins.NDArrayOperatorsMixin):
+            """Minimal duck array for testing."""
+
+            ndarray: u.Quantity
+
+            @property
+            def unit(self):
+                return self.ndarray.unit
+
+            def __array_ufunc__(self, function, method, *inputs, **kwargs):
+                # Convert DuckArray inputs to their underlying Quantity
+                converted_inputs = [
+                    inp.ndarray if isinstance(inp, DuckArray) else inp
+                    for inp in inputs
+                ]
+
+                # Try to delegate to the first ndarray-like input
+                for inp in converted_inputs:
+                    if isinstance(inp, np.ndarray):
+                        result = inp.__array_ufunc__(
+                            function, method, *converted_inputs, **kwargs
+                        )
+                        if result is not NotImplemented:
+                            return DuckArray(result)
+
+                return NotImplemented
+
+        # Test case from the issue: Quantity on left, DuckArray on right
+        # with different but equivalent units
+        quant = 1 * u.m
+        duck = DuckArray(1 * u.mm)
+
+        # This should work by calling duck.__radd__() after Quantity returns NotImplemented
+        result = quant + duck
+        assert isinstance(result, DuckArray)
+        # Result should be 1m + 1mm = 1.001m
+        assert np.isclose(result.ndarray.to_value(u.m), 1.001)
+
+        # Also test the reverse
+        result = duck + quant
+        assert isinstance(result, DuckArray)
+        # Result should be 1mm + 1m = 1001mm
+        assert np.isclose(result.ndarray.to_value(u.mm), 1001)
+
+        # Test with same units (should also work)
+        quant2 = 1 * u.mm
+        duck2 = DuckArray(1 * u.mm)
+        result = quant2 + duck2
+        assert isinstance(result, DuckArray)
+        assert result.ndarray.value == 2.0
+
+    def test_duck_array_incompatible_units_still_fails(self):
+        """Test that incompatible units still raise appropriate errors."""
+        import dataclasses
+
+        @dataclasses.dataclass
+        class DuckArray(np.lib.mixins.NDArrayOperatorsMixin):
+            ndarray: u.Quantity
+
+            @property
+            def unit(self):
+                return self.ndarray.unit
+
+            def __array_ufunc__(self, function, method, *inputs, **kwargs):
+                converted_inputs = [
+                    inp.ndarray if isinstance(inp, DuckArray) else inp
+                    for inp in inputs
+                ]
+
+                for inp in converted_inputs:
+                    if isinstance(inp, np.ndarray):
+                        result = inp.__array_ufunc__(
+                            function, method, *converted_inputs, **kwargs
+                        )
+                        if result is not NotImplemented:
+                            return DuckArray(result)
+
+                return NotImplemented
+
+        # Incompatible units should still fail
+        quant = 1 * u.m
+        duck = DuckArray(1 * u.s)
+
+        with pytest.raises(u.UnitConversionError):
+            quant + duck
