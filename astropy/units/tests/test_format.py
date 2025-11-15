@@ -90,6 +90,10 @@ def test_unit_grammar_fail(string):
         (["[cm/s2]"], dex(u.cm / u.s**2)),
         (["[K]"], dex(u.K)),
         (["[-]"], dex(u.dimensionless_unscaled)),
+        # Test multiple divisions (left-associativity)
+        (["J/m/s"], u.J / u.m / u.s),
+        (["10+3J/m/s/kpc2"], u.Unit(1000 * u.J / u.m / u.s / u.kpc**2)),
+        (["10-7J/s/kpc2"], u.Unit(1e-7 * u.J / u.s / u.kpc**2)),
     ],
 )
 def test_cds_grammar(strings, unit):

@@ -165,29 +165,26 @@ class CDS(Base):
         def p_combined_units(p):
             """
             combined_units : product_of_units
-                           | division_of_units
             """
             p[0] = p[1]
 
         def p_product_of_units(p):
             """
-            product_of_units : unit_expression PRODUCT combined_units
-                             | unit_expression
+            product_of_units : unit_expression
+                             | DIVISION unit_expression
+                             | product_of_units PRODUCT unit_expression
+                             | product_of_units DIVISION unit_expression
             """
             if len(p) == 4:
-                p[0] = p[1] * p[3]
-            else:
-                p[0] = p[1]
-
-        def p_division_of_units(p):
-            """
-            division_of_units : DIVISION unit_expression
-                              | unit_expression DIVISION combined_units
-            """
-            if len(p) == 3:
+                if p[2] == "/":
+                    p[0] = p[1] / p[3]
+                else:  # p[2] == "."
+                    p[0] = p[1] * p[3]
+            elif len(p) == 3:
+                # Leading division: /unit_expression
                 p[0] = p[2] ** -1
             else:
-                p[0] = p[1] / p[3]
+                p[0] = p[1]
 
         def p_unit_expression(p):
             """

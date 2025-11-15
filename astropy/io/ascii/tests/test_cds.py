@@ -552,3 +552,56 @@ def test_write_skycoord_with_format():
     lines = lines[i_bbb:]  # Select Byte-By-Byte section and following lines.
     # Check the written table.
     assert lines == exp_output
+
+
+def test_cds_composite_units():
+    """
+    Test reading CDS tables with composite units that have multiple divisions.
+    This is a regression test for issue where units like 10+3J/m/s/kpc2
+    were incorrectly parsed due to right-associativity in the parser.
+
+    According to CDS standard, units should be SI without spaces, so
+    erg/AA/s/kpc^2 becomes 10+3J/m/s/kpc2 (since erg = 10^-7 J, AA = 10^-10 m).
+    """
+    # Test data with composite units
+    mrt_data = """Title:
+Authors:
+Table:
+================================================================================
+Byte-by-byte Description of file: tab.txt
+--------------------------------------------------------------------------------
+   Bytes Format Units          Label      Explanations
+--------------------------------------------------------------------------------
+   1- 10 A10    ---            ID         ID
+  12- 21 F10.5  10+3J/m/s/kpc2 SBCONT     Cont surface brightness
+  23- 32 F10.5  10-7J/s/kpc2   SBLINE     Line surface brightness
+--------------------------------------------------------------------------------
+ID0001     70.99200   38.51040
+ID0001     13.05120   28.19240
+ID0001     3.83610    10.98370
+ID0001     1.99101    6.78822
+ID0001     1.31142    5.01932
+"""
+
+    # Read the table
+    dat = ascii.read(mrt_data, format="cds")
+
+    # Check that units are correctly parsed
+    # 10+3J/m/s/kpc2 should be parsed as 1000 J / (m * s * kpc^2)
+    # not as 1000 J * s / (m * kpc^2)
+    sbcont_unit = dat["SBCONT"].unit
+    assert sbcont_unit == u.Unit("1000 J / (m s kpc2)")
+
+    # Verify the unit is equivalent to the expected physical unit
+    # (energy per unit area per unit time per unit wavelength)
+    expected_sbcont = 1000 * u.J / (u.m * u.s * u.kpc**2)
+    assert sbcont_unit == expected_sbcont
+
+    # 10-7J/s/kpc2 should be parsed as 1e-7 J / (s * kpc^2)
+    # not as 1e-7 J * kpc^2 / s
+    sbline_unit = dat["SBLINE"].unit
+    assert sbline_unit == u.Unit("1e-7 J / (s kpc2)")
+
+    # Verify the unit is equivalent to the expected physical unit
+    expected_sbline = 1e-7 * u.J / (u.s * u.kpc**2)
+    assert sbline_unit == expected_sbline
