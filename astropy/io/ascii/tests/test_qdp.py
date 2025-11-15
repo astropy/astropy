@@ -245,3 +245,48 @@ def test_get_lines_from_qdp(tmp_path):
         assert file_output[i] == line
         assert list_output[i] == line
         assert text_output[i] == line
+
+
+def test_lowercase_commands():
+    """Test that QDP commands are case-insensitive."""
+    # Test lowercase "read serr"
+    example_qdp_lower = """
+read serr 1 2
+1 0.5 1 0.5
+"""
+    t = Table.read(example_qdp_lower, format="ascii.qdp", table_id=0)
+    assert len(t) == 1
+    assert len(t.colnames) == 4
+    assert "col1" in t.colnames
+    assert "col1_err" in t.colnames
+    assert "col2" in t.colnames
+    assert "col2_err" in t.colnames
+    assert t["col1"][0] == 1
+    assert t["col1_err"][0] == 0.5
+    assert t["col2"][0] == 1
+    assert t["col2_err"][0] == 0.5
+
+
+def test_mixed_case_commands():
+    """Test that QDP commands work with mixed case."""
+    example_qdp_mixed = """
+ReAd TeRr 1
+ReAd SeRr 2
+53000.5 0.25 -0.5 1 1.5
+54000.5 1.25 -1.5 2 2.5
+"""
+    t = Table.read(
+        example_qdp_mixed, format="ascii.qdp", table_id=0, names=["a", "b"]
+    )
+    assert len(t) == 2
+    assert len(t.colnames) == 5
+    assert "a" in t.colnames
+    assert "a_perr" in t.colnames
+    assert "a_nerr" in t.colnames
+    assert "b" in t.colnames
+    assert "b_err" in t.colnames
+    assert np.allclose(t["a"], [53000.5, 54000.5])
+    assert np.allclose(t["a_perr"], [0.25, 1.25])
+    assert np.allclose(t["a_nerr"], [-0.5, -1.5])
+    assert np.allclose(t["b"], [1, 2])
+    assert np.allclose(t["b_err"], [1.5, 2.5])
