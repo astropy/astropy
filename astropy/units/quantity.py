@@ -667,7 +667,19 @@ class Quantity(np.ndarray):
         arrays = []
         for input_, converter in zip(inputs, converters):
             input_ = getattr(input_, "value", input_)
-            arrays.append(converter(input_) if converter else input_)
+            if converter:
+                try:
+                    converted = converter(input_)
+                except (ValueError, TypeError):
+                    # If we cannot convert the input (e.g., it's an unrecognized
+                    # duck array type), return NotImplemented so that the other
+                    # operand's __array_ufunc__ or reflected method can handle it.
+                    # This allows duck arrays to work with Quantity via reflected
+                    # operators when conversion is not possible.
+                    return NotImplemented
+                arrays.append(converted)
+            else:
+                arrays.append(input_)
 
         # Call our superclass's __array_ufunc__
         result = super().__array_ufunc__(function, method, *arrays, **kwargs)

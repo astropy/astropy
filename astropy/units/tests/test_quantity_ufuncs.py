@@ -1404,3 +1404,95 @@ if HAS_SCIPY:
                 ),
             ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+
+class TestDuckArrayCompatibility:
+    """Test that Quantity.__array_ufunc__ returns NotImplemented for duck arrays.
+
+    This allows duck array types to handle operations via their reflected
+    operators when Quantity cannot convert the inputs.
+    See: https://github.com/astropy/astropy/issues/xxxxx
+    """
+
+    def setup_method(self):
+        """Set up a minimal duck array class for testing."""
+        import dataclasses
+
+        @dataclasses.dataclass
+        class DuckArray(np.lib.mixins.NDArrayOperatorsMixin):
+            """Minimal duck array type for testing"""
+
+            ndarray: u.Quantity
+
+            @property
+            def unit(self):
+                return self.ndarray.unit
+
+            def __array_ufunc__(self, function, method, *inputs, **kwargs):
+                # Convert DuckArray inputs to their underlying ndarrays
+                inputs = [
+                    inp.ndarray if isinstance(inp, DuckArray) else inp for inp in inputs
+                ]
+
+                # Try to delegate to the first ndarray-like input
+                for inp in inputs:
+                    if isinstance(inp, np.ndarray):
+                        result = inp.__array_ufunc__(function, method, *inputs, **kwargs)
+                        if result is not NotImplemented:
+                            return DuckArray(result)
+
+                return NotImplemented
+
+        self.DuckArray = DuckArray
+
+    def test_quantity_plus_duck_array_same_units(self):
+        """Test Quantity + DuckArray with the same units."""
+        duck = self.DuckArray(1 * u.mm)
+        qty = 1 * u.mm
+
+        result = qty + duck
+        # DuckArray's __radd__ should be called, returning a DuckArray
+        assert isinstance(result, self.DuckArray)
+        assert result.ndarray.value == 2
+        assert result.ndarray.unit == u.mm
+
+    def test_duck_array_plus_quantity_same_units(self):
+        """Test DuckArray + Quantity with the same units."""
+        duck = self.DuckArray(1 * u.mm)
+        qty = 1 * u.mm
+
+        result = duck + qty
+        # DuckArray's __add__ should handle this
+        assert isinstance(result, self.DuckArray)
+        assert result.ndarray.value == 2
+        assert result.ndarray.unit == u.mm
+
+    def test_quantity_plus_duck_array_different_units(self):
+        """Test Quantity + DuckArray with different but compatible units.
+
+        This is the key test case from the issue. When the left operand is a
+        Quantity with units different from the DuckArray, Quantity.__array_ufunc__
+        should return NotImplemented so that DuckArray.__radd__ can be called.
+        """
+        duck = self.DuckArray(1 * u.mm)
+        qty = 1 * u.m
+
+        # This should call Quantity.__add__, which calls Quantity.__array_ufunc__
+        # Since the units are different and conversion requires the duck array,
+        # it should return NotImplemented, allowing DuckArray.__radd__ to be called
+        result = qty + duck
+        assert isinstance(result, self.DuckArray)
+        # The result should have 1m + 1mm = 1.001m converted to mm = 1001mm
+        assert result.ndarray.value == 1001
+        assert result.ndarray.unit == u.mm
+
+    def test_duck_array_plus_quantity_different_units(self):
+        """Test DuckArray + Quantity with different but compatible units."""
+        duck = self.DuckArray(1 * u.mm)
+        qty = 1 * u.m
+
+        result = duck + qty
+        assert isinstance(result, self.DuckArray)
+        # 1mm + 1m = 1mm + 1000mm = 1001mm
+        assert result.ndarray.value == 1001
+        assert result.ndarray.unit == u.mm
