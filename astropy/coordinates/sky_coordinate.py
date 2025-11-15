@@ -894,7 +894,20 @@ class SkyCoord(ShapedLikeNDArray):
             if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
                 return self.transform_to(attr)
 
-        # Fail
+        # Fail - but check first if the attribute exists in the class hierarchy
+        # If an attribute exists as a class member (like a property), but we're in
+        # __getattr__, then that attribute raised an AttributeError during access.
+        # In this case, don't mask the real error by claiming the attribute doesn't exist.
+        for cls in type(self).__mro__:
+            if attr in cls.__dict__:
+                # The attribute exists, so it must have raised an AttributeError internally.
+                # Don't hide that - make it clear the attribute exists but is raising an error.
+                raise AttributeError(
+                    f"'{self.__class__.__name__}' object attribute '{attr}' raised an AttributeError. "
+                    f"This usually means '{attr}' tried to access an attribute that doesn't exist."
+                )
+
+        # The attribute truly doesn't exist
         raise AttributeError(
             f"'{self.__class__.__name__}' object has no attribute '{attr}'"
         )
