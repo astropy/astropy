@@ -4,6 +4,7 @@
 
 import copy
 import pickle
+import warnings
 from io import StringIO
 
 import pytest
@@ -712,10 +713,14 @@ def test_ndarray_mixin():
     d = np.arange(8, dtype='i8').reshape(4, 2).view(NdarrayMixin)
 
     # Add one during initialization and the next as a new column.
-    t = Table([a], names=['a'])
-    t['b'] = b
-    t['c'] = c
-    t['d'] = d
+    # Expect FutureWarnings for automatically converting structured arrays to NdarrayMixin
+    with pytest.warns(FutureWarning, match="Automatically converting structured numpy array"):
+        t = Table([a], names=['a'])
+    with pytest.warns(FutureWarning, match="Automatically converting structured numpy array"):
+        t['b'] = b
+    with pytest.warns(FutureWarning, match="Automatically converting structured numpy array"):
+        t['c'] = c
+    t['d'] = d  # No warning expected - already an NdarrayMixin
 
     assert isinstance(t['a'], NdarrayMixin)
 
@@ -757,6 +762,35 @@ def test_ndarray_mixin():
         "     (2, 'b')    (20, 'bb')   (200., 'rbb')   2 .. 3",
         "     (3, 'c')    (30, 'cc')   (300., 'rcc')   4 .. 5",
         "     (4, 'd')    (40, 'dd')   (400., 'rdd')   6 .. 7"]
+
+
+def test_structured_array_explicit_column_wrapping():
+    """
+    Test that explicitly wrapping structured arrays in Column() or NdarrayMixin()
+    does not produce a FutureWarning.
+    """
+    a = np.array([(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')],
+                 dtype='<i4,' + ('|U1'))
+    b = np.array([(10, 'aa'), (20, 'bb'), (30, 'cc'), (40, 'dd')],
+                 dtype=[('x', 'i4'), ('y', ('U2'))])
+
+    # No warning when explicitly wrapping in NdarrayMixin
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        t1 = Table([NdarrayMixin(a)], names=['a'])
+        t1['b'] = NdarrayMixin(b)
+
+    assert isinstance(t1['a'], NdarrayMixin)
+    assert isinstance(t1['b'], NdarrayMixin)
+
+    # No warning when explicitly wrapping in Column
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        t2 = Table([Column(a)], names=['a'])
+        t2['b'] = Column(b)
+
+    assert isinstance(t2['a'], Column)
+    assert isinstance(t2['b'], Column)
 
 
 def test_possible_string_format_functions():
