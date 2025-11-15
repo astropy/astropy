@@ -245,3 +245,44 @@ def test_get_lines_from_qdp(tmp_path):
         assert file_output[i] == line
         assert list_output[i] == line
         assert text_output[i] == line
+
+
+def test_case_insensitive_commands():
+    """Test that QDP commands are case-insensitive."""
+    # Test lowercase commands
+    example_qdp_lower = """
+read serr 1 2
+1 0.5 1 0.5
+    """
+    t = Table.read(example_qdp_lower, format="ascii.qdp", table_id=0)
+    assert len(t) == 1
+    assert len(t.colnames) == 3  # col1, col1_err, col2
+    assert t["col1"][0] == 1
+    assert t["col1_err"][0] == 0.5
+    assert t["col2"][0] == 1
+
+    # Test mixed case commands
+    example_qdp_mixed = """
+Read Serr 1
+Read Terr 2
+1 0.5 2 0.1 0.2
+    """
+    t2 = Table.read(example_qdp_mixed, format="ascii.qdp", table_id=0)
+    assert len(t2) == 1
+    assert len(t2.colnames) == 5  # col1, col1_err, col2, col2_perr, col2_nerr
+    assert t2["col1"][0] == 1
+    assert t2["col1_err"][0] == 0.5
+    assert t2["col2"][0] == 2
+    assert t2["col2_perr"][0] == 0.1
+    assert t2["col2_nerr"][0] == 0.2
+
+    # Test uppercase commands (should still work)
+    example_qdp_upper = """
+READ SERR 1
+1 0.5
+    """
+    t3 = Table.read(example_qdp_upper, format="ascii.qdp", table_id=0)
+    assert len(t3) == 1
+    assert len(t3.colnames) == 2
+    assert t3["col1"][0] == 1
+    assert t3["col1_err"][0] == 0.5
