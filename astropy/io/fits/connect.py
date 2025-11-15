@@ -69,7 +69,9 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
             (".fits", ".fits.gz", ".fit", ".fit.gz", ".fts", ".fts.gz")
         ):
             return True
-    return isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU))
+    if args:
+        return isinstance(args[0], (HDUList, TableHDU, BinTableHDU, GroupsHDU))
+    return False
 
 
 def _decode_mixins(tbl):

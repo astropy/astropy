@@ -474,3 +474,29 @@ class TestVerifyOptions:
             with pytest.warns(AstropyDeprecationWarning):
                 with pytest.raises(VOWarning):
                     parse(get_pkg_data_filename("data/gemini.xml"))
+
+
+def test_is_votable_with_empty_args():
+    """
+    Test that is_votable identifier handles empty args tuple correctly.
+
+    Regression test for commit 2a0c5c6f5b982a76615c544854cd6e7d35c67c7f
+    which simplified the return statement but introduced a bug where
+    args[0] was accessed without checking if args was non-empty.
+    """
+    from astropy.io.votable.connect import is_votable as is_votable_identifier
+    from astropy.io.votable.tree import VOTableFile, VOTable
+
+    # Test with empty args for read origin - should return False, not raise IndexError
+    assert is_votable_identifier("read", "test.ecsv", None) is False
+    assert is_votable_identifier("read", "test.txt", None) is False
+
+    # Test with write origin - should return False
+    assert is_votable_identifier("write", "test.xml", None) is False
+
+    # Test with VOTable objects in args
+    votable_file = VOTableFile()
+    assert is_votable_identifier("read", None, None, votable_file) is True
+
+    # Test with non-VOTable object in args
+    assert is_votable_identifier("read", None, None, "not_a_votable") is False

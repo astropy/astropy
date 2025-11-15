@@ -1002,3 +1002,49 @@ def test_meta_not_modified(tmp_path):
     t.write(filename)
     assert len(t.meta) == 1
     assert t.meta["comments"] == ["a", "b"]
+
+
+def test_identify_format_empty_args():
+    """
+    Test for issue where identify_format raises IndexError when args is empty.
+
+    Regression test for https://github.com/astropy/astropy/issues/XXXXX
+    This was caused by is_fits trying to access args[0] without checking if
+    args is non-empty.
+    """
+    from astropy.io.registry import identify_format
+
+    # This should not raise an IndexError
+    result = identify_format("write", Table, "bububu.ecsv", None, [], {})
+    # Should return a list (may be empty or contain formats)
+    assert isinstance(result, list)
+    # FITS should not be identified for .ecsv files with no args
+    assert "fits" not in result
+
+
+def test_is_fits_with_empty_args():
+    """
+    Test that is_fits handles empty args tuple correctly.
+
+    Regression test for commit 2a0c5c6f5b982a76615c544854cd6e7d35c67c7f
+    which simplified the return statement but introduced a bug where
+    args[0] was accessed without checking if args was non-empty.
+    """
+    from astropy.io.fits.connect import is_fits
+
+    # Test with empty args - should return False, not raise IndexError
+    assert is_fits("write", "test.ecsv", None) is False
+    assert is_fits("write", "test.txt", None) is False
+
+    # Test with FITS extension - should return True
+    assert is_fits("write", "test.fits", None) is True
+    assert is_fits("write", "test.fit", None) is True
+    assert is_fits("write", "test.fts", None) is True
+    assert is_fits("write", "TEST.FITS", None) is True  # case insensitive
+
+    # Test with FITS objects in args
+    hdul = HDUList()
+    assert is_fits("write", None, None, hdul) is True
+
+    # Test with non-FITS object in args
+    assert is_fits("write", None, None, "not_a_hdu") is False
