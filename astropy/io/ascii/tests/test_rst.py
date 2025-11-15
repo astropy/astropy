@@ -185,3 +185,21 @@ Col1      Col2 Col3 Col4
 ==== ========= ==== ====
 """,
     )
+
+
+def test_write_header_rows():
+    """Write a table with multiple header rows"""
+    tbl = [
+        "==== ========= ==== ====",
+        "Col1      Col2 Col3 Col4",
+        "   m                     ",
+        "==== ========= ==== ====",
+        " 1.2   \"hello\"    1    a",
+        " 2.4 's worlds    2    2",
+        "==== ========= ==== ====",
+    ]
+    header_rows = ["name", "unit"]
+    dat_with_units = ascii.read(tbl, Reader=ascii.RST, header_rows=header_rows)
+    out = StringIO()
+    ascii.write(dat_with_units, out, Writer=ascii.RST, header_rows=header_rows)
+    assert_equal_splitlines(out.getvalue(), "\n".join(tbl))
