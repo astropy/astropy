@@ -728,3 +728,56 @@ def test_read_html_unicode():
                 '</table>']
     dat = Table.read(table_in, format='ascii.html')
     assert np.all(dat['col1'] == ['Δ', 'Δ'])
+
+
+def test_write_table_html_formats():
+    """
+    Test that the formats parameter is respected when writing HTML tables.
+    """
+    # Test with lambda function format
+    t = Table([(1.23875234858e-24, 3.2348748432e-15), (2, 4)], names=('a', 'b'))
+    out = StringIO()
+    ascii.write(t, out, format='html', formats={'a': lambda x: f'{x:.2e}'})
+    html_output = out.getvalue()
+
+    # Check that formatted values appear in the output
+    assert '1.24e-24' in html_output
+    assert '3.23e-15' in html_output
+    # Check that unformatted values do not appear
+    assert '1.23875234858e-24' not in html_output
+    assert '3.2348748432e-15' not in html_output
+
+    # Test with string format
+    t = Table([[1, 2, 3], [4.123456, 5.987654, 6.111111]], names=('a', 'b'))
+    out = StringIO()
+    ascii.write(t, out, format='html', formats={'b': '%.2f'})
+    html_output = out.getvalue()
+
+    # Check that formatted values appear in the output
+    assert '4.12' in html_output
+    assert '5.99' in html_output
+    assert '6.11' in html_output
+    # Check that unformatted values do not appear
+    assert '4.123456' not in html_output
+    assert '5.987654' not in html_output
+
+
+def test_write_table_html_formats_with_multidim():
+    """
+    Test that the formats parameter works with multidimensional columns.
+    """
+    col1 = [1, 2, 3]
+    col2 = [(1.123456, 2.987654), (3.456789, 4.111111), (5.222222, 6.333333)]
+    t = Table([col1, col2], names=('C1', 'C2'))
+
+    out = StringIO()
+    ascii.write(t, out, format='html', formats={'C2': '%.2f'})
+    html_output = out.getvalue()
+
+    # Check that formatted values appear in the output
+    assert '1.12' in html_output
+    assert '2.99' in html_output
+    assert '3.46' in html_output
+    # Check that unformatted values do not appear
+    assert '1.123456' not in html_output
+    assert '2.987654' not in html_output
