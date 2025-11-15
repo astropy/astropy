@@ -894,6 +894,19 @@ class SkyCoord(ShapedLikeNDArray):
             if frame_cls is not None and self.frame.is_transformable_to(frame_cls):
                 return self.transform_to(attr)
 
+        # Check if this is a property, classmethod, or other descriptor
+        # in the class hierarchy that raised an AttributeError.
+        # If so, let the original exception propagate instead of
+        # masking it with a generic message.
+        for base in self.__class__.__mro__:
+            if attr in base.__dict__:
+                class_attr = base.__dict__[attr]
+                # Check if it's a descriptor (property, method, etc.)
+                if hasattr(type(class_attr), '__get__'):
+                    # It's a descriptor that raised an error when accessed.
+                    # Re-access to get the original exception.
+                    return class_attr.__get__(self, type(self))
+
         # Fail
         raise AttributeError(
             f"'{self.__class__.__name__}' object has no attribute '{attr}'"
