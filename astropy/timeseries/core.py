@@ -76,6 +76,18 @@ class BaseTimeSeries(QTable):
 
             elif self.colnames[:len(required_columns)] != required_columns:
 
+                # Check if required columns are missing
+                missing = [col for col in required_columns if col not in self.colnames]
+
+                if missing:
+                    missing_str = "', '".join(missing)
+                    plural_missing = 's' if len(missing) > 1 else ''
+                    raise ValueError("{} object is invalid - required column{} "
+                                     "'{}' {} missing"
+                                     .format(self.__class__.__name__, plural_missing,
+                                             missing_str, 'are' if len(missing) > 1 else 'is'))
+
+                # If not missing, then they're in the wrong order
                 raise ValueError("{} object is invalid - expected '{}' "
                                  "as the first column{} but found '{}'"
                                  .format(self.__class__.__name__, required_columns[0], plural, self.colnames[0]))

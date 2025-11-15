@@ -377,23 +377,64 @@ def test_required_columns():
 
     with pytest.raises(ValueError) as exc:
         ts.copy().keep_columns(['a', 'b'])
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'a'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column "
+                                 "'time' is missing")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().remove_column('time')
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'a'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column "
+                                 "'time' is missing")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().remove_columns(['time', 'a'])
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'b'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column "
+                                 "'time' is missing")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().rename_column('time', 'banana')
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'banana'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column "
+                                 "'time' is missing")
+
+
+def test_required_columns_missing():
+    # Test that removing required columns produces a clear error message
+    # This tests the fix for the issue where removing a required column
+    # produced a misleading error message
+
+    import numpy as np
+
+    # Test with single missing required column
+    time = Time(np.arange(100000, 100003), format='jd')
+    ts = TimeSeries(time=time, data={"flux": [99.9, 99.8, 99.7]})
+    ts._required_columns = ["time", "flux"]
+
+    with pytest.raises(ValueError) as exc:
+        ts.remove_column("flux")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column "
+                                 "'flux' is missing")
+
+    # Test with multiple missing required columns
+    ts2 = TimeSeries(time=time, data={"flux": [99.9, 99.8, 99.7],
+                                      "mag": [10.1, 10.2, 10.3],
+                                      "other": [1, 2, 3]})
+    ts2._required_columns = ["time", "flux", "mag"]
+
+    with pytest.raises(ValueError) as exc:
+        ts2.copy().remove_columns(["flux", "mag"])
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required columns "
+                                 "'flux', 'mag' are missing")
+
+    # Test with single missing required column (removing multiple columns)
+    with pytest.raises(ValueError) as exc:
+        ts2.copy().remove_columns(["flux", "other"])
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column "
+                                 "'flux' is missing")
+
+    # Test that keeping only some required columns also raises appropriate error
+    with pytest.raises(ValueError) as exc:
+        ts2.copy().keep_columns(["time", "other"])
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required columns "
+                                 "'flux', 'mag' are missing")
 
 
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
