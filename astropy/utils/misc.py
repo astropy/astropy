@@ -528,14 +528,27 @@ class InheritDocstrings(type):
                 not key.startswith('_'))
 
         for key, val in dct.items():
-            if (inspect.isfunction(val) and
-                is_public_member(key) and
-                val.__doc__ is None):
+            if not is_public_member(key):
+                continue
+
+            # Handle regular functions
+            if inspect.isfunction(val) and val.__doc__ is None:
                 for base in cls.__mro__[1:]:
                     super_method = getattr(base, key, None)
                     if super_method is not None:
                         val.__doc__ = super_method.__doc__
                         break
+
+            # Handle properties
+            elif isinstance(val, property) and val.__doc__ is None:
+                for base in cls.__mro__[1:]:
+                    super_prop = getattr(base, key, None)
+                    if super_prop is not None and isinstance(super_prop, property):
+                        if super_prop.__doc__ is not None:
+                            # Properties are immutable, so create a new one with the inherited docstring
+                            new_prop = property(val.fget, val.fset, val.fdel, super_prop.__doc__)
+                            setattr(cls, key, new_prop)
+                            break
 
         super().__init__(name, bases, dct)
 

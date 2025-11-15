@@ -89,6 +89,41 @@ def test_inherit_docstrings():
         assert Subclass.__call__.__doc__ == "FOO"
 
 
+def test_inherit_docstrings_property():
+    """Test that InheritDocstrings works with properties"""
+    class Base(metaclass=misc.InheritDocstrings):
+        @property
+        def some_property(self):
+            """Base property docstring"""
+            return 1
+
+        def some_method(self):
+            """Base method docstring"""
+            pass
+
+    class Derived(Base):
+        @property
+        def some_property(self):
+            # No docstring - should be inherited
+            return 2
+
+        def some_method(self):
+            # No docstring - should be inherited
+            pass
+
+    # Test that property docstring is inherited
+    assert Derived.some_property.__doc__ == "Base property docstring"
+
+    # Test that method docstring is still inherited (regression test)
+    assert Derived.some_method.__doc__ == "Base method docstring"
+
+    # Test that the properties still work correctly
+    b = Base()
+    d = Derived()
+    assert b.some_property == 1
+    assert d.some_property == 2
+
+
 def test_set_locale():
     # First, test if the required locales are available
     current = locale.setlocale(locale.LC_ALL)
