@@ -4,6 +4,7 @@ __all__ = ("FLRW", "FlatFLRWMixin")
 
 import inspect
 import warnings
+from collections.abc import Callable
 from dataclasses import field
 from functools import cached_property
 from inspect import signature
@@ -14,11 +15,12 @@ from typing import Any, Final, NamedTuple, TypeVar, overload
 import numpy as np
 from numpy import inf, sin
 from numpy.typing import ArrayLike, NDArray
+from typing_extensions import override
 
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology._src.typing import CosmoMeta, FArray
-from astropy.utils.decorators import lazyproperty
+from astropy.utils.decorators import deprecated, lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
@@ -39,6 +41,7 @@ from astropy.cosmology._src.traits import (
     CurvatureComponent,
     DarkEnergyComponent,
     DarkMatterComponent,
+    DistanceMeasures,
     HubbleParameter,
     MatterComponent,
     PhotonComponent,
@@ -46,11 +49,7 @@ from astropy.cosmology._src.traits import (
     TemperatureCMB,
     TotalComponent,
 )
-from astropy.cosmology._src.utils import (
-    aszarr,
-    deprecated_keywords,
-    vectorize_redshift_method,
-)
+from astropy.cosmology._src.utils import aszarr, vectorize_redshift_method
 
 __doctest_requires__ = {"*": ["scipy"]}
 _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number)
@@ -62,9 +61,6 @@ _InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number
 # Some conversion constants -- useful to compute them once here and reuse in
 # the initialization rather than have every object do them.
 
-# angle conversions
-RAD_IN_ARCSEC: Final = (1 * u.rad).to(u.arcsec)
-RAD_IN_ARCMIN: Final = (1 * u.rad).to(u.arcmin)
 # Radiation parameter over c^2 in cgs (g cm^-3 K^-4)
 a_B_c2: Final = (4 * const.sigma_sb / const.c**3).cgs.value
 # Boltzmann constant in eV / K
@@ -136,6 +132,7 @@ ParameterOde0 = Parameter(
 class FLRW(
     Cosmology,
     # Traits
+    DistanceMeasures,
     BaryonComponent,
     TotalComponent,
     CriticalDensity,
@@ -285,6 +282,9 @@ class FLRW(
 
         # Subclasses should override this reference if they provide
         #  more efficient scalar versions of inv_efunc.
+        # Type annotation
+        self._inv_efunc_scalar: Callable[[ArrayLike | u.Quantity], FArray]
+        self._inv_efunc_scalar_args: tuple[Any, ...]
         object.__setattr__(self, "_inv_efunc_scalar", self.inv_efunc)
         object.__setattr__(self, "_inv_efunc_scalar_args", ())
 
@@ -371,17 +371,13 @@ class FLRW(
     # ---------------------------------------------------------------
     # Hubble Parameter
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: u.Quantity | ArrayLike) -> FArray:
+    def efunc(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -406,17 +402,13 @@ class FLRW(
             + self.Ode0 * self.de_density_scale(z)
         )
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: u.Quantity | ArrayLike) -> FArray:
+    def inv_efunc(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Inverse of ``efunc``.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -477,17 +469,13 @@ class FLRW(
 
     # ---------------------------------------------------------------
 
-    @deprecated_keywords("z", since="7.0")
-    def Otot(self, z: u.Quantity | ArrayLike) -> FArray:
+    def Otot(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """The total density parameter at redshift ``z``.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshifts.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -499,17 +487,13 @@ class FLRW(
     # Odm is provided by the DarkMatterComponent trait
     # Ogamma is provided by the PhotonComponent trait
 
-    @deprecated_keywords("z", since="7.0")
-    def Onu(self, z: u.Quantity | ArrayLike) -> FArray:
+    def Onu(self, z: u.Quantity | ArrayLike, /) -> FArray:
         r"""Return the density parameter for neutrinos at redshift ``z``.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -525,17 +509,13 @@ class FLRW(
             return np.zeros_like(z)
         return self.Ogamma(z) * self.nu_relative_density(z)
 
-    @deprecated_keywords("z", since="7.0")
-    def Tnu(self, z: u.Quantity | ArrayLike) -> u.Quantity:
+    def Tnu(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
         """Return the neutrino temperature at redshift ``z``.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -544,17 +524,13 @@ class FLRW(
         """
         return self.Tnu0 * (aszarr(z) + 1.0)
 
-    @deprecated_keywords("z", since="7.0")
-    def nu_relative_density(self, z: u.Quantity | ArrayLike) -> FArray:
+    def nu_relative_density(self, z: u.Quantity | ArrayLike, /) -> FArray:
         r"""Neutrino density function relative to the energy density in photons.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -602,6 +578,12 @@ class FLRW(
 
         return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
 
+    # ===============================================================
+    # Distance measures
+
+    # -------------------------------------------
+    # Lookback time
+
     def _lookback_time_integrand_scalar(self, z: float, /) -> float:
         """Integrand of the lookback time (equation 30 of [1]_).
 
@@ -625,124 +607,6 @@ class FLRW(
         """
         return self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args) / (z + 1.0)
 
-    @deprecated_keywords("z", since="7.0")
-    def lookback_time_integrand(self, z: u.Quantity | ArrayLike) -> FArray:
-        """Integrand of the lookback time (equation 30 of [1]_).
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        I : array
-            The integrand for the lookback time.
-
-        References
-        ----------
-        .. [1] Hogg, D. (1999). Distance measures in cosmology, section 11.
-               arXiv e-prints, astro-ph/9905116.
-        """
-        z = aszarr(z)
-        return self.inv_efunc(z) / (z + 1.0)
-
-    def _abs_distance_integrand_scalar(self, z: u.Quantity | ArrayLike, /) -> float:
-        """Integrand of the absorption distance (eq. 4, [1]_).
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
-
-        Returns
-        -------
-        dX : float
-            The integrand for the absorption distance (dimensionless).
-
-        References
-        ----------
-        .. [1] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
-        """
-        return (z + 1.0) ** 2 * self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args)
-
-    @deprecated_keywords("z", since="7.0")
-    def abs_distance_integrand(self, z: u.Quantity | ArrayLike) -> FArray:
-        """Integrand of the absorption distance (eq. 4, [1]_).
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        dX : array
-            The integrand for the absorption distance (dimensionless).
-
-        References
-        ----------
-        .. [1] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
-        """
-        z = aszarr(z)
-        return (z + 1.0) ** 2 * self.inv_efunc(z)
-
-    @deprecated_keywords("z", since="7.0")
-    def lookback_time(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Lookback time in Gyr to redshift ``z``.
-
-        The lookback time is the difference between the age of the Universe now
-        and the age at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        t : Quantity ['time']
-            Lookback time in Gyr to each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to a lookback time.
-        """
-        return self._lookback_time(z)
-
-    def _lookback_time(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
-        """Lookback time in Gyr to redshift ``z``.
-
-        The lookback time is the difference between the age of the Universe now
-        and the age at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
-
-        Returns
-        -------
-        t : Quantity ['time']
-            Lookback time in Gyr to each input redshift.
-        """
-        return self.hubble_time * self._integral_lookback_time(z)
-
     @vectorize_redshift_method
     def _integral_lookback_time(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Lookback time to redshift ``z``. Value in units of Hubble time.
@@ -765,56 +629,12 @@ class FLRW(
         """
         return quad(self._lookback_time_integrand_scalar, 0, z)[0]
 
-    @deprecated_keywords("z", since="7.0")
-    def lookback_distance(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """The lookback distance is the light travel time distance to a given redshift.
+    # Subclasses frequently override this method for better performance.
+    def _lookback_time(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
+        """Lookback time in Gyr to redshift ``z``.
 
-        It is simply c * lookback_time. It may be used to calculate
-        the proper distance between two redshifts, e.g. for the mean free path
-        to ionizing radiation.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        d : Quantity ['length']
-            Lookback distance in Mpc
-        """
-        return (self.lookback_time(z) * const.c).to(u.Mpc)
-
-    @deprecated_keywords("z", since="7.0")
-    def age(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Age of the universe in Gyr at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        t : Quantity ['time']
-            The age of the universe in Gyr at each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to an age.
-        """
-        return self._age(z)
-
-    def _age(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
-        """Age of the universe in Gyr at redshift ``z``.
-
-        This internal function exists to be re-defined for optimizations.
+        The lookback time is the difference between the age of the Universe now
+        and the age at redshift ``z``.
 
         Parameters
         ----------
@@ -827,9 +647,57 @@ class FLRW(
         Returns
         -------
         t : Quantity ['time']
-            The age of the universe in Gyr at each input redshift.
+            Lookback time in Gyr to each input redshift.
         """
-        return self.hubble_time * self._integral_age(z)
+        return self.hubble_time * self._integral_lookback_time(z)
+
+    @override
+    def lookback_time(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
+        """Lookback time in Gyr to redshift ``z``.
+
+        The lookback time is the difference between the age of the Universe now
+        and the age at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+        Returns
+        -------
+        t : Quantity ['time']
+            Lookback time in Gyr to each input redshift.
+
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to a lookback time.
+        """
+        return self._lookback_time(z)
+
+    # -------------------------------------------
+    # Absorption distance
+
+    def _abs_distance_integrand_scalar(self, z: u.Quantity | ArrayLike, /) -> float:
+        """Integrand of the absorption distance (eq. 4, [1]_).
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like, positional-only
+            Input redshift.
+
+        Returns
+        -------
+        dX : float
+            The integrand for the absorption distance (dimensionless).
+
+        References
+        ----------
+        .. [1] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
+        """
+        return (z + 1.0) ** 2 * self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args)
+
+    # -------------------------------------------
+    # Age
 
     @vectorize_redshift_method
     def _integral_age(self, z: u.Quantity | ArrayLike, /) -> FArray:
@@ -853,63 +721,70 @@ class FLRW(
         """
         return quad(self._lookback_time_integrand_scalar, z, inf)[0]
 
-    # ---------------------------------------------------------------
-    # Comoving distance
+    # Subclasses frequently override this method for better performance.
+    def _age(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
+        """Age of the universe in Gyr at redshift ``z``.
 
-    @overload
-    def comoving_distance(self, z: _InputT) -> u.Quantity: ...
-
-    @overload
-    def comoving_distance(self, z: _InputT, z2: _InputT) -> u.Quantity: ...
-
-    @deprecated_keywords("z2", since="7.1")
-    @deprecated_keywords("z", since="7.0")
-    def comoving_distance(self, z: _InputT, z2: _InputT | None = None) -> u.Quantity:
-        r"""Comoving line-of-sight distance :math:`d_c(z1, z2)` in Mpc.
-
-        The comoving distance along the line-of-sight between two objects
-        remains constant with time for objects in the Hubble flow.
+        This internal function exists to be re-defined for optimizations.
 
         Parameters
         ----------
-        z, z2 : Quantity ['redshift'], positional-only
-            Input redshifts. If one argument ``z`` is given, the distance
-            :math:`d_c(0, z)` is returned. If two arguments ``z1, z2`` are
-            given, the distance :math:`d_c(z_1, z_2)` is returned.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        Quantity ['length']
-            Comoving distance in Mpc between each input redshift.
-        """
-        z1, z2 = (0.0, z) if z2 is None else (z, z2)
-        return self._comoving_distance_z1z2(z1, z2)
-
-    def _comoving_distance_z1z2(
-        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
-    ) -> u.Quantity:
-        """Comoving line-of-sight distance in Mpc between redshifts ``z1`` and ``z2``.
-
-        The comoving distance along the line-of-sight between two objects
-        remains constant with time for objects in the Hubble flow.
-
-        Parameters
-        ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like, positional-only
             Input redshift.
 
             .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
+                The argument is positional-only.
 
         Returns
         -------
-        d : Quantity ['length']
+        t : Quantity ['time']
+            The age of the universe in Gyr at each input redshift.
+        """
+        return self.hubble_time * self._integral_age(z)
+
+    @override
+    def age(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
+        """Age of the universe in Gyr at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+        Returns
+        -------
+        t : Quantity ['time']
+            The age of the universe in Gyr at each input redshift.
+
+        See Also
+        --------
+        z_at_value : Find the redshift corresponding to an age.
+        """
+        return self._age(z)
+
+    # -------------------------------------------
+    # Comoving distance
+
+    @vectorize_redshift_method(nin=2)
+    def _integral_comoving_distance_z1z2_scalar(
+        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
+    ) -> FArray:
+        """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
+
+        The comoving distance along the line-of-sight between two objects
+        remains constant with time for objects in the Hubble flow.
+
+        Parameters
+        ----------
+        z1, z2 : Quantity-like ['redshift'], array-like
+            Input redshift.
+
+        Returns
+        -------
+        d : array
             Comoving distance in Mpc between each input redshift.
         """
-        return self._integral_comoving_distance_z1z2(z1, z2)
+        return quad(self._inv_efunc_scalar, z1, z2, args=self._inv_efunc_scalar_args)[0]
 
     def _integral_comoving_distance_z1z2(
         self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
@@ -934,11 +809,10 @@ class FLRW(
         """
         return self.hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
 
-    @vectorize_redshift_method(nin=2)
-    def _integral_comoving_distance_z1z2_scalar(
+    def _comoving_distance_z1z2(
         self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
-    ) -> FArray:
-        """Comoving line-of-sight distance in Mpc between objects at redshifts ``z1`` and ``z2``.
+    ) -> u.Quantity:
+        """Comoving line-of-sight distance in Mpc between redshifts ``z1`` and ``z2``.
 
         The comoving distance along the line-of-sight between two objects
         remains constant with time for objects in the Hubble flow.
@@ -953,43 +827,44 @@ class FLRW(
 
         Returns
         -------
-        d : array
+        d : Quantity ['length']
             Comoving distance in Mpc between each input redshift.
         """
-        return quad(self._inv_efunc_scalar, z1, z2, args=self._inv_efunc_scalar_args)[0]
+        return self._integral_comoving_distance_z1z2(z1, z2)
 
-    # ---------------------------------------------------------------
+    @overload
+    def comoving_distance(self, z: _InputT, /) -> u.Quantity: ...
 
-    @deprecated_keywords("z", since="7.0")
-    def comoving_transverse_distance(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        r"""Comoving transverse distance in Mpc at a given redshift.
+    @overload
+    def comoving_distance(self, z: _InputT, z2: _InputT, /) -> u.Quantity: ...
 
-        This value is the transverse comoving distance at redshift ``z``
-        corresponding to an angular separation of 1 radian. This is the same as
-        the comoving distance if :math:`\Omega_k` is zero (as in the current
-        concordance Lambda-CDM model).
+    @override
+    def comoving_distance(self, z: _InputT, z2: _InputT | None = None, /) -> u.Quantity:
+        r"""Comoving line-of-sight distance :math:`d_c(z1, z2)` in Mpc.
+
+        The comoving distance along the line-of-sight between two objects
+        remains constant with time for objects in the Hubble flow.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
+        z, z2 : Quantity ['redshift'], positional-only
+            Input redshifts. If one argument ``z`` is given, the distance
+            :math:`d_c(0, z)` is returned. If two arguments ``z1, z2`` are
+            given, the distance :math:`d_c(z_1, z_2)` is returned.
 
         Returns
         -------
-        d : Quantity ['length']
-            Comoving transverse distance in Mpc at each input redshift.
-
-        Notes
-        -----
-        This quantity is also called the 'proper motion distance' in some texts.
+        Quantity ['length']
+            Comoving distance in Mpc between each input redshift.
         """
-        return self._comoving_transverse_distance_z1z2(0, z)
+        z1, z2 = (0.0, z) if z2 is None else (z, z2)
+        return self._comoving_distance_z1z2(z1, z2)
+
+    # -------------------------------------------
+    # Transverse Comoving distance
 
     def _comoving_transverse_distance_z1z2(
-        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
+        self, z1: _InputT, z2: _InputT, /
     ) -> u.Quantity:
         r"""Comoving transverse distance in Mpc between two redshifts.
 
@@ -1000,11 +875,8 @@ class FLRW(
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'], array-like
             Input redshifts.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -1026,21 +898,109 @@ class FLRW(
         else:
             return dh / sqrtOk0 * sin(sqrtOk0 * dc.value / dh.value)
 
-    @deprecated_keywords("z", since="7.0")
-    def angular_diameter_distance(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Angular diameter distance in Mpc at a given redshift.
+    @overload
+    def comoving_transverse_distance(self, z: _InputT, /) -> u.Quantity: ...
 
-        This gives the proper (sometimes called 'physical') transverse
-        distance corresponding to an angle of 1 radian for an object
-        at redshift ``z`` ([1]_, [2]_, [3]_).
+    @overload
+    def comoving_transverse_distance(
+        self, z: _InputT, z2: _InputT, /
+    ) -> u.Quantity: ...
+
+    @override
+    def comoving_transverse_distance(
+        self, z: _InputT, z2: _InputT | None = None, /
+    ) -> u.Quantity:
+        r"""Comoving transverse distance in Mpc at a given redshift.
+
+        This value is the transverse comoving distance at redshift ``z``
+        corresponding to an angular separation of 1 radian. This is the same as
+        the comoving distance if :math:`\Omega_k` is zero (as in the current
+        concordance Lambda-CDM model).
+
+        Parameters
+        ----------
+        z, z2 : Quantity ['redshift'], positional-only
+            Input redshifts. If one argument ``z`` is given, the distance
+            :math:`d_c(0, z)` is returned. If two arguments ``z1, z2`` are
+            given, the distance :math:`d(z_1, z_2)` is returned.
+
+        Returns
+        -------
+        d : Quantity ['length']
+            Comoving transverse distance in Mpc at each input redshift.
+
+        Notes
+        -----
+        This quantity is also called the 'proper motion distance' in some texts.
+        """
+        z1, z2 = (0.0, z) if z2 is None else (z, z2)
+        return self._comoving_transverse_distance_z1z2(z1, z2)
+
+    # -------------------------------------------
+    # Comoving volume
+
+    @override
+    def comoving_volume(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
+        r"""Comoving volume in cubic Mpc at redshift ``z``.
+
+        This is the volume of the universe encompassed by redshifts less than
+        ``z``. For the case of :math:`\Omega_k = 0` it is a sphere of radius
+        `comoving_distance` but it is less intuitive if :math:`\Omega_k` is not.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
 
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
+        Returns
+        -------
+        V : Quantity ['volume']
+            Comoving volume in :math:`Mpc^3` at each input redshift.
+        """
+        Ok0 = self.Ok0
+        if Ok0 == 0:
+            return 4.0 / 3.0 * np.pi * self.comoving_distance(z) ** 3
+
+        dh = self.hubble_distance.value  # .value for speed
+        dm = self.comoving_transverse_distance(z).value
+        term1 = 4.0 * np.pi * dh**3 / (2.0 * Ok0) * u.Mpc**3
+        term2 = dm / dh * np.sqrt(1 + Ok0 * (dm / dh) ** 2)
+        term3 = np.sqrt(abs(Ok0)) * dm / dh
+
+        if Ok0 > 0:
+            return term1 * (term2 - 1.0 / np.sqrt(abs(Ok0)) * np.arcsinh(term3))
+        else:
+            return term1 * (term2 - 1.0 / np.sqrt(abs(Ok0)) * np.arcsin(term3))
+
+    # -------------------------------------------
+    # Angular diameter distance
+
+    @overload
+    def angular_diameter_distance(self, z: _InputT, /) -> u.Quantity: ...
+
+    @overload
+    def angular_diameter_distance(self, z: _InputT, z2: _InputT, /) -> u.Quantity: ...
+
+    @override
+    def angular_diameter_distance(
+        self, z: _InputT, z2: _InputT | None = None, /
+    ) -> u.Quantity:
+        """Angular diameter distance between objects at 2 redshifts.
+
+        When one redshift is given, this gives the proper (sometimes called 'physical')
+        transverse distance corresponding to an angle of 1 radian for an object at
+        redshift ``z`` ([1]_, [2]_, [3]_).
+
+        The two redshift form is useful for e.g. gravitational lensing for
+        computing the angular diameter distance between a lensed galaxy and the
+        foreground lens.
+
+        Parameters
+        ----------
+        z1, z2 : Quantity-like ['redshift'], array-like
+            Input redshifts. For most practical applications such as gravitational
+            lensing, ``z2`` should be larger than ``z1``. The method will work for ``z2
+            < z1``; however, this will return negative distances.
 
         Returns
         -------
@@ -1053,62 +1013,7 @@ class FLRW(
         .. [2] Weedman, D. (1986). Quasar astronomy, pp 65-67.
         .. [3] Peebles, P. (1993). Principles of Physical Cosmology, pp 325-327.
         """
-        z = aszarr(z)
-        return self.comoving_transverse_distance(z) / (z + 1.0)
-
-    @deprecated_keywords("z", since="7.0")
-    def luminosity_distance(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Luminosity distance in Mpc at redshift ``z``.
-
-        This is the distance to use when converting between the bolometric flux
-        from an object at redshift ``z`` and its bolometric luminosity [1]_.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        d : Quantity ['length']
-            Luminosity distance in Mpc at each input redshift.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to a luminosity distance.
-
-        References
-        ----------
-        .. [1] Weinberg, 1972, pp 420-424; Weedman, 1986, pp 60-62.
-        """
-        z = aszarr(z)
-        return (z + 1.0) * self.comoving_transverse_distance(z)
-
-    def angular_diameter_distance_z1z2(
-        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike
-    ) -> u.Quantity:
-        """Angular diameter distance between objects at 2 redshifts.
-
-        Useful for gravitational lensing, for example computing the angular
-        diameter distance between a lensed galaxy and the foreground lens.
-
-        Parameters
-        ----------
-        z1, z2 : Quantity-like ['redshift'], array-like
-            Input redshifts. For most practical applications such as
-            gravitational lensing, ``z2`` should be larger than ``z1``. The
-            method will work for ``z2 < z1``; however, this will return
-            negative distances.
-
-        Returns
-        -------
-        d : Quantity ['length']
-            The angular diameter distance between each input redshift pair.
-            Returns scalar if input is scalar, array else-wise.
-        """
+        z1, z2 = (0.0, z) if z2 is None else (z, z2)
         z1, z2 = aszarr(z1), aszarr(z2)
         if np.any(z2 < z1):
             warnings.warn(
@@ -1118,6 +1023,17 @@ class FLRW(
             )
         return self._comoving_transverse_distance_z1z2(z1, z2) / (z2 + 1.0)
 
+    @deprecated(since="8.0", message="Use `angular_diameter_distance(z1, z2)` instead.")
+    def angular_diameter_distance_z1z2(
+        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike
+    ) -> u.Quantity:
+        """See ``angular_diameter_distance(z1, z2)``."""
+        return self.angular_diameter_distance(z1, z2)
+
+    # -------------------------------------------
+    # Absorption distance
+
+    @override
     @vectorize_redshift_method
     def absorption_distance(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Absorption distance at redshift ``z`` (eq. 4, [1]_).
@@ -1141,180 +1057,6 @@ class FLRW(
         .. [1] Bahcall, John N. and Peebles, P.J.E. 1969, ApJ, 156L, 7B
         """
         return quad(self._abs_distance_integrand_scalar, 0, z)[0]
-
-    @deprecated_keywords("z", since="7.0")
-    def distmod(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Distance modulus at redshift ``z``.
-
-        The distance modulus is defined as the (apparent magnitude - absolute
-        magnitude) for an object at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        distmod : Quantity ['length']
-            Distance modulus at each input redshift, in magnitudes.
-
-        See Also
-        --------
-        z_at_value : Find the redshift corresponding to a distance modulus.
-        """
-        # Remember that the luminosity distance is in Mpc
-        # Abs is necessary because in certain obscure closed cosmologies
-        #  the distance modulus can be negative -- which is okay because
-        #  it enters as the square.
-        val = 5.0 * np.log10(abs(self.luminosity_distance(z).value)) + 25.0
-        return u.Quantity(val, u.mag)
-
-    @deprecated_keywords("z", since="7.0")
-    def comoving_volume(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        r"""Comoving volume in cubic Mpc at redshift ``z``.
-
-        This is the volume of the universe encompassed by redshifts less than
-        ``z``. For the case of :math:`\Omega_k = 0` it is a sphere of radius
-        `comoving_distance` but it is less intuitive if :math:`\Omega_k` is not.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        V : Quantity ['volume']
-            Comoving volume in :math:`Mpc^3` at each input redshift.
-        """
-        Ok0 = self.Ok0
-        if Ok0 == 0:
-            return 4.0 / 3.0 * pi * self.comoving_distance(z) ** 3
-
-        dh = self.hubble_distance.value  # .value for speed
-        dm = self.comoving_transverse_distance(z).value
-        term1 = 4.0 * pi * dh**3 / (2.0 * Ok0) * u.Mpc**3
-        term2 = dm / dh * np.sqrt(1 + Ok0 * (dm / dh) ** 2)
-        term3 = sqrt(abs(Ok0)) * dm / dh
-
-        if Ok0 > 0:
-            return term1 * (term2 - 1.0 / sqrt(abs(Ok0)) * np.arcsinh(term3))
-        else:
-            return term1 * (term2 - 1.0 / sqrt(abs(Ok0)) * np.arcsin(term3))
-
-    @deprecated_keywords("z", since="7.0")
-    def differential_comoving_volume(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Differential comoving volume at redshift z.
-
-        Useful for calculating the effective comoving volume.
-        For example, allows for integration over a comoving volume that has a
-        sensitivity function that changes with redshift. The total comoving
-        volume is given by integrating ``differential_comoving_volume`` to
-        redshift ``z`` and multiplying by a solid angle.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        dV : Quantity
-            Differential comoving volume per redshift per steradian at each
-            input redshift.
-        """
-        dm = self.comoving_transverse_distance(z)
-        return self.hubble_distance * (dm**2.0) / (self.efunc(z) << u.steradian)
-
-    @deprecated_keywords("z", since="7.0")
-    def kpc_comoving_per_arcmin(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Separation in transverse comoving kpc equal to an arcmin at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        d : Quantity ['length']
-            The distance in comoving kpc corresponding to an arcmin at each
-            input redshift.
-        """
-        return self.comoving_transverse_distance(z).to(u.kpc) / RAD_IN_ARCMIN
-
-    @deprecated_keywords("z", since="7.0")
-    def kpc_proper_per_arcmin(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Separation in transverse proper kpc equal to an arcminute at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        d : Quantity ['length']
-            The distance in proper kpc corresponding to an arcmin at each input
-            redshift.
-        """
-        return self.angular_diameter_distance(z).to(u.kpc) / RAD_IN_ARCMIN
-
-    @deprecated_keywords("z", since="7.0")
-    def arcsec_per_kpc_comoving(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Angular separation in arcsec equal to a comoving kpc at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        theta : Quantity ['angle']
-            The angular separation in arcsec corresponding to a comoving kpc at
-            each input redshift.
-        """
-        return RAD_IN_ARCSEC / self.comoving_transverse_distance(z).to(u.kpc)
-
-    @deprecated_keywords("z", since="7.0")
-    def arcsec_per_kpc_proper(self, z: u.Quantity | ArrayLike) -> u.Quantity:
-        """Angular separation in arcsec corresponding to a proper kpc at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-        Returns
-        -------
-        theta : Quantity ['angle']
-            The angular separation in arcsec corresponding to a proper kpc at
-            each input redshift.
-        """
-        return RAD_IN_ARCSEC / self.angular_diameter_distance(z).to(u.kpc)
 
 
 @dataclass_decorator
@@ -1378,17 +1120,13 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         """Omega total; the total density/critical density at z=0."""
         return 1.0
 
-    @deprecated_keywords("z", since="7.0")
-    def Otot(self, z: u.Quantity | ArrayLike) -> FArray:
+    def Otot(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """The total density parameter at redshift ``z``.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------

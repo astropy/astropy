@@ -9,7 +9,7 @@ from numpy.typing import ArrayLike
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
@@ -117,17 +117,13 @@ class wCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -143,17 +139,13 @@ class wCDM(FLRW):
         """
         return self.w0 * np.ones_like(aszarr(z))
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -168,17 +160,13 @@ class wCDM(FLRW):
         """
         return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self.w0))
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: Quantity | ArrayLike) -> FArray:
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -198,17 +186,13 @@ class wCDM(FLRW):
             + self.Ode0 * zp1 ** (3.0 * (1.0 + self.w0))
         )
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray:
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -323,17 +307,13 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: Quantity | ArrayLike) -> FArray:
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -352,17 +332,13 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             zp1**3 * (Or * zp1 + self.Om0) + self.Ode0 * zp1 ** (3.0 * (1 + self.w0))
         )
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray:
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
         ----------
         z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
