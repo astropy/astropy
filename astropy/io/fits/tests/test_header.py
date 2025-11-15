@@ -312,6 +312,48 @@ class TestHeaderFunctions(FitsTestCase):
         c = fits.Card.fromstring('ABC     =    ')
         assert str(c) == _pad("ABC     =")
 
+    def test_card_fromstring_with_bytes(self):
+        # Test Card.fromstring with Python 3 bytes
+        card_str = 'NAXIS   =                    2 / number of axes'
+        card_bytes = b'NAXIS   =                    2 / number of axes'
+
+        # Create cards from both string and bytes
+        card_from_str = fits.Card.fromstring(card_str)
+        card_from_bytes = fits.Card.fromstring(card_bytes)
+
+        # Both should produce the same result
+        assert card_from_str.keyword == card_from_bytes.keyword
+        assert card_from_str.value == card_from_bytes.value
+        assert card_from_str.comment == card_from_bytes.comment
+        assert str(card_from_str) == str(card_from_bytes)
+
+        # Verify the values are correct
+        assert card_from_bytes.keyword == 'NAXIS'
+        assert card_from_bytes.value == 2
+        assert card_from_bytes.comment == 'number of axes'
+
+    def test_header_fromstring_with_bytes(self):
+        # Test Header.fromstring with Python 3 bytes
+        header_str = 'SIMPLE  =                    T / conforms to FITS standard\nBITPIX  =                    8 / array data type\nNAXIS   =                    2 / number of array dimensions'
+        header_bytes = b'SIMPLE  =                    T / conforms to FITS standard\nBITPIX  =                    8 / array data type\nNAXIS   =                    2 / number of array dimensions'
+
+        # Create headers from both string and bytes
+        header_from_str = fits.Header.fromstring(header_str, sep='\n')
+        header_from_bytes = fits.Header.fromstring(header_bytes, sep='\n')
+
+        # Both should produce the same result
+        assert len(header_from_str) == len(header_from_bytes)
+        assert list(header_from_str.keys()) == list(header_from_bytes.keys())
+
+        for key in header_from_str:
+            assert header_from_str[key] == header_from_bytes[key]
+            assert header_from_str.comments[key] == header_from_bytes.comments[key]
+
+        # Verify the values are correct
+        assert header_from_bytes['SIMPLE'] is True
+        assert header_from_bytes['BITPIX'] == 8
+        assert header_from_bytes['NAXIS'] == 2
+
     def test_mislocated_equal_sign(self, capsys):
         # test mislocated "=" sign
         c = fits.Card.fromstring('XYZ= 100')

@@ -334,8 +334,9 @@ class Header:
 
         Parameters
         ----------
-        data : str
-           String containing the entire header.
+        data : str or bytes
+           String or bytes containing the entire header. If bytes, it will be
+           decoded as ASCII.
 
         sep : str, optional
             The string separating cards from each other, such as a newline.  By
@@ -347,6 +348,10 @@ class Header:
         header
             A new `Header` instance.
         """
+
+        # Convert bytes to string if necessary
+        if isinstance(data, bytes):
+            data = data.decode('ascii')
 
         cards = []
 

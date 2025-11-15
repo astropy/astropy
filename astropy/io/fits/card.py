@@ -551,7 +551,17 @@ class Card(_Verify):
         if it is not the length of a card image (80 columns).  If the card
         image is longer than 80 columns, assume it contains ``CONTINUE``
         card(s).
+
+        Parameters
+        ----------
+        image : str or bytes
+            The card image as a string or bytes. If bytes, it will be decoded
+            as ASCII.
         """
+
+        # Convert bytes to string if necessary
+        if isinstance(image, bytes):
+            image = image.decode('ascii')
 
         card = cls()
         card._image = _pad(image)
