@@ -1299,6 +1299,38 @@ def _format_value(value):
 
 def _format_float(value):
     """Format a floating number to make sure it gets the decimal point."""
+    # First, try using Python's default string representation, which often
+    # produces a shorter, more readable string than the high-precision format.
+    value_str = str(value)
+
+    # Ensure it has a decimal point for float representation
+    if "." not in value_str and "E" not in value_str and "e" not in value_str:
+        value_str += ".0"
+
+    # Normalize lowercase 'e' to uppercase 'E' for consistency
+    if "e" in value_str:
+        value_str = value_str.replace("e", "E")
+
+    # If the string representation fits within 20 characters, use it
+    if len(value_str) <= 20:
+        # Normalize exponent format if present
+        if "E" in value_str:
+            # On some Windows builds of Python (and possibly other platforms?) the
+            # exponent is zero-padded out to, it seems, three digits.  Normalize
+            # the format to pad only to two digits.
+            significand, exponent = value_str.split("E")
+            if exponent[0] in ("+", "-"):
+                sign = exponent[0]
+                exponent = exponent[1:]
+            else:
+                sign = ""
+            value_str = f"{significand}E{sign}{int(exponent):02d}"
+
+        # Check again if it still fits after normalization
+        if len(value_str) <= 20:
+            return value_str
+
+    # If str(value) doesn't fit or doesn't work, fall back to high-precision format
     value_str = f"{value:.16G}"
     if "." not in value_str and "E" not in value_str:
         value_str += ".0"

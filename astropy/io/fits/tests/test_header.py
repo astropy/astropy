@@ -137,6 +137,63 @@ class TestHeaderFunctions(FitsTestCase):
         ):
             assert str(c) == _pad("FLOATNUM= -4.6737463674763E+32")
 
+    def test_float_format_uses_minimal_representation(self):
+        """Test that float formatting uses minimal string representation when possible.
+
+        Regression test for issue where floats were unnecessarily expanded to
+        high-precision format, forcing comments to be truncated.
+        """
+        # Test case from GitHub issue - 0.009125 should not expand to 0.009124999999999999
+        c = fits.Card("TEST", 0.009125, "A comment")
+        # The value should use the short representation
+        assert "0.009125" in str(c)
+        assert "0.009124999999999999" not in str(c)
+
+        # Test HIERARCH card with the exact scenario from the issue
+        c = fits.Card("HIERARCH ESO IFM CL RADIUS", 0.009125,
+                      "[m] radius arround actuator to avoid")
+        card_str = str(c)
+        # Value should be formatted as short representation
+        assert "0.009125" in card_str
+        # Comment should not be truncated
+        assert "[m] radius arround actuator to avoid" in card_str
+
+        # Verify the card doesn't produce a warning
+        # (no truncation should be needed with shorter float representation)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", fits.verify.VerifyWarning)
+            # This should not raise a warning about truncation
+            c = fits.Card("HIERARCH ESO IFM CL RADIUS", 0.009125,
+                          "[m] radius arround actuator to avoid")
+
+    def test_float_format_consistency(self):
+        """Test that various float values format consistently and correctly."""
+        test_cases = [
+            # (value, expected_in_output, description)
+            (1.0, "1.0", "Simple integer float"),
+            (0.0, "0.0", "Zero"),
+            (-123.456, "-123.456", "Negative float"),
+            (0.009125, "0.009125", "Small decimal"),
+            (3.141592653589793, "3.141592653589793", "Pi - should fit in 20 chars"),
+        ]
+
+        for value, expected, desc in test_cases:
+            c = fits.Card("TEST", value)
+            card_str = str(c)
+            assert expected in card_str, f"Failed for {desc}: expected '{expected}' in '{card_str}'"
+
+    def test_float_format_scientific_notation(self):
+        """Test that scientific notation is handled correctly."""
+        # Test that very large and very small numbers still use scientific notation
+        c = fits.Card("TEST", 1.23e-10)
+        assert "E-10" in str(c).upper()
+
+        c = fits.Card("TEST", 1.23e10)
+        # Could be either 12300000000.0 or 1.23E+10 depending on Python version
+        card_str = str(c)
+        assert "12300000000.0" in card_str or "1.23E+10" in card_str
+
     def test_complex_value_card(self):
         """Test Card constructor with complex value"""
 
