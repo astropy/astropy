@@ -285,3 +285,31 @@ def test_return_annotation():
     assert solarx.unit is u.deg
     """
     return src
+
+
+@py3only
+def test_return_annotation_none():
+    src = """
+    @u.quantity_input
+    def myfunc_returns_none(solarx: u.arcsec) -> None:
+        pass
+
+    result = myfunc_returns_none(1*u.arcsec)
+    assert result is None
+    """
+    return src
+
+
+@py3only
+def test_constructor_with_return_annotation_none():
+    src = """
+    class TestClass:
+        @u.quantity_input
+        def __init__(self, voltage: u.V) -> None:
+            self.voltage = voltage
+
+    obj = TestClass(1.*u.V)
+    assert isinstance(obj, TestClass)
+    assert obj.voltage.unit == u.V
+    """
+    return src

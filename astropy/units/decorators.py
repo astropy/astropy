@@ -221,6 +221,10 @@ class QuantityInput:
             with add_enabled_equivalencies(self.equivalencies):
                 return_ = wrapped_function(*func_args, **func_kwargs)
             if wrapped_signature.return_annotation is not inspect.Signature.empty:
+                # Check if the return annotation is None (for constructors and functions that return None)
+                # If so, skip unit conversion as None has no .to() method
+                if wrapped_signature.return_annotation is None:
+                    return return_
                 return return_.to(wrapped_signature.return_annotation)
             else:
                 return return_
