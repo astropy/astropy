@@ -354,6 +354,7 @@ class HTML(core.BaseReader):
             self.data.fill_values = [self.data.fill_values]
 
         self.data._set_fill_values(cols)
+        self.data._set_col_formats()
 
         lines = []
 

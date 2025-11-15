@@ -728,3 +728,34 @@ def test_read_html_unicode():
                 '</table>']
     dat = Table.read(table_in, format='ascii.html')
     assert np.all(dat['col1'] == ['Δ', 'Δ'])
+
+
+def test_write_table_html_formats():
+    """
+    Test that the formats parameter is respected when writing HTML tables.
+    This test addresses the bug where formats were ignored for HTML output.
+    """
+    # Test with lambda format function
+    t = Table([(1.23875234858e-24, 3.2348748432e-15), (2, 4)], names=('a', 'b'))
+
+    output = StringIO()
+    t.write(output, format="html", formats={"a": lambda x: f"{x:.2e}"})
+    html_output = output.getvalue()
+
+    # Check that the formatted values appear in the output
+    assert '1.24e-24' in html_output
+    assert '3.23e-15' in html_output
+    # Check that the full precision values do NOT appear
+    assert '1.23875234858e-24' not in html_output
+    assert '3.2348748432e-15' not in html_output
+
+    # Test with string format
+    t2 = Table([(1.23456, 2.34567), (10, 20)], names=('x', 'y'))
+
+    output2 = StringIO()
+    t2.write(output2, format="html", formats={"x": "%.2f"})
+    html_output2 = output2.getvalue()
+
+    # Check that the formatted values appear in the output
+    assert '1.23' in html_output2
+    assert '2.35' in html_output2
