@@ -17,7 +17,7 @@ from astropy import log
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import isiterable, ShapedLikeNDArray
 from astropy.utils.console import color_print
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaData, MetaAttribute
 from astropy.utils.data_info import BaseColumnInfo, MixinInfo, DataInfo
@@ -1243,6 +1243,14 @@ class Table:
         # mixin class
         if (not isinstance(data, Column) and not data_is_mixin
                 and isinstance(data, np.ndarray) and len(data.dtype) > 1):
+            warnings.warn(
+                "Automatically converting a structured numpy array to an "
+                "NdarrayMixin is deprecated. In astropy 5.2 and later, "
+                "structured arrays will be added as Column objects by default. "
+                "To use NdarrayMixin, wrap the array explicitly: "
+                "data.view(NdarrayMixin). To use Column, wrap the array in "
+                "Column: Column(data).",
+                AstropyDeprecationWarning)
             data = data.view(NdarrayMixin)
             data_is_mixin = True
 

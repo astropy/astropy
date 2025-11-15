@@ -20,7 +20,7 @@ from astropy import coordinates
 from astropy import units as u
 from astropy.table.column import BaseColumn
 from astropy.table import table_helpers
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyUserWarning, AstropyDeprecationWarning
 from astropy.utils.metadata import MergeConflictWarning
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.coordinates.tests.helper import skycoord_equal
@@ -712,9 +712,13 @@ def test_ndarray_mixin():
     d = np.arange(8, dtype='i8').reshape(4, 2).view(NdarrayMixin)
 
     # Add one during initialization and the next as a new column.
-    t = Table([a], names=['a'])
-    t['b'] = b
-    t['c'] = c
+    # Adding structured arrays now emits a deprecation warning
+    with pytest.warns(AstropyDeprecationWarning, match='Automatically converting'):
+        t = Table([a], names=['a'])
+    with pytest.warns(AstropyDeprecationWarning, match='Automatically converting'):
+        t['b'] = b
+    with pytest.warns(AstropyDeprecationWarning, match='Automatically converting'):
+        t['c'] = c
     t['d'] = d
 
     assert isinstance(t['a'], NdarrayMixin)
@@ -757,6 +761,36 @@ def test_ndarray_mixin():
         "     (2, 'b')    (20, 'bb')   (200., 'rbb')   2 .. 3",
         "     (3, 'c')    (30, 'cc')   (300., 'rcc')   4 .. 5",
         "     (4, 'd')    (40, 'dd')   (400., 'rdd')   6 .. 7"]
+
+
+def test_structured_array_auto_transform_deprecation():
+    """
+    Test that adding a structured numpy array to a table emits a deprecation warning
+    and that explicitly wrapping in Column or NdarrayMixin does not emit a warning.
+    """
+    # Create a structured array
+    arr = np.array([(1, 'a'), (2, 'b')], dtype=[('x', 'i4'), ('y', 'U1')])
+
+    # Adding structured array directly should emit deprecation warning
+    with pytest.warns(AstropyDeprecationWarning,
+                     match='Automatically converting a structured numpy array'):
+        t1 = Table([arr], names=['col1'])
+    assert isinstance(t1['col1'], NdarrayMixin)
+
+    # Adding as column assignment should also emit warning
+    with pytest.warns(AstropyDeprecationWarning,
+                     match='Automatically converting a structured numpy array'):
+        t2 = Table()
+        t2['col1'] = arr
+    assert isinstance(t2['col1'], NdarrayMixin)
+
+    # Explicitly wrapping in NdarrayMixin should NOT emit warning
+    t3 = Table([arr.view(NdarrayMixin)], names=['col1'])
+    assert isinstance(t3['col1'], NdarrayMixin)
+
+    # Explicitly wrapping in Column should NOT emit warning
+    t4 = Table([Column(arr)], names=['col1'])
+    assert isinstance(t4['col1'], Column)
 
 
 def test_possible_string_format_functions():
