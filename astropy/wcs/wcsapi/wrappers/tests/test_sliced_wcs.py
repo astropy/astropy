@@ -899,3 +899,76 @@ def test_pixel_to_world_values_different_int_types():
     for int_coord, np64_coord in zip(int_sliced.pixel_to_world_values(*pixel_arrays),
                                      np64_sliced.pixel_to_world_values(*pixel_arrays)):
         assert all(int_coord == np64_coord)
+
+
+def test_world_to_pixel_with_coupled_dimensions():
+    """
+    Test world_to_pixel on a sliced WCS where the PC matrix couples
+    spatial and spectral dimensions.
+
+    This is a regression test for issue where world_to_pixel would
+    return incorrect results when the WCS has non-trivial coupling
+    between dimensions that are sliced out and dimensions that remain.
+    """
+    # Create a 3D WCS with coupled spatial-spectral dimensions
+    # similar to the issue report
+    nx, ny, nz = 100, 25, 2
+    wcs_header = {
+        'WCSAXES': 3,
+        'CRPIX1': (nx + 1)/2,
+        'CRPIX2': (ny + 1)/2,
+        'CRPIX3': 1.0,
+        'PC1_1': 0.0,
+        'PC1_2': -1.0,
+        'PC1_3': 0.0,
+        'PC2_1': 1.0,
+        'PC2_2': 0.0,
+        'PC2_3': -1.0,
+        'CDELT1': 5,
+        'CDELT2': 5,
+        'CDELT3': 0.055,
+        'CUNIT1': 'arcsec',
+        'CUNIT2': 'arcsec',
+        'CUNIT3': 'Angstrom',
+        'CTYPE1': 'HPLN-TAN',
+        'CTYPE2': 'HPLT-TAN',
+        'CTYPE3': 'WAVE',
+        'CRVAL1': 0.0,
+        'CRVAL2': 0.0,
+        'CRVAL3': 1.05,
+    }
+
+    from astropy.wcs import WCS
+    from astropy.wcs.wcsapi import HighLevelWCSWrapper
+
+    full_wcs = WCS(header=wcs_header)
+
+    # Test world_to_pixel on the full WCS
+    px_full, py_full, pz_full = full_wcs.world_to_pixel_values(0.0, 0.0, 1.05)
+
+    # Now slice to the first wavelength plane
+    sliced_wcs = SlicedLowLevelWCS(full_wcs, 0)
+
+    # world_to_pixel on the sliced WCS should give the same spatial coordinates
+    px_sliced, py_sliced = sliced_wcs.world_to_pixel_values(0.0, 0.0)
+
+    # Check that the spatial coordinates match
+    assert_allclose(px_sliced, px_full, rtol=1e-10)
+    assert_allclose(py_sliced, py_full, rtol=1e-10)
+
+    # Also test with the high-level wrapper as in the issue report
+    hl_sliced_wcs = HighLevelWCSWrapper(sliced_wcs)
+
+    # Create a SkyCoord for testing
+    from astropy.coordinates import SkyCoord
+    from astropy.wcs.utils import wcs_to_celestial_frame
+
+    pt = SkyCoord(Tx=0*u.arcsec, Ty=0*u.arcsec,
+                  frame=wcs_to_celestial_frame(full_wcs))
+
+    # Test high-level world_to_pixel
+    px_hl, py_hl = hl_sliced_wcs.world_to_pixel(pt)
+
+    # Check that results are consistent
+    assert_allclose(px_hl, px_full, rtol=1e-10)
+    assert_allclose(py_hl, py_full, rtol=1e-10)
