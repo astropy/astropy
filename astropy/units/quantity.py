@@ -296,8 +296,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                 if not copy:
                     return value
 
-                if not (np.can_cast(np.float32, value.dtype) or
-                        value.dtype.fields):
+                if value.dtype.kind not in 'fc' and not value.dtype.fields:
                     dtype = float
 
             return np.array(value, dtype=dtype, copy=copy, order=order,
@@ -377,8 +376,11 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):
                             "Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if dtype is None and (not (np.can_cast(np.float32, value.dtype)
-                                   or value.dtype.fields)
+        # But preserve all float types (float16, float32, float64, etc.) and
+        # complex types. Only cast if dtype is not float/complex and not a
+        # structured array, or if it's an object array.
+        if dtype is None and (value.dtype.kind not in 'fc'
+                              and not value.dtype.fields
                               or value.dtype.kind == 'O'):
             value = value.astype(float)
 

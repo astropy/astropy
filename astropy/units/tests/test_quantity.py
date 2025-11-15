@@ -142,6 +142,16 @@ class TestQuantityCreation:
         a3 = np.array([1., 2.], dtype=np.float32)
         q3 = u.Quantity(a3, u.yr)
         assert q3.dtype == a3.dtype
+
+        # and we should preserve float16 too
+        a3b = np.array([1., 2.], dtype=np.float16)
+        q3b = u.Quantity(a3b, u.yr)
+        assert q3b.dtype == a3b.dtype
+
+        # test float16 with scalar multiplication too
+        q3c = np.float16(1.0) * u.km
+        assert q3c.dtype == np.float16
+
         # items stored as objects by numpy should be converted to float
         # by default
         q4 = u.Quantity(decimal.Decimal('10.25'), u.m)
