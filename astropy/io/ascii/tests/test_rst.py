@@ -185,3 +185,82 @@ Col1      Col2 Col3 Col4
 ==== ========= ==== ====
 """,
     )
+
+
+def test_write_with_header_rows_two_lines():
+    """Write a table with two header rows (name and unit)"""
+    from astropy.table import QTable
+    import astropy.units as u
+
+    tbl = QTable({"wave": [350, 950] * u.nm, "response": [0.7, 1.2] * u.count})
+    out = StringIO()
+    ascii.write(tbl, out, format="rst", header_rows=["name", "unit"])
+    result = out.getvalue()
+
+    # Check that we have the expected structure
+    lines = result.strip().split("\n")
+    assert len(lines) == 7, f"Expected 7 lines, got {len(lines)}"
+
+    # Line 0: separator
+    assert "=" in lines[0]
+    # Line 1: column names
+    assert "wave" in lines[1] and "response" in lines[1]
+    # Line 2: units
+    assert "nm" in lines[2] and "ct" in lines[2]
+    # Line 3: separator
+    assert "=" in lines[3]
+    # Lines 4-5: data
+    assert "350" in lines[4] or "350.0" in lines[4]
+    assert "950" in lines[5] or "950.0" in lines[5]
+    # Line 6: separator
+    assert "=" in lines[6]
+
+
+def test_write_with_header_rows_three_lines():
+    """Write a table with three header rows (name, unit, format)"""
+    from astropy.table import Table
+
+    tbl = Table(
+        {
+            "col1": [1, 2, 3],
+            "col2": [4.5, 5.6, 6.7],
+            "col3": ["a", "b", "c"],
+        }
+    )
+    tbl["col2"].info.format = ".2f"
+
+    out = StringIO()
+    ascii.write(tbl, out, format="rst", header_rows=["name", "format"])
+    result = out.getvalue()
+
+    lines = result.strip().split("\n")
+    # Expected: separator, name row, format row, separator, 3 data rows, separator = 8 lines
+    assert len(lines) == 8, f"Expected 8 lines, got {len(lines)}"
+
+    # Check structure
+    assert "=" in lines[0]  # top separator
+    assert "col1" in lines[1] and "col2" in lines[1] and "col3" in lines[1]  # names
+    assert ".2f" in lines[2]  # format row
+    assert "=" in lines[3]  # middle separator
+    assert "=" in lines[7]  # bottom separator
+
+
+def test_read_with_header_rows():
+    """Read a table with multiple header rows"""
+    table = """\
+===== ======== ====
+ Col1     Col2 Col3
+    m      m/s
+===== ======== ====
+  1.2      2.3  foo
+  2.4      4.5  bar
+===== ======== ====
+"""
+    dat = ascii.read(table, format="rst", header_rows=["name", "unit"])
+    assert_equal(dat.colnames, ["Col1", "Col2", "Col3"])
+    assert_almost_equal(dat[0][0], 1.2)
+    assert_equal(dat[0][2], "foo")
+    # Check units were read
+    if hasattr(dat["Col1"], "unit"):
+        assert str(dat["Col1"].unit) == "m"
+        assert str(dat["Col2"].unit) == "m / s"

@@ -27,9 +27,17 @@ class SimpleRSTHeader(FixedWidthHeader):
 
 
 class SimpleRSTData(FixedWidthData):
-    start_line = 3
     end_line = -1
     splitter_class = FixedWidthTwoLineDataSplitter
+
+    @property
+    def start_line(self):
+        """Calculate start line based on number of header rows."""
+        # RST format has: position_line (0), header rows starting at line 1,
+        # position_line repeat, then data
+        # For default (single header row): position_line=0, name at 1, position_line=2, data=3
+        header_rows = getattr(self, "header_rows", ["name"])
+        return len(header_rows) + 2
 
 
 class RST(FixedWidth):
@@ -57,10 +65,15 @@ class RST(FixedWidth):
     data_class = SimpleRSTData
     header_class = SimpleRSTHeader
 
-    def __init__(self):
-        super().__init__(delimiter_pad=None, bookend=False)
+    def __init__(self, header_rows=None):
+        super().__init__(delimiter_pad=None, bookend=False, header_rows=header_rows)
 
     def write(self, lines):
         lines = super().write(lines)
-        lines = [lines[1]] + lines + [lines[1]]
+        # Determine the position line index (it comes after all header rows)
+        header_rows = self.header.header_rows if hasattr(self.header, 'header_rows') else ["name"]
+        position_line_index = len(header_rows)
+        # RST format: separator line, header rows, separator line, data, separator line
+        separator = lines[position_line_index]
+        lines = [separator] + lines + [separator]
         return lines
