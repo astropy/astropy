@@ -244,18 +244,58 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
 
     def world_to_pixel_values(self, *world_arrays):
         world_arrays = tuple(map(np.asanyarray, world_arrays))
-        world_arrays_new = []
-        iworld_curr = -1
-        for iworld in range(self._wcs.world_n_dim):
-            if iworld in self._world_keep:
-                iworld_curr += 1
-                world_arrays_new.append(world_arrays[iworld_curr])
-            else:
-                world_arrays_new.append(1.)
 
-        world_arrays_new = np.broadcast_arrays(*world_arrays_new)
-        pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
+        # Check if there are any dropped world dimensions
+        if len(self._world_keep) == self._wcs.world_n_dim:
+            # No dropped dimensions, use direct transform
+            world_arrays_new = np.broadcast_arrays(*world_arrays)
+            pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
+        else:
+            # We need to compute the world coordinates for dropped dimensions.
+            # These depend on the sliced pixel positions, but may also depend on
+            # the kept pixel positions (for coupled dimensions). We use an iterative
+            # approach to handle this coupling.
 
+            # Start with an initial guess: use zeros for kept pixel positions
+            pixel_guess = [0] * len(self._pixel_keep)
+
+            # Iteratively refine the guess to handle coupled dimensions
+            max_iterations = 5
+            tolerance = 1e-6
+
+            for iteration in range(max_iterations):
+                # Compute world coordinates at sliced positions with current pixel guess
+                dropped_world_values = self._pixel_to_world_values_all(*pixel_guess)
+
+                # Build the full world coordinate array
+                world_arrays_new = []
+                iworld_curr = -1
+                for iworld in range(self._wcs.world_n_dim):
+                    if iworld in self._world_keep:
+                        iworld_curr += 1
+                        world_arrays_new.append(world_arrays[iworld_curr])
+                    else:
+                        # Use the computed world value at the sliced pixel position
+                        world_arrays_new.append(dropped_world_values[iworld])
+
+                world_arrays_new = np.broadcast_arrays(*world_arrays_new)
+                pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
+
+                # Extract the kept pixel positions
+                pixel_new = [pixel_arrays[ip] for ip in self._pixel_keep]
+
+                # Check for convergence
+                if iteration > 0:
+                    converged = all(
+                        np.allclose(np.asanyarray(p_new), np.asanyarray(p_old), rtol=tolerance, atol=tolerance)
+                        for p_new, p_old in zip(pixel_new, pixel_guess)
+                    )
+                    if converged:
+                        break
+
+                pixel_guess = pixel_new
+
+        # Apply slice offsets
         for ipixel in range(self._wcs.pixel_n_dim):
             if isinstance(self._slices_pixel[ipixel], slice) and self._slices_pixel[ipixel].start is not None:
                 pixel_arrays[ipixel] -= self._slices_pixel[ipixel].start
