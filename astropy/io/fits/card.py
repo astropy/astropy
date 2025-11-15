@@ -1059,6 +1059,8 @@ class Card(_Verify):
         # do the value string
         value = self._value.replace("'", "''")
         words = _words_group(value, value_length)
+        # Ensure we don't split in the middle of an escaped quote pair
+        words = _fix_split_quotes(words)
         for idx, word in enumerate(words):
             if idx == 0:
                 headstr = "{:{len}}= ".format(self.keyword, len=KEYWORD_LENGTH)
@@ -1241,6 +1243,51 @@ class Card(_Verify):
                 raise VerifyError("CONTINUE cards must have string values.")
 
             yield card
+
+
+def _fix_split_quotes(words):
+    """
+    Fix word chunks that split in the middle of escaped quote pairs.
+
+    When a string with escaped quotes ('' representing a single ') is split
+    into chunks, we must ensure that we never split within an escaped pair.
+    For example, if '''' (representing '') is split as ''' + ', this function
+    will fix it to '''' + '' (moving one quote from first chunk to second).
+
+    Parameters
+    ----------
+    words : list of str
+        List of string chunks that may have splits within escaped quotes
+
+    Returns
+    -------
+    list of str
+        Fixed list of chunks with no splits within escaped quote pairs
+    """
+    if len(words) <= 1:
+        return words
+
+    fixed_words = []
+    for i, word in enumerate(words):
+        if i < len(words) - 1:
+            # Check if this word ends with an odd number of consecutive quotes
+            # Count consecutive quotes at the end
+            quote_count = 0
+            for j in range(len(word) - 1, -1, -1):
+                if word[j] == "'":
+                    quote_count += 1
+                else:
+                    break
+
+            # If odd number of quotes, we've split an escaped pair
+            # Move one quote to the next word
+            if quote_count % 2 == 1:
+                word = word[:-1]
+                words[i + 1] = "'" + words[i + 1]
+
+        fixed_words.append(word)
+
+    return fixed_words
 
 
 def _int_or_float(s):

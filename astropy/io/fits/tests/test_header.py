@@ -468,6 +468,44 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  'xml'                                                                 "
         )
 
+    def test_long_string_with_double_single_quotes(self):
+        """
+        Regression test for double single-quote handling in CONTINUE cards.
+
+        When a string ending with '' (representing a single quote) is split
+        across CONTINUE cards, the escaped quote pair must not be split.
+        This tests various string lengths to ensure the fix works correctly.
+        """
+        # Test case 1: String ending with ''
+        for n in range(60, 70):
+            card1 = fits.Card('CONFIG', "x" * n + "''")
+            card2 = fits.Card.fromstring(str(card1))
+            assert card1.value == card2.value, (
+                f"Failed for n={n}: "
+                f"card1.value={repr(card1.value)}, "
+                f"card2.value={repr(card2.value)}"
+            )
+
+        # Test case 2: String with '' in the middle
+        for n in range(50, 70):
+            card1 = fits.Card('CONFIG', "x" * n + "''" + "x" * 10)
+            card2 = fits.Card.fromstring(str(card1))
+            assert card1.value == card2.value, (
+                f"Failed for n={n}: "
+                f"card1.value={repr(card1.value)}, "
+                f"card2.value={repr(card2.value)}"
+            )
+
+        # Test case 3: Multiple escaped quotes
+        for n in range(60, 70):
+            card1 = fits.Card('CONFIG', "x" * n + "''''" + "y" * 5)
+            card2 = fits.Card.fromstring(str(card1))
+            assert card1.value == card2.value, (
+                f"Failed for n={n}: "
+                f"card1.value={repr(card1.value)}, "
+                f"card2.value={repr(card2.value)}"
+            )
+
     def test_long_unicode_string(self):
         """Regression test for
         https://github.com/spacetelescope/PyFITS/issues/1
