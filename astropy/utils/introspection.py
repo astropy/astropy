@@ -6,7 +6,6 @@
 import inspect
 import types
 import importlib
-from distutils.version import LooseVersion
 
 
 __all__ = ['resolve_name', 'minversion', 'find_current_module',
@@ -139,10 +138,18 @@ def minversion(module, version, inclusive=True, version_path='__version__'):
     else:
         have_version = resolve_name(module.__name__, version_path)
 
+    # Use pkg_resources.parse_version for robust version comparison
+    # LooseVersion from distutils has bugs with versions like "1.14dev"
+    # See: https://bugs.python.org/issue30272
+    try:
+        from packaging.version import parse as parse_version
+    except ImportError:
+        from pkg_resources import parse_version
+
     if inclusive:
-        return LooseVersion(have_version) >= LooseVersion(version)
+        return parse_version(have_version) >= parse_version(version)
     else:
-        return LooseVersion(have_version) > LooseVersion(version)
+        return parse_version(have_version) > parse_version(version)
 
 
 def find_current_module(depth=1, finddiff=False):
