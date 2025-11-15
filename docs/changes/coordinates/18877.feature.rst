@@ -1,0 +1,1 @@
+Enhanced error messages in ``EarthLocation.gravitational_redshift`` using  Python 3.11's ``Exception.add_note()`` to provide additional context when mass or gravitational parameter units are invalid.
