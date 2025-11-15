@@ -1226,6 +1226,52 @@ def test_arithmetics_mask_func():
         nd1.add(nd2, handle_mask=mask_sad_func, fun=1)
 
 
+def test_arithmetics_bitwise_or_with_none_masks():
+    """Test that bitwise_or handle_mask works when one operand has no mask.
+
+    Regression test for issue where mask propagation with handle_mask=np.bitwise_or
+    failed when one operand did not have a mask.
+    """
+    # Test data
+    array = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
+    mask = np.array([[0, 1, 64], [8, 0, 1], [2, 1, 0]])
+
+    nref_nomask = NDDataArithmetic(array)
+    nref_mask = NDDataArithmetic(array, mask=mask)
+
+    # Test 1: no mask * no mask (multiply by constant)
+    result = nref_nomask.multiply(1.0, handle_mask=np.bitwise_or)
+    assert result.mask is None
+
+    # Test 2: no mask * no mask (multiply by another NDData)
+    result = nref_nomask.multiply(nref_nomask, handle_mask=np.bitwise_or)
+    assert result.mask is None
+
+    # Test 3: mask * no mask (multiply by constant) - this was failing
+    result = nref_mask.multiply(1.0, handle_mask=np.bitwise_or)
+    assert_array_equal(result.mask, mask)
+
+    # Test 4: mask * mask (multiply by itself)
+    result = nref_mask.multiply(nref_mask, handle_mask=np.bitwise_or)
+    assert_array_equal(result.mask, mask | mask)
+
+    # Test 5: mask * no mask (multiply by NDData without mask) - this was failing
+    result = nref_mask.multiply(nref_nomask, handle_mask=np.bitwise_or)
+    assert_array_equal(result.mask, mask)
+
+    # Test 6: no mask * mask (reverse order)
+    result = nref_nomask.multiply(nref_mask, handle_mask=np.bitwise_or)
+    assert_array_equal(result.mask, mask)
+
+    # Test the same scenarios with other operations
+    for operation in ['add', 'subtract', 'divide']:
+        result = getattr(nref_mask, operation)(1.0, handle_mask=np.bitwise_or)
+        assert_array_equal(result.mask, mask)
+
+        result = getattr(nref_mask, operation)(nref_nomask, handle_mask=np.bitwise_or)
+        assert_array_equal(result.mask, mask)
+
+
 @pytest.mark.parametrize("meth", ["add", "subtract", "divide", "multiply"])
 def test_two_argument_useage(meth):
     ndd1 = NDDataArithmetic(np.ones((3, 3)))

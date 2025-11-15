@@ -522,6 +522,9 @@ class NDArithmeticMixin:
             return deepcopy(operand.mask)
         elif operand is None:
             return deepcopy(self.mask)
+        elif operand.mask is None:
+            # operand exists but has no mask, so return a copy of self.mask
+            return deepcopy(self.mask)
         else:
             # Now lets calculate the resulting mask (operation enforces copy)
             return handle_mask(self.mask, operand.mask, **kwds)
