@@ -733,16 +733,59 @@ ignore-words-list = """
 # with binary distributions even with --resolution=lowest[-direct]
 no-build-package = [
     "bottleneck",
-    "contourpy",
     "coverage",
     "h5py",
     "numpy",
-    "matplotlib",
     "pandas",
-    "pillow",
     "polars",
+    "requests",
     "scipy",
     "sgp4",
+
+    # via jsonschema v4.0.1 via asdf v2.15.0 via asdf-astropy v0.8.0
+    "pyrsistent", # can be removed once we drop asdf-astropy<=0.8 https://github.com/astropy/asdf-astropy/pull/297
+
+    # via fsspec
+    "aiohttp",
+    "frozenlist", # indirect (via aiohttp)
+
+    # via ipython
+    "backcall", # can be removed once ipython<8.17 is dropped
+    "pickleshare", # can be removed once ipython<8.17 is dropped
+    "ptyprocess", # indirect (via pexpect 4.3.1) https://github.com/pexpect/pexpect/pull/822
+    "pure-eval", # indirect (via stack-data 0.6.0) https://github.com/alexmojaki/stack_data/pull/61
+    "wcwidth", # indirect (via w 3.0.41) https://github.com/prompt-toolkit/python-prompt-toolkit/pull/2036
+    "path.py", # indirect (via pickleshare 0.6) # can be removed once ipython<8.17 is dropped
+
+    # via ipywidgets
+    "jinja2", # indirect (via nbconvert 4.0.0 and notebook 4.0.1)
+    "mistune", # indirect (via nbconvert 4.0.0)
+    "terminado", # indirect (via notebook 4.0.1 via widgetsnbextension 3.6.0)
+    "markupsafe", # indirect (via jinja2 2.11.3)
+
+    # via ipykernel
+    "psutil",
+    "pyzmq",
+    "tornado",
+
+    # via matplotlib
+    "contourpy",
+    "kiwisolver",
+    "matplotlib",
+    "pillow",
+    "pyparsing",
+
+    # via dask
+    "locket", # indirect (via partd 1.4.0)
+    "toolz",
+
+    # via bleach and html5lib (both unmaintained)
+    "webencodings",
+
+    # via s3fs
+    "wrapt", # indirect (via aiobotocore 2.5.0)
+    "yarl", # indirect (via aiohttp 3.8.3 via aiobotocore 2.5.0)
+    "multidict", # indirect (via aiohttp 3.8.3 via aiobotocore 2.5.0)
 ]
 
 # ensure that uv resolves envs that are compatible with macOS arm64,
