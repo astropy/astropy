@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 __all__ = ("MatterComponent",)
@@ -14,8 +14,7 @@ class MatterComponent:
     Om0: float | np.floating
     """Omega matter; matter density/critical density at z=0."""
 
-    @deprecated_keywords("z", since="7.0")
-    def Om(self, z: Quantity | ArrayLike) -> FArray:
+    def Om(self, z: Quantity | ArrayLike, /) -> FArray:
         """Return the density parameter for non-relativistic matter at redshift ``z``.
 
         Parameters
@@ -25,6 +24,9 @@ class MatterComponent:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
