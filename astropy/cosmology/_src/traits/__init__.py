@@ -23,7 +23,7 @@ from .curvature import CurvatureComponent
 from .darkenergy import DarkEnergyComponent
 from .darkmatter import DarkMatterComponent
 from .hubble import HubbleParameter
-from .matterdensity import MatterComponent
+from .matter import MatterComponent
 from .photoncomponent import PhotonComponent
 from .rhocrit import CriticalDensity
 from .scale_factor import ScaleFactor

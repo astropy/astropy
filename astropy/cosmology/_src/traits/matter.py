@@ -11,6 +11,8 @@ __all__ = ("MatterComponent",)
 
 
 class MatterComponent:
+    """The cosmology has attributes and methods for the matter density."""
+
     Om0: float | np.floating
     """Omega matter; matter density/critical density at z=0."""
 
