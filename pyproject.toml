@@ -821,4 +821,20 @@ constraint-dependencies = [
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
     "typing_extensions>=4.6; python_version<'3.12'",
+
+    # via ipython (can be removed once ipython<8.17 is dropped)
+    "pickleshare>=0.7.5",
+
+    # via beautifulsoup4
+    # can be dropped once we only support versions of pandas
+    # requiring beautifulsoup4>=4.14.3
+    "soupsieve>=1.6.1",
+
+    # via matplotlib
+    # can be removed once mpl>=3.10.7 is min
+    "pyparsing>=2.4.0",
+
+    # via dask
+    "toolz>=0.12.0", # can be removed once dask<=2025.11.0 is dropped
+    "cloudpickle>=2.1.0", # can be removed once dask<2024.8.1 is dropped
 ]
