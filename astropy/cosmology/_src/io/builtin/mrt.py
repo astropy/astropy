@@ -142,9 +142,8 @@ def read_mrt(
 
     >>> temp_dir.cleanup()
     """
-    format = kwargs.pop("format", "ascii.mrt")
-    if format != "ascii.mrt":
-        raise ValueError(f"format must be 'ascii.mrt',not {format}")
+    if (fmt := kwargs.pop("format", "ascii.mrt")) != "ascii.mrt":
+        raise ValueError(f"format must be 'ascii.mrt',not {fmt}")
 
     with u.add_enabled_units(cu):
         table = QTable.read(filename, format="ascii.mrt", **kwargs)
