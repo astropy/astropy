@@ -14,6 +14,7 @@ from typing import Any, Final, NamedTuple, TypeVar, overload
 import numpy as np
 from numpy import inf, sin
 from numpy.typing import ArrayLike, NDArray
+from typing_extensions import override
 
 import astropy.constants as const
 import astropy.units as u
@@ -333,6 +334,7 @@ class FLRW(
     # ---------------------------------------------------------------
     # Critical Density
 
+    @override
     @cached_property
     def critical_density0(self) -> u.Quantity:
         r"""Critical mass density at z=0.
@@ -346,11 +348,13 @@ class FLRW(
     # ---------------------------------------------------------------
     # Curvature
 
+    @override
     @cached_property
     def Ok0(self) -> float | np.floating:
         """Omega curvature; the effective curvature density/critical density at z=0."""
         return 1.0 - self.Om0 - self.Ode0 - self.Ogamma0 - self.Onu0
 
+    @override
     @property
     def is_flat(self) -> bool:
         """Return `bool`; `True` if the cosmology is globally flat."""
@@ -359,6 +363,7 @@ class FLRW(
     # ---------------------------------------------------------------
     # Dark Matter
 
+    @override
     @cached_property
     def Odm0(self) -> float:
         """Omega dark matter; dark matter density/critical density at z=0."""
@@ -367,6 +372,7 @@ class FLRW(
     # ---------------------------------------------------------------
     # Hubble Parameter
 
+    @override
     def efunc(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
@@ -404,6 +410,7 @@ class FLRW(
             + self.Ode0 * self.de_density_scale(z)
         )
 
+    @override
     def inv_efunc(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Inverse of ``efunc``.
 
@@ -440,6 +447,7 @@ class FLRW(
     # properties
 
     @property
+    @override
     def Otot0(self) -> float:
         """Omega total; the total density/critical density at z=0."""
         return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
@@ -477,6 +485,7 @@ class FLRW(
 
     # ---------------------------------------------------------------
 
+    @override
     def Otot(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """The total density parameter at redshift ``z``.
 
