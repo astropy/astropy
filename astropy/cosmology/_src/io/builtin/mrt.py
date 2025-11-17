@@ -158,19 +158,16 @@ def read_mrt(
     for col in table.itercols():
         # Check if this might be a JSON-encoded column (string type with array-like content)
         if col.dtype.kind in ("U", "S", "O"):  # Unicode, byte string, or object
-            try:
+            with contextlib.suppress(json.JSONDecodeError, ValueError, TypeError):
                 # Try to decode the first value to see if it's JSON
                 first_val = col[0]
-                if isinstance(first_val, (str, bytes)):
+                if isinstance(first_val, str | bytes):
                     decoded = json.loads(first_val)
                     # If successful and it's a list, decode all values
                     if isinstance(decoded, list):
                         decoded_data = [json.loads(val) for val in col]
                         # Replace the column with decoded values
                         table[col.name] = decoded_data
-            except (json.JSONDecodeError, ValueError, TypeError):
-                # Not JSON or can't decode - leave as is
-                pass
 
     # Build the cosmology from table, using the private backend.
     return from_table(
