@@ -108,3 +108,11 @@ HTML
 ****
 
 .. automodule:: astropy.cosmology._src.io.builtin.html
+
+
+.. _cosmology_io_builtin-mrt:
+
+MRT
+***
+
+.. automodule:: astropy.cosmology._src.io.builtin.mrt
