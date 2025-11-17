@@ -60,6 +60,7 @@ _TableT = TypeVar("_TableT", bound=Table)
 
 def read_mrt(
     filename: PathLike | ReadableFileLike[Table],
+    /,
     index: int | str | None = None,
     *,
     move_to_meta: bool = False,
@@ -273,7 +274,7 @@ def write_mrt(
 
 
 def mrt_identify(
-    origin: object, filepath: str | None, *args: object, **kwargs: object
+    _: object, filepath: str | None, /, *args: object, **kwargs: object
 ) -> bool:
     """Identify if an object uses the HTML Table format.
 
