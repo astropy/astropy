@@ -43,26 +43,22 @@ Notes
     >>> temp_dir.cleanup()
 """
 
-from __future__ import annotations
+__all__ = ("mrt_identify", "read_mrt", "write_mrt")
 
 import json
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
 
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import readwrite_registry
+from astropy.cosmology._src.typing import _CosmoT
 from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
-from astropy.table import Column, QTable
+from astropy.table import Column, QTable, Table
 
 from .table import from_table, to_table
 
-if TYPE_CHECKING:
-    from astropy.cosmology._src.typing import _CosmoT
-    from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
-    from astropy.table import Table
-
-    _TableT = TypeVar("_TableT", "Table")
+_TableT = TypeVar("_TableT", Table)
 
 
 def read_mrt(
