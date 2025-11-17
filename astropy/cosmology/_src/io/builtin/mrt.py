@@ -6,7 +6,9 @@ We assume the following setup:
     >>> from tempfile import TemporaryDirectory
     >>> temp_dir = TemporaryDirectory()
 
-Writing a cosmology to a mrt file will produce a table with cosmology's type, name, and parameters as columns.
+Writing a cosmology to a mrt file will produce a table with the cosmology's type,
+name, and parameters as columns. Note that the cosmology class is also included as
+a column since MRT format does not preserve table metadata.
 
     >>> from astropy.cosmology import Planck18
     >>> file = Path(temp_dir.name) / "file.mrt"
@@ -20,16 +22,18 @@ Writing a cosmology to a mrt file will produce a table with cosmology's type, na
     --------------------------------------------------------------------------------
      Bytes Format Units  Label     Explanations
     --------------------------------------------------------------------------------
-     1- 8  A8           ---    name    Description of name
-    10-14  F5.2   km.Mpc-1.s-1 H0      [67.66/67.66] Hubble constant at z=0.
-    16-22  F7.5         ---    Om0     [0.3/0.31] Omega matter; matter
-                                density/critical density at z=0.
-    24-29  F6.4         K      Tcmb0   [2.72/2.73] Temperature of the CMB at z=0.
-    31-35  F5.3         ---    Neff    [3.04/3.05] Number of effective neutrino
-                                species.
-    37-50  A14          ---    m_nu    [[0.   0.   0.06]] Mass of neutrino species.
-    52-58  F7.5         ---    Ob0     [0.04/0.05] Omega baryon; baryonic matter
-                                density/critical density at z=0.
+     1-13  A13          ---    cosmology Description of cosmology
+    15-22  A8           ---    name      Description of name
+    24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
+    30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
+                                  density/critical density at z=0.
+    38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
+    45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
+                                  species.
+    51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
+                                  species.
+    66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
+                                  density/critical density at z=0.
     --------------------------------------------------------------------------------
     ...
 
@@ -125,16 +129,18 @@ def read_mrt(
         --------------------------------------------------------------------------------
          Bytes Format Units  Label     Explanations
         --------------------------------------------------------------------------------
-         1- 8  A8           ---    name    Description of name
-        10-14  F5.2   km.Mpc-1.s-1 H0      [67.66/67.66] Hubble constant at z=0.
-        16-22  F7.5         ---    Om0     [0.3/0.31] Omega matter; matter
-                                    density/critical density at z=0.
-        24-29  F6.4         K      Tcmb0   [2.72/2.73] Temperature of the CMB at z=0.
-        31-35  F5.3         ---    Neff    [3.04/3.05] Number of effective neutrino
-                                    species.
-        37-50  A14          ---    m_nu    [[0.   0.   0.06]] Mass of neutrino species.
-        52-58  F7.5         ---    Ob0     [0.04/0.05] Omega baryon; baryonic matter
-                                    density/critical density at z=0.
+         1-13  A13          ---    cosmology Description of cosmology
+        15-22  A8           ---    name      Description of name
+        24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
+        30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
+                                      density/critical density at z=0.
+        38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
+        45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
+                                      species.
+        51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
+                                      species.
+        66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
+                                      density/critical density at z=0.
         --------------------------------------------------------------------------------
         ...
 
@@ -147,6 +153,24 @@ def read_mrt(
 
     with u.add_enabled_units(cu):
         table = QTable.read(filename, format="ascii.mrt", **kwargs)
+
+    # Decode JSON-encoded columns (for arrays)
+    for col in table.itercols():
+        # Check if this might be a JSON-encoded column (string type with array-like content)
+        if col.dtype.kind in ("U", "S", "O"):  # Unicode, byte string, or object
+            try:
+                # Try to decode the first value to see if it's JSON
+                first_val = col[0]
+                if isinstance(first_val, (str, bytes)):
+                    decoded = json.loads(first_val)
+                    # If successful and it's a list, decode all values
+                    if isinstance(decoded, list):
+                        decoded_data = [json.loads(val) for val in col]
+                        # Replace the column with decoded values
+                        table[col.name] = decoded_data
+            except (json.JSONDecodeError, ValueError, TypeError):
+                # Not JSON or can't decode - leave as is
+                pass
 
     # Build the cosmology from table, using the private backend.
     return from_table(
@@ -161,7 +185,6 @@ def write_mrt(
     *,
     overwrite: bool = False,
     cls: type[_TableT] = QTable,
-    cosmology_in_meta: bool = True,
     **kwargs: Any,
 ):
     r"""Serialize the |Cosmology| into a MRT table.
@@ -171,14 +194,11 @@ def write_mrt(
     cosmology : |Cosmology| subclass instance
         The cosmology to serialize.
     file : path-like or file-like
-        Where to write the html table.
+        Where to write the MRT table.
     overwrite : bool, optional keyword-only
         Whether to overwrite the file, if it exists.
-    cls : |Table| class, optional keyword-onlyl
+    cls : |Table| class, optional keyword-only
         Astropy |Table| (sub)class to use when writing. Default is |QTable| class.
-    latex_names : bool, optional keyword-only
-        Whether to format the parameters (column) names to latex -- e.g. 'H0' to
-        $$H_{0}$$.
     **kwargs : Any
         Passed to ``cls.write``.
 
@@ -187,7 +207,7 @@ def write_mrt(
     TypeError
         If the optional keyword-argument 'cls' is not a subclass of |Table|.
     ValueError
-        If the keyword argument 'format' is given and is not "ascii.html".
+        If the keyword argument 'format' is given and is not "ascii.mrt".
 
     Examples
     --------
@@ -197,8 +217,9 @@ def write_mrt(
         >>> from tempfile import TemporaryDirectory
         >>> temp_dir = TemporaryDirectory()
 
-    Writing a cosmology to a html file will produce a table with the cosmology's type,
-    name, and parameters as columns.
+    Writing a cosmology to a MRT file will produce a table with the cosmology's type,
+    name, and parameters as columns. The cosmology class is included as a column
+    since MRT format does not preserve table metadata.
 
         >>> from astropy.cosmology import Planck18
         >>> file = Path(temp_dir.name) / "file.mrt"
@@ -212,15 +233,17 @@ def write_mrt(
         --------------------------------------------------------------------------------
         Bytes Format Units  Label     Explanations
         --------------------------------------------------------------------------------
-        1- 8  A8           ---    name    Description of name
-        10-14  F5.2   km.Mpc-1.s-1 H0      [67.66/67.66] Hubble constant at z=0.
-        16-22  F7.5         ---    Om0     [0.3/0.31] Omega matter; matter
+        1-13  A13          ---    cosmology Description of cosmology
+        15-22  A8           ---    name      Description of name
+        24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
+        30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
                                     density/critical density at z=0.
-        24-29  F6.4         K      Tcmb0   [2.72/2.73] Temperature of the CMB at z=0.
-        31-35  F5.3         ---    Neff    [3.04/3.05] Number of effective neutrino
+        38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
+        45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
                                     species.
-        37-50  A14          ---    m_nu    [[0.   0.   0.06]] Mass of neutrino species.
-        52-58  F7.5         ---    Ob0     [0.04/0.05] Omega baryon; baryonic matter
+        51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
+                                    species.
+        66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
                                     density/critical density at z=0.
         --------------------------------------------------------------------------------
         ...
@@ -237,7 +260,7 @@ def write_mrt(
     if (fmt := kwargs.pop("format", "ascii.mrt")) != "ascii.mrt":
         raise ValueError(f"format must be 'ascii.mrt', not {fmt}")
 
-    table = to_table(cosmo, cls=cls, cosmology_in_meta=cosmology_in_meta)
+    table = to_table(cosmo, cls=cls, cosmology_in_meta=False)
 
     Parameters = cosmo.__class__.parameters  # dict of Parameter objects
     for name, col in table.columns.items():
