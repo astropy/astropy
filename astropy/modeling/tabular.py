@@ -244,11 +244,11 @@ class _Tabular(Model):
             bounds_error=self.bounds_error,
             fill_value=self.fill_value,
         )
-        
+
         # return_units not respected when points has no units
         if isinstance(self.lookup_table, u.Quantity) and not isinstance(
             result, u.Quantity
-            ):
+        ):
             result = result * self.lookup_table.unit
 
         if self.n_outputs == 1:
