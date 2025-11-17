@@ -247,7 +247,7 @@ class _Tabular(Model):
 
         # return_units not respected when points has no units
         if isinstance(self.lookup_table, u.Quantity) and not isinstance(
-            self.points[0], u.Quantity
+            result, u.Quantity
         ):
             result = result * self.lookup_table.unit
 
