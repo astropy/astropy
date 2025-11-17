@@ -1,0 +1,1 @@
+Fixed a bug in modeling.tabular models when the lookup_table is a quantity.
