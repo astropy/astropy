@@ -729,6 +729,12 @@ def test_tabular_interp_1d():
     assert_quantity_allclose(model(xnew.to(u.nm)), ans1)
     assert model.bounding_box == (0 * u.nm, 4 * u.nm)
 
+    # Test with no units on points.
+    model = LookupTable(points=points, lookup_table=values * u.nJy)
+    assert_quantity_allclose(model(xnew), ans1)
+    assert_quantity_allclose(model(xnew.to(u.nm)), ans1)
+    assert model.bounding_box == (0 * u.nm, 4 * u.nm)
+
     # Test fill value unit conversion and unitless input on table with unit
     model = LookupTable(
         [1, 2, 3],
