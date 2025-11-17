@@ -31,11 +31,7 @@ Writing a cosmology to a mrt file will produce a table with cosmology's type, na
     52-58  F7.5         ---    Ob0     [0.04/0.05] Omega baryon; baryonic matter
                                 density/critical density at z=0.
     --------------------------------------------------------------------------------
-
-Notes
------
-    Planck18 67.66 0.30966 2.7255 3.046 [0.0,0.0,0.06] 0.04897
-    <BLANKLINE>
+    ...
 
 
 .. testcleanup::
@@ -45,6 +41,7 @@ Notes
 
 __all__ = ("mrt_identify", "read_mrt", "write_mrt")
 
+import contextlib
 import json
 from typing import Any, TypeVar
 
@@ -58,7 +55,7 @@ from astropy.table import Column, QTable, Table
 
 from .table import from_table, to_table
 
-_TableT = TypeVar("_TableT", Table)
+_TableT = TypeVar("_TableT", bound=Table)
 
 
 def read_mrt(
@@ -125,9 +122,9 @@ def read_mrt(
         ================================================================================
         Byte-by-byte Description of file: table.dat
         --------------------------------------------------------------------------------
-        Bytes Format Units  Label     Explanations
+         Bytes Format Units  Label     Explanations
         --------------------------------------------------------------------------------
-        1- 8  A8           ---    name    Description of name
+         1- 8  A8           ---    name    Description of name
         10-14  F5.2   km.Mpc-1.s-1 H0      [67.66/67.66] Hubble constant at z=0.
         16-22  F7.5         ---    Om0     [0.3/0.31] Omega matter; matter
                                     density/critical density at z=0.
@@ -138,11 +135,7 @@ def read_mrt(
         52-58  F7.5         ---    Ob0     [0.04/0.05] Omega baryon; baryonic matter
                                     density/critical density at z=0.
         --------------------------------------------------------------------------------
-
-    Notes
-    -----
-        Planck18 67.66 0.30966 2.7255 3.046 [0.0,0.0,0.06] 0.04897
-        <BLANKLINE>
+        ...
 
     .. testcleanup::
 
@@ -162,7 +155,8 @@ def read_mrt(
 
 
 def write_mrt(
-    cosmology: Cosmology,
+    cosmo: Cosmology,
+    /,
     file: PathLike | WriteableFileLike[_TableT],
     *,
     overwrite: bool = False,
@@ -229,11 +223,8 @@ def write_mrt(
         52-58  F7.5         ---    Ob0     [0.04/0.05] Omega baryon; baryonic matter
                                     density/critical density at z=0.
         --------------------------------------------------------------------------------
+        ...
 
-    Notes
-    -----
-        Planck18 67.66 0.30966 2.7255 3.046 [0.0,0.0,0.06] 0.04897
-        <BLANKLINE>
 
     .. testcleanup::
 
@@ -243,24 +234,28 @@ def write_mrt(
     -----
 
     """
-    format = kwargs.pop("format", "ascii.mrt")
-    if format != "ascii.mrt":
-        raise ValueError(f"format must be 'ascii.mrt', not {format}")
+    if (fmt := kwargs.pop("format", "ascii.mrt")) != "ascii.mrt":
+        raise ValueError(f"format must be 'ascii.mrt', not {fmt}")
 
-    table = to_table(cosmology, cls=cls, cosmology_in_meta=cosmology_in_meta)
+    table = to_table(cosmo, cls=cls, cosmology_in_meta=cosmology_in_meta)
+
+    Parameters = cosmo.__class__.parameters  # dict of Parameter objects
     for name, col in table.columns.items():
-        # CDS can't serialize redshift units, so remove them
+        # MRT can't serialize redshift units, so remove them
         if col.unit is cu.redshift:
             table[name] <<= u.dimensionless_unscaled
-        ## check if col is mutil den
+
+        # check if col is multi dimensional
         if len(col.shape) > 1 or col.info.dtype.kind == "0":
 
             def format_col_item(idx):
                 obj = col[idx]
-                try:
-                    obj = obj.value.tolist() if hasattr(obj, "value") else obj.tolist()
-                except AttributeError:
-                    pass
+                # Get the value in the default units
+                if hasattr(obj, "to_value"):
+                    obj = obj.to_value(Parameters[name].unit)
+                with contextlib.suppress(AttributeError):
+                    obj = obj.tolist()
+
                 return json.dumps(obj, separators=(",", ":"))
 
             try:
@@ -270,9 +265,8 @@ def write_mrt(
                     description=str(col.value) + " " + col.info.description,
                 )
             except TypeError as exc:
-                raise TypeError(
-                    f"could not convert column {col.info.name!r} to string: {exc}"
-                ) from exc
+                msg = f"could not convert column {col.info.name!r} to string: {exc}"
+                raise TypeError(msg) from exc
 
     # Write MRT
     table.write(file, overwrite=overwrite, format="ascii.mrt", **kwargs)
