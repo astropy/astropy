@@ -4,6 +4,7 @@
 
 import pytest
 
+from astropy.cosmology import Planck18
 from astropy.cosmology._src.io.builtin.mrt import (
     read_mrt,
     write_mrt,
@@ -181,3 +182,20 @@ class TestReadWriteMRT(ReadWriteDirectTestBase, WriteMRTTestMixin):
 
     def setup_class(self):
         self.functions = {"read": read_mrt, "write": write_mrt}
+
+
+def test_write_mrt_invalid_format(tmp_path):
+    """Test passing an invalid format"""
+    fp = tmp_path / "test_write_mrt_invalid_format.mrt"
+    with pytest.raises(ValueError, match="format must be 'ascii.mrt'"):
+        write_mrt(Planck18, fp, format="ascii.ecsv")
+
+
+def test_read_mrt_invalid_format(tmp_path):
+    """Test read_mrt with invalid format parameter."""
+    fp = tmp_path / "test_read_mrt_invalid_format.mrt"
+    Planck18.write(fp, format="ascii.mrt")
+
+    # Test that passing a different format raises ValueError
+    with pytest.raises(ValueError, match="format must be 'ascii.mrt'"):
+        read_mrt(fp, format="ascii.ecsv")
