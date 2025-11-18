@@ -366,7 +366,11 @@ class UnitBase:
 
     @cached_property
     def _hash(self) -> int:
-        return hash((self.scale, *[x.name for x in self.bases], *map(str, self.powers)))
+        # Use decomposed form to ensure equal units have equal hashes.
+        # This is necessary because units like u.N and u.kg*u.m/u.s**2
+        # are equal (per __eq__) but have different raw representations.
+        decomposed = self.decompose()
+        return hash((decomposed.scale, *[x.name for x in decomposed.bases], *map(str, decomposed.powers)))
 
     def __getstate__(self) -> dict[str, object]:
         # If we get pickled, we should *not* store the memoized members since
@@ -1974,9 +1978,24 @@ class UnrecognizedUnit(IrreducibleUnit):
     __pow__ = __truediv__ = __rtruediv__ = __mul__ = __rmul__ = _unrecognized_operator
     __lt__ = __gt__ = __le__ = __ge__ = __neg__ = _unrecognized_operator
 
-    def __hash__(self):
-        # __hash__ isn't inherited in classes with a custom __eq__ method
-        return self._hash
+def __hash__(self):
+    if self._hash is None:
+        # Decompose to canonical SI base form to ensure
+        # equal units always get the same hash (issue #18560)
+        try:
+            decomposed = self.decompose()
+            parts = ([str(decomposed.scale)] +
+                    [str(base) for base in decomposed.bases] +
+                    [str(power) for power in decomposed.powers])
+            self._hash = hash(tuple(parts))
+        except Exception:
+            # Fallback if decompose fails
+            parts = ([str(self.scale)] +
+                    [str(base) for base in self.bases] +
+                    [str(power) for power in self.powers])
+            self._hash = hash(tuple(parts))
+    return self._hash
+
 
     def __eq__(self, other):
         try:
@@ -2241,7 +2260,12 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
 
     @cached_property
     def _hash(self) -> int:
-        return hash((self.name, self._represents))
+        # Use decomposed form to ensure equal units have equal hashes.
+        # We don't include the name in the hash since units with different
+        # names but equal physical meaning (like u.N and a custom name for
+        # kg*m/s**2) should have the same hash.
+        decomposed = self.decompose()
+        return hash((decomposed.scale, *[x.name for x in decomposed.bases], *map(str, decomposed.powers)))
 
     @classmethod
     def _from_physical_type_id(cls, physical_type_id: PhysicalTypeID) -> UnitBase:

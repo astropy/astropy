@@ -1297,3 +1297,17 @@ def test_parsing_as(format_):
     # The symbol for the attosecond is "as", which can be problematic because it
     # happens to be a Python keyword.
     assert u.Unit("as", format=format_) == u.attosecond
+
+# Regression test for #18560
+def test_equal_units_have_equal_hashes():
+    """
+    Test that equal units have equal hashes.
+    Regression test for issue #18560.
+    """
+    # Test derived vs composite units
+    unit1 = u.N
+    unit2 = u.kg * u.m / u.s**2
+    assert unit1 == unit2
+    assert hash(unit1) == hash(unit2), \
+        f"Equal units must have equal hashes: {hash(unit1)} != {hash(unit2)}"
+
