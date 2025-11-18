@@ -5,13 +5,14 @@ Available ufuncs in this module are at
 https://docs.scipy.org/doc/scipy/reference/special.html
 """
 
+import numpy as np
+
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitsError, UnitTypeError
 
 from . import UFUNC_HELPERS
 from .helpers import (
     get_converter,
-    helper_cbrt,
     helper_dimensionless_to_dimensionless,
     helper_two_arg_dimensionless,
 )
@@ -80,7 +81,7 @@ def get_scipy_special_helpers():
         SCIPY_HELPERS[getattr(sps, ufunc)] = helper_two_arg_dimensionless
 
     # ufuncs handled as special cases
-    SCIPY_HELPERS[sps.cbrt] = helper_cbrt
+    SCIPY_HELPERS[sps.cbrt] = UFUNC_HELPERS[np.cbrt]
     SCIPY_HELPERS[sps.radian] = helper_degree_minute_second_to_radian
     return SCIPY_HELPERS
 

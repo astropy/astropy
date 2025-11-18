@@ -11,7 +11,7 @@ from fractions import Fraction
 
 import numpy as np
 
-from astropy.units.core import dimensionless_unscaled, unit_scale_converter
+from astropy.units.core import dimensionless_unscaled, one, unit_scale_converter
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.utils.compat.numpycompat import (
     NUMPY_LT_2_0,
@@ -116,26 +116,6 @@ def helper_onearg_test(f, unit):
 
 def helper_invariant(f, unit):
     return ([None], _d(unit))
-
-
-def helper_square(f, unit):
-    return ([None], unit**2 if unit is not None else dimensionless_unscaled)
-
-
-def helper_reciprocal(f, unit):
-    return ([None], unit**-1 if unit is not None else dimensionless_unscaled)
-
-
-one_half = 0.5  # faster than Fraction(1, 2)
-one_third = Fraction(1, 3)
-
-
-def helper_sqrt(f, unit):
-    return ([None], unit**one_half if unit is not None else dimensionless_unscaled)
-
-
-def helper_cbrt(f, unit):
-    return ([None], (unit**one_third if unit is not None else dimensionless_unscaled))
 
 
 def helper_modf(f, unit):
@@ -509,11 +489,11 @@ radian_to_dimensionless_ufuncs = (np.cos, np.sin, np.tan, np.cosh, np.sinh, np.t
 for ufunc in radian_to_dimensionless_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_radian_to_dimensionless
 
-# ufuncs handled as special cases
-UFUNC_HELPERS[np.sqrt] = helper_sqrt
-UFUNC_HELPERS[np.square] = helper_square
-UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
-UFUNC_HELPERS[np.cbrt] = helper_cbrt
+power_funcs = {np.reciprocal: -1, np.cbrt: Fraction(1, 3), np.sqrt: 0.5, np.square: 2}
+UFUNC_HELPERS |= {
+    f: lambda f, unit, p=power: ([None], one if unit is None else unit**p)
+    for f, power in power_funcs.items()
+}
 UFUNC_HELPERS[np_umath._ones_like] = helper__ones_like
 UFUNC_HELPERS[np.modf] = helper_modf
 UFUNC_HELPERS[np.frexp] = helper_frexp
