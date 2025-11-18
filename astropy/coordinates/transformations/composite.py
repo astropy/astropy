@@ -8,6 +8,10 @@ same API as a single-step transformation, so it can be used interchangeably with
 single-step transformation.
 """
 
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, TypeVar, Union
+
+from astropy.coordinates.representation import CartesianRepresentation
 from astropy.coordinates.transformations.affine import (
     AffineTransform,
     BaseAffineTransform,
@@ -18,6 +22,14 @@ from astropy.coordinates.transformations.base import CoordinateTransform
 from astropy.coordinates.transformations.function import (
     FunctionTransformWithFiniteDifference,
 )
+from astropy.coordinates.typing import Matrix3x3
+
+if TYPE_CHECKING:
+    from astropy.coordinates import BaseCoordinateFrame
+
+    from .graph import TransformGraph
+
+T = TypeVar("T")
 
 __all__ = ["CompositeTransform"]
 
@@ -55,13 +67,13 @@ class CompositeTransform(CoordinateTransform):
 
     def __init__(
         self,
-        transforms,
-        fromsys,
-        tosys,
-        priority=1,
-        register_graph=None,
-        collapse_static_mats=True,
-    ):
+        transforms: Sequence[CoordinateTransform],
+        fromsys: type["BaseCoordinateFrame"],
+        tosys: type["BaseCoordinateFrame"],
+        priority: float = 1,
+        register_graph: Union["TransformGraph", None] = None,
+        collapse_static_mats: bool = True,
+    ) -> None:
         super().__init__(
             fromsys, tosys, priority=priority, register_graph=register_graph
         )
@@ -71,12 +83,14 @@ class CompositeTransform(CoordinateTransform):
 
         self.transforms = tuple(transforms)
 
-    def _combine_statics(self, transforms):
+    def _combine_statics(
+        self, transforms: Sequence[T | StaticMatrixTransform]
+    ) -> list[T | StaticMatrixTransform]:
         """
         Combines together sequences of StaticMatrixTransform's into a single
         transform and returns it.
         """
-        newtrans = []
+        newtrans: list[T | StaticMatrixTransform] = []
         for currtrans in transforms:
             lasttrans = newtrans[-1] if len(newtrans) > 0 else None
 
@@ -92,7 +106,9 @@ class CompositeTransform(CoordinateTransform):
                 newtrans.append(currtrans)
         return newtrans
 
-    def __call__(self, fromcoord, toframe):
+    def __call__(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> "BaseCoordinateFrame":
         curr_coord = fromcoord
         for t in self.transforms:
             # build an intermediate frame with attributes taken from either
@@ -116,7 +132,11 @@ class CompositeTransform(CoordinateTransform):
         # coordinate objects are immutable, so copying is not needed
         return curr_coord
 
-    def _as_single_transform(self):
+    def _as_single_transform(
+        self,
+    ) -> (
+        DynamicMatrixTransform | AffineTransform | FunctionTransformWithFiniteDifference
+    ):
         """
         Return an encapsulated version of the composite transform so that it appears to
         be a single transform.
@@ -202,7 +222,11 @@ class CompositeTransform(CoordinateTransform):
                 return affine_params[0] if fixed_origin else affine_params
 
             # The return type depends on whether there is any origin shift
-            transform_type = DynamicMatrixTransform if fixed_origin else AffineTransform
+            transform_type: type[
+                DynamicMatrixTransform
+                | AffineTransform
+                | FunctionTransformWithFiniteDifference
+            ] = DynamicMatrixTransform if fixed_origin else AffineTransform
         else:
             # Dynamically define the transformation function
             def single_transform(from_coo, to_frame):
@@ -217,7 +241,10 @@ class CompositeTransform(CoordinateTransform):
         )
 
 
-def _combine_affine_params(params, next_params):
+def _combine_affine_params(
+    params: tuple[Matrix3x3 | None, CartesianRepresentation | None],
+    next_params: tuple[Matrix3x3 | None, CartesianRepresentation | None],
+) -> tuple[Matrix3x3 | None, CartesianRepresentation | None]:
     """
     Combine two sets of affine parameters.
 
@@ -230,7 +257,7 @@ def _combine_affine_params(params, next_params):
 
     # Multiply the transformation matrices if they both exist
     if M is not None and next_M is not None:
-        new_M = next_M @ M
+        new_M: Matrix3x3 | None = next_M @ M
     else:
         new_M = M if M is not None else next_M
 

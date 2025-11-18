@@ -10,6 +10,12 @@ concrete implementations, see the submodules
 """
 
 from abc import ABCMeta, abstractmethod
+from typing import TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    from astropy.coordinates.baseframe import BaseCoordinateFrame
+
+    from .graph import TransformGraph
 
 __all__ = ["CoordinateTransform"]
 
@@ -35,7 +41,13 @@ class CoordinateTransform(metaclass=ABCMeta):
         `None` to leave it unregistered.
     """
 
-    def __init__(self, fromsys, tosys, priority=1, register_graph=None):
+    def __init__(
+        self,
+        fromsys: type["BaseCoordinateFrame"],
+        tosys: type["BaseCoordinateFrame"],
+        priority: float = 1,
+        register_graph: Union["TransformGraph", None] = None,
+    ) -> None:
         if not isinstance(fromsys, type):
             raise TypeError("fromsys must be a class")
         if not isinstance(tosys, type):
@@ -48,15 +60,15 @@ class CoordinateTransform(metaclass=ABCMeta):
         if register_graph:
             self.register(register_graph)
 
-        self.overlapping_frame_attr_names = overlap = []
+        self.overlapping_frame_attr_names = []
         if hasattr(fromsys, "frame_attributes") and hasattr(tosys, "frame_attributes"):
             # the if statement is there so that non-frame things might be usable
             # if it makes sense
             for from_nm in fromsys.frame_attributes:
                 if from_nm in tosys.frame_attributes:
-                    overlap.append(from_nm)
+                    self.overlapping_frame_attr_names.append(from_nm)
 
-    def register(self, graph):
+    def register(self, graph: "TransformGraph") -> None:
         """
         Add this transformation to the requested Transformation graph,
         replacing anything already connecting these two coordinates.
@@ -68,7 +80,7 @@ class CoordinateTransform(metaclass=ABCMeta):
         """
         graph.add_transform(self.fromsys, self.tosys, self)
 
-    def unregister(self, graph):
+    def unregister(self, graph: "TransformGraph") -> None:
         """
         Remove this transformation from the requested transformation
         graph.
@@ -86,7 +98,9 @@ class CoordinateTransform(metaclass=ABCMeta):
         graph.remove_transform(self.fromsys, self.tosys, self)
 
     @abstractmethod
-    def __call__(self, fromcoord, toframe):
+    def __call__(
+        self, fromcoord: "BaseCoordinateFrame", toframe: "BaseCoordinateFrame"
+    ) -> "BaseCoordinateFrame":
         """
         Does the actual coordinate transformation from the ``fromsys`` class to
         the ``tosys`` class.
