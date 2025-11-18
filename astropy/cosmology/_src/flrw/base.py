@@ -809,10 +809,8 @@ class FLRW(
 
     @overload
     def comoving_distance(self, z: _InputT, /) -> u.Quantity: ...
-
     @overload
     def comoving_distance(self, z: _InputT, z2: _InputT, /) -> u.Quantity: ...
-
     def comoving_distance(self, z: _InputT, z2: _InputT | None = None, /) -> u.Quantity:
         r"""Comoving line-of-sight distance :math:`d_c(z1, z2)` in Mpc.
 
@@ -962,10 +960,6 @@ class FLRW(
         else:
             return dh / sqrtOk0 * sin(sqrtOk0 * dc.value / dh.value)
 
-    @overload
-    def angular_diameter_distance(self, z: _InputT, /) -> u.Quantity: ...
-    @overload
-    def angular_diameter_distance(self, z: _InputT, z2: _InputT, /) -> u.Quantity: ...
     def angular_diameter_distance(
         self, z: _InputT, z2: _InputT | None = None, /
     ) -> u.Quantity:
