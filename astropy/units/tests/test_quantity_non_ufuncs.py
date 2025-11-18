@@ -2930,6 +2930,8 @@ class CheckSignatureCompatibilityBase:
         except ValueError:
             if NUMPY_LT_2_4:
                 pytest.skip("Non Python function cannot be inspected at runtime")
+            elif target is np.fromstring:
+                pytest.skip(f"known case of missing runtime signature ({target})")
             else:
                 raise
 
@@ -2994,6 +2996,8 @@ class CheckSignatureCompatibilityBase:
         except ValueError:
             if NUMPY_LT_2_4:
                 pytest.skip("Non Python function cannot be inspected at runtime")
+            elif target is np.fromstring:
+                pytest.skip(f"known case of missing runtime signature ({target})")
             else:
                 raise
 
