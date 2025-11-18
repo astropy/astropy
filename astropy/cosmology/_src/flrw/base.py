@@ -41,6 +41,7 @@ from astropy.cosmology._src.traits import (
     DarkMatterComponent,
     HubbleParameter,
     MatterComponent,
+    NeutrinoComponent,
     PhotonComponent,
     ScaleFactor,
     TemperatureCMB,
@@ -70,7 +71,6 @@ kB_evK: Final = const.k_B.to(u.eV / u.K)
 # what this does. However, this is modified to handle multiple neutrino masses by
 # computing the above for each mass, then summing
 NEUTRINO_FERMI_DIRAC_CORRECTION: Final = 0.22710731766  # 7/8 (4/11)^4/3
-
 # These are purely fitting constants -- see the Komatsu paper
 KOMATSU_P: Final = 1.83
 KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
@@ -82,12 +82,13 @@ _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
 
 
 ##############################################################################
+# NeutrinoInfo - FLRW-specific implementation detail
 
 
 class NeutrinoInfo(NamedTuple):
     """A container for neutrino information.
 
-    This is Private API.
+    This is Private API - internal to FLRW cosmologies.
 
     """
 
@@ -140,6 +141,7 @@ class FLRW(
     DarkEnergyComponent,
     HubbleParameter,
     PhotonComponent,
+    NeutrinoComponent,
     ScaleFactor,
     DarkMatterComponent,
     TemperatureCMB,
@@ -444,12 +446,8 @@ class FLRW(
         """Omega total; the total density/critical density at z=0."""
         return self.Om0 + self.Ogamma0 + self.Onu0 + self.Ode0 + self.Ok0
 
-    @cached_property
-    def Tnu0(self) -> u.Quantity:
-        """Temperature of the neutrino background as |Quantity| at z=0."""
-        # The constant in front is (4/11)^1/3 -- see any cosmology book for an
-        # explanation -- for example, Weinberg 'Cosmology' p 154 eq (3.1.21).
-        return 0.7137658555036082 * self.Tcmb0
+    # ---------------------------------------------------------------
+    # Neutrino - implementing NeutrinoComponent abstract methods
 
     @property
     def has_massive_nu(self) -> bool:
@@ -457,12 +455,6 @@ class FLRW(
         if self.Tnu0.value == 0:
             return False
         return self._nu_info.has_massive_nu
-
-    @cached_property
-    def Ogamma0(self) -> float:
-        """Omega gamma; the density/critical density of photons at z=0."""
-        # photon density from Tcmb
-        return a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
 
     @cached_property
     def Onu0(self) -> float:
@@ -475,82 +467,7 @@ class FLRW(
             # density) times 7/8 for FD vs. BE statistics.
             return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * self.Ogamma0
 
-    # ---------------------------------------------------------------
-
-    def Otot(self, z: u.Quantity | ArrayLike, /) -> FArray:
-        """The total density parameter at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshifts.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-            .. versionchanged:: 8.0
-               z must be a positional argument.
-
-        Returns
-        -------
-        Otot : array
-            The total density relative to the critical density at each redshift.
-        """
-        return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
-
-    # Odm is provided by the DarkMatterComponent trait
-    # Ogamma is provided by the PhotonComponent trait
-
-    def Onu(self, z: u.Quantity | ArrayLike, /) -> FArray:
-        r"""Return the density parameter for neutrinos at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-            .. versionchanged:: 8.0
-               z must be a positional argument.
-
-        Returns
-        -------
-        Onu : ndarray
-            The energy density of neutrinos relative to the critical density at
-            each redshift. Note that this includes their kinetic energy (if
-            they have mass), so it is not equal to the commonly used
-            :math:`\sum \frac{m_{\nu}}{94 eV}`, which does not include
-            kinetic energy.
-        """
-        z = aszarr(z)
-        if self.Onu0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros_like(z)
-        return self.Ogamma(z) * self.nu_relative_density(z)
-
-    def Tnu(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
-        """Return the neutrino temperature at redshift ``z``.
-
-        Parameters
-        ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
-
-            .. versionchanged:: 8.0
-               z must be a positional argument.
-
-        Returns
-        -------
-        Tnu : Quantity ['temperature']
-            The temperature of the cosmic neutrino background in K.
-        """
-        return self.Tnu0 * (aszarr(z) + 1.0)
-
-    def nu_relative_density(self, z: u.Quantity | ArrayLike, /) -> FArray:
+    def nu_relative_density(self, z: u.Quantity | ArrayLike) -> FArray:
         r"""Neutrino density function relative to the energy density in photons.
 
         Parameters
@@ -609,6 +526,42 @@ class FLRW(
         rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
         return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass
+
+    # ---------------------------------------------------------------
+    # Photon
+
+    @cached_property
+    def Ogamma0(self) -> float:
+        """Omega gamma; the density/critical density of photons at z=0."""
+        # photon density from Tcmb
+        return a_B_c2 * self.Tcmb0.value**4 / self.critical_density0.value
+
+    # ---------------------------------------------------------------
+
+    def Otot(self, z: u.Quantity | ArrayLike, /) -> FArray:
+        """The total density parameter at redshift ``z``.
+
+        Parameters
+        ----------
+        z : Quantity-like ['redshift'], array-like
+            Input redshifts.
+
+            .. versionchanged:: 7.0
+                Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
+        Returns
+        -------
+        Otot : array
+            The total density relative to the critical density at each redshift.
+        """
+        return self.Om(z) + self.Ogamma(z) + self.Onu(z) + self.Ode(z) + self.Ok(z)
+
+    # Odm is provided by the DarkMatterComponent trait
+    # Ogamma is provided by the PhotonComponent trait
+    # Onu, Tnu, and nu_relative_density are provided by NeutrinoComponent trait
 
     def _lookback_time_integrand_scalar(self, z: float, /) -> float:
         """Integrand of the lookback time (equation 30 of [1]_).
