@@ -509,7 +509,7 @@ class FLRW(
         If they have different masses, a similar term is calculated for each
         one. Note that ``f`` has the asymptotic behavior :math:`f(0) = 1`. This
         method returns :math:`0.2271 f` using an analytical fitting formula
-        given in Komatsu et et al. 2011, ApJS 192, 18.
+        given in Komatsu et al. 2011, ApJS 192, 18.
         """
         # Note that there is also a scalar-z-only cython implementation of
         # this in scalar_inv_efuncs.pyx, so if you find a problem in this
