@@ -15,7 +15,13 @@ import warnings
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
+from astropy.utils.compat import (
+    NUMPY_LT_1_24,
+    NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
+    NUMPY_LT_2_4,
+)
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -602,9 +608,11 @@ if NUMPY_LT_2_0:
 
     @dispatched_function
     def msort(a):
-        warnings.warn(
-            "msort is deprecated, use np.sort(a, axis=0) instead", DeprecationWarning
-        )
+        if not NUMPY_LT_1_24:
+            warnings.warn(
+                "msort is deprecated, use np.sort(a, axis=0) instead",
+                DeprecationWarning,
+            )
         result = a.copy()
         result.sort(axis=0)
         return result, None, None
@@ -793,14 +801,27 @@ def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
     if out is not None and not isinstance(out, Masked):
         raise NotImplementedError
 
-    result = _ureduce(
-        Masked(a),
-        func=_masked_median,
-        axis=axis,
-        out=out,
-        overwrite_input=overwrite_input,
-        keepdims=keepdims,
-    )
+    a = Masked(a)
+
+    if NUMPY_LT_1_24:
+        r, k = _ureduce(
+            a,
+            func=_masked_median,
+            axis=axis,
+            out=out,
+            overwrite_input=overwrite_input,
+        )
+        result = (r.reshape(k) if keepdims else r) if out is None else out
+
+    else:
+        result = _ureduce(
+            a,
+            func=_masked_median,
+            axis=axis,
+            out=out,
+            overwrite_input=overwrite_input,
+            keepdims=keepdims,
+        )
     return result, None, None
 
 
@@ -868,7 +889,36 @@ def _preprocess_quantile(a, q, axis=None, out=None, **kwargs):
     return a, q, axis, out, kwargs
 
 
-if NUMPY_LT_2_0:
+if NUMPY_LT_1_24:
+
+    @dispatched_function
+    def quantile(
+        a,
+        q,
+        axis=None,
+        out=None,
+        overwrite_input=False,
+        method="linear",
+        keepdims=False,
+        *,
+        interpolation=None,
+    ):
+        a, q, axis, out, kwargs = _preprocess_quantile(
+            a,
+            q,
+            axis,
+            out,
+            overwrite_input=overwrite_input,
+            method=method,
+            keepdims=keepdims,
+            interpolation=interpolation,
+        )
+        keepdims = kwargs.pop("keepdims", False)
+        r, k = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
+        result = (r.reshape(q.shape + k) if keepdims else r) if out is None else out
+        return result, None, None
+
+elif NUMPY_LT_2_0:
 
     @dispatched_function
     def quantile(
@@ -1551,7 +1601,21 @@ def _copy_of_mask(a):
     return mask.copy() if mask is not None else False
 
 
-if NUMPY_LT_2_4:
+if NUMPY_LT_1_24:  # "kind" argument introduced in 1.24.
+
+    @dispatched_function
+    def in1d(ar1, ar2, assume_unique=False, invert=False):
+        mask = _copy_of_mask(ar1).ravel()
+        return _in1d(ar1, ar2, assume_unique, invert), mask, None
+
+    @dispatched_function
+    def isin(element, test_elements, assume_unique=False, invert=False):
+        element = np.asanyarray(element)
+        result = _in1d(element, test_elements, assume_unique, invert)
+        result.shape = element.shape
+        return result, _copy_of_mask(element), None
+
+elif NUMPY_LT_2_4:  # in1d is removed in 2.4
 
     @dispatched_function
     def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
@@ -1559,12 +1623,14 @@ if NUMPY_LT_2_4:
         return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
 
 
-@dispatched_function
-def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
-    element = np.asanyarray(element)
-    result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
-    result.shape = element.shape
-    return result, _copy_of_mask(element), None
+if not NUMPY_LT_1_24:
+
+    @dispatched_function
+    def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
+        element = np.asanyarray(element)
+        result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
+        result.shape = element.shape
+        return result, _copy_of_mask(element), None
 
 
 @dispatched_function

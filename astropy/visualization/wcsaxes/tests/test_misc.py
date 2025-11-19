@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import warnings
+from contextlib import nullcontext
 from unittest.mock import MagicMock
 
 import matplotlib as mpl
@@ -33,6 +34,8 @@ FREETYPE_261 = ft_version == Version("2.6.1")
 # We cannot use matplotlib.checkdep_usetex() anymore, see
 # https://github.com/matplotlib/matplotlib/issues/23244
 TEX_UNAVAILABLE = True
+
+MATPLOTLIB_LT_3_7 = Version(mpl.__version__) < Version("3.7")
 
 
 def test_grid_regression(ignore_matplotlibrc):
@@ -340,7 +343,16 @@ def test_contour_empty():
     fig = Figure()
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
     fig.add_axes(ax)
-    ax.contour(np.zeros((4, 4)), transform=ax.get_transform("world"))
+
+    if MATPLOTLIB_LT_3_7:
+        ctx = pytest.warns(
+            UserWarning, match="No contour levels were found within the data range"
+        )
+    else:
+        ctx = nullcontext()
+
+    with ctx:
+        ax.contour(np.zeros((4, 4)), transform=ax.get_transform("world"))
 
 
 def test_iterate_coords(ignore_matplotlibrc):

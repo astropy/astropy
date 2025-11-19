@@ -11,6 +11,7 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 
 """
 
+import contextlib
 import itertools
 
 import numpy as np
@@ -24,6 +25,7 @@ from astropy.units.tests.test_quantity_non_ufuncs import (
     get_wrapped_functions,
 )
 from astropy.utils.compat import (
+    NUMPY_LT_1_24,
     NUMPY_LT_1_25,
     NUMPY_LT_2_0,
     NUMPY_LT_2_1,
@@ -1271,7 +1273,11 @@ class TestSortFunctions(MaskedArraySetup):
 
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.msort was removed in numpy 2.0")
     def test_msort(self):
-        with pytest.warns(DeprecationWarning, match="msort is deprecated"):
+        with (
+            contextlib.nullcontext()
+            if NUMPY_LT_1_24
+            else pytest.warns(DeprecationWarning, match="msort is deprecated")
+        ):
             o = np.msort(self.ma)
         expected = np.sort(self.ma, axis=0)
         assert_masked_equal(o, expected)
@@ -1704,6 +1710,7 @@ class TestArraySetOps:
         assert_masked_equal(np.in1d(Masked([]), []), Masked([]))  # noqa: NPY201
         assert_masked_equal(np.in1d(Masked([]), [], invert=True), Masked([]))  # noqa: NPY201
 
+    @pytest.mark.skipif(NUMPY_LT_1_24, reason="kind introduced in numpy 1.24")
     @pytest.mark.skipif(not NUMPY_LT_2_4, reason="np.in1d was removed in numpy 2.4")
     def test_in1d_kind_table_error(self):
         with pytest.raises(ValueError, match="'table' method is not supported"):
