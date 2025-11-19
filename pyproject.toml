@@ -161,7 +161,7 @@ fitsinfo = "astropy.io.fits.scripts.fitsinfo:main"
 samp_hub = "astropy.samp.hub_script:hub_script"
 showtable = "astropy.table.scripts.showtable:main_deprecated"
 showtable-astropy = "astropy.table.scripts.showtable:main"
-typestubs-for-units = "astropy.units.scripts.typestubs_for_units:main"
+#typestubs-for-units = "astropy.units.scripts.typestubs_for_units:main"
 volint = "astropy.io.votable.volint:main"
 wcslint = "astropy.wcs.wcslint:main"
 
