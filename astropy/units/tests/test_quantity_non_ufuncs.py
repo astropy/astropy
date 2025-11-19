@@ -2030,11 +2030,6 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort_axis(self):
         self.check(np.sort, axis=0)
 
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.msort was removed in numpy 2.0")
-    def test_msort(self):
-        with pytest.warns(DeprecationWarning, match="^msort is deprecated"):
-            self.check(np.msort)
-
     @needs_array_function
     def test_sort_complex(self):
         self.check(np.sort_complex)

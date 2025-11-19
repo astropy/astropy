@@ -10,6 +10,7 @@ from astropy.utils import minversion
 
 __all__ = [
     "COPY_IF_NEEDED",
+    "NUMPY_LT_1_24",
     "NUMPY_LT_1_25",
     "NUMPY_LT_1_26",
     "NUMPY_LT_2_0",
@@ -22,6 +23,7 @@ __all__ = [
 # TODO: It might also be nice to have aliases to these named for specific
 # features/bugs we're checking for (ex:
 # astropy.table.table._BROKEN_UNICODE_TABLE_SORT)
+NUMPY_LT_1_24 = not minversion(np, "1.24")
 NUMPY_LT_1_25 = not minversion(np, "1.25")
 NUMPY_LT_1_26 = not minversion(np, "1.26")
 NUMPY_LT_2_0 = not minversion(np, "2.0")
