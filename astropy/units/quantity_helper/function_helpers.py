@@ -55,10 +55,6 @@ if NUMPY_LT_2_0:
 else:
     import numpy._core as np_core
 
-# In 1.17, overrides are enabled by default, but it is still possible to
-# turn them off using an environment variable.  We use getattr since it
-# is planned to remove that possibility in later numpy versions.
-ARRAY_FUNCTION_ENABLED = getattr(np_core.overrides, "ENABLE_ARRAY_FUNCTION", True)
 SUBCLASS_SAFE_FUNCTIONS = set()
 """Functions with implementations supporting subclasses like Quantity."""
 FUNCTION_HELPERS = {}
@@ -118,7 +114,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
-    # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
+    # functions (re)moved in numpy 2.0
     SUBCLASS_SAFE_FUNCTIONS |= {
         np.msort,
         np.round_,  # noqa: NPY003, NPY201

@@ -11,17 +11,11 @@ from astropy.coordinates import EarthLocation, Latitude, Longitude, SkyCoord
 from astropy.coordinates.builtin_frames import GCRS, ICRS, AltAz
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.time import Time
-from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 
 
-@pytest.fixture(params=[True, False] if ARRAY_FUNCTION_ENABLED else [True])
+@pytest.fixture(params=[True, False])
 def method(request):
     return request.param
-
-
-needs_array_function = pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
-)
 
 
 class ShapeSetup:
@@ -333,7 +327,6 @@ class TestManipulation(ShapeSetup):
 
     # Much more detailed tests of shape manipulation via numpy functions done
     # in test_representation_methods.
-    @needs_array_function
     def test_broadcast_to(self):
         s1_broadcast = np.broadcast_to(self.s1, (20, 6, 7))
         assert s1_broadcast.shape == (20, 6, 7)
