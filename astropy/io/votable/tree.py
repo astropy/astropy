@@ -1741,12 +1741,10 @@ class Field(
             column.format = self.converter.output_format
         elif isinstance(self.converter, converters.Char):
             column.info.meta["_votable_string_dtype"] = "char"
-            if self.arraysize is not None and self.arraysize.endswith("*"):
-                column.info.meta["_votable_arraysize"] = self.arraysize
+            column.info.meta["_votable_arraysize"] = self.arraysize
         elif isinstance(self.converter, converters.UnicodeChar):
             column.info.meta["_votable_string_dtype"] = "unicodeChar"
-            if self.arraysize is not None and self.arraysize.endswith("*"):
-                column.info.meta["_votable_arraysize"] = self.arraysize
+            column.info.meta["_votable_arraysize"] = self.arraysize
 
     @classmethod
     def from_table_column(cls, votable, column):
@@ -1765,6 +1763,7 @@ class Field(
         if column.info.unit is not None:
             kwargs["unit"] = column.info.unit
         kwargs["name"] = column.info.name
+
         result = converters.table_column_to_votable_datatype(column)
         kwargs.update(result)
 
@@ -3364,7 +3363,7 @@ class TableElement(
 
             for element_set in (self.fields, self.params):
                 for element in element_set:
-                    element._setup({}, None)
+                    element._setup(self._config, None)
 
             if self.ref is None:
                 for element_set in (self.fields, self.params, self.groups, self.links):
@@ -3520,6 +3519,7 @@ class TableElement(
             val = getattr(self, key, None)
             if val is not None:
                 meta[key] = val
+        meta["_votable_version"] = self._votable.version
 
         if use_names_over_ids:
             names = [field.name for field in self.fields]
@@ -4286,6 +4286,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         config["version_1_3_or_later"] = util.version_compare(self.version, "1.3") >= 0
         config["version_1_4_or_later"] = util.version_compare(self.version, "1.4") >= 0
         config["version_1_5_or_later"] = util.version_compare(self.version, "1.5") >= 0
+        config["version_1_6_or_later"] = util.version_compare(self.version, "1.6") >= 0
         return config
 
     # Map VOTable version numbers to namespace URIs and schema information.
@@ -4335,6 +4336,14 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             "schema_location_value": (
                 "http://www.ivoa.net/xml/VOTable/v1.3"
                 " http://www.ivoa.net/xml/VOTable/VOTable-1.5.xsd"
+            ),
+        },
+        "1.6": {
+            "namespace_uri": "http://www.ivoa.net/xml/VOTable/v1.3",
+            "schema_location_attr": "xsi:schemaLocation",
+            "schema_location_value": (
+                "http://www.ivoa.net/xml/VOTable/v1.3"
+                " http://www.ivoa.net/xml/VOTable/VOTable-1.6.xsd"
             ),
         },
     }
@@ -4696,7 +4705,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
         table_id : str, optional
             Set the given ID attribute on the returned TableElement instance.
         """
-        votable_file = cls()
+        version = table.meta.get("_votable_version", "1.6")
+        votable_file = cls(version=version)
         resource = Resource()
         votable = TableElement.from_table(votable_file, table)
         if table_id is not None:

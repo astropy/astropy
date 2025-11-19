@@ -256,14 +256,14 @@ def test_write_with_format():
     output = io.BytesIO()
     t.write(output, format="votable", tabledata_format="binary")
     obuff = output.getvalue()
-    assert b'VOTABLE version="1.4"' in obuff
+    assert b'VOTABLE version="1.6"' in obuff
     assert b"BINARY" in obuff
     assert b"TABLEDATA" not in obuff
 
     output = io.BytesIO()
     t.write(output, format="votable", tabledata_format="binary2")
     obuff = output.getvalue()
-    assert b'VOTABLE version="1.4"' in obuff
+    assert b'VOTABLE version="1.6"' in obuff
     assert b"BINARY2" in obuff
     assert b"TABLEDATA" not in obuff
 
@@ -412,7 +412,7 @@ def test_write_tilde_path(home_is_tmpdir):
 
     with open(os.path.expanduser(fname)) as f:
         obuff = f.read()
-    assert 'VOTABLE version="1.4"' in obuff
+    assert 'VOTABLE version="1.6"' in obuff
     assert "BINARY" in obuff
     assert "TABLEDATA" not in obuff
 
@@ -437,7 +437,7 @@ def test_writeto(path_format, tmp_path, home_is_tmpdir):
 
     with open(os.path.expanduser(fname)) as f:
         obuff = f.read()
-    assert 'VOTABLE version="1.4"' in obuff
+    assert 'VOTABLE version="1.6"' in obuff
     assert "BINARY" not in obuff
     assert "TABLEDATA" in obuff
 
@@ -947,6 +947,196 @@ def test_unicodechar_binparse_var_exceeds_arraysize():
     )
 
     assert result == "0123456789"
+    assert mask is False
+
+
+def test_char_utf8_truncation_fixed_length():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table._config = table._config or {}
+    table._config["version_1_6_or_later"] = True
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="utf8_char",
+            datatype="char",
+            arraysize="10",
+            ID="utf8_char",
+        )
+    )
+
+    table.create_arrays(3)
+    table.array[0]["utf8_char"] = "café"
+
+    for format_name in ["binary", "binary2"]:
+        bio = io.BytesIO()
+        table.format = format_name
+        votable.to_xml(bio)
+        bio.seek(0)
+
+        votable2 = parse(bio)
+        table2 = votable2.get_first_table()
+
+        assert table2.array[0]["utf8_char"] == "café"
+        assert isinstance(table2.array[2]["utf8_char"], str)
+
+
+def test_char_arraysize_semantics_version_difference():
+    votable_pre = tree.VOTableFile()
+    votable_pre.version = "1.4"
+    resource_pre = tree.Resource()
+    votable_pre.resources.append(resource_pre)
+    table_pre = tree.TableElement(votable_pre)
+    resource_pre.tables.append(table_pre)
+
+    table_pre.fields.append(
+        tree.Field(
+            votable_pre,
+            name="char_field",
+            datatype="char",
+            arraysize="5",
+            ID="char_field",
+        )
+    )
+    table_pre.create_arrays(1)
+    table_pre.array[0]["char_field"] = "hello"
+
+    bio_pre = io.BytesIO()
+    table_pre.format = "binary"
+    votable_pre.to_xml(bio_pre)
+    pre_1_6_bytes = bio_pre.getvalue()
+
+    votable_16 = tree.VOTableFile()
+    votable_16.version = "1.6"
+    votable_16._config = votable_16._config or {}
+    votable_16._config["version_1_6_or_later"] = True
+    resource_16 = tree.Resource()
+    votable_16.resources.append(resource_16)
+    table_16 = tree.TableElement(votable_16)
+    resource_16.tables.append(table_16)
+
+    table_16.fields.append(
+        tree.Field(
+            votable_16,
+            name="char_field",
+            datatype="char",
+            arraysize="5",
+            ID="char_field",
+        )
+    )
+    table_16.create_arrays(1)
+    table_16.array[0]["char_field"] = "café"
+
+    bio_16 = io.BytesIO()
+    table_16.format = "binary"
+    votable_16.to_xml(bio_16)
+
+    bio_pre.seek(0)
+    votable_pre_parsed = parse(bio_pre)
+    assert votable_pre_parsed.get_first_table().array[0]["char_field"] == "hello"
+
+    bio_16.seek(0)
+    votable_16_parsed = parse(bio_16)
+    assert votable_16_parsed.get_first_table().array[0]["char_field"] == "café"
+
+
+def test_char_utf8_tabledata_encoding():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    votable._config = votable._config or {}
+    votable._config["version_1_6_or_later"] = True
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="utf8_field",
+            datatype="char",
+            arraysize="*",
+            ID="utf8_field",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["utf8_field"] = "test"
+    table.array[1]["utf8_field"] = "café"
+
+    bio = io.BytesIO()
+    table.format = "tabledata"
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+    assert table2.array[0]["utf8_field"] == "test"
+    assert table2.array[1]["utf8_field"] == "café"
+
+    xml_content = bio.getvalue().decode("utf-8")
+    assert "café" in xml_content
+
+
+def test_char_utf8_numpy_dtype_round_trip():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    votable._config = votable._config or {}
+    votable._config["version_1_6_or_later"] = True
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="utf8_chars",
+            datatype="char",
+            arraysize="20",
+            ID="utf8_chars",
+        )
+    )
+
+    table.create_arrays(1)
+    table.array[0]["utf8_chars"] = "café"
+
+    astropy_table = table.to_table()
+
+    votable2 = tree.VOTableFile.from_table(astropy_table)
+    table2 = votable2.get_first_table()
+
+    assert table2.fields[0].datatype == "char"
+    assert table2.array[0]["utf8_chars"] == "café"
+
+
+def test_char_invalid_utf8_handling():
+    field = tree.Field(
+        tree.VOTableFile(),
+        name="char_field",
+        datatype="char",
+        arraysize="10",
+        ID="test",
+    )
+
+    converter = Char(field, {"version_1_6_or_later": True})
+
+    def mock_read(size):
+        if size == 4:
+            return struct.pack(">I", 4)
+        else:
+            return b"\xff\xfe\xfd\xfc"
+
+    result, mask = converter._binparse_var(mock_read)
+    assert isinstance(result, str)
     assert mask is False
 
 
