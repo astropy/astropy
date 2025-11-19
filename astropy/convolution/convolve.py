@@ -214,6 +214,9 @@ def convolve(
     if nan_treatment not in ("interpolate", "fill"):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
+    if np.ma.is_masked(kernel) and kernel.mask.any():
+        raise ValueError("Masked kernel present, please fill and try again")
+
     # OpenMP support is disabled at the C src code level, changing this will have
     # no effect.
     n_threads = 1
@@ -706,6 +709,9 @@ def convolve_fft(
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
+
+    if np.ma.is_masked(kernel) and kernel.mask.any():
+        raise ValueError("Masked kernel present, please fill and try again")
 
     # Check kernel is kernel instance
     if isinstance(kernel, Kernel):
