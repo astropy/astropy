@@ -37,7 +37,6 @@ Cosmology
 
 The ``astropy.cosmology`` module has several updates in this release.
 
-*********************
 Module Simplification
 *********************
 
@@ -72,7 +71,6 @@ After:
 
     from astropy.cosmology import Cosmology, FlatLambdaCDM, z_at_value
 
-****************
 Cosmology Traits
 ****************
 
@@ -126,7 +124,6 @@ np.float64(3.4...e-05)
 >>> cosmo.Tnu(1)
 <Quantity 3.89... K>
 
-********************************
 Machine Readable Table (MRT) I/O
 ********************************
 
