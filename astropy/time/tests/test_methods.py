@@ -11,13 +11,8 @@ from numpy.testing import assert_array_equal
 import astropy.units as u
 from astropy.time import Time
 from astropy.time.utils import day_frac
-from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
-needs_array_function = pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
-)
 
 
 def assert_time_all_equal(t1, t2):
@@ -364,7 +359,6 @@ class TestSetShape(ShapeSetup):
 
 @pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
 class TestShapeFunctions(ShapeSetup):
-    @needs_array_function
     def test_broadcast(self, use_mask):
         """Test as supported numpy function."""
         self.create_data(use_mask)
@@ -386,7 +380,6 @@ class TestShapeFunctions(ShapeSetup):
         assert t2_broadcast.location.shape == t2_broadcast.shape
         assert np.may_share_memory(t2_broadcast.location, self.t2.location)
 
-    @needs_array_function
     def test_atleast_1d(self, use_mask):
         self.create_data(use_mask)
 
@@ -398,7 +391,6 @@ class TestShapeFunctions(ShapeSetup):
         # Actual jd1 will not share memory, as cast to scalar.
         assert np.may_share_memory(t00_1d._time.jd1, t00._time.jd1)
 
-    @needs_array_function
     def test_atleast_2d(self, use_mask):
         self.create_data(use_mask)
 
@@ -409,7 +401,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(t0r[np.newaxis], t0r_2d)
         assert np.may_share_memory(t0r_2d.jd1, t0r.jd1)
 
-    @needs_array_function
     def test_atleast_3d(self, use_mask):
         self.create_data(use_mask)
 
@@ -438,7 +429,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(self.t0.T, t0_10)
         assert np.may_share_memory(t0_10.jd1, self.t0.jd1)
 
-    @needs_array_function
     def test_fliplr(self, use_mask):
         self.create_data(use_mask)
 
@@ -446,7 +436,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(self.t0[:, ::-1], t0_lr)
         assert np.may_share_memory(t0_lr.jd2, self.t0.jd2)
 
-    @needs_array_function
     def test_rot90(self, use_mask):
         self.create_data(use_mask)
 
@@ -454,7 +443,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(self.t0.T[:, ::-1], t0_270)
         assert np.may_share_memory(t0_270.jd2, self.t0.jd2)
 
-    @needs_array_function
     def test_roll(self, use_mask):
         self.create_data(use_mask)
 
@@ -462,7 +450,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(t0r[1:], self.t0[:-1])
         assert_time_all_equal(t0r[0], self.t0[-1])
 
-    @needs_array_function
     def test_delete(self, use_mask):
         self.create_data(use_mask)
 
