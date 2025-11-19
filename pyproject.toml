@@ -43,7 +43,7 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.24",
+    "numpy>=1.25",
     "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
     "astropy-iers-data>=0.2025.10.27.0.39.10",
     "PyYAML>=6.0.0",
@@ -53,7 +53,7 @@ dependencies = [
 [project.optional-dependencies]
 # Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
-    "scipy>=1.9.2",
+    "scipy>=1.10",
     "matplotlib>=3.8.0",
     "narwhals>=1.42.0",  # keep in sync with dependency-groups.dataframe
 ]
@@ -72,7 +72,7 @@ jupyter = [  # these are optional dependencies for utils.console and table
     # jupyter-core is a transitive dependency via ipykernel, we declare it as
     # a direct dependency in order to set a lower bound for oldest-deps testing
     "jupyter-core>=4.11.2",
-    "pandas>=2.0.0",
+    "pandas>=2.0.2",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
@@ -121,7 +121,7 @@ test_all = [
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 ]
 typing = [
-    "pandas-stubs>=2.0.0",
+    "pandas-stubs>=2.0.2",
     "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
 ]
 docs = [
@@ -184,7 +184,7 @@ dataframe = [
     # and project.optional-dependencies.typing
     "narwhals>=1.42.0",
     "pyarrow>=14.0.2",
-    "pandas>=2.0.0",
+    "pandas>=2.0.2",
     "polars>=1.0.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0"

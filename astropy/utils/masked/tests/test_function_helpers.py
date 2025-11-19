@@ -23,13 +23,7 @@ from astropy.units.tests.test_quantity_non_ufuncs import (
     get_covered_functions,
     get_wrapped_functions,
 )
-from astropy.utils.compat import (
-    NUMPY_LT_1_25,
-    NUMPY_LT_2_0,
-    NUMPY_LT_2_1,
-    NUMPY_LT_2_2,
-    NUMPY_LT_2_4,
-)
+from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
     APPLY_TO_BOTH_FUNCTIONS,
@@ -1047,11 +1041,6 @@ class TestPartitionLikeFunctions:
         assert_array_equal(o.filled(np.nan), expected)
         assert_array_equal(o.mask, np.isnan(expected))
         # Also check that we can give an output MaskedArray.
-        if NUMPY_LT_1_25 and kwargs.get("keepdims", False):
-            # numpy bug gh-22714 prevents using out with keepdims=True.
-            # This is fixed in numpy 1.25.
-            return
-
         out = np.zeros_like(o)
         o2 = function(self.ma, *args, out=out, **kwargs)
         assert o2 is out
