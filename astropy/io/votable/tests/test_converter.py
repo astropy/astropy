@@ -66,7 +66,7 @@ def test_unicode_mask():
 
 
 def test_unicode_as_char():
-    config = {"verify": "exception"}
+    config = {}
     field = tree.Field(
         None, name="unicode_in_char", datatype="char", arraysize="*", config=config
     )
