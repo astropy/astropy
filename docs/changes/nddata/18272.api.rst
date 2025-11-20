@@ -1,0 +1,1 @@
+The following properties are now cached with ``functools.cached_property`` instead of ``astropy.utils.lazyproperty``: ``origin_original``, ``origin_cutout``, ``position_original``, ``position_cutout``, ``center_original``, ``center_cutout``, ``bbox_original``, and ``bbox_cutout``.
