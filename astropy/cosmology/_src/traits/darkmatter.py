@@ -3,6 +3,7 @@ __all__ = ["DarkMatterComponent"]
 from collections.abc import Callable
 from typing import Any
 
+import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.cosmology._src.typing import FArray
@@ -17,7 +18,7 @@ class DarkMatterComponent:
     density parameter (i.e., total matter minus baryons) at redshift ``z``.
     """
 
-    Odm0: float
+    Odm0: float | np.floating
     """Omega dark matter: dark matter density/critical density at z=0."""
 
     inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
