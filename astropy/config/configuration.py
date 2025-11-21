@@ -365,7 +365,7 @@ class ConfigItem:
             raise TypeError(
                 f"Provided value for configuration item {self.name} not valid:"
                 f" {e.args[0]}"
-            )
+            ) from e
 
         sec = get_config(self.module, rootname=self.rootname)
 
