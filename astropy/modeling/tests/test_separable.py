@@ -10,9 +10,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from astropy.modeling import custom_model, models
+from astropy.modeling import CompoundModel, custom_model, models
 from astropy.modeling.core import ModelDefinitionError
-from astropy.modeling.models import Mapping
+from astropy.modeling.models import Mapping, Shift
 from astropy.modeling.separable import (
     _arith_oper,
     _cdot,
@@ -191,3 +191,12 @@ def test_custom_model_separable():
 
     assert not model_c().separable
     assert np.all(separability_matrix(model_c()) == [True, True])
+
+
+def test_separability_with_fix_inputs():
+    s = Shift() & Shift() & Shift()
+    c = CompoundModel("fix_inputs", s, {"x0": 0.3})
+    mat = separability_matrix(c)
+
+    assert mat.shape == (3, 2)
+    assert mat.dtype == np.bool_
