@@ -793,8 +793,12 @@ def test_specsys():
 
 
 def test_sptr():
-    # TODO: Write me
-    pass
+    # Test spectral axis translation (e.g., FREQ to ZOPT-F2W)
+    w = _wcs.Wcsprm()
+    w.naxis = 1
+    w.ctype = ["FREQ"]
+    result = w.sptr("WAVE", 0)
+    assert result == "WAVE"
 
 
 def test_ssysobs():

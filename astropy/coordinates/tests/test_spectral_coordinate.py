@@ -1119,5 +1119,120 @@ def test_spectralcoord_accuracy(specsys):
                 )
 
 
-# TODO: add test when target is not ICRS
-# TODO: add test when SpectralCoord is in velocity to start with
+def test_spectralcoord_with_non_icrs_target():
+    """
+    Test SpectralCoord with target in non-ICRS frames like Galactic, FK5
+    Critical for proper Doppler corrections with different reference frames
+    """
+    # Create observer at Greenwich
+    observer = _GREENWICH.get_itrs(obstime=time.Time("2020-01-01T00:00:00"))
+
+    # Test with Galactic frame target - expect velocity and distance warnings
+    galactic_target = SkyCoord(l=90 * u.deg, b=45 * u.deg, frame="galactic")
+
+    with (
+        pytest.warns(NoVelocityWarning, match=r"^No velocity defined on frame"),
+        pytest.warns(
+            NoDistanceWarning, match=r"^Distance on coordinate object is dimensionless"
+        ),
+    ):
+        sc_galactic = SpectralCoord(
+            500 * u.nm, observer=observer, target=galactic_target
+        )
+
+    # Should be able to transform to velocity
+    velocity = sc_galactic.to(
+        u.km / u.s, doppler_convention="optical", doppler_rest=500 * u.nm
+    )
+    assert velocity.unit == u.km / u.s
+
+    # Test with FK5 frame target
+    fk5_target = SkyCoord(ra=100 * u.deg, dec=30 * u.deg, frame="fk5")
+
+    with (
+        pytest.warns(NoVelocityWarning, match=r"^No velocity defined on frame"),
+        pytest.warns(
+            NoDistanceWarning, match=r"^Distance on coordinate object is dimensionless"
+        ),
+    ):
+        sc_fk5 = SpectralCoord(600 * u.nm, observer=observer, target=fk5_target)
+
+    # Transform to GCRS frame - should maintain target information
+    sc_gcrs = sc_fk5.with_observer_stationary_relative_to("gcrs")
+    assert sc_gcrs.observer is not None
+
+    # Verify the target was properly converted
+    assert sc_fk5.target is not None
+    assert sc_gcrs.target is not None
+
+
+def test_spectralcoord_starting_with_velocity():
+    """
+    Test SpectralCoord initialized directly with velocity units
+    Critical for radio astronomy and Doppler velocity measurements
+    """
+    # Create observer at a specific location
+    location = EarthLocation.from_geodetic(
+        lon=0 * u.deg, lat=45 * u.deg, height=0 * u.m
+    )
+    obstime = time.Time("2021-06-15T12:00:00")
+    observer = location.get_itrs(obstime=obstime)
+
+    # Target in ICRS
+    target = SkyCoord(ra=180 * u.deg, dec=45 * u.deg, frame="icrs")
+
+    # Initialize SpectralCoord with velocity
+    rest_wavelength = 21.106 * u.cm  # HI line
+    velocity_init = 1000 * u.km / u.s  # 1000 km/s
+
+    # Expect warnings about missing velocity and distance
+    with (
+        pytest.warns(NoVelocityWarning, match=r"^No velocity defined on frame"),
+        pytest.warns(
+            NoDistanceWarning, match=r"^Distance on coordinate object is dimensionless"
+        ),
+    ):
+        sc_velocity = SpectralCoord(
+            velocity_init,
+            observer=observer,
+            target=target,
+            doppler_rest=rest_wavelength,
+            doppler_convention="radio",
+        )
+
+    # Convert back to wavelength
+    wavelength = sc_velocity.to(
+        u.cm, doppler_convention="radio", doppler_rest=rest_wavelength
+    )
+    assert wavelength.unit == u.cm
+
+    # Verify it's different from rest wavelength (Doppler shifted)
+    assert not quantity_allclose(wavelength, rest_wavelength, rtol=1e-5)
+
+    # Convert to frequency and back to velocity - should be consistent
+    frequency = sc_velocity.to(
+        u.GHz, doppler_convention="radio", doppler_rest=rest_wavelength
+    )
+    assert frequency.unit == u.GHz
+
+    # Create new SpectralCoord from frequency and convert back to velocity
+    with (
+        pytest.warns(NoVelocityWarning, match=r"^No velocity defined on frame"),
+        pytest.warns(
+            NoDistanceWarning, match=r"^Distance on coordinate object is dimensionless"
+        ),
+    ):
+        sc_from_freq = SpectralCoord(
+            frequency,
+            observer=observer,
+            target=target,
+            doppler_rest=rest_wavelength,
+            doppler_convention="radio",
+        )
+
+    velocity_roundtrip = sc_from_freq.to(
+        u.km / u.s, doppler_convention="radio", doppler_rest=rest_wavelength
+    )
+
+    # Should get back the original velocity (within numerical precision)
+    assert_quantity_allclose(velocity_roundtrip, velocity_init, rtol=1e-10)
