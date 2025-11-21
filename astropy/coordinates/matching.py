@@ -490,3 +490,79 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt="kdtree", forceunit=None):
         coord.cache[attrname_or_kdt] = kdt
 
     return kdt
+
+def nearest_neighbour_sky(
+    coords1: SkyCoord,
+    coords2: SkyCoord,
+    nthneighbor_max: int,
+    storekdtree: str="kdtree_nn",
+) -> CoordinateSearchResult:
+    """
+    Searches for pairs of points that are at most ``nthneighbor_max+1`` nearest neighbours.
+    For finding _just_ the nearest neighbour see ``match_coordinates_sky``.
+
+
+    ``nthneighbor_max+1`` is needed to find ``nthneighbor_max`` neighbours excluding a self-match.
+
+    Parameters
+    ----------
+    coords1 : SkyCoord
+        The first set of coordinates, which will be searched for matches from
+        ``coords2`` within ``nthneighbor_max+1`` neighbours.
+        Must be a one-dimensional coordinate array.
+    coords2 : SkyCoord
+        The first set of coordinates, which will be searched for matches from
+        ``coords1`` within ``nthneighbor_max+1`` neighbours.
+        Must be a one-dimensional coordinate array.
+    nthneighbor_max : int
+        The maximum nearest neighbour to be searched.
+    storekdtree : str, optional
+        If a string, will store the KD-Tree used in the search with the name
+        ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
+        to this function. If False, the KD-Trees are not saved.
+        
+    Returns
+    -------
+    CoordinateSearchResult
+        A `~typing.NamedTuple` with attributes representing the indices
+        of the elements of found pairs in both source sets and angular
+        and physical separations of the pairs. If either set of sources
+        lack distances, the physical separation is the 3D distance on
+        the unit sphere, rather than a true distance.
+    """
+
+    if coords1.ndim != 1 or coords2.ndim != 1:
+        msg = "nearest_neighbour_sky only supports 1-dimensional coordinate arrays."
+        if coords1.isscalar or coords2.isscalar:
+            msg += " The catalog for coordinate matching cannot be a scalar or length-0"
+        raise ValueError(msg)
+
+    xyz1 = coords1.cartesian.xyz.value.T
+    xyz_unit = coords2.cartesian.xyz.unit
+
+    # tree = KDTree(xyz2, compact_nodes=False, balanced_tree=False)
+    tree = _get_cartesian_kdtree(
+        coord=coords2,
+        attrname_or_kdt=storekdtree,
+        forceunit=xyz_unit
+
+    )
+    # Increase nthneighbor_max by one since the nearest neighbour may be itself
+    dist, idx2 = tree.query(xyz1, k=nthneighbor_max + 1)
+
+    # ensure 2D arrays if k=1
+    if nthneighbor_max + 1 == 1:
+        dist = dist[:, None]
+        idx2 = idx2[:, None]
+
+    n_points, n_neighbours = idx2.shape
+
+    # `idx1` is just the simple index into coords1
+    # `idx2` is the index from the tree
+    idx1 = np.repeat(np.arange(n_points), repeats=n_neighbours)
+    idx2 = idx2.ravel()
+
+    # Convert cartesian distance to angular separation
+    sep = Angle(2 * np.arcsin(dist.ravel() / 2) * u.rad)
+
+    return CoordinateSearchResult(idx1, idx2, sep, dist * xyz_unit)
