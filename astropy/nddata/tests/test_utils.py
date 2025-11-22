@@ -771,3 +771,12 @@ def test_cutout_section_with_bzero_bscale_blank(tmp_path):
     with fits.open(tmp_path / "compressed.fits") as hdul:
         # Partial cutout
         c = Cutout2D(hdul[1].section, position, size, mode="partial")
+
+
+def test_extract_array_fill_value_exception_note():
+    """Test that exception notes are added when fill_value type is incompatible."""
+    data = np.arange(12, dtype=int).reshape(3, 4)
+
+    # Try to extract with partial mode and incompatible fill_value (NaN for integer array)
+    with pytest.raises(ValueError, match="fill_value.*data type"):
+        extract_array(data, (5, 5), (1, 1), mode="partial", fill_value=np.nan)
