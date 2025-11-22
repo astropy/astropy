@@ -6,6 +6,7 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.io import ascii
+from astropy.table import Table
 
 from .common import (
     setup_function,  # noqa: F401
@@ -253,3 +254,28 @@ def test_cds_order():
     assert r.header.cols[5].description == "Catalogue Identification Number"
     assert r.header.cols[8].description == "Another equivalent width (in mA)"
     assert r.header.cols[9].description == "Luminosity class codified (11)"
+
+
+@pytest.mark.parametrize("input_dir", ["datasplitcomplete", "datasplitcompletegz"])
+def test_cds_readme_datafiles_split(input_dir):
+    """CDS has the option to split datafiles for keep them small.
+
+    This tests checks that the reader finds and merges the datafiles.
+    """
+    dat = f"data/cds/{input_dir}/table1.dat"
+    readme = f"data/cds/{input_dir}/ReadMe"
+    t = Table.read(dat, format="ascii.cds", readme=readme)
+    assert len(t) == 4
+    assert t["BJD"] == pytest.approx([4730.5481, 4734.5653, 4739.5092, 4754.5002])
+    assert t["BJD"].description == "Barycentric Julian date (BJD-2450000)"
+
+
+def test_cds_readme_datafiles_incomplete():
+    """While we cannot detect if the last file is missing, we do raise an
+    error if the numbering of the files to be read is not continuous.
+    """
+    dat = "data/cds/datasplitincomplete/table1.dat"
+    readme = "data/cds/datasplitincomplete/ReadMe"
+    with pytest.raises(ascii.InconsistentTableError) as exc:
+        Table.read(dat, format="ascii.cds", readme=readme)
+    assert "numbering is not consecutive for filenames" in str(exc.value)
