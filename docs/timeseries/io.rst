@@ -112,13 +112,13 @@ start time and ``bin_size`` giving the size of each bin, you can do::
     ...                            time_bin_size_unit=u.s)
     >>> ts[:3]
     <BinnedTimeSeries length=3>
-         time_bin_start     time_bin_size ...    E       F
-                                  s       ...
-              Time             float64    ... float64 float64
-    ----------------------- ------------- ... ------- -------
-    2016-03-22T12:30:31.000           3.0 ...   28.87   63.44
-    2016-03-22T12:30:34.000           3.0 ...   27.76   59.98
-    2016-03-22T12:30:37.000           3.0 ...   27.04   59.61
+         time_bin_start     time_bin_size         time_end           A       B       C       D       E       F
+                                  s                                                                              
+              Time             float64             str23          float64 float64 float64 float64 float64 float64
+    ----------------------- ------------- ----------------------- ------- ------- ------- ------- ------- -------
+    2016-03-22T12:30:31.000           3.0 2016-03-22T12:30:34.000  164.93  114.73   26.27   19.21   28.87   63.44
+    2016-03-22T12:30:34.000           3.0 2016-03-22T12:30:37.000  164.89  114.75   26.22   19.07   27.76   59.98
+    2016-03-22T12:30:37.000           3.0 2016-03-22T12:30:40.000  164.63  115.04   25.78   19.01   27.04   59.61
 
 See the documentation for :meth:`TimeSeries.read
 <astropy.timeseries.TimeSeries.read>` and :meth:`BinnedTimeSeries.read
