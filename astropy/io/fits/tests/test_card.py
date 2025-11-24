@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import pytest
+
 from astropy.io import fits
 from astropy.io.fits.verify import VerifyWarning
 

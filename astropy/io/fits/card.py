@@ -191,9 +191,9 @@ class Card(_Verify):
         self._rawvalue = None
 
         if not (
-            keyword is not None and
-            value is not None and
-            self._check_if_rvkc(keyword, value)
+            keyword is not None
+            and value is not None
+            and self._check_if_rvkc(keyword, value)
         ):
             # If _check_if_rvkc passes, it will handle setting the keyword and
             # value
@@ -548,9 +548,9 @@ class Card(_Verify):
         # explicitly check that it is a string value, since a blank value is
         # returned as '')
         return (
-            not self.keyword and
-            (isinstance(self.value, str) and not self.value) and
-            not self.comment
+            not self.keyword
+            and (isinstance(self.value, str) and not self.value)
+            and not self.comment
         )
 
     @classmethod
@@ -669,7 +669,7 @@ class Card(_Verify):
             if eq_idx < 0 or eq_idx > 9:
                 return False
             keyword = image[:eq_idx]
-            rest = image[eq_idx + VALUE_INDICATOR_LEN:]
+            rest = image[eq_idx + VALUE_INDICATOR_LEN :]
         else:
             keyword, rest = args
 
@@ -711,9 +711,9 @@ class Card(_Verify):
         if keyword_upper in self._special_keywords:
             return keyword_upper
         elif (
-            keyword_upper == "HIERARCH" and
-            self._image[8] == " " and
-            HIERARCH_VALUE_INDICATOR in self._image
+            keyword_upper == "HIERARCH"
+            and self._image[8] == " "
+            and HIERARCH_VALUE_INDICATOR in self._image
         ):
             # This is valid HIERARCH card as described by the HIERARCH keyword
             # convention:
@@ -731,7 +731,7 @@ class Card(_Verify):
                     keyword = keyword[:val_ind_idx]
                     keyword_upper = keyword_upper[:val_ind_idx]
 
-                rest = self._image[val_ind_idx + VALUE_INDICATOR_LEN:]
+                rest = self._image[val_ind_idx + VALUE_INDICATOR_LEN :]
 
                 # So far this looks like a standard FITS keyword; check whether
                 # the value represents a RVKC; if so then we pass things off to
@@ -779,14 +779,14 @@ class Card(_Verify):
             strict_match = re.match(self._strg_strict, raw_value_field)
 
             if strict_match:
-                # strict match = chaîne valide selon FITS strict
+                # strict match = chaîne valid selon FITS strict
                 return strict_match.group("strg").replace("''", "'")
 
             # 2) fallback tolerant + always warn
             warnings.warn(
                 f"Non-standard FITS string detected in card {self.keyword!r}; "
                 "falling back to tolerant parsing.",
-                VerifyWarning
+                VerifyWarning,
             )
 
             # fallback: tolerant interpretation (historical behavior)
@@ -992,9 +992,9 @@ class Card(_Verify):
             # string
             value = str(value)
         elif (
-            self._valuestring and
-            not self._valuemodified and
-            isinstance(self.value, float_types)
+            self._valuestring
+            and not self._valuemodified
+            and isinstance(self.value, float_types)
         ):
             # Keep the existing formatting for float/complex numbers
             value = f"{self._valuestring:>20}"
@@ -1041,9 +1041,9 @@ class Card(_Verify):
         # guessing this is part of the HIEARCH card specification
         keywordvalue_length = len(keyword) + len(delimiter) + len(value)
         if (
-            keywordvalue_length == self.length + 1 and
-            keyword.startswith("HIERARCH") and
-            keyword[-1] == " "
+            keywordvalue_length == self.length + 1
+            and keyword.startswith("HIERARCH")
+            and keyword[-1] == " "
         ):
             output = "".join([keyword[:-1], delimiter, value, comment])
 
@@ -1128,7 +1128,7 @@ class Card(_Verify):
         output = []
         idx = 0
         while idx < len(value):
-            output.append(str(Card(self.keyword, value[idx: idx + maxlen])))
+            output.append(str(Card(self.keyword, value[idx : idx + maxlen])))
             idx += maxlen
         return "".join(output)
 
@@ -1143,9 +1143,9 @@ class Card(_Verify):
 
         # verify the equal sign position
         if self.keyword not in self._commentary_keywords and (
-            self._image and
-            self._image[:9].upper() != "HIERARCH " and
-            self._image.find("=") != 8
+            self._image
+            and self._image[:9].upper() != "HIERARCH "
+            and self._image.find("=") != 8
         ):
             errs.append(
                 {
@@ -1254,7 +1254,7 @@ class Card(_Verify):
         ncards = len(self._image) // Card.length
 
         for idx in range(0, Card.length * ncards, Card.length):
-            card = Card.fromstring(self._image[idx: idx + Card.length])
+            card = Card.fromstring(self._image[idx : idx + Card.length])
             if idx > 0 and card.keyword.upper() not in self._special_keywords:
                 raise VerifyError(
                     "Long card images must have CONTINUE cards after "
