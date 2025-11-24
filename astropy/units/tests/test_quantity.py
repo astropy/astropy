@@ -719,6 +719,7 @@ class TestQuantityOperations:
             operator.index(u.Quantity(val, u.m, dtype=int))
 
     def test__index_fails_for_list_multiplication(self):
+        # This used to work for numpy <= 1.10, but that's not coming back.
         # See https://github.com/numpy/numpy/issues/5074
         q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
         with pytest.raises(TypeError):
