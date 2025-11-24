@@ -701,14 +701,6 @@ class TestQuantityOperations:
             q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
-    # See https://github.com/numpy/numpy/issues/5074
-    # It seems unlikely this will be resolved, so xfail'ing it.
-    @pytest.mark.xfail(reason="list multiplication only works for numpy <=1.10")
-    def test_numeric_converter_to_index_in_practice(self):
-        """Test that use of __index__ actually works."""
-        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
-        assert q4 * ["a", "b", "c"] == ["a", "b", "c", "a", "b", "c"]
-
     def test_array_converters(self):
         # Scalar quantity
         q = u.Quantity(1.23, u.m)
@@ -725,6 +717,12 @@ class TestQuantityOperations:
 
         with pytest.raises(TypeError):
             operator.index(u.Quantity(val, u.m, dtype=int))
+
+    def test__index_fails_for_list_multiplication(self):
+        # See https://github.com/numpy/numpy/issues/5074
+        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
+        with pytest.raises(TypeError):
+            q4 * ["a", "b", "c"]
 
 
 def test_quantity_conversion():
