@@ -22,7 +22,6 @@ import importlib
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods, ShapedLikeNDArray
 
@@ -216,12 +215,12 @@ class Masked(NDArrayShapeMethods):
     # Subclasses can override this in case the class does not work
     # with this signature, or to provide a faster implementation.
     @classmethod
-    def from_unmasked(cls, data, mask=None, copy=COPY_IF_NEEDED):
+    def from_unmasked(cls, data, mask=None, copy=None):
         """Create an instance from unmasked data and a mask."""
         return cls(data, mask=mask, copy=copy)
 
     @classmethod
-    def _get_masked_instance(cls, data, mask=None, copy=COPY_IF_NEEDED):
+    def _get_masked_instance(cls, data, mask=None, copy=None):
         data, data_mask = get_data_and_mask(data)
         if mask is None:
             mask = False if data_mask is None else data_mask
@@ -344,7 +343,7 @@ class Masked(NDArrayShapeMethods):
             data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self.mask, method)(*args, **kwargs)
 
-        result = self.from_unmasked(data, mask, copy=COPY_IF_NEEDED)
+        result = self.from_unmasked(data, mask, copy=None)
         if "info" in self.__dict__:
             result.info = self.info
 
@@ -627,7 +626,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     # The two pieces typically overridden.
     @classmethod
-    def from_unmasked(cls, data, mask=None, copy=COPY_IF_NEEDED):
+    def from_unmasked(cls, data, mask=None, copy=None):
         # Note: have to override since __new__ would use ndarray.__new__
         # which expects the shape as its first argument, not an array.
         data = np.array(data, subok=True, copy=copy)
