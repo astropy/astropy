@@ -190,6 +190,13 @@ dataframe = [
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0"
 ]
+image-tests = [
+    "pytest-mpl>=0.18",
+]
+pyinstaller = [
+    "pyinstaller>=6.16.0",
+    {include-group = 'image-tests'},
+]
 
 [tool.setuptools]
 include-package-data = true
