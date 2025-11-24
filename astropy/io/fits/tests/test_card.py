@@ -22,7 +22,7 @@ def test_fits_malformed_string_warns_and_falls_back():
     - warning is emitted when value is accessed
     """
     card = fits.Card.fromstring("TEST    = 'a ' b ' /c'")
-    with pytest.warns(VerifyWarning):
+    with pytest.warns(VerifyWarning, match="Non-standard FITS string detected"):
         val = card.value
     assert val == "a ' b"
 
@@ -33,6 +33,6 @@ def test_fits_invalid_string_does_not_raise():
     but must emit a VerifyWarning when parsed.
     """
     card = fits.Card.fromstring("TEST    = 'a ' b '")
-    with pytest.warns(VerifyWarning):
+    with pytest.warns(VerifyWarning, match="Non-standard FITS string detected"):
         val = card.value
     assert isinstance(val, str)
