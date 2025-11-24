@@ -12,7 +12,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
+from astropy.utils.compat import COPY_IF_NEEDED
 
 from . import formats
 
@@ -398,12 +398,8 @@ class Angle(SpecificTypeQuantity):
         a360 = u.degree.to(self.unit, 360.0)
         wrap_angle = wrap_angle.to_value(self.unit)
         self_angle = self.view(np.ndarray)
-        if NUMPY_LT_2_0:
-            # Ensure ndim>=1 so that comparison is done using the angle dtype.
-            self_angle = self_angle[np.newaxis]
-        else:
-            # Use explicit float to ensure casting to self_angle.dtype (NEP 50).
-            wrap_angle = float(wrap_angle)
+        # Use explicit float to ensure casting to self_angle.dtype (NEP 50).
+        wrap_angle = float(wrap_angle)
         wrap_angle_floor = wrap_angle - a360
         # Do the wrapping, but only if any angles need to be wrapped
         #
@@ -616,11 +612,6 @@ class Latitude(Angle):
             limit = u.degree.to(angles.unit, 90.0)
 
         angles_view = angles.view(np.ndarray)
-        if NUMPY_LT_2_0:
-            # Ensure ndim>=1 so that comparison is done using the angle dtype.
-            # Otherwise, e.g., np.array(np.pi/2, 'f4') > np.pi/2 will yield True.
-            angles_view = angles_view[np.newaxis]
-
         if np.any(np.abs(angles_view) > limit):
             if np.size(angles) < 5:
                 raise ValueError(

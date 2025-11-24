@@ -17,7 +17,7 @@ from typing import ClassVar, Self
 import numpy as np
 
 from astropy import config as _config
-from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
+from astropy.utils.compat.numpycompat import COPY_IF_NEEDED
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyWarning
 
@@ -1727,14 +1727,6 @@ class Quantity(np.ndarray):
             _value = _value.astype(self.dtype, copy=False)
         return _value
 
-    if NUMPY_LT_2_0:
-
-        def itemset(self, *args):
-            if len(args) == 0:
-                raise ValueError("itemset must have at least one argument")
-
-            self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
-
     def tostring(self, order="C"):
         """Not implemented, use ``.value.tostring()`` instead."""
         raise NotImplementedError(
@@ -1811,17 +1803,10 @@ class Quantity(np.ndarray):
         )
 
     # ensure we do not return indices as quantities
-    if NUMPY_LT_2_0:
-
-        def argsort(self, axis=-1, kind=None, order=None):
-            return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
-
-    else:
-
-        def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
-            return self.view(np.ndarray).argsort(
-                axis=axis, kind=kind, order=order, stable=stable
-            )
+    def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
+        return self.view(np.ndarray).argsort(
+            axis=axis, kind=kind, order=order, stable=stable
+        )
 
     def searchsorted(self, v, *args, **kwargs):
         return np.searchsorted(

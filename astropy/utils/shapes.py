@@ -10,17 +10,11 @@ from types import EllipsisType
 from typing import Self, TypeVar
 
 import numpy as np
+import numpy._core as np_core
+from numpy.lib.array_utils import normalize_axis_index
 from numpy.typing import NDArray
 
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.decorators import deprecated
-
-if NUMPY_LT_2_0:
-    import numpy.core as np_core
-    from numpy.core.multiarray import normalize_axis_index
-else:
-    import numpy._core as np_core
-    from numpy.lib.array_utils import normalize_axis_index
 
 __all__ = [
     "IncompatibleShapeError",
@@ -356,8 +350,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
                 function in {np.atleast_1d, np.atleast_2d, np.atleast_3d}
                 and len(args) > 1
             ):
-                seq_cls = list if NUMPY_LT_2_0 else tuple
-                return seq_cls(function(arg, **kwargs) for arg in args)
+                return tuple(function(arg, **kwargs) for arg in args)
 
             if self is not args[0]:
                 return NotImplemented
