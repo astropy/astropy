@@ -43,7 +43,7 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.26",
+    "numpy>=2.0",
     "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
     "astropy-iers-data>=0.2025.12.1.0.45.12",
     "PyYAML>=6.0.0",
@@ -255,20 +255,11 @@ doctest_subpackage_requires = [
     "astropy/cosmology/_src/io/builtin/mapping.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/cosmology/_src/io/builtin/row.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/cosmology/_src/io/builtin/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
-    "astropy/cosmology/_src/traits/curvature.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 18232)
     "astropy/table/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/table/mixins/dask.py = dask",
-    "docs/* = numpy>=2",   # not NUMPY_LT_2_0 (PR 15065)
     "docs/units/type_hints.rst = python<=3.13",  # PYTHON_LT_3_14 (PR 18140)
     "docs/units/structured_units.rst = pyerfa<2.0.1.7",  # PYERFA_LT_2_0_1_7
     "docs/timeseries/index.rst = numpy<2.2.0.dev0",  # NUMPY_LT_2_2 (PR 17364)
-    "astropy/stats/info_theory.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/stats/jackknife.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/table/row.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/time/formats.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/timeseries/periodograms/bls/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/timeseries/periodograms/lombscargle/core.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
-    "astropy/units/structured.py = numpy>=2",  # not NUMPY_LT_2_0 (PR 15065)
     "astropy/modeling/_fitting_parallel.py = dask",
     "docs/modeling/parallel-fitting.rst = dask",
     "docs/coordinates/example_gallery_plot_galactocentric_frame.rst = matplotlib",
