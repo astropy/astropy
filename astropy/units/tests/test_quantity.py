@@ -14,7 +14,6 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -2014,7 +2013,7 @@ class QuantityMimic:
         self.value = value
         self.unit = unit
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         return np.array(self.value, dtype=dtype, copy=copy)
 
 

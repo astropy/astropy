@@ -9,7 +9,6 @@ __all__ = ["is_rotation_or_reflection", "rotation_matrix"]
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import deprecated
 
 from .angles import Angle
@@ -55,7 +54,7 @@ def rotation_matrix(angle, axis="z", unit=None):
         A unitary rotation matrix.
     """
     if not isinstance(angle, u.Quantity):
-        angle = Angle(angle, unit=unit or u.deg, copy=COPY_IF_NEEDED)
+        angle = Angle(angle, unit=unit or u.deg, copy=None)
     angle_in_rad = angle.to_value(u.rad)
 
     s = np.sin(angle_in_rad)

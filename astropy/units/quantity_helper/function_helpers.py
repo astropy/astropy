@@ -44,7 +44,6 @@ from numpy.lib import recfunctions as rfn
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.utils.compat import (
-    COPY_IF_NEEDED,
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
     NUMPY_LT_2_4,
@@ -392,7 +391,7 @@ def _as_quantity(a):
     from astropy.units import Quantity
 
     try:
-        return Quantity(a, copy=COPY_IF_NEEDED, subok=True)
+        return Quantity(a, copy=None, subok=True)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -404,9 +403,7 @@ def _as_quantities(*args):
 
     try:
         # Note: this should keep the dtype the same
-        return tuple(
-            Quantity(a, copy=COPY_IF_NEEDED, subok=True, dtype=None) for a in args
-        )
+        return tuple(Quantity(a, copy=None, subok=True, dtype=None) for a in args)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError

@@ -19,7 +19,6 @@ from astropy.units import (
     dimensionless_unscaled,
 )
 from astropy.units.typing import PhysicalTypeID
-from astropy.utils.compat import COPY_IF_NEEDED
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]
 
@@ -313,7 +312,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
     def __rlshift__(self, other):
         """Unit conversion operator ``<<``."""
         try:
-            return self._quantity_class(other, self, copy=COPY_IF_NEEDED, subok=True)
+            return self._quantity_class(other, self, copy=None, subok=True)
         except Exception:
             return NotImplemented
 

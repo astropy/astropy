@@ -13,7 +13,6 @@ from typing import Any, NamedTuple, Self
 import numpy as np
 
 from astropy.units import Quantity, UnitBase
-from astropy.utils.compat import COPY_IF_NEEDED
 
 __all__ = ["CompoundBoundingBox", "ModelBoundingBox"]
 
@@ -542,9 +541,7 @@ class _BoundingDomain(abc.ABC):
         List containing filled in output values and units
         """
         if valid_outputs_unit is not None:
-            return Quantity(
-                outputs, valid_outputs_unit, copy=COPY_IF_NEEDED, subok=True
-            )
+            return Quantity(outputs, valid_outputs_unit, copy=None, subok=True)
 
         return outputs
 
