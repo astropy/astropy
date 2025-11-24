@@ -9,7 +9,6 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -510,7 +509,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
         copy_indices=True,
     ):
         if data is None:
@@ -1236,7 +1235,7 @@ class Column(BaseColumn):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
         copy_indices=True,
     ):
         if isinstance(data, MaskedColumn) and np.any(data.mask):
@@ -1595,7 +1594,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
         copy_indices=True,
     ):
         if mask is None:

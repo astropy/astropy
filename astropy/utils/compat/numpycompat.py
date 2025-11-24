@@ -9,7 +9,6 @@ import numpy as np
 from astropy.utils import minversion
 
 __all__ = [
-    "COPY_IF_NEEDED",
     "NUMPY_LT_2_1",
     "NUMPY_LT_2_2",
     "NUMPY_LT_2_3",
@@ -25,6 +24,3 @@ NUMPY_LT_2_2 = not minversion(np, "2.2.0.dev0")
 NUMPY_LT_2_3 = not minversion(np, "2.3.0.dev0")
 NUMPY_LT_2_4 = not minversion(np, "2.4.0.dev0")
 NUMPY_LT_2_4_1 = not minversion(np, "2.4.1.dev0")
-
-
-COPY_IF_NEEDED = None
