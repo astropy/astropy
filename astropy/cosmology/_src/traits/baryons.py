@@ -1,32 +1,28 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Baryon component.
+"""Baryon component."""
 
-This is private API. See `~astropy.cosmology.traits` for public API.
-
-"""
-
-__all__ = ["_BaryonComponent"]
+__all__ = ("BaryonComponent",)
 
 from collections.abc import Callable
 from typing import Any
 
+import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 
-class _BaryonComponent:
+class BaryonComponent:
     """The cosmology has attributes and methods for the baryon density."""
 
-    Ob0: float
+    Ob0: float | np.floating
     """Omega baryons: density of baryonic matter in units of the critical density at z=0."""
 
     inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
 
-    @deprecated_keywords("z", since="7.0")
-    def Ob(self, z: Quantity | ArrayLike) -> FArray | float:
+    def Ob(self, z: Quantity | ArrayLike, /) -> FArray:
         """Return the density parameter for baryonic matter at redshift ``z``.
 
         Parameters
@@ -37,12 +33,14 @@ class _BaryonComponent:
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        Ob : ndarray or float
+        Ob : ndarray
             The density of baryonic matter relative to the critical density at
             each redshift.
-            Returns `float` if the input is scalar.
 
         """
         z = aszarr(z)

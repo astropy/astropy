@@ -49,13 +49,14 @@ jobs:
 
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@28e947497bed4d6ec3fa1d66d198e95a1d17bc63  # v2.2.1
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       setenv: |
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
+        PY_COLORS: "1"
       submodules: false
       coverage: ''
       libraries: |
@@ -105,11 +106,12 @@ jobs:
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@28e947497bed4d6ec3fa1d66d198e95a1d17bc63  # v2.2.1
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
     with:
       setenv: |
         ARCH_ON_CI: "normal"
         IS_CRON: "false"
+        PY_COLORS: "1"
       submodules: false
       coverage: ''
       libraries: |
@@ -121,17 +123,29 @@ jobs:
           linux: py313-test-devdeps
           posargs: --remote-data=any --verbose
 
+  stub_tests:
+    needs: [initial_checks]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+      submodules: false
+      envs: |
+        - name: Stubs for unit definition modules
+          linux: stubtest
+
   test_wheel_building:
     needs: [initial_checks]
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@28e947497bed4d6ec3fa1d66d198e95a1d17bc63  # v2.2.1
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
     with:
       upload_to_pypi: false
       upload_to_anaconda: false
       test_extras: test
-      test_command: pytest -p no:warnings --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --pyargs astropy
+      test_command: pytest -Wdefault --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --strict-markers --pyargs astropy
       targets: |
         - cp311-manylinux_x86_64
 

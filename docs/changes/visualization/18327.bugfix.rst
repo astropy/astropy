@@ -1,1 +1,0 @@
-Fixed WCSAxes.get_transform() in the case of 1D WCS

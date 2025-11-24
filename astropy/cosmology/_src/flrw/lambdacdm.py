@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+__all__ = ("FlatLambdaCDM", "LambdaCDM")
+
 from math import acos, cos, inf, sin, sqrt
 from numbers import Number
 
@@ -11,13 +13,11 @@ from numpy.typing import ArrayLike, NDArray
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.scipy_compat import ellipkinc, hyp2f1
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
-
-__all__ = ["FlatLambdaCDM", "LambdaCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -58,10 +58,9 @@ class LambdaCDM(FLRW):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -126,24 +125,23 @@ class LambdaCDM(FLRW):
         #    for Omega_M=0 would lead to an infinity in its argument.
         # The EdS case is three times faster than the hypergeometric.
         if self.Om0 == 0:
-            comoving_distance_z1z2 = self._dS_comoving_distance_z1z2
+            comoving_distance = self._dS_comoving_distance_z1z2
             age = self._dS_age
             lookback_time = self._dS_lookback_time
         elif self.Om0 == 1:
-            comoving_distance_z1z2 = self._EdS_comoving_distance_z1z2
+            comoving_distance = self._EdS_comoving_distance_z1z2
             age = self._EdS_age
             lookback_time = self._EdS_lookback_time
         else:
-            comoving_distance_z1z2 = self._hypergeometric_comoving_distance_z1z2
+            comoving_distance = self._hypergeometric_comoving_distance_z1z2
             age = self._flat_age
             lookback_time = self._flat_lookback_time
 
-        object.__setattr__(self, "_comoving_distance_z1z2", comoving_distance_z1z2)
+        object.__setattr__(self, "_comoving_distance_z1z2", comoving_distance)
         object.__setattr__(self, "_age", age)
         object.__setattr__(self, "_lookback_time", lookback_time)
 
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray | float:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -153,6 +151,9 @@ class LambdaCDM(FLRW):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -167,11 +168,9 @@ class LambdaCDM(FLRW):
         redshift z and :math:`\rho(z)` is the density at redshift z, both in
         units where c=1. Here this is :math:`w(z) = -1`.
         """
-        z = aszarr(z)
-        return -1.0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
+        return np.full_like(aszarr(z), -1.0)
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -182,19 +181,20 @@ class LambdaCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        I : ndarray or float
+        I : ndarray
             The scaling of the energy density of dark energy with redshift.
-            Returns `float` if the input is scalar.
 
         Notes
         -----
         The scaling factor, I, is defined by :math:`\rho(z) = \rho_0 I`,
         and in this case is given by :math:`I = 1`.
         """
-        z = aszarr(z)
-        return np.ones(z.shape) if hasattr(z, "shape") else 1.0
+        return np.ones_like(aszarr(z))
 
     def _elliptic_comoving_distance_z1z2(
         self, z1: Quantity | ArrayLike, z2: Quantity | ArrayLike, /
@@ -212,11 +212,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'] or array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -284,11 +281,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'] or array-like
             Input redshifts. Must be 1D or scalar.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -319,11 +313,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'] or array-like
             Input redshifts. Must be 1D or scalar.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -354,11 +345,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'] or array-like, positional-only
+        z1, z2 : Quantity-like ['redshift'] or array-like
             Input redshifts.
-
-            .. versionchanged:: 7.0
-                Passing z as a keyword argument is deprecated.
 
         Returns
         -------
@@ -413,11 +401,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -435,11 +420,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -461,11 +443,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -497,11 +476,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -527,11 +503,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -552,11 +525,8 @@ class LambdaCDM(FLRW):
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like, positional-only
+        z : Quantity-like ['redshift'], array-like
             Input redshift.
-
-            .. versionchanged:: 7.0
-                The argument is positional-only.
 
         Returns
         -------
@@ -565,8 +535,7 @@ class LambdaCDM(FLRW):
         """
         return self._flat_age(0) - self._flat_age(z)
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: Quantity | ArrayLike) -> FArray | float:
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -577,11 +546,13 @@ class LambdaCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        E : ndarray or float
+        E : ndarray
             The redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
         # We override this because it takes a particularly simple
@@ -595,8 +566,7 @@ class LambdaCDM(FLRW):
 
         return np.sqrt(zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0) + self.Ode0)
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray | float:
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -607,11 +577,13 @@ class LambdaCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        E : ndarray or float
+        E : ndarray
             The inverse redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
         Or = self.Ogamma0 + (
@@ -680,10 +652,9 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -740,8 +711,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: Quantity | ArrayLike) -> FArray | float:
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -752,11 +722,13 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        E : ndarray or float
+        E : ndarray
             The redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
         # We override this because it takes a particularly simple
@@ -770,8 +742,7 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
 
         return np.sqrt(zp1**3 * (Or * zp1 + self.Om0) + self.Ode0)
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray | float:
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -782,11 +753,13 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        E : ndarray or float
+        E : ndarray
             The inverse redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
         Or = self.Ogamma0 + (

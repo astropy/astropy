@@ -17,7 +17,7 @@ from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import ShapedLikeNDArray, deprecated
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_1_25
+from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -1039,7 +1039,7 @@ class Table:
             return self.copy()
 
     @property
-    def indices(self):
+    def indices(self) -> TableIndices:
         """
         Return the indices associated with columns of the table
         as a TableIndices object.
@@ -1052,7 +1052,7 @@ class Table:
         return TableIndices(lst)
 
     @property
-    def loc(self):
+    def loc(self) -> TableLoc:
         """
         Return a TableLoc object that can be used for retrieving
         rows by index in a given data range. Note that both loc
@@ -1061,7 +1061,7 @@ class Table:
         return TableLoc(self)
 
     @property
-    def loc_indices(self):
+    def loc_indices(self) -> TableLocIndices:
         """
         Return a TableLocIndices object that can be used for retrieving
         the row indices corresponding to given table index key value or values.
@@ -1069,7 +1069,7 @@ class Table:
         return TableLocIndices(self)
 
     @property
-    def iloc(self):
+    def iloc(self) -> TableILoc:
         """
         Return a TableILoc object that can be used for retrieving
         indexed rows in the order they appear in the index.
@@ -1084,8 +1084,8 @@ class Table:
 
         Parameters
         ----------
-        colnames : str or list
-            List of column names (or a single column name) to index
+        colnames : str or tuple[str, ...] or list[str]
+            Single column name or tuple or list of column names to index.
         engine : type or None
             Indexing engine class to use, either `~astropy.table.SortedArray`,
             `~astropy.table.BST`, or `~astropy.table.SCEngine`. If the supplied
@@ -1102,9 +1102,9 @@ class Table:
             If unique=True and duplicate rows are found.
 
         """
-        if isinstance(colnames, str):
-            colnames = (colnames,)
-        columns = self.columns[tuple(colnames)].values()
+        # Ensure colnames (and later self.primary_key) is a tuple from here forward
+        colnames = (colnames,) if isinstance(colnames, str) else tuple(colnames)
+        columns = self.columns[colnames].values()
 
         # make sure all columns support indexing
         for col in columns:
@@ -1530,6 +1530,7 @@ class Table:
         table.primary_key = self.primary_key
 
         newcols = []
+        new_indices = {}
         for col in self.columns.values():
             newcol = col[slice_]
 
@@ -1542,6 +1543,16 @@ class Table:
                 # Why isn't that just sent as an arg to the function?
                 col.info._copy_indices = self._copy_indices
                 newcol = col.info.slice_indices(newcol, slice_, len(col))
+
+                # The line above (unfortunately) makes a new *independent* index in each
+                # column for a multi-column index. This causes confusion later in
+                # Table.indices since that property checks for object uniqueness of each
+                # index. The root cause of making new independent indices should be
+                # fixed but this is not so easy. Since this is a less-common case, for
+                # now we do a post-facto fix of simply forcing indices to be one object,
+                # namely the first instance encountered in processing, keyed by id.
+                for ii, index in enumerate(newcol.info.indices):
+                    newcol.info.indices[ii] = new_indices.setdefault(index.id, index)
 
                 # Don't understand why this is forcing a value on the original column.
                 # Normally col.info does not even have a _copy_indices attribute.  Tests
@@ -3877,10 +3888,7 @@ class Table:
         self_is_masked = self.has_masked_columns
         other_is_masked = isinstance(other, np.ma.MaskedArray)
 
-        allowed_numpy_exceptions = (
-            TypeError,
-            ValueError if not NUMPY_LT_1_25 else DeprecationWarning,
-        )
+        allowed_numpy_exceptions = (TypeError, ValueError)
         # One table is masked and the other is not
         if self_is_masked ^ other_is_masked:
             # remap variables to a and b where a is masked and b isn't
@@ -4181,7 +4189,7 @@ class Table:
         """
         from ._dataframes import from_df
 
-        return from_df(df, index=index, units=units)
+        return from_df(cls, df, index=index, units=units)
 
     def to_pandas(
         self, index: bool | str | None = None, use_nullable_int: bool = True
@@ -4322,7 +4330,7 @@ class Table:
         """
         from ._dataframes import from_pandas
 
-        return from_pandas(dataframe, index=index, units=units)
+        return from_pandas(cls, dataframe, index=index, units=units)
 
     info = TableInfo()
 

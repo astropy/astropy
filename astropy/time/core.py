@@ -1257,7 +1257,7 @@ class TimeBase(MaskableShapedLikeNDArray):
                 "'other' argument must support subtraction with Time "
                 "and return a value that supports comparison with "
                 f"{atol.__class__.__name__}: {err}"
-            )
+            ) from err
 
         return out
 
@@ -1804,12 +1804,12 @@ class TimeBase(MaskableShapedLikeNDArray):
             try:
                 # check the value can be broadcast to the shape of self.
                 val = np.broadcast_to(val, self.shape, subok=True)
-            except Exception:
+            except Exception as err:
                 raise ValueError(
                     "Attribute shape must match or be broadcastable to that of "
                     "Time object. Typically, give either a single value or "
                     "one for each time."
-                )
+                ) from err
 
         return val
 
@@ -2038,7 +2038,7 @@ class Time(TimeBase):
                 except Exception as err:
                     raise ValueError(
                         f"cannot convert value to a compatible Time object: {err}"
-                    )
+                    ) from err
         return value
 
     @classmethod
@@ -2184,11 +2184,11 @@ class Time(TimeBase):
         Parameters
         ----------
         skycoord : `~astropy.coordinates.SkyCoord`
-            The sky location to calculate the correction for.
+            The sky location(s) to calculate the correction for.
         kind : str, optional
             ``'barycentric'`` (default) or ``'heliocentric'``
         location : `~astropy.coordinates.EarthLocation`, optional
-            The location of the observatory to calculate the correction for.
+            The location(s) of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
         ephemeris : str, optional
@@ -2203,6 +2203,7 @@ class Time(TimeBase):
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.
             Also, the time conversion to BJD will then include the relativistic correction as well.
+            The shape will be the broadcast shape of ``skycoord`` and ``location``.
         """
         if kind.lower() not in ("barycentric", "heliocentric"):
             raise ValueError(
@@ -2232,10 +2233,10 @@ class Time(TimeBase):
         # get location of observatory in ITRS coordinates at this Time
         try:
             itrs = location.get_itrs(obstime=self)
-        except Exception:
+        except Exception as err:
             raise ValueError(
                 "Supplied location does not have a valid `get_itrs` method"
-            )
+            ) from err
 
         with solar_system_ephemeris.set(ephemeris):
             if kind.lower() == "heliocentric":
@@ -3275,7 +3276,7 @@ class TimeDelta(TimeBase):
             except Exception as err:
                 raise ValueError(
                     f"cannot convert value to a compatible TimeDelta object: {err}"
-                )
+                ) from err
         return value
 
     def isclose(self, other, atol=None, rtol=0.0):
@@ -3300,7 +3301,9 @@ class TimeDelta(TimeBase):
         try:
             other_day = other.to_value(u.day)
         except Exception as err:
-            raise TypeError(f"'other' argument must support conversion to days: {err}")
+            raise TypeError(
+                f"'other' argument must support conversion to days: {err}"
+            ) from err
 
         if atol is None:
             atol = np.finfo(float).eps * u.day

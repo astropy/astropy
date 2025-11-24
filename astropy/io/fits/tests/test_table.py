@@ -3420,6 +3420,23 @@ class TestVLATables(FitsTestCase):
             assert arr.tolist() == [[], [0], [0, 1]]
             assert arr[1].dtype == np.int32
 
+    def test_vla_update(self):
+        """Check that heap is correctly updated after a VLA is modified.
+
+        Regression test for https://github.com/astropy/astropy/issues/18479
+
+        """
+        filename = self.data("variable_length_table.fits")
+        with fits.open(filename) as hdul:
+            for _v in hdul[1].data["var"]:
+                _v[:] = 0
+            hdul.writeto(self.temp("test.fits"), checksum=True)
+
+        with fits.open(self.temp("test.fits"), checksum=True) as hdul:
+            np.testing.assert_array_equal(hdul[1].data["var"][0], 0)
+            np.testing.assert_array_equal(hdul[1].data["var"][1], 0)
+            assert hdul[1].header["DATASUM"] == "1507344"
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
@@ -3613,6 +3630,28 @@ class TestColumnFunctions(FitsTestCase):
 
         assert cols["a"] == cols[0]
         assert cols["b"] == cols[1]
+
+    def test_column_membership(self):
+        """Tests that the membership operator can be used for `ColDefs`."""
+
+        a = fits.Column(name="a", format="D")
+        b = fits.Column(name="b", format="D")
+        c = fits.Column(name="c", format="D")
+
+        cols = fits.ColDefs([a, b])
+
+        # String tests
+        assert "a" in cols
+        assert "b" in cols
+        assert "c" not in cols
+        # Column tests
+        assert a in cols
+        assert b in cols
+        assert c not in cols
+        # General case (false)
+        assert 1 not in cols
+        assert cols not in cols
+        assert [a, b] not in cols
 
     def test_column_attribute_change_after_removal(self):
         """

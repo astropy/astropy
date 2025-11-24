@@ -10,6 +10,7 @@ from astropy import table
 from astropy import units as u
 from astropy.table import MaskedColumn, Table
 from astropy.time import Time, TimeDelta
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import (
     HAS_DASK,
     HAS_DUCKDB,
@@ -125,16 +126,26 @@ class TestDataFrameConversion:
         # Basic round-trip test
         t2 = self._from_dataframe(d, backend, use_legacy_pandas_api)
 
+        if minversion("pandas", "3.0.0.dev"):
+            # upstream feature of pandas
+            import pandas as pd
+
+            pandas_string_dtype = pd.StringDtype(na_value=np.nan)
+        else:
+            # PANDAS_LT_3_0
+            pandas_string_dtype = np.dtype("O")
+
         for column in t.columns:
             original_col = t[column]
             roundtrip_col = t2[column]
 
-            if column in ("u", "s"):
+            assert roundtrip_col.dtype.kind == original_col.dtype.kind
+
+            if original_col.dtype.kind in ("U", "S"):
                 assert_array_equal(roundtrip_col, original_col)
-                if backend == "pandas":
+                if original_col.dtype.kind == "U" and backend == "pandas":
                     # Pandas-specific checks
-                    # Upstream feature of pandas
-                    assert d[column].dtype == np.dtype("O")
+                    assert d[column].dtype == pandas_string_dtype
             else:
                 # Generic comparison with tolerance
                 assert_allclose(roundtrip_col, original_col)
@@ -406,12 +417,10 @@ class TestDataFrameConversion:
             self._from_dataframe(df, backend, use_legacy_pandas_api, units=[u.m, u.s])
 
         # test warning is raised if additional columns in units dict
-        with pytest.warns(UserWarning) as record:
+        with pytest.warns(UserWarning, match="{'y'}"):
             self._from_dataframe(
                 df, backend, use_legacy_pandas_api, units={"x": u.m, "t": u.s, "y": u.m}
             )
-        assert len(record) == 1
-        assert "{'y'}" in str(record[0].message.args[0])
 
     @pytest.mark.parametrize("unsigned", ["u", ""])
     @pytest.mark.parametrize("bits", [8, 16, 32, 64])
@@ -654,3 +663,18 @@ class TestDataFrameConversion:
 
         assert val == 2
         assert nulls_first_two.all()
+
+
+@pytest.mark.skipif(
+    not HAS_PANDAS or not HAS_NARWHALS,
+    reason="requires pandas and narwhals",
+)
+@pytest.mark.parametrize("method", ["from_df", "from_pandas"])
+def test_from_pandas_df_with_qtable(method):
+    """Test fix for QTable.from_pandas / from_df returns Table not QTable #18909"""
+    t = table.QTable()
+    t["a"] = [1, 2]
+    t["q"] = [3.0, 4.0]
+    df = t.to_pandas()
+    qt = getattr(table.QTable, method)(df)
+    assert isinstance(qt, table.QTable)

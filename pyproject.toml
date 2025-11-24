@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Physics",
@@ -42,9 +43,9 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.24",
+    "numpy>=1.25",
     "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
-    "astropy-iers-data>=0.2025.9.29.0.35.48",
+    "astropy-iers-data>=0.2025.10.27.0.39.10",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
 ]
@@ -52,7 +53,7 @@ dependencies = [
 [project.optional-dependencies]
 # Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
-    "scipy>=1.9.2",
+    "scipy>=1.10",
     "matplotlib>=3.8.0",
     "narwhals>=1.42.0",  # keep in sync with dependency-groups.dataframe
 ]
@@ -71,7 +72,7 @@ jupyter = [  # these are optional dependencies for utils.console and table
     # jupyter-core is a transitive dependency via ipykernel, we declare it as
     # a direct dependency in order to set a lower bound for oldest-deps testing
     "jupyter-core>=4.11.2",
-    "pandas>=2.0.0",
+    "pandas>=2.0.2",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
@@ -87,11 +88,10 @@ all = [
     "beautifulsoup4>=4.9.3", # imposed by pandas==2.0
     "html5lib>=1.1",
     "bleach>=3.2.1",
-    "sortedcontainers>=1.5.7", # (older versions may work)
+    "sortedcontainers>=2.1.0", # imposed by testing with hypothesis
     "pytz>=2016.10", # (older versions may work)
-    "jplephem>=2.15",
+    "jplephem>=2.17.0",
     "mpmath>=1.2.1",
-    "asdf>=2.8.3", # via asdf-astropy==0.3.*
     "asdf-astropy>=0.3",
     "bottleneck>=1.3.3",
     "fsspec[http]>=2023.4.0",
@@ -100,13 +100,13 @@ all = [
 ]
 # The base set of test-time dependencies.
 test = [
-    "coverage>=6.4.4",
-    "pre-commit>=2.9.3", # lower bound is not tested beyond installation
-    "pytest>=8.0.0",
+    "coverage>=7.2.0",
+    "hypothesis>=6.84.0",
+    "pytest>=8.0.1",
     "pytest-doctestplus>=1.4.0",
     "pytest-astropy-header>=0.2.1",
-    "pytest-astropy>=0.10.0",
-    "pytest-xdist>=2.5.0",
+    "pytest-astropy>=0.11.0",
+    "pytest-xdist>=3.6.0",
     "threadpoolctl>=3.0.0",
 ]
 test_all = [
@@ -114,14 +114,14 @@ test_all = [
     "astropy[all]",  # installs all optional run-time dependencies
     "astropy[test]",
     # Install all remaining dependencies
-    "objgraph>=1.6.0",
-    "skyfield>=1.20",
+    "objgraph>=3.1.2",
+    "skyfield>=1.42.0",
     "sgp4>=2.3",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 ]
 typing = [
-    "pandas-stubs>=2.0.0",
+    "pandas-stubs>=2.0.2",
     "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
 ]
 docs = [
@@ -130,7 +130,7 @@ docs = [
     "sphinx-astropy[confv2]>=1.9.1",
     "pytest>=8.0.0",
     "sphinx-changelog>=1.2.0",
-    "sphinx_design",
+    "sphinx_design>=0.6.1",
     "Jinja2>=3.1.3",
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
@@ -143,7 +143,7 @@ dev = [
     "astropy[typing]",
 ]
 dev_all = [
-    "tox",
+    "tox>=4.22.0", # keep in sync with tox.minversion in tox.ini
     "astropy[dev]",
     "astropy[test_all]",
 ]
@@ -166,6 +166,7 @@ volint = "astropy.io.votable.volint:main"
 wcslint = "astropy.wcs.wcslint:main"
 
 [build-system]
+# keep in sync with .github/workflows/publish.yml
 requires = ["setuptools>=77.0.0",
             "setuptools_scm>=8.0.0",
             "cython>=3.0.0, <4",
@@ -183,7 +184,7 @@ dataframe = [
     # and project.optional-dependencies.typing
     "narwhals>=1.42.0",
     "pyarrow>=14.0.2",
-    "pandas>=2.0.0",
+    "pandas>=2.0.2",
     "polars>=1.0.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0"
@@ -194,7 +195,6 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["astropy*"]
-exclude = ["astropy._dev*"]
 namespaces = true
 
 [tool.setuptools.package-data]
@@ -228,14 +228,12 @@ norecursedirs = [
     "docs[\\/]_build",
     "docs[\\/]generated",
     "astropy[\\/]extern",
-    "astropy[\\/]_dev",
 ]
 astropy_header = true
 doctest_plus = "enabled"
 text_file_format = "rst"
 remote_data_strict = true
 addopts = [
-    "--color=yes",
     "--doctest-rst",
     "--strict-config",
     "--strict-markers",
@@ -331,9 +329,7 @@ archs = ["auto", "aarch64"]
         ]
 
     [tool.coverage.report]
-        exclude_lines = [
-            # Have to re-enable the standard pragma
-            "pragma: no cover",
+        exclude_also = [
             # Don't complain about packages we have installed
             "except ImportError",
             # Don't complain if tests don't hit defensive assertion code:
@@ -346,7 +342,7 @@ archs = ["auto", "aarch64"]
             # Don't complain about IPython completion helper
             "def _ipython_key_completions_",
             # typing.TYPE_CHECKING is False at runtime
-            "if TYPE_CHECKING:",
+            "if TYPE_CHECKING:", # TODO: drop this line when coverage>=7.10.1 is required
             # Ignore typing overloads
             "@overload",
         ]
@@ -409,11 +405,6 @@ lint.extend-select = [
     "UP",    # pyupgrade
     "W",     # pycodestyle
     "YTT",   # flake8-2020
-]
-exclude=[
-    "astropy/extern/*",
-    "*_parsetab.py",
-    "*_lextab.py"
 ]
 lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml` instead.
 
@@ -481,6 +472,11 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
 
     # flake8-todos (TD)
     "TD002",  # Missing author in TODO
+]
+exclude = [
+    "astropy/extern/*",
+    "*_parsetab.py",
+    "*_lextab.py"
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
@@ -733,6 +729,52 @@ ignore-words-list = """
 """
 
 [tool.uv]
+# never build the following packages from source. Prefer more recent versions
+# with binary distributions even with --resolution=lowest[-direct]
+no-build-package = [
+    "bottleneck",
+    "contourpy",
+    "coverage",
+    "h5py",
+    "numpy",
+    "matplotlib",
+    "pandas",
+    "pillow",
+    "polars",
+    "scipy",
+    "sgp4",
+]
+
+# ensure that uv resolves envs that are compatible with macOS arm64,
+# even in drastic conditions like --resolution=lowest[-direct],
+# taking into account tool.uv.no-build-package
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+# constrain acceptable versions of some known-problematic, indirect dependencies
 constraint-dependencies = [
-    "pyparsing<3.3.0a1",  # https://github.com/astropy/astropy/issues/18652
+    "asdf>=2.12.0",
+    "asdf-coordinates-schemas>=0.2.0",
+
+    # via pytest
+    # iniconfig 1.0.1 is the first version with proper wheels
+    # this constraint can be removed once pytest>=9.0 is required
+    "iniconfig>=1.0.1",
+
+    # reproduce IPython minimal requirements on its dependencies
+    # as of version 9.7.0 (dev), the earliest time at which lower bounds
+    # started being consistently declared and tested.
+    # This entire chunk may be removed when we drop support for IPython<9.7
+    'colorama>=0.4.4; sys_platform == "win32"',
+    "decorator>=4.3.2",
+    "ipython-pygments-lexers>=1.0.0",
+    "jedi>=0.18.1",
+    "matplotlib-inline>=0.1.5",
+    'pexpect>4.3; sys_platform != "win32" and sys_platform != "emscripten"',
+    "prompt_toolkit>=3.0.41",
+    "pygments>=2.11.0",
+    "stack_data>=0.6.0",
+    "traitlets>=5.13.0",
+    "typing_extensions>=4.6; python_version<'3.12'",
 ]

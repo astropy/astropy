@@ -91,6 +91,21 @@ class TestConvenience(FitsTestCase):
         filename = self.temp("test_table_to_hdu.fits")
         hdu.writeto(filename, overwrite=True)
 
+    def test_masked_integer_arrays(self):
+        # Regression test for #18817
+        testfile = self.temp("test_masked_integer_arrays.fits")
+        t_w = Table(
+            rows=[
+                [[np.ma.masked, np.ma.masked]],
+                [[1, 2]],
+                [[1, np.ma.masked]],
+            ],
+            names=["a"],
+        )
+        t_w.write(testfile, overwrite=True)
+        t_r = Table.read(testfile)
+        assert repr(t_w) == repr(t_r)
+
     def test_table_non_stringifyable_unit_to_hdu(self):
         table = Table(
             [[1, 2, 3], ["a", "b", "c"], [2.3, 4.5, 6.7]],
@@ -325,20 +340,20 @@ class TestConvenience(FitsTestCase):
             '               ""               ""               ""              \n'
         )
         # copy fits file to the temp directory
-        self.copy_file("tb.fits")
+        testfile = self.copy_file("tb.fits")
 
         # test without datafile
-        fits.tabledump(self.temp("tb.fits"))
+        fits.tabledump(testfile)
         assert os.path.isfile(self.temp("tb_1.txt"))
 
         # test with datafile
-        fits.tabledump(self.temp("tb.fits"), datafile=self.temp("test_tb.txt"))
+        fits.tabledump(testfile, datafile=self.temp("test_tb.txt"))
         assert os.path.isfile(self.temp("test_tb.txt"))
 
         # test with datafile and cdfile
         datafile = self.temp("data.txt")
         cdfile = self.temp("coldefs.txt")
-        fits.tabledump(self.temp("tb.fits"), datafile, cdfile)
+        fits.tabledump(testfile, datafile, cdfile)
         assert os.path.isfile(datafile)
         with open(datafile) as data:
             assert data.read() == datastr
@@ -353,16 +368,16 @@ class TestConvenience(FitsTestCase):
         """
 
         # copy fits file to the temp directory
-        self.copy_file(tablename)
+        testfile = self.copy_file(tablename)
 
         datafile = self.temp("data.txt")
         cdfile = self.temp("coldefs.txt")
         hfile = self.temp("header.txt")
-        fits.tabledump(self.temp(tablename), datafile, cdfile, hfile)
+        fits.tabledump(testfile, datafile, cdfile, hfile)
 
         new_tbhdu = fits.tableload(datafile, cdfile, hfile)
 
-        with fits.open(self.temp(tablename)) as hdul:
+        with fits.open(testfile) as hdul:
             _assert_attr_col(new_tbhdu, hdul[1])
 
     def test_append_filename(self, home_is_temp):

@@ -15,22 +15,14 @@ import warnings
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
+from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
-    from numpy.lib.function_base import (
-        _check_interpolation_as_method,
-        _quantile_is_valid,
-        _ureduce,
-    )
+    from numpy.lib.function_base import _quantile_is_valid, _ureduce
 else:
     import numpy._core as np_core
-    from numpy.lib._function_base_impl import (
-        _check_interpolation_as_method,
-        _quantile_is_valid,
-        _ureduce,
-    )
+    from numpy.lib._function_base_impl import _quantile_is_valid, _ureduce
 
 
 # This module should not really be imported, but we define __all__
@@ -305,9 +297,8 @@ def outer(a, b, out=None):
 
 if not NUMPY_LT_2_0:
 
-    @dispatched_function
-    def empty_like(
-        prototype, dtype=None, order="K", subok=True, shape=None, *, device=None
+    def empty_like_impl(
+        prototype, /, dtype=None, order="K", subok=True, shape=None, *, device=None
     ):
         """Return a new array with the same shape and type as a given array.
 
@@ -337,6 +328,35 @@ if not NUMPY_LT_2_0:
         )
 
         return unmasked, mask, None
+
+    if not NUMPY_LT_2_4:
+
+        @dispatched_function
+        def empty_like(
+            prototype, /, dtype=None, order="K", subok=True, shape=None, *, device=None
+        ):
+            return empty_like_impl(
+                prototype,
+                dtype=dtype,
+                order=order,
+                subok=subok,
+                shape=shape,
+                device=device,
+            )
+    else:
+
+        @dispatched_function
+        def empty_like(
+            prototype, dtype=None, order="K", subok=True, shape=None, *, device=None
+        ):
+            return empty_like_impl(
+                prototype,
+                dtype=dtype,
+                order=order,
+                subok=subok,
+                shape=shape,
+                device=device,
+            )
 
     @dispatched_function
     def zeros_like(a, dtype=None, order="K", subok=True, shape=None, *, device=None):
@@ -465,8 +485,7 @@ def put(a, ind, v, mode="raise"):
     np.put(a.mask, ind, v_mask, mode=mode)
 
 
-@dispatched_function
-def putmask(a, mask, values):
+def putmask_impl(a, /, mask, values):
     """Changes elements of an array based on conditional and input values.
 
     Like `numpy.putmask`, but for masked array ``a`` and possibly masked
@@ -483,6 +502,18 @@ def putmask(a, mask, values):
         values_data, values_mask = get_data_and_mask(values)
         np.putmask(a.unmasked, mask, values_data)
     np.putmask(a.mask, mask, values_mask)
+
+
+if not NUMPY_LT_2_4:
+
+    @dispatched_function
+    def putmask(a, /, mask, values):
+        return putmask_impl(a, mask=mask, values=values)
+else:
+
+    @dispatched_function
+    def putmask(a, mask, values):
+        return putmask_impl(a, mask=mask, values=values)
 
 
 @dispatched_function
@@ -526,14 +557,14 @@ def copyto(dst, src, casting="same_kind", where=True):
 
 
 @dispatched_function
-def packbits(a, *args, **kwargs):
+def packbits(a, /, *args, **kwargs):
     result = np.packbits(a.unmasked, *args, **kwargs)
     mask = np.packbits(a.mask, *args, **kwargs).astype(bool)
     return result, mask, None
 
 
 @dispatched_function
-def unpackbits(a, *args, **kwargs):
+def unpackbits(a, /, *args, **kwargs):
     result = np.unpackbits(a.unmasked, *args, **kwargs)
     mask = np.zeros(a.shape, dtype="u1")
     mask[a.mask] = 255
@@ -542,7 +573,7 @@ def unpackbits(a, *args, **kwargs):
 
 
 @dispatched_function
-def bincount(x, weights=None, minlength=0):
+def bincount(x, /, weights=None, minlength=0):
     """Count number of occurrences of each value in array of non-negative ints.
 
     Like `numpy.bincount`, but masked entries in ``x`` will be skipped.
@@ -608,8 +639,7 @@ def sort_complex(a):
     return result, None, None
 
 
-@dispatched_function
-def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+def concatenate_impl(arrays, /, axis=0, out=None, *, dtype=None, casting="same_kind"):
     data, masks = _get_data_and_mask_arrays(arrays)
     if out is None:
         return (
@@ -625,6 +655,22 @@ def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
         np.concatenate(masks, out=out.mask, axis=axis)
         np.concatenate(data, out=out.unmasked, axis=axis, dtype=dtype, casting=casting)
         return out, None, None
+
+
+if NUMPY_LT_2_4:
+
+    @dispatched_function
+    def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+        return concatenate_impl(
+            arrays, axis=axis, out=out, dtype=dtype, casting=casting
+        )
+else:
+
+    @dispatched_function
+    def concatenate(arrays, /, axis=0, out=None, *, dtype=None, casting="same_kind"):
+        return concatenate_impl(
+            arrays, axis=axis, out=out, dtype=dtype, casting=casting
+        )
 
 
 @apply_to_both
@@ -807,10 +853,15 @@ def _preprocess_quantile(a, q, axis=None, out=None, **kwargs):
     if not _quantile_is_valid(q):
         raise ValueError("Quantiles must be in the range [0, 1]")
 
-    if (interpolation := kwargs.pop("interpolation")) is not None:
+    if (interpolation := kwargs.pop("interpolation", None)) is not None:
         # we have to duplicate logic from np.quantile here to avoid
         # passing down the 'interpolation' keyword argument, as it's not
         # supported by np.lib._function_base_impl._quantile_unchecked
+        if NUMPY_LT_2_0:
+            from numpy.lib.function_base import _check_interpolation_as_method
+        else:
+            assert NUMPY_LT_2_4  # 'interpolation' kwarg was removed in numpy 2.4
+            from numpy.lib._function_base_impl import _check_interpolation_as_method
         kwargs["method"] = _check_interpolation_as_method(
             kwargs.get("method", "linear"), interpolation, "quantile"
         )
@@ -844,7 +895,7 @@ if NUMPY_LT_2_0:
         result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
         return result, None, None
 
-else:
+elif NUMPY_LT_2_4:
 
     @dispatched_function
     def quantile(
@@ -869,6 +920,33 @@ else:
             keepdims=keepdims,
             weights=weights,
             interpolation=interpolation,
+        )
+        result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
+        return result, None, None
+
+else:
+
+    @dispatched_function
+    def quantile(
+        a,
+        q,
+        axis=None,
+        out=None,
+        overwrite_input=False,
+        method="linear",
+        keepdims=False,
+        *,
+        weights=None,
+    ):
+        a, q, axis, out, kwargs = _preprocess_quantile(
+            a,
+            q,
+            axis,
+            out,
+            overwrite_input=overwrite_input,
+            method=method,
+            keepdims=keepdims,
+            weights=weights,
         )
         result = _ureduce(a, func=_masked_quantile, q=q, axis=axis, out=out, **kwargs)
         return result, None, None
@@ -899,7 +977,7 @@ def array_equiv(a1, a2):
 
 
 @dispatched_function
-def where(condition, *args):
+def where(condition, /, *args):
     from astropy.utils.masked import Masked, get_data_and_mask
 
     if not args:
@@ -1160,7 +1238,7 @@ class MaskedFormat:
         return cls(_get_format_function(data, **options))
 
 
-def _array2string(a, options, separator=" ", prefix=""):
+def _array2string_impl(a, options, separator=" ", prefix=""):
     # Mostly copied from numpy.core.arrayprint, except:
     # - The format function is wrapped in a mask-aware class;
     # - Arrays scalars are not cast as arrays.
@@ -1198,25 +1276,24 @@ def _array2string(a, options, separator=" ", prefix=""):
     return lst
 
 
-@dispatched_function
-def array2string(
+def _array2string_main(
     a,
-    max_line_width=None,
-    precision=None,
-    suppress_small=None,
-    separator=" ",
-    prefix="",
-    style=np._NoValue,
-    formatter=None,
-    threshold=None,
-    edgeitems=None,
-    sign=None,
-    floatmode=None,
-    suffix="",
-    *,
-    legacy=None,
+    *,  # make most arguments keyword only to minimize the risk of a human mistake
+    max_line_width,
+    precision,
+    suppress_small,
+    separator,
+    prefix,
+    formatter,
+    threshold,
+    edgeitems,
+    sign,
+    floatmode,
+    suffix,
+    legacy,
+    style=np._NoValue,  # deprecated, removed in numpy 2.4
 ):
-    # Copied from numpy.core.arrayprint, but using _array2string above.
+    # Copied from numpy.core.arrayprint, but using _array2string_impl above.
     if NUMPY_LT_2_1:
         if NUMPY_LT_2_0:
             from numpy.core.arrayprint import _format_options
@@ -1239,11 +1316,11 @@ def array2string(
         edgeitems,
         max_line_width,
         suppress_small,
-        None,
-        None,
-        sign,
-        formatter,
-        floatmode,
+        nanstr=None,
+        infstr=None,
+        sign=sign,
+        formatter=formatter,
+        floatmode=floatmode,
     )
     options.update(overrides)
 
@@ -1256,9 +1333,81 @@ def array2string(
     if a.size == 0:
         result = "[]"
     else:
-        result = _array2string(a, options, separator, prefix)
+        result = _array2string_impl(a, options, separator, prefix)
 
     return result, None, None
+
+
+if not NUMPY_LT_2_4:
+
+    @dispatched_function
+    def array2string(
+        a,
+        max_line_width=None,
+        precision=None,
+        suppress_small=None,
+        separator=" ",
+        prefix="",
+        *,
+        formatter=None,
+        threshold=None,
+        edgeitems=None,
+        sign=None,
+        floatmode=None,
+        suffix="",
+        legacy=None,
+    ):
+        return _array2string_main(
+            a,
+            max_line_width=max_line_width,
+            precision=precision,
+            suppress_small=suppress_small,
+            separator=separator,
+            prefix=prefix,
+            formatter=formatter,
+            threshold=threshold,
+            edgeitems=edgeitems,
+            sign=sign,
+            floatmode=floatmode,
+            suffix=suffix,
+            legacy=legacy,
+        )
+else:
+
+    @dispatched_function
+    def array2string(
+        a,
+        max_line_width=None,
+        precision=None,
+        suppress_small=None,
+        separator=" ",
+        prefix="",
+        style=np._NoValue,  # removed in numpy 2.4
+        formatter=None,
+        threshold=None,
+        edgeitems=None,
+        sign=None,
+        floatmode=None,
+        suffix="",
+        *,
+        legacy=None,
+    ):
+        return _array2string_main(
+            a,
+            max_line_width=max_line_width,
+            precision=precision,
+            suppress_small=suppress_small,
+            separator=separator,
+            prefix=prefix,
+            style=style,
+            formatter=formatter,
+            threshold=threshold,
+            edgeitems=edgeitems,
+            sign=sign,
+            floatmode=floatmode,
+            suffix=suffix,
+            legacy=legacy,
+        )
 
 
 def _array_str_scalar(x):
@@ -1402,10 +1551,12 @@ def _copy_of_mask(a):
     return mask.copy() if mask is not None else False
 
 
-@dispatched_function
-def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-    mask = _copy_of_mask(ar1).ravel()
-    return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
+if NUMPY_LT_2_4:
+
+    @dispatched_function
+    def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
+        mask = _copy_of_mask(ar1).ravel()
+        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
 
 
 @dispatched_function

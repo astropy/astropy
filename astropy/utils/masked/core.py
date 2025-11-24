@@ -708,11 +708,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         if obj is None or obj.__class__ is np.ndarray:
             return
 
-        # Logically, this should come from ndarray and hence be None, but
-        # just in case someone creates a new mixin, we check.
-        super_array_finalize = super().__array_finalize__
-        if super_array_finalize:  # pragma: no cover
-            super_array_finalize(obj)
+        # Logically, this should come from ndarray and hence do nothing, but
+        # just in case someone creates a new mixin, we run it.
+        super().__array_finalize__(obj)
 
         if self._mask is None:
             # Got here after, e.g., a view of another masked class.
@@ -988,12 +986,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     # Accumulate
                     axis = kwargs.get("axis", 0)
                     mask = np.logical_or.accumulate(mask, axis=axis, out=out_mask)
-
-            elif out is None:
-                # Can only get here if neither input nor output was masked, but
-                # perhaps where was masked (possible in "not NUMPY_LT_1_25").
-                # We don't support this.
-                return NotImplemented
 
         elif method in {"reduceat", "at"}:  # pragma: no cover
             raise NotImplementedError(

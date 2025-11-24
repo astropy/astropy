@@ -20,6 +20,7 @@ from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
 from astropy.visualization.wcsaxes.frame import RectangularFrame, RectangularFrame1D
 from astropy.visualization.wcsaxes.wcsapi import (
+    WCSPixel2WorldTransform,
     WCSWorld2PixelTransform,
     apply_slices,
     custom_ucd_coord_meta_mapping,
@@ -130,6 +131,16 @@ def test_shorthand_inversion():
     assert t1 - t2 == t1 + t2.inverted()
     assert t1 - t2 != t2.inverted() + t1
     assert t1 - t1 == IdentityTransform()
+
+
+@pytest.mark.parametrize(
+    "wcs_factory", [WCSPixel2WorldTransform, WCSWorld2PixelTransform]
+)
+def test_hashing(wcs_factory):
+    w1 = wcs_factory(WCS2D)
+    w2 = w1.inverted()
+    assert hash(w1) != hash(w2)
+    assert hash(w1) == hash(w2.inverted())
 
 
 # We add Affine2D to catch the fact that in Matplotlib, having a Composite

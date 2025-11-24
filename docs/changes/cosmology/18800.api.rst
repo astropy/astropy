@@ -1,0 +1,2 @@
+Redshift arguments (``z``, ``z1``, ``z2``) in cosmology methods are now
+positional-only, completing the deprecations started in v7.0 and v7.1.

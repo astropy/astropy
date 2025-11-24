@@ -28,6 +28,7 @@ concurrency:
 env:
   ARCH_ON_CI: "normal"
   IS_CRON: "true"
+  PY_COLORS: "1"
 
 permissions:
   contents: read
@@ -35,7 +36,13 @@ permissions:
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
-    if: (github.repository == 'astropy/astropy' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'Extra CI')))
+    if: |
+      github.repository == 'astropy/astropy' && (
+        github.event_name == 'schedule' ||
+        github.event_name == 'push' ||
+        github.event_name == 'workflow_dispatch' ||
+        contains(github.event.pull_request.labels.*.name, 'Extra CI')
+      )
     strategy:
       fail-fast: false
       matrix:

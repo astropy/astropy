@@ -9,6 +9,7 @@ repos:
       - id: check-added-large-files
         args: ["--enforce-all", "--maxkb=300"]
         exclude: "^(\
+            cextern/expat/lib/xmlparse.c|\
             cextern/wcslib/C/flexed/.*|\
             CHANGES.rst|\
         )$"
@@ -51,7 +52,7 @@ repos:
         # Forbid files which have a UTF-8 Unicode replacement character.
 
   - repo: https://github.com/woodruffw/zizmor-pre-commit
-    rev: v1.12.1
+    rev: v1.16.2
     hooks:
     - id: zizmor
 
@@ -64,14 +65,14 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.0
+    rev: v0.14.3
     hooks:
       - id: ruff-check
         args: ["--fix", "--show-fixes"]
       - id: ruff-format
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2025.05.02
+    rev: 2025.10.20
     hooks:
       - id: sp-repo-review
 
@@ -97,8 +98,7 @@ repos:
 
   # Linting hook for stylistic issues in rst doc files.
   - repo: https://github.com/sphinx-contrib/sphinx-lint
-    rev: v1.0.0
+    rev: v1.0.2
     hooks:
       - id: sphinx-lint
-        args: ["--disable", "missing-underscore-after-hyperlink"]
         exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"

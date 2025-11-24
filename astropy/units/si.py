@@ -167,7 +167,6 @@ def_unit(
     ["s", "second"],
     namespace=_ns,
     prefixes=True,
-    exclude_prefixes=["a"],
     doc="second: base unit of time in SI.",
 )
 def_unit(

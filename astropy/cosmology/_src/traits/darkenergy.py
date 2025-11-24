@@ -1,24 +1,22 @@
 from abc import abstractmethod
 from math import exp, log
-from numbers import Number
 
 import numpy as np
 from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 
 class DarkEnergyComponent:
     # Subclasses should use `Parameter` to make this a parameter of the cosmology.
-    Ode0: float
+    Ode0: float | np.floating
     """Omega dark energy; dark energy density/critical density at z=0."""
 
     @abstractmethod
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""The dark energy equation of state.
 
         Parameters
@@ -28,6 +26,9 @@ class DarkEnergyComponent:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -65,8 +66,7 @@ class DarkEnergyComponent:
         """
         return 1.0 + self.w(exp(ln1pz) - 1.0)
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -76,6 +76,9 @@ class DarkEnergyComponent:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -111,17 +114,14 @@ class DarkEnergyComponent:
         # so it is probably a good idea for subclasses to overload this
         # method if an analytic form is available.
         z = aszarr(z)
-        if not isinstance(z, (Number, np.generic)):  # array/Quantity
-            ival = np.array(
-                [quad(self._w_integrand, 0, log(1 + redshift))[0] for redshift in z]
-            )
-            return np.exp(3 * ival)
-        else:  # scalar
-            ival = quad(self._w_integrand, 0, log(z + 1.0))[0]
-            return exp(3 * ival)
+        ival = (
+            quad(self._w_integrand, 0, log(z + 1.0))[0]  # scalar
+            if z.ndim == 0
+            else np.asarray([quad(self._w_integrand, 0, log(1 + _z))[0] for _z in z])
+        )
+        return np.exp(3 * ival)
 
-    @deprecated_keywords("z", since="7.0")
-    def Ode(self, z: Quantity | ArrayLike) -> FArray | float:
+    def Ode(self, z: Quantity | ArrayLike, /) -> FArray:
         """Return the density parameter for dark energy at redshift ``z``.
 
         Parameters
@@ -132,19 +132,20 @@ class DarkEnergyComponent:
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        Ode : ndarray or float
+        Ode : ndarray
             The density of dark energy relative to the critical density at each
             redshift.
-            Returns `float` if the input is scalar.
         """
         z = aszarr(z)
         if self.Ode0 == 0:  # Common enough to be worth checking explicitly
-            return np.zeros(z.shape) if hasattr(z, "shape") else 0.0
+            return np.zeros_like(z)
         # Ensure self.inv_efunc is implemented by the main class
         if not hasattr(self, "inv_efunc") or not callable(self.inv_efunc):
-            raise NotImplementedError(
-                "The main class must implement an 'inv_efunc(z)' method."
-            )
+            msg = "The main class must implement an 'inv_efunc(z)' method."
+            raise NotImplementedError(msg)
         return self.Ode0 * self.de_density_scale(z) * self.inv_efunc(z) ** 2

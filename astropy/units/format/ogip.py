@@ -31,7 +31,6 @@ from astropy.units.typing import UnitScale
 from astropy.utils import classproperty, parsing
 from astropy.utils.parsing import ThreadSafeParser
 
-from . import utils
 from .base import Base, _ParsingFormatMixin
 
 
@@ -49,10 +48,9 @@ class OGIP(Base, _ParsingFormatMixin):
         "WHITESPACE",
         "POWER",
         "STAR",
-        "SIGN",
-        "UFLOAT",
+        "FLOAT",
         "LIT10",
-        "UINT",
+        "INT",
         "UNKNOWN",
         "FUNCNAME",
         "UNIT",
@@ -64,6 +62,15 @@ class OGIP(Base, _ParsingFormatMixin):
     def _units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
 
+        names = {"as": u.attosecond}
+        for non_prefixed_unit in [
+            "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
+            "byte", "chan", "count", "d", "deg", "erg", "G",
+            "h", "lyr", "mag", "min", "photon", "pixel",
+            "voxel", "yr",
+        ]:  # fmt: skip
+            names[non_prefixed_unit] = getattr(u, non_prefixed_unit)
+
         bases = [
             "A", "C", "cd", "eV", "F", "g", "H", "Hz", "J",
             "Jy", "K", "lm", "lx", "m", "mol", "N", "ohm", "Pa",
@@ -74,17 +81,9 @@ class OGIP(Base, _ParsingFormatMixin):
             "", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y",
         ]  # fmt: skip
 
-        names = {
-            unit: getattr(u, unit)
-            for unit, _ in utils.get_non_keyword_units(bases, prefixes)
-        }
-        simple_units = [
-            "angstrom", "arcmin", "arcsec", "AU", "barn", "bin",
-            "byte", "chan", "count", "d", "deg", "erg", "G",
-            "h", "lyr", "mag", "min", "photon", "pixel",
-            "voxel", "yr",
-        ]  # fmt: skip
-        names.update((unit, getattr(u, unit)) for unit in simple_units)
+        for name in (prefix + base for base in bases for prefix in prefixes):
+            if name not in names:
+                names[name] = getattr(u, name)
 
         # Create a separate, disconnected unit for the special case of
         # Crab and mCrab, since OGIP doesn't define their quantities.
@@ -106,19 +105,14 @@ class OGIP(Base, _ParsingFormatMixin):
 
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
         # Regular expression rules for simple tokens
-        def t_UFLOAT(t):
-            r"(((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+))|(((\d+\.\d*)|(\.\d+))([eE][+-]?\d+)?)"
+        def t_FLOAT(t):
+            r"[+-]?((((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+))|(((\d+\.\d*)|(\.\d+))([eE][+-]?\d+)?))"
             t.value = float(t.value)
             return t
 
-        def t_UINT(t):
-            r"\d+"
+        def t_INT(t):
+            r"[+-]?\d+"
             t.value = int(t.value)
-            return t
-
-        def t_SIGN(t):
-            r"[+-](?=\d)"
-            t.value = 1 if t.value == "+" else -1
             return t
 
         def t_LIT10(t):
@@ -254,9 +248,8 @@ class OGIP(Base, _ParsingFormatMixin):
             """
             scale_factor : LIT10 POWER numeric_power
                          | LIT10
-                         | signed_float
-                         | signed_float POWER numeric_power
-                         | signed_int POWER numeric_power
+                         | number
+                         | number POWER numeric_power
             """
             if len(p) == 4:
                 p[0] = 10 ** p[3]
@@ -280,11 +273,9 @@ class OGIP(Base, _ParsingFormatMixin):
 
         def p_numeric_power(p):
             """
-            numeric_power : UINT
-                          | signed_float
-                          | OPEN_PAREN signed_int CLOSE_PAREN
-                          | OPEN_PAREN signed_float CLOSE_PAREN
-                          | OPEN_PAREN signed_float DIVISION UINT CLOSE_PAREN
+            numeric_power : number
+                          | OPEN_PAREN number CLOSE_PAREN
+                          | OPEN_PAREN INT DIVISION INT CLOSE_PAREN
             """
             if len(p) == 6:
                 p[0] = Fraction(int(p[2]), int(p[4]))
@@ -300,28 +291,12 @@ class OGIP(Base, _ParsingFormatMixin):
                         )
                     )
 
-        def p_sign(p):
+        def p_number(p):
             """
-            sign : SIGN
-                 |
+            number : INT
+                   | FLOAT
             """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = 1.0
-
-        def p_signed_int(p):
-            """
-            signed_int : SIGN UINT
-            """
-            p[0] = p[1] * p[2]
-
-        def p_signed_float(p):
-            """
-            signed_float : sign UINT
-                         | sign UFLOAT
-            """
-            p[0] = p[1] * p[2]
+            p[0] = p[1]
 
         def p_error(p):
             raise ValueError()

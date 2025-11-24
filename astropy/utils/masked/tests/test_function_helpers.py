@@ -23,7 +23,7 @@ from astropy.units.tests.test_quantity_non_ufuncs import (
     get_covered_functions,
     get_wrapped_functions,
 )
-from astropy.utils.compat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2
+from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
     APPLY_TO_BOTH_FUNCTIONS,
@@ -322,7 +322,7 @@ class TestArrayCreation(MaskedArraySetup):
         assert o.shape == (2, 3)
         assert isinstance(o, Masked)
         assert isinstance(o, np.ndarray)
-        o2 = np.empty_like(prototype=self.ma)
+        o2 = np.empty_like(self.ma)
         assert o2.shape == (2, 3)
         assert isinstance(o2, Masked)
         assert isinstance(o2, np.ndarray)
@@ -1041,11 +1041,6 @@ class TestPartitionLikeFunctions:
         assert_array_equal(o.filled(np.nan), expected)
         assert_array_equal(o.mask, np.isnan(expected))
         # Also check that we can give an output MaskedArray.
-        if NUMPY_LT_1_25 and kwargs.get("keepdims", False):
-            # numpy bug gh-22714 prevents using out with keepdims=True.
-            # This is fixed in numpy 1.25.
-            return
-
         out = np.zeros_like(o)
         o2 = function(self.ma, *args, out=out, **kwargs)
         assert o2 is out
@@ -1293,10 +1288,10 @@ class TestStringFunctions:
         out2 = np.array2string(self.ma, separator=", ", formatter={"all": hex})
         assert out2 == "[———, 0x1, 0x2]"
         # Also as positional argument (no, nobody will do this!)
-        out3 = np.array2string(
-            self.ma, None, None, None, ", ", "", np._NoValue, {"int": hex}
-        )
-        assert out3 == out2
+        if NUMPY_LT_2_4:
+            args = (self.ma, None, None, None, ", ", "", np._NoValue, {"int": hex})
+            out3 = np.array2string(*args)
+            assert out3 == out2
         # But not if the formatter is not relevant for us.
         out4 = np.array2string(self.ma, separator=", ", formatter={"float": hex})
         assert out4 == out1
@@ -1680,6 +1675,7 @@ class TestArraySetOps:
         c = np.isin(a.astype(dtype), b.astype(dtype))
         assert_masked_equal(c, ec)
 
+    @pytest.mark.skipif(not NUMPY_LT_2_4, reason="np.in1d was removed in numpy 2.4")
     @pytest.mark.filterwarnings("ignore:in1d.*deprecated")  # not NUMPY_LT_2_0
     def test_in1d(self):
         # Once we require numpy>=2.0, these tests should be joined with np.isin.
@@ -1697,6 +1693,7 @@ class TestArraySetOps:
         assert_masked_equal(np.in1d(Masked([]), []), Masked([]))  # noqa: NPY201
         assert_masked_equal(np.in1d(Masked([]), [], invert=True), Masked([]))  # noqa: NPY201
 
+    @pytest.mark.skipif(not NUMPY_LT_2_4, reason="np.in1d was removed in numpy 2.4")
     def test_in1d_kind_table_error(self):
         with pytest.raises(ValueError, match="'table' method is not supported"):
             np.in1d(Masked([1, 2, 3]), [4, 5], kind="table")  # noqa: NPY201
@@ -1764,14 +1761,16 @@ def test_testing_completeness():
 class TestFunctionHelpersCompleteness:
     @pytest.mark.parametrize(
         "one, two",
-        itertools.combinations(
-            (
-                MASKED_SAFE_FUNCTIONS,
-                UNSUPPORTED_FUNCTIONS,
-                set(APPLY_TO_BOTH_FUNCTIONS.keys()),
-                set(DISPATCHED_FUNCTIONS.keys()),
+        list(
+            itertools.combinations(
+                (
+                    MASKED_SAFE_FUNCTIONS,
+                    UNSUPPORTED_FUNCTIONS,
+                    set(APPLY_TO_BOTH_FUNCTIONS.keys()),
+                    set(DISPATCHED_FUNCTIONS.keys()),
+                ),
+                2,
             ),
-            2,
         ),
     )
     def test_no_duplicates(self, one, two):

@@ -5,12 +5,13 @@ __all__: list[str] = []  # nothing is publicly scoped
 import functools
 from collections.abc import Callable
 from numbers import Number
-from typing import Any, ParamSpec, Protocol, TypeVar
+from typing import Any, Final, ParamSpec, Protocol, TypeAlias, TypeVar
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.units import Quantity
+from astropy.utils.compat import COPY_IF_NEEDED
 
 # isort: split
 import astropy.cosmology._src.units as cu
@@ -67,34 +68,44 @@ def vectorize_redshift_method(func=None, nin=1):
     return wrapper
 
 
+# ===================================================================
+
+ScalarTypes: TypeAlias = Number | np.generic
+SCALAR_TYPES: Final = (float, int, np.generic, Number)  # arranged for speed
+
+
 class HasShape(Protocol):
     shape: tuple[int, ...]
 
 
 def aszarr(
-    z: Number | np.generic | HasShape | ArrayLike,
-) -> Number | np.generic | NDArray[Any]:
-    """Redshift as a `~numbers.Number` or |ndarray| / |Quantity| / |Column|.
+    z: Quantity | NDArray[Any] | ArrayLike | ScalarTypes | HasShape, /
+) -> NDArray[Any]:
+    """Redshift as an Array duck type.
 
     Allows for any ndarray ducktype by checking for attribute "shape".
     """
-    if isinstance(z, (Number, np.generic)):  # scalars
+    # Scalars
+    if isinstance(z, SCALAR_TYPES):
+        return np.asarray(z)
+
+    # Quantities. We do this before checking for normal ndarray because Quantity is a
+    # subclass of ndarray.
+    elif isinstance(z, Quantity):
+        return z.to_value(cu.redshift)[...]
+
+    # Arrays
+    elif isinstance(z, np.ndarray):
         return z
-    elif hasattr(z, "shape"):  # ducktypes NumPy array
-        if getattr(z, "__module__", "").startswith("pandas"):
-            # See https://github.com/astropy/astropy/issues/15576. Pandas does not play
-            # well with others and will ignore unit-ful calculations so we need to
-            # convert to it's underlying value.
-            z = z.values
-        if hasattr(z, "unit"):  # Quantity Column
-            return (z << cu.redshift).value  # for speed only use enabled equivs
-        return z
-    # not one of the preferred types: Number / array ducktype
-    return Quantity(z, cu.redshift).value
+
+    return Quantity(z, cu.redshift, copy=COPY_IF_NEEDED, subok=True).view(np.ndarray)
+
+
+# ===================================================================
 
 
 def deprecated_keywords(
-    *kws: str, since: str | float | tuple[str | float, ...]
+    *kws: str, since: str | tuple[str, ...]
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Deprecate calling one or more arguments as keywords.
 
@@ -103,17 +114,15 @@ def deprecated_keywords(
     *kws: str
         Names of the arguments that will become positional-only.
 
-    since : str or number or sequence of str or number
-        The release at which the old argument became deprecated.
+    since : str, float, or tuple of str or float
+        The release at which the old argument became deprecated. Can be a single
+        version (e.g., "7.0" or 7.0) or a tuple of versions for multiple arguments.
     """
     return functools.partial(_depr_kws, kws=kws, since=since)
 
 
 def _depr_kws(
-    func: Callable[P, R],
-    /,
-    kws: tuple[str, ...],
-    since: str | float | tuple[str | float, ...],
+    func: Callable[P, R], /, kws: tuple[str, ...], since: str | tuple[str, ...]
 ) -> Callable[P, R]:
     wrapper = _depr_kws_wrap(func, kws, since)
     functools.update_wrapper(wrapper, func)
