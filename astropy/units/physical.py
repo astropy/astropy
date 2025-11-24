@@ -259,6 +259,8 @@ class PhysicalType:
         Return `True` if ``other`` represents a physical type that is
         consistent with the physical type of the `PhysicalType` instance.
         """
+        if self is other:
+            return True
         if isinstance(other, PhysicalType):
             return self._unit._physical_type_id == other._unit._physical_type_id
         elif isinstance(other, str):
