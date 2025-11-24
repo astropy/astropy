@@ -12,7 +12,6 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from . import formats
 
@@ -175,11 +174,11 @@ class Angle(SpecificTypeQuantity):
 
                 if angle_unit is not unit:
                     # Possible conversion to `unit` will be done below.
-                    angle = u.Quantity(angle, angle_unit, copy=COPY_IF_NEEDED)
+                    angle = u.Quantity(angle, angle_unit, copy=None)
 
             elif isinstance(angle, np.ndarray):
                 if angle.dtype.kind in "SUVO":
-                    angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
+                    angle = [cls(x, unit, copy=None) for x in angle]
 
             elif hasattr(angle, "__array__") and (
                 not hasattr(angle, "dtype") or angle.dtype.kind not in "SUVO"
@@ -187,7 +186,7 @@ class Angle(SpecificTypeQuantity):
                 angle = np.asarray(angle)
 
             elif np.iterable(angle):
-                angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
+                angle = [cls(x, unit, copy=None) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
 
