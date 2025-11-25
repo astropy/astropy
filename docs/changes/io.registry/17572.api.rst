@@ -1,2 +1,0 @@
-``UnifiedInputRegistry`` and ``UnifiedOutputRegistry``'s ``delay_doc_updates``
-method's effect is disabled under Python's optimized mode (``-OO`` flag).

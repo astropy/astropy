@@ -1,3 +1,0 @@
-``get_config_dir()`` and ``get_cache_dir()`` now emit warnings in all cases
-where the ``XDG_CACHE_HOME`` (``XDG_CONFIG_HOME``, respectively) environment
-variable doesn't meet internal assumptions and is ignored as a result.

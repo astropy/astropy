@@ -1,1 +1,0 @@
-Fix calculation of DATASUM/CHECKSUM for heap data in ``BinTableHDU``.

@@ -1,3 +1,0 @@
-Added an image interval option (``SymmetricInterval``) for specifying a
-symmetric extent about a midpoint, and the extent that contains both the image
-minimum and maximum can be automatically determined.
