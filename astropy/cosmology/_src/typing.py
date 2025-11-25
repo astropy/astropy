@@ -1,7 +1,7 @@
 """Static typing for :mod:`astropy.cosmology`. PRIVATE API."""
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ["CosmoMeta", "FArray", "_CosmoT"]
+__all__ = ("CosmoMeta", "FArray", "_CosmoT")
 
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar

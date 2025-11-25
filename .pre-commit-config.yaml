@@ -98,8 +98,7 @@ repos:
 
   # Linting hook for stylistic issues in rst doc files.
   - repo: https://github.com/sphinx-contrib/sphinx-lint
-    rev: v1.0.1
+    rev: v1.0.2
     hooks:
       - id: sphinx-lint
-        args: ["--disable", "missing-underscore-after-hyperlink"]
         exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"

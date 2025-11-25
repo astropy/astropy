@@ -416,8 +416,6 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         assert Ob0.default == 0.0
 
         # validation
-        with pytest.warns(DeprecationWarning, match="Ob0=None is deprecated"):
-            assert Ob0.validate(cosmo, None) == 0.0
         assert Ob0.validate(cosmo, 0.1) == 0.1
         assert Ob0.validate(cosmo, 0.1 * u.one) == 0.1
         with pytest.raises(ValueError, match="Ob0 cannot be negative"):
@@ -460,18 +458,18 @@ class ParameterOb0TestMixin(ParameterTestMixin):
         with pytest.raises(ValueError, match="baryonic density can not be larger"):
             cosmo_cls(*tba.args, **tba.kwargs)
 
-        # No baryons specified means baryons = 0 and gives a warning.
-        tba = copy.copy(ba)
-        tba.arguments["Ob0"] = None
-        with pytest.warns(DeprecationWarning, match="Ob0=None is deprecated"):
-            cosmo = cosmo_cls(*tba.args, **tba.kwargs)
-
         # In FLRW `Ob(z)` requires `w(z)`.
         if not self.abstract_w:
             assert cosmo.Ob(1) == 0
 
         # The default value is None
         assert cosmo_cls.parameters["Ob0"].default == 0.0
+
+    def test_Ob0_cannot_be_None(self, cosmo_cls: type[Cosmology], ba: BoundArguments):
+        """Test that Ob0 cannot be None."""
+        ba.arguments["Ob0"] = None
+        with pytest.raises(TypeError):
+            cosmo_cls(*ba.args, **ba.kwargs)
 
 
 # =============================================================================

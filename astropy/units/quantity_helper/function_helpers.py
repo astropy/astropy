@@ -55,10 +55,6 @@ if NUMPY_LT_2_0:
 else:
     import numpy._core as np_core
 
-# In 1.17, overrides are enabled by default, but it is still possible to
-# turn them off using an environment variable.  We use getattr since it
-# is planned to remove that possibility in later numpy versions.
-ARRAY_FUNCTION_ENABLED = getattr(np_core.overrides, "ENABLE_ARRAY_FUNCTION", True)
 SUBCLASS_SAFE_FUNCTIONS = set()
 """Functions with implementations supporting subclasses like Quantity."""
 FUNCTION_HELPERS = {}
@@ -118,7 +114,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
 if NUMPY_LT_2_0:
-    # functions (re)moved in numpy 2.0; alias for np.round in NUMPY_LT_1_25
+    # functions (re)moved in numpy 2.0
     SUBCLASS_SAFE_FUNCTIONS |= {
         np.msort,
         np.round_,  # noqa: NPY003, NPY201
@@ -514,68 +510,115 @@ def _block(arrays, max_depth, result_ndim, depth=0):
 
 UNIT_FROM_LIKE_ARG = object()
 
-if NUMPY_LT_2_0:
+
+if not NUMPY_LT_2_0:
 
     @function_helper
-    def arange(*args, start=None, stop=None, step=None, dtype=None):
-        return arange_impl(*args, start=start, stop=stop, step=step, dtype=dtype)
+    def arange(
+        start_or_stop,
+        /,
+        stop=None,
+        step=1,
+        *,
+        dtype=None,
+        device=None,
+    ):
+        return arange_impl(
+            start_or_stop, stop=stop, step=step, dtype=dtype, device=device
+        )
+
 else:
 
     @function_helper
-    def arange(*args, start=None, stop=None, step=None, dtype=None, device=None):
-        return arange_impl(
-            *args, start=start, stop=stop, step=step, dtype=dtype, device=device
+    def arange(start_or_stop, /, stop=None, step=1, *, dtype=None):
+        return arange_impl(start_or_stop, stop=stop, step=step, dtype=dtype)
+
+
+def unwrap_arange_args(*, start_or_stop, stop_, step_):
+    # handle the perilous task of disentangling original arguments
+    # This isn't trivial because start_or_stop may actually bind to two
+    # different inputs, as the name suggests.
+    # We (ab)use structural pattern matching here to bind output variables
+    # (start, stop, step), so no additional logic is actually needed after
+    # a match is found.
+    match (start_or_stop, stop_, step_):
+        case (stop, None as start, step):
+            pass
+        case (start, stop, step):
+            pass
+
+    # purely defensive programming
+    assert stop is not None, "Please report this."
+    return start, stop, step
+
+
+def wrap_arange_args(*, start, stop, step, expected_out_unit):
+    # do the reverse operation than unwrap_arange_args
+    # this is needed because start_or_stop *must* be passed as positional
+
+    # purely defensive programming
+    assert stop is not None, "Please report this."
+
+    match start, stop:
+        case (None, _):
+            qty_args = (stop,)
+        case _:
+            qty_args = (start, stop)
+
+    step_val = step.to_value(expected_out_unit) if hasattr(step, "unit") else step
+
+    kwargs = {} if step == 1 else {"step": step_val}
+
+    # reverse positional arguments so `stop` always comes first
+    # this is done to ensure that the arrays are first converted to the
+    # expected unit, which we guarantee should be stop's
+    args_rev, out_unit = _quantities2arrays(*qty_args[::-1])
+    if expected_out_unit is not UNIT_FROM_LIKE_ARG:
+        assert out_unit == expected_out_unit
+    if hasattr(stop, "unit"):
+        assert out_unit == stop.unit
+
+    # reverse args again to restore initial order
+    args = args_rev[::-1]
+
+    if "step" in kwargs:
+        kwargs["step"] = step_val
+    return args, kwargs
+
+
+def arange_impl(start_or_stop, /, *, stop, step, dtype, device=None):
+    # Because this wrapper requires exceptional amounts of additional logic
+    # to unwrap/wrap its complicated signature, we'll sprinkle a few
+    # sanity checks in the form of `assert` statements, which should help making
+    # heads or tails of what's happening in the event of an unexpected exception.
+    #
+    # also note that we intentionally choose to match numpy.arange's signature
+    # at typecheck time, as opposed to its actual runtime signature, which is
+    # even richer (as of numpy 2.4). For instance, this means we don't support
+    # `start` being passed as keyword, or `dtype` being passed as positional.
+    # This is done to improve the overall stability and maintainability of this
+    # complicated wrapper function.
+    start, stop, step = unwrap_arange_args(
+        start_or_stop=start_or_stop, stop_=stop, step_=step
+    )
+    out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
+
+    if out_unit is UNIT_FROM_LIKE_ARG and (
+        hasattr(start, "unit") or hasattr(step, "unit")
+    ):
+        raise TypeError(
+            "stop without a unit cannot be combined with start or step with a unit."
         )
 
-
-def arange_impl(*args, start=None, stop=None, step=None, dtype=None, **kwargs):
-    # NumPy is supposed to validate the input parameters before this dispatched
-    # function is reached. Nevertheless, we'll sprinkle a few rundundant
-    # sanity checks in the form of `assert` statements.
-    # As they are not part of the business logic, it is fine if they are
-    # compiled-away (e.g. the Python interpreter runs with -O)
-    assert len(args) <= 4
-
-    # bind positional arguments to their meaningful names
-    # following the (complex) logic of np.arange
-    match args:
-        case (pos1,):
-            assert stop is None or start is None
-            if stop is None:
-                stop = pos1
-            elif start is None:
-                start = pos1
-        case start, stop, *rest:
-            if start is not None and stop is None:
-                start, stop = stop, start
-            match rest:
-                # rebind step and dtype if possible
-                case (step,):
-                    pass
-                case step, dtype:
-                    pass
-
-    # as the only required argument, we want stop to set the unit of the output
-    # so it's important that it comes first in the qty_kwargs
-    qty_kwargs = {
-        k: v
-        for k, v in (("stop", stop), ("start", start), ("step", step))
-        if v is not None
-    }
-    out_unit = getattr(stop, "unit", UNIT_FROM_LIKE_ARG)
-    if out_unit is UNIT_FROM_LIKE_ARG:
-        if hasattr(start, "unit") or hasattr(step, "unit"):
-            raise TypeError(
-                "stop without a unit cannot be combined with start or step with a unit."
-            )
-        kwargs.update(qty_kwargs)
-    else:
-        # Convert possible start, step to stop units.
-        new_values, _ = _quantities2arrays(*qty_kwargs.values())
-        kwargs.update(zip(qty_kwargs.keys(), new_values))
+    args, kwargs = wrap_arange_args(
+        start=start, stop=stop, step=step, expected_out_unit=out_unit
+    )
 
     kwargs["dtype"] = dtype
-    return (), kwargs, out_unit, None
+    if not NUMPY_LT_2_0:
+        kwargs["device"] = device
+
+    return args, kwargs, out_unit, None
 
 
 if NUMPY_LT_2_0:
@@ -1327,15 +1370,10 @@ def array2string(a, *args, **kwargs):
     # also work around this by passing on a formatter (as is done in Angle).
     # So, we do nothing if the formatter argument is present and has the
     # relevant formatter for our dtype.
-    import inspect
-
-    sig = inspect.signature(np.array2string)
-    formatter_arg_pos = list(sig.parameters).index("formatter") - 1
-    formatter = (
-        args[formatter_arg_pos]
-        if len(args) >= formatter_arg_pos
-        else kwargs.get("formatter")
-    )
+    if NUMPY_LT_2_4:
+        formatter = args[6] if len(args) >= 7 else kwargs.get("formatter")
+    else:
+        formatter = kwargs.get("formatter")
 
     if formatter is None:
         a = a.value

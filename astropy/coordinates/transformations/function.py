@@ -5,8 +5,6 @@
 These are transformations that cannot be represented as an affine transformation.
 """
 
-from contextlib import suppress
-from inspect import signature
 from warnings import warn
 
 from astropy import units as u
@@ -56,16 +54,6 @@ class FunctionTransform(CoordinateTransform):
     def __init__(self, func, fromsys, tosys, priority=1, register_graph=None):
         if not callable(func):
             raise TypeError("func must be callable")
-
-        with suppress(TypeError):
-            sig = signature(func)
-            kinds = [x.kind for x in sig.parameters.values()]
-            if (
-                len(x for x in kinds if x == sig.POSITIONAL_ONLY) != 2
-                and sig.VAR_POSITIONAL not in kinds
-            ):
-                raise ValueError("provided function does not accept two arguments")
-
         self.func = func
 
         super().__init__(

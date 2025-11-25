@@ -4,7 +4,7 @@
 This is private API. See `~astropy.cosmology.traits` for public API.
 """
 
-__all__ = ["HubbleParameter"]
+__all__ = ("HubbleParameter",)
 
 from collections.abc import Callable
 from functools import cached_property
@@ -16,7 +16,6 @@ from numpy.typing import ArrayLike, NDArray
 import astropy.units as u
 from astropy import constants as const
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import deprecated_keywords
 from astropy.units import Quantity
 
 
@@ -30,8 +29,7 @@ class HubbleParameter:
 
     inv_efunc: Callable[[Any], FArray | float]
 
-    @deprecated_keywords("z", since="7.0")
-    def H(self, z: Quantity | ArrayLike) -> Quantity:
+    def H(self, z: Quantity | ArrayLike, /) -> Quantity:
         """Hubble parameter at redshift ``z``.
 
         Parameters

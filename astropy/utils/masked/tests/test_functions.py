@@ -18,7 +18,6 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy import units as u
 from astropy.units import Quantity
 from astropy.utils import minversion
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_25
 from astropy.utils.masked.core import Masked
 
 from .test_masked import (
@@ -116,10 +115,8 @@ class MaskedUfuncTests(MaskedArraySetup):
         with pytest.raises(TypeError):
             np.add(self.ma, self.mb, out=out)
 
-    @pytest.mark.xfail(NUMPY_LT_1_25, reason="masked where not supported in numpy<1.25")
     def test_ufunc_inplace_error_masked_where(self):
         # Input and output are not masked, but where is.
-        # Note: prior to numpy 1.25, we cannot control this.
         out = self.a.copy()
         with pytest.raises(TypeError):
             np.add(self.a, self.b, out=out, where=Masked(True, mask=True))

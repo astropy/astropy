@@ -5,14 +5,14 @@ This is private API. See `~astropy.cosmology.traits` for public API.
 
 """
 
-__all__ = ["CurvatureComponent"]
+__all__ = ("CurvatureComponent",)
 
 import abc
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 
@@ -36,8 +36,7 @@ class CurvatureComponent:
         """Return `bool`; `True` if the cosmology is globally flat."""
         raise NotImplementedError
 
-    @deprecated_keywords("z", since="7.0")
-    def Ok(self, z: Quantity | ArrayLike) -> NDArray[np.floating]:
+    def Ok(self, z: Quantity | ArrayLike, /) -> NDArray[np.floating]:
         """Return the equivalent density parameter for curvature at redshift ``z``.
 
         Parameters
@@ -47,6 +46,9 @@ class CurvatureComponent:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------

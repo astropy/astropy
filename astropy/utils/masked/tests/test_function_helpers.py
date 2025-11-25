@@ -23,13 +23,7 @@ from astropy.units.tests.test_quantity_non_ufuncs import (
     get_covered_functions,
     get_wrapped_functions,
 )
-from astropy.utils.compat import (
-    NUMPY_LT_1_25,
-    NUMPY_LT_2_0,
-    NUMPY_LT_2_1,
-    NUMPY_LT_2_2,
-    NUMPY_LT_2_4,
-)
+from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
     APPLY_TO_BOTH_FUNCTIONS,
@@ -1047,11 +1041,6 @@ class TestPartitionLikeFunctions:
         assert_array_equal(o.filled(np.nan), expected)
         assert_array_equal(o.mask, np.isnan(expected))
         # Also check that we can give an output MaskedArray.
-        if NUMPY_LT_1_25 and kwargs.get("keepdims", False):
-            # numpy bug gh-22714 prevents using out with keepdims=True.
-            # This is fixed in numpy 1.25.
-            return
-
         out = np.zeros_like(o)
         o2 = function(self.ma, *args, out=out, **kwargs)
         assert o2 is out
@@ -1301,10 +1290,8 @@ class TestStringFunctions:
         # Also as positional argument (no, nobody will do this!)
         if NUMPY_LT_2_4:
             args = (self.ma, None, None, None, ", ", "", np._NoValue, {"int": hex})
-        else:
-            args = (self.ma, None, None, None, ", ", "", {"int": hex})
-        out3 = np.array2string(*args)
-        assert out3 == out2
+            out3 = np.array2string(*args)
+            assert out3 == out2
         # But not if the formatter is not relevant for us.
         out4 = np.array2string(self.ma, separator=", ", formatter={"float": hex})
         assert out4 == out1
@@ -1774,14 +1761,16 @@ def test_testing_completeness():
 class TestFunctionHelpersCompleteness:
     @pytest.mark.parametrize(
         "one, two",
-        itertools.combinations(
-            (
-                MASKED_SAFE_FUNCTIONS,
-                UNSUPPORTED_FUNCTIONS,
-                set(APPLY_TO_BOTH_FUNCTIONS.keys()),
-                set(DISPATCHED_FUNCTIONS.keys()),
+        list(
+            itertools.combinations(
+                (
+                    MASKED_SAFE_FUNCTIONS,
+                    UNSUPPORTED_FUNCTIONS,
+                    set(APPLY_TO_BOTH_FUNCTIONS.keys()),
+                    set(DISPATCHED_FUNCTIONS.keys()),
+                ),
+                2,
             ),
-            2,
         ),
     )
     def test_no_duplicates(self, one, two):
