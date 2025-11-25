@@ -186,7 +186,7 @@ dataframe = [
     "narwhals>=1.42.0",
     "pyarrow>=14.0.2",
     "pandas>=2.0.2",
-    "polars>=1.0.0",
+    "polars>=1.18.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0"
 ]
