@@ -1,2 +1,0 @@
-Add additional detail to the text of the ``ValueError`` that is raised when
-``pprint`` cannot parse a column format string.
