@@ -68,11 +68,3 @@ class TestFits2Bitmap:
         img = mpimg.imread(out_filename)
         assert img[0, 0, 0] == 0
         assert img[31, 31, 0] == 1
-
-    def test_min_max_cut_deprecations(self, tmp_path):
-        filename = str(tmp_path / self.filename)
-        fits.writeto(filename, self.array)
-        with pytest.raises(SystemExit):
-            main([filename, "--min_cut=0.1", "--vmin=0.1"])
-        with pytest.raises(SystemExit):
-            main([filename, "--max_cut=0.1", "--vmax=0.1"])
