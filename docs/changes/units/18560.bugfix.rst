@@ -1,0 +1,2 @@
+Fixed hash inconsistency where equal units from different namespaces (e.g.,
+``units.bar`` and ``cds.bar``) had different hashes.
