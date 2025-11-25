@@ -1,17 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
 from pathlib import Path
 
 from astropy import log
 from astropy.io.fits import getdata
-from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.visualization.mpl_normalize import simple_norm
 
 __all__ = ["fits2bitmap", "main"]
 
 
-@deprecated_renamed_argument(["min_cut", "max_cut"], ["vmin", "vmax"], ["6.1", "6.1"])
 def fits2bitmap(
     filename,
     ext=0,
@@ -139,10 +136,6 @@ def main(args=None):
     # TODO: pass suggest_on_error as kwarg when PYTHON_LT_14 is dropped
     parser.suggest_on_error = True
 
-    # the mutually exclusive groups can be removed when the deprecated
-    # min_cut and max_cut are removed
-    vmin_group = parser.add_mutually_exclusive_group()
-    vmax_group = parser.add_mutually_exclusive_group()
     parser.add_argument(
         "-e",
         "--ext",
@@ -186,29 +179,17 @@ def main(args=None):
             "(Default is 0.1)."
         ),
     )
-    vmin_group.add_argument(
+    parser.add_argument(
         "--vmin",
         type=float,
         default=None,
         help="The pixel value of the minimum cut level (Default is the image minimum).",
     )
-    vmax_group.add_argument(
+    parser.add_argument(
         "--vmax",
         type=float,
         default=None,
         help="The pixel value of the maximum cut level (Default is the image maximum).",
-    )
-    vmin_group.add_argument(
-        "--min_cut",
-        type=float,
-        default=None,
-        help="The pixel value of the minimum cut level (Deprecated, use vmin instead; default is the image minimum).",
-    )
-    vmax_group.add_argument(
-        "--max_cut",
-        type=float,
-        default=None,
-        help="The pixel value of the maximum cut level (Deprecated, use vmax instead; default is the image maximum).",
     )
     parser.add_argument(
         "--min_percent",
@@ -249,14 +230,6 @@ def main(args=None):
         "filename", nargs="+", help="Path to one or more FITS files to convert"
     )
     args = parser.parse_args(args)
-
-    if args.min_cut is not None:
-        warnings.warn('The "--min_cut" argument is deprecated. Use "--vmin" instead.')
-        args.vmin = args.min_cut
-
-    if args.max_cut is not None:
-        warnings.warn('The "--max_cut" argument is deprecated. Use "--vmax" instead.')
-        args.vmax = args.max_cut
 
     for filename in args.filename:
         fits2bitmap(
