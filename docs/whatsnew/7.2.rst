@@ -23,10 +23,10 @@ In addition to these major changes, Astropy v7.2 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
-* 830 commits have been added since 7.1
-* 140 issues have been closed since 7.1
-* 310 pull requests have been merged since 7.1
-* 49 people have contributed since 7.1
+* 858 commits have been added since 7.1
+* 166 issues have been closed since 7.1
+* 359 pull requests have been merged since 7.1
+* 50 people have contributed since 7.1
 * 22 of which are new contributors
 
 .. _whatsnew-7.2-faster-ecsv-tab-rdr:
