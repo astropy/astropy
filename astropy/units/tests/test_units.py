@@ -1174,6 +1174,30 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu2) == hash(unit)
 
 
+def test_hash_equal_units():
+    """Regression test for gh-18560."""
+    assert u.bar == cds.bar
+    assert hash(u.bar) == hash(cds.bar)
+
+    assert u.year == cds.a
+    assert hash(u.year) == hash(cds.a)
+
+    assert u.cm == cds.cm
+    assert hash(u.cm) == hash(cds.cm)
+
+    assert u.N == u.kg * u.m / u.s**2
+    assert hash(u.N) == hash(u.kg * u.m / u.s**2)
+
+    assert u.Pa == u.J / u.m**3
+    assert hash(u.Pa) == hash(u.J / u.m**3)
+
+    d = {u.bar: "bar value"}
+    assert d[cds.bar] == "bar value"
+
+    s = {u.bar, cds.bar}
+    assert len(s) == 1
+
+
 @pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="tests array_api_strict")
 def test_array_api_strict_arrays():
     # Ensure strict array api arrays can be passed in/out of Unit.to()

@@ -366,7 +366,10 @@ class UnitBase:
 
     @cached_property
     def _hash(self) -> int:
-        return hash((self.scale, *[x.name for x in self.bases], *map(str, self.powers)))
+        unit = self.decompose()
+        return hash(
+            (unit.scale, *[x.name for x in unit.bases], *map(str, unit.powers))
+        )
 
     def __getstate__(self) -> dict[str, object]:
         # If we get pickled, we should *not* store the memoized members since
@@ -2241,7 +2244,10 @@ class Unit(NamedUnit, metaclass=_UnitMetaClass):
 
     @cached_property
     def _hash(self) -> int:
-        return hash((self.name, self._represents))
+        unit = self.decompose()
+        return hash(
+            (unit.scale, *[x.name for x in unit.bases], *map(str, unit.powers))
+        )
 
     @classmethod
     def _from_physical_type_id(cls, physical_type_id: PhysicalTypeID) -> UnitBase:
