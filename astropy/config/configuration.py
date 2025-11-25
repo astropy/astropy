@@ -545,12 +545,6 @@ def get_config_filename(packageormod=None, rootname=None):
     return cfg.filename
 
 
-# This is used by testing to override the config file, so we can test
-# with various config files that exercise different features of the
-# config system.
-_override_config_file = None
-
-
 def get_config(packageormod=None, reload=False, rootname=None):
     """Gets the configuration object or section associated with a particular
     package or module.
@@ -611,18 +605,11 @@ def get_config(packageormod=None, reload=False, rootname=None):
     cobj = _cfgobjs.get(pkgname)
 
     if cobj is None or reload:
-        cfgfn = None
         try:
-            # This feature is intended only for use by the unit tests
-            if _override_config_file is not None:
-                cfgfn = Path(_override_config_file)
-            else:
-                cfgfn = (
-                    get_config_dir_path(rootname=rootname)
-                    .joinpath(pkgname)
-                    .with_suffix(".cfg")
-                )
-            cobj = configobj.ConfigObj(str(cfgfn), interpolation=False)
+            cobj = configobj.ConfigObj(
+                str((get_config_dir_path(rootname) / pkgname).with_suffix(".cfg")),
+                interpolation=False,
+            )
         except OSError:
             # This can happen when HOME is not set
             cobj = configobj.ConfigObj(interpolation=False)

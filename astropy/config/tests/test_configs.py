@@ -698,28 +698,20 @@ def test_empty_config_file():
     assert not is_unedited_config_file(content)
 
 
-class TestAliasRead:
-    def setup_class(self):
-        configuration._override_config_file = get_pkg_data_filename("data/alias.cfg")
+def test_alias_read():
+    from astropy.utils.data import conf
 
-    def test_alias_read(self):
-        from astropy.utils.data import conf
-
-        with pytest.warns(
+    with (
+        set_temp_config(Path(__file__).with_name("data") / "alias"),
+        pytest.warns(
             AstropyDeprecationWarning,
-            match=r"Config parameter 'name_resolve_timeout' in section "
-            r"\[coordinates.name_resolve\].*",
-        ) as w:
-            conf.reload()
-            assert conf.remote_timeout == 42
-
-        assert len(w) == 1
-
-    def teardown_class(self):
-        from astropy.utils.data import conf
-
-        configuration._override_config_file = None
-        conf.reload()
+            match=(
+                "^Config parameter 'name_resolve_timeout' in section "
+                r"\[coordinates\.name_resolve\].*"
+            ),
+        ),
+    ):
+        assert conf.remote_timeout == 42
 
 
 def test_configitem_unicode():
@@ -742,16 +734,11 @@ def test_warning_move_to_top_level():
     # file works.  See #2514
     from astropy import conf
 
-    configuration._override_config_file = get_pkg_data_filename("data/deprecated.cfg")
-
-    try:
-        with pytest.warns(AstropyDeprecationWarning) as w:
-            conf.reload()
-            conf.max_lines
-        assert len(w) == 1
-    finally:
-        configuration._override_config_file = None
-        conf.reload()
+    with (
+        set_temp_config(Path(__file__).with_name("data") / "deprecated"),
+        pytest.warns(AstropyDeprecationWarning),
+    ):
+        conf.max_lines
 
 
 def test_no_home():
