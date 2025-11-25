@@ -1,1 +1,0 @@
-Enable color and suggestion-on-typos in all ``wcslint`` CLI for Python 3.14

@@ -1,1 +1,0 @@
-CDS table reader will find the metadata for gzipped tables in the accompanying ReadMe file.
