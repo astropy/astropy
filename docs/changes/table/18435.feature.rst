@@ -1,8 +1,0 @@
-Added generic ``from_df`` and ``to_df`` methods to ``astropy.Table`` using
-``narwhals``. These methods provide a unified interface for converting between
-Astropy Tables and various DataFrame formats (pandas, polars, pyarrow, etc.)
-through the narwhals library. The ``to_df`` method converts an Astropy Table
-to any supported DataFrame format, while ``from_df`` creates an Astropy Table
-from any narwhals-compatible DataFrame. Narwhals is a lightweight compatibility
-layer that provides a unified API across different DataFrame libraries, allowing
-seamless interoperability without requiring all DataFrame libraries as dependencies.

@@ -1,3 +1,459 @@
+Version 7.2.0 (2025-11-25)
+==========================
+
+
+New Features
+------------
+
+astropy.constants
+^^^^^^^^^^^^^^^^^
+
+- Added CODATA 2022 support in ``astropy.constants``.
+
+  This update affects the following constants while the rest are unchanged from CODATA 2018:
+
+  - ``m_p`` (Proton mass)
+  - ``m_n`` (Neutron mass)
+  - ``m_e`` (Electron mass)
+  - ``u`` (Atomic mass)
+  - ``eps0`` (Vacuum electric permittivity)
+  - ``Ryd`` (Rydberg constant)
+  - ``a0`` (Bohr radius)
+  - ``muB`` (Bohr magneton)
+  - ``alpha`` (Fine-structure constant)
+  - ``mu0`` (Vacuum magnetic permeability)
+  - ``sigma_T`` (Thomson scattering cross-section) [#18118]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Allow ``np.concatenate``, ``np.stack`` and similar numpy functions to
+  be applied on representations and differentials.
+
+  They can also be applied to coordinate frames and ``SkyCoord``, though
+  with the same limitation as for setting elements of frames and
+  coordinates: all frame attributes have to be scalars (or arrays with
+  only identical elements). [#18193]
+
+- The results of ``match_coordinates_3d()``, ``match_coordinates_sky()``,
+  ``search_around_3d()`` and ``search_around_sky()`` and the corresponding
+  ``SkyCoord`` methods now have named attributes. [#18459]
+
+astropy.cosmology
+^^^^^^^^^^^^^^^^^
+
+- The trait ``astropy.cosmology.traits.CurvatureComponent`` has been added to work with
+  objects that have attributes and methods related to the global curvature. [#18232]
+
+- The trait ``astropy.cosmology.traits.HubbleParameter`` has been added to work with objects that have attributes and methods related to the Hubble parameter. [#18271]
+
+- The trait ``astropy.cosmology.traits.DarkEnergyComponent`` has been added to work with objects that have attributes and methods related to the Dark Energy component. [#18447]
+
+- Cosmology methods now exclusively return arrays, not floats or other scalars. [#18632]
+
+- The trait ``astropy.cosmology.traits.DarkMatterComponent`` has been added to work with
+  objects that have attributes and methods related to dark matter. [#18760]
+
+- The trait ``astropy.cosmology.traits.MatterComponent`` has been added to work with
+  objects that have attributes and methods related to matter density.
+  The trait ``astropy.cosmology.traits.BaryonComponent`` has been added to work with
+  objects that have attributes and methods related to baryonic matter.
+  The trait ``astropy.cosmology.traits.CriticalDensity`` has been added to work with
+  objects that have attributes and methods related to the critical density. [#18769]
+
+- The trait ``astropy.cosmology.traits.PhotonComponent`` has been added to work with objects that have attributes and methods related to photons. [#18787]
+
+- The trait ``astropy.cosmology.traits.TotalComponent`` has been added to work with objects that have attributes and methods related to the total density component of the universe. [#18794]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- CDS table reader will find the metadata for gzipped tables in the accompanying ReadMe file. [#18506]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Enable color and suggestion-on-typos in all ``argparse`` CLIs for Python 3.14
+  (``fitscheck``, ``fitsdiff``, ``fitsheader`` and ``fitsinfo``). [#18151]
+
+- Allow reading a FITS file hosted on a cloud resource like Amazon S3 via
+  ``Table.read()``. This is done with a new ``fsspec_kwargs`` dict argument
+  that gets passed through to ``fsspec`` to access cloud resources. [#18379]
+
+- It is now possible to check the existence of ``Columns`` in ``ColDefs`` by using the membership operator. [#18717]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Added a new ECSV table reading module that supports different backend engines for the
+  CSV data parsing. In addition to the default "io.ascii" engine, this includes engines
+  that use the PyArrow and Pandas CSV readers. These can be up to 16 times faster and are
+  more memory efficient than the native astropy ECSV reader. To get help with this
+  interface run ``Table.read.help(format="ecsv")``. [#18267]
+
+- Improve support for compressed file formats in the ECSV and the pyarrow CSV
+  Table readers. All formats supported  by ``astropy.utils.data.get_readable_fileobj()``
+  (currently gzip, bzip2, lzma (xz) or lzw (Z)) will now work with these readers. [#18712]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+- Allow setting EXTNAME when writing a ``Table`` to a FITS file, e.g.
+  ``tbl.write("filename.fits", name="CAT", append=True)``. [#18470]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Enable color and suggestion-on-typos in ``volint`` CLI for Python 3.14 [#18151]
+
+- Modified the constructor for ``astropy.io.votable.tree.TableElement`` to use the version configuration information from the parent ``VOTableFile`` instance. This allows for better handling of version-specific features and ensures that the table element is created with the correct context regarding the VOTable version. [#18366]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Add support for unit change propagation through the ``|`` (model composition) operator,
+  using either `~astropy.modeling.compose_models_with_units` or by setting the
+  ``unit_change_composition`` attribute on the model after composition. [#17304]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- The ``interpret_bit_flags`` function now strips whitespace from flag names. [#18205]
+
+astropy.samp
+^^^^^^^^^^^^
+
+- Enable color and suggestion-on-typos in ``samp_hub`` CLI for Python 3.14 [#18151]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Enable color and suggestion-on-typos in ``showtable`` CLI for Python 3.14 [#18151]
+
+- Added generic ``from_df`` and ``to_df`` methods to ``astropy.Table`` using
+  ``narwhals``. These methods provide a unified interface for converting between
+  Astropy Tables and various DataFrame formats (pandas, polars, pyarrow, etc.)
+  through the narwhals library. The ``to_df`` method converts an Astropy Table
+  to any supported DataFrame format, while ``from_df`` creates an Astropy Table
+  from any narwhals-compatible DataFrame. Narwhals is a lightweight compatibility
+  layer that provides a unified API across different DataFrame libraries, allowing
+  seamless interoperability without requiring all DataFrame libraries as dependencies. [#18435]
+
+- Setting the ``units`` or ``descriptions`` of ``QTable`` and ``Table``
+  has been made more flexible for tables with optional columns that may
+  or may not appear in the data. This applies to directly creating a table
+  as well as reading formatted data with the ``read()`` method.
+
+  In both cases you can supply ``units`` and ``description`` arguments as a
+  ``dict`` that specifies the units and descriptions for column names in
+  the table. Previously, if the input table did not contain a column that
+  was specified in the ``units`` or ``description`` dict, a ``ValueError``
+  was raised. Now, such columns are simply ignored. [#18641]
+
+- A new method has been added for accessing a table index for tables with multiple
+  indices. You can now select the index with the ``with_index(index_id)`` method of the
+  ``.loc``, ``.iloc``, and ``.loc_indices`` properties. For example, for a table ``t``
+  which has two indices on columns ``"a"`` and ``"b"`` respectively,
+  ``t.loc.with_index("b")[2]`` will use index ``"b"`` to find all the table rows where
+  ``t["b"] == 2``. Doing this query using the previous syntax ``t.loc["b", 2]`` is
+  deprecated and this functionality is planned for removal in astropy 9.0.
+
+  In addition, support has been added for using ``.loc``, ``.iloc``, and ``.loc_indices``
+  with an index based on two or more key columns. Previously this raised a ``ValueError``. [#18680]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Allow ``np.concatenate``, ``np.stack`` and similar numpy functions to
+  be applied on ``Time`` and ``TimeDelta`` instances. [#18193]
+
+- Add a new time format ``galex`` for the GALEX satellite.
+
+  In GALEX data, due to uncertainty in the spacecraft clock, the absolute time is only accurate to
+  about 1-10 seconds while the relative time within an observation is better than 0.005 s or so,
+  except on days with leap seconds, where relative times can be wrong by up to 1 s.
+  See question 101.2 in https://www.galex.caltech.edu/researcher/faq.html [#18330]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Some unit formats have deprecated units and converting such units to strings
+  emits a warning.
+  The new ``deprecations`` parameter of the unit ``to_string()`` methods allows
+  automatically converting deprecated units (if possible), silencing the warnings
+  or raising them as errors instead. [#18586]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Enable color and suggestion-on-typos in ``fits2bitmap`` CLI for Python 3.14 [#18151]
+
+- Added ``show_decimal_unit`` to ``set_major_formatter`` to control whether
+  or not units are shown in decimal mode. [#18312]
+
+- Added the methods ``set_visible()`` and ``set_position()`` to control the visibility and position of ticks, tick labels, and axis labels in a single call.
+
+  Also added ``get_ticks_visible()``, ``get_ticklabel_visible()``, and ``get_axislabel_visible()`` methods to get the visibility state of each coordinate element. [#18443]
+
+- Added an image interval option (``SymmetricInterval``) for specifying a
+  symmetric extent about a midpoint, and the extent that contains both the image
+  minimum and maximum can be automatically determined. [#18602]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Enable color and suggestion-on-typos in all ``wcslint`` CLI for Python 3.14 [#18151]
+
+- Added a ``perserve_units`` keyword argument to ``WCS`` to optionally request
+  that units are not converted to SI (the default behavior is for celestial axes
+  to have units converted to degrees, and spectral axes to m or Hz). [#18338]
+
+
+API Changes
+-----------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- The functionality of ``astropy.coordinates.concatenate`` and
+  ``astropy.coordinates.concatenate_representations`` is now available using
+  ``np.concatenate``. Hence, these functions are being deprecated, emitting an
+  ``AstropyPendingDeprecationWarning`` starting with astropy 7.2. This will be
+  followed by a regular deprecation warning in astropy 8.0, and removal in 9.0. [#18193]
+
+- The ``matrix_utilities`` module was not included in the ``astropy`` API
+  documentation, but it was nonetheless explicitly referred to in some of the
+  other documentation.
+  This made it unclear if the functions in the module are public or private.
+  The public matrix utilities ``is_rotation_or_reflection()`` and
+  ``rotation_matrix()`` have been made available from the ``astropy.coordinates``
+  namespace and should be imported from there.
+  Functions not available from the ``astropy.coordinate`` namespace are private
+  and may be changed or removed without warning.
+  However, three functions have been explicitly deprecated, despite being
+  private, as a courtesy to existing users.
+  ``matrix_utilites.angle_axis()`` and ``matrix_utilites.is_rotation()`` are
+  deprecated without replacement.
+  ``matrix_utilities.is_O3()`` is deprecated and the public
+  ``is_rotation_or_reflection()`` function can be used as a replacement. [#18418]
+
+- The undocumented ``earth_orientation`` module has been removed. [#18638]
+
+- ``astropy`` prefers reading data required for ``EarthLocation.of_site()`` from
+  a local cache and tries downloading (and caching) the data from the Internet if
+  the cache is empty.
+  As a last resort ``astropy`` has so far read a small bundled data file that
+  provided data for Greenwich as the single entry, but now ``astropy`` will raise
+  an error. [#18649]
+
+astropy.io.registry
+^^^^^^^^^^^^^^^^^^^
+
+- ``UnifiedInputRegistry`` and ``UnifiedOutputRegistry``'s ``delay_doc_updates``
+  method's effect is disabled under Python's optimized mode (``-OO`` flag). [#17572]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Added a ``config`` property to ``astropy.io.votable.tree.VOTableFile``.
+  This property can be passed to the ``config`` parameter of constructors that need to know the associated VOTable version, such as ``TimeSys`` and ``CooSys``. [#18366]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Add additional detail to the text of the ``ValueError`` that is raised when
+  ``pprint`` cannot parse a column format string. [#17631]
+
+- Selecting a table index in the ``.loc``, ``.iloc``, or ``.loc_indices`` properties by
+  passing the index identifier as the first element of the item is deprecated and is
+  planned for removal in astropy 9.0. For example, if a table ``t`` has two indices on
+  columns ``"a"`` and ``"b"`` respectively, then ``t.loc["b", 2]`` (to find table rows
+  where ``t["b"] == 2``) is deprecated. This is replaced by ``t.loc.with_index("b")[2]``. [#18680]
+
+astropy.tests
+^^^^^^^^^^^^^
+
+- API changes towards a future deprecation of astropy test runner:
+
+  * ``astropy.tests.runner.keyword`` is removed from public API.
+    It is used internally as a decorator within astropy test runner and
+    its exposure as public API was a mistake. In the future, it will be
+    removed without any deprecation.
+  * ``astropy.test``, ``astropy.tests.runner.TestRunnerBase``, and ``astropy.tests.runner.TestRunner``
+    are now pending deprecation (``AstropyPendingDeprecationWarning``).
+    This will also affect downstream ``packagename.test`` generated using ``TestRunner``.
+    They may start to emit ``AstropyDeprecationWarning`` in v8.0 (but no earlier). [#17874]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- The ``isiterable()`` utility is deprecated.
+  ``numpy.iterable()`` can be used as a drop-in replacement. [#18053]
+
+- ``astropy.utils.metadata.MergeStrategy`` no longer modifies the ``merge()``
+  methods of its subclasses at runtime to re-raise all exceptions as
+  ``MergeConflictError``.
+  This does not affect the functionality of ``MergeStrategy`` subclasses within
+  the ``astropy`` metadata merging machinery. [#18518]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- A warning is now emitted for each axis name which is
+  invalid in ``set_ticklabel_position``, ``set_axislabel_position``,
+  and ``set_ticks_position``. This is a deprecation warning,
+  and in future invalid axis names will result in an error. [#18324]
+
+- A warning is now emitted if arguments are given to the getter method
+  ``get_axislabel_visibility_rule``. This is a deprecation warning, and in
+  future, giving arguments to this method will result in an error. [#18792]
+
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+- ``get_config_dir()`` and ``get_cache_dir()`` now emit warnings in all cases
+  where the ``XDG_CACHE_HOME`` (``XDG_CONFIG_HOME``, respectively) environment
+  variable doesn't meet internal assumptions and is ignored as a result. [#17934]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- The ``angle`` argument of the ``rotation_matrix()`` function can now be any
+  angle-like value, like its docstring states.
+  Previously some angle-like values (e.g. angle-like strings) were erroneously
+  rejected. [#18504]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix bug with heap which was not updated after a VLA column is modified. [#18487]
+
+- Make ``fitscheck`` verify all HDUs before listing errors. [#18574]
+
+- Fix calculation of DATASUM/CHECKSUM for heap data in ``BinTableHDU``. [#18681]
+
+- Fixed a bug in ``fitsdiff`` script where failing to read a single file could
+  crash the entire program. A warning is now printed instead, and such files
+  are simply ignored. [#18882]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Fixed a bug where writing a table to ECSV fails if meta
+  contains a value that is a numpy string. [#18677]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Updated IVOA UCD1+ controlled vocabulary from version 1.5 to 1.6. This adds
+  support for new atmospheric observation terms including ``obs.atmos.wind``,
+  ``obs.atmos.humidity``, ``obs.atmos.rain``, ``obs.atmos.turbulence``,
+  ``obs.atmos.turbulence.isoplanatic``, ``obs.atmos.water``, and
+  ``phys.temperature.dew`` which are now recognized when parsing UCDs with
+  ``check_controlled_vocabulary=True``. [#18483]
+
+- Fixed a bug in ``add_data_origin_info()`` where ``content`` is ignored for some INFO names. [#18771]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed a bug in ``modeling.tabular`` models when the ``lookup_table`` is a Quantity, where the result might lose its unit in some cases. [#18958]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fixed unexpected upcasting to 64 bits when doing arithmetic with Python scalars
+  on ``numpy`` 2.
+
+  Don't upcast ``NDData`` unnecessarily when doing arithmetic involving a single
+  unit (consistent with the behaviour when there are no units). Upcasting still
+  occurs if an operand's unit gets converted to match the other, or where
+  required by the other operand's dtype. [#18392]
+
+astropy.samp
+^^^^^^^^^^^^
+
+- ``SAMPHubServer._call_and_wait`` raises a new ``SAMPProxyTimeoutError`` (derived from ``SAMPProxyError``) exception on timeout.
+  This allows client code to more easily distinguish timeouts from other kind of exceptions. [#18169]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- ``poisson_conf_interval`` ``kraft-burrows-nousek`` no longer fails for large N. [#18676]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fix a bug when slicing a table that has a multi-column index. Previously, after slicing
+  the table then ``tbl.indices`` would show duplicates of the multi-column index, one for
+  each column in the index. The underlying indices on the index columns were incorrectly
+  distinct objects instead of the expected reference to a single index object. [#18694]
+
+- Fix bugs when indexing a ``QTable`` with a ``Quantity`` column. Previously, after adding
+  the index then indexed item access via with a ``Quantity`` or slicing was failing. [#18725]
+
+- Fix a bug where the ECSV writer was not correctly quoting column names if the first name
+  starts with the "#" character or any names contain leading/trailing whitespace. In this
+  situation, all column names are now surrounded by double quotes per the ECSV standard.
+  Likewise the ECSV reader was incorrectly stripping surrounding whitespace from column
+  names, leading to a consistency check failure when reading. [#18752]
+
+- Fixed a bug when writing ``Table`` to FITS files, if the table contained masked arrays of integers. [#18818]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- The string representations of the liter with the different ``astropy`` unit
+  formatters are now more consistent with each other.
+  This change only affects converting units to strings, it has no effect on
+  parsing strings to units. [#18500]
+
+- So far only the ``"cds"`` unit format has been capable of parsing the string
+  ``"as"`` as the attosecond, but now the other unit formats recognize that
+  string too. [#18723]
+
+- The ``"ogip"`` unit formatter can now parse strings that include signed
+  fractions in the exponent, e.g. ``u.Unit("m**(-1/2)", format="ogip")``. [#18776]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- If ``numpy.msort()`` is called with a ``Masked`` array then ``astropy`` no
+  longer erroneously hides the deprecation warning (with ``numpy`` versions
+  1.24-1.26). [#18173]
+
+- For ``numpy < 2.0``, applying ``np.atleast_*d`` to iterables of most astropy
+  classes will now return a list of instances instead of a tuple, to match the
+  behaviour for arrays.  For numpy >= 2.0, tuples continue to be returned. [#18193]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed an image-normalization bug where the interval on a ``ImageNormalize``
+  instance could be ignored when plotting. [#18590]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug that caused world_to_array_index to return lists instead of Numpy arrays. [#18730]
+
+Other Changes and Additions
+---------------------------
+
+- The minimum required NumPy version is now 1.24. [#18160]
+
+- The minimum required Matplotlib version is now 3.8.0. [#18164]
+
+- Bundled ``expat`` is updated to version 2.7.3. [#18657]
+
+- Updated the bundled CFITSIO library to 4.6.3. [#18689]
+
+- Wheels are now provided for Windows arm64. [#18786]
+
 Version 7.1.1 (2025-10-10)
 ==========================
 
