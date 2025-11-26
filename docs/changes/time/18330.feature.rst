@@ -1,6 +1,0 @@
-Add a new time format ``galex`` for the GALEX satellite.
-
-In GALEX data, due to uncertainty in the spacecraft clock, the absolute time is only accurate to
-about 1-10 seconds while the relative time within an observation is better than 0.005 s or so,
-except on days with leap seconds, where relative times can be wrong by up to 1 s.
-See question 101.2 in https://www.galex.caltech.edu/researcher/faq.html

@@ -1,4 +1,0 @@
-The ``angle`` argument of the ``rotation_matrix()`` function can now be any
-angle-like value, like its docstring states.
-Previously some angle-like values (e.g. angle-like strings) were erroneously
-rejected.

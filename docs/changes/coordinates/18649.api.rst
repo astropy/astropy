@@ -1,6 +1,0 @@
-``astropy`` prefers reading data required for ``EarthLocation.of_site()`` from
-a local cache and tries downloading (and caching) the data from the Internet if
-the cache is empty.
-As a last resort ``astropy`` has so far read a small bundled data file that
-provided data for Greenwich as the single entry, but now ``astropy`` will raise
-an error.

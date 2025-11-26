@@ -1,1 +1,0 @@
-The minimum required NumPy version is now 1.24.

@@ -1,2 +1,0 @@
-Fixed a bug where writing a table to ECSV fails if meta
-contains a value that is a numpy string.

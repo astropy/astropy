@@ -1,1 +1,0 @@
-Fixed a bug in ``modeling.tabular`` models when the ``lookup_table`` is a Quantity, where the result might lose its unit in some cases.
