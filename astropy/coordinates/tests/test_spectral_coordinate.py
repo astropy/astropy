@@ -1119,5 +1119,15 @@ def test_spectralcoord_accuracy(specsys):
                 )
 
 
+@pytest.mark.xfail(reason="regression test to reveal a bug")
+def test_spectralcoord_with_spectral_equivalency():
+    # Regression test for #19001 - enabling the `u.spectral()` equivalency could cause
+    # the relativistic Doppler shift to be applied in the wrong direction.
+    sc = SpectralCoord(250 * u.MHz, radial_velocity=1000 * u.km / u.s)
+    assert_quantity_allclose(sc.to_rest(), 250.835306 * u.MHz)  # sanity check
+    with u.set_enabled_equivalencies(u.spectral()):
+        assert_quantity_allclose(sc.to_rest(), 250.835306 * u.MHz)
+
+
 # TODO: add test when target is not ICRS
 # TODO: add test when SpectralCoord is in velocity to start with
