@@ -1,13 +1,13 @@
-import inspect
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
 from astropy.cosmology._src.traits.baryons import BaryonComponent
 
+from .helper import is_positional_only
 
-class _DummyBaryon(BaryonComponent):
+
+class DummyBaryon(BaryonComponent):
     Ob0 = 0.05
 
     def inv_efunc(self, z):
@@ -16,16 +16,10 @@ class _DummyBaryon(BaryonComponent):
 
 @pytest.fixture
 def dummy_baryon():
-    return _DummyBaryon()
-
-
-def _is_positional_only(func, param_name="z"):
-    sig = inspect.signature(func)
-    p = sig.parameters.get(param_name)
-    return p is not None and p.kind == inspect.Parameter.POSITIONAL_ONLY
+    return DummyBaryon()
 
 
 def test_baryon_signature_and_behavior(dummy_baryon):
     assert hasattr(BaryonComponent, "Ob")
-    assert _is_positional_only(BaryonComponent.Ob)
+    assert is_positional_only(BaryonComponent.Ob)
     assert_allclose(dummy_baryon.Ob(1), 0.05 * (1 + 1) ** 3)

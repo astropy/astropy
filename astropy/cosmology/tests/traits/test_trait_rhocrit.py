@@ -3,9 +3,10 @@ import pytest
 
 import astropy.units as u
 from astropy.cosmology._src.traits.rhocrit import CriticalDensity
+from astropy.tests.helper import assert_quantity_allclose
 
 
-class _DummyRho(CriticalDensity):
+class DummyRho(CriticalDensity):
     critical_density0 = 1.0 * u.kg / (u.m**3)
 
     def efunc(self, z):
@@ -14,10 +15,10 @@ class _DummyRho(CriticalDensity):
 
 @pytest.fixture
 def dummy_rho():
-    return _DummyRho()
+    return DummyRho()
 
 
 def test_critical_density_returns_quantity(dummy_rho):
     rho = dummy_rho.critical_density(1)
     assert isinstance(rho, u.Quantity)
-    assert rho.unit == (u.kg / (u.m**3))
+    assert_quantity_allclose(rho, 1.0 * u.kg / (u.m**3))

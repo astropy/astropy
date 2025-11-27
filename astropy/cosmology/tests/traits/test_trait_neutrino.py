@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
 
 import astropy.units as u
 from astropy.cosmology._src.traits.neutrino import NeutrinoComponent
+from astropy.tests.helper import assert_quantity_allclose
 
 
-class _DummyNeutrino(NeutrinoComponent):
+class DummyNeutrino(NeutrinoComponent):
     Tcmb0 = 2.7255 * u.K
     Ogamma0 = 5e-5
 
@@ -27,7 +27,7 @@ class _DummyNeutrino(NeutrinoComponent):
 
 @pytest.fixture
 def dummy_neutrino():
-    return _DummyNeutrino()
+    return DummyNeutrino()
 
 
 def test_neutrino_onu_and_tnu_basic(dummy_neutrino):
@@ -36,4 +36,4 @@ def test_neutrino_onu_and_tnu_basic(dummy_neutrino):
     # scalar-like
     assert np.asarray(out).shape == ()
     # Tnu scales as (1+z)
-    assert_allclose(d.Tnu(1).to_value(u.K), d.Tnu0.to_value(u.K) * (1 + 1))
+    assert_quantity_allclose(d.Tnu(1), d.Tnu0 * (1 + 1))

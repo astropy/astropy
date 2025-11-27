@@ -1,26 +1,20 @@
-import inspect
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
 from astropy.cosmology._src.traits.matter import MatterComponent
 
-
-def _is_positional_only(func, param_name="z"):
-    sig = inspect.signature(func)
-    p = sig.parameters.get(param_name)
-    return p is not None and p.kind == inspect.Parameter.POSITIONAL_ONLY
+from .helper import is_positional_only
 
 
-class _DummyMatter(MatterComponent):
+class DummyMatter(MatterComponent):
     Om0 = 0.3
 
     def inv_efunc(self, z):
         return np.ones_like(np.asarray(z))
 
 
-class _ZeroMatter(MatterComponent):
+class ZeroMatter(MatterComponent):
     Om0 = 0.0
 
     def inv_efunc(self, z):
@@ -29,17 +23,17 @@ class _ZeroMatter(MatterComponent):
 
 @pytest.fixture
 def dummy_matter():
-    return _DummyMatter()
+    return DummyMatter()
 
 
 @pytest.fixture
 def zero_matter():
-    return _ZeroMatter()
+    return ZeroMatter()
 
 
 def test_matter_exists_and_signature():
     assert hasattr(MatterComponent, "Om")
-    assert _is_positional_only(MatterComponent.Om)
+    assert is_positional_only(MatterComponent.Om)
 
 
 def test_matter_scalar_array_quantity_behavior(dummy_matter):

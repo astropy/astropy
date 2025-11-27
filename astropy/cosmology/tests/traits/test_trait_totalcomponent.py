@@ -5,7 +5,7 @@ from numpy.testing import assert_allclose
 from astropy.cosmology._src.traits.totalcomponent import TotalComponent
 
 
-class _DummyTotal(TotalComponent):
+class DummyTotal(TotalComponent):
     @property
     def Otot0(self):
         return 1.0
@@ -17,7 +17,7 @@ class _DummyTotal(TotalComponent):
 
 @pytest.fixture
 def dummy_total():
-    return _DummyTotal()
+    return DummyTotal()
 
 
 def test_totalcomponent_minimal_impl(dummy_total):

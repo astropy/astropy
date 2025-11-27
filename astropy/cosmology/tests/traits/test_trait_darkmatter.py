@@ -1,13 +1,13 @@
-import inspect
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
 from astropy.cosmology._src.traits.darkmatter import DarkMatterComponent
 
+from .helper import is_positional_only
 
-class _DummyDarkMatter(DarkMatterComponent):
+
+class DummyDarkMatter(DarkMatterComponent):
     Odm0 = 0.25
 
     def inv_efunc(self, z):
@@ -16,16 +16,10 @@ class _DummyDarkMatter(DarkMatterComponent):
 
 @pytest.fixture
 def dummy_darkmatter():
-    return _DummyDarkMatter()
-
-
-def _is_positional_only(func, param_name="z"):
-    sig = inspect.signature(func)
-    p = sig.parameters.get(param_name)
-    return p is not None and p.kind == inspect.Parameter.POSITIONAL_ONLY
+    return DummyDarkMatter()
 
 
 def test_darkmatter_signature_and_behavior(dummy_darkmatter):
     assert hasattr(DarkMatterComponent, "Odm")
-    assert _is_positional_only(DarkMatterComponent.Odm)
+    assert is_positional_only(DarkMatterComponent.Odm)
     assert_allclose(dummy_darkmatter.Odm(1), 0.25 * (1 + 1) ** 3)
