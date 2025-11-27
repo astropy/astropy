@@ -1,0 +1,6 @@
+Relativistic Doppler shifts are now applied to ``SpectralCoord`` in the correct
+direction even if the ``astropy.units.spectral()`` equivalency is enabled.
+Previously enabling the equivalency could cause wrong results with the
+``SpectralCoord.to_rest()``,
+``SpectralCoord.with_observer_stationary_relative_to()`` or
+``SpectralCoord.with_radial_velocity_shift()`` methods.
