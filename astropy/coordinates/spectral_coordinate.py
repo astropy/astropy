@@ -54,24 +54,20 @@ def _apply_relativistic_doppler_shift(scoord, velocity):
     # since we can't guarantee that their metadata would be correct/consistent.
     squantity = scoord.view(SpectralQuantity)
 
-    beta = velocity / c
-    doppler_factor = np.sqrt((1 + beta) / (1 - beta))
+    beta = (velocity / c).to_value(u.dimensionless_unscaled)
+    doppler_factor = np.sqrt((1.0 + beta) / (1.0 - beta))
 
-    if squantity.unit.is_equivalent(u.m):  # wavelength
-        return squantity * doppler_factor
-    elif (
-        squantity.unit.is_equivalent(u.Hz)
-        or squantity.unit.is_equivalent(u.eV)
-        or squantity.unit.is_equivalent(1 / u.m)
-    ):
-        return squantity / doppler_factor
-    elif squantity.unit.is_equivalent(KMS):  # velocity
-        return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
-    else:  # pragma: no cover
-        raise RuntimeError(
-            f"Unexpected units in velocity shift: {squantity.unit}. This should not"
-            " happen, so please report this in the astropy issue tracker!"
-        )
+    match squantity.unit.physical_type:
+        case u.physical.length:
+            return squantity * doppler_factor
+        case u.physical.frequency | u.physical.energy | u.physical.wavenumber:
+            return squantity / doppler_factor
+        case u.physical.velocity:
+            return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
+    raise RuntimeError(  # pragma: no cover
+        f"Unexpected units in velocity shift: {squantity.unit}. This should not"
+        " happen, so please report this in the astropy issue tracker!"
+    )
 
 
 def update_differentials_to_match(

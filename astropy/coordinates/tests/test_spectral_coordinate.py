@@ -1119,7 +1119,6 @@ def test_spectralcoord_accuracy(specsys):
                 )
 
 
-@pytest.mark.xfail(reason="regression test to reveal a bug")
 def test_spectralcoord_with_spectral_equivalency():
     # Regression test for #19001 - enabling the `u.spectral()` equivalency could cause
     # the relativistic Doppler shift to be applied in the wrong direction.
