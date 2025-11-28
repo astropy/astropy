@@ -735,7 +735,9 @@ def convolve_fft(
         kernel, dtype=complex, order="C", nan_treatment=None, mask=None, fill_value=0
     )
 
-    nan_interpolate = (nan_treatment == "interpolate") and ~np.isfinite(array.sum())
+    nan_interpolate = (nan_treatment == "interpolate") and (
+        ~np.isfinite(array.sum()) or not np.isfinite(fill_value)
+    )
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
@@ -782,6 +784,11 @@ def convolve_fft(
             )
         kernel_scale = normalize_kernel(kernel)
         normalized_kernel = kernel / kernel_scale
+
+        # kernel_scale has to be forced back to 1 because the "normalized" kernel now
+        # has the correct function-defined scale
+        # otherwise, the scaling would be applied twice.
+        kernel_scale = 1
     else:
         kernel_scale = kernel.sum()
         if np.abs(kernel_scale) < normalization_zero_tol:
