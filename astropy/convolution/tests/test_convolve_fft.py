@@ -1040,3 +1040,16 @@ def test_function_normalize_kernel_with_nan_interpolation_deprecation():
         )
     # If we get here, no deprecation warning was raised
     assert result_bool is not None
+
+
+def test_function_normalize_kernel_equivalence():
+    """Regression test for 8114"""
+    array = [1, 2, 3]
+    kernel = [3, 3, 3]
+
+    fill = convolve_fft(array, kernel, normalize_kernel=np.max, nan_treatment="fill")
+    interpolate = convolve_fft(
+        array, kernel, normalize_kernel=np.max, nan_treatment="interpolate"
+    )
+
+    assert_floatclose(fill, interpolate)
