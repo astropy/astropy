@@ -260,7 +260,7 @@ class TestConvolve1D:
         if nan_treatment == "interpolate" and not preserve_nan:
             ctx = pytest.warns(
                 AstropyUserWarning,
-                match="nan_treatment='interpolate', however, NaN values detected",
+                match="nan_treatment='interpolate', however, non-finite values detected",
             )
         else:
             ctx = nullcontext()
@@ -1230,8 +1230,8 @@ def test_uninterpolated_nan_regions(boundary, normalize_kernel):
     )
     with pytest.warns(
         AstropyUserWarning,
-        match=r"nan_treatment='interpolate', however, NaN values detected "
-        r"post convolution. A contiguous region of NaN values, larger "
+        match=r"nan_treatment='interpolate', however, non-finite values detected "
+        r"post convolution. A contiguous region of non-finite values, larger "
         r"than the kernel size, are present in the input array. "
         r"Increase the kernel size to avoid this.",
     ):
@@ -1293,3 +1293,82 @@ def test_convolve_nan_zero_sum_kernel():
         ),
     ):
         convolve([1, np.nan, 3], [-1, 2, -1], normalize_kernel=False)
+
+
+def test_convolve_inf_interpolate():
+    """
+    Test that infinities in the array are treated like NaN values
+    with nan_treatment='interpolate' for convolve (non-FFT).
+    Regression test for issue #8099.
+    """
+    array = np.array([1.0, np.inf, 3.0], dtype="float64")
+    kernel = np.array([1, 1, 1])
+
+    result = convolve(
+        array, kernel, boundary="fill", nan_treatment="interpolate", fill_value=0
+    )
+
+    # Infinity should be interpolated like NaN
+    np.testing.assert_allclose(result, [1.0 / 2.0, 4.0 / 2.0, 3.0 / 2.0])
+
+
+def test_convolve_inf_fill():
+    """
+    Test that infinities in the array are treated like NaN values
+    with nan_treatment='fill' for convolve (non-FFT).
+    Regression test for issue #8099.
+    """
+    array = np.array([1.0, np.inf, 3.0], dtype="float64")
+    kernel = np.array([1, 1, 1])
+
+    result = convolve(
+        array, kernel, boundary="fill", nan_treatment="fill", fill_value=0
+    )
+
+    # Infinity should be replaced with fill_value (0) like NaN
+    np.testing.assert_allclose(result, [1 / 3.0, 4 / 3.0, 1.0])
+
+
+def test_convolve_kernel_with_inf():
+    """
+    Test that infinities in the kernel raise a ValueError for convolve (non-FFT).
+    Regression test for issue #8099.
+    """
+    array = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype="float64")
+    # Kernel with infinity - should raise an error
+    kernel = np.array([1, np.inf, 1], dtype="float64")
+
+    with pytest.raises(
+        ValueError, match="Kernels containing infinities are not supported"
+    ):
+        convolve(array, kernel, boundary="fill", nan_treatment="interpolate")
+
+
+def test_convolve_inf_warning_when_not_treated():
+    """
+    Test that a warning is raised when infinities are in the input array
+    and treat_infs_as_nans=False.
+    Regression test for issue #8099.
+    """
+    array = np.array([1.0, np.inf, 3.0, 4.0, 5.0], dtype="float64")
+    kernel = np.array([1, 1, 1], dtype="float64")
+
+    # When treat_infs_as_nans=False, a warning should be raised about infinite values
+    # Note: there may be additional warnings about NaN detection post-convolution
+    with pytest.warns(AstropyUserWarning) as record:
+        result = convolve(
+            array,
+            kernel,
+            boundary="fill",
+            nan_treatment="interpolate",
+            treat_infs_as_nans=False,
+        )
+
+    # Check that at least one warning is about infinite values
+    warning_messages = [str(w.message) for w in record]
+    assert any(
+        "Input array contains infinite values" in msg for msg in warning_messages
+    )
+
+    # The result should contain infinities (not interpolated)
+    assert np.any(np.isinf(result))

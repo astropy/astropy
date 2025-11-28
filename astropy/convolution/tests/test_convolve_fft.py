@@ -999,3 +999,126 @@ def test_convolve_fft_boundary_extend_error():
         match=r"The 'extend' option is not implemented for fft-based convolution",
     ):
         convolve_fft(x, y, boundary="extend")
+
+
+def test_inf_interpolate():
+    """
+    Test that infinities in the array are treated like NaN values
+    with nan_treatment='interpolate' for convolve_fft.
+    Regression test for issue #8099.
+    """
+    array = np.array([1.0, np.inf, 3.0], dtype="float64")
+    kernel = np.array([1, 1, 1])
+
+    result = convolve_fft(
+        array, kernel, boundary="fill", nan_treatment="interpolate", fill_value=0
+    )
+
+    # Infinity should be interpolated like NaN
+    # explicit divisors to indicate the number of pixels kept in the kernel
+    # with boundary='fill', outside values are included
+    assert_floatclose(result, [1.0 / 2.0, 4.0 / 2.0, 3.0 / 2.0])
+
+
+def test_inf_fill():
+    """
+    Test that infinities in the array are treated like NaN values
+    with nan_treatment='fill' for convolve_fft.
+    Regression test for issue #8099.
+    """
+    # Test with positive infinity
+    array = np.array([1.0, np.inf, 3.0], dtype="float64")
+    kernel = np.array([1, 1, 1])
+
+    result = convolve_fft(
+        array, kernel, boundary="fill", nan_treatment="fill", fill_value=0
+    )
+
+    # Infinity should be replaced with fill_value (0) like NaN
+    assert_floatclose(result, [1 / 3.0, 4 / 3.0, 3.0 / 3.0])
+
+
+def test_kernel_with_inf():
+    """
+    Test that infinities in the kernel raise a ValueError for convolve_fft.
+    Regression test for issue #8099.
+    """
+    array = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype="float64")
+    # Kernel with infinity - should raise an error
+    kernel = np.array([1, np.inf, 1], dtype="float64")
+
+    with pytest.raises(
+        ValueError, match="Kernels containing infinities are not supported"
+    ):
+        convolve_fft(array, kernel, boundary="fill", nan_treatment="interpolate")
+
+
+def test_inf_and_nan_together():
+    """
+    Test that both infinities and NaN values are handled correctly together.
+    Regression test for issue #8099.
+    """
+    array = np.array([1.0, np.inf, np.nan, 4.0, 5.0], dtype="float64")
+    kernel = np.array([1, 1, 1], dtype="float64")
+
+    result = convolve_fft(
+        array,
+        kernel,
+        boundary="fill",
+        nan_treatment="interpolate",
+    )
+
+    # Both inf and nan should be interpolated
+    # Position 0: (0 + 1 + 0) / 2 = 0.5
+    # Position 1: (1 + 0 + 0) / 1 = 1
+    # Position 2: (0 + 0 + 4) / 1 = 4
+    # Position 3: (0 + 4 + 5) / 2 = 4.5
+    # Position 4: (4 + 5 + 0) / 3 = 3.0
+    expected = np.array([0.5, 1.0, 4.0, 4.5, 3.0])
+    assert_floatclose(result, expected)
+
+    assert not np.any(np.isinf(result))
+    assert not np.any(np.isnan(result))
+
+
+def test_convolve_fft_kernel_with_inf():
+    """
+    Test that infinities in the kernel raise a ValueError for convolve_fft.
+    Regression test for issue #8099.
+    """
+    array = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype="float64")
+    # Kernel with infinity - should raise an error
+    kernel = np.array([1, np.inf, 1], dtype="float64")
+
+    with pytest.raises(
+        ValueError, match="Kernels containing infinities are not supported"
+    ):
+        convolve_fft(array, kernel, boundary="fill", nan_treatment="interpolate")
+
+
+def test_issue_8099_example():
+    """
+    Test the specific example from issue #8099 for convolve_fft.
+    convolve_fft should treat infinities like NaN values.
+    Regression test for issue #8099.
+    """
+    from astropy.convolution import Gaussian1DKernel
+
+    ar = np.ones(10)
+    ar[5] = np.inf
+    gaussian = Gaussian1DKernel(1, x_size=5)
+
+    # Test convolve_fft - this is the main focus of the PR
+    result_fft = convolve_fft(ar, gaussian)
+    # Should not have any infinities in result
+    assert not np.any(np.isinf(result_fft))
+    # The result should be interpolated, not zero
+    assert result_fft[5] > 0
+
+    # Test with nan for comparison - should give same result
+    ar_nan = np.ones(10)
+    ar_nan[5] = np.nan
+    result_nan = convolve_fft(ar_nan, gaussian)
+
+    # Both inf and nan should give the same interpolated result
+    assert_floatclose(result_fft, result_nan)

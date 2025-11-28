@@ -131,6 +131,7 @@ def convolve(
     mask=None,
     preserve_nan=False,
     normalization_zero_tol=1e-8,
+    treat_infs_as_nans=True,
 ):
     """
     Convolve an array with a kernel.
@@ -194,6 +195,12 @@ def convolve(
         The absolute tolerance on whether the kernel is different than
         zero. If the kernel sums to zero to within this precision, it
         cannot be normalized. Default is "1e-8".
+    treat_infs_as_nans : bool, optional
+        If `True`, treat infinite values in the input ``array`` and ``kernel``
+        as NaNs, and then handle them as according to ``nan_treatment``.
+        If this is not set, any ``inf`` values will be propagated exactly to the
+        size of the kernel.  This behavior is disabled by default because it
+        cannot be replicated in ``convolve_fft`` and is unlikely to be useful.
 
     Returns
     -------
@@ -254,6 +261,13 @@ def convolve(
         mask=None,
         fill_value=fill_value,
     )
+
+    if np.any(np.isinf(kernel_internal)):
+        raise ValueError(
+            "Kernels containing infinities are not supported, "
+            "since they are not normalizable and are equivalent "
+            "to array[:]=inf."
+        )
 
     # Make sure kernel has all odd axes
     if has_even_axis(kernel_internal):
@@ -406,6 +420,16 @@ def convolve(
                 array_internal, pad_width=np_pad_width, mode=np_pad_mode
             )
 
+    if np.any(np.isinf(array_to_convolve)):
+        if treat_infs_as_nans:
+            array_to_convolve[~np.isfinite(array_to_convolve)] = np.nan
+        else:
+            warnings.warn(
+                "Input array contains infinite values which will be "
+                "propagated to the output according to the kernel size. ",
+                AstropyUserWarning,
+            )
+
     _convolveNd_c(
         result,
         array_to_convolve,
@@ -426,8 +450,8 @@ def convolve(
 
     if nan_interpolate and not preserve_nan and ~np.isfinite(result.sum()):
         warnings.warn(
-            "nan_treatment='interpolate', however, NaN values detected "
-            "post convolution. A contiguous region of NaN values, larger "
+            "nan_treatment='interpolate', however, non-finite values detected "
+            "post convolution. A contiguous region of non-finite values, larger "
             "than the kernel size, are present in the input array. "
             "Increase the kernel size to avoid this.",
             AstropyUserWarning,
@@ -734,6 +758,13 @@ def convolve_fft(
     kernel = _copy_input_if_needed(
         kernel, dtype=complex, order="C", nan_treatment=None, mask=None, fill_value=0
     )
+
+    if np.any(np.isinf(kernel)):
+        raise ValueError(
+            "Kernels containing infinities are not supported, "
+            "since they are not normalizable and are equivalent "
+            "to array[:]=inf."
+        )
 
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
