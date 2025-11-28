@@ -1335,3 +1335,5 @@ def test_regression_16497_nan_treatment_consistency():
     assert np.sum(np.isnan(smoothed)) == 1
     assert np.isnan(smoothed_fft[5, 5])
     assert np.sum(np.isnan(smoothed_fft)) == 1
+
+    assert_array_almost_equal(smoothed, smoothed_fft, decimal=10)
