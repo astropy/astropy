@@ -5,7 +5,15 @@ __all__ = ("z_at_value",)
 
 import warnings
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypeAlias, TypedDict
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Final,
+    NotRequired,
+    Protocol,
+    TypeAlias,
+    TypedDict,
+)
 
 import numpy as np
 import numpy.typing as npt
@@ -24,6 +32,8 @@ if TYPE_CHECKING:
     import scipy.optimize
 
 __doctest_requires__ = {"*": ["scipy"]}
+
+METHOD_UNBOUNDED: Final = ("brent", "golden")
 
 
 # TODO: it would be nice to upstream this to scipy and then use it here.
@@ -140,13 +150,12 @@ def _z_at_scalar_value(
             AstropyUserWarning,
         )
 
-    if isinstance(fval_zmin, Quantity):
-        val = fval.to_value(fval_zmin.unit)
-    else:
-        val = fval
+    # Value to match, stripped of units if Quantity
+    val = fval.to_value(fval_zmin.unit) if isinstance(fval_zmin, Quantity) else fval
 
     # Construct bounds (Brent and Golden fail if bounds are not None)
-    if callable(method) or str(method).lower() not in {"brent", "golden"}:
+    bounds: tuple[float | FArray | Quantity, float | FArray | Quantity] | None
+    if callable(method) or str(method).lower() not in METHOD_UNBOUNDED:
         bounds = (zmin, zmax)
     else:
         bounds = None
@@ -158,18 +167,17 @@ def _z_at_scalar_value(
             return 1.0e300 * (1.0 + z - zmax)
         elif z < zmin:
             return 1.0e300 * (1.0 + zmin - z)
-        elif isinstance(fval_zmin, Quantity):
-            return abs(func(z).value - val)
-        else:
-            return abs(func(z) - val)
+        return abs(
+            (func(z).value if isinstance(fval_zmin, Quantity) else func(z)) - val
+        )
 
     # Perform the minimization
     res = minimize_scalar(f, method=method, bounds=bounds, bracket=bracket, options=opt)
 
-    # Scipy docs state that `OptimizeResult` always has 'status' and 'message'
-    # attributes, but only `_minimize_scalar_bounded()` seems to have really
-    # implemented them.
     if not res.success:
+        # Scipy docs state that `OptimizeResult` always has 'status' and 'message'
+        # attributes, but only `_minimize_scalar_bounded()` seems to have really
+        # implemented them.
         warnings.warn(
             f"Solver returned {res.get('status')}:"
             f" {res.get('message', 'Unsuccessful')}\nPrecision {res.fun} reached after"
@@ -442,9 +450,8 @@ def z_at_value(
     # bracket: 2 or 3 elt sequence
     if not isinstance(bracket, np.ndarray):  # 'scalar' bracket
         if bracket is not None and len(bracket) not in (2, 3):
-            raise ValueError(
-                "`bracket` is not an array nor a 2 (or 3) element sequence."
-            )
+            msg = "`bracket` is not an array nor a 2 (or 3) element sequence."
+            raise ValueError(msg)
         else:  # munge bracket into a 1-elt object array
             bracket = np.array([bracket, ()], dtype=object)[:1].squeeze()
     if bracket.dtype != np.object_:
