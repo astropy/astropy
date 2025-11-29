@@ -17,6 +17,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 # isort: split
 from astropy.cosmology import units as cu
 from astropy.cosmology._src.core import CosmologyError
+from astropy.cosmology._src.scipy_compat import minimize_scalar
 from astropy.cosmology._src.typing import FArray
 
 if TYPE_CHECKING:
@@ -103,8 +104,6 @@ def _z_at_scalar_value(
 
     See :func:`astropy.cosmology.z_at_value`.
     """
-    from scipy.optimize import minimize_scalar
-
     opt = {"maxiter": maxfun, "xtol": ztol}
     # Assume custom methods support the same options as default; otherwise user
     # will see warnings.
