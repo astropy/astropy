@@ -12,7 +12,7 @@ import re
 import warnings
 from collections.abc import Collection
 from fractions import Fraction
-from typing import Self
+from typing import ClassVar, Self
 
 import numpy as np
 
@@ -178,7 +178,7 @@ class QuantityInfo(QuantityInfoBase):
     be used as a general way to store meta information.
     """
 
-    _represent_as_dict_attrs = ("value", "unit")
+    _represent_as_dict_attrs: tuple[str, ...] = ("value", "unit")
     _construct_from_dict_args = ["value"]
     _represent_as_dict_primary_data = "value"
 
@@ -862,7 +862,7 @@ class Quantity(np.ndarray):
         super().__setstate__(nd_state)
         self.__dict__.update(own_state)
 
-    info = QuantityInfo()
+    info: QuantityInfoBase = QuantityInfo()
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""
@@ -2122,7 +2122,7 @@ class SpecificTypeQuantity(Quantity):
 
     # The unit for the specific physical type.  Instances can only be created
     # with units that are equivalent to this.
-    _equivalent_unit = None
+    _equivalent_unit: ClassVar[UnitBase | tuple[UnitBase, ...] | None] = None
 
     # The default unit used for views.  Even with `None`, views of arrays
     # without units are possible, but will have an uninitialized unit.
