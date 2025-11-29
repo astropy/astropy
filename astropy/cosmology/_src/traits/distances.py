@@ -9,7 +9,6 @@ from typing import Final, TypeVar, overload
 
 import numpy as np
 from numpy.typing import ArrayLike
-from typing_extensions import override
 
 import astropy.constants as const
 import astropy.units as u
@@ -238,7 +237,6 @@ class DistanceMeasures(HubbleParameter):
     @overload
     def angular_diameter_distance(self, z: _InputT, z2: _InputT, /) -> u.Quantity: ...
 
-    @override
     def angular_diameter_distance(
         self, z: _InputT, z2: _InputT | None = None, /
     ) -> u.Quantity:
