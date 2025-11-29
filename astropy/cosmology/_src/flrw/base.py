@@ -696,7 +696,7 @@ class FLRW(
         """
         return self.hubble_time * self._integral_lookback_time(z)
 
-    @vectorize_redshift_method
+    @vectorize_redshift_method()
     def _integral_lookback_time(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Lookback time to redshift ``z``. Value in units of Hubble time.
 
@@ -782,7 +782,7 @@ class FLRW(
         """
         return self.hubble_time * self._integral_age(z)
 
-    @vectorize_redshift_method
+    @vectorize_redshift_method()
     def _integral_age(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Age of the universe at redshift ``z``. Value in units of Hubble time.
 
@@ -1058,7 +1058,7 @@ class FLRW(
             )
         return self._comoving_transverse_distance_z1z2(z1, z2) / (z2 + 1.0)
 
-    @vectorize_redshift_method
+    @vectorize_redshift_method()
     def absorption_distance(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Absorption distance at redshift ``z`` (eq. 4, [1]_).
 

@@ -5,7 +5,7 @@ __all__: tuple[str, ...] = ()  # nothing is publicly scoped
 import functools
 from collections.abc import Callable
 from numbers import Number
-from typing import Any, Final, ParamSpec, Protocol, TypeAlias, TypeVar, overload
+from typing import Any, Final, ParamSpec, Protocol, TypeAlias, TypeVar
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -28,22 +28,13 @@ SCALAR_TYPES: Final = (float, int, np.generic, Number)  # arranged for speed
 RedshiftMethod: TypeAlias = Callable[P, FArray]
 
 
-@overload  # Method
-def vectorize_redshift_method(func: RedshiftMethod, *, nin: int) -> RedshiftMethod: ...
-@overload  # Partial - returns a decorator
 def vectorize_redshift_method(
-    func: None, *, nin: int
-) -> Callable[[RedshiftMethod], RedshiftMethod]: ...
-def vectorize_redshift_method(
-    func: RedshiftMethod | None = None, *, nin: int = 1
-) -> RedshiftMethod | Callable[[RedshiftMethod], RedshiftMethod]:
+    *, nin: int = 1
+) -> Callable[[RedshiftMethod], RedshiftMethod]:
     """Vectorize a method of redshift(s).
 
     Parameters
     ----------
-    func : callable or None
-        method to wrap. If `None` returns a :func:`functools.partial`
-        with ``nin`` loaded.
     nin : int
         Number of positional redshift arguments.
 
@@ -53,33 +44,34 @@ def vectorize_redshift_method(
         :func:`functools.wraps` of ``func`` where the first ``nin``
         arguments are converted from |Quantity| to :class:`numpy.ndarray`.
     """
+
     # allow for pie-syntax & setting nin
-    if func is None:
-        return functools.partial(vectorize_redshift_method, nin=nin)
+    def decorator(func: RedshiftMethod, /) -> RedshiftMethod:
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            """Wrapper converting arguments to numpy-compatible inputs.
 
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        """Wrapper converting arguments to numpy-compatible inputs.
+            :func:`functools.wraps` of ``func`` where the first ``nin`` arguments are
+            converted from |Quantity| to `numpy.ndarray` or scalar.
+            """
+            # process inputs
+            # TODO! quantity-aware vectorization can simplify this.
+            zs = [
+                z if not isinstance(z, Quantity) else z.to_value(cu.redshift)
+                for z in args[:nin]
+            ]
+            # scalar inputs
+            if all(isinstance(z, SCALAR_TYPES) for z in zs):
+                return func(self, *zs, *args[nin:], **kwargs)
+            # non-scalar. use vectorized func
+            return wrapper.__vectorized__(self, *zs, *args[nin:], **kwargs)
 
-        :func:`functools.wraps` of ``func`` where the first ``nin`` arguments are
-        converted from |Quantity| to `numpy.ndarray` or scalar.
-        """
-        # process inputs
-        # TODO! quantity-aware vectorization can simplify this.
-        zs = [
-            z if not isinstance(z, Quantity) else z.to_value(cu.redshift)
-            for z in args[:nin]
-        ]
-        # scalar inputs
-        if all(isinstance(z, SCALAR_TYPES) for z in zs):
-            return func(self, *zs, *args[nin:], **kwargs)
-        # non-scalar. use vectorized func
-        return wrapper.__vectorized__(self, *zs, *args[nin:], **kwargs)
+        wrapper.__vectorized__ = np.vectorize(func)  # attach vectorized function
+        # TODO! use frompyfunc when can solve return type errors
 
-    wrapper.__vectorized__ = np.vectorize(func)  # attach vectorized function
-    # TODO! use frompyfunc when can solve return type errors
+        return wrapper
 
-    return wrapper
+    return decorator
 
 
 # ===================================================================
