@@ -414,8 +414,6 @@ def test_gravitational_redshift_exception_note():
         "jupiter": 1 * u.km,  # wrong units - should be mass or G*mass
     }
 
-    # pytest 8.0+ supports matching exception notes with the match parameter
-
     with pytest.raises(u.UnitsError, match="masses.*gravitational parameters"):
         someloc.gravitational_redshift(sometime, masses=masses)
 
