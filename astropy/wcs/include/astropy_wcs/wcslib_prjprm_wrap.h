@@ -13,8 +13,10 @@ typedef struct {
     PyObject* owner;
 } PyPrjprm;
 
-PyPrjprm* PyPrjprm_cnew(PyObject* celprm, struct prjprm* x, int* prefcount);
+PyPrjprm*
+PyPrjprm_cnew(PyObject* celprm, struct prjprm* x, int* prefcount);
 
-int _setup_prjprm_type(PyObject* m);
+int
+_setup_prjprm_type(PyObject* m);
 
 #endif
