@@ -130,7 +130,7 @@ docs = [
     "sphinx-astropy[confv2]>=1.9.1",
     "pytest>=8.0.0",
     "sphinx-changelog>=1.2.0",
-    "sphinx_design>=0.6.1",
+    "sphinx-design>=0.6.1",
     "Jinja2>=3.1.3",
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
@@ -822,3 +822,6 @@ constraint-dependencies = [
     "traitlets>=5.13.0",
     "typing_extensions>=4.6; python_version<'3.12'",
 ]
+
+[tool.uv.sources]
+sphinx-design = { git = "https://github.com/neutrinoceros/sphinx-design", branch = "dep/lift-upper-bound" }

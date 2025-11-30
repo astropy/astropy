@@ -9,6 +9,7 @@ build:
       - git fetch --unshallow || true
     pre_install:
       - git update-index --assume-unchanged docs/conf.py docs/rtd_environment.yaml
+      - pip install git+https://github.com/neutrinoceros/sphinx-design@dep/lift-upper-bound
 
 conda:
   environment: docs/rtd_environment.yaml
