@@ -10,6 +10,7 @@ build:
     pre_install:
       - git update-index --assume-unchanged docs/conf.py docs/rtd_environment.yaml
       - pip install git+https://github.com/neutrinoceros/sphinx-design@dep/lift-upper-bound
+      - pip install sphinx>=9.0 # install from PyPI
 
 conda:
   environment: docs/rtd_environment.yaml
