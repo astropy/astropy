@@ -1,4 +1,5 @@
 ci:
+  autofix_commit_msg: "chore: pre-commit fixes"
   autofix_prs: false
   autoupdate_schedule: 'monthly'
 
