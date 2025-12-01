@@ -21,5 +21,5 @@ def dummy_photon():
 
 def test_photon_signature_and_behavior(dummy_photon):
     assert hasattr(PhotonComponent, "Ogamma")
-    assert is_positional_only(PhotonComponent.Ogamma)
+    assert is_positional_only(PhotonComponent.Ogamma, "z")
     assert_quantity_allclose(dummy_photon.Ogamma(1), 1e-4 * (1 + 1) ** 4)

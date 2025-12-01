@@ -35,7 +35,7 @@ def concrete_de():
 
 def test_darkenergy_signature_and_missing_inv_efunc_raises(minimal_de):
     assert hasattr(DarkEnergyComponent, "w")
-    assert is_positional_only(DarkEnergyComponent.w)
+    assert is_positional_only(DarkEnergyComponent.w, "z")
     # Ode requires inv_efunc; calling should raise NotImplementedError
     with pytest.raises(NotImplementedError):
         minimal_de.Ode(1)

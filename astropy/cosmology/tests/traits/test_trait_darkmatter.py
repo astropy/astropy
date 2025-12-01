@@ -21,5 +21,5 @@ def dummy_darkmatter():
 
 def test_darkmatter_signature_and_behavior(dummy_darkmatter):
     assert hasattr(DarkMatterComponent, "Odm")
-    assert is_positional_only(DarkMatterComponent.Odm)
+    assert is_positional_only(DarkMatterComponent.Odm, "z")
     assert_allclose(dummy_darkmatter.Odm(1), 0.25 * (1 + 1) ** 3)

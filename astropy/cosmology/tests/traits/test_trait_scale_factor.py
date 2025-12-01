@@ -25,7 +25,7 @@ def test_scale_factor_behavior_and_signature(dummy_scale):
     assert s.scale_factor0 == 1 << s.scale_factor0.unit
 
     # positional-only API
-    assert is_positional_only(ScaleFactor.scale_factor)
+    assert is_positional_only(ScaleFactor.scale_factor, "z")
 
     # passing as keyword should raise TypeError (positional-only)
     with pytest.raises(TypeError):
