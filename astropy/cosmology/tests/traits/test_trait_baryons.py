@@ -21,5 +21,5 @@ def dummy_baryon():
 
 def test_baryon_signature_and_behavior(dummy_baryon):
     assert hasattr(BaryonComponent, "Ob")
-    assert is_positional_only(BaryonComponent.Ob)
+    assert is_positional_only(BaryonComponent.Ob, "z")
     assert_allclose(dummy_baryon.Ob(1), 0.05 * (1 + 1) ** 3)

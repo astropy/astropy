@@ -37,6 +37,6 @@ def test_curvature_signature_and_behavior(
     dummy_curvature_zero, dummy_curvature_nonzero
 ):
     assert hasattr(CurvatureComponent, "Ok")
-    assert is_positional_only(CurvatureComponent.Ok)
+    assert is_positional_only(CurvatureComponent.Ok, "z")
     assert_allclose(dummy_curvature_zero.Ok(1), 0.0)
     assert_allclose(dummy_curvature_nonzero.Ok(1), -0.02 * (1 + 1) ** 2)

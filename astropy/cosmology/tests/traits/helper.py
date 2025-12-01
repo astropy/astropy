@@ -1,19 +1,15 @@
 import inspect
+from collections.abc import Callable
 
 
-def is_positional_only(func, param_name="z"):
-    """Return True if ``param_name`` is a positional-only parameter.
+def is_positional_only(func: Callable, /, param: str) -> bool:
+    """Return True if ``param:str`` is a positional-only parameter.
 
     Parameters
     ----------
-    func : callable
-        Function to inspect.
-    param_name : str
-        Parameter name to check (default: ``'z'``).
+    param : str
+        Parameter name to check
     """
     sig = inspect.signature(func)
-    p = sig.parameters.get(param_name)
+    p = sig.parameters.get(param)
     return p is not None and p.kind == inspect.Parameter.POSITIONAL_ONLY
-
-
-__all__ = ["is_positional_only"]

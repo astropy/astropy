@@ -33,7 +33,7 @@ def zero_matter():
 
 def test_matter_exists_and_signature():
     assert hasattr(MatterComponent, "Om")
-    assert is_positional_only(MatterComponent.Om)
+    assert is_positional_only(MatterComponent.Om, "z")
 
 
 def test_matter_scalar_array_quantity_behavior(dummy_matter):
