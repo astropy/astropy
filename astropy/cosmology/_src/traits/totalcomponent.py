@@ -4,6 +4,7 @@ __all__ = ["TotalComponent"]
 
 from abc import abstractmethod
 
+import numpy as np
 from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.typing import FArray
@@ -19,7 +20,7 @@ class TotalComponent:
 
     @property
     @abstractmethod
-    def Otot0(self) -> float:
+    def Otot0(self) -> float | np.floating:
         """Omega total; the total density/critical density at z=0."""
         raise NotImplementedError  # pragma: no cover
 
