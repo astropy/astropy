@@ -7,8 +7,11 @@ def is_positional_only(func: Callable, /, param: str) -> bool:
 
     Parameters
     ----------
+    ------—--
+    func: Callable
+        Function to check whether parameter `param` is positional-only.
     param : str
-        Parameter name to check
+        The name of the parameter in `func` to check.
     """
     sig = inspect.signature(func)
     p = sig.parameters.get(param)
