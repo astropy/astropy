@@ -7,7 +7,6 @@ def is_positional_only(func: Callable, /, param: str) -> bool:
 
     Parameters
     ----------
-    ------—--
     func: Callable
         Function to check whether parameter `param` is positional-only.
     param : str
