@@ -240,6 +240,7 @@ addopts = [
     "-p no:legacypath",
 ]
 log_cli_level = "info"
+log_level = "INFO"
 xfail_strict = true
 filterwarnings = [
     "error",
