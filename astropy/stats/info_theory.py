@@ -4,8 +4,6 @@
 This module contains simple functions for model selection.
 """
 
-from __future__ import annotations
-
 import numpy as np
 
 __all__ = [
