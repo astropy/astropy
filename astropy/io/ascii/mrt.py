@@ -768,7 +768,12 @@ class Mrt(core.BaseReader):
     Machine Readable Table (MRT) format.
 
     Note that the metadata of the table, apart from units, column names and
-    description, will not be written. These have to be filled in by hand later.
+    description, will not be written by default. The `astropy.io.ascii.mrt.generate_mrt_header` function
+    can be used to update the metadata that will then be used when the table is output:
+
+      >>> from astropy.io import ascii
+      >>> ascii.mrt.generate_mrt_header(authors="A. Einstein", update=True)
+      >>> table.write('data.mrt', format='mrt')
 
     See also: :ref:`cds_mrt_format`.
 
