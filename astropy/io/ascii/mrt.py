@@ -59,7 +59,15 @@ MRT_TEMPLATE = [
 ]
 
 
-def generate_mrt_header(title=None, authors=None, table=None, notes=None, update=False, reset=False, **kwargs):
+def generate_mrt_header(
+    title=None,
+    authors=None,
+    table=None,
+    notes=None,
+    update=False,
+    reset=False,
+    **kwargs,
+):
     """
     Generate a header for a MRT
 
@@ -105,7 +113,9 @@ def generate_mrt_header(title=None, authors=None, table=None, notes=None, update
     return template
 
 
-def update_mrt_file_header(input, title=None, authors=None, table=None, notes=None, overwrite=True):
+def update_mrt_file_header(
+    input, title=None, authors=None, table=None, notes=None, overwrite=True
+):
     """
     Update the header of an existing MRT file
 
@@ -135,11 +145,13 @@ def update_mrt_file_header(input, title=None, authors=None, table=None, notes=No
     line_start = ["Title:", "Authors:", "Table:"]
     for i, prefix in enumerate(line_start):
         if not lines[i].startswith(prefix):
-            msg = f"line #{i} = \"{lines[i]}\" \n"
-            msg += f"line #{i} should start with \"{prefix}\" for an MRT file"
+            msg = f"line #{i} = '{lines[i]}' \n"
+            msg += f"line #{i} should start with '{prefix}' for an MRT file"
             raise ValueError(msg)
 
-    header = generate_mrt_header(title=title, authors=authors, table=table, notes=notes, update=False)
+    header = generate_mrt_header(
+        title=title, authors=authors, table=table, notes=notes, update=False
+    )
 
     if title is not None:
         lines[0] = header[0] + line_end_char
