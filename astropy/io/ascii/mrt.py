@@ -157,7 +157,7 @@ def update_mrt_file_header(input, title=None, authors=None, table=None, notes=No
                 break
 
     if (not isinstance(input, list)) & overwrite:
-        with open(file, "w") as fp:
+        with open(input, "w") as fp:
             fp.writelines(lines)
         return None
     else:
