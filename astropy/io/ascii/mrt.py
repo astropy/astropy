@@ -81,7 +81,7 @@ def generate_mrt_header(title=None, authors=None, table=None, notes=None, update
     """
     global MRT_TEMPLATE
 
-    if reset: 
+    if reset:
         MRT_TEMPLATE = EMPTY_MRT_TEMPLATE.copy()
         return MRT_TEMPLATE
 
