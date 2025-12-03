@@ -382,8 +382,17 @@ class Angle(SpecificTypeQuantity):
                 s = "+" + s
             return f"${s}$" if format == "latex" else s
 
-        format_ufunc = np.vectorize(do_format, otypes=["U"])
-        result = format_ufunc(self.to_value(unit))
+        # Use nditer rather than vectorize to avoid annoying warning
+        # on NUMPY_LT_2_2.  Note: could use StringDType ("T" instead of "O"
+        # later converted to "U") for performance and lower memory use.
+        vals = self.to_value(unit)
+        iterator = np.nditer(
+            [vals, None], flags=["refs_ok", "zerosize_ok"], op_dtypes=[None, "O"]
+        )
+        for val, res in iterator:
+            res[...] = do_format(val)
+
+        result = iterator.operands[1].astype("U")
         return result if result.ndim else result[()]
 
     def _wrap_at(self, wrap_angle):

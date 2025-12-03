@@ -247,7 +247,6 @@ filterwarnings = [
     # https://github.com/astropy/astropy/issues/18126
     "ignore:'_UnionGenericAlias' is deprecated and slated for removal in Python 3.17:DeprecationWarning", # not PYTHON_LT_3_14
     # Weird warning from the vectorized do_format in Angle.to_string. low numpy/python?
-    "ignore:invalid value encountered in do_format:RuntimeWarning",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
