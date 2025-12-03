@@ -135,8 +135,8 @@ def update_mrt_file_header(input, title=None, authors=None, table=None, notes=No
     line_start = ["Title:", "Authors:", "Table:"]
     for i, prefix in enumerate(line_start):
         if not lines[i].startswith(prefix):
-            msg = f"line #{i} = \"{lines[i]}\"\n"
-            msg += "line #{i} should start with \"{prefix}\" for an MRT file"
+            msg = f"line #{i} = \"{lines[i]}\" \n"
+            msg += f"line #{i} should start with \"{prefix}\" for an MRT file"
             raise ValueError(msg)
 
     header = generate_mrt_header(title=title, authors=authors, table=table, notes=notes, update=False)
