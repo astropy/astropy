@@ -787,6 +787,16 @@ no-build-package = [
     "wrapt", # indirect (via aiobotocore 2.5.0)
     "yarl", # indirect (via aiohttp 3.8.3 via aiobotocore 2.5.0)
     "multidict", # indirect (via aiohttp 3.8.3 via aiobotocore 2.5.0)
+
+    # via sphinx-astropy
+    "numpydoc",
+
+    # the following *may* be visited during env resolution, although
+    # they are not expected to land in the final solution,
+    # even with --resolution=lowest
+    "cffi",
+    "py",
+    "joblib",
 ]
 
 # ensure that uv resolves envs that are compatible with macOS arm64,
