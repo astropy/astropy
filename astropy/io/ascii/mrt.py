@@ -82,10 +82,10 @@ def generate_mrt_header(title=None, authors=None, table=None, notes=None, update
     global MRT_TEMPLATE
 
     if reset: 
-        MRT_TEMPLATE = [row for row in EMPTY_MRT_TEMPLATE]
+        MRT_TEMPLATE = EMPTY_MRT_TEMPLATE.copy()
         return MRT_TEMPLATE
 
-    template = [row for row in EMPTY_MRT_TEMPLATE]
+    template = EMPTY_MRT_TEMPLATE.copy()
 
     if title is not None:
         template[0] += " " + title
