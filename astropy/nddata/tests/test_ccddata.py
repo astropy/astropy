@@ -11,6 +11,7 @@ from astropy import units as u
 from astropy.io import fits
 from astropy.nddata import _testing as nd_testing
 from astropy.nddata.ccddata import CCDData
+from astropy.nddata.flag_collection import FlagCollection
 from astropy.nddata.nduncertainty import (
     InverseVariance,
     MissingDataAssociationException,
@@ -1153,3 +1154,77 @@ def test_write_read_psf(tmp_path):
     ccd_disk = CCDData.read(filename, hdu_psf="PSFOTHER")
     np.testing.assert_array_equal(ccd_data.data, ccd_disk.data)
     np.testing.assert_array_equal(ccd_data.psf, ccd_disk.psf)
+
+
+def test_write_read_with_array_flags(tmp_path):
+    # Test that if flags are present they are saved and loaded by default.
+    ccd_data = create_ccd_data()
+    ccd_data.flags = np.zeros_like(ccd_data.data, dtype=float)
+    ccd_data.flags[0, 0] = 0.15  # Set a flag
+    ccd_data.flags[0, 1] = 1  # Set a flag
+
+    filename = str(tmp_path / "a_file.fits")
+    ccd_data.write(filename, hdu_flags="FLAGS")
+    ccd_after = CCDData.read(filename, hdu_flags="FLAGS")
+
+    assert ccd_after.flags is not None
+    assert isinstance(ccd_after.flags, np.ndarray)
+    assert ccd_after.flags.shape == ccd_data.flags.shape
+    np.testing.assert_array_equal(ccd_data.flags, ccd_after.flags)
+
+
+def test_write_read_with_flag_collection(tmp_path):
+    # Test that if flags are present as a FlagCollection they
+    # are saved and loaded by default.
+    ccd_data = create_ccd_data()
+
+    # Create a FlagCollection with different flag types
+    flags = FlagCollection(shape=ccd_data.data.shape)
+    # Add different types of flags
+    flags["BAD_PIXEL"] = np.zeros_like(ccd_data.data, dtype=bool)
+    flags["SATURATED"] = np.zeros_like(ccd_data.data, dtype=int)
+    flags["BAD_PIXEL"][50:60, 50:60] = True  # Mark a region as bad
+
+    ccd_data.flags = flags
+
+    filename = str(tmp_path / "a_file.fits")
+    ccd_data.write(filename, hdu_flags="FLAGS")
+    ccd_after = CCDData.read(filename, hdu_flags="FLAGS")
+
+    assert ccd_after.flags is not None
+    assert isinstance(ccd_after.flags, FlagCollection)
+    assert len(ccd_after.flags.keys()) == len(ccd_data.flags.keys())
+    assert ccd_after.flags.shape == ccd_data.flags.shape
+    assert ccd_after.flags["BAD_PIXEL"].dtype == np.uint8
+    assert ccd_after.flags["SATURATED"].dtype == ">i8"
+    np.testing.assert_array_equal(
+        ccd_data.flags["BAD_PIXEL"], ccd_after.flags["BAD_PIXEL"]
+    )
+
+
+def test_write_read_with_no_flags(tmp_path):
+    # Test that if no flags are present they are not saved or loaded.
+    ccd_data = create_ccd_data()
+
+    filename = str(tmp_path / "a_file.fits")
+    ccd_data.write(filename, hdu_flags="FLAGS")
+    ccd_after = CCDData.read(filename, hdu_flags="FLAGS")
+
+    assert ccd_after.flags is None
+
+
+def test_wrong_flags():
+    ccd_data = create_ccd_data()
+    wrong_size_flags = np.zeros((5, 5), dtype=np.uint8)
+    with pytest.raises(ValueError, match="dimensions of flags do not match data"):
+        ccd_data.flags = wrong_size_flags
+
+    # create FlagCollection and re-test
+    wrong_size_flags_fc = FlagCollection(shape=(5, 5))
+    with pytest.raises(
+        ValueError, match="dimensions of FlagCollection does not match data"
+    ):
+        ccd_data.flags = wrong_size_flags_fc
+
+    with pytest.raises(ValueError):
+        ccd_data.flags = "foo"
