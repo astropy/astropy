@@ -1,6 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ["quantity_input"]
+__all__ = [
+    "quantity_input",
+    "quantity_ufunc_overload",
+]
 
 import contextlib
 import inspect
@@ -15,6 +18,7 @@ from .core import Unit, UnitBase, add_enabled_equivalencies, dimensionless_unsca
 from .errors import UnitsError
 from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
+from quantity_helper.helpers import get_converter, UFUNC_HELPERS
 
 NoneType = type(None)
 
@@ -345,3 +349,58 @@ class QuantityInput:
 
 
 quantity_input = QuantityInput.as_decorator
+
+
+def quantity_ufunc_overload(
+    function: None | T.Callable = None,
+    equivalencies: None | list = None,
+):
+    """
+    A decorator which converts instances of :class:`~astropy.units.Quantity`
+    to :class:`numpy.ndarray` for use with user-defined :mod:`numpy.ufunc`'s.
+
+    Unit specifications must be provided using function annotation syntax,
+    similar to the :deco:`~astropy.units.quantity_input` decorator.
+
+    A `~astropy.units.UnitsError` will be raised if the unit attribute of
+    the argument is not equivalent to the unit specified to the decorator or
+    in the annotation. If the argument has no unit attribute, i.e. it is not
+    a Quantity object, a `ValueError` will be raised unless the argument is
+    an annotation. This is to allow non Quantity annotations to pass
+    through.
+    """
+
+    eq = equivalencies
+
+    def decorator(func):
+
+        signature = inspect.signature(func)
+
+        units_out = _parse_annotation(signature.return_annotation)
+
+        units_in = [
+            _parse_annotation(param.annotation)
+            for param in signature.parameters.values()
+        ]
+
+        units_in = [unit if unit else dimensionless_unscaled for unit in units_in]
+
+        def helper(f, *units):
+            converters = [
+                (
+                    unit.get_converter(unit_in, equivalencies=eq)
+                    if unit is not None
+                    else get_converter(dimensionless_unscaled, unit_in)
+                )
+                for unit, unit_in in zip(units, units_in)
+            ]
+            return converters, units_out
+
+        UFUNC_HELPERS[func] = helper
+
+        return func
+
+    if function is not None:
+        decorator = decorator(function)
+
+    return decorator
