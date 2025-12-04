@@ -765,6 +765,7 @@ no-build-package = [
     "markupsafe", # indirect (via jinja2 2.11.3)
 
     # via ipykernel
+    "appnope",
     "psutil",
     "pyzmq",
     "tornado",
