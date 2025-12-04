@@ -16,7 +16,7 @@ _wavelength = [
 
 _d = [
     1 * u.um,
-    [0.01, 0.02] * u.mm,
+    [0.01, 0.02, 0.03] * u.mm,
 ]
 
 
@@ -32,7 +32,11 @@ def _grating_equation(
 @pytest.mark.parametrize("m", _m)
 @pytest.mark.parametrize("wavelength", _wavelength)
 @pytest.mark.parametrize("d", _d)
-def test_grating_equation(m: u.Quantity, wavelength: u.Quantity, d: u.Quantity):
+def test_grating_equation(
+    m: u.Quantity,
+    wavelength: u.Quantity,
+    d: u.Quantity,
+):
 
     @u.quantity_ufunc_overload
     def grating_equation_ufunc(
@@ -44,9 +48,10 @@ def test_grating_equation(m: u.Quantity, wavelength: u.Quantity, d: u.Quantity):
 
     try:
         result_expected = _grating_equation(m, wavelength, d)
-    except u.UnitConversionError:
-        with pytest.raises(u.UnitConversionError):
+    except u.UnitTypeError:
+        with pytest.raises(u.UnitTypeError):
             grating_equation_ufunc(m, wavelength, d)
+        return
 
     result = grating_equation_ufunc(m, wavelength, d)
 
