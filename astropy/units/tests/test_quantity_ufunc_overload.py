@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import numba
 import astropy.units as u
 
 _m = [
@@ -36,7 +35,6 @@ def _grating_equation(
 def test_grating_equation(m: u.Quantity, wavelength: u.Quantity, d: u.Quantity):
 
     @u.quantity_ufunc_overload
-    @numba.vectorize
     def grating_equation_ufunc(
         m: float | np.ndarray | u.Quantity[u.one],
         wavelength: u.Quantity[u.um],
