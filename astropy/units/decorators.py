@@ -18,7 +18,7 @@ from .core import Unit, UnitBase, add_enabled_equivalencies, dimensionless_unsca
 from .errors import UnitsError
 from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
-from quantity_helper.helpers import get_converter, UFUNC_HELPERS
+from .quantity_helper.helpers import get_converter, UFUNC_HELPERS
 
 NoneType = type(None)
 
