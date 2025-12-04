@@ -1,0 +1,2 @@
+Added ``@units.quantity_ufunc_overload`` decorator to allow users to define
+unit-aware Numpy ``ufunc`` instances.
