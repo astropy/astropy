@@ -1893,8 +1893,8 @@ class TestTableFunctions(FitsTestCase):
         tbdata = fits.getdata(self.data("ascii.fits"))
         for col in ("a", "b"):
             data = getattr(tbdata, col)
-            assert (data == tbdata.field(col)).all()
-            assert (data == tbdata[col]).all()
+            np.testing.assert_array_equal(data, tbdata.field(col))
+            np.testing.assert_array_equal(data, tbdata[col])
 
         # with VLA column
         col1 = fits.Column(
@@ -2565,7 +2565,7 @@ class TestTableFunctions(FitsTestCase):
             h.seek(0)
             h.write(nulled)
 
-        with fits.open(self.temp("ascii_null.fits"), memmap=True) as f:
+        with fits.open(self.temp("ascii_null.fits")) as f:
             assert f[1].data[2][0] == 0
 
         # Test a float column with a null value set and blank fields.
@@ -2586,10 +2586,23 @@ class TestTableFunctions(FitsTestCase):
             h.seek(0)
             h.write(nulled)
 
-        with fits.open(self.temp("ascii_null2.fits"), memmap=True) as f:
-            # (Currently it should evaluate to 0.0, but if a TODO in fitsrec is
-            # completed, then it should evaluate to NaN.)
-            assert f[1].data[2][0] == 0.0 or np.isnan(f[1].data[2][0])
+        with fits.open(self.temp("ascii_null2.fits")) as f:
+            assert np.isnan(f[1].data[2][0])
+
+        # Test a float column with a NaN value
+        a = np.arange(10, dtype=float)
+        a[5] = np.nan
+        table = fits.TableHDU.from_columns(
+            [
+                fits.Column(name="a1", array=a, format="F"),
+                fits.Column(name="a2", array=a, format="F", null=np.nan),
+            ]
+        )
+        table.writeto(self.temp("ascii_null3.fits"))
+
+        with fits.open(self.temp("ascii_null3.fits")) as f:
+            assert np.isnan(f[1].data["a1"][5])
+            assert np.isnan(f[1].data["a2"][5])
 
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""
