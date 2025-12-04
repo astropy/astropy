@@ -12,7 +12,6 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
 from . import formats
 
@@ -175,11 +174,11 @@ class Angle(SpecificTypeQuantity):
 
                 if angle_unit is not unit:
                     # Possible conversion to `unit` will be done below.
-                    angle = u.Quantity(angle, angle_unit, copy=COPY_IF_NEEDED)
+                    angle = u.Quantity(angle, angle_unit, copy=None)
 
             elif isinstance(angle, np.ndarray):
                 if angle.dtype.kind in "SUVO":
-                    angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
+                    angle = [cls(x, unit, copy=None) for x in angle]
 
             elif hasattr(angle, "__array__") and (
                 not hasattr(angle, "dtype") or angle.dtype.kind not in "SUVO"
@@ -187,7 +186,7 @@ class Angle(SpecificTypeQuantity):
                 angle = np.asarray(angle)
 
             elif np.iterable(angle):
-                angle = [cls(x, unit, copy=COPY_IF_NEEDED) for x in angle]
+                angle = [cls(x, unit, copy=None) for x in angle]
 
         return super().__new__(cls, angle, unit, dtype=dtype, copy=copy, **kwargs)
 
@@ -383,8 +382,17 @@ class Angle(SpecificTypeQuantity):
                 s = "+" + s
             return f"${s}$" if format == "latex" else s
 
-        format_ufunc = np.vectorize(do_format, otypes=["U"])
-        result = format_ufunc(self.to_value(unit))
+        # Use nditer rather than vectorize to avoid annoying warning
+        # on NUMPY_LT_2_2.  Note: could use StringDType ("T" instead of "O"
+        # later converted to "U") for performance and lower memory use.
+        vals = self.to_value(unit)
+        iterator = np.nditer(
+            [vals, None], flags=["refs_ok", "zerosize_ok"], op_dtypes=[None, "O"]
+        )
+        for val, res in iterator:
+            res[...] = do_format(val)
+
+        result = iterator.operands[1].astype("U")
         return result if result.ndim else result[()]
 
     def _wrap_at(self, wrap_angle):
@@ -398,12 +406,8 @@ class Angle(SpecificTypeQuantity):
         a360 = u.degree.to(self.unit, 360.0)
         wrap_angle = wrap_angle.to_value(self.unit)
         self_angle = self.view(np.ndarray)
-        if NUMPY_LT_2_0:
-            # Ensure ndim>=1 so that comparison is done using the angle dtype.
-            self_angle = self_angle[np.newaxis]
-        else:
-            # Use explicit float to ensure casting to self_angle.dtype (NEP 50).
-            wrap_angle = float(wrap_angle)
+        # Use explicit float to ensure casting to self_angle.dtype (NEP 50).
+        wrap_angle = float(wrap_angle)
         wrap_angle_floor = wrap_angle - a360
         # Do the wrapping, but only if any angles need to be wrapped
         #
@@ -616,11 +620,6 @@ class Latitude(Angle):
             limit = u.degree.to(angles.unit, 90.0)
 
         angles_view = angles.view(np.ndarray)
-        if NUMPY_LT_2_0:
-            # Ensure ndim>=1 so that comparison is done using the angle dtype.
-            # Otherwise, e.g., np.array(np.pi/2, 'f4') > np.pi/2 will yield True.
-            angles_view = angles_view[np.newaxis]
-
         if np.any(np.abs(angles_view) > limit):
             if np.size(angles) < 5:
                 raise ValueError(

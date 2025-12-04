@@ -24,7 +24,6 @@ from astropy.io.fits.util import (
     isfile,
 )
 from astropy.io.fits.verify import VerifyError, VerifyWarning, _ErrList, _Verify
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 # NOTE: Python can be built without bz2.
 from astropy.utils.exceptions import AstropyUserWarning
@@ -1528,24 +1527,12 @@ class HDUList(list, _Verify):
                 # On Windows, all the original data mmaps were closed above.
                 # However, it's possible that the user still has references to
                 # the old data which would no longer work (possibly even cause
-                # a segfault if they try to access it).  This replaces the
-                # buffers used by the original arrays with the buffers of mmap
-                # arrays created from the new file.  This seems to work, but
-                # it's a flaming hack and carries no guarantees that it won't
-                # lead to odd behavior in practice.  Better to just not keep
-                # references to data from files that had to be resized upon
-                # flushing (on Windows--again, this is no problem on Linux).
+                # a segfault if they try to access it). Here warn if that may
+                # be the case.
                 for idx, mmap, arr in mmaps:
                     if mmap is None:
                         continue
-                    if NUMPY_LT_2_0:
-                        # Note that this hack is only possible on numpy 1.x:
-                        # in 2.x, we cannot write directly to the data attribute
-                        # https://github.com/numpy/numpy/issues/8628
-                        with warnings.catch_warnings():
-                            warnings.simplefilter("ignore", category=DeprecationWarning)
-                            arr.data = self[idx].data.data
-                    elif sys.getrefcount(arr) > 2:
+                    if sys.getrefcount(arr) > 2:
                         # 2 is the minimum number of references to this object
                         # counting `arr` and a reference as an argument to getrefcount(),
                         # see  https://docs.python.org/3/library/sys.html#sys.getrefcount
