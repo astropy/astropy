@@ -354,7 +354,7 @@ quantity_input = QuantityInput.as_decorator
 def quantity_ufunc_overload(
     function: None | T.Callable = None,
     equivalencies: None | list = None,
-):
+) -> T.Callable:
     """
     A decorator which converts instances of :class:`~astropy.units.Quantity`
     to :class:`numpy.ndarray` for use with user-defined :mod:`numpy.ufunc`'s.
@@ -369,7 +369,6 @@ def quantity_ufunc_overload(
     an annotation. This is to allow non Quantity annotations to pass
     through.
     """
-
     eq = equivalencies
 
     def decorator(func):
