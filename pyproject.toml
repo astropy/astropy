@@ -234,6 +234,7 @@ doctest_plus = "enabled"
 text_file_format = "rst"
 remote_data_strict = true
 addopts = [
+    # keep in sync with tox.ini (oldestdeps's PYTEST_ADDOPTS)
     "--doctest-rst",
     "--strict-config",
     "--strict-markers",
