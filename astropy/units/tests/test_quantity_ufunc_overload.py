@@ -36,7 +36,7 @@ def grating_equation(
 @pytest.fixture(scope="module")
 def grating_equation_ufunc():
 
-    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS
+    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS.copy()
 
     @u.quantity_ufunc_overload
     @numba.vectorize
@@ -90,7 +90,7 @@ def test_grating_equation_ndarray_inputs(
 @pytest.fixture(scope="module")
 def grating_equation_ufunc_equiv():
 
-    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS
+    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS.copy()
 
     @u.quantity_ufunc_overload(equivalencies=_equivalencies)
     @numba.vectorize
@@ -127,7 +127,7 @@ def test_grating_equation_equivalencies(
 @pytest.fixture(scope="module")
 def grating_equation_ufunc_missing_units():
 
-    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS
+    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS.copy()
 
     @u.quantity_ufunc_overload
     @numba.vectorize
