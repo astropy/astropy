@@ -1,8 +1,10 @@
-import numba
-import pytest
-import numpy as np
+import copy
+
 import astropy.units as u
-from astropy.units import quantity_helper
+import numba
+import numpy as np
+import pytest
+from astropy.units import quantity_helper as qh
 
 _m = [
     1,
@@ -36,7 +38,7 @@ def grating_equation(
 @pytest.fixture(scope="module")
 def grating_equation_ufunc():
 
-    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS.copy()
+    _ufunc_helpers = copy.copy(qh.UFUNC_HELPERS)
 
     @u.quantity_ufunc_overload
     @numba.vectorize
@@ -49,7 +51,7 @@ def grating_equation_ufunc():
 
     yield ufunc
 
-    quantity_helper.helpers.UFUNC_HELPERS = _ufunc_helpers
+    qh.UFUNC_HELPERS = _ufunc_helpers
 
 
 @pytest.mark.parametrize("m", _m)
@@ -90,7 +92,7 @@ def test_grating_equation_ndarray_inputs(
 @pytest.fixture(scope="module")
 def grating_equation_ufunc_equiv():
 
-    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS.copy()
+    _ufunc_helpers = copy.copy(qh.UFUNC_HELPERS)
 
     @u.quantity_ufunc_overload(equivalencies=_equivalencies)
     @numba.vectorize
@@ -103,7 +105,7 @@ def grating_equation_ufunc_equiv():
 
     yield ufunc
 
-    quantity_helper.helpers.UFUNC_HELPERS = _ufunc_helpers
+    qh.UFUNC_HELPERS = _ufunc_helpers
 
 
 @pytest.mark.parametrize("m", _m)
@@ -127,7 +129,7 @@ def test_grating_equation_equivalencies(
 @pytest.fixture(scope="module")
 def grating_equation_ufunc_missing_units():
 
-    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS.copy()
+    _ufunc_helpers = copy.copy(qh.UFUNC_HELPERS)
 
     @u.quantity_ufunc_overload
     @numba.vectorize
@@ -140,7 +142,7 @@ def grating_equation_ufunc_missing_units():
 
     yield ufunc
 
-    quantity_helper.helpers.UFUNC_HELPERS = _ufunc_helpers
+    qh.UFUNC_HELPERS = _ufunc_helpers
 
 
 @pytest.mark.parametrize("m", _m)
