@@ -7,6 +7,7 @@ from functools import cached_property
 from typing import Self
 
 import numpy as np
+from numpy._core import umath as np_umath
 
 from astropy.units import (
     Quantity,
@@ -18,12 +19,6 @@ from astropy.units import (
     dimensionless_unscaled,
 )
 from astropy.units.typing import PhysicalTypeID
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
-
-if NUMPY_LT_2_0:
-    from numpy.core import umath as np_umath
-else:
-    from numpy._core import umath as np_umath
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]
 
@@ -317,7 +312,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
     def __rlshift__(self, other):
         """Unit conversion operator ``<<``."""
         try:
-            return self._quantity_class(other, self, copy=COPY_IF_NEEDED, subok=True)
+            return self._quantity_class(other, self, copy=None, subok=True)
         except Exception:
             return NotImplemented
 
