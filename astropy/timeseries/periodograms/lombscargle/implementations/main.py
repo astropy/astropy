@@ -7,9 +7,13 @@ statement for the various implementations available in this submodule
 
 __all__ = ["available_methods", "lombscargle"]
 
+import warnings
+
 import numpy as np
 
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .chi2_impl import lombscargle_chi2
 from .cython_impl import lombscargle_cython
@@ -26,6 +30,9 @@ METHODS = {
     "fastchi2": lombscargle_fastchi2,
     "cython": lombscargle_cython,
 }
+
+
+SCIPY_LT_1_15 = not minversion("scipy", "1.15.0") if HAS_SCIPY else True
 
 
 def available_methods():
@@ -84,7 +91,9 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     prefer_fast = len(frequency) > 200 and (
         assume_regular_frequency or _is_regular(frequency)
     )
-    prefer_scipy = "scipy" in methods and dy is None and not fit_mean
+    prefer_scipy = (
+        "scipy" in methods and dy is None and not (SCIPY_LT_1_15 and fit_mean)
+    )
 
     # automatically choose the appropriate method
     if method == "auto":
@@ -201,15 +210,34 @@ def lombscargle(
         assume_regular_frequency=assume_regular_frequency,
     )
 
-    # scipy doesn't support dy or fit_mean=True
+    # scipy<1.15 doesn't support fit_mean=True
+    # scipy doesn't support dy
     if method == "scipy":
-        if kwds.pop("fit_mean"):
-            raise ValueError("scipy method does not support fit_mean=True")
+        if kwds["fit_mean"] and SCIPY_LT_1_15:
+            raise ValueError(
+                "Combining method='scipy' with fit_mean=True requires "
+                "scipy 1.15 or newer."
+            )
+        elif kwds["fit_mean"] is None:
+            warnings.warn(
+                "The default value for fit_mean with method='scipy' "
+                "will change from False to True in a future version. "
+                "Pass fit_mean=True or fit_mean=False explicitly to silence "
+                "this warning. "
+                "Note that fit_mean=True requires scipy 1.15 or newer. "
+                "Deprecated since astropy 7.1.0",
+                category=AstropyDeprecationWarning,
+                stacklevel=2,
+            )
+            kwds["fit_mean"] = False
+
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):
                 raise ValueError("scipy method only supports uniform uncertainties dy")
         args = (t, y)
+    elif kwds["fit_mean"] is None:
+        kwds["fit_mean"] = True
 
     # fast methods require frequency expressed as a grid
     if method.startswith("fast"):
