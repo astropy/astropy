@@ -358,7 +358,7 @@ def quantity_ufunc_overload(
     r"""
     A decorator which converts instances of :class:`~astropy.units.Quantity`
     to :class:`numpy.ndarray` for use with user-defined
-    Numpy :external+numpy:ref:`Universal Functions <reference/_ufunc>` (:class:`numpy.ufunc`).
+    Numpy :class:`numpy.ufunc`\ s.
 
     Unit specifications must be provided using function annotation syntax,
     similar to the :deco:`~astropy.units.quantity_input` decorator.
@@ -369,7 +369,7 @@ def quantity_ufunc_overload(
     Notes
     -----
     The motivation for this decorator is to allow the :class:`~numpy.ufunc`\ s
-    created by :deco:`numba.vectorize` to be unit-aware and convert the
+    created by :func:`numba.vectorize` to be unit-aware and convert the
     inputs/outputs to the appropriate units.
     """
     eq = equivalencies
