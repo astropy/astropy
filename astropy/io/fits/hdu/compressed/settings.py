@@ -19,6 +19,9 @@ COMPRESSION_TYPES = (
     "GZIP_2",
     "PLIO_1",
     "HCOMPRESS_1",
+    "JPEGXL",
+    "JPEGLS",
+    "JPEG2K",
 )
 
 # Default compression parameter values
@@ -30,6 +33,7 @@ DEFAULT_HCOMP_SCALE = 0
 DEFAULT_HCOMP_SMOOTH = 0
 DEFAULT_BLOCK_SIZE = 32
 DEFAULT_BYTE_PIX = 4
+DEFAULT_JPEGXL_EFFORT = 7
 
 CMTYPE_ALIASES = {"RICE_ONE": "RICE_1"}
 
