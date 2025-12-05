@@ -377,12 +377,21 @@ def quantity_ufunc_overload(
 
         units_out = _parse_annotation(signature.return_annotation)
 
-        units_in = [
-            _parse_annotation(param.annotation)
-            for param in signature.parameters.values()
-        ]
+        units_in = []
+        for param in signature.parameters.values():
+            unit = _parse_annotation(param.annotation)
 
-        units_in = [unit if unit else dimensionless_unscaled for unit in units_in]
+            if not unit:
+                unit = dimensionless_unscaled
+
+            if isinstance(unit, list):
+                unit = [un for un in unit if un]
+                if len(unit) == 1:
+                    unit = unit[0]
+                else:
+                    raise ValueError(f"Multiple unit annotations specified, {unit}")
+
+            units_in.append(unit)
 
         def helper(f, *units):
             converters = [
