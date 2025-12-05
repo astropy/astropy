@@ -355,7 +355,7 @@ def quantity_ufunc_overload(
     function: None | T.Callable = None,
     equivalencies: None | list = None,
 ) -> T.Callable:
-    """
+    r"""
     A decorator which converts instances of :class:`~astropy.units.Quantity`
     to :class:`numpy.ndarray` for use with user-defined
     Numpy :external+numpy:ref:`Universal Functions <reference/_ufunc>` (:class:`numpy.ufunc`).
@@ -368,7 +368,7 @@ def quantity_ufunc_overload(
 
     Notes
     -----
-    The motivation for this decorator is to allow the :class:`~numpy.ufunc`\s
+    The motivation for this decorator is to allow the :class:`~numpy.ufunc`\ s
     created by :deco:`numba.vectorize` to be unit-aware and convert the
     inputs/outputs to the appropriate units.
     """
