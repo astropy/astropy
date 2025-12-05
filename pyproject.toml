@@ -251,6 +251,7 @@ filterwarnings = [
 doctest_norecursedirs = [
     "*/setup_package.py",
     "*/tests/command.py",
+    "astropy/units/utils.py",
 ]
 doctest_subpackage_requires = [
     "astropy/cosmology/_src/io/builtin/mapping.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
