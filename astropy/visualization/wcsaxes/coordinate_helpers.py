@@ -15,7 +15,7 @@ from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from astropy import units as u
 from astropy.utils.decorators import deprecated_renamed_argument
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .axislabels import AxisLabels
 from .formatter_locator import AngleFormatterLocator, ScalarFormatterLocator
@@ -737,8 +737,24 @@ class CoordinateHelper:
         ----------
         text : str
             The axis label text.
-        minpad : float, optional
+        minpad : float or dict of str,float, optional
             The padding for the label in terms of axis label font size.
+            If given a single float value, the same padding will be applied to
+            each label set to be visible via ``set_axislabel_position``.
+            If a different padding should be applied to distinct axes, this
+            parameter may instead be given as a configuration dictionary where
+            each entry customizes an axis configuration, with the key
+            corresponding to the axis tag (among those allowed by the parent
+            WCSAxes frame), and the value encoding the padding to use.
+        loc : str or dict of str,str, optional
+            The label location relative to the axis. This is equivalent to
+            matplotlib's corresponding keyword argument availably in their
+            label setter. Accordingly, the allowed locations are:
+            - {'left', 'center', 'right'} for horizontal axes,
+            - {'bottom', 'center', 'top'} for vertical axes.
+            Similar to parameter minpad above, different locations may be
+            configured for distinct axes using a configuration dictionary
+            similarly formatted in lieu of a single location.
         **kwargs
             Keywords are passed to :class:`matplotlib.text.Text`. These
             can include keywords to set the ``color``, ``size``, ``weight``, and
@@ -751,6 +767,24 @@ class CoordinateHelper:
         # default numerical value.
         if minpad is None:
             minpad = 1
+
+        protected_kw = [
+            "x",
+            "y",
+            "rotation",
+            "horizontalalignment",
+            "ha",
+            "rotation_mode",
+        ]
+        if ignored := set(kwargs).intersection(protected_kw):
+            warnings.warn(
+                "The following low level keyword arguments "
+                "will be overwritten during the rendering."
+                f"{ignored}.\n"
+                "Use the 'loc' keyword argument instead.",
+                AstropyUserWarning,
+                stacklevel=2,
+            )
 
         self._axislabel_set = True
 
