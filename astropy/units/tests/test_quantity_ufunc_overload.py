@@ -2,18 +2,7 @@ import numba
 import pytest
 import numpy as np
 import astropy.units as u
-from astropy.units.quantity_helper import helpers
-
-
-@pytest.fixture(scope="module")
-def ufunc_helpers():
-
-    _ufunc_helpers = helpers.UFUNC_HELPERS
-
-    yield helpers.UFUNC_HELPERS
-
-    helpers.UFUNC_HELPERS = _ufunc_helpers
-
+from astropy.units import quantity_helper
 
 _m = [
     1,
@@ -44,21 +33,30 @@ def grating_equation(
     return np.arcsin(m * wavelength / d)
 
 
-@u.quantity_ufunc_overload
-@numba.vectorize
-def grating_equation_ufunc(
-    m: float | np.ndarray | u.Quantity[u.one],
-    wavelength: u.Quantity[u.um],
-    d: u.Quantity[u.um],
-) -> u.Quantity[u.rad]:
-    return np.arcsin(m * wavelength / d)
+@pytest.fixture(scope="module")
+def grating_equation_ufunc():
+
+    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS
+
+    @u.quantity_ufunc_overload
+    @numba.vectorize
+    def ufunc(
+        m: float | np.ndarray | u.Quantity[u.one],
+        wavelength: u.Quantity[u.um],
+        d: u.Quantity[u.um],
+    ) -> u.Quantity[u.rad]:
+        return np.arcsin(m * wavelength / d)
+
+    yield ufunc
+
+    quantity_helper.helpers.UFUNC_HELPERS = _ufunc_helpers
 
 
 @pytest.mark.parametrize("m", _m)
 @pytest.mark.parametrize("wavelength", _wavelength)
 @pytest.mark.parametrize("d", _d)
 def test_grating_equation(
-    ufunc_helpers,
+    grating_equation_ufunc,
     m: u.Quantity,
     wavelength: u.Quantity,
     d: u.Quantity,
@@ -76,21 +74,43 @@ def test_grating_equation(
     assert np.allclose(result, result_expected)
 
 
-@u.quantity_ufunc_overload(equivalencies=_equivalencies)
-@numba.vectorize
-def grating_equation_ufunc_equiv(
-    m: float | np.ndarray | u.Quantity[u.one],
-    wavelength: u.Quantity[u.um],
-    d: u.Quantity[u.um],
-) -> u.Quantity[u.rad]:
-    return np.arcsin(m * wavelength / d)
+@pytest.mark.parametrize("m", _m)
+@pytest.mark.parametrize("wavelength", _wavelength)
+@pytest.mark.parametrize("d", _d)
+def test_grating_equation_ndarray_inputs(
+    grating_equation_ufunc,
+    m: u.Quantity,
+    wavelength: u.Quantity,
+    d: u.Quantity,
+):
+    with pytest.raises(u.UnitConversionError):
+        grating_equation_ufunc(m, wavelength.value, d)
+
+
+@pytest.fixture(scope="module")
+def grating_equation_ufunc_equiv():
+
+    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS
+
+    @u.quantity_ufunc_overload(equivalencies=_equivalencies)
+    @numba.vectorize
+    def ufunc(
+        m: float | np.ndarray | u.Quantity[u.one],
+        wavelength: u.Quantity[u.um],
+        d: u.Quantity[u.um],
+    ) -> u.Quantity[u.rad]:
+        return np.arcsin(m * wavelength / d)
+
+    yield ufunc
+
+    quantity_helper.helpers.UFUNC_HELPERS = _ufunc_helpers
 
 
 @pytest.mark.parametrize("m", _m)
 @pytest.mark.parametrize("wavelength", _wavelength)
 @pytest.mark.parametrize("d", _d)
 def test_grating_equation_equivalencies(
-    ufunc_helpers,
+    grating_equation_ufunc_equiv,
     m: u.Quantity,
     wavelength: u.Quantity,
     d: u.Quantity,
@@ -104,21 +124,30 @@ def test_grating_equation_equivalencies(
     assert np.allclose(result, result_expected)
 
 
-@u.quantity_ufunc_overload
-@numba.vectorize
-def grating_equation_ufunc_missing_units(
-    m: float | np.ndarray | u.Quantity[u.one],
-    wavelength: u.Quantity,
-    d: u.Quantity[u.um],
-) -> u.Quantity[u.rad]:
-    return np.arcsin(m * wavelength / d)
+@pytest.fixture(scope="module")
+def grating_equation_ufunc_missing_units():
+
+    _ufunc_helpers = quantity_helper.helpers.UFUNC_HELPERS
+
+    @u.quantity_ufunc_overload
+    @numba.vectorize
+    def ufunc(
+        m: float | np.ndarray | u.Quantity[u.one],
+        wavelength: u.Quantity,
+        d: u.Quantity[u.um],
+    ) -> u.Quantity[u.rad]:
+        return np.arcsin(m * wavelength / d)
+
+    yield ufunc
+
+    quantity_helper.helpers.UFUNC_HELPERS = _ufunc_helpers
 
 
 @pytest.mark.parametrize("m", _m)
 @pytest.mark.parametrize("wavelength", _wavelength)
 @pytest.mark.parametrize("d", _d)
 def test_grating_equation_missing_units(
-    ufunc_helpers,
+    grating_equation_ufunc_missing_units,
     m: u.Quantity,
     wavelength: u.Quantity,
     d: u.Quantity,
