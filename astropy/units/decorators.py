@@ -14,11 +14,11 @@ from numbers import Number
 
 import numpy as np
 
+from . import quantity_helper as qh
 from .core import Unit, UnitBase, add_enabled_equivalencies, dimensionless_unscaled
 from .errors import UnitsError
 from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
-from .quantity_helper.helpers import get_converter, UFUNC_HELPERS
 
 NoneType = type(None)
 
@@ -357,20 +357,60 @@ def quantity_ufunc_overload(
 ) -> T.Callable:
     r"""
     A decorator which converts instances of :class:`~astropy.units.Quantity`
-    to :class:`numpy.ndarray` for use with user-defined
-    Numpy :class:`numpy.ufunc`\ s.
+    to :class:`numpy.ndarray` for use with user-defined instances of
+    :class:`numpy.ufunc`.
 
     Unit specifications must be provided using function annotation syntax,
-    similar to the :deco:`~astropy.units.quantity_input` decorator.
-
+    similar to the :deco:`quantity_input` decorator.
     A `~astropy.units.UnitConversionError` will be raised if the unit attribute of
     the argument is not equivalent to the unit specified in the annotation.
 
     Notes
     -----
-    The motivation for this decorator is to allow the :class:`~numpy.ufunc`\ s
+    The motivation for this decorator is to allow the :class:`~numpy.ufunc` instances
     created by :func:`numba.vectorize` to be unit-aware and convert the
     inputs/outputs to the appropriate units.
+    This allows the user to take advantage of Numba's just-in-time
+    compiler and accelerate numerically-intensive calculations while still being
+    able to convert and validate the units of the inputs/outputs.
+
+    Examples
+    --------
+
+    Create an accelerated version of the
+    `grating equation <https://en.wikipedia.org/wiki/Diffraction_grating#Theory_of_operation>`_
+    for normally-incident light.
+
+    .. code-block:: python
+
+        import astropy.units as u
+
+        @u.quantity_ufunc_overload
+        @numba.vectorize
+        def grating_equation(
+            m: float | np.ndarray | u.Quantity[u.one],
+            wavelength: u.Quantity[u.um],
+            d: u.Quantity[u.um],
+        ) -> u.Quantity[u.rad]:
+            return np.arcsin(m * wavelength / d)
+
+    You can also specify equivalencies by passing an argument into the decorator.
+    For example, if you wanted to be able to specify the wavelength in terms
+    of length units or energy units, we can use the :func:`spectral` equivalency.
+
+    .. code-block:: python
+
+        import astropy.units as u
+
+        @u.quantity_ufunc_overload(equivalencies=u.spectral())
+        @numba.vectorize
+        def grating_equation(
+            m: float | np.ndarray | u.Quantity[u.one],
+            wavelength: u.Quantity[u.um],
+            d: u.Quantity[u.um],
+        ) -> u.Quantity[u.rad]:
+            return np.arcsin(m * wavelength / d)
+
     """
     eq = equivalencies
 
@@ -401,13 +441,13 @@ def quantity_ufunc_overload(
                 (
                     unit.get_converter(unit_in, equivalencies=eq)
                     if unit is not None
-                    else get_converter(dimensionless_unscaled, unit_in)
+                    else qh.helpers.get_converter(dimensionless_unscaled, unit_in)
                 )
                 for unit, unit_in in zip(units, units_in)
             ]
             return converters, units_out
 
-        UFUNC_HELPERS[func] = helper
+        qh.UFUNC_HELPERS[func] = helper
 
         return func
 
