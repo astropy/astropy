@@ -34,7 +34,7 @@ def is_effectively_unity(value: UnitScaleLike) -> bool | np.bool_:
         )
 
 
-def sanitize_scale(scale: UnitScaleLike) -> UnitScale:
+def sanitize_scale(scale: UnitScaleLike, /) -> UnitScale:
     if is_effectively_unity(scale):
         return 1.0
     if not scale:
@@ -52,7 +52,7 @@ def sanitize_scale(scale: UnitScaleLike) -> UnitScale:
     return complex(scale)
 
 
-def maybe_simple_fraction(p: UnitPowerLike, max_denominator: int = 100) -> UnitPower:
+def maybe_simple_fraction(p: UnitPowerLike, /, max_denominator: int = 100) -> UnitPower:
     """Fraction very close to x with denominator at most max_denominator.
 
     The fraction has to be such that fraction/x is unity to within 4 ulp.
@@ -124,7 +124,7 @@ def sanitize_power(p: UnitPowerLike) -> UnitPower:
 
 
 def resolve_fractions(
-    a: UnitPowerLike, b: UnitPowerLike
+    a: UnitPowerLike, b: UnitPowerLike, /
 ) -> tuple[UnitPowerLike, UnitPowerLike]:
     """
     If either input is a Fraction, convert the other to a Fraction
