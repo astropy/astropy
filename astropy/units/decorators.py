@@ -14,11 +14,11 @@ from numbers import Number
 
 import numpy as np
 
-from . import quantity_helper as qh
 from .core import Unit, UnitBase, add_enabled_equivalencies, dimensionless_unscaled
 from .errors import UnitsError
 from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
+from .quantity_helper import converters, helpers
 
 NoneType = type(None)
 
@@ -441,13 +441,13 @@ def quantity_ufunc_overload(
                 (
                     unit.get_converter(unit_in, equivalencies=eq)
                     if unit is not None
-                    else qh.helpers.get_converter(dimensionless_unscaled, unit_in)
+                    else helpers.get_converter(dimensionless_unscaled, unit_in)
                 )
                 for unit, unit_in in zip(units, units_in)
             ]
             return converters, units_out
 
-        qh.UFUNC_HELPERS[func] = helper
+        converters.UFUNC_HELPERS[func] = helper
 
         return func
 
