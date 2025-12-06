@@ -415,7 +415,6 @@ def quantity_ufunc_overload(
     eq = equivalencies
 
     def decorator(func):
-
         signature = inspect.signature(func)
 
         units_out = _parse_annotation(signature.return_annotation)
