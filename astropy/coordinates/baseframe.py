@@ -2063,6 +2063,70 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             unit=u.degree,
         )
 
+    def separation_projected(
+        self,
+        other: Union["BaseCoordinateFrame", "SkyCoord"],
+        *,
+        pa,
+        b_over_a: float | None = None,
+        return_components: bool = False,
+        origin_mismatch: Literal["ignore", "warn", "error"] = "warn",
+    ) -> Angle | tuple[Angle, Angle]:
+        """Compute the projected separation onto an axis (and optional ellipse).
+
+        Parameters
+        ----------
+        other : BaseCoordinateFrame or SkyCoord
+            The coordinate to get the separation to.
+        pa : Angle-like
+            Position angle (East of North) of the major-axis to project onto.
+        b_over_a : float, optional
+            Minor-to-major axis ratio for elliptical distance computation.
+        return_components : bool, optional
+            If True return the signed components (d_major, d_minor) as Angles.
+        origin_mismatch : {'ignore','warn','error'}, optional
+            As in :meth:`separation`, how to handle origin mismatches.
+
+        Returns
+        -------
+        Angle or tuple
+            By default returns an absolute projected `Angle` along the major
+            axis. If ``b_over_a`` is given returns the elliptical distance as
+            an `Angle`. If ``return_components`` is True returns the signed
+            `(d_major, d_minor)` tuple of `Angle`s.
+        """
+        # prepare unit-sphere coords
+        lon1, lat1, lon2, lat2 = self._prepare_unit_sphere_coords(
+            other, origin_mismatch
+        )
+
+        # total separation and its PA
+        sep = Angle(angular_separation(lon1, lat1, lon2, lat2), unit=u.degree)
+        pa_sep = position_angle(lon1, lat1, lon2, lat2)
+
+        # normalize axis PA to Angle
+        pa_axis = Angle(pa)
+
+        # angle difference (signed) in radians
+        delta = (pa_sep - pa_axis).to(u.radian)
+
+        # projected components (signed) along major/minor axes
+        d_major = (sep * np.cos(delta)).to(u.degree)
+        d_minor = (sep * np.sin(delta)).to(u.degree)
+
+        if return_components:
+            return d_major, d_minor
+
+        if b_over_a is not None:
+            b = float(b_over_a)
+            if b == 0:
+                raise ValueError("b_over_a must be non-zero")
+            R = np.sqrt((d_major.value**2) + (d_minor.value**2) / (b**2))
+            return Angle(R, unit=d_major.unit)
+
+        # default: absolute projected distance along major axis
+        return np.abs(d_major)
+
     def separation_3d(self, other):
         """
         Computes three dimensional separation between this coordinate
