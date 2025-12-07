@@ -347,6 +347,15 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
     # override __array_function__.
     def __array_function__(self, function, types, args, kwargs):
         """Wrap numpy functions that make sense."""
+
+        ns = self.__array_namespace__()
+
+        if hasattr(ns, function.__name__):
+            fn = getattr(ns, function.__name__)
+            if self is not args[0]:
+                return NotImplemented
+            return self._apply(fn, *args[1:], **kwargs)
+
         if function in self._APPLICABLE_FUNCTIONS:
             if function is np.broadcast_to:
                 # Ensure that any ndarray subclasses used are
@@ -381,6 +390,10 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         # Fall-back, just pass the arguments on since perhaps the function
         # works already (see above).
         return function.__wrapped__(*args, **kwargs)
+    
+    def __array_namespace__(self):
+        """Return the namespace for array functions."""
+        return np
 
 
 class IncompatibleShapeError(ValueError):

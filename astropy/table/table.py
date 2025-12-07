@@ -2445,7 +2445,13 @@ class Table:
             if isinstance(col, np.ndarray):
                 col = np.broadcast_to(col, shape=new_shape, subok=True)
             elif isinstance(col, ShapedLikeNDArray):
-                col = col._apply(np.broadcast_to, shape=new_shape, subok=True)
+                ns = col.__array_namespace__()
+
+                if hasattr(ns, "broadcast_to"):
+                    broadcast = getattr(ns, "broadcast_to")
+                else:
+                    broadcast = np.broadcast_to # numpy fallback
+                col = col._apply(broadcast, shape=new_shape, subok=True)
 
             # broadcast_to() results in a read-only array.  Apparently it only changes
             # the view to look like the broadcasted array.  So copy.
