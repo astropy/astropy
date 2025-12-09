@@ -150,7 +150,7 @@ def grating_equation_overload_multiple_units(
 @pytest.mark.parametrize("wavelength", _wavelength)
 @pytest.mark.parametrize("d", _d)
 @pytest.mark.parametrize("m", _m)
-def test_grating_equation_missing_unit(
+def test_grating_equation_multiple_units(
     wavelength: u.Quantity,
     d: u.Quantity,
     m: u.Quantity,
@@ -166,9 +166,9 @@ def test_grating_equation_missing_unit(
 def grating_equation_overload_variational(
     wavelength: u.Quantity[u.um],
     d: u.Quantity[u.um],
-    *args,
+    *args: None,
     m: int | np.ndarray = 1,
-    **kwargs,
+    **kwargs: None,
 ) -> u.Quantity[u.rad]:
     """
     A version of the grating equation which has variational arguments.
