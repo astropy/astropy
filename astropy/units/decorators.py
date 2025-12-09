@@ -376,7 +376,6 @@ def quantity_overload(
 
     Examples
     --------
-
     Create an accelerated version of the
     `grating equation <https://en.wikipedia.org/wiki/Diffraction_grating#Theory_of_operation>`_
     for normally-incident light.
