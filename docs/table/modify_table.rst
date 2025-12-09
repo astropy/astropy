@@ -247,10 +247,10 @@ To rename a column, or multiple columns at once::
   >>> t.rename_column('a', 'a_new')  # Single columns
   >>> t['b'].name = 'b_new'
   >>> t.columns
-  <TableColumns names=('a_new','b_new','c')>
+  <TableColumns names=('a_new','b_new')>
   >>> t.rename_columns(['a_new', 'b_new'], ['a', 'b'])  # Multiple columns
   >>> t.columns
-  <TableColumns names=('a','b','c')>
+  <TableColumns names=('a','b')>
 
 .. EXAMPLE END
 
