@@ -53,7 +53,6 @@ def test_grating_equation(
     d: u.Quantity,
     m: u.Quantity,
 ):
-
     try:
         result_expected = grating_equation(wavelength, d, m=m)
     except u.UnitTypeError:
@@ -100,7 +99,6 @@ def test_grating_equation_equivalencies(
     d: u.Quantity,
     m: u.Quantity,
 ):
-
     wavelength_ = wavelength.to(u.nm, equivalencies=_equivalencies)
 
     result_expected = grating_equation(wavelength_, d, m=m)
