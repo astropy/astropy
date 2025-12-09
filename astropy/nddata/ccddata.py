@@ -716,10 +716,11 @@ def fits_ccddata_reader(
                         "file before reading it."
                     )
             else:
-                log.info(
-                    f"using the unit {unit} passed to the FITS reader instead "
-                    f"of the unit {fits_unit_string} in the FITS file."
-                )
+                if str(unit) != str(fits_unit_string): #Only log if the specified unit differs from the FITS header unit!
+                    log.info(
+                        f"using the unit {unit} passed to the FITS reader instead "
+                        f"of the unit {fits_unit_string} in the FITS file."
+                    )
 
         use_unit = unit or fits_unit_string
         hdr, wcs = _generate_wcs_and_update_header(hdr)
