@@ -316,11 +316,7 @@ def test_negative_distance(icrs_coords):
     [
         pytest.param([], id="no equivalencies"),
         # Regression test for #19043 - equivalencies could mess up the error message.
-        pytest.param(
-            u.doppler_redshift(),
-            id="doppler_redshift equivalency",
-            marks=pytest.mark.xfail(reason="regression test to reveal a bug"),
-        ),
+        pytest.param(u.doppler_redshift(), id="doppler_redshift equivalency"),
     ],
 )
 def test_velocity_units(equivalency):
