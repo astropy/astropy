@@ -1,11 +1,7 @@
-import copy
-import math
-
-import astropy.units as u
-import numba
 import numpy as np
 import pytest
-from astropy.units.quantity_helper import converters
+
+import astropy.units as u
 
 _m = [
     1,

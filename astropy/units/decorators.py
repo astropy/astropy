@@ -421,19 +421,16 @@ def quantity_overload(
     eq = equivalencies
 
     def decorator(func):
-
         signature = inspect.signature(func)
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-
             arguments = signature.bind(*args, **kwargs).arguments
 
             args_new = []
             kwargs_new = {}
 
             for name in arguments:
-
                 param = signature.parameters[name]
                 argument = arguments[name]
 
