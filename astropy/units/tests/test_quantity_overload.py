@@ -195,11 +195,10 @@ def grating_equation_overload_multiple_return(
     wavelength: u.Quantity[u.um],
     d: u.Quantity[u.um],
     *,
-    m: int | np.ndarray = 1,
+    m: int | np.ndarray | u.Quantity[u.one] = 1,
 ) -> tuple[u.Quantity[u.rad], float | np.ndarray]:
     """
-    A version of the grating equation which uses np.emath.arcsin(),
-    which is not implemented by astropy.
+    A version of the grating equation which has multiple return values.
     """
     return np.emath.arcsin(m * wavelength / d), 0
 
