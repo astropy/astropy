@@ -347,36 +347,34 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
     # override __array_function__.
     def __array_function__(self, function, types, args, kwargs):
         """Wrap numpy functions that make sense."""
-        if function in self._APPLICABLE_FUNCTIONS:
-            # ns = self.__array_namespace__()
+        ns = self.__array_namespace__()
 
-            # if hasattr(ns, function.__name__):
-            #     fn = getattr(ns, function.__name__)
-            #     return self._apply(fn, *args[1:], **kwargs)
+        if hasattr(ns, function.__name__):
+            fn = getattr(ns, function.__name__)
+        else:
+            return NotImplemented
 
-            if function is np.broadcast_to:
+        if fn in self._APPLICABLE_FUNCTIONS:
+            if fn is np.broadcast_to:
                 # Ensure that any ndarray subclasses used are
                 # properly propagated.
                 kwargs.setdefault("subok", True)
-            elif (
-                function in {np.atleast_1d, np.atleast_2d, np.atleast_3d}
-                and len(args) > 1
-            ):
+            elif fn in {np.atleast_1d, np.atleast_2d, np.atleast_3d} and len(args) > 1:
                 seq_cls = list if NUMPY_LT_2_0 else tuple
-                return seq_cls(function(arg, **kwargs) for arg in args)
+                return seq_cls(fn(arg, **kwargs) for arg in args)
 
             if self is not args[0]:
                 return NotImplemented
 
-            return self._apply(function, *args[1:], **kwargs)
+            return self._apply(fn, *args[1:], **kwargs)
 
-        elif function in self._CUSTOM_FUNCTIONS:
-            return self._CUSTOM_FUNCTIONS[function](*args, **kwargs)
+        elif fn in self._CUSTOM_FUNCTIONS:
+            return self._CUSTOM_FUNCTIONS[fn](*args, **kwargs)
 
         # For functions that defer to methods, use the corresponding
         # method/attribute if we have it.  Otherwise, fall through.
-        if self is args[0] and function in self._METHOD_FUNCTIONS:
-            method = getattr(self, self._METHOD_FUNCTIONS[function], None)
+        if self is args[0] and fn in self._METHOD_FUNCTIONS:
+            method = getattr(self, self._METHOD_FUNCTIONS[fn], None)
             if method is not None:
                 if callable(method):
                     return method(*args[1:], **kwargs)
@@ -386,7 +384,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
 
         # Fall-back, just pass the arguments on since perhaps the function
         # works already (see above).
-        return function.__wrapped__(*args, **kwargs)
+        return fn.__wrapped__(*args, **kwargs)
 
     def __array_namespace__(self):
         """Return the namespace for array functions."""
