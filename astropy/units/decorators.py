@@ -2,10 +2,11 @@
 
 __all__ = [
     "quantity_input",
-    "quantity_ufunc_overload",
+    "quantity_overload",
 ]
 
 import contextlib
+import functools
 import inspect
 import typing as T
 from collections.abc import Sequence
@@ -18,7 +19,6 @@ from .core import Unit, UnitBase, add_enabled_equivalencies, dimensionless_unsca
 from .errors import UnitsError
 from .physical import PhysicalType, get_physical_type
 from .quantity import Quantity
-from .quantity_helper import converters, helpers
 
 NoneType = type(None)
 
@@ -351,14 +351,14 @@ class QuantityInput:
 quantity_input = QuantityInput.as_decorator
 
 
-def quantity_ufunc_overload(
+def quantity_overload(
     function: None | T.Callable = None,
     equivalencies: None | list = None,
 ) -> T.Callable:
     r"""
-    A decorator which converts instances of :class:`~astropy.units.Quantity`
-    to :class:`numpy.ndarray` for use with user-defined instances of
-    :class:`numpy.ufunc`.
+    A decorator which allows functions designed to operate on
+    instances of :class:`numpy.ndarray` to accept instances of
+    :class:`~astropy.units.Quantity` instead.
 
     Unit specifications must be provided using function annotation syntax,
     similar to the :deco:`quantity_input` decorator.
@@ -383,16 +383,19 @@ def quantity_ufunc_overload(
 
     .. code-block:: python
 
+        import math
+        import numpy as np
+        import numba
         import astropy.units as u
 
-        @u.quantity_ufunc_overload
+        @u.quantity_overload
         @numba.vectorize
         def grating_equation(
             m: float | np.ndarray | u.Quantity[u.one],
             wavelength: u.Quantity[u.um],
             d: u.Quantity[u.um],
         ) -> u.Quantity[u.rad]:
-            return np.arcsin(m * wavelength / d)
+            return math.asin(m * wavelength / d)
 
     You can also specify equivalencies by passing an argument into the decorator.
     For example, if you wanted to be able to specify the wavelength in terms
@@ -400,6 +403,9 @@ def quantity_ufunc_overload(
 
     .. code-block:: python
 
+        import math
+        import numpy as np
+        import numba
         import astropy.units as u
 
         @u.quantity_ufunc_overload(equivalencies=u.spectral())
@@ -409,46 +415,89 @@ def quantity_ufunc_overload(
             wavelength: u.Quantity[u.um],
             d: u.Quantity[u.um],
         ) -> u.Quantity[u.rad]:
-            return np.arcsin(m * wavelength / d)
+            return math.asin(m * wavelength / d)
 
     """
     eq = equivalencies
 
     def decorator(func):
+
         signature = inspect.signature(func)
 
-        units_out = _parse_annotation(signature.return_annotation)
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
 
-        units_in = []
-        for param in signature.parameters.values():
-            unit = _parse_annotation(param.annotation)
+            arguments = signature.bind(*args, **kwargs).arguments
 
-            if not unit:
-                unit = dimensionless_unscaled
+            args_new = []
+            kwargs_new = {}
 
-            if isinstance(unit, list):
-                unit = [un for un in unit if un]
-                if len(unit) == 1:
-                    unit = unit[0]
+            for name in arguments:
+
+                param = signature.parameters[name]
+                argument = arguments[name]
+
+                if param.kind is inspect.Parameter.VAR_POSITIONAL:
+                    args_new.extend(argument)
+                    continue
+
+                if param.kind is inspect.Parameter.VAR_KEYWORD:
+                    kwargs_new = kwargs_new | argument
+                    continue
+
+                unit = _parse_annotation(param.annotation)
+
+                if unit:
+                    if isinstance(unit, T.Sequence):
+                        unit = [un for un in unit if un]
+                        if len(unit) == 1:
+                            unit = unit[0]
+                        else:
+                            raise TypeError(
+                                f"Only one unit specification allowed, got {unit}."
+                            )
+
+                    try:
+                        value = argument.to_value(unit, equivalencies=eq)
+                    except AttributeError:
+                        value = (argument << unit).to_value(
+                            dimensionless_unscaled, equivalencies=eq
+                        )
+
                 else:
-                    raise ValueError(f"Multiple unit annotations specified, {unit}")
+                    if hasattr(argument, "unit"):
+                        value = argument.to_value(
+                            dimensionless_unscaled, equivalencies=eq
+                        )
+                    else:
+                        value = argument
 
-            units_in.append(unit)
+                if param.kind is inspect.Parameter.KEYWORD_ONLY:
+                    kwargs_new[name] = value
+                else:
+                    args_new.append(value)
 
-        def helper(f, *units):
-            converters = [
-                (
-                    unit.get_converter(unit_in, equivalencies=eq)
-                    if unit is not None
-                    else helpers.get_converter(dimensionless_unscaled, unit_in)
-                )
-                for unit, unit_in in zip(units, units_in)
-            ]
-            return converters, units_out
+            result = func(*args_new, **kwargs_new)
 
-        converters.UFUNC_HELPERS[func] = helper
+            return_annotation = signature.return_annotation
 
-        return func
+            units_out = _parse_annotation(return_annotation)
+
+            if units_out:
+                result = result << units_out
+            else:
+                cls = T.get_origin(return_annotation)
+                if issubclass(cls, T.Sequence):
+                    units_out = [
+                        _parse_annotation(t) for t in T.get_args(return_annotation)
+                    ]
+                    result = cls(
+                        r << unit if unit else r for r, unit in zip(result, units_out)
+                    )
+
+            return result
+
+        return wrapper
 
     if function is not None:
         decorator = decorator(function)
