@@ -1021,3 +1021,9 @@ url = "https://pypi.anaconda.org/liberfa/simple"
 exclude-newer = false
 # cache metadata for up to 10min (600s), and packages for 12h (43200s)
 cache-control = { api = "max-age=600", files = "max-age=43200, immutable" }
+
+[tool.mypy]
+follow_imports = "silent"
+packages = [
+    "astropy.coordinates.sites",
+]
