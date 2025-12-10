@@ -2447,10 +2447,9 @@ class Table:
             else:
                 ns = col.__array_namespace__()
 
-                if hasattr(ns, "broadcast_to"):
-                    broadcast = ns.broadcast_to
-                else:
-                    broadcast = np.broadcast_to  # numpy fallback
+                # Tries to get broadcast_to from primary implementation
+                # If not present, fallsback to previous, until numpy's
+                broadcast = ns.broadcast_to
                 col = col._apply(broadcast, shape=new_shape, subok=True)
 
             # broadcast_to() results in a read-only array.  Apparently it only changes

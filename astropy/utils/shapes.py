@@ -349,10 +349,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         """Wrap numpy functions that make sense."""
         ns = self.__array_namespace__()
 
-        if hasattr(ns, function.__name__):
-            fn = getattr(ns, function.__name__)
-        else:
-            return NotImplemented
+        fn = getattr(ns, function.__name__)
 
         if fn in self._APPLICABLE_FUNCTIONS:
             if fn is np.broadcast_to:
@@ -388,7 +385,23 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
 
     def __array_namespace__(self):
         """Return the namespace for array functions."""
-        return np
+        return ShapedNamespace(np, self)
+
+
+class ShapedNamespace:
+    def __init__(self, base, owner):
+        self._base = base
+        self._owner = owner
+
+    def __getattr__(self, name):
+        if name in self._owner._CUSTOM_FUNCTIONS:
+            return self._owner._CUSTOM_FUNCTIONS[name]
+
+        method_name = self._owner._METHOD_FUNCTIONS.get(name)
+        if method_name:
+            return getattr(self._owner, method_name)
+
+        return getattr(self._base, name)
 
 
 class IncompatibleShapeError(ValueError):
