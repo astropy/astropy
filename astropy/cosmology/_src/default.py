@@ -1,7 +1,7 @@
 """Default Cosmology."""
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ["default_cosmology"]
+__all__ = ("default_cosmology",)
 
 
 from typing import ClassVar

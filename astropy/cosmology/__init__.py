@@ -7,27 +7,7 @@ measures and other cosmology-related calculations.
 See the :ref:`astropy-cosmology` for more detailed usage examples and references.
 """
 
-from . import io, realizations, traits, units
-from ._src.core import Cosmology, CosmologyError, FlatCosmologyMixin
-from ._src.flrw import (
-    FLRW,
-    FlatFLRWMixin,
-    FlatLambdaCDM,
-    Flatw0waCDM,
-    Flatw0wzCDM,
-    FlatwCDM,
-    FlatwpwaCDM,
-    LambdaCDM,
-    w0waCDM,
-    w0wzCDM,
-    wCDM,
-    wpwaCDM,
-)
-from ._src.funcs import cosmology_equal, z_at_value
-from ._src.parameter import Parameter
-from .realizations import available, default_cosmology
-
-__all__ = [  #  noqa: RUF100, RUF022
+__all__ = (  #  noqa: RUF100, RUF022
     # Public Submodules
     "realizations",
     "units",
@@ -66,7 +46,27 @@ __all__ = [  #  noqa: RUF100, RUF022
     "Planck13",
     "Planck15",
     "Planck18",
-]
+)
+
+from . import io, realizations, traits, units
+from ._src.core import Cosmology, CosmologyError, FlatCosmologyMixin
+from ._src.flrw import (
+    FLRW,
+    FlatFLRWMixin,
+    FlatLambdaCDM,
+    Flatw0waCDM,
+    Flatw0wzCDM,
+    FlatwCDM,
+    FlatwpwaCDM,
+    LambdaCDM,
+    w0waCDM,
+    w0wzCDM,
+    wCDM,
+    wpwaCDM,
+)
+from ._src.funcs import cosmology_equal, z_at_value
+from ._src.parameter import Parameter
+from .realizations import available, default_cosmology
 
 
 def __getattr__(name: str) -> Cosmology:

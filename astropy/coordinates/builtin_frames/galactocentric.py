@@ -10,8 +10,8 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.coordinates import representation as r
 from astropy.coordinates.attributes import (
+    CartesianRepresentationAttribute,
     CoordinateAttribute,
-    DifferentialAttribute,
     QuantityAttribute,
 )
 from astropy.coordinates.baseframe import (
@@ -161,7 +161,7 @@ class galactocentric_frame_defaults(ScienceState):
                         ra=266.4051 * u.degree, dec=-28.936175 * u.degree
                     ),
                     "galcen_distance": 8.122 * u.kpc,
-                    "galcen_v_sun": r.CartesianDifferential(
+                    "galcen_v_sun": r.CartesianRepresentation(
                         [12.9, 245.6, 7.78] * (u.km / u.s)
                     ),
                     "z_sun": 20.8 * u.pc,
@@ -193,7 +193,7 @@ class galactocentric_frame_defaults(ScienceState):
                         ra=266.4051 * u.degree, dec=-28.936175 * u.degree
                     ),
                     "galcen_distance": 8.3 * u.kpc,
-                    "galcen_v_sun": r.CartesianDifferential(
+                    "galcen_v_sun": r.CartesianRepresentation(
                         [11.1, 220 + 12.24, 7.25] * (u.km / u.s)
                     ),
                     "z_sun": 27.0 * u.pc,
@@ -350,7 +350,7 @@ doc_footer = """
         The ICRS coordinates of the Galactic center.
     galcen_distance : `~astropy.units.Quantity`, optional, keyword-only
         The distance from the sun to the Galactic center.
-    galcen_v_sun : `~astropy.coordinates.CartesianDifferential`, `~astropy.units.Quantity` ['speed'], optional, keyword-only
+    galcen_v_sun : `~astropy.coordinates.CartesianRepresentation`, `~astropy.units.Quantity` ['speed'], optional, keyword-only
         The velocity of the sun *in the Galactocentric frame* as Cartesian
         velocity components.
     z_sun : `~astropy.units.Quantity` ['length'], optional, keyword-only
@@ -361,6 +361,10 @@ doc_footer = """
         the final x-z plane will align with the Galactic coordinates x-z
         plane. Unless you really know what this means, you probably should
         not change this!
+
+    .. versionchanged :: 8.0
+       ``galcen_v_sun`` is now a `~astropy.coordinates.CartesianRepresentation`
+       rather than a `~astropy.coordinates.CartesianDifferential`.
 
     Examples
     --------
@@ -467,8 +471,8 @@ class Galactocentric(BaseCoordinateFrame):
         unit=u.kpc, doc="The distance from the Sun to the Galactic center"
     )
 
-    galcen_v_sun = DifferentialAttribute(
-        allowed_classes=[r.CartesianDifferential],
+    galcen_v_sun = CartesianRepresentationAttribute(
+        unit=u.km / u.s,
         doc="The velocity of the Sun in the Galactocentric frame",
     )
 
@@ -545,20 +549,16 @@ def get_matrix_vectors(galactocentric_frame, inverse=False):
     # Now we re-align the translation vector to account for the Sun's height
     # above the midplane
     offset = -translation.transform(H)
+    offset_v = gcf.galcen_v_sun
 
     if inverse:
         # the inverse of a rotation matrix is a transpose, which is much faster
         #   and more stable to compute
         A = matrix_transpose(A)
         offset = (-offset).transform(A)
-        offset_v = r.CartesianDifferential.from_cartesian(
-            (-gcf.galcen_v_sun).to_cartesian().transform(A)
-        )
-        offset = offset.with_differentials(offset_v)
+        offset_v = (-gcf.galcen_v_sun).transform(A)
 
-    else:
-        offset = offset.with_differentials(gcf.galcen_v_sun)
-
+    offset = offset.with_differentials(r.CartesianDifferential.from_cartesian(offset_v))
     return A, offset
 
 

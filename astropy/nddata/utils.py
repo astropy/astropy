@@ -3,15 +3,18 @@
 This module includes helper functions for array operations.
 """
 
+import functools
+from collections.abc import Callable
 from copy import deepcopy
+from typing import Literal, TypeAlias, TypeVar, overload
 
 import numpy as np
+from numpy.typing import NDArray
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io.fits.hdu.compressed import CompImageSection
 from astropy.io.fits.hdu.image import Section
-from astropy.utils import lazyproperty
 from astropy.wcs import Sip
 from astropy.wcs.utils import proj_plane_pixel_scales, skycoord_to_pixel
 
@@ -26,6 +29,10 @@ __all__ = [
 ]
 
 
+DT = TypeVar("DT", bound=np.generic)
+LimitRoundingMethod: TypeAlias = Callable[[float], float]
+
+
 class NoOverlapError(ValueError):
     """Raised when determining the overlap of non-overlapping arrays."""
 
@@ -35,13 +42,13 @@ class PartialOverlapError(ValueError):
 
 
 def overlap_slices(
-    large_array_shape,
-    small_array_shape,
-    position,
-    mode="partial",
+    large_array_shape: int | tuple[int, ...],
+    small_array_shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"] = "partial",
     *,
-    limit_rounding_method=np.ceil,
-):
+    limit_rounding_method: LimitRoundingMethod = np.ceil,
+) -> tuple[tuple[slice, ...], tuple[slice, ...]]:
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -172,6 +179,32 @@ def overlap_slices(
     return slices_large, slices_small
 
 
+@overload
+def extract_array(
+    array_large: NDArray[DT],
+    shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"],
+    fill_value: float,
+    return_position: Literal[True],
+    *,
+    limit_rounding_method: LimitRoundingMethod = np.ceil,
+) -> tuple[NDArray[DT], tuple[float, ...]]: ...
+
+
+@overload
+def extract_array(
+    array_large: NDArray[DT],
+    shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"] = "partial",
+    fill_value: float = np.nan,
+    return_position: Literal[False] = False,
+    *,
+    limit_rounding_method: LimitRoundingMethod = np.ceil,
+) -> NDArray[DT]: ...
+
+
 def extract_array(
     array_large,
     shape,
@@ -295,7 +328,13 @@ def extract_array(
         return extracted_array
 
 
-def add_array(array_large, array_small, position, *, limit_rounding_method=np.ceil):
+def add_array(
+    array_large: NDArray[DT],
+    array_small: NDArray[DT],
+    position: tuple[float, ...],
+    *,
+    limit_rounding_method: LimitRoundingMethod = np.ceil,
+) -> NDArray[DT]:
     """
     Add a smaller array at a given position in a larger array.
 
@@ -593,7 +632,7 @@ class Cutout2D:
         fill_value=np.nan,
         copy=False,
         *,
-        limit_rounding_method=np.ceil,
+        limit_rounding_method: LimitRoundingMethod = np.ceil,
     ):
         if wcs is None:
             wcs = getattr(data, "wcs", None)
@@ -816,7 +855,7 @@ class Cutout2D:
             (slices[1].start, slices[1].stop - 1),
         )
 
-    @lazyproperty
+    @functools.cached_property
     def origin_original(self):
         """
         The ``(x, y)`` index of the origin pixel of the cutout with
@@ -826,7 +865,7 @@ class Cutout2D:
         """
         return (self.slices_original[1].start, self.slices_original[0].start)
 
-    @lazyproperty
+    @functools.cached_property
     def origin_cutout(self):
         """
         The ``(x, y)`` index of the origin pixel of the cutout with
@@ -846,7 +885,7 @@ class Cutout2D:
         """
         return int(np.floor(a + 0.5))
 
-    @lazyproperty
+    @functools.cached_property
     def position_original(self):
         """
         The ``(x, y)`` position index (rounded to the nearest pixel) in
@@ -857,7 +896,7 @@ class Cutout2D:
             self._round(self.input_position_original[1]),
         )
 
-    @lazyproperty
+    @functools.cached_property
     def position_cutout(self):
         """
         The ``(x, y)`` position index (rounded to the nearest pixel) in
@@ -868,7 +907,7 @@ class Cutout2D:
             self._round(self.input_position_cutout[1]),
         )
 
-    @lazyproperty
+    @functools.cached_property
     def center_original(self):
         """
         The central ``(x, y)`` position of the cutout array with respect
@@ -877,7 +916,7 @@ class Cutout2D:
         """
         return self._calc_center(self.slices_original)
 
-    @lazyproperty
+    @functools.cached_property
     def center_cutout(self):
         """
         The central ``(x, y)`` position of the cutout array with respect
@@ -886,7 +925,7 @@ class Cutout2D:
         """
         return self._calc_center(self.slices_cutout)
 
-    @lazyproperty
+    @functools.cached_property
     def bbox_original(self):
         """
         The bounding box ``((ymin, ymax), (xmin, xmax))`` of the minimal
@@ -896,7 +935,7 @@ class Cutout2D:
         """
         return self._calc_bbox(self.slices_original)
 
-    @lazyproperty
+    @functools.cached_property
     def bbox_cutout(self):
         """
         The bounding box ``((ymin, ymax), (xmin, xmax))`` of the minimal

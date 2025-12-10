@@ -2184,11 +2184,11 @@ class Time(TimeBase):
         Parameters
         ----------
         skycoord : `~astropy.coordinates.SkyCoord`
-            The sky location to calculate the correction for.
+            The sky location(s) to calculate the correction for.
         kind : str, optional
             ``'barycentric'`` (default) or ``'heliocentric'``
         location : `~astropy.coordinates.EarthLocation`, optional
-            The location of the observatory to calculate the correction for.
+            The location(s) of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
         ephemeris : str, optional
@@ -2203,6 +2203,7 @@ class Time(TimeBase):
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.
             Also, the time conversion to BJD will then include the relativistic correction as well.
+            The shape will be the broadcast shape of ``skycoord`` and ``location``.
         """
         if kind.lower() not in ("barycentric", "heliocentric"):
             raise ValueError(

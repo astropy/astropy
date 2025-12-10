@@ -1,4 +1,5 @@
 ci:
+  autofix_commit_msg: "chore: pre-commit fixes"
   autofix_prs: false
   autoupdate_schedule: 'monthly'
 
@@ -51,8 +52,8 @@ repos:
       - id: text-unicode-replacement-char
         # Forbid files which have a UTF-8 Unicode replacement character.
 
-  - repo: https://github.com/woodruffw/zizmor-pre-commit
-    rev: v1.16.2
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.18.0
     hooks:
     - id: zizmor
 
@@ -65,7 +66,7 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.3
+    rev: v0.14.7
     hooks:
       - id: ruff-check
         args: ["--fix", "--show-fixes"]
@@ -98,8 +99,7 @@ repos:
 
   # Linting hook for stylistic issues in rst doc files.
   - repo: https://github.com/sphinx-contrib/sphinx-lint
-    rev: v1.0.1
+    rev: v1.0.2
     hooks:
       - id: sphinx-lint
-        args: ["--disable", "missing-underscore-after-hyperlink"]
         exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"

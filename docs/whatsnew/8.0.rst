@@ -12,6 +12,8 @@ the 7.2 release.
 
 In particular, this release includes:
 
+* :ref:`whatsnew-8.0-cosmo-simplification`
+* :ref:`whatsnew-8.0-codata2022`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -26,3 +28,103 @@ Full change log
 
 To see a detailed list of all changes in version v8.0, including changes in
 API, please see the :ref:`changelog`.
+
+.. _whatsnew-8.0-cosmo-simplification:
+
+Cosmology Module Simplification
+===============================
+
+The deprecated module-level shim files in ``astropy.cosmology`` have been removed. These
+compatibility modules were originally deprecated in v7.1. With this release, all
+cosmology classes and functions must be imported directly from ``astropy.cosmology``.
+
+The following deprecated modules have been removed:
+
+- ``astropy.cosmology.connect``
+- ``astropy.cosmology.core``
+- ``astropy.cosmology.flrw``
+- ``astropy.cosmology.funcs``
+- ``astropy.cosmology.parameter``
+
+**Migration Guide**
+
+If your code was still using the old import paths, you need to update them to import
+directly from ``astropy.cosmology``.
+
+Before:
+
+.. code-block:: python
+
+    from astropy.cosmology.flrw import FlatLambdaCDM
+    from astropy.cosmology.core import Cosmology
+    from astropy.cosmology.funcs import z_at_value
+
+After:
+
+.. code-block:: python
+
+    from astropy.cosmology import Cosmology, FlatLambdaCDM, z_at_value
+
+****************
+Cosmology Traits
+****************
+
+.. currentmodule:: astropy.cosmology.traits
+
+The :mod:`~astropy.cosmology.traits` module provides reusable components, called
+:term:`traits <trait type>`, that encapsulate specific cosmological properties or
+behaviors. For example, the :class:`~astropy.cosmology.traits.NeutrinoComponent` trait
+provides the neutrino component and related methods.
+By combining these traits, you can easily construct custom cosmology classes with
+precisely the features you need, without having to reimplement common functionality.
+Here is an example of how to use the
+:class:`~astropy.cosmology.traits.NeutrinoComponent` trait in custom cosmology classes:
+
+>>> import numpy as np
+>>> from astropy import units as u
+>>> from astropy.cosmology import Cosmology
+>>> from astropy.cosmology.traits import TemperatureCMB, NeutrinoComponent
+>>> NEUTRINO_FERMI_DIRAC_CORRECTION = 0.22710731766  # 7/8 (4/11)^4/3
+>>>
+>>> class SimpleNeutrinoCosmology(Cosmology, TemperatureCMB, NeutrinoComponent):
+...     '''Minimal cosmology demonstrating NeutrinoComponent trait.'''
+...     def __init__(self, Tcmb0=2.7255, Neff=3.046, Ogamma0=5e-5):
+...         self.Tcmb0 = u.Quantity(Tcmb0, "K")
+...         self.Neff = Neff
+...         self.Ogamma0 = Ogamma0
+...         super().__init__()
+...     @property
+...     def has_massive_nu(self):
+...         return False
+...     @property
+...     def Onu0(self):
+...         return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * self.Ogamma0
+...     def nu_relative_density(self, z):
+...         return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * np.ones_like(np.asarray(z))
+...     def Ogamma(self, z):
+...         return self.Ogamma0 * (np.asarray(z) + 1.0) ** 4
+...     @property
+...     def is_flat(self):
+...         return True
+>>>
+>>> cosmo = SimpleNeutrinoCosmology()
+>>> cosmo.Tnu0
+<Quantity 1.94... K>
+>>> cosmo.has_massive_nu
+False
+>>> cosmo.Onu0
+3.4...e-05
+>>> cosmo.Onu(0)
+np.float64(3.4...e-05)
+>>> cosmo.Tnu(1)
+<Quantity 3.89... K>
+
+
+.. _whatsnew-8.0-codata2022:
+
+CODATA 2022 is now default in constants
+=======================================
+
+CODATA 2022 has replaced CODATA 2018 as default. ``astropyconst80`` is
+available for ``constants`` science state, combining CODATA 2022 with
+IAU 2015. To use previous version of CODATA, see :ref:`astropy-constants-prior`.

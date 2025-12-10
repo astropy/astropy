@@ -5,12 +5,12 @@ This is private API. See `~astropy.cosmology.traits` for public API.
 
 """
 
-__all__ = ["TemperatureCMB"]
+__all__ = ("TemperatureCMB",)
 
 
 from numpy.typing import ArrayLike
 
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 
@@ -20,8 +20,7 @@ class TemperatureCMB:
     Tcmb0: Quantity
     """Temperature of the CMB at z=0."""
 
-    @deprecated_keywords("z", since="7.0")
-    def Tcmb(self, z: Quantity | ArrayLike) -> Quantity:
+    def Tcmb(self, z: Quantity | ArrayLike, /) -> Quantity:
         """Compute the CMB temperature at redshift ``z``.
 
         Parameters
@@ -31,6 +30,9 @@ class TemperatureCMB:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------

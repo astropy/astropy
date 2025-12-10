@@ -1,1 +1,0 @@
-``poisson_conf_interval`` ``kraft-burrows-nousek`` no longer fails for large N.

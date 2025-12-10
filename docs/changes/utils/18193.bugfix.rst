@@ -1,3 +1,0 @@
-For ``numpy < 2.0``, applying ``np.atleast_*d`` to iterables of most astropy
-classes will now return a list of instances instead of a tuple, to match the
-behaviour for arrays.  For numpy >= 2.0, tuples continue to be returned.

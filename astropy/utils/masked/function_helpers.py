@@ -1348,13 +1348,13 @@ if not NUMPY_LT_2_4:
         suppress_small=None,
         separator=" ",
         prefix="",
+        *,
         formatter=None,
         threshold=None,
         edgeitems=None,
         sign=None,
         floatmode=None,
         suffix="",
-        *,
         legacy=None,
     ):
         return _array2string_main(

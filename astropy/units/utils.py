@@ -101,16 +101,11 @@ def sanitize_power(p: UnitPowerLike) -> UnitPower:
     if p.__class__ is int:
         return p
 
-    denom = getattr(p, "denominator", None)
-    if denom is None:
-        # This returns either a (simple) Fraction or the same float.
-        p = maybe_simple_fraction(p)
-        # If still a float, nothing more to be done.
-        if isinstance(p, float):
-            return p
-
-        # Otherwise, check for simplifications.
-        denom = p.denominator
+    p = maybe_simple_fraction(p)
+    if isinstance(p, float):
+        return p  # If still a float, nothing more to be done.
+    # Otherwise, check for simplifications.
+    denom = p.denominator
 
     if denom == 1:
         return int(p.numerator)

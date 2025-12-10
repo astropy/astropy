@@ -4,7 +4,7 @@
 The public API is provided by `astropy.cosmology.traits`.
 """
 
-__all__ = [
+__all__ = (
     "BaryonComponent",
     "CriticalDensity",
     "CurvatureComponent",
@@ -12,18 +12,20 @@ __all__ = [
     "DarkMatterComponent",
     "HubbleParameter",
     "MatterComponent",
+    "NeutrinoComponent",
     "PhotonComponent",
     "ScaleFactor",
     "TemperatureCMB",
     "TotalComponent",
-]
+)
 
 from .baryons import BaryonComponent
 from .curvature import CurvatureComponent
 from .darkenergy import DarkEnergyComponent
 from .darkmatter import DarkMatterComponent
 from .hubble import HubbleParameter
-from .matterdensity import MatterComponent
+from .matter import MatterComponent
+from .neutrino import NeutrinoComponent
 from .photoncomponent import PhotonComponent
 from .rhocrit import CriticalDensity
 from .scale_factor import ScaleFactor

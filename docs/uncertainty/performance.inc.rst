@@ -3,7 +3,7 @@
    from === to ***, the filename extension needs to be changed from .inc.rst to
    .rst, and a link needs to be added in the subpackage toctree
 
-.. _astropy-time-performance:
+.. _astropy-uncertainty-performance:
 
 .. Performance Tips
 .. ================

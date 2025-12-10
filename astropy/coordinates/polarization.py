@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from contextlib import contextmanager
 from typing import NamedTuple
 
@@ -41,7 +42,7 @@ UNKNOWN_STOKES_VALUE = -99999
 @contextmanager
 def custom_stokes_symbol_mapping(
     mapping: dict[int, StokesSymbol], replace: bool = False
-) -> None:
+) -> Generator[None, None, None]:
     """
     Add a custom set of mappings from values to Stokes symbols.
 
@@ -68,7 +69,7 @@ def custom_stokes_symbol_mapping(
 
 class StokesCoordInfo(MixinInfo):
     # The attributes containing actual information.
-    _represent_as_dict_attrs = {"value"}
+    _represent_as_dict_attrs = ("value",)
     # Since there is only one attribute, use a column with the name to represent it
     # (rather than as name.value)
     _represent_as_dict_primary_data = "value"

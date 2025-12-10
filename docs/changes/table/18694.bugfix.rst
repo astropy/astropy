@@ -1,4 +1,0 @@
-Fix a bug when slicing a table that has a multi-column index. Previously, after slicing
-the table then ``tbl.indices`` would show duplicates of the multi-column index, one for
-each column in the index. The underlying indices on the index columns were incorrectly
-distinct objects instead of the expected reference to a single index object.

@@ -54,24 +54,20 @@ def _apply_relativistic_doppler_shift(scoord, velocity):
     # since we can't guarantee that their metadata would be correct/consistent.
     squantity = scoord.view(SpectralQuantity)
 
-    beta = velocity / c
-    doppler_factor = np.sqrt((1 + beta) / (1 - beta))
+    beta = (velocity / c).to_value(u.dimensionless_unscaled)
+    doppler_factor = np.sqrt((1.0 + beta) / (1.0 - beta))
 
-    if squantity.unit.is_equivalent(u.m):  # wavelength
-        return squantity * doppler_factor
-    elif (
-        squantity.unit.is_equivalent(u.Hz)
-        or squantity.unit.is_equivalent(u.eV)
-        or squantity.unit.is_equivalent(1 / u.m)
-    ):
-        return squantity / doppler_factor
-    elif squantity.unit.is_equivalent(KMS):  # velocity
-        return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
-    else:  # pragma: no cover
-        raise RuntimeError(
-            f"Unexpected units in velocity shift: {squantity.unit}. This should not"
-            " happen, so please report this in the astropy issue tracker!"
-        )
+    match squantity.unit.physical_type:
+        case u.physical.length:
+            return squantity * doppler_factor
+        case u.physical.frequency | u.physical.energy | u.physical.wavenumber:
+            return squantity / doppler_factor
+        case u.physical.velocity:
+            return (squantity.to(u.Hz) / doppler_factor).to(squantity.unit)
+    raise RuntimeError(  # pragma: no cover
+        f"Unexpected units in velocity shift: {squantity.unit}. This should not"
+        " happen, so please report this in the astropy issue tracker!"
+    )
 
 
 def update_differentials_to_match(
@@ -483,10 +479,7 @@ class SpectralCoord(SpectralQuantity):
                 return 0 * KMS
             else:
                 return self._radial_velocity
-        else:
-            return self._calculate_radial_velocity(
-                self._observer, self._target, as_scalar=True
-            )
+        return self._calculate_radial_velocity(self._observer, self._target)
 
     @property
     def redshift(self):
@@ -502,7 +495,7 @@ class SpectralCoord(SpectralQuantity):
         return self.radial_velocity.to(u.dimensionless_unscaled, u.doppler_redshift())
 
     @staticmethod
-    def _calculate_radial_velocity(observer, target, as_scalar=False):
+    def _calculate_radial_velocity(observer, target):
         """
         Compute the line-of-sight velocity from the observer to the target.
 
@@ -512,9 +505,6 @@ class SpectralCoord(SpectralQuantity):
             The frame of the observer.
         target : `~astropy.coordinates.BaseCoordinateFrame`
             The frame of the target.
-        as_scalar : bool
-            If `True`, the magnitude of the velocity vector will be returned,
-            otherwise the full vector will be returned.
 
         Returns
         -------
@@ -530,12 +520,7 @@ class SpectralCoord(SpectralQuantity):
 
         d_vel = target_icrs.velocity - observer_icrs.velocity
 
-        vel_mag = pos_hat.dot(d_vel)
-
-        if as_scalar:
-            return vel_mag
-        else:
-            return vel_mag * pos_hat
+        return pos_hat.dot(d_vel)
 
     @staticmethod
     def _normalized_position_vector(observer, target):
@@ -656,12 +641,8 @@ class SpectralCoord(SpectralQuantity):
         )
 
         # Calculate the initial and final los velocity
-        init_obs_vel = self._calculate_radial_velocity(
-            self.observer, self.target, as_scalar=True
-        )
-        fin_obs_vel = self._calculate_radial_velocity(
-            observer, self.target, as_scalar=True
-        )
+        init_obs_vel = self._calculate_radial_velocity(self.observer, self.target)
+        fin_obs_vel = self._calculate_radial_velocity(observer, self.target)
 
         # Apply transformation to data
         new_data = _apply_relativistic_doppler_shift(self, fin_obs_vel - init_obs_vel)
@@ -747,12 +728,8 @@ class SpectralCoord(SpectralQuantity):
             observer_icrs.cartesian.with_differentials(observer_velocity)
         ).transform_to(self._observer)
 
-        init_obs_vel = self._calculate_radial_velocity(
-            observer_icrs, target_icrs, as_scalar=True
-        )
-        fin_obs_vel = self._calculate_radial_velocity(
-            new_observer, new_target, as_scalar=True
-        )
+        init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs)
+        fin_obs_vel = self._calculate_radial_velocity(new_observer, new_target)
 
         new_data = _apply_relativistic_doppler_shift(self, fin_obs_vel - init_obs_vel)
 

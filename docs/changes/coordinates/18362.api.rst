@@ -1,0 +1,5 @@
+``Galactocentric`` and ``LSR`` now use a ``CartesianRepresentation`` instead
+of ``CartesianDifferential`` for their velocity attributes (``galcen_v_sun``
+and ``v_bary``, resp.).  On input, this has little effect, since instances of
+both remain accepted, but for converting the attribute to a ``Quantity``, one
+now has to access the ``.xyz`` attribute instead of ``.d_xyz``.

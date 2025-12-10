@@ -290,11 +290,11 @@ def test_comoving_distance_broadcast(cosmo):
     output_shape = np.broadcast(z1, z2).shape
 
     # Check compatible array arguments return an array with the correct shape
-    assert cosmo._comoving_distance_z1z2(z1, z2).shape == output_shape
+    assert cosmo.comoving_distance(z1, z2).shape == output_shape
 
     # Check incompatible array arguments raise an error
     with pytest.raises(ValueError, match="z1 and z2 have different shapes"):
-        cosmo._comoving_distance_z1z2(z1, z3)
+        cosmo.comoving_distance(z1, z3)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
@@ -436,7 +436,7 @@ def test_comoving_transverse_distance_z1z2():
     z2 = 2, 1, 1, 2.5, 1.1
 
     assert u.allclose(
-        tcos._comoving_distance_z1z2(z1, z2),
+        tcos.comoving_distance(z1, z2),
         tcos._comoving_transverse_distance_z1z2(z1, z2),
     )
 
@@ -458,11 +458,11 @@ def test_comoving_transverse_distance_z1z2():
     z2 = 2, 1, 1, 2.5, 1.1
 
     assert u.allclose(
-        tcos._comoving_distance_z1z2(z1, z2),
+        tcos.comoving_distance(z1, z2),
         tcos._comoving_transverse_distance_z1z2(z1, z2),
     )
     # Test non-flat cases to avoid simply testing
-    # comoving_distance_z1z2. Test array, array case.
+    # comoving_distance. Test array, array case.
     tcos = LambdaCDM(100, 0.3, 0.5, Tcmb0=0.0)
     results = (
         3535.931375645655,
@@ -613,7 +613,6 @@ def test_units():
     cosmo = FlatLambdaCDM(H0=70, Om0=0.27, Tcmb0=2.0)
 
     assert cosmo.comoving_distance(1.0).unit == u.Mpc
-    assert cosmo._comoving_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.comoving_transverse_distance(1.0).unit == u.Mpc
     assert cosmo._comoving_transverse_distance_z1z2(1.0, 2.0).unit == u.Mpc
     assert cosmo.angular_diameter_distance(1.0).unit == u.Mpc
@@ -929,12 +928,10 @@ def test_comoving_distance_z1z2():
     tcos = LambdaCDM(100, 0.3, 0.8, Tcmb0=0.0)
 
     with pytest.raises(ValueError):  # test diff size z1, z2 fail
-        tcos._comoving_distance_z1z2((1, 2), (3, 4, 5))
+        tcos.comoving_distance((1, 2), (3, 4, 5))
 
     # Comoving distances are invertible
-    assert u.allclose(
-        tcos._comoving_distance_z1z2(1, 2), -tcos._comoving_distance_z1z2(2, 1)
-    )
+    assert u.allclose(tcos.comoving_distance(1, 2), -tcos.comoving_distance(2, 1))
 
     z1 = 0, 0, 2, 0.5, 1
     z2 = 2, 1, 1, 2.5, 1.1
@@ -946,7 +943,7 @@ def test_comoving_distance_z1z2():
         174.1524683,
     ) * u.Mpc
 
-    assert u.allclose(tcos._comoving_distance_z1z2(z1, z2), results)
+    assert u.allclose(tcos.comoving_distance(z1, z2), results)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")

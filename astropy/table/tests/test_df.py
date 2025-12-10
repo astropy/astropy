@@ -417,12 +417,10 @@ class TestDataFrameConversion:
             self._from_dataframe(df, backend, use_legacy_pandas_api, units=[u.m, u.s])
 
         # test warning is raised if additional columns in units dict
-        with pytest.warns(UserWarning) as record:
+        with pytest.warns(UserWarning, match="{'y'}"):
             self._from_dataframe(
                 df, backend, use_legacy_pandas_api, units={"x": u.m, "t": u.s, "y": u.m}
             )
-        assert len(record) == 1
-        assert "{'y'}" in str(record[0].message.args[0])
 
     @pytest.mark.parametrize("unsigned", ["u", ""])
     @pytest.mark.parametrize("bits", [8, 16, 32, 64])
@@ -665,3 +663,18 @@ class TestDataFrameConversion:
 
         assert val == 2
         assert nulls_first_two.all()
+
+
+@pytest.mark.skipif(
+    not HAS_PANDAS or not HAS_NARWHALS,
+    reason="requires pandas and narwhals",
+)
+@pytest.mark.parametrize("method", ["from_df", "from_pandas"])
+def test_from_pandas_df_with_qtable(method):
+    """Test fix for QTable.from_pandas / from_df returns Table not QTable #18909"""
+    t = table.QTable()
+    t["a"] = [1, 2]
+    t["q"] = [3.0, 4.0]
+    df = t.to_pandas()
+    qt = getattr(table.QTable, method)(df)
+    assert isinstance(qt, table.QTable)

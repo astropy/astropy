@@ -1,9 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Cosmological units and equivalencies."""
 
-from astropy.units.docgen import generate_unit_summary as _generate_unit_summary
-
-__all__ = [
+__all__ = (
     # redshift equivalencies
     "dimensionless_redshift",
     "littleh",
@@ -14,10 +12,10 @@ __all__ = [
     # other equivalencies
     "with_H0",
     "with_redshift",
-]
-
+)
 
 from astropy.units import add_enabled_equivalencies as _add_enabled_equivalencies
+from astropy.units.docgen import generate_unit_summary as _generate_unit_summary
 
 from ._src.units import littleh, redshift
 from ._src.units_equivalencies import (
