@@ -502,6 +502,67 @@ def test_decompose_to_cgs():
     assert u.m.decompose(bases=cgs.bases)._bases[0] is cgs.cm
 
 
+def test_to_system_composite_bases():
+    """Test to_system() with custom unit systems using composite base units.
+
+    This tests issue #19045 where to_system() failed for systems with
+    non-canonical bases like velocity (m/s) or G (m³/(kg·s²)).
+    """
+    from astropy.constants import G
+
+    # Test 1: Velocity as a base unit
+    class VelocitySystem:
+        bases = {u.m, u.m / u.s}
+
+    accel = u.m / u.s**2
+    result = accel.to_system(VelocitySystem)
+    assert len(result) >= 1
+    assert accel.is_equivalent(result[0])
+
+    # Test 2: Frequency (Hz) as a base unit
+    class FrequencySystem:
+        bases = {u.m, u.Hz}
+
+    velocity = u.m / u.s
+    result = velocity.to_system(FrequencySystem)
+    assert len(result) >= 1
+    assert velocity.is_equivalent(result[0])
+
+    # Test 3: Gravitational system [length, velocity, G] - original issue
+    class GravitationalSystem:
+        bases = {u.kpc, u.km / u.s, G.unit}
+
+    density = u.Msun / u.kpc**3
+    result = density.to_system(GravitationalSystem)
+    assert len(result) >= 1
+    assert density.is_equivalent(result[0])
+
+    # Test 4: Mass in gravitational system
+    mass = u.Msun
+    result = mass.to_system(GravitationalSystem)
+    assert len(result) >= 1
+    assert mass.is_equivalent(result[0])
+
+    # Test 5: Time in gravitational system
+    time = u.Gyr
+    result = time.to_system(GravitationalSystem)
+    assert len(result) >= 1
+    assert time.is_equivalent(result[0])
+
+    # Test 6: Dimensionless unit
+    dimless = u.dimensionless_unscaled
+    result = dimless.to_system(VelocitySystem)
+    assert len(result) >= 1
+    assert dimless.is_equivalent(result[0])
+
+    # Test 7: Impossible decomposition should fail
+    class MasslessSystem:
+        bases = {u.m, u.s}
+
+    with pytest.raises(UnitConversionError):
+        u.kg.to_system(MasslessSystem)
+
+
 def test_compose_issue_579():
     unit = u.kg * u.s**2 / u.m
 
