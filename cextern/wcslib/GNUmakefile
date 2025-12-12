@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.4
+# GNU makefile for building WCSLIB 8.5
 #
 # Summary of the main targets
 # ---------------------------
@@ -34,7 +34,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 8.4 2024/10/28 13:56:17 mcalabre Exp $
+# $Id: GNUmakefile,v 8.5 2025/12/06 13:47:42 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .
@@ -172,20 +172,10 @@ dist :
 	   $(MAKE) -C doxygen cleanest build
 	   $(MAKE) -C utils man
 	   $(MAKE) distclean
-	-@ echo $(WCSLIBPKG)/C/RCS        >  wcslib.X
-	-@ echo $(WCSLIBPKG)/C/flexed/RCS >> wcslib.X
-	-@ echo $(WCSLIBPKG)/C/test/RCS   >> wcslib.X
-	-@ echo $(WCSLIBPKG)/doxygen/RCS  >> wcslib.X
-	-@ echo $(WCSLIBPKG)/Fortran/RCS  >> wcslib.X
-	-@ echo $(WCSLIBPKG)/Fortran/test/RCS >> wcslib.X
-	-@ echo $(WCSLIBPKG)/makedefs     >> wcslib.X
-	-@ echo $(WCSLIBPKG)/other        >> wcslib.X
-	-@ echo $(WCSLIBPKG)/pgsbox/RCS   >> wcslib.X
-	-@ echo $(WCSLIBPKG)/RCS          >> wcslib.X
-	-@ echo $(WCSLIBPKG)/TODO         >> wcslib.X
-	-@ echo $(WCSLIBPKG)/utils/RCS    >> wcslib.X
-	-@ echo $(WCSLIBPKG)/wcslib.T     >> wcslib.X
-	-@ echo $(WCSLIBPKG)/wcslib.X     >> wcslib.X
+	-@ echo $(WCSLIBPKG)/makedefs >> wcslib.X
+	-@ echo $(WCSLIBPKG)/TODO     >> wcslib.X
+	-@ echo $(WCSLIBPKG)/wcslib.T >> wcslib.X
+	-@ echo $(WCSLIBPKG)/wcslib.X >> wcslib.X
 	   rm -f $(WCSLIBPKG).tar.bz2
 	   tar cf - -C .. -X wcslib.X $(WCSLIBPKG) | \
 	     tar t | \
@@ -198,14 +188,14 @@ dist :
 	   chmod 444 $(WCSLIBPKG).tar.bz2
 
 install_dist :
+	   mv -f $(WCSLIBPKG).tar.bz2 ../wcslib-releases/
+	   cd ../wcslib-releases/ && ./mkindex
+	   cp -fp CHANGES wcslib.pdf ../wwwatdocs/wcs/
+	   rsync --archive --delete html/ ../wwwatdocs/wcs/wcslib/
 	   scp -p $(WCSLIBPKG).tar.bz2 cal103@venice:/nfs/ftp/software/wcslib/
-	   cp -fp $(WCSLIBPKG).tar.bz2 ~/public_html/WCS/
-	   mv -f  $(WCSLIBPKG).tar.bz2 ../wcslib-releases/
 	   ssh cal103@venice "cd /nfs/ftp/software/wcslib/ && \
 	     rm -f wcslib.tar.bz2 && \
 	     ln -s $(WCSLIBPKG).tar.bz2 wcslib.tar.bz2"
-	   cp -fp CHANGES wcslib.pdf ~/public_html/WCS/
-	   rsync --archive --delete html/ ~/public_html/WCS/wcslib/
 
 configure : configure.ac
 	-@ echo ''

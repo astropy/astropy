@@ -21444,7 +21444,7 @@ static const yy_state_type yy_NUL_trans[1191] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "wcspih.l"
 /*============================================================================
-  WCSLIB 8.4 - an implementation of the FITS WCS standard.
+  WCSLIB 8.5 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2024, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -21464,7 +21464,7 @@ static const yy_state_type yy_NUL_trans[1191] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.c,v 8.4 2024/10/28 13:56:17 mcalabre Exp $
+  $Id: wcspih.c,v 8.5 2025/12/06 13:47:41 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -24351,16 +24351,20 @@ YY_RULE_SETUP
 	    BEGIN(COMMENT);
 	
 	  } else {
-	    // Copy the keyvalue minus the quotes.
-	    strncpy(strtmp, yytext+1, yyleng-2);
-	    strtmp[yyleng-2] = '\0';
+	    strtmp[0] = '\0';
+	    int nch = yyleng - 2;
+	    if (0 < nch && nch < 80) {
+	      // Copy the keyvalue minus the quotes.
+	      strncpy(strtmp, yytext+1, nch);
+	      strtmp[nch] = '\0';
 	
-	    // Strip off trailing blanks.
-	    for (int jx = yyleng-3; jx >= 0; jx--) {
-	      if (strtmp[jx] != ' ') {
-	        break;
+	      // Strip off trailing blanks.
+	      for (int jx = nch-1; jx >= 0; jx--) {
+	        if (strtmp[jx] != ' ') {
+	          break;
+	        }
+	        strtmp[jx] = '\0';
 	      }
-	      strtmp[jx] = '\0';
 	    }
 	
 	    // Squeeze out repeated quotes.
@@ -24385,7 +24389,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 274:
 YY_RULE_SETUP
-#line 2064 "wcspih.l"
+#line 2068 "wcspih.l"
 {
 	  errmsg = "a string value was expected";
 	  BEGIN(ERROR);
@@ -24394,7 +24398,7 @@ YY_RULE_SETUP
 case 275:
 /* rule 275 can match eol */
 YY_RULE_SETUP
-#line 2069 "wcspih.l"
+#line 2073 "wcspih.l"
 {
 	  if (ipass == 1) {
 	    BEGIN(COMMENT);
@@ -24408,7 +24412,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 276:
 YY_RULE_SETUP
-#line 2080 "wcspih.l"
+#line 2084 "wcspih.l"
 {
 	  errmsg = "a record was expected";
 	  BEGIN(ERROR);
@@ -24416,7 +24420,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 277:
 YY_RULE_SETUP
-#line 2085 "wcspih.l"
+#line 2089 "wcspih.l"
 {
 	  strncpy(strtmp, yytext, 72);
 	  strtmp[72] = '\0';
@@ -24425,7 +24429,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 278:
 YY_RULE_SETUP
-#line 2091 "wcspih.l"
+#line 2095 "wcspih.l"
 {
 	  errmsg = "invalid record field";
 	  BEGIN(ERROR);
@@ -24433,14 +24437,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 279:
 YY_RULE_SETUP
-#line 2096 "wcspih.l"
+#line 2100 "wcspih.l"
 {
 	  BEGIN(RECVALUE);
 	}
 	YY_BREAK
 case 280:
 YY_RULE_SETUP
-#line 2100 "wcspih.l"
+#line 2104 "wcspih.l"
 {
 	  errmsg = "invalid record syntax";
 	  BEGIN(ERROR);
@@ -24448,7 +24452,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 281:
 YY_RULE_SETUP
-#line 2105 "wcspih.l"
+#line 2109 "wcspih.l"
 {
 	  rectype = 0;
 	  sscanf(yytext, "%d", &inttmp);
@@ -24457,7 +24461,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 282:
 YY_RULE_SETUP
-#line 2111 "wcspih.l"
+#line 2115 "wcspih.l"
 {
 	  rectype = 1;
 	  wcsutil_str2double(yytext, &dbltmp);
@@ -24466,7 +24470,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 283:
 YY_RULE_SETUP
-#line 2117 "wcspih.l"
+#line 2121 "wcspih.l"
 {
 	  errmsg = "invalid record value";
 	  BEGIN(ERROR);
@@ -24474,7 +24478,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 284:
 YY_RULE_SETUP
-#line 2122 "wcspih.l"
+#line 2126 "wcspih.l"
 {
 	  BEGIN(COMMENT);
 	}
@@ -24484,7 +24488,7 @@ case 285:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2126 "wcspih.l"
+#line 2130 "wcspih.l"
 {
 	  if (ipass == 1) {
 	    // Do first-pass bookkeeping.
@@ -24690,7 +24694,7 @@ case 286:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2326 "wcspih.l"
+#line 2330 "wcspih.l"
 {
 	  errmsg = "invalid keyvalue";
 	  BEGIN(ERROR);
@@ -24701,7 +24705,7 @@ case 287:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2331 "wcspih.l"
+#line 2335 "wcspih.l"
 {
 	  errmsg = "invalid keyvalue";
 	  BEGIN(ERROR);
@@ -24712,7 +24716,7 @@ case 288:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2336 "wcspih.l"
+#line 2340 "wcspih.l"
 {
 	  errmsg = "invalid keyvalue or malformed keycomment";
 	  BEGIN(ERROR);
@@ -24723,7 +24727,7 @@ case 289:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2341 "wcspih.l"
+#line 2345 "wcspih.l"
 {
 	  errmsg = "malformed keycomment";
 	  BEGIN(ERROR);
@@ -24734,7 +24738,7 @@ case 290:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2346 "wcspih.l"
+#line 2350 "wcspih.l"
 {
 	  if (ipass == npass) {
 	    if (ctrl < 0) {
@@ -24755,7 +24759,7 @@ case 291:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 2361 "wcspih.l"
+#line 2365 "wcspih.l"
 {
 	  if (ipass == npass) {
 	    (*nreject)++;
@@ -24776,7 +24780,7 @@ YY_RULE_SETUP
 case 292:
 /* rule 292 can match eol */
 YY_RULE_SETUP
-#line 2378 "wcspih.l"
+#line 2382 "wcspih.l"
 {
 	  if (ipass == npass && keep) {
 	    if (hptr < keep) {
@@ -24838,7 +24842,7 @@ case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(DISCARD):
 case YY_STATE_EOF(ERROR):
 case YY_STATE_EOF(FLUSH):
-#line 2412 "wcspih.l"
+#line 2416 "wcspih.l"
 {
 	  // End-of-input.
 	  int status;
@@ -24915,10 +24919,10 @@ case YY_STATE_EOF(FLUSH):
 	YY_BREAK
 case 293:
 YY_RULE_SETUP
-#line 2486 "wcspih.l"
+#line 2490 "wcspih.l"
 ECHO;
 	YY_BREAK
-#line 24922 "wcspih.c"
+#line 24926 "wcspih.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -26083,7 +26087,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 2486 "wcspih.l"
+#line 2490 "wcspih.l"
 
 
 /*----------------------------------------------------------------------------
