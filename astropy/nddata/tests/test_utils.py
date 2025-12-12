@@ -428,12 +428,10 @@ def test_extract_array_return_pos():
 
 
 def test_extract_array_nan_fillvalue():
-    if Version(np.__version__) >= Version("1.20"):
-        msg = "fill_value cannot be set to np.nan if the input array has"
-        with pytest.raises(ValueError, match=msg):
-            extract_array(
-                np.ones((10, 10), dtype=int), (5, 5), (1, 1), fill_value=np.nan
-            )
+    """Test that a helpful error is raised for NaN fill_value with integer array."""
+    data = np.arange(12, dtype=int).reshape(3, 4)
+    with pytest.raises(ValueError, match="fill_value.*data type"):
+        extract_array(data, (5, 5), (1, 1), mode="partial", fill_value=np.nan)
 
 
 def test_add_array_odd_shape():
@@ -771,12 +769,3 @@ def test_cutout_section_with_bzero_bscale_blank(tmp_path):
     with fits.open(tmp_path / "compressed.fits") as hdul:
         # Partial cutout
         c = Cutout2D(hdul[1].section, position, size, mode="partial")
-
-
-def test_extract_array_fill_value_exception_note():
-    """Test that exception notes are added when fill_value type is incompatible."""
-    data = np.arange(12, dtype=int).reshape(3, 4)
-
-    # Try to extract with partial mode and incompatible fill_value (NaN for integer array)
-    with pytest.raises(ValueError, match="fill_value.*data type"):
-        extract_array(data, (5, 5), (1, 1), mode="partial", fill_value=np.nan)
