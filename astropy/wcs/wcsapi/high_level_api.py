@@ -134,7 +134,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
             )
 
 
-def high_level_objects_to_values(*world_objects, low_level_wcs):
+def high_level_objects_to_values(*world_objects, low_level_wcs, frame="output"):
     """
     Convert the input high level object to low level values.
 
@@ -155,8 +155,12 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
         The WCS object to use to interpret the coordinates.
     """
     # Cache the classes and components since this may be expensive
-    serialized_classes = low_level_wcs.world_axis_object_classes
-    components = low_level_wcs.world_axis_object_components
+    if frame == "output":
+        serialized_classes = low_level_wcs.world_axis_object_classes
+        components = low_level_wcs.world_axis_object_components
+    elif frame == "input":
+        serialized_classes = low_level_wcs.input_axis_object_classes
+        components = low_level_wcs.input_axis_object_components
 
     # Deserialize world_axis_object_classes using the default order
     classes = OrderedDict()
@@ -271,7 +275,7 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
     return world
 
 
-def values_to_high_level_objects(*world_values, low_level_wcs):
+def values_to_high_level_objects(*world_values, low_level_wcs, frame="output"):
     """
     Convert low level values into high level objects.
 
@@ -301,8 +305,12 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
             )
 
     # Cache the classes and components since this may be expensive
-    components = low_level_wcs.world_axis_object_components
-    classes = low_level_wcs.world_axis_object_classes
+    if frame == "output":
+        components = low_level_wcs.world_axis_object_components
+        classes = low_level_wcs.world_axis_object_classes
+    elif frame == "input":
+        components = low_level_wcs.input_axis_object_components
+        classes = low_level_wcs.input_axis_object_classes
 
     # Deserialize classes
     if low_level_wcs.serialized_classes:
