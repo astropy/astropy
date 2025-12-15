@@ -99,7 +99,7 @@ SUBCLASS_SAFE_FUNCTIONS |= {
     np.round, np.around,
     np.fix, np.angle, np.i0, np.clip,
     np.isposinf, np.isneginf, np.isreal, np.iscomplex,
-    np.average, np.mean, np.std, np.var, np.trace,
+    np.mean, np.std, np.var, np.trace,
     np.nanmax, np.nanmin, np.nanargmin, np.nanargmax, np.nanmean,
     np.nansum, np.nancumsum, np.nanprod, np.nancumprod,
     np.einsum_path, np.linspace,
@@ -1678,5 +1678,20 @@ def merge_arrays(
             asrecarray=asrecarray,
         ),
         unit,
+        None,
+    )
+
+
+@function_helper
+def average(a, axis=None, weights=None, returned=False, *, keepdims=np._NoValue):
+    return (
+        (a,),
+        {
+            "axis": axis,
+            "weights": weights.value if weights is not None else None,
+            "returned": returned,
+            "keepdims": keepdims,
+        },
+        (None, weights.unit) if weights is not None and returned else None,
         None,
     )
