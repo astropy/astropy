@@ -10,8 +10,6 @@ from matplotlib.text import Text
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .frame import RectangularFrame
-
 
 def sort_using(X, Y):
     return [x for (y, x) in sorted(zip(Y, X))]
@@ -229,89 +227,52 @@ class TickLabels(Text):
                 x, y = self._frame.parent_axes.transData.transform(self.data[axis][i])
                 pad = renderer.points_to_pixels(self.get_pad() + self._tick_out_size)
 
-                if isinstance(self._frame, RectangularFrame):
-                    # This is just to preserve the current results, but can be
-                    # removed next time the reference images are re-generated.
-                    if np.abs(self.angle[axis][i]) < 45.0:
-                        ha = "right"
-                        va = "bottom"
-                        dx = -pad
-                        dy = -text_size * 0.5
-                    elif np.abs(self.angle[axis][i] - 90.0) < 45:
-                        ha = "center"
-                        va = "bottom"
-                        dx = 0
-                        dy = -text_size - pad
-                    elif np.abs(self.angle[axis][i] - 180.0) < 45:
-                        ha = "left"
-                        va = "bottom"
-                        dx = pad
-                        dy = -text_size * 0.5
-                    else:
-                        ha = "center"
-                        va = "bottom"
-                        dx = 0
-                        dy = pad
+                # Set initial position and find bounding box
+                self.set_text(self.text[axis][i])
+                self.set_position((x, y))
+                bb = super().get_window_extent(renderer)
 
-                    x = x + dx
-                    y = y + dy
+                # Find width and height, as well as angle at which we
+                # transition which side of the label we use to anchor the
+                # label.
+                width = bb.width
+                height = bb.height
 
+                # Project axis angle onto bounding box
+                ax = np.cos(np.radians(self.angle[axis][i]))
+                ay = np.sin(np.radians(self.angle[axis][i]))
+
+                # Set anchor point for label
+                if np.abs(self.angle[axis][i]) < 45.0:
+                    dx = width
+                    dy = ay * height
+                elif np.abs(self.angle[axis][i] - 90.0) < 45:
+                    dx = ax * width
+                    dy = height
+                elif np.abs(self.angle[axis][i] - 180.0) < 45:
+                    dx = -width
+                    dy = ay * height
                 else:
-                    # This is the more general code for arbitrarily oriented
-                    # axes
+                    dx = ax * width
+                    dy = -height
 
-                    # Set initial position and find bounding box
-                    self.set_text(self.text[axis][i])
-                    self.set_position((x, y))
-                    bb = super().get_window_extent(renderer)
+                dx *= 0.5
+                dy *= 0.5
 
-                    # Find width and height, as well as angle at which we
-                    # transition which side of the label we use to anchor the
-                    # label.
-                    width = bb.width
-                    height = bb.height
+                # Find normalized vector along axis normal, so as to be
+                # able to nudge the label away by a constant padding factor
 
-                    # Project axis angle onto bounding box
-                    ax = np.cos(np.radians(self.angle[axis][i]))
-                    ay = np.sin(np.radians(self.angle[axis][i]))
+                dist = np.hypot(dx, dy)
 
-                    # Set anchor point for label
-                    if np.abs(self.angle[axis][i]) < 45.0:
-                        dx = width
-                        dy = ay * height
-                    elif np.abs(self.angle[axis][i] - 90.0) < 45:
-                        dx = ax * width
-                        dy = height
-                    elif np.abs(self.angle[axis][i] - 180.0) < 45:
-                        dx = -width
-                        dy = ay * height
-                    else:
-                        dx = ax * width
-                        dy = -height
+                ddx = dx / dist
+                ddy = dy / dist
 
-                    dx *= 0.5
-                    dy *= 0.5
+                dx += ddx * pad
+                dy += ddy * pad
 
-                    # Find normalized vector along axis normal, so as to be
-                    # able to nudge the label away by a constant padding factor
-
-                    dist = np.hypot(dx, dy)
-
-                    ddx = dx / dist
-                    ddy = dy / dist
-
-                    dx += ddx * pad
-                    dy += ddy * pad
-
-                    x = x - dx
-                    y = y - dy
-
-                    ha = "center"
-                    va = "center"
-
-                self.xy[axis][i] = (x, y)
-                self.ha[axis][i] = ha
-                self.va[axis][i] = va
+                self.xy[axis][i] = (x - dx, y - dy)
+                self.ha[axis][i] = "center"
+                self.va[axis][i] = "center"
 
         self._stale = False
 
