@@ -597,7 +597,12 @@ class LinearLSQFitter(Fitter):
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
 
         farg = _convert_input(
-            x, y, z, n_models=len(model_copy), model_set_axis=model_copy.model_set_axis, model=model_copy
+            x,
+            y,
+            z,
+            n_models=len(model_copy),
+            model_set_axis=model_copy.model_set_axis,
+            model=model_copy,
         )
 
         n_fixed = sum(model_copy.fixed.values())
@@ -637,7 +642,7 @@ class LinearLSQFitter(Fitter):
                     weights,
                     n_models=len(model_copy) if weights.ndim == y.ndim else 1,
                     model_set_axis=model_copy.model_set_axis,
-                    model=model_copy
+                    model=model_copy,
                 )
 
             # map domain into window
@@ -667,7 +672,7 @@ class LinearLSQFitter(Fitter):
                     weights,
                     n_models=len(model_copy) if weights.ndim == z.ndim else 1,
                     model_set_axis=model_copy.model_set_axis,
-                    model = model_copy
+                    model=model_copy,
                 )
 
             # map domain into window
