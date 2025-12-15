@@ -597,7 +597,7 @@ class LinearLSQFitter(Fitter):
             raise ValueError("Expected x, y and z for a 2 dimensional model.")
 
         farg = _convert_input(
-            x, y, z, n_models=len(model_copy), model_set_axis=model_copy.model_set_axis
+            x, y, z, n_models=len(model_copy), model_set_axis=model_copy.model_set_axis, model=model_copy
         )
 
         n_fixed = sum(model_copy.fixed.values())
@@ -637,6 +637,7 @@ class LinearLSQFitter(Fitter):
                     weights,
                     n_models=len(model_copy) if weights.ndim == y.ndim else 1,
                     model_set_axis=model_copy.model_set_axis,
+                    model=model_copy
                 )
 
             # map domain into window
@@ -666,6 +667,7 @@ class LinearLSQFitter(Fitter):
                     weights,
                     n_models=len(model_copy) if weights.ndim == z.ndim else 1,
                     model_set_axis=model_copy.model_set_axis,
+                    model = model_copy
                 )
 
             # map domain into window
@@ -1829,7 +1831,7 @@ class SLSQPLSQFitter(Fitter):
             copy=not inplace,
         )
         model_copy.sync_constraints = False
-        farg = _convert_input(x, y, z)
+        farg = _convert_input(x, y, z, model=model_copy)
         farg = (
             model_copy,
             weights,
@@ -1920,7 +1922,7 @@ class SimplexLSQFitter(Fitter):
             copy=not inplace,
         )
         model_copy.sync_constraints = False
-        farg = _convert_input(x, y, z)
+        farg = _convert_input(x, y, z, model=model_copy)
         farg = (
             model_copy,
             weights,
@@ -2089,10 +2091,11 @@ class JointFitter(Fitter):
             model.parameters = np.array(mparams)
 
 
-def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
+def _convert_input(x, y, z=None, n_models=1, model_set_axis=0, model=None):
     """Convert inputs to float arrays."""
     x = np.asanyarray(x, dtype=float)
     y = np.asanyarray(y, dtype=float)
+    verify_dims = model.verify_dims if hasattr(model.verify_dims_in_fitting) else True
 
     if z is not None:
         z = np.asanyarray(z, dtype=float)
@@ -2126,11 +2129,11 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0):
             data_shape = z.shape[:model_set_axis] + z.shape[model_set_axis + 1 :]
 
     if z is None:
-        if data_shape != x.shape:
+        if verify_dims and data_shape != x.shape:
             raise ValueError("x and y should have the same shape")
         farg = (x, y)
     else:
-        if not (x.shape == y.shape == data_shape):
+        if verify_dims and not (x.shape == y.shape == data_shape):
             raise ValueError("x, y and z should have the same shape")
         farg = (x, y, z)
     return farg
