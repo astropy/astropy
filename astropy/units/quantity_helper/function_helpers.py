@@ -1688,10 +1688,12 @@ def average(a, axis=None, weights=None, returned=False, *, keepdims=np._NoValue)
         (a,),
         {
             "axis": axis,
-            "weights": weights.value if weights is not None else None,
+            "weights": getattr(weights, "value", weights),
             "returned": returned,
             "keepdims": keepdims,
         },
-        (None, weights.unit) if weights is not None and returned else None,
+        (getattr(a, "unit", None), getattr(weights, "unit", None))
+        if returned
+        else getattr(a, "unit", None),
         None,
     )
