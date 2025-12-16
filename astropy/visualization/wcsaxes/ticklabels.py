@@ -64,6 +64,7 @@ class TickLabels(Text):
         self.world = defaultdict(list)
         self.data = defaultdict(list)
         self.angle = defaultdict(list)
+        self.tick_angle = defaultdict(list)
         self.text = defaultdict(list)
         self.disp = defaultdict(list)
 
@@ -76,6 +77,7 @@ class TickLabels(Text):
         text=None,
         axis_displacement=None,
         data=None,
+        tick_angle=None,
     ):
         """
         Add a label.
@@ -96,6 +98,8 @@ class TickLabels(Text):
             Displacement from axis.
         data : [float, float]
             Data coordinates of the label.
+        tick_angle : float
+            Angle of the corresponding tick. Defaults to be equal to ``angle``.
         """
         required_args = ["axis", "world", "angle", "text", "axis_displacement", "data"]
         if pixel is not None:
@@ -121,6 +125,7 @@ class TickLabels(Text):
         self.world[axis].append(world)
         self.data[axis].append(data)
         self.angle[axis].append(angle)
+        self.tick_angle[axis].append(tick_angle if tick_angle is not None else angle)
         self.text[axis].append(text)
         self.disp[axis].append(axis_displacement)
 
@@ -135,6 +140,7 @@ class TickLabels(Text):
             self.world[axis] = sort_using(self.world[axis], self.disp[axis])
             self.data[axis] = sort_using(self.data[axis], self.disp[axis])
             self.angle[axis] = sort_using(self.angle[axis], self.disp[axis])
+            self.tick_angle[axis] = sort_using(self.tick_angle[axis], self.disp[axis])
             self.text[axis] = sort_using(self.text[axis], self.disp[axis])
             self.disp[axis] = sort_using(self.disp[axis], self.disp[axis])
         self._stale = True
@@ -238,11 +244,18 @@ class TickLabels(Text):
                 width = bb.width
                 height = bb.height
 
-                # Project axis angle onto bounding box
-                ax = np.cos(np.radians(self.angle[axis][i]))
-                ay = np.sin(np.radians(self.angle[axis][i]))
+                # Use the padding angle for the tick angle if the tick angle is NaN
+                tick_angle = (
+                    self.tick_angle[axis][i]
+                    if not np.isnan(self.tick_angle[axis][i])
+                    else self.angle[axis][i]
+                )
 
-                # Set anchor point for label where angle intersects bounding box
+                # Project tick angle onto bounding box
+                ax = np.cos(np.radians(tick_angle))
+                ay = np.sin(np.radians(tick_angle))
+
+                # Set anchor point for label where tick angle intersects bounding box
                 with np.errstate(divide="ignore"):
                     if np.abs(ay / ax) < np.abs(height / width):
                         dx = width * np.sign(ax)
@@ -254,16 +267,9 @@ class TickLabels(Text):
                 dx *= 0.5
                 dy *= 0.5
 
-                # Find normalized vector along axis normal, so as to be
-                # able to nudge the label away by a constant padding factor
-
-                dist = np.hypot(dx, dy)
-
-                ddx = dx / dist
-                ddy = dy / dist
-
-                dx += ddx * pad
-                dy += ddy * pad
+                # Pad in the direction of the padding angle (typically the spine normal)
+                dx += np.cos(np.radians(self.angle[axis][i])) * pad
+                dy += np.sin(np.radians(self.angle[axis][i])) * pad
 
                 self.xy[axis][i] = (x - dx, y - dy)
                 self.ha[axis][i] = "center"
