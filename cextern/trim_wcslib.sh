@@ -4,10 +4,14 @@
 
 # This removes extra large files from wcslib that aren't needed.
 
+rm -rf wcslib/C/cyril
+rm -rf wcslib/C/flexed/RCS
+rm -rf wcslib/C/RCS
 rm -rf wcslib/C/test
 rm -rf wcslib/doxygen
 rm -rf wcslib/Fortran
 rm -rf wcslib/html
 rm -rf wcslib/pgsbox
+rm -rf wcslib/RCS/
 rm -rf wcslib/utils
 rm wcslib/*.pdf
