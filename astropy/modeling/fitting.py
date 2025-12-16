@@ -2101,7 +2101,9 @@ def _convert_input(x, y, z=None, n_models=1, model_set_axis=0, model=None):
     x = np.asanyarray(x, dtype=float)
     y = np.asanyarray(y, dtype=float)
     verify_dims = (
-        model.verify_dims_in_fitting if hasattr(model.verify_dims_in_fitting) else True
+        model.verify_dims_in_fitting
+        if hasattr(model, "verify_dims_in_fitting")
+        else True
     )
 
     if z is not None:
