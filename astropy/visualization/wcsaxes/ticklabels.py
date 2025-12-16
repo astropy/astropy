@@ -242,19 +242,14 @@ class TickLabels(Text):
                 ax = np.cos(np.radians(self.angle[axis][i]))
                 ay = np.sin(np.radians(self.angle[axis][i]))
 
-                # Set anchor point for label based on the angle (-180 to +180)
-                if np.abs(self.angle[axis][i]) < 45.0:
-                    dx = width
-                    dy = ay * height
-                elif np.abs(self.angle[axis][i] - 90.0) < 45:
-                    dx = ax * width
-                    dy = height
-                elif np.abs(self.angle[axis][i] + 90.0) < 45:
-                    dx = ax * width
-                    dy = -height
-                else:  # near +/- 180 deg
-                    dx = -width
-                    dy = ay * height
+                # Set anchor point for label where angle intersects bounding box
+                with np.errstate(divide="ignore"):
+                    if np.abs(ay / ax) < np.abs(height / width):
+                        dx = width * np.sign(ax)
+                        dy = width * ay / np.abs(ax)
+                    else:
+                        dx = height * ax / np.abs(ay)
+                        dy = height * np.sign(ay)
 
                 dx *= 0.5
                 dy *= 0.5
