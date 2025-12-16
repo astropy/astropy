@@ -1191,6 +1191,7 @@ class CoordinateHelper:
                             data=(x_data_i, y_data_i),
                             world=world,
                             angle=spine.normal_angle[imin],
+                            tick_angle=angle_i,
                             axis_displacement=imin + frac,
                         )
                     )
