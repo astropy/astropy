@@ -215,7 +215,7 @@ See Also
   <https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_.
 
 - `IAU Style Manual
-  <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
+  <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_.
 
 - `A table of astronomical unit equivalencies
   <https://www.stsci.edu/~strolger/docs/UNITS.txt>`_.

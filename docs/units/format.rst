@@ -209,7 +209,7 @@ following formats:
 
   - ``"latex"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
+    <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_
     recommendations for unit presentation. This format is
     automatically used when printing a unit in the |IPython| notebook::
 
@@ -224,7 +224,7 @@ following formats:
 
   - ``"latex_inline"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
+    <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_
     recommendations for unit presentation, using negative powers instead of
     fractions, as required by some journals (e.g., `Apj and AJ
     <https://journals.aas.org/manuscript-preparation/>`_).
