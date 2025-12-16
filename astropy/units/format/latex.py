@@ -19,7 +19,7 @@ class Latex(console.Console):
     Output LaTeX to display the unit based on IAU style guidelines.
 
     Attempts to follow the `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
+    <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_.
     """
 
     _space: ClassVar[str] = r"\,"
@@ -75,7 +75,7 @@ class LatexInline(Latex):
     powers.
 
     Attempts to follow the `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_ and the
+    <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_ and the
     `ApJ and AJ style guide
     <https://journals.aas.org/manuscript-preparation/>`_.
     """
