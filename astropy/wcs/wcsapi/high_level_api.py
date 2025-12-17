@@ -134,7 +134,12 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
             )
 
 
-def high_level_objects_to_values(*world_objects, low_level_wcs, frame="output"):
+def high_level_objects_to_values(
+    *world_objects,
+    low_level_wcs,
+    object_classes=None,
+    object_components=None
+):
     """
     Convert the input high level object to low level values.
 
@@ -155,12 +160,12 @@ def high_level_objects_to_values(*world_objects, low_level_wcs, frame="output"):
         The WCS object to use to interpret the coordinates.
     """
     # Cache the classes and components since this may be expensive
-    if frame == "output":
+    if object_classes is None:
         serialized_classes = low_level_wcs.world_axis_object_classes
         components = low_level_wcs.world_axis_object_components
-    elif frame == "input":
-        serialized_classes = low_level_wcs.input_axis_object_classes
-        components = low_level_wcs.input_axis_object_components
+    else:
+        serialized_classes = object_classes
+        components = object_components
 
     # Deserialize world_axis_object_classes using the default order
     classes = OrderedDict()
@@ -275,7 +280,12 @@ def high_level_objects_to_values(*world_objects, low_level_wcs, frame="output"):
     return world
 
 
-def values_to_high_level_objects(*world_values, low_level_wcs, frame="output"):
+def values_to_high_level_objects(
+    *world_values,
+    low_level_wcs,
+    object_classes=None,
+    object_components=None
+    ):
     """
     Convert low level values into high level objects.
 
@@ -305,12 +315,12 @@ def values_to_high_level_objects(*world_values, low_level_wcs, frame="output"):
             )
 
     # Cache the classes and components since this may be expensive
-    if frame == "output":
+    if object_classes is None:
         components = low_level_wcs.world_axis_object_components
         classes = low_level_wcs.world_axis_object_classes
-    elif frame == "input":
-        components = low_level_wcs.input_axis_object_components
-        classes = low_level_wcs.input_axis_object_classes
+    else:
+        components = object_components
+        classes = object_classes
 
     # Deserialize classes
     if low_level_wcs.serialized_classes:
