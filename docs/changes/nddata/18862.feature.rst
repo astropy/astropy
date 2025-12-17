@@ -1,0 +1,4 @@
+Implemented support for the ``.flags`` attribute in
+``CCDData.to_hdu()``, enabling the CCDData class to write and read
+``.flags`` in FITS format.
+Previously this was silent no-op even though it should have raised a ``NotImplementedError``.
