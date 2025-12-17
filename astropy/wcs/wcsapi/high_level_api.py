@@ -153,11 +153,17 @@ def high_level_objects_to_values(
 
     Parameters
     ----------
-    *world_objects: object
+    *world_objects : object
         High level coordinate objects.
 
-    low_level_wcs: `.BaseLowLevelWCS`
+    low_level_wcs : `.BaseLowLevelWCS`
         The WCS object to use to interpret the coordinates.
+
+    object_classes : dict
+        The ``world_axis_object_classes`` for a frame in the ``low_level_wcs``.
+
+    object_components : list
+        The ``world_axis_object_components`` for a frame in the ``low_level_wcs``.
     """
     # Cache the classes and components since this may be expensive
     if object_classes is None:
@@ -298,11 +304,17 @@ def values_to_high_level_objects(
 
     Parameters
     ----------
-    *world_values: object
+    *world_values : object
         Low level, "values" representations of the world coordinates.
 
-    low_level_wcs: `.BaseLowLevelWCS`
+    low_level_wcs : `.BaseLowLevelWCS`
         The WCS object to use to interpret the coordinates.
+
+    object_classes : dict
+        The ``world_axis_object_classes`` for a frame in the ``low_level_wcs``.
+
+    object_components : list
+       The ``world_axis_object_components`` for a frame in the ``low_level_wcs``.
     """
     # Check the type of the input values - should be scalars or plain Numpy
     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
