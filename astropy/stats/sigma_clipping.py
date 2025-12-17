@@ -5,6 +5,7 @@ from collections.abc import Callable
 from typing import Literal
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_index
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
@@ -21,13 +22,7 @@ from astropy.stats.nanfunctions import (
     nanvar,
 )
 from astropy.units import Quantity
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.exceptions import AstropyUserWarning
-
-if NUMPY_LT_2_0:
-    from numpy.core.multiarray import normalize_axis_index
-else:
-    from numpy.lib.array_utils import normalize_axis_index
 
 __all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"]
 
