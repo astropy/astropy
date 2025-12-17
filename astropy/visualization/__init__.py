@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from .basic_rgb import *
-from .contexts import *
 from .hist import *
 from .interval import *
 from .lupton_rgb import LuptonAsinhStretch, LuptonAsinhZscaleStretch, make_lupton_rgb
