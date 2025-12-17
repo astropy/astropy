@@ -8,7 +8,6 @@ from astropy import units as u
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
 __all__ = ["MplQuantityConverter", "astropy_support", "quantity_support"]
-
 __doctest_skip__ = ["quantity_support", "astropy_support"]
 
 _default_format = "latex_inline"
