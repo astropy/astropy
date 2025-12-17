@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from contextlib import contextmanager
-from .units import quantity_support
-from .time import time_support
 
-__all__ = ['astropy_support']
+from .time import time_support
+from .units import quantity_support
+
+__all__ = ["astropy_support"]
+
 
 @contextmanager
 def astropy_support():
