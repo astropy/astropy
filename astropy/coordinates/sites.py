@@ -10,13 +10,11 @@ Request to the [astropy-data GitHub repository](https://github.com/astropy/astro
 updating the ``location.json`` file.
 """
 
-import json
 from collections.abc import Iterator, Mapping
 from difflib import get_close_matches
 from typing import Any, Final, Self
 
 from astropy import units as u
-from astropy.utils.data import get_file_contents, get_pkg_data_contents
 
 from .earth import EarthLocation
 from .errors import UnknownSiteException
@@ -125,18 +123,3 @@ class SiteRegistry(Mapping):
 
             reg.add_site([site] + aliases, location)
         return reg
-
-
-def get_downloaded_sites(jsonurl: str | None = None) -> SiteRegistry:
-    """
-    Load observatory database from data.astropy.org and parse into a SiteRegistry.
-    """
-    # we explicitly set the encoding because the default is to leave it set by
-    # the users' locale, which may fail if it's not matched to the sites.json
-    if jsonurl is None:
-        content = get_pkg_data_contents("coordinates/sites.json", encoding="UTF-8")
-    else:
-        content = get_file_contents(jsonurl, encoding="UTF-8")
-
-    jsondb = json.loads(content)
-    return SiteRegistry.from_json(jsondb)

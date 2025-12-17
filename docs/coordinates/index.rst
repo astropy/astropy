@@ -6,7 +6,7 @@
 .. testsetup::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation._get_site_registry(force_download=True)  #doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> EarthLocation._get_site_registry(refresh_cache=True)  #doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 .. _astropy-coordinates:
 
