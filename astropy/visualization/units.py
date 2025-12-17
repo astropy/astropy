@@ -4,7 +4,7 @@ from contextlib import ContextDecorator, contextmanager
 
 import numpy as np
 
-__all__ = ["quantity_support", "astropy_support"]
+__all__ = ["astropy_support", "quantity_support"]
 __doctest_skip__ = ["quantity_support", "astropy_support"]
 
 
