@@ -135,10 +135,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
 
 
 def high_level_objects_to_values(
-    *world_objects,
-    low_level_wcs,
-    object_classes=None,
-    object_components=None
+    *world_objects, low_level_wcs, object_classes=None, object_components=None
 ):
     """
     Convert the input high level object to low level values.
@@ -287,11 +284,8 @@ def high_level_objects_to_values(
 
 
 def values_to_high_level_objects(
-    *world_values,
-    low_level_wcs,
-    object_classes=None,
-    object_components=None
-    ):
+    *world_values, low_level_wcs, object_classes=None, object_components=None
+):
     """
     Convert low level values into high level objects.
 
