@@ -15,7 +15,6 @@ import operator
 import numpy as np
 
 from astropy.units import MagUnit, Quantity, dimensionless_unscaled
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .utils import array_repr_oneline, get_inputs_and_params
 
@@ -729,7 +728,7 @@ class Parameter:
 
         return wrapper
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         # Make np.asarray(self) work a little more straightforwardly
         arr = np.asarray(self.value, dtype=dtype)
 

@@ -38,22 +38,16 @@ import functools
 import operator
 
 import numpy as np
+import numpy._core as np_core
 from numpy.lib import recfunctions as rfn
 
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.utils.compat import (
-    COPY_IF_NEEDED,
-    NUMPY_LT_2_0,
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
     NUMPY_LT_2_4,
 )
-
-if NUMPY_LT_2_0:
-    import numpy.core as np_core
-else:
-    import numpy._core as np_core
 
 SUBCLASS_SAFE_FUNCTIONS = set()
 """Functions with implementations supporting subclasses like Quantity."""
@@ -113,33 +107,23 @@ SUBCLASS_SAFE_FUNCTIONS |= {
 
 SUBCLASS_SAFE_FUNCTIONS |= {np.median}
 
-if NUMPY_LT_2_0:
-    # functions (re)moved in numpy 2.0
-    SUBCLASS_SAFE_FUNCTIONS |= {
-        np.msort,
-        np.round_,  # noqa: NPY003, NPY201
-        np.trapz,  # noqa: NPY201
-        np.product,  # noqa: NPY003, NPY201
-        np.cumproduct,  # noqa: NPY003, NPY201
-    }
-if not NUMPY_LT_2_0:
-    # Array-API compatible versions (matrix axes always at end).
-    SUBCLASS_SAFE_FUNCTIONS |= {
-        np.matrix_transpose, np.linalg.matrix_transpose,
-        np.linalg.diagonal, np.linalg.trace,
-        np.linalg.matrix_norm, np.linalg.vector_norm, np.linalg.vecdot,
-    }  # fmt: skip
+# Array-API compatible versions (matrix axes always at end).
+SUBCLASS_SAFE_FUNCTIONS |= {
+    np.matrix_transpose, np.linalg.matrix_transpose,
+    np.linalg.diagonal, np.linalg.trace,
+    np.linalg.matrix_norm, np.linalg.vector_norm, np.linalg.vecdot,
+}  # fmt: skip
 
-    # these work out of the box (and are tested), because they
-    # delegate to other, already wrapped functions from the np namespace
-    SUBCLASS_SAFE_FUNCTIONS |= {
-        np.linalg.cross, np.linalg.svdvals, np.linalg.tensordot, np.linalg.matmul,
-        np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
-        np.astype,
-    }  # fmt: skip
+# these work out of the box (and are tested), because they
+# delegate to other, already wrapped functions from the np namespace
+SUBCLASS_SAFE_FUNCTIONS |= {
+    np.linalg.cross, np.linalg.svdvals, np.linalg.tensordot, np.linalg.matmul,
+    np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
+    np.astype,
+}  # fmt: skip
 
-    # trapz was renamed to trapezoid
-    SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
+# trapz was renamed to trapezoid
+SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
 if not NUMPY_LT_2_1:
     SUBCLASS_SAFE_FUNCTIONS |= {np.unstack, np.cumulative_prod, np.cumulative_sum}
 
@@ -154,11 +138,6 @@ UNSUPPORTED_FUNCTIONS |= {
     np.busday_count, np.busday_offset, np.datetime_as_string,
     np.is_busday, np.all, np.any,
 }  # fmt: skip
-
-if NUMPY_LT_2_0:
-    UNSUPPORTED_FUNCTIONS |= {  # removed in numpy 2.0
-        np.sometrue, np.alltrue,  # noqa: NPY003, NPY201
-    }  # fmt: skip
 
 # Could be supported if we had a natural logarithm unit.
 UNSUPPORTED_FUNCTIONS |= {np.linalg.slogdet}
@@ -223,7 +202,7 @@ dispatched_function = FunctionAssigner(DISPATCHED_FUNCTIONS)
         np.fft.fftn, np.fft.ifftn, np.fft.rfftn, np.fft.irfftn,
         np.fft.hfft, np.fft.ihfft,
         np.linalg.eigvals, np.linalg.eigvalsh,
-    } | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
+    }
 )  # fmt: skip
 def invariant_a_helper(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, a.unit, None
@@ -408,7 +387,7 @@ def _as_quantity(a):
     from astropy.units import Quantity
 
     try:
-        return Quantity(a, copy=COPY_IF_NEEDED, subok=True)
+        return Quantity(a, copy=None, subok=True)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -420,9 +399,7 @@ def _as_quantities(*args):
 
     try:
         # Note: this should keep the dtype the same
-        return tuple(
-            Quantity(a, copy=COPY_IF_NEEDED, subok=True, dtype=None) for a in args
-        )
+        return tuple(Quantity(a, copy=None, subok=True, dtype=None) for a in args)
     except Exception:
         # If we cannot convert to Quantity, we should just bail.
         raise NotImplementedError
@@ -511,29 +488,6 @@ def _block(arrays, max_depth, result_ndim, depth=0):
 UNIT_FROM_LIKE_ARG = object()
 
 
-if not NUMPY_LT_2_0:
-
-    @function_helper
-    def arange(
-        start_or_stop,
-        /,
-        stop=None,
-        step=1,
-        *,
-        dtype=None,
-        device=None,
-    ):
-        return arange_impl(
-            start_or_stop, stop=stop, step=step, dtype=dtype, device=device
-        )
-
-else:
-
-    @function_helper
-    def arange(start_or_stop, /, stop=None, step=1, *, dtype=None):
-        return arange_impl(start_or_stop, stop=stop, step=step, dtype=dtype)
-
-
 def unwrap_arange_args(*, start_or_stop, stop_, step_):
     # handle the perilous task of disentangling original arguments
     # This isn't trivial because start_or_stop may actually bind to two
@@ -586,7 +540,16 @@ def wrap_arange_args(*, start, stop, step, expected_out_unit):
     return args, kwargs
 
 
-def arange_impl(start_or_stop, /, *, stop, step, dtype, device=None):
+@function_helper
+def arange(
+    start_or_stop,
+    /,
+    stop=None,
+    step=1,
+    *,
+    dtype=None,
+    device=None,
+):
     # Because this wrapper requires exceptional amounts of additional logic
     # to unwrap/wrap its complicated signature, we'll sprinkle a few
     # sanity checks in the form of `assert` statements, which should help making
@@ -615,41 +578,22 @@ def arange_impl(start_or_stop, /, *, stop, step, dtype, device=None):
     )
 
     kwargs["dtype"] = dtype
-    if not NUMPY_LT_2_0:
-        kwargs["device"] = device
+    kwargs["device"] = device
 
     return args, kwargs, out_unit, None
 
 
-if NUMPY_LT_2_0:
-
-    @function_helper(helps={np.empty, np.ones, np.zeros})
-    def creation_helper(shape, dtype=None, order="C"):
-        return (shape, dtype, order), {}, UNIT_FROM_LIKE_ARG, None
-else:
-
-    @function_helper(helps={np.empty, np.ones, np.zeros})
-    def creation_helper(shape, dtype=None, order="C", *, device=None):
-        return (shape, dtype, order), {"device": device}, UNIT_FROM_LIKE_ARG, None
+@function_helper(helps={np.empty, np.ones, np.zeros})
+def creation_helper(shape, dtype=None, order="C", *, device=None):
+    return (shape, dtype, order), {"device": device}, UNIT_FROM_LIKE_ARG, None
 
 
-if NUMPY_LT_2_0:
-
-    @function_helper
-    def full(shape, fill_value, dtype=None, order="C"):
-        return full_impl(shape, fill_value, dtype, order)
-else:
-
-    @function_helper
-    def full(shape, fill_value, dtype=None, order="C", *, device=None):
-        return full_impl(shape, fill_value, dtype, order, device=device)
-
-
-def full_impl(shape, fill_value, *args, **kwargs):
+@function_helper
+def full(shape, fill_value, dtype=None, order="C", *, device=None):
     out_unit = getattr(fill_value, "unit", UNIT_FROM_LIKE_ARG)
     if out_unit is not UNIT_FROM_LIKE_ARG:
         fill_value = _as_quantity(fill_value).value
-    return (shape, fill_value) + args, kwargs, out_unit, None
+    return (shape, fill_value, dtype, order), {"device": device}, out_unit, None
 
 
 @function_helper
@@ -694,10 +638,7 @@ def array_impl(object, *, dtype, copy, order, subok, ndmin, ndmax=0):
     return (object, dtype), kwargs, out_unit, None
 
 
-if NUMPY_LT_2_0:
-    asarray_impl_1_helps = {np.asarray, np.asanyarray}
-    asarray_impl_2_helps = {}
-elif NUMPY_LT_2_1:
+if NUMPY_LT_2_1:
     asarray_impl_1_helps = {np.asanyarray}
     asarray_impl_2_helps = {np.asarray}
 else:
@@ -1294,7 +1235,7 @@ def isin(element, test_elements, *args, **kwargs):
 
 
 if NUMPY_LT_2_4:
-    # np.in1d deprecated in not NUMPY_LT_2_0, removed in not NUMPY_LT_24
+    # np.in1d removed in not NUMPY_LT_24
     @function_helper
     def in1d(ar1, ar2, *args, **kwargs):
         # This tests whether ar1 is in ar2, so we should change the unit of
@@ -1379,10 +1320,7 @@ def array2string(a, *args, **kwargs):
         a = a.value
     else:
         # See whether it covers our dtype.
-        if NUMPY_LT_2_0:
-            from numpy.core.arrayprint import _get_format_function, _make_options_dict
-        else:
-            from numpy._core.arrayprint import _get_format_function, _make_options_dict
+        from numpy._core.arrayprint import _get_format_function, _make_options_dict
 
         with np.printoptions(formatter=formatter) as options:
             options = _make_options_dict(**options)
@@ -1436,29 +1374,19 @@ def inv(a, *args, **kwargs):
     return (a.view(np.ndarray),) + args, kwargs, 1 / a.unit, None
 
 
-if NUMPY_LT_2_0:
-
-    @function_helper(module=np.linalg)
-    def pinv(a, rcond=1e-15, *args, **kwargs):
+@function_helper(module=np.linalg)
+def pinv(a, rcond=None, hermitian=False, *, rtol=np._NoValue):
+    if rcond is not None:
         rcond = _interpret_tol(rcond, a.unit)
+    if rtol is not np._NoValue and rtol is not None:
+        rtol = _interpret_tol(rtol, a.unit)
 
-        return (a.view(np.ndarray), rcond) + args, kwargs, 1 / a.unit, None
-
-else:
-
-    @function_helper(module=np.linalg)
-    def pinv(a, rcond=None, hermitian=False, *, rtol=np._NoValue):
-        if rcond is not None:
-            rcond = _interpret_tol(rcond, a.unit)
-        if rtol is not np._NoValue and rtol is not None:
-            rtol = _interpret_tol(rtol, a.unit)
-
-        return (
-            (a.view(np.ndarray),),
-            dict(rcond=rcond, hermitian=hermitian, rtol=rtol),
-            1 / a.unit,
-            None,
-        )
+    return (
+        (a.view(np.ndarray),),
+        dict(rcond=rcond, hermitian=hermitian, rtol=rtol),
+        1 / a.unit,
+        None,
+    )
 
 
 @function_helper(module=np.linalg)
@@ -1479,7 +1407,7 @@ def solve(a, b, *args, **kwargs):
 
 
 @function_helper(module=np.linalg)
-def lstsq(a, b, rcond="warn" if NUMPY_LT_2_0 else None):
+def lstsq(a, b, rcond=None):
     a, b = _as_quantities(a, b)
 
     if rcond not in (None, "warn", -1):
@@ -1509,17 +1437,9 @@ def matrix_power(a, n):
     return (a.value, n), {}, a.unit**n, None
 
 
-if NUMPY_LT_2_0:
-
-    @function_helper(module=np.linalg)
-    def cholesky(a):
-        return (a.value,), {}, a.unit**0.5, None
-
-else:
-
-    @function_helper(module=np.linalg)
-    def cholesky(a, /, *, upper=False):
-        return (a.value,), {"upper": upper}, a.unit**0.5, None
+@function_helper(module=np.linalg)
+def cholesky(a, /, *, upper=False):
+    return (a.value,), {"upper": upper}, a.unit**0.5, None
 
 
 @function_helper(module=np.linalg)
@@ -1543,15 +1463,12 @@ def eig(a, *args, **kwargs):
     return (a.value,) + args, kwargs, (a.unit, dimensionless_unscaled), None
 
 
-if not NUMPY_LT_2_0:
-    # these functions were added in numpy 2.0
-
-    @function_helper(module=np.linalg)
-    def outer(x1, x2, /):
-        # maybe this one can be marked as subclass-safe in the near future ?
-        # see https://github.com/numpy/numpy/pull/25101#discussion_r1419879122
-        x1, x2 = _as_quantities(x1, x2)
-        return (x1.view(np.ndarray), x2.view(np.ndarray)), {}, x1.unit * x2.unit, None
+@function_helper(module=np.linalg)
+def outer(x1, x2, /):
+    # maybe this one can be marked as subclass-safe in the near future ?
+    # see https://github.com/numpy/numpy/pull/25101#discussion_r1419879122
+    x1, x2 = _as_quantities(x1, x2)
+    return (x1.view(np.ndarray), x2.view(np.ndarray)), {}, x1.unit * x2.unit, None
 
 
 # ======================= np.lib.recfunctions =======================
