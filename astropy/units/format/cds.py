@@ -70,6 +70,16 @@ class CDS(Base):
         for key, val in cds.__dict__.items():
             if isinstance(val, u.UnitBase):
                 names[key] = val
+                for alias in getattr(val, "aliases", ()):  # include canonical aliases
+                    names[alias] = val
+
+        # Ensure common alias spellings are available even when CDS mappings
+        # only register the short token variant.
+        names.setdefault("pix", u.pix)
+        names.setdefault("pixel", u.pix)
+        names.setdefault("vox", u.vox)
+        names.setdefault("voxel", u.vox)
+        names.setdefault("photon", u.ph)
 
         return names
 
