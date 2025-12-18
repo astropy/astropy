@@ -14,6 +14,7 @@ from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
 from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.data import get_pkg_data_contents
 
 from .angles import Angle, Latitude, Longitude
 from .errors import UnknownSiteException
@@ -383,7 +384,7 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """
-        registry = cls._get_site_registry(force_download=refresh_cache)
+        registry = cls._get_site_registry(refresh_cache)
         try:
             el = registry[site_name]
         except UnknownSiteException as e:
@@ -531,31 +532,28 @@ class EarthLocation(u.Quantity):
         of_site : Gets the actual location object for one of the sites names
             this returns.
         """
-        return cls._get_site_registry(force_download=refresh_cache).names
+        return cls._get_site_registry(refresh_cache).names
 
     @classmethod
-    def _get_site_registry(cls, force_download=False):
+    def _get_site_registry(cls, refresh_cache=False):
         """
         Gets the site registry.  The first time this tries to download the data.
         Subsequent calls will use the cached version unless explicitly overridden.
-
-        Parameters
-        ----------
-        force_download : bool or str
-            If not False, force replacement of the cached registry with a
-            downloaded version. If a str, that will be used as the URL to
-            download from (if just True, the default URL will be used).
-
-        Returns
-        -------
-        reg : astropy.coordinates.sites.SiteRegistry
         """
         # need to do this here at the bottom to avoid circular dependencies
-        from .sites import get_downloaded_sites
+        from .sites import SiteRegistry
 
-        if force_download or not cls._site_registry:
-            cls._site_registry = get_downloaded_sites(
-                force_download if isinstance(force_download, str) else None
+        if refresh_cache or not cls._site_registry:
+            # we explicitly set the encoding because the default is to leave it set by
+            # the users' locale, which may fail if it's not matched to the sites.json
+            cls._site_registry = SiteRegistry.from_json(
+                json.loads(
+                    get_pkg_data_contents(
+                        "coordinates/sites.json",
+                        encoding="UTF-8",
+                        cache="update" if refresh_cache else True,
+                    )
+                )
             )
         return cls._site_registry
 
