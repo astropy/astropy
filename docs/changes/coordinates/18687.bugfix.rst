@@ -1,0 +1,2 @@
+The ``refresh_cache`` parameter of ``EarthLocation.of_site()`` and
+``EarthLocation.get_site_names()`` methods now works.

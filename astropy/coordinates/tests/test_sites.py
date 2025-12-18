@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 from threading import Lock
 
@@ -6,52 +7,36 @@ import pytest
 from astropy import units as u
 from astropy.config import set_temp_cache
 from astropy.coordinates import EarthLocation, Latitude, Longitude, UnknownSiteException
-from astropy.coordinates.sites import SiteRegistry, get_downloaded_sites
+from astropy.coordinates.sites import SiteRegistry
 from astropy.tests.helper import assert_quantity_allclose
 
 SITE_DATA_LOCK = Lock()
+TEST_SITE_DATA_DIR = Path(__file__).with_name("data") / "sites"
 
 
 @pytest.fixture(scope="function")
 def local_site_data(monkeypatch):
     with SITE_DATA_LOCK:
         monkeypatch.setattr(EarthLocation, "_site_registry", None)
-        with set_temp_cache(Path(__file__).with_name("data") / "sites"):
+        with set_temp_cache(TEST_SITE_DATA_DIR):
             yield
 
 
-@pytest.mark.remote_data(source="astropy")
-def test_online_sites():
-    reg = get_downloaded_sites()
+@pytest.fixture(scope="function")
+def remote_site_data(monkeypatch, tmp_path):
+    with SITE_DATA_LOCK:
+        monkeypatch.setattr(EarthLocation, "_site_registry", None)
+        with set_temp_cache(tmp_path):
+            yield
 
-    keck = reg["keck"]
-    lon, lat, el = keck.to_geodetic()
-    assert_quantity_allclose(
-        lon, -Longitude("155:28.7", unit=u.deg), atol=0.001 * u.deg
-    )
-    assert_quantity_allclose(lat, Latitude("19:49.7", unit=u.deg), atol=0.001 * u.deg)
-    assert_quantity_allclose(el, 4160 * u.m, atol=1 * u.m)
 
-    names = reg.names
-    assert "keck" in names
-    assert "ctio" in names
-
-    # The JSON file contains `name` and `aliases` for each site, and astropy
-    # should use names from both, but not empty strings [#12721].
-    assert "" not in names
-    assert "Royal Observatory Greenwich" in names
-
-    with pytest.raises(
-        KeyError,
-        match="Site 'nonexistent' not in database. Use the 'names' attribute to see",
-    ):
-        reg["nonexistent"]
-
-    with pytest.raises(
-        KeyError,
-        match="Site 'kec' not in database. Use the 'names' attribute to see available",
-    ):
-        reg["kec"]
+@pytest.fixture(scope="function")
+def refreshable_site_data(monkeypatch, tmp_path):
+    with SITE_DATA_LOCK:
+        monkeypatch.setattr(EarthLocation, "_site_registry", None)
+        shutil.copytree(TEST_SITE_DATA_DIR, tmp_path, dirs_exist_ok=True)
+        with set_temp_cache(tmp_path):
+            yield
 
 
 @pytest.mark.usefixtures("local_site_data")
@@ -91,12 +76,34 @@ def test_Earthlocation_refresh_cache_is_mandatory_kwarg(class_method, args):
         class_method(*args, False)
 
 
-@pytest.mark.xfail(reason="regression test for #18572", raises=AssertionError)
+@pytest.mark.remote_data(source="astropy")
+@pytest.mark.usefixtures("remote_site_data")
+def test_Earthlocation_get_site_names_empty_cache():
+    assert len(EarthLocation.get_site_names()) > 3
+
+
 @pytest.mark.usefixtures("local_site_data")
+def test_Earthlocation_get_site_names_no_refresh_cache():
+    assert EarthLocation.get_site_names() == [
+        "Royal Observatory Greenwich",
+        "example_site",
+        "greenwich",
+    ]
+
+
+@pytest.mark.remote_data(source="astropy")
+@pytest.mark.usefixtures("refreshable_site_data")
 def test_Earthlocation_get_site_names_refresh_cache():
     assert len(EarthLocation.get_site_names()) == 3
     # Regression test for #18572 - refresh_cache=True had no effect
     assert len(EarthLocation.get_site_names(refresh_cache=True)) > 3
+
+
+@pytest.mark.remote_data(source="astropy")
+@pytest.mark.usefixtures("remote_site_data")
+def test_Earthlocation_of_site_empty_cache():
+    keck = EarthLocation.of_site("keck")
+    assert_quantity_allclose(keck.lon, -155.47833333 * u.deg)
 
 
 @pytest.mark.usefixtures("local_site_data")
@@ -105,9 +112,11 @@ def test_Earthlocation_of_site_no_refresh_cache():
         EarthLocation.of_site("keck")
 
 
-@pytest.mark.xfail(reason="regression test for #18572", raises=UnknownSiteException)
-@pytest.mark.usefixtures("local_site_data")
+@pytest.mark.remote_data(source="astropy")
+@pytest.mark.usefixtures("refreshable_site_data")
 def test_Earthlocation_of_site_refresh_cache():
+    with pytest.raises(UnknownSiteException, match="^Site 'keck' not in database"):
+        EarthLocation.of_site("keck")
     # Regression test for #18572 - refresh_cache=True had no effect
     keck = EarthLocation.of_site("keck", refresh_cache=True)
     assert_quantity_allclose(keck.lon, -155.47833333 * u.deg)
