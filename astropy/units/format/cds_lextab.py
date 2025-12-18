@@ -1,26 +1,21 @@
+# -*- coding: utf-8 -*-
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+# This file was automatically generated from ply. To re-generate this file,
+# remove it from this folder, then build astropy and run the tests in-place:
+#
+#   python setup.py build_ext --inplace
+#   pytest astropy/units
+#
+# You can then commit the changes to this file.
+
 # cds_lextab.py. This file automatically created by PLY (version 3.11). Don't edit!
-_lexmap = {
-    't_UFLOAT': 0,
-    't_UINT': 1,
-    't_SIGN': 2,
-    't_X': 3,
-    't_UNIT': 4,
-    't_DIMENSIONLESS': 5,
-}
-
-states = {}
-
-lexer = {
-    'literals': '',
-    'reflags': 32,
-    'rules': [
-        (("((\\d+\\.?\\d+)|(\\.\\d+))([eE][+-]?\\d+)?"), 't_UFLOAT'),
-        (("\\d+"), 't_UINT'),
-        (("[+-](?=\\d)"), 't_SIGN'),
-        (("[x×]"), 't_X'),
-        (("\\%|°|\\\\h|((?!\\d)\\w)+"), 't_UNIT'),
-        (("---|-"), 't_DIMENSIONLESS'),
-    ],
-    'error': 't_error'
-}
-
+_tabversion   = '3.10'
+_lextokens    = set(('CLOSE_BRACKET', 'CLOSE_PAREN', 'DIMENSIONLESS', 'DIVISION', 'OPEN_BRACKET', 'OPEN_PAREN', 'PRODUCT', 'SIGN', 'UFLOAT', 'UINT', 'UNIT', 'X'))
+_lexreflags   = 32
+_lexliterals  = ''
+_lexstateinfo = {'INITIAL': 'inclusive'}
+_lexstatere   = {'INITIAL': [('(?P<t_UFLOAT>((\\d+\\.?\\d+)|(\\.\\d+))([eE][+-]?\\d+)?)|(?P<t_UINT>\\d+)|(?P<t_SIGN>[+-](?=\\d))|(?P<t_X>[x×])|(?P<t_UNIT>\\%|°|\\\\h|((?!\\d)\\w)+)|(?P<t_DIMENSIONLESS>---|-)|(?P<t_PRODUCT>\\.)|(?P<t_OPEN_PAREN>\\()|(?P<t_CLOSE_PAREN>\\))|(?P<t_OPEN_BRACKET>\\[)|(?P<t_CLOSE_BRACKET>\\])|(?P<t_DIVISION>/)', [None, ('t_UFLOAT', 'UFLOAT'), None, None, None, None, ('t_UINT', 'UINT'), ('t_SIGN', 'SIGN'), ('t_X', 'X'), ('t_UNIT', 'UNIT'), None, ('t_DIMENSIONLESS', 'DIMENSIONLESS'), (None, 'PRODUCT'), (None, 'OPEN_PAREN'), (None, 'CLOSE_PAREN'), (None, 'OPEN_BRACKET'), (None, 'CLOSE_BRACKET'), (None, 'DIVISION')])]}
+_lexstateignore = {'INITIAL': ''}
+_lexstateerrorf = {'INITIAL': 't_error'}
+_lexstateeoff = {}

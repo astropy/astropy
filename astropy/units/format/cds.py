@@ -163,23 +163,21 @@ class CDS(Base):
                 p[0] = Unit(p[1])
 
         def p_combined_units(p):
+            # Chained division is left-associative, so A/B/C/D parses as
+            # A * B^-1 * C^-1 * D^-1 (matching Generic format behavior).
+            # Leading inverse is supported via a leading '/' before a unit
+            # expression (e.g., '/pixel/s' → (pixel*s)^-1). Exponent and factor
+            # handling are unchanged (e.g., 'kpc2' → kpc**2; '10+3J' → 1e3 * J).
             """
             combined_units : division_product_of_units
-            # Note:
-            # - Chained division is left-associative, so A/B/C/D parses as
-            #   A * B^-1 * C^-1 * D^-1 (matches Generic format behavior).
-            # - Leading inverse is supported via a leading '/' before a unit
-            #   expression (e.g., '/pixel/s' → (pixel*s)^-1).
-            # - Exponent and factor handling are unchanged (e.g., 'kpc2' →
-            #   kpc**2; '10+3J' → 1e3 * J).
             """
             p[0] = p[1]
 
         def p_product_of_units(p):
+            # Left-recursive product to compose sequential products uniformly.
             """
             product_of_units : unit_expression PRODUCT product_of_units
                              | unit_expression
-            # Left-recursive product to compose sequential products uniformly
             """
             if len(p) == 4:
                 p[0] = p[1] * p[3]
@@ -187,11 +185,11 @@ class CDS(Base):
                 p[0] = p[1]
 
         def p_division_product_of_units(p):
+            # Left-associative division with optional leading inverse support.
             """
             division_product_of_units : division_product_of_units DIVISION product_of_units
                                       | product_of_units
                                       | DIVISION unit_expression
-            # Left-associative division, with leading inverse support
             """
             if len(p) == 4:
                 p[0] = p[1] / p[3]
