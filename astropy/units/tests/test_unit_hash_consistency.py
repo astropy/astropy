@@ -325,7 +325,7 @@ class TestEdgeCases:
     def test_inverse_units(self):
         """Test that inverse units hash correctly."""
         unit1 = u.s**(-1)
-        unit2 = 1 / u.s
+        unit2 = u.Unit(1 / u.s)
         
         assert unit1 == unit2
         assert hash(unit1) == hash(unit2)
