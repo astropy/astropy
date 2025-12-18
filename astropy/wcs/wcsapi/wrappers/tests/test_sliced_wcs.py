@@ -11,6 +11,7 @@ from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.coordinates import SkyCoord, Galactic, ICRS
 from astropy.units import Quantity
+from astropy.wcs.wcsapi import HighLevelWCSWrapper
 from astropy.wcs.wcsapi.wrappers.sliced_wcs import SlicedLowLevelWCS, sanitize_slices, combine_slices
 from astropy.wcs.wcsapi.utils import wcs_info_str
 import astropy.units as u
@@ -52,6 +53,58 @@ with warnings.catch_warnings():
     warnings.simplefilter('ignore', VerifyWarning)
     WCS_SPECTRAL_CUBE = WCS(Header.fromstring(HEADER_SPECTRAL_CUBE, sep='\n'))
 WCS_SPECTRAL_CUBE.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
+
+
+def _make_pc_coupled_wcs():
+    header = {
+        'WCSAXES': 3,
+        'CRPIX1': (100 + 1) / 2,
+        'CRPIX2': (25 + 1) / 2,
+        'CRPIX3': 1.0,
+        'PC1_1': 0.0,
+        'PC1_2': -1.0,
+        'PC1_3': 0.0,
+        'PC2_1': 1.0,
+        'PC2_2': 0.0,
+        'PC2_3': -1.0,
+        'CDELT1': 5,
+        'CDELT2': 5,
+        'CDELT3': 0.055,
+        'CUNIT1': 'arcsec',
+        'CUNIT2': 'arcsec',
+        'CUNIT3': 'Angstrom',
+        'CTYPE1': 'HPLN-TAN',
+        'CTYPE2': 'HPLT-TAN',
+        'CTYPE3': 'WAVE',
+        'CRVAL1': 0.0,
+        'CRVAL2': 0.0,
+        'CRVAL3': 1.05,
+    }
+    return WCS(header=header)
+
+
+def _make_radec_freq_wcs():
+    wcs = WCS(naxis=3)
+    wcs.wcs.crpix = [1.0, 1.0, 1.0]
+    wcs.wcs.cdelt = np.array([-0.00027777778, 0.00027777778, 1.0e6])
+    wcs.wcs.crval = [10.0, 20.0, 1.0e9]
+    wcs.wcs.ctype = ['RA---TAN', 'DEC--TAN', 'FREQ']
+    wcs.wcs.cunit = ['deg', 'deg', 'Hz']
+    wcs.wcs.pc = np.eye(3)
+    wcs.wcs.pc[0, 2] = 5e-5
+    wcs.wcs.pc[1, 2] = -3e-5
+    return wcs
+
+
+def _make_linear_wcs(naxis=4):
+    wcs = WCS(naxis=naxis)
+    wcs.wcs.crpix = np.arange(naxis, dtype=float) + 0.5
+    wcs.wcs.cdelt = np.arange(1, naxis + 1, dtype=float)
+    wcs.wcs.crval = np.arange(naxis, dtype=float) * 10.0
+    wcs.wcs.ctype = [f'LINEAR{i + 1}' for i in range(naxis)]
+    wcs.wcs.cunit = [''] * naxis
+    wcs.wcs.pc = np.eye(naxis)
+    return wcs
 
 
 def test_invalid_slices():
@@ -899,3 +952,90 @@ def test_pixel_to_world_values_different_int_types():
     for int_coord, np64_coord in zip(int_sliced.pixel_to_world_values(*pixel_arrays),
                                      np64_sliced.pixel_to_world_values(*pixel_arrays)):
         assert all(int_coord == np64_coord)
+
+
+def test_world_to_pixel_dropped_axis_uses_slice_world_values():
+    wcs = _make_pc_coupled_wcs()
+    pixel = (49.5, 12.0, 0.0)
+    world = wcs.pixel_to_world_values(*pixel)
+
+    sliced = SlicedLowLevelWCS(wcs, 0)
+    sliced_pixel = sliced.world_to_pixel_values(world[0], world[1])
+
+    assert_allclose(sliced_pixel[0], pixel[0])
+    assert_allclose(sliced_pixel[1], pixel[1])
+    sliced_world = sliced.pixel_to_world_values(*sliced_pixel)
+    assert_allclose(sliced_world[0], world[0])
+    assert_allclose(sliced_world[1], world[1])
+
+
+def test_world_to_pixel_with_multiple_sliced_axes():
+    wcs = _make_linear_wcs(4)
+    pixel = (0.5, 1.5, 2.5, 3.5)
+    world = wcs.pixel_to_world_values(*pixel)
+
+    sliced = SlicedLowLevelWCS(wcs, (slice(None), 0, 0, 0))
+    assert sliced.world_n_dim == 1
+
+    expected_pixel = wcs.world_to_pixel_values(*world)[sliced._pixel_keep[0]]
+
+    sliced_pixel = sliced.world_to_pixel_values(world[3])
+    assert_allclose(sliced_pixel, expected_pixel)
+
+    sliced_world = sliced.pixel_to_world_values(expected_pixel)
+    assert_allclose(sliced_world, world[3])
+
+
+def test_high_level_wrapper_round_trips_after_slicing():
+    wcs = _make_radec_freq_wcs()
+
+    hl_full = HighLevelWCSWrapper(wcs)
+    pixel = (25.0, 30.0, 5.0)
+    full_world = hl_full.pixel_to_world(*pixel)
+    back_pixels = hl_full.world_to_pixel(*full_world)
+    for actual, expected in zip(back_pixels, pixel):
+        assert_allclose(actual, expected)
+
+    sliced = SlicedLowLevelWCS(wcs, 0)
+    hl_sliced = HighLevelWCSWrapper(sliced)
+
+    sky = hl_sliced.pixel_to_world(pixel[0], pixel[1])
+    assert isinstance(sky, SkyCoord)
+    assert sky.is_equivalent_frame(full_world[0])
+    assert_allclose(sky.ra.deg, full_world[0].ra.deg, atol=1e-6)
+    assert_allclose(sky.dec.deg, full_world[0].dec.deg, atol=1e-6)
+
+    sliced_pixels = hl_sliced.world_to_pixel(full_world[0])
+    spectral_slice_world = wcs.pixel_to_world_values(0, 0, 0)[2]
+    expected_pixels = wcs.world_to_pixel_values(
+        full_world[0].ra.deg, full_world[0].dec.deg, spectral_slice_world
+    )
+    expected_subset = tuple(expected_pixels[index] for index in sliced._pixel_keep)
+    for actual, expected in zip(sliced_pixels, expected_subset):
+        assert_allclose(actual, expected, atol=1e-9)
+
+    spectral_expected = wcs.pixel_to_world_values(*pixel)[2]
+    assert isinstance(full_world[1], SpectralCoord)
+    assert_allclose(full_world[1].value, spectral_expected)
+
+
+def test_world_to_pixel_broadcasting_with_dropped_axis():
+    wcs = _make_radec_freq_wcs()
+    sliced = SlicedLowLevelWCS(wcs, 0)
+
+    ra = np.array([[9.99], [10.01]])
+    dec = np.array([19.9, 20.0, 20.1])
+
+    result = sliced.world_to_pixel_values(ra, dec)
+    assert isinstance(result, tuple) and len(result) == 2
+    assert result[0].shape == (2, 3)
+    assert result[1].shape == (2, 3)
+
+    ra_grid, dec_grid = np.broadcast_arrays(ra, dec)
+    spectral_world = wcs.pixel_to_world_values(0, 0, 0)[2]
+    spec_grid = np.broadcast_to(spectral_world, ra_grid.shape)
+    expected_full = wcs.world_to_pixel_values(ra_grid, dec_grid, spec_grid)
+    expected = tuple(expected_full[idx] for idx in sliced._pixel_keep)
+
+    assert_allclose(result[0], expected[0])
+    assert_allclose(result[1], expected[1])

@@ -244,6 +244,15 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
 
     def world_to_pixel_values(self, *world_arrays):
         world_arrays = tuple(map(np.asanyarray, world_arrays))
+
+        world_at_slice_all = self._pixel_to_world_values_all(*([0] * self.pixel_n_dim))
+        if self._wcs.world_n_dim == 1:
+            world_at_slice_all = (np.asanyarray(world_at_slice_all),)
+        elif isinstance(world_at_slice_all, (tuple, list)):
+            world_at_slice_all = tuple(np.asanyarray(value) for value in world_at_slice_all)
+        else:
+            world_at_slice_all = (np.asanyarray(world_at_slice_all),)
+
         world_arrays_new = []
         iworld_curr = -1
         for iworld in range(self._wcs.world_n_dim):
@@ -251,7 +260,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
                 iworld_curr += 1
                 world_arrays_new.append(world_arrays[iworld_curr])
             else:
-                world_arrays_new.append(1.)
+                world_arrays_new.append(world_at_slice_all[iworld])
 
         world_arrays_new = np.broadcast_arrays(*world_arrays_new)
         pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))
