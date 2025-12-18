@@ -16,6 +16,7 @@ astropy.coordinates.angles. Mainly they are conversions from one format
 of data to another.
 """
 
+import math
 import threading
 from warnings import warn
 
@@ -383,11 +384,9 @@ def _decimal_to_sexagesimal_string(
     """
     values = _decimal_to_sexagesimal(angle)
     # Check to see if values[0] is negative, using np.copysign to handle -0
-    sign = np.copysign(1.0, values[0])
+    sign = math.copysign(1.0, values[0])
     # If the coordinates are negative, we need to take the absolute values.
-    # We use np.abs because abs(-0) is -0
-    # TODO: Is this true? (MHvK, 2018-02-01: not on my system)
-    values = [np.abs(value) for value in values]
+    values = [abs(value) for value in values]
 
     if pad:
         pad = 3 if sign == -1 else 2
@@ -434,7 +433,7 @@ def _decimal_to_sexagesimal_string(
     elif fields < 2 and values[1] >= 30.0:
         values[0] += 1.0
 
-    literal = f"{np.copysign(values[0], sign):0{pad}.0f}{sep[0]}"
+    literal = f"{math.copysign(values[0], sign):0{pad}.0f}{sep[0]}"
     if fields >= 2:
         literal += f"{int(values[1]):02d}{sep[1]}"
     if fields == 3:
