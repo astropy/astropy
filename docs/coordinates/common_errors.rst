@@ -81,6 +81,43 @@ as follows::
     >>> cirs_topo = CIRS(cirs_vec, obstime=t, location=home)
 
     >>> # convert to AltAz
-    >>> aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
-    >>> aa.alt # doctest: +FLOAT_CMP
+>>> aa = cirs_topo.transform_to(AltAz(obstime=t, location=home))
+>>> aa.alt # doctest: +FLOAT_CMP
+<Latitude 90. deg>
+
+Direct ITRS <-> Observed transforms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Astropy now includes direct transformations between :class:`~astropy.coordinates.ITRS`
+and the observed frames (:class:`~astropy.coordinates.AltAz` and
+:class:`~astropy.coordinates.HADec`) that operate purely in the ITRS geometry of
+the observer.  These transformations automatically form the topocentric vector
+between the observer and target without detouring through an intermediate
+celestial frame.
+
+Using the same setup as above, the altitude now comes out exactly as expected::
+
+    >>> direct = obj.get_itrs(t).transform_to(AltAz(obstime=t, location=home))
+    >>> direct.alt # doctest: +FLOAT_CMP
     <Latitude 90. deg>
+
+The direct transforms deliberately ignore aberration and atmospheric refraction
+so that nearby terrestrial targets behave intuitively.  A few guard rails are in
+place:
+
+* If both the source and destination frames have ``obstime`` defined but with
+  different values, an :class:`~astropy.utils.exceptions.AstropyUserWarning` is
+  emitted because the geometry is evaluated without time-dependent aberration
+  corrections.
+* Setting a non-zero ``pressure`` on an observed frame also issues a warning,
+  since the direct transforms do not apply refraction.  Leave ``pressure`` at
+  zero to obtain the topocentric altitude and azimuth.
+* Observed-to-ITRS conversions require a finite ``distance``.  Without it the
+  transformation cannot recover the absolute ITRS position and a
+  :class:`ValueError` is raised.
+* Transforming direction-only ITRS vectors (unit spherical data) assumes the
+  target is effectively at infinite distance and warns that topocentric
+  parallax has been ignored.
+
+For distant astronomical sources where aberration and refraction are required,
+continue to route through ICRS (``ITRS -> ICRS -> AltAz``).
