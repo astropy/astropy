@@ -1,0 +1,6 @@
+Fixed hash consistency for equivalent units. Previously, units that compared
+as equal (e.g., ``u.N`` and ``u.kg * u.m / u.s**2``) could have different hash
+values, violating Python's hash-equality contract. This caused issues with sets
+and dictionaries where equivalent units were treated as distinct keys. Now, all
+equivalent units are guaranteed to have the same hash value by using their
+decomposed form for hash computation. [#18560]

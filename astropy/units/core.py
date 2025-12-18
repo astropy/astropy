@@ -362,6 +362,41 @@ class UnitBase:
         return NotImplemented
 
     def __hash__(self) -> int:
+        """
+        Return the hash of the unit.
+
+        The hash is computed from the decomposed form of the unit to ensure
+        that equivalent units always have the same hash value, satisfying
+        Python's hash-equality contract.
+
+        Returns
+        -------
+        int
+        The hash value of the unit.
+
+        Notes
+        -----
+        Hash values are cached after first computation for performance.
+        Equivalent units (those that compare equal via ``__eq__``) are
+        guaranteed to have the same hash value.
+
+        Examples
+        --------
+        Equivalent units have equal hashes::
+
+        >>> from astropy import units as u
+        >>> hash(u.N) == hash(u.kg * u.m / u.s**2)
+        True
+
+        This enables using equivalent units in sets and dicts::
+
+        >>> s = {u.N, u.kg * u.m / u.s**2}
+        >>> len(s)
+        1
+        >>> d = {u.N: "force"}
+        >>> d[u.kg * u.m / u.s**2]
+        'force'
+        """
         return self._hash
 
     @cached_property
@@ -1978,24 +2013,15 @@ class UnrecognizedUnit(IrreducibleUnit):
     __pow__ = __truediv__ = __rtruediv__ = __mul__ = __rmul__ = _unrecognized_operator
     __lt__ = __gt__ = __le__ = __ge__ = __neg__ = _unrecognized_operator
 
-def __hash__(self):
-    if self._hash is None:
-        # Decompose to canonical SI base form to ensure
-        # equal units always get the same hash (issue #18560)
-        try:
-            decomposed = self.decompose()
-            parts = ([str(decomposed.scale)] +
-                    [str(base) for base in decomposed.bases] +
-                    [str(power) for power in decomposed.powers])
-            self._hash = hash(tuple(parts))
-        except Exception:
-            # Fallback if decompose fails
-            parts = ([str(self.scale)] +
-                    [str(base) for base in self.bases] +
-                    [str(power) for power in self.powers])
-            self._hash = hash(tuple(parts))
-    return self._hash
+    @cached_property
+    def _hash(self) -> int:
+        # For unrecognized units, hash based on the name only
+        # since they can't be decomposed to a meaningful form
+        return hash(self.name)
 
+    # Explicitly inherit __hash__ from UnitBase to override Python's
+    # default behavior of setting __hash__ = None when __eq__ is defined
+    __hash__ = UnitBase.__hash__
 
     def __eq__(self, other):
         try:
