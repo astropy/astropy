@@ -144,6 +144,9 @@ class UnifiedReadWriteMethod(property):
 
     """
 
+    def __init__(self, readwritecls: UnifiedReadWrite):
+        super().__init__(fget=readwritecls)
+
     # We subclass property to ensure that __set__ is defined and that,
     # therefore, we are a data descriptor, which cannot be overridden.
     # This also means we automatically inherit the __doc__ of fget (which will
