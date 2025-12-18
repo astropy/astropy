@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import itertools
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_almost_equal
@@ -99,9 +97,8 @@ class Test2DConvolutions:
         # not clear why, but these differ by a couple ulps...
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(
-        ("shape", "width"), list(itertools.product(SHAPES_ODD, WIDTHS))
-    )
+    @pytest.mark.parametrize("shape", SHAPES_ODD)
+    @pytest.mark.parametrize("width", WIDTHS)
     def test_uniform_smallkernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel
@@ -124,9 +121,8 @@ class Test2DConvolutions:
 
         assert_almost_equal(c1, c2, decimal=12)
 
-    @pytest.mark.parametrize(
-        ("shape", "width"), list(itertools.product(SHAPES_ODD, [1, 3, 5]))
-    )
+    @pytest.mark.parametrize("shape", SHAPES_ODD)
+    @pytest.mark.parametrize("width", [1, 3, 5])
     def test_smallkernel_Box2DKernel(self, shape, width):
         """
         Test smoothing of an image with a single positive pixel

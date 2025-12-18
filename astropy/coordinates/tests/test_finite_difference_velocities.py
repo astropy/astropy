@@ -21,7 +21,7 @@ from astropy.coordinates.builtin_frames.galactic_transforms import (
     _gal_to_fk5,
     fk5_to_gal,
 )
-from astropy.coordinates.sites import get_builtin_sites
+from astropy.coordinates.sites import _GREENWICH
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 
@@ -77,7 +77,7 @@ def test_faux_lsr(dt, symmetric):
     idiff = ic.cartesian.differentials["s"]
     ldiff = lsrc.cartesian.differentials["s"]
     totchange = np.sum((ldiff.d_xyz - idiff.d_xyz) ** 2) ** 0.5
-    assert_quantity_allclose(totchange, np.sum(lsrc.v_bary.d_xyz**2) ** 0.5)
+    assert_quantity_allclose(totchange, np.sum(lsrc.v_bary.xyz**2) ** 0.5)
 
     ic2 = ICRS(
         ra=120.3 * u.deg,
@@ -180,7 +180,7 @@ def test_gcrs_diffs():
 
 def test_altaz_diffs():
     time = Time("J2015") + np.linspace(-1, 1, 1000) * u.day
-    aa = AltAz(obstime=time, location=get_builtin_sites()["greenwich"])
+    aa = AltAz(obstime=time, location=_GREENWICH)
 
     icoo = ICRS(
         np.zeros(time.shape) * u.deg,

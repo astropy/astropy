@@ -22,8 +22,14 @@ from astropy.coordinates.earth import EarthLocation
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.table import Column, MaskedColumn, QTable, Table, TableMergeError
-from astropy.table.operations import _get_out_class, join_distance, join_skycoord
+from astropy.table.operations import (
+    _apply_join_funcs,
+    _get_out_class,
+    join_distance,
+    join_skycoord,
+)
 from astropy.time import Time, TimeDelta
+from astropy.timeseries import TimeSeries
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
 from astropy.utils.compat import NUMPY_LT_2_0
@@ -793,8 +799,6 @@ class TestJoin:
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
     def test_join_with_join_distance_1d_multikey(self):
-        from astropy.table.operations import _apply_join_funcs
-
         c1 = [0, 1, 1.1, 1.2, 2]
         id1 = [0, 1, 2, 2, 3]
         o1 = ["a", "b", "c", "d", "e"]
@@ -1271,7 +1275,7 @@ class TestVStack:
             table.vstack([self.t1, self.t2], join_type="exact")
 
         t1_reshape = self.t1.copy()
-        t1_reshape["b"].shape = [2, 1]
+        t1_reshape["b"] = t1_reshape["b"].reshape((2, 1))
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, t1_reshape])
         assert "have different shape" in str(excinfo.value)
@@ -2444,8 +2448,6 @@ def test_sort_indexed_table():
 
     # Using the table as a TimeSeries implicitly sets the index, so
     # this test is a bit different from the above.
-    from astropy.timeseries import TimeSeries
-
     ts = TimeSeries(time=times)
     ts["flux"] = [3, 2, 1]
     ts.sort("flux")

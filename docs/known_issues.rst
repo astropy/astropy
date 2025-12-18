@@ -205,6 +205,22 @@ What the second comparison is really doing is this::
 
 See: https://github.com/astropy/astropy/issues/15103
 
+numpy.prod cannot be applied to Quantity
+----------------------------------------
+
+Using ``numpy.prod`` function on a Quantity would result in error.
+This is because correctly implementing it for Quantity is fairly
+difficult, since, unlike for most numpy functions, the result unit
+depends on the shape of the input (rather than only on the units
+of the inputs).
+
+    >>> np.prod([1, 2, 3] * u.m)
+    Traceback (most recent call last):
+    ...
+    astropy.units.errors.UnitsError: Cannot use 'reduce' method on ufunc multiply with a Quantity instance as it would change the unit.
+
+See: https://github.com/astropy/astropy/issues/18429
+
 def_unit should not be used for logarithmic unit
 ------------------------------------------------
 

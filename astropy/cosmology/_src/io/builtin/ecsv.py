@@ -159,28 +159,22 @@ Additional keyword arguments are passed to ``QTable.read`` and ``QTable.write``.
     >>> temp_dir.cleanup()
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any, TypeVar
+from collections.abc import Mapping
+from typing import Any, TypeVar
 
 import astropy.units as u
-from astropy.table import QTable
+from astropy.table import QTable, Table
 
 # isort: split
 import astropy.cosmology.units as cu
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import readwrite_registry
+from astropy.cosmology._src.typing import _CosmoT
+from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
 
 from .table import from_table, to_table
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from astropy.cosmology._src.typing import _CosmoT
-    from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
-    from astropy.table import Table
-
-    _TableT = TypeVar("_TableT", "Table")
+_TableT = TypeVar("_TableT", bound=Table)
 
 
 def read_ecsv(

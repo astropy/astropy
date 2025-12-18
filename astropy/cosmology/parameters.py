@@ -9,8 +9,9 @@ from types import MappingProxyType
 
 from .realizations import available
 
-__all__ = ["available"]
-__all__ += [  # noqa: F822
+__all__ = (  # noqa: F822, RUF022
+    "available",
+    # ----
     "WMAP1",
     "WMAP3",
     "WMAP5",
@@ -19,7 +20,7 @@ __all__ += [  # noqa: F822
     "Planck13",
     "Planck15",
     "Planck18",
-]
+)
 
 
 def __getattr__(name):

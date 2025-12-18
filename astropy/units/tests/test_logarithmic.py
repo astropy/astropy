@@ -3,7 +3,6 @@
 Test the Logarithmic Units and Quantities
 """
 
-import itertools
 import pickle
 
 import numpy as np
@@ -23,6 +22,12 @@ lq_subclasses = [u.Dex, u.Magnitude, u.Decibel]
 
 pu_sample = (u.dimensionless_unscaled, u.m, u.g / u.s**2, u.Jy)
 
+mJy = np.arange(1.0, 5.0).reshape(2, 2) * u.mag(u.Jy)
+m1 = np.arange(1.0, 5.5, 0.5).reshape(3, 3) * u.mag()
+log_quantity_parametrization = pytest.mark.parametrize(
+    "mag", [mJy, m1], ids=lambda x: str(x.unit.physical_unit.physical_type)
+)
+
 
 class TestLogUnitCreation:
     def test_logarithmic_units(self):
@@ -31,7 +36,7 @@ class TestLogUnitCreation:
         assert u.dex.to(u.mag) == -2.5
         assert u.mag.to(u.dB) == -4
 
-    @pytest.mark.parametrize("lu_unit, lu_cls", zip(lu_units, lu_subclasses))
+    @pytest.mark.parametrize("lu_unit, lu_cls", list(zip(lu_units, lu_subclasses)))
     def test_callable_units(self, lu_unit, lu_cls):
         assert isinstance(lu_unit, u.UnitBase)
         assert callable(lu_unit)
@@ -43,9 +48,8 @@ class TestLogUnitCreation:
         assert lu == lu._default_function_unit  # eg, MagUnit() == u.mag
         assert lu._default_function_unit == lu  # and u.mag == MagUnit()
 
-    @pytest.mark.parametrize(
-        "lu_unit, physical_unit", itertools.product(lu_units, pu_sample)
-    )
+    @pytest.mark.parametrize("physical_unit", pu_sample)
+    @pytest.mark.parametrize("lu_unit", lu_units)
     def test_call_units(self, lu_unit, physical_unit):
         """Create a LogUnit subclass using the callable unit and physical unit,
         and do basic check that output is right."""
@@ -59,10 +63,8 @@ class TestLogUnitCreation:
         with pytest.raises(ValueError):
             u.mag(u.mag())
 
-    @pytest.mark.parametrize(
-        "lu_cls, physical_unit",
-        itertools.product(lu_subclasses + [u.LogUnit], pu_sample),
-    )
+    @pytest.mark.parametrize("physical_unit", pu_sample)
+    @pytest.mark.parametrize("lu_cls", lu_subclasses + [u.LogUnit])
     def test_subclass_creation(self, lu_cls, physical_unit):
         """Create a LogUnit subclass object for given physical unit,
         and do basic check that output is right."""
@@ -200,23 +202,28 @@ class TestLogUnitStrings:
 
         lu4 = u.mag(u.ct)
         assert lu4.to_string("generic") == "mag(ct)"
-        latex_str = r"$\mathrm{mag}$$\mathrm{\left( \mathrm{ct} \right)}$"
+        latex_str = r"$\mathrm{mag\left(ct\right)}$"
         assert lu4.to_string("latex") == latex_str
         assert lu4.to_string("latex_inline") == latex_str
         assert lu4._repr_latex_() == latex_str
 
         lu5 = u.mag(u.ct / u.s)
-        assert lu5.to_string("latex") == (
-            r"$\mathrm{mag}$$\mathrm{\left( \mathrm{\frac{ct}{s}} \right)}$"
-        )
-        latex_str = r"$\mathrm{mag}$$\mathrm{\left( \mathrm{ct\,s^{-1}} \right)}$"
+        latex_str = r"$\mathrm{mag\left(\frac{ct}{s}\right)}$"
+        assert lu5.to_string("latex") == latex_str
+        latex_str = r"$\mathrm{mag\left(ct\,s^{-1}\right)}$"
         assert lu5.to_string("latex_inline") == latex_str
+
+    def test_dex_latex_str(self):
+        # Regression test for gh-18618.
+        lu = u.dex(u.cm / u.s**2)
+        latex_str = r"$\mathrm{dex\left(\frac{cm}{s^{2}}\right)}$"
+        assert lu.to_string(format="latex") == latex_str
+        assert lu._repr_latex_() == latex_str
 
 
 class TestLogUnitConversion:
-    @pytest.mark.parametrize(
-        "lu_unit, physical_unit", itertools.product(lu_units, pu_sample)
-    )
+    @pytest.mark.parametrize("physical_unit", pu_sample)
+    @pytest.mark.parametrize("lu_unit", lu_units)
     def test_physical_unit_conversion(self, lu_unit, physical_unit):
         """Check various LogUnit subclasses are equivalent and convertible
         to their non-log counterparts."""
@@ -261,10 +268,9 @@ class TestLogUnitConversion:
         with pytest.raises(u.UnitsError):
             lu2.to(lu2.function_unit, values)
 
-    @pytest.mark.parametrize(
-        "flu_unit, tlu_unit, physical_unit",
-        itertools.product(lu_units, lu_units, pu_sample),
-    )
+    @pytest.mark.parametrize("physical_unit", pu_sample)
+    @pytest.mark.parametrize("tlu_unit", lu_units)
+    @pytest.mark.parametrize("flu_unit", lu_units)
     def test_subclass_conversion(self, flu_unit, tlu_unit, physical_unit):
         """Check various LogUnit subclasses are equivalent and convertible
         to each other if they correspond to equivalent physical units."""
@@ -504,16 +510,16 @@ def test_hashable():
 
 class TestLogQuantityCreation:
     @pytest.mark.parametrize(
-        "lq, lu", zip(lq_subclasses + [u.LogQuantity], lu_subclasses + [u.LogUnit])
+        "lq, lu",
+        list(zip(lq_subclasses + [u.LogQuantity], lu_subclasses + [u.LogUnit])),
     )
     def test_logarithmic_quantities(self, lq, lu):
         """Check logarithmic quantities are all set up correctly"""
         assert lq._unit_class == lu
         assert type(lu()._quantity_class(1.0)) is lq
 
-    @pytest.mark.parametrize(
-        "lq_cls, physical_unit", itertools.product(lq_subclasses, pu_sample)
-    )
+    @pytest.mark.parametrize("physical_unit", pu_sample)
+    @pytest.mark.parametrize("lq_cls", lq_subclasses)
     def test_subclass_creation(self, lq_cls, physical_unit):
         """Create LogQuantity subclass objects for some physical units,
         and basic check on transformations"""
@@ -980,11 +986,6 @@ class TestLogQuantityComparisons:
 
 
 class TestLogQuantityMethods:
-    def setup_method(self):
-        self.mJy = np.arange(1.0, 5.0).reshape(2, 2) * u.mag(u.Jy)
-        self.m1 = np.arange(1.0, 5.5, 0.5).reshape(3, 3) * u.mag()
-        self.mags = (self.mJy, self.m1)
-
     @pytest.mark.parametrize(
         "method",
         (
@@ -999,59 +1000,56 @@ class TestLogQuantityMethods:
             "ediff1d",
         ),
     )
-    def test_always_ok(self, method):
-        for mag in self.mags:
-            res = getattr(mag, method)()
-            assert np.all(res.value == getattr(mag._function_view, method)().value)
-            if method in ("std", "diff", "ediff1d"):
-                assert res.unit == u.mag()
-            elif method == "var":
-                assert res.unit == u.mag**2
-            else:
-                assert res.unit == mag.unit
+    @log_quantity_parametrization
+    def test_always_ok(self, method, mag):
+        res = getattr(mag, method)()
+        assert np.all(res.value == getattr(mag._function_view, method)().value)
+        if method in ("std", "diff", "ediff1d"):
+            assert res.unit == u.mag()
+        elif method == "var":
+            assert res.unit == u.mag**2
+        else:
+            assert res.unit == mag.unit
 
     @pytest.mark.skipif(not NUMPY_LT_2_0, reason="ptp method removed in numpy 2.0")
-    def test_always_ok_ptp(self):
-        for mag in self.mags:
-            res = mag.ptp()
-            assert np.all(res.value == mag._function_view.ptp().value)
-            assert res.unit == u.mag()
+    @log_quantity_parametrization
+    def test_always_ok_ptp(self, mag):
+        res = mag.ptp()
+        assert np.all(res.value == mag._function_view.ptp().value)
+        assert res.unit == u.mag()
 
-    def test_clip(self):
-        for mag in self.mags:
-            assert np.all(
-                mag.clip(2.0 * mag.unit, 4.0 * mag.unit).value
-                == mag.value.clip(2.0, 4.0)
-            )
+    @log_quantity_parametrization
+    def test_clip(self, mag):
+        assert np.all(
+            mag.clip(2.0 * mag.unit, 4.0 * mag.unit).value == mag.value.clip(2.0, 4.0)
+        )
 
     @pytest.mark.parametrize("method", ("sum", "cumsum"))
-    def test_only_ok_if_dimensionless(self, method):
-        res = getattr(self.m1, method)()
-        assert np.all(res.value == getattr(self.m1._function_view, method)().value)
-        assert res.unit == self.m1.unit
+    def test_ok_if_dimensionless(self, method):
+        res = getattr(m1, method)()
+        assert np.all(res.value == getattr(m1, method)().value)
+        assert res.unit == m1.unit
+
+    @pytest.mark.parametrize("method", ("sum", "cumsum"))
+    def test_not_ok_if_not_dimensionless(self, method):
         with pytest.raises(TypeError):
-            getattr(self.mJy, method)()
+            getattr(mJy, method)()
 
     def test_dot(self):
-        assert np.all(self.m1.dot(self.m1).value == self.m1.value.dot(self.m1.value))
+        assert np.all(m1.dot(m1).value == m1.value.dot(m1.value))
 
     @pytest.mark.parametrize("method", ("prod", "cumprod"))
-    def test_never_ok(self, method):
+    @log_quantity_parametrization
+    def test_never_ok(self, method, mag):
         with pytest.raises(TypeError):
-            getattr(self.mJy, method)()
-        with pytest.raises(TypeError):
-            getattr(self.m1, method)()
+            getattr(mag, method)()
 
 
 class TestLogQuantityFunctions:
     # TODO: add tests for all supported functions!
-    def setup_method(self):
-        self.mJy = np.arange(1.0, 5.0).reshape(2, 2) * u.mag(u.Jy)
-        self.m1 = np.arange(1.0, 5.5, 0.5).reshape(3, 3) * u.mag()
-        self.mags = (self.mJy, self.m1)
 
-    def test_ptp(self):
-        for mag in self.mags:
-            res = np.ptp(mag)
-            assert np.all(res.value == np.ptp(mag._function_view).value)
-            assert res.unit == u.mag()
+    @log_quantity_parametrization
+    def test_ptp(self, mag):
+        res = np.ptp(mag)
+        assert np.all(res.value == np.ptp(mag._function_view).value)
+        assert res.unit == u.mag()

@@ -34,7 +34,7 @@ from astropy.units import Quantity
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-from ._fitting_parallel import parallel_fit_dask
+from ._fitting_parallel import FitInfoArrayContainer, parallel_fit_dask
 from .optimizers import DEFAULT_ACC, DEFAULT_EPS, DEFAULT_MAXITER, SLSQP, Simplex
 from .spline import (
     SplineExactKnotsFitter,
@@ -47,6 +47,7 @@ from .utils import _combine_equivalency_dict, poly_map_domain
 
 __all__ = [
     "DogBoxLSQFitter",
+    "FitInfoArrayContainer",
     "Fitter",
     "FittingWithOutlierRemoval",
     "JointFitter",
@@ -1010,10 +1011,11 @@ class FittingWithOutlierRemoval:
             filtered_data.mask = False
         filtered_weights = weights
         last_n_masked = filtered_data.mask.sum()
-        n = 0  # (allow recording no. of iterations when 0)
+        niter = 0  # (allow recording no. of iterations when 0)
 
         # Perform the iterative fitting:
-        for n in range(1, self.niter + 1):
+        for _ in range(1, self.niter + 1):
+            niter += 1
             # (Re-)evaluate the last model:
             model_vals = fitted_model(*coords, model_set_axis=False)
 
@@ -1105,7 +1107,7 @@ class FittingWithOutlierRemoval:
                 break
             last_n_masked = this_n_masked
 
-        self.fit_info = {"niter": n}
+        self.fit_info = {"niter": niter}
         self.fit_info.update(getattr(self.fitter, "fit_info", {}))
 
         return fitted_model, filtered_data.mask
@@ -1308,20 +1310,25 @@ class _NonLinearLSQFitter(Fitter):
 
     def _filter_non_finite(self, x, y, z=None, weights=None):
         """
-        Filter out non-finite values in x, y, z.
+        Filter out non-finite values in x, y, z, and weights.
 
         Returns
         -------
-        x, y, z : ndarrays
-            x, y, and z with non-finite values filtered out.
+        x, y, z, weights : `~numpy.ndarray`
+            x, y, z, and weights with non-finite values filtered out.
         """
         MESSAGE = "Non-Finite input data has been removed by the fitter."
 
-        mask = np.ones_like(x, dtype=bool) if weights is None else np.isfinite(weights)
-        mask &= np.isfinite(y) if z is None else np.isfinite(z)
+        mask = np.isfinite(x) & np.isfinite(y)
+        if z is not None:
+            mask &= np.isfinite(z)
+        if weights is not None:
+            mask &= np.isfinite(weights)
 
         if not np.all(mask):
             warnings.warn(MESSAGE, AstropyUserWarning)
+        if not np.any(mask):
+            raise ValueError("All input data or weights are non-finite.")
 
         return (
             x[mask],
@@ -2198,7 +2205,7 @@ def fitter_to_model_params_array(
         # Update model parameters before calling ``tied`` constraints.
         model.parameters = parameters
 
-        for idx, name in enumerate(model.param_names):
+        for name in model.param_names:
             if model.tied[name]:
                 value = model.tied[name](model)
                 slice_ = param_metrics[name]["slice"]

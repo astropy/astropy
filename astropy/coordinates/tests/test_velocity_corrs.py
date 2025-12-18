@@ -4,11 +4,12 @@ import pytest
 from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.coordinates import Distance, EarthLocation, SkyCoord
-from astropy.coordinates.sites import get_builtin_sites
+from astropy.coordinates.sites import _GREENWICH
 from astropy.table import Table
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 @pytest.fixture(scope="module")
@@ -28,15 +29,16 @@ def input_radecs():
 @pytest.mark.parametrize("kind", ["heliocentric", "barycentric"])
 def test_basic(kind):
     t0 = Time("2015-1-1")
-    loc = get_builtin_sites()["example_site"]
 
-    sc = SkyCoord(0, 0, unit=u.deg, obstime=t0, location=loc)
+    sc = SkyCoord(0, 0, unit=u.deg, obstime=t0, location=_GREENWICH)
     rvc0 = sc.radial_velocity_correction(kind)
 
     assert rvc0.shape == ()
     assert rvc0.unit.is_equivalent(u.km / u.s)
 
-    scs = SkyCoord(0, 0, unit=u.deg, obstime=t0 + np.arange(10) * u.day, location=loc)
+    scs = SkyCoord(
+        0, 0, unit=u.deg, obstime=t0 + np.arange(10) * u.day, location=_GREENWICH
+    )
     rvcs = scs.radial_velocity_correction(kind)
     assert rvcs.shape == (10,)
     assert rvcs.unit.is_equivalent(u.km / u.s)
@@ -290,7 +292,14 @@ def test_warning_no_obstime_on_skycoord():
         distance=50 * u.pc,
         frame="galactic",
     )
-    with pytest.warns(Warning):
+    with pytest.warns(
+        AstropyUserWarning,
+        match=(
+            r"^SkyCoord has space motion, and therefore the specified position "
+            r"of the SkyCoord may not be the same as the `obstime` for the "
+            r"radial velocity measurement\."
+        ),
+    ):
         c.radial_velocity_correction("barycentric", test_input_time, test_input_loc)
 
 

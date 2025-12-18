@@ -1,85 +1,110 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-"""
-    Extract Data Origin in VOTable
+"""Extract Data Origin in VOTable.
 
-    References
-    ----------
-    DataOrigin is described in the IVOA note: https://www.ivoa.net/documents/DataOrigin/
+References
+----------
+DataOrigin is a vocabulary described in the IVOA note: https://www.ivoa.net/documents/DataOrigin/
 
-    Notes
-    -----
-    This API retrieve Metadata from INFO in VOTAble.
-    The info can be found at different level in a VOTable :
-    - global level
-    - resource level
-    - table level
+Notes
+-----
+This API retrieve Metadata from INFO in VOTable.
+The information can be found at different level in a VOTable:
 
-    Contents
-    --------
-    - Query information: Each element is consider to be unique in the VOTable.
-      concern: the request, publisher, date of execution, contact...
-      The information is completed with DALI standardID
-    - Dataset origin : basic provenance information
+- global level
+- resource level
+- table level
 
-    Examples
-    --------
-    >>>data_origin = extract_data_origin(votable)
-    >>>print(data_origin)
-    >>>uri_request = data_origin.query.request
-    >>>creators =  data_origin.origin[0].creator
+Contents
+--------
+
+- Query information: Each element is considered to be unique in the VOTable.
+  Information concerns publisher, date of execution, contact, request, etc.
+- Dataset origin : basic provenance information.
+
+Examples
+--------
+For more information, please see :ref:`DataOrigin documentation <astropy-io-votable-dataorigin>`.
 """
 
-import astropy.io.votable as vot
 import astropy.io.votable.tree
 
-DATAORIGIN_QUERY_INFO = ("ivoid_service", "publisher", "server_software", "service_protocol",
-                         "request", "query", "request_date", "contact")
-DATAORIGIN_INFO = ("ivoid", "citation", "reference_url", "resource_version", "rights_uri", "rights",
-                   "creator", "editor", "article", "cites", "is_derived_from", "original_date",
-                   "publication_date", "last_update_date")
+__all__ = [
+    "DataOrigin",
+    "DatasetOrigin",
+    "QueryOrigin",
+    "add_data_origin_info",
+    "extract_data_origin",
+]
+
+
+DATAORIGIN_QUERY_INFO = (
+    "ivoid_service",
+    "publisher",
+    "server_software",
+    "service_protocol",
+    "request",
+    "query",
+    "request_date",
+    "contact",
+)
+DATAORIGIN_INFO = (
+    "ivoid",
+    "citation",
+    "reference_url",
+    "resource_version",
+    "rights_uri",
+    "rights",
+    "creator",
+    "editor",
+    "article",
+    "cites",
+    "is_derived_from",
+    "original_date",
+    "publication_date",
+    "last_update_date",
+)
 
 
 class QueryOrigin:
-    """
-        Container including Request information
-        see ref. 5.1 Query information
+    """Data class storing query execution information that generated the VOTable.
 
-        Notes
-        -----
-        The Query information should be unique in the whole VOTable
-        It includes reproducibility information to execute the query again
+    Notes
+    -----
+    The Query information should be unique in the whole VOTable.
+    It includes reproducibility information to execute the query again.
 
-        Attributes
-        ----------
-        ivoid_service: str
-                       IVOID of the service that produced the VOTable (default None)
+    Attributes
+    ----------
+    ivoid_service : str
+        IVOID of the service that produced the VOTable (default: None)
 
-        publisher: str
-                   Data centre that produced the VOTable (default None)
+    publisher : str
+        Data centre that produced the VOTable (default: None)
 
-        server_software: str
-                         Software version (default None)
+    server_software : str
+        Software version (default: None)
 
-        service_protocol: str
-                          IVOID of the protocol through which the data was retrieved (default None)
+    service_protocol : str
+        IVOID of the protocol through which the data was retrieved (default: None)
 
-        request: str
-                 Full request URL including a query string (default None)
+    request : str
+        Full request URL including a query string (default: None)
 
-        query: str
-               An input query in a formal language (e.g, ADQL)  (default None)
+    query : str
+        An input query in a formal language (e.g, ADQL) (default: None)
 
-        request_date: str
-                      Query execution date (default None)
+    request_date : str
+        Query execution date (default: None)
 
-        contact: str
-                 Email or URL to contact publisher (default None)
+    contact : str
+        Email or URL to contact publisher (default: None)
 
-        infos: list[astropy.io.votable.tree.Info]
-               list of <INFO> used by DataOrigin (default None)
+    infos : list[astropy.io.votable.tree.Info]
+        list of ``<INFO>`` used by DataOrigin (default: empty list)
 
     """
+
     def __init__(self):
         self.ivoid_service = None
         self.publisher = None
@@ -101,62 +126,61 @@ class QueryOrigin:
 
 
 class DatasetOrigin:
+    """Data class storing the basic provenance for a Dataset.
+
+    Notes
+    -----
+    DatasetOrigin is dedicated to a specific Element in a VOTable.
+    These ``<INFO>`` Elements describe a Resource, a TableElement or are Global.
+
+    Attributes
+    ----------
+    ivoid : list
+        IVOID of underlying data collection (default: None)
+
+    citation : list
+        Dataset identifier that can be used for citation (default: None)
+
+    reference_url : list
+        Dataset landing page (default: None)
+
+    resource_version : list
+        Dataset version (default: None)
+
+    rights_uri : list
+        Licence URI (default: None)
+
+    rights : list
+        Licence or Copyright text (default: None)
+
+    creator : list
+        The person(s) mainly involved in the creation of the resource (default: None)
+
+    editor : list
+        Editor name of the reference article (default: None)
+
+    article : list
+        Bibcode or DOI of a reference article (default: None)
+
+    cites : list
+        An Identifier (ivoid, DOI, bibcode) of second resource (default: None)
+
+    is_derived_from : list
+        An Identifier (ivoid, DOI, bibcode) of second resource (default: None)
+
+    original_date : list
+        Date of the original resource from which the present resource is derived (default: None)
+
+    publication_date : list
+        Date of first publication in the data centre (default: None)
+
+    last_update_date : list
+        Last data centre update (default: None)
+
+    infos : list[astropy.io.votable.tree.Info]
+        list of ``<INFO>`` used by DataOrigin (default: None)
     """
-        Container which includes Dataset Origin
-        see ref. 5.2 Dataset Origin
 
-        Notes
-        -----
-        DatasetOrigin is dedicated to a specific Element in a VOTable.
-        These <INFO> Elements describe a Resource, a Table or are Global.
-
-        Attributes
-        ----------
-        ivoid: list
-               IVOID of underlying data collection (default None)
-
-        citation: list
-                  Dataset identifier that can be used for citation (default None)
-
-        reference_url: list
-                       Dataset landing page (default None)
-
-        resource_version: list
-                          Dataset version (default None)
-
-        rights_uri: list
-                    Licence URI (default None)
-
-        rights: list
-                Licence or Copyright text (default None)
-
-        creator: list
-                 The person(s) mainly involved in the creation of the resource (default None)
-
-        editor: list
-                Editor name of the reference article (default None)
-
-        article: list
-                 Bibcode or DOI of a reference article (default None)
-
-        cites: list
-               An Identifier (ivoid, DOI, bibcode) of second resource (default None)
-
-        is_derived_from: list
-                         An Identifier (ivoid, DOI, bibcode) of second resource (default None)
-
-        original_date: list
-                       Date of the original resource from which the present resource is derived (default None)
-
-        publication_date: list
-                          Date of first publication in the data centre (default None)
-
-        last_update_date: list
-                           Last data centre update (default None)
-
-        infos: list[astropy.io.votable.tree.Info]
-               list of <INFO> used by DataOrigin (default None)
-    """
     def __init__(self, votable_element: astropy.io.votable.tree.Element = None):
         """
         Constructor
@@ -185,11 +209,11 @@ class DatasetOrigin:
 
     def get_votable_element(self) -> astropy.io.votable.tree.Element:
         """
-            Get the VOTable element
+        Get the VOTable element
 
-            Returns
-            -------
-            astropy.io.votable.tree.Element
+        Returns
+        -------
+        astropy.io.votable.tree.Element
         """
         return self.__vo_elt
 
@@ -203,21 +227,22 @@ class DatasetOrigin:
 
 
 class DataOrigin:
+    """Data class storing both information about query execution
+       and basic provenances of datasets used to generate the VOTable.
+
+    Attributes
+    ----------
+    query : QueryOrigin
+        request information (default: None)
+
+    origin : list[DatasetOrigin]
+        list of DatasetOrigin (default: empty)
+
+    Notes
+    -----
+    The class includes an iterator on Attribute origin.
     """
-        DataOrigin container includes Query origin and Dataset origin
 
-        Attributes
-        ----------
-        query: QueryOrigin
-               request information (QueryOrigin)
-
-        origin: list[DatasetOrigin]
-                list of DatasetOrigin (DataSetOrigin dedicated to a sub VOTAble Element)
-
-        Notes
-        -----
-        The class includes an iterator on Attribute origin
-    """
     def __init__(self):
         self.query = QueryOrigin()
         self.origin = []
@@ -227,7 +252,7 @@ class DataOrigin:
         origin_list = []
         for origin in self.origin:
             origin_list.append(str(origin))
-        return str(self.query)+"\n\n"+"\n\n".join(origin_list)
+        return str(self.query) + "\n\n" + "\n\n".join(origin_list)
 
     def __iter__(self):
         self.__it = -1
@@ -241,9 +266,7 @@ class DataOrigin:
 
 
 def __empty_dataset_origin(o: DatasetOrigin) -> bool:
-    """
-        (internal) check if DataOrigin is filled
-    """
+    """(internal) check if DataOrigin is filled"""
     for info in DATAORIGIN_INFO:
         v = getattr(o, info)
         if v is not None:
@@ -251,20 +274,21 @@ def __empty_dataset_origin(o: DatasetOrigin) -> bool:
     return True
 
 
-def __extract_generic_info(vo_element: astropy.io.votable.tree.Element, infos: list, data_origin: DataOrigin):
-    """
-        (internal) extract info and populate DataOrigin
+def __extract_generic_info(
+    vo_element: astropy.io.votable.tree.Element, infos: list, data_origin: DataOrigin
+):
+    """(internal) extract info and populate DataOrigin
 
-        Parameters
-        ----------
-        vo_element: astropy.io.votable.tree.Element
-                    VOTable element (votable, resource or table)
+    Parameters
+    ----------
+    vo_element : astropy.io.votable.tree.Element
+        VOTable element (votable, resource or table)
 
-        infos: list[astropy.io.votable.tree.Info]
-               list of <INFO>
+    infos : list[astropy.io.votable.tree.Info]
+        list of ``<INFO>``
 
-        data_origin: DataOrigin
-                     DataOrigin container to fill
+    data_origin : DataOrigin
+        DataOrigin container to fill
     """
     if not infos:
         return
@@ -294,16 +318,15 @@ def __extract_generic_info(vo_element: astropy.io.votable.tree.Element, infos: l
 
 
 def __extract_dali_info(infos: list, data_origin: DataOrigin):
-    """
-        (internal) append with DALI INFO
+    """(internal) append with DALI INFO
 
-        Parameters
-        ----------
-        infos: list[astropy.io.votable.tree.Info]
-               iterable info
+    Parameters
+    ----------
+    infos : list[astropy.io.votable.tree.Info]
+        iterable info
 
-        data_origin: DataOrigin
-                     container to fill
+    data_origin DataOrigin
+        container to fill
     """
     if not data_origin.query.service_protocol:
         for info in infos:
@@ -314,43 +337,41 @@ def __extract_dali_info(infos: list, data_origin: DataOrigin):
                         data_origin.infos = []
                     data_origin.quey.infos.append(info)
                     data_origin.query.service_protocol = info.value
-            #if info_name == "provider":
-            #    if not data_origin.query.publisher:
-            #        if data_origin.info is None:
-            #            data_origin.infos = []
-            #        data_origin.quey.infos.append(info)
-            #        data_origin.query.publisher = info.value
 
 
-def __extract_info_from_table(table: astropy.io.votable.tree.Table, data_origin: DataOrigin):
-    """
-        (internal) extract and populate dataOrigin from astropy.io.votable.tree.Table
+def __extract_info_from_table(
+    table: astropy.io.votable.tree.TableElement, data_origin: DataOrigin
+):
+    """(internal) extract and populate dataOrigin from astropy.io.votable.tree.TableElement
 
-        Parameters
-        ----------
-        table: astropy.io.votable.tree.Table
-               Table to explore
+    Parameters
+    ----------
+    table : astropy.io.votable.tree.TableElement
+        Table to explore
 
-        data_origin: DataOrigin
-                     container to fill
+    data_origin : DataOrigin
+        container to fill.
     """
     __extract_generic_info(table, table.infos, data_origin)
 
 
-def __extract_info_from_resource(resource: astropy.io.votable.tree.Resource, data_origin: DataOrigin, recursive: bool = True):
-    """
-        (internal) extract and populate dataOrigin from astropy.io.votable.tree.Resource
+def __extract_info_from_resource(
+    resource: astropy.io.votable.tree.Resource,
+    data_origin: DataOrigin,
+    recursive: bool = True,
+):
+    """(internal) extract and populate dataOrigin from astropy.io.votable.tree.Resource
 
-        Parameters
-        ----------
-        param resource: astropy.io.votable.tree.Resource
-                        Resource to explore
+    Parameters
+    ----------
+    param resource : astropy.io.votable.tree.Resource
+        Resource to explore.
 
-        data_origin: DataOrigin
-                     container to fill
+    data_origin : DataOrigin
+        container to fill.
 
-        recursive: bool, optional
-                   make a recursive search (default True)
+    recursive : bool, optional
+        make a recursive search (default: True)
     """
     __extract_generic_info(resource, resource.infos, data_origin)
     __extract_dali_info(resource.infos, data_origin)
@@ -359,20 +380,23 @@ def __extract_info_from_resource(resource: astropy.io.votable.tree.Resource, dat
             __extract_info_from_table(table, data_origin)
 
 
-def __extract_info_from_votable(votable: astropy.io.votable.tree.VOTableFile, data_origin: DataOrigin, recursive: bool = True):
-    """
-        (internal) extract and populate dataOrigin from astropy.io.votable.tree.VOTableFile
+def __extract_info_from_votable(
+    votable: astropy.io.votable.tree.VOTableFile,
+    data_origin: DataOrigin,
+    recursive: bool = True,
+):
+    """(internal) extract and populate dataOrigin from astropy.io.votable.tree.VOTableFile
 
-        Parameters
-        ----------
-        votable: astropy.io.votable.tree.VOTableFile
-                 VOTableFile to explore
+    Parameters
+    ----------
+    votable : astropy.io.votable.tree.VOTableFile
+        VOTableFile to explore
 
-        data_origin: DataOrigin
-                     container to fill
+    data_origin : DataOrigin
+        container to fill
 
-        recursive: bool, optional
-                   make a recursive search (default True)
+    recursive : bool, optional
+        make a recursive search (default: True)
     """
     __extract_generic_info(votable, votable.infos, data_origin)
     if recursive:
@@ -381,80 +405,96 @@ def __extract_info_from_votable(votable: astropy.io.votable.tree.VOTableFile, da
 
 
 def extract_data_origin(vot_element: astropy.io.votable.tree.Element) -> DataOrigin:
-    """
-        Extract DataOrigin in a VO element
+    """Extract DataOrigin in a VO element
 
-        Parameters
-        ----------
-        vot_element: astropy.io.votable.tree.Info
-                     VOTable Element to explore
+    Parameters
+    ----------
+    vot_element : astropy.io.votable.tree.Info
+        VOTable Element to explore
 
-        Returns
-        -------
-        DataOrigin
+    Returns
+    -------
+    DataOrigin
 
-        Raises
-        ------
-        Exception
-            input type not managed
+    Raises
+    ------
+    TypeError
+        input ``vot_element`` type is not supported
     """
     data_origin = DataOrigin()
     if isinstance(vot_element, astropy.io.votable.tree.VOTableFile):
         __extract_info_from_votable(vot_element, data_origin)
     elif isinstance(vot_element, astropy.io.votable.tree.Resource):
         __extract_info_from_resource(vot_element, data_origin)
-    elif isinstance(vot_element, astropy.io.votable.tree.Table):
-        __extract_info_from_table(vot_element, data_origin)
     elif isinstance(vot_element, astropy.io.votable.tree.TableElement):
         __extract_info_from_table(vot_element, data_origin)
     else:
-        raise Exception("type not managed")
+        raise TypeError("input vot_element type is not supported.")
 
     return data_origin
 
 
-def add_data_origin_info(vot_element: astropy.io.votable.tree.Element, info_name: str, info_value: str, content: str = None):
-    """
-        Add an INFO in VOTable
+def add_data_origin_info(
+    vot_element: astropy.io.votable.tree.Element,
+    info_name: str,
+    info_value: str,
+    content: str | None = None,
+) -> None:
+    """Update VOTable element with information compatible
+       with DataOrigin vocabulary.
 
-        Parameters
-        ----------
-        vot_element: astropy.io.votable.tree.Element
-                    VOTable element where to add the information
+    Notes
+    -----
+    The function checks information name and adds the
+    VOTable element with a new ``<INFO>``.
 
-        info_name: str
-                   Attribute name (see DATAORIGIN_INFO, DATAORIGIN_QUERY_INFO)
+    Parameters
+    ----------
+    vot_element : astropy.io.votable.tree.Element
+        VOTable element where to add the information
 
-        info_value: str
-                    value
+    info_name : str
+        Attribute name (see DATAORIGIN_INFO, DATAORIGIN_QUERY_INFO)
 
-        content: str, optional
-                 Content in <INFO>
+    info_value : str
+        value
 
-        Raises
-        ------
-        Exception
-            input type not managed or information name not recognized
+    content : str, optional
+        Content in ``<INFO>`` (default: None)
+
+    Raises
+    ------
+    TypeError
+        input type not managed or information name not recognized
+    ValueError
+        ``info_name`` already exists in ``vot_element``
+    ValueError
+        ``info_name`` is an unknown DataOrigin name.
     """
     if info_name in DATAORIGIN_INFO:
-        if not isinstance(vot_element, astropy.io.votable.tree.VOTableFile):
-            if not isinstance(vot_element, astropy.io.votable.tree.Resource):
-                if not isinstance(vot_element, astropy.io.votable.tree.Table):
-                    raise Exception("Bad type of vot_element")
-
-        vot_element.infos.extend([astropy.io.votable.tree.Info(name=info_name, value=info_value)])
-        return
+        if not isinstance(
+            vot_element,
+            (
+                astropy.io.votable.tree.VOTableFile,
+                astropy.io.votable.tree.Resource,
+                astropy.io.votable.tree.TableElement,
+            ),
+        ):
+            raise TypeError("Unsupported vot_element type.")
 
     elif info_name in DATAORIGIN_QUERY_INFO:
         if not isinstance(vot_element, astropy.io.votable.tree.VOTableFile):
-             raise Exception("Bad type of vot_element: this information needs VOTableFile")
+            raise TypeError(
+                "Bad type of vot_element: this information needs VOTableFile."
+            )
 
         for info in vot_element.get_infos_by_name(info_name):
-            raise Exception(f"QueryOrigin {info_name} already exists")
-        new_info = astropy.io.votable.tree.Info(name=info_name, value=info_value)
-        if content:
-            new_info.content = content
-        vot_element.infos.extend([new_info])
-        return
+            raise ValueError(f"QueryOrigin {info_name} already exists")
 
-    raise Exception("Unknown DataOrigin info name")
+    else:
+        raise ValueError("Unknown DataOrigin info name.")
+
+    new_info = astropy.io.votable.tree.Info(name=info_name, value=info_value)
+    if content:
+        new_info.content = content
+    vot_element.infos.extend([new_info])

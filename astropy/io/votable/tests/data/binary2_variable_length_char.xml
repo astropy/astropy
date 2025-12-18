@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.4">
+  <RESOURCE type="results">
+    <INFO name="QUERY_STATUS" value="OK" />
+    <INFO name="QUERY" value="SELECT TOP 1 access_format FROM ivoa.ObsCore" />
+    <TABLE>
+      <FIELD name="access_format" datatype="char" arraysize="128*" ucd="meta.code.mime" utype="Access.format">
+        <DESCRIPTION>Content format of the dataset</DESCRIPTION>
+      </FIELD>
+      <DATA>
+      <BINARY2>
+        <STREAM encoding='base64'>
+AAAAACphcHBsaWNhdGlvbi94LXZvdGFibGUreG1sO2NvbnRlbnQ9ZGF0YWxpbms=
+        </STREAM>
+      </BINARY2>
+    </DATA>
+</TABLE>
+  </RESOURCE>
+</VOTABLE>

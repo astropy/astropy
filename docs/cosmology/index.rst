@@ -110,6 +110,7 @@ listed below.
 * :ref:`astropy-cosmology-realizations`
 * :ref:`Units and Equivalencies <astropy-cosmology-units-and-equivalencies>`
 * :ref:`cosmology_io`
+* :ref:`astropy-cosmology-traits`
 * :ref:`For Developers <astropy-cosmology-for-developers>`
 
 Most of the functionality is enabled by the |FLRW| object. This represents a
@@ -401,7 +402,7 @@ setting ``Neff`` to 0::
   >>> cos.Ogamma(np.array([0, 1, 2]))  # Photons are still present  # doctest: +FLOAT_CMP
   array([4.98603986e-05, 2.74642208e-04, 5.00086413e-04])
   >>> cos.Onu(np.array([0, 1, 2]))  # But not neutrinos  # doctest: +FLOAT_CMP
-  array([0., 0., 0.])
+  array([0, 0, 0])
 
 The number of neutrino species is assumed to be the floor of ``Neff``, which in
 the default case is ``Neff=3``. Therefore, if non-zero neutrino masses are
@@ -481,5 +482,6 @@ Reference/API
    realizations
    Units and Equivalencies <units>
    io/index
+   Traits <traits>
    For Developers <dev>
    ref_api

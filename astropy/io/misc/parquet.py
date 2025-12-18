@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from astropy.utils.compat.optional_deps import HAS_PYARROW
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW
 
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
@@ -64,6 +64,7 @@ def read_table_parquet(
     Read a Table object from a Parquet file.
 
     This requires `pyarrow <https://arrow.apache.org/docs/python/>`_
+    and `pandas <https://pandas.pydata.org/>`_
     to be installed.
 
     The ``filters`` parameter consists of predicates that are expressed
@@ -117,6 +118,9 @@ def read_table_parquet(
         if schema_only is True.
     """
     pa, parquet = get_pyarrow()
+
+    if not HAS_PANDAS:
+        raise ModuleNotFoundError("pandas is required to read parquet files")
 
     if not isinstance(input, (str, os.PathLike)):
         # The 'read' attribute is the key component of a generic
@@ -300,9 +304,7 @@ def read_table_parquet(
 
     # Convert all compound columns to astropy objects
     # (e.g. time.jd1, time.jd2 into a single time column)
-    table = serialize._construct_mixins_from_columns(table)
-
-    return table
+    return serialize._construct_mixins_from_columns(table)
 
 
 def write_table_parquet(table, output, overwrite=False):
@@ -670,11 +672,7 @@ def read_parquet_votable(filename):
     data_table_with_no_metadata = Table.read(filename, format="parquet")
 
     # Stitch the two tables together to create final table
-    complete_table = vstack(
-        [empty_table_with_columns_and_metadata, data_table_with_no_metadata]
-    )
-
-    return complete_table
+    return vstack([empty_table_with_columns_and_metadata, data_table_with_no_metadata])
 
 
 def register_parquet_votable():

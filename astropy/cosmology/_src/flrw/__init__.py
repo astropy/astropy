@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Astropy FLRW classes."""
 
-__all__ = [  # noqa: RUF100, RUF022
+__all__ = (  # noqa: RUF100, RUF022
     # base
     "FLRW",
     "FlatFLRWMixin",
@@ -20,7 +20,7 @@ __all__ = [  # noqa: RUF100, RUF022
     # wpwazpcdm
     "wpwaCDM",
     "FlatwpwaCDM",
-]
+)
 
 from .base import FLRW, FlatFLRWMixin
 from .lambdacdm import FlatLambdaCDM, LambdaCDM

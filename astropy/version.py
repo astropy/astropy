@@ -1,12 +1,8 @@
-# NOTE: First try _dev.scm_version if it exists and setuptools_scm is installed
-# This file is not included in astropy wheels/tarballs, so otherwise it will
-# fall back on the generated _version module.
+from packaging.version import Version
+
 try:
-    try:
-        from ._dev.scm_version import version
-    except ImportError:
-        from ._version import version
-except Exception:
+    from ._version import version
+except ImportError:
     import warnings
 
     warnings.warn(
@@ -23,8 +19,6 @@ def split_version(version):
     pieces = [0, 0, 0]
 
     try:
-        from packaging.version import Version
-
         v = Version(version)
         pieces = [v.major, v.minor, v.micro]
 

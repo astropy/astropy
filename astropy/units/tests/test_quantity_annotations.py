@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# ruff: noqa: FA100, FA102
 
 import pytest
 

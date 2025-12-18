@@ -20,8 +20,8 @@ from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_mask
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
 # Differential classes so that they are all registered automatically.
-REPRESENTATION_CLASSES = {}
-DIFFERENTIAL_CLASSES = {}
+REPRESENTATION_CLASSES: dict[str, type["BaseRepresentation"]] = {}
+DIFFERENTIAL_CLASSES: dict[str, type["BaseDifferential"]] = {}
 # set for tracking duplicates
 DUPLICATE_REPRESENTATIONS = set()
 
@@ -654,7 +654,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     info = RepresentationInfo()
     # Ensure _differentials always exists.
-    _differentials = {}
+    _differentials: dict[str, "BaseDifferential"] = {}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)  # sets `cls.name`
@@ -963,15 +963,14 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         from .cartesian import CartesianDifferential, CartesianRepresentation
 
         # route transformation through Cartesian
-        difs_cls = {k: CartesianDifferential for k in self.differentials.keys()}
         crep = self.represent_as(
-            CartesianRepresentation, differential_class=difs_cls
+            CartesianRepresentation,
+            differential_class=dict.fromkeys(self.differentials, CartesianDifferential),
         ).transform(matrix)
 
         # move back to original representation
         difs_cls = {k: diff.__class__ for k, diff in self.differentials.items()}
-        rep = crep.represent_as(self.__class__, difs_cls)
-        return rep
+        return crep.represent_as(self.__class__, difs_cls)
 
     def with_differentials(self, differentials):
         """
@@ -1558,8 +1557,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         # route transformation through Cartesian
         cdiff = self.represent_as(CartesianDifferential, base=base).transform(matrix)
         # move back to original representation
-        diff = cdiff.represent_as(self.__class__, transformed_base)
-        return diff
+        return cdiff.represent_as(self.__class__, transformed_base)
 
     def _scale_operation(self, op, *args, scaled_base=False):
         """Scale all components.

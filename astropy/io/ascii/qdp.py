@@ -441,6 +441,13 @@ def _write_table_qdp(table, filename=None, err_specs=None):
         Dictionary of the format {'serr': [1], 'terr': [2, 3]}, specifying
         which columns have symmetric and two-sided errors (see QDP format
         specification)
+
+    Returns
+    -------
+    list[str]
+        List of QDP-formatted string representations of the table. Each string
+        represents a line in the QDP format, including headers, commands, and
+        data rows.
     """
     import io
 
@@ -639,6 +646,20 @@ class QDP(basic.Basic):
         )
 
     def write(self, table):
+        """
+        Write an astropy table to QDP format.
+
+        Parameters
+        ----------
+        table : :class:`~astropy.table.Table`
+            Input table to be written.
+
+        Returns
+        -------
+        list[str]
+            List of QDP-formatted string representations of the table.
+            Each string represents a line in the QDP format, including headers,
+            commands, and data rows.
+        """
         self._check_multidim_table(table)
-        lines = _write_table_qdp(table, err_specs=self.err_specs)
-        return lines
+        return _write_table_qdp(table, err_specs=self.err_specs)

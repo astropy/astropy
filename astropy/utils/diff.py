@@ -1,5 +1,6 @@
 import difflib
 import functools
+import math
 import sys
 from textwrap import indent
 
@@ -33,11 +34,11 @@ def diff_values(a, b, rtol=0.0, atol=0.0):
 
     """
     if isinstance(a, float) and isinstance(b, float):
-        if np.isnan(a) and np.isnan(b):
+        if math.isfinite(b):
+            return not abs(a - b) <= atol + rtol * abs(b)
+        if math.isnan(a) and math.isnan(b):
             return False
-        return not np.allclose(a, b, rtol=rtol, atol=atol)
-    else:
-        return a != b
+    return a != b
 
 
 def _ignore_astropy_terminal_size(func):
@@ -154,7 +155,7 @@ def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=
     return identical
 
 
-def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
+def where_not_allclose(a, b, rtol=1e-5, atol=1e-8, return_maxdiff=False):
     """
     A version of :func:`numpy.allclose` that returns the indices
     where the two arrays differ, instead of just a boolean value.
@@ -163,25 +164,50 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8):
     ----------
     a, b : array-like
         Input arrays to compare.
-
     rtol, atol : float
         Relative and absolute tolerances as accepted by
         :func:`numpy.allclose`.
+    return_maxdiff : bool
+        Return the maximum of absolute and relative differences.
 
     Returns
     -------
     idx : tuple of array
         Indices where the two arrays differ.
+    max_absolute : float
+        Maximum of absolute difference, returned if ``return_maxdiff=True``.
+    max_relative : float
+        Maximum of relative difference, returned if ``return_maxdiff=True``.
 
     """
     # Create fixed mask arrays to handle INF and NaN; currently INF and NaN
     # are handled as equivalent
-    if not np.all(np.isfinite(a)):
-        a = np.ma.fix_invalid(a).data
-    if not np.all(np.isfinite(b)):
-        b = np.ma.fix_invalid(b).data
+    a = np.ma.masked_invalid(a)
+    b = np.ma.masked_invalid(b)
+
+    absolute = np.ma.abs(b - a)
 
     if atol == 0.0 and rtol == 0.0:
         # Use a faster comparison for the most simple (and common) case
-        return np.where(a != b)
-    return np.where(np.abs(a - b) > (atol + rtol * np.abs(b)))
+        thresh = 0
+    else:
+        thresh = atol + rtol * np.abs(b)
+
+    # values invalid in only one of the two arrays should be reported
+    invalid = a.mask ^ b.mask
+    indices = np.where(invalid | (absolute.filled(0) > thresh))
+
+    if return_maxdiff:
+        absolute[invalid] = np.ma.masked
+        finites = ~absolute.mask
+        absolute = absolute.compressed()
+        if len(indices[0]) == 0 or absolute.size == 0:
+            max_absolute = max_relative = 0
+        else:
+            # remove all invalid values before computing max differences
+            relative = absolute / np.abs(b[finites])
+            max_absolute = float(np.max(absolute))
+            max_relative = np.max(relative)
+        return indices, max_absolute, max_relative
+    else:
+        return indices

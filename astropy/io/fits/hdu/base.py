@@ -19,7 +19,6 @@ from astropy.io.fits.util import (
     _free_space_check,
     _get_array_mmap,
     _is_int,
-    _is_pseudo_integer,
     decode_ascii,
     first,
     itersubclasses,
@@ -204,7 +203,7 @@ class _BaseHDU:
 
             cls.data = data_prop.deleter(data)
 
-        return super().__init_subclass__(**kwargs)
+        super().__init_subclass__(**kwargs)
 
     @property
     def header(self):
@@ -395,10 +394,10 @@ class _BaseHDU:
 
         Notes
         -----
-        gzip, zip and bzip2 compression algorithms are natively supported.
+        gzip, zip, bzip2 and lzma compression algorithms are natively supported.
         Compression mode is determined from the filename extension
-        ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
-        compressed file object, e.g. `gzip.GzipFile`.
+        ('.gz', '.zip', '.bz2' or '.xz' respectively).  It is also possible to
+        pass a compressed file object, e.g. `gzip.GzipFile`.
         """
         from .hdulist import HDUList
 
@@ -555,11 +554,7 @@ class _BaseHDU:
             return None
 
     def _postwriteto(self):
-        # If data is unsigned integer 16, 32 or 64, remove the
-        # BSCALE/BZERO cards
-        if self._has_data and self._standard and _is_pseudo_integer(self.data.dtype):
-            for keyword in ("BSCALE", "BZERO"):
-                self._header.remove(keyword, ignore_missing=True)
+        pass
 
     def _writeheader(self, fileobj):
         offset = 0

@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pickle
+from collections import defaultdict
+from gc import get_objects
 
 import numpy as np
 import pytest
@@ -211,9 +213,6 @@ def test_uncertainty_correlated():
 def test_for_leak_with_uncertainty():
     # Regression test for memory leak because of cyclic references between
     # NDData and uncertainty
-    from collections import defaultdict
-    from gc import get_objects
-
     def test_leak(func, specific_objects=None):
         """Function based on gc.get_objects to determine if any object or
         a specific object leaks.
@@ -380,9 +379,11 @@ def test_self_conversion_via_variance_supported(UncertClass):
 
 @pytest.mark.parametrize(
     "UncertClass,to_variance_func",
-    zip(
-        uncertainty_types_with_conversion_support,
-        (lambda x: x**2, lambda x: x, lambda x: 1 / x),
+    list(
+        zip(
+            uncertainty_types_with_conversion_support,
+            (lambda x: x**2, lambda x: x, lambda x: 1 / x),
+        )
     ),
 )
 def test_conversion_to_from_variance_supported(UncertClass, to_variance_func):

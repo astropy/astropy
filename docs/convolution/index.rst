@@ -260,8 +260,8 @@ Some contexts in which you might want to use kernel-based interpolation include:
 .. note::
     Care must be taken to ensure that the kernel is large enough to completely
     cover potential contiguous regions of NaN values.
-    An ``AstropyUserWarning`` is raised if NaN values are detected post-
-    convolution, in which case the kernel size should be increased.
+    An ``AstropyUserWarning`` is raised if NaN values are detected
+    post-convolution, in which case the kernel size should be increased.
 
 Example
 ^^^^^^^

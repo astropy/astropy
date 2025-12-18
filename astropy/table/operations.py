@@ -302,9 +302,9 @@ def join_distance(distance, kdtree_args=None, query_args=None):
 
         # Ensure columns are pure np.array and are 2-D for use with KDTree
         if col1.ndim == 1:
-            col1.shape = col1.shape + (1,)
+            col1 = col1.reshape(col1.shape + (1,))
         if col2.ndim == 1:
-            col2.shape = col2.shape + (1,)
+            col2 = col2.reshape(col2.shape + (1,))
 
         # Cross-match col1 and col2 within dist using KDTree
         kd1 = KDTree(col1, **kdtree_args)
@@ -637,10 +637,7 @@ def dstack(tables, join_type="outer", metadata_conflicts="warn"):
         # [x x x y y y] => [[x x x],
         #                   [y y y]]
         new_shape = (len(tables), n_row) + col.shape[1:]
-        try:
-            col.shape = (len(tables), n_row) + col.shape[1:]
-        except AttributeError:
-            col = col.reshape(new_shape)
+        col = col.reshape(new_shape)
 
         # Transpose the table and row axes to get to
         # [[x, y],
@@ -1275,7 +1272,7 @@ def _join(
 
     out = _get_out_class([left, right])()
 
-    for out_name, dtype, shape in out_descrs:
+    for out_name, _dtype, _shape in out_descrs:
         if out_name == cartesian_index_name:
             continue
 
@@ -1327,7 +1324,8 @@ def _join(
             # array_mask is 1-d corresponding to length of output column.  We need
             # make it have the correct shape for broadcasting, i.e. (length, 1, 1, ..).
             # Mixin columns might not have ndim attribute so use len(col.shape).
-            array_mask.shape = (col.shape[0],) + (1,) * (len(col.shape) - 1)
+            new_shape = (col.shape[0],) + (1,) * (len(col.shape) - 1)
+            array_mask = array_mask.reshape(new_shape)
 
             # Now broadcast to the correct final shape
             array_mask = np.broadcast_to(array_mask, col.shape)

@@ -9,25 +9,16 @@ This module should generally not be used directly.  Everything in
 should be used for access.
 """
 
-from __future__ import annotations
-
 import math
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import Literal, SupportsFloat, TypeVar
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
-from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_MPMATH, HAS_SCIPY
 
 from . import _stats
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from typing import Literal, SupportsFloat, TypeVar
-
-    from numpy.typing import ArrayLike, NDArray
-
-    # type for variables generated with the mpmath library
-    FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
 
 __all__ = [
     "binned_binom_proportion",
@@ -54,6 +45,8 @@ __doctest_requires__ = {
     "poisson_conf_interval": ["scipy"],
 }
 
+# type for variables generated with the mpmath library
+FloatLike = TypeVar("FloatLike", bound=SupportsFloat)
 
 gaussian_sigma_to_fwhm = 2.0 * math.sqrt(2.0 * math.log(2.0))
 """
@@ -658,7 +651,7 @@ def poisson_conf_interval(
 
     This function has an optional dependency: Either `Scipy
     <https://www.scipy.org/>`_ or `mpmath <https://mpmath.org/>`_  need
-    to be available (Scipy works only for N < 100).
+    to be available.
     This code is very intense numerically, which makes it much slower than
     the other methods, in particular for large count numbers (above 1000
     even with ``mpmath``). Fortunately, some of the other methods or a
@@ -1144,32 +1137,32 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
 
     Notes
     -----
-    Requires :mod:`~scipy`. This implementation will cause Overflow Errors for
-    about N > 100 (the exact limit depends on details of how scipy was
-    compiled). See `~astropy.stats.mpmath_poisson_upper_limit` for an
-    implementation that is slower, but can deal with arbitrarily high numbers
-    since it is based on the `mpmath <https://mpmath.org/>`_ library.
+    Requires :mod:`~scipy`.
     """
-    from math import exp
-
     from scipy.integrate import quad
     from scipy.optimize import brentq
-    from scipy.special import factorial
+    from scipy.special import gammaln
+
+    B = float(B)
 
     def eqn8(N: int, B: float) -> float:
         n = np.arange(N + 1, dtype=np.float64)
-        return 1.0 / (exp(-B) * np.sum(np.power(B, n) / factorial(n)))
+        # version of math.exp(-B) * np.sum(np.power(B, n) / factorial(n))
+        # which is safe for large N
+        return 1.0 / np.sum(np.exp(n * math.log(B) - B - gammaln(n + 1)))
 
     # The parameters of eqn8 do not vary between calls so we can calculate the
     # result once and reuse it. The same is True for the factorial of N.
     # eqn7 is called hundred times so "caching" these values yields a
     # significant speedup (factor 10).
     eqn8_res = eqn8(N, B)
-    factorial_N = float(math.factorial(N))
 
     def eqn7(S: float, N: int, B: float) -> float:
         SpB = S + B
-        return eqn8_res * (exp(-SpB) * SpB**N / factorial_N)
+        # We use gammaln to avoid overflow for large N.
+        # It is identical to eqn8_res * (math.exp(-SpB) * SpB**N / factorial_N)
+        # See https://en.wikipedia.org/wiki/Poisson_distribution#Computational_methods
+        return eqn8_res * math.exp(N * math.log(SpB) - SpB - gammaln(N + 1))
 
     def eqn9_left(S_min: float, S_max: float, N: int, B: float) -> tuple[float, float]:
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
@@ -1194,7 +1187,9 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
         out = eqn9_left(s_min, s, N, B)
         return out[0] - CL
 
-    S_max = brentq(func, N - B, 100)
+    # max(100, np.sqrt(N) * 10 + N) chosen to represent ~10 sigma over input number
+    # while never being smaller than 100
+    S_max = brentq(func, N - B, max(100, np.sqrt(N) * 10 + N))
     S_min = find_s_min(S_max, N, B)
     return S_min, S_max
 
@@ -1320,12 +1315,9 @@ def _kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, float]:
     Notes
     -----
     This functions has an optional dependency: Either :mod:`scipy` or `mpmath
-    <https://mpmath.org/>`_  need to be available. (Scipy only works for
-    N < 100).
+    <https://mpmath.org/>`_  need to be available.
     """
-    from astropy.utils.compat.optional_deps import HAS_MPMATH, HAS_SCIPY
-
-    if HAS_SCIPY and N <= 100:
+    if HAS_SCIPY:
         try:
             return _scipy_kraft_burrows_nousek(N, B, CL)
         except OverflowError:
@@ -1685,12 +1677,11 @@ def histogram_intervals(
 
     """
     h = np.zeros(n)
-    start = breaks[0]
-    for i in range(len(totals)):
-        end = breaks[i + 1]
-        for j in range(n):
-            ol = interval_overlap_length((float(j) / n, float(j + 1) / n), (start, end))
-            h[j] += ol / (1.0 / n) * totals[i]
+    start = n * breaks[0]
+    for i, total in enumerate(totals):
+        end = n * breaks[i + 1]
+        for j in range(math.floor(start), math.ceil(end)):
+            h[j] += total * interval_overlap_length((j, j + 1), (start, end))
         start = end
 
     return h

@@ -391,6 +391,24 @@ class TestSingleTable:
         check_equal(filename, 3, start_from=2)
         assert equal_data(t2, Table.read(filename, hdu=1))
 
+    def test_write_names(self, tmp_path):
+        t = Table(self.data)
+        hdu = table_to_hdu(t)
+
+        def check_equal(filename, expected, names):
+            with fits.open(filename) as hdu_list:
+                assert len(hdu_list) == expected
+                for name, hdu_table in zip(names, hdu_list[1:]):
+                    assert hdu_table.name == name
+
+        filename = tmp_path / "test_write_append.fits"
+        t.write(filename, name="TABLE1")
+        t.write(filename, append=True, name="TABLE2")
+        check_equal(filename, 3, names=["TABLE1", "TABLE2"])
+
+        t.write(filename, overwrite=True, name="TABLE2")
+        check_equal(filename, 2, names=["TABLE2"])
+
     def test_write_overwrite(self, tmp_path):
         t = Table(self.data)
         filename = tmp_path / "test_write_overwrite.fits"

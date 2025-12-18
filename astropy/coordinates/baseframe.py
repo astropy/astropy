@@ -4,8 +4,6 @@ Framework and base classes for coordinate frames/"low-level" coordinate
 classes.
 """
 
-from __future__ import annotations
-
 __all__ = [
     "BaseCoordinateFrame",
     "CoordinateFrameInfo",
@@ -15,25 +13,32 @@ __all__ = [
 ]
 
 import copy
+import functools
 import operator
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, ClassVar, Literal, NamedTuple, Union
 
 import numpy as np
 
 from astropy import units as u
 from astropy.table import QTable
+from astropy.units import Unit
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.data_info import MixinInfo
-from astropy.utils.decorators import format_doc, lazyproperty
+from astropy.utils.decorators import format_doc
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
 from . import representation as r
-from .angles import Angle, position_angle
+from .angles import Angle, Latitude, Longitude, angular_separation, position_angle
 from .attributes import Attribute
-from .errors import NonRotationTransformationError, NonRotationTransformationWarning
+from .distances import Distance
+from .errors import (
+    ConvertError,
+    NonRotationTransformationError,
+    NonRotationTransformationWarning,
+)
 from .transformations import (
     DynamicMatrixTransform,
     StaticMatrixTransform,
@@ -41,10 +46,7 @@ from .transformations import (
 )
 
 if TYPE_CHECKING:
-    from typing import Literal
-
-    from astropy.coordinates import Latitude, Longitude, SkyCoord
-    from astropy.units import Unit
+    from astropy.coordinates import SkyCoord
 
 # the graph used for all transformations between frames
 frame_transform_graph = TransformGraph()
@@ -435,14 +437,16 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
     """
 
-    default_representation = None
-    default_differential = None
+    default_representation: ClassVar[type[r.BaseRepresentation] | None] = None
+    default_differential: ClassVar[type[r.BaseDifferential] | None] = None
 
     # Specifies special names and units for representation and differential
     # attributes.
-    frame_specific_representation_info = {}
+    frame_specific_representation_info: ClassVar[
+        dict[type[r.BaseRepresentationOrDifferential], list[RepresentationMapping]]
+    ] = {}
 
-    frame_attributes = {}
+    frame_attributes: dict[str, Attribute] = {}
     # Default empty frame_attributes dict
 
     # Declare that BaseCoordinateFrame can be used as a Table column by defining
@@ -888,7 +892,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         setattr(cls, private_attr, value)
         setattr(cls, attr_name, property(getter, doc=doc))
 
-    @lazyproperty
+    @functools.cached_property
     def cache(self):
         """Cache for this frame, a dict.
 
@@ -913,8 +917,8 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     @property
     def data(self):
         """
-        The coordinate data for this object.  If this frame has no data, an
-        `ValueError` will be raised.  Use `has_data` to
+        The coordinate data for this object.  If this frame has no data,
+        a `ValueError` will be raised.  Use `has_data` to
         check if data is present on this frame object.
         """
         if self._data is None:
@@ -1065,14 +1069,13 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     def differential_type(self, value):
         self.set_representation_cls(s=value)
 
-    @classmethod
-    def _get_representation_info(cls):
-        # This exists as a class method only to support handling frame inputs
-        # without units, which are deprecated and will be removed.  This can be
-        # moved into the representation_info property at that time.
-        # note that if so moved, the cache should be acceessed as
-        # self.__class__._frame_class_cache
-
+    @functools.cached_property
+    def representation_info(self):
+        """
+        A dictionary with the information of what attribute names for this frame
+        apply to particular representations.
+        """
+        cls = type(self)
         if (
             cls._frame_class_cache.get("last_reprdiff_hash", None)
             != r.get_reprdiff_cls_hash()
@@ -1118,14 +1121,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             cls._frame_class_cache["representation_info"] = repr_attrs
             cls._frame_class_cache["last_reprdiff_hash"] = r.get_reprdiff_cls_hash()
         return cls._frame_class_cache["representation_info"]
-
-    @lazyproperty
-    def representation_info(self):
-        """
-        A dictionary with the information of what attribute names for this frame
-        apply to particular representations.
-        """
-        return self._get_representation_info()
 
     def get_representation_component_names(self, which="base"):
         cls = self.get_representation_cls(which)
@@ -1463,8 +1458,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         ValueError
             If there is no possible transformation route.
         """
-        from .errors import ConvertError
-
         if self._data is None:
             raise ValueError("Cannot transform a frame with no data")
 
@@ -1829,9 +1822,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 "does not support item assignment"
             )
 
-        if self._data is None:
-            raise ValueError("can only set frame if it has data")
-
         if self._data.__class__ is not value._data.__class__:
             raise TypeError(
                 "can only set from object of same class: "
@@ -1902,8 +1892,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 self.data  # noqa: B018
 
             rep = self.represent_as(self.representation_type, in_frame_units=True)
-            val = getattr(rep, repr_names[attr])
-            return val
+            return getattr(rep, repr_names[attr])
 
         diff_names = self.get_representation_component_names("s")
         if attr in diff_names:
@@ -1916,8 +1905,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             rep = self.represent_as(
                 in_frame_units=True, **self.get_representation_cls(None)
             )
-            val = getattr(rep.differentials["s"], diff_names[attr])
-            return val
+            return getattr(rep.differentials["s"], diff_names[attr])
 
         return self.__getattribute__(attr)  # Raise AttributeError.
 
@@ -1967,7 +1955,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
 
     def _prepare_unit_sphere_coords(
         self,
-        other: BaseCoordinateFrame | SkyCoord,
+        other: Union["BaseCoordinateFrame", "SkyCoord"],
         origin_mismatch: Literal["ignore", "warn", "error"],
     ) -> tuple[Longitude, Latitude, Longitude, Latitude]:
         other_frame = getattr(other, "frame", other)
@@ -1996,7 +1984,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         )
         return self_sph.lon, self_sph.lat, other_sph.lon, other_sph.lat
 
-    def position_angle(self, other: BaseCoordinateFrame | SkyCoord) -> Angle:
+    def position_angle(self, other: Union["BaseCoordinateFrame", "SkyCoord"]) -> Angle:
         """Compute the on-sky position angle to another coordinate.
 
         Parameters
@@ -2031,7 +2019,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
 
     def separation(
         self,
-        other: BaseCoordinateFrame | SkyCoord,
+        other: Union["BaseCoordinateFrame", "SkyCoord"],
         *,
         origin_mismatch: Literal["ignore", "warn", "error"] = "warn",
     ) -> Angle:
@@ -2070,8 +2058,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
 
         """
-        from .angles import Angle, angular_separation
-
         return Angle(
             angular_separation(
                 *self._prepare_unit_sphere_coords(other, origin_mismatch)
@@ -2102,8 +2088,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         ValueError
             If this or the other coordinate do not have distances.
         """
-        from .distances import Distance
-
         if isinstance(self.data, r.UnitSphericalRepresentation):
             raise ValueError(
                 "This object does not have a distance; cannot compute 3d separation."

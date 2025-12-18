@@ -30,25 +30,18 @@ to the ``Planck18`` cosmology from which it was generated.
 For more information on the argument options, see :ref:`cosmology_io_builtin-table`.
 """
 
-from __future__ import annotations
-
 import copy
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
 
-from astropy.table import QTable, Row
+from astropy.table import QTable, Row, Table
 
 # isort: split
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import convert_registry
+from astropy.cosmology._src.typing import _CosmoT
 
 from .mapping import from_mapping
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from astropy.cosmology._src.typing import _CosmoT
-    from astropy.table import Table
 
 
 def from_row(

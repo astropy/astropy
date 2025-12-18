@@ -14,6 +14,7 @@ from astropy.utils.decorators import (
     deprecated_attribute,
     deprecated_renamed_argument,
     format_doc,
+    future_keyword_only,
     lazyproperty,
     sharedmethod,
 )
@@ -542,6 +543,94 @@ def test_deprecated_argument_remove():
     assert test(dummy=121) == (121, 3)
 
 
+def test_future_kwo_invalid_since():
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Expected names and since values with "
+            r"identical length. Got len\(names\)=3 "
+            r"and len\(since\)=2"
+        ),
+    ):
+        future_keyword_only(["a", "b", "c"], since=["7.1", "7.1"])(lambda a, b, c: ...)
+
+
+def test_future_kwo_invalid_names():
+    with pytest.raises(
+        ValueError,
+        match=(
+            "The following arguments cannot be marked as future keyword-only "
+            "because they were not found in the decorated function's signature: a"
+        ),
+    ):
+        future_keyword_only(["a"], since=["7.1"])(lambda b: ...)
+
+
+@pytest.mark.parametrize(
+    "input_func",
+    [
+        pytest.param(lambda a, /: ..., id="arg-is-positional-only"),
+        pytest.param(lambda *, a: ..., id="arg-is-keyword-only"),
+        pytest.param(lambda *a: ..., id="arg-is-var-positional"),
+        pytest.param(lambda **a: ..., id="arg-is-var-keyword"),
+    ],
+)
+def test_future_kwo_not_pos_or_kw(input_func):
+    with pytest.raises(
+        ValueError,
+        match=(
+            "The following arguments cannot be marked as future keyword-only "
+            "because they are not currently positional-or-keyword: a"
+        ),
+    ):
+        future_keyword_only(["a"], since=["7.1"])(input_func)
+
+
+def test_future_kwo_broken_pos_allowed():
+    with pytest.raises(
+        ValueError,
+        match=(
+            "The following positionally-allowed arguments were not marked as "
+            "future keyword-only and would be broken under future keyword-only "
+            r"requirements: c, d"
+        ),
+    ):
+        future_keyword_only(["b"], since=["7.1"])(lambda a, b, c, d=None: ...)
+
+
+def test_future_kwo_warn_if_and_only_if_needed():
+    func = future_keyword_only(["b", "c", "d"], since=["7.1", "7.1", "7.2"])(
+        lambda a, b, c=None, d=None: ...
+    )
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "The following arguments were received positionally, which "
+            "will be disallowed in a future release: b, c, d\n"
+            "Pass them as keywords to suppress this warning. "
+            r"\(deprecated since 7\.1, 7\.1, 7\.2, respectively\)"
+        ),
+    ):
+        func(1, 2, 3, 4)
+
+    # also check the warning if all arguments were marked at the same time
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "The following arguments were received positionally, which "
+            "will be disallowed in a future release: b, c\n"
+            "Pass them as keywords to suppress this warning. "
+            r"\(deprecated since 7\.1\)"
+        ),
+    ):
+        func(1, 2, 3, d=4)
+
+    # check no warning is emitted if future constraints are already honored
+    func(1, b=2, c=3, d=4)
+    func(1, b=2, c=3)
+    func(1, b=2)
+
+
 def test_sharedmethod_reuse_on_subclasses():
     """
     Regression test for an issue where sharedmethod would bind to one class
@@ -623,7 +712,7 @@ def test_classproperty_lazy_threadsafe(fast_thread_switching):
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         # This is testing for race conditions, so try many times in the
         # hope that we'll get the timing right.
-        for p in range(10000):
+        for _ in range(10000):
 
             class A:
                 @classproperty(lazy=True)
@@ -661,7 +750,7 @@ def test_lazyproperty_threadsafe(fast_thread_switching):
 
     workers = 8
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-        for p in range(10000):
+        for _ in range(10000):
             a = A()
             futures = [executor.submit(lambda: a.foo) for i in range(workers)]
             values = [future.result() for future in futures]

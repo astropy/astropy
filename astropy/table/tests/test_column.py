@@ -3,6 +3,7 @@
 import copy
 import operator
 import warnings
+from inspect import currentframe, getframeinfo
 
 import numpy as np
 import pytest
@@ -803,8 +804,6 @@ def test_string_truncation_warning(masked):
     Test warnings associated with in-place assignment to a string
     column that results in truncation of the right hand side.
     """
-    from inspect import currentframe, getframeinfo
-
     t = table.Table([["aa", "bb"]], names=["a"], masked=masked)
     t["a"][1] = "cc"
     t["a"][:] = "dd"
@@ -1177,3 +1176,17 @@ def test_zero_length_strings(Column, copy):
     col = Column(data["a"], name="a", copy=copy)
     assert col.dtype.itemsize == 0
     assert col.dtype == data.dtype["a"]
+
+
+def test_setting_column_name_to_with_invalid_type(Column):
+    # see https://github.com/astropy/astropy/issues/17449
+    col = Column([1, 2], name="a")
+    assert col.info.name == "a"
+
+    col.name = None
+    assert col.info.name is None
+
+    with pytest.raises(
+        TypeError, match="Expected a str value, got 2.3 with type float"
+    ):
+        col.name = 2.3

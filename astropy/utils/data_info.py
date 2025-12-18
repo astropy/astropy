@@ -153,7 +153,7 @@ def data_info_factory(names, funcs):
 
     def func(dat):
         outs = []
-        for name, func in zip(names, funcs):
+        for func in funcs:
             try:
                 if isinstance(func, str):
                     out = getattr(dat, func)()
@@ -294,20 +294,20 @@ class DataInfo(metaclass=DataInfoMeta):
     # (SkyCoordInfo).  These attributes may be scalars or arrays.  If arrays
     # that match the object length they will be serialized as an independent
     # column.
-    _represent_as_dict_attrs = ()
+    _represent_as_dict_attrs: tuple[str, ...] = ()
 
     # This specifies attributes which are to be provided to the class
     # initializer as ordered args instead of keyword args.  This is needed
     # for Quantity subclasses where the keyword for data varies (e.g.
     # between Quantity and Angle).
-    _construct_from_dict_args = ()
+    _construct_from_dict_args: tuple[str, ...] = ()
 
     # This specifies the name of an attribute which is the "primary" data.
     # Then when representing as columns
     # (table.serialize._represent_mixin_as_column) the output for this
     # attribute will be written with the just name of the mixin instead of the
     # usual "<name>.<attr>".
-    _represent_as_dict_primary_data = None
+    _represent_as_dict_primary_data: str | None = None
 
     def __init__(self, bound=False):
         # If bound to a data object instance then create the dict of attributes
@@ -701,7 +701,7 @@ class BaseColumnInfo(DataInfo):
             List of input Table column objects
         metadata_conflicts : str ('warn'|'error'|'silent')
             How to handle metadata conflicts
-        name : str
+        name : str or None
             Output column name
         attrs : list
             List of attribute names to be merged
@@ -748,7 +748,7 @@ class BaseColumnInfo(DataInfo):
 
         # "Merged" output name is the supplied name
         if name is not None:
-            out["name"] = name
+            out["name"] = str(name)
 
         return out
 
@@ -772,15 +772,23 @@ class MixinInfo(BaseColumnInfo):
         return self._attrs.get("name")
 
     @name.setter
-    def name(self, name):
+    def name(self, name: str | None):
+        if name is None:
+            new_name = None
+        elif isinstance(name, str):
+            new_name = str(name)
+        else:
+            raise TypeError(
+                f"Expected a str value, got {name} with type {type(name).__name__}"
+            )
+
         # For mixin columns that live within a table, rename the column in the
         # table when setting the name attribute.  This mirrors the same
         # functionality in the BaseColumn class.
         if self.parent_table is not None:
-            new_name = None if name is None else str(name)
             self.parent_table.columns._rename_column(self.name, new_name)
 
-        self._attrs["name"] = name
+        self._attrs["name"] = new_name
 
     @property
     def groups(self):

@@ -6,6 +6,7 @@ Module to test fitting routines
 # pylint: disable=invalid-name
 import os.path
 import unittest.mock as mk
+from contextlib import nullcontext
 from importlib.metadata import EntryPoint
 from itertools import combinations
 from unittest import mock
@@ -1212,7 +1213,7 @@ def test_optimizers(fitter_class):
 
 @mk.patch.multiple(Optimization, __abstractmethods__=set())
 def test_Optimization_abstract_call():
-    optimization = Optimization(mk.MagicMock())
+    optimization = Optimization()
     MESSAGE = r"Subclasses should implement this method"
     with pytest.raises(NotImplementedError, match=MESSAGE):
         optimization()
@@ -1424,54 +1425,63 @@ def test_non_finite_error(fitter, weights):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
-@pytest.mark.parametrize("weights", [np.ones(8), None])
-def test_non_finite_filter_1D(fitter, weights):
-    """Regression test filter introduced to remove non-finte values from data"""
+@pytest.mark.parametrize("fitobj", non_linear_fitters_bounds)
+@pytest.mark.parametrize("ndim", (1, 2))
+@pytest.mark.parametrize("all_nonfinite", (False, True))
+def test_filter_non_finite(fitobj, ndim, all_nonfinite):
+    """
+    Test that non-finite values are removed from the data before
+    fitting.
 
-    x = np.array([1, 2, 3, 4, 5, 6, 7, 8])
-    y = np.array([9, np.nan, 11, np.nan, 13, np.nan, 15, np.inf])
+    If all the values are non-finite, a ValueError should be raised.
 
-    m_init = models.Gaussian1D()
-    fit = fitter()
+    The test is performed for both 1D and 2D models. The x, y, z, and
+    weights arrays are each independently tested for non-finite values.
+    """
 
-    if weights is not None:
-        weights[[1, 4]] = np.nan
+    def perform_fit(fitter, m_init, params, ndim):
+        if ndim == 1:
+            fitter(
+                m_init,
+                params[0],
+                params[1],
+                weights=params[2],
+                filter_non_finite=True,
+            )
+        elif ndim == 2:
+            fitter(
+                m_init,
+                params[0],
+                params[1],
+                params[2],
+                weights=params[3],
+                filter_non_finite=True,
+            )
 
-    with pytest.warns(
-        AstropyUserWarning,
-        match=r"Non-Finite input data has been removed by the fitter",
-    ):
-        fit(m_init, x, y, filter_non_finite=True, weights=weights)
+    if ndim == 1:
+        m_init = models.Gaussian1D()
+    elif ndim == 2:
+        m_init = models.Gaussian2D()
+    fitter = fitobj()
 
+    ctx1 = pytest.warns(
+        AstropyUserWarning, match="Non-Finite input data has been removed by the fitter"
+    )
 
-@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-@pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
-@pytest.mark.parametrize("weights", [np.ones((10, 10)), None])
-def test_non_finite_filter_2D(fitter, weights):
-    """Regression test filter introduced to remove non-finte values from data"""
+    params = np.tile(np.arange(10.0), (4, 1))
+    if all_nonfinite:
+        params[-1] = np.nan
+        ctx2 = pytest.raises(
+            ValueError, match="All input data or weights are non-finite"
+        )
+    else:
+        params[-1, [1, 6, 7]] = np.nan
+        ctx2 = nullcontext()
 
-    x, y = np.mgrid[0:10, 0:10]
-
-    m_true = models.Gaussian2D(amplitude=1, x_mean=5, y_mean=5, x_stddev=2, y_stddev=2)
-    with NumpyRNGContext(_RANDOM_SEED):
-        z = m_true(x, y) + np.random.rand(*x.shape)
-    z[0, 0] = np.nan
-    z[3, 3] = np.inf
-    z[7, 5] = -np.inf
-
-    if weights is not None:
-        weights[1, 1] = np.nan
-        weights[4, 3] = np.inf
-
-    m_init = models.Gaussian2D()
-    fit = fitter()
-
-    with pytest.warns(
-        AstropyUserWarning,
-        match=r"Non-Finite input data has been removed by the fitter",
-    ):
-        fit(m_init, x, y, z, filter_non_finite=True, weights=weights)
+    for _i in range(2 + ndim):
+        params = np.roll(params, 1, axis=0)
+        with ctx1, ctx2:
+            perform_fit(fitter, m_init, params, ndim)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")

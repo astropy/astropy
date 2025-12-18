@@ -108,6 +108,34 @@ class LinearStretch(BaseStretch):
         The ``slope`` parameter used in the above formula.  Default is 1.
     intercept : float, optional
         The ``intercept`` parameter used in the above formula.  Default is 0.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import LinearStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        slopes = [1, 0.5, 1.3, 1.4, 2.0]
+        intercepts = [0, 0.0, -0.4, 0., 0.2]
+        for slope, intercept in zip(slopes, intercepts):
+            stretch = LinearStretch(slope, intercept)
+            label = f'{slope=}, {intercept=}'
+            ax.plot(x, stretch(x, clip=True), label=label)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     def __init__(self, slope=1, intercept=0):
@@ -121,6 +149,10 @@ class LinearStretch(BaseStretch):
             np.multiply(values, self.slope, out=values)
         if self.intercept != 0:
             np.add(values, self.intercept, out=values)
+
+        if clip:
+            np.clip(values, 0, 1, out=values)
+
         return values
 
     @property
@@ -137,6 +169,29 @@ class SqrtStretch(BaseStretch):
 
     .. math::
         y = \sqrt{x}
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import SqrtStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        stretch = SqrtStretch()
+        ax.plot(x, stretch(x, clip=True))
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
     """
 
     @property
@@ -204,8 +259,35 @@ class PowerStretch(BaseStretch):
     Parameters
     ----------
     a : float
-        The power index (see the above formula).  ``a`` must be greater
+        The power index (see the above formula). ``a`` must be greater
         than 0.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import PowerStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.3, 0.5, 0.7, 1, 1.5, 2, 3)
+        for a in a_vals:
+            stretch = PowerStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     @property
@@ -281,14 +363,47 @@ class PowerDistStretch(BaseStretch):
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  ``a`` must be
-        greater than or equal to 0, but cannot be set to 1.  Default is
-        1000.
+        The ``a`` parameter used in the above formula. The stretch
+        becomes more linear as ``a`` approaches 1, more exponential for
+        ``a`` values greater than 1, and more logarithmic for ``a``
+        values less than 1. ``a`` must be greater than 0, but cannot be
+        set to 1. Default is 1000.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import PowerDistStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.001, 0.05, 0.3, 0.8, 1.2, 3, 10, 30, 100, 1000)
+        for a in a_vals:
+            if a == 1000:
+                lw = 3
+            else:
+                lw = 1
+            stretch = PowerDistStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label, lw=lw)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='upper left', fontsize=8)
     """
 
     def __init__(self, a=1000.0):
-        if a < 0 or a == 1:  # singularity
-            raise ValueError("a must be >= 0, but cannot be set to 1")
+        if a <= 0 or a == 1:  # singularity
+            raise ValueError("a must be > 0, but cannot be set to 1")
         super().__init__()
         self.a = a
 
@@ -308,24 +423,26 @@ class PowerDistStretch(BaseStretch):
 class InvertedPowerDistStretch(BaseStretch):
     r"""
     Inverse transformation for
-    `~astropy.image.scaling.PowerDistStretch`.
+    `~astropy.visualization.PowerDistStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{\log(y (a-1) + 1)}{\log a}
+        y = \frac{\log(x (a - 1) + 1)}{\log a}
 
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  ``a`` must be
-        greater than or equal to 0, but cannot be set to 1.  Default is
-        1000.
+        The ``a`` parameter used in the above formula. The stretch
+        becomes more linear as ``a`` approaches 1, more logarithmic for
+        ``a`` values greater than 1, and more exponential for ``a``
+        values less than 1. ``a`` must be greater than 0, but cannot be
+        set to 1. Default is 1000.
     """
 
     def __init__(self, a=1000.0):
-        if a < 0 or a == 1:  # singularity
-            raise ValueError("a must be >= 0, but cannot be set to 1")
+        if a <= 0 or a == 1:  # singularity
+            raise ValueError("a must be > 0, but cannot be set to 1")
         super().__init__()
         self.a = a
 
@@ -350,6 +467,29 @@ class SquaredStretch(PowerStretch):
 
     .. math::
         y = x^2
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import SquaredStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        stretch = SquaredStretch()
+        ax.plot(x, stretch(x, clip=True))
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
     """
 
     def __init__(self):
@@ -373,8 +513,40 @@ class LogStretch(BaseStretch):
     Parameters
     ----------
     a : float
-        The ``a`` parameter used in the above formula.  ``a`` must be
-        greater than 0.  Default is 1000.
+        The ``a`` parameter used in the above formula. The stretch
+        becomes more linear for small ``a`` values. ``a`` must be
+        greater than 0. Default is 1000.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import LogStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.1, 1, 3, 10, 30, 100, 1000, 10000)
+        for a in a_vals:
+            if a == 1000:
+                lw = 3
+            else:
+                lw = 1
+            stretch = LogStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label, lw=lw)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     @property
@@ -441,19 +613,20 @@ class LogStretch(BaseStretch):
 
 class InvertedLogStretch(BaseStretch):
     r"""
-    Inverse transformation for `~astropy.image.scaling.LogStretch`.
+    Inverse transformation for `~astropy.visualization.LogStretch`.
 
     The stretch is given by:
 
     .. math::
-        y = \frac{e^{y \log{a + 1}} - 1}{a} \\
-        y = \frac{e^{y} (a + 1) - 1}{a}
+        y = \frac{e^{x \log{a + 1}} - 1}{a} = \frac{(a + 1)^x - 1}{a}
 
     Parameters
     ----------
     a : float, optional
-        The ``a`` parameter used in the above formula.  ``a`` must be
-        greater than 0.  Default is 1000.
+        The ``a`` parameter used in the above formula. The stretch
+        becomes more linear for small ``a`` values and more exponential
+        for large ``a`` values. ``a`` must be greater than 0. Default is
+        1000.
     """
 
     def __init__(self, a):
@@ -491,8 +664,40 @@ class AsinhStretch(BaseStretch):
         The ``a`` parameter used in the above formula. The value of this
         parameter is where the asinh curve transitions from linear to
         logarithmic behavior, expressed as a fraction of the normalized
-        image. The stretch becomes more linear as the ``a`` value is
-        increased. ``a`` must be greater than 0. Default is 0.1.
+        image. The stretch becomes more linear for larger ``a`` values
+        and more logarithmic for smaller ``a`` values. ``a`` must be
+        greater than 0. Default is 0.1.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import AsinhStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.9, 3.0)
+        for a in a_vals:
+            if a == 0.1:
+                lw = 3
+            else:
+                lw = 1
+            stretch = AsinhStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label, lw=lw)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     def __init__(self, a=0.1):
@@ -527,8 +732,40 @@ class SinhStretch(BaseStretch):
     ----------
     a : float, optional
         The ``a`` parameter used in the above formula. The stretch
-        becomes more linear as the ``a`` value is increased. ``a`` must
-        be greater than 0. Default is 1/3.
+        becomes more linear for larger ``a`` values and more exponential
+        for smaller ``a`` values. ``a`` must be greater than 0. Default
+        is 1/3.
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import SinhStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        a_vals = (0.1, 0.2, 0.3333, 0.5, 0.9, 3)
+        for a in a_vals:
+            if a == 0.3333:
+                lw = 3
+            else:
+                lw = 1
+            stretch = SinhStretch(a)
+            label = f'{a=}'
+            ax.plot(x, stretch(x, clip=True), label=label, lw=lw)
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='upper left', fontsize=8)
     """
 
     def __init__(self, a=1.0 / 3.0):
@@ -590,7 +827,7 @@ class HistEqStretch(BaseStretch):
 
 class InvertedHistEqStretch(BaseStretch):
     """
-    Inverse transformation for `~astropy.image.scaling.HistEqStretch`.
+    Inverse transformation for `~astropy.visualization.HistEqStretch`.
 
     Parameters
     ----------
@@ -637,6 +874,33 @@ class ContrastBiasStretch(BaseStretch):
 
     bias : float
         The bias parameter (see the above formula).
+
+    Examples
+    --------
+    .. plot::
+        :show-source-link:
+
+        import numpy as np
+        from astropy.visualization import ContrastBiasStretch
+        from matplotlib import pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        x = np.linspace(0, 1, 100)
+        contrasts = [1.0, 2.0, 0.7, 1.0, 1.0, 2.0]
+        biases = [0.5, 0.5, 0.5, 0.3, 0.7, 0.3]
+        for contrast, bias in zip(contrasts, biases):
+            stretch = ContrastBiasStretch(contrast, bias)
+            ax.plot(x, stretch(x, clip=True), label=f'{contrast=}, {bias=}')
+
+        ax.axis('equal')
+        ax.plot(x, x, ls='dotted', color='k', alpha=0.3)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel('Input Value')
+        ax.set_ylabel('Output Value')
+        ax.set_title(stretch.__class__.__name__)
+        ax.legend(loc='lower right', fontsize=8)
     """
 
     def __init__(self, contrast, bias):
@@ -665,18 +929,24 @@ class ContrastBiasStretch(BaseStretch):
 
 
 class InvertedContrastBiasStretch(BaseStretch):
-    """
-    Inverse transformation for ContrastBiasStretch.
+    r"""
+    Inverse transformation for
+    `~astropy.visualization.ContrastBiasStretch`.
+
+    The stretch is given by:
+
+    .. math::
+        y = \frac{x - 0.5}{{\rm contrast}} + {\rm bias}
 
     Parameters
     ----------
     contrast : float
         The contrast parameter (see
-        `~astropy.visualization.ConstrastBiasStretch).
+        `~astropy.visualization.ContrastBiasStretch`).
 
     bias : float
         The bias parameter (see
-        `~astropy.visualization.ConstrastBiasStretch).
+        `~astropy.visualization.ContrastBiasStretch`).
     """
 
     def __init__(self, contrast, bias):

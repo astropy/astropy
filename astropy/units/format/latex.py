@@ -4,18 +4,14 @@
 Handles the "LaTeX" unit format.
 """
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING
+from typing import ClassVar, Literal
+
+from astropy.units.core import NamedUnit, UnitBase
+from astropy.units.enums import DeprecatedUnitAction
+from astropy.units.typing import UnitPower
 
 from . import console
-
-if TYPE_CHECKING:
-    from typing import ClassVar, Literal
-
-    from astropy.units import NamedUnit, UnitBase
-    from astropy.units.typing import UnitPower
 
 
 class Latex(console.Console):
@@ -23,7 +19,7 @@ class Latex(console.Console):
     Output LaTeX to display the unit based on IAU style guidelines.
 
     Attempts to follow the `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_.
+    <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_.
     """
 
     _space: ClassVar[str] = r"\,"
@@ -67,6 +63,7 @@ class Latex(console.Console):
         cls,
         unit: UnitBase,
         fraction: bool | Literal["inline", "multiline"] = "multiline",
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         s = super().to_string(unit, fraction=fraction)
         return rf"$\mathrm{{{s}}}$"
@@ -78,7 +75,7 @@ class LatexInline(Latex):
     powers.
 
     Attempts to follow the `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_ and the
+    <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_ and the
     `ApJ and AJ style guide
     <https://journals.aas.org/manuscript-preparation/>`_.
     """
@@ -87,6 +84,9 @@ class LatexInline(Latex):
 
     @classmethod
     def to_string(
-        cls, unit: UnitBase, fraction: bool | Literal["inline", "multiline"] = False
+        cls,
+        unit: UnitBase,
+        fraction: bool | Literal["inline", "multiline"] = False,
+        deprecations: DeprecatedUnitAction = DeprecatedUnitAction.WARN,
     ) -> str:
         return super().to_string(unit, fraction=fraction)

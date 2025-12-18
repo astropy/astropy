@@ -49,6 +49,13 @@ def test_oversize_unicode():
     assert len(w) == 1
 
 
+def test_bounded_variable_size_unicode():
+    # regression test for #18075
+    field = tree.Field(None, name="unicode", datatype="unicodeChar", arraysize="20*")
+    unicode_converter = converters.get_converter(field)
+    assert unicode_converter.parse("XXX") == ("XXX", False)
+
+
 def test_unicode_mask():
     config = {"verify": "exception"}
     field = tree.Field(

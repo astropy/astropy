@@ -3,21 +3,16 @@
 Wrappers for PLY to provide thread safety.
 """
 
-from __future__ import annotations
-
 import contextlib
 import functools
 import re
 import threading
+from collections.abc import Generator
 from pathlib import Path
-from typing import TYPE_CHECKING
+from types import ModuleType
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-    from types import ModuleType
-
-    from astropy.extern.ply.lex import Lexer
-    from astropy.extern.ply.yacc import LRParser
+from astropy.extern.ply.lex import Lexer
+from astropy.extern.ply.yacc import LRParser
 
 __all__ = ["ThreadSafeParser", "lex", "yacc"]
 

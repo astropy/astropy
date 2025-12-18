@@ -6,8 +6,6 @@ UT1) and time representations (e.g. JD, MJD, ISO 8601) that are used in
 astronomy.
 """
 
-from __future__ import annotations
-
 import copy
 import enum
 import operator
@@ -17,7 +15,7 @@ from collections import defaultdict
 from datetime import UTC, date, datetime
 from itertools import pairwise
 from time import strftime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 from warnings import warn
 from weakref import WeakValueDictionary
 
@@ -57,7 +55,8 @@ from .time_helper.function_helpers import CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTION
 from .utils import day_frac
 
 if TYPE_CHECKING:
-    from astropy.coordinates import EarthLocation
+    import astropy.coordinates
+
 __all__ = [
     "STANDARD_TIME_SCALES",
     "TIME_DELTA_SCALES",
@@ -675,9 +674,9 @@ class TimeBase(MaskableShapedLikeNDArray):
         that could be used for initialization.  These can be listed with::
 
           >>> list(Time.FORMATS)
-          ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
-           'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
-           'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+          ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'galexsec', 'gps',
+           'plot_date', 'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday',
+           'datetime64', 'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
         """
         return self._format
 
@@ -758,7 +757,7 @@ class TimeBase(MaskableShapedLikeNDArray):
             raise TypeError(f"unhashable type: '{self.__class__.__name__}' {reason}")
 
     @property
-    def location(self) -> EarthLocation | None:
+    def location(self) -> Union["astropy.coordinates.EarthLocation", None]:
         return self._location
 
     @location.setter
@@ -1197,7 +1196,7 @@ class TimeBase(MaskableShapedLikeNDArray):
             if hasattr(self, attr):
                 delattr(self, attr)
 
-        if value is np.ma.masked or value is np.nan:
+        if value is np.ma.masked or value is np.nan:  # noqa: PLW0177, RUF100
             if not isinstance(self._time.jd2, Masked):
                 self._time.jd1 = Masked(self._time.jd1, copy=False)
                 self._time.jd2 = Masked(
@@ -1258,7 +1257,7 @@ class TimeBase(MaskableShapedLikeNDArray):
                 "'other' argument must support subtraction with Time "
                 "and return a value that supports comparison with "
                 f"{atol.__class__.__name__}: {err}"
-            )
+            ) from err
 
         return out
 
@@ -1805,12 +1804,12 @@ class TimeBase(MaskableShapedLikeNDArray):
             try:
                 # check the value can be broadcast to the shape of self.
                 val = np.broadcast_to(val, self.shape, subok=True)
-            except Exception:
+            except Exception as err:
                 raise ValueError(
                     "Attribute shape must match or be broadcastable to that of "
                     "Time object. Typically, give either a single value or "
                     "one for each time."
-                )
+                ) from err
 
         return val
 
@@ -1883,9 +1882,10 @@ class Time(TimeBase):
     The allowed values for ``format`` can be listed with::
 
       >>> list(Time.FORMATS)
-      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'gps', 'plot_date',
-       'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
+      ['jd', 'mjd', 'decimalyear', 'unix', 'unix_tai', 'cxcsec', 'galexsec', 'gps',
+       'plot_date', 'stardate', 'datetime', 'ymdhms', 'iso', 'isot', 'yday', 'datetime64',
        'fits', 'byear', 'jyear', 'byear_str', 'jyear_str']
+
 
     See also: http://docs.astropy.org/en/stable/time/
 
@@ -2038,7 +2038,7 @@ class Time(TimeBase):
                 except Exception as err:
                     raise ValueError(
                         f"cannot convert value to a compatible Time object: {err}"
-                    )
+                    ) from err
         return value
 
     @classmethod
@@ -2184,11 +2184,11 @@ class Time(TimeBase):
         Parameters
         ----------
         skycoord : `~astropy.coordinates.SkyCoord`
-            The sky location to calculate the correction for.
+            The sky location(s) to calculate the correction for.
         kind : str, optional
             ``'barycentric'`` (default) or ``'heliocentric'``
         location : `~astropy.coordinates.EarthLocation`, optional
-            The location of the observatory to calculate the correction for.
+            The location(s) of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
         ephemeris : str, optional
@@ -2203,6 +2203,7 @@ class Time(TimeBase):
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.
             Also, the time conversion to BJD will then include the relativistic correction as well.
+            The shape will be the broadcast shape of ``skycoord`` and ``location``.
         """
         if kind.lower() not in ("barycentric", "heliocentric"):
             raise ValueError(
@@ -2221,7 +2222,6 @@ class Time(TimeBase):
             GCRS,
             HCRS,
             ICRS,
-            CartesianRepresentation,
             UnitSphericalRepresentation,
             solar_system_ephemeris,
         )
@@ -2233,35 +2233,25 @@ class Time(TimeBase):
         # get location of observatory in ITRS coordinates at this Time
         try:
             itrs = location.get_itrs(obstime=self)
-        except Exception:
+        except Exception as err:
             raise ValueError(
                 "Supplied location does not have a valid `get_itrs` method"
-            )
+            ) from err
 
         with solar_system_ephemeris.set(ephemeris):
             if kind.lower() == "heliocentric":
                 # convert to heliocentric coordinates, aligned with ICRS
-                cpos = itrs.transform_to(HCRS(obstime=self)).cartesian.xyz
+                loc_ref = itrs.transform_to(HCRS(obstime=self))
             else:
                 # first we need to convert to GCRS coordinates with the correct
-                # obstime, since ICRS coordinates have no frame time
-                gcrs_coo = itrs.transform_to(GCRS(obstime=self))
-                # convert to barycentric (BCRS) coordinates, aligned with ICRS
-                cpos = gcrs_coo.transform_to(ICRS()).cartesian.xyz
+                # obstime, since ICRS coordinates have no frame time, and then
+                # convert to barycentric (BCRS) coordinates, aligned with ICRS.
+                loc_ref = itrs.transform_to(GCRS(obstime=self)).transform_to(ICRS())
 
         # get unit ICRS vector to star
-        spos = (
-            skycoord.icrs.represent_as(UnitSphericalRepresentation)
-            .represent_as(CartesianRepresentation)
-            .xyz
-        )
-
-        # Move X,Y,Z to last dimension, to enable possible broadcasting below.
-        cpos = np.rollaxis(cpos, 0, cpos.ndim)
-        spos = np.rollaxis(spos, 0, spos.ndim)
-
+        spos = skycoord.icrs.represent_as(UnitSphericalRepresentation).to_cartesian()
         # calculate light travel time correction
-        tcor_val = (spos * cpos).sum(axis=-1) / const.c
+        tcor_val = loc_ref.cartesian.dot(spos) / const.c
         return TimeDelta(tcor_val, scale="tdb")
 
     def earth_rotation_angle(self, longitude=None):
@@ -2426,9 +2416,8 @@ class Time(TimeBase):
             Local sidereal time or Earth rotation angle, with units of hourangle.
 
         """
-        from astropy.coordinates import EarthLocation, Longitude
+        from astropy.coordinates import EarthLocation, Longitude, rotation_matrix
         from astropy.coordinates.builtin_frames.utils import get_polar_motion
-        from astropy.coordinates.matrix_utilities import rotation_matrix
 
         if longitude is None:
             if self.location is None:
@@ -3287,7 +3276,7 @@ class TimeDelta(TimeBase):
             except Exception as err:
                 raise ValueError(
                     f"cannot convert value to a compatible TimeDelta object: {err}"
-                )
+                ) from err
         return value
 
     def isclose(self, other, atol=None, rtol=0.0):
@@ -3312,7 +3301,9 @@ class TimeDelta(TimeBase):
         try:
             other_day = other.to_value(u.day)
         except Exception as err:
-            raise TypeError(f"'other' argument must support conversion to days: {err}")
+            raise TypeError(
+                f"'other' argument must support conversion to days: {err}"
+            ) from err
 
         if atol is None:
             atol = np.finfo(float).eps * u.day

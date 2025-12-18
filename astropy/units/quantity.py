@@ -5,15 +5,14 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
-from __future__ import annotations
-
 import builtins
 import numbers
 import operator
 import re
 import warnings
+from collections.abc import Collection
 from fractions import Fraction
-from typing import TYPE_CHECKING
+from typing import ClassVar, Self
 
 import numpy as np
 
@@ -34,13 +33,8 @@ from .quantity_helper.function_helpers import (
     UNSUPPORTED_FUNCTIONS,
 )
 from .structured import StructuredUnit, _structured_unit_like_dtype
+from .typing import QuantityLike
 from .utils import is_effectively_unity
-
-if TYPE_CHECKING:
-    from collections.abc import Collection
-    from typing import Self
-
-    from .typing import QuantityLike
 
 __all__ = [
     "Quantity",
@@ -184,7 +178,7 @@ class QuantityInfo(QuantityInfoBase):
     be used as a general way to store meta information.
     """
 
-    _represent_as_dict_attrs = ("value", "unit")
+    _represent_as_dict_attrs: tuple[str, ...] = ("value", "unit")
     _construct_from_dict_args = ["value"]
     _represent_as_dict_primary_data = "value"
 
@@ -204,7 +198,7 @@ class QuantityInfo(QuantityInfoBase):
             Length of the output column object
         metadata_conflicts : str ('warn'|'error'|'silent')
             How to handle metadata conflicts
-        name : str
+        name : str or None
             Output column name
 
         Returns
@@ -564,12 +558,7 @@ class Quantity(np.ndarray):
             return value.to(unit)
 
     def __array_finalize__(self, obj):
-        # Check whether super().__array_finalize should be called
-        # (sadly, ndarray.__array_finalize__ is None; we cannot be sure
-        # what is above us).
-        super_array_finalize = super().__array_finalize__
-        if super_array_finalize is not None:
-            super_array_finalize(obj)
+        super().__array_finalize__(obj)
 
         # If we're a new object or viewing an ndarray, nothing has to be done.
         if obj is None or obj.__class__ is np.ndarray:
@@ -873,7 +862,7 @@ class Quantity(np.ndarray):
         super().__setstate__(nd_state)
         self.__dict__.update(own_state)
 
-    info = QuantityInfo()
+    info: QuantityInfoBase = QuantityInfo()
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""
@@ -1264,13 +1253,7 @@ class Quantity(np.ndarray):
                 f"'{self.__class__.__name__}' object with a scalar value is not"
                 " iterable"
             )
-
-        # Otherwise return a generator
-        def quantity_iter():
-            for val in self.value:
-                yield self._new_view(val)
-
-        return quantity_iter()
+        return map(self._new_view, self.value)
 
     def __getitem__(self, key):
         if isinstance(key, str) and isinstance(self.unit, StructuredUnit):
@@ -2139,7 +2122,7 @@ class SpecificTypeQuantity(Quantity):
 
     # The unit for the specific physical type.  Instances can only be created
     # with units that are equivalent to this.
-    _equivalent_unit = None
+    _equivalent_unit: ClassVar[UnitBase | tuple[UnitBase, ...] | None] = None
 
     # The default unit used for views.  Even with `None`, views of arrays
     # without units are possible, but will have an uninitialized unit.

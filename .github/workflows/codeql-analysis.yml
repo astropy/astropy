@@ -38,7 +38,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
       with:
         persist-credentials: false
         fetch-depth: 0
@@ -67,7 +67,7 @@ jobs:
     #    uses a compiled language
 
     - name: Set up Python
-      uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38  # v5.4.0
+      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c  # v6.0.0
       if: matrix.language == 'cpp'
       with:
         python-version: '3.11'
@@ -75,7 +75,7 @@ jobs:
     - name: Manual build
       if: matrix.language == 'cpp'
       run: |
-       pip install -U pip setuptools_scm wheel
+       pip install -U pip setuptools_scm setuptools packaging wheel
        pip install extension-helpers cython numpy pyerfa
        python setup.py build_ext --inplace
 

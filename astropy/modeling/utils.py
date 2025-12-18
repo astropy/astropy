@@ -4,27 +4,18 @@
 This module provides utility functions for the models package.
 """
 
-from __future__ import annotations
-
 import warnings
 
 # pylint: disable=invalid-name
 from collections import UserDict
+from collections.abc import Sequence
 from inspect import signature
-from typing import TYPE_CHECKING, overload
+from typing import TypeVar, overload
 
 import numpy as np
+from numpy.typing import NDArray
 
 from astropy import units as u
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from typing import TypeVar
-
-    from numpy.typing import NDArray
-
-    DType = TypeVar("DType", bound=np.generic)
-
 
 __all__ = ["ellipse_extent", "poly_map_domain"]
 
@@ -326,6 +317,9 @@ class _SpecialOperatorsDict(UserDict):
         self._set_value(key, operator)
 
         return key
+
+
+DType = TypeVar("DType", bound=np.generic)
 
 
 @overload

@@ -31,7 +31,7 @@ import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
 from astropy.tests.helper import CI, IS_CRON
-from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA
+from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA, HAS_UNCOMPRESSPY
 from astropy.utils.data import (
     CacheDamaged,
     CacheMissingWarning,
@@ -142,7 +142,7 @@ def change_tree_permission(d, writable=False):
     else:
         dirperm = stat.S_IRUSR | stat.S_IXUSR
         fileperm = stat.S_IRUSR
-    for dirpath, dirnames, filenames in os.walk(d):
+    for dirpath, _, filenames in os.walk(d):
         os.chmod(dirpath, dirperm)
         for f in filenames:
             os.chmod(os.path.join(dirpath, f), fileperm)
@@ -172,7 +172,7 @@ def readonly_cache(tmp_path, valid_urls):
         # to make into the cache
         d = pathlib.Path(d)
         with paths.set_temp_cache(d):
-            us = {u for u, c in islice(valid_urls, FEW)}
+            us = {u for u, _ in islice(valid_urls, FEW)}
             urls = {u: download_file(u, cache=True) for u in us}
             files = set(d.iterdir())
             with readonly_dir(d):
@@ -199,7 +199,7 @@ def fake_readonly_cache(tmp_path, valid_urls, monkeypatch):
         # to make into the cache
         d = pathlib.Path(d)
         with paths.set_temp_cache(d):
-            us = {u for u, c in islice(valid_urls, FEW)}
+            us = {u for u, _ in islice(valid_urls, FEW)}
             urls = {u: download_file(u, cache=True) for u in us}
             files = set(d.iterdir())
             monkeypatch.setattr(os, "mkdir", no_mkdir)
@@ -392,7 +392,7 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
         r = list(P.map(lambda u: download_file(u, cache=True), [u for (u, c) in urls]))
     check_download_cache()
     assert len(r) == len(urls)
-    for r_, (u, c) in zip(r, urls):
+    for r_, (_, c) in zip(r, urls):
         assert get_file_contents(r_) == c
 
 
@@ -725,7 +725,7 @@ def test_download_parallel_fills_cache(tmp_path, valid_urls, method):
         assert len(rs) == len(urls)
         url_set = {u for (u, c) in urls}
         assert url_set <= set(get_cached_urls())
-        for r, (u, c) in zip(rs, urls):
+        for r, (_, c) in zip(rs, urls):
             assert get_file_contents(r) == c
         check_download_cache()
     assert not url_set.intersection(get_cached_urls())
@@ -744,7 +744,7 @@ def test_download_parallel_with_empty_sources(valid_urls, temp_cache):
     # u = set(u for (u, c) in urls)
     # assert u <= set(get_cached_urls())
     check_download_cache()
-    for r, (u, c) in zip(rs, urls):
+    for r, (_, c) in zip(rs, urls):
         assert get_file_contents(r) == c
 
 
@@ -765,7 +765,7 @@ def test_download_parallel_with_sources_and_bogus_original(
     assert len(rs) == len(urls)
     # u = set(u for (u, c, c_bad) in urls)
     # assert u <= set(get_cached_urls())
-    for r, (u, c, c_bad) in zip(rs, urls):
+    for r, (_, c, c_bad) in zip(rs, urls):
         assert get_file_contents(r) == c
         assert get_file_contents(r) != c_bad
 
@@ -841,7 +841,7 @@ def test_download_parallel_update(temp_cache, tmp_path):
 
     r1 = download_files_in_parallel([u for (fn, u, c) in td])
     assert len(r1) == len(td)
-    for r_1, (fn, u, c) in zip(r1, td):
+    for r_1, (_, _, c) in zip(r1, td):
         assert get_file_contents(r_1) == c
 
     td2 = []
@@ -854,13 +854,13 @@ def test_download_parallel_update(temp_cache, tmp_path):
 
     r2 = download_files_in_parallel([u for (fn, u, c) in td], cache=True)
     assert len(r2) == len(td)
-    for r_2, (fn, u, c, c_plus) in zip(r2, td2):
+    for r_2, (_, _, c, c_plus) in zip(r2, td2):
         assert get_file_contents(r_2) == c
         assert c != c_plus
     r3 = download_files_in_parallel([u for (fn, u, c) in td], cache="update")
 
     assert len(r3) == len(td)
-    for r_3, (fn, u, c, c_plus) in zip(r3, td2):
+    for r_3, (_, _, c, c_plus) in zip(r3, td2):
         assert get_file_contents(r_3) != c
         assert get_file_contents(r_3) == c_plus
 
@@ -953,11 +953,16 @@ def test_get_invalid(package):
 # Package data functions
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.parametrize(
-    "filename", ["local.dat", "local.dat.gz", "local.dat.bz2", "local.dat.xz"]
+    "filename",
+    ["local.dat", "local.dat.gz", "local.dat.bz2", "local.dat.xz", "local.dat.Z"],
 )
 def test_local_data_obj(filename):
-    if (not HAS_BZ2 and "bz2" in filename) or (not HAS_LZMA and "xz" in filename):
-        with pytest.raises(ValueError, match=r" format files are not supported"):
+    if (
+        (not HAS_BZ2 and "bz2" in filename)
+        or (not HAS_LZMA and "xz" in filename)
+        or (not HAS_UNCOMPRESSPY and "Z" in filename)
+    ):
+        with pytest.raises(ModuleNotFoundError):
             with get_pkg_data_fileobj(
                 os.path.join("data", filename), encoding="binary"
             ) as f:
@@ -971,12 +976,16 @@ def test_local_data_obj(filename):
             assert f.read().rstrip() == b"CONTENT"
 
 
-@pytest.fixture(params=["invalid.dat.bz2", "invalid.dat.gz"])
+@pytest.fixture(
+    params=["invalid.dat.bz2", "invalid.dat.xz", "invalid.dat.gz", "invalid.dat.Z"]
+)
 def bad_compressed(request, tmp_path):
     # These contents have valid headers for their respective file formats, but
     # are otherwise malformed and invalid.
     bz_content = b"BZhinvalid"
     gz_content = b"\x1f\x8b\x08invalid"
+    xz_content = b"\xfd7zXZ\x00invalid"
+    lzw_content = b"\x1f\x9d\x90invalid"
 
     datafile = tmp_path / request.param
     filename = str(datafile)
@@ -985,6 +994,10 @@ def bad_compressed(request, tmp_path):
         contents = bz_content
     elif filename.endswith(".gz"):
         contents = gz_content
+    elif filename.endswith(".xz"):
+        contents = xz_content
+    elif filename.endswith(".Z"):
+        contents = lzw_content
     else:
         contents = "invalid"
 
@@ -997,6 +1010,7 @@ def bad_compressed(request, tmp_path):
 def test_local_data_obj_invalid(bad_compressed):
     is_bz2 = bad_compressed.endswith(".bz2")
     is_xz = bad_compressed.endswith(".xz")
+    is_lzw = bad_compressed.endswith(".Z")
 
     # Note, since these invalid files are created on the fly in order to avoid
     # problems with detection by antivirus software
@@ -1005,10 +1019,12 @@ def test_local_data_obj_invalid(bad_compressed):
     # they're not local anymore: they just live in a temporary directory
     # created by pytest. However, we can still use get_readable_fileobj for the
     # test.
-    if (not HAS_BZ2 and is_bz2) or (not HAS_LZMA and is_xz):
-        with pytest.raises(
-            ModuleNotFoundError, match=r"does not provide the [lb]z[2m]a? module\."
-        ):
+    if (
+        (not HAS_BZ2 and is_bz2)
+        or (not HAS_LZMA and is_xz)
+        or (not HAS_UNCOMPRESSPY and is_lzw)
+    ):
+        with pytest.raises(ModuleNotFoundError):
             with get_readable_fileobj(bad_compressed, encoding="binary") as f:
                 f.read()
     else:
@@ -1099,10 +1115,8 @@ def test_data_noastropy_fallback(monkeypatch):
     conf.delete_temporary_downloads_at_exit = True
 
     # make sure the config and cache directories are not searched
-    monkeypatch.setenv("XDG_CONFIG_HOME", "foo")
-    monkeypatch.delenv("XDG_CONFIG_HOME")
-    monkeypatch.setenv("XDG_CACHE_HOME", "bar")
-    monkeypatch.delenv("XDG_CACHE_HOME")
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
 
     monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
     monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
@@ -1197,6 +1211,10 @@ def test_data_noastropy_fallback(monkeypatch):
         pytest.param(
             "unicode.txt.xz",
             marks=pytest.mark.xfail(not HAS_LZMA, reason="no lzma support"),
+        ),
+        pytest.param(
+            "unicode.txt.Z",
+            marks=pytest.mark.xfail(not HAS_UNCOMPRESSPY, reason="no lzw support"),
         ),
     ],
 )
@@ -1360,7 +1378,7 @@ def test_import_one(tmp_path, temp_cache, valid_urls):
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 def test_export_import_roundtrip(tmp_path, temp_cache, valid_urls):
     zip_file_name = tmp_path / "the.zip"
-    for u, c in islice(valid_urls, FEW):
+    for u, _ in islice(valid_urls, FEW):
         download_file(u, cache=True)
 
     initial_urls_in_cache = set(get_cached_urls())
@@ -1374,7 +1392,7 @@ def test_export_import_roundtrip(tmp_path, temp_cache, valid_urls):
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 def test_export_import_roundtrip_stream(temp_cache, valid_urls):
-    for u, c in islice(valid_urls, FEW):
+    for u, _ in islice(valid_urls, FEW):
         download_file(u, cache=True)
     initial_urls_in_cache = set(get_cached_urls())
 
@@ -1414,7 +1432,7 @@ def test_export_import_roundtrip_different_location(tmp_path, valid_urls):
     urls = list(islice(valid_urls, FEW))
     initial_urls_in_cache = {u for (u, c) in urls}
     with paths.set_temp_cache(original_cache):
-        for u, c in urls:
+        for u, _ in urls:
             download_file(u, cache=True)
         assert set(get_cached_urls()) == initial_urls_in_cache
         export_download_cache(zip_file_name)
@@ -1455,7 +1473,7 @@ def test_cache_contents_agrees_with_get_urls(temp_cache, valid_urls):
         a_f = download_file(a, cache=True)
         r.append((a, a_c, a_f))
     assert set(cache_contents().keys()) == set(get_cached_urls())
-    for u, c, h in r:
+    for u, _, h in r:
         assert cache_contents()[u] == h
 
 

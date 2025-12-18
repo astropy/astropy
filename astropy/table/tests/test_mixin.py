@@ -11,8 +11,8 @@ import pytest
 from astropy import coordinates, time
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
-from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
+from astropy.io.ascii.connect import _get_connectors_table
 from astropy.table import (
     Column,
     NdarrayMixin,
@@ -114,11 +114,13 @@ def test_io_ascii_write():
     every pure Python writer.  No validation of the output is done,
     this just confirms no exceptions.
     """
-    from astropy.io.ascii.connect import _get_connectors_table
-
     t = QTable(MIXIN_COLS)
     for fmt in _get_connectors_table():
-        if fmt["Write"] and ".fast_" not in fmt["Format"]:
+        if (
+            fmt["Write"]
+            and ".fast_" not in fmt["Format"]
+            and fmt["Format"] != "ascii.tdat"
+        ):
             out = StringIO()
             t.write(out, format=fmt["Format"])
 
@@ -378,7 +380,7 @@ def test_join(table_types):
     t2 = table_types.Table(t1)
     t2["a"] = ["b", "c", "a", "d"]
 
-    for name, col in MIXIN_COLS.items():
+    for name in MIXIN_COLS:
         t1[name].info.description = name
         t2[name].info.description = name + "2"
 
@@ -498,7 +500,9 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
     """
 
     def pickle_roundtrip(c):
-        return pickle.loads(pickle.dumps(c))
+        # protocol=5 matches the default for Python 3.14 and later
+        # and is needed to preserve byteorder (available since Python 3.8)
+        return pickle.loads(pickle.dumps(c, protocol=5))
 
     def init_from_class(c):
         return c.__class__(c)
@@ -513,18 +517,7 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
         for func in (copy.copy, copy.deepcopy, pickle_roundtrip, init_from_class):
             m2 = func(m)
             for attr in attrs:
-                # non-native byteorder not preserved by last 2 func, _except_ for structured dtype
-                if (
-                    attr != "dtype"
-                    or getattr(m.info.dtype, "isnative", True)
-                    or m.info.dtype.name.startswith("void")
-                    or func in (copy.copy, copy.deepcopy)
-                ):
-                    original = getattr(m.info, attr)
-                else:
-                    # func does not preserve byteorder, check against (native) type.
-                    original = m.info.dtype.newbyteorder("=")
-                assert getattr(m2.info, attr) == original
+                assert getattr(m2.info, attr) == getattr(m.info, attr)
 
 
 def check_share_memory(col1, col2, copy):
@@ -1070,17 +1063,6 @@ def test_primary_data_column_gets_description():
     assert "__info__" not in tser.meta["__serialized_columns__"]["a"]
     assert tser["a"].format == "7.2f"
     assert tser["a"].description == "parrot"
-
-
-def test_skycoord_with_velocity():
-    # Regression test for gh-6447
-    sc = SkyCoord([1], [2], unit="deg", galcen_v_sun=None)
-    t = Table([sc])
-    s = StringIO()
-    t.write(s, format="ascii.ecsv", overwrite=True)
-    s.seek(0)
-    t2 = Table.read(s.read(), format="ascii.ecsv")
-    assert skycoord_equal(t2["col0"], sc)
 
 
 @pytest.mark.parametrize("copy", [True, False])

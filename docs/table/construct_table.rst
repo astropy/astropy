@@ -576,9 +576,9 @@ Comment Lines
 
 .. EXAMPLE START: Adding Comment Lines in an ASCII File
 
-Comment lines in an ASCII file can be added via the ``'comments'`` key in the
+Comment lines in a text file can be added via the ``'comments'`` key in the
 table's metadata. The following will insert two comment lines in the output
-ASCII file unless ``comment=False`` is explicitly set in ``write()``::
+text file unless ``comment=False`` is explicitly set in ``write()``::
 
   >>> import sys
   >>> from astropy.table import Table
@@ -657,8 +657,8 @@ for the ``data`` argument.
 
 **dict-like**
     The keys of the ``data`` object define the base column names. The
-    corresponding values can be |Column| objects, ``numpy`` arrays, or list-
-    like objects. The ``names`` list (optional) can be used to select
+    corresponding values can be |Column| objects, ``numpy`` arrays, or
+    list-like objects. The ``names`` list (optional) can be used to select
     particular fields and/or reorder the base names. The ``dtype`` list
     (optional) must match the length of ``names`` and is used to override
     the existing or default data types.
@@ -891,7 +891,7 @@ Format Specifier
 ^^^^^^^^^^^^^^^^
 
 The format specifier controls the output of column values when a table or column
-is printed or written to an ASCII table. In the simplest case, it is a string
+is printed or written to a text table. In the simplest case, it is a string
 that can be passed to Python's built-in :func:`format` function. For more
 complicated formatting, one can also give "old style" or "new style"
 format strings, or even a function:

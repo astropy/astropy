@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 from yaml import SafeDumper
 
+import astropy.coordinates as coords
 import astropy.units as u
 from astropy.coordinates import (
     Angle,
@@ -23,6 +24,7 @@ from astropy.coordinates import (
     SphericalDifferential,
     SphericalRepresentation,
     UnitSphericalRepresentation,
+    frame_transform_graph,
 )
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.io.misc.yaml import AstropyDumper, dump, load, load_all
@@ -137,9 +139,12 @@ def test_ndarray_subclasses(c):
         assert c.unit == cy.unit
 
 
-def compare_coord(c, cy):
+def compare_coord(c, cy, has_data=True):
     assert c.shape == cy.shape
-    assert c.frame.name == cy.frame.name
+    if hasattr(c, "frame"):
+        assert c.frame.name == cy.frame.name
+    else:
+        assert c.name == cy.name
 
     assert list(c.frame_attributes) == list(cy.frame_attributes)
     for attr in c.frame_attributes:
@@ -148,8 +153,24 @@ def compare_coord(c, cy):
     assert list(c.representation_component_names) == list(
         cy.representation_component_names
     )
-    for name in c.representation_component_names:
-        assert np.all(getattr(c, attr) == getattr(cy, attr))
+    if has_data:
+        for attr in c.representation_component_names:
+            assert np.all(getattr(c, attr) == getattr(cy, attr))
+
+
+def test_skycoord_galactocentric():
+    """Integration test for #18526 from https://stackoverflow.com/q/79735659/323631"""
+    sc = SkyCoord(
+        x=1 * u.kpc,
+        y=2 * u.kpc,
+        z=3 * u.kpc,
+        v_x=4 * u.km / u.s,
+        v_y=5 * u.km / u.s,
+        v_z=6 * u.km / u.s,
+        frame="galactocentric",
+    )
+    scr = load(dump(sc))
+    compare_coord(sc, scr)
 
 
 @pytest.mark.parametrize("frame", ["fk4", "altaz"])
@@ -201,6 +222,27 @@ def test_skycoord(frame):
 def test_representations(rep):
     rrep = load(dump(rep))
     assert np.all(representation_equal(rrep, rep))
+
+
+# Note: consistent test order (e.g. sorting) needed for parallel testing.
+frame_clss = sorted(
+    [cls for cls in frame_transform_graph.frame_set if cls.__name__ in dir(coords)],
+    key=lambda x: x.__name__,
+)
+
+
+@pytest.mark.parametrize("frame_cls", frame_clss)
+def test_frames(frame_cls):
+    """Test that bare instances of built-in frames round-trip through YAML
+
+    This excludes dynamically-created SkyOffset frames like ``abc.SkyOffsetAltAz``.
+    This one in particular fails tests since it tries to construct an ``AltAz``
+    instance. Possibly related to https://github.com/astropy/astropy/issues/10157.
+    """
+    frame = frame_cls()
+    frame_dump = dump(frame)
+    frame_rt = load(frame_dump)
+    compare_coord(frame, frame_rt, has_data=False)
 
 
 def _get_time():

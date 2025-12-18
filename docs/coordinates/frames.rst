@@ -1,12 +1,5 @@
-.. We call EarthLocation.of_site here first to force the downloading
-.. of sites.json so that future doctest output isn't cluttered with
-.. "Downloading ... [done]". This can be removed once we have a better
-.. way of ignoring output lines based on pattern-matching, e.g.:
-.. https://github.com/astropy/pytest-doctestplus/issues/11
-
 .. testsetup::
-    >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation.of_site('greenwich') # doctest: +IGNORE_OUTPUT +IGNORE_WARNINGS
+    >>> from astropy.coordinates.sites import _GREENWICH as greenwich
 
 Using and Designing Coordinate Frames
 *************************************
@@ -183,9 +176,8 @@ if it is present, it can be accessed from the ``data`` attribute::
     <UnitSphericalRepresentation (lon, lat) in deg
         (1.1, 2.2)>
 
-All of the above methods can also accept array data (in the form of
-class:`~astropy.units.Quantity`, or other Python sequences) to create arrays of
-coordinates::
+All of the above methods can also accept array data (in the form of |Quantity|,
+or other Python sequences) to create arrays of coordinates::
 
     >>> ICRS(ra=[1.5, 2.5]*u.deg, dec=[3.5, 4.5]*u.deg)  # doctest: +FLOAT_CMP
     <ICRS Coordinate: (ra, dec) in deg
@@ -202,9 +194,11 @@ Similar broadcasting happens if you transform to another frame. For example::
 
     >>> import numpy as np
     >>> from astropy.coordinates import EarthLocation, AltAz
+    >>> greenwich = EarthLocation.of_site('greenwich')  # doctest: +SKIP
     >>> coo = ICRS(ra=180.*u.deg, dec=51.477811*u.deg)
-    >>> lf = AltAz(location=EarthLocation.of_site('greenwich'),
-    ...            obstime=['2012-03-21T00:00:00', '2012-06-21T00:00:00'])
+    >>> lf = AltAz(
+    ...     location=greenwich, obstime=['2012-03-21T00:00:00', '2012-06-21T00:00:00']
+    ... )
     >>> lcoo = coo.transform_to(lf)  # this can load finals2000A.all # doctest: +REMOTE_DATA +IGNORE_OUTPUT
     >>> lcoo  # doctest: +REMOTE_DATA +FLOAT_CMP
     <AltAz Coordinate (obstime=['2012-03-21T00:00:00.000' '2012-06-21T00:00:00.000'], location=(3980608.9024681724, -102.47522910648239, 4966861.273100675) m, pressure=0.0 hPa, temperature=0.0 deg_C, relative_humidity=0.0, obswl=1.0 micron): (az, alt) in deg

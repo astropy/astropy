@@ -167,7 +167,7 @@ class WCSAxes(Axes):
         world = coords._transform.transform(np.array([pixel]))[0]
 
         coord_strings = []
-        for idx, coord in enumerate(coords):
+        for coord in coords:
             if coord.coord_index is not None:
                 coord_strings.append(
                     coord.format_coord(world[coord.coord_index], format="ascii")
@@ -180,9 +180,7 @@ class WCSAxes(Axes):
         else:
             system = f"world, overlay {self._display_coords_index}"
 
-        coord_string = f"{coord_string} ({system})"
-
-        return coord_string
+        return f"{coord_string} ({system})"
 
     def _set_cursor_prefs(self, event, **kwargs):
         if event.key == "w":
@@ -299,16 +297,22 @@ class WCSAxes(Axes):
             frame0 = frame0.transform_to(native_frame)
 
             plot_data = []
-            for coord in self.coords:
-                if coord.coord_type == "longitude":
-                    plot_data.append(frame0.spherical.lon.to_value(coord.coord_unit))
-                elif coord.coord_type == "latitude":
-                    plot_data.append(frame0.spherical.lat.to_value(coord.coord_unit))
-                else:
-                    raise NotImplementedError(
-                        "Coordinates cannot be plotted with this "
-                        "method because the WCS does not represent longitude/latitude."
-                    )
+            coord_types = {coord.coord_type for coord in self.coords}
+            if "longitude" in coord_types and "latitude" in coord_types:
+                for coord in self.coords:
+                    if coord.coord_type == "longitude":
+                        plot_data.append(
+                            frame0.spherical.lon.to_value(coord.coord_unit)
+                        )
+                    elif coord.coord_type == "latitude":
+                        plot_data.append(
+                            frame0.spherical.lat.to_value(coord.coord_unit)
+                        )
+            else:
+                raise NotImplementedError(
+                    "Coordinates cannot be plotted with this "
+                    "method because the WCS does not represent longitude/latitude."
+                )
 
             if "transform" in kwargs.keys():
                 raise TypeError(
@@ -701,7 +705,7 @@ class WCSAxes(Axes):
         """
         Return a transform from the specified frame to display coordinates.
 
-        This does not include the transData transformation
+        This includes the transData transformation
 
         Parameters
         ----------
@@ -725,8 +729,10 @@ class WCSAxes(Axes):
                   world-to-pixel transformation used to instantiate the
                   ``WCSAxes`` instance).
                 * ``'fk5'`` or ``'galactic'``: return a transformation from
-                  the specified frame to the pixel/data coordinates.
+                  the specified frame to the pixel/data coordinates. In this
+                  case, the values are assumed to be in degrees.
                 * :class:`~astropy.coordinates.BaseCoordinateFrame` instance.
+                  In this case, the values are assumed to be in degrees.
         """
         return self._get_transform_no_transdata(frame).inverted() + self.transData
 
@@ -743,7 +749,11 @@ class WCSAxes(Axes):
             )
             transform_world2pixel = transform.inverted()
 
-            if self._transform_pixel2world.frame_out == transform_world2pixel.frame_in:
+            if (
+                self._transform_pixel2world.frame_out == transform_world2pixel.frame_in
+                and self._transform_pixel2world.units_out
+                == transform_world2pixel.units_in
+            ):
                 return self._transform_pixel2world + transform_world2pixel
 
             else:
@@ -751,7 +761,9 @@ class WCSAxes(Axes):
                     self._transform_pixel2world
                     + CoordinateTransform(
                         self._transform_pixel2world.frame_out,
+                        self._transform_pixel2world.units_out,
                         transform_world2pixel.frame_in,
+                        transform_world2pixel.units_in,
                     )
                     + transform_world2pixel
                 )
@@ -768,7 +780,10 @@ class WCSAxes(Axes):
 
             else:
                 coordinate_transform = CoordinateTransform(
-                    self._transform_pixel2world.frame_out, frame
+                    self._transform_pixel2world.frame_out,
+                    self._transform_pixel2world.units_out,
+                    frame,
+                    ["deg", "deg"],
                 )
 
                 if coordinate_transform.same_frames:
@@ -789,11 +804,7 @@ class WCSAxes(Axes):
         bb = [b for b in self._bboxes if b and (b.width != 0 or b.height != 0)]
         bb.append(super().get_tightbbox(renderer, *args, **kwargs))
 
-        if bb:
-            _bbox = Bbox.union(bb)
-            return _bbox
-        else:
-            return self.get_window_extent(renderer)
+        return Bbox.union(bb)
 
     def grid(self, b=None, axis="both", *, which="major", **kwargs):
         """

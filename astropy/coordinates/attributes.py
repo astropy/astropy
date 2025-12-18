@@ -5,6 +5,7 @@ import numpy as np
 
 # Project
 from astropy import units as u
+from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
 
@@ -200,8 +201,6 @@ class TimeAttribute(Attribute):
         ValueError
             If the input is not valid for this attribute.
         """
-        from astropy.time import Time
-
         if value is None:
             return None, False
 
@@ -275,8 +274,16 @@ class CartesianRepresentationAttribute(Attribute):
             return CartesianRepresentation(np.zeros(3) * self.unit), True
         else:
             # is it a CartesianRepresentation with correct unit?
+            try:
+                cartesian = value.to_cartesian()
+            except AttributeError:
+                converted = False
+            else:
+                converted = cartesian is not value
+                value = cartesian
+
             if hasattr(value, "xyz") and value.xyz.unit == self.unit:
-                return value, False
+                return value, converted
 
             converted = True
             # if it's a CartesianRepresentation, get the xyz Quantity

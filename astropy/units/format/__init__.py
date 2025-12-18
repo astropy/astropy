@@ -50,20 +50,15 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-def _known_formats() -> str:
-    in_out = [
-        name
+def known_formats() -> str:
+    return "Valid formatter names are: " + ", ".join(map(repr, Base.registry))
+
+
+def known_parsers() -> str:
+    return "Valid parser names are: " + ", ".join(
+        repr(name)
         for name, cls in Base.registry.items()
         if cls.parse.__func__ is not Base.parse.__func__
-    ]
-    out_only = [
-        name
-        for name, cls in Base.registry.items()
-        if cls.parse.__func__ is Base.parse.__func__
-    ]
-    return (
-        f"Valid formatter names are: {in_out} for input and output, "
-        f"and {out_only} for output only."
     )
 
 
@@ -83,17 +78,11 @@ def get_format(format: str | type[Base] | None = None) -> type[Base]:
     """
     if format is None:
         return Generic
-
+    if isinstance(format, str):
+        try:
+            return Base.registry[format.lower()]
+        except KeyError:
+            raise ValueError(f"Unknown format {format!r}.") from None
     if isinstance(format, type) and issubclass(format, Base):
         return format
-    elif not (isinstance(format, str) or format is None):
-        raise TypeError(
-            f"Expected a formatter name, not {format!r}.  {_known_formats()}."
-        )
-
-    format_lower = format.lower()
-
-    if format_lower in Base.registry:
-        return Base.registry[format_lower]
-
-    raise ValueError(f"Unknown format {format!r}.  {_known_formats()}")
+    raise TypeError(f"Expected a formatter name, not {format!r}.")

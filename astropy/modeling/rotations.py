@@ -24,7 +24,7 @@ from functools import reduce
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates.matrix_utilities import rotation_matrix
+from astropy.coordinates import rotation_matrix
 
 from .core import Model
 from .parameters import Parameter
@@ -53,8 +53,9 @@ def _create_matrix(angles, axes_order):
 def spherical2cartesian(alpha, delta):
     alpha = np.deg2rad(alpha)
     delta = np.deg2rad(delta)
-    x = np.cos(alpha) * np.cos(delta)
-    y = np.cos(delta) * np.sin(alpha)
+    cosd = np.cos(delta)
+    x = np.cos(alpha) * cosd
+    y = cosd * np.sin(alpha)
     z = np.sin(delta)
     return np.array([x, y, z])
 
@@ -191,8 +192,8 @@ class _EulerRotation:
         result = np.dot(matrix, inp)
         a, b = cartesian2spherical(*result)
         if shape is not None:
-            a.shape = shape
-            b.shape = shape
+            a = a.reshape(shape)
+            b = b.reshape(shape)
         return a, b
 
     _input_units_strict = True

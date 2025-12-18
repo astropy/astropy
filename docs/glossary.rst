@@ -77,9 +77,22 @@ Astropy Glossary
       :class:`~astropy.time.Time`, e.g. `str`, array-like[str], `~datetime.datetime`, or
       `~numpy.datetime64`.
 
+   trait type
+      In short, a trait type is a class with the following properties:
+
+      - It is a class that can be used as a mixin to add functionality to another class.
+      - It should never be instantiated directly.
+      - It should not be used as a base class for other classes, but only as a mixin.
+      - It can define methods, properties, and attributes -- any of which can be abstract.
+      - It can be generic, i.e. it can have type parameters.
+      - It can subclass other traits, but should have a linear MRO.
+
+      These are the same set of properties as orthogonal mixin classes, with the added
+      emphasis that they can serve as compiled types, if so enabled by a compilation system such as `mypyc <https://mypyc.readthedocs.io/en/latest/>`_.
+
    unit-like
-      :class:`~astropy.units.UnitBase` subclass instance or a string or other valid
-      initializer for :class:`~astropy.units.Unit`.
+      :class:`~astropy.units.UnitBase` subclass instance or a valid initializer for
+      :class:`~astropy.units.Unit`, e.g., `str` or scalar `~astropy.units.Quantity`.
 
 
 Optional Packages' Glossary

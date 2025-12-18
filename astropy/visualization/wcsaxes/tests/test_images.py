@@ -19,13 +19,13 @@ from astropy.coordinates import (
 )
 from astropy.io import fits
 from astropy.tests.figures import figure_test
-from astropy.utils import isiterable
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import Quadrangle, SphericalCircle
 from astropy.wcs import WCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS
 
 
 class BaseImageTests:
@@ -1171,6 +1171,16 @@ def test_1d_plot_1d_wcs_format_unit(wave_wcs_1d):
     return fig
 
 
+@figure_test
+def test_1d_plot_1d_wcs_get_transform(wave_wcs_1d):
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wave_wcs_1d)
+    ax.plot([100, 200, 300], [2, 3, 2], transform=ax.get_transform("world"))
+
+    return fig
+
+
 @pytest.fixture
 def spatial_wcs_2d():
     wcs = WCS(naxis=2)
@@ -1231,17 +1241,15 @@ def test_1d_plot_1d_sliced_low_level_wcs(
     """
     Test that a SLLWCS through a coupled 2D WCS plots as line OK.
     """
-    import matplotlib.pyplot as plt
-
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle[slices])
     (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
 
     # Draw to trigger rendering the ticks.
-    plt.draw()
+    canvas.draw()
 
     assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
-
     return fig
 
 
@@ -1261,17 +1269,15 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(
     change, and a set of lat ticks on the top because it does but it's the
     correlated axis not the actual one you are plotting against.
     """
-    import matplotlib.pyplot as plt
-
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle, slices=slices)
-    (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
+    ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
 
     # Draw to trigger rendering the ticks.
-    plt.draw()
+    canvas.draw()
 
     assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
-
     return fig
 
 
@@ -1464,14 +1470,14 @@ def test_nosimplify():
 @figure_test
 def test_custom_formatter(spatial_wcs_2d_small_angle):
     def double_format(value, **kwargs):
-        if isiterable(value):
+        if np.iterable(value):
             return [f"{(v * 2):.4f}" for v in value]
         else:
             return f"{(value * 2):.2f}"
 
     def fruit_format(value, **kwargs):
         fruits = ["apple", "pear", "banana", "orange", "kiwi", "grape"]
-        if isiterable(value):
+        if np.iterable(value):
             return (fruits * 10)[: len(value)]
         else:
             return "apple"
@@ -1482,4 +1488,87 @@ def test_custom_formatter(spatial_wcs_2d_small_angle):
     ax.coords[0].set_major_formatter(double_format)
     ax.coords[1].set_major_formatter(fruit_format)
     canvas.draw()
+    return fig
+
+
+class EquatorialArcsecWCS(BaseLowLevelWCS):
+    @property
+    def pixel_n_dim(self):
+        return 2
+
+    @property
+    def world_n_dim(self):
+        return 2
+
+    @property
+    def world_axis_physical_types(self):
+        return [
+            "pos.eq.ra",
+            "pos.eq.dec",
+        ]
+
+    @property
+    def world_axis_units(self):
+        return ["arcsec", "arcsec"]
+
+    @property
+    def world_axis_names(self):
+        return ["RA", "DEC"]
+
+    def pixel_to_world_values(self, *pixel_arrays):
+        return pixel_arrays
+
+    def world_to_pixel_values(self, *world_arrays):
+        return world_arrays
+
+    @property
+    def world_axis_object_components(self):
+        return [
+            ("celestial", 0, "spherical.lon.degree"),
+            ("celestial", 1, "spherical.lat.degree"),
+        ]
+
+    @property
+    def world_axis_object_classes(self):
+        return {
+            "celestial": (SkyCoord, (), {"unit": "deg"}),
+        }
+
+
+@figure_test
+def test_equatorial_arcsec():
+    wcs = EquatorialArcsecWCS()
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(projection=wcs)
+
+    ax.set_xlim(-0.5, 20 - 0.5)
+    ax.set_ylim(-0.5, 30 - 0.5)
+    return fig
+
+
+@figure_test
+def test_wcs_preserve_units():
+    # Test to make sure WCS with preserve_units=True works fine
+
+    header = fits.Header()
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CUNIT1"] = "arcsec"
+    header["CUNIT2"] = "arcsec"
+    header["CRVAL1"] = 20
+    header["CRVAL2"] = 20
+    header["CRPIX1"] = 1
+    header["CRPIX2"] = 1
+    header["CDELT1"] = -1
+    header["CDELT2"] = 1
+
+    wcs = WCS(header, preserve_units=True)
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    ax.set_xlim(-0.5, 30)
+    ax.set_ylim(-0.5, 20)
     return fig

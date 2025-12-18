@@ -1,22 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Functions related to Python runtime introspection."""
 
-from __future__ import annotations
-
 import inspect
 import os
 import sys
 from importlib import import_module, metadata
 from importlib.metadata import packages_distributions
-from typing import TYPE_CHECKING
+from types import FrameType, ModuleType
+from typing import Literal
 
 from packaging.version import Version
 
 from .decorators import deprecated
-
-if TYPE_CHECKING:
-    from types import FrameType, ModuleType
-    from typing import Literal
 
 __all__ = ["find_current_module", "isinstancemethod", "minversion", "resolve_name"]
 
@@ -228,7 +223,7 @@ def find_current_module(
 
     """
     frm = inspect.currentframe()
-    for i in range(depth):
+    for _ in range(depth):
         frm = frm.f_back
         if frm is None:
             return None

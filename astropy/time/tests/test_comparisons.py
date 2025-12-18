@@ -29,7 +29,10 @@ class TestTimeComparisons:
             (operator.le, "<="),
             (operator.lt, "<"),
         ):
-            with pytest.raises(TypeError):
+            with pytest.raises(
+                TypeError,
+                match=f"'{op_str}' not supported between instances of 'Time' and 'NoneType'",
+            ):
                 op(t1, None)
         # Keep == and != as they are specifically meant to test Time.__eq__
         # and Time.__ne__

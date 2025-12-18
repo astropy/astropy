@@ -1,15 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """The ShapedLikeNDArray mixin class and shape-related functions."""
 
-from __future__ import annotations
-
 import abc
 import numbers
+from collections.abc import Sequence
 from itertools import zip_longest
 from math import prod
-from typing import TYPE_CHECKING
+from types import EllipsisType
+from typing import Self, TypeVar
 
 import numpy as np
+from numpy.typing import NDArray
 
 from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.decorators import deprecated
@@ -30,14 +31,8 @@ __all__ = [
     "unbroadcast",
 ]
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from types import EllipsisType
-    from typing import Self, TypeVar
 
-    from numpy.typing import NDArray
-
-    DT = TypeVar("DT", bound=np.generic)
+DT = TypeVar("DT", bound=np.generic)
 
 
 class NDArrayShapeMethods:
@@ -164,6 +159,42 @@ class NDArrayShapeMethods:
         return self._apply("take", indices, axis=axis, mode=mode)
 
 
+def _combine_helper(func, arrays, axis, out, dtype):
+    """Get normalized axis and create empty output instance if needed."""
+    # Get the final shape by applying the function on arrays of bool with the
+    # same shapes as the input instance. This avoids having to write tests
+    # that the shapes match, etc.
+    empties = [np.empty(shape=np.shape(array), dtype=bool) for array in arrays]
+    shape = func(empties, axis=axis).shape
+    # Normalize the axis to [0, shape> for use in the implementations.
+    axis = normalize_axis_index(axis, len(shape))
+    # If needed, use the first instance as base to create a correctly shaped
+    # output array in which to store the result.
+    if out is None:
+        out = arrays[0]._apply(np.empty_like, shape=shape)
+    return axis, out
+
+
+def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
+    axis, out = _combine_helper(np.concatenate, arrays, axis, out, dtype)
+
+    offset = 0
+    for array in arrays:
+        n_el = array.shape[axis]
+        out[(slice(None),) * axis + (slice(offset, offset + n_el),)] = array
+        offset += n_el
+
+    return out
+
+
+def stack(arrays, axis=0, out=None, *, dtype=None, casting="same_kind"):
+    axis, out = _combine_helper(np.stack, arrays, axis, out, dtype)
+    for i, array in enumerate(arrays):
+        out[(slice(None),) * axis + (i,)] = array
+
+    return out
+
+
 class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
     """Mixin class to provide shape-changing methods.
 
@@ -282,9 +313,14 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         np.roll,
         np.delete,
     }
-
+    # TODO: use astropy.units.quantity_helpers.function_helpers.FunctionAssigner?
+    # Maybe better after moving that to astropy.utils, since Masked uses it too.
+    _CUSTOM_FUNCTIONS = {
+        np.concatenate: concatenate,
+        np.stack: stack,
+    }
     # Functions that themselves defer to a method. Those are all
-    # defined in np.core.fromnumeric, but exclude alen as well as
+    # defined in np._core.fromnumeric, but exclude alen as well as
     # sort and partition, which make copies before calling the method.
     _METHOD_FUNCTIONS = {
         getattr(np, name): {
@@ -320,12 +356,16 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
                 function in {np.atleast_1d, np.atleast_2d, np.atleast_3d}
                 and len(args) > 1
             ):
-                return tuple(function(arg, **kwargs) for arg in args)
+                seq_cls = list if NUMPY_LT_2_0 else tuple
+                return seq_cls(function(arg, **kwargs) for arg in args)
 
             if self is not args[0]:
                 return NotImplemented
 
             return self._apply(function, *args[1:], **kwargs)
+
+        elif function in self._CUSTOM_FUNCTIONS:
+            return self._CUSTOM_FUNCTIONS[function](*args, **kwargs)
 
         # For functions that defer to methods, use the corresponding
         # method/attribute if we have it.  Otherwise, fall through.

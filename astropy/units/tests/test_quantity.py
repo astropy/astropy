@@ -14,7 +14,6 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
-from astropy.utils import isiterable
 from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -1432,6 +1431,8 @@ class TestQuantityDisplay:
     @pytest.mark.parametrize(
         "q, expected",
         [
+            pytest.param(0 * u.imperial.deg_R, r"$0\mathrm{{}^{\circ}R}$", id="deg_R"),
+            pytest.param(5 * u.imperial.deg_F, r"$5\mathrm{{}^{\circ}F}$", id="deg_F"),
             pytest.param(10 * u.deg_C, r"$10\mathrm{{}^{\circ}C}$", id="deg_C"),
             pytest.param(20 * u.deg, r"$20\mathrm{{}^{\circ}}$", id="deg"),
             pytest.param(30 * u.arcmin, r"$30\mathrm{{}^{\prime}}$", id="arcmin"),
@@ -1675,11 +1676,11 @@ def test_quantity_iterability():
     """
 
     q1 = [15.0, 17.0] * u.m
-    assert isiterable(q1)
+    assert np.iterable(q1)
 
     q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
-    assert not isiterable(q2)
+    assert not np.iterable(q2)
     pytest.raises(TypeError, iter, q2)
 
 
@@ -2076,9 +2077,7 @@ class TestQuantitySubclassAboveAndBelow:
     def setup_class(cls):
         class MyArray(np.ndarray):
             def __array_finalize__(self, obj):
-                super_array_finalize = super().__array_finalize__
-                if super_array_finalize is not None:
-                    super_array_finalize(obj)
+                super().__array_finalize__(obj)
                 if hasattr(obj, "my_attr"):
                     self.my_attr = obj.my_attr
 

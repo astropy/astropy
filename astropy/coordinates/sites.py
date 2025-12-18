@@ -11,14 +11,20 @@ updating the ``location.json`` file.
 """
 
 import json
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from difflib import get_close_matches
+from typing import Any, Final, Self
 
 from astropy import units as u
 from astropy.utils.data import get_file_contents, get_pkg_data_contents
 
 from .earth import EarthLocation
 from .errors import UnknownSiteException
+
+# An EarthLocation instance for the tests that need one.
+_GREENWICH: Final = EarthLocation(
+    lon=-0.001475 * u.deg, lat=51.477811 * u.deg, height=46 * u.m
+)
 
 
 class SiteRegistry(Mapping):
@@ -31,13 +37,13 @@ class SiteRegistry(Mapping):
     be interpreted as the all lower-case version.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # the keys to this are always lower-case
-        self._lowercase_names_to_locations = {}
+        self._lowercase_names_to_locations: dict[str, EarthLocation] = {}
         # these can be whatever case is appropriate
-        self._names = []
+        self._names: list[str] = []
 
-    def __getitem__(self, site_name):
+    def __getitem__(self, site_name: str) -> EarthLocation:
         """
         Returns an EarthLocation for a known site in this registry.
 
@@ -51,30 +57,28 @@ class SiteRegistry(Mapping):
         site : `~astropy.coordinates.EarthLocation`
             The location of the observatory.
         """
-        if site_name.lower() not in self._lowercase_names_to_locations:
-            # If site name not found, find close matches and suggest them in error
-            close_names = get_close_matches(
-                site_name, self._lowercase_names_to_locations
-            )
-            close_names = sorted(close_names, key=len)
-
+        try:
+            return self._lowercase_names_to_locations[site_name.lower()]
+        except KeyError:
             raise UnknownSiteException(
-                site_name, "the 'names' attribute", close_names=close_names
-            )
+                site=site_name,
+                attribute="the 'names' attribute",
+                close_names=sorted(
+                    get_close_matches(site_name, self._lowercase_names_to_locations),
+                    key=len,
+                ),
+            ) from None
+        except AttributeError:
+            raise TypeError(f"site name {site_name!r} is not a 'str'") from None
 
-        return self._lowercase_names_to_locations[site_name.lower()]
-
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._lowercase_names_to_locations)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self._lowercase_names_to_locations)
 
-    def __contains__(self, site_name):
-        return site_name.lower() in self._lowercase_names_to_locations
-
     @property
-    def names(self):
+    def names(self) -> list[str]:
         """
         The names in this registry.  Note that these are *not* exactly the same
         as the keys: keys are always lower-case, while `names` is what you
@@ -87,7 +91,7 @@ class SiteRegistry(Mapping):
         """
         return sorted(self._names)
 
-    def add_site(self, names, locationobj):
+    def add_site(self, names: list[str], locationobj: EarthLocation) -> None:
         """
         Adds a location to the registry.
 
@@ -103,7 +107,7 @@ class SiteRegistry(Mapping):
             self._names.append(name)
 
     @classmethod
-    def from_json(cls, jsondb):
+    def from_json(cls, jsondb: Mapping[str, dict[str, Any]]) -> Self:
         reg = cls()
         for site in jsondb:
             site_info = jsondb[site].copy()
@@ -120,21 +124,10 @@ class SiteRegistry(Mapping):
             location.info.meta = site_info  # whatever is left
 
             reg.add_site([site] + aliases, location)
-
-        reg._loaded_jsondb = jsondb
         return reg
 
 
-def get_builtin_sites():
-    """
-    Load observatory database from data/observatories.json and parse them into
-    a SiteRegistry.
-    """
-    jsondb = json.loads(get_pkg_data_contents("data/sites.json"))
-    return SiteRegistry.from_json(jsondb)
-
-
-def get_downloaded_sites(jsonurl=None):
+def get_downloaded_sites(jsonurl: str | None = None) -> SiteRegistry:
     """
     Load observatory database from data.astropy.org and parse into a SiteRegistry.
     """

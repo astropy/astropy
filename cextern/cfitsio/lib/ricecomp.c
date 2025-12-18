@@ -928,6 +928,11 @@ extern const int nonzero_count[];
     /* first 4 bytes of input buffer contain the value of the first */
     /* 4 byte integer value, without any encoding */
     
+    if (clen < 4)
+    {
+       ffpmsg("decompression error: input buffer not properly allocated");
+       return 1;
+    }
     lastpix = 0;
     bytevalue = c[0];
     lastpix = lastpix | (bytevalue<<24);

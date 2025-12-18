@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 8.5 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2025, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
+  $Id: lin.c,v 8.5 2025/12/06 13:47:41 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -822,7 +822,13 @@ int linp2x(
         // Column-wise multiplication allows this to be cached.
         double temp = *(pix++) - lin->crpix[j];
         for (int i = 0; i < naxis; i++, piximg += naxis) {
-          img[i] += *piximg * temp;
+          if (*piximg != 0.0) {
+            // Skipped if *piximg == 0.0 in case temp is NaN, noting that
+            // zero * NaN = NaN.  Thus, if the PCij matrix is diagonal, this
+            // quarantines NaN coordinate elements of pixcrd[] from infecting
+            // non-NaN elements.
+            img[i] += *piximg * temp;
+          }
         }
       }
 
@@ -862,7 +868,11 @@ int linp2x(
         for (int i = 0; i < naxis; i++) {
           img[i] = 0.0;
           for (int j = 0; j < naxis; j++) {
-            img[i] += *(piximg++) * tmp[j];
+            if (*piximg != 0.0) {
+              // See comment above.
+              img[i] += *piximg * tmp[j];
+            }
+            piximg++;
           }
         }
       }
@@ -870,7 +880,7 @@ int linp2x(
       if (lin->disseq) {
         int status = disp2x(lin->disseq, img, tmp);
         if (status) {
-	  free(tmp);
+          free(tmp);
           return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
         }
 
@@ -949,7 +959,13 @@ int linx2p(
       for (int j = 0; j < naxis; j++) {
         *pix = 0.0;
         for (int i = 0; i < naxis; i++) {
-          *pix += *imgpix * img[i];
+          if (*imgpix != 0.0) {
+            // Skipped if *imgpix == 0.0 in case img[i] is NaN, noting that
+            // zero * NaN = NaN.  Thus, if the PCij matrix is diagonal, this
+            // quarantines NaN coordinate elements of imgcrd[] from infecting
+            // non-NaN elements.
+            *pix += *imgpix * img[i];
+          }
           imgpix++;
         }
 
@@ -1003,7 +1019,11 @@ int linx2p(
         for (int j = 0; j < naxis; j++) {
           pix[j] = lin->crpix[j];
           for (int i = 0; i < naxis; i++) {
-            pix[j] += *(imgpix++) * tmp[i];
+            if (*imgpix != 0.0) {
+              // See comment above.
+              pix[j] += *imgpix * tmp[i];
+            }
+            imgpix++;
           }
         }
       }

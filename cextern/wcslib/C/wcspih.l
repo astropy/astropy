@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 8.5 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2025, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcspih.l,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
+  $Id: wcspih.l,v 8.5 2025/12/06 13:47:41 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -2028,16 +2028,20 @@ static int wcspih_timepixr(double timepixr);
 	    BEGIN(COMMENT);
 	
 	  } else {
-	    // Copy the keyvalue minus the quotes.
-	    strncpy(strtmp, yytext+1, yyleng-2);
-	    strtmp[yyleng-2] = '\0';
+	    strtmp[0] = '\0';
+	    int nch = yyleng - 2;
+	    if (0 < nch && nch < 80) {
+	      // Copy the keyvalue minus the quotes.
+	      strncpy(strtmp, yytext+1, nch);
+	      strtmp[nch] = '\0';
 	
-	    // Strip off trailing blanks.
-	    for (int jx = yyleng-3; jx >= 0; jx--) {
-	      if (strtmp[jx] != ' ') {
-	        break;
+	      // Strip off trailing blanks.
+	      for (int jx = nch-1; jx >= 0; jx--) {
+	        if (strtmp[jx] != ' ') {
+	          break;
+	        }
+	        strtmp[jx] = '\0';
 	      }
-	      strtmp[jx] = '\0';
 	    }
 	
 	    // Squeeze out repeated quotes.

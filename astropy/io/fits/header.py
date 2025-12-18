@@ -8,7 +8,8 @@ import os
 import re
 import warnings
 
-from astropy.utils import isiterable
+import numpy as np
+
 from astropy.utils.exceptions import AstropyUserWarning
 
 from ._utils import parse_header
@@ -1862,7 +1863,7 @@ class Header:
             else:
                 indices = self._wildcardmatch(key)
 
-            if isinstance(value, str) or not isiterable(value):
+            if isinstance(value, str) or not np.iterable(value):
                 value = itertools.repeat(value, len(indices))
 
             for idx, val in zip(indices, value):
@@ -2080,7 +2081,7 @@ class _CardAccessor:
     def __eq__(self, other):
         # If the `other` item is a scalar we will still treat it as equal if
         # this _CardAccessor only contains one item
-        if not isiterable(other) or isinstance(other, str):
+        if not np.iterable(other) or isinstance(other, str):
             if len(self) == 1:
                 other = [other]
             else:
@@ -2108,7 +2109,7 @@ class _CardAccessor:
                 indices = range(*item.indices(len(self)))
             else:
                 indices = self._header._wildcardmatch(item)
-            if isinstance(value, str) or not isiterable(value):
+            if isinstance(value, str) or not np.iterable(value):
                 value = itertools.repeat(value, len(indices))
             for idx, val in zip(indices, value):
                 self[idx] = val

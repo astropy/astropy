@@ -329,10 +329,8 @@ Both :meth:`~astropy.coordinates.EarthLocation.of_site` and
 :meth:`~astropy.coordinates.EarthLocation.get_site_names`,
 `astropy.coordinates` attempt to access the site registry from the
 `astropy-data repository <https://github.com/astropy/astropy-data>`_ and will
-save the registry in the user's local cache (see :ref:`utils-data`).  If
-there is no local cache and Internet connection is not available, a built-in
-list (consisting of only the Greenwich Royal Observatory as an example case) is
-loaded. The cached version of the site registry is not updated automatically,
+save the registry in the user's local cache (see :ref:`utils-data`).
+The cached version of the site registry is not updated automatically,
 but the latest version may be downloaded using the ``refresh_cache=True``
 option of these methods. If you would like a site to be added to the registry,
 issue a pull request to the `astropy-data repository
@@ -502,8 +500,8 @@ representations, frames, and a high-level class. Representations
 classes are a particular way of storing a three-dimensional data point
 (or points), such as Cartesian coordinates or spherical polar
 coordinates. Frames are particular reference frames like FK5 or ICRS,
-which may store their data in different representations, but have well-
-defined transformations between each other. These transformations are
+which may store their data in different representations, but have
+well-defined transformations between each other. These transformations are
 all stored in the ``astropy.coordinates.frame_transform_graph``, and new
 transformations can be created by users. Finally, the high-level class
 (|SkyCoord|) uses the frame classes, but provides a more accessible
@@ -577,7 +575,7 @@ coordinate systems implemented here include:
 * `USNO Circular 179 <https://arxiv.org/abs/astro-ph/0602086>`_
     A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
     related problems in precision coordinate system work.
-* `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
+* `Standards Of Fundamental Astronomy <https://www.iausofa.org/>`_
     The definitive implementation of IAU-defined algorithms. The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.

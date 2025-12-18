@@ -1,7 +1,0 @@
-Previously the string representation of the ``solMass`` unit in the ``"cds"``
-format depended on whether the unit was imported directly from ``units`` or
-from ``units.cds``.
-Although both representations were valid according to the CDS standard, the
-inconsistency was nonetheless needlessly surprising.
-The representation of ``units.cds.solMass`` has been changed to match the
-representation of ``units.solMass``.

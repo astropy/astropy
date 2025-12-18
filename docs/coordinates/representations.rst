@@ -273,7 +273,7 @@ consider the following examples::
       [[(0.,  0.,  0.), (0.,   0., -2.), (0.,   3.,  0.)],
        [(0.,  0., -4.), (0.,  12.,  0.), (0., -12.,  4.)]]>
 
-  >>> from astropy.coordinates.matrix_utilities import rotation_matrix
+  >>> from astropy.coordinates import rotation_matrix
   >>> rotation = rotation_matrix(90 * u.deg, axis='z')
   >>> rotation  # doctest: +FLOAT_CMP
   array([[ 6.12323400e-17,  1.00000000e+00,  0.00000000e+00],
@@ -690,7 +690,7 @@ In pseudo-code, this means that a class will look like::
             "comp3": ComponentClass3,
         }
 
-	# __init__ is optional
+        # __init__ is optional
         def __init__(self, comp1, comp2, comp3, copy=True):
             super().__init__(comp1, comp2, comp3, copy=copy)
             ...
@@ -704,18 +704,18 @@ In pseudo-code, this means that a class will look like::
             ...
             return CartesianRepresentation(...)
 
-	# if differential motion is needed
-	def unit_vectors(self):
-	    ...
-	    return {'comp1': CartesianRepresentation(...),
-	            'comp2': CartesianRepresentation(...),
-		    'comp3': CartesianRepresentation(...)}
+        # if differential motion is needed
+        def unit_vectors(self):
+            ...
+            return {'comp1': CartesianRepresentation(...),
+                    'comp2': CartesianRepresentation(...),
+                    'comp3': CartesianRepresentation(...)}
 
         def scale_factors(self):
-	    ...
-	    return {'comp1': ...,
-	            'comp2': ...,
-		    'comp3': ...}
+            ...
+            return {'comp1': ...,
+                    'comp2': ...,
+                    'comp3': ...}
 
     class MyDifferential(BaseDifferential):
         base_representation = MyRepresentation

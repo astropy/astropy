@@ -35,7 +35,7 @@ class AxisLabels(Text):
             return self._minpad
 
     def set_visible_axes(self, visible_axes):
-        self._visible_axes = visible_axes
+        self._visible_axes = self._frame._validate_positions(visible_axes)
 
     def get_visible_axes(self):
         if self._visible_axes == "all":
@@ -50,7 +50,7 @@ class AxisLabels(Text):
         allowed = ["always", "labels", "ticks"]
         if value not in allowed:
             raise ValueError(
-                f"Axis label visibility rule must be one of{' / '.join(allowed)}"
+                f"Axis label visibility rule must be one of {' / '.join(allowed)}"
             )
 
         self._visibility_rule = value

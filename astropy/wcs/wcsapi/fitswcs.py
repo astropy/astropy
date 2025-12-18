@@ -14,7 +14,8 @@ from astropy.coordinates.spectral_coordinate import (
     attach_zero_velocities,
     update_differentials_to_match,
 )
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.units import allclose as quantity_allclose
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .high_level_api import HighLevelWCSMixin
 from .low_level_api import BaseLowLevelWCS
@@ -235,7 +236,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
     @property
     def pixel_shape(self):
-        if self._naxis == [0, 0]:
+        if all(i == 0 for i in self._naxis):
             return None
         else:
             return tuple(self._naxis)
@@ -243,7 +244,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
     @pixel_shape.setter
     def pixel_shape(self, value):
         if value is None:
-            self._naxis = [0, 0]
+            self._naxis = self.naxis * [0]
         else:
             if len(value) != self.naxis:
                 raise ValueError(
@@ -409,8 +410,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         )
 
         # If the cache is present, we need to check that the 'hash' matches.
-        if getattr(self, "_components_and_classes_cache", None) is not None:
-            cache = self._components_and_classes_cache
+        if (cache := getattr(self, "_components_and_classes_cache", None)) is not None:
             if cache[0] == wcs_hash:
                 return cache[1]
             else:
@@ -658,16 +658,46 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
                 kwargs["unit"] = self.wcs.cunit[ispec]
 
-                if self.wcs.restfrq > 0:
-                    if ctype == "VELO":
-                        kwargs["doppler_convention"] = "relativistic"
-                        kwargs["doppler_rest"] = self.wcs.restfrq * u.Hz
-                    elif ctype == "VRAD":
-                        kwargs["doppler_convention"] = "radio"
-                        kwargs["doppler_rest"] = self.wcs.restfrq * u.Hz
-                    elif ctype == "VOPT":
-                        kwargs["doppler_convention"] = "optical"
-                        kwargs["doppler_rest"] = self.wcs.restwav * u.m
+                # Make sure that if restfrq is defined and restwav is not or
+                # vice-versa, we define the other one. Typically if e.g.
+                # RESTFRQ is defined in the original FITS header, wcs.restwav
+                # is 0.
+
+                if ctype in ("VELO", "VRAD", "VOPT"):
+                    restfrq = self.wcs.restfrq
+                    restwav = self.wcs.restwav
+
+                    if restfrq > 0 or restwav > 0:
+                        if restwav == 0:
+                            restfrq = u.Quantity(restfrq, u.Hz)
+                            restwav = restfrq.to(u.m, u.spectral())
+                        elif restfrq == 0:
+                            restwav = u.Quantity(restwav, u.m)
+                            restfrq = restwav.to(u.Hz, u.spectral())
+                        else:
+                            restfrq = u.Quantity(restfrq, u.Hz)
+                            restwav = u.Quantity(restwav, u.m)
+                            restfrq_derived = restwav.to(u.Hz, u.spectral())
+                            if not quantity_allclose(
+                                restfrq, restfrq_derived, rtol=1e-4
+                            ):
+                                used = "restwav" if ctype == "VOPT" else "restfrq"
+                                warnings.warn(
+                                    f"restfrq={restfrq} and restwav={restwav}={restfrq_derived} "
+                                    f"are not consistent to rtol=1e-4, choosing {used}. In future, "
+                                    f"this will raise an exception.",
+                                    AstropyDeprecationWarning,
+                                )
+
+                        if ctype == "VELO":
+                            kwargs["doppler_convention"] = "relativistic"
+                            kwargs["doppler_rest"] = restfrq
+                        elif ctype == "VRAD":
+                            kwargs["doppler_convention"] = "radio"
+                            kwargs["doppler_rest"] = restfrq
+                        elif ctype == "VOPT":
+                            kwargs["doppler_convention"] = "optical"
+                            kwargs["doppler_rest"] = restwav
 
                 def spectralcoord_from_value(value):
                     if isinstance(value, SpectralCoord):

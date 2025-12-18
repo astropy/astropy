@@ -76,7 +76,7 @@ These IDs do not mean much, but we can find out more using::
    {'author.affiliation': 'Astrophysics Group, Bristol University',
     'author.email': 'm.b.taylor@bristol.ac.uk',
     'author.name': 'Mark Taylor',
-    'home.page': 'http://www.starlink.ac.uk/topcat/',
+    'home.page': 'https://www.star.bristol.ac.uk/mbt/topcat/',
     'samp.description.text': 'Tool for OPerations on Catalogues And Tables',
     'samp.documentation.url': 'http://127.0.0.1:2525/doc/sun253/index.html',
     'samp.icon.url': 'http://127.0.0.1:2525/doc/images/tc_sok.gif',

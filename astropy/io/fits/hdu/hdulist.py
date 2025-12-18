@@ -7,6 +7,7 @@ import re
 import shutil
 import sys
 import warnings
+from textwrap import indent
 
 import numpy as np
 
@@ -23,11 +24,9 @@ from astropy.io.fits.util import (
     isfile,
 )
 from astropy.io.fits.verify import VerifyError, VerifyWarning, _ErrList, _Verify
-from astropy.utils import indent
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 # NOTE: Python can be built without bz2.
-from astropy.utils.compat.optional_deps import HAS_BZ2
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import ExtensionHDU, _BaseHDU, _NonstandardHDU, _ValidHDU
@@ -35,9 +34,6 @@ from .compressed.compressed import CompImageHDU
 from .groups import GroupsHDU
 from .image import ImageHDU, PrimaryHDU
 from .table import BinTableHDU
-
-if HAS_BZ2:
-    import bz2
 
 __all__ = ["HDUList", "fitsopen"]
 
@@ -736,6 +732,10 @@ class HDUList(list, _Verify):
         if not isinstance(hdu, _BaseHDU):
             raise ValueError("HDUList can only append an HDU.")
 
+        # store BZERO and BSCALE if present
+        bzero = hdu.header.get("BZERO")
+        bscale = hdu.header.get("BSCALE")
+
         if len(self) > 0:
             if isinstance(hdu, GroupsHDU):
                 raise ValueError("Can't append a GroupsHDU to a non-empty HDUList")
@@ -745,7 +745,11 @@ class HDUList(list, _Verify):
                 # so create an Extension HDU from the input Primary HDU.
                 # TODO: This isn't necessarily sufficient to copy the HDU;
                 # _header_offset and friends need to be copied too.
-                hdu = ImageHDU(hdu.data, hdu.header)
+                hdu = ImageHDU(
+                    hdu.data,
+                    hdu.header,
+                    do_not_scale_image_data=hdu._do_not_scale_image_data,
+                )
         else:
             if not isinstance(hdu, (PrimaryHDU, _NonstandardHDU)):
                 # You passed in an Extension HDU but we need a Primary
@@ -753,13 +757,24 @@ class HDUList(list, _Verify):
                 # If you provided an ImageHDU then we can convert it to
                 # a primary HDU and use that.
                 if isinstance(hdu, ImageHDU):
-                    hdu = PrimaryHDU(hdu.data, hdu.header)
+                    hdu = PrimaryHDU(
+                        hdu.data,
+                        hdu.header,
+                        do_not_scale_image_data=hdu._do_not_scale_image_data,
+                    )
                 else:
                     # You didn't provide an ImageHDU so we create a
                     # simple Primary HDU and append that first before
                     # we append the new Extension HDU.
                     phdu = PrimaryHDU()
                     super().append(phdu)
+
+        # Add back BZERO and BSCALE if relevant
+        if getattr(hdu, "_do_not_scale_image_data", False):
+            if bzero is not None:
+                hdu.header["BZERO"] = bzero
+            if bscale is not None:
+                hdu.header["BSCALE"] = bscale
 
         super().append(hdu)
         hdu._new = True
@@ -1002,10 +1017,10 @@ class HDUList(list, _Verify):
 
         Notes
         -----
-        gzip, zip and bzip2 compression algorithms are natively supported.
+        gzip, zip, bzip2 and lzma compression algorithms are natively supported.
         Compression mode is determined from the filename extension
-        ('.gz', '.zip' or '.bz2' respectively).  It is also possible to pass a
-        compressed file object, e.g. `gzip.GzipFile`.
+        ('.gz', '.zip', '.bz2' or '.xz' respectively).  It is also possible to
+        pass a compressed file object, e.g. `gzip.GzipFile`.
         """
         if len(self) == 0:
             warnings.warn("There is nothing to write.", AstropyUserWarning)
@@ -1354,7 +1369,7 @@ class HDUList(list, _Verify):
             except (VerifyError, ValueError) as exc:
                 warnings.warn(
                     f"Error validating header for HDU #{len(self)} (note: Astropy "
-                    f"uses zero-based indexing).\n{indent(str(exc))}\n"
+                    f"uses zero-based indexing).\n{indent(str(exc), 4 * ' ')}\n"
                     "There may be extra bytes after the last HDU or the "
                     "file is corrupted.",
                     VerifyWarning,
@@ -1462,12 +1477,6 @@ class HDUList(list, _Verify):
             # original file, and rename the tmp file to the original file.
             if self._file.compression == "gzip":
                 new_file = gzip.GzipFile(name, mode="ab+")
-            elif self._file.compression == "bzip2":
-                if not HAS_BZ2:
-                    raise ModuleNotFoundError(
-                        "This Python installation does not provide the bz2 module."
-                    )
-                new_file = bz2.BZ2File(name, mode="w")
             else:
                 new_file = name
 

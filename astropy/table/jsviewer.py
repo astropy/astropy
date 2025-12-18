@@ -188,6 +188,37 @@ def write_table_jsviewer(
     htmldict=None,
     overwrite=False,
 ):
+    """
+    Write an Astropy Table to an HTML file with JavaScript viewer.
+
+    This function uses the JSViewer class to generate the necessary JavaScript
+    and CSS for displaying the table interactively in a web browser.
+
+    Parameters
+    ----------
+    table : Table
+        The Astropy Table to be written to an HTML file.
+    filename : str, Path
+        The name of the output HTML file.
+    table_id : str, optional
+        The HTML id attribute for the table. Defaults to ``f"table({id(table)}"``.
+    max_lines : int, optional
+        The maximum number of lines to include in the output table. Default is 5000.
+    table_class : str, optional
+        The CSS class for the table. Default is "display compact".
+    jskwargs : dict, optional
+        Additional keyword arguments to pass to the JSViewer.
+    css : str, optional
+        CSS styles to include in the HTML file. Default is `DEFAULT_CSS`.
+    htmldict : dict, optional
+        Additional HTML options passed to :class:`~astropy.io.ascii.HTML`.
+    overwrite : bool, optional
+        If True, overwrite the output file if it exists. Default is False.
+
+    Returns
+    -------
+    None
+    """
     if table_id is None:
         table_id = f"table{id(table)}"
 

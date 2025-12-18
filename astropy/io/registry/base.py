@@ -2,6 +2,7 @@
 
 import contextlib
 import re
+import sys
 import warnings
 from operator import itemgetter
 
@@ -187,10 +188,17 @@ class _UnifiedIORegistryBase:
         because the documentation of the corresponding ``read`` and ``write``
         methods are build every time.
 
+        This context manager has no effect when running Python in optimized mode
+        (-OO CLI flag).
+
         Examples
         --------
         see for example the source code of ``astropy.table.__init__``.
         """
+        if sys.flags.optimize >= 2:
+            yield
+            return
+
         self._delayed_docs_classes.add(cls)
 
         yield
@@ -323,8 +331,8 @@ class _UnifiedIORegistryBase:
         """``get_formats()``, without column "Data class", as a str."""
         format_table = self.get_formats(data_class, filter_on)
         format_table.remove_column("Data class")
-        format_table_str = "\n".join(format_table.pformat(max_lines=-1))
-        return format_table_str
+
+        return "\n".join(format_table.pformat(max_lines=-1))
 
     def _is_best_match(self, class1, class2, format_classes):
         """Determine if class2 is the "best" match for class1 in the list of classes.

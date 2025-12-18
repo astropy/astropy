@@ -9,28 +9,17 @@ from astropy.coordinates import EarthLocation, Latitude, Longitude, SkyCoord
 
 # test on frame with most complicated frame attributes.
 from astropy.coordinates.builtin_frames import GCRS, ICRS, AltAz
+from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.time import Time
-from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 
 
-@pytest.fixture(params=[True, False] if ARRAY_FUNCTION_ENABLED else [True])
+@pytest.fixture(params=[True, False])
 def method(request):
     return request.param
 
 
-needs_array_function = pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
-)
-
-
-class TestManipulation:
-    """Manipulation of Frame shapes.
-
-    Checking that attributes are manipulated correctly.
-
-    Even more exhaustive tests are done in time.tests.test_methods
-    """
-
+class ShapeSetup:
+    @classmethod
     def setup_class(cls):
         # For these tests, we set up frames and coordinates using copy=False,
         # so we can check that broadcasting is handled correctly.
@@ -82,6 +71,15 @@ class TestManipulation:
         )
         # And make a SkyCoord
         cls.sc = SkyCoord(ra=lon[:, np.newaxis], dec=lat, frame=cls.s3, copy=False)
+
+
+class TestManipulation(ShapeSetup):
+    """Manipulation of Frame shapes.
+
+    Checking that attributes are manipulated correctly.
+
+    Even more exhaustive tests are done in time.tests.test_methods
+    """
 
     def test_getitem0101(self):
         # We on purpose take a slice with only one element, as for the
@@ -329,9 +327,69 @@ class TestManipulation:
 
     # Much more detailed tests of shape manipulation via numpy functions done
     # in test_representation_methods.
-    @needs_array_function
     def test_broadcast_to(self):
         s1_broadcast = np.broadcast_to(self.s1, (20, 6, 7))
         assert s1_broadcast.shape == (20, 6, 7)
         assert np.all(s1_broadcast.data.lon == self.s1.data.lon[np.newaxis])
         assert np.may_share_memory(s1_broadcast.data.lat, self.s1.data.lat)
+
+
+class TestConcatenateFunctions(ShapeSetup):
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        # Override the SkyCoord to use the ICRS coordinate, since currently
+        # attributes cannot easily be concatenated or stacked.
+        cls.sc = SkyCoord(cls.s0)
+
+    def check(self, func, *args, **kwargs):
+        # Check assumes no different attributes, etc.
+        if not args:
+            args = ([self.s0, self.s0],)
+        out = func(*args, **kwargs)
+        # Here count on concatenation of representations working;
+        # it is tested in test_representation_methods.py
+        exp_data = func([a.data for a in args[0]], *args[1:], **kwargs)
+        if issubclass(exp_cls := args[0][0].__class__, SkyCoord):
+            exp = exp_cls(exp_data, frame=args[0][0].frame.replicate_without_data())
+        else:
+            exp = args[0][0].replicate_without_data().realize_frame(exp_data)
+        assert skycoord_equal(out, exp)
+
+    def test_concatenate(self):
+        self.check(np.concatenate)
+        self.check(np.concatenate, [self.sc, self.sc], axis=1)
+
+    def test_concatenate_errors(self):
+        # TODO: would be nice if the first two could work, but currently
+        # __setitem__ does a test on frame equivalence that fails.
+        with pytest.raises(ValueError):
+            self.check(np.concatenate, [self.s1, self.s1])
+        with pytest.raises(ValueError):
+            self.check(np.concatenate, [self.s2, self.s2])
+
+        with pytest.raises(ValueError, match="same number of dimensions"):
+            np.concatenate([self.s0, self.s0.replicate_without_data()])
+
+        with pytest.raises(TypeError, match="only set from object of same"):
+            np.concatenate([self.s0, self.s0.transform_to(GCRS())])
+
+    def test_hstack(self):
+        self.check(np.hstack)
+
+    def test_vstack(self):
+        self.check(np.vstack)
+
+    def test_dstack(self):
+        self.check(np.dstack)
+
+    def test_stack(self):
+        self.check(np.stack)
+        self.check(np.stack, axis=1)
+        self.check(np.stack, [self.sc, self.sc])
+        exp = np.stack([self.s0, self.s0])
+        out = exp._apply(np.zeros_like)
+        assert not skycoord_equal(exp, out)
+        chk = np.stack([self.s0, self.s0], out=out)
+        assert chk is out
+        assert skycoord_equal(out, exp)

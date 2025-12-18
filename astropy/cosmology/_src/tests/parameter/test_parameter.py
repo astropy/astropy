@@ -205,7 +205,7 @@ class TestParameter(ParameterTestMixin):
             param: Parameter = theparam.clone()
 
             @property
-            def is_flat(self):
+            def is_flat(self) -> bool:
                 return super().is_flat()
 
         # with validator
@@ -434,7 +434,7 @@ class TestParameter(ParameterTestMixin):
             param: Parameter = Parameter(unit=u.eV, equivalencies=u.mass_energy())
 
             @property
-            def is_flat(self):
+            def is_flat(self) -> bool:
                 return super().is_flat()
 
         assert Example(1).param == 1 * u.eV
