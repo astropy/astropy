@@ -390,7 +390,7 @@ class EarthLocation(u.Quantity):
         except UnknownSiteException as e:
             raise UnknownSiteException(
                 e.site, "EarthLocation.get_site_names", close_names=e.close_names
-            ) from e
+            ) from None
 
         if cls is el.__class__:
             return el
