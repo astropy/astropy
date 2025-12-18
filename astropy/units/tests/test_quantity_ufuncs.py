@@ -16,7 +16,7 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_3
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_0, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 if NUMPY_LT_2_0:
@@ -1131,9 +1131,6 @@ class TestWhere:
         assert result is out
         assert_array_equal(result, [1000.0, 1001.0, 1002.0, 0.0] << u.m)
 
-    @pytest.mark.xfail(
-        NUMPY_LT_1_25, reason="where array_ufunc support introduced in numpy 1.25"
-    )
     def test_exception_with_where_quantity(self):
         a = np.ones(2)
         where = np.ones(2, bool) << u.m

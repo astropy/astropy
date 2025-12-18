@@ -12,19 +12,13 @@ from astropy.coordinates import (
     SphericalRepresentation,
     UnitSphericalRepresentation,
 )
-from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 
 from .test_representation import representation_equal
 
 
-@pytest.fixture(params=[True, False] if ARRAY_FUNCTION_ENABLED else [True])
+@pytest.fixture(params=[True, False])
 def method(request):
     return request.param
-
-
-needs_array_function = pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
-)
 
 
 class ShapeSetup:
@@ -302,7 +296,6 @@ class TestSetShape(ShapeSetup):
 
 
 class TestShapeFunctions(ShapeSetup):
-    @needs_array_function
     def test_broadcast_to(self):
         s0_broadcast = np.broadcast_to(self.s0, (3, 6, 7))
         s0_diff = s0_broadcast.differentials["s"]
@@ -339,7 +332,6 @@ class TestShapeFunctions(ShapeSetup):
         sc.lon[0, 0] = 22.0 * u.hourangle
         assert np.all(sc_broadcast.lon[:, 0, 0] == 22.0 * u.hourangle)
 
-    @needs_array_function
     def test_atleast_1d(self):
         s00 = self.s0.ravel()[0]
         assert s00.ndim == 0
@@ -348,7 +340,6 @@ class TestShapeFunctions(ShapeSetup):
         assert np.all(representation_equal(s00[np.newaxis], s00_1d))
         assert np.may_share_memory(s00_1d.lon, s00.lon)
 
-    @needs_array_function
     def test_atleast_2d(self):
         s0r = self.s0.ravel()
         assert s0r.ndim == 1
@@ -357,7 +348,6 @@ class TestShapeFunctions(ShapeSetup):
         assert np.all(representation_equal(s0r[np.newaxis], s0r_2d))
         assert np.may_share_memory(s0r_2d.lon, s0r.lon)
 
-    @needs_array_function
     def test_atleast_3d(self):
         assert self.s0.ndim == 2
         s0_3d, s1_3d = np.atleast_3d(self.s0, self.s1)
@@ -380,25 +370,21 @@ class TestShapeFunctions(ShapeSetup):
         assert np.all(representation_equal(self.s0.T, s0_10))
         assert np.may_share_memory(s0_10.lon, self.s0.lon)
 
-    @needs_array_function
     def test_fliplr(self):
         s0_lr = np.fliplr(self.s0)
         assert np.all(representation_equal(self.s0[:, ::-1], s0_lr))
         assert np.may_share_memory(s0_lr.lon, self.s0.lon)
 
-    @needs_array_function
     def test_rot90(self):
         s0_270 = np.rot90(self.s0, 3)
         assert np.all(representation_equal(self.s0.T[:, ::-1], s0_270))
         assert np.may_share_memory(s0_270.lon, self.s0.lon)
 
-    @needs_array_function
     def test_roll(self):
         s0r = np.roll(self.s0, 1, axis=0)
         assert np.all(representation_equal(s0r[1:], self.s0[:-1]))
         assert np.all(representation_equal(s0r[0], self.s0[-1]))
 
-    @needs_array_function
     def test_delete(self):
         s0d = np.delete(self.s0, [2, 3], axis=0)
         assert np.all(representation_equal(s0d[:2], self.s0[:2]))

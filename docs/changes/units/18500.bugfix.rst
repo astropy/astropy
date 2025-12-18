@@ -1,4 +1,0 @@
-The string representations of the liter with the different ``astropy`` unit
-formatters are now more consistent with each other.
-This change only affects converting units to strings, it has no effect on
-parsing strings to units.

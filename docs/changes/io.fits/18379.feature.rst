@@ -1,3 +1,0 @@
-Allow reading a FITS file hosted on a cloud resource like Amazon S3 via
-``Table.read()``. This is done with a new ``fsspec_kwargs`` dict argument
-that gets passed through to ``fsspec`` to access cloud resources.

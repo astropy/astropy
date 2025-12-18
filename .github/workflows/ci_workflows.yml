@@ -63,12 +63,15 @@ jobs:
         apt:
           - language-pack-fr
           - tzdata
+
       envs: |
         # NOTE: this coverage test is needed for tests and code that
         #       run only with minimal dependencies.
         - name: Python 3.12 with minimal dependencies and full coverage
           linux: py312-test-cov
           coverage: codecov
+          cache-path: .tox
+          cache-key: mindeps-${{ github.ref_name }}
 
         - name: Python 3.12 in Parallel with all optional dependencies
           linux: py312-test-alldeps-fitsio
@@ -80,6 +83,8 @@ jobs:
               - libcfitsio-dev
           toxargs: -v --develop
           posargs: -n=4 --run-slow
+          cache-path: .tox
+          cache-key: alldeps-linux-${{ github.ref_name }}
 
         - name: Python 3.11 with oldest supported version of all dependencies
           linux: py311-test-oldestdeps-alldeps-cov-clocale
@@ -89,11 +94,15 @@ jobs:
         - name: Python 3.12 with all optional dependencies (Windows)
           windows: py312-test-alldeps
           posargs: --durations=50
+          cache-path: .tox
+          cache-key: alldeps-windows-${{ github.ref_name }}
 
         - name: Python 3.12 with all optional dependencies (MacOS X)
           macos: py312-test-alldeps
           posargs: --durations=50 --run-slow
           runs-on: macos-latest
+          cache-path: .tox
+          cache-key: alldeps-macos-${{ github.ref_name }}
 
         # FIXME: Add aarch64 to name when bump Python version.
         - name: Python 3.11 Double test (Run tests twice)
@@ -103,6 +112,8 @@ jobs:
           setenv: |
             ARCH_ON_CI: "arm64"
             IS_CRON: "false"
+          cache-path: .tox
+          cache-key: doubletest-${{ github.ref_name }}
 
   allowed_failures:
     needs: [initial_checks]
@@ -134,6 +145,8 @@ jobs:
       envs: |
         - name: Stubs for unit definition modules
           linux: stubtest
+          cache-path: .tox
+          cache-key: stub_tests-${{ github.ref_name }}
 
   test_wheel_building:
     needs: [initial_checks]
@@ -165,7 +178,7 @@ jobs:
     name: Python 3.11 (build only, partial) with limited API (${{ matrix.os }})
     needs: [initial_checks]
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
         with:
           persist-credentials: false
           fetch-depth: 0

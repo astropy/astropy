@@ -20,8 +20,8 @@ from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_mask
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
 # Differential classes so that they are all registered automatically.
-REPRESENTATION_CLASSES = {}
-DIFFERENTIAL_CLASSES = {}
+REPRESENTATION_CLASSES: dict[str, type["BaseRepresentation"]] = {}
+DIFFERENTIAL_CLASSES: dict[str, type["BaseDifferential"]] = {}
 # set for tracking duplicates
 DUPLICATE_REPRESENTATIONS = set()
 
@@ -654,7 +654,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     info = RepresentationInfo()
     # Ensure _differentials always exists.
-    _differentials = {}
+    _differentials: dict[str, "BaseDifferential"] = {}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)  # sets `cls.name`

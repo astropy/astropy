@@ -1,1 +1,0 @@
-It is now possible to check the existence of ``Columns`` in ``ColDefs`` by using the membership operator.

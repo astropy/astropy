@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 
 from astropy.time import Time, TimeDelta
-from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 
 
 class TestFunctionsTime:
@@ -42,9 +41,6 @@ class TestFunctionsTimeDelta(TestFunctionsTime):
         self.check(func, axis=axis)
 
 
-@pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
-)
 @pytest.mark.parametrize("attribute", ["shape", "ndim", "size"])
 @pytest.mark.parametrize(
     "t",

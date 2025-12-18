@@ -43,9 +43,9 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.24",
+    "numpy>=1.25",
     "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
-    "astropy-iers-data>=0.2025.10.27.0.39.10",
+    "astropy-iers-data>=0.2025.12.1.0.45.12",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
 ]
@@ -53,7 +53,7 @@ dependencies = [
 [project.optional-dependencies]
 # Recommended run-time dependencies to enable a lot of functionality within Astropy.
 recommended = [
-    "scipy>=1.9.2",
+    "scipy>=1.10",
     "matplotlib>=3.8.0",
     "narwhals>=1.42.0",  # keep in sync with dependency-groups.dataframe
 ]
@@ -72,7 +72,7 @@ jupyter = [  # these are optional dependencies for utils.console and table
     # jupyter-core is a transitive dependency via ipykernel, we declare it as
     # a direct dependency in order to set a lower bound for oldest-deps testing
     "jupyter-core>=4.11.2",
-    "pandas>=2.0.0",
+    "pandas>=2.0.2",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
@@ -92,7 +92,7 @@ all = [
     "pytz>=2016.10", # (older versions may work)
     "jplephem>=2.17.0",
     "mpmath>=1.2.1",
-    "asdf-astropy>=0.3",
+    "asdf-astropy>=0.7.0",
     "bottleneck>=1.3.3",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
@@ -121,7 +121,7 @@ test_all = [
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 ]
 typing = [
-    "pandas-stubs>=2.0.0",
+    "pandas-stubs>=2.0.2",
     "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
 ]
 docs = [
@@ -184,7 +184,7 @@ dataframe = [
     # and project.optional-dependencies.typing
     "narwhals>=1.42.0",
     "pyarrow>=14.0.2",
-    "pandas>=2.0.0",
+    "pandas>=2.0.2",
     "polars>=1.0.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0"
@@ -234,12 +234,14 @@ doctest_plus = "enabled"
 text_file_format = "rst"
 remote_data_strict = true
 addopts = [
+    # keep in sync with tox.ini (oldestdeps's PYTEST_ADDOPTS)
     "--doctest-rst",
     "--strict-config",
     "--strict-markers",
     "-p no:legacypath",
 ]
 log_cli_level = "info"
+log_level = "INFO"
 xfail_strict = true
 filterwarnings = [
     "error",
@@ -733,16 +735,70 @@ ignore-words-list = """
 # with binary distributions even with --resolution=lowest[-direct]
 no-build-package = [
     "bottleneck",
-    "contourpy",
     "coverage",
     "h5py",
     "numpy",
-    "matplotlib",
     "pandas",
-    "pillow",
     "polars",
+    "requests",
     "scipy",
     "sgp4",
+
+    # via jsonschema v4.0.1 via asdf v2.15.0 via asdf-astropy v0.8.0
+    "pyrsistent", # can be removed once we drop asdf-astropy<=0.8 https://github.com/astropy/asdf-astropy/pull/297
+
+    # via fsspec
+    "aiohttp",
+    "frozenlist", # indirect (via aiohttp)
+
+    # via ipython
+    "backcall", # can be removed once ipython<8.17 is dropped
+    "pickleshare", # can be removed once ipython<8.17 is dropped
+    "ptyprocess", # indirect (via pexpect 4.3.1) https://github.com/pexpect/pexpect/pull/822
+    "pure-eval", # indirect (via stack-data 0.6.0) https://github.com/alexmojaki/stack_data/pull/61
+    "wcwidth", # indirect (via w 3.0.41) https://github.com/prompt-toolkit/python-prompt-toolkit/pull/2036
+    "path.py", # indirect (via pickleshare 0.6) # can be removed once ipython<8.17 is dropped
+
+    # via ipywidgets
+    "jinja2", # indirect (via nbconvert 4.0.0 and notebook 4.0.1)
+    "mistune", # indirect (via nbconvert 4.0.0)
+    "terminado", # indirect (via notebook 4.0.1 via widgetsnbextension 3.6.0)
+    "markupsafe", # indirect (via jinja2 2.11.3)
+
+    # via ipykernel
+    "appnope",
+    "psutil",
+    "pyzmq",
+    "tornado",
+
+    # via matplotlib
+    "contourpy",
+    "kiwisolver",
+    "matplotlib",
+    "pillow",
+    "pyparsing",
+
+    # via dask
+    "locket", # indirect (via partd 1.4.0)
+    "toolz",
+
+    # via bleach and html5lib (both unmaintained)
+    "webencodings",
+
+    # via s3fs
+    "wrapt", # indirect (via aiobotocore 2.5.0)
+    "yarl", # indirect (via aiohttp 3.8.3 via aiobotocore 2.5.0)
+    "multidict", # indirect (via aiohttp 3.8.3 via aiobotocore 2.5.0)
+
+    # via sphinx-astropy
+    "numpydoc",
+
+    # the following *may* be visited during env resolution, although
+    # they are not expected to land in the final solution,
+    # even with --resolution=lowest
+    "cffi",
+    "py",
+    "joblib",
 ]
 
 # ensure that uv resolves envs that are compatible with macOS arm64,
@@ -777,4 +833,20 @@ constraint-dependencies = [
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
     "typing_extensions>=4.6; python_version<'3.12'",
+
+    # via ipython (can be removed once ipython<8.17 is dropped)
+    "pickleshare>=0.7.5",
+
+    # via beautifulsoup4
+    # can be dropped once we only support versions of pandas
+    # requiring beautifulsoup4>=4.14.3
+    "soupsieve>=1.6.1",
+
+    # via matplotlib
+    # can be removed once mpl>=3.10.7 is min
+    "pyparsing>=2.4.0",
+
+    # via dask
+    "toolz>=0.12.0", # can be removed once dask<=2025.11.0 is dropped
+    "cloudpickle>=2.1.0", # can be removed once dask<2024.8.1 is dropped
 ]

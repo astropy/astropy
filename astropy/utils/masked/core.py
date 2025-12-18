@@ -987,12 +987,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     axis = kwargs.get("axis", 0)
                     mask = np.logical_or.accumulate(mask, axis=axis, out=out_mask)
 
-            elif out is None:
-                # Can only get here if neither input nor output was masked, but
-                # perhaps where was masked (possible in "not NUMPY_LT_1_25").
-                # We don't support this.
-                return NotImplemented
-
         elif method in {"reduceat", "at"}:  # pragma: no cover
             raise NotImplementedError(
                 "masked instances cannot yet deal with 'reduceat' or 'at'."

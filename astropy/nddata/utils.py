@@ -4,9 +4,12 @@ This module includes helper functions for array operations.
 """
 
 import functools
+from collections.abc import Callable
 from copy import deepcopy
+from typing import Literal, TypeAlias, TypeVar, overload
 
 import numpy as np
+from numpy.typing import NDArray
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -26,6 +29,10 @@ __all__ = [
 ]
 
 
+DT = TypeVar("DT", bound=np.generic)
+LimitRoundingMethod: TypeAlias = Callable[[float], float]
+
+
 class NoOverlapError(ValueError):
     """Raised when determining the overlap of non-overlapping arrays."""
 
@@ -35,13 +42,13 @@ class PartialOverlapError(ValueError):
 
 
 def overlap_slices(
-    large_array_shape,
-    small_array_shape,
-    position,
-    mode="partial",
+    large_array_shape: int | tuple[int, ...],
+    small_array_shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"] = "partial",
     *,
-    limit_rounding_method=np.ceil,
-):
+    limit_rounding_method: LimitRoundingMethod = np.ceil,
+) -> tuple[tuple[slice, ...], tuple[slice, ...]]:
     """
     Get slices for the overlapping part of a small and a large array.
 
@@ -172,6 +179,32 @@ def overlap_slices(
     return slices_large, slices_small
 
 
+@overload
+def extract_array(
+    array_large: NDArray[DT],
+    shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"],
+    fill_value: float,
+    return_position: Literal[True],
+    *,
+    limit_rounding_method: LimitRoundingMethod = np.ceil,
+) -> tuple[NDArray[DT], tuple[float, ...]]: ...
+
+
+@overload
+def extract_array(
+    array_large: NDArray[DT],
+    shape: int | tuple[int, ...],
+    position: float | tuple[float, ...],
+    mode: Literal["partial", "trim", "strict"] = "partial",
+    fill_value: float = np.nan,
+    return_position: Literal[False] = False,
+    *,
+    limit_rounding_method: LimitRoundingMethod = np.ceil,
+) -> NDArray[DT]: ...
+
+
 def extract_array(
     array_large,
     shape,
@@ -295,7 +328,13 @@ def extract_array(
         return extracted_array
 
 
-def add_array(array_large, array_small, position, *, limit_rounding_method=np.ceil):
+def add_array(
+    array_large: NDArray[DT],
+    array_small: NDArray[DT],
+    position: tuple[float, ...],
+    *,
+    limit_rounding_method: LimitRoundingMethod = np.ceil,
+) -> NDArray[DT]:
     """
     Add a smaller array at a given position in a larger array.
 
@@ -593,7 +632,7 @@ class Cutout2D:
         fill_value=np.nan,
         copy=False,
         *,
-        limit_rounding_method=np.ceil,
+        limit_rounding_method: LimitRoundingMethod = np.ceil,
     ):
         if wcs is None:
             wcs = getattr(data, "wcs", None)

@@ -1,1 +1,0 @@
-The ``interpret_bit_flags`` function now strips whitespace from flag names.

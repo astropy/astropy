@@ -1,0 +1,1 @@
+Upgraded WCSLIB to version 8.5, fixing NaN handling in ``linp2x()`` and ``linx2p()``. For a full list of changes - see ``astropy/cextern/wcslib/CHANGES``.
