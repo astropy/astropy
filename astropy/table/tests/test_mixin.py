@@ -698,11 +698,8 @@ def test_skycoord_representation():
 
 
 def test_ndarray_mixin():
-    """
-    Test directly adding a plain structured array into a table instead of the
-    view as an NdarrayMixin.  Once added as an NdarrayMixin then all the previous
-    tests apply.
-    """
+    """Structured ndarrays become plain Columns unless explicitly viewed."""
+
     a = np.array([(1, 'a'), (2, 'b'), (3, 'c'), (4, 'd')],
                  dtype='<i4,' + ('|U1'))
     b = np.array([(10, 'aa'), (20, 'bb'), (30, 'cc'), (40, 'dd')],
@@ -711,43 +708,27 @@ def test_ndarray_mixin():
                            names=['rx', 'ry'])
     d = np.arange(8, dtype='i8').reshape(4, 2).view(NdarrayMixin)
 
-    # Add one during initialization and the next as a new column.
+    # Add one during initialization and the next as new columns.
     t = Table([a], names=['a'])
     t['b'] = b
     t['c'] = c
     t['d'] = d
 
-    assert isinstance(t['a'], NdarrayMixin)
+    for name, arr in (('a', a), ('b', b), ('c', c)):
+        col = t[name]
+        assert isinstance(col, Column)
+        assert col.dtype == arr.dtype
+        assert np.array_equal(col, arr)
 
-    assert t['a'][1][1] == a[1][1]
-    assert t['a'][2][0] == a[2][0]
+        # Row-first access keeps the structured dtype
+        row = t[1][name]
+        for field in arr.dtype.names:
+            assert col[1][field] == arr[field][1]
+            assert row[field] == arr[field][1]
 
-    assert t[1]['a'][1] == a[1][1]
-    assert t[2]['a'][0] == a[2][0]
-
-    assert isinstance(t['b'], NdarrayMixin)
-
-    assert t['b'][1]['x'] == b[1]['x']
-    assert t['b'][1]['y'] == b[1]['y']
-
-    assert t[1]['b']['x'] == b[1]['x']
-    assert t[1]['b']['y'] == b[1]['y']
-
-    assert isinstance(t['c'], NdarrayMixin)
-
-    assert t['c'][1]['rx'] == c[1]['rx']
-    assert t['c'][1]['ry'] == c[1]['ry']
-
-    assert t[1]['c']['rx'] == c[1]['rx']
-    assert t[1]['c']['ry'] == c[1]['ry']
-
+    # Explicit NdarrayMixin view still produces a mixin column
     assert isinstance(t['d'], NdarrayMixin)
-
-    assert t['d'][1][0] == d[1][0]
-    assert t['d'][1][1] == d[1][1]
-
-    assert t[1]['d'][0] == d[1][0]
-    assert t[1]['d'][1] == d[1][1]
+    assert np.array_equal(t['d'], d)
 
     assert t.pformat(show_dtype=True) == [
         '  a [f0, f1]     b [x, y]      c [rx, ry]      d    ',
@@ -757,6 +738,78 @@ def test_ndarray_mixin():
         "     (2, 'b')    (20, 'bb')   (200., 'rbb')   2 .. 3",
         "     (3, 'c')    (30, 'cc')   (300., 'rcc')   4 .. 5",
         "     (4, 'd')    (40, 'dd')   (400., 'rdd')   6 .. 7"]
+
+
+def _structured_sample():
+    return np.array([(1, 2.0), (3, 4.5)], dtype=[('x', 'i4'), ('y', 'f8')])
+
+
+def test_structured_add_column_becomes_column():
+    t = Table()
+    struct = _structured_sample()
+    t.add_column(struct, name='a')
+
+    assert isinstance(t['a'], Column)
+    assert t['a'].dtype == struct.dtype
+    assert np.array_equal(t['a'], struct)
+
+
+def test_structured_setitem_becomes_column():
+    t = Table()
+    struct = _structured_sample()
+    t['b'] = struct
+
+    assert isinstance(t['b'], Column)
+    assert np.array_equal(t['b'], struct)
+
+
+def test_structured_replace_column_becomes_column():
+    t = Table()
+    t['base'] = Column([10, 20], name='base')
+    struct = _structured_sample()
+
+    t.replace_column('base', struct)
+
+    assert isinstance(t['base'], Column)
+    assert t['base'].dtype == struct.dtype
+    assert np.array_equal(t['base'], struct)
+
+
+def test_structured_constructor_list_of_columns():
+    a = _structured_sample()
+    b = np.array([(5, 'x'), (6, 'y')], dtype=[('col', 'i2'), ('label', 'U1')])
+
+    t = Table([a, b], names=['a', 'b'])
+
+    for name, arr in (('a', a), ('b', b)):
+        assert isinstance(t[name], Column)
+        assert t[name].dtype == arr.dtype
+        assert np.array_equal(t[name], arr)
+
+
+def test_structured_constructor_splits_fields():
+    struct = np.array([(1, 2.0), (3, 4.5)], dtype=[('x', 'i4'), ('y', 'f8')])
+
+    t = Table(struct)
+
+    assert list(t.colnames) == ['x', 'y']
+    assert np.array_equal(t['x'], struct['x'])
+    assert np.array_equal(t['y'], struct['y'])
+
+
+def test_structured_column_ecsv_roundtrip(tmp_path):
+    struct = _structured_sample()
+    t = Table()
+    t['a'] = struct
+
+    path = tmp_path / 'structured.ecsv'
+    t.write(path, format='ascii.ecsv', overwrite=True)
+
+    t2 = Table.read(path, format='ascii.ecsv')
+
+    assert isinstance(t2['a'], Column)
+    assert t2['a'].dtype == struct.dtype
+    assert np.array_equal(t2['a'], struct)
 
 
 def test_possible_string_format_functions():
