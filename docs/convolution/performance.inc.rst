@@ -12,3 +12,9 @@ The :func:`~astropy.convolution.convolve` function is best suited to small
 kernels, and can become very slow for larger kernels. In this case, consider
 using :func:`~astropy.convolution.convolve_fft` (though note that this function
 uses more memory, and consider the different padding options).
+
+For 2D separable kernels (for example, many Gaussian kernels), ``convolve`` now
+uses two 1D passes when the kernel is strictly separable and
+``nan_treatment='fill'``, which can yield large speedups for larger kernels.
+When ``nan_treatment='interpolate'`` is requested or the kernel is not
+separable, the original full 2D path is used.
