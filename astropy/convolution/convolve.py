@@ -120,6 +120,83 @@ def _copy_input_if_needed(
     return output
 
 
+def _pad_slice(pad):
+    return slice(pad, -pad) if pad > 0 else slice(None)
+
+
+def _box_sum_1d(array, kx, dtype=None):
+    summed = np.cumsum(array, dtype=dtype)
+    summed = np.concatenate((np.zeros(1, dtype=summed.dtype), summed))
+    return summed[kx:] - summed[:-kx]
+
+
+def _box_sum_2d(array, kx, ky, dtype=None):
+    summed = np.cumsum(array, axis=0, dtype=dtype)
+    summed = np.cumsum(summed, axis=1, dtype=dtype)
+    summed = np.pad(summed, ((1, 0), (1, 0)), mode="constant")
+    return summed[kx:, ky:] - summed[:-kx, ky:] - summed[kx:, :-ky] + summed[:-kx, :-ky]
+
+
+def _box_sum_3d(array, kx, ky, kz, dtype=None):
+    summed = np.cumsum(array, axis=0, dtype=dtype)
+    summed = np.cumsum(summed, axis=1, dtype=dtype)
+    summed = np.cumsum(summed, axis=2, dtype=dtype)
+    summed = np.pad(summed, ((1, 0), (1, 0), (1, 0)), mode="constant")
+    return (
+        summed[kx:, ky:, kz:]
+        - summed[:-kx, ky:, kz:]
+        - summed[kx:, :-ky, kz:]
+        - summed[kx:, ky:, :-kz]
+        + summed[:-kx, :-ky, kz:]
+        + summed[:-kx, ky:, :-kz]
+        + summed[kx:, :-ky, :-kz]
+        - summed[:-kx, :-ky, :-kz]
+    )
+
+
+def _box_convolve_constant_kernel(
+    array,
+    kernel_shape,
+    kernel_value,
+    nan_interpolate,
+    embed_result_within_padded_region,
+):
+    ndim = array.ndim
+    if ndim == 1:
+        sum_func = _box_sum_1d
+    elif ndim == 2:
+        sum_func = _box_sum_2d
+    elif ndim == 3:
+        sum_func = _box_sum_3d
+    else:
+        return None
+
+    pad_width = tuple(k // 2 for k in kernel_shape)
+    center_slices = tuple(_pad_slice(pad) for pad in pad_width)
+
+    if nan_interpolate:
+        valid = ~np.isnan(array)
+        clean = np.where(valid, array, 0.0)
+        sum_vals = sum_func(clean, *kernel_shape, dtype=float)
+        count = sum_func(valid.astype(np.int64), *kernel_shape, dtype=np.int64)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            result_window = sum_vals / count
+        center_vals = array[center_slices]
+        zero_count = count == 0
+        if np.any(zero_count):
+            result_window[zero_count] = center_vals[zero_count]
+    else:
+        sum_vals = sum_func(array, *kernel_shape, dtype=float)
+        result_window = sum_vals * kernel_value
+
+    if embed_result_within_padded_region:
+        result = np.zeros(array.shape, dtype=float)
+        result[center_slices] = result_window
+        return result
+
+    return result_window
+
+
 @support_nddata(data="array")
 def convolve(
     array,
@@ -356,10 +433,6 @@ def convolve(
         if nan_treatment == "fill":
             array_internal[initially_nan] = fill_value
 
-    # Avoid any memory allocation within the C code. Allocate output array
-    # here and pass through instead.
-    result = np.zeros(array_internal.shape, dtype=float, order="C")
-
     embed_result_within_padded_region = True
     array_to_convolve = array_internal
     if boundary in ("fill", "extend", "wrap"):
@@ -406,14 +479,34 @@ def convolve(
                 array_internal, pad_width=np_pad_width, mode=np_pad_mode
             )
 
-    _convolveNd_c(
-        result,
-        array_to_convolve,
-        kernel_internal,
-        nan_interpolate,
-        embed_result_within_padded_region,
-        n_threads,
+    kernel_value = kernel_internal.flat[0]
+    use_box_kernel = np.isfinite(kernel_value) and np.all(
+        kernel_internal == kernel_value
     )
+
+    if use_box_kernel:
+        result = _box_convolve_constant_kernel(
+            array_to_convolve,
+            kernel_internal.shape,
+            kernel_value,
+            nan_interpolate,
+            embed_result_within_padded_region,
+        )
+        if result is None:
+            use_box_kernel = False
+
+    if not use_box_kernel:
+        # Avoid any memory allocation within the C code. Allocate output array
+        # here and pass through instead.
+        result = np.zeros(array_internal.shape, dtype=float, order="C")
+        _convolveNd_c(
+            result,
+            array_to_convolve,
+            kernel_internal,
+            nan_interpolate,
+            embed_result_within_padded_region,
+            n_threads,
+        )
 
     # So far, normalization has only occurred for nan_treatment == 'interpolate'
     # because this had to happen within the C extension so as to ignore
