@@ -564,6 +564,12 @@ astropy.wcs
 Performance Improvements
 ------------------------
 
+astropy.convolution
+^^^^^^^^^^^^^^^^^^^
+
+- Improved performance of ``convolve`` for separable 2D kernels by using two 1D
+  passes when the kernel is strictly separable.
+
 astropy.modeling
 ^^^^^^^^^^^^^^^^
 
