@@ -68,7 +68,7 @@ jobs:
           - name: Python 3.13 with dev version of infrastructure dependencies
             os: ubuntu-latest
             python: '3.13'
-            toxenv: py313-test-devinfra
+            toxenv: py313-test-devpytest
 
           - name: Python 3.13t (free-threading) with recommended dependencies
             os: ubuntu-latest
