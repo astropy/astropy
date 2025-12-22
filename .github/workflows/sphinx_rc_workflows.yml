@@ -1,5 +1,6 @@
 name: Sphinx RC testing
 
+ # We do not run this from cron as the Sphinx RC period is very short, but do trigger it manually when necessary.
 on:
   workflow_dispatch:
   # REMOVE ME BEFORE MERGE!
