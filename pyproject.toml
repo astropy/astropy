@@ -43,7 +43,7 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.25",
+    "numpy>=1.25",  # keep in sync with dependency-groups.datafram until gh-18782 is resolved
     "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
     "astropy-iers-data>=0.2025.12.1.0.45.12",
     "PyYAML>=6.0.0",
@@ -179,6 +179,7 @@ build-backend = "setuptools.build_meta"
 # a dev-only set of *tested* import/export target dataframe implementations
 # that can be converted to and from via narwhals
 dataframe = [
+    "numpy>=1.25.0",  # keep in sync with project.dependencies until gh-18782 is resolved
     # keep in sync with project.optional-dependencies.recommended
     # and project.optional-dependencies.all
     # and project.optional-dependencies.typing
@@ -188,6 +189,13 @@ dataframe = [
     "polars>=1.0.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0"
+]
+image-tests = [
+    "pytest-mpl>=0.18",
+]
+pyinstaller = [
+    "pyinstaller>=6.16.0",
+    {include-group = 'image-tests'},
 ]
 
 [tool.setuptools]
