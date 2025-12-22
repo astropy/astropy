@@ -56,8 +56,10 @@ py:class astropy.wcs.wcsapi.fitswcs.custom_ctype_to_ucd_mapping
 py:obj dtype
 py:obj a
 py:obj n
+py:obj v
 py:obj ndarray
 py:obj args
+py:obj numpy._typing.ArrayLike
 
 # other classes and functions that cannot be linked to
 py:class xmlrpc.client.Error
