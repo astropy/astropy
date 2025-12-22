@@ -30,8 +30,8 @@ jobs:
           - graphviz
       envs: |
         - name: CI with upstream RC including docs dependencies if available
-          linux: py314-test-docdeps-predeps
+          linux: py313-test-docdeps-predeps
 
         - name: Build docs with Sphinx RC if available
           linux: build_docs-predeps
-          python-version: '3.14'
+          python-version: '3.13'
