@@ -123,6 +123,14 @@ def _copy_input_if_needed(
 def _convolve_nd(array, kernel, boundary, fill_value, nan_interpolate, n_threads):
     """
     Internal convolution helper operating on float ndarray inputs.
+
+    Parameters
+    ----------
+    array, kernel : ndarray
+        Float arrays to convolve.
+    boundary, fill_value, nan_interpolate : see `convolve`.
+    n_threads : int
+        Number of threads for the C backend; passed through without validation.
     """
     array_shape = np.array(array.shape)
     kernel_shape = np.array(kernel.shape)
@@ -160,33 +168,43 @@ def _convolve_nd(array, kernel, boundary, fill_value, nan_interpolate, n_threads
     return result
 
 
-def _factor_separable_kernel_2d(kernel):
+def _factor_separable_kernel_2d(kernel, tol_factor=50.0):
     """
     Attempt to factor a 2D kernel into two 1D kernels.
 
     Returns (kx, ky) if kernel ~= outer(kx, ky), otherwise None.
-    """
-    result = None
-    if (
-        kernel.ndim == 2
-        and kernel.shape[0] != 1
-        and kernel.shape[1] != 1
-        and np.isfinite(kernel).all()
-    ):
-        max_abs = np.max(np.abs(kernel))
-        if max_abs != 0:
-            pivot = np.unravel_index(np.abs(kernel).argmax(), kernel.shape)
-            pivot_val = kernel[pivot]
-            if pivot_val != 0:
-                kx = np.array(kernel[:, pivot[1]], dtype=float, copy=True)
-                ky = np.array(kernel[pivot[0], :] / pivot_val, dtype=float, copy=True)
 
-                eps = np.finfo(kernel.dtype).eps
-                rtol = 50 * eps
-                atol = 50 * eps * max_abs
-                if np.allclose(np.outer(kx, ky), kernel, rtol=rtol, atol=atol):
-                    result = (kx, ky)
-    return result
+    Parameters
+    ----------
+    kernel : ndarray
+        2D kernel array.
+    tol_factor : float, optional
+        Factor multiplying machine epsilon for the separability check.
+    """
+    if (
+        kernel.ndim != 2
+        or kernel.shape[0] == 1
+        or kernel.shape[1] == 1
+        or not np.isfinite(kernel).all()
+    ):
+        return None
+
+    max_abs = np.max(np.abs(kernel))
+    if max_abs == 0:
+        return None
+
+    pivot = np.unravel_index(np.abs(kernel).argmax(), kernel.shape)
+    pivot_val = kernel[pivot]
+    kx = np.array(kernel[:, pivot[1]], dtype=float, copy=True)
+    ky = np.array(kernel[pivot[0], :] / pivot_val, dtype=float, copy=True)
+
+    eps = np.finfo(kernel.dtype).eps
+    rtol = tol_factor * eps
+    atol = tol_factor * eps * max_abs
+    if np.allclose(np.outer(kx, ky), kernel, rtol=rtol, atol=atol):
+        return kx, ky
+
+    return None
 
 
 @support_nddata(data="array")
@@ -200,6 +218,8 @@ def convolve(
     mask=None,
     preserve_nan=False,
     normalization_zero_tol=1e-8,
+    method="direct",
+    separable_tol_factor=50.0,
 ):
     """
     Convolve an array with a kernel.
@@ -263,6 +283,17 @@ def convolve(
         The absolute tolerance on whether the kernel is different than
         zero. If the kernel sums to zero to within this precision, it
         cannot be normalized. Default is "1e-8".
+    method : {'direct', 'auto', 'separable'}, optional
+        Select which convolution path to use. ``'direct'`` always uses the full
+        direct convolution. ``'auto'`` attempts a separable 2D fast path when
+        possible and otherwise falls back to ``'direct'``. ``'separable'``
+        requires a separable 2D kernel and raises if that requirement is not met.
+        The separable path is only available for 2D inputs and does not support
+        NaN interpolation. Default is ``'direct'``.
+    separable_tol_factor : float, optional
+        Factor multiplying machine epsilon for the separability check (used for
+        both ``rtol`` and ``atol``). Only used when ``method`` is ``'auto'`` or
+        ``'separable'``.
 
     Returns
     -------
@@ -282,6 +313,12 @@ def convolve(
 
     if nan_treatment not in ("interpolate", "fill"):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
+
+    if not isinstance(method, str):
+        raise TypeError("method must be a string")
+    method = method.lower()
+    if method not in {"direct", "auto", "separable"}:
+        raise ValueError("method must be one of 'direct', 'auto', or 'separable'")
 
     # OpenMP support is disabled at the C src code level, changing this will have
     # no effect.
@@ -426,8 +463,36 @@ def convolve(
             array_internal[initially_nan] = fill_value
 
     separable_components = None
-    if array_internal.ndim == 2 and kernel_internal.ndim == 2 and not nan_interpolate:
-        separable_components = _factor_separable_kernel_2d(kernel_internal)
+    if method in ("auto", "separable"):
+        try:
+            separable_tol_factor = float(separable_tol_factor)
+        except (TypeError, ValueError) as exc:
+            raise TypeError("separable_tol_factor must be a positive float") from exc
+        if separable_tol_factor <= 0:
+            raise ValueError("separable_tol_factor must be positive")
+
+        if (
+            array_internal.ndim == 2
+            and kernel_internal.ndim == 2
+            and not nan_interpolate
+        ):
+            if method == "separable" and np.max(np.abs(kernel_internal)) == 0:
+                raise ValueError(
+                    "method='separable' requires a non-zero kernel; kernel is all zeros"
+                )
+            separable_components = _factor_separable_kernel_2d(
+                kernel_internal, tol_factor=separable_tol_factor
+            )
+            if separable_components is None and method == "separable":
+                raise ValueError(
+                    "method='separable' requested but kernel is not separable within "
+                    "tolerance"
+                )
+        elif method == "separable":
+            raise ValueError(
+                "method='separable' requires 2D inputs and does not support "
+                "NaN interpolation"
+            )
 
     if separable_components is not None:
         kx, ky = separable_components
@@ -444,6 +509,9 @@ def convolve(
         )
 
         if boundary == "fill":
+            # Preserve the effective normalization across the two-step convolution:
+            # the first pass scales padded fill values by the sum of the kernel
+            # slice used for kx (the central slice for symmetric kernels).
             fill_value = fill_value * kx.sum()
 
         result = _convolve_nd(

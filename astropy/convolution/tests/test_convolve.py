@@ -1295,11 +1295,7 @@ def test_convolve_nan_zero_sum_kernel():
         convolve([1, np.nan, 3], [-1, 2, -1], normalize_kernel=False)
 
 
-def test_separable_kernel_fast_path_matches_full_fill(monkeypatch):
-    import importlib
-
-    convolve_mod = importlib.import_module("astropy.convolution.convolve")
-
+def test_separable_kernel_fast_path_matches_full_fill():
     rng = np.random.default_rng(0)
     array = rng.random((32, 32))
     kx = np.array([1.0, 2.0, 1.0])
@@ -1307,39 +1303,56 @@ def test_separable_kernel_fast_path_matches_full_fill(monkeypatch):
     kernel = np.outer(kx, ky)
     fill_value = 3.5
 
-    original_factor = convolve_mod._factor_separable_kernel_2d
-    monkeypatch.setattr(
-        convolve_mod, "_factor_separable_kernel_2d", lambda _kernel: None
-    )
     baseline = convolve(
-        array, kernel, boundary="fill", normalize_kernel=False, fill_value=fill_value
+        array,
+        kernel,
+        boundary="fill",
+        normalize_kernel=False,
+        fill_value=fill_value,
+        method="direct",
     )
-
-    monkeypatch.setattr(convolve_mod, "_factor_separable_kernel_2d", original_factor)
     fast = convolve(
-        array, kernel, boundary="fill", normalize_kernel=False, fill_value=fill_value
+        array,
+        kernel,
+        boundary="fill",
+        normalize_kernel=False,
+        fill_value=fill_value,
+        method="separable",
     )
 
     assert_allclose(baseline, fast, rtol=1e-12, atol=1e-12)
 
 
-def test_separable_kernel_fast_path_matches_full_extend(monkeypatch):
-    import importlib
-
-    convolve_mod = importlib.import_module("astropy.convolution.convolve")
-
+def test_separable_kernel_fast_path_matches_full_extend():
     rng = np.random.default_rng(1)
     array = rng.random((32, 32))
     kernel = Gaussian2DKernel(2)
 
-    original_factor = convolve_mod._factor_separable_kernel_2d
-    monkeypatch.setattr(
-        convolve_mod, "_factor_separable_kernel_2d", lambda _kernel: None
-    )
-    baseline = convolve(array, kernel, boundary="extend")
+    baseline = convolve(array, kernel, boundary="extend", method="direct")
+    fast = convolve(array, kernel, boundary="extend", method="separable")
 
-    monkeypatch.setattr(convolve_mod, "_factor_separable_kernel_2d", original_factor)
-    fast = convolve(array, kernel, boundary="extend")
+    assert_allclose(baseline, fast, rtol=1e-12, atol=1e-12)
+
+
+def test_separable_kernel_fast_path_matches_full_gaussian_fill():
+    rng = np.random.default_rng(2)
+    array = rng.random((48, 48))
+    kernel = Gaussian2DKernel(2.5, x_size=9, y_size=9)
+
+    baseline = convolve(
+        array,
+        kernel,
+        boundary="fill",
+        fill_value=0.25,
+        method="direct",
+    )
+    fast = convolve(
+        array,
+        kernel,
+        boundary="fill",
+        fill_value=0.25,
+        method="separable",
+    )
 
     assert_allclose(baseline, fast, rtol=1e-12, atol=1e-12)
 
@@ -1350,4 +1363,4 @@ def test_factor_separable_kernel_rejects_nonseparable():
     convolve_mod = importlib.import_module("astropy.convolution.convolve")
 
     kernel = np.array([[1.0, 2.0, 3.0], [0.0, 1.0, 4.0], [5.0, 6.0, 7.0]])
-    assert convolve_mod._factor_separable_kernel_2d(kernel) is None
+    assert convolve_mod._factor_separable_kernel_2d(kernel, tol_factor=50.0) is None
