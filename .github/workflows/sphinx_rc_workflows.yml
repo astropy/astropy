@@ -1,0 +1,35 @@
+name: Sphinx RC testing
+
+ # We do not run this from cron as the Sphinx RC period is very short, but do trigger it manually when necessary.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+        PY_COLORS: "1"
+      submodules: false
+      coverage: ''
+      libraries: |
+        apt:
+          - graphviz
+      envs: |
+        - name: CI with upstream RC including docs dependencies if available
+          linux: py313-test-docdeps-predeps
+
+        - name: Build docs with Sphinx RC if available
+          linux: build_docs-predeps
+          python-version: '3.13'
