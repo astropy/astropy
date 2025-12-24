@@ -104,18 +104,9 @@ def bitarray_to_bool(data, length):
     -------
     array : numpy bool array
     """
-    results = []
-    for byte in data:
-        for bit_no in range(7, -1, -1):
-            bit = byte & (1 << bit_no)
-            bit = bit != 0
-            results.append(bit)
-            if len(results) == length:
-                break
-        if len(results) == length:
-            break
-
-    return np.array(results, dtype="b1")
+    return np.unpackbits(
+        np.frombuffer(data, dtype=np.uint8), count=length if length >= 0 else None
+    ).astype(bool, copy=False)
 
 
 def bool_to_bitarray(value):
@@ -134,22 +125,7 @@ def bool_to_bitarray(value):
         significant bit in the result.  The length will be `floor((N +
         7) / 8)` where `N` is the length of `value`.
     """
-    value = value.flat
-    bit_no = 7
-    byte = 0
-    bytes = []
-    for v in value:
-        if v:
-            byte |= 1 << bit_no
-        if bit_no == 0:
-            bytes.append(byte)
-            bit_no = 7
-            byte = 0
-        else:
-            bit_no -= 1
-    if bit_no != 7:
-        bytes.append(byte)
-
+    bytes = np.packbits(np.ma.filled(value, fill_value=False).flat).tobytes()
     return struct.pack(f"{len(bytes)}B", *bytes)
 
 
