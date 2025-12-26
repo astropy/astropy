@@ -1697,9 +1697,9 @@ def average(a, axis=None, weights=None, returned=False, *, keepdims=np._NoValue)
     a_value, a_unit = a.value, a.unit
     weights = _as_quantity(weights)
     w_value, w_unit = (
-        None,
-        dimensionless_unscaled if weights is None else weights.value,
-        weights.unit,
+        (None, dimensionless_unscaled)
+        if weights is None
+        else (weights.value, weights.unit) 
     )
     return (
         (a_value,),
