@@ -517,6 +517,11 @@ astropy.units
 - Fixed the LaTeX representation of ``DexUnit`` in ``astropy.units``,
   and thus also how it is represented in, e.g., jupyter notebooks. [#18627]
 
+- Fixed ``Unit.to_system()`` to work with custom unit systems whose bases
+  are composite units (like velocity or the gravitational constant G).
+  Previously, such systems would raise ``UnitConversionError`` even when
+  the conversion was mathematically possible. [#19045]
+
 astropy.visualization
 ^^^^^^^^^^^^^^^^^^^^^
 
