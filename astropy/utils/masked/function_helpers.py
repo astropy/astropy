@@ -14,6 +14,8 @@ import warnings
 
 import numpy as np
 
+from astropy.utils.compat.numpy import _get_np_func_name
+from astropy.units.quantity_helper.function_helpers import FunctionAssigner
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
 from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
 
@@ -96,11 +98,11 @@ if not NUMPY_LT_2_2:
     # xref https://github.com/numpy/numpy/issues/27451
     SUPPORTED_NEP35_FUNCTIONS |= set()
     UNSUPPORTED_FUNCTIONS |= {
-        np.arange,
-        np.empty, np.ones, np.zeros, np.full,
-        np.array, np.asarray, np.asanyarray, np.ascontiguousarray, np.asfortranarray,
-        np.frombuffer, np.fromfile, np.fromfunction, np.fromiter, np.fromstring,
-        np.require, np.identity, np.eye, np.tri, np.genfromtxt, np.loadtxt,
+        "arange",
+        "empty", "ones", "zeros", "full",
+        "array", "asarray", "asanyarray", "ascontiguousarray", "asfortranarray",
+        "frombuffer", "fromfile", "fromfunction", "fromiter", "fromstring",
+        "require", "identity", "eye", "tri", "genfromtxt", "loadtxt",
     }  # fmt: skip
 
 # Almost all from np.core.fromnumeric defer to methods so are OK.
@@ -111,81 +113,81 @@ MASKED_SAFE_FUNCTIONS |= {
 }
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
-    np.may_share_memory, np.can_cast, np.min_scalar_type, np.result_type,
-    np.shares_memory,
+    "may_share_memory", "can_cast", "min_scalar_type", "result_type",
+    "shares_memory",
     # np.core.arrayprint
-    np.array_repr,
+    "array_repr",
     # np.core.function_base
-    np.linspace, np.logspace, np.geomspace,
+    "linspace", "logspace", "geomspace",
     # np.core.numeric
-    np.isclose, np.allclose, np.flatnonzero, np.argwhere,
+    "isclose", "allclose", "flatnonzero", "argwhere",
     # np.core.shape_base
-    np.atleast_1d, np.atleast_2d, np.atleast_3d, np.stack, np.hstack, np.vstack,
+    "atleast_1d", "atleast_2d", "atleast_3d", "stack", "hstack", "vstack",
     # np.lib._function_base_impl
-    np.average, np.diff, np.extract, np.meshgrid, np.gradient,
+    "average", "diff", "extract", "meshgrid", "gradient",
     # np.lib.index_tricks
-    np.diag_indices_from, np.triu_indices_from, np.tril_indices_from,
-    np.fill_diagonal,
+    "diag_indices_from", "triu_indices_from", "tril_indices_from",
+    "fill_diagonal",
     # np.lib.shape_base
-    np.column_stack, np.dstack,
-    np.array_split, np.split, np.hsplit, np.vsplit, np.dsplit,
-    np.expand_dims, np.apply_along_axis, np.kron, np.tile,
-    np.take_along_axis, np.put_along_axis,
+    "column_stack", "dstack",
+    "array_split", "split", "hsplit", "vsplit", "dsplit",
+    "expand_dims", "apply_along_axis", "kron", "tile",
+    "take_along_axis", "put_along_axis",
     # np.lib.type_check (all but nan_to_num)
-    np.iscomplexobj, np.isrealobj, np.imag, np.isreal, np.real,
-    np.real_if_close, np.common_type,
+    "iscomplexobj", "isrealobj", "imag", "isreal", "real",
+    "real_if_close", "common_type",
     # np.lib.ufunclike
-    np.fix, np.isneginf, np.isposinf,
+    "fix", "isneginf", "isposinf",
     # np.lib._function_base_impl
-    np.angle, np.i0,
+    "angle", "i0",
     # np.lib._arraysetops_impl
-    np.intersect1d, np.setxor1d, np.union1d, np.unique,
+    "intersect1d", "setxor1d", "union1d", "unique",
 }  # fmt: skip
 
 
 if NUMPY_LT_2_0:
     # Safe in < 2.0, because it deferred to the method. Overridden in >= 2.0.
-    MASKED_SAFE_FUNCTIONS |= {np.ptp}
+    MASKED_SAFE_FUNCTIONS |= {"ptp"}
     # Removed in numpy 2.0.  Just an alias to vstack.
-    MASKED_SAFE_FUNCTIONS |= {np.row_stack}  # noqa: NPY201
+    MASKED_SAFE_FUNCTIONS |= {"row_stack"}  # noqa: NPY201
     # renamed in numpy 2.0
-    MASKED_SAFE_FUNCTIONS |= {np.trapz}  # noqa: NPY201
+    MASKED_SAFE_FUNCTIONS |= {"trapz"}  # noqa: NPY201
 if not NUMPY_LT_2_0:
     # new in numpy 2.0
     MASKED_SAFE_FUNCTIONS |= {
-        np.astype, np.trapezoid,
-        np.unique_all, np.unique_counts, np.unique_inverse, np.unique_values,
+        "astype", "trapezoid",
+        "unique_all", "unique_counts", "unique_inverse", "unique_values",
     }  # fmt: skip
 if not NUMPY_LT_2_1:
     MASKED_SAFE_FUNCTIONS |= {
-        np.unstack,
+        "unstack",
     }  # fmt: skip
 IGNORED_FUNCTIONS = {
     # I/O - useless for Masked, since no way to store the mask.
-    np.save, np.savez, np.savetxt, np.savez_compressed,
+    "save", "savez", "savetxt", "savez_compressed",
     # Polynomials
-    np.poly, np.polyadd, np.polyder, np.polydiv, np.polyfit, np.polyint,
-    np.polymul, np.polysub, np.polyval, np.roots, np.vander,
+    "poly", "polyadd", "polyder", "polydiv", "polyfit", "polyint",
+    "polymul", "polysub", "polyval", "roots", "vander",
 }  # fmt: skip
 IGNORED_FUNCTIONS |= {
-    np.pad, np.searchsorted, np.digitize,
-    np.is_busday, np.busday_count, np.busday_offset,
+    "pad", "searchsorted", "digitize",
+    "is_busday", "busday_count", "busday_offset",
     # numpy.lib._function_base_impl
-    np.cov, np.corrcoef, np.trim_zeros,
+    "cov", "corrcoef", "trim_zeros",
     # numpy.core.numeric
-    np.correlate, np.convolve,
+    "correlate", "convolve",
     # numpy.lib.histograms
-    np.histogram, np.histogram2d, np.histogramdd, np.histogram_bin_edges,
+    "histogram", "histogram2d", "histogramdd", "histogram_bin_edges",
     # TODO!!
-    np.dot, np.vdot, np.inner, np.tensordot, np.cross,
-    np.einsum, np.einsum_path,
+    "dot", "vdot", "inner", "tensordot", "cross",
+    "einsum", "einsum_path",
 }  # fmt: skip
 
 # Explicitly unsupported functions
 UNSUPPORTED_FUNCTIONS |= {
-    np.unravel_index,
-    np.ravel_multi_index,
-    np.ix_,
+    "unravel_index",
+    "ravel_multi_index",
+    "ix_",
 }
 
 # No support for the functions also not supported by Quantity
@@ -250,8 +252,8 @@ def nan_to_num(x, copy=True, nan=0.0, posinf=None, neginf=None):
 # same helper, because the first arguments have different names.
 @apply_to_both(
     helps=(
-        {np.copy, np.resize, np.moveaxis, np.rollaxis, np.roll}
-        | ({np.asfarray} if NUMPY_LT_2_0 else set())  # noqa: NPY201
+        {"copy", "resize", "moveaxis", "rollaxis", "roll"}
+        | ({"asfarray"} if NUMPY_LT_2_0 else set())  # noqa: NPY201
     )
 )
 def masked_a_helper(a, *args, **kwargs):
@@ -259,19 +261,19 @@ def masked_a_helper(a, *args, **kwargs):
     return (data,) + args, (mask,) + args, kwargs, None
 
 
-@apply_to_both(helps={np.flip, np.flipud, np.fliplr, np.rot90, np.triu, np.tril})
+@apply_to_both(helps={"flip", "flipud", "fliplr", "rot90", "triu", "tril"})
 def masked_m_helper(m, *args, **kwargs):
     data, mask = _get_data_and_mask_array(m)
     return (data,) + args, (mask,) + args, kwargs, None
 
 
-@apply_to_both(helps={np.diag, np.diagflat})
+@apply_to_both(helps={"diag", "diagflat"})
 def masked_v_helper(v, *args, **kwargs):
     data, mask = _get_data_and_mask_array(v)
     return (data,) + args, (mask,) + args, kwargs, None
 
 
-@apply_to_both(helps={np.delete})
+@apply_to_both(helps={"delete"})
 def masked_arr_helper(array, *args, **kwargs):
     data, mask = _get_data_and_mask_array(array)
     return (data,) + args, (mask,) + args, kwargs, None
@@ -1343,6 +1345,7 @@ if not NUMPY_LT_2_4:
     @dispatched_function
     def array2string(
         a,
+        /,
         max_line_width=None,
         precision=None,
         suppress_small=None,
@@ -1409,16 +1412,13 @@ else:
             legacy=legacy,
         )
 
-
 def _array_str_scalar(x):
     # This wraps np.array_str for use as a format function in
     # MaskedFormat. We cannot use it directly as format functions
     # expect numpy scalars, while np.array_str expects an array.
     return np.array_str(np.array(x))
 
-
-@dispatched_function
-def array_str(a, max_line_width=None, precision=None, suppress_small=None):
+def _array_str_impl(a, max_line_width=None, precision=None, suppress_small=None):
     # Override to change special treatment of array scalars, since the numpy
     # code turns the masked array scalar into a regular array scalar.
     # By going through MaskedFormat, we can replace the string as needed.
@@ -1431,11 +1431,9 @@ def array_str(a, max_line_width=None, precision=None, suppress_small=None):
             # Following numpy._core.arrayprint._void_scalar_to_string
             if NUMPY_LT_2_1:
                 from numpy._core.arrayprint import _format_options
-
                 options = _format_options.copy()
             else:
                 from numpy._core.printoptions import format_options
-
                 options = format_options.get().copy()
 
             if options.get("formatter") is None:
@@ -1448,6 +1446,17 @@ def array_str(a, max_line_width=None, precision=None, suppress_small=None):
             )
 
     return array2string(a, max_line_width, precision, suppress_small, " ", "")
+
+# Dispatch the version with the correct signature for NumPy 2.4+
+if not NUMPY_LT_2_4:
+    @dispatched_function
+    def array_str(a, /, max_line_width=None, precision=None, suppress_small=None):
+        return _array_str_impl(a, max_line_width, precision, suppress_small)
+else:
+    @dispatched_function
+    def array_str(a, max_line_width=None, precision=None, suppress_small=None):
+        return _array_str_impl(a, max_line_width, precision, suppress_small)
+
 
 
 # For the nanfunctions, we just treat any nan as an additional mask.
@@ -1505,7 +1514,7 @@ for nanfuncname in _nplibnanfunctions.__all__:
 
 
 @dispatched_function
-def ediff1d(ary, to_end=None, to_begin=None):
+def _ediff1d_impl(ary, to_end=None, to_begin=None):
     from astropy.utils.masked import Masked
 
     # ediff1d works fine if ary is Masked, but not if it is not (and
@@ -1515,6 +1524,14 @@ def ediff1d(ary, to_end=None, to_begin=None):
 
     return np.ediff1d.__wrapped__(ary, to_end, to_begin), None, None
 
+if not NUMPY_LT_2_4:
+    @dispatched_function
+    def ediff1d(ary, /, to_end=None, to_begin=None):
+        return _ediff1d_impl(ary, to_end, to_begin)
+else:
+    @dispatched_function
+    def ediff1d(ary, to_end=None, to_begin=None):
+        return _ediff1d_impl(ary, to_end, to_begin)
 
 def _in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
     # Copy sorting implementation from _arraysetops_impl._in1d;
@@ -1552,31 +1569,51 @@ def _copy_of_mask(a):
 
 
 if NUMPY_LT_2_4:
-
     @dispatched_function
     def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
         mask = _copy_of_mask(ar1).ravel()
         return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
+else:
+    @dispatched_function
+    def in1d(ar1, ar2, /, assume_unique=False, invert=False, *, kind=None):
+        mask = _copy_of_mask(ar1).ravel()
+        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
+    
 
-
-@dispatched_function
-def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
+def _isin_impl(element, test_elements, assume_unique=False, invert=False, *, kind=None):
     element = np.asanyarray(element)
     result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
     result.shape = element.shape
     return result, _copy_of_mask(element), None
 
+if not NUMPY_LT_2_4:
+    @dispatched_function
+    def isin(element, test_elements, /, assume_unique=False, invert=False, *, kind=None):
+        return _isin_impl(element, test_elements, assume_unique, invert, kind=kind)
+else:
+    @dispatched_function
+    def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
+        return _isin_impl(element, test_elements, assume_unique, invert, kind=kind)
 
-@dispatched_function
-def setdiff1d(ar1, ar2, assume_unique=False):
-    # Again, mostly just to avoid an asarray call.
+def _setdiff1d_impl(ar1, ar2, assume_unique=False):
     if assume_unique:
         ar1 = np.asanyarray(ar1).ravel()
     else:
         ar1 = np.unique(ar1)
         ar2 = np.unique(ar2)
-    return ar1[np.isin(ar1, ar2, assume_unique=True, invert=True)], None, None
+    # Note: we use the internal _isin_impl logic here
+    mask = _copy_of_mask(ar1)
+    res, _, _ = _isin_impl(ar1, ar2, assume_unique=True, invert=True)
+    return ar1[res], mask, None
 
+if not NUMPY_LT_2_4:
+    @dispatched_function
+    def setdiff1d(ar1, ar2, /, assume_unique=False):
+        return _setdiff1d_impl(ar1, ar2, assume_unique)
+else:
+    @dispatched_function
+    def setdiff1d(ar1, ar2, assume_unique=False):
+        return _setdiff1d_impl(ar1, ar2, assume_unique)
 
 # Add any dispatched or helper function that has a docstring to
 # __all__, so they will be typeset by sphinx. The logic is that for
