@@ -46,7 +46,7 @@ def read_csv(
     This function allows highly performant reading of text CSV files into an astropy
     ``Table`` using `PyArrow <https://arrow.apache.org/docs/python/csv.html>`_. The
     best performance is achieved for files with only numeric data types, but even for
-    files with mixed data types, the performance is still better than the the standard
+    files with mixed data types, the performance is still better than the standard
     ``astropy.io.ascii`` fast CSV reader.
 
     By default, empty values (zero-length string "") in the CSV file are read as masked
