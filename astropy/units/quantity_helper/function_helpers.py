@@ -357,6 +357,7 @@ if not NUMPY_LT_2_4:
     @function_helper
     def putmask(a, /, mask, values):
         return putmask_impl(a, mask=mask, values=values)
+
 else:
 
     @function_helper
@@ -485,6 +486,7 @@ if NUMPY_LT_2_4:
             *arrays, out=out, axis=axis, **kwargs
         )
         return (arrays,), kwargs, unit, out
+
 else:
 
     @function_helper
@@ -626,6 +628,7 @@ if NUMPY_LT_2_0:
     @function_helper(helps={np.empty, np.ones, np.zeros})
     def creation_helper(shape, dtype=None, order="C"):
         return (shape, dtype, order), {}, UNIT_FROM_LIKE_ARG, None
+
 else:
 
     @function_helper(helps={np.empty, np.ones, np.zeros})
@@ -638,6 +641,7 @@ if NUMPY_LT_2_0:
     @function_helper
     def full(shape, fill_value, dtype=None, order="C"):
         return full_impl(shape, fill_value, dtype, order)
+
 else:
 
     @function_helper
@@ -675,6 +679,7 @@ if not NUMPY_LT_2_4:
             ndmin=ndmin,
             ndmax=ndmax,
         )
+
 else:
 
     @function_helper
@@ -1684,16 +1689,26 @@ def merge_arrays(
 
 @function_helper
 def average(a, axis=None, weights=None, returned=False, *, keepdims=np._NoValue):
+    # This override should no longer be needed once
+    # https://github.com/numpy/numpy/pull/30522 is merged (likely for
+    # "not NUMPY_LT_2_4_1").
+
+    a = _as_quantity(a)
+    a_value, a_unit = a.value, a.unit
+    weights = _as_quantity(weights)
+    w_value, w_unit = (
+        None,
+        dimensionless_unscaled if weights is None else weights.value,
+        weights.unit,
+    )
     return (
-        (a,),
+        (a_value,),
         {
             "axis": axis,
-            "weights": getattr(weights, "value", weights),
+            "weights": w_value,
             "returned": returned,
             "keepdims": keepdims,
         },
-        (getattr(a, "unit", None), getattr(weights, "unit", None))
-        if returned
-        else getattr(a, "unit", None),
+        ((a_unit, w_unit) if returned else a_unit),
         None,
     )
