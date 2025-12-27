@@ -284,9 +284,11 @@ class Char(Converter):
     def __init__(self, field, config=None, pos=None):
         if config is None:
             config = {}
+        self._config = config if config else {}
 
         Converter.__init__(self, field, config, pos)
 
+        self.is_utf8_version = self._config.get("version_1_6_or_later", False)
         self.field_name = field.name
 
         if field.arraysize is None:
@@ -307,7 +309,12 @@ class Char(Converter):
             except ValueError:
                 vo_raise(E01, (numeric_part, "char", field.ID), config)
 
-            self.format = f"U{self.arraysize:d}"
+            self.arraysize_bytes = self.arraysize
+
+            if self.is_utf8_version:
+                self.format = "O"
+            else:
+                self.format = f"U{self.arraysize:d}"
 
             # For bounded variable-length fields use the variable methods
             if is_variable:
@@ -323,62 +330,73 @@ class Char(Converter):
         return True
 
     def parse(self, value, config=None, pos=None):
-        if self.arraysize != "*" and len(value) > self.arraysize:
-            vo_warn(W46, ("char", self.arraysize), config, pos)
+        if self.arraysize != "*":
+            if self.is_utf8_version:
+                value_bytes = value.encode("utf-8")
+                if len(value_bytes) > self.arraysize:
+                    vo_warn(W46, ("char", self.arraysize), config, pos)
+            else:
+                if len(value) > self.arraysize:
+                    vo_warn(W46, ("char", self.arraysize), config, pos)
 
-        # Warn about non-ascii characters if warnings are enabled.
-        try:
-            value.encode("ascii")
-        except UnicodeEncodeError:
-            vo_warn(W55, (self.field_name, value), config, pos)
+        if not self.is_utf8_version:
+            try:
+                value.encode("ascii")
+            except UnicodeEncodeError:
+                vo_warn(W55, (self.field_name, value), config, pos)
+
         return value, False
 
     def output(self, value, mask):
         if mask:
             return ""
 
-        # The output methods for Char assume that value is either str or bytes.
-        # This method needs to return a str, but needs to warn if the str contains
-        # non-ASCII characters.
-        try:
-            if isinstance(value, str):
+        if not isinstance(value, str):
+            value = value.decode("utf-8")
+
+        # VOTable 1.6+: Accept UTF-8, earlier versions: ASCII only
+        if not self.is_utf8_version:
+            try:
                 value.encode("ascii")
-            else:
-                # Check for non-ASCII chars in the bytes object.
-                value = value.decode("ascii")
-        except (ValueError, UnicodeEncodeError):
-            warn_or_raise(E24, UnicodeEncodeError, (value, self.field_name))
-        finally:
-            if isinstance(value, bytes):
-                # Convert the bytes to str regardless of non-ASCII chars.
-                value = value.decode("utf-8")
+            except UnicodeEncodeError:
+                warn_or_raise(E24, E24, (value, self.field_name), self._config)
 
         return xml_escape_cdata(value)
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
-
         if self.arraysize != "*" and length > self.arraysize:
             vo_warn(W46, ("char", self.arraysize), None, None)
 
-        return read(length).decode("ascii"), False
+        data = read(length)
+        encoding = "utf-8" if self.is_utf8_version else "ascii"
+        return data.decode(encoding, errors="replace"), False
 
     def _binparse_fixed(self, read):
-        s = struct.unpack(self._struct_format, read(self.arraysize))[0]
+        if self.format == "O":
+            s = read(self.arraysize_bytes)
+        else:
+            s = struct.unpack(self._struct_format, read(self.arraysize_bytes))[0]
+
         end = s.find(_zero_byte)
-        s = s.decode("ascii")
+        encoding = "utf-8" if self.is_utf8_version else "ascii"
+        decoded = s.decode(encoding, errors="replace")
+
         if end != -1:
-            return s[:end], False
-        return s, False
+            return s[:end].decode(encoding, errors="replace"), False
+        return decoded, False
 
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
             return _zero_int
         if isinstance(value, str):
+            encoding = "utf-8" if self.is_utf8_version else "ascii"
             try:
-                value = value.encode("ascii")
-            except ValueError:
-                vo_raise(E24, (value, self.field_name))
+                value = value.encode(encoding)
+            except (ValueError, UnicodeEncodeError):
+                if not self.is_utf8_version:
+                    warn_or_raise(E24, E24, (value, self.field_name), self._config)
+                value = value.encode(encoding, errors="replace")
 
         if self.arraysize != "*" and len(value) > self.arraysize:
             vo_warn(W46, ("char", self.arraysize), None, None)
@@ -386,21 +404,50 @@ class Char(Converter):
         return self._write_length(len(value)) + value
 
     def _binoutput_fixed(self, value, mask):
-        if mask:
-            value = _empty_bytes
+        if mask or value is None:
+            value_bytes = _empty_bytes
         elif isinstance(value, str):
+            encoding = "utf-8" if self.is_utf8_version else "ascii"
             try:
-                value = value.encode("ascii")
-            except ValueError:
-                vo_raise(E24, (value, self.field_name))
-        return struct.pack(self._struct_format, value)
+                value_bytes = value.encode(encoding)
+            except (ValueError, UnicodeEncodeError):
+                if not self.is_utf8_version:
+                    warn_or_raise(E24, E24, (value, self.field_name), self._config)
+                value_bytes = value.encode(encoding, errors="replace")
+        else:
+            value_bytes = value
+
+        # Handle padding and truncation
+        if len(value_bytes) < self.arraysize_bytes:
+            value_bytes = value_bytes + b"\x00" * (
+                self.arraysize_bytes - len(value_bytes)
+            )
+        elif len(value_bytes) > self.arraysize_bytes:
+            value_bytes = value_bytes[: self.arraysize_bytes]
+
+            if self.is_utf8_version:
+                value_bytes = value_bytes.decode("utf-8", errors="ignore").encode(
+                    "utf-8"
+                )
+
+                if len(value_bytes) < self.arraysize_bytes:
+                    value_bytes = value_bytes + b"\x00" * (
+                        self.arraysize_bytes - len(value_bytes)
+                    )
+
+        if self.format == "O":
+            return value_bytes
+        else:
+            return struct.pack(self._struct_format, value_bytes)
 
 
 class UnicodeChar(Converter):
     """
     Handles the unicodeChar data type. UTF-16-BE.
 
-    Missing values are not handled for string or unicode types.
+    .. deprecated:: 1.6
+        The unicodeChar datatype is deprecated as of VOTable 1.6.
+        Use char (UTF-8 encoded) instead for new VOTable files.
     """
 
     default = ""
