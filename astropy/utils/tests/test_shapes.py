@@ -1,11 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import inspect
+
 import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_equal
 
+from astropy.time import Time
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.shapes import check_broadcast, simplify_basic_index, unbroadcast
 
@@ -37,6 +40,29 @@ def test_unbroadcast():
     y = np.broadcast_to(x, (5, 3, 5))
     z = unbroadcast(y)
     assert z.shape == (3, 5)
+
+
+def test_time_array_namespace_function_origins():
+    t = Time([1, 2], format="cxcsec")
+    ns = t.__array_namespace__()
+
+    fns = {
+        "min": ns.min,
+        "linspace": ns.linspace,
+        "concatenate": ns.concatenate,
+        "stack": ns.stack,
+    }
+
+    for name, fn in fns.items():
+        mod = inspect.getmodule(fn)
+
+        assert mod is not None, f"{name} returned a function without a module"
+
+        print(f"{name}: module = {mod.__name__}")
+
+        assert mod.__name__.startswith("astropy") or mod.__name__.startswith("numpy"), (
+            f"{name} came from unexpected module {mod.__name__}"
+        )
 
 
 TEST_SHAPE = (13, 16, 4, 90)
