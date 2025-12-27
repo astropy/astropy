@@ -21,7 +21,7 @@ from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyWarning
 
-from .core import Unit, UnitBase, dimensionless_unscaled, get_current_unit_registry
+from .core import LogUnit, Unit, UnitBase, dimensionless_unscaled, get_current_unit_registry
 from .errors import UnitConversionError, UnitsError, UnitTypeError
 from .format import Base, Latex
 from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
@@ -31,10 +31,12 @@ from .quantity_helper.function_helpers import (
     SUBCLASS_SAFE_FUNCTIONS,
     UNIT_FROM_LIKE_ARG,
     UNSUPPORTED_FUNCTIONS,
+    _get_np_func_name,
 )
 from .structured import StructuredUnit, _structured_unit_like_dtype
 from .typing import QuantityLike
 from .utils import is_effectively_unity
+
 
 __all__ = [
     "Quantity",
@@ -740,6 +742,17 @@ class Quantity(np.ndarray):
             - `~astropy.units.Quantity` subclass
             - bool: True if subclasses of the given class are ok
         """
+        from astropy.units import StructuredUnit
+        if isinstance(unit, StructuredUnit):
+            from astropy.units.structured import StructuredQuantity
+            return StructuredQuantity, True
+
+        
+        from astropy.units import LogUnit
+        if isinstance(unit, LogUnit):
+            from astropy.units import LogQuantity
+            return LogQuantity, True
+        
         return Quantity, True
 
     def _new_view(self, obj=None, unit=None, propagate_info=True):
@@ -815,6 +828,7 @@ class Quantity(np.ndarray):
         return view
 
     def _set_unit(self, unit):
+        from astropy.units import UnitBase, UnitTypeError
         """Set the unit.
 
         This is used anywhere the unit is set or modified, i.e., in the
@@ -825,19 +839,19 @@ class Quantity(np.ndarray):
         a unit is consistent.
         """
         if not isinstance(unit, UnitBase):
-            if isinstance(self._unit, StructuredUnit) or isinstance(
-                unit, StructuredUnit
-            ):
-                unit = StructuredUnit(unit, self.dtype)
+            
+            from astropy.units import StructuredUnit, Unit
+            
+            
+            is_already_structured = hasattr(self, '_unit') and isinstance(self._unit, StructuredUnit)
+            is_new_unit_structured = isinstance(unit, (StructuredUnit, dict, tuple))
+            
+            if is_already_structured or is_new_unit_structured:
+                unit = StructuredUnit(unit, getattr(self, 'dtype', None))
             else:
-                # Trying to go through a string ensures that, e.g., Magnitudes with
-                # dimensionless physical unit become Quantity with units of mag.
                 unit = Unit(str(unit), parse_strict="silent")
                 if not isinstance(unit, (UnitBase, StructuredUnit)):
-                    raise UnitTypeError(
-                        f"{self.__class__.__name__} instances require normal units, "
-                        f"not {unit.__class__} instances."
-                    )
+                    raise UnitTypeError(f"Not a valid unit: {unit}")
 
         self._unit = unit
 
@@ -1835,6 +1849,12 @@ class Quantity(np.ndarray):
         return self.view(np.ndarray).argmin(axis=axis, out=out, keepdims=keepdims)
 
     def __array_function__(self, function, types, args, kwargs):
+        function_name = _get_np_func_name(function)
+        if hasattr(function, "__module__") and function.__module__:
+            if "fft" in function.__module__:
+                function_name = f"fft.{function_name}"
+            elif "linalg" in function.__module__:
+                function_name = f"linalg.{function_name}"
         """Wrap numpy functions, taking care of units.
 
         Parameters
@@ -1875,11 +1895,11 @@ class Quantity(np.ndarray):
         # For now, since we may not yet have complete coverage, if a
         # function is in none of the above, we simply call the numpy
         # implementation.
-        if function in SUBCLASS_SAFE_FUNCTIONS:
+        if function_name in SUBCLASS_SAFE_FUNCTIONS:
             return super().__array_function__(function, types, args, kwargs)
 
-        elif function in FUNCTION_HELPERS:
-            function_helper = FUNCTION_HELPERS[function]
+        elif function_name in FUNCTION_HELPERS:
+            function_helper = FUNCTION_HELPERS[function_name]
             try:
                 args, kwargs, unit, out = function_helper(*args, **kwargs)
             except NotImplementedError:
@@ -1896,8 +1916,8 @@ class Quantity(np.ndarray):
 
             # Fall through to return section
 
-        elif function in DISPATCHED_FUNCTIONS:
-            dispatched_function = DISPATCHED_FUNCTIONS[function]
+        elif function_name in DISPATCHED_FUNCTIONS:
+            dispatched_function = DISPATCHED_FUNCTIONS[function_name]
             try:
                 result, unit, out = dispatched_function(*args, **kwargs)
             except NotImplementedError:
@@ -1905,12 +1925,12 @@ class Quantity(np.ndarray):
 
             # Fall through to return section
 
-        elif function in UNSUPPORTED_FUNCTIONS:
+        elif function_name in UNSUPPORTED_FUNCTIONS:
             return NotImplemented
 
         else:
             warnings.warn(
-                f"function '{function.__name__}' is not known to astropy's Quantity."
+                f"function '{function_name}' is not known to astropy's Quantity."
                 " Will run it anyway, hoping it will treat ndarray subclasses"
                 " correctly. Please raise an issue at"
                 " https://github.com/astropy/astropy/issues.",

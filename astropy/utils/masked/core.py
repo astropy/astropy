@@ -1003,11 +1003,13 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
     def __array_function__(self, function, types, args, kwargs):
         # TODO: go through functions systematically to see which ones
         # work and/or can be supported.
-        if function in MASKED_SAFE_FUNCTIONS:
+        function_name = _get_np_func_name(function)
+
+        if function_name in MASKED_SAFE_FUNCTIONS:
             return super().__array_function__(function, types, args, kwargs)
 
-        elif function in APPLY_TO_BOTH_FUNCTIONS:
-            helper = APPLY_TO_BOTH_FUNCTIONS[function]
+        elif function_name in APPLY_TO_BOTH_FUNCTIONS:
+            helper = APPLY_TO_BOTH_FUNCTIONS[function_name]
             try:
                 helper_result = helper(*args, **kwargs)
             except NotImplementedError:
@@ -1024,8 +1026,8 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             mask = function(*mask_args, **kwargs)
             result = function(*data_args, **kwargs)
 
-        elif function in DISPATCHED_FUNCTIONS:
-            dispatched_function = DISPATCHED_FUNCTIONS[function]
+        elif function_name in DISPATCHED_FUNCTIONS:
+            dispatched_function = DISPATCHED_FUNCTIONS[function_name]
             try:
                 dispatched_result = dispatched_function(*args, **kwargs)
             except NotImplementedError:
@@ -1036,11 +1038,11 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
             result, mask, out = dispatched_result
 
-        elif function in UNSUPPORTED_FUNCTIONS:
+        elif function_name in UNSUPPORTED_FUNCTIONS:
             return NotImplemented
 
         else:  # pragma: no cover
-            # By default, just pass it through for now.
+                # By default, just pass it through for now.
             return super().__array_function__(function, types, args, kwargs)
 
         if mask is None:

@@ -8,7 +8,7 @@ units for a given ufunc, given input units.
 """
 
 from fractions import Fraction
-
+from .function_helpers import _get_np_func_name
 import numpy as np
 
 from astropy.units.core import dimensionless_unscaled, unit_scale_converter
@@ -348,8 +348,8 @@ def helper_clip(f, unit1, unit2, unit3):
             ]
         except UnitsError:
             raise UnitConversionError(
-                f"Can only apply '{f.__name__}' function to quantities with "
-                "compatible dimensions"
+                f"Can only apply '{_get_np_func_name(f)}' function to quantities "
+                "with compatible dimensions"
             )
 
     else:
@@ -376,66 +376,66 @@ def helper_clip(f, unit1, unit2, unit3):
 # https://numpy.org/doc/stable/reference/ufuncs.html#available-ufuncs
 
 UNSUPPORTED_UFUNCS |= {
-    np.bitwise_and,
-    np.bitwise_or,
-    np.bitwise_xor,
-    np.invert,
-    np.left_shift,
-    np.right_shift,
-    np.logical_and,
-    np.logical_or,
-    np.logical_xor,
-    np.logical_not,
-    np.isnat,
-    np.gcd,
-    np.lcm,
+    "bitwise_and",
+    "bitwise_or",
+    "bitwise_xor",
+    "invert",
+    "left_shift",
+    "right_shift",
+    "logical_and",
+    "logical_or",
+    "logical_xor",
+    "logical_not",
+    "isnat",
+    "gcd",
+    "lcm",
 }
 
 if not NUMPY_LT_2_0:
     # string utilities - make no sense for Quantity.
     UNSUPPORTED_UFUNCS |= {
-        np.bitwise_count,
-        np._core.umath.count,
-        np._core.umath.isalpha,
-        np._core.umath.isdigit,
-        np._core.umath.isspace,
-        np._core.umath.isnumeric,
-        np._core.umath.isdecimal,
-        np._core.umath.isalnum,
-        np._core.umath.istitle,
-        np._core.umath.islower,
-        np._core.umath.isupper,
-        np._core.umath.index,
-        np._core.umath.rindex,
-        np._core.umath.startswith,
-        np._core.umath.endswith,
-        np._core.umath.find,
-        np._core.umath.rfind,
-        np._core.umath.str_len,
-        np._core.umath._strip_chars,
-        np._core.umath._lstrip_chars,
-        np._core.umath._rstrip_chars,
-        np._core.umath._strip_whitespace,
-        np._core.umath._lstrip_whitespace,
-        np._core.umath._rstrip_whitespace,
-        np._core.umath._replace,
-        np._core.umath._expandtabs,
-        np._core.umath._expandtabs_length,
+        "bitwise_count",
+        "count",
+        "isalpha",
+        "isdigit",
+        "isspace",
+        "isnumeric",
+        "isdecimal",
+        "isalnum",
+        "istitle",
+        "islower",
+        "isupper",
+        "index",
+        "rindex",
+        "startswith",
+        "endswith",
+        "find",
+        "rfind",
+        "str_len",
+        "_strip_chars",
+        "_lstrip_chars",
+        "_rstrip_chars",
+        "_core.umath._strip_whitespace",
+        "_core.umath._lstrip_whitespace",
+        "_core.umath._rstrip_whitespace",
+        "_core.umath._replace",
+        "_core.umath._expandtabs",
+        "_core.umath._expandtabs_length",
     }
 if not NUMPY_LT_2_1:
     UNSUPPORTED_UFUNCS |= {
-        np._core.umath._ljust,
-        np._core.umath._rjust,
-        np._core.umath._center,
-        np._core.umath._zfill,
-        np._core.umath._partition_index,
-        np._core.umath._rpartition,
-        np._core.umath._rpartition_index,
-        np._core.umath._partition,
+        "_core.umath._ljust",
+        "_core.umath._rjust",
+        "_core.umath._center",
+        "_core.umath._zfill",
+        "_core.umath._partition_index",
+        "_core.umath._rpartition",
+        "_core.umath._rpartition_index",
+        "_core.umath._partition",
     }
 if not NUMPY_LT_2_3:
     UNSUPPORTED_UFUNCS |= {
-        np._core.umath._slice,
+        "_core.umath._slice",
     }
 
 # SINGLE ARGUMENT UFUNCS
@@ -444,7 +444,7 @@ if not NUMPY_LT_2_3:
 # (but rather a boolean, or -1, 0, or +1 for np.sign).
 onearg_test_ufuncs = (np.isfinite, np.isinf, np.isnan, np.sign, np.signbit)
 for ufunc in onearg_test_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_onearg_test
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_onearg_test
 
 # ufuncs that return a value with the same unit as the input
 invariant_ufuncs = (
@@ -461,7 +461,7 @@ invariant_ufuncs = (
     np.positive,
 )
 for ufunc in invariant_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_invariant
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_invariant
 
 # ufuncs that require dimensionless input and and give dimensionless output
 dimensionless_to_dimensionless_ufuncs = (
@@ -480,7 +480,7 @@ if isinstance(getattr(np_umath, "erf", None), np.ufunc):
     dimensionless_to_dimensionless_ufuncs += (np_umath.erf,)
 
 for ufunc in dimensionless_to_dimensionless_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_dimensionless_to_dimensionless
 
 # ufuncs that require dimensionless input and give output in radians
 dimensionless_to_radian_ufuncs = (
@@ -492,31 +492,31 @@ dimensionless_to_radian_ufuncs = (
     np.arctanh,
 )
 for ufunc in dimensionless_to_radian_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_dimensionless_to_radian
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_dimensionless_to_radian
 
 # ufuncs that require input in degrees and give output in radians
 degree_to_radian_ufuncs = (np.radians, np.deg2rad)
 for ufunc in degree_to_radian_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_degree_to_radian
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_degree_to_radian
 
 # ufuncs that require input in radians and give output in degrees
 radian_to_degree_ufuncs = (np.degrees, np.rad2deg)
 for ufunc in radian_to_degree_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_radian_to_degree
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_radian_to_degree
 
 # ufuncs that require input in radians and give dimensionless output
 radian_to_dimensionless_ufuncs = (np.cos, np.sin, np.tan, np.cosh, np.sinh, np.tanh)
 for ufunc in radian_to_dimensionless_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_radian_to_dimensionless
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_radian_to_dimensionless
 
 # ufuncs handled as special cases
-UFUNC_HELPERS[np.sqrt] = helper_sqrt
-UFUNC_HELPERS[np.square] = helper_square
-UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
-UFUNC_HELPERS[np.cbrt] = helper_cbrt
-UFUNC_HELPERS[np_umath._ones_like] = helper__ones_like
-UFUNC_HELPERS[np.modf] = helper_modf
-UFUNC_HELPERS[np.frexp] = helper_frexp
+UFUNC_HELPERS[_get_np_func_name(np.sqrt)] = helper_sqrt
+UFUNC_HELPERS[_get_np_func_name(np.square)] = helper_square
+UFUNC_HELPERS[_get_np_func_name(np.reciprocal)] = helper_reciprocal
+UFUNC_HELPERS[_get_np_func_name(np.cbrt)] = helper_cbrt
+UFUNC_HELPERS[_get_np_func_name(np_umath._ones_like)] = helper__ones_like
+UFUNC_HELPERS[_get_np_func_name(np.modf)] = helper_modf
+UFUNC_HELPERS[_get_np_func_name(np.frexp)] = helper_frexp
 
 
 # TWO ARGUMENT UFUNCS
@@ -525,7 +525,7 @@ UFUNC_HELPERS[np.frexp] = helper_frexp
 # dimensionless output
 two_arg_dimensionless_ufuncs = (np.logaddexp, np.logaddexp2)
 for ufunc in two_arg_dimensionless_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_two_arg_dimensionless
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_two_arg_dimensionless
 
 # two argument ufuncs that return a value with the same unit as the input
 twoarg_invariant_ufuncs = (
@@ -542,7 +542,7 @@ twoarg_invariant_ufuncs = (
     np.fmod,
 )
 for ufunc in twoarg_invariant_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_twoarg_invariant
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_twoarg_invariant
 
 # two argument ufuncs that need compatible inputs and return a boolean
 twoarg_comparison_ufuncs = (
@@ -554,7 +554,7 @@ twoarg_comparison_ufuncs = (
     np.equal,
 )
 for ufunc in twoarg_comparison_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_twoarg_comparison
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_twoarg_comparison
 
 # two argument ufuncs that do inverse trigonometry
 twoarg_invtrig_ufuncs = (np.arctan2,)
@@ -562,27 +562,30 @@ twoarg_invtrig_ufuncs = (np.arctan2,)
 if isinstance(getattr(np_umath, "_arg", None), np.ufunc):
     twoarg_invtrig_ufuncs += (np_umath._arg,)
 for ufunc in twoarg_invtrig_ufuncs:
-    UFUNC_HELPERS[ufunc] = helper_twoarg_invtrig
+    UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_twoarg_invtrig
 
 # ufuncs handled as special cases
-UFUNC_HELPERS[np.multiply] = helper_multiplication
-UFUNC_HELPERS[np.matmul] = helper_multiplication
+UFUNC_HELPERS[_get_np_func_name(np.multiply)] = helper_multiplication
+UFUNC_HELPERS[_get_np_func_name(np.matmul)] = helper_multiplication
+
 if not NUMPY_LT_2_0:
-    UFUNC_HELPERS[np.vecdot] = helper_multiplication
+    UFUNC_HELPERS[_get_np_func_name(np.vecdot)] = helper_multiplication
 if not NUMPY_LT_2_2:
-    UFUNC_HELPERS[np.vecmat] = helper_multiplication
-    UFUNC_HELPERS[np.matvec] = helper_multiplication
-UFUNC_HELPERS[np.divide] = helper_division
-UFUNC_HELPERS[np.true_divide] = helper_division
-UFUNC_HELPERS[np.power] = helper_power
-UFUNC_HELPERS[np.ldexp] = helper_ldexp
-UFUNC_HELPERS[np.copysign] = helper_copysign
-UFUNC_HELPERS[np.floor_divide] = helper_twoarg_floor_divide
-UFUNC_HELPERS[np.heaviside] = helper_heaviside
-UFUNC_HELPERS[np.float_power] = helper_power
-UFUNC_HELPERS[np.divmod] = helper_divmod
+    UFUNC_HELPERS[_get_np_func_name(np.vecmat)] = helper_multiplication
+    UFUNC_HELPERS[_get_np_func_name(np.matvec)] = helper_multiplication
+UFUNC_HELPERS[_get_np_func_name(np.divide)] = helper_division
+UFUNC_HELPERS[_get_np_func_name(np.true_divide)] = helper_division
+UFUNC_HELPERS[_get_np_func_name(np.power)] = helper_power
+UFUNC_HELPERS[_get_np_func_name(np.ldexp)] = helper_ldexp
+UFUNC_HELPERS[_get_np_func_name(np.copysign)] = helper_copysign
+UFUNC_HELPERS[_get_np_func_name(np.floor_divide)] = helper_twoarg_floor_divide
+UFUNC_HELPERS[_get_np_func_name(np.heaviside)] = helper_heaviside
+UFUNC_HELPERS[_get_np_func_name(np.float_power)] = helper_power
+UFUNC_HELPERS[_get_np_func_name(np.divmod)] = helper_divmod
 # Check for clip ufunc; note that np.clip is a wrapper function, not the ufunc.
 if isinstance(getattr(np_umath, "clip", None), np.ufunc):
-    UFUNC_HELPERS[np_umath.clip] = helper_clip
+    clip_ufunc = getattr(np_umath, "clip", None)
+if isinstance(clip_ufunc, np.ufunc):
+    UFUNC_HELPERS[_get_np_func_name(clip_ufunc)] = helper_clip
 
 del ufunc
