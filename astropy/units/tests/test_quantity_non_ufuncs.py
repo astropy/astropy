@@ -1118,6 +1118,24 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         expected = np.average(q1.value, weights=q2.value) * u.m
         assert np.all(o == expected)
 
+    def test_average_no_weights(self):
+        q1 = np.arange(9.0).reshape(3, 3) * u.m
+        o = np.average(q1)
+        expected = np.average(q1.value) * u.m
+        assert np.all(o == expected)
+
+    def test_average_a_and_weights_different_shapes_and_returned(self):
+        q1 = np.arange(9.0).reshape(3, 3) * u.m
+        q2 = np.ones(3) / u.s
+        avg, wsum = np.average(q1, weights=q2, axis=1, returned=True)
+        expected_avg, expected_wsum = np.average(
+            q1.value, weights=q2.value, axis=1, returned=True
+        )
+        expected_avg *= u.m
+        expected_wsum /= u.s
+        assert np.all(avg == expected_avg)
+        assert np.all(wsum == expected_wsum)
+
     def test_mean(self):
         self.check(np.mean)
 
