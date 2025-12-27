@@ -774,32 +774,31 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             # NOTE: there is no dimensionless time while lengths can be
             # dimensionless (u.dimensionless_unscaled).
             for comp in representation_data.components:
-                if (diff_comp := f"d_{comp}") in differential_data.components:
+                if (diff_comp := f"d_{comp}") in differential_data.components and (
+                    differential_data._units[diff_comp].physical_type
+                    != representation_data._units[comp].physical_type / u.physical.time
+                ):
+                    for key, val in self.get_representation_component_names().items():
+                        if val == comp:
+                            current_repr_name = key
+                            break
+                    for key, val in self.get_representation_component_names(
+                        "s"
+                    ).items():
+                        if val == diff_comp:
+                            current_diff_name = key
+                            break
                     current_repr_unit = representation_data._units[comp]
                     current_diff_unit = differential_data._units[diff_comp]
-                    expected_unit = current_repr_unit / u.s
-                    if not current_diff_unit.is_equivalent(expected_unit):
-                        for (
-                            key,
-                            val,
-                        ) in self.get_representation_component_names().items():
-                            if val == comp:
-                                current_repr_name = key
-                                break
-                        for key, val in self.get_representation_component_names(
-                            "s"
-                        ).items():
-                            if val == diff_comp:
-                                current_diff_name = key
-                                break
-                        raise ValueError(
-                            f'{current_repr_name} has unit "{current_repr_unit}" with'
-                            f' physical type "{current_repr_unit.physical_type}", but'
-                            f" {current_diff_name} has incompatible unit"
-                            f' "{current_diff_unit}" with physical type'
-                            f' "{current_diff_unit.physical_type}" instead of the'
-                            f' expected "{(expected_unit).physical_type}".'
-                        )
+                    expected_type = current_repr_unit.physical_type / u.physical.time
+                    raise ValueError(
+                        f'{current_repr_name} has unit "{current_repr_unit}" with'
+                        f' physical type "{current_repr_unit.physical_type}", but'
+                        f" {current_diff_name} has incompatible unit"
+                        f' "{current_diff_unit}" with physical type'
+                        f' "{current_diff_unit.physical_type}" instead of the'
+                        f' expected "{expected_type}".'
+                    )
 
             representation_data = representation_data.with_differentials(
                 {"s": differential_data}
