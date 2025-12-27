@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
 
-import itertools
 import operator
 import pickle
 from contextlib import nullcontext
@@ -584,7 +583,7 @@ def test_compose_no_duplicates():
 
 
 @pytest.mark.parametrize(
-    "dtype", tuple(map("".join, itertools.product("<>", "if", "48")))
+    "dtype", ("<i4", "<i8", "<f4", "<f8", ">i4", ">i8", ">f4", ">f8")
 )
 def test_endian_independence(dtype):
     """
