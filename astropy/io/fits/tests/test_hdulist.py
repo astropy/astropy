@@ -62,6 +62,37 @@ class TestHDUListFunctions(FitsTestCase):
             res = hdul.fileinfo(2)
             test_fileinfo(resized=1, datLoc=17280, hdrLoc=11520)
 
+    def test_hdulist_file_info_append(self):
+        def test_fileinfo(hdu, hdu_list):
+            index = len(hdu_list)
+            hdu_list.append(hdu)
+            hdu_list.flush()
+
+            info_from_hdu = hdu.fileinfo()
+            info_from_hdu_list = hdu_list.fileinfo(index)
+            if info_from_hdu is None:
+                assert info_from_hdu_list["file"] is None
+            else:
+                assert info_from_hdu["file"] == info_from_hdu_list["file"]
+                assert info_from_hdu["filemode"] == info_from_hdu_list["filemode"]
+                assert info_from_hdu["hdrLoc"] == info_from_hdu_list["hdrLoc"]
+                assert info_from_hdu["datLoc"] == info_from_hdu_list["datLoc"]
+                assert info_from_hdu["datSpan"] == info_from_hdu_list["datSpan"]
+
+        with fits.open(self.temp("test.fits"), mode="append") as hdul:
+            hdu0 = fits.PrimaryHDU()
+            test_fileinfo(hdu0, hdul)
+
+            hdu1 = fits.ImageHDU(np.random.randn(60, 50))
+            test_fileinfo(hdu1, hdul)
+
+            hdu2 = fits.CompImageHDU(np.random.randn(40, 50), compression_type="GZIP_2")
+            test_fileinfo(hdu2, hdul)
+
+            hdu3 = fits.BinTableHDU.from_columns([fits.Column("col1", "D")], nrows=3)
+            hdu3.data["col1"] = np.random.randn(3)
+            test_fileinfo(hdu3, hdul)
+
     def test_create_from_multiple_primary(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/145
