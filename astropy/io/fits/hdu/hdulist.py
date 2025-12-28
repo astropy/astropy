@@ -576,13 +576,13 @@ class HDUList(list, _Verify):
         """
         if self._file is not None:
             output = self[index].fileinfo()
-
-            if not output:
+            if not output or output.get("file") is None:
                 # OK, the HDU associated with this index is not yet
                 # tied to the file associated with the HDUList.  The only way
                 # to get the file object is to check each of the HDU's in the
                 # list until we find the one associated with the file.
                 f = None
+                fm = None
 
                 for hdu in self:
                     info = hdu.fileinfo()
@@ -592,12 +592,15 @@ class HDUList(list, _Verify):
                         fm = info["filemode"]
                         break
 
+                if not output:
+                    output = {}
+
                 output = {
                     "file": f,
                     "filemode": fm,
-                    "hdrLoc": None,
-                    "datLoc": None,
-                    "datSpan": None,
+                    "hdrLoc": output.get("hdrLoc"),
+                    "datLoc": output.get("datLoc"),
+                    "datSpan": output.get("datSpan"),
                 }
 
             output["filename"] = self._file.name
