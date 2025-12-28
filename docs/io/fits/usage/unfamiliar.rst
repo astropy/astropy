@@ -31,7 +31,7 @@ is.
     FITS_rec([(10.123, 37)],
              dtype=(numpy.record, {'names':['a','b'], 'formats':['S10','S5'], 'offsets':[0,11], 'itemsize':16}))
     >>> hdul[1].data['a']
-    array([  10.123,    5.2  ,   15.61 ,    0.   ,  345.   ])
+    array([  10.123,    5.2  ,   15.61 ,     nan,  345.   ])
     >>> hdul[1].data.formats
     ['E10.4', 'I5']
     >>> hdul.close()
