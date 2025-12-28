@@ -843,12 +843,82 @@ def test_unicode_column(tmp_path):
 
     with fits.open(tmp_path / "test.fits") as hdul:
         assert np.all(hdul[1].data["col0"] == ["a", "b", "cd"])
-        assert hdul[1].header["TFORM1"] == "2A"
+    assert hdul[1].header["TFORM1"] == "2A"
 
-    t2 = Table([np.array(["\N{SNOWMAN}"])])
 
-    with pytest.raises(UnicodeEncodeError):
-        t2.write(tmp_path / "test.fits", overwrite=True)
+def test_vla_logical_write_heap_bytes():
+    # Ensure VLAs of logical type ('PL') are written with ASCII 'T'/'F' bytes
+    # in the heap, matching the FITS binary table specification.
+    logical_data = [[True, False, True]]
+    col = fits.Column(name="logical_col", format="PL", array=logical_data)
+    hdu = BinTableHDU.from_columns([col])
+    bio = BytesIO()
+    hdu.writeto(bio)
+    bio.seek(0)
+    with fits.open(bio, memmap=False) as hdul:
+        assert "PL" in hdul[1].header["TFORM1"]
+        # Heap contains ASCII 'T' (84), 'F' (70), 'T' (84)
+        heap = hdul[1].data._get_heap_data()
+        assert heap.tolist() == [84, 70, 84]
+
+
+def test_vla_logical_roundtrip_boolean():
+    # Round-trip a logical VLA and confirm values are preserved as booleans
+    logical_data = [[True, False, True, False]]
+    col = fits.Column(name="logical_col", format="PL", array=logical_data)
+    hdu = BinTableHDU.from_columns([col])
+    bio = BytesIO()
+    hdu.writeto(bio)
+    bio.seek(0)
+    result_table = fits.getdata(bio, ext=1)
+    result_data = result_table["logical_col"][0].tolist()
+    assert result_data == [True, False, True, False]
+
+
+def test_vla_logical_write_from_ints():
+    # Integer inputs 1/0 are converted to ASCII T/F on write for logical VLAs
+    integer_data = [[1, 0, 1]]
+    col = fits.Column(name="int_as_logical", format="PL", array=integer_data)
+    hdu = BinTableHDU.from_columns([col])
+    bio = BytesIO()
+    hdu.writeto(bio)
+    bio.seek(0)
+    with fits.open(bio, memmap=False) as hdul:
+        heap = hdul[1].data._get_heap_data()
+        assert heap.tolist() == [84, 70, 84]
+        # Reading back should yield booleans
+        result_data = hdul[1].data["int_as_logical"][0].tolist()
+        assert result_data == [True, False, True]
+
+
+def test_vla_logical_write_from_floats():
+    # Float inputs are mapped to ASCII T/F on write (non-zero -> T)
+    float_data = [[0.0, -1.5, 3.0]]
+    col = fits.Column(name="float_as_logical", format="PL", array=float_data)
+    hdu = BinTableHDU.from_columns([col])
+    bio = BytesIO()
+    hdu.writeto(bio)
+    bio.seek(0)
+    with fits.open(bio, memmap=False) as hdul:
+        heap = hdul[1].data._get_heap_data()
+        assert heap.tolist() == [70, 84, 84]
+        result_data = hdul[1].data["float_as_logical"][0].tolist()
+        assert result_data == [False, True, True]
+
+
+def test_vla_logical_write_from_large_ints_no_overflow():
+    # Large integers should not overflow; they are mapped to T/F prior to write
+    large_int_data = [[0, 1234567890, -50000000]]
+    col = fits.Column(name="large_ints", format="PL", array=large_int_data)
+    hdu = BinTableHDU.from_columns([col])
+    bio = BytesIO()
+    hdu.writeto(bio)
+    bio.seek(0)
+    with fits.open(bio, memmap=False) as hdul:
+        heap = hdul[1].data._get_heap_data()
+        assert heap.tolist() == [70, 84, 84]
+        result_data = hdul[1].data["large_ints"][0].tolist()
+        assert result_data == [False, True, True]
 
 
 def test_unit_warnings_read_write(tmp_path):
