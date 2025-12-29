@@ -510,7 +510,7 @@ for ufunc in radian_to_dimensionless_ufuncs:
     UFUNC_HELPERS[_get_np_func_name(ufunc)] = helper_radian_to_dimensionless
 
 # ufuncs handled as special cases
-UFUNC_HELPERS[_get_np_func_name(np.sqrt)] = helper_sqrt
+UFUNC_HELPERS["sqrt"] = helper_sqrt
 UFUNC_HELPERS[_get_np_func_name(np.square)] = helper_square
 UFUNC_HELPERS[_get_np_func_name(np.reciprocal)] = helper_reciprocal
 UFUNC_HELPERS[_get_np_func_name(np.cbrt)] = helper_cbrt
