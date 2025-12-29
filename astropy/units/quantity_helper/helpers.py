@@ -8,7 +8,6 @@ units for a given ufunc, given input units.
 """
 
 from fractions import Fraction
-from .function_helpers import _get_np_func_name
 import numpy as np
 
 from astropy.units.core import dimensionless_unscaled, unit_scale_converter
@@ -27,7 +26,8 @@ else:
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 
-
+def _get_np_func_name(func):
+    return getattr(func, "__name__", str(func))
 def _d(unit):
     if unit is None:
         return dimensionless_unscaled

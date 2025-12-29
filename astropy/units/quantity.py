@@ -20,8 +20,9 @@ from astropy import config as _config
 from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyWarning
+from .function.logarithmic import LogUnit
 
-from .core import LogUnit, Unit, UnitBase, dimensionless_unscaled, get_current_unit_registry
+from .core import Unit, UnitBase, dimensionless_unscaled, get_current_unit_registry
 from .errors import UnitConversionError, UnitsError, UnitTypeError
 from .format import Base, Latex
 from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
@@ -742,17 +743,7 @@ class Quantity(np.ndarray):
             - `~astropy.units.Quantity` subclass
             - bool: True if subclasses of the given class are ok
         """
-        from astropy.units import StructuredUnit
-        if isinstance(unit, StructuredUnit):
-            from astropy.units.structured import StructuredQuantity
-            return StructuredQuantity, True
 
-        
-        from astropy.units import LogUnit
-        if isinstance(unit, LogUnit):
-            from astropy.units import LogQuantity
-            return LogQuantity, True
-        
         return Quantity, True
 
     def _new_view(self, obj=None, unit=None, propagate_info=True):
@@ -2299,3 +2290,4 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         raise UnitsError("'rtol' should be dimensionless")
 
     return actual.value, desired.value, rtol.value, atol.value
+

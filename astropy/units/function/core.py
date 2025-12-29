@@ -8,15 +8,10 @@ from typing import Self
 
 import numpy as np
 
-from astropy.units import (
-    Quantity,
-    Unit,
-    UnitBase,
-    UnitConversionError,
-    UnitsError,
-    UnitTypeError,
-    dimensionless_unscaled,
-)
+# Import directly from submodules to break the circular dependency
+from ..core import Unit, UnitBase, dimensionless_unscaled
+from ..quantity import Quantity
+from ..errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.units.typing import PhysicalTypeID
 from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 
