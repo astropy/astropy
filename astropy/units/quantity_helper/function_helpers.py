@@ -730,12 +730,12 @@ def array_impl(object, *, dtype, copy, order, subok, ndmin, ndmax=0):
 
 if NUMPY_LT_2_0:
     asarray_impl_1_helps = {np.asarray, np.asanyarray}
-    asarray_impl_2_helps = {}
+    asarray_impl_2_helps = set()
 elif NUMPY_LT_2_1:
     asarray_impl_1_helps = {np.asanyarray}
     asarray_impl_2_helps = {np.asarray}
 else:
-    asarray_impl_1_helps = {}
+    asarray_impl_1_helps = set()
     asarray_impl_2_helps = {np.asarray, np.asanyarray}
 
 
