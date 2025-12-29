@@ -659,14 +659,30 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
         # ``test_quantity_non_ufuncs.TestRecFunctions.test_structured_to_unstructured``
 
     def test_unstructured_to_structured(self):
-        # can't structure something that's already structured
+        # can't structure something with incompatible shape
         dtype = np.dtype([("f1", float), ("f2", float)])
         with pytest.raises(ValueError, match="The length of the last dimension"):
             rfn.unstructured_to_structured(self.q_pv, dtype=self.q_pv.dtype)
 
         # For the other tests of ``structured_to_unstructured``, see
         # ``test_quantity_non_ufuncs.TestRecFunctions.test_unstructured_to_structured``
+    def test_structured_to_unstructured_success(self):
+        """
+        Test that structured_to_unstructured correctly extracts 
+        the target unit for compatible structured units.
+        """
+        dtype = np.dtype([('a', 'f8'), ('b', 'f8')])
+        data = np.array([(1.0, 2.0), (3.0, 4.0)], dtype=dtype)      
+        unit = u.StructuredUnit((u.m, u.m), dtype)
+        q = Quantity(data, unit=unit)
 
+        result = rfn.structured_to_unstructured(q)
+
+        assert isinstance(result, Quantity)
+        assert result.unit == u.m
+        # The unstructured array should be (2, 2) because it flattens (1.0, 2.0) and (3.0, 4.0)
+        assert result.shape == (2, 2)
+        assert_array_equal(result.value, np.array([[1.0, 2.0], [3.0, 4.0]]))
 
 class TestStructuredSpecificTypeQuantity(StructuredTestBaseWithUnits):
     def setup_class(self):

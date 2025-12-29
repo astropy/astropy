@@ -1595,8 +1595,12 @@ def structured_to_unstructured(arr, *args, **kwargs):
 
     """
     from astropy.units import StructuredUnit
-
-    target_unit = arr.unit.values()[0]
+    try:
+        
+        target_unit = next(iter(arr.unit.values()))
+    except (StopIteration, AttributeError):
+        # Fallback if the unit isn't structured or is empty
+        target_unit = arr.unit
 
     def replace_unit(x):
         if isinstance(x, StructuredUnit):
