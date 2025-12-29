@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import os
+import sys
 import textwrap
 
 import numpy as np
@@ -1196,7 +1197,12 @@ def test_write_read_with_flag_collection(tmp_path):
     assert len(ccd_after.flags.keys()) == len(ccd_data.flags.keys())
     assert ccd_after.flags.shape == ccd_data.flags.shape
     assert ccd_after.flags["BAD_PIXEL"].dtype == np.uint8
-    assert ccd_after.flags["SATURATED"].dtype == ">i8"
+    if sys.maxsize > 2**32:
+        expected_int_size = 8
+    else:
+        # 32bit arch
+        expected_int_size = 4
+    assert ccd_after.flags["SATURATED"].dtype == f">i{expected_int_size}"
     np.testing.assert_array_equal(
         ccd_data.flags["BAD_PIXEL"], ccd_after.flags["BAD_PIXEL"]
     )
