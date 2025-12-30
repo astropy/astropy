@@ -48,8 +48,6 @@ from .fast_converters import (
     fast_binparse_long,
     fast_binparse_short,
     fast_binparse_ubyte,
-    fast_bitarray_to_bool,
-    fast_bool_to_bitarray,
 )
 
 __all__ = ["Converter", "get_converter", "table_column_to_votable_datatype"]
@@ -116,7 +114,9 @@ def bitarray_to_bool(data, length):
     -------
     array : numpy bool array
     """
-    return fast_bitarray_to_bool(data, length)
+    return np.unpackbits(
+        np.frombuffer(data, dtype=np.uint8), count=length if length >= 0 else None
+    ).astype(bool, copy=False)
 
 
 def bool_to_bitarray(value):
@@ -135,7 +135,8 @@ def bool_to_bitarray(value):
         significant bit in the result.  The length will be `floor((N +
         7) / 8)` where `N` is the length of `value`.
     """
-    return fast_bool_to_bitarray(value)
+    bytes = np.packbits(np.ma.filled(value, fill_value=False).flat).tobytes()
+    return struct.pack(f"{len(bytes)}B", *bytes)
 
 
 class Converter:
