@@ -1665,3 +1665,23 @@ if HAS_SCIPY:
                 ),
             ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+    class TestLinalg:
+        def test_matrix_rank(self):
+            q = np.eye(3) * u.m
+            rank = np.linalg.matrix_rank(q)
+            assert rank == 3
+            assert not isinstance(rank, u.Quantity)
+            q2 = np.ones((3, 3)) * u.s
+            rank2 = np.linalg.matrix_rank(q2)
+            assert rank2 == 1
+        
+        @pytest.mark.parametrize("function", [np.linalg.det, np.linalg.norm])
+        def test_other_linalg(self, function):
+        # Det and Norm are often used with Quantities
+            q = np.eye(2) * u.m
+            result = function(q)
+            if function is np.linalg.det:
+                assert result.unit == u.m**2
+            else:
+                assert result.unit == u.m
