@@ -48,6 +48,7 @@ from astropy.utils.compat import (
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
     NUMPY_LT_2_4,
+    NUMPY_LT_2_4_1,
 )
 
 if NUMPY_LT_2_0:
@@ -146,6 +147,8 @@ if not NUMPY_LT_2_0:
     SUBCLASS_SAFE_FUNCTIONS |= {np.trapezoid}
 if not NUMPY_LT_2_1:
     SUBCLASS_SAFE_FUNCTIONS |= {np.unstack, np.cumulative_prod, np.cumulative_sum}
+if not NUMPY_LT_2_4_1:
+    SUBCLASS_SAFE_FUNCTIONS |= {np.average}
 
 # Implemented as methods on Quantity:
 # np.ediff1d is from setops, but we support it anyway; the others
@@ -471,29 +474,27 @@ def _quantities2arrays(*args, unit_from_first=False):
     return arrays, q.unit
 
 
-@function_helper
-def average(a, axis=None, weights=None, returned=False, *, keepdims=np._NoValue):
-    # This override should no longer be needed once
-    # https://github.com/numpy/numpy/pull/30522 is merged (likely for
-    # "not NUMPY_LT_2_4_1").
+if NUMPY_LT_2_4_1:
 
-    a_value, a_unit = (_a := _as_quantity(a)).value, _a.unit
-    w_value, w_unit = (
-        (None, dimensionless_unscaled)
-        if weights is None
-        else ((_w := _as_quantity(weights)).value, _w.unit)
-    )
-    return (
-        (a_value,),
-        {
-            "axis": axis,
-            "weights": w_value,
-            "returned": returned,
-            "keepdims": keepdims,
-        },
-        ((a_unit, w_unit) if returned else a_unit),
-        None,
-    )
+    @function_helper
+    def average(a, axis=None, weights=None, returned=False, *, keepdims=np._NoValue):
+        a_value, a_unit = (_a := _as_quantity(a)).value, _a.unit
+        w_value, w_unit = (
+            (None, dimensionless_unscaled)
+            if weights is None
+            else ((_w := _as_quantity(weights)).value, _w.unit)
+        )
+        return (
+            (a_value,),
+            {
+                "axis": axis,
+                "weights": w_value,
+                "returned": returned,
+                "keepdims": keepdims,
+            },
+            ((a_unit, w_unit) if returned else a_unit),
+            None,
+        )
 
 
 def _iterable_helper(*args, out=None, **kwargs):
