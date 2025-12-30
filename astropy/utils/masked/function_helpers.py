@@ -1422,9 +1422,7 @@ if NUMPY_LT_2_4:
         mask = _copy_of_mask(ar1).ravel()
         return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
 
-
-@dispatched_function
-def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
+def _isin_impl(element, test_elements, assume_unique=False, invert=False, *, kind=None):
     element = np.asanyarray(element)
     result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
     if NUMPY_LT_2_5:
@@ -1433,16 +1431,30 @@ def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None
         result._set_shape(element.shape)
     return result, _copy_of_mask(element), None
 
-
 @dispatched_function
-def setdiff1d(ar1, ar2, assume_unique=False):
-    # Again, mostly just to avoid an asarray call.
+def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
+    return _isin_impl(
+        element,
+        test_elements,
+        assume_unique=assume_unique,
+        invert=invert,
+        kind=kind,
+    )
+
+
+def _setdiff1d_impl(ar1, ar2, assume_unique=False):
     if assume_unique:
         ar1 = np.asanyarray(ar1).ravel()
     else:
         ar1 = np.unique(ar1)
         ar2 = np.unique(ar2)
-    return ar1[np.isin(ar1, ar2, assume_unique=True, invert=True)], None, None
+    mask = _copy_of_mask(ar1)
+    res, _, _= _isin_impl(ar1, ar2, assume_unique=True, invert=True)
+    return ar1[res], mask, None
+
+@dispatched_function
+def setdiff1d(ar1, ar2, assume_unique=False):
+    return _setdiff1d_impl(ar1, ar2, assume_unique=assume_unique)
 
 
 # Add any dispatched or helper function that has a docstring to
