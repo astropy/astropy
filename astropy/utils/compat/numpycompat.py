@@ -16,6 +16,7 @@ __all__ = [
     "NUMPY_LT_2_2",
     "NUMPY_LT_2_3",
     "NUMPY_LT_2_4",
+    "NUMPY_LT_2_4_1",
 ]
 
 # TODO: It might also be nice to have aliases to these named for specific
@@ -27,6 +28,7 @@ NUMPY_LT_2_1 = not minversion(np, "2.1.0.dev")
 NUMPY_LT_2_2 = not minversion(np, "2.2.0.dev0")
 NUMPY_LT_2_3 = not minversion(np, "2.3.0.dev0")
 NUMPY_LT_2_4 = not minversion(np, "2.4.0.dev0")
+NUMPY_LT_2_4_1 = not minversion(np, "2.4.1.dev0")
 
 
 COPY_IF_NEEDED = False if NUMPY_LT_2_0 else None
