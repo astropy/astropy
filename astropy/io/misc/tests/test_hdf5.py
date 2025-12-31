@@ -803,7 +803,7 @@ def test_hdf5_mixins_per_column(table_cls, name_col, tmp_path):
 
 @pytest.mark.parametrize("name_col", unsupported_cols.items())
 @pytest.mark.xfail(reason="column type unsupported")
-def test_fits_unsupported_mixin(self, name_col, tmp_path):
+def test_fits_unsupported_mixin(name_col, tmp_path):
     # Check that we actually fail in writing unsupported columns defined
     # on top.
     filename = tmp_path / "test_simple.fits"
