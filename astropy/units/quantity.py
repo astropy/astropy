@@ -247,6 +247,11 @@ class QuantityInfo(QuantityInfoBase):
         return [self._parent]
 
 
+def _parse_floats_from_whitespace(data:str)->list[float]:
+        data = data.strip("[]")
+        return [float(a) for a in data.split()]
+
+
 class Quantity(np.ndarray):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
@@ -455,17 +460,35 @@ class Quantity(np.ndarray):
                 # the float function below and ensure things like 1.2.3deg
                 # will not work.
                 pattern = (
-                    r"\s*[+-]?"
-                    r"((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|"
-                    r"([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))"
-                    r"([eE][+-]?\d+)?"
-                    r"[.+-]?"
-                )
+                        r"\s*"
+                        r"(?:"
+                            # ---- Scalar Number  ----
+                            r"[+-]?"
+                            r"((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|"
+                            r"([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))"
+                            r"([eE][+-]?\d+)?"
+                        r"|"
+                            # ---- Vector like data [2.3 5.6 8.9] ----
+                            r"\[\s*"
+                            r"[+-]?"
+                            r"((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|"
+                            r"([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))"
+                            r"([eE][+-]?\d+)?"
+                            r"(?:\s+"
+                                r"[+-]?"
+                                r"((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|"
+                                r"([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))"
+                                r"([eE][+-]?\d+)?"
+                            r")*"
+                            r"\s*\]"
+                        r")"
+                        r"\s*"
+                )            
 
                 v = re.match(pattern, value)
                 unit_string = None
                 try:
-                    value = float(v.group())
+                    value = float(v.group()) if not ("[" in v.group() and "]" in v.group()) else _parse_floats_from_whitespace(v.group())
 
                 except Exception:
                     raise TypeError(
