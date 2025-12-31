@@ -17,7 +17,6 @@ from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
 from astropy.utils import ShapedLikeNDArray, deprecated
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -783,7 +782,7 @@ class Table:
             # self.__class__ and respects the `copy` arg.  The returned
             # Table object should NOT then be copied.
             data = data.__astropy_table__(self.__class__, copy, **kwargs)
-            copy = COPY_IF_NEEDED
+            copy = None
         elif kwargs:
             raise TypeError(
                 f"__init__() got unexpected keyword argument {next(iter(kwargs.keys()))!r}"
@@ -1170,7 +1169,7 @@ class Table:
         """
         return _IndexModeContext(self, mode)
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         """Support converting Table to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not
@@ -1412,7 +1411,7 @@ class Table:
             # scalar then it gets returned unchanged so the original object gets
             # passed to `Column` later.
             data = _convert_sequence_data_to_array(data, dtype)
-            copy = COPY_IF_NEEDED  # Already made a copy above
+            copy = None  # Already made a copy above
             col_cls = (
                 masked_col_cls
                 if isinstance(data, np.ma.MaskedArray)
@@ -1493,7 +1492,7 @@ class Table:
         if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
             col_cls = self._get_col_cls_for_table(col)
             if col_cls is not col.__class__:
-                col = col_cls(col, copy=COPY_IF_NEEDED)
+                col = col_cls(col, copy=None)
 
         return col
 
@@ -4396,7 +4395,7 @@ class QTable(Table):
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
             try:
-                qcol = q_cls(col.data, col.unit, copy=COPY_IF_NEEDED, subok=True)
+                qcol = q_cls(col.data, col.unit, copy=None, subok=True)
             except Exception as exc:
                 warnings.warn(
                     f"column {col.info.name} has a unit but is kept as "
