@@ -1042,7 +1042,13 @@ def test_fits_unsupported_mixin(name_col, tmp_path):
     # on top.
     filename = tmp_path / "test_simple.fits"
     name, col = name_col
-    Table([col], names=[name]).write(filename, format="fits")
+    t = Table([col], names=[name])
+    if isinstance(col, Time):
+        # Time with different locations can in principle be supported, but
+        # not if there is another time column which has yet another location.
+        t["t2"] = Time(col.jd, format="jd", location=None)
+
+    t.write(filename, format="fits")
 
 
 def test_info_attributes_with_no_mixins(tmp_path):
