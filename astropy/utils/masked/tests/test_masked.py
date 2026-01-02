@@ -14,7 +14,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
-from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_2, NUMPY_LT_2_3
+from astropy.utils.compat import NUMPY_LT_2_2, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.utils.masked import Masked, MaskedNDArray
 
@@ -1440,16 +1440,12 @@ def test_masked_str_explicit_structured():
     sa = np.array([(1.0, 2.0), (3.0, 4.0)], dtype="f8,f8")
     msa = Masked(sa, [(False, True), (False, False)])
     assert str(msa) == "[(1., ——) (3., 4.)]"
-    assert str(msa[0]) == ("(1., ——)" if NUMPY_LT_2_0 else "(1.0, ———)")
-    assert str(msa[1]) == str(sa[1]) == ("(3., 4.)" if NUMPY_LT_2_0 else "(3.0, 4.0)")
+    assert str(msa[0]) == "(1.0, ———)"
+    assert str(msa[1]) == str(sa[1]) == "(3.0, 4.0)"
     with np.printoptions(precision=3, floatmode="fixed"):
         assert str(msa) == "[(1.000,   ———) (3.000, 4.000)]"
-        assert str(msa[0]) == ("(1.000,   ———)" if NUMPY_LT_2_0 else "(1.0, ———)")
-        assert (
-            str(msa[1])
-            == str(sa[1])
-            == ("(3.000, 4.000)" if NUMPY_LT_2_0 else "(3.0, 4.0)")
-        )
+        assert str(msa[0]) == "(1.0, ———)"
+        assert str(msa[1]) == str(sa[1]) == "(3.0, 4.0)"
 
 
 def test_masked_repr_explicit_structured():

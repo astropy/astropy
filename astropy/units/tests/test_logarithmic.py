@@ -12,7 +12,6 @@ from numpy.testing import assert_allclose
 from astropy import constants as c
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 lu_units = [u.dex, u.mag, u.decibel]
 
@@ -1010,13 +1009,6 @@ class TestLogQuantityMethods:
             assert res.unit == u.mag**2
         else:
             assert res.unit == mag.unit
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="ptp method removed in numpy 2.0")
-    @log_quantity_parametrization
-    def test_always_ok_ptp(self, mag):
-        res = mag.ptp()
-        assert np.all(res.value == mag._function_view.ptp().value)
-        assert res.unit == u.mag()
 
     @log_quantity_parametrization
     def test_clip(self, mag):

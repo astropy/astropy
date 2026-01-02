@@ -43,7 +43,6 @@ from astropy.io import fits
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.wcs import WCS
 
@@ -768,10 +767,7 @@ def test_repr():
 def test_repr_altaz():
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame="icrs", distance=1 * u.kpc)
 
-    if NUMPY_LT_2_0:
-        expected_el_repr = "(-2309223., -3695529., -4641767.)"
-    else:
-        expected_el_repr = "(-2309223.0, -3695529.0, -4641767.0)"
+    expected_el_repr = "(-2309223.0, -3695529.0, -4641767.0)"
 
     loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
     time = Time("2005-03-21 00:00:00")

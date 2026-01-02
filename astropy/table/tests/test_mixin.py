@@ -27,7 +27,6 @@ from astropy.table import (
 from astropy.table.column import BaseColumn
 from astropy.table.serialize import represent_mixins_as_columns
 from astropy.table.table_helpers import ArrayWrapper
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.metadata import MergeConflictWarning
@@ -762,12 +761,6 @@ def test_quantity_representation():
             coordinates.CartesianRepresentation([0], [1], [0], unit=u.one),
             # With no unit we get "None" in the unit row
             [
-                "    col0    ",
-                "------------",
-                "(0., 1., 0.)",
-            ]
-            if NUMPY_LT_2_0
-            else [
                 "      col0     ",
                 "---------------",
                 "(0.0, 1.0, 0.0)",
@@ -777,13 +770,6 @@ def test_quantity_representation():
         pytest.param(
             coordinates.CartesianRepresentation([0], [1], [0], unit="m"),
             [
-                "    col0    ",
-                "     m      ",
-                "------------",
-                "(0., 1., 0.)",
-            ]
-            if NUMPY_LT_2_0
-            else [
                 "      col0     ",
                 "       m       ",
                 "---------------",
@@ -794,13 +780,6 @@ def test_quantity_representation():
         pytest.param(
             coordinates.SphericalRepresentation([10] * u.deg, [20] * u.deg, [1] * u.pc),
             [
-                "     col0     ",
-                " deg, deg, pc ",
-                "--------------",
-                "(10., 20., 1.)",
-            ]
-            if NUMPY_LT_2_0
-            else [
                 "       col0      ",
                 "   deg, deg, pc  ",
                 "-----------------",
@@ -811,13 +790,6 @@ def test_quantity_representation():
         pytest.param(
             coordinates.UnitSphericalRepresentation([10] * u.deg, [20] * u.deg),
             [
-                "   col0   ",
-                "   deg    ",
-                "----------",
-                "(10., 20.)",
-            ]
-            if NUMPY_LT_2_0
-            else [
                 "    col0    ",
                 "    deg     ",
                 "------------",
@@ -830,13 +802,6 @@ def test_quantity_representation():
                 [10] * u.mas / u.yr, [2] * u.mas / u.yr, [10] * u.km / u.s
             ),
             [
-                "           col0           ",
-                "mas / yr, mas / yr, km / s",
-                "--------------------------",
-                "            (10., 2., 10.)",
-            ]
-            if NUMPY_LT_2_0
-            else [
                 "           col0           ",
                 "mas / yr, mas / yr, km / s",
                 "--------------------------",
@@ -964,16 +929,6 @@ def test_ndarray_mixin(as_ndarray_mixin):
 
     assert t.pformat(show_dtype=True) == (
         [
-            "  a [f0, f1]     b [x, y]      c [rx, ry]      d    ",
-            "(int32, str1) (int32, str2) (float64, str3) int64[2]",
-            "------------- ------------- --------------- --------",
-            "     (1, 'a')    (10, 'aa')   (100., 'raa')   0 .. 1",
-            "     (2, 'b')    (20, 'bb')   (200., 'rbb')   2 .. 3",
-            "     (3, 'c')    (30, 'cc')   (300., 'rcc')   4 .. 5",
-            "     (4, 'd')    (40, 'dd')   (400., 'rdd')   6 .. 7",
-        ]
-        if NUMPY_LT_2_0
-        else [
             "  a [f0, f1]     b [x, y]      c [rx, ry]      d    ",
             "(int32, str1) (int32, str2) (float64, str3) int64[2]",
             "------------- ------------- --------------- --------",

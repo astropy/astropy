@@ -10,20 +10,15 @@ units for a given ufunc, given input units.
 from fractions import Fraction
 
 import numpy as np
+from numpy._core import umath as np_umath
 
 from astropy.units.core import dimensionless_unscaled, unit_scale_converter
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.utils.compat.numpycompat import (
-    NUMPY_LT_2_0,
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
     NUMPY_LT_2_3,
 )
-
-if NUMPY_LT_2_0:
-    from numpy.core import umath as np_umath
-else:
-    from numpy._core import umath as np_umath
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 
@@ -391,37 +386,36 @@ UNSUPPORTED_UFUNCS |= {
     np.lcm,
 }
 
-if not NUMPY_LT_2_0:
-    # string utilities - make no sense for Quantity.
-    UNSUPPORTED_UFUNCS |= {
-        np.bitwise_count,
-        np._core.umath.count,
-        np._core.umath.isalpha,
-        np._core.umath.isdigit,
-        np._core.umath.isspace,
-        np._core.umath.isnumeric,
-        np._core.umath.isdecimal,
-        np._core.umath.isalnum,
-        np._core.umath.istitle,
-        np._core.umath.islower,
-        np._core.umath.isupper,
-        np._core.umath.index,
-        np._core.umath.rindex,
-        np._core.umath.startswith,
-        np._core.umath.endswith,
-        np._core.umath.find,
-        np._core.umath.rfind,
-        np._core.umath.str_len,
-        np._core.umath._strip_chars,
-        np._core.umath._lstrip_chars,
-        np._core.umath._rstrip_chars,
-        np._core.umath._strip_whitespace,
-        np._core.umath._lstrip_whitespace,
-        np._core.umath._rstrip_whitespace,
-        np._core.umath._replace,
-        np._core.umath._expandtabs,
-        np._core.umath._expandtabs_length,
-    }
+# string utilities - make no sense for Quantity.
+UNSUPPORTED_UFUNCS |= {
+    np.bitwise_count,
+    np._core.umath.count,
+    np._core.umath.isalpha,
+    np._core.umath.isdigit,
+    np._core.umath.isspace,
+    np._core.umath.isnumeric,
+    np._core.umath.isdecimal,
+    np._core.umath.isalnum,
+    np._core.umath.istitle,
+    np._core.umath.islower,
+    np._core.umath.isupper,
+    np._core.umath.index,
+    np._core.umath.rindex,
+    np._core.umath.startswith,
+    np._core.umath.endswith,
+    np._core.umath.find,
+    np._core.umath.rfind,
+    np._core.umath.str_len,
+    np._core.umath._strip_chars,
+    np._core.umath._lstrip_chars,
+    np._core.umath._rstrip_chars,
+    np._core.umath._strip_whitespace,
+    np._core.umath._lstrip_whitespace,
+    np._core.umath._rstrip_whitespace,
+    np._core.umath._replace,
+    np._core.umath._expandtabs,
+    np._core.umath._expandtabs_length,
+}
 if not NUMPY_LT_2_1:
     UNSUPPORTED_UFUNCS |= {
         np._core.umath._ljust,
@@ -567,8 +561,7 @@ for ufunc in twoarg_invtrig_ufuncs:
 # ufuncs handled as special cases
 UFUNC_HELPERS[np.multiply] = helper_multiplication
 UFUNC_HELPERS[np.matmul] = helper_multiplication
-if not NUMPY_LT_2_0:
-    UFUNC_HELPERS[np.vecdot] = helper_multiplication
+UFUNC_HELPERS[np.vecdot] = helper_multiplication
 if not NUMPY_LT_2_2:
     UFUNC_HELPERS[np.vecmat] = helper_multiplication
     UFUNC_HELPERS[np.matvec] = helper_multiplication

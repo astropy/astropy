@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, Union, 
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
@@ -347,7 +346,7 @@ class UnitBase:
         try:
             from .quantity import Quantity
 
-            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
+            return Quantity(m, self, copy=None, subok=True)
         except Exception:
             if isinstance(m, np.ndarray):
                 raise
