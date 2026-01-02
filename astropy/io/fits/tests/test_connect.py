@@ -1036,13 +1036,32 @@ def test_fits_mixins_per_column(table_cls, name_col, tmp_path):
 
 
 @pytest.mark.parametrize("name_col", unsupported_cols.items())
-@pytest.mark.xfail(reason="column type unsupported")
-def test_fits_unsupported_mixin(self, name_col, tmp_path):
-    # Check that we actually fail in writing unsupported columns defined
-    # on top.
+def test_fits_unsupported_mixin(name_col, tmp_path):
+    """Check that we actually fail in writing unsupported columns defined
+    on top.
+    """
     filename = tmp_path / "test_simple.fits"
     name, col = name_col
-    Table([col], names=[name]).write(filename, format="fits")
+    t = Table([col], names=[name])
+    if isinstance(col, Time):
+        # Time with different locations can in principle be supported, but
+        # not if there is another time column which has yet another location.
+        t["t2"] = Time(col.jd, format="jd", location=None)
+        ctx = pytest.warns(
+            AstropyUserWarning, match="Time Column .* has no specified location"
+        )
+    elif name == "obj":
+        ctx = pytest.raises(
+            TypeError, match="Column .* contains unsupported object types"
+        )
+    else:
+        ctx = pytest.warns(
+            AstropyUserWarning,
+            match="The unit .* could not be saved in native FITS format",
+        )
+
+    with ctx:
+        t.write(filename, format="fits", overwrite=True)
 
 
 def test_info_attributes_with_no_mixins(tmp_path):
