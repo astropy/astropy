@@ -1530,19 +1530,18 @@ class HDUList(list, _Verify):
                 # a segfault if they try to access it). Here warn if that may
                 # be the case.
                 for idx, mmap, arr in mmaps:
-                    if mmap is None:
+                    if mmap is None or sys.getrefcount(arr) <= 2:
                         continue
-                    if sys.getrefcount(arr) > 2:
-                        # 2 is the minimum number of references to this object
-                        # counting `arr` and a reference as an argument to getrefcount(),
-                        # see  https://docs.python.org/3/library/sys.html#sys.getrefcount
-                        warnings.warn(
-                            "Memory map object was closed but appears to still "
-                            "be referenced. Further access will result in undefined "
-                            "behavior (possibly including segmentation faults).",
-                            category=UserWarning,
-                            stacklevel=2,
-                        )
+                    # 2 is the minimum number of references to this object
+                    # counting `arr` and a reference as an argument to getrefcount(),
+                    # see  https://docs.python.org/3/library/sys.html#sys.getrefcount
+                    warnings.warn(
+                        "Memory map object was closed but appears to still "
+                        "be referenced. Further access will result in undefined "
+                        "behavior (possibly including segmentation faults).",
+                        category=UserWarning,
+                        stacklevel=2,
+                    )
                 del mmaps  # Just to be sure
 
         else:

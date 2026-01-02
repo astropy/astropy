@@ -195,13 +195,12 @@ class TestMaskedColumnInit(SetupData):
             MaskedColumn(name="b", length=4, mask=mask_list)
 
 
-DTYPES_TEST_INIT = ["?", "b", "i2", "f4", "c8", "S", "U", "O"] + (
-    [  # new in numpy 2
-        np.dtypes.StrDType,  # same as "U"
-        np.dtypes.BytesDType,  # same as "S"
-        np.dtypes.StringDType,
-    ]
-)
+DTYPES_TEST_INIT = ["?", "b", "i2", "f4", "c8", "S", "U", "O"] + [
+    # new in numpy 2
+    np.dtypes.StrDType,  # same as "U"
+    np.dtypes.BytesDType,  # same as "S"
+    np.dtypes.StringDType,
+]
 
 
 class TestTableInit(SetupData):

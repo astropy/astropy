@@ -871,7 +871,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             else:
                 # Parse signature with private numpy function. Note it
                 # cannot handle spaces in tuples, so remove those.
-                (in_sig, out_sig) = np.lib._function_base_impl._parse_gufunc_signature(
+                in_sig, out_sig = np.lib._function_base_impl._parse_gufunc_signature(
                     ufunc.signature.replace(" ", "")
                 )
                 axes = kwargs.get("axes")
