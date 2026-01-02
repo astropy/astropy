@@ -37,6 +37,7 @@ from astropy.utils.masked import (
     combine_masks,
     get_data_and_mask,
 )
+from astropy.utils.shapes import ShapedNamespace
 
 # Below, import TimeFromEpoch to avoid breaking code that followed the old
 # example of making a custom timescale in the documentation.
@@ -1431,6 +1432,10 @@ class TimeBase(MaskableShapedLikeNDArray):
 
         return tm
 
+    def __array_namespace__(self):
+        ns = super().__array_namespace__()
+        return TimeNamespace(ns, self)
+
     def __copy__(self):
         """
         Overrides the default behavior of the `copy.copy` function in
@@ -1866,6 +1871,14 @@ class TimeBase(MaskableShapedLikeNDArray):
 
     def __ge__(self, other):
         return self._time_comparison(other, operator.ge)
+
+
+class TimeNamespace(ShapedNamespace):
+    def __init__(self, base, owner):
+        super().__init__(base._base, owner)
+
+    def __getattr__(self, name):
+        return super().getattr(name)
 
 
 class Time(TimeBase):
