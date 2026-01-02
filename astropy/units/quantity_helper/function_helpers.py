@@ -1264,7 +1264,7 @@ def isin(element, test_elements, *args, **kwargs):
 
 
 if NUMPY_LT_2_4:
-    # np.in1d removed in not NUMPY_LT_24
+    # np.in1d was removed numpy 2.4
     @function_helper
     def in1d(ar1, ar2, *args, **kwargs):
         # This tests whether ar1 is in ar2, so we should change the unit of

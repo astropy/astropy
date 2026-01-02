@@ -44,7 +44,7 @@ keywords = [
 ]
 dependencies = [
     "numpy>=2.0",
-    "pyerfa>=2.0.1.3",  # for numpy>=2.0; for >=2.0.1.7, adjust structured_units.rst and doctest-requires
+    "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
     "astropy-iers-data>=0.2025.12.29.0.42.34",
     "PyYAML>=6.0.0",
     "packaging>=22.0.0",
@@ -72,7 +72,7 @@ jupyter = [  # these are optional dependencies for utils.console and table
     # jupyter-core is a transitive dependency via ipykernel, we declare it as
     # a direct dependency in order to set a lower bound for oldest-deps testing
     "jupyter-core>=4.11.2",
-    "pandas>=2.2.2",  # minimum that supports numpy 2.0
+    "pandas>=2.2.2",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
@@ -83,8 +83,8 @@ all = [
     # Install all remaining optional dependencies
     "certifi>=2022.6.15.1",
     "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
-    "h5py>=3.11.0",  # older versions are not compatible with numpy 2.0
-    "pyarrow>=16.0",  # older versions are not compatible with numpy 2.0
+    "h5py>=3.11.0",
+    "pyarrow>=16.0",
     "beautifulsoup4>=4.11.2", # imposed by pandas==2.2.2
     "html5lib>=1.1",
     "bleach>=3.2.1",
@@ -93,7 +93,7 @@ all = [
     "jplephem>=2.17.0",
     "mpmath>=1.2.1",
     "asdf-astropy>=0.7.0",
-    "bottleneck>=1.4.0",  # minimum for numpy 2.0 compatibility
+    "bottleneck>=1.4.0",
     "fsspec[http]>=2023.4.0",
     "s3fs>=2023.4.0",
     "uncompresspy>=0.4.0"
@@ -183,8 +183,8 @@ dataframe = [
     # and project.optional-dependencies.all
     # and project.optional-dependencies.typing
     "narwhals>=1.42.0",
-    "pyarrow>=16.0",  # minimum for numpy 2.0 support
-    "pandas>=2.2.2",  # minimum for numpy 2.0 support
+    "pyarrow>=16.0",
+    "pandas>=2.2.2",
     "polars>=1.0.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0"
