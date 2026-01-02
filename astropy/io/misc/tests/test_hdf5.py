@@ -801,16 +801,20 @@ def test_hdf5_mixins_per_column(table_cls, name_col, tmp_path):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
+@pytest.mark.skipif(not HAS_H5PY, reason="requires h5py")
 @pytest.mark.parametrize("name_col", unsupported_cols.items())
-@pytest.mark.xfail(reason="column type unsupported")
 def test_fits_unsupported_mixin(name_col, tmp_path):
     # Check that we actually fail in writing unsupported columns defined
     # on top.
     filename = tmp_path / "test_simple.fits"
     name, col = name_col
-    Table([col], names=[name]).write(
-        filename, format="hdf5", path="root", serialize_meta=True
-    )
+    t = Table([col], names=[name])
+    with pytest.raises(
+        TypeError, match="Object dtype .* has no native HDF5 equivalent"
+    ):
+        t.write(
+            filename, format="hdf5", path="root", serialize_meta=True, overwrite=True
+        )
 
 
 @pytest.mark.skipif(not HAS_H5PY, reason="requires h5py")
