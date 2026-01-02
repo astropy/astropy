@@ -13,6 +13,7 @@ from astropy.constants import c as speed_of_light
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
 from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
@@ -1827,6 +1828,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
     # Name resolve
     @classmethod
+    @deprecated_renamed_argument("frame", None, since="8.0")
     def from_name(cls, name, frame="icrs", parse=False, cache=True):
         """
         Given a name, query the CDS name resolver to attempt to retrieve
@@ -1842,6 +1844,10 @@ class SkyCoord(MaskableShapedLikeNDArray):
             The name of the object to get coordinates for, e.g. ``'M42'``.
         frame : str or `BaseCoordinateFrame` class or instance
             The frame to transform the object to.
+
+            .. versionchanged :: 8.0
+                The ``frame`` parameter is deprecated.
+
         parse : bool
             Whether to attempt extracting the coordinates from the name by
             parsing with a regex. For objects catalog names that have

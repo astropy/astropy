@@ -18,20 +18,29 @@ from numpy import testing as npt
 from astropy import coordinates as coords
 from astropy import time
 from astropy import units as u
+from astropy.coordinates import (
+    FK4,
+    FK5,
+    ICRS,
+    Angle,
+    BaseCoordinateFrame,
+    CartesianRepresentation,
+    Distance,
+    DynamicMatrixTransform,
+    Latitude,
+    Longitude,
+    PhysicsSphericalRepresentation,
+    SphericalRepresentation,
+    UnitSphericalRepresentation,
+    frame_transform_graph,
+)
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.units import allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def test_representations_api():
-    from astropy.coordinates import Angle, Distance, Latitude, Longitude
-    from astropy.coordinates.representation import (
-        CartesianRepresentation,
-        PhysicsSphericalRepresentation,
-        SphericalRepresentation,
-        UnitSphericalRepresentation,
-    )
-
     # <-----------------Classes for representation of coordinate data-------------->
     # These classes inherit from a common base class and internally contain Quantity
     # objects, which are arrays (although they may act as scalars, like numpy's
@@ -158,12 +167,6 @@ def test_representations_api():
 
 
 def test_frame_api():
-    from astropy.coordinates.builtin_frames import FK5, ICRS
-    from astropy.coordinates.representation import (
-        SphericalRepresentation,
-        UnitSphericalRepresentation,
-    )
-
     # <--------------------Reference Frame/"Low-level" classes--------------------->
     # The low-level classes have a dual role: they act as specifiers of coordinate
     # frames and they *may* also contain data as one of the representation objects,
@@ -249,11 +252,6 @@ def test_frame_api():
 
 
 def test_transform_api():
-    from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
-    from astropy.coordinates.builtin_frames import FK5, ICRS
-    from astropy.coordinates.representation import UnitSphericalRepresentation
-    from astropy.coordinates.transformations import DynamicMatrixTransform
-
     # <------------------------Transformations------------------------------------->
     # Transformation functionality is the key to the whole scheme: they transform
     # low-level classes from one frame to another.
@@ -453,7 +451,7 @@ def test_highlevel_api():
 
 @pytest.mark.remote_data
 def test_highlevel_api_remote():
-    m31icrs = coords.SkyCoord.from_name("M31", frame="icrs")
+    m31icrs = coords.SkyCoord.from_name("M31")
 
     m31str = str(m31icrs)
     assert m31str.startswith("<SkyCoord (ICRS): (ra, dec) in deg\n    (")
@@ -465,7 +463,11 @@ def test_highlevel_api_remote():
     # to fail
     # assert str(m31icrs) == '<SkyCoord (ICRS): (ra, dec) in deg\n    (10.6847083, 41.26875)>'
 
-    m31fk4 = coords.SkyCoord.from_name("M31", frame="fk4")
 
-    assert not m31icrs.is_equivalent_frame(m31fk4)
-    assert np.abs(m31icrs.ra - m31fk4.ra) > 0.5 * u.deg
+@pytest.mark.remote_data
+def test_from_name_frame_deprecation():
+    with pytest.warns(AstropyDeprecationWarning, match='^"frame" was deprecated'):
+        m31fk4 = coords.SkyCoord.from_name("M31", frame="fk4")
+
+    assert type(m31fk4.frame) is FK4
+    npt.assert_allclose(m31fk4.ra.deg, 10.000396)

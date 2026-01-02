@@ -1,0 +1,4 @@
+The ``frame`` parameter of the ``SkyCoord.from_name()`` class method is
+deprecated.
+Calling ``SkyCoord.from_name(..., frame=new_frame)`` can be replaced with
+calling ``SkyCoord.from_name(...).transform_to(new_frame)``.
