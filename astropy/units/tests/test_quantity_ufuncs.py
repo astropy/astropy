@@ -1676,7 +1676,7 @@ if HAS_SCIPY:
             rank2 = np.linalg.matrix_rank(q2)
             assert rank2 == 1
         
-        @pytest.mark.parametrize("function", [np.linalg.det, np.linalg.norm])
+        @pytest.mark.parametrize("function, expected_unit", [(np.linalg.det, u.m**2), (np.linalg.norm, u.m)])
         def test_other_linalg(self, function):
         # Det and Norm are often used with Quantities
             q = np.eye(2) * u.m
