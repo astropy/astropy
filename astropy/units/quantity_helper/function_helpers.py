@@ -1461,8 +1461,8 @@ def matrix_rank(A, tol=None, *args, **kwargs):
          # Handle NumPy 2.0+ absolute tolerance in kwargs
         kwargs["atol"] = _interpret_tol(atol, A.unit)
 
-    # Handle relative tolerance (should be dimensionless)
     if (rtol := kwargs.get("rtol")) is not None:
+        # Handle relative tolerance (should be dimensionless)
         kwargs["rtol"] = _interpret_tol(rtol, dimensionless_unscaled)
 
     return (A.view(np.ndarray), tol) + args, kwargs, None, None
