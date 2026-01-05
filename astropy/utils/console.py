@@ -50,6 +50,17 @@ __all__ = [
 ]
 
 
+class ConsoleConf:
+    #: If > 0, ndarray-valued table cells with total size ≤ this are
+    #: printed in full (using numpy's print options) instead of the
+    #: compact "first .. last" representation.  A value of 0 keeps the
+    #: existing compact behavior.
+    pprint_ndarray_max_size: int = 0
+
+
+conf = ConsoleConf()
+
+
 class _IPython:
     """Singleton class given access to IPython streams, etc."""
 

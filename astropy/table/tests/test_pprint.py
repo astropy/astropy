@@ -12,6 +12,7 @@ from astropy import units as u
 from astropy.io import ascii
 from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table
+from astropy.utils import console
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 BIG_WIDE_ARR = np.arange(2000, dtype=np.float64).reshape(100, 20)
@@ -1141,3 +1142,53 @@ def test_zero_length_string():
         "          12",
     ]
     assert t.pformat(show_dtype=True) == exp
+
+
+def test_vector_column_default_behavior():
+    """Test that default behavior still shows 'first .. last' for vectors"""
+    # Ensure default is 0 (backward compatibility)
+    original_value = getattr(console.conf, "pprint_ndarray_max_size", 0)
+    console.conf.pprint_ndarray_max_size = 0
+
+    try:
+        t = Table()
+        t["v"] = np.array([[1, 2, 3], [4, 5, 6]])
+        lines = t.pformat()
+        # Should show compact "first .. last" format
+        assert any("1 .. 3" in line or "1  ..  3" in line for line in lines)
+        assert any("4 .. 6" in line or "4  ..  6" in line for line in lines)
+    finally:
+        console.conf.pprint_ndarray_max_size = original_value
+
+
+def test_vector_column_full_print_with_numpy_options():
+    """Test that full vector printing respects numpy print options"""
+    original_value = getattr(console.conf, "pprint_ndarray_max_size", 0)
+    original_threshold = np.get_printoptions()["threshold"]
+
+    try:
+        # Enable full printing for small vectors
+        console.conf.pprint_ndarray_max_size = 3
+        np.set_printoptions(threshold=np.inf, linewidth=120)
+
+        t = Table()
+        t["v"] = np.array([[1, 2, 3], [4, 5, 6]])
+        lines = t.pformat()
+
+        # Should show full array, not "first .. last"
+        output = " ".join(lines)
+        assert "[1 2 3]" in output or "1 2 3" in output
+        assert "[4 5 6]" in output or "4 5 6" in output
+        assert ".." not in output or (".." in output and "1 .. 3" not in output)
+
+        # Test that numpy precision option is respected
+        t2 = Table()
+        t2["v"] = np.array([[1.123456, 2.234567, 3.345678]])
+        np.set_printoptions(precision=2)
+        lines2 = t2.pformat()
+        output2 = " ".join(lines2)
+        # Should show rounded values per numpy precision
+        assert "1.12" in output2 or "1.1" in output2
+    finally:
+        console.conf.pprint_ndarray_max_size = original_value
+        np.set_printoptions(threshold=original_threshold)

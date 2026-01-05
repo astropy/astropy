@@ -431,6 +431,7 @@ class TableFormatter:
             multidim1 = tuple(n - 1 for n in multidims)
             multidims_all_ones = np.prod(multidims) == 1
             multidims_has_zero = 0 in multidims
+            multidims_size = int(np.prod(multidims))
 
         i_dashes = None
         i_centers = []  # Line indexes where content should be centered
@@ -527,6 +528,13 @@ class TableFormatter:
                 elif multidims_has_zero:
                     # Any zero dimension means there is no data to print
                     return ""
+                elif (
+                    getattr(conf, "pprint_ndarray_max_size", 0) > 0
+                    and multidims_size <= conf.pprint_ndarray_max_size
+                ):
+                    # Delegate full ndarray formatting to numpy (respects
+                    # global numpy print options such as threshold, linewidth).
+                    return str(col[idx])
                 else:
                     left = format_func(col_format, col[(idx,) + multidim0])
                     right = format_func(col_format, col[(idx,) + multidim1])
