@@ -144,7 +144,7 @@ class UnifiedReadWriteMethod(property):
 
     """
 
-    def __init__(self, readwritecls: UnifiedReadWrite):
+    def __init__(self, readwritecls: UnifiedReadWrite, /) -> None:  # type: ignore[arg-type]
         super().__init__(fget=readwritecls)
 
     # We subclass property to ensure that __set__ is defined and that,
