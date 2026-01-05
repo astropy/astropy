@@ -673,7 +673,7 @@ ignore = [
 
     [tool.gilesbot.circleci_artifacts.py311-test-image-oldestdeps]
         url = ".tmp/py311-test-image-oldestdeps/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py311-test-image-mpl-oldestdeps."
+        message = "Click details to see the figure test comparisons, for py311-test-image-oldestdeps."
         report_on_fail = true
 
     [tool.gilesbot.circleci_artifacts.py311-test-image-mpldev]
