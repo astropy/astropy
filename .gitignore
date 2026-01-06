@@ -53,6 +53,7 @@ venv
 # install astropy with pipenv will have these files generated
 Pipfile
 Pipfile.lock
+uv.lock
 
 # pyinstaller files
 .pyinstaller/astropy_tests/

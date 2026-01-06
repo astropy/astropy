@@ -518,23 +518,57 @@ class TableFormatter:
             indices = np.arange(n_rows)
 
         def format_col_str(idx):
-            if multidims:
-                # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
-                # with shape (n,1,...,1) from being printed as if there was
-                # more than one element in a row
-                if multidims_all_ones:
-                    return format_func(col_format, col[(idx,) + multidim0])
-                elif multidims_has_zero:
-                    # Any zero dimension means there is no data to print
-                    return ""
-                else:
-                    left = format_func(col_format, col[(idx,) + multidim0])
-                    right = format_func(col_format, col[(idx,) + multidim1])
-                    return f"{left} .. {right}"
-            elif is_scalar:
-                return format_func(col_format, col)
-            else:
+            if not multidims:
+                if is_scalar:
+                    return format_func(col_format, col)
                 return format_func(col_format, col[idx])
+
+            # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
+            # with shape (n,1,...,1) from being printed as if there was
+            # more than one element in a row
+            if multidims_all_ones:
+                return format_func(col_format, col[(idx,) + multidim0])
+
+            if multidims_has_zero:
+                # Any zero dimension means there is no data to print
+                return ""
+
+            threshold = conf.multidim_threshold
+
+            if threshold is None:
+                left = format_func(col_format, col[(idx,) + multidim0])
+                right = format_func(col_format, col[(idx,) + multidim1])
+                result = f"{left} .. {right}"
+            else:
+                n_elements = multidims[0]
+
+                if threshold < 0:
+                    threshold = n_elements
+
+                if threshold >= n_elements:
+                    elements = []
+                    for i in range(n_elements):
+                        idx_tuple = (idx,) + (i,) + multidim0[1:]
+                        elements.append(format_func(col_format, col[idx_tuple]))
+                    result = " ".join(elements)
+                else:
+                    n_left = (threshold + 1) // 2
+                    n_right = threshold // 2
+
+                    elements = []
+                    for i in range(n_left):
+                        idx_tuple = (idx,) + (i,) + multidim0[1:]
+                        elements.append(format_func(col_format, col[idx_tuple]))
+
+                    elements.append("..")
+
+                    for i in range(n_elements - n_right, n_elements):
+                        idx_tuple = (idx,) + (i,) + multidim0[1:]
+                        elements.append(format_func(col_format, col[idx_tuple]))
+
+                    result = " ".join(elements)
+
+            return result
 
         # Add formatted values if within bounds allowed by max_lines
         for idx in indices:
