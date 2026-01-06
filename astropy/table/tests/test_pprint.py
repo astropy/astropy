@@ -1141,3 +1141,48 @@ def test_zero_length_string():
         "          12",
     ]
     assert t.pformat(show_dtype=True) == exp
+
+
+def test_multidim_threshold_default():
+    """Test default behavior (None) shows only first and last elements"""
+    with conf.set_temp("multidim_threshold", None):
+        data = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
+        col = Column(data, name="test")
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert lines == [" 1 .. 5", "6 .. 10"]
+
+
+def test_multidim_threshold_show_all():
+    """Test threshold=-1 shows all elements"""
+    with conf.set_temp("multidim_threshold", -1):
+        data = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
+        col = Column(data, name="test")
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert lines == [" 1 2 3 4 5", "6 7 8 9 10"]
+
+
+def test_multidim_threshold_partial():
+    """Test threshold shows partial elements with ellipsis"""
+    with conf.set_temp("multidim_threshold", 4):
+        data = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
+        col = Column(data, name="test")
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert lines == ["0 1 .. 8 9"]
+
+
+def test_multidim_threshold_three_vectors():
+    """Test threshold=3 for 3-element vectors (common use case)"""
+    with conf.set_temp("multidim_threshold", 3):
+        data = np.array([[1, 2, 3], [4, 5, 6]])
+        col = Column(data, name="position")
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert lines == ["1 2 3", "4 5 6"]
+
+
+def test_multidim_threshold_with_formatting():
+    """Test threshold works with column formatting"""
+    with conf.set_temp("multidim_threshold", -1):
+        data = np.array([[1.23456, 2.34567, 3.45678]], dtype=float)
+        col = Column(data, name="float", format="%.2f")
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert lines == ["1.23 2.35 3.46"]
