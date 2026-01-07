@@ -1144,30 +1144,36 @@ def test_zero_length_string():
 
 
 def test_multidim_threshold_default():
-    """Test default behavior (None) shows only first and last elements"""
-    with conf.set_temp("multidim_threshold", None):
+    """Test default behavior (threshold=1) shows only first and last elements"""
+    # Default threshold is 1, so size > 1 will show "first .. last"
+    with conf.set_temp("multidim_threshold", 1):
         data = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
         col = Column(data, name="test")
         lines = col.pformat(show_name=False, show_unit=False)
-        assert lines == [" 1 .. 5", "6 .. 10"]
+        assert [line.strip() for line in lines] == ["1 .. 5", "6 .. 10"]
 
 
 def test_multidim_threshold_show_all():
-    """Test threshold=-1 shows all elements"""
-    with conf.set_temp("multidim_threshold", -1):
+    """Test large threshold shows all elements"""
+    import sys
+
+    # Use sys.maxsize or a large value to show all elements
+    with conf.set_temp("multidim_threshold", sys.maxsize):
         data = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
         col = Column(data, name="test")
         lines = col.pformat(show_name=False, show_unit=False)
-        assert lines == [" 1 2 3 4 5", "6 7 8 9 10"]
+        assert [line.strip() for line in lines] == ["[1 2 3 4 5]", "[6 7 8 9 10]"]
 
 
 def test_multidim_threshold_partial():
-    """Test threshold shows partial elements with ellipsis"""
+    """Test threshold shows elements with ellipsis when size > threshold"""
+    # Size is 10 (10 elements in the array), threshold is 4
+    # Since 10 > 4, should show "first .. last"
     with conf.set_temp("multidim_threshold", 4):
         data = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
         col = Column(data, name="test")
         lines = col.pformat(show_name=False, show_unit=False)
-        assert lines == ["0 1 .. 8 9"]
+        assert [line.strip() for line in lines] == ["0 .. 9"]
 
 
 def test_multidim_threshold_three_vectors():
@@ -1176,13 +1182,73 @@ def test_multidim_threshold_three_vectors():
         data = np.array([[1, 2, 3], [4, 5, 6]])
         col = Column(data, name="position")
         lines = col.pformat(show_name=False, show_unit=False)
-        assert lines == ["1 2 3", "4 5 6"]
+        assert lines == ["[1 2 3]", "[4 5 6]"]
 
 
 def test_multidim_threshold_with_formatting():
     """Test threshold works with column formatting"""
-    with conf.set_temp("multidim_threshold", -1):
+    import sys
+
+    with conf.set_temp("multidim_threshold", sys.maxsize):
         data = np.array([[1.23456, 2.34567, 3.45678]], dtype=float)
         col = Column(data, name="float", format="%.2f")
         lines = col.pformat(show_name=False, show_unit=False)
-        assert lines == ["1.23 2.35 3.46"]
+        assert lines == ["[1.23 2.35 3.46]"]
+
+
+def test_multidim_threshold_2x3_array():
+    """Test 2x3 array display with different thresholds"""
+    # 2x3 array has size = 2*3 = 6
+    data = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+    col = Column(data, name="test")
+
+    # With threshold=1, size=6 > 1, so show "first .. last"
+    with conf.set_temp("multidim_threshold", 1):
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert [line.strip() for line in lines] == ["1 .. 6", "7 .. 12"]
+
+    # With threshold=6, size=6 <= 6, so show full element
+    with conf.set_temp("multidim_threshold", 6):
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert [line.strip() for line in lines] == [
+            "[[1 2 3] [4 5 6]]",
+            "[[7 8 9] [10 11 12]]",
+        ]
+
+    # With threshold=5, size=6 > 5, so show "first .. last"
+    with conf.set_temp("multidim_threshold", 5):
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert [line.strip() for line in lines] == ["1 .. 6", "7 .. 12"]
+
+
+def test_multidim_threshold_3d_array():
+    """Test 3D array (2x3x2) display"""
+    # Shape is (2, 2, 3, 2) - first dimension is rows, rest are element dimensions
+    # Size = 2*3*2 = 12
+    data = np.arange(2 * 2 * 3 * 2).reshape(2, 2, 3, 2)
+    col = Column(data, name="test")
+
+    # With threshold=1, size=12 > 1, so show "first .. last"
+    with conf.set_temp("multidim_threshold", 1):
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert [line.strip() for line in lines] == ["0 .. 11", "12 .. 23"]
+
+    # With threshold=12, size=12 <= 12, so show full element with brackets
+    with conf.set_temp("multidim_threshold", 12):
+        lines = col.pformat(show_name=False, show_unit=False)
+        # Each row has shape (2, 3, 2) = [[[0,1] [2,3] [4,5]] [[6,7] [8,9] [10,11]]]
+        assert [line.strip() for line in lines] == [
+            "[[[0 1] [2 3] [4 5]] [[6 7] [8 9] [10 11]]]",
+            "[[[12 13] [14 15] [16 17]] [[18 19] [20 21] [22 23]]]",
+        ]
+
+
+def test_multidim_threshold_2x2_array_with_threshold_4():
+    """Test that 2x2 array (size=4) is fully shown when threshold=4"""
+    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    col = Column(data, name="test")
+
+    # With threshold=4, size=4 <= 4, so show full element
+    with conf.set_temp("multidim_threshold", 4):
+        lines = col.pformat(show_name=False, show_unit=False)
+        assert lines == ["[[1 2] [3 4]]", "[[5 6] [7 8]]"]

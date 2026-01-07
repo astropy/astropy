@@ -102,14 +102,16 @@ class Conf(_config.ConfigNamespace):
         aliases=["astropy.table.pprint.max_width"],
     )
     multidim_threshold = _config.ConfigItem(
-        None,
+        1,
         description=(
-            "Maximum number of elements to display in multidimensional columns. "
-            "If None (default), only the first and last elements are shown. "
-            "If an integer, show that many elements (split between start and end). "
-            "Use -1 to show all elements."
+            "Maximum total size (product of all dimensions except the first) for "
+            "displaying full multidimensional column elements. If the size exceeds "
+            "this threshold, only the first and last elements are shown with '..'. "
+            "Otherwise, the full element is displayed. Default is 1 which shows only "
+            "first and last (e.g., '1 .. 5'). Set to a large value like sys.maxsize "
+            "for no limit."
         ),
-        cfgtype="integer(default=None)",
+        cfgtype="integer",
         aliases=["astropy.table.pprint.multidim_threshold"],
     )
 
