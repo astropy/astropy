@@ -6,8 +6,8 @@ Test Data Files
 ---------------
 Test data files are located in astropy/io/ascii/tests/data/:
 
-- mesa_history.data : Real MESA history file with 709 models and 66 columns
-  from a stellar evolution calculation (no restarts)
+- mesa_history.data : MESA history file with 50 models and 66 columns
+  (truncated from a real stellar evolution calculation with no restarts)
 
 - mesa_history_with_restarts.data : MESA history file with restart artifacts,
   containing 41 rows that should be cleaned to 30 rows (models 1-30) after
@@ -224,7 +224,7 @@ class TestMesaIntegration:
         table = ascii.read(test_file, format="mesa")
 
         # Check basic properties
-        assert len(table) == 709
+        assert len(table) == 50
         assert len(table.columns) == 66
         assert table.colnames[0] == "model_number"
 
