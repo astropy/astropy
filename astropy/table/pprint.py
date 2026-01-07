@@ -533,40 +533,29 @@ class TableFormatter:
                 # Any zero dimension means there is no data to print
                 return ""
 
+            size = np.prod(multidims)
             threshold = conf.multidim_threshold
 
-            if threshold is None:
+            # If size > threshold, revert to legacy "first .. last" format
+            if size > threshold:
                 left = format_func(col_format, col[(idx,) + multidim0])
                 right = format_func(col_format, col[(idx,) + multidim1])
                 result = f"{left} .. {right}"
             else:
-                n_elements = multidims[0]
+                def format_multidim(arr):
+                    """Recursively format multidimensional arrays."""
+                    if arr.ndim == 0:
+                        return format_func(col_format, arr)
 
-                if threshold < 0:
-                    threshold = n_elements
+                    elif arr.ndim == 1:
+                        elements = [format_func(col_format, val) for val in arr]
+                        return "[" + " ".join(elements) + "]"
 
-                if threshold >= n_elements:
-                    elements = []
-                    for i in range(n_elements):
-                        idx_tuple = (idx,) + (i,) + multidim0[1:]
-                        elements.append(format_func(col_format, col[idx_tuple]))
-                    result = " ".join(elements)
-                else:
-                    n_left = (threshold + 1) // 2
-                    n_right = threshold // 2
+                    else:
+                        elements = [format_multidim(arr[i]) for i in range(len(arr))]
+                        return "[" + " ".join(elements) + "]"
 
-                    elements = []
-                    for i in range(n_left):
-                        idx_tuple = (idx,) + (i,) + multidim0[1:]
-                        elements.append(format_func(col_format, col[idx_tuple]))
-
-                    elements.append("..")
-
-                    for i in range(n_elements - n_right, n_elements):
-                        idx_tuple = (idx,) + (i,) + multidim0[1:]
-                        elements.append(format_func(col_format, col[idx_tuple]))
-
-                    result = " ".join(elements)
+                result = format_multidim(col[idx])
 
             return result
 
