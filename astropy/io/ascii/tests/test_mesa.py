@@ -20,7 +20,6 @@ import pytest
 from astropy.io import ascii
 from astropy.utils.data import get_pkg_data_filename
 
-
 # Minimal MESA history file for testing
 # Note: MESA format requires column indices on both metadata and data sections
 MESA_HISTORY = """                           1                    2                    3
@@ -71,71 +70,79 @@ class TestMesaReader:
 
     def test_read_basic(self):
         """Test basic reading of MESA file."""
-        table = ascii.read(MESA_HISTORY, format='mesa')
+        table = ascii.read(MESA_HISTORY, format="mesa")
         assert len(table) == 3
         assert len(table.columns) == 5
-        assert table.colnames == ['model_number', 'num_zones', 'star_age', 'log_L', 'log_Teff']
+        assert table.colnames == [
+            "model_number",
+            "num_zones",
+            "star_age",
+            "log_L",
+            "log_Teff",
+        ]
 
     def test_read_metadata(self):
         """Test metadata extraction from MESA file."""
-        table = ascii.read(MESA_HISTORY, format='mesa')
-        assert 'header' in table.meta
-        header = table.meta['header']
-        assert header['version_number'] == 'r24.03.1'
-        assert header['compiler'] == 'gfortran'
-        assert header['build'] == '13.1.0'
+        table = ascii.read(MESA_HISTORY, format="mesa")
+        assert "header" in table.meta
+        header = table.meta["header"]
+        assert header["version_number"] == "r24.03.1"
+        assert header["compiler"] == "gfortran"
+        assert header["build"] == "13.1.0"
 
     def test_read_data_values(self):
         """Test that data values are read correctly."""
-        table = ascii.read(MESA_HISTORY, format='mesa')
-        assert table['model_number'][0] == 1
-        assert table['model_number'][2] == 3
-        assert table['num_zones'][0] == 1004
-        assert np.isclose(table['star_age'][0], 1.0e-5)
-        assert np.isclose(table['log_L'][1], 1.23456789013)
+        table = ascii.read(MESA_HISTORY, format="mesa")
+        assert table["model_number"][0] == 1
+        assert table["model_number"][2] == 3
+        assert table["num_zones"][0] == 1004
+        assert np.isclose(table["star_age"][0], 1.0e-5)
+        assert np.isclose(table["log_L"][1], 1.23456789013)
 
     def test_read_data_types(self):
         """Test that data types are preserved (int vs float)."""
-        table = ascii.read(MESA_HISTORY, format='mesa')
+        table = ascii.read(MESA_HISTORY, format="mesa")
         # Integer columns should be int
-        assert table['model_number'].dtype.kind == 'i'
-        assert table['num_zones'].dtype.kind == 'i'
+        assert table["model_number"].dtype.kind == "i"
+        assert table["num_zones"].dtype.kind == "i"
         # Float columns should be float
-        assert table['star_age'].dtype.kind == 'f'
-        assert table['log_L'].dtype.kind == 'f'
-        assert table['log_Teff'].dtype.kind == 'f'
+        assert table["star_age"].dtype.kind == "f"
+        assert table["log_L"].dtype.kind == "f"
+        assert table["log_Teff"].dtype.kind == "f"
 
     def test_read_profile(self):
         """Test reading MESA profile file (same format)."""
-        table = ascii.read(MESA_PROFILE, format='mesa')
+        table = ascii.read(MESA_PROFILE, format="mesa")
         assert len(table) == 3
-        assert table.colnames[0] == 'zone'  # Profiles have 'zone' not 'model_number'
-        assert table['zone'][0] == 1
-        assert table.meta['header']['version_number'] == 'r23.05.1'
-        assert table.meta['header']['compiler'] == 'ifort'
+        assert table.colnames[0] == "zone"  # Profiles have 'zone' not 'model_number'
+        assert table["zone"][0] == 1
+        assert table.meta["header"]["version_number"] == "r23.05.1"
+        assert table.meta["header"]["compiler"] == "ifort"
 
     def test_restart_removal_default(self):
         """Test that restart artifacts are removed by default."""
-        table = ascii.read(MESA_WITH_RESTART, format='mesa')
+        table = ascii.read(MESA_WITH_RESTART, format="mesa")
         # Should have 7 rows (3 removed from first run)
         assert len(table) == 7
         # Model numbers should be monotonically increasing
-        assert all(table['model_number'][i] < table['model_number'][i+1]
-                  for i in range(len(table)-1))
+        assert all(
+            table["model_number"][i] < table["model_number"][i + 1]
+            for i in range(len(table) - 1)
+        )
         # Models should be [1, 2, 3, 4, 5, 6, 7]
-        assert list(table['model_number']) == [1, 2, 3, 4, 5, 6, 7]
+        assert list(table["model_number"]) == [1, 2, 3, 4, 5, 6, 7]
 
     def test_restart_removal_disabled(self):
         """Test reading with restart removal disabled."""
-        table = ascii.read(MESA_WITH_RESTART, format='mesa', remove_restart_rows=False)
+        table = ascii.read(MESA_WITH_RESTART, format="mesa", remove_restart_rows=False)
         # Should have all 10 rows
         assert len(table) == 10
         # Model numbers will have duplicates
-        assert list(table['model_number']) == [1, 2, 3, 4, 5, 3, 4, 5, 6, 7]
+        assert list(table["model_number"]) == [1, 2, 3, 4, 5, 3, 4, 5, 6, 7]
 
     def test_restart_removal_algorithm(self):
         """Test restart removal algorithm with specific scenario."""
-        table = ascii.read(MESA_WITH_RESTART, format='mesa')
+        table = ascii.read(MESA_WITH_RESTART, format="mesa")
 
         # The restart happened at model 3
         # Original: 1, 2, 3, 4, 5 (first run), then 3, 4, 5, 6, 7 (restart from 3)
@@ -146,13 +153,13 @@ class TestMesaReader:
 
         # Check num_zones to verify we kept the right data
         # After restart, num_zones changes from 100x to 200x
-        assert table['num_zones'][0] == 1004  # model 1
-        assert table['num_zones'][1] == 1005  # model 2
-        assert table['num_zones'][2] == 2000  # model 3 (from restart, not first run)
-        assert table['num_zones'][3] == 2001  # model 4 (from restart)
-        assert table['num_zones'][4] == 2002  # model 5 (from restart)
-        assert table['num_zones'][5] == 2003  # model 6
-        assert table['num_zones'][6] == 2004  # model 7
+        assert table["num_zones"][0] == 1004  # model 1
+        assert table["num_zones"][1] == 1005  # model 2
+        assert table["num_zones"][2] == 2000  # model 3 (from restart, not first run)
+        assert table["num_zones"][3] == 2001  # model 4 (from restart)
+        assert table["num_zones"][4] == 2002  # model 5 (from restart)
+        assert table["num_zones"][5] == 2003  # model 6
+        assert table["num_zones"][6] == 2004  # model 7
 
 
 class TestMesaAutoDetection:
@@ -162,26 +169,26 @@ class TestMesaAutoDetection:
         """Test auto-detection of history files."""
         from astropy.io.ascii.mesa import mesa_identify
 
-        assert mesa_identify('read', 'history.data', None) is True
-        assert mesa_identify('read', 'history_backup.data', None) is True
-        assert mesa_identify('read', 'HISTORY.DATA', None) is True
+        assert mesa_identify("read", "history.data", None) is True
+        assert mesa_identify("read", "history_backup.data", None) is True
+        assert mesa_identify("read", "HISTORY.DATA", None) is True
 
     def test_autodetect_profile(self):
         """Test auto-detection of profile files."""
         from astropy.io.ascii.mesa import mesa_identify
 
-        assert mesa_identify('read', 'profile1.data', None) is True
-        assert mesa_identify('read', 'profile123.data', None) is True
-        assert mesa_identify('read', 'PROFILE99.DATA', None) is True
+        assert mesa_identify("read", "profile1.data", None) is True
+        assert mesa_identify("read", "profile123.data", None) is True
+        assert mesa_identify("read", "PROFILE99.DATA", None) is True
 
     def test_autodetect_negative(self):
         """Test that non-MESA files are not identified."""
         from astropy.io.ascii.mesa import mesa_identify
 
-        assert mesa_identify('read', 'data.csv', None) is False
-        assert mesa_identify('read', 'random.txt', None) is False
-        assert mesa_identify('read', 'mesa.dat', None) is False
-        assert mesa_identify('read', None, None) is False
+        assert mesa_identify("read", "data.csv", None) is False
+        assert mesa_identify("read", "random.txt", None) is False
+        assert mesa_identify("read", "mesa.dat", None) is False
+        assert mesa_identify("read", None, None) is False
 
 
 class TestMesaEdgeCases:
@@ -190,7 +197,7 @@ class TestMesaEdgeCases:
     def test_empty_file(self):
         """Test handling of empty or too-short files."""
         with pytest.raises((ascii.InconsistentTableError, IndexError)):
-            ascii.read("   \n  \n  ", format='mesa')
+            ascii.read("   \n  \n  ", format="mesa")
 
     def test_single_row(self):
         """Test reading file with only one data row."""
@@ -202,9 +209,9 @@ class TestMesaEdgeCases:
                 model_number             star_age
                            1   1.00000000000E-05
 """
-        table = ascii.read(single_row, format='mesa')
+        table = ascii.read(single_row, format="mesa")
         assert len(table) == 1
-        assert table['model_number'][0] == 1
+        assert table["model_number"][0] == 1
 
 
 class TestMesaIntegration:
@@ -212,36 +219,38 @@ class TestMesaIntegration:
 
     def test_read_mesa_history(self):
         """Test reading the mesa_history.data test file."""
-        test_file = get_pkg_data_filename('data/mesa_history.data')
+        test_file = get_pkg_data_filename("data/mesa_history.data")
 
-        table = ascii.read(test_file, format='mesa')
+        table = ascii.read(test_file, format="mesa")
 
         # Check basic properties
         assert len(table) == 709
         assert len(table.columns) == 66
-        assert table.colnames[0] == 'model_number'
+        assert table.colnames[0] == "model_number"
 
         # Check metadata
-        assert table.meta['header']['version_number'] == 'r24.03.1'
-        assert table.meta['header']['compiler'] == 'gfortran'
+        assert table.meta["header"]["version_number"] == "r24.03.1"
+        assert table.meta["header"]["compiler"] == "gfortran"
 
         # Check monotonicity
-        model_nums = table['model_number']
-        assert all(model_nums[i] < model_nums[i+1] for i in range(len(model_nums)-1))
+        model_nums = table["model_number"]
+        assert all(
+            model_nums[i] < model_nums[i + 1] for i in range(len(model_nums) - 1)
+        )
 
         # Check first and last values
-        assert table['model_number'][0] == 1
-        assert table['model_number'][-1] == 709
+        assert table["model_number"][0] == 1
+        assert table["model_number"][-1] == 709
 
     def test_read_mesa_history_with_restarts(self):
         """Test reading mesa_history_with_restarts.data and verifying restart removal."""
-        test_file = get_pkg_data_filename('data/mesa_history_with_restarts.data')
+        test_file = get_pkg_data_filename("data/mesa_history_with_restarts.data")
 
         # Read without restart removal
-        table_full = ascii.read(test_file, format='mesa', remove_restart_rows=False)
+        table_full = ascii.read(test_file, format="mesa", remove_restart_rows=False)
 
         # Read with restart removal (default)
-        table_cleaned = ascii.read(test_file, format='mesa')
+        table_cleaned = ascii.read(test_file, format="mesa")
 
         # Full table should have 41 rows
         assert len(table_full) == 41
@@ -250,8 +259,10 @@ class TestMesaIntegration:
         assert len(table_cleaned) == 30
 
         # Cleaned data should be monotonic
-        assert all(table_cleaned['model_number'][i] < table_cleaned['model_number'][i+1]
-                  for i in range(len(table_cleaned)-1))
+        assert all(
+            table_cleaned["model_number"][i] < table_cleaned["model_number"][i + 1]
+            for i in range(len(table_cleaned) - 1)
+        )
 
         # Check specific pattern: restart from model 10, should have 1-30
-        assert list(table_cleaned['model_number']) == list(range(1, 31))
+        assert list(table_cleaned["model_number"]) == list(range(1, 31))

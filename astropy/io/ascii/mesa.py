@@ -44,16 +44,19 @@ def mesa_identify(origin, filepath, fileobj, *args, **kwargs):
         return False
 
     # Extract just the filename from the path
-    import os
-    filename = os.path.basename(filepath)
+    from pathlib import Path
+
+    filename = Path(filepath).name
 
     # Check for MESA history or profile patterns
     # history.data, history_something.data, profileXX.data, profile.data, etc.
-    history_pattern = r'^history.*\.data$'
-    profile_pattern = r'^profile.*\.data$'
+    history_pattern = r"^history.*\.data$"
+    profile_pattern = r"^profile.*\.data$"
 
-    return (re.match(history_pattern, filename, re.IGNORECASE) is not None or
-            re.match(profile_pattern, filename, re.IGNORECASE) is not None)
+    return (
+        re.match(history_pattern, filename, re.IGNORECASE) is not None
+        or re.match(profile_pattern, filename, re.IGNORECASE) is not None
+    )
 
 
 class MesaHeader(core.BaseHeader):
@@ -155,9 +158,9 @@ class MesaHeader(core.BaseHeader):
             mesa_meta[name] = value
 
         # Store in table metadata
-        if 'table' not in meta:
-            meta['table'] = {}
-        meta['table']['header'] = mesa_meta
+        if "table" not in meta:
+            meta["table"] = {}
+        meta["table"]["header"] = mesa_meta
 
 
 class MesaData(core.BaseData):
@@ -265,7 +268,7 @@ class Mesa(core.BaseReader):
         out = super().read(table)
 
         # Check if this is a history file and remove restarts if requested
-        if self.remove_restart_rows and 'model_number' in out.colnames:
+        if self.remove_restart_rows and "model_number" in out.colnames:
             out = self._remove_restart_rows(out)
 
         return out
@@ -305,7 +308,7 @@ class Mesa(core.BaseReader):
         table : `~astropy.table.Table`
             Table with restart artifacts removed
         """
-        model_numbers = table['model_number']
+        model_numbers = table["model_number"]
         n_rows = len(model_numbers)
 
         if n_rows <= 1:
@@ -337,8 +340,10 @@ class Mesa(core.BaseReader):
 # Register the custom identifier for MESA files
 # This allows auto-detection of files named history*.data or profile*.data
 try:
-    from . import connect
     from astropy.table import Table
+
+    from . import connect
+
     connect.io_registry.register_identifier("ascii.mesa", Table, mesa_identify)
 except Exception:
     # If registration fails (e.g., during import), just skip it
