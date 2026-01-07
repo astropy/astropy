@@ -41,6 +41,7 @@ from . import (
     html,
     ipac,
     latex,
+    mesa,
     mrt,
     rst,
     sextractor,
@@ -804,6 +805,7 @@ def _get_guess_kwargs_list(read_kwargs):
         ipac.Ipac,
         latex.Latex,
         latex.AASTex,
+        mesa.Mesa,
     ):
         guess_kwargs_list.append({"reader_cls": reader})
 
