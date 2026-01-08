@@ -85,6 +85,8 @@ class MrtHeader(cds.CdsHeader):
             sign, whether or not given value signed.
             exp, is value in Scientific notation?
         """
+        if isinstance(value, float) and np.isnan(value) or str(value).lower() == "nan":
+            return (3, 1, 1, False, True)  
         regfloat = re.compile(
             r"""(?P<sign> [+-]*)
                 (?P<ent> [^eE.]+)
@@ -110,8 +112,12 @@ class MrtHeader(cds.CdsHeader):
         Sets the ``col.min`` and ``col.max`` column attributes,
         taking into account columns with Null values.
         """
-        col.max = max(col)
-        col.min = min(col)
+        try:
+            col.max = np.nanmax(col)
+            col.min = np.nanmin(col)
+        except RuntimeWarning:
+            col.max = np.nan
+            col.min = np.nan
         if col.max is np.ma.core.MaskedConstant:
             col.max = None
         if col.min is np.ma.core.MaskedConstant:
@@ -146,7 +152,6 @@ class MrtHeader(cds.CdsHeader):
             # Skip null values
             if val is None or val == "":
                 continue
-
             # Find format of the Float string
             fmt = self._split_float_format(val)
             # If value is in Scientific notation
@@ -356,7 +361,10 @@ class MrtHeader(cds.CdsHeader):
                         else:
                             lim_vals = f"[{col.min}/{col.max}]"
                 elif col.fortran_format[0] in ("E", "F"):
-                    lim_vals = f"[{floor(col.min * 100) / 100.0}/{ceil(col.max * 100) / 100.0}]"
+                    if not np.isnan(col.min) and not np.isnan(col.max): 
+                        lim_vals = f"[{floor(col.min * 100) / 100.0}/{ceil(col.max * 100) / 100.0}]"
+                    else:
+                        lim_vals = "[NaN/NaN]"
 
             if lim_vals != "" or nullflag != "":
                 description = f"{lim_vals}{nullflag} {description}"

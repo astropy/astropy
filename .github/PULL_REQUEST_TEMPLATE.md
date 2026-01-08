@@ -22,23 +22,9 @@ They can appear daunting but do not worry because maintainers will help
 you navigate them, if necessary. -->
 
 ### Description
-<!-- Provide a general description of what your pull request does.
-Complete the following sentence and add relevant details as you see fit. -->
+solves the issue of inserting a column of all NaNs or None will cause a crashout now it is handled through changing the max and min to nanmin and nanmax so the np.nan values are ignored in case there is numbers and np.nan and it will set the col.min and col.max to np.nan in case the column is full of NaNs or None then the result is handled so if there is a number and a NaN values it will store the max and min number in the column in that form shown in the code else it will let the lim_vals be [NaN/Na] (depending on one of the contrubutors expected output)
 
-<!-- In addition please ensure that the pull request title is descriptive
-and allows maintainers to infer the applicable subpackage(s). -->
-
-<!-- READ THIS FOR MANUAL BACKPORT FROM A MAINTAINER:
-Apply "skip-basebranch-check" label **before** you open the PR! -->
-
-This pull request is to address ...
-
-<!-- If the pull request closes any open issues you can add this.
-If you replace <Issue Number> with a number, GitHub will automatically link it.
-If this pull request is unrelated to any issues, please remove
-the following line. -->
-
-Fixes #<Issue Number>
+Fixes #17910
 
 <!-- Optional opt-out -->
 
