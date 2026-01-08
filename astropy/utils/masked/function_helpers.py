@@ -1426,8 +1426,10 @@ if NUMPY_LT_2_4:
 @dispatched_function
 def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
     element = np.asanyarray(element)
-    result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
-    result.shape = element.shape
+    result = np.reshape(
+        _in1d(element, test_elements, assume_unique, invert, kind=kind),
+        element.shape,
+    )
     return result, _copy_of_mask(element), None
 
 
