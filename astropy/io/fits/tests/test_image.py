@@ -9,6 +9,7 @@ import pytest
 from numpy.testing import assert_equal
 
 from astropy.io import fits
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -977,7 +978,12 @@ class TestImageFunctions(FitsTestCase):
 
         # Try reshaping the data, then closing and reopening the file; let's
         # see if all the changes are preserved properly
-        hdul[0].data.shape = (42, 10)
+        if NUMPY_LT_2_5:
+            hdul[0].data.shape = (42, 10)
+        else:
+            # ndarray._set_shape is semi-private, but the only
+            # non deprecated, strict semantic equivalent in Numpy 2.5+
+            hdul[0].data._set_shape((42, 10))
         hdul.close()
 
         hdul = fits.open(testfile)
@@ -987,6 +993,13 @@ class TestImageFunctions(FitsTestCase):
         assert "BZERO" not in hdul[0].header
         assert "BSCALE" not in hdul[0].header
         hdul.close()
+
+        with fits.open(testfile, mode="update") as hdul:
+            # Try reshaping the data again, this time using np.reshape
+            hdul[0].data = np.reshape(hdul[0].data, (21, 20))
+
+        with fits.open(testfile) as hdul:
+            assert hdul[0].shape == (21, 20)
 
     def test_scale_back(self):
         """A simple test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/120
