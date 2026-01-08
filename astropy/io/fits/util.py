@@ -20,6 +20,7 @@ import numpy as np
 from packaging.version import Version
 
 from astropy.utils import data
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -870,7 +871,10 @@ def _rstrip_inplace(array):
     # Note: the code will work if this fails; the chunks will just be larger.
     if b.ndim > 2:
         try:
-            b.shape = -1, b.shape[-1]
+            if NUMPY_LT_2_5:
+                b.shape = -1, b.shape[-1]
+            else:
+                b._set_shape((-1, b.shape[-1]))
         except AttributeError:  # can occur for non-contiguous arrays
             pass
     for j in range(0, b.shape[0], bufsize):
