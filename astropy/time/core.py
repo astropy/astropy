@@ -927,10 +927,10 @@ class TimeBase(MaskableShapedLikeNDArray):
             val = getattr(obj, attr, None)
             if val is not None and val.size > 1:
                 try:
-                    val.shape = shape
+                    val = np.reshape(val, shape)
                 except Exception:
                     for val2 in reshaped:
-                        val2.shape = oldshape
+                        val2 = np.reshape(val2, oldshape)
                     raise
                 else:
                     reshaped.append(val)
