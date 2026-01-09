@@ -64,18 +64,14 @@ entry points can be found in `setuptools' documentation <https://setuptools.read
 Plugin fitters must to extend from the `~astropy.modeling.fitting.Fitter`
 base class. For the fitter to be discovered and inserted into
 `astropy.modeling.fitting` the entry points must be inserted into
-the `astropy.modeling` entry point group
-
-.. doctest-skip::
+the `astropy.modeling` entry point group::
 
     setup(
           # ...
           entry_points = {'astropy.modeling': 'PluginFitterName = fitter_module:PlugFitterClass'}
     )
 
-This would allow users to import the ``PlugFitterName`` through `astropy.modeling.fitting` by
-
-.. doctest-skip::
+This would allow users to import the ``PlugFitterName`` through `astropy.modeling.fitting` by::
 
     from astropy.modeling.fitting import PlugFitterName
 
