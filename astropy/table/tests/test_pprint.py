@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+import sys
 from io import StringIO
 from shutil import get_terminal_size
 
@@ -1155,8 +1156,6 @@ def test_multidim_threshold_default():
 
 def test_multidim_threshold_show_all():
     """Test large threshold shows all elements"""
-    import sys
-
     # Use sys.maxsize or a large value to show all elements
     with conf.set_temp("multidim_threshold", sys.maxsize):
         data = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
@@ -1187,8 +1186,6 @@ def test_multidim_threshold_three_vectors():
 
 def test_multidim_threshold_with_formatting():
     """Test threshold works with column formatting"""
-    import sys
-
     with conf.set_temp("multidim_threshold", sys.maxsize):
         data = np.array([[1.23456, 2.34567, 3.45678]], dtype=float)
         col = Column(data, name="float", format="%.2f")
@@ -1222,9 +1219,12 @@ def test_multidim_threshold_2x3_array():
 
 
 def test_multidim_threshold_3d_array():
-    """Test 3D array (2x3x2) display"""
-    # Shape is (2, 2, 3, 2) - first dimension is rows, rest are element dimensions
-    # Size = 2*3*2 = 12
+    """Test 3D array display.
+
+    Each table element has shape (2, 3, 2); the full column shape is (2, 2, 3, 2)
+    where the first dimension (2) is the number of rows, and the remaining dimensions
+    (2, 3, 2) define the shape of each element. Size = 2*3*2 = 12.
+    """
     data = np.arange(2 * 2 * 3 * 2).reshape(2, 2, 3, 2)
     col = Column(data, name="test")
 
