@@ -669,20 +669,20 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
     def test_structured_to_unstructured_success(self):
         """
         Test that structured_to_unstructured correctly extracts 
-        the target unit for compatible structured units.
+        the target unit for compatible but different structured units.
         """
+        # Using 'cm' and 'm' ensures we are testing the conversion logic
         dtype = np.dtype([('a', 'f8'), ('b', 'f8')])
-        data = np.array([(1.0, 2.0), (3.0, 4.0)], dtype=dtype)      
-        unit = u.StructuredUnit((u.m, u.m), dtype)
-        q = Quantity(data, unit=unit)
+        data = np.array([(100.0, 2.0), (300.0, 4.0)], dtype=dtype)      
+        unit = u.StructuredUnit((u.cm, u.m), dtype)
+        q = u.Quantity(data, unit=unit)
 
+        # On the 'main' branch, this should now FAIL.
         result = rfn.structured_to_unstructured(q)
 
-        assert isinstance(result, Quantity)
-        assert result.unit == u.m
-        # The unstructured array should be (2, 2) because it flattens (1.0, 2.0) and (3.0, 4.0)
-        assert result.shape == (2, 2)
-        assert_array_equal(result.value, np.array([[1.0, 2.0], [3.0, 4.0]]))
+        assert isinstance(result, u.Quantity)
+        assert result.unit == u.cm
+        assert_array_equal(result.value, np.array([[100.0, 200.0], [300.0, 400.0]]))
 
 class TestStructuredSpecificTypeQuantity(StructuredTestBaseWithUnits):
     def setup_class(self):
