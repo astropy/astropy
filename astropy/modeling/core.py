@@ -30,7 +30,6 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.utils import find_current_module, metadata, sharedmethod
 from astropy.utils.codegen import make_function_with_signature
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .bounding_box import CompoundBoundingBox, ModelBoundingBox
 from .parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
@@ -437,9 +436,7 @@ class _ModelMeta(abc.ABCMeta):
                     # default is not a Quantity, attach the unit to the
                     # default.
                     if unit is not None:
-                        default = Quantity(
-                            default, unit, copy=COPY_IF_NEEDED, subok=True
-                        )
+                        default = Quantity(default, unit, copy=None, subok=True)
                     kwargs.append((param_name, default))
             else:
                 args = ("self",) + tuple(pdict.keys())

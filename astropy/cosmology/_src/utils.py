@@ -11,7 +11,6 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.units import Quantity
-from astropy.utils.compat import COPY_IF_NEEDED
 
 # isort: split
 import astropy.cosmology._src.units as cu
@@ -98,7 +97,7 @@ def aszarr(
     elif isinstance(z, np.ndarray):
         return z
 
-    return Quantity(z, cu.redshift, copy=COPY_IF_NEEDED, subok=True).view(np.ndarray)
+    return Quantity(z, cu.redshift, copy=None, subok=True).view(np.ndarray)
 
 
 # ===================================================================
