@@ -112,7 +112,6 @@ class Conf(_config.ConfigNamespace):
             "for no limit."
         ),
         cfgtype="integer",
-        aliases=["astropy.table.pprint.multidim_threshold"],
     )
 
 
