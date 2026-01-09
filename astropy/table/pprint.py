@@ -542,6 +542,7 @@ class TableFormatter:
                 right = format_func(col_format, col[(idx,) + multidim1])
                 result = f"{left} .. {right}"
             else:
+
                 def format_multidim(arr):
                     """Recursively format multidimensional arrays."""
                     if arr.ndim == 0:
