@@ -225,6 +225,8 @@ class Mesa(core.BaseReader):
         table = ascii.read('history.data', format='mesa')
         print(table.meta['header']['version_number'])
         # r24.03.1
+        print(table['model_number'])
+        # Table of model numbers
 
     See: https://docs.mesastar.org/en/stable/using_mesa/output.html
 
