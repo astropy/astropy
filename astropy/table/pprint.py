@@ -518,23 +518,47 @@ class TableFormatter:
             indices = np.arange(n_rows)
 
         def format_col_str(idx):
-            if multidims:
-                # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
-                # with shape (n,1,...,1) from being printed as if there was
-                # more than one element in a row
-                if multidims_all_ones:
-                    return format_func(col_format, col[(idx,) + multidim0])
-                elif multidims_has_zero:
-                    # Any zero dimension means there is no data to print
-                    return ""
-                else:
-                    left = format_func(col_format, col[(idx,) + multidim0])
-                    right = format_func(col_format, col[(idx,) + multidim1])
-                    return f"{left} .. {right}"
-            elif is_scalar:
-                return format_func(col_format, col)
-            else:
+            if not multidims:
+                if is_scalar:
+                    return format_func(col_format, col)
                 return format_func(col_format, col[idx])
+
+            # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
+            # with shape (n,1,...,1) from being printed as if there was
+            # more than one element in a row
+            if multidims_all_ones:
+                return format_func(col_format, col[(idx,) + multidim0])
+
+            if multidims_has_zero:
+                # Any zero dimension means there is no data to print
+                return ""
+
+            size = np.prod(multidims)
+            threshold = conf.multidim_threshold
+
+            # If size > threshold, revert to legacy "first .. last" format
+            if size > threshold:
+                left = format_func(col_format, col[(idx,) + multidim0])
+                right = format_func(col_format, col[(idx,) + multidim1])
+                result = f"{left} .. {right}"
+            else:
+
+                def format_multidim(arr):
+                    """Recursively format multidimensional arrays."""
+                    if arr.ndim == 0:
+                        return format_func(col_format, arr)
+
+                    elif arr.ndim == 1:
+                        elements = [format_func(col_format, val) for val in arr]
+                        return "[" + " ".join(elements) + "]"
+
+                    else:
+                        elements = [format_multidim(arr[i]) for i in range(len(arr))]
+                        return "[" + " ".join(elements) + "]"
+
+                result = format_multidim(col[idx])
+
+            return result
 
         # Add formatted values if within bounds allowed by max_lines
         for idx in indices:
