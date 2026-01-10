@@ -412,9 +412,8 @@ class Cds(core.BaseReader):
             # deal with table where the ReadMe is present, but the data is split over several data files
             if self.header.readme is not None:
                 path = Path(table)
-                pattern = re.compile(r"\.(\d{2,3})(\.gz)?$")
-                f_list = sorted(path.parent.glob(path.name + "*"))
-                if len(f_list) > 0:
+                if f_list := sorted(path.parent.glob(path.name + "*")):
+                    pattern = re.compile(r"\.(\d{2,3})(\.gz)?$")
                     numbers = [int(pattern.search(f.name).group(1)) for f in f_list]
                     if numbers != list(range(len(numbers))):
                         raise core.InconsistentTableError(
