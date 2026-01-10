@@ -1,0 +1,1 @@
+Read CDS table where the data is split into multiple files
