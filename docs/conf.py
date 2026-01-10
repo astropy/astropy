@@ -126,6 +126,7 @@ intersphinx_mapping.update(
         "fsspec": ("https://filesystem-spec.readthedocs.io/en/latest/", None),
         "cycler": ("https://matplotlib.org/cycler/", None),
         "dask": ("https://docs.dask.org/en/stable/", None),
+        "numba": ("https://numba.readthedocs.io/en/stable/", None),
     }
 )
 
