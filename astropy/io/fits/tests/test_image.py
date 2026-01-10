@@ -977,7 +977,7 @@ class TestImageFunctions(FitsTestCase):
 
         # Try reshaping the data, then closing and reopening the file; let's
         # see if all the changes are preserved properly
-        hdul[0].data.shape = (42, 10)
+        hdul[0].data = np.reshape(hdul[0].data, (42, 10))
         hdul.close()
 
         hdul = fits.open(testfile)
