@@ -705,6 +705,7 @@ class _BaseHDU:
         elif copy:
             datsize = self._writedata_direct_copy(fileobj)
 
+        self._file = fileobj
         self._header_offset = hdrloc
         self._data_offset = datloc
         self._data_size = datsize
@@ -928,10 +929,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             datSpan    Data size including padding
             ========== ================================================
         """
-        if hasattr(self, "_file") and self._file:
+        if hasattr(self, "_file"):
             return {
                 "file": self._file,
-                "filemode": self._file.mode,
+                "filemode": getattr(self._file, "mode", None),
                 "hdrLoc": self._header_offset,
                 "datLoc": self._data_offset,
                 "datSpan": self._data_size,
