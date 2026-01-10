@@ -309,12 +309,12 @@ def extract_array(
         try:
             extracted_array_large[:] = fill_value
         except ValueError as exc:
-            exc.args += (
+            exc.add_note(
                 "fill_value is inconsistent with the data type of "
                 "the input array (e.g., fill_value cannot be set to "
                 "np.nan if the input array has integer type). Please "
                 "change either the input array dtype or the "
-                "fill_value.",
+                "fill_value."
             )
             raise exc
 
