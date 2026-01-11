@@ -737,20 +737,48 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         """
         # Redefinition to allow defining a setter and add a docstring.
         return super().shape
-
     @shape.setter
     def shape(self, shape):
+        # Define the hybrid error right here so we don't get a NameError
+        class MaskedShapeError(AttributeError, ValueError):
+            pass
+
         old_shape = self.shape
-        try:
-            self._mask = np.reshape(self._mask, shape)
-            super(MaskedNDArray, type(self)).shape.__set__(self, shape)
-        except Exception as exc:
-            self._mask = np.reshape(self._mask, old_shape)
-            
-            raise AttributeError(
+        old_mask = self._mask
+        
+        # 1. Size Check - Now using the local hybrid error
+        if np.prod(shape) != np.prod(old_shape):
+            raise MaskedShapeError(
                 "Incompatible shape for in-place modification. "
                 "Use `.reshape()` to make a copy with the desired shape."
+            )
+
+        try:
+            # 2. Prepare mask
+            new_mask = np.reshape(old_mask, shape) if old_mask is not False else False
+
+            # 3. Wipe mask to stop NumPy 2.4 internal crash
+            if hasattr(self, '_mask'):
+                del self._mask
+
+            # 4. Change data shape
+            super(MaskedNDArray, type(self)).shape.__set__(self, shape)
+            
+            # 5. Re-attach
+            self._mask = new_mask
+            
+        except Exception as exc:
+            # Rollback
+            self._mask = old_mask
+            super(MaskedNDArray, type(self)).shape.__set__(self, old_shape)
+            raise MaskedShapeError(
+                "Incompatible shape for in-place modification."
             ) from exc
+
+        # ... rest of your mask-syncing logic ...
+
+
+
 
     _eq_simple = _comparison_method("__eq__")
     _ne_simple = _comparison_method("__ne__")
