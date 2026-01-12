@@ -11,6 +11,7 @@ profile file formats.
 """
 
 import re
+from pathlib import Path
 
 import numpy as np
 
@@ -44,7 +45,6 @@ def mesa_identify(origin, filepath, fileobj, *args, **kwargs):
         return False
 
     # Extract just the filename from the path
-    from pathlib import Path
 
     filename = Path(filepath).name
 
@@ -141,7 +141,7 @@ class MesaHeader(core.BaseHeader):
         for name, value in zip(meta_names, meta_values):
             # Strip quotes from string values
             if value.startswith('"') and value.endswith('"'):
-                value = value[1:-1]
+                value = value.strip('"')
             # Try to convert to number if possible
             else:
                 try:
@@ -158,9 +158,7 @@ class MesaHeader(core.BaseHeader):
             mesa_meta[name] = value
 
         # Store in table metadata
-        if "table" not in meta:
-            meta["table"] = {}
-        meta["table"]["header"] = mesa_meta
+        meta.setdefault("table", {})["header"] = mesa_meta
 
 
 class MesaData(core.BaseData):
