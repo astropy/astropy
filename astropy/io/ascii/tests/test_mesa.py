@@ -125,10 +125,7 @@ class TestMesaReader:
         # Should have 7 rows (3 removed from first run)
         assert len(table) == 7
         # Model numbers should be monotonically increasing
-        assert all(
-            table["model_number"][i] < table["model_number"][i + 1]
-            for i in range(len(table) - 1)
-        )
+        assert all(table["model_number"][:-1] < table["model_number"][1:])
         # Models should be [1, 2, 3, 4, 5, 6, 7]
         assert list(table["model_number"]) == [1, 2, 3, 4, 5, 6, 7]
 
@@ -234,9 +231,7 @@ class TestMesaIntegration:
 
         # Check monotonicity
         model_nums = table["model_number"]
-        assert all(
-            model_nums[i] < model_nums[i + 1] for i in range(len(model_nums) - 1)
-        )
+        assert all(model_nums[:-1] < model_nums[1:])
 
         # Check first and last values
         assert table["model_number"][0] == 1
@@ -260,8 +255,7 @@ class TestMesaIntegration:
 
         # Cleaned data should be monotonic
         assert all(
-            table_cleaned["model_number"][i] < table_cleaned["model_number"][i + 1]
-            for i in range(len(table_cleaned) - 1)
+            table_cleaned["model_number"][:-1] < table_cleaned["model_number"][1:]
         )
 
         # Check specific pattern: restart from model 10, should have 1-30

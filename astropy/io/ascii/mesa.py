@@ -1,11 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""
-mesa.py:
+"""mesa.py:
   Classes to read MESA stellar evolution code output files (history and profile).
 
 MESA (Modules for Experiments in Stellar Astrophysics) is a widely-used
 stellar evolution code. This reader handles the standard MESA history and
 profile file formats.
+
+See: https://docs.mesastar.org/en/stable/using_mesa/output.html
+
 
 :Author: Bill Wolf
 """
@@ -19,8 +21,7 @@ from . import core
 
 
 def mesa_identify(origin, filepath, fileobj, *args, **kwargs):
-    """
-    Identify if a file is in MESA format.
+    """Identify if a file is in MESA format.
 
     MESA files are typically named 'history.data' or 'profileXX.data'.
     This function checks for those patterns.
@@ -60,8 +61,7 @@ def mesa_identify(origin, filepath, fileobj, *args, **kwargs):
 
 
 class MesaHeader(core.BaseHeader):
-    """
-    Reader for MESA file headers.
+    """Reader for MESA file headers.
 
     MESA files have a distinctive format:
     - Line 0: Column indices for metadata
@@ -77,8 +77,7 @@ class MesaHeader(core.BaseHeader):
     comment = None  # No comment character in MESA files
 
     def get_cols(self, lines):
-        """
-        Initialize the header Column objects from MESA file lines.
+        """Initialize the header Column objects from MESA file lines.
 
         Note: get_cols receives the ORIGINAL lines (not processed), so we use
         the original line indices:
@@ -111,8 +110,7 @@ class MesaHeader(core.BaseHeader):
         self._set_cols_from_names()
 
     def update_meta(self, lines, meta):
-        """
-        Extract MESA metadata from the file header.
+        """Extract MESA metadata from the file header.
 
         MESA files contain metadata in the first three lines:
         - Line 1: Metadata column names
@@ -162,8 +160,7 @@ class MesaHeader(core.BaseHeader):
 
 
 class MesaData(core.BaseData):
-    """
-    Reader for MESA data section.
+    """Reader for MESA data section.
 
     Data starts at line 5 (0-indexed) after blank lines are removed.
     After process_lines removes the blank line 3, the structure is:
@@ -219,15 +216,22 @@ class Mesa(core.BaseReader):
 
     Example usage::
 
-        from astropy.io import ascii
-        table = ascii.read('history.data', format='mesa')
-        print(table.meta['header']['version_number'])
-        # r24.03.1
-        print(table['model_number'])
-        # Table of model numbers
-
-    See: https://docs.mesastar.org/en/stable/using_mesa/output.html
-
+    >>> from astropy.table import Table
+    >>> from astropy.utils.data import get_pkg_data_filename
+    >>> # Find the location of an example file included in astropy
+    >>> mesa_file = get_pkg_data_filename('data/mesa_history.data',
+    ...                                         package='astropy.io.ascii.tests')
+    >>> t = Table.read(mesa_file, format='ascii.mesa')
+    >>> print(t.meta['header']['version_number'])
+    r24.03.1
+    >>> t['model_number', 'star_age'][:3]
+    <Table length=3>
+    model_number        star_age
+       int64            float64
+    ------------ ----------------------
+               1                  1e-05
+               2                2.2e-05
+               3 3.6400000000000004e-05
     """
 
     _format_name = "mesa"
@@ -238,8 +242,7 @@ class Mesa(core.BaseReader):
     data_class = MesaData
 
     def __init__(self, remove_restart_rows=True):
-        """
-        Initialize MESA reader.
+        """Initialize MESA reader.
 
         Parameters
         ----------
@@ -252,8 +255,7 @@ class Mesa(core.BaseReader):
         self.remove_restart_rows = remove_restart_rows
 
     def read(self, table):
-        """
-        Read input data into a Table and return the result.
+        """Read input data into a Table and return the result.
 
         Parameters
         ----------
