@@ -519,9 +519,7 @@ class TableFormatter:
 
         def format_col_str(idx):
             if not multidims:
-                if is_scalar:
-                    return format_func(col_format, col)
-                return format_func(col_format, col[idx])
+                return format_func(col_format, col if is_scalar else col[idx])
 
             # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
             # with shape (n,1,...,1) from being printed as if there was
