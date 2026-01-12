@@ -104,7 +104,7 @@ class Conf(_config.ConfigNamespace):
     multidim_threshold = _config.ConfigItem(
         1,
         description=(
-            "Threshold for displaying full multidimensional column elements. "
+            "Size threshold for displaying full multidimensional column elements. "
             "If the total size (product of dimensions except first) exceeds this, "
             "only first and last elements are shown with '..' for elided elements. "
             "Default 1 (e.g., '1 .. 5'). Set to large value for no limit."
