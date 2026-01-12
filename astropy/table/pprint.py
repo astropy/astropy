@@ -545,14 +545,8 @@ class TableFormatter:
                     """Recursively format multidimensional arrays."""
                     if arr.ndim == 0:
                         return format_func(col_format, arr)
-
-                    elif arr.ndim == 1:
-                        elements = [format_func(col_format, val) for val in arr]
-                        return "[" + " ".join(elements) + "]"
-
                     else:
-                        elements = [format_multidim(arr[i]) for i in range(len(arr))]
-                        return "[" + " ".join(elements) + "]"
+                        return "[" + " ".join(format_multidim(val) for val in arr) + "]"
 
                 result = format_multidim(col[idx])
 
