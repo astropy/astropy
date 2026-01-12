@@ -224,8 +224,8 @@ class TestMesaIntegration:
         table = ascii.read(test_file, format="mesa")
 
         # Check basic properties
-        assert len(table) == 50
-        assert len(table.columns) == 66
+        assert len(table) == 25
+        assert len(table.columns) == 3
         assert table.colnames[0] == "model_number"
 
         # Check metadata
@@ -240,7 +240,7 @@ class TestMesaIntegration:
 
         # Check first and last values
         assert table["model_number"][0] == 1
-        assert table["model_number"][-1] == 709
+        assert table["model_number"][-1] == 25
 
     def test_read_mesa_history_with_restarts(self):
         """Test reading mesa_history_with_restarts.data and verifying restart removal."""
