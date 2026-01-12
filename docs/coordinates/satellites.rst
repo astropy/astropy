@@ -4,7 +4,7 @@ Working with Earth Satellites Using Astropy Coordinates
 *******************************************************
 This document discusses Two-Line Element ephemerides and the True Equator, Mean Equinox frame.
 For satellite ephemerides given directly in geocentric ITRS coordinates
-(e.g. `ILRS ephemeris format <https://ilrs.gsfc.nasa.gov/data_and_products/formats/cpf.html>`_)
+(e.g. `ILRS ephemeris format <https://ilrs.gsfc.nasa.gov/data_and_products/formats/consolidated_prediction_format.html>`_)
 please see the example transform to `~astropy.coordinates.AltAz` below starting with
 the geocentric ITRS coordinate frame.
 
