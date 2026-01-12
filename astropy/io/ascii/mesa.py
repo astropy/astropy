@@ -276,8 +276,8 @@ class Mesa(core.BaseReader):
     >>> from astropy.table import Table
     >>> from astropy.utils.data import get_pkg_data_filename
     >>> # Find the location of an example file included in astropy
-    >>> mesa_file = get_pkg_data_filename('data/mesa_history.data',
-    ...                                         package='astropy.io.ascii.tests')
+    >>> mesa_file = get_pkg_data_filename('data/history_mesa.data',
+    ...                                      package='astropy.io.ascii.tests')
     >>> t = Table.read(mesa_file, format='ascii.mesa')
     >>> print(t.meta['header']['version_number'])
     r24.03.1
