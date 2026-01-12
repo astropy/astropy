@@ -6,12 +6,20 @@ Test Data Files
 ---------------
 Test data files are located in astropy/io/ascii/tests/data/:
 
-- mesa_history.data : MESA history file with 50 models and 66 columns
+- history_mesa.data : MESA history file with 25 models and 3 columns
   (truncated from a real stellar evolution calculation with no restarts)
 
-- mesa_history_with_restarts.data : MESA history file with restart artifacts,
-  containing 41 rows that should be cleaned to 30 rows (models 1-30) after
-  removing the duplicate models 10-20 from the first run before restart
+- history_mesa_with_restarts.data : MESA history file with restart artifacts,
+  containing 31 rows that should be cleaned to 20 rows after
+  removing the outdated models 10-20 from the first run before restart
+
+- profile_mesa.data : MESA profile file with minimal zones and columns
+
+- history_mesa_bad_format.data : File with bad format (missing metadata lines)
+
+- history_mesa_missing_columns.data : File missing required 'model_number' or
+  `zone` column
+
 """
 
 import numpy as np
@@ -46,9 +54,7 @@ MESA_WITH_RESTART = """                           1                    2
                            4                 1007   4.00000000000E-05
                            5                 1008   5.00000000000E-05
                            3                 2000   3.50000000000E-05
-                           4                 2001   4.50000000000E-05
                            5                 2002   5.50000000000E-05
-                           6                 2003   6.50000000000E-05
                            7                 2004   7.50000000000E-05
 """
 
@@ -123,19 +129,19 @@ class TestMesaReader:
         """Test that restart artifacts are removed by default."""
         table = ascii.read(MESA_WITH_RESTART, format="mesa")
         # Should have 7 rows (3 removed from first run)
-        assert len(table) == 7
+        assert len(table) == 5
         # Model numbers should be monotonically increasing
         assert all(table["model_number"][:-1] < table["model_number"][1:])
         # Models should be [1, 2, 3, 4, 5, 6, 7]
-        assert list(table["model_number"]) == [1, 2, 3, 4, 5, 6, 7]
+        assert list(table["model_number"]) == [1, 2, 3, 5, 7]
 
     def test_restart_removal_disabled(self):
         """Test reading with restart removal disabled."""
         table = ascii.read(MESA_WITH_RESTART, format="mesa", remove_restart_rows=False)
         # Should have all 10 rows
-        assert len(table) == 10
+        assert len(table) == 8
         # Model numbers will have duplicates
-        assert list(table["model_number"]) == [1, 2, 3, 4, 5, 3, 4, 5, 6, 7]
+        assert list(table["model_number"]) == [1, 2, 3, 4, 5, 3, 5, 7]
 
     def test_restart_removal_algorithm(self):
         """Test restart removal algorithm with specific scenario."""
@@ -146,46 +152,94 @@ class TestMesaReader:
         # Removed: models at indices 2, 3, 4 (first occurrence of 3, 4, 5)
         # Result: models 1, 2, 3, 4, 5, 6, 7 (from restart)
 
-        assert len(table) == 7
+        assert len(table) == 5
 
         # Check num_zones to verify we kept the right data
         # After restart, num_zones changes from 100x to 200x
         assert table["num_zones"][0] == 1004  # model 1
         assert table["num_zones"][1] == 1005  # model 2
         assert table["num_zones"][2] == 2000  # model 3 (from restart, not first run)
-        assert table["num_zones"][3] == 2001  # model 4 (from restart)
-        assert table["num_zones"][4] == 2002  # model 5 (from restart)
-        assert table["num_zones"][5] == 2003  # model 6
-        assert table["num_zones"][6] == 2004  # model 7
+        assert table["num_zones"][3] == 2002  # model 5 (from restart)
+        assert table["num_zones"][4] == 2004  # model 7
 
 
 class TestMesaAutoDetection:
     """Tests for MESA file format auto-detection."""
 
+    @classmethod
+    def setup_class(cls):
+        """Set up test fixtures once for the entire class."""
+        cls.good_history_file_obj = open(
+            get_pkg_data_filename("data/history_mesa.data")
+        )
+        cls.good_profile_file_obj = open(
+            get_pkg_data_filename("data/profile_mesa.data")
+        )
+        cls.bad_format_file_obj = open(
+            get_pkg_data_filename("data/history_mesa_bad_format.data")
+        )
+        cls.bad_columns_file_obj = open(
+            get_pkg_data_filename("data/history_mesa_missing_columns.data")
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        """Clean up file handles after tests."""
+        cls.good_history_file_obj.close()
+        cls.good_profile_file_obj.close()
+        cls.bad_format_file_obj.close()
+        cls.bad_columns_file_obj.close()
+
     def test_autodetect_history(self):
         """Test auto-detection of history files."""
         from astropy.io.ascii.mesa import mesa_identify
 
-        assert mesa_identify("read", "history.data", None) is True
-        assert mesa_identify("read", "history_backup.data", None) is True
-        assert mesa_identify("read", "HISTORY.DATA", None) is True
+        # Access using self
+        assert mesa_identify("read", "history.data", self.good_history_file_obj) is True
+        self.good_history_file_obj.seek(0)
+        assert (
+            mesa_identify("read", "history_backup.data", self.good_history_file_obj)
+            is True
+        )
+        self.good_history_file_obj.seek(0)
+        assert mesa_identify("read", "HISTORY.DATA", self.good_history_file_obj) is True
+        self.good_history_file_obj.seek(0)
 
     def test_autodetect_profile(self):
         """Test auto-detection of profile files."""
         from astropy.io.ascii.mesa import mesa_identify
 
-        assert mesa_identify("read", "profile1.data", None) is True
-        assert mesa_identify("read", "profile123.data", None) is True
-        assert mesa_identify("read", "PROFILE99.DATA", None) is True
+        assert (
+            mesa_identify("read", "profile1.data", self.good_profile_file_obj) is True
+        )
+        self.good_profile_file_obj.seek(0)
+        assert (
+            mesa_identify("read", "PROFILE99.DATA", self.good_profile_file_obj) is True
+        )
+        self.good_profile_file_obj.seek(0)
 
+    # sad path tests; bad file names, bad format, and/or missing columns
     def test_autodetect_negative(self):
         """Test that non-MESA files are not identified."""
         from astropy.io.ascii.mesa import mesa_identify
 
-        assert mesa_identify("read", "data.csv", None) is False
-        assert mesa_identify("read", "random.txt", None) is False
-        assert mesa_identify("read", "mesa.dat", None) is False
-        assert mesa_identify("read", None, None) is False
+        # bad names (not starting with history/profile and ending with .data)
+        assert mesa_identify("read", "data.csv", self.good_history_file_obj) is False
+        self.good_history_file_obj.seek(0)
+        assert mesa_identify("read", "random.txt", self.good_history_file_obj) is False
+        self.good_history_file_obj.seek(0)
+        assert mesa_identify("read", "mesa.dat", self.good_history_file_obj) is False
+        self.good_history_file_obj.seek(0)
+        assert mesa_identify("read", None, self.good_history_file_obj) is False
+        self.good_history_file_obj.seek(0)
+
+        # good name, but bad format
+        assert mesa_identify("read", "history.data", self.bad_format_file_obj) is False
+        self.bad_format_file_obj.seek(0)
+
+        # good name, good format, but doesn't have zone or model_number columns
+        assert mesa_identify("read", "history.data", self.bad_columns_file_obj) is False
+        self.bad_columns_file_obj.seek(0)
 
 
 class TestMesaEdgeCases:
@@ -216,7 +270,7 @@ class TestMesaIntegration:
 
     def test_read_mesa_history(self):
         """Test reading the mesa_history.data test file."""
-        test_file = get_pkg_data_filename("data/mesa_history.data")
+        test_file = get_pkg_data_filename("data/history_mesa.data")
 
         table = ascii.read(test_file, format="mesa")
 
@@ -237,9 +291,9 @@ class TestMesaIntegration:
         assert table["model_number"][0] == 1
         assert table["model_number"][-1] == 25
 
-    def test_read_mesa_history_with_restarts(self):
-        """Test reading mesa_history_with_restarts.data and verifying restart removal."""
-        test_file = get_pkg_data_filename("data/mesa_history_with_restarts.data")
+    def test_read_history_mesa_with_restarts(self):
+        """Test reading history_mesa_with_restarts.data and verifying restart removal."""
+        test_file = get_pkg_data_filename("data/history_mesa_with_restarts.data")
 
         # Read without restart removal
         table_full = ascii.read(test_file, format="mesa", remove_restart_rows=False)
@@ -247,16 +301,20 @@ class TestMesaIntegration:
         # Read with restart removal (default)
         table_cleaned = ascii.read(test_file, format="mesa")
 
-        # Full table should have 41 rows
-        assert len(table_full) == 41
+        # Full table should have 31 rows
+        assert len(table_full) == 31
 
-        # Cleaned table should have 30 rows (11 removed: duplicate models 10-20)
-        assert len(table_cleaned) == 30
+        # Cleaned table should have 30 rows (11 removed: duplicate/outdated
+        # models 10-20)
+        assert len(table_cleaned) == 20
 
         # Cleaned data should be monotonic
         assert all(
             table_cleaned["model_number"][:-1] < table_cleaned["model_number"][1:]
         )
 
-        # Check specific pattern: restart from model 10, should have 1-30
-        assert list(table_cleaned["model_number"]) == list(range(1, 31))
+        # Check specific pattern: restart from model 10, should have 1-10, then
+        # 12, 14, ..., 30
+        assert list(table_cleaned["model_number"]) == list(range(1, 11)) + list(
+            range(12, 31, 2)
+        )

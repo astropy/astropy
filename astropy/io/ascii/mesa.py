@@ -24,7 +24,8 @@ def mesa_identify(origin, filepath, fileobj, *args, **kwargs):
     """Identify if a file is in MESA format.
 
     MESA files are typically named 'history.data' or 'profileXX.data'.
-    This function checks for those patterns.
+    This function checks for those patterns, in addition to checking
+    the structure of the first seven lines.
 
     Parameters
     ----------
@@ -54,10 +55,66 @@ def mesa_identify(origin, filepath, fileobj, *args, **kwargs):
     history_pattern = r"^history.*\.data$"
     profile_pattern = r"^profile.*\.data$"
 
-    return (
+    file_name_check = (
         re.match(history_pattern, filename, re.IGNORECASE) is not None
         or re.match(profile_pattern, filename, re.IGNORECASE) is not None
     )
+
+    if not file_name_check:
+        return False
+
+    # file name seems legitimate, so check the first few lines for MESA structure
+    if fileobj is None:
+        return False
+
+    # Read the first 7 lines to check for MESA structure
+    lines = []
+    for _ in range(7):
+        line = fileobj.readline()
+        lines.append(line)
+
+    # Check if the first 7 lines match the expected MESA format
+    if len(lines) < 7:
+        return False
+
+    # Check that line 0 (0-indexed) contains integers separated by whitespace
+    meta_col_indices_line = lines[0]
+    if not re.match(r"^\s*\d+\s+\d+", meta_col_indices_line):
+        return False
+
+    # count number of metadata columns and ensure that line 1 (0-indexed) has same number of names
+    num_meta_cols = len(meta_col_indices_line.split())
+    meta_col_names_line = lines[1]
+    if len(meta_col_names_line.split()) != num_meta_cols:
+        return False
+
+    # Check that line 2 (0-indexed) contains metadata values
+    meta_values_line = lines[2]
+    if len(meta_values_line.split()) != num_meta_cols:
+        return False
+
+    # Similar checks for data table columns
+    data_col_indices_line = lines[4]
+    if not re.match(r"^\s*\d+\s+\d+", data_col_indices_line):
+        return False
+    num_data_cols = len(data_col_indices_line.split())
+    data_col_names_line = lines[5]
+    if len(data_col_names_line.split()) != num_data_cols:
+        return False
+
+    # check first line of table data (line 6, 0-indexed) has same number of entries as data columns
+    data_row_line = lines[6]
+    if len(data_row_line.split()) != num_data_cols:
+        return False
+
+    # at this point, file names look like a MESA file, and the first 7 lines have the expected structure
+    # of a MESA file, so it is likely a MESA file. For final check, check to see if "model_number" or
+    # "zone" is in the data column names, as these are very likely to be in a history or profile file, respectively.
+    data_col_names = data_col_names_line.split()
+    if "model_number" not in data_col_names and "zone" not in data_col_names:
+        return False
+
+    return True
 
 
 class MesaHeader(core.BaseHeader):
