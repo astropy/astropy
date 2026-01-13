@@ -586,12 +586,10 @@ def test_2d_model(fitter):
     Y = np.linspace(-1, 7, 200)
     x, y = np.meshgrid(X, Y)
     z = gauss2d(x, y)
-    w = np.ones(x.size)
-    w.shape = x.shape
+    w = np.ones(x.shape)
 
     with NumpyRNGContext(1234567890):
-        n = np.random.randn(x.size)
-        n.shape = x.shape
+        n = np.random.randn(*x.shape)
         m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
         assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)
         m = fitter(gauss2d, x, y, z + 2 * n, weights=None)
