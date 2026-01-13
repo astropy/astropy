@@ -10,6 +10,7 @@ import numbers
 import operator
 import re
 import warnings
+from typing import Generic, TypeVar
 from collections.abc import Collection
 from fractions import Fraction
 from typing import ClassVar, Self
@@ -245,8 +246,10 @@ class QuantityInfo(QuantityInfoBase):
         """
         return [self._parent]
 
+# This represents the Physical Type (Length, Time, etc.)
+D = TypeVar("D")
 
-class Quantity(np.ndarray):
+class Quantity(np.ndarray, Generic[D]):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
     See also: https://docs.astropy.org/en/stable/units/quantity.html
@@ -2263,3 +2266,8 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         raise UnitsError("'rtol' should be dimensionless")
 
     return actual.value, desired.value, rtol.value, atol.value
+
+# Simple classes to satisfy Mypy
+class Length: pass
+class Time: pass
+class Mass: pass
