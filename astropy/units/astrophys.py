@@ -131,7 +131,7 @@ def_unit(
     _si.L_sun,
     namespace=_ns,
     prefixes=False,
-    doc="Solar luminance",
+    doc="Solar luminosity",
     format={"latex": r"L_{\odot}", "unicode": "L\N{SUN}"},
 )
 
