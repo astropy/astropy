@@ -619,7 +619,7 @@ def test_help_invalid_config_item():
         KeyError,
         match=(
             "'bad_name' is not among configuration items "
-            r"\('unicode_output', 'use_color', 'max_lines', 'max_width', 'multidim_threshold'\)"
+            r"\('unicode_output', 'use_color', 'max_lines', 'max_width'\)"
         ),
     ):
         conf.help("bad_name")

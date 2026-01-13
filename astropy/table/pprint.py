@@ -8,7 +8,7 @@ from shutil import get_terminal_size
 
 import numpy as np
 
-from astropy import log
+from astropy import log, table
 from astropy.utils.console import Getch, color_print, conf
 from astropy.utils.data_info import dtype_info_name
 
@@ -176,12 +176,12 @@ class TableFormatter:
         If no value of ``max_lines`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
         height cannot be determined then the default will be determined
-        using the ``astropy.table.conf.max_lines`` configuration item. If a
+        using the ``astropy.console.max_lines`` console configuration item. If a
         negative value of ``max_lines`` is supplied then there is no line
         limit applied.
 
         The same applies for max_width except the configuration item is
-        ``astropy.table.conf.max_width``.
+        ``astropy.console.conf.max_width``.
 
         Parameters
         ----------
@@ -532,7 +532,8 @@ class TableFormatter:
                 return ""
 
             size = np.prod(multidims)
-            threshold = conf.multidim_threshold
+            # Uses astropy.table.conf.format_size_threshold for multidimensional column formatting
+            threshold = table.conf.format_size_threshold
 
             # If size > threshold, revert to legacy "first .. last" format
             if size > threshold:
