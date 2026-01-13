@@ -2742,9 +2742,10 @@ class Model(metaclass=_ModelMeta):
         param_metrics = self._param_metrics
         for name in self.param_names:
             param = getattr(self, name)
-            value = self._parameters[param_metrics[name]["slice"]]
-            value.shape = param_metrics[name]["shape"]
-            param.value = value
+            param.value = np.reshape(
+                self._parameters[param_metrics[name]["slice"]],
+                param_metrics[name]["shape"],
+            )
 
     def _check_param_broadcast(self, max_ndim):
         """
