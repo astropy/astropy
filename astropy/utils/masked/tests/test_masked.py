@@ -14,7 +14,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Longitude
 from astropy.units import Quantity
-from astropy.utils.compat import NUMPY_LT_2_2, NUMPY_LT_2_3
+from astropy.utils.compat import NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.utils.masked import Masked, MaskedNDArray
 
@@ -304,8 +304,11 @@ class TestMaskedNDArraySubclassCreation:
 
     def test_viewing_independent_shape(self):
         mms = Masked(self.a, mask=self.m)
-        mms2 = mms.view()
-        mms2.shape = mms2.shape[::-1]
+        if NUMPY_LT_2_1:
+            mms2 = mms.view()
+            mms2.shape = mms2.shape[::-1]
+        else:
+            mms2 = np.reshape(mms, mms.shape[::-1], copy=False)
         assert mms2.shape == mms.shape[::-1]
         assert mms2.mask.shape == mms.shape[::-1]
         # This should not affect the original array!
@@ -563,8 +566,12 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         assert_array_equal(ma_reshape.mask, expected_mask)
 
     def test_shape_setting(self):
-        ma_reshape = self.ma.copy()
-        ma_reshape.shape = (6,)
+        if NUMPY_LT_2_1:
+            ma_reshape = self.ma.copy()
+            ma_reshape.shape = (6,)
+        else:
+            ma_reshape = np.reshape(self.ma, (6,), copy=True)
+
         expected_data = self.a.reshape((6,))
         expected_mask = self.mask_a.reshape((6,))
         assert ma_reshape.shape == expected_data.shape
