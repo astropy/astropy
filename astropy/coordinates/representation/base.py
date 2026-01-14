@@ -582,18 +582,50 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         return f"{np.array2string(self._values, separator=', ')} {self._unitstr:s}"
 
     def __repr__(self):
-        prefixstr = "    "
-        arrstr = np.array2string(self._values, prefix=prefixstr, separator=", ")
+        # 1. Component and Unit Logic
+        components = self.components
+        if hasattr(self, "unit") and self.unit:
+            unitstr = f" in {self.unit}"
+        else:
+            unitlist = [
+                str(getattr(self, "_" + c).unit)
+                for c in components
+                if hasattr(self, "_" + c)
+            ]
+            if len(set(unitlist)) == 1 and len(components) > 1 and unitlist and unitlist[0] != 'None':
+                 unitstr = f" in {unitlist[0]}"
+            else:
+                 unitstr = f" in ({', '.join(unitlist)})" if unitlist else ""
 
-        diffstr = ""
-        if diffs := getattr(self, "differentials", None):
-            diffstr = f"\n (has differentials w.r.t.: {', '.join(map(repr, diffs))})"
+        # 2. Optimized Slicing Logic
+        threshold = np.get_printoptions()['threshold']
+        edge_items = np.get_printoptions()['edgeitems']
 
-        unitstr = ("in " + self._unitstr) if self._unitstr else "[dimensionless]"
-        return (
-            f"<{self.__class__.__name__} ({', '.join(self.components)})"
-            f" {unitstr:s}\n{prefixstr}{arrstr}{diffstr}>"
-        )
+        if self._values.size > threshold:
+            # PERFORMANCE FIX: Slice only the edge items
+            summary_values = self._values[np.r_[:edge_items, -edge_items:0]]
+            arrstr = np.array2string(summary_values, separator=", ")
+            
+            if '\n' in arrstr:
+                lines = arrstr.splitlines()
+                mid = len(lines) // 2
+                lines.insert(mid, "...")
+                arrstr = "\n".join(lines)
+            else:
+                arrstr = arrstr.replace("], [", "], ..., [")
+        else:
+            arrstr = np.array2string(self._values, separator=", ")
+
+        # 3. Indentation & Assembly
+        indented_arrstr = "\n".join(["    " + line for line in arrstr.splitlines()])
+        res = f"<{self.__class__.__name__} ({', '.join(components)}){unitstr}\n{indented_arrstr}>"
+
+        # 4. Include Differential info
+        if hasattr(self, "differentials") and self.differentials:
+            diff_names = ", ".join([f"'{k}'" for k in self.differentials.keys()])
+            res += f"\n (has differentials w.r.t.: {diff_names})"
+
+        return res
 
 
 class RepresentationInfo(BaseRepresentationOrDifferentialInfo):
