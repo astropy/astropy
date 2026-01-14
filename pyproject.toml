@@ -122,6 +122,7 @@ test_all = [
 ]
 typing = [
     "pandas-stubs>=2.0.2",
+    "scipy-stubs>=1.14.1.6",
     "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
 ]
 docs = [
