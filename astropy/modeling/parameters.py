@@ -465,7 +465,7 @@ class Parameter:
             if value not in ((), (1,)):
                 raise ValueError("Cannot assign this shape to a scalar quantity")
         else:
-            self.value.shape = value
+            self.value = np.reshape(self.value, value)
 
     @property
     def size(self):
