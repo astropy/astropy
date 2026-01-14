@@ -18,7 +18,7 @@ def test_pickle_column(protocol):
         unit="cm",
         meta={"a": 1},
     )
-    cs = pickle.dumps(c)
+    cs = pickle.dumps(c, protocol=protocol)
     cp = pickle.loads(cs)
     assert np.all(cp == c)
     assert cp.attrs_equal(c)
@@ -38,7 +38,7 @@ def test_pickle_masked_column(protocol):
     c.mask[1] = True
     c.fill_value = -99
 
-    cs = pickle.dumps(c)
+    cs = pickle.dumps(c, protocol=protocol)
     cp = pickle.loads(cs)
 
     assert np.all(cp._data == c._data)
@@ -54,7 +54,7 @@ def test_pickle_multidimensional_column(protocol):
 
     a = np.zeros((3, 2))
     c = Column(a, name="a")
-    cs = pickle.dumps(c)
+    cs = pickle.dumps(c, protocol=protocol)
     cp = pickle.loads(cs)
 
     assert np.all(c == cp)
@@ -87,7 +87,7 @@ def test_pickle_table(protocol):
         t["d"] = Time(["2001-01-02T12:34:56", "2001-02-03T00:01:02"])
         t["e"] = SkyCoord([125.0, 180.0] * deg, [-45.0, 36.5] * deg)
 
-        ts = pickle.dumps(t)
+        ts = pickle.dumps(t, protocol=protocol)
         tp = pickle.loads(ts)
 
         assert tp.__class__ is table_class
@@ -129,7 +129,7 @@ def test_pickle_masked_table(protocol):
     t["a"].mask[1] = True
     t["a"].fill_value = -99
 
-    ts = pickle.dumps(t)
+    ts = pickle.dumps(t, protocol=protocol)
     tp = pickle.loads(ts)
 
     for colname in ("a", "b"):
@@ -148,7 +148,7 @@ def test_pickle_indexed_table(protocol):
     t = simple_table()
     t.add_index("a")
     t.add_index(["a", "b"])
-    ts = pickle.dumps(t)
+    ts = pickle.dumps(t, protocol=protocol)
     tp = pickle.loads(ts)
 
     assert len(t.indices) == len(tp.indices)
