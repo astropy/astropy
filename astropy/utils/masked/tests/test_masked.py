@@ -578,6 +578,9 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         assert_array_equal(ma_reshape.unmasked, expected_data)
         assert_array_equal(ma_reshape.mask, expected_mask)
 
+    @pytest.mark.filterwarnings(
+        "default:Setting the shape on a NumPy array has been deprecated in NumPy 2.5:DeprecationWarning"
+    )
     def test_shape_setting_failure(self):
         ma = self.ma.copy()
         with pytest.raises(ValueError, match="cannot reshape"):
