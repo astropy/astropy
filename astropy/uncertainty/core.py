@@ -10,6 +10,7 @@ import numpy as np
 
 from astropy import stats
 from astropy import units as u
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 if NUMPY_LT_2_0:
@@ -102,7 +103,10 @@ class Distribution:
         # Set our new structured dtype.
         structured.dtype = new_dtype
         # Get rid of trailing dimension of 1.
-        structured.shape = samples.shape[:-1]
+        if NUMPY_LT_2_5:
+            structured.shape = samples.shape[:-1]
+        else:
+            structured._set_shape(samples.shape[:-1])
 
         # Now view as the Distribution subclass, and finalize based on the
         # original samples (e.g., to set the unit for QuantityDistribution).
