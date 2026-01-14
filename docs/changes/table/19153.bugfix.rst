@@ -1,1 +1,0 @@
-``astropy.table`` unit tests for pickling now test all appropriate pickle protocol versions instead of only the default.
