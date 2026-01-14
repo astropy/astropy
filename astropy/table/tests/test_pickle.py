@@ -2,7 +2,7 @@ import pickle
 
 import numpy as np
 
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import Angle, SkyCoord
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.table_helpers import simple_table
 from astropy.time import Time
@@ -139,6 +139,29 @@ def test_pickle_masked_table(protocol):
     assert tp["a"].attrs_equal(t["a"])
     assert tp["b"].attrs_equal(t["b"])
     assert tp.meta == t.meta
+
+
+def test_pickle_masked_qtable(protocol):
+    t = QTable(meta={"a": 1}, masked=True)
+    t["a"] = Quantity([1, 2], unit="m")
+    t["b"] = Angle([1, 2], unit=deg)
+
+    t["a"].mask[0] = True
+    t["b"].mask[1] = True
+
+    ts = pickle.dumps(t, protocol=protocol)
+    tp = pickle.loads(ts)
+
+    assert tp.__class__ is QTable
+
+    assert np.all(tp["a"].mask == t["a"].mask)
+    assert np.all(tp["a"].unmasked == t["a"].unmasked)
+    assert np.all(tp["b"].mask == t["b"].mask)
+    assert np.all(tp["b"].unmasked == t["b"].unmasked)
+    assert type(tp["a"]) is type(t["a"])  # nopep8
+    assert type(tp["b"]) is type(t["b"])  # nopep8
+    assert tp.meta == t.meta
+    assert type(tp) is type(t)
 
 
 def test_pickle_indexed_table(protocol):
