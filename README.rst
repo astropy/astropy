@@ -2,7 +2,7 @@
 
 ----
 
-|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Supported Python Versions| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
+|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Supported Python Versions| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo| |pyOpenSci Peer-Reviewed|
 
 ----
 
@@ -135,3 +135,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
 .. |Codespaces| image:: https://github.com/codespaces/badge.svg
     :target: https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2081289
     :alt: Open in GitHub Codespaces
+
+.. |pyOpenSci Peer-Reviewed| image:: https://pyopensci.org/badges/peer-reviewed.svg
+    :target: https://github.com/pyOpenSci/software-review/issues/251
+    :alt: pyOpenSci Peer-Reviewed
