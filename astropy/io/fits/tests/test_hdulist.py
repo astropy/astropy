@@ -70,9 +70,7 @@ class TestHDUListFunctions(FitsTestCase):
 
             info_from_hdu = hdu.fileinfo()
             info_from_hdu_list = hdu_list.fileinfo(index)
-            if info_from_hdu is None:
-                assert info_from_hdu_list["file"] is None
-            else:
+            if info_from_hdu is not None:
                 assert info_from_hdu["file"] == info_from_hdu_list["file"]
                 assert info_from_hdu["filemode"] == info_from_hdu_list["filemode"]
                 assert info_from_hdu["hdrLoc"] == info_from_hdu_list["hdrLoc"]

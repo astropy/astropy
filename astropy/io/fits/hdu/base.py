@@ -578,7 +578,7 @@ class _BaseHDU:
         except (AttributeError, OSError):
             offset = 0
 
-        if self._data_loaded or self._data_needs_rescale:
+        if self._data_loaded or self._data_needs_rescale or self._new:
             if self.data is not None:
                 size += self._writedata_internal(fileobj)
             # pad the FITS data block
@@ -653,6 +653,7 @@ class _BaseHDU:
 
             # Set the various data location attributes on newly-written HDUs
             if self._new:
+                self._file = fileobj
                 self._header_offset = header_offset
                 self._data_offset = data_offset
                 self._data_size = data_size
@@ -929,10 +930,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             datSpan    Data size including padding
             ========== ================================================
         """
-        if hasattr(self, "_file"):
+        if hasattr(self, "_file") and self._file:
             return {
                 "file": self._file,
-                "filemode": getattr(self._file, "mode", None),
+                "filemode": self._file.mode,
                 "hdrLoc": self._header_offset,
                 "datLoc": self._data_offset,
                 "datSpan": self._data_size,
