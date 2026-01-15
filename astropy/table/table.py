@@ -16,7 +16,7 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import ShapedLikeNDArray, deprecated
+from astropy.utils import deprecated
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -2441,13 +2441,9 @@ class Table:
         # by pass-through here).
         if col.shape == () or (col.shape[0] == 1 and self.columns):
             new_shape = (len(self),) + getattr(col, "shape", ())[1:]
-            if isinstance(col, np.ndarray):
-                col = np.broadcast_to(col, shape=new_shape, subok=True)
-            elif isinstance(col, ShapedLikeNDArray):
-                col = col._apply(np.broadcast_to, shape=new_shape, subok=True)
-
-            # broadcast_to() results in a read-only array.  Apparently it only changes
-            # the view to look like the broadcasted array.  So copy.
+            col = np.broadcast_to(col, shape=new_shape, subok=True)
+            # broadcast_to() just creates a read-only view that looks like the
+            # broadcasted array, but we want a full, writable version.  So copy.
             col = col_copy(col)
 
         name = col.info.name
