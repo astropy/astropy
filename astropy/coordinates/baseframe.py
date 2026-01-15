@@ -589,7 +589,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 # see https://github.com/astropy/astropy/issues/16219
                 data = data.reshape(self._shape)
             except Exception:
-                data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
+                data = np.broadcast_to(data, shape=self._shape, subok=True)
                 if copy:
                     data = data.copy()
         self._data = data
