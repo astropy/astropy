@@ -1444,10 +1444,15 @@ class _UnitRegistry:
 
 class _UnitContext:
     def __init__(self, init=[], equivalencies=[]):
-        _unit_registries.append(_UnitRegistry(init=init, equivalencies=equivalencies))
+        # Store the registry to be added, but don't append yet.
+        # This prevents global state corruption if _UnitRegistry.__init__ raises an exception.
+        self._registry = _UnitRegistry(init=init, equivalencies=equivalencies)
 
     def __enter__(self) -> None:
-        pass
+        # Only append to the global list after __init__ completes successfully.
+        # This ensures __exit__ will be called to clean up.
+        _unit_registries.append(self._registry)
+        return None
 
     def __exit__(
         self,
