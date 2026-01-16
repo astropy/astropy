@@ -367,33 +367,13 @@ class Mesa(core.BaseReader):
         table : `~astropy.table.Table`
             Table with restart artifacts removed
         """
-        model_numbers = table["model_number"]
-        n_rows = len(model_numbers)
-
-        if n_rows <= 1:
-            return table
-
-        # Find indices to remove by iterating backwards
-        # Track the minimum model number seen so far (going backwards)
-        indices_to_remove = []
-        min_model_seen = model_numbers[-1]
-
-        for i in range(n_rows - 2, -1, -1):  # Start from second-to-last, go to first
-            if model_numbers[i] >= min_model_seen:
-                # This row is part of an old run that was restarted
-                indices_to_remove.append(i)
-            else:
-                # This is a valid row, update our minimum
-                min_model_seen = model_numbers[i]
-
-        # Remove the restart rows if any were found
-        if indices_to_remove:
-            # Create boolean mask for rows to keep (inverse of remove)
-            keep_mask = np.ones(n_rows, dtype=bool)
-            keep_mask[indices_to_remove] = False
-            table = table[keep_mask]
-
-        return table
+        model_number = table["model_number"]
+        # are looking at the reversed array to get the last occurrence
+        smallest_seen = np.minimum.accumulate(model_number[::-1])
+        _, reverse_index = np.unique(smallest_seen[:], return_index=True)
+        # Transform the index to work for the original, non-reversed table
+        keep = len(table) - reverse_index - 1
+        return table[keep]
 
 
 # Register the custom identifier for MESA files
