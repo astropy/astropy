@@ -87,6 +87,7 @@ Specialized Formats
               ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
                  ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table
                 ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table
+                 ascii.mesa     No   .data  :class:`~astropy.io.ascii.Mesa`: MESA stellar evolution code output format
                   ascii.mrt    Yes          :class:`~astropy.io.ascii.Mrt`: AAS Machine-Readable Table format
                   ascii.qdp    Yes    .qdp  :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files
                   ascii.rst    Yes    .rst  :class:`~astropy.io.ascii.RST`: reStructuredText simple format table

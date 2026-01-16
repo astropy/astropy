@@ -35,6 +35,8 @@ section on `Supported formats`_ contains the full list.
 * :class:`~astropy.io.ascii.Ipac`: `IPAC format table <https://irsa.ipac.caltech.edu/applications/DDGEN/Doc/ipac_tbl.html>`_
 * :class:`~astropy.io.ascii.HTML`: HTML format table contained in a <table> tag
 * :class:`~astropy.io.ascii.Latex`: LaTeX table with datavalue in the ``tabular`` environment
+* :class:`~astropy.io.ascii.Mesa`: MESA stellar evolution code output format
+
 * :class:`~astropy.io.ascii.Mrt`: AAS `Machine-Readable Tables (MRT) <https://journals.aas.org/mrt-standards/>`_)
 * :class:`~astropy.io.ascii.SExtractor`: `SExtractor format table <https://sextractor.readthedocs.io/en/latest/>`_
 
@@ -198,6 +200,7 @@ are compatible with the fast Cython/C engine for reading and writing.
 ``html``                    Yes      :class:`~astropy.io.ascii.HTML`: HTML format table
 ``ipac``                    Yes      :class:`~astropy.io.ascii.Ipac`: IPAC format table
 ``latex``                   Yes      :class:`~astropy.io.ascii.Latex`: LaTeX table
+``mesa``                    No       :class:`~astropy.io.ascii.Mesa`: MESA stellar evolution code format
 ``mrt``                     Yes      :class:`~astropy.io.ascii.Mrt`: AAS Machine-Readable Table format
 ``no_header``               Yes  Yes :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
 ``qdp``                     Yes      :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files
