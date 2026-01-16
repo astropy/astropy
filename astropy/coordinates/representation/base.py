@@ -597,24 +597,8 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
             else:
                  unitstr = f" in ({', '.join(unitlist)})" if unitlist else ""
 
-        # 2. Optimized Slicing Logic
-        threshold = np.get_printoptions()['threshold']
-        edge_items = np.get_printoptions()['edgeitems']
-
-        if self._values.size > threshold:
-            # PERFORMANCE FIX: Slice only the edge items
-            summary_values = self._values[np.r_[:edge_items, -edge_items:0]]
-            arrstr = np.array2string(summary_values, separator=", ")
-            
-            if '\n' in arrstr:
-                lines = arrstr.splitlines()
-                mid = len(lines) // 2
-                lines.insert(mid, "...")
-                arrstr = "\n".join(lines)
-            else:
-                arrstr = arrstr.replace("], [", "], ..., [")
-        else:
-            arrstr = np.array2string(self._values, separator=", ")
+        # 2. Optimized Logic: 
+        arrstr = np.array2string(self._values, separator=", ")
 
         # 3. Indentation & Assembly
         indented_arrstr = "\n".join(["    " + line for line in arrstr.splitlines()])
