@@ -739,6 +739,7 @@ class TestMethodLikes(MaskedArraySetup):
 
 
 class TestUfuncLike(InvariantMaskTestSetup):
+    @pytest.mark.filterwarnings("ignore:numpy.fix is deprecated:DeprecationWarning")
     def test_fix(self):
         self.check(np.fix)
         # Check np.fix with out argument for completeness
