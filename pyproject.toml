@@ -672,9 +672,9 @@ ignore = [
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
 
-    [tool.gilesbot.circleci_artifacts.py311-test-image-mpl380]
-        url = ".tmp/py311-test-image-mpl380/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py311-test-image-mpl380."
+    [tool.gilesbot.circleci_artifacts.py311-test-image-oldestdeps]
+        url = ".tmp/py311-test-image-oldestdeps/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py311-test-image-oldestdeps."
         report_on_fail = true
 
     [tool.gilesbot.circleci_artifacts.py311-test-image-mpldev]
@@ -830,6 +830,12 @@ constraint-dependencies = [
 
     # via ipython (can be removed once ipython<8.17 is dropped)
     "pickleshare>=0.7.5",
+
+    # via pyzmq via ipykernel
+    "py>=1.11.0",
+
+    # via ipywidget
+    "jinja2>=3.1.0",
 
     # via beautifulsoup4
     # can be dropped once we only support versions of pandas
