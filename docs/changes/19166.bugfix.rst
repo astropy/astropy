@@ -1,0 +1,1 @@
+Prevent global unit registry state corruption during UnitContext initialization.
