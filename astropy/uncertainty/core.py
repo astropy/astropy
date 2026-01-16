@@ -7,20 +7,13 @@ Distribution class and associated machinery.
 import builtins
 
 import numpy as np
+from numpy.lib._function_base_impl import _parse_gufunc_signature
+from numpy.lib._stride_tricks_impl import DummyArray
+from numpy.lib.array_utils import normalize_axis_index
 
 from astropy import stats
 from astropy import units as u
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
-
-if NUMPY_LT_2_0:
-    from numpy.core.multiarray import normalize_axis_index
-    from numpy.lib.function_base import _parse_gufunc_signature
-    from numpy.lib.stride_tricks import DummyArray
-else:
-    from numpy.lib._function_base_impl import _parse_gufunc_signature
-    from numpy.lib._stride_tricks_impl import DummyArray
-    from numpy.lib.array_utils import normalize_axis_index
-
+from astropy.utils.compat import NUMPY_LT_2_5
 
 from .function_helpers import FUNCTION_HELPERS
 
@@ -102,7 +95,10 @@ class Distribution:
         # Set our new structured dtype.
         structured.dtype = new_dtype
         # Get rid of trailing dimension of 1.
-        structured.shape = samples.shape[:-1]
+        if NUMPY_LT_2_5:
+            structured.shape = samples.shape[:-1]
+        else:
+            structured._set_shape(samples.shape[:-1])
 
         # Now view as the Distribution subclass, and finalize based on the
         # original samples (e.g., to set the unit for QuantityDistribution).

@@ -15,7 +15,6 @@ import operator
 import numpy as np
 
 from astropy.units import MagUnit, Quantity, dimensionless_unscaled
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .utils import array_repr_oneline, get_inputs_and_params
 
@@ -465,7 +464,7 @@ class Parameter:
             if value not in ((), (1,)):
                 raise ValueError("Cannot assign this shape to a scalar quantity")
         else:
-            self.value.shape = value
+            self.value = np.reshape(self.value, value)
 
     @property
     def size(self):
@@ -729,7 +728,7 @@ class Parameter:
 
         return wrapper
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         # Make np.asarray(self) work a little more straightforwardly
         arr = np.asarray(self.value, dtype=dtype)
 
