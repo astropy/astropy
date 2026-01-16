@@ -133,7 +133,7 @@ def _parse_annotation(target):
 
 class QuantityInput:
     @classmethod
-    def as_decorator(cls, func=None, **kwargs):
+    def as_decorator(cls, func=None, *, convert=False, strict_dimensionless=False, **kwargs):
         r"""
         A decorator for validating the units of arguments to functions.
 
@@ -203,17 +203,16 @@ class QuantityInput:
                 return myenergy**2
 
         """
-        self = cls(**kwargs)
+        self = cls(convert=convert, strict_dimensionless=strict_dimensionless, **kwargs)
         if func is not None and not kwargs:
             return self(func)
-        else:
-            return self
+        return self
 
-    def __init__(self, func=None, strict_dimensionless=False, **kwargs):
+    def __init__(self, func=None,strict_dimensionless=False,convert=False,**kwargs):
         self.equivalencies = kwargs.pop("equivalencies", [])
         self.decorator_kwargs = kwargs
         self.strict_dimensionless = strict_dimensionless
-
+        self.convert = convert
     def __call__(self, wrapped_function):
         # Extract the function signature for the function we are wrapping.
         wrapped_signature = inspect.signature(wrapped_function)
@@ -303,7 +302,19 @@ class QuantityInput:
                     self.equivalencies,
                     self.strict_dimensionless,
                 )
-
+                if self.convert and hasattr(arg, 'unit') and valid_targets:
+                    try:
+                        allowed_units = _get_allowed_units(valid_targets)
+                        for target_unit in allowed_units:
+                            if arg.unit.is_equivalent(target_unit, equivalencies=self.equivalencies):
+                                bound_args.arguments[param.name] = arg.to(
+                                    target_unit,
+                                    equivalencies=self.equivalencies
+                                    )
+                                break
+                    except Exception:
+                        # If conversion fails, keep original (validation passed)
+                        pass
             if self.equivalencies:
                 equiv_context = add_enabled_equivalencies(self.equivalencies)
             else:
@@ -313,7 +324,7 @@ class QuantityInput:
                 equiv_context = contextlib.nullcontext()
             # Call the original function with any equivalencies in force.
             with equiv_context:
-                return_ = wrapped_function(*func_args, **func_kwargs)
+                return_ = wrapped_function(*bound_args.args, **bound_args.kwargs)
 
             # Return
             ra = wrapped_signature.return_annotation
@@ -336,12 +347,10 @@ class QuantityInput:
                     valid_targets,
                     self.equivalencies,
                     self.strict_dimensionless,
-                )
+                )             
                 if len(valid_targets) > 0:
                     return_ <<= valid_targets[0]
             return return_
-
         return wrapper
-
-
 quantity_input = QuantityInput.as_decorator
+

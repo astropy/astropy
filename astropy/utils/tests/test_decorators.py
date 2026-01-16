@@ -4,6 +4,7 @@ import concurrent.futures
 import inspect
 import pickle
 import sys
+import astropy.units as u
 
 import pytest
 
@@ -945,3 +946,12 @@ def test_format_doc_indexerrors():
 
     with pytest.raises(IndexError):
         format_doc(None)(_FUNC_WITH_TEMPLATE_DOCSTRING)
+        
+def test_quantity_input_convert_true():
+    @u.quantity_input(x=u.m, convert=True)
+    def check_convert(x):
+        return x
+
+    # This is the "assertion" that proves it works
+    assert check_convert(1000 * u.mm) == 1 * u.m
+    assert check_convert(1000 * u.mm).unit == u.m
