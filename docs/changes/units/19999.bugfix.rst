@@ -1,1 +1,0 @@
-Fixed critical global state corruption in ``_UnitContext`` that caused non-deterministic test failures in parallel pytest runs when registry initialization raised exceptions.
