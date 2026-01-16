@@ -943,6 +943,7 @@ class TestUfuncLike(InvariantUnitTestSetup):
     def test_around(self):
         self.check(np.around)
 
+    @pytest.mark.filterwarnings("ignore:numpy.fix is deprecated:DeprecationWarning")
     def test_fix(self):
         self.check(np.fix)
 
