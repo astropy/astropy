@@ -4,10 +4,10 @@ import concurrent.futures
 import inspect
 import pickle
 import sys
-import astropy.units as u
 
 import pytest
 
+import astropy.units as u
 from astropy.tests.helper import _skip_docstring_tests_with_optimized_python
 from astropy.utils.decorators import (
     classproperty,
@@ -946,7 +946,8 @@ def test_format_doc_indexerrors():
 
     with pytest.raises(IndexError):
         format_doc(None)(_FUNC_WITH_TEMPLATE_DOCSTRING)
-        
+
+
 def test_quantity_input_convert_true():
     @u.quantity_input(x=u.m, convert=True)
     def check_convert(x):
