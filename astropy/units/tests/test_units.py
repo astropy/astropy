@@ -1363,3 +1363,49 @@ class TestUnitContextAtomicPush:
 
         # Global state should be unchanged
         assert len(_unit_registries) == initial_count
+
+    def test_module_level_initialization(self):
+        """Test that module-level set_enabled_units works for doctests.
+
+        This is a regression test for the CI failure where doctests failed
+        because set_enabled_units() called at module import time (without
+        'with') was not modifying the global registry.
+
+        The astropy.units package relies on this pattern:
+            # In astropy/units/__init__.py
+            set_enabled_units([si, cgs, astrophys, ...])
+
+        This must immediately affect the global registry so that subsequent
+        unit operations (like find_equivalent_units) work correctly.
+        """
+        from astropy.units.core import _unit_registries, get_current_unit_registry
+
+        initial_count = len(_unit_registries)
+
+        # Simulate module-level initialization (no 'with' statement)
+        u.set_enabled_units([u.m, u.s, u.kg])
+
+        # Registry should be pushed immediately
+        assert len(_unit_registries) == initial_count + 1
+
+        # The new registry should be active and contain the units
+        registry = get_current_unit_registry()
+        assert "m" in registry._registry
+        assert "s" in registry._registry
+        assert "kg" in registry._registry
+
+    def test_add_enabled_units_permanent_mode(self):
+        """Test that add_enabled_units works in permanent (non-with) mode."""
+        from astropy.units.core import _unit_registries
+
+        initial_count = len(_unit_registries)
+        u.add_enabled_units([u.m])
+        assert len(_unit_registries) == initial_count + 1
+
+    def test_set_enabled_equivalencies_permanent_mode(self):
+        """Test that set_enabled_equivalencies works in permanent mode."""
+        from astropy.units.core import _unit_registries
+
+        initial_count = len(_unit_registries)
+        u.set_enabled_equivalencies(u.dimensionless_angles())
+        assert len(_unit_registries) == initial_count + 1
