@@ -1297,3 +1297,69 @@ def test_parsing_as(format_):
     # The symbol for the attosecond is "as", which can be problematic because it
     # happens to be a Python keyword.
     assert u.Unit("as", format=format_) == u.attosecond
+
+
+class TestUnitContextAtomicPush:
+    """Regression tests for atomic registry push in _UnitContext.
+
+    These tests verify that the factory functions (set_enabled_units, etc.)
+    use atomic registry push: no global state mutation occurs until all
+    configuration succeeds. This prevents global state corruption if
+    configuration fails.
+
+    See https://github.com/astropy/astropy/issues/19166
+    """
+
+    def test_set_enabled_units_permanent_mode(self):
+        """Test that set_enabled_units works in permanent (non-with) mode."""
+        from astropy.units.core import _unit_registries
+
+        initial_count = len(_unit_registries)
+        u.set_enabled_units([u.m, u.s])
+        assert len(_unit_registries) == initial_count + 1
+
+    def test_set_enabled_units_context_manager_mode(self):
+        """Test that set_enabled_units works as context manager."""
+        from astropy.units.core import _unit_registries
+
+        count_before = len(_unit_registries)
+        with u.set_enabled_units([u.pc]):
+            assert len(_unit_registries) == count_before + 1
+        assert len(_unit_registries) == count_before
+
+    def test_set_enabled_units_atomic_on_failure(self):
+        """Test that failed configuration doesn't corrupt global state.
+
+        This is a regression test for the original bug: if configuration
+        fails after the registry was pushed, the registry would remain
+        on the stack without being cleaned up.
+        """
+        from unittest.mock import patch
+
+        from astropy.units.core import _UnitRegistry, _unit_registries
+
+        initial_count = len(_unit_registries)
+
+        # Mock set_enabled_units on _UnitRegistry to raise an exception
+        with patch.object(
+            _UnitRegistry, "set_enabled_units", side_effect=ValueError("test error")
+        ):
+            with pytest.raises(ValueError, match="test error"):
+                u.set_enabled_units([u.m])
+
+        # Global state should be unchanged - no registry was pushed
+        assert len(_unit_registries) == initial_count
+
+    def test_set_enabled_aliases_atomic_on_failure(self):
+        """Test that set_enabled_aliases doesn't corrupt state on failure."""
+        from astropy.units.core import _unit_registries
+
+        initial_count = len(_unit_registries)
+
+        # Passing an invalid alias should raise ValueError
+        with pytest.raises(ValueError):
+            # Try to create an alias that conflicts with an existing unit
+            u.set_enabled_aliases({"m": u.s})
+
+        # Global state should be unchanged
+        assert len(_unit_registries) == initial_count
