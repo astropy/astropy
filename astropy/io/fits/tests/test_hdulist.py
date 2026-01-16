@@ -183,7 +183,7 @@ class TestHDUListFunctions(FitsTestCase):
         """Tests appending a Simple ExtensionHDU to a non-empty HDUList."""
 
         with fits.open(self.data("tb.fits")) as hdul:
-            hdul.append(hdul[1])
+            hdul.append(hdul[1].copy())
 
             info = [
                 (0, "PRIMARY", 1, "PrimaryHDU", 11, (), "", ""),
@@ -317,7 +317,7 @@ class TestHDUListFunctions(FitsTestCase):
         """Tests inserting a Simple ExtensionHDU to a non-empty HDUList."""
 
         with fits.open(self.data("tb.fits")) as hdul:
-            hdul.insert(1, hdul[1])
+            hdul.insert(1, hdul[1].copy())
 
             info = [
                 (0, "PRIMARY", 1, "PrimaryHDU", 11, (), "", ""),
@@ -370,7 +370,7 @@ class TestHDUListFunctions(FitsTestCase):
     def test_insert_extension_to_primary_in_non_empty_list(self):
         # Tests inserting a Simple ExtensionHDU to a non-empty HDUList.
         with fits.open(self.data("tb.fits")) as hdul:
-            hdul.insert(0, hdul[1])
+            hdul.insert(0, hdul[1].copy())
 
             info = [
                 (0, "PRIMARY", 1, "PrimaryHDU", 4, (), "", ""),

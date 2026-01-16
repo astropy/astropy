@@ -578,7 +578,7 @@ class _BaseHDU:
         except (AttributeError, OSError):
             offset = 0
 
-        if self._data_loaded or self._data_needs_rescale or self._new:
+        if self._data_loaded or self._data_needs_rescale:
             if self.data is not None:
                 size += self._writedata_internal(fileobj)
             # pad the FITS data block
