@@ -12,6 +12,7 @@ import numpy as np
 import astropy.units as u
 from astropy.coordinates.angles import Angle
 from astropy.utils import classproperty
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import DuplicateRepresentationWarning
@@ -461,15 +462,23 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         oldshape = self.shape
         for component in self.components:
             val = getattr(self, component)
-            if val.size > 1:
-                try:
+            if val.size <= 1:
+                continue
+
+            try:
+                if NUMPY_LT_2_5:
                     val.shape = shape
-                except Exception:
-                    for val2 in reshaped:
-                        val2.shape = oldshape
-                    raise
                 else:
-                    reshaped.append(val)
+                    val._set_shape(shape)
+            except Exception:
+                for val2 in reshaped:
+                    if NUMPY_LT_2_5:
+                        val2.shape = oldshape
+                    else:
+                        val2._set_shape(oldshape)
+                raise
+            else:
+                reshaped.append(val)
 
     @property
     def masked(self):
