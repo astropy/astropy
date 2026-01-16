@@ -1443,15 +1443,15 @@ class _UnitRegistry:
 
 
 class _UnitContext:
-    def __init__(self, init=[], equivalencies=[]):
-        # Store the registry to be added, but don't append yet.
-        # This prevents global state corruption if _UnitRegistry.__init__ raises an exception.
-        self._registry = _UnitRegistry(init=init, equivalencies=equivalencies)
+    """Context manager that pops from _unit_registries on exit.
+
+    The registry must already be pushed to _unit_registries before this
+    context is created. This class is only responsible for cleanup when
+    used with a ``with`` statement. When used without ``with`` (permanent
+    mode), the registry stays on the stack indefinitely.
+    """
 
     def __enter__(self) -> None:
-        # Only append to the global list after __init__ completes successfully.
-        # This ensures __exit__ will be called to clean up.
-        _unit_registries.append(self._registry)
         return None
 
     def __exit__(
@@ -1514,11 +1514,13 @@ def set_enabled_units(units: object) -> _UnitContext:
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
     ]
     """
-    # get a context with a new registry, using equivalencies of the current one
-    context = _UnitContext(equivalencies=get_current_unit_registry().equivalencies)
-    # in this new current registry, enable the units requested
-    context._registry.set_enabled_units(units)
-    return context
+    # Create and configure a new registry BEFORE modifying global state.
+    # This ensures atomic behavior: if configuration fails, no mutation occurs.
+    registry = _UnitRegistry(init=[], equivalencies=get_current_unit_registry().equivalencies)
+    registry.set_enabled_units(units)
+    # Only push after all configuration succeeds
+    _unit_registries.append(registry)
+    return _UnitContext()
 
 
 def add_enabled_units(units: object) -> _UnitContext:
@@ -1569,11 +1571,13 @@ def add_enabled_units(units: object) -> _UnitContext:
       yd           | 0.9144 m        | yard                             ,
     ]
     """
-    # get a context with a new registry, which is a copy of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the further units requested
-    context._registry.add_enabled_units(units)
-    return context
+    # Create and configure a new registry BEFORE modifying global state.
+    # This ensures atomic behavior: if configuration fails, no mutation occurs.
+    registry = _UnitRegistry(get_current_unit_registry())
+    registry.add_enabled_units(units)
+    # Only push after all configuration succeeds
+    _unit_registries.append(registry)
+    return _UnitContext()
 
 
 def set_enabled_equivalencies(equivalencies):
@@ -1603,11 +1607,13 @@ def set_enabled_equivalencies(equivalencies):
         ...     np.exp(1j*phase)  # doctest: +FLOAT_CMP
         <Quantity -1.+1.2246468e-16j>
     """
-    # get a context with a new registry, using all units of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the equivalencies requested
-    context._registry.set_enabled_equivalencies(equivalencies)
-    return context
+    # Create and configure a new registry BEFORE modifying global state.
+    # This ensures atomic behavior: if configuration fails, no mutation occurs.
+    registry = _UnitRegistry(get_current_unit_registry())
+    registry.set_enabled_equivalencies(equivalencies)
+    # Only push after all configuration succeeds
+    _unit_registries.append(registry)
+    return _UnitContext()
 
 
 def add_enabled_equivalencies(equivalencies):
@@ -1627,11 +1633,13 @@ def add_enabled_equivalencies(equivalencies):
         list of equivalent pairs, e.g., as returned by
         `~astropy.units.dimensionless_angles`.
     """
-    # get a context with a new registry, which is a copy of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the further equivalencies requested
-    context._registry.add_enabled_equivalencies(equivalencies)
-    return context
+    # Create and configure a new registry BEFORE modifying global state.
+    # This ensures atomic behavior: if configuration fails, no mutation occurs.
+    registry = _UnitRegistry(get_current_unit_registry())
+    registry.add_enabled_equivalencies(equivalencies)
+    # Only push after all configuration succeeds
+    _unit_registries.append(registry)
+    return _UnitContext()
 
 
 def set_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
@@ -1662,11 +1670,13 @@ def set_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
         True
 
     """
-    # get a context with a new registry, which is a copy of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the further equivalencies requested
-    context._registry.set_enabled_aliases(aliases)
-    return context
+    # Create and configure a new registry BEFORE modifying global state.
+    # This ensures atomic behavior: if configuration fails, no mutation occurs.
+    registry = _UnitRegistry(get_current_unit_registry())
+    registry.set_enabled_aliases(aliases)
+    # Only push after all configuration succeeds
+    _unit_registries.append(registry)
+    return _UnitContext()
 
 
 def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
@@ -1700,11 +1710,13 @@ def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
         True
 
     """
-    # get a context with a new registry, which is a copy of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the further equivalencies requested
-    context._registry.add_enabled_aliases(aliases)
-    return context
+    # Create and configure a new registry BEFORE modifying global state.
+    # This ensures atomic behavior: if configuration fails, no mutation occurs.
+    registry = _UnitRegistry(get_current_unit_registry())
+    registry.add_enabled_aliases(aliases)
+    # Only push after all configuration succeeds
+    _unit_registries.append(registry)
+    return _UnitContext()
 
 
 class NamedUnit(UnitBase):
