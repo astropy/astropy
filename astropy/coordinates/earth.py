@@ -5,12 +5,14 @@ import socket
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import NamedTuple
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, ClassVar, Final, NamedTuple, Self, Union
 
 import numpy as np
 
 from astropy import constants as consts
 from astropy import units as u
+from astropy.time import Time
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
 from astropy.utils.data import get_pkg_data_contents
@@ -23,6 +25,10 @@ from .representation import (
     CartesianRepresentation,
 )
 from .representation.geodetic import ELLIPSOIDS
+
+if TYPE_CHECKING:
+    from .builtin_frames import GCRS, ITRS
+    from .sites import SiteRegistry
 
 __all__ = [
     "EarthLocation",
@@ -45,7 +51,7 @@ class GeodeticLocation(NamedTuple):
     """The height above the reference ellipsoid."""
 
 
-OMEGA_EARTH = (1.002_737_811_911_354_48 * u.cycle / u.day).to(
+OMEGA_EARTH: Final = (1.002_737_811_911_354_48 * u.cycle / u.day).to(
     1 / u.s, u.dimensionless_angles()
 )
 """
@@ -60,7 +66,7 @@ http://hpiers.obspm.fr/eop-pc/index.php?index=constants.
 """
 
 
-def _check_ellipsoid(ellipsoid=None, default="WGS84"):
+def _check_ellipsoid(ellipsoid: str | None = None, default: str = "WGS84") -> str:
     if ellipsoid is None:
         ellipsoid = default
     if ellipsoid not in ELLIPSOIDS:
@@ -204,9 +210,11 @@ class EarthLocation(u.Quantity):
     """
 
     _ellipsoid = "WGS84"
-    _location_dtype = np.dtype({"names": ["x", "y", "z"], "formats": [np.float64] * 3})
+    _location_dtype: ClassVar[np.dtype[np.void]] = np.dtype(
+        {"names": ["x", "y", "z"], "formats": [np.float64] * 3}
+    )
     _array_dtype = np.dtype((np.float64, (3,)))
-    _site_registry = None
+    _site_registry: ClassVar[Union["SiteRegistry", None]] = None
 
     info = EarthLocationInfo()
 
@@ -328,7 +336,7 @@ class EarthLocation(u.Quantity):
         return self
 
     @classmethod
-    def of_site(cls, site_name, *, refresh_cache=False):
+    def of_site(cls, site_name: str, *, refresh_cache: bool = False) -> Self:
         """
         Return an object of this class for a known observatory/site by name.
 
@@ -399,7 +407,9 @@ class EarthLocation(u.Quantity):
             return newel
 
     @classmethod
-    def of_address(cls, address, get_height=False, google_api_key=None):
+    def of_address(
+        cls, address: str, get_height: bool = False, google_api_key: str | None = None
+    ) -> Self:
         """
         Return an object of this class for a given address by querying either
         the OpenStreetMap Nominatim tool [1]_ (default) or the Google geocoding
@@ -499,7 +509,7 @@ class EarthLocation(u.Quantity):
         return cls.from_geodetic(lon=lon * u.deg, lat=lat * u.deg, height=height)
 
     @classmethod
-    def get_site_names(cls, *, refresh_cache=False):
+    def get_site_names(cls, *, refresh_cache: bool = False) -> list[str]:
         """
         Get list of names of observatories for use with
         `~astropy.coordinates.EarthLocation.of_site`.
@@ -557,20 +567,20 @@ class EarthLocation(u.Quantity):
         return cls._site_registry
 
     @property
-    def ellipsoid(self):
+    def ellipsoid(self) -> str:
         """The default ellipsoid used to convert to geodetic coordinates."""
         return self._ellipsoid
 
     @ellipsoid.setter
-    def ellipsoid(self, ellipsoid):
+    def ellipsoid(self, ellipsoid: str) -> None:
         self._ellipsoid = _check_ellipsoid(ellipsoid)
 
     @property
-    def geodetic(self):
+    def geodetic(self) -> GeodeticLocation:
         """Convert to geodetic coordinates for the default ellipsoid."""
         return self.to_geodetic()
 
-    def to_geodetic(self, ellipsoid=None):
+    def to_geodetic(self, ellipsoid: str | None = None) -> GeodeticLocation:
         """Convert to geodetic coordinates.
 
         Parameters
@@ -608,31 +618,33 @@ class EarthLocation(u.Quantity):
         )
 
     @property
-    def lon(self):
+    def lon(self) -> Longitude:
         """Longitude of the location, for the default ellipsoid."""
         return self.geodetic[0]
 
     @property
-    def lat(self):
+    def lat(self) -> Latitude:
         """Latitude of the location, for the default ellipsoid."""
         return self.geodetic[1]
 
     @property
-    def height(self):
+    def height(self) -> u.Quantity:
         """Height of the location, for the default ellipsoid."""
         return self.geodetic[2]
 
     # mostly for symmetry with geodetic and to_geodetic.
     @property
-    def geocentric(self):
+    def geocentric(self) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
         """Convert to a tuple with X, Y, and Z as quantities."""
         return self.to_geocentric()
 
-    def to_geocentric(self):
+    def to_geocentric(self) -> tuple[u.Quantity, u.Quantity, u.Quantity]:
         """Convert to a tuple with X, Y, and Z as quantities."""
         return (self.x, self.y, self.z)
 
-    def get_itrs(self, obstime=None, location=None):
+    def get_itrs(
+        self, obstime: Time | None = None, location: Union["EarthLocation", None] = None
+    ) -> "ITRS":
         """
         Generates an `~astropy.coordinates.ITRS` object with the location of
         this object at the requested ``obstime``, either geocentric, or
@@ -681,7 +693,7 @@ class EarthLocation(u.Quantity):
                default ``obstime``.""",
     )
 
-    def get_gcrs(self, obstime):
+    def get_gcrs(self, obstime: Time) -> "GCRS":
         """GCRS position with velocity at ``obstime`` as a GCRS coordinate.
 
         Parameters
@@ -736,7 +748,9 @@ class EarthLocation(u.Quantity):
         vel = rot_vec_gcrs.cross(pos)
         return pos, vel
 
-    def get_gcrs_posvel(self, obstime):
+    def get_gcrs_posvel(
+        self, obstime: Time
+    ) -> tuple[CartesianRepresentation, CartesianRepresentation]:
         """
         Calculate the GCRS position and velocity of this object at the
         requested ``obstime``.
@@ -765,8 +779,11 @@ class EarthLocation(u.Quantity):
         )
 
     def gravitational_redshift(
-        self, obstime, bodies=["sun", "jupiter", "moon"], masses={}
-    ):
+        self,
+        obstime: Time,
+        bodies: Iterable[str] = ["sun", "jupiter", "moon"],
+        masses: Mapping[str, u.Quantity] = {},
+    ) -> u.Quantity:
         """Return the gravitational redshift at this EarthLocation.
 
         Calculates the gravitational redshift, of order 3 m/s, due to the
@@ -840,17 +857,17 @@ class EarthLocation(u.Quantity):
         return sum(redshifts[::-1])
 
     @property
-    def x(self):
+    def x(self) -> u.Quantity:
         """The X component of the geocentric coordinates."""
         return self["x"]
 
     @property
-    def y(self):
+    def y(self) -> u.Quantity:
         """The Y component of the geocentric coordinates."""
         return self["y"]
 
     @property
-    def z(self):
+    def z(self) -> u.Quantity:
         """The Z component of the geocentric coordinates."""
         return self["z"]
 
@@ -866,7 +883,7 @@ class EarthLocation(u.Quantity):
         if hasattr(obj, "_ellipsoid"):
             self._ellipsoid = obj._ellipsoid
 
-    def __len__(self):
+    def __len__(self) -> int:
         if self.shape == ():
             raise IndexError("0-d EarthLocation arrays cannot be indexed")
         return super().__len__()
