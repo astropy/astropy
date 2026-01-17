@@ -1336,7 +1336,7 @@ class TestUnitContextAtomicPush:
         """
         from unittest.mock import patch
 
-        from astropy.units.core import _UnitRegistry, _unit_registries
+        from astropy.units.core import _unit_registries, _UnitRegistry
 
         initial_count = len(_unit_registries)
 
