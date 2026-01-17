@@ -1516,7 +1516,9 @@ def set_enabled_units(units: object) -> _UnitContext:
     """
     # Create and configure a new registry BEFORE modifying global state.
     # This ensures atomic behavior: if configuration fails, no mutation occurs.
-    registry = _UnitRegistry(init=[], equivalencies=get_current_unit_registry().equivalencies)
+    registry = _UnitRegistry(
+        init=[], equivalencies=get_current_unit_registry().equivalencies
+    )
     registry.set_enabled_units(units)
     # Only push after all configuration succeeds
     _unit_registries.append(registry)
