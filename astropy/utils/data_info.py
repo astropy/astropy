@@ -376,10 +376,16 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
             raise TypeError("info must be set with a DataInfo instance")
 
     def __getstate__(self):
-        return self._attrs
+        # If this is an unbound descriptor, _attrs is uninitialized, so
+        # return None to indicate no state for it.
+        return getattr(self, "_attrs", None)
 
     def __setstate__(self, state):
-        self._attrs = state
+        # Only assign _attrs if state is not None. This prevents _attrs
+        # from being set to None when unpickling an object that did not
+        # originally have _attrs initialized.
+        if state is not None:
+            self._attrs = state
 
     def _represent_as_dict(self, attrs=None):
         """Get the values for the parent ``attrs`` and return as a dict. This
