@@ -49,7 +49,8 @@ class IllegalHourError(RangeError):
 
     def __str__(self):
         return (
-            f"An invalid value for 'hours' was found ('{self.hour}'); must be in the"
+            f"An invalid value for 'hour' :('{self.hour}');
+            must be in the"
             " range [0,24)."
         )
 
@@ -69,7 +70,7 @@ class IllegalHourWarning(AstropyWarning):
 
     def __str__(self):
         message = (
-            f"'hour' was found  to be '{self.hour}', which is not in range (-24, 24)."
+            f"'hour' was found  to be '{self.hour}', which is outside the valid range (-24, 24)."
         )
         if self.alternativeactionstr is not None:
             message += " " + self.alternativeactionstr
@@ -78,7 +79,7 @@ class IllegalHourWarning(AstropyWarning):
 
 class IllegalMinuteError(RangeError):
     """
-    Raised when an minute value is not in the range [0,60].
+    Raised when a minute value is not in the range [0,60].
 
     Parameters
     ----------
