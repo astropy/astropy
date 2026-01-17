@@ -1317,6 +1317,8 @@ class TestUnitContextAtomicPush:
         initial_count = len(_unit_registries)
         u.set_enabled_units([u.m, u.s])
         assert len(_unit_registries) == initial_count + 1
+        # Clean up to avoid affecting other tests
+        _unit_registries.pop()
 
     def test_set_enabled_units_context_manager_mode(self):
         """Test that set_enabled_units works as context manager."""
@@ -1394,6 +1396,9 @@ class TestUnitContextAtomicPush:
         assert "s" in registry._registry
         assert "kg" in registry._registry
 
+        # Clean up to avoid affecting other tests
+        _unit_registries.pop()
+
     def test_add_enabled_units_permanent_mode(self):
         """Test that add_enabled_units works in permanent (non-with) mode."""
         from astropy.units.core import _unit_registries
@@ -1401,6 +1406,8 @@ class TestUnitContextAtomicPush:
         initial_count = len(_unit_registries)
         u.add_enabled_units([u.m])
         assert len(_unit_registries) == initial_count + 1
+        # Clean up to avoid affecting other tests
+        _unit_registries.pop()
 
     def test_set_enabled_equivalencies_permanent_mode(self):
         """Test that set_enabled_equivalencies works in permanent mode."""
@@ -1409,3 +1416,5 @@ class TestUnitContextAtomicPush:
         initial_count = len(_unit_registries)
         u.set_enabled_equivalencies(u.dimensionless_angles())
         assert len(_unit_registries) == initial_count + 1
+        # Clean up to avoid affecting other tests
+        _unit_registries.pop()
