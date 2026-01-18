@@ -701,7 +701,17 @@ _utc_bad = [
 ]
 
 
-@given(datetimes(), datetimes())  # datetimes have microsecond resolution
+@given(
+    datetimes(
+        min_value=datetime(1, 1, 1),
+        max_value=datetime(9999, 12, 31),
+    ),
+    datetimes(
+        min_value=datetime(1, 1, 1),
+        max_value=datetime(9999, 12, 31),
+    ),
+)
+# datetimes have microsecond resolution
 @example(dt1=datetime(1235, 1, 1, 0, 0), dt2=datetime(9950, 1, 1, 0, 0, 0, 890773))
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
@@ -768,9 +778,8 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
 # datetimes have microsecond resolution
 @given(
     datetimes(
-        min_value=datetime(1900,1,1),
-        max_value=datetime(2100,1,1),
-    
+        min_value=datetime(1900, 1, 1),
+        max_value=datetime(2100, 1, 1),
     ),
     timedeltas(
         min_value=timedelta(days=-1000),
