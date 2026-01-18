@@ -1,2 +1,3 @@
 Fixed a thread-safety race condition in ``astropy.wcs.WCS`` that could cause segmentation faults and silent coordinate corruption when WCS objects were shared across threads.
+Fixed a thread-safety race condition in ``astropy.wcs.WCS`` that could cause segmentation faults and silent coordinate corruption when WCS objects were shared across threads.
 
