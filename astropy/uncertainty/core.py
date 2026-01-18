@@ -96,7 +96,7 @@ class Distribution:
         structured.dtype = new_dtype
         # Get rid of trailing dimension of 1.
         if NUMPY_LT_2_5:
-            structured.shape = samples.shape[:-1]
+            structured.resize(samples.shape[:-1], refcheck=False)
         else:
             structured._set_shape(samples.shape[:-1])
 

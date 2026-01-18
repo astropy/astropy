@@ -258,7 +258,7 @@ class EcsvHeader(basic.BasicHeader):
             if subtype and "[" in subtype:
                 idx = subtype.index("[")
                 col.subtype = subtype[:idx]
-                col.shape = json.loads(subtype[idx:])
+                col.resize(json.loads(subtype[idx:]), refcheck=False)
 
             # Convert ECSV "string" to numpy "str"
             for attr in ("dtype", "subtype"):
@@ -346,7 +346,7 @@ class EcsvOutputter(core.TableOutputter):
 
                         col_vals.append(arr_val)
 
-                    col.shape = ()
+                    col.resize((), refcheck=False)
                     col.dtype = np.dtype(object)
                     # np.array(col_vals_arr, dtype=object) fails ?? so this workaround:
                     col.data = np.empty(len(col_vals), dtype=object)

@@ -1028,7 +1028,7 @@ class FITS_rec(np.recarray):
                 dtype = (f"|{fmt}{dim[-1]}", dim[:-1])
                 field.dtype = dtype
             else:
-                field.shape = (field.shape[0],) + dim
+                field.resize((field.shape[0],) + dim, refcheck=False)
 
         return field
 

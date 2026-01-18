@@ -467,13 +467,13 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
 
             try:
                 if NUMPY_LT_2_5:
-                    val.shape = shape
+                    val.resize(shape, refcheck=False)
                 else:
                     val._set_shape(shape)
             except Exception:
                 for val2 in reshaped:
                     if NUMPY_LT_2_5:
-                        val2.shape = oldshape
+                        val2.resize(oldshape, refcheck=False)
                     else:
                         val2._set_shape(oldshape)
                 raise
@@ -1200,11 +1200,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
         # also try to perform shape-setting on any associated differentials
         try:
             for k in self.differentials:
-                self.differentials[k].shape = shape
+                self.differentials[k].resize(shape, refcheck=False)
         except Exception:
             BaseRepresentationOrDifferential.shape.fset(self, orig_shape)
             for k in self.differentials:
-                self.differentials[k].shape = orig_shape
+                self.differentials[k].resize(orig_shape, refcheck=False)
 
             raise
 

@@ -872,7 +872,7 @@ def _rstrip_inplace(array):
     if b.ndim > 2:
         try:
             if NUMPY_LT_2_5:
-                b.shape = -1, b.shape[-1]
+                b.resize((-1, b.shape[-1]), refcheck=False)
             else:
                 b._set_shape((-1, b.shape[-1]))
         except AttributeError:  # can occur for non-contiguous arrays

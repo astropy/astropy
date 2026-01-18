@@ -979,7 +979,7 @@ class TestImageFunctions(FitsTestCase):
         # Try reshaping the data, then closing and reopening the file; let's
         # see if all the changes are preserved properly
         if NUMPY_LT_2_5:
-            hdul[0].data.shape = (42, 10)
+            hdul[0].data.resize((42, 10), refcheck=False)
         else:
             # ndarray._set_shape is semi-private, but the only
             # non deprecated, strict semantic equivalent in Numpy 2.5+

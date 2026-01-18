@@ -315,7 +315,7 @@ def _get_body_barycentric_posvel(body, time, ephemeris=None, get_velocity=True):
                     ):
                         body_p_or_v += p_or_v
 
-            body_posvel_bary.shape = body_posvel_bary.shape[:2] + jd1_shape
+            body_posvel_bary.resize(body_posvel_bary.shape[:2] + jd1_shape, refcheck=False)
             body_pos_bary = CartesianRepresentation(
                 body_posvel_bary[0], unit=u.km, copy=False
             )
