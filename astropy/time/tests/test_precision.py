@@ -778,12 +778,12 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
 # datetimes have microsecond resolution
 @given(
     datetimes(
-        min_value=datetime(1900, 1, 1),
-        max_value=datetime(2100, 1, 1),
+        min_value=datetime(1, 1, 1),
+        max_value=datetime(9999, 12,31),
     ),
     timedeltas(
-        min_value=timedelta(days=-1000),
-        max_value=timedelta(days=1000),
+        min_value=timedelta(days=-365000),
+        max_value=timedelta(days=365000),
     ),
 )
 @example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=-397683, microseconds=2))
