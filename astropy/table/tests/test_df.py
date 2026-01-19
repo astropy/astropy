@@ -452,7 +452,7 @@ class TestDataFrameConversion:
                     df = self._to_dataframe(t, backend, use_legacy_pandas_api)
                     assert hasattr(df["a"].iloc[0], "__len__")
                     return
-            #PyArrow do not support multidimensional columns
+            # PyArrow do not support multidimensional columns
             case "pyarrow":
                 if ndim > 1:
                     with pytest.raises(
@@ -670,6 +670,15 @@ class TestDataFrameConversion:
         assert val == 2
         assert nulls_first_two.all()
 
+    def test_conversion_to_pandas_same_size(self, backend, use_legacy_pandas_api):
+        """test for multidimensional numpy array columns ##18973"""
+        t = Table({"a": ["foo", "bar"], "b": [[1, 2], [3, 4]]})
+        backend = "pandas"  # only works with pandas backend
+        df = self._to_dataframe(t, backend, use_legacy_pandas_api)
+        assert (
+            df.size == 4
+        )  # DataFrame size = 4 shows Table conversion to DataFrame was correct
+
 
 @pytest.mark.skipif(
     not HAS_PANDAS or not HAS_NARWHALS,
@@ -684,9 +693,3 @@ def test_from_pandas_df_with_qtable(method):
     df = t.to_pandas()
     qt = getattr(table.QTable, method)(df)
     assert isinstance(qt, table.QTable)
-
-def test_conversion_to_pandas_same_size():
-    """test for multidimensional numpy array columns ##18973"""
-    t = Table({"a": ["foo", "bar"], "b":[[1,2],[3,4]]})
-    df = t.to_pandas()
-    assert df.size == 4 #DataFrame size = 4 shows Table conversion to DataFrame was correct

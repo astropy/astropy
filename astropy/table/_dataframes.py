@@ -168,28 +168,21 @@ def _handle_index_argument(
             f"Type provided: {type(index).__name__}"
         )
 
-def _ensure_1d_object_array(col: Column)->object:
+
+def _ensure_1d_object_array(col: Column) -> object:
     """Convert a column to a 1D object array suitable for pandas Dataframe"""
-    import numpy as np
-
-    # If already a 1D object array, return
-    if col.dtype == object and col.ndim == 1:
-        return col
-
     obj_array = np.empty(len(col), dtype=object)
 
     for i in range(len(col)):
         # Convert to list if it's a numpy array
-        if hasattr(col[i], 'tolist'):
-            obj_array[i] = col[i].tolist()
-        else:
-            obj_array[i] = col[i]
+        obj_array[i] = col[i].tolist() if hasattr(col[i], "tolist") else col[i]
 
     return obj_array
 
-def _support_numpyarrays_topandas(
-        table :Table,
-        backend: IntoBackend[EagerAllowed]) -> Table:
+
+def _support_multidim_columns_to_pandas(
+    table: Table, backend: IntoBackend[EagerAllowed]
+) -> Table:
     """
     Support numpy arrays for DataFrame conversion
 
@@ -202,11 +195,7 @@ def _support_numpyarrays_topandas(
             if col.ndim > 1:
                 # Convert to 1D object array
                 table[colname] = _ensure_1d_object_array(col)
-            else:
-                table[colname] = col
     return table
-
-
 
 
 def to_df(
@@ -235,7 +224,9 @@ def to_df(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
-    tbl = _support_numpyarrays_topandas(tbl,backend_impl) #support numpy multidimensional arrays in columns
+    tbl = _support_multidim_columns_to_pandas(
+        tbl, backend_impl
+    )  # support numpy multidimensional arrays in columns
     _validate_columns_for_backend(tbl, backend_impl=backend_impl)
 
     # Convert to narwhals DataFrame
@@ -425,7 +416,9 @@ def to_pandas(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
-    tbl = _support_numpyarrays_topandas(tbl,backend=PANDAS_LIKE) #support numpy multidimensional arrays in columns
+    tbl = _support_multidim_columns_to_pandas(
+        tbl, backend=PANDAS_LIKE
+    )  # support numpy multidimensional arrays in columns
     _validate_columns_for_backend(tbl, backend_impl=PANDAS_LIKE)  # pandas validation
 
     out = {}
