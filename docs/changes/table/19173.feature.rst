@@ -1,3 +1,4 @@
-Enable conversion of tables with multi-dimensional columns to pandas DataFrames.Previously, to_pandas() would raise a ValueError
-for columns containing lists or arrays (e.g., [[1,2], [3,4]]). Now these columns are automatically converted to 1D object arrays
-compatible with pandas.
+Enable conversion of tables with multi-dimensional columns to pandas DataFrames.
+Previously, ``to_pandas()`` would raise a ``ValueError`` for columns containing
+lists or arrays (e.g., ``[[1, 2], [3, 4]]``). Now these columns are automatically
+converted to 1D object arrays compatible with pandas.
