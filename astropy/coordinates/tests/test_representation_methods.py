@@ -249,6 +249,7 @@ class TestSetShape(ShapeSetup):
         # Shape-setting should be on the object itself, since copying removes
         # zero-strides due to broadcasting.  Hence, this should be the only
         # test in this class.
+        
         self.s0.shape = (2, 3, 7)
         assert self.s0.shape == (2, 3, 7)
         assert self.s0.lon.shape == (2, 3, 7)
