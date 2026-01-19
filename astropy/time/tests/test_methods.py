@@ -11,6 +11,7 @@ import astropy.units as u
 from astropy.time import Time
 from astropy.time.utils import day_frac
 from astropy.utils import iers
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -314,7 +315,7 @@ class TestSetShape(ShapeSetup):
 
         t0_reshape = self.t0.copy()
         mjd = t0_reshape.mjd  # Creates a cache of the mjd attribute
-        t0_reshape.shape = (5, 2, 5)
+        t0_reshape = np.reshape(t0_reshape, (5, 2, 5))
         assert t0_reshape.shape == (5, 2, 5)
         assert mjd.shape != t0_reshape.mjd.shape  # Cache got cleared
         assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
@@ -322,16 +323,26 @@ class TestSetShape(ShapeSetup):
         assert t0_reshape.location is None
         # But if the shape doesn't work, one should get an error.
         t0_reshape_t = t0_reshape.T
-        with pytest.raises(ValueError):
-            t0_reshape_t.shape = (12,)  # Wrong number of elements.
-        with pytest.raises(AttributeError):
-            t0_reshape_t.shape = (10, 5)  # Cannot be done without copy.
+
+        if NUMPY_LT_2_5:
+            depr_warning_action = "error"
+        else:
+            depr_warning_action = "ignore"
+        with warnings.catch_warnings():
+            warnings.simplefilter(depr_warning_action, DeprecationWarning)
+            with pytest.raises(ValueError):
+                t0_reshape_t.shape = (12,)  # Wrong number of elements.
+            with pytest.raises((AttributeError, ValueError)):
+                # the exact exception type isn't really in our control,
+                # as it ultimately comes from numpy but depends on astropy's
+                # execution flow
+                t0_reshape_t.shape = (10, 5)  # Cannot be done without copy.
         # check no shape was changed.
         assert t0_reshape_t.shape == t0_reshape.T.shape
         assert t0_reshape_t.jd1.shape == t0_reshape.T.shape
         assert t0_reshape_t.jd2.shape == t0_reshape.T.shape
         t1_reshape = self.t1.copy()
-        t1_reshape.shape = (2, 5, 5)
+        t1_reshape = np.reshape(t1_reshape, (2, 5, 5))
         assert t1_reshape.shape == (2, 5, 5)
         assert np.all(t1_reshape.jd1 == self.t1.jd1.reshape(2, 5, 5))
         # location is a single element, so its shape should not change.
