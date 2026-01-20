@@ -722,6 +722,18 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         if "info" in obj.__dict__:
             self.info = obj.info
 
+    def __reduce__(self):
+        reduce_value = super().__reduce__()
+
+        state = reduce_value[2] + (self.mask,)
+
+        return (reduce_value[0], reduce_value[1], state) + reduce_value[3:]
+
+    def __setstate__(self, state):
+        mask = state[-1]
+        super().__setstate__(state[:-1])
+        self._mask = mask
+
     @property
     def shape(self):
         """The shape of the data and the mask.
