@@ -354,7 +354,7 @@ class Parameter:
             else:
                 value = self._getter(self._internal_value)
 
-        if value.size == 1:
+        if value is not None and value.size == 1:
             # return scalar number as np.float64 object
             return np.float64(value.item())
 
