@@ -608,3 +608,7 @@ please send an email to the coordinators, or
 in the `astropy repository <https://github.com/astropy/astropy>`_)
 
 For how to acknowledge Astropy, please see `the Acknowledging or Citing Astropy page <https://www.astropy.org/acknowledging.html>`_.
+
+.. These substitutions are duplicated here so this rst file can be used in the astropy.org site without triggering warnings.
+.. |Astropy mailing list| replace:: `Astropy mailing list <https://mail.python.org/mailman/listinfo/astropy>`__
+.. |astropy-dev mailing list| replace:: `astropy-dev mailing list <http://groups.google.com/group/astropy-dev>`__
