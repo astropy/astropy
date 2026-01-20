@@ -1,0 +1,1 @@
+Bugfix for ``Parameter.value`` accessor when the parameter value has not been set yet.
