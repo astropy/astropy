@@ -8,7 +8,7 @@ from shutil import get_terminal_size
 
 import numpy as np
 
-from astropy import log
+from astropy import log, table
 from astropy.utils.console import Getch, color_print, conf
 from astropy.utils.data_info import dtype_info_name
 
@@ -176,12 +176,12 @@ class TableFormatter:
         If no value of ``max_lines`` is supplied then the height of the
         screen terminal is used to set ``max_lines``.  If the terminal
         height cannot be determined then the default will be determined
-        using the ``astropy.table.conf.max_lines`` configuration item. If a
+        using the ``astropy.console.max_lines`` console configuration item. If a
         negative value of ``max_lines`` is supplied then there is no line
         limit applied.
 
         The same applies for max_width except the configuration item is
-        ``astropy.table.conf.max_width``.
+        ``astropy.console.conf.max_width``.
 
         Parameters
         ----------
@@ -518,23 +518,40 @@ class TableFormatter:
             indices = np.arange(n_rows)
 
         def format_col_str(idx):
-            if multidims:
-                # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
-                # with shape (n,1,...,1) from being printed as if there was
-                # more than one element in a row
-                if multidims_all_ones:
-                    return format_func(col_format, col[(idx,) + multidim0])
-                elif multidims_has_zero:
-                    # Any zero dimension means there is no data to print
-                    return ""
-                else:
-                    left = format_func(col_format, col[(idx,) + multidim0])
-                    right = format_func(col_format, col[(idx,) + multidim1])
-                    return f"{left} .. {right}"
-            elif is_scalar:
-                return format_func(col_format, col)
+            if not multidims:
+                return format_func(col_format, col if is_scalar else col[idx])
+
+            # Prevents columns like Column(data=[[(1,)],[(2,)]], name='a')
+            # with shape (n,1,...,1) from being printed as if there was
+            # more than one element in a row
+            if multidims_all_ones:
+                return format_func(col_format, col[(idx,) + multidim0])
+
+            if multidims_has_zero:
+                # Any zero dimension means there is no data to print
+                return ""
+
+            size = np.prod(multidims)
+            # Uses astropy.table.conf.format_size_threshold for multidimensional column formatting
+            threshold = table.conf.format_size_threshold
+
+            # If size > threshold, revert to legacy "first .. last" format
+            if size > threshold:
+                left = format_func(col_format, col[(idx,) + multidim0])
+                right = format_func(col_format, col[(idx,) + multidim1])
+                result = f"{left} .. {right}"
             else:
-                return format_func(col_format, col[idx])
+
+                def format_multidim(arr):
+                    """Recursively format multidimensional arrays."""
+                    if arr.ndim == 0:
+                        return format_func(col_format, arr)
+                    else:
+                        return "[" + " ".join(format_multidim(val) for val in arr) + "]"
+
+                result = format_multidim(col[idx])
+
+            return result
 
         # Add formatted values if within bounds allowed by max_lines
         for idx in indices:
