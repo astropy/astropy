@@ -697,7 +697,6 @@ class TestDataFrameConversion:
             pytest.skip(f"Test marked for pandas only, skipping {backend}")
         t = self.table_MD_cols()
         tc = t.copy()
-        backend = "pandas"
         df = self._to_dataframe(t, backend, use_legacy_pandas_api)
         assert np.all(t == tc)
 
@@ -706,7 +705,6 @@ class TestDataFrameConversion:
         if backend != "pandas":
             pytest.skip(f"Test marked for pandas only, skipping {backend}")
         t = self.table_MD_cols()
-        backend = "pandas"
         df = self._to_dataframe(t, backend, use_legacy_pandas_api)
         # Check values for all columns are the same as in the table.
         eq_col = []
@@ -739,7 +737,6 @@ class TestDataFrameConversion:
         if backend != "pandas":
             pytest.skip(f"Test marked for pandas only, skipping {backend}")
         t = self.table_MD_cols()
-        backend = "pandas"
         df = self._to_dataframe(t, backend, use_legacy_pandas_api)
         t_rt = Table.from_pandas(df)
         # Check equal Length, because round trip does not preserve the table data exactly.
@@ -759,7 +756,6 @@ class TestDataFrameConversion:
         tm["c"] = np.ma.MaskedArray(
             [[1.5, 2], [3, 4]], mask=[[False, True], [True, False]]
         )
-        backend = "pandas"
         df = self._to_dataframe(tm, backend, use_legacy_pandas_api)
 
         eq_col = []
