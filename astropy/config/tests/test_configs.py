@@ -139,8 +139,3 @@ def test_env_variables_missing_subdir_and_default(monkeypatch, tmp_path, env_var
         assert default_location.is_dir()
         assert expected_location.is_symlink()
         assert expected_location.resolve() == default_location
-
-
-# --- remaining tests stay unchanged ---
-# You can keep the rest of the tests as you had them before,
-# they do not require modification for the Windows warning fix.
