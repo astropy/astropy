@@ -14,7 +14,7 @@ build:
     create_environment:
       - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
     pre_install:
-      - git update-index --assume-unchanged docs/conf.py docs/rtd_environment.yaml
+      - git update-index --assume-unchanged docs/conf.py uv.lock
     install:
       - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen --extra docs
 
