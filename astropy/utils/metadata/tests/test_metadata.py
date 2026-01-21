@@ -13,6 +13,7 @@ from astropy.utils.metadata import (
     enable_merge_strategies,
     merge,
 )
+from astropy.utils.metadata.utils import result_type
 
 
 class OrderedDictSubclass(OrderedDict):
@@ -244,29 +245,30 @@ def test_metadata_merging_new_strategy():
     metadata.MERGE_STRATEGIES = original_merge_strategies
 
 
-def test_common_dtype_string():
+def test_result_type_string():
     u3 = np.array(["123"])
     u4 = np.array(["1234"])
     b3 = np.array([b"123"])
     b5 = np.array([b"12345"])
-    assert common_dtype([u3, u4]).endswith("U4")
-    assert common_dtype([b5, u4]).endswith("U5")
-    assert common_dtype([b3, b5]).endswith("S5")
+    assert result_type([u3, u4]) == np.dtype("U4")
+    assert result_type([b5, u4]) == np.dtype("U5")
+    assert result_type([b3, b5]) == np.dtype("S5")
 
 
-def test_common_dtype_basic():
+def test_result_type_basic():
     i8 = np.array(1, dtype=np.int64)
     f8 = np.array(1, dtype=np.float64)
     u3 = np.array("123")
 
     with pytest.raises(MergeConflictError):
-        common_dtype([i8, u3])
+        result_type([i8, u3])
 
-    assert common_dtype([i8, i8]).endswith("i8")
-    assert common_dtype([i8, f8]).endswith("f8")
+    assert result_type([i8, i8]) == np.dtype("i8")
+    assert result_type([i8, f8]) == np.dtype("f8")
 
 
-def test_common_dtype_exhaustive():
+@pytest.mark.parametrize("function", [result_type, common_dtype])
+def test_finding_common_type_exhaustive(function):
     """
     Test that allowed combinations are those expected.
     """
@@ -286,7 +288,7 @@ def test_common_dtype_exhaustive():
     for name1, _ in dtype:
         for name2, _ in dtype:
             try:
-                common_dtype([arr[name1], arr[name2]])
+                function([arr[name1], arr[name2]])
                 succeed.add(f"{name1} {name2}")
             except MergeConflictError:
                 fail.add(f"{name1} {name2}")

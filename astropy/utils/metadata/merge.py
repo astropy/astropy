@@ -8,7 +8,7 @@ from copy import deepcopy
 import numpy as np
 
 from .exceptions import MergeConflictError, MergeConflictWarning
-from .utils import common_dtype
+from .utils import result_type
 
 __all__ = [
     "MERGE_STRATEGIES",
@@ -130,7 +130,7 @@ class MergeNpConcatenate(MergeStrategy):
     @classmethod
     def merge(cls, left, right):
         left, right = np.asanyarray(left), np.asanyarray(right)
-        common_dtype([left, right])  # Ensure left and right have compatible dtype
+        result_type([left, right])  # Ensure left and right have compatible dtype
         return np.concatenate([left, right])
 
 
