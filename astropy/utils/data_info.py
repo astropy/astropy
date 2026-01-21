@@ -712,7 +712,7 @@ class BaseColumnInfo(DataInfo):
             Of merged attributes.
 
         """
-        from astropy.table.np_utils import TableMergeError
+        from astropy.table.operations import TableMergeError
 
         def warn_str_func(key, left, right):
             out = (

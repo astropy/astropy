@@ -23,7 +23,6 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.masked import Masked
 
 from . import _np_utils
-from .np_utils import TableMergeError
 from .table import Column, MaskedColumn, QTable, Row, Table
 
 __all__ = [
@@ -37,6 +36,10 @@ __all__ = [
 ]
 
 __doctest_requires__ = {"join_skycoord": ["scipy"], "join_distance": ["scipy"]}
+
+
+class TableMergeError(ValueError):
+    pass
 
 
 def _merge_table_meta(out, tables, metadata_conflicts="warn"):
