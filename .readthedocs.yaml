@@ -16,22 +16,12 @@ build:
     pre_install:
       - git update-index --assume-unchanged docs/conf.py uv.lock
     install:
-      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen --extra docs
+      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen --extra docs --extra all
 
 sphinx:
   builder: html
   configuration: docs/conf.py
   fail_on_warning: true
-
-# Install regular dependencies.
-# Then, install special pinning for RTD.
-python:
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs
-        - all
 
 # Don't build any extra formats
 formats: []
