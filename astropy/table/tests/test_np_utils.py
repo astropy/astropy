@@ -1,6 +1,6 @@
 import numpy as np
 
-from astropy.table import np_utils
+from astropy.utils.metadata import MergeConflictError, common_dtype
 
 
 def test_common_dtype():
@@ -23,9 +23,9 @@ def test_common_dtype():
     for name1, _ in dtype:
         for name2, _ in dtype:
             try:
-                np_utils.common_dtype([arr[name1], arr[name2]])
+                common_dtype([arr[name1], arr[name2]])
                 succeed.add(f"{name1} {name2}")
-            except np_utils.TableMergeError:
+            except MergeConflictError:
                 fail.add(f"{name1} {name2}")
 
     # known bad combinations
