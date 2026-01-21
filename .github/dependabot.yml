@@ -20,3 +20,18 @@ updates:
           - "*"
     cooldown:
       default-days: 7
+
+  - package-ecosystem: uv
+    directory: /
+    labels:
+      - dependencies
+      - dev-automation
+      - no-changelog-entry-needed
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      uv.lock-patches:
+        update-types:
+        - patch
