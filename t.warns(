@@ -1,0 +1,71 @@
+[35m.ruff.toml[m[36m:[m    "PT030",   # [1;31mpytest.warns[m({warning}) is too broad
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35m.ruff.toml[m[36m:[m    "PT031",  # [1;31mpytest-warns[m-with-multiple-statements
+[35mastropy/config/tests/test_configs.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyUserWarning, match=expected_msg):
+[35mastropy/config/tests/test_configs.py[m[36m:[m        ctx = [1;31mpytest.warns[m(AstropyUserWarning, match=expected_msg)
+[35mastropy/config/tests/test_configs.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyUserWarning, match=expected_msg):
+[35mastropy/config/tests/test_configs.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyUserWarning, match=expected_msg):
+[35mastropy/config/tests/test_configs.py[m[36m:[m        [1;31mpytest.warns[m(
+[35mastropy/config/tests/test_configs.py[m[36m:[m        [1;31mpytest.warns[m(AstropyDeprecationWarning),
+[35mastropy/convolution/tests/test_convolve.py[m[36m:[m            ctx = [1;31mpytest.warns[m(
+[35mastropy/convolution/tests/test_convolve.py[m[36m:[m    with [1;31mpytest.warns[m(
+[35mastropy/convolution/tests/test_convolve_fft.py[m[36m:[m        ctx = [1;31mpytest.warns[m(
+[35mastropy/convolution/tests/test_convolve_fft.py[m[36m:[m        with [1;31mpytest.warns[m(
+[35mastropy/convolution/tests/test_kernel_class.py[m[36m:[m        with [1;31mpytest.warns[m(
+[35mastropy/convolution/tests/test_kernel_class.py[m[36m:[m        with [1;31mpytest.warns[m(
+[35mastropy/convolution/tests/test_kernel_class.py[m[36m:[m        with [1;31mpytest.warns[m(
+[35mastropy/convolution/tests/test_kernel_class.py[m[36m:[m        with [1;31mpytest.warns[m(
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalMinuteWarning):
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalMinuteWarning):
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalSecondWarning):
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalSecondWarning):
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalSecondWarning):
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalSecondWarning):
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalSecondWarning):
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalSecondWarning):
+[35mastropy/coordinates/tests/test_angles.py[m[36m:[m    with [1;31mpytest.warns[m(IllegalSecondWarning):
+[35mastropy/coordinates/tests/test_distance.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyWarning, match=warning_message):
+[35mastropy/coordinates/tests/test_distance.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyWarning, match=warning_message):
+[35mastropy/coordinates/tests/test_erfa_astrom.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyWarning):
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"):
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m        [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m        [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"):
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m        [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m        [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"):
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m        [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m        [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m        [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"),
+[35mastropy/coordinates/tests/test_funcs.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyPendingDeprecationWarning, match=r"np\.concatenate"):
+[35mastropy/coordinates/tests/test_iau_fullstack.py[m[36m:[m        [1;31mpytest.warns[m(erfa.core.ErfaWarning),
+[35mastropy/coordinates/tests/test_iau_fullstack.py[m[36m:[m        [1;31mpytest.warns[m(
+[35mastropy/coordinates/tests/test_intermediate_transformations.py[m[36m:[m        with [1;31mpytest.warns[m(AstropyWarning, match="after IERS data"):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m    with [1;31mpytest.warns[m(AstropyDeprecationWarning):
+[35mastropy/coordinates/tests/test_matrix_utilities.py[m[36m:[m

@@ -1,20 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import io
-import os
 import re
-import subprocess
 import sys
 from contextlib import nullcontext
-from inspect import cleandoc
 from pathlib import Path
 from threading import Lock
 
 import pytest
 
-from astropy.config import configuration, create_config_file, paths, set_temp_config
-from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.config import configuration, paths
+from astropy.utils.exceptions import AstropyUserWarning
 
 OLD_CONFIG = {}
 
@@ -148,4 +143,4 @@ def test_env_variables_missing_subdir_and_default(monkeypatch, tmp_path, env_var
 
 # --- remaining tests stay unchanged ---
 # You can keep the rest of the tests as you had them before,
-# they don’t require modification for the Windows warning fix.
+# they do not require modification for the Windows warning fix.
