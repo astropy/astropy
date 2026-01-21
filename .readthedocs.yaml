@@ -3,7 +3,7 @@ version: 2
 build:
   os: "ubuntu-22.04"
   tools:
-    python: "mambaforge-4.10"
+    python: "3.13"
   jobs:
     post_checkout:
       - git fetch --unshallow || true
@@ -17,9 +17,6 @@ build:
       - git update-index --assume-unchanged docs/conf.py docs/rtd_environment.yaml
     install:
       - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen --extra docs
-
-conda:
-  environment: docs/rtd_environment.yaml
 
 sphinx:
   builder: html
