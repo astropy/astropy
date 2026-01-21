@@ -1,0 +1,5 @@
+The private ``astropy.table.np_utils`` module has been removed.  It did not
+contain any code that was still used except the definition of
+``TableMergeError``, which should be imported from ``astropy.table``.  All
+other routines were long ago moved to either ``astropy.table.operations`` or
+``astropy.utils.metadata``.
