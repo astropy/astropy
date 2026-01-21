@@ -169,33 +169,22 @@ def _handle_index_argument(
         )
 
 
-def _ensure_1d_object_array(col: Column) -> object:
-    """Convert a column to a 1D object array suitable for pandas Dataframe"""
-    obj_array = np.empty(len(col), dtype=object)
-
-    for i in range(len(col)):
-        # Convert to list if it's a numpy array
-        obj_array[i] = col[i].tolist() if hasattr(col[i], "tolist") else col[i]
-
-    return obj_array
-
-
-def _support_multidim_columns_to_pandas(
-    table: Table, backend: IntoBackend[EagerAllowed]
-) -> Table:
+def _convert_multidim_columns_to_object(table: Table) -> Table:
     """
-    Support numpy arrays for DataFrame conversion
+    Convert any multidimensional columns in the table to 1D object arrays.
 
-    Only Supported for pandas backend
+    If there are no multidimensional columns, the table is returned unchanged.
     """
-    if _is_pandas_like(backend):
-        for colname in table.colnames:
-            col = table[colname]
-            # Check if column is multidimensional numpy array
-            if col.ndim > 1:
-                # Convert to 1D object array
-                table[colname] = _ensure_1d_object_array(col)
-    return table
+    if not any(col.ndim > 1 for col in table.itercols()):
+        return table
+
+    out = table.copy(copy_data=False)
+    for name, col in table.columns.items():
+        if col.ndim > 1:
+            # Convert to 1D object array (e.g. list of lists for ndim=2).
+            out[name] = np.empty(len(col), dtype=object)
+            out[name][:] = col.tolist()
+    return out
 
 
 def to_df(
@@ -224,9 +213,9 @@ def to_df(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
-    tbl = _support_multidim_columns_to_pandas(
-        tbl, backend_impl
-    )  # support numpy multidimensional arrays in columns
+    # Support numpy multidimensional arrays in columns for pandas-like backend
+    if backend_impl.is_pandas_like():
+        tbl = _convert_multidim_columns_to_object(tbl)
     _validate_columns_for_backend(tbl, backend_impl=backend_impl)
 
     # Convert to narwhals DataFrame
@@ -416,9 +405,8 @@ def to_pandas(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
-    tbl = _support_multidim_columns_to_pandas(
-        tbl, backend=PANDAS_LIKE
-    )  # support numpy multidimensional arrays in columns
+    # Support numpy multidimensional arrays in columns
+    tbl = _convert_multidim_columns_to_object(tbl)
     _validate_columns_for_backend(tbl, backend_impl=PANDAS_LIKE)  # pandas validation
 
     out = {}
