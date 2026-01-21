@@ -3,15 +3,26 @@
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated
+
 from .exceptions import MergeConflictError
 
-__all__ = ["common_dtype"]
+__all__ = ["common_dtype", "result_type"]
 
 
 def dtype(arr):
     return getattr(arr, "dtype", np.dtype("O"))
 
 
+@deprecated(
+    "8.0",
+    message=(
+        "The {func} {obj_type} is deprecated and may be removed in a "
+        "future version. Use {alternative} instead, but note that this "
+        "returns a dtype rather than a string."
+    ),
+    alternative="astropy.utils.metadata.result_type",
+)
 def common_dtype(arrs):
     """
     Use numpy to find the common dtype for a list of ndarrays.

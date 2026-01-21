@@ -12,8 +12,8 @@ from astropy.utils.metadata import (
     common_dtype,
     enable_merge_strategies,
     merge,
+    result_type,
 )
-from astropy.utils.metadata.utils import result_type
 
 
 class OrderedDictSubclass(OrderedDict):
@@ -267,6 +267,7 @@ def test_result_type_basic():
     assert result_type([i8, f8]) == np.dtype("f8")
 
 
+@pytest.mark.filterwarnings(r"ignore:.*common_dtype.*is deprecated.*")
 @pytest.mark.parametrize("function", [result_type, common_dtype])
 def test_finding_common_type_exhaustive(function):
     """

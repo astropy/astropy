@@ -1,0 +1,4 @@
+The ``astropy.utils.metadata.common_dtype`` function has been deprecated,
+as with its string output it is not possible to describe user-defined
+data types. Instead, a new function, ``astropy.utils.metadata.result_type``,
+can be used, which returns a ``numpy.dtype``.
