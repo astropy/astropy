@@ -65,10 +65,10 @@ jobs:
             python: '3.11'
             toxenv: py311-test-devdeps-noscipy
 
-          - name: Python 3.13 with dev version of infrastructure dependencies
+          - name: Python 3.14 with dev version of infrastructure dependencies
             os: ubuntu-latest
-            python: '3.13'
-            toxenv: py313-test-devpytest
+            python: '3.14'
+            toxenv: py314-test-devpytest
 
           - name: Python 3.13t (free-threading) with recommended dependencies
             os: ubuntu-latest
