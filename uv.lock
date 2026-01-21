@@ -368,6 +368,7 @@ all = [
 ]
 dev = [
     { name = "coverage" },
+    { name = "graphviz" },
     { name = "hypothesis" },
     { name = "jinja2" },
     { name = "matplotlib" },
@@ -398,6 +399,7 @@ dev-all = [
     { name = "coverage" },
     { name = "dask", extra = ["dataframe"] },
     { name = "fsspec", extra = ["http"] },
+    { name = "graphviz" },
     { name = "h5py" },
     { name = "html5lib" },
     { name = "hypothesis" },
@@ -437,6 +439,7 @@ dev-all = [
     { name = "uncompresspy" },
 ]
 docs = [
+    { name = "graphviz" },
     { name = "jinja2" },
     { name = "matplotlib" },
     { name = "narwhals" },
@@ -556,6 +559,7 @@ requires-dist = [
     { name = "coverage", marker = "extra == 'test'", specifier = ">=7.2.0" },
     { name = "dask", extras = ["dataframe"], marker = "extra == 'all'", specifier = ">=2024.8.0" },
     { name = "fsspec", extras = ["http"], marker = "extra == 'all'", specifier = ">=2023.4.0" },
+    { name = "graphviz", marker = "extra == 'docs'", specifier = ">=0.21" },
     { name = "h5py", marker = "extra == 'all'", specifier = ">=3.11.0" },
     { name = "html5lib", marker = "extra == 'all'", specifier = ">=1.1" },
     { name = "hypothesis", marker = "extra == 'test'", specifier = ">=6.84.0" },
@@ -1480,6 +1484,15 @@ wheels = [
 ]
 
 [[package]]
+name = "graphviz"
+version = "0.21"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/b3/3ac91e9be6b761a4b30d66ff165e54439dcd48b83f4e20d644867215f6ca/graphviz-0.21.tar.gz", hash = "sha256:20743e7183be82aaaa8ad6c93f8893c923bd6658a04c32ee115edb3c8a835f78", size = 200434, upload-time = "2025-06-15T09:35:05.824Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/91/4c/e0ce1ef95d4000ebc1c11801f9b944fa5910ecc15b5e351865763d8657f8/graphviz-0.21-py3-none-any.whl", hash = "sha256:54f33de9f4f911d7e84e4191749cac8cc5653f815b06738c54db9a15ab8b1e42", size = 47300, upload-time = "2025-06-15T09:35:04.433Z" },
+]
+
+[[package]]
 name = "h5py"
 version = "3.15.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2384,7 +2397,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "(python_full_version < '3.12' and sys_platform == 'emscripten') or (sys_platform != 'emscripten' and sys_platform != 'win32')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
