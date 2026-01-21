@@ -738,7 +738,7 @@ class BaseColumnInfo(DataInfo):
             )
 
         # Output dtype is the superset of all dtypes in in_cols
-        out["dtype"] = metadata.common_dtype(cols)
+        out["dtype"] = metadata.utils.result_type(cols)
 
         # Make sure all input shapes are the same
         uniq_shapes = {col.shape[1:] for col in cols}
