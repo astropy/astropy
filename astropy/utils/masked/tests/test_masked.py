@@ -1390,11 +1390,12 @@ class TestMaskedArrayMethods(MaskedArraySetup):
 
     def test_pickle_masked_slice_regression_19186(self):
         """
-        Regression test for issue where sliced MaskedNDArray lost its mask 
+        Regression test for issue where sliced MaskedNDArray lost its mask
         information during pickling. See PR #19186.
         """
         import pickle
-        m_slice = self.ma[0:1] 
+
+        m_slice = self.ma[0:1]
 
         m_reconstructed = pickle.loads(pickle.dumps(m_slice))
 
