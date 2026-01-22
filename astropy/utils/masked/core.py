@@ -22,7 +22,7 @@ import importlib
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0, NUMPY_LT_2_5
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods, ShapedLikeNDArray
 
@@ -744,14 +744,26 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     @shape.setter
     def shape(self, shape):
+        return self._set_shape(shape)
+
+    def _set_shape(self, shape):
         old_shape = self.shape
-        self._mask.shape = shape
+        if NUMPY_LT_2_5:
+            self._mask.shape = shape
+        else:
+            self._mask._set_shape(shape)
         # Reshape array proper in try/except just in case some broadcasting
         # or so causes it to fail.
         try:
-            super(MaskedNDArray, type(self)).shape.__set__(self, shape)
+            if NUMPY_LT_2_5:
+                super(MaskedNDArray, type(self)).shape.__set__(self, shape)
+            else:
+                super()._set_shape(shape)
         except Exception as exc:
-            self._mask.shape = old_shape
+            if NUMPY_LT_2_5:
+                self._mask.shape = old_shape
+            else:
+                self._mask._set_shape(old_shape)
             # Given that the mask reshaping succeeded, the only logical
             # reason for an exception is something like a broadcast error in
             # in __array_finalize__, or a different memory ordering between
