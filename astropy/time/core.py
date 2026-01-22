@@ -27,7 +27,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_5
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
@@ -926,15 +926,22 @@ class TimeBase(MaskableShapedLikeNDArray):
             (self, "location"),
         ):
             val = getattr(obj, attr, None)
-            if val is not None and val.size > 1:
-                try:
+            if val is None or val.size <= 1:
+                continue
+            try:
+                if NUMPY_LT_2_5:
                     val.shape = shape
-                except Exception:
-                    for val2 in reshaped:
-                        val2.shape = oldshape
-                    raise
                 else:
-                    reshaped.append(val)
+                    val._set_shape(shape)
+            except Exception:
+                for val2 in reshaped:
+                    if NUMPY_LT_2_5:
+                        val2.shape = oldshape
+                    else:
+                        val2._set_shape(oldshape)
+                raise
+            else:
+                reshaped.append(val)
 
     def _shaped_like_input(self, value):
         if self.masked:
