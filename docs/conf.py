@@ -254,7 +254,7 @@ html_theme_options = {
 html_title = f"{project} v{release}"
 
 html_static_path = ["_static"]
-# html_css_files = ["astropy.css"]
+html_css_files = ["astropy.css"]
 html_copy_source = False
 
 # Output file base name for HTML help builder.
