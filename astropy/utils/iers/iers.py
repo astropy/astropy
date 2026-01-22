@@ -41,6 +41,7 @@ from astropy.utils.data import (
     get_readable_fileobj,
     is_url_in_cache,
 )
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.state import ScienceState
 
@@ -515,6 +516,7 @@ class IERS(QTable):
         return np.zeros_like(i)
 
     @property
+    @deprecated(since="8.0", alternative="Time.now()", obj_type="property")
     def time_now(self):
         """
         Property to provide the current time, but also allow for explicitly setting
@@ -860,7 +862,7 @@ class IERS_Auto(IERS_A):
         auto_max_age = _none_to_float(conf.auto_max_age)
         if (
             max_input_mjd > predictive_mjd
-            and self.time_now.mjd - predictive_mjd > auto_max_age
+            and Time.now().mjd - predictive_mjd > auto_max_age
         ):
             raise ValueError(INTERPOLATE_ERROR.format(auto_max_age))
 
@@ -885,7 +887,7 @@ class IERS_Auto(IERS_A):
 
         # Pass in initial to np.max to allow things to work for empty mjd.
         max_input_mjd = np.max(mjd, initial=50000)
-        now_mjd = self.time_now.mjd
+        now_mjd = Time.now().mjd
 
         # IERS-A table contains predictive data out for a year after
         # the available definitive values.
