@@ -259,8 +259,8 @@ to work::
     This is implemented by having a list of supported ufuncs in
     ``units/function/core.py`` and by explicitly disabling some array methods in
     :class:`~astropy.units.FunctionQuantity`.  If you believe a
-    function or method is incorrectly treated, please `let us know
-    <http://www.astropy.org/contribute.html>`_.
+    function or method is incorrectly treated, please
+    :ref:`let us know <astropy-org-contribute>`.
 
 Dimensionless Logarithmic Quantities
 ====================================

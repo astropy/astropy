@@ -24,22 +24,22 @@ astropy: A Community Python Library for Astronomy
 **Useful links**:
 :ref:`Installation <installing-astropy>` |
 `Issues & Ideas <https://github.com/astropy/astropy/issues>`__ |
-`Get Help <http://www.astropy.org/help.html>`__ |
-`Contribute <http://www.astropy.org/contribute.html>`__ |
-`About <http://www.astropy.org/about.html>`__
+:ref:`astropy-org-help` |
+:ref:`astropy-org-contribute` |
+:ref:`astropy-org-about`
 
 The ``astropy`` package contains key functionality and common tools needed for
 performing astronomy and astrophysics with Python.  It is at the core of the
-`Astropy Project <http://www.astropy.org/about.html>`_, which aims to enable
-the community to develop a robust ecosystem of `affiliated packages`_
+:ref:`Astropy Project <astropy-org-about>`, which aims to enable
+the community to develop a robust ecosystem of :ref:`astropy-org-affiliated`
 covering a broad range of needs for astronomical research, data
 processing, and data analysis.
 
-.. Important:: If you use Astropy for work presented in a publication or talk
-   please help the project via proper `citation or acknowledgement
-   <https://www.astropy.org/acknowledging.html>`_.  This also applies to use of
-   software or `affiliated packages`_ that depend on the astropy
-   core package.
+.. Important:: If you use Astropy for work presented in a publication
+   or talk please help the project via proper
+   :ref:`astropy-org-acknowledge`.  This also applies to use of
+   software or :ref:`astropy-org-affiliated` that depend on the astropy core
+   package.
 
 .. toctree::
    :maxdepth: 1
@@ -84,8 +84,8 @@ processing, and data analysis.
         Astropy and other packages in the astronomy Python ecosystem.
 
     .. grid-item-card:: Astropy Packages
-        :link: https://www.astropy.org/affiliated/
-        :link-type: url
+        :link: astropy-org-affiliated
+        :link-type: ref
         :text-align: center
 
         :material-outlined:`inventory_2;8em;sd-text-secondary`

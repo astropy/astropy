@@ -113,6 +113,7 @@ needs_sphinx = "8.2.0"  # keep in sync with pyproject.toml
 intersphinx_resolve_self = "astropy"
 intersphinx_mapping.update(
     {
+        "astropy.org": ("https://astropy-org-test.readthedocs.io/", None),
         "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
         "pytest": ("https://docs.pytest.org/en/stable/", None),
         "ipython": ("https://ipython.readthedocs.io/en/stable/", None),
