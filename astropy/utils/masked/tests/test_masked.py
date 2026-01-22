@@ -1388,6 +1388,20 @@ class TestMaskedArrayMethods(MaskedArraySetup):
         )
         assert_masked_equal(maclip, expected)
 
+    def test_pickle_masked_slice_regression_19186(self):
+        """
+        Regression test for issue where sliced MaskedNDArray lost its mask 
+        information during pickling. See PR #19186.
+        """
+        import pickle
+        m_slice = self.ma[0:1] 
+
+        m_reconstructed = pickle.loads(pickle.dumps(m_slice))
+
+        assert_array_equal(m_reconstructed.unmasked, m_slice.unmasked)
+        assert_array_equal(m_reconstructed.mask, m_slice.mask)
+        assert isinstance(m_reconstructed, type(self.ma))
+
 
 class TestMaskedQuantityMethods(TestMaskedArrayMethods, QuantitySetup):
     pass
