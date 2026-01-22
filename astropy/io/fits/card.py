@@ -67,6 +67,8 @@ class Card(_Verify):
     # Used in cards using the CONTINUE convention which expect a string
     # followed by an optional comment
     _strg = r"\'(?P<strg>([ -~]+?|\'\'|) *?)\'(?=$|/| )"
+    # Stricter FITS string matcher: requires doubled quotes, and ensures trailing space or '/'.
+    _strg_strict = r"'(?P<strg>(?:[ -&(-~]|'')*)'(?= *(?:$|/))"
     _comm_field = r"(?P<comm_field>(?P<sepr>/ *)(?P<comm>(.|\n)*))"
     _strg_comment_RE = re.compile(f"({_strg})? *{_comm_field}?$")
 
@@ -766,34 +768,57 @@ class Card(_Verify):
 
         if m.group("bool") is not None:
             value = m.group("bool") == "T"
+
+        # --------------------------------------------------------
+        # STRING VALUE (strict parsing first, fallback tolerant)
+        # --------------------------------------------------------
         elif m.group("strg") is not None:
+            raw_value_field = m.group("value") or ""
+
+            # 1) strict FITS string parsing
+            strict_match = re.match(self._strg_strict, raw_value_field)
+
+            if strict_match:
+                # strict match = chaîne valid selon FITS strict
+                return strict_match.group("strg").replace("''", "'")
+
+            # 2) fallback tolerant + always warn
+            warnings.warn(
+                f"Non-standard FITS string detected in card {self.keyword!r}; "
+                "falling back to tolerant parsing.",
+                VerifyWarning,
+            )
+
+            # fallback: tolerant interpretation (historical behavior)
             value = re.sub("''", "'", m.group("strg"))
+
+        # --------------------------------------------------------
+        # NUMBER
+        # --------------------------------------------------------
         elif m.group("numr") is not None:
             #  Check for numbers with leading 0s.
             numr = self._number_NFSC_RE.match(m.group("numr"))
             digt = translate(numr.group("digt"), FIX_FP_TABLE2, " ")
-            if numr.group("sign") is None:
-                sign = ""
-            else:
-                sign = numr.group("sign")
+            sign = "" if numr.group("sign") is None else numr.group("sign")
             value = _str_to_num(sign + digt)
 
+        # --------------------------------------------------------
+        # COMPLEX NUMBER
+        # --------------------------------------------------------
         elif m.group("cplx") is not None:
             #  Check for numbers with leading 0s.
             real = self._number_NFSC_RE.match(m.group("real"))
             rdigt = translate(real.group("digt"), FIX_FP_TABLE2, " ")
-            if real.group("sign") is None:
-                rsign = ""
-            else:
-                rsign = real.group("sign")
+            rsign = "" if real.group("sign") is None else real.group("sign")
             value = _str_to_num(rsign + rdigt)
             imag = self._number_NFSC_RE.match(m.group("imag"))
             idigt = translate(imag.group("digt"), FIX_FP_TABLE2, " ")
-            if imag.group("sign") is None:
-                isign = ""
-            else:
-                isign = imag.group("sign")
+            isign = "" if imag.group("sign") is None else imag.group("sign")
             value += _str_to_num(isign + idigt) * 1j
+
+        # --------------------------------------------------------
+        # UNDEFINED VALUE
+        # --------------------------------------------------------
         else:
             value = UNDEFINED
 
