@@ -12,7 +12,7 @@ import re
 import warnings
 from collections.abc import Collection
 from fractions import Fraction
-from typing import ClassVar, Self
+from typing import ClassVar, Final, Self
 
 import numpy as np
 
@@ -246,6 +246,49 @@ class QuantityInfo(QuantityInfoBase):
         return [self._parent]
 
 
+def _parse_floats_from_whitespace(data: str) -> list[float]:
+    data = data.replace(",", " ").strip().strip("[]").split()
+    return [float(a) for a in data]
+
+
+NUM: Final = r"""
+        [+-]?
+        ((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|
+        ([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))
+        ([eE][+-]?\d+)?
+        [.+-]?
+"""
+
+VECTOR_COMMA: Final = rf"""
+        \[\s*
+        {NUM}
+        (?:
+        (\s*,\s*)
+        {NUM}
+        )*
+        (\s*,\s*)?
+        \s*\]
+"""
+VECTOR_WSPACE: Final = rf"""
+        \[\s*
+        {NUM}
+        (?:
+        (\s+)
+        {NUM}
+        )*
+        \s*\]
+"""
+VECTOR_1D: Final = rf"""
+        {VECTOR_COMMA} |
+        {VECTOR_WSPACE}
+"""
+
+pattern: Final = re.compile(
+    rf"\s*(?:{NUM}|{VECTOR_1D})\s*",
+    re.VERBOSE,
+)
+
+
 class Quantity(np.ndarray):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
@@ -453,18 +496,16 @@ class Quantity(np.ndarray):
                 # the second parts adds possible trailing .+-, which will break
                 # the float function below and ensure things like 1.2.3deg
                 # will not work.
-                pattern = (
-                    r"\s*[+-]?"
-                    r"((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|"
-                    r"([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))"
-                    r"([eE][+-]?\d+)?"
-                    r"[.+-]?"
-                )
 
                 v = re.match(pattern, value)
                 unit_string = None
                 try:
-                    value = float(v.group())
+                    value_str = v.group()
+                    value = (
+                        float(value_str)
+                        if not ("[" in value_str and "]" in value_str)
+                        else _parse_floats_from_whitespace(value_str)
+                    )
 
                 except Exception:
                     raise TypeError(
