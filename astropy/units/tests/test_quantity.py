@@ -1785,10 +1785,63 @@ def test_quantity_initialisation_from_string():
         u.Quantity(["5"])
     with pytest.raises(TypeError):
         u.Quantity(np.array(["5"]))
+    with pytest.raises(TypeError):
+        u.Quantity("['1' '5' '8']")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 'two', 9]")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 4 9]")
     with pytest.raises(ValueError):
         u.Quantity("5E")
     with pytest.raises(ValueError):
         u.Quantity("5 foo")
+
+
+@pytest.mark.parametrize(
+    "array",
+    (
+        "[7,  8,  9]",
+        "[7,8,9]",
+        "[7,8,9,]",
+        "[7,  8,  9,]",
+        "[7. 8. 9.]",
+        "[7.  8.   9.]",
+        "[7 8 9]",
+        "[7  8  9]",
+        "[7   8     9]",
+    ),
+)
+def test_quantity_initialisation_string_array_dimensionless(array):
+    q = u.Quantity(array)
+    assert q.unit == u.dimensionless_unscaled
+    assert (q.value == np.array([7.0, 8.0, 9.0])).all()
+
+
+@pytest.mark.parametrize(
+    "array",
+    (
+        "[7,  8,  9]eV",
+        "[7,  8,  9]  eV",
+        "[7, 8, 9]  eV",
+        "[7,8,9]eV",
+        "[7,8,9,]eV",
+        "[7,8,9,]  eV",
+        "[7. 8. 9.]eV",
+        "[7. 8. 9.]  eV",
+        "[7.   8.    9.]eV",
+        "[7.   8.    9.] eV",
+        "[7 8 9]eV",
+        "[7 8 9]  eV",
+        "[7  8  9]eV",
+        "[7  8  9]  eV",
+        "[7   8     9]eV",
+        "[7   8     9]  eV",
+    ),
+)
+def test_quantity_initialisation_string_array_unit(array):
+    q = u.Quantity(array)
+    assert q.unit == u.eV
+    assert (q.value == np.array([7.0, 8.0, 9.0])).all()
 
 
 def test_unsupported():
