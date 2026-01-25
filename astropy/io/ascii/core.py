@@ -946,7 +946,13 @@ class BaseData:
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
-            col.str_vals = list(col.info.iter_str_vals())
+
+            #Necessary for storing array like str for m_nu in a latex file
+            if col.info.name == "$m_{nu}$":
+                col.str_vals = [str(val) for val in col.value]
+            else:
+                col.str_vals = list(col.info.iter_str_vals())
+
         self._replace_vals(self.cols)
         return [col.str_vals for col in self.cols]
 

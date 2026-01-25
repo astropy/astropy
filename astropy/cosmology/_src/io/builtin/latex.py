@@ -47,7 +47,7 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
     \end{tabular}
     \end{table}
-    <BLANKLINE>
+    <BLANKLINE> 
 
 .. testcleanup::
 
@@ -57,13 +57,16 @@ By default the parameter names are converted to LaTeX format. To disable this, s
 from typing import Any, TypeVar
 
 import astropy.units as u
+import astropy.cosmology.units as cu
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import readwrite_registry
 from astropy.cosmology._src.parameter import Parameter
+from astropy.cosmology._src.typing import _CosmoT
 from astropy.io.typing import PathLike, WriteableFileLike
 from astropy.table import QTable, Table
+from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike #not sure if i should place it here but let's see if it all works...!
 
-from .table import to_table
+from .table import from_table, to_table
 
 _TableT = TypeVar("_TableT", bound=Table)
 
@@ -81,6 +84,83 @@ _FORMAT_TABLE = {
     "wp": "$w_{p}$",
     "zp": "$z_{p}$",
 }
+
+
+def read_latex(
+    filename: PathLike | ReadableFileLike[Table],
+    index: int | str | None = None,
+    *,
+    move_to_meta: bool = False,
+    cosmology: str | type[_CosmoT] | None = None,
+    latex_names: bool = True,
+    **kwargs: Any
+) -> _CosmoT:
+    r"""Read a |Cosmology| from a LaTeX file.
+
+    Parameters
+    ----------
+    filename : path-like or file-like
+        From where to read the Cosmology.
+    index : int or str or None, optional
+        Needed to select the row in tables with multiple rows. ``index`` can be an
+        integer for the row number or, if the table is indexed by a column, the value of
+        that column. If the table is not indexed and ``index`` is a string, the "name"
+        column is used as the indexing column.
+
+    move_to_meta : bool, optional keyword-only
+        Whether to move keyword arguments that are not in the Cosmology class' signature
+        to the Cosmology's metadata. This will only be applied if the Cosmology does NOT
+        have a keyword-only argument (e.g. ``**kwargs``). Arguments moved to the
+        metadata will be merged with existing metadata, preferring specified metadata in
+        the case of a merge conflict (e.g. for ``Cosmology(meta={'key':10}, key=42)``,
+        the ``Cosmology.meta`` will be ``{'key': 10}``).
+    cosmology : str or |Cosmology| class or None, optional keyword-only
+        The cosmology class (or string name thereof) to use when constructing the
+        cosmology instance. The class also provides default parameter values, filling in
+        any non-mandatory arguments missing in 'table'.
+    latex_names : bool, optional keyword-only
+        Whether the |Table| (might) have latex column names for the parameters that need
+        to be mapped to the correct parameter name -- e.g. $H_0$ to 'H0'. This is
+        `True` by default, but can be turned off (set to `False`) if there is a known
+        name conflict (e.g. both an 'H0' and '$H_0$' column) as this will raise an
+        error. In this case, the correct name ('H0') is preferred.
+    **kwargs : Any
+        Passed to ``QTable.read``. ``format`` is set to 'ascii.latex', regardless of
+        input.
+
+    Returns
+    -------
+    |Cosmology| subclass instance
+
+    Raises 
+    ------
+    ValueError
+        If the keyword argument 'format' is given and is not "ascii.latex".
+    """
+
+    # Check that the format is 'ascii.latex' (or not specified)
+    fmt = kwargs.pop("format", "ascii.latex")
+    if fmt != "ascii.latex":
+        raise ValueError(f"format must be 'ascii.latex', not {fmt}")
+    
+    # Reading is handled by `QTable`.
+    with u.add_enabled_units(cu):
+        table = QTable.read(filename, format="ascii.latex", **kwargs)
+
+    #No need of units of different cosmology parameters to support cosmology conversion
+    del table[0]
+
+    if latex_names:
+        table_columns = set(table.colnames)
+        for name, latex in _FORMAT_TABLE.items():
+            if latex in table_columns:
+                table.rename_column(latex, name)
+
+
+    return from_table(
+        table, index, move_to_meta = move_to_meta, cosmology = cosmology, rename = None
+    )
+
 
 
 def write_latex(
@@ -210,5 +290,6 @@ def latex_identify(
 # ===================================================================
 # Register
 
+readwrite_registry.register_reader("ascii.latex", Cosmology, read_latex)
 readwrite_registry.register_writer("ascii.latex", Cosmology, write_latex)
 readwrite_registry.register_identifier("ascii.latex", Cosmology, latex_identify)

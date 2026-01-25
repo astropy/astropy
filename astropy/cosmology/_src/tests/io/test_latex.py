@@ -2,16 +2,20 @@
 
 import pytest
 
-from astropy.cosmology._src.io.builtin.latex import _FORMAT_TABLE, write_latex
+from astropy.cosmology._src.io.builtin.latex import (
+    _FORMAT_TABLE, 
+    write_latex,
+    read_latex
+)
 from astropy.io.registry.base import IORegistryError
 from astropy.table import QTable, Table
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
 
 
-class WriteLATEXTestMixin(ReadWriteTestMixinBase):
+class ReadWriteLATEXTestMixin(ReadWriteTestMixinBase):
     """
-    Tests for a Cosmology[Write] with ``format="latex"``.
+    Tests for a Cosmology[Read/Write] with ``format="ascii.latex"``.
     This class will not be directly called by :mod:`pytest` since its name does
     not begin with ``Test``. To activate the contained tests this class must
     be inherited in a subclass. Subclasses must define a :func:`pytest.fixture`
@@ -19,6 +23,44 @@ class WriteLATEXTestMixin(ReadWriteTestMixinBase):
     See ``TestCosmology`` for an example.
     """
 
+    def test_to_latex_bad_index(self, read, write, tmp_path):
+        """Test if argument ``index`` is incorrect"""
+
+        fp = tmp_path / "test_to_latex_bad_index.tex"
+
+        write(fp, format="ascii.latex")
+
+        # single-row table and has a non-0/None index
+        with pytest.raises(IndexError, match="index 2 out of range"):
+            read(fp, index=2, format="ascii.latex")
+
+        # string index where doesn't match
+        with pytest.raises(KeyError, match="No matches found for key"):
+            read(fp, index="row 0", format="ascii.latex")
+
+    def test_read_latex_invalid_path(self, read):
+        """Test passing an invalid or non-existent path"""
+
+        #using "blabla" makes it platform independent
+        invalid_fp = "blabla.tex"
+
+        with pytest.raises(FileNotFoundError, match="No such file or directory"):
+            read(invalid_fp, format="ascii.latex")
+    
+    def test_latex_column_mnu(self, read, write, tmp_path):
+        """Test for table column m_nu to have a numpy array, essential for proper cosmology conversion"""
+
+        fp = tmp_path / "test_rename_latex_columns.tex"
+        
+        write(fp, latex_names = True)
+
+        tbl = QTable.read(fp)
+
+        import numpy as np
+        assert isinstance(tbl["$m_{nu}$"].value, np.ndarray)
+
+# -----------------------
+        
     def test_to_latex_failed_cls(self, write, tmp_path):
         """Test failed table type."""
         fp = tmp_path / "test_to_latex_failed_cls.tex"
@@ -64,18 +106,18 @@ class WriteLATEXTestMixin(ReadWriteTestMixinBase):
             write(fp, format=invalid_format)
 
 
-class TestReadWriteLaTex(ReadWriteDirectTestBase, WriteLATEXTestMixin):
+class TestReadWriteLaTex(ReadWriteDirectTestBase, ReadWriteLATEXTestMixin):
     """
-    Directly test ``write_latex``.
+    Directly test ``read/write_latex``.
     These are not public API and are discouraged from use, in favor of
-    ``Cosmology.write(..., format="latex")``, but should be
+    ``Cosmology.read/write(..., format="latex")``, but should be
     tested regardless b/c they are used internally.
     """
 
     def setup_class(self):
-        self.functions = {"write": write_latex}
+        self.functions = {"write": write_latex, "read": read_latex}
 
-    def test_rename_direct_latex_columns(self, write, tmp_path):
+    def test_rename_direct_latex_columns(self, read, write, tmp_path):
         """Tests renaming columns"""
         fp = tmp_path / "test_rename_latex_columns.tex"
         write(fp, latex_names=True)
@@ -84,3 +126,11 @@ class TestReadWriteLaTex(ReadWriteDirectTestBase, WriteLATEXTestMixin):
         for column_name in tbl.colnames[2:]:
             # for now, Cosmology as metadata and name is stored in first 2 slots
             assert column_name in _FORMAT_TABLE.values()
+        
+        cosmo = read(fp, format="ascii.latex")
+        converted_tbl = cosmo.to_format("astropy.table")
+
+        # asserts each column name has been reverted
+        for column_name in converted_tbl.colnames[1:]:
+            # for now now, metadata is still stored in first slot
+            assert column_name in _FORMAT_TABLE.keys()
