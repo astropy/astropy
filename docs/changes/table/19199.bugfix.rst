@@ -1,0 +1,2 @@
+Tables can now be joined and stacked also if they contain columns with
+user-defined data types such as ``QuadPrecDtype``.
