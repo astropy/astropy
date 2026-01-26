@@ -670,101 +670,6 @@ class TestDataFrameConversion:
         assert val == 2
         assert nulls_first_two.all()
 
-    def test_conversion_to_pandas_same_size(self, backend, use_legacy_pandas_api):
-        """Test for multidimensional columns size #18973"""
-        if backend != "pandas":
-            pytest.skip(f"Test marked for pandas only, skipping {backend}")
-        t = Table({"a": ["foo", "bar"], "b": [[1, 2], [3, 4]]})
-        df = self._to_dataframe(t, backend, use_legacy_pandas_api)
-        assert df.size == 4
-
-    def table_MD_cols(self):
-        t = Table()
-        t["a"] = ["foo", "bar"]
-        t["b"] = [1.5, 2.5]
-        t["c"] = np.array([[1, 2], [3, 4]])
-        t["d"] = np.array([[1.5, 2], [3, 4]])
-        t["e"] = np.array([["a", "b"], ["c", "d"]])
-        t["f"] = np.empty(2, dtype=object)
-        t["f"][:] = [[None, {"a": 1}], ["str", [1, 2]]]
-        return t
-
-    def test_conversion_multidim_columns_table_unchanged(
-        self, backend, use_legacy_pandas_api
-    ):
-        """Test for multidimensional columns, Original Table remain unchange #18973"""
-        if backend != "pandas":
-            pytest.skip(f"Test marked for pandas only, skipping {backend}")
-        t = self.table_MD_cols()
-        tc = t.copy()
-        df = self._to_dataframe(t, backend, use_legacy_pandas_api)
-        assert np.all(t == tc)
-
-    def test_conversion_multidim_columns_values(self, backend, use_legacy_pandas_api):
-        """Test for multidimensional columns, df is exactly as expected #18973"""
-        if backend != "pandas":
-            pytest.skip(f"Test marked for pandas only, skipping {backend}")
-        t = self.table_MD_cols()
-        df = self._to_dataframe(t, backend, use_legacy_pandas_api)
-        # Check values for all columns are the same as in the table.
-        eq_col = []
-        for col in df.columns[:-1]:
-            eq_col.append(np.all(t[col] == list(df[col])))
-        eq_col.append(
-            np.all(t["f"] == df["f"])
-        )  # 'f' (last) column in df raises error with list()
-        EqualValues = all(eq_col)
-
-        # Check dtypes for all columns are as expected.
-        eq_dtype = []
-        for col in t.columns:
-            if (t[col].dtype == "float64" or t[col].dtype == "int64") and not t[
-                col
-            ].ndim > 1:
-                eq_dtype.append(t[col].dtype == df[col].dtype)
-            else:
-                eq_dtype.append(df[col].dtype == "object")
-        Expected_dtypes = all(eq_dtype)
-
-        assert list(df.columns) == list(t.columns)
-        assert Expected_dtypes
-        assert EqualValues
-
-    def test_conversion_multidim_columns_round_trip(
-        self, backend, use_legacy_pandas_api
-    ):
-        """Test for multidimensional columns, round trip length remain equal #18973"""
-        if backend != "pandas":
-            pytest.skip(f"Test marked for pandas only, skipping {backend}")
-        t = self.table_MD_cols()
-        df = self._to_dataframe(t, backend, use_legacy_pandas_api)
-        t_rt = Table.from_pandas(df)
-        # Check equal Length, because round trip does not preserve the table data exactly.
-        assert len(t) == len(t_rt)
-
-    def test_conversion_multidim_columns_Masked(self, backend, use_legacy_pandas_api):
-        """Test for multidimensional columns with Masked array #18973"""
-        if backend != "pandas":
-            pytest.skip(f"Test marked for pandas only, skipping {backend}")
-        tm = Table()
-        tm["a"] = np.ma.MaskedArray(
-            [[1, 2], [3, 4]], mask=[[True, False], [False, True]]
-        )
-        tm["b"] = np.ma.MaskedArray(
-            [[1.5, 2], [3, 4]], mask=[[True, False], [False, True]]
-        )
-        tm["c"] = np.ma.MaskedArray(
-            [[1.5, 2], [3, 4]], mask=[[False, True], [True, False]]
-        )
-        df = self._to_dataframe(tm, backend, use_legacy_pandas_api)
-
-        eq_col = []
-        for col in df.columns:
-            eq_col.append(np.all(tm[col] == list(df[col])))
-        EqualValues = all(eq_col)
-
-        assert EqualValues
-
 
 @pytest.mark.skipif(
     not HAS_PANDAS or not HAS_NARWHALS,
@@ -779,3 +684,45 @@ def test_from_pandas_df_with_qtable(method):
     df = t.to_pandas()
     qt = getattr(table.QTable, method)(df)
     assert isinstance(qt, table.QTable)
+
+
+@pytest.mark.parametrize("use_legacy_pandas_api", [True, False])
+def test_pandas_conversion_multidim_columns(use_legacy_pandas_api):
+    """Test that Table with multidim columns converts successfully to pandas (#19173).
+
+    This test only uses pandas since other backends do not support multidim columns.
+    It includes a variety of column types and dimensions (1d to 3d), including
+    masked columns to verify that all are handled correctly.
+    """
+    t = Table()
+    t["a"] = ["foo", "bar"]  # 1-d str
+    t["b"] = [1.5, 2.5]  # 1-d float
+    t["c"] = np.array([[1, 2], [3, 4]])  # 2-d int
+    t["d"] = np.array([[[1.5, 0], [2, 1]], [[3, 2], [4, 3]]])  # 3-d float
+    t["e"] = np.array([["a", "b"], ["c", "d"]])  # 2-d str
+    t["f"] = np.empty((2, 2), dtype=object)
+    t["f"][:] = [[None, {"a": 1}], ["str", [1, 2]]]  # 2-d object type
+    t["g"] = np.ma.MaskedArray([[1, 2], [3, 4]], mask=[[True, False], [False, True]])
+    t["h"] = np.ma.MaskedArray([[1.5, 2], [3, 4]], mask=[[True, False], [False, True]])
+    tc = t.copy()
+    df = t.to_pandas() if use_legacy_pandas_api else t.to_df("pandas")
+
+    # Ensure that conversion process leaves `t` unchanged
+    assert np.all(t == tc)
+
+    # Check properties of converted dataframe `df`:
+    # - dtypes are as expected (all object except float64 for column "b").
+    # - Dataframe values exactly match table column values via .tolist().
+    # - All dataframe Series items for multidim columns are type list.
+    for name in t.colnames:
+        assert df[name].dtype == "float64" if name == "b" else "object"
+        assert df[name].tolist() == t[name].tolist()
+        if t[name].ndim > 1:
+            for val in df[name]:
+                assert type(val) is list
+
+    # Special-case testing for masked column
+    assert df["g"][0] == [None, 2]
+    assert df["g"][1] == [3, None]
+    assert df["h"][0] == [None, 2.0]
+    assert df["h"][1] == [3.0, None]
