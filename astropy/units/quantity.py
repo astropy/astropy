@@ -1187,6 +1187,13 @@ class Quantity(np.ndarray):
 
     # Arithmetic operations
     def __mul__(self, other):
+        # FAST PATH: Quantity * scalar (NEW)
+        if not isinstance(other,(Quantity,UnitBase,str)):
+            try:
+                return self._new_view(self.value * other)
+            except Exception:
+                pass
+        # EXISTING UNIT LOGIC (UNCHANGED)
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
