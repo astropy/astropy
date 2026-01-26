@@ -686,6 +686,7 @@ def test_from_pandas_df_with_qtable(method):
     assert isinstance(qt, table.QTable)
 
 
+@pytest.mark.skipif(not HAS_PANDAS, reason="require pandas")
 @pytest.mark.parametrize("use_legacy_pandas_api", [True, False])
 def test_pandas_conversion_multidim_columns(use_legacy_pandas_api):
     """Test that Table with multidim columns converts successfully to pandas (#19173).
@@ -694,6 +695,9 @@ def test_pandas_conversion_multidim_columns(use_legacy_pandas_api):
     It includes a variety of column types and dimensions (1d to 3d), including
     masked columns to verify that all are handled correctly.
     """
+    if not use_legacy_pandas_api and not HAS_NARWHALS:
+        pytest.skip("requires narwhals for generic pandas conversion")
+
     t = Table()
     t["a"] = ["foo", "bar"]  # 1-d str
     t["b"] = [1.5, 2.5]  # 1-d float
