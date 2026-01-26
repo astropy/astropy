@@ -1153,7 +1153,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def tolist(self):
         if self.dtype.kind == "S":
-            return np.char.chararray.decode(self, encoding="utf-8").tolist()
+            return np.char.decode(self, encoding="utf-8").tolist()
         else:
             return super().tolist()
 
