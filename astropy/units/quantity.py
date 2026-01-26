@@ -1215,6 +1215,11 @@ class Quantity(np.ndarray):
         return self.__mul__(other)
 
     def __truediv__(self, other):
+        if np.isscalar(other):
+            try:
+                return self._new_view(self.value / other)
+            except Exception:
+                pass
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
