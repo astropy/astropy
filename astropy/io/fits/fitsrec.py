@@ -900,12 +900,36 @@ class FITS_rec(np.recarray):
 
         return dummy
 
+    def _convert_bool_helper(self, field):
+        out = []
+        for val in field:
+            # Some fields may be numpy scalars; convert to int
+            try:
+                ival = int(val)
+            except Exception:
+                # If we can't interpret, treat as True
+                out.append(np.True_)
+                continue
+
+            if ival == 0:
+                out.append(None)
+            else:
+                out.append(np.bool_(ival == ord("T")))
+
+        return out
+
     def _convert_other(self, column, field, recformat):
         """Perform conversions on any other fixed-width column data types.
 
         This may not perform any conversion at all if it's not necessary, in
         which case the original column array is returned.
         """
+        # Import _FormatP at the start since it's used in multiple places
+        try:
+            from .column import _FormatP
+        except Exception:
+            _FormatP = type(None)  # Use a dummy type that won't match isinstance checks
+
         if isinstance(recformat, _FormatX):
             # special handling for the X format
             return self._convert_x(field, recformat)
@@ -1012,7 +1036,22 @@ class FITS_rec(np.recarray):
             column._physical_values = True
 
         elif _bool and field.dtype != bool:
-            field = np.equal(field, ord("T"))
+            # Special-case variable-length logical arrays: when the
+            # recformat is a _FormatP (or Q) the field contains raw
+            # byte codes in the heap (e.g. 84='T', 70='F', 0=NULL).
+            # For these we convert to an object array where 0 maps to
+            # None and 84/70 map to True/False respectively.  For
+            # non-VLA logical columns keep previous behavior (boolean
+            # array where 'T' -> True and anything else -> False).
+            if isinstance(recformat, _FormatP):
+                # Map codes to Python objects (None/False/True)
+                out = self._convert_bool_helper(field)
+
+                field = np.array(out, dtype=object)
+            else:
+                out = self._convert_bool_helper(field)
+                field = np.array(out, dtype=object)
+
         elif _str:
             if not self._character_as_bytes:
                 with suppress(UnicodeDecodeError):
@@ -1031,6 +1070,18 @@ class FITS_rec(np.recarray):
                 field.shape = (field.shape[0],) + dim
 
         return field
+
+    def _decode_bool_row(self, row):
+        converted_row = np.empty(len(row), dtype=np.int8)
+        for i, val in enumerate(row):
+            if val is None:
+                converted_row[i] = 0
+            elif val is np.False_:
+                converted_row[i] = ord("F")
+            else:
+                converted_row[i] = ord("T")
+
+        return converted_row
 
     def _get_heap_data(self, try_from_disk=True):
         """
@@ -1063,9 +1114,20 @@ class FITS_rec(np.recarray):
                 if not isinstance(self.columns._recformats[idx], _FormatP):
                     continue
 
+                column = self._coldefs[idx]
+                # Check if this is a logical VLA that needs special conversion
+                is_logical_vla = (
+                    hasattr(column.format, "p_format") and column.format.p_format == "L"
+                )
+
                 for row in self.field(idx):
                     if len(row) > 0:
-                        data.append(row.view(type=np.ndarray, dtype=np.ubyte))
+                        # For logical VLAs, convert None/False/True back to 0/70/84 bytes
+                        if is_logical_vla and row.dtype == object:
+                            converted_row = self._decode_bool_row(row)
+                            data.append(converted_row.view(dtype=np.ubyte))
+                        else:
+                            data.append(row.view(type=np.ndarray, dtype=np.ubyte))
 
             if data:
                 return np.concatenate(data)
@@ -1107,7 +1169,14 @@ class FITS_rec(np.recarray):
         # TODO: Maybe this should be a method/property on Column?  Or maybe
         # it's not really needed at all...
         _str = column.format.format == "A"
-        _bool = column.format.format == "L"
+        # Consider a column to be logical if it is explicitly an 'L' format
+        # or if it is a P/Q (variable-length) format whose p_format is 'L'.
+        # This ensures VLAs with logical element types are treated as
+        # boolean/logical columns for conversion purposes.
+        _bool = (
+            column.format.format == "L"
+            or getattr(column.format, "p_format", None) == "L"
+        )
 
         _number = not (_bool or _str)
         bscale = column.bscale
@@ -1223,11 +1292,14 @@ class FITS_rec(np.recarray):
 
             # ASCII table does not have Boolean type
             elif _bool and name in self._converted:
-                choices = (
-                    np.array([ord("F")], dtype=np.int8)[0],
-                    np.array([ord("T")], dtype=np.int8)[0],
-                )
-                raw_field[:] = np.choose(field, choices)
+                # For VLA logical columns, the conversion back to bytes
+                # happens in _get_heap_data, so skip the np.choose here
+                # which would fail on object arrays
+                if not isinstance(recformat, _FormatP):
+                    if len(field) > 0:
+                        converted_field = self._decode_bool_row(field)
+
+                    raw_field[:] = converted_field
 
         # Store the updated heapsize
         self._heapsize = heapsize
