@@ -3023,7 +3023,7 @@ class Table:
         for memory but allows scripts to manipulate string arrays with
         natural syntax.
         """
-        self._convert_string_dtype("S", "U", np.char.decode)
+        self._convert_string_dtype("S", "U", np.strings.decode)
 
     def convert_unicode_to_bytestring(self):
         """
