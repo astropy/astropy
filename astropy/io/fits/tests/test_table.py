@@ -2189,7 +2189,7 @@ class TestTableFunctions(FitsTestCase):
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
             assert (
-                h[1].data.field(0)[0] == np.char.decode(recarr.field(0)[0], "ascii")
+                h[1].data.field(0)[0] == np.strings.decode(recarr.field(0)[0], "ascii")
             ).all()
 
         with fits.open(self.temp("test.fits")) as h:
@@ -2204,7 +2204,7 @@ class TestTableFunctions(FitsTestCase):
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
             assert (
-                h[1].data.field(0)[0] == np.char.decode(recarr.field(0)[0], "ascii")
+                h[1].data.field(0)[0] == np.strings.decode(recarr.field(0)[0], "ascii")
             ).all()
 
     def test_new_table_with_nd_column(self):

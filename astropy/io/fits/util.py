@@ -271,12 +271,12 @@ def decode_ascii(s):
         # hence the astype()
         if s.size == 0:
             # Numpy apparently also has a bug that if a string array is
-            # empty calling np.char.decode on it returns an empty float64
+            # empty calling np.strings.decode on it returns an empty float64
             # array : https://github.com/numpy/numpy/issues/13156
             dt = s.dtype.str.replace("S", "U")
             ns = np.array([], dtype=dt).view(type(s))
         else:
-            ns = np.char.decode(s, "ascii").view(type(s))
+            ns = np.strings.decode(s, "ascii").view(type(s))
         if ns.dtype.itemsize / 4 != s.dtype.itemsize:
             ns = ns.astype((np.str_, s.dtype.itemsize))
         return ns
