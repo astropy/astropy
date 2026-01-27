@@ -6,6 +6,7 @@ from contextlib import nullcontext
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import table
 from astropy import units as u
@@ -33,7 +34,7 @@ from astropy.timeseries import TimeSeries
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
 from astropy.utils.compat import NUMPY_LT_2_0
-from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_NUMPY_QUADDTYPE, HAS_SCIPY
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MergeConflictError
 
@@ -2625,3 +2626,16 @@ def test_empty_skycoord_vstack():
     table2 = table.vstack([table1, table1])  # Used to fail.
     assert len(table2) == 0
     assert isinstance(table2["foo"], SkyCoord)
+
+
+@pytest.mark.skipif(not HAS_NUMPY_QUADDTYPE, reason="Tests QuadDtype")
+def test_user_dtype_vstack():
+    # Regression test for gh-19197
+    from numpy_quaddtype import QuadPrecDType
+
+    c = Column([1, 2], dtype=QuadPrecDType()) + 1e-25
+    t = Table([c], names=["c"])
+    t2 = table.vstack([t, t])  # This used to fail
+    assert t2["c"].dtype == c.dtype
+    assert_array_equal(t2[:2]["c"], c)
+    assert_array_equal(t2[2:]["c"], c)

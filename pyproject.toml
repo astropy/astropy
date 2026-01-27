@@ -120,6 +120,7 @@ test_all = [
     "sgp4>=2.3",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
+    "numpy-quaddtype>=1.0",
 ]
 typing = [
     "pandas-stubs>=2.0.0",
