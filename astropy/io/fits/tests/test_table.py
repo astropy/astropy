@@ -2803,13 +2803,7 @@ class TestTableFunctions(FitsTestCase):
 
         with fits.open(self.temp("test2.fits"), mode="update") as hdul:
             assert hdul[1].header["TDIM1"] == "(3,3,2)"
-            # Note: Previously I wrote data['a'][0][1, 1] to address
-            # the single row.  However, this is broken for chararray because
-            # data['a'][0] does *not* return a view of the original array--this
-            # is a bug in chararray though and not a bug in any FITS-specific
-            # code so we'll roll with it for now...
-            # (by the way the bug in question is fixed in newer Numpy versions)
-            hdul[1].data["a"][0, 1, 1] = "XYZ"
+            hdul[1].data["a"][0][1, 1] = "XYZ"
             assert np.all(hdul[1].data["a"][0] == expected)
 
         with fits.open(self.temp("test2.fits")) as hdul:
