@@ -258,7 +258,7 @@ NUM: Final = r"""
         ([eE][+-]?\d+)?
         [.+-]?
 """
-VECTOR = r"""
+VECTOR: Final = r"""
         \[\s*
         [+-]?
         ((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|
