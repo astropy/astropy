@@ -251,7 +251,7 @@ def _parse_floats_from_whitespace(data:str)->list[float]:
         return [float(a) for a in data.split()]
 
 
-NUM = r"""
+NUM: Final = r"""
         [+-]?
         ((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|
         ([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))
