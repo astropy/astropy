@@ -53,6 +53,6 @@ jobs:
         body: |
           This is an automated update of the minimum version of astropy-iers-data package.
 
-          :pray: Please apply backport labels to any active backport branches for v6.0.x or later. :pray:
+          :pray: Please apply milestone to be backported to the active bug fix release branch at the time this PR is opened. :pray:
 
           :warning: Please close and re-open this pull request to trigger the CI. :warning:
