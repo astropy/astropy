@@ -1,0 +1,1 @@
+Pickling ``Masked`` subclasses with an initialized ``info`` attribute no longer fails.
