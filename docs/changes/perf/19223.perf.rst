@@ -1,1 +1,3 @@
-Improved performance of scalar ``Quantity`` arithmetic by avoiding the generic arithmetic path.
+Improved performance of scalar ``Quantity`` arithmetic by avoiding the generic
+arithmetic path for scalar operations.
+
