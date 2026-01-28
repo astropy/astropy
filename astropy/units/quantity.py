@@ -1228,9 +1228,9 @@ class Quantity(np.ndarray):
                     self.unit,
                     propagate_info=False,
                 )
-            except Exception:
-                pass
-        # EXISTING UNIT LOGIC (UNCHANGED)
+            except (TypeError, ValueError, OverflowError):
+                return super().__truediv__(other)
+
         if isinstance(other, (UnitBase, str)):
             try:
                 return self._new_view(
