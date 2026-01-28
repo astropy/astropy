@@ -1,4 +1,5 @@
 from collections import OrderedDict, defaultdict
+from contextlib import nullcontext
 from dataclasses import dataclass
 
 import numpy as np
@@ -6,6 +7,7 @@ import pytest
 
 from astropy.io import fits
 from astropy.utils import metadata
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import (
     MergeConflictError,
     MetaData,
@@ -267,12 +269,19 @@ def test_result_type_basic():
     assert result_type([i8, f8]) == np.dtype("f8")
 
 
-@pytest.mark.filterwarnings(r"ignore:.*common_dtype.*is deprecated.*")
 @pytest.mark.parametrize("function", [result_type, common_dtype])
 def test_finding_common_type_exhaustive(function):
     """
     Test that allowed combinations are those expected.
     """
+    if function is common_dtype:
+        ctx = pytest.warns(
+            AstropyDeprecationWarning, match="common_dtype.*is deprecated"
+        )
+    else:
+        ctx = nullcontext()
+
+    # dtypes to try to combine
     dtype = [
         ("int", int),
         ("uint8", np.uint8),
@@ -284,15 +293,6 @@ def test_finding_common_type_exhaustive(function):
         ("object", np.object_),
     ]
     arr = np.empty(1, dtype=dtype)
-    fail = set()
-    succeed = set()
-    for name1, _ in dtype:
-        for name2, _ in dtype:
-            try:
-                function([arr[name1], arr[name2]])
-                succeed.add(f"{name1} {name2}")
-            except MergeConflictError:
-                fail.add(f"{name1} {name2}")
 
     # known bad combinations
     bad = {
@@ -339,7 +339,6 @@ def test_finding_common_type_exhaustive(function):
         "float64 str",
         "float32 str",
     }
-    assert fail == bad
 
     good = {
         "float64 int",
@@ -365,4 +364,12 @@ def test_finding_common_type_exhaustive(function):
         "object object",
         "uni uni",
     }
-    assert succeed == good
+    for name1, _ in dtype:
+        for name2, _ in dtype:
+            with ctx:
+                if f"{name1} {name2}" in good:
+                    function([arr[name1], arr[name2]])
+                else:
+                    assert f"{name1} {name2}" in bad
+                    with pytest.raises(MergeConflictError):
+                        function([arr[name1], arr[name2]])
