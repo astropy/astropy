@@ -1,0 +1,3 @@
+Added a ``loc`` kwarg to the ``wcsaxes`` ``AxisLabels`` label setter similar
+in function to that of ``matplotlib`` 's label setters to control the label
+position along its corresponding axis
