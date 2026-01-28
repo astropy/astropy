@@ -102,6 +102,7 @@ all = [
 # The base set of test-time dependencies.
 test = [
     "coverage>=6.4.4",
+    "hypothesis>=6.84.0",
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
     "pytest>=8.0.0",
     "pytest-doctestplus>=1.4.0",
