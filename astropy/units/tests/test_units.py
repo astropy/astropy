@@ -1297,3 +1297,124 @@ def test_parsing_as(format_):
     # The symbol for the attosecond is "as", which can be problematic because it
     # happens to be a Python keyword.
     assert u.Unit("as", format=format_) == u.attosecond
+
+
+class TestUnitContextAtomicPush:
+    """Regression tests for atomic registry push in _UnitContext.
+
+    These tests verify that the factory functions (set_enabled_units, etc.)
+    use atomic registry push: no global state mutation occurs until all
+    configuration succeeds. This prevents global state corruption if
+    configuration fails.
+
+    See https://github.com/astropy/astropy/issues/19166
+    """
+
+    def test_set_enabled_units_permanent_mode(self):
+        """Test that set_enabled_units works in permanent (non-with) mode."""
+        from astropy.units.core import _unit_registries
+
+        initial_count = len(_unit_registries)
+        u.set_enabled_units([u.m, u.s])
+        assert len(_unit_registries) == initial_count + 1
+        # Clean up to avoid affecting other tests
+        _unit_registries.pop()
+
+    def test_set_enabled_units_context_manager_mode(self):
+        """Test that set_enabled_units works as context manager."""
+        from astropy.units.core import _unit_registries
+
+        count_before = len(_unit_registries)
+        with u.set_enabled_units([u.pc]):
+            assert len(_unit_registries) == count_before + 1
+        assert len(_unit_registries) == count_before
+
+    def test_set_enabled_units_atomic_on_failure(self):
+        """Test that failed configuration doesn't corrupt global state.
+
+        This is a regression test for the original bug: if configuration
+        fails after the registry was pushed, the registry would remain
+        on the stack without being cleaned up.
+        """
+        from unittest.mock import patch
+
+        from astropy.units.core import _unit_registries, _UnitRegistry
+
+        initial_count = len(_unit_registries)
+
+        # Mock set_enabled_units on _UnitRegistry to raise an exception
+        with patch.object(
+            _UnitRegistry, "set_enabled_units", side_effect=ValueError("test error")
+        ):
+            with pytest.raises(ValueError, match="test error"):
+                u.set_enabled_units([u.m])
+
+        # Global state should be unchanged - no registry was pushed
+        assert len(_unit_registries) == initial_count
+
+    def test_set_enabled_aliases_atomic_on_failure(self):
+        """Test that set_enabled_aliases doesn't corrupt state on failure."""
+        from astropy.units.core import _unit_registries
+
+        initial_count = len(_unit_registries)
+
+        # Passing an invalid alias should raise ValueError
+        with pytest.raises(ValueError):
+            # Try to create an alias that conflicts with an existing unit
+            u.set_enabled_aliases({"m": u.s})
+
+        # Global state should be unchanged
+        assert len(_unit_registries) == initial_count
+
+    def test_module_level_initialization(self):
+        """Test that module-level set_enabled_units works for doctests.
+
+        This is a regression test for the CI failure where doctests failed
+        because set_enabled_units() called at module import time (without
+        'with') was not modifying the global registry.
+
+        The astropy.units package relies on this pattern:
+            # In astropy/units/__init__.py
+            set_enabled_units([si, cgs, astrophys, ...])
+
+        This must immediately affect the global registry so that subsequent
+        unit operations (like find_equivalent_units) work correctly.
+        """
+        from astropy.units.core import _unit_registries, get_current_unit_registry
+
+        initial_count = len(_unit_registries)
+
+        # Simulate module-level initialization (no 'with' statement)
+        u.set_enabled_units([u.m, u.s, u.kg])
+
+        # Registry should be pushed immediately
+        assert len(_unit_registries) == initial_count + 1
+
+        # The new registry should be active and contain the units
+        registry = get_current_unit_registry()
+        assert "m" in registry._registry
+        assert "s" in registry._registry
+        assert "kg" in registry._registry
+
+        # Clean up to avoid affecting other tests
+        _unit_registries.pop()
+
+    def test_add_enabled_units_permanent_mode(self):
+        """Test that add_enabled_units works in permanent (non-with) mode."""
+        from astropy.units.core import _unit_registries
+
+        initial_count = len(_unit_registries)
+        u.add_enabled_units([u.m])
+        assert len(_unit_registries) == initial_count + 1
+        # Clean up to avoid affecting other tests
+        _unit_registries.pop()
+
+    def test_set_enabled_equivalencies_permanent_mode(self):
+        """Test that set_enabled_equivalencies works in permanent mode."""
+        from astropy.units.core import _unit_registries
+
+        initial_count = len(_unit_registries)
+        u.set_enabled_equivalencies(u.dimensionless_angles())
+        assert len(_unit_registries) == initial_count + 1
+        # Clean up to avoid affecting other tests
+        _unit_registries.pop()
