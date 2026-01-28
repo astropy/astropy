@@ -1,7 +1,0 @@
-name: rtd313
-channels:
-  - conda-forge
-dependencies:
-  - python=3.13
-  - pip
-  - graphviz
