@@ -119,6 +119,7 @@ test_all = [
     "sgp4>=2.3",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
+    "numpy-quaddtype>=1.0",
 ]
 typing = [
     "pandas-stubs>=2.0.2",
@@ -127,7 +128,7 @@ typing = [
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
-    "sphinx>=8.2.0",  # keep in sync with docs/conf.py
+    "sphinx>=8.2.0,<9",  # keep in sync with docs/conf.py
     "sphinx-astropy[confv2]>=1.9.1",
     "pytest>=8.0.0",
     "sphinx-changelog>=1.2.0",

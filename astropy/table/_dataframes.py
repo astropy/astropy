@@ -169,6 +169,24 @@ def _handle_index_argument(
         )
 
 
+def _convert_multidim_columns_to_object(table: Table) -> Table:
+    """
+    Convert any multidimensional columns in the table to 1D object arrays.
+
+    If there are no multidimensional columns, the table is returned unchanged.
+    """
+    if not any(col.ndim > 1 for col in table.itercols()):
+        return table
+
+    out = table.copy(copy_data=False)
+    for name, col in table.columns.items():
+        if col.ndim > 1:
+            # Convert to 1D object array (e.g. list of lists for ndim=2).
+            out[name] = np.empty(len(col), dtype=object)
+            out[name][:] = col.tolist()
+    return out
+
+
 def to_df(
     table: Table,
     *,
@@ -195,6 +213,9 @@ def to_df(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
+    # Support numpy multidimensional arrays in columns for pandas-like backend
+    if backend_impl.is_pandas_like():
+        tbl = _convert_multidim_columns_to_object(tbl)
     _validate_columns_for_backend(tbl, backend_impl=backend_impl)
 
     # Convert to narwhals DataFrame
@@ -384,6 +405,8 @@ def to_pandas(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
+    # Support numpy multidimensional arrays in columns
+    tbl = _convert_multidim_columns_to_object(tbl)
     _validate_columns_for_backend(tbl, backend_impl=PANDAS_LIKE)  # pandas validation
 
     out = {}
