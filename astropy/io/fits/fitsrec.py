@@ -1378,7 +1378,7 @@ def _ascii_encode(inarray, out=None):
     encodings (if possible) of the elements of the input array.  The two arrays
     must be the same size (though not necessarily the same shape).
 
-    This is like an inplace version of `np.char.encode` though simpler since
+    This is like an inplace version of `np.strings.encode` though simpler since
     it's only limited to ASCII, and hence the size of each character is
     guaranteed to be 1 byte.
 

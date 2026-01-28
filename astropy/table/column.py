@@ -997,7 +997,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if a.dtype.kind == "S" and not isinstance(v, bytes):
             v = np.asarray(v)
             if v.dtype.kind == "U":
-                v = np.char.encode(v, "utf-8")
+                v = np.strings.encode(v, "utf-8")
         return np.searchsorted(a, v, side=side, sorter=sorter)
 
     searchsorted.__doc__ = np.ndarray.searchsorted.__doc__
@@ -1139,7 +1139,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         else:
             arr = np.asarray(value)
             if arr.dtype.char == "U":
-                arr = np.char.encode(arr, encoding="utf-8")
+                arr = np.strings.encode(arr, encoding="utf-8")
                 if isinstance(value, np.ma.MaskedArray):
                     arr = np.ma.array(arr, mask=value.mask, copy=False)
                 value = arr
