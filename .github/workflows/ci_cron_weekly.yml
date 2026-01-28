@@ -70,10 +70,13 @@ jobs:
             python: '3.14'
             toxenv: py314-test-devpytest
 
-          - name: Python 3.13t (free-threading) with recommended dependencies
+          - name: Python 3.14t (free-threading) with recommended dependencies
             os: ubuntu-latest
-            python: '3.13t'
-            toxenv: py313t-test-recdeps
+            python: '3.14t'
+            toxenv: py314t-test-recdeps
+            PYTHON_GIL: 0
+            # https://github.com/astropy/astropy/issues/19205
+            PYTHON_CONTEXT_AWARE_WARNINGS: 0
 
           - name: Documentation link check
             os: ubuntu-latest
@@ -103,6 +106,9 @@ jobs:
       run: python -m pip install --upgrade tox
     - name: Run tests
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
+      env:
+        PYTHON_GIL: ${{ matrix.PYTHON_GIL }}
+        PYTHON_CONTEXT_AWARE_WARNINGS: ${{ matrix.PYTHON_CONTEXT_AWARE_WARNINGS }}
 
 
   tests_more_architectures:
