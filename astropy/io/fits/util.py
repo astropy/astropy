@@ -243,7 +243,7 @@ def encode_ascii(s):
     if isinstance(s, str):
         return s.encode("ascii")
     elif isinstance(s, np.ndarray) and issubclass(s.dtype.type, np.str_):
-        ns = np.char.encode(s, "ascii").view(type(s))
+        ns = np.strings.encode(s, "ascii").view(type(s))
         if ns.dtype.itemsize != s.dtype.itemsize / 4:
             ns = ns.astype((np.bytes_, s.dtype.itemsize / 4))
         return ns
@@ -265,7 +265,7 @@ def decode_ascii(s):
             s = s.decode("ascii", errors="replace")
             return s.replace("\ufffd", "?")
     elif isinstance(s, np.ndarray) and issubclass(s.dtype.type, np.bytes_):
-        # np.char.encode/decode annoyingly don't preserve the type of the
+        # np.strings.encode/decode annoyingly don't preserve the type of the
         # array, hence the view() call
         # It also doesn't necessarily preserve widths of the strings,
         # hence the astype()
