@@ -17,6 +17,7 @@ from astropy import log
 from astropy.utils.data import get_readable_fileobj
 
 from .errors import SAMPHubError, SAMPWarning
+from .utils import SAMPXXEServerProxy
 
 
 def read_lockfile(lockfilename):
@@ -210,9 +211,9 @@ def check_running_hub(lockfilename):
 
     if "samp.hub.xmlrpc.url" in lockfiledict:
         try:
-            proxy = xmlrpc.ServerProxy(
-                lockfiledict["samp.hub.xmlrpc.url"].replace("\\", ""), allow_none=1
-            )
+        proxy = SAMPXXEServerProxy(
+            hub_params["samp.hub.xmlrpc.url"].replace("\\", ""), allow_none=1
+        )
             proxy.samp.hub.ping()
             is_running = True
         except xmlrpc.ProtocolError:
