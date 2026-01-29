@@ -7,7 +7,7 @@ from astropy.samp.errors import SAMPClientError, SAMPHubError
 from astropy.samp.hub import WebProfileDialog
 from astropy.samp.hub_proxy import SAMPHubProxy
 from astropy.samp.integrated_client import SAMPIntegratedClient
-from astropy.samp.utils import ServerProxyPool
+from astropy.samp.utils import SAMPXXEServerProxy, ServerProxyPool
 
 
 class AlwaysApproveWebProfileDialog(WebProfileDialog):
@@ -51,7 +51,7 @@ class SAMPWebHubProxy(SAMPHubProxy):
         try:
             self.proxy = ServerProxyPool(
                 pool_size,
-                xmlrpc.ServerProxy,
+                SAMPXXEServerProxy,
                 f"http://127.0.0.1:{web_port}",
                 allow_none=1,
             )
