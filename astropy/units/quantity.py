@@ -247,8 +247,8 @@ class QuantityInfo(QuantityInfoBase):
 
 
 def _parse_floats_from_whitespace(data:str)->list[float]:
-        data = data.strip("[]")
-        return [float(a) for a in data.split()]
+        data = data.replace(",", " ").strip("[]").split()
+        return [float(a) for a in data]
 
 
 NUM: Final = r"""
@@ -258,17 +258,12 @@ NUM: Final = r"""
         ([eE][+-]?\d+)?
         [.+-]?
 """
-VECTOR: Final = r"""
+VECTOR: Final = rf"""
         \[\s*
-        [+-]?
-        ((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|
-        ([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))
-        ([eE][+-]?\d+)?
-        (?:\s+
-        [+-]?
-        ((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|
-        ([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))
-        ([eE][+-]?\d+)?
+        {NUM}
+        (?:
+        (\s*,\s*)
+        {NUM}
         )*
         \s*\]
 """
