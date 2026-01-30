@@ -273,22 +273,23 @@ class Mesa(core.BaseReader):
 
     Example usage::
 
-    >>> from astropy.table import Table
-    >>> from astropy.utils.data import get_pkg_data_filename
-    >>> # Find the location of an example file included in astropy
-    >>> mesa_file = get_pkg_data_filename('data/history_mesa.data',
-    ...                                      package='astropy.io.ascii.tests')
-    >>> t = Table.read(mesa_file, format='ascii.mesa')
-    >>> print(t.meta['header']['version_number'])
-    r24.03.1
-    >>> t['model_number', 'star_age'][:3]
-    <Table length=3>
-    model_number        star_age
-       int64            float64
-    ------------ ----------------------
-               1                  1e-05
-               2                2.2e-05
-               3 3.6400000000000004e-05
+        >>> from astropy.table import Table
+        >>> from astropy.utils.data import get_pkg_data_filename
+        >>> # Find the location of an example file included in astropy
+        >>> mesa_file = get_pkg_data_filename('data/history_mesa.data',
+        ...                                      package='astropy.io.ascii.tests')
+        >>> t = Table.read(mesa_file, format='ascii.mesa')
+        >>> print(t.meta['header']['version_number'])
+        r24.03.1
+        >>> t['model_number', 'star_age'][:3]
+        <Table length=3>
+        model_number        star_age
+        int64            float64
+        ------------ ----------------------
+                1                  1e-05
+                2                2.2e-05
+                3 3.6400000000000004e-05
+
     """
 
     _format_name = "mesa"

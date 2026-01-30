@@ -21,6 +21,7 @@ Test data files are located in astropy/io/ascii/tests/data/:
   `zone` column
 
 """
+import io
 
 import numpy as np
 import pytest
@@ -240,6 +241,14 @@ class TestMesaAutoDetection:
         # good name, good format, but doesn't have zone or model_number columns
         assert mesa_identify("read", "history.data", self.bad_columns_file_obj) is False
         self.bad_columns_file_obj.seek(0)
+
+        # a few more cases that look like MESA file names but are not
+        assert mesa_identify("read", "data.csv", None) is False
+
+        text_lt_7_lines = io.StringIO("             1                    2\n")
+        text_lt_7_lines.write("version_number             compiler\n")
+        text_lt_7_lines.seek(0)
+        assert mesa_identify("read", "data.csv", text_lt_7_lines) is False
 
 
 class TestMesaEdgeCases:
