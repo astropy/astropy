@@ -10,7 +10,7 @@ from functools import reduce
 import numpy as np
 
 from astropy.utils import lazyproperty
-from astropy.utils.compat import is_chararray
+from astropy.utils.compat import char_array, is_chararray
 
 from .column import (
     _VLF,
@@ -831,7 +831,7 @@ class FITS_rec(np.recarray):
                 dt = np.dtype(recformat.dtype + str(1))
                 arr_len = count * dt.itemsize
                 da = raw_data[offset : offset + arr_len].view(dt)
-                da = np.char.array(da.view(dtype=dt), itemsize=count)
+                da = char_array(da.view(dtype=dt), itemsize=count)
                 dummy[idx] = decode_ascii(da)
             else:
                 dt = np.dtype(recformat.dtype)

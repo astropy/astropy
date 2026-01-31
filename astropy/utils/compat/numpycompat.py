@@ -19,6 +19,7 @@ __all__ = [
     "NUMPY_LT_2_4_1",
     "NUMPY_LT_2_5",
     "astropy_chararray",
+    "char_array",
     "is_chararray",
 ]
 
@@ -363,7 +364,7 @@ class astropy_chararray(np.ndarray):
         --------
         multiply
         """
-        return np.asarray(np.strings.multiply(self, i))
+        return aschararray(np.strings.multiply(self, i))
 
     def __rmul__(self, i):
         """
@@ -374,7 +375,7 @@ class astropy_chararray(np.ndarray):
         --------
         multiply
         """
-        return np.asarray(np.strings.multiply(self, i))
+        return aschararray(np.strings.multiply(self, i))
 
     def __mod__(self, i):
         """
@@ -386,7 +387,7 @@ class astropy_chararray(np.ndarray):
         --------
         mod
         """
-        return np.asarray(np.strings.mod(self, i))
+        return aschararray(np.strings.mod(self, i))
 
     def __rmod__(self, other):
         return NotImplemented
@@ -423,7 +424,7 @@ class astropy_chararray(np.ndarray):
         char.capitalize
 
         """
-        return np.asarray(np.strings.capitalize(self))
+        return aschararray(np.strings.capitalize(self))
 
     def center(self, width, fillchar=" "):
         """
@@ -434,7 +435,7 @@ class astropy_chararray(np.ndarray):
         --------
         center
         """
-        return np.asarray(np.strings.center(self, width, fillchar))
+        return aschararray(np.strings.center(self, width, fillchar))
 
     def count(self, sub, start=0, end=None):
         """
@@ -492,7 +493,7 @@ class astropy_chararray(np.ndarray):
         char.expandtabs
 
         """
-        return np.asarray(np.strings.expandtabs(self, tabsize))
+        return aschararray(np.strings.expandtabs(self, tabsize))
 
     def find(self, sub, start=0, end=None):
         """
@@ -629,7 +630,7 @@ class astropy_chararray(np.ndarray):
         char.ljust
 
         """
-        return np.asarray(np.strings.ljust(self, width, fillchar))
+        return aschararray(np.strings.ljust(self, width, fillchar))
 
     def lower(self):
         """
@@ -641,7 +642,7 @@ class astropy_chararray(np.ndarray):
         char.lower
 
         """
-        return np.asarray(np.strings.lower(self))
+        return aschararray(np.strings.lower(self))
 
     def lstrip(self, chars=None):
         """
@@ -663,7 +664,7 @@ class astropy_chararray(np.ndarray):
         --------
         partition
         """
-        return np.asarray(np.strings.partition(self, sep))
+        return aschararray(np.strings.partition(self, sep))
 
     def replace(self, old, new, count=None):
         """
@@ -712,7 +713,7 @@ class astropy_chararray(np.ndarray):
         char.rjust
 
         """
-        return np.asarray(np.strings.rjust(self, width, fillchar))
+        return aschararray(np.strings.rjust(self, width, fillchar))
 
     def rpartition(self, sep):
         """
@@ -722,7 +723,7 @@ class astropy_chararray(np.ndarray):
         --------
         rpartition
         """
-        return np.asarray(np.strings.rpartition(self, sep))
+        return aschararray(np.strings.rpartition(self, sep))
 
     def rsplit(self, sep=None, maxsplit=None):
         """
@@ -806,7 +807,7 @@ class astropy_chararray(np.ndarray):
         char.swapcase
 
         """
-        return np.asarray(np.strings.swapcase(self))
+        return aschararray(np.strings.swapcase(self))
 
     def title(self):
         """
@@ -819,7 +820,7 @@ class astropy_chararray(np.ndarray):
         char.title
 
         """
-        return np.asarray(np.strings.title(self))
+        return aschararray(np.strings.title(self))
 
     def translate(self, table, deletechars=None):
         """
@@ -833,7 +834,7 @@ class astropy_chararray(np.ndarray):
         char.translate
 
         """
-        return np.asarray(np.strings.translate(self, table, deletechars))
+        return aschararray(np.strings.translate(self, table, deletechars))
 
     def upper(self):
         """
@@ -845,7 +846,7 @@ class astropy_chararray(np.ndarray):
         char.upper
 
         """
-        return np.asarray(np.strings.upper(self))
+        return aschararray(np.strings.upper(self))
 
     def zfill(self, width):
         """
@@ -857,7 +858,7 @@ class astropy_chararray(np.ndarray):
         char.zfill
 
         """
-        return np.asarray(np.strings.zfill(self, width))
+        return aschararray(np.strings.zfill(self, width))
 
     def isnumeric(self):
         """
@@ -882,3 +883,206 @@ class astropy_chararray(np.ndarray):
 
         """
         return np.strings.isdecimal(self)
+
+
+def char_array(obj, itemsize=None, copy=True, unicode=None, order=None):
+    """
+    Create a `~numpy.char.chararray`.
+
+    .. note::
+       This class is provided for numarray backward-compatibility.
+       New code (not concerned with numarray compatibility) should use
+       arrays of type `bytes_` or `str_` and use the free functions
+       in :mod:`numpy.char` for fast vectorized string operations instead.
+
+    Versus a NumPy array of dtype `bytes_` or `str_`, this
+    class adds the following functionality:
+
+    1) values automatically have whitespace removed from the end
+       when indexed
+
+    2) comparison operators automatically remove whitespace from the
+       end when comparing values
+
+    3) vectorized string operations are provided as methods
+       (e.g. `chararray.endswith <numpy.char.chararray.endswith>`)
+       and infix operators (e.g. ``+, *, %``)
+
+    Parameters
+    ----------
+    obj : array of str or unicode-like
+
+    itemsize : int, optional
+        `itemsize` is the number of characters per scalar in the
+        resulting array.  If `itemsize` is None, and `obj` is an
+        object array or a Python list, the `itemsize` will be
+        automatically determined.  If `itemsize` is provided and `obj`
+        is of type str or unicode, then the `obj` string will be
+        chunked into `itemsize` pieces.
+
+    copy : bool, optional
+        If true (default), then the object is copied.  Otherwise, a copy
+        will only be made if ``__array__`` returns a copy, if obj is a
+        nested sequence, or if a copy is needed to satisfy any of the other
+        requirements (`itemsize`, unicode, `order`, etc.).
+
+    unicode : bool, optional
+        When true, the resulting `~numpy.char.chararray` can contain Unicode
+        characters, when false only 8-bit characters.  If unicode is
+        None and `obj` is one of the following:
+
+        - a `~numpy.char.chararray`,
+        - an ndarray of type :class:`str_` or :class:`bytes_`
+        - a Python :class:`str` or :class:`bytes` object,
+
+        then the unicode setting of the output array will be
+        automatically determined.
+
+    order : {'C', 'F', 'A'}, optional
+        Specify the order of the array.  If order is 'C' (default), then the
+        array will be in C-contiguous order (last-index varies the
+        fastest).  If order is 'F', then the returned array
+        will be in Fortran-contiguous order (first-index varies the
+        fastest).  If order is 'A', then the returned array may
+        be in any order (either C-, Fortran-contiguous, or even
+        discontiguous).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> char_array = char_array(['hello', 'world', 'numpy','array'])
+    >>> char_array
+    chararray(['hello', 'world', 'numpy', 'array'], dtype='<U5')
+
+    """
+    if isinstance(obj, (bytes, str)):
+        if unicode is None:
+            if isinstance(obj, str):
+                unicode = True
+            else:
+                unicode = False
+
+        if itemsize is None:
+            itemsize = len(obj)
+        shape = len(obj) // itemsize
+
+        return astropy_chararray(
+            shape, itemsize=itemsize, unicode=unicode, buffer=obj, order=order
+        )
+
+    if isinstance(obj, (list, tuple)):
+        obj = np.numeric.asarray(obj)
+
+    if isinstance(obj, np.ndarray) and issubclass(obj.dtype.type, np.character):
+        # If we just have a vanilla chararray, create a chararray
+        # view around it.
+        if not isinstance(obj, astropy_chararray):
+            obj = obj.view(astropy_chararray)
+
+        if itemsize is None:
+            itemsize = obj.itemsize
+            # itemsize is in 8-bit chars, so for Unicode, we need
+            # to divide by the size of a single Unicode character,
+            # which for NumPy is always 4
+            if issubclass(obj.dtype.type, np.str_):
+                itemsize //= 4
+
+        if unicode is None:
+            if issubclass(obj.dtype.type, np.str_):
+                unicode = True
+            else:
+                unicode = False
+
+        if unicode:
+            dtype = np.str_
+        else:
+            dtype = np.bytes_
+
+        if order is not None:
+            obj = np.numeric.asarray(obj, order=order)
+        if (
+            copy
+            or (itemsize != obj.itemsize)
+            or (not unicode and isinstance(obj, np.str_))
+            or (unicode and isinstance(obj, np.bytes_))
+        ):
+            obj = obj.astype((dtype, int(itemsize)))
+        return obj
+
+    if isinstance(obj, np.ndarray) and issubclass(obj.dtype.type, object):
+        if itemsize is None:
+            # Since no itemsize was specified, convert the input array to
+            # a list so the ndarray constructor will automatically
+            # determine the itemsize for us.
+            obj = obj.tolist()
+            # Fall through to the default case
+
+    if unicode:
+        dtype = np.str_
+    else:
+        dtype = np.bytes_
+
+    if itemsize is None:
+        val = np.numeric.array(obj, dtype=dtype, order=order, subok=True)
+    else:
+        val = np.numeric.array(obj, dtype=(dtype, itemsize), order=order, subok=True)
+    return val.view(astropy_chararray)
+
+
+def aschararray(obj, itemsize=None, unicode=None, order=None):
+    """
+    Convert the input to a `~numpy.char.chararray`, copying the data only if
+    necessary.
+
+    Versus a NumPy array of dtype `bytes_` or `str_`, this
+    class adds the following functionality:
+
+    1) values automatically have whitespace removed from the end
+       when indexed
+
+    2) comparison operators automatically remove whitespace from the
+       end when comparing values
+
+    3) vectorized string operations are provided as methods
+       (e.g. `chararray.endswith <numpy.char.chararray.endswith>`)
+       and infix operators (e.g. ``+``, ``*``, ``%``)
+
+    Parameters
+    ----------
+    obj : array of str or unicode-like
+
+    itemsize : int, optional
+        `itemsize` is the number of characters per scalar in the
+        resulting array.  If `itemsize` is None, and `obj` is an
+        object array or a Python list, the `itemsize` will be
+        automatically determined.  If `itemsize` is provided and `obj`
+        is of type str or unicode, then the `obj` string will be
+        chunked into `itemsize` pieces.
+
+    unicode : bool, optional
+        When true, the resulting `~numpy.char.chararray` can contain Unicode
+        characters, when false only 8-bit characters.  If unicode is
+        None and `obj` is one of the following:
+
+        - a `~numpy.char.chararray`,
+        - an ndarray of type `str_` or `unicode_`
+        - a Python str or unicode object,
+
+        then the unicode setting of the output array will be
+        automatically determined.
+
+    order : {'C', 'F'}, optional
+        Specify the order of the array.  If order is 'C' (default), then the
+        array will be in C-contiguous order (last-index varies the
+        fastest).  If order is 'F', then the returned array
+        will be in Fortran-contiguous order (first-index varies the
+        fastest).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> np.char.asarray(['hello', 'world'])
+    chararray(['hello', 'world'], dtype='<U5')
+
+    """
+    return char_array(obj, itemsize, copy=False, unicode=unicode, order=order)
