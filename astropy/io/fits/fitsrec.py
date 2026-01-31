@@ -1357,12 +1357,14 @@ def _get_recarray_field(array, key):
     This incorporates the legacy functionality of returning string arrays as
     Numeric-style chararray objects.
     """
+    from astropy.utils.compat import astropy_chararray
+
     # Numpy >= 1.10.dev recarray no longer returns chararrays for strings
     # This is currently needed for backwards-compatibility and for
     # automatic truncation of trailing whitespace
     field = np.recarray.field(array, key)
     if field.dtype.char in ("S", "U") and not is_chararray(field):
-        field = field.view(np.char.chararray)
+        field = field.view(astropy_chararray)
     return field
 
 
