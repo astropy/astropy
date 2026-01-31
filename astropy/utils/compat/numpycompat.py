@@ -971,7 +971,7 @@ def char_array(obj, itemsize=None, copy=True, unicode=None, order=None):
         )
 
     if isinstance(obj, (list, tuple)):
-        obj = np.numeric.asarray(obj)
+        obj = np._core.numeric.asarray(obj)
 
     if isinstance(obj, np.ndarray) and issubclass(obj.dtype.type, np.character):
         # If we just have a vanilla chararray, create a chararray
@@ -999,7 +999,7 @@ def char_array(obj, itemsize=None, copy=True, unicode=None, order=None):
             dtype = np.bytes_
 
         if order is not None:
-            obj = np.numeric.asarray(obj, order=order)
+            obj = np._core.numeric.asarray(obj, order=order)
         if (
             copy
             or (itemsize != obj.itemsize)
@@ -1023,9 +1023,11 @@ def char_array(obj, itemsize=None, copy=True, unicode=None, order=None):
         dtype = np.bytes_
 
     if itemsize is None:
-        val = np.numeric.array(obj, dtype=dtype, order=order, subok=True)
+        val = np._core.numeric.array(obj, dtype=dtype, order=order, subok=True)
     else:
-        val = np.numeric.array(obj, dtype=(dtype, itemsize), order=order, subok=True)
+        val = np._core.numeric.array(
+            obj, dtype=(dtype, itemsize), order=order, subok=True
+        )
     return val.view(astropy_chararray)
 
 
