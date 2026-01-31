@@ -211,7 +211,7 @@ def test_env_variables_missing_subdir_but_default_exists(
 
     assert ret.is_dir()
 
-    # FIXME: should the environment variable *completely* take precedent here,
+    # FIXME: should the environment variable *completely* take precedence here,
     # ignoring the existence of default_parent_dir ?
     # see https://github.com/astropy/astropy/issues/18791
     assert not expected_location.exists()

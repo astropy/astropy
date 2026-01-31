@@ -461,7 +461,7 @@ class TestArrayCreation(BasicTestSetup):
         self.check(np.array, np.arange(10))
 
     def test_array_unit_from_data(self):
-        # check that input unit takes precedent over like arg
+        # check that input unit takes precedence over like arg
         Q = np.arange(10) << u.km
         arr2 = np.array(Q.value << u.cm, like=Q)
         assert type(arr2) is u.Quantity
