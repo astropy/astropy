@@ -2417,7 +2417,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     def test_no_scaling_if_no_unit_changes(self):
         # This checks that if a WCS doesn't actually have units changing in
         # WCSLIB, that we aren't using the unit scaling machinery with scales
-        # all set to 1 since this would have an unecessary impact on performance.
+        # all set to 1 since this would have an unnecessary impact on performance.
 
         simple_wcs = wcs.WCS(naxis=3, preserve_units=True)
         simple_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
