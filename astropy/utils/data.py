@@ -1235,7 +1235,7 @@ def _try_url_open(
 
     # Always try first with a secure connection
     # _build_urlopener uses lru_cache, so the ssl_context argument must be
-    # converted to a hashshable type (a set of 2-tuples)
+    # converted to a hashable type (a set of 2-tuples)
     ssl_context = frozenset(ssl_context.items() if ssl_context else [])
     urlopener = _build_urlopener(
         ftp_tls=ftp_tls, ssl_context=ssl_context, allow_insecure=False
