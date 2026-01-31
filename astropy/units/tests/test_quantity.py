@@ -1746,9 +1746,6 @@ def test_quantity_initialisation_from_string():
     q = u.Quantity("1")
     assert q.unit == u.dimensionless_unscaled
     assert q.value == 1.0
-    q = u.Quantity("[7, 5, 8]")
-    assert q.unit == u.dimensionless_unscaled
-    assert (q.value == np.array([7., 5., 8.])).all()
     q = u.Quantity("1.5 m/s")
     assert q.unit == u.m / u.s
     assert q.value == 1.5
@@ -1770,8 +1767,6 @@ def test_quantity_initialisation_from_string():
     assert q.unit == u.m
     q = u.Quantity("5Em")
     assert q == u.Quantity(5.0, u.Em)
-    q = u.Quantity("[4, 5, 6]eV")
-    assert (q == u.Quantity("[4., 5., 6.]", u.eV)).all()
 
     with pytest.raises(TypeError):
         u.Quantity("")
@@ -1797,6 +1792,36 @@ def test_quantity_initialisation_from_string():
         u.Quantity("5 foo")
 
 
+@pytest.mark.parametrize(
+    "array",
+    (
+        "[7 8 9]",
+        "[7,8,9]",
+        "[7, 8 9]"
+    )
+)
+def test_quantity_initialisation_string_array_dimensionless(array):
+    q = u.Quantity(array)
+    assert q.unit == u.dimensionless_unscaled
+    assert (q.value == np.array([7., 8., 9.])).all()
+    
+@pytest.mark.parametrize(
+    "array",
+    (
+        "[7 8 9]eV",
+        "[7 8 9]  eV",
+        "[7,8,9]eV",
+        "[7 8 9]  eV",
+        "[7, 8 9]eV",
+        "[7, 8 9]  eV"
+    )
+)
+def test_quantity_initialisation_string_array_unit(array):
+    q = u.Quantity(array)
+    assert q.unit == u.eV
+    assert (q.value == np.array([7., 8., 9.])).all()
+        
+         
 def test_unsupported():
     q1 = np.arange(10) * u.m
 

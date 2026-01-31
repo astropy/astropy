@@ -247,7 +247,7 @@ class QuantityInfo(QuantityInfoBase):
 
 
 def _parse_floats_from_whitespace(data:str)->list[float]:
-        data = data.replace(",", " ").strip("[]").split()
+        data = data.replace(",", " ").strip().strip("[]").split()
         return [float(a) for a in data]
 
 
@@ -262,12 +262,13 @@ VECTOR: Final = rf"""
         \[\s*
         {NUM}
         (?:
-        (\s*,\s*)
+        ((\s*,\s*)|
+        (\s*))
         {NUM}
         )*
         \s*\]
 """
-            
+
 pattern: Final = re.compile(
     rf"\s*(?:{NUM}|{VECTOR})\s*",
     re.VERBOSE,
