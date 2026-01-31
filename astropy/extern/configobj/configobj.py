@@ -1526,7 +1526,7 @@ class ConfigObj(Section):
         into strings.
         """
         if not isinstance(value, str):
-            # intentially 'str' because it's just whatever the "normal"
+            # intentionally 'str' because it's just whatever the "normal"
             # string type is for the python version we're dealing with
             return str(value)
         else:
