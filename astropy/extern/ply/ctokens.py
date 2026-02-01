@@ -30,7 +30,7 @@ tokens = [
     # Ternary operator (?)
     'TERNARY',
 
-    # Delimeters ( ) [ ] { } , . ; :
+    # Delimiters ( ) [ ] { } , . ; :
     'LPAREN', 'RPAREN',
     'LBRACKET', 'RBRACKET',
     'LBRACE', 'RBRACE',
