@@ -844,11 +844,11 @@ class Section(dict):
 
         Return a dictionary of the return values
 
-        If the function raises an exception, raise the errror
+        If the function raises an exception, raise the error
         unless ``raise_errors=False``, in which case set the return value to
         ``False``.
 
-        Any unrecognized keyword arguments you pass to walk, will be pased on
+        Any unrecognized keyword arguments you pass to walk, will be passed on
         to the function you pass in.
 
         Note: if ``call_on_sections`` is ``True`` then - on encountering a
