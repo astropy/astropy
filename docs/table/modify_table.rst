@@ -20,6 +20,8 @@ Examples
 
 .. EXAMPLE START: Making a Table and Modifying Data
 
+.. _make-a-table:
+
 **Make a table**
 ::
 
@@ -27,6 +29,8 @@ Examples
   >>> import numpy as np
   >>> arr = np.arange(15).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
+
+.. _modify-data-values:
 
 **Modify data values**
 ::
@@ -73,6 +77,8 @@ the conventions of `~astropy.units.Quantity` by using the
 
 .. EXAMPLE END
 
+.. _add-a-column-or-columns:
+
 **Add a column or columns**
 
 .. EXAMPLE START: Adding Columns to Tables
@@ -115,6 +121,8 @@ convenient to add a |Quantity| to a |QTable| instead, see
 
 .. EXAMPLE END
 
+.. _remove-columns:
+
 **Remove columns**
 
 .. EXAMPLE START: Removing Columns from Tables
@@ -128,6 +136,8 @@ To remove a column from a table::
   >>> t.keep_columns(['a', 'b'])
 
 .. EXAMPLE END
+
+.. _replace-a-column:
 
 **Replace a column**
 
@@ -147,6 +157,8 @@ will be done, for example::
   >>> t['a'] = 1  # Internally does t['a'][:] = 1
 
 .. EXAMPLE END
+
+.. _perform-a-dictionary-style-update:
 
 **Perform a dictionary-style update**
 
@@ -204,6 +216,8 @@ you need them to be references you can use the
 :meth:`~astropy.table.Table.update` method with ``copy=False``, see :ref:`copy_versus_reference`
 for details.
 
+.. _ensure-the-existence-of-a-column:
+
 **Ensure the existence of a column**
 
 |Table| has a :meth:`~astropy.table.Table.setdefault` method, which is
@@ -238,6 +252,8 @@ Either way the (possibly just inserted) column in the table is returned::
    Ham    False
   Spam    False
 
+.. _rename-columns:
+
 **Rename columns**
 
 .. EXAMPLE START: Renaming Columns in Tables
@@ -253,6 +269,8 @@ To rename multiple columns at once::
 
 .. EXAMPLE END
 
+.. _add-a-row-of-data:
+
 **Add a row of data**
 
 .. EXAMPLE START: Adding a Row of Data to a Table
@@ -262,6 +280,8 @@ To add a row::
   >>> t.add_row([-8, -9])
 
 .. EXAMPLE END
+
+.. _remove-rows:
 
 **Remove rows**
 
@@ -275,6 +295,8 @@ To remove a row::
 
 .. EXAMPLE END
 
+.. _sort-by-one-or-more-columns:
+
 **Sort by one or more columns**
 
 .. EXAMPLE START: Sorting Columns in Tables
@@ -286,6 +308,8 @@ To sort columns::
 
 .. EXAMPLE END
 
+.. _reverse-table-rows:
+
 **Reverse table rows**
 
 .. EXAMPLE START: Reversing Table Rows
@@ -296,6 +320,8 @@ To reverse the order of table rows::
 
 .. EXAMPLE END
 
+.. _modify-metadata:
+
 **Modify metadata**
 
 .. EXAMPLE START: Modifying Metadata in Tables
@@ -305,6 +331,8 @@ To modify metadata::
   >>> t.meta['key'] = 'value'
 
 .. EXAMPLE END
+
+.. _select-or-reorder-columns:
 
 **Select or reorder columns**
 
@@ -375,11 +403,15 @@ with float values by internally calling ``t.replace_column('a', [10.5, 20.5,
 30.5])``. In general this behavior is more consistent with Python and `pandas
 <https://pandas.pydata.org>`_ behavior.
 
+.. _forcing-in-place-update:
+
 **Forcing in-place update**
 
 It is possible to force an in-place update of a column as follows::
 
   t[colname][:] = value
+
+.. _finding-the-source-of-problems:
 
 **Finding the source of problems**
 
