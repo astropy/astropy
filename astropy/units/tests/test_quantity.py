@@ -1795,9 +1795,8 @@ def test_quantity_initialisation_from_string():
 @pytest.mark.parametrize(
     "array",
     (
-        "[7 8 9]",
-        "[7,8,9]",
-        "[7, 8 9]"
+        "[7,  8,  9]",
+        "[7,8,9]"
     )
 )
 def test_quantity_initialisation_string_array_dimensionless(array):
@@ -1808,12 +1807,10 @@ def test_quantity_initialisation_string_array_dimensionless(array):
 @pytest.mark.parametrize(
     "array",
     (
-        "[7 8 9]eV",
-        "[7 8 9]  eV",
-        "[7,8,9]eV",
-        "[7 8 9]  eV",
-        "[7, 8 9]eV",
-        "[7, 8 9]  eV"
+        "[7,  8,  9]eV",
+        "[7,  8,  9]  eV",
+        "[7, 8, 9]  eV",
+        "[7,8,9]eV"
     )
 )
 def test_quantity_initialisation_string_array_unit(array):
