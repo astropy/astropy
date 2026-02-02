@@ -253,36 +253,84 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
         return world_arrays
 
     def world_to_pixel_values(self, *world_arrays):
-        sliced_out_world_coords = self._pixel_to_world_values_all(
-            *[0] * len(self._pixel_keep)
-        )
-
         world_arrays = tuple(map(np.asanyarray, world_arrays))
-        world_arrays_new = []
-        iworld_curr = -1
-        for iworld in range(self._wcs.world_n_dim):
-            if iworld in self._world_keep:
-                iworld_curr += 1
-                world_arrays_new.append(world_arrays[iworld_curr])
-            else:
-                world_arrays_new.append(sliced_out_world_coords[iworld])
 
-        world_arrays_new = np.broadcast_arrays(*world_arrays_new)
-        pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
-        pixel_arrays = (
-            list(pixel_arrays) if self._wcs.pixel_n_dim > 1 else [pixel_arrays]
-        )
+        # Check if we have sliced-out world dimensions that need to be filled in
+        has_sliced_out_world = len(self._world_keep) < self._wcs.world_n_dim
 
-        for ipixel in range(self._wcs.pixel_n_dim):
-            if (
-                isinstance(self._slices_pixel[ipixel], slice)
-                and self._slices_pixel[ipixel].start is not None
-            ):
-                pixel_arrays[ipixel] -= self._slices_pixel[ipixel].start
+        if has_sliced_out_world:
+            # Iterative refinement to handle coupled WCS dimensions.
+            # For coupled axes, the sliced-out world coordinate depends on the
+            # pixel position in the kept dimensions. We iterate until convergence
+            # to find a consistent solution.
+            pixel_estimate = [0.0] * len(self._pixel_keep)
+            max_iterations = 20
+            tolerance = 1e-12
 
-        # Detect the case of a length 0 array
-        if isinstance(pixel_arrays, np.ndarray) and not pixel_arrays.shape:
-            return pixel_arrays
+            for iteration in range(max_iterations):
+                # Compute sliced-out world coords at current pixel position estimate
+                sliced_out_world_coords = self._pixel_to_world_values_all(
+                    *pixel_estimate
+                )
+
+                # Build full world coordinate array
+                world_arrays_new = []
+                iworld_curr = -1
+                for iworld in range(self._wcs.world_n_dim):
+                    if iworld in self._world_keep:
+                        iworld_curr += 1
+                        world_arrays_new.append(world_arrays[iworld_curr])
+                    else:
+                        world_arrays_new.append(sliced_out_world_coords[iworld])
+
+                world_arrays_new = np.broadcast_arrays(*world_arrays_new)
+                pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
+                pixel_arrays = (
+                    list(pixel_arrays) if self._wcs.pixel_n_dim > 1 else [pixel_arrays]
+                )
+
+                # Apply slice offset
+                for ipixel in range(self._wcs.pixel_n_dim):
+                    if (
+                        isinstance(self._slices_pixel[ipixel], slice)
+                        and self._slices_pixel[ipixel].start is not None
+                    ):
+                        pixel_arrays[ipixel] = (
+                            pixel_arrays[ipixel] - self._slices_pixel[ipixel].start
+                        )
+
+                # Extract kept pixel values for convergence check and next iteration
+                new_pixel_estimate = [pixel_arrays[ip] for ip in self._pixel_keep]
+
+                # Check for convergence
+                if iteration > 0:
+                    max_diff = 0.0
+                    for new_val, old_val in zip(new_pixel_estimate, pixel_estimate):
+                        diff = np.max(np.abs(np.asarray(new_val) - np.asarray(old_val)))
+                        max_diff = max(max_diff, diff)
+                    if max_diff < tolerance:
+                        break
+
+                pixel_estimate = new_pixel_estimate
+        else:
+            # No sliced-out world dimensions, direct transform
+            world_arrays_new = np.broadcast_arrays(*world_arrays)
+            pixel_arrays = self._wcs.world_to_pixel_values(*world_arrays_new)
+            pixel_arrays = (
+                list(pixel_arrays) if self._wcs.pixel_n_dim > 1 else [pixel_arrays]
+            )
+
+            # Apply slice offset
+            for ipixel in range(self._wcs.pixel_n_dim):
+                if (
+                    isinstance(self._slices_pixel[ipixel], slice)
+                    and self._slices_pixel[ipixel].start is not None
+                ):
+                    pixel_arrays[ipixel] = (
+                        pixel_arrays[ipixel] - self._slices_pixel[ipixel].start
+                    )
+
+        # Extract and return the kept pixel dimensions
         pixel = tuple(pixel_arrays[ip] for ip in self._pixel_keep)
         if self.pixel_n_dim == 1:
             pixel = pixel[0]
