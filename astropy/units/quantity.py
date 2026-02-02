@@ -12,7 +12,7 @@ import re
 import warnings
 from collections.abc import Collection
 from fractions import Fraction
-from typing import ClassVar, Self, Final
+from typing import ClassVar, Final, Self
 
 import numpy as np
 
@@ -246,9 +246,9 @@ class QuantityInfo(QuantityInfoBase):
         return [self._parent]
 
 
-def _parse_floats_from_whitespace(data:str)->list[float]:
-        data = data.replace(",", " ").strip().strip("[]").split()
-        return [float(a) for a in data]
+def _parse_floats_from_whitespace(data: str) -> list[float]:
+    data = data.replace(",", " ").strip().strip("[]").split()
+    return [float(a) for a in data]
 
 
 NUM: Final = r"""
@@ -486,7 +486,11 @@ class Quantity(np.ndarray):
                 unit_string = None
                 try:
                     value_str = v.group()
-                    value = float(value_str) if not ("[" in value_str and "]" in value_str) else _parse_floats_from_whitespace(value_str)
+                    value = (
+                        float(value_str)
+                        if not ("[" in value_str and "]" in value_str)
+                        else _parse_floats_from_whitespace(value_str)
+                    )
 
                 except Exception:
                     raise TypeError(
