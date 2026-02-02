@@ -950,9 +950,33 @@ def test_format_doc_indexerrors():
 
 def test_quantity_input_convert_true():
     @u.quantity_input(x=u.m, convert=True)
-    def check_convert(x):
+    def f(x):
         return x
 
-    # This is the "assertion" that proves it works
-    assert check_convert(1000 * u.mm) == 1 * u.m
-    assert check_convert(1000 * u.mm).unit == u.m
+    # Basic length
+    assert f(2500 * u.mm) == 2.5 * u.m
+
+    # Time
+    @u.quantity_input(t=u.s, convert=True)
+    def g(t):
+        return t
+
+    assert g(2 * u.hour) == 7200 * u.s
+
+    # Spectral
+    @u.quantity_input(freq=u.Hz, convert=True, equivalencies=u.spectral())
+    def h(freq):
+        return freq
+
+    assert h(500 * u.nm).unit == u.Hz
+
+    # Temperature
+    @u.quantity_input(temp=u.deg_C, convert=True, equivalencies=u.temperature())
+    def k(temp):
+        return temp
+
+    assert k(373.15 * u.K) == 100 * u.deg_C
+
+    # Still fails on incompatible units
+    with pytest.raises(u.UnitsError):
+        f(1000 * u.s)
