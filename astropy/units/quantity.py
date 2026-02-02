@@ -262,8 +262,7 @@ VECTOR: Final = rf"""
         \[\s*
         {NUM}
         (?:
-        ((\s*,\s*)|
-        (\s*))
+        (?P<sep>\s*,\s*)
         {NUM}
         )*
         \s*\]
