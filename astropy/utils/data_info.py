@@ -712,7 +712,7 @@ class BaseColumnInfo(DataInfo):
             Of merged attributes.
 
         """
-        from astropy.table.np_utils import TableMergeError
+        from astropy.table.operations import TableMergeError
 
         def warn_str_func(key, left, right):
             out = (
@@ -738,7 +738,7 @@ class BaseColumnInfo(DataInfo):
             )
 
         # Output dtype is the superset of all dtypes in in_cols
-        out["dtype"] = metadata.common_dtype(cols)
+        out["dtype"] = metadata.utils.result_type(cols)
 
         # Make sure all input shapes are the same
         uniq_shapes = {col.shape[1:] for col in cols}

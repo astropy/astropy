@@ -2189,7 +2189,7 @@ class TestTableFunctions(FitsTestCase):
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
             assert (
-                h[1].data.field(0)[0] == np.char.decode(recarr.field(0)[0], "ascii")
+                h[1].data.field(0)[0] == np.strings.decode(recarr.field(0)[0], "ascii")
             ).all()
 
         with fits.open(self.temp("test.fits")) as h:
@@ -2204,7 +2204,7 @@ class TestTableFunctions(FitsTestCase):
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
             assert (
-                h[1].data.field(0)[0] == np.char.decode(recarr.field(0)[0], "ascii")
+                h[1].data.field(0)[0] == np.strings.decode(recarr.field(0)[0], "ascii")
             ).all()
 
     def test_new_table_with_nd_column(self):
@@ -2803,13 +2803,7 @@ class TestTableFunctions(FitsTestCase):
 
         with fits.open(self.temp("test2.fits"), mode="update") as hdul:
             assert hdul[1].header["TDIM1"] == "(3,3,2)"
-            # Note: Previously I wrote data['a'][0][1, 1] to address
-            # the single row.  However, this is broken for chararray because
-            # data['a'][0] does *not* return a view of the original array--this
-            # is a bug in chararray though and not a bug in any FITS-specific
-            # code so we'll roll with it for now...
-            # (by the way the bug in question is fixed in newer Numpy versions)
-            hdul[1].data["a"][0, 1, 1] = "XYZ"
+            hdul[1].data["a"][0][1, 1] = "XYZ"
             assert np.all(hdul[1].data["a"][0] == expected)
 
         with fits.open(self.temp("test2.fits")) as hdul:
