@@ -946,8 +946,7 @@ class BaseData:
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
-
-            #Necessary for storing array like str for m_nu in a latex file
+            # Necessary for storing array like str for m_nu in a latex file
             if col.info.name == "$m_{nu}$":
                 col.str_vals = [str(val) for val in col.value]
             else:

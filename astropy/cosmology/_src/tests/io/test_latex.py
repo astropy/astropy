@@ -3,9 +3,9 @@
 import pytest
 
 from astropy.cosmology._src.io.builtin.latex import (
-    _FORMAT_TABLE, 
+    _FORMAT_TABLE,
+    read_latex,
     write_latex,
-    read_latex
 )
 from astropy.io.registry.base import IORegistryError
 from astropy.table import QTable, Table
@@ -41,26 +41,27 @@ class ReadWriteLATEXTestMixin(ReadWriteTestMixinBase):
     def test_read_latex_invalid_path(self, read):
         """Test passing an invalid or non-existent path"""
 
-        #using "blabla" makes it platform independent
+        # using "blabla" makes it platform independent
         invalid_fp = "blabla.tex"
 
         with pytest.raises(FileNotFoundError, match="No such file or directory"):
             read(invalid_fp, format="ascii.latex")
-    
+
     def test_latex_column_mnu(self, read, write, tmp_path):
         """Test for table column m_nu to have a numpy array, essential for proper cosmology conversion"""
 
         fp = tmp_path / "test_rename_latex_columns.tex"
-        
-        write(fp, latex_names = True)
+
+        write(fp, latex_names=True)
 
         tbl = QTable.read(fp)
 
         import numpy as np
+
         assert isinstance(tbl["$m_{nu}$"].value, np.ndarray)
 
-# -----------------------
-        
+    # -----------------------
+
     def test_to_latex_failed_cls(self, write, tmp_path):
         """Test failed table type."""
         fp = tmp_path / "test_to_latex_failed_cls.tex"
@@ -126,7 +127,7 @@ class TestReadWriteLaTex(ReadWriteDirectTestBase, ReadWriteLATEXTestMixin):
         for column_name in tbl.colnames[2:]:
             # for now, Cosmology as metadata and name is stored in first 2 slots
             assert column_name in _FORMAT_TABLE.values()
-        
+
         cosmo = read(fp, format="ascii.latex")
         converted_tbl = cosmo.to_format("astropy.table")
 
