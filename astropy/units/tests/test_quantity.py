@@ -1786,6 +1786,12 @@ def test_quantity_initialisation_from_string():
         u.Quantity(np.array(["5"]))
     with pytest.raises(TypeError):
         u.Quantity("['1' '5' '8']")
+    with pytest.raises(TypeError):
+        u.Quantity("[1 5 9]")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 'two', 9]")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 4 9]")
     with pytest.raises(ValueError):
         u.Quantity("5E")
     with pytest.raises(ValueError):
