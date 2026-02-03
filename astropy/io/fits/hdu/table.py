@@ -143,10 +143,6 @@ class _TableLikeHDU(_ValidHDU):
         ``__init__`` may also be passed in as keyword arguments.
         """
         coldefs = cls._columns_type(columns)
-        if len(coldefs) > 999:
-            raise ValueError(
-                f"FITS tables support at most 999 columns. Got {len(coldefs)} columns."
-            )
 
         data = FITS_rec.from_columns(
             coldefs, nrows=nrows, fill=fill, character_as_bytes=character_as_bytes
@@ -486,9 +482,16 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         if self._has_data:
             self.data._scale_back(update_heap_pointers=not self._manages_own_heap)
             # check TFIELDS and NAXIS2
-            self._header["TFIELDS"] = len(self.data._coldefs)
-            self._header["NAXIS2"] = self.data.shape[0]
+            ncols = len(self.data._coldefs)
 
+            if ncols > 999:
+               raise ValueError(
+                   "FITS format supports a maximum of 999 columns."
+               )
+
+
+            self._header["TFIELDS"] = ncols
+            self._header["NAXIS2"] = self.data.shape[0]
             # calculate PCOUNT, for variable length tables
             tbsize = self._header["NAXIS1"] * self._header["NAXIS2"]
             heapstart = self._header.get("THEAP", tbsize)
