@@ -1272,7 +1272,7 @@ def test_two_argument_useage_non_nddata_first_arg(meth):
     # Call add on the class (not the instance)
     ndd3 = getattr(NDDataArithmetic, meth)(data1, data2)
 
-    # Compare it with the instance-useage and two identical NDData-like
+    # Compare it with the instance-usage and two identical NDData-like
     # classes:
     ndd1 = NDDataArithmetic(data1)
     ndd2 = NDDataArithmetic(data2)
