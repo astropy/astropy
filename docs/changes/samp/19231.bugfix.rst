@@ -1,0 +1,1 @@
+Fixed an XML External Entity (XXE) vulnerability in SAMP XML-RPC communication by disabling external entity resolution.
