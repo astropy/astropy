@@ -628,7 +628,7 @@ class IERS_A(IERS):
             # file argument if a finals2000A.all file was present in the
             # current working directory. We can now use the versions from
             # astropy-iers-data but for backward-compatibility we first check
-            # if there is a file in the current working directory then use that
+            # if there is a file in the current working directory and use that
             # if so, emitting a deprecation warning
             if os.path.exists("finals2000A.all"):
                 file = "finals2000A.all"
