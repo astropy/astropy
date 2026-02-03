@@ -1,13 +1,16 @@
 import numpy as np
 import pytest
-
-from astropy.table import Table
+from astropy.io import fits
 
 
 def test_fits_table_column_limit(tmp_path):
-    ncols = 1000
-    data = {f"c{i}": np.arange(5) for i in range(ncols)}
-    t = Table(data)
+    # 1000 columns -> should hit the guard in _prewriteto
+    cols = [
+        fits.Column(name=f"c{i}", format="E", array=np.array([1.0]))
+        for i in range(1000)
+    ]
+
+    hdu = fits.BinTableHDU.from_columns(cols)
 
     with pytest.raises(ValueError, match="999 columns"):
-        t.write(tmp_path / "x.fits", format="fits")
+        hdu.writeto(tmp_path / "too_many_cols.fits")
