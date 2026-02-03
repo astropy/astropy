@@ -47,7 +47,7 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
     \end{tabular}
     \end{table}
-    <BLANKLINE> 
+    <BLANKLINE>
 
 .. testcleanup::
 
@@ -56,15 +56,18 @@ By default the parameter names are converted to LaTeX format. To disable this, s
 
 from typing import Any, TypeVar
 
-import astropy.units as u
 import astropy.cosmology.units as cu
+import astropy.units as u
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import readwrite_registry
 from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.typing import _CosmoT
-from astropy.io.typing import PathLike, WriteableFileLike
+from astropy.io.typing import (
+    PathLike,
+    ReadableFileLike,  # not sure if i should place it here but let's see if it all works...!
+    WriteableFileLike,
+)
 from astropy.table import QTable, Table
-from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike #not sure if i should place it here but let's see if it all works...!
 
 from .table import from_table, to_table
 
@@ -93,7 +96,7 @@ def read_latex(
     move_to_meta: bool = False,
     cosmology: str | type[_CosmoT] | None = None,
     latex_names: bool = True,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> _CosmoT:
     r"""Read a |Cosmology| from a LaTeX file.
 
@@ -132,22 +135,21 @@ def read_latex(
     -------
     |Cosmology| subclass instance
 
-    Raises 
+    Raises
     ------
     ValueError
         If the keyword argument 'format' is given and is not "ascii.latex".
     """
-
     # Check that the format is 'ascii.latex' (or not specified)
     fmt = kwargs.pop("format", "ascii.latex")
     if fmt != "ascii.latex":
         raise ValueError(f"format must be 'ascii.latex', not {fmt}")
-    
+
     # Reading is handled by `QTable`.
     with u.add_enabled_units(cu):
         table = QTable.read(filename, format="ascii.latex", **kwargs)
 
-    #No need of units of different cosmology parameters to support cosmology conversion
+    # No need of units of different cosmology parameters to support cosmology conversion
     del table[0]
 
     if latex_names:
@@ -156,11 +158,9 @@ def read_latex(
             if latex in table_columns:
                 table.rename_column(latex, name)
 
-
     return from_table(
-        table, index, move_to_meta = move_to_meta, cosmology = cosmology, rename = None
+        table, index, move_to_meta=move_to_meta, cosmology=cosmology, rename=None
     )
-
 
 
 def write_latex(
