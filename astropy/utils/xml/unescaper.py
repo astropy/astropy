@@ -6,7 +6,7 @@ from xml.sax import saxutils
 
 __all__ = ["unescape_all"]
 
-# This is DIY
+# This is D.I.Y.
 _bytes_entities = {
     b"&amp;": b"&",
     b"&lt;": b"<",

@@ -86,7 +86,7 @@ class _NonClosingBufferedReader(io.BufferedReader):
     def __del__(self):
         try:
             # NOTE: self.raw will not be closed, but left in the state
-            # it was in at detactment
+            # it was in at attachment
             self.detach()
         except Exception:
             pass
@@ -96,7 +96,7 @@ class _NonClosingTextIOWrapper(io.TextIOWrapper):
     def __del__(self):
         try:
             # NOTE: self.stream will not be closed, but left in the state
-            # it was in at detactment
+            # it was in at attachment
             self.detach()
         except Exception:
             pass
@@ -370,7 +370,7 @@ def get_readable_fileobj(
 
     # Check if the file object supports random access, and if not,
     # then wrap it in a BytesIO buffer.  It would be nicer to use a
-    # BufferedReader to avoid reading loading the whole file first,
+    # BufferedReader to avoid loading the whole file first,
     # but that might not be compatible with all possible I/O classes.
     if not hasattr(fileobj, "seek"):
         try:
