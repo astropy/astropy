@@ -143,6 +143,12 @@ class _TableLikeHDU(_ValidHDU):
         ``__init__`` may also be passed in as keyword arguments.
         """
         coldefs = cls._columns_type(columns)
+        if len(coldefs) > 999:
+            raise ValueError(
+                "FITS tables support at most 999 columns. "
+                f"Got {len(coldefs)} columns."
+            )
+
         data = FITS_rec.from_columns(
             coldefs, nrows=nrows, fill=fill, character_as_bytes=character_as_bytes
         )
