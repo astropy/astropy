@@ -1,0 +1,1 @@
+Add a ``LaTeX`` reader for ``Cosmology`` that reads back to ``Cosmology`` from its ``LaTeX`` representation.
