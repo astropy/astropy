@@ -86,7 +86,7 @@ class _NonClosingBufferedReader(io.BufferedReader):
     def __del__(self):
         try:
             # NOTE: self.raw will not be closed, but left in the state
-            # it was in at attachment
+            # it was in at detachment
             self.detach()
         except Exception:
             pass
