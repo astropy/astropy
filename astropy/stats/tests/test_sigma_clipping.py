@@ -670,7 +670,7 @@ def test_mad_std():
 
     # We now check this again but with the axis= keyword set since at the time
     # of writing this test this relies on a fast C implementation in which we
-    # have re-inplemented mad_std.
+    # have re-implemented mad_std.
 
     result_std = sigma_clip(
         array,
