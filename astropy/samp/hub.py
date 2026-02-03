@@ -19,7 +19,7 @@ from .constants import SAMP_STATUS_OK, __profile_version__
 from .errors import SAMPHubError, SAMPProxyError, SAMPProxyTimeoutError, SAMPWarning
 from .lockfile_helpers import create_lock_file, read_lockfile
 from .standard_profile import ThreadingXMLRPCServer
-from .utils import ServerProxyPool, _HubAsClient, internet_on
+from .utils import SAMPXXEServerProxy, ServerProxyPool, _HubAsClient, internet_on
 from .web_profile import WebProfileXMLRPCServer, web_profile_text_dialog
 
 __all__ = ["SAMPHubServer", "WebProfileDialog"]
@@ -744,7 +744,7 @@ class SAMPHubServer:
             server_proxy_pool = None
 
             server_proxy_pool = ServerProxyPool(
-                self._pool_size, xmlrpc.ServerProxy, xmlrpc_addr, allow_none=1
+                self._pool_size, SAMPXXEServerProxy, xmlrpc_addr, allow_none=1
             )
 
             public_id = self._private_keys[private_key][0]
