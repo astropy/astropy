@@ -96,7 +96,7 @@ class _NonClosingTextIOWrapper(io.TextIOWrapper):
     def __del__(self):
         try:
             # NOTE: self.stream will not be closed, but left in the state
-            # it was in at attachment
+            # it was in at detachment
             self.detach()
         except Exception:
             pass
