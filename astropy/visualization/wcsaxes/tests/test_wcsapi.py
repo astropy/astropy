@@ -644,7 +644,7 @@ class LowLevelWCS5D(BaseLowLevelWCS):
 
 
 def test_edge_axes():
-    # Check that axes on the edge of a spherical projection are shown properley
+    # Check that axes on the edge of a spherical projection are shown properly
     # (see https://github.com/astropy/astropy/issues/10441)
     shape = [180, 360]
     data = np.random.rand(*shape)
