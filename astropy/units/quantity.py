@@ -258,14 +258,27 @@ NUM: Final = r"""
         ([eE][+-]?\d+)?
         [.+-]?
 """
-VECTOR: Final = rf"""
+VECTOR_COMMA: Final = rf"""
         \[\s*
         {NUM}
         (?:
-        (?P<sep>\s*,\s*)
+        (\s*,\s*)
         {NUM}
         )*
         \s*\]
+"""
+VECTOR_SPACE: Final = rf"""
+        \[\s*
+        {NUM}
+        (?:
+        ([ ])
+        {NUM}
+        )*
+        \s*\]
+"""
+VECTOR: Final = rf"""
+        {VECTOR_COMMA} |
+        {VECTOR_SPACE}
 """
 
 pattern: Final = re.compile(

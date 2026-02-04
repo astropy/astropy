@@ -1787,8 +1787,6 @@ def test_quantity_initialisation_from_string():
     with pytest.raises(TypeError):
         u.Quantity("['1' '5' '8']")
     with pytest.raises(TypeError):
-        u.Quantity("[1 5 9]")
-    with pytest.raises(TypeError):
         u.Quantity("[1, 'two', 9]")
     with pytest.raises(TypeError):
         u.Quantity("[1, 4 9]")
@@ -1798,7 +1796,7 @@ def test_quantity_initialisation_from_string():
         u.Quantity("5 foo")
 
 
-@pytest.mark.parametrize("array", ("[7,  8,  9]", "[7,8,9]"))
+@pytest.mark.parametrize("array", ("[7,  8,  9]", "[7,8,9]", "[7 8 9]"))
 def test_quantity_initialisation_string_array_dimensionless(array):
     q = u.Quantity(array)
     assert q.unit == u.dimensionless_unscaled
@@ -1806,7 +1804,15 @@ def test_quantity_initialisation_string_array_dimensionless(array):
 
 
 @pytest.mark.parametrize(
-    "array", ("[7,  8,  9]eV", "[7,  8,  9]  eV", "[7, 8, 9]  eV", "[7,8,9]eV")
+    "array",
+    (
+        "[7,  8,  9]eV",
+        "[7,  8,  9]  eV",
+        "[7, 8, 9]  eV",
+        "[7,8,9]eV",
+        "[7 8 9]eV",
+        "[7 8 9] eV",
+    ),
 )
 def test_quantity_initialisation_string_array_unit(array):
     q = u.Quantity(array)
