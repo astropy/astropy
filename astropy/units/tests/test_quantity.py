@@ -1679,7 +1679,8 @@ def test_quantity_iterability():
     q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not np.iterable(q2)
-    pytest.raises(TypeError, iter, q2)
+    with pytest.raises(TypeError):
+        iter(q2)
 
 
 def test_copy():
