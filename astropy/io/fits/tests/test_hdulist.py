@@ -70,9 +70,8 @@ class TestHDUListFunctions(FitsTestCase):
         """
 
         hdul = fits.HDUList([fits.PrimaryHDU(), fits.PrimaryHDU()])
-        pytest.raises(
-            VerifyError, hdul.writeto, self.temp("temp.fits"), output_verify="exception"
-        )
+        with pytest.raises(VerifyError):
+            hdul.writeto(self.temp("temp.fits"), output_verify="exception")
 
     def test_append_primary_to_empty_list(self):
         # Tests appending a Simple PrimaryHDU to an empty HDUList.
@@ -813,7 +812,8 @@ class TestHDUListFunctions(FitsTestCase):
             test_fromstring(filename)
 
         # Test that creating an HDUList from something silly raises a TypeError
-        pytest.raises(TypeError, fits.HDUList.fromstring, ["a", "b", "c"])
+        with pytest.raises(TypeError):
+            fits.HDUList.fromstring(["a", "b", "c"])
 
     @pytest.mark.filterwarnings("ignore:Saving a backup")
     def test_save_backup(self, home_is_temp):
