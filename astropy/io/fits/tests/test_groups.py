@@ -211,7 +211,8 @@ class TestGroupsFunctions(FitsTestCase):
         # Test setting a parameter
         x[0].setpar(0, 2)
         assert x[0].par("abc") == 3
-        pytest.raises(ValueError, x[0].setpar, "abc", 2)
+        with pytest.raises(ValueError):
+            x[0].setpar("abc", 2)
         x[0].setpar("abc", (2, 3))
         assert x[0].par("abc") == 5
         assert x.par("abc")[0] == 5

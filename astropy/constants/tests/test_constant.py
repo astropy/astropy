@@ -48,14 +48,17 @@ def test_e():
     E = u.Quantity(100, "V/m")
 
     # Without specifying a system e should not combine with other quantities
-    pytest.raises(TypeError, lambda: e * E)
+    with pytest.raises(TypeError):
+        (lambda: e * E)()
     # Try it again (as regression test on a minor issue mentioned in #745 where
     # repeated attempts to use e in an expression resulted in UnboundLocalError
     # instead of TypeError)
-    pytest.raises(TypeError, lambda: e * E)
+    with pytest.raises(TypeError):
+        (lambda: e * E)()
 
     # e.cgs is too ambiguous and should not work at all
-    pytest.raises(TypeError, lambda: e.cgs * E)
+    with pytest.raises(TypeError):
+        (lambda: e.cgs * E)()
 
     assert isinstance(e.si, u.Quantity)
     assert isinstance(e.gauss, u.Quantity)
