@@ -14,9 +14,9 @@ from itertools import pairwise
 from textwrap import indent
 
 import numpy as np
-from numpy import char as chararray
 
 from astropy.utils import lazyproperty
+from astropy.utils.compat import chararray
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .card import CARD_LENGTH, Card
@@ -696,14 +696,14 @@ class Column(NotifierMixin):
         # input arrays can be just list or tuple, not required to be ndarray
         # does not include Object array because there is no guarantee
         # the elements in the object array are consistent.
-        if not isinstance(array, (np.ndarray, chararray.chararray, Delayed)):
+        if not isinstance(array, (np.ndarray, chararray, Delayed)):
             try:  # try to convert to a ndarray first
                 if array is not None:
                     array = np.array(array)
             except Exception:
                 try:  # then try to convert it to a strings array
                     itemsize = int(recformat[1:])
-                    array = chararray.array(array, itemsize=itemsize)
+                    array = np.char.array(array, itemsize=itemsize)
                 except ValueError:
                     # then try variable length array
                     # Note: This includes _FormatQ by inheritance
@@ -1388,7 +1388,7 @@ class Column(NotifierMixin):
                         fsize = dims[-1]
                     else:
                         fsize = np.dtype(format.recformat).itemsize
-                    return chararray.array(array, itemsize=fsize, copy=False)
+                    return np.char.array(array, itemsize=fsize, copy=False)
                 else:
                     return _convert_array(array, np.dtype(format.recformat))
             elif "L" in format:
@@ -2082,7 +2082,7 @@ class _VLF(np.ndarray):
             try:
                 # this handles ['abc'] and [['a','b','c']]
                 # equally, beautiful!
-                input = [chararray.array(x, itemsize=1) for x in input]
+                input = [np.char.array(x, itemsize=1) for x in input]
             except Exception:
                 raise ValueError(f"Inconsistent input data array: {input}")
 
@@ -2105,10 +2105,10 @@ class _VLF(np.ndarray):
         """
         if isinstance(value, np.ndarray) and value.dtype == self.dtype:
             pass
-        elif isinstance(value, chararray.chararray) and value.itemsize == 1:
+        elif isinstance(value, chararray) and value.itemsize == 1:
             pass
         elif self.element_dtype == "S":
-            value = chararray.array(value, itemsize=1)
+            value = np.char.array(value, itemsize=1)
         else:
             value = np.array(value, dtype=self.element_dtype)
         np.ndarray.__setitem__(self, key, value)
@@ -2262,7 +2262,7 @@ def _makep(array, descr_output, format, nrows=None):
             else:
                 rowval = [0] * data_output.max
         if format.dtype == "S":
-            data_output[idx] = chararray.array(encode_ascii(rowval), itemsize=1)
+            data_output[idx] = np.char.array(encode_ascii(rowval), itemsize=1)
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 

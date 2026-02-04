@@ -18,6 +18,7 @@ __all__ = [
     "NUMPY_LT_2_4",
     "NUMPY_LT_2_4_1",
     "NUMPY_LT_2_5",
+    "chararray",
 ]
 
 # TODO: It might also be nice to have aliases to these named for specific
@@ -42,3 +43,10 @@ def __getattr__(attr):
         return None
 
     raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
+
+
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+    class chararray(np.char.chararray):
+        pass
