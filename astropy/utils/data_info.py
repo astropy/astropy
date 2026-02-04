@@ -182,7 +182,7 @@ def _get_data_attribute(dat, attr=None):
         val = dtype_info_name(dat.info.dtype)
     elif attr == "shape":
         datshape = dat.shape[1:]
-        val = datshape if datshape else ""
+        val = datshape or ""
     else:
         val = getattr(dat.info, attr)
     if val is None:
