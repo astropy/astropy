@@ -11,6 +11,7 @@ See: https://docs.mesastar.org/en/stable/using_mesa/output.html
 
 :Author: Bill Wolf
 """
+
 import numpy as np
 
 from . import core
