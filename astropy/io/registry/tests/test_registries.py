@@ -426,8 +426,8 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
     def test_register_readers_with_same_name_on_different_classes(self, registry):
         # No errors should be generated if the same name is registered for
         # different objects...but this failed under python3
-        registry.register_reader("test", EmptyData, lambda: EmptyData())
-        registry.register_reader("test", OtherEmptyData, lambda: OtherEmptyData())
+        registry.register_reader("test", EmptyData, EmptyData)
+        registry.register_reader("test", OtherEmptyData, OtherEmptyData)
         t = EmptyData.read(format="test", registry=registry)
         assert isinstance(t, EmptyData)
         tbl = OtherEmptyData.read(format="test", registry=registry)
@@ -1092,7 +1092,7 @@ def test_read_basic_table():
         list(zip([1, 2, 3], ["a", "b", "c"])), dtype=[("A", int), ("B", "|U1")]
     )
     try:
-        registry.register_reader("test", Table, lambda x: Table(x))
+        registry.register_reader("test", Table, Table)
     except Exception:
         pass
     else:
