@@ -306,8 +306,8 @@ def test_htmlsplitter():
 @pytest.mark.parametrize(
     "get_table",
     [
-        lambda path: os.fspath(path),
-        lambda path: Path(path),
+        os.fspath,
+        Path,
         lambda path: Path(path).read_text(),
     ],
 )
