@@ -435,7 +435,7 @@ class AASTexHeaderSplitter(LatexSplitter):
 
     def process_line(self, line: str) -> str:
         """extract column names from tablehead."""
-        line = line.split("%")[0]
+        line = line.split("%", maxsplit=1)[0]
         line = line.replace(r"\tablehead", "")
         line = line.strip()
         if (line[0] == "{") and (line[-1] == "}"):
