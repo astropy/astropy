@@ -21,7 +21,6 @@ Test data files are located in astropy/io/ascii/tests/data/:
   `zone` column
 
 """
-import io
 
 import numpy as np
 import pytest
