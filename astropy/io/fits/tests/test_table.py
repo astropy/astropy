@@ -23,7 +23,7 @@ from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
 from astropy.table import Table
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
-from astropy.utils.compat import chararray
+from astropy.utils.compat import chararray, get_chararray
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import FitsTestCase
@@ -156,7 +156,7 @@ class TestTableFunctions(FitsTestCase):
         fd = fits.open(self.data("test0.fits"))
 
         # create some local arrays
-        a1 = np.char.array(["abc", "def", "xx"])
+        a1 = get_chararray(["abc", "def", "xx"])
         r1 = np.array([11.0, 12.0, 13.0], dtype=np.float32)
 
         # create a table from scratch, using a mixture of columns from existing
@@ -319,7 +319,7 @@ class TestTableFunctions(FitsTestCase):
 
         # Test Start Column
 
-        a1 = np.char.array(["abcd", "def"])
+        a1 = get_chararray(["abcd", "def"])
         r1 = np.array([11.0, 12.0])
         c1 = fits.Column(name="abc", format="A3", start=19, array=a1)
         c2 = fits.Column(name="def", format="E", start=3, array=r1)
@@ -1970,7 +1970,7 @@ class TestTableFunctions(FitsTestCase):
             "p\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         )
 
-        acol = fits.Column(name="MEMNAME", format="A10", array=np.char.array(a))
+        acol = fits.Column(name="MEMNAME", format="A10", array=get_chararray(a))
         ahdu = fits.BinTableHDU.from_columns([acol])
         assert ahdu.data.tobytes().decode("raw-unicode-escape") == s
         ahdu.writeto(self.temp("newtable.fits"))
