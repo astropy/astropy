@@ -1341,7 +1341,7 @@ class FITS_rec(np.recarray):
 
         # Replace exponent separator in floating point numbers
         if "D" in format:
-            output_field[:] = output_field.replace(b"E", b"D")
+            output_field[:] = np.strings.replace(output_field, b"E", b"D")
 
     def tolist(self):
         # Override .tolist to take care of special case of VLF

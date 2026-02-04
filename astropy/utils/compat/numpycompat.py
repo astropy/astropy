@@ -9,7 +9,10 @@ import warnings
 import numpy as np
 
 from astropy.utils import minversion
-from astropy.utils.exceptions import AstropyPendingDeprecationWarning
+from astropy.utils.exceptions import (
+    AstropyDeprecationWarning,
+    AstropyPendingDeprecationWarning,
+)
 
 __all__ = [
     "NUMPY_LT_2_1",
@@ -46,11 +49,60 @@ def __getattr__(attr):
     raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
 
 
+deprecated_attributes = (
+    "capitalize",
+    "center",
+    "count",
+    "decode",
+    "encode",
+    "endswith",
+    "expandtabs",
+    "find",
+    "index",
+    "isalnum",
+    "isalpha",
+    "isdecimal",
+    "isdigit",
+    "islower",
+    "isnumeric",
+    "isspace",
+    "istitle",
+    "isupper",
+    "join",
+    "ljust",
+    "lower",
+    "lstrip",
+    "replace",
+    "rfind",
+    "rindex",
+    "rjust",
+    "rpartition",
+    "rsplit",
+    "rstrip",
+    "split",
+    "splitlines",
+    "startswith",
+    "strip",
+    "swapcase",
+    "title",
+    "translate",
+    "upper",
+    "zfill",
+)
+
+
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     class chararray(np.char.chararray):
-        pass
+        def __getattribute__(self, name):
+            if name in deprecated_attributes:
+                warnings.warn(
+                    "chararray is deprecated, in future versions astropy will "
+                    "return a normal array so the special chararray methods "
+                    "(e.g. .rstrip()) will not be available",
+                    AstropyDeprecationWarning,)
+            return super().__getattribute__(name)
 
 
 def get_chararray(obj, itemsize=None, copy=True, unicode=None, order=None):

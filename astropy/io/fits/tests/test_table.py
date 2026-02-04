@@ -23,8 +23,8 @@ from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
 from astropy.table import Table
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
-from astropy.utils.compat import chararray, get_chararray
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.compat import get_chararray
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .conftest import FitsTestCase
 from .test_connect import TestMultipleHDU
@@ -2228,8 +2228,10 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp("test.fits")) as h:
             # Need to force string arrays to byte arrays in order to compare
             # correctly on Python 3
-            assert (h[1].data["str"].encode("ascii") == arra).all()
-            assert (h[1].data["strarray"].encode("ascii") == arrb).all()
+            with pytest.warns(AstropyDeprecationWarning, match="chararray is deprecated.*"):
+                assert (h[1].data["str"].encode("ascii") == arra).all()
+            with pytest.warns(AstropyDeprecationWarning, match="chararray is deprecated.*"):
+                assert (h[1].data["strarray"].encode("ascii") == arrb).all()
             assert (h[1].data["intarray"] == arrc).all()
 
     def test_mismatched_tform_and_tdim(self):
