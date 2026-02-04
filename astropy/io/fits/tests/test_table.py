@@ -1122,7 +1122,7 @@ class TestTableFunctions(FitsTestCase):
         assert row[1:4]["counts"] == 315
 
         with pytest.raises(KeyError):
-            (lambda r: r[1:4]["flag"])(row)
+            row[1:4]["flag"]
 
         row[1:4]["counts"] = 300
         assert row[1:4]["counts"] == 300
@@ -1140,7 +1140,7 @@ class TestTableFunctions(FitsTestCase):
         assert row[1:4]["counts"] == 300
 
         with pytest.raises(KeyError):
-            (lambda r: r[1:4]["flag"])(row)
+            row[1:4]["flag"]
 
         assert row[1:4].field(0) == 300
         assert row[1:4].field("counts") == 300
@@ -2518,18 +2518,17 @@ class TestTableFunctions(FitsTestCase):
             h[1].header["TFORM1"] = "E3"
             del h[1].header["TNULL1"]
 
-        with fits.open(self.temp("test.fits")) as h:
-            with pytest.raises(ValueError):
-                (lambda: h[1].data["F1"])()
-
-        try:
-            with fits.open(self.temp("test.fits")) as h:
-                h[1].data["F1"]
-        except ValueError as e:
-            assert str(e).endswith(
-                "the header may be missing the necessary TNULL1 "
-                "keyword or the table contains invalid data"
-            )
+        with (
+            fits.open(self.temp("test.fits")) as h,
+            pytest.raises(
+                ValueError,
+                match=(
+                    r"the header may be missing the necessary TNULL1 "
+                    "keyword or the table contains invalid data$"
+                ),
+            ),
+        ):
+            h[1].data["F1"]
 
     def test_blank_field_zero(self):
         """Regression test for https://github.com/astropy/astropy/issues/5134

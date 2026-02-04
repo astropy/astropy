@@ -49,16 +49,16 @@ def test_e():
 
     # Without specifying a system e should not combine with other quantities
     with pytest.raises(TypeError):
-        (lambda: e * E)()
+        e * E
     # Try it again (as regression test on a minor issue mentioned in #745 where
     # repeated attempts to use e in an expression resulted in UnboundLocalError
     # instead of TypeError)
     with pytest.raises(TypeError):
-        (lambda: e * E)()
+        e * E
 
     # e.cgs is too ambiguous and should not work at all
     with pytest.raises(TypeError):
-        (lambda: e.cgs * E)()
+        e.cgs * E
 
     assert isinstance(e.si, u.Quantity)
     assert isinstance(e.gauss, u.Quantity)
