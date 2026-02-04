@@ -262,9 +262,11 @@ class TestImageFunctions(FitsTestCase):
 
             # rename a keyword
             r[0].header.rename_keyword("filename", "fname")
-            pytest.raises(ValueError, r[0].header.rename_keyword, "fname", "history")
+            with pytest.raises(ValueError):
+                r[0].header.rename_keyword("fname", "history")
 
-            pytest.raises(ValueError, r[0].header.rename_keyword, "fname", "simple")
+            with pytest.raises(ValueError):
+                r[0].header.rename_keyword("fname", "simple")
             r[0].header.rename_keyword("fname", "filename")
 
             # get a subsection of data

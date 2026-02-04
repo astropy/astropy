@@ -55,7 +55,8 @@ def test_fake_tty():
     f2 = FakeTTY("ascii")
     assert f2.isatty()
     assert f2.__class__.__name__ == "AsciiFakeTTY"
-    assert pytest.raises(UnicodeEncodeError, f2.write, "☃")
+    with pytest.raises(UnicodeEncodeError):
+        f2.write("☃")
     assert f2.getvalue() == ""
 
 
@@ -203,4 +204,5 @@ def test_human_file_size(size, string):
 
 @pytest.mark.parametrize("size", (50 * u.km, 100 * u.g))
 def test_bad_human_file_size(size):
-    assert pytest.raises(u.UnitConversionError, console.human_file_size, size)
+    with pytest.raises(u.UnitConversionError):
+        console.human_file_size(size)
