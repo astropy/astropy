@@ -819,9 +819,6 @@ class TestHeaderFunctions(FitsTestCase):
         header = fits.Header()
         # De-referencing header through the inline function should behave
         # identically to accessing it in the pytest.raises context below.
-        with pytest.raises(KeyError):
-            (lambda k: header[k])("NAXIS")
-        # Test exception with message
         with pytest.raises(KeyError, match=r"Keyword 'NAXIS' not found."):
             header["NAXIS"]
 
@@ -2950,7 +2947,7 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         """
 
         with pytest.raises(IndexError):
-            (lambda x: self._test_header[x])(8)
+            self._test_header[8]
         # Test exception with message
         with pytest.raises(KeyError, match=r"Keyword 'DP1\.AXIS\.3' not found."):
             self._test_header["DP1.AXIS.3"]
@@ -3168,11 +3165,11 @@ class TestRecordValuedKeywordCards(FitsTestCase):
         assert "FOO.AXIS." not in h
         assert "FOO." not in h
         with pytest.raises(KeyError):
-            (lambda: h["FOO.AXIS"])()
+            h["FOO.AXIS"]
         with pytest.raises(KeyError):
-            (lambda: h["FOO.AXIS."])()
+            h["FOO.AXIS."]
         with pytest.raises(KeyError):
-            (lambda: h["FOO."])()
+            h["FOO."]
 
     def test_fitsheader_script(self):
         """Tests the basic functionality of the `fitsheader` script."""
