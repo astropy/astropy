@@ -100,12 +100,15 @@ with warnings.catch_warnings():
                 warnings.warn(
                     "chararray is deprecated, in future versions astropy will "
                     "return a normal array so the special chararray methods "
-                    "(e.g. .rstrip()) will not be available",
-                    AstropyDeprecationWarning,)
+                    "(e.g. .rstrip()) will not be available. Use np.strings "
+                    "functions instead.",
+                    AstropyDeprecationWarning,
+                )
             return super().__getattribute__(name)
 
 
 def get_chararray(obj, itemsize=None, copy=True, unicode=None, order=None):
+    """copied from np.char.array to return our custom chararray."""
     if isinstance(obj, (bytes, str)):
         if unicode is None:
             if isinstance(obj, str):

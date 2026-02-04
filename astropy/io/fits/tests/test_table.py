@@ -2228,9 +2228,13 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp("test.fits")) as h:
             # Need to force string arrays to byte arrays in order to compare
             # correctly on Python 3
-            with pytest.warns(AstropyDeprecationWarning, match="chararray is deprecated.*"):
+            with pytest.warns(
+                AstropyDeprecationWarning, match="chararray is deprecated.*"
+            ):
                 assert (h[1].data["str"].encode("ascii") == arra).all()
-            with pytest.warns(AstropyDeprecationWarning, match="chararray is deprecated.*"):
+            with pytest.warns(
+                AstropyDeprecationWarning, match="chararray is deprecated.*"
+            ):
                 assert (h[1].data["strarray"].encode("ascii") == arrb).all()
             assert (h[1].data["intarray"] == arrc).all()
 
