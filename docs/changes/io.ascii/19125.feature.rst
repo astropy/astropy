@@ -1,1 +1,4 @@
-Add ``ascii.mesa`` as a table type to read MESA history and profile output files.
+Add a new ``io.ascii`` format ``mesa`` to read history and profile output files from
+`MESA <https://mesastar.org>`_, a well-known code for stellar evolution
+calculations.
+

@@ -132,5 +132,5 @@ IAU 2015. To use previous version of CODATA, see :ref:`astropy-constants-prior`.
 
 Table formats
 =============
-A new format to read `MESA <https://mesastar.org>`_, a well-known code for stellar
-evolution calculations, has been added as a table reader.
+A new table reader has been added to read output files from `MESA <https://mesastar.org>`_,
+a well-known code for stellar evolution calculations.
