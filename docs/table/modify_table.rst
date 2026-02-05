@@ -22,7 +22,8 @@ Examples
 
 .. _table-mod-make-a-table:
 
-**Make a table**
+Make a table
+^^^^^^^^^^^^
 ::
 
   >>> from astropy.table import Table
@@ -32,7 +33,8 @@ Examples
 
 .. _table-mod-modify-data-values:
 
-**Modify data values**
+Modify data values
+^^^^^^^^^^^^^^^^^^
 ::
 
   >>> t['a'][:] = [1, -2, 3, -4, 5]  # Set all values of column 'a'
@@ -79,7 +81,8 @@ the conventions of `~astropy.units.Quantity` by using the
 
 .. _table-mod-add-a-column-or-columns:
 
-**Add a column or columns**
+Add a column or columns
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Adding Columns to Tables
 
@@ -123,7 +126,8 @@ convenient to add a |Quantity| to a |QTable| instead, see
 
 .. _table-mod-remove-columns:
 
-**Remove columns**
+Remove columns
+^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Removing Columns from Tables
 
@@ -139,7 +143,8 @@ To remove a column from a table::
 
 .. _table-mod-replace-a-column:
 
-**Replace a column**
+Replace a column
+^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Replacing Columns in Tables
 
@@ -160,7 +165,8 @@ will be done, for example::
 
 .. _table-mod-perform-a-dictionary-style-update:
 
-**Perform a dictionary-style update**
+Perform a dictionary-style update
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to perform a dictionary-style update, which adds new columns to
 the table and replaces existing ones::
@@ -218,7 +224,8 @@ for details.
 
 .. _table-mod-ensure-the-existence-of-a-column:
 
-**Ensure the existence of a column**
+Ensure the existence of a column
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 |Table| has a :meth:`~astropy.table.Table.setdefault` method, which is
 analogous to :meth:`dict.setdefault`.
@@ -254,7 +261,8 @@ Either way the (possibly just inserted) column in the table is returned::
 
 .. _table-mod-rename-columns:
 
-**Rename columns**
+Rename columns
+^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Renaming Columns in Tables
 
@@ -271,7 +279,8 @@ To rename multiple columns at once::
 
 .. _table-mod-add-a-row-of-data:
 
-**Add a row of data**
+Add a row of data
+^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Adding a Row of Data to a Table
 
@@ -283,7 +292,8 @@ To add a row::
 
 .. _table-mod-remove-rows:
 
-**Remove rows**
+Remove rows
+^^^^^^^^^^^
 
 .. EXAMPLE START: Removing Rows of Data from Tables
 
@@ -297,7 +307,8 @@ To remove a row::
 
 .. _table-mod-sort-by-one-or-more-columns:
 
-**Sort by one or more columns**
+Sort by one or more columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Sorting Columns in Tables
 
@@ -310,7 +321,8 @@ To sort columns::
 
 .. _table-mod-reverse-table-rows:
 
-**Reverse table rows**
+Reverse table rows
+^^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Reversing Table Rows
 
@@ -322,7 +334,8 @@ To reverse the order of table rows::
 
 .. _table-mod-modify-metadata:
 
-**Modify metadata**
+Modify metadata
+^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Modifying Metadata in Tables
 
@@ -334,7 +347,8 @@ To modify metadata::
 
 .. _table-mod-select-or-reorder-columns:
 
-**Select or reorder columns**
+Select or reorder columns
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Selecting or Reordering Columns in Tables
 
@@ -405,7 +419,8 @@ with float values by internally calling ``t.replace_column('a', [10.5, 20.5,
 
 .. _table-mod-forcing-in-place-update:
 
-**Forcing in-place update**
+Forcing in-place update
+-----------------------
 
 It is possible to force an in-place update of a column as follows::
 
@@ -413,7 +428,8 @@ It is possible to force an in-place update of a column as follows::
 
 .. _table-mod-finding-the-source-of-problems:
 
-**Finding the source of problems**
+Finding the source of problems
+------------------------------
 
 In order to find potential problems related to replacing columns, there is the
 option `astropy.table.conf.replace_warnings
