@@ -979,6 +979,204 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         expected = np.count_nonzero(self.ma.filled(0), axis=axis)
         assert_array_equal(o, expected)
 
+    @pytest.mark.parametrize(
+        "subscripts, operands, kwargs, expected_out_mask",
+        [
+            pytest.param(
+                "ii",
+                Masked(
+                    np.arange(4.0).reshape(2, 2),
+                    mask=[
+                        [0, 1],
+                        [1, 0],
+                    ],
+                ),
+                {},
+                False,
+                id="2x2 trace (unmasked)",
+            ),
+            pytest.param(
+                "ii",
+                Masked(
+                    np.arange(4.0).reshape(2, 2),
+                    mask=[
+                        [0, 0],
+                        [0, 1],
+                    ],
+                ),
+                {},
+                True,
+                id="2x2 trace (masked)",
+            ),
+            pytest.param(
+                "ii->i",
+                Masked(
+                    np.arange(9.0).reshape(3, 3),
+                    mask=[
+                        [0, 1, 1],
+                        [1, 0, 1],
+                        [1, 1, 0],
+                    ],
+                ),
+                {},
+                False,
+                id="3x3 diagonal (unmasked)",
+            ),
+            pytest.param(
+                "ii->i",
+                Masked(
+                    np.arange(9.0).reshape(3, 3),
+                    mask=[
+                        [0, 0, 0],
+                        [0, 0, 0],
+                        [0, 0, 1],
+                    ],
+                ),
+                {},
+                [0, 0, 1],
+                id="3x3 diagonal (masked)",
+            ),
+            pytest.param(
+                "ij,jk",
+                (
+                    Masked(
+                        np.arange(12).reshape(3, 4),
+                        mask=[
+                            [0, 1, 0, 0],
+                            [0, 0, 0, 0],
+                            [0, 0, 0, 0],
+                        ],
+                    ),
+                    Masked(
+                        np.arange(8).reshape(4, 2),
+                        mask=[
+                            [0, 0],
+                            [0, 0],
+                            [1, 0],
+                            [0, 0],
+                        ],
+                    ),
+                ),
+                {"out": Masked(np.empty((3, 2)))},
+                [
+                    [1, 1],
+                    [1, 0],
+                    [1, 0],
+                ],
+                id="2D matmul",
+            ),
+            pytest.param(
+                "ij,kj",
+                (
+                    Masked(
+                        np.arange(12).reshape(3, 4),
+                        mask=[
+                            [0, 1, 0, 0],
+                            [0, 0, 0, 0],
+                            [0, 0, 0, 0],
+                        ],
+                    ),
+                    Masked(
+                        np.arange(8).reshape(4, 2),
+                        mask=[
+                            [0, 0],
+                            [0, 0],
+                            [1, 0],
+                            [0, 0],
+                        ],
+                    ).transpose(),
+                ),
+                {"out": Masked(np.empty((3, 2)))},
+                [
+                    [1, 1],
+                    [1, 0],
+                    [1, 0],
+                ],
+                id="2D matmul w/ transposition",
+            ),
+            pytest.param(
+                "i->",
+                Masked(np.arange(4.0), mask=False),
+                {},
+                False,
+                id="sum(arr, axis=-1)",
+            ),
+            pytest.param(
+                "ji",
+                Masked(
+                    np.arange(4.0).reshape(2, 2),
+                    mask=[
+                        [0, 0],
+                        [1, 0],
+                    ],
+                ),
+                {},
+                [
+                    [0, 1],
+                    [0, 0],
+                ],
+                id="2x2 transposition",
+            ),
+            pytest.param(
+                "jki",
+                Masked(
+                    np.arange(6).reshape(1, 2, 3),
+                    mask=[[[0, 1, 0], [1, 0, 0]]],
+                ),
+                {},
+                [[[0, 1]], [[1, 0]], [[0, 0]]],
+                id="1x2x3->3x1x2 transposition",
+            ),
+            pytest.param(
+                "...i",
+                Masked(np.arange(4.0).reshape(2, 2), mask=[[0, 1], [0, 0]]),
+                {},
+                [[0, 1], [0, 0]],
+                id="identity (via ellipsis)",
+            ),
+            pytest.param(
+                "i...",
+                Masked(np.arange(4.0).reshape(2, 2), mask=[[0, 1], [0, 0]]),
+                {},
+                [[0, 0], [1, 0]],
+                id="transposition (via ellipsis)",
+            ),
+            pytest.param(
+                "i...i",
+                Masked(
+                    np.arange(8.0).reshape(2, 2, 2),
+                    mask=[[[0, 1], [0, 1]], [[1, 0], [1, 1]]],
+                ),
+                {},
+                [0, 1],
+                id="trace along first and last axes",
+            ),
+            # missing test cases
+            # - 'ij...,jk...->ik...' (matrix-matrix product with the left-most indices instead of rightmost)
+        ],
+    )
+    def test_einsum(self, subscripts, operands, kwargs, expected_out_mask):
+        if not isinstance(operands, tuple):
+            operands = (operands,)
+        res = np.einsum(subscripts, *operands, **kwargs)
+        assert_array_equal(res.mask, expected_out_mask)
+        kwargs_copy = kwargs.copy()
+        if "out" in kwargs:
+            assert res is kwargs["out"]
+            # remove out args to avoid pollution in the rest of the test
+            kwargs_copy.pop("out")
+
+        def as_ndarray(arr):
+            if isinstance(arr, MaskedNDArray):
+                return arr.unmasked
+            else:
+                return arr
+
+        expected_unmasked = np.einsum(
+            subscripts, *(as_ndarray(op) for op in operands), **kwargs_copy
+        )
+        assert_array_equal(res.unmasked, expected_unmasked)
+
 
 @pytest.mark.filterwarnings("ignore:all-nan")
 class TestPartitionLikeFunctions:
