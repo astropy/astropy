@@ -59,6 +59,7 @@ from .fixedwidth import (
 from .html import HTML
 from .ipac import Ipac
 from .latex import AASTex, Latex, latexdicts
+from .mesa import Mesa
 from .mrt import Mrt
 from .qdp import QDP
 from .rst import RST
