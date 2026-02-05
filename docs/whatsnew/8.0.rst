@@ -128,3 +128,9 @@ CODATA 2022 is now default in constants
 CODATA 2022 has replaced CODATA 2018 as default. ``astropyconst80`` is
 available for ``constants`` science state, combining CODATA 2022 with
 IAU 2015. To use previous version of CODATA, see :ref:`astropy-constants-prior`.
+
+
+Table formats
+=============
+A new table reader has been added to read history and profile output files from `MESA
+<https://mesastar.org>`_, a well-known code for stellar evolution calculations.
