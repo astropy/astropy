@@ -1267,7 +1267,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         # ExtensionHDU._verify, however ExtensionHDU._verify allows PCOUNT
         # to be >= 0, so we need to check it here
         self.req_cards(
-            "PCOUNT", naxis + 3, lambda v: (_is_int(v) and v == 0), 0, option, errs
+            "PCOUNT", naxis + 3, lambda v: _is_int(v) and v == 0, 0, option, errs
         )
         return errs
 
