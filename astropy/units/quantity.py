@@ -258,6 +258,7 @@ NUM: Final = r"""
         ([eE][+-]?\d+)?
         [.+-]?
 """
+
 VECTOR_COMMA: Final = rf"""
         \[\s*
         {NUM}
@@ -265,24 +266,25 @@ VECTOR_COMMA: Final = rf"""
         (\s*,\s*)
         {NUM}
         )*
+        (\s*,\s*)?
         \s*\]
 """
-VECTOR_SPACE: Final = rf"""
+VECTOR_WSPACE: Final = rf"""
         \[\s*
         {NUM}
         (?:
-        ([ ])
+        (\s+)
         {NUM}
         )*
         \s*\]
 """
-VECTOR: Final = rf"""
+VECTOR_1D: Final = rf"""
         {VECTOR_COMMA} |
-        {VECTOR_SPACE}
+        {VECTOR_WSPACE}
 """
 
 pattern: Final = re.compile(
-    rf"\s*(?:{NUM}|{VECTOR})\s*",
+    rf"\s*(?:{NUM}|{VECTOR_1D})\s*",
     re.VERBOSE,
 )
 
