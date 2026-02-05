@@ -1,0 +1,3 @@
+The ``scipy`` method of ``timeseries.periodograms.lombscargle.Lombscargle`` now
+supports the ``fit_mean=True`` setting with newer Scipy versions (1.15+),
+equivalent to its ``floating_mean`` option.
