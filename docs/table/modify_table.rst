@@ -20,7 +20,7 @@ Examples
 
 .. EXAMPLE START: Making a Table and Modifying Data
 
-.. _make-a-table:
+.. _table-mod-make-a-table:
 
 **Make a table**
 ::
@@ -30,7 +30,7 @@ Examples
   >>> arr = np.arange(15).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
 
-.. _modify-data-values:
+.. _table-mod-modify-data-values:
 
 **Modify data values**
 ::
@@ -77,7 +77,7 @@ the conventions of `~astropy.units.Quantity` by using the
 
 .. EXAMPLE END
 
-.. _add-a-column-or-columns:
+.. _table-mod-add-a-column-or-columns:
 
 **Add a column or columns**
 
@@ -121,7 +121,7 @@ convenient to add a |Quantity| to a |QTable| instead, see
 
 .. EXAMPLE END
 
-.. _remove-columns:
+.. _table-mod-remove-columns:
 
 **Remove columns**
 
@@ -137,7 +137,7 @@ To remove a column from a table::
 
 .. EXAMPLE END
 
-.. _replace-a-column:
+.. _table-mod-replace-a-column:
 
 **Replace a column**
 
@@ -158,7 +158,7 @@ will be done, for example::
 
 .. EXAMPLE END
 
-.. _perform-a-dictionary-style-update:
+.. _table-mod-perform-a-dictionary-style-update:
 
 **Perform a dictionary-style update**
 
@@ -216,7 +216,7 @@ you need them to be references you can use the
 :meth:`~astropy.table.Table.update` method with ``copy=False``, see :ref:`copy_versus_reference`
 for details.
 
-.. _ensure-the-existence-of-a-column:
+.. _table-mod-ensure-the-existence-of-a-column:
 
 **Ensure the existence of a column**
 
@@ -252,7 +252,7 @@ Either way the (possibly just inserted) column in the table is returned::
    Ham    False
   Spam    False
 
-.. _rename-columns:
+.. _table-mod-rename-columns:
 
 **Rename columns**
 
@@ -269,7 +269,7 @@ To rename multiple columns at once::
 
 .. EXAMPLE END
 
-.. _add-a-row-of-data:
+.. _table-mod-add-a-row-of-data:
 
 **Add a row of data**
 
@@ -281,7 +281,7 @@ To add a row::
 
 .. EXAMPLE END
 
-.. _remove-rows:
+.. _table-mod-remove-rows:
 
 **Remove rows**
 
@@ -295,7 +295,7 @@ To remove a row::
 
 .. EXAMPLE END
 
-.. _sort-by-one-or-more-columns:
+.. _table-mod-sort-by-one-or-more-columns:
 
 **Sort by one or more columns**
 
@@ -308,7 +308,7 @@ To sort columns::
 
 .. EXAMPLE END
 
-.. _reverse-table-rows:
+.. _table-mod-reverse-table-rows:
 
 **Reverse table rows**
 
@@ -320,7 +320,7 @@ To reverse the order of table rows::
 
 .. EXAMPLE END
 
-.. _modify-metadata:
+.. _table-mod-modify-metadata:
 
 **Modify metadata**
 
@@ -332,7 +332,7 @@ To modify metadata::
 
 .. EXAMPLE END
 
-.. _select-or-reorder-columns:
+.. _table-mod-select-or-reorder-columns:
 
 **Select or reorder columns**
 
@@ -403,7 +403,7 @@ with float values by internally calling ``t.replace_column('a', [10.5, 20.5,
 30.5])``. In general this behavior is more consistent with Python and `pandas
 <https://pandas.pydata.org>`_ behavior.
 
-.. _forcing-in-place-update:
+.. _table-mod-forcing-in-place-update:
 
 **Forcing in-place update**
 
@@ -411,7 +411,7 @@ It is possible to force an in-place update of a column as follows::
 
   t[colname][:] = value
 
-.. _finding-the-source-of-problems:
+.. _table-mod-finding-the-source-of-problems:
 
 **Finding the source of problems**
 
