@@ -1,1 +1,0 @@
-Fixed a bug in ``add_data_origin_info()`` where ``content`` is ignored for some INFO names.

@@ -22,7 +22,7 @@ import importlib
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.shapes import NDArrayShapeMethods, ShapedLikeNDArray
 
@@ -216,12 +216,12 @@ class Masked(NDArrayShapeMethods):
     # Subclasses can override this in case the class does not work
     # with this signature, or to provide a faster implementation.
     @classmethod
-    def from_unmasked(cls, data, mask=None, copy=COPY_IF_NEEDED):
+    def from_unmasked(cls, data, mask=None, copy=None):
         """Create an instance from unmasked data and a mask."""
         return cls(data, mask=mask, copy=copy)
 
     @classmethod
-    def _get_masked_instance(cls, data, mask=None, copy=COPY_IF_NEEDED):
+    def _get_masked_instance(cls, data, mask=None, copy=None):
         data, data_mask = get_data_and_mask(data)
         if mask is None:
             mask = False if data_mask is None else data_mask
@@ -344,7 +344,7 @@ class Masked(NDArrayShapeMethods):
             data = getattr(self.unmasked, method)(*args, **kwargs)
             mask = getattr(self.mask, method)(*args, **kwargs)
 
-        result = self.from_unmasked(data, mask, copy=COPY_IF_NEEDED)
+        result = self.from_unmasked(data, mask, copy=None)
         if "info" in self.__dict__:
             result.info = self.info
 
@@ -618,16 +618,19 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         if "info" not in cls.__dict__ and hasattr(cls._data_cls, "info"):
             data_info = cls._data_cls.info
             attr_names = data_info.attr_names | {"serialize_method"}
+            # Ensure the new info class uses the class's module.
+            # Without this, the DataInfoMeta metaclass incorrectly sets
+            # __module__ to its own.
             new_info = type(
                 cls.__name__ + "Info",
                 (MaskedArraySubclassInfo, data_info.__class__),
-                dict(attr_names=attr_names),
+                dict(attr_names=attr_names, __module__=cls.__module__),
             )
             cls.info = new_info()
 
     # The two pieces typically overridden.
     @classmethod
-    def from_unmasked(cls, data, mask=None, copy=COPY_IF_NEEDED):
+    def from_unmasked(cls, data, mask=None, copy=None):
         # Note: have to override since __new__ would use ndarray.__new__
         # which expects the shape as its first argument, not an array.
         data = np.array(data, subok=True, copy=copy)
@@ -741,14 +744,26 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
 
     @shape.setter
     def shape(self, shape):
+        return self._set_shape(shape)
+
+    def _set_shape(self, shape):
         old_shape = self.shape
-        self._mask.shape = shape
+        if NUMPY_LT_2_5:
+            self._mask.shape = shape
+        else:
+            self._mask._set_shape(shape)
         # Reshape array proper in try/except just in case some broadcasting
         # or so causes it to fail.
         try:
-            super(MaskedNDArray, type(self)).shape.__set__(self, shape)
+            if NUMPY_LT_2_5:
+                super(MaskedNDArray, type(self)).shape.__set__(self, shape)
+            else:
+                super()._set_shape(shape)
         except Exception as exc:
-            self._mask.shape = old_shape
+            if NUMPY_LT_2_5:
+                self._mask.shape = old_shape
+            else:
+                self._mask._set_shape(old_shape)
             # Given that the mask reshaping succeeded, the only logical
             # reason for an exception is something like a broadcast error in
             # in __array_finalize__, or a different memory ordering between
@@ -872,17 +887,9 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             else:
                 # Parse signature with private numpy function. Note it
                 # cannot handle spaces in tuples, so remove those.
-                if NUMPY_LT_2_0:
-                    in_sig, out_sig = np.lib.function_base._parse_gufunc_signature(
-                        ufunc.signature.replace(" ", "")
-                    )
-                else:
-                    (
-                        in_sig,
-                        out_sig,
-                    ) = np.lib._function_base_impl._parse_gufunc_signature(
-                        ufunc.signature.replace(" ", "")
-                    )
+                in_sig, out_sig = np.lib._function_base_impl._parse_gufunc_signature(
+                    ufunc.signature.replace(" ", "")
+                )
                 axes = kwargs.get("axes")
                 if axes is None:
                     # Maybe axis was given? (Note: ufunc will not take both.)
@@ -986,12 +993,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                     # Accumulate
                     axis = kwargs.get("axis", 0)
                     mask = np.logical_or.accumulate(mask, axis=axis, out=out_mask)
-
-            elif out is None:
-                # Can only get here if neither input nor output was masked, but
-                # perhaps where was masked (possible in "not NUMPY_LT_1_25").
-                # We don't support this.
-                return NotImplemented
 
         elif method in {"reduceat", "at"}:  # pragma: no cover
             raise NotImplementedError(
@@ -1209,8 +1210,6 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
             # As done inside the argsort implementation in multiarray/methods.c.
             if order is None:
                 order = self.dtype.names
-            elif NUMPY_LT_2_0:
-                order = np.core._internal._newnames(self.dtype, order)
             else:
                 order = np._core._internal._newnames(self.dtype, order)
 
@@ -1234,9 +1233,7 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         they are present only so that subclasses can pass them on.
         """
         # TODO: probably possible to do this faster than going through argsort!
-        argsort_kwargs = dict(kind=kind, order=order)
-        if not NUMPY_LT_2_0:
-            argsort_kwargs["stable"] = stable
+        argsort_kwargs = dict(kind=kind, order=order, stable=stable)
         indices = self.argsort(axis, **argsort_kwargs)
         self[:] = np.take_along_axis(self, indices, axis=axis)
 
@@ -1430,13 +1427,14 @@ class MaskedRecarray(np.recarray, MaskedNDArray, data_cls=np.recarray):
 
 
 def __getattr__(key):
-    """Make commonly used Masked subclasses importable for ASDF support.
+    """Make commonly used Masked subclasses and their info classes importable for ASDF support.
 
     Registered types associated with ASDF converters must be importable by
     their fully qualified name. Masked classes are dynamically created and have
     apparent names like ``astropy.utils.masked.core.MaskedQuantity`` although
     they aren't actually attributes of this module. Customize module attribute
-    lookup so that certain commonly used Masked classes are importable.
+    lookup so that certain commonly used Masked classes are importable. The same
+    is done for their dynamically created info classes.
 
     See:
     - https://asdf.readthedocs.io/en/latest/asdf/extending/converters.html#entry-point-performance-considerations
@@ -1450,13 +1448,14 @@ def __getattr__(key):
         base_class_name = key[len(Masked.__name__) :]
         for base_class_qualname in __construct_mixin_classes:
             module, _, name = base_class_qualname.rpartition(".")
-            if name == base_class_name:
+            is_info = name + "Info" == base_class_name
+            if name == base_class_name or is_info:
                 base_class = getattr(importlib.import_module(module), name)
                 # Try creating the masked class
                 masked_class = Masked(base_class)
                 # But only return it if it is a standard one, not one
                 # where we just used the ndarray fallback.
                 if base_class in Masked._masked_classes:
-                    return masked_class
+                    return masked_class.info.__class__ if is_info else masked_class
 
     raise AttributeError(f"module '{__name__}' has no attribute '{key}'")

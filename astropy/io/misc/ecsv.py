@@ -116,7 +116,7 @@ class ColumnECSV:
     """
     Class representing attributes of a column in an ECSV header.
 
-    Attributes
+    Parameters
     ----------
     name : str
         The name of the column.
@@ -133,7 +133,7 @@ class ColumnECSV:
     meta : dict or None, optional
         Additional metadata associated with the column.
 
-    Properties
+    Attributes
     ----------
     csv_np_type : str
         Numpy type string describing the column CSV data. In practice this is the same
@@ -141,7 +141,7 @@ class ColumnECSV:
         engine ``convert_np_type()`` method to generate the engine-specific type
         provided to the CSV reader. For instance, for pandas the ``int32`` type gets
         converted to ``Int32`` to read columns as a nullable int32.
-    dtype : np.dtype
+    dtype : `numpy.dtype`
         Numpy dtype in the final column data. This may be entirely different from
         ``csv_np_type`` in some cases, in particular JSON-encoded fields.
     shape : tuple of int
@@ -182,7 +182,7 @@ class ECSVHeader:
     """
     Class representing the information in an ECSV header.
 
-    Attributes
+    Parameters
     ----------
     n_header : int
         Total number of header lines in the ECSV file (including empty).
@@ -217,7 +217,7 @@ class ECSVEngine(metaclass=abc.ABCMeta):
     - `engines` is a base class-level dictionary that maps engine names to their
       respective engine classes. Subclasses should not modify this directly.
 
-    Properties
+    Parameters
     ----------
     name : str
         Name of the engine, used for ``engine`` parameter in a call like:

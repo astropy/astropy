@@ -1,5 +1,0 @@
-Added a new ECSV table reading module that supports different backend engines for the
-CSV data parsing. In addition to the default "io.ascii" engine, this includes engines
-that use the PyArrow and Pandas CSV readers. These can be up to 16 times faster and are
-more memory efficient than the native astropy ECSV reader. To get help with this
-interface run ``Table.read.help(format="ecsv")``.

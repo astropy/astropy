@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Cosmological unit equivalencies."""
 
-__all__ = [
+__all__ = (
     # redshift equivalencies
     "dimensionless_redshift",
     "redshift_distance",
@@ -10,7 +10,7 @@ __all__ = [
     # other equivalencies
     "with_H0",
     "with_redshift",
-]
+)
 
 
 import sys

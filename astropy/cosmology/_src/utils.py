@@ -11,7 +11,6 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.units import Quantity
-from astropy.utils.compat import COPY_IF_NEEDED
 
 # isort: split
 import astropy.cosmology._src.units as cu
@@ -98,14 +97,14 @@ def aszarr(
     elif isinstance(z, np.ndarray):
         return z
 
-    return Quantity(z, cu.redshift, copy=COPY_IF_NEEDED, subok=True).view(np.ndarray)
+    return Quantity(z, cu.redshift, copy=None, subok=True).view(np.ndarray)
 
 
 # ===================================================================
 
 
 def deprecated_keywords(
-    *kws: str, since: str | float | tuple[str | float, ...]
+    *kws: str, since: str | tuple[str, ...]
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Deprecate calling one or more arguments as keywords.
 
@@ -114,17 +113,15 @@ def deprecated_keywords(
     *kws: str
         Names of the arguments that will become positional-only.
 
-    since : str or number or sequence of str or number
-        The release at which the old argument became deprecated.
+    since : str, float, or tuple of str or float
+        The release at which the old argument became deprecated. Can be a single
+        version (e.g., "7.0" or 7.0) or a tuple of versions for multiple arguments.
     """
     return functools.partial(_depr_kws, kws=kws, since=since)
 
 
 def _depr_kws(
-    func: Callable[P, R],
-    /,
-    kws: tuple[str, ...],
-    since: str | float | tuple[str | float, ...],
+    func: Callable[P, R], /, kws: tuple[str, ...], since: str | tuple[str, ...]
 ) -> Callable[P, R]:
     wrapper = _depr_kws_wrap(func, kws, since)
     functools.update_wrapper(wrapper, func)

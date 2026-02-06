@@ -13,7 +13,6 @@ import pytest
 from astropy.io import fits
 from astropy.io.fits.hdu.base import _NonstandardHDU, _ValidHDU
 from astropy.io.fits.verify import VerifyError, VerifyWarning
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.data import get_pkg_data_filenames
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
@@ -71,9 +70,8 @@ class TestHDUListFunctions(FitsTestCase):
         """
 
         hdul = fits.HDUList([fits.PrimaryHDU(), fits.PrimaryHDU()])
-        pytest.raises(
-            VerifyError, hdul.writeto, self.temp("temp.fits"), output_verify="exception"
-        )
+        with pytest.raises(VerifyError):
+            hdul.writeto(self.temp("temp.fits"), output_verify="exception")
 
     def test_append_primary_to_empty_list(self):
         # Tests appending a Simple PrimaryHDU to an empty HDUList.
@@ -708,11 +706,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdul[0].header == orig_header[:-1]
             assert (hdul[0].data == data).all()
 
-        if (
-            sys.platform.startswith("win")
-            and sys.version_info < (3, 14)
-            and not NUMPY_LT_2_0
-        ):
+        if sys.platform.startswith("win") and sys.version_info < (3, 14):
             ctx = pytest.warns(
                 UserWarning,
                 match="Memory map object was closed but appears to still be referenced",
@@ -818,7 +812,8 @@ class TestHDUListFunctions(FitsTestCase):
             test_fromstring(filename)
 
         # Test that creating an HDUList from something silly raises a TypeError
-        pytest.raises(TypeError, fits.HDUList.fromstring, ["a", "b", "c"])
+        with pytest.raises(TypeError):
+            fits.HDUList.fromstring(["a", "b", "c"])
 
     @pytest.mark.filterwarnings("ignore:Saving a backup")
     def test_save_backup(self, home_is_temp):

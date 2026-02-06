@@ -134,15 +134,14 @@ class TestCompressedImage(FitsTestCase):
         not 2D and has a non-2D tile size.
         """
 
-        pytest.raises(
-            ValueError,
-            fits.CompImageHDU,
-            np.zeros((2, 10, 10), dtype=np.float32),
-            name="SCI",
-            compression_type="HCOMPRESS_1",
-            quantize_level=16,
-            tile_shape=(2, 10, 10),
-        )
+        with pytest.raises(ValueError):
+            fits.CompImageHDU(
+                np.zeros((2, 10, 10), dtype=np.float32),
+                name="SCI",
+                compression_type="HCOMPRESS_1",
+                quantize_level=16,
+                tile_shape=(2, 10, 10),
+            )
 
     def test_comp_image_hcompress_image_stack(self):
         """

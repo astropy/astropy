@@ -10,6 +10,7 @@ from xmlrpc.server import SimpleXMLRPCRequestHandler, SimpleXMLRPCServer
 
 from .constants import SAMP_ICON
 from .errors import SAMPWarning
+from .utils import safe_xmlrpc_loads
 
 __all__ = []
 
@@ -53,7 +54,7 @@ class SAMPSimpleXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
                 size_remaining -= len(L[-1])
             data = b"".join(L)
 
-            params, method = xmlrpc.loads(data)
+            params, method = safe_xmlrpc_loads(data)
 
             if method == "samp.webhub.register":
                 params = list(params)

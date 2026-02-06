@@ -182,7 +182,7 @@ def _get_data_attribute(dat, attr=None):
         val = dtype_info_name(dat.info.dtype)
     elif attr == "shape":
         datshape = dat.shape[1:]
-        val = datshape if datshape else ""
+        val = datshape or ""
     else:
         val = getattr(dat.info, attr)
     if val is None:
@@ -294,20 +294,20 @@ class DataInfo(metaclass=DataInfoMeta):
     # (SkyCoordInfo).  These attributes may be scalars or arrays.  If arrays
     # that match the object length they will be serialized as an independent
     # column.
-    _represent_as_dict_attrs = ()
+    _represent_as_dict_attrs: tuple[str, ...] = ()
 
     # This specifies attributes which are to be provided to the class
     # initializer as ordered args instead of keyword args.  This is needed
     # for Quantity subclasses where the keyword for data varies (e.g.
     # between Quantity and Angle).
-    _construct_from_dict_args = ()
+    _construct_from_dict_args: tuple[str, ...] = ()
 
     # This specifies the name of an attribute which is the "primary" data.
     # Then when representing as columns
     # (table.serialize._represent_mixin_as_column) the output for this
     # attribute will be written with the just name of the mixin instead of the
     # usual "<name>.<attr>".
-    _represent_as_dict_primary_data = None
+    _represent_as_dict_primary_data: str | None = None
 
     def __init__(self, bound=False):
         # If bound to a data object instance then create the dict of attributes
@@ -712,7 +712,7 @@ class BaseColumnInfo(DataInfo):
             Of merged attributes.
 
         """
-        from astropy.table.np_utils import TableMergeError
+        from astropy.table.operations import TableMergeError
 
         def warn_str_func(key, left, right):
             out = (
@@ -738,7 +738,7 @@ class BaseColumnInfo(DataInfo):
             )
 
         # Output dtype is the superset of all dtypes in in_cols
-        out["dtype"] = metadata.common_dtype(cols)
+        out["dtype"] = metadata.utils.result_type(cols)
 
         # Make sure all input shapes are the same
         uniq_shapes = {col.shape[1:] for col in cols}

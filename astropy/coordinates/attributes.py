@@ -7,7 +7,6 @@ import numpy as np
 from astropy import units as u
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .earth import EarthLocation
 from .representation import BaseDifferential, CartesianRepresentation
@@ -379,7 +378,7 @@ class QuantityAttribute(Attribute):
             )
 
         oldvalue = value
-        value = u.Quantity(oldvalue, self.unit, copy=COPY_IF_NEEDED)
+        value = u.Quantity(oldvalue, self.unit, copy=None)
         if self.shape is not None and value.shape != self.shape:
             if value.shape == () and oldvalue == 0:
                 # Allow a single 0 to fill whatever shape is needed.

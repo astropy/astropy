@@ -1,5 +1,0 @@
-The functionality of ``astropy.coordinates.concatenate`` and
-``astropy.coordinates.concatenate_representations`` is now available using
-``np.concatenate``. Hence, these functions are being deprecated, emitting an
-``AstropyPendingDeprecationWarning`` starting with astropy 7.2. This will be
-followed by a regular deprecation warning in astropy 8.0, and removal in 9.0.

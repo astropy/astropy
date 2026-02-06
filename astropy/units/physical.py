@@ -10,8 +10,6 @@ import numbers
 from collections.abc import Iterator
 from typing import Final, Union
 
-from astropy.utils.compat import COPY_IF_NEEDED
-
 from . import astrophys, cgs, core, misc, quantity, si
 from .typing import PhysicalTypeID, QuantityLike, UnitPowerLike
 
@@ -259,6 +257,8 @@ class PhysicalType:
         Return `True` if ``other`` represents a physical type that is
         consistent with the physical type of the `PhysicalType` instance.
         """
+        if self is other:
+            return True
         if isinstance(other, PhysicalType):
             return self._unit._physical_type_id == other._unit._physical_type_id
         elif isinstance(other, str):
@@ -529,7 +529,7 @@ def get_physical_type(
         unit = obj
     else:
         try:
-            unit = quantity.Quantity(obj, copy=COPY_IF_NEEDED).unit
+            unit = quantity.Quantity(obj, copy=None).unit
         except TypeError as exc:
             raise TypeError(f"{obj} does not correspond to a physical type.") from exc
 

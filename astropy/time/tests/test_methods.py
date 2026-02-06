@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
-import itertools
 import warnings
 
 import numpy as np
@@ -11,13 +10,9 @@ from numpy.testing import assert_array_equal
 import astropy.units as u
 from astropy.time import Time
 from astropy.time.utils import day_frac
-from astropy.units.quantity_helper.function_helpers import ARRAY_FUNCTION_ENABLED
 from astropy.utils import iers
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
-needs_array_function = pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
-)
 
 
 def assert_time_all_equal(t1, t2):
@@ -320,7 +315,7 @@ class TestSetShape(ShapeSetup):
 
         t0_reshape = self.t0.copy()
         mjd = t0_reshape.mjd  # Creates a cache of the mjd attribute
-        t0_reshape.shape = (5, 2, 5)
+        t0_reshape = np.reshape(t0_reshape, (5, 2, 5))
         assert t0_reshape.shape == (5, 2, 5)
         assert mjd.shape != t0_reshape.mjd.shape  # Cache got cleared
         assert np.all(t0_reshape.jd1 == self.t0._time.jd1.reshape(5, 2, 5))
@@ -328,16 +323,26 @@ class TestSetShape(ShapeSetup):
         assert t0_reshape.location is None
         # But if the shape doesn't work, one should get an error.
         t0_reshape_t = t0_reshape.T
-        with pytest.raises(ValueError):
-            t0_reshape_t.shape = (12,)  # Wrong number of elements.
-        with pytest.raises(AttributeError):
-            t0_reshape_t.shape = (10, 5)  # Cannot be done without copy.
+
+        if NUMPY_LT_2_5:
+            depr_warning_action = "error"
+        else:
+            depr_warning_action = "ignore"
+        with warnings.catch_warnings():
+            warnings.simplefilter(depr_warning_action, DeprecationWarning)
+            with pytest.raises(ValueError):
+                t0_reshape_t.shape = (12,)  # Wrong number of elements.
+            with pytest.raises((AttributeError, ValueError)):
+                # the exact exception type isn't really in our control,
+                # as it ultimately comes from numpy but depends on astropy's
+                # execution flow
+                t0_reshape_t.shape = (10, 5)  # Cannot be done without copy.
         # check no shape was changed.
         assert t0_reshape_t.shape == t0_reshape.T.shape
         assert t0_reshape_t.jd1.shape == t0_reshape.T.shape
         assert t0_reshape_t.jd2.shape == t0_reshape.T.shape
         t1_reshape = self.t1.copy()
-        t1_reshape.shape = (2, 5, 5)
+        t1_reshape = np.reshape(t1_reshape, (2, 5, 5))
         assert t1_reshape.shape == (2, 5, 5)
         assert np.all(t1_reshape.jd1 == self.t1.jd1.reshape(2, 5, 5))
         # location is a single element, so its shape should not change.
@@ -364,7 +369,6 @@ class TestSetShape(ShapeSetup):
 
 @pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
 class TestShapeFunctions(ShapeSetup):
-    @needs_array_function
     def test_broadcast(self, use_mask):
         """Test as supported numpy function."""
         self.create_data(use_mask)
@@ -386,7 +390,6 @@ class TestShapeFunctions(ShapeSetup):
         assert t2_broadcast.location.shape == t2_broadcast.shape
         assert np.may_share_memory(t2_broadcast.location, self.t2.location)
 
-    @needs_array_function
     def test_atleast_1d(self, use_mask):
         self.create_data(use_mask)
 
@@ -398,7 +401,6 @@ class TestShapeFunctions(ShapeSetup):
         # Actual jd1 will not share memory, as cast to scalar.
         assert np.may_share_memory(t00_1d._time.jd1, t00._time.jd1)
 
-    @needs_array_function
     def test_atleast_2d(self, use_mask):
         self.create_data(use_mask)
 
@@ -409,7 +411,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(t0r[np.newaxis], t0r_2d)
         assert np.may_share_memory(t0r_2d.jd1, t0r.jd1)
 
-    @needs_array_function
     def test_atleast_3d(self, use_mask):
         self.create_data(use_mask)
 
@@ -438,7 +439,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(self.t0.T, t0_10)
         assert np.may_share_memory(t0_10.jd1, self.t0.jd1)
 
-    @needs_array_function
     def test_fliplr(self, use_mask):
         self.create_data(use_mask)
 
@@ -446,7 +446,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(self.t0[:, ::-1], t0_lr)
         assert np.may_share_memory(t0_lr.jd2, self.t0.jd2)
 
-    @needs_array_function
     def test_rot90(self, use_mask):
         self.create_data(use_mask)
 
@@ -454,7 +453,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(self.t0.T[:, ::-1], t0_270)
         assert np.may_share_memory(t0_270.jd2, self.t0.jd2)
 
-    @needs_array_function
     def test_roll(self, use_mask):
         self.create_data(use_mask)
 
@@ -462,7 +460,6 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(t0r[1:], self.t0[:-1])
         assert_time_all_equal(t0r[0], self.t0[-1])
 
-    @needs_array_function
     def test_delete(self, use_mask):
         self.create_data(use_mask)
 
@@ -570,7 +567,8 @@ class TestArithmetic:
         self.t2 = self.__class__.t2[use_mask]
         self.jd = self.__class__.jd[use_mask]
 
-    @pytest.mark.parametrize("kw, func", list(itertools.product(kwargs, functions)))
+    @pytest.mark.parametrize("kw", kwargs)
+    @pytest.mark.parametrize("func", functions)
     def test_argfuncs(self, kw, func, use_mask):
         """
         Test that ``np.argfunc(jd, **kw)`` is the same as ``t0.argfunc(**kw)``
@@ -594,7 +592,8 @@ class TestArithmetic:
         assert t0v.shape == jdv.shape
         assert t1v.shape == jdv.shape
 
-    @pytest.mark.parametrize("kw, func", list(itertools.product(kwargs, functions)))
+    @pytest.mark.parametrize("kw", kwargs)
+    @pytest.mark.parametrize("func", functions)
     def test_funcs(self, kw, func, use_mask):
         """
         Test that ``np.func(jd, **kw)`` is the same as ``t1.func(**kw)`` where

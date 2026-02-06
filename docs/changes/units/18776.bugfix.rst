@@ -1,2 +1,0 @@
-The ``"ogip"`` unit formatter can now parse strings that include signed
-fractions in the exponent, e.g. ``u.Unit("m**(-1/2)", format="ogip")``.

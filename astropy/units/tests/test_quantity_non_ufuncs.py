@@ -9,10 +9,10 @@ import numpy as np
 import numpy.lib.recfunctions as rfn
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
+from numpy.testing.overrides import allows_array_function_override
 
 from astropy import units as u
 from astropy.units.quantity_helper.function_helpers import (
-    ARRAY_FUNCTION_ENABLED,
     DISPATCHED_FUNCTIONS,
     FUNCTION_HELPERS,
     IGNORED_FUNCTIONS,
@@ -21,43 +21,22 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import (
-    NUMPY_LT_1_25,
-    NUMPY_LT_2_0,
-    NUMPY_LT_2_1,
-    NUMPY_LT_2_2,
-    NUMPY_LT_2_4,
-)
+from astropy.utils.compat import NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
 
 VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
 VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
 POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
 KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
 POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
+EMPTY_DEFAULT = inspect.Parameter.empty
 
 ARCSEC_PER_DEGREE = 60 * 60
 ARCSEC_PER_RADIAN = ARCSEC_PER_DEGREE * np.rad2deg(1)
-
-needs_array_function = pytest.mark.xfail(
-    not ARRAY_FUNCTION_ENABLED, reason="Needs __array_function__ support"
-)
 
 
 # To get the functions that could be covered, we look for those that
 # are in modules we care about and have been overridden.
 def get_wrapped_functions(*modules: ModuleType) -> set[FunctionType]:
-    if NUMPY_LT_1_25:
-
-        def allows_array_function_override(f):
-            return (
-                hasattr(f, "__wrapped__")
-                and f is not np.printoptions
-                and not f.__name__.startswith("_")
-            )
-
-    else:
-        from numpy.testing.overrides import allows_array_function_override
-
     return {
         f
         for module in modules
@@ -215,10 +194,8 @@ class TestShapeManipulation(InvariantUnitTestSetup):
         assert type(a1) is np.ndarray
         assert type(a2) is np.ndarray
 
-    if not NUMPY_LT_2_0:
-
-        def test_matrix_transpose(self):
-            self.check(np.matrix_transpose)
+    def test_matrix_transpose(self):
+        self.check(np.matrix_transpose)
 
 
 class TestArgFunctions(NoUnitTestSetup):
@@ -247,7 +224,6 @@ class TestArgFunctions(NoUnitTestSetup):
     def test_argwhere(self):
         self.check(np.argwhere)
 
-    @needs_array_function
     def test_argpartition(self):
         self.check(np.argpartition, 2)
 
@@ -277,7 +253,6 @@ class TestAlongAxis(BasicTestSetup):
         expected = np.apply_along_axis(np.square, axis, self.q.value) * self.q.unit**2
         assert_array_equal(out, expected)
 
-    @needs_array_function
     @pytest.mark.parametrize("axes", ((1,), (0,), (0, 1)))
     def test_apply_over_axes(self, axes):
         def function(x, axis):
@@ -312,19 +287,11 @@ class TestRealImag(InvariantUnitTestSetup):
 
 
 class TestCopyAndCreation(InvariantUnitTestSetup):
-    @needs_array_function
     def test_copy(self):
         self.check(np.copy)
         # Also as kwarg
         copy = np.copy(a=self.q)
         assert_array_equal(copy, self.q)
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.asfarray is removed in NumPy 2.0")
-    @needs_array_function
-    def test_asfarray(self):
-        self.check(np.asfarray)  # noqa: NPY201
-        farray = np.asfarray(a=self.q)  # noqa: NPY201
-        assert_array_equal(farray, self.q)
 
     def test_empty_like(self):
         o = np.empty_like(self.q)
@@ -346,7 +313,6 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
     def test_ones_like(self):
         self.check(np.ones_like)
 
-    @needs_array_function
     def test_full_like(self):
         o = np.full_like(self.q, 0.5 * u.km)
         expected = np.empty_like(self.q.value) * u.m
@@ -355,13 +321,10 @@ class TestCopyAndCreation(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.full_like(self.q, 0.5 * u.s)
 
-    if not NUMPY_LT_2_0:
+    def test_astype(self):
+        int32q = self.q.astype("int32")
+        assert_array_equal(np.astype(int32q, "int32"), int32q)
 
-        def test_astype(self):
-            int32q = self.q.astype("int32")
-            assert_array_equal(np.astype(int32q, "int32"), int32q)
-
-    @needs_array_function
     @pytest.mark.parametrize(
         "args, kwargs, expected",
         [
@@ -498,7 +461,7 @@ class TestArrayCreation(BasicTestSetup):
         self.check(np.array, np.arange(10))
 
     def test_array_unit_from_data(self):
-        # check that input unit takes precedent over like arg
+        # check that input unit takes precedence over like arg
         Q = np.arange(10) << u.km
         arr2 = np.array(Q.value << u.cm, like=Q)
         assert type(arr2) is u.Quantity
@@ -570,7 +533,6 @@ class TestAccessingParts(InvariantUnitTestSetup):
     def test_diag(self):
         self.check(np.diag)
 
-    @needs_array_function
     def test_diag_1d_input(self):
         # Also check 1-D case; drops unit w/o __array_function__.
         q = self.q.ravel()
@@ -623,7 +585,6 @@ class TestSettingParts:
         expected = [50, 100, 150] * u.cm
         assert np.all(q == expected)
 
-    @needs_array_function
     def test_putmask(self):
         q = np.arange(3.0) * u.m
         mask = [True, False, True]
@@ -642,7 +603,6 @@ class TestSettingParts:
         expected = np.array([0.5, 1.0, 1.5])
         assert np.all(a == expected)
 
-    @needs_array_function
     def test_place(self):
         q = np.arange(3.0) * u.m
         np.place(q, [True, False, True], [50, 150] * u.cm)
@@ -656,7 +616,6 @@ class TestSettingParts:
         expected = np.array([0.5, 1.0, 1.5])
         assert np.all(a == expected)
 
-    @needs_array_function
     def test_copyto(self):
         q = np.arange(3.0) * u.m
         np.copyto(q, [50, 0, 150] * u.cm, where=[True, False, True])
@@ -687,7 +646,6 @@ class TestRepeat(InvariantUnitTestSetup):
     def test_repeat(self):
         self.check(np.repeat, 2)
 
-    @needs_array_function
     def test_resize(self):
         self.check(np.resize, (4, 4))
 
@@ -706,7 +664,6 @@ class TestConcatenate:
         assert o.shape == expected.shape
         assert np.all(o == expected)
 
-    @needs_array_function
     def test_concatenate(self):
         self.check(np.concatenate)
         self.check(np.concatenate, axis=1)
@@ -732,34 +689,27 @@ class TestConcatenate:
         with pytest.raises(TypeError):
             np.concatenate([self.q1, object()])
 
-    @needs_array_function
     def test_stack(self):
         self.check(np.stack)
 
-    @needs_array_function
     def test_column_stack(self):
         self.check(np.column_stack)
 
-    @needs_array_function
     def test_hstack(self):
         self.check(np.hstack)
 
-    @needs_array_function
     def test_vstack(self):
         self.check(np.vstack)
 
-    @needs_array_function
     def test_dstack(self):
         self.check(np.dstack)
 
-    @needs_array_function
     def test_block(self):
         self.check(np.block)
 
         result = np.block([[0.0, 1.0 * u.m], [1.0 * u.cm, 2.0 * u.km]])
         assert np.all(result == np.block([[0, 1.0], [0.01, 2000.0]]) << u.m)
 
-    @needs_array_function
     def test_append(self):
         out = np.append(self.q1, self.q2, axis=0)
         assert out.unit == self.q1.unit
@@ -776,7 +726,6 @@ class TestConcatenate:
         expected = np.append(a, 0.5) * u.dimensionless_unscaled
         assert np.all(result == expected)
 
-    @needs_array_function
     def test_insert(self):
         # Unit of inserted values is not ignored.
         q = np.arange(12.0).reshape(6, 2) * u.m
@@ -802,7 +751,6 @@ class TestConcatenate:
         with pytest.raises(u.UnitsError):
             np.insert(q, (3, 5), 0.0 * u.s)
 
-    @needs_array_function
     def test_pad(self):
         q = np.arange(1.0, 6.0) * u.m
         out = np.pad(q, (2, 3), "constant", constant_values=(0.0, 150.0 * u.cm))
@@ -886,39 +834,13 @@ class TestUfuncReductions(InvariantUnitTestSetup):
         with pytest.raises(TypeError):
             np.all(self.q)
 
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.sometrue is removed in NumPy 2.0")
-    @pytest.mark.filterwarnings("ignore:`sometrue` is deprecated as of NumPy 1.25.0")
-    def test_sometrue(self):
-        with pytest.raises(TypeError):
-            np.sometrue(self.q)  # noqa: NPY003, NPY201
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.alltrue is removed in NumPy 2.0")
-    @pytest.mark.filterwarnings("ignore:`alltrue` is deprecated as of NumPy 1.25.0")
-    def test_alltrue(self):
-        with pytest.raises(TypeError):
-            np.alltrue(self.q)  # noqa: NPY003, NPY201
-
     def test_prod(self):
         with pytest.raises(u.UnitsError):
             np.prod(self.q)
 
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.product is removed in NumPy 2.0")
-    @pytest.mark.filterwarnings("ignore:`product` is deprecated as of NumPy 1.25.0")
-    def test_product(self):
-        with pytest.raises(u.UnitsError):
-            np.product(self.q)  # noqa: NPY003, NPY201
-
     def test_cumprod(self):
         with pytest.raises(u.UnitsError):
             np.cumprod(self.q)
-
-    @pytest.mark.skipif(
-        not NUMPY_LT_2_0, reason="np.cumproduct is removed in NumPy 2.0"
-    )
-    @pytest.mark.filterwarnings("ignore:`cumproduct` is deprecated as of NumPy 1.25.0")
-    def test_cumproduct(self):
-        with pytest.raises(u.UnitsError):
-            np.cumproduct(self.q)  # noqa: NPY003, NPY201
 
     @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_prod is new in NumPy 2.1")
     def test_cumulative_prod(self):
@@ -934,14 +856,10 @@ class TestUfuncLike(InvariantUnitTestSetup):
     def test_round(self):
         self.check(np.round)
 
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.round_ is removed in NumPy 2.0")
-    @pytest.mark.filterwarnings("ignore:`round_` is deprecated as of NumPy 1.25.0")
-    def test_round_(self):
-        self.check(np.round_)  # noqa: NPY003, NPY201
-
     def test_around(self):
         self.check(np.around)
 
+    @pytest.mark.filterwarnings("ignore:numpy.fix is deprecated:DeprecationWarning")
     def test_fix(self):
         self.check(np.fix)
 
@@ -970,7 +888,6 @@ class TestUfuncLike(InvariantUnitTestSetup):
         )
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_sinc(self):
         q = [0.0, 3690.0, -270.0, 690.0] * u.deg
         out = np.sinc(q)
@@ -980,13 +897,11 @@ class TestUfuncLike(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.sinc(1.0 * u.one)
 
-    @needs_array_function
     def test_where(self):
         out = np.where([True, False, True], self.q, 1.0 * u.km)
         expected = np.where([True, False, True], self.q.value, 1000.0) * self.q.unit
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_choose(self):
         # from np.choose docstring
         a = np.array([0, 1]).reshape((2, 1, 1))
@@ -997,7 +912,6 @@ class TestUfuncLike(InvariantUnitTestSetup):
         expected = np.choose(a, (q1.value, q2.to_value(q1.unit))) * u.cm
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_select(self):
         q = self.q
         out = np.select(
@@ -1009,22 +923,18 @@ class TestUfuncLike(InvariantUnitTestSetup):
         )
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_real_if_close(self):
         q = np.array([1 + 0j, 0 + 1j, 1 + 1j, 0 + 0j]) * u.m
         out = np.real_if_close(q)
         expected = np.real_if_close(q.value) * u.m
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_tril(self):
         self.check(np.tril)
 
-    @needs_array_function
     def test_triu(self):
         self.check(np.triu)
 
-    @needs_array_function
     def test_unwrap(self):
         q = [0.0, 3690.0, -270.0, 690.0] * u.deg
         out = np.unwrap(q)
@@ -1042,7 +952,6 @@ class TestUfuncLike(InvariantUnitTestSetup):
         expected = np.nan_to_num(q.value) * q.unit
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_nan_to_num_complex(self):
         q = np.array([-np.inf, +np.inf, np.nan, 3.0, 4.0]) * u.m
         out = np.nan_to_num(q, nan=1.0 * u.km, posinf=2.0 * u.km, neginf=-2 * u.km)
@@ -1093,7 +1002,6 @@ class TestUfuncLikeTests:
         assert out.dtype.kind == "b"
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_allclose_atol_default_unit(self):
         q_cm = self.q.to(u.cm)
         out = np.isclose(self.q, q_cm)
@@ -1117,6 +1025,24 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         expected = np.average(q1.value, weights=q2.value) * u.m
         assert np.all(o == expected)
 
+    def test_average_no_weights(self):
+        q1 = np.arange(9.0).reshape(3, 3) * u.m
+        o = np.average(q1)
+        expected = np.average(q1.value) * u.m
+        assert np.all(o == expected)
+
+    def test_average_a_and_weights_different_shapes_and_returned(self):
+        q1 = np.arange(9.0).reshape(3, 3) * u.m
+        q2 = np.ones(3) / u.s
+        avg, wsum = np.average(q1, weights=q2, axis=1, returned=True)
+        expected_avg, expected_wsum = np.average(
+            q1.value, weights=q2.value, axis=1, returned=True
+        )
+        expected_avg *= u.m
+        expected_wsum /= u.s
+        assert np.all(avg == expected_avg)
+        assert np.all(wsum == expected_wsum)
+
     def test_mean(self):
         self.check(np.mean)
 
@@ -1137,7 +1063,6 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         result = np.median(data)
         assert_array_equal(result, np.nan * u.km)
 
-    @needs_array_function
     def test_quantile(self):
         self.check(np.quantile, 0.5)
         o = np.quantile(self.q, 50 * u.percent)
@@ -1156,7 +1081,6 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         assert result is o4
         assert np.all(o4 == expected)
 
-    @needs_array_function
     def test_percentile(self):
         self.check(np.percentile, 0.5)
         o = np.percentile(self.q, 0.5 * u.one)
@@ -1166,7 +1090,6 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_trace(self):
         self.check(np.trace)
 
-    @needs_array_function
     def test_count_nonzero(self):
         q1 = np.arange(9.0).reshape(3, 3) * u.m
         o = np.count_nonzero(q1)
@@ -1185,7 +1108,6 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         assert np.allclose(q1, q2, atol=atol)
         assert np.allclose(q1, q2, atol=0.0, rtol=rtol)
 
-    @needs_array_function
     def test_allclose_atol_default_unit(self):
         q1 = np.arange(3.0) * u.m
         q2 = np.array([0.0, 101.0, 199.0]) * u.cm
@@ -1200,7 +1122,6 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.allclose(q1, q2, atol=0, rtol=1.0 * u.s)
 
-    @needs_array_function
     def test_array_equal(self):
         q1 = np.arange(3.0) * u.m
         q2 = q1.to(u.cm)
@@ -1219,7 +1140,6 @@ class TestReductionLikeFunctions(InvariantUnitTestSetup):
     def test_array_equal_incompatible_units(self):
         assert not np.array_equal([1, 2] * u.m, [1, 2] * u.s)
 
-    @needs_array_function
     def test_array_equiv(self):
         q1 = np.array([[0.0, 1.0, 2.0]] * 3) * u.m
         q2 = q1[0].to(u.cm)
@@ -1329,14 +1249,12 @@ class TestNanFunctions(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.nancumprod(self.q)
 
-    @needs_array_function
     def test_nanquantile(self):
         self.check(np.nanquantile, 0.5)
         o = np.nanquantile(self.q, 50 * u.percent)
         expected = np.nanquantile(self.q.value, 0.5) * u.m
         assert np.all(o == expected)
 
-    @needs_array_function
     def test_nanpercentile(self):
         self.check(np.nanpercentile, 0.5)
         o = np.nanpercentile(self.q, 0.5 * u.one)
@@ -1349,7 +1267,6 @@ class TestVariousProductFunctions:
     Test functions that are similar to gufuncs
     """
 
-    @needs_array_function
     def test_cross(self):
         q1 = np.arange(6.0).reshape(2, 3) * u.m
         q2 = np.array([4.0, 5.0, 6.0]) / u.s
@@ -1357,7 +1274,6 @@ class TestVariousProductFunctions:
         expected = np.cross(q1.value, q2.value) * u.m / u.s
         assert np.all(o == expected)
 
-    @needs_array_function
     def test_outer(self):
         q1 = np.array([1, 2, 3]) * u.m
         q2 = np.array([1, 2]) / u.s
@@ -1372,28 +1288,24 @@ class TestVariousProductFunctions:
         with pytest.raises(TypeError):
             np.outer(q1, q2, out=object())
 
-    @needs_array_function
     def test_inner(self):
         q1 = np.array([1, 2, 3]) * u.m
         q2 = np.array([4, 5, 6]) / u.s
         o = np.inner(q1, q2)
         assert o == 32 * u.m / u.s
 
-    @needs_array_function
     def test_dot(self):
         q1 = np.array([1.0, 2.0, 3.0]) * u.m
         q2 = np.array([4.0, 5.0, 6.0]) / u.s
         o = np.dot(q1, q2)
         assert o == 32.0 * u.m / u.s
 
-    @needs_array_function
     def test_vdot(self):
         q1 = np.array([1j, 2j, 3j]) * u.m
         q2 = np.array([4j, 5j, 6j]) / u.s
         o = np.vdot(q1, q2)
         assert o == (32.0 + 0j) * u.m / u.s
 
-    @needs_array_function
     def test_tensordot(self):
         # From the docstring example
         a = np.arange(60.0).reshape(3, 4, 5) * u.m
@@ -1402,7 +1314,6 @@ class TestVariousProductFunctions:
         expected = np.tensordot(a.value, b.value, axes=([1, 0], [0, 1])) * u.m / u.s
         assert np.all(c == expected)
 
-    @needs_array_function
     def test_kron(self):
         q1 = np.eye(2) * u.m
         q2 = np.ones(2) / u.s
@@ -1410,7 +1321,6 @@ class TestVariousProductFunctions:
         expected = np.kron(q1.value, q2.value) * u.m / u.s
         assert np.all(o == expected)
 
-    @needs_array_function
     def test_einsum(self):
         q1 = np.arange(9.0).reshape(3, 3) * u.m
         o = np.einsum("...i", q1)
@@ -1454,15 +1364,8 @@ class TestIntDiffFunctions:
         expected = func(y.value, x.value) * y.unit * x.unit
         assert np.all(out == expected)
 
-    if NUMPY_LT_2_0:
-
-        def test_trapz(self):
-            self.check_trapezoid(np.trapz)  # noqa: NPY201
-
-    else:
-
-        def test_trapezoid(self):
-            self.check_trapezoid(np.trapezoid)
+    def test_trapezoid(self):
+        self.check_trapezoid(np.trapezoid)
 
     def test_diff(self):
         # Simple diff works out of the box.
@@ -1471,7 +1374,6 @@ class TestIntDiffFunctions:
         expected = np.diff(x.value) * u.m
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_diff_prepend_append(self):
         x = np.arange(10.0) * u.m
         out = np.diff(x, prepend=-12.5 * u.cm, append=1 * u.km)
@@ -1492,7 +1394,6 @@ class TestIntDiffFunctions:
         expected = np.gradient(x.value) * u.m
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_gradient_spacing(self):
         # Simple gradient works out of the box.
         x = np.arange(10.0) * u.m
@@ -1529,7 +1430,6 @@ class TestSpaceFunctions:
         expected = np.linspace(q1.to_value(q2.unit), q2.value, 5) * q2.unit
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_logspace(self):
         unit = u.m / u.s**2
         out = np.logspace(10.0 * u.dex(unit), 20 * u.dex(unit), 10)
@@ -1539,7 +1439,6 @@ class TestSpaceFunctions:
         expected = np.logspace(10.0, 20.0, 10, base=10.0 ** (-0.4)) * u.ST
         assert u.allclose(out, expected)
 
-    @needs_array_function
     def test_geomspace(self):
         out = np.geomspace(1000.0 * u.m, 10.0 * u.km, 5)
         expected = np.geomspace(1, 10, 5) * u.km
@@ -1553,7 +1452,6 @@ class TestSpaceFunctions:
 
 
 class TestInterpolationFunctions:
-    @needs_array_function
     def test_interp(self):
         x = np.array([1250.0, 2750.0]) * u.m
         xp = np.arange(5.0) * u.km
@@ -1566,7 +1464,6 @@ class TestInterpolationFunctions:
         assert type(out) is np.ndarray
         assert np.all(out == expected.value)
 
-    @needs_array_function
     def test_piecewise(self):
         x = np.linspace(-2.5, 2.5, 6) * u.m
         out = np.piecewise(x, [x < 0, x >= 0], [-1 * u.s, 1 * u.day])
@@ -1603,7 +1500,6 @@ class TestInterpolationFunctions:
 
 
 class TestBincountDigitize:
-    @needs_array_function
     def test_bincount(self):
         i = np.array([1, 1, 2, 3, 2, 4])
         weights = np.arange(len(i)) * u.Jy
@@ -1614,7 +1510,6 @@ class TestBincountDigitize:
         with pytest.raises(TypeError):
             np.bincount(weights)
 
-    @needs_array_function
     def test_digitize(self):
         x = np.array([1500.0, 2500.0, 4500.0]) * u.m
         bins = np.arange(10.0) * u.km
@@ -1679,7 +1574,6 @@ class TestHistogramFunctions:
                 e_bin = e_bin * e_unit
             assert_array_equal(o_bin, e_bin)
 
-    @needs_array_function
     def test_histogram(self):
         x = self.x
         weights = self.weights
@@ -1743,7 +1637,6 @@ class TestHistogramFunctions:
             return [cls._range_value(r, unit) for r in range]
 
     @pytest.mark.parametrize("range", [[2 * u.m, 500 * u.cm], [2, 5] * u.m])
-    @needs_array_function
     def test_histogram_range(self, range):
         self.check(
             np.histogram,
@@ -1754,7 +1647,6 @@ class TestHistogramFunctions:
             expected_units=(None, self.x.unit),
         )
 
-    @needs_array_function
     def test_histogram_bin_edges(self):
         x = np.array([1.1, 1.2, 1.3, 2.1, 5.1]) * u.m
         out_b = np.histogram_bin_edges(x)
@@ -1774,7 +1666,6 @@ class TestHistogramFunctions:
             np.histogram_bin_edges(x.value, [125, 200] * u.s)
 
     @pytest.mark.parametrize("range", [[2 * u.m, 500 * u.cm], [2, 5] * u.m])
-    @needs_array_function
     def test_histogram_bin_edges_range(self, range):
         out_b = np.histogram_bin_edges(self.x, range=range)
         expected_b = np.histogram_bin_edges(
@@ -1782,7 +1673,6 @@ class TestHistogramFunctions:
         )
         assert np.all(out_b.value == expected_b)
 
-    @needs_array_function
     def test_histogram2d(self):
         x, y = self.x, self.y
         weights = self.weights
@@ -1860,7 +1750,6 @@ class TestHistogramFunctions:
             [[200, 500], [1, 4]] * u.cm,
         ],
     )
-    @needs_array_function
     def test_histogram2d_range(self, range):
         self.check(
             np.histogram2d,
@@ -1877,7 +1766,6 @@ class TestHistogramFunctions:
             expected_units=(None, self.x.unit, self.y.unit),
         )
 
-    @needs_array_function
     def test_histogramdd(self):
         # First replicates of the histogram2d tests, but using the
         # histogramdd override.  Normally takes the sample as a tuple
@@ -1975,7 +1863,6 @@ class TestHistogramFunctions:
             [[200, 500], [1, 4]] * u.cm,
         ],
     )
-    @needs_array_function
     def test_histogramdd_range(self, range):
         self.check(
             np.histogramdd,
@@ -1991,7 +1878,6 @@ class TestHistogramFunctions:
             expected_units=(None, (self.x.unit, self.y.unit)),
         )
 
-    @needs_array_function
     def test_correlate(self):
         x1 = [1, 2, 3] * u.m
         x2 = [0, 1, 0.5] * u.m
@@ -1999,7 +1885,6 @@ class TestHistogramFunctions:
         expected = np.correlate(x1.value, x2.value) * u.m**2
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_convolve(self):
         x1 = [1, 2, 3] * u.m
         x2 = [0, 1, 0.5] * u.m
@@ -2007,14 +1892,12 @@ class TestHistogramFunctions:
         expected = np.convolve(x1.value, x2.value) * u.m**2
         assert np.all(out == expected)
 
-    @needs_array_function
     def test_cov(self):
         # Do not see how we can use cov with Quantity
         x = np.array([[0, 2], [1, 1], [2, 0]]).T * u.m
         with pytest.raises(TypeError):
             np.cov(x)
 
-    @needs_array_function
     def test_corrcoef(self):
         # Do not see how we can use cov with Quantity
         x = np.array([[0, 2], [1, 1], [2, 0]]).T * u.m
@@ -2029,12 +1912,6 @@ class TestSortFunctions(InvariantUnitTestSetup):
     def test_sort_axis(self):
         self.check(np.sort, axis=0)
 
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="np.msort was removed in numpy 2.0")
-    def test_msort(self):
-        with pytest.warns(DeprecationWarning, match="^msort is deprecated"):
-            self.check(np.msort)
-
-    @needs_array_function
     def test_sort_complex(self):
         self.check(np.sort_complex)
 
@@ -2048,7 +1925,6 @@ class TestStringFunctions:
     def setup_method(self):
         self.q = np.arange(3.0) * u.Jy
 
-    @needs_array_function
     def test_array2string(self):
         # The default formatters cannot handle units, so if we do not pass
         # a relevant formatter, we are better off just treating it as an
@@ -2073,7 +1949,6 @@ class TestStringFunctions:
         out4 = np.array2string(self.q, separator=", ", formatter={"int": str})
         assert out4 == expected1
 
-    @needs_array_function
     def test_array_repr(self):
         out = np.array_repr(self.q)
         assert out == "Quantity([0., 1., 2.], unit='Jy')"
@@ -2081,7 +1956,6 @@ class TestStringFunctions:
         out2 = np.array_repr(q2)
         assert out2 == "Quantity([0., 1., 2.], unit='Jy', dtype=float32)"
 
-    @needs_array_function
     def test_array_str(self):
         out = np.array_str(self.q)
         expected = str(self.q)
@@ -2095,35 +1969,30 @@ class TestBitAndIndexFunctions:
         self.q = np.arange(3) * u.m
         self.uint_q = u.Quantity(np.arange(3), "m", dtype="u1")
 
-    @needs_array_function
     def test_packbits(self):
         with pytest.raises(TypeError):
             np.packbits(self.q)
         with pytest.raises(TypeError):
             np.packbits(self.uint_q)
 
-    @needs_array_function
     def test_unpackbits(self):
         with pytest.raises(TypeError):
             np.unpackbits(self.q)
         with pytest.raises(TypeError):
             np.unpackbits(self.uint_q)
 
-    @needs_array_function
     def test_unravel_index(self):
         with pytest.raises(TypeError):
             np.unravel_index(self.q, 3)
         with pytest.raises(TypeError):
             np.unravel_index(self.uint_q, 3)
 
-    @needs_array_function
     def test_ravel_multi_index(self):
         with pytest.raises(TypeError):
             np.ravel_multi_index((self.q,), 3)
         with pytest.raises(TypeError):
             np.ravel_multi_index((self.uint_q,), 3)
 
-    @needs_array_function
     def test_ix_(self):
         with pytest.raises(TypeError):
             np.ix_(self.q)
@@ -2209,7 +2078,6 @@ class TestSetOpsFunctions:
     def test_unique(self, kwargs):
         self.check1(np.unique, **kwargs)
 
-    @needs_array_function
     @pytest.mark.parametrize(
         "kwargs",
         (
@@ -2221,72 +2089,61 @@ class TestSetOpsFunctions:
     def test_unique_more_complex(self, kwargs):
         self.check1(np.unique, **kwargs)
 
-    if not NUMPY_LT_2_0:
+    def test_unique_all(self):
+        values, indices, inverse_indices, counts = np.unique(
+            self.q,
+            return_index=True,
+            return_inverse=True,
+            return_counts=True,
+            equal_nan=False,
+        )
+        res = np.unique_all(self.q)
+        assert len(res) == 4
 
-        @needs_array_function
-        def test_unique_all(self):
-            values, indices, inverse_indices, counts = np.unique(
-                self.q,
-                return_index=True,
-                return_inverse=True,
-                return_counts=True,
-                equal_nan=False,
-            )
-            res = np.unique_all(self.q)
-            assert len(res) == 4
+        assert_array_equal(res.values, values)
+        assert_array_equal(res.indices, indices)
+        assert_array_equal(res.inverse_indices, inverse_indices)
+        assert_array_equal(res.counts, counts)
 
-            assert_array_equal(res.values, values)
-            assert_array_equal(res.indices, indices)
-            assert_array_equal(res.inverse_indices, inverse_indices)
-            assert_array_equal(res.counts, counts)
+    def test_unique_counts(self):
+        values, counts = np.unique(self.q, return_counts=True, equal_nan=False)
+        res = np.unique_counts(self.q)
+        assert len(res) == 2
 
-        @needs_array_function
-        def test_unique_counts(self):
-            values, counts = np.unique(self.q, return_counts=True, equal_nan=False)
-            res = np.unique_counts(self.q)
-            assert len(res) == 2
+        assert_array_equal(res.values, values)
+        assert_array_equal(res.counts, counts)
 
-            assert_array_equal(res.values, values)
-            assert_array_equal(res.counts, counts)
+    def test_unique_inverse(self):
+        values, inverse_indices = np.unique(
+            self.q, return_inverse=True, equal_nan=False
+        )
+        res = np.unique_inverse(self.q)
+        assert len(res) == 2
 
-        @needs_array_function
-        def test_unique_inverse(self):
-            values, inverse_indices = np.unique(
-                self.q, return_inverse=True, equal_nan=False
-            )
-            res = np.unique_inverse(self.q)
-            assert len(res) == 2
+        assert_array_equal(res.values, values)
+        assert_array_equal(res.inverse_indices, inverse_indices)
 
-            assert_array_equal(res.values, values)
-            assert_array_equal(res.inverse_indices, inverse_indices)
+    def test_unique_values(self):
+        values = np.unique(self.q, equal_nan=False)
+        res = np.unique_values(self.q)
+        assert_array_equal(res, values)
 
-        @needs_array_function
-        def test_unique_values(self):
-            values = np.unique(self.q, equal_nan=False)
-            res = np.unique_values(self.q)
-            assert_array_equal(res, values)
-
-    @needs_array_function
     @pytest.mark.parametrize("kwargs", ({}, dict(return_indices=True)))
     def test_intersect1d(self, kwargs):
         self.check2(np.intersect1d, **kwargs)
 
-    @needs_array_function
     def test_setxor1d(self):
         self.check2(np.setxor1d)
 
-    @needs_array_function
     def test_union1d(self):
         self.check2(np.union1d)
         result = np.union1d(np.array([0.0, np.nan]), np.arange(3) << u.m)
         assert result.unit is u.m
         assert_array_equal(result.value, np.array([0.0, 1.0, 2.0, np.nan]))
 
-    @needs_array_function
     def test_setdiff1d(self):
         self.check2(np.setdiff1d)
 
-    @needs_array_function
     @pytest.mark.skipif(not NUMPY_LT_2_4, reason="in1d was removed in numpy 2.4")
     @pytest.mark.filterwarnings("ignore:`in1d` is deprecated. Use `np.isin` instead.")
     def test_in1d(self):
@@ -2296,7 +2153,6 @@ class TestSetOpsFunctions:
         with pytest.raises(u.UnitsError):
             np.in1d(np.ones(1), self.q2)  # noqa: NPY201
 
-    @needs_array_function
     def test_isin(self):
         self.check2(np.isin, unit=None)
 
@@ -2336,7 +2192,6 @@ def test_fft_frequencies(function):
     assert_array_equal(out, expected)
 
 
-@needs_array_function
 class TestFFT(InvariantUnitTestSetup):
     tested_module = np.fft
 
@@ -2412,7 +2267,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         x = np.linalg.matrix_rank(self.q.value)
         assert r == x
 
-    @needs_array_function
     def test_matrix_rank_with_tol(self):
         # Use a matrix that is not so good, so tol=1 and tol=0.01 differ.
         q = np.arange(9.0).reshape(3, 3) / 4 * u.m
@@ -2429,7 +2283,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         q2 = np.linalg.matrix_power(self.q, 4)
         assert_array_equal(q2, self.q @ self.q @ self.q @ self.q)
 
-    @needs_array_function
     def test_matrix_inv_power(self):
         qinv = np.linalg.inv(self.q.value) / self.q.unit
         qm1 = np.linalg.matrix_power(self.q, -1)
@@ -2437,7 +2290,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         qm3 = np.linalg.matrix_power(self.q, -3)
         assert_array_equal(qm3, qinv @ qinv @ qinv)
 
-    @needs_array_function
     def test_multi_dot(self):
         q2 = np.linalg.multi_dot([self.q, self.q])
         q2x = self.q @ self.q
@@ -2446,7 +2298,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         q3x = self.q @ self.q @ self.q
         assert_array_equal(q3, q3x)
 
-    @needs_array_function
     def test_svd(self):
         m = np.arange(10.0) * np.arange(5.0)[:, np.newaxis] * u.m
         svd_u, svd_s, svd_vt = np.linalg.svd(m, full_matrices=False)
@@ -2461,13 +2312,11 @@ class TestLinAlg(InvariantUnitTestSetup):
         svd_s2x = np.linalg.svd(m.value, compute_uv=False) << m.unit
         assert_array_equal(s2, svd_s2x)
 
-    @needs_array_function
     def test_inv(self):
         inv = np.linalg.inv(self.q)
         expected = np.linalg.inv(self.q.value) / self.q.unit
         assert_array_equal(inv, expected)
 
-    @needs_array_function
     def test_pinv(self):
         pinv = np.linalg.pinv(self.q)
         expected = np.linalg.pinv(self.q.value) / self.q.unit
@@ -2478,17 +2327,14 @@ class TestLinAlg(InvariantUnitTestSetup):
             np.linalg.pinv(self.q.value, rcond.to_value(self.q.unit)) / self.q.unit
         )
         assert_array_equal(pinv2, expected2)
-        if not NUMPY_LT_2_0:
-            pinv3 = np.linalg.pinv(self.q, rtol=rcond)
-            assert_array_equal(pinv3, expected2)
+        pinv3 = np.linalg.pinv(self.q, rtol=rcond)
+        assert_array_equal(pinv3, expected2)
 
-    @needs_array_function
     def test_tensorinv(self):
         inv = np.linalg.tensorinv(self.q, ind=1)
         expected = np.linalg.tensorinv(self.q.value, ind=1) / self.q.unit
         assert_array_equal(inv, expected)
 
-    @needs_array_function
     def test_det(self):
         det = np.linalg.det(self.q)
         expected = np.linalg.det(self.q.value)
@@ -2499,14 +2345,12 @@ class TestLinAlg(InvariantUnitTestSetup):
         with pytest.raises(np.linalg.LinAlgError):
             np.linalg.det(self.q[:-1])  # Not square.
 
-    @needs_array_function
     def test_slogdet(self):
         # TODO: Could be supported if we had a natural logarithm unit.
         with pytest.raises(TypeError):
             logdet = np.linalg.slogdet(self.q)
             assert hasattr(logdet, "unit")
 
-    @needs_array_function
     def test_solve(self):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x = np.linalg.solve(self.q, b)
@@ -2515,7 +2359,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         assert_array_equal(x, xx)
         assert u.allclose(self.q @ x, b)
 
-    @needs_array_function
     def test_tensorsolve(self):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x = np.linalg.tensorsolve(self.q, b)
@@ -2524,7 +2367,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         assert_array_equal(x, xx)
         assert u.allclose(self.q @ x, b)
 
-    @needs_array_function
     def test_lstsq(self):
         b = np.array([1.0, 2.0, 4.0]) * u.m / u.s
         x, residuals, rank, s = np.linalg.lstsq(self.q, b, rcond=None)
@@ -2551,7 +2393,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         with pytest.raises(u.UnitsError):
             np.linalg.lstsq(m, b, rcond=1.0 * u.s)
 
-    @needs_array_function
     def test_norm(self):
         n = np.linalg.norm(self.q)
         expected = np.linalg.norm(self.q.value) << self.q.unit
@@ -2561,7 +2402,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         expected1 = np.linalg.norm(self.q[0].value, ord=0) << u.one
         assert_array_equal(n1, expected1)
 
-    @needs_array_function
     def test_cholesky(self):
         # Numbers from np.linalg.cholesky docstring.
         q = np.array([[1, -2j], [2j, 5]]) * u.m
@@ -2570,7 +2410,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         assert_array_equal(cd, cdx)
         assert u.allclose(cd @ cd.T.conj(), q)
 
-    @needs_array_function
     def test_qr(self):
         # This is not exhaustive...
         a = np.array([[1, -2j], [2j, 5]]) * u.m
@@ -2582,7 +2421,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         assert_array_equal(r, rx)
         assert u.allclose(q @ r, a)
 
-    @needs_array_function
     def test_eig(self):
         w, v = np.linalg.eig(self.q)
         wx, vx = np.linalg.eig(self.q.value)
@@ -2597,7 +2435,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         assert_array_equal(w, np.arange(1, 4) * u.m)
         assert_array_equal(v, np.eye(3))
 
-    @needs_array_function
     def test_eigvals(self):
         w = np.linalg.eigvals(self.q)
         wx = np.linalg.eigvals(self.q.value) << self.q.unit
@@ -2607,7 +2444,6 @@ class TestLinAlg(InvariantUnitTestSetup):
         w = np.linalg.eigvals(q)
         assert_array_equal(w, np.arange(1, 4) * u.m)
 
-    @needs_array_function
     def test_eigh(self):
         w, v = np.linalg.eigh(self.q)
         wx, vx = np.linalg.eigh(self.q.value)
@@ -2616,85 +2452,73 @@ class TestLinAlg(InvariantUnitTestSetup):
         assert_array_equal(w, wx)
         assert_array_equal(v, vx)
 
-    @needs_array_function
     def test_eigvalsh(self):
         w = np.linalg.eigvalsh(self.q)
         wx = np.linalg.eigvalsh(self.q.value) << self.q.unit
         assert_array_equal(w, wx)
 
-    if not NUMPY_LT_2_0:
-        # Numpy 2.0 added array-api compatible definitions of
-        # diagonal and trace to np.linalg. Since these have
-        # name conflicts with the main numpy namespace, they
-        # are tracked as linalg_diagonal and linalg_trace.
-        def test_diagonal(self):
-            self.check(np.linalg.diagonal)
+    # Numpy 2.0 added array-api compatible definitions of
+    # diagonal and trace to np.linalg. Since these have
+    # name conflicts with the main numpy namespace, they
+    # are tracked as linalg_diagonal and linalg_trace.
+    def test_diagonal(self):
+        self.check(np.linalg.diagonal)
 
-        def test_trace(self):
-            self.check(np.trace)
+    def test_trace(self):
+        self.check(np.trace)
 
-        @needs_array_function
-        def test_cross(self):
-            q1 = np.array([1, 2, 3]) << u.m
-            q2 = np.array([4, 5, 6]) << u.s
-            assert_array_equal(np.linalg.cross(q1, q2), np.cross(q1, q2))
-            assert_array_equal(np.linalg.cross(q1, q2.value), np.cross(q1, q2.value))
+    def test_cross(self):
+        q1 = np.array([1, 2, 3]) << u.m
+        q2 = np.array([4, 5, 6]) << u.s
+        assert_array_equal(np.linalg.cross(q1, q2), np.cross(q1, q2))
+        assert_array_equal(np.linalg.cross(q1, q2.value), np.cross(q1, q2.value))
 
-        @needs_array_function
-        def test_outer(self):
-            q = self.q.flatten()
-            assert_array_equal(np.linalg.outer(q, q), np.outer(q, q))
-            assert_array_equal(np.linalg.outer(q, q.value), np.outer(q, q.value))
+    def test_outer(self):
+        q = self.q.flatten()
+        assert_array_equal(np.linalg.outer(q, q), np.outer(q, q))
+        assert_array_equal(np.linalg.outer(q, q.value), np.outer(q, q.value))
 
-        @needs_array_function
-        def test_svdvals(self):
-            _, ref, _ = np.linalg.svd(self.q)
-            res = np.linalg.svdvals(self.q)
-            assert_allclose(res, ref, rtol=5e-16)
+    def test_svdvals(self):
+        _, ref, _ = np.linalg.svd(self.q)
+        res = np.linalg.svdvals(self.q)
+        assert_allclose(res, ref, rtol=5e-16)
 
-        @needs_array_function
-        def test_vecdot(self):
-            ref = (self.q * self.q).sum(-1)
-            res = np.linalg.vecdot(self.q, self.q)
-            assert_array_equal(res, ref)
+    def test_vecdot(self):
+        ref = (self.q * self.q).sum(-1)
+        res = np.linalg.vecdot(self.q, self.q)
+        assert_array_equal(res, ref)
 
-        @needs_array_function
-        def test_tensordot(self):
-            ref = np.tensordot(self.q, self.q)
-            res = np.linalg.tensordot(self.q, self.q)
-            assert_array_equal(res, ref)
+    def test_tensordot(self):
+        ref = np.tensordot(self.q, self.q)
+        res = np.linalg.tensordot(self.q, self.q)
+        assert_array_equal(res, ref)
 
-        @needs_array_function
-        def test_matmul(self):
-            ref = np.matmul(self.q, self.q)
-            res = np.linalg.matmul(self.q, self.q)
-            assert_array_equal(res, ref)
+    def test_matmul(self):
+        ref = np.matmul(self.q, self.q)
+        res = np.linalg.matmul(self.q, self.q)
+        assert_array_equal(res, ref)
 
-        def test_matrix_transpose(self):
-            t = np.linalg.matrix_transpose(self.q)
-            assert_array_equal(t, self.q.swapaxes(-2, -1))
+    def test_matrix_transpose(self):
+        t = np.linalg.matrix_transpose(self.q)
+        assert_array_equal(t, self.q.swapaxes(-2, -1))
 
-        @needs_array_function
-        def test_matrix_norm(self):
-            n = np.linalg.matrix_norm(self.q)
-            expected = np.linalg.norm(self.q.value) << self.q.unit
-            assert_array_equal(n, expected)
+    def test_matrix_norm(self):
+        n = np.linalg.matrix_norm(self.q)
+        expected = np.linalg.norm(self.q.value) << self.q.unit
+        assert_array_equal(n, expected)
 
-        @needs_array_function
-        def test_vector_norm(self):
-            n = np.linalg.vector_norm(self.q)
-            expected = np.linalg.norm(self.q.value.ravel()) << self.q.unit
-            assert_array_equal(n, expected)
-            # Special case: 1-D, ord=0.
-            n1 = np.linalg.vector_norm(self.q[0], ord=0)
-            expected1 = np.linalg.norm(self.q[0].value.ravel(), ord=0) << u.one
-            assert_array_equal(n1, expected1)
-            # Axis combo, just in case
-            n2 = np.linalg.vector_norm(self.q, axis=(-1, -2))
-            expected2 = (
-                np.linalg.vector_norm(self.q.value, axis=(-1, -2)) << self.q.unit
-            )
-            assert_array_equal(n2, expected2)
+    def test_vector_norm(self):
+        n = np.linalg.vector_norm(self.q)
+        expected = np.linalg.norm(self.q.value.ravel()) << self.q.unit
+        assert_array_equal(n, expected)
+        # Special case: 1-D, ord=0.
+        n1 = np.linalg.vector_norm(self.q[0], ord=0)
+        expected1 = np.linalg.norm(self.q[0].value.ravel(), ord=0) << u.one
+        assert_array_equal(n1, expected1)
+        # Axis combo, just in case
+        n2 = np.linalg.vector_norm(self.q, axis=(-1, -2))
+        expected2 = np.linalg.vector_norm(self.q.value, axis=(-1, -2)) << self.q.unit
+        assert_array_equal(n2, expected2)
 
 
 class TestRecFunctions:
@@ -2861,7 +2685,6 @@ rec_functions = {
 untested_functions |= rec_functions
 
 
-@needs_array_function
 def test_testing_completeness():
     assert not tested_functions.intersection(untested_functions)
     assert all_wrapped_functions == (tested_functions | untested_functions)
@@ -2885,7 +2708,6 @@ class TestFunctionHelpersCompleteness:
     def test_no_duplicates(self, one, two):
         assert not one.intersection(two)
 
-    @needs_array_function
     def test_all_included(self):
         included_in_helpers = (
             SUBCLASS_SAFE_FUNCTIONS
@@ -2895,7 +2717,6 @@ class TestFunctionHelpersCompleteness:
         )
         assert all_wrapped_functions == included_in_helpers
 
-    @needs_array_function
     def test_ignored_are_untested(self):
         assert IGNORED_FUNCTIONS | TBD_FUNCTIONS == untested_functions
 
@@ -2927,7 +2748,12 @@ class CheckSignatureCompatibilityBase:
         try:
             sig_target = inspect.signature(target)
         except ValueError:
-            pytest.skip("Non Python function cannot be inspected at runtime")
+            if NUMPY_LT_2_4:
+                pytest.skip("Non Python function cannot be inspected at runtime")
+            elif target is np.fromstring:
+                pytest.skip(f"known case of missing runtime signature ({target})")
+            else:
+                raise
 
         params_target = sig_target.parameters
         sig_helper = inspect.signature(helper)
@@ -2988,7 +2814,12 @@ class CheckSignatureCompatibilityBase:
         try:
             sig_target = inspect.signature(target)
         except ValueError:
-            pytest.skip("Non Python function cannot be inspected at runtime")
+            if NUMPY_LT_2_4:
+                pytest.skip("Non Python function cannot be inspected at runtime")
+            elif target is np.fromstring:
+                pytest.skip(f"known case of missing runtime signature ({target})")
+            else:
+                raise
 
         params_target = sig_target.parameters
         sig_helper = inspect.signature(helper)
@@ -3014,12 +2845,18 @@ class CheckSignatureCompatibilityBase:
             self.get_param_group(params_helper, [KEYWORD_ONLY, POSITIONAL_OR_KEYWORD])
         )
 
-        # additional private keyword-only argument are allowed because
-        # they are only intended for testing purposes.
+        # additional private keyword-only argument are allowed, as long as they
+        # have default values. They are only intended for testing purposes.
         # For instance, quantile has such a parameter '_q_unit'
-        keyword_allowed_helper = {
-            name for name in keyword_allowed_helper if not name.startswith("_")
+        private_kwargs = {
+            name for name in keyword_allowed_helper if name.startswith("_")
         }
+        for pk in private_kwargs:
+            assert params_helper[pk].default is not EMPTY_DEFAULT, (
+                f"private argument {pk} must provide a default value"
+            )
+
+        keyword_allowed_helper -= private_kwargs
 
         diff = keyword_allowed_helper - keyword_allowed_target
         assert not diff, (

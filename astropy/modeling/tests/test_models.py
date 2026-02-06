@@ -118,8 +118,8 @@ def test_inconsistent_input_shapes():
     # check scalar input broadcasting works
     assert np.abs(g(x, 0) - g(x, 0 * x)).sum() == 0
     # and that array broadcasting works
-    x.shape = (10, 1)
-    y.shape = (1, 10)
+    x = x.reshape((10, 1))
+    y = y.reshape((1, 10))
     result = g(x, y)
     assert result.shape == (10, 10)
     # incompatible shapes do _not_ work
@@ -728,6 +728,17 @@ def test_tabular_interp_1d():
     assert_quantity_allclose(model(xnew), ans1)
     assert_quantity_allclose(model(xnew.to(u.nm)), ans1)
     assert model.bounding_box == (0 * u.nm, 4 * u.nm)
+
+    # Test with no units on points.
+    model = LookupTable(points=points, lookup_table=values * u.nJy)
+    assert_quantity_allclose(model(xnew), ans1)
+    assert_quantity_allclose(model(xnew.to(u.nm)), ans1)
+    assert model.bounding_box == (0, 4)
+
+    model = LookupTable(points=points, lookup_table=values * u.nJy, method="nearest")
+    assert_quantity_allclose(model(xnew), np.array([1, 10, 10, 2, -3]) * u.nJy)
+    assert_quantity_allclose(model(xnew.to(u.nm)), np.array([1, 10, 10, 2, -3]) * u.nJy)
+    assert model.bounding_box == (0, 4)
 
     # Test fill value unit conversion and unitless input on table with unit
     model = LookupTable(

@@ -8,3 +8,12 @@ packages or code.
 
 # Importing this module will also install monkey-patches defined in it
 from .numpycompat import *
+
+
+def __getattr__(attr):
+    if attr == "COPY_IF_NEEDED":
+        from .numpycompat import COPY_IF_NEEDED  # Will emit warning
+
+        return COPY_IF_NEEDED
+
+    raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
