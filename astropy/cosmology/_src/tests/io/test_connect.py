@@ -60,7 +60,7 @@ class ReadWriteTestMixin(
     test_ecsv.ReadWriteECSVTestMixin,
     test_html.ReadWriteHTMLTestMixin,
     test_json.ReadWriteJSONTestMixin,
-    test_latex.WriteLATEXTestMixin,
+    test_latex.ReadWriteLATEXTestMixin,
     test_mrt.ReadWriteMRTTestMixin,
 ):
     """
