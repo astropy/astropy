@@ -20,7 +20,10 @@ Examples
 
 .. EXAMPLE START: Making a Table and Modifying Data
 
-**Make a table**
+.. _table-mod-make-a-table:
+
+Make a table
+^^^^^^^^^^^^
 ::
 
   >>> from astropy.table import Table
@@ -28,7 +31,10 @@ Examples
   >>> arr = np.arange(15).reshape(5, 3)
   >>> t = Table(arr, names=('a', 'b', 'c'), meta={'keywords': {'key1': 'val1'}})
 
-**Modify data values**
+.. _table-mod-modify-data-values:
+
+Modify data values
+^^^^^^^^^^^^^^^^^^
 ::
 
   >>> t['a'][:] = [1, -2, 3, -4, 5]  # Set all values of column 'a'
@@ -73,7 +79,10 @@ the conventions of `~astropy.units.Quantity` by using the
 
 .. EXAMPLE END
 
-**Add a column or columns**
+.. _table-mod-add-a-column-or-columns:
+
+Add a column or columns
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Adding Columns to Tables
 
@@ -115,7 +124,10 @@ convenient to add a |Quantity| to a |QTable| instead, see
 
 .. EXAMPLE END
 
-**Remove columns**
+.. _table-mod-remove-columns:
+
+Remove columns
+^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Removing Columns from Tables
 
@@ -129,7 +141,10 @@ To remove a column from a table::
 
 .. EXAMPLE END
 
-**Replace a column**
+.. _table-mod-replace-a-column:
+
+Replace a column
+^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Replacing Columns in Tables
 
@@ -148,7 +163,10 @@ will be done, for example::
 
 .. EXAMPLE END
 
-**Perform a dictionary-style update**
+.. _table-mod-perform-a-dictionary-style-update:
+
+Perform a dictionary-style update
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to perform a dictionary-style update, which adds new columns to
 the table and replaces existing ones::
@@ -204,7 +222,10 @@ you need them to be references you can use the
 :meth:`~astropy.table.Table.update` method with ``copy=False``, see :ref:`copy_versus_reference`
 for details.
 
-**Ensure the existence of a column**
+.. _table-mod-ensure-the-existence-of-a-column:
+
+Ensure the existence of a column
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 |Table| has a :meth:`~astropy.table.Table.setdefault` method, which is
 analogous to :meth:`dict.setdefault`.
@@ -238,7 +259,10 @@ Either way the (possibly just inserted) column in the table is returned::
    Ham    False
   Spam    False
 
-**Rename columns**
+.. _table-mod-rename-columns:
+
+Rename columns
+^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Renaming Columns in Tables
 
@@ -253,7 +277,10 @@ To rename multiple columns at once::
 
 .. EXAMPLE END
 
-**Add a row of data**
+.. _table-mod-add-a-row-of-data:
+
+Add a row of data
+^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Adding a Row of Data to a Table
 
@@ -263,7 +290,10 @@ To add a row::
 
 .. EXAMPLE END
 
-**Remove rows**
+.. _table-mod-remove-rows:
+
+Remove rows
+^^^^^^^^^^^
 
 .. EXAMPLE START: Removing Rows of Data from Tables
 
@@ -275,7 +305,10 @@ To remove a row::
 
 .. EXAMPLE END
 
-**Sort by one or more columns**
+.. _table-mod-sort-by-one-or-more-columns:
+
+Sort by one or more columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Sorting Columns in Tables
 
@@ -286,7 +319,10 @@ To sort columns::
 
 .. EXAMPLE END
 
-**Reverse table rows**
+.. _table-mod-reverse-table-rows:
+
+Reverse table rows
+^^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Reversing Table Rows
 
@@ -296,7 +332,10 @@ To reverse the order of table rows::
 
 .. EXAMPLE END
 
-**Modify metadata**
+.. _table-mod-modify-metadata:
+
+Modify metadata
+^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Modifying Metadata in Tables
 
@@ -306,7 +345,10 @@ To modify metadata::
 
 .. EXAMPLE END
 
-**Select or reorder columns**
+.. _table-mod-select-or-reorder-columns:
+
+Select or reorder columns
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. EXAMPLE START: Selecting or Reordering Columns in Tables
 
@@ -375,13 +417,19 @@ with float values by internally calling ``t.replace_column('a', [10.5, 20.5,
 30.5])``. In general this behavior is more consistent with Python and `pandas
 <https://pandas.pydata.org>`_ behavior.
 
-**Forcing in-place update**
+.. _table-mod-forcing-in-place-update:
+
+Forcing in-place update
+-----------------------
 
 It is possible to force an in-place update of a column as follows::
 
   t[colname][:] = value
 
-**Finding the source of problems**
+.. _table-mod-finding-the-source-of-problems:
+
+Finding the source of problems
+------------------------------
 
 In order to find potential problems related to replacing columns, there is the
 option `astropy.table.conf.replace_warnings
