@@ -4,6 +4,11 @@
 Configuration System (`astropy.config`)
 ***************************************
 
+.. versionchanged::5.0
+   The configuration system was updated to improve runtime reloading,
+   validation behavior, and configuration file handling.
+
+
 Introduction
 ============
 
