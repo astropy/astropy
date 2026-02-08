@@ -18,7 +18,7 @@ Testing Dependencies
 Most commonly, you should install the full suite of testing and development
 dependencies::
 
-    python -m pip install --editable '.[dev_all]'
+    python -m pip install --editable . --group dev_all
 
 This will provide all dependencies for running the full test suite using `tox <https://tox.wiki/>`__
 and |pytest|. It will also allow running tests via any IDE which
@@ -94,7 +94,7 @@ in an :ref:`isolated development environment<create-isolated-env>`.
 In the uncommon situation that one or more compiled extensions have changed, you will
 need to rebuild them by re-running the usual editable install command::
 
-    python -m pip install --editable '.[dev_all]'
+    python -m pip install --editable . --group dev_all
 
 It is possible to run only the tests for a particular subpackage or set of
 subpackages.  For example, to run only the ``wcs`` and ``utils`` tests from the
