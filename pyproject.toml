@@ -119,7 +119,14 @@ test_all = [
     "sgp4>=2.3",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
-    "numpy-quaddtype>=1.0",
+
+    # 0.2.2 works on *some* platforms we support, though not all
+    # 1.0.0 would be a more universal lower bound, but it also
+    # requires numpy>=2.4. Because dependency trees are resolved
+    # with *all* extras and groups (whether they are to be installed or not),
+    # and we want to preserve the ability to test against NUMPY_LT_2_4,
+    # we effectively cannot upgrade this lower bound until we drop NUMPY_LT_2_4
+    "numpy-quaddtype>=0.2.2",
 ]
 typing = [
     "pandas-stubs>=2.0.2",
