@@ -43,7 +43,7 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "numpy>=1.24",
+    "numpy>=1.24, <2.7",
     "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
     "astropy-iers-data>=0.2026.1.26.0.43.56",
     "PyYAML>=6.0.0",
@@ -254,6 +254,7 @@ filterwarnings = [
     "error",
     # https://github.com/astropy/astropy/issues/18126
     "ignore:'_UnionGenericAlias' is deprecated and slated for removal in Python 3.17:DeprecationWarning", # not PYTHON_LT_3_14
+    "ignore:The chararray class is deprecated and will be removed in a future release.:DeprecationWarning", # not NUMPY_LT_2_5
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
