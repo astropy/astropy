@@ -575,13 +575,13 @@ class HDUList(list, _Verify):
         """
         if self._file is not None:
             output = self[index].fileinfo()
-
             if not output:
                 # OK, the HDU associated with this index is not yet
                 # tied to the file associated with the HDUList.  The only way
                 # to get the file object is to check each of the HDU's in the
                 # list until we find the one associated with the file.
                 f = None
+                fm = None
 
                 for hdu in self:
                     info = hdu.fileinfo()
