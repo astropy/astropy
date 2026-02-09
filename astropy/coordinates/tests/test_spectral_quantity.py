@@ -8,6 +8,8 @@ from astropy.tests.helper import assert_quantity_allclose
 
 SPECTRAL_UNITS = (u.GHz, u.micron, u.keV, (1 / u.nm).unit, u.km / u.s)
 
+SQ_SPEED = SpectralQuantity(1 * u.km / u.s)
+
 
 class TestSpectralQuantity:
     @pytest.mark.parametrize("unit", SPECTRAL_UNITS)
@@ -63,62 +65,6 @@ class TestSpectralQuantity:
 
         val5 = sq1.to_value(u.m / u.s, doppler_rest=499.9 * u.nm)
         assert_allclose(val5, 60970.685737)
-
-    def test_doppler_conversion_validation(self):
-        sq1 = SpectralQuantity(1 * u.GHz)
-        sq2 = SpectralQuantity(1 * u.km / u.s)
-
-        with pytest.raises(
-            ValueError,
-            match="doppler_convention not set, cannot convert to/from velocities",
-        ):
-            sq1.to(u.km / u.s)
-
-        with pytest.raises(
-            ValueError,
-            match="doppler_convention not set, cannot convert to/from velocities",
-        ):
-            sq2.to(u.GHz)
-
-        with pytest.raises(
-            ValueError, match="doppler_rest not set, cannot convert to/from velocities"
-        ):
-            sq1.to(u.km / u.s, doppler_convention="radio")
-
-        with pytest.raises(
-            ValueError, match="doppler_rest not set, cannot convert to/from velocities"
-        ):
-            sq2.to(u.GHz, doppler_convention="radio")
-
-        with pytest.raises(
-            u.UnitsError,
-            match="Argument 'doppler_rest' to function 'to' must be in units",
-        ):
-            sq1.to(u.km / u.s, doppler_convention="radio", doppler_rest=5 * u.kg)
-
-        with pytest.raises(
-            u.UnitsError,
-            match="Argument 'doppler_rest' to function 'to' must be in units",
-        ):
-            sq2.to(u.GHz, doppler_convention="radio", doppler_rest=5 * u.kg)
-
-        with pytest.raises(
-            ValueError,
-            match="doppler_convention should be one of optical/radio/relativistic",
-        ):
-            sq1.to(u.km / u.s, doppler_convention="banana", doppler_rest=5 * u.GHz)
-
-        with pytest.raises(
-            ValueError,
-            match="doppler_convention should be one of optical/radio/relativistic",
-        ):
-            sq2.to(u.GHz, doppler_convention="banana", doppler_rest=5 * u.GHz)
-
-        with pytest.raises(ValueError, match="Original doppler_convention not set"):
-            sq2.to(u.km / u.s, doppler_convention="radio")
-
-        with pytest.raises(ValueError, match="Original doppler_rest not set"):
-            sq2.to(u.km / u.s, doppler_rest=5 * u.GHz)
 
     def test_doppler_set_parameters(self):
         sq1 = SpectralQuantity(1 * u.km / u.s)
@@ -277,3 +223,56 @@ class TestSpectralQuantity:
         assert isinstance(q1, u.Quantity) and not isinstance(q1, SpectralQuantity)
         assert q1.value == np.sum(sq1.value)
         assert q1.unit == u.AA
+
+
+parametrize_doppler_conversion_validation = pytest.mark.parametrize(
+    "sq,unit",
+    [
+        pytest.param(SpectralQuantity(1 * u.GHz), u.km / u.s, id="from GHz to km/s"),
+        pytest.param(SQ_SPEED, u.GHz, id="from km/s to GHz"),
+    ],
+)
+
+
+@parametrize_doppler_conversion_validation
+def test_doppler_conversion_convention_presence_validation(sq, unit):
+    with pytest.raises(
+        ValueError,
+        match="doppler_convention not set, cannot convert to/from velocities",
+    ):
+        sq.to(unit)
+
+
+@parametrize_doppler_conversion_validation
+def test_doppler_conversion_convention_value_validation(sq, unit):
+    with pytest.raises(
+        ValueError,
+        match="doppler_convention should be one of optical/radio/relativistic",
+    ):
+        sq.to(unit, doppler_convention="banana", doppler_rest=5 * u.GHz)
+
+
+@parametrize_doppler_conversion_validation
+def test_doppler_conversion_rest_presence_validation(sq, unit):
+    with pytest.raises(
+        ValueError, match="doppler_rest not set, cannot convert to/from velocities"
+    ):
+        sq.to(unit, doppler_convention="radio")
+
+
+@parametrize_doppler_conversion_validation
+def test_doppler_conversion_rest_units_validation(sq, unit):
+    with pytest.raises(
+        u.UnitsError, match="Argument 'doppler_rest' to function 'to' must be in units"
+    ):
+        sq.to(unit, doppler_convention="radio", doppler_rest=5 * u.kg)
+
+
+def test_doppler_conversion_original_convention_validation():
+    with pytest.raises(ValueError, match="Original doppler_convention not set"):
+        SQ_SPEED.to(u.km / u.s, doppler_convention="radio")
+
+
+def test_doppler_conversion_original_rest_validation():
+    with pytest.raises(ValueError, match="Original doppler_rest not set"):
+        SQ_SPEED.to(u.km / u.s, doppler_rest=5 * u.GHz)
