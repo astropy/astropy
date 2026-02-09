@@ -152,7 +152,7 @@ dev = [
     "astropy[typing]",
 ]
 dev_all = [
-    "tox>=4.33.0", # keep in sync with tox.minversion in tox.ini
+    "tox>=4.33.0", # keep in sync with tox.minversion in tox.toml
     "astropy[dev]",
     "astropy[test_all]",
 ]
@@ -243,7 +243,7 @@ doctest_plus = "enabled"
 text_file_format = "rst"
 remote_data_strict = true
 addopts = [
-    # keep in sync with tox.ini (oldestdeps's PYTEST_ADDOPTS)
+    # keep in sync with tox.toml (oldestdeps's PYTEST_ADDOPTS)
     "--doctest-rst",
     "--strict-config",
     "--strict-markers",

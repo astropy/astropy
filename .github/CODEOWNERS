@@ -59,7 +59,7 @@ docs/wcs                    @mcara
 pyproject.toml              @neutrinoceros
 setup.py                    @neutrinoceros
 MANIFEST.in                 @neutrinoceros
-tox.ini                     @neutrinoceros
+tox.toml                    @neutrinoceros
 *.git*                      @neutrinoceros # git files and .github dir
 .pre-commit-config.yaml     @WilliamJamieson    @nstarman    @neutrinoceros
 .ruff.toml                  @WilliamJamieson    @nstarman    @neutrinoceros

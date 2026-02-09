@@ -1,0 +1,282 @@
+envlist = [
+    "py{311,312,313,313t,314,dev}-test{,-recdeps,-docdeps,-alldeps,-oldestdeps,-devdeps,-devpytest,-predeps,-mpl380}{,-cov}{,-clocale}{,-fitsio}{,-noscipy}",
+    # Only these two exact tox environments have corresponding figure hash files.
+    "py311-test-image-mpl380-cov",
+    "py311-test-image-mpldev-cov",
+    "build_docs{,-predeps}",
+    "linkcheck",
+    "codestyle",
+    "stubtest",
+]
+requires = [
+    "tox>=4.33",  # for PEP 508 environment markers # keep in sync with pyproject.toml
+    "tox-uv>=1.29",
+]
+
+
+[env_run_base]
+description = "run tests"
+# Run the tests in a temporary directory to make sure that we don't import
+# astropy from the source tree
+change_dir = ".tmp/{envname}"
+# Pass through the following environment variables which are needed for the CI
+pass_env = ["HOME", "WINDIR", "LC_ALL", "LC_CTYPE", "CC", "CI", "IS_CRON", "ARCH_ON_CI", "PY_COLORS"]
+# open questions:
+# - are conditional settings available in toml form ? https://tox.wiki/en/latest/config.html#conditional-settings
+set_env.NUMPY_WARN_IF_NO_MEM_POLICY = { value = "1" }
+# opt into faster coverage when available
+set_env.COVERAGE_CORE = { value = "sysmon" , marker = "python_version >= '3.12'" }
+# match pip's behavior with multiple indexes
+set_env.UV_INDEX_STRATEGY = { value = "unsafe-best-match" }
+
+
+[env.test]
+extras = [
+    "test"
+]
+commands = [
+    ["{list_dependencies_command}"],
+    [
+        # this is the baseline command
+        "pytest", "--pyargs", "astropy", "{toxinidir}/docs",
+        # it can be extended on via positional arguments
+        # (anything that follows `--`) on the command line
+        "{posargs}",
+        # furthermore, it can be extended in specific factors using set_env
+        # note that PYTEST_ARGS_* are *not* pytest-known env variables, but a hack
+        # specific to this configuration file
+        "{env:PYTEST_ARGS_MPL}",
+        "{env:PYTEST_ARGS_COV}",
+        "{env:PYTEST_ARGS_DOUBLE}",
+    ],
+]
+
+
+[env.py313t]
+set_env.PYTHON_GIL = { value = "0" }
+
+
+[env.recdeps]
+description = "with recommended dependencies"
+extras = ["recommended"]
+
+
+[env.docdeps]
+description = "with documentation dependencies"
+extras = [
+    "all",
+    "docs",
+]
+extra_setup_commands = [
+  { replace = "if", condition = "factor.predeps", then = ["uv", "pip", "install", "sphinx", "-U", "--pre", "--no-deps"] },
+]
+
+
+[env.alldeps]
+description = "with all optional and test dependencies"
+extras = [
+    "all",
+]
+dependency_groups = [
+    "dataframe",
+]
+
+
+[env.oldestdeps]
+description = "with the oldest supported version of direct dependencies"
+# let warnings be warnings (-Wdefault) instead of treated-as-errors,
+# so we don't need to deal with filtering anything triggered from dependencies
+# Other options replicate the static configuration from pyproject.toml, since they
+# would otherwise be shadowed by the env variable.
+set_env.PYTEST_ADDOPTS = { value = "-Wdefault --doctest-rst --strict-config --strict-markers" }
+# The oldestdeps factor is intended to be used to install
+# the oldest versions of all dependencies.
+# Let uv handle this for us by requesting all requirements should be
+# resolved to their oldest compatible versions (including transitive dependencies)
+uv_resolution = "lowest"
+
+[env.devdeps]
+description = "with the latest developer version of key dependencies"
+set_env.UV_INDEX = { value = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple https://pypi.anaconda.org/liberfa/simple"  }
+deps = [
+    { replace = "if", condition = "not factor.noscipy", then = "scipy>=0.0dev0" },
+    { replace = "if", condition = "not factor.noscipy", then = "matplotlib>=0.0dev0" },
+
+    # Duplicates test_all in pyproject.toml due to upstream bug
+    # https://github.com/tox-dev/tox/issues/3433
+    # But we cannot use alldeps because it messed up oldest-deps pins.
+    { replace = "if", condition = "not factor.noscipy", then = "objgraph>=0.0dev0" },
+    { replace = "if", condition = "not factor.noscipy", then = "skyfield>=0.0dev0" },
+    { replace = "if", condition = "not factor.noscipy", then = "sgp4>=0.0dev0" },
+    { replace = "if", condition = "not factor.noscipy", then = "array-api-strict>=0.0dev0" },
+    { replace = "if", condition = "not factor.noscipy", then = "numpy-quaddtype>=0.0dev0" },
+]
+
+[env.devpytest]
+description = "with dev version of pytest infrastructure"
+deps = [
+    "scipy",
+    # Latest developer version of infrastructure packages.
+    "git+https://github.com/pytest-dev/pytest.git",
+    "git+https://github.com/astropy/extension-helpers.git",
+    "git+https://github.com/scientific-python/pytest-doctestplus.git",
+    "git+https://github.com/astropy/pytest-remotedata.git",
+    "git+https://github.com/astropy/pytest-astropy-header.git",
+    "git+https://github.com/astropy/pytest-arraydiff.git",
+    "git+https://github.com/astropy/pytest-filter-subpackage.git",
+    "git+https://github.com/matplotlib/pytest-mpl.git",
+    "git+https://github.com/astropy/pytest-astropy.git]",
+]
+pip_pre = true
+
+
+[env.predeps]
+# only if combined with build-docs !
+# (not sure this can be done with extend...)
+description = "with pre-releases version of dependencies"
+# ... deps undefined ..
+pip_pre = true
+
+
+[env.image]
+description = "with image tests"
+set_env.PYTEST_ARGS_MPL = { value = "-m mpl_image_compare --mpl --mpl-generate-summary=html --mpl-results-path={toxinidir}/results --mpl-hash-library={toxinidir}/astropy/tests/figures/{envname}.json --mpl-baseline-path=https://raw.githubusercontent.com/astropy/astropy-figure-tests/astropy-main/figures/{envname}/ --remote-data" }
+deps = [
+    "latex",
+    "scipy",
+    "pytest-mpl>=0.18",
+]
+
+
+[env.mpl380]
+description = "with matplotlib 3.8.4"
+# matplotlib 3.8 + pyparsing 3.3 = DeprecationWarning
+deps = [
+    "matplotlib==3.8.4",
+    "pyparsing==3.2.5",
+]
+
+
+[env.mpldev]
+description = "with the latest developer version of matplotlib"
+set_env.UV_INDEX = { value = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple" }
+deps = ["matplotlib>=0.0dev0"]
+
+
+[env.noscipy]
+description = "without scipy-dev"
+
+
+[env.double]
+description = "run all tests twice in a single session to check for global state changes"
+# Include scipy in double run to detect test pollution in scipy-only tests
+deps = ["scipy"]
+set_env.PYTEST_ARGS_DOUBLE = { value = "--keep-duplicates astropy {toxinidir}/docs" }
+
+[env.cov]
+description = " and test coverage"
+# For coverage, we need to pass extra options to the C compiler
+set_env.CFLAGS = { value = "--coverage -fno-inline-functions -O0" }
+set_env.PYTEST_ARGS_COV = { value = "--cov astropy --cov-config={toxinidir}/pyproject.toml --cov-report xml:{toxinidir}/coverage.xml" }
+
+
+[env.clocale]
+description = ""
+set_env.LC_CTYPE = { value = "C.ascii" }
+set_env.LC_ALL = { value = "C" }
+
+
+[env.fitsio]
+description = ""
+set_env.ASTROPY_ALWAYS_TEST_FITSIO = { value = "true" }
+deps = ["fitsio"]
+
+
+[env.build_docs]
+# This lets developers use tox to build docs and ignores warnings.
+# This is not used in CI; For that, we have RTD PR builder.
+description = "invoke sphinx-build to build the HTML docs"
+change_dir = "docs"
+extras = ["docs", "all"]
+dependency-groups = ["dataframe"]
+extra_setup_commands = [
+    # predeps: Override sphinx max pin in sphinx-design;
+    # we need to reinstall sphinxcontrib-globalsubs, too as it either sphinx<9 or >=9
+    [{ replace = "if", condition = "factor.predeps", then = ["uv", "pip", "install", "sphinxcontrib-globalsubs", "-U"] , extend = true }],
+]
+
+commands = [
+    ["{list_dependencies_command}"],
+    ["sphinx-build", "-b", "html",  ".", "_build/html", "{posargs:-j auto}", { replace = "if", condition = "factor.predeps", then = ["-Wdefault"] , extend = true }],
+]
+
+
+[env.linkcheck]
+change_dir = "docs"
+description = "check the links in the HTML docs"
+extras = ["docs"]
+commands = [
+    ["{list_dependencies_command}"],
+    ["sphinx-build", "-b", "linkcheck", ".", "_build/html", "{posargs:-W}"]
+]
+
+
+[env.codestyle]
+description = "Run all style and file checks with pre-commit"
+skip_install = true
+deps = ["pre-commit"]
+commands = [
+    ["pre-commit", "install-hooks"],
+    ["pre-commit", "run", "{posargs:--color always --all-files --show-diff-on-failure}"],
+]
+
+
+[env.stubtest]
+description = "test automatically generated stubs for unit definition modules"
+allowlist_externals = ["touch"]
+deps = ["mypy"]
+commands = [
+    # We do not want to distribute py.typed files, but we need one or else Mypy
+    # refuses to look at the generated stubs.
+    ["touch", "{env_site_packages_dir}{/}astropy{/}units{/}py.typed"],
+    ["stubtest", "--mypy-config-file", ".stubtest.ini",
+        "astropy.units.astrophys",
+        "astropy.units.cds",
+        "astropy.units.cgs",
+        "astropy.units.imperial",
+        "astropy.units.misc",
+        "astropy.units.photometric",
+        "astropy.units.required_by_vounit",
+        "astropy.units.si",
+        "astropy.units.function.units",
+    ],
+]
+
+
+[env.pyinstaller]
+# Check that astropy can be included in a PyInstaller bundle without any issues. This
+# also serves as a test that tests do not import anything from outside the tests
+# directories with relative imports, since we copy the tests out to a separate directory
+# to run them.
+description = "check that astropy can be included in a pyinstaller bundle"
+change_dir = ".pyinstaller"
+deps = [
+    "pyinstaller",
+    "pytest-mpl",
+    "matplotlib",
+]
+extras = ["test"]
+commands = [
+    ["pyinstaller", "--onefile", "run_astropy_tests.py",
+        "--distpath .",
+        "--additional-hooks-dir hooks",
+        "--exclude-module tkinter",
+        "--collect-submodules=py",
+        "--hidden-import pytest",
+        "--hidden-import pytest_astropy.plugin",
+        "--hidden-import pytest_remotedata.plugin",
+        "--hidden-import pytest_doctestplus.plugin",
+        "--hidden-import pytest_mpl.plugin",
+    ],
+    ["./run_astropy_tests", "--astropy-root {toxinidir}"],
+]
