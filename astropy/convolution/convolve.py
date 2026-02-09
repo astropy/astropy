@@ -187,9 +187,7 @@ def convolve(
         A "mask" array. Shape must match ``array``, and anything that
         is masked (i.e., not 0/`False`) will be set to NaN for the
         convolution. If `None`, no masking will be performed unless
-        ``array`` is a masked array. If ``mask`` is not `None` *and*
-        ``array`` is a masked array, a pixel is masked if it is masked
-        in either ``mask`` *or* ``array.mask``.
+        ``array`` is a masked array.  The mask cannot be a masked array.
     normalization_zero_tol : float, optional
         The absolute tolerance on whether the kernel is different than
         zero. If the kernel sums to zero to within this precision, it
@@ -213,6 +211,9 @@ def convolve(
 
     if nan_treatment not in ("interpolate", "fill"):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
+
+    if np.ma.is_masked(kernel) and kernel.mask.any():
+        raise ValueError("Masked kernel present, please fill and try again")
 
     # OpenMP support is disabled at the C src code level, changing this will have
     # no effect.
@@ -566,9 +567,7 @@ def convolve_fft(
         A "mask" array. Shape must match ``array``, and anything that
         is masked (i.e., not 0/`False`) will be set to NaN for the
         convolution. If `None`, no masking will be performed unless
-        ``array`` is a masked array. If ``mask`` is not `None` *and*
-        ``array`` is a masked array, a pixel is masked if it is masked
-        in either ``mask`` *or* ``array.mask``.
+        ``array`` is a masked array.  The mask cannot be a masked array.
     crop : bool, optional
         Default on. Return an image of the size of the larger of
         the input image and the kernel. If the image and kernel are
@@ -706,6 +705,9 @@ def convolve_fft(
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
+
+    if np.ma.is_masked(kernel) and kernel.mask.any():
+        raise ValueError("Masked kernel present, please fill and try again")
 
     # Check kernel is kernel instance
     if isinstance(kernel, Kernel):
