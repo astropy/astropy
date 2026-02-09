@@ -10,6 +10,7 @@ __all__ = (
     "CurvatureComponent",
     "DarkEnergyComponent",
     "DarkMatterComponent",
+    "DistanceMeasures",
     "HubbleParameter",
     "MatterComponent",
     "NeutrinoComponent",
@@ -23,6 +24,7 @@ from .baryons import BaryonComponent
 from .curvature import CurvatureComponent
 from .darkenergy import DarkEnergyComponent
 from .darkmatter import DarkMatterComponent
+from .distances import DistanceMeasures
 from .hubble import HubbleParameter
 from .matter import MatterComponent
 from .neutrino import NeutrinoComponent
