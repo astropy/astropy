@@ -379,7 +379,10 @@ class SkyCoord(MaskableShapedLikeNDArray):
         # with Quantity.__array_finalize__
         if "info" in self.__dict__:
             new.info = self.info
+        if hasattr(self, "_uncertainty"):
+            from ._uncertainty import propagate_uncertainty
 
+            new._uncertainty = propagate_uncertainty(self, new, self._uncertainty)
         return new
 
     def __setitem__(self, item, value):
