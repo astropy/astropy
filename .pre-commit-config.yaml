@@ -13,6 +13,7 @@ repos:
             cextern/expat/lib/xmlparse.c|\
             cextern/wcslib/C/flexed/.*|\
             CHANGES.rst|\
+            uv.lock|\
         )$"
         # Prevent giant files from being committed.
       - id: check-case-conflict
@@ -56,6 +57,11 @@ repos:
     rev: v1.22.0
     hooks:
     - id: zizmor
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.9.26
+    hooks:
+    - id: uv-lock
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
