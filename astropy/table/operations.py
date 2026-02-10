@@ -1041,7 +1041,7 @@ def result_type(cols):
     np.bool_, np.object_, np.number, np.character, np.void
     """
     try:
-        return metadata.utils.result_type(cols)
+        return metadata.result_type(cols)
     except metadata.MergeConflictError as err:
         tme = TableMergeError(f"Columns have incompatible types {err._incompat_types}")
         tme._incompat_types = err._incompat_types
