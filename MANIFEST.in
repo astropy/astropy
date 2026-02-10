@@ -1,4 +1,18 @@
-prune docs/_build
-prune build
+include README.rst
+include LICENSE.rst
+include pyproject.toml
 
-global-exclude *.pyc *.o
+recursive-include astropy *.py
+recursive-include astropy *.c
+recursive-include astropy *.h
+recursive-include astropy *.txt
+recursive-include astropy *.rst
+
+recursive-include docs *.rst
+recursive-include docs *.py
+recursive-include docs Makefile
+recursive-include docs *.png
+recursive-include docs *.jpg
+
+# Validation module (new)
+recursive-include astropy/validation *.py

@@ -39,7 +39,7 @@ def validate_units_consistency(flux, distance, strict=True):
         # Force unit resolution (must reduce to power)
         luminosity.to(u.erg / u.s)
 
-    except Exception:
+    except (u.UnitConversionError, TypeError, ValueError):
         if strict:
             raise PhysicalInconsistencyError(
                 "Flux unit is incompatible with distance unit "
