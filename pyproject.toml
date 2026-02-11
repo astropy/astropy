@@ -800,7 +800,6 @@ no-build-package = [
     # they are not expected to land in the final solution,
     # even with --resolution=lowest
     "cffi",
-    "py",
     "joblib",
 ]
 
@@ -839,6 +838,9 @@ constraint-dependencies = [
 
     # via ipython (can be removed once ipython<8.17 is dropped)
     "pickleshare>=0.7.5",
+
+    # via ipykernel (indirect) oldestdeps
+    "py>=v1.11.0", # workaround a portability issue with oldestdeps resolution
 
     # via beautifulsoup4
     # can be dropped once we only support versions of pandas
