@@ -401,31 +401,16 @@ def test_set_ticks_values():
 
 
 @figure_test
-def test_left_bottom_loc_labels():
-    # Test axislabel loc on default WCSAxes with left xlabel and bottom ylabel
+@pytest.mark.parametrize("xloc, yloc", [("left", "bottom"), ("right", "top")])
+def test_left_bottom_loc_labels(xloc, yloc):
     fig = Figure(figsize=(6, 6))
     canvas = FigureCanvasAgg(fig)
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
     ax.coords[0].set_axislabel_position("tb")
     ax.coords[1].set_axislabel_position("lr")
-    ax.coords[0].set_axislabel("X", loc="left")
-    ax.coords[1].set_axislabel("Y", loc="bottom")
-    canvas.draw()
-    return fig
-
-
-@figure_test
-def test_right_top_loc_labels():
-    # Test axislabel loc on default WCSAxes with right xlabel and top ylabel
-    fig = Figure(figsize=(6, 6))
-    canvas = FigureCanvasAgg(fig)
-    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
-    fig.add_axes(ax)
-    ax.coords[0].set_axislabel_position("tb")
-    ax.coords[1].set_axislabel_position("lr")
-    ax.coords[0].set_axislabel("X", loc="right")
-    ax.coords[1].set_axislabel("Y", loc="top")
+    ax.coords[0].set_axislabel(f"X ({xloc=!r})", loc=xloc)
+    ax.coords[1].set_axislabel(f"Y ({yloc=!r})", loc=yloc)
     canvas.draw()
     return fig
 
@@ -439,20 +424,10 @@ def test_multi_loc_labels():
     fig.add_axes(ax)
     ax.coords[0].set_axislabel_position("tb")
     ax.coords[1].set_axislabel_position("lr")
-    ax.coords[0].set_axislabel(
-        "X",
-        loc={
-            "t": "left",
-            "b": "right",
-        },
-    )
-    ax.coords[1].set_axislabel(
-        "Y",
-        loc={
-            "l": "bottom",
-            "r": "top",
-        },
-    )
+    xloc = {"t": "left", "b": "right"}
+    ax.coords[0].set_axislabel(f"X ({xloc=})", loc=xloc)
+    yloc = {"l": "bottom", "r": "top"}
+    ax.coords[1].set_axislabel(f"Y ({yloc=})", loc=yloc)
     canvas.draw()
     return fig
 
@@ -466,9 +441,9 @@ def test_left_bottom_loc_labels_elliptical():
     fig.add_axes(ax)
     ax.coords[0].set_axislabel_visibility_rule("always")
     ax.coords[0].set_axislabel_position("h")
-    ax.coords[0].set_axislabel("X", loc="left")
+    ax.coords[0].set_axislabel("X (xloc='left')", loc="left")
     ax.coords[1].set_axislabel_visibility_rule("always")
     ax.coords[1].set_axislabel_position("v")
-    ax.coords[1].set_axislabel("Y", loc="bottom")
+    ax.coords[1].set_axislabel("Y (loc='bottom')", loc="bottom")
     canvas.draw()
     return fig
