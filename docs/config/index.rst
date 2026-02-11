@@ -11,10 +11,12 @@ The ``astropy`` configuration system is designed to give users control of
 various parameters used in ``astropy`` or affiliated packages without delving
 into the source code to make those changes.
 
-.. note::
-    * Before version 4.3 the configuration file was created by default
-      when importing ``astropy``. Its existence was required, which is
-      no longer the case.
+.. versionchanged:: 4.3
+   The configuration file is no longer created automatically when importing
+   ``astropy``. Users now need to explicitly create it using
+   :func:`astropy.config.create_config_file`.
+
+
 
 Getting Started
 ===============
