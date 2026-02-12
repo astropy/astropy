@@ -207,6 +207,7 @@ def get_readable_fileobj(
     http_headers=None,
     *,
     use_fsspec=None,
+    filesystem_kwargs=None,
     fsspec_kwargs=None,
     close_files=True,
 ):
@@ -291,13 +292,27 @@ def get_readable_fileobj(
         .. versionadded:: 5.2
 
     fsspec_kwargs : dict, optional
-        Keyword arguments passed on to `fsspec.open`. This can be used to
-        configure cloud storage credentials and caching behavior.
-        For example, pass ``fsspec_kwargs={"anon": True}`` to enable
-        anonymous access to Amazon S3 open data buckets.
-        See ``fsspec``'s documentation for available parameters.
+        Keyword arguments passed on to `fsspec.open` if ``filesystem_kwargs`` is None,
+        otherwise keyword arguments passed on to `fsspec.filesystem.open`.
+
+        If ``filesystem_kwargs`` is None, the dictionary can be used to configure
+        cloud storage credentials and caching behavior. For example, pass
+        ``fsspec_kwargs={"anon": True}`` and ``filesystem_kwargs=None`` to enable
+        anonymous access to Amazon S3 open data buckets. See ``fsspec``'s
+        documentation for available parameters.
+
+        If ``filesystem_kwargs`` is not None, ``fsspec_kwargs`` is passed to
+        `fsspec.filesystem.open`, which enables finer control over how data
+        are retrieved.
 
         .. versionadded:: 5.2
+
+    filesystem_kwargs : dict, optional
+        Keyword arguments passed on to `fsspec.filesystem.open`. Useful keywords
+        might include ``protocol``, ``block_size``, and ``cache_type``. See
+        ``fsspec``'s documentation for available parameters.
+
+        .. versionadded:: 7.3
 
     close_files : bool, optional
         Close the file object when exiting the context manager.
@@ -344,12 +359,19 @@ def get_readable_fileobj(
         if use_fsspec:
             if not HAS_FSSPEC:
                 raise ModuleNotFoundError("please install `fsspec` to open this file")
+
             import fsspec  # local import because it is a niche dependency
 
-            openfileobj = fsspec.open(name_or_obj, **fsspec_kwargs)
+            if filesystem_kwargs:
+                filesystem = fsspec.filesystem(**filesystem_kwargs)
+                fileobj = filesystem.open(name_or_obj, **fsspec_kwargs)
+            else:
+                openfileobj = fsspec.open(name_or_obj, **fsspec_kwargs)
+                fileobj = openfileobj.open()
+                close_fds.append(fileobj)
+
             close_fds.append(openfileobj)
-            fileobj = openfileobj.open()
-            close_fds.append(fileobj)
+
         else:
             is_url = _is_url(name_or_obj)
             if is_url:
