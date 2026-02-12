@@ -293,7 +293,7 @@ def get_readable_fileobj(
 
     fsspec_kwargs : dict, optional
         Keyword arguments passed on to `fsspec.open` if ``filesystem_kwargs`` is None,
-        otherwise keyword arguments passed on to `fsspec.filesystem.open`.
+        otherwise keyword arguments passed on to `fsspec.spec.AbstractFileSystem.open`.
 
         If ``filesystem_kwargs`` is None, the dictionary can be used to configure
         cloud storage credentials and caching behavior. For example, pass
@@ -302,17 +302,18 @@ def get_readable_fileobj(
         documentation for available parameters.
 
         If ``filesystem_kwargs`` is not None, ``fsspec_kwargs`` is passed to
-        `fsspec.filesystem.open`, which enables finer control over how data
-        are retrieved.
+        `fsspec.spec.AbstractFileSystem.open`, which enables finer control
+        over how data are retrieved.
 
         .. versionadded:: 5.2
 
     filesystem_kwargs : dict, optional
-        Keyword arguments passed on to `fsspec.filesystem.open`. Useful keywords
-        might include ``protocol``, ``block_size``, and ``cache_type``. See
-        ``fsspec``'s documentation for available parameters.
+        Keyword arguments passed on to `fsspec.spec.AbstractFileSystem.open`.
+        Useful keywords might include ``protocol``, ``block_size``, and
+        ``cache_type``. See ``fsspec``'s documentation for available
+        parameters.
 
-        .. versionadded:: 7.3
+        .. versionadded:: 8.0
 
     close_files : bool, optional
         Close the file object when exiting the context manager.
@@ -368,9 +369,9 @@ def get_readable_fileobj(
             else:
                 openfileobj = fsspec.open(name_or_obj, **fsspec_kwargs)
                 fileobj = openfileobj.open()
-                close_fds.append(fileobj)
+                close_fds.append(openfileobj)
 
-            close_fds.append(openfileobj)
+            close_fds.append(fileobj)
 
         else:
             is_url = _is_url(name_or_obj)
