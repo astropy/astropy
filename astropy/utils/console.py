@@ -852,7 +852,7 @@ class Spinner:
             flush()
             yield
 
-       for _ in range(max(1, self._step)):
+            for _ in range(max(1, self._step)):
                 yield
 
             index = (index + 1) % len(chars)
