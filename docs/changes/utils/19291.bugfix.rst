@@ -1,0 +1,1 @@
+Fixed spinner update behavior in astropy.utils.console when step is zero.
