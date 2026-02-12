@@ -1,1 +1,0 @@
-Fixed a bug where ``Tabular1D`` and ``Tabular2D`` models would crash if a Quantity was passed to a unitless table, and failed to initialize if mixed units were used for different dimensions.
