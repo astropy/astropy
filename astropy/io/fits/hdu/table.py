@@ -481,7 +481,18 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         if self._has_data:
             self.data._scale_back(update_heap_pointers=not self._manages_own_heap)
             # check TFIELDS and NAXIS2
-            self._header["TFIELDS"] = len(self.data._coldefs)
+            tfields = len(self.data._coldefs)
+            
+            # Check limit only during write
+            if tfields > 999:
+                raise ValueError(
+                    f"The FITS standard does not support tables with more than 999 columns "
+                    f"(got {tfields}). Writing this file would create non-compliant headers "
+                    f"(e.g. 'TFORM1000' is too long). Consider splitting the data into "
+                    f"multiple HDUs."
+                )
+
+            self._header["TFIELDS"] = tfields
             self._header["NAXIS2"] = self.data.shape[0]
 
             # calculate PCOUNT, for variable length tables
@@ -534,16 +545,32 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
             self.req_cards("NAXIS", None, lambda v: (v == 2), 2, option, errs)
             self.req_cards("BITPIX", None, lambda v: (v == 8), 8, option, errs)
-            self.req_cards(
-                "TFIELDS",
-                7,
-                lambda v: (_is_int(v) and v >= 0 and v <= 999),
-                0,
-                option,
-                errs,
-            )
-            tfields = self._header["TFIELDS"]
-            for idx in range(tfields):
+            
+            # SMART FIX: Enhanced TFIELDS validation with explicit error message
+            tfields = self._header.get("TFIELDS", 0)
+            if tfields > 999:
+                err_text = (
+                    f"FITS standard does not support tables with more than 999 columns "
+                    f"(got {tfields})."
+                )
+                # This is unfixable because it is a standard limitation
+                errs.append(
+                    self.run_option(
+                        option, err_text=err_text, fix_text=None, fix=None
+                    )
+                )
+            else:
+                self.req_cards(
+                    "TFIELDS",
+                    7,
+                    lambda v: (_is_int(v) and v >= 0),
+                    0,
+                    option,
+                    errs,
+                )
+
+            tfields_to_check = min(tfields, 999) if _is_int(tfields) else 0
+            for idx in range(tfields_to_check):
                 self.req_cards("TFORM" + str(idx + 1), None, None, None, option, errs)
         return errs
 
