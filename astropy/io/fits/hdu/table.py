@@ -960,7 +960,7 @@ class BinTableHDU(_TableBaseHDU):
                     # Read the field *width* by reading past the field kind.
                     i = field.dtype.str.index(field.dtype.kind)
                     field_width = int(field.dtype.str[i + 1 :])
-                    item = np.char.encode(item, "ascii")
+                    item = np.strings.encode(item, "ascii")
 
                 fileobj.writearray(item)
                 if field_width is not None:
@@ -1270,7 +1270,7 @@ class BinTableHDU(_TableBaseHDU):
             line = [column.name, column.format]
             attrs = ["disp", "unit", "dim", "null", "bscale", "bzero"]
             line += [
-                "{!s:16s}".format(value if value else '""')
+                "{!s:16s}".format(value or '""')
                 for value in (getattr(column, attr) for attr in attrs)
             ]
             fileobj.write(" ".join(line))

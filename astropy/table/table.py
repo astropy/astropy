@@ -16,8 +16,7 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.utils import ShapedLikeNDArray, deprecated
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils import deprecated
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
@@ -783,7 +782,7 @@ class Table:
             # self.__class__ and respects the `copy` arg.  The returned
             # Table object should NOT then be copied.
             data = data.__astropy_table__(self.__class__, copy, **kwargs)
-            copy = COPY_IF_NEEDED
+            copy = None
         elif kwargs:
             raise TypeError(
                 f"__init__() got unexpected keyword argument {next(iter(kwargs.keys()))!r}"
@@ -1170,7 +1169,7 @@ class Table:
         """
         return _IndexModeContext(self, mode)
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         """Support converting Table to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not
@@ -1412,7 +1411,7 @@ class Table:
             # scalar then it gets returned unchanged so the original object gets
             # passed to `Column` later.
             data = _convert_sequence_data_to_array(data, dtype)
-            copy = COPY_IF_NEEDED  # Already made a copy above
+            copy = None  # Already made a copy above
             col_cls = (
                 masked_col_cls
                 if isinstance(data, np.ma.MaskedArray)
@@ -1493,7 +1492,7 @@ class Table:
         if isinstance(col, Column) and not isinstance(col, self.ColumnClass):
             col_cls = self._get_col_cls_for_table(col)
             if col_cls is not col.__class__:
-                col = col_cls(col, copy=COPY_IF_NEEDED)
+                col = col_cls(col, copy=None)
 
         return col
 
@@ -2442,13 +2441,9 @@ class Table:
         # by pass-through here).
         if col.shape == () or (col.shape[0] == 1 and self.columns):
             new_shape = (len(self),) + getattr(col, "shape", ())[1:]
-            if isinstance(col, np.ndarray):
-                col = np.broadcast_to(col, shape=new_shape, subok=True)
-            elif isinstance(col, ShapedLikeNDArray):
-                col = col._apply(np.broadcast_to, shape=new_shape, subok=True)
-
-            # broadcast_to() results in a read-only array.  Apparently it only changes
-            # the view to look like the broadcasted array.  So copy.
+            col = np.broadcast_to(col, shape=new_shape, subok=True)
+            # broadcast_to() just creates a read-only view that looks like the
+            # broadcasted array, but we want a full, writable version.  So copy.
             col = col_copy(col)
 
         name = col.info.name
@@ -3028,7 +3023,7 @@ class Table:
         for memory but allows scripts to manipulate string arrays with
         natural syntax.
         """
-        self._convert_string_dtype("S", "U", np.char.decode)
+        self._convert_string_dtype("S", "U", np.strings.decode)
 
     def convert_unicode_to_bytestring(self):
         """
@@ -3038,7 +3033,7 @@ class Table:
         When exporting a unicode string array to a file, it may be desirable
         to encode unicode columns as bytestrings.
         """
-        self._convert_string_dtype("U", "S", np.char.encode)
+        self._convert_string_dtype("U", "S", np.strings.encode)
 
     def keep_columns(self, names):
         """
@@ -4396,7 +4391,7 @@ class QTable(Table):
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
             try:
-                qcol = q_cls(col.data, col.unit, copy=COPY_IF_NEEDED, subok=True)
+                qcol = q_cls(col.data, col.unit, copy=None, subok=True)
             except Exception as exc:
                 warnings.warn(
                     f"column {col.info.name} has a unit but is kept as "

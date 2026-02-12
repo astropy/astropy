@@ -1121,7 +1121,8 @@ class TestTableFunctions(FitsTestCase):
 
         assert row[1:4]["counts"] == 315
 
-        pytest.raises(KeyError, lambda r: r[1:4]["flag"], row)
+        with pytest.raises(KeyError):
+            row[1:4]["flag"]
 
         row[1:4]["counts"] = 300
         assert row[1:4]["counts"] == 300
@@ -1138,17 +1139,20 @@ class TestTableFunctions(FitsTestCase):
         row[1:4:2][0] = 300
         assert row[1:4]["counts"] == 300
 
-        pytest.raises(KeyError, lambda r: r[1:4]["flag"], row)
+        with pytest.raises(KeyError):
+            row[1:4]["flag"]
 
         assert row[1:4].field(0) == 300
         assert row[1:4].field("counts") == 300
 
-        pytest.raises(KeyError, row[1:4].field, "flag")
+        with pytest.raises(KeyError):
+            row[1:4].field("flag")
 
         row[1:4].setfield("counts", 500)
         assert row[1:4].field(0) == 500
 
-        pytest.raises(KeyError, row[1:4].setfield, "flag", False)
+        with pytest.raises(KeyError):
+            row[1:4].setfield("flag", False)
 
         assert t1[1].data._coldefs._arrays[1][2] == 500
         assert t1[1].data._coldefs.columns[1].array[2] == 500
@@ -2189,7 +2193,7 @@ class TestTableFunctions(FitsTestCase):
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
             assert (
-                h[1].data.field(0)[0] == np.char.decode(recarr.field(0)[0], "ascii")
+                h[1].data.field(0)[0] == np.strings.decode(recarr.field(0)[0], "ascii")
             ).all()
 
         with fits.open(self.temp("test.fits")) as h:
@@ -2204,7 +2208,7 @@ class TestTableFunctions(FitsTestCase):
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
             assert (
-                h[1].data.field(0)[0] == np.char.decode(recarr.field(0)[0], "ascii")
+                h[1].data.field(0)[0] == np.strings.decode(recarr.field(0)[0], "ascii")
             ).all()
 
     def test_new_table_with_nd_column(self):
@@ -2263,9 +2267,8 @@ class TestTableFunctions(FitsTestCase):
 
         # If dims is more than the repeat count in the format specifier raise
         # an error
-        pytest.raises(
-            VerifyError, fits.Column, name="a", format="2I", dim="(2,2)", array=arra
-        )
+        with pytest.raises(VerifyError):
+            fits.Column(name="a", format="2I", dim="(2,2)", array=arra)
 
     def test_tdim_of_size_one(self):
         """Regression test for https://github.com/astropy/astropy/pull/3580"""
@@ -2515,17 +2518,17 @@ class TestTableFunctions(FitsTestCase):
             h[1].header["TFORM1"] = "E3"
             del h[1].header["TNULL1"]
 
-        with fits.open(self.temp("test.fits")) as h:
-            pytest.raises(ValueError, lambda: h[1].data["F1"])
-
-        try:
-            with fits.open(self.temp("test.fits")) as h:
-                h[1].data["F1"]
-        except ValueError as e:
-            assert str(e).endswith(
-                "the header may be missing the necessary TNULL1 "
-                "keyword or the table contains invalid data"
-            )
+        with (
+            fits.open(self.temp("test.fits")) as h,
+            pytest.raises(
+                ValueError,
+                match=(
+                    r"the header may be missing the necessary TNULL1 "
+                    "keyword or the table contains invalid data$"
+                ),
+            ),
+        ):
+            h[1].data["F1"]
 
     def test_blank_field_zero(self):
         """Regression test for https://github.com/astropy/astropy/issues/5134
@@ -2803,13 +2806,7 @@ class TestTableFunctions(FitsTestCase):
 
         with fits.open(self.temp("test2.fits"), mode="update") as hdul:
             assert hdul[1].header["TDIM1"] == "(3,3,2)"
-            # Note: Previously I wrote data['a'][0][1, 1] to address
-            # the single row.  However, this is broken for chararray because
-            # data['a'][0] does *not* return a view of the original array--this
-            # is a bug in chararray though and not a bug in any FITS-specific
-            # code so we'll roll with it for now...
-            # (by the way the bug in question is fixed in newer Numpy versions)
-            hdul[1].data["a"][0, 1, 1] = "XYZ"
+            hdul[1].data["a"][0][1, 1] = "XYZ"
             assert np.all(hdul[1].data["a"][0] == expected)
 
         with fits.open(self.temp("test2.fits")) as hdul:
@@ -3574,7 +3571,8 @@ class TestColumnFunctions(FitsTestCase):
         a sequence of non-Column objects.
         """
 
-        pytest.raises(TypeError, fits.ColDefs, [1, 2, 3])
+        with pytest.raises(TypeError):
+            fits.ColDefs([1, 2, 3])
 
     def test_coldefs_init_from_array(self):
         """Test that ColDefs._init_from_array works with single element data-

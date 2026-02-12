@@ -1627,8 +1627,8 @@ class AffineTransformation2D(Model):
 
         augmented_matrix = cls._create_augmented_matrix(matrix, translation)
         result = np.dot(augmented_matrix, inarr)
-        x, y = result[0], result[1]
-        x.shape = y.shape = shape
+        # Project by taking just x and y of the result.
+        x, y, _ = np.reshape(result, (3, *shape))
 
         return x, y
 

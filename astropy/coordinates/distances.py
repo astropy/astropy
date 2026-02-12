@@ -10,7 +10,6 @@ import warnings
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyWarning
 
 from .angles import Angle
@@ -162,7 +161,7 @@ class Distance(u.SpecificTypeQuantity):
                     value <<= u.AU
 
         elif parallax is not None:
-            parallax = u.Quantity(parallax, copy=COPY_IF_NEEDED, subok=True)
+            parallax = u.Quantity(parallax, copy=None, subok=True)
             value = parallax.to(unit or u.pc, equivalencies=u.parallax())
 
             if np.any(parallax < 0):
@@ -254,12 +253,12 @@ class Distance(u.SpecificTypeQuantity):
     def distmod(self):
         """The distance modulus as a `~astropy.units.Quantity`."""
         val = 5.0 * np.log10(self.to_value(u.pc)) - 5.0
-        return u.Quantity(val, u.mag, copy=COPY_IF_NEEDED)
+        return u.Quantity(val, u.mag, copy=None)
 
     @classmethod
     def _distmod_to_pc(cls, dm):
         dm = u.Quantity(dm, u.mag)
-        return cls(10 ** ((dm.value + 5) / 5.0), u.pc, copy=COPY_IF_NEEDED)
+        return cls(10 ** ((dm.value + 5) / 5.0), u.pc, copy=None)
 
     @property
     def parallax(self):

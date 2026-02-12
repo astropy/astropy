@@ -14,7 +14,6 @@ from astropy.stats.sigma_clipping import (
     sigma_clipped_stats,
 )
 from astropy.table import MaskedColumn
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import NumpyRNGContext
@@ -296,7 +295,7 @@ def test_sigma_clip_large_float32_arrays(shape):
 
     arr = rng.random(size=shape, dtype="f4")
     for byteorder in (">", "<"):
-        data = arr.astype(dtype=f"{byteorder}f4", copy=COPY_IF_NEEDED)
+        data = arr.astype(dtype=f"{byteorder}f4", copy=None)
         res = sigma_clipped_stats(data, sigma=3, maxiters=5)
         assert_allclose(res, expected, rtol=3e-3)
 
@@ -670,7 +669,7 @@ def test_mad_std():
 
     # We now check this again but with the axis= keyword set since at the time
     # of writing this test this relies on a fast C implementation in which we
-    # have re-inplemented mad_std.
+    # have re-implemented mad_std.
 
     result_std = sigma_clip(
         array,

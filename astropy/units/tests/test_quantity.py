@@ -14,7 +14,6 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -701,14 +700,6 @@ class TestQuantityOperations:
             q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
-    # See https://github.com/numpy/numpy/issues/5074
-    # It seems unlikely this will be resolved, so xfail'ing it.
-    @pytest.mark.xfail(reason="list multiplication only works for numpy <=1.10")
-    def test_numeric_converter_to_index_in_practice(self):
-        """Test that use of __index__ actually works."""
-        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
-        assert q4 * ["a", "b", "c"] == ["a", "b", "c", "a", "b", "c"]
-
     def test_array_converters(self):
         # Scalar quantity
         q = u.Quantity(1.23, u.m)
@@ -725,6 +716,13 @@ class TestQuantityOperations:
 
         with pytest.raises(TypeError):
             operator.index(u.Quantity(val, u.m, dtype=int))
+
+    def test__index_fails_for_list_multiplication(self):
+        # This used to work for numpy <= 1.10, but that's not coming back.
+        # See https://github.com/numpy/numpy/issues/5074
+        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
+        with pytest.raises(TypeError):
+            q4 * ["a", "b", "c"]
 
 
 def test_quantity_conversion():
@@ -1681,7 +1679,8 @@ def test_quantity_iterability():
     q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not np.iterable(q2)
-    pytest.raises(TypeError, iter, q2)
+    with pytest.raises(TypeError):
+        iter(q2)
 
 
 def test_copy():
@@ -2015,7 +2014,7 @@ class QuantityMimic:
         self.value = value
         self.unit = unit
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         return np.array(self.value, dtype=dtype, copy=copy)
 
 

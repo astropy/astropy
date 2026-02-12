@@ -411,7 +411,7 @@ def test_threaded_segfault(valid_urls):
 
     urls = list(islice(valid_urls, N_THREAD_HAMMER))
     with ThreadPoolExecutor(max_workers=len(urls)) as P:
-        list(P.map(lambda u: slurp_url(u), [u for (u, c) in urls]))
+        list(P.map(slurp_url, [u for (u, c) in urls]))
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")

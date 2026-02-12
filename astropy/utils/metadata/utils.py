@@ -3,8 +3,6 @@
 
 import numpy as np
 
-from astropy.utils.misc import dtype_bytes_or_chars
-
 from .exceptions import MergeConflictError
 
 __all__ = ["common_dtype"]
@@ -31,32 +29,41 @@ def common_dtype(arrs):
     dtype_str : str
         String representation of dytpe (dtype ``str`` attribute)
     """
+    dt = result_type(arrs)
+    return dt.str if dt.names is None else dt.descr
+
+
+def result_type(arrs):
+    """
+    Use numpy to find the common type for a list of ndarray.
+
+    The difference with `numpy.result_type` is that all arrays should
+    share the same fundamental numpy data type, one of:
+    ``np.bool_``, ``np.object_``, ``np.number``, ``np.character``, ``np.void``
+    Hence, a mix like integer and string will raise instead of resulting
+    in a string type.
+
+    Parameters
+    ----------
+    arrs : list of ndarray
+        Array likes for which to find the common dtype. Anything not
+        an array (e.g, |Time|), will be considered an object array.
+
+    Returns
+    -------
+    dtype : ~numpy.dtype
+        The common type.
+    """
+    dtypes = [dtype(arr) for arr in arrs]
     np_types = (np.bool_, np.object_, np.number, np.character, np.void)
     uniq_types = {
-        tuple(issubclass(dtype(arr).type, np_type) for np_type in np_types)
-        for arr in arrs
+        tuple(issubclass(dt.type, np_type) for np_type in np_types) for dt in dtypes
     }
     if len(uniq_types) > 1:
         # Embed into the exception the actual list of incompatible types.
-        incompat_types = [dtype(arr).name for arr in arrs]
+        incompat_types = [dt.name for dt in dtypes]
         tme = MergeConflictError(f"Arrays have incompatible types {incompat_types}")
         tme._incompat_types = incompat_types
         raise tme
 
-    arrs = [np.empty(1, dtype=dtype(arr)) for arr in arrs]
-
-    # For string-type arrays need to explicitly fill in non-zero
-    # values or the final arr_common = .. step is unpredictable.
-    for i, arr in enumerate(arrs):
-        if arr.dtype.kind in ("S", "U"):
-            arrs[i] = [
-                ("0" if arr.dtype.kind == "U" else b"0")
-                * dtype_bytes_or_chars(arr.dtype)
-            ]
-
-    arr_common = np.array([arr[0] for arr in arrs])
-    return (
-        arr_common.dtype.str
-        if arr_common.dtype.names is None
-        else arr_common.dtype.descr
-    )
+    return np.result_type(*dtypes)
