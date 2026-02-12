@@ -1,0 +1,4 @@
+Fix for ``fsspec`` configuration in ``fits.open`` for remote S3 objects. ``fits.open``
+now accepts the keyword argument ``filesystem_kwargs``, which is passed onto
+``fsspec.filesystem`` for configuring, e.g., the buffer block size. Remote FITS
+file objects are then opened with ``fsspec.filesystem.open``.
