@@ -106,3 +106,37 @@ def quantity_support(format="latex_inline"):
                 units.registry[u.Quantity] = self._original_converter[u.Quantity]
 
     return MplQuantityConverter()
+from contextlib import contextmanager, ExitStack
+from .units import quantity_support   # this is already in the same file
+from .time import time_support        # import time_support from time.py
+
+@contextmanager
+def astro_support(quantity_format="latex_inline", time_scale=None, time_format=None, simplify=True):
+    """
+    Enable both Quantity and Time support for matplotlib in one context.
+
+    This context manager wraps `quantity_support()` and `time_support()` so that
+    matplotlib can plot `astropy.units.Quantity` and `astropy.time.Time` objects
+    together seamlessly.
+
+    Parameters
+    ----------
+    quantity_format : str, optional
+        Format for Quantity axis labels (default is "latex_inline").
+    time_scale : str, optional
+        Time scale to use for Time objects (default None, uses first object's scale).
+    time_format : str, optional
+        Time format to use for Time objects (default None, uses first object's format).
+    simplify : bool, optional
+        Simplify Time labels if possible (default True).
+
+    Usage
+    -----
+    >>> from astropy.visualization import astro_support
+    >>> with astro_support():
+    ...     # plot Quantity and Time objects
+    """
+    with ExitStack() as stack:
+        stack.enter_context(quantity_support(format=quantity_format))
+        stack.enter_context(time_support(scale=time_scale, format=time_format, simplify=simplify))
+        yield
