@@ -1,0 +1,3 @@
+Added `astro_support()` context manager in `astropy.visualization.units` that
+combines `quantity_support()` and `time_support()` for plotting both Quantity
+and Time objects together in matplotlib.
