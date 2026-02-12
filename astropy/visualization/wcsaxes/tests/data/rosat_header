@@ -1,3 +1,4 @@
+SIMPLE  =                    T / Conforms to FITS standard                      
 WCSAXES =                    2 / Number of coordinate axes                      
 CRPIX1  =                240.5 / Pixel coordinate of reference point            
 CRPIX2  =                120.5 / Pixel coordinate of reference point            

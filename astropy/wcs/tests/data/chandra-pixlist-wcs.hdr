@@ -1,3 +1,4 @@
+SIMPLE  =                    T / Conforms to FITS standard                      
 DATE    = '2020-04-25T20:17:34' / Date and time of file creation                
 DATE-OBS= '2000-07-07T09:25:15' / Observation start date                        
 DATE-END= '2000-07-07T15:27:29' / Observation end date                          
