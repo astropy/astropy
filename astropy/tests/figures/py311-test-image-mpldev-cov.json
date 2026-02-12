@@ -1,4 +1,8 @@
 {
+  "astropy.visualization.wcsaxes.tests.test_coordinate_helpers.test_left_bottom_loc_labels[left-bottom]": "c1881b7119dd80cfa82c6babe6a362f70f0994b3b488d4c403eaab6883642f7c",
+  "astropy.visualization.wcsaxes.tests.test_coordinate_helpers.test_left_bottom_loc_labels[right-top]": "eddc5b1595a38aa1f668b42680ab1d239868b8d2ff459218ada7e4c96dbbe42f",
+  "astropy.visualization.wcsaxes.tests.test_coordinate_helpers.test_multi_loc_labels": "7b0424479fcb0673d6d6e521ef69bc4f0eb2e7239c4b1d891aec70dab408136c",
+  "astropy.visualization.wcsaxes.tests.test_coordinate_helpers.test_left_bottom_loc_labels_elliptical": "98c036ca77ec3aa9c36353484ca30311c5df351fb8e8c846e9f556d98c921d42",
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_custom_frame": "0c259f5278851bda21016cce3d5479e1d6202762587ad8d8ff9982fa5a9ce11a",
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_update_clip_path_rectangular": "d9ad505b7455d6f3a1305273547b177e58d1f36418f5983d0faad29ddd5134a2",
   "astropy.visualization.wcsaxes.tests.test_frame.TestFrame.test_update_clip_path_nonrectangular": "0c1528f0ac4c30b66b0f427851dd82ae6fca2982db5c86dd20166318e2271c5d",
