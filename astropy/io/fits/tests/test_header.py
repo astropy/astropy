@@ -19,6 +19,8 @@ from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 from .conftest import FitsTestCase
 
+TEST_HEADER = fits.Header([("SIMPLE", True), ("A", "B", "C"), ("D", "E", "F")])
+
 
 def test_shallow_copy():
     """Make sure that operations on a shallow copy do not alter the original.
@@ -221,6 +223,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_add_history(self):
         header = fits.Header(
             [
+                ("SIMPLE", True),
                 ("A", "B", "C"),
                 ("HISTORY", 1),
                 ("HISTORY", 2),
@@ -231,14 +234,14 @@ class TestHeaderFunctions(FitsTestCase):
         )
         header.add_history(4)
         # One of the blanks should get used, so the length shouldn't change
-        assert len(header) == 6
-        assert header.cards[4].value == 4
+        assert len(header) == 7
+        assert header.cards[5].value == 4
         assert header["HISTORY"] == [1, 2, 3, 4]
         assert repr(header["HISTORY"]) == "1\n2\n3\n4"
 
         header.add_history(0, after="A")
-        assert len(header) == 6
-        assert header.cards[1].value == 0
+        assert len(header) == 7
+        assert header.cards[2].value == 0
         assert header["HISTORY"] == [0, 1, 2, 3, 4]
 
     def test_add_blank(self):
@@ -1881,10 +1884,7 @@ class TestHeaderFunctions(FitsTestCase):
         newlines and ensure that fromtextfile can read them back in.
         """
 
-        header = fits.Header()
-        header["A"] = ("B", "C")
-        header["B"] = ("C", "D")
-        header["C"] = ("D", "E")
+        header = TEST_HEADER
 
         with open(self.temp("test.hdr"), "w") as f:
             f.write("\n".join(str(c).strip() for c in header.cards))
@@ -1898,8 +1898,7 @@ class TestHeaderFunctions(FitsTestCase):
         Make sure that when a Header is read from a text file that the END card
         is ignored.
         """
-
-        header = fits.Header([("A", "B", "C"), ("D", "E", "F")])
+        header = TEST_HEADER
 
         # We don't use header.totextfile here because it writes each card with
         # trailing spaces to pad them out to 80 characters.  But this bug only
@@ -1922,7 +1921,7 @@ class TestHeaderFunctions(FitsTestCase):
         ValueError (as was the case in PyFITS 3.0 and earlier).
         """
 
-        header = fits.Header([("A", "B", "C"), ("D", "E", "F")])
+        header = TEST_HEADER
 
         def setitem(k, v):
             header[k] = v

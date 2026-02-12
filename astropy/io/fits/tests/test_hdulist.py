@@ -606,9 +606,7 @@ class TestHDUListFunctions(FitsTestCase):
         # append some arbitrary number of zeros to the end
         with open(self.temp("temp.fits"), "ab") as fobj:
             fobj.write(b"\x00" * 1234)
-        with pytest.warns(
-            AstropyUserWarning, match="Unexpected extra padding at the end of the file."
-        ) as w:
+        with pytest.warns(VerifyWarning, match="FITS headers must start") as w:
             with fits.open(self.temp("temp.fits")) as fobj:
                 fobj.info()
         assert len(w) == 1
@@ -627,9 +625,11 @@ class TestHDUListFunctions(FitsTestCase):
         with open(self.temp("temp.fits"), "ab") as f:
             f.seek(0, os.SEEK_END)
             f.write(b"\0" * 2880)
-        assert info == fits.info(
-            self.temp("temp.fits"), output=False, do_not_scale_image_data=True
-        )
+
+        with pytest.warns(VerifyWarning, match="extra bytes"):
+            assert info == fits.info(
+                self.temp("temp.fits"), output=False, do_not_scale_image_data=True
+            )
 
     def test_open_file_with_bad_header_padding(self):
         """

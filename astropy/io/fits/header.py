@@ -22,6 +22,7 @@ from .util import (
     fileobj_is_binary,
     path_like,
 )
+from .verify import VerifyError
 
 BLOCK_SIZE = 2880  # the FITS block size
 
@@ -578,6 +579,10 @@ class Header:
             # non-ASCII characters; maybe at this stage decoding latin-1 might
             # be safer
             block = encode_ascii(block)
+
+        first_key = block[:8].strip()
+        if first_key not in {b"SIMPLE", b"XTENSION"}:
+            raise VerifyError("FITS headers must start with either SIMPLE or XTENSION")
 
         read_blocks = []
         is_eof = False
