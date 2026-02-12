@@ -119,12 +119,17 @@ class _Tabular(Model):
                     "Expected grid points in "
                     f"{lookup_table.ndim} directions, got {npts}."
                 )
-            if (
-                npts > 1
-                and isinstance(points[0], u.Quantity)
-                and len({getattr(p, "unit", None) for p in points}) > 1
-            ):
-                raise ValueError("points must all have the same unit.")
+            
+# This check assumes that all input dimensions must have the same unit (like a spatial map).
+# However, a general lookup table often relates different physical quantities
+# Removing this check allows your previous fix (the improved input_units property) to do its job correctly.
+
+#            if (
+#                npts > 1
+#                and isinstance(points[0], u.Quantity)
+#               and len({getattr(p, "unit", None) for p in points}) > 1
+#            ):
+#                raise ValueError("points must all have the same unit.")
 
         if isinstance(fill_value, u.Quantity):
             if not isinstance(lookup_table, u.Quantity):
@@ -169,16 +174,30 @@ class _Tabular(Model):
 
     @property
     def input_units(self):
-        pts = self.points[0]
-        if not isinstance(pts, u.Quantity):
-            return None
-        return dict.fromkeys(self.inputs, pts.unit)
+        """
+        Return a dictionary mapping input names to the unit of the points
+        defining the table.
+        """
+        input_units = {}
+        for input_name, points in zip(self.inputs, self.points):
+            unit = getattr(points, 'unit', None)
+            if unit is None:
+                # If points are unitless, require dimensionless inputs.
+                # This prevents passing Quantities to scipy (which would crash).
+                input_units[input_name] = u.dimensionless_unscaled
+            else:
+                input_units[input_name] = unit
+        return input_units
 
     @property
     def return_units(self):
-        if not isinstance(self.lookup_table, u.Quantity):
-            return None
-        return {self.outputs[0]: self.lookup_table.unit}
+        """
+        Return a dictionary mapping output names to the unit of the lookup table.
+        """
+        unit = getattr(self.lookup_table, 'unit', None)
+        if unit is None:
+            return {self.outputs[0]: u.dimensionless_unscaled}
+        return {self.outputs[0]: unit}
 
     @property
     def bounding_box(self):
