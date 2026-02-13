@@ -23,6 +23,11 @@ from .card import CARD_LENGTH, Card
 from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii
 from .verify import VerifyError, VerifyWarning
 
+# https://github.com/astropy/astropy/issues/19216
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from numpy.char import chararray as charchararray
+
 __all__ = ["ColDefs", "Column", "Delayed"]
 
 
@@ -696,7 +701,7 @@ class Column(NotifierMixin):
         # input arrays can be just list or tuple, not required to be ndarray
         # does not include Object array because there is no guarantee
         # the elements in the object array are consistent.
-        if not isinstance(array, (np.ndarray, chararray.chararray, Delayed)):
+        if not isinstance(array, (np.ndarray, charchararray, Delayed)):
             try:  # try to convert to a ndarray first
                 if array is not None:
                     array = np.array(array)
@@ -2105,7 +2110,7 @@ class _VLF(np.ndarray):
         """
         if isinstance(value, np.ndarray) and value.dtype == self.dtype:
             pass
-        elif isinstance(value, chararray.chararray) and value.itemsize == 1:
+        elif isinstance(value, charchararray) and value.itemsize == 1:
             pass
         elif self.element_dtype == "S":
             value = chararray.array(value, itemsize=1)
