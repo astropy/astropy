@@ -5,30 +5,24 @@
 #include <stdlib.h>
 
 #if defined(_OPENMP)
-#include <omp.h>
+#    include <omp.h>
 #endif
 
 #ifndef INFINITY
-#define INFINITY (1.0 / 0.0)
+#    define INFINITY (1.0 / 0.0)
 #endif
 
-void compute_objective(
-    double y_in,
-    double y_out,
-    double ivar_in,
-    double ivar_out,
-    int obj_flag,
-    double* objective,
-    double* log_likelihood,
-    double* depth,
-    double* depth_err,
-    double* depth_snr
-) {
+void
+compute_objective(double y_in, double y_out, double ivar_in, double ivar_out, int obj_flag,
+                  double* objective, double* log_likelihood, double* depth, double* depth_err,
+                  double* depth_snr)
+{
     if (obj_flag) {
         double arg = y_out - y_in;
-        *log_likelihood = 0.5*ivar_in*arg*arg;
+        *log_likelihood = 0.5 * ivar_in * arg * arg;
         *objective = *log_likelihood;
-    } else {
+    }
+    else {
         *depth = y_out - y_in;
         *depth_err = sqrt(1.0 / ivar_in + 1.0 / ivar_out);
         *depth_snr = *depth / *depth_err;
@@ -36,74 +30,83 @@ void compute_objective(
     }
 }
 
-static inline double wrap_into (double x, double period)
+static inline double
+wrap_into(double x, double period)
 {
     return x - period * floor(x / period);
 }
 
-int run_bls (
-    // Inputs
-    int N,                   // Length of the time array
-    double* t,               // The list of timestamps
-    double* y,               // The y measured at ``t``
-    double* ivar,            // The inverse variance of the y array
+int
+run_bls(
+        // Inputs
+        int N,         // Length of the time array
+        double* t,     // The list of timestamps
+        double* y,     // The y measured at ``t``
+        double* ivar,  // The inverse variance of the y array
 
-    int n_periods,
-    double* periods,         // The period to test in units of ``t``
+        int n_periods,
+        double* periods,  // The period to test in units of ``t``
 
-    int n_durations,         // Length of the durations array
-    double* durations,       // The durations to test in units of ``bin_duration``
-    int oversample,          // The number of ``bin_duration`` bins in the maximum duration
+        int n_durations,    // Length of the durations array
+        double* durations,  // The durations to test in units of ``bin_duration``
+        int oversample,     // The number of ``bin_duration`` bins in the maximum duration
 
-    int obj_flag,            // A flag indicating the periodogram type
-                             // 0 - depth signal-to-noise
-                             // 1 - log likelihood
+        int obj_flag,  // A flag indicating the periodogram type
+                       // 0 - depth signal-to-noise
+                       // 1 - log likelihood
 
-    // Outputs
-    double* best_objective,  // The value of the periodogram at maximum
-    double* best_depth,      // The estimated depth at maximum
-    double* best_depth_err,  // The uncertainty on ``best_depth``
-    double* best_duration,   // The best fitting duration in units of ``t``
-    double* best_phase,      // The phase of the mid-transit time in units of
-                             // ``t``
-    double* best_depth_snr,  // The signal-to-noise ratio of the depth estimate
-    double* best_log_like    // The log likelihood at maximum
-) {
+        // Outputs
+        double* best_objective,  // The value of the periodogram at maximum
+        double* best_depth,      // The estimated depth at maximum
+        double* best_depth_err,  // The uncertainty on ``best_depth``
+        double* best_duration,   // The best fitting duration in units of ``t``
+        double* best_phase,      // The phase of the mid-transit time in units of
+                                 // ``t``
+        double* best_depth_snr,  // The signal-to-noise ratio of the depth estimate
+        double* best_log_like    // The log likelihood at maximum
+)
+{
     // Start by finding the period and duration ranges
     double max_period = periods[0], min_period = periods[0];
     int k;
     for (k = 1; k < n_periods; ++k) {
-        if (periods[k] < min_period) min_period = periods[k];
-        if (periods[k] > max_period) max_period = periods[k];
+        if (periods[k] < min_period)
+            min_period = periods[k];
+        if (periods[k] > max_period)
+            max_period = periods[k];
     }
-    if (min_period < DBL_EPSILON) return 1;
+    if (min_period < DBL_EPSILON)
+        return 1;
     double min_duration = durations[0], max_duration = durations[0];
     for (k = 1; k < n_durations; ++k) {
-        if (durations[k] < min_duration) min_duration = durations[k];
-        if (durations[k] > max_duration) max_duration = durations[k];
+        if (durations[k] < min_duration)
+            min_duration = durations[k];
+        if (durations[k] > max_duration)
+            max_duration = durations[k];
     }
-    if ((max_duration > min_period) || (min_duration < DBL_EPSILON)) return 2;
+    if ((max_duration > min_period) || (min_duration < DBL_EPSILON))
+        return 2;
 
     // Compute the durations in terms of bin_duration
     double bin_duration = min_duration / ((double)oversample);
     int max_n_bins = (int)(ceil(max_period / bin_duration)) + oversample;
 
-    int nthreads, blocksize = max_n_bins+1;
+    int nthreads, blocksize = max_n_bins + 1;
 #if defined(_OPENMP)
-#pragma omp parallel
-{
-    nthreads = omp_get_num_threads();
-}
+#    pragma omp parallel
+    {
+        nthreads = omp_get_num_threads();
+    }
 #else
     nthreads = 1;
 #endif
 
     // Allocate the work arrays
-    double* mean_y_0 = (double*)malloc(nthreads*blocksize*sizeof(double));
+    double* mean_y_0 = (double*)malloc(nthreads * blocksize * sizeof(double));
     if (mean_y_0 == NULL) {
         return -2;
     }
-    double* mean_ivar_0 = (double*)malloc(nthreads*blocksize*sizeof(double));
+    double* mean_ivar_0 = (double*)malloc(nthreads * blocksize * sizeof(double));
     if (mean_ivar_0 == NULL) {
         free(mean_y_0);
         return -3;
@@ -114,7 +117,7 @@ int run_bls (
     double sum_y = 0.0, sum_ivar = 0.0;
     int i;
 #if defined(_OPENMP)
-    #pragma omp parallel for reduction(+:sum_y), reduction(+:sum_ivar)
+#    pragma omp parallel for reduction(+ : sum_y), reduction(+ : sum_ivar)
 #endif
     for (i = 0; i < N; ++i) {
         min_t = fmin(min_t, t[i]);
@@ -125,7 +128,7 @@ int run_bls (
     // Loop over periods and do the search
     int p;
 #if defined(_OPENMP)
-    #pragma omp parallel for
+#    pragma omp parallel for
 #endif
     for (p = 0; p < n_periods; ++p) {
 #if defined(_OPENMP)
@@ -144,7 +147,7 @@ int run_bls (
         // to period and computes the weighted sum and inverse variance for each
         // bin.
         int n, ind;
-        for (n = 0; n < n_bins+1; ++n) {
+        for (n = 0; n < n_bins + 1; ++n) {
             mean_y[n] = 0.0;
             mean_ivar[n] = 0.0;
         }
@@ -167,8 +170,8 @@ int run_bls (
         // points separated by ``duration`` bins. Here we convert the mean arrays
         // to cumulative sums.
         for (n = 1; n <= n_bins; ++n) {
-            mean_y[n] += mean_y[n-1];
-            mean_ivar[n] += mean_ivar[n-1];
+            mean_y[n] += mean_y[n - 1];
+            mean_ivar[n] += mean_ivar[n - 1];
         }
 
         // Then we loop over phases (in steps of n_bin) and durations and find the
@@ -179,11 +182,11 @@ int run_bls (
         int k;
         for (k = 0; k < n_durations; ++k) {
             int dur = (int)(round(durations[k] / bin_duration));
-            int n_max = n_bins-dur;
+            int n_max = n_bins - dur;
             for (n = 0; n <= n_max; ++n) {
                 // Estimate the in-transit and out-of-transit flux
-                double y_in = mean_y[n+dur] - mean_y[n];
-                double ivar_in = mean_ivar[n+dur] - mean_ivar[n];
+                double y_in = mean_y[n + dur] - mean_y[n];
+                double ivar_in = mean_ivar[n + dur] - mean_ivar[n];
                 double y_out = sum_y - y_in;
                 double ivar_out = sum_ivar - ivar_in;
 
@@ -198,23 +201,23 @@ int run_bls (
 
                 // Either compute the log likelihood or the signal-to-noise
                 // ratio
-                compute_objective(y_in, y_out, ivar_in, ivar_out, obj_flag,
-                        &objective, &log_like, &depth, &depth_err, &depth_snr);
+                compute_objective(y_in, y_out, ivar_in, ivar_out, obj_flag, &objective, &log_like,
+                                  &depth, &depth_err, &depth_snr);
 
                 // If this is the best result seen so far, keep it
                 if (y_out >= y_in && objective > best_objective[p]) {
                     best_objective[p] = objective;
 
                     // Compute the other parameters
-                    compute_objective(y_in, y_out, ivar_in, ivar_out, (obj_flag == 0),
-                            &objective, &log_like, &depth, &depth_err, &depth_snr);
+                    compute_objective(y_in, y_out, ivar_in, ivar_out, (obj_flag == 0), &objective,
+                                      &log_like, &depth, &depth_err, &depth_snr);
 
-                    best_depth[p]     = depth;
+                    best_depth[p] = depth;
                     best_depth_err[p] = depth_err;
                     best_depth_snr[p] = depth_snr;
-                    best_log_like[p]  = log_like;
-                    best_duration[p]  = dur * bin_duration;
-                    best_phase[p]     = fmod(n*bin_duration + 0.5*best_duration[p] + min_t, period);
+                    best_log_like[p] = log_like;
+                    best_duration[p] = dur * bin_duration;
+                    best_phase[p] = fmod(n * bin_duration + 0.5 * best_duration[p] + min_t, period);
                 }
             }
         }

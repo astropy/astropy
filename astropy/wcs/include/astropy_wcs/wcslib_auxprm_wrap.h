@@ -7,14 +7,15 @@
 extern PyObject* PyAuxprmType;
 
 typedef struct {
-  PyObject_HEAD
-  struct auxprm* x;
-  PyObject* owner;
+    PyObject_HEAD
+    struct auxprm* x;
+    PyObject* owner;
 } PyAuxprm;
 
 PyAuxprm*
 PyAuxprm_cnew(PyObject* wcsprm, struct auxprm* x);
 
-int _setup_auxprm_type(PyObject* m);
+int
+_setup_auxprm_type(PyObject* m);
 
 #endif
