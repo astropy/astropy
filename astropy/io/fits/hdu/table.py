@@ -8,10 +8,10 @@ import os
 import re
 import sys
 import textwrap
+import warnings
 from contextlib import suppress
 
 import numpy as np
-from numpy import char as chararray
 
 # This module may have many dependencies on astropy.io.fits.column, but
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
@@ -39,6 +39,11 @@ from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
+
+# https://github.com/astropy/astropy/issues/19216
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from numpy.char import chararray as charchararray
 
 
 class FITSTableDumpDialect(csv.excel):
@@ -1489,7 +1494,7 @@ def _binary_table_byte_swap(data):
         formats.append(field_dtype)
         offsets.append(field_offset)
 
-        if isinstance(field, chararray.chararray):
+        if isinstance(field, charchararray):
             continue
 
         # only swap unswapped
@@ -1507,7 +1512,7 @@ def _binary_table_byte_swap(data):
             coldata = data.field(idx)
             for c in coldata:
                 if (
-                    not isinstance(c, chararray.chararray)
+                    not isinstance(c, charchararray)
                     and c.itemsize > 1
                     and c.dtype.str[0] in swap_types
                 ):
