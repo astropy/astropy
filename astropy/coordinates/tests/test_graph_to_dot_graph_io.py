@@ -1,5 +1,7 @@
 import subprocess
 
+import pytest
+
 
 class _FakePopen:
     """
@@ -41,3 +43,24 @@ def test_to_dot_graph_binary_io_regression(tmp_path, monkeypatch):
     g.to_dot_graph(savefn=str(out), savelayout="dot", saveformat="png")
 
     assert out.read_bytes() == b"PNGDATA"
+
+
+def test_to_dot_graph_graphviz_error(tmp_path, monkeypatch):
+    from astropy.coordinates.transformations.graph import TransformGraph
+
+    class _FailPopen:
+        def __init__(self, *args, **kwargs):
+            self.returncode = 1
+
+        def communicate(self, input=None):
+            return (b"", b"graphviz failed")
+
+    monkeypatch.setattr(subprocess, "Popen", _FailPopen)
+
+    g = TransformGraph()
+    out = tmp_path / "graph.png"
+
+    with pytest.raises(OSError) as exc:
+        g.to_dot_graph(savefn=str(out), savelayout="dot", saveformat="png")
+
+    assert "graphviz failed" in str(exc.value)
