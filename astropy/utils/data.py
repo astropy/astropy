@@ -207,8 +207,8 @@ def get_readable_fileobj(
     http_headers=None,
     *,
     use_fsspec=None,
-    fsspec_filesystem_kwargs=None,
     fsspec_kwargs=None,
+    fsspec_filesystem_kwargs=None,
     close_files=True,
 ):
     """Yield a readable, seekable file-like object from a file or URL.

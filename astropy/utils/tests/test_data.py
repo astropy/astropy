@@ -2413,7 +2413,7 @@ def test_string_is_url_check(s, ans):
 @pytest.mark.parametrize(
     "kwargs",
     [
-        {},
+        dict(anon=True),
         dict(anon=True, block_size=1_000, cache_type="bytes"),
     ],
 )
