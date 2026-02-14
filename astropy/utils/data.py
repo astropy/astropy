@@ -177,7 +177,7 @@ def is_url(string):
     return url.scheme.lower() in ["http", "https", "ftp", "sftp", "ssh", "file"]
 
 
-# Backward compatibility because some downstream packages allegedly uses it.
+# Backward compatibility because some downstream packages allegedly use it.
 _is_url = is_url
 
 
