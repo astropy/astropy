@@ -996,7 +996,7 @@ class HDUList(list, _Verify):
         ----------
         fileobj : str, file-like or `pathlib.Path`
             File to write to.  If a file object, must be opened in a
-            writable mode.
+            writeable mode.
 
         output_verify : str
             Output verification option.  Must be one of ``"fix"``,
