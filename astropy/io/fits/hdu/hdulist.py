@@ -266,7 +266,7 @@ class HDUList(list, _Verify):
         self._in_read_next_hdu = False
 
         # If we have read all the HDUs from the file or not
-        # The assumes that all HDUs have been written when we first opened the
+        # This assumes that all HDUs have been written when we first opened the
         # file; we do not currently support loading additional HDUs from a file
         # while it is being streamed to.  In the future that might be supported
         # but for now this is only used for the purpose of lazy-loading of
