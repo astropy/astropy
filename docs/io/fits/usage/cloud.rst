@@ -248,14 +248,12 @@ For example, we can configure fsspec to make buffered reads with a minimum
 .. doctest-requires:: fsspec
 
     >>> import fsspec
-
     >>> fsspec_filesystem = fsspec.filesystem(
     ...     protocol="s3",
     ...     anon=True,
     ...     block_size=1_000_000,
     ...     cache_type="bytes"
     ... )
-
     >>> with fits.open(s3_uri, fsspec_filesystem=fsspec_filesystem) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
