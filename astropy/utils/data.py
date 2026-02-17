@@ -208,7 +208,7 @@ def get_readable_fileobj(
     *,
     use_fsspec=None,
     fsspec_kwargs=None,
-    fsspec_filesystem_kwargs=None,
+    fsspec_filesystem=None,
     close_files=True,
 ):
     """Yield a readable, seekable file-like object from a file or URL.
@@ -292,26 +292,23 @@ def get_readable_fileobj(
         .. versionadded:: 5.2
 
     fsspec_kwargs : dict, optional
-        Keyword arguments passed on to `fsspec.open` if ``fsspec_filesystem_kwargs`` is None,
-        otherwise keyword arguments passed on to `fsspec.spec.AbstractFileSystem.open`.
-
-        If ``fsspec_filesystem_kwargs`` is None, the dictionary can be used to configure
-        cloud storage credentials and caching behavior. For example, pass
-        ``fsspec_kwargs={"anon": True}`` and ``fsspec_filesystem_kwargs=None`` to enable
-        anonymous access to Amazon S3 open data buckets. See ``fsspec``'s
-        documentation for available parameters.
-
-        If ``fsspec_filesystem_kwargs`` is not None, ``fsspec_kwargs`` is passed to
-        `fsspec.spec.AbstractFileSystem.open`, which enables finer control
-        over how data are retrieved.
+        Keyword arguments passed on to `fsspec.open`. This can be used to
+        configure cloud storage credentials and caching behavior.
+        For example, pass ``fsspec_kwargs={"anon": True}`` to enable
+        anonymous access to Amazon S3 open data buckets.
+        See ``fsspec``'s documentation for available parameters.
+        Finer control over ``fsspec`` filesystem configuration is
+        available through the ``fsspec_filesystem`` keyword argument.
 
         .. versionadded:: 5.2
 
-    fsspec_filesystem_kwargs : dict, optional
-        Keyword arguments passed on to `fsspec.spec.AbstractFileSystem.open`.
-        Useful keywords might include ``protocol``, ``block_size``, and
-        ``cache_type``. See ``fsspec``'s documentation for available
-        parameters.
+    fsspec_filesystem : `fsspec.spec.AbstractFileSystem`, optional
+        A ``filesystem`` instance initialized by the user, for example,
+        via `fsspec.registry.filesystem`. Files will be opened by calling
+        `fsspec.spec.AbstractFileSystem.open` on ``fsspec_filesystem``,
+        giving the user a way to set, for example, the filesystem's
+        ``protocol``, ``block_size``, and ``cache_type``. See
+        ``fsspec``'s documentation for available parameters.
 
         .. versionadded:: 8.0
 
@@ -349,8 +346,6 @@ def get_readable_fileobj(
             raise TypeError("`name_or_obj` must be a string when `use_fsspec=True`")
         if fsspec_kwargs is None:
             fsspec_kwargs = {}
-        if fsspec_filesystem_kwargs is None:
-            fsspec_filesystem_kwargs = {}
 
     # name_or_obj could be an os.PathLike object
     if isinstance(name_or_obj, os.PathLike):
@@ -365,13 +360,12 @@ def get_readable_fileobj(
 
             import fsspec  # local import because it is a niche dependency
 
-            if fsspec_filesystem_kwargs:
-                filesystem = fsspec.filesystem(**fsspec_filesystem_kwargs)
-                fileobj = filesystem.open(name_or_obj, **fsspec_kwargs)
+            if fsspec_filesystem:
+                fileobj = fsspec_filesystem.open(name_or_obj, **fsspec_kwargs)
             else:
                 openfileobj = fsspec.open(name_or_obj, **fsspec_kwargs)
-                fileobj = openfileobj.open()
                 close_fds.append(openfileobj)
+                fileobj = openfileobj.open()
 
             close_fds.append(fileobj)
 

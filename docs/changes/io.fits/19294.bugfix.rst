@@ -1,4 +1,4 @@
 Fix for ``fsspec`` configuration in ``fits.open`` for remote FITS files. ``fits.open``
-now accepts the keyword argument ``fsspec_filesystem_kwargs``, which is passed to
-``fsspec.filesystem`` for configuring, e.g., the buffer block size. Remote FITS
-file objects are then opened with ``fsspec.filesystem.open``.
+now accepts the keyword argument ``fsspec_filesystem``, which is used to configure,
+e.g., the buffer block size. Remote FITS file objects are then opened with
+``fsspec.filesystem.open``.
