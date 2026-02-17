@@ -240,20 +240,23 @@ buffered *read ahead* strategy, similar to the strategy that is employed
 when operating systems load local files into memory.
 
 You can tune the performance of ``fsspec``'s buffering strategy by passing custom
-``block_size`` and ``cache_type`` parameters to `fsspec.filesystem`.
-You can pass these parameters via the ``fsspec_filesystem_kwargs`` argument of
-`astropy.io.fits.open`. For example, we can configure fsspec to make buffered
-reads with a minimum ``block_size`` of 1 MB as follows:
+``block_size`` and ``cache_type`` parameters to `fsspec.filesystem`, and passing
+the filesystem into the ``fsspec_filesystem`` keyword argument in `fits.open`.
+For example, we can configure fsspec to make buffered reads with a minimum
+``block_size`` of 1 MB as follows:
 
 .. doctest-requires:: fsspec
 
-    >>> kwargs = {
-    ...     "protocol": "s3",
-    ...     "anon": True,
-    ...     "block_size": 1_000_000,
-    ...     "cache_type": "bytes"
-    ... }
-    >>> with fits.open(s3_uri, fsspec_filesystem_kwargs=kwargs) as hdul:  # doctest: +REMOTE_DATA
+    >>> import fsspec
+
+    >>> fsspec_filesystem = fsspec.filesystem(
+    ...     protocol="s3",
+    ...     anon=True,
+    ...     block_size=1_000_000,
+    ...     cache_type="bytes"
+    ... )
+
+    >>> with fits.open(s3_uri, fsspec_filesystem=fsspec_filesystem) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
 The ideal configuration will depend on the latency and throughput of the
