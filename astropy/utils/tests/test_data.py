@@ -2417,7 +2417,7 @@ def test_string_is_url_check(s, ans):
         dict(protocol="s3", anon=True, block_size=1_000, cache_type="bytes"),
     ],
 )
-def test_get_readable_fileobj_fsspec(filesystem_kwargs):
+def test_all_get_readable_fileobj_fsspec(filesystem_kwargs):
     fsspec = pytest.importorskip("fsspec")
 
     s3_uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
