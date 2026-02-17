@@ -2411,18 +2411,27 @@ def test_string_is_url_check(s, ans):
 
 @pytest.mark.remote_data
 @pytest.mark.parametrize(
-    "kwargs",
+    "filesystem_kwargs",
     [
-        dict(anon=True),
-        dict(anon=True, block_size=1_000, cache_type="bytes"),
+        None,
+        dict(protocol="s3", anon=True, block_size=1_000, cache_type="bytes"),
     ],
 )
-def test_get_readable_fileobj_fsspec(kwargs):
+def test_get_readable_fileobj_fsspec(filesystem_kwargs):
+    fsspec = pytest.importorskip("fsspec")
+
     s3_uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
+
+    if filesystem_kwargs:
+        # pass in a user-initialized filesystem:
+        filesystem = fsspec.filesystem(**filesystem_kwargs)
+    else:
+        # let get_readable_fileobj construct the filesystem:
+        filesystem = None
 
     # this example calls `fits.open`, but it's testing a feature that
     # gets passed through to `get_readable_fileobj``.
-    with fits.open(s3_uri, fsspec_filesystem_kwargs=kwargs) as hdulist:
+    with fits.open(s3_uri, fsspec_filesystem=filesystem) as hdulist:
         # assert fileobj == hdulist
         cutout = hdulist[1].section[:2, :2]
 
