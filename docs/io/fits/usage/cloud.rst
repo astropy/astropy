@@ -241,7 +241,7 @@ when operating systems load local files into memory.
 
 You can tune the performance of ``fsspec``'s buffering strategy by passing custom
 ``block_size`` and ``cache_type`` parameters to `fsspec.filesystem`, and passing
-the filesystem into the ``fsspec_filesystem`` keyword argument in `fits.open`.
+the filesystem into the ``fsspec_filesystem`` keyword argument in `astropy.io.fits.open`.
 For example, we can configure fsspec to make buffered reads with a minimum
 ``block_size`` of 1 MB as follows:
 
