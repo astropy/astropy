@@ -304,7 +304,7 @@ def get_readable_fileobj(
 
     fsspec_filesystem : `fsspec.spec.AbstractFileSystem`, optional
         A ``filesystem`` instance initialized by the user, for example,
-        via `fsspec.registry.filesystem`. Files will be opened by calling
+        via `fsspec.spec.AbstractFileSystem`. Files will be opened by calling
         `fsspec.spec.AbstractFileSystem.open` on ``fsspec_filesystem``,
         giving the user a way to set, for example, the filesystem's
         ``protocol``, ``block_size``, and ``cache_type``. See
