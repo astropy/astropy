@@ -1,0 +1,3 @@
+Added ``astropy_support`` context manager that enables both ``quantity_support``
+and ``time_support`` simultaneously for convenient matplotlib plotting with
+Astropy units and times.
