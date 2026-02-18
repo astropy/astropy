@@ -45,9 +45,9 @@ keywords = [
 dependencies = [
     "numpy>=2.0",
     "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
-    "astropy-iers-data>=0.2025.12.29.0.42.34",
+    "astropy-iers-data>=0.2026.1.26.0.43.56",
     "PyYAML>=6.0.0",
-    "packaging>=22.0.0",
+    "packaging>=25.0",
 ]
 
 [project.optional-dependencies]
@@ -119,7 +119,14 @@ test_all = [
     "sgp4>=2.3",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
-    "numpy-quaddtype>=1.0",
+
+    # 0.2.2 works on *some* platforms we support, though not all
+    # 1.0.0 would be a more universal lower bound, but it also
+    # requires numpy>=2.4. Because dependency trees are resolved
+    # with *all* extras and groups (whether they are to be installed or not),
+    # and we want to preserve the ability to test against NUMPY_LT_2_4,
+    # we effectively cannot upgrade this lower bound until we drop NUMPY_LT_2_4
+    "numpy-quaddtype>=0.2.2",
 ]
 typing = [
     "pandas-stubs>=2.0.2",
@@ -145,7 +152,7 @@ dev = [
     "astropy[typing]",
 ]
 dev_all = [
-    "tox>=4.22.0", # keep in sync with tox.minversion in tox.ini
+    "tox>=4.33.0", # keep in sync with tox.minversion in tox.ini
     "astropy[dev]",
     "astropy[test_all]",
 ]
@@ -520,6 +527,7 @@ ignore = [
     "PC140", # ignore using `mypy` in pre-commit
     "PC180", # ignore using `prettier` in pre-commit
     "PC901", # ignore using custom update message (we have many of the default ones in our history already)
+    "PP006", # ignore defining dev dependency group
     "PP308", # ignore requiring `-ra` flag for pytest, astropy's test suite is too large for this to be useful
     "PY005", # ignore requiring a root level "test*" directory
 ]
@@ -844,4 +852,7 @@ constraint-dependencies = [
     # via dask
     "toolz>=0.12.0", # can be removed once dask<=2025.11.0 is dropped
     "cloudpickle>=2.1.0", # can be removed once dask<2024.8.1 is dropped
+
+    # see https://github.com/astropy/astropy/issues/18292
+    "array-api-strict<2.4 ; python_version<'3.12'",
 ]

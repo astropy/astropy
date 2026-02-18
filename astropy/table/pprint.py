@@ -329,7 +329,7 @@ class TableFormatter:
             if outs["i_dashes"] is not None:
                 col_strs[outs["i_dashes"]] = "-" * col_width
 
-            # Format columns according to alignment.  `align` arg has precedent, otherwise
+            # Format columns according to alignment.  `align` arg has precedence, otherwise
             # use `col.format` if it starts as a legal alignment string.  If neither applies
             # then right justify.
             re_fill_align = re.compile(r"(?P<fill>.?)(?P<align>[<^>=])")

@@ -1,3 +1,5 @@
+.. _maintainers-index:
+
 Maintaining astropy and affiliated packages
 -------------------------------------------
 

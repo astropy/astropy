@@ -5,6 +5,8 @@
 
 :tocdepth: 3
 
+.. _astropy-docs-index:
+
 #################################################
 astropy: A Community Python Library for Astronomy
 #################################################
