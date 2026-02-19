@@ -1,4 +1,0 @@
-Added a comprehensive docstring to the ``CIRS`` frame class explaining its
-physical definition, the Celestial Intermediate Pole (CIP) and Celestial
-Intermediate Origin (CIO), the Earth Rotation Angle (ERA), and its
-relationship to ``GCRS`` and ``ITRS``.
