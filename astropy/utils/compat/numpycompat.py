@@ -94,90 +94,24 @@ deprecated_attributes = (
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    class chararray(np.char.chararray):
-        def __getattribute__(self, name):
-            if name in deprecated_attributes:
-                warnings.warn(
-                    "chararray is deprecated, in future versions astropy will "
-                    "return a normal array so the special chararray methods "
-                    "(e.g. .rstrip()) will not be available. Use np.strings "
-                    "functions instead.",
-                    AstropyDeprecationWarning,
-                )
-            return super().__getattribute__(name)
+    from numpy.char import array as np_char_array
+    from numpy.char import chararray as np_chararray
+
+
+class chararray(np_chararray):
+    def __getattribute__(self, name):
+        if name in deprecated_attributes:
+            warnings.warn(
+                "chararray is deprecated, in future versions astropy will "
+                "return a normal array so the special chararray methods "
+                "(e.g. .rstrip()) will not be available. Use np.strings "
+                "functions instead.",
+                AstropyDeprecationWarning,
+            )
+        return super().__getattribute__(name)
 
 
 def get_chararray(obj, itemsize=None, copy=True, unicode=None, order=None):
-    """copied from np.char.array to return our custom chararray."""
-    if isinstance(obj, (bytes, str)):
-        if unicode is None:
-            if isinstance(obj, str):
-                unicode = True
-            else:
-                unicode = False
-
-        if itemsize is None:
-            itemsize = len(obj)
-        shape = len(obj) // itemsize
-
-        return chararray(
-            shape, itemsize=itemsize, unicode=unicode, buffer=obj, order=order
-        )
-
-    if isinstance(obj, (list, tuple)):
-        obj = np.asarray(obj)
-
-    if isinstance(obj, np.ndarray) and issubclass(obj.dtype.type, np.character):
-        # If we just have a vanilla chararray, create a chararray
-        # view around it.
-        if not isinstance(obj, chararray):
-            obj = obj.view(chararray)
-
-        if itemsize is None:
-            itemsize = obj.itemsize
-            # itemsize is in 8-bit chars, so for Unicode, we need
-            # to divide by the size of a single Unicode character,
-            # which for NumPy is always 4
-            if issubclass(obj.dtype.type, np.str_):
-                itemsize //= 4
-
-        if unicode is None:
-            if issubclass(obj.dtype.type, np.str_):
-                unicode = True
-            else:
-                unicode = False
-
-        if unicode:
-            dtype = np.str_
-        else:
-            dtype = np.bytes_
-
-        if order is not None:
-            obj = np.asarray(obj, order=order)
-        if (
-            copy
-            or (itemsize != obj.itemsize)
-            or (not unicode and isinstance(obj, np.str_))
-            or (unicode and isinstance(obj, np.bytes_))
-        ):
-            obj = obj.astype((dtype, int(itemsize)))
-        return obj
-
-    if isinstance(obj, np.ndarray) and issubclass(obj.dtype.type, object):
-        if itemsize is None:
-            # Since no itemsize was specified, convert the input array to
-            # a list so the ndarray constructor will automatically
-            # determine the itemsize for us.
-            obj = obj.tolist()
-            # Fall through to the default case
-
-    if unicode:
-        dtype = np.str_
-    else:
-        dtype = np.bytes_
-
-    if itemsize is None:
-        val = np.array(obj, dtype=dtype, order=order, subok=True)
-    else:
-        val = np.array(obj, dtype=(dtype, itemsize), order=order, subok=True)
-    return val.view(chararray)
+    return np_char_array(
+        obj, itemsize=itemsize, copy=copy, unicode=unicode, order=order
+    ).view(chararray)
