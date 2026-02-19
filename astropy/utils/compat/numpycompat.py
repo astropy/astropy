@@ -49,48 +49,6 @@ def __getattr__(attr):
     raise AttributeError(f"module {__name__!r} has no attribute {attr!r}.")
 
 
-deprecated_attributes = (
-    "capitalize",
-    "center",
-    "count",
-    "decode",
-    "encode",
-    "endswith",
-    "expandtabs",
-    "find",
-    "index",
-    "isalnum",
-    "isalpha",
-    "isdecimal",
-    "isdigit",
-    "islower",
-    "isnumeric",
-    "isspace",
-    "istitle",
-    "isupper",
-    "join",
-    "ljust",
-    "lower",
-    "lstrip",
-    "replace",
-    "rfind",
-    "rindex",
-    "rjust",
-    "rpartition",
-    "rsplit",
-    "rstrip",
-    "split",
-    "splitlines",
-    "startswith",
-    "strip",
-    "swapcase",
-    "title",
-    "translate",
-    "upper",
-    "zfill",
-)
-
-
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -99,8 +57,20 @@ with warnings.catch_warnings():
 
 
 class chararray(np_chararray):
+    """Version of np.char.chararray with deprecation warnings on special methods."""
+
+    _deprecated_attributes = {
+        "capitalize", "center", "count", "decode", "encode", "endswith",
+        "expandtabs", "find", "index", "isalnum", "isalpha", "isdecimal",
+        "isdigit", "islower", "isnumeric", "isspace", "istitle", "isupper",
+        "join", "ljust", "lower", "lstrip", "replace", "rfind", "rindex",
+        "rjust", "rpartition", "rsplit", "rstrip", "split", "splitlines",
+        "startswith", "strip", "swapcase", "title", "translate", "upper",
+        "zfill"
+    }  # fmt: skip
+
     def __getattribute__(self, name):
-        if name in deprecated_attributes:
+        if name in self._deprecated_attributes:
             warnings.warn(
                 "chararray is deprecated, in future versions astropy will "
                 "return a normal array so the special chararray methods "
@@ -112,6 +82,7 @@ class chararray(np_chararray):
 
 
 def get_chararray(obj, itemsize=None, copy=True, unicode=None, order=None):
+    """Get version of np.char.chararray that gives deprecation warnings on special methods."""
     return np_char_array(
         obj, itemsize=itemsize, copy=copy, unicode=unicode, order=order
     ).view(chararray)
