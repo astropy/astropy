@@ -56,21 +56,22 @@ with warnings.catch_warnings():
     from numpy.char import chararray as np_chararray
 
 
+_deprecated_chararray_attributes = {
+    "capitalize", "center", "count", "decode", "encode", "endswith",
+    "expandtabs", "find", "index", "isalnum", "isalpha", "isdecimal",
+    "isdigit", "islower", "isnumeric", "isspace", "istitle", "isupper",
+    "join", "ljust", "lower", "lstrip", "replace", "rfind", "rindex",
+    "rjust", "rpartition", "rsplit", "rstrip", "split", "splitlines",
+    "startswith", "strip", "swapcase", "title", "translate", "upper",
+    "zfill"
+}  # fmt: skip
+
+
 class chararray(np_chararray):
     """Version of np.char.chararray with deprecation warnings on special methods."""
 
-    _deprecated_attributes = {
-        "capitalize", "center", "count", "decode", "encode", "endswith",
-        "expandtabs", "find", "index", "isalnum", "isalpha", "isdecimal",
-        "isdigit", "islower", "isnumeric", "isspace", "istitle", "isupper",
-        "join", "ljust", "lower", "lstrip", "replace", "rfind", "rindex",
-        "rjust", "rpartition", "rsplit", "rstrip", "split", "splitlines",
-        "startswith", "strip", "swapcase", "title", "translate", "upper",
-        "zfill"
-    }  # fmt: skip
-
     def __getattribute__(self, name):
-        if name in self._deprecated_attributes:
+        if name in _deprecated_chararray_attributes:
             warnings.warn(
                 "chararray is deprecated, in future versions astropy will "
                 "return a normal array so the special chararray methods "
