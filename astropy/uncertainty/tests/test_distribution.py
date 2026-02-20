@@ -688,3 +688,29 @@ class TestStructuredQuantityDistribution(TestStructuredDistribution):
         cls.d = cls.d * u.Unit("km,m")
         cls.item = cls.item * u.Unit("Mm,km")
         cls.b_item = cls.b_item * u.km
+
+
+def test_helper_uniform_multidim_regression():
+    """
+    Regression test: uniform() must support ndim >= 2 inputs.
+
+    Before fix (using [:, np.newaxis]) this raised a broadcasting ValueError.
+    After fix (using [..., np.newaxis]) it should work and preserve trailing
+    sample axis.
+    """
+    lower = np.zeros((3, 4))
+    upper = np.ones((3, 4))
+    n_samples = 7
+
+    d = ds.uniform(lower=lower, upper=upper, n_samples=n_samples)
+
+    # Public shape hides sample axis
+    assert d.shape == (3, 4)
+    assert d.n_samples == n_samples
+
+    # Underlying samples must include trailing sampling axis
+    assert d.distribution.shape == (3, 4, n_samples)
+
+    # Bounds must hold for all samples
+    assert np.all(d.distribution >= lower[..., np.newaxis])
+    assert np.all(d.distribution <= upper[..., np.newaxis])
