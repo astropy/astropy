@@ -1,0 +1,2 @@
+Fixed a broadcasting bug in ``astropy.uncertainty.distributions.uniform`` where
+multi-dimensional inputs (``ndim >= 2``) would raise a ``ValueError``.
