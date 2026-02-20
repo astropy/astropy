@@ -75,7 +75,7 @@ class chararray(np_chararray):
             warnings.warn(
                 "chararray is deprecated, in future versions astropy will "
                 "return a normal array so the special chararray methods "
-                "(e.g. .rstrip()) will not be available. Use np.strings "
+                "(e.g., .rstrip()) will not be available. Use np.strings "
                 "functions instead.",
                 AstropyDeprecationWarning,
             )
