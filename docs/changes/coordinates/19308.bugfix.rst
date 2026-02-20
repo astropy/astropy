@@ -1,0 +1,4 @@
+Fixed a broadcasting bug in ``astropy.uncertainty.distributions.uniform`` where
+multi-dimensional inputs (``ndim >= 2``) could raise a ``ValueError`` due to
+incorrect insertion of the sampling axis. The sampling axis is now appended
+to the end of the input shape, consistent with ``normal`` and ``poisson``.
