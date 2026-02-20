@@ -73,6 +73,18 @@ class _Tabular(Model):
 
     """
 
+    @property
+    def uses_quantity(self):
+        """Whether the model uses quantities, based on the lookup_table units.
+
+        Overrides the default Model behavior that assumes True for models
+        without parameters.
+        """
+        lookup = self.lookup_table
+        return isinstance(lookup, u.Quantity) or (
+            hasattr(lookup, "unit") and lookup.unit is not None
+        )
+
     linear = False
     fittable = False
 
