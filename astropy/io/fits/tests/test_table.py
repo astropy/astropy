@@ -9,7 +9,6 @@ import sys
 
 import numpy as np
 import pytest
-from numpy import char as chararray
 
 try:
     import objgraph
@@ -24,7 +23,8 @@ from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
 from astropy.table import Table
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.compat import get_chararray
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .conftest import FitsTestCase
 from .test_connect import TestMultipleHDU
@@ -156,7 +156,7 @@ class TestTableFunctions(FitsTestCase):
         fd = fits.open(self.data("test0.fits"))
 
         # create some local arrays
-        a1 = chararray.array(["abc", "def", "xx"])
+        a1 = get_chararray(["abc", "def", "xx"])
         r1 = np.array([11.0, 12.0, 13.0], dtype=np.float32)
 
         # create a table from scratch, using a mixture of columns from existing
@@ -319,7 +319,7 @@ class TestTableFunctions(FitsTestCase):
 
         # Test Start Column
 
-        a1 = chararray.array(["abcd", "def"])
+        a1 = get_chararray(["abcd", "def"])
         r1 = np.array([11.0, 12.0])
         c1 = fits.Column(name="abc", format="A3", start=19, array=a1)
         c2 = fits.Column(name="def", format="E", start=3, array=r1)
@@ -1974,7 +1974,7 @@ class TestTableFunctions(FitsTestCase):
             "p\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         )
 
-        acol = fits.Column(name="MEMNAME", format="A10", array=chararray.array(a))
+        acol = fits.Column(name="MEMNAME", format="A10", array=get_chararray(a))
         ahdu = fits.BinTableHDU.from_columns([acol])
         assert ahdu.data.tobytes().decode("raw-unicode-escape") == s
         ahdu.writeto(self.temp("newtable.fits"))
@@ -2232,8 +2232,14 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp("test.fits")) as h:
             # Need to force string arrays to byte arrays in order to compare
             # correctly on Python 3
-            assert (h[1].data["str"].encode("ascii") == arra).all()
-            assert (h[1].data["strarray"].encode("ascii") == arrb).all()
+            with pytest.warns(
+                AstropyDeprecationWarning, match="chararray is deprecated.*"
+            ):
+                assert (h[1].data["str"].encode("ascii") == arra).all()
+            with pytest.warns(
+                AstropyDeprecationWarning, match="chararray is deprecated.*"
+            ):
+                assert (h[1].data["strarray"].encode("ascii") == arrb).all()
             assert (h[1].data["intarray"] == arrc).all()
 
     def test_mismatched_tform_and_tdim(self):

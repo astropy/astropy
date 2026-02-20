@@ -1,0 +1,4 @@
+``np.char.chararray`` being deprecated in Numpy 2.5, in a future version
+``io.fits`` will return a normal array instead of a ``chararray`` for string
+columns. As a consequence the special chararray methods are deprecated (e.g.,
+``.rstrip()`` or ``.decode()``). Use ``np.strings`` functions instead.
