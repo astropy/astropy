@@ -199,11 +199,8 @@ def uniform(
         )
 
     newshape = lower.shape + (n_samples,)
-    if lower.shape == () and upper.shape == ():
-        width = upper - lower  # scalar
-    else:
-        width = (upper - lower)[:, np.newaxis]
-        lower = lower[:, np.newaxis]
+    width = (upper - lower)[..., np.newaxis]
+    lower = lower[..., np.newaxis]
     samples = lower + width * np.random.uniform(size=newshape)
 
     return cls(samples, **kwargs)
