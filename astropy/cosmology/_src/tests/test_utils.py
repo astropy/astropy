@@ -18,7 +18,7 @@ def test_vectorize_redshift_method():
     """Test :func:`astropy.cosmology._src.utils.vectorize_redshift_method`."""
 
     class Class:
-        @vectorize_redshift_method
+        @vectorize_redshift_method()
         def method(self, z):
             return z
 
