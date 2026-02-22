@@ -1,0 +1,2 @@
+Modify ECSV reader to handle header "meta" entries that are not marked with the
+"!!omap" tag, but are other valid YAML types allowed by the ECSV specification.

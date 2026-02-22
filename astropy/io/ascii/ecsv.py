@@ -13,6 +13,7 @@ from collections import OrderedDict
 import numpy as np
 
 from astropy.io.ascii.core import convert_numpy
+from astropy.io.misc.ecsv import table_meta_as_dict
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyUserWarning
@@ -194,8 +195,7 @@ class EcsvHeader(basic.BasicHeader):
                 "unable to parse yaml in meta header"
             ) from e
 
-        if "meta" in header:
-            self.table_meta = header["meta"]
+        self.table_meta = table_meta_as_dict(header)
 
         if "delimiter" in header:
             delimiter = header["delimiter"]
@@ -516,6 +516,17 @@ class Ecsv(basic.Basic):
       001     2
       004     3
 
+    Notes
+    -----
+    The ECSV format allows for many different data structures in the header "meta" element.
+    Typically this will be a mapping (what Python calls a dict), but it could also be a list or
+    nested structure.
+    Astropy's `~astropy.table.Table` requires a `dict` for table meta data, so the ECSV header. Thus,
+    the reader will attempt to convert the ECSV header "meta" to a dict or store the entire structure
+    in a single entry in the table meta.
+    On writing, that dict will be written back in astropy's form, so ECSV files that were not
+    originally written by astropy will preserve the content, but not the formatting of the
+    header "meta" element.
     """
 
     _format_name = "ecsv"
