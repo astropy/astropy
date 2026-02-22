@@ -1305,3 +1305,79 @@ def test_compressed_files(tmp_path, format_engine, compressed_filename):
     # Open compressed file and compare to ensure it's read correctly
     t_comp = Table.read(compressed_filename, **format_engine)
     assert_array_equal(t, t_comp)
+
+
+def test_meta_not_omap_but_list(format_engine):
+    """The ecsv spec allows that header meta to be any valid safe YAML.
+
+    Though astropy's writer writes with an !!omap tag, and all examples
+    in the ecsv spec (https://github.com/astropy/astropy-APEs/blob/main/APE6.rst)
+    use that extra (non standard) tag, the spec specifically says
+    that the header meta
+    'an arbitrary data structure consisting purely of data types that can be encoded
+    and decoded with the YAML "safe" dumper and loader'.
+
+    See one example in https://github.com/astropy/astropy/issues/5990
+    """
+    txt = """
+# %ECSV 1.0
+# ---
+# meta:
+# - keywords:
+#   - {z_key1: val1}
+#   - {a_key2: val2}
+# - comments: [Comment 1, Comment 2, Comment 3]
+# datatype:
+# - name: fake
+#   datatype: string
+fake
+0"""
+    with pytest.warns(
+        UserWarning,
+        match="Found ECSV table meta of type list instead of",
+    ):
+        t = Table.read(txt, **format_engine)
+    assert len(t.meta) == 1
+    assert len(t.meta["meta"]) == 2
+    assert t.meta["meta"][0] == {"keywords": [{"z_key1": "val1"}, {"a_key2": "val2"}]}
+    assert t.meta["meta"][1] == {"comments": ["Comment 1", "Comment 2", "Comment 3"]}
+
+
+MAP_BUT_NOT_OMAP_LINES = [
+    "# %ECSV 1.0",
+    "# ---",
+    "# datatype:",
+    "# - {name: fake, datatype: string}",
+    "# meta: !!omap",
+    "# - {hr: 65}",
+    "# - {avg: 0.278}",
+    "# - {rbi: 147}",
+    "# schema: astropy-2.0",
+    "fake",
+    "0",
+]
+
+
+def test_meta_not_omap_but_map(format_engine):
+    """Like test_meta_not_omap_but_list but for a mapping"""
+    txt = """
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: fake, datatype: string}
+# meta:
+#   hr:  65    # Home runs
+#   avg: 0.278 # Batting average
+#   rbi: 147   # Runs Batted In
+# schema: astropy-2.0
+fake
+0"""
+    print(txt)
+    print(format_engine)
+    t = Table.read(txt, **format_engine)
+    assert t.meta["hr"] == 65
+    assert t.meta["avg"] == 0.278
+    assert t.meta["rbi"] == 147
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    assert out.getvalue().splitlines() == MAP_BUT_NOT_OMAP_LINES
