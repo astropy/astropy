@@ -7,6 +7,13 @@ from gzip import decompress as gzip_decompress
 
 import numpy as np
 
+try:
+    import imagecodecs
+
+    HAS_IMAGECODECS = True
+except ImportError:
+    HAS_IMAGECODECS = False
+
 from astropy.io.fits.hdu.compressed._compression import (
     compress_hcompress_1_c,
     compress_plio_1_c,
@@ -30,6 +37,9 @@ except ImportError:
 
 
 __all__ = [
+    "JPEGXL",
+    "JPEGLS",
+    "JPEG2K",
     "PLIO1",
     "Gzip1",
     "Gzip2",
@@ -451,3 +461,220 @@ class HCompress1(Codec):
         return compress_hcompress_1_c(
             dbytes, self.nx, self.ny, self.scale, self.bytepix
         )
+
+
+class AbstractJPEGXLJPEGLS(Codec):
+    """
+    Abstract class for JPEGXL and JPEGLS compression and decompression algorithm.
+
+    All JPEG algorithms will likely always produce better compression performance than RICE
+    or HCOMPRESS. https://openreview.net/forum?id=kQCHCkNk7s&nesting=2&sort=date-desc
+
+    Default tile shape is 512 x 512, or as close to it as possible if
+    the data is smaller.
+
+    Data types that are supported to be passed into JPEG encode / decode:
+    uint8
+    int16
+    int32
+    
+    Future support for:
+    float32
+    int64
+
+    For anything other than uint8:
+    Note that astropy passes signed integer data to all codecs
+    Since JPEG only supports compressing unsigned integer data,
+    We convert the data to unsigned integer during compression
+    And convert back to signed integer during decompression
+    """
+
+    def __init__(self, bytepix: int, encode_func: callable, decode_func: callable):
+        self.encode_func = encode_func
+        self.decode_func = decode_func
+        self.bytepix = bytepix
+
+    def decode(self, buf):
+        """
+        Decompress buffer using supplied JPEG algorithm.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to decompress.
+
+        Returns
+        -------
+        buf : np.ndarray
+            The decompressed buffer.
+        """
+        # Ensure input is bytes
+        buf_bytes = buf if isinstance(buf, (bytes, bytearray)) else buf.tobytes()
+        if self.bytepix == 1:
+            decoded = self.decode_func(buf_bytes)
+        elif self.bytepix == 2:
+            decoded = self.decode_func(buf_bytes).astype(np.int16)
+        elif self.bytepix == 4:
+            length = int.from_bytes(buf_bytes[:2], "big")
+            upper_enc = buf_bytes[2 : 2 + length]
+            lower_enc = buf_bytes[2 + length :]
+            upper = self.decode_func(upper_enc).astype(np.uint16)
+            lower = self.decode_func(lower_enc).astype(np.uint16)
+            dec_uint32 = (upper.astype(np.uint32) << 16) | lower.astype(np.uint32)
+            decoded = dec_uint32.astype(np.int32)
+        else:
+            raise RuntimeError("Unsupported data type for JPEG XL compression.")
+        return decoded
+
+    def encode(self, buf):
+        """
+        Compress the data in the buffer.
+
+        Parameters
+        ----------
+        buf : bytes or array_like
+            The buffer to compress.
+
+        Returns
+        -------
+        bytes
+            The compressed bytes.
+        """
+        if self.bytepix == 1:
+            encoded = self.encode_func(buf)
+        elif self.bytepix == 2:
+            encoded = self.encode_func(buf.astype(np.uint16))
+        elif self.bytepix == 4:
+            # Split into upper and lower 16 bits
+            upper_bits = (buf >> 16).astype(np.uint16)
+            lower_bits = (buf & 0xFFFF).astype(np.uint16)
+            # Encode both parts separately
+            encoded_upper = self.encode_func(upper_bits)
+            encoded_lower = self.encode_func(lower_bits)
+            # Store length of first part and concatenate
+            length_bytes = len(encoded_upper).to_bytes(2, byteorder="big")
+            encoded = length_bytes + encoded_upper + encoded_lower
+        else:
+            raise RuntimeError("Unsupported data type for JPEG XL compression.")
+        return encoded
+
+
+class JPEGXL(AbstractJPEGXLJPEGLS):
+    """
+    The JPEG-XL compression and decompression algorithm.
+
+    JPEG XL is a modern image compression format designed for high-quality
+    and efficient compression of photographic and other complex images. It
+    offers both lossy and lossless compression modes with excellent performance
+    characteristics.
+    
+    This implementation uses the imagecodecs library to provide JPEG XL
+    compression and decompression capabilities.
+
+    JPEG XL can process 2D or 3D arrays.
+
+    JPEG XL already uses tiling under the hood for memory efficiency,
+    but if you need to take advantage of FITS tiling for any reason,
+    you can provide a tile_shape.
+
+    Parameters
+    ----------
+    bytepix : int
+        Number of bytes per pixel (1, 2, 4, or 8)
+    effort : int
+        The effort level to provide to JPEGXL for compression/decompression (0-9).
+    """
+
+    codec_id = "FITS_JPEGXL"
+
+    def __init__(self, *, bytepix: int, effort: int):
+        encode_func = lambda x: imagecodecs.jpegxl_encode(x, effort=effort)
+        decode_func = imagecodecs.jpegxl_decode
+        super().__init__(bytepix=bytepix, encode_func=encode_func, decode_func=decode_func)
+
+
+class JPEGLS(AbstractJPEGXLJPEGLS):
+    """
+    The JPEG-LS compression and decompression algorithm.
+
+    JPEG LS is a lossless compression algorithm designed to be
+    extremely efficient, while still more performant than RICE1 or HCOMPRESS.
+    
+    This implementation uses the imagecodecs library to provide JPEGLS
+    compression and decompression capabilities.
+
+    JPEG LS can process only 2D arrays.
+
+    Parameters
+    ----------
+    bytepix : int
+        Number of bytes per pixel (1, 2, 4, or 8)
+    naxes : int
+        Number of axes in the original uncompressed data.
+    """
+
+    codec_id = "FITS_JPEGLS"
+
+    def __init__(self, *, bytepix: int, naxes: int):
+        self.naxes = naxes
+
+        def encode_func(x):
+            print("x.shape:", x.shape)
+            squeezed = np.squeeze(x)
+            encoded = imagecodecs.jpegls_encode(squeezed)
+            return encoded
+
+        def decode_func(x):
+            decoded = imagecodecs.jpegls_decode(x)
+            if self.naxes > 2:
+                # Expand dims to match original shape: (1, 1, ..., H, W)
+                for _ in range(self.naxes - 2):
+                    decoded = np.expand_dims(decoded, axis=0)
+            return decoded
+
+        super().__init__(bytepix=bytepix, encode_func=encode_func, decode_func=decode_func)
+
+
+class JPEG2K(Codec):
+    """
+    The JPEG 2000 compression and decompression algorithm.
+
+    JPEG 2000 is an image compression standard and coding system. It was created
+    by the Joint Photographic Experts Group committee in 2000 with the intention
+    of superseding their original JPEG standard.
+
+    This implementation uses the imagecodecs library to provide JPEG 2000
+    compression and decompression capabilities.
+
+    JPEG 2000 can process 2D or 3D arrays.
+
+    Data types that are supported to be passed into JPEG encode / decode:
+    uint8
+    int16
+    int32
+
+    Parameters
+    ----------
+    bytepix : int
+        Number of bytes per pixel (1, 2, 4, or 8)
+    naxes : int
+        Number of axes in the original uncompressed data.
+    """
+
+    codec_id = "FITS_JPEG2K"
+
+    def __init__(self, *, bytepix: int, naxes: int):
+        self.bytepix = bytepix
+        self.naxes = naxes
+    
+    def decode(self, buf):
+        decoded = imagecodecs.jpeg2k_decode(buf)
+        if len(decoded.shape) == 3:
+            # Convert from H W C to C H W
+            # To undo JPEG2K axis swap during compression
+            decoded = np.moveaxis(decoded, -1, 0)
+        return decoded
+    
+    def encode(self, buf):
+        encoded = imagecodecs.jpeg2k_encode(buf)
+        return encoded

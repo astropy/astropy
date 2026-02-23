@@ -34,6 +34,7 @@ from .settings import (
     DEFAULT_DITHER_SEED,
     DEFAULT_HCOMP_SCALE,
     DEFAULT_HCOMP_SMOOTH,
+    DEFAULT_JPEGXL_EFFORT,
     DEFAULT_QUANTIZE_LEVEL,
     DEFAULT_QUANTIZE_METHOD,
     DITHER_SEED_CHECKSUM,
@@ -59,6 +60,7 @@ class CompImageHDU(ImageHDU):
         tile_shape=None,
         hcomp_scale=DEFAULT_HCOMP_SCALE,
         hcomp_smooth=DEFAULT_HCOMP_SMOOTH,
+        jpegxl_effort=DEFAULT_JPEGXL_EFFORT,
         quantize_level=DEFAULT_QUANTIZE_LEVEL,
         quantize_method=DEFAULT_QUANTIZE_METHOD,
         dither_seed=DEFAULT_DITHER_SEED,
@@ -86,7 +88,8 @@ class CompImageHDU(ImageHDU):
         compression_type : str, optional
             Compression algorithm: one of
             ``'RICE_1'``, ``'RICE_ONE'``, ``'PLIO_1'``, ``'GZIP_1'``,
-            ``'GZIP_2'``, ``'HCOMPRESS_1'``, ``'NOCOMPRESS'``
+            ``'GZIP_2'``, ``'HCOMPRESS_1'``, ``'JPEGXL'``, ``'NOCOMPRESS'``
+            ``'JPEGLS'``, ``'JPEG2K'``
 
         tile_shape : tuple, optional
             Compression tile shape, which should be specified using the default
@@ -98,6 +101,10 @@ class CompImageHDU(ImageHDU):
 
         hcomp_smooth : float, optional
             HCOMPRESS smooth parameter
+
+        jpegxl_effort : int, optional
+            JPEGXL effort parameter (0-9, default 7). Higher values give better
+            compression but take longer.
 
         quantize_level : float, optional
             Floating point quantization level; see note below
@@ -145,7 +152,7 @@ class CompImageHDU(ImageHDU):
         The astropy.io.fits package supports 3 general-purpose compression
         algorithms plus one other special-purpose compression technique that is
         designed for data masks with positive integer pixel values.  The 3
-        general purpose algorithms are GZIP, Rice, and HCOMPRESS, and the
+        general purpose algorithms are GZIP, Rice, HCOMPRESS, and JPEG-based algorithms, and the
         special-purpose technique is the IRAF pixel list compression technique
         (PLIO).  The ``compression_type`` parameter defines the compression
         algorithm to be used.
@@ -154,7 +161,8 @@ class CompImageHDU(ImageHDU):
         compression tiles.  With the GZIP, Rice, and PLIO algorithms, the
         default is to take each row of the image as a tile.  The HCOMPRESS
         algorithm is inherently 2-dimensional in nature, so the default in this
-        case is to take 16 rows of the image per tile.  In most cases, it makes
+        case is to take 16 rows of the image per tile. JPEG tries to use 512
+        by 512 pixel tiles when possible. In most cases, it makes
         little difference what tiling pattern is used, so the default tiles are
         usually adequate.  In the case of very small images, it could be more
         efficient to compress the whole image as a single tile.  Note that the
@@ -314,6 +322,9 @@ class CompImageHDU(ImageHDU):
             self.hcomp_smooth = _get_compression_setting(
                 bintable.header, "SMOOTH", DEFAULT_HCOMP_SMOOTH
             )
+            self.jpegxl_effort = int(
+                _get_compression_setting(bintable.header, "EFFORT", DEFAULT_JPEGXL_EFFORT)
+            )
             self.quantize_level = _get_compression_setting(
                 bintable.header, "noisebit", DEFAULT_QUANTIZE_LEVEL
             )
@@ -345,6 +356,7 @@ class CompImageHDU(ImageHDU):
             )
             self.hcomp_scale = hcomp_scale
             self.hcomp_smooth = hcomp_smooth
+            self.jpegxl_effort = jpegxl_effort
             self.quantize_level = quantize_level
             self.quantize_method = quantize_method
             self.dither_seed = dither_seed
@@ -447,6 +459,7 @@ class CompImageHDU(ImageHDU):
             tile_shape=self.tile_shape,
             hcomp_scale=self.hcomp_scale,
             hcomp_smooth=self.hcomp_smooth,
+            jpegxl_effort=self.jpegxl_effort,
             quantize_level=self.quantize_level,
             quantize_method=self.quantize_method,
             dither_seed=self.dither_seed,

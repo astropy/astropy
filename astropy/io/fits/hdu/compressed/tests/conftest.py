@@ -10,6 +10,7 @@ COMPRESSION_TYPES = [
     "HCOMPRESS_1",
     "PLIO_1",
     "NOCOMPRESS",
+    "JPEGXL",
 ]
 
 
@@ -77,6 +78,14 @@ ALL_FLOAT_DTYPES = ["".join(ele) for ele in _expand([("<", ">"), ("f",), ("4", "
         ],
         [
             ["HCOMPRESS_1"],
+            (
+                {"qlevel": 20, "qmethod": 2},
+                {"qlevel": 10, "qmethod": 1},
+            ),
+            ALL_FLOAT_DTYPES,
+        ],
+        [
+            ["JPEGXL"],
             (
                 {"qlevel": 20, "qmethod": 2},
                 {"qlevel": 10, "qmethod": 1},

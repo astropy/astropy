@@ -17,6 +17,7 @@ from .settings import (
     DEFAULT_BYTE_PIX,
     DEFAULT_COMPRESSION_TYPE,
     DEFAULT_DITHER_SEED,
+    DEFAULT_JPEGXL_EFFORT,
     DEFAULT_QUANTIZE_METHOD,
     NO_DITHER,
     QUANTIZE_METHOD_NAMES,
@@ -245,6 +246,7 @@ def _image_header_to_empty_bintable(
     tile_shape=None,
     hcomp_scale=None,
     hcomp_smooth=None,
+    jpegxl_effort=None,
     quantize_level=None,
     quantize_method=None,
     dither_seed=None,
@@ -499,6 +501,53 @@ def _image_header_to_empty_bintable(
         )
         after_keyword = "ZVAL2"
         idx = 3
+    elif compression_type == "JPEGXL":
+        bintable.header.set(
+            "ZNAME1", "BYTEPIX", "bytes per pixel (1, 2, 4, or 8)", after=after_keyword
+        )
+        if bintable.header["ZBITPIX"] == 8:
+            bytepix = 1
+        elif bintable.header["ZBITPIX"] == 16:
+            bytepix = 2
+        elif bintable.header["ZBITPIX"] == 32:
+            bytepix = 4
+        elif bintable.header["ZBITPIX"] == 64:
+            bytepix = 8
+        else:
+            bytepix = DEFAULT_BYTE_PIX
+
+        bintable.header.set(
+            "ZVAL1", bytepix, "bytes per pixel (1, 2, 4, or 8)", after="ZNAME1"
+        )
+        bintable.header.set(
+            "ZNAME2", "EFFORT", "JPEGXL effort parameter (0-9)", after="ZVAL1"
+        )
+        bintable.header.set(
+            "ZVAL2", jpegxl_effort, "JPEGXL effort parameter (0-9)", after="ZNAME2"
+        )
+        after_keyword = "ZVAL2"
+        idx = 3
+    elif compression_type in ["JPEGLS", "JPEG2K"]:
+        bintable.header.set(
+            "ZNAME1", "BYTEPIX", "bytes per pixel (1, 2, 4, or 8)", after=after_keyword
+        )
+        if bintable.header["ZBITPIX"] == 8:
+            bytepix = 1
+        elif bintable.header["ZBITPIX"] == 16:
+            bytepix = 2
+        elif bintable.header["ZBITPIX"] == 32:
+            bytepix = 4
+        elif bintable.header["ZBITPIX"] == 64:
+            # TODO: Support 64-bit compression
+            bytepix = 8
+        else:
+            bytepix = DEFAULT_BYTE_PIX
+
+        bintable.header.set(
+            "ZVAL1", bytepix, "bytes per pixel (1, 2, 4, or 8)", after="ZNAME1"
+        )
+        after_keyword = "ZVAL1"
+        idx = 2
 
     if image_header["BITPIX"] < 0:  # floating point image
         bintable.header.set(

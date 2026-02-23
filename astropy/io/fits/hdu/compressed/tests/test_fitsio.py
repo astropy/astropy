@@ -133,6 +133,9 @@ def fitsio_compressed_file_path(
     if compression_type == "NOCOMPRESS":
         pytest.xfail("fitsio does not support NOCOMPRESS")
 
+    if compression_type == "JPEGXL":
+        pytest.xfail("fitsio does not support JPEG-XL")
+
     if (
         compression_type == "HCOMPRESS_1"
         and "f" in dtype
