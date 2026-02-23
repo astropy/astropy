@@ -383,8 +383,10 @@ class Gaussian2D(Fittable2DModel):
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
             if not NUMPY_LT_2_5 or eig_vals.dtype.kind == "c":
                 # in numpy 2.5+, return values are *always* complex
-                assert np.all(eig_vals.imag == 0)
-                assert np.all(eig_vecs.imag == 0)
+                if np.any(eig_vals.imag != 0) or np.any(eig_vecs.imag != 0):
+                    raise TypeError(
+                        "Expected cov_matrix's eigen values to be real. Complex values were found."
+                    )
                 eig_vals = eig_vals.real
                 eig_vecs = eig_vecs.real
 
