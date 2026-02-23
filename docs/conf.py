@@ -70,11 +70,10 @@ if missing_requirements:
     logger.error(msg)
     sys.exit(1)
 
-from sphinx_astropy.conf.v2 import *  # noqa: E402, F403
-from sphinx_astropy.conf.v2 import (  # noqa: E402
+from sphinx_astropy.conf.v3 import *  # noqa: E402, F403
+from sphinx_astropy.conf.v3 import (  # noqa: E402
     exclude_patterns,
     extensions,
-    html_theme_options,
     intersphinx_mapping,
     numpydoc_xref_aliases,
     numpydoc_xref_astropy_aliases,
@@ -104,6 +103,7 @@ needs_sphinx = "8.2.0"  # keep in sync with pyproject.toml
 intersphinx_resolve_self = "astropy"
 intersphinx_mapping.update(
     {
+        "astropy.org": ("https://astropy-org-test.readthedocs.io/", None),
         "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
         "pytest": ("https://docs.pytest.org/en/stable/", None),
         "ipython": ("https://ipython.readthedocs.io/en/stable/", None),
@@ -231,33 +231,18 @@ modindex_common_prefix = ["astropy."]
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme_options.update(
-    {
-        "analytics": {
-            "google_analytics_id": "G-R0510VK4B6",
-        },
-        "github_url": "https://github.com/astropy/astropy",
-        "external_links": [
-            {"name": "Learn", "url": "https://learn.astropy.org/"},
-            {"name": "Packages", "url": "https://www.astropy.org/affiliated/"},
-        ],
-        "use_edit_page_button": True,
-        "logo": {
-            "image_light": "_static/astropy_banner_96.png",
-            "image_dark": "_static/astropy_banner_96_dark.png",
-        },
-        # https://github.com/pydata/pydata-sphinx-theme/issues/1492
-        "navigation_with_keys": False,
-        "announcement": "https://www.astropy.org/annoucement_banner.html",
-        "header_links_before_dropdown": 6,
-    }
-)
+html_theme_options = {
+    "analytics": {
+        "google_analytics_id": "G-R0510VK4B6",
+    },
+    "github_url": "https://github.com/astropy/astropy",
+    "use_edit_page_button": True,
+}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = f"{project} v{release}"
 
-html_favicon = "_static/astropy_logo.ico"
 html_static_path = ["_static"]
 html_css_files = ["astropy.css"]
 html_copy_source = False

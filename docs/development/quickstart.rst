@@ -11,7 +11,7 @@ Creating a development environment
 
 To make and test code changes and build the documentation locally you will need to
 create a development environment. If you run into problems at any stage do not hesitate
-to `ask for help <https://www.astropy.org/help.html>`_.
+to :ref:`ask for help <astropy-org-help>`.
 
 Set up GitHub and Git
 ---------------------
@@ -191,7 +191,7 @@ Creating and submitting a pull request
 
 You can contribute bug fixes, new features, and documentation updates by submitting a
 GitHub pull request (PR). This section will guide you through the process. We encourage
-you to `ask for help <https://www.astropy.org/help.html>`_ if you get stuck. The Astropy
+you to :ref:`ask for help <astropy-org-help>` if you get stuck. The Astropy
 community is welcoming and friendly and will help you!
 
 If you are new to the Astropy Project and interested to submit a large patch
