@@ -583,7 +583,7 @@ class TestMaskedArrayShaping(MaskedArraySetup):
     )
     def test_shape_setting_failure(self):
         ma = self.ma.copy()
-        with pytest.raises(ValueError, match="cannot reshape"):
+        with pytest.raises(AttributeError, match="Incompatible shape"):
             ma.shape = (5,)
 
         assert ma.shape == self.ma.shape
@@ -591,7 +591,7 @@ class TestMaskedArrayShaping(MaskedArraySetup):
 
         # Here, mask can be reshaped but array cannot.
         ma2 = Masked(np.broadcast_to([[1.0], [2.0]], self.a.shape), mask=self.mask_a)
-        with pytest.raises(AttributeError, match="ncompatible shape"):
+        with pytest.raises(AttributeError, match="Incompatible shape"):#typo-fixed
             ma2.shape = (6,)
 
         assert ma2.shape == self.ma.shape
@@ -601,12 +601,11 @@ class TestMaskedArrayShaping(MaskedArraySetup):
         ma3 = Masked(
             self.a.copy(), mask=np.broadcast_to([[True], [False]], self.mask_a.shape)
         )
-        with pytest.raises(AttributeError, match="ncompatible shape"):
-            ma3.shape = (6,)
+        with pytest.raises(AttributeError, match="Incompatible shape"):#typo-fixed
+            ma3.shape = (5,)
 
         assert ma3.shape == self.ma.shape
         assert ma3.mask.shape == self.ma.shape
-
     def test_ravel(self):
         ma_ravel = self.ma.ravel()
         expected_data = self.a.ravel()
