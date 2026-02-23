@@ -2,6 +2,7 @@
 
 import os
 import sys
+from typing import TypeVar, overload
 
 from .base import IORegistryError, _UnifiedIORegistryBase
 
@@ -9,16 +10,28 @@ __all__ = ["UnifiedIORegistry", "UnifiedInputRegistry", "UnifiedOutputRegistry"]
 
 
 PATH_TYPES = (str, os.PathLike)  # TODO! include bytes
+T = TypeVar("T", bound=str)
+U = TypeError("U")
 
 
-def _expand_user_in_args(args):
+@overload
+def _expand_user_in_arg0(arg0: os.PathLike[T]) -> T: ...
+@overload
+def _expand_user_in_arg0(arg0: U) -> U: ...
+def _expand_user_in_arg0(arg0):
     # Conservatively attempt to apply `os.path.expanduser` to the first
     # argument, which can be either a path or the contents of a table.
-    if len(args) and isinstance(args[0], PATH_TYPES):
-        ex_user = os.path.expanduser(args[0])
-        if ex_user != args[0] and os.path.exists(os.path.dirname(ex_user)):
-            args = (ex_user,) + args[1:]
-    return args
+    if isinstance(arg0, os.PathLike):
+        return os.path.abspath(os.path.expanduser(arg0))
+
+    if (
+        isinstance(arg0, PATH_TYPES)
+        and (ex_user := os.path.expanduser(arg0)) != arg0
+        and os.path.exists(os.path.dirname(ex_user))
+    ):
+        return os.path.abspath(ex_user)
+    else:
+        return arg0
 
 
 # -----------------------------------------------------------------------------
@@ -179,7 +192,8 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         ctx = None
         try:
             # Expand a tilde-prefixed path if present in args[0]
-            args = _expand_user_in_args(args)
+            if len(args):
+                args = (_expand_user_in_arg0(args[0]), *args[1:])
 
             if format is None:
                 path = None
@@ -189,9 +203,6 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
                     if isinstance(args[0], PATH_TYPES) and not os.path.isdir(args[0]):
                         from astropy.utils.data import get_readable_fileobj
 
-                        # path might be a os.PathLike object
-                        if isinstance(args[0], os.PathLike):
-                            args = (os.fspath(args[0]),) + args[1:]
                         path = args[0]
                         try:
                             ctx = get_readable_fileobj(
@@ -362,16 +373,14 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
             .. versionadded:: 4.3
         """
         # Expand a tilde-prefixed path if present in args[0]
-        args = _expand_user_in_args(args)
+        if len(args):
+            args = (_expand_user_in_arg0(args[0]), *args[1:])
 
         if format is None:
             path = None
             fileobj = None
             if len(args):
                 if isinstance(args[0], PATH_TYPES):
-                    # path might be a os.PathLike object
-                    if isinstance(args[0], os.PathLike):
-                        args = (os.fspath(args[0]),) + args[1:]
                     path = args[0]
                     fileobj = None
                 elif hasattr(args[0], "read"):
