@@ -105,73 +105,82 @@ def test_transform_to():
         assert allclose(c_frame.distance, s_frame.distance)
 
 
-# set up for parametrized test
-rt_sets = []
-rt_frames = [ICRS, FK4, FK5, Galactic]
-for rt_frame0 in rt_frames:
-    for rt_frame1 in rt_frames:
-        for equinox0 in (None, "J1975.0"):
-            for obstime0 in (None, "J1980.0"):
-                for equinox1 in (None, "J1975.0"):
-                    for obstime1 in (None, "J1980.0"):
-                        rt_sets.append(
-                            (
-                                rt_frame0,
-                                rt_frame1,
-                                equinox0,
-                                equinox1,
-                                obstime0,
-                                obstime1,
-                            )
-                        )
-rt_args = ("frame0", "frame1", "equinox0", "equinox1", "obstime0", "obstime1")
+# set up for round tripping tests:
+kwargs = [
+    {},
+    {"equinox": Time("J1975.0")},
+    {"obstime": Time("J1980.0")},
+    {"equinox": Time("J1975.0"), "obstime": Time("J1980.0")},
+]
+rt_frames = [
+    frame(**frame_kwargs)
+    for frame in (Galactic, ICRS, FK5, FK4)
+    for frame_kwargs in kwargs
+    if frame_kwargs.keys() <= frame.frame_attributes.keys()
+]
 
 
-@pytest.mark.parametrize(rt_args, rt_sets)
-def test_round_tripping(frame0, frame1, equinox0, equinox1, obstime0, obstime1):
-    """
-    Test round tripping out and back using transform_to in every combination.
-    """
-    attrs0 = {"equinox": equinox0, "obstime": obstime0}
-    attrs1 = {"equinox": equinox1, "obstime": obstime1}
+@pytest.mark.parametrize("sc_kwargs", kwargs)
+@pytest.mark.parametrize("frame", rt_frames)
+def test_round_tripping_Galactic(sc_kwargs, frame):
+    sc = SkyCoord(RA, DEC, frame=Galactic, **sc_kwargs)
+    sc_rt = sc.transform_to(frame).transform_to(Galactic())
+    assert allclose(sc_rt.l, sc.l)
+    assert allclose(sc_rt.b, sc.b)
+    if "equinox" in sc_kwargs:
+        assert sc_rt.equinox == sc.equinox
+    if "obstime" in sc_kwargs:
+        assert sc_rt.obstime == sc.obstime
 
-    # Remove None values
-    attrs0 = {k: v for k, v in attrs0.items() if v is not None}
-    attrs1 = {k: v for k, v in attrs1.items() if v is not None}
 
-    # Go out and back
-    sc = SkyCoord(RA, DEC, frame=frame0, **attrs0)
+@pytest.mark.parametrize("sc_kwargs", kwargs)
+@pytest.mark.parametrize("frame", rt_frames)
+def test_round_tripping_ICRS(sc_kwargs, frame):
+    sc = SkyCoord(RA, DEC, frame=ICRS, **sc_kwargs)
+    sc_rt = sc.transform_to(frame).transform_to(ICRS())
+    assert allclose(sc_rt.ra, sc.ra)
+    assert allclose(sc_rt.dec, sc.dec)
+    if "equinox" in sc_kwargs:
+        assert sc_rt.equinox == sc.equinox
+    if "obstime" in sc_kwargs:
+        assert sc_rt.obstime == sc.obstime
 
-    # Keep only frame attributes for frame1
-    attrs1 = {
-        attr: val for attr, val in attrs1.items() if attr in frame1.frame_attributes
-    }
-    sc2 = sc.transform_to(frame1(**attrs1))
 
-    # When coming back only keep frame0 attributes for transform_to
-    attrs0 = {
-        attr: val for attr, val in attrs0.items() if attr in frame0.frame_attributes
-    }
-    # also, if any are None, fill in with defaults
-    for attrnm in frame0.frame_attributes:
-        if attrs0.get(attrnm) is None:
-            if attrnm == "obstime" and frame0.get_frame_attr_defaults()[attrnm] is None:
-                if "equinox" in attrs0:
-                    attrs0[attrnm] = attrs0["equinox"]
-            else:
-                attrs0[attrnm] = frame0.get_frame_attr_defaults()[attrnm]
-    sc_rt = sc2.transform_to(frame0(**attrs0))
+@pytest.mark.parametrize("sc_kwargs", kwargs)
+@pytest.mark.parametrize("frame", rt_frames)
+def test_round_tripping_FK5(sc_kwargs, frame):
+    sc = SkyCoord(RA, DEC, frame=FK5, **sc_kwargs)
+    sc_rt = sc.transform_to(frame).transform_to(
+        FK5(equinox=sc_kwargs.get("equinox", FK5.equinox.default))
+    )
+    assert allclose(sc_rt.ra, sc.ra)
+    assert allclose(sc_rt.dec, sc.dec)
+    if "equinox" in sc_kwargs:
+        assert sc_rt.equinox == sc.equinox
+    if "obstime" in sc_kwargs:
+        assert sc_rt.obstime == sc.obstime
 
-    if frame0 is Galactic:
-        assert allclose(sc.l, sc_rt.l)
-        assert allclose(sc.b, sc_rt.b)
-    else:
-        assert allclose(sc.ra, sc_rt.ra)
-        assert allclose(sc.dec, sc_rt.dec)
-    if equinox0:
-        assert type(sc.equinox) is Time and sc.equinox == sc_rt.equinox
-    if obstime0:
-        assert type(sc.obstime) is Time and sc.obstime == sc_rt.obstime
+
+@pytest.mark.parametrize("sc_kwargs", kwargs)
+@pytest.mark.parametrize("frame", rt_frames)
+def test_round_tripping_FK4(sc_kwargs, frame):
+    sc = SkyCoord(RA, DEC, frame=FK4, **sc_kwargs)
+    sc_rt = sc.transform_to(frame).transform_to(
+        FK4(
+            equinox=sc_kwargs.get("equinox", FK4.equinox.default),
+            **(
+                {"obstime": val}
+                if (val := sc_kwargs.get("obstime", sc_kwargs.get("equinox")))
+                else {}
+            ),
+        )
+    )
+    assert allclose(sc_rt.ra, sc.ra)
+    assert allclose(sc_rt.dec, sc.dec)
+    if "equinox" in sc_kwargs:
+        assert sc_rt.equinox == sc.equinox
+    if "obstime" in sc_kwargs:
+        assert sc_rt.obstime == sc.obstime
 
 
 def test_coord_init_string():
