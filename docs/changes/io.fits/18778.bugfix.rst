@@ -1,0 +1,1 @@
+Fix logical VLA storage to comply with FITS standard by storing data as ASCII 'T'/'F'/NULL bytes instead of numeric 1/0 values. Backward compatibility: files written with Astropy < 8.0 using invalid byte values can still be read with a warning.
