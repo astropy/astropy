@@ -583,18 +583,24 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         or spectralcoord.observer is None
                         or spectralcoord.target is None
                     ):
-                        if observer is None:
-                            msg = "No observer defined on WCS"
-                        elif spectralcoord.observer is None:
-                            msg = "No observer defined on SpectralCoord"
-                        else:
-                            msg = "No target defined on SpectralCoord"
-                        warnings.warn(
-                            f"{msg}, SpectralCoord "
-                            "will be converted without any velocity "
-                            "frame change",
-                            AstropyUserWarning,
-                        )
+                        # Note that if observer and spectralcoord.observer are
+                        # both None, we don't emit any warning since this is
+                        # likely to be fine and is a very common use case. It
+                        # is more important to emit a warning if one has
+                        # observer information and the other does not.
+                        if not (observer is None and spectralcoord.observer is None):
+                            if observer is None:
+                                msg = "No observer defined on WCS"
+                            elif spectralcoord.observer is None:
+                                msg = "No observer defined on SpectralCoord"
+                            else:
+                                msg = "No target defined on SpectralCoord"
+                            warnings.warn(
+                                f"{msg}, SpectralCoord "
+                                "will be converted without any velocity "
+                                "frame change",
+                                AstropyUserWarning,
+                            )
                         return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.0
                     else:
                         return (
@@ -631,18 +637,24 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         or spectralcoord.observer is None
                         or spectralcoord.target is None
                     ):
-                        if observer is None:
-                            msg = "No observer defined on WCS"
-                        elif spectralcoord.observer is None:
-                            msg = "No observer defined on SpectralCoord"
-                        else:
-                            msg = "No target defined on SpectralCoord"
-                        warnings.warn(
-                            f"{msg}, SpectralCoord "
-                            "will be converted without any velocity "
-                            "frame change",
-                            AstropyUserWarning,
-                        )
+                        # Note that if observer and spectralcoord.observer are
+                        # both None, we don't emit any warning since this is
+                        # likely to be fine and is a very common use case. It
+                        # is more important to emit a warning if one has
+                        # observer information and the other does not.
+                        if not (observer is None and spectralcoord.observer is None):
+                            if observer is None:
+                                msg = "No observer defined on WCS"
+                            elif spectralcoord.observer is None:
+                                msg = "No observer defined on SpectralCoord"
+                            else:
+                                msg = "No target defined on SpectralCoord"
+                            warnings.warn(
+                                f"{msg}, SpectralCoord "
+                                "will be converted without any velocity "
+                                "frame change",
+                                AstropyUserWarning,
+                            )
                         return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
                     else:
                         return (
@@ -714,18 +726,24 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         or spectralcoord.observer is None
                         or spectralcoord.target is None
                     ):
-                        if observer is None:
-                            msg = "No observer defined on WCS"
-                        elif spectralcoord.observer is None:
-                            msg = "No observer defined on SpectralCoord"
-                        else:
-                            msg = "No target defined on SpectralCoord"
-                        warnings.warn(
-                            f"{msg}, SpectralCoord "
-                            "will be converted without any velocity "
-                            "frame change",
-                            AstropyUserWarning,
-                        )
+                        # Note that if observer and spectralcoord.observer are
+                        # both None, we don't emit any warning since this is
+                        # likely to be fine and is a very common use case. It
+                        # is more important to emit a warning if one has
+                        # observer information and the other does not.
+                        if not (observer is None and spectralcoord.observer is None):
+                            if observer is None:
+                                msg = "No observer defined on WCS"
+                            elif spectralcoord.observer is None:
+                                msg = "No observer defined on SpectralCoord"
+                            else:
+                                msg = "No target defined on SpectralCoord"
+                            warnings.warn(
+                                f"{msg}, SpectralCoord "
+                                "will be converted without any velocity "
+                                "frame change",
+                                AstropyUserWarning,
+                            )
                         return spectralcoord.to_value(**kwargs)
                     else:
                         return spectralcoord.with_observer_stationary_relative_to(

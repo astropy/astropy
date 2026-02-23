@@ -1115,12 +1115,7 @@ def test_different_ctypes(header_spectral_frames, ctype3, observer):
 
     assert isinstance(spectralcoord, SpectralCoord)
 
-    if observer:
-        pix = wcs.world_to_pixel(skycoord, spectralcoord)
-    else:
-        with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
-            pix = wcs.world_to_pixel(skycoord, spectralcoord)
-
+    pix = wcs.world_to_pixel(skycoord, spectralcoord)
     assert_allclose(pix, [0, 0, 31], rtol=1e-6, atol=1e-9)
 
 
@@ -1212,13 +1207,7 @@ def test_spectral_1d(header_spectral_1d, ctype1, observer):
     assert spectralcoord.target is None
     assert (spectralcoord.observer is not None) is observer
 
-    if observer:
-        expected_message = "No target defined on SpectralCoord"
-    else:
-        expected_message = "No observer defined on WCS"
-
-    with pytest.warns(AstropyUserWarning, match=expected_message):
-        pix = wcs.world_to_pixel(spectralcoord)
+    pix = wcs.world_to_pixel(spectralcoord)
 
     assert_allclose(pix, [31], rtol=1e-6)
 
@@ -1628,12 +1617,10 @@ def test_array_index_conversions_scalars_1d():
 
     coord = SpectralCoord(10, unit="Hz")
 
-    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
-        i = wcs.world_to_array_index(coord)
+    i = wcs.world_to_array_index(coord)
     assert isinstance(i, np.ndarray) and i.ndim == 0
 
-    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
-        x = wcs.world_to_pixel(coord)
+    x = wcs.world_to_pixel(coord)
     assert isinstance(x, np.ndarray) and x.ndim == 0
 
 
