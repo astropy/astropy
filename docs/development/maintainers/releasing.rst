@@ -48,8 +48,9 @@ updates, and so on. New features can then continue to be added in parallel to th
 The procedure for the feature freeze is as follows:
 
 #. On the GitHub issue tracker, add a new milestone for the next major version
-   and for the next bugfix version, and also create a ``backport-v<version>.x``
-   label which can be used to label pull requests that should be backported
+   and for the next bugfix version. For the next bugfix version milestone,
+   set the description to ``on-merge: backport to v<version>.x``, so that any
+   pull request merged with that milestone would attempt an automatic backport
    to the new release branch. You can then start to move any issues and pull
    requests that you know will not be included in the release to the next milestones.
 
@@ -136,10 +137,6 @@ The procedure for the feature freeze is as follows:
    activated automatically.
 
 #. Inform the Astropy developer community that the branching has occurred.
-
-#. Once the feature freeze has happened, you should go through the PRs labeled
-   with ``backport-v<prev_version>.x`` to see if they must also be labeled with
-   the new version backport label.
 
 .. _release-procedure-first-rc:
 
@@ -244,7 +241,7 @@ and commit this and the ``.mailmap`` changes::
    $ git add docs/credits.rst
    $ git commit -m "Updated list of contributors and .mailmap file"
 
-Open a pull request to merge this into ``main`` and mark it as requiring backporting to
+Open a pull request to merge this into ``main`` and milestone it as requiring backporting to
 the release branch.
 
 .. _release-procedure-check-ci:
@@ -314,7 +311,7 @@ tag::
    git tag -d v<version>
 
 Make any fixes by adding commits to the release branch (no need to remove
-previous commits) e.g. via pull requests to the release branch, backports,
+previous commits), e.g., via pull requests to the release branch, backports,
 or direct commits on the release branch, as appropriate. Once you are
 ready to try and release again, create the tag, then force push the tag
 to GitHub to overwrite the previous one.
@@ -338,7 +335,7 @@ Releasing subsequent release candidates
 
 It is very likely that some issues will be reported with the first release
 candidate. Any issues should be fixed via pull requests to the ``main`` branch
-and marked for backporting to the release branch. The process for backporting
+and milestoned for backporting to the release branch. The process for backporting
 fixes is described in :ref:`release-procedure-bug-fix-backport`.
 
 Once you have backported any required fixes, repeat the following steps
@@ -389,7 +386,7 @@ e.g. v6.0.x.
    We render the changelog on the latest release branch and forward-port it
    rather than rendering on ``main`` and backporting, since the latter would
    render all news fragments into the changelog rather than only the ones
-   intended for the e.g. v6.0.x release branch.
+   intended for the, e.g., v6.0.x release branch.
 
 .. _release-procedure-checking-changelog:
 
@@ -562,7 +559,7 @@ and on GitHub::
    git push upstream :refs/tags/v6.0.1
 
 Make any fixes by adding commits to the release branch (no need to remove
-previous commits) e.g. via pull requests to the release branch, backports,
+previous commits), e.g., via pull requests to the release branch, backports,
 or direct commits on the release branch, as appropriate. Once you are
 ready to try and release again, create the tag, then force push the tag
 to GitHub to overwrite the previous one.
