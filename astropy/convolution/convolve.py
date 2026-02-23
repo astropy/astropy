@@ -131,6 +131,7 @@ def convolve(
     mask=None,
     preserve_nan=False,
     normalization_zero_tol=1e-8,
+    treat_infs_as_nans=True,
 ):
     """
     Convolve an array with a kernel.
@@ -194,6 +195,12 @@ def convolve(
         The absolute tolerance on whether the kernel is different than
         zero. If the kernel sums to zero to within this precision, it
         cannot be normalized. Default is "1e-8".
+    treat_infs_as_nans : bool, optional
+        If `True`, treat infinite values in the input ``array`` and ``kernel``
+        as NaNs, and then handle them as according to ``nan_treatment``.
+        If this is not set, any ``inf`` values will be propagated exactly to the
+        size of the kernel.  This behavior is disabled by default because it
+        cannot be replicated in ``convolve_fft`` and is unlikely to be useful.
 
     Returns
     -------
@@ -254,6 +261,13 @@ def convolve(
         mask=None,
         fill_value=fill_value,
     )
+
+    if np.any(np.isinf(kernel_internal)):
+        raise ValueError(
+            "Kernels containing infinities are not supported, "
+            "since they are not normalizable and are equivalent "
+            "to array[:]=inf."
+        )
 
     # Make sure kernel has all odd axes
     if has_even_axis(kernel_internal):
@@ -321,7 +335,7 @@ def convolve(
     # computation. Since nan_treatment = 'interpolate', is the default
     # check whether it is even needed, if not, don't interpolate.
     # NB: np.isnan(array_internal.sum()) is faster than np.isnan(array_internal).any()
-    nan_interpolate = (nan_treatment == "interpolate") and np.isnan(
+    nan_interpolate = (nan_treatment == "interpolate") and ~np.isfinite(
         array_internal.sum()
     )
 
@@ -352,7 +366,7 @@ def convolve(
     # Mark the NaN values so we can replace them later if interpolate_nan is
     # not set
     if preserve_nan or nan_treatment == "fill":
-        initially_nan = np.isnan(array_internal)
+        initially_nan = ~np.isfinite(array_internal)
         if nan_treatment == "fill":
             array_internal[initially_nan] = fill_value
 
@@ -406,6 +420,16 @@ def convolve(
                 array_internal, pad_width=np_pad_width, mode=np_pad_mode
             )
 
+    if np.any(np.isinf(array_to_convolve)):
+        if treat_infs_as_nans:
+            array_to_convolve[~np.isfinite(array_to_convolve)] = np.nan
+        else:
+            warnings.warn(
+                "Input array contains infinite values which will be "
+                "propagated to the output according to the kernel size. ",
+                AstropyUserWarning,
+            )
+
     _convolveNd_c(
         result,
         array_to_convolve,
@@ -424,10 +448,10 @@ def convolve(
     elif nan_interpolate:
         result *= kernel_sum
 
-    if nan_interpolate and not preserve_nan and np.isnan(result.sum()):
+    if nan_interpolate and not preserve_nan and ~np.isfinite(result.sum()):
         warnings.warn(
-            "nan_treatment='interpolate', however, NaN values detected "
-            "post convolution. A contiguous region of NaN values, larger "
+            "nan_treatment='interpolate', however, non-finite values detected "
+            "post convolution. A contiguous region of non-finite values, larger "
             "than the kernel size, are present in the input array. "
             "Increase the kernel size to avoid this.",
             AstropyUserWarning,
@@ -735,6 +759,13 @@ def convolve_fft(
         kernel, dtype=complex, order="C", nan_treatment=None, mask=None, fill_value=0
     )
 
+    if np.any(np.isinf(kernel)):
+        raise ValueError(
+            "Kernels containing infinities are not supported, "
+            "since they are not normalizable and are equivalent "
+            "to array[:]=inf."
+        )
+
     # Check that the number of dimensions is compatible
     if array.ndim != kernel.ndim:
         raise ValueError("Image and kernel must have same number of dimensions")
@@ -752,12 +783,12 @@ def convolve_fft(
         )
 
     # NaN and inf catching
-    nanmaskarray = np.isnan(array) | np.isinf(array)
+    nanmaskarray = ~np.isfinite(array)
     if nan_treatment == "fill":
         array[nanmaskarray] = fill_value
     else:
         array[nanmaskarray] = 0
-    nanmaskkernel = np.isnan(kernel) | np.isinf(kernel)
+    nanmaskkernel = ~np.isfinite(kernel)
     kernel[nanmaskkernel] = 0
 
     if normalize_kernel is True:
@@ -928,7 +959,7 @@ def convolve_fft(
     else:
         bigimwt = 1
 
-    if np.isnan(fftmult).any():
+    if (~np.isfinite(fftmult)).any():
         # this check should be unnecessary; call it an insanity check
         raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
 
@@ -987,7 +1018,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
         A copy of the original array with NaN pixels replaced with their
         interpolated counterparts
     """
-    if not np.any(np.isnan(array)):
+    if not np.any(~np.isfinite(array)):
         return array.copy()
 
     newarray = array.copy()
@@ -1001,7 +1032,7 @@ def interpolate_replace_nans(array, kernel, convolve=convolve, **kwargs):
         **kwargs,
     )
 
-    isnan = np.isnan(array)
+    isnan = ~np.isfinite(array)
     newarray[isnan] = convolved[isnan]
 
     return newarray
