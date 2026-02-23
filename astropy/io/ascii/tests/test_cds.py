@@ -85,6 +85,62 @@ def test_roundtrip_mrt_table():
     assert lines == exp_output
 
 
+def test_mrt_header():
+
+    dat = get_pkg_data_filename(
+        "data/cdsFunctional2.dat", package="astropy.io.ascii.tests"
+    )
+    t = Table.read(dat, format="ascii.mrt")
+    out = StringIO()
+    t.write(out, format="ascii.mrt")
+    lines = out.getvalue().splitlines()
+
+    # Baseline
+    assert lines[0] == "Title:"
+    assert lines[1] == "Authors:"
+
+    # Update in place
+    out_lines = ascii.mrt.update_mrt_file_header(lines, authors="A. Einstein")
+    assert lines[0] == "Title:"
+    assert lines[1] == "Authors: A. Einstein\n"
+
+    assert out_lines[0] == "Title:"
+    assert out_lines[1] == "Authors: A. Einstein\n"
+
+    out_lines = ascii.mrt.update_mrt_file_header(lines, authors="I. Newton", title="Apples and oranges")
+
+    assert lines[0] == "Title: Apples and oranges"
+    assert lines[1] == "Authors: I. Newton"
+
+    assert out_lines[0] == "Title: Apples and oranges"
+    assert out_lines[1] == "Authors: I. Newton"
+
+    # Output again should be empty
+    out = StringIO()
+    t.write(out, format="ascii.mrt")
+    lines = out.getvalue().splitlines()
+    assert lines[0] == "Title:"
+    assert lines[1] == "Authors:"
+
+    # Update the header template
+    header_ = ascii.mrt.generate_mrt_header(authors="B. Dylan", title="Greatest hits", update=True)
+
+    out = StringIO()
+    t.write(out, format="ascii.mrt")
+    lines = out.getvalue().splitlines()
+
+    assert lines[0] == "Title: Greatest hits"
+    assert lines[1] == "Authors: B. Dylan"
+
+    # Reset the header template to empty default
+    header_ = ascii.mrt.generate_mrt_header(reset=True)
+    out = StringIO()
+    t.write(out, format="ascii.mrt")
+    lines = out.getvalue().splitlines()
+    assert lines[0] == "Title:"
+    assert lines[1] == "Authors:"
+
+
 def test_write_byte_by_byte_units():
     t = ascii.read(test_dat)
     col_units = [None, u.C, u.kg, u.m / u.s, u.year]

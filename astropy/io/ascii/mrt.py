@@ -38,6 +38,16 @@ BYTE_BY_BYTE_TEMPLATE = [
     "--------------------------------------------------------------------------------",
 ]
 
+EMPTY_MRT_TEMPLATE = [
+    "Title:",
+    "Authors:",
+    "Table:",
+    "================================================================================",
+    "$bytebybyte",
+    "Notes:",
+    "--------------------------------------------------------------------------------",
+]
+
 MRT_TEMPLATE = [
     "Title:",
     "Authors:",
@@ -47,6 +57,123 @@ MRT_TEMPLATE = [
     "Notes:",
     "--------------------------------------------------------------------------------",
 ]
+
+
+def generate_mrt_header(
+    title=None,
+    authors=None,
+    table=None,
+    notes=None,
+    update=False,
+    reset=False,
+    **kwargs,
+):
+    """
+    Generate a header for a MRT
+
+    Parameters
+    ----------
+    title, authors, table, notes : str or None
+        Metadata entries
+
+    update : bool
+        Update the ``MRT_TEMPLATE`` global variable to be used the next time a file is written
+
+    reset : bool
+        Reset the global variable to the empty default
+
+    Returns
+    -------
+    template : list
+        List of strings for the table template
+    """
+    global MRT_TEMPLATE
+
+    if reset:
+        MRT_TEMPLATE = EMPTY_MRT_TEMPLATE.copy()
+        return MRT_TEMPLATE
+
+    template = EMPTY_MRT_TEMPLATE.copy()
+
+    if title is not None:
+        template[0] += " " + title
+
+    if authors is not None:
+        template[1] += " " + authors
+
+    if table is not None:
+        template[2] += " " + table
+
+    if notes is not None:
+        template[5] += " " + notes
+
+    if update:
+        MRT_TEMPLATE = template
+
+    return template
+
+
+def update_mrt_file_header(
+    input, title=None, authors=None, table=None, notes=None, overwrite=True
+):
+    """
+    Update the header of an existing MRT file
+
+    Parameters
+    ----------
+    input : str, list
+        Either the string filename of a table or a list of the row strings of an existing table
+
+    title, authors, table, notes : str, None
+        Metadata keys
+
+    Returns
+    -------
+    lines : None, list
+        Returns None if ``input`` was a filename and the output was written to a file, otherwise returns
+        the list of updated line strings
+    """
+    if isinstance(input, list):
+        lines = input
+        line_end_char = ""
+    else:
+        # Append newline character to output lines when read from input
+        line_end_char = "\n"
+        with open(input) as fp:
+            lines = fp.readlines()
+
+    line_start = ["Title:", "Authors:", "Table:"]
+    for i, prefix in enumerate(line_start):
+        if not lines[i].startswith(prefix):
+            msg = f"line #{i} = '{lines[i]}' \n"
+            msg += f"line #{i} should start with '{prefix}' for an MRT file"
+            raise ValueError(msg)
+
+    header = generate_mrt_header(
+        title=title, authors=authors, table=table, notes=notes, update=False
+    )
+
+    if title is not None:
+        lines[0] = header[0] + line_end_char
+
+    if authors is not None:
+        lines[1] = header[1] + line_end_char
+
+    if table is not None:
+        lines[2] = header[2] + line_end_char
+
+    if notes is not None:
+        for i, line in enumerate(lines):
+            if line.startswith("Notes:"):
+                lines[i] = header[5] + line_end_char
+                break
+
+    if (not isinstance(input, list)) & overwrite:
+        with open(input, "w") as fp:
+            fp.writelines(lines)
+        return None
+    else:
+        return lines
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):
@@ -653,7 +780,12 @@ class Mrt(core.BaseReader):
     Machine Readable Table (MRT) format.
 
     Note that the metadata of the table, apart from units, column names and
-    description, will not be written. These have to be filled in by hand later.
+    description, will not be written by default. The `astropy.io.ascii.mrt.generate_mrt_header` function
+    can be used to update the metadata that will then be used when the table is output:
+
+      >>> from astropy.io import ascii
+      >>> ascii.mrt.generate_mrt_header(authors="A. Einstein", update=True)
+      >>> table.write('data.mrt', format='mrt')
 
     See also: :ref:`cds_mrt_format`.
 
