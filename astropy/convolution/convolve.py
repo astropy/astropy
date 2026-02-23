@@ -120,6 +120,93 @@ def _copy_input_if_needed(
     return output
 
 
+def _convolve_nd(array, kernel, boundary, fill_value, nan_interpolate, n_threads):
+    """
+    Internal convolution helper operating on float ndarray inputs.
+
+    Parameters
+    ----------
+    array, kernel : ndarray
+        Float arrays to convolve.
+    boundary, fill_value, nan_interpolate : see `convolve`.
+    n_threads : int
+        Number of threads for the C backend; passed through without validation.
+    """
+    array_shape = np.array(array.shape)
+    kernel_shape = np.array(kernel.shape)
+    pad_width = kernel_shape // 2
+
+    result = np.zeros(array.shape, dtype=float, order="C")
+
+    embed_result_within_padded_region = True
+    array_to_convolve = array
+    if boundary in ("fill", "extend", "wrap"):
+        embed_result_within_padded_region = False
+        if boundary == "fill":
+            padded_shape = tuple(array_shape + 2 * pad_width)
+            array_to_convolve = np.full(
+                padded_shape, fill_value=fill_value, dtype=float, order="C"
+            )
+            insert_slices = tuple(
+                slice(pad, pad + size) for pad, size in zip(pad_width, array_shape)
+            )
+            array_to_convolve[insert_slices] = array
+        else:
+            np_pad_mode_dict = {"fill": "constant", "extend": "edge", "wrap": "wrap"}
+            np_pad_mode = np_pad_mode_dict[boundary]
+            np_pad_width = tuple((pad, pad) for pad in pad_width)
+            array_to_convolve = np.pad(array, pad_width=np_pad_width, mode=np_pad_mode)
+
+    _convolveNd_c(
+        result,
+        array_to_convolve,
+        kernel,
+        nan_interpolate,
+        embed_result_within_padded_region,
+        n_threads,
+    )
+    return result
+
+
+def _factor_separable_kernel_2d(kernel, tol_factor=50.0):
+    """
+    Attempt to factor a 2D kernel into two 1D kernels.
+
+    Returns (kx, ky) if kernel ~= outer(kx, ky), otherwise None.
+
+    Parameters
+    ----------
+    kernel : ndarray
+        2D kernel array.
+    tol_factor : float, optional
+        Factor multiplying machine epsilon for the separability check.
+    """
+    if (
+        kernel.ndim != 2
+        or kernel.shape[0] == 1
+        or kernel.shape[1] == 1
+        or not np.isfinite(kernel).all()
+    ):
+        return None
+
+    max_abs = np.max(np.abs(kernel))
+    if max_abs == 0:
+        return None
+
+    pivot = np.unravel_index(np.abs(kernel).argmax(), kernel.shape)
+    pivot_val = kernel[pivot]
+    kx = np.array(kernel[:, pivot[1]], dtype=float, copy=True)
+    ky = np.array(kernel[pivot[0], :] / pivot_val, dtype=float, copy=True)
+
+    eps = np.finfo(kernel.dtype).eps
+    rtol = tol_factor * eps
+    atol = tol_factor * eps * max_abs
+    if np.allclose(np.outer(kx, ky), kernel, rtol=rtol, atol=atol):
+        return kx, ky
+
+    return None
+
+
 @support_nddata(data="array")
 def convolve(
     array,
@@ -131,6 +218,8 @@ def convolve(
     mask=None,
     preserve_nan=False,
     normalization_zero_tol=1e-8,
+    method="direct",
+    separable_tol_factor=50.0,
 ):
     """
     Convolve an array with a kernel.
@@ -194,6 +283,17 @@ def convolve(
         The absolute tolerance on whether the kernel is different than
         zero. If the kernel sums to zero to within this precision, it
         cannot be normalized. Default is "1e-8".
+    method : {'direct', 'auto', 'separable'}, optional
+        Select which convolution path to use. ``'direct'`` always uses the full
+        direct convolution. ``'auto'`` attempts a separable 2D fast path when
+        possible and otherwise falls back to ``'direct'``. ``'separable'``
+        requires a separable 2D kernel and raises if that requirement is not met.
+        The separable path is only available for 2D inputs and does not support
+        NaN interpolation. Default is ``'direct'``.
+    separable_tol_factor : float, optional
+        Factor multiplying machine epsilon for the separability check (used for
+        both ``rtol`` and ``atol``). Only used when ``method`` is ``'auto'`` or
+        ``'separable'``.
 
     Returns
     -------
@@ -213,6 +313,12 @@ def convolve(
 
     if nan_treatment not in ("interpolate", "fill"):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
+
+    if not isinstance(method, str):
+        raise TypeError("method must be a string")
+    method = method.lower()
+    if method not in {"direct", "auto", "separable"}:
+        raise ValueError("method must be one of 'direct', 'auto', or 'separable'")
 
     # OpenMP support is disabled at the C src code level, changing this will have
     # no effect.
@@ -356,64 +462,75 @@ def convolve(
         if nan_treatment == "fill":
             array_internal[initially_nan] = fill_value
 
-    # Avoid any memory allocation within the C code. Allocate output array
-    # here and pass through instead.
-    result = np.zeros(array_internal.shape, dtype=float, order="C")
+    separable_components = None
+    if method in ("auto", "separable"):
+        try:
+            separable_tol_factor = float(separable_tol_factor)
+        except (TypeError, ValueError) as exc:
+            raise TypeError("separable_tol_factor must be a positive float") from exc
+        if separable_tol_factor <= 0:
+            raise ValueError("separable_tol_factor must be positive")
 
-    embed_result_within_padded_region = True
-    array_to_convolve = array_internal
-    if boundary in ("fill", "extend", "wrap"):
-        embed_result_within_padded_region = False
-        if boundary == "fill":
-            # This method is faster than using numpy.pad(..., mode='constant')
-            array_to_convolve = np.full(
-                array_shape + 2 * pad_width,
-                fill_value=fill_value,
-                dtype=float,
-                order="C",
-            )
-            # Use bounds [pad_width[0]:array_shape[0]+pad_width[0]] instead of
-            #            [pad_width[0]:-pad_width[0]]
-            # to account for when the kernel has size of 1 making pad_width = 0.
-            if array_internal.ndim == 1:
-                array_to_convolve[pad_width[0] : array_shape[0] + pad_width[0]] = (
-                    array_internal
+        if (
+            array_internal.ndim == 2
+            and kernel_internal.ndim == 2
+            and not nan_interpolate
+        ):
+            if method == "separable" and np.max(np.abs(kernel_internal)) == 0:
+                raise ValueError(
+                    "method='separable' requires a non-zero kernel; kernel is all zeros"
                 )
-            elif array_internal.ndim == 2:
-                array_to_convolve[
-                    pad_width[0] : array_shape[0] + pad_width[0],
-                    pad_width[1] : array_shape[1] + pad_width[1],
-                ] = array_internal
-            else:
-                array_to_convolve[
-                    pad_width[0] : array_shape[0] + pad_width[0],
-                    pad_width[1] : array_shape[1] + pad_width[1],
-                    pad_width[2] : array_shape[2] + pad_width[2],
-                ] = array_internal
-        else:
-            np_pad_mode_dict = {"fill": "constant", "extend": "edge", "wrap": "wrap"}
-            np_pad_mode = np_pad_mode_dict[boundary]
-            pad_width = kernel_shape // 2
-
-            if array_internal.ndim == 1:
-                np_pad_width = (pad_width[0],)
-            elif array_internal.ndim == 2:
-                np_pad_width = ((pad_width[0],), (pad_width[1],))
-            else:
-                np_pad_width = ((pad_width[0],), (pad_width[1],), (pad_width[2],))
-
-            array_to_convolve = np.pad(
-                array_internal, pad_width=np_pad_width, mode=np_pad_mode
+            separable_components = _factor_separable_kernel_2d(
+                kernel_internal, tol_factor=separable_tol_factor
+            )
+            if separable_components is None and method == "separable":
+                raise ValueError(
+                    "method='separable' requested but kernel is not separable within "
+                    "tolerance"
+                )
+        elif method == "separable":
+            raise ValueError(
+                "method='separable' requires 2D inputs and does not support "
+                "NaN interpolation"
             )
 
-    _convolveNd_c(
-        result,
-        array_to_convolve,
-        kernel_internal,
-        nan_interpolate,
-        embed_result_within_padded_region,
-        n_threads,
-    )
+    if separable_components is not None:
+        kx, ky = separable_components
+        kx_kernel = np.ascontiguousarray(kx[:, np.newaxis])
+        ky_kernel = np.ascontiguousarray(ky[np.newaxis, :])
+
+        result = _convolve_nd(
+            array_internal,
+            kx_kernel,
+            boundary,
+            fill_value,
+            nan_interpolate,
+            n_threads,
+        )
+
+        if boundary == "fill":
+            # Preserve the effective normalization across the two-step convolution:
+            # the first pass scales padded fill values by the sum of the kernel
+            # slice used for kx (the central slice for symmetric kernels).
+            fill_value = fill_value * kx.sum()
+
+        result = _convolve_nd(
+            result,
+            ky_kernel,
+            boundary,
+            fill_value,
+            nan_interpolate,
+            n_threads,
+        )
+    else:
+        result = _convolve_nd(
+            array_internal,
+            kernel_internal,
+            boundary,
+            fill_value,
+            nan_interpolate,
+            n_threads,
+        )
 
     # So far, normalization has only occurred for nan_treatment == 'interpolate'
     # because this had to happen within the C extension so as to ignore

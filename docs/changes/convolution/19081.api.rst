@@ -1,0 +1,4 @@
+Added the ``method`` and ``separable_tol_factor`` keywords to
+``astropy.convolution.convolve`` to control the separable direct-convolution
+path and opt in to a 2D separable fast path (two 1D passes) for strictly
+separable kernels, which can significantly improve performance.
