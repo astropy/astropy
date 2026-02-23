@@ -17,7 +17,7 @@ import unicodedata
 from astropy.units import photometric
 from astropy.units.core import CompositeUnit, UnitBase, _add_prefixes
 
-from .logarithmic import DecibelUnit, DexUnit, MagUnit
+from .logarithmic import DecibelUnit, DexUnit, LnUnit, MagUnit
 from .mixin import IrreducibleFunctionUnit, RegularFunctionUnit
 
 __all__: list[str] = []  #  Units are added at the end
@@ -42,6 +42,9 @@ dB = RegularFunctionUnit(
     doc="Decibel: ten per base 10 logarithmic unit",
 )
 dB._function_unit_class = DecibelUnit
+
+ln = IrreducibleFunctionUnit(["ln"], namespace=_ns, doc="ln: Neperian logarithmic unit")
+ln._function_unit_class = LnUnit
 
 mag = RegularFunctionUnit(
     ["mag"],
