@@ -1,0 +1,1 @@
+Function-based normalization with nan interpolation is deprecated.  i.e., you can no longer use a function to normalize your kernel (np.sum, np.nanmean, etc.), instead the kernel will be normalized to its sum.  This change is to improve consistency between ``convolve`` & ``convolve_fft``.

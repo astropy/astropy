@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
 from contextlib import nullcontext
 
 import numpy as np
@@ -12,7 +13,7 @@ from numpy.testing import (
 
 from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 VALID_DTYPES = (">f4", "<f4", ">f8", "<f8")
 
@@ -999,3 +1000,56 @@ def test_convolve_fft_boundary_extend_error():
         match=r"The 'extend' option is not implemented for fft-based convolution",
     ):
         convolve_fft(x, y, boundary="extend")
+
+
+def test_function_normalize_kernel_with_nan_interpolation_deprecation():
+    """Test that using a normalization function with nan_treatment='interpolate' raises a deprecation warning.  (PR 18365)"""
+
+    # Create test data with NaN values
+    array = np.array([1.0, np.nan, 3.0])
+    kernel = np.array([1.0, 1.0, 1.0])
+
+    # Test that the deprecation warning is raised when using a function for normalize_kernel
+    # with nan_treatment='interpolate'
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=r"Kernel normalization with a function is deprecated if nan interpolation is set",
+    ):
+        result = convolve_fft(
+            array, kernel, normalize_kernel=np.max, nan_treatment="interpolate"
+        )
+
+    # Verify the convolution still works
+    assert result is not None
+    assert result.shape == array.shape
+
+    # Test that no warning is raised when nan_treatment='fill'
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyDeprecationWarning)
+        result_fill = convolve_fft(
+            array, kernel, normalize_kernel=np.max, nan_treatment="fill"
+        )
+    # If we get here, no deprecation warning was raised
+    assert result_fill is not None
+
+    # Test that no warning is raised when normalize_kernel=True (boolean)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyDeprecationWarning)
+        result_bool = convolve_fft(
+            array, kernel, normalize_kernel=True, nan_treatment="interpolate"
+        )
+    # If we get here, no deprecation warning was raised
+    assert result_bool is not None
+
+
+def test_function_normalize_kernel_equivalence():
+    """Regression test for 8114"""
+    array = [1, 2, 3]
+    kernel = [3, 3, 3]
+
+    fill = convolve_fft(array, kernel, normalize_kernel=np.max, nan_treatment="fill")
+    interpolate = convolve_fft(
+        array, kernel, normalize_kernel=np.max, nan_treatment="interpolate"
+    )
+
+    assert_floatclose(fill, interpolate)
