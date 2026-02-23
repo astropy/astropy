@@ -102,17 +102,17 @@
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #if defined AC_APPLE_UNIVERSAL_BUILD
-# if defined __BIG_ENDIAN__
-#  define WORDS_BIGENDIAN 1
-# endif
+#    if defined __BIG_ENDIAN__
+#        define WORDS_BIGENDIAN 1
+#    endif
 #else
-# ifndef WORDS_BIGENDIAN
+#    ifndef WORDS_BIGENDIAN
 /* #  undef WORDS_BIGENDIAN */
-# endif
+#    endif
 #endif
 
 /* Define to allow retrieving the byte offsets for attribute names and values.
-   */
+ */
 /* #undef XML_ATTR_INFO */
 
 /* Define to specify how much context to retain around the current parse

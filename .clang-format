@@ -1,0 +1,37 @@
+# clang-format configuration adapted from the Numpy project, see licenses/NUMPY_LICENSE.rst
+
+BasedOnStyle: Google
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: DontAlign
+AllowShortEnumsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AlwaysBreakAfterReturnType: TopLevel
+BreakBeforeBraces: Stroustrup
+BreakStringLiterals: false
+ColumnLimit: 100
+ContinuationIndentWidth: 8
+DerivePointerAlignment: false
+IndentWidth: 4
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^[<"](Python|structmember|pymem)\.h'
+    Priority:        -3
+    CaseSensitive:   true
+  - Regex:           '^"numpy/'
+    Priority:        -2
+  - Regex:           '^"(npy_pycompat|npy_config)'
+    Priority:        -1
+  - Regex:           '^"[[:alnum:]_.]+"'
+    Priority:        1
+  - Regex:           '^<[[:alnum:]_.]+"'
+    Priority:        2
+IndentPPDirectives: AfterHash
+Language: Cpp
+PointerAlignment: Left
+ReflowComments: true
+SortIncludes: false
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+StatementMacros: [PyObject_HEAD, PyObject_VAR_HEAD, PyObject_HEAD_EXTRA]
+TabWidth: 4
+UseTab: Never

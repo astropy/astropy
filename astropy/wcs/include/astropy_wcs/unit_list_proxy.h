@@ -15,35 +15,22 @@
  *   char * list[];
  ***************************************************************************/
 
-/*@null@*/ PyObject *
-PyUnitListProxy_New(
-    PyObject* owner,
-    Py_ssize_t size,
-    char (*array)[72],
-    int readonly
-    );
+/*@null@*/ PyObject*
+PyUnitListProxy_New(PyObject* owner, Py_ssize_t size, char (*array)[72], int readonly);
 
 int
-_setup_unit_list_proxy_type(
-    PyObject* m);
+_setup_unit_list_proxy_type(PyObject* m);
 
 static INLINE PyObject*
 get_unit_list(
-    /*@unused@*/ const char* propname,
-    char (*array)[72],
-    Py_ssize_t len,
-    PyObject* owner,
-    int readonly) {
-
-  return PyUnitListProxy_New(owner, len, array, readonly);
+        /*@unused@*/ const char* propname, char (*array)[72], Py_ssize_t len, PyObject* owner,
+        int readonly)
+{
+    return PyUnitListProxy_New(owner, len, array, readonly);
 }
 
 int
-set_unit_list(
-    PyObject *owner,
-    const char* propname,
-    PyObject* value,
-    Py_ssize_t len,
-    char (*dest)[72]);
+set_unit_list(PyObject* owner, const char* propname, PyObject* value, Py_ssize_t len,
+              char (*dest)[72]);
 
 #endif /* __UNIT_LIST_PROXY_H__ */

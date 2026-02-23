@@ -103,3 +103,10 @@ repos:
     hooks:
       - id: sphinx-lint
         exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: 'v21.1.2'
+    hooks:
+      - id: clang-format
+        files: \.(c|h)$
+        exclude: '(^|/)cextern/|^astropy/io/fits/hdu/compressed/src/(fits_hcompress\.h|fits_hdecompress\.h|pliocomp\.h|quantize\.h|ricecomp\.h|unquantize\.c|unquantize\.h)$'

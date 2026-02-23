@@ -4,12 +4,12 @@
  * This code in public domain.
  */
 
-#define ELEM_SWAP(a, b)                                                        \
-  {                                                                            \
-    register double t = (a);                                                   \
-    (a) = (b);                                                                 \
-    (b) = t;                                                                   \
-  }
+#define ELEM_SWAP(a, b) \
+    { \
+        register double t = (a); \
+        (a) = (b); \
+        (b) = t; \
+    }
 
 /*---------------------------------------------------------------------------
    Function :   kth_smallest()
@@ -28,39 +28,42 @@
 
  ---------------------------------------------------------------------------*/
 
-double kth_smallest(double a[], int n, int k) {
-  register int i, j, l, m;
-  register double x;
+double
+kth_smallest(double a[], int n, int k)
+{
+    register int i, j, l, m;
+    register double x;
 
-  l = 0;
-  m = n - 1;
-  while (l < m) {
-    x = a[k];
-    i = l;
-    j = m;
-    do {
-      while (a[i] < x)
-        i++;
-      while (x < a[j])
-        j--;
-      if (i <= j) {
-        ELEM_SWAP(a[i], a[j]);
-        i++;
-        j--;
-      }
-    } while (i <= j);
-    if (j < k)
-      l = i;
-    if (k < i)
-      m = j;
-  }
-  return a[k];
+    l = 0;
+    m = n - 1;
+    while (l < m) {
+        x = a[k];
+        i = l;
+        j = m;
+        do {
+            while (a[i] < x) i++;
+            while (x < a[j]) j--;
+            if (i <= j) {
+                ELEM_SWAP(a[i], a[j]);
+                i++;
+                j--;
+            }
+        } while (i <= j);
+        if (j < k)
+            l = i;
+        if (k < i)
+            m = j;
+    }
+    return a[k];
 }
 
-double wirth_median(double a[], int n) {
-  if (n % 2 == 0) {
-    return 0.5 * (kth_smallest(a, n, n / 2) + kth_smallest(a, n, n / 2 - 1));
-  } else {
-    return kth_smallest(a, n, (n - 1) / 2);
-  }
+double
+wirth_median(double a[], int n)
+{
+    if (n % 2 == 0) {
+        return 0.5 * (kth_smallest(a, n, n / 2) + kth_smallest(a, n, n / 2 - 1));
+    }
+    else {
+        return kth_smallest(a, n, (n - 1) / 2);
+    }
 }
