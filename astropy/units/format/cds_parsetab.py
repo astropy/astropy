@@ -16,9 +16,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'CLOSE_BRACKET CLOSE_PAREN DIMENSIONLESS DIVISION OPEN_BRACKET OPEN_PAREN PRODUCT SIGN UFLOAT UINT UNIT X\n            main : factor combined_units\n                 | combined_units\n                 | DIMENSIONLESS\n                 | OPEN_BRACKET combined_units CLOSE_BRACKET\n                 | OPEN_BRACKET DIMENSIONLESS CLOSE_BRACKET\n                 | factor\n            \n            combined_units : product_of_units\n                           | division_of_units\n            \n            product_of_units : unit_expression PRODUCT combined_units\n                             | unit_expression\n            \n            division_of_units : DIVISION unit_expression\n                              | combined_units DIVISION unit_expression\n            \n            unit_expression : unit_with_power\n                            | OPEN_PAREN combined_units CLOSE_PAREN\n            \n            factor : signed_float X UINT SIGN UINT\n                   | UINT X UINT SIGN UINT\n                   | UINT SIGN UINT\n                   | UINT\n                   | signed_float\n            \n            unit_with_power : UNIT numeric_power\n                            | UNIT\n            \n            numeric_power : sign UINT\n            \n            sign : SIGN\n                 |\n            \n            signed_float : sign UINT\n                         | sign UFLOAT\n            '
+_lr_signature = 'CLOSE_BRACKET CLOSE_PAREN DIMENSIONLESS DIVISION FLOAT INT OPEN_BRACKET OPEN_PAREN PRODUCT UNIT X\n            main : factor combined_units\n                 | combined_units\n                 | DIMENSIONLESS\n                 | OPEN_BRACKET combined_units CLOSE_BRACKET\n                 | OPEN_BRACKET DIMENSIONLESS CLOSE_BRACKET\n                 | factor\n            \n            combined_units : product_of_units\n                           | division_of_units\n            \n            product_of_units : unit_expression PRODUCT combined_units\n                             | unit_expression\n            \n            division_of_units : DIVISION unit_expression\n                              | combined_units DIVISION unit_expression\n            \n            unit_expression : unit_with_power\n                            | OPEN_PAREN combined_units CLOSE_PAREN\n            \n            factor : FLOAT X INT INT\n                   | INT X INT INT\n                   | INT INT\n                   | INT\n                   | FLOAT\n            \n            unit_with_power : UNIT INT\n                            | UNIT\n            '
     
-_lr_action_items = {'DIMENSIONLESS':([0,5,],[4,20,]),'OPEN_BRACKET':([0,],[5,]),'UINT':([0,8,11,16,21,22,23,30,40,41,],[7,-23,24,-24,34,35,36,39,42,43,]),'DIVISION':([0,2,3,5,6,7,9,10,12,14,15,16,17,19,24,25,26,27,28,29,31,36,37,38,39,42,43,],[13,13,18,13,-19,-18,-7,-8,-10,-13,13,-21,18,18,-25,-26,13,-11,18,-20,-12,-17,18,-14,-22,-15,-16,]),'SIGN':([0,7,16,34,35,],[8,23,8,40,41,]),'UFLOAT':([0,8,11,],[-24,-23,25,]),'OPEN_PAREN':([0,2,5,6,7,13,15,18,24,25,26,36,42,43,],[15,15,15,-19,-18,15,15,15,-25,-26,15,-17,-15,-16,]),'UNIT':([0,2,5,6,7,13,15,18,24,25,26,36,42,43,],[16,16,16,-19,-18,16,16,16,-25,-26,16,-17,-15,-16,]),'$end':([1,2,3,4,6,7,9,10,12,14,16,17,24,25,27,29,31,32,33,36,37,38,39,42,43,],[0,-6,-2,-3,-19,-18,-7,-8,-10,-13,-21,-1,-25,-26,-11,-20,-12,-4,-5,-17,-9,-14,-22,-15,-16,]),'X':([6,7,24,25,],[21,22,-25,-26,]),'CLOSE_BRACKET':([9,10,12,14,16,19,20,27,29,31,37,38,39,],[-7,-8,-10,-13,-21,32,33,-11,-20,-12,-9,-14,-22,]),'CLOSE_PAREN':([9,10,12,14,16,27,28,29,31,37,38,39,],[-7,-8,-10,-13,-21,-11,38,-20,-12,-9,-14,-22,]),'PRODUCT':([12,14,16,29,38,39,],[26,-13,-21,-20,-14,-22,]),}
+_lr_action_items = {'DIMENSIONLESS':([0,5,],[4,18,]),'OPEN_BRACKET':([0,],[5,]),'FLOAT':([0,],[6,]),'INT':([0,7,14,19,21,29,30,],[7,20,25,29,30,33,34,]),'DIVISION':([0,2,3,5,6,7,8,9,10,12,13,14,15,17,20,22,23,24,25,26,31,32,33,34,],[11,11,16,11,-19,-18,-7,-8,-10,-13,11,-21,16,16,-17,11,-11,16,-20,-12,16,-14,-15,-16,]),'OPEN_PAREN':([0,2,5,6,7,11,13,16,20,22,33,34,],[13,13,13,-19,-18,13,13,13,-17,13,-15,-16,]),'UNIT':([0,2,5,6,7,11,13,16,20,22,33,34,],[14,14,14,-19,-18,14,14,14,-17,14,-15,-16,]),'$end':([1,2,3,4,6,7,8,9,10,12,14,15,20,23,25,26,27,28,31,32,33,34,],[0,-6,-2,-3,-19,-18,-7,-8,-10,-13,-21,-1,-17,-11,-20,-12,-4,-5,-9,-14,-15,-16,]),'X':([6,7,],[19,21,]),'CLOSE_BRACKET':([8,9,10,12,14,17,18,23,25,26,31,32,],[-7,-8,-10,-13,-21,27,28,-11,-20,-12,-9,-14,]),'CLOSE_PAREN':([8,9,10,12,14,23,24,25,26,31,32,],[-7,-8,-10,-13,-21,-11,32,-20,-12,-9,-14,]),'PRODUCT':([10,12,14,25,32,],[22,-13,-21,-20,-14,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -27,7 +27,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'main':([0,],[1,]),'factor':([0,],[2,]),'combined_units':([0,2,5,15,26,],[3,17,19,28,37,]),'signed_float':([0,],[6,]),'product_of_units':([0,2,5,15,26,],[9,9,9,9,9,]),'division_of_units':([0,2,5,15,26,],[10,10,10,10,10,]),'sign':([0,16,],[11,30,]),'unit_expression':([0,2,5,13,15,18,26,],[12,12,12,27,12,31,12,]),'unit_with_power':([0,2,5,13,15,18,26,],[14,14,14,14,14,14,14,]),'numeric_power':([16,],[29,]),}
+_lr_goto_items = {'main':([0,],[1,]),'factor':([0,],[2,]),'combined_units':([0,2,5,13,22,],[3,15,17,24,31,]),'product_of_units':([0,2,5,13,22,],[8,8,8,8,8,]),'division_of_units':([0,2,5,13,22,],[9,9,9,9,9,]),'unit_expression':([0,2,5,11,13,16,22,],[10,10,10,23,10,26,10,]),'unit_with_power':([0,2,5,11,13,16,22,],[12,12,12,12,12,12,12,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -37,30 +37,25 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> main","S'",1,None,None,None),
-  ('main -> factor combined_units','main',2,'p_main','cds.py',137),
-  ('main -> combined_units','main',1,'p_main','cds.py',138),
-  ('main -> DIMENSIONLESS','main',1,'p_main','cds.py',139),
-  ('main -> OPEN_BRACKET combined_units CLOSE_BRACKET','main',3,'p_main','cds.py',140),
-  ('main -> OPEN_BRACKET DIMENSIONLESS CLOSE_BRACKET','main',3,'p_main','cds.py',141),
-  ('main -> factor','main',1,'p_main','cds.py',142),
-  ('combined_units -> product_of_units','combined_units',1,'p_combined_units','cds.py',155),
-  ('combined_units -> division_of_units','combined_units',1,'p_combined_units','cds.py',156),
-  ('product_of_units -> unit_expression PRODUCT combined_units','product_of_units',3,'p_product_of_units','cds.py',162),
-  ('product_of_units -> unit_expression','product_of_units',1,'p_product_of_units','cds.py',163),
-  ('division_of_units -> DIVISION unit_expression','division_of_units',2,'p_division_of_units','cds.py',172),
-  ('division_of_units -> combined_units DIVISION unit_expression','division_of_units',3,'p_division_of_units','cds.py',173),
-  ('unit_expression -> unit_with_power','unit_expression',1,'p_unit_expression','cds.py',182),
-  ('unit_expression -> OPEN_PAREN combined_units CLOSE_PAREN','unit_expression',3,'p_unit_expression','cds.py',183),
-  ('factor -> signed_float X UINT SIGN UINT','factor',5,'p_factor','cds.py',192),
-  ('factor -> UINT X UINT SIGN UINT','factor',5,'p_factor','cds.py',193),
-  ('factor -> UINT SIGN UINT','factor',3,'p_factor','cds.py',194),
-  ('factor -> UINT','factor',1,'p_factor','cds.py',195),
-  ('factor -> signed_float','factor',1,'p_factor','cds.py',196),
-  ('unit_with_power -> UNIT numeric_power','unit_with_power',2,'p_unit_with_power','cds.py',212),
-  ('unit_with_power -> UNIT','unit_with_power',1,'p_unit_with_power','cds.py',213),
-  ('numeric_power -> sign UINT','numeric_power',2,'p_numeric_power','cds.py',222),
-  ('sign -> SIGN','sign',1,'p_sign','cds.py',228),
-  ('sign -> <empty>','sign',0,'p_sign','cds.py',229),
-  ('signed_float -> sign UINT','signed_float',2,'p_signed_float','cds.py',238),
-  ('signed_float -> sign UFLOAT','signed_float',2,'p_signed_float','cds.py',239),
+  ('main -> factor combined_units','main',2,'p_main','cds.py',131),
+  ('main -> combined_units','main',1,'p_main','cds.py',132),
+  ('main -> DIMENSIONLESS','main',1,'p_main','cds.py',133),
+  ('main -> OPEN_BRACKET combined_units CLOSE_BRACKET','main',3,'p_main','cds.py',134),
+  ('main -> OPEN_BRACKET DIMENSIONLESS CLOSE_BRACKET','main',3,'p_main','cds.py',135),
+  ('main -> factor','main',1,'p_main','cds.py',136),
+  ('combined_units -> product_of_units','combined_units',1,'p_combined_units','cds.py',149),
+  ('combined_units -> division_of_units','combined_units',1,'p_combined_units','cds.py',150),
+  ('product_of_units -> unit_expression PRODUCT combined_units','product_of_units',3,'p_product_of_units','cds.py',156),
+  ('product_of_units -> unit_expression','product_of_units',1,'p_product_of_units','cds.py',157),
+  ('division_of_units -> DIVISION unit_expression','division_of_units',2,'p_division_of_units','cds.py',166),
+  ('division_of_units -> combined_units DIVISION unit_expression','division_of_units',3,'p_division_of_units','cds.py',167),
+  ('unit_expression -> unit_with_power','unit_expression',1,'p_unit_expression','cds.py',176),
+  ('unit_expression -> OPEN_PAREN combined_units CLOSE_PAREN','unit_expression',3,'p_unit_expression','cds.py',177),
+  ('factor -> FLOAT X INT INT','factor',4,'p_factor','cds.py',186),
+  ('factor -> INT X INT INT','factor',4,'p_factor','cds.py',187),
+  ('factor -> INT INT','factor',2,'p_factor','cds.py',188),
+  ('factor -> INT','factor',1,'p_factor','cds.py',189),
+  ('factor -> FLOAT','factor',1,'p_factor','cds.py',190),
+  ('unit_with_power -> UNIT INT','unit_with_power',2,'p_unit_with_power','cds.py',206),
+  ('unit_with_power -> UNIT','unit_with_power',1,'p_unit_with_power','cds.py',207),
 ]
