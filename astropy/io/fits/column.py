@@ -1528,28 +1528,145 @@ class ColDefs(NotifierMixin):
                 f"Input data with shape {array.shape} is not a valid representation "
                 "of a row-oriented table. Expected a 1D array with rows as elements."
             )
-        self.columns = []
+
+        # Identify object dtype columns and determine their correct dtype
+        columns_to_fix = {}
         for idx in range(len(array.dtype)):
             cname = array.dtype.names[idx]
             ftype = array.dtype.fields[cname][0]
 
             if ftype.kind == "O":
-                dtypes = {np.array(array[cname][i]).dtype for i in range(len(array))}
-                if (len(dtypes) > 1) or (np.dtype("O") in dtypes):
+                col_array = array[cname]
+                # Get first non-None value
+                first_non_none = next(
+                    (
+                        col_array[i]
+                        for i in range(len(col_array))
+                        if col_array[i] is not None
+                    ),
+                    None,
+                )
+
+                if first_non_none is None:
                     raise TypeError(
-                        f"Column '{cname}' contains unsupported object types or "
-                        f"mixed types: {dtypes}"
+                        f"Column '{cname}' contains only None or masked values"
                     )
-                ftype = dtypes.pop()
-                format = self._col_format_cls.from_recformat(ftype)
-                format = f"P{format}()"
+
+                # Check if this is an array of arrays
+                is_vla = isinstance(first_non_none, np.ndarray)
+
+                if is_vla:
+                    element_dtypes = {
+                        val.dtype
+                        for val in col_array
+                        if val is not None and isinstance(val, np.ndarray)
+                    }
+
+                    if not element_dtypes:
+                        raise TypeError(
+                            f"Column '{cname}' contains only None or masked values"
+                        )
+
+                    if len(element_dtypes) > 1:
+                        raise TypeError(
+                            f"Column '{cname}' contains unsupported object types or "
+                            f"mixed types: {element_dtypes}"
+                        )
+
+                    element_dtype = element_dtypes.pop()
+                    fits_code = NUMPY2FITS[element_dtype.str[1:]]
+                    columns_to_fix[cname] = ("VLA", fits_code, element_dtype.str[1:])
+                else:
+                    dtypes = {
+                        np.array(col_array[i]).dtype
+                        for i in range(len(col_array))
+                        if col_array[i] is not None
+                    }
+
+                    if not dtypes:
+                        raise TypeError(
+                            f"Column '{cname}' contains only None or masked values"
+                        )
+
+                    # Check for unresolved object types
+                    if np.dtype("O") in dtypes:
+                        raise TypeError(
+                            f"Column '{cname}' contains unsupported object types or "
+                            f"mixed types: {dtypes}"
+                        )
+
+                    # Single resolved dtype
+                    if len(dtypes) == 1:
+                        ftype_inner = dtypes.pop()
+
+                        # Compute max length if string
+                        if ftype_inner.kind in ("U", "S"):
+                            max_len = (
+                                ftype_inner.itemsize // 4
+                                if ftype_inner.kind == "U"
+                                else ftype_inner.itemsize
+                            )
+                            columns_to_fix[cname] = f"U{max_len}"
+                        else:
+                            columns_to_fix[cname] = ftype_inner.str
+
+                    # Multiple string types with different lengths, use max
+                    elif all(dt.kind in ("U", "S") for dt in dtypes):
+                        max_len = max(
+                            dt.itemsize // 4 if dt.kind == "U" else dt.itemsize
+                            for dt in dtypes
+                        )
+                        columns_to_fix[cname] = f"U{max_len}"
+
+                    else:
+                        raise TypeError(
+                            f"Column '{cname}' contains unsupported object types or "
+                            f"mixed types: {dtypes}"
+                        )
+
+        # Rebuild the recarray with corrected dtypes if needed (skip VLAs)
+        if columns_to_fix:
+            new_dtype_list = []
+            for idx in range(len(array.dtype)):
+                cname = array.dtype.names[idx]
+                if cname in columns_to_fix:
+                    fix_info = columns_to_fix[cname]
+                    if isinstance(fix_info, tuple) and fix_info[0] == "VLA":
+                        new_dtype_list.append((cname, array.dtype.fields[cname][0]))
+                    else:
+                        new_dtype_list.append((cname, fix_info))
+                else:
+                    new_dtype_list.append((cname, array.dtype.fields[cname][0]))
+
+            new_dtype = np.dtype(new_dtype_list)
+            array = np.array([tuple(row) for row in array], dtype=new_dtype)
+
+        # Create columns from the (now corrected) array
+        self.columns = []
+        for idx in range(len(array.dtype)):
+            cname = array.dtype.names[idx]
+            ftype = array.dtype.fields[cname][0]
+
+            if cname in columns_to_fix:
+                fix_info = columns_to_fix[cname]
+                if isinstance(fix_info, tuple) and fix_info[0] == "VLA":
+                    fits_code = fix_info[1]
+                    element_dtype_str = fix_info[2]
+                    format = self._col_format_cls(f"1P{fits_code}")
+                    col_array = _VLF(
+                        array.view(np.ndarray)[cname], dtype=element_dtype_str
+                    )
+                else:
+                    format = self._col_format_cls.from_recformat(ftype)
+                    col_array = array.view(np.ndarray)[cname]
             else:
                 format = self._col_format_cls.from_recformat(ftype)
+                col_array = array.view(np.ndarray)[cname]
 
             # Determine the appropriate dimensions for items in the column
             dim = array.dtype[idx].shape[::-1]
             if dim and (len(dim) > 0 or "A" in format):
-                if "A" in format:
+                if "A" in format and ftype.subdtype is not None:
                     # should take into account multidimensional items in the column
                     dimel = int(re.findall("[0-9]+", str(ftype.subdtype[0]))[0])
                     # n x m string arrays must include the max string
@@ -1572,7 +1689,7 @@ class ColDefs(NotifierMixin):
             c = Column(
                 name=cname,
                 format=format,
-                array=array.view(np.ndarray)[cname],
+                array=col_array,
                 bzero=bzero,
                 dim=dim,
             )

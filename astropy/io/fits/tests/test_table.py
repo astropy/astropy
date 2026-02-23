@@ -4021,3 +4021,83 @@ def test_zero_row_string_column(tmp_path):
     with fits.open(outfile) as hdul:
         table_data = hdul[1].data
     assert table_data.shape[0] == 0
+
+
+def test_object_column_variable_length_strings(tmp_path):
+    # issue #18696 variable-Length strings fail when writing to FITS binary
+    # tables
+
+    # Test Case 1: Single dtype (all strings same length)
+    data1 = np.array(
+        [("image", 11.1), ("image", 12.3), ("image", 15.2)],
+        dtype=[("type", "O"), ("value", "f4")],
+    )
+
+    hdu1 = fits.BinTableHDU(data1)
+    assert hdu1.header["TFORM1"] == "5A"
+    assert hdu1.header["TFORM2"] == "E"
+
+    hdu1.writeto(tmp_path / "test1.fits")
+    with fits.open(tmp_path / "test1.fits") as hdul:
+        assert hdul[1].header["TFORM1"] == "5A"
+        actual = np.array([v.strip() for v in hdul[1].data["type"]])
+        expected = np.array([v[0] for v in data1])
+        np.testing.assert_array_equal(actual, expected)
+        np.testing.assert_allclose(hdul[1].data["value"], data1["value"])
+
+    # Test Case 2: Strings of different lengths
+    data2 = np.array(
+        [("img", 1.0), ("image", 2.0), ("very_long_string", 3.0), ("x", 4.0)],
+        dtype=[("name", "O"), ("val", "f8")],
+    )
+
+    hdu2 = fits.BinTableHDU(data2)
+    assert hdu2.header["TFORM1"] == "16A"
+    assert hdu2.header["TFORM2"] == "D"
+
+    hdu2.writeto(tmp_path / "test2.fits")
+    with fits.open(tmp_path / "test2.fits") as hdul:
+        assert hdul[1].header["TFORM1"] == "16A"
+        actual = np.array([v.strip() for v in hdul[1].data["name"]])
+        expected = np.array([v[0] for v in data2])
+        np.testing.assert_array_equal(actual, expected)
+        np.testing.assert_allclose(hdul[1].data["val"], data2["val"])
+
+    # Test Case 3: Multiple object columns with different max lengths
+    data3 = np.array(
+        [("a", "short", 100), ("ab", "medium_len", 200), ("abc", "x", 300)],
+        dtype=[("col1", "O"), ("col2", "O"), ("col3", "i4")],
+    )
+
+    hdu3 = fits.BinTableHDU(data3)
+    assert hdu3.header["TFORM1"] == "3A"
+    assert hdu3.header["TFORM2"] == "10A"
+    assert hdu3.header["TFORM3"] == "J"
+
+    hdu3.writeto(tmp_path / "test3.fits")
+    with fits.open(tmp_path / "test3.fits") as hdul:
+        assert hdul[1].header["TFORM1"] == "3A"
+        assert hdul[1].header["TFORM2"] == "10A"
+        assert hdul[1].header["TFORM3"] == "J"
+        np.testing.assert_array_equal(
+            [v.strip() for v in hdul[1].data["col1"]], [v[0] for v in data3]
+        )
+        np.testing.assert_array_equal(
+            [v.strip() for v in hdul[1].data["col2"]], [v[1] for v in data3]
+        )
+        np.testing.assert_array_equal(hdul[1].data["col3"], data3["col3"])
+
+    # Test Case 4: Empty strings
+    data4 = np.array([("", 1), ("a", 2), ("", 3)], dtype=[("str", "O"), ("num", "i4")])
+
+    hdu4 = fits.BinTableHDU(data4)
+    assert hdu4.header["TFORM1"] == "1A"
+    assert hdu4.header["TFORM2"] == "J"
+
+    hdu4.writeto(tmp_path / "test4.fits")
+    with fits.open(tmp_path / "test4.fits") as hdul:
+        assert hdul[1].header["TFORM1"] == "1A"
+        np.testing.assert_array_equal(
+            [v.strip() for v in hdul[1].data["str"]], [v[0] for v in data4]
+        )
+        np.testing.assert_array_equal(hdul[1].data["num"], data4["num"])
