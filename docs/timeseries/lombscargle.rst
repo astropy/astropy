@@ -488,7 +488,7 @@ Next we compute the two versions of the PSD from uniformly sampled data:
 >>> t_days = np.arange(100) * u.day
 >>> y_mags = rand.standard_normal(100) * u.mag
 >>> frequency, PSD_fourier = fourier_periodogram(t_days, y_mags)
->>> ls = LombScargle(t_days, y_mags, normalization='psd')
+>>> ls = LombScargle(t_days, y_mags, normalization='psd', fit_mean=False)
 >>> PSD_LS = ls.power(frequency)
 
 Examining the results, we see that the two outputs match:

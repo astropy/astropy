@@ -47,6 +47,9 @@ class LombScargle(BasePeriodogram):
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
+        If unspecified, power and autopower methods will use fit_mean=True in
+        most situations, except for method='scipy' where it is set to False,
+        and raises a deprecation warning.
     center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data. This is especially important if fit_mean = False
@@ -73,7 +76,7 @@ class LombScargle(BasePeriodogram):
     Compute the Lomb-Scargle periodogram at a user-specified frequency grid:
 
     >>> freq = np.arange(0.8, 1.3, 0.1)
-    >>> LombScargle(t, y).power(freq)  # doctest: +FLOAT_CMP
+    >>> LombScargle(t, y, fit_mean=True).power(freq)  # doctest: +FLOAT_CMP
     array([0.0792948 , 0.01778874, 0.25328167, 0.01064157, 0.01471387])
 
     If the inputs are astropy Quantities with units, the units will be
@@ -108,7 +111,7 @@ class LombScargle(BasePeriodogram):
         t,
         y,
         dy=None,
-        fit_mean=True,
+        fit_mean=None,
         center_data=True,
         nterms=1,
         normalization="standard",
@@ -451,7 +454,7 @@ class LombScargle(BasePeriodogram):
             frequency=strip_units(frequency),
             t_fit=strip_units(t),
             center_data=self.center_data,
-            fit_mean=self.fit_mean,
+            fit_mean=True if self.fit_mean is None else self.fit_mean,
             nterms=self.nterms,
         )
         return y_fit * get_unit(self.y)
@@ -553,7 +556,13 @@ class LombScargle(BasePeriodogram):
             t, dy = strip_units(self._trel, self.dy)
         else:
             t, dy = strip_units(self._validate_t(self._as_relative_time("t", t)), None)
-        return design_matrix(t, frequency, dy, nterms=self.nterms, bias=self.fit_mean)
+        return design_matrix(
+            t,
+            frequency,
+            dy,
+            nterms=self.nterms,
+            bias=True if self.fit_mean is None else self.fit_mean,
+        )
 
     def distribution(self, power, cumulative=False):
         """Expected periodogram distribution under the null hypothesis.

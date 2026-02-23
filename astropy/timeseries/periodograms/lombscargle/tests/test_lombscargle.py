@@ -1,3 +1,5 @@
+from contextlib import nullcontext
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -6,12 +8,17 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle import LombScargle
+from astropy.utils import minversion
+from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != "auto"]
 FAST_METHODS = [method for method in ALL_METHODS if "fast" in method]
 NTERMS_METHODS = [method for method in ALL_METHODS if "chi2" in method]
 NORMALIZATIONS = ["standard", "psd", "log", "model"]
+
+SCIPY_LT_1_15 = not minversion("scipy", "1.15.0") if HAS_SCIPY else False
 
 
 @pytest.fixture
@@ -67,7 +74,7 @@ def test_autofrequency(
 def test_all_methods(
     data, method, center_data, fit_mean, errors, with_units, normalization
 ):
-    if method == "scipy" and (fit_mean or errors != "none"):
+    if method == "scipy" and errors != "none":
         return
 
     t, y, dy = data
@@ -102,7 +109,15 @@ def test_all_methods(
     # don't use the fft approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
         kwds["method_kwds"] = dict(use_fft=False)
-    P_method = ls.power(frequency, method=method, **kwds)
+
+    if fit_mean and method == "scipy" and SCIPY_LT_1_15:
+        ctx = pytest.raises(ValueError)
+    else:
+        ctx = nullcontext()
+    with ctx:
+        P_method = ls.power(frequency, method=method, **kwds)
+    if not isinstance(ctx, nullcontext):
+        return
 
     if with_units:
         if normalization == "psd" and errors == "none":
@@ -113,6 +128,30 @@ def test_all_methods(
         assert not hasattr(P_method, "unit")
 
     assert_quantity_allclose(P_expected, P_method)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_lombscargle_scipy_fit_mean_default_depr(data):
+    # context: https://github.com/astropy/astropy/pull/17600
+    # this deprecation can be expired when support for scipy<1.15
+    # is dropped.
+    # At that point, it'll be possible to change LombScargle.__init__'s
+    # default value for `fit_mean` to `True`
+    t, y, _dy = data
+    frequency = 0.8 + 0.01 * np.arange(40)
+    ls_explicit = LombScargle(t, y, fit_mean=False)
+    ls_default = LombScargle(t, y)
+    P_expected = ls_explicit.power(frequency, method="scipy")
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match=(
+            "The default value for fit_mean with method='scipy' "
+            "will change from False to True in a future version."
+        ),
+    ):
+        P_actual = ls_default.power(frequency, method="scipy")
+
+    assert_quantity_allclose(P_actual, P_expected)
 
 
 @pytest.mark.parametrize("method", ALL_METHODS_NO_AUTO)

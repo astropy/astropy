@@ -184,7 +184,9 @@ def test_false_alarm_equivalence(method, normalization, use_errs, units):
         dy = None
 
     ls = LombScargle(t, y, dy, normalization=normalization)
-    freq, power = ls.autopower(maximum_frequency=fmax)
+    # setting an explicit method here avoids inconsistent behaviors caused by
+    # automatic method selection, which depends on scipy's availability
+    freq, power = ls.autopower(maximum_frequency=fmax, method="slow")
     Z = np.linspace(power.min(), power.max(), 30)
     fap = ls.false_alarm_probability(
         Z, maximum_frequency=fmax, method=method, method_kwds=kwds
