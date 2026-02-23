@@ -11,6 +11,34 @@ from astropy.units import Quantity
 
 
 class DarkEnergyComponent:
+    """The object has attributes and methods related to dark energy.
+
+    This is a trait class; it is not meant to be instantiated directly, but
+    instead to be used as a mixin to other classes.
+
+    Examples
+    --------
+    For an example of a real cosmology that implements this trait, see
+    :class:`~astropy.cosmology.FlatwCDM`. Here we will define an illustrative example
+    class that meets the minimum API requirements, but is not cosmologically meaningful:
+
+    >>> from astropy.cosmology.traits import DarkEnergyComponent
+    >>> import dataclasses
+
+    >>> @dataclasses.dataclass(frozen=True)
+    ... class ExampleHasDarkEnergy(DarkEnergyComponent):
+    ...     Ode0: float = 0.7
+    ...     def w(self, z): return np.full(np.shape(z), -1.0)
+
+    >>> cosmo = ExampleHasDarkEnergy()
+    >>> cosmo.Ode0
+    0.7
+
+    >>> cosmo.w([0.0, 1.0, 2.0])
+    array([-1., -1., -1.])
+
+    """
+
     # Subclasses should use `Parameter` to make this a parameter of the cosmology.
     Ode0: float | np.floating
     """Omega dark energy; dark energy density/critical density at z=0."""
