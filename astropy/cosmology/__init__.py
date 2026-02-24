@@ -13,6 +13,7 @@ __all__ = (  #  noqa: RUF100, RUF022
     "units",
     "traits",
     "io",
+    "spectra",
     # Core
     "Cosmology",
     "CosmologyError",
@@ -66,6 +67,15 @@ from ._src.flrw import (
 )
 from ._src.funcs import cosmology_equal, z_at_value
 from ._src.parameter import Parameter
+from ._src.spectra import (
+    PowerSpectrum,
+    AnalyticalPowerSpectrum,
+    ScaleInvariantSpectrum,
+    PowerLawSpectrum,
+    RunningPowerLawSpectrum,
+    LogOscillationSpectrum,
+    BrokenPowerLawSpectrum,
+)
 from .realizations import available, default_cosmology
 
 
