@@ -4,13 +4,21 @@ This module contains implementations of several power spectra for cosmology.
 """
 
 __all__ = (
-    "ScaleInvariantSpectrum",
-    "PowerLawSpectrum",
-    "RunningPowerLawSpectrum",
-    "LogOscillationSpectrum",
+    "AnalyticalPowerSpectrum",
     "BrokenPowerLawSpectrum",
+    "LogOscillationSpectrum",
+    "PowerLawSpectrum",
+    "PowerSpectrum",
+    "RunningPowerLawSpectrum",
+    "ScaleInvariantSpectrum",
 )
 
-def __dir__():
-    """Directory, including lazily-imported objects."""
-    return __all__
+from ._src.spectra import (
+    AnalyticalPowerSpectrum,
+    BrokenPowerLawSpectrum,
+    LogOscillationSpectrum,
+    PowerLawSpectrum,
+    PowerSpectrum,
+    RunningPowerLawSpectrum,
+    ScaleInvariantSpectrum,
+)

@@ -1,13 +1,24 @@
-from __future__ import annotations
+"""Power Spectrum models and utilities."""
+
+__all__ = (
+    "AnalyticalPowerSpectrum",
+    "BrokenPowerLawSpectrum",
+    "LogOscillationSpectrum",
+    "PowerLawSpectrum",
+    "PowerSpectrum",
+    "RunningPowerLawSpectrum",
+    "ScaleInvariantSpectrum",
+)
 
 from abc import ABC, abstractmethod
 from numbers import Integral, Real
 from typing import Any
 
 import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 
-def _window_tophat(x: np.ndarray) -> np.ndarray:
+def _window_tophat(x: ArrayLike, /) -> NDArray[np.floating]:
     """Fourier-space spherical top-hat window.
 
     W(x) = 3 (sin x - x cos x) / x^3
@@ -140,7 +151,7 @@ class PowerSpectrum(ABC):
             msg = "R must be positive."
             raise ValueError(msg)
 
-        k = np.logspace(np.log10(self.k_min), np.log10(self.k_max), self.nk)
+        k = np.geomspace(self.k_min, self.k_max, self.nk)
         Pk = np.asarray(self(k), dtype=float)
 
         k_col = k[:, None]
