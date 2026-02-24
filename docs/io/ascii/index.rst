@@ -80,7 +80,7 @@ file:
     >>> Planck18.write(file)
 
 This table can be read with the following (assuming that the path to the data directory
-is set like this: `datadir=Path('path/to/my/data')`)::
+is set like this: ``datadir=Path('path/to/my/data')``)::
 
   >>> from astropy.io import ascii
   >>> data = ascii.read(datadir / "sources.dat")
@@ -103,9 +103,16 @@ by trying most of the `supported formats`_.
 
 .. Warning::
 
-   Guessing the file format is often slow for large files because the reader
-   tries parsing the file with every allowed format until one succeeds.
-   For large files it is recommended to disable guessing with ``guess=False``.
+   Guessing the file format might be convenient, but has two disadvantages:
+
+   - It is often slow for large files because the reader
+     tries parsing the file with every allowed format until one succeeds.
+   - Tables sometimes match multiple formats and the first one that succeeds
+     might not be the one you expected
+     (:ref:`example <io_ascii_should_specify_format>`).
+
+   Thus, it is recommended to disable guessing with ``guess=False`` and
+   explicitly give the table format (e.g. ``format='csv'``) whenever possible.
 
 If guessing the format does not work, as in the case for unusually formatted
 tables, you may need to give `astropy.io.ascii` additional hints about
