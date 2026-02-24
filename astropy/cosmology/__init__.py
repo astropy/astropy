@@ -47,6 +47,12 @@ __all__ = (  #  noqa: RUF100, RUF022
     "Planck13",
     "Planck15",
     "Planck18",
+    # Spectra
+    "ScaleInvariantSpectrum",
+    "PowerLawSpectrum",
+    "RunningPowerLawSpectrum",
+    "LogOscillationSpectrum",
+    "BrokenPowerLawSpectrum",
 )
 
 from . import io, realizations, traits, units
