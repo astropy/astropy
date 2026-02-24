@@ -1,0 +1,3 @@
+Fix FITS string parsing in `Card._parse_value` by introducing a strict
+FITS-compliant regex for string values and adding a tolerant fallback
+with `VerifyWarning` emission when encountering malformed FITS headers.
