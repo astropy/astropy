@@ -1,5 +1,3 @@
-import itertools
-
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -36,9 +34,8 @@ class TestSpectralQuantity:
         ):
             SpectralQuantity(1 * unit)
 
-    @pytest.mark.parametrize(
-        ("unit1", "unit2"), itertools.permutations(SPECTRAL_UNITS_NO_VELOCITY, r=2)
-    )
+    @pytest.mark.parametrize("unit1", SPECTRAL_UNITS_NO_VELOCITY)
+    @pytest.mark.parametrize("unit2", SPECTRAL_UNITS_NO_VELOCITY)
     def test_spectral_conversion(self, unit1, unit2):
         sq1 = SpectralQuantity(1 * unit1)
         sq2 = sq1.to(unit2)
