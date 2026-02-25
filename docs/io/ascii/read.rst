@@ -946,7 +946,7 @@ deal with tables that fail to read.
 
 Specify as much detail as possible about the format
 ---------------------------------------------------
-One of the most common ways to read ASCII tables with astropy is to get the
+One of the most common ways to read text tables with astropy is to get the
 reader guess the format. This is convenient, but it takes extra time because
 the reader tries different formats until one of them looks like it's
 working (see :ref:`guess_formats` for details on the guessing process) and
@@ -962,16 +962,16 @@ Here is an example:
     ... 1, y, d
     ... """
 
-This could be read either as table with three rows and a no header (and a missing
+This could be read either as table with three rows and no header (and a missing
 data entry in the first column) or the first row could be the column names.
 In either case, the commas could be part of the data of a space-delimited table
 or they could be delimiters for a comma-delimited table.
-If we explicitly set the format, astropy will read it for either of these cases.
+If we explicitly set the format, astropy will read it for any of these cases.
 
-The "no header" format will try a space-delimited table first, so all the columns will
+The "no_header" format will try a space-delimited table first, so all the columns will
 come out to be string columns:
 
-    >>> ascii.read(tab_text, format='no_header')
+    >>> ascii.read(tab_text, format="no_header")
     <Table length=3>
     col1 col2 col3
     str2 str2 str1
