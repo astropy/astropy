@@ -5,6 +5,7 @@ import datetime
 import functools
 import gc
 import os
+import sys
 from copy import deepcopy
 from decimal import Decimal, localcontext
 from io import StringIO
@@ -1433,12 +1434,26 @@ class TestCopyReplicate:
         assert t.location.x == t2.location.x
         assert t.location.x != t_loc_x  # prove that it changed
 
-    def test_copy(self):
+    @pytest.mark.parametrize(
+        "copy_lambda",
+        [
+            pytest.param(lambda t: t.copy(), id="copy method"),
+            pytest.param(
+                lambda t: copy.replace(t),
+                id="copy.replace (no args)",
+                marks=pytest.mark.skipif(
+                    sys.version_info < (3, 13),
+                    reason="copy.replace is new in Python 3.13",
+                ),
+            ),
+        ],
+    )
+    def test_copy(self, copy_lambda):
         """Test copy method"""
         t = Time("2000:001", format="yday", scale="tai", location=("45d", "45d"))
         t_yday = t.yday
         t_loc_x = t.location.x.copy()
-        t2 = t.copy()
+        t2 = copy_lambda(t)
         assert t.yday == t2.yday
         # This is not allowed publicly, but here we hack the internal time
         # and location values to show that t and t2 are not sharing references.
@@ -1456,6 +1471,23 @@ class TestCopyReplicate:
         assert t2.location.x == t2_loc_x_view
         assert t.location.x != t2.location.x
         assert t.location.x == t_loc_x  # prove that it changed
+
+    @pytest.mark.skipif(
+        sys.version_info < (3, 13), reason="copy.replace is new in Python 3.13"
+    )
+    def test_copy_replace(self):
+        t = Time("2000:001", format="yday", scale="tai", location=("45d", "45d"))
+        t2 = copy.replace(t, format="mjd", scale="utc")
+        assert t2.format == "mjd"
+        assert t2.scale == "utc"
+        assert t2.jd1 == t.jd1
+        assert t2.jd2 == t.jd2
+        assert t2.location == t.location
+        assert t2.location is not t.location
+
+        # TimeInfo doesn't support comparison yet
+        # assert t2.info == t.info
+        assert t2.info is not t.info
 
 
 class TestStardate:
