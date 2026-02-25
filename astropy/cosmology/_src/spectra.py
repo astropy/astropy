@@ -31,7 +31,8 @@ def window_tophat(x: ArrayLike, /) -> NDArray[np.floating]:
 
 
 def _as_float_array(x: Any, *, name: str) -> np.ndarray:
-    """Convert input to a float ndarray and require positivity.
+    """
+    Convert input to a float ndarray and require positivity.
 
     Args:
         x: Input value(s).
@@ -65,9 +66,8 @@ class PowerSpectrum(ABC):
 
     Notes
     -----
-        The `integrate(x)` method is intentionally *not* multiplied by the
-        prefactor again. Subclasses should define integrals in terms of the
-        evaluated spectrum `self(k)` where appropriate.
+        The `_compute_spectrum(k)` method is not defined by this class. 
+        Subclasses should define their implementations of this method.
     """
 
     def __init__(
@@ -100,7 +100,8 @@ class PowerSpectrum(ABC):
 
     @abstractmethod
     def _compute_spectrum(self, k: Any) -> Any:
-        """Compute the spectrum P(k) without prefactor/scale/cutoff.
+        """
+        Compute the spectrum P(k) without prefactor / scale / cutoff.
 
         Args:
             k: Wavenumber(s).
@@ -186,7 +187,8 @@ class AnalyticalPowerSpectrum(PowerSpectrum):
         scale: Real | None = None,
         k_cutoff: Real | None = None,
     ) -> None:
-        """Initialize an analytical spectrum model.
+        """
+        Initialize an analytical spectrum model.
 
         Args:
             ndims: Dimensionality used to define the prefactor.
