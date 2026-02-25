@@ -13,6 +13,7 @@ from astropy_iers_data import (
     IERS_B_README,
     IERS_LEAP_SECOND_FILE,
 )
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.config import set_temp_cache
@@ -305,7 +306,7 @@ class TestIERS_Auto:
     def test_simple(self):
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             dat = iers.IERS_Auto.open()
-            assert dat["MJD"][0] == 57359.0 * u.d
+            assert dat["MJD"][0] == 37665.0 * u.d
             assert dat["MJD"][-1] == 57539.0 * u.d
 
             # Pretend we are accessing at a time 7 days after start of predictive data
@@ -402,22 +403,25 @@ def test_IERS_B_parameters_loading_into_IERS_Auto():
     B = iers.IERS_B.open()
 
     ok_A = A["MJD"] <= B["MJD"][-1]
+    assert np.sum(ok_A) == len(B)
     assert not np.all(ok_A), "IERS B covers all of IERS A: should not happen"
 
-    # We only overwrite IERS_B values in the IERS_A table that were already
-    # there in the first place.  Better take that into account.
-    ok_A &= np.isfinite(A["UT1_UTC_B"])
+    # see https://github.com/astropy/astropy/issues/13494
+    assert A["MJD"][0] == A["MJD"].min(), "IERS_Auto isn't properly sorted"
+    assert A["MJD"][-1] == A["MJD"].max(), "IERS_Auto isn't properly sorted"
+    assert A["MJD"][0] <= B["MJD"][0], "IERS_Auto doesn't go back as far as IERS B"
 
     i_B = np.searchsorted(B["MJD"], A["MJD"][ok_A])
+    assert_array_equal(i_B, np.arange(len(B)))
 
     assert np.all(np.diff(i_B) == 1), "Valid region not contiguous"
-    assert np.all(A["MJD"][ok_A] == B["MJD"][i_B])
+    assert np.all(A["MJD"][ok_A] == B["MJD"])
     # Check that values are copied correctly.  Since units are not
     # necessarily the same, we use allclose with very strict tolerance.
     for name in ("UT1_UTC", "PM_x", "PM_y", "dX_2000A", "dY_2000A"):
         assert_quantity_allclose(
             A[name][ok_A],
-            B[name][i_B],
+            B[name],
             rtol=1e-15,
             err_msg=(
                 f"Bug #9206 IERS B parameter {name} not copied over "

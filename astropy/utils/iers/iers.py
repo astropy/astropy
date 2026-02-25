@@ -35,6 +35,7 @@ from astropy import config as _config
 from astropy import units as u
 from astropy import utils
 from astropy.table import MaskedColumn, QTable
+from astropy.table import join as table_join
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import (
     clear_download_cache,
@@ -588,9 +589,25 @@ class IERS_A(IERS):
         # Since only 'P' and 'I' are possible and 'P' is guaranteed to come
         # after 'I', we can use searchsorted for 100 times speed up over
         # finding the first index where the flag equals 'P'.
+
+        def select_offset(array):
+            if not hasattr(array, "mask"):
+                return slice(None), 0
+
+            s = ~array.mask
+            # Get the position of first non-masked value.
+            # This is a bit of a hack since s isn't necessarily sorted, but we
+            # get the correct result by letting np.searchsorted *assuming* it is.
+            offset = np.searchsorted(s, True)
+
+            return s, offset
+
+        select1, offset1 = select_offset(table["UT1Flag_A"])
+        select2, offset2 = select_offset(table["PolPMFlag_A"])
+
         p_index = min(
-            np.searchsorted(table["UT1Flag_A"], "P"),
-            np.searchsorted(table["PolPMFlag_A"], "P"),
+            offset1 + np.searchsorted(table["UT1Flag_A"][select1], "P"),
+            offset2 + np.searchsorted(table["PolPMFlag_A"][select2], "P"),
         )
         table.meta["predictive_index"] = p_index
         table.meta["predictive_mjd"] = table["MJD"][p_index].value
@@ -963,30 +980,37 @@ class IERS_Auto(IERS_A):
         IERS-A has IERS-B values included, but for reasons unknown these
         do not match the latest IERS-B values (see comments in #4436).
         Here, we use the bundled astropy IERS-B table to overwrite the values
-        in the IERS-A table.
+        in the IERS-A table. Values from IERS-B that are not present in IERS-A
+        are inserted.
         """
         iers_b = IERS_B.open()
         # Substitute IERS-B values for existing B values in IERS-A table
         mjd_b = table["MJD"][np.isfinite(table["UT1_UTC_B"])]
         i0 = np.searchsorted(iers_b["MJD"], mjd_b[0], side="left")
         i1 = np.searchsorted(iers_b["MJD"], mjd_b[-1], side="right")
-        iers_b = iers_b[i0:i1]
-        n_iers_b = len(iers_b)
+        iers_b_overlap = iers_b[i0:i1]
+        n_iers_b = len(iers_b_overlap)
         # If there is overlap then replace IERS-A values from available IERS-B
         if n_iers_b > 0:
             # Sanity check that we are overwriting the correct values
-            if not u.allclose(table["MJD"][:n_iers_b], iers_b["MJD"]):
+            if not u.allclose(table["MJD"][:n_iers_b], iers_b_overlap["MJD"]):
                 raise ValueError(
                     "unexpected mismatch when copying IERS-B values into IERS-A table."
                 )
             # Finally do the overwrite
-            table["UT1_UTC_B"][:n_iers_b] = iers_b["UT1_UTC"]
-            table["PM_X_B"][:n_iers_b] = iers_b["PM_x"]
-            table["PM_Y_B"][:n_iers_b] = iers_b["PM_y"]
-            table["dX_2000A_B"][:n_iers_b] = iers_b["dX_2000A"]
-            table["dY_2000A_B"][:n_iers_b] = iers_b["dY_2000A"]
+            table["UT1_UTC_B"][:n_iers_b] = iers_b_overlap["UT1_UTC"]
+            table["PM_X_B"][:n_iers_b] = iers_b_overlap["PM_x"]
+            table["PM_Y_B"][:n_iers_b] = iers_b_overlap["PM_y"]
+            table["dX_2000A_B"][:n_iers_b] = iers_b_overlap["dX_2000A"]
+            table["dY_2000A_B"][:n_iers_b] = iers_b_overlap["dY_2000A"]
 
-        return table
+        return table_join(
+            table,
+            iers_b[:i0],
+            join_type="outer",
+            keys="MJD",
+            metadata_conflicts="silent",  # tmp filtering
+        )
 
 
 class earth_orientation_table(ScienceState):
