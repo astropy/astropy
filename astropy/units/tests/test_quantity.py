@@ -1797,8 +1797,9 @@ def test_quantity_initialisation_from_string():
         u.Quantity("5 foo")
 
 
+@pytest.mark.parametrize("unit_str", ["", "eV", "  cm"])
 @pytest.mark.parametrize(
-    "array",
+    "array_str",
     (
         "[7,  8,  9]",
         "[7,8,9]",
@@ -1811,37 +1812,10 @@ def test_quantity_initialisation_from_string():
         "[7   8     9]",
     ),
 )
-def test_quantity_initialisation_string_array_dimensionless(array):
-    q = u.Quantity(array)
-    assert q.unit == u.dimensionless_unscaled
-    assert (q.value == np.array([7.0, 8.0, 9.0])).all()
-
-
-@pytest.mark.parametrize(
-    "array",
-    (
-        "[7,  8,  9]eV",
-        "[7,  8,  9]  eV",
-        "[7, 8, 9]  eV",
-        "[7,8,9]eV",
-        "[7,8,9,]eV",
-        "[7,8,9,]  eV",
-        "[7. 8. 9.]eV",
-        "[7. 8. 9.]  eV",
-        "[7.   8.    9.]eV",
-        "[7.   8.    9.] eV",
-        "[7 8 9]eV",
-        "[7 8 9]  eV",
-        "[7  8  9]eV",
-        "[7  8  9]  eV",
-        "[7   8     9]eV",
-        "[7   8     9]  eV",
-    ),
-)
-def test_quantity_initialisation_string_array_unit(array):
-    q = u.Quantity(array)
-    assert q.unit == u.eV
-    assert (q.value == np.array([7.0, 8.0, 9.0])).all()
+def test_quantity_initialisation_string_array(array_str, unit_str):
+    q = u.Quantity(array_str + unit_str)
+    assert q.unit == unit_str
+    assert_array_equal(q.value, np.array([7.0, 8.0, 9.0]))
 
 
 def test_unsupported():
