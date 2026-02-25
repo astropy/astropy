@@ -152,7 +152,7 @@ dev = [
     "astropy[typing]",
 ]
 dev_all = [
-    "tox>=4.33.0", # keep in sync with tox.minversion in tox.ini
+    "tox>=4.37.0", # keep in sync with tox.minversion in tox.ini
     "astropy[dev]",
     "astropy[test_all]",
 ]
