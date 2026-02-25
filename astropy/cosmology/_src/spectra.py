@@ -18,7 +18,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 
-def _window_tophat(x: ArrayLike, /) -> NDArray[np.floating]:
+def window_tophat(x: ArrayLike, /) -> NDArray[np.floating]:
     """Fourier-space spherical top-hat window.
 
     W(x) = 3 (sin x - x cos x) / x^3
@@ -143,8 +143,15 @@ class PowerSpectrum(ABC):
         cutoff = self._cutoff_multiplier(k)
         return self.scale * self.prefactor * base * cutoff
 
-    def integrate(self, R: Any) -> Any:
-        """Compute sigma(R) using a spherical top-hat window."""
+    def integrate(
+        self,
+        R: Any,
+        window_func: Any = window_tophat,
+    ) -> Any:
+        """
+        Compute sigma(R) using a window function (spherical top-hat by 
+        default).
+        """
         R_arr = np.asarray(R, dtype=float)
 
         if np.any(R_arr <= 0):
@@ -157,7 +164,7 @@ class PowerSpectrum(ABC):
         k_col = k[:, None]
         R_row = np.atleast_1d(R_arr)[None, :]
 
-        W = _window_tophat(k_col * R_row)
+        W = window_func(k_col * R_row)
 
         integrand = (k_col * k_col) * Pk[:, None] * (W * W)
 
