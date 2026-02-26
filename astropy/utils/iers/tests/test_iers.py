@@ -302,7 +302,7 @@ class TestIERS_Auto:
                     iers_table = iers.IERS_Auto.open()
                     _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
-    def test_simple(self):
+    def test_simple(self, monkeypatch):
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             dat = iers.IERS_Auto.open()
             assert dat["MJD"][0] == 57359.0 * u.d
@@ -310,7 +310,9 @@ class TestIERS_Auto:
 
             # Pretend we are accessing at a time 7 days after start of predictive data
             predictive_mjd = dat.meta["predictive_mjd"]
-            dat._time_now = Time(predictive_mjd, format="mjd") + 7 * u.d
+            monkeypatch.setattr(
+                Time, "now", lambda: Time(predictive_mjd, format="mjd") + 7 * u.d
+            )
 
             # Look at times before and after the test file begins.  0.1292934 is
             # the IERS-B value from MJD=57359.  The value in
@@ -325,7 +327,9 @@ class TestIERS_Auto:
             # Now pretend we are accessing at time 60 days after start of predictive data.
             # There will be a warning when downloading the file doesn't give new data
             # and an exception when extrapolating into the future with insufficient data.
-            dat._time_now = Time(predictive_mjd, format="mjd") + 60 * u.d
+            monkeypatch.setattr(
+                Time, "now", lambda: Time(predictive_mjd, format="mjd") + 60 * u.d
+            )
             assert np.allclose(
                 dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1292934
             )
@@ -364,7 +368,7 @@ class TestIERS_Auto:
                 dat.ut1_utc(Time(60000, format="mjd").jd)
 
         # Now point to a later file with same values but MJD increased by
-        # 60 days and see that things work.  dat._time_now is still the same value
+        # 60 days and see that things work.  Time.now() is still monkeypatched
         # as before, i.e. right around the start of predictive values for the new file.
         # (In other words this is like downloading the latest file online right now).
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_2):
@@ -534,3 +538,9 @@ def test_get_pkg_data_filename_backcompat(data_file):
         )
 
     assert filename == OLD_DATA_FILES[data_file]
+
+
+def test_time_now_deprecation():
+    x = iers.IERS.open()
+    with pytest.warns(AstropyDeprecationWarning, match=r"Use Time\.now\(\) instead\.$"):
+        x.time_now
