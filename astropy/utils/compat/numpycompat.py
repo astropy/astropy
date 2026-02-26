@@ -44,5 +44,5 @@ COPY_IF_NEEDED = False if NUMPY_LT_2_0 else None
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    from numpy.char import array as get_chararray
-    from numpy.char import chararray
+    get_chararray = np.char.array
+    chararray = np.char.chararray
