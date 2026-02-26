@@ -25,7 +25,7 @@ testing:
     - codecov.yml
     - conftest.py
     - '**/conftest.py'
-    - tox.ini
+    - tox.toml
     - .circleci/*
     - .github/workflows/CFF-test.yml
     - .github/workflows/check_changelog.yml

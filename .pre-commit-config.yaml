@@ -72,8 +72,9 @@ repos:
         args: ["--fix", "--show-fixes"]
       - id: ruff-format
 
-  - repo: https://github.com/scientific-python/cookie
-    rev: 2025.11.21
+  - repo: https://github.com/neutrinoceros/cookie
+    # https://github.com/scientific-python/cookie/pull/739
+    rev: ecc71ea77e2c9c620f5c6e048294dbc3a8ce0bb9
     hooks:
       - id: sp-repo-review
 
