@@ -14,7 +14,8 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import Angle
-from astropy.visualization.units import quantity_support
+from astropy.time import Time
+from astropy.visualization.units import astropy_support, quantity_support
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
@@ -170,3 +171,25 @@ def test_override_axis_unit():
         ax.yaxis.set_units(u.cm)
         fig.canvas.draw()
         assert ax.yaxis.get_units() == u.cm
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_astropy_support():
+    """Test that astropy_support enables both quantity and time support."""
+    fig = Figure()
+    ax = fig.add_subplot()
+
+    with astropy_support():
+        # Test that Quantity support works
+        ax.plot([1, 2, 3] * u.m, [3, 4, 5] * u.kg)
+        assert ax.xaxis.get_units() == u.m
+        assert ax.yaxis.get_units() == u.kg
+
+    # Test with Time on x-axis and Quantity on y-axis
+    fig2 = Figure()
+    ax2 = fig2.add_subplot()
+
+    with astropy_support():
+        times = Time(["2020-01-01", "2020-01-02", "2020-01-03"])
+        ax2.plot(times, [1, 2, 3] * u.m)
+        assert ax2.yaxis.get_units() == u.m
