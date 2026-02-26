@@ -966,10 +966,10 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         self.req_cards(firstkey, 0, None, firstval, option, errs)
         self.req_cards(
-            "BITPIX", 1, lambda v: (_is_int(v) and is_valid(v)), 8, option, errs
+            "BITPIX", 1, lambda v: _is_int(v) and is_valid(v), 8, option, errs
         )
         self.req_cards(
-            "NAXIS", 2, lambda v: (_is_int(v) and 0 <= v <= 999), 0, option, errs
+            "NAXIS", 2, lambda v: _is_int(v) and 0 <= v <= 999, 0, option, errs
         )
 
         naxis = self._header.get("NAXIS", 0)
@@ -979,7 +979,7 @@ class _ValidHDU(_BaseHDU, _Verify):
                 self.req_cards(
                     key,
                     ax,
-                    lambda v: (_is_int(v) and v >= 0),
+                    lambda v: _is_int(v) and v >= 0,
                     _extract_number(self._header[key], default=1),
                     option,
                     errs,
@@ -1546,10 +1546,10 @@ class ExtensionHDU(_ValidHDU):
         # Verify location and value of mandatory keywords.
         naxis = self._header.get("NAXIS", 0)
         self.req_cards(
-            "PCOUNT", naxis + 3, lambda v: (_is_int(v) and v >= 0), 0, option, errs
+            "PCOUNT", naxis + 3, lambda v: _is_int(v) and v >= 0, 0, option, errs
         )
         self.req_cards(
-            "GCOUNT", naxis + 4, lambda v: (_is_int(v) and v == 1), 1, option, errs
+            "GCOUNT", naxis + 4, lambda v: _is_int(v) and v == 1, 1, option, errs
         )
 
         return errs

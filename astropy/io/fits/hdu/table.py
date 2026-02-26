@@ -532,12 +532,12 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     )
                 )
 
-            self.req_cards("NAXIS", None, lambda v: (v == 2), 2, option, errs)
-            self.req_cards("BITPIX", None, lambda v: (v == 8), 8, option, errs)
+            self.req_cards("NAXIS", None, lambda v: v == 2, 2, option, errs)
+            self.req_cards("BITPIX", None, lambda v: v == 8, 8, option, errs)
             self.req_cards(
                 "TFIELDS",
                 7,
-                lambda v: (_is_int(v) and v >= 0 and v <= 999),
+                lambda v: _is_int(v) and v >= 0 and v <= 999,
                 0,
                 option,
                 errs,
@@ -787,7 +787,7 @@ class TableHDU(_TableBaseHDU):
         `TableHDU` verify method.
         """
         errs = super()._verify(option=option)
-        self.req_cards("PCOUNT", None, lambda v: (v == 0), 0, option, errs)
+        self.req_cards("PCOUNT", None, lambda v: v == 0, 0, option, errs)
         tfields = self._header["TFIELDS"]
         for idx in range(tfields):
             self.req_cards("TBCOL" + str(idx + 1), None, _is_int, None, option, errs)
