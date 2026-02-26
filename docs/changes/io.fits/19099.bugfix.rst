@@ -1,0 +1,1 @@
+Update the HDU.fileinfo() behavior in append mode. After appending (and flushing) a HDU to a HDUList opened with mode="append", the fileinfo() methods for both the HDU and HDUList objects now return a dictionary with hdrLoc, datLoc, and datSpan populated.

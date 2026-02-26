@@ -653,6 +653,7 @@ class _BaseHDU:
 
             # Set the various data location attributes on newly-written HDUs
             if self._new:
+                self._file = fileobj
                 self._header_offset = header_offset
                 self._data_offset = data_offset
                 self._data_size = data_size
@@ -705,6 +706,7 @@ class _BaseHDU:
         elif copy:
             datsize = self._writedata_direct_copy(fileobj)
 
+        self._file = fileobj
         self._header_offset = hdrloc
         self._data_offset = datloc
         self._data_size = datsize
