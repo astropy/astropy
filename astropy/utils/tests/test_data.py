@@ -30,6 +30,7 @@ import pytest
 import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
+from astropy.io import fits
 from astropy.tests.helper import CI, IS_CRON
 from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA, HAS_UNCOMPRESSPY
 from astropy.utils.data import (
@@ -2406,3 +2407,34 @@ def test_download_ftp_file_properly_handles_socket_error():
 )
 def test_string_is_url_check(s, ans):
     assert is_url(s) is ans
+
+
+@pytest.mark.remote_data
+@pytest.mark.parametrize(
+    "filesystem_kwargs",
+    [
+        None,
+        dict(protocol="s3", anon=True, block_size=1_000, cache_type="bytes"),
+    ],
+)
+def test_all_get_readable_fileobj_fsspec(filesystem_kwargs):
+    fsspec = pytest.importorskip("fsspec")
+
+    s3_uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
+
+    if filesystem_kwargs:
+        # pass in a user-initialized filesystem:
+        filesystem = fsspec.filesystem(**filesystem_kwargs)
+    else:
+        # let get_readable_fileobj construct the filesystem:
+        filesystem = None
+
+    # this example calls `fits.open`, but it's testing a feature that
+    # gets passed through to `get_readable_fileobj``.
+    with fits.open(s3_uri, fsspec_filesystem=filesystem) as hdulist:
+        # assert fileobj == hdulist
+        cutout = hdulist[1].section[:2, :2]
+
+    # check that cutout is retrieved correctly:
+    assert cutout.shape == (2, 2)
+    assert cutout.dtype == "float32"

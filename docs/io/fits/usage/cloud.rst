@@ -234,21 +234,27 @@ Configuring the ``fsspec`` block size and download strategy
 
 The ``fsspec`` package supports different data reading and caching strategies
 which aim to find a balance between the number of network requests on one hand
-and the total amount of data transferred on the other hand.  By default, fsspec
-will attempt to download data in large contiguous blocks using a buffered
-*read ahead* strategy, similar to the strategy that is employed when operating
-systems load local files into memory.
+and the total amount of data transferred on the other hand.  By default,
+``fsspec`` will attempt to download data in large contiguous blocks using a
+buffered *read ahead* strategy, similar to the strategy that is employed
+when operating systems load local files into memory.
 
-You can tune the performance of fsspec's buffering strategy by passing custom
-``block_size`` and ``cache_type`` parameters to `fsspec.open`.  You can pass
-these parameters via the ``fsspec_kwargs`` argument of `astropy.io.fits.open`.
+You can tune the performance of ``fsspec``'s buffering strategy by passing custom
+``block_size`` and ``cache_type`` parameters to `fsspec.filesystem`, and passing
+the filesystem into the ``fsspec_filesystem`` keyword argument in `astropy.io.fits.open`.
 For example, we can configure fsspec to make buffered reads with a minimum
 ``block_size`` of 1 MB as follows:
 
 .. doctest-requires:: fsspec
 
-    >>> fsspec_kwargs = {"block_size": 1_000_000, "cache_type": "bytes"}
-    >>> with fits.open(url, use_fsspec=True, fsspec_kwargs=fsspec_kwargs) as hdul:  # doctest: +REMOTE_DATA
+    >>> import fsspec
+    >>> fsspec_filesystem = fsspec.filesystem(
+    ...     protocol="s3",
+    ...     anon=True,
+    ...     block_size=1_000_000,
+    ...     cache_type="bytes"
+    ... )
+    >>> with fits.open(s3_uri, fsspec_filesystem=fsspec_filesystem) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
 The ideal configuration will depend on the latency and throughput of the
