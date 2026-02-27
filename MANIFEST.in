@@ -2,3 +2,4 @@ prune docs/_build
 prune build
 
 global-exclude *.pyc *.o
+recursive-exclude scripts
