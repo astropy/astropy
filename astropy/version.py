@@ -11,7 +11,14 @@ except ImportError:
     )
     del warnings
 
-    version = "0.0.0"
+    # this branch may be executed in rare but still valid conditions. For instance,
+    # if astropy is installed from a shallow clone, i.e., without most of the vcs
+    # history, which is needed to compute the dev version number dynamically.
+
+    # default to a virtually infinite version number, never to be reached, that should
+    # - alert the reader if seen in production
+    # - satisfy any real-world lower bound on astropy's version
+    version = "999.999.999"
 
 
 # We use Version to define major, minor, micro, but ignore any suffixes.
