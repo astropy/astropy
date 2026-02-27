@@ -680,7 +680,7 @@ hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
 
-    tox -e py311-test-image-mpl380-cov
+    tox -e py311-test-image-oldestdeps-cov
 
 However, note that the output can be sensitive to the operating system and
 specific version of libraries such as freetype. In general, using tox will
@@ -737,15 +737,15 @@ a JSON file with the hashes which you can use to replace the existing one in
 New hash libraries
 ------------------
 
-When adding a new tox environment for image testing, such as for a new Matplotlib
-or Python version, the tests will fail as the hash library does not exist yet. To
+When adding a new tox environment for image testing, such as for a new Python version,
+the tests will fail as the hash library does not exist yet. To
 generate it, you should run the tests the first time with::
 
     tox -e <envname> -- --mpl-generate-hash-library=astropy/tests/figures/<envname>.json
 
 for example::
 
-    tox -e py311-test-image-mpl380-cov -- --mpl-generate-hash-library=astropy/tests/figures/py311-test-image-mpl380-cov.json
+    tox -e py311-test-image-oldestdeps-cov -- --mpl-generate-hash-library=astropy/tests/figures/py311-test-image-oldestdeps-cov.json
 
 Then add and commit the new JSON file and try running the tests again. The tests
 may fail in the continuous integration if e.g. the freetype version does not
