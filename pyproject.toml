@@ -114,7 +114,6 @@ test_all = [
     "astropy[all]",  # installs all optional run-time dependencies
     "astropy[test]",
     # Install all remaining dependencies
-    "fsspec[http]>=2023.4.0",
     "objgraph>=3.1.2",
     "skyfield>=1.42.0",
     "sgp4>=2.3",
