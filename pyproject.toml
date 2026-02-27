@@ -94,7 +94,7 @@ all = [
     "mpmath>=1.2.1",
     "asdf-astropy>=0.7.0",
     "bottleneck>=1.4.0",
-    "fsspec[http]>=2023.4.0",
+    "fsspec>=2023.4.0",
     "s3fs>=2023.4.0",
     "uncompresspy>=0.4.0"
 ]
