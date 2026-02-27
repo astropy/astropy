@@ -105,30 +105,71 @@ class Spine:
 
     def _update_normal(self):
         pixel = self._get_pixel()
-        # Find angle normal to border and inwards, in display coordinate
+        # Find angle normal to border and inwards, in display coordinate, such that:
+        # -   0° corresponds to a vertical vector from top to bottom
+        # -  90° corresponds to a horizontal vector from left to right
+        # - 180° corresponds to a vertical vector from bottom to top
+        # - -90° corresponds to a horizontal vector from right to left
         dx = pixel[1:, 0] - pixel[:-1, 0]
         dy = pixel[1:, 1] - pixel[:-1, 1]
         self.normal_angle = np.degrees(np.arctan2(dx, -dy))
 
-    def _halfway_x_y_angle(self):
+    def _halfway_x_y_angle(self) -> tuple[float, float, float]:
         """
         Return the x, y, normal_angle values halfway along the spine.
         """
+        return self._barycentric_x_y_angle(0.5)
+
+    def _barycentric_x_y_angle(
+        self, bary: float = 0.5, /
+    ) -> tuple[float, float, float]:
+        """
+        Return the x, y, normal_angle values at a barycentric coordinate in [0,1]
+        along the spine.
+
+        If possible, the corresponding position will reflect an orientation of
+        the spine relative to the parent figure such that:
+        - the coordinate 0 returns the position located on the lower or left end
+        of the spine,
+        - and the coordinate 1 returns the position located on the upper or right
+        end of the spine.
+        This criteria does not apply to spines that are curved in such a way that
+        no specific orientation can be determined.
+
+        Parameters
+        ----------
+        bary : float
+            Barycentric coordinate, must be between 0 and 1. Default 0.5
+        """
+        if not 0 <= bary <= 1:
+            raise ValueError(
+                f"Given barycentric coordinate {bary} does not lie within the [0,1] range"
+            )
         pixel = self._get_pixel()
+        normal_angle = self.normal_angle
+        # Flip pixels if element vectors are not oriented from lower/left to upper/right;
+        # the orientation can be determined by testing the normal angle of each vector,
+        # verifying if they all fall around -45°±90°, modulo 360°, which would indicate
+        # that they are oriented from upper/right to lower/left, and that the pixels must
+        # be flipped in order to orient the spine from lower/left to upper/right.
+        if np.all(np.abs((normal_angle - 135) % 360 - 180) <= 90.0, axis=0):
+            pixel = pixel[::-1]
+            normal_angle = normal_angle[::-1]
         x_disp, y_disp = pixel[:, 0], pixel[:, 1]
         # Get distance along the path
         d = np.hstack(
             [0.0, np.cumsum(np.sqrt(np.diff(x_disp) ** 2 + np.diff(y_disp) ** 2))]
         )
-        xcen = np.interp(d[-1] / 2.0, d, x_disp)
-        ycen = np.interp(d[-1] / 2.0, d, y_disp)
+        dbary = bary * d[-1]
+        xbary = np.interp(dbary, d, x_disp)
+        ybary = np.interp(dbary, d, y_disp)
 
-        # Find segment along which the mid-point lies
-        imin = np.searchsorted(d, d[-1] / 2.0) - 1
+        # Find segment along which the barycentric point lies
+        imin = min(0, np.searchsorted(d, dbary) - 1)
 
         # Find normal of the axis label facing outwards on that segment
-        normal_angle = self.normal_angle[imin] + 180.0
-        return xcen, ycen, normal_angle
+        normal_angle = normal_angle[imin] + 180.0
+        return xbary, ybary, normal_angle
 
 
 class SpineXAligned(Spine):
