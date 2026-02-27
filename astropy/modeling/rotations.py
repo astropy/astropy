@@ -25,6 +25,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import rotation_matrix
+from astropy.utils.compat import NUMPY_LT_2_2
 
 from .core import Model
 from .parameters import Parameter
@@ -181,19 +182,15 @@ class _EulerRotation:
     _separable = False
 
     def evaluate(self, alpha, delta, phi, theta, psi, axes_order):
-        shape = None
-        if isinstance(alpha, np.ndarray):
-            alpha = alpha.ravel()
-            delta = delta.ravel()
-            shape = alpha.shape
         inp = spherical2cartesian(alpha, delta)
         matrix = _create_matrix([phi, theta, psi], axes_order)
-        result = np.dot(matrix, inp)
-        a, b = cartesian2spherical(*result)
-        if shape is not None:
-            a = a.reshape(shape)
-            b = b.reshape(shape)
-        return a, b
+        if NUMPY_LT_2_2:
+            result = np.matmul(
+                matrix, inp[:, np.newaxis], axes=[(-2, -1), (0, 1), (0, 1)]
+            ).squeeze(1)
+        else:
+            result = np.matvec(matrix, inp, axes=[(-2, -1), 0, 0])
+        return cartesian2spherical(*result)
 
     _input_units_strict = True
 
