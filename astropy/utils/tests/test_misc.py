@@ -35,8 +35,10 @@ def test_isiterable(obj, expectation):
 @pytest.mark.remote_data
 def test_api_lookup():
     try:
-        strurl = misc.find_api_page("astropy.utils.misc", "dev", False, timeout=5)
-        objurl = misc.find_api_page(misc, "dev", False, timeout=5)
+        with pytest.warns(AstropyDeprecationWarning, match="Use online_help instead.$"):
+            strurl = misc.find_api_page("astropy.utils.misc", "dev", False, timeout=5)
+        with pytest.warns(AstropyDeprecationWarning, match="Use online_help instead.$"):
+            objurl = misc.find_api_page(misc, "dev", False, timeout=5)
     except (urllib.error.URLError, TimeoutError):
         if CI:
             pytest.xfail("Timed out in CI")
@@ -50,7 +52,8 @@ def test_api_lookup():
     )
 
     # Try a non-dev version
-    objurl = misc.find_api_page(misc, "stable", False, timeout=3)
+    with pytest.warns(AstropyDeprecationWarning, match="Use online_help instead.$"):
+        objurl = misc.find_api_page(misc, "stable", False, timeout=3)
     assert (
         objurl
         == "https://docs.astropy.org/en/stable/utils/ref_api.html#module-astropy.utils.misc"
