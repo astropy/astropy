@@ -16,6 +16,7 @@ from astropy.coordinates.funcs import (
     concatenate_representations,
     get_constellation,
     get_sun,
+    great_circle_midpoint,
 )
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyPendingDeprecationWarning
@@ -232,3 +233,30 @@ def test_concatenate_representations_different_units():
             [r.CartesianRepresentation([1, 2, 3] * unit) for unit in (u.pc, u.kpc)]
         )
     assert np.array_equal(concat.xyz, [[1, 1000], [2, 2000], [3, 3000]] * u.pc)
+
+
+def test_great_circle_midpoint():
+    # Antipodal case
+    with pytest.raises(ValueError, match="antipodal"):
+        c1 = SkyCoord(0, 0, unit="deg")
+        c2 = SkyCoord(180, 0, unit="deg")
+        great_circle_midpoint(c1, c2)
+
+    # Non-antipodal case
+    c3 = SkyCoord(0, 0, unit="deg")
+    c4 = SkyCoord(90, 0, unit="deg")
+    mid = great_circle_midpoint(c3, c4)
+    npt.assert_allclose(mid.ra.deg, 45, atol=1e-10)
+    npt.assert_allclose(mid.dec.deg, 0, atol=1e-10)
+
+    # Make sure frame conversion works
+    c5 = SkyCoord(0, 0, unit="deg", frame="icrs")
+    c6 = SkyCoord(180, 0, unit="deg", frame="galactic")
+    mid = great_circle_midpoint(c5, c6)
+    assert mid.frame.name == "icrs"
+
+    # Array input
+    c7 = SkyCoord([0, 0], [0, 0], unit="deg")
+    c8 = SkyCoord([180, 90], [0, 0], unit="deg")
+    with pytest.raises(ValueError, match="antipodal"):
+        great_circle_midpoint(c7, c8)
