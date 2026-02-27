@@ -59,15 +59,32 @@ following contents::
   3102  0.32      4167  4085   Q1250+568-A
   877   0.22      4378  3892   "Source 82"
 
-This table can be read with the following::
+.. testsetup::
+    >>> from pathlib import Path
+    >>> from tempfile import TemporaryDirectory
+    >>> tempdir = TemporaryDirectory()
+    >>> datadir = Path(tempdir.name)
+    >>> (datadir / "sources.dat").write_text(
+    ...     "obsid redshift  X      Y     object\n"
+    ...     "3102  0.32      4167  4085   Q1250+568-A\n"
+    ...     "877   0.22      4378  3892   \"Source 82\"\n"
+    ... )
+    118
+
+This table can be read with the following (assuming that the path to the data directory
+is set like this: ``datadir=Path('path/to/my/data')``)::
 
   >>> from astropy.io import ascii
-  >>> data = ascii.read("sources.dat")  # doctest: +SKIP
-  >>> print(data)                       # doctest: +SKIP
+  >>> data = ascii.read(datadir / "sources.dat")
+  >>> print(data)
   obsid redshift  X    Y      object
   ----- -------- ---- ---- -----------
    3102     0.32 4167 4085 Q1250+568-A
     877     0.22 4378 3892   Source 82
+
+.. testcleanup::
+
+    >>> tempdir.cleanup()
 
 The first argument to the |read| function can be the name of a file, a string
 representation of a table, or a list of table lines. The return value
@@ -78,9 +95,16 @@ by trying most of the `supported formats`_.
 
 .. Warning::
 
-   Guessing the file format is often slow for large files because the reader
-   tries parsing the file with every allowed format until one succeeds.
-   For large files it is recommended to disable guessing with ``guess=False``.
+   Guessing the file format might be convenient, but has two disadvantages:
+
+   - It is often slow for large files because the reader
+     tries parsing the file with every allowed format until one succeeds.
+   - Tables sometimes match multiple formats and the first one that succeeds
+     might not be the one you expected
+     (:ref:`example <io_ascii_should_specify_format>`).
+
+   Thus, it is recommended to disable guessing with ``guess=False`` and
+   explicitly give the table format (e.g. ``format='csv'``) whenever possible.
 
 If guessing the format does not work, as in the case for unusually formatted
 tables, you may need to give `astropy.io.ascii` additional hints about
