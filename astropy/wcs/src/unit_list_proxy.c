@@ -5,9 +5,9 @@
 
 #define NO_IMPORT_ARRAY
 
-#include <string.h> // strncmp
 #include "astropy_wcs/pyutil.h"
 #include "astropy_wcs/str_list_proxy.h"
+#include <string.h> // strncmp
 
 /***************************************************************************
  * List-of-units proxy object
