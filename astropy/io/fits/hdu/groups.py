@@ -508,16 +508,16 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         # Verify locations and values of mandatory keywords.
         self.req_cards(
-            "NAXIS", 2, lambda v: (_is_int(v) and 1 <= v <= 999), 1, option, errs
+            "NAXIS", 2, lambda v: _is_int(v) and 1 <= v <= 999, 1, option, errs
         )
-        self.req_cards("NAXIS1", 3, lambda v: (_is_int(v) and v == 0), 0, option, errs)
+        self.req_cards("NAXIS1", 3, lambda v: _is_int(v) and v == 0, 0, option, errs)
 
         after = self._header["NAXIS"] + 3
         pos = lambda x: x >= after
 
         self.req_cards("GCOUNT", pos, _is_int, 1, option, errs)
         self.req_cards("PCOUNT", pos, _is_int, 0, option, errs)
-        self.req_cards("GROUPS", pos, lambda v: (v is True), True, option, errs)
+        self.req_cards("GROUPS", pos, lambda v: v is True, True, option, errs)
         return errs
 
     def _calculate_datasum(self):

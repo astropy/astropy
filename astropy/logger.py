@@ -435,7 +435,7 @@ class AstropyLogger(Logger):
             with logger.log_to_file('myfile.log'):
                 # your code here
         """
-        encoding = conf.log_file_encoding if conf.log_file_encoding else None
+        encoding = conf.log_file_encoding or None
         fh = logging.FileHandler(filename, encoding=encoding)
         if filter_level is not None:
             fh.setLevel(filter_level)
@@ -530,7 +530,7 @@ class AstropyLogger(Logger):
                 else:
                     log_file_path = Path(log_file_path).expanduser()
 
-                encoding = conf.log_file_encoding if conf.log_file_encoding else None
+                encoding = conf.log_file_encoding or None
                 fh = logging.FileHandler(log_file_path, encoding=encoding)
             except OSError as e:
                 warnings.warn(

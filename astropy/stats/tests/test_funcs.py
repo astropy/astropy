@@ -60,7 +60,7 @@ def test_median_absolute_deviation():
 
 
 def test_median_absolute_deviation_masked():
-    # Based on the changes introduces in #4658
+    # Based on the changes introduced in #4658
 
     # normal masked arrays without masked values are handled like normal
     # numpy arrays

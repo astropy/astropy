@@ -86,7 +86,7 @@ class _NonClosingBufferedReader(io.BufferedReader):
     def __del__(self):
         try:
             # NOTE: self.raw will not be closed, but left in the state
-            # it was in at detactment
+            # it was in at detachment
             self.detach()
         except Exception:
             pass
@@ -96,7 +96,7 @@ class _NonClosingTextIOWrapper(io.TextIOWrapper):
     def __del__(self):
         try:
             # NOTE: self.stream will not be closed, but left in the state
-            # it was in at detactment
+            # it was in at detachment
             self.detach()
         except Exception:
             pass
@@ -177,7 +177,7 @@ def is_url(string):
     return url.scheme.lower() in ["http", "https", "ftp", "sftp", "ssh", "file"]
 
 
-# Backward compatibility because some downstream packages allegedly uses it.
+# Backward compatibility because some downstream packages allegedly use it.
 _is_url = is_url
 
 
@@ -370,7 +370,7 @@ def get_readable_fileobj(
 
     # Check if the file object supports random access, and if not,
     # then wrap it in a BytesIO buffer.  It would be nicer to use a
-    # BufferedReader to avoid reading loading the whole file first,
+    # BufferedReader to avoid loading the whole file first,
     # but that might not be compatible with all possible I/O classes.
     if not hasattr(fileobj, "seek"):
         try:
@@ -1235,7 +1235,7 @@ def _try_url_open(
 
     # Always try first with a secure connection
     # _build_urlopener uses lru_cache, so the ssl_context argument must be
-    # converted to a hashshable type (a set of 2-tuples)
+    # converted to a hashable type (a set of 2-tuples)
     ssl_context = frozenset(ssl_context.items() if ssl_context else [])
     urlopener = _build_urlopener(
         ftp_tls=ftp_tls, ssl_context=ssl_context, allow_insecure=False

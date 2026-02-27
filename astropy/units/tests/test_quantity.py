@@ -1679,7 +1679,8 @@ def test_quantity_iterability():
     q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not np.iterable(q2)
-    pytest.raises(TypeError, iter, q2)
+    with pytest.raises(TypeError):
+        iter(q2)
 
 
 def test_copy():
@@ -1784,10 +1785,37 @@ def test_quantity_initialisation_from_string():
         u.Quantity(["5"])
     with pytest.raises(TypeError):
         u.Quantity(np.array(["5"]))
+    with pytest.raises(TypeError):
+        u.Quantity("['1' '5' '8']")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 'two', 9]")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 4 9]")
     with pytest.raises(ValueError):
         u.Quantity("5E")
     with pytest.raises(ValueError):
         u.Quantity("5 foo")
+
+
+@pytest.mark.parametrize("unit_str", ["", "eV", "  cm"])
+@pytest.mark.parametrize(
+    "array_str",
+    (
+        "[7,  8,  9]",
+        "[7,8,9]",
+        "[7,8,9,]",
+        "[7,  8,  9,]",
+        "[7. 8. 9.]",
+        "[7.  8.   9.]",
+        "[7 8 9]",
+        "[7  8  9]",
+        "[7   8     9]",
+    ),
+)
+def test_quantity_initialisation_string_array(array_str, unit_str):
+    q = u.Quantity(array_str + unit_str)
+    assert q.unit == unit_str
+    assert_array_equal(q.value, np.array([7.0, 8.0, 9.0]))
 
 
 def test_unsupported():

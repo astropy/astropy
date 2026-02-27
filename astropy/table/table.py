@@ -3023,7 +3023,7 @@ class Table:
         for memory but allows scripts to manipulate string arrays with
         natural syntax.
         """
-        self._convert_string_dtype("S", "U", np.char.decode)
+        self._convert_string_dtype("S", "U", np.strings.decode)
 
     def convert_unicode_to_bytestring(self):
         """
@@ -3033,7 +3033,7 @@ class Table:
         When exporting a unicode string array to a file, it may be desirable
         to encode unicode columns as bytestrings.
         """
-        self._convert_string_dtype("U", "S", np.char.encode)
+        self._convert_string_dtype("U", "S", np.strings.encode)
 
     def keep_columns(self, names):
         """

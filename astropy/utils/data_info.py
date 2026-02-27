@@ -182,7 +182,7 @@ def _get_data_attribute(dat, attr=None):
         val = dtype_info_name(dat.info.dtype)
     elif attr == "shape":
         datshape = dat.shape[1:]
-        val = datshape if datshape else ""
+        val = datshape or ""
     else:
         val = getattr(dat.info, attr)
     if val is None:
@@ -738,7 +738,7 @@ class BaseColumnInfo(DataInfo):
             )
 
         # Output dtype is the superset of all dtypes in in_cols
-        out["dtype"] = metadata.common_dtype(cols)
+        out["dtype"] = metadata.utils.result_type(cols)
 
         # Make sure all input shapes are the same
         uniq_shapes = {col.shape[1:] for col in cols}
