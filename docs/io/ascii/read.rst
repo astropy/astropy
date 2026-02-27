@@ -1010,10 +1010,6 @@ return what a human would naturally expect, there is no way to make it work for 
 Thus, it is safest to always specify the format if known.
 
 
-
-
-Obtain the Data Table in a Different Format
--------------------------------------------
 Sometimes it is easy to obtain the data in a more structured format that
 more clearly defines columns and metadata, e.g. a FITS or VO/XML table, or
 a text table that uses a different column separator (e.g. comma instead of

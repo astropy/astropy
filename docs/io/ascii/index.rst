@@ -71,14 +71,6 @@ following contents::
     ... )
     118
 
-To see reading a Cosmology from an ECSV file, we first write a Cosmology to an ECSV
-file:
-
-    >>> from pathlib import Path
-    >>> from astropy.cosmology import Cosmology, Planck18
-    >>> file = Path(tempdir.name) / "file.ecsv"
-    >>> Planck18.write(file)
-
 This table can be read with the following (assuming that the path to the data directory
 is set like this: ``datadir=Path('path/to/my/data')``)::
 
