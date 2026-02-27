@@ -1,10 +1,10 @@
 #define NO_IMPORT_ARRAY
 
-#include <stdlib.h> // calloc, malloc, free
-#include <string.h> // memcpy
-
 #include "astropy_wcs/wcslib_celprm_wrap.h"
 #include "astropy_wcs/wcslib_prjprm_wrap.h"
+
+#include <stdlib.h> // calloc, malloc, free
+#include <string.h> // memcpy
 
 #include <wcs.h>
 #include <wcsprintf.h>

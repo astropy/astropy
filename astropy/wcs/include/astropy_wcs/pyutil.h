@@ -6,11 +6,10 @@
 #ifndef __PYUTIL_H__
 #define __PYUTIL_H__
 
+#include <Python.h>
 #include "util.h"
 
 #define PY_ARRAY_UNIQUE_SYMBOL astropy_wcs_numpy_api
-
-#include <Python.h>
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>

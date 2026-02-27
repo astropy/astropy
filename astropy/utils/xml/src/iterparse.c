@@ -22,12 +22,12 @@
  *     library.
  ******************************************************************************/
 
+#include <Python.h>
 #include <stdio.h>
 #include <string.h> // memcpy
 #ifndef _MSC_VER
 #  include <unistd.h> // read
 #endif
-#include <Python.h>
 #include "structmember.h"
 
 #include "expat.h"

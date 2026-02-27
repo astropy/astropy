@@ -5,8 +5,8 @@
 
 #define NO_IMPORT_ARRAY
 
-#include <stdlib.h> // malloc, free
 #include "astropy_wcs/pyutil.h"
+#include <stdlib.h> // malloc, free
 
 /***************************************************************************
  * List-of-strings proxy object

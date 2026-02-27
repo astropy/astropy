@@ -25,13 +25,13 @@
  */
 
 
+#include "convolve.h"
+
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stddef.h>
-
-#include "convolve.h"
 
 #ifdef _OPENMP
 #include <omp.h>
