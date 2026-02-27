@@ -5,4 +5,4 @@
 """
 
 # Import to register with the I/O machinery
-from . import cosmology, ecsv, html, latex, mapping, model, row, table, yaml
+from . import cosmology, ecsv, html, latex, mapping, model, mrt, row, table, yaml

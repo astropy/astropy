@@ -1,0 +1,2 @@
+Registered the ``read_mrt()`` and ``write_mrt()`` methods with the Cosmology class,
+enabling the import and export of cosmological data to and from MRT files.

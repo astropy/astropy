@@ -12,7 +12,7 @@ def test_expected_readwrite_io():
     """Test that ONLY the expected I/O is registered."""
 
     got = {k for k, _ in readwrite_registry._readers.keys()}
-    expected = {"ascii.ecsv", "ascii.html"}
+    expected = {"ascii.ecsv", "ascii.html", "ascii.mrt"}
 
     assert got == expected
 
