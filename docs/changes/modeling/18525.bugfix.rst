@@ -1,0 +1,1 @@
+Fixed crash in ``separability_matrix`` when used with ``CompoundModel`` involving ``fix_inputs``. Now correctly handles fixed input dictionaries and returns expected separability matrix shape.
