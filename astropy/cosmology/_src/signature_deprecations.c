@@ -3,8 +3,8 @@
 // MIT. see licenses/POSITIONAL_DEFAULTS.rst
 
 
-#include <stdio.h> // snprintf
 #include <Python.h>
+#include <stdio.h> // snprintf
 #include <structmember.h>
 
 #define SINCE_CHAR_SIZE 32
