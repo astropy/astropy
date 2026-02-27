@@ -1,0 +1,4 @@
+The ``angular_diameter_distance`` method now accepts two redshift arguments
+to compute the angular diameter distance between objects at different redshifts.
+The previous separate method ``angular_diameter_distance_z1z2`` is deprecated
+and will be removed in a future version.
