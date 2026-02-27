@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy.stats import (
     calculate_bin_edges,
@@ -140,35 +140,42 @@ def test_histogram_output_knuth():
 def test_histogram_output():
     rng = np.random.default_rng(0)
     X = rng.standard_normal(100)
+    X_range = X_min, X_max = X.min(), X.max()
 
     counts, bins = histogram(X, bins=10)
     assert_allclose(counts, [2, 0, 12, 14, 14, 17, 16, 8, 9, 8])
 
     # fmt: off
-    assert_allclose(bins, [-2.32503077, -1.89228844, -1.4595461, -1.02680377, -0.59406143,
+    assert_allclose(bins, [X_min, -1.89228844, -1.4595461, -1.02680377, -0.59406143,
                            -0.1613191, 0.27142324, 0.70416558, 1.13690791, 1.56965025,
-                           2.00239258])
+                           X_max])
     # fmt: on
 
     counts, bins = histogram(X, bins="scott")
     assert_allclose(counts, [2, 14, 27, 25, 16, 16])
 
     # fmt: off
-    assert_allclose(bins, [-2.32503077, -1.59953424, -0.87403771, -0.14854117, 0.57695536,
-                           1.3024519, 2.02794843])
+    assert_allclose(bins, [X_min, -1.59953424, -0.87403771, -0.14854117, 0.57695536,
+                           1.3024519, X_max])
     # fmt: on
 
     counts, bins = histogram(X, bins="freedman")
     assert_allclose(counts, [2, 11, 16, 18, 22, 14, 13, 4])
 
     # fmt: off
-    assert_allclose(bins, [-2.32503077, -1.74087192, -1.15671306, -0.5725542,  0.01160465,
-                           0.59576351, 1.17992237, 1.76408122, 2.34824008], rtol=2e-7)
+    assert_allclose(bins, [X_min, -1.74087192, -1.15671306, -0.5725542,  0.01160465,
+                           0.59576351, 1.17992237, 1.76408122, X_max], rtol=2e-7)
     # fmt: on
 
     counts, bins = histogram(X, bins="blocks")
     assert_allclose(counts, [3, 97])
-    assert_allclose(bins, [-2.32503077, -1.37136996, 2.00239258])
+    assert_allclose(bins, [X_min, -1.37136996, X_max])
+
+
+def test_histogram_empty_data():
+    counts, bins = histogram([], bins=2)
+    assert_allclose(counts, [0, 0])
+    assert_array_equal(bins, [0, 0.5, 1.0])
 
 
 def test_histogram_badargs():

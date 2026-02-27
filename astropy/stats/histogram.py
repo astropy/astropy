@@ -22,6 +22,38 @@ __all__ = [
 ]
 
 
+# this function is adapted from numpy 2.1.2
+def _get_outer_edges(a: ArrayLike, range: tuple[float, float] | None):
+    """
+    Determine the outer bin edges to use, from either the data or the range
+    argument
+    """
+    if range is not None:
+        first_edge, last_edge = range
+        if first_edge > last_edge:
+            raise ValueError("max must be larger than min in range parameter.")
+        if not (np.isfinite(first_edge) and np.isfinite(last_edge)):
+            raise ValueError(
+                f"supplied range of [{first_edge}, {last_edge}] is not finite"
+            )
+    elif a.size == 0:
+        # handle empty arrays. Can't determine range, so use 0-1.
+        first_edge, last_edge = 0, 1
+    else:
+        first_edge, last_edge = a.min(), a.max()
+        if not (np.isfinite(first_edge) and np.isfinite(last_edge)):
+            raise ValueError(
+                f"autodetected range of [{first_edge}, {last_edge}] is not finite"
+            )
+
+    # expand empty range to avoid divide by zero
+    if first_edge == last_edge:
+        first_edge = first_edge - 0.5
+        last_edge = last_edge + 0.5
+
+    return first_edge, last_edge
+
+
 def calculate_bin_edges(
     a: ArrayLike,
     bins: int
@@ -88,15 +120,11 @@ def calculate_bin_edges(
         else:
             raise ValueError(f"unrecognized bin code: '{bins}'")
 
-        if range:
-            # Check that the upper and lower edges are what was requested.
-            # The current implementation of the bin width estimators does not
-            # guarantee this, it only ensures that data outside the range is
-            # excluded from calculation of the bin widths.
-            if bins[0] != range[0]:
-                bins[0] = range[0]
-            if bins[-1] != range[1]:
-                bins[-1] = range[1]
+        # The current implementation of the bin width estimators does not
+        # guarantee that outer edges are consistent with numpy's approach,
+        # it only ensures that data outside the range is excluded from
+        # calculation of the bin widths.
+        bins[0], bins[-1] = _get_outer_edges(a, range)
 
     elif np.ndim(bins) == 0:
         # Number of bins was given
