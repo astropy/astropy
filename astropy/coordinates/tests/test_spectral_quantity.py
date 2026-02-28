@@ -7,6 +7,7 @@ from astropy.coordinates.spectral_quantity import SpectralQuantity
 from astropy.tests.helper import assert_quantity_allclose
 
 SPECTRAL_UNITS = (u.GHz, u.micron, u.keV, (1 / u.nm).unit, u.km / u.s)
+SPECTRAL_UNITS_NO_VELOCITY = (u.GHz, u.micron, u.keV, (1 / u.nm).unit)
 
 
 class TestSpectralQuantity:
@@ -33,9 +34,8 @@ class TestSpectralQuantity:
         ):
             SpectralQuantity(1 * unit)
 
-    @pytest.mark.parametrize(
-        ("unit1", "unit2"), list(zip(SPECTRAL_UNITS, SPECTRAL_UNITS))
-    )
+    @pytest.mark.parametrize("unit1", SPECTRAL_UNITS_NO_VELOCITY)
+    @pytest.mark.parametrize("unit2", SPECTRAL_UNITS_NO_VELOCITY)
     def test_spectral_conversion(self, unit1, unit2):
         sq1 = SpectralQuantity(1 * unit1)
         sq2 = sq1.to(unit2)
