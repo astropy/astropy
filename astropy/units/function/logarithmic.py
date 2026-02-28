@@ -20,6 +20,8 @@ __all__ = [
     "DecibelUnit",
     "Dex",
     "DexUnit",
+    "Ln",
+    "LnUnit",
     "LogQuantity",
     "LogUnit",
     "MagUnit",
@@ -212,6 +214,48 @@ class DecibelUnit(LogUnit):
     @property
     def _quantity_class(self):
         return Decibel
+
+
+class LnUnit(LogUnit):
+    """Neperian logarithmic physical units expressed in neperian log.
+
+    Parameters
+    ----------
+    physical_unit : `~astropy.units.Unit` or `string`
+        Unit that is encapsulated within the magnitude function unit.
+        If not given, dimensionless.
+
+    function_unit :  `~astropy.units.Unit` or `string`
+        By default, this is ``ln``, but this allows one to use an equivalent
+        unit such as ``0.5 ln``.
+    """
+
+    @cached_property
+    def _default_function_unit(self):
+        from .units import ln
+
+        return ln
+
+    @property
+    def _quantity_class(self):
+        return Ln
+
+    def from_physical(self, x):
+        """Transformation from value in physical to value in neperian logarithmic units.
+        Used in equivalency.
+        """
+        # Local import to avoid circular dependency.
+        from .units import ln
+
+        return ln.to(self._function_unit, np.log(x))
+
+    def to_physical(self, x):
+        """Transformation from value in neperian logarithmic to value in physical units.
+        Used in equivalency.
+        """
+        from .units import ln
+
+        return np.exp(self._function_unit.to(ln, x))
 
 
 class LogQuantity(FunctionQuantity):
@@ -429,3 +473,7 @@ class Decibel(LogQuantity):
 
 class Magnitude(LogQuantity):
     _unit_class = MagUnit
+
+
+class Ln(LogQuantity):
+    _unit_class = LnUnit

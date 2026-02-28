@@ -115,22 +115,22 @@ def test_unit_definition_module_function_units_summary():
     from astropy.units.function import units
 
     entries = units.__doc__.split("\n\n")
-    assert len(entries) == 14
-    assert entries[8] == "\n".join(
+    assert len(entries) == 15
+    assert entries[9] == "\n".join(
         (
             ".. list-table:: Available Magnitude Units",
             "   :header-rows: 1",
             "   :widths: 10 50 10",
         )
     )
-    assert entries[9] == "\n".join(
+    assert entries[10] == "\n".join(
         (
             "   * - Unit",
             "     - Description",
             "     - Represents",
         )
     )
-    assert entries[12] == "\n".join(
+    assert entries[13] == "\n".join(
         (
             "   * - ``M_bol``",
             "     - Absolute bolometric magnitude: M_bol=0 corresponds to :math:`\\mathrm{3.0128 \\times 10^{28}\\,W}`",

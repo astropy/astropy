@@ -15,9 +15,9 @@ from astropy.tests.helper import assert_quantity_allclose
 
 lu_units = [u.dex, u.mag, u.decibel]
 
-lu_subclasses = [u.DexUnit, u.MagUnit, u.DecibelUnit]
+lu_subclasses = [u.DexUnit, u.MagUnit, u.DecibelUnit, u.LnUnit]
 
-lq_subclasses = [u.Dex, u.Magnitude, u.Decibel]
+lq_subclasses = [u.Dex, u.Magnitude, u.Decibel, u.Ln]
 
 pu_sample = (u.dimensionless_unscaled, u.m, u.g / u.s**2, u.Jy)
 
@@ -63,7 +63,7 @@ class TestLogUnitCreation:
             u.mag(u.mag())
 
     @pytest.mark.parametrize("physical_unit", pu_sample)
-    @pytest.mark.parametrize("lu_cls", lu_subclasses + [u.LogUnit])
+    @pytest.mark.parametrize("lu_cls", lu_subclasses + [u.LogUnit, u.LnUnit])
     def test_subclass_creation(self, lu_cls, physical_unit):
         """Create a LogUnit subclass object for given physical unit,
         and do basic check that output is right."""
@@ -222,7 +222,7 @@ class TestLogUnitStrings:
 
 class TestLogUnitConversion:
     @pytest.mark.parametrize("physical_unit", pu_sample)
-    @pytest.mark.parametrize("lu_unit", lu_units)
+    @pytest.mark.parametrize("lu_unit", lu_units + [u.LnUnit])
     def test_physical_unit_conversion(self, lu_unit, physical_unit):
         """Check various LogUnit subclasses are equivalent and convertible
         to their non-log counterparts."""
@@ -253,9 +253,9 @@ class TestLogUnitConversion:
         with pytest.raises(u.UnitsError):
             pu2.to(lu1)
 
-    @pytest.mark.parametrize("lu_unit", lu_units)
+    @pytest.mark.parametrize("lu_unit", lu_units + [u.LnUnit])
     def test_container_unit_conversion(self, lu_unit):
-        """Check that conversion to logarithmic units (u.mag, u.dB, u.dex)
+        """Check that conversion to logarithmic units (u.mag, u.dB, u.dex, u.ln)
         is only possible when the physical unit is dimensionless."""
         values = np.linspace(0.0, 10.0, 6)
         lu1 = lu_unit(u.dimensionless_unscaled)
@@ -510,7 +510,12 @@ def test_hashable():
 class TestLogQuantityCreation:
     @pytest.mark.parametrize(
         "lq, lu",
-        list(zip(lq_subclasses + [u.LogQuantity], lu_subclasses + [u.LogUnit])),
+        list(
+            zip(
+                lq_subclasses + [u.LogQuantity, u.Ln],
+                lu_subclasses + [u.LogUnit, u.LnUnit],
+            )
+        ),
     )
     def test_logarithmic_quantities(self, lq, lu):
         """Check logarithmic quantities are all set up correctly"""
@@ -518,7 +523,7 @@ class TestLogQuantityCreation:
         assert type(lu()._quantity_class(1.0)) is lq
 
     @pytest.mark.parametrize("physical_unit", pu_sample)
-    @pytest.mark.parametrize("lq_cls", lq_subclasses)
+    @pytest.mark.parametrize("lq_cls", lq_subclasses + [u.Ln])
     def test_subclass_creation(self, lq_cls, physical_unit):
         """Create LogQuantity subclass objects for some physical units,
         and basic check on transformations"""
@@ -706,10 +711,13 @@ class TestLogQuantityArithmetic:
         "other",
         [
             2.4 * u.mag(),
+            2.4 * u.ln(),
             12.34 * u.ABmag,
             u.Magnitude(3.45 * u.Jy),
             u.Dex(3.0),
             u.Dex(np.linspace(3000, 5000, 10) * u.Angstrom),
+            u.Ln(3.0),
+            u.Ln(3.0 * u.Jy),
             u.Magnitude(6.78, 2.0 * u.mag),
         ],
     )
@@ -1045,3 +1053,25 @@ class TestLogQuantityFunctions:
         res = np.ptp(mag)
         assert np.all(res.value == np.ptp(mag._function_view).value)
         assert res.unit == u.mag()
+
+
+class TestLnUnitsQuantity:
+    def test_unit_parse(self):
+        """Test that the unit is parsed correctly."""
+        lu1 = u.Unit("ln")
+        assert lu1 == u.ln
+
+        lu2 = u.Unit("ln(m)")
+        assert lu2 == u.ln(u.m)
+
+    def test_quantity_physical(self):
+        """Test that physical return the proper value."""
+        val = 1 << u.ln(u.m)
+        assert val.physical == np.exp(1) << u.m
+
+    def test_to(self):
+        """Test that ln-space <-> physical space works using to()"""
+        val = 1 << u.ln(u.m)
+
+        assert val.to(u.m) == np.exp(1) << u.m
+        assert val.to(u.m).to(u.ln(u.m)) == val
