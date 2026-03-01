@@ -13,6 +13,7 @@ __all__ = (  #  noqa: RUF100, RUF022
     "units",
     "traits",
     "io",
+    "spectra",
     # Core
     "Cosmology",
     "CosmologyError",
@@ -46,9 +47,13 @@ __all__ = (  #  noqa: RUF100, RUF022
     "Planck13",
     "Planck15",
     "Planck18",
+    # Spectra
+    "PowerSpectrum",
+    "ScaleInvariantSpectrum",
+    "PowerLawSpectrum",
 )
 
-from . import io, realizations, traits, units
+from . import io, realizations, spectra, traits, units
 from ._src.core import Cosmology, CosmologyError, FlatCosmologyMixin
 from ._src.flrw import (
     FLRW,
@@ -67,6 +72,7 @@ from ._src.flrw import (
 from ._src.funcs import cosmology_equal, z_at_value
 from ._src.parameter import Parameter
 from .realizations import available, default_cosmology
+from .spectra import PowerLawSpectrum, PowerSpectrum, ScaleInvariantSpectrum
 
 
 def __getattr__(name: str) -> Cosmology:
