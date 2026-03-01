@@ -946,7 +946,6 @@ class BaseData:
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
-            # Works with the assumption that all the incoming data in the pipeline is an ndarray.
             if col.value.ndim > 1:
                 col.str_vals = [str(val) for val in col.value]
             else:
