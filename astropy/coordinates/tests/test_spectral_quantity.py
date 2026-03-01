@@ -6,8 +6,8 @@ from astropy import units as u
 from astropy.coordinates.spectral_quantity import SpectralQuantity
 from astropy.tests.helper import assert_quantity_allclose
 
-SPECTRAL_UNITS = (u.GHz, u.micron, u.keV, (1 / u.nm).unit, u.km / u.s)
-SPECTRAL_UNITS_NO_VELOCITY = (u.GHz, u.micron, u.keV, (1 / u.nm).unit)
+SPECTRAL_UNITS = (u.GHz, u.micron, u.keV, u.nm**-1, u.km / u.s)
+SPECTRAL_UNITS_NO_VELOCITY = (u.GHz, u.micron, u.keV, u.nm**-1)
 
 
 class TestSpectralQuantity:
