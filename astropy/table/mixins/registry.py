@@ -63,9 +63,7 @@ def get_mixin_handler(obj):
     if isinstance(obj, str):
         return _handlers.get(obj)
     else:
-        return _handlers.get(
-            obj.__class__.__module__ + "." + obj.__class__.__name__, None
-        )
+        return _handlers.get(obj.__class__.__module__ + "." + obj.__class__.__name__)
 
 
 # Add built-in handlers to registry. Note that any third-party package imports
