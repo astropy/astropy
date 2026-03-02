@@ -18,7 +18,7 @@ name, and parameters as columns.
     \begin{tabular}{cccccccc}
     cosmology & name & $H_0$ & $\Omega_{m,0}$ & $T_{0}$ & $N_{eff}$ & $m_{nu}$ & $\Omega_{b,0}$ \\
     &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
-    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
     \end{tabular}
     \end{table}
     <BLANKLINE>
@@ -44,7 +44,7 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     \begin{tabular}{cccccccc}
     cosmology & name & H0 & Om0 & Tcmb0 & Neff & m_nu & Ob0 \\
     &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
-    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
     \end{tabular}
     \end{table}
     <BLANKLINE>
@@ -139,6 +139,35 @@ def read_latex(
     ------
     ValueError
         If the keyword argument 'format' is given and is not "ascii.latex".
+
+    Examples
+    --------
+    We assume the following setup:
+
+        >>> from pathlib import Path
+        >>> from tempfile import TemporaryDirectory
+        >>> temp_dir = TemporaryDirectory()
+
+    We can write and then read a cosmology to a LaTeX file.
+
+        >>> from astropy.cosmology import Planck18, Cosmology
+        >>> file = Path(temp_dir.name) / "file.tex"
+
+        >>> Planck18.write(file, format="ascii.latex")
+        >>> cosmo = Cosmology.read(file)
+        >>> cosmo
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
+
+        >>> cosmo == Planck18
+        True
+        >>> cosmo.meta == Planck18.meta
+        False
+
+    Note that the cosmology's metadata was not included in the table.
+
+    .. testcleanup::
+
+        >>> temp_dir.cleanup()
     """
     # Check that the format is 'ascii.latex' (or not specified)
     fmt = kwargs.pop("format", "ascii.latex")
@@ -216,7 +245,7 @@ def write_latex(
         \begin{tabular}{cccccccc}
         cosmology & name & $H_0$ & $\Omega_{m,0}$ & $T_{0}$ & $N_{eff}$ & $m_{nu}$ & $\Omega_{b,0}$ \\
         &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
-        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
         \end{tabular}
         \end{table}
         <BLANKLINE>
@@ -242,7 +271,7 @@ def write_latex(
         \begin{tabular}{cccccccc}
         cosmology & name & H0 & Om0 & Tcmb0 & Neff & m_nu & Ob0 \\
         &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
-        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
         \end{tabular}
         \end{table}
         <BLANKLINE>
