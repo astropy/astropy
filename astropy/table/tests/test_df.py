@@ -328,6 +328,24 @@ class TestDataFrameConversion:
         with pytest.raises(ValueError, match="is not in the table columns"):
             self._to_dataframe(t, backend, use_legacy_pandas_api, index="not a column")
 
+    def test_to_df_index_numpy_bool_true_without_primary_key(
+        self, backend, use_legacy_pandas_api
+    ):
+        if backend != "pandas":
+            return
+
+        t = table.QTable([[1, 2], [3, 4]], names=["a", "b"])
+
+        with pytest.raises(
+            ValueError, match="index=True requires a single-column primary key"
+        ):
+            self._to_dataframe(
+                t,
+                backend,
+                use_legacy_pandas_api,
+                index=np.bool_(True),
+            )
+
     def test_from_df_index(self, backend, use_legacy_pandas_api):
         """Test index handling in from_dataframe conversion."""
         tm = Time([1998, 2002], format="jyear")
