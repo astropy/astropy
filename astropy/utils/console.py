@@ -29,13 +29,9 @@ except ImportError:
 import numpy as np
 
 from astropy import conf
-from astropy.utils.compat.optional_deps import (
-    HAS_IPYKERNEL,
-    HAS_IPYTHON,
-    HAS_IPYWIDGETS,
-)
+from astropy.utils.compat.optional_deps import HAS_IPYKERNEL, HAS_IPYWIDGETS
 
-from .decorators import classproperty, deprecated
+from .decorators import deprecated
 
 __all__ = [
     "ProgressBar",
@@ -48,33 +44,6 @@ __all__ = [
     "print_code_line",
     "terminal_size",
 ]
-
-
-class _IPython:
-    """Singleton class given access to IPython streams, etc."""
-
-    @classproperty
-    def OutStream(cls):
-        if not hasattr(cls, "_OutStream"):
-            if HAS_IPYKERNEL:
-                from ipykernel.iostream import OutStream
-
-                cls._OutStream = OutStream
-            else:
-                cls._OutStream = None
-
-        return cls._OutStream
-
-    @classproperty
-    def ipyio(cls):
-        if not hasattr(cls, "_ipyio"):
-            if HAS_IPYTHON:
-                from IPython.utils import io
-
-                cls._ipyio = io
-            else:
-                cls._ipyio = None
-        return cls._ipyio
 
 
 def isatty(file):
@@ -91,13 +60,7 @@ def isatty(file):
     ):
         return False
 
-    if hasattr(file, "isatty"):
-        return file.isatty()
-
-    if _IPython.OutStream is None or (not isinstance(file, _IPython.OutStream)):
-        return False
-
-    return getattr(file, "name", None) == "stdout"
+    return hasattr(file, "isatty") and file.isatty()
 
 
 @deprecated("6.1", alternative="shutil.get_terminal_size")
@@ -180,7 +143,7 @@ def _color_text(text, color):
         "white": "1;37",
     }
 
-    if sys.platform == "win32" and _IPython.OutStream is None:
+    if sys.platform == "win32" and not HAS_IPYKERNEL:
         # On Windows do not colorize text unless in IPython
         return text
 
