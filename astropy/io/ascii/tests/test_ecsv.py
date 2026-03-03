@@ -1372,8 +1372,6 @@ def test_meta_not_omap_but_map(format_engine):
 # schema: astropy-2.0
 fake
 0"""
-    print(txt)
-    print(format_engine)
     t = Table.read(txt, **format_engine)
     assert t.meta["hr"] == 65
     assert t.meta["avg"] == 0.278
