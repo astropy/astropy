@@ -1,0 +1,1 @@
+Fixed `AssertionError` when passing `numpy.bool_(True)` as the `index` argument to `Table.to_pandas()` or `Table.to_dataframe()`. The correct `ValueError` is now raised instead.
