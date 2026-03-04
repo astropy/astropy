@@ -530,7 +530,13 @@ def unwrap_arange_args(*, start_or_stop, stop_, step_):
             pass
 
     # purely defensive programming
-    assert stop is not None, "Please report this."
+    if stop is None:
+        raise RuntimeError(
+            "Unexpected internal state in unwrap_arange_args: "
+            "'stop' is None after argument parsing. "
+            "Please report this at "
+            "https://github.com/astropy/astropy/issues"
+        )
     return start, stop, step
 
 
@@ -539,7 +545,13 @@ def wrap_arange_args(*, start, stop, step, expected_out_unit):
     # this is needed because start_or_stop *must* be passed as positional
 
     # purely defensive programming
-    assert stop is not None, "Please report this."
+    if stop is None:
+        raise RuntimeError(
+            "Unexpected internal state in wrap_arange_args: "
+            "'stop' is None before argument reconstruction. "
+            "Please report this at "
+            "https://github.com/astropy/astropy/issues"
+        )
 
     match start, stop:
         case (None, _):
@@ -556,9 +568,21 @@ def wrap_arange_args(*, start, stop, step, expected_out_unit):
     # expected unit, which we guarantee should be stop's
     args_rev, out_unit = _quantities2arrays(*qty_args[::-1])
     if expected_out_unit is not UNIT_FROM_LIKE_ARG:
-        assert out_unit == expected_out_unit
+        if out_unit != expected_out_unit:
+            raise RuntimeError(
+                f"Unit mismatch after conversion: expected "
+                f"{expected_out_unit!r} but got {out_unit!r}. "
+                "Please report this at "
+                "https://github.com/astropy/astropy/issues"
+            )
     if hasattr(stop, "unit"):
-        assert out_unit == stop.unit
+        if out_unit != stop.unit:
+            raise RuntimeError(
+                f"Unit mismatch: converted output unit {out_unit!r} "
+                f"does not match stop.unit {stop.unit!r}. "
+                "Please report this at "
+                "https://github.com/astropy/astropy/issues"
+            )
 
     # reverse args again to restore initial order
     args = args_rev[::-1]

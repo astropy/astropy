@@ -1,0 +1,6 @@
+Replace internal ``assert`` statements in
+``astropy.units.quantity_helper.function_helpers`` with explicit
+``RuntimeError`` exceptions. Previously, running Python with the
+``-O`` optimization flag would silently remove these checks,
+potentially causing unit mismatches or corrupt internal state
+to propagate without any error being raised.
