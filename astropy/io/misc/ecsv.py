@@ -489,6 +489,39 @@ def get_header_lines(
     return lines, idx, n_empty, n_comment
 
 
+def table_meta_as_dict(header) -> dict:
+    """Ensure meta information is some type of dictionary.
+
+    The ECSV format allows arbitrary data types for the `meta` keyword
+    but astropy requires a mapping (dict) for the meta information in a table.
+    For non-dict ECSV meta, we need to put the structure into a dict.
+    If that happens, warn the user of the conversion.
+
+    Parameters
+    ----------
+    header : dict
+        The header dictionary parsed from the ECSV file.
+        This contains the "meta" key if meta information is in the file.
+
+    Returns
+    -------
+    dict : dict
+        A dictionary containing the meta information. If the input `meta` is already
+        a dict, it is returned as is. Otherwise, it is wrapped in a dict under the key 'meta'.
+    """
+    if "meta" not in header:
+        return {}
+    meta = header["meta"]
+    if isinstance(meta, dict):
+        return meta
+
+    warnings.warn(
+        f"Found ECSV table meta of type {type(meta).__name__} instead of mapping (dict)."
+        f"This data structure is being copied to the 'meta' key of the output table meta attribute."
+    )
+    return {"meta": meta}
+
+
 def get_csv_np_type_dtype_shape(
     datatype: str, subtype: str | None, name: str
 ) -> DerivedColumnProperties:
@@ -654,7 +687,7 @@ def read_header(
     except meta.YamlParseError as e:
         raise InconsistentTableError("unable to parse yaml in meta header") from e
 
-    table_meta = header.get("meta", None)
+    table_meta = table_meta_as_dict(header)
 
     delimiter = header.get("delimiter", " ")
     if delimiter not in DELIMITERS:

@@ -13,6 +13,7 @@ from collections import OrderedDict
 import numpy as np
 
 from astropy.io.ascii.core import convert_numpy
+from astropy.io.misc.ecsv import table_meta_as_dict
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyUserWarning
@@ -194,8 +195,7 @@ class EcsvHeader(basic.BasicHeader):
                 "unable to parse yaml in meta header"
             ) from e
 
-        if "meta" in header:
-            self.table_meta = header["meta"]
+        self.table_meta = table_meta_as_dict(header)
 
         if "delimiter" in header:
             delimiter = header["delimiter"]
@@ -515,7 +515,6 @@ class Ecsv(basic.Basic):
     ----- -----
       001     2
       004     3
-
     """
 
     _format_name = "ecsv"
