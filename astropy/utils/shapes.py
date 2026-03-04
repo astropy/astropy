@@ -154,7 +154,7 @@ class NDArrayShapeMethods:
         obviously, no output array can be given.
         """
         if out is not None:
-            return NotImplementedError("cannot pass 'out' argument to 'take.")
+            raise NotImplementedError("cannot pass 'out' argument to 'take.")
 
         return self._apply("take", indices, axis=axis, mode=mode)
 
