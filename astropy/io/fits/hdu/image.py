@@ -314,6 +314,36 @@ class _ImageBaseHDU(_ValidHDU):
         # setting self.__dict__['data']
         return data
 
+    def as_numpy_memmap(self):
+        """
+        Return data as a Numpy memmap object
+        """
+
+        if (
+            getattr(self, "_orig_bscale", 1) != 1
+            or getattr(self, "_orig_bzero", 0) != 0
+            or self.header.get("BSCALE", 1) != 1
+            or self.header.get("BZERO", 0) != 0
+        ):
+            raise Exception("Cannot return Numpy memmap object for scaled data")
+
+        if self._data_replaced:
+            raise Exception("Cannot return Numpy memmap object as data has been modified")
+
+        if self.fileinfo() is None:
+            raise Exception("Cannot return Numpy memmap object data is not backed by a file")
+
+        if self.fileinfo()["file"].compression is not None:
+            raise Exception("Cannot return Numpy memmap object data as file is compressed")
+
+        return np.memmap(
+            self.fileinfo()["file"].name,
+            mode="r",
+            dtype=self.data.dtype.newbyteorder(">"),
+            shape=self.data.shape,
+            offset=self.fileinfo()["datLoc"],
+        )
+
     @property
     def _data_shape(self):
         return self.data.shape
