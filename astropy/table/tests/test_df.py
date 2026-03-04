@@ -332,7 +332,7 @@ class TestDataFrameConversion:
         self, backend, use_legacy_pandas_api
     ):
         if backend != "pandas":
-            return
+            pytest.skip("requires pandas")
 
         t = table.QTable([[1, 2], [3, 4]], names=["a", "b"])
 
