@@ -1,0 +1,1 @@
+Fix a bug which caused CompImageHDU to have both SIMPLE and XTENSION keywords when initialized from a PrimaryHDU header.
