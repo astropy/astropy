@@ -206,7 +206,12 @@ def _check_compressed_header(header):
                 raise TypeError(f"{kw} should be an integer")
 
     for suffix in range(1, header["TFIELDS"] + 1):
-        if header.get(f"TTYPE{suffix}", "").endswith("COMPRESSED_DATA"):
+        # Only validate COMPRESSED_DATA and GZIP_COMPRESSED_DATA columns.
+        # UNCOMPRESSED_DATA columns can have floating-point formats (PE, PD, etc.)
+        if header.get(f"TTYPE{suffix}", "") in (
+            "COMPRESSED_DATA",
+            "GZIP_COMPRESSED_DATA",
+        ):
             for valid in ["PB", "PI", "PJ", "QB", "QI", "QJ"]:
                 if header[f"TFORM{suffix}"].startswith((valid, f"1{valid}")):
                     break
@@ -262,6 +267,10 @@ def _column_dtype(compressed_coldefs, column_name):
         dtype = ">i2"
     elif tform[1] == "J":
         dtype = ">i4"
+    elif tform[1] == "E":
+        dtype = ">f4"
+    elif tform[1] == "D":
+        dtype = ">f8"
     return np.dtype(dtype)
 
 
@@ -362,6 +371,8 @@ def decompress_image_data_section(
 
     gzip_compressed_data_column = None
     gzip_compressed_data_dtype = None
+    uncompressed_data_column = None
+    uncompressed_data_dtype = None
 
     # If all the data is requested, read in all the heap.
     if tuple(buffer_shape) == tuple(data_shape):
@@ -383,35 +394,61 @@ def decompress_image_data_section(
         settings = _update_tile_settings(settings, compression_type, actual_tile_shape)
 
         if compressed_data_column[row_index][0] == 0:
-            if gzip_compressed_data_column is None:
-                gzip_compressed_data_column = np.array(
-                    compressed_data["GZIP_COMPRESSED_DATA"]
-                )
-                gzip_compressed_data_dtype = _column_dtype(
-                    compressed_coldefs, "GZIP_COMPRESSED_DATA"
-                )
-
             # When quantizing floating point data, sometimes the data will not
             # quantize efficiently. In these cases the raw floating point data can
             # be losslessly GZIP compressed and stored in the `GZIP_COMPRESSED_DATA`
-            # column.
+            # column, or stored uncompressed in the `UNCOMPRESSED_DATA` column.
 
-            cdata = _get_data_from_heap(
-                bintable,
-                *gzip_compressed_data_column[row_index],
-                gzip_compressed_data_dtype,
-                heap_cache=heap_cache,
-            )
+            if "GZIP_COMPRESSED_DATA" in compressed_coldefs.dtype.names:
+                if gzip_compressed_data_column is None:
+                    gzip_compressed_data_column = np.array(
+                        compressed_data["GZIP_COMPRESSED_DATA"]
+                    )
+                    gzip_compressed_data_dtype = _column_dtype(
+                        compressed_coldefs, "GZIP_COMPRESSED_DATA"
+                    )
 
-            tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
+                cdata = _get_data_from_heap(
+                    bintable,
+                    *gzip_compressed_data_column[row_index],
+                    gzip_compressed_data_dtype,
+                    heap_cache=heap_cache,
+                )
 
-            tile_data = _finalize_array(
-                tile_buffer,
-                bitpix=zbitpix,
-                tile_shape=actual_tile_shape,
-                algorithm="GZIP_1",
-                lossless=True,
-            )
+                tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
+
+                tile_data = _finalize_array(
+                    tile_buffer,
+                    bitpix=zbitpix,
+                    tile_shape=actual_tile_shape,
+                    algorithm="GZIP_1",
+                    lossless=True,
+                )
+
+            elif "UNCOMPRESSED_DATA" in compressed_coldefs.dtype.names:
+                if uncompressed_data_column is None:
+                    uncompressed_data_column = np.array(
+                        compressed_data["UNCOMPRESSED_DATA"]
+                    )
+                    uncompressed_data_dtype = _column_dtype(
+                        compressed_coldefs, "UNCOMPRESSED_DATA"
+                    )
+
+                tile_data = _get_data_from_heap(
+                    bintable,
+                    *uncompressed_data_column[row_index],
+                    uncompressed_data_dtype,
+                    heap_cache=heap_cache,
+                )
+
+                # Data is already uncompressed, just reshape it
+                tile_data = tile_data.reshape(actual_tile_shape)
+
+            else:
+                raise ValueError(
+                    "COMPRESSED_DATA column has zero length but neither "
+                    "GZIP_COMPRESSED_DATA nor UNCOMPRESSED_DATA column exists"
+                )
 
         else:
             cdata = _get_data_from_heap(
