@@ -1486,7 +1486,8 @@ def test_compimghdu_with_primary_header_no_dual_keywords(tmp_path):
 
     # Create a CompImageHDU using the PrimaryHDU's header
     comp_hdu = fits.CompImageHDU(
-        data=np.arange(100, dtype=np.int32).reshape(10, 10), header=hdu.header,
+        data=np.arange(100, dtype=np.int32).reshape(10, 10),
+        header=hdu.header,
     )
 
     # The image header should have SIMPLE (not XTENSION) when created from PrimaryHDU
