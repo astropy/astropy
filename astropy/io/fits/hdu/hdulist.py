@@ -144,6 +144,13 @@ def fitsopen(
         are returned, but this does not respect memory mapping and loads the
         whole column in memory when accessed. Default is `False`.
 
+    logical_as_bytes : bool, optional
+        Whether to return raw bytes for logical columns, otherwise boolean
+        values are returned. When `True`, the raw FITS values are returned:
+        ord('T')=84 for True, ord('F')=70 for False, and 0 for undefined
+        (NULL). This allows distinguishing between False and NULL values in
+        logical columns. Default is `False`.
+
     ignore_blank : bool, optional
         If `True`, the BLANK keyword is ignored if present.
         Default is `False`.
