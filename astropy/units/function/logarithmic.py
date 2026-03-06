@@ -403,6 +403,8 @@ class LogQuantity(FunctionQuantity):
         if function is np.ptp:
             unit = self.unit._copy(dimensionless_unscaled)
             return self._wrap_function(np.ptp, *args[1:], unit=unit, **kwargs)
+        elif function is np.diff:
+            return self.diff(*args[1:], **kwargs)
         else:
             return super().__array_function__(function, types, args, kwargs)
 
