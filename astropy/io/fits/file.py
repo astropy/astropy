@@ -423,6 +423,20 @@ class _File:
                                 access=MEMMAP_MODES["denywrite"],
                                 offset=0,
                             )
+                        elif not self.strict_memmap:
+                            # mmap failed but wasn't explicitly requested,
+                            # fall back to non-mmap reading
+                            warnings.warn(
+                                "Could not memory map array; falling back to "
+                                "non-memory-mapped file reading. You can disable "
+                                "this warning by setting memmap=False",
+                                AstropyUserWarning,
+                            )
+                            self.memmap = False
+                            count = reduce(operator.mul, shape)
+                            self._file.seek(offset)
+                            data = _array_from_file(self._file, dtype, count)
+                            return data.reshape(shape)
                         else:
                             raise
 
