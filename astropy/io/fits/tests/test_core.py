@@ -1259,12 +1259,14 @@ class TestFileFunctions(FitsTestCase):
                 return mmap_original(*args, **kwargs)
 
         with fits.open(self.data("test0.fits"), memmap=True) as hdulist:
-            with patch.object(mmap, "mmap", side_effect=mmap_patched) as p:
-                with pytest.warns(
+            with (
+                patch.object(mmap, "mmap", side_effect=mmap_patched) as p,
+                pytest.warns(
                     AstropyUserWarning,
                     match=r"Could not memory map array with mode='readonly'",
-                ):
-                    data = hdulist[1].data
+                ),
+            ):
+                data = hdulist[1].data
                 p.reset_mock()
             assert not data.flags.writeable
 
@@ -1288,16 +1290,20 @@ class TestFileFunctions(FitsTestCase):
         # non-mmap reading with a warning. We open file first, then patch only
         # during data access to avoid interfering with cleanup.
         with fits.open(self.data("test0.fits")) as hdul:
-            with patch.object(mmap, "mmap", side_effect=mmap_patched):
-                with pytest.warns(AstropyUserWarning, match=r"Could not memory map"):
-                    data = hdul[1].data
-                    assert data is not None
+            with (
+                patch.object(mmap, "mmap", side_effect=mmap_patched),
+                pytest.warns(AstropyUserWarning, match=r"Could not memory map"),
+            ):
+                data = hdul[1].data
+                assert data is not None
 
         # With explicit memmap=True, we should raise the error
         with fits.open(self.data("test0.fits"), memmap=True) as hdul:
-            with patch.object(mmap, "mmap", side_effect=mmap_patched):
-                with pytest.raises(OSError, match=r"mmap not supported"):
-                    hdul[1].data
+            with (
+                patch.object(mmap, "mmap", side_effect=mmap_patched),
+                pytest.raises(OSError, match=r"mmap not supported"),
+            ):
+                hdul[1].data
 
     def test_mmap_closing(self):
         """
