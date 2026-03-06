@@ -946,7 +946,7 @@ class BaseData:
         self._set_fill_values(self.cols)
         self._set_col_formats()
         for col in self.cols:
-            if col.value.ndim > 1:
+            if hasattr(col, "value") and col.value.ndim > 1:
                 col.str_vals = [str(val) for val in col.value]
             else:
                 col.str_vals = list(col.info.iter_str_vals())
