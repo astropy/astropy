@@ -13,6 +13,7 @@ from astropy import constants as consts
 from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
+from astropy.utils.data import conf as data_conf
 from astropy.utils.data import get_pkg_data_contents
 
 from .angles import Angle, Latitude, Longitude
@@ -73,8 +74,10 @@ def _get_json_result(url, err_str, use_google):
     from .name_resolve import NameResolveError
 
     try:
+        headers = {"User-Agent": data_conf.default_http_user_agent}
+        req = urllib.request.Request(url, headers=headers)
         # Retrieve JSON response from Google maps API
-        resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
+        resp = urllib.request.urlopen(req, timeout=data.conf.remote_timeout)
         resp_data = json.loads(resp.read().decode("utf8"))
 
     except urllib.error.URLError as e:

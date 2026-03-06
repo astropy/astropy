@@ -785,7 +785,7 @@ class TestHDUListFunctions(FitsTestCase):
                         for n in hdul[idx].data.names:
                             c1 = hdul[idx].data[n]
                             c2 = hdul2[idx].data[n]
-                            assert (c1 == c2).all()
+                            np.testing.assert_array_equal(c1, c2)
                     elif any(dim == 0 for dim in hdul[idx].data.shape) or any(
                         dim == 0 for dim in hdul2[idx].data.shape
                     ):

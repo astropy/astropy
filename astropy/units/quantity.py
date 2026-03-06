@@ -12,7 +12,7 @@ import re
 import warnings
 from collections.abc import Collection
 from fractions import Fraction
-from typing import ClassVar, Self
+from typing import ClassVar, Final, Self
 
 import numpy as np
 
@@ -246,6 +246,48 @@ class QuantityInfo(QuantityInfoBase):
         return [self._parent]
 
 
+# For parsing a string with a number or list of numbers and a unit.  The first
+# part of the regex string matches any integer/float; the second parts adds
+# possible trailing .+-, which will break the float function in
+# _parse_quantity_string and ensure things like 1.2.3deg won't work.
+NUM: Final = r"""
+    [+-]?
+    ((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|
+    ([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))
+    ([eE][+-]?\d+)?
+    [.+-]?
+"""
+# List of numbers separated by "," or whitespace.
+VECTOR_COMMA: Final = rf"""
+    \[\s*
+    {NUM}
+    (?: (\s*,\s*){NUM})*
+    (\s*,\s*)?
+    \s*\]
+"""
+VECTOR_WSPACE: Final = rf"""
+    \[\s*
+    {NUM}
+    (?: (\s+){NUM})*
+    \s*\]
+"""
+VECTOR_1D: Final = rf"{VECTOR_COMMA} | {VECTOR_WSPACE}"
+NUMBER_PATTERN: Final = re.compile(rf"\s*(?:{NUM}|{VECTOR_1D})\s*", re.VERBOSE)
+
+
+def _parse_quantity_string(string: str) -> tuple[float | list[float], Unit]:
+    """Parse a string as a number or list of numbers.
+
+    Returns a tuple of value (float or array) and unit.
+    Raises if not possible.
+    """
+    v = re.match(NUMBER_PATTERN, string)
+    items = v.group().replace(",", " ").strip().strip("[]").split()
+    value = [float(a) for a in items] if "[" in string else float(items[0])
+    unit = Unit(unit_str) if (unit_str := v.string[v.end() :].strip()) else None
+    return value, unit
+
+
 class Quantity(np.ndarray):
     """A `~astropy.units.Quantity` represents a number with some associated unit.
 
@@ -449,34 +491,21 @@ class Quantity(np.ndarray):
         value_unit = None
         if not isinstance(value, np.ndarray):
             if isinstance(value, str):
-                # The first part of the regex string matches any integer/float;
-                # the second parts adds possible trailing .+-, which will break
-                # the float function below and ensure things like 1.2.3deg
-                # will not work.
-                pattern = (
-                    r"\s*[+-]?"
-                    r"((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|"
-                    r"([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))"
-                    r"([eE][+-]?\d+)?"
-                    r"[.+-]?"
-                )
-
-                v = re.match(pattern, value)
-                unit_string = None
+                # A string with a number or list of numbers and possible unit?
                 try:
-                    value = float(v.group())
+                    value, value_unit = _parse_quantity_string(value)
+                except Exception as exc:
+                    # Parsing of values and units can lead to same class of
+                    # exception (e.g., ValueError). Pass on units related ones.
+                    if "unit" in str(exc).lower():
+                        raise
+                    msg = f'Cannot parse "{value}" as a {cls.__name__}.'
+                    if "[" not in value:
+                        msg += " It does not start with a number."
+                    raise TypeError(msg)
 
-                except Exception:
-                    raise TypeError(
-                        f'Cannot parse "{value}" as a {cls.__name__}. It does not '
-                        "start with a number."
-                    )
-
-                unit_string = v.string[v.end() :].strip()
-                if unit_string:
-                    value_unit = Unit(unit_string)
-                    if unit is None:
-                        unit = value_unit  # signal no conversion needed below.
+                if unit is None:
+                    unit = value_unit  # signal no conversion needed below.
 
             elif isinstance(value, (list, tuple)) and len(value) > 0:
                 if all(isinstance(v, Quantity) for v in value):
