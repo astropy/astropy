@@ -172,91 +172,44 @@ class TestCompressionFunction(FitsTestCase):
                 hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
-    def test_uncompressed_data_column_with_float_format(self, tmp_path):
+    @pytest.mark.parametrize(
+        ("numpy_dtype", "fits_format", "big_endian_dtype"),
+        [
+            (np.int16, "1PI", ">i2"),
+            (np.float32, "1PE", ">f4"),
+        ],
+    )
+    def test_uncompressed_data_column(
+        self, tmp_path, numpy_dtype, fits_format, big_endian_dtype
+    ):
         """
         Regression test for https://github.com/astropy/astropy/issues/15477
 
-        UNCOMPRESSED_DATA columns can have floating-point formats (PE, PD)
-        and should not be validated with the same rules as COMPRESSED_DATA.
-        Files created by other tools may include this column.
-        """
-        # Create a simple compressed image
-        original_data = np.arange(100, dtype=np.int16).reshape((10, 10))
-        hdu = fits.CompImageHDU(data=original_data, compression_type="RICE_1")
-
-        # Write it out
-        filename = tmp_path / "test_with_uncompressed_col.fits"
-        hdu.writeto(filename)
-
-        # Now read the file and recreate it with an additional UNCOMPRESSED_DATA column
-        # This simulates a file created by another tool (like cfitsio directly)
-        with fits.open(filename, disable_image_compression=True) as hdul:
-            orig_table = hdul[1].data
-            orig_header = hdul[1].header.copy()
-
-            # Create new columns including the UNCOMPRESSED_DATA column
-            # The UNCOMPRESSED_DATA column contains empty arrays for each row
-            # (since compression succeeded for all tiles)
-            uncompressed_col_data = np.empty(len(orig_table), dtype=object)
-            for i in range(len(orig_table)):
-                uncompressed_col_data[i] = np.array([], dtype=np.float32)
-
-            new_cols = fits.ColDefs(
-                [
-                    fits.Column(
-                        name="COMPRESSED_DATA",
-                        format=orig_header["TFORM1"],
-                        array=orig_table["COMPRESSED_DATA"],
-                    ),
-                    # Add an UNCOMPRESSED_DATA column with PE format (floating-point)
-                    fits.Column(
-                        name="UNCOMPRESSED_DATA",
-                        format="1PE(7)",
-                        array=uncompressed_col_data,
-                    ),
-                ]
-            )
-
-            # Create new binary table HDU with the additional column
-            new_table = fits.BinTableHDU.from_columns(new_cols, header=orig_header)
-
-            # Write the modified file
-            modified_filename = tmp_path / "test_with_uncompressed_col_modified.fits"
-            fits.HDUList([hdul[0].copy(), new_table]).writeto(modified_filename)
-
-        # Verify the file can be opened and data read correctly
-        with fits.open(modified_filename) as hdul:
-            np.testing.assert_array_equal(hdul[1].data, original_data)
-
-    def test_reading_data_from_uncompressed_data_column(self, tmp_path):
-        """
         Test that data stored in UNCOMPRESSED_DATA column is correctly read.
-
-        This tests the case where some tiles have their data in UNCOMPRESSED_DATA
-        instead of COMPRESSED_DATA (which can happen when compression fails for
-        certain tiles).
+        UNCOMPRESSED_DATA columns can have integer (PI, PJ) or floating-point
+        (PE, PD) formats. This tests the case where some tiles have their data
+        in UNCOMPRESSED_DATA instead of COMPRESSED_DATA (which can happen when
+        compression fails for certain tiles).
         """
-        # Create a simple compressed image with 2x2 tiles using integer data
-        # (integer data doesn't require quantization, simplifying the test)
         tile_size = 5
-        original_data = np.arange(100, dtype=np.int16).reshape((10, 10))
+        original_data = np.arange(100, dtype=numpy_dtype).reshape((10, 10))
         hdu = fits.CompImageHDU(
             data=original_data,
             compression_type="RICE_1",
             tile_shape=(tile_size, tile_size),
         )
 
-        # Write it out
         filename = tmp_path / "test_uncompressed_tiles.fits"
         hdu.writeto(filename)
 
-        # Read and modify: put first tile's data in UNCOMPRESSED_DATA instead
+        # Read and modify: put first tile's data in UNCOMPRESSED_DATA instead.
+        # This simulates a file created by another tool (like cfitsio directly).
         with fits.open(filename, disable_image_compression=True) as hdul:
             orig_table = hdul[1].data
             orig_header = hdul[1].header.copy()
+            orig_cols = hdul[1].columns
             n_tiles = len(orig_table)
 
-            # Create arrays for the new columns
             compressed_col_data = np.empty(n_tiles, dtype=object)
             uncompressed_col_data = np.empty(n_tiles, dtype=object)
 
@@ -264,34 +217,45 @@ class TestCompressionFunction(FitsTestCase):
                 if i == 0:
                     # First tile: put in UNCOMPRESSED_DATA, leave COMPRESSED_DATA empty
                     compressed_col_data[i] = np.array([], dtype=np.uint8)
-                    # Store the raw tile data (first 5x5 = 25 int16 values)
                     tile_data = original_data[:tile_size, :tile_size].flatten()
-                    uncompressed_col_data[i] = tile_data.astype(">i2")
+                    uncompressed_col_data[i] = tile_data.astype(big_endian_dtype)
                 else:
                     # Other tiles: keep in COMPRESSED_DATA
                     compressed_col_data[i] = orig_table["COMPRESSED_DATA"][i]
-                    uncompressed_col_data[i] = np.array([], dtype=np.int16)
+                    uncompressed_col_data[i] = np.array([], dtype=numpy_dtype)
 
-            new_cols = fits.ColDefs(
-                [
-                    fits.Column(
-                        name="COMPRESSED_DATA",
-                        format=orig_header["TFORM1"],
-                        array=compressed_col_data,
-                    ),
-                    fits.Column(
-                        name="UNCOMPRESSED_DATA",
-                        format=f"1PI({tile_size * tile_size})",
-                        array=uncompressed_col_data,
-                    ),
-                ]
-            )
+            # Build column list: COMPRESSED_DATA, UNCOMPRESSED_DATA, plus any
+            # other columns from the original (ZSCALE, ZZERO for float data)
+            new_col_list = [
+                fits.Column(
+                    name="COMPRESSED_DATA",
+                    format=orig_cols["COMPRESSED_DATA"].format,
+                    array=compressed_col_data,
+                ),
+                fits.Column(
+                    name="UNCOMPRESSED_DATA",
+                    format=f"{fits_format}({tile_size * tile_size})",
+                    array=uncompressed_col_data,
+                ),
+            ]
 
+            # Preserve other columns (ZSCALE, ZZERO, etc.) needed for quantized data
+            for col in orig_cols:
+                if col.name not in ("COMPRESSED_DATA", "GZIP_COMPRESSED_DATA"):
+                    new_col_list.append(
+                        fits.Column(
+                            name=col.name,
+                            format=col.format,
+                            array=orig_table[col.name],
+                        )
+                    )
+
+            new_cols = fits.ColDefs(new_col_list)
             new_table = fits.BinTableHDU.from_columns(new_cols, header=orig_header)
             modified_filename = tmp_path / "test_uncompressed_tiles_modified.fits"
             fits.HDUList([hdul[0].copy(), new_table]).writeto(modified_filename)
 
-        # Verify the data is correctly read
+        # Verify the data is correctly read. Use atol=0.1 to account for
+        # quantization noise in float data (ZSCALE is typically ~0.13 for this data)
         with fits.open(modified_filename) as hdul:
-            result = hdul[1].data
-            np.testing.assert_array_equal(result, original_data)
+            np.testing.assert_allclose(hdul[1].data, original_data, atol=0.1)
