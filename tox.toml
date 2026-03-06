@@ -9,7 +9,7 @@ envlist = [
     "stubtest",
 ]
 requires = [
-    "tox>=4.33",  # for PEP 508 environment markers # keep in sync with pyproject.toml
+    "tox>=4.48.1",  # for list_dependencies_command
     "tox-uv>=1.29",
 ]
 
@@ -35,7 +35,7 @@ extras = [
     "test"
 ]
 commands = [
-    ["{list_dependencies_command}"],
+    [{ replace = "ref", env = "test", key = "list_dependencies_command", extend = true }],
     [
         # this is the baseline command
         "pytest", "--pyargs", "astropy", "{toxinidir}/docs",
@@ -206,7 +206,7 @@ extra_setup_commands = [
 ]
 
 commands = [
-    ["{list_dependencies_command}"],
+    [{ replace = "ref", env = "build_docs", key = "list_dependencies_command", extend = true }],
     ["sphinx-build", "-b", "html",  ".", "_build/html", "{posargs:-j auto}", { replace = "if", condition = "factor.predeps", then = ["-Wdefault"] , extend = true }],
 ]
 
@@ -216,7 +216,7 @@ change_dir = "docs"
 description = "check the links in the HTML docs"
 extras = ["docs"]
 commands = [
-    ["{list_dependencies_command}"],
+    [{ replace = "ref", env = "linkcheck", key = "list_dependencies_command", extend = true }],
     ["sphinx-build", "-b", "linkcheck", ".", "_build/html", "{posargs:-W}"]
 ]
 
