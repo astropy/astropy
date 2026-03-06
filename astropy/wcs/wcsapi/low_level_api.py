@@ -11,7 +11,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
     Abstract base class for the low-level WCS interface.
 
     This is described in `APE 14: A shared Python interface for World Coordinate
-    Systems <https://doi.org/10.5281/zenodo.1188875>`_.
+    Systems <https://zenodo.org/records/11566733>`_.
     """
 
     @property
@@ -162,7 +162,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         See the document
         `APE 14: A shared Python interface for World Coordinate Systems
-        <https://doi.org/10.5281/zenodo.1188875>`_ for examples.
+        <https://zenodo.org/records/11566733>`_ for examples.
         """
 
     @property
@@ -218,7 +218,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
 
         See the document
         `APE 14: A shared Python interface for World Coordinate Systems
-        <https://doi.org/10.5281/zenodo.1188875>`_ for examples .
+        <https://zenodo.org/records/11566733>`_ for examples.
         """
 
     # The following three properties have default fallback implementations, so
