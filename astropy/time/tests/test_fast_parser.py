@@ -159,8 +159,8 @@ def test_create_parser_invalid_pars_size():
     """Regression test: create_parser must raise ValueError cleanly
     for parameter arrays that don't have exactly 7 entries, without
     continuing execution with an active exception (missing goto fail)."""
-    from astropy.time import _parse_times
     import numpy as np
+    from astropy.time import _parse_times
 
     # 6 entries instead of required 7 - should raise ValueError cleanly
     bad_pars = np.zeros(6, dtype=_parse_times.dt_pars)
