@@ -1003,6 +1003,10 @@ class TestLogQuantityMethods:
     def test_always_ok(self, method, mag):
         res = getattr(mag, method)()
         assert np.all(res.value == getattr(mag._function_view, method)().value)
+        if method in ("diff", "ediff1d"):
+            # Ensure np.diff/np.ediff1d dispatch consistently with method calls.
+            res2 = getattr(np, method)(mag)
+            assert_quantity_allclose(res2, res)
         if method in ("std", "diff", "ediff1d"):
             assert res.unit == u.mag()
         elif method == "var":
@@ -1045,13 +1049,3 @@ class TestLogQuantityFunctions:
         res = np.ptp(mag)
         assert np.all(res.value == np.ptp(mag._function_view).value)
         assert res.unit == u.mag()
-
-    def test_np_ediff1d_magnitude_strips_log_unit(self):
-        """Regression test for gh-15384: np.ediff1d should return dimensionless
-        magnitude, consistent with .diff() and np.diff()."""
-        lq = np.array([0.0, 1.0, 3.0]) * u.STmag
-        result = np.ediff1d(lq)
-        assert isinstance(result, u.Magnitude)
-        assert result.unit == u.mag
-        expected = u.Magnitude([1.0, 2.0], u.mag)
-        assert_quantity_allclose(result, expected)
