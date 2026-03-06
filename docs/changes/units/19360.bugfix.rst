@@ -1,1 +1,1 @@
-Fix incorrect unit returned by ``numpy.ediff1d`` when applied to logarithmic quantities (e.g., magnitudes). ``numpy.ediff1d`` now routes through ``LogQuantity.ediff1d()`` and returns dimensionless magnitudes (``u.mag``).
+Fixed incorrect unit returned by ``numpy.diff`` when applied to logarithmic quantities (e.g., magnitudes).

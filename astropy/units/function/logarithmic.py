@@ -405,8 +405,6 @@ class LogQuantity(FunctionQuantity):
             return self._wrap_function(np.ptp, *args[1:], unit=unit, **kwargs)
         elif function is np.diff:
             return self.diff(*args[1:], **kwargs)
-        elif function is np.ediff1d:
-            return self.ediff1d(*args[1:], **kwargs)
         else:
             return super().__array_function__(function, types, args, kwargs)
 

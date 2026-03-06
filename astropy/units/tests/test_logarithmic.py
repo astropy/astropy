@@ -1003,16 +1003,16 @@ class TestLogQuantityMethods:
     def test_always_ok(self, method, mag):
         res = getattr(mag, method)()
         assert np.all(res.value == getattr(mag._function_view, method)().value)
-        if method in ("diff", "ediff1d"):
-            # Ensure np.diff/np.ediff1d dispatch consistently with method calls.
-            res2 = getattr(np, method)(mag)
-            assert_quantity_allclose(res2, res)
         if method in ("std", "diff", "ediff1d"):
             assert res.unit == u.mag()
         elif method == "var":
             assert res.unit == u.mag**2
         else:
             assert res.unit == mag.unit
+        # verify numpy function gives same result as method call
+        if hasattr(np, method):
+            res2 = getattr(np, method)(mag)
+            assert_quantity_allclose(res2, res)
 
     @log_quantity_parametrization
     def test_clip(self, mag):
