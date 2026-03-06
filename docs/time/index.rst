@@ -1142,12 +1142,11 @@ scale along with the auto-download feature::
     request ``UT1-UTC`` for times beyond the range of IERS table data then the
     nearest available values will be provided.
 
-In the case of the TDB to TT offset, most users need only provide the ``lon``
-and ``lat`` values when creating the |Time| object. If the
+In the case of the TDB to TT offset, most users need only provide the
+``location`` when creating the |Time| object. If the
 :attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set, then
 the |PyERFA| routine `erfa.dtdb` will be used to compute the TDB to TT
-offset. Note that if ``lon`` and ``lat`` are not explicitly initialized,
-values of 0.0 degrees for both will be used.
+offset. If ``location`` is not specified, the center of the Earth is assumed.
 
 Example
 ~~~~~~~
