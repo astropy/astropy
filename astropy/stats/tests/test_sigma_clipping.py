@@ -721,3 +721,19 @@ def test_propagation_of_mask():
     y = np.ma.masked_where(x > 1, x)
 
     assert_allclose(sigma_clipped_stats(y, grow=1), (1, 1, 0))
+
+
+def test_sigmaclip_pickle():
+    """Regression test for gh-19343: SigmaClip cannot be pickled
+    when Bottleneck is installed."""
+    import pickle
+
+    sigclip = SigmaClip(sigma=3.0, maxiters=5)
+    restored = pickle.loads(pickle.dumps(sigclip))
+    assert restored.sigma == sigclip.sigma
+    assert restored.maxiters == sigclip.maxiters
+    # verify the restored object still works correctly
+    data = np.ma.array([1, 2, 3, 100, 4, 5])
+    result = restored(data)
+    expected = sigclip(data)
+    np.testing.assert_array_equal(result, expected)
