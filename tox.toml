@@ -1,5 +1,5 @@
 envlist = [
-    "py{311,312,313,313t,314,dev}-test{,-recdeps,-docdeps,-alldeps,-oldestdeps,-devdeps,-devpytest,-predeps,-mpl380}{,-cov}{,-clocale}{,-fitsio}{,-noscipy}",
+    "py{311,312,313,313t,314,314t,dev}-test{,-recdeps,-docdeps,-alldeps,-oldestdeps,-devdeps,-devpytest,-predeps,-mpl380}{,-cov}{,-clocale}{,-fitsio}{,-noscipy}",
     # Only these two exact tox environments have corresponding figure hash files.
     "py311-test-image-mpl380-cov",
     "py311-test-image-mpldev-cov",
@@ -28,12 +28,6 @@ set_env.NUMPY_WARN_IF_NO_MEM_POLICY = { value = "1" }
 set_env.COVERAGE_CORE = { value = "sysmon" , marker = "python_version >= '3.12'" }
 # match pip's behavior with multiple indexes
 set_env.UV_INDEX_STRATEGY = { value = "unsafe-best-match" }
-
-
-[env.test]
-extras = [
-    "test"
-]
 commands = [
     [{ replace = "ref", env = "test", key = "list_dependencies_command", extend = true }],
     [
@@ -52,7 +46,17 @@ commands = [
 ]
 
 
+[env.test]
+extras = [
+    "test",
+]
+
+
 [env.py313t]
+set_env.PYTHON_GIL = { value = "0" }
+
+
+[env.py314t]
 set_env.PYTHON_GIL = { value = "0" }
 
 
