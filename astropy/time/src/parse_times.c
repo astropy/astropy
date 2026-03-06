@@ -411,6 +411,7 @@ create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
         PyErr_SetString(PyExc_ValueError,
                         "Parameter array must have 7 entries"
                         "(year, month, day, hour, minute, integer second, fraction)");
+        goto fail;
     }
 
     gufunc = (PyUFuncObject *)PyUFunc_FromFuncAndDataAndSignature(
