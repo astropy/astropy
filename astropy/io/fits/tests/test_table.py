@@ -2505,6 +2505,32 @@ class TestTableFunctions(FitsTestCase):
             assert (hdul[1].data["F1"] == [True, True]).all()
             assert (hdul[1].data["F2"] == [True, True]).all()
 
+    def test_logical_as_bytes(self):
+        """Test that logical_as_bytes returns raw FITS values for logical columns.
+
+        This allows distinguishing between False (ord('F')=70) and NULL (0)
+        values in logical columns, which is otherwise not possible when
+        reading as boolean arrays.
+        """
+        # The test file contains: True, NULL, False as raw bytes [84, 0, 70]
+        with fits.open(self.data("logical_null.fits"), logical_as_bytes=True) as hdul:
+            raw_data = hdul[1].data["flag"]
+            # Should return raw bytes: 84='T', 0=NULL, 70='F'
+            assert raw_data.dtype == np.int8
+            assert raw_data[0] == ord("T")  # 84 = True
+            assert raw_data[1] == 0  # NULL
+            assert raw_data[2] == ord("F")  # 70 = False
+
+        # Without logical_as_bytes, NULL becomes False (indistinguishable)
+        # and a warning is issued
+        with pytest.warns(AstropyUserWarning, match="contains NULL"):
+            with fits.open(self.data("logical_null.fits")) as hdul:
+                bool_data = hdul[1].data["flag"]
+                assert bool_data.dtype == bool
+                assert bool_data[0] is np.True_
+                assert bool_data[1] is np.False_  # NULL became False
+                assert bool_data[2] is np.False_
+
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
 
