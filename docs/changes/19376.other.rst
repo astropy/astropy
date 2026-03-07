@@ -1,0 +1,1 @@
+Added examples to ``sigma_clip`` docstring clarifying the behavior of ``masked=False`` depending on whether ``axis`` is specified.
