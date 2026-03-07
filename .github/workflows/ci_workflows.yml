@@ -148,6 +148,20 @@ jobs:
           cache-path: .tox
           cache-key: stub_tests-${{ github.ref_name }}
 
+  mypy:
+    needs: [initial_checks]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+      submodules: false
+      envs: |
+        - name: Type checking select modules
+          linux: mypy
+          cache-path: .tox
+          cache-key: mypy-${{ github.ref_name }}
+
   test_wheel_building:
     needs: [initial_checks]
     # This ensures that a couple of wheel targets work fine in pull requests and pushes

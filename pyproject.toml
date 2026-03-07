@@ -857,3 +857,9 @@ constraint-dependencies = [
     # see https://github.com/astropy/astropy/issues/18292
     "array-api-strict<2.4 ; python_version<'3.12'",
 ]
+
+[tool.mypy]
+follow_imports = "silent"
+packages = [
+    "astropy.coordinates.sites",
+]
