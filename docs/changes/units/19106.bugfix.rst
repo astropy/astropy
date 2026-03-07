@@ -1,0 +1,1 @@
+Fixed a bug where ``numpy.lib.recfunctions.structured_to_unstructured`` failed when applied to a ``StructuredQuantity`` by improving unit extraction logic.
