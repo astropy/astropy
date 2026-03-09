@@ -116,7 +116,7 @@ test_all = [
     # Install all remaining dependencies
     "objgraph>=3.1.2",
     "skyfield>=1.42.0",
-    "sgp4>=2.3",
+    "sgp4>=2.22",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 
@@ -746,7 +746,7 @@ no-build-package = [
     "polars",
     "requests",
     "scipy",
-    "sgp4",
+    # "sgp4", # https://github.com/brandon-rhodes/python-sgp4/pull/150
 
     # via jsonschema v4.0.1 via asdf v2.15.0 via asdf-astropy v0.8.0
     "pyrsistent", # can be removed once we drop asdf-astropy<=0.8 https://github.com/astropy/asdf-astropy/pull/297
