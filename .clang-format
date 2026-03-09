@@ -1,36 +1,32 @@
 # clang-format configuration adapted from the Numpy project, see licenses/NUMPY_LICENSE.rst
 
 BasedOnStyle: Google
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: DontAlign
 AlignEscapedNewlines: DontAlign
 AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: false
 AlwaysBreakAfterReturnType: TopLevel
-BreakBeforeBraces: Stroustrup
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Attach
 BreakStringLiterals: false
-ColumnLimit: 100
-ContinuationIndentWidth: 8
+ColumnLimit: 120
+ContinuationIndentWidth: 4
 DerivePointerAlignment: false
-IndentWidth: 4
-IncludeBlocks: Regroup
-IncludeCategories:
-  - Regex:           '^[<"](Python|structmember|pymem)\.h'
-    Priority:        -3
-    CaseSensitive:   true
-  - Regex:           '^"numpy/'
-    Priority:        -2
-  - Regex:           '^"(npy_pycompat|npy_config)'
-    Priority:        -1
-  - Regex:           '^"[[:alnum:]_.]+"'
-    Priority:        1
-  - Regex:           '^<[[:alnum:]_.]+"'
-    Priority:        2
+IndentWidth: 2
+IncludeBlocks: Preserve
 IndentPPDirectives: None
 Language: Cpp
+IndentGotoLabels: false
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 2
 PointerAlignment: Left
-ReflowComments: true
+ReflowComments: false
 SortIncludes: false
 SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 1
 SpacesInParentheses: false
 StatementMacros: [PyObject_HEAD, PyObject_VAR_HEAD, PyObject_HEAD_EXTRA]
 TabWidth: 4
