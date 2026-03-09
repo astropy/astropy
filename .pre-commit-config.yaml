@@ -109,4 +109,4 @@ repos:
     hooks:
       - id: clang-format
         files: \.(c|h)$
-        exclude: '(^|/)cextern/|^astropy/io/fits/hdu/compressed/src/(fits_hcompress\.h|fits_hdecompress\.h|pliocomp\.h|quantize\.h|ricecomp\.h|unquantize\.c|unquantize\.h)$'
+        exclude: '(^|/)cextern/|^astropy/wcs/|^astropy/io/fits/hdu/compressed/src/(fits_hcompress\.h|fits_hdecompress\.h|pliocomp\.h|quantize\.h|ricecomp\.h|unquantize\.c|unquantize\.h)$'

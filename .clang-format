@@ -1,33 +1,38 @@
-# clang-format configuration adapted from the Numpy project, see licenses/NUMPY_LICENSE.rst
+# clang-format configuration for astropy C code
 
 BasedOnStyle: Google
-AlignAfterOpenBracket: DontAlign
-AlignEscapedNewlines: DontAlign
-AllowShortEnumsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: false
-AlwaysBreakAfterReturnType: TopLevel
-BinPackArguments: false
-BinPackParameters: false
-BreakBeforeBinaryOperators: NonAssignment
-BreakBeforeBraces: Attach
-BreakStringLiterals: false
-ColumnLimit: 120
-ContinuationIndentWidth: 4
-DerivePointerAlignment: false
-IndentWidth: 2
-IncludeBlocks: Preserve
-IndentPPDirectives: None
-Language: Cpp
-IndentGotoLabels: false
-KeepEmptyLinesAtTheStartOfBlocks: true
-MaxEmptyLinesToKeep: 2
-PointerAlignment: Left
-ReflowComments: false
-SortIncludes: false
-SpaceBeforeParens: ControlStatements
-SpacesBeforeTrailingComments: 1
-SpacesInParentheses: false
-StatementMacros: [PyObject_HEAD, PyObject_VAR_HEAD, PyObject_HEAD_EXTRA]
+IndentWidth: 4
 TabWidth: 4
 UseTab: Never
+ContinuationIndentWidth: 4
+ColumnLimit: 100
+
+# Preserve existing patterns
+AlignAfterOpenBracket: DontAlign
+AlwaysBreakAfterReturnType: None
+BreakBeforeBraces: Linux
+BinPackArguments: true
+BinPackParameters: true
+PointerAlignment: Right
+SpaceAfterCStyleCast: false
+
+# Minimize reformatting
+IncludeBlocks: Preserve
+SortIncludes: false
+ReflowComments: false
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: true
+
+# Other settings
+AllowShortEnumsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+IndentPPDirectives: None
+IndentGotoLabels: false
+SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 1
+BreakStringLiterals: false
+DerivePointerAlignment: false
+
+# Python C API macros
+StatementMacros: [PyObject_HEAD, PyObject_VAR_HEAD, PyObject_HEAD_EXTRA]
