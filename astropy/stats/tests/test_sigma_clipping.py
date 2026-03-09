@@ -1,5 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pickle
+import tempfile
+from pathlib import Path
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_equal
@@ -7,6 +11,15 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.stats import mad_std
+from astropy.stats.nanfunctions import (
+    nanmax,
+    nanmean,
+    nanmedian,
+    nanmin,
+    nanstd,
+    nansum,
+    nanvar,
+)
 from astropy.stats.sigma_clipping import (
     SigmaClip,
     SigmaClippedStats,
@@ -721,3 +734,83 @@ def test_propagation_of_mask():
     y = np.ma.masked_where(x > 1, x)
 
     assert_allclose(sigma_clipped_stats(y, grow=1), (1, 1, 0))
+
+
+"""ensure SigmaClip could be pickled/unpickled with bottleneck installed.
+Regression tests for: https://github.com/astropy/astropy/issues/19343
+"""
+
+
+@pytest.mark.skipif(not HAS_BOTTLENECK, reason="bottleneck not installed")
+def test_sigmaclip_picklable_with_bottleneck():
+    sigclip = SigmaClip(sigma=3.0, maxiters=5)
+
+    # Pickle and unpickle, and verify the object was restored correctly
+    pickled = pickle.dumps(sigclip)
+    sigclip_restored = pickle.loads(pickled)
+
+    assert sigclip_restored.sigma == sigclip.sigma
+    assert sigclip_restored.maxiters == sigclip.maxiters
+
+
+@pytest.mark.skipif(not HAS_BOTTLENECK, reason="bottleneck not installed")
+def test_sigmaclip_pickle_to_file():
+    """Test SigmaClip pickling to file"""
+    sigclip = SigmaClip(sigma=3.0, maxiters=5)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        pkl_file = Path(tmpdir) / "sigclip.pkl"
+
+        # write and read from a temporary file
+        with open(pkl_file, "wb") as fh:
+            pickle.dump(sigclip, fh)
+
+        with open(pkl_file, "rb") as fh:
+            sigclip_restored = pickle.load(fh)
+
+        # verify object data is restored correctly
+        assert sigclip_restored.sigma == sigclip.sigma
+        assert sigclip_restored.maxiters == sigclip.maxiters
+
+
+@pytest.mark.skipif(not HAS_BOTTLENECK, reason="bottleneck not installed")
+def test_nanfunctions_picklable_with_bottleneck():
+    """Testing nanfunctions with pickle to ensure the
+    new underlying _DtypeDispatcher works correctly."""
+    funcs = [nansum, nanmin, nanmax, nanmean, nanmedian, nanstd, nanvar]
+
+    for func in funcs:
+        pickled = pickle.dumps(func)
+        func_restored = pickle.loads(pickled)
+
+        data = np.array([1.0, np.nan, 3.0])
+        result1 = func(data)
+        result2 = func_restored(data)
+        assert np.isclose(result1, result2) or (np.isnan(result1) and np.isnan(result2))
+
+
+@pytest.mark.skipif(not HAS_BOTTLENECK, reason="bottleneck not installed")
+def test_nanfunctions_work_with_different_dtypes():
+    """Verify nanfunctions still dispatch correctly after pickling."""
+    # with float64 - use bottleneck if found
+    data_f64 = np.array([1.0, np.nan, 3.0], dtype=np.float64)
+    pickled_nansum = pickle.dumps(nansum)
+    nansum_restored = pickle.loads(pickled_nansum)
+    result = nansum_restored(data_f64)
+    assert np.isclose(result, 4.0)
+
+    # with float32 - revert to numpy
+    data_f32 = np.array([1.0, np.nan, 3.0], dtype=np.float32)
+    result = nansum_restored(data_f32)
+    assert np.isclose(result, 4.0)
+
+
+def test_sigmaclip_picklable_without_bottleneck():
+    """Test that SigmaClip is still picklable when bottleneck is not installed"""
+    sigclip = SigmaClip(sigma=3.0, maxiters=5)
+
+    pickled = pickle.dumps(sigclip)
+    sigclip_restored = pickle.loads(pickled)
+
+    assert sigclip_restored.sigma == sigclip.sigma
+    assert sigclip_restored.maxiters == sigclip.maxiters
