@@ -25,7 +25,7 @@ IncludeCategories:
     Priority:        1
   - Regex:           '^<[[:alnum:]_.]+"'
     Priority:        2
-IndentPPDirectives: AfterHash
+IndentPPDirectives: None
 Language: Cpp
 PointerAlignment: Left
 ReflowComments: true
