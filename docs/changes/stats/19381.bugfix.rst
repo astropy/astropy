@@ -1,0 +1,3 @@
+Replaced ``_dtype_dispatch`` method with ``_DtypeDispatch`` class in ``astropy.stats.nanfunctions``
+so pickle could access the generated method, which was previously impossible,
+where ``wrapped`` method was nested and couldn't be resolved at module level
