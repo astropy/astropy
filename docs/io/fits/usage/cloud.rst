@@ -93,7 +93,7 @@ Subsetting FITS files hosted in Amazon S3 cloud storage
 
 The FITS file used in the example above also happens to be available via
 Amazon cloud storage, where it is stored in a `public S3 bucket
-<https://registry.opendata.aws/hst/>`__ at the following location::
+<https://registry.opendata.aws/mast-hst/>`__ at the following location::
 
     >>> s3_uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
 
@@ -248,13 +248,16 @@ For example, we can configure fsspec to make buffered reads with a minimum
 .. doctest-requires:: fsspec
 
     >>> import fsspec
-    >>> fsspec_filesystem = fsspec.filesystem(
+    >>> fsspec_fs = fsspec.filesystem(
     ...     protocol="s3",
     ...     anon=True,
     ...     block_size=1_000_000,
     ...     cache_type="bytes"
     ... )
-    >>> with fits.open(s3_uri, fsspec_filesystem=fsspec_filesystem) as hdul:  # doctest: +REMOTE_DATA
+    >>> fsspec_kw = {"anon": True}
+    >>> with fits.open(
+    ...     s3_uri, fsspec_filesystem=fsspec_fs, fsspec_kwargs=fsspec_kw
+    ... ) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
 The ideal configuration will depend on the latency and throughput of the

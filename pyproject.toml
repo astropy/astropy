@@ -144,7 +144,7 @@ docs = [
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
     "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
-    "fsspec[http]>=2023.4.0",
+    "fsspec[full]>=2023.4.0",
 ]
 # These group together all the dependencies needed for developing in Astropy.
 dev = [

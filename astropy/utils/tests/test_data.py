@@ -2422,6 +2422,8 @@ def test_all_get_readable_fileobj_fsspec(filesystem_kwargs):
 
     s3_uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
 
+    fsspec_kwargs = {"anon": True}
+
     if filesystem_kwargs:
         # pass in a user-initialized filesystem:
         filesystem = fsspec.filesystem(**filesystem_kwargs)
@@ -2431,7 +2433,9 @@ def test_all_get_readable_fileobj_fsspec(filesystem_kwargs):
 
     # this example calls `fits.open`, but it's testing a feature that
     # gets passed through to `get_readable_fileobj``.
-    with fits.open(s3_uri, fsspec_filesystem=filesystem) as hdulist:
+    with fits.open(
+        s3_uri, fsspec_filesystem=filesystem, fsspec_kwargs=fsspec_kwargs
+    ) as hdulist:
         # assert fileobj == hdulist
         cutout = hdulist[1].section[:2, :2]
 
