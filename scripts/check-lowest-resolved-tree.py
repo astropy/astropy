@@ -4,20 +4,23 @@
 #     "uv==0.10.2",
 # ]
 # ///
-# This CLI (re)generates lowest-resolved-tree.txt, which represents a complete,
-# universal and reproducible solution to astropy's dependency constraints, using uv's
-# --resolution=lowest resolution strategy.
-# This solution should only ever change when constraints are updated (e.g. direct
-# dependencies are added or bumped).
-# Note that because PyPI is mutable (releases can be removed or yanked), there's a
-# (very small) chance that the solution could change for other reasons outside our
-# control.
-#
-# check current solution (pipx may also be used instead of uv)
-# $ uv run scripts/check-lowest-resolved-tree.py
-#
-# update stored solution with
-# $ uv run scripts/check-lowest-resolved-tree.py --overwrite
+
+"""
+This CLI (re)generates lowest-resolved-tree.txt, which represents a complete,
+universal and reproducible solution to astropy's dependency constraints, using uv's
+--resolution=lowest resolution strategy.
+This solution should only ever change when constraints are updated (e.g., direct
+dependencies are added or bumped).
+Note that because PyPI is mutable (releases can be removed or yanked), there's a
+(very small) chance that the solution could change for other reasons outside our
+control.
+
+check current solution (pipx may also be used instead of uv)
+$ uv run scripts/check-lowest-resolved-tree.py
+
+update stored solution with
+$ uv run scripts/check-lowest-resolved-tree.py --overwrite
+"""
 
 import sys
 from argparse import ArgumentParser
@@ -60,7 +63,7 @@ def generate_tree(debug: bool) -> str:
 
 
 def main() -> int:
-    parser = ArgumentParser(allow_abbrev=False)
+    parser = ArgumentParser(allow_abbrev=False, description=__doc__)
     parser.add_argument(
         "--overwrite",
         action="store_true",
