@@ -768,10 +768,15 @@ def fits_ccddata_reader(
                         "file before reading it."
                     )
             else:
-                log.info(
-                    f"using the unit {unit} passed to the FITS reader instead "
-                    f"of the unit {fits_unit_string} in the FITS file."
-                )
+                try:
+                    fits_unit_parsed = u.Unit(fits_unit_string)
+                except ValueError:
+                    fits_unit_parsed = None
+                if fits_unit_parsed is None or fits_unit_parsed != u.Unit(unit):
+                    log.info(
+                        f"using the unit {unit} passed to the FITS reader instead "
+                        f"of the unit {fits_unit_string} in the FITS file."
+                    )
 
         use_unit = unit or fits_unit_string
         hdr, wcs = _generate_wcs_and_update_header(hdr)
