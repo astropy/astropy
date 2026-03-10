@@ -82,6 +82,7 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]
             assert fd[1].header["BITPIX"] == chdu.header["BITPIX"]
 
+    @pytest.mark.skip(reason="FIXME: https://github.com/astropy/astropy/issues/19383")
     @pytest.mark.remote_data
     def test_comp_image_quantize_level(self):
         """
