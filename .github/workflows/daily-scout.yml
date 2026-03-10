@@ -13,13 +13,19 @@ jobs:
     name: Sync fork with upstream
     runs-on: ubuntu-latest
     steps:
-      - name: Sync fork
-        uses: repo-sync/github-sync@v2
+      - name: Checkout fork
+        uses: actions/checkout@v4
         with:
-          source_repo: "astropy/astropy"
-          source_branch: "main"
-          destination_branch: "main"
-          github_token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 0
+
+      - name: Sync with upstream
+        run: |
+          git remote add upstream https://github.com/astropy/astropy.git || true
+          git fetch upstream
+          git checkout main
+          git merge upstream/main --no-edit
+          git push origin main
 
   # ─────────────────────────────────────────────
   # Job 2: Run Jules to scout a good issue
@@ -85,6 +91,7 @@ jobs:
           username: ${{ secrets.GMAIL_USER }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           to: ${{ secrets.GMAIL_USER }}
+          from: ${{ secrets.GMAIL_USER }}
           subject: "🔭 Astropy Scout — ${{ steps.date.outputs.date }}"
           body: |
             Jules has scouted a new contribution opportunity for today.
@@ -132,6 +139,7 @@ jobs:
           username: ${{ secrets.GMAIL_USER }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
           to: ${{ secrets.GMAIL_USER }}
+          from: ${{ secrets.GMAIL_USER }}
           subject: "⚠️ Astropy Scout Failed — ${{ github.run_id }}"
           body: |
             The daily scout workflow failed today.
