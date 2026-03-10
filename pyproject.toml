@@ -94,7 +94,7 @@ all = [
     "mpmath>=1.2.1",
     "asdf-astropy>=0.7.0",
     "bottleneck>=1.4.0",
-    "fsspec[full]>=2023.4.0",
+    "fsspec[http,s3]>=2023.4.0",  # keep in sync with dependency-groups.dataframe
     "s3fs>=2023.4.0",
     "uncompresspy>=0.4.0"
 ]
@@ -144,7 +144,7 @@ docs = [
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
     "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
-    "fsspec[full]>=2023.4.0",
+    "fsspec[http,s3]>=2023.4.0",  # keep in sync with dependency-groups.dataframe
 ]
 # These group together all the dependencies needed for developing in Astropy.
 dev = [
