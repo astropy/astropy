@@ -66,7 +66,7 @@ jobs:
           } >> $GITHUB_OUTPUT
 
       - name: Run Jules scout task
-        uses: google-labs-code/jules-action/jules-invoke@v1.0.0
+        uses: google-labs-code/jules-invoke@v1
         id: jules
         with:
           prompt: ${{ steps.prompt.outputs.prompt }}
