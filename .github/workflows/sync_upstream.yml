@@ -1,0 +1,39 @@
+name: Sync Fork with Upstream
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 06:00 UTC
+  workflow_dispatch:      # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync main branch with astropy/astropy
+    runs-on: ubuntu-latest
+    # Only run on the fork, not on the upstream repo itself
+    if: github.repository != 'astropy/astropy'
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/astropy/astropy.git
+
+      - name: Fetch upstream
+        run: git fetch upstream main
+
+      - name: Merge upstream into fork
+        run: git merge upstream/main --ff-only
+
+      - name: Push to fork
+        run: git push origin main

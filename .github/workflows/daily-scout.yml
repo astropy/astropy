@@ -1,0 +1,146 @@
+name: Daily Issue Scout
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # 7 AM Pacific time daily
+  workflow_dispatch:        # manual trigger anytime from Actions tab
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Job 1: Sync fork with upstream astropy
+  # ─────────────────────────────────────────────
+  sync-fork:
+    name: Sync fork with upstream
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync fork
+        uses: repo-sync/github-sync@v2
+        with:
+          source_repo: "astropy/astropy"
+          source_branch: "main"
+          destination_branch: "main"
+          github_token: ${{ secrets.GH_TOKEN }}
+
+  # ─────────────────────────────────────────────
+  # Job 2: Run Jules to scout a good issue
+  # ─────────────────────────────────────────────
+  scout:
+    name: Jules issue scout
+    runs-on: ubuntu-latest
+    needs: sync-fork
+    outputs:
+      scout_ran: ${{ steps.jules.outcome }}
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+
+      - name: Read scout prompt
+        id: prompt
+        run: |
+          PROMPT=$(cat .github/jules-scout-prompt.md)
+          echo "prompt<<EOF" >> $GITHUB_OUTPUT
+          echo "$PROMPT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run Jules scout task
+        uses: google-labs-code/jules-invoke@v1
+        id: jules
+        with:
+          prompt: ${{ steps.prompt.outputs.prompt }}
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+
+      - name: Handle Jules failure
+        if: failure() && steps.jules.outcome == 'failure'
+        run: |
+          echo "⚠️ Jules task failed."
+          echo "Possible causes:"
+          echo "  - Daily task limit reached (15/day on free tier)"
+          echo "  - Jules API key invalid or expired"
+          echo "  - jules-invoke action version mismatch"
+          echo ""
+          echo "To retry: go to Actions tab → Daily Issue Scout → Run workflow"
+          exit 1
+
+  # ─────────────────────────────────────────────
+  # Job 3: Email notification
+  # ─────────────────────────────────────────────
+  notify:
+    name: Send email notification
+    runs-on: ubuntu-latest
+    needs: scout
+    if: success()
+
+    steps:
+      - name: Get today's date
+        id: date
+        run: echo "date=$(date +'%A, %B %d')" >> $GITHUB_OUTPUT
+
+      - name: Send email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          to: ${{ secrets.GMAIL_USER }}
+          subject: "🔭 Astropy Scout — ${{ steps.date.outputs.date }}"
+          body: |
+            Jules has scouted a new contribution opportunity for today.
+
+            ───────────────────────────────────
+            REVIEW THE BRIEF
+            ───────────────────────────────────
+            https://github.com/${{ github.repository }}/issues?q=label:jules-scout+is:open
+
+            ───────────────────────────────────
+            WHEN YOU'RE READY TO IMPLEMENT
+            ───────────────────────────────────
+            1. Open the issue above and read the brief
+            2. Clone / pull your fork locally
+            3. Copy the "Claude Code kickoff command" from the brief
+            4. Run: claude
+            5. Paste the kickoff command
+            6. Review the diff, then open a PR upstream
+
+            ───────────────────────────────────
+            FORK STATUS
+            ───────────────────────────────────
+            Your fork was synced with upstream astropy/astropy
+            before this scout ran. You're on the latest main.
+
+            Run ID: ${{ github.run_id }}
+            Triggered by: ${{ github.event_name }}
+
+  # ─────────────────────────────────────────────
+  # Job 4: Notify on failure
+  # ─────────────────────────────────────────────
+  notify-failure:
+    name: Send failure notification
+    runs-on: ubuntu-latest
+    needs: [sync-fork, scout]
+    if: failure()
+
+    steps:
+      - name: Send failure email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          to: ${{ secrets.GMAIL_USER }}
+          subject: "⚠️ Astropy Scout Failed — ${{ github.run_id }}"
+          body: |
+            The daily scout workflow failed today.
+
+            Most likely cause: Jules daily task limit reached (15/day on free tier).
+
+            To retry manually:
+            https://github.com/${{ github.repository }}/actions/workflows/daily-scout.yml
+
+            Click "Run workflow" to trigger it again.
+
+            Run ID: ${{ github.run_id }}
