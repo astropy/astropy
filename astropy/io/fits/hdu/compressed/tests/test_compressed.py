@@ -58,6 +58,7 @@ class TestCompressedImage(FitsTestCase):
             (np.zeros((2, 10, 10), dtype=np.float32), "GZIP_1", -0.01),
             (np.zeros((2, 10, 10), dtype=np.float32), "GZIP_2", -0.01),
             (np.zeros((100, 100)) + 1, "HCOMPRESS_1", 16),
+            (np.zeros((100, 100)), "JPEGXL", 16),
             (np.zeros((10, 10)), "PLIO_1", 16),
         ],
     )
@@ -82,14 +83,49 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]
             assert fd[1].header["BITPIX"] == chdu.header["BITPIX"]
 
+    @pytest.mark.parametrize(
+        "byte_order,dtype",
+        [
+            (bo, dt)
+            for bo in ["<", ">"]
+            for dt in ["uint8", "int16", "uint16", "int32", "uint32"]
+        ],
+    )
+    def test_comp_image_dtypes_jpegxl(self, byte_order, dtype):
+        """
+        Test that JPEGXL compression works with different byte orders and dtypes.
+        Make sure to sample random values from the entire dynamic range possible,
+        and ensure that lossless compression is maintained.
+        """
+        data = np.random.randint(2**32, size=(100, 100)).astype(dtype)
+        data = data.view(data.dtype.newbyteorder(byte_order))
+        primary_hdu = fits.PrimaryHDU()
+        ofd = fits.HDUList(primary_hdu)
+        chdu = fits.CompImageHDU(
+            data,
+            name="SCI",
+            compression_type="JPEGXL",
+        )
+        ofd.append(chdu)
+        ofd.writeto(self.temp("test_new.fits"), overwrite=True)
+        ofd.close()
+        with fits.open(self.temp("test_new.fits")) as fd:
+            assert (fd[1].data == data).all()  # Verify lossless
+            assert fd[1].header["NAXIS"] == chdu.header["NAXIS"]
+            assert fd[1].header["NAXIS1"] == chdu.header["NAXIS1"]
+            assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]
+            assert fd[1].header["BITPIX"] == chdu.header["BITPIX"]
+
     @pytest.mark.remote_data
-    def test_comp_image_quantize_level(self):
+    @pytest.mark.parametrize("compression_type", ["RICE_1", "JPEGXL"])
+    def test_comp_image_quantize_level(self, compression_type):
         """
         Regression test for https://github.com/astropy/astropy/issues/5969
 
         Test that quantize_level is used.
 
         """
+        import pickle
 
         np.random.seed(42)
 
@@ -105,14 +141,14 @@ class TestCompressedImage(FitsTestCase):
         fits.ImageHDU(data).writeto(self.temp("im1.fits"))
         fits.CompImageHDU(
             data,
-            compression_type="RICE_1",
+            compression_type=compression_type,
             quantize_method=1,
             quantize_level=-1,
             dither_seed=5,
         ).writeto(self.temp("im2.fits"))
         fits.CompImageHDU(
             data,
-            compression_type="RICE_1",
+            compression_type=compression_type,
             quantize_method=1,
             quantize_level=-100,
             dither_seed=5,
@@ -164,6 +200,26 @@ class TestCompressedImage(FitsTestCase):
 
         with fits.open(self.temp("test.fits")) as hdul:
             # HCOMPRESSed images are allowed to deviate from the original by
+            # about 1/quantize_level of the RMS in each tile.
+            assert np.abs(hdul["SCI"].data - cube).max() < 1.0 / 15.0
+
+    def test_comp_image_jpegxl_image_stack(self):
+        """
+        Tests that 3D data can be compressed with JPEGXL with a tile shape that is also 3D.
+        """
+
+        cube = np.arange(300, dtype=np.float32).reshape(3, 10, 10)
+        hdu = fits.CompImageHDU(
+            data=cube,
+            name="SCI",
+            compression_type="JPEGXL",
+            quantize_level=16,
+            tile_shape=(2, 5, 5),
+        )
+        hdu.writeto(self.temp("test.fits"))
+
+        with fits.open(self.temp("test.fits")) as hdul:
+            # Compressed float images are allowed to deviate from the original by
             # about 1/quantize_level of the RMS in each tile.
             assert np.abs(hdul["SCI"].data - cube).max() < 1.0 / 15.0
 
