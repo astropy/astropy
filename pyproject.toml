@@ -45,7 +45,7 @@ keywords = [
 dependencies = [
     "numpy>=2.0",
     "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
-    "astropy-iers-data>=0.2026.1.26.0.43.56",
+    "astropy-iers-data>=0.2026.2.23.0.48.33",
     "PyYAML>=6.0.0",
     "packaging>=25.0",
 ]
@@ -116,7 +116,7 @@ test_all = [
     # Install all remaining dependencies
     "objgraph>=3.1.2",
     "skyfield>=1.42.0",
-    "sgp4>=2.3",
+    "sgp4>=2.22",
     "array-api-strict>=1.0",
     "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 
@@ -143,6 +143,7 @@ docs = [
     "Jinja2>=3.1.3",
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
+    "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
 ]
 # These group together all the dependencies needed for developing in Astropy.
 dev = [
@@ -196,7 +197,7 @@ dataframe = [
     "pandas>=2.2.2",
     "polars>=1.0.0",
     "duckdb>=1.1.0",
-    "dask[dataframe]>=2024.8.0"
+    "dask[dataframe]>=2024.8.0", # keep in sync with other declarations
 ]
 
 [tool.setuptools]
@@ -745,7 +746,7 @@ no-build-package = [
     "polars",
     "requests",
     "scipy",
-    "sgp4",
+    # "sgp4", # https://github.com/brandon-rhodes/python-sgp4/pull/150
 
     # via jsonschema v4.0.1 via asdf v2.15.0 via asdf-astropy v0.8.0
     "pyrsistent", # can be removed once we drop asdf-astropy<=0.8 https://github.com/astropy/asdf-astropy/pull/297

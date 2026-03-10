@@ -298,13 +298,68 @@ class TestUnifiedIORegistryBase:
             finally:
                 default_registry.unregister_identifier(*fmtcls1)
 
-    @pytest.mark.skip("TODO!")
     def test_compat_get_formats(self, registry, fmtcls1):
-        raise AssertionError()
+        fmt, cls = fmtcls1
 
-    @pytest.mark.skip("TODO!")
+        if hasattr(registry, "register_reader"):
+            registry.register_reader(fmt, cls, empty_reader)
+        if hasattr(registry, "register_writer"):
+            registry.register_writer(fmt, cls, empty_writer)
+
+        formats = compat.get_formats(registry=registry)
+        direct_formats = registry.get_formats()
+
+        # verify compat wrapper returns same shape as direct registry call
+        if direct_formats is None:
+            assert formats is None
+        else:
+            assert formats.colnames == direct_formats.colnames
+            assert len(formats) == len(direct_formats)
+
+        if registry is not default_registry:
+            had_reader = (fmt, cls) in default_registry._readers
+            had_writer = (fmt, cls) in default_registry._writers
+
+            if hasattr(default_registry, "register_reader"):
+                default_registry.register_reader(fmt, cls, empty_reader, force=True)
+            if hasattr(default_registry, "register_writer"):
+                default_registry.register_writer(fmt, cls, empty_writer, force=True)
+            try:
+                default_formats = compat.get_formats()
+                if default_formats is not None:
+                    matches = [
+                        row
+                        for row in default_formats
+                        if row["Data class"] == cls.__name__ and row["Format"] == fmt
+                    ]
+                    # verify compat default-registry path contains one matching row
+                    assert len(matches) == 1
+                    assert matches[0]["Format"] == fmt
+                    assert matches[0]["Data class"] == cls.__name__
+            finally:
+                # verify cleanup restores only handlers this test added
+                if not had_reader and hasattr(default_registry, "unregister_reader"):
+                    if (fmt, cls) in default_registry._readers:
+                        default_registry.unregister_reader(fmt, cls)
+                if not had_writer and hasattr(default_registry, "unregister_writer"):
+                    if (fmt, cls) in default_registry._writers:
+                        default_registry.unregister_writer(fmt, cls)
+
     def test_compat_delay_doc_updates(self, registry, fmtcls1):
-        raise AssertionError()
+        fmt, cls = fmtcls1
+
+        with compat.delay_doc_updates(cls, registry=registry):
+            # verify class is tracked while doc updates are delayed
+            assert cls in registry._delayed_docs_classes
+            if hasattr(registry, "register_reader"):
+                registry.register_reader(fmt, cls, empty_reader)
+                assert (fmt, cls) in registry._readers
+            if hasattr(registry, "register_writer"):
+                registry.register_writer(fmt, cls, empty_writer)
+                assert (fmt, cls) in registry._writers
+
+        # verify class is untracked after leaving delayed-doc context
+        assert cls not in registry._delayed_docs_classes
 
 
 class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
@@ -345,10 +400,40 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
 
     # ===========================================
 
-    @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
-        raise AssertionError()
+        fmt = "test"
+        registry.register_reader(fmt, EmptyData, empty_reader)
+
+        formats = registry.get_formats()
+        # verify expected table columns for input registry formats
+        assert formats.colnames == ["Data class", "Format", "Read", "Auto-identify"]
+
+        matches = [
+            row
+            for row in formats
+            if row["Data class"] == EmptyData.__name__ and row["Format"] == fmt
+        ]
+        # verify registered reader appears once and is not auto-identified yet
+        assert len(matches) == 1
+        assert matches[0]["Read"] == "Yes"
+        assert matches[0]["Auto-identify"] == "No"
+
+        registry.register_identifier(fmt, EmptyData, empty_identifier)
+        formats = registry.get_formats(filter_on="identify")
+        matches = [
+            row
+            for row in formats
+            if row["Data class"] == EmptyData.__name__ and row["Format"] == fmt
+        ]
+        # verify identify-filtered output keeps this format and marks it identified
+        assert len(matches) == 1
+        assert matches[0]["Read"] == "Yes"
+        assert matches[0]["Auto-identify"] == "Yes"
+
+        # assert filtered results only contain Auto-identify == "Yes" rows
+        for row in formats:
+            assert row["Auto-identify"] == "Yes"
 
     @SKIPIF_OPTIMIZED_PYTHON
     def test_delay_doc_updates(self, registry, fmtcls1):
@@ -749,10 +834,36 @@ class TestUnifiedOutputRegistry(TestUnifiedIORegistryBase):
         assert fmt in docs[-2][ifmt : ifmt + len(fmt) + 1]
         assert docs[-2][iwrite : iwrite + 3] == "Yes"
 
-    @pytest.mark.skip("TODO!")
     def test_get_formats(self, registry):
         """Test ``registry.get_formats()``."""
-        raise AssertionError()
+        fmt = "test"
+        registry.register_writer(fmt, EmptyData, empty_writer)
+
+        formats = registry.get_formats()
+        # verify expected table columns for output registry formats
+        assert formats.colnames == ["Data class", "Format", "Write", "Auto-identify"]
+
+        matches = [
+            row
+            for row in formats
+            if row["Data class"] == EmptyData.__name__ and row["Format"] == fmt
+        ]
+        # verify registered writer appears once and is not auto-identified yet
+        assert len(matches) == 1
+        assert matches[0]["Write"] == "Yes"
+        assert matches[0]["Auto-identify"] == "No"
+
+        registry.register_identifier(fmt, EmptyData, empty_identifier)
+        formats = registry.get_formats(filter_on="identify")
+        matches = [
+            row
+            for row in formats
+            if row["Data class"] == EmptyData.__name__ and row["Format"] == fmt
+        ]
+        # verify identify-filtered output keeps this format and marks it identified
+        assert len(matches) == 1
+        assert matches[0]["Write"] == "Yes"
+        assert matches[0]["Auto-identify"] == "Yes"
 
     def test_identify_write_format(self, registry, fmtcls1):
         """Test ``registry.identify_format()``."""
@@ -1022,10 +1133,54 @@ class TestUnifiedIORegistry(TestUnifiedInputRegistry, TestUnifiedOutputRegistry)
 
     # ===========================================
 
-    @pytest.mark.skip("TODO!")
-    def test_get_formats(self, registry):
+    def test_get_formats(self, registry, fmtcls1, fmtcls2):
         """Test ``registry.get_formats()``."""
-        raise AssertionError()
+        fmt_read, cls = fmtcls1
+        fmt_write, _ = fmtcls2
+
+        registry.register_reader(fmt_read, cls, empty_reader)
+        registry.register_identifier(fmt_read, cls, empty_identifier)
+        registry.register_writer(fmt_write, cls, empty_writer)
+        registry.register_identifier(fmt_write, cls, empty_identifier)
+
+        formats = registry.get_formats()
+        # verify unified registry reports both read and write capability columns
+        assert formats.colnames == [
+            "Data class",
+            "Format",
+            "Read",
+            "Write",
+            "Auto-identify",
+        ]
+
+        rows = {
+            row["Format"]: row
+            for row in formats
+            if row["Data class"] == cls.__name__
+            and row["Format"] in (fmt_read, fmt_write)
+        }
+        # fmt_read should be readable with auto-identify, but not writable
+        for key, value in [("Read", "Yes"), ("Write", "No"), ("Auto-identify", "Yes")]:
+            assert rows[fmt_read][key] == value
+        # fmt_write should be writable with auto-identify, but not readable
+        for key, value in [("Read", "No"), ("Write", "Yes"), ("Auto-identify", "Yes")]:
+            assert rows[fmt_write][key] == value
+
+        read_only = registry.get_formats(readwrite="Read")
+        # verify read-only filtering returns only readable formats and includes fmt_read
+        assert all(row["Read"] == "Yes" for row in read_only)
+        assert any(
+            row["Data class"] == cls.__name__ and row["Format"] == fmt_read
+            for row in read_only
+        )
+
+        write_only = registry.get_formats(readwrite="Write")
+        # verify write-only filtering returns only writable formats and includes fmt_write
+        assert all(row["Write"] == "Yes" for row in write_only)
+        assert any(
+            row["Data class"] == cls.__name__ and row["Format"] == fmt_write
+            for row in write_only
+        )
 
     # -----------------------
 

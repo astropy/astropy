@@ -7,7 +7,28 @@ from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_equal
 
 from astropy.utils.exceptions import AstropyDeprecationWarning
-from astropy.utils.shapes import check_broadcast, simplify_basic_index, unbroadcast
+from astropy.utils.shapes import (
+    ShapedLikeNDArray,
+    check_broadcast,
+    simplify_basic_index,
+    unbroadcast,
+)
+
+
+class _ShapedDummy(ShapedLikeNDArray):
+    def __init__(self, values):
+        self._values = np.asarray(values)
+
+    @property
+    def shape(self):
+        return self._values.shape
+
+    def _apply(self, method, *args, **kwargs):
+        if callable(method):
+            values = method(self._values, *args, **kwargs)
+        else:
+            values = getattr(self._values, method)(*args, **kwargs)
+        return self.__class__(values)
 
 
 def test_check_broadcast_deprecation():
@@ -37,6 +58,12 @@ def test_unbroadcast():
     y = np.broadcast_to(x, (5, 3, 5))
     z = unbroadcast(y)
     assert z.shape == (3, 5)
+
+
+def test_take_out_raises():
+    shaped = _ShapedDummy([1, 2, 3, 4])
+    with pytest.raises(NotImplementedError, match="cannot pass 'out' argument"):
+        shaped.take((0, 1), out=np.empty(2, dtype=int))
 
 
 TEST_SHAPE = (13, 16, 4, 90)
