@@ -46,7 +46,6 @@ else
   echo "Recent branches (newest first):"
   echo "──────────────────────────────"
 
-  # List remote branches, filter likely Jules ones, show recent first
   BRANCHES=$(git branch -r --sort=-committerdate \
     | grep 'origin/' \
     | grep -v 'origin/main' \
@@ -59,7 +58,6 @@ else
     exit 1
   fi
 
-  # Number them for selection
   i=1
   while IFS= read -r branch; do
     echo "  $i) $branch"
@@ -85,7 +83,6 @@ echo "📥 Checking out branch: $BRANCH"
 
 git fetch origin "$BRANCH" --quiet
 
-# Check if branch exists locally
 if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
   git checkout "$BRANCH"
   git pull origin "$BRANCH" --quiet
@@ -95,26 +92,61 @@ fi
 
 echo "✅ On branch: $BRANCH"
 
-# ── Step 3: Gather context for Claude Code ────────────────
+# ── Step 3: Read scout.md ─────────────────────────────────
 
 echo ""
-echo "📋 Gathering context..."
+echo "📋 Reading Jules scout report..."
 
-# Get the diff from main
-DIFF=$(git diff main..."$BRANCH" --stat 2>/dev/null || echo "No diff available")
-
-# Get commit messages on this branch
-COMMITS=$(git log main.."$BRANCH" --oneline 2>/dev/null || echo "No commits yet")
-
-# Get the branch description / PR body if available via gh CLI
-PR_BODY=""
-if command -v gh &> /dev/null; then
-  PR_BODY=$(gh pr list --head "$BRANCH" --json body,title,url \
-    --jq '.[0] | "Title: \(.title)\nURL: \(.url)\n\nDescription:\n\(.body)"' \
-    2>/dev/null || echo "")
+SCOUT_REPORT=""
+if [ -f "scout.md" ]; then
+  SCOUT_REPORT=$(cat scout.md)
+  echo "✅ Found scout.md"
+else
+  echo "⚠️  No scout.md found — will use PR description only"
 fi
 
-# ── Step 4: Write the Claude Code context file ───────────
+# ── Step 4: Get PR info and extract issue number ──────────
+
+PR_BODY=""
+PR_TITLE=""
+ISSUE_NUMBER=""
+ISSUE_STATUS=""
+ISSUE_BODY=""
+
+if command -v gh &> /dev/null; then
+  PR_JSON=$(gh pr list --head "$BRANCH" --json body,title,url 2>/dev/null || echo "[]")
+  PR_TITLE=$(echo "$PR_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['title'] if d else '')" 2>/dev/null || echo "")
+  PR_BODY=$(echo "$PR_JSON"  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['body']  if d else '')" 2>/dev/null || echo "")
+
+  # Try to extract issue number from PR body or branch name
+  ISSUE_NUMBER=$(echo "$PR_BODY $BRANCH" | grep -oE '#[0-9]+|issues/[0-9]+' | grep -oE '[0-9]+' | head -1)
+
+  if [ -n "$ISSUE_NUMBER" ]; then
+    echo "🔍 Checking upstream issue #$ISSUE_NUMBER..."
+    ISSUE_JSON=$(gh issue view "$ISSUE_NUMBER" --repo astropy/astropy --json state,title,body 2>/dev/null || echo "")
+
+    if [ -n "$ISSUE_JSON" ]; then
+      ISSUE_STATUS=$(echo "$ISSUE_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('state','unknown'))")
+      ISSUE_TITLE=$(echo "$ISSUE_JSON"  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('title',''))")
+      ISSUE_BODY=$(echo "$ISSUE_JSON"   | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('body','')[:800])")
+      echo "📌 Issue #$ISSUE_NUMBER is: $ISSUE_STATUS — $ISSUE_TITLE"
+
+      if [ "$ISSUE_STATUS" = "closed" ]; then
+        echo ""
+        echo "⚠️  WARNING: Issue #$ISSUE_NUMBER is already CLOSED."
+        echo "   This may mean it was fixed by someone else."
+        printf "   Continue anyway? (y/n): "
+        read -r CONTINUE
+        if [[ "$CONTINUE" != "y" && "$CONTINUE" != "Y" ]]; then
+          echo "Aborted. Check jules.google.com for a different task."
+          exit 0
+        fi
+      fi
+    fi
+  fi
+fi
+
+# ── Step 5: Write Claude Code context file ────────────────
 
 CONTEXT_FILE="/tmp/jules-context-$(date +%s).md"
 
@@ -124,49 +156,58 @@ cat > "$CONTEXT_FILE" << CONTEXT
 ## Branch
 $BRANCH
 
-## Jules PR / Task Description
-${PR_BODY:-"(No PR found — check jules.google.com for the task description)"}
+## Jules PR Title
+${PR_TITLE:-"(not found)"}
 
-## Files changed by Jules
-$DIFF
+---
 
-## Jules commits
-$COMMITS
+## Jules Scout Report (scout.md)
+${SCOUT_REPORT:-"(No scout.md on this branch — refer to PR description below)"}
+
+---
+
+## Jules PR Description
+${PR_BODY:-"(No PR found — check jules.google.com)"}
+
+---
+
+## Upstream Issue #${ISSUE_NUMBER:-"unknown"}
+Status: ${ISSUE_STATUS:-"unknown"}
+Title:  ${ISSUE_TITLE:-"unknown"}
+
+${ISSUE_BODY:-"(Could not fetch issue body — check https://github.com/astropy/astropy/issues)"}
 
 ---
 
 ## Your job (Claude Code)
 
-Review what Jules has done on this branch. Then:
+The scout report and issue above are your source of truth — ignore any diff noise
+from main being ahead of this branch due to the daily sync automation.
 
-1. Run the test suite for any modified subpackages:
+1. Read scout.md carefully — Jules has already identified the files and approach.
+
+2. Check if the issue is still open and unassigned upstream before starting:
+   https://github.com/astropy/astropy/issues/${ISSUE_NUMBER:-""}
+
+3. Run the existing tests for the relevant subpackage first to establish a baseline:
    \`python -m pytest astropy/<subpackage>/tests/ -x -v\`
 
-2. If Jules left TODOs, incomplete implementations, or failing tests — fix them.
-
-3. If Jules only scouted (no code changes), implement the fix described above.
-   Follow astropy's coding standards:
+4. Implement the fix described in scout.md. Follow astropy standards:
    - Type hints on all new functions
    - Numpy-style docstrings
    - Tests in the corresponding tests/ directory
-   - No changes to public API unless the issue explicitly requires it
+   - No public API changes unless the issue explicitly requires it
 
-4. Once tests pass, summarize what changed so we can write the PR description.
-
-## Upstream issue
-Search https://github.com/astropy/astropy/issues for the issue referenced
-in the branch name or PR description above.
+5. Once tests pass, give me a 3-sentence summary of what changed for the PR description.
 CONTEXT
 
 echo "✅ Context written to $CONTEXT_FILE"
 
-# ── Step 5: Launch Claude Code ────────────────────────────
+# ── Step 6: Launch Claude Code ────────────────────────────
 
 echo ""
 echo "🚀 Launching Claude Code..."
 echo "──────────────────────────────────────────────"
 echo ""
 
-# Launch Claude Code with the context pre-loaded
 claude --context "$CONTEXT_FILE"
-CONTEXT
