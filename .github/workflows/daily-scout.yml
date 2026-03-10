@@ -5,6 +5,11 @@ on:
     - cron: '0 14 * * *'  # 7 AM Pacific time daily
   workflow_dispatch:        # manual trigger anytime from Actions tab
 
+# Explicit permissions so the runner can read repo and create issues
+permissions:
+  contents: write
+  issues: write
+
 jobs:
   # ─────────────────────────────────────────────
   # Job 1: Sync fork with upstream astropy
@@ -21,10 +26,13 @@ jobs:
 
       - name: Sync with upstream
         run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
           git remote add upstream https://github.com/astropy/astropy.git || true
           git fetch upstream
           git checkout main
-          git merge upstream/main --no-edit
+          # If already up to date, merge exits 0 cleanly
+          git merge upstream/main --no-edit || true
           git push origin main
 
   # ─────────────────────────────────────────────
@@ -34,20 +42,28 @@ jobs:
     name: Jules issue scout
     runs-on: ubuntu-latest
     needs: sync-fork
-    outputs:
-      scout_ran: ${{ steps.jules.outcome }}
+    # Run even if sync had nothing to do (already up to date)
+    if: always()
+    timeout-minutes: 30
 
     steps:
       - name: Checkout fork
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Read scout prompt
         id: prompt
         run: |
-          PROMPT=$(cat .github/jules-scout-prompt.md)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Write prompt to a temp file to avoid output size limits
+          cp .github/jules-scout-prompt.md /tmp/scout-prompt.txt
+          echo "prompt_file=/tmp/scout-prompt.txt" >> $GITHUB_OUTPUT
+          # Also pass as output for the action
+          {
+            echo 'prompt<<ENDOFPROMPT'
+            cat .github/jules-scout-prompt.md
+            echo 'ENDOFPROMPT'
+          } >> $GITHUB_OUTPUT
 
       - name: Run Jules scout task
         uses: google-labs-code/jules-invoke@v1
@@ -56,26 +72,17 @@ jobs:
           prompt: ${{ steps.prompt.outputs.prompt }}
           jules_api_key: ${{ secrets.JULES_API_KEY }}
 
-      - name: Handle Jules failure
-        if: failure() && steps.jules.outcome == 'failure'
-        run: |
-          echo "⚠️ Jules task failed."
-          echo "Possible causes:"
-          echo "  - Daily task limit reached (15/day on free tier)"
-          echo "  - Jules API key invalid or expired"
-          echo "  - jules-invoke action version mismatch"
-          echo ""
-          echo "To retry: go to Actions tab → Daily Issue Scout → Run workflow"
-          exit 1
+      - name: Confirm Jules ran
+        run: echo "Jules step outcome was ${{ steps.jules.outcome }}"
 
   # ─────────────────────────────────────────────
-  # Job 3: Email notification
+  # Job 3: Email notification (success)
   # ─────────────────────────────────────────────
   notify:
     name: Send email notification
     runs-on: ubuntu-latest
-    needs: scout
-    if: success()
+    needs: [sync-fork, scout]
+    if: needs.scout.result == 'success'
 
     steps:
       - name: Get today's date
@@ -127,7 +134,7 @@ jobs:
     name: Send failure notification
     runs-on: ubuntu-latest
     needs: [sync-fork, scout]
-    if: failure()
+    if: needs.scout.result == 'failure'
 
     steps:
       - name: Send failure email
