@@ -8,7 +8,17 @@
 
 /* Define docstrings */
 static char module_docstring[] = "Fast sigma clipping";
-static char _sigma_clip_fast_docstring[] = "Compute sigma clipping";
+static char _sigma_clip_fast_docstring[] =
+    "Compute sigma clipping bounds.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "data : 2D float64 array, shape (1, N) - input data\n"
+    "mask : 1D bool array, shape (N,) - True means already masked\n"
+    "use_median : bool - use median (True) or mean (False)\n"
+    "use_mad_std : bool - use MAD-based std (True) or regular std (False)\n"
+    "max_iter : int - maximum number of sigma-clipping iterations\n"
+    "sigma_lower : float - lower sigma threshold\n"
+    "sigma_upper : float - upper sigma threshold\n";
 
 /* Declare the C functions here. */
 static void _sigma_clip_fast(
