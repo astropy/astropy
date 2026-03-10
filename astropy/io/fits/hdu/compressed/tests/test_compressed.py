@@ -95,7 +95,9 @@ class TestCompressedImage(FitsTestCase):
 
         # Basically what scipy.datasets.ascent() does.
         fname = download_file(
-            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true"
+            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true",
+            cache=True,
+            show_progress=False,
         )
         with open(fname, "rb") as f:
             scipy_data = np.array(pickle.load(f))
