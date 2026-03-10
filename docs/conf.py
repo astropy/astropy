@@ -402,6 +402,7 @@ linkcheck_ignore = [
     "https://hst-docs.stsci.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://stackoverflow.com/",  # 403 Client Error: Forbidden
+    "https://docutils.sourceforge.io",  # 403 Client Error: Forbidden
     "https://ieeexplore.ieee.org/",  # 418 Client Error: I'm a teapot
     "https://pyfits.readthedocs.io/en/v3.2.1/",  # defunct page in CHANGES.rst
     "https://pkgs.dev.azure.com/astropy-project",  # defunct page in CHANGES.rst
