@@ -867,6 +867,26 @@ def sigma_clip(
 
     Note that along the other axis, no points would be clipped, as the
     standard deviation is higher.
+
+    The behavior of ``masked=False`` depends on whether ``axis`` is
+    specified. When ``axis=None`` (the default), clipped values are
+    *removed* from the output, so the returned array may be shorter
+    than the input::
+
+        >>> import numpy as np
+        >>> from astropy.stats import sigma_clip
+        >>> x = np.ones(10)
+        >>> x[5] = 1000.0
+        >>> clipped = sigma_clip(x, masked=False)
+        >>> len(clipped)  # shorter than input: outlier was removed
+        9
+
+    When ``axis`` is specified, clipped values are replaced with
+    ``np.nan`` instead::
+
+        >>> clipped_nan = sigma_clip(x, masked=False, axis=0)
+        >>> bool(np.isnan(clipped_nan[5]))  # outlier replaced with nan
+        True
     """
     sigclip = SigmaClip(
         sigma=sigma,
