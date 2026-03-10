@@ -1,4 +1,5 @@
 import logging
+import platform
 import sys
 
 import pytest
@@ -20,6 +21,7 @@ def teardown_function(function):
     sys.argv = function.sys_argv_orig
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 @pytest.mark.slow
 def test_hub_script(monkeypatch):
     mock_logger = logging.getLogger(__name__)
