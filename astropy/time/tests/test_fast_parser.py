@@ -5,7 +5,7 @@ import re
 import numpy as np
 import pytest
 
-from astropy.time import _parse_times, Time, TimeYearDayTime, conf
+from astropy.time import Time, TimeYearDayTime, _parse_times, conf
 
 iso_times = [
     "2000-02-29",
