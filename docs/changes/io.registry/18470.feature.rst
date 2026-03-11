@@ -1,2 +1,0 @@
-Allow setting EXTNAME when writing a ``Table`` to a FITS file, e.g.
-``tbl.write("filename.fits", name="CAT", append=True)``.

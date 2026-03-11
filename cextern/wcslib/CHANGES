@@ -1,5 +1,29 @@
+WCSLIB version 8.5 (2025/12/06)
+-------------------------------
+
+WCSLIB's RCS version files are now included in the distribution thereby
+providing a documented history of all changes made since v1.0.  They
+will be found in RCS subdirectories in each code directory.  A small
+number of discontinued files are preserved with their RCS version files
+having a ',x' suffix instead of ',v'.
+
+* C library
+
+  - In linp2x(), quarantine NaN elements of the pixel coordinate vector
+    from infecting non-NaN elements in the case where the PCij matrix is
+    diagonal (noting that zero * NaN = NaN).  Likewise in linx2p().
+    Reported by Thomas Robitaille with patch.
+
+  - Quelled nuisance compiler warnings in wcspih() and wcsbth().
+
+* User manual
+
+  - Documentation generation moved to doxygen 1.15.0 (was 1.12.0).
+    The makefile patches doxygen.sty as per my Doxygen bug report 11881.
+
+
 WCSLIB version 8.4 (2024/10/29)
-------------------------------------
+-------------------------------
 
 * C library
 
@@ -3600,4 +3624,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.4 2024/10/28 13:56:17 mcalabre Exp $
+$Id: CHANGES,v 8.5 2025/12/06 13:47:42 mcalabre Exp $

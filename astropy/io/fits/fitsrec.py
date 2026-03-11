@@ -8,9 +8,9 @@ from contextlib import suppress
 from functools import reduce
 
 import numpy as np
-from numpy import char as chararray
 
 from astropy.utils import lazyproperty
+from astropy.utils.compat import chararray, get_chararray
 
 from .column import (
     _VLF,
@@ -831,7 +831,7 @@ class FITS_rec(np.recarray):
                 dt = np.dtype(recformat.dtype + str(1))
                 arr_len = count * dt.itemsize
                 da = raw_data[offset : offset + arr_len].view(dt)
-                da = np.char.array(da.view(dtype=dt), itemsize=count)
+                da = get_chararray(da.view(dtype=dt), itemsize=count)
                 dummy[idx] = decode_ascii(da)
             else:
                 dt = np.dtype(recformat.dtype)
@@ -878,11 +878,14 @@ class FITS_rec(np.recarray):
         # array buffer.
         dummy = np.char.ljust(field, format.width)
         dummy = np.char.replace(dummy, encode_ascii("D"), encode_ascii("E"))
-        null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
 
-        # Convert all fields equal to the TNULL value (nullval) to empty fields.
-        # TODO: These fields really should be converted to NaN or something else undefined.
-        # Currently they are converted to empty fields, which are then set to zero.
+        # Convert all fields equal to the TNULL value (nullval) to either NaN
+        # for float columns or 0 for the other fields.
+        if format.format in "DEF":
+            null_fill = "nan"
+        else:
+            null_fill = str(ASCIITNULL)
+        null_fill = encode_ascii(null_fill.rjust(format.width))
         dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 
         # always replace empty fields, see https://github.com/astropy/astropy/pull/5394
@@ -1204,7 +1207,7 @@ class FITS_rec(np.recarray):
                 if isinstance(self._coldefs, _AsciiColDefs):
                     self._scale_back_ascii(index, dummy, raw_field)
                 # binary table string column
-                elif isinstance(raw_field, chararray.chararray):
+                elif isinstance(raw_field, chararray):
                     self._scale_back_strings(index, dummy, raw_field)
                 # all other binary table columns
                 else:
@@ -1341,7 +1344,7 @@ class FITS_rec(np.recarray):
 
         # Replace exponent separator in floating point numbers
         if "D" in format:
-            output_field[:] = output_field.replace(b"E", b"D")
+            output_field[:] = np.strings.replace(output_field, b"E", b"D")
 
     def tolist(self):
         # Override .tolist to take care of special case of VLF
@@ -1361,8 +1364,8 @@ def _get_recarray_field(array, key):
     # This is currently needed for backwards-compatibility and for
     # automatic truncation of trailing whitespace
     field = np.recarray.field(array, key)
-    if field.dtype.char in ("S", "U") and not isinstance(field, chararray.chararray):
-        field = field.view(chararray.chararray)
+    if field.dtype.char in ("S", "U") and not isinstance(field, chararray):
+        field = field.view(chararray)
     return field
 
 
@@ -1378,7 +1381,7 @@ def _ascii_encode(inarray, out=None):
     encodings (if possible) of the elements of the input array.  The two arrays
     must be the same size (though not necessarily the same shape).
 
-    This is like an inplace version of `np.char.encode` though simpler since
+    This is like an inplace version of `np.strings.encode` though simpler since
     it's only limited to ASCII, and hence the size of each character is
     guaranteed to be 1 byte.
 

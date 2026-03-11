@@ -1,3 +1,0 @@
-Fixed a bug in ``fitsdiff`` script where failing to read a single file could
-crash the entire program. A warning is now printed instead, and such files
-are simply ignored.

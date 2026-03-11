@@ -1,1 +1,0 @@
-Fixed a bug that caused world_to_array_index to return lists instead of Numpy arrays.

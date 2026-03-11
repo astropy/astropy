@@ -5,9 +5,6 @@
 
 #define NO_IMPORT_ARRAY
 
-#include <stdlib.h> // calloc, malloc, free
-#include <string.h> // memset, strlen, strncpy
-
 #include "astropy_wcs/wcslib_wrap.h"
 #include "astropy_wcs/wcslib_auxprm_wrap.h"
 #include "astropy_wcs/wcslib_prjprm_wrap.h"
@@ -17,6 +14,9 @@
 #include "astropy_wcs/wcslib_units_wrap.h"
 #include "astropy_wcs/unit_list_proxy.h"
 #include <structmember.h> /* from Python */
+
+#include <stdlib.h> // calloc, malloc, free
+#include <string.h> // memset, strlen, strncpy
 
 #include <wcs.h>
 #include <wcsfix.h>

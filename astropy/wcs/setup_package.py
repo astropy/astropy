@@ -15,7 +15,7 @@ from setuptools import Extension
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
 
 WCSROOT = os.path.relpath(os.path.dirname(__file__))
-WCSVERSION = "8.4"
+WCSVERSION = "8.5"
 
 
 def b(s):

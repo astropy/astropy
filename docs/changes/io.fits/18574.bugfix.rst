@@ -1,1 +1,0 @@
-Make ``fitscheck`` verify all HDUs before listing errors.

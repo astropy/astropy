@@ -23,7 +23,6 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.masked import Masked
 
 from . import _np_utils
-from .np_utils import TableMergeError
 from .table import Column, MaskedColumn, QTable, Row, Table
 
 __all__ = [
@@ -37,6 +36,10 @@ __all__ = [
 ]
 
 __doctest_requires__ = {"join_skycoord": ["scipy"], "join_distance": ["scipy"]}
+
+
+class TableMergeError(ValueError):
+    pass
 
 
 def _merge_table_meta(out, tables, metadata_conflicts="warn"):
@@ -1008,7 +1011,7 @@ def get_descrs(arrays, col_name_map):
 
         # Output dtype is the superset of all dtypes in in_arrays
         try:
-            dtype = common_dtype(in_cols)
+            dtype = result_type(in_cols)
         except TableMergeError as tme:
             # Beautify the error message when we are trying to merge columns with incompatible
             # types by including the name of the columns that originated the error.
@@ -1030,7 +1033,7 @@ def get_descrs(arrays, col_name_map):
     return out_descrs
 
 
-def common_dtype(cols):
+def result_type(cols):
     """
     Use numpy to find the common dtype for a list of columns.
 
@@ -1038,7 +1041,7 @@ def common_dtype(cols):
     np.bool_, np.object_, np.number, np.character, np.void
     """
     try:
-        return metadata.common_dtype(cols)
+        return metadata.utils.result_type(cols)
     except metadata.MergeConflictError as err:
         tme = TableMergeError(f"Columns have incompatible types {err._incompat_types}")
         tme._incompat_types = err._incompat_types
@@ -1085,7 +1088,7 @@ def _get_join_sort_idxs(keys, left, right):
             sort_right[sort_key] = right_sort_col
 
             # Build up dtypes for the structured array that gets sorted.
-            dtype_str = common_dtype([left_sort_col, right_sort_col])
+            dtype_str = result_type([left_sort_col, right_sort_col])
             sort_keys_dtypes.append((sort_key, dtype_str))
             ii += 1
 

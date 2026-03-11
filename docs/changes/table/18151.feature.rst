@@ -1,1 +1,0 @@
-Enable color and suggestion-on-typos in ``showtable`` CLI for Python 3.14

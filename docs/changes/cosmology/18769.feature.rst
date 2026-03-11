@@ -1,6 +1,0 @@
-The trait ``astropy.cosmology.traits.MatterComponent`` has been added to work with
-objects that have attributes and methods related to matter density.
-The trait ``astropy.cosmology.traits.BaryonComponent`` has been added to work with
-objects that have attributes and methods related to baryonic matter.
-The trait ``astropy.cosmology.traits.CriticalDensity`` has been added to work with
-objects that have attributes and methods related to the critical density.

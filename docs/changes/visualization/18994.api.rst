@@ -1,0 +1,4 @@
+Removed the deprecated ``min_cut`` and ``max_cut`` keywords from the
+``simple_norm`` function and the ``fits2bitmap`` command-line script.
+Use the ``vmin`` and ``vmax`` keywords, respectively, to specify the cut
+levels.

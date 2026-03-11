@@ -17,7 +17,7 @@ import functools
 import operator
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, Literal, NamedTuple, Union
+from typing import TYPE_CHECKING, ClassVar, Literal, NamedTuple, Union
 
 import numpy as np
 
@@ -437,14 +437,16 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
     """
 
-    default_representation = None
-    default_differential = None
+    default_representation: ClassVar[type[r.BaseRepresentation] | None] = None
+    default_differential: ClassVar[type[r.BaseDifferential] | None] = None
 
     # Specifies special names and units for representation and differential
     # attributes.
-    frame_specific_representation_info = {}
+    frame_specific_representation_info: ClassVar[
+        dict[type[r.BaseRepresentationOrDifferential], list[RepresentationMapping]]
+    ] = {}
 
-    frame_attributes = {}
+    frame_attributes: dict[str, Attribute] = {}
     # Default empty frame_attributes dict
 
     # Declare that BaseCoordinateFrame can be used as a Table column by defining
@@ -587,7 +589,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 # see https://github.com/astropy/astropy/issues/16219
                 data = data.reshape(self._shape)
             except Exception:
-                data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
+                data = np.broadcast_to(data, shape=self._shape, subok=True)
                 if copy:
                     data = data.copy()
         self._data = data

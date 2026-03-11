@@ -59,7 +59,7 @@ jobs:
           - arch: s390x
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -83,6 +83,7 @@ jobs:
                                   git \
                                   g++ \
                                   pkg-config \
+                                  cython3 \
                                   python3 \
                                   python3-erfa \
                                   python3-extension-helpers \
@@ -99,9 +100,6 @@ jobs:
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
-            # cython and pyerfa versions in ubuntu repos are too old currently
-            pip install -U cython setuptools packaging
-            pip install -U --no-build-isolation pyerfa
             pip install -v --no-build-isolation -e .[test]
             pip list
             python3 -m pytest --strict-markers --pyargs astropy -m "not hypothesis"
