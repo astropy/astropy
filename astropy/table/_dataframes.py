@@ -154,7 +154,6 @@ def _handle_index_argument(
         elif index is None:
             return False
         else:
-            assert index is True
             raise ValueError("index=True requires a single-column primary key.")
 
     elif isinstance(index, str):
