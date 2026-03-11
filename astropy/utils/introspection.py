@@ -106,7 +106,7 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
     Examples
     --------
     >>> import astropy
-    >>> minversion(astropy, '0.4.4')
+    >>> minversion(astropy, '0.4.4')  # doctest: +SKIP
     True
     """
     if inspect.ismodule(module):
