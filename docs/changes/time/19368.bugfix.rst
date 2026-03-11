@@ -1,0 +1,1 @@
+Fixed missing ``goto fail`` in ``create_parser`` in ``parse_times.c`` after setting a ``ValueError`` for invalid parameter array size, preventing execution from continuing with an exception already set.
