@@ -1,4 +1,1 @@
-Fixed a missing f-string prefix in the ``TypeError`` raised by
-``BaseAffineTransform._apply_transform`` when a ``UnitSphericalRepresentation``
-is used with a non-``None`` offset, which caused the error message to display
-the literal text ``{data.__class__}`` instead of the actual representation class name.
+Fixed a missing f-string in a TypeError from ``BaseAffineTransform._apply_transform`` that caused ``{data.__class__}`` to appear literally in the error message.
