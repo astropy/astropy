@@ -1,0 +1,1 @@
+Fixed a missing f-string in a TypeError from ``BaseAffineTransform._apply_transform`` that caused ``{data.__class__}`` to appear literally in the error message.

@@ -64,7 +64,7 @@ class BaseAffineTransform(CoordinateTransform):
             raise TypeError(
                 "Position information stored on coordinate frame "
                 "is insufficient to do a full-space position "
-                "transformation (representation class: {data.__class__})"
+                f"transformation (representation class: {data.__class__})"
             )
 
         if (
