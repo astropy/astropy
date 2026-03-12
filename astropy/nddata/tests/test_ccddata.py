@@ -633,6 +633,18 @@ def test_infol_logged_if_unit_in_fits_header(tmp_path):
         assert explicit_unit_name in log_list[0].message
 
 
+def test_no_log_if_unit_matches_bunit(tmp_path):
+    # Regression test for https://github.com/astropy/astropy/issues/13539
+    # No log should be emitted when the passed unit matches BUNIT in the file.
+    ccd_data = create_ccd_data()  # unit=adu, BUNIT written as "adu"
+    tmpfile = str(tmp_path / "temp.fits")
+    ccd_data.write(tmpfile)
+    log.setLevel("INFO")
+    with log.log_to_list() as log_list:
+        _ = CCDData.read(tmpfile, unit="adu")
+        assert len(log_list) == 0
+
+
 def test_wcs_attribute(tmp_path):
     """
     Check that WCS attribute gets added to header, and that if a CCDData
