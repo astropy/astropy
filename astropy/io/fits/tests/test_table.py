@@ -1202,10 +1202,12 @@ class TestTableFunctions(FitsTestCase):
         assert list(data["y"]) == [10, 20, 30, 990, 880]
 
         # Reset
-        data = fits.BinTableHDU.from_columns([
-            fits.Column(name="x", format="D", array=[1.0, 2.0, 3.0, 4.0, 5.0]),
-            fits.Column(name="y", format="J", array=[10, 20, 30, 40, 50]),
-        ]).data
+        data = fits.BinTableHDU.from_columns(
+            [
+                fits.Column(name="x", format="D", array=[1.0, 2.0, 3.0, 4.0, 5.0]),
+                fits.Column(name="y", format="J", array=[10, 20, 30, 40, 50]),
+            ]
+        ).data
 
         # Test negative start and stop: data[-3:-1]
         data[-3:-1] = [src_data[0], src_data[1]]
@@ -1213,16 +1215,20 @@ class TestTableFunctions(FitsTestCase):
         assert list(data["y"]) == [10, 20, 990, 880, 50]
 
         # Reset and test positive slice still works
-        data = fits.BinTableHDU.from_columns([
-            fits.Column(name="x", format="D", array=[1.0, 2.0, 3.0, 4.0, 5.0]),
-        ]).data
+        data = fits.BinTableHDU.from_columns(
+            [
+                fits.Column(name="x", format="D", array=[1.0, 2.0, 3.0, 4.0, 5.0]),
+            ]
+        ).data
         data[0:2] = [src_data[0], src_data[1]]
         assert list(data["x"]) == [99.0, 88.0, 3.0, 4.0, 5.0]
 
         # Test step slice: data[::2]
-        data = fits.BinTableHDU.from_columns([
-            fits.Column(name="x", format="D", array=[1.0, 2.0, 3.0, 4.0, 5.0]),
-        ]).data
+        data = fits.BinTableHDU.from_columns(
+            [
+                fits.Column(name="x", format="D", array=[1.0, 2.0, 3.0, 4.0, 5.0]),
+            ]
+        ).data
         data[::2] = [src_data[0], src_data[1], src_data[0]]
         assert list(data["x"]) == [99.0, 2.0, 88.0, 4.0, 99.0]
 
