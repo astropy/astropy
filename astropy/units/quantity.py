@@ -687,8 +687,16 @@ class Quantity(np.ndarray):
         except (TypeError, ValueError, AttributeError) as e:
             out_normalized = kwargs.get("out", ())
             inputs_and_outputs = inputs + out_normalized
+            # Only re-raise if all inputs/outputs are ndarray or Quantity
+            # instances (i.e., types whose __array_ufunc__ is ndarray's or
+            # Quantity's).  If any external object is present -- including
+            # objects that have no __array_ufunc__ at all (like Time, which
+            # has high __array_priority__ but does not define
+            # __array_ufunc__) or objects that set __array_ufunc__ = None
+            # to opt out -- return NotImplemented so that numpy can fall
+            # back to the other operand's reverse arithmetic methods
+            # (e.g. __rmul__).
             ignored_ufunc = (
-                None,
                 np.ndarray.__array_ufunc__,
                 type(self).__array_ufunc__,
             )
@@ -697,8 +705,7 @@ class Quantity(np.ndarray):
                 for io in inputs_and_outputs
             ):
                 return NotImplemented
-            else:
-                raise e
+            raise e
 
     def _result_as_quantity(self, result, unit, out):
         """Turn result into a quantity with the given unit.

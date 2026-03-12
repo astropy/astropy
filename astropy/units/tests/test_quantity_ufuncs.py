@@ -1522,7 +1522,8 @@ class TestUfuncReturnsNotImplemented:
                 match=(
                     r"(Unsupported operand type\(s\) for ufunc .*)|"
                     r"(unsupported operand type\(s\) for .*)|"
-                    r"(Value not scalar compatible or convertible to an int, float, or complex array)"
+                    r"(Value not scalar compatible or convertible to an int, float, or complex array)|"
+                    r"(operand type\(s\) all returned NotImplemented from __array_ufunc__.*)"
                 ),
             ):
                 ufunc(quantity, duck_quantity)
@@ -1550,6 +1551,62 @@ class TestUfuncReturnsNotImplemented:
 
             result_expected = ufunc(quantity, duck_quantity.data, out=out_expected)
             assert np.all(result.data == result_expected)
+
+
+class TestUfuncFallbackForUnknownUnitClass:
+    """Test that Quantity.__array_ufunc__ returns NotImplemented for objects
+    that expose a ``unit`` attribute but do not subclass ndarray and do not
+    define ``__array_ufunc__`` (or set it to None), so that numpy can fall
+    back to the other object's reverse arithmetic methods.
+
+    Regression test for https://github.com/astropy/astropy/issues/10776.
+    """
+
+    def test_returns_not_implemented_for_no_array_ufunc(self):
+        """Quantity.__array_ufunc__ must return NotImplemented for objects
+        without ``__array_ufunc__`` when the try block raises an exception.
+
+        Regression test for https://github.com/astropy/astropy/issues/10776.
+
+        When the try block inside Quantity.__array_ufunc__ raises (here:
+        incompatible units for addition) and the other operand has no
+        ``__array_ufunc__``, the method must return NotImplemented rather than
+        re-raising, so that subclasses calling ``super().__array_ufunc__()``
+        can handle the dispatch themselves.
+        """
+
+        class UnknownWithUnit:
+            """Has a unit (incompatible with the Quantity), but is not an
+            ndarray subclass and does not define __array_ufunc__.
+
+            The incompatible unit forces ``converters_and_unit`` to raise
+            inside the try block of Quantity.__array_ufunc__.
+            """
+
+            unit = u.s  # seconds — incompatible with meters for np.add
+
+        obj = UnknownWithUnit()
+        q = 1.0 * u.m
+        # Call __array_ufunc__ directly: it must return NotImplemented instead
+        # of raising, because obj has no __array_ufunc__ attribute.
+        result = u.Quantity.__array_ufunc__(q, np.add, "__call__", q, obj)
+        assert result is NotImplemented
+
+    def test_rmul_fallback_array_ufunc_none(self):
+        """Object with __array_ufunc__ = None should trigger __rmul__ fallback."""
+
+        class UnknownWithUnitOptOut:
+            """Explicitly opts out of ufunc dispatching via __array_ufunc__ = None."""
+
+            unit = u.s
+            __array_ufunc__ = None
+
+            def __rmul__(self, other):
+                return "rmul_called_opt_out"
+
+        obj = UnknownWithUnitOptOut()
+        result = (1.0 * u.m) * obj
+        assert result == "rmul_called_opt_out"
 
 
 if HAS_SCIPY:

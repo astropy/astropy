@@ -104,3 +104,85 @@ Astropy is structured as a collection of semi-independent subpackages under `ast
 - Image comparison tests use `@pytest.mark.mpl_image_compare`.
 - `pytest-doctestplus` runs doctests in `.rst` docs files and module docstrings.
 - `filterwarnings = ["error"]` in `pyproject.toml` means unhandled warnings fail tests.
+
+---
+
+## In-Progress Work: Issue #10776 — `Quantity.__array_ufunc__` NotImplemented fix
+
+**Branch:** `scouting-report-priority-2-1692904929402517997`
+
+**Venv:** `.venv/` in repo root (created with `python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`).
+Run tests with `.venv/bin/pytest`.
+
+### What was done
+
+**Fix in `astropy/units/quantity.py` (line ~690):**
+Removed `None` from the `ignored_ufunc` tuple in the `except` block of `Quantity.__array_ufunc__`.
+
+Before:
+```python
+ignored_ufunc = (
+    None,
+    np.ndarray.__array_ufunc__,
+    type(self).__array_ufunc__,
+)
+```
+After:
+```python
+ignored_ufunc = (
+    np.ndarray.__array_ufunc__,
+    type(self).__array_ufunc__,
+)
+```
+
+**Why:** When an external object (like `Time`) has no `__array_ufunc__` defined, `getattr(type(obj), "__array_ufunc__", None)` returns `None`. Previously `None` was in `ignored_ufunc`, so the caught exception was re-raised instead of returning `NotImplemented`. Removing `None` from the tuple causes `Quantity.__array_ufunc__` to correctly return `NotImplemented` for all non-ndarray/non-Quantity objects.
+
+**Tests in `astropy/units/tests/test_quantity_ufuncs.py`:**
+
+1. Added `TestUfuncFallbackForUnknownUnitClass` class with two tests:
+   - `test_radd_fallback_no_array_ufunc` — object has `unit=u.s` (incompatible with meters for add), no `__array_ufunc__`; verifies `__radd__` is NOT invoked but... **this test currently FAILS** (see below).
+   - `test_rmul_fallback_array_ufunc_none` — object has `__array_ufunc__ = None`; verifies `__rmul__` is called. **PASSES** (but see caveat below).
+
+2. Updated the existing `TestUfuncReturnsNotImplemented::TestBinaryUfuncs::test_basic` regex to also match numpy's new "all returned NotImplemented" error message.
+
+### Current test status
+
+```
+.venv/bin/pytest astropy/units/tests/test_quantity_ufuncs.py::TestUfuncFallbackForUnknownUnitClass
+.venv/bin/pytest astropy/units/tests/test_quantity_ufuncs.py::TestUfuncReturnsNotImplemented
+```
+
+- `test_rmul_fallback_array_ufunc_none` — PASSES
+- `test_radd_fallback_no_array_ufunc` — FAILS with `TypeError: operand type(s) all returned NotImplemented from __array_ufunc__(...)`
+- `TestUfuncReturnsNotImplemented` — all PASS (with updated regex)
+
+### Key insight the next instance needs to understand
+
+**The `test_rmul_fallback_array_ufunc_none` test passes WITHOUT the fix too.** When an object has `__array_ufunc__ = None`, numpy raises `TypeError` *before* calling `Quantity.__array_ufunc__` at all. NumPy's C-level ndarray operator catches this TypeError and returns `NotImplemented` to Python, which then tries `obj.__rmul__`. So our fix doesn't affect this path.
+
+**The real behavioral change** from our fix: for objects *without* `__array_ufunc__` (like `DuckQuantity1`, `DuckQuantity2`, `Time`), Quantity's `__array_ufunc__` used to re-raise the caught exception. Now it returns `NotImplemented`, causing numpy to raise "all returned NotImplemented" TypeError. Either way an exception is raised — only the message changes. The fallback to `__radd__`/`__rmul__` does NOT work via this path because numpy's "all returned NotImplemented" TypeError propagates through the C-level operator (unlike the `__array_ufunc__ = None` path where C catches it).
+
+### What still needs to be done
+
+1. **Fix or replace `test_radd_fallback_no_array_ufunc`**: The current test is wrong — returning `NotImplemented` from Quantity's `__array_ufunc__` does NOT enable `__radd__` fallback for objects without `__array_ufunc__`. Options:
+   - **Option A**: Call `Quantity.__array_ufunc__` *directly* and assert the return value is `NotImplemented` (instead of testing end-to-end arithmetic). This directly tests the fix.
+   - **Option B**: Test end-to-end using an object with `unit` that causes the try block to fail AND has `__array_ufunc__ = None` (not just "not defined"), so numpy's C-level catches the TypeError and falls back. But as shown, when `__array_ufunc__ = None`, Quantity's `__array_ufunc__` isn't even called.
+   - **Recommended**: Use Option A — directly test the return value of `Quantity.__array_ufunc__` when called with an external object. Example:
+     ```python
+     class ObjNoUfunc:
+         unit = u.s
+     obj = ObjNoUfunc()
+     q = 1.0 * u.m
+     result = u.Quantity.__array_ufunc__(q, np.add, '__call__', q, obj)
+     assert result is NotImplemented
+     ```
+
+2. **Add a changelog entry**: `docs/changes/units/<PR_NUMBER>.bugfix.rst` — needs actual PR number from GitHub.
+
+3. **Verify the full test suite** still passes:
+   ```bash
+   .venv/bin/pytest astropy/units/tests/test_quantity_ufuncs.py -x
+   .venv/bin/pytest astropy/units/tests/test_quantity.py -x
+   ```
+
+4. **Consider if the fix is sufficient**: Our fix changes the error message for external objects without `__array_ufunc__`. It also correctly makes `Quantity.__array_ufunc__` return `NotImplemented` when called directly (e.g., by `super().__array_ufunc__()` from a subclass). This is the correct and important use case that the scout report describes.

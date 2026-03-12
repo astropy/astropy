@@ -94,3 +94,11 @@ pip-wheel-metadata
 
 # Files generated if figure tests are run
 results
+
+# Jules + Claude
+jules_handoff.sh
+.github/jules-scout-prompt.md
+.github/workflows/daily-scout.yml
+.github/workflows/sync_upstream.yml
+.claude
+CLAUDE.md

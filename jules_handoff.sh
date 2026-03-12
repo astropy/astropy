@@ -98,11 +98,11 @@ echo ""
 echo "📋 Reading Jules scout report..."
 
 SCOUT_REPORT=""
-if [ -f "scout.md" ]; then
-  SCOUT_REPORT=$(cat scout.md)
-  echo "✅ Found scout.md"
+if [ -f "scout_report.md" ]; then
+  SCOUT_REPORT=$(cat scout_report.md)
+  echo "✅ Found scout_report.md"
 else
-  echo "⚠️  No scout.md found — will use PR description only"
+  echo "⚠️  No scout_report.md found — will use PR description only"
 fi
 
 # ── Step 4: Get PR info and extract issue number ──────────
@@ -133,15 +133,34 @@ if command -v gh &> /dev/null; then
 
       if [ "$ISSUE_STATUS" = "closed" ]; then
         echo ""
-        echo "⚠️  WARNING: Issue #$ISSUE_NUMBER is already CLOSED."
-        echo "   This may mean it was fixed by someone else."
-        printf "   Continue anyway? (y/n): "
-        read -r CONTINUE
-        if [[ "$CONTINUE" != "y" && "$CONTINUE" != "Y" ]]; then
-          echo "Aborted. Check jules.google.com for a different task."
-          exit 0
-        fi
+        echo "⛔  Issue #$ISSUE_NUMBER is already CLOSED — someone already fixed it."
+        echo "   Aborted. Pick a different Jules branch."
+        exit 0
       fi
+    fi
+
+    # Check for competing open PRs
+    echo "🔍 Checking for competing PRs on issue #$ISSUE_NUMBER..."
+    COMPETING=$(gh pr list --repo astropy/astropy       --search "fixes #$ISSUE_NUMBER"       --json number,title,state,isDraft,url       2>/dev/null || echo "[]")
+
+    PR_COUNT=$(echo "$COMPETING" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))")
+
+    if [ "$PR_COUNT" -gt "0" ]; then
+      echo ""
+      echo "⛔  STOP — There is already an open PR for issue #$ISSUE_NUMBER:"
+      echo "$COMPETING" | python3 -c "
+import sys, json
+prs = json.load(sys.stdin)
+for pr in prs:
+    draft = ' [DRAFT]' if pr.get('isDraft') else ''
+    print('  #' + str(pr['number']) + draft + ': ' + pr['title'])
+    print('  ' + pr['url'])
+"
+      echo ""
+      echo "   Don't waste your time — pick a different Jules branch."
+      exit 0
+    else
+      echo "✅ No competing PRs found — you're clear to proceed."
     fi
   fi
 fi
@@ -162,7 +181,7 @@ ${PR_TITLE:-"(not found)"}
 ---
 
 ## Jules Scout Report (scout.md)
-${SCOUT_REPORT:-"(No scout.md on this branch — refer to PR description below)"}
+${SCOUT_REPORT:-"(No scout_report.md on this branch — refer to PR description below)"}
 
 ---
 
@@ -201,13 +220,12 @@ from main being ahead of this branch due to the daily sync automation.
 5. Once tests pass, give me a 3-sentence summary of what changed for the PR description.
 CONTEXT
 
-echo "✅ Context written to $CONTEXT_FILE"
+echo "✅ Context ready"
 
-# ── Step 6: Launch Claude Code ────────────────────────────
+# ── Step 6: Print context and launch Claude Code ──────────
 
 echo ""
 echo "🚀 Launching Claude Code..."
-echo "──────────────────────────────────────────────"
 echo ""
 
-claude --context "$CONTEXT_FILE"
+claude < "$CONTEXT_FILE"
