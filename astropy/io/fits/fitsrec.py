@@ -841,9 +841,7 @@ class FITS_rec(np.recarray):
                     if vla_shape[0] == 1:
                         dummy[idx] = dummy[idx].reshape(1, len(dummy[idx]))
                     else:
-                        vla_dim = vla_shape[1:]
-                        vla_first = int(len(dummy[idx]) / math.prod(vla_dim))
-                        dummy[idx] = dummy[idx].reshape((vla_first,) + vla_dim)
+                        dummy[idx] = dummy[idx].reshape((-1,) + vla_shape[1:])
 
                 dummy[idx] = dummy[idx].view(dummy[idx].dtype.newbyteorder(">"))
                 # Each array in the field may now require additional
@@ -1162,7 +1160,7 @@ class FITS_rec(np.recarray):
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     raw_field[:] = 0  # reset
-                    npts = [math.prod(arr.shape) for arr in self._converted[name]]
+                    npts = [arr.size for arr in self._converted[name]]
 
                     raw_field[: len(npts), 0] = npts
                     raw_field[1:, 1] = (
