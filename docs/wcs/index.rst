@@ -22,7 +22,7 @@ For historical reasons and to support legacy software, `astropy.wcs` maintains
 two separate application interfaces. The ``High-Level API`` should be used by
 most applications. It abstracts out the underlying object and works transparently
 with other packages which support the
-`Common Python Interface for WCS <https://zenodo.org/record/1188875#.XnpOtJNKjyI>`_,
+`Common Python Interface for WCS <https://zenodo.org/records/11566733>`_,
 allowing for a more flexible approach to the problem and avoiding the `limitations
 of the FITS WCS standard <https://ui.adsabs.harvard.edu/abs/2015A%26C....12..133T/abstract>`_.
 

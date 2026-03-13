@@ -10,7 +10,6 @@ import astropy.units as u
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.table.column import BaseColumn
 from astropy.time import Time
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.masked import Masked
 
 
@@ -196,15 +195,12 @@ class TestMaskedColumnInit(SetupData):
             MaskedColumn(name="b", length=4, mask=mask_list)
 
 
-DTYPES_TEST_INIT = ["?", "b", "i2", "f4", "c8", "S", "U", "O"]
-if not NUMPY_LT_2_0:
-    DTYPES_TEST_INIT.extend(
-        [
-            np.dtypes.StrDType,  # same as "U"
-            np.dtypes.BytesDType,  # same as "S"
-            np.dtypes.StringDType,
-        ]
-    )
+DTYPES_TEST_INIT = ["?", "b", "i2", "f4", "c8", "S", "U", "O"] + [
+    # new in numpy 2
+    np.dtypes.StrDType,  # same as "U"
+    np.dtypes.BytesDType,  # same as "S"
+    np.dtypes.StringDType,
+]
 
 
 class TestTableInit(SetupData):

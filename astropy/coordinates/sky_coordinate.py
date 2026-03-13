@@ -12,7 +12,6 @@ from astropy import units as u
 from astropy.constants import c as speed_of_light
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, combine_masks
 
@@ -683,12 +682,12 @@ class SkyCoord(MaskableShapedLikeNDArray):
             new_distance = Distance(parallax=starpm[4] << u.arcsec)
 
         icrs2 = ICRS(
-            ra=u.Quantity(starpm[0], u.radian, copy=COPY_IF_NEEDED),
-            dec=u.Quantity(starpm[1], u.radian, copy=COPY_IF_NEEDED),
-            pm_ra=u.Quantity(starpm[2], u.radian / u.yr, copy=COPY_IF_NEEDED),
-            pm_dec=u.Quantity(starpm[3], u.radian / u.yr, copy=COPY_IF_NEEDED),
+            ra=u.Quantity(starpm[0], u.radian, copy=None),
+            dec=u.Quantity(starpm[1], u.radian, copy=None),
+            pm_ra=u.Quantity(starpm[2], u.radian / u.yr, copy=None),
+            pm_dec=u.Quantity(starpm[3], u.radian / u.yr, copy=None),
             distance=new_distance,
-            radial_velocity=u.Quantity(starpm[5], u.km / u.s, copy=COPY_IF_NEEDED),
+            radial_velocity=u.Quantity(starpm[5], u.km / u.s, copy=None),
             differential_type=SphericalDifferential,
         )
 

@@ -496,3 +496,16 @@ representation.
 
 ..
   EXAMPLE END
+
+Meta data
+---------
+
+The ECSV format allows for different data structures in the header "meta" element.
+Typically, this will be a mapping (what Python calls a dict), but it could also be a list or
+nested structure.
+Astropy's `~astropy.table.Table` requires a `dict` for table meta data. Thus,
+the reader will attempt to convert the ECSV header "meta" to a dict or store the entire structure
+in a single entry in the table meta.
+On writing, that dict will be written back in astropy's form, so ECSV files that were not
+originally written by astropy will preserve the content, but not the formatting of the
+header "meta" element.

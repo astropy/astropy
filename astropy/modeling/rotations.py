@@ -132,8 +132,7 @@ class RotationSequence3D(Model):
         orig_shape = x.shape or (1,)
         inarr = np.array([x.ravel(), y.ravel(), z.ravel()])
         result = np.dot(_create_matrix(angles[0], self.axes_order), inarr)
-        x, y, z = result[0], result[1], result[2]
-        x.shape = y.shape = z.shape = orig_shape
+        x, y, z = np.reshape(result, (3, *orig_shape))
         return x, y, z
 
 
@@ -544,8 +543,7 @@ class Rotation2D(Model):
         if isinstance(angle, u.Quantity):
             angle = angle.to_value(u.rad)
         result = np.dot(cls._compute_matrix(angle), inarr)
-        x, y = result[0], result[1]
-        x.shape = y.shape = orig_shape
+        x, y = np.reshape(result, (2, *orig_shape))
         if has_units:
             return u.Quantity(x, unit=x_unit, subok=True), u.Quantity(
                 y, unit=y_unit, subok=True

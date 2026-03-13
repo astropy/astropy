@@ -424,7 +424,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
                     # from the end. We do this rather than just trusting e.g.
                     # str() because str(15.) == 15.0. We format using 10 decimal
                     # places by default before stripping the zeros since this
-                    # corresponds to a resolution of less than a microarcecond,
+                    # corresponds to a resolution of less than a microarcsecond,
                     # which should be sufficient.
                     spacing = spacing.to_value(unit)
                     fields = 0

@@ -82,6 +82,7 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]
             assert fd[1].header["BITPIX"] == chdu.header["BITPIX"]
 
+    @pytest.mark.skip(reason="FIXME: https://github.com/astropy/astropy/issues/19383")
     @pytest.mark.remote_data
     def test_comp_image_quantize_level(self):
         """
@@ -134,15 +135,14 @@ class TestCompressedImage(FitsTestCase):
         not 2D and has a non-2D tile size.
         """
 
-        pytest.raises(
-            ValueError,
-            fits.CompImageHDU,
-            np.zeros((2, 10, 10), dtype=np.float32),
-            name="SCI",
-            compression_type="HCOMPRESS_1",
-            quantize_level=16,
-            tile_shape=(2, 10, 10),
-        )
+        with pytest.raises(ValueError):
+            fits.CompImageHDU(
+                np.zeros((2, 10, 10), dtype=np.float32),
+                name="SCI",
+                compression_type="HCOMPRESS_1",
+                quantize_level=16,
+                tile_shape=(2, 10, 10),
+            )
 
     def test_comp_image_hcompress_image_stack(self):
         """
@@ -1470,3 +1470,40 @@ def test_reserved_keywords_stripped(tmp_path):
         assert "ZBLANK" not in hdud[1].header
         assert "ZSCALE" not in hdud[1].header
         assert "ZZERO" not in hdud[1].header
+
+
+def test_compimghdu_with_primary_header_no_dual_keywords(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/19361
+
+    When creating a CompImageHDU using a PrimaryHDU's header, the resulting
+    header should not contain both SIMPLE/ZSIMPLE and XTENSION/ZTENSION.
+    According to the FITS standard, a header must have either SIMPLE or
+    XTENSION, never both. Additionally, PCOUNT/GCOUNT are extension-only
+    keywords and should not appear in a primary-style header.
+    """
+    # Create a PrimaryHDU with some data
+    hdu = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32).reshape(10, 10))
+
+    # Create a CompImageHDU using the PrimaryHDU's header
+    comp_hdu = fits.CompImageHDU(
+        data=np.arange(100, dtype=np.int32).reshape(10, 10),
+        header=hdu.header,
+    )
+
+    # The image header should have SIMPLE (not XTENSION) when created from PrimaryHDU
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+    # PCOUNT/GCOUNT are extension-only keywords
+    assert "PCOUNT" not in comp_hdu.header
+    assert "GCOUNT" not in comp_hdu.header
+
+    # Write to file and check the raw bintable header
+    hdul = fits.HDUList([fits.PrimaryHDU(), comp_hdu])
+    hdul.writeto(tmp_path / "test.fits")
+
+    # Check the underlying bintable header has ZSIMPLE but not ZTENSION
+    with fits.open(tmp_path / "test.fits", disable_image_compression=True) as hdul:
+        bintable_header = hdul[1].header
+        assert "ZSIMPLE" in bintable_header
+        assert "ZTENSION" not in bintable_header
