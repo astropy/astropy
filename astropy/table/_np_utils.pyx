@@ -25,7 +25,7 @@ def join_inner(np.ndarray[DTYPE_t, ndim=1] idxs,
                int len_left,
                int jointype):
     """
-    Do the inner-loop cartesian product for np_utils.join() processing.
+    Do the inner-loop cartesian product for operations.join() processing.
     (The "inner" is about the inner loop, not inner join).
     """
     cdef DTYPE_t n_out = 0

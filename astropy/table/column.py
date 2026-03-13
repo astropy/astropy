@@ -9,7 +9,6 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -510,7 +509,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
         copy_indices=True,
     ):
         if data is None:
@@ -733,11 +732,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
            we also want to consistently return an array rather than a column
            (see #1446 and #1685)
         """
-        if NUMPY_LT_2_0:
-            out_arr = super().__array_wrap__(out_arr, context)
-            return_scalar = True
-        else:
-            out_arr = super().__array_wrap__(out_arr, context, return_scalar)
+        out_arr = super().__array_wrap__(out_arr, context, return_scalar)
 
         if self.shape != out_arr.shape or (
             isinstance(out_arr, BaseColumn)
@@ -1002,7 +997,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if a.dtype.kind == "S" and not isinstance(v, bytes):
             v = np.asarray(v)
             if v.dtype.kind == "U":
-                v = np.char.encode(v, "utf-8")
+                v = np.strings.encode(v, "utf-8")
         return np.searchsorted(a, v, side=side, sorter=sorter)
 
     searchsorted.__doc__ = np.ndarray.searchsorted.__doc__
@@ -1144,7 +1139,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         else:
             arr = np.asarray(value)
             if arr.dtype.char == "U":
-                arr = np.char.encode(arr, encoding="utf-8")
+                arr = np.strings.encode(arr, encoding="utf-8")
                 if isinstance(value, np.ma.MaskedArray):
                     arr = np.ma.array(arr, mask=value.mask, copy=False)
                 value = arr
@@ -1153,7 +1148,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def tolist(self):
         if self.dtype.kind == "S":
-            return np.char.chararray.decode(self, encoding="utf-8").tolist()
+            return np.strings.decode(self, encoding="utf-8").tolist()
         else:
             return super().tolist()
 
@@ -1240,7 +1235,7 @@ class Column(BaseColumn):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
         copy_indices=True,
     ):
         if isinstance(data, MaskedColumn) and np.any(data.mask):
@@ -1599,7 +1594,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         unit=None,
         format=None,
         meta=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
         copy_indices=True,
     ):
         if mask is None:

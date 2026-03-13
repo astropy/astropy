@@ -6,8 +6,6 @@ from operator import index as operator_index
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED
-
 
 class Row:
     """A class to represent one row of a Table object.
@@ -90,7 +88,7 @@ class Row:
             )
         return self.as_void() != other
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         """Support converting Row to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not

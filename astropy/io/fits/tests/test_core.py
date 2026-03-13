@@ -333,10 +333,14 @@ class TestCore(FitsTestCase):
         assert ext == 1
         hl.close()
 
-        pytest.raises(ValueError, _getext, filename, "readonly", 1, 2)
-        pytest.raises(ValueError, _getext, filename, "readonly", (1, 2))
-        pytest.raises(ValueError, _getext, filename, "readonly", "sci", "sci")
-        pytest.raises(TypeError, _getext, filename, "readonly", 1, 2, 3)
+        with pytest.raises(ValueError):
+            _getext(filename, "readonly", 1, 2)
+        with pytest.raises(ValueError):
+            _getext(filename, "readonly", (1, 2))
+        with pytest.raises(ValueError):
+            _getext(filename, "readonly", "sci", "sci")
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", 1, 2, 3)
 
         hl, ext = _getext(filename, "readonly", ext=1)
         assert ext == 1
@@ -346,12 +350,10 @@ class TestCore(FitsTestCase):
         assert ext == ("sci", 2)
         hl.close()
 
-        pytest.raises(
-            TypeError, _getext, filename, "readonly", 1, ext=("sci", 2), extver=3
-        )
-        pytest.raises(
-            TypeError, _getext, filename, "readonly", ext=("sci", 2), extver=3
-        )
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", 1, ext=("sci", 2), extver=3)
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", ext=("sci", 2), extver=3)
 
         hl, ext = _getext(filename, "readonly", "sci")
         assert ext == ("sci", 1)
@@ -371,8 +373,10 @@ class TestCore(FitsTestCase):
         assert ext == ("sci", 1)
         hl.close()
 
-        pytest.raises(TypeError, _getext, filename, "readonly", "sci", ext=1)
-        pytest.raises(TypeError, _getext, filename, "readonly", "sci", 1, extver=2)
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", "sci", ext=1)
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", "sci", 1, extver=2)
 
         hl, ext = _getext(filename, "readonly", extname="sci")
         assert ext == ("sci", 1)
@@ -382,7 +386,8 @@ class TestCore(FitsTestCase):
         assert ext == ("sci", 1)
         hl.close()
 
-        pytest.raises(TypeError, _getext, filename, "readonly", extver=1)
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", extver=1)
 
     def test_extension_name_case_sensitive(self):
         """
@@ -525,8 +530,10 @@ class TestCore(FitsTestCase):
         del h1.header["EXTLEVEL"]
         assert h1.level == 1
 
-        pytest.raises(TypeError, setattr, h1, "ver", "FOO")
-        pytest.raises(TypeError, setattr, h1, "level", "BAR")
+        with pytest.raises(TypeError):
+            h1.ver = "FOO"
+        with pytest.raises(TypeError):
+            h1.level = "BAR"
 
     def test_consecutive_writeto(self):
         """
@@ -1012,12 +1019,16 @@ class TestFileFunctions(FitsTestCase):
         """Opening zipped files in a writeable mode should fail."""
 
         zf = self._make_zip_file()
-        pytest.raises(OSError, fits.open, zf, "update")
-        pytest.raises(OSError, fits.open, zf, "append")
+        with pytest.raises(OSError):
+            fits.open(zf, "update")
+        with pytest.raises(OSError):
+            fits.open(zf, "append")
 
         zf = zipfile.ZipFile(zf, "a")
-        pytest.raises(OSError, fits.open, zf, "update")
-        pytest.raises(OSError, fits.open, zf, "append")
+        with pytest.raises(OSError):
+            fits.open(zf, "update")
+        with pytest.raises(OSError):
+            fits.open(zf, "append")
 
     def test_read_open_astropy_gzip_file(self):
         """
@@ -1155,7 +1166,8 @@ class TestFileFunctions(FitsTestCase):
         # Opening in text mode should outright fail
         for mode in ("r", "w", "a"):
             with open(testfile, mode) as f:
-                pytest.raises(ValueError, fits.HDUList.fromfile, f)
+                with pytest.raises(ValueError):
+                    fits.HDUList.fromfile(f)
 
         # Need to re-copy the file since opening it in 'w' mode blew it away
         testfile = self.copy_file("test0.fits")

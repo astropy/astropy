@@ -619,7 +619,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                         tmp_wcsprm = tmp_wcsprm.sub(naxis)
                     except ValueError:
                         pass
-                    est_naxis = tmp_wcsprm.naxis if tmp_wcsprm.naxis else 2
+                    est_naxis = tmp_wcsprm.naxis or 2
 
             except NoWcsKeywordsFoundError:
                 pass
