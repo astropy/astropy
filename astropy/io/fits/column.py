@@ -1,15 +1,14 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import copy
+import math
 import numbers
-import operator
 import re
 import sys
 import warnings
 import weakref
 from collections import OrderedDict
 from contextlib import suppress
-from functools import reduce
 from itertools import pairwise
 from textwrap import indent
 
@@ -1203,7 +1202,7 @@ class Column(NotifierMixin):
                     # TDIMs have different meaning for VLA format,
                     # no warning should be thrown
                     msg = None
-                elif reduce(operator.mul, dims_tuple) > format.repeat:
+                elif math.prod(dims_tuple) > format.repeat:
                     msg = (
                         f"The repeat count of the column format {name!r} for column "
                         f"{format!r} is fewer than the number of elements per the TDIM "
@@ -2113,7 +2112,7 @@ class _VLF(np.ndarray):
             value = np.array(value, dtype=self.element_dtype)
         np.ndarray.__setitem__(self, key, value)
         nelem = value.shape
-        len_value = np.prod(nelem)
+        len_value = math.prod(nelem)
         self.max = max(self.max, len_value)
 
     def tolist(self):
@@ -2267,7 +2266,7 @@ def _makep(array, descr_output, format, nrows=None):
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 
         nelem = data_output[idx].shape
-        descr_output[idx, 0] = np.prod(nelem)
+        descr_output[idx, 0] = math.prod(nelem)
         descr_output[idx, 1] = _offset
 
         # detect overflow when using P format
