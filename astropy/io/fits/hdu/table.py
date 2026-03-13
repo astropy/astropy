@@ -561,7 +561,8 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 nrows = len(self.data)
 
             ncols = len(self.columns)
-            format = self.columns.formats
+            format = ", ".join(self.columns.formats)
+            format = f"[{format}]"
 
         # if data is not touched yet, use header info.
         else:
