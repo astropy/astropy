@@ -1681,4 +1681,3 @@ class TestLinalg:
         q = np.eye(2) * u.m
         result = function(q)
         assert result.unit == expected_unit
-
