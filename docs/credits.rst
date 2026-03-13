@@ -607,7 +607,7 @@ please send an email to the coordinators, or
 `open a pull request for this page <https://github.com/astropy/astropy/edit/main/docs/credits.rst>`_
 in the `astropy repository <https://github.com/astropy/astropy>`_)
 
-For how to acknowledge Astropy, please see `the Acknowledging or Citing Astropy page <https://www.astropy.org/acknowledging.html>`_.
+For how to acknowledge Astropy, please see :ref:`astropy-org-acknowledge`.
 
 .. These substitutions are duplicated here (from conf.py) so this rst file can be used in the astropy.org site without triggering warnings.
 .. |Astropy mailing list| replace:: `Astropy mailing list <https://mail.python.org/mailman/listinfo/astropy>`__
