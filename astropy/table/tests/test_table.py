@@ -1642,6 +1642,24 @@ def test_copy_protocol():
     _assert_copies(t, t3)
 
 
+def test_masked_table_deepcopy_print_regression():
+    """
+       Regression test for issue #19408 where deepcopy of masked Table
+    raised AttributeError when printing.
+    """
+    from copy import deepcopy
+
+    from astropy.table import Table
+
+    t1 = Table([(1, 2)], names=("a"), masked=True)
+    t2 = deepcopy(t1)
+
+    # Ensure printing the deepcopy does not raise an exception
+    output = str(t2)
+
+    assert "a" in output
+
+
 def test_disallow_inequality_comparisons():
     """
     Regression test for #828 - disallow comparison operators on whole Table
