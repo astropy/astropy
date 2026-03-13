@@ -87,6 +87,7 @@ Specialized Formats
               ascii.daophot     No          :class:`~astropy.io.ascii.Daophot`: IRAF DAOphot format table
                  ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table
                 ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table
+                 ascii.mesa     No   .data  :class:`~astropy.io.ascii.Mesa`: MESA stellar evolution code output format
                   ascii.mrt    Yes          :class:`~astropy.io.ascii.Mrt`: AAS Machine-Readable Table format
                   ascii.qdp    Yes    .qdp  :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files
                   ascii.rst    Yes    .rst  :class:`~astropy.io.ascii.RST`: reStructuredText simple format table
@@ -113,8 +114,9 @@ DAOphot table (in this example we use a file that is installed with astropy)::
     >>> t = Table.read(photometry_file, format='ascii.daophot')
 
 Use ``format='ascii'`` in order read a table and guess the table format by successively
-trying most of the available formats in a specific order. This can be slow and is not
-recommended for large tables.
+trying most of the available formats in a specific order. This can be slow for large tables
+and :ref:`might read the table in a different format than expected <io_ascii_should_specify_format>`.
+
 
     >>> latex_file = get_pkg_data_filename('data/latex1.tex',
     ...                                     package='astropy.io.ascii.tests')

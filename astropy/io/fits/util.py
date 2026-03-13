@@ -5,7 +5,6 @@ import io
 import mmap
 import operator
 import os
-import platform
 import signal
 import sys
 import tempfile
@@ -17,9 +16,9 @@ from contextlib import contextmanager, suppress
 from functools import wraps
 
 import numpy as np
-from packaging.version import Version
 
 from astropy.utils import data
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -242,7 +241,7 @@ def encode_ascii(s):
     if isinstance(s, str):
         return s.encode("ascii")
     elif isinstance(s, np.ndarray) and issubclass(s.dtype.type, np.str_):
-        ns = np.char.encode(s, "ascii").view(type(s))
+        ns = np.strings.encode(s, "ascii").view(type(s))
         if ns.dtype.itemsize != s.dtype.itemsize / 4:
             ns = ns.astype((np.bytes_, s.dtype.itemsize / 4))
         return ns
@@ -264,18 +263,18 @@ def decode_ascii(s):
             s = s.decode("ascii", errors="replace")
             return s.replace("\ufffd", "?")
     elif isinstance(s, np.ndarray) and issubclass(s.dtype.type, np.bytes_):
-        # np.char.encode/decode annoyingly don't preserve the type of the
+        # np.strings.encode/decode annoyingly don't preserve the type of the
         # array, hence the view() call
         # It also doesn't necessarily preserve widths of the strings,
         # hence the astype()
         if s.size == 0:
             # Numpy apparently also has a bug that if a string array is
-            # empty calling np.char.decode on it returns an empty float64
+            # empty calling np.strings.decode on it returns an empty float64
             # array : https://github.com/numpy/numpy/issues/13156
             dt = s.dtype.str.replace("S", "U")
             ns = np.array([], dtype=dt).view(type(s))
         else:
-            ns = np.char.decode(s, "ascii").view(type(s))
+            ns = np.strings.decode(s, "ascii").view(type(s))
         if ns.dtype.itemsize / 4 != s.dtype.itemsize:
             ns = ns.astype((np.str_, s.dtype.itemsize))
         return ns
@@ -494,38 +493,10 @@ def fill(text, width, **kwargs):
     return "\n\n".join(maybe_fill(p) for p in paragraphs)
 
 
-# On MacOS X 10.8 and earlier, there is a bug that causes numpy.fromfile to
-# fail when reading over 2Gb of data. If we detect these versions of MacOS X,
-# we can instead read the data in chunks. To avoid performance penalties at
-# import time, we defer the setting of this global variable until the first
-# time it is needed.
-CHUNKED_FROMFILE = None
-
-
 def _array_from_file(infile, dtype, count):
     """Create a numpy array from a file or a file-like object."""
     if isfile(infile):
-        global CHUNKED_FROMFILE
-        if CHUNKED_FROMFILE is None:
-            if sys.platform == "darwin" and Version(platform.mac_ver()[0]) < Version(
-                "10.9"
-            ):
-                CHUNKED_FROMFILE = True
-            else:
-                CHUNKED_FROMFILE = False
-
-        if CHUNKED_FROMFILE:
-            chunk_size = int(1024**3 / dtype.itemsize)  # 1Gb to be safe
-            if count < chunk_size:
-                return np.fromfile(infile, dtype=dtype, count=count)
-            else:
-                array = np.empty(count, dtype=dtype)
-                for beg in range(0, count, chunk_size):
-                    end = min(count, beg + chunk_size)
-                    array[beg:end] = np.fromfile(infile, dtype=dtype, count=end - beg)
-                return array
-        else:
-            return np.fromfile(infile, dtype=dtype, count=count)
+        return np.fromfile(infile, dtype=dtype, count=count)
     else:
         # treat as file-like object with "read" method; this includes gzip file
         # objects, because numpy.fromfile just reads the compressed bytes from
@@ -870,7 +841,10 @@ def _rstrip_inplace(array):
     # Note: the code will work if this fails; the chunks will just be larger.
     if b.ndim > 2:
         try:
-            b.shape = -1, b.shape[-1]
+            if NUMPY_LT_2_5:
+                b.shape = -1, b.shape[-1]
+            else:
+                b._set_shape((-1, b.shape[-1]))
         except AttributeError:  # can occur for non-contiguous arrays
             pass
     for j in range(0, b.shape[0], bufsize):

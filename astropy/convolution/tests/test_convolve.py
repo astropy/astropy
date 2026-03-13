@@ -1247,7 +1247,7 @@ def test_uninterpolated_nan_regions(boundary, normalize_kernel):
     # Test case: kernel.shape > NaN_region.shape
     nan_centroid = np.full(
         (kernel.shape[0] - 1, kernel.shape[1] - 1), np.nan
-    )  # 1 smaller than kerenel
+    )  # 1 smaller than kernel
     image = np.pad(
         nan_centroid, pad_width=kernel.shape[0] * 2, mode="constant", constant_values=1
     )

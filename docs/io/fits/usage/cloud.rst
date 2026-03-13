@@ -93,7 +93,7 @@ Subsetting FITS files hosted in Amazon S3 cloud storage
 
 The FITS file used in the example above also happens to be available via
 Amazon cloud storage, where it is stored in a `public S3 bucket
-<https://registry.opendata.aws/hst/>`__ at the following location::
+<https://registry.opendata.aws/mast-hst/>`__ at the following location::
 
     >>> s3_uri = "s3://stpubdata/hst/public/j8pu/j8pu0y010/j8pu0y010_drc.fits"
 

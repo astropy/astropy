@@ -942,8 +942,74 @@ How to Find and Fix Problems Reading a Table
 The purpose of this section is to provide a few examples how we can
 deal with tables that fail to read.
 
-Obtain the Data Table in a Different Format
--------------------------------------------
+.. _io_ascii_should_specify_format:
+
+Specify as much detail as possible about the format
+---------------------------------------------------
+One of the most common ways to read text tables with astropy is to get the
+reader guess the format. This is convenient, but it takes extra time because
+the reader tries different formats until one of them looks like it's
+working (see :ref:`guess_formats` for details on the guessing process) and
+sometimes that's not the format you expect.
+Thus, if you know the format of the table, is it safer and faster to specify
+as much detail as possible.
+
+Here is an example:
+
+    >>> tab_text = """
+    ... , a, b
+    ... 0, x, 3
+    ... 1, y, d
+    ... """
+
+This could be read either as table with three rows and no header (and a missing
+data entry in the first column) or the first row could be the column names.
+In either case, the commas could be part of the data of a space-delimited table
+or they could be delimiters for a comma-delimited table.
+If we explicitly set the format, astropy will read it for any of these cases.
+
+The "no_header" format will try a space-delimited table first, so all the columns will
+come out to be string columns:
+
+    >>> ascii.read(tab_text, format="no_header")
+    <Table length=3>
+    col1 col2 col3
+    str2 str2 str1
+    ---- ---- ----
+    ,   a,    b
+    0,   x,    3
+    1,   y,    d
+
+If we set the delimiter to a comma, then the first column will be an integer:
+
+    >>> ascii.read(tab_text, format="no_header", delimiter=",")
+    <Table length=3>
+    col1 col2 col3
+    int64 str1 str1
+    ----- ---- ----
+       --    a    b
+        0    x    3
+        1    y    d
+
+We can also read it using a format that expects a header line and a comma delimiter.
+In this case, only the name for the first column with an empty name will be auto-assigned:
+
+    >>> ascii.read(tab_text, format='csv')
+    <Table length=2>
+    col0  a    b
+    int64 str1 str1
+    ----- ---- ----
+        0    x    3
+        1    y    d
+
+However, if we let astropy guess the format, it cannot know what is intended. When
+guessing tries out different format with ``ascii.read(tab_text)`` the first one that
+matches in this particular example is the "no header with comma delimiter" format.
+While the astropy developers spent a lot of time trying to make the guessing process
+return what a human would naturally expect, there is no way to make it work for all cases.
+Thus, it is safest to always specify the format if known.
+
+
 Sometimes it is easy to obtain the data in a more structured format that
 more clearly defines columns and metadata, e.g. a FITS or VO/XML table, or
 a text table that uses a different column separator (e.g. comma instead of

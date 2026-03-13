@@ -335,7 +335,11 @@ class CompImageHDU(ImageHDU):
             )
 
             if header is not None and "SIMPLE" in header:
-                self.header["SIMPLE"] = header["SIMPLE"]
+                # SIMPLE and XTENSION are mutually exclusive per FITS standard
+                del self.header["XTENSION"]
+                del self.header["PCOUNT"]
+                del self.header["GCOUNT"]
+                self.header.insert(0, ("SIMPLE", header["SIMPLE"]))
 
             self.compression_type = compression_type
             self.tile_shape = _validate_tile_shape(

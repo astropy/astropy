@@ -284,7 +284,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         types.append(custom_mapping[ctype_name])
                         break
                 else:
-                    types.append(CTYPE_TO_UCD1.get(ctype_name.upper(), None))
+                    types.append(CTYPE_TO_UCD1.get(ctype_name.upper()))
         return types
 
     @property
