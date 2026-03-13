@@ -16,8 +16,8 @@ jobs:
 
   update-astropy-iers-data-pin:
     permissions:
-      contents: write  # for peter-evans/create-pull-request to create branch
-      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+      contents: write  # to create a branch
+      pull-requests: write  # to create a PR
     name: Auto-update astropy-iers-data minimum version
     runs-on: ubuntu-latest
     if: github.repository == 'astropy/astropy'
@@ -42,21 +42,17 @@ jobs:
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add pyproject.toml
+        git switch -c update-astropy-iers-data-pin-$(date +"%s")
+        git add pyproject.toml scripts/lowest-resolved-tree.txt
         if ! git diff --cached --exit-code; then
           git commit -m "Update minimum required version of astropy-iers-data"
         fi
+
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0  # v8.1.0
-      with:
-        branch: update-astropy-iers-data-pin
-        branch-suffix: timestamp
-        delete-branch: true
-        labels: no-changelog-entry-needed, utils.iers
-        title: Update minimum required version of astropy-iers-data
-        body: |
-          This is an automated update of the minimum version of astropy-iers-data package.
-
-          :pray: Please apply backport labels to any active backport branches for v6.0.x or later. :pray:
-
-          :warning: Please close and re-open this pull request to trigger the CI. :warning:
+      run: |
+        gh pr create \
+          --title "Update minimum required version of astropy-iers-data" \
+          --label no-changelog-entry-needed --label utils.iers \
+          --template .github/workflows/update_astropy_iers_data_pin.md
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
