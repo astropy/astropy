@@ -10,7 +10,8 @@ ColumnLimit: 100
 # Preserve existing patterns
 AlignAfterOpenBracket: DontAlign
 AlwaysBreakAfterReturnType: None
-BreakBeforeBraces: Linux
+BreakBeforeBraces: Stroustrup
+InsertBraces: true
 BinPackArguments: true
 BinPackParameters: true
 PointerAlignment: Right
