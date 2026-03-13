@@ -1552,13 +1552,9 @@ def _copy_of_mask(a):
 
 
 if NUMPY_LT_2_4:
+
     @dispatched_function
     def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-        mask = _copy_of_mask(ar1).ravel()
-        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
-else:
-    @dispatched_function
-    def in1d(ar1, ar2, /, assume_unique=False, invert=False, *, kind=None):
         mask = _copy_of_mask(ar1).ravel()
         return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
 
@@ -1568,26 +1564,15 @@ def _isin_impl(element, test_elements, assume_unique=False, invert=False, *, kin
     result.shape = element.shape
     return result, _copy_of_mask(element), None
 
-if not NUMPY_LT_2_4:
-    @dispatched_function
-    def isin(element, test_elements, /, assume_unique=False, invert=False, *, kind=None):
-        return _isin_impl(
-            element,
-            test_elements,
-            assume_unique=assume_unique,
-            invert=invert,
-            kind=kind,
-        )
-else:
-    @dispatched_function
-    def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
-        return _isin_impl(
-            element,
-            test_elements,
-            assume_unique=assume_unique,
-            invert=invert,
-            kind=kind,
-        )
+@dispatched_function
+def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
+    return _isin_impl(
+        element,
+        test_elements,
+        assume_unique=assume_unique,
+        invert=invert,
+        kind=kind,
+    )
 
 
 def _setdiff1d_impl(ar1, ar2, assume_unique=False):
@@ -1600,14 +1585,9 @@ def _setdiff1d_impl(ar1, ar2, assume_unique=False):
     res, _, _= _isin_impl(ar1, ar2, assume_unique=True, invert=True)
     return ar1[res], mask, None
 
-if not NUMPY_LT_2_4:
-    @dispatched_function
-    def setdiff1d(ar1, ar2, /, assume_unique=False):
-        return _setdiff1d_impl(ar1, ar2, assume_unique=assume_unique)
-else:
-    @dispatched_function
-    def setdiff1d(ar1, ar2, assume_unique=False):
-        return _setdiff1d_impl(ar1, ar2, assume_unique=assume_unique)
+@dispatched_function
+def setdiff1d(ar1, ar2, assume_unique=False):
+    return _setdiff1d_impl(ar1, ar2, assume_unique=assume_unique)
 
 
 # Add any dispatched or helper function that has a docstring to
