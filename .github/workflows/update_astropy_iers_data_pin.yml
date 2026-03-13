@@ -31,7 +31,7 @@ jobs:
 
     # we take advantage of uv add's ability to set a lower bound on a new dependency
     # by first removing it (simulating astropy-iers-data being "new") and re-adding it.
-    # --bounds=lower is passed in order tomake the default behavior extra explicit
+    # --bounds=lower is passed in order to make the default behavior extra explicit
     - name: upgrade astropy-iers-data
       run: |
         uv remove astropy-iers-data --no-sync
