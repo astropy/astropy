@@ -770,9 +770,9 @@ class _ImageBaseHDU(_ValidHDU):
         Handle "pseudo-unsigned" integers, if the user requested it.  Returns
         the converted data array if so; otherwise returns None.
 
-        In this case case, we don't need to handle BLANK to convert it to NAN,
-        since we can't do NaNs with integers, anyway, i.e. the user is
-        responsible for managing blanks.
+        Handling of BLANK is done outside of this function on the converted
+        uint data, meaning that BLANK needs to be shifted by BZERO as well
+        before conversion of the corresponding values to NaN.
         """
         dtype = self._dtype_for_bitpix()
         # bool(dtype) is always False--have to explicitly compare to None; this
@@ -821,6 +821,11 @@ class _ImageBaseHDU(_ValidHDU):
         data = None
         if not (self._orig_bzero == 0 and self._orig_bscale == 1):
             data = self._convert_pseudo_integer(raw_data)
+            if not (self._blank is None or data is None or data.dtype.kind != "u"):
+                raw_data = data
+                data = None
+                self._uint = False  # Reset this to enable conversion to float
+                self._blank += self._orig_bzero  # Same scaling to uint as for data
 
         if data is None:
             # In these cases, we end up with floating-point arrays and have to
@@ -1105,8 +1110,9 @@ class PrimaryHDU(_ImageBaseHDU):
 
         ignore_blank : bool, optional
             If `True`, the BLANK header keyword will be ignored if present.
-            Otherwise, pixels equal to this value will be replaced with
-            NaNs. (default: False)
+            Otherwise, integer data will be converted to float and pixels
+            originally equal to this value will be replaced with NaNs.
+            (default: False)
 
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
@@ -1191,6 +1197,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         name=None,
         do_not_scale_image_data=False,
         uint=True,
+        ignore_blank=False,
         scale_back=None,
         ver=None,
     ):
@@ -1213,6 +1220,12 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         do_not_scale_image_data : bool, optional
             If `True`, image data is not scaled using BSCALE/BZERO values
             when read. (default: False)
+
+        ignore_blank : bool, optional
+            If `True`, the BLANK header keyword will be ignored if present.
+            Otherwise, integer data will be converted to float and pixels
+            originally equal to this value will be replaced with NaNs.
+            (default: False)
 
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
@@ -1245,6 +1258,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             name=name,
             do_not_scale_image_data=do_not_scale_image_data,
             uint=uint,
+            ignore_blank=ignore_blank,
             scale_back=scale_back,
             ver=ver,
         )
