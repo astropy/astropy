@@ -88,6 +88,42 @@ void test_simple_array_nan_interpolate() {
     return;
 }
 
+void test__bot0_nan_array() {
+    //Test bot=0 fallback behavior
+    // Input Signal 1 - A 1d array of 4 NaN elements
+    size_t nx = 4;
+    double f[] = {NAN, NAN, NAN, NAN};
+    
+    // Output array
+    double result[5] = {0.0, 0.0, 0.0, 0.0};
+
+    // A moving sum kernel of 3 elements
+    size_t nkx = 3;
+    double g[] = {1.0, 1.0, 1.0};
+
+    // Execute the convolution function
+    convolve1d_c(result, f, nx, g, nkx, true, true, 1);
+
+    // Output should be same as input for all elements convoluted since bot = 0.
+    //Index 0 and 3 are left 0.0 in output array
+
+    printf("Computed Results for array containing only NaN:\n");
+    for(int i = 0; i < nx; i++) {
+        printf("result[%d] = %f\n", i, result[i]);
+    }
+
+    if (fabs(result[0] - 0.0) < 1e-9 && isnan(result[1]) && isnan(result[2]) 
+        && fabs(result[3] - 0.0) < 1e-9) {
+        printf("\n[PASS] The core is handling only NaN input correctly.\n");
+        return;
+    } else {
+        printf("\n[FAIL] The output did not match the expected values.\n");
+        return;
+    }
+
+    return;
+}
+
 int main() {
     //1D convolution tests
     printf("--- Starting 1D Convolution Tests ---\n");
@@ -95,6 +131,7 @@ int main() {
     test_simple_array();
     printf("Simple array containing NaN\n");
     test_simple_array_nan_interpolate();
-
+    printf("Testing fallback when bot=0\n\n");
+    test__bot0_nan_array();
     return 0;
 }
