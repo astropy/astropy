@@ -509,8 +509,8 @@ class _ImageBaseHDU(_ValidHDU):
                 min = self.data.min().compute()
                 max = self.data.max().compute()
             else:
-                min = np.minimum.reduce(self.data.flat)
-                max = np.maximum.reduce(self.data.flat)
+                min = self.data.min()
+                max = self.data.max()
 
             if _type == np.uint8:  # uint8 case
                 _zero = min

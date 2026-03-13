@@ -2111,9 +2111,7 @@ class _VLF(np.ndarray):
         else:
             value = np.array(value, dtype=self.element_dtype)
         np.ndarray.__setitem__(self, key, value)
-        nelem = value.shape
-        len_value = math.prod(nelem)
-        self.max = max(self.max, len_value)
+        self.max = max(self.max, value.size)
 
     def tolist(self):
         return [list(item) for item in super().tolist()]
@@ -2265,8 +2263,7 @@ def _makep(array, descr_output, format, nrows=None):
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 
-        nelem = data_output[idx].shape
-        descr_output[idx, 0] = math.prod(nelem)
+        descr_output[idx, 0] = data_output[idx].size
         descr_output[idx, 1] = _offset
 
         # detect overflow when using P format
@@ -2483,7 +2480,7 @@ def _convert_record2fits(format):
     ndims = len(shape)
     repeat = 1
     if ndims > 0:
-        nel = np.array(shape, dtype="i8").prod()
+        nel = math.prod(shape)
         if nel > 1:
             repeat = nel
 
