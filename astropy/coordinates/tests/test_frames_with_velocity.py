@@ -311,15 +311,26 @@ def test_negative_distance(icrs_coords):
     assert quantity_allclose(c.dec, -55.8 * u.deg)
 
 
-def test_velocity_units():
+@pytest.mark.parametrize(
+    "equivalency",
+    [
+        pytest.param([], id="no equivalencies"),
+        # Regression test for #19043 - equivalencies could mess up the error message.
+        pytest.param(u.doppler_redshift(), id="doppler_redshift equivalency"),
+    ],
+)
+def test_velocity_units(equivalency):
     """Check that the differential data given has compatible units
     with the time-derivative of representation data"""
-    with pytest.raises(
-        ValueError,
-        match=(
-            '^x has unit "pc" with physical type "length", but v_x has incompatible'
-            ' unit "" with physical type "dimensionless" instead of the expected'
-            r' "speed/velocity".$'
+    with (
+        u.set_enabled_equivalencies(equivalency),
+        pytest.raises(
+            ValueError,
+            match=(
+                '^x has unit "pc" with physical type "length", but v_x has incompatible'
+                ' unit "" with physical type "dimensionless" instead of the expected'
+                r' "speed/velocity".$'
+            ),
         ),
     ):
         ICRS(**CARTESIAN_POSITION, v_x=1, v_y=2, v_z=3, differential_type="cartesian")
