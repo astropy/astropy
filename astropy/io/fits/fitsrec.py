@@ -576,7 +576,6 @@ class FITS_rec(np.recarray):
 
         if isinstance(key, slice):
             start, end, step = key.indices(len(self))
-            end = min(end, start + len(value) * step)
 
             for i, idx in enumerate(range(start, end, step)):
                 self.__setitem__(idx, value[i])
