@@ -505,7 +505,8 @@ class TableFormatter:
             or _possible_string_format_functions
         )
         auto_format_func = get_auto_format_func(col, pssf)
-        format_func = col.info._format_funcs.get(col_format, auto_format_func)
+        format_funcs = getattr(col.info, "_format_funcs", {})
+        format_func = format_funcs.get(col_format, auto_format_func)
 
         if n_rows > max_lines:
             if show_length is None:
