@@ -89,7 +89,7 @@ def main() -> int:
     cli_args = parser.parse_args()
 
     ref_file = (SCRIPTS_DIR / "lowest-resolved-tree.txt").resolve()
-    old_tree = ref_file.read_text()
+    old_tree = ref_file.read_text() if ref_file.exists() else ""
     new_tree = generate_tree(cli_args.debug)
 
     diff = "\n".join(
