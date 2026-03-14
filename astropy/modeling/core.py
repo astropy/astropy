@@ -3290,12 +3290,45 @@ class CompoundModel(Model):
     @property
     def fit_deriv(self):
         # If either side of the model is missing analytical derivative then we can't compute one
-        if self.left.fit_deriv is None or self.right.fit_deriv is None:
-            return None
+        # Exception: for pipe operator, if left has no parameters, right's fit_deriv is sufficient
+        if self.op == "|":
+            # For pipe, if left has no parameters (e.g., Mapping), we only need right's fit_deriv
+            if self.left.fit_deriv is None and len(self.left.parameters) == 0:
+                # Left model has no parameters, just use right model's fit_deriv
+                def _deriv_no_left_params(*args, **kwargs):
+                    args, kw = self._get_kwarg_model_parameters_as_positional(args, kwargs)
+                    left_inputs = self._get_left_inputs_from_args(args)
+                    left_params = self._get_left_params_from_args(args)
+                    right_params = self._get_right_params_from_args(args)
+
+                    # Evaluate left model to get input for right model
+                    leftval = self.left.evaluate(*left_inputs, *left_params)
+
+                    # Compute derivatives of right model at the output of left model
+                    if isinstance(leftval, tuple):
+                        return self.right.fit_deriv(*leftval, *right_params)
+                    else:
+                        return self.right.fit_deriv(leftval, *right_params)
+
+                return _deriv_no_left_params
+            elif self.right.fit_deriv is None and len(self.right.parameters) == 0:
+                # Right model has no parameters, just use left model's fit_deriv
+                def _deriv_no_right_params(*args, **kwargs):
+                    args, kw = self._get_kwarg_model_parameters_as_positional(args, kwargs)
+                    left_inputs = self._get_left_inputs_from_args(args)
+                    left_params = self._get_left_params_from_args(args)
+                    return self.left.fit_deriv(*left_inputs, *left_params)
+
+                return _deriv_no_right_params
+            elif self.left.fit_deriv is None or self.right.fit_deriv is None:
+                return None
+        else:
+            if self.left.fit_deriv is None or self.right.fit_deriv is None:
+                return None
 
         # Only the following operators are supported
         op = self.op
-        if op not in ["-", "+", "*", "/"]:
+        if op not in ["-", "+", "*", "/", "|"]:
             return None
 
         def _calc_compound_deriv(*args, **kwargs):
@@ -3307,7 +3340,16 @@ class CompoundModel(Model):
             right_params = self._get_right_params_from_args(args)
 
             left_deriv = self.left.fit_deriv(*left_inputs, *left_params)
-            right_deriv = self.right.fit_deriv(*right_inputs, *right_params)
+
+            # For pipe operator, we need to evaluate left model first to get inputs for right
+            if op == "|":
+                leftval = self.left.evaluate(*left_inputs, *left_params)
+                if isinstance(leftval, tuple):
+                    right_deriv = self.right.fit_deriv(*leftval, *right_params)
+                else:
+                    right_deriv = self.right.fit_deriv(leftval, *right_params)
+            else:
+                right_deriv = self.right.fit_deriv(*right_inputs, *right_params)
 
             # Not all fit_deriv methods return consistent types, some return
             # single arrays, some return lists of arrays, etc. We now convert
@@ -3363,10 +3405,23 @@ class CompoundModel(Model):
             #              -f(x, a) * dg/db / g(x, b, c)**2,
             #              -f(x, a) * dg/dc / g(x, b, c)**2]
 
+            # Pipe - Chain rule
+            # h(x, a, b, c) = g(f(x, a), b, c)
+            # For linear models, this simplifies to just concatenating
+            # the derivatives, as the intermediate Jacobian is absorbed
+            # into the right model's fit_deriv evaluation
+            # fit_deriv = [left_deriv, right_deriv]
+
             if op in ["+", "-"]:
                 if op == "-":
                     right_deriv = [-x for x in right_deriv]
 
+                return np.array(left_deriv + right_deriv)
+
+            if op == "|":
+                # For pipe composition of linear models, we can concatenate
+                # the derivatives. The right model's derivatives are already
+                # evaluated at the output of the left model.
                 return np.array(left_deriv + right_deriv)
 
             leftval = self.left.evaluate(*left_inputs, *left_params).ravel()

@@ -381,7 +381,9 @@ class LinearLSQFitter(Fitter):
 
     Notes
     -----
-    Note that currently LinearLSQFitter does not support compound models.
+    LinearLSQFitter supports compound models created with operators such as
+    ``+``, ``-``, ``*``, ``/``, and ``|`` (pipe), as long as the resulting
+    compound model is linear in its parameters.
     """
 
     supported_constraints = ["fixed"]
@@ -583,9 +585,6 @@ class LinearLSQFitter(Fitter):
                 "Model is not linear in parameters, "
                 "linear fit methods should not be used."
             )
-
-        if hasattr(model, "submodel_names"):
-            raise ValueError("Model must be simple, not compound")
 
         _validate_constraints(self.supported_constraints, model)
 

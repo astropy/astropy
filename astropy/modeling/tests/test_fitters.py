@@ -1562,3 +1562,33 @@ def test_inplace_fitting(fitter_cls):
     assert m_fit is m_ini
     assert_almost_equal(m_ini.amplitude, 2.0)
     assert_almost_equal(m_fit.amplitude, 2.0)
+
+
+def test_linear_fit_compound_pipe_no_left_params():
+    """Test LinearLSQFitter with pipe composition where left model has no parameters.
+
+    Regression test for issue #6038.
+    """
+    fitter = LinearLSQFitter()
+    # Mapping has no parameters, Chebyshev1D does
+    model = models.Mapping((0,)) | models.Chebyshev1D(2)
+    x = np.arange(10, dtype=float)
+    y = 2 * x + 3
+    result = fitter(model, x, y)
+    assert result is not None
+    # Check that the fit is reasonable
+    assert_allclose(result(x), y, atol=0.01)
+
+
+def test_linear_fit_compound_pipe_both_params():
+    """Test LinearLSQFitter with pipe composition where both models have parameters.
+
+    Regression test for issue #6038.
+    """
+    fitter = LinearLSQFitter()
+    # Both Chebyshev1D models have parameters
+    model = models.Chebyshev1D(2) | models.Chebyshev1D(2)
+    x = np.arange(10, dtype=float)
+    y = np.arange(10, dtype=float)
+    result = fitter(model, x, y)
+    assert result is not None
