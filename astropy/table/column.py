@@ -1452,7 +1452,6 @@ class MaskedColumnInfo(ColumnInfo):
     def __init__(self, bound=False):
         super().__init__(bound)
 
-
         # If bound to a data object instance then create the dict of attributes
         # which stores the info attribute values.
         if bound:
