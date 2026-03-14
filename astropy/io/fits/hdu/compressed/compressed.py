@@ -739,17 +739,18 @@ class CompImageHDU(ImageHDU):
 
     @property
     def _file(self):
-        return self.__dict__.get("_file")
+        # Delegate to bintable since that's where the actual file reference lives
+        if self._bintable is not None:
+            return self._bintable._file
+        return None
 
     @_file.setter
     def _file(self, value):
-        # Propagate file reference to the internal bintable so that when
-        # _flush_resize updates the HDU's file reference, the bintable's
-        # file reference is also updated.
+        # Delegate to bintable. When _flush_resize updates the HDU's file
+        # reference, this ensures the bintable's file reference is also updated.
         # See https://github.com/astropy/astropy/issues/18612
         #
-        # Only propagate non-None values to avoid overwriting the bintable's
-        # valid file reference when the parent's __init__ sets _file = None.
+        # Only set non-None values to avoid overwriting the bintable's valid
+        # file reference when the parent's __init__ sets _file = None.
         if value is not None and self._bintable is not None:
             self._bintable._file = value
-        self.__dict__["_file"] = value
