@@ -41,6 +41,11 @@ else:
 
 
 def generate_tree(debug: bool) -> str:
+    uv_lock = REPO_ROOT / "uv.lock"
+    uv_lock_content: bytes | None = None
+    if uv_lock.exists():
+        uv_lock_content = uv_lock.read_bytes()
+
     cp = run(
         [
             uv.find_uv_bin(),
@@ -52,6 +57,10 @@ def generate_tree(debug: bool) -> str:
         check=False,
         capture_output=True,
     )
+
+    if uv_lock_content is not None:
+        uv_lock.write_bytes(uv_lock_content)
+
     if debug:
         print(cp.stderr.decode(), file=sys.stderr)
     if cp.returncode != 0:
@@ -89,7 +98,7 @@ def main() -> int:
     cli_args = parser.parse_args()
 
     ref_file = (SCRIPTS_DIR / "lowest-resolved-tree.txt").resolve()
-    old_tree = ref_file.read_text()
+    old_tree = ref_file.read_text() if ref_file.exists() else ""
     new_tree = generate_tree(cli_args.debug)
 
     diff = "\n".join(
