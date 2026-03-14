@@ -3294,7 +3294,8 @@ class CompoundModel(Model):
         if self.op == "|":
             # For pipe, if left has no parameters (e.g., Mapping), we only need right's fit_deriv
             if self.left.fit_deriv is None and len(self.left.parameters) == 0:
-                # Left model has no parameters, just use right model's fit_deriv
+                # Left model has no parameters, delegate to right model's fit_deriv
+                # Return directly since CompoundModel inherits col_fit_deriv from right model in this case
                 def _deriv_no_left_params(*args, **kwargs):
                     args, kw = self._get_kwarg_model_parameters_as_positional(args, kwargs)
                     left_inputs = self._get_left_inputs_from_args(args)
@@ -3305,6 +3306,7 @@ class CompoundModel(Model):
                     leftval = self.left.evaluate(*left_inputs, *left_params)
 
                     # Compute derivatives of right model at the output of left model
+                    # Return as-is since we're delegating to the right model completely
                     if isinstance(leftval, tuple):
                         return self.right.fit_deriv(*leftval, *right_params)
                     else:
@@ -3312,7 +3314,8 @@ class CompoundModel(Model):
 
                 return _deriv_no_left_params
             elif self.right.fit_deriv is None and len(self.right.parameters) == 0:
-                # Right model has no parameters, just use left model's fit_deriv
+                # Right model has no parameters, delegate to left model's fit_deriv
+                # Return directly since CompoundModel inherits col_fit_deriv from left model in this case
                 def _deriv_no_right_params(*args, **kwargs):
                     args, kw = self._get_kwarg_model_parameters_as_positional(args, kwargs)
                     left_inputs = self._get_left_inputs_from_args(args)
@@ -3339,16 +3342,20 @@ class CompoundModel(Model):
             right_inputs = self._get_right_inputs_from_args(args)
             right_params = self._get_right_params_from_args(args)
 
-            left_deriv = self.left.fit_deriv(*left_inputs, *left_params)
-
-            # For pipe operator, we need to evaluate left model first to get inputs for right
+            # For pipe operator with both models having parameters
             if op == "|":
+                # Evaluate left model to get inputs for right
                 leftval = self.left.evaluate(*left_inputs, *left_params)
+
+                # Get derivatives from both models
+                left_deriv = self.left.fit_deriv(*left_inputs, *left_params)
                 if isinstance(leftval, tuple):
                     right_deriv = self.right.fit_deriv(*leftval, *right_params)
                 else:
                     right_deriv = self.right.fit_deriv(leftval, *right_params)
             else:
+                # For other operators
+                left_deriv = self.left.fit_deriv(*left_inputs, *left_params)
                 right_deriv = self.right.fit_deriv(*right_inputs, *right_params)
 
             # Not all fit_deriv methods return consistent types, some return
@@ -3442,6 +3449,15 @@ class CompoundModel(Model):
 
     @property
     def col_fit_deriv(self):
+        # For pipe operator with one side having no parameters, inherit from the other side
+        if self.op == "|":
+            if (self.left.fit_deriv is None or not hasattr(self.left, 'fit_deriv')) and len(self.left.parameters) == 0:
+                # Delegate to right model
+                return self.right.col_fit_deriv
+            elif (self.right.fit_deriv is None or not hasattr(self.right, 'fit_deriv')) and len(self.right.parameters) == 0:
+                # Delegate to left model
+                return self.left.col_fit_deriv
+        # Default: use column-major format
         return True
 
     @property

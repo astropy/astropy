@@ -221,17 +221,18 @@ class TestJointFitter:
 
 
 class TestLinearLSQFitter:
-    def test_compound_model_raises_error(self):
-        """Test that if an user tries to use a compound model, raises an error"""
-        MESSAGE = r"Model must be simple, not compound"
-        with pytest.raises(ValueError, match=MESSAGE):
-            init_model1 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
-            init_model2 = models.Polynomial1D(degree=2, c0=[1, 1], n_models=2)
-            init_model_comp = init_model1 + init_model2
-            x = np.arange(10)
-            y = init_model_comp(x, model_set_axis=False)
-            fitter = LinearLSQFitter()
-            fitter(init_model_comp, x, y)
+    def test_compound_model_with_pipe_operator(self):
+        """Test that LinearLSQFitter now works with compound models using pipe operator"""
+        # Compound models with pipe operator now work
+        init_model1 = models.Polynomial1D(degree=2, c0=1)
+        init_model2 = models.Polynomial1D(degree=2, c0=1)
+        init_model_comp = init_model1 | init_model2
+        x = np.arange(10)
+        y = init_model_comp(x)
+        fitter = LinearLSQFitter()
+        # This should now work instead of raising an error
+        result = fitter(init_model_comp, x, y)
+        assert result is not None
 
     def test_chebyshev1D(self):
         """Tests fitting a 1D Chebyshev polynomial to some real world data."""
