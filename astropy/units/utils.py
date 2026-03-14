@@ -26,7 +26,7 @@ def is_effectively_unity(value: UnitScaleLike) -> bool | np.bool_:
     # value is *almost* always real, except, e.g., for u.mag**0.5, when
     # it will be complex.  Use try/except to ensure normal case is fast
     try:
-        return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY
+        return _JUST_BELOW_UNITY <= value <= _JUST_ABOVE_UNITY  # type: ignore[operator]
     except TypeError:  # value is complex
         return (
             _JUST_BELOW_UNITY <= value.real <= _JUST_ABOVE_UNITY
@@ -63,7 +63,7 @@ def maybe_simple_fraction(p: UnitPowerLike, max_denominator: int = 100) -> UnitP
 
     If the input is zero, an integer or `fractions.Fraction`, just return it.
     """
-    if p.__class__ is int or p.__class__ is Fraction:
+    if type(p) is int or type(p) is Fraction:
         return p
     if p == 0:
         return 0  # p might be some numpy number, but we want a Python int
@@ -98,7 +98,7 @@ def sanitize_power(p: UnitPowerLike) -> UnitPower:
     p : float, int, Rational, Fraction
         Power to be converted.
     """
-    if p.__class__ is int:
+    if type(p) is int:
         return p
 
     p = maybe_simple_fraction(p)
@@ -130,10 +130,10 @@ def resolve_fractions(
     # We short-circuit on the most common cases of int and float, since
     # isinstance(a, Fraction) is very slow for any non-Fraction instances.
     a_is_fraction = (
-        a.__class__ is not int and a.__class__ is not float and isinstance(a, Fraction)
+        type(a) is not int and type(a) is not float and isinstance(a, Fraction)
     )
     b_is_fraction = (
-        b.__class__ is not int and b.__class__ is not float and isinstance(b, Fraction)
+        type(b) is not int and type(b) is not float and isinstance(b, Fraction)
     )
     if a_is_fraction and not b_is_fraction:
         b = maybe_simple_fraction(b)
