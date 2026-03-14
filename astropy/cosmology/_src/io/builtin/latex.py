@@ -46,7 +46,7 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
     FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
     \end{tabular}
-    \end{table} 
+    \end{table}
     <BLANKLINE>
 
 .. testcleanup::
@@ -54,7 +54,8 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     >>> temp_dir.cleanup()
 """
 
-from typing import Any, TypeVar, Mapping
+from collections.abc import Mapping
+from typing import Any, TypeVar
 
 import astropy.cosmology.units as cu
 import astropy.units as u
@@ -88,7 +89,14 @@ _FORMAT_TABLE = {
     "zp": "$z_{p}$",
 }
 
-_STANDARD_COSMO_UNITS = {"H0": u.km, "Om0":None, "Tcmb0" : u.K, "Neff":None,  "m_nu" : u.eV,"Ob0":None}
+_STANDARD_COSMO_UNITS = {
+    "H0": u.km,
+    "Om0": None,
+    "Tcmb0": u.K,
+    "Neff": None,
+    "m_nu": u.eV,
+    "Ob0": None,
+}
 
 
 def read_latex(
@@ -112,9 +120,9 @@ def read_latex(
         integer for the row number or, if the table is indexed by a column, the value of
         that column. If the table is not indexed and ``index`` is a string, the "name"
         column is used as the indexing column.
-        
+
     units: Mapping[str, object] or None, optional keyword-only
-        A str-to-object mapping containing column names in the string format mapped to either a Unit object or None. This helps in precisely reading back the Cosmology in LaTeX format without any confusion about the units of various parameters. It assumes that parameters in general have standard units, if not different units for a parameter should be given in a `dict`. (eg. ``units = {"H0": u.km, "Om0": None, "Tcmb0": u.K, "Neff": None,  "m_nu": u.eV,"Ob0": None}``) 
+        A str-to-object mapping containing column names in the string format mapped to either a Unit object or None. This helps in precisely reading back the Cosmology in LaTeX format without any confusion about the units of various parameters. It assumes that parameters in general have standard units, if not different units for a parameter should be given in a `dict`. (eg. ``units = {"H0": u.km, "Om0": None, "Tcmb0": u.K, "Neff": None,  "m_nu": u.eV,"Ob0": None}``)
     move_to_meta : bool, optional keyword-only
         Whether to move keyword arguments that are not in the Cosmology class' signature
         to the Cosmology's metadata. This will only be applied if the Cosmology does NOT
@@ -188,14 +196,14 @@ def read_latex(
         for name, latex in _FORMAT_TABLE.items():
             if latex in table_columns:
                 table.rename_column(latex, name)
-                
-    if not(units):
+
+    if not (units):
         units = _STANDARD_COSMO_UNITS
-    
+
     table_columns = table.colnames
     data = {col: [table[col][1]] for col in table_columns}
     new_table = QTable(data, units=units)
-    
+
     return from_table(
         new_table, index, move_to_meta=move_to_meta, cosmology=cosmology, rename=None
     )
