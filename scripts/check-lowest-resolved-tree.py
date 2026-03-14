@@ -41,6 +41,13 @@ else:
 
 
 def generate_tree(debug: bool) -> str:
+    uv_lock = REPO_ROOT / "uv.lock"
+    uv_lock_content: bytes | None = None
+    uv_lock_st_mtime = 0.0
+    if uv_lock.exists():
+        uv_lock_content = uv_lock.read_bytes()
+        uv_lock_st_mtime = uv_lock.stat().st_mtime
+
     cp = run(
         [
             uv.find_uv_bin(),
@@ -52,6 +59,17 @@ def generate_tree(debug: bool) -> str:
         check=False,
         capture_output=True,
     )
+
+    assert uv_lock.exists()
+    if uv_lock.stat().st_mtime > uv_lock_st_mtime:
+        # uv.lock was created or modified: restore previous state
+        if uv_lock_content is None:
+            # created -> remove file entirely
+            uv_lock.unlink()
+        else:
+            # modified -> restore
+            uv_lock.write_bytes(uv_lock_content)
+
     if debug:
         print(cp.stderr.decode(), file=sys.stderr)
     if cp.returncode != 0:
