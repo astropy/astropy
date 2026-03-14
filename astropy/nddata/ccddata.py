@@ -768,10 +768,25 @@ def fits_ccddata_reader(
                         "file before reading it."
                     )
             else:
-                log.info(
-                    f"using the unit {unit} passed to the FITS reader instead "
-                    f"of the unit {fits_unit_string} in the FITS file."
-                )
+                # Only log when the units actually differ. If the user passed
+                # the same unit that is already in the header, there is nothing
+                # to warn about.
+                try:
+                    kifus = CCDData.known_invalid_fits_unit_strings
+                    fits_unit_string_for_compare = fits_unit_string
+                    if fits_unit_string_for_compare in kifus:
+                        fits_unit_string_for_compare = kifus[
+                            fits_unit_string_for_compare
+                        ]
+                    fits_unit_parsed = u.Unit(fits_unit_string_for_compare)
+                    units_match = u.Unit(unit) == fits_unit_parsed
+                except (ValueError, TypeError):
+                    units_match = False
+                if not units_match:
+                    log.info(
+                        f"using the unit {unit} passed to the FITS reader instead "
+                        f"of the unit {fits_unit_string} in the FITS file."
+                    )
 
         use_unit = unit or fits_unit_string
         hdr, wcs = _generate_wcs_and_update_header(hdr)
