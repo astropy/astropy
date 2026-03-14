@@ -633,6 +633,17 @@ def test_infol_logged_if_unit_in_fits_header(tmp_path):
         assert explicit_unit_name in log_list[0].message
 
 
+def test_no_log_when_unit_matches_fits_header(tmp_path):
+    # create_ccd_data uses u.adu, so BUNIT will be 'adu' in the written file.
+    ccd_data = create_ccd_data()
+    tmpfile = str(tmp_path / "temp.fits")
+    ccd_data.write(tmpfile)
+    log.setLevel("INFO")
+    with log.log_to_list() as log_list:
+        _ = CCDData.read(tmpfile, unit="adu")
+        assert len(log_list) == 0
+
+
 def test_wcs_attribute(tmp_path):
     """
     Check that WCS attribute gets added to header, and that if a CCDData

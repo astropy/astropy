@@ -175,3 +175,16 @@ class TestDeprecatedKeywords:
         func = self.depr_funcs[n_deprecated_keywords]
         with pytest.warns(FutureWarning, match=match):
             func(*args, **kwargs)
+
+    @pytest.mark.parametrize("n_deprecated_keywords", [1, 2, 4])
+    def test_warn_promoted_to_error(self, n_deprecated_keywords):
+        # Regression test for gh-19309: when FutureWarning is promoted to an
+        # exception, the C extension must return NULL without triggering a
+        # secondary SystemError ("returned a result with an exception set").
+        import warnings
+
+        func = self.depr_funcs[n_deprecated_keywords]
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", FutureWarning)
+            with pytest.raises(FutureWarning):
+                func(a=1, b=2, c=3, d=4)

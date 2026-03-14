@@ -128,7 +128,8 @@ depr_kws_wrap_call(DeprKwsObject* self, PyObject* args, PyObject* kwds) {
     // step 1: detect any deprecated keyword arguments, return if none.
     Py_ssize_t n_names = PyTuple_Size(self->names);
     PyObject *deprecated_kwargs = PyList_New(n_names);
-    Py_INCREF(deprecated_kwargs);
+    if (deprecated_kwargs == NULL)
+        return NULL;
     PyObject *name = NULL;
     Py_ssize_t i = 0;
     int has_kw = -2;
@@ -138,13 +139,18 @@ depr_kws_wrap_call(DeprKwsObject* self, PyObject* args, PyObject* kwds) {
         name = PyTuple_GetItem(self->names, i);
         has_kw = PyDict_Contains(kwds, name);
         if (has_kw) {
+            // PyList_SetItem steals a reference; borrow from the tuple then
+            // increment so the list owns its own reference to name.
+            Py_INCREF(name);
             PyList_SetItem(deprecated_kwargs, n_depr, name);
             ++n_depr;
         }
     }
 
-    if (n_depr == 0)
+    if (n_depr == 0) {
+        Py_DECREF(deprecated_kwargs);
         return PyObject_Call(self->wrapped, args, kwds);
+    }
 
     // step 2: create and emit warning message
     char names_char[NAMES_CHAR_SIZE];
@@ -152,7 +158,13 @@ depr_kws_wrap_call(DeprKwsObject* self, PyObject* args, PyObject* kwds) {
 
     PyObject *names_unicode;
     if (n_depr > 1) {
-        names_unicode = PyObject_Str(PyList_GetSlice(deprecated_kwargs, 0, n_depr));
+        PyObject *slice = PyList_GetSlice(deprecated_kwargs, 0, n_depr);
+        if (slice == NULL) {
+            Py_DECREF(deprecated_kwargs);
+            return NULL;
+        }
+        names_unicode = PyObject_Str(slice);
+        Py_DECREF(slice);
         s = "s";
         arguments = " arguments";
         respectively = ", respectively";
@@ -162,13 +174,29 @@ depr_kws_wrap_call(DeprKwsObject* self, PyObject* args, PyObject* kwds) {
         s = arguments = respectively = "";
         pronoun = "it";
     }
+    Py_DECREF(deprecated_kwargs);
+    if (names_unicode == NULL)
+        return NULL;
+
     const char* names_utf8 = PyUnicode_AsUTF8AndSize(names_unicode, NULL);
+    if (names_utf8 == NULL) {
+        Py_DECREF(names_unicode);
+        return NULL;
+    }
     snprintf(names_char, NAMES_CHAR_SIZE, "%s", names_utf8);
+    Py_DECREF(names_unicode);
 
     PyObject *since_unicode = PyObject_Str(self->since);
+    if (since_unicode == NULL)
+        return NULL;
     const char* since_utf8 = PyUnicode_AsUTF8AndSize(since_unicode, NULL);
+    if (since_utf8 == NULL) {
+        Py_DECREF(since_unicode);
+        return NULL;
+    }
     char since_char[SINCE_CHAR_SIZE];
     snprintf(since_char, SINCE_CHAR_SIZE, "%s", since_utf8);
+    Py_DECREF(since_unicode);
 
     char msg[MSG_SIZE];
     snprintf(
@@ -183,10 +211,8 @@ depr_kws_wrap_call(DeprKwsObject* self, PyObject* args, PyObject* kwds) {
     const char* msg_ptr = msg;
 
     int status = PyErr_WarnEx(PyExc_FutureWarning, msg_ptr, 2);
-    if (status == -1) {
-        // avoid leaking memory if Warning is promoted to Exception
-        Py_DECREF(deprecated_kwargs);
-    }
+    if (status == -1)
+        return NULL;
 
     return PyObject_Call(self->wrapped, args, kwds);
 }
