@@ -1660,3 +1660,153 @@ if HAS_SCIPY:
                 ),
             ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+        @pytest.mark.parametrize("function", (sps.beta, sps.betaln))
+        def test_two_arg_dimensionless(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            assert q_out.unit == u.dimensionless_unscaled
+            assert_allclose(q_out.value, function(1.0, 0.5))
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+        @pytest.mark.parametrize("function", (sps.betainc,))
+        def test_three_arg_dimensionless(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+            )
+            assert q_out.unit == u.dimensionless_unscaled
+            assert_allclose(q_out.value, function(1.0, 0.5, 0.5))
+
+            with pytest.raises(TypeError):
+                function(
+                    1.0 * u.kg,
+                    0.5 * u.dimensionless_unscaled,
+                    0.5 * u.dimensionless_unscaled,
+                )
+
+        @pytest.mark.parametrize("function", (sps.hyp2f1,))
+        def test_four_arg_dimensionless(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+                0.2 * u.dimensionless_unscaled,
+            )
+            assert q_out.unit == u.dimensionless_unscaled
+            assert_allclose(q_out.value, function(1.0, 0.5, 0.5, 0.2))
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 0.5 * u.one, 0.5 * u.one, 0.2 * u.one)
+
+        @pytest.mark.parametrize("function", (sps.fresnel,))
+        def test_one_arg_dimensionless_2out(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m))
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+            v_out = function(1.0)
+            assert_allclose(q_out[0].value, v_out[0])
+            assert_allclose(q_out[1].value, v_out[1])
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg)
+
+        @pytest.mark.parametrize("function", (sps.airy,))
+        def test_one_arg_dimensionless_4out(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m))
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 4
+            for i in range(4):
+                assert q_out[i].unit == u.dimensionless_unscaled
+            v_out = function(1.0)
+            for i in range(4):
+                assert_allclose(q_out[i].value, v_out[i])
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg)
+
+        @pytest.mark.parametrize("function", (sps.pbdv,))
+        def test_two_arg_dimensionless_2out(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+            v_out = function(1.0, 0.5)
+            assert_allclose(q_out[0].value, v_out[0])
+            assert_allclose(q_out[1].value, v_out[1])
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+        @pytest.mark.parametrize("function", (sps.ellipj,))
+        def test_two_arg_dimensionless_4out(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 4
+            for i in range(4):
+                assert q_out[i].unit == u.dimensionless_unscaled
+            v_out = function(1.0, 0.5)
+            for i in range(4):
+                assert_allclose(q_out[i].value, v_out[i])
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+        @pytest.mark.parametrize("function", (sps.mathieu_cem,))
+        def test_three_arg_dimensionless_2out(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+            )
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 0.5 * u.one, 0.5 * u.one)
+
+        @pytest.mark.parametrize("function", (sps.obl_ang1,))
+        def test_four_arg_dimensionless_2out(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+                0.2 * u.dimensionless_unscaled,
+            )
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 0.5 * u.one, 0.5 * u.one, 0.2 * u.one)
+
+        @pytest.mark.parametrize("function", (sps.obl_ang1_cv,))
+        def test_five_arg_dimensionless_2out(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+                0.2 * u.dimensionless_unscaled,
+                0.1 * u.dimensionless_unscaled,
+            )
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 0.5 * u.one, 0.5 * u.one, 0.2 * u.one, 0.1 * u.one)
+
+        @pytest.mark.parametrize("function", (sps.round,))
+        def test_round(self, function):
+            q_out = function(2.5 * u.kg)
+            assert q_out.unit == u.kg
+            assert_allclose(q_out.value, function(2.5))
