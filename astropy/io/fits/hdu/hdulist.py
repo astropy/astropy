@@ -1522,6 +1522,9 @@ class HDUList(list, _Verify):
                 if hdu._has_data and _get_array_mmap(hdu.data) is not None:
                     del hdu.data
                 hdu._file = ffo
+                # For CompImageHDU, also update the internal bintable's file
+                if isinstance(hdu, CompImageHDU) and hdu._bintable is not None:
+                    hdu._bintable._file = ffo
 
             if sys.platform.startswith("win"):
                 # On Windows, all the original data mmaps were closed above.
@@ -1572,6 +1575,9 @@ class HDUList(list, _Verify):
             hdu._header._modified = False
             hdu._new = False
             hdu._file = ffo
+            # For CompImageHDU, also update the internal bintable's file
+            if isinstance(hdu, CompImageHDU) and hdu._bintable is not None:
+                hdu._bintable._file = ffo
 
     def _wasresized(self, verbose=False):
         """
