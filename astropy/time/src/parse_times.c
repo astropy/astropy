@@ -5,21 +5,21 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MODULE_DOCSTRING \
-    "Fast time parsers.\n\n" \
+#define MODULE_DOCSTRING                                                       \
+    "Fast time parsers.\n\n"                                                   \
     "This module allows one to create gufuncs that vectorize the parsing of\n" \
     "standard time strings."
-#define CREATE_PARSER_DOCSTRING \
-    "create_parser()\n\n" \
-    "Create a gufunc that helps parse strings according to the given parameters.\n\n" \
-    "Parameters\n" \
-    "----------\n" \
-    "pars : ~numpy.ndarray\n" \
+#define CREATE_PARSER_DOCSTRING                                                        \
+    "create_parser()\n\n"                                                              \
+    "Create a gufunc that helps parse strings according to the given parameters.\n\n"  \
+    "Parameters\n"                                                                     \
+    "----------\n"                                                                     \
+    "pars : ~numpy.ndarray\n"                                                          \
     "    Should be structured array with delim, start, stop, break_allowed for each\n" \
-    "    of year, month, day, hour, minute, integer second, fractional second.\n\n" \
-    "Returns\n" \
-    "-------\n" \
-    "parser : `~numpy.ufunc`\n" \
+    "    of year, month, day, hour, minute, integer second, fractional second.\n\n"    \
+    "Returns\n"                                                                        \
+    "-------\n"                                                                        \
+    "parser : `~numpy.ufunc`\n"                                                        \
     "    Suitable for use by `~astropy.time.TimeString` formats."
 
 
@@ -27,9 +27,7 @@
 const char char_zero = 48;
 const char char_nine = 57;
 
-int parse_int_from_char_array(char *chars, int str_len,
-                              char delim, int idx0, int idx1,
-                              int *val)
+int parse_int_from_char_array(char *chars, int str_len, char delim, int idx0, int idx1, int *val)
 // Parse integer from positions idx0:idx1 (inclusive) within chars, optionally
 // starting with a delimiter.
 //
@@ -99,8 +97,7 @@ int parse_int_from_char_array(char *chars, int str_len,
 
     // Build up the value using reversed digits
     *val = 0;
-    for (ii = idx1; ii >= idx0; ii--)
-    {
+    for (ii = idx1; ii >= idx0; ii--) {
         ch = chars[ii];
         if (ch < char_zero || ch > char_nine) {
             // Not a digit, implying badly formatted time.
@@ -114,8 +111,7 @@ int parse_int_from_char_array(char *chars, int str_len,
     return 0;
 }
 
-int parse_frac_from_char_array(char *chars, int str_len, char delim, int idx0,
-                               double *val)
+int parse_frac_from_char_array(char *chars, int str_len, char delim, int idx0, double *val)
 // Parse trailing fraction starting from position idx0 in chars.
 //
 // Example: "2020-01-24T12:13:14.5556"
@@ -166,8 +162,7 @@ int parse_frac_from_char_array(char *chars, int str_len, char delim, int idx0,
         idx0 += 1;
     }
 
-    for (ii = idx0; ii < str_len; ii++)
-    {
+    for (ii = idx0; ii < str_len; ii++) {
         ch = chars[ii];
         if (ch < char_zero || ch > char_nine) {
             // Not a digit, implying badly formatted time.
@@ -180,13 +175,11 @@ int parse_frac_from_char_array(char *chars, int str_len, char delim, int idx0,
     return 0;
 }
 
-static inline int is_leap_year (int year)
+static inline int is_leap_year(int year)
 // Determine if year is a leap year.
 // Inspired by from https://stackoverflow.com/questions/17634282
 {
-  return ((year & 3) == 0)
-          && ((year % 100 != 0)
-              || (((year / 100) & 3) == 0));
+    return ((year & 3) == 0) && ((year % 100 != 0) || (((year / 100) & 3) == 0));
 }
 
 int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int *day_of_month)
@@ -195,11 +188,11 @@ int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int 
 {
     int leap_year = is_leap_year(year) ? 1 : 0;
     int days_in_year = leap_year ? 366 : 365;
-    const unsigned short int _mon_yday_normal[13] =
-        { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 };
-    const unsigned short int _mon_yday_leap[13] =
-        { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 };
-    const unsigned short int *mon_yday = leap_year ? _mon_yday_leap :_mon_yday_normal;
+    const unsigned short int _mon_yday_normal[13] = {
+        0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365};
+    const unsigned short int _mon_yday_leap[13] = {
+        0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366};
+    const unsigned short int *mon_yday = leap_year ? _mon_yday_leap : _mon_yday_normal;
     int mon;
 
     if (day_of_year < 1 || day_of_year > days_in_year) {
@@ -219,8 +212,7 @@ int convert_day_of_year_to_month_day(int year, int day_of_year, int *month, int 
 }
 
 
-static void
-parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void *data)
+static void parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void *data)
 {
     // Interpret gufunc loop arguments.
     // Number of input strings to convert.
@@ -264,10 +256,8 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
         double second;
     };
 
-    static char *msgs[5] = {
-        "time string ends at beginning of component where break is not allowed",
-        "time string ends in middle of component",
-        "required delimiter character not found",
+    static char *msgs[5] = {"time string ends at beginning of component where break is not allowed",
+        "time string ends in middle of component", "required delimiter character not found",
         "non-digit found where digit (0-9) required",
         "bad day of year (1 <= doy <= 365 or 366 for leap year"};
 
@@ -275,8 +265,7 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
     int status;
 
     // Loop over strings, updating pointers to next input and output element.
-    for (ii = 0; ii < n; ii++, time+=i_time, tm_ptr+=i_tm)
-    {
+    for (ii = 0; ii < n; ii++, time += i_time, tm_ptr += i_tm) {
         // Cast pointer to current output from char to the actual pointer
         // type, of time struct.
         struct time_struct_t *tm = (struct time_struct_t *)tm_ptr;
@@ -304,56 +293,88 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
         }
 
         // Get each time component: year, month, day, hour, minute, isec, frac
-        status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &tm->year);
+        status = parse_int_from_char_array(
+            time, str_len, pars->delim, pars->start, pars->stop, &tm->year);
         if (status) {
-            if (status == 1 && pars->break_allowed) { continue; }
-            else { goto error; }
+            if (status == 1 && pars->break_allowed) {
+                continue;
+            }
+            else {
+                goto error;
+            }
         }
 
         pars++;
         // Optionally parse month
         if (!has_day_of_year) {
-            status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &tm->month);
+            status = parse_int_from_char_array(
+                time, str_len, pars->delim, pars->start, pars->stop, &tm->month);
             if (status) {
-                if (status == 1 && pars->break_allowed) { continue; }
-                else { goto error; }
+                if (status == 1 && pars->break_allowed) {
+                    continue;
+                }
+                else {
+                    goto error;
+                }
             }
         }
 
         pars++;
         // This might be day-of-month or day-of-year
-        status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &tm->day);
+        status = parse_int_from_char_array(
+            time, str_len, pars->delim, pars->start, pars->stop, &tm->day);
         if (status) {
-            if (status == 1 && pars->break_allowed) { continue; }
-            else { goto error; }
+            if (status == 1 && pars->break_allowed) {
+                continue;
+            }
+            else {
+                goto error;
+            }
         }
 
         if (has_day_of_year) {
             // day contains day of year at this point, but convert it to day of month
             status = convert_day_of_year_to_month_day(tm->year, tm->day, &tm->month, &tm->day);
-            if (status) { goto error; }
+            if (status) {
+                goto error;
+            }
         }
 
         pars++;
-        status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &tm->hour);
+        status = parse_int_from_char_array(
+            time, str_len, pars->delim, pars->start, pars->stop, &tm->hour);
         if (status) {
-            if (status == 1 && pars->break_allowed) { continue; }
-            else { goto error; }
+            if (status == 1 && pars->break_allowed) {
+                continue;
+            }
+            else {
+                goto error;
+            }
         }
 
         pars++;
-        status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &tm->minute);
+        status = parse_int_from_char_array(
+            time, str_len, pars->delim, pars->start, pars->stop, &tm->minute);
         if (status) {
-            if (status == 1 && pars->break_allowed) { continue; }
-            else { goto error; }
+            if (status == 1 && pars->break_allowed) {
+                continue;
+            }
+            else {
+                goto error;
+            }
         }
 
         pars++;
         // second comes in integer and fractional part.
-        status = parse_int_from_char_array(time, str_len, pars->delim, pars->start, pars->stop, &second_int);
+        status = parse_int_from_char_array(
+            time, str_len, pars->delim, pars->start, pars->stop, &second_int);
         if (status) {
-            if (status == 1 && pars->break_allowed) { continue; }
-            else { goto error; }
+            if (status == 1 && pars->break_allowed) {
+                continue;
+            }
+            else {
+                goto error;
+            }
         }
 
         pars++;
@@ -362,14 +383,12 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
             goto error;
         }
         tm->second = (double)second_int + second_frac;
-
     }
     return;
 
-  error:;
+error:;
     PyGILState_STATE state = PyGILState_Ensure();
-    PyErr_Format(PyExc_ValueError,
-                 "fast C time string parser failed: %s", msgs[status-1]);
+    PyErr_Format(PyExc_ValueError, "fast C time string parser failed: %s", msgs[status - 1]);
     PyGILState_Release(state);
     return;
 }
@@ -377,40 +396,38 @@ parser_loop(char **args, const npy_intp *dimensions, const npy_intp *steps, void
 
 /* Create a gufunc parser */
 
-static PyArray_Descr *dt_pars = NULL;   /* Set in PyInit_ufunc */
+static PyArray_Descr *dt_pars = NULL; /* Set in PyInit_ufunc */
 static PyArray_Descr *gufunc_dtypes[2];
 
 
-static PyObject *
-create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
+static PyObject *create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
 {
     /* Input arguments */
     char *kw_list[] = {"pars", "name", "doc", NULL};
     PyObject *pars;
-    char *name=NULL, *doc=NULL;
+    char *name = NULL, *doc = NULL;
     /* Output */
-    PyUFuncObject *gufunc=NULL;
+    PyUFuncObject *gufunc = NULL;
 
     PyArrayObject *pars_array;
     int status;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|ss", kw_list,
-                                     &pars, &name, &doc)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|ss", kw_list, &pars, &name, &doc)) {
         return NULL;
     }
     if (name == NULL) {
         name = "fast_parser";
     }
-    Py_INCREF((PyObject*)dt_pars);
-    pars_array = (PyArrayObject *)PyArray_FromAny(pars, dt_pars, 1, 1,
-                     (NPY_ARRAY_CARRAY | NPY_ARRAY_ENSURECOPY), NULL);
+    Py_INCREF((PyObject *)dt_pars);
+    pars_array = (PyArrayObject *)PyArray_FromAny(
+        pars, dt_pars, 1, 1, (NPY_ARRAY_CARRAY | NPY_ARRAY_ENSURECOPY), NULL);
     if (pars_array == NULL) {
         return NULL;
     }
     if (PyArray_SIZE(pars_array) != 7) {
         PyErr_SetString(PyExc_ValueError,
-                        "Parameter array must have 7 entries"
-                        "(year, month, day, hour, minute, integer second, fraction)");
+            "Parameter array must have 7 entries"
+            "(year, month, day, hour, minute, integer second, fraction)");
         goto fail;
     }
 
@@ -432,33 +449,25 @@ create_parser(PyObject *NPY_UNUSED(dummy), PyObject *args, PyObject *kwds)
     gufunc->obj = (PyObject *)pars_array;
     return (PyObject *)gufunc;
 
-  fail:
-    Py_XDECREF((PyObject*)pars_array);
-    Py_XDECREF((PyObject*)gufunc);
+fail:
+    Py_XDECREF((PyObject *)pars_array);
+    Py_XDECREF((PyObject *)gufunc);
     return NULL;
 }
 
 
 static PyMethodDef parse_times_methods[] = {
-    {"create_parser", (PyCFunction)create_parser,
-         METH_VARARGS | METH_KEYWORDS, CREATE_PARSER_DOCSTRING},
-    {NULL, NULL, 0, NULL}        /* Sentinel */
+    {"create_parser", (PyCFunction)create_parser, METH_VARARGS | METH_KEYWORDS,
+        CREATE_PARSER_DOCSTRING},
+    {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
-static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "parse_times",
-        MODULE_DOCSTRING,
-        -1,
-        parse_times_methods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-};
+static struct PyModuleDef moduledef = {PyModuleDef_HEAD_INIT, "parse_times", MODULE_DOCSTRING, -1,
+    parse_times_methods, NULL, NULL, NULL, NULL};
 
 /* Initialization function for the module */
-PyMODINIT_FUNC PyInit__parse_times(void) {
+PyMODINIT_FUNC PyInit__parse_times(void)
+{
     PyObject *m;
     PyObject *d;
     PyObject *dtype_def;
@@ -474,12 +483,8 @@ PyMODINIT_FUNC PyInit__parse_times(void) {
     d = PyModule_GetDict(m);
 
     /* parameter and output dtypes */
-    dtype_def = Py_BuildValue(
-        "[(s, s), (s, s), (s, s), (s, s)]",
-        "delim", "S1",
-        "start", "i4",
-        "stop", "i4",
-        "break_allowed", "?");
+    dtype_def = Py_BuildValue("[(s, s), (s, s), (s, s), (s, s)]", "delim", "S1", "start", "i4",
+        "stop", "i4", "break_allowed", "?");
     PyArray_DescrAlignConverter(dtype_def, &dt_pars);
     Py_DECREF(dtype_def);
 
@@ -487,14 +492,8 @@ PyMODINIT_FUNC PyInit__parse_times(void) {
     PyArray_DescrAlignConverter(dtype_def, &dt_u1);
     Py_DECREF(dtype_def);
 
-    dtype_def = Py_BuildValue(
-        "[(s, s), (s, s), (s, s), (s, s), (s, s), (s, s)]",
-        "year", "i4",
-        "month", "i4",
-        "day", "i4",
-        "hour", "i4",
-        "minute", "i4",
-        "second", "f8");
+    dtype_def = Py_BuildValue("[(s, s), (s, s), (s, s), (s, s), (s, s), (s, s)]", "year", "i4",
+        "month", "i4", "day", "i4", "hour", "i4", "minute", "i4", "second", "f8");
     PyArray_DescrAlignConverter(dtype_def, &dt_ymdhms);
     Py_DECREF(dtype_def);
     if (dt_pars == NULL || dt_u1 == NULL || dt_ymdhms == NULL) {
@@ -509,13 +508,13 @@ PyMODINIT_FUNC PyInit__parse_times(void) {
 
     goto decref;
 
-  fail:
+fail:
     Py_XDECREF(m);
     m = NULL;
 
-  decref:
-    Py_XDECREF((PyObject*)dt_pars);
-    Py_XDECREF((PyObject*)dt_u1);
-    Py_XDECREF((PyObject*)dt_ymdhms);
+decref:
+    Py_XDECREF((PyObject *)dt_pars);
+    Py_XDECREF((PyObject *)dt_u1);
+    Py_XDECREF((PyObject *)dt_ymdhms);
     return m;
 }

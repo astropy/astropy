@@ -1,0 +1,39 @@
+# clang-format configuration for astropy C code
+
+BasedOnStyle: Google
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+ColumnLimit: 100
+
+# Preserve existing patterns
+AlignAfterOpenBracket: DontAlign
+AlwaysBreakAfterReturnType: None
+BreakBeforeBraces: Stroustrup
+InsertBraces: true
+BinPackArguments: true
+BinPackParameters: true
+PointerAlignment: Right
+SpaceAfterCStyleCast: false
+
+# Minimize reformatting
+IncludeBlocks: Preserve
+SortIncludes: false
+ReflowComments: false
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: true
+
+# Other settings
+AllowShortEnumsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+IndentPPDirectives: None
+IndentGotoLabels: false
+SpaceBeforeParens: ControlStatements
+SpacesBeforeTrailingComments: 1
+BreakStringLiterals: false
+DerivePointerAlignment: false
+
+# Python C API macros
+StatementMacros: [PyObject_HEAD, PyObject_VAR_HEAD, PyObject_HEAD_EXTRA]
