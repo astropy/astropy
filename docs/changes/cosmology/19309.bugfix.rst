@@ -1,0 +1,7 @@
+Fixed a bug in the ``signature_deprecations`` C extension where promoting a
+``FutureWarning`` to an exception (via ``warnings.simplefilter("error",
+FutureWarning)``) caused a ``SystemError`` instead of the expected
+``FutureWarning``. The C extension now correctly returns ``NULL`` when
+``PyErr_WarnEx`` sets an exception, following CPython C-API protocol.
+Also fixed reference count leaks for temporaries created during message
+construction.
