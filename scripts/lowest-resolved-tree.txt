@@ -462,6 +462,6 @@ astropy
 ├── duckdb v1.1.0 (group: dataframe)
 ├── narwhals v1.42.0 (group: dataframe)
 ├── pandas v2.2.2 (group: dataframe) (*)
-├── polars v1.0.0 (group: dataframe)
+├── polars v1.18.0 (group: dataframe)
 └── pyarrow v16.0.0 (group: dataframe) (*)
 (*) Package tree already displayed
