@@ -423,17 +423,29 @@ class _File:
                                 access=MEMMAP_MODES["denywrite"],
                                 offset=0,
                             )
+                        elif not self.strict_memmap:
+                            # mmap failed but wasn't explicitly requested,
+                            # fall back to non-mmap reading
+                            warnings.warn(
+                                "Could not memory map array; falling back to "
+                                "non-memory-mapped file reading. You can disable "
+                                "this warning by setting memmap=False",
+                                AstropyUserWarning,
+                            )
+                            self.memmap = False
                         else:
                             raise
 
-                return np.ndarray(
-                    shape=shape, dtype=dtype, offset=offset, buffer=self._mmap
-                )
-            else:
-                count = reduce(operator.mul, shape)
-                self._file.seek(offset)
-                data = _array_from_file(self._file, dtype, count)
-                return data.reshape(shape)
+                if self._mmap is not None:
+                    return np.ndarray(
+                        shape=shape, dtype=dtype, offset=offset, buffer=self._mmap
+                    )
+
+            # Non-mmap path (also used as fallback when mmap fails)
+            count = reduce(operator.mul, shape)
+            self._file.seek(offset)
+            data = _array_from_file(self._file, dtype, count)
+            return data.reshape(shape)
         finally:
             # Make sure we leave the file in the position we found it; on
             # some platforms (e.g. Windows) mmaping a file handle can also
