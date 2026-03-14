@@ -1,0 +1,3 @@
+``LinearLSQFitter`` can now fit compound models created with the pipe
+operator (``|``) and other compound model operators, provided the resulting
+model is linear in its parameters.
