@@ -23,7 +23,7 @@ from astropy.io.fits.hdu.compressed import (
 from astropy.io.fits.tests.conftest import FitsTestCase
 from astropy.io.fits.tests.test_table import comparerecords
 from astropy.io.fits.verify import VerifyWarning
-from astropy.utils.data import download_file
+from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -95,11 +95,9 @@ class TestCompressedImage(FitsTestCase):
         np.random.seed(42)
 
         # Basically what scipy.datasets.ascent() does.
-        fname = download_file(
-            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true",
-            cache=True,
-            show_progress=False,
-        )
+
+        fname = get_pkg_data_filename("data/ascent.dat")
+
         with open(fname, "rb") as f:
             scipy_data = np.array(pickle.load(f))
 
