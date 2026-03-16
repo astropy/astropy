@@ -3,6 +3,7 @@
 
 import contextlib
 import csv
+import math
 import operator
 import os
 import re
@@ -1401,7 +1402,7 @@ class BinTableHDU(_TableBaseHDU):
                     idx += vla_len
                 elif dtype[col].shape:
                     # This is an array column
-                    array_size = int(np.multiply.reduce(dtype[col].shape))
+                    array_size = math.prod(dtype[col].shape)
                     slice_ = slice(idx, idx + array_size)
                     idx += array_size
                 else:
