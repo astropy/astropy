@@ -49,15 +49,6 @@ class CompImageHDU(ImageHDU):
 
     _default_name = "COMPRESSED_IMAGE"
 
-    @property
-    def _expected_header_primary_like(self):
-        # CompImageHDU can have either a primary-style header (SIMPLE) or an
-        # extension-style header (XTENSION) depending on whether the original
-        # image was a primary HDU or an extension HDU. fpack-compressed primary
-        # HDUs have ZSIMPLE in the bintable header which becomes SIMPLE in the
-        # image header.
-        return "SIMPLE" in self._header
-
     def __init__(
         self,
         data=None,
@@ -406,6 +397,15 @@ class CompImageHDU(ImageHDU):
             return False
 
         return True
+
+    @property
+    def _expected_header_primary_like(self):
+        # CompImageHDU can have either a primary-style header (SIMPLE) or an
+        # extension-style header (XTENSION) depending on whether the original
+        # image was a primary HDU or an extension HDU. fpack-compressed primary
+        # HDUs have ZSIMPLE in the bintable header which becomes SIMPLE in the
+        # image header.
+        return "SIMPLE" in self._header
 
     @property
     def compression_type(self):

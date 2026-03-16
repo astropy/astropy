@@ -6,6 +6,7 @@ import os
 import pickle
 import re
 import time
+import warnings
 from io import BytesIO
 
 import numpy as np
@@ -1483,7 +1484,6 @@ def test_compimghdu_with_primary_header_verify_fix():
     primary HDU), verification should not try to insert XTENSION, PCOUNT,
     or GCOUNT.
     """
-    import warnings
 
     # Create a CompImageHDU using a PrimaryHDU's header
     primary = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32).reshape(10, 10))
