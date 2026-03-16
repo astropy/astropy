@@ -1,0 +1,1 @@
+Fixed a bug that caused compressed FITS files to become corrupted when opened in update mode and modifying the header.
