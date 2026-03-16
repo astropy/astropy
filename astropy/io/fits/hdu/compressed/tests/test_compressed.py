@@ -241,11 +241,12 @@ class TestCompressedImage(FitsTestCase):
         comp_hdu = fits.CompImageHDU(data, name="SCI", compression_type="RICE_1")
         hdul = fits.HDUList([primary, comp_hdu])
         hdul.writeto(self.temp("test_comp_header.fits"))
-        hdul.close()
 
         # Open in update mode and modify header
         with fits.open(self.temp("test_comp_header.fits"), mode="update") as hdul:
             hdul[1].header["TEST"] = (1, "Test keyword")
+            # The bug is triggered if a user explicitly flushes the file - which
+            # unnecessary but not wrong
             hdul.flush()
 
         # Verify the file can be read and changes are present
