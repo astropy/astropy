@@ -93,8 +93,8 @@ jobs:
           cache-path: .tox
           cache-key: mindeps-${{ github.ref_name }}
 
-        - name: Python 3.12 in Parallel with all optional dependencies
-          linux: py312-test-alldeps-fitsio
+        - name: Python 3.13 in Parallel with all optional dependencies
+          linux: py313-test-alldeps-fitsio
           libraries:
             apt:
               - language-pack-fr
@@ -111,22 +111,21 @@ jobs:
           posargs: --remote-data=astropy
           coverage: codecov
 
-        - name: Python 3.12 with all optional dependencies (Windows)
-          windows: py312-test-alldeps
+        - name: Python 3.13 with all optional dependencies (Windows)
+          windows: py313-test-alldeps
           posargs: --durations=50
           cache-path: .tox
           cache-key: alldeps-windows-${{ github.ref_name }}
 
-        - name: Python 3.12 with all optional dependencies (MacOS X)
-          macos: py312-test-alldeps
+        - name: Python 3.13 with all optional dependencies (MacOS X)
+          macos: py313-test-alldeps
           posargs: --durations=50 --run-slow
           runs-on: macos-latest
           cache-path: .tox
           cache-key: alldeps-macos-${{ github.ref_name }}
 
-        # FIXME: Add aarch64 to name when bump Python version.
-        - name: Python 3.11 Double test (Run tests twice)
-          linux: py311-test-double
+        - name: Python 3.13 aarch64, Run tests twice
+          linux: py313-test-double
           runs-on: ubuntu-24.04-arm
           posargs: -n=4
           setenv: |
