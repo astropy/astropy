@@ -382,6 +382,10 @@ class LinearLSQFitter(Fitter):
     Notes
     -----
     Note that currently LinearLSQFitter does not support compound models.
+
+    Notes
+    -----
+    LinearLSQFitter currently does not support fitting compound models.
     """
 
     supported_constraints = ["fixed"]
