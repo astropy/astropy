@@ -852,19 +852,6 @@ class _ValidHDU(_BaseHDU, _Verify):
     Base class for all HDUs which are not corrupted.
     """
 
-    @property
-    def _expected_header_primary_like(self):
-        """
-        Whether verification should expect a primary-HDU-style header (SIMPLE
-        keyword, no PCOUNT/GCOUNT) or extension-HDU-style header (XTENSION
-        keyword, PCOUNT/GCOUNT required).
-
-        By default this is determined by whether the HDU is an ExtensionHDU,
-        but subclasses can override this for special cases like CompImageHDU
-        where the header format depends on the file content.
-        """
-        return not isinstance(self, ExtensionHDU)
-
     def __init__(self, data=None, header=None, name=None, ver=None, **kwargs):
         super().__init__(data=data, header=header)
 
@@ -897,6 +884,19 @@ class _ValidHDU(_BaseHDU, _Verify):
         case?  Not sure...
         """
         return first(header.keys()) not in ("SIMPLE", "XTENSION")
+
+    @property
+    def _expected_header_primary_like(self):
+        """
+        Whether verification should expect a primary-HDU-style header (SIMPLE
+        keyword, no PCOUNT/GCOUNT) or extension-HDU-style header (XTENSION
+        keyword, PCOUNT/GCOUNT required).
+
+        By default this is determined by whether the HDU is an ExtensionHDU,
+        but subclasses can override this for special cases like CompImageHDU
+        where the header format depends on the file content.
+        """
+        return not isinstance(self, ExtensionHDU)
 
     @property
     def size(self):
