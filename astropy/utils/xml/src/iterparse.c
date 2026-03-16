@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <string.h> // memcpy
 #ifndef _MSC_VER
-#  include <unistd.h> // read
+#include <unistd.h> // read
 #endif
 #include "structmember.h"
 
@@ -39,11 +39,10 @@
 #define inline
 #endif
 
-#undef  CLAMP
-#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+#undef CLAMP
+#define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
-static Py_ssize_t
-next_power_of_2(Py_ssize_t n)
+static Py_ssize_t next_power_of_2(Py_ssize_t n)
 {
     /* Calculate the next-higher power of two that is >= 'n' */
 
@@ -70,7 +69,7 @@ next_power_of_2(Py_ssize_t n)
     n |= n >> 4;
     n |= n >> 8;
     n |= n >> 16;
-    if(sizeof(Py_ssize_t) > 4) {
+    if (sizeof(Py_ssize_t) > 4) {
         n |= n >> 32; /* this works for 64-bit systems but will need to be updated if (Py)_ssize_t
                          ever increases beyond 64-bits */
     }
@@ -84,11 +83,11 @@ next_power_of_2(Py_ssize_t n)
  ******************************************************************************/
 
 #if BYTEORDER == 1234
-# define TD_AS_INT      0x00004454
-# define TD_AS_INT_MASK 0x00ffffff
+#define TD_AS_INT 0x00004454
+#define TD_AS_INT_MASK 0x00ffffff
 #else
-# define TD_AS_INT      0x54440000
-# define TD_AS_INT_MASK 0xffffff00
+#define TD_AS_INT 0x54440000
+#define TD_AS_INT_MASK 0xffffff00
 #endif
 
 
@@ -97,33 +96,33 @@ next_power_of_2(Py_ssize_t n)
  ******************************************************************************/
 typedef struct {
     PyObject_HEAD
-    XML_Parser parser;          /* The expat parser */
-    int        done;            /* True when expat parser has read to EOF */
+    XML_Parser parser; /* The expat parser */
+    int done;          /* True when expat parser has read to EOF */
 
     /* File-like object reading */
-    PyObject*  fd;              /* Python file object */
-    int        file;            /* C file descriptor */
-    PyObject*  read;            /* The read method on the file object */
-    Py_ssize_t    buffersize;      /* The size of the read buffer */
-    XML_Char*  buffer;          /* The read buffer */
+    PyObject *fd;          /* Python file object */
+    int file;              /* C file descriptor */
+    PyObject *read;        /* The read method on the file object */
+    Py_ssize_t buffersize; /* The size of the read buffer */
+    XML_Char *buffer;      /* The read buffer */
 
     /* Text nodes */
-    Py_ssize_t text_alloc;      /* The allocated size of the text buffer */
-    Py_ssize_t text_size;       /* The size of the content in the text buffer */
-    XML_Char*  text;            /* Text buffer (for returning text nodes) */
-    int        keep_text;       /* Flag: keep appending text chunks to the current text node */
+    Py_ssize_t text_alloc; /* The allocated size of the text buffer */
+    Py_ssize_t text_size;  /* The size of the content in the text buffer */
+    XML_Char *text;        /* Text buffer (for returning text nodes) */
+    int keep_text;         /* Flag: keep appending text chunks to the current text node */
 
     /* XML event queue */
-    PyObject** queue;
+    PyObject **queue;
     Py_ssize_t queue_size;
     Py_ssize_t queue_read_idx;
     Py_ssize_t queue_write_idx;
 
     /* Store the last Python exception so it can be returned when
        dequeuing events */
-    PyObject*  error_type;
-    PyObject*  error_value;
-    PyObject*  error_traceback;
+    PyObject *error_type;
+    PyObject *error_value;
+    PyObject *error_traceback;
 
     /* Store the position for any XML exceptions that may be
        returned later */
@@ -131,9 +130,9 @@ typedef struct {
     unsigned long last_col;
 
     /* "Constants" for efficiency */
-    PyObject*  dict_singleton;  /* Empty dict */
-    PyObject*  td_singleton;    /* String "TD" */
-    PyObject*  read_args;       /* (buffersize) */
+    PyObject *dict_singleton; /* Empty dict */
+    PyObject *td_singleton;   /* String "TD" */
+    PyObject *read_args;      /* (buffersize) */
 } IterParser;
 
 /******************************************************************************
@@ -146,16 +145,16 @@ typedef struct {
  * requested (as occurs with transparent decompression of the input
  * stream), and for the initial allocation to combine the logic in one place.
  */
-static int
-queue_realloc(IterParser *self, Py_ssize_t req_size)
+static int queue_realloc(IterParser *self, Py_ssize_t req_size)
 {
-    PyObject** new_queue;
+    PyObject **new_queue;
     Py_ssize_t n = req_size / 2;
 
-    if (n <= self->queue_size)
+    if (n <= self->queue_size) {
         return 0;
+    }
 
-    new_queue = realloc(self->queue, sizeof(PyObject*) * (size_t)n);
+    new_queue = realloc(self->queue, sizeof(PyObject *) * (size_t)n);
 
     if (new_queue == NULL) {
         PyErr_SetString(PyExc_MemoryError, "Out of memory for XML parsing queue.");
@@ -189,11 +188,10 @@ fail:
  * Reallocate text buffer to the next highest power of two that fits the
  * requested size.
  */
-static int
-text_realloc(IterParser *self, Py_ssize_t req_size)
+static int text_realloc(IterParser *self, Py_ssize_t req_size)
 {
-    Py_ssize_t  n       = req_size;
-    char       *new_mem = NULL;
+    Py_ssize_t n = req_size;
+    char *new_mem = NULL;
 
     if (req_size < self->text_alloc) {
         return 0;
@@ -222,10 +220,9 @@ text_realloc(IterParser *self, Py_ssize_t req_size)
     return 0;
 }
 
-#define IS_WHITESPACE(c) ((c) == (XML_Char)0x20 || \
-                          (c) == (XML_Char)0x0d || \
-                          (c) == (XML_Char)0x0a || \
-                          (c) == (XML_Char)0x09)
+#define IS_WHITESPACE(c) \
+    ((c) == (XML_Char)0x20 || (c) == (XML_Char)0x0d || (c) == (XML_Char)0x0a || \
+     (c) == (XML_Char)0x09)
 
 /*
  * Append text to the text buffer.
@@ -234,8 +231,7 @@ text_realloc(IterParser *self, Py_ssize_t req_size)
  * first non-whitespace character are stripped.  This saves time
  * stripping on the Python side later.
  */
-static int
-text_append(IterParser *self, const XML_Char *data, Py_ssize_t len)
+static int text_append(IterParser *self, const XML_Char *data, Py_ssize_t len)
 {
     Py_ssize_t new_size;
 
@@ -257,9 +253,7 @@ text_append(IterParser *self, const XML_Char *data, Py_ssize_t len)
         return -1;
     }
 
-    memcpy(self->text + self->text_size,
-           data,
-           (size_t)len * sizeof(XML_Char));
+    memcpy(self->text + self->text_size, data, (size_t)len * sizeof(XML_Char));
 
     self->text_size = new_size;
     self->text[self->text_size] = (XML_Char)0x0;
@@ -270,8 +264,7 @@ text_append(IterParser *self, const XML_Char *data, Py_ssize_t len)
 /*
  * Erase all content from the text buffer.
  */
-static void
-text_clear(IterParser *self)
+static void text_clear(IterParser *self)
 {
     self->text[0] = (XML_Char)0;
     self->text_size = 0;
@@ -288,13 +281,9 @@ text_clear(IterParser *self)
  *
  * It is of the form (line, col), where line and col are both PyInts.
  */
-static inline PyObject*
-make_pos(const IterParser *self)
+static inline PyObject *make_pos(const IterParser *self)
 {
-    return Py_BuildValue(
-            "(nn)",
-            (size_t)self->last_line,
-            (size_t)self->last_col);
+    return Py_BuildValue("(nn)", (size_t)self->last_line, (size_t)self->last_col);
 }
 
 /*
@@ -305,10 +294,9 @@ make_pos(const IterParser *self)
  * The returned pointer is an internal pointer to the buffer passed
  * in.
  */
-static const XML_Char *
-remove_namespace(const XML_Char *name)
+static const XML_Char *remove_namespace(const XML_Char *name)
 {
-    const XML_Char*  name_start = NULL;
+    const XML_Char *name_start = NULL;
 
     /* If there is a namespace specifier, just chop it off */
     for (name_start = name; *name_start != '\0'; ++name_start) {
@@ -319,7 +307,8 @@ remove_namespace(const XML_Char *name)
 
     if (*name_start == ':') {
         ++name_start;
-    } else {
+    }
+    else {
         name_start = name;
     }
 
@@ -329,17 +318,16 @@ remove_namespace(const XML_Char *name)
 /*
  * Handle the expat startElement event.
  */
-static void
-startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
+static void startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
 {
-    PyObject*        pyname = NULL;
-    PyObject*        pyatts = NULL;
-    const XML_Char** att_ptr = atts;
-    const XML_Char*  name_start = NULL;
-    PyObject*        tuple = NULL;
-    PyObject*        key = NULL;
-    PyObject*        val = NULL;
-    PyObject*        pos = NULL;
+    PyObject *pyname = NULL;
+    PyObject *pyatts = NULL;
+    const XML_Char **att_ptr = atts;
+    const XML_Char *name_start = NULL;
+    PyObject *tuple = NULL;
+    PyObject *key = NULL;
+    PyObject *val = NULL;
+    PyObject *pos = NULL;
 
     /* If we've already had an error in a previous call, don't make
        things worse. */
@@ -364,10 +352,11 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
            integer comparison to avoid the lookup in the interned
            string table in PyString_InternFromString, and return a
            singleton string for "TD" */
-        if ((*(int*)name & TD_AS_INT_MASK) == TD_AS_INT) {
+        if ((*(int *)name & TD_AS_INT_MASK) == TD_AS_INT) {
             Py_INCREF(self->td_singleton);
             PyTuple_SetItem(tuple, 1, self->td_singleton);
-        } else {
+        }
+        else {
             name_start = remove_namespace(name);
 
             pyname = PyUnicode_FromString(name_start);
@@ -404,7 +393,8 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
 
                 att_ptr += 2;
             } while (*att_ptr);
-        } else {
+        }
+        else {
             Py_INCREF(self->dict_singleton);
             pyatts = self->dict_singleton;
         }
@@ -412,10 +402,8 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
         PyTuple_SetItem(tuple, 2, pyatts);
         pyatts = NULL;
 
-        self->last_line = (unsigned long)XML_GetCurrentLineNumber(
-            self->parser);
-        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(
-            self->parser);
+        self->last_line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
+        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
 
         pos = make_pos(self);
         if (pos == NULL) {
@@ -429,16 +417,18 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
         self->keep_text = 1;
 
         self->queue[self->queue_write_idx++] = tuple;
-    } else {
+    }
+    else {
         PyErr_SetString(
             PyExc_RuntimeError,
-            "XML queue overflow in startElement.  This most likely indicates an internal bug.");
+            "XML queue overflow in startElement.  This most likely indicates an internal bug."
+        );
         goto fail;
     }
 
     return;
 
- fail:
+fail:
     Py_XDECREF(tuple);
     Py_XDECREF(pyatts);
     XML_StopParser(self->parser, 0);
@@ -447,15 +437,14 @@ startElement(IterParser *self, const XML_Char *name, const XML_Char **atts)
 /*
  * Handle the expat endElement event.
  */
-static void
-endElement(IterParser *self, const XML_Char *name)
+static void endElement(IterParser *self, const XML_Char *name)
 {
-    PyObject*       pyname     = NULL;
-    PyObject*       tuple      = NULL;
-    PyObject*       pytext     = NULL;
-    const XML_Char* name_start = NULL;
-    XML_Char*       end;
-    PyObject*       pos        = NULL;
+    PyObject *pyname = NULL;
+    PyObject *tuple = NULL;
+    PyObject *pytext = NULL;
+    const XML_Char *name_start = NULL;
+    XML_Char *end;
+    PyObject *pos = NULL;
 
     /* If we've already had an error in a previous call, don't make
        things worse. */
@@ -480,10 +469,11 @@ endElement(IterParser *self, const XML_Char *name)
            integer comparison to avoid the lookup in the interned
            string table in PyString_InternFromString, and return a
            singleton string for "TD" */
-        if ((*(int*)name & TD_AS_INT_MASK) == TD_AS_INT) {
+        if ((*(int *)name & TD_AS_INT_MASK) == TD_AS_INT) {
             Py_INCREF(self->td_singleton);
             PyTuple_SetItem(tuple, 1, self->td_singleton);
-        } else {
+        }
+        else {
             name_start = remove_namespace(name);
 
             pyname = PyUnicode_FromString(name_start);
@@ -518,16 +508,18 @@ endElement(IterParser *self, const XML_Char *name)
         self->keep_text = 0;
 
         self->queue[self->queue_write_idx++] = tuple;
-    } else {
+    }
+    else {
         PyErr_SetString(
             PyExc_RuntimeError,
-            "XML queue overflow in endElement.  This most likely indicates an internal bug.");
+            "XML queue overflow in endElement.  This most likely indicates an internal bug."
+        );
         goto fail;
     }
 
     return;
 
- fail:
+fail:
     Py_XDECREF(tuple);
     XML_StopParser(self->parser, 0);
 }
@@ -535,8 +527,7 @@ endElement(IterParser *self, const XML_Char *name)
 /*
  * Handle the expat characterData event.
  */
-static void
-characterData(IterParser *self, const XML_Char *text, int len)
+static void characterData(IterParser *self, const XML_Char *text, int len)
 {
     /* If we've already had an error in a previous call, don't make
        things worse. */
@@ -546,10 +537,8 @@ characterData(IterParser *self, const XML_Char *text, int len)
     }
 
     if (self->text_size == 0) {
-        self->last_line = (unsigned long)XML_GetCurrentLineNumber(
-            self->parser);
-        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(
-            self->parser);
+        self->last_line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
+        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
     }
 
     if (self->keep_text) {
@@ -560,16 +549,16 @@ characterData(IterParser *self, const XML_Char *text, int len)
 /*
  * Handle the XML declaration so that we can determine its encoding.
  */
-static void
-xmlDecl(IterParser *self, const XML_Char *version,
-        const XML_Char *encoding, int standalone)
+static void xmlDecl(
+    IterParser *self, const XML_Char *version, const XML_Char *encoding, int standalone
+)
 {
-    PyObject* tuple        = NULL;
-    PyObject* xml_str      = NULL;
-    PyObject* attrs        = NULL;
-    PyObject* encoding_str = NULL;
-    PyObject* version_str  = NULL;
-    PyObject* pos          = NULL;
+    PyObject *tuple = NULL;
+    PyObject *xml_str = NULL;
+    PyObject *attrs = NULL;
+    PyObject *encoding_str = NULL;
+    PyObject *version_str = NULL;
+    PyObject *pos = NULL;
 
     if (self->queue_write_idx < self->queue_size) {
         tuple = PyTuple_New(4);
@@ -594,7 +583,8 @@ xmlDecl(IterParser *self, const XML_Char *version,
 
         if (encoding) {
             encoding_str = PyUnicode_FromString(encoding);
-        } else {
+        }
+        else {
             encoding_str = PyUnicode_FromString("");
         }
         if (encoding_str == NULL) {
@@ -609,7 +599,8 @@ xmlDecl(IterParser *self, const XML_Char *version,
 
         if (version) {
             version_str = PyUnicode_FromString(version);
-        } else {
+        }
+        else {
             version_str = PyUnicode_FromString("");
         }
         if (version_str == NULL) {
@@ -625,10 +616,8 @@ xmlDecl(IterParser *self, const XML_Char *version,
         PyTuple_SetItem(tuple, 2, attrs);
         attrs = NULL;
 
-        self->last_line = (unsigned long)XML_GetCurrentLineNumber(
-            self->parser);
-        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(
-            self->parser);
+        self->last_line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
+        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
 
         pos = make_pos(self);
         if (pos == NULL) {
@@ -638,16 +627,18 @@ xmlDecl(IterParser *self, const XML_Char *version,
         pos = NULL;
 
         self->queue[self->queue_write_idx++] = tuple;
-    } else {
+    }
+    else {
         PyErr_SetString(
             PyExc_RuntimeError,
-            "XML queue overflow in xmlDecl.  This most likely indicates an internal bug.");
+            "XML queue overflow in xmlDecl.  This most likely indicates an internal bug."
+        );
         goto fail;
     }
 
     return;
 
- fail:
+fail:
     Py_XDECREF(tuple);
     Py_XDECREF(attrs);
     XML_StopParser(self->parser, 0);
@@ -657,11 +648,10 @@ xmlDecl(IterParser *self, const XML_Char *version,
  * The object itself is an iterator, just return self for "iter(self)"
  * on the Python side.
  */
-static PyObject *
-IterParser_iter(IterParser* self)
+static PyObject *IterParser_iter(IterParser *self)
 {
-    Py_INCREF((PyObject*)self);
-    return (PyObject*) self;
+    Py_INCREF((PyObject *)self);
+    return (PyObject *)self;
 }
 
 /*
@@ -675,11 +665,10 @@ IterParser_iter(IterParser* self)
  * later thrown once the queue is emptied, otherwise the exception is
  * raised "too early" in queue order.
  */
-static PyObject *
-IterParser_next(IterParser* self)
+static PyObject *IterParser_next(IterParser *self)
 {
-    PyObject*  data = NULL;
-    XML_Char*  buf;
+    PyObject *data = NULL;
+    XML_Char *buf;
     Py_ssize_t buflen;
 
     /* Is there anything in the queue to return? */
@@ -723,15 +712,16 @@ IterParser_next(IterParser* self)
                 /* EOF detection method only works for local regular files */
                 self->done = 1;
             }
-        /* Handle a real C file descriptor or handle -- this is faster
+            /* Handle a real C file descriptor or handle -- this is faster
            if we've got one. */
-        } else {
-            buflen = (Py_ssize_t)read(
-                self->file, self->buffer, (size_t)self->buffersize);
+        }
+        else {
+            buflen = (Py_ssize_t)read(self->file, self->buffer, (size_t)self->buffersize);
             if (buflen == -1) {
                 PyErr_SetFromErrno(PyExc_OSError);
                 goto fail;
-            } else if (buflen < self->buffersize) {
+            }
+            else if (buflen < self->buffersize) {
                 /* EOF detection method only works for local regular files */
                 self->done = 1;
             }
@@ -739,7 +729,7 @@ IterParser_next(IterParser* self)
             buf = self->buffer;
         }
 
-        if(queue_realloc(self, buflen)) {
+        if (queue_realloc(self, buflen)) {
             Py_XDECREF(data);
             goto fail;
         }
@@ -757,10 +747,12 @@ IterParser_next(IterParser* self)
                until the queue is emptied. */
             Py_XDECREF(data);
             PyErr_Format(
-                PyExc_ValueError, "%lu:%lu: %s",
+                PyExc_ValueError,
+                "%lu:%lu: %s",
                 XML_GetCurrentLineNumber(self->parser),
                 XML_GetCurrentColumnNumber(self->parser),
-                XML_ErrorString(XML_GetErrorCode(self->parser)));
+                XML_ErrorString(XML_GetErrorCode(self->parser))
+            );
             goto fail;
         }
         Py_XDECREF(data);
@@ -776,14 +768,14 @@ IterParser_next(IterParser* self)
 
     if (self->queue_write_idx >= self->queue_size) {
         PyErr_SetString(
-            PyExc_RuntimeError,
-            "XML queue overflow.  This most likely indicates an internal bug.");
+            PyExc_RuntimeError, "XML queue overflow.  This most likely indicates an internal bug."
+        );
         return NULL;
     }
 
     return self->queue[self->queue_read_idx++];
 
- fail:
+fail:
     /* We got an exception somewhere along the way.  Store the exception in
        the IterParser object, but clear the exception in the Python interpreter,
        so we can empty the event queue and raise the exception later. */
@@ -807,68 +799,84 @@ IterParser_next(IterParser* self)
 
 /* To support cyclical garbage collection, all PyObject's must be
    visited. */
-static int
-IterParser_traverse(IterParser *self, visitproc visit, void *arg)
+static int IterParser_traverse(IterParser *self, visitproc visit, void *arg)
 {
     int vret;
     Py_ssize_t read_index;
 
     // Heap types must visit their type
     // see https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_traverse
-    Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
+    Py_VISIT((PyObject *)Py_TYPE((PyObject *)self));
 
     read_index = self->queue_read_idx;
     while (read_index < self->queue_write_idx) {
         vret = visit(self->queue[read_index++], arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     if (self->fd) {
         vret = visit(self->fd, arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     if (self->read) {
         vret = visit(self->read, arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     if (self->read_args) {
         vret = visit(self->read_args, arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     if (self->dict_singleton) {
         vret = visit(self->dict_singleton, arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     if (self->td_singleton) {
         vret = visit(self->td_singleton, arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     if (self->error_type) {
         vret = visit(self->error_type, arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     if (self->error_value) {
         vret = visit(self->error_value, arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     if (self->error_traceback) {
         vret = visit(self->error_traceback, arg);
-        if (vret != 0) return vret;
+        if (vret != 0) {
+            return vret;
+        }
     }
 
     return 0;
 }
 
 /* To support cyclical garbage collection */
-static int
-IterParser_clear(IterParser *self)
+static int IterParser_clear(IterParser *self)
 {
     PyObject *tmp;
 
@@ -918,56 +926,57 @@ IterParser_clear(IterParser *self)
  * Deallocate the IterParser object.  For the internal PyObject*, just
  * punt to IterParser_clear.
  */
-static void
-IterParser_dealloc(IterParser* self)
+static void IterParser_dealloc(IterParser *self)
 {
     IterParser_clear(self);
 
-    free(self->buffer); self->buffer = NULL;
-    free(self->queue);  self->queue = NULL;
-    free(self->text);   self->text = NULL;
+    free(self->buffer);
+    self->buffer = NULL;
+    free(self->queue);
+    self->queue = NULL;
+    free(self->text);
+    self->text = NULL;
     if (self->parser != NULL) {
         XML_ParserFree(self->parser);
         self->parser = NULL;
     }
 
-    PyTypeObject* type = Py_TYPE((PyObject*)self);
+    PyTypeObject *type = Py_TYPE((PyObject *)self);
     freefunc free_func = PyType_GetSlot(type, Py_tp_free);
-    free_func((PyObject*)self);
+    free_func((PyObject *)self);
 }
 
 /*
  * Initialize the memory for an IterParser object
  */
 
-static PyObject *
-IterParser_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static PyObject *IterParser_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     IterParser *self = NULL;
 
     allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
     self = (IterParser *)alloc_func(type, 0);
     if (self != NULL) {
-        self->parser          = NULL;
-        self->fd              = NULL;
-        self->file            = -1;
-        self->read            = NULL;
-        self->read_args       = NULL;
-        self->dict_singleton  = NULL;
-        self->td_singleton    = NULL;
-        self->buffersize      = 0;
-        self->buffer          = NULL;
-        self->queue_read_idx  = 0;
+        self->parser = NULL;
+        self->fd = NULL;
+        self->file = -1;
+        self->read = NULL;
+        self->read_args = NULL;
+        self->dict_singleton = NULL;
+        self->td_singleton = NULL;
+        self->buffersize = 0;
+        self->buffer = NULL;
+        self->queue_read_idx = 0;
         self->queue_write_idx = 0;
-        self->text_alloc      = 0;
-        self->text_size       = 0;
-        self->text            = NULL;
-        self->keep_text       = 0;
-        self->done            = 0;
-        self->queue_size      = 0;
-        self->queue           = NULL;
-        self->error_type      = NULL;
-        self->error_value     = NULL;
+        self->text_alloc = 0;
+        self->text_size = 0;
+        self->text = NULL;
+        self->keep_text = 0;
+        self->done = 0;
+        self->queue_size = 0;
+        self->queue = NULL;
+        self->error_type = NULL;
+        self->error_value = NULL;
         self->error_traceback = NULL;
     }
 
@@ -982,16 +991,16 @@ IterParser_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
  *    *fd*: A Python file object or a callable object
  *    *buffersize*: The size of the read buffer
  */
-static int
-IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
+static int IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
 {
-    PyObject* fd              = NULL;
-    PyObject* read            = NULL;
-    Py_ssize_t   buffersize      = 1 << 14;
+    PyObject *fd = NULL;
+    PyObject *read = NULL;
+    Py_ssize_t buffersize = 1 << 14;
 
     static char *kwlist[] = {"fd", "buffersize", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|n:IterParser.__init__", kwlist,
-                                     &fd, &buffersize)) {
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwds, "O|n:IterParser.__init__", kwlist, &fd, &buffersize
+        )) {
         return -1;
     }
 
@@ -1015,26 +1024,31 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
             PyErr_SetString(PyExc_MemoryError, "Out of memory");
             goto fail;
         }
-        self->fd = fd;   Py_INCREF(self->fd);
+        self->fd = fd;
+        Py_INCREF(self->fd);
         lseek(self->file, 0, SEEK_SET);
-    } else
+    }
+    else
 #endif
     if (PyCallable_Check(fd)) {
         /* fd is a Python callable */
-        self->fd = fd;   Py_INCREF(self->fd);
-        self->read = fd; Py_INCREF(self->read);
-    } else {
+        self->fd = fd;
+        Py_INCREF(self->fd);
+        self->read = fd;
+        Py_INCREF(self->read);
+    }
+    else {
         PyErr_SetString(
-            PyExc_TypeError,
-            "Arg 1 to iterparser must be a file object or callable object");
+            PyExc_TypeError, "Arg 1 to iterparser must be a file object or callable object"
+        );
         goto fail;
     }
 
     PyErr_Clear();
 
-    self->queue_read_idx  = 0;
+    self->queue_read_idx = 0;
     self->queue_write_idx = 0;
-    self->done            = 0;
+    self->done = 0;
 
     self->text = malloc((size_t)buffersize * sizeof(XML_Char));
     self->text_alloc = buffersize;
@@ -1071,21 +1085,16 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
     }
     XML_SetUserData(self->parser, self);
     XML_SetElementHandler(
-        self->parser,
-        (XML_StartElementHandler)startElement,
-        (XML_EndElementHandler)endElement);
-    XML_SetCharacterDataHandler(
-        self->parser,
-        (XML_CharacterDataHandler)characterData);
-    XML_SetXmlDeclHandler(
-        self->parser,
-        (XML_XmlDeclHandler)xmlDecl);
+        self->parser, (XML_StartElementHandler)startElement, (XML_EndElementHandler)endElement
+    );
+    XML_SetCharacterDataHandler(self->parser, (XML_CharacterDataHandler)characterData);
+    XML_SetXmlDeclHandler(self->parser, (XML_XmlDeclHandler)xmlDecl);
 
     Py_XDECREF(read);
 
     return 0;
 
- fail:
+fail:
     Py_XDECREF(read);
     Py_XDECREF(self->fd);
     Py_XDECREF(self->read);
@@ -1098,22 +1107,20 @@ IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
     return -1;
 }
 
-static PyMemberDef IterParser_members[] =
-{
-    {NULL}  /* Sentinel */
+static PyMemberDef IterParser_members[] = {
+    {NULL} /* Sentinel */
 };
 
-static PyMethodDef IterParser_methods[] =
-{
-    {NULL}  /* Sentinel */
+static PyMethodDef IterParser_methods[] = {
+    {NULL} /* Sentinel */
 };
 
-static PyType_Spec IterParserType_spec =
-{
+static PyType_Spec IterParserType_spec = {
     .name = "astropy.utils.xml._iterparser.IterParser",
     .basicsize = sizeof(IterParser),
     .itemsize = 0,
-    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
+    .flags =
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
     .slots = (PyType_Slot[]){
         {Py_tp_dealloc, (destructor)IterParser_dealloc},
         {Py_tp_doc, "IterParser objects"},
@@ -1129,28 +1136,27 @@ static PyType_Spec IterParserType_spec =
     },
 };
 
-PyObject* IterParserType = NULL;
+PyObject *IterParserType = NULL;
 
 /******************************************************************************
  * XML escaping
  ******************************************************************************/
 
 /* These are in reverse order by input character */
-static const char* escapes_cdata[] = {
-    ">", "&gt;",
-    "<", "&lt;",
-    "&", "&amp;",
-    "\0", "\0",
+static const char *escapes_cdata[] = {
+    ">",
+    "&gt;",
+    "<",
+    "&lt;",
+    "&",
+    "&amp;",
+    "\0",
+    "\0",
 };
 
 /* These are in reverse order by input character */
-static const char* escapes[] = {
-    ">", "&gt;",
-    "<", "&lt;",
-    "'", "&apos;",
-    "&", "&amp;",
-    "\"", "&quot;",
-    "\0", "\0"
+static const char *escapes[] = {
+    ">", "&gt;", "<", "&lt;", "'", "&apos;", "&", "&amp;", "\"", "&quot;", "\0", "\0"
 };
 
 /* Implementation of escape_xml.
@@ -1160,21 +1166,22 @@ static const char* escapes[] = {
  *  * >0 : output is escaped
  *  * -1 : error
  */
-static Py_ssize_t
-_escape_xml_impl(const char *input, Py_ssize_t input_len,
-                 char **output, const char **escapes)
+static Py_ssize_t _escape_xml_impl(
+    const char *input, Py_ssize_t input_len, char **output, const char **escapes
+)
 {
     Py_ssize_t i;
     int count = 0;
     char *p = NULL;
-    const char** esc;
-    const char* ent;
+    const char **esc;
+    const char *ent;
 
     for (i = 0; i < input_len; ++i) {
-        for (esc = escapes; ; esc += 2) {
+        for (esc = escapes;; esc += 2) {
             if ((unsigned char)input[i] > **esc) {
                 break;
-            } else if (input[i] == **esc) {
+            }
+            else if (input[i] == **esc) {
                 ++count;
                 break;
             }
@@ -1193,11 +1200,12 @@ _escape_xml_impl(const char *input, Py_ssize_t input_len,
     *output = p;
 
     for (i = 0; i < input_len; ++i) {
-        for (esc = escapes; ; esc += 2) {
+        for (esc = escapes;; esc += 2) {
             if ((unsigned char)input[i] > **esc) {
                 *(p++) = input[i];
                 break;
-            } else if (input[i] == **esc) {
+            }
+            else if (input[i] == **esc) {
                 for (ent = *(esc + 1); *ent != '\0'; ++ent) {
                     *(p++) = *ent;
                 }
@@ -1217,15 +1225,14 @@ _escape_xml_impl(const char *input, Py_ssize_t input_len,
  * If an 8-bit string is passed in, an 8-bit string is returned.  If a
  * Unicode string is passed in, a Unicode string is returned.
  */
-static PyObject*
-_escape_xml(PyObject* self, PyObject *args, const char** escapes)
+static PyObject *_escape_xml(PyObject *self, PyObject *args, const char **escapes)
 {
-    PyObject* input_obj;
-    PyObject* input_coerce = NULL;
-    PyObject* output_obj;
-    char* input = NULL;
+    PyObject *input_obj;
+    PyObject *input_coerce = NULL;
+    PyObject *output_obj;
+    char *input = NULL;
     Py_ssize_t input_len;
-    char* output = NULL;
+    char *output = NULL;
     Py_ssize_t output_len;
 
     if (!PyArg_ParseTuple(args, "O:escape_xml", &input_obj)) {
@@ -1237,7 +1244,7 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
         input_coerce = PyObject_Str(input_obj);
     }
     if (input_coerce) {
-        input = (char*)PyUnicode_AsUTF8AndSize(input_coerce, &input_len);
+        input = (char *)PyUnicode_AsUTF8AndSize(input_coerce, &input_len);
         if (input == NULL) {
             Py_DECREF(input_coerce);
             return NULL;
@@ -1283,14 +1290,12 @@ _escape_xml(PyObject* self, PyObject *args, const char** escapes)
     return NULL;
 }
 
-static PyObject*
-escape_xml(PyObject* self, PyObject *args)
+static PyObject *escape_xml(PyObject *self, PyObject *args)
 {
     return _escape_xml(self, args, escapes);
 }
 
-static PyObject*
-escape_xml_cdata(PyObject* self, PyObject *args)
+static PyObject *escape_xml_cdata(PyObject *self, PyObject *args)
 {
     return _escape_xml(self, args, escapes_cdata);
 }
@@ -1299,25 +1304,25 @@ escape_xml_cdata(PyObject* self, PyObject *args)
  * Module setup
  ******************************************************************************/
 
-static PyMethodDef module_methods[] =
-{
-    {"escape_xml", (PyCFunction)escape_xml, METH_VARARGS,
+static PyMethodDef module_methods[] = {
+    {"escape_xml", (PyCFunction)escape_xml, METH_VARARGS, "Fast method to escape XML strings"},
+    {"escape_xml_cdata",
+     (PyCFunction)escape_xml_cdata,
+     METH_VARARGS,
      "Fast method to escape XML strings"},
-    {"escape_xml_cdata", (PyCFunction)escape_xml_cdata, METH_VARARGS,
-     "Fast method to escape XML strings"},
-    {NULL}  /* Sentinel */
+    {NULL} /* Sentinel */
 };
 
 struct module_state {
-    void* none;
+    void *none;
 };
 
-static int module_traverse(PyObject* m, visitproc visit, void* arg)
+static int module_traverse(PyObject *m, visitproc visit, void *arg)
 {
     return 0;
 }
 
-static int module_clear(PyObject* m)
+static int module_clear(PyObject *m)
 {
     return 0;
 }
@@ -1334,18 +1339,19 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
-PyMODINIT_FUNC
-PyInit__iterparser(void)
+PyMODINIT_FUNC PyInit__iterparser(void)
 {
-    PyObject* m;
+    PyObject *m;
     m = PyModule_Create(&moduledef);
 
-    if (m == NULL)
+    if (m == NULL) {
         return NULL;
+    }
 
     IterParserType = PyType_FromModuleAndSpec(m, &IterParserType_spec, NULL);
-    if (IterParserType == NULL)
+    if (IterParserType == NULL) {
         return NULL;
+    }
 
     PyModule_AddObject(m, "IterParser", IterParserType);
 
