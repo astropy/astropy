@@ -69,7 +69,7 @@ Details
    development/maintainers/index
 
 .. Note:: Parts of this guide were adapted from the
-    `pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_. Astropy is grateful to the pandas team for their documentation efforts.
+    :ref:`pandas developer documentation <pandas:development>`. Astropy is grateful to the ``pandas`` team for their documentation efforts.
 
 {%else%}
 
