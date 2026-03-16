@@ -82,7 +82,6 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]
             assert fd[1].header["BITPIX"] == chdu.header["BITPIX"]
 
-    @pytest.mark.skip(reason="FIXME: https://github.com/astropy/astropy/issues/19383")
     @pytest.mark.remote_data
     def test_comp_image_quantize_level(self):
         """
@@ -96,7 +95,7 @@ class TestCompressedImage(FitsTestCase):
 
         # Basically what scipy.datasets.ascent() does.
         fname = download_file(
-            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true",
+            "https://raw.githubusercontent.com/scipy/dataset-ascent/main/ascent.dat",
             cache=True,
             show_progress=False,
         )
