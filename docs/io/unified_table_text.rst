@@ -165,10 +165,10 @@ column use:
 Pandas
 ------
 
-.. _pandas: https://pandas.pydata.org/pandas-docs/stable/index.html
+.. _pandas: https://pandas.pydata.org/docs/
 
 ``astropy`` `~astropy.table.Table` supports the ability to read or write tables
-using some of the `I/O methods <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html>`_
+using some of the :ref:`I/O methods <pandas:io>`
 available within pandas_. This interface thus provides convenient wrappers to
 the following functions / methods:
 
@@ -176,10 +176,10 @@ the following functions / methods:
     :header: "Format name", "Data Description", "Reader", "Writer"
     :widths: 25, 25, 25, 25
 
-    ``pandas.csv``,`CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__,`read_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-csv-table>`_,`to_csv() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-store-in-csv>`_
-    ``pandas.json``,`JSON <http://www.json.org/>`__,`read_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-reader>`_,`to_json() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-json-writer>`_
-    ``pandas.html``,`HTML <https://en.wikipedia.org/wiki/HTML>`__,`read_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-read-html>`_,`to_html() <https://pandas.pydata.org/pandas-docs/stable/user_guide/io.html#io-html>`_
-    ``pandas.fwf``,Fixed Width,`read_fwf() <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_fwf.html#pandas.read_fwf>`_,
+    ``pandas.csv``,`CSV <https://en.wikipedia.org/wiki/Comma-separated_values>`__,:ref:`read_csv() <pandas:io.read_csv_table>`,:ref:`to_csv() <pandas:io.store_in_csv>`
+    ``pandas.json``,`JSON <http://www.json.org/>`__,:ref:`read_json() <pandas:io.json_reader>`,:ref:`to_json() <pandas:io.json_writer>`
+    ``pandas.html``,`HTML <https://en.wikipedia.org/wiki/HTML>`__,:ref:`read_html() <pandas:io.read_html>`,:ref:`to_html() <pandas:io.html>`
+    ``pandas.fwf``,Fixed Width,:ref:`read_fwf() <pandas:io.fwf_reader>`,
 
 **Notes**:
 
