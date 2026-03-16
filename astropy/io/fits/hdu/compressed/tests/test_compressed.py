@@ -82,7 +82,6 @@ class TestCompressedImage(FitsTestCase):
             assert fd[1].header["NAXIS2"] == chdu.header["NAXIS2"]
             assert fd[1].header["BITPIX"] == chdu.header["BITPIX"]
 
-    @pytest.mark.skip(reason="FIXME: https://github.com/astropy/astropy/issues/19383")
     @pytest.mark.remote_data
     def test_comp_image_quantize_level(self):
         """
@@ -96,7 +95,7 @@ class TestCompressedImage(FitsTestCase):
 
         # Basically what scipy.datasets.ascent() does.
         fname = download_file(
-            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true",
+            "https://raw.githubusercontent.com/scipy/dataset-ascent/main/ascent.dat",
             cache=True,
             show_progress=False,
         )
@@ -226,6 +225,33 @@ class TestCompressedImage(FitsTestCase):
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
         assert mtime == os.stat(testfile).st_mtime
+
+    def test_update_comp_image_header(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/18612
+
+        Test that modifying the header of a compressed image in update mode
+        does not corrupt the file.
+        """
+        data = np.arange(100, dtype=np.float32).reshape(10, 10)
+
+        # Create a compressed FITS file
+        primary = fits.PrimaryHDU()
+        comp_hdu = fits.CompImageHDU(data, name="SCI", compression_type="RICE_1")
+        hdul = fits.HDUList([primary, comp_hdu])
+        hdul.writeto(self.temp("test_comp_header.fits"))
+
+        # Open in update mode and modify header
+        with fits.open(self.temp("test_comp_header.fits"), mode="update") as hdul:
+            hdul[1].header["TEST"] = (1, "Test keyword")
+            # The bug is triggered if a user explicitly flushes the file - which
+            # unnecessary but not wrong
+            hdul.flush()
+
+        # Verify the file can be read and changes are present
+        with fits.open(self.temp("test_comp_header.fits")) as hdul:
+            assert hdul[1].header.get("TEST") == 1
+            np.testing.assert_array_equal(hdul[1].data, data)
 
     @pytest.mark.slow
     def test_open_scaled_in_update_mode_compressed(self):
