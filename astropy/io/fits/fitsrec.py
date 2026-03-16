@@ -1,11 +1,10 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import copy
-import operator
+import math
 import warnings
 import weakref
 from contextlib import suppress
-from functools import reduce
 
 import numpy as np
 
@@ -842,9 +841,7 @@ class FITS_rec(np.recarray):
                     if vla_shape[0] == 1:
                         dummy[idx] = dummy[idx].reshape(1, len(dummy[idx]))
                     else:
-                        vla_dim = vla_shape[1:]
-                        vla_first = int(len(dummy[idx]) / np.prod(vla_dim))
-                        dummy[idx] = dummy[idx].reshape((vla_first,) + vla_dim)
+                        dummy[idx] = dummy[idx].reshape((-1,) + vla_shape[1:])
 
                 dummy[idx] = dummy[idx].view(dummy[idx].dtype.newbyteorder(">"))
                 # Each array in the field may now require additional
@@ -942,7 +939,7 @@ class FITS_rec(np.recarray):
                 # ignore dim and don't convert
                 dim = None
             else:
-                nitems = reduce(operator.mul, dim)
+                nitems = math.prod(dim)
                 if _str:
                     actual_nitems = field.itemsize
                 elif len(field.shape) == 1:
@@ -1020,7 +1017,7 @@ class FITS_rec(np.recarray):
 
         if dim and not isinstance(recformat, _FormatP):
             # Apply the new field item dimensions
-            nitems = reduce(operator.mul, dim)
+            nitems = math.prod(dim)
             if field.ndim > 1:
                 field = field[:, :nitems]
             if _str:
@@ -1160,7 +1157,7 @@ class FITS_rec(np.recarray):
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     raw_field[:] = 0  # reset
-                    npts = [np.prod(arr.shape) for arr in self._converted[name]]
+                    npts = [arr.size for arr in self._converted[name]]
 
                     raw_field[: len(npts), 0] = npts
                     raw_field[1:, 1] = (
