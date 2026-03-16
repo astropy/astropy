@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import math
 import sys
 
 import numpy as np
@@ -339,7 +340,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         bscales.append(self._header.get("BSCALE"))
         bzeros.append(self._header.get("BZEROS"))
         data_shape = self.shape[:-1]
-        formats.append(str(int(np.prod(data_shape))) + format)
+        formats.append(str(math.prod(data_shape)) + format)
         dim.append(data_shape)
         parnames = _unique_parnames(parnames)
 

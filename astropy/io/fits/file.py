@@ -4,15 +4,14 @@ import errno
 import gzip
 import http.client
 import io
+import math
 import mmap
-import operator
 import os
 import re
 import sys
 import tempfile
 import warnings
 import zipfile
-from functools import reduce
 
 import numpy as np
 
@@ -356,7 +355,7 @@ class _File:
             shape = (size // dtype.itemsize,)
 
         if size and shape:
-            actualsize = np.prod(shape) * dtype.itemsize
+            actualsize = math.prod(shape) * dtype.itemsize
 
             if actualsize > size:
                 raise ValueError(
@@ -430,7 +429,7 @@ class _File:
                     shape=shape, dtype=dtype, offset=offset, buffer=self._mmap
                 )
             else:
-                count = reduce(operator.mul, shape)
+                count = math.prod(shape)
                 self._file.seek(offset)
                 data = _array_from_file(self._file, dtype, count)
                 return data.reshape(shape)
