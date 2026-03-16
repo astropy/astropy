@@ -852,6 +852,19 @@ class _ValidHDU(_BaseHDU, _Verify):
     Base class for all HDUs which are not corrupted.
     """
 
+    @property
+    def _expected_header_primary_like(self):
+        """
+        Whether verification should expect a primary-HDU-style header (SIMPLE
+        keyword, no PCOUNT/GCOUNT) or extension-HDU-style header (XTENSION
+        keyword, PCOUNT/GCOUNT required).
+
+        By default this is determined by whether the HDU is an ExtensionHDU,
+        but subclasses can override this for special cases like CompImageHDU
+        where the header format depends on the file content.
+        """
+        return not isinstance(self, ExtensionHDU)
+
     def __init__(self, data=None, header=None, name=None, ver=None, **kwargs):
         super().__init__(data=data, header=header)
 
@@ -957,12 +970,12 @@ class _ValidHDU(_BaseHDU, _Verify):
         # Verify location and value of mandatory keywords.
         # Do the first card here, instead of in the respective HDU classes, so
         # the checking is in order, in case of required cards in wrong order.
-        if isinstance(self, ExtensionHDU):
-            firstkey = "XTENSION"
-            firstval = self._extension
-        else:
+        if self._expected_header_primary_like:
             firstkey = "SIMPLE"
             firstval = True
+        else:
+            firstkey = "XTENSION"
+            firstval = self._extension
 
         self.req_cards(firstkey, 0, None, firstval, option, errs)
         self.req_cards(
@@ -1544,13 +1557,16 @@ class ExtensionHDU(_ValidHDU):
         errs = super()._verify(option=option)
 
         # Verify location and value of mandatory keywords.
-        naxis = self._header.get("NAXIS", 0)
-        self.req_cards(
-            "PCOUNT", naxis + 3, lambda v: _is_int(v) and v >= 0, 0, option, errs
-        )
-        self.req_cards(
-            "GCOUNT", naxis + 4, lambda v: _is_int(v) and v == 1, 1, option, errs
-        )
+        # PCOUNT and GCOUNT are only required for extension-style headers,
+        # not for primary-style headers (e.g., CompImageHDU with SIMPLE).
+        if not self._expected_header_primary_like:
+            naxis = self._header.get("NAXIS", 0)
+            self.req_cards(
+                "PCOUNT", naxis + 3, lambda v: _is_int(v) and v >= 0, 0, option, errs
+            )
+            self.req_cards(
+                "GCOUNT", naxis + 4, lambda v: _is_int(v) and v == 1, 1, option, errs
+            )
 
         return errs
 
