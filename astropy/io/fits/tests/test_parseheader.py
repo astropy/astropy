@@ -1,5 +1,4 @@
 import io
-import os
 
 import pytest
 
@@ -18,11 +17,35 @@ from astropy.utils.data import get_pkg_data_filename
         ("data/table.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND"]),
         ("data/ascii.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND"]),
         ("data/tb.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND", "NEXTEND"]),
-        ("data/group.fits", ["SIMPLE", "BITPIX", "NAXIS", "GROUPS", "PCOUNT", "GCOUNT"]),
-        ("data/random_groups.fits", ["SIMPLE", "BITPIX", "NAXIS", "GROUPS", "PCOUNT", "GCOUNT"]),
-        ("data/invalid/group_invalid.fits",["SIMPLE", "BITPIX", "NAXIS", "EXTEND", "GROUPS", "PCOUNT", "GCOUNT"]),
-        ("data/checksum.fits", [ "SIMPLE", "BITPIX", "NAXIS", "NAXIS1", "NAXIS2", "EXTEND", "OBJECT", "TELESCOP", "EQUINOX", "CHECKSUM", "DATASUM"]),
-    ]
+        (
+            "data/group.fits",
+            ["SIMPLE", "BITPIX", "NAXIS", "GROUPS", "PCOUNT", "GCOUNT"],
+        ),
+        (
+            "data/random_groups.fits",
+            ["SIMPLE", "BITPIX", "NAXIS", "GROUPS", "PCOUNT", "GCOUNT"],
+        ),
+        (
+            "data/invalid/group_invalid.fits",
+            ["SIMPLE", "BITPIX", "NAXIS", "EXTEND", "GROUPS", "PCOUNT", "GCOUNT"],
+        ),
+        (
+            "data/checksum.fits",
+            [
+                "SIMPLE",
+                "BITPIX",
+                "NAXIS",
+                "NAXIS1",
+                "NAXIS2",
+                "EXTEND",
+                "OBJECT",
+                "TELESCOP",
+                "EQUINOX",
+                "CHECKSUM",
+                "DATASUM",
+            ],
+        ),
+    ],
 )
 def test_parse_header_expected(filename, expected_keywords):
     """Test that expected keywords are parsed from FITS files"""
