@@ -575,11 +575,10 @@ class FITS_rec(np.recarray):
             return
 
         if isinstance(key, slice):
-            start, end, step = key.indices(len(self))
-            end = min(end, start + len(value) * step)
-
-            for i, idx in enumerate(range(start, end, step)):
-                self.__setitem__(idx, value[i])
+            indices = list(range(*key.indices(len(self))))
+            n = min(len(indices), len(value))
+            for i in range(n):
+                self.__setitem__(indices[i], value[i])
             return
 
         if isinstance(value, FITS_record):

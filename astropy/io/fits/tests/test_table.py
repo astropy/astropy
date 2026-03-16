@@ -1219,6 +1219,12 @@ class TestTableFunctions(FitsTestCase):
         data[::2] = [src_data[0], src_data[1], src_data[0]]
         assert list(data["x"]) == [99.0, 2.0, 88.0, 4.0, 99.0]
 
+        # Test negative step slice: data[::-1]
+        data = _make_data().data
+        reversed_src = _make_data(x=[55.0, 44.0, 33.0, 22.0, 11.0]).data
+        data[::-1] = [reversed_src[i] for i in range(5)]
+        assert list(data["x"]) == [11.0, 22.0, 33.0, 44.0, 55.0]
+
         # Test round-trip through a FITS file
         hdu = _make_data()
         hdu.data[-2:] = [src_data[0], src_data[1]]
