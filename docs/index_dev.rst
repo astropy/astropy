@@ -32,7 +32,7 @@ Contributing quickstart
 This section provides a contributing quickstart guide for Astropy. With minor changes the
 process will apply to contributing updates to coordinated and many affiliated packages.
 
-.. Important:: All contributions must comply with our 
+.. Important:: All contributions must comply with our
     `AI policy  <https://github.com/astropy/astropy-project/blob/main/policies/ai-policy.md>`_.
 
 .. toctree::
