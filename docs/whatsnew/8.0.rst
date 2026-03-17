@@ -134,3 +134,13 @@ Table formats
 =============
 A new table reader has been added to read history and profile output files from `MESA
 <https://mesastar.org>`_, a well-known code for stellar evolution calculations.
+
+
+Units
+=====
+
+Added support for many ``scipy.special`` ufuncs when used with
+``astropy.units.Quantity``. Functions are classified by their physical
+semantics: angle-accepting functions (like ``cosm1``, ``ellipeinc``)
+correctly handle angle quantities, arithmetic-like functions (like ``agm``)
+preserve units, and the majority enforce dimensionless inputs and outputs.

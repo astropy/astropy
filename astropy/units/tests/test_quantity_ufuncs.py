@@ -1660,3 +1660,239 @@ if HAS_SCIPY:
                 ),
             ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+        @pytest.mark.parametrize("function", (sps.beta, sps.betaln))
+        def test_two_arg_dimensionless(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            assert q_out.unit == u.dimensionless_unscaled
+            assert_allclose(q_out.value, function(1.0, 0.5))
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+        @pytest.mark.parametrize("function", (sps.betainc,))
+        def test_three_arg_dimensionless(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+            )
+            assert q_out.unit == u.dimensionless_unscaled
+            assert_allclose(q_out.value, function(1.0, 0.5, 0.5))
+
+            with pytest.raises(TypeError):
+                function(
+                    1.0 * u.kg,
+                    0.5 * u.dimensionless_unscaled,
+                    0.5 * u.dimensionless_unscaled,
+                )
+
+        @pytest.mark.parametrize("function", (sps.hyp2f1,))
+        def test_four_arg_dimensionless(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+                0.2 * u.dimensionless_unscaled,
+            )
+            assert q_out.unit == u.dimensionless_unscaled
+            assert_allclose(q_out.value, function(1.0, 0.5, 0.5, 0.2))
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 0.5 * u.one, 0.5 * u.one, 0.2 * u.one)
+
+        @pytest.mark.parametrize("function", (sps.fresnel,))
+        def test_one_arg_dimensionless_2out(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m))
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+            v_out = function(1.0)
+            assert_allclose(q_out[0].value, v_out[0])
+            assert_allclose(q_out[1].value, v_out[1])
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg)
+
+        @pytest.mark.parametrize("function", (sps.airy,))
+        def test_one_arg_dimensionless_4out(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m))
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 4
+            for i in range(4):
+                assert q_out[i].unit == u.dimensionless_unscaled
+            v_out = function(1.0)
+            for i in range(4):
+                assert_allclose(q_out[i].value, v_out[i])
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg)
+
+        @pytest.mark.parametrize("function", (sps.pbdv,))
+        def test_two_arg_dimensionless_2out(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+            v_out = function(1.0, 0.5)
+            assert_allclose(q_out[0].value, v_out[0])
+            assert_allclose(q_out[1].value, v_out[1])
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+        @pytest.mark.parametrize("function", (sps.ellipj,))
+        def test_two_arg_dimensionless_4out(self, function):
+            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 4
+            for i in range(4):
+                assert q_out[i].unit == u.dimensionless_unscaled
+            v_out = function(1.0, 0.5)
+            for i in range(4):
+                assert_allclose(q_out[i].value, v_out[i])
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+        @pytest.mark.parametrize("function", (sps.mathieu_modcem1,))
+        def test_mathieu_mod_angle_input(self, function):
+            # mathieu_modcem1(m, q, x): m,q dimensionless, x is angle (degrees).
+            q_out = function(
+                1.0 * u.dimensionless_unscaled,
+                1.0 * u.dimensionless_unscaled,
+                45.0 * u.deg,
+            )
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            v_out = function(1.0, 1.0, 45.0)
+            assert_allclose(q_out[0].value, v_out[0])
+
+            # Accept radians, convert to degrees internally.
+            q_rad = function(
+                1.0 * u.dimensionless_unscaled,
+                1.0 * u.dimensionless_unscaled,
+                (np.pi / 4) * u.rad,
+            )
+            assert_allclose(q_rad[0].value, v_out[0], rtol=1e-10)
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.one, 0.5 * u.one, 45.0 * u.kg)
+
+        @pytest.mark.parametrize("function", (sps.obl_ang1,))
+        def test_four_arg_dimensionless_2out(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+                0.2 * u.dimensionless_unscaled,
+            )
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 0.5 * u.one, 0.5 * u.one, 0.2 * u.one)
+
+        @pytest.mark.parametrize("function", (sps.obl_ang1_cv,))
+        def test_five_arg_dimensionless_2out(self, function):
+            q_out = function(
+                2.0 * u.m / (2.0 * u.m),
+                3.0 * u.m / (6.0 * u.m),
+                4.0 * u.m / (8.0 * u.m),
+                0.2 * u.dimensionless_unscaled,
+                0.1 * u.dimensionless_unscaled,
+            )
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+
+            with pytest.raises(TypeError):
+                function(1.0 * u.kg, 0.5 * u.one, 0.5 * u.one, 0.2 * u.one, 0.1 * u.one)
+
+        # --- Angle-input function tests ---
+
+        def test_cosm1_angle_input(self):
+            # cosm1(x) = cos(x) - 1, x is an angle.
+            q_rad = sps.cosm1(np.pi * u.rad)
+            assert q_rad.unit == u.dimensionless_unscaled
+            assert_allclose(q_rad.value, sps.cosm1(np.pi))
+
+            # Accept degrees, convert to radians internally.
+            q_deg = sps.cosm1(180.0 * u.deg)
+            assert q_deg.unit == u.dimensionless_unscaled
+            assert_allclose(q_deg.value, sps.cosm1(np.pi), atol=1e-15)
+
+            with pytest.raises(TypeError):
+                sps.cosm1(1.0 * u.kg)
+
+        def test_ellipeinc_angle_input(self):
+            # ellipeinc(phi, m): phi is angle, m is dimensionless.
+            phi = 0.5 * u.rad
+            m = 0.5 * u.dimensionless_unscaled
+            q_out = sps.ellipeinc(phi, m)
+            assert q_out.unit == u.dimensionless_unscaled
+            assert_allclose(q_out.value, sps.ellipeinc(0.5, 0.5))
+
+            # Accept degrees for phi.
+            q_deg = sps.ellipeinc(30.0 * u.deg, m)
+            expected = sps.ellipeinc(np.deg2rad(30.0), 0.5)
+            assert_allclose(q_deg.value, expected)
+
+            with pytest.raises(TypeError):
+                sps.ellipeinc(1.0 * u.kg, 0.5 * u.one)
+
+        def test_mathieu_cem_angle_input(self):
+            # mathieu_cem(m, q, x): m,q dimensionless, x is angle (degrees).
+            q_out = sps.mathieu_cem(
+                1.0 * u.dimensionless_unscaled,
+                0.5 * u.dimensionless_unscaled,
+                45.0 * u.deg,
+            )
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            v_out = sps.mathieu_cem(1.0, 0.5, 45.0)
+            assert_allclose(q_out[0].value, v_out[0])
+
+            # Accept radians, convert to degrees internally.
+            q_rad = sps.mathieu_cem(
+                1.0 * u.dimensionless_unscaled,
+                0.5 * u.dimensionless_unscaled,
+                (np.pi / 4) * u.rad,
+            )
+            assert_allclose(q_rad[0].value, v_out[0], rtol=1e-10)
+
+            with pytest.raises(TypeError):
+                sps.mathieu_cem(1.0 * u.one, 0.5 * u.one, 45.0 * u.kg)
+
+        # --- Arithmetic-like function tests ---
+
+        def test_agm_preserves_units(self):
+            # agm(a, b): arithmetic-geometric mean, preserves units.
+            q_out = sps.agm(1.0 * u.m, 2.0 * u.m)
+            assert q_out.unit == u.m
+            assert_allclose(q_out.value, sps.agm(1.0, 2.0))
+
+            # Compatible units should work (cm -> m conversion).
+            q_out2 = sps.agm(1.0 * u.m, 200.0 * u.cm)
+            assert q_out2.unit == u.m
+            assert_allclose(q_out2.value, sps.agm(1.0, 2.0))
+
+            # Incompatible units should fail.
+            with pytest.raises(
+                u.UnitConversionError,
+                match="compatible dimensions",
+            ):
+                sps.agm(1.0 * u.m, 2.0 * u.s)
+
+        @pytest.mark.parametrize("function", (sps.round,))
+        def test_round(self, function):
+            q_out = function(2.5 * u.kg)
+            assert q_out.unit == u.kg
+            assert_allclose(q_out.value, function(2.5))
