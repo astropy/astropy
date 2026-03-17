@@ -43,17 +43,20 @@ jobs:
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git switch -c update-astropy-iers-data-pin-$(date +"%s")
+        git switch -c "$BRANCH_NAME"
         git add pyproject.toml scripts/lowest-resolved-tree.txt
         if ! git diff --cached --exit-code; then
           git commit -m "Update minimum required version of astropy-iers-data"
         fi
+        git push --set-upstream origin "$BRANCH_NAME"
+      env:
+        BRANCH_NAME: update-astropy-iers-data-pin-$(date +"%s")
 
     - name: Create Pull Request
       run: |
         gh pr create \
           --title "Update minimum required version of astropy-iers-data" \
           --label no-changelog-entry-needed --label utils.iers \
-          --template .github/workflows/update_astropy_iers_data_pin.md
+          --body-file .github/workflows/update_astropy_iers_data_pin.md
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
