@@ -254,9 +254,8 @@ For example, we can configure fsspec to make buffered reads with a minimum
     ...     block_size=1_000_000,
     ...     cache_type="bytes"
     ... )
-    >>> fsspec_kw = {"anon": True}
     >>> with fits.open(
-    ...     s3_uri, fsspec_filesystem=fsspec_fs, fsspec_kwargs=fsspec_kw
+    ...     s3_uri, fsspec_filesystem=fsspec_fs, fsspec_kwargs={"anon": True}
     ... ) as hdul:  # doctest: +REMOTE_DATA
     ...     cutout = hdul[1].section[10:20, 30:50]
 
