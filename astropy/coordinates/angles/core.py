@@ -635,13 +635,14 @@ class Latitude(Angle):
 
     # Any calculation should drop to Angle
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-    # Prevent Latitude interacting with Longitude
+        # Prevent Latitude interacting with Longitude
         if ufunc == np.add:
             if any(isinstance(inp, Longitude) for inp in inputs):
                 raise TypeError("Latitude and Longitude cannot be added")
 
         results = super().__array_ufunc__(ufunc, method, *inputs, **kwargs)
         return _no_angle_subclass(results)
+
 
 class LongitudeInfo(u.QuantityInfo):
     _represent_as_dict_attrs = u.QuantityInfo._represent_as_dict_attrs + ("wrap_angle",)
@@ -741,7 +742,7 @@ class Longitude(Angle):
 
     # Any calculation should drop to Angle
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-    # Prevent Longitude interacting with Latitude
+        # Prevent Longitude interacting with Latitude
         if ufunc == np.add:
             if any(isinstance(inp, Latitude) for inp in inputs):
                 raise TypeError("Longitude and Latitude cannot be added")
