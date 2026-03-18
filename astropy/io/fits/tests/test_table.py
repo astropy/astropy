@@ -1176,6 +1176,63 @@ class TestTableFunctions(FitsTestCase):
         assert row["c1"] == 12
         assert row["c2"] == "xyz"
 
+    def test_fitsrec_negative_slice_setitem(self):
+        """Regression test for negative slice assignment in FITS_rec.
+
+        Negative slices like data[-2:] were writing to wrong row indices
+        because negative start/stop values were clamped to 0 instead of
+        being resolved relative to the array length.
+        """
+
+        def _make_data(x=None, y=None):
+            x = x if x is not None else [1.0, 2.0, 3.0, 4.0, 5.0]
+            cols = [fits.Column(name="x", format="D", array=x)]
+            if y is not None:
+                cols.append(fits.Column(name="y", format="J", array=y))
+            return fits.BinTableHDU.from_columns(cols)
+
+        src_data = _make_data(x=[99.0, 88.0], y=[990, 880]).data
+
+        # Test negative start slice: data[-2:]
+        data = _make_data(y=[10, 20, 30, 40, 50]).data
+        data[-2:] = [src_data[0], src_data[1]]
+        assert list(data["x"]) == [1.0, 2.0, 3.0, 99.0, 88.0]
+        assert list(data["y"]) == [10, 20, 30, 990, 880]
+
+        # Test negative start and stop: data[-3:-1]
+        data = _make_data(y=[10, 20, 30, 40, 50]).data
+        data[-3:-1] = [src_data[0], src_data[1]]
+        assert list(data["x"]) == [1.0, 2.0, 99.0, 88.0, 5.0]
+        assert list(data["y"]) == [10, 20, 990, 880, 50]
+
+        # Test positive slice still works
+        data = _make_data().data
+        data[0:2] = [src_data[0], src_data[1]]
+        assert list(data["x"]) == [99.0, 88.0, 3.0, 4.0, 5.0]
+
+        # Test step slice: data[::2]
+        data = _make_data().data
+        data[::2] = [src_data[0], src_data[1], src_data[0]]
+        assert list(data["x"]) == [99.0, 2.0, 88.0, 4.0, 99.0]
+
+        # Test negative step slice: data[::-1]
+        data = _make_data().data
+        reversed_src = _make_data(x=[55.0, 44.0, 33.0, 22.0, 11.0]).data
+        data[::-1] = [reversed_src[i] for i in range(5)]
+        assert list(data["x"]) == [11.0, 22.0, 33.0, 44.0, 55.0]
+
+        # Test round-trip through a FITS file
+        hdu = _make_data()
+        hdu.data[-2:] = [src_data[0], src_data[1]]
+        hdu.writeto(self.temp("test_neg_slice.fits"))
+        saved = fits.getdata(self.temp("test_neg_slice.fits"))
+        assert list(saved["x"]) == [1.0, 2.0, 3.0, 99.0, 88.0]
+
+        # Test that mismatched lengths raise ValueError (like NumPy does)
+        data = _make_data().data
+        with pytest.raises(ValueError):
+            data[-2:] = [src_data[0]]  # slice covers 2 rows but only 1 value given
+
     def test_fits_record_len(self):
         counts = np.array([312, 334, 308, 317])
         names = np.array(["NGC1", "NGC2", "NGC3", "NCG4"])
@@ -1314,7 +1371,7 @@ class TestTableFunctions(FitsTestCase):
         # Assign the 4 rows from the second table to rows 5 thru 8 of the
         # new table.  Note that the last row of the new table will still be
         # initialized to the default values.
-        tbhdu2.data[4:] = tbhdu.data
+        tbhdu2.data[4:8] = tbhdu.data
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
