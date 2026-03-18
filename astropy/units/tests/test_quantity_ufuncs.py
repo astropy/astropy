@@ -1667,8 +1667,9 @@ class TestLinalg:
         q = np.eye(3) * u.m
         rank = np.linalg.matrix_rank(q)
         assert rank == 3
-        # Rank is an integer, typically np.int64
-        assert isinstance(rank, (np.integer, int))
+        # Rank is an integer, typically np.int64,
+        # but size might vary across architectures
+        assert isinstance(rank, np.integer)
         q2 = np.ones((3, 3)) * u.s
         rank2 = np.linalg.matrix_rank(q2)
         assert rank2 == 1
