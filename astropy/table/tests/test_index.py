@@ -850,7 +850,7 @@ def test_unique_indices_after_multicol_index_slice():
     assert t2.indices[0].id == ("a", "b")
 
 
-def test_index_not_corrupted_on_failed_row_assignment():
+def test_index_not_corrupted_on_failed_row_assignment(engine):
     """Regression test: index must survive a failed row assignment.
 
     When ``table[row] = values`` raises because one of the values is
@@ -861,10 +861,11 @@ def test_index_not_corrupted_on_failed_row_assignment():
     the column data was never changed.
 
     After the fix the index must round-trip correctly: the original key is
-    still findable and no ghost key is present.
+    still findable and no ghost key is present.  The test is run for all
+    three available index engines (BST, SortedArray, SCEngine).
     """
     t = Table({"x": [1, 2, 3], "y": [4, 5, 6]})
-    t.add_index("y")
+    t.add_index("y", engine=engine)
 
     with pytest.raises(ValueError):
         # "bad" is not convertible to the int64 dtype of column y

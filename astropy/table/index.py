@@ -581,8 +581,17 @@ class Index:
         key[self.col_position(col_name)] = val
         try:
             self.data.add(tuple(key), row)
-        except Exception:
+        except Exception as exc:
             self.data.add(orig_key, row)
+            if not isinstance(exc, ValueError):
+                # Some index engines (BST, SCEngine) raise UFuncTypeError or
+                # other TypeError subclasses when comparing incompatible types
+                # during the sorted-insert.  Convert to ValueError so callers
+                # always get a consistent, descriptive error.
+                raise ValueError(
+                    f"Cannot update index for column '{col_name}' "
+                    f"with value {val!r}: {exc}"
+                ) from exc
             raise
 
     def replace_rows(self, col_slice):
