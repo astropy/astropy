@@ -1077,6 +1077,7 @@ class PrimaryHDU(_ImageBaseHDU):
     """
 
     _default_name = "PRIMARY"
+    _expected_header_primary_like = True
 
     def __init__(
         self,
@@ -1262,13 +1263,16 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         ImageHDU verify method.
         """
         errs = super()._verify(option=option)
-        naxis = self._header.get("NAXIS", 0)
         # PCOUNT must == 0, GCOUNT must == 1; the former is verified in
         # ExtensionHDU._verify, however ExtensionHDU._verify allows PCOUNT
-        # to be >= 0, so we need to check it here
-        self.req_cards(
-            "PCOUNT", naxis + 3, lambda v: _is_int(v) and v == 0, 0, option, errs
-        )
+        # to be >= 0, so we need to check it here.
+        # Only check for extension-style headers (not primary-style like
+        # CompImageHDU with SIMPLE).
+        if not self._expected_header_primary_like:
+            naxis = self._header.get("NAXIS", 0)
+            self.req_cards(
+                "PCOUNT", naxis + 3, lambda v: _is_int(v) and v == 0, 0, option, errs
+            )
         return errs
 
 

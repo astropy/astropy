@@ -6,6 +6,7 @@ import os
 import pickle
 import re
 import time
+import warnings
 from io import BytesIO
 
 import numpy as np
@@ -1498,6 +1499,43 @@ def test_reserved_keywords_stripped(tmp_path):
         assert "ZBLANK" not in hdud[1].header
         assert "ZSCALE" not in hdud[1].header
         assert "ZZERO" not in hdud[1].header
+
+
+def test_compimghdu_with_primary_header_verify_fix():
+    """
+    Test that CompImageHDU created from a PrimaryHDU header can be verified
+    with 'fix' option without corrupting the header.
+
+    When a CompImageHDU has SIMPLE in its header (indicating it came from a
+    primary HDU), verification should not try to insert XTENSION, PCOUNT,
+    or GCOUNT.
+    """
+
+    # Create a CompImageHDU using a PrimaryHDU's header
+    primary = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32).reshape(10, 10))
+    comp_hdu = fits.CompImageHDU(
+        data=np.arange(100, dtype=np.int32).reshape(10, 10),
+        header=primary.header,
+    )
+
+    # Header should have SIMPLE, not XTENSION
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+
+    # Run verify('fix') - this should not modify the header or emit warnings
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        comp_hdu.verify("fix")
+        verify_warnings = [
+            warning for warning in w if issubclass(warning.category, VerifyWarning)
+        ]
+        assert len(verify_warnings) == 0, f"Got warnings: {verify_warnings}"
+
+    # Header should still have SIMPLE, not XTENSION (no corruption)
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+    assert "PCOUNT" not in comp_hdu.header
+    assert "GCOUNT" not in comp_hdu.header
 
 
 def test_compimghdu_with_primary_header_no_dual_keywords(tmp_path):
