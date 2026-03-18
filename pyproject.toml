@@ -44,10 +44,10 @@ keywords = [
 ]
 dependencies = [
     "numpy>=2.0",
-    "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
-    "astropy-iers-data>=0.2026.2.23.0.48.33",
+    "pyerfa>=2.0.1.3",
     "PyYAML>=6.0.0",
     "packaging>=25.0",
+    "astropy-iers-data>=0.2026.3.16.0.53.33",
 ]
 
 [project.optional-dependencies]
