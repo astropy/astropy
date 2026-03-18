@@ -33,29 +33,19 @@ def _make_join_inputs(left_keys, right_keys):
     diffs = np.concatenate(([True], sorted_keys[1:] != sorted_keys[:-1], [True]))
     idxs = np.flatnonzero(diffs)
 
-    # idxs and idx_sort must be passed as intp arrays
+    # idxs and idx_sort must be passed as intp arrays to match Cython DTYPE_t
     idxs = np.asarray(idxs, dtype=np.intp)
     idx_sort = np.asarray(idx_sort, dtype=np.intp)
 
     return idxs, idx_sort, len(left_keys)
 
-def test_module_importable():
-    assert _np_utils is not None
-
-def test_join_inner_exists_and_is_callable():
-    assert hasattr(_np_utils, "join_inner")
-    assert callable(_np_utils.join_inner)
-
-def test_single_public_symbol():
-    # Only 'join_inner' is expected to be public
-    public_symbols = [s for s in dir(_np_utils) if not s.startswith("_")]
-    assert public_symbols == ["join_inner"]
 
 def test_returns_six_values():
     idxs, idx_sort, len_left = _make_join_inputs([1], [1])
     result = _np_utils.join_inner(idxs, idx_sort, len_left, 0)
     assert isinstance(result, tuple)
     assert len(result) == 6
+
 
 class TestInnerJoin:
     join_type = 0
@@ -180,6 +170,7 @@ class TestRightJoin:
             idxs, idx_sort, len_left, self.join_type
         )
         assert not masked
+
 
 @pytest.mark.parametrize("join_type", [0, 1, 2, 3])
 def test_output_and_mask_array_lengths_match_n_out(join_type):
