@@ -135,7 +135,7 @@ static void _sigma_clip_fast(
             // If we are using mad_std, we need to prepare an additional buffer
             // that is used in the calculation. We just need to allocate this once
             // and can use it in any future loop iteration that needs it.
-            if (((npy_bool *)use_mad_std) && mad_buffer == NULL) {
+            if ((*(npy_bool *)use_mad_std) && mad_buffer == NULL) {
                 mad_buffer = (double *)malloc(n_i * sizeof(double));
                 if (mad_buffer == NULL) {
                     PyErr_NoMemory();
