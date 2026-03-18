@@ -6,7 +6,6 @@ API, to verify the compiled extension's behavior at the interface level.
 """
 
 import numpy as np
-import pytest
 
 from astropy.convolution._convolve import _convolveNd_c
 
@@ -54,14 +53,10 @@ def test_1d_no_nan_interpolate():
 def test_2d_simple_convolution():
     """Basic 2D convolution with identity kernel."""
     array = np.array(
-        [[1.0, 2.0, 3.0],
-         [4.0, 5.0, 6.0],
-         [7.0, 8.0, 9.0]], dtype=float, order="C"
+        [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=float, order="C"
     )
     kernel = np.array(
-        [[0.0, 0.0, 0.0],
-         [0.0, 1.0, 0.0],
-         [0.0, 0.0, 0.0]], dtype=float, order="C"
+        [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]], dtype=float, order="C"
     )
     result = np.zeros(array.shape, dtype=float, order="C")
 
