@@ -1,6 +1,5 @@
 """
-Direct tests for the _convolveNd_c Cython extension in
-astropy/convolution/_convolve.pyx.
+Direct tests for the _convolveNd_c Cython extension in astropy/convolution/_convolve.pyx.
 
 These tests call _convolveNd_c directly, bypassing the public convolve()
 API, to verify the compiled extension's behavior at the interface level.
