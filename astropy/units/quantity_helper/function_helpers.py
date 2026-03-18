@@ -1396,7 +1396,6 @@ def matrix_rank(A, tol=None, *args, **kwargs):
         tol = _interpret_tol(tol, A.unit)
 
     if (atol := kwargs.get("atol")) is not None:
-        # Handle NumPy 2.0+ absolute tolerance in kwargs
         kwargs["atol"] = _interpret_tol(atol, A.unit)
 
     if (rtol := kwargs.get("rtol")) is not None:
