@@ -181,9 +181,9 @@ class TestRightJoin:
         )
         assert not masked
 
-
 @pytest.mark.parametrize("join_type", [0, 1, 2, 3])
-def test_output_array_lengths_match_n_out(join_type):
+def test_output_and_mask_array_lengths_match_n_out(join_type):
+    """left_out, right_out, left_mask, right_mask must all have length n_out."""
     left, right = [1, 2], [2, 3]
     idxs, idx_sort, len_left = _make_join_inputs(left, right)
     masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
@@ -191,14 +191,6 @@ def test_output_array_lengths_match_n_out(join_type):
     )
     assert len(left_out) == n_out
     assert len(right_out) == n_out
-
-@pytest.mark.parametrize("join_type", [0, 1, 2, 3])
-def test_mask_array_lengths_match_n_out(join_type):
-    left, right = [1, 2], [2, 3]
-    idxs, idx_sort, len_left = _make_join_inputs(left, right)
-    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-        idxs, idx_sort, len_left, join_type
-    )
     assert len(left_mask) == n_out
     assert len(right_mask) == n_out
 
