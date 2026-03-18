@@ -1,0 +1,2 @@
+Add support for ``atol`` and ``rtol`` parameters from ``np.matrix_rank``
+when called on a ``Quantity`` object.
