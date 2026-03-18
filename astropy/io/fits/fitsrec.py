@@ -575,7 +575,7 @@ class FITS_rec(np.recarray):
 
         if isinstance(key, slice):
             start, stop, step = key.indices(len(self))
-            for idx, val in zip(range(start, stop, step), value):
+            for idx, val in zip(range(start, stop, step), value, strict=True):
                 self.__setitem__(idx, val)
             return
 

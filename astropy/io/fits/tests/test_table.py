@@ -1232,6 +1232,11 @@ class TestTableFunctions(FitsTestCase):
         saved = fits.getdata(self.temp("test_neg_slice.fits"))
         assert list(saved["x"]) == [1.0, 2.0, 3.0, 99.0, 88.0]
 
+        # Test that mismatched lengths raise ValueError (like NumPy does)
+        data = _make_data().data
+        with pytest.raises(ValueError):
+            data[-2:] = [src_data[0]]  # slice covers 2 rows but only 1 value given
+
     def test_fits_record_len(self):
         counts = np.array([312, 334, 308, 317])
         names = np.array(["NGC1", "NGC2", "NGC3", "NCG4"])
@@ -1370,7 +1375,7 @@ class TestTableFunctions(FitsTestCase):
         # Assign the 4 rows from the second table to rows 5 thru 8 of the
         # new table.  Note that the last row of the new table will still be
         # initialized to the default values.
-        tbhdu2.data[4:] = tbhdu.data
+        tbhdu2.data[4:8] = tbhdu.data
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
