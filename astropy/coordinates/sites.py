@@ -10,16 +10,19 @@ Request to the [astropy-data GitHub repository](https://github.com/astropy/astro
 updating the ``location.json`` file.
 """
 
-import json
 from collections.abc import Iterator, Mapping
 from difflib import get_close_matches
-from typing import Any, Self
+from typing import Any, Final, Self
 
 from astropy import units as u
-from astropy.utils.data import get_file_contents, get_pkg_data_contents
 
 from .earth import EarthLocation
 from .errors import UnknownSiteException
+
+# An EarthLocation instance for the tests that need one.
+_GREENWICH: Final = EarthLocation(
+    lon=-0.001475 * u.deg, lat=51.477811 * u.deg, height=46 * u.m
+)
 
 
 class SiteRegistry(Mapping):
@@ -72,9 +75,6 @@ class SiteRegistry(Mapping):
     def __iter__(self) -> Iterator[str]:
         return iter(self._lowercase_names_to_locations)
 
-    def __contains__(self, site_name: object) -> bool:
-        return site_name.lower() in self._lowercase_names_to_locations
-
     @property
     def names(self) -> list[str]:
         """
@@ -122,30 +122,4 @@ class SiteRegistry(Mapping):
             location.info.meta = site_info  # whatever is left
 
             reg.add_site([site] + aliases, location)
-
-        reg._loaded_jsondb = jsondb
         return reg
-
-
-def get_builtin_sites() -> SiteRegistry:
-    """
-    Load observatory database from data/observatories.json and parse them into
-    a SiteRegistry.
-    """
-    jsondb = json.loads(get_pkg_data_contents("data/sites.json"))
-    return SiteRegistry.from_json(jsondb)
-
-
-def get_downloaded_sites(jsonurl: str | None = None) -> SiteRegistry:
-    """
-    Load observatory database from data.astropy.org and parse into a SiteRegistry.
-    """
-    # we explicitly set the encoding because the default is to leave it set by
-    # the users' locale, which may fail if it's not matched to the sites.json
-    if jsonurl is None:
-        content = get_pkg_data_contents("coordinates/sites.json", encoding="UTF-8")
-    else:
-        content = get_file_contents(jsonurl, encoding="UTF-8")
-
-    jsondb = json.loads(content)
-    return SiteRegistry.from_json(jsondb)

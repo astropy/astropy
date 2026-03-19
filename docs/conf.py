@@ -35,19 +35,9 @@ from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
-import sphinx
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
 from sphinx.util import logging
-
-# xref: https://github.com/sphinx-doc/sphinx/issues/13232#issuecomment-2608708175
-if sys.version_info[:2] >= (3, 13) and sphinx.version_info[:2] < (8, 2):
-    import pathlib
-
-    from sphinx.util.typing import _INVALID_BUILTIN_CLASSES
-
-    _INVALID_BUILTIN_CLASSES[pathlib.Path] = "pathlib.Path"
-
 
 # from docs import global_substitutions
 
@@ -117,7 +107,7 @@ intersphinx_mapping.update(
         "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
         "pytest": ("https://docs.pytest.org/en/stable/", None),
         "ipython": ("https://ipython.readthedocs.io/en/stable/", None),
-        "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+        "pandas": ("https://pandas.pydata.org/docs/", None),
         "sphinx_automodapi": (
             "https://sphinx-automodapi.readthedocs.io/en/stable/",
             None,
@@ -408,10 +398,12 @@ linkcheck_ignore = [
     "https://aa.usno.navy.mil/publications/docs/Circular_179.php",
     "http://data.astropy.org",
     "https://doi.org/",  # CI blocked by service provider
+    "https://zenodo.org/",  # 403 Client Error: Forbidden
     "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
     "https://hst-docs.stsci.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://stackoverflow.com/",  # 403 Client Error: Forbidden
+    "https://docutils.sourceforge.io",  # 403 Client Error: Forbidden
     "https://ieeexplore.ieee.org/",  # 418 Client Error: I'm a teapot
     "https://pyfits.readthedocs.io/en/v3.2.1/",  # defunct page in CHANGES.rst
     "https://pkgs.dev.azure.com/astropy-project",  # defunct page in CHANGES.rst
@@ -532,17 +524,17 @@ links_to_become_substitutions: dict[str, str] = {
     "PEP8": "https://www.python.org/dev/peps/pep-0008",
     # Astropy
     "Astropy mailing list": "https://mail.python.org/mailman/listinfo/astropy",
-    "astropy-dev mailing list": "http://groups.google.com/group/astropy-dev",
+    "astropy-dev mailing list": "https://groups.google.com/group/astropy-dev",
     # NumPy
     "NumPy": "https://numpy.org",
     "numpydoc": "https://pypi.org/project/numpydoc",
     # erfa
     "ERFA": "https://github.com/liberfa/erfa",
-    "PyERFA": "http://pyerfa.readthedocs.org",
+    "PyERFA": "https://pyerfa.readthedocs.io",
     # matplotlib
     "Matplotlib": "https://matplotlib.org",
     # sofa
-    "SOFA": "http://www.iausofa.org/index.html",
+    "SOFA": "https://www.iausofa.org",
     # scipy
     "SciPy": "https://www.scipy.org",
     # packaging
@@ -576,7 +568,7 @@ links_to_become_substitutions: dict[str, str] = {
     "OpenAstronomy Packaging Guide": "https://packaging-guide.openastronomy.org/en/latest",
     # Miscellaneous
     "HDF5": "https://www.hdfgroup.org/HDF5",
-    "h5py": "http://www.h5py.org",
+    "h5py": "https://www.h5py.org",
     "Parquet": "https://parquet.apache.org",
 }
 

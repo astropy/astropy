@@ -3,7 +3,7 @@ All rights reserved.
 
 This library is derived, with permission, from the International
 Astronomical Union's "Standards of Fundamental Astronomy" library,
-available from http://www.iausofa.org.
+available from https://www.iausofa.org.
 
 The ERFA version is intended to retain identical
 functionality to the SOFA library, but made distinct through

@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+__all__ = ("FlatwpwaCDM", "wpwaCDM")
 
 from numpy import exp
 from numpy.typing import ArrayLike
@@ -8,13 +9,11 @@ from astropy.cosmology import units as cu
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
-
-__all__ = ["FlatwpwaCDM", "wpwaCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -69,10 +68,9 @@ class wpwaCDM(FLRW):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -135,7 +133,7 @@ class wpwaCDM(FLRW):
                 apiv,
                 self.wa,
             )
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.wpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -153,9 +151,9 @@ class wpwaCDM(FLRW):
                 self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.wp,
                 apiv,
                 self.wa,
@@ -163,8 +161,7 @@ class wpwaCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray | float:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -175,11 +172,13 @@ class wpwaCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        w : ndarray or float
+        w : ndarray
             The dark energy equation of state
-            Returns `float` if the input is scalar.
 
         Notes
         -----
@@ -192,8 +191,7 @@ class wpwaCDM(FLRW):
         apiv = 1.0 / (1.0 + self.zp.value)
         return self.wp + self.wa * (apiv - 1.0 / (aszarr(z) + 1.0))
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -204,11 +202,13 @@ class wpwaCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        I : ndarray or float
+        I : ndarray
             The scaling of the energy density of dark energy with redshift.
-            Returns `float` if the input is scalar.
 
         Notes
         -----
@@ -276,10 +276,9 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -325,7 +324,7 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
                 apiv,
                 self.wa,
             )
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.fwpwacdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -341,9 +340,9 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
                 self.Om0,
                 self.Ode0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.wp,
                 apiv,
                 self.wa,

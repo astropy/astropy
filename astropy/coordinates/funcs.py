@@ -17,7 +17,7 @@ import numpy as np
 from astropy import units as u
 from astropy.constants import c
 from astropy.io import ascii
-from astropy.utils import data
+from astropy.utils import data, deprecated
 
 from .builtin_frames import GCRS, PrecessedGeocentric
 from .builtin_frames.utils import get_jd12
@@ -286,6 +286,7 @@ def _concatenate_components(reps_difs, names):
     ]
 
 
+@deprecated("7.2", alternative="np.concatenate", pending=True)
 def concatenate_representations(reps):
     """
     Combine multiple representation objects into a single instance by
@@ -305,6 +306,19 @@ def concatenate_representations(reps):
     rep : `~astropy.coordinates.BaseRepresentation` subclass instance
         A single representation object with its data set to the concatenation of
         all the elements of the input sequence of representations.
+
+    Notes
+    -----
+    As of astropy 7.2, it is possible to combine representations with
+    `numpy.concatenate`, and that is now the recommended way to do it.
+    This function differs from `numpy.concatenate` in that (i) it does not
+    take an axis argument; (ii) scalar representations are allowed to be
+    concatenated with other scalar or one-dimensional ones; (iii) all
+    representations must have the same type and either all have or all not
+    have a differential relative to time, while for `numpy.concatenate`, the
+    output type and the number is forced to be that of the first
+    representation, and differentials on the later representations are ignored
+    if the first one does not have them.
 
     """
     if not isinstance(reps, (Sequence, np.ndarray)):
@@ -348,6 +362,7 @@ def concatenate_representations(reps):
     return new_rep
 
 
+@deprecated("7.2", alternative="np.concatenate", pending=True)
 def concatenate(coords):
     """
     Combine multiple coordinate objects into a single
@@ -368,6 +383,18 @@ def concatenate(coords):
     cskycoord : SkyCoord
         A single sky coordinate with its data set to the concatenation of all
         the elements in ``coords``
+
+    Notes
+    -----
+    As of astropy 7.2, it is possible to combine coordinates with
+    `numpy.concatenate`, and that is now the recommended way to do it.
+    This function differs from `numpy.concatenate` in that (i) it does not
+    take an axis argument; (ii) scalar coordinates are allowed to be
+    concatenated with other scalar or one-dimensional ones; (iii) all
+    |SkyCoord| must have the same representation type and either all have or
+    all not have velocities; and (iv) non-frame attributes are removed
+    instead of copied from the first |SkyCoord|.
+
     """
     if getattr(coords, "isscalar", False) or not np.iterable(coords):
         raise TypeError("The argument to concatenate must be iterable")

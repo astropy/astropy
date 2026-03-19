@@ -6,6 +6,7 @@ import os
 import pickle
 import re
 import time
+import warnings
 from io import BytesIO
 
 import numpy as np
@@ -95,7 +96,9 @@ class TestCompressedImage(FitsTestCase):
 
         # Basically what scipy.datasets.ascent() does.
         fname = download_file(
-            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true"
+            "https://raw.githubusercontent.com/scipy/dataset-ascent/main/ascent.dat",
+            cache=True,
+            show_progress=False,
         )
         with open(fname, "rb") as f:
             scipy_data = np.array(pickle.load(f))
@@ -134,15 +137,14 @@ class TestCompressedImage(FitsTestCase):
         not 2D and has a non-2D tile size.
         """
 
-        pytest.raises(
-            ValueError,
-            fits.CompImageHDU,
-            np.zeros((2, 10, 10), dtype=np.float32),
-            name="SCI",
-            compression_type="HCOMPRESS_1",
-            quantize_level=16,
-            tile_shape=(2, 10, 10),
-        )
+        with pytest.raises(ValueError):
+            fits.CompImageHDU(
+                np.zeros((2, 10, 10), dtype=np.float32),
+                name="SCI",
+                compression_type="HCOMPRESS_1",
+                quantize_level=16,
+                tile_shape=(2, 10, 10),
+            )
 
     def test_comp_image_hcompress_image_stack(self):
         """
@@ -214,16 +216,43 @@ class TestCompressedImage(FitsTestCase):
         """
 
         # Copy the original file before making any possible changes to it
-        self.copy_file("comp.fits")
-        mtime = os.stat(self.temp("comp.fits")).st_mtime
+        testfile = self.copy_file("comp.fits")
+        mtime = os.stat(testfile).st_mtime
 
         time.sleep(1)
 
-        fits.open(self.temp("comp.fits"), mode="update").close()
+        fits.open(testfile, mode="update").close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
-        assert mtime == os.stat(self.temp("comp.fits")).st_mtime
+        assert mtime == os.stat(testfile).st_mtime
+
+    def test_update_comp_image_header(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/18612
+
+        Test that modifying the header of a compressed image in update mode
+        does not corrupt the file.
+        """
+        data = np.arange(100, dtype=np.float32).reshape(10, 10)
+
+        # Create a compressed FITS file
+        primary = fits.PrimaryHDU()
+        comp_hdu = fits.CompImageHDU(data, name="SCI", compression_type="RICE_1")
+        hdul = fits.HDUList([primary, comp_hdu])
+        hdul.writeto(self.temp("test_comp_header.fits"))
+
+        # Open in update mode and modify header
+        with fits.open(self.temp("test_comp_header.fits"), mode="update") as hdul:
+            hdul[1].header["TEST"] = (1, "Test keyword")
+            # The bug is triggered if a user explicitly flushes the file - which
+            # unnecessary but not wrong
+            hdul.flush()
+
+        # Verify the file can be read and changes are present
+        with fits.open(self.temp("test_comp_header.fits")) as hdul:
+            assert hdul[1].header.get("TEST") == 1
+            np.testing.assert_array_equal(hdul[1].data, data)
 
     @pytest.mark.slow
     def test_open_scaled_in_update_mode_compressed(self):
@@ -432,57 +461,57 @@ class TestCompressedImage(FitsTestCase):
         https://github.com/spacetelescope/PyFITS/issues/23
         """
 
-        self.copy_file("comp.fits")
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        testfile = self.copy_file("comp.fits")
+        with fits.open(testfile, mode="update") as hdul:
             assert isinstance(hdul[1], fits.CompImageHDU)
             hdul[1].header["test1"] = "test"
             hdul[1]._header["test2"] = "test2"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert "test1" in hdul[1].header
             assert hdul[1].header["test1"] == "test"
             assert "test2" in hdul[1].header
             assert hdul[1].header["test2"] == "test2"
 
         # Test update via index now:
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdr = hdul[1].header
             hdr[hdr.index("TEST1")] = "foo"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert hdul[1].header["TEST1"] == "foo"
 
         # Test slice updates
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdul[1].header["TEST*"] = "qux"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert list(hdul[1].header["TEST*"].values()) == ["qux", "qux"]
 
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdr = hdul[1].header
             idx = hdr.index("TEST1")
             hdr[idx : idx + 2] = "bar"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert list(hdul[1].header["TEST*"].values()) == ["bar", "bar"]
 
         # Test updating a specific COMMENT card duplicate
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdul[1].header[("COMMENT", 1)] = "I am fire. I am death!"
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert hdul[1].header["COMMENT"][1] == "I am fire. I am death!"
             assert hdul[1]._header["COMMENT"][1] == "I am fire. I am death!"
 
         # Test deleting by keyword and by slice
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             hdr = hdul[1].header
             del hdr["COMMENT"]
             idx = hdr.index("TEST1")
             del hdr[idx : idx + 2]
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert "COMMENT" not in hdul[1].header
             assert "COMMENT" not in hdul[1]._header
             assert "TEST1" not in hdul[1].header
@@ -960,13 +989,13 @@ class TestCompressedImage(FitsTestCase):
             assert hdul[1].shape == (120, 150)
 
     def test_inplace_data_modify(self, tmp_path):
-        self.copy_file("comp.fits")
+        testfile = self.copy_file("comp.fits")
 
-        with fits.open(self.temp("comp.fits"), mode="update") as hdul:
+        with fits.open(testfile, mode="update") as hdul:
             data = hdul[1].data
             data[0] = 0
 
-        with fits.open(self.temp("comp.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert hdul[1].data[0, 0] == 0
 
     def test_summary_noload(self):
@@ -1248,6 +1277,31 @@ def test_section_unwritten():
     assert hdu.section[3, 4] == data[3, 4]
 
 
+def test_section_scaling(tmp_path):
+    data = (np.arange(200 * 200).reshape(200, 200) - 20_000).astype(np.int16)
+    chdu = fits.CompImageHDU(data=data)
+    chdu._scale_internal(bzero=1.234, bscale=0.0002, blank=32767)
+    chdu.writeto(tmp_path / "compressed.fits")
+
+    with fits.open(tmp_path / "compressed.fits") as hdul:
+        section = hdul[1].section
+        # underlying data is int16 but accessing it triggers scaling
+        assert section.dtype == np.int16
+        assert section[:10].dtype == np.float32
+        # behavior should remain the same after data has been accessed
+        assert section.dtype == np.int16
+        assert section[:10].dtype == np.float32
+
+    with fits.open(tmp_path / "compressed.fits") as hdul:
+        section = hdul[1].section
+        # underlying data is int16 but accessing it triggers scaling
+        assert section.dtype == np.int16
+        assert section[...].dtype == np.float32
+        # behavior should remain the same after data has been accessed
+        assert section.dtype == np.int16
+        assert section[...].dtype == np.float32
+
+
 EXPECTED_HEADER = """
 XTENSION= 'IMAGE   '           / Image extension
 BITPIX  =                   16 / data type of original image
@@ -1445,3 +1499,77 @@ def test_reserved_keywords_stripped(tmp_path):
         assert "ZBLANK" not in hdud[1].header
         assert "ZSCALE" not in hdud[1].header
         assert "ZZERO" not in hdud[1].header
+
+
+def test_compimghdu_with_primary_header_verify_fix():
+    """
+    Test that CompImageHDU created from a PrimaryHDU header can be verified
+    with 'fix' option without corrupting the header.
+
+    When a CompImageHDU has SIMPLE in its header (indicating it came from a
+    primary HDU), verification should not try to insert XTENSION, PCOUNT,
+    or GCOUNT.
+    """
+
+    # Create a CompImageHDU using a PrimaryHDU's header
+    primary = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32).reshape(10, 10))
+    comp_hdu = fits.CompImageHDU(
+        data=np.arange(100, dtype=np.int32).reshape(10, 10),
+        header=primary.header,
+    )
+
+    # Header should have SIMPLE, not XTENSION
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+
+    # Run verify('fix') - this should not modify the header or emit warnings
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        comp_hdu.verify("fix")
+        verify_warnings = [
+            warning for warning in w if issubclass(warning.category, VerifyWarning)
+        ]
+        assert len(verify_warnings) == 0, f"Got warnings: {verify_warnings}"
+
+    # Header should still have SIMPLE, not XTENSION (no corruption)
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+    assert "PCOUNT" not in comp_hdu.header
+    assert "GCOUNT" not in comp_hdu.header
+
+
+def test_compimghdu_with_primary_header_no_dual_keywords(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/19361
+
+    When creating a CompImageHDU using a PrimaryHDU's header, the resulting
+    header should not contain both SIMPLE/ZSIMPLE and XTENSION/ZTENSION.
+    According to the FITS standard, a header must have either SIMPLE or
+    XTENSION, never both. Additionally, PCOUNT/GCOUNT are extension-only
+    keywords and should not appear in a primary-style header.
+    """
+    # Create a PrimaryHDU with some data
+    hdu = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32).reshape(10, 10))
+
+    # Create a CompImageHDU using the PrimaryHDU's header
+    comp_hdu = fits.CompImageHDU(
+        data=np.arange(100, dtype=np.int32).reshape(10, 10),
+        header=hdu.header,
+    )
+
+    # The image header should have SIMPLE (not XTENSION) when created from PrimaryHDU
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+    # PCOUNT/GCOUNT are extension-only keywords
+    assert "PCOUNT" not in comp_hdu.header
+    assert "GCOUNT" not in comp_hdu.header
+
+    # Write to file and check the raw bintable header
+    hdul = fits.HDUList([fits.PrimaryHDU(), comp_hdu])
+    hdul.writeto(tmp_path / "test.fits")
+
+    # Check the underlying bintable header has ZSIMPLE but not ZTENSION
+    with fits.open(tmp_path / "test.fits", disable_image_compression=True) as hdul:
+        bintable_header = hdul[1].header
+        assert "ZSIMPLE" in bintable_header
+        assert "ZTENSION" not in bintable_header

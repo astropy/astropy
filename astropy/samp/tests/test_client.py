@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import platform
+
 import pytest
 
 # By default, tests should not use the internet.
@@ -14,11 +16,13 @@ def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 def test_SAMPHubProxy():
     """Test that SAMPHubProxy can be instantiated"""
     SAMPHubProxy()
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 @pytest.mark.slow
 def test_SAMPClient():
     """Test that SAMPClient can be instantiated"""
@@ -26,6 +30,7 @@ def test_SAMPClient():
     SAMPClient(proxy)
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 def test_SAMPIntegratedClient():
     """Test that SAMPIntegratedClient can be instantiated"""
     SAMPIntegratedClient()
@@ -40,6 +45,7 @@ def samp_hub():
     my_hub.stop()
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 @pytest.mark.filterwarnings("ignore:unclosed <socket:ResourceWarning")
 def test_SAMPIntegratedClient_notify_all(samp_hub):
     """Test that SAMP returns a warning if no receiver got the message."""
@@ -51,6 +57,7 @@ def test_SAMPIntegratedClient_notify_all(samp_hub):
     client.disconnect()
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 def test_reconnect(samp_hub):
     """Test that SAMPIntegratedClient can reconnect.
     This is a regression test for bug [#2673]

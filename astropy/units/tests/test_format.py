@@ -353,6 +353,15 @@ def test_ogip_ohm():
     assert u_format.OGIP.to_string(u.ohm) == "ohm"
 
 
+@pytest.mark.parametrize(
+    "string",
+    [pytest.param("m**(-0.5)", id="float"), pytest.param("m**(-1/2)", id="fraction")],
+)
+def test_ogip_negative_powers(string):
+    # Regression test for #18776 - negative fractions were not recognized
+    assert u_format.OGIP.parse(string) == u.m**-0.5
+
+
 class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None):
         if output_format is None:
@@ -489,7 +498,7 @@ class TestRoundtripOGIP(RoundtripBase):
 
 @pytest.mark.parametrize(
     "unit_formatter_class,n_units",
-    [(u_format.FITS, 765), (u_format.VOUnit, 1303), (u_format.CDS, 3326)],
+    [(u_format.FITS, 766), (u_format.VOUnit, 1304), (u_format.CDS, 3326)],
 )
 def test_units_available(unit_formatter_class, n_units):
     assert len(unit_formatter_class._units) == n_units
@@ -1137,8 +1146,8 @@ def test_celsius_fits():
     "test_pair",
     list_format_string_pairs(
         ("generic", "dB(1 / m)"),
-        ("latex", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{\frac{1}{m}} \right)}$"),
-        ("latex_inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
+        ("latex", r"$\mathrm{dB\left(\frac{1}{m}\right)}$"),
+        ("latex_inline", r"$\mathrm{dB\left(m^{-1}\right)}$"),
         ("console", "dB(m^-1)"),
         ("unicode", "dB(m⁻¹)"),
     ),
@@ -1157,8 +1166,8 @@ def test_function_format_styles(test_pair: FormatStringPair):
         ("console", "inline", "dB(1 / m)"),
         ("unicode", "multiline", "   1\ndB(─)\n   m"),
         ("unicode", "inline", "dB(1 / m)"),
-        ("latex", False, r"$\mathrm{dB}$$\mathrm{\left( \mathrm{m^{-1}} \right)}$"),
-        ("latex", "inline", r"$\mathrm{dB}$$\mathrm{\left( \mathrm{1 / m} \right)}$"),
+        ("latex", False, r"$\mathrm{dB\left(m^{-1}\right)}$"),
+        ("latex", "inline", r"$\mathrm{dB\left(1 / m\right)}$"),
     ],
 )
 def test_function_format_styles_non_default_fraction(format_spec, fraction, string):

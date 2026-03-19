@@ -14,7 +14,6 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 
 from astropy import units as u
 from astropy.units.quantity import _UNIT_NOT_INITIALISED
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -701,14 +700,6 @@ class TestQuantityOperations:
             q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
-    # See https://github.com/numpy/numpy/issues/5074
-    # It seems unlikely this will be resolved, so xfail'ing it.
-    @pytest.mark.xfail(reason="list multiplication only works for numpy <=1.10")
-    def test_numeric_converter_to_index_in_practice(self):
-        """Test that use of __index__ actually works."""
-        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
-        assert q4 * ["a", "b", "c"] == ["a", "b", "c", "a", "b", "c"]
-
     def test_array_converters(self):
         # Scalar quantity
         q = u.Quantity(1.23, u.m)
@@ -725,6 +716,13 @@ class TestQuantityOperations:
 
         with pytest.raises(TypeError):
             operator.index(u.Quantity(val, u.m, dtype=int))
+
+    def test__index_fails_for_list_multiplication(self):
+        # This used to work for numpy <= 1.10, but that's not coming back.
+        # See https://github.com/numpy/numpy/issues/5074
+        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
+        with pytest.raises(TypeError):
+            q4 * ["a", "b", "c"]
 
 
 def test_quantity_conversion():
@@ -1681,7 +1679,8 @@ def test_quantity_iterability():
     q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not np.iterable(q2)
-    pytest.raises(TypeError, iter, q2)
+    with pytest.raises(TypeError):
+        iter(q2)
 
 
 def test_copy():
@@ -1786,10 +1785,37 @@ def test_quantity_initialisation_from_string():
         u.Quantity(["5"])
     with pytest.raises(TypeError):
         u.Quantity(np.array(["5"]))
+    with pytest.raises(TypeError):
+        u.Quantity("['1' '5' '8']")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 'two', 9]")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 4 9]")
     with pytest.raises(ValueError):
         u.Quantity("5E")
     with pytest.raises(ValueError):
         u.Quantity("5 foo")
+
+
+@pytest.mark.parametrize("unit_str", ["", "eV", "  cm"])
+@pytest.mark.parametrize(
+    "array_str",
+    (
+        "[7,  8,  9]",
+        "[7,8,9]",
+        "[7,8,9,]",
+        "[7,  8,  9,]",
+        "[7. 8. 9.]",
+        "[7.  8.   9.]",
+        "[7 8 9]",
+        "[7  8  9]",
+        "[7   8     9]",
+    ),
+)
+def test_quantity_initialisation_string_array(array_str, unit_str):
+    q = u.Quantity(array_str + unit_str)
+    assert q.unit == unit_str
+    assert_array_equal(q.value, np.array([7.0, 8.0, 9.0]))
 
 
 def test_unsupported():
@@ -2015,7 +2041,7 @@ class QuantityMimic:
         self.value = value
         self.unit = unit
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         return np.array(self.value, dtype=dtype, copy=copy)
 
 
@@ -2077,9 +2103,7 @@ class TestQuantitySubclassAboveAndBelow:
     def setup_class(cls):
         class MyArray(np.ndarray):
             def __array_finalize__(self, obj):
-                super_array_finalize = super().__array_finalize__
-                if super_array_finalize is not None:
-                    super_array_finalize(obj)
+                super().__array_finalize__(obj)
                 if hasattr(obj, "my_attr"):
                     self.my_attr = obj.my_attr
 

@@ -1,22 +1,17 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-"""Critical density.
+"""Critical density component."""
 
-This is private API. See `~astropy.cosmology.traits` for public API.
-
-"""
-
-__all__ = ["_CriticalDensity"]
+__all__ = ("CriticalDensity",)
 
 from collections.abc import Callable
 from typing import Any
 
 from numpy.typing import ArrayLike, NDArray
 
-from astropy.cosmology._src.utils import deprecated_keywords
 from astropy.units import Quantity
 
 
-class _CriticalDensity:
+class CriticalDensity:
     """The object has attributes and methods for the critical density."""
 
     critical_density0: Quantity
@@ -24,8 +19,7 @@ class _CriticalDensity:
 
     efunc: Callable[[Any], NDArray[Any]]
 
-    @deprecated_keywords("z", since="7.0")
-    def critical_density(self, z: Quantity | ArrayLike) -> Quantity:
+    def critical_density(self, z: Quantity | ArrayLike, /) -> Quantity:
         """Critical density in grams per cubic cm at redshift ``z``.
 
         Parameters
@@ -35,6 +29,9 @@ class _CriticalDensity:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------

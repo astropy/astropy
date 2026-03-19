@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Convenience functions for `astropy.cosmology`."""
 
+__all__ = ("z_at_value",)
+
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypeAlias, TypedDict
@@ -19,8 +21,6 @@ from astropy.cosmology._src.typing import FArray
 
 if TYPE_CHECKING:
     import scipy.optimize
-
-__all__ = ["z_at_value"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 

@@ -4,6 +4,7 @@ Define the Enhanced Character-Separated-Values (ECSV) which allows for reading a
 writing all the meta data associated with an astropy Table object.
 """
 
+import csv
 import json
 import re
 import warnings
@@ -12,6 +13,7 @@ from collections import OrderedDict
 import numpy as np
 
 from astropy.io.ascii.core import convert_numpy
+from astropy.io.misc.ecsv import table_meta_as_dict
 from astropy.table import meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyUserWarning
@@ -44,10 +46,32 @@ class InvalidEcsvDatatypeWarning(AstropyUserWarning):
     """
 
 
+class ECSVHeaderSplitter(core.DefaultSplitter):
+    """Splitter for reading header that does not strip column names.
+
+    For instance column names like " # weird "" name ", the ECSV header preserves
+    leading and trailing whitespace.
+    """
+
+    process_val = None
+
+
+class ECSVHeaderSplitterQuoteAll(ECSVHeaderSplitter):
+    """Special case splitter used for writing header line to quote all the column names.
+
+    This is used if the first column name starts with the ECSV comment regex or if any
+    column names have leading or trailing whitespace. See issue #18710.
+    """
+
+    quoting = csv.QUOTE_ALL
+
+
 class EcsvHeader(basic.BasicHeader):
     """Header class for which the column definition line starts with the
     comment character.  See the :class:`CommentedHeader` class  for an example.
     """
+
+    splitter_class = ECSVHeaderSplitter
 
     def process_lines(self, lines):
         """Return only non-blank lines that start with the comment regexp.  For these
@@ -105,7 +129,18 @@ class EcsvHeader(basic.BasicHeader):
         ] + meta.get_yaml_from_header(header)
 
         lines.extend([self.write_comment + line for line in header_yaml_lines])
-        lines.append(self.splitter.join([x.info.name for x in self.cols]))
+
+        names = [col.info.name for col in self.cols]
+        # If first col name looks like ECSV header start (r"\s*#") or any have leading
+        # or trailing whitespace then quote all fields in the header line.
+        if (names and re.match(self.comment, names[0])) or any(
+            name.strip() != name for name in names
+        ):
+            splitter = ECSVHeaderSplitterQuoteAll()
+            splitter.delimiter = self.splitter.delimiter
+        else:
+            splitter = self.splitter  # use default splitter
+        lines.append(splitter.join(names))
 
     def write_comments(self, lines, meta):
         """
@@ -160,8 +195,7 @@ class EcsvHeader(basic.BasicHeader):
                 "unable to parse yaml in meta header"
             ) from e
 
-        if "meta" in header:
-            self.table_meta = header["meta"]
+        self.table_meta = table_meta_as_dict(header)
 
         if "delimiter" in header:
             delimiter = header["delimiter"]
@@ -481,7 +515,6 @@ class Ecsv(basic.Basic):
     ----- -----
       001     2
       004     3
-
     """
 
     _format_name = "ecsv"

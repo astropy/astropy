@@ -1329,6 +1329,7 @@ unsigned char *scratch;
 			 */
 			read_bdirect(infile,a,n,nqx,nqy,scratch,bit);
 		} else if (b != 0xf) {
+			free(scratch);
 			ffpmsg("qtree_decode: bad format code");
 			return(DATA_DECOMPRESSION_ERR);
 		} else {
@@ -1419,6 +1420,7 @@ unsigned char *scratch;
 			 */
 			read_bdirect64(infile,a,n,nqx,nqy,scratch,bit);
 		} else if (b != 0xf) {
+			free(scratch);
 			ffpmsg("qtree_decode64: bad format code");
 			return(DATA_DECOMPRESSION_ERR);
 		} else {

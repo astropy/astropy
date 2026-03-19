@@ -398,7 +398,7 @@ class TestKernels:
 
     def test_custom_kernel_odd_error(self):
         """
-        Check if CustomKernel raises if the array size is odd.
+        Check if CustomKernel raises an error when the array size is odd.
         """
         with pytest.raises(KernelSizeError):
             CustomKernel([1, 1, 1, 1])

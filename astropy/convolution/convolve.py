@@ -136,75 +136,77 @@ def convolve(
     Convolve an array with a kernel.
 
     This routine differs from `scipy.ndimage.convolve` because
-    it includes a special treatment for ``NaN`` values. Rather than
-    including ``NaN`` values in the array in the convolution calculation, which
-    causes large ``NaN`` holes in the convolved array, ``NaN`` values are
-    replaced with interpolated values using the kernel as an interpolation
-    function.
+    it includes a special treatment for ``NaN`` values. Rather
+    than including ``NaN`` values in the array in the convolution
+    calculation, which causes large ``NaN`` holes in the convolved
+    array, ``NaN`` values are replaced with interpolated values using
+    the kernel as an interpolation function.
 
     Parameters
     ----------
     array : `~astropy.nddata.NDData` or array-like
-        The array to convolve. This should be a 1, 2, or 3-dimensional array
-        or a list or a set of nested lists representing a 1, 2, or
-        3-dimensional array.  If an `~astropy.nddata.NDData`, the ``mask`` of
-        the `~astropy.nddata.NDData` will be used as the ``mask`` argument.
+        The array to convolve. This should be a 1, 2, or 3-dimensional
+        array or a list or a set of nested lists representing a 1, 2,
+        or 3-dimensional array. If an `~astropy.nddata.NDData`, the
+        ``mask`` of the `~astropy.nddata.NDData` will be used as the
+        ``mask`` argument.
     kernel : `numpy.ndarray` or `~astropy.convolution.Kernel`
-        The convolution kernel. The number of dimensions should match those for
-        the array, and the dimensions should be odd in all directions.  If a
-        masked array, the masked values will be replaced by ``fill_value``.
+        The convolution kernel. The number of dimensions should match
+        those for the array, and the dimensions should be odd in all
+        directions. If a masked array, the masked values will be
+        replaced by ``fill_value``.
     boundary : str, optional
         A flag indicating how to handle boundaries:
-            * `None`
-                Set the ``result`` values to zero where the kernel
-                extends beyond the edge of the array.
-            * 'fill'
-                Set values outside the array boundary to ``fill_value`` (default).
-            * 'wrap'
-                Periodic boundary that wrap to the other side of ``array``.
-            * 'extend'
-                Set values outside the array to the nearest ``array``
-                value.
+
+        * `None`: Set the ``result`` values to zero where the kernel
+          extends beyond the edge of the array.
+        * 'fill': Set values outside the array boundary to
+          ``fill_value`` (default).
+        * 'wrap': Periodic boundary that wrap to the other side of
+          ``array``.
+        * 'extend': Set values outside the array to the nearest
+          ``array`` value.
     fill_value : float, optional
-        The value to use outside the array when using ``boundary='fill'``.
+        The value to use outside the array when using
+        ``boundary='fill'``.
     normalize_kernel : bool, optional
         Whether to normalize the kernel to have a sum of one.
     nan_treatment : {'interpolate', 'fill'}, optional
         The method used to handle NaNs in the input ``array``:
-            * ``'interpolate'``: ``NaN`` values are replaced with
-              interpolated values using the kernel as an interpolation
-              function. Note that if the kernel has a sum equal to
-              zero, NaN interpolation is not possible and will raise an
-              exception.
-            * ``'fill'``: ``NaN`` values are replaced by ``fill_value``
-              prior to convolution.
+
+        * 'interpolate': ``NaN`` values are replaced with interpolated
+          values using the kernel as an interpolation function. Note that
+          if the kernel has a sum equal to zero, NaN interpolation is not
+          possible and will raise an exception.
+        * 'fill': ``NaN`` values are replaced by ``fill_value`` prior to
+          convolution.
     preserve_nan : bool, optional
-        After performing convolution, should pixels that were originally NaN
-        again become NaN?
+        After performing convolution, should pixels that were originally
+        NaN again become NaN?
     mask : None or ndarray, optional
-        A "mask" array.  Shape must match ``array``, and anything that is masked
-        (i.e., not 0/`False`) will be set to NaN for the convolution.  If
-        `None`, no masking will be performed unless ``array`` is a masked array.
-        If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
-        masked if it is masked in either ``mask`` *or* ``array.mask``.
+        A "mask" array. Shape must match ``array``, and anything that
+        is masked (i.e., not 0/`False`) will be set to NaN for the
+        convolution. If `None`, no masking will be performed unless
+        ``array`` is a masked array. If ``mask`` is not `None` *and*
+        ``array`` is a masked array, a pixel is masked if it is masked
+        in either ``mask`` *or* ``array.mask``.
     normalization_zero_tol : float, optional
-        The absolute tolerance on whether the kernel is different than zero.
-        If the kernel sums to zero to within this precision, it cannot be
-        normalized. Default is "1e-8".
+        The absolute tolerance on whether the kernel is different than
+        zero. If the kernel sums to zero to within this precision, it
+        cannot be normalized. Default is "1e-8".
 
     Returns
     -------
     result : `numpy.ndarray`
         An array with the same dimensions and as the input array,
-        convolved with kernel.  The data type depends on the input
-        array type.  If array is a floating point type, then the
-        return array keeps the same data type, otherwise the type
-        is ``numpy.float``.
+        convolved with kernel. The data type depends on the input array
+        type. If array is a floating point type, then the return array
+        keeps the same data type, otherwise the type is ``numpy.float``.
 
     Notes
     -----
-    For masked arrays, masked values are treated as NaNs.  The convolution
-    is always done at ``numpy.float`` precision.
+    For masked arrays, masked values are treated as NaNs. The
+    convolution is always done at ``numpy.float`` precision.
     """
     if boundary not in BOUNDARY_OPTIONS:
         raise ValueError(f"Invalid boundary option: must be one of {BOUNDARY_OPTIONS}")
@@ -481,132 +483,147 @@ def convolve_fft(
     dealias=False,
 ):
     """
-    Convolve an ndarray with an nd-kernel.  Returns a convolved image with
-    ``shape = array.shape``.  Assumes kernel is centered.
+    Convolve an ndarray with an nd-kernel.
 
-    `convolve_fft` is very similar to `convolve` in that it replaces ``NaN``
-    values in the original image with interpolated values using the kernel as
-    an interpolation function.  However, it also includes many additional
-    options specific to the implementation.
+    Returns a convolved image with ``shape = array.shape``. Assumes
+    kernel is centered.
 
-    `convolve_fft` differs from `scipy.signal.fftconvolve` in a few ways:
+    `convolve_fft` is very similar to `convolve` in that it replaces
+    ``NaN`` values in the original image with interpolated values using
+    the kernel as an interpolation function. However, it also includes
+    many additional options specific to the implementation.
+
+    `convolve_fft` differs from `scipy.signal.fftconvolve` in a few
+    ways:
 
     * It can treat ``NaN`` values as zeros or interpolate over them.
     * ``inf`` values are treated as ``NaN``
-    * It optionally pads to the nearest faster sizes to improve FFT speed.
-      These sizes are optimized for the numpy and scipy implementations, and
-      ``fftconvolve`` uses them by default as well; when using other external
-      functions (see below), results may vary.
-    * Its only valid ``mode`` is 'same' (i.e., the same shape array is returned)
-    * It lets you use your own fft, e.g.,
-      `pyFFTW <https://pypi.org/project/pyFFTW/>`_ or
-      `pyFFTW3 <https://pypi.org/project/PyFFTW3/0.2.1/>`_ , which can lead to
-      performance improvements, depending on your system configuration.  pyFFTW3
-      is threaded, and therefore may yield significant performance benefits on
-      multi-core machines at the cost of greater memory requirements.  Specify
-      the ``fftn`` and ``ifftn`` keywords to override the default, which is
-      `numpy.fft.fftn` and `numpy.fft.ifftn`.  The `scipy.fft` functions also
-      offer somewhat better performance and a multi-threaded option.
+    * It optionally pads to the nearest faster sizes to improve
+      FFT speed. These sizes are optimized for the numpy and scipy
+      implementations, and `~scipy.signal.fftconvolve` uses them by
+      default as well; when using other external functions (see below),
+      results may vary.
+    * It's only valid ``mode`` is 'same' (i.e., the same shape array is
+      returned)
+    * It lets you use your own fft, e.g., `pyFFTW
+      <https://pypi.org/project/pyFFTW/>`_ or `pyFFTW3
+      <https://pypi.org/project/PyFFTW3/0.2.1/>`_, which can lead to
+      performance improvements, depending on your system configuration.
+      pyFFTW3 is threaded, and therefore may yield significant
+      performance benefits on multicore machines at the cost of
+      greater memory requirements. Specify the ``fftn`` and ``ifftn``
+      keywords to override the default, which is `numpy.fft.fftn` and
+      `numpy.fft.ifftn`. The `scipy.fft` functions also offer somewhat
+      better performance and a multithreaded option.
 
     Parameters
     ----------
     array : `numpy.ndarray`
-        Array to be convolved with ``kernel``.  It can be of any
-        dimensionality, though only 1, 2, and 3d arrays have been tested.
+        Array to be convolved with ``kernel``. It can be of any
+        dimensionality, though only 1, 2, and 3d arrays have been
+        tested.
     kernel : `numpy.ndarray` or `astropy.convolution.Kernel`
-        The convolution kernel. The number of dimensions should match those
-        for the array.  The dimensions *do not* have to be odd in all directions,
-        unlike in the non-fft `convolve` function.  The kernel will be
-        normalized if ``normalize_kernel`` is set.  It is assumed to be centered
-        (i.e., shifts may result if your kernel is asymmetric)
+        The convolution kernel. The number of dimensions should match
+        those for the array. The dimensions *do not* have to be odd in
+        all directions, unlike in the non-fft `convolve` function. The
+        kernel will be normalized if ``normalize_kernel`` is set. It is
+        assumed to be centered (i.e., shifts may result if your kernel
+        is asymmetric)
     boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
 
-            * 'fill': set values outside the array boundary to fill_value
-              (default)
-            * 'wrap': periodic boundary
+        * 'fill': set values outside the array boundary to
+          ``fill_value`` (default)
+        * 'wrap': periodic boundary
 
-        The `None` and 'extend' parameters are not supported for FFT-based
-        convolution.
+        The `None` and 'extend' parameters are not supported for
+        FFT-based convolution.
     fill_value : float, optional
         The value to use outside the array when using boundary='fill'.
     nan_treatment : {'interpolate', 'fill'}, optional
         The method used to handle NaNs in the input ``array``:
-            * ``'interpolate'``: ``NaN`` values are replaced with
-              interpolated values using the kernel as an interpolation
-              function. Note that if the kernel has a sum equal to
-              zero, NaN interpolation is not possible and will raise an
-              exception.
-            * ``'fill'``: ``NaN`` values are replaced by ``fill_value``
-              prior to convolution.
+
+        * 'interpolate': ``NaN`` values are replaced with interpolated
+          values using the kernel as an interpolation function. Note that
+          if the kernel has a sum equal to zero, NaN interpolation is not
+          possible and will raise an exception.
+        * 'fill': ``NaN`` values are replaced by ``fill_value`` prior to
+          convolution.
     normalize_kernel : callable or boolean, optional
-        If specified, this is the function to divide kernel by to normalize it.
-        e.g., ``normalize_kernel=np.sum`` means that kernel will be modified to be:
-        ``kernel = kernel / np.sum(kernel)``.  If True, defaults to
-        ``normalize_kernel = np.sum``.
+        If specified, this is the function to divide kernel by
+        to normalize it. e.g., ``normalize_kernel=np.sum`` means
+        that kernel will be modified to be: ``kernel = kernel /
+        np.sum(kernel)``. If True, defaults to ``normalize_kernel =
+        np.sum``.
     normalization_zero_tol : float, optional
-        The absolute tolerance on whether the kernel is different than zero.
-        If the kernel sums to zero to within this precision, it cannot be
-        normalized. Default is "1e-8".
+        The absolute tolerance on whether the kernel is different than
+        zero. If the kernel sums to zero to within this precision, it
+        cannot be normalized. Default is "1e-8".
     preserve_nan : bool, optional
-        After performing convolution, should pixels that were originally NaN
-        again become NaN?
+        After performing convolution, should pixels that were originally
+        NaN again become NaN?
     mask : None or ndarray, optional
-        A "mask" array.  Shape must match ``array``, and anything that is masked
-        (i.e., not 0/`False`) will be set to NaN for the convolution.  If
-        `None`, no masking will be performed unless ``array`` is a masked array.
-        If ``mask`` is not `None` *and* ``array`` is a masked array, a pixel is
-        masked if it is masked in either ``mask`` *or* ``array.mask``.
+        A "mask" array. Shape must match ``array``, and anything that
+        is masked (i.e., not 0/`False`) will be set to NaN for the
+        convolution. If `None`, no masking will be performed unless
+        ``array`` is a masked array. If ``mask`` is not `None` *and*
+        ``array`` is a masked array, a pixel is masked if it is masked
+        in either ``mask`` *or* ``array.mask``.
     crop : bool, optional
-        Default on.  Return an image of the size of the larger of the input
-        image and the kernel.
-        If the image and kernel are asymmetric in opposite directions, will
-        return the largest image in both directions.
-        For example, if an input image has shape [100,3] but a kernel with shape
-        [6,6] is used, the output will be [100,6].
+        Default on. Return an image of the size of the larger of
+        the input image and the kernel. If the image and kernel are
+        asymmetric in opposite directions, will return the largest image
+        in both directions. For example, if an input image has shape
+        [100,3] but a kernel with shape [6,6] is used, the output will
+        be [100,6].
     return_fft : bool, optional
-        Return the ``fft(image)*fft(kernel)`` instead of the convolution (which is
-        ``ifft(fft(image)*fft(kernel))``).  Useful for making PSDs.
+        Return the ``fft(image)*fft(kernel)`` instead of the convolution
+        (which is ``ifft(fft(image)*fft(kernel))``). Useful for making
+        PSDs.
     fft_pad : bool, optional
-        Default on.  Zero-pad image to the nearest size supporting more efficient
-        execution of the FFT, generally values factorizable into the first 3-5
-        prime numbers.  With ``boundary='wrap'``, this will be disabled.
+        Default on. Zero-pad image to the nearest size supporting more
+        efficient execution of the FFT, generally values factorizable
+        into the first 3-5 prime numbers. With ``boundary='wrap'``, this
+        will be disabled.
     psf_pad : bool, optional
-        Zero-pad image to be at least the sum of the image sizes to avoid
-        edge-wrapping when smoothing.  This is enabled by default with
-        ``boundary='fill'``, but it can be overridden with a boolean option.
-        ``boundary='wrap'`` and ``psf_pad=True`` are not compatible.
+        Zero-pad image to be at least the sum of the image sizes to
+        avoid edge-wrapping when smoothing. This is enabled by default
+        with ``boundary='fill'``, but it can be overridden with a
+        boolean option. ``boundary='wrap'`` and ``psf_pad=True`` are not
+        compatible.
     min_wt : float, optional
-        If ignoring ``NaN`` / zeros, force all grid points with a weight less than
-        this value to ``NaN`` (the weight of a grid point with *no* ignored
-        neighbors is 1.0).
-        If ``min_wt`` is zero, then all zero-weight points will be set to zero
-        instead of ``NaN`` (which they would be otherwise, because 1/0 = nan).
-        See the examples below.
+        If ignoring ``NaN`` / zeros, force all grid points with a weight
+        less than this value to ``NaN`` (the weight of a grid point with
+        *no* ignored neighbors is 1.0). If ``min_wt`` is zero, then all
+        zero-weight points will be set to zero instead of ``NaN`` (which
+        they would be otherwise, because 1/0 = nan). See the examples
+        below.
     allow_huge : bool, optional
-        Allow huge arrays in the FFT?  If False, will raise an exception if the
-        array or kernel size is >1 GB.
+        Allow huge arrays in the FFT? If False, will raise an exception
+        if the array or kernel size is >1 GB.
     fftn : callable, optional
-        The fft function.  Can be overridden to use your own ffts,
-        e.g. an fftw3 wrapper or scipy's fftn, ``fft=scipy.fftpack.fftn``.
+        The fft function. Can be overridden to use your own ffts, e.g.
+        an fftw3 wrapper or scipy's fftn, ``fft=scipy.fftpack.fftn``.
     ifftn : callable, optional
-        The inverse fft function. Can be overridden the same way ``fttn``.
+        The inverse fft function. Can be overridden the same way
+        ``fttn``.
     complex_dtype : complex type, optional
-        Which complex dtype to use.  `numpy` has a range of options, from 64 to
-        256.
+        Which complex dtype to use. `numpy` has a range of options, from
+        64 to 256.
     dealias: bool, optional
-        Default off. Zero-pad image to enable explicit dealiasing
-        of convolution. With ``boundary='wrap'``, this will be disabled.
-        Note that for an input of nd dimensions this will increase
-        the size of the temporary arrays by at least ``1.5**nd``.
-        This may result in significantly more memory usage.
+        Default off. Zero-pad image to enable explicit dealiasing of
+        convolution. With ``boundary='wrap'``, this will be disabled.
+        Note that for an input of nd dimensions this will increase the
+        size of the temporary arrays by at least ``1.5**nd``. This may
+        result in significantly more memory usage.
 
     Returns
     -------
     default : ndarray
-        ``array`` convolved with ``kernel``.  If ``return_fft`` is set, returns
-        ``fft(array) * fft(kernel)``.  If crop is not set, returns the
-        image, but with the fft-padded size instead of the input size.
+        ``array`` convolved with ``kernel``. If ``return_fft`` is set,
+        returns ``fft(array) * fft(kernel)``. If crop is not set,
+        returns the image, but with the fft-padded size instead of the
+        input size.
 
     Raises
     ------
@@ -617,7 +634,7 @@ def convolve_fft(
     See Also
     --------
     convolve:
-        Convolve is a non-fft version of this code.  It is more memory
+        Convolve is a non-fft version of this code. It is more memory
         efficient and for small kernels can be faster.
 
     Notes
@@ -1002,8 +1019,9 @@ def convolve_models(model, kernel, mode="convolve_fft", **kwargs):
         Convolution kernel
     mode : str
         Keyword representing which function to use for convolution.
-            * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
-            * 'convolve' : use `~astropy.convolution.convolve`.
+
+        * 'convolve_fft' : use `~astropy.convolution.convolve_fft` function.
+        * 'convolve' : use `~astropy.convolution.convolve`.
     **kwargs : dict
         Keyword arguments to me passed either to `~astropy.convolution.convolve`
         or `~astropy.convolution.convolve_fft` depending on ``mode``.

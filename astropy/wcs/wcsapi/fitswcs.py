@@ -284,7 +284,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         types.append(custom_mapping[ctype_name])
                         break
                 else:
-                    types.append(CTYPE_TO_UCD1.get(ctype_name.upper(), None))
+                    types.append(CTYPE_TO_UCD1.get(ctype_name.upper()))
         return types
 
     @property
@@ -410,8 +410,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         )
 
         # If the cache is present, we need to check that the 'hash' matches.
-        if getattr(self, "_components_and_classes_cache", None) is not None:
-            cache = self._components_and_classes_cache
+        if (cache := getattr(self, "_components_and_classes_cache", None)) is not None:
             if cache[0] == wcs_hash:
                 return cache[1]
             else:

@@ -1,3 +1,0 @@
-Fixed a bug where coordinate frame objects could not be serialized to YAML. This caused
-an exception when saving a ``SkyCoord`` object in particular frames like
-``galactocentric`` in which frame attributes are themselves a frame.

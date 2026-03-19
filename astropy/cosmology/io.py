@@ -13,14 +13,14 @@ on the `~astropy.cosmology.Cosmology` class (and its subclasses) and its instanc
 - |Cosmology.to_format| to convert a Cosmology to an object
 """
 
-__all__ = [
+__all__ = (
     "CosmologyFromFormat",
     "CosmologyRead",
     "CosmologyToFormat",
     "CosmologyWrite",
     "convert_registry",
     "readwrite_registry",
-]
+)
 
 # Importing the I/O subpackage registers the I/O methods.
 from ._src.io.connect import (

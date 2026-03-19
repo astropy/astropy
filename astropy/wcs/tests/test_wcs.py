@@ -1983,6 +1983,10 @@ class TestPreserveUnits:
         self.coords = rsn.uniform(-10, 10, (100, 5))
         self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
 
+    def test_preserve_units_property(self):
+        assert not self.wcs_default.preserve_units
+        assert self.wcs_preserve.preserve_units
+
     def test_get_cunit(self):
         assert list(self.wcs_default.wcs.cunit) == ["deg", "Hz", "deg", "m", "arcmin"]
         assert list(self.wcs_preserve.wcs.cunit) == [
@@ -2413,7 +2417,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     def test_no_scaling_if_no_unit_changes(self):
         # This checks that if a WCS doesn't actually have units changing in
         # WCSLIB, that we aren't using the unit scaling machinery with scales
-        # all set to 1 since this would have an unecessary impact on performance.
+        # all set to 1 since this would have an unnecessary impact on performance.
 
         simple_wcs = wcs.WCS(naxis=3, preserve_units=True)
         simple_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
@@ -2544,6 +2548,36 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             assert_allclose(wcs_preserve.wcs._unit_scaling, [1, 1 / 3600, 1])
         else:
             assert wcs_preserve.wcs._unit_scaling is None
+
+    def test_copy(self):
+        # Check that copying will keep the preserve_units setting and the
+        # correct unit scalefactors
+        copy = self.wcs_preserve.copy()
+        assert_allclose(copy.wcs._unit_scaling, self.scale)
+
+    def test_deepcopy(self):
+        # Check that deep-copying will keep the preserve_units setting and the
+        # correct unit scalefactors
+        copy = self.wcs_preserve.deepcopy()
+        assert_allclose(copy.wcs._unit_scaling, self.scale)
+
+    def test_sub(self):
+        # Check that taking e.g. .celestial, .spectral, and more generally .sub
+        # will pass the preserve_units to the new WCS object.
+
+        assert_allclose(
+            self.wcs_preserve.celestial.wcs._unit_scaling,
+            np.array([1 / 3600, 1 / 3600]),
+        )
+
+        assert_allclose(
+            self.wcs_preserve.spectral.wcs._unit_scaling, np.array([1e9, 1e-9])
+        )
+
+        assert_allclose(
+            self.wcs_preserve.sub([1, 2, 0, 3, 4, 5]).wcs._unit_scaling,
+            np.array([1 / 3600, 1e9, 1.0, 1 / 3600, 1e-9, 1]),
+        )
 
 
 def test_thread_safe_conversions():

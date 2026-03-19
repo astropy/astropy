@@ -1,8 +1,46 @@
                    Log of Changes Made to CFITSIO
-                   
+
+Version 4.6.3 - Sep 2025
+
+  - For greater C23 compatibility, updated cfortran.h file and
+    removed old-style function declarations. 
+ 
+  - Cleanup of multiple compiler warnings.  Our thanks to petesmc for
+    help with this.
+     
+  - Updated 'speed' utility to use higher precision total time.
+  
+  - Fixes for FreeBSD and OpenBSD build issues. Our thanks to Diab
+    Jerius.
+
+  - Added RPM support file cfitsio.spec, and packaging helper file
+    ax_cfitsio.m4. Our thanks to Richard Mathar for these.
+  
+  - Added files portfile.cmake and vcpkg.json.  Our thanks to 
+    D. Partridge for these. 
+     
+  - Fixed possible memory leaks in certain error exit conditions.
+    Our thanks to petesmc.
+  
+  - Fix to minor truncation error in ffgthd.
+                     
+Version 4.6.2 - Mar 2025
+
+  - Updated autotools configure script to use AM_MAINTAINER_MODE;
+    disables automatic regeneration of the build system unless
+    configure is invoked with '--enable-maintainer-mode'
+
+Version 4.6.1 - Mar 2025
+
+  - Updated CMake configuration to use GNUInstallDirs module and to
+    use CMAKE_INSTALL_LIBDIR and CMAKE_INSTALL_INCLUDEDIR; fixes bug
+    in 4.6.0 that led to an empty 'includedir' in cfitsio.pc
+
+  - Updated autotools config files
+
 Version 4.6.0 - Mar 2025
 
-  - Improved the empty-primary data test performed in fits_open_file.
+  - Improved the empty primary data test performed in fits_open_file.
   
   - Correction to eval_defs.h typedefs to allow for compilation on old
     gcc compilers.

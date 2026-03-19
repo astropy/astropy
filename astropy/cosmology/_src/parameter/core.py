@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ["MISSING", "Parameter"]
+__all__ = ("MISSING", "Parameter")
 
 import copy
 from collections.abc import Sequence

@@ -46,11 +46,7 @@ class CoordinateTransform(metaclass=ABCMeta):
         self.priority = float(priority)
 
         if register_graph:
-            # this will do the type-checking when it adds to the graph
             self.register(register_graph)
-        else:
-            if not isinstance(fromsys, type) or not isinstance(tosys, type):
-                raise TypeError("fromsys and tosys must be classes")
 
         self.overlapping_frame_attr_names = overlap = []
         if hasattr(fromsys, "frame_attributes") and hasattr(tosys, "frame_attributes"):

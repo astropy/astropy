@@ -9,6 +9,7 @@ import pytest
 from numpy.testing import assert_equal
 
 from astropy.io import fits
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -261,9 +262,11 @@ class TestImageFunctions(FitsTestCase):
 
             # rename a keyword
             r[0].header.rename_keyword("filename", "fname")
-            pytest.raises(ValueError, r[0].header.rename_keyword, "fname", "history")
+            with pytest.raises(ValueError):
+                r[0].header.rename_keyword("fname", "history")
 
-            pytest.raises(ValueError, r[0].header.rename_keyword, "fname", "simple")
+            with pytest.raises(ValueError):
+                r[0].header.rename_keyword("fname", "simple")
             r[0].header.rename_keyword("fname", "filename")
 
             # get a subsection of data
@@ -926,14 +929,14 @@ class TestImageFunctions(FitsTestCase):
         """
 
         # Copy the original file before saving to it
-        self.copy_file("test0.fits")
-        with fits.open(self.temp("test0.fits"), mode="update") as hdul:
+        testfile = self.copy_file("test0.fits")
+        with fits.open(testfile, mode="update") as hdul:
             orig_data = hdul[1].data.copy()
             hdr_copy = hdul[1].header.copy()
             del hdr_copy["NAXIS*"]
             hdul[1].header = hdr_copy
 
-        with fits.open(self.temp("test0.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert (orig_data == hdul[1].data).all()
 
     def test_open_scaled_in_update_mode(self):
@@ -947,28 +950,28 @@ class TestImageFunctions(FitsTestCase):
         """
 
         # Copy the original file before making any possible changes to it
-        self.copy_file("scale.fits")
-        mtime = os.stat(self.temp("scale.fits")).st_mtime
+        testfile = self.copy_file("scale.fits")
+        mtime = os.stat(testfile).st_mtime
 
         time.sleep(1)
 
-        fits.open(self.temp("scale.fits"), mode="update").close()
+        fits.open(testfile, mode="update").close()
 
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
-        assert mtime == os.stat(self.temp("scale.fits")).st_mtime
+        assert mtime == os.stat(testfile).st_mtime
 
         # Insert a slight delay to ensure the mtime does change when the file
         # is changed
         time.sleep(1)
 
-        hdul = fits.open(self.temp("scale.fits"), "update")
+        hdul = fits.open(testfile, "update")
         orig_data = hdul[0].data
         hdul.close()
 
         # Now the file should be updated with the rescaled data
-        assert mtime != os.stat(self.temp("scale.fits")).st_mtime
-        hdul = fits.open(self.temp("scale.fits"), mode="update")
+        assert mtime != os.stat(testfile).st_mtime
+        hdul = fits.open(testfile, mode="update")
         assert hdul[0].data.dtype == np.dtype(">f4")
         assert hdul[0].header["BITPIX"] == -32
         assert "BZERO" not in hdul[0].header
@@ -977,10 +980,15 @@ class TestImageFunctions(FitsTestCase):
 
         # Try reshaping the data, then closing and reopening the file; let's
         # see if all the changes are preserved properly
-        hdul[0].data.shape = (42, 10)
+        if NUMPY_LT_2_5:
+            hdul[0].data.shape = (42, 10)
+        else:
+            # ndarray._set_shape is semi-private, but the only
+            # non deprecated, strict semantic equivalent in Numpy 2.5+
+            hdul[0].data._set_shape((42, 10))
         hdul.close()
 
-        hdul = fits.open(self.temp("scale.fits"))
+        hdul = fits.open(testfile)
         assert hdul[0].shape == (42, 10)
         assert hdul[0].data.dtype == np.dtype(">f4")
         assert hdul[0].header["BITPIX"] == -32
@@ -988,21 +996,28 @@ class TestImageFunctions(FitsTestCase):
         assert "BSCALE" not in hdul[0].header
         hdul.close()
 
+        with fits.open(testfile, mode="update") as hdul:
+            # Try reshaping the data again, this time using np.reshape
+            hdul[0].data = np.reshape(hdul[0].data, (21, 20))
+
+        with fits.open(testfile) as hdul:
+            assert hdul[0].shape == (21, 20)
+
     def test_scale_back(self):
         """A simple test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/120
 
         The scale_back feature for image HDUs.
         """
 
-        self.copy_file("scale.fits")
-        with fits.open(self.temp("scale.fits"), mode="update", scale_back=True) as hdul:
+        testfile = self.copy_file("scale.fits")
+        with fits.open(testfile, mode="update", scale_back=True) as hdul:
             orig_bitpix = hdul[0].header["BITPIX"]
             orig_bzero = hdul[0].header["BZERO"]
             orig_bscale = hdul[0].header["BSCALE"]
             orig_data = hdul[0].data.copy()
             hdul[0].data[0] = 0
 
-        with fits.open(self.temp("scale.fits"), do_not_scale_image_data=True) as hdul:
+        with fits.open(testfile, do_not_scale_image_data=True) as hdul:
             assert hdul[0].header["BITPIX"] == orig_bitpix
             assert hdul[0].header["BZERO"] == orig_bzero
             assert hdul[0].header["BSCALE"] == orig_bscale
@@ -1010,7 +1025,7 @@ class TestImageFunctions(FitsTestCase):
             zero_point = math.floor(-orig_bzero / orig_bscale)
             assert (hdul[0].data[0] == zero_point).all()
 
-        with fits.open(self.temp("scale.fits")) as hdul:
+        with fits.open(testfile) as hdul:
             assert (hdul[0].data[1:] == orig_data[1:]).all()
 
     def test_image_none(self):

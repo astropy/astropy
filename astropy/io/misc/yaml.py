@@ -241,7 +241,7 @@ class AstropyDumper(yaml.SafeDumper):
 
     def represent_float(self, data):
         # Override to change repr(data) to str(data) since otherwise all the
-        # numpy scalars fail in not NUMPY_LT_2_0.
+        # numpy scalars fail;
         # otherwise, this function is identical to yaml.SafeDumper.represent_float
         # (as of pyyaml 6.0.1)
         if data != data or (data == 0.0 and data == 1.0):
@@ -277,6 +277,7 @@ AstropyDumper.add_representer(SerializedColumn, _serialized_column_representer)
 
 # Numpy dtypes
 AstropyDumper.add_representer(np.bool_, yaml.representer.SafeRepresenter.represent_bool)
+AstropyDumper.add_representer(np.str_, yaml.representer.SafeRepresenter.represent_str)
 for np_type in [
     np.intc,
     np.intp,

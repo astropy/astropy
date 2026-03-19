@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+__all__ = ("FlatwCDM", "wCDM")
 
 import numpy as np
 from numpy import sqrt
@@ -8,13 +9,11 @@ from numpy.typing import ArrayLike
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
-
-__all__ = ["FlatwCDM", "wCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -60,10 +59,9 @@ class wCDM(FLRW):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -94,7 +92,7 @@ class wCDM(FLRW):
         if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_norel
             inv_efunc_scalar_args = (self.Om0, self.Ode0, self.Ok0, self.w0)
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.wcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -110,17 +108,16 @@ class wCDM(FLRW):
                 self.Ode0,
                 self.Ok0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.w0,
             )
 
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray | float:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -131,11 +128,13 @@ class wCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        w : ndarray or float
-            The dark energy equation of state
-            Returns `float` if the input is scalar.
+        w : ndarray
+            The dark energy equation of state.
 
         Notes
         -----
@@ -144,11 +143,9 @@ class wCDM(FLRW):
         redshift z and :math:`\rho(z)` is the density at redshift z, both in
         units where c=1. Here this is :math:`w(z) = w_0`.
         """
-        z = aszarr(z)
-        return self.w0 * (np.ones(z.shape) if hasattr(z, "shape") else 1.0)
+        return self.w0 * np.ones_like(aszarr(z))
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray | float:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -159,11 +156,13 @@ class wCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        I : ndarray or float
+        I : ndarray
             The scaling of the energy density of dark energy with redshift.
-            Returns `float` if the input is scalar.
 
         Notes
         -----
@@ -173,8 +172,7 @@ class wCDM(FLRW):
         """
         return (aszarr(z) + 1.0) ** (3.0 * (1.0 + self.w0))
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: Quantity | ArrayLike) -> FArray | float:
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -185,16 +183,18 @@ class wCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        E : ndarray or float
+        E : ndarray
             The redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -204,8 +204,7 @@ class wCDM(FLRW):
             + self.Ode0 * zp1 ** (3.0 * (1.0 + self.w0))
         )
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray | float:
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -216,16 +215,18 @@ class wCDM(FLRW):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        E : ndarray or float
+        E : ndarray
             The inverse redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H_z = H_0 / E`.
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -273,10 +274,9 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -309,7 +309,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
         if self.Tcmb0.value == 0:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_norel
             inv_efunc_scalar_args = (self.Om0, self.Ode0, self.w0)
-        elif not self._massivenu:
+        elif not self._nu_info.has_massive_nu:
             inv_efunc_scalar = scalar_inv_efuncs.fwcdm_inv_efunc_nomnu
             inv_efunc_scalar_args = (
                 self.Om0,
@@ -323,16 +323,15 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
                 self.Om0,
                 self.Ode0,
                 self.Ogamma0,
-                self._neff_per_nu,
-                self._nmasslessnu,
-                self._nu_y_list,
+                self._nu_info.neff_per_nu,
+                self._nu_info.n_massless_nu,
+                self._nu_info.nu_y_list,
                 self.w0,
             )
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def efunc(self, z: Quantity | ArrayLike) -> FArray | float:
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         """Function used to calculate H(z), the Hubble parameter.
 
         Parameters
@@ -343,16 +342,18 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        E : ndarray or float
+        E : ndarray
             The redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])
@@ -361,8 +362,7 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             zp1**3 * (Or * zp1 + self.Om0) + self.Ode0 * zp1 ** (3.0 * (1 + self.w0))
         )
 
-    @deprecated_keywords("z", since="7.0")
-    def inv_efunc(self, z: Quantity | ArrayLike) -> FArray | float:
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Function used to calculate :math:`\frac{1}{H_z}`.
 
         Parameters
@@ -373,16 +373,18 @@ class FlatwCDM(FlatFLRWMixin, wCDM):
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
 
+            .. versionchanged:: 8.0
+               z must be a positional argument.
+
         Returns
         -------
-        E : ndarray or float
+        E : ndarray
             The inverse redshift scaling of the Hubble constant.
-            Returns `float` if the input is scalar.
             Defined such that :math:`H(z) = H_0 E(z)`.
         """
         Or = self.Ogamma0 + (
             self.Onu0
-            if not self._massivenu
+            if not self._nu_info.has_massive_nu
             else self.Ogamma0 * self.nu_relative_density(z)
         )
         zp1 = aszarr(z) + 1.0  # (converts z [unit] -> z [dimensionless])

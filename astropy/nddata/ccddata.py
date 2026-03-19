@@ -12,6 +12,7 @@ from astropy.utils.decorators import sharedmethod
 from astropy.wcs import WCS
 
 from .compat import NDDataArray
+from .flag_collection import FlagCollection
 from .nduncertainty import (
     InverseVariance,
     NDUncertainty,
@@ -94,13 +95,13 @@ class CCDData(NDDataArray):
 
     uncertainty : `~astropy.nddata.StdDevUncertainty`, \
             `~astropy.nddata.VarianceUncertainty`, \
-            `~astropy.nddata.InverseVariance`, `numpy.ndarray` or \
+            `~astropy.nddata.InverseVariance`, `~numpy.ndarray` or \
             None, optional
-        Uncertainties on the data. If the uncertainty is a `numpy.ndarray`, it
+        Uncertainties on the data. If the uncertainty is a `~numpy.ndarray`, it
         it assumed to be, and stored as, a `~astropy.nddata.StdDevUncertainty`.
         Default is ``None``.
 
-    mask : `numpy.ndarray` or None, optional
+    mask : `~numpy.ndarray` or None, optional
         Mask for the data, given as a boolean Numpy array with a shape
         matching that of the data. The values must be `False` where
         the data is *valid* and `True` when it is not (like Numpy
@@ -109,7 +110,7 @@ class CCDData(NDDataArray):
         ignored.
         Default is ``None``.
 
-    flags : `numpy.ndarray` or `~astropy.nddata.FlagCollection` or None, \
+    flags : `~numpy.ndarray` or `~astropy.nddata.FlagCollection` or None, \
             optional
         Flags giving information about each pixel. These can be specified
         either as a Numpy array of any type with a shape matching that of the
@@ -136,7 +137,7 @@ class CCDData(NDDataArray):
             If the unit is ``None`` or not otherwise specified it will raise a
             ``ValueError``
 
-    psf : `numpy.ndarray` or None, optional
+    psf : `~numpy.ndarray` or None, optional
         Image representation of the PSF at the center of this image. In order
         for convolution to be flux-preserving, this should generally be
         normalized to sum to unity.
@@ -310,8 +311,10 @@ class CCDData(NDDataArray):
         hdu_mask, hdu_uncertainty, hdu_flags, hdu_psf : str or None, optional
             If it is a string append this attribute to the HDUList as
             `~astropy.io.fits.ImageHDU` with the string as extension name.
-            Flags are not supported at this time. If ``None`` this attribute
-            is not appended.
+            For flags stored as a `~astropy.nddata.FlagCollection`, each flag
+            array will be saved as a separate ImageHDU with extension names
+            of the form ``hdu_flags + '_' + flag_name``.
+            If ``None`` this attribute is not appended.
             Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty,
             ``'PSFIMAGE'`` for psf, and `None` for flags.
 
@@ -337,13 +340,13 @@ class CCDData(NDDataArray):
         Raises
         ------
         ValueError
-            - If ``self.mask`` is set but not a `numpy.ndarray`.
-            - If ``self.uncertainty`` is set but not a astropy uncertainty type.
+            - If ``self.mask`` is set but not a `~numpy.ndarray`.
+            - If ``self.uncertainty`` is set but not a astropy uncertainty
+              type.
             - If ``self.uncertainty`` is set but has another unit then
               ``self.data``.
-
-        NotImplementedError
-            Saving flags is not supported.
+            - If ``self.flags`` is set but not a `~numpy.ndarray` or
+              `~astropy.nddata.FlagCollection`.
 
         Returns
         -------
@@ -429,10 +432,30 @@ class CCDData(NDDataArray):
             )
             hdus.append(hduUncert)
 
-        if hdu_flags and self.flags:
-            raise NotImplementedError(
-                "adding the flags to a HDU is not supported at this time."
-            )
+        if hdu_flags and self.flags is not None:
+            # Flags can be either a numpy array or a FlagCollection
+            if isinstance(self.flags, np.ndarray):
+                # Simple numpy array of flags - save as a single ImageHDU
+                hduFlags = fits.ImageHDU(self.flags, name=hdu_flags)
+                hdus.append(hduFlags)
+            elif isinstance(self.flags, FlagCollection):
+                # FlagCollection is a dict of flag arrays - save each as
+                # separate ImageHDU. Use hdu_flags as a prefix for the
+                # extension names
+                for flag_name, flag_array in self.flags.items():
+                    # Create extension name by combining prefix with flag
+                    # name
+                    if flag_array.dtype == bool:
+                        flag_data = flag_array.astype(np.uint8)
+                    else:
+                        flag_data = flag_array
+                    ext_name = f"{hdu_flags}_{flag_name}"
+                    hduFlag = fits.ImageHDU(flag_data, name=ext_name)
+                    hdus.append(hduFlag)
+            else:
+                raise ValueError(
+                    "flags must be a numpy.ndarray or FlagCollection instance."
+                )
 
         if hdu_psf and self.psf is not None:
             # The PSF is an image, so write it as a separate ImageHDU.
@@ -612,7 +635,13 @@ def fits_ccddata_reader(
         Default is ``'MASK'``.
 
     hdu_flags : str or None, optional
-        Currently not implemented.
+        FITS extension name (or prefix) from which flags should be
+        initialized. If a single extension with this exact name exists, flags
+        will be loaded as a `~numpy.ndarray`. If multiple extensions exist
+        with names starting with this prefix (e.g., ``'FLAGS_*'``), they will
+        be loaded into a `~astropy.nddata.FlagCollection` where the flag
+        names are derived by removing the prefix and underscore.
+        If no matching extension exists, the flags of the CCDData is ``None``.
         Default is ``None``.
 
     key_uncertainty_type : str, optional
@@ -664,8 +693,31 @@ def fits_ccddata_reader(
         else:
             mask = None
 
-        if hdu_flags is not None and hdu_flags in hdus:
-            raise NotImplementedError("loading flags is currently not supported.")
+        if hdu_flags is not None:
+            # Check if there's a simple flags extension or multiple flag
+            # extensions (FlagCollection)
+            # First, look for extensions that start with hdu_flags prefix
+            flag_extensions = [
+                hdu.name for hdu in hdus if hdu.name.startswith(f"{hdu_flags}_")
+            ]
+
+            if hdu_flags in hdus and not flag_extensions:
+                # Simple case: single flags array
+                flags = hdus[hdu_flags].data
+            elif flag_extensions:
+                # Multiple flag extensions - reconstruct FlagCollection
+                # Get the shape from the primary data
+                data_shape = hdus[hdu].data.shape
+                flags = FlagCollection(shape=data_shape)
+
+                for ext_name in flag_extensions:
+                    # Remove the prefix and underscore to get flag name
+                    flag_name = ext_name[len(hdu_flags) + 1 :]
+                    flags[flag_name] = hdus[ext_name].data
+            else:
+                flags = None
+        else:
+            flags = None
 
         if hdu_psf is not None and hdu_psf in hdus:
             psf = hdus[hdu_psf].data
@@ -731,6 +783,7 @@ def fits_ccddata_reader(
             mask=mask,
             uncertainty=uncertainty,
             wcs=wcs,
+            flags=flags,
             psf=psf,
         )
 
@@ -760,8 +813,10 @@ def fits_ccddata_writer(
     hdu_mask, hdu_uncertainty, hdu_flags, hdu_psf : str or None, optional
         If it is a string append this attribute to the HDUList as
         `~astropy.io.fits.ImageHDU` with the string as extension name.
-        Flags are not supported at this time. If ``None`` this attribute
-        is not appended.
+        For flags stored as a `~astropy.nddata.FlagCollection`, each flag
+        array will be saved as a separate ImageHDU with extension names
+        of the form ``hdu_flags + '_' + flag_name``.
+        If ``None`` this attribute is not appended.
         Default is ``'MASK'`` for mask, ``'UNCERT'`` for uncertainty,
         ``'PSFIMAGE'`` for psf, and `None` for flags.
 
@@ -783,14 +838,13 @@ def fits_ccddata_writer(
     Raises
     ------
     ValueError
-        - If ``self.mask`` is set but not a `numpy.ndarray`.
+        - If ``self.mask`` is set but not a `~numpy.ndarray`.
         - If ``self.uncertainty`` is set but not a
           `~astropy.nddata.StdDevUncertainty`.
         - If ``self.uncertainty`` is set but has another unit then
           ``self.data``.
-
-    NotImplementedError
-        Saving flags is not supported.
+        - If ``self.flags`` is set but not a `~numpy.ndarray` or
+          `~astropy.nddata.FlagCollection`.
     """
     hdu = ccd_data.to_hdu(
         hdu_mask=hdu_mask,

@@ -411,7 +411,7 @@ def test_threaded_segfault(valid_urls):
 
     urls = list(islice(valid_urls, N_THREAD_HAMMER))
     with ThreadPoolExecutor(max_workers=len(urls)) as P:
-        list(P.map(lambda u: slurp_url(u), [u for (u, c) in urls]))
+        list(P.map(slurp_url, [u for (u, c) in urls]))
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
@@ -1115,10 +1115,8 @@ def test_data_noastropy_fallback(monkeypatch):
     conf.delete_temporary_downloads_at_exit = True
 
     # make sure the config and cache directories are not searched
-    monkeypatch.setenv("XDG_CONFIG_HOME", "foo")
-    monkeypatch.delenv("XDG_CONFIG_HOME")
-    monkeypatch.setenv("XDG_CACHE_HOME", "bar")
-    monkeypatch.delenv("XDG_CACHE_HOME")
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
 
     monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
     monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)

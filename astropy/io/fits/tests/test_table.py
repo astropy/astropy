@@ -9,7 +9,6 @@ import sys
 
 import numpy as np
 import pytest
-from numpy import char as chararray
 
 try:
     import objgraph
@@ -24,7 +23,8 @@ from astropy.io.fits.util import decode_ascii
 from astropy.io.fits.verify import VerifyError
 from astropy.table import Table
 from astropy.units import Unit, UnitsWarning, UnrecognizedUnit
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.compat import get_chararray
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 from .conftest import FitsTestCase
 from .test_connect import TestMultipleHDU
@@ -156,7 +156,7 @@ class TestTableFunctions(FitsTestCase):
         fd = fits.open(self.data("test0.fits"))
 
         # create some local arrays
-        a1 = chararray.array(["abc", "def", "xx"])
+        a1 = get_chararray(["abc", "def", "xx"])
         r1 = np.array([11.0, 12.0, 13.0], dtype=np.float32)
 
         # create a table from scratch, using a mixture of columns from existing
@@ -319,7 +319,7 @@ class TestTableFunctions(FitsTestCase):
 
         # Test Start Column
 
-        a1 = chararray.array(["abcd", "def"])
+        a1 = get_chararray(["abcd", "def"])
         r1 = np.array([11.0, 12.0])
         c1 = fits.Column(name="abc", format="A3", start=19, array=a1)
         c2 = fits.Column(name="def", format="E", start=3, array=r1)
@@ -1121,7 +1121,8 @@ class TestTableFunctions(FitsTestCase):
 
         assert row[1:4]["counts"] == 315
 
-        pytest.raises(KeyError, lambda r: r[1:4]["flag"], row)
+        with pytest.raises(KeyError):
+            row[1:4]["flag"]
 
         row[1:4]["counts"] = 300
         assert row[1:4]["counts"] == 300
@@ -1138,17 +1139,20 @@ class TestTableFunctions(FitsTestCase):
         row[1:4:2][0] = 300
         assert row[1:4]["counts"] == 300
 
-        pytest.raises(KeyError, lambda r: r[1:4]["flag"], row)
+        with pytest.raises(KeyError):
+            row[1:4]["flag"]
 
         assert row[1:4].field(0) == 300
         assert row[1:4].field("counts") == 300
 
-        pytest.raises(KeyError, row[1:4].field, "flag")
+        with pytest.raises(KeyError):
+            row[1:4].field("flag")
 
         row[1:4].setfield("counts", 500)
         assert row[1:4].field(0) == 500
 
-        pytest.raises(KeyError, row[1:4].setfield, "flag", False)
+        with pytest.raises(KeyError):
+            row[1:4].setfield("flag", False)
 
         assert t1[1].data._coldefs._arrays[1][2] == 500
         assert t1[1].data._coldefs.columns[1].array[2] == 500
@@ -1175,6 +1179,63 @@ class TestTableFunctions(FitsTestCase):
         row[:2] = (12, "xyz")
         assert row["c1"] == 12
         assert row["c2"] == "xyz"
+
+    def test_fitsrec_negative_slice_setitem(self):
+        """Regression test for negative slice assignment in FITS_rec.
+
+        Negative slices like data[-2:] were writing to wrong row indices
+        because negative start/stop values were clamped to 0 instead of
+        being resolved relative to the array length.
+        """
+
+        def _make_data(x=None, y=None):
+            x = x if x is not None else [1.0, 2.0, 3.0, 4.0, 5.0]
+            cols = [fits.Column(name="x", format="D", array=x)]
+            if y is not None:
+                cols.append(fits.Column(name="y", format="J", array=y))
+            return fits.BinTableHDU.from_columns(cols)
+
+        src_data = _make_data(x=[99.0, 88.0], y=[990, 880]).data
+
+        # Test negative start slice: data[-2:]
+        data = _make_data(y=[10, 20, 30, 40, 50]).data
+        data[-2:] = [src_data[0], src_data[1]]
+        assert list(data["x"]) == [1.0, 2.0, 3.0, 99.0, 88.0]
+        assert list(data["y"]) == [10, 20, 30, 990, 880]
+
+        # Test negative start and stop: data[-3:-1]
+        data = _make_data(y=[10, 20, 30, 40, 50]).data
+        data[-3:-1] = [src_data[0], src_data[1]]
+        assert list(data["x"]) == [1.0, 2.0, 99.0, 88.0, 5.0]
+        assert list(data["y"]) == [10, 20, 990, 880, 50]
+
+        # Test positive slice still works
+        data = _make_data().data
+        data[0:2] = [src_data[0], src_data[1]]
+        assert list(data["x"]) == [99.0, 88.0, 3.0, 4.0, 5.0]
+
+        # Test step slice: data[::2]
+        data = _make_data().data
+        data[::2] = [src_data[0], src_data[1], src_data[0]]
+        assert list(data["x"]) == [99.0, 2.0, 88.0, 4.0, 99.0]
+
+        # Test negative step slice: data[::-1]
+        data = _make_data().data
+        reversed_src = _make_data(x=[55.0, 44.0, 33.0, 22.0, 11.0]).data
+        data[::-1] = [reversed_src[i] for i in range(5)]
+        assert list(data["x"]) == [11.0, 22.0, 33.0, 44.0, 55.0]
+
+        # Test round-trip through a FITS file
+        hdu = _make_data()
+        hdu.data[-2:] = [src_data[0], src_data[1]]
+        hdu.writeto(self.temp("test_neg_slice.fits"))
+        saved = fits.getdata(self.temp("test_neg_slice.fits"))
+        assert list(saved["x"]) == [1.0, 2.0, 3.0, 99.0, 88.0]
+
+        # Test that mismatched lengths raise ValueError (like NumPy does)
+        data = _make_data().data
+        with pytest.raises(ValueError):
+            data[-2:] = [src_data[0]]  # slice covers 2 rows but only 1 value given
 
     def test_fits_record_len(self):
         counts = np.array([312, 334, 308, 317])
@@ -1314,7 +1375,7 @@ class TestTableFunctions(FitsTestCase):
         # Assign the 4 rows from the second table to rows 5 thru 8 of the
         # new table.  Note that the last row of the new table will still be
         # initialized to the default values.
-        tbhdu2.data[4:] = tbhdu.data
+        tbhdu2.data[4:8] = tbhdu.data
 
         # Verify that all ndarray objects within the HDU reference the
         # same ndarray.
@@ -1889,8 +1950,8 @@ class TestTableFunctions(FitsTestCase):
         tbdata = fits.getdata(self.data("ascii.fits"))
         for col in ("a", "b"):
             data = getattr(tbdata, col)
-            assert (data == tbdata.field(col)).all()
-            assert (data == tbdata[col]).all()
+            np.testing.assert_array_equal(data, tbdata.field(col))
+            np.testing.assert_array_equal(data, tbdata[col])
 
         # with VLA column
         col1 = fits.Column(
@@ -1970,7 +2031,7 @@ class TestTableFunctions(FitsTestCase):
             "p\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         )
 
-        acol = fits.Column(name="MEMNAME", format="A10", array=chararray.array(a))
+        acol = fits.Column(name="MEMNAME", format="A10", array=get_chararray(a))
         ahdu = fits.BinTableHDU.from_columns([acol])
         assert ahdu.data.tobytes().decode("raw-unicode-escape") == s
         ahdu.writeto(self.temp("newtable.fits"))
@@ -2189,7 +2250,7 @@ class TestTableFunctions(FitsTestCase):
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
             assert (
-                h[1].data.field(0)[0] == np.char.decode(recarr.field(0)[0], "ascii")
+                h[1].data.field(0)[0] == np.strings.decode(recarr.field(0)[0], "ascii")
             ).all()
 
         with fits.open(self.temp("test.fits")) as h:
@@ -2204,7 +2265,7 @@ class TestTableFunctions(FitsTestCase):
             assert len(h[1].data) == 2
             assert len(h[1].data[0]) == 1
             assert (
-                h[1].data.field(0)[0] == np.char.decode(recarr.field(0)[0], "ascii")
+                h[1].data.field(0)[0] == np.strings.decode(recarr.field(0)[0], "ascii")
             ).all()
 
     def test_new_table_with_nd_column(self):
@@ -2228,8 +2289,14 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp("test.fits")) as h:
             # Need to force string arrays to byte arrays in order to compare
             # correctly on Python 3
-            assert (h[1].data["str"].encode("ascii") == arra).all()
-            assert (h[1].data["strarray"].encode("ascii") == arrb).all()
+            with pytest.warns(
+                AstropyDeprecationWarning, match="chararray is deprecated.*"
+            ):
+                assert (h[1].data["str"].encode("ascii") == arra).all()
+            with pytest.warns(
+                AstropyDeprecationWarning, match="chararray is deprecated.*"
+            ):
+                assert (h[1].data["strarray"].encode("ascii") == arrb).all()
             assert (h[1].data["intarray"] == arrc).all()
 
     def test_mismatched_tform_and_tdim(self):
@@ -2263,9 +2330,8 @@ class TestTableFunctions(FitsTestCase):
 
         # If dims is more than the repeat count in the format specifier raise
         # an error
-        pytest.raises(
-            VerifyError, fits.Column, name="a", format="2I", dim="(2,2)", array=arra
-        )
+        with pytest.raises(VerifyError):
+            fits.Column(name="a", format="2I", dim="(2,2)", array=arra)
 
     def test_tdim_of_size_one(self):
         """Regression test for https://github.com/astropy/astropy/pull/3580"""
@@ -2515,17 +2581,17 @@ class TestTableFunctions(FitsTestCase):
             h[1].header["TFORM1"] = "E3"
             del h[1].header["TNULL1"]
 
-        with fits.open(self.temp("test.fits")) as h:
-            pytest.raises(ValueError, lambda: h[1].data["F1"])
-
-        try:
-            with fits.open(self.temp("test.fits")) as h:
-                h[1].data["F1"]
-        except ValueError as e:
-            assert str(e).endswith(
-                "the header may be missing the necessary TNULL1 "
-                "keyword or the table contains invalid data"
-            )
+        with (
+            fits.open(self.temp("test.fits")) as h,
+            pytest.raises(
+                ValueError,
+                match=(
+                    r"the header may be missing the necessary TNULL1 "
+                    "keyword or the table contains invalid data$"
+                ),
+            ),
+        ):
+            h[1].data["F1"]
 
     def test_blank_field_zero(self):
         """Regression test for https://github.com/astropy/astropy/issues/5134
@@ -2556,7 +2622,7 @@ class TestTableFunctions(FitsTestCase):
             h.seek(0)
             h.write(nulled)
 
-        with fits.open(self.temp("ascii_null.fits"), memmap=True) as f:
+        with fits.open(self.temp("ascii_null.fits")) as f:
             assert f[1].data[2][0] == 0
 
         # Test a float column with a null value set and blank fields.
@@ -2577,10 +2643,23 @@ class TestTableFunctions(FitsTestCase):
             h.seek(0)
             h.write(nulled)
 
-        with fits.open(self.temp("ascii_null2.fits"), memmap=True) as f:
-            # (Currently it should evaluate to 0.0, but if a TODO in fitsrec is
-            # completed, then it should evaluate to NaN.)
-            assert f[1].data[2][0] == 0.0 or np.isnan(f[1].data[2][0])
+        with fits.open(self.temp("ascii_null2.fits")) as f:
+            assert np.isnan(f[1].data[2][0])
+
+        # Test a float column with a NaN value
+        a = np.arange(10, dtype=float)
+        a[5] = np.nan
+        table = fits.TableHDU.from_columns(
+            [
+                fits.Column(name="a1", array=a, format="F"),
+                fits.Column(name="a2", array=a, format="F", null=np.nan),
+            ]
+        )
+        table.writeto(self.temp("ascii_null3.fits"))
+
+        with fits.open(self.temp("ascii_null3.fits")) as f:
+            assert np.isnan(f[1].data["a1"][5])
+            assert np.isnan(f[1].data["a2"][5])
 
     def test_column_array_type_mismatch(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/218"""
@@ -2803,13 +2882,7 @@ class TestTableFunctions(FitsTestCase):
 
         with fits.open(self.temp("test2.fits"), mode="update") as hdul:
             assert hdul[1].header["TDIM1"] == "(3,3,2)"
-            # Note: Previously I wrote data['a'][0][1, 1] to address
-            # the single row.  However, this is broken for chararray because
-            # data['a'][0] does *not* return a view of the original array--this
-            # is a bug in chararray though and not a bug in any FITS-specific
-            # code so we'll roll with it for now...
-            # (by the way the bug in question is fixed in newer Numpy versions)
-            hdul[1].data["a"][0, 1, 1] = "XYZ"
+            hdul[1].data["a"][0][1, 1] = "XYZ"
             assert np.all(hdul[1].data["a"][0] == expected)
 
         with fits.open(self.temp("test2.fits")) as hdul:
@@ -3420,6 +3493,23 @@ class TestVLATables(FitsTestCase):
             assert arr.tolist() == [[], [0], [0, 1]]
             assert arr[1].dtype == np.int32
 
+    def test_vla_update(self):
+        """Check that heap is correctly updated after a VLA is modified.
+
+        Regression test for https://github.com/astropy/astropy/issues/18479
+
+        """
+        filename = self.data("variable_length_table.fits")
+        with fits.open(filename) as hdul:
+            for _v in hdul[1].data["var"]:
+                _v[:] = 0
+            hdul.writeto(self.temp("test.fits"), checksum=True)
+
+        with fits.open(self.temp("test.fits"), checksum=True) as hdul:
+            np.testing.assert_array_equal(hdul[1].data["var"][0], 0)
+            np.testing.assert_array_equal(hdul[1].data["var"][1], 0)
+            assert hdul[1].header["DATASUM"] == "1507344"
+
 
 # These are tests that solely test the Column and ColDefs interfaces and
 # related functionality without directly involving full tables; currently there
@@ -3557,7 +3647,8 @@ class TestColumnFunctions(FitsTestCase):
         a sequence of non-Column objects.
         """
 
-        pytest.raises(TypeError, fits.ColDefs, [1, 2, 3])
+        with pytest.raises(TypeError):
+            fits.ColDefs([1, 2, 3])
 
     def test_coldefs_init_from_array(self):
         """Test that ColDefs._init_from_array works with single element data-
@@ -3613,6 +3704,28 @@ class TestColumnFunctions(FitsTestCase):
 
         assert cols["a"] == cols[0]
         assert cols["b"] == cols[1]
+
+    def test_column_membership(self):
+        """Tests that the membership operator can be used for `ColDefs`."""
+
+        a = fits.Column(name="a", format="D")
+        b = fits.Column(name="b", format="D")
+        c = fits.Column(name="c", format="D")
+
+        cols = fits.ColDefs([a, b])
+
+        # String tests
+        assert "a" in cols
+        assert "b" in cols
+        assert "c" not in cols
+        # Column tests
+        assert a in cols
+        assert b in cols
+        assert c not in cols
+        # General case (false)
+        assert 1 not in cols
+        assert cols not in cols
+        assert [a, b] not in cols
 
     def test_column_attribute_change_after_removal(self):
         """

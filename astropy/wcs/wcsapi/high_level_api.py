@@ -62,7 +62,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
     Abstract base class for the high-level WCS interface.
 
     This is described in `APE 14: A shared Python interface for World Coordinate
-    Systems <https://doi.org/10.5281/zenodo.1188875>`_.
+    Systems <https://zenodo.org/records/11566733>`_.
     """
 
     @property
@@ -128,7 +128,10 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         if self.low_level_wcs.pixel_n_dim == 1:
             return _toindex(self.world_to_pixel(*world_objects))
         else:
-            return tuple(_toindex(self.world_to_pixel(*world_objects)[::-1]).tolist())
+            return tuple(
+                np.asarray(x)
+                for x in _toindex(self.world_to_pixel(*world_objects)[::-1])
+            )
 
 
 def high_level_objects_to_values(*world_objects, low_level_wcs):

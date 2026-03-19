@@ -1,0 +1,467 @@
+astropy
+├── astropy-iers-data v0.2026.3.16.0.53.33
+├── numpy v2.0.0
+├── packaging v25.0
+├── pyerfa v2.0.1.3
+│   └── numpy v2.0.0
+├── pyyaml v6.0
+├── asdf-astropy v0.7.0 (extra: all)
+│   ├── asdf v2.15.1
+│   │   ├── asdf-standard v1.1.0
+│   │   ├── asdf-transform-schemas v0.5.0
+│   │   │   └── asdf-standard v1.1.0
+│   │   ├── asdf-unit-schemas v0.1.0
+│   │   │   └── asdf-standard v1.1.0
+│   │   ├── attrs v20.1.0
+│   │   ├── importlib-metadata v4.13.0
+│   │   │   └── zipp v0.5.0
+│   │   ├── jmespath v0.7.1
+│   │   ├── jsonschema v4.8.0
+│   │   │   ├── attrs v20.1.0
+│   │   │   └── pyrsistent v0.19.1
+│   │   ├── numpy v2.0.0
+│   │   ├── packaging v25.0
+│   │   ├── pyyaml v6.0
+│   │   └── semantic-version v2.8.0
+│   ├── asdf-coordinates-schemas v0.3.0
+│   │   ├── asdf v2.15.1 (*)
+│   │   └── asdf-standard v1.1.0
+│   ├── asdf-standard v1.1.0
+│   ├── asdf-transform-schemas v0.5.0 (*)
+│   ├── astropy (*)
+│   ├── numpy v2.0.0
+│   └── packaging v25.0
+├── beautifulsoup4 v4.11.2 (extra: all)
+│   └── soupsieve v1.6.1
+├── bleach v3.2.1 (extra: all)
+│   ├── packaging v25.0
+│   ├── six v1.9.0
+│   └── webencodings v0.5.1
+├── bottleneck v1.4.0 (extra: all)
+│   └── numpy v2.0.0
+├── certifi v2022.6.15.1 (extra: all)
+├── dask[dataframe] v2024.8.0 (extra: all)
+│   ├── click v8.1.0
+│   │   └── colorama v0.4.6
+│   ├── cloudpickle v2.1.0
+│   ├── fsspec v2023.4.0
+│   │   ├── aiohttp v3.8.3 (extra: http)
+│   │   │   ├── aiosignal v1.1.2
+│   │   │   │   └── frozenlist v1.3.3
+│   │   │   ├── async-timeout v4.0.0
+│   │   │   │   └── typing-extensions v4.10.0
+│   │   │   ├── attrs v20.1.0
+│   │   │   ├── charset-normalizer v2.0.0
+│   │   │   ├── frozenlist v1.3.3
+│   │   │   ├── multidict v6.0.3
+│   │   │   └── yarl v1.8.2
+│   │   │       ├── idna v2.5
+│   │   │       └── multidict v6.0.3
+│   │   └── requests v2.30.0 (extra: http)
+│   │       ├── certifi v2022.6.15.1
+│   │       ├── charset-normalizer v2.0.0
+│   │       ├── idna v2.5
+│   │       └── urllib3 v1.25.4
+│   ├── importlib-metadata v4.13.0 (*)
+│   ├── packaging v25.0
+│   ├── partd v1.4.0
+│   │   ├── locket v0.2.1
+│   │   └── toolz v0.12.0
+│   ├── pyyaml v6.0
+│   ├── toolz v0.12.0
+│   ├── dask-expr v1.1.10 (extra: dataframe)
+│   │   ├── dask v2024.8.0 (*)
+│   │   ├── pandas v2.2.2
+│   │   │   ├── numpy v2.0.0
+│   │   │   ├── python-dateutil v2.8.2
+│   │   │   │   └── six v1.9.0
+│   │   │   ├── pytz v2020.1
+│   │   │   └── tzdata v2022.7
+│   │   └── pyarrow v16.0.0
+│   │       └── numpy v2.0.0
+│   ├── numpy v2.0.0 (extra: dataframe)
+│   └── pandas v2.2.2 (extra: dataframe) (*)
+├── fsspec[http] v2023.4.0 (extra: all) (*)
+├── h5py v3.11.0 (extra: all)
+│   └── numpy v2.0.0
+├── html5lib v1.1 (extra: all)
+│   ├── six v1.9.0
+│   └── webencodings v0.5.1
+├── ipydatagrid v1.1.13 (extra: all)
+│   ├── bqplot v0.11.6
+│   │   ├── ipywidgets v7.7.3
+│   │   │   ├── ipykernel v6.16.0
+│   │   │   │   ├── appnope v0.1.0
+│   │   │   │   ├── debugpy v1.0.0
+│   │   │   │   ├── ipython v8.0.0
+│   │   │   │   │   ├── appnope v0.1.0
+│   │   │   │   │   ├── backcall v0.2.0
+│   │   │   │   │   ├── black v22.1.0
+│   │   │   │   │   │   ├── click v8.1.0 (*)
+│   │   │   │   │   │   ├── mypy-extensions v0.4.3
+│   │   │   │   │   │   ├── pathspec v0.9.0
+│   │   │   │   │   │   ├── platformdirs v4.5.1
+│   │   │   │   │   │   └── tomli v1.1.0
+│   │   │   │   │   ├── colorama v0.4.6
+│   │   │   │   │   ├── decorator v4.3.2
+│   │   │   │   │   ├── jedi v0.18.1
+│   │   │   │   │   │   └── parso v0.8.0
+│   │   │   │   │   ├── matplotlib-inline v0.1.5
+│   │   │   │   │   │   └── traitlets v5.13.0
+│   │   │   │   │   ├── pexpect v4.3.1
+│   │   │   │   │   │   └── ptyprocess v0.5.1
+│   │   │   │   │   ├── pickleshare v0.7.5
+│   │   │   │   │   ├── prompt-toolkit v3.0.41
+│   │   │   │   │   │   └── wcwidth v0.1.4
+│   │   │   │   │   ├── pygments v2.17.0
+│   │   │   │   │   ├── setuptools v18.5
+│   │   │   │   │   ├── stack-data v0.6.0
+│   │   │   │   │   │   ├── asttokens v2.1.0
+│   │   │   │   │   │   │   └── six v1.9.0
+│   │   │   │   │   │   ├── executing v1.2.0
+│   │   │   │   │   │   └── pure-eval v0.1.0
+│   │   │   │   │   └── traitlets v5.13.0
+│   │   │   │   ├── jupyter-client v6.1.12
+│   │   │   │   │   ├── jupyter-core v4.11.2
+│   │   │   │   │   │   ├── pywin32 v303
+│   │   │   │   │   │   └── traitlets v5.13.0
+│   │   │   │   │   ├── python-dateutil v2.8.2 (*)
+│   │   │   │   │   ├── pyzmq v23.2.1
+│   │   │   │   │   │   ├── cffi v1.15.1
+│   │   │   │   │   │   │   └── pycparser v2.2
+│   │   │   │   │   │   │       └── ply v3.4
+│   │   │   │   │   │   └── py v1.11.0
+│   │   │   │   │   ├── tornado v6.2
+│   │   │   │   │   └── traitlets v5.13.0
+│   │   │   │   ├── matplotlib-inline v0.1.5 (*)
+│   │   │   │   ├── nest-asyncio v0.9.0
+│   │   │   │   ├── packaging v25.0
+│   │   │   │   ├── psutil v5.9.4
+│   │   │   │   ├── pyzmq v23.2.1 (*)
+│   │   │   │   ├── tornado v6.2
+│   │   │   │   └── traitlets v5.13.0
+│   │   │   ├── ipython v8.0.0 (*)
+│   │   │   ├── ipython-genutils v0.2.0
+│   │   │   ├── jupyterlab-widgets v1.0.0
+│   │   │   ├── traitlets v5.13.0
+│   │   │   └── widgetsnbextension v3.6.0
+│   │   │       └── notebook v4.4.1
+│   │   │           ├── ipykernel v6.16.0 (*)
+│   │   │           ├── ipython-genutils v0.2.0
+│   │   │           ├── jinja2 v3.1.3
+│   │   │           │   └── markupsafe v2.1.2
+│   │   │           ├── jupyter-client v6.1.12 (*)
+│   │   │           ├── jupyter-core v4.11.2 (*)
+│   │   │           ├── nbconvert v4.0.0
+│   │   │           │   ├── jinja2 v3.1.3 (*)
+│   │   │           │   ├── jupyter-core v4.11.2 (*)
+│   │   │           │   ├── mistune v0.5.1
+│   │   │           │   ├── nbformat v4.0.0
+│   │   │           │   │   ├── ipython-genutils v0.2.0
+│   │   │           │   │   ├── jsonschema v4.8.0 (*)
+│   │   │           │   │   ├── jupyter-core v4.11.2 (*)
+│   │   │           │   │   └── traitlets v5.13.0
+│   │   │           │   ├── pygments v2.17.0
+│   │   │           │   └── traitlets v5.13.0
+│   │   │           ├── nbformat v4.0.0 (*)
+│   │   │           ├── terminado v0.7
+│   │   │           │   ├── ptyprocess v0.5.1
+│   │   │           │   └── tornado v6.2
+│   │   │           ├── tornado v6.2
+│   │   │           └── traitlets v5.13.0
+│   │   ├── numpy v2.0.0
+│   │   ├── pandas v2.2.2 (*)
+│   │   ├── traitlets v5.13.0
+│   │   └── traittypes v0.0.6
+│   │       ├── numpy v2.0.0
+│   │       ├── pandas v2.2.2 (*)
+│   │       └── traitlets v5.13.0
+│   ├── ipywidgets v7.7.3 (*)
+│   ├── pandas v2.2.2 (*)
+│   └── py2vega v0.5.0
+├── ipykernel v6.16.0 (extra: all) (*)
+├── ipython v8.0.0 (extra: all) (*)
+├── ipywidgets v7.7.3 (extra: all) (*)
+├── jplephem v2.17 (extra: all)
+│   └── numpy v2.0.0
+├── jupyter-core v4.11.2 (extra: all) (*)
+├── matplotlib v3.9.1.post1 (extra: all)
+│   ├── contourpy v1.0.5
+│   │   └── numpy v2.0.0
+│   ├── cycler v0.10.0
+│   │   └── six v1.9.0
+│   ├── fonttools v4.22.0
+│   ├── kiwisolver v1.4.4
+│   ├── numpy v2.0.0
+│   ├── packaging v25.0
+│   ├── pillow v9.2.0
+│   ├── pyparsing v2.4.0
+│   └── python-dateutil v2.8.2 (*)
+├── mpmath v1.2.1 (extra: all)
+├── narwhals v1.42.0 (extra: all)
+├── pandas v2.2.2 (extra: all) (*)
+├── pyarrow v16.0.0 (extra: all) (*)
+├── pytz v2020.1 (extra: all)
+├── s3fs v2023.4.0 (extra: all)
+│   ├── aiobotocore v2.5.0
+│   │   ├── aiohttp v3.8.3 (*)
+│   │   ├── aioitertools v0.5.1
+│   │   ├── botocore v1.29.76
+│   │   │   ├── jmespath v0.7.1
+│   │   │   ├── python-dateutil v2.8.2 (*)
+│   │   │   └── urllib3 v1.25.4
+│   │   └── wrapt v1.14.1
+│   ├── aiohttp v3.8.3 (*)
+│   └── fsspec v2023.4.0 (*)
+├── scipy v1.13.0 (extra: all)
+│   └── numpy v2.0.0
+├── sortedcontainers v2.1.0 (extra: all)
+├── uncompresspy v0.4.0 (extra: all)
+├── coverage v7.2.0 (extra: dev)
+├── dask[dataframe] v2024.8.0 (extra: dev) (*)
+├── hypothesis v6.84.0 (extra: dev)
+│   ├── attrs v20.1.0
+│   └── sortedcontainers v2.1.0
+├── jinja2 v3.1.3 (extra: dev) (*)
+├── matplotlib v3.9.1.post1 (extra: dev) (*)
+├── narwhals v1.42.0 (extra: dev)
+├── pandas-stubs v2.0.2.230605 (extra: dev)
+│   ├── numpy v2.0.0
+│   └── types-pytz v2022.1.1
+├── pytest v8.0.1 (extra: dev)
+│   ├── colorama v0.4.6
+│   ├── iniconfig v1.0.1
+│   ├── packaging v25.0
+│   └── pluggy v1.6.0
+├── pytest-astropy v0.11.0 (extra: dev)
+│   ├── attrs v20.1.0
+│   ├── hypothesis v6.84.0 (*)
+│   ├── pytest v8.0.1 (*)
+│   ├── pytest-arraydiff v0.5.0
+│   │   ├── numpy v2.0.0
+│   │   └── pytest v8.0.1 (*)
+│   ├── pytest-astropy-header v0.2.2
+│   │   └── pytest v8.0.1 (*)
+│   ├── pytest-cov v2.3.1
+│   │   ├── coverage v7.2.0
+│   │   └── pytest v8.0.1 (*)
+│   ├── pytest-doctestplus v1.4.0
+│   │   ├── packaging v25.0
+│   │   └── pytest v8.0.1 (*)
+│   ├── pytest-filter-subpackage v0.1.2
+│   │   └── pytest v8.0.1 (*)
+│   ├── pytest-mock v2.0.0
+│   │   └── pytest v8.0.1 (*)
+│   └── pytest-remotedata v0.4.1
+│       ├── packaging v25.0
+│       └── pytest v8.0.1 (*)
+├── pytest-astropy-header v0.2.2 (extra: dev) (*)
+├── pytest-doctestplus v1.4.0 (extra: dev) (*)
+├── pytest-xdist v3.6.1 (extra: dev)
+│   ├── execnet v2.1.0
+│   └── pytest v8.0.1 (*)
+├── scipy v1.13.0 (extra: dev) (*)
+├── scipy-stubs v1.14.1.6 (extra: dev)
+│   └── optype v0.7.3
+│       └── typing-extensions v4.10.0
+├── sphinx v8.2.0 (extra: dev)
+│   ├── alabaster v0.7.14
+│   ├── babel v2.13.0
+│   ├── colorama v0.4.6
+│   ├── docutils v0.20
+│   ├── imagesize v1.3.0
+│   ├── jinja2 v3.1.3 (*)
+│   ├── packaging v25.0
+│   ├── pygments v2.17.0
+│   ├── requests v2.30.0 (*)
+│   ├── roman-numerals-py v1.0.0
+│   ├── snowballstemmer v2.2.0
+│   ├── sphinxcontrib-applehelp v1.0.7
+│   │   └── sphinx v8.2.0 (*)
+│   ├── sphinxcontrib-devhelp v1.0.6
+│   ├── sphinxcontrib-htmlhelp v2.0.6
+│   ├── sphinxcontrib-jsmath v1.0.1
+│   ├── sphinxcontrib-qthelp v1.0.6
+│   │   └── sphinx v8.2.0 (*)
+│   └── sphinxcontrib-serializinghtml v1.1.9
+│       └── sphinx v8.2.0 (*)
+├── sphinx-astropy[confv2] v1.9.1 (extra: dev)
+│   ├── astropy-sphinx-theme v1.0
+│   │   └── setuptools v18.5
+│   ├── numpydoc v1.0.0
+│   │   ├── jinja2 v3.1.3 (*)
+│   │   └── sphinx v8.2.0 (*)
+│   ├── packaging v25.0
+│   ├── pillow v9.2.0
+│   ├── pytest-doctestplus v1.4.0 (*)
+│   ├── sphinx v8.2.0 (*)
+│   ├── sphinx-automodapi v0.1
+│   ├── sphinx-gallery v0.0.4
+│   │   ├── joblib v0.8.0
+│   │   ├── matplotlib v3.9.1.post1 (*)
+│   │   ├── pillow v9.2.0
+│   │   └── sphinx v8.2.0 (*)
+│   ├── sphinxcontrib-jquery v1.0.0
+│   │   └── setuptools v18.5
+│   ├── pydata-sphinx-theme v0.1.0 (extra: confv2)
+│   │   └── sphinx v8.2.0 (*)
+│   └── sphinx-copybutton v0.1 (extra: confv2)
+├── sphinx-changelog v1.2.0 (extra: dev)
+│   ├── sphinx v8.2.0 (*)
+│   └── towncrier v22.8.0
+│       ├── click v8.1.0 (*)
+│       ├── click-default-group v1.0
+│       │   └── click v8.1.0 (*)
+│       ├── incremental v15.0.0
+│       ├── jinja2 v3.1.3 (*)
+│       ├── setuptools v18.5
+│       └── tomli v1.1.0
+├── sphinx-design v0.6.1 (extra: dev)
+│   └── sphinx v8.2.0 (*)
+├── sphinxcontrib-globalsubs v0.1.1 (extra: dev)
+│   └── sphinx v8.2.0 (*)
+├── threadpoolctl v3.0.0 (extra: dev)
+├── array-api-strict v1.0 (extra: dev-all)
+│   └── numpy v2.0.0
+├── asdf-astropy v0.7.0 (extra: dev-all) (*)
+├── beautifulsoup4 v4.11.2 (extra: dev-all) (*)
+├── bleach v3.2.1 (extra: dev-all) (*)
+├── bottleneck v1.4.0 (extra: dev-all) (*)
+├── certifi v2022.6.15.1 (extra: dev-all)
+├── coverage v7.2.0 (extra: dev-all)
+├── dask[dataframe] v2024.8.0 (extra: dev-all) (*)
+├── fsspec[http] v2023.4.0 (extra: dev-all) (*)
+├── h5py v3.11.0 (extra: dev-all) (*)
+├── html5lib v1.1 (extra: dev-all) (*)
+├── hypothesis v6.84.0 (extra: dev-all) (*)
+├── ipydatagrid v1.1.13 (extra: dev-all) (*)
+├── ipykernel v6.16.0 (extra: dev-all) (*)
+├── ipython v8.0.0 (extra: dev-all) (*)
+├── ipywidgets v7.7.3 (extra: dev-all) (*)
+├── jinja2 v3.1.3 (extra: dev-all) (*)
+├── jplephem v2.17 (extra: dev-all) (*)
+├── jupyter-core v4.11.2 (extra: dev-all) (*)
+├── matplotlib v3.9.1.post1 (extra: dev-all) (*)
+├── mpmath v1.2.1 (extra: dev-all)
+├── narwhals v1.42.0 (extra: dev-all)
+├── numpy-quaddtype v0.2.2 (extra: dev-all)
+│   └── numpy v2.0.0
+├── objgraph v3.1.2 (extra: dev-all)
+│   └── graphviz v0.1
+├── pandas v2.2.2 (extra: dev-all) (*)
+├── pandas-stubs v2.0.2.230605 (extra: dev-all) (*)
+├── pyarrow v16.0.0 (extra: dev-all) (*)
+├── pytest v8.0.1 (extra: dev-all) (*)
+├── pytest-astropy v0.11.0 (extra: dev-all) (*)
+├── pytest-astropy-header v0.2.2 (extra: dev-all) (*)
+├── pytest-doctestplus v1.4.0 (extra: dev-all) (*)
+├── pytest-xdist v3.6.1 (extra: dev-all) (*)
+├── pytz v2020.1 (extra: dev-all)
+├── s3fs v2023.4.0 (extra: dev-all) (*)
+├── scipy v1.13.0 (extra: dev-all) (*)
+├── scipy-stubs v1.14.1.6 (extra: dev-all) (*)
+├── sgp4 v2.22 (extra: dev-all)
+├── skyfield v1.42 (extra: dev-all)
+│   ├── certifi v2022.6.15.1
+│   ├── jplephem v2.17 (*)
+│   ├── numpy v2.0.0
+│   └── sgp4 v2.22
+├── sortedcontainers v2.1.0 (extra: dev-all)
+├── sphinx v8.2.0 (extra: dev-all) (*)
+├── sphinx-astropy[confv2] v1.9.1 (extra: dev-all) (*)
+├── sphinx-changelog v1.2.0 (extra: dev-all) (*)
+├── sphinx-design v0.6.1 (extra: dev-all) (*)
+├── sphinxcontrib-globalsubs v0.1.1 (extra: dev-all) (*)
+├── threadpoolctl v3.0.0 (extra: dev-all)
+├── tox v4.33.0 (extra: dev-all)
+│   ├── cachetools v6.2.4
+│   ├── chardet v5.2.0
+│   ├── colorama v0.4.6
+│   ├── filelock v3.20.2
+│   ├── packaging v25.0
+│   ├── platformdirs v4.5.1
+│   ├── pluggy v1.6.0
+│   ├── pyproject-api v1.10.0
+│   │   └── packaging v25.0
+│   └── virtualenv v20.35.4
+│       ├── distlib v0.3.7
+│       ├── filelock v3.20.2
+│       └── platformdirs v4.5.1
+├── uncompresspy v0.4.0 (extra: dev-all)
+├── dask[dataframe] v2024.8.0 (extra: docs) (*)
+├── jinja2 v3.1.3 (extra: docs) (*)
+├── matplotlib v3.9.1.post1 (extra: docs) (*)
+├── narwhals v1.42.0 (extra: docs)
+├── pytest v8.0.1 (extra: docs) (*)
+├── scipy v1.13.0 (extra: docs) (*)
+├── sphinx v8.2.0 (extra: docs) (*)
+├── sphinx-astropy[confv2] v1.9.1 (extra: docs) (*)
+├── sphinx-changelog v1.2.0 (extra: docs) (*)
+├── sphinx-design v0.6.1 (extra: docs) (*)
+├── sphinxcontrib-globalsubs v0.1.1 (extra: docs) (*)
+├── ipython v8.0.0 (extra: ipython) (*)
+├── ipydatagrid v1.1.13 (extra: jupyter) (*)
+├── ipykernel v6.16.0 (extra: jupyter) (*)
+├── ipython v8.0.0 (extra: jupyter) (*)
+├── ipywidgets v7.7.3 (extra: jupyter) (*)
+├── jupyter-core v4.11.2 (extra: jupyter) (*)
+├── pandas v2.2.2 (extra: jupyter) (*)
+├── matplotlib v3.9.1.post1 (extra: recommended) (*)
+├── narwhals v1.42.0 (extra: recommended)
+├── scipy v1.13.0 (extra: recommended) (*)
+├── coverage v7.2.0 (extra: test)
+├── hypothesis v6.84.0 (extra: test) (*)
+├── pytest v8.0.1 (extra: test) (*)
+├── pytest-astropy v0.11.0 (extra: test) (*)
+├── pytest-astropy-header v0.2.2 (extra: test) (*)
+├── pytest-doctestplus v1.4.0 (extra: test) (*)
+├── pytest-xdist v3.6.1 (extra: test) (*)
+├── threadpoolctl v3.0.0 (extra: test)
+├── array-api-strict v1.0 (extra: test-all) (*)
+├── asdf-astropy v0.7.0 (extra: test-all) (*)
+├── beautifulsoup4 v4.11.2 (extra: test-all) (*)
+├── bleach v3.2.1 (extra: test-all) (*)
+├── bottleneck v1.4.0 (extra: test-all) (*)
+├── certifi v2022.6.15.1 (extra: test-all)
+├── coverage v7.2.0 (extra: test-all)
+├── dask[dataframe] v2024.8.0 (extra: test-all) (*)
+├── fsspec[http] v2023.4.0 (extra: test-all) (*)
+├── h5py v3.11.0 (extra: test-all) (*)
+├── html5lib v1.1 (extra: test-all) (*)
+├── hypothesis v6.84.0 (extra: test-all) (*)
+├── ipydatagrid v1.1.13 (extra: test-all) (*)
+├── ipykernel v6.16.0 (extra: test-all) (*)
+├── ipython v8.0.0 (extra: test-all) (*)
+├── ipywidgets v7.7.3 (extra: test-all) (*)
+├── jplephem v2.17 (extra: test-all) (*)
+├── jupyter-core v4.11.2 (extra: test-all) (*)
+├── matplotlib v3.9.1.post1 (extra: test-all) (*)
+├── mpmath v1.2.1 (extra: test-all)
+├── narwhals v1.42.0 (extra: test-all)
+├── numpy-quaddtype v0.2.2 (extra: test-all) (*)
+├── objgraph v3.1.2 (extra: test-all) (*)
+├── pandas v2.2.2 (extra: test-all) (*)
+├── pyarrow v16.0.0 (extra: test-all) (*)
+├── pytest v8.0.1 (extra: test-all) (*)
+├── pytest-astropy v0.11.0 (extra: test-all) (*)
+├── pytest-astropy-header v0.2.2 (extra: test-all) (*)
+├── pytest-doctestplus v1.4.0 (extra: test-all) (*)
+├── pytest-xdist v3.6.1 (extra: test-all) (*)
+├── pytz v2020.1 (extra: test-all)
+├── s3fs v2023.4.0 (extra: test-all) (*)
+├── scipy v1.13.0 (extra: test-all) (*)
+├── sgp4 v2.22 (extra: test-all)
+├── skyfield v1.42 (extra: test-all) (*)
+├── sortedcontainers v2.1.0 (extra: test-all)
+├── threadpoolctl v3.0.0 (extra: test-all)
+├── uncompresspy v0.4.0 (extra: test-all)
+├── narwhals v1.42.0 (extra: typing)
+├── pandas-stubs v2.0.2.230605 (extra: typing) (*)
+├── scipy-stubs v1.14.1.6 (extra: typing) (*)
+├── dask[dataframe] v2024.8.0 (group: dataframe) (*)
+├── duckdb v1.1.0 (group: dataframe)
+├── narwhals v1.42.0 (group: dataframe)
+├── pandas v2.2.2 (group: dataframe) (*)
+├── polars v1.0.0 (group: dataframe)
+└── pyarrow v16.0.0 (group: dataframe) (*)
+(*) Package tree already displayed

@@ -146,13 +146,14 @@ class physical_constants(base_constants_version):
     """
 
     # Maintainers: update when new constants are added
-    _value = "codata2018"
+    _value = "codata2022"
 
     _versions = dict(
         codata2022="codata2022",
         codata2018="codata2018",
         codata2014="codata2014",
         codata2010="codata2010",
+        astropyconst80="codata2022",
         astropyconst40="codata2018",
         astropyconst20="codata2014",
         astropyconst13="codata2010",
@@ -170,6 +171,7 @@ class astronomical_constants(base_constants_version):
     _versions = dict(
         iau2015="iau2015",
         iau2012="iau2012",
+        astropyconst80="iau2015",
         astropyconst40="iau2015",
         astropyconst20="iau2015",
         astropyconst13="iau2012",
@@ -180,32 +182,8 @@ class astronomical_constants(base_constants_version):
 from .tests.runner import TestRunner
 
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+    warnings.filterwarnings("ignore", message="The TestRunner")
     test = TestRunner.make_test_runner_in(__path__[0])
-
-
-# if we are *not* in setup mode, import the logger and possibly populate the
-# configuration file with the defaults
-def _initialize_astropy():
-    try:
-        from .utils import _compiler
-    except ImportError:
-        # If this __init__.py file is in ./astropy/ then import is within a source
-        # dir .astropy-root is a file distributed with the source, but that should
-        # not installed
-        if (Path(__file__).parent.parent / ".astropy-root").exists():
-            raise ImportError(
-                "You appear to be trying to import astropy from "
-                "within a source checkout or from an editable "
-                "installation without building the extension "
-                "modules first. Either run:\n\n"
-                "  pip install -e .\n\nor\n\n"
-                "  python setup.py build_ext --inplace\n\n"
-                "to make sure the extension modules are built "
-            ) from None
-
-        # Outright broken installation, just raise standard error
-        raise
 
 
 # Set the bibtex entry to the article referenced in CITATION.
@@ -219,8 +197,6 @@ __citation__ = __bibtex__ = _get_bibtex()
 from .logger import _init_log, _teardown_log
 
 log = _init_log()
-
-_initialize_astropy()
 
 from types import ModuleType as __module_type__
 

@@ -6,7 +6,7 @@
 .. testsetup::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation._get_site_registry(force_download=True)  #doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> EarthLocation._get_site_registry(refresh_cache=True)  #doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 .. _astropy-coordinates:
 
@@ -329,10 +329,8 @@ Both :meth:`~astropy.coordinates.EarthLocation.of_site` and
 :meth:`~astropy.coordinates.EarthLocation.get_site_names`,
 `astropy.coordinates` attempt to access the site registry from the
 `astropy-data repository <https://github.com/astropy/astropy-data>`_ and will
-save the registry in the user's local cache (see :ref:`utils-data`).  If
-there is no local cache and Internet connection is not available, a built-in
-list (consisting of only the Greenwich Royal Observatory as an example case) is
-loaded. The cached version of the site registry is not updated automatically,
+save the registry in the user's local cache (see :ref:`utils-data`).
+The cached version of the site registry is not updated automatically,
 but the latest version may be downloaded using the ``refresh_cache=True``
 option of these methods. If you would like a site to be added to the registry,
 issue a pull request to the `astropy-data repository
@@ -577,7 +575,7 @@ coordinate systems implemented here include:
 * `USNO Circular 179 <https://arxiv.org/abs/astro-ph/0602086>`_
     A useful guide to the IAU 2000/2003 work surrounding ICRS/IERS/CIRS and
     related problems in precision coordinate system work.
-* `Standards Of Fundamental Astronomy <http://www.iausofa.org/>`_
+* `Standards Of Fundamental Astronomy <https://www.iausofa.org/>`_
     The definitive implementation of IAU-defined algorithms. The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.

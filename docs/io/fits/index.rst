@@ -42,9 +42,9 @@ Opening a FITS File
 .. note::
 
     The ``astropy.io.fits.util.get_testdata_filepath()`` function,
-    used in the examples here, is for accessing data shipped with ``astropy``.
-    To work with your own data instead, please use :func:`astropy.io.fits.open`,
-    which takes either the relative or absolute path.
+    used in the examples here, returns file path for test data shipped with ``astropy``.
+    To work with your own data instead, please use :func:`astropy.io.fits.open` or :ref:`io-fits-intro-convenience-functions`,
+    which take either the relative or absolute path as string or :term:`python:path-like object`.
 
 Once the `astropy.io.fits` package is loaded using the standard convention
 [#f1]_, we can open an existing FITS file::
@@ -410,7 +410,7 @@ Working with Image Data
     This section describes reading and writing image data in the FITS format using the
     `~astropy.io.fits` package directly. For CCD image data with a unit, you should
     consider using the :ref:`Unified Image Data<io_unified_image>` interface with the
-    :ref:`CCDData class <ccddata>`. This provides the the capability to load data,
+    :ref:`CCDData class <ccddata>`. This provides the capability to load data,
     uncertainty and mask from a multi-extension FITS (MEF) file.
 
 If an HDU's data is an image, the data attribute of the HDU object will return

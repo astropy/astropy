@@ -3,6 +3,7 @@
 
 import contextlib
 import csv
+import math
 import operator
 import os
 import re
@@ -11,7 +12,6 @@ import textwrap
 from contextlib import suppress
 
 import numpy as np
-from numpy import char as chararray
 
 # This module may have many dependencies on astropy.io.fits.column, but
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
@@ -37,6 +37,7 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
+from astropy.utils.compat import chararray
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -453,7 +454,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         else:
             return len(self.data)
 
-    @lazyproperty
+    @property
     def _theap(self):
         size = self._header["NAXIS1"] * self._header["NAXIS2"]
         return self._header.get("THEAP", size)
@@ -532,12 +533,12 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     )
                 )
 
-            self.req_cards("NAXIS", None, lambda v: (v == 2), 2, option, errs)
-            self.req_cards("BITPIX", None, lambda v: (v == 8), 8, option, errs)
+            self.req_cards("NAXIS", None, lambda v: v == 2, 2, option, errs)
+            self.req_cards("BITPIX", None, lambda v: v == 8, 8, option, errs)
             self.req_cards(
                 "TFIELDS",
                 7,
-                lambda v: (_is_int(v) and v >= 0 and v <= 999),
+                lambda v: _is_int(v) and v >= 0 and v <= 999,
                 0,
                 option,
                 errs,
@@ -787,7 +788,7 @@ class TableHDU(_TableBaseHDU):
         `TableHDU` verify method.
         """
         errs = super()._verify(option=option)
-        self.req_cards("PCOUNT", None, lambda v: (v == 0), 0, option, errs)
+        self.req_cards("PCOUNT", None, lambda v: v == 0, 0, option, errs)
         tfields = self._header["TFIELDS"]
         for idx in range(tfields):
             self.req_cards("TBCOL" + str(idx + 1), None, _is_int, None, option, errs)
@@ -868,10 +869,28 @@ class BinTableHDU(_TableBaseHDU):
         with _binary_table_byte_swap(self.data) as data:
             csum = self._compute_checksum(data.view(type=np.ndarray, dtype=np.ubyte))
 
-            # Now add in the heap data to the checksum (we can skip any gap
+            # determine if we can read the heap data from the file on disk
+            try_from_disk = self._manages_own_heap or not self._data_loaded
+
+            # Now add in the heap data to the checksum. We can skip any gap
             # between the table and the heap since it's all zeros and doesn't
-            # contribute to the checksum
-            return self._compute_checksum(data._get_heap_data(), csum)
+            # contribute to the checksum. However, the heap may not start at a
+            # boundary between the 4-byte blocks used for the checksum (32 bits),
+            # either because there's no THEAP keyword and the main table data
+            # ends in the middle of a 4-byte block, or because the THEAP keyword
+            # exists and it's not a multiple of 4. In those cases, we must pad
+            # the heap data with zeros, such that it is aligned correctly
+            # for the checksum calculation. We do this by padding the first few
+            # bytes of the heap (if necessary), then calculating the checksum for
+            # the rest of the heap data normally.
+            heap_data = data._get_heap_data(try_from_disk)
+            if extra := self._theap % 4:
+                first_part = np.zeros(4, dtype=np.ubyte)
+                first_part[extra : extra + len(heap_data)] = heap_data[: 4 - extra]
+                csum = self._compute_checksum(first_part, csum)
+                return self._compute_checksum(heap_data[4 - extra :], csum)
+
+            return self._compute_checksum(heap_data, csum)
 
     def _calculate_datasum(self):
         """
@@ -912,7 +931,10 @@ class BinTableHDU(_TableBaseHDU):
 
             nbytes = data._gap
 
-            heap_data = data._get_heap_data()
+            # determine of we can read the heap data from the file on disk
+            try_from_disk = self._manages_own_heap or not self._data_loaded
+
+            heap_data = data._get_heap_data(try_from_disk)
             if len(heap_data) > 0:
                 nbytes += len(heap_data)
                 fileobj.writearray(heap_data)
@@ -939,7 +961,7 @@ class BinTableHDU(_TableBaseHDU):
                     # Read the field *width* by reading past the field kind.
                     i = field.dtype.str.index(field.dtype.kind)
                     field_width = int(field.dtype.str[i + 1 :])
-                    item = np.char.encode(item, "ascii")
+                    item = np.strings.encode(item, "ascii")
 
                 fileobj.writearray(item)
                 if field_width is not None:
@@ -1249,7 +1271,7 @@ class BinTableHDU(_TableBaseHDU):
             line = [column.name, column.format]
             attrs = ["disp", "unit", "dim", "null", "bscale", "bzero"]
             line += [
-                "{!s:16s}".format(value if value else '""')
+                "{!s:16s}".format(value or '""')
                 for value in (getattr(column, attr) for attr in attrs)
             ]
             fileobj.write(" ".join(line))
@@ -1380,7 +1402,7 @@ class BinTableHDU(_TableBaseHDU):
                     idx += vla_len
                 elif dtype[col].shape:
                     # This is an array column
-                    array_size = int(np.multiply.reduce(dtype[col].shape))
+                    array_size = math.prod(dtype[col].shape)
                     slice_ = slice(idx, idx + array_size)
                     idx += array_size
                 else:
@@ -1468,7 +1490,7 @@ def _binary_table_byte_swap(data):
         formats.append(field_dtype)
         offsets.append(field_offset)
 
-        if isinstance(field, chararray.chararray):
+        if isinstance(field, chararray):
             continue
 
         # only swap unswapped
@@ -1486,7 +1508,7 @@ def _binary_table_byte_swap(data):
             coldata = data.field(idx)
             for c in coldata:
                 if (
-                    not isinstance(c, chararray.chararray)
+                    not isinstance(c, chararray)
                     and c.itemsize > 1
                     and c.dtype.str[0] in swap_types
                 ):
