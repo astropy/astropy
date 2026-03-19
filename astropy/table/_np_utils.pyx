@@ -38,10 +38,11 @@ def join_inner(np.ndarray[DTYPE_t, ndim=1] idxs,
         Length of the left table.
     jointype : int
         Integer encoding the type of join to perform:
-        0 = inner (strict intersection of keys)
-        1 = outer / cartesian (union of all keys)
-        2 = left (all keys from the left table)
-        3 = right (all keys from the right table)
+
+        * 0 = inner (strict intersection of keys)
+        * 1 = outer / cartesian (union of all keys)
+        * 2 = left (all keys from the left table)
+        * 3 = right (all keys from the right table)
 
     Returns
     -------
