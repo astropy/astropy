@@ -45,7 +45,7 @@ jobs:
         git config user.email github-actions@github.com
         BRANCH_NAME=update-astropy-iers-data-pin-$(date +"%s")
         git switch -c "$BRANCH_NAME"
-        git add pyproject.toml scripts/lowest-resolved-tree.txt
+        git add --update
         if ! git diff --cached --exit-code; then
           git commit -m "Update minimum required version of astropy-iers-data"
         fi
