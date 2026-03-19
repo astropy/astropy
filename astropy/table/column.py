@@ -1663,6 +1663,21 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return self
 
+    def __deepcopy__(self, memo=None):
+        out = super().__deepcopy__(memo)
+
+        # MaskedArray.__deepcopy__ copies self.__dict__ entries directly via
+        # deepcopy(), bypassing the DataInfo descriptor.  That leaves a raw
+        # deep-copied MaskedColumnInfo in out.__dict__["info"] which has
+        # _attrs (e.g. serialize_method) but lacks bound-only slot state such
+        # as _format_funcs.  Re-assigning through the descriptor (DataInfo.__set__)
+        # creates a fresh bound MaskedColumnInfo, copies across the _attrs from
+        # the raw object, and sets _format_funcs = {} as expected.
+        if "info" in out.__dict__:
+            out.info = out.__dict__["info"]
+
+        return out
+
     @property
     def fill_value(self):
         return self.get_fill_value()  # defer to native ma.MaskedArray method
