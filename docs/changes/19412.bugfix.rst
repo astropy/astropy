@@ -1,1 +1,0 @@
-Fixed an AttributeError when printing a deepcopy of a masked Table.
