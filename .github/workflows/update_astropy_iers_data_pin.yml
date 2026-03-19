@@ -5,8 +5,6 @@
 name: Auto-update astropy-iers-data minimum version
 
 on:
-  schedule:
-    - cron: '0 0 2 * *'  # Monthly
   workflow_dispatch:
 
 permissions:
@@ -55,7 +53,7 @@ jobs:
       run: |
         gh pr create \
           --title "Update minimum required version of astropy-iers-data" \
-          --label no-changelog-entry-needed --label utils.iers \
+          --label no-changelog-entry-needed --label utils.iers --label skip-basebranch-check \
           --body-file .github/workflows/update_astropy_iers_data_pin.md
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
