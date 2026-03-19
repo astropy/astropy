@@ -848,3 +848,38 @@ def test_unique_indices_after_multicol_index_slice():
     t2 = t[:1]
     assert len(t2.indices) == 1  # without fix would be 2, both with id ("a", "b").
     assert t2.indices[0].id == ("a", "b")
+
+
+def test_index_not_corrupted_on_failed_row_assignment(engine):
+    """Regression test: index must survive a failed row assignment.
+
+    When ``table[row] = values`` raises because one of the values is
+    incompatible with its column dtype, the table index was left in an
+    inconsistent state.  Specifically, ``Index.replace`` removed the
+    existing key from the sorted array *before* trying to insert the new
+    one; if the insert failed the old key was permanently gone even though
+    the column data was never changed.
+
+    After the fix the index must round-trip correctly: the original key is
+    still findable and no ghost key is present.  The test is run for all
+    three available index engines (BST, SortedArray, SCEngine).
+    """
+    t = Table({"x": [1, 2, 3], "y": [4, 5, 6]})
+    t.add_index("y", engine=engine)
+
+    with pytest.raises(ValueError):
+        # "bad" is not convertible to the int64 dtype of column y
+        t[0] = (99, "bad")
+
+    # Data must be unchanged
+    assert t[0]["x"] == 1
+    assert t[0]["y"] == 4
+
+    # Index must still find the original key
+    result = t.loc[4]
+    assert result["x"] == 1
+    assert result["y"] == 4
+
+    # No ghost entry for the attempted new value
+    with pytest.raises(KeyError):
+        t.loc[99]
