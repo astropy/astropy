@@ -27,6 +27,33 @@ def join_inner(np.ndarray[DTYPE_t, ndim=1] idxs,
     """
     Do the inner-loop cartesian product for np_utils.join() processing.
     (The "inner" is about the inner loop, not inner join).
+
+    Parameters
+    ----------
+    idxs : ndarray
+        Array of boundary indices for matching keys.
+    idx_sort : ndarray
+        Sorted indices of the combined left and right keys.
+    len_left : int
+        Length of the left table.
+    jointype : int
+        Integer encoding the type of join to perform:
+
+        * 0 = inner (strict intersection of keys)
+        * 1 = outer / cartesian (union of all keys)
+        * 2 = left (all keys from the left table)
+        * 3 = right (all keys from the right table)
+
+    Returns
+    -------
+    masked : int
+        Flag indicating if any values were masked during the join (1 if true, 0 if false).
+    n_out : int
+        The final number of rows in the joined output.
+    left_out, right_out : ndarray
+        Integer arrays of indices mapping the output rows back to the original left/right tables.
+    left_mask, right_mask : ndarray
+        Boolean arrays indicating which output rows are missing corresponding data in the left/right tables.
     """
     cdef DTYPE_t n_out = 0
     cdef DTYPE_t max_key_idxs = 0
