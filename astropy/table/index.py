@@ -571,10 +571,28 @@ class Index:
         val : col.info.dtype
             Value to insert at specified row of col
         """
+        # Save the original key before removing so it can be restored if the
+        # subsequent add fails (e.g. incompatible dtype).  Without this, a
+        # failed assignment silently drops the row from the index even though
+        # the underlying column data was never changed.
+        orig_key = tuple(c[row] for c in self.columns)
         self.remove_row(row, reorder=False)
-        key = [c[row] for c in self.columns]
+        key = list(orig_key)
         key[self.col_position(col_name)] = val
-        self.data.add(tuple(key), row)
+        try:
+            self.data.add(tuple(key), row)
+        except Exception as exc:
+            self.data.add(orig_key, row)
+            if not isinstance(exc, ValueError):
+                # Some index engines (BST, SCEngine) raise UFuncTypeError or
+                # other TypeError subclasses when comparing incompatible types
+                # during the sorted-insert.  Convert to ValueError so callers
+                # always get a consistent, descriptive error.
+                raise ValueError(
+                    f"Cannot update index for column '{col_name}' "
+                    f"with value {val!r}: {exc}"
+                ) from exc
+            raise
 
     def replace_rows(self, col_slice):
         """
