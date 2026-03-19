@@ -1,0 +1,2 @@
+Fixed table index getting corrupted when a row assignment raises an exception
+mid-update. The index is now properly restored to its original state on failure.
