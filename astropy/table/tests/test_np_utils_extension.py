@@ -237,8 +237,8 @@ def test_single_non_matching_row_inner():
 
 
 def test_many_unique_keys_inner():
-    left = list(range(100))
-    right = list(range(100))
+    left = np.arange(100)
+    right = np.arange(100)
     idxs, idx_sort, len_left = _make_join_inputs(left, right)
     masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
         idxs, idx_sort, len_left, 0
