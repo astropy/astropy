@@ -1,9 +1,14 @@
 import numpy as np
 
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+SCIPY_LT_1_15 = not minversion("scipy", "1.15.0") if HAS_SCIPY else True
 
-def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=True):
+
+def lombscargle_scipy(
+    t, y, frequency, normalization="standard", center_data=True, *, fit_mean=True
+):
     """Lomb-Scargle Periodogram.
 
     This is a wrapper of ``scipy.signal.lombscargle`` for computation of the
@@ -23,6 +28,11 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     center_data : bool, optional
         if True, pre-center the data by subtracting the weighted mean
         of the input data.
+    fit_mean : bool (default: True)
+        if True, include a constant offset as part of the model at each
+        frequency. This can lead to more accurate results, especially in the
+        case of incomplete phase coverage.
+        Ignored for scipy versions older than 1.15
 
     Returns
     -------
@@ -56,17 +66,30 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     if center_data:
         y = y - y.mean()
 
+    if SCIPY_LT_1_15:
+        kwargs = {}
+    else:
+        kwargs = {"floating_mean": fit_mean}
+
     # Note: scipy input accepts angular frequencies
-    p = signal.lombscargle(t, y, 2 * np.pi * frequency)
+    p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
+
+    if normalization not in ("psd", "standard", "log", "model", "psd"):
+        raise ValueError(f"{normalization=!r} not recognized")
 
     if normalization == "psd":
-        pass
-    elif normalization == "standard":
-        p *= 2 / (t.size * np.mean(y**2))
-    elif normalization == "log":
-        p = -np.log(1 - 2 * p / (t.size * np.mean(y**2)))
-    elif normalization == "model":
-        p /= 0.5 * t.size * np.mean(y**2) - p
+        return p
+
+    if center_data or not kwargs.get("floating_mean", False):
+        chi2_ref = 0.5 * t.size * np.mean(y**2)
     else:
-        raise ValueError(f"normalization='{normalization}' not recognized")
+        chi2_ref = 0.5 * t.size * np.mean((y - y.mean()) ** 2)
+
+    if normalization == "standard":
+        p /= chi2_ref
+    elif normalization == "log":
+        p = -np.log(1 - p / chi2_ref)
+    elif normalization == "model":
+        p /= chi2_ref - p
+
     return p
