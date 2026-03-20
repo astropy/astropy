@@ -1896,3 +1896,24 @@ if HAS_SCIPY:
             q_out = function(2.5 * u.kg)
             assert q_out.unit == u.kg
             assert_allclose(q_out.value, function(2.5))
+
+class TestLinalg:
+    def test_matrix_rank(self):
+        q = np.eye(3) * u.m
+        rank = np.linalg.matrix_rank(q)
+        assert rank == 3
+        # Rank is an integer, typically np.int64,
+        # but size might vary across architectures
+        assert isinstance(rank, np.integer)
+        q2 = np.ones((3, 3)) * u.s
+        rank2 = np.linalg.matrix_rank(q2)
+        assert rank2 == 1
+
+    @pytest.mark.parametrize(
+        "function, expected_unit", [(np.linalg.det, u.m**2), (np.linalg.norm, u.m)]
+    )
+    def test_other_linalg(self, function, expected_unit):
+        # Det and Norm are often used with Quantities
+        q = np.eye(2) * u.m
+        result = function(q)
+        assert result.unit == expected_unit
