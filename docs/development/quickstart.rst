@@ -141,7 +141,7 @@ Now you can install the development version of astropy into your new environment
 will install the latest version of astropy from your local git repo, along with
 all the dependencies needed to build and fully test astropy::
 
-   python -m pip install --editable '.[dev_all]'
+   python -m pip install --editable . --group dev_all
 
 **Checking the build**
 
