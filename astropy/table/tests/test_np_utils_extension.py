@@ -33,7 +33,7 @@ def test_returns_six_values():
 
 class TestJoinInner:
     """
-    Parametrized tests for `join_inner`. 
+    Parametrized tests for `join_inner`.
     Join types: 0 (Inner), 1 (Outer), 2 (Left), 3 (Right)
     """
 
@@ -42,8 +42,8 @@ class TestJoinInner:
         """A perfect match behaves identically across all join types."""
         left, right = [1, 2, 3], [1, 2, 3]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
 
         assert n_out == 3
@@ -57,17 +57,33 @@ class TestJoinInner:
         "join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask",
         [
             (0, 1, [1], [False], [0], [False]),  # Inner
-            (1, 3, [0, 1, 0], [False, False, True], [0, 0, 1], [True, False, False]),  # Outer
+            (
+                1,
+                3,
+                [0, 1, 0],
+                [False, False, True],
+                [0, 0, 1],
+                [True, False, False],
+            ),  # Outer
             (2, 2, [0, 1], [False, False], [0, 0], [True, False]),  # Left
-            (3, 2, [0, 0], [True, False], [0, 1], [False, False]),  # Right
+            (
+                3,
+                2,
+                [1, 0],
+                [False, True],
+                [0, 1],
+                [False, False],
+            ),  # Right (Mathematical fix applied here)
         ],
     )
-    def test_partial_overlap(self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask):
+    def test_partial_overlap(
+        self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask
+    ):
         """Tests left=[1, 2] and right=[2, 3] across all join types."""
         left, right = [1, 2], [2, 3]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
 
         assert n_out == exp_n
@@ -80,17 +96,26 @@ class TestJoinInner:
         "join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask",
         [
             (0, 0, [], [], [], []),  # Inner
-            (1, 4, [0, 1, 0, 0], [False, False, True, True], [0, 0, 0, 1], [True, True, False, False]),  # Outer
+            (
+                1,
+                4,
+                [0, 1, 0, 0],
+                [False, False, True, True],
+                [0, 0, 0, 1],
+                [True, True, False, False],
+            ),  # Outer
             (2, 2, [0, 1], [False, False], [0, 0], [True, True]),  # Left
             (3, 2, [0, 0], [True, True], [0, 1], [False, False]),  # Right
         ],
     )
-    def test_no_overlap(self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask):
+    def test_no_overlap(
+        self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask
+    ):
         """Tests disjoint arrays left=[1, 2] and right=[3, 4] across all join types."""
         left, right = [1, 2], [3, 4]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
 
         assert n_out == exp_n
@@ -104,8 +129,8 @@ class TestJoinInner:
         """Cartesian expansion behaves identically across all join types."""
         left, right = [1, 1], [1, 1]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
         assert n_out == 4
 
@@ -117,8 +142,8 @@ class TestJoinInner:
         """Scale test for cartesian expansion."""
         left, right = [7] * 5, [7] * 5
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
         assert n_out == 25
 
@@ -127,8 +152,8 @@ class TestJoinInner:
         """Edge case: Arrays of length 1."""
         left, right = [42], [42]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
         assert n_out == 1
         assert not masked
@@ -138,8 +163,8 @@ class TestJoinInner:
         left = np.arange(100)
         right = np.arange(100)
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, 0
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, 0)
         )
         assert n_out == 100
         assert not masked
