@@ -31,217 +31,115 @@ def test_returns_six_values():
     assert len(result) == 6
 
 
-class TestInnerJoin:
-    join_type = 0
+class TestJoinInner:
+    """
+    Parametrized tests for `join_inner`. 
+    Join types: 0 (Inner), 1 (Outer), 2 (Left), 3 (Right)
+    """
 
-    def test_perfect_match(self):
+    @pytest.mark.parametrize("join_type", [0, 1, 2, 3])
+    def test_perfect_match(self, join_type):
+        """A perfect match behaves identically across all join types."""
         left, right = [1, 2, 3], [1, 2, 3]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
+        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+            idxs, idx_sort, len_left, join_type
         )
-        assert n_out == len(left)
-        assert not masked
 
-        # Inner join of identical arrays -> indices map 1:1
+        assert n_out == 3
+        assert not masked
         np.testing.assert_array_equal(left_out, [0, 1, 2])
         np.testing.assert_array_equal(right_out, [0, 1, 2])
-        # Masks should be all False because technically all data is present
         np.testing.assert_array_equal(left_mask, [False, False, False])
         np.testing.assert_array_equal(right_mask, [False, False, False])
 
-    def test_partial_overlap(self):
+    @pytest.mark.parametrize(
+        "join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask",
+        [
+            (0, 1, [1], [False], [0], [False]),  # Inner
+            (1, 3, [0, 1, 0], [False, False, True], [0, 0, 1], [True, False, False]),  # Outer
+            (2, 2, [0, 1], [False, False], [0, 0], [True, False]),  # Left
+            (3, 2, [0, 0], [True, False], [0, 1], [False, False]),  # Right
+        ],
+    )
+    def test_partial_overlap(self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask):
+        """Tests left=[1, 2] and right=[2, 3] across all join types."""
         left, right = [1, 2], [2, 3]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
+        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+            idxs, idx_sort, len_left, join_type
         )
-        assert n_out == 1
 
-        np.testing.assert_array_equal(left_out, [1])
-        np.testing.assert_array_equal(right_out, [0])
-        np.testing.assert_array_equal(left_mask, [False])
-        np.testing.assert_array_equal(right_mask, [False])
+        assert n_out == exp_n
+        np.testing.assert_array_equal(left_out, exp_l_out)
+        np.testing.assert_array_equal(left_mask, exp_l_mask)
+        np.testing.assert_array_equal(right_out, exp_r_out)
+        np.testing.assert_array_equal(right_mask, exp_r_mask)
 
-    def test_no_overlap(self):
+    @pytest.mark.parametrize(
+        "join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask",
+        [
+            (0, 0, [], [], [], []),  # Inner
+            (1, 4, [0, 1, 0, 0], [False, False, True, True], [0, 0, 0, 1], [True, True, False, False]),  # Outer
+            (2, 2, [0, 1], [False, False], [0, 0], [True, True]),  # Left
+            (3, 2, [0, 0], [True, True], [0, 1], [False, False]),  # Right
+        ],
+    )
+    def test_no_overlap(self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask):
+        """Tests disjoint arrays left=[1, 2] and right=[3, 4] across all join types."""
         left, right = [1, 2], [3, 4]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
+        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+            idxs, idx_sort, len_left, join_type
         )
-        assert n_out == 0
 
-    def test_duplicate_keys_cartesian(self):
+        assert n_out == exp_n
+        np.testing.assert_array_equal(left_out, exp_l_out)
+        np.testing.assert_array_equal(left_mask, exp_l_mask)
+        np.testing.assert_array_equal(right_out, exp_r_out)
+        np.testing.assert_array_equal(right_mask, exp_r_mask)
+
+    @pytest.mark.parametrize("join_type", [0, 1, 2, 3])
+    def test_duplicate_keys_cartesian(self, join_type):
+        """Cartesian expansion behaves identically across all join types."""
         left, right = [1, 1], [1, 1]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
+        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+            idxs, idx_sort, len_left, join_type
         )
         assert n_out == 4
 
-    def test_large_cartesian(self):
+        assert len(left_out) == n_out
+        assert len(right_out) == n_out
+
+    @pytest.mark.parametrize("join_type", [0, 1, 2, 3])
+    def test_large_cartesian(self, join_type):
+        """Scale test for cartesian expansion."""
         left, right = [7] * 5, [7] * 5
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
+        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+            idxs, idx_sort, len_left, join_type
         )
         assert n_out == 25
 
-
-class TestOuterJoin:
-    join_type = 1
-
-    def test_disjoint_all_rows_kept(self):
-        left, right = [1, 2], [3, 4]
+    @pytest.mark.parametrize("join_type", [0, 1, 2, 3])
+    def test_single_matching_row(self, join_type):
+        """Edge case: Arrays of length 1."""
+        left, right = [42], [42]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
-        )
-        assert n_out == 4
-        assert masked
-
-        # All left rows kept, right missing
-        # All right rows kept, left missing
-        np.testing.assert_array_equal(left_out, [0, 1, 0, 0])
-        np.testing.assert_array_equal(left_mask, [False, False, True, True])
-        np.testing.assert_array_equal(right_out, [0, 0, 0, 1])
-        np.testing.assert_array_equal(right_mask, [True, True, False, False])
-
-    def test_partial_overlap(self):
-        left, right = [1, 2], [2, 3]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
-        )
-        assert n_out == 3
-        assert masked
-
-        # Keeps 1 (left only), 2 (both), 3 (right only)
-        np.testing.assert_array_equal(left_out, [0, 1, 0])
-        np.testing.assert_array_equal(left_mask, [False, False, True])
-        np.testing.assert_array_equal(right_out, [0, 0, 1])
-        np.testing.assert_array_equal(right_mask, [True, False, False])
-
-    def test_perfect_match_no_masking(self):
-        left, right = [1, 2, 3], [1, 2, 3]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
-        )
-        assert not masked
-        np.testing.assert_array_equal(left_out, [0, 1, 2])
-        np.testing.assert_array_equal(right_out, [0, 1, 2])
-
-
-class TestLeftJoin:
-    join_type = 2
-
-    def test_all_left_rows_kept(self):
-        left, right = [1, 2, 3], [2]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
-        )
-        assert n_out == 3
-        assert masked
-
-        np.testing.assert_array_equal(left_out, [0, 1, 2])
-        np.testing.assert_array_equal(left_mask, [False, False, False])
-
-        # Right only has a match for the middle element
-        np.testing.assert_array_equal(right_out, [0, 0, 0])
-        np.testing.assert_array_equal(right_mask, [True, False, True])
-
-    def test_perfect_match_no_masking(self):
-        left, right = [1, 2, 3], [1, 2, 3]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
-        )
-        assert not masked
-        np.testing.assert_array_equal(left_out, [0, 1, 2])
-        np.testing.assert_array_equal(right_out, [0, 1, 2])
-
-    def test_right_only_keys_ignored(self):
-        left, right = [1], [1, 2, 3]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
+        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+            idxs, idx_sort, len_left, join_type
         )
         assert n_out == 1
-        np.testing.assert_array_equal(left_out, [0])
-        np.testing.assert_array_equal(right_out, [0])
-
-
-class TestRightJoin:
-    join_type = 3
-
-    def test_all_right_rows_kept(self):
-        left, right = [2], [1, 2, 3]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
-        )
-        assert n_out == 3
-        assert masked
-
-        # Left only has a match for the middle element
-        np.testing.assert_array_equal(left_out, [0, 0, 0])
-        np.testing.assert_array_equal(left_mask, [True, False, True])
-
-        np.testing.assert_array_equal(right_out, [0, 1, 2])
-        np.testing.assert_array_equal(right_mask, [False, False, False])
-
-    def test_perfect_match_no_masking(self):
-        left, right = [1, 2], [1, 2]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = (
-            _np_utils.join_inner(idxs, idx_sort, len_left, self.join_type)
-        )
         assert not masked
-        np.testing.assert_array_equal(left_out, [0, 1])
-        np.testing.assert_array_equal(right_out, [0, 1])
 
-
-@pytest.mark.parametrize("join_type", [0, 1, 2, 3])
-def test_output_and_mask_array_lengths_match_n_out(join_type):
-    """left_out, right_out, left_mask, right_mask must all have length n_out."""
-    left, right = [1, 2], [2, 3]
-    idxs, idx_sort, len_left = _make_join_inputs(left, right)
-    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-        idxs, idx_sort, len_left, join_type
-    )
-    assert len(left_out) == n_out
-    assert len(right_out) == n_out
-    assert len(left_mask) == n_out
-    assert len(right_mask) == n_out
-
-
-def test_single_matching_row():
-    left, right = [42], [42]
-    idxs, idx_sort, len_left = _make_join_inputs(left, right)
-    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-        idxs, idx_sort, len_left, 0
-    )
-    assert n_out == 1
-    assert not masked
-
-
-def test_single_non_matching_row_inner():
-    left, right = [1], [2]
-    idxs, idx_sort, len_left = _make_join_inputs(left, right)
-    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-        idxs, idx_sort, len_left, 0
-    )
-    assert n_out == 0
-
-
-def test_many_unique_keys_inner():
-    left = np.arange(100)
-    right = np.arange(100)
-    idxs, idx_sort, len_left = _make_join_inputs(left, right)
-    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-        idxs, idx_sort, len_left, 0
-    )
-    assert n_out == 100
-    assert not masked
+    def test_many_unique_keys_inner(self):
+        """Scale test for inner join specifically."""
+        left = np.arange(100)
+        right = np.arange(100)
+        idxs, idx_sort, len_left = _make_join_inputs(left, right)
+        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+            idxs, idx_sort, len_left, 0
+        )
+        assert n_out == 100
+        assert not masked
