@@ -1,20 +1,4 @@
-"""
-Direct tests for the compiled Cython extension `astropy.table._np_utils`.
-
-`_np_utils` contains a single function, `join_inner()`, which is the core
-index-computation engine for all table join operations in astropy.
-These tests bypass the public `astropy.table.join()` API to test the
-compiled extension directly, fulfilling the goal in #19249 of building
-standalone test coverage for performance-critical extensions.
-
-Valid inputs to `join_inner()` are manually constructed here, reproducing
-the pre-processing logic from `astropy/table/operations.py`.
-The join_type integer encoding is:
-0 = inner
-1 = outer
-2 = left
-3 = right
-"""
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
 import pytest
