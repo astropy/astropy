@@ -4,6 +4,8 @@ from collections import OrderedDict, defaultdict
 
 import numpy as np
 
+from astropy.utils.masked import Masked, MaskedNDArray, combine_masks, get_data_and_mask
+
 from .utils import deserialize_class
 
 __all__ = [
@@ -261,7 +263,11 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
     # we don't want to match Numpy subclasses.
     for w in world:
-        if not isinstance(w, numbers.Number) and not type(w) == np.ndarray:
+        if (
+            not isinstance(w, numbers.Number)
+            and not type(w) == np.ndarray
+            and not type(w) == MaskedNDArray
+        ):
             raise TypeError(
                 f"WCS world_axis_object_components results in "
                 f"values which are not scalars or plain Numpy "
@@ -294,7 +300,11 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
     # we don't want to match Numpy subclasses.
     for w in world_values:
-        if not isinstance(w, numbers.Number) and not type(w) == np.ndarray:
+        if (
+            not isinstance(w, numbers.Number)
+            and not type(w) == np.ndarray
+            and not type(w) == MaskedNDArray
+        ):
             raise TypeError(
                 f"Expected world coordinates as scalars or plain Numpy "
                 f"arrays (got {type(w)})"
@@ -351,26 +361,39 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         return self
 
     def world_to_pixel(self, *world_objects):
+        values = []
+        masks = []
+        for world_object in world_objects:
+            if getattr(world_object, "masked", True):
+                value, mask = get_data_and_mask(world_object)
+                values.append(value)
+                masks.append(mask)
+            else:
+                values.append(world_object)
         world_values = high_level_objects_to_values(
-            *world_objects, low_level_wcs=self.low_level_wcs
+            *values, low_level_wcs=self.low_level_wcs
         )
 
         # Finally we convert to pixel coordinates
         pixel_values = self.low_level_wcs.world_to_pixel_values(*world_values)
-
+        if (mask := combine_masks(masks)) is not False:
+            pixel_values = tuple(Masked(value, mask) for value in pixel_values)
         return pixel_values
 
     def pixel_to_world(self, *pixel_arrays):
+        values, masks = MaskedNDArray._get_data_and_masks(pixel_arrays)
         # Compute the world coordinate values
-        world_values = self.low_level_wcs.pixel_to_world_values(*pixel_arrays)
+        world_values = self.low_level_wcs.pixel_to_world_values(*values)
 
         if self.low_level_wcs.world_n_dim == 1:
             world_values = (world_values,)
 
+        if (mask := combine_masks(masks)) is not False:
+            world_values = tuple(Masked(value, mask) for value in world_values)
+
         pixel_values = values_to_high_level_objects(
             *world_values, low_level_wcs=self.low_level_wcs
         )
-
         if len(pixel_values) == 1:
             return pixel_values[0]
         else:
