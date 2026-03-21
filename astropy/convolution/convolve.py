@@ -549,12 +549,19 @@ def convolve_fft(
           possible and will raise an exception.
         * 'fill': ``NaN`` values are replaced by ``fill_value`` prior to
           convolution.
+
+        .. versionchanged:: 2.0
+            Default changed from ``'fill'`` to ``'interpolate'``.
+
     normalize_kernel : callable or boolean, optional
         If specified, this is the function to divide kernel by
         to normalize it. e.g., ``normalize_kernel=np.sum`` means
         that kernel will be modified to be: ``kernel = kernel /
         np.sum(kernel)``. If True, defaults to ``normalize_kernel =
         np.sum``.
+
+        .. versionchanged:: 2.0
+            Default changed from ``False`` to ``True``.
     normalization_zero_tol : float, optional
         The absolute tolerance on whether the kernel is different than
         zero. If the kernel sums to zero to within this precision, it

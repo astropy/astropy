@@ -1,0 +1,1 @@
+Added ``versionchanged`` notes to ``convolve_fft`` docstring for ``nan_treatment`` and ``normalize_kernel`` default changes in astropy 2.0.
