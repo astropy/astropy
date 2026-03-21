@@ -641,7 +641,10 @@ class Latitude(Angle):
                 raise TypeError("Latitude and Longitude cannot be added")
 
         results = super().__array_ufunc__(ufunc, method, *inputs, **kwargs)
-        return _no_angle_subclass(results)
+        if isinstance(results, Angle):
+            
+            return Latitude(results)
+        return results
 
 
 class LongitudeInfo(u.QuantityInfo):
@@ -743,4 +746,6 @@ class Longitude(Angle):
     # Any calculation should drop to Angle
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         results = super().__array_ufunc__(ufunc, method, *inputs, **kwargs)
-        return _no_angle_subclass(results)
+        if isinstance(results, Angle):
+            return Longitude(results, wrap_angle=self.wrap_angle)
+        return results
