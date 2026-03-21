@@ -10,6 +10,7 @@ import numpy as np
 
 from astropy.utils import lazyproperty
 from astropy.utils.compat import chararray, get_chararray
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .column import (
     _VLF,
@@ -158,6 +159,7 @@ class FITS_rec(np.recarray):
 
     _record_type = FITS_record
     _character_as_bytes = False
+    _logical_as_bytes = False
     _load_variable_length_data = True
 
     def __new__(cls, input):
@@ -232,6 +234,7 @@ class FITS_rec(np.recarray):
 
         if isinstance(obj, FITS_rec):
             self._character_as_bytes = obj._character_as_bytes
+            self._logical_as_bytes = obj._logical_as_bytes
 
         if isinstance(obj, FITS_rec) and obj.dtype == self.dtype:
             self._converted = obj._converted
@@ -281,7 +284,14 @@ class FITS_rec(np.recarray):
         self._uint = False
 
     @classmethod
-    def from_columns(cls, columns, nrows=0, fill=False, character_as_bytes=False):
+    def from_columns(
+        cls,
+        columns,
+        nrows=0,
+        fill=False,
+        character_as_bytes=False,
+        logical_as_bytes=False,
+    ):
         """
         Given a `ColDefs` object of unknown origin, initialize a new `FITS_rec`
         object.
@@ -341,6 +351,7 @@ class FITS_rec(np.recarray):
         raw_data.fill(ord(columns._padding_byte))
         data = np.recarray(nrows, dtype=columns.dtype, buf=raw_data).view(cls)
         data._character_as_bytes = character_as_bytes
+        data._logical_as_bytes = logical_as_bytes
 
         # Previously this assignment was made from hdu.columns, but that's a
         # bug since if a _TableBaseHDU has a FITS_rec in its .data attribute
@@ -1008,7 +1019,19 @@ class FITS_rec(np.recarray):
             column._physical_values = True
 
         elif _bool and field.dtype != bool:
-            field = np.equal(field, ord("T"))
+            if not self._logical_as_bytes:
+                # Check for NULL values (0x00) before converting
+                null_mask = field == 0
+                if np.any(null_mask):
+                    warnings.warn(
+                        f"Column '{column.name}' contains NULL (undefined) values "
+                        "which will be converted to False. To preserve NULL "
+                        "information, reopen the file with logical_as_bytes=True "
+                        "and check for values of 0 (NULL), ord('T')=84 (True), "
+                        "and ord('F')=70 (False).",
+                        AstropyUserWarning,
+                    )
+                field = np.equal(field, ord("T"))
         elif _str:
             if not self._character_as_bytes:
                 with suppress(UnicodeDecodeError):
