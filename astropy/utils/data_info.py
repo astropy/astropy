@@ -544,7 +544,7 @@ class BaseColumnInfo(DataInfo):
     # like Time or SkyCoord will have different default serialization
     # representations depending on context.
     _serialize_context = None
-    __slots__ = ["_copy_indices", "_format_funcs"]
+    __slots__ = ["__format_funcs", "_copy_indices"]
 
     @property
     def parent_table(self):
@@ -564,10 +564,15 @@ class BaseColumnInfo(DataInfo):
     def __init__(self, bound=False):
         super().__init__(bound=bound)
 
-        # If bound to a data object instance then add a _format_funcs dict
-        # for caching functions for print formatting.
-        if bound:
-            self._format_funcs = {}
+    @property
+    def _format_funcs(self):
+        """Cache for format functions used when formatting Column subclass data
+
+        See #19412 and the fix for context here, there are some complexities.
+        """
+        if not hasattr(self, "__format_funcs"):
+            self.__format_funcs = {}
+        return self.__format_funcs
 
     def __set__(self, instance, value):
         # For Table columns do not set `info` when the instance is a scalar.
