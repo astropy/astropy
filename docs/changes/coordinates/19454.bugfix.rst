@@ -1,0 +1,1 @@
+Fixed an issue with longitude and latitude addition in coordinates module.
