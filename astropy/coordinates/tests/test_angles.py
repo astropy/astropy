@@ -1260,3 +1260,10 @@ def test_angle_pickle_to_string():
     via_pickle = pickle.loads(pickle.dumps(angle))
     via_pickle_string = via_pickle.to_string()  # This used to fail.
     assert via_pickle_string == expected
+
+
+def test_longitude_add_invalid_type():
+    lon = Longitude(10 * u.deg)
+
+    with pytest.raises(Exception):
+        lon + "invalid"
