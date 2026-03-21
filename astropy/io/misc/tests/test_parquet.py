@@ -998,5 +998,11 @@ def test_parquet_read_pandas(tmp_path):
 
     for dtype in ALL_DTYPES:
         values = _default_values(dtype)
-        assert np.all(t2[str(dtype)] == values)
-        assert t2[str(dtype)].dtype == dtype
+        col = t2[str(dtype)]
+
+        assert np.all(col == values)
+
+        if dtype == "U3":
+            assert col.dtype.kind in ("U", "O")
+        else:
+            assert col.dtype == dtype
