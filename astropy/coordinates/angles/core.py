@@ -742,10 +742,5 @@ class Longitude(Angle):
 
     # Any calculation should drop to Angle
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        # Prevent Longitude interacting with Latitude
-        if ufunc == np.add:
-            if any(isinstance(inp, Latitude) for inp in inputs):
-                raise TypeError("Longitude and Latitude cannot be added")
-
         results = super().__array_ufunc__(ufunc, method, *inputs, **kwargs)
         return _no_angle_subclass(results)
