@@ -1265,5 +1265,5 @@ def test_angle_pickle_to_string():
 def test_longitude_add_invalid_type():
     lon = Longitude(10 * u.deg)
 
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError):
         lon + "invalid"
