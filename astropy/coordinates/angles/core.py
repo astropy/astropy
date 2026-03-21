@@ -637,7 +637,8 @@ class Latitude(Angle):
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         # Prevent Latitude interacting with Longitude
         if ufunc == np.add:
-            if any(isinstance(inp, Longitude) for inp in inputs):
+            types = {type(inp) for inp in inputs if isinstance(inp, Angle)}
+            if Latitude in types and Longitude in types:
                 raise TypeError("Latitude and Longitude cannot be added")
 
         results = super().__array_ufunc__(ufunc, method, *inputs, **kwargs)
