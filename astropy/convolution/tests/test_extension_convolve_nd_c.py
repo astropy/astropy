@@ -4,21 +4,17 @@
 import numpy as np
 import numpy.testing as npt
 import pytest
-
+from functools import partial
 from astropy.convolution._convolve import _convolveNd_c
 
 
-# these helprer functions preprocess the inputs before passing to the extension
-def _as_float64_c_contiguous(array):
-    """Return a C-contiguous ``float64`` array for the extension call."""
-    return np.ascontiguousarray(array, dtype=np.float64)
 
+_as_float64_c_contiguous = partial(np.ascontiguousarray, dtype = 'float64')
+# these helprer functions preprocess the inputs before passing to the extension
 
 def _pad_for_direct_call(image, kernel):
     """Pad an image the same way with half-kernel width."""
-    pad_width = tuple((size // 2, size // 2) for size in kernel.shape)
-    padded = np.pad(image, pad_width, mode="constant", constant_values=0.0)
-    return _as_float64_c_contiguous(padded)
+    return np.pad(image, pad_width=tuple((size // 2, size // 2) for size in kernel.shape))
 
 
 def _allocate_result(image, padded_image, embed):
