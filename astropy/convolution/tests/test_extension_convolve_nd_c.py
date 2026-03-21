@@ -1,20 +1,23 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 
+from functools import partial
+
 import numpy as np
 import numpy.testing as npt
 import pytest
-from functools import partial
+
 from astropy.convolution._convolve import _convolveNd_c
 
+_as_float64_c_contiguous = partial(np.ascontiguousarray, dtype="float64")
 
 
-_as_float64_c_contiguous = partial(np.ascontiguousarray, dtype = 'float64')
-# these helprer functions preprocess the inputs before passing to the extension
-
+# these helper functions preprocess the inputs before passing to the extension
 def _pad_for_direct_call(image, kernel):
     """Pad an image the same way with half-kernel width."""
-    return np.pad(image, pad_width=tuple((size // 2, size // 2) for size in kernel.shape))
+    return np.pad(
+        image, pad_width=tuple((size // 2, size // 2) for size in kernel.shape)
+    )
 
 
 def _allocate_result(image, padded_image, embed):
