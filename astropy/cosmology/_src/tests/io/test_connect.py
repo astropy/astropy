@@ -58,7 +58,7 @@ class ReadWriteTestMixin(
     test_ecsv.ReadWriteECSVTestMixin,
     test_html.ReadWriteHTMLTestMixin,
     test_json.ReadWriteJSONTestMixin,
-    test_latex.WriteLATEXTestMixin,
+    test_latex.ReadWriteLATEXTestMixin,
 ):
     """
     Tests for a CosmologyRead/Write on a |Cosmology|.
