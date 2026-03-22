@@ -52,8 +52,8 @@ class TestJoinInner:
         left = [1, 2, 3]
         right = [1, 2, 3]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
 
         assert n_out == 3
@@ -67,18 +67,32 @@ class TestJoinInner:
         "join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask",
         [
             pytest.param(0, 1, [1], [False], [0], [False], id="inner"),
-            pytest.param(1, 3, [0, 1, 0], [False, False, True], [0, 0, 1], [True, False, False], id="outer"),
-            pytest.param(2, 2, [0, 1], [False, False], [0, 0], [True, False], id="left"),
-            pytest.param(3, 2, [1, 0], [False, True], [0, 1], [False, False], id="right"),
+            pytest.param(
+                1,
+                3,
+                [0, 1, 0],
+                [False, False, True],
+                [0, 0, 1],
+                [True, False, False],
+                id="outer",
+            ),
+            pytest.param(
+                2, 2, [0, 1], [False, False], [0, 0], [True, False], id="left"
+            ),
+            pytest.param(
+                3, 2, [1, 0], [False, True], [0, 1], [False, False], id="right"
+            ),
         ],
     )
-    def test_partial_overlap(self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask):
+    def test_partial_overlap(
+        self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask
+    ):
         """Tests left=[1, 2] and right=[2, 3] across all join types."""
         left = [1, 2]
         right = [2, 3]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
 
         assert n_out == exp_n
@@ -91,18 +105,30 @@ class TestJoinInner:
         "join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask",
         [
             pytest.param(0, 0, [], [], [], [], id="inner"),
-            pytest.param(1, 4, [0, 1, 0, 0], [False, False, True, True], [0, 0, 0, 1], [True, True, False, False], id="outer"),
+            pytest.param(
+                1,
+                4,
+                [0, 1, 0, 0],
+                [False, False, True, True],
+                [0, 0, 0, 1],
+                [True, True, False, False],
+                id="outer",
+            ),
             pytest.param(2, 2, [0, 1], [False, False], [0, 0], [True, True], id="left"),
-            pytest.param(3, 2, [0, 0], [True, True], [0, 1], [False, False], id="right"),
+            pytest.param(
+                3, 2, [0, 0], [True, True], [0, 1], [False, False], id="right"
+            ),
         ],
     )
-    def test_no_overlap(self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask):
+    def test_no_overlap(
+        self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask
+    ):
         """Tests disjoint arrays left=[1, 2] and right=[3, 4] across all join types."""
         left = [1, 2]
         right = [3, 4]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
 
         assert n_out == exp_n
@@ -114,19 +140,47 @@ class TestJoinInner:
     @pytest.mark.parametrize(
         "join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask",
         [
-            pytest.param(0, 2, [0, 1], [False, False], [1, 2], [False, False], id="inner"),
-            pytest.param(1, 4, [0, 1, 0, 0], [False, False, True, True], [1, 2, 0, 3], [False, False, True, False], id="outer"),
-            pytest.param(2, 3, [0, 1, 2], [False, False, False], [1, 2, 0], [False, False, True], id="left"),
-            pytest.param(3, 3, [0, 0, 1], [True, False, False], [0, 1, 2], [False, False, False], id="right"),
+            pytest.param(
+                0, 2, [0, 1], [False, False], [1, 2], [False, False], id="inner"
+            ),
+            pytest.param(
+                1,
+                5,
+                [0, 0, 1, 2, 0],
+                [True, False, False, False, True],
+                [0, 1, 2, 0, 3],
+                [False, False, False, True, False],
+                id="outer",
+            ),
+            pytest.param(
+                2,
+                3,
+                [0, 1, 2],
+                [False, False, False],
+                [1, 2, 0],
+                [False, False, True],
+                id="left",
+            ),
+            pytest.param(
+                3,
+                4,
+                [0, 0, 1, 0],
+                [True, False, False, True],
+                [0, 1, 2, 3],
+                [False, False, False, False],
+                id="right",
+            ),
         ],
     )
-    def test_different_sizes(self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask):
+    def test_different_sizes(
+        self, join_type, exp_n, exp_l_out, exp_l_mask, exp_r_out, exp_r_mask
+    ):
         """Tests asymmetric overlap where left=[1, 2, 3] and right=[0, 1, 2, 4]."""
         left = [1, 2, 3]
         right = [0, 1, 2, 4]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
 
         assert n_out == exp_n
@@ -141,8 +195,8 @@ class TestJoinInner:
         left = [1, 1]
         right = [1, 1]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
         assert n_out == 4
         assert len(left_out) == n_out
@@ -154,8 +208,8 @@ class TestJoinInner:
         left = [7] * 5
         right = [7] * 5
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
         assert n_out == 25
 
@@ -165,8 +219,8 @@ class TestJoinInner:
         left = [42]
         right = [42]
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, join_type
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, join_type)
         )
         assert n_out == 1
         assert not masked
@@ -180,8 +234,13 @@ class TestJoinInner:
         left = np.array([1.0, np.nan, np.nan])
         right = np.array([1.0, np.nan])
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, 0  # Inner join
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(
+                idxs,
+                idx_sort,
+                len_left,
+                0,  # Inner join
+            )
         )
 
         assert n_out == 1
@@ -194,8 +253,8 @@ class TestJoinInner:
         left = np.arange(100)
         right = np.arange(100)
         idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-            idxs, idx_sort, len_left, 0
+        masked, n_out, left_out, left_mask, right_out, right_mask = (
+            _np_utils.join_inner(idxs, idx_sort, len_left, 0)
         )
         assert n_out == 100
         assert not masked
