@@ -379,7 +379,7 @@ class _GenericParserMixin(_ParsingFormatMixin):
             if p[1] == "sqrt":
                 p[0] = p[3] ** 0.5
                 return
-            elif p[1] in ("mag", "dB", "dex"):
+            elif p[1] in ("mag", "dB", "dex", "ln"):
                 try:
                     function_unit = cls._validate_unit(p[1])
                 except KeyError:
