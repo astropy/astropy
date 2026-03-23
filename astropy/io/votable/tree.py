@@ -1432,7 +1432,7 @@ class Field(
         self.values = Values(self._votable, self)
         self.xtype = xtype
 
-        self._setup(config, pos)
+        self._setup(self._config, pos)
 
         warn_unknown_attrs(self._element_name, extra.keys(), config, pos)
 
