@@ -50,7 +50,7 @@ jobs:
         git push --set-upstream origin "$BRANCH_NAME"
 
     - name: Create Pull Request
-      run: |
+      run: |   # zizmor: ignore[template-injection]
         gh pr create \
           --title "Update minimum required version of astropy-iers-data" \
           --label no-changelog-entry-needed --label utils.iers --label skip-basebranch-check \
