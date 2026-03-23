@@ -1,0 +1,1 @@
+Add Quantity support for additional scipy.special functions.
