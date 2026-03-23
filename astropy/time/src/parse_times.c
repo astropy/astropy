@@ -492,6 +492,24 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
+#if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
+static PyModuleDef_Slot module_slots[] = {
+    {Py_mod_name, "parse_times"},
+    {Py_mod_doc, (char *)MODULE_DOCSTRING},
+    {Py_mod_state_size, (void *)-1},
+    {Py_mod_methods, parse_times_methods},
+    {0, NULL}
+};
+
+PyMODEXPORT_FUNC PyModExport__parse_times(void);
+
+PyMODEXPORT_FUNC
+PyModExport__parse_times(void)
+{
+    return module_slots;
+}
+#endif
+
 /* Initialization function for the module */
 PyMODINIT_FUNC PyInit__parse_times(void)
 {

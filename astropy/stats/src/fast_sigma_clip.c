@@ -27,6 +27,24 @@ static PyMethodDef module_methods[] = {{NULL, NULL, 0, NULL}};
     }; \
     ob = PyModule_Create(&moduledef);
 
+#if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
+static PyModuleDef_Slot module_slots[] = {
+    {Py_mod_name, "_fast_sigma_clip"},
+    {Py_mod_doc, module_docstring},
+    {Py_mod_state_size, (void *)-1},
+    {Py_mod_methods, module_methods},
+    {0, NULL}
+};
+
+PyMODEXPORT_FUNC PyModExport__fast_sigma_clip(void);
+
+PyMODEXPORT_FUNC
+PyModExport__fast_sigma_clip(void)
+{
+    return module_slots;
+}
+#endif
+
 MOD_INIT(_fast_sigma_clip)
 {
     PyObject *m, *d = NULL;

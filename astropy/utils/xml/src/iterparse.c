@@ -1339,6 +1339,26 @@ static struct PyModuleDef moduledef = {
     NULL
 };
 
+#if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
+static PyModuleDef_Slot module_slots[] = {
+    {Py_mod_name, "_iterparser"},
+    {Py_mod_doc, "Fast XML parser"},
+    {Py_mod_state_size, (void *)sizeof(struct module_state)},
+    {Py_mod_methods, module_methods},
+    {Py_mod_state_traverse, (void *)module_traverse},
+    {Py_mod_state_clear, (void *)module_clear},
+    {0, NULL}
+};
+
+PyMODEXPORT_FUNC PyModExport__iterparser(void);
+
+PyMODEXPORT_FUNC
+PyModExport__iterparser(void)
+{
+    return module_slots;
+}
+#endif
+
 PyMODINIT_FUNC PyInit__iterparser(void)
 {
     PyObject *m;
