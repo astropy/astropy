@@ -54,6 +54,7 @@ jobs:
         gh pr create \
           --title "Update minimum required version of astropy-iers-data" \
           --label no-changelog-entry-needed --label utils.iers --label skip-basebranch-check \
-          --body-file .github/workflows/update_astropy_iers_data_pin.md
+          --body-file .github/workflows/update_astropy_iers_data_pin.md \
+          --base "${{ github.ref_name }}"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
