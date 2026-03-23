@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-8.1-time-string-formats`
 * :ref:`whatsnew-8.1-faster-table-joins`
+* :ref:`whatsnew-8.1-scipy-special-quantity`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -58,6 +59,18 @@ if it is available and otherwise falls back to the built-in astropy join impleme
 
 In addition, the built-in astropy join was sped up by a factor of ~2x for the common
 case of a single join column.
+
+.. _whatsnew-8.1-scipy-special-quantity:
+
+``scipy.special`` support for `~astropy.units.Quantity`
+=======================================================
+
+Most ufuncs from ``scipy.special`` can now be used directly with
+:class:`~astropy.units.Quantity`. Functions are classified by their physical
+semantics: angle-accepting functions (such as ``cosdg``, ``cosm1`` and
+``ellipkinc``) correctly handle angle quantities, arithmetic-like functions
+(such as ``agm``) preserve units, and the majority enforce dimensionless
+inputs and outputs.
 
 Contributors to the 8.1 release
 ===============================
