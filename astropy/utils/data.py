@@ -208,6 +208,7 @@ def get_readable_fileobj(
     *,
     use_fsspec=None,
     fsspec_kwargs=None,
+    fsspec_filesystem=None,
     close_files=True,
 ):
     """Yield a readable, seekable file-like object from a file or URL.
@@ -296,8 +297,20 @@ def get_readable_fileobj(
         For example, pass ``fsspec_kwargs={"anon": True}`` to enable
         anonymous access to Amazon S3 open data buckets.
         See ``fsspec``'s documentation for available parameters.
+        Finer control over ``fsspec`` filesystem configuration is
+        available through the ``fsspec_filesystem`` keyword argument.
 
         .. versionadded:: 5.2
+
+    fsspec_filesystem : `fsspec.spec.AbstractFileSystem`, optional
+        A ``filesystem`` instance initialized by the user, for example,
+        via `fsspec.spec.AbstractFileSystem`. Files will be opened by calling
+        `fsspec.spec.AbstractFileSystem.open` on ``fsspec_filesystem``,
+        giving the user a way to set, for example, the filesystem's
+        ``protocol``, ``block_size``, and ``cache_type``. See
+        ``fsspec``'s documentation for available parameters.
+
+        .. versionadded:: 8.0
 
     close_files : bool, optional
         Close the file object when exiting the context manager.
@@ -344,12 +357,18 @@ def get_readable_fileobj(
         if use_fsspec:
             if not HAS_FSSPEC:
                 raise ModuleNotFoundError("please install `fsspec` to open this file")
+
             import fsspec  # local import because it is a niche dependency
 
-            openfileobj = fsspec.open(name_or_obj, **fsspec_kwargs)
-            close_fds.append(openfileobj)
-            fileobj = openfileobj.open()
+            if fsspec_filesystem:
+                fileobj = fsspec_filesystem.open(name_or_obj, **fsspec_kwargs)
+            else:
+                openfileobj = fsspec.open(name_or_obj, **fsspec_kwargs)
+                close_fds.append(openfileobj)
+                fileobj = openfileobj.open()
+
             close_fds.append(fileobj)
+
         else:
             is_url = _is_url(name_or_obj)
             if is_url:
