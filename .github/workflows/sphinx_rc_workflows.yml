@@ -1,6 +1,6 @@
 name: Sphinx RC testing
 
- # We do not run this from cron as the Sphinx RC period is very short, but do trigger it manually when necessary.
+# We do not run this from cron as the Sphinx RC period is very short, but do trigger it manually when necessary.
 on:
   workflow_dispatch:
 
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   tests:
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@99401c364fa51c9c507d3cd6d272049278ac0b2c  # v2.4.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@e97344095b099e1d729fe97429078c9975921d8a  # v2.6.2
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
