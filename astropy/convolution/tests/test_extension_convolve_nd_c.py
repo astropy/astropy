@@ -81,27 +81,19 @@ def _run_extension_with_zero_padding(
 )
 def test_zero_padded_convolution_matches_expected_values(image, kernel, expected):
     """Small representative inputs should produce the expected output values."""
-    result = _run_extension_with_zero_padding(
-        image,
-        kernel,
-        nan_interpolate=False,
-        embed=False,
-    )
+    result = _run_extension_with_zero_padding(image, kernel)
 
     npt.assert_allclose(result, expected)
 
 
 def test_asymmetric_kernel_is_flipped_before_multiplication():
     """The extension should perform convolution, not correlation."""
+
     image = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
     kernel = np.array([1.0, 2.0, 3.0], dtype=np.float64)
 
-    result = _run_extension_with_zero_padding(
-        image,
-        kernel,
-        nan_interpolate=False,
-        embed=False,
-    )
+    result = _run_extension_with_zero_padding(image, kernel)
+
     expected = np.array([4.0, 10.0, 16.0, 22.0, 22.0], dtype=np.float64)
 
     npt.assert_allclose(result, expected)
@@ -135,12 +127,7 @@ def test_asymmetric_kernel_is_flipped_before_multiplication():
 )
 def test_embed_true_returns_expected_padded_output(image, kernel, expected):
     """With ``embed=True``, the result is written into the interior of the padded output."""
-    result = _run_extension_with_zero_padding(
-        image,
-        kernel,
-        nan_interpolate=False,
-        embed=True,
-    )
+    result = _run_extension_with_zero_padding(image, kernel, embed=True)
 
     npt.assert_allclose(result, expected)
 
@@ -190,12 +177,7 @@ def test_nan_without_interpolation_matches_expected_values(image, kernel, expect
         image = image.copy()
         image[1, 1, 1] = np.nan
 
-    result = _run_extension_with_zero_padding(
-        image,
-        kernel,
-        nan_interpolate=False,
-        embed=False,
-    )
+    result = _run_extension_with_zero_padding(image, kernel)
 
     npt.assert_allclose(result, expected, equal_nan=True)
 
@@ -237,14 +219,13 @@ def test_nan_interpolation_matches_expected_values(image, kernel, expected):
         image,
         kernel,
         nan_interpolate=True,
-        embed=False,
     )
 
     npt.assert_allclose(result, expected)
 
 
 def test_all_nan_window_copies_the_center_nan_value():
-    """An all-NaN window should copy the center value back into the result."""
+    """An all-NaN window should copy the center value back into the result when nan_interpolate is enabled."""
     image = np.array([1.0, np.nan, np.nan, np.nan, 5.0], dtype=np.float64)
     kernel = np.ones(3, dtype=np.float64)
 
@@ -252,7 +233,6 @@ def test_all_nan_window_copies_the_center_nan_value():
         image,
         kernel,
         nan_interpolate=True,
-        embed=False,
     )
     expected = np.array([0.5, 1.0, np.nan, 5.0, 2.5], dtype=np.float64)
 
@@ -260,7 +240,8 @@ def test_all_nan_window_copies_the_center_nan_value():
 
 
 def test_zero_effective_weight_sum_copies_the_center_input_value():
-    """A zero effective kernel sum should copy the center input value."""
+    """A zero effective kernel sum should copy the center input value when nan_interpolation is enabled."""
+
     image = np.array([5.0, np.nan, 20.0, 30.0, 40.0], dtype=np.float64)
     kernel = np.array([1.0, -1.0, 0.0], dtype=np.float64)
 
@@ -268,7 +249,6 @@ def test_zero_effective_weight_sum_copies_the_center_input_value():
         image,
         kernel,
         nan_interpolate=True,
-        embed=False,
     )
     expected = np.array([5.0, 20.0, 20.0, 30.0, 40.0], dtype=np.float64)
 
@@ -300,15 +280,11 @@ def test_multi_threaded_results_match_single_threaded(image, kernel):
     single_thread = _run_extension_with_zero_padding(
         image,
         kernel,
-        nan_interpolate=False,
-        embed=False,
         n_threads=1,
     )
     multi_thread = _run_extension_with_zero_padding(
         image,
         kernel,
-        nan_interpolate=False,
-        embed=False,
         n_threads=4,
     )
 
