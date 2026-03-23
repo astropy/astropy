@@ -312,7 +312,12 @@ class Char(Converter):
             self.arraysize_bytes = self.arraysize
 
             if self.is_utf8_version:
-                self.format = "O"
+                # VOTable 1.6: arraysize is bytes; width (if present) gives max
+                # characters and allows a fixed-width numpy dtype instead of object.
+                if field.width is not None:
+                    self.format = f"U{field.width:d}"
+                else:
+                    self.format = "O"
             else:
                 self.format = f"U{self.arraysize:d}"
 

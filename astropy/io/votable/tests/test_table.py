@@ -1118,6 +1118,124 @@ def test_char_utf8_numpy_dtype_round_trip():
     assert table2.array[0]["utf8_chars"] == "café"
 
 
+def test_char_utf8_width_numpy_dtype():
+    """VOTable 1.6 char field with width attribute produces a fixed-width numpy dtype."""
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    votable._config["version_1_6_or_later"] = True
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="utf8_chars",
+            datatype="char",
+            arraysize="20",
+            width=5,
+            ID="utf8_chars",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["utf8_chars"] = "café"
+    table.array[1]["utf8_chars"] = "hello"
+
+    astropy_table = table.to_table()
+
+    # width=5 means the column should be a fixed-width U5
+    assert astropy_table["utf8_chars"].dtype == np.dtype("U5")
+    assert astropy_table["utf8_chars"][0] == "café"
+    assert astropy_table["utf8_chars"][1] == "hello"
+
+
+def test_char_utf8_width_round_trip():
+    """Round-trip VOTable 1.6 char with width: arraysize (bytes) and width (chars) preserved."""
+    bio = io.BytesIO()
+
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    votable._config["version_1_6_or_later"] = True
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="name",
+            datatype="char",
+            arraysize="40",
+            width=10,
+            ID="name",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["name"] = "café"
+    table.array[1]["name"] = "ascii"
+
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+
+    assert table2.fields[0].datatype == "char"
+    assert table2.fields[0].arraysize == "40"
+    assert table2.fields[0].width == 10
+
+    astropy_table = table2.to_table()
+    assert astropy_table["name"].dtype == np.dtype("U10")
+    assert astropy_table["name"][0] == "café"
+    assert astropy_table["name"][1] == "ascii"
+
+
+def test_char_utf8_width_binary():
+    """VOTable 1.6 char with width: binary serialization uses arraysize bytes."""
+    bio = io.BytesIO()
+
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    votable._config["version_1_6_or_later"] = True
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="val",
+            datatype="char",
+            arraysize="20",
+            width=5,
+            ID="val",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["val"] = "café"  # 5 UTF-8 bytes, 4 chars
+    table.array[1]["val"] = "hi"
+
+    votable.to_xml(bio, tabledata_format="binary")
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+    astropy_table = table2.to_table()
+
+    assert astropy_table["val"].dtype == np.dtype("U5")
+    assert astropy_table["val"][0] == "café"
+    assert astropy_table["val"][1] == "hi"
+
+
 def test_char_invalid_utf8_handling():
     field = tree.Field(
         tree.VOTableFile(),
