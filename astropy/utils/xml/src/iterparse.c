@@ -1352,8 +1352,7 @@ static PyModuleDef_Slot module_slots[] = {
 
 PyMODEXPORT_FUNC PyModExport__iterparser(void);
 
-PyMODEXPORT_FUNC
-PyModExport__iterparser(void)
+PyMODEXPORT_FUNC PyModExport__iterparser(void)
 {
     return module_slots;
 }

@@ -503,8 +503,7 @@ static PyModuleDef_Slot module_slots[] = {
 
 PyMODEXPORT_FUNC PyModExport__parse_times(void);
 
-PyMODEXPORT_FUNC
-PyModExport__parse_times(void)
+PyMODEXPORT_FUNC PyModExport__parse_times(void)
 {
     return module_slots;
 }

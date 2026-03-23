@@ -437,8 +437,7 @@ static PyModuleDef_Slot module_slots[] = {
 
 PyMODEXPORT_FUNC PyModExport_tablewriter(void);
 
-PyMODEXPORT_FUNC
-PyModExport_tablewriter(void)
+PyMODEXPORT_FUNC PyModExport_tablewriter(void)
 {
     return module_slots;
 }

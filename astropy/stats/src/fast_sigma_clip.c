@@ -38,8 +38,7 @@ static PyModuleDef_Slot module_slots[] = {
 
 PyMODEXPORT_FUNC PyModExport__fast_sigma_clip(void);
 
-PyMODEXPORT_FUNC
-PyModExport__fast_sigma_clip(void)
+PyMODEXPORT_FUNC PyModExport__fast_sigma_clip(void)
 {
     return module_slots;
 }
