@@ -478,6 +478,11 @@ Post-Release procedures
    <https://github.com/astropy/astropy/blob/main/SECURITY.md>`_ to include the
    newly released version, and as needed mark older versions as not supported.
 
+#. In the main branch, update the `update_astropy_iers_data_main.yml file in the astropy repo
+   <https://github.com/astropy/astropy/blob/main/.github/workflows/update_astropy_iers_data_main.yml>`_
+   to ensure the branches in its matrix only contain the active branches, usually
+   main and the new release branch you just created.
+
 .. _release-procedure-bug-fix:
 
 Maintaining Bug Fix Releases
