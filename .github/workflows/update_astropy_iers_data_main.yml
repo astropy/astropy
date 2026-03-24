@@ -1,0 +1,36 @@
+# Due to a limitation of Github Actions where the `schedule` trigger
+# only applies to the default branch, we need a way of triggering the
+# jobs on the other branches.
+#
+# Therefore, this workflow triggers on main, and dispatches to other branches.
+#
+# This is adapted from
+# https://github.com/sunpy/sunpy/blob/main/.github/workflows/scheduled_builds.yml
+
+name: Scheduled astropy-iers-data auto-update
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 2 * *'  # Monthly
+
+permissions: {}
+
+jobs:
+  dispatch_release_branches:
+    if: github.repository == 'astropy/astropy'
+    permissions:
+      actions: write
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - branch: "main"
+          - branch: "v7.2.x"
+    steps:
+      - name: Trigger workflow dispatch for auto-update
+        uses: benc-uk/workflow-dispatch@7a027648b88c2413826b6ddd6c76114894dc5ec4 # v1.3.1
+        with:
+          workflow: "Auto-update astropy-iers-data minimum version"
+          ref: "${{ matrix.branch }}"
