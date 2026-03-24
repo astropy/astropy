@@ -86,16 +86,66 @@ def test_zero_padded_convolution_matches_expected_values(image, kernel, expected
     npt.assert_allclose(result, expected)
 
 
-def test_asymmetric_kernel_is_flipped_before_multiplication():
-    """The extension should perform convolution, not correlation."""
-
-    image = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
-    kernel = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-
+@pytest.mark.parametrize(
+    ("image", "kernel", "expected"),
+    [
+        pytest.param(
+            np.arange(1.0, 6.0, dtype=np.float64),
+            np.arange(1.0, 4.0, dtype=np.float64),
+            np.array([4.0, 10.0, 16.0, 22.0, 22.0], dtype=np.float64),
+            id="1d",
+        ),
+        pytest.param(
+            np.arange(1.0, 26.0, dtype=np.float64).reshape(5, 5),
+            np.arange(1.0, 10.0, dtype=np.float64).reshape(3, 3),
+            np.array(
+                [
+                    [32.0, 68.0, 89.0, 110.0, 96.0],
+                    [114.0, 219.0, 264.0, 309.0, 252.0],
+                    [249.0, 444.0, 489.0, 534.0, 417.0],
+                    [384.0, 669.0, 714.0, 759.0, 582.0],
+                    [440.0, 734.0, 773.0, 812.0, 600.0],
+                ],
+                dtype=np.float64,
+            ),
+            id="2d",
+        ),
+        pytest.param(
+            np.arange(1.0, 28.0, dtype=np.float64).reshape(3, 3, 3),
+            np.arange(1.0, 28.0, dtype=np.float64).reshape(3, 3, 3),
+            np.array(
+                [
+                    [
+                        [268.0, 490.0, 396.0],
+                        [654.0, 1140.0, 882.0],
+                        [700.0, 1174.0, 876.0],
+                    ],
+                    [
+                        [1050.0, 1788.0, 1350.0],
+                        [2196.0, 3654.0, 2700.0],
+                        [2022.0, 3300.0, 2394.0],
+                    ],
+                    [
+                        [1996.0, 3190.0, 2268.0],
+                        [3570.0, 5676.0, 4014.0],
+                        [2860.0, 4522.0, 3180.0],
+                    ],
+                ],
+                dtype=np.float64,
+            ),
+            id="3d",
+        ),
+    ],
+)
+def test_asymmetric_kernel_is_flipped_correctly(image, kernel, expected):
+    """
+    Kernel flip is fundamental to convolution. The extension should flip
+    the kernel correctly to compute the correct output. For a symmetric
+    kernel like ``[1, 1, 1]`` the flip does not matter since it reads the
+    same in both directions, but for an asymmetric kernel like ``[1, 2, 3]``
+    the flip changes the output .
+    """
     result = _run_extension_with_zero_padding(image, kernel)
-
-    expected = np.array([4.0, 10.0, 16.0, 22.0, 22.0], dtype=np.float64)
-
     npt.assert_allclose(result, expected)
 
 
