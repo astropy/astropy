@@ -768,11 +768,7 @@ def fits_ccddata_reader(
                         "file before reading it."
                     )
             else:
-                try:
-                    fits_unit_parsed = u.Unit(fits_unit_string)
-                except ValueError:
-                    fits_unit_parsed = None
-                if fits_unit_parsed is None or fits_unit_parsed != u.Unit(unit):
+                if str(unit) != str(fits_unit_string):
                     log.info(
                         f"using the unit {unit} passed to the FITS reader instead "
                         f"of the unit {fits_unit_string} in the FITS file."
