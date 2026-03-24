@@ -5,8 +5,6 @@
 name: Auto-update astropy-iers-data minimum version
 
 on:
-  schedule:
-    - cron: '0 0 2 * *'  # Monthly
   workflow_dispatch:
 
 permissions:
@@ -45,14 +43,15 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@84ae59a2cdc2258d6fa0732dd66352dddae2a412  # v7.0.9
       with:
+        base: ${{ github.ref_name }}
         branch: update-astropy-iers-data-pin
         branch-suffix: timestamp
         delete-branch: true
-        labels: no-changelog-entry-needed, utils.iers
+        labels: no-changelog-entry-needed, utils.iers, skip-basebranch-check
         title: Update minimum required version of astropy-iers-data
         body: |
           This is an automated update of the minimum version of astropy-iers-data package.
 
-          :pray: Please apply backport labels to any active backport branches for v6.0.x or later. :pray:
+          One pull request per active branch would be opened separately. Please apply proper milestone to each of them.
 
           :warning: Please close and re-open this pull request to trigger the CI. :warning:
