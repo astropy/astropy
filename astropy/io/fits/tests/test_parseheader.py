@@ -1,40 +1,41 @@
 import io
+from collections import OrderedDict
 
 import pytest
 
 from astropy.io.fits._utils import parse_header
-from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.data import get_pkg_data_fileobj
+
+required_keywords = ["SIMPLE", "BITPIX", "NAXIS"]
 
 
 @pytest.mark.parametrize(
     "filename, expected_keywords",
     [
-        ("data/blank.fits", ["SIMPLE", "BITPIX", "NAXIS"]),
-        ("data/history_header.fits", ["SIMPLE", "BITPIX", "NAXIS"]),
-        ("data/test0.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND"]),
-        ("data/test1.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND"]),
-        ("data/btable.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND"]),
-        ("data/table.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND"]),
-        ("data/ascii.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND"]),
-        ("data/tb.fits", ["SIMPLE", "BITPIX", "NAXIS", "EXTEND", "NEXTEND"]),
+        ("data/blank.fits", required_keywords),
+        ("data/history_header.fits", required_keywords),
+        ("data/test0.fits", required_keywords + ["EXTEND"]),
+        ("data/test1.fits", required_keywords + ["EXTEND"]),
+        ("data/btable.fits", required_keywords + ["EXTEND"]),
+        ("data/table.fits", required_keywords + ["EXTEND"]),
+        ("data/ascii.fits", required_keywords + ["EXTEND"]),
+        ("data/tb.fits", required_keywords + ["EXTEND"]),
         (
             "data/group.fits",
-            ["SIMPLE", "BITPIX", "NAXIS", "GROUPS", "PCOUNT", "GCOUNT"],
+            required_keywords + ["GROUPS", "PCOUNT", "GCOUNT"],
         ),
         (
             "data/random_groups.fits",
-            ["SIMPLE", "BITPIX", "NAXIS", "GROUPS", "PCOUNT", "GCOUNT"],
+            required_keywords + ["GROUPS", "PCOUNT", "GCOUNT"],
         ),
         (
             "data/invalid/group_invalid.fits",
-            ["SIMPLE", "BITPIX", "NAXIS", "EXTEND", "GROUPS", "PCOUNT", "GCOUNT"],
+            required_keywords + ["EXTEND", "GROUPS", "PCOUNT", "GCOUNT"],
         ),
         (
             "data/checksum.fits",
-            [
-                "SIMPLE",
-                "BITPIX",
-                "NAXIS",
+            required_keywords
+            + [
                 "NAXIS1",
                 "NAXIS2",
                 "EXTEND",
@@ -47,33 +48,25 @@ from astropy.utils.data import get_pkg_data_filename
         ),
     ],
 )
-def test_parse_header_expected(filename, expected_keywords):
-    """Test that expected keywords are parsed from FITS files"""
-    filepath = get_pkg_data_filename(filename)
-    with open(filepath, "rb") as f:
+def test_parse_header_keywords(filename, expected_keywords):
+    """Test that parse_header correctly parses all the standard 8 character keywords and doesnt parse COMMENT, HISTORY, CONTINUE, HIERARCH or any keyword with length > 8"""
+    unexpected_keywords = ["COMMENT", "HISTORY", "CONTINUE", "HIERARCH"]
+
+    with get_pkg_data_fileobj(
+        filename, package="astropy.io.fits.tests", encoding="binary"
+    ) as f:
         header_str, cards = parse_header(f)
 
-    assert len(header_str) % 2880 == 0
+    # Blocks are always padded to a multiple of 2880, therefore the header length must be a multiple of 2880 as well but not 0
+    assert len(header_str) % 2880 == 0 and len(header_str) > 0
     assert "END" in header_str
-    for kw in expected_keywords:
-        assert kw in cards, f"Expected keyword {kw} not found in {filename}"
 
+    for keyword in cards:
+        assert len(keyword) <= 8
+        assert keyword not in unexpected_keywords
 
-@pytest.mark.parametrize(
-    "filename,unexpected_keywords",
-    [
-        ("data/checksum.fits", ["COMMENT"]),
-        ("data/history_header.fits", ["HISTORY"]),
-    ],
-)
-def test_parse_header_unexpected(filename, unexpected_keywords):
-    """Test that certain keywords are skipped (HISTORY, COMMENT, END)"""
-    filepath = get_pkg_data_filename(filename)
-    with open(filepath, "rb") as f:
-        header_str, cards = parse_header(f)
-
-    for kw in unexpected_keywords:
-        assert kw not in cards, f"Unexpected keyword {kw} found in {filename}"
+    for keyword in expected_keywords:
+        assert keyword in cards
 
 
 def test_parse_header_incomplete():
@@ -90,19 +83,22 @@ def test_parse_header_no_end():
 
 def test_parse_header_short_keyword():
     """Test that keywords with separator within first 8 chars are parsed"""
-    cards_list = [
-        "A= 5                                                          ",
-        "SIMPLE  =                    T                                      ",
-        "BITPIX  =                  -32                                      ",
-        "NAXIS   =                    0                                      ",
-        "EXTEND  =                    T                                      ",
-        "END" + " " * 77,
-    ]
-    header = "".join(card.ljust(80) for card in cards_list)
+    cards_dict = OrderedDict(
+        [
+            ("A", "A= 5".ljust(80)),
+            ("SIMPLE", "SIMPLE  =                    T".ljust(80)),
+            ("BITPIX", "BITPIX  =                  -32".ljust(80)),
+            ("NAXIS", "NAXIS   =                    0".ljust(80)),
+            ("EXTEND", "EXTEND  =                    T".ljust(80)),
+        ]
+    )
+    end_card = "END" + " " * 77
+    header = "".join(card.ljust(80) for card in cards_dict.values()) + end_card.ljust(
+        80
+    )
     header = header + " " * (2880 - len(header))
     header_bytes = header.encode("ascii")
     header_str, cards_result = parse_header(io.BytesIO(header_bytes))
 
-    assert "A" in cards_result
-    assert "SIMPLE" in cards_result
-    assert "BITPIX" in cards_result
+    assert cards_result == cards_dict
+    assert header == header_str
