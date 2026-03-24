@@ -43,6 +43,7 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@84ae59a2cdc2258d6fa0732dd66352dddae2a412  # v7.0.9
       with:
+        base: ${{ github.ref_name }}
         branch: update-astropy-iers-data-pin
         branch-suffix: timestamp
         delete-branch: true
