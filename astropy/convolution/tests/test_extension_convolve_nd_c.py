@@ -181,7 +181,16 @@ def test_embed_true_returns_expected_padded_output(image, kernel, expected):
     ],
 )
 def test_nan_without_interpolation_matches_expected_values(image, kernel, expected):
-    """Without NaN interpolation, any NaN in the window should propagate to the output."""
+    """Without NaN interpolation, any NaN in the window propagates.
+
+    Example:
+
+    for padded ``image = [0, 1, nan, 1, 0]`` and ``kernel = [1, 1, 1]``,
+    ``_convolveNd_c`` yields ``result = [nan, nan, nan]`` because each
+    output window contains the ``nan`` term and the extension
+    intentionally does not skip NaN values unless
+    ``nan_interpolate=True``.
+    """
 
     result = _run_extension_with_zero_padding(image, kernel)
 
