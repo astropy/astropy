@@ -50,11 +50,12 @@ jobs:
         git push --set-upstream origin "$BRANCH_NAME"
 
     - name: Create Pull Request
-      run: |   # zizmor: ignore[template-injection]
+      run: |
         gh pr create \
           --title "Update minimum required version of astropy-iers-data" \
           --label no-changelog-entry-needed --label utils.iers --label skip-basebranch-check \
           --body-file .github/workflows/update_astropy_iers_data_pin.md \
-          --base "${{ github.ref_name }}"
+          --base "${PR_BASE_REF_NAME}"
       env:
+        PR_BASE_REF_NAME: ${{ github.ref_name }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
