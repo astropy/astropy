@@ -47,9 +47,8 @@ class CDS(Base, _ParsingFormatMixin):
         "OPEN_BRACKET",
         "CLOSE_BRACKET",
         "X",
-        "SIGN",
-        "UINT",
-        "UFLOAT",
+        "INT",
+        "FLOAT",
         "UNIT",
         "DIMENSIONLESS",
     )
@@ -75,23 +74,18 @@ class CDS(Base, _ParsingFormatMixin):
         # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
         # Regular expression rules for simple tokens
 
-        def t_UFLOAT(t):
-            r"((\d+\.?\d+)|(\.\d+))([eE][+-]?\d+)?"
+        def t_FLOAT(t):
+            r"[+-]?((\d+\.?\d+)|(\.\d+))([eE][+-]?\d+)?"
             if not re.search(r"[eE\.]", t.value):
-                t.type = "UINT"
+                t.type = "INT"
                 t.value = int(t.value)
             else:
                 t.value = float(t.value)
             return t
 
-        def t_UINT(t):
-            r"\d+"
+        def t_INT(t):
+            r"[+-]?\d+"
             t.value = int(t.value)
-            return t
-
-        def t_SIGN(t):
-            r"[+-](?=\d)"
-            t.value = float(t.value + "1")
             return t
 
         def t_X(t):  # multiplication for factor in front of unit
@@ -189,56 +183,33 @@ class CDS(Base, _ParsingFormatMixin):
 
         def p_factor(p):
             """
-            factor : signed_float X UINT SIGN UINT
-                   | UINT X UINT SIGN UINT
-                   | UINT SIGN UINT
-                   | UINT
-                   | signed_float
+            factor : FLOAT X INT INT
+                   | INT X INT INT
+                   | INT INT
+                   | INT
+                   | FLOAT
             """
             match p[1:]:
-                case factor, _, 10, sign, exponent:
-                    p[0] = factor * 10.0 ** (sign * exponent)
-                case _, _, _, _, _:
+                case factor, _, 10, exponent:
+                    p[0] = factor * 10.0**exponent
+                case _, _, _, _:
                     raise ValueError("Only base ten exponents are allowed in CDS")
-                case 10, sign, exponent:
-                    p[0] = 10.0 ** (sign * exponent)
-                case _, _, _:
+                case 10, exponent:
+                    p[0] = 10.0**exponent
+                case _, _:
                     raise ValueError("Only base ten exponents are allowed in CDS")
                 case _:
                     p[0] = p[1]
 
         def p_unit_with_power(p):
             """
-            unit_with_power : UNIT numeric_power
+            unit_with_power : UNIT INT
                             | UNIT
             """
             if len(p) == 2:
                 p[0] = p[1]
             else:
                 p[0] = p[1] ** p[2]
-
-        def p_numeric_power(p):
-            """
-            numeric_power : sign UINT
-            """
-            p[0] = p[1] * p[2]
-
-        def p_sign(p):
-            """
-            sign : SIGN
-                 |
-            """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = 1.0
-
-        def p_signed_float(p):
-            """
-            signed_float : sign UINT
-                         | sign UFLOAT
-            """
-            p[0] = p[1] * p[2]
 
         def p_error(p):
             raise ValueError()
