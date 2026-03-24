@@ -132,6 +132,7 @@ def test_embed_true_returns_expected_padded_output(image, kernel, expected):
     npt.assert_allclose(result, expected)
 
 
+# fmt: off
 @pytest.mark.parametrize(
     ("image", "kernel", "expected"),
     [
@@ -164,22 +165,28 @@ def test_embed_true_returns_expected_padded_output(image, kernel, expected):
             id="2d",
         ),
         pytest.param(
-            np.ones((3, 3, 3), dtype=np.float64),
-            np.ones((3, 3, 3), dtype=np.float64),
-            np.full((3, 3, 3), np.nan, dtype=np.float64),
+            np.array(
+                [
+                    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+                    [[1.0, 1.0, 1.0], [1.0, np.nan, 1.0], [1.0, 1.0, 1.0]],
+                    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+                ],
+                dtype=np.float64,
+            ),
+           np.ones((3, 3, 3), dtype=np.float64)
+,
+           np.full((3, 3, 3), np.nan, dtype=np.float64),
             id="3d",
         ),
     ],
 )
 def test_nan_without_interpolation_matches_expected_values(image, kernel, expected):
     """Without NaN interpolation, any NaN in the window should propagate to the output."""
-    if image.ndim == 3:
-        image = image.copy()
-        image[1, 1, 1] = np.nan
 
     result = _run_extension_with_zero_padding(image, kernel)
 
     npt.assert_allclose(result, expected, equal_nan=True)
+# fmt: on
 
 
 @pytest.mark.parametrize(
