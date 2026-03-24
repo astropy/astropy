@@ -1356,8 +1356,7 @@ PyMODEXPORT_FUNC PyModExport__iterparser(void)
 {
     return module_slots;
 }
-#endif
-
+#else
 PyMODINIT_FUNC PyInit__iterparser(void)
 {
     PyObject *m;
@@ -1376,3 +1375,4 @@ PyMODINIT_FUNC PyInit__iterparser(void)
 
     return m;
 }
+#endif

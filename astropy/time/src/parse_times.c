@@ -507,8 +507,7 @@ PyMODEXPORT_FUNC PyModExport__parse_times(void)
 {
     return module_slots;
 }
-#endif
-
+#else
 /* Initialization function for the module */
 PyMODINIT_FUNC PyInit__parse_times(void)
 {
@@ -584,3 +583,4 @@ decref:
     Py_XDECREF((PyObject *)dt_ymdhms);
     return m;
 }
+#endif

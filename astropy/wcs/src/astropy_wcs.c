@@ -845,8 +845,7 @@ PyModExport__wcs(void)
 {
   return module_slots;
 }
-#endif
-
+#else
 PyMODINIT_FUNC
 PyInit__wcs(void)
 
@@ -906,3 +905,4 @@ PyInit__wcs(void)
 
   return m;
 }
+#endif

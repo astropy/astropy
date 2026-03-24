@@ -441,9 +441,9 @@ PyMODEXPORT_FUNC PyModExport_tablewriter(void)
 {
     return module_slots;
 }
-#endif
-
+#else
 PyMODINIT_FUNC PyInit_tablewriter(void)
 {
     return PyModule_Create(&moduledef);
 }
+#endif

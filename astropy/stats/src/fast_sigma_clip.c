@@ -42,8 +42,7 @@ PyMODEXPORT_FUNC PyModExport__fast_sigma_clip(void)
 {
     return module_slots;
 }
-#endif
-
+#else
 MOD_INIT(_fast_sigma_clip)
 {
     PyObject *m, *d = NULL;
@@ -98,6 +97,7 @@ fail:
     Py_XDECREF(d);
     return NULL;
 }
+#endif
 
 
 static void _sigma_clip_fast(
