@@ -8,24 +8,28 @@
 
 /* Define docstrings */
 static char module_docstring[] = "Fast sigma clipping";
+#if !defined(PyMODEXPORT_FUNC) || !defined(Py_mod_name)
 static char _sigma_clip_fast_docstring[] = "Compute sigma clipping";
 
 /* Declare the C functions here. */
 static void _sigma_clip_fast(
     char **args, npy_intp const *dimensions, npy_intp const *steps, void *data
 );
+#endif
 
 /* Define the methods that will be available on the module. */
 static PyMethodDef module_methods[] = {{NULL, NULL, 0, NULL}};
 
 /* This is the function that is called on import. */
 
+#if !defined(PyMODEXPORT_FUNC) || !defined(Py_mod_name)
 #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
 #define MOD_DEF(ob, name, doc, methods) \
     static struct PyModuleDef moduledef = { \
         PyModuleDef_HEAD_INIT, name, doc, -1, methods, NULL, NULL, NULL, NULL \
     }; \
     ob = PyModule_Create(&moduledef);
+#endif
 
 #if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
 static PyModuleDef_Slot module_slots[] = {
@@ -99,7 +103,7 @@ fail:
 }
 #endif
 
-
+#if !defined(PyMODEXPORT_FUNC) || !defined(Py_mod_name)
 static void _sigma_clip_fast(
     char **args, npy_intp const *dimensions, npy_intp const *steps, void *data
 )
@@ -198,3 +202,4 @@ static void _sigma_clip_fast(
         free((void *)mad_buffer);
     }
 }
+#endif

@@ -412,18 +412,6 @@ static int module_clear(PyObject *m)
     return 0;
 }
 
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "tablewriter",
-    "Fast way to write VOTABLE TABLEDATA",
-    sizeof(struct module_state),
-    module_methods,
-    NULL,
-    module_traverse,
-    module_clear,
-    NULL
-};
-
 #if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
 static PyModuleDef_Slot module_slots[] = {
     {Py_mod_name, "tablewriter"},
@@ -442,6 +430,18 @@ PyMODEXPORT_FUNC PyModExport_tablewriter(void)
     return module_slots;
 }
 #else
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "tablewriter",
+    "Fast way to write VOTABLE TABLEDATA",
+    sizeof(struct module_state),
+    module_methods,
+    NULL,
+    module_traverse,
+    module_clear,
+    NULL
+};
+
 PyMODINIT_FUNC PyInit_tablewriter(void)
 {
     return PyModule_Create(&moduledef);

@@ -818,18 +818,6 @@ struct module_state {
 #endif
 };
 
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "_wcs",
-    NULL,
-    sizeof(struct module_state),
-    module_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
-
 #if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
 static PyModuleDef_Slot module_slots[] = {
   {Py_mod_name, "_wcs"},
@@ -846,6 +834,18 @@ PyModExport__wcs(void)
   return module_slots;
 }
 #else
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_wcs",
+    NULL,
+    sizeof(struct module_state),
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
 PyMODINIT_FUNC
 PyInit__wcs(void)
 

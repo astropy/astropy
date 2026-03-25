@@ -480,18 +480,6 @@ static PyMethodDef parse_times_methods[] = {
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "parse_times",
-    MODULE_DOCSTRING,
-    -1,
-    parse_times_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
-
 #if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
 static PyModuleDef_Slot module_slots[] = {
     {Py_mod_name, "parse_times"},
@@ -508,6 +496,18 @@ PyMODEXPORT_FUNC PyModExport__parse_times(void)
     return module_slots;
 }
 #else
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "parse_times",
+    MODULE_DOCSTRING,
+    -1,
+    parse_times_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
 /* Initialization function for the module */
 PyMODINIT_FUNC PyInit__parse_times(void)
 {
