@@ -1,0 +1,1 @@
+Refactored several C extension sources for Python 3.15 and ``Limited API`` (PEP 793) compatibility across ``io.votable``, ``wcs``, ``time``, ``utils``, and ``stats`` without changing public behavior.
