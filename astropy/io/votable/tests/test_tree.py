@@ -705,3 +705,6 @@ def test_votablefile_write(tmp_path):
     roundtripped = parse(str(out))
     assert roundtripped.params[0].name == "TestParam"
     assert roundtripped.infos[0].name == "TestInfo"
+
+    # format kwarg should be accepted and ignored for API compatibility
+    vot.write(str(out), format="votable")

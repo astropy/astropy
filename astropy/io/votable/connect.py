@@ -181,41 +181,6 @@ io_registry.register_writer("votable", Table, write_table_votable)
 io_registry.register_identifier("votable", Table, is_votable)
 
 
-def write_votable_file(input, output, **kwargs):
-    """
-    Write a VOTableFile object to an XML file.
-
-    Parameters
-    ----------
-    input : `~astropy.io.votable.tree.VOTableFile`
-        The VOTable to write out.
-
-    output : str or file-like
-        The filename or file object to write to.
-
-    **kwargs
-        Additional keyword arguments are passed on to
-        `~astropy.io.votable.tree.VOTableFile.to_xml`.
-    """
-    input.to_xml(output, **kwargs)
-
-
-class VOTableFileWrite(io_registry.UnifiedReadWrite):
-    """
-    Write this VOTableFile object to a file in VOTable format.
-    """
-
-    def __init__(self, instance, cls):
-        super().__init__(instance, cls, "write", registry=None)
-
-    def __call__(self, *args, **kwargs):
-        self.registry.write(self._instance, *args, **kwargs)
-
-
-io_registry.register_writer("votable", VOTableFile, write_votable_file)
-VOTableFile.write = io_registry.UnifiedReadWriteMethod(VOTableFileWrite)
-
-
 # VOTable with embedded/linked Parquet file #
 def write_table_votable_parquet(input, output, column_metadata, *, overwrite=False):
     """
