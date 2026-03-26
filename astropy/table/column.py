@@ -1673,8 +1673,10 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         # as _format_funcs.  Re-assigning through the descriptor (DataInfo.__set__)
         # creates a fresh bound MaskedColumnInfo, copies across the _attrs from
         # the raw object, and sets _format_funcs = {} as expected.
+        #
+        # See https://github.com/astropy/astropy/pull/19466 for more details.
         if "info" in out.__dict__:
-            out.info = out.__dict__["info"]
+            out.info = self.info
 
         return out
 
