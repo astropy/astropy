@@ -11,7 +11,7 @@ int test_simple_array(){
     // Input Signal 1 - A simple linear array of 5 elements
     size_t nx = 5;
     double f[] = {1.0, 2.0, 3.0, 4.0, 5.0};
-    
+
     // Output array
     double result[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
 
@@ -28,8 +28,8 @@ int test_simple_array(){
     // Index 2 should be: (2.0 * 1.0) + (3.0 * 1.0) + (4.0 * 1.0) = 9.0
     // Index 3 should be: (3.0 * 1.0) + (4.0 * 1.0) + (5.0 * 1.0) = 12.0
 
-    if (fabs(result[1] - 6.0) < 1e-6 && fabs(result[2] - 9.0) < 1e-6 
-            && fabs(result[3] - 12.0) < 1e-6 && fabs(result[0] - 0.0) < 1e-6 
+    if (fabs(result[1] - 6.0) < 1e-6 && fabs(result[2] - 9.0) < 1e-6
+            && fabs(result[3] - 12.0) < 1e-6 && fabs(result[0] - 0.0) < 1e-6
                 && fabs(result[4] - 0.0) < 1e-6) {
         printf("\nPASS: The mathematical core is functioning correctly.\n");
         return 0;
@@ -45,7 +45,7 @@ int test_simple_array_nan_interpolate() {
     // Input Signal 1 - A linear array of 5 elements including a NaN element
     size_t nx = 5;
     double f[] = {1.0, 2.0, NAN, 4.0, 5.0};
-    
+
     // Output array
     double result[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
 
@@ -57,16 +57,16 @@ int test_simple_array_nan_interpolate() {
     convolve1d_c(result, f, nx, g, nkx, true, true, 1);
 
     /* Verify the Output
-    * Index 1 should be: top/bot = 3.0/2.0 = 1.5, where  top = (1.0 * 1.0) + 
-    * (2.0 * 1.0), bot = 1.0 + 1.0 
-    * Index 2: top/bot = 6.0/2.0 = 3.0, where top = (2.0 * 1.0) + (4.0 * 1.0) = 
+    * Index 1 should be: top/bot = 3.0/2.0 = 1.5, where  top = (1.0 * 1.0) +
+    * (2.0 * 1.0), bot = 1.0 + 1.0
+    * Index 2: top/bot = 6.0/2.0 = 3.0, where top = (2.0 * 1.0) + (4.0 * 1.0) =
     * 6.0, bot = 2.0
-    * Index 3 : top/bot = 9.0/2.0 = 4.5, where top = (4.0 * 1.0) + (5.0 * 1.0) = 
+    * Index 3 : top/bot = 9.0/2.0 = 4.5, where top = (4.0 * 1.0) + (5.0 * 1.0) =
     * 9.0, bot = 2.0
     */
 
-    if (fabs(result[1] - 1.5) < 1e-9 && fabs(result[2] - 3.0) < 1e-9 
-            && fabs(result[3] - 4.5) < 1e-9 && fabs(result[0] - 0.0) < 1e-9 
+    if (fabs(result[1] - 1.5) < 1e-9 && fabs(result[2] - 3.0) < 1e-9
+            && fabs(result[3] - 4.5) < 1e-9 && fabs(result[0] - 0.0) < 1e-9
                 && fabs(result[4] - 0.0) < 1e-9) {
         printf("\nPASS: The mathematical core is functioning correctly.\n");
         return 0;
@@ -82,7 +82,7 @@ int test_bot0_nan_array() {
     // Input Signal 1 - A 1d array of 4 NaN elements
     size_t nx = 4;
     double f[] = {NAN, NAN, NAN, NAN};
-    
+
     // Output array
     double result[4] = {0.0, 0.0, 0.0, 0.0};
 
@@ -96,7 +96,7 @@ int test_bot0_nan_array() {
     // When bot=0 (all NaN input), the convolved elements are set to NaN.
     // Edge elements (index 0 and 3) aren't written and remain 0.0 from initialization.
 
-    if (fabs(result[0] - 0.0) < 1e-9 && isnan(result[1]) && isnan(result[2]) 
+    if (fabs(result[0] - 0.0) < 1e-9 && isnan(result[1]) && isnan(result[2])
         && fabs(result[3] - 0.0) < 1e-9) {
         printf("\nPASS: The core is handling only NaN input correctly.\n");
         return 0;
