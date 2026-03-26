@@ -184,7 +184,55 @@ jobs:
       targets: |
         - cp311-manylinux_x86_64
 
+  test_c_extensions:
+    # Standalone tests for the C math extensions of Astropy
+    # Create a mock ndarrayobject header to decouple C logic from Python/NumPy 
+    # then compile C tests into executables, and verify results via Pytest subprocess
+    needs:
+      - initial_checks
+    name: Standalone C Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Install Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.11"
+      - name: Install Test Dependencies
+        run: |
+          python -m pip install pytest
+        
+      - name: Create Mock NumPy header
+        run: |
+          mkdir -p astropy/convolution/tests/c_tests/mock_numpy/numpy
+          python -c "
+          content = '''
+          #ifndef MOCK_NDARRAYOBJECT
+          #define MOCK_NDARRAYOBJECT
+          #include <stddef.h>
+          typedef double npy_float64;
+          static inline int import_array() { return 0; }
+          #endif
+          '''
+          with open('astropy/convolution/tests/c_tests/mock_numpy/numpy/ndarrayobject.h', 'w') as f:
+              f.write(content)
+          "
+      - name: Compile C test Binary
+        run: |
+          mkdir -p astropy/convolution/tests/.tmp
+          gcc -o astropy/convolution/tests/.tmp/test_convolve_1d_binary \
+                 astropy/convolution/tests/c_tests/test_convolve_1d.c \
+                 astropy/convolution/src/convolve.c \
+                 -Iastropy/convolution/src/ \
+                 -Iastropy/convolution/tests/c_tests/mock_numpy -lm
 
+      - name: Run Standalone C Tests
+        run: |
+          pytest -v -s astropy/convolution/tests/test_c_binaries.py
+        
   test_limited_api_build:
     # Test to make sure that we can build astropy with the limited API
     # This job is also important to check `build` as our build frontend
@@ -210,6 +258,7 @@ jobs:
         name: Install Python
         with:
           python-version: "3.11"
+
       - run: |
           python -m pip install build
           python -m build

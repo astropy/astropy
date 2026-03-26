@@ -77,7 +77,7 @@ int test_simple_array_nan_interpolate() {
     }
 }
 
-int test__bot0_nan_array() {
+int test_bot0_nan_array() {
     //Test bot=0 fallback behavior
     // Input Signal 1 - A 1d array of 4 NaN elements
     size_t nx = 4;
@@ -93,8 +93,8 @@ int test__bot0_nan_array() {
     // Execute the convolution function
     convolve1d_c(result, f, nx, g, nkx, true, true, 1);
 
-    // Output should be same as input for all elements convoluted since bot = 0.
-    //Index 0 and 3 are left 0.0 in output array
+    // When bot=0 (all NaN input), the convolved elements are set to NaN.
+    // Edge elements (index 0 and 3) aren't written and remain 0.0 from initialization.
 
     if (fabs(result[0] - 0.0) < 1e-9 && isnan(result[1]) && isnan(result[2]) 
         && fabs(result[3] - 0.0) < 1e-9) {
@@ -115,7 +115,7 @@ int main() {
     printf("Simple array containing NaN\n");
     if(test_simple_array_nan_interpolate() != 0){failures++;}
     printf("Testing fallback when bot=0\n\n");
-    if(test__bot0_nan_array() != 0){failures++;}
+    if(test_bot0_nan_array() != 0){failures++;}
 
     if(failures > 0){return 1;}
     else{return 0;}
