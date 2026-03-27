@@ -231,7 +231,7 @@ jobs:
 
       - name: Run Standalone C Tests
         run: |
-          pytest -v -s --noconftest astropy/convolution/tests/test_c_binaries.py
+          pytest -v -s --noconftest -o "addopts=" astropy/convolution/tests/test_c_binaries.py
 
   test_limited_api_build:
     # Test to make sure that we can build astropy with the limited API
