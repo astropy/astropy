@@ -381,98 +381,55 @@ class _File:
 
         try:
             if self.memmap:
-                if self._mmap is None:
-                    # Instantiate Memmap array of the file offset at 0 (so we
-                    # can return slices of it to offset anywhere else into the
-                    # file)
-                    access_mode = MEMMAP_MODES[self.mode]
-
-                    # For reasons unknown the file needs to point to (near)
-                    # the beginning or end of the file. No idea how close to
-                    # the beginning or end.
-                    # If I had to guess there is some bug in the mmap module
-                    # of CPython or perhaps in microsoft's underlying code
-                    # for generating the mmap.
-                    self._file.seek(0, 0)
-                    # This would also work:
-                    # self._file.seek(0, 2)   # moves to the end
-                    try:
-                        self._mmap = mmap.mmap(
-                            self._file.fileno(), 0, access=access_mode, offset=0
-                        )
-                        self._mmap_mode = self.mode
-                    except OSError as exc:
-                        # NOTE: mode='readonly' results in the memory-mapping
-                        # using the ACCESS_COPY mode in mmap so that users can
-                        # modify arrays. However, on some systems, the OS raises
-                        # a '[Errno 12] Cannot allocate memory' OSError if the
-                        # address space is smaller than the file. Also on windows
-                        # a '[WinError 1455] The paging file is too small for
-                        # this operation to complete' Windows error is raised or
-                        # equiivalent a '[Errno 22] Invalid argument. The solution
-                        # is to open the file in mode='denywrite', which at
-                        # least allows the file to be opened even if the
-                        # resulting arrays will be truly read-only.
-
-                        if (
-                            exc.errno == errno.ENOMEM
-                            or (
-                                exc.errno == errno.EINVAL
-                                and getattr(exc, "winerror", 0) == 1455
-                            )
-                        ) and self.mode == "readonly":
-                            warnings.warn(
-                                "Could not memory map array with "
-                                "mode='readonly', falling back to "
-                                "mode='denywrite', which means that "
-                                "the array will be read-only",
-                                AstropyUserWarning,
-                            )
-                            self._mmap = mmap.mmap(
-                                self._file.fileno(),
-                                0,
-                                access=MEMMAP_MODES["denywrite"],
-                                offset=0,
-                            )
-                            self._mmap_mode = "denywrite"
-                        elif not self.strict_memmap:
-                            # mmap failed but wasn't explicitly requested,
-                            # fall back to non-mmap reading
-                            warnings.warn(
-                                "Could not memory map array; falling back to "
-                                "non-memory-mapped file reading. You can disable "
-                                "this warning by setting memmap=False",
-                                AstropyUserWarning,
-                            )
-                            self.memmap = False
-                        else:
-                            raise
-
-                if self._mmap is not None:
-                    # Return a proper np.memmap so that downstream code can
-                    # detect memory-mapped data via isinstance(data, np.memmap)
-                    # and access .filename/.offset/.mode for efficient
-                    # serialization (e.g. in multiprocessing contexts).
-                    #
-                    # As recommended by the np.memmap docs, we pass our own
-                    # mmap object as the buffer rather than letting np.memmap
-                    # open the file (which would create a separate mmap per
-                    # HDU instead of sharing one for the whole file). See:
-                    # https://numpy.org/doc/stable/reference/generated/numpy.memmap.html
-                    result = np.ndarray.__new__(
-                        np.memmap,
-                        shape=shape,
+                memmap_mode = MEMMAP_NUMPY_MODES[self.mode]
+                try:
+                    return np.memmap(
+                        self.name,
                         dtype=dtype,
-                        buffer=self._mmap,
+                        mode=memmap_mode,
                         offset=offset,
+                        shape=shape,
                     )
-                    # These attributes are not needed for the array to
-                    # function, but allow downstream code to access
-                    # information about the underlying memory-mapped file.
-                    result.filename = self.name
-                    result.offset = offset
-                    result.mode = MEMMAP_NUMPY_MODES[self._mmap_mode]
-                    return result
+                except OSError as exc:
+                    # NOTE: mode='readonly' results in copy-on-write
+                    # (mode='c') so that users can modify arrays. However,
+                    # on some systems, the OS raises '[Errno 12] Cannot
+                    # allocate memory' or on Windows '[WinError 1455] The
+                    # paging file is too small'. The solution is to fall
+                    # back to mode='r' (truly read-only).
+                    if (
+                        exc.errno == errno.ENOMEM
+                        or (
+                            exc.errno == errno.EINVAL
+                            and getattr(exc, "winerror", 0) == 1455
+                        )
+                    ) and self.mode == "readonly":
+                        warnings.warn(
+                            "Could not memory map array with "
+                            "mode='readonly', falling back to "
+                            "mode='denywrite', which means that "
+                            "the array will be read-only",
+                            AstropyUserWarning,
+                        )
+                        return np.memmap(
+                            self.name,
+                            dtype=dtype,
+                            mode="r",
+                            offset=offset,
+                            shape=shape,
+                        )
+                    elif not self.strict_memmap:
+                        # mmap failed but wasn't explicitly requested,
+                        # fall back to non-mmap reading
+                        warnings.warn(
+                            "Could not memory map array; falling back to "
+                            "non-memory-mapped file reading. You can disable "
+                            "this warning by setting memmap=False",
+                            AstropyUserWarning,
+                        )
+                        self.memmap = False
+                    else:
+                        raise
 
             # Non-mmap path (also used as fallback when mmap fails)
             count = math.prod(shape)
