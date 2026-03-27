@@ -15,6 +15,9 @@ So you are interested in contributing to the Astropy Project?  Excellent!
 We love contributions! Astropy is open source, built on open source, and
 we'd love to have you hang out in our community.
 
+> [!Important]
+> All contributions must comply with our [AI policy](https://github.com/astropy/astropy-project/blob/main/policies/ai-policy.md).
+
 Anti Imposter Syndrome Reassurance
 ----------------------------------
 
