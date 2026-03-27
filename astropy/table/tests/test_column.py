@@ -1131,6 +1131,19 @@ def test_masked_column_serialize_method_propagation():
     assert mc5.info.serialize_method["ecsv"] == "data_mask"
 
 
+def test_masked_column_deepcopy_info_format_funcs():
+    """Test the fix for #19412"""
+    mc = table.MaskedColumn([1.0, 2.0, 3.0], mask=[True, False, True])
+    # Set a non-default serialize method to make sure that gets copied over.
+    mc.info.serialize_method["ecsv"] = "data_mask"
+
+    mc_copy = copy.deepcopy(mc)
+
+    assert mc_copy.info.serialize_method["ecsv"] == "data_mask"
+    # Prior to the fix, the _format_funcs did not exist on the info object.
+    assert mc_copy.info._format_funcs == {}
+
+
 @pytest.mark.parametrize("dtype", ["S", "U", "i"])
 def test_searchsorted(Column, dtype):
     c = Column([1, 2, 2, 3], dtype=dtype)
