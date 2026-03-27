@@ -3,6 +3,8 @@ ci:
   autofix_prs: false
   autoupdate_schedule: 'monthly'
 
+exclude: "^cextern"
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -103,3 +105,9 @@ repos:
     hooks:
       - id: sphinx-lint
         exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: 'v21.1.2'
+    hooks:
+      - id: clang-format
+        files: \.(c|h)$

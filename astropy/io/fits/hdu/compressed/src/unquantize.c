@@ -1,3 +1,4 @@
+// clang-format off
 // This file is copied/adapted from the imcompress.c file in CFITSIO, and
 // includes the unquantize_* functions. These are included here because
 // they are not exposed in the CFITSIO library so we need to compile against

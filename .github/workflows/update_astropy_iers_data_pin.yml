@@ -5,8 +5,6 @@
 name: Auto-update astropy-iers-data minimum version
 
 on:
-  schedule:
-    - cron: '0 0 2 * *'  # Monthly
   workflow_dispatch:
 
 permissions:
@@ -25,7 +23,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
-        persist-credentials: false
+        persist-credentials: true # needed for git push
         fetch-depth: 0
     - name: Set up uv
       uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
@@ -43,17 +41,21 @@ jobs:
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git switch -c update-astropy-iers-data-pin-$(date +"%s")
-        git add pyproject.toml scripts/lowest-resolved-tree.txt
+        BRANCH_NAME=update-astropy-iers-data-pin-$(date +"%s")
+        git switch -c "$BRANCH_NAME"
+        git add --update
         if ! git diff --cached --exit-code; then
           git commit -m "Update minimum required version of astropy-iers-data"
         fi
+        git push --set-upstream origin "$BRANCH_NAME"
 
     - name: Create Pull Request
       run: |
         gh pr create \
           --title "Update minimum required version of astropy-iers-data" \
-          --label no-changelog-entry-needed --label utils.iers \
-          --template .github/workflows/update_astropy_iers_data_pin.md
+          --label no-changelog-entry-needed --label utils.iers --label skip-basebranch-check \
+          --body-file .github/workflows/update_astropy_iers_data_pin.md \
+          --base "${PR_BASE_REF_NAME}"
       env:
+        PR_BASE_REF_NAME: ${{ github.ref_name }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
