@@ -2,7 +2,7 @@
 
 from astropy import units as u
 from astropy.coordinates import representation as r
-from astropy.coordinates.attributes import DifferentialAttribute
+from astropy.coordinates.attributes import CartesianRepresentationAttribute
 from astropy.coordinates.baseframe import (
     BaseCoordinateFrame,
     RepresentationMapping,
@@ -21,7 +21,7 @@ from .icrs import ICRS
 # For speed
 J2000 = Time("J2000")
 
-v_bary_Schoenrich2010 = r.CartesianDifferential([11.1, 12.24, 7.25] * u.km / u.s)
+v_bary_Schoenrich2010 = r.CartesianRepresentation([11.1, 12.24, 7.25] * u.km / u.s)
 
 __all__ = ["LSR", "LSRD", "LSRK", "GalacticLSR"]
 
@@ -29,9 +29,13 @@ __all__ = ["LSR", "LSRD", "LSRK", "GalacticLSR"]
 doc_footer_lsr = """
     Other parameters
     ----------------
-    v_bary : `~astropy.coordinates.CartesianDifferential`
+    v_bary : `~astropy.coordinates.CartesianRepresentation`
         The velocity of the solar system barycenter with respect to the LSR, in
         Galactic cartesian velocity components.
+
+    .. versionchanged :: 8.0
+       ``v_bary`` is now a `~astropy.coordinates.CartesianRepresentation`
+       rather than a `~astropy.coordinates.CartesianDifferential`.
 """
 
 
@@ -63,16 +67,16 @@ class LSR(BaseRADecFrame):
     """
 
     # frame attributes:
-    v_bary = DifferentialAttribute(
+    v_bary = CartesianRepresentationAttribute(
         default=v_bary_Schoenrich2010,
-        allowed_classes=[r.CartesianDifferential],
+        unit=u.km / u.s,
         doc="The relative velocity of the solar-system barycenter",
     )
 
 
 @frame_transform_graph.transform(AffineTransform, ICRS, LSR)
 def icrs_to_lsr(icrs_coord, lsr_frame):
-    v_bary_gal = Galactic(lsr_frame.v_bary.to_cartesian())
+    v_bary_gal = Galactic(lsr_frame.v_bary)
     v_bary_icrs = v_bary_gal.transform_to(icrs_coord)
     v_offset = v_bary_icrs.data.represent_as(r.CartesianDifferential)
     offset = r.CartesianRepresentation([0, 0, 0] * u.au, differentials=v_offset)
@@ -152,8 +156,9 @@ class GalacticLSR(BaseCoordinateFrame):
     default_differential = r.SphericalCosLatDifferential
 
     # frame attributes:
-    v_bary = DifferentialAttribute(
+    v_bary = CartesianRepresentationAttribute(
         default=v_bary_Schoenrich2010,
+        unit=u.km / u.s,
         doc="The relative velocity of the solar-system barycenter",
     )
 

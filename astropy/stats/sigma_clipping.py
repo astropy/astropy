@@ -5,6 +5,7 @@ from collections.abc import Callable
 from typing import Literal
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_index
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
@@ -21,13 +22,7 @@ from astropy.stats.nanfunctions import (
     nanvar,
 )
 from astropy.units import Quantity
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.exceptions import AstropyUserWarning
-
-if NUMPY_LT_2_0:
-    from numpy.core.multiarray import normalize_axis_index
-else:
-    from numpy.lib.array_utils import normalize_axis_index
 
 __all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"]
 
@@ -867,6 +862,26 @@ def sigma_clip(
 
     Note that along the other axis, no points would be clipped, as the
     standard deviation is higher.
+
+    The behavior of ``masked=False`` depends on whether ``axis`` is
+    specified. When ``axis=None`` (the default), clipped values are
+    *removed* from the output, so the returned array may be shorter
+    than the input::
+
+        >>> import numpy as np
+        >>> from astropy.stats import sigma_clip
+        >>> x = np.ones(10)
+        >>> x[5] = 1000.0
+        >>> clipped = sigma_clip(x, masked=False)
+        >>> len(clipped)  # shorter than input: outlier was removed
+        9
+
+    When ``axis`` is specified, clipped values are replaced with
+    ``np.nan`` instead::
+
+        >>> clipped_nan = sigma_clip(x, masked=False, axis=0)
+        >>> bool(np.isnan(clipped_nan[5]))  # outlier replaced with nan
+        True
     """
     sigclip = SigmaClip(
         sigma=sigma,

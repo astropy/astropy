@@ -723,7 +723,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @figure_test(savefig_kwargs={"bbox_inches": "tight"})
-    def test_noncelestial_angular(self, tmp_path):
+    def test_noncelestial_angular(self):
         # Regression test for a bug that meant that when passing a WCS that had
         # angular axes and using set_coord_type to set the coordinates to
         # longitude/latitude, but where the WCS wasn't recognized as celestial,
@@ -753,7 +753,7 @@ class TestBasic(BaseImageTests):
         ax.grid(color="white", ls="solid")
 
         # Force drawing (needed for format_coord)
-        fig.savefig(tmp_path / "nothing")
+        fig.canvas.draw()
 
         assert ax.format_coord(512, 512) == "513.0 513.0 (world)"
 
@@ -1241,17 +1241,15 @@ def test_1d_plot_1d_sliced_low_level_wcs(
     """
     Test that a SLLWCS through a coupled 2D WCS plots as line OK.
     """
-    import matplotlib.pyplot as plt
-
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle[slices])
     (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
 
     # Draw to trigger rendering the ticks.
-    plt.draw()
+    canvas.draw()
 
     assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
-
     return fig
 
 
@@ -1271,17 +1269,15 @@ def test_1d_plot_put_varying_axis_on_bottom_lon(
     change, and a set of lat ticks on the top because it does but it's the
     correlated axis not the actual one you are plotting against.
     """
-    import matplotlib.pyplot as plt
-
-    fig = plt.figure()
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
     ax = fig.add_subplot(1, 1, 1, projection=spatial_wcs_2d_small_angle, slices=slices)
-    (lines,) = ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
+    ax.plot([10, 12, 14, 12, 10], "-o", color="orange")
 
     # Draw to trigger rendering the ticks.
-    plt.draw()
+    canvas.draw()
 
     assert ax.coords[bottom_axis].get_ticks_position() == ["b", "#"]
-
     return fig
 
 

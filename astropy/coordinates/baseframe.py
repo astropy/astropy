@@ -17,7 +17,7 @@ import functools
 import operator
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, Literal, NamedTuple, Union
+from typing import TYPE_CHECKING, ClassVar, Literal, NamedTuple, Union
 
 import numpy as np
 
@@ -437,14 +437,16 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
     """
 
-    default_representation = None
-    default_differential = None
+    default_representation: ClassVar[type[r.BaseRepresentation] | None] = None
+    default_differential: ClassVar[type[r.BaseDifferential] | None] = None
 
     # Specifies special names and units for representation and differential
     # attributes.
-    frame_specific_representation_info = {}
+    frame_specific_representation_info: ClassVar[
+        dict[type[r.BaseRepresentationOrDifferential], list[RepresentationMapping]]
+    ] = {}
 
-    frame_attributes = {}
+    frame_attributes: dict[str, Attribute] = {}
     # Default empty frame_attributes dict
 
     # Declare that BaseCoordinateFrame can be used as a Table column by defining
@@ -587,7 +589,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 # see https://github.com/astropy/astropy/issues/16219
                 data = data.reshape(self._shape)
             except Exception:
-                data = data._apply(np.broadcast_to, shape=self._shape, subok=True)
+                data = np.broadcast_to(data, shape=self._shape, subok=True)
                 if copy:
                     data = data.copy()
         self._data = data
@@ -1067,14 +1069,13 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     def differential_type(self, value):
         self.set_representation_cls(s=value)
 
-    @classmethod
-    def _get_representation_info(cls):
-        # This exists as a class method only to support handling frame inputs
-        # without units, which are deprecated and will be removed.  This can be
-        # moved into the representation_info property at that time.
-        # note that if so moved, the cache should be acceessed as
-        # self.__class__._frame_class_cache
-
+    @functools.cached_property
+    def representation_info(self):
+        """
+        A dictionary with the information of what attribute names for this frame
+        apply to particular representations.
+        """
+        cls = type(self)
         if (
             cls._frame_class_cache.get("last_reprdiff_hash", None)
             != r.get_reprdiff_cls_hash()
@@ -1120,14 +1121,6 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             cls._frame_class_cache["representation_info"] = repr_attrs
             cls._frame_class_cache["last_reprdiff_hash"] = r.get_reprdiff_cls_hash()
         return cls._frame_class_cache["representation_info"]
-
-    @functools.cached_property
-    def representation_info(self):
-        """
-        A dictionary with the information of what attribute names for this frame
-        apply to particular representations.
-        """
-        return self._get_representation_info()
 
     def get_representation_component_names(self, which="base"):
         cls = self.get_representation_cls(which)

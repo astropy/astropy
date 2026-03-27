@@ -7,7 +7,6 @@ import numpy as np
 from astropy import units as u
 from astropy.time import Time
 from astropy.utils import ShapedLikeNDArray
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .earth import EarthLocation
 from .representation import BaseDifferential, CartesianRepresentation
@@ -274,8 +273,16 @@ class CartesianRepresentationAttribute(Attribute):
             return CartesianRepresentation(np.zeros(3) * self.unit), True
         else:
             # is it a CartesianRepresentation with correct unit?
+            try:
+                cartesian = value.to_cartesian()
+            except AttributeError:
+                converted = False
+            else:
+                converted = cartesian is not value
+                value = cartesian
+
             if hasattr(value, "xyz") and value.xyz.unit == self.unit:
-                return value, False
+                return value, converted
 
             converted = True
             # if it's a CartesianRepresentation, get the xyz Quantity
@@ -371,7 +378,7 @@ class QuantityAttribute(Attribute):
             )
 
         oldvalue = value
-        value = u.Quantity(oldvalue, self.unit, copy=COPY_IF_NEEDED)
+        value = u.Quantity(oldvalue, self.unit, copy=None)
         if self.shape is not None and value.shape != self.shape:
             if value.shape == () and oldvalue == 0:
                 # Allow a single 0 to fill whatever shape is needed.

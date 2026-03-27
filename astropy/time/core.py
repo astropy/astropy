@@ -27,7 +27,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
@@ -926,15 +926,22 @@ class TimeBase(MaskableShapedLikeNDArray):
             (self, "location"),
         ):
             val = getattr(obj, attr, None)
-            if val is not None and val.size > 1:
-                try:
+            if val is None or val.size <= 1:
+                continue
+            try:
+                if NUMPY_LT_2_5:
                     val.shape = shape
-                except Exception:
-                    for val2 in reshaped:
-                        val2.shape = oldshape
-                    raise
                 else:
-                    reshaped.append(val)
+                    val._set_shape(shape)
+            except Exception:
+                for val2 in reshaped:
+                    if NUMPY_LT_2_5:
+                        val2.shape = oldshape
+                    else:
+                        val2._set_shape(oldshape)
+                raise
+            else:
+                reshaped.append(val)
 
     def _shaped_like_input(self, value):
         if self.masked:
@@ -1257,7 +1264,7 @@ class TimeBase(MaskableShapedLikeNDArray):
                 "'other' argument must support subtraction with Time "
                 "and return a value that supports comparison with "
                 f"{atol.__class__.__name__}: {err}"
-            )
+            ) from err
 
         return out
 
@@ -1723,7 +1730,7 @@ class TimeBase(MaskableShapedLikeNDArray):
             val2=jd2,
             format="jd",
             scale=self.scale,
-            copy=COPY_IF_NEEDED,
+            copy=None,
         )
         result.format = self.format
         return result
@@ -1804,12 +1811,12 @@ class TimeBase(MaskableShapedLikeNDArray):
             try:
                 # check the value can be broadcast to the shape of self.
                 val = np.broadcast_to(val, self.shape, subok=True)
-            except Exception:
+            except Exception as err:
                 raise ValueError(
                     "Attribute shape must match or be broadcastable to that of "
                     "Time object. Typically, give either a single value or "
                     "one for each time."
-                )
+                ) from err
 
         return val
 
@@ -1955,7 +1962,7 @@ class Time(TimeBase):
         in_subfmt=None,
         out_subfmt=None,
         location=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
     ):
         if location is not None:
             from astropy.coordinates import EarthLocation
@@ -2038,7 +2045,7 @@ class Time(TimeBase):
                 except Exception as err:
                     raise ValueError(
                         f"cannot convert value to a compatible Time object: {err}"
-                    )
+                    ) from err
         return value
 
     @classmethod
@@ -2184,11 +2191,11 @@ class Time(TimeBase):
         Parameters
         ----------
         skycoord : `~astropy.coordinates.SkyCoord`
-            The sky location to calculate the correction for.
+            The sky location(s) to calculate the correction for.
         kind : str, optional
             ``'barycentric'`` (default) or ``'heliocentric'``
         location : `~astropy.coordinates.EarthLocation`, optional
-            The location of the observatory to calculate the correction for.
+            The location(s) of the observatory to calculate the correction for.
             If no location is given, the ``location`` attribute of the Time
             object is used
         ephemeris : str, optional
@@ -2203,6 +2210,7 @@ class Time(TimeBase):
             in TDB seconds.  Should be added to the original time to get the
             time in the Solar system barycentre or the Heliocentre.
             Also, the time conversion to BJD will then include the relativistic correction as well.
+            The shape will be the broadcast shape of ``skycoord`` and ``location``.
         """
         if kind.lower() not in ("barycentric", "heliocentric"):
             raise ValueError(
@@ -2232,10 +2240,10 @@ class Time(TimeBase):
         # get location of observatory in ITRS coordinates at this Time
         try:
             itrs = location.get_itrs(obstime=self)
-        except Exception:
+        except Exception as err:
             raise ValueError(
                 "Supplied location does not have a valid `get_itrs` method"
-            )
+            ) from err
 
         with solar_system_ephemeris.set(ephemeris):
             if kind.lower() == "heliocentric":
@@ -2429,7 +2437,7 @@ class Time(TimeBase):
             longitude = longitude.lon
         else:
             # Sanity check on input; default unit is degree.
-            longitude = Longitude(longitude, u.degree, copy=COPY_IF_NEEDED)
+            longitude = Longitude(longitude, u.degree, copy=None)
 
         theta = self._call_erfa(function, scales)
 
@@ -2910,7 +2918,7 @@ class TimeDelta(TimeBase):
         precision=None,
         in_subfmt=None,
         out_subfmt=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
     ):
         if isinstance(val, TimeDelta):
             if scale is not None:
@@ -3069,7 +3077,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just multiple in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=None)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3102,7 +3110,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just divide in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=None)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3275,7 +3283,7 @@ class TimeDelta(TimeBase):
             except Exception as err:
                 raise ValueError(
                     f"cannot convert value to a compatible TimeDelta object: {err}"
-                )
+                ) from err
         return value
 
     def isclose(self, other, atol=None, rtol=0.0):
@@ -3300,7 +3308,9 @@ class TimeDelta(TimeBase):
         try:
             other_day = other.to_value(u.day)
         except Exception as err:
-            raise TypeError(f"'other' argument must support conversion to days: {err}")
+            raise TypeError(
+                f"'other' argument must support conversion to days: {err}"
+            ) from err
 
         if atol is None:
             atol = np.finfo(float).eps * u.day
@@ -3320,7 +3330,7 @@ class ScaleValueError(Exception):
     pass
 
 
-def _make_array(val, copy=COPY_IF_NEEDED):
+def _make_array(val, copy=None):
     """
     Take ``val`` and convert/reshape to an array.  If ``copy`` is `True`
     then copy input values.

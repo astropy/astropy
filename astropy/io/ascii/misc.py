@@ -101,7 +101,7 @@ def sortmore(*args, **kw):
     if isinstance(key, collections.abc.Callable):
         k = lambda x: (globalkey(*x), key(x[0]))
     elif isinstance(key, tuple):
-        key = (k if k else lambda x: 0 for k in key)
+        key = (k or (lambda x: 0) for k in key)
         k = lambda x: (globalkey(*x),) + tuple(f(z) for (f, z) in zip(key, x))
     else:
         raise KeyError(

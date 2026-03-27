@@ -1,16 +1,15 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import copy
-import operator
+import math
 import warnings
 import weakref
 from contextlib import suppress
-from functools import reduce
 
 import numpy as np
-from numpy import char as chararray
 
 from astropy.utils import lazyproperty
+from astropy.utils.compat import chararray, get_chararray
 
 from .column import (
     _VLF,
@@ -575,13 +574,9 @@ class FITS_rec(np.recarray):
             return
 
         if isinstance(key, slice):
-            end = min(len(self), key.stop or len(self))
-            end = max(0, end)
-            start = max(0, key.start or 0)
-            end = min(end, start + len(value))
-
-            for idx in range(start, end):
-                self.__setitem__(idx, value[idx - start])
+            start, stop, step = key.indices(len(self))
+            for idx, val in zip(range(start, stop, step), value, strict=True):
+                self.__setitem__(idx, val)
             return
 
         if isinstance(value, FITS_record):
@@ -831,7 +826,7 @@ class FITS_rec(np.recarray):
                 dt = np.dtype(recformat.dtype + str(1))
                 arr_len = count * dt.itemsize
                 da = raw_data[offset : offset + arr_len].view(dt)
-                da = np.char.array(da.view(dtype=dt), itemsize=count)
+                da = get_chararray(da.view(dtype=dt), itemsize=count)
                 dummy[idx] = decode_ascii(da)
             else:
                 dt = np.dtype(recformat.dtype)
@@ -842,9 +837,7 @@ class FITS_rec(np.recarray):
                     if vla_shape[0] == 1:
                         dummy[idx] = dummy[idx].reshape(1, len(dummy[idx]))
                     else:
-                        vla_dim = vla_shape[1:]
-                        vla_first = int(len(dummy[idx]) / np.prod(vla_dim))
-                        dummy[idx] = dummy[idx].reshape((vla_first,) + vla_dim)
+                        dummy[idx] = dummy[idx].reshape((-1,) + vla_shape[1:])
 
                 dummy[idx] = dummy[idx].view(dummy[idx].dtype.newbyteorder(">"))
                 # Each array in the field may now require additional
@@ -878,11 +871,14 @@ class FITS_rec(np.recarray):
         # array buffer.
         dummy = np.char.ljust(field, format.width)
         dummy = np.char.replace(dummy, encode_ascii("D"), encode_ascii("E"))
-        null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
 
-        # Convert all fields equal to the TNULL value (nullval) to empty fields.
-        # TODO: These fields really should be converted to NaN or something else undefined.
-        # Currently they are converted to empty fields, which are then set to zero.
+        # Convert all fields equal to the TNULL value (nullval) to either NaN
+        # for float columns or 0 for the other fields.
+        if format.format in "DEF":
+            null_fill = "nan"
+        else:
+            null_fill = str(ASCIITNULL)
+        null_fill = encode_ascii(null_fill.rjust(format.width))
         dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 
         # always replace empty fields, see https://github.com/astropy/astropy/pull/5394
@@ -942,7 +938,7 @@ class FITS_rec(np.recarray):
                 # ignore dim and don't convert
                 dim = None
             else:
-                nitems = reduce(operator.mul, dim)
+                nitems = math.prod(dim)
                 if _str:
                     actual_nitems = field.itemsize
                 elif len(field.shape) == 1:
@@ -1020,7 +1016,7 @@ class FITS_rec(np.recarray):
 
         if dim and not isinstance(recformat, _FormatP):
             # Apply the new field item dimensions
-            nitems = reduce(operator.mul, dim)
+            nitems = math.prod(dim)
             if field.ndim > 1:
                 field = field[:, :nitems]
             if _str:
@@ -1160,7 +1156,7 @@ class FITS_rec(np.recarray):
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     raw_field[:] = 0  # reset
-                    npts = [np.prod(arr.shape) for arr in self._converted[name]]
+                    npts = [arr.size for arr in self._converted[name]]
 
                     raw_field[: len(npts), 0] = npts
                     raw_field[1:, 1] = (
@@ -1204,7 +1200,7 @@ class FITS_rec(np.recarray):
                 if isinstance(self._coldefs, _AsciiColDefs):
                     self._scale_back_ascii(index, dummy, raw_field)
                 # binary table string column
-                elif isinstance(raw_field, chararray.chararray):
+                elif isinstance(raw_field, chararray):
                     self._scale_back_strings(index, dummy, raw_field)
                 # all other binary table columns
                 else:
@@ -1341,7 +1337,7 @@ class FITS_rec(np.recarray):
 
         # Replace exponent separator in floating point numbers
         if "D" in format:
-            output_field[:] = output_field.replace(b"E", b"D")
+            output_field[:] = np.strings.replace(output_field, b"E", b"D")
 
     def tolist(self):
         # Override .tolist to take care of special case of VLF
@@ -1361,8 +1357,8 @@ def _get_recarray_field(array, key):
     # This is currently needed for backwards-compatibility and for
     # automatic truncation of trailing whitespace
     field = np.recarray.field(array, key)
-    if field.dtype.char in ("S", "U") and not isinstance(field, chararray.chararray):
-        field = field.view(chararray.chararray)
+    if field.dtype.char in ("S", "U") and not isinstance(field, chararray):
+        field = field.view(chararray)
     return field
 
 
@@ -1378,7 +1374,7 @@ def _ascii_encode(inarray, out=None):
     encodings (if possible) of the elements of the input array.  The two arrays
     must be the same size (though not necessarily the same shape).
 
-    This is like an inplace version of `np.char.encode` though simpler since
+    This is like an inplace version of `np.strings.encode` though simpler since
     it's only limited to ASCII, and hence the size of each character is
     guaranteed to be 1 byte.
 

@@ -1,5 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+# Originally authored by Andrew Becker (becker@astro.washington.edu),
+# and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
+# (robanhk@gmail.com), and Nathaniel Starkman (n.starkman@mail.utoronto.ca).
 
+# Many of these adapted from Hogg 1999, astro-ph/9905116
+# and Linder 2003, PRL 90, 91301
+
+__all__ = ("Cosmology", "CosmologyError", "FlatCosmologyMixin")
 
 import inspect
 from abc import ABCMeta, abstractmethod
@@ -27,16 +34,6 @@ from astropy.cosmology.io import (
     CosmologyToFormat,
     CosmologyWrite,
 )
-
-# Originally authored by Andrew Becker (becker@astro.washington.edu),
-# and modified by Neil Crighton (neilcrighton@gmail.com), Roban Kramer
-# (robanhk@gmail.com), and Nathaniel Starkman (n.starkman@mail.utoronto.ca).
-
-# Many of these adapted from Hogg 1999, astro-ph/9905116
-# and Linder 2003, PRL 90, 91301
-
-__all__ = ["Cosmology", "CosmologyError", "FlatCosmologyMixin"]
-
 
 ##############################################################################
 # Parameters

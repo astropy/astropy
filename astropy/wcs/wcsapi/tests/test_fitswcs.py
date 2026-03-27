@@ -1582,3 +1582,73 @@ def test_restfrq_restwav():
         ),
     ):
         scoord3 = wcs.pixel_to_world(5)
+
+
+def test_array_index_conversions_arrays_1d():
+    # Regression test for a bug that caused world_to_array_index to return lists
+    # instead of Numpy arrays - 1D version
+
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ("FREQ",)
+
+    coord = SpectralCoord([10, 12], unit="Hz")
+
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
+        i = wcs.world_to_array_index(coord)
+    assert isinstance(i, np.ndarray)
+
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
+        x = wcs.world_to_pixel(coord)
+    assert isinstance(x, np.ndarray)
+
+
+def test_array_index_conversions_arrays_2d():
+    # Regression test for a bug that caused world_to_array_index to return lists
+    # instead of Numpy arrays - 2D versions
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+
+    coord = SkyCoord([10, 12], [20, 22], unit="deg", frame="icrs")
+
+    i, j = wcs.world_to_array_index(coord)
+    assert isinstance(i, np.ndarray)
+    assert isinstance(j, np.ndarray)
+
+    x, y = wcs.world_to_pixel(coord)
+    assert isinstance(x, np.ndarray)
+    assert isinstance(x, np.ndarray)
+
+
+def test_array_index_conversions_scalars_1d():
+    # And check that things works properly for scalars (1D)
+
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ("FREQ",)
+
+    coord = SpectralCoord(10, unit="Hz")
+
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
+        i = wcs.world_to_array_index(coord)
+    assert isinstance(i, np.ndarray) and i.ndim == 0
+
+    with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
+        x = wcs.world_to_pixel(coord)
+    assert isinstance(x, np.ndarray) and x.ndim == 0
+
+
+def test_array_index_conversions_scalars_2d():
+    # And check that things works properly for scalars (2D)
+
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+
+    scoord = SkyCoord(10, 20, unit="deg", frame="icrs")
+
+    i, j = wcs.world_to_array_index(scoord)
+    assert isinstance(i, np.ndarray) and i.ndim == 0
+    assert isinstance(j, np.ndarray) and j.ndim == 0
+
+    x, y = wcs.world_to_pixel(scoord)
+    assert isinstance(x, np.ndarray) and x.ndim == 0
+    assert isinstance(y, np.ndarray) and y.ndim == 0

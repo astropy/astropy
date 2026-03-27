@@ -42,7 +42,7 @@ def _fk4_B_matrix(obstime):
     T = (obstime.jyear - 1950.0) / 100.0
     if getattr(T, "shape", ()):
         # Ensure we broadcast possibly arrays of times properly.
-        T.shape += (1, 1)
+        T = np.reshape(T, (*T.shape, 1, 1))
     return _B1950_TO_J2000_M + _FK4_CORR * T
 
 

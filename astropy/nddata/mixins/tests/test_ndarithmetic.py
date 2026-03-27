@@ -18,7 +18,6 @@ from astropy.nddata.nduncertainty import (
     VarianceUncertainty,
 )
 from astropy.units import Quantity, UnitsError
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs import WCS
 
@@ -1272,7 +1271,7 @@ def test_two_argument_useage_non_nddata_first_arg(meth):
     # Call add on the class (not the instance)
     ndd3 = getattr(NDDataArithmetic, meth)(data1, data2)
 
-    # Compare it with the instance-useage and two identical NDData-like
+    # Compare it with the instance-usage and two identical NDData-like
     # classes:
     ndd1 = NDDataArithmetic(data1)
     ndd2 = NDDataArithmetic(data2)
@@ -1535,14 +1534,7 @@ def test_dtypes_uncert_mask_with_scalars(nddata_ref1, scalar_type, meth):
     # Enforce the same behaviour as NumPy, rather than fixed behaviour:
     assert out.data.shape == ref_dat.shape
     assert out.data.dtype == ref_dat.dtype
-    if not (
-        NUMPY_LT_2_0
-        and nddata.uncertainty.array.dtype.kind in "biu"
-        and isinstance(scalar, (np.float16, np.float32))
-    ):
-        # A quirk of NumPy 1 arithmetic causes int uncertainty (admittedly a corner
-        # case) to get cast to float64 when float32 is expected (see #18392):
-        assert out.uncertainty.array.dtype == ref_unc.dtype
+    assert out.uncertainty.array.dtype == ref_unc.dtype
     assert out.mask.dtype == ref_msk.dtype
     assert np.ma.allclose(out.data, ref_dat)
     assert np.ma.allclose(out.uncertainty.array, ref_unc)

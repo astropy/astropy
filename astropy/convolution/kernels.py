@@ -186,10 +186,10 @@ class Box1DKernel(Kernel1D):
 
     The generated kernel is normalized so that it integrates to 1.
 
-    By default the Box kernel uses the ``linear_interp`` discretization mode,
+    By default, the Box kernel uses the ``linear_interp`` discretization mode,
     which allows non-shifting, even-sized kernels.  This is achieved by
     weighting the edge pixels with 1/2. E.g a Box kernel with an effective
-    smoothing of 4 pixel would have the following array: [0.5, 1, 1, 1, 0.5].
+    smoothing of 4 pixels would have the following array: [0.5, 1, 1, 1, 0.5].
 
     Parameters
     ----------
@@ -253,7 +253,7 @@ class Box2DKernel(Kernel2D):
 
     The generated kernel is normalized so that it integrates to 1.
 
-    By default the Box kernel uses the ``linear_interp`` discretization mode,
+    By default, the Box kernel uses the ``linear_interp`` discretization mode,
     which allows non-shifting, even-sized kernels.  This is achieved by
     weighting the edge pixels with 1/2.
 
@@ -566,7 +566,7 @@ class RickerWavelet1DKernel(Kernel1D):
     The Ricker wavelet, or inverted Gaussian-Laplace filter, is a
     bandpass filter. It smooths the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
-    multi-scale detection.
+    multiscale detection.
 
     This kernel is derived from a normalized Gaussian function, by
     computing the second derivative. This results in an amplitude
@@ -640,7 +640,7 @@ class RickerWavelet2DKernel(Kernel2D):
     The Ricker wavelet, or inverted Gaussian-Laplace filter, is a
     bandpass filter. It smooths the data and removes slowly varying
     or constant structures (e.g. Background). It is useful for peak or
-    multi-scale detection.
+    multiscale detection.
 
     This kernel is derived from a normalized Gaussian function, by
     computing the second derivative. This results in an amplitude
@@ -959,7 +959,7 @@ class Model2DKernel(Kernel2D):
         >>> from astropy.convolution.kernels import Model2DKernel
         >>> gauss = Gaussian2D(1, 0, 0, 2, 2)
 
-    And create a custom two dimensional kernel from it:
+    And create a custom two-dimensional kernel from it:
 
         >>> gauss_kernel = Model2DKernel(gauss, x_size=9)
 

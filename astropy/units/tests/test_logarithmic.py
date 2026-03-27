@@ -12,7 +12,6 @@ from numpy.testing import assert_allclose
 from astropy import constants as c
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 lu_units = [u.dex, u.mag, u.decibel]
 
@@ -36,7 +35,7 @@ class TestLogUnitCreation:
         assert u.dex.to(u.mag) == -2.5
         assert u.mag.to(u.dB) == -4
 
-    @pytest.mark.parametrize("lu_unit, lu_cls", zip(lu_units, lu_subclasses))
+    @pytest.mark.parametrize("lu_unit, lu_cls", list(zip(lu_units, lu_subclasses)))
     def test_callable_units(self, lu_unit, lu_cls):
         assert isinstance(lu_unit, u.UnitBase)
         assert callable(lu_unit)
@@ -510,7 +509,8 @@ def test_hashable():
 
 class TestLogQuantityCreation:
     @pytest.mark.parametrize(
-        "lq, lu", zip(lq_subclasses + [u.LogQuantity], lu_subclasses + [u.LogUnit])
+        "lq, lu",
+        list(zip(lq_subclasses + [u.LogQuantity], lu_subclasses + [u.LogUnit])),
     )
     def test_logarithmic_quantities(self, lq, lu):
         """Check logarithmic quantities are all set up correctly"""
@@ -1009,13 +1009,10 @@ class TestLogQuantityMethods:
             assert res.unit == u.mag**2
         else:
             assert res.unit == mag.unit
-
-    @pytest.mark.skipif(not NUMPY_LT_2_0, reason="ptp method removed in numpy 2.0")
-    @log_quantity_parametrization
-    def test_always_ok_ptp(self, mag):
-        res = mag.ptp()
-        assert np.all(res.value == mag._function_view.ptp().value)
-        assert res.unit == u.mag()
+        # verify numpy function gives same result as method call
+        if hasattr(np, method):
+            res2 = getattr(np, method)(mag)
+            assert_quantity_allclose(res2, res)
 
     @log_quantity_parametrization
     def test_clip(self, mag):

@@ -1,1 +1,0 @@
-Fix bug with heap which was not updated after a VLA column is modified.

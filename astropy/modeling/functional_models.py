@@ -9,6 +9,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -380,6 +381,13 @@ class Gaussian2D(Fittable2DModel):
                 raise ValueError("Covariance matrix must be 2x2")
 
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
+            if not NUMPY_LT_2_5 or eig_vals.dtype.kind == "c":
+                # in numpy 2.5+, return values are *always* complex
+                assert np.all(eig_vals.imag == 0)
+                assert np.all(eig_vecs.imag == 0)
+                eig_vals = eig_vals.real
+                eig_vecs = eig_vecs.real
+
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]
             theta = np.arctan2(y_vec[1], y_vec[0])
@@ -3071,11 +3079,23 @@ class AiryDisk2D(Fittable2DModel):
     where lambda is the wavelength of the light and D is the diameter of
     the aperture.
 
-    See [1]_ for more details about the Airy disk.
+    For reference, the total power integrated radially to infinity [1]_
+    over the plane is given by:
+
+        .. math:: P = \\int_0^{2 \\pi} \\int_0^\\infty f(r) r dr d\\theta
+                = \\frac{A 4 R^2}{\\pi R_z^2}
+
+    One may therefore calculate the amplitude for a given power and
+    radius as:
+
+        .. math:: A = \\frac{\\pi P R_z^2}{4 R^2}
+
+    See [2]_ for more details about the Airy disk.
 
     References
     ----------
-    .. [1] https://en.wikipedia.org/wiki/Airy_disk
+    .. [1] https://www.wolframalpha.com
+    .. [2] https://en.wikipedia.org/wiki/Airy_disk
     """
 
     amplitude = Parameter(

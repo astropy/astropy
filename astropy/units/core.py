@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, Union, 
 
 import numpy as np
 
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
@@ -347,7 +346,7 @@ class UnitBase:
         try:
             from .quantity import Quantity
 
-            return Quantity(m, self, copy=COPY_IF_NEEDED, subok=True)
+            return Quantity(m, self, copy=None, subok=True)
         except Exception:
             if isinstance(m, np.ndarray):
                 raise
@@ -1973,6 +1972,10 @@ class UnrecognizedUnit(IrreducibleUnit):
 
     __pow__ = __truediv__ = __rtruediv__ = __mul__ = __rmul__ = _unrecognized_operator
     __lt__ = __gt__ = __le__ = __ge__ = __neg__ = _unrecognized_operator
+
+    def __hash__(self):
+        # __hash__ isn't inherited in classes with a custom __eq__ method
+        return self._hash
 
     def __eq__(self, other):
         try:

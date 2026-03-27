@@ -262,6 +262,50 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert hdul[1].header["DATASUM"] == "1648357376"
             assert hdul[1].header["CHECKSUM"] == "jcdDjZZBjabBjYZB"
 
+    def test_small_heap(self):
+        """regression test for #18735"""
+        # Tests situations where the start of the heap is not aligned with
+        # 4-byte blocks (32 bit integers), and the size of our heap is smaller
+        # than 4 bytes
+        testfile = self.temp("tmp.fits")
+        col1 = fits.Column(name="a", format="1A", array=["a"])
+        tab = fits.BinTableHDU.from_columns(name="test", columns=[col1])
+
+        tab.writeto(testfile, checksum=True)
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[1].header["DATASUM"] == "1627389952"
+            assert hdul[1].header["CHECKSUM"] == "nNejoMchnMchnMch"
+
+        testfile = self.temp("tmp2.fits")
+        col1 = fits.Column(name="a", format="1A", array=["a"])
+        col2 = fits.Column(name="b", format="PB", array=[[1]])
+        tab = fits.BinTableHDU.from_columns(name="test", columns=[col1, col2])
+
+        tab.writeto(testfile, checksum=True)
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[1].header["DATASUM"] == "1644232704"
+            assert hdul[1].header["CHECKSUM"] == "4IIH7H9H4HGH4H9H"
+
+        testfile = self.temp("tmp3.fits")
+        col1 = fits.Column(name="a", format="1A", array=["a"])
+        col2 = fits.Column(name="b", format="PB", array=[[1, 2]])
+        tab = fits.BinTableHDU.from_columns(name="test", columns=[col1, col2])
+
+        tab.writeto(testfile, checksum=True)
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[1].header["DATASUM"] == "1661010432"
+            assert hdul[1].header["CHECKSUM"] == "4IHK6I9H4IGH4I9H"
+
+        testfile = self.temp("tmp4.fits")
+        col1 = fits.Column(name="a", format="1A", array=["a"])
+        col2 = fits.Column(name="b", format="PB", array=[[1, 2, 3]])
+        tab = fits.BinTableHDU.from_columns(name="test", columns=[col1, col2])
+
+        tab.writeto(testfile, checksum=True)
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[1].header["DATASUM"] == "1677787651"
+            assert hdul[1].header["CHECKSUM"] == "1HCH3G9F1GCF1G9F"
+
     def test_ascii_table_data(self):
         a1 = np.array(["abc", "def"])
         r1 = np.array([11.0, 12.0])

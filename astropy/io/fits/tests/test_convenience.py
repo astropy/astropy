@@ -91,6 +91,21 @@ class TestConvenience(FitsTestCase):
         filename = self.temp("test_table_to_hdu.fits")
         hdu.writeto(filename, overwrite=True)
 
+    def test_masked_integer_arrays(self):
+        # Regression test for #18817
+        testfile = self.temp("test_masked_integer_arrays.fits")
+        t_w = Table(
+            rows=[
+                [[np.ma.masked, np.ma.masked]],
+                [[1, 2]],
+                [[1, np.ma.masked]],
+            ],
+            names=["a"],
+        )
+        t_w.write(testfile, overwrite=True)
+        t_r = Table.read(testfile)
+        assert repr(t_w) == repr(t_r)
+
     def test_table_non_stringifyable_unit_to_hdu(self):
         table = Table(
             [[1, 2, 3], ["a", "b", "c"], [2.3, 4.5, 6.7]],
@@ -498,3 +513,22 @@ class TestConvenience(FitsTestCase):
             IndexError, match="No data in Primary HDU and no extension HDU found."
         ):
             fits.getdata(buf)
+
+    def test_getdata_lower_upper(self, tmp_path):
+        t = Table([np.zeros(5), np.ones(5), np.arange(5)], names=["a", "b", "c"])
+        t.write(tmp_path / "lower.fits")
+        t = Table([np.zeros(5), np.ones(5), np.arange(5)], names=["A", "B", "C"])
+        t.write(tmp_path / "upper.fits")
+
+        ref = np.zeros(5)
+        lowup = fits.getdata(tmp_path / "lower.fits", 1, upper=True)
+        assert lowup.dtype.names == ("A", "B", "C")
+        assert_array_equal(lowup["A"], ref)
+        assert_array_equal(lowup["a"], ref)
+        assert_array_equal(lowup.A, ref)
+
+        uplow = fits.getdata(tmp_path / "upper.fits", 1, lower=True)
+        assert uplow.dtype.names == ("a", "b", "c")
+        assert_array_equal(uplow["A"], ref)
+        assert_array_equal(uplow["a"], ref)
+        assert_array_equal(uplow.a, ref)

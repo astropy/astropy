@@ -1,22 +1,21 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import copy
+import math
 import numbers
-import operator
 import re
 import sys
 import warnings
 import weakref
 from collections import OrderedDict
 from contextlib import suppress
-from functools import reduce
 from itertools import pairwise
 from textwrap import indent
 
 import numpy as np
-from numpy import char as chararray
 
 from astropy.utils import lazyproperty
+from astropy.utils.compat import chararray, get_chararray
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .card import CARD_LENGTH, Card
@@ -696,14 +695,14 @@ class Column(NotifierMixin):
         # input arrays can be just list or tuple, not required to be ndarray
         # does not include Object array because there is no guarantee
         # the elements in the object array are consistent.
-        if not isinstance(array, (np.ndarray, chararray.chararray, Delayed)):
+        if not isinstance(array, (np.ndarray, chararray, Delayed)):
             try:  # try to convert to a ndarray first
                 if array is not None:
                     array = np.array(array)
             except Exception:
                 try:  # then try to convert it to a strings array
                     itemsize = int(recformat[1:])
-                    array = chararray.array(array, itemsize=itemsize)
+                    array = get_chararray(array, itemsize=itemsize)
                 except ValueError:
                     # then try variable length array
                     # Note: This includes _FormatQ by inheritance
@@ -1203,7 +1202,7 @@ class Column(NotifierMixin):
                     # TDIMs have different meaning for VLA format,
                     # no warning should be thrown
                     msg = None
-                elif reduce(operator.mul, dims_tuple) > format.repeat:
+                elif math.prod(dims_tuple) > format.repeat:
                     msg = (
                         f"The repeat count of the column format {name!r} for column "
                         f"{format!r} is fewer than the number of elements per the TDIM "
@@ -1388,7 +1387,7 @@ class Column(NotifierMixin):
                         fsize = dims[-1]
                     else:
                         fsize = np.dtype(format.recformat).itemsize
-                    return chararray.array(array, itemsize=fsize, copy=False)
+                    return get_chararray(array, itemsize=fsize, copy=False)
                 else:
                     return _convert_array(array, np.dtype(format.recformat))
             elif "L" in format:
@@ -1760,6 +1759,14 @@ class ColDefs(NotifierMixin):
         else:
             return ColDefs(x)
 
+    def __contains__(self, key):
+        if isinstance(key, str):
+            return key.lower().rstrip() in (n.lower().rstrip() for n in self.names)
+        elif isinstance(key, Column):
+            return key in self.columns
+        else:
+            return False
+
     def __len__(self):
         return len(self.columns)
 
@@ -2074,7 +2081,7 @@ class _VLF(np.ndarray):
             try:
                 # this handles ['abc'] and [['a','b','c']]
                 # equally, beautiful!
-                input = [chararray.array(x, itemsize=1) for x in input]
+                input = [get_chararray(x, itemsize=1) for x in input]
             except Exception:
                 raise ValueError(f"Inconsistent input data array: {input}")
 
@@ -2097,16 +2104,14 @@ class _VLF(np.ndarray):
         """
         if isinstance(value, np.ndarray) and value.dtype == self.dtype:
             pass
-        elif isinstance(value, chararray.chararray) and value.itemsize == 1:
+        elif isinstance(value, chararray) and value.itemsize == 1:
             pass
         elif self.element_dtype == "S":
-            value = chararray.array(value, itemsize=1)
+            value = get_chararray(value, itemsize=1)
         else:
             value = np.array(value, dtype=self.element_dtype)
         np.ndarray.__setitem__(self, key, value)
-        nelem = value.shape
-        len_value = np.prod(nelem)
-        self.max = max(self.max, len_value)
+        self.max = max(self.max, value.size)
 
     def tolist(self):
         return [list(item) for item in super().tolist()]
@@ -2254,12 +2259,11 @@ def _makep(array, descr_output, format, nrows=None):
             else:
                 rowval = [0] * data_output.max
         if format.dtype == "S":
-            data_output[idx] = chararray.array(encode_ascii(rowval), itemsize=1)
+            data_output[idx] = get_chararray(encode_ascii(rowval), itemsize=1)
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 
-        nelem = data_output[idx].shape
-        descr_output[idx, 0] = np.prod(nelem)
+        descr_output[idx, 0] = data_output[idx].size
         descr_output[idx, 1] = _offset
 
         # detect overflow when using P format
@@ -2476,7 +2480,7 @@ def _convert_record2fits(format):
     ndims = len(shape)
     repeat = 1
     if ndims > 0:
-        nel = np.array(shape, dtype="i8").prod()
+        nel = math.prod(shape)
         if nel > 1:
             repeat = nel
 

@@ -1,12 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = [
+__all__ = (
     # classes
     "CosmologyFromFormat",
     "CosmologyRead",
     "CosmologyToFormat",
     "CosmologyWrite",
-]
+)
 
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, overload

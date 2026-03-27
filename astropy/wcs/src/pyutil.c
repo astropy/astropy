@@ -5,13 +5,12 @@
 
 #define NO_IMPORT_ARRAY
 
-#include <stdlib.h> // malloc, free
-#include <string.h> // memcpy
-
 /* util.h must be imported first */
 #include "astropy_wcs/pyutil.h"
-
 #include "astropy_wcs/docstrings.h"
+
+#include <stdlib.h> // malloc, free
+#include <string.h> // memcpy
 
 #include "wcsfix.h"
 #include "wcshdr.h"

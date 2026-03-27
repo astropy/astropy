@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+__all__ = ("Flatw0waCDM", "w0waCDM")
 
 from numpy import exp
 from numpy.typing import ArrayLike
@@ -7,13 +8,11 @@ from numpy.typing import ArrayLike
 from astropy.cosmology._src.core import dataclass_decorator
 from astropy.cosmology._src.parameter import Parameter
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 from . import scalar_inv_efuncs
 from .base import FLRW, FlatFLRWMixin
-
-__all__ = ["Flatw0waCDM", "w0waCDM"]
 
 __doctest_requires__ = {"*": ["scipy"]}
 
@@ -64,10 +63,9 @@ class w0waCDM(FLRW):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.
@@ -143,8 +141,7 @@ class w0waCDM(FLRW):
         object.__setattr__(self, "_inv_efunc_scalar", inv_efunc_scalar)
         object.__setattr__(self, "_inv_efunc_scalar_args", inv_efunc_scalar_args)
 
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Returns dark energy equation of state at redshift ``z``.
 
         Parameters
@@ -154,6 +151,9 @@ class w0waCDM(FLRW):
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -171,17 +171,19 @@ class w0waCDM(FLRW):
         z = aszarr(z)
         return self.w0 + self.wa * z / (z + 1.0)
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'] or array-like, positional-only
+        z : Quantity-like ['redshift'] or array-like
             Input redshift.
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -245,10 +247,9 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
         provide three neutrino masses unless you are considering something like
         a sterile neutrino.
 
-    Ob0 : float or None, optional
+    Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
-        density at z=0.  If this is set to None (the default), any computation
-        that requires its value will raise an exception.
+        density at z=0.
 
     name : str or None (optional, keyword-only)
         Name for this cosmological object.

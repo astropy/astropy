@@ -16,6 +16,7 @@ from pprint import pformat
 import numpy as np
 import pytest
 import yaml
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.io import ascii
@@ -29,7 +30,12 @@ from astropy.table.table_helpers import simple_table
 from astropy.time import Time
 from astropy.units import QuantityInfo
 from astropy.units import allclose as quantity_allclose
-from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW
+from astropy.utils.compat.optional_deps import (
+    HAS_BZ2,
+    HAS_LZMA,
+    HAS_PANDAS,
+    HAS_PYARROW,
+)
 from astropy.utils.masked import Masked
 
 ENGINE_PARAMS = [
@@ -45,6 +51,15 @@ if HAS_PYARROW:
 @pytest.fixture(scope="module", params=ENGINE_PARAMS)
 def format_engine(request):
     return request.param
+
+
+def patch_format_write(format_engine):
+    """Return a compatible format_engine dict for available writers"""
+    out = format_engine.copy()
+    if out["format"] == "ecsv":
+        # "io.ascii" is the only supported engine for writing via "ecsv" format.
+        out["engine"] = "io.ascii"
+    return out
 
 
 DTYPES = [
@@ -195,7 +210,7 @@ def test_write_read_roundtrip(format_engine):
 
     for delimiter in DELIMITERS:
         out = StringIO()
-        t.write(out, format="ascii.ecsv", delimiter=delimiter)
+        t.write(out, delimiter=delimiter, **patch_format_write(format_engine))
 
         t2s = [
             Table.read(out.getvalue(), **format_engine),
@@ -237,7 +252,7 @@ def test_bad_delimiter():
 
 @pytest.mark.parametrize("name", ["# name", ' #name " '])
 @pytest.mark.parametrize("delimiter", [" ", ","])
-def test_stressing_colname_starts_with_hash_etc(name, delimiter):
+def test_stressing_colname_starts_with_hash_etc(format_engine, name, delimiter):
     """Column name starting with # that looks like a comment, see #18710.
 
     Also names that contain leading/trailing whitespace and a quote character.
@@ -246,10 +261,20 @@ def test_stressing_colname_starts_with_hash_etc(name, delimiter):
     t = Table()
     t[name] = [1, 2]
     t["a"] = [3, 4]
-    t.write(out, delimiter=delimiter, format="ascii.ecsv")
+    t.write(out, delimiter=delimiter, **patch_format_write(format_engine))
     out.seek(0)
-    t2 = Table.read(out.getvalue(), format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), **format_engine)
     assert t2.colnames == [name, "a"]
+
+
+def test_unavailable_ecsv_engine_for_writing():
+    out = io.StringIO()
+    t = Table()
+    with pytest.raises(
+        ValueError,
+        match=r"^engine='pyarrow' is not a supported engine for writing, use 'io.ascii'$",
+    ):
+        t.write(out, format="ecsv", engine="pyarrow")
 
 
 def test_bad_header_start(format_engine):
@@ -1234,3 +1259,123 @@ def test_register_bad_engine():
         class BadEngine(ECSVEngine):
             name = 1
             format = "ascii.ecsv"
+
+
+@pytest.mark.parametrize(
+    "compressed_filename",
+    [
+        "test.ecsv.gz",
+        pytest.param(
+            "test.ecsv.bz2",
+            marks=pytest.mark.xfail(not HAS_BZ2, reason="no bz2 support"),
+        ),
+        pytest.param(
+            "test.ecsv.xz",
+            marks=pytest.mark.xfail(not HAS_LZMA, reason="no lzma support"),
+        ),
+    ],
+)
+def test_compressed_files(tmp_path, format_engine, compressed_filename):
+    filename = tmp_path / "test.ecsv"
+    t = simple_table()
+    t.write(filename, format="ascii.ecsv")
+
+    compressed_filename = tmp_path / compressed_filename
+    if compressed_filename.suffix == ".gz":
+        import gzip
+
+        opener = gzip.open
+    elif compressed_filename.suffix == ".bz2":
+        import bz2
+
+        opener = bz2.open
+    elif compressed_filename.suffix == ".xz":
+        import lzma
+
+        opener = lzma.open
+    else:
+        # Shouldn't really happen
+        opener = open
+
+    # Compress ecsv file
+    with open(filename, "rb") as f_in:
+        with opener(compressed_filename, "wb") as f_out:
+            f_out.writelines(f_in)
+
+    # Open compressed file and compare to ensure it's read correctly
+    t_comp = Table.read(compressed_filename, **format_engine)
+    assert_array_equal(t, t_comp)
+
+
+def test_meta_not_omap_but_list(format_engine):
+    """The ecsv spec allows that header meta to be any valid safe YAML.
+
+    Though astropy's writer writes with an !!omap tag, and all examples
+    in the ecsv spec (https://github.com/astropy/astropy-APEs/blob/main/APE6.rst)
+    use that extra (non standard) tag, the spec specifically says
+    that the header meta
+    'an arbitrary data structure consisting purely of data types that can be encoded
+    and decoded with the YAML "safe" dumper and loader'.
+
+    See one example in https://github.com/astropy/astropy/issues/5990
+    """
+    txt = """
+# %ECSV 1.0
+# ---
+# meta:
+# - keywords:
+#   - {z_key1: val1}
+#   - {a_key2: val2}
+# - comments: [Comment 1, Comment 2, Comment 3]
+# datatype:
+# - name: fake
+#   datatype: string
+fake
+0"""
+    with pytest.warns(
+        UserWarning,
+        match="Found ECSV table meta of type list instead of",
+    ):
+        t = Table.read(txt, **format_engine)
+    assert len(t.meta) == 1
+    assert len(t.meta["meta"]) == 2
+    assert t.meta["meta"][0] == {"keywords": [{"z_key1": "val1"}, {"a_key2": "val2"}]}
+    assert t.meta["meta"][1] == {"comments": ["Comment 1", "Comment 2", "Comment 3"]}
+
+
+MAP_BUT_NOT_OMAP_LINES = [
+    "# %ECSV 1.0",
+    "# ---",
+    "# datatype:",
+    "# - {name: fake, datatype: string}",
+    "# meta: !!omap",
+    "# - {hr: 65}",
+    "# - {avg: 0.278}",
+    "# - {rbi: 147}",
+    "# schema: astropy-2.0",
+    "fake",
+    "0",
+]
+
+
+def test_meta_not_omap_but_map(format_engine):
+    """Like test_meta_not_omap_but_list but for a mapping"""
+    txt = """
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: fake, datatype: string}
+# meta:
+#   hr:  65    # Home runs
+#   avg: 0.278 # Batting average
+#   rbi: 147   # Runs Batted In
+# schema: astropy-2.0
+fake
+0"""
+    t = Table.read(txt, **format_engine)
+    assert t.meta["hr"] == 65
+    assert t.meta["avg"] == 0.278
+    assert t.meta["rbi"] == 147
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    assert out.getvalue().splitlines() == MAP_BUT_NOT_OMAP_LINES

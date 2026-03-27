@@ -1248,3 +1248,17 @@ def test_setter():
 
     for x, y in pars:
         np.testing.assert_almost_equal(model(x, y), (x + 1) ** 2 + (y - np.pi * 3) ** 2)
+
+
+def test_none_parameter():
+    """
+    When Parameter internal value is None, the value property should also be
+    NaN.
+
+    See issue #19188
+    """
+    param = Parameter()
+    # Internal value is None
+    assert param._value is None
+
+    assert np.isnan(param.value)

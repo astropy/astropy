@@ -6,18 +6,17 @@ from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.scipy_compat import quad
 from astropy.cosmology._src.typing import FArray
-from astropy.cosmology._src.utils import aszarr, deprecated_keywords
+from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
 
 class DarkEnergyComponent:
     # Subclasses should use `Parameter` to make this a parameter of the cosmology.
-    Ode0: float
+    Ode0: float | np.floating
     """Omega dark energy; dark energy density/critical density at z=0."""
 
     @abstractmethod
-    @deprecated_keywords("z", since="7.0")
-    def w(self, z: Quantity | ArrayLike) -> FArray:
+    def w(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""The dark energy equation of state.
 
         Parameters
@@ -27,6 +26,9 @@ class DarkEnergyComponent:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -64,8 +66,7 @@ class DarkEnergyComponent:
         """
         return 1.0 + self.w(exp(ln1pz) - 1.0)
 
-    @deprecated_keywords("z", since="7.0")
-    def de_density_scale(self, z: Quantity | ArrayLike) -> FArray:
+    def de_density_scale(self, z: Quantity | ArrayLike, /) -> FArray:
         r"""Evaluates the redshift dependence of the dark energy density.
 
         Parameters
@@ -75,6 +76,9 @@ class DarkEnergyComponent:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------
@@ -117,8 +121,7 @@ class DarkEnergyComponent:
         )
         return np.exp(3 * ival)
 
-    @deprecated_keywords("z", since="7.0")
-    def Ode(self, z: Quantity | ArrayLike) -> FArray:
+    def Ode(self, z: Quantity | ArrayLike, /) -> FArray:
         """Return the density parameter for dark energy at redshift ``z``.
 
         Parameters
@@ -128,6 +131,9 @@ class DarkEnergyComponent:
 
             .. versionchanged:: 7.0
                 Passing z as a keyword argument is deprecated.
+
+            .. versionchanged:: 8.0
+               z must be a positional argument.
 
         Returns
         -------

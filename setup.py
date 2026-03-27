@@ -21,7 +21,7 @@ def install_stubs(build_lib, output_dir):
     try:
         from astropy.units.typing_utils import create_stubs  # noqa: PLC0415
 
-        create_stubs(Path(output_dir) / "astropy" / "units")
+        create_stubs(Path(output_dir))
     finally:
         # Undo the path modification.
         sys.path.pop(0)
@@ -46,7 +46,7 @@ class EditableInstallWithStubs(editable_wheel):
 # Specify the minimum version for the Numpy C-API
 for ext in ext_modules:
     if ext.include_dirs and "numpy" in ext.include_dirs[0]:
-        ext.define_macros.append(("NPY_TARGET_VERSION", "NPY_1_24_API_VERSION"))
+        ext.define_macros.append(("NPY_TARGET_VERSION", "NPY_1_25_API_VERSION"))
         ext.define_macros.append(("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"))
 
 setup(

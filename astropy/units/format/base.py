@@ -211,7 +211,7 @@ class Base:
         """
         Convert a string to a unit object.
         """
-        raise NotImplementedError(f"Can not parse with {cls.__name__} format")
+        raise NotImplementedError(f"Cannot parse with {cls.__name__} format")
 
 
 class _ParsingFormatMixin:

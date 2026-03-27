@@ -482,7 +482,7 @@ def test_add_array_equal_shape():
 
 
 @pytest.mark.parametrize(
-    ("position", "subpixel_index"), zip(test_positions, test_position_indices)
+    ("position", "subpixel_index"), list(zip(test_positions, test_position_indices))
 )
 def test_subpixel_indices(position, subpixel_index):
     """

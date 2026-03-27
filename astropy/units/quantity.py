@@ -12,12 +12,11 @@ import re
 import warnings
 from collections.abc import Collection
 from fractions import Fraction
-from typing import Self
+from typing import ClassVar, Final, Self
 
 import numpy as np
 
 from astropy import config as _config
-from astropy.utils.compat.numpycompat import COPY_IF_NEEDED, NUMPY_LT_2_0
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyWarning
 
@@ -178,7 +177,7 @@ class QuantityInfo(QuantityInfoBase):
     be used as a general way to store meta information.
     """
 
-    _represent_as_dict_attrs = ("value", "unit")
+    _represent_as_dict_attrs: tuple[str, ...] = ("value", "unit")
     _construct_from_dict_args = ["value"]
     _represent_as_dict_primary_data = "value"
 
@@ -223,7 +222,7 @@ class QuantityInfo(QuantityInfoBase):
             key: (data if key == "value" else getattr(cols[-1], key))
             for key in self._represent_as_dict_attrs
         }
-        map["copy"] = COPY_IF_NEEDED
+        map["copy"] = None
         out = self._construct_from_dict(map)
 
         # Set remaining info attributes
@@ -245,6 +244,48 @@ class QuantityInfo(QuantityInfoBase):
         arrays : list of ndarray
         """
         return [self._parent]
+
+
+# For parsing a string with a number or list of numbers and a unit.  The first
+# part of the regex string matches any integer/float; the second parts adds
+# possible trailing .+-, which will break the float function in
+# _parse_quantity_string and ensure things like 1.2.3deg won't work.
+NUM: Final = r"""
+    [+-]?
+    ((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|
+    ([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))
+    ([eE][+-]?\d+)?
+    [.+-]?
+"""
+# List of numbers separated by "," or whitespace.
+VECTOR_COMMA: Final = rf"""
+    \[\s*
+    {NUM}
+    (?: (\s*,\s*){NUM})*
+    (\s*,\s*)?
+    \s*\]
+"""
+VECTOR_WSPACE: Final = rf"""
+    \[\s*
+    {NUM}
+    (?: (\s+){NUM})*
+    \s*\]
+"""
+VECTOR_1D: Final = rf"{VECTOR_COMMA} | {VECTOR_WSPACE}"
+NUMBER_PATTERN: Final = re.compile(rf"\s*(?:{NUM}|{VECTOR_1D})\s*", re.VERBOSE)
+
+
+def _parse_quantity_string(string: str) -> tuple[float | list[float], Unit]:
+    """Parse a string as a number or list of numbers.
+
+    Returns a tuple of value (float or array) and unit.
+    Raises if not possible.
+    """
+    v = re.match(NUMBER_PATTERN, string)
+    items = v.group().replace(",", " ").strip().strip("[]").split()
+    value = [float(a) for a in items] if "[" in string else float(items[0])
+    unit = Unit(unit_str) if (unit_str := v.string[v.end() :].strip()) else None
+    return value, unit
 
 
 class Quantity(np.ndarray):
@@ -428,12 +469,12 @@ class Quantity(np.ndarray):
         if float_default:
             dtype = None
 
-        # optimize speed for Quantity with no dtype given, copy=COPY_IF_NEEDED
+        # optimize speed for Quantity with no dtype given, copy=None
         if isinstance(value, Quantity):
             if unit is not None and unit is not value.unit:
                 value = value.to(unit)
                 # the above already makes a copy (with float dtype)
-                copy = COPY_IF_NEEDED
+                copy = None
 
             if type(value) is not cls and not (subok and isinstance(value, cls)):
                 value = value.view(cls)
@@ -450,34 +491,21 @@ class Quantity(np.ndarray):
         value_unit = None
         if not isinstance(value, np.ndarray):
             if isinstance(value, str):
-                # The first part of the regex string matches any integer/float;
-                # the second parts adds possible trailing .+-, which will break
-                # the float function below and ensure things like 1.2.3deg
-                # will not work.
-                pattern = (
-                    r"\s*[+-]?"
-                    r"((\d+\.?\d*)|(\.\d+)|([nN][aA][nN])|"
-                    r"([iI][nN][fF]([iI][nN][iI][tT][yY]){0,1}))"
-                    r"([eE][+-]?\d+)?"
-                    r"[.+-]?"
-                )
-
-                v = re.match(pattern, value)
-                unit_string = None
+                # A string with a number or list of numbers and possible unit?
                 try:
-                    value = float(v.group())
+                    value, value_unit = _parse_quantity_string(value)
+                except Exception as exc:
+                    # Parsing of values and units can lead to same class of
+                    # exception (e.g., ValueError). Pass on units related ones.
+                    if "unit" in str(exc).lower():
+                        raise
+                    msg = f'Cannot parse "{value}" as a {cls.__name__}.'
+                    if "[" not in value:
+                        msg += " It does not start with a number."
+                    raise TypeError(msg)
 
-                except Exception:
-                    raise TypeError(
-                        f'Cannot parse "{value}" as a {cls.__name__}. It does not '
-                        "start with a number."
-                    )
-
-                unit_string = v.string[v.end() :].strip()
-                if unit_string:
-                    value_unit = Unit(unit_string)
-                    if unit is None:
-                        unit = value_unit  # signal no conversion needed below.
+                if unit is None:
+                    unit = value_unit  # signal no conversion needed below.
 
             elif isinstance(value, (list, tuple)) and len(value) > 0:
                 if all(isinstance(v, Quantity) for v in value):
@@ -521,7 +549,7 @@ class Quantity(np.ndarray):
                 if unit is None:
                     unit = value_unit
                 elif unit is not value_unit:
-                    copy = COPY_IF_NEEDED  # copy will be made in conversion at end
+                    copy = None  # copy will be made in conversion at end
 
         value = np.array(
             value, dtype=dtype, copy=copy, order=order, subok=True, ndmin=ndmin
@@ -803,7 +831,7 @@ class Quantity(np.ndarray):
         if obj is None:
             obj = self.view(np.ndarray)
         else:
-            obj = np.array(obj, copy=COPY_IF_NEEDED, subok=True)
+            obj = np.asanyarray(obj)
 
         # Take the view, set the unit, and update possible other properties
         # such as ``info``, ``wrap_angle`` in `Longitude`, etc.
@@ -862,7 +890,7 @@ class Quantity(np.ndarray):
         super().__setstate__(nd_state)
         self.__dict__.update(own_state)
 
-    info = QuantityInfo()
+    info: QuantityInfoBase = QuantityInfo()
 
     def _to_value(self, unit, equivalencies=[]):
         """Helper method for to and to_value."""
@@ -1712,7 +1740,7 @@ class Quantity(np.ndarray):
         if self.dtype.kind == "i" and check_precision:
             # If, e.g., we are casting float to int, we want to fail if
             # precision is lost, but let things pass if it works.
-            _value = np.array(_value, copy=COPY_IF_NEEDED, subok=True)
+            _value = np.array(_value, copy=None, subok=True)
             if not np.can_cast(_value.dtype, self.dtype):
                 self_dtype_array = np.array(_value, self.dtype, subok=True)
                 if not np.all((self_dtype_array == _value) | np.isnan(_value)):
@@ -1726,14 +1754,6 @@ class Quantity(np.ndarray):
         if _value.dtype.names is not None:
             _value = _value.astype(self.dtype, copy=False)
         return _value
-
-    if NUMPY_LT_2_0:
-
-        def itemset(self, *args):
-            if len(args) == 0:
-                raise ValueError("itemset must have at least one argument")
-
-            self.view(np.ndarray).itemset(*(args[:-1] + (self._to_own_unit(args[-1]),)))
 
     def tostring(self, order="C"):
         """Not implemented, use ``.value.tostring()`` instead."""
@@ -1811,17 +1831,10 @@ class Quantity(np.ndarray):
         )
 
     # ensure we do not return indices as quantities
-    if NUMPY_LT_2_0:
-
-        def argsort(self, axis=-1, kind=None, order=None):
-            return self.view(np.ndarray).argsort(axis=axis, kind=kind, order=order)
-
-    else:
-
-        def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
-            return self.view(np.ndarray).argsort(
-                axis=axis, kind=kind, order=order, stable=stable
-            )
+    def argsort(self, axis=-1, kind=None, order=None, *, stable=None):
+        return self.view(np.ndarray).argsort(
+            axis=axis, kind=kind, order=order, stable=stable
+        )
 
     def searchsorted(self, v, *args, **kwargs):
         return np.searchsorted(
@@ -2122,7 +2135,7 @@ class SpecificTypeQuantity(Quantity):
 
     # The unit for the specific physical type.  Instances can only be created
     # with units that are equivalent to this.
-    _equivalent_unit = None
+    _equivalent_unit: ClassVar[UnitBase | tuple[UnitBase, ...] | None] = None
 
     # The default unit used for views.  Even with `None`, views of arrays
     # without units are possible, but will have an uninitialized unit.
@@ -2245,9 +2258,9 @@ def allclose(a, b, rtol=1.0e-5, atol=None, equal_nan=False) -> bool:
 
 
 def _unquantify_allclose_arguments(actual, desired, rtol, atol):
-    actual = Quantity(actual, subok=True, copy=COPY_IF_NEEDED)
+    actual = Quantity(actual, subok=True, copy=None)
 
-    desired = Quantity(desired, subok=True, copy=COPY_IF_NEEDED)
+    desired = Quantity(desired, subok=True, copy=None)
     try:
         desired = desired.to(actual.unit)
     except UnitsError:
@@ -2263,7 +2276,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
         # units for a and b.
         atol = Quantity(0)
     else:
-        atol = Quantity(atol, subok=True, copy=COPY_IF_NEEDED)
+        atol = Quantity(atol, subok=True, copy=None)
         try:
             atol = atol.to(actual.unit)
         except UnitsError:
@@ -2272,7 +2285,7 @@ def _unquantify_allclose_arguments(actual, desired, rtol, atol):
                 f"({actual.unit}) are not convertible"
             )
 
-    rtol = Quantity(rtol, subok=True, copy=COPY_IF_NEEDED)
+    rtol = Quantity(rtol, subok=True, copy=None)
     try:
         rtol = rtol.to(dimensionless_unscaled)
     except Exception:

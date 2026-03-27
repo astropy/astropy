@@ -100,13 +100,13 @@ def discretize_model(model, x_range, y_range=None, mode="center", factor=10):
         evaluated. The upper bound is non-inclusive. A ``x_range`` of
         ``(0, 3)`` means the model will be evaluated at x pixels 0, 1,
         and 2. The difference between the upper and lower bound must be
-        a whole number so that the output array size is well defined.
+        a whole number so that the output array size is well-defined.
     y_range : 2-tuple or `None`, optional
         Lower and upper bounds of y pixel values at which the model is
         evaluated. The upper bound is non-inclusive. A ``y_range`` of
         ``(0, 3)`` means the model will be evaluated at y pixels of 0,
         1, and 2. The difference between the upper and lower bound must
-        be a whole number so that the output array size is well defined.
+        be a whole number so that the output array size is well-defined.
         ``y_range`` is necessary only for 2D models.
     mode : {'center', 'linear_interp', 'oversample', 'integrate'}, optional
         One of the following modes:

@@ -685,7 +685,7 @@ def test_regression_10422(mjd):
     size=1 non-scalar Time.
     """
     # Avoid trying to download new IERS data.
-    with iers.earth_orientation_table.set(iers.IERS_B.open(iers.IERS_B_FILE)):
+    with iers.conf.set_temp("auto_max_age", None):
         t = Time(mjd, format="mjd", scale="tai")
         loc = EarthLocation(88258.0 * u.m, -4924882.2 * u.m, 3943729.0 * u.m)
         p, v = loc.get_gcrs_posvel(obstime=t)

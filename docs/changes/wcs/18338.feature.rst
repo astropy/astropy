@@ -1,3 +1,0 @@
-Added a ``perserve_units`` keyword argument to ``WCS`` to optionally request
-that units are not converted to SI (the default behavior is for celestial axes
-to have units converted to degrees, and spectral axes to m or Hz).

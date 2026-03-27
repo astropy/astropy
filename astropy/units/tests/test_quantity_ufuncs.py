@@ -10,18 +10,14 @@ from typing import NamedTuple
 import numpy as np
 import pytest
 from erfa import ufunc as erfa_ufunc
+from numpy._core import umath as np_umath
 from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
-from astropy.utils.compat.numpycompat import NUMPY_LT_1_25, NUMPY_LT_2_0, NUMPY_LT_2_3
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_3
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-
-if NUMPY_LT_2_0:
-    from numpy.core import umath as np_umath
-else:
-    from numpy._core import umath as np_umath
 
 
 class testcase(NamedTuple):
@@ -383,7 +379,6 @@ class TestQuantityMathFuncs:
         r2 = np.matmul(q1, q2)
         assert np.all(r2 == np.matmul(q1.value, q2.value) * q1.unit * q2.unit)
 
-    @pytest.mark.skipif(NUMPY_LT_2_0, reason="vecdot only added in numpy 2.0")
     def test_vecdot(self):
         q1 = np.array([1j, 2j, 3j]) * u.m
         q2 = np.array([4j, 5j, 6j]) / u.s
@@ -1111,6 +1106,14 @@ class TestInplaceUfuncs:
         a[:2] += q  # This used to fail
         assert_array_equal(a, np.array([0.125, 1.25, 2.0]))
 
+    def test_ndarray_inplace_op_with_dimensionless_quantity(self):
+        # Regression test for #18866 - multiplying a bare array inplace with
+        # a dimensionless Quantity required the unit to be u.dimensionless_unscaled.
+        # Mere equality was not good enough.
+        arr = np.ones((1,))
+        arr *= 1 / np.cos(0 * u.deg)
+        assert arr[0] == 1
+
 
 class TestWhere:
     """Test the where argument in ufuncs."""
@@ -1122,9 +1125,6 @@ class TestWhere:
         assert result is out
         assert_array_equal(result, [1000.0, 1001.0, 1002.0, 0.0] << u.m)
 
-    @pytest.mark.xfail(
-        NUMPY_LT_1_25, reason="where array_ufunc support introduced in numpy 1.25"
-    )
     def test_exception_with_where_quantity(self):
         a = np.ones(2)
         where = np.ones(2, bool) << u.m
@@ -1659,3 +1659,25 @@ if HAS_SCIPY:
                 ),
             ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+
+class TestLinalg:
+    def test_matrix_rank(self):
+        q = np.eye(3) * u.m
+        rank = np.linalg.matrix_rank(q)
+        assert rank == 3
+        # Rank is an integer, typically np.int64,
+        # but size might vary across architectures
+        assert isinstance(rank, np.integer)
+        q2 = np.ones((3, 3)) * u.s
+        rank2 = np.linalg.matrix_rank(q2)
+        assert rank2 == 1
+
+    @pytest.mark.parametrize(
+        "function, expected_unit", [(np.linalg.det, u.m**2), (np.linalg.norm, u.m)]
+    )
+    def test_other_linalg(self, function, expected_unit):
+        # Det and Norm are often used with Quantities
+        q = np.eye(2) * u.m
+        result = function(q)
+        assert result.unit == expected_unit

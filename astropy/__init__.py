@@ -146,13 +146,14 @@ class physical_constants(base_constants_version):
     """
 
     # Maintainers: update when new constants are added
-    _value = "codata2018"
+    _value = "codata2022"
 
     _versions = dict(
         codata2022="codata2022",
         codata2018="codata2018",
         codata2014="codata2014",
         codata2010="codata2010",
+        astropyconst80="codata2022",
         astropyconst40="codata2018",
         astropyconst20="codata2014",
         astropyconst13="codata2010",
@@ -170,6 +171,7 @@ class astronomical_constants(base_constants_version):
     _versions = dict(
         iau2015="iau2015",
         iau2012="iau2012",
+        astropyconst80="iau2015",
         astropyconst40="iau2015",
         astropyconst20="iau2015",
         astropyconst13="iau2012",
@@ -180,7 +182,7 @@ class astronomical_constants(base_constants_version):
 from .tests.runner import TestRunner
 
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=PendingDeprecationWarning)
+    warnings.filterwarnings("ignore", message="The TestRunner")
     test = TestRunner.make_test_runner_in(__path__[0])
 
 

@@ -1,1 +1,0 @@
-Cosmology methods now exclusively return arrays, not floats or other scalars.

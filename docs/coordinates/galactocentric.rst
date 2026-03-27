@@ -100,9 +100,9 @@ The full rotation matrix thus far is:
    \begin{gathered}
        \boldsymbol{R} = \boldsymbol{R}_3 \boldsymbol{R}_1 \boldsymbol{R}_2 = \\
        \begin{bmatrix}
-         \cos\alpha_{\rm GC}\cos\delta_{\rm GC}& \cos\delta_{\rm GC}\sin\alpha_{\rm GC}& -\sin\delta_{\rm GC}\\
-         \cos\alpha_{\rm GC}\sin\delta_{\rm GC}\sin\eta - \sin\alpha_{\rm GC}\cos\eta & \sin\alpha_{\rm GC}\sin\delta_{\rm GC}\sin\eta + \cos\alpha_{\rm GC}\cos\eta & \cos\delta_{\rm GC}\sin\eta\\
-         \cos\alpha_{\rm GC}\sin\delta_{\rm GC}\cos\eta + \sin\alpha_{\rm GC}\sin\eta & \sin\alpha_{\rm GC}\sin\delta_{\rm GC}\cos\eta - \cos\alpha_{\rm GC}\sin\eta & \cos\delta_{\rm GC}\cos\eta
+         \cos\alpha_{\rm GC}\cos\delta_{\rm GC}& \cos\delta_{\rm GC}\sin\alpha_{\rm GC}& \sin\delta_{\rm GC}\\
+         -\cos\alpha_{\rm GC}\sin\delta_{\rm GC}\sin\eta - \sin\alpha_{\rm GC}\cos\eta & -\sin\alpha_{\rm GC}\sin\delta_{\rm GC}\sin\eta + \cos\alpha_{\rm GC}\cos\eta & \cos\delta_{\rm GC}\sin\eta\\
+         -\cos\alpha_{\rm GC}\sin\delta_{\rm GC}\cos\eta + \sin\alpha_{\rm GC}\sin\eta & -\sin\alpha_{\rm GC}\sin\delta_{\rm GC}\cos\eta - \cos\alpha_{\rm GC}\sin\eta & \cos\delta_{\rm GC}\cos\eta
        \end{bmatrix}\end{gathered}
 
 With the rotated position vector

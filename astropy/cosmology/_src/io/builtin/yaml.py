@@ -17,6 +17,8 @@ require YAML serialization.
                   Tcmb0=2.7255 K, Neff=3.046, m_nu=[0. 0. 0.06] eV, Ob0=0.04897)
 """  # this is shown in the docs.
 
+__all__: list[str] = []  # nothing is publicly scoped
+
 from collections.abc import Callable
 
 from yaml import MappingNode
@@ -31,9 +33,31 @@ from astropy.cosmology._src.io.connect import convert_registry
 from astropy.cosmology._src.typing import _CosmoT
 
 from .mapping import from_mapping
-from .utils import FULLQUALNAME_SUBSTITUTIONS as QNS
 
-__all__: list[str] = []  # nothing is publicly scoped
+FULLQUALNAME_SUBSTITUTIONS = {
+    "astropy.cosmology._src.flrw.base.FLRW": "astropy.cosmology.FLRW",
+    "astropy.cosmology._src.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.LambdaCDM",
+    "astropy.cosmology._src.flrw.lambdacdm.FlatLambdaCDM": (
+        "astropy.cosmology.FlatLambdaCDM"
+    ),
+    "astropy.cosmology._src.flrw.w0wacdm.w0waCDM": "astropy.cosmology.w0waCDM",
+    "astropy.cosmology._src.flrw.w0wacdm.Flatw0waCDM": "astropy.cosmology.Flatw0waCDM",
+    "astropy.cosmology._src.flrw.w0wzcdm.w0wzCDM": "astropy.cosmology.w0wzCDM",
+    "astropy.cosmology._src.flrw.w0cdm.wCDM": "astropy.cosmology.wCDM",
+    "astropy.cosmology._src.flrw.w0cdm.FlatwCDM": "astropy.cosmology.FlatwCDM",
+    "astropy.cosmology._src.flrw.wpwazpcdm.wpwaCDM": "astropy.cosmology.wpwaCDM",
+    # ==== Paths removed in v8.0 ====
+    "astropy.cosmology.flrw.base.FLRW": "astropy.cosmology.FLRW",
+    "astropy.cosmology.flrw.lambdacdm.LambdaCDM": "astropy.cosmology.LambdaCDM",
+    "astropy.cosmology.flrw.lambdacdm.FlatLambdaCDM": "astropy.cosmology.FlatLambdaCDM",
+    "astropy.cosmology.flrw.w0wacdm.w0waCDM": "astropy.cosmology.w0waCDM",
+    "astropy.cosmology.flrw.w0wacdm.Flatw0waCDM": "astropy.cosmology.Flatw0waCDM",
+    "astropy.cosmology.flrw.w0wzcdm.w0wzCDM": "astropy.cosmology.w0wzCDM",
+    "astropy.cosmology.flrw.w0cdm.wCDM": "astropy.cosmology.wCDM",
+    "astropy.cosmology.flrw.w0cdm.FlatwCDM": "astropy.cosmology.FlatwCDM",
+    "astropy.cosmology.flrw.wpwazpcdm.wpwaCDM": "astropy.cosmology.wpwaCDM",
+}
+"""Substitutions mapping the actual qualified name to its preferred value."""
 
 
 ##############################################################################
@@ -137,9 +161,8 @@ def register_cosmology_yaml(cosmo_cls: type[Cosmology]) -> None:
     cosmo_cls : `~astropy.cosmology.Cosmology` class
     """
     fqn = f"{cosmo_cls.__module__}.{cosmo_cls.__qualname__}"
-    tag = "!" + QNS.get(
-        fqn, fqn
-    )  # Possibly sub fully qualified name for a preferred path
+    fqn = FULLQUALNAME_SUBSTITUTIONS.get(fqn, fqn)  # Possibly sub for a preferred path
+    tag = "!" + fqn
 
     AstropyDumper.add_representer(cosmo_cls, yaml_representer(tag))
     AstropyLoader.add_constructor(tag, yaml_constructor(cosmo_cls))
