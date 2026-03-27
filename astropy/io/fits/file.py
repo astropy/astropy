@@ -95,6 +95,17 @@ MEMMAP_MODES = {
     "denywrite": mmap.ACCESS_READ,
 }
 
+# Mapping from astropy FITS modes to np.memmap mode strings, used when
+# constructing np.memmap instances so that the public ``mode`` attribute
+# is set correctly.
+MEMMAP_NUMPY_MODES = {
+    "readonly": "c",
+    "copyonwrite": "c",
+    "update": "r+",
+    "append": "c",
+    "denywrite": "r",
+}
+
 # TODO: Eventually raise a warning, and maybe even later disable the use of
 # 'copyonwrite' and 'denywrite' modes unless memmap=True.  For now, however,
 # that would generate too many warnings for too many users.  If nothing else,
@@ -389,6 +400,7 @@ class _File:
                         self._mmap = mmap.mmap(
                             self._file.fileno(), 0, access=access_mode, offset=0
                         )
+                        self._mmap_mode = self.mode
                     except OSError as exc:
                         # NOTE: mode='readonly' results in the memory-mapping
                         # using the ACCESS_COPY mode in mmap so that users can
@@ -422,6 +434,7 @@ class _File:
                                 access=MEMMAP_MODES["denywrite"],
                                 offset=0,
                             )
+                            self._mmap_mode = "denywrite"
                         elif not self.strict_memmap:
                             # mmap failed but wasn't explicitly requested,
                             # fall back to non-mmap reading
@@ -436,9 +449,30 @@ class _File:
                             raise
 
                 if self._mmap is not None:
-                    return np.ndarray(
-                        shape=shape, dtype=dtype, offset=offset, buffer=self._mmap
+                    # Return a proper np.memmap so that downstream code can
+                    # detect memory-mapped data via isinstance(data, np.memmap)
+                    # and access .filename/.offset/.mode for efficient
+                    # serialization (e.g. in multiprocessing contexts).
+                    #
+                    # As recommended by the np.memmap docs, we pass our own
+                    # mmap object as the buffer rather than letting np.memmap
+                    # open the file (which would create a separate mmap per
+                    # HDU instead of sharing one for the whole file). See:
+                    # https://numpy.org/doc/stable/reference/generated/numpy.memmap.html
+                    result = np.ndarray.__new__(
+                        np.memmap,
+                        shape=shape,
+                        dtype=dtype,
+                        buffer=self._mmap,
+                        offset=offset,
                     )
+                    # These attributes are not needed for the array to
+                    # function, but allow downstream code to access
+                    # information about the underlying memory-mapped file.
+                    result.filename = self.name
+                    result.offset = offset
+                    result.mode = MEMMAP_NUMPY_MODES[self._mmap_mode]
+                    return result
 
             # Non-mmap path (also used as fallback when mmap fails)
             count = math.prod(shape)

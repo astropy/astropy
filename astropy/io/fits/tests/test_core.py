@@ -1305,6 +1305,27 @@ class TestFileFunctions(FitsTestCase):
             ):
                 hdul[1].data
 
+    def test_mmap_returns_memmap(self):
+        """Test that memory-mapped data is returned as np.memmap with
+        attributes that allow reconstructing access to the file."""
+
+        with fits.open(self.data("test0.fits"), memmap=True) as hdul:
+            data = hdul[1].data
+            assert isinstance(data, np.memmap)
+            assert data.filename == hdul._file.name
+            assert data.mode == "c"
+            assert data.offset is not None
+
+            # Verify we can reconstruct an equivalent memmap from scratch
+            reconstructed = np.memmap(
+                data.filename,
+                dtype=data.dtype,
+                mode=data.mode,
+                offset=data.offset,
+                shape=data.shape,
+            )
+            np.testing.assert_array_equal(data, reconstructed)
+
     def test_mmap_closing(self):
         """
         Tests that the mmap reference is closed/removed when there aren't any
