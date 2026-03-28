@@ -509,14 +509,7 @@ class Rotation2D(Model):
             If float, assumed in degrees.
 
         """
-        if x.shape != y.shape:
-            raise ValueError("Expected input arrays to have the same shape")
-        try:
-            inarr = np.stack(np.atleast_1d(x, y), axis=-2)
-        except u.UnitsError:
-            # Keep error message the same as it was with an explicit check.
-            raise u.UnitsError("x and y must have compatible units") from None
-
+        inarr = np.stack(np.atleast_1d(x, y), axis=-2)
         if isinstance(angle, u.Quantity):
             angle = angle.to_value(u.rad)
         x, y = np.moveaxis(np.matmul(cls._compute_matrix(angle), inarr), -2, 0)
