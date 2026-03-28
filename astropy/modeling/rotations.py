@@ -511,27 +511,15 @@ class Rotation2D(Model):
         """
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")
+        try:
+            inarr = np.stack(np.atleast_1d(x, y), axis=-2)
+        except u.UnitsError:
+            # Keep error message the same as it was with an explicit check.
+            raise u.UnitsError("x and y must have compatible units") from None
 
-        # If one argument has units, enforce they both have units and they are compatible.
-        x_unit = getattr(x, "unit", None)
-        y_unit = getattr(y, "unit", None)
-        has_units = x_unit is not None and y_unit is not None
-        if x_unit != y_unit:
-            if has_units and y_unit.is_equivalent(x_unit):
-                y = y.to(x_unit)
-                y_unit = x_unit
-            else:
-                raise u.UnitsError("x and y must have compatible units")
-
-        inarr = np.stack(np.atleast_1d(x, y), axis=-2)
         if isinstance(angle, u.Quantity):
             angle = angle.to_value(u.rad)
-        res = np.matmul(cls._compute_matrix(angle), inarr)
-        x, y = np.moveaxis(res, -2, 0)
-        if has_units:
-            return u.Quantity(x, unit=x_unit, subok=True), u.Quantity(
-                y, unit=y_unit, subok=True
-            )
+        x, y = np.moveaxis(np.matmul(cls._compute_matrix(angle), inarr), -2, 0)
         return x, y
 
     @staticmethod
