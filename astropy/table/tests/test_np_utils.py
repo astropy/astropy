@@ -4,14 +4,19 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy.table._np_utils import join_inner
+
+# Strict type aliases for 1D index arrays and 1D boolean mask arrays
+IndexArray = np.ndarray[tuple[int], np.dtype[np.intp]]
+MaskArray = np.ndarray[tuple[int], np.dtype[np.bool_]]
 
 
 @dataclass(kw_only=True, slots=True, frozen=True)
 class ArrayMaskPair:
-    array: list | np.ndarray
-    mask: list | np.ndarray
+    array: IndexArray
+    mask: MaskArray
 
 
 @dataclass(kw_only=True, slots=True, frozen=True)
@@ -65,10 +70,10 @@ class TestJoinInner:
 
         assert n_out == 3
         assert masked == 0
-        np.testing.assert_array_equal(left_out, [0, 1, 2])
-        np.testing.assert_array_equal(right_out, [0, 1, 2])
-        np.testing.assert_array_equal(left_mask, [False, False, False])
-        np.testing.assert_array_equal(right_mask, [False, False, False])
+        assert_array_equal(left_out, [0, 1, 2])
+        assert_array_equal(right_out, [0, 1, 2])
+        assert_array_equal(left_mask, [False, False, False])
+        assert_array_equal(right_mask, [False, False, False])
 
     @pytest.mark.parametrize(
         "join_type, expected",
@@ -76,32 +81,44 @@ class TestJoinInner:
             pytest.param(
                 0,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[1], mask=[False]),
-                    right=ArrayMaskPair(array=[0], mask=[False]),
+                    left=ArrayMaskPair(array=np.array([1]), mask=np.array([False])),
+                    right=ArrayMaskPair(array=np.array([0]), mask=np.array([False])),
                 ),
                 id="inner",
             ),
             pytest.param(
                 1,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[0, 1, 0], mask=[False, False, True]),
-                    right=ArrayMaskPair(array=[0, 0, 1], mask=[True, False, False]),
+                    left=ArrayMaskPair(
+                        array=np.array([0, 1, 0]), mask=np.array([False, False, True])
+                    ),
+                    right=ArrayMaskPair(
+                        array=np.array([0, 0, 1]), mask=np.array([True, False, False])
+                    ),
                 ),
                 id="outer",
             ),
             pytest.param(
                 2,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[0, 1], mask=[False, False]),
-                    right=ArrayMaskPair(array=[0, 0], mask=[True, False]),
+                    left=ArrayMaskPair(
+                        array=np.array([0, 1]), mask=np.array([False, False])
+                    ),
+                    right=ArrayMaskPair(
+                        array=np.array([0, 0]), mask=np.array([True, False])
+                    ),
                 ),
                 id="left",
             ),
             pytest.param(
                 3,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[1, 0], mask=[False, True]),
-                    right=ArrayMaskPair(array=[0, 1], mask=[False, False]),
+                    left=ArrayMaskPair(
+                        array=np.array([1, 0]), mask=np.array([False, True])
+                    ),
+                    right=ArrayMaskPair(
+                        array=np.array([0, 1]), mask=np.array([False, False])
+                    ),
                 ),
                 id="right",
             ),
@@ -117,10 +134,10 @@ class TestJoinInner:
         )
 
         assert n_out == len(expected.left.array)
-        np.testing.assert_array_equal(left_out, expected.left.array)
-        np.testing.assert_array_equal(left_mask, expected.left.mask)
-        np.testing.assert_array_equal(right_out, expected.right.array)
-        np.testing.assert_array_equal(right_mask, expected.right.mask)
+        assert_array_equal(left_out, expected.left.array)
+        assert_array_equal(left_mask, expected.left.mask)
+        assert_array_equal(right_out, expected.right.array)
+        assert_array_equal(right_mask, expected.right.mask)
 
     @pytest.mark.parametrize(
         "join_type, expected",
@@ -128,8 +145,8 @@ class TestJoinInner:
             pytest.param(
                 0,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[], mask=[]),
-                    right=ArrayMaskPair(array=[], mask=[]),
+                    left=ArrayMaskPair(array=np.array([]), mask=np.array([])),
+                    right=ArrayMaskPair(array=np.array([]), mask=np.array([])),
                 ),
                 id="inner",
             ),
@@ -137,10 +154,12 @@ class TestJoinInner:
                 1,
                 ExpectedResults(
                     left=ArrayMaskPair(
-                        array=[0, 1, 0, 0], mask=[False, False, True, True]
+                        array=np.array([0, 1, 0, 0]),
+                        mask=np.array([False, False, True, True]),
                     ),
                     right=ArrayMaskPair(
-                        array=[0, 0, 0, 1], mask=[True, True, False, False]
+                        array=np.array([0, 0, 0, 1]),
+                        mask=np.array([True, True, False, False]),
                     ),
                 ),
                 id="outer",
@@ -148,16 +167,24 @@ class TestJoinInner:
             pytest.param(
                 2,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[0, 1], mask=[False, False]),
-                    right=ArrayMaskPair(array=[0, 0], mask=[True, True]),
+                    left=ArrayMaskPair(
+                        array=np.array([0, 1]), mask=np.array([False, False])
+                    ),
+                    right=ArrayMaskPair(
+                        array=np.array([0, 0]), mask=np.array([True, True])
+                    ),
                 ),
                 id="left",
             ),
             pytest.param(
                 3,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[0, 0], mask=[True, True]),
-                    right=ArrayMaskPair(array=[0, 1], mask=[False, False]),
+                    left=ArrayMaskPair(
+                        array=np.array([0, 0]), mask=np.array([True, True])
+                    ),
+                    right=ArrayMaskPair(
+                        array=np.array([0, 1]), mask=np.array([False, False])
+                    ),
                 ),
                 id="right",
             ),
@@ -173,10 +200,10 @@ class TestJoinInner:
         )
 
         assert n_out == len(expected.left.array)
-        np.testing.assert_array_equal(left_out, expected.left.array)
-        np.testing.assert_array_equal(left_mask, expected.left.mask)
-        np.testing.assert_array_equal(right_out, expected.right.array)
-        np.testing.assert_array_equal(right_mask, expected.right.mask)
+        assert_array_equal(left_out, expected.left.array)
+        assert_array_equal(left_mask, expected.left.mask)
+        assert_array_equal(right_out, expected.right.array)
+        assert_array_equal(right_mask, expected.right.mask)
 
     @pytest.mark.parametrize(
         "join_type, expected",
@@ -184,8 +211,12 @@ class TestJoinInner:
             pytest.param(
                 0,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[0, 1], mask=[False, False]),
-                    right=ArrayMaskPair(array=[1, 2], mask=[False, False]),
+                    left=ArrayMaskPair(
+                        array=np.array([0, 1]), mask=np.array([False, False])
+                    ),
+                    right=ArrayMaskPair(
+                        array=np.array([1, 2]), mask=np.array([False, False])
+                    ),
                 ),
                 id="inner",
             ),
@@ -193,10 +224,12 @@ class TestJoinInner:
                 1,
                 ExpectedResults(
                     left=ArrayMaskPair(
-                        array=[0, 0, 1, 2, 0], mask=[True, False, False, False, True]
+                        array=np.array([0, 0, 1, 2, 0]),
+                        mask=np.array([True, False, False, False, True]),
                     ),
                     right=ArrayMaskPair(
-                        array=[0, 1, 2, 0, 3], mask=[False, False, False, True, False]
+                        array=np.array([0, 1, 2, 0, 3]),
+                        mask=np.array([False, False, False, True, False]),
                     ),
                 ),
                 id="outer",
@@ -204,8 +237,12 @@ class TestJoinInner:
             pytest.param(
                 2,
                 ExpectedResults(
-                    left=ArrayMaskPair(array=[0, 1, 2], mask=[False, False, False]),
-                    right=ArrayMaskPair(array=[1, 2, 0], mask=[False, False, True]),
+                    left=ArrayMaskPair(
+                        array=np.array([0, 1, 2]), mask=np.array([False, False, False])
+                    ),
+                    right=ArrayMaskPair(
+                        array=np.array([1, 2, 0]), mask=np.array([False, False, True])
+                    ),
                 ),
                 id="left",
             ),
@@ -213,10 +250,12 @@ class TestJoinInner:
                 3,
                 ExpectedResults(
                     left=ArrayMaskPair(
-                        array=[0, 0, 1, 0], mask=[True, False, False, True]
+                        array=np.array([0, 0, 1, 0]),
+                        mask=np.array([True, False, False, True]),
                     ),
                     right=ArrayMaskPair(
-                        array=[0, 1, 2, 3], mask=[False, False, False, False]
+                        array=np.array([0, 1, 2, 3]),
+                        mask=np.array([False, False, False, False]),
                     ),
                 ),
                 id="right",
@@ -233,10 +272,10 @@ class TestJoinInner:
         )
 
         assert n_out == len(expected.left.array)
-        np.testing.assert_array_equal(left_out, expected.left.array)
-        np.testing.assert_array_equal(left_mask, expected.left.mask)
-        np.testing.assert_array_equal(right_out, expected.right.array)
-        np.testing.assert_array_equal(right_mask, expected.right.mask)
+        assert_array_equal(left_out, expected.left.array)
+        assert_array_equal(left_mask, expected.left.mask)
+        assert_array_equal(right_out, expected.right.array)
+        assert_array_equal(right_mask, expected.right.mask)
 
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
     def test_duplicate_keys_cartesian(self, join_type):
@@ -292,8 +331,8 @@ class TestJoinInner:
 
         assert n_out == 1
         assert masked == 0
-        np.testing.assert_array_equal(left_out, [0])
-        np.testing.assert_array_equal(right_out, [0])
+        assert_array_equal(left_out, [0])
+        assert_array_equal(right_out, [0])
 
     def test_many_unique_keys_inner(self):
         """Scale test for inner join specifically."""
