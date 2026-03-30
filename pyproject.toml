@@ -43,7 +43,7 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "astropy-iers-data>=0.2026.3.16.0.53.33",
+    "astropy-iers-data>=0.2026.3.23.0.51.38",
     "numpy>=2.0",
     "packaging>=25.0",
     "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
@@ -94,7 +94,7 @@ all = [
     "mpmath>=1.2.1",
     "asdf-astropy>=0.7.0",
     "bottleneck>=1.4.0",
-    "fsspec[http]>=2023.4.0",
+    "fsspec[http,s3]>=2023.4.0",  # keep in sync with dependency-groups.dataframe
     "s3fs>=2023.4.0",
     "uncompresspy>=0.4.0"
 ]
@@ -144,6 +144,7 @@ docs = [
     "sphinxcontrib-globalsubs >= 0.1.1",
     "matplotlib>=3.9.1",  # https://github.com/matplotlib/matplotlib/issues/28234
     "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
+    "fsspec[http,s3]>=2023.4.0",  # keep in sync with dependency-groups.dataframe
 ]
 # These group together all the dependencies needed for developing in Astropy.
 dev = [

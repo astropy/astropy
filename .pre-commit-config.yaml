@@ -3,6 +3,8 @@ ci:
   autofix_prs: false
   autoupdate_schedule: 'monthly'
 
+exclude: "^cextern"
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -109,4 +111,3 @@ repos:
     hooks:
       - id: clang-format
         files: \.(c|h)$
-        exclude: '(^|/)cextern/|^astropy/wcs/|^astropy/io/fits/hdu/compressed/src/(fits_hcompress\.h|fits_hdecompress\.h|pliocomp\.h|quantize\.h|ricecomp\.h|unquantize\.c|unquantize\.h)$'

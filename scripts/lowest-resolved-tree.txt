@@ -1,5 +1,5 @@
 astropy
-├── astropy-iers-data v0.2026.3.16.0.53.33
+├── astropy-iers-data v0.2026.3.23.0.51.38
 ├── numpy v2.0.0
 ├── packaging v25.0
 ├── pyerfa v2.0.1.3
@@ -57,11 +57,23 @@ astropy
 │   │   │   └── yarl v1.8.2
 │   │   │       ├── idna v2.5
 │   │   │       └── multidict v6.0.3
-│   │   └── requests v2.30.0 (extra: http)
-│   │       ├── certifi v2022.6.15.1
-│   │       ├── charset-normalizer v2.0.0
-│   │       ├── idna v2.5
-│   │       └── urllib3 v1.25.4
+│   │   ├── requests v2.30.0 (extra: http)
+│   │   │   ├── certifi v2022.6.15.1
+│   │   │   ├── charset-normalizer v2.0.0
+│   │   │   ├── idna v2.5
+│   │   │   └── urllib3 v1.25.4
+│   │   └── s3fs v2023.4.0 (extra: s3)
+│   │       ├── aiobotocore v2.5.0
+│   │       │   ├── aiohttp v3.8.3 (*)
+│   │       │   ├── aioitertools v0.5.1
+│   │       │   ├── botocore v1.29.76
+│   │       │   │   ├── jmespath v0.7.1
+│   │       │   │   ├── python-dateutil v2.8.2
+│   │       │   │   │   └── six v1.9.0
+│   │       │   │   └── urllib3 v1.25.4
+│   │       │   └── wrapt v1.14.1
+│   │       ├── aiohttp v3.8.3 (*)
+│   │       └── fsspec v2023.4.0 (*)
 │   ├── importlib-metadata v4.13.0 (*)
 │   ├── packaging v25.0
 │   ├── partd v1.4.0
@@ -73,15 +85,14 @@ astropy
 │   │   ├── dask v2024.8.0 (*)
 │   │   ├── pandas v2.2.2
 │   │   │   ├── numpy v2.0.0
-│   │   │   ├── python-dateutil v2.8.2
-│   │   │   │   └── six v1.9.0
+│   │   │   ├── python-dateutil v2.8.2 (*)
 │   │   │   ├── pytz v2020.1
 │   │   │   └── tzdata v2022.7
 │   │   └── pyarrow v16.0.0
 │   │       └── numpy v2.0.0
 │   ├── numpy v2.0.0 (extra: dataframe)
 │   └── pandas v2.2.2 (extra: dataframe) (*)
-├── fsspec[http] v2023.4.0 (extra: all) (*)
+├── fsspec[http, s3] v2023.4.0 (extra: all) (*)
 ├── h5py v3.11.0 (extra: all)
 │   └── numpy v2.0.0
 ├── html5lib v1.1 (extra: all)
@@ -202,23 +213,14 @@ astropy
 ├── pandas v2.2.2 (extra: all) (*)
 ├── pyarrow v16.0.0 (extra: all) (*)
 ├── pytz v2020.1 (extra: all)
-├── s3fs v2023.4.0 (extra: all)
-│   ├── aiobotocore v2.5.0
-│   │   ├── aiohttp v3.8.3 (*)
-│   │   ├── aioitertools v0.5.1
-│   │   ├── botocore v1.29.76
-│   │   │   ├── jmespath v0.7.1
-│   │   │   ├── python-dateutil v2.8.2 (*)
-│   │   │   └── urllib3 v1.25.4
-│   │   └── wrapt v1.14.1
-│   ├── aiohttp v3.8.3 (*)
-│   └── fsspec v2023.4.0 (*)
+├── s3fs v2023.4.0 (extra: all) (*)
 ├── scipy v1.13.0 (extra: all)
 │   └── numpy v2.0.0
 ├── sortedcontainers v2.1.0 (extra: all)
 ├── uncompresspy v0.4.0 (extra: all)
 ├── coverage v7.2.0 (extra: dev)
 ├── dask[dataframe] v2024.8.0 (extra: dev) (*)
+├── fsspec[http, s3] v2023.4.0 (extra: dev) (*)
 ├── hypothesis v6.84.0 (extra: dev)
 │   ├── attrs v20.1.0
 │   └── sortedcontainers v2.1.0
@@ -330,7 +332,7 @@ astropy
 ├── certifi v2022.6.15.1 (extra: dev-all)
 ├── coverage v7.2.0 (extra: dev-all)
 ├── dask[dataframe] v2024.8.0 (extra: dev-all) (*)
-├── fsspec[http] v2023.4.0 (extra: dev-all) (*)
+├── fsspec[http, s3] v2023.4.0 (extra: dev-all) (*)
 ├── h5py v3.11.0 (extra: dev-all) (*)
 ├── html5lib v1.1 (extra: dev-all) (*)
 ├── hypothesis v6.84.0 (extra: dev-all) (*)
@@ -389,6 +391,7 @@ astropy
 │       └── platformdirs v4.5.1
 ├── uncompresspy v0.4.0 (extra: dev-all)
 ├── dask[dataframe] v2024.8.0 (extra: docs) (*)
+├── fsspec[http, s3] v2023.4.0 (extra: docs) (*)
 ├── jinja2 v3.1.3 (extra: docs) (*)
 ├── matplotlib v3.9.1.post1 (extra: docs) (*)
 ├── narwhals v1.42.0 (extra: docs)
@@ -425,7 +428,7 @@ astropy
 ├── certifi v2022.6.15.1 (extra: test-all)
 ├── coverage v7.2.0 (extra: test-all)
 ├── dask[dataframe] v2024.8.0 (extra: test-all) (*)
-├── fsspec[http] v2023.4.0 (extra: test-all) (*)
+├── fsspec[http, s3] v2023.4.0 (extra: test-all) (*)
 ├── h5py v3.11.0 (extra: test-all) (*)
 ├── html5lib v1.1 (extra: test-all) (*)
 ├── hypothesis v6.84.0 (extra: test-all) (*)
