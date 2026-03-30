@@ -30,14 +30,18 @@ def _make_join_inputs(left_keys, right_keys):
     Reproduces the pre-processing from `operations.py` that prepares
     index arrays for `join_inner()`.
 
-    Note for future refactoring: This helper exists because `_get_join_sort_idxs`
-    is currently tightly coupled to the high-level `Table` interface. Ideally,
-    the internals should be re-wired so this low-level logic doesn't require
-    full Table objects, which would remove the need for this mock function.
+    This helper exists because `_get_join_sort_idxs` is currently tightly
+    coupled to the high-level `Table` interface. Ideally, the internals
+    should be re-wired so this low-level logic doesn't require full Table
+    objects, which would remove the need for this mock function.
     """
     combined = np.concatenate([left_keys, right_keys])
     idx_sort = combined.argsort(kind="stable")
     sorted_keys = combined[idx_sort]
+
+    # Identify the boundaries between unique keys.
+    # `diffs` is True wherever a key changes, allowing `idxs` to store
+    # the index of the first occurrence of each unique key in the sorted array.
     diffs = np.concatenate(([True], sorted_keys[1:] != sorted_keys[:-1], [True]))
     idxs = np.flatnonzero(diffs)
 
@@ -45,7 +49,7 @@ def _make_join_inputs(left_keys, right_keys):
     idxs = np.asarray(idxs, dtype=np.intp)
     idx_sort = np.asarray(idx_sort, dtype=np.intp)
 
-    return idxs, idx_sort, len(left_keys)
+    return idxs, idx_sort
 
 
 # Common parametrization for simple join type loops to keep code clean
@@ -61,19 +65,18 @@ class TestJoinInner:
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
     def test_perfect_match(self, join_type):
         """A perfect match behaves identically across all join types."""
-        left = [1, 2, 3]
-        right = [1, 2, 3]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
-            idxs, idx_sort, len_left, join_type
+        keys = [1, 2, 3]
+        idxs, idx_sort = _make_join_inputs(keys, keys)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
+            idxs, idx_sort, len(keys), join_type
         )
 
-        assert n_out == 3
+        assert n_out == len(keys)
         assert masked == 0
-        assert_array_equal(left_out, [0, 1, 2])
-        assert_array_equal(right_out, [0, 1, 2])
-        assert_array_equal(left_mask, [False, False, False])
-        assert_array_equal(right_mask, [False, False, False])
+        assert_array_equal(left_indices, [0, 1, 2])
+        assert_array_equal(right_indices, [0, 1, 2])
+        assert_array_equal(left_mask, np.full(3, False))
+        assert_array_equal(right_mask, np.full(3, False))
 
     @pytest.mark.parametrize(
         "join_type, expected",
@@ -101,9 +104,7 @@ class TestJoinInner:
             pytest.param(
                 2,
                 ExpectedResults(
-                    left=ArrayMaskPair(
-                        array=np.array([0, 1]), mask=np.array([False, False])
-                    ),
+                    left=ArrayMaskPair(array=np.array([0, 1]), mask=np.full(2, False)),
                     right=ArrayMaskPair(
                         array=np.array([0, 0]), mask=np.array([True, False])
                     ),
@@ -116,9 +117,7 @@ class TestJoinInner:
                     left=ArrayMaskPair(
                         array=np.array([1, 0]), mask=np.array([False, True])
                     ),
-                    right=ArrayMaskPair(
-                        array=np.array([0, 1]), mask=np.array([False, False])
-                    ),
+                    right=ArrayMaskPair(array=np.array([0, 1]), mask=np.full(2, False)),
                 ),
                 id="right",
             ),
@@ -128,15 +127,15 @@ class TestJoinInner:
         """Tests left=[1, 2] and right=[2, 3] across all join types."""
         left = [1, 2]
         right = [2, 3]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
-            idxs, idx_sort, len_left, join_type
+        idxs, idx_sort = _make_join_inputs(left, right)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
+            idxs, idx_sort, len(left), join_type
         )
 
         assert n_out == len(expected.left.array)
-        assert_array_equal(left_out, expected.left.array)
+        assert_array_equal(left_indices, expected.left.array)
         assert_array_equal(left_mask, expected.left.mask)
-        assert_array_equal(right_out, expected.right.array)
+        assert_array_equal(right_indices, expected.right.array)
         assert_array_equal(right_mask, expected.right.mask)
 
     @pytest.mark.parametrize(
@@ -167,24 +166,16 @@ class TestJoinInner:
             pytest.param(
                 2,
                 ExpectedResults(
-                    left=ArrayMaskPair(
-                        array=np.array([0, 1]), mask=np.array([False, False])
-                    ),
-                    right=ArrayMaskPair(
-                        array=np.array([0, 0]), mask=np.array([True, True])
-                    ),
+                    left=ArrayMaskPair(array=np.array([0, 1]), mask=np.full(2, False)),
+                    right=ArrayMaskPair(array=np.array([0, 0]), mask=np.full(2, True)),
                 ),
                 id="left",
             ),
             pytest.param(
                 3,
                 ExpectedResults(
-                    left=ArrayMaskPair(
-                        array=np.array([0, 0]), mask=np.array([True, True])
-                    ),
-                    right=ArrayMaskPair(
-                        array=np.array([0, 1]), mask=np.array([False, False])
-                    ),
+                    left=ArrayMaskPair(array=np.array([0, 0]), mask=np.full(2, True)),
+                    right=ArrayMaskPair(array=np.array([0, 1]), mask=np.full(2, False)),
                 ),
                 id="right",
             ),
@@ -194,15 +185,15 @@ class TestJoinInner:
         """Tests disjoint arrays left=[1, 2] and right=[3, 4] across all join types."""
         left = [1, 2]
         right = [3, 4]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
-            idxs, idx_sort, len_left, join_type
+        idxs, idx_sort = _make_join_inputs(left, right)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
+            idxs, idx_sort, len(left), join_type
         )
 
         assert n_out == len(expected.left.array)
-        assert_array_equal(left_out, expected.left.array)
+        assert_array_equal(left_indices, expected.left.array)
         assert_array_equal(left_mask, expected.left.mask)
-        assert_array_equal(right_out, expected.right.array)
+        assert_array_equal(right_indices, expected.right.array)
         assert_array_equal(right_mask, expected.right.mask)
 
     @pytest.mark.parametrize(
@@ -211,12 +202,8 @@ class TestJoinInner:
             pytest.param(
                 0,
                 ExpectedResults(
-                    left=ArrayMaskPair(
-                        array=np.array([0, 1]), mask=np.array([False, False])
-                    ),
-                    right=ArrayMaskPair(
-                        array=np.array([1, 2]), mask=np.array([False, False])
-                    ),
+                    left=ArrayMaskPair(array=np.array([0, 1]), mask=np.full(2, False)),
+                    right=ArrayMaskPair(array=np.array([1, 2]), mask=np.full(2, False)),
                 ),
                 id="inner",
             ),
@@ -238,7 +225,7 @@ class TestJoinInner:
                 2,
                 ExpectedResults(
                     left=ArrayMaskPair(
-                        array=np.array([0, 1, 2]), mask=np.array([False, False, False])
+                        array=np.array([0, 1, 2]), mask=np.full(3, False)
                     ),
                     right=ArrayMaskPair(
                         array=np.array([1, 2, 0]), mask=np.array([False, False, True])
@@ -254,8 +241,7 @@ class TestJoinInner:
                         mask=np.array([True, False, False, True]),
                     ),
                     right=ArrayMaskPair(
-                        array=np.array([0, 1, 2, 3]),
-                        mask=np.array([False, False, False, False]),
+                        array=np.array([0, 1, 2, 3]), mask=np.full(4, False)
                     ),
                 ),
                 id="right",
@@ -263,54 +249,51 @@ class TestJoinInner:
         ],
     )
     def test_different_sizes(self, join_type, expected):
-        """Tests asymmetric overlap where left=[1, 2, 3] and right=[0, 1, 2, 4]."""
+        """Tests overlap with arrays of different lengths and partially disjoint keys."""
         left = [1, 2, 3]
         right = [0, 1, 2, 4]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
-            idxs, idx_sort, len_left, join_type
+        idxs, idx_sort = _make_join_inputs(left, right)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
+            idxs, idx_sort, len(left), join_type
         )
 
         assert n_out == len(expected.left.array)
-        assert_array_equal(left_out, expected.left.array)
+        assert_array_equal(left_indices, expected.left.array)
         assert_array_equal(left_mask, expected.left.mask)
-        assert_array_equal(right_out, expected.right.array)
+        assert_array_equal(right_indices, expected.right.array)
         assert_array_equal(right_mask, expected.right.mask)
 
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
     def test_duplicate_keys_cartesian(self, join_type):
         """Cartesian expansion behaves identically across all join types."""
-        left = [1, 1]
-        right = [1, 1]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
-            idxs, idx_sort, len_left, join_type
+        keys = [1, 1]
+        idxs, idx_sort = _make_join_inputs(keys, keys)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
+            idxs, idx_sort, len(keys), join_type
         )
         assert n_out == 4
-        assert len(left_out) == n_out
-        assert len(right_out) == n_out
+        assert len(left_indices) == n_out
+        assert len(right_indices) == n_out
 
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
     def test_large_cartesian(self, join_type):
-        """Scale test for cartesian expansion."""
-        left = [7] * 5
-        right = [7] * 5
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
-            idxs, idx_sort, len_left, join_type
+        """Test Cartesian expansion with larger arrays."""
+        keys = [7] * 5
+        idxs, idx_sort = _make_join_inputs(keys, keys)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
+            idxs, idx_sort, len(keys), join_type
         )
         assert n_out == 25
 
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
     def test_single_matching_row(self, join_type):
         """Edge case: Arrays of length 1."""
-        left = [42]
-        right = [42]
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
-            idxs, idx_sort, len_left, join_type
+        keys = [42]
+        idxs, idx_sort = _make_join_inputs(keys, keys)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
+            idxs, idx_sort, len(keys), join_type
         )
-        assert n_out == 1
+        assert n_out == len(keys)
         assert masked == 0
 
     def test_nan_handling(self):
@@ -321,26 +304,25 @@ class TestJoinInner:
         """
         left = np.array([1.0, np.nan, np.nan])
         right = np.array([1.0, np.nan])
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
+        idxs, idx_sort = _make_join_inputs(left, right)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
             idxs,
             idx_sort,
-            len_left,
+            len(left),
             0,  # Inner join
         )
 
         assert n_out == 1
         assert masked == 0
-        assert_array_equal(left_out, [0])
-        assert_array_equal(right_out, [0])
+        assert_array_equal(left_indices, [0])
+        assert_array_equal(right_indices, [0])
 
     def test_many_unique_keys_inner(self):
         """Scale test for inner join specifically."""
-        left = np.arange(100)
-        right = np.arange(100)
-        idxs, idx_sort, len_left = _make_join_inputs(left, right)
-        masked, n_out, left_out, left_mask, right_out, right_mask = join_inner(
-            idxs, idx_sort, len_left, 0
+        keys = np.arange(100)
+        idxs, idx_sort = _make_join_inputs(keys, keys)
+        masked, n_out, left_indices, left_mask, right_indices, right_mask = join_inner(
+            idxs, idx_sort, len(keys), 0
         )
         assert n_out == 100
         assert masked == 0
