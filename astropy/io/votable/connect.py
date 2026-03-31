@@ -173,7 +173,7 @@ def write_table_votable(
     table_file = from_table(input, table_id=table_id)
 
     # Write out file
-    table_file.to_xml(output, tabledata_format=tabledata_format)
+    table_file.write(output, tabledata_format=tabledata_format)
 
 
 io_registry.register_reader("votable", Table, read_table_votable)
@@ -238,8 +238,7 @@ def write_table_votable_parquet(input, output, column_metadata, *, overwrite=Fal
     # we can maybe make this more efficient and instead write the
     # VOTable file from scratch, especially the FIELDS, which are the
     # most important.
-    votablefile = VOTableFile()
-    votable = votablefile.from_table(input)
+    votable = VOTableFile.from_table(input)
 
     # Add the fields
     # Maybe there is a smarter way to do this iteratively.
@@ -251,7 +250,7 @@ def write_table_votable_parquet(input, output, column_metadata, *, overwrite=Fal
     if os.path.exists(output) and not overwrite:
         raise OSError(NOT_OVERWRITING_MSG.format(output))
 
-    votable.to_xml(output, tabledata_format="binary")
+    votable.write(output, tabledata_format="binary")
 
     # Now reopen the binary file and replace the binary part with
     # the stream relating to the FITS file. This all is a bit flimsy
