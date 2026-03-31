@@ -322,19 +322,19 @@ class RipleysKEstimator:
                 np.minimum(self.x_max - data[:, 0], self.y_max - data[:, 1]),
                 np.minimum(data[:, 0] - self.x_min, data[:, 1] - self.y_min),
             )
+            # Precompute full distance matrix
+            diff = data[:, np.newaxis, :] - data[np.newaxis, :, :]
+            dx = diff[:, :, 0]
+            dy = diff[:, :, 1]
+            dist_matrix = np.hypot(dx, dy)
+            np.fill_diagonal(dist_matrix, np.inf)  # implicitly excludes diagonal
 
             for r in range(len(radii)):
-                for i in range(npts):
-                    for j in range(npts):
-                        if i != j:
-                            diff = abs(data[i] - data[j])
-                            dist = math.sqrt((diff * diff).sum())
-                            if dist < radii[r] < lt_dist[i]:
-                                ripley[r] = ripley[r] + 1
-                lt_dist_sum = (lt_dist > radii[r]).sum()
-                if not lt_dist_sum == 0:
-                    ripley[r] = ripley[r] / lt_dist_sum
-
+                valid_i = lt_dist > radii[r]
+                ripley[r] = np.sum(dist_matrix[valid_i, :] < radii[r])
+                n_interior = valid_i.sum()
+                if n_interior != 0:
+                    ripley[r] = ripley[r] / n_interior
             ripley = self.area * ripley / npts
         # Cressie book eq 8.4.22 page 640
         elif mode == "ripley":
