@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.5
+# GNU makefile for building WCSLIB 8.6
 #
 # Summary of the main targets
 # ---------------------------
@@ -33,8 +33,8 @@
 #      C/GNUmakefile.
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-# http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: GNUmakefile,v 8.5 2025/12/06 13:47:42 mcalabre Exp $
+# http://www.atnf.csiro.au/computing/software/wcs
+# $Id: GNUmakefile,v 8.6 2026/03/29 13:53:57 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .
@@ -188,14 +188,14 @@ dist :
 	   chmod 444 $(WCSLIBPKG).tar.bz2
 
 install_dist :
-	   mv -f $(WCSLIBPKG).tar.bz2 ../wcslib-releases/
-	   cd ../wcslib-releases/ && ./mkindex
-	   cp -fp CHANGES wcslib.pdf ../wwwatdocs/wcs/
-	   rsync --archive --delete html/ ../wwwatdocs/wcs/wcslib/
 	   scp -p $(WCSLIBPKG).tar.bz2 cal103@venice:/nfs/ftp/software/wcslib/
 	   ssh cal103@venice "cd /nfs/ftp/software/wcslib/ && \
 	     rm -f wcslib.tar.bz2 && \
 	     ln -s $(WCSLIBPKG).tar.bz2 wcslib.tar.bz2"
+	   rsync --archive --delete html/ ../wwwatdocs/wcs/wcslib/
+	   cp -fp CHANGES wcslib.pdf ../wwwatdocs/wcs/
+	   mv -f $(WCSLIBPKG).tar.bz2 ../wcslib-releases/
+	   cd ../wcslib-releases/ && ./mkindex > index.html
 
 configure : configure.ac
 	-@ echo ''
