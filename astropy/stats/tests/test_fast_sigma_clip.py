@@ -81,8 +81,9 @@ def test_all_masked_returns_nan():
         (
             1.0,
             3.0,
-            lambda lo_sym, hi_sym, lo, hi: lo.item() != lo_sym.item()
-            and hi.item() == hi_sym.item(),
+            lambda lo_sym, hi_sym, lo, hi: (
+                lo.item() != lo_sym.item() and hi.item() == hi_sym.item()
+            ),
         ),
         (5.0, 1.0, lambda lo_sym, hi_sym, lo, hi: hi.item() < hi_sym.item()),
         (
