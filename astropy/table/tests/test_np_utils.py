@@ -58,6 +58,8 @@ def _check_n_out_unique(n_out, join_type, left_keys, right_keys, expected=None):
     NOTE: This logic is only mathematically valid when all keys within both
     the left and right arrays are strictly unique.
     """
+    if len(set(left_keys)) < len(left_keys) or len(set(right_keys)) < len(right_keys):
+        raise AssertionError
     match join_type:
         case 0:  # inner
             n = len(set(left_keys).intersection(right_keys))
