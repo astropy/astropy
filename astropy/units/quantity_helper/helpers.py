@@ -18,6 +18,7 @@ from astropy.utils.compat.numpycompat import (
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
     NUMPY_LT_2_3,
+    NUMPY_LT_2_5,
 )
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
@@ -454,6 +455,9 @@ invariant_ufuncs = (
     np.trunc,
     np.positive,
 )
+if not NUMPY_LT_2_5:
+    invariant_ufuncs += (np_umath.imag, np_umath.real)
+
 for ufunc in invariant_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_invariant
 
