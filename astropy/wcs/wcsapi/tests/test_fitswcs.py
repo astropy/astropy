@@ -32,6 +32,7 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.wcs.wcs import WCS, WCSLIB_VERSION, FITSFixedWarning, NoConvergence, Sip
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES, custom_ctype_to_ucd_mapping
+from astropy.wcs.wcsapi.tests.helpers import assert_celestial_component
 
 ###############################################################################
 # The following example is the simplest WCS with default values
@@ -137,10 +138,10 @@ def test_simple_celestial():
 
     assert_equal(wcs.axis_correlation_matrix, True)
 
-    assert wcs.world_axis_object_components == [
-        ("celestial", 0, "spherical.lon.degree"),
-        ("celestial", 1, "spherical.lat.degree"),
-    ]
+    components = wcs.world_axis_object_components
+    assert len(components) == 2
+    assert_celestial_component(components[0], 0)
+    assert_celestial_component(components[1], 1)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -259,18 +260,11 @@ def test_spectral_cube():
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
-    assert len(wcs.world_axis_object_components) == 3
-    assert wcs.world_axis_object_components[0] == (
-        "celestial",
-        1,
-        "spherical.lat.degree",
-    )
-    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
-    assert wcs.world_axis_object_components[2] == (
-        "celestial",
-        0,
-        "spherical.lon.degree",
-    )
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1][:2] == ("spectral", 0)
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -379,18 +373,11 @@ def test_spectral_cube_nonaligned():
     # again here because in the past this failed when non-aligned axes were
     # present, so this serves as a regression test.
 
-    assert len(wcs.world_axis_object_components) == 3
-    assert wcs.world_axis_object_components[0] == (
-        "celestial",
-        1,
-        "spherical.lat.degree",
-    )
-    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
-    assert wcs.world_axis_object_components[2] == (
-        "celestial",
-        0,
-        "spherical.lon.degree",
-    )
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1][:2] == ("spectral", 0)
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -483,8 +470,8 @@ def test_time_cube():
     )
 
     components = wcs.world_axis_object_components
-    assert components[0] == ("celestial", 1, "spherical.lat.degree")
-    assert components[1] == ("celestial", 0, "spherical.lon.degree")
+    assert_celestial_component(components[0], 1)
+    assert_celestial_component(components[1], 0)
     assert components[2][:2] == ("time", 0)
     assert callable(components[2][2])
 
@@ -904,10 +891,10 @@ def test_caching_components_and_classes():
 
     wcs = WCS_SIMPLE_CELESTIAL.deepcopy()
 
-    assert wcs.world_axis_object_components == [
-        ("celestial", 0, "spherical.lon.degree"),
-        ("celestial", 1, "spherical.lat.degree"),
-    ]
+    components = wcs.world_axis_object_components
+    assert len(components) == 2
+    assert_celestial_component(components[0], 0)
+    assert_celestial_component(components[1], 1)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -925,6 +912,30 @@ def test_caching_components_and_classes():
     frame = wcs.world_axis_object_classes["celestial"][2]["frame"]
     assert isinstance(frame, FK5)
     assert frame.equinox.jyear == 2010.0
+
+
+@pytest.mark.parametrize("unit", ["arcsec", "mas"])
+def test_world_to_pixel_preserves_non_degree_celestial_units(unit):
+    header = Header()
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 100
+    header["NAXIS2"] = 100
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CUNIT1"] = unit
+    header["CUNIT2"] = unit
+    header["CRPIX1"] = 1
+    header["CRPIX2"] = 1
+    header["CRVAL1"] = 0
+    header["CRVAL2"] = 0
+    header["CDELT1"] = 1
+    header["CDELT2"] = 1
+
+    wcs = WCS(header, preserve_units=True)
+    sky = wcs.pixel_to_world(0, 56)
+
+    assert wcs.world_axis_units == [unit, unit]
+    assert_allclose(wcs.world_to_pixel(sky), (0, 56), atol=1e-14)
 
 
 def test_sub_wcsapi_attributes():
