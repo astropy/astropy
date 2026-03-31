@@ -1,3 +1,26 @@
+WCSLIB version 8.6 (2026/03/30)
+-------------------------------
+
+* C library
+
+  - In linx2p(), replaced two uses of goto statements to work around an
+    apparent compiler bug.  Reported by Cyril Richard.
+
+* PGSBOX
+
+  - PGSBOX now accounts for the possibility that the coordinate system
+    is not defined outside the frame.  Previously this was important for
+    determining axis crossings and hence axis labelling.  However, it is
+    not valid for -TAB coordinates in FITS for which extrapolation is
+    strictly limited to half a pixel.  
+
+* User manual
+
+  - Documentation generation moved to Doxygen 1.16.0 (was 1.15.0).
+    While the Doxygen bug reported in version 8.5 has now been fixed,
+    the makefile patch has been left in place for the time being.
+
+
 WCSLIB version 8.5 (2025/12/06)
 -------------------------------
 
@@ -18,7 +41,7 @@ having a ',x' suffix instead of ',v'.
 
 * User manual
 
-  - Documentation generation moved to doxygen 1.15.0 (was 1.12.0).
+  - Documentation generation moved to Doxygen 1.15.0 (was 1.12.0).
     The makefile patches doxygen.sty as per my Doxygen bug report 11881.
 
 
@@ -3624,4 +3647,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.5 2025/12/06 13:47:42 mcalabre Exp $
+$Id: CHANGES,v 8.6 2026/03/29 13:53:57 mcalabre Exp $
