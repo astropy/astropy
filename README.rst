@@ -139,3 +139,5 @@ Astropy is licensed under a 3-clause BSD style license - see the
 .. |pyOpenSci Peer-Reviewed| image:: https://pyopensci.org/badges/peer-reviewed.svg
     :target: https://github.com/pyOpenSci/software-review/issues/251
     :alt: pyOpenSci Peer-Reviewed
+
+See also issue `#6253 <https://github.com/astropy/astropy/issues/6253>`_ for related discussion.
