@@ -272,7 +272,7 @@ doctest_subpackage_requires = [
     "astropy/table/mixins/dask.py = dask",
     "docs/units/type_hints.rst = python<=3.13",  # PYTHON_LT_3_14 (PR 18140)
     "docs/units/structured_units.rst = pyerfa<2.0.1.7",  # PYERFA_LT_2_0_1_7
-    "docs/timeseries/index.rst = numpy<2.2.0.dev0",  # NUMPY_LT_2_2 (PR 17364)
+    "docs/timeseries/index.rst = numpy>=2.2.0",  # not NUMPY_LT_2_2 (PR 19509)
     "astropy/modeling/_fitting_parallel.py = dask",
     "docs/modeling/parallel-fitting.rst = dask",
     "docs/coordinates/example_gallery_plot_galactocentric_frame.rst = matplotlib",
