@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.5 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2025, Mark Calabretta
+  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +18,11 @@
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-  http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: dis.h,v 8.5 2025/12/06 13:47:41 mcalabre Exp $
+  http://www.atnf.csiro.au/computing/software/wcs
+  $Id: dis.h,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.5 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.6 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -34,7 +34,7 @@
 *
 =   "Representations of distortions in FITS world coordinate systems",
 =   Calabretta, M.R. et al. (WCS Paper IV, draft dated 2004/04/22),
-=   available from http://www.atnf.csiro.au/people/Mark.Calabretta
+=   available from http://www.atnf.csiro.au/computing/software/wcs
 *
 * In brief, a distortion function may occupy one of two positions in the WCS
 * algorithm chain.  Prior distortions precede the linear transformation
@@ -75,8 +75,6 @@
 * supported.  The TPV projection, originally proposed in a draft of WCS Paper
 * II, consists of a TAN projection with sequent polynomial distortion, the
 * coefficients of which are encoded in PVi_ma keyrecords.  Full details may be
-* found at the registry of FITS conventions:
-*
 =   http://fits.gsfc.nasa.gov/registry/tpvwcs/tpv.html
 *
 * Internally, wcsset() changes TPV to a TAN projection, translates the PVi_ma

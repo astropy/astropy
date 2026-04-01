@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.5 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2025, Mark Calabretta
+  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,8 +18,8 @@
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-  http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: spc.c,v 8.5 2025/12/06 13:47:41 mcalabre Exp $
+  http://www.atnf.csiro.au/computing/software/wcs
+  $Id: spc.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
