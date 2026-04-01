@@ -65,7 +65,7 @@ def _encode_mixins(tbl: Table) -> Table:
         for col in time_cols:
             if isinstance(col, TimeDelta):
                 new_col = (col.sec * 1e9).astype("timedelta64[ns]")
-                nat = np.timedelta64("NaT")
+                nat = np.timedelta64("NaT", "ns")
             else:
                 new_col = col.datetime64.copy()
                 nat = np.datetime64("NaT")
