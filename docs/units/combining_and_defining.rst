@@ -1,6 +1,12 @@
 Combining and Defining Units
 ****************************
 
+This file explains how to move beyond basic, predefined units by using
+Pythonic math to create complex compound measurements and high-precision
+fractional powers. It also provides a guide for defining custom units tailored
+to specific research needs while maintaining full compatibility with the
+Astropy conversion and equivalence systems.
+
 Basic example
 =============
 
@@ -27,7 +33,8 @@ Fractional powers
 
 Units support fractional powers, which retain their precision through
 complex operations. To do this, it is recommended to use
-:class:`fractions.Fraction` objects::
+`:class:\fractions.Fraction\ <https://docs.python.org/3/library/fractions.html#fractions.Fraction>`_
+objects:
 
   >>> from fractions import Fraction
   >>> Franklin = u.g ** Fraction(1, 2) * u.cm ** Fraction(3, 2) * u.s ** -1
@@ -54,7 +61,7 @@ Defining units
 .. EXAMPLE START: Defining New Units
 
 Users are free to define new units, either fundamental or compound,
-using the :func:`~astropy.units.def_unit` function::
+using the `:func:\~astropy.units.def_unit\ <https://docs.astropy.org/en/stable/api/astropy.units.def_unit.html>`_ function::
 
   >>> bakers_fortnight = u.def_unit('bakers_fortnight', 13 * u.day)
 
