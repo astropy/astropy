@@ -1,0 +1,1 @@
+Fixed a location where degree units were hardcoded into the  fitswcs APE 14 world to pixel call.
