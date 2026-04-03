@@ -8,17 +8,33 @@
 
 /* Define docstrings */
 static char module_docstring[] = "Fast sigma clipping";
+
+/* Define the methods that will be available on the module. */
+static PyMethodDef module_methods[] = {{NULL, NULL, 0, NULL}};
+
+/* This is the function that is called on import. */
+#if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
+static PyModuleDef_Slot module_slots[] = {
+    {Py_mod_name, "_fast_sigma_clip"},
+    {Py_mod_doc, module_docstring},
+    {Py_mod_state_size, (void *)-1},
+    {Py_mod_methods, module_methods},
+    {0, NULL}
+};
+
+PyMODEXPORT_FUNC PyModExport__fast_sigma_clip(void);
+
+PyMODEXPORT_FUNC PyModExport__fast_sigma_clip(void)
+{
+    return module_slots;
+}
+#else
 static char _sigma_clip_fast_docstring[] = "Compute sigma clipping";
 
 /* Declare the C functions here. */
 static void _sigma_clip_fast(
     char **args, npy_intp const *dimensions, npy_intp const *steps, void *data
 );
-
-/* Define the methods that will be available on the module. */
-static PyMethodDef module_methods[] = {{NULL, NULL, 0, NULL}};
-
-/* This is the function that is called on import. */
 
 #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
 #define MOD_DEF(ob, name, doc, methods) \
@@ -81,7 +97,6 @@ fail:
     Py_XDECREF(d);
     return NULL;
 }
-
 
 static void _sigma_clip_fast(
     char **args, npy_intp const *dimensions, npy_intp const *steps, void *data
@@ -181,3 +196,4 @@ static void _sigma_clip_fast(
         free((void *)mad_buffer);
     }
 }
+#endif

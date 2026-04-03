@@ -480,6 +480,22 @@ static PyMethodDef parse_times_methods[] = {
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
+#if defined(PyMODEXPORT_FUNC) && defined(Py_mod_name)
+static PyModuleDef_Slot module_slots[] = {
+    {Py_mod_name, "parse_times"},
+    {Py_mod_doc, (char *)MODULE_DOCSTRING},
+    {Py_mod_state_size, (void *)-1},
+    {Py_mod_methods, parse_times_methods},
+    {0, NULL}
+};
+
+PyMODEXPORT_FUNC PyModExport__parse_times(void);
+
+PyMODEXPORT_FUNC PyModExport__parse_times(void)
+{
+    return module_slots;
+}
+#else
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     "parse_times",
@@ -567,3 +583,4 @@ decref:
     Py_XDECREF((PyObject *)dt_ymdhms);
     return m;
 }
+#endif
