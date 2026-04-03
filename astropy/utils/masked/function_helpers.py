@@ -1450,9 +1450,10 @@ def _setdiff1d_impl(ar1, ar2, assume_unique=False):
     else:
         ar1 = np.unique(ar1)
         ar2 = np.unique(ar2)
-    mask = _copy_of_mask(ar1)
+
     res, _, _ = _isin_impl(ar1, ar2, assume_unique=True, invert=True)
-    return ar1[res], mask, None
+
+    return ar1[res], None, None
 
 
 @dispatched_function
