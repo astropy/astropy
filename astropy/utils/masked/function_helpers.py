@@ -1422,6 +1422,7 @@ if NUMPY_LT_2_4:
         mask = _copy_of_mask(ar1).ravel()
         return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
 
+
 def _isin_impl(element, test_elements, assume_unique=False, invert=False, *, kind=None):
     element = np.asanyarray(element)
     result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
@@ -1430,6 +1431,7 @@ def _isin_impl(element, test_elements, assume_unique=False, invert=False, *, kin
     else:
         result._set_shape(element.shape)
     return result, _copy_of_mask(element), None
+
 
 @dispatched_function
 def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
@@ -1449,8 +1451,9 @@ def _setdiff1d_impl(ar1, ar2, assume_unique=False):
         ar1 = np.unique(ar1)
         ar2 = np.unique(ar2)
     mask = _copy_of_mask(ar1)
-    res, _, _= _isin_impl(ar1, ar2, assume_unique=True, invert=True)
+    res, _, _ = _isin_impl(ar1, ar2, assume_unique=True, invert=True)
     return ar1[res], mask, None
+
 
 @dispatched_function
 def setdiff1d(ar1, ar2, assume_unique=False):
