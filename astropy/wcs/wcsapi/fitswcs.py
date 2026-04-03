@@ -7,8 +7,8 @@ import warnings
 
 import numpy as np
 
+import astropy.constants
 from astropy import units as u
-from astropy.constants import c
 from astropy.coordinates import ICRS, Galactic, SpectralCoord
 from astropy.coordinates.spectral_coordinate import (
     attach_zero_velocities,
@@ -23,7 +23,7 @@ from .wrappers import SlicedLowLevelWCS
 
 __all__ = ["FITSWCSAPIMixin", "SlicedFITSWCS", "custom_ctype_to_ucd_mapping"]
 
-C_SI = c.si.value
+C_SI = astropy.constants.c.si.value
 
 VELOCITY_FRAMES = {
     "GEOCENT": "gcrs",
@@ -99,7 +99,7 @@ VELOCITY_FRAMES["CMBDIPOL"] = Galactic(
     l=263.85 * u.deg,
     b=48.25 * u.deg,
     distance=0 * u.km,
-    radial_velocity=-(3.346e-3 / 2.725 * c).to(u.km / u.s),
+    radial_velocity=-(3.346e-3 / 2.725 * astropy.constants.c).to(u.km / u.s),
 )
 
 
@@ -438,16 +438,25 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
                 kwargs = {}
                 kwargs["frame"] = celestial_frame
-                # Very occasionally (i.e. with TAB) wcs does not convert the units to degrees
+                # Very occasionally (i.e. with TAB) wcs does not convert the units
+                lon_unit = u.Unit(self.wcs.cunit[self.wcs.lng])
+                lat_unit = u.Unit(self.wcs.cunit[self.wcs.lat])
                 kwargs["unit"] = (
-                    u.Unit(self.wcs.cunit[self.wcs.lng]),
-                    u.Unit(self.wcs.cunit[self.wcs.lat]),
+                    lon_unit,
+                    lat_unit,
                 )
 
                 classes["celestial"] = (SkyCoord, (), kwargs)
-
-                components[self.wcs.lng] = ("celestial", 0, "spherical.lon.degree")
-                components[self.wcs.lat] = ("celestial", 1, "spherical.lat.degree")
+                components[self.wcs.lng] = (
+                    "celestial",
+                    0,
+                    lambda c: c.spherical.lon.to_value(lon_unit),
+                )
+                components[self.wcs.lat] = (
+                    "celestial",
+                    1,
+                    lambda c: c.spherical.lat.to_value(lat_unit),
+                )
 
         # Next, we check for spectral components
 

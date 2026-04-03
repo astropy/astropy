@@ -1,0 +1,1 @@
+Fixed a bug where degree units were hardcoded into the FITS WCS APE 14 ``world_to_pixel`` method.
