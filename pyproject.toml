@@ -735,6 +735,10 @@ ignore-words-list = """
 """
 
 [tool.uv]
+exclude-newer = "1 week"
+# allow arbitrarily new versions of astropy-iers-data
+exclude-newer-package = { "astropy-iers-data" = false }
+
 # never build the following packages from source. Prefer more recent versions
 # with binary distributions even with --resolution=lowest[-direct]
 no-build-package = [
