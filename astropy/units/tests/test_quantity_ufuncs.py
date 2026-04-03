@@ -99,15 +99,24 @@ class TestUfuncHelpers:
         all_q_ufuncs = qh.UNSUPPORTED_UFUNCS | set(qh.UFUNC_HELPERS.keys())
         # Check that every numpy ufunc is covered.
         assert all_np_ufuncs - all_q_ufuncs == set()
-        # Check that all ufuncs we cover come from numpy or erfa.
-        # (Since coverage for erfa is incomplete, we do not check
+        # Check all ufuncs we cover come from numpy, erfa, or scipy.
+        # (Since coverage for erfa and scipy are incomplete, we do not check
         # this the other way).
         all_erfa_ufuncs = {
             ufunc
             for ufunc in erfa_ufunc.__dict__.values()
             if isinstance(ufunc, np.ufunc)
         }
-        assert all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs == set()
+        if HAS_SCIPY:
+            import scipy.special as sps
+
+            all_sps_ufuncs = {
+                ufunc for ufunc in sps.__dict__.values() if isinstance(ufunc, np.ufunc)
+            }
+        else:
+            all_sps_ufuncs = set()
+
+        assert all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs - all_sps_ufuncs == set()
 
     @pytest.mark.skipif(
         HAS_SCIPY,
