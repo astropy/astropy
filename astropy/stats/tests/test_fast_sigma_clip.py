@@ -78,29 +78,29 @@ def test_all_masked_returns_nan():
 @pytest.mark.parametrize(
     "sigma_lower, sigma_upper, check",
     [
-        (
-            1.0,
-            3.0,
-            lambda lo_sym, hi_sym, lo, hi: lo.item() != lo_sym.item()
-            and hi.item() == hi_sym.item(),
+        pytest.param(
+            1.0, 3.0,
+            lambda lo_sym, hi_sym, lo, hi: (
+                lo.item() != lo_sym.item()
+                and hi.item() == hi_sym.item()
+            ),
+            id="lower_changes_upper_unchanged_asymmetric_sigma",
         ),
-        (5.0, 1.0, lambda lo_sym, hi_sym, lo, hi: hi.item() < hi_sym.item()),
-        (
-            0.0,
-            3.0,
-            lambda lo_sym, hi_sym, lo, hi: lo.item() == hi.item(),
-        ),  # bounds collapse
-        (
-            3.0,
-            0.0,
-            lambda lo_sym, hi_sym, lo, hi: lo.item() == hi.item(),
-        ),  # bounds collapse
-    ],
-    ids=[
-        "lower_changes_upper_unchanged_asymmetric_sigma",
-        "upper_tighter_when_sigma_lower_gt_sigma_upper",
-        "sigma_lower_zero_bounds_converge",
-        "sigma_upper_zero_bounds_converge",
+        pytest.param(
+            5.0, 1.0,
+            lambda lo_sym, hi_sym, lo, hi: hi.item() < hi_sym.item(),
+            id="upper_tighter_when_sigma_lower_gt_sigma_upper",
+        ),
+        pytest.param(
+            3.0, 0.0,
+            lambda _lo_sym, _hi_sym, lo, hi: lo.item() == hi.item(),
+            id="sigma_upper_zero_bounds_converge",
+        ),
+        pytest.param(
+            0.0, 3.0,
+            lambda _lo_sym, _hi_sym, lo, hi: lo.item() == hi.item(),
+            id="sigma_lower_zero_bounds_converge",
+        ),
     ],
 )
 def test_asymmetric_sigma(sigma_lower, sigma_upper, check):
