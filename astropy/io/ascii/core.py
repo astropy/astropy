@@ -1341,12 +1341,8 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
             rename_columns(table, colnames_uniq)
 
     # Allow integer indices as well as names (issue #7451).
-    include_names = _expand_name_indices(
-        include_names, table.colnames, "include_names"
-    )
-    exclude_names = _expand_name_indices(
-        exclude_names, table.colnames, "exclude_names"
-    )
+    include_names = _expand_name_indices(include_names, table.colnames, "include_names")
+    exclude_names = _expand_name_indices(exclude_names, table.colnames, "exclude_names")
 
     names_set = set(table.colnames)
 

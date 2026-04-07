@@ -921,9 +921,7 @@ def test_write_fill_names_by_index_with_include_names(fast_writer):
     Index 1 -> 'B' (kept) applies the fill; index 0 -> 'A' (excluded) is
     a no-op.
     """
-    t = table.Table(
-        [[1, 9], [2, 9], [3, 9], [4, 9]], names=("A", "B", "C", "D")
-    )
+    t = table.Table([[1, 9], [2, 9], [3, 9], [4, 9]], names=("A", "B", "C", "D"))
 
     out = StringIO()
     ascii.write(
