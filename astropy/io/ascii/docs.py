@@ -47,15 +47,18 @@ READ_DOCSTRING = """
     names : list
         List of names corresponding to each data column
     include_names : list
-        List of names to include in output.
+        List of names or 0-based integer indices to include in output
+        (negative indices supported).
     exclude_names : list
-        List of names to exclude from output (applied after ``include_names``)
+        List of names or 0-based integer indices to exclude from output
+        (applied after ``include_names``).
     fill_values : tuple, list of tuple
         specification of fill values for bad or missing table values
     fill_include_names : list
-        List of names to include in fill_values.
+        List of names or 0-based integer indices to include in fill_values.
     fill_exclude_names : list
-        List of names to exclude from fill_values (applied after ``fill_include_names``)
+        List of names or 0-based integer indices to exclude from fill_values
+        (applied after ``fill_include_names``).
     fast_reader : bool, str or dict
         Whether to use the C engine, can also be a dict with options which
         defaults to `False`; parameters for options dict:
@@ -165,9 +168,11 @@ WRITE_DOCSTRING = """
     names : list
         List of names corresponding to each data column
     include_names : list
-        List of names to include in output.
+        List of names or 0-based integer indices to include in output
+        (negative indices supported).
     exclude_names : list
-        List of names to exclude from output (applied after ``include_names``)
+        List of names or 0-based integer indices to exclude from output
+        (applied after ``include_names``).
     fast_writer : bool, str
         Whether to use the fast Cython writer.  Can be `True` (use fast writer
         if available), `False` (do not use fast writer), or ``'force'`` (use
