@@ -339,6 +339,7 @@ Time from Epoch Formats
 
 The formats ``cxcsec``, ``gps``, ``unix``, and ``unix_tai`` are special in that
 they provide a floating point representation of the elapsed time in seconds
+(with the caveat that ``unix`` does not include leap seconds)
 since a particular reference date. These formats have a intrinsic time scale
 which is used to compute the elapsed seconds since the reference date.
 
