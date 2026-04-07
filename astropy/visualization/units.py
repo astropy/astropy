@@ -134,7 +134,11 @@ class MplQuantityConverter(ConversionInterface, ContextDecorator):
     def convert(val, unit, axis):
         if isinstance(val, u.Quantity):
             return val.to_value(unit)
-        elif isinstance(val, list) and val and isinstance(val[0], u.Quantity):
+        elif (
+            all(hasattr(val, attr) for attr in ["__getitem__", "__iter__", "__len__"])
+            and len(val) > 0
+            and isinstance(val[0], u.Quantity)
+        ):
             return [v.to_value(unit) for v in val]
         else:
             return val
@@ -143,6 +147,12 @@ class MplQuantityConverter(ConversionInterface, ContextDecorator):
     def default_units(x, axis):
         if hasattr(x, "unit"):
             return x.unit
+        elif (
+            all(hasattr(x, attr) for attr in ["__getitem__", "__iter__", "__len__"])
+            and len(x) > 0
+            and hasattr(x[0], "unit")
+        ):
+            return x[0].unit
         return None
 
     def __enter__(self):
