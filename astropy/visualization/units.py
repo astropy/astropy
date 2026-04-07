@@ -43,11 +43,13 @@ else:
     registry = {}
 
 
-__all__ = ["quantity_support"]
+__all__ = ["MplQuantityConverter", "quantity_support"]
 __doctest_skip__ = ["quantity_support"]
 
+_default_format = "latex_inline"
 
-def quantity_support(format="latex_inline"):
+
+def quantity_support(format=None):
     """
     Enable support for plotting `astropy.units.Quantity` instances in
     matplotlib.
@@ -79,66 +81,75 @@ def quantity_support(format="latex_inline"):
 
     """
 
-    def rad_fn(x, pos=None):
-        n = int((x / np.pi) * 2.0 + 0.25)
-        if n == 0:
-            return "0"
-        elif n == 1:
-            return "π/2"
-        elif n == 2:
-            return "π"
-        elif n % 2 == 0:
-            return f"{n // 2}π"
-        else:
-            return f"{n}π/2"
-
-    class MplQuantityConverter(ConversionInterface, ContextDecorator):
-        def __init__(self):
-            # Keep track of original converter in case the context manager is
-            # used in a nested way.
-            self._original_converter = {u.Quantity: registry.get(u.Quantity)}
-            registry[u.Quantity] = self
-
+    class MplQuantityConverterFormatted(MplQuantityConverter):
         @staticmethod
         def axisinfo(unit, axis):
-            if unit == u.radian:
-                return AxisInfo(
-                    majloc=MultipleLocator(base=np.pi / 2),
-                    majfmt=FuncFormatter(rad_fn),
-                    label=unit.to_string(),
-                )
-            elif unit == u.degree:
-                return AxisInfo(
-                    majloc=AutoLocator(),
-                    majfmt=FormatStrFormatter("%g°"),
-                    label=unit.to_string(),
-                )
-            elif unit is not None:
-                return AxisInfo(label=unit.to_string(format))
-            return None
+            return MplQuantityConverter.axisinfo(unit, axis, format)
 
-        @staticmethod
-        def convert(val, unit, axis):
-            if isinstance(val, u.Quantity):
-                return val.to_value(unit)
-            elif isinstance(val, list) and val and isinstance(val[0], u.Quantity):
-                return [v.to_value(unit) for v in val]
-            else:
-                return val
+    return MplQuantityConverterFormatted()
 
-        @staticmethod
-        def default_units(x, axis):
-            if hasattr(x, "unit"):
-                return x.unit
-            return None
 
-        def __enter__(self):
-            return self
+class MplQuantityConverter(ConversionInterface, ContextDecorator):
+    def __init__(self):
+        # Keep track of original converter in case the context manager is
+        # used in a nested way.
+        self._original_converter = {u.Quantity: registry.get(u.Quantity)}
+        registry[u.Quantity] = self
 
-        def __exit__(self, type, value, tb):
-            if self._original_converter[u.Quantity] is None:
-                del registry[u.Quantity]
-            else:
-                registry[u.Quantity] = self._original_converter[u.Quantity]
+    @staticmethod
+    def axisinfo(unit, axis, format=None):
+        if not format:
+            format = _default_format
+        if unit == u.radian:
 
-    return MplQuantityConverter()
+            def rad_fn(x, pos=None):
+                n = int((x / np.pi) * 2.0 + 0.25)
+                if n == 0:
+                    return "0"
+                elif n == 1:
+                    return "π/2"
+                elif n == 2:
+                    return "π"
+                elif n % 2 == 0:
+                    return f"{n // 2}π"
+                else:
+                    return f"{n}π/2"
+
+            return AxisInfo(
+                majloc=MultipleLocator(base=np.pi / 2),
+                majfmt=FuncFormatter(rad_fn),
+                label=unit.to_string(),
+            )
+        elif unit == u.degree:
+            return AxisInfo(
+                majloc=AutoLocator(),
+                majfmt=FormatStrFormatter("%g°"),
+                label=unit.to_string(),
+            )
+        elif unit is not None:
+            return AxisInfo(label=unit.to_string(format))
+        return None
+
+    @staticmethod
+    def convert(val, unit, axis):
+        if isinstance(val, u.Quantity):
+            return val.to_value(unit)
+        elif isinstance(val, list) and val and isinstance(val[0], u.Quantity):
+            return [v.to_value(unit) for v in val]
+        else:
+            return val
+
+    @staticmethod
+    def default_units(x, axis):
+        if hasattr(x, "unit"):
+            return x.unit
+        return None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
+        if self._original_converter[u.Quantity] is None:
+            del registry[u.Quantity]
+        else:
+            registry[u.Quantity] = self._original_converter[u.Quantity]
