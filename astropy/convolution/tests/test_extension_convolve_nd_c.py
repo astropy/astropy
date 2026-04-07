@@ -182,7 +182,7 @@ def test_embed_true_returns_expected_padded_output(image, kernel, expected):
     npt.assert_allclose(result, expected)
 
 
-# fmt: off
+# fmt:off
 @pytest.mark.parametrize(
     ("image", "kernel", "expected"),
     [
@@ -223,29 +223,30 @@ def test_embed_true_returns_expected_padded_output(image, kernel, expected):
                 ],
                 dtype=np.float64,
             ),
-           np.ones((3, 3, 3), dtype=np.float64)
-,
-           np.full((3, 3, 3), np.nan, dtype=np.float64),
+            np.ones((3, 3, 3), dtype=np.float64),
+            np.full((3, 3, 3), np.nan, dtype=np.float64),
             id="3d",
         ),
     ],
 )
 def test_nan_without_interpolation_matches_expected_values(image, kernel, expected):
-    """Without NaN interpolation, any NaN in the window propagates.
-
-    Example:
-
-    for padded ``image = [0, 1, nan, 1, 0]`` and ``kernel = [1, 1, 1]``,
-    ``_convolveNd_c`` yields ``result = [nan, nan, nan]`` because each
-    output window contains the ``nan`` term and the extension
-    intentionally does not skip NaN values unless
-    ``nan_interpolate=True``.
     """
+    When ``nan_interpolate=False``, a ``NaN`` in the input window makes the
+    corresponding output ``NaN``.
 
+    In these test cases the kernel size is 3 along every axis, so the kernel radius
+    is 1. Therefore, a ``NaN`` at input index ``i`` contaminates output centers
+    within an offset of 1 along each axis: in 1D, outputs ``i-1``, ``i``, and
+    ``i+1``; analogously in 2D and 3D.
+
+    More generally, for an odd-sized kernel of size ``n``, the kernel radius is
+    ``n // 2``, so ``NaN`` values propagate to output centers within that radius.
+
+    """
     result = _run_extension_with_zero_padding(image, kernel)
 
     npt.assert_allclose(result, expected, equal_nan=True)
-# fmt: on
+# fmt:on
 
 
 @pytest.mark.parametrize(
