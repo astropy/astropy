@@ -549,6 +549,33 @@ def test_include_names_by_index_bool_rejected(fast_reader):
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_include_names_by_index_numpy_bool_rejected(fast_reader):
+    """``numpy.bool_`` is rejected just like Python ``bool`` (#7451).
+
+    ``isinstance(np.True_, bool)`` is ``False`` and ``np.bool_`` is not a
+    subclass of ``np.integer``, so without an explicit ``np.bool_`` guard
+    a numpy boolean would slip through and be silently mishandled.
+    """
+    text = "A B C\n1 2 3\n"
+    with pytest.raises(TypeError, match="include_names entries must be"):
+        ascii.read(
+            text,
+            format="basic",
+            guess=False,
+            include_names=[np.True_],
+            fast_reader=fast_reader,
+        )
+    with pytest.raises(TypeError, match="exclude_names entries must be"):
+        ascii.read(
+            text,
+            format="basic",
+            guess=False,
+            exclude_names=[np.False_],
+            fast_reader=fast_reader,
+        )
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
 def test_fill_names_does_not_mutate_user_input(fast_reader):
     """The user's fill_include_names list must not be mutated (#7451)."""
     user_fill = [0]
@@ -569,10 +596,34 @@ def test_basic_reader_reuse_with_fill_index():
         fill_values=("9", "MASK"),
         fill_include_names=[0],
     )
-    reader.read("A B C\n1 2 3\n9 9 9\n")
+    dat1 = reader.read("A B C\n1 2 3\n9 9 9\n")
     assert reader.data.fill_include_names == [0]
-    reader.read("X Y Z\n9 8 7\n")
+    assert dat1["A"][1] is np.ma.masked
+    assert dat1["B"][1] is not np.ma.masked
+    dat2 = reader.read("X Y Z\n9 8 7\n")
     assert reader.data.fill_include_names == [0]
+    assert dat2["X"][0] is np.ma.masked
+    assert dat2["Y"][0] is not np.ma.masked
+
+
+def test_basic_reader_reuse_with_generator_fill_index():
+    """A generator passed as fill_include_names survives reader reuse (#7451).
+
+    Without materializing the user-supplied iterable, the second ``read()``
+    would see an exhausted generator and silently apply no fill at all.
+    """
+    reader = ascii.get_reader(
+        reader_cls=ascii.Basic,
+        fill_values=("9", "MASK"),
+        fill_include_names=(i for i in [0]),
+    )
+    dat1 = reader.read("A B C\n1 2 3\n9 9 9\n")
+    assert dat1["A"][1] is np.ma.masked
+    assert dat1["B"][1] is not np.ma.masked
+    # Second read with a different schema must still mask the first column.
+    dat2 = reader.read("X Y Z\n9 8 7\n")
+    assert dat2["X"][0] is np.ma.masked
+    assert dat2["Y"][0] is not np.ma.masked
 
 
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])

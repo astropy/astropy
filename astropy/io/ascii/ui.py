@@ -219,17 +219,23 @@ def get_reader(reader_cls=None, inputter_cls=None, outputter_cls=None, **kwargs)
         List of names corresponding to each data column.
     include_names : list, optional
         List of names or 0-based integer indices to include in output
-        (negative indices supported).
+        (negative indices supported). Indices refer to the column list as
+        renamed by ``names`` (if given).
     exclude_names : list
         List of names or 0-based integer indices to exclude from output
-        (applied after ``include_names``).
+        (applied after ``include_names``). Same semantics as
+        ``include_names``.
     fill_values : tuple, list of tuple
         Specification of fill values for bad or missing table values.
     fill_include_names : list
         List of names or 0-based integer indices to include in fill_values.
+        Integer indices refer to the column list as renamed by ``names``
+        (if given) but **before** ``include_names``/``exclude_names``
+        filtering.
     fill_exclude_names : list
         List of names or 0-based integer indices to exclude from fill_values
-        (applied after ``fill_include_names``).
+        (applied after ``fill_include_names``). Same semantics as
+        ``fill_include_names``.
 
     Returns
     -------
@@ -986,10 +992,12 @@ def get_writer(writer_cls=None, fast_writer=True, **kwargs):
         List of names corresponding to each data column
     include_names : list
         List of names or 0-based integer indices to include in output
-        (negative indices supported).
+        (negative indices supported). Indices refer to the column list as
+        renamed by ``names`` (if given).
     exclude_names : list
         List of names or 0-based integer indices to exclude from output
-        (applied after ``include_names``).
+        (applied after ``include_names``). Same semantics as
+        ``include_names``.
     fast_writer : bool
         Whether to use the fast Cython writer.
 

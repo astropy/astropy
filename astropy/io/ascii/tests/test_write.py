@@ -879,6 +879,15 @@ def test_write_include_names_bool_rejected(fast_writer):
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_include_names_numpy_bool_rejected(fast_writer):
+    """``numpy.bool_`` is rejected just like Python ``bool`` on write (#7451)."""
+    t = table.Table([[1, 2], [3, 4]], names=("A", "B"))
+    out = StringIO()
+    with pytest.raises(TypeError, match="include_names entries must be"):
+        ascii.write(t, out, include_names=[np.True_], fast_writer=fast_writer)
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
 def test_write_fill_names_does_not_mutate_user_input(fast_writer):
     """The user's fill_include_names list must not be mutated (#7451)."""
     user_fill = [0]
@@ -907,11 +916,33 @@ def test_basic_writer_reuse_with_fill_index():
         fill_include_names=[0],
     )
     t1 = table.Table([[1, 9], [2, 9]], names=("A", "B"))
-    writer.write(t1)
+    out1 = writer.write(t1)
     assert writer.data.fill_include_names == [0]
+    assert out1 == ["A B", "1 2", "MASK 9"]
     t2 = table.Table([[9, 8]], names=("Z",))
-    writer.write(t2)
+    out2 = writer.write(t2)
     assert writer.data.fill_include_names == [0]
+    assert out2 == ["Z", "MASK", "8"]
+
+
+def test_basic_writer_reuse_with_generator_fill_index():
+    """A generator passed as fill_include_names survives writer reuse (#7451).
+
+    Without materializing the user-supplied iterable, the second ``write()``
+    would see an exhausted generator and silently apply no fill at all.
+    """
+    writer = ascii.get_writer(
+        writer_cls=ascii.Basic,
+        fast_writer=False,
+        fill_values=("9", "MASK"),
+        fill_include_names=(i for i in [0]),
+    )
+    t1 = table.Table([[1, 9], [2, 9]], names=("A", "B"))
+    out1 = writer.write(t1)
+    assert out1 == ["A B", "1 2", "MASK 9"]
+    t2 = table.Table([[9, 8]], names=("Z",))
+    out2 = writer.write(t2)
+    assert out2 == ["Z", "MASK", "8"]
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])

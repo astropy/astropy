@@ -1269,25 +1269,40 @@ def _is_number(x) -> TypeGuard[SupportsFloat]:
     return False
 
 
+def _to_list(items):
+    """Materialize a non-string iterable to a list, idempotent for ``None``
+    and ``list``. Used to coerce user-supplied iterables (e.g. generators)
+    so reusable Reader/Writer objects don't end up holding an exhausted
+    one-shot iterable across calls (issue #7451).
+    """
+    if items is None or isinstance(items, list):
+        return items
+    return list(items)
+
+
 def _expand_name_indices(items, colnames, param_name):
     """Resolve a list of column names or 0-based integer indices into names.
 
     Strings pass through unchanged; ``int`` / ``numpy.integer`` entries are
-    looked up in ``colnames`` (negative indices supported). ``bool`` is
-    rejected explicitly so that ``True``/``False`` are not silently treated
-    as indices 1/0. ``None`` returns ``None``. Out-of-range integers raise
-    ``IndexError``; ``param_name`` is the user-facing argument name used in
-    the error messages.
+    looked up in ``colnames`` (negative indices supported). Python ``bool``
+    and ``numpy.bool_`` are rejected explicitly so that ``True``/``False``
+    are not silently treated as indices 1/0. ``None`` returns ``None``. Any
+    other iterable (e.g. a generator) is materialized to a list at entry,
+    so callers may safely re-resolve on a long-lived reader/writer object.
+    Out-of-range integers raise ``IndexError``; ``param_name`` is the
+    user-facing argument name used in the error messages.
     """
     if items is None:
         return None
+    items = list(items)
     n = len(colnames)
     resolved = []
     for item in items:
-        if isinstance(item, bool):
+        if isinstance(item, (bool, np.bool_)):
             raise TypeError(
-                f"{param_name} entries must be str or int, got bool "
-                f"({item!r}). Use 0/1 explicitly for column indices."
+                f"{param_name} entries must be str or int, got "
+                f"{type(item).__name__} ({item!r}). Use 0/1 explicitly for "
+                f"column indices."
             )
         if isinstance(item, (int, np.integer)):
             if not -n <= item < n:
@@ -1505,6 +1520,13 @@ class BaseReader(metaclass=MetaBaseReader):
         if hasattr(self.header, "table_meta"):
             self.meta["table"].update(self.header.table_meta)
 
+        # Materialize any iterables once so reusing this Reader works even
+        # when the user passed a generator (issue #7451).
+        self.include_names = _to_list(self.include_names)
+        self.exclude_names = _to_list(self.exclude_names)
+        self.data.fill_include_names = _to_list(self.data.fill_include_names)
+        self.data.fill_exclude_names = _to_list(self.data.fill_exclude_names)
+
         # Resolve fill_*_names indices against the post-rename column list
         # (issue #7451), and save/restore so reusing this Reader on a
         # different file doesn't see stale resolved names.
@@ -1623,6 +1645,13 @@ class BaseReader(metaclass=MetaBaseReader):
         # Check column names before altering
         self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, False)
+
+        # Materialize any iterables once so reusing this Writer works even
+        # when the user passed a generator (issue #7451).
+        self.include_names = _to_list(self.include_names)
+        self.exclude_names = _to_list(self.exclude_names)
+        self.data.fill_include_names = _to_list(self.data.fill_include_names)
+        self.data.fill_exclude_names = _to_list(self.data.fill_exclude_names)
 
         # Resolve fill_*_names indices against the post-rename column list
         # (issue #7451); save/restore to keep the writer reusable.

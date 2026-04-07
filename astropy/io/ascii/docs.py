@@ -48,17 +48,25 @@ READ_DOCSTRING = """
         List of names corresponding to each data column
     include_names : list
         List of names or 0-based integer indices to include in output
-        (negative indices supported).
+        (negative indices supported). Indices refer to the column list as
+        renamed by ``names`` (if given). ``bool`` and ``numpy.bool_`` are
+        rejected to avoid silently using ``True``/``False`` as 1/0.
     exclude_names : list
         List of names or 0-based integer indices to exclude from output
-        (applied after ``include_names``).
+        (applied after ``include_names``). Same name/index semantics as
+        ``include_names``.
     fill_values : tuple, list of tuple
         specification of fill values for bad or missing table values
     fill_include_names : list
         List of names or 0-based integer indices to include in fill_values.
+        Integer indices refer to the column list as renamed by ``names``
+        (if given) but **before** any ``include_names``/``exclude_names``
+        filtering, so ``fill_include_names=[i]`` is exact shorthand for
+        passing the corresponding column name as a string.
     fill_exclude_names : list
         List of names or 0-based integer indices to exclude from fill_values
-        (applied after ``fill_include_names``).
+        (applied after ``fill_include_names``). Same name/index semantics
+        as ``fill_include_names``.
     fast_reader : bool, str or dict
         Whether to use the C engine, can also be a dict with options which
         defaults to `False`; parameters for options dict:
@@ -169,10 +177,13 @@ WRITE_DOCSTRING = """
         List of names corresponding to each data column
     include_names : list
         List of names or 0-based integer indices to include in output
-        (negative indices supported).
+        (negative indices supported). Indices refer to the column list as
+        renamed by ``names`` (if given). ``bool`` and ``numpy.bool_`` are
+        rejected to avoid silently using ``True``/``False`` as 1/0.
     exclude_names : list
         List of names or 0-based integer indices to exclude from output
-        (applied after ``include_names``).
+        (applied after ``include_names``). Same name/index semantics as
+        ``include_names``.
     fast_writer : bool, str
         Whether to use the fast Cython writer.  Can be `True` (use fast writer
         if available), `False` (do not use fast writer), or ``'force'`` (use
