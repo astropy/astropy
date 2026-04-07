@@ -1,0 +1,3 @@
+Ensure that ``utils.masked.get_data_and_mask`` works properly with containers,
+returning ``None`` for the mask if ``masked`` is not set (instead of returning
+an all-False array).
