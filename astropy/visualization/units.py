@@ -4,6 +4,45 @@ from contextlib import ContextDecorator
 
 import numpy as np
 
+from astropy import units as u
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
+
+if HAS_MATPLOTLIB:
+    from matplotlib.ticker import (
+        AutoLocator,
+        FormatStrFormatter,
+        FuncFormatter,
+        MultipleLocator,
+    )
+    from matplotlib.units import AxisInfo, ConversionInterface, registry
+else:
+
+    class MplMockUp:
+        def __init__(self, *args, **kwargs):
+            raise ImportError("matplotlib is required in order to use this class.")
+
+    # Create mock-up classes to avoid import errors when matplotlib is not available.
+    class ConversionInterface(MplMockUp):
+        pass
+
+    class AxisInfo(MplMockUp):
+        pass
+
+    class MultipleLocator(MplMockUp):
+        pass
+
+    class FuncFormatter(MplMockUp):
+        pass
+
+    class AutoLocator(MplMockUp):
+        pass
+
+    class FormatStrFormatter(MplMockUp):
+        pass
+
+    registry = {}
+
+
 __all__ = ["quantity_support"]
 __doctest_skip__ = ["quantity_support"]
 
@@ -39,9 +78,6 @@ def quantity_support(format="latex_inline"):
         provided, defaults to ``latex_inline``.
 
     """
-    from matplotlib import ticker, units
-
-    from astropy import units as u
 
     def rad_fn(x, pos=None):
         n = int((x / np.pi) * 2.0 + 0.25)
@@ -56,29 +92,29 @@ def quantity_support(format="latex_inline"):
         else:
             return f"{n}π/2"
 
-    class MplQuantityConverter(units.ConversionInterface, ContextDecorator):
+    class MplQuantityConverter(ConversionInterface, ContextDecorator):
         def __init__(self):
             # Keep track of original converter in case the context manager is
             # used in a nested way.
-            self._original_converter = {u.Quantity: units.registry.get(u.Quantity)}
-            units.registry[u.Quantity] = self
+            self._original_converter = {u.Quantity: registry.get(u.Quantity)}
+            registry[u.Quantity] = self
 
         @staticmethod
         def axisinfo(unit, axis):
             if unit == u.radian:
-                return units.AxisInfo(
-                    majloc=ticker.MultipleLocator(base=np.pi / 2),
-                    majfmt=ticker.FuncFormatter(rad_fn),
+                return AxisInfo(
+                    majloc=MultipleLocator(base=np.pi / 2),
+                    majfmt=FuncFormatter(rad_fn),
                     label=unit.to_string(),
                 )
             elif unit == u.degree:
-                return units.AxisInfo(
-                    majloc=ticker.AutoLocator(),
-                    majfmt=ticker.FormatStrFormatter("%g°"),
+                return AxisInfo(
+                    majloc=AutoLocator(),
+                    majfmt=FormatStrFormatter("%g°"),
                     label=unit.to_string(),
                 )
             elif unit is not None:
-                return units.AxisInfo(label=unit.to_string(format))
+                return AxisInfo(label=unit.to_string(format))
             return None
 
         @staticmethod
@@ -101,8 +137,8 @@ def quantity_support(format="latex_inline"):
 
         def __exit__(self, type, value, tb):
             if self._original_converter[u.Quantity] is None:
-                del units.registry[u.Quantity]
+                del registry[u.Quantity]
             else:
-                units.registry[u.Quantity] = self._original_converter[u.Quantity]
+                registry[u.Quantity] = self._original_converter[u.Quantity]
 
     return MplQuantityConverter()
