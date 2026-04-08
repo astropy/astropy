@@ -15,13 +15,12 @@ if HAS_MATPLOTLIB:
         MultipleLocator,
     )
     from matplotlib.units import AxisInfo, ConversionInterface, registry
-else:
+else:  # Create mock-up classes to avoid import errors when matplotlib is not available.
 
     class MplMockUp:
         def __init__(self, *args, **kwargs):
             raise ImportError("matplotlib is required in order to use this class.")
 
-    # Create mock-up classes to avoid import errors when matplotlib is not available.
     ConversionInterface = types.new_class("ConversionInterface", (MplMockUp,))
     AxisInfo = types.new_class("AxisInfo", (MplMockUp,))
     MultipleLocator = types.new_class("MultipleLocator", (MplMockUp,))
