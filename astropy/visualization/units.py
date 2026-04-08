@@ -22,23 +22,12 @@ else:
             raise ImportError("matplotlib is required in order to use this class.")
 
     # Create mock-up classes to avoid import errors when matplotlib is not available.
-    class ConversionInterface(MplMockUp):
-        pass
-
-    class AxisInfo(MplMockUp):
-        pass
-
-    class MultipleLocator(MplMockUp):
-        pass
-
-    class FuncFormatter(MplMockUp):
-        pass
-
-    class AutoLocator(MplMockUp):
-        pass
-
-    class FormatStrFormatter(MplMockUp):
-        pass
+    ConversionInterface = types.new_class("ConversionInterface", (MplMockUp,))
+    AxisInfo = types.new_class("AxisInfo", (MplMockUp,))
+    MultipleLocator = types.new_class("MultipleLocator", (MplMockUp,))
+    FuncFormatter = types.new_class("FuncFormatter", (MplMockUp,))
+    AutoLocator = types.new_class("AutoLocator", (MplMockUp,))
+    FormatStrFormatter = types.new_class("FormatStrFormatter", (MplMockUp,))
 
     registry = {}
 
