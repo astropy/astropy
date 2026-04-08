@@ -55,7 +55,8 @@ def get_data_and_mask(array):
     Parameters
     ----------
     array : array-like
-        Possibly masked item, judged by whether it has a ``mask`` attribute.
+        Possibly masked item, judged by whether it has a ``mask`` attribute
+        (but ignored when a possible ``masked`` attribute is `False`).
         If so, checks for having an ``unmasked`` attribute (as expected for
         instances of `~astropy.utils.masked.Masked`), or uses the ``_data``
         attribute if the inpuit is an instance of `~numpy.ma.MaskedArray`.
@@ -75,7 +76,7 @@ def get_data_and_mask(array):
 
     """
     mask = getattr(array, "mask", None)
-    if mask is None:
+    if mask is None or not getattr(array, "masked", True):
         return array, None
 
     try:
