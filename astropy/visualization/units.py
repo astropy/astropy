@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+__all__ = ["MplQuantityConverter", "quantity_support"]
+
+import types
 from contextlib import ContextDecorator
 
 import numpy as np
@@ -31,7 +34,6 @@ else:  # Create mock-up classes to avoid import errors when matplotlib is not av
     registry = {}
 
 
-__all__ = ["MplQuantityConverter", "quantity_support"]
 __doctest_skip__ = ["quantity_support"]
 
 _default_format = "latex_inline"
@@ -63,7 +65,7 @@ def quantity_support(format=None):
 
     Parameters
     ----------
-    format : `astropy.units.format.Base` subclass or str
+    format : `astropy.units.format.Base` subclass or str or None, optional
         The name of a format or a formatter class.  If not
         provided, defaults to ``latex_inline``.
 
@@ -78,6 +80,15 @@ def quantity_support(format=None):
 
 
 class MplQuantityConverter(ConversionInterface, ContextDecorator):
+    """Matplotlib converter for ``astropy.units.Quantity``.
+
+    Registers itself to matplotlib as the converter for
+    `astropy.units.Quantity` when initialized. If used as a context manager,
+    it will restore the original converter upon exit. Also see
+    ``quantity_support`` for a convenient way to use this converter
+    with an optional format for the ``axisinfo``.
+    """
+
     def __init__(self):
         # Keep track of original converter in case the context manager is
         # used in a nested way.
@@ -92,7 +103,12 @@ class MplQuantityConverter(ConversionInterface, ContextDecorator):
 
             def rad_fn(x, pos=None):
                 n = int((x / np.pi) * 2.0 + 0.25)
-                return ("0", "π/2", "π")[n] if n < 3 else (f"{n // 2}π" if n % 2 == 0 else f"{n}π/2")
+                if n < 3:
+                    return ("0", "π/2", "π")[n]
+                elif n % 2 == 0:
+                    return f"{n // 2}π"
+                else:
+                    return f"{n}π/2"
 
             return AxisInfo(
                 majloc=MultipleLocator(base=np.pi / 2),
