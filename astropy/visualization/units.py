@@ -104,16 +104,7 @@ class MplQuantityConverter(ConversionInterface, ContextDecorator):
 
             def rad_fn(x, pos=None):
                 n = int((x / np.pi) * 2.0 + 0.25)
-                if n == 0:
-                    return "0"
-                elif n == 1:
-                    return "π/2"
-                elif n == 2:
-                    return "π"
-                elif n % 2 == 0:
-                    return f"{n // 2}π"
-                else:
-                    return f"{n}π/2"
+                return ("0", "π/2", "π")[n] if n < 3 else (f"{n // 2}π" if n % 2 == 0 else f"{n}π/2")
 
             return AxisInfo(
                 majloc=MultipleLocator(base=np.pi / 2),
