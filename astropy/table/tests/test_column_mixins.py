@@ -91,9 +91,7 @@ class TestColumnGetitemShimDirect:
 
         result = col[1]
 
-        assert isinstance(result, str), (
-            "Scalar index on bytes dtype should yield str, not bytes."
-        )
+        assert isinstance(result, str)
         assert result == "Planck13"
 
     def test_bytes_dtype_slice_not_decoded(self):
