@@ -784,6 +784,72 @@ class TestTableFunctions(FitsTestCase):
         )
         assert comparerecords(tbhdu.data, array)
 
+    def test_from_columns_too_many_columns(self):
+        """``BinTableHDU.from_columns`` rejects > 999 columns up front (#19236).
+
+        FITS tables cap at 999 columns by the FITS standard. Previously this
+        surfaced as a cryptic late ``VerifyError`` only at write time; now
+        ``ColDefs`` rejects it at construction.
+        """
+        # Boundary: 999 columns is allowed.
+        cols_999 = [
+            fits.Column(name=f"c{i}", format="E", array=np.array([1.0]))
+            for i in range(999)
+        ]
+        hdu = fits.BinTableHDU.from_columns(cols_999)
+        assert len(hdu.columns) == 999
+
+        # 1000 columns must fail at HDU construction, before any I/O.
+        cols_1000 = cols_999 + [
+            fits.Column(name="c999", format="E", array=np.array([1.0]))
+        ]
+        with pytest.raises(ValueError, match=r"1000 columns.*at most 999 columns"):
+            fits.BinTableHDU.from_columns(cols_1000)
+
+        # The same check fires when constructing ColDefs directly.
+        with pytest.raises(ValueError, match=r"1000 columns.*at most 999 columns"):
+            fits.ColDefs(cols_1000)
+
+    def test_add_col_too_many_columns(self):
+        """``ColDefs.add_col`` rejects growing past 999 columns (#19236).
+
+        The check fires *before* any state is mutated so the ``ColDefs`` is
+        not left in a partially-modified state on failure.
+        """
+        cols_999 = [
+            fits.Column(name=f"c{i}", format="E", array=np.array([1.0]))
+            for i in range(999)
+        ]
+        coldefs = fits.ColDefs(cols_999)
+        extra = fits.Column(name="overflow", format="E", array=np.array([1.0]))
+
+        with pytest.raises(ValueError, match=r"1000 columns.*at most 999 columns"):
+            coldefs.add_col(extra)
+
+        # ColDefs must still hold the original 999 columns -- no partial mutation.
+        assert len(coldefs) == 999
+        assert coldefs.names[-1] == "c998"
+
+    def test_coldefs_add_too_many_columns(self):
+        """``ColDefs.__add__`` rejects growing past 999 columns (#19236).
+
+        ``coldefs + col`` constructs a new ``ColDefs(tmp)``, so the
+        constructor check fires. This locks in the explicit assertion
+        rather than relying on transitive coverage from ``from_columns``.
+        """
+        cols_999 = [
+            fits.Column(name=f"c{i}", format="E", array=np.array([1.0]))
+            for i in range(999)
+        ]
+        coldefs = fits.ColDefs(cols_999)
+        extra = fits.Column(name="overflow", format="E", array=np.array([1.0]))
+
+        with pytest.raises(ValueError, match=r"1000 columns.*at most 999 columns"):
+            coldefs + extra
+
+        # The original ColDefs is untouched (``+`` is non-mutating).
+        assert len(coldefs) == 999
+
     def test_adding_a_column_to_file(self):
         hdul = fits.open(self.data("table.fits"))
         tbhdu = hdul[1]
