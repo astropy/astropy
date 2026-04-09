@@ -12,6 +12,7 @@ from astropy.units import Quantity, StructuredUnit, Unit
 from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import MetaData
 from astropy.utils.misc import dtype_bytes_or_chars
 
@@ -1273,6 +1274,15 @@ class Column(BaseColumn):
                 "cannot set mask value to a column in non-masked Table"
             )
         if not NUMPY_LT_2_5 and item == "dtype":
+            warnings.warn(
+                "Setting the Column dtype attribute is deprecated since astropy 8.0.0 "
+                "and it will stop working in a future version. "
+                "As an alternative, you can create a view with a new dtype via "
+                "column.view(dtype=new_dtype). This follows a similar "
+                "deprecation in numpy 2.5.0.",
+                AstropyDeprecationWarning,
+                stacklevel=2,
+            )
             self._set_dtype(value)
         else:
             super().__setattr__(item, value)
