@@ -32,13 +32,13 @@ int test_simple_array()
     if (fabs(result[1] - 6.0) < 1e-6 && fabs(result[2] - 9.0) < 1e-6 &&
         fabs(result[3] - 12.0) < 1e-6 && fabs(result[0] - 0.0) < 1e-6 &&
         fabs(result[4] - 0.0) < 1e-6) {
-        printf("\nPASS: The mathematical core is functioning correctly.\n");
+        printf("PASS: The mathematical core is functioning correctly.\n");
         return 0;
     }
     else {
         fprintf(
             stderr,
-            "\nFAIL: The output did not match the expected"
+            "FAIL: The output did not match the expected"
             "mathematical values.\n"
         );
         return 1;
@@ -74,13 +74,13 @@ int test_simple_array_nan_interpolate()
     if (fabs(result[1] - 1.5) < 1e-9 && fabs(result[2] - 3.0) < 1e-9 &&
         fabs(result[3] - 4.5) < 1e-9 && fabs(result[0] - 0.0) < 1e-9 &&
         fabs(result[4] - 0.0) < 1e-9) {
-        printf("\nPASS: The mathematical core is functioning correctly.\n");
+        printf("PASS: The mathematical core is functioning correctly.\n");
         return 0;
     }
     else {
         fprintf(
             stderr,
-            "\nFAIL: The output did not match the expected"
+            "FAIL: The output did not match the expected"
             "mathematical values.\n"
         );
         return 1;
@@ -110,11 +110,11 @@ int test_bot0_nan_array()
 
     if (fabs(result[0] - 0.0) < 1e-9 && isnan(result[1]) && isnan(result[2]) &&
         fabs(result[3] - 0.0) < 1e-9) {
-        printf("\nPASS: The core is handling only NaN input correctly.\n");
+        printf("PASS: The core is handling only NaN input correctly.\n");
         return 0;
     }
     else {
-        fprintf(stderr, "\nFAIL: The output did not match the expected values.\n");
+        fprintf(stderr, "FAIL: The output did not match the expected values.\n");
         return 1;
     }
 }
@@ -132,7 +132,7 @@ int main()
     if (test_simple_array_nan_interpolate() != 0) {
         failures++;
     }
-    printf("Testing fallback when bot=0\n\n");
+    printf("Testing fallback when bot=0\n");
     if (test_bot0_nan_array() != 0) {
         failures++;
     }

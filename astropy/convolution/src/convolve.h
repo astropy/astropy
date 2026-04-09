@@ -34,10 +34,15 @@ typedef size_t omp_iter_var;
 #define LIB_CONVOLVE_EXPORT // nothing
 #endif
 
+#ifdef C_STANDALONE
+_Static_assert(sizeof(double) == 8, "error: double must be 64-bit");
+#define DTYPE double
+#else
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #define NO_IMPORT_ARRAY
 #include "numpy/ndarrayobject.h"
 #define DTYPE npy_float64
+#endif
 
 
 LIB_CONVOLVE_EXPORT void convolveNd_c(

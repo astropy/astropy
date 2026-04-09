@@ -20,7 +20,25 @@ def test_convolution_c_results():
 
     result = subprocess.run([BINARY_PATH], capture_output=True, text=True, check=False)
 
+    if result.stdout:
+        print(result.stdout)
+
+    if result.stderr:
+        print(result.stderr, file=sys.stderr)
+
     error_msg = (
         f"C Test Suite Failed.\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}"
     )
     assert result.returncode == 0, error_msg
+
+
+if __name__ == "__main__":
+    if not BINARY_PATH.exists():
+        print(f"ERROR: Binary not found at {BINARY_PATH}")
+        sys.exit(1)
+
+    try:
+        test_convolution_c_results()
+        print("Standalone C tests passed successfully.")
+    except AssertionError:
+        sys.exit(1)
