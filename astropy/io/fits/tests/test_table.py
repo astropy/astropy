@@ -810,6 +810,14 @@ class TestTableFunctions(FitsTestCase):
         with pytest.raises(ValueError, match=r"1000 columns.*at most 999 columns"):
             fits.ColDefs(cols_1000)
 
+        # And from a numpy structured array (the _init_from_array path used
+        # by ``BinTableHDU(structured_ndarray)``). Locks in that all ColDefs
+        # construction branches funnel through the guard, not just the
+        # sequence-of-Column branch above.
+        arr_1000 = np.zeros(1, dtype=[(f"c{i}", "f4") for i in range(1000)])
+        with pytest.raises(ValueError, match=r"1000 columns.*at most 999 columns"):
+            fits.ColDefs(arr_1000)
+
     def test_add_col_too_many_columns(self):
         """``ColDefs.add_col`` rejects growing past 999 columns (#19236).
 

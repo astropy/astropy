@@ -231,6 +231,11 @@ ASCIITNULL = 0
 # converting from binary to ASCII tables
 DEFAULT_ASCII_TNULL = "---"
 
+# Per the FITS standard, indexed column keywords (TTYPEn, TFORMn, ...) must
+# fit within the 8-character keyword limit, so n is restricted to 1-3 digits.
+# This caps both binary and ASCII tables at 999 columns. See issue #19236.
+_FITS_MAX_COLUMNS = 999
+
 
 class Delayed:
     """Delayed file-reading data."""
@@ -1516,9 +1521,9 @@ class ColDefs(NotifierMixin):
         FITS uses indexed per-column keywords like ``TTYPEn`` and ``TFORMn``,
         where ``n`` is a positive integer suffix. To keep keyword names
         within the FITS 8-character limit, ``n`` is restricted to 1-3
-        digits, capping binary and ASCII tables at 999 columns. Without
-        this guard the failure surfaces only at write time as a cryptic
-        ``VerifyError``; see issue #19236.
+        digits, capping binary and ASCII tables at ``_FITS_MAX_COLUMNS``
+        (999) columns. Without this guard the failure surfaces only at
+        write time as a cryptic ``VerifyError``; see issue #19236.
 
         Parameters
         ----------
@@ -1531,12 +1536,12 @@ class ColDefs(NotifierMixin):
         """
         if ncols is None:
             ncols = len(self.columns)
-        if ncols > 999:
+        if ncols > _FITS_MAX_COLUMNS:
             raise ValueError(
                 f"cannot construct a FITS table with {ncols} columns: "
-                f"FITS tables support at most 999 columns. Consider using "
-                f"a subset of the columns, or splitting the table across "
-                f"multiple HDUs."
+                f"FITS tables support at most {_FITS_MAX_COLUMNS} columns. "
+                f"Consider using a subset of the columns, or splitting the "
+                f"table across multiple HDUs."
             )
 
     def _init_from_coldefs(self, coldefs):
