@@ -8,7 +8,6 @@ import sys
 from contextlib import nullcontext
 from inspect import cleandoc
 from pathlib import Path
-from threading import Lock
 
 import pytest
 
@@ -17,31 +16,6 @@ from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 OLD_CONFIG = {}
-
-_IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
-
-
-@pytest.fixture
-def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
-    # ignore global state of the test session
-    # and preserve thread safety across all users of this fixture
-    with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
-        monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
-        monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-
-        monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
-        monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
-
-        # also mock $HOME as it's part of the global state taken into account
-        # for path detection
-        mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME")
-
-        def mock_home():
-            return mock_home_dir
-
-        monkeypatch.setattr(Path, "home", mock_home)
-
-        yield
 
 
 def setup_module():
