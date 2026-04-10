@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license
 """
-:Author: Simon Gibbons (simongibbons@gmail.com).
+:Author: Simon Gibbons (simongibbons@gmail.com)
 """
+
 
 from .core import DefaultSplitter
 from .fixedwidth import (
@@ -26,6 +27,7 @@ class SimpleRSTHeader(FixedWidthHeader):
 
 
 class SimpleRSTData(FixedWidthData):
+    start_line = 3
     end_line = -1
     splitter_class = FixedWidthTwoLineDataSplitter
 
@@ -37,29 +39,12 @@ class RST(FixedWidth):
 
     Example::
 
-      >>> from astropy.table import QTable
-      >>> import astropy.units as u
-      >>> import sys
-      >>> tbl = QTable({"wave": [350, 950] * u.nm, "response": [0.7, 1.2] * u.count})
-      >>> tbl.write(sys.stdout,  format="ascii.rst")
-      ===== ========
-       wave response
-      ===== ========
-      350.0      0.7
-      950.0      1.2
-      ===== ========
-
-    Like other fixed-width formats, when writing a table you can provide ``header_rows``
-    to specify a list of table rows to output as the header.  For example::
-
-      >>> tbl.write(sys.stdout,  format="ascii.rst", header_rows=['name', 'unit'])
-      ===== ========
-       wave response
-         nm       ct
-      ===== ========
-      350.0      0.7
-      950.0      1.2
-      ===== ========
+        ==== ===== ======
+        Col1  Col2  Col3
+        ==== ===== ======
+          1    2.3  Hello
+          2    4.5  Worlds
+        ==== ===== ======
 
     Currently there is no support for reading tables which utilize continuation lines,
     or for ones which define column spans through the use of an additional
@@ -76,24 +61,7 @@ class RST(FixedWidth):
         super().__init__(delimiter_pad=None, bookend=False, header_rows=header_rows)
 
     def write(self, lines):
-        """
-        Write the table data in RST format including header and footer separator lines.
-
-        Parameters
-        ----------
-        lines : list of str
-            The formatted table lines to be written.
-
-        Returns
-        -------
-        list[str]
-            The complete RST table with header separator, table content, and
-            footer separator line.
-        """
         lines = super().write(lines)
-        idx = len(self.header.header_rows)
-        return [lines[idx]] + lines + [lines[idx]]
-
-    def read(self, table):
-        self.data.start_line = 2 + len(self.header.header_rows)
-        return super().read(table)
+        idx = len(self.data.header_rows)
+        lines = [lines[idx]] + lines + [lines[idx]]
+        return lines
