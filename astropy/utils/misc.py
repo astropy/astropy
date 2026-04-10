@@ -528,7 +528,7 @@ class InheritDocstrings(type):
                 not key.startswith('_'))
 
         for key, val in dct.items():
-            if (inspect.isfunction(val) and
+            if ((inspect.isfunction(val) or isinstance(val, property)) and
                 is_public_member(key) and
                 val.__doc__ is None):
                 for base in cls.__mro__[1:]:
