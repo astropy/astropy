@@ -10,6 +10,7 @@ from collections.abc import Callable
 from functools import partial, wraps
 from inspect import cleandoc
 from pathlib import Path
+from threading import RLock
 from types import TracebackType
 from typing import Literal, ParamSpec
 from warnings import warn
@@ -25,8 +26,13 @@ __all__ = [
     "set_temp_config",
 ]
 
-
 P = ParamSpec("P")
+
+# Any number of threads may call any combination of set_temp_cache and set_temp_config,
+# in any order. Hence they need to share a single lock (otherwise deadlocks would be possible).
+# In particular, the possibility of nesting more than one instance of each context imposes
+# the use of a re-entrant lock (RLock).
+_PATHS_MUTEX = RLock()
 
 
 def get_config_dir_path(rootname: str = "astropy") -> Path:
@@ -134,11 +140,17 @@ class _SetTempPath:
         self._prev_path = self.__class__._temp_path
 
     def __enter__(self) -> str:
-        self.__class__._temp_path = self._path
+        _PATHS_MUTEX.acquire()
+        try:
+            self.__class__._temp_path = self._path
+        except Exception:
+            _PATHS_MUTEX.release()
+            raise
         try:
             return str(self.__class__._get_dir_path(rootname="astropy"))
         except Exception:
             self.__class__._temp_path = self._prev_path
+            _PATHS_MUTEX.release()
             raise
 
     def __exit__(
@@ -147,10 +159,13 @@ class _SetTempPath:
         value: BaseException | None,
         tb: TracebackType | None,
     ) -> None:
-        self.__class__._temp_path = self._prev_path
+        try:
+            self.__class__._temp_path = self._prev_path
 
-        if self._delete and self._path is not None:
-            shutil.rmtree(self._path)
+            if self._delete and self._path is not None:
+                shutil.rmtree(self._path)
+        finally:
+            _PATHS_MUTEX.release()
 
     def __call__(self, func: Callable[P, object]) -> Callable[P, None]:
         """Implements use as a decorator."""
@@ -269,6 +284,9 @@ class set_temp_config(_SetTempPath):
     This may also be used as a decorator on a function to set the config path
     just within that function.
 
+    Thread safety is guaranteed since astropy 7.2.1, but concurrency isn't:
+    only a single thread at a time may execute code within this context.
+
     Parameters
     ----------
     path : str, optional
@@ -292,11 +310,17 @@ class set_temp_config(_SetTempPath):
         # cached config objects.  We do keep the cache, since some of it
         # may have been set programmatically rather than be stored in the
         # config file (e.g., iers.conf.auto_download=False for our tests).
-        from .configuration import _cfgobjs
+        _PATHS_MUTEX.acquire()
 
-        self._cfgobjs_copy = _cfgobjs.copy()
-        _cfgobjs.clear()
-        return super().__enter__()
+        try:
+            from .configuration import _cfgobjs
+
+            self._cfgobjs_copy = _cfgobjs.copy()
+            _cfgobjs.clear()
+            return super().__enter__()
+        except Exception:
+            _PATHS_MUTEX.release()
+            raise
 
     def __exit__(
         self,
@@ -304,12 +328,15 @@ class set_temp_config(_SetTempPath):
         value: BaseException | None,
         tb: TracebackType | None,
     ) -> None:
-        from .configuration import _cfgobjs
+        try:
+            from .configuration import _cfgobjs
 
-        _cfgobjs.clear()
-        _cfgobjs.update(self._cfgobjs_copy)
-        del self._cfgobjs_copy
-        super().__exit__(type, value, tb)
+            _cfgobjs.clear()
+            _cfgobjs.update(self._cfgobjs_copy)
+            del self._cfgobjs_copy
+            super().__exit__(type, value, tb)
+        finally:
+            _PATHS_MUTEX.release()
 
 
 class set_temp_cache(_SetTempPath):
@@ -324,6 +351,9 @@ class set_temp_cache(_SetTempPath):
 
     This may also be used as a decorator on a function to set the cache path
     just within that function.
+
+    Thread safety is guaranteed since astropy 7.2.1, but concurrency isn't:
+    only a single thread at a time may execute code within this context.
 
     Parameters
     ----------
