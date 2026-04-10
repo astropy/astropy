@@ -490,6 +490,7 @@ exclude = [
 [tool.ruff.lint.extend-per-file-ignores]
 "setup.py" = ["INP001"]  # Part of configuration, not a package.
 ".github/workflows/*.py" = ["INP001"]
+"scripts/*.py" = ["INP001"]  # Not a package.
 "astropy/modeling/models/__init__.py" = ["F405"]
 "astropy/utils/decorators.py" = [
     "D214", "D215",  # keep Examples section indented.
