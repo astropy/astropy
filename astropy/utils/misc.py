@@ -536,6 +536,17 @@ class InheritDocstrings(type):
                     if super_method is not None:
                         val.__doc__ = super_method.__doc__
                         break
+            elif (isinstance(val, property) and
+                  is_public_member(key) and
+                  val.fget is not None and
+                  val.fget.__doc__ is None):
+                for base in cls.__mro__[1:]:
+                    super_property = base.__dict__.get(key)
+                    if (isinstance(super_property, property) and
+                            super_property.fget is not None and
+                            super_property.fget.__doc__ is not None):
+                        val.fget.__doc__ = super_property.fget.__doc__
+                        break
 
         super().__init__(name, bases, dct)
 
