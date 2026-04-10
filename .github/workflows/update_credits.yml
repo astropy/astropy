@@ -15,51 +15,39 @@ jobs:
 
   update-credits:
     permissions:
-      contents: write  # for peter-evans/create-pull-request to create branch
-      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+      contents: write  # to create a branch
+      pull-requests: write  # to create a PR
     name: Auto-update credits
     runs-on: ubuntu-latest
     if: github.repository == 'astropy/astropy'
     steps:
     - name: Checkout code
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
-        fetch-depth: 0   # fetch full history
-        persist-credentials: false
+        persist-credentials: true  # needed for git push
+        fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c  # v6.0.0
       with:
         python-version: 3.x
     - name: Run update script
-      run: python .github/workflows/update_credits.py
+      run: python scripts/update_credits.py
     - name: Commit changes
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
+        BRANCH_NAME=update-credits-$(date +"%s")
+        git switch -c "$BRANCH_NAME"
         git add docs/credits.rst
         if ! git diff --cached --exit-code; then
           git commit -m "Update docs/credits.rst with new contributors"
         fi
+        git push --set-upstream origin "$BRANCH_NAME"
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e  # v7.0.8
-      with:
-        branch: update-credits
-        branch-suffix: timestamp
-        delete-branch: true
-        labels: no-changelog-entry-needed, Docs
-        title: Update credits to add new contributors
-        body: |
-          This is an automated update of the credits for the core package.
-
-          Checklist:
-
-          * [ ] Apply backport labels to any active backport branches for v7.2.x or later
-          * [ ] Close and re-open this pull request to trigger the CI
-          * [ ] Check the resulting docs/credits.rst, and update the .mailmap file for any duplicates or missing names
-          * [ ] If you update .mailmap, re-run:
-
-          ```
-          python .github/workflows/update_credits.py
-          ```
-
-          and commit and push the changes to this branch.
+      run: |
+        gh pr create \
+          --title "Update credits to add new contributors" \
+          --label no-changelog-entry-needed --label Docs \
+          --body-file .github/workflows/update_credits.md
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
