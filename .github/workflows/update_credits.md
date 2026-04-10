@@ -8,7 +8,7 @@ Checklist:
 * [ ] If you update .mailmap, re-run:
 
 ```
-python scripts/update_credits.py
+python scripts/update-credits.py
 ```
 
 and commit and push the changes to this branch.
