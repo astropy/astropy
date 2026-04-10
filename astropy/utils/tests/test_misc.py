@@ -89,6 +89,22 @@ def test_inherit_docstrings():
         assert Subclass.__call__.__doc__ == "FOO"
 
 
+def test_inherit_docstrings_property():
+    class Base(metaclass=misc.InheritDocstrings):
+        @property
+        def foo(self):
+            "FOO"
+            pass
+
+    class Subclass(Base):
+        @property
+        def foo(self):
+            pass
+
+    if Base.foo.__doc__ is not None:
+        assert Subclass.foo.__doc__ == "FOO"
+
+
 def test_set_locale():
     # First, test if the required locales are available
     current = locale.setlocale(locale.LC_ALL)
