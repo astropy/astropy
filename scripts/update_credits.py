@@ -11,6 +11,10 @@ Other Credits
 =============
 """
 
+# These manual additions are for people who contributed code at the start
+# of the project which are not captured by git. This should likely not 
+# need to be updated again.
+
 MANUAL_ADDITIONS = [
     "Paul Barrett",
     "Chris Hanley",
