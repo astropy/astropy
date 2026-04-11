@@ -2,8 +2,11 @@
 Authors and Credits
 *******************
 
+
 Core Package Contributors
 =========================
+
+
 
 * Aaron Meisner
 * aarsh1a
@@ -15,6 +18,7 @@ Core Package Contributors
 * Adam Ginsburg
 * Adam Turner
 * Adele Plunkett
+* Aditya Lohuni
 * Aditya Sharma
 * Adrian Price-Whelan
 * Adrien Thob
@@ -80,6 +84,8 @@ Core Package Contributors
 * Bhavya Khandelwal
 * Bili Dong
 * Bill Cleveland
+* Bill Wolf
+* Bodhi Silberling
 * Bogdan Nicula
 * Bojan Nikolic
 * Brandie-M
@@ -91,13 +97,16 @@ Core Package Contributors
 * britgit
 * Bruce Merry
 * Bruno Oliveira
+* Bruno Sanchez
 * Bryce Kalmbach
 * Bryce Nordgren
+* C\. E\. Brasseur
 * Caden Gobat
 * CaioCoutinhoP
 * Carl Osterwisch
 * Carl Schaffer
 * Caspar van Leeuwen
+* Charalampos Stratakis
 * Chiara Marmo
 * Chris Beaumont
 * Chris Hanley
@@ -115,6 +124,7 @@ Core Package Contributors
 * Conor MacBride
 * Cristian Ardelean
 * Curtis McCully
+* Cyrus
 * Damien LaRocque
 * Dan Foreman-Mackey
 * Dan P\. Cunningham
@@ -140,6 +150,8 @@ Core Package Contributors
 * Demitri Muna
 * Derek Homeier
 * Devin Crichton
+* Dhruv yadav
+* dhruv1955
 * Diego Alonso
 * Diego Asterio de Zaballa
 * disha
@@ -171,10 +183,12 @@ Core Package Contributors
 * Erik Tollerud
 * Erin Allard
 * Esteban Pardo Sánchez
+* Evan Chen
 * Evan Jones
 * Even Rouault
 * Everett Schlawin
 * Evert Rol
+* Fazeel Usmani
 * Felipe Cybis Pereira
 * Felipe Gameleira
 * Felix Yan
@@ -223,6 +237,7 @@ Core Package Contributors
 * Igor Lemos
 * ikkamens
 * Inada Naoki
+* J Berg
 * J\. Goutin
 * J\. Xavier Prochaska
 * Jackson Hayward
@@ -247,6 +262,7 @@ Core Package Contributors
 * Jeff Taylor
 * Jeffrey McBeth
 * Jero Bado
+* Jett Higgins
 * jimboH
 * Jo Bovy
 * Joanna Power
@@ -264,6 +280,7 @@ Core Package Contributors
 * Jonathan Foster
 * Jonathan Sick
 * Jonathan Whitmore
+* jorenham
 * Jörg Dietrich
 * Jose Sabater
 * José Sabater Montes
@@ -283,6 +300,7 @@ Core Package Contributors
 * Karl Gordon
 * Karl Vyhmeister
 * Karl Wessel
+* KartavayV
 * Katrin Leinweber
 * Kelle Cruz
 * Kevin Gullikson
@@ -296,6 +314,7 @@ Core Package Contributors
 * Kunam Balaram Reddy
 * Kyle Barbary
 * Kyle Conroy
+* Kyle Oman
 * Kyle Oman
 * Kyle Westfall
 * Larry Bradley
@@ -363,6 +382,7 @@ Core Package Contributors
 * Max Silbiger
 * Max Voronkov
 * Maximilian Linhoff
+* Maximilian Linhoff
 * Maximillian Weber
 * Médéric Boquien
 * Megan Sosey
@@ -399,6 +419,7 @@ Core Package Contributors
 * mzhengxi
 * Nabil Freij
 * Nadia Dencheva
+* Naksh Yadav
 * Nathanial Hendler
 * Nathaniel Starkman
 * Naveen Selvadurai
@@ -447,6 +468,7 @@ Core Package Contributors
 * Preshanth Jagannathan
 * Pritish Chakraborty
 * Pushkar Kopparla
+* R Virinchi
 * Rachel Guo
 * Raghuram Devarakonda
 * Ralf Gommers
@@ -455,12 +477,15 @@ Core Package Contributors
 * Rasmus Handberg
 * Ravi Kumar
 * Ray Plante
+* Reem Hamraz
+* Reem Hamraz
 * Régis Terrier
 * Ricardo Fonseca
 * Ricardo Ogando
 * Richard R
 * Ricky O'Steen
 * Rik van Lieshout
+* RinZ27
 * Ritiek Malhotra
 * Ritwick DSouza
 * Roban Hultman Kramer
@@ -495,6 +520,7 @@ Core Package Contributors
 * Saransh Chopra
 * Sashank Mishra
 * Saurav Sachidanand
+* ScatteredComet
 * Scott Thomas
 * Sebastian Meßlinger
 * Sébastien Maret
@@ -536,6 +562,7 @@ Core Package Contributors
 * Stuart Littlefair
 * Stuart Mumford
 * Sudheesh Singanamalla
+* Surya-k-eng
 * Sushobhana Patra
 * Suyog Garg
 * Swapnil Sharma
@@ -544,6 +571,7 @@ Core Package Contributors
 * Tanuj Rastogi
 * Tanvi Pooranmal Meena
 * Thais Borges
+* Thomas Dutkiewicz
 * Thomas Erben
 * Thomas J\. Fan
 * Thomas Robitaille
@@ -565,20 +593,27 @@ Core Package Contributors
 * Tomas Babej
 * Tyler Finethy
 * Varun Nikam
+* varunkasyap
 * Vatsala Swaroop
 * Víctor Terrón
 * Víctor Zabalza
 * Victoria Dye
 * Vinayak Mehta
 * Vishnunarayan K I
+* Vishwas
+* vishwas-droid
 * Vital Fernández
 * Volodymyr Savchenko
 * VSN Reddy Janga
 * Wilfred Tyler Gee
 * William Jamieson
+* William Jamieson
 * Wolfgang Kerzendorf
+* xbreak
 * xuewc
 * Yannick Copin
+* yaochengchen
+* yaochengchen
 * Yash Kumar
 * Yash Nandwana
 * Yash Sharma
@@ -592,6 +627,7 @@ Core Package Contributors
 * Zhen-Kai Gao
 * Zhiyuan Ma
 * Zlatan Vasović
+* Περικλής Παντελαίος
 
 Other Credits
 =============
