@@ -43,7 +43,7 @@ names = subprocess.check_output(["git", "shortlog", "-sne", "HEAD"]).splitlines(
 # Extract the names from each line, and sort in a case-insensitive way
 names = sorted(
     [name.decode("utf-8").split("\t")[1].split("<")[0].strip() for name in names]
-    + MANUAL_ADDITIONS,
+    + list(MANUAL_ADDITIONS),
     key=sorting_key,
 )
 
