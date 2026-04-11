@@ -71,7 +71,7 @@ class TestFrame(BaseImageTests):
         return fig
 
     @figure_test
-    def test_update_clip_path_rectangular(self):
+    def test_update_clip_path_rectangular(self, tmp_path):
         fig = Figure()
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
 
@@ -81,7 +81,9 @@ class TestFrame(BaseImageTests):
         ax.set_ylim(0.0, 2.0)
 
         # Force drawing, which freezes the clip path returned by WCSAxes
-        fig.canvas.draw()
+        # this should normally suffice, but currently doesn't (to be elucidated)
+        # fig.canvas.draw()
+        fig.savefig(tmp_path / "nothing")
 
         ax.imshow(np.zeros((12, 4)))
 
