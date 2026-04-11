@@ -4,6 +4,7 @@ Authors and Credits
 
 
 
+
 Core Package Contributors
 =========================
 
@@ -224,7 +225,7 @@ Core Package Contributors
 * Heinz-Alexander Fuetterer
 * Helen Sherwood-Taylor
 * Hélvio Peixoto
-* Henrike F
+* Henrike F\.
 * Henry Schreiner
 * Himanshu Pathak
 * homeboy445
@@ -236,7 +237,7 @@ Core Package Contributors
 * Igor Lemos
 * ikkamens
 * Inada Naoki
-* J Berg
+* J\. Berg
 * J\. Goutin
 * J\. Xavier Prochaska
 * Jackson Hayward
@@ -340,8 +341,8 @@ Core Package Contributors
 * Luke G\. Bouma
 * Luke Kelley
 * Luz Paz
-* M Atakan Gürkan
-* M S R Dinesh
+* M\. Atakan Gürkan
+* M\. S\. R\. Dinesh
 * Mabry Cervin
 * Madhura Parikh
 * Magali Mebsout
@@ -465,7 +466,7 @@ Core Package Contributors
 * Preshanth Jagannathan
 * Pritish Chakraborty
 * Pushkar Kopparla
-* R Virinchi
+* R\. Virinchi
 * Rachel Guo
 * Raghuram Devarakonda
 * Ralf Gommers
@@ -478,7 +479,7 @@ Core Package Contributors
 * Régis Terrier
 * Ricardo Fonseca
 * Ricardo Ogando
-* Richard R
+* Richard R\.
 * Ricky O'Steen
 * Rik van Lieshout
 * RinZ27
@@ -558,7 +559,7 @@ Core Package Contributors
 * Stuart Littlefair
 * Stuart Mumford
 * Sudheesh Singanamalla
-* Surya-k-eng
+* Surya K\.
 * Sushobhana Patra
 * Suyog Garg
 * Swapnil Sharma
@@ -595,7 +596,7 @@ Core Package Contributors
 * Víctor Zabalza
 * Victoria Dye
 * Vinayak Mehta
-* Vishnunarayan K I
+* Vishnunarayan K\. I\.
 * Vishwas
 * Vital Fernández
 * Volodymyr Savchenko
