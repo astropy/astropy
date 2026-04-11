@@ -2,13 +2,8 @@
 Authors and Credits
 *******************
 
-
-
-
 Core Package Contributors
 =========================
-
-
 
 * Aaron Meisner
 * aarsh1a
@@ -625,7 +620,6 @@ Core Package Contributors
 
 Other Credits
 =============
-
 * Kyle Barbary for designing the Astropy logos and documentation themes.
 * Andrew Pontzen and the `pynbody <https://github.com/pynbody/pynbody>`_ team
   (For code that grew into :mod:`astropy.units`)

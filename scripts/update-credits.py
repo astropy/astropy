@@ -63,12 +63,21 @@ if OTHER_SECTION not in existing:
     print('Could not find expected "Other Credits" section heading', file=sys.stderr)
 
 header, footer = existing.split(MAIN_SECTION)
-footer = footer.split(OTHER_SECTION)[1]
+header = header.rstrip("\n") + "\n"
+footer = footer.split(OTHER_SECTION)[1].lstrip("\n")
+
+dot = "\\."
+credits = "\n".join(
+    f"* {name.replace('.', dot)}"
+    for name in names
+    if "[bot]" not in name and name != "github-actions"
+)
 
 with open("docs/credits.rst", "w") as f:
-    f.writelines([L + "\n" for L in [header, MAIN_SECTION, "\n"]])
-    for name in filter(lambda n: not ("[bot]" in n or n == "github-actions"), names):
-        dot = "\\."
-        f.write(f"* {name.replace('.', dot)}\n")
+    f.write(header)
+    f.write(MAIN_SECTION)
+    f.write("\n")
+    f.write(credits)
+    f.write("\n")
     f.write(OTHER_SECTION)
     f.write(footer)
