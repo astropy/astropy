@@ -1,0 +1,3 @@
+Added direct tests for ``astropy.io.registry.UnifiedInputRegistry`` path
+handling, including ``PathLike`` normalization, file object cleanup, and
+cross-platform ``~`` expansion behavior.
