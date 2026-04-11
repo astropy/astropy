@@ -18,9 +18,13 @@ def test_expand_user_in_args_only_expands_existing_parent(monkeypatch, tmp_path)
     existing_parent = home / "existing"
     existing_parent.mkdir(parents=True)
     monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
 
     expanded = _expand_user_in_args(("~/existing/data.ecsv", "sentinel"))
-    assert expanded == (str(existing_parent / "data.ecsv"), "sentinel")
+    assert expanded[1] == "sentinel"
+    assert os.path.normpath(expanded[0]) == os.path.normpath(
+        os.fspath(existing_parent / "data.ecsv")
+    )
 
     unchanged = _expand_user_in_args(("~/missing/data.ecsv", "sentinel"))
     assert unchanged == ("~/missing/data.ecsv", "sentinel")
