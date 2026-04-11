@@ -1,4 +1,9 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
 import subprocess
+import sys
 import unicodedata
 
 MAIN_SECTION = """
@@ -15,20 +20,20 @@ Other Credits
 # of the project which are not captured by git. This should likely not
 # need to be updated again.
 
-MANUAL_ADDITIONS = [
+MANUAL_ADDITIONS = (
     "Paul Barrett",
     "Chris Hanley",
     "JC Hsu",
     "James Taylor",
-]
+)
 
 
-def remove_accents(text):
+def remove_accents(text: str, /) -> str:
     normalized = unicodedata.normalize("NFD", text)
     return "".join(c for c in normalized if unicodedata.category(c) != "Mn")
 
 
-def sorting_key(x):
+def sorting_key(x: str, /) -> str:
     return remove_accents(x.lower())
 
 
@@ -49,22 +54,17 @@ with open("docs/credits.rst") as f:
     existing = f.read()
 
 if MAIN_SECTION not in existing:
-    print('Could not find expected "Core Package Contributors" section heading')
+    print('Could not find expected "Core Package Contributors" section heading', file=sys.stderr)
 
 if OTHER_SECTION not in existing:
-    print('Could not find expected "Other Credits" section heading')
+    print('Could not find expected "Other Credits" section heading', file=sys.stderr)
 
 header, footer = existing.split(MAIN_SECTION)
 footer = footer.split(OTHER_SECTION)[1]
 
 with open("docs/credits.rst", "w") as f:
-    f.write(header)
-    f.write(MAIN_SECTION)
-    f.write("\n")
-    for name in names:
-        if "[bot]" in name or name == "github-actions":
-            continue
-        name = name.replace(".", "\\.")
-        f.write(f"* {name}\n")
+    f.writelines([L + "\n" for L in [header, MAIN_SECTION, "\n"])
+    for name in filter(lambda n: not("[bot]" in n or n == "github-actions", names):
+        f.write(f"* {name.replace('.', '\\.')}\n")
     f.write(OTHER_SECTION)
     f.write(footer)

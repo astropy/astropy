@@ -31,7 +31,7 @@ jobs:
       with:
         python-version: 3.x
     - name: Run update script
-      run: python scripts/update-credits.py
+      run: pipx run scripts/update-credits.py
     - name: Commit changes
       run: |
         git config user.name github-actions
