@@ -54,7 +54,10 @@ with open("docs/credits.rst") as f:
     existing = f.read()
 
 if MAIN_SECTION not in existing:
-    print('Could not find expected "Core Package Contributors" section heading', file=sys.stderr)
+    print(
+        'Could not find expected "Core Package Contributors" section heading',
+        file=sys.stderr,
+    )
 
 if OTHER_SECTION not in existing:
     print('Could not find expected "Other Credits" section heading', file=sys.stderr)
@@ -63,8 +66,9 @@ header, footer = existing.split(MAIN_SECTION)
 footer = footer.split(OTHER_SECTION)[1]
 
 with open("docs/credits.rst", "w") as f:
-    f.writelines([L + "\n" for L in [header, MAIN_SECTION, "\n"])
-    for name in filter(lambda n: not("[bot]" in n or n == "github-actions", names):
-        f.write(f"* {name.replace('.', '\\.')}\n")
+    f.writelines([L + "\n" for L in [header, MAIN_SECTION, "\n"]])
+    for name in filter(lambda n: not ("[bot]" in n or n == "github-actions"), names):
+        dot = "\\."
+        f.write(f"* {name.replace('.', dot)}\n")
     f.write(OTHER_SECTION)
     f.write(footer)
