@@ -3,6 +3,7 @@ Authors and Credits
 *******************
 
 
+
 Core Package Contributors
 =========================
 
@@ -100,7 +101,6 @@ Core Package Contributors
 * Bruno Sanchez
 * Bryce Kalmbach
 * Bryce Nordgren
-* C\. E\. Brasseur
 * Caden Gobat
 * CaioCoutinhoP
 * Carl Osterwisch
@@ -150,8 +150,7 @@ Core Package Contributors
 * Demitri Muna
 * Derek Homeier
 * Devin Crichton
-* Dhruv yadav
-* dhruv1955
+* Dhruv Yadav
 * Diego Alonso
 * Diego Asterio de Zaballa
 * disha
@@ -280,7 +279,7 @@ Core Package Contributors
 * Jonathan Foster
 * Jonathan Sick
 * Jonathan Whitmore
-* jorenham
+* Joren Hammudoglu
 * Jörg Dietrich
 * Jose Sabater
 * José Sabater Montes
@@ -300,7 +299,7 @@ Core Package Contributors
 * Karl Gordon
 * Karl Vyhmeister
 * Karl Wessel
-* KartavayV
+* Kartavay Verma
 * Katrin Leinweber
 * Kelle Cruz
 * Kevin Gullikson
@@ -314,7 +313,6 @@ Core Package Contributors
 * Kunam Balaram Reddy
 * Kyle Barbary
 * Kyle Conroy
-* Kyle Oman
 * Kyle Oman
 * Kyle Westfall
 * Larry Bradley
@@ -381,7 +379,6 @@ Core Package Contributors
 * Max Mahlke
 * Max Silbiger
 * Max Voronkov
-* Maximilian Linhoff
 * Maximilian Linhoff
 * Maximillian Weber
 * Médéric Boquien
@@ -477,7 +474,6 @@ Core Package Contributors
 * Rasmus Handberg
 * Ravi Kumar
 * Ray Plante
-* Reem Hamraz
 * Reem Hamraz
 * Régis Terrier
 * Ricardo Fonseca
@@ -592,8 +588,8 @@ Core Package Contributors
 * Tom Kooij
 * Tomas Babej
 * Tyler Finethy
+* Varun Kasyap Pentamaraju
 * Varun Nikam
-* varunkasyap
 * Vatsala Swaroop
 * Víctor Terrón
 * Víctor Zabalza
@@ -601,19 +597,16 @@ Core Package Contributors
 * Vinayak Mehta
 * Vishnunarayan K I
 * Vishwas
-* vishwas-droid
 * Vital Fernández
 * Volodymyr Savchenko
 * VSN Reddy Janga
 * Wilfred Tyler Gee
 * William Jamieson
-* William Jamieson
 * Wolfgang Kerzendorf
 * xbreak
 * xuewc
 * Yannick Copin
-* yaochengchen
-* yaochengchen
+* Yaocheng Chen
 * Yash Kumar
 * Yash Nandwana
 * Yash Sharma
