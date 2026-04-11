@@ -15,7 +15,7 @@ from .test_images import BaseImageTests
 
 
 class TestDisplayWorldCoordinate(BaseImageTests):
-    def test_overlay_coords(self, ignore_matplotlibrc, tmp_path):
+    def test_overlay_coords(self, ignore_matplotlibrc):
         minus_sign = "\N{MINUS SIGN}" if mpl.rcParams["axes.unicode_minus"] else "-"
         wcs = WCS(self.msx_header)
 
@@ -25,9 +25,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
         fig.add_axes(ax)
 
-        # On some systems, fig.canvas.draw is not enough to force a draw, so we
-        # save to a temporary file.
-        fig.savefig(tmp_path / "test1.png")
+        # Force drawing
+        fig.canvas.draw()
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
@@ -51,9 +50,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # main world coordinates.
         overlay[0].set_major_formatter("d.ddd")
 
-        # On some systems, fig.canvas.draw is not enough to force a draw, so we
-        # save to a temporary file.
-        fig.savefig(tmp_path / "test2.png")
+        # Force drawing
+        fig.canvas.draw()
 
         event4 = KeyEvent("test_pixel_coords", canvas, "w")
         fig.canvas.callbacks.process("key_press_event", event4)
@@ -70,9 +68,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # main world coordinates.
         overlay[0].set_major_formatter("d.ddd")
 
-        # On some systems, fig.canvas.draw is not enough to force a draw, so we
-        # save to a temporary file.
-        fig.savefig(tmp_path / "test3.png")
+        # Force drawing
+        fig.canvas.draw()
 
         event5 = KeyEvent("test_pixel_coords", canvas, "w")
         fig.canvas.callbacks.process("key_press_event", event5)
@@ -89,9 +86,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         # main world coordinates.
         overlay[0].set_major_formatter("d.ddd")
 
-        # On some systems, fig.canvas.draw is not enough to force a draw, so we
-        # save to a temporary file.
-        fig.savefig(tmp_path / "test4.png")
+        # Force drawing
+        fig.canvas.draw()
 
         event6 = KeyEvent("test_pixel_coords", canvas, "w")
         fig.canvas.callbacks.process("key_press_event", event6)
@@ -102,7 +98,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
             string_world5 == f"267.652\xb0 {minus_sign}28\xb046'23\" (world, overlay 3)"
         )
 
-    def test_cube_coords(self, ignore_matplotlibrc, tmp_path):
+    def test_cube_coords(self, ignore_matplotlibrc):
         wcs = WCS(self.cube_header)
 
         fig = Figure(figsize=(4, 4))
@@ -111,9 +107,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=("y", 50, "x"))
         fig.add_axes(ax)
 
-        # On some systems, fig.canvas.draw is not enough to force a draw, so we
-        # save to a temporary file.
-        fig.savefig(tmp_path / "test.png")
+        # Force drawing
+        fig.canvas.draw()
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)
@@ -125,7 +120,7 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         string_pixel = ax._display_world_coords(0.523412, 0.523412)
         assert string_pixel == "0.523412 0.523412 (pixel)"
 
-    def test_cube_coords_uncorr_slicing(self, ignore_matplotlibrc, tmp_path):
+    def test_cube_coords_uncorr_slicing(self, ignore_matplotlibrc):
         # Regression test for a bug that occurred with coordinate formatting if
         # some dimensions were uncorrelated and sliced out.
 
@@ -137,9 +132,8 @@ class TestDisplayWorldCoordinate(BaseImageTests):
         ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=("x", "y", 2))
         fig.add_axes(ax)
 
-        # On some systems, fig.canvas.draw is not enough to force a draw, so we
-        # save to a temporary file.
-        fig.savefig(tmp_path / "test.png")
+        # Force drawing
+        fig.canvas.draw()
 
         # Testing default displayed world coordinates
         string_world = ax._display_world_coords(0.523412, 0.518311)

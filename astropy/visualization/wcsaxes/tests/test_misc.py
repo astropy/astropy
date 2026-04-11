@@ -43,7 +43,7 @@ def test_grid_regression(ignore_matplotlibrc):
     WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
 
 
-def test_format_coord_regression(ignore_matplotlibrc, tmp_path):
+def test_format_coord_regression(ignore_matplotlibrc):
     # Regression test for a bug that meant that if format_coord was called by
     # Matplotlib before the axes were drawn, an error occurred.
     fig = Figure(figsize=(3, 3))
@@ -52,7 +52,8 @@ def test_format_coord_regression(ignore_matplotlibrc, tmp_path):
     assert ax.format_coord(10, 10) == ""
     assert ax.coords[0].format_coord(10) == ""
     assert ax.coords[1].format_coord(10) == ""
-    fig.savefig(tmp_path / "nothing")
+    # Force drawing
+    fig.canvas.draw()
     assert ax.format_coord(10, 10) == "10.0 10.0 (world)"
     assert ax.coords[0].format_coord(10) == "10.0"
     assert ax.coords[1].format_coord(10) == "10.0"
@@ -80,7 +81,7 @@ COORDSYS= 'icrs    '
 
 
 @pytest.mark.parametrize("grid_type", ["lines", "contours"])
-def test_no_numpy_warnings(ignore_matplotlibrc, tmp_path, grid_type):
+def test_no_numpy_warnings(ignore_matplotlibrc, grid_type):
     fig = Figure()
     ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
     ax.imshow(np.zeros((100, 200)))
@@ -105,7 +106,8 @@ def test_no_numpy_warnings(ignore_matplotlibrc, tmp_path, grid_type):
         warnings.filterwarnings(
             "ignore", message=r".*PY_SSIZE_T_CLEAN will be required.*"
         )
-        fig.savefig(tmp_path / "test.png")
+        # Force drawing
+        fig.canvas.draw()
 
 
 def test_invalid_frame_overlay(ignore_matplotlibrc):
@@ -197,7 +199,7 @@ CRPIX3  =                241.0
 )
 
 
-def test_slicing_warnings(ignore_matplotlibrc, tmp_path):
+def test_slicing_warnings(ignore_matplotlibrc):
     # Regression test to make sure that no warnings are emitted by the tick
     # locator for the sliced axis when slicing a cube.
 
@@ -215,7 +217,7 @@ def test_slicing_warnings(ignore_matplotlibrc, tmp_path):
         # https://github.com/astropy/astropy/issues/9690
         warnings.filterwarnings("ignore", message=r".*PY_SSIZE_T_CLEAN.*")
         fig.add_subplot(1, 1, 1, projection=wcs3d, slices=("x", "y", 1))
-        fig.savefig(tmp_path / "test.png")
+        fig.canvas.draw()
 
     # Angle case
 
@@ -226,7 +228,7 @@ def test_slicing_warnings(ignore_matplotlibrc, tmp_path):
         warnings.filterwarnings("ignore", message=r".*PY_SSIZE_T_CLEAN.*")
         fig.clear()
         fig.add_subplot(1, 1, 1, projection=wcs3d, slices=("x", "y", 2))
-        fig.savefig(tmp_path / "test.png")
+        fig.canvas.draw()
 
 
 @pytest.fixture
@@ -250,7 +252,7 @@ def test_plt_xlabel_ylabel(tmp_path):
     plt.savefig(tmp_path / "test.png")
 
 
-def test_grid_type_contours_transform(tmp_path):
+def test_grid_type_contours_transform():
     # Regression test for a bug that caused grid_type='contours' to not work
     # with custom transforms
 
@@ -273,7 +275,8 @@ def test_grid_type_contours_transform(tmp_path):
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], transform=transform, coord_meta=coord_meta)
     fig.add_axes(ax)
     ax.grid(grid_type="contours")
-    fig.savefig(tmp_path / "test.png")
+    # Force drawing
+    fig.canvas.draw()
 
 
 @pytest.mark.usefixtures("tmp_plt_figure")
@@ -473,7 +476,7 @@ def test_time_wcs(time_spectral_wcs_2d):
 
 
 @pytest.mark.skipif(TEX_UNAVAILABLE, reason="TeX is unavailable")
-def test_simplify_labels_usetex(ignore_matplotlibrc, tmp_path):
+def test_simplify_labels_usetex(ignore_matplotlibrc):
     """Regression test for https://github.com/astropy/astropy/issues/8004."""
     mpl.rc("text", usetex=True)
 
@@ -503,7 +506,7 @@ def test_simplify_labels_usetex(ignore_matplotlibrc, tmp_path):
     ax.coords[1].set_ticks(spacing=30 * u.deg)
     ax.grid()
 
-    fig.savefig(tmp_path / "plot.png")
+    fig.canvas.draw()
 
 
 @pytest.mark.parametrize(
@@ -607,12 +610,12 @@ def test_wcs_type_transform_regression():
     ax.get_transform(sliced_wcs)
 
 
-def test_multiple_draws_grid_contours(tmp_path):
+def test_multiple_draws_grid_contours():
     fig = Figure()
     ax = fig.add_subplot(1, 1, 1, projection=WCS())
     ax.grid(color="black", grid_type="contours")
-    fig.savefig(tmp_path / "plot.png")
-    fig.savefig(tmp_path / "plot.png")
+    fig.canvas.draw()
+    fig.canvas.draw()
 
 
 def test_get_coord_range_nan_regression():
