@@ -206,16 +206,16 @@ jobs:
 
       - name: Compile C test Binary
         run: |
-          mkdir -p astropy/convolution/tests/.tmp
-          gcc -DC_STANDALONE -o astropy/convolution/tests/.tmp/test_convolve_1d_binary \
-                 astropy/convolution/tests/c_tests/test_convolve_1d.c \
+          mkdir -p ctests/.tmp
+          gcc -DC_STANDALONE -o ctests/.tmp/test_convolve_1d_binary \
+                 ctests/test_convolve_1d.c \
                  astropy/convolution/src/convolve.c \
                  -Iastropy/convolution/src/ \
                  -lm
 
       - name: Run Standalone C Tests
         run: |
-          python astropy/convolution/tests/test_c_binaries.py
+          pytest --noconftest ctests
 
   test_limited_api_build:
     # Test to make sure that we can build astropy with the limited API

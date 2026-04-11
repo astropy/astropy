@@ -32,7 +32,6 @@ int test_simple_array()
     if (fabs(result[1] - 6.0) < 1e-6 && fabs(result[2] - 9.0) < 1e-6 &&
         fabs(result[3] - 12.0) < 1e-6 && fabs(result[0] - 0.0) < 1e-6 &&
         fabs(result[4] - 0.0) < 1e-6) {
-        printf("PASS: The mathematical core is functioning correctly.\n");
         return 0;
     }
     else {
@@ -74,7 +73,6 @@ int test_simple_array_nan_interpolate()
     if (fabs(result[1] - 1.5) < 1e-9 && fabs(result[2] - 3.0) < 1e-9 &&
         fabs(result[3] - 4.5) < 1e-9 && fabs(result[0] - 0.0) < 1e-9 &&
         fabs(result[4] - 0.0) < 1e-9) {
-        printf("PASS: The mathematical core is functioning correctly.\n");
         return 0;
     }
     else {
@@ -110,7 +108,6 @@ int test_bot0_nan_array()
 
     if (fabs(result[0] - 0.0) < 1e-9 && isnan(result[1]) && isnan(result[2]) &&
         fabs(result[3] - 0.0) < 1e-9) {
-        printf("PASS: The core is handling only NaN input correctly.\n");
         return 0;
     }
     else {
@@ -123,24 +120,16 @@ int main()
 {
     // 1D convolution tests
     int failures = 0;
-    printf("--- Starting 1D Convolution Tests ---\n");
-    printf("Simple 1d array\n");
+
     if (test_simple_array() != 0) {
         failures++;
     }
-    printf("Simple array containing NaN\n");
     if (test_simple_array_nan_interpolate() != 0) {
         failures++;
     }
-    printf("Testing fallback when bot=0\n");
     if (test_bot0_nan_array() != 0) {
         failures++;
     }
 
-    if (failures > 0) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+    return (failures > 0) ? 1 : 0;
 }
