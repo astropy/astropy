@@ -70,6 +70,7 @@ Core Package Contributors
 * Axel Donath
 * Azalee Bostroem
 * Bastian Beischer
+* Ben Green
 * Ben Greiner
 * Benjamin Alan Weaver
 * Benjamin Roulston
@@ -512,7 +513,6 @@ Core Package Contributors
 * Saransh Chopra
 * Sashank Mishra
 * Saurav Sachidanand
-* ScatteredComet
 * Scott Thomas
 * Sebastian Meßlinger
 * Sébastien Maret
