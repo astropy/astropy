@@ -39,6 +39,8 @@ jobs:
         python-version: 3.x
     - name: Run update script
       run: pipx run scripts/update-credits.py
+    - name: Show diff
+      run: git diff docs/credits.rst
     - name: Commit changes
       if: github.event_name != 'pull_request'
       run: |
