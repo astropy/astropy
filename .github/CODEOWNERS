@@ -56,6 +56,7 @@ docs/time                   @taldcroft
 docs/visualization          @astrofrog      @larrybradley
 docs/wcs                    @mcara
 
+scripts/*                   @neutrinoceros
 pyproject.toml              @neutrinoceros
 setup.py                    @neutrinoceros
 MANIFEST.in                 @neutrinoceros
