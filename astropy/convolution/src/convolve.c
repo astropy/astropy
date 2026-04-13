@@ -337,8 +337,9 @@ FORCE_INLINE void convolve1d(
 
                 if (nan_interpolate) // compile time constant
                 {
-                    if (bot ==
-                        0) { // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+                    if (
+                        bot == 0
+                    ) { // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
                         result[result_index] = f[i];
                     }
                     else {
@@ -471,8 +472,9 @@ FORCE_INLINE void convolve2d(
 
                         if (nan_interpolate) // compile time constant
                         {
-                            if (bot ==
-                                0) { // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+                            if (
+                                bot == 0
+                            ) { // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
                                 result[result_index] = f[result_cursor + j];
                             }
                             else {
@@ -605,7 +607,9 @@ FORCE_INLINE void convolve3d(
                                                     for (kk = 0; kk < nkz; ++kk) {
                                                         val = f[f_cursor + kk];
                                                         ker = g[g_cursor - kk];
-                                                        if (nan_interpolate) // compile time constant
+                                                        if (
+                                                            nan_interpolate
+                                                        ) // compile time constant
                                                         {
                                                             if (!isnan(val)) {
                                                                 top += val * ker;
@@ -633,8 +637,9 @@ FORCE_INLINE void convolve3d(
 
                                 if (nan_interpolate) // compile time constant
                                 {
-                                    if (bot ==
-                                        0) { // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
+                                    if (
+                                        bot == 0
+                                    ) { // This should prob be np.isclose(kernel_sum, 0, atol=normalization_zero_tol)
                                         result[result_index] = f[array_cursor + k];
                                     }
                                     else {
