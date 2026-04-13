@@ -9,6 +9,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.metadata import MetaData
@@ -1264,7 +1265,10 @@ class Column(BaseColumn):
             raise AttributeError(
                 "cannot set mask value to a column in non-masked Table"
             )
-        super().__setattr__(item, value)
+        if not NUMPY_LT_2_5 and item == "dtype":
+            self._set_dtype(value)
+        else:
+            super().__setattr__(item, value)
 
         if item == "unit" and issubclass(self.dtype.type, np.number):
             try:
