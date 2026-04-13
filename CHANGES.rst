@@ -10550,7 +10550,7 @@ astropy.coordinates
 - Slicing and reshaping of ``SkyCoord`` and coordinate frames no longer passes
   the new object through ``__init__``, but directly sets attributes on a new
   instance. This speeds up those methods by an order of magnitude, but means
-  that any customization done in ``__init__`` is by-passed. [#6941]
+  that any customization done in ``__init__`` is bypassed. [#6941]
 
 astropy.io.ascii
 ^^^^^^^^^^^^^^^^
