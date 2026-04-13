@@ -383,8 +383,9 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
                 if ((c == ' ' || c == '\t') && self->strip_whitespace_fields) {
                     break;
                 }
-                else if (!self->strip_whitespace_lines && self->comment != 0 &&
-                         c == self->comment) {
+                else if (
+                    !self->strip_whitespace_lines && self->comment != 0 && c == self->comment
+                ) {
                     // Comment line, not caught earlier because of no stripping
                     self->state = COMMENT;
                     break;
