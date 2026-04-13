@@ -1380,85 +1380,15 @@ def ediff1d(ary, to_end=None, to_begin=None):
     return np.ediff1d.__wrapped__(ary, to_end, to_begin), None, None
 
 
-def _in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-    # Copy sorting implementation from _arraysetops_impl._in1d;
-    # the others cannot work in the presence of a mask.
-    if kind == "table":
-        raise ValueError(
-            "The 'table' method is not supported for Masked arrays."
-            "Please select 'sort' or None for kind."
-        )
-
-    # Straight copy from here on.
-    if not assume_unique:
-        ar1, rev_idx = np.unique(ar1, return_inverse=True)
-        ar2 = np.unique(ar2)
-
-    ar = np.concatenate((ar1, ar2))
-    # We need this to be a stable sort, so always use 'mergesort'
-    # here. The values from the first array should always come before
-    # the values from the second array.
-    order = ar.argsort(kind="mergesort")
-    sar = ar[order]
-    if invert:
-        bool_ar = sar[1:] != sar[:-1]
-    else:
-        bool_ar = sar[1:] == sar[:-1]
-    flag = np.concatenate((bool_ar, [invert]))
-    ret = np.empty(ar.shape, dtype=bool)
-    ret[order] = flag
-    return ret[: len(ar1)] if assume_unique else ret[rev_idx]
-
-
-def _copy_of_mask(a):
-    mask = getattr(a, "mask", None)
-    return mask.copy() if mask is not None else False
-
-
-if NUMPY_LT_2_4:
-
-    @dispatched_function
-    def in1d(ar1, ar2, assume_unique=False, invert=False, *, kind=None):
-        mask = _copy_of_mask(ar1).ravel()
-        return _in1d(ar1, ar2, assume_unique, invert, kind=kind), mask, None
-
-
-def _isin_impl(element, test_elements, assume_unique=False, invert=False, *, kind=None):
-    element = np.asanyarray(element)
-    result = _in1d(element, test_elements, assume_unique, invert, kind=kind)
-    if NUMPY_LT_2_5:
-        result.shape = element.shape
-    else:
-        result._set_shape(element.shape)
-    return result, _copy_of_mask(element), None
-
-
 @dispatched_function
-def isin(element, test_elements, assume_unique=False, invert=False, *, kind=None):
-    return _isin_impl(
-        element,
-        test_elements,
-        assume_unique=assume_unique,
-        invert=invert,
-        kind=kind,
-    )
-
-
-def _setdiff1d_impl(ar1, ar2, assume_unique=False):
+def setdiff1d(ar1, ar2, assume_unique=False):
     if assume_unique:
         ar1 = np.asanyarray(ar1).ravel()
     else:
         ar1 = np.unique(ar1)
         ar2 = np.unique(ar2)
 
-    res, _, _ = _isin_impl(ar1, ar2, assume_unique=True, invert=True)
-
-    return ar1[res], None, None
-
-
-@dispatched_function
-def setdiff1d(ar1, ar2, assume_unique=False):
-    return _setdiff1d_impl(ar1, ar2, assume_unique=assume_unique)
+    return ar1[np.isin(ar1, ar2, assume_unique=True, invert=True)], None, None
 
 
 # Add any dispatched or helper function that has a docstring to

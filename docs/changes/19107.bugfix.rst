@@ -1,0 +1,1 @@
+Fixed a shape mismatch bug in ``numpy.setdiff1d`` when broadcasting masks.
