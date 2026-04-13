@@ -402,6 +402,7 @@ class TestRoundtripGeneric(RoundtripBase):
     )
     def test_roundtrip(self, unit):
         self.check_roundtrip(unit)
+        self.check_roundtrip(unit, output_format="console")
         self.check_roundtrip(unit, output_format="unicode")
         self.check_roundtrip_decompose(unit)
 
