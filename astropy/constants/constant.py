@@ -130,7 +130,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
                 raise TypeError(f"{cls} requires a reference.")
         name_lower = name.lower()
         instances = cls._registry.setdefault(name_lower, {})
-        # By-pass Quantity initialization, since units may not yet be
+        # Bypass Quantity initialization, since units may not yet be
         # initialized here, and we store the unit in string form.
         inst = np.array(value).view(cls)
 
