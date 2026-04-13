@@ -83,9 +83,9 @@ class MplQuantityConverter(ConversionInterface, ContextDecorator):
     """Matplotlib converter for ``astropy.units.Quantity``.
 
     Registers itself to matplotlib as the converter for
-    `astropy.units.Quantity` when initialized. If used as a context manager,
+    ``astropy.units.Quantity`` when initialized. If used as a context manager,
     it will restore the original converter upon exit. Also see
-    ``quantity_support`` for a convenient way to use this converter
+    :meth:`quantity_support` for a convenient way to use this converter
     with an optional format for the ``axisinfo``.
     """
 
