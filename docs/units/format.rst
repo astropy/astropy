@@ -204,6 +204,36 @@ formats:
     `Office of Guest Investigator Programs (OGIP)
     <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
+  - ``"console"``: Writes a representation of the unit useful for
+    display in a text console::
+
+      >>> print(fluxunit.to_string('console'))
+       erg s^-1 cm^-2
+
+    It is also possible to use a fraction, either on a single line,
+
+      >>> print(fluxunit.to_string('console', fraction='inline'))
+      erg / (s cm^2)
+
+    or using a multiline representation:
+
+      >>> print(fluxunit.to_string('console', fraction='multiline'))
+       erg
+      ------
+      s cm^2
+
+  - ``"unicode"``: Same as ``"console"``, except uses Unicode
+    characters::
+
+      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
+      2.1798724×10⁻¹⁸ m² kg s⁻²
+      >>> print(u.Ry.decompose().to_string('unicode', fraction=True))  # doctest: +FLOAT_CMP
+      2.1798724×10⁻¹⁸ m² kg / s²
+      >>> print(u.Ry.decompose().to_string('unicode', fraction='multiline'))  # doctest: +FLOAT_CMP
+                      m² kg
+      2.1798724×10⁻¹⁸ ─────
+                       s²
+
 `astropy.units` is also able to write, but not read, units in the
 following formats:
 
@@ -238,36 +268,6 @@ following formats:
     .. math::
 
        \mathrm{erg\,s^{-1}\,cm^{-2}}
-
-  - ``"console"``: Writes a representation of the unit useful for
-    display in a text console::
-
-      >>> print(fluxunit.to_string('console'))
-       erg s^-1 cm^-2
-
-    It is also possible to use a fraction, either on a single line,
-
-      >>> print(fluxunit.to_string('console', fraction='inline'))
-      erg / (s cm^2)
-
-    or using a multiline representation:
-
-      >>> print(fluxunit.to_string('console', fraction='multiline'))
-       erg
-      ------
-      s cm^2
-
-  - ``"unicode"``: Same as ``"console"``, except uses Unicode
-    characters::
-
-      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
-      2.1798724×10⁻¹⁸ m² kg s⁻²
-      >>> print(u.Ry.decompose().to_string('unicode', fraction=True))  # doctest: +FLOAT_CMP
-      2.1798724×10⁻¹⁸ m² kg / s²
-      >>> print(u.Ry.decompose().to_string('unicode', fraction='multiline'))  # doctest: +FLOAT_CMP
-                      m² kg
-      2.1798724×10⁻¹⁸ ─────
-                       s²
 
 .. _astropy-units-format-unrecognized:
 
