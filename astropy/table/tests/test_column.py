@@ -440,6 +440,11 @@ class TestColumn:
         assert c.shape == (1, 2)
         assert np.all(c[0].mask == [True, False])
 
+    def test_masked_multidim_nested_list(self):
+        c = table.MaskedColumn([[1, np.ma.masked], [3, 4]])
+        assert c.shape == (2, 2)
+        assert np.all(c.mask == [[False, True], [False, False]])
+
     def test_insert_masked_multidim(self):
         c = table.MaskedColumn([[1, 2], [3, 4]], name="a", dtype=int)
 
