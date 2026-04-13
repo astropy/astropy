@@ -1665,12 +1665,16 @@ class TestArraySetOps:
         test3 = np.setdiff1d(a, b, assume_unique=True)
         assert_masked_equal(test3, Masked(["c"], True))
 
-def test_setdiff1d_mask_broadcasting(self):
+    def test_setdiff1d_mask_broadcasting(self):
         # Regression test for PR #19107: Fails on main with shape mismatch (7,) (3,)
-        a = Masked([6, 5, 4, 7, 7, 1, 2, 1], mask=[False, False, False, False, False, False, False, True])
+        a = Masked(
+            [6, 5, 4, 7, 7, 1, 2, 1],
+            mask=[False, False, False, False, False, False, False, True],
+        )
         b = np.array([2, 4, 3, 3, 2, 1, 5])
         result = np.setdiff1d(a, b)
         assert_masked_equal(result, Masked([6, 7, 1], mask=[False, False, True]))
+
 
 # Get wrapped and covered functions.
 all_wrapped_functions = get_wrapped_functions(np)
