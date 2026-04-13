@@ -1519,7 +1519,11 @@ def structured_to_unstructured(arr, *args, **kwargs):
     """
     from astropy.units import StructuredUnit
 
-    target_unit = arr.unit.values()[0]
+    if isinstance(arr.unit, StructuredUnit) and len(arr.unit) > 0:
+        target_unit = next(iter(arr.unit.values()))
+    else:
+        # Fallback if the unit isn't structured or is empty
+        target_unit = arr.unit
 
     def replace_unit(x):
         if isinstance(x, StructuredUnit):
@@ -1527,7 +1531,11 @@ def structured_to_unstructured(arr, *args, **kwargs):
         else:
             return target_unit
 
-    to_unit = arr.unit._recursively_apply(replace_unit)
+    if isinstance(arr.unit, StructuredUnit):
+        to_unit = arr.unit._recursively_apply(replace_unit)
+    else:
+        to_unit = target_unit
+
     return (arr.to_value(to_unit),) + args, kwargs, target_unit, None
 
 
