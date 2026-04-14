@@ -247,22 +247,14 @@ def _convert_sequence_data_to_array(data, dtype=None):
 
     # Now we need to determine if there is an np.ma.masked anywhere in input data.
 
-    # Make a statement like below to look for np.ma.masked in a nested sequence.
-    # Because np.array(data) succeeded we know that `data` has a regular N-d
-    # structure. Find ma_masked:
-    #   any(any(any(d2 is ma_masked for d2 in d1) for d1 in d0) for d0 in data)
-    # Using this eval avoids creating a copy of `data` in the more-usual case of
-    # no masked elements.
-    any_statement = "d0 is ma_masked"
-    for ii in reversed(range(np_data.ndim)):
-        if ii == 0:
-            any_statement = f"any({any_statement} for d0 in data)"
-        elif ii == np_data.ndim - 1:
-            any_statement = f"any(d{ii} is ma_masked for d{ii} in d{ii - 1})"
-        else:
-            any_statement = f"any({any_statement} for d{ii} in d{ii - 1})"
-    context = {"ma_masked": np.ma.masked, "data": data}
-    has_masked = eval(any_statement, context)
+    # Look for np.ma.masked in the regular N-d nested sequence without creating
+    # a copy of `data` in the common case where there are no masked elements.
+    def contains_ma_masked(values, ndim):
+        if ndim == 1:
+            return any(value is np_ma_masked for value in values)
+        return any(contains_ma_masked(value, ndim - 1) for value in values)
+
+    has_masked = contains_ma_masked(data, np_data.ndim)
 
     # If there are any masks then explicitly change each one to a fill value and
     # set a mask boolean array. If not has_masked then we're done.
