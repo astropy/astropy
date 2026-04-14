@@ -1,0 +1,11 @@
+Added ``astropy.config.temporary_cache_dir_path`` and
+``astropy.config.temporary_config_dir_path`` context managers, which are
+safer alternatives to ``astropy.config.set_temp_cache`` and
+``astropy.config.set_temp_config`` respectively, and should be preferred in
+new code, but are not drop-in replacements.
+
+Added support for ``ASTROPY_CACHE_DIR`` and ``ASTROPY_CONFIG_DIR``
+environment variables, offering a more tightly scoped alternative to
+``XDG_CACHE_HOME`` and ``XDG_CONFIG_HOME`` respectively.
+When both are defined, ``ASTROPY_`` -prefixed variables take precedence
+over ``XDG_`` -prefixed ones.
