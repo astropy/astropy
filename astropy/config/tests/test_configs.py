@@ -5,13 +5,29 @@ import os
 import re
 import subprocess
 import sys
-from contextlib import nullcontext
+from contextlib import chdir, nullcontext
 from inspect import cleandoc
 from pathlib import Path
+from typing import Literal
+from uuid import uuid4
 
 import pytest
 
-from astropy.config import configuration, create_config_file, paths, set_temp_config
+from astropy.config import (
+    configuration,
+    create_config_file,
+    paths,
+    set_temp_config,
+    temporary_cache_path,
+    temporary_config_path,
+)
+from astropy.config.paths import (
+    _AstropyEnvvar,
+    _DirectoryFinder,
+    _DirType,
+    _resolve,
+    _XDGEnvvar,
+)
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -28,6 +44,281 @@ def teardown_module():
     configuration._cfgobjs.update(OLD_CONFIG)
 
 
+@pytest.mark.parametrize(
+    "cls, regexp",
+    [
+        pytest.param(
+            _AstropyEnvvar, r"^ASTROPY_(?P<dirtype>[A-Z]+)_DIR$", id="ASTROPY_"
+        ),
+        pytest.param(_XDGEnvvar, r"^XDG_(?P<dirtype>[A-Z]+)_HOME$", id="XDG_"),
+    ],
+)
+@pytest.mark.parametrize("dirtype", _DirType)
+def test_direnvvar_impl(cls, regexp, dirtype):
+    ev = cls(dirtype)
+    assert (m := re.match(regexp, ev.name)) is not None
+    assert m.group("dirtype") == dirtype.name
+
+
+# TODO: split into smaller tests
+def test_resolve_envvar(monkeypatch, tmp_path: Path):
+    uid = str(uuid4())
+    d1 = tmp_path / uid
+    value = str(d1)
+    monkeypatch.setenv("TEST_ENV_VAR", value)
+    err_template = "TEST_ENV_VAR is set to {value!r}, {reason}."
+
+    err1 = _resolve("TEST_ENV_VAR")
+    assert isinstance(err1, str)
+    assert err1 == err_template.format(
+        value=value,
+        reason="but no such file or directory was found",
+    )
+
+    d1.touch()  # create a file
+    err2 = _resolve("TEST_ENV_VAR")
+    assert isinstance(err2, str)
+    assert err2 == err_template.format(
+        value=value,
+        reason="which is a file (expected a directory)",
+    )
+    d1.unlink()
+
+    d1.mkdir()
+    p = _resolve("TEST_ENV_VAR")
+    assert isinstance(p, Path) and p.is_absolute()
+    assert p == d1
+
+    with chdir(tmp_path):
+        d2 = d1.relative_to(Path.cwd())
+        monkeypatch.setenv("TEST_ENV_VAR", str(d2))
+        err3 = _resolve("TEST_ENV_VAR")
+    assert isinstance(err3, str)
+    assert err3 == err_template.format(
+        value=str(d2),
+        reason="which is relative (expected an absolute path)",
+    )
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+def test_xdgenvvar_resolve_not_found(dirtype, monkeypatch, tmp_path):
+    envvar = _XDGEnvvar(dirtype)
+    uid = str(uuid4())
+    missing_path = tmp_path / uid
+    monkeypatch.setenv(envvar.name, str(missing_path))
+
+    err = envvar.resolve()
+    assert isinstance(err, str)
+    assert err == (
+        f"{envvar.name} is set to {str(missing_path)!r}, "
+        "but no such file or directory was found. "
+        "This environment variable will be ignored."
+    )
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+def test_xdgenvvar_resolve_invalid_content(dirtype, monkeypatch, tmp_path):
+    envvar = _XDGEnvvar(dirtype)
+    monkeypatch.setenv(envvar.name, str(tmp_path))
+    tmp_path.joinpath("astropy").touch()
+
+    err = envvar.resolve()
+    assert isinstance(err, str)
+    assert err == (
+        f"{envvar.name} is set to {str(tmp_path)!r}, "
+        "but this directory already contains a file under 'astropy', "
+        "where a directory was expected. "
+        "This environment variable will be ignored."
+    )
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.parametrize(
+    "setup",
+    [
+        pytest.param(lambda d: None, id="missing-dir"),
+        pytest.param(lambda d: d.mkdir(), id="existing-dir"),
+    ],
+)
+def test_xdgenvvar_resolve_success(dirtype, setup, monkeypatch, tmp_path):
+    envvar = _XDGEnvvar(dirtype)
+    monkeypatch.setenv(envvar.name, str(tmp_path))
+
+    expected = tmp_path / "astropy"
+    setup(expected)
+    p = envvar.resolve()
+    assert isinstance(p, Path)
+    assert p.is_absolute()
+    assert p == expected
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_find_default(dirtype, tmp_path: Path):
+    df = _DirectoryFinder(dirtype)
+    assert df.find_base_node("mybase") == df.default_base_node("mybase")
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_override_not_found(dirtype, tmp_path: Path):
+    with pytest.raises(
+        FileNotFoundError,
+        match=rf"^No such file or directory {re.escape(str(tmp_path / 'spam'))}",
+    ):
+        _DirectoryFinder(dirtype, home_override=tmp_path / "spam")
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_override_file(dirtype, tmp_path: Path):
+    egg = tmp_path / "egg"
+    egg.touch()
+    with pytest.raises(
+        ValueError,
+        match=rf"^override path must be a directory, but {re.escape(str(egg))} is a file\.$",
+    ):
+        _DirectoryFinder(dirtype, home_override=egg)
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_override_relpath(dirtype, tmp_path: Path):
+    egg = tmp_path.joinpath("egg")
+    egg.touch()
+    with chdir(tmp_path):
+        eggs = egg.relative_to(Path.cwd())
+        with pytest.raises(
+            ValueError,
+            match=rf"^override path must be absolute, but {re.escape(str(eggs))} is not\.$",
+        ):
+            _DirectoryFinder(dirtype, home_override=eggs)
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_override_success(dirtype, tmp_path: Path):
+    bacon = tmp_path / "bacon"
+    bacon.mkdir()
+    df = _DirectoryFinder(dirtype, home_override=bacon)
+    assert df.find_base_node() == bacon
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.parametrize("var_kind", ["astropy", "xdg"])
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_find_from_envvars_single_set(
+    var_kind: Literal["astropy", "xdg"], dirtype: _DirType, tmp_path: Path, monkeypatch
+):
+    df = _DirectoryFinder(dirtype)
+    p = tmp_path / "spam"
+
+    envvar_name = getattr(df.envvars, var_kind).name
+    monkeypatch.setenv(envvar_name, str(p))
+
+    err_template = "{var} is set to {val!r}, which is a file (expected a directory)."
+
+    # file
+    p.touch()
+    with pytest.warns(
+        AstropyUserWarning,
+        match=re.escape(
+            err_template.format(
+                var=envvar_name,
+                val=str(p),
+            )
+        ),
+    ):
+        res = df.find_base_node()
+    assert res == df.default_base_node()
+    p.unlink()
+
+    # dir
+    p.mkdir()
+    res = df.find_base_node()
+    match var_kind:
+        case "astropy":
+            expected = p
+        case "xdg":
+            expected = p / "astropy"
+        case _:
+            raise AssertionError
+    assert res == expected
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_find_from_envvars_double_set(
+    dirtype: _DirType, tmp_path: Path, monkeypatch
+):
+    df = _DirectoryFinder(dirtype)
+    p0 = tmp_path / "spam"
+    p1 = tmp_path / "bacon"
+
+    monkeypatch.setenv(df.envvars.astropy.name, str(p0))
+    monkeypatch.setenv(df.envvars.xdg.name, str(p1))
+
+    err_template = "{var} is set to {val!r}, which is a file (expected a directory)."
+    # file + file
+    p0.touch()
+    p1.touch()
+    with (
+        pytest.warns(
+            AstropyUserWarning,
+            match=re.escape(
+                err_template.format(
+                    var=df.envvars.astropy.name,
+                    val=str(p0),
+                )
+            ),
+        ),
+        pytest.warns(
+            AstropyUserWarning,
+            match=re.escape(
+                err_template.format(
+                    var=df.envvars.xdg.name,
+                    val=str(p1),
+                )
+            ),
+        ),
+    ):
+        res = df.find_base_node()
+    assert res == df.default_base_node()
+    p0.unlink()
+    p1.unlink()
+
+    # file + dir
+    p0.touch()
+    p1.mkdir()
+    with pytest.warns(
+        AstropyUserWarning,
+        match=re.escape(
+            err_template.format(
+                var=df.envvars.astropy.name,
+                val=str(p0),
+            )
+        ),
+    ):
+        res = df.find_base_node()
+    assert res == p1 / "astropy"
+    p0.unlink()
+    p1.rmdir()
+
+    # dir + file
+    p0.mkdir()
+    p1.touch()
+    res = df.find_base_node()
+    assert res == p0
+    p0.rmdir()
+    p1.unlink()
+
+    # dir + dir
+    p0.mkdir()
+    p1.mkdir()
+    res = df.find_base_node()
+    assert res == p0
+
+
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_paths():
     assert "astropy" in paths.get_config_dir()
@@ -41,35 +332,23 @@ def test_paths():
     assert "testpkg" in paths.get_cache_dir(rootname="testpkg")
 
 
-ENV_VAR_AND_FUNC = [
-    pytest.param(
-        "XDG_CACHE_HOME",
-        paths.get_cache_dir_path,
-        id="xdg-cache",
-    ),
-    pytest.param(
-        "XDG_CONFIG_HOME",
-        paths.get_config_dir_path,
-        id="xdg-config",
-    ),
-]
-
-
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_xdg_variables(monkeypatch, tmp_path, env_var, func):
+def test_xdg_variables(monkeypatch, tmp_path, dirtype):
     # Regression test for #17514 - XDG_CACHE_HOME had no effect
     target_dir = tmp_path / "astropy"
     target_dir.mkdir()
-    monkeypatch.setenv(env_var, str(tmp_path))
-    assert func() == target_dir
+    monkeypatch.setenv(f"XDG_{dirtype.name}_HOME", str(tmp_path))
+
+    assert dirtype.path_getter() == target_dir
 
 
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_env_variables_missing_dir(monkeypatch, tmp_path, env_var, func):
-    default_path = func()
+def test_env_variables_missing_dir(monkeypatch, tmp_path, dirtype):
+    default_path = dirtype.path_getter()
     target_dir = tmp_path / "nonexistent"
+    env_var = f"XDG_{dirtype.name}_HOME"
     monkeypatch.setenv(env_var, str(target_dir))
 
     expected_msg = (
@@ -78,31 +357,25 @@ def test_env_variables_missing_dir(monkeypatch, tmp_path, env_var, func):
         r"This environment variable will be ignored\.$"
     )
     with pytest.warns(AstropyUserWarning, match=expected_msg):
-        new_path = func()
+        new_path = dirtype.path_getter()
 
     assert new_path == default_path
 
 
-def get_directory_type(func) -> str:
-    for t in ["cache", "config"]:
-        if t in func.__name__:
-            return t
-    raise RuntimeError
-
-
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_env_variables_missing_subdir_and_default(monkeypatch, tmp_path, env_var, func):
+def test_env_variables_missing_subdir_and_default(monkeypatch, tmp_path, dirtype):
     # have the env var point to a writable location,
     # where an 'astropy' subdir is missing, but can be created silently
     default_parent_dir = Path.home() / ".astropy"
     assert not default_parent_dir.exists()
 
     target_dir = tmp_path
+    env_var = f"XDG_{dirtype.name}_HOME"
     monkeypatch.setenv(env_var, str(target_dir))
 
     expected_location = target_dir / "astropy"
-    default_location = default_parent_dir / get_directory_type(func)
+    default_location = default_parent_dir / dirtype.as_str()
 
     assert not expected_location.exists()
 
@@ -120,7 +393,7 @@ def test_env_variables_missing_subdir_and_default(monkeypatch, tmp_path, env_var
         ctx = nullcontext()
 
     with ctx:
-        ret = func()
+        ret = dirtype.path_getter()
 
     assert ret.is_dir()
 
@@ -141,20 +414,21 @@ def test_env_variables_missing_subdir_and_default(monkeypatch, tmp_path, env_var
     assert expected_location.resolve() == default_location
 
 
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_env_variables_missing_subdir_but_default_exists(
-    monkeypatch, tmp_path, env_var, func
+    monkeypatch, tmp_path, dirtype
 ):
     # have the env var point to a writable location,
     # where an 'astropy' subdir is missing, but can be created silently
     default_parent_dir = Path.home() / ".astropy"
 
     target_dir = tmp_path
+    env_var = f"XDG_{dirtype.name}_HOME"
     monkeypatch.setenv(env_var, str(target_dir))
 
     expected_location = target_dir / "astropy"
-    default_location = default_parent_dir / get_directory_type(func)
+    default_location = default_parent_dir / dirtype.as_str()
 
     # this is the crucial variation in setup
     # as compared to test_env_variables_missing_subdir_and_default
@@ -181,7 +455,7 @@ def test_env_variables_missing_subdir_but_default_exists(
     expected_msg = expected_msg_template.format(reason=reason)
 
     with pytest.warns(AstropyUserWarning, match=expected_msg):
-        ret = func()
+        ret = dirtype.path_getter()
 
     assert ret.is_dir()
 
@@ -191,17 +465,17 @@ def test_env_variables_missing_subdir_but_default_exists(
     assert not expected_location.exists()
 
 
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_env_variables_setup_file_exists(monkeypatch, tmp_path, env_var, func):
+def test_env_variables_setup_file_exists(monkeypatch, tmp_path, dirtype):
     # check what happens if we request a location that's already
     # taken, but is a file
-    default_path = func()
+    default_path = dirtype.path_getter()
     target_dir = tmp_path / "subdir"
     target_dir.mkdir()
     expected_path = target_dir / "astropy"
     expected_path.touch()  # create a file
-
+    env_var = f"XDG_{dirtype.name}_HOME"
     monkeypatch.setenv(env_var, str(target_dir))
 
     expected_msg = (
@@ -211,7 +485,7 @@ def test_env_variables_setup_file_exists(monkeypatch, tmp_path, env_var, func):
         r"This environment variable will be ignored\.$"
     )
     with pytest.warns(AstropyUserWarning, match=expected_msg):
-        new_path = func()
+        new_path = dirtype.path_getter()
     assert new_path == default_path
 
 
@@ -274,8 +548,12 @@ def test_set_temp_cache_resets_on_exception(tmp_path):
     """Test for regression of  bug #9704"""
     t = paths.get_cache_dir()
     (a := tmp_path / "a").write_text("not a good cache\n")
-    with pytest.raises(OSError), paths.set_temp_cache(a):
-        pass
+    with pytest.raises(Exception) as _:
+        # we except the context manager itself to raise an exception
+        with paths.set_temp_cache(a):
+            # this line should never run. If it does,
+            # it'll raise an unexpected exception and fail the test
+            1 / 0
     assert t == paths.get_cache_dir()
 
 
@@ -736,3 +1014,25 @@ def test_no_home():
     retcode = subprocess.check_call([sys.executable, "-c", "import astropy"], env=env)
 
     assert retcode == 0
+
+
+@pytest.mark.parametrize("ctx_manager", [temporary_cache_path, temporary_config_path])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        pytest.param({}, id="delete-implicit"),
+        pytest.param({"delete": True}, id="delete-explicit"),
+        pytest.param({"delete": False}, id="no-delete"),
+    ],
+)
+def test_set_temp_dir_delete(ctx_manager, kwargs):
+    # reason: old impl allows using existing directories, which creates all sorts of quirks:
+    # - pre-existing content may be deleted
+    # - multiple threads may use the same dir, which may get pulled from under them
+    with ctx_manager(**kwargs) as tmp_path:
+        target = tmp_path / "test"
+        target.touch()
+
+    expect_deletion = kwargs.get("delete", True)
+    assert target.exists() is not expect_deletion
+    assert tmp_path.exists() is not expect_deletion

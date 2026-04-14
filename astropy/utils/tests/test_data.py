@@ -1106,6 +1106,7 @@ def test_get_pkg_data_contents():
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.remote_data(source="astropy")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_data_noastropy_fallback(monkeypatch):
     """
     Tests to make sure the default behavior when the cache directory can't
@@ -1115,13 +1116,7 @@ def test_data_noastropy_fallback(monkeypatch):
     # better yet, set the configuration to make sure the temp files are deleted
     conf.delete_temporary_downloads_at_exit = True
 
-    # make sure the config and cache directories are not searched
-    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
-
-    monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
-    monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
-
+    # TODO: try to eliminate this mock
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
     @classmethod
@@ -1657,7 +1652,7 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
     assert get_file_contents(fn) == ct, "File should not be harmed."
 
     # See what happens when set_temp_cache is pointed at a file
-    with pytest.raises(OSError):
+    with pytest.raises(Exception) as _:
         with paths.set_temp_cache(fn):
             pass
     assert dldir == _get_download_cache_loc()

@@ -1760,6 +1760,8 @@ def download_files_in_parallel(
     files will have been successfully downloaded and will remain in
     the cache.
     """
+    from astropy.config.paths import _CacheFinder, _ConfigFinder
+
     from .console import ProgressBar
 
     if timeout is None:
@@ -1798,8 +1800,8 @@ def download_files_in_parallel(
                 timeout=timeout,
                 sources=sources.get(u),
                 pkgname=pkgname,
-                temp_cache=astropy.config.paths.set_temp_cache._temp_path,
-                temp_config=astropy.config.paths.set_temp_config._temp_path,
+                temp_cache=_CacheFinder.home_override,
+                temp_config=_ConfigFinder.home_override,
             )
             for u in combined_urls
         ],

@@ -8,6 +8,7 @@ import os
 import sys
 import tempfile
 import warnings
+from dataclasses import replace
 from pathlib import Path
 from threading import Lock
 
@@ -55,7 +56,7 @@ _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
 
 @pytest.fixture
 def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
-    from astropy.config import set_temp_cache, set_temp_config
+    import astropy.config.paths
 
     # ignore global state of the test session
     # and preserve thread safety across all users of this fixture
@@ -63,8 +64,24 @@ def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
         monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
         monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
 
-        monkeypatch.setattr(set_temp_cache, "_temp_path", None)
-        monkeypatch.setattr(set_temp_config, "_temp_path", None)
+        pristine_cache_finder = replace(
+            astropy.config.paths._CacheFinder,
+            home_override=None,
+        )
+        monkeypatch.setattr(
+            astropy.config.paths,
+            "_CacheFinder",
+            pristine_cache_finder,
+        )
+        pristine_config_finder = replace(
+            astropy.config.paths._ConfigFinder,
+            home_override=None,
+        )
+        monkeypatch.setattr(
+            astropy.config.paths,
+            "_ConfigFinder",
+            pristine_config_finder,
+        )
 
         # also mock $HOME as it's part of the global state taken into account
         # for path detection
