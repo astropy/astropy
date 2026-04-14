@@ -251,7 +251,7 @@ def _convert_sequence_data_to_array(data, dtype=None):
     # a copy of `data` in the common case where there are no masked elements.
     def contains_ma_masked(values, ndim):
         if ndim == 1:
-            return any(value is np.ma.masked for value in values)
+            return any(value is np_ma_masked for value in values)
         return any(contains_ma_masked(value, ndim - 1) for value in values)
 
     has_masked = contains_ma_masked(data, np_data.ndim)
