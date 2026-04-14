@@ -1,23 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from threading import Barrier
-from typing import Generic, TypeAlias, TypeVar
+from typing import Generic, TypeVar
 from uuid import uuid4
 
 import pytest
 
-from astropy.config import (
-    get_cache_dir_path,
-    get_config_dir_path,
-    set_temp_cache,
-    set_temp_config,
-)
-from astropy.config.paths import _SetTempPath
+from astropy.config.paths import _DirType
 
 N_THREADS = 10
 
@@ -33,33 +26,18 @@ class Result(Generic[T]):
         return self.actual == self.expected
 
 
-PathGetter: TypeAlias = Callable[[], Path]
-
-
-def getter_from_manager(cm: type[_SetTempPath]) -> PathGetter:
-    # this is functionally equivalent to an immutable dict
-    # it could be refactored into a frozendict when Python 3.14 is unsupported
-    if cm is set_temp_cache:
-        return get_cache_dir_path
-    elif cm is set_temp_config:
-        return get_config_dir_path
-    else:
-        raise ValueError
-
-
 def closure_base(
-    ctx_manager: type[_SetTempPath],
+    dirtype: _DirType,
     *,
     directory: Path,
     barrier: Barrier,
 ) -> Result[Path]:
     local_path = directory / str(uuid4())
     local_path.mkdir()
-    getter = getter_from_manager(ctx_manager)
 
     barrier.wait()
-    with ctx_manager(local_path):
-        res = getter()
+    with dirtype.legacy_context_manager(local_path):
+        res = dirtype.path_getter("astropy")
 
     return Result(actual=res, expected=local_path / "astropy")
 
@@ -71,12 +49,12 @@ def assert_valid_results(results: list[Result[T]]) -> None:
     assert all(r.match() for r in results)
 
 
-@pytest.mark.parametrize("ctx_manager", [set_temp_cache, set_temp_config])
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_set_temp_dir(ctx_manager, tmp_path):
+def test_set_temp_dir(dirtype, tmp_path):
     closure = partial(
         closure_base,
-        ctx_manager,
+        dirtype,
         directory=tmp_path,
         barrier=Barrier(N_THREADS),
     )
@@ -86,21 +64,12 @@ def test_set_temp_dir(ctx_manager, tmp_path):
     assert_valid_results([f.result() for f in futures])
 
 
-@pytest.mark.parametrize(
-    "cm_out, cm_in",
-    [
-        pytest.param(set_temp_cache, set_temp_cache, id="cache-cache"),
-        pytest.param(set_temp_cache, set_temp_config, id="cache-config"),
-        pytest.param(set_temp_config, set_temp_cache, id="config-cache"),
-        pytest.param(set_temp_config, set_temp_config, id="config-config"),
-    ],
-)
+@pytest.mark.parametrize("dt_in", _DirType)
+@pytest.mark.parametrize("dt_out", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_nesting(cm_out: type[_SetTempPath], cm_in: type[_SetTempPath], tmp_path: Path):
+def test_nesting(dt_out: _DirType, dt_in: _DirType, tmp_path: Path):
     # check that nesting doesn't deadlock
     barrier = Barrier(N_THREADS)
-    getter_out = getter_from_manager(cm_out)
-    getter_in = getter_from_manager(cm_in)
 
     def closure() -> Result[tuple[Path, Path, Path, Path]]:
         local_path_1 = tmp_path / str(uuid4())
@@ -109,18 +78,18 @@ def test_nesting(cm_out: type[_SetTempPath], cm_in: type[_SetTempPath], tmp_path
         local_path_2.mkdir()
 
         barrier.wait()
-        with cm_out(local_path_1):
-            res0 = getter_out()
-            with cm_in(local_path_2):
-                res1 = getter_in()
-                res2 = getter_out()
-            res3 = getter_out()
+        with dt_out.legacy_context_manager(local_path_1):
+            res0 = dt_out.path_getter()
+            with dt_in.legacy_context_manager(local_path_2):
+                res1 = dt_in.path_getter()
+                res2 = dt_out.path_getter()
+            res3 = dt_out.path_getter()
         return Result(
             actual=(res0, res1, res2, res3),
             expected=(
                 local_path_1 / "astropy",
                 local_path_2 / "astropy",
-                (local_path_1 if cm_in != cm_out else local_path_2) / "astropy",
+                (local_path_1 if dt_in != dt_out else local_path_2) / "astropy",
                 local_path_1 / "astropy",
             ),
         )
@@ -136,10 +105,10 @@ def test_mixed_settings(tmp_path):
     barrier = Barrier(N_THREADS)
 
     cache_setter = partial(
-        closure_base, set_temp_cache, directory=tmp_path, barrier=barrier
+        closure_base, _DirType.CACHE, directory=tmp_path, barrier=barrier
     )
     config_setter = partial(
-        closure_base, set_temp_config, directory=tmp_path, barrier=barrier
+        closure_base, _DirType.CONFIG, directory=tmp_path, barrier=barrier
     )
 
     closures = [cache_setter if n % 2 else config_setter for n in range(N_THREADS)]

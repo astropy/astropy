@@ -26,7 +26,7 @@ jQuery/DataTables
 It is possible to change the default urls for the remote versions of these
 files by using the Astropy
 `Configuration system <https://docs.astropy.org/en/stable/config/>`_. The default
-configuration file (``$HOME/.astropy/config``) contains a commented section
+configuration file (``$XDG_CONFIG_HOME/astropy/astropy.cfg``) contains a commented section
 ``[table.jsviewer]`` with two items for jQuery_ and DataTables_. It is also
 possible to display the default value and modify it by importing the
 configuration module::
