@@ -6,8 +6,8 @@ This file contains pytest configuration settings that are astropy-specific.
 import builtins
 import os
 import sys
-import tempfile
 import warnings
+from dataclasses import replace
 from pathlib import Path
 from threading import Lock
 
@@ -55,16 +55,34 @@ _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
 
 @pytest.fixture
 def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
-    from astropy.config import set_temp_cache, set_temp_config
+    import astropy.config.paths
 
     # ignore global state of the test session
     # and preserve thread safety across all users of this fixture
     with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
+        monkeypatch.delenv("ASTROPY_CACHE_DIR", raising=False)
+        monkeypatch.delenv("ASTROPY_CONFIG_DIR", raising=False)
         monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
         monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
 
-        monkeypatch.setattr(set_temp_cache, "_temp_path", None)
-        monkeypatch.setattr(set_temp_config, "_temp_path", None)
+        pristine_cache_finder = replace(
+            astropy.config.paths._finders.cache,
+            overrides={},
+        )
+        monkeypatch.setattr(
+            astropy.config.paths._finders,
+            "cache",
+            pristine_cache_finder,
+        )
+        pristine_config_finder = replace(
+            astropy.config.paths._finders.config,
+            overrides={},
+        )
+        monkeypatch.setattr(
+            astropy.config.paths._finders,
+            "config",
+            pristine_config_finder,
+        )
 
         # also mock $HOME as it's part of the global state taken into account
         # for path detection
@@ -76,6 +94,25 @@ def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
         monkeypatch.setattr(Path, "home", mock_home)
 
         yield
+
+
+# Make sure we use temporary directories for the config and cache
+# so that the tests are insensitive to local configuration. Note that this
+# is also set in the test runner, but we need to also set it here for
+# things to work properly in parallel mode
+# note: session-level + autouse doesn't require a cleanup phase
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _session_level_cache_dir(tmp_path_factory):
+    tmp_path = tmp_path_factory.mktemp("cache_")
+    os.environ["ASTROPY_CACHE_DIR"] = str(tmp_path)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _session_level_config_dir(tmp_path_factory):
+    tmp_path = tmp_path_factory.mktemp("config_")
+    os.environ["ASTROPY_CONFIG_DIR"] = str(tmp_path)
 
 
 def pytest_configure(config):
@@ -98,20 +135,6 @@ def pytest_configure(config):
             matplotlibrc_cache.update(mpl.rcParams)
             mpl.rcdefaults()
             mpl.use("Agg")
-
-    # Make sure we use temporary directories for the config and cache
-    # so that the tests are insensitive to local configuration. Note that this
-    # is also set in the test runner, but we need to also set it here for
-    # things to work properly in parallel mode
-
-    builtins._xdg_config_home_orig = os.environ.get("XDG_CONFIG_HOME")
-    builtins._xdg_cache_home_orig = os.environ.get("XDG_CACHE_HOME")
-
-    os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
-    os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
-
-    Path(os.environ["XDG_CONFIG_HOME"]).joinpath("astropy").mkdir()
-    Path(os.environ["XDG_CACHE_HOME"]).joinpath("astropy").mkdir()
 
     config.option.astropy_header = True
     PYTEST_HEADER_MODULES["PyERFA"] = "erfa"
@@ -172,16 +195,6 @@ def pytest_unconfigure(config):
             warnings.simplefilter("ignore")
             mpl.rcParams.update(matplotlibrc_cache)
             matplotlibrc_cache.clear()
-
-    if builtins._xdg_config_home_orig is None:
-        os.environ.pop("XDG_CONFIG_HOME")
-    else:
-        os.environ["XDG_CONFIG_HOME"] = builtins._xdg_config_home_orig
-
-    if builtins._xdg_cache_home_orig is None:
-        os.environ.pop("XDG_CACHE_HOME")
-    else:
-        os.environ["XDG_CACHE_HOME"] = builtins._xdg_cache_home_orig
 
 
 def pytest_terminal_summary(terminalreporter):
