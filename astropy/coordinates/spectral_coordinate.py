@@ -241,6 +241,39 @@ class SpectralCoord(SpectralQuantity):
         self._radial_velocity = getattr(obj, "_radial_velocity", None)
         self._observer = getattr(obj, "_observer", None)
         self._target = getattr(obj, "_target", None)
+    import numpy as np
+
+    def __array_function__(self, func, types, args, kwargs):
+        if func is np.concatenate:
+            arrays = args[0]
+
+            if not all(isinstance(a, SpectralCoord) for a in arrays):
+                return NotImplemented
+
+            # check units
+            unit = arrays[0].unit
+            if any(a.unit != unit for a in arrays):
+                raise ValueError("All SpectralCoord must have same unit")
+
+            # concatenate values
+            values = np.concatenate([a.value for a in arrays])
+
+            # concatenate metadata properly
+            rv = None
+            if arrays[0]._radial_velocity is not None:
+                rv = np.concatenate([a._radial_velocity for a in arrays])
+
+            observer = arrays[0]._observer
+            target = arrays[0]._target
+
+            return SpectralCoord(
+                values * unit,
+                radial_velocity=rv,
+                observer=observer,
+                target=target,
+            )
+
+        return super().__array_function__(func, types, args, kwargs)
 
     @staticmethod
     def _validate_coordinate(coord, label=""):
