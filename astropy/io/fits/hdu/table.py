@@ -674,12 +674,14 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
     def _populate_table_keywords(self):
         """Populate the new table definition keywords from the header."""
+        after = "TFIELDS"
         for idx, column in enumerate(self.columns):
             for keyword, attr in KEYWORD_TO_ATTRIBUTE.items():
                 val = getattr(column, attr)
                 if val is not None:
                     keyword = keyword + str(idx + 1)
-                    self._header[keyword] = val
+                    self._header.set(keyword, val, after=after)
+                    after = keyword
 
 
 class TableHDU(_TableBaseHDU):
