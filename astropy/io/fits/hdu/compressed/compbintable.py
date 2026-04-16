@@ -1,4 +1,3 @@
-from astropy.io.fits.column import KEYWORD_TO_ATTRIBUTE
 from astropy.io.fits.hdu.table import BinTableHDU
 
 __all__ = ["_CompBinTableHDU"]
