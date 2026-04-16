@@ -61,7 +61,6 @@ import warnings
 
 import numpy as np
 
-from astropy.units.format import fits
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .diff import FITSDiff, HDUDiff
@@ -1169,20 +1168,20 @@ def pack(uncompressed_hdulist: HDUList, extension_quantizations: dict = None) ->
         hdulist = [primary_hdu, compressed_hdu]
 
     for hdu in uncompressed_hdulist[1:]:
-        if isinstance(hdu, fits.ImageHDU):
+        if isinstance(hdu, ImageHDU):
             if hdu.data is None:
                 data = None
             else:
                 data = np.ascontiguousarray(hdu.data)
             extname = hdu.header.get('EXTNAME')
             quantize_level = extension_quantizations.get(extname, 64)
-            compressed_hdu = fits.CompImageHDU(data=data, header=hdu.header,
-                                               quantize_level=quantize_level,
-                                               quantize_method=1)
+            compressed_hdu = CompImageHDU(data=data, header=hdu.header,
+                                          quantize_level=quantize_level,
+                                          quantize_method=1)
             hdulist.append(compressed_hdu)
         else:
             hdulist.append(hdu)
-    return fits.HDUList(hdulist)
+    return HDUList(hdulist)
 
 
 def _getext(filename, mode, *args, ext=None, extname=None, extver=None, **kwargs):
