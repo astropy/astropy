@@ -1,0 +1,2 @@
+Ensure thread safety in ``set_temp_cache`` and ``set_temp_config``
+context managers
