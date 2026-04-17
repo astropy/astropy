@@ -1,0 +1,1 @@
+Enable models to dictate whether fitter should enforce that dimensions of inputs and output should be the same. Previous behaviour was that this check was always performed. But this change enables check to be skipped if model has an attribute ``verify_dims_in_fitting`` set to `False`.
