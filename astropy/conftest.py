@@ -8,7 +8,9 @@ import os
 import sys
 import tempfile
 import warnings
+from dataclasses import replace
 from pathlib import Path
+from threading import Lock
 
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
@@ -47,6 +49,50 @@ def fast_thread_switching():
     sys.setswitchinterval(1e-6)
     yield
     sys.setswitchinterval(old)
+
+
+_IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
+
+
+@pytest.fixture
+def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
+    import astropy.config.paths
+
+    # ignore global state of the test session
+    # and preserve thread safety across all users of this fixture
+    with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
+        monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
+        monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+
+        pristine_cache_finder = replace(
+            astropy.config.paths._CacheFinder,
+            home_override=None,
+        )
+        monkeypatch.setattr(
+            astropy.config.paths,
+            "_CacheFinder",
+            pristine_cache_finder,
+        )
+        pristine_config_finder = replace(
+            astropy.config.paths._ConfigFinder,
+            home_override=None,
+        )
+        monkeypatch.setattr(
+            astropy.config.paths,
+            "_ConfigFinder",
+            pristine_config_finder,
+        )
+
+        # also mock $HOME as it's part of the global state taken into account
+        # for path detection
+        mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME")
+
+        def mock_home():
+            return mock_home_dir
+
+        monkeypatch.setattr(Path, "home", mock_home)
+
+        yield
 
 
 def pytest_configure(config):

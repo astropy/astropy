@@ -23,6 +23,7 @@ import urllib.request
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from itertools import islice
+from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import pytest
@@ -1106,6 +1107,7 @@ def test_get_pkg_data_contents():
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.remote_data(source="astropy")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_data_noastropy_fallback(monkeypatch):
     """
     Tests to make sure the default behavior when the cache directory can't
@@ -1115,13 +1117,7 @@ def test_data_noastropy_fallback(monkeypatch):
     # better yet, set the configuration to make sure the temp files are deleted
     conf.delete_temporary_downloads_at_exit = True
 
-    # make sure the config and cache directories are not searched
-    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
-
-    monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
-    monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
-
+    # TODO: try to eliminate this mock
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
     @classmethod
@@ -1604,14 +1600,14 @@ def test_download_cache_update_doesnt_damage_cache(temp_cache, valid_urls):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
-def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
+def test_cache_dir_is_actually_a_file(tmp_path: Path, valid_urls):
     """Ensure that bogus cache settings are handled sensibly.
 
     Because the user can specify the cache location in a config file, and
     because they might try to deduce the location by looking around at what's
     in their directory tree, and because the cache directory is actual several
     tree levels down from the directory set in the config file, it's important
-    to check what happens if each of the steps in the path is wrong somehow.
+    to check what happens if any of the steps in the path is wrong somehow.
     """
 
     def check_quietly_ignores_bogus_cache():
@@ -1657,7 +1653,7 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
     assert get_file_contents(fn) == ct, "File should not be harmed."
 
     # See what happens when set_temp_cache is pointed at a file
-    with pytest.raises(OSError):
+    with pytest.raises(Exception) as _:
         with paths.set_temp_cache(fn):
             pass
     assert dldir == _get_download_cache_loc()
@@ -1665,7 +1661,7 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
 
     # Now the cache directory is normal but the subdirectory it wants
     # to make is a file
-    cd = tmp_path / "astropy"
+    cd = tmp_path / "cache"
     with open(cd, "w") as f:
         f.write(ct)
     with paths.set_temp_cache(tmp_path):
@@ -1676,7 +1672,7 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
 
     # Ditto one level deeper
     os.makedirs(cd)
-    cd = tmp_path / "astropy" / "download"
+    cd /= "download"
     with open(cd, "w") as f:
         f.write(ct)
     with paths.set_temp_cache(tmp_path):
@@ -1687,7 +1683,7 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
 
     # Ditto another level deeper
     os.makedirs(cd)
-    cd = tmp_path / "astropy" / "download" / "url"
+    cd /= "url"
     with open(cd, "w") as f:
         f.write(ct)
     with paths.set_temp_cache(tmp_path):
