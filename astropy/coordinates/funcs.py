@@ -21,7 +21,11 @@ from astropy.utils import data, deprecated
 
 from .builtin_frames import GCRS, PrecessedGeocentric
 from .builtin_frames.utils import get_jd12
-from .representation import CartesianRepresentation, SphericalRepresentation
+from .representation import (
+    CartesianRepresentation,
+    SphericalRepresentation,
+    UnitSphericalRepresentation,
+)
 from .sky_coordinate import SkyCoord
 
 __all__ = [
@@ -31,6 +35,7 @@ __all__ = [
     "get_constellation",
     "get_sun",
     "spherical_to_cartesian",
+    "great_circle_midpoint",
 ]
 
 
@@ -412,4 +417,37 @@ def concatenate(coords):
     # boost when we switch to using classmethods
     return SkyCoord(
         concatenate_representations([c.data for c in coords]), frame=scs[0].frame
+    )
+
+
+def great_circle_midpoint(coord1, coord2):
+    """
+    Calculate the midpoint on the great circle between two coordinates.
+    Parameters
+    ----------
+    coord1, coord2 : coordinate-like
+        The two coordinates to find the midpoint of.
+    Returns
+    -------
+    midpoint : `~astropy.coordinates.SkyCoord`
+        The midpoint on the great circle.
+    """
+    sc1 = SkyCoord(coord1, copy=False)
+    sc2 = SkyCoord(coord2, copy=False)
+
+    if not sc1.is_equivalent_frame(sc2):
+        sc2 = sc2.transform_to(sc1.frame)
+
+    cart1 = sc1.cartesian
+    cart2 = sc2.cartesian
+
+    x = (cart1.x + cart2.x) / 2
+    y = (cart1.y + cart2.y) / 2
+    z = (cart1.z + cart2.z) / 2
+
+    mid_cart = CartesianRepresentation(x=x, y=y, z=z)
+    if np.any(np.isclose(mid_cart.norm(), 0 * u.one)):
+        raise ValueError("Cannot calculate the midpoint of two antipodal points.")
+    return SkyCoord(
+        mid_cart.represent_as(UnitSphericalRepresentation), frame=sc1.frame
     )
