@@ -493,7 +493,7 @@ class TestSingleTable:
         See https://github.com/astropy/astropy/issues/1906
         """
         filename = tmp_path / "test_table_object.fits"
-        msg = r"Column 'col1' contains unsupported object types or mixed types: {dtype\('O'\)}"
+        msg = r"Column 'col1' contains only None or masked values"
         # Make a FITS table with an object column
         tab = Table({"col1": [None]})
         with pytest.raises(TypeError, match=msg):
