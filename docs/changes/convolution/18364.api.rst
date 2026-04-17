@@ -1,0 +1,1 @@
+Fixes issue 8099 by explicitly forbidding kernels with non-finite values.  The new parameter ``treat_infs_as_nans`` specifies whether infinites will be treated the same as NaNs.   The default is to treat both the same, i.e., as nans, but the alternative to leave infs as infs is allowed for ``convolve`` (it is not possible to support with ``convolve_fft``).
