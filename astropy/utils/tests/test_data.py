@@ -23,6 +23,7 @@ import urllib.request
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from itertools import islice
+from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import pytest
@@ -1599,14 +1600,14 @@ def test_download_cache_update_doesnt_damage_cache(temp_cache, valid_urls):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
-def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
+def test_cache_dir_is_actually_a_file(tmp_path: Path, valid_urls):
     """Ensure that bogus cache settings are handled sensibly.
 
     Because the user can specify the cache location in a config file, and
     because they might try to deduce the location by looking around at what's
     in their directory tree, and because the cache directory is actual several
     tree levels down from the directory set in the config file, it's important
-    to check what happens if each of the steps in the path is wrong somehow.
+    to check what happens if any of the steps in the path is wrong somehow.
     """
 
     def check_quietly_ignores_bogus_cache():
@@ -1660,7 +1661,7 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
 
     # Now the cache directory is normal but the subdirectory it wants
     # to make is a file
-    cd = tmp_path / "astropy"
+    cd = tmp_path / "cache"
     with open(cd, "w") as f:
         f.write(ct)
     with paths.set_temp_cache(tmp_path):
@@ -1671,7 +1672,7 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
 
     # Ditto one level deeper
     os.makedirs(cd)
-    cd = tmp_path / "astropy" / "download"
+    cd /= "download"
     with open(cd, "w") as f:
         f.write(ct)
     with paths.set_temp_cache(tmp_path):
@@ -1682,7 +1683,7 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
 
     # Ditto another level deeper
     os.makedirs(cd)
-    cd = tmp_path / "astropy" / "download" / "url"
+    cd /= "url"
     with open(cd, "w") as f:
         f.write(ct)
     with paths.set_temp_cache(tmp_path):
