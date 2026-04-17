@@ -92,6 +92,7 @@ class _TableLikeHDU(_ValidHDU):
         nrows=0,
         fill=False,
         character_as_bytes=False,
+        logical_as_bytes=False,
         **kwargs,
     ):
         """
@@ -138,6 +139,13 @@ class _TableLikeHDU(_ValidHDU):
             HDU. By default this is `False` and (unicode) strings are returned,
             but for large tables this may use up a lot of memory.
 
+        logical_as_bytes : bool
+            Whether to return raw bytes for logical columns when accessed from
+            the HDU. By default this is `False` and boolean values are returned.
+            When `True`, the raw FITS values are returned: ord('T')=84 for True,
+            ord('F')=70 for False, and 0 for undefined (NULL). This allows
+            distinguishing between False and NULL values.
+
         Notes
         -----
         Any additional keyword arguments accepted by the HDU class's
@@ -145,10 +153,18 @@ class _TableLikeHDU(_ValidHDU):
         """
         coldefs = cls._columns_type(columns)
         data = FITS_rec.from_columns(
-            coldefs, nrows=nrows, fill=fill, character_as_bytes=character_as_bytes
+            coldefs,
+            nrows=nrows,
+            fill=fill,
+            character_as_bytes=character_as_bytes,
+            logical_as_bytes=logical_as_bytes,
         )
         hdu = cls(
-            data=data, header=header, character_as_bytes=character_as_bytes, **kwargs
+            data=data,
+            header=header,
+            character_as_bytes=character_as_bytes,
+            logical_as_bytes=logical_as_bytes,
+            **kwargs,
         )
         coldefs._add_listener(hdu)
         return hdu
@@ -244,6 +260,7 @@ class _TableLikeHDU(_ValidHDU):
             nrows=self._nrows,
             fill=False,
             character_as_bytes=self._character_as_bytes,
+            logical_as_bytes=self._logical_as_bytes,
         )
 
     def _update_column_removed(self, columns, col_idx):
@@ -257,6 +274,7 @@ class _TableLikeHDU(_ValidHDU):
             nrows=self._nrows,
             fill=False,
             character_as_bytes=self._character_as_bytes,
+            logical_as_bytes=self._logical_as_bytes,
         )
 
 
@@ -287,6 +305,12 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
+    logical_as_bytes : bool
+        Whether to return raw bytes for logical columns. By default this is
+        `False` and boolean values are returned. When `True`, the raw FITS
+        values are returned: ord('T')=84 for True, ord('F')=70 for False,
+        and 0 for undefined (NULL). This allows distinguishing between
+        False and NULL values.
     """
 
     _manages_own_heap = False
@@ -307,11 +331,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         uint=False,
         ver=None,
         character_as_bytes=False,
+        logical_as_bytes=False,
     ):
         super().__init__(data=data, header=header, name=name, ver=ver)
 
         self._uint = uint
         self._character_as_bytes = character_as_bytes
+        self._logical_as_bytes = logical_as_bytes
 
         if data is DELAYED:
             # this should never happen
@@ -384,6 +410,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         data = self._get_tbdata()
         data._coldefs = self.columns
         data._character_as_bytes = self._character_as_bytes
+        data._logical_as_bytes = self._logical_as_bytes
         # Columns should now just return a reference to the data._coldefs
         del self.columns
         return data
@@ -703,6 +730,10 @@ class TableHDU(_TableBaseHDU):
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
+    logical_as_bytes : bool
+        Whether to return raw bytes for logical columns. By default this is
+        `False` and boolean values are returned. Note: ASCII tables do not
+        support logical columns, so this parameter has no effect for TableHDU.
 
     """
 
@@ -715,11 +746,25 @@ class TableHDU(_TableBaseHDU):
     __format_RE = re.compile(r"(?P<code>[ADEFIJ])(?P<width>\d+)(?:\.(?P<prec>\d+))?")
 
     def __init__(
-        self, data=None, header=None, name=None, ver=None, character_as_bytes=False
+        self,
+        data=None,
+        header=None,
+        name=None,
+        ver=None,
+        character_as_bytes=False,
+        logical_as_bytes=False,
     ):
         super().__init__(
-            data, header, name=name, ver=ver, character_as_bytes=character_as_bytes
+            data,
+            header,
+            name=name,
+            ver=ver,
+            character_as_bytes=character_as_bytes,
+            logical_as_bytes=logical_as_bytes,
         )
+        # Note: ASCII tables don't support logical columns, but we accept
+        # this parameter for API consistency with BinTableHDU
+        self._logical_as_bytes = logical_as_bytes
 
     @classmethod
     def match_header(cls, header):
@@ -818,6 +863,12 @@ class BinTableHDU(_TableBaseHDU):
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
+    logical_as_bytes : bool
+        Whether to return raw bytes for logical columns. By default this is
+        `False` and boolean values are returned. When `True`, the raw FITS
+        values are returned: ord('T')=84 for True, ord('F')=70 for False,
+        and 0 for undefined (NULL). This allows distinguishing between
+        False and NULL values.
 
     """
 
@@ -832,6 +883,7 @@ class BinTableHDU(_TableBaseHDU):
         uint=False,
         ver=None,
         character_as_bytes=False,
+        logical_as_bytes=False,
     ):
         if data is not None and data is not DELAYED:
             from astropy.table import Table
@@ -852,6 +904,7 @@ class BinTableHDU(_TableBaseHDU):
             uint=uint,
             ver=ver,
             character_as_bytes=character_as_bytes,
+            logical_as_bytes=logical_as_bytes,
         )
 
     @classmethod
