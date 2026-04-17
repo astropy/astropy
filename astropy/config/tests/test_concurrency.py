@@ -39,7 +39,7 @@ def closure_base(
     with dirtype.legacy_context_manager(local_path):
         res = dirtype.path_getter()
 
-    return Result(actual=res, expected=local_path / "astropy")
+    return Result(actual=res, expected=dirtype.specialize_node(local_path))
 
 
 def assert_valid_results(results: list[Result[T]]) -> None:
@@ -87,10 +87,12 @@ def test_nesting(dt_out: _DirType, dt_in: _DirType, tmp_path: Path):
         return Result(
             actual=(res0, res1, res2, res3),
             expected=(
-                local_path_1 / "astropy",
-                local_path_2 / "astropy",
-                (local_path_1 if dt_in != dt_out else local_path_2) / "astropy",
-                local_path_1 / "astropy",
+                dt_out.specialize_node(local_path_1),
+                dt_in.specialize_node(local_path_2),
+                dt_out.specialize_node(
+                    local_path_1 if dt_in != dt_out else local_path_2
+                ),
+                dt_out.specialize_node(local_path_1),
             ),
         )
 
