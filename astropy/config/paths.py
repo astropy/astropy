@@ -338,7 +338,9 @@ def get_config_dir_path(rootname: str = "astropy") -> Path:
         The absolute path to the configuration directory.
 
     """
-    return set_temp_config._get_dir_path(rootname)
+    node = _ConfigFinder.find_specialized_node(rootname)
+    node.mkdir(parents=True, exist_ok=True)
+    return node
 
 
 def get_config_dir(rootname: str = "astropy") -> str:
@@ -381,7 +383,9 @@ def get_cache_dir_path(rootname: str = "astropy") -> Path:
         The absolute path to the cache directory.
 
     """
-    return set_temp_cache._get_dir_path(rootname)
+    node = _CacheFinder.find_specialized_node(rootname)
+    node.mkdir(parents=True, exist_ok=True)
+    return node
 
 
 def get_cache_dir(rootname: str = "astropy") -> str:
@@ -451,7 +455,7 @@ class _SetTempPath:
             raise
         try:
             globals()[finder_name] = df
-            return str(self.__class__._get_dir_path(rootname="astropy"))
+            return str(df.find_specialized_node())
         except Exception:
             globals()[finder_name] = initial_df
             _PATHS_MUTEX.release()
