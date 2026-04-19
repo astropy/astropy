@@ -21,6 +21,7 @@ The code here is adapted from the `astroml`_ package ([4]_, [5]_), the
 Lomb-Scargle periodogram, with code examples based on ``astropy``, see
 *Understanding the Lomb-Scargle Periodogram* [11]_, with associated code at
 https://github.com/jakevdp/PracticalLombScargle/.
+
 .. _gatspy: https://www.astroml.org/gatspy/
 .. _astroml: https://www.astroml.org/
 .. _FastTransforms.jl: https://juliaapproximation.github.io/FastTransforms.jl/stable/
@@ -930,7 +931,7 @@ Literature References
        astroML: Machine learning for astrophysics*. Proceedings of the
        Conference on Intelligent Data Understanding (2012)
 .. [5]  Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Statistics,
-        Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)}
+        Data Mining and Machine Learning in Astronomy*. Princeton Press (2014)
 .. [6] VanderPlas, J. *Gatspy: General Tools for Astronomical Time Series
        in Python* (2015) https://zenodo.org/record/14833
 .. [7] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
