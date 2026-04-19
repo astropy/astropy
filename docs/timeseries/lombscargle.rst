@@ -3,16 +3,19 @@
 *************************
 Lomb-Scargle Periodograms
 *************************
+
 The Lomb-Scargle periodogram (after Lomb [1]_, and Scargle [2]_) is a commonly
 used statistical tool designed to detect periodic signals in unevenly spaced
 observations. The :class:`~astropy.timeseries.LombScargle` class is a unified
 interface to several implementations of the Lomb-Scargle periodogram, including
 a fast *O[NlogN]* implementation following the algorithm presented by Press &
 Rybicki [3]_ or Ruiz-Antolin & Townsend [12]_.
+
 Not all of the available implementations are mathematically equivalent: Press & Rybicki [3]_ is the fastest
 option but trades accuracy for speed, while Ruiz-Antolin & Townsend [12]_
 achieves significantly higher accuracy at an acceptable cost and is therefore
 used by default.
+
 The code here is adapted from the `astroml`_ package ([4]_, [5]_), the
 `gatspy`_ package ([6]_, [7]_) and the `FastTransforms.jl`_ library. For a detailed practical discussion of the
 Lomb-Scargle periodogram, with code examples based on ``astropy``, see
