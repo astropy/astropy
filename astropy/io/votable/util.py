@@ -33,7 +33,7 @@ def convert_to_writable_filelike(fd, compressed=False):
             - a file path string, in which case it is opened, and the file
               object is returned.
 
-            - an object with a :meth:`write` method, in which case that
+            - an object with a ``write`` method, in which case that
               object is returned.
 
     compressed : bool, optional
