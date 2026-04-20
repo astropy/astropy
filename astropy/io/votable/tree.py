@@ -2309,7 +2309,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
     def get_ref(self):
         """
-        Lookup the :class:`Param` instance that this :class:``PARAMref``
+        Lookup the :class:`Param` instance that this :class:`PARAMref`
         references.
         """
         for param in self._table._votable.iter_fields_and_params():
