@@ -1268,6 +1268,80 @@ class TimeBase(MaskableShapedLikeNDArray):
 
         return out
 
+    def __replace__(self, /, **changes):
+        for key, val in {
+            "jd1": self._time.jd1,
+            "jd2": self._time.jd2,
+            "scale": self.scale,
+            "format": self.format,
+            "precision": self.precision,
+            "in_subfmt": self.in_subfmt,
+            "out_subfmt": self.out_subfmt,
+            "delta_ut1_utc": getattr(self, "_delta_ut1_utc", None),
+            "delta_tdb_tt": getattr(self, "_delta_tdb_tt", None),
+        }.items():
+            if key not in changes:
+                changes[key] = copy.copy(val)
+
+        if "location" in changes:
+            location = changes.pop("location")
+        else:
+            try:
+                location = self.location
+            except AttributeError:
+                # some classes define a location property but return
+                # a possibly unbound _location from it
+                location = None
+            else:
+                location = copy.copy(location)
+
+        delta_ut1_utc = changes.pop("delta_ut1_utc")
+        delta_tdb_tt = changes.pop("delta_tdb_tt")
+
+        tm = super().__new__(self.__class__)
+        format = changes.pop("format")
+        format_cls = tm.FORMATS[format]
+
+        for key in ("in_subfmt", "out_subfmt"):
+            changes[key] = format_cls._get_allowed_subfmt(changes[key])
+
+        jd1 = changes.pop("jd1")
+        jd2 = changes.pop("jd2")
+        time_jd = TimeJD(
+            jd1,
+            jd2,
+            changes["scale"],
+            precision=changes["precision"],
+            in_subfmt="*",
+            out_subfmt="*",
+            from_jd=True,
+        )
+
+        tm._time = format_cls(
+            time_jd.jd1,
+            time_jd.jd2,
+            **changes,
+            from_jd=True,
+        )
+        tm._location = tm._time.location = location
+        tm._format = format
+        if delta_ut1_utc is not None:
+            tm.delta_ut1_utc = delta_ut1_utc
+        if delta_tdb_tt is not None:
+            tm.delta_tdb_tt = delta_tdb_tt
+
+        # This line is borrowed from _apply, but is apparently not tested
+        # tm.SCALES = self.SCALES
+
+        # Copy other 'info' attr only if it has actually been defined and the
+        # time object is not a scalar (issue #10688).
+        # See PR #3898 for further explanation and justification, along
+        # with Quantity.__array_finalize__
+        if "info" in self.__dict__:
+            tm.info = self.info
+
+        return tm
+
     def copy(self, format=None):
         """
         Return a fully independent copy the Time object, optionally changing
@@ -1291,7 +1365,7 @@ class TimeBase(MaskableShapedLikeNDArray):
         tm : Time object
             Copy of this object
         """
-        return self._apply("copy", format=format)
+        return self.__replace__(format=format or self.format)
 
     def replicate(self, format=None, copy=False, cls=None):
         """
@@ -1322,6 +1396,8 @@ class TimeBase(MaskableShapedLikeNDArray):
         tm : Time object
             Replica of this object
         """
+        if copy and cls is None:
+            return self.__replace__(format=format or self.format)
         return self._apply("copy" if copy else "replicate", format=format, cls=cls)
 
     def _apply(self, method, *args, format=None, cls=None, **kwargs):
