@@ -1097,11 +1097,7 @@ def unpack(compressed_hdulist: HDUList) -> HDUList:
         primary_hdu = PrimaryHDU(data=compressed_hdulist[0].data, header=compressed_hdulist[0].header)
     else:
         data_type = str(compressed_hdulist[1].data.dtype)
-        if 'int' == data_type[:3]:
-            data_type = 'u' + data_type
-            data = np.array(compressed_hdulist[1].data, getattr(np, data_type))
-        else:
-            data = compressed_hdulist[1].data
+        data = compressed_hdulist[1].data
         primary_hdu = PrimaryHDU(data=data, header=compressed_hdulist[1].header)
     hdulist = [primary_hdu]
     if move_1_to_0:
@@ -1114,11 +1110,7 @@ def unpack(compressed_hdulist: HDUList) -> HDUList:
                 data = hdu.data
             else:
                 data_type = str(hdu.data.dtype)
-                if 'int' == data_type[:3]:
-                    data_type = getattr(np, 'u' + data_type)
-                    data = np.array(hdu.data, data_type)
-                else:
-                    data = np.array(hdu.data, hdu.data.dtype)
+                data = np.array(hdu.data, hdu.data.dtype)
             hdulist.append(ImageHDU(data=data, header=hdu.header))
         elif isinstance(hdu, BinTableHDU):
             hdulist.append(BinTableHDU(data=hdu.data, header=hdu.header))
