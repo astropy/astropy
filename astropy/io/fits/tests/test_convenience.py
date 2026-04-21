@@ -4,8 +4,12 @@ import io
 import os
 import pathlib
 import warnings
+import shutil
+import subprocess
+from itertools import batched
 
 import numpy as np
+from astropy.utils import data
 import pytest
 from numpy.testing import assert_array_equal
 
@@ -19,6 +23,8 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import FitsTestCase
 
+HAS_FUNPACK = shutil.which("funpack") is not None
+HAS_FPACK = shutil.which("fpack") is not None
 
 class TestConvenience(FitsTestCase):
     def test_resource_warning(self):
@@ -532,3 +538,209 @@ class TestConvenience(FitsTestCase):
         assert_array_equal(uplow["A"], ref)
         assert_array_equal(uplow["a"], ref)
         assert_array_equal(uplow.a, ref)
+
+    @pytest.fixture
+    def make_files_for_packing(self):
+        # Make random but reproducible data
+        np.random.seed(2305235)
+        data_header = fits.Header()
+        data_header['a'] = 'b'
+        data_header['c'] = 'd'
+        nx, ny = 512, 517
+        data_hdu = fits.PrimaryHDU(data=np.random.poisson(1000, size=(ny, nx)).astype(np.int32),
+                                   header=data_header)
+        data_hdu.add_checksum()
+
+        table = Table({'col1': ['foo', 'bar'], 'col2': ['test1', 'test2']})
+        table_hdu = fits.BinTableHDU(table)
+        table_hdu.add_checksum()
+
+        # Define 2 cases. One with the primary HDU having data, 
+        # and the second will only have a header
+        self.hdulist_pack1 = fits.HDUList([data_hdu, table_hdu])
+
+        # Case 2
+        primary_header = fits.Header()
+        primary_header['e'] = 'f'
+        primary_header['g'] = 'h'
+        primary_header['i'] = 'j'
+
+        primary_hdu = fits.PrimaryHDU(header=primary_header)
+        primary_hdu.add_checksum()
+
+        data_header = fits.Header()
+        data_header['k'] = 'l'
+        data_header['m'] = 'n'
+        nx, ny = 479, 492
+        data_hdu = fits.ImageHDU(data=np.random.poisson(1500, size=(ny, nx)).astype(np.int32), header=data_header)
+        data_hdu.add_checksum()
+
+        table = Table({'col1': ['foo', 'bar'], 'col2': ['test1', 'test2']})
+        table_hdu = fits.BinTableHDU(table)
+        table_hdu.add_checksum()
+
+        # This file should stay as the primary header, even in the
+        # compressed file
+        self.hdulist_pack2 = fits.HDUList([primary_hdu, data_hdu, table_hdu])
+
+    def test_pack_unpack_round_trip(self, make_files_for_packing):
+        # Test if fits files can round trip pack and unpack
+        packed_hdulist1 = fits.pack(self.hdulist_pack1)
+        unpacked_hdulist1 = fits.unpack(packed_hdulist1)
+        assert fits.FITSDiff(unpacked_hdulist1, self.hdulist_pack1).identical
+
+        packed_hdulist2 = fits.pack(self.hdulist_pack2)
+        unpacked_hdulist2 = fits.unpack(packed_hdulist2)
+        assert fits.FITSDiff(unpacked_hdulist2, self.hdulist_pack2).identical
+
+    @pytest.mark.skipif(not HAS_FUNPACK, reason="requires fpack binary from cfitsio")
+    def test_packed_funpack_compatability(self, make_files_for_packing):
+        # Test that pack creates files cfitsio funpack can unpack
+        for i in ['1', '2']:
+            packed_hdulist = fits.pack(getattr(self, f'hdulist_pack{i}'))
+            packed_filename = self.temp(f'packed{i}.fits.fz')
+            packed_hdulist.writeto(packed_filename, overwrite=True)
+            funpack_result = subprocess.run(
+                ["funpack", packed_filename],
+                capture_output=True,
+                text=True,
+            )
+            assert funpack_result.returncode == 0, f"funpack failed:\n{funpack_result.stderr}"
+            with fits.open(packed_filename.replace('.fz', '')) as unpacked_hdulist:
+                assert fits.FITSDiff(
+                    unpacked_hdulist,
+                    getattr(self, f'hdulist_pack{i}'),
+                    ignore_keywords=['CHECKSUM'],
+                    ignore_comments=['SIMPLE']
+                ).identical
+
+    @pytest.mark.skipif(not HAS_FPACK, reason="requires funpack binary from cfitsio")
+    def test_fpacked_unpack_compatability(self, make_files_for_packing):
+        # Test that unpack works on a cfitsio fpacked file
+        for i in ['1', '2']:
+            packed_filename = self.temp(f'packed{i}.fits')
+            getattr(self, f'hdulist_pack{i}').writeto(packed_filename, overwrite=True)
+            fpack_result = subprocess.run(
+                ["fpack", packed_filename],
+                capture_output=True,
+                text=True,
+            )
+            assert fpack_result.returncode == 0, f"fpack failed:\n{fpack_result.stderr}"
+            with fits.open(packed_filename + '.fz') as packed_hdulist:
+                unpacked_hdulist = fits.unpack(packed_hdulist)
+                assert fits.FITSDiff(
+                    unpacked_hdulist,
+                    getattr(self, f'hdulist_pack{i}'),
+                    ignore_keywords=['CHECKSUM'],
+                    ignore_comments=['SIMPLE']
+                ).identical
+
+    def test_packed_headers(self, make_files_for_packing):
+        # Test that the final packed headers are what we expect
+        expected_primary_headers = {
+            "1": [(b'SIMPLE', b'T'),
+                  (b'BITPIX', b'8'),
+                  (b'NAXIS', b'0'),
+                  (b'EXTEND', b'T')],
+            "2": [(b'SIMPLE', b'T'),
+                  (b'BITPIX', b'8'),
+                  (b'NAXIS', b'0'),
+                  (b'EXTEND', b'T'),
+                  (b'E', b"'f       '"),
+                  (b'G', b"'h       '"),
+                  (b'I', b"'j       '")]
+        }
+        expected_image_headers = {
+            '1': [(b'XTENSION', b"'BINTABLE'"),
+                  (b'BITPIX', b'8'),
+                  (b'NAXIS', b'2'),
+                  (b'NAXIS1', b'8'),
+                  (b'NAXIS2', b'517'),
+                  (b'PCOUNT', b'259822'),
+                  (b'GCOUNT', b'1'),
+                  (b'TFIELDS', b'1'),
+                  (b'TTYPE1', b"'COMPRESSED_DATA'"),
+                  (b'TFORM1', b"'1PB(511)'"),
+                  (b'ZIMAGE', b'T'),
+                  (b'ZSIMPLE', b'T'),
+                  (b'ZBITPIX', b'32'),
+                  (b'ZNAXIS', b'2'),
+                  (b'ZNAXIS1', b'512'),
+                  (b'ZNAXIS2', b'517'),
+                  (b'ZTILE1', b'512'),
+                  (b'ZTILE2', b'1'),
+                  (b'ZCMPTYPE', b"'RICE_1  '"),
+                  (b'ZNAME1', b"'BLOCKSIZE'"),
+                  (b'ZVAL1', b'32'),
+                  (b'ZNAME2', b"'BYTEPIX '"),
+                  (b'ZVAL2', b'4'),
+                  (b'EXTNAME', b"'COMPRESSED_IMAGE'"),
+                  (b'A', b"'b       '"),
+                  (b'C', b"'d       '")],
+            '2': [(b'XTENSION', b"'BINTABLE'"),
+                  (b'BITPIX', b'8'),
+                  (b'NAXIS', b'2'),
+                  (b'NAXIS1', b'8'),
+                  (b'NAXIS2', b'492'),
+                  (b'PCOUNT', b'239433'),
+                  (b'GCOUNT', b'1'),
+                  (b'TFIELDS', b'1'),
+                  (b'TTYPE1', b"'COMPRESSED_DATA'"),
+                  (b'TFORM1', b"'1PB(495)'"),
+                  (b'ZIMAGE', b'T'),
+                  (b'ZTENSION', b"'IMAGE   '"),
+                  (b'ZBITPIX', b'32'),
+                  (b'ZNAXIS', b'2'),
+                  (b'ZNAXIS1', b'479'),
+                  (b'ZNAXIS2', b'492'),
+                  (b'ZPCOUNT', b'0'),
+                  (b'ZGCOUNT', b'1'),
+                  (b'ZTILE1', b'479'),
+                  (b'ZTILE2', b'1'),
+                  (b'ZCMPTYPE', b"'RICE_1  '"),
+                  (b'ZNAME1', b"'BLOCKSIZE'"),
+                  (b'ZVAL1', b'32'),
+                  (b'ZNAME2', b"'BYTEPIX '"),
+                  (b'ZVAL2', b'4'),
+                  (b'EXTNAME', b"'COMPRESSED_IMAGE'"),
+                  (b'K', b"'l       '"),
+                  (b'M', b"'n       '")]
+        }
+
+        for i in ['1', '2']:
+            packed_hdulist = fits.pack(getattr(self, f'hdulist_pack{i}'))
+            packed_buffer = io.BytesIO()
+            packed_hdulist.writeto(packed_buffer)
+            packed_buffer.seek(0)
+            primary_header = _simple_str_header_parser(packed_buffer.read(2880))
+            assert primary_header == expected_primary_headers[i]
+            image_header = _simple_str_header_parser(packed_buffer.read(2880))
+            assert image_header == expected_image_headers[i]
+
+
+def _simple_str_header_parser(header_str):
+    """
+    A simple parser to check that the header on disk makes sense.
+    We throw away comments, checksum, and datasum keywords.
+    """
+    chunk_size = 80
+    header = []
+    for chunk in batched(header_str, chunk_size):
+        bytes_chunk = bytes(chunk)
+        if len(bytes_chunk.strip()) == 0:
+            continue
+        if bytes_chunk.startswith(b'COMMENT'):
+            continue
+        if bytes_chunk.strip() == b"END":
+            break
+        key_value = bytes_chunk.split(b'/')[0]
+        key, value = key_value.split(b'=', 1)
+        key = key.strip()
+        value = value.strip()
+        if key == b'CHECKSUM' or key == b'DATASUM':
+            continue
+        if key == b'ZHECKSUM' or key == b'ZDATASUM':
+            continue
+        header.append((key, value))
+
+    return header
