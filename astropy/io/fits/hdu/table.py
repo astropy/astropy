@@ -1517,11 +1517,7 @@ def _binary_table_byte_swap(data):
     for arr in reversed(to_swap):
         arr.byteswap(True)
 
-    data.dtype = np.dtype({"names": names, "formats": formats, "offsets": offsets})
-
-    yield data
+    yield data.astype({"names": names, "formats": formats, "offsets": offsets})
 
     for arr in to_swap:
         arr.byteswap(True)
-
-    data.dtype = orig_dtype
