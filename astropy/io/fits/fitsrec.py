@@ -1157,7 +1157,7 @@ class FITS_rec(np.recarray):
         array in the format that it was first read from a file before it was
         sliced or viewed as a different type in any way.
 
-        This is determined by walking through the bases until finding one that
+        This is determined by walking through and finding the last base that
         has at least the same number of bytes as self, plus the heapsize.  This
         may be the immediate .base but is not always.  This is used primarily
         for variable-length array support which needs to be able to find the
@@ -1169,17 +1169,20 @@ class FITS_rec(np.recarray):
         """
         raw_data_bytes = self._tbsize + self._heapsize
         base = self
+        result = None
         while hasattr(base, "base") and base.base is not None:
             base = base.base
             # Variable-length-arrays: should take into account the case of
             # empty arrays
             if hasattr(base, "_heapoffset"):
                 if hasattr(base, "nbytes") and base.nbytes > raw_data_bytes:
-                    return base
+                    result = base
             # non variable-length-arrays
             else:
                 if hasattr(base, "nbytes") and base.nbytes >= raw_data_bytes:
-                    return base
+                    result = base
+
+        return result
 
     def _get_scale_factors(self, column):
         """Get all the scaling flags and factors for one column."""
