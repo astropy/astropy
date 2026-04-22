@@ -5,6 +5,7 @@ import datetime
 import functools
 import gc
 import os
+import warnings
 from copy import deepcopy
 from decimal import Decimal, localcontext
 from io import StringIO
@@ -30,6 +31,7 @@ from astropy.time import (
     conf,
 )
 from astropy.utils import iers
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYTZ
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -1082,7 +1084,15 @@ class TestSubFormat:
             #   val = matplotlib.dates.date2num('2000-01-01')
             val = 730120.0
         else:
-            val = date2num(datetime.datetime(2000, 1, 1))
+            # Ignore warnings from numpy for older matplotlib
+            if NUMPY_LT_2_5:
+                val = date2num(datetime.datetime(2000, 1, 1))
+            else:
+                with warnings.catch_warnings(
+                    action="ignore", category=DeprecationWarning
+                ):
+                    val = date2num(datetime.datetime(2000, 1, 1))
+
         t = Time("2000-01-01 00:00:00", scale="utc")
         assert np.allclose(t.plot_date, val, atol=1e-5, rtol=0)
 
