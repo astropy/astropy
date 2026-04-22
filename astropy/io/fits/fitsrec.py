@@ -1111,7 +1111,8 @@ class FITS_rec(np.recarray):
 
         If ``try_from_disk=True`` and if data is read from a file, heap data
         is a pointer into the table's raw data.
-        Otherwise it is computed from the in-memory arrays.
+        Otherwise it is computed from the in-memory arrays, converting
+        arrays to bigendian as needed.
 
         This is returned as a numpy byte array.
         """
@@ -1131,8 +1132,6 @@ class FITS_rec(np.recarray):
             # previous heap offset listed)
             data = []
             for idx in range(self._nfields):
-                # data should already be byteswapped from the caller
-                # using _binary_table_byte_swap
                 recformat = self.columns._recformats[idx]
                 if not isinstance(recformat, _FormatP):
                     continue
@@ -1144,6 +1143,9 @@ class FITS_rec(np.recarray):
                     if len(row) > 0:
                         if is_logical:
                             row = _logical_to_fits_bytes(row)
+                        elif row.dtype != row.dtype.newbyteorder(">"):
+                            row = row.copy()
+                            row.byteswap(True)
                         data.append(row.view(type=np.ndarray, dtype=np.ubyte))
 
             if data:
