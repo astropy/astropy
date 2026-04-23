@@ -1,0 +1,1 @@
+Added ``conf.multidim_threshold`` configuration option to control display of multidimensional table columns. Setting this to a value like 3 will display full content for small arrays (e.g., ``[1 2 3]`` for 3-vectors), while larger arrays revert to the abbreviated ``first .. last`` format.

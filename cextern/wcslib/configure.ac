@@ -2,13 +2,13 @@
 # Process this file with autoconf-2.53 or later to produce a configure script.
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-# http://www.atnf.csiro.au/people/Mark.Calabretta
-# $Id: configure.ac,v 8.5 2025/12/06 13:47:42 mcalabre Exp $
+# http://www.atnf.csiro.au/computing/software/wcs
+# $Id: configure.ac,v 8.6 2026/03/29 13:53:57 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB],[8.5],[mark@calabretta.id.au],[wcslib-8.5])
+AC_INIT([WCSLIB],[8.6],[mark@calabretta.id.au],[wcslib-8.6])
 AC_PREREQ([2.71])
-AC_REVISION([$Revision: 8.5 $])
+AC_REVISION([$Revision: 8.6 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 

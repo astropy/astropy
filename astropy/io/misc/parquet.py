@@ -526,7 +526,7 @@ def write_parquet_votable(
     metadata : dict
         Nested dictionary (keys = column names; sub-keys = meta keys) for each
         of the columns containing a dictionary with metadata. Existing metadata
-        takes precedent, use ``overwrite_metadata`` to ensure this dictionary is
+        takes precedence, use ``overwrite_metadata`` to ensure this dictionary is
         being used in all cases.
     overwrite : bool, optional
         If `True`, overwrite the output file if it exists. Raises an

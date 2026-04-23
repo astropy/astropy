@@ -7150,8 +7150,8 @@ static const yy_state_type yy_NUL_trans[375] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "wcsulex.l"
 /*============================================================================
-  WCSLIB 8.5 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2025, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -7169,8 +7169,8 @@ static const yy_state_type yy_NUL_trans[375] =
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-  http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcsulex.c,v 8.5 2025/12/06 13:47:41 mcalabre Exp $
+  http://www.atnf.csiro.au/computing/software/wcs
+  $Id: wcsulex.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a

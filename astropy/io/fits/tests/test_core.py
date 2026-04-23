@@ -333,10 +333,14 @@ class TestCore(FitsTestCase):
         assert ext == 1
         hl.close()
 
-        pytest.raises(ValueError, _getext, filename, "readonly", 1, 2)
-        pytest.raises(ValueError, _getext, filename, "readonly", (1, 2))
-        pytest.raises(ValueError, _getext, filename, "readonly", "sci", "sci")
-        pytest.raises(TypeError, _getext, filename, "readonly", 1, 2, 3)
+        with pytest.raises(ValueError):
+            _getext(filename, "readonly", 1, 2)
+        with pytest.raises(ValueError):
+            _getext(filename, "readonly", (1, 2))
+        with pytest.raises(ValueError):
+            _getext(filename, "readonly", "sci", "sci")
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", 1, 2, 3)
 
         hl, ext = _getext(filename, "readonly", ext=1)
         assert ext == 1
@@ -346,12 +350,10 @@ class TestCore(FitsTestCase):
         assert ext == ("sci", 2)
         hl.close()
 
-        pytest.raises(
-            TypeError, _getext, filename, "readonly", 1, ext=("sci", 2), extver=3
-        )
-        pytest.raises(
-            TypeError, _getext, filename, "readonly", ext=("sci", 2), extver=3
-        )
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", 1, ext=("sci", 2), extver=3)
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", ext=("sci", 2), extver=3)
 
         hl, ext = _getext(filename, "readonly", "sci")
         assert ext == ("sci", 1)
@@ -371,8 +373,10 @@ class TestCore(FitsTestCase):
         assert ext == ("sci", 1)
         hl.close()
 
-        pytest.raises(TypeError, _getext, filename, "readonly", "sci", ext=1)
-        pytest.raises(TypeError, _getext, filename, "readonly", "sci", 1, extver=2)
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", "sci", ext=1)
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", "sci", 1, extver=2)
 
         hl, ext = _getext(filename, "readonly", extname="sci")
         assert ext == ("sci", 1)
@@ -382,7 +386,8 @@ class TestCore(FitsTestCase):
         assert ext == ("sci", 1)
         hl.close()
 
-        pytest.raises(TypeError, _getext, filename, "readonly", extver=1)
+        with pytest.raises(TypeError):
+            _getext(filename, "readonly", extver=1)
 
     def test_extension_name_case_sensitive(self):
         """
@@ -525,8 +530,10 @@ class TestCore(FitsTestCase):
         del h1.header["EXTLEVEL"]
         assert h1.level == 1
 
-        pytest.raises(TypeError, setattr, h1, "ver", "FOO")
-        pytest.raises(TypeError, setattr, h1, "level", "BAR")
+        with pytest.raises(TypeError):
+            h1.ver = "FOO"
+        with pytest.raises(TypeError):
+            h1.level = "BAR"
 
     def test_consecutive_writeto(self):
         """
@@ -1012,12 +1019,16 @@ class TestFileFunctions(FitsTestCase):
         """Opening zipped files in a writeable mode should fail."""
 
         zf = self._make_zip_file()
-        pytest.raises(OSError, fits.open, zf, "update")
-        pytest.raises(OSError, fits.open, zf, "append")
+        with pytest.raises(OSError):
+            fits.open(zf, "update")
+        with pytest.raises(OSError):
+            fits.open(zf, "append")
 
         zf = zipfile.ZipFile(zf, "a")
-        pytest.raises(OSError, fits.open, zf, "update")
-        pytest.raises(OSError, fits.open, zf, "append")
+        with pytest.raises(OSError):
+            fits.open(zf, "update")
+        with pytest.raises(OSError):
+            fits.open(zf, "append")
 
     def test_read_open_astropy_gzip_file(self):
         """
@@ -1155,7 +1166,8 @@ class TestFileFunctions(FitsTestCase):
         # Opening in text mode should outright fail
         for mode in ("r", "w", "a"):
             with open(testfile, mode) as f:
-                pytest.raises(ValueError, fits.HDUList.fromfile, f)
+                with pytest.raises(ValueError):
+                    fits.HDUList.fromfile(f)
 
         # Need to re-copy the file since opening it in 'w' mode blew it away
         testfile = self.copy_file("test0.fits")
@@ -1247,14 +1259,51 @@ class TestFileFunctions(FitsTestCase):
                 return mmap_original(*args, **kwargs)
 
         with fits.open(self.data("test0.fits"), memmap=True) as hdulist:
-            with patch.object(mmap, "mmap", side_effect=mmap_patched) as p:
-                with pytest.warns(
+            with (
+                patch.object(mmap, "mmap", side_effect=mmap_patched) as p,
+                pytest.warns(
                     AstropyUserWarning,
                     match=r"Could not memory map array with mode='readonly'",
-                ):
-                    data = hdulist[1].data
+                ),
+            ):
+                data = hdulist[1].data
                 p.reset_mock()
             assert not data.flags.writeable
+
+    def test_mmap_unsupported_fallback(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/19305
+
+        Tests that when mmap fails with an unsupported error (e.g., in WASM
+        environments), astropy falls back to non-mmap reading if memmap was
+        not explicitly requested, but raises the error if memmap=True was
+        explicitly set.
+        """
+
+        def mmap_patched(*args, **kwargs):
+            # Simulate mmap not being supported (e.g., WASM environment)
+            exc = OSError("mmap not supported")
+            exc.errno = errno.ENODEV
+            raise exc
+
+        # With default memmap setting (not specified), we should fall back to
+        # non-mmap reading with a warning. We open file first, then patch only
+        # during data access to avoid interfering with cleanup.
+        with fits.open(self.data("test0.fits")) as hdul:
+            with (
+                patch.object(mmap, "mmap", side_effect=mmap_patched),
+                pytest.warns(AstropyUserWarning, match=r"Could not memory map"),
+            ):
+                data = hdul[1].data
+                assert data is not None
+
+        # With explicit memmap=True, we should raise the error
+        with fits.open(self.data("test0.fits"), memmap=True) as hdul:
+            with (
+                patch.object(mmap, "mmap", side_effect=mmap_patched),
+                pytest.raises(OSError, match=r"mmap not supported"),
+            ):
+                hdul[1].data
 
     def test_mmap_closing(self):
         """

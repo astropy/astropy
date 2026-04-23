@@ -12,7 +12,6 @@ from numpy.testing import assert_array_equal
 from astropy import table, time
 from astropy import units as u
 from astropy.tests.helper import assert_follows_unicode_guidelines
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
@@ -385,14 +384,7 @@ class TestColumn:
             c.insert(0, "string")
 
         c = Column(["a", "b"])
-        with pytest.raises(
-            TypeError,
-            match=(
-                "string operation on non-string array"
-                if NUMPY_LT_2_0
-                else "ufunc 'str_len' did not contain a loop"
-            ),
-        ):
+        with pytest.raises(TypeError, match="ufunc 'str_len' did not contain a loop"):
             c.insert(0, 1)
 
     def test_insert_multidim(self, Column):
@@ -1129,6 +1121,19 @@ def test_masked_column_serialize_method_propagation():
     assert mc4.info.serialize_method["ecsv"] == "data_mask"
     mc5 = mc[1:]
     assert mc5.info.serialize_method["ecsv"] == "data_mask"
+
+
+def test_masked_column_deepcopy_info_format_funcs():
+    """Test the fix for #19412"""
+    mc = table.MaskedColumn([1.0, 2.0, 3.0], mask=[True, False, True])
+    # Set a non-default serialize method to make sure that gets copied over.
+    mc.info.serialize_method["ecsv"] = "data_mask"
+
+    mc_copy = copy.deepcopy(mc)
+
+    assert mc_copy.info.serialize_method["ecsv"] == "data_mask"
+    # Prior to the fix, the _format_funcs did not exist on the info object.
+    assert mc_copy.info._format_funcs == {}
 
 
 @pytest.mark.parametrize("dtype", ["S", "U", "i"])

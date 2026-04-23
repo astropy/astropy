@@ -62,7 +62,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
     Abstract base class for the high-level WCS interface.
 
     This is described in `APE 14: A shared Python interface for World Coordinate
-    Systems <https://doi.org/10.5281/zenodo.1188875>`_.
+    Systems <https://zenodo.org/records/11566733>`_.
     """
 
     @property

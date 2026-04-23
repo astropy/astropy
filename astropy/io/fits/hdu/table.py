@@ -3,6 +3,7 @@
 
 import contextlib
 import csv
+import math
 import operator
 import os
 import re
@@ -11,7 +12,6 @@ import textwrap
 from contextlib import suppress
 
 import numpy as np
-from numpy import char as chararray
 
 # This module may have many dependencies on astropy.io.fits.column, but
 # astropy.io.fits.column has fewer dependencies overall, so it's easier to
@@ -37,6 +37,7 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
+from astropy.utils.compat import NUMPY_LT_2_5, chararray
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -207,7 +208,12 @@ class _TableLikeHDU(_ValidHDU):
     def _init_tbdata(self, data):
         columns = self.columns
 
-        data.dtype = data.dtype.newbyteorder(">")
+        if NUMPY_LT_2_5:
+            data.dtype = data.dtype.newbyteorder(">")
+        else:
+            # TODO: see if a a view is possible still; initial trial gives
+            # error in test_table.py::TestVLATables::test_empty_vla_raw_data.
+            np.ndarray._set_dtype(data, data.dtype.newbyteorder(">"))
 
         # hack to enable pseudo-uint support
         data._uint = self._uint
@@ -532,12 +538,12 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                     )
                 )
 
-            self.req_cards("NAXIS", None, lambda v: (v == 2), 2, option, errs)
-            self.req_cards("BITPIX", None, lambda v: (v == 8), 8, option, errs)
+            self.req_cards("NAXIS", None, lambda v: v == 2, 2, option, errs)
+            self.req_cards("BITPIX", None, lambda v: v == 8, 8, option, errs)
             self.req_cards(
                 "TFIELDS",
                 7,
-                lambda v: (_is_int(v) and v >= 0 and v <= 999),
+                lambda v: _is_int(v) and v >= 0 and v <= 999,
                 0,
                 option,
                 errs,
@@ -787,7 +793,7 @@ class TableHDU(_TableBaseHDU):
         `TableHDU` verify method.
         """
         errs = super()._verify(option=option)
-        self.req_cards("PCOUNT", None, lambda v: (v == 0), 0, option, errs)
+        self.req_cards("PCOUNT", None, lambda v: v == 0, 0, option, errs)
         tfields = self._header["TFIELDS"]
         for idx in range(tfields):
             self.req_cards("TBCOL" + str(idx + 1), None, _is_int, None, option, errs)
@@ -960,7 +966,7 @@ class BinTableHDU(_TableBaseHDU):
                     # Read the field *width* by reading past the field kind.
                     i = field.dtype.str.index(field.dtype.kind)
                     field_width = int(field.dtype.str[i + 1 :])
-                    item = np.char.encode(item, "ascii")
+                    item = np.strings.encode(item, "ascii")
 
                 fileobj.writearray(item)
                 if field_width is not None:
@@ -1270,7 +1276,7 @@ class BinTableHDU(_TableBaseHDU):
             line = [column.name, column.format]
             attrs = ["disp", "unit", "dim", "null", "bscale", "bzero"]
             line += [
-                "{!s:16s}".format(value if value else '""')
+                "{!s:16s}".format(value or '""')
                 for value in (getattr(column, attr) for attr in attrs)
             ]
             fileobj.write(" ".join(line))
@@ -1401,7 +1407,7 @@ class BinTableHDU(_TableBaseHDU):
                     idx += vla_len
                 elif dtype[col].shape:
                     # This is an array column
-                    array_size = int(np.multiply.reduce(dtype[col].shape))
+                    array_size = math.prod(dtype[col].shape)
                     slice_ = slice(idx, idx + array_size)
                     idx += array_size
                 else:
@@ -1489,7 +1495,7 @@ def _binary_table_byte_swap(data):
         formats.append(field_dtype)
         offsets.append(field_offset)
 
-        if isinstance(field, chararray.chararray):
+        if isinstance(field, chararray):
             continue
 
         # only swap unswapped
@@ -1507,7 +1513,7 @@ def _binary_table_byte_swap(data):
             coldata = data.field(idx)
             for c in coldata:
                 if (
-                    not isinstance(c, chararray.chararray)
+                    not isinstance(c, chararray)
                     and c.itemsize > 1
                     and c.dtype.str[0] in swap_types
                 ):
@@ -1516,11 +1522,20 @@ def _binary_table_byte_swap(data):
     for arr in reversed(to_swap):
         arr.byteswap(True)
 
-    data.dtype = np.dtype({"names": names, "formats": formats, "offsets": offsets})
+    new_dtype = np.dtype({"names": names, "formats": formats, "offsets": offsets})
+    if NUMPY_LT_2_5:
+        data.dtype = new_dtype
+    else:
+        # TODO: ensure self.data is never used with this context manager, so that
+        # a view here would work (and the second _set_dtype can be removed).
+        np.ndarray._set_dtype(data, new_dtype)
 
     yield data
 
     for arr in to_swap:
         arr.byteswap(True)
 
-    data.dtype = orig_dtype
+    if NUMPY_LT_2_5:
+        data.dtype = orig_dtype
+    else:
+        np.ndarray._set_dtype(data, orig_dtype)

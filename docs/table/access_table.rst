@@ -445,6 +445,9 @@ To print a formatted table::
 
   >>> arr = np.arange(3000).reshape(100, 30)  # 100 rows x 30 columns array
   >>> t = Table(arr)
+  >>> from astropy.table import conf
+  >>> conf.max_width = 80
+  >>> conf.max_lines = 20
   >>> print(t)
   col0 col1 col2 col3 col4 col5 col6 ... col23 col24 col25 col26 col27 col28 col29
   ---- ---- ---- ---- ---- ---- ---- ... ----- ----- ----- ----- ----- ----- -----
@@ -471,7 +474,7 @@ To print a formatted table::
   2970 2971 2972 2973 2974 2975 2976 ...  2993  2994  2995  2996  2997  2998  2999
   Length = 100 rows
 
-.. EXAMPLE END
+  .. EXAMPLE END
 
 more() method
 ^^^^^^^^^^^^^
@@ -798,9 +801,26 @@ column name header::
   3.0 .. 40.0
   5.0 .. 60.0
 
-In order to see all of the data values for a multidimensional column use the
-column representation. This uses the standard ``numpy`` mechanism for printing
-any array::
+
+There are two ways to see all of the data values for a multidimensional column. First,
+you can set the ``astropy.table.conf.format_size_threshold`` configuration option
+to a value greater than or equal to the number of items in each column row (4 in this
+case). This respects any formatting options that are defined for the column.
+
+.. code-block:: python
+
+  >>> from astropy.table import conf
+  >>> with conf.set_temp("format_size_threshold", 4):
+  ...     t.pprint()
+  ...
+         a
+  -----------------------
+  [[1.0 2.0] [10.0 20.0]]
+  [[3.0 4.0] [30.0 40.0]]
+  [[5.0 6.0] [50.0 60.0]]
+
+A second option is to print the column as a ``numpy`` array which uses the
+standard ``numpy`` mechanism for printing the array::
 
   >>> t['a'].data
   array([[[ 1.,  2.],

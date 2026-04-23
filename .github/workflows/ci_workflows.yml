@@ -47,9 +47,29 @@ jobs:
             core.info(`PR opened correctly against ${allowed_basebranch}`);
           }
 
+  lowest-tree-check:
+    name: Check environment lowest resolution against reference
+    needs: [initial_checks]
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        name: Install Python
+        with:
+          python-version: "3.14"
+      - run: pipx run scripts/check-lowest-resolved-tree.py
+
+      - if: failure()
+        run: pipx run scripts/check-lowest-resolved-tree.py --markdown --quiet >> "$GITHUB_STEP_SUMMARY" || true
+
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@e97344095b099e1d729fe97429078c9975921d8a  # v2.6.2
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
@@ -117,7 +137,7 @@ jobs:
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@e97344095b099e1d729fe97429078c9975921d8a  # v2.6.2
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -130,13 +150,13 @@ jobs:
           - language-pack-de
           - tzdata
       envs: |
-        - name: (Allowed Failure) Python 3.13 with remote data and dev version of key dependencies
-          linux: py313-test-devdeps
+        - name: (Allowed Failure) Python 3.14 with remote data and dev version of key dependencies
+          linux: py314-test-devdeps
           posargs: --remote-data=any --verbose
 
   stub_tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@e97344095b099e1d729fe97429078c9975921d8a  # v2.6.2
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -149,11 +169,13 @@ jobs:
           cache-key: stub_tests-${{ github.ref_name }}
 
   test_wheel_building:
-    needs: [initial_checks]
+    needs:
+      - initial_checks
+      - lowest-tree-check
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@e97344095b099e1d729fe97429078c9975921d8a  # v2.6.2
     with:
       upload_to_pypi: false
       upload_to_anaconda: false
@@ -176,13 +198,15 @@ jobs:
             - windows-latest
     runs-on: ${{ matrix.os }}
     name: Python 3.11 (build only, partial) with limited API (${{ matrix.os }})
-    needs: [initial_checks]
+    needs:
+      - initial_checks
+      - lowest-tree-check
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c  # v6.0.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         name: Install Python
         with:
           python-version: "3.11"

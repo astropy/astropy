@@ -13,7 +13,8 @@ from astropy import constants as consts
 from astropy import units as u
 from astropy.units.quantity import QuantityInfoBase
 from astropy.utils import data
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.data import conf as data_conf
+from astropy.utils.data import get_pkg_data_contents
 
 from .angles import Angle, Latitude, Longitude
 from .errors import UnknownSiteException
@@ -73,8 +74,10 @@ def _get_json_result(url, err_str, use_google):
     from .name_resolve import NameResolveError
 
     try:
+        headers = {"User-Agent": data_conf.default_http_user_agent}
+        req = urllib.request.Request(url, headers=headers)
         # Retrieve JSON response from Google maps API
-        resp = urllib.request.urlopen(url, timeout=data.conf.remote_timeout)
+        resp = urllib.request.urlopen(req, timeout=data.conf.remote_timeout)
         resp_data = json.loads(resp.read().decode("utf8"))
 
     except urllib.error.URLError as e:
@@ -269,9 +272,9 @@ class EarthLocation(u.Quantity):
         # in that it will no longer possible to initialize with a unit-full x,
         # and unit-less y, z. Arguably, though, that would just solve a bug.
         try:
-            x = u.Quantity(x, unit, copy=COPY_IF_NEEDED)
-            y = u.Quantity(y, unit, copy=COPY_IF_NEEDED)
-            z = u.Quantity(z, unit, copy=COPY_IF_NEEDED)
+            x = u.Quantity(x, unit, copy=None)
+            y = u.Quantity(y, unit, copy=None)
+            z = u.Quantity(z, unit, copy=None)
         except u.UnitsError:
             raise u.UnitsError("Geocentric coordinate units should all be consistent.")
 
@@ -315,11 +318,11 @@ class EarthLocation(u.Quantity):
         """
         ellipsoid = _check_ellipsoid(ellipsoid, default=cls._ellipsoid)
         # As wrapping fails on readonly input, we do so manually
-        lon = Angle(lon, u.degree, copy=COPY_IF_NEEDED).wrap_at(180 * u.degree)
-        lat = Latitude(lat, u.degree, copy=COPY_IF_NEEDED)
+        lon = Angle(lon, u.degree, copy=None).wrap_at(180 * u.degree)
+        lat = Latitude(lat, u.degree, copy=None)
         # don't convert to m by default, so we can use the height unit below.
         if not isinstance(height, u.Quantity):
-            height = u.Quantity(height, u.m, copy=COPY_IF_NEEDED)
+            height = u.Quantity(height, u.m, copy=None)
         # get geocentric coordinates.
         geodetic = ELLIPSOIDS[ellipsoid](lon, lat, height, copy=False)
         xyz = geodetic.to_cartesian().get_xyz(xyz_axis=-1) << height.unit
@@ -383,13 +386,13 @@ class EarthLocation(u.Quantity):
         --------
         get_site_names : the list of sites that this function can access
         """
-        registry = cls._get_site_registry(force_download=refresh_cache)
+        registry = cls._get_site_registry(refresh_cache)
         try:
             el = registry[site_name]
         except UnknownSiteException as e:
             raise UnknownSiteException(
                 e.site, "EarthLocation.get_site_names", close_names=e.close_names
-            ) from e
+            ) from None
 
         if cls is el.__class__:
             return el
@@ -531,31 +534,28 @@ class EarthLocation(u.Quantity):
         of_site : Gets the actual location object for one of the sites names
             this returns.
         """
-        return cls._get_site_registry(force_download=refresh_cache).names
+        return cls._get_site_registry(refresh_cache).names
 
     @classmethod
-    def _get_site_registry(cls, force_download=False):
+    def _get_site_registry(cls, refresh_cache=False):
         """
         Gets the site registry.  The first time this tries to download the data.
         Subsequent calls will use the cached version unless explicitly overridden.
-
-        Parameters
-        ----------
-        force_download : bool or str
-            If not False, force replacement of the cached registry with a
-            downloaded version. If a str, that will be used as the URL to
-            download from (if just True, the default URL will be used).
-
-        Returns
-        -------
-        reg : astropy.coordinates.sites.SiteRegistry
         """
         # need to do this here at the bottom to avoid circular dependencies
-        from .sites import get_downloaded_sites
+        from .sites import SiteRegistry
 
-        if force_download or not cls._site_registry:
-            cls._site_registry = get_downloaded_sites(
-                force_download if isinstance(force_download, str) else None
+        if refresh_cache or not cls._site_registry:
+            # we explicitly set the encoding because the default is to leave it set by
+            # the users' locale, which may fail if it's not matched to the sites.json
+            cls._site_registry = SiteRegistry.from_json(
+                json.loads(
+                    get_pkg_data_contents(
+                        "coordinates/sites.json",
+                        encoding="UTF-8",
+                        cache="update" if refresh_cache else True,
+                    )
+                )
             )
         return cls._site_registry
 

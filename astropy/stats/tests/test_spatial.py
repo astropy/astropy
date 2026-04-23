@@ -87,7 +87,7 @@ def test_ripley_large_density(points, low, high):
     Kest = RipleysKEstimator(area=1, x_min=low, x_max=high, y_min=low, y_max=high)
     r = np.linspace(0, 0.25, 25)
     Kpos = Kest.poisson(r)
-    modes = ["ohser", "translation", "ripley"]
+    modes = ["ohser", "translation", "ripley", "var-width"]
     for m in modes:
         Kest_r = Kest(data=points, radii=r, mode=m)
         assert_allclose(Kpos, Kest_r, atol=1e-1)
@@ -103,7 +103,7 @@ def test_ripley_modes(points, low, high):
     Kest = RipleysKEstimator(area=25, x_max=high, y_max=high, x_min=low, y_min=low)
     r = np.linspace(0, 1.2, 25)
     Kpos_mean = np.mean(Kest.poisson(r))
-    modes = ["ohser", "translation", "ripley"]
+    modes = ["ohser", "translation", "ripley", "var-width"]
     for m in modes:
         Kest_mean = np.mean(Kest(data=points, radii=r, mode=m))
         assert_allclose(Kpos_mean, Kest_mean, atol=1e-1, rtol=1e-1)

@@ -30,7 +30,6 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.utils import find_current_module, metadata, sharedmethod
 from astropy.utils.codegen import make_function_with_signature
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .bounding_box import CompoundBoundingBox, ModelBoundingBox
 from .parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
@@ -437,9 +436,7 @@ class _ModelMeta(abc.ABCMeta):
                     # default is not a Quantity, attach the unit to the
                     # default.
                     if unit is not None:
-                        default = Quantity(
-                            default, unit, copy=COPY_IF_NEEDED, subok=True
-                        )
+                        default = Quantity(default, unit, copy=None, subok=True)
                     kwargs.append((param_name, default))
             else:
                 args = ("self",) + tuple(pdict.keys())
@@ -2742,9 +2739,10 @@ class Model(metaclass=_ModelMeta):
         param_metrics = self._param_metrics
         for name in self.param_names:
             param = getattr(self, name)
-            value = self._parameters[param_metrics[name]["slice"]]
-            value.shape = param_metrics[name]["shape"]
-            param.value = value
+            param.value = np.reshape(
+                self._parameters[param_metrics[name]["slice"]],
+                param_metrics[name]["shape"],
+            )
 
     def _check_param_broadcast(self, max_ndim):
         """

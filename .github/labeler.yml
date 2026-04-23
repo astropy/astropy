@@ -65,7 +65,6 @@ installation:
   - any-glob-to-any-file:
     - docs/install.rst
     - MANIFEST.in
-    - pyproject.toml
     - setup.py
 
 Release:

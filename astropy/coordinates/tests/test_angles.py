@@ -19,7 +19,6 @@ from astropy.coordinates import (
     Latitude,
     Longitude,
 )
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 
 
 def test_create_angles():
@@ -203,11 +202,6 @@ def test_angle_methods():
     a_var = a.var()
     assert type(a_var) is u.Quantity
     assert a_var == 1.0 * u.degree**2
-    if NUMPY_LT_2_0:
-        # np.ndarray.ptp() method removed in numpy 2.0.
-        a_ptp = a.ptp()
-        assert type(a_ptp) is Angle
-        assert a_ptp == 2.0 * u.degree
     a_max = a.max()
     assert type(a_max) is Angle
     assert a_max == 2.0 * u.degree
@@ -788,6 +782,10 @@ def test_lon_as_lat():
     ):
         lat = Latitude([20], "deg")
         lat[0] = lon
+
+    # Also check list of longitudes (regression test for gh-11757).
+    with pytest.raises(TypeError, match="cannot be created from"):
+        Latitude([lon, lon])
 
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
     lat = Latitude(Angle(lon))

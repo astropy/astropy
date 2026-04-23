@@ -339,6 +339,7 @@ Time from Epoch Formats
 
 The formats ``cxcsec``, ``gps``, ``unix``, and ``unix_tai`` are special in that
 they provide a floating point representation of the elapsed time in seconds
+(with the caveat that ``unix`` does not include leap seconds)
 since a particular reference date. These formats have a intrinsic time scale
 which is used to compute the elapsed seconds since the reference date.
 
@@ -347,7 +348,7 @@ Format       Scale  Reference date
 ============ ====== ========================
 ``cxcsec``   TT     ``1998-01-01 00:00:00``
 ``unix``     UTC    ``1970-01-01 00:00:00``
-``unix_tai`` TAI    ``1970-01-01 00:00:08``
+``unix_tai`` TAI    ``1970-01-01 00:00:00``
 ``gps``      TAI    ``1980-01-06 00:00:19``
 ============ ====== ========================
 
@@ -1142,12 +1143,11 @@ scale along with the auto-download feature::
     request ``UT1-UTC`` for times beyond the range of IERS table data then the
     nearest available values will be provided.
 
-In the case of the TDB to TT offset, most users need only provide the ``lon``
-and ``lat`` values when creating the |Time| object. If the
+In the case of the TDB to TT offset, most users need only provide the
+``location`` when creating the |Time| object. If the
 :attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set, then
 the |PyERFA| routine `erfa.dtdb` will be used to compute the TDB to TT
-offset. Note that if ``lon`` and ``lat`` are not explicitly initialized,
-values of 0.0 degrees for both will be used.
+offset. If ``location`` is not specified, the center of the Earth is assumed.
 
 Example
 ~~~~~~~
