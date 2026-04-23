@@ -1085,6 +1085,7 @@ class TestSubFormat:
             val = 730120.0
         else:
             # Ignore warnings from numpy for older matplotlib
+            # https://github.com/astropy/astropy/issues/19586
             if NUMPY_LT_2_5:
                 val = date2num(datetime.datetime(2000, 1, 1))
             else:
