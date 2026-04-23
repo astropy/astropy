@@ -251,3 +251,71 @@ def version_compare(a, b):
     bv = version_to_tuple(b)
     # Can't use cmp because it was removed from Python 3.x
     return (av > bv) - (av < bv)
+
+
+def utf8trunc(s, code_length):
+    """returns the utf8 encoding of a string s cropped to code_length bytes
+    while maintaining utf-8 correctness.
+
+    This works by removing continuation bytes (10......b) from the end of the
+    encoded string until we reach a non-continuation one.  This, then, is
+    also removed.
+
+    >>> utf8trunc("äuß", 6)
+    b'\xc3\xa4u\xc3\x9f'
+    >>> utf8trunc("äuß", 5)
+    b'\xc3\xa4u\xc3\x9f'
+    >>> utf8trunc("äuß", 4)
+    b'\xc3\xa4u'
+    >>> utf8trunc("äuß", 3)
+    b'\xc3\xa4u'
+    >>> utf8trunc("äuß", 2)
+    b'\xc3\xa4'
+    >>> utf8trunc("äuß", 1)
+    b''
+    >>> utf8trunc("äuß", 0)
+    b''
+    >>> utf8trunc("ß⨁", 5)
+    b'\xc3\x9f\xe2\xa8\x81'
+    >>> utf8trunc("⨁ß", 3)
+    b'\xe2\xa8\x81'
+    >>> utf8trunc("a⨁", 2)
+    b'a'
+    >>> utf8trunc('x𝄞', 5)
+    b'x\xf0\x9d\x84\x9e'
+    >>> utf8trunc('x𝄞', 4)
+    b'x'
+    >>> utf8trunc('𝄞', 4)
+    b'\xf0\x9d\x84\x9e'
+    >>> utf8trunc('𝄞', 3)
+    b''
+    """
+    enc = s.encode("utf-8")[:code_length]
+    if not enc:
+        return b''
+
+    # find the start character of the last utf-8 sequence
+    intro = len(enc)-1
+    while enc[intro] & 0xc0 == 0x80 and intro>0:
+        intro -= 1
+
+    # 0....... is 1 byte, 110..... is 2 bytes, 1110.... is 3 bytes,
+    # and 11110xxx is four bytes; cut to current if there's not enough bytes
+    # left.
+    if enc[intro] & 0x80 == 0:
+        req_len = 1
+    elif enc[intro] & 0xe0 == 0xc0:
+        req_len = 2
+    elif enc[intro] & 0xf0 == 0xe0:
+        req_len = 3
+    elif enc[intro] & 0xf7 == 0xf0:
+        req_len = 4
+    else:
+        raise NotImplementedError("Invalid UTF-8 sequence?")
+
+    if len(enc)-intro == req_len:
+        return enc
+    else:
+        return enc[:intro]
+
+    return enc
