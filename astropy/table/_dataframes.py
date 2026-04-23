@@ -68,7 +68,7 @@ def _encode_mixins(tbl: Table) -> Table:
                 nat = np.timedelta64("NaT", "ns")
             else:
                 new_col = col.datetime64.copy()
-                nat = np.datetime64("NaT")
+                nat = np.datetime64("NaT", "ns")
             if col.masked:
                 new_col[col.mask] = nat
             tbl[col.info.name] = new_col
