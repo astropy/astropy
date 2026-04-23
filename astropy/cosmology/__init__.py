@@ -30,6 +30,8 @@ __all__ = (  #  noqa: RUF100, RUF022
     "Flatw0wzCDM",
     "wpwaCDM",
     "FlatwpwaCDM",
+    # Pedagogical
+    "MatterOnlyCosmology",
     # Funcs
     "z_at_value",
     "cosmology_equal",
@@ -66,6 +68,7 @@ from ._src.flrw import (
 )
 from ._src.funcs import cosmology_equal, z_at_value
 from ._src.parameter import Parameter
+from ._src.pedagogical import MatterOnlyCosmology
 from .realizations import available, default_cosmology
 
 
