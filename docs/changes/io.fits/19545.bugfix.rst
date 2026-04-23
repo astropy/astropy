@@ -1,0 +1,4 @@
+Constructing a FITS table with more than 999 columns (the FITS standard
+limit) now raises a clear ``ValueError`` at column-definition time, instead
+of a late ``VerifyError`` at write time. The check covers ``Table.write``,
+``BinTableHDU.from_columns``, ``ColDefs``, and ``ColDefs.add_col``.

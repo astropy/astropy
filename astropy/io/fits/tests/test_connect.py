@@ -1064,6 +1064,28 @@ def test_fits_unsupported_mixin(name_col, tmp_path):
         t.write(filename, format="fits", overwrite=True)
 
 
+def test_write_table_too_many_columns(tmp_path):
+    """``Table.write(format='fits')`` must fail fast on > 999 columns (#19236).
+
+    Previously this surfaced as a cryptic late-stage ``VerifyError`` on the
+    ``TFIELDS`` card. The check now lives in ``ColDefs`` so the failure
+    fires before any file is created. Lower-level paths
+    (``BinTableHDU.from_columns``, ``add_col``) are covered in
+    ``test_table.py``.
+    """
+    # Boundary: 999 columns still round-trips.
+    out_ok = tmp_path / "ok_999_cols.fits"
+    Table({f"c{i}": [i] for i in range(999)}).write(out_ok, format="fits")
+    assert len(Table.read(out_ok).columns) == 999
+
+    # 1000 columns must fail fast with a clear message, and no file written.
+    out_bad = tmp_path / "should_not_exist.fits"
+    t_bad = Table({f"c{i}": [0] for i in range(1000)})
+    with pytest.raises(ValueError, match=r"1000 columns.*at most 999 columns"):
+        t_bad.write(out_bad, format="fits")
+    assert not out_bad.exists()
+
+
 def test_info_attributes_with_no_mixins(tmp_path):
     """Even if there are no mixin columns, if there is metadata that would be lost it still
     gets serialized
