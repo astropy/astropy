@@ -359,7 +359,7 @@ def test_all_formats(format_, masked_cls, masked_array_type):
 
 
 def test_datetime64_with_nat():
-    dt64 = np.array(["nat", "2001-02-03", "2001-02-04"], dtype="datetime64")
+    dt64 = np.array(["nat", "2001-02-03", "2001-02-04"], dtype="datetime64[ns]")
     mdt64 = Masked(dt64, mask=[False, True, False])
     t = Time(mdt64)
     assert t.masked
