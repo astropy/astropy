@@ -37,7 +37,7 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
-from astropy.utils.compat import chararray
+from astropy.utils.compat import NUMPY_LT_2_5, chararray
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -208,7 +208,12 @@ class _TableLikeHDU(_ValidHDU):
     def _init_tbdata(self, data):
         columns = self.columns
 
-        data.dtype = data.dtype.newbyteorder(">")
+        if NUMPY_LT_2_5:
+            data.dtype = data.dtype.newbyteorder(">")
+        else:
+            # TODO: see if a a view is possible still; initial trial gives
+            # error in test_table.py::TestVLATables::test_empty_vla_raw_data.
+            np.ndarray._set_dtype(data, data.dtype.newbyteorder(">"))
 
         # hack to enable pseudo-uint support
         data._uint = self._uint
@@ -1517,11 +1522,20 @@ def _binary_table_byte_swap(data):
     for arr in reversed(to_swap):
         arr.byteswap(True)
 
-    data.dtype = np.dtype({"names": names, "formats": formats, "offsets": offsets})
+    new_dtype = np.dtype({"names": names, "formats": formats, "offsets": offsets})
+    if NUMPY_LT_2_5:
+        data.dtype = new_dtype
+    else:
+        # TODO: ensure self.data is never used with this context manager, so that
+        # a view here would work (and the second _set_dtype can be removed).
+        np.ndarray._set_dtype(data, new_dtype)
 
     yield data
 
     for arr in to_swap:
         arr.byteswap(True)
 
-    data.dtype = orig_dtype
+    if NUMPY_LT_2_5:
+        data.dtype = orig_dtype
+    else:
+        np.ndarray._set_dtype(data, orig_dtype)
