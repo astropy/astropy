@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import textwrap
+import warnings
 from contextlib import suppress
 
 import numpy as np
@@ -37,6 +38,7 @@ from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
 from astropy.utils.compat import chararray
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -141,9 +143,10 @@ class _TableLikeHDU(_ValidHDU):
         logical_as_bytes : bool
             Whether to return raw bytes for logical columns when accessed from
             the HDU. By default this is `False` and boolean values are returned.
-            When `True`, the raw FITS values are returned: ord('T')=84 for True,
-            ord('F')=70 for False, and 0 for undefined (NULL). This allows
-            distinguishing between False and NULL values.
+            When `True`, columns with format ``L`` are returned as single-byte
+            string arrays (dtype ``|S1``) whose elements are ``b'T'`` for True,
+            ``b'F'`` for False, and ``b'\x00'`` for undefined (NULL). This
+            allows distinguishing between False and NULL values.
 
         Notes
         -----
@@ -306,9 +309,10 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         mapping and loads the whole column in memory when accessed.
     logical_as_bytes : bool
         Whether to return raw bytes for logical columns. By default this is
-        `False` and boolean values are returned. When `True`, the raw FITS
-        values are returned: ord('T')=84 for True, ord('F')=70 for False,
-        and 0 for undefined (NULL). This allows distinguishing between
+        `False` and boolean values are returned. When `True`, columns with
+        format ``L`` are returned as single-byte string arrays (dtype ``|S1``)
+        whose elements are ``b'T'`` for True, ``b'F'`` for False, and
+        ``b'\x00'`` for undefined (NULL). This allows distinguishing between
         False and NULL values.
     """
 
@@ -458,8 +462,19 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 # Make the ndarrays in the Column objects of the ColDefs
                 # object of the HDU reference the same ndarray as the HDU's
                 # FITS_rec object.
-                for idx, col in enumerate(self.columns):
-                    col.array = self.data.field(idx)
+                # Suppress the NULL-values warning emitted by
+                # ``_convert_other`` during this internal plumbing: a
+                # warning here would fire before the user has explicitly
+                # read the column. The user will still see the warning on
+                # their first real access.
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "ignore",
+                        message=r"Column '.*' contains NULL",
+                        category=AstropyUserWarning,
+                    )
+                    for idx, col in enumerate(self.columns):
+                        col.array = self.data.field(idx)
 
                 # Delete the _arrays attribute so that it is recreated to
                 # point to the new data placed in the column objects above
@@ -864,9 +879,10 @@ class BinTableHDU(_TableBaseHDU):
         mapping and loads the whole column in memory when accessed.
     logical_as_bytes : bool
         Whether to return raw bytes for logical columns. By default this is
-        `False` and boolean values are returned. When `True`, the raw FITS
-        values are returned: ord('T')=84 for True, ord('F')=70 for False,
-        and 0 for undefined (NULL). This allows distinguishing between
+        `False` and boolean values are returned. When `True`, columns with
+        format ``L`` are returned as single-byte string arrays (dtype ``|S1``)
+        whose elements are ``b'T'`` for True, ``b'F'`` for False, and
+        ``b'\x00'`` for undefined (NULL). This allows distinguishing between
         False and NULL values.
 
     """

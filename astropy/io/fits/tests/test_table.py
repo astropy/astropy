@@ -558,6 +558,9 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(self.temp("toto.fits")) as hdul:
             assert comparerecords(hdu.data, hdul[1].data)
 
+    @pytest.mark.filterwarnings(
+        "ignore:Column '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
+    )
     def test_new_fitsrec(self):
         """
         Tests creating a new FITS_rec object from a multi-field ndarray.
@@ -2505,21 +2508,23 @@ class TestTableFunctions(FitsTestCase):
             assert (hdul[1].data["F1"] == [True, True]).all()
             assert (hdul[1].data["F2"] == [True, True]).all()
 
-    def test_logical_as_bytes(self):
+    def test_logical_as_bytes(self, tmp_path):
         """Test that logical_as_bytes returns raw FITS values for logical columns.
 
-        This allows distinguishing between False (ord('F')=70) and NULL (0)
+        This allows distinguishing between False (b'F') and NULL (b'\\x00')
         values in logical columns, which is otherwise not possible when
         reading as boolean arrays.
         """
-        # The test file contains: True, NULL, False as raw bytes [84, 0, 70]
+        # The test file contains: True, NULL, False as raw bytes
         with fits.open(self.data("logical_null.fits"), logical_as_bytes=True) as hdul:
             raw_data = hdul[1].data["flag"]
-            # Should return raw bytes: 84='T', 0=NULL, 70='F'
-            assert raw_data.dtype == np.int8
-            assert raw_data[0] == ord("T")  # 84 = True
-            assert raw_data[1] == 0  # NULL
-            assert raw_data[2] == ord("F")  # 70 = False
+            # Should return single-byte strings: b'T', b'\x00' (NULL), b'F'.
+            # Note: numpy |S1 strips trailing NUL bytes on read, so the NUL
+            # entry appears as b''; compare on the raw byte values instead.
+            assert raw_data.dtype == np.dtype("S1")
+            assert raw_data.tobytes() == b"T\x00F"
+            assert raw_data[0] == b"T"
+            assert raw_data[2] == b"F"
 
         # Without logical_as_bytes, NULL becomes False (indistinguishable)
         # and a warning is issued
@@ -2530,6 +2535,25 @@ class TestTableFunctions(FitsTestCase):
                 assert bool_data[0] is np.True_
                 assert bool_data[1] is np.False_  # NULL became False
                 assert bool_data[2] is np.False_
+
+        # Writing: a user can build a new table from a |S1 array with NULL
+        # bytes and round-trip it preserving the NULL values.
+        raw = np.array([b"T", b"\x00", b"F"], dtype="S1")
+        col = fits.Column(name="flag", format="L", array=raw)
+        hdu = fits.BinTableHDU.from_columns([col])
+        out_path = tmp_path / "roundtrip.fits"
+        hdu.writeto(out_path)
+
+        with fits.open(out_path, logical_as_bytes=True) as hdul:
+            roundtripped = hdul[1].data["flag"]
+            assert roundtripped.dtype == np.dtype("S1")
+            assert roundtripped.tobytes() == b"T\x00F"
+
+        # And that the same file, read without logical_as_bytes, still
+        # warns about the NULL and returns False for it.
+        with pytest.warns(AstropyUserWarning, match="contains NULL"):
+            with fits.open(out_path) as hdul:
+                assert hdul[1].data["flag"].tolist() == [True, False, False]
 
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
