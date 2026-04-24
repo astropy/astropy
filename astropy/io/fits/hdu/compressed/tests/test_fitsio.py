@@ -250,9 +250,6 @@ def test_compress(
 @pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
 def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
 
-    if compression_type == "NOCOMPRESS":
-        pytest.xfail("fitsio does not support NOCOMPRESS")
-
     testfile = tmp_path / "test.fits.fz"
     data = np.random.poisson(1000, size=(52, 57)).astype(f"i{nbytes}")
     if overflow:
@@ -260,13 +257,11 @@ def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
     data_hdu = fits.PrimaryHDU(data=data)
     compressed_hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
 
-    if nbytes == 8 and overflow:
-        ctx = pytest.raises(
-            ValueError, match="compression doesn't support 64 integers.*"
-        )
-    elif nbytes == 8 and not overflow:
-        ctx = pytest.warns(
-            AstropyUserWarning, match="compression doesn't support 64 integers.*"
+    if compression_type in ("RICE_1", "PLIO_1") and nbytes == 8:
+        test_func = pytest.raises if overflow else pytest.warns
+        ctx = test_func(
+            ValueError if overflow else AstropyUserWarning,
+            match=f"{compression_type} compression doesn't support 64 integers.*",
         )
         nbytes = 4
     else:
@@ -290,6 +285,8 @@ def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
         assert hdul[1].data.dtype.kind == np.dtype(data.dtype).kind
         assert hdul[1].data.dtype.itemsize == nbytes
 
-    fts = fitsio.FITS(testfile)
-    data2 = fts[1].read()
-    np.testing.assert_array_equal(data, data2)
+    if compression_type != "NOCOMPRESS" and nbytes != 8:
+        # fitsio does not support NOCOMPRESS or 64-bit data
+        fts = fitsio.FITS(testfile)
+        data2 = fts[1].read()
+        np.testing.assert_array_equal(data, data2)

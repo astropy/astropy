@@ -543,19 +543,23 @@ def compress_image_data(
     if not isinstance(image_data, np.ndarray):
         raise TypeError("Image data must be a numpy.ndarray")
 
-    if image_data.dtype.kind == "i" and image_data.dtype.itemsize == 8:
+    if (
+        compression_type in ("RICE_1", "PLIO_1")
+        and image_data.dtype.kind == "i"
+        and image_data.dtype.itemsize == 8
+    ):
         new_dt = f"{image_data.dtype.byteorder}{image_data.dtype.kind}4"
         try:
             image_data = image_data.astype(new_dt, casting="same_value")
             compressed_header["ZBITPIX"] = 32
             warnings.warn(
-                "compression doesn't support 64 integers, "
+                f"{compression_type} compression doesn't support 64 integers, "
                 "data has been converted to 32 bits",
                 AstropyUserWarning,
             )
         except ValueError:
             raise ValueError(
-                "compression doesn't support 64 integers, "
+                f"{compression_type} compression doesn't support 64 integers, "
                 "but data cannot be converted to 32 bits without overflow",
             )
 
