@@ -123,13 +123,13 @@ class QueryOrigin:
     @property
     def standardId(self) -> list:
         """Compatibility with previous version"""
-        return self.service_software
+        return self.service_protocol
 
     @standardId.setter
     def standardId(self, value: list):
         """Compatibility with previous version"""
-        if not self.server_software:
-            self.server_software = value
+        if not self.service_protocol:
+            self.service_protocol = value
 
     def __str__(self) -> str:
         s = []
