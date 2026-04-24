@@ -80,6 +80,12 @@ class _DummyFile:
     def write(self, s: str) -> None:
         pass
 
+    def flush(self) -> None:
+        pass
+
+    def isatty(self) -> bool:
+        return False
+
 
 @contextlib.contextmanager
 def silence() -> Generator[None, None, None]:
