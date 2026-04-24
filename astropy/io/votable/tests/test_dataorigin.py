@@ -39,6 +39,18 @@ def __add_origin():
     return vot
 
 
+def test_data_origin_update():
+    vot = __generate_votable_test()
+    do = dataorigin.extract_data_origin(vot)
+    do.query.publisher = __TEST_PUBLISHER_NAME
+    do.origin = [dataorigin.DatasetOrigin(vot.resources[0])]
+    do.origin[0].creator = __TEST_CREATOR1_NAME
+
+    do.update_votable()
+    assert len(vot.infos) == 1
+    assert len(vot.resources[0].infos) == 1
+
+
 def test_dataorigin():
     vot = __add_origin()
     do = dataorigin.extract_data_origin(vot)

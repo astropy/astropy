@@ -27,13 +27,13 @@ the VO service of interest::
     >>> votable = VOTableFile().from_table(table)
     >>> votable.description = "Period variations of 32 contact binaries (Hong+, 2024)"
     >>> # Order is important here for the example.
-    >>> add_data_origin_info(votable, "ivoid", "ivo://cds.vizier/j/aj/167/18",
+    >>> add_data_origin_info(votable, "data_ivoid", "ivo://cds.vizier/j/aj/167/18",
     ...                      content="IVOID of underlying data collection")
     >>> add_data_origin_info(votable, "creator", "Hong K.",
     ...                      content="First author or institution")
     >>> add_data_origin_info(votable, "cites", "bibcode:2024AJ....167...18H",
     ...                      content="Article or Data origin sources")
-    >>> add_data_origin_info(votable, "editor", "Astronomical Journal (AAS)",
+    >>> add_data_origin_info(votable, "journal", "Astronomical Journal (AAS)",
     ...                      content="Editor name (article)")
     >>> add_data_origin_info(votable, "original_date", "2024",
     ...                      content="Year of the article publication")
