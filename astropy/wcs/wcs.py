@@ -3352,7 +3352,13 @@ reduce these to 2 dimensions using the naxis kwarg.
         buffer = io.BytesIO()
         hdulist.writeto(buffer)
 
-        dct = self.__dict__.copy()
+        # Exclude lazily-populated caches: they are pure functions of the
+        # WCS state, so unpickling can regenerate them on demand. Keeping
+        # them out of the pickle avoids bloating the payload and prevents
+        # non-picklable cache contents (e.g. closures) from breaking pickle.
+        dct = {
+            k: v for k, v in self.__dict__.items() if not k.endswith("_cache")
+        }
         dct["_alt_wcskey"] = self.wcs.alt
 
         return (
