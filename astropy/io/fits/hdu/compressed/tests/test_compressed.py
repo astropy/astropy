@@ -1480,7 +1480,7 @@ def test_reserved_keywords_stripped(tmp_path):
     #
     # See also https://github.com/astropy/astropy/issues/18067
 
-    data = np.arange(6).reshape((2, 3))
+    data = np.arange(6, dtype="int32").reshape((2, 3))
 
     hdu = fits.CompImageHDU(data)
     hdu.writeto(tmp_path / "compressed.fits")

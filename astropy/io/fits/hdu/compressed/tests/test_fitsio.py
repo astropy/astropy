@@ -9,8 +9,8 @@ cfitsio.
  when editing this file.
 """
 
-from contextlib import nullcontext
 import os
+from contextlib import nullcontext
 
 import numpy as np
 import pytest
