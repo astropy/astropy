@@ -12,7 +12,7 @@ the 7.2 release.
 
 In particular, this release includes:
 
-* :ref:`whatsnew-8.0-cosmo-simplification`
+* :ref:`whatsnew-8.0-cosmology`
 * :ref:`whatsnew-8.0-codata2022`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
@@ -29,10 +29,16 @@ Full change log
 To see a detailed list of all changes in version v8.0, including changes in
 API, please see the :ref:`changelog`.
 
-.. _whatsnew-8.0-cosmo-simplification:
 
-Cosmology Module Simplification
-===============================
+.. _whatsnew-8.0-cosmology:
+
+Cosmology
+=========
+
+The ``astropy.cosmology`` module has several updates in this release.
+
+Module Simplification
+*********************
 
 The deprecated module-level shim files in ``astropy.cosmology`` have been removed. These
 compatibility modules were originally deprecated in v7.1. With this release, all
@@ -65,7 +71,6 @@ After:
 
     from astropy.cosmology import Cosmology, FlatLambdaCDM, z_at_value
 
-****************
 Cosmology Traits
 ****************
 
@@ -118,6 +123,33 @@ False
 np.float64(3.4...e-05)
 >>> cosmo.Tnu(1)
 <Quantity 3.89... K>
+
+Machine Readable Table (MRT) I/O
+********************************
+
+The ``astropy.cosmology`` module now supports reading and writing cosmological
+objects in the Machine Readable Table (MRT) format. This adds MRT to the
+existing I/O options for cosmology, which include YAML, ECSV, HTML, and LaTeX
+formats.
+
+MRT format is commonly used in astronomical publications and data archives. You
+can now save and load cosmological parameters using the ``.read()`` and
+``.write()`` methods with ``format="ascii.mrt"``:
+
+.. code-block:: python
+
+    from astropy.cosmology import Planck18
+
+    # Write to MRT file
+    Planck18.write("cosmology.mrt")
+
+    # Read from MRT file
+    cosmo = Cosmology.read("cosmology.mrt")
+
+Note that since MRT format does not preserve table metadata, the cosmology class
+is included as a column in the table rather than in metadata (similar to HTML
+and LaTeX formats). Multi-dimensional columns (such as neutrino masses) are
+automatically JSON-encoded when writing and decoded when reading.
 
 
 .. _whatsnew-8.0-codata2022:
