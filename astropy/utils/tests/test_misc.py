@@ -178,3 +178,12 @@ def test_indent_deprecation():
 def test_format_exception_deprecation():
     with pytest.warns(AstropyDeprecationWarning):
         misc.format_exception("this is deprecated")
+
+
+def test_silence_stdout_file_protocol():
+    import sys
+
+    with misc.silence():
+        assert sys.stdout.isatty() is False
+        sys.stdout.flush()
+        sys.stdout.write("ignored")
