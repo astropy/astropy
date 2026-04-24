@@ -1,0 +1,2 @@
+Disabling thread concurrency within ``set_temp_cache`` and ``set_temp_config``
+context managers, ensuring thread safety.
