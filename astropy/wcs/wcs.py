@@ -529,6 +529,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         self._init_kwargs = {
             "keysel": copy.copy(keysel),
             "colsel": copy.copy(colsel),
+            "preserve_units": preserve_units,
         }
 
         if header is None:
