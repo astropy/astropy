@@ -759,6 +759,9 @@ class TestHDUListFunctions(FitsTestCase):
             assert (hdul[1].data == data2).all()
             assert (hdul[2].data == data2).all()
 
+    @pytest.mark.filterwarnings(
+        "ignore:Column '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
+    )
     def test_hdul_fromstring(self):
         """
         Test creating the HDUList structure in memory from a string containing
