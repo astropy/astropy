@@ -170,3 +170,10 @@ def test_alt_wcskey():
     w2 = pickle.loads(pickle.dumps(w))
 
     assert w2.wcs.alt == "A"
+
+
+def test_preserve_units():
+    w = wcs.WCS(naxis=2, preserve_units=True)
+    assert w._preserve_units is True
+    w2 = pickle.loads(pickle.dumps(w))
+    assert w2._preserve_units is True
