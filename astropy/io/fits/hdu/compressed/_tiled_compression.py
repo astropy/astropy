@@ -5,8 +5,8 @@ the FITS 4 standard.
 """
 
 import sys
-from math import prod
 import warnings
+from math import prod
 
 import numpy as np
 
