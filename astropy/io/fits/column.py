@@ -1394,6 +1394,11 @@ class Column(NotifierMixin):
                 # boolean needs to be scaled back to storage values ('T', 'F')
                 if array.dtype == np.dtype("bool"):
                     return np.where(array == np.False_, ord("F"), ord("T"))
+                elif array.dtype.kind == "S":
+                    # Bytes input (e.g. from reading with logical_as_bytes=True)
+                    # is taken as-is so that NULL (b'\x00') values are preserved
+                    # in storage alongside b'T' and b'F'.
+                    return array.view(np.int8)
                 else:
                     return np.where(array == 0, ord("F"), ord("T"))
             elif "X" in format:

@@ -146,10 +146,11 @@ def fitsopen(
 
     logical_as_bytes : bool, optional
         Whether to return raw bytes for logical columns, otherwise boolean
-        values are returned. When `True`, the raw FITS values are returned:
-        ord('T')=84 for True, ord('F')=70 for False, and 0 for undefined
-        (NULL). This allows distinguishing between False and NULL values in
-        logical columns. Default is `False`.
+        values are returned. When `True`, columns with format ``L`` are
+        returned as single-byte string arrays (dtype ``|S1``) whose elements
+        are ``b'T'`` for True, ``b'F'`` for False, and ``b'\x00'`` for
+        undefined (NULL). This allows distinguishing between False and NULL
+        values in logical columns. Default is `False`.
 
     ignore_blank : bool, optional
         If `True`, the BLANK keyword is ignored if present.
