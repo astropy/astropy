@@ -1,0 +1,1 @@
+Fixed ``CCDData.read()`` logging a spurious info message when the unit passed by the caller matches the BUNIT value in the FITS header.
