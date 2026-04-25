@@ -249,7 +249,7 @@ class TestLinearLSQFitter:
         fitter = LinearLSQFitter()
 
         fitted_model = fitter(initial_model, record.x, record.z)
-        assert_allclose(fitted_model.parameters, np.array(coeffs), rtol=10e-2)
+        assert_allclose(fitted_model.parameters, np.array(coeffs), rtol=1e-1)
 
     def test_linear_fit_model_set(self):
         """Tests fitting multiple models simultaneously."""
