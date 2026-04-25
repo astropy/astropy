@@ -8,8 +8,10 @@ from astropy.timeseries.periodograms.lombscargle._testing import (
 from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
     bitceil,
     extirpolate,
+    jn,
     trig_sum,
 )
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 @pytest.mark.parametrize("N", 2 ** np.arange(1, 12))
@@ -53,6 +55,19 @@ def test_extirpolate_with_integers(N, M, extirpolate_int_data):
     y_hat = extirpolate(x, y, N, M)
     x_hat = np.arange(len(y_hat))
     assert_allclose(np.dot(f(x), y), np.dot(f(x_hat), y_hat), rtol=1.7e-5)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="SciPy is required to test jn() against jv()")
+def test_jn():
+    from scipy.special import jv
+
+    # Test the range used by NuFFT
+    n_vals = np.arange(-7, 16)
+    x_vals = np.linspace(-np.pi / 4, np.pi / 4, 1000)
+    N_grid, X_grid = np.meshgrid(n_vals, x_vals, indexing="ij")
+    custom_res = jn(N_grid, X_grid)
+    scipy_res = jv(N_grid, X_grid)
+    assert_allclose(custom_res, scipy_res, atol=1e-14, rtol=1e-13)
 
 
 @pytest.fixture

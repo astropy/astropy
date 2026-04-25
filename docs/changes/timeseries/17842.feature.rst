@@ -1,2 +1,4 @@
-Add support for Low Rank Approximation (LRA) to ``trig_sum``.
-This is enabled by passing the new argument ``algorithm='lra'``.
+Adds support for Low Rank Approximation (LRA) to ``trig_sum``.
+This is enabled by passing the new argument ``algorithm='lra'``,
+which is now the default option for ``fast`` and
+``fastchi2`` implementations.
