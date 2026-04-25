@@ -184,6 +184,38 @@ jobs:
       targets: |
         - cp311-manylinux_x86_64
 
+  test_c_extensions:
+    # Standalone tests for the C math extensions of Astropy
+    # compile C tests into executables, and verify results via subprocess
+    needs:
+      - initial_checks
+    name: Standalone C Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Install Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.11"
+      - name: Install Test Dependencies
+        run: |
+          python -m pip install pytest
+
+      - name: Compile C test Binary
+        run: |
+          mkdir -p ctests/.tmp
+          gcc -DC_STANDALONE -o ctests/.tmp/test_convolve_1d_binary \
+                 ctests/test_convolve_1d.c \
+                 astropy/convolution/src/convolve.c \
+                 -Iastropy/convolution/src/ \
+                 -lm
+
+      - name: Run Standalone C Tests
+        run: |
+          pytest --noconftest ctests
 
   test_limited_api_build:
     # Test to make sure that we can build astropy with the limited API
@@ -210,6 +242,7 @@ jobs:
         name: Install Python
         with:
           python-version: "3.11"
+
       - run: |
           python -m pip install build
           python -m build
