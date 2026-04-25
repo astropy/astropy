@@ -3,7 +3,6 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
-from packaging.version import Version
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -428,12 +427,10 @@ def test_extract_array_return_pos():
 
 
 def test_extract_array_nan_fillvalue():
-    if Version(np.__version__) >= Version("1.20"):
-        msg = "fill_value cannot be set to np.nan if the input array has"
-        with pytest.raises(ValueError, match=msg):
-            extract_array(
-                np.ones((10, 10), dtype=int), (5, 5), (1, 1), fill_value=np.nan
-            )
+    """Test that a helpful error is raised for NaN fill_value with integer array."""
+    data = np.arange(12, dtype=int).reshape(3, 4)
+    with pytest.raises(ValueError, match="fill_value.*data type"):
+        extract_array(data, (5, 5), (1, 1), mode="partial", fill_value=np.nan)
 
 
 def test_add_array_odd_shape():
