@@ -879,7 +879,8 @@ class BaseData:
                 self.fill_values = [self.fill_values]
 
             # Step 1: Set the default list of columns which are affected by
-            # fill_values
+            # fill_values. Any integer indices in fill_*_names have already
+            # been resolved to plain names by BaseReader.read/write.
             colnames = set(self.header.colnames)
             if self.fill_include_names is not None:
                 colnames.intersection_update(self.fill_include_names)
@@ -1268,6 +1269,53 @@ def _is_number(x) -> TypeGuard[SupportsFloat]:
     return False
 
 
+def _to_list(items):
+    """Materialize a non-string iterable to a list, idempotent for ``None``
+    and ``list``. Used to coerce user-supplied iterables (e.g. generators)
+    so reusable Reader/Writer objects don't end up holding an exhausted
+    one-shot iterable across calls (issue #7451).
+    """
+    if items is None or isinstance(items, list):
+        return items
+    return list(items)
+
+
+def _expand_name_indices(items, colnames, param_name):
+    """Resolve a list of column names or 0-based integer indices into names.
+
+    Strings pass through unchanged; ``int`` / ``numpy.integer`` entries are
+    looked up in ``colnames`` (negative indices supported). Python ``bool``
+    and ``numpy.bool_`` are rejected explicitly so that ``True``/``False``
+    are not silently treated as indices 1/0. ``None`` returns ``None``. Any
+    other iterable (e.g. a generator) is materialized to a list at entry,
+    so callers may safely re-resolve on a long-lived reader/writer object.
+    Out-of-range integers raise ``IndexError``; ``param_name`` is the
+    user-facing argument name used in the error messages.
+    """
+    if items is None:
+        return None
+    items = list(items)
+    n = len(colnames)
+    resolved = []
+    for item in items:
+        if isinstance(item, (bool, np.bool_)):
+            raise TypeError(
+                f"{param_name} entries must be str or int, got "
+                f"{type(item).__name__} ({item!r}). Use 0/1 explicitly for "
+                f"column indices."
+            )
+        if isinstance(item, (int, np.integer)):
+            if not -n <= item < n:
+                raise IndexError(
+                    f"{param_name} index {item} is out of range for table "
+                    f"with {n} columns"
+                )
+            resolved.append(colnames[item])
+        else:
+            resolved.append(item)
+    return resolved
+
+
 def _apply_include_exclude_names(table, names, include_names, exclude_names):
     """
     Apply names, include_names and exclude_names to a table or BaseHeader.
@@ -1282,9 +1330,10 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
     names : list
         List of names to override those in table (set to None to use existing names)
     include_names : list
-        List of names to include in output
+        List of column names or 0-based integer indices to include in output.
     exclude_names : list
-        List of names to exclude from output (applied after ``include_names``)
+        List of column names or 0-based integer indices to exclude from
+        output (applied after ``include_names``).
 
     """
 
@@ -1305,6 +1354,10 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
         colnames_uniq = _deduplicate_names(table.colnames)
         if colnames_uniq != list(table.colnames):
             rename_columns(table, colnames_uniq)
+
+    # Allow integer indices as well as names (issue #7451).
+    include_names = _expand_name_indices(include_names, table.colnames, "include_names")
+    exclude_names = _expand_name_indices(exclude_names, table.colnames, "exclude_names")
 
     names_set = set(table.colnames)
 
@@ -1467,13 +1520,44 @@ class BaseReader(metaclass=MetaBaseReader):
         if hasattr(self.header, "table_meta"):
             self.meta["table"].update(self.header.table_meta)
 
-        _apply_include_exclude_names(
-            self.header, self.names, self.include_names, self.exclude_names
-        )
-        self.data.masks(cols)
+        # Materialize any iterables once so reusing this Reader works even
+        # when the user passed a generator (issue #7451).
+        self.include_names = _to_list(self.include_names)
+        self.exclude_names = _to_list(self.exclude_names)
+        self.data.fill_include_names = _to_list(self.data.fill_include_names)
+        self.data.fill_exclude_names = _to_list(self.data.fill_exclude_names)
 
-        table = self.outputter(self.header.cols, self.meta)
-        self.cols = self.header.cols
+        # Resolve fill_*_names indices against the post-rename column list
+        # (issue #7451), and save/restore so reusing this Reader on a
+        # different file doesn't see stale resolved names.
+        if self.names is not None:
+            post_rename_colnames = list(self.names)
+        else:
+            post_rename_colnames = list(_deduplicate_names(self.header.colnames))
+        _orig_fill_include = self.data.fill_include_names
+        _orig_fill_exclude = self.data.fill_exclude_names
+        try:
+            self.data.fill_include_names = _expand_name_indices(
+                self.data.fill_include_names,
+                post_rename_colnames,
+                "fill_include_names",
+            )
+            self.data.fill_exclude_names = _expand_name_indices(
+                self.data.fill_exclude_names,
+                post_rename_colnames,
+                "fill_exclude_names",
+            )
+
+            _apply_include_exclude_names(
+                self.header, self.names, self.include_names, self.exclude_names
+            )
+            self.data.masks(cols)
+
+            table = self.outputter(self.header.cols, self.meta)
+            self.cols = self.header.cols
+        finally:
+            self.data.fill_include_names = _orig_fill_include
+            self.data.fill_exclude_names = _orig_fill_exclude
 
         return table
 
@@ -1562,33 +1646,65 @@ class BaseReader(metaclass=MetaBaseReader):
         self.header.cols = list(table.columns.values())
         self.header.check_column_names(self.names, self.strict_names, False)
 
-        # In-place update of columns in input ``table`` to reflect column
-        # filtering.  Note that ``table`` is guaranteed to be a copy of the
-        # original user-supplied table.
-        _apply_include_exclude_names(
-            table, self.names, self.include_names, self.exclude_names
-        )
+        # Materialize any iterables once so reusing this Writer works even
+        # when the user passed a generator (issue #7451).
+        self.include_names = _to_list(self.include_names)
+        self.exclude_names = _to_list(self.exclude_names)
+        self.data.fill_include_names = _to_list(self.data.fill_include_names)
+        self.data.fill_exclude_names = _to_list(self.data.fill_exclude_names)
 
-        # This is a hook to allow updating the table columns after name
-        # filtering but before setting up to write the data.  This is currently
-        # only used by ECSV and is otherwise just a pass-through.
-        table = self.update_table_data(table)
+        # Resolve fill_*_names indices against the post-rename column list
+        # (issue #7451); save/restore to keep the writer reusable.
+        if self.names is not None:
+            post_rename_colnames = list(self.names)
+        else:
+            post_rename_colnames = list(table.colnames)
+        _orig_fill_include = self.data.fill_include_names
+        _orig_fill_exclude = self.data.fill_exclude_names
+        try:
+            self.data.fill_include_names = _expand_name_indices(
+                self.data.fill_include_names,
+                post_rename_colnames,
+                "fill_include_names",
+            )
+            self.data.fill_exclude_names = _expand_name_indices(
+                self.data.fill_exclude_names,
+                post_rename_colnames,
+                "fill_exclude_names",
+            )
 
-        # Check that table column dimensions are supported by this format class.
-        # Most formats support only 1-d columns, but some like ECSV support N-d.
-        self._check_multidim_table(table)
+            # In-place update of columns in input ``table`` to reflect column
+            # filtering.  Note that ``table`` is guaranteed to be a copy of
+            # the original user-supplied table.
+            _apply_include_exclude_names(
+                table, self.names, self.include_names, self.exclude_names
+            )
 
-        # Now use altered columns
-        new_cols = list(table.columns.values())
-        # link information about the columns to the writer object (i.e. self)
-        self.header.cols = new_cols
-        self.data.cols = new_cols
-        self.header.table_meta = table.meta
+            # This is a hook to allow updating the table columns after name
+            # filtering but before setting up to write the data.  This is
+            # currently only used by ECSV and is otherwise just a
+            # pass-through.
+            table = self.update_table_data(table)
 
-        # Write header and data to lines list
-        lines: list[str] = []
-        self.write_header(lines, table.meta)
-        self.data.write(lines)
+            # Check that table column dimensions are supported by this
+            # format class. Most formats support only 1-d columns, but some
+            # like ECSV support N-d.
+            self._check_multidim_table(table)
+
+            # Now use altered columns
+            new_cols = list(table.columns.values())
+            # link information about the columns to the writer object
+            self.header.cols = new_cols
+            self.data.cols = new_cols
+            self.header.table_meta = table.meta
+
+            # Write header and data to lines list
+            lines: list[str] = []
+            self.write_header(lines, table.meta)
+            self.data.write(lines)
+        finally:
+            self.data.fill_include_names = _orig_fill_include
+            self.data.fill_exclude_names = _orig_fill_exclude
 
         return lines
 
