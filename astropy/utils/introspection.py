@@ -6,6 +6,8 @@ import os
 import sys
 from importlib import import_module, metadata
 from importlib.metadata import packages_distributions
+from importlib.util import find_spec
+from operator import ge, gt
 from types import FrameType, ModuleType
 from typing import Literal
 
@@ -92,8 +94,12 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
     ----------
     module : module or `str`
         An imported module of which to check the version, or the name of
-        that module (in which case an import of that module is attempted--
-        if this fails `False` is returned).
+        that module.
+
+        .. versionchanged:: 8.1.0
+            no dynamic import is attempted if a module is passed by name.
+            Instead, metadata is looked up from an installed package without
+            executing it.
 
     version : `str`
         The version as a string that this module must have at a minimum (e.g.
@@ -111,14 +117,8 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
     """
     if inspect.ismodule(module):
         module_name = module.__name__
-        module_version = getattr(module, "__version__", None)
     elif isinstance(module, str):
         module_name = module
-        module_version = None
-        try:
-            module = import_module(module_name)
-        except ImportError:
-            return False
     else:
         raise ValueError(
             "module argument must be an actual imported "
@@ -126,21 +126,21 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
             f"got {repr(module)}"
         )
 
-    if module_version is None:
-        try:
-            module_version = metadata.version(module_name)
-        except metadata.PackageNotFoundError:
-            # Maybe the distribution name is different from package name.
-            # Calling packages_distributions is costly so we do it only
-            # if necessary, as only a few packages don't have the same
-            # distribution name.
-            dist_names = packages_distributions()
-            module_version = metadata.version(dist_names[module_name][0])
+    if find_spec(module_name) is None:
+        return False
 
-    if inclusive:
-        return Version(module_version) >= Version(version)
-    else:
-        return Version(module_version) > Version(version)
+    try:
+        module_version = metadata.version(module_name)
+    except metadata.PackageNotFoundError:
+        # Maybe the distribution name is different from package name.
+        # Calling packages_distributions is costly so we do it only
+        # if necessary, as only a few packages don't have the same
+        # distribution name.
+        dist_names = packages_distributions()
+        module_version = metadata.version(dist_names[module_name][0])
+
+    comp = ge if inclusive else gt
+    return comp(Version(module_version), Version(version))
 
 
 def find_current_module(
