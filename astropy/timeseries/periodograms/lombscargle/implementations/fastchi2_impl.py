@@ -68,6 +68,9 @@ def lombscargle_fastchi2(
     .. [3] Scargle, J.D. ApJ 263:835-853 (1982)
     .. [4] Palmer, J. ApJ 695:496-502 (2009)
     .. [5] Ruiz-Antolin, D. and Townsend, A. "A nonuniform fast Fourier transform based on low rank approximation". SIAM 40.1 (2018)
+
+    .. versionchanged:: 8.0
+        The default algorithm has been changed from 'fasper' to 'lra'
     """
     if nterms == 0 and not fit_mean:
         raise ValueError("Cannot have nterms = 0 without fitting bias")
