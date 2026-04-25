@@ -102,11 +102,12 @@ def extirpolate(x, y, N=None, M=4):
     return result
 
 
-def jn(n, x, num_terms=10):
+def jn(n, x, num_terms=8):
     """
     Approximate the Bessel function of the first kind
     of an integer order n for small values of x.
     Approximately equivalent to scipy.special.jv(n, x)
+    for -π/4 < x < π/4.
     """
     n = np.asarray(n, dtype=np.int32)
     x = np.asarray(x)
@@ -114,8 +115,11 @@ def jn(n, x, num_terms=10):
 
     n = n.astype(np.int64)
 
-    # Keep the array longer to approximately ignore the factorials of negative integers in the denominator
-    n_max = int(np.max(n)) + num_terms + 10
+    # Use J_{-m}(x) = (-1)^m J_m(x) to reduce to non-negative order
+    m = np.abs(n)
+    sign = np.where((n < 0) & (m % 2 == 1), -1.0, 1.0)
+
+    n_max = int(m.max()) + num_terms
     fact = np.empty(n_max + 1, dtype=np.float64)
     fact[0] = 1.0
     for i in range(1, n_max + 1):
@@ -124,15 +128,15 @@ def jn(n, x, num_terms=10):
     result = np.zeros(np.broadcast_shapes(n.shape, x.shape), dtype=np.float64)
 
     half_x2 = half_x * half_x
-    term_numer = half_x**n
-    term_denom = fact[n]
+    term_numer = half_x**m
+    term_denom = fact[m]
 
     for k in range(num_terms):
-        term_denom = fact[k] * fact[n + k]
+        term_denom = fact[k] * fact[m + k]
         result += term_numer / term_denom
         term_numer *= -half_x2
 
-    return result
+    return sign * result
 
 
 def get_lra_params(x, N, eps):
@@ -146,7 +150,7 @@ def get_lra_params(x, N, eps):
     N : int
         Required number of grid points in the frequency domain.
     eps : float
-        Desired relative error tolerance.
+        Desired average relative error of the output.
 
     Returns
     -------
@@ -181,7 +185,7 @@ def get_lra_params(x, N, eps):
             16: 4.6e-16,
         }
 
-        # Find the smallest K in the LUT where eps is less than or equal to the LUT value
+        # Find the smallest K in the LUT where eps is equal to or greater than the LUT value
         for i, threshold in lut.items():
             if eps >= threshold:
                 K = i
@@ -317,7 +321,7 @@ def nufft1_lra(x, y, N, eps):
     N : int
         Number of desired frequency bins.
     eps : float
-        Desired relative error tolerance.
+        Desired average relative error of the output.
 
     Returns
     -------
@@ -401,7 +405,7 @@ def trig_sum(
         Referenced only when use_fft is True and algorithm is set to 'fasper'
     Mfft : int
         The number of adjacent points to use in the FFT approximation.
-        Not referenced if use_fft is False  or prefer_lra is True and SciPy is available.
+        Not referenced if use_fft is False.
     algorithm : 'fasper' (default), or 'lra'
         This option is ignored if if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
@@ -411,7 +415,7 @@ def trig_sum(
         - 'lra': Use the more accurate (but slower) Low Rank Approximation by Ruiz-Antolin and Townsend.
 
     eps : float
-        Desired relative error tolerance. Not referenced
+        Desired average relative error of the output. Not referenced
         if use_fft is False or algorithm is set to 'fasper'.
 
     Returns
@@ -438,7 +442,7 @@ def trig_sum(
 
             fftgrid = nufft1_lra(tnorm, h, N, eps)
 
-            if t0 > 0:
+            if t0 != 0:
                 f = f0 + df * np.arange(N)
                 fftgrid = fftgrid * np.exp(2j * np.pi * t0 * f)
 

@@ -73,6 +73,9 @@ def lombscargle_fast(
     .. [2] M. Zechmeister and M. Kurster, A&A 496, 577-584 (2009)
     .. [3] W. Press et al, Numerical Recipes in C (2002)
     .. [4] Ruiz-Antolin, D. and Townsend, A. "A nonuniform fast Fourier transform based on low rank approximation". SIAM 40.1 (2018)
+
+    .. versionchanged:: 8.0
+        The default algorithm has been changed from 'fasper' to 'lra'
     """
     if dy is None:
         dy = 1
