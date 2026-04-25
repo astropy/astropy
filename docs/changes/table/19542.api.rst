@@ -1,0 +1,1 @@
+Deprecate setting ``Column.dtype``, following numpy 2.5.0
