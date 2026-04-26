@@ -344,7 +344,7 @@ def numToDottedQuad(num):
     import socket, struct
 
     # no need to intercept here, 4294967295L is fine
-    if num > long(4294967295) or num < 0:
+    if num > long(4_294_967_295) or num < 0:
         raise ValueError('Not a good numeric IP: %s' % num)
     try:
         return socket.inet_ntoa(

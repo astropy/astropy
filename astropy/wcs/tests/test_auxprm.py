@@ -89,8 +89,8 @@ hglt_obs: -6.820544""".lstrip()
 
 def test_solar_aux_get():
     w = WCS(HEADER_SOLAR)
-    assert_allclose(w.wcs.aux.rsun_ref, 696000000)
-    assert_allclose(w.wcs.aux.dsun_obs, 147724815128)
+    assert_allclose(w.wcs.aux.rsun_ref, 696_000_000)
+    assert_allclose(w.wcs.aux.dsun_obs, 147_724_815_128)
     assert_allclose(w.wcs.aux.crln_obs, 22.814522)
     assert_allclose(w.wcs.aux.hgln_obs, 8.431123)
     assert_allclose(w.wcs.aux.hglt_obs, -6.820544)
@@ -112,11 +112,11 @@ hglt_obs: 40.000000""".lstrip()
 def test_solar_aux_set():
     w = WCS(HEADER_SOLAR)
 
-    w.wcs.aux.rsun_ref = 698000000
-    assert_allclose(w.wcs.aux.rsun_ref, 698000000)
+    w.wcs.aux.rsun_ref = 698_000_000
+    assert_allclose(w.wcs.aux.rsun_ref, 698_000_000)
 
-    w.wcs.aux.dsun_obs = 140000000000
-    assert_allclose(w.wcs.aux.dsun_obs, 140000000000)
+    w.wcs.aux.dsun_obs = 140_000_000_000
+    assert_allclose(w.wcs.aux.dsun_obs, 140_000_000_000)
 
     w.wcs.aux.crln_obs = 10.0
     assert_allclose(w.wcs.aux.crln_obs, 10.0)
@@ -130,8 +130,8 @@ def test_solar_aux_set():
     assert str(w.wcs.aux) == STR_EXPECTED_SET
 
     header = w.to_header()
-    assert_allclose(header["RSUN_REF"], 698000000)
-    assert_allclose(header["DSUN_OBS"], 140000000000)
+    assert_allclose(header["RSUN_REF"], 698_000_000)
+    assert_allclose(header["DSUN_OBS"], 140_000_000_000)
     assert_allclose(header["CRLN_OBS"], 10.0)
     assert_allclose(header["HGLN_OBS"], 30.0)
     assert_allclose(header["HGLT_OBS"], 40.0)
@@ -140,11 +140,11 @@ def test_solar_aux_set():
 def test_set_aux_on_empty():
     w = WCS(naxis=2)
 
-    w.wcs.aux.rsun_ref = 698000000
-    assert_allclose(w.wcs.aux.rsun_ref, 698000000)
+    w.wcs.aux.rsun_ref = 698_000_000
+    assert_allclose(w.wcs.aux.rsun_ref, 698_000_000)
 
-    w.wcs.aux.dsun_obs = 140000000000
-    assert_allclose(w.wcs.aux.dsun_obs, 140000000000)
+    w.wcs.aux.dsun_obs = 140_000_000_000
+    assert_allclose(w.wcs.aux.dsun_obs, 140_000_000_000)
 
     w.wcs.aux.crln_obs = 10.0
     assert_allclose(w.wcs.aux.crln_obs, 10.0)
@@ -158,8 +158,8 @@ def test_set_aux_on_empty():
     assert str(w.wcs.aux) == STR_EXPECTED_SET
 
     header = w.to_header()
-    assert_allclose(header["RSUN_REF"], 698000000)
-    assert_allclose(header["DSUN_OBS"], 140000000000)
+    assert_allclose(header["RSUN_REF"], 698_000_000)
+    assert_allclose(header["DSUN_OBS"], 140_000_000_000)
     assert_allclose(header["CRLN_OBS"], 10.0)
     assert_allclose(header["HGLN_OBS"], 30.0)
     assert_allclose(header["HGLT_OBS"], 40.0)

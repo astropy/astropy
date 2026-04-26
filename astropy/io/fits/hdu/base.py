@@ -1459,12 +1459,12 @@ class _ValidHDU(_BaseHDU, _Verify):
                 piece = piece[:-extra]
             s += int(piece.view(">u4").sum(dtype="u8"))
             while hi := (s >> 32):
-                s = (s & 0xFFFFFFFF) + hi
+                s = (s & 0xFFFF_FFFF) + hi
         return np.uint32(s)
 
     # _MASK and _EXCLUDE used for encoding the checksum value into a character
     # string.
-    _MASK = [0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF]
+    _MASK = [0xFF00_0000, 0x00FF_0000, 0x0000FF00, 0x000000FF]
 
     _EXCLUDE = [0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40,
                 0x5B, 0x5C, 0x5D, 0x5E, 0x5F, 0x60]  # fmt: skip

@@ -610,32 +610,34 @@ def test_time_1d_values(header_time_1d, scale):
     # scales, and formats.
 
     header_time_1d["CTYPE1"] = scale.upper()
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, scale, "mjd")
+    assert_time_at(header_time_1d, 1, 2_450_003, 0.1 + 7 / 3600 / 24, scale, "mjd")
 
 
 def test_time_1d_values_gps(header_time_1d):
     # Special treatment for GPS scale
     header_time_1d["CTYPE1"] = "GPS"
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + (7 + 19) / 3600 / 24, "tai", "mjd")
+    assert_time_at(
+        header_time_1d, 1, 2_450_003, 0.1 + (7 + 19) / 3600 / 24, "tai", "mjd"
+    )
 
 
 def test_time_1d_values_deprecated(header_time_1d):
     # Deprecated (in FITS) scales
     header_time_1d["CTYPE1"] = "TDT"
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "tt", "mjd")
+    assert_time_at(header_time_1d, 1, 2_450_003, 0.1 + 7 / 3600 / 24, "tt", "mjd")
     header_time_1d["CTYPE1"] = "IAT"
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "tai", "mjd")
+    assert_time_at(header_time_1d, 1, 2_450_003, 0.1 + 7 / 3600 / 24, "tai", "mjd")
     header_time_1d["CTYPE1"] = "GMT"
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "utc", "mjd")
+    assert_time_at(header_time_1d, 1, 2_450_003, 0.1 + 7 / 3600 / 24, "utc", "mjd")
     header_time_1d["CTYPE1"] = "ET"
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "tt", "mjd")
+    assert_time_at(header_time_1d, 1, 2_450_003, 0.1 + 7 / 3600 / 24, "tt", "mjd")
 
 
 def test_time_1d_values_time(header_time_1d):
     header_time_1d["CTYPE1"] = "TIME"
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "utc", "mjd")
+    assert_time_at(header_time_1d, 1, 2_450_003, 0.1 + 7 / 3600 / 24, "utc", "mjd")
     header_time_1d["TIMESYS"] = "TAI"
-    assert_time_at(header_time_1d, 1, 2450003, 0.1 + 7 / 3600 / 24, "tai", "mjd")
+    assert_time_at(header_time_1d, 1, 2_450_003, 0.1 + 7 / 3600 / 24, "tai", "mjd")
 
 
 @pytest.mark.remote_data

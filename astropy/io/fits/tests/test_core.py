@@ -1660,7 +1660,7 @@ class TestStreamingFunctions(FitsTestCase):
     def test_fix_invalid_extname(self, capsys):
         phdu = fits.PrimaryHDU()
         ihdu = fits.ImageHDU()
-        ihdu.header["EXTNAME"] = 12345678
+        ihdu.header["EXTNAME"] = 12_345_678
         hdul = fits.HDUList([phdu, ihdu])
         filename = self.temp("temp.fits")
 

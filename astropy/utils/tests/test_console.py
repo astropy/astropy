@@ -189,7 +189,7 @@ def test_human_time(seconds, string):
 @pytest.mark.parametrize(
     ("size", "string"),
     [
-        (8640882, "8.6M"),
+        (8_640_882, "8.6M"),
         (187213, "187k"),
         (3905, "3.9k"),
         (64, " 64 "),

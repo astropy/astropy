@@ -126,7 +126,7 @@ def test_fittable_compound(fitter):
     x = np.arange(10)
     y_real = m(x)
     dy = 0.005
-    with NumpyRNGContext(1234567):
+    with NumpyRNGContext(1_234_567):
         n = np.random.normal(0.0, dy, x.shape)
     y_noisy = y_real + n
     new_model = fitter(m, x, y_noisy)

@@ -1111,21 +1111,21 @@ class TestQuantityDisplay:
                 id="zero_padding",
             ),
             pytest.param(
-                u.Quantity(1234567, "m"),
+                u.Quantity(1_234_567, "m"),
                 None,
                 ",",
                 "1,234,567.0 m",
                 id="thousands_separator",
             ),
             pytest.param(
-                u.Quantity(137000000, "lyr"),
+                u.Quantity(137_000_000, "lyr"),
                 None,
                 ">+30,.2e",
                 "                     +1.37e+08 lyr",
                 id="large_number_complex_format",
             ),
             pytest.param(
-                u.Quantity(1234567, "m"),
+                u.Quantity(1_234_567, "m"),
                 None,
                 "_",
                 "1_234_567.0 m",
@@ -1203,7 +1203,7 @@ class TestQuantityDisplay:
                 id="complex_number_latex_positive_alignment",
             ),
             pytest.param(
-                u.Quantity(137000000, "lyr"),
+                u.Quantity(137_000_000, "lyr"),
                 None,
                 ">+30,.2e",
                 "latex",
@@ -1251,7 +1251,7 @@ class TestQuantityDisplay:
                 id="scientific_notation_inline_latex_format",
             ),
             pytest.param(
-                u.Quantity(1239999123, "m/s"),
+                u.Quantity(1_239_999_123, "m/s"),
                 None,
                 None,
                 "latex",

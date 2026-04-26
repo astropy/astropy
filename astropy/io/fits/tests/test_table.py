@@ -252,7 +252,7 @@ class TestTableFunctions(FitsTestCase):
             "name": ["c1", "c2", "c3", "c4"],
             "format": ["1J", "3A", "1E", "1L"],
             "unit": ["", "", "", ""],
-            "null": [-2147483647, "", "", ""],
+            "null": [-2_147_483_647, "", "", ""],
             "bscale": ["", "", 3, ""],
             "bzero": ["", "", 0.4, ""],
             "disp": ["I11", "A3", "G15.7", "L6"],
@@ -2470,7 +2470,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="c2", format="B", array=a2)
         a3 = np.array([-30000, 1, 256], dtype=np.int16)
         c3 = fits.Column(name="c3", format="I", array=a3)
-        a4 = np.array([-123123123, 1234, 123123123], dtype=np.int32)
+        a4 = np.array([-123_123_123, 1234, 123_123_123], dtype=np.int32)
         c4 = fits.Column(name="c4", format="J", array=a4)
         a5 = np.array(["a", "abc", "ab"])
         c5 = fits.Column(name="c5", format="A3", array=a5)

@@ -208,7 +208,7 @@ def test_barycorr(input_radecs):
 
 
 def test_rvcorr_multiple_obstimes_onskycoord():
-    loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
+    loc = EarthLocation(-2_309_223 * u.m, -3_695_529 * u.m, -4_641_767 * u.m)
     arrtime = Time("2005-03-21 00:00:00") + np.linspace(-1, 1, 10) * u.day
 
     sc = SkyCoord(1 * u.deg, 2 * u.deg, 100 * u.kpc, obstime=arrtime, location=loc)
@@ -224,7 +224,7 @@ def test_rvcorr_multiple_obstimes_onskycoord():
 
 
 def test_invalid_argument_combos():
-    loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
+    loc = EarthLocation(-2_309_223 * u.m, -3_695_529 * u.m, -4_641_767 * u.m)
     time = Time("2005-03-21 00:00:00")
     timel = Time("2005-03-21 00:00:00", location=loc)
 
@@ -334,7 +334,7 @@ def test_regression_10094():
     # CTIO location as used in Wright & Eastmann
     xyz = u.Quantity([1.8149853e6, -5.2139168e6, -3.1877381e6], u.m)
     obs = EarthLocation(*xyz)
-    times = Time(2400000, reduced_jds, format="jd")
+    times = Time(2_400_000, reduced_jds, format="jd")
     tempo2 = tempo2 * speed_of_light
     barycorr = barycorr * speed_of_light
     astropy = tauCet.radial_velocity_correction(location=obs, obstime=times)

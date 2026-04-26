@@ -115,7 +115,7 @@ mjd0 = Time(0, format="mjd")
 
 
 def reasonable_ordinary_jd():
-    return tuples(floats(2440000, 2470000), floats(-0.5, 0.5))
+    return tuples(floats(2_440_000, 2_470_000), floats(-0.5, 0.5))
 
 
 @composite
@@ -489,8 +489,8 @@ def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
             t2_scale2 = getattr(t2, scale2)
             assert t_scale2 < t2_scale2
     except iers.IERSRangeError:  # UT1 conversion needs IERS data
-        assume(scale1 != "ut1" or 2440000 < jd1 + jd2 < 2458000)
-        assume(scale2 != "ut1" or 2440000 < jd1 + jd2 < 2458000)
+        assume(scale1 != "ut1" or 2_440_000 < jd1 + jd2 < 2_458_000)
+        assume(scale2 != "ut1" or 2_440_000 < jd1 + jd2 < 2_458_000)
         raise
     except ErfaError:
         # If the generated date is too early to compute a UTC julian date,
@@ -563,7 +563,7 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
             t3 = t2 - delta * u.day
             assert_almost_equal(t3, t, atol=thresh, rtol=0)
     except ErfaError:
-        assume(scale != "utc" or 2440000 < jd1 + jd2 < 2460000)
+        assume(scale != "utc" or 2_440_000 < jd1 + jd2 < 2_460_000)
         raise
 
 
@@ -614,7 +614,10 @@ def test_timedelta_full_precision(scale, jds_a, jds_b):
     jd1_b, jd2_b = jds_b
     assume(
         scale != "utc"
-        or (2440000 < jd1_a + jd2_a < 2460000 and 2440000 < jd1_b + jd2_b < 2460000)
+        or (
+            2_440_000 < jd1_a + jd2_a < 2_460_000
+            and 2_440_000 < jd1_b + jd2_b < 2_460_000
+        )
     )
     if scale == "utc":
         # UTC subtraction implies a scale change, so possible rounding errors.
@@ -660,8 +663,8 @@ def test_timedelta_full_precision_arithmetic(scale, jds_a, jds_b, x, y):
             assume(
                 scale != "utc"
                 or (
-                    2440000 < jd1_a + jd2_a < 2460000
-                    and 2440000 < jd1_b + jd2_b < 2460000
+                    2_440_000 < jd1_a + jd2_a < 2_460_000
+                    and 2_440_000 < jd1_b + jd2_b < 2_460_000
                 )
             )
             raise
@@ -718,7 +721,7 @@ def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
 
 @given(
     days=integers(-3000 * 365, 3000 * 365),
-    microseconds=integers(0, 24 * 60 * 60 * 1000000),
+    microseconds=integers(0, 24 * 60 * 60 * 1_000_000),
 )
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_to_timedelta(scale, days, microseconds):
@@ -730,7 +733,7 @@ def test_datetime_to_timedelta(scale, days, microseconds):
 
 @given(
     days=integers(-3000 * 365, 3000 * 365),
-    microseconds=integers(0, 24 * 60 * 60 * 1000000),
+    microseconds=integers(0, 24 * 60 * 60 * 1_000_000),
 )
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_timedelta_roundtrip(scale, days, microseconds):
@@ -740,7 +743,7 @@ def test_datetime_timedelta_roundtrip(scale, days, microseconds):
 
 @given(days=integers(-3000 * 365, 3000 * 365), day_frac=floats(0, 1))
 @example(days=262144, day_frac=2.314815006343452e-11)
-@example(days=1048576, day_frac=1.157407503171726e-10)
+@example(days=1_048_576, day_frac=1.157407503171726e-10)
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_timedelta_datetime_roundtrip(scale, days, day_frac):
     td = TimeDelta(days, day_frac, format="jd", scale=scale)
@@ -780,13 +783,13 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
 )
 @example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=-397683, microseconds=2))
 @example(dt=datetime(2179, 1, 1, 0, 0), td=timedelta(days=-795365, microseconds=53))
-@example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=1590729, microseconds=10))
+@example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=1_590_729, microseconds=10))
 @example(
-    dt=datetime(4357, 1, 1, 0, 0), td=timedelta(days=-1590729, microseconds=107770)
+    dt=datetime(4357, 1, 1, 0, 0), td=timedelta(days=-1_590_729, microseconds=107770)
 )
 @example(
     dt=datetime(4357, 1, 1, 0, 0, 0, 29),
-    td=timedelta(days=-1590729, microseconds=746292),
+    td=timedelta(days=-1_590_729, microseconds=746292),
 )
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_timedelta_sum(scale, dt, td):

@@ -782,7 +782,7 @@ class TestVal2:
             Time([0.0, 50000.0], [0.0, 1.0, 2.0], format="mjd", scale="tai")
 
     def test_broadcast_not_writable(self):
-        val = (2458000 + np.arange(3))[:, None]
+        val = (2_458_000 + np.arange(3))[:, None]
         val2 = np.linspace(0, 1, 4, endpoint=False)
         t = Time(val=val, val2=val2, format="jd", scale="tai")
         t_b = Time(val=val + 0 * val2, val2=0 * val + val2, format="jd", scale="tai")
@@ -795,7 +795,7 @@ class TestVal2:
         assert np.all(t_b == t), "behaved as expected"
 
     def test_broadcast_one_not_writable(self):
-        val = 2458000 + np.arange(3)
+        val = 2_458_000 + np.arange(3)
         val2 = np.arange(1)
         t = Time(val=val, val2=val2, format="jd", scale="tai")
         t_b = Time(val=val + 0 * val2, val2=0 * val + val2, format="jd", scale="tai")
@@ -1048,7 +1048,7 @@ class TestSubFormat:
         # the header of the observations and gPhoton processing.
         t3 = Time("2004-01-21 16:33:57")
         assert allclose_sec(t3.galexsec, 7.58738037e8)
-        assert allclose_sec(t3.galexsec, t3.unix - 315964800)
+        assert allclose_sec(t3.galexsec, t3.unix - 315_964_800)
 
         # Round trip through epoch time
         for scale in ("utc", "tt"):
@@ -1406,7 +1406,7 @@ class TestCopyReplicate:
         jds = np.array([2.4500005e6], dtype=np.double)
         t = Time(jds, format="jd", scale="tai")
         assert allclose_jd(t.jd, jds)
-        jds[0] = 2458654
+        jds[0] = 2_458_654
         assert not allclose_jd(t.jd, jds)
 
         mjds = np.array([50000.0], dtype=np.double)
@@ -2822,8 +2822,8 @@ def test_linspace_fmts():
     from different formats/systems.
     """
     t1 = Time(["2020-01-01 00:00:00", "2020-01-02 00:00:00"])
-    t2 = Time(2458850, format="jd")
-    t3 = Time(1578009600, format="unix")
+    t2 = Time(2_458_850, format="jd")
+    t3 = Time(1_578_009_600, format="unix")
     atol = 2 * np.finfo(float).eps * abs(t1 - Time([t2, t3])).max()
 
     ts = np.linspace(t1, t2, 3)

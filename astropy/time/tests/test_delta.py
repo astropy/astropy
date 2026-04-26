@@ -829,7 +829,7 @@ def test_quantity_str_out_subfmt_from_non_quantity_str():
 
 def test_quantity_str_internal_precision():
     dt = TimeDelta("100000000d 1.0123456789012345s")
-    assert dt.jd1 == 100000000
+    assert dt.jd1 == 100_000_000
     assert allclose_sec(dt.jd2 * 86400, 1.0123456789012344)
 
 

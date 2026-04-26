@@ -125,7 +125,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_long_integer_value_card(self):
         """Test Card constructor with long integer value"""
 
-        c = fits.Card("long_int", -467374636747637647347374734737437)
+        c = fits.Card("long_int", -467_374_636_747_637_647_347_374_734_737_437)
         assert str(c) == _pad("LONG_INT= -467374636747637647347374734737437")
 
     def test_floating_point_value_card(self):

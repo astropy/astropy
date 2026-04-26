@@ -592,7 +592,11 @@ class TestDataFrameConversion:
         t["s"].mask = [False, True, False]
 
         # https://github.com/astropy/astropy/issues/7741
-        t["Source"] = [2584290278794471936, 2584290038276303744, 2584288728310999296]
+        t["Source"] = [
+            2_584_290_278_794_471_936,
+            2_584_290_038_276_303_744,
+            2_584_288_728_310_999_296,
+        ]
         t["Source"].mask = [False, False, False]
 
         if use_nullable_int:  # Default
