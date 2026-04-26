@@ -420,7 +420,7 @@ class TestQuantityOperations:
 
         # Take units from left object, q2
         new_quantity = self.q2 / self.q1
-        assert_array_almost_equal(new_quantity.value, 0.70052539404553416, decimal=16)
+        assert_array_almost_equal(new_quantity.value, 0.7005253940455342, decimal=16)
         assert new_quantity.unit == (u.centimeter / u.meter)
 
         q1 = u.Quantity(11.4, unit=u.meter)

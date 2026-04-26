@@ -723,9 +723,9 @@ quantity_str_basic_cases = [
     ("3.e7s", "347d 5hr 20min", 3.0e7),
     ("3e7s", "347d 5hr 20min", 3.0e7),
     # High precision seconds
-    ("1.0123456789012345s", "1.012s", 1.0123456789012345),
+    ("1.0123456789012345s", "1.012s", 1.0123456789012344),
     # High precision seconds, random/missing white space and a longer time interval
-    ("  100.0 d1.0123456789012345 s ", "100d 1.012s", 100 * 86400 + 1.0123456789012345),
+    ("  100.0 d1.0123456789012345 s ", "100d 1.012s", 100 * 86400 + 1.0123456789012344),
     # All possible components
     (
         "2yr 3d 4hr 5min 6.789s",
@@ -830,7 +830,7 @@ def test_quantity_str_out_subfmt_from_non_quantity_str():
 def test_quantity_str_internal_precision():
     dt = TimeDelta("100000000d 1.0123456789012345s")
     assert dt.jd1 == 100000000
-    assert allclose_sec(dt.jd2 * 86400, 1.0123456789012345)
+    assert allclose_sec(dt.jd2 * 86400, 1.0123456789012344)
 
 
 def test_time_delta_to_value_validation_error():

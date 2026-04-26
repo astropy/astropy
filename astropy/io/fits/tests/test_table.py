@@ -200,7 +200,7 @@ class TestTableFunctions(FitsTestCase):
         x2 = fits.ColDefs(tt[1])
         t2 = fits.BinTableHDU.from_columns(x2, nrows=2)
         ra = np.rec.array(
-            [(1, "abc", 3.7000002861022949, 0), (2, "xy ", 6.6999998092651367, 1)],
+            [(1, "abc", 3.700000286102295, 0), (2, "xy ", 6.699999809265137, 1)],
             names="c1, c2, c3, c4",
         )
 
@@ -269,7 +269,7 @@ class TestTableFunctions(FitsTestCase):
         assert t[1].columns.info(output=False) == info
 
         ra = np.rec.array(
-            [(1, "abc", 3.7000002861022949, 0), (2, "xy ", 6.6999998092651367, 1)],
+            [(1, "abc", 3.700000286102295, 0), (2, "xy ", 6.699999809265137, 1)],
             names="c1, c2, c3, c4",
         )
 
@@ -293,7 +293,7 @@ class TestTableFunctions(FitsTestCase):
         ra1 = np.rec.array(
             [
                 (10.123000144958496, 37),
-                (5.1999998092651367, 23),
+                (5.199999809265137, 23),
                 (15.609999656677246, 17),
                 (0.0, 0),
                 (345.0, 345),

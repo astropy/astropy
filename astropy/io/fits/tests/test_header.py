@@ -162,7 +162,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_complex_value_card(self):
         """Test Card constructor with complex value"""
 
-        c = fits.Card("abc", (1.2345377437887837487e88 + 6324767364763746367e-33j))
+        c = fits.Card("abc", (1.2345377437887837e88 + 6324767364763746367e-33j))
         f1 = _pad("ABC     = (1.23453774378878E+88, 6.32476736476374E-15)")
         f2 = _pad("ABC     = (1.2345377437887E+088, 6.3247673647637E-015)")
         f3 = _pad("ABC     = (1.23453774378878E+88, 6.32476736476374E-15)")

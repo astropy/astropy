@@ -1007,8 +1007,8 @@ def test_complex_fractional_rounding_errors():
     q = 1.75
     rho_0 = 5e-10 * u.solMass / u.solRad**3
     y = 0.5
-    beta = 0.19047619047619049
-    a = 0.47619047619047628
+    beta = 0.1904761904761905
+    a = 0.4761904761904763
     m_h = 1e6 * u.solMass
 
     t1 = 2 * c.c / (kappa * np.sqrt(np.pi))

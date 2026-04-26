@@ -354,8 +354,7 @@ class TestEraStructUfuncs:
         sn = erfa_ufunc.ldn(self.ldbody, self.ob, self.sc)
         assert_quantity_allclose(
             sn,
-            [-0.7632762579693333866, -0.6086337636093002660, -0.2167355420646328159]
-            * u.one,
+            [-0.7632762579693334, -0.6086337636093002, -0.2167355420646328] * u.one,
             atol=1e-12,
             rtol=0,
         )
@@ -366,8 +365,7 @@ class TestEraStructUfuncs:
         sn = erfa_ufunc.ldn(ldbody, ob, self.sc)
         assert_quantity_allclose(
             sn,
-            [-0.7632762579693333866, -0.6086337636093002660, -0.2167355420646328159]
-            * u.one,
+            [-0.7632762579693334, -0.6086337636093002, -0.2167355420646328] * u.one,
             atol=1e-12,
             rtol=0,
         )
@@ -376,8 +374,7 @@ class TestEraStructUfuncs:
         sn = erfa_ufunc.ldn(self.ldbody.si, self.ob.si, self.sc)
         assert_quantity_allclose(
             sn,
-            [-0.7632762579693333866, -0.6086337636093002660, -0.2167355420646328159]
-            * u.one,
+            [-0.7632762579693334, -0.6086337636093002, -0.2167355420646328] * u.one,
             atol=1e-12,
             rtol=0,
         )
@@ -398,8 +395,8 @@ class TestEraStructUfuncs:
         ri, di = erfa_ufunc.atciq(
             self.rc, self.dc, self.pr, self.pd, self.px, self.rv, self.astrom
         )
-        assert_quantity_allclose(ri, 2.710121572968696744 * u.rad)
-        assert_quantity_allclose(di, 0.1729371367219539137 * u.rad)
+        assert_quantity_allclose(ri, 2.710121572968697 * u.rad)
+        assert_quantity_allclose(di, 0.1729371367219539 * u.rad)
 
     def test_atciq_in_other_unit(self):
         astrom = self.astrom.to("s,km,1,km,1,1,1,deg,deg,deg,deg,1,1,1,deg,deg,deg")
@@ -412,8 +409,8 @@ class TestEraStructUfuncs:
             self.rv.to(u.m / u.s),
             astrom,
         )
-        assert_quantity_allclose(ri, 2.710121572968696744 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(di, 0.1729371367219539137 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(ri, 2.710121572968697 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(di, 0.1729371367219539 * u.rad, atol=1e-12 * u.rad)
 
     def test_atciqn(self):
         ri, di = erfa_ufunc.atciqn(
@@ -426,29 +423,29 @@ class TestEraStructUfuncs:
             self.astrom.si,
             self.ldbody.si,
         )
-        assert_quantity_allclose(ri, 2.710122008104983335 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(di, 0.1729371916492767821 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(ri, 2.7101220081049835 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(di, 0.1729371916492768 * u.rad, atol=1e-12 * u.rad)
 
     def test_atciqz(self):
         ri, di = erfa_ufunc.atciqz(self.rc.to(u.deg), self.dc.to(u.deg), self.astrom.si)
-        assert_quantity_allclose(ri, 2.709994899247256984 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(di, 0.1728740720984931891 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(ri, 2.709994899247257 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(di, 0.17287407209849318 * u.rad, atol=1e-12 * u.rad)
 
     def test_aticq(self):
-        ri = 2.710121572969038991 * u.rad
-        di = 0.1729371367218230438 * u.rad
+        ri = 2.710121572969039 * u.rad
+        di = 0.17293713672182304 * u.rad
         rc, dc = erfa_ufunc.aticq(ri.to(u.deg), di.to(u.deg), self.astrom.si)
-        assert_quantity_allclose(rc, 2.710126504531716819 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(dc, 0.1740632537627034482 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(rc, 2.7101265045317167 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(dc, 0.17406325376270346 * u.rad, atol=1e-12 * u.rad)
 
     def test_aticqn(self):
-        ri = 2.709994899247599271 * u.rad
-        di = 0.1728740720983623469 * u.rad
+        ri = 2.709994899247599 * u.rad
+        di = 0.17287407209836234 * u.rad
         rc, dc = erfa_ufunc.aticqn(
             ri.to(u.deg), di.to(u.deg), self.astrom.si, self.ldbody.si
         )
-        assert_quantity_allclose(rc, 2.709999575033027333 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(dc, 0.1739999656316469990 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(rc, 2.7099995750330272 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(dc, 0.173999965631647 * u.rad, atol=1e-12 * u.rad)
 
     def test_atioq_atoiq(self):
         astrom, _ = erfa_ufunc.apio13(
@@ -467,25 +464,23 @@ class TestEraStructUfuncs:
         )
         astrom = astrom << ASTROM_UNIT
 
-        ri = 2.710121572969038991 * u.rad
-        di = 0.1729371367218230438 * u.rad
+        ri = 2.710121572969039 * u.rad
+        di = 0.17293713672182304 * u.rad
         aob, zob, hob, dob, rob = erfa_ufunc.atioq(
             ri.to(u.deg), di.to(u.deg), astrom.si
         )
         assert_quantity_allclose(aob, 0.09233952224895123 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(zob, 1.407758704513549991 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(zob, 1.40775870451355 * u.rad, atol=1e-12 * u.rad)
         assert_quantity_allclose(hob, -0.09247619879881698 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(dob, 0.1717653435756234676 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(rob, 2.710085107988480746 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(dob, 0.17176534357562348 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(rob, 2.7100851079884807 * u.rad, atol=1e-12 * u.rad)
 
         # Sadly does not just use the values from above.
-        ob1 = 2.710085107986886201 * u.rad
-        ob2 = 0.1717653435758265198 * u.rad
+        ob1 = 2.7100851079868864 * u.rad
+        ob2 = 0.1717653435758265 * u.rad
         ri2, di2 = erfa_ufunc.atoiq("R", ob1.to(u.deg), ob2.to(u.deg), astrom.si)
-        assert_quantity_allclose(ri2, 2.710121574447540810 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(
-            di2, 0.17293718391166087785 * u.rad, atol=1e-12 * u.rad
-        )
+        assert_quantity_allclose(ri2, 2.7101215744475406 * u.rad, atol=1e-12 * u.rad)
+        assert_quantity_allclose(di2, 0.17293718391166088 * u.rad, atol=1e-12 * u.rad)
 
 
 class TestAp:
@@ -545,37 +540,37 @@ class TestAp:
     def test_apco13(self):
         astrom, eo, status = erfa_ufunc.apco13(*self.apco13_args)
         assert status == 0
-        vvd(eo, -0.003020548354802412839, 1e-14, "eraApco13", "eo", status)
+        vvd(eo, -0.0030205483548024128, 1e-14, "eraApco13", "eo", status)
         assert astrom.unit == ASTROM_UNIT
         for name, expected in {
-            "pmt": 13.25248468622475727,
-            "eb": [-0.9741827107320875162,
-                   -0.2115130190489716682,
-                   -0.09179840189496755339],
-            "eh": [-0.9736425572586935247,
-                   -0.2092452121603336166,
-                   -0.09075578153885665295],
-            "em": 0.9998233240913898141,
+            "pmt": 13.252484686224758,
+            "eb": [-0.9741827107320875,
+                   -0.21151301904897166,
+                   -0.09179840189496756],
+            "eh": [-0.9736425572586935,
+                   -0.20924521216033362,
+                   -0.09075578153885665],
+            "em": 0.9998233240913899,
             "v": [2.0787049945204893e-05,
                   -8.955360133238868e-05,
                   -3.863338993055887e-05],
-            "bm1": 0.9999999950277561004,
+            "bm1": 0.999999995027756,
             "bpn": np.array(
-                [[ 0.9999991390295147999,
+                [[ 0.9999991390295148,
                    4.9786500753155294e-08,
-                   0.001312227200850293372],
+                   0.0013122272008502934],
                  [-1.1363366528124865e-08,
-                   0.9999999995713154865,
+                   0.9999999995713155,
                   -2.9280862309753673e-05],
-                 [-0.001312227201745553566,
+                 [-0.0013122272017455537,
                    2.928082218847679e-05,
-                   0.9999991386008312212],
+                   0.9999991386008312],
                 ]).T,
-            "along": -0.5278008060295995733,
+            "along": -0.5278008060295996,
             "xpl": 1.133427418130753e-06,
             "ypl": 1.4533475957806462e-06,
-            "sphi": -0.9440115679003211329,
-            "cphi": 0.3299123514971474711,
+            "sphi": -0.9440115679003211,
+            "cphi": 0.3299123514971475,
             "diurab": 0,
             "eral": 2.617608909189664000,
             "refa": 0.0002014187785940397,
@@ -600,13 +595,13 @@ class TestAp:
         astrom = erfa_ufunc.apio(*self.apio_args)
         assert astrom.unit == ASTROM_UNIT
         for name, expected in {
-            "along": -0.5278008060295995734,
+            "along": -0.5278008060295996,
             "xpl": 1.133427418130753e-06,
             "ypl": 1.4533475957806462e-06,
-            "sphi": -0.9440115679003211329,
-            "cphi": 0.3299123514971474711,
+            "sphi": -0.9440115679003211,
+            "cphi": 0.3299123514971475,
             "diurab": 5.135843661699913e-07,
-            "eral": 2.617608903970400427,
+            "eral": 2.6176089039704005,
             "refa": 0.000201418779,
             "refb": -2.36140831e-07,
         }.items():
@@ -623,13 +618,13 @@ class TestGeodetic:
             u.km
         )
         cls.flattening = 0.0033528 * u.dimensionless_unscaled
-        cls.lon_value = 0.9827937232473290680
+        cls.lon_value = 0.982793723247329
         cls.lon_unit = u.Unit("rad")
         cls.lon = (cls.lon_value << cls.lon_unit).to(u.deg)
-        cls.lat_value = 0.9716018377570411532
+        cls.lat_value = 0.9716018377570411
         cls.lat_unit = u.Unit("rad")
         cls.lat = (cls.lat_value << cls.lat_unit).to(u.deg)
-        cls.height_value = 332.36862495764397
+        cls.height_value = 332.368624957644
         cls.height = cls.height_value << cls.length_unit
         cls.x_value = 2e6
         cls.x = (cls.x_value << cls.length_unit).to(u.cm)

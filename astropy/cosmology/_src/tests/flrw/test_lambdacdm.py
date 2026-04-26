@@ -501,7 +501,7 @@ def test_angular_diameter_distance_z1z2():
     # http://www.astro.multivax.de:8000/phillip/angsiz_prog/README.HTML
     # Kayser, Helbig, and Schramm (Astron.Astrophys. 318 (1997) 680-686)
     assert u.allclose(
-        tcos.angular_diameter_distance_z1z2(1, 2), 646.22968662822018 * u.Mpc
+        tcos.angular_diameter_distance_z1z2(1, 2), 646.2296866282202 * u.Mpc
     )
 
     z1 = 2  # Separate test for z2<z1, returns negative value with warning
@@ -639,11 +639,11 @@ def test_xtfuncs():
     """Test of absorption and lookback integrand"""
     cosmo = LambdaCDM(70, 0.3, 0.5, Tcmb0=2.725)
     z = np.array([2.0, 3.2])
-    assert u.allclose(cosmo.lookback_time_integrand(3), 0.052218976654969378, rtol=1e-4)
+    assert u.allclose(cosmo.lookback_time_integrand(3), 0.05221897665496938, rtol=1e-4)
     assert u.allclose(
         cosmo.lookback_time_integrand(z), [0.10333179, 0.04644541], rtol=1e-4
     )
-    assert u.allclose(cosmo.abs_distance_integrand(3), 3.3420145059180402, rtol=1e-4)
+    assert u.allclose(cosmo.abs_distance_integrand(3), 3.34201450591804, rtol=1e-4)
     assert u.allclose(
         cosmo.abs_distance_integrand(z), [2.7899584, 3.44104758], rtol=1e-4
     )
