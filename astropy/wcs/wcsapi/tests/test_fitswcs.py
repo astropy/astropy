@@ -677,7 +677,7 @@ def test_time_1d_high_precision(header_time_1d):
 
     # Here we have to use a very small rtol to really test that MJDREFF is
     # taken into account
-    assert_allclose(time.jd1, 2452001.0, rtol=1e-12)
+    assert_allclose(time.jd1, 2.452001e6, rtol=1e-12)
     assert_allclose(time.jd2, -0.5 + 25 / 3600 / 24 + 1e-11, rtol=1e-13)
 
 

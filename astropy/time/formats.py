@@ -255,7 +255,7 @@ class TimeFormat:
         This is used as a fill value for masked arrays to ensure that any ERFA
         operations on the masked array will not fail due to the masked value.
         """
-        tm = Time(2451545.0, format="jd", scale="utc")
+        tm = Time(2.451545e6, format="jd", scale="utc")
         return tm.to_value(format=cls.name, subfmt=subfmt)
 
     def __len__(self):
@@ -995,7 +995,7 @@ class TimePlotDate(TimeFromEpoch):
     # Note that TAI and UTC are equivalent at the reference time.
     name = "plot_date"
     unit = 1.0
-    epoch_val = 1721424.5  # Time('0001-01-01 00:00:00', scale='tai').jd - 1
+    epoch_val = 1.7214245e6  # Time('0001-01-01 00:00:00', scale='tai').jd - 1
     epoch_val2 = None
     epoch_scale = "utc"
     epoch_format = "jd"
@@ -2048,7 +2048,7 @@ class TimeFITS(TimeString):
             # If we have times before year 0 or after year 9999, we can
             # output only in a "long" format, using signed 5-digit years.
             jd = self.jd1 + self.jd2
-            if jd.size and (jd.min() < 1721425.5 or jd.max() >= 5373484.5):
+            if jd.size and (jd.min() < 1.7214255e6 or jd.max() >= 5.3734845e6):
                 self.out_subfmt = "long" + self.out_subfmt
         return super().value
 

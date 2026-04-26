@@ -411,7 +411,7 @@ def test_get_body_accounts_for_location_on_Earth():
     t = Time(58973.534052125986, format="mjd")
     # GCRS position of ALMA at this time
     obs_p = CartesianRepresentation(
-        5724535.74068625, -1311071.58985697, -2492738.93017009, u.m
+        5.72453574068625e6, -1.31107158985697e6, -2.49273893017009e6, u.m
     )
 
     icrs_sun_from_alma = _get_apparent_body_position("sun", t, "builtin", obs_p)

@@ -31,7 +31,7 @@ hbar = CODATA2018(
 k_B = CODATA2018("k_B", "Boltzmann constant", 1.380649e-23, "J / (K)", 0.0, system="si")
 
 c = CODATA2018(
-    "c", "Speed of light in vacuum", 299792458.0, "m / (s)", 0.0, system="si"
+    "c", "Speed of light in vacuum", 2.99792458e8, "m / (s)", 0.0, system="si"
 )
 
 
@@ -80,7 +80,7 @@ R = CODATA2018(
 )
 
 Ryd = CODATA2018(
-    "Ryd", "Rydberg constant", 10973731.568160, "1 / (m)", 0.000021, system="si"
+    "Ryd", "Rydberg constant", 1.097373156816e7, "1 / (m)", 0.000021, system="si"
 )
 
 a0 = CODATA2018("a0", "Bohr radius", 5.29177210903e-11, "m", 8.0e-21, system="si")

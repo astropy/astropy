@@ -95,7 +95,7 @@ R_sun = IAU2012(
     "Solar radius",
     6.95508e8,
     "m",
-    0.00026e8,
+    26000.0,
     "Allen's Astrophysical Quantities 4th Ed.",
     system="si",
 )

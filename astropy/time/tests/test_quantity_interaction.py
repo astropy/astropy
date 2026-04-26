@@ -18,13 +18,13 @@ class TestTimeQuantity:
 
     def test_valid_quantity_input(self):
         """Test Time formats that are allowed to take quantity input."""
-        q = 2450000.125 * u.day
+        q = 2.450000125e6 * u.day
         t1 = Time(q, format="jd", scale="utc")
         assert t1.value == q.value
         q2 = q.to(u.second)
         t2 = Time(q2, format="jd", scale="utc")
         assert t2.value == q.value == q2.to_value(u.day)
-        q3 = q - 2400000.5 * u.day
+        q3 = q - 2.4000005e6 * u.day
         t3 = Time(q3, format="mjd", scale="utc")
         assert t3.value == q3.value
         # test we can deal with two quantity arguments, with different units

@@ -93,7 +93,7 @@ N_A = CODATA2010(
 R = CODATA2010("R", "Gas constant", 8.3144621, "J / (K mol)", 0.0000075, system="si")
 
 Ryd = CODATA2010(
-    "Ryd", "Rydberg constant", 10973731.568539, "1 / (m)", 0.000055, system="si"
+    "Ryd", "Rydberg constant", 1.0973731568539e7, "1 / (m)", 0.000055, system="si"
 )
 
 a0 = CODATA2010("a0", "Bohr radius", 5.2917721092e-11, "m", 1.7e-20, system="si")

@@ -178,7 +178,7 @@ def reasonable_delta():
 # redundant?
 def test_abs_jd2_always_less_than_half():
     """Make jd2 approach +/-0.5, and check that it doesn't go over."""
-    t1 = Time(2400000.5, [-tiny, +tiny], format="jd")
+    t1 = Time(2.4000005e6, [-tiny, +tiny], format="jd")
     assert np.all(t1.jd1 % 1 == 0)
     assert np.all(abs(t1.jd2) < 0.5)
     t2 = Time(
@@ -206,7 +206,7 @@ def test_round_to_even(jd1, jd2):
 
 def test_addition():
     """Check that an addition at the limit of precision (2^-52) is seen"""
-    t = Time(2455555.0, 0.5, format="jd", scale="utc")
+    t = Time(2.455555e6, 0.5, format="jd", scale="utc")
 
     t_dt = t + dt_tiny
     assert t_dt.jd1 == t.jd1 and t_dt.jd2 != t.jd2
@@ -274,7 +274,7 @@ def test_jd1_is_mult_of_one():
     """
     t1 = Time("2000:001:00:00:00.00000001", scale="tai")
     assert np.round(t1.jd1) == t1.jd1
-    t1 = Time(1.23456789, 12345678.90123456, format="jd", scale="tai")
+    t1 = Time(1.23456789, 1.234567890123456e7, format="jd", scale="tai")
     assert np.round(t1.jd1) == t1.jd1
 
 
@@ -420,7 +420,7 @@ def test_resolution_never_decreases(scale, jds):
 
 
 @given(reasonable_jd())
-@example(jds=(2442777.5, 0.9999999999999999))
+@example(jds=(2.4427775e6, 0.9999999999999999))
 def test_resolution_never_decreases_utc(jds):
     """UTC is very unhappy with unreasonable times,
 
@@ -441,8 +441,8 @@ def test_resolution_never_decreases_utc(jds):
     scale2=sampled_from(STANDARD_TIME_SCALES),
     jds=unreasonable_jd(),
 )
-@example(scale1="tcg", scale2="ut1", jds=(2445149.5, 0.47187700984387526))
-@example(scale1="tai", scale2="tcb", jds=(2441316.5, 0.0))
+@example(scale1="tcg", scale2="ut1", jds=(2.4451495e6, 0.47187700984387526))
+@example(scale1="tai", scale2="tcb", jds=(2.4413165e6, 0.0))
 @example(scale1="tai", scale2="tcb", jds=(0.0, 0.0))
 def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
     jd1, jd2 = jds
@@ -465,8 +465,8 @@ def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
     jds=unreasonable_jd(),
 )
 @example(scale1="tai", scale2="utc", jds=(0.0, 0.0))
-@example(scale1="utc", scale2="ut1", jds=(2441316.5, 0.9999999999999991))
-@example(scale1="ut1", scale2="tai", jds=(2441498.5, 0.9999999999999999))
+@example(scale1="utc", scale2="ut1", jds=(2.4413165e6, 0.9999999999999991))
+@example(scale1="ut1", scale2="tai", jds=(2.4414985e6, 0.9999999999999999))
 def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
     """Check that time ordering remains if we convert to another scale.
 
@@ -512,7 +512,7 @@ def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
         if "ut1" in (scale1, scale2):
             if abs(t_scale2 - t2_scale2 - 1 * u.s) < 1 * u.ms:
                 pytest.xfail()
-            assume(t.jd > 2441317.5 or t.jd2 < 0.4999999)
+            assume(t.jd > 2.4413175e6 or t.jd2 < 0.4999999)
         raise
 
 
@@ -534,12 +534,12 @@ def test_leap_stretch_mjd(d, f):
 )
 @example(scale="utc", jds=(0.0, 2.2204460492503136e-13), delta=6.661338147750941e-13)
 @example(
-    scale="utc", jds=(2441682.5, 2.2204460492503136e-16), delta=7.327471962526035e-12
+    scale="utc", jds=(2.4416825e6, 2.2204460492503136e-16), delta=7.327471962526035e-12
 )
 @example(scale="utc", jds=(0.0, 5.787592627370942e-13), delta=0.0)
 @example(scale="utc", jds=(1.0, 0.25000000023283064), delta=-1.0)
 @example(scale="utc", jds=(0.0, 0.0), delta=2 * 2.220446049250313e-16)
-@example(scale="utc", jds=(2442778.5, 0.0), delta=-2.220446049250313e-16)
+@example(scale="utc", jds=(2.4427785e6, 0.0), delta=-2.220446049250313e-16)
 def test_jd_add_subtract_round_trip(scale, jds, delta):
     jd1, jd2 = jds
     minimum_for_change = np.finfo(float).eps
@@ -573,9 +573,11 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
     delta=floats(-3 * tiny, 3 * tiny),
 )
 @example(scale="tai", jds=(0.0, 3.5762786865234384), delta=2.220446049250313e-16)
-@example(scale="tai", jds=(2441316.5, 0.0), delta=6.938893903907228e-17)
-@example(scale="tai", jds=(2441317.5, 0.0), delta=-6.938893903907228e-17)
-@example(scale="tai", jds=(2440001.0, 0.49999999999999994), delta=5.551115123125783e-17)
+@example(scale="tai", jds=(2.4413165e6, 0.0), delta=6.938893903907228e-17)
+@example(scale="tai", jds=(2.4413175e6, 0.0), delta=-6.938893903907228e-17)
+@example(
+    scale="tai", jds=(2.440001e6, 0.49999999999999994), delta=5.551115123125783e-17
+)
 def test_time_argminmaxsort(scale, jds, delta):
     jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale, format="jd") + TimeDelta(
@@ -601,11 +603,11 @@ def test_time_argminmaxsort(scale, jds, delta):
 
 
 @given(sampled_from(STANDARD_TIME_SCALES), unreasonable_jd(), unreasonable_jd())
-@example(scale="utc", jds_a=(2.455e6, 0.0), jds_b=(2443144.5, 0.5000462962962965))
+@example(scale="utc", jds_a=(2.455e6, 0.0), jds_b=(2.4431445e6, 0.5000462962962965))
 @example(
     scale="utc",
-    jds_a=(2459003.0, 0.267502885949074),
-    jds_b=(2454657.001045462, 0.49895453779026877),
+    jds_a=(2.459003e6, 0.267502885949074),
+    jds_b=(2.454657001045462e6, 0.49895453779026877),
 )
 def test_timedelta_full_precision(scale, jds_a, jds_b):
     jd1_a, jd2_a = jds_a

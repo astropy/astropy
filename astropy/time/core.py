@@ -349,7 +349,7 @@ class TimeInfoBase(MixinInfo):
 
         # Make a new Time object with the desired shape and attributes
         shape = (length,) + attrs.pop("shape")
-        jd2000 = 2451544.5  # Arbitrary JD value J2000.0 that will work with ERFA
+        jd2000 = 2.4515445e6  # Arbitrary JD value J2000.0 that will work with ERFA
         jd1 = np.full(shape, jd2000, dtype="f8")
         jd2 = np.zeros(shape, dtype="f8")
         tm_attrs = {

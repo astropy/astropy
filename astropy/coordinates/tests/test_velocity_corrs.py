@@ -44,7 +44,7 @@ def test_basic(kind):
     assert rvcs.unit.is_equivalent(u.km / u.s)
 
 
-test_input_time = Time(2457244.5, format="jd")
+test_input_time = Time(2.4572445e6, format="jd")
 # test_input_loc = EarthLocation.of_site('Cerro Paranal')
 # to avoid the network hit we just copy here what that yields
 test_input_loc = EarthLocation.from_geodetic(
@@ -332,7 +332,7 @@ def test_regression_10094():
         obstime=Time(48348.5625, format="mjd"),
     )
     # CTIO location as used in Wright & Eastmann
-    xyz = u.Quantity([1814985.3, -5213916.8, -3187738.1], u.m)
+    xyz = u.Quantity([1.8149853e6, -5.2139168e6, -3.1877381e6], u.m)
     obs = EarthLocation(*xyz)
     times = Time(2400000, reduced_jds, format="jd")
     tempo2 = tempo2 * speed_of_light

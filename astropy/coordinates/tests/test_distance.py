@@ -43,7 +43,7 @@ def test_distances():
 
     # standard units are pre-defined
     npt.assert_allclose(distance.lyr, 39.138765325702551)
-    npt.assert_allclose(distance.km, 370281309776063.0)
+    npt.assert_allclose(distance.km, 3.70281309776063e14)
 
     # Coordinate objects can be assigned a distance object, giving them a full
     # 3D position
@@ -197,7 +197,7 @@ def test_distmod():
     assert d.kpc == 100
 
     d = Distance(distmod=-1.0, unit=u.au)
-    npt.assert_allclose(d.value, 1301442.9440836983)
+    npt.assert_allclose(d.value, 1.3014429440836983e6)
 
     with pytest.raises(ValueError, match=MULTIPLE_INPUTS_ERROR_MSG):
         d = Distance(value=d, distmod=20)

@@ -66,7 +66,7 @@ class TestBasic:
             repr(t) == "<Time object: scale='utc' format='iso' "
             "value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>"
         )
-        assert allclose_jd(t.jd1, np.array([2451180.0, 2455198.0]))
+        assert allclose_jd(t.jd1, np.array([2.45118e6, 2.455198e6]))
         assert allclose_jd2(t.jd2, np.array([-0.5 + 1.4288980208333335e-06, -5.0e-1]))
 
         # Set scale to TAI
@@ -75,7 +75,7 @@ class TestBasic:
             repr(t) == "<Time object: scale='tai' format='iso' "
             "value=['1999-01-01 00:00:32.123' '2010-01-01 00:00:34.000']>"
         )
-        assert allclose_jd(t.jd1, np.array([2451180.0, 2455198.0]))
+        assert allclose_jd(t.jd1, np.array([2.45118e6, 2.455198e6]))
         assert allclose_jd2(
             t.jd2,
             np.array([-0.5 + 0.00037179926839122024, -0.5 + 0.00039351851851851852]),
@@ -93,9 +93,7 @@ class TestBasic:
         # (in this case seconds since 1998.0).  This returns either a scalar or
         # array, depending on whether the input was a scalar or array"""
 
-        assert allclose_sec(
-            t.cxcsec, np.array([31536064.307456788, 378691266.18400002])
-        )
+        assert allclose_sec(t.cxcsec, np.array([3.1536064307456788e7, 3.78691266184e8]))
 
     def test_different_dimensions(self):
         """Test scalars, vector, and higher-dimensions"""
@@ -104,7 +102,7 @@ class TestBasic:
         t1 = Time(val, val1, format="jd")
         assert t1.isscalar is True and t1.shape == ()
         # vector
-        val = np.arange(2.45e6, 2450010.0)
+        val = np.arange(2.45e6, 2.45001e6)
         t2 = Time(val, format="jd")
         assert t2.isscalar is False and t2.shape == val.shape
         # explicitly check broadcasting for mixed vector, scalar.
@@ -136,7 +134,7 @@ class TestBasic:
         assert t3.format == format_
         assert t3.scale == "tai"
 
-    @pytest.mark.parametrize("value", [2455197.5, [2455197.5]])
+    @pytest.mark.parametrize("value", [2.4551975e6, [2.4551975e6]])
     def test_copy_time(self, value):
         """Test copying the values of a Time object by passing it into the
         Time initializer.
@@ -268,16 +266,16 @@ class TestBasic:
 
         t = Time("2010-01-01 00:00:00", format="iso", scale="utc")
         t.delta_ut1_utc = 0.3341  # Explicitly set one part of the xform
-        assert allclose_jd(t.jd, 2455197.5)
+        assert allclose_jd(t.jd, 2.4551975e6)
         assert t.iso == "2010-01-01 00:00:00.000"
         assert t.tt.iso == "2010-01-01 00:01:06.184"
         assert t.tai.fits == "2010-01-01T00:00:34.000"
-        assert allclose_jd(t.utc.jd, 2455197.5)
-        assert allclose_jd(t.ut1.jd, 2455197.500003867)
+        assert allclose_jd(t.utc.jd, 2.4551975e6)
+        assert allclose_jd(t.ut1.jd, 2.455197500003867e6)
         assert t.tcg.isot == "2010-01-01T00:01:06.910"
         assert allclose_sec(t.unix, 1.262304e9)
-        assert allclose_sec(t.cxcsec, 378691266.184)
-        assert allclose_sec(t.gps, 946339215.0)
+        assert allclose_sec(t.cxcsec, 3.78691266184e8)
+        assert allclose_sec(t.gps, 9.46339215e8)
         assert t.datetime == datetime.datetime(2010, 1, 1)
 
     def test_precision(self):
@@ -497,7 +495,7 @@ class TestBasic:
         Time("2000-01-01T12:23:34.0Z", format="isot", scale="utc")
         Time("2000-01-01T12:23:34.0", format="fits")
         Time("2000-01-01T12:23:34.0", format="fits", scale="tdb")
-        Time(2400000.5, 51544.0333981, format="jd", scale="tai")
+        Time(2.4000005e6, 51544.0333981, format="jd", scale="tai")
         Time(0.0, 51544.0333981, format="mjd", scale="tai")
         Time("2000:001:12:23:34.0", format="yday", scale="tai")
         Time("2000:001:12:23:34.0Z", format="yday", scale="utc")
@@ -515,7 +513,9 @@ class TestBasic:
         ScalevalueError
         """
         t = Time("2006-01-15 21:24:37.5", scale="local")
-        assert_allclose(t.jd, 2453751.3921006946, atol=0.001 / 3600.0 / 24.0, rtol=0.0)
+        assert_allclose(
+            t.jd, 2.4537513921006946e6, atol=0.001 / 3600.0 / 24.0, rtol=0.0
+        )
         assert_allclose(t.mjd, 53750.892100694444, atol=0.001 / 3600.0 / 24.0, rtol=0.0)
         assert_allclose(
             t.decimalyear,
@@ -615,7 +615,7 @@ class TestBasic:
 
     def test_epoch_transform(self):
         """Besselian and julian epoch transforms"""
-        jd = 2457073.05631
+        jd = 2.45707305631e6
         t = Time(jd, format="jd", scale="tai", precision=6)
         assert allclose_year(t.byear, 2015.1365941020817)
         assert allclose_year(t.jyear, 2015.1349933196439)
@@ -1031,7 +1031,7 @@ class TestSubFormat:
         assert t2.value == "1998-01-01 00:00:00.000"
 
         # Value take from Chandra.Time.DateTime('2010:001:00:00:00').secs
-        t_cxcsec = 378691266.184
+        t_cxcsec = 3.78691266184e8
         t = Time(t_cxcsec, format="cxcsec", scale="utc")
         assert allclose_sec(t.value, t_cxcsec)
         assert allclose_sec(t.cxcsec, t_cxcsec)
@@ -1047,7 +1047,7 @@ class TestSubFormat:
         # which differs about 10 s from the value below, which is taken from
         # the header of the observations and gPhoton processing.
         t3 = Time("2004-01-21 16:33:57")
-        assert allclose_sec(t3.galexsec, 758738037.0)
+        assert allclose_sec(t3.galexsec, 7.58738037e8)
         assert allclose_sec(t3.galexsec, t3.unix - 315964800)
 
         # Round trip through epoch time
@@ -1058,12 +1058,12 @@ class TestSubFormat:
 
         # Test unix time.  Values taken from http://en.wikipedia.org/wiki/Unix_time
         t = Time("2013-05-20 21:18:46", scale="utc")
-        assert allclose_sec(t.unix, 1369084726.0)
-        assert allclose_sec(t.tt.unix, 1369084726.0)
+        assert allclose_sec(t.unix, 1.369084726e9)
+        assert allclose_sec(t.tt.unix, 1.369084726e9)
 
         # Values from issue #1118
         t = Time("2004-09-16T23:59:59", scale="utc")
-        assert allclose_sec(t.unix, 1095379199.0)
+        assert allclose_sec(t.unix, 1.095379199e9)
 
     def test_plot_date(self):
         """Test the plot_date format.
@@ -1238,7 +1238,7 @@ class TestNumericalSubFormat:
     @pytest.mark.parametrize(
         "fmt,string,val1,val2",
         [
-            ("jd", "2451544.5333981", 2451544.5, 0.0333981),
+            ("jd", "2451544.5333981", 2.4515445e6, 0.0333981),
             ("decimalyear", "2000.54321", 2000.0, 0.54321),
             ("cxcsec", "100.0123456", 100.0123456, None),
             ("unix", "100.0123456", 100.0123456, None),
@@ -1394,7 +1394,7 @@ class TestSofaErrors:
             djm0, djm = erfa.cal2jd(iy, im, id)
         assert len(w) == 1
 
-        assert allclose_jd(djm0, [2400000.5])
+        assert allclose_jd(djm0, [2.4000005e6])
         assert allclose_jd(djm, [53574.0])
 
 
@@ -1403,7 +1403,7 @@ class TestCopyReplicate:
 
     def test_immutable_input(self):
         """Internals are never mutable."""
-        jds = np.array([2450000.5], dtype=np.double)
+        jds = np.array([2.4500005e6], dtype=np.double)
         t = Time(jds, format="jd", scale="tai")
         assert allclose_jd(t.jd, jds)
         jds[0] = 2458654
@@ -1411,9 +1411,9 @@ class TestCopyReplicate:
 
         mjds = np.array([50000.0], dtype=np.double)
         t = Time(mjds, format="mjd", scale="tai")
-        assert allclose_jd(t.jd, [2450000.5])
+        assert allclose_jd(t.jd, [2.4500005e6])
         mjds[0] = 0.0
-        assert allclose_jd(t.jd, [2450000.5])
+        assert allclose_jd(t.jd, [2.4500005e6])
 
     def test_replicate(self):
         """Test replicate method"""
@@ -1542,20 +1542,20 @@ def test_decimalyear_no_quantity():
 
 
 def test_fits_year0():
-    t = Time(1721425.5, format="jd", scale="tai")
+    t = Time(1.7214255e6, format="jd", scale="tai")
     assert t.fits == "0001-01-01T00:00:00.000"
-    t = Time(1721425.5 - 366.0, format="jd", scale="tai")
+    t = Time(1.7214255e6 - 366.0, format="jd", scale="tai")
     assert t.fits == "+00000-01-01T00:00:00.000"
-    t = Time(1721425.5 - 366.0 - 365.0, format="jd", scale="tai")
+    t = Time(1.7214255e6 - 366.0 - 365.0, format="jd", scale="tai")
     assert t.fits == "-00001-01-01T00:00:00.000"
 
 
 def test_fits_year10000():
-    t = Time(5373484.5, format="jd", scale="tai")
+    t = Time(5.3734845e6, format="jd", scale="tai")
     assert t.fits == "+10000-01-01T00:00:00.000"
-    t = Time(5373484.5 - 365.0, format="jd", scale="tai")
+    t = Time(5.3734845e6 - 365.0, format="jd", scale="tai")
     assert t.fits == "9999-01-01T00:00:00.000"
-    t = Time(5373484.5, -1.0 / 24.0 / 3600.0, format="jd", scale="tai")
+    t = Time(5.3734845e6, -1.0 / 24.0 / 3600.0, format="jd", scale="tai")
     assert t.fits == "9999-12-31T23:59:59.000"
 
 
@@ -1680,9 +1680,9 @@ def test_set_format_basic():
     Test basics of setting format attribute.
     """
     for format, value in (
-        ("jd", 2451577.5),
+        ("jd", 2.4515775e6),
         ("mjd", 51577.0),
-        ("cxcsec", 65923264.184),  # confirmed with Chandra.Time
+        ("cxcsec", 6.5923264184e7),  # confirmed with Chandra.Time
         ("datetime", datetime.datetime(2000, 2, 3, 0, 0)),
         ("iso", "2000-02-03 00:00:00.000"),
     ):
@@ -1924,12 +1924,12 @@ def test_epoch_date_jd_is_day_fraction():
     """
     t0 = Time("J2000", scale="tdb")
 
-    assert t0.jd1 == 2451545.0
+    assert t0.jd1 == 2.451545e6
     assert t0.jd2 == 0.0
 
     t1 = Time(datetime.datetime(2000, 1, 1, 12, 0, 0), scale="tdb")
 
-    assert t1.jd1 == 2451545.0
+    assert t1.jd1 == 2.451545e6
     assert t1.jd2 == 0.0
 
 

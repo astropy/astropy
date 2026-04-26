@@ -1174,7 +1174,7 @@ def _timesys_tests(votable):
     assert len(list(votable.iter_timesys())) == 4
 
     timesys = votable.get_timesys_by_id("time_frame")
-    assert timesys.timeorigin == 2455197.5
+    assert timesys.timeorigin == 2.4551975e6
     assert timesys.timescale == "TCB"
     assert timesys.refposition == "BARYCENTER"
 

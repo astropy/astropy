@@ -1003,7 +1003,7 @@ def test_complex_fractional_rounding_errors():
     # See #3788
 
     kappa = 0.34 * u.cm**2 / u.g
-    r_0 = 886221439924.7849 * u.cm
+    r_0 = 8.862214399247849e11 * u.cm
     q = 1.75
     rho_0 = 5e-10 * u.solMass / u.solRad**3
     y = 0.5

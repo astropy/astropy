@@ -37,7 +37,7 @@ k_B = CODATA2014(
 )
 
 c = CODATA2014(
-    "c", "Speed of light in vacuum", 299792458.0, "m / (s)", 0.0, system="si"
+    "c", "Speed of light in vacuum", 2.99792458e8, "m / (s)", 0.0, system="si"
 )
 
 
@@ -79,7 +79,7 @@ N_A = CODATA2014(
 R = CODATA2014("R", "Gas constant", 8.3144598, "J / (K mol)", 0.0000048, system="si")
 
 Ryd = CODATA2014(
-    "Ryd", "Rydberg constant", 10973731.568508, "1 / (m)", 0.000065, system="si"
+    "Ryd", "Rydberg constant", 1.0973731568508e7, "1 / (m)", 0.000065, system="si"
 )
 
 a0 = CODATA2014("a0", "Bohr radius", 5.2917721067e-11, "m", 1.2e-20, system="si")

@@ -378,7 +378,7 @@ def test_ogamma():
     # is analytic, which is a Ode = 0 flat universe.  In this case
     # Integrate(1/E(x),{x,0,z}) = 2 ( sqrt((1+Or z)/(1+z)) - 1 )/(Or - 1)
     # Recall that c/H0 * Integrate(1/E) is FLRW.comoving_distance.
-    Ogamma0h2 = 4 * 5.670373e-8 / 299792458.0**3 * 2.725**4 / 1.87837e-26
+    Ogamma0h2 = 4 * 5.670373e-8 / 2.99792458e8**3 * 2.725**4 / 1.87837e-26
     Onu0h2 = Ogamma0h2 * 7.0 / 8.0 * (4.0 / 11.0) ** (4.0 / 3.0) * 3.04
     Or0 = (Ogamma0h2 + Onu0h2) / 0.7**2
     Om0 = 1.0 - Or0

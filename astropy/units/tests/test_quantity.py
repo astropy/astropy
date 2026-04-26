@@ -796,7 +796,7 @@ def test_quantity_value_views():
 def test_quantity_conversion_with_equiv():
     q1 = u.Quantity(0.1, unit=u.meter)
     v2 = q1.to_value(u.Hz, equivalencies=u.spectral())
-    assert_allclose(v2, 2997924580.0)
+    assert_allclose(v2, 2.99792458e9)
     q2 = q1.to(u.Hz, equivalencies=u.spectral())
     assert_allclose(q2.value, v2)
 
@@ -1378,8 +1378,8 @@ class TestQuantityDisplay:
         oldlat = conf.latex_array_threshold
         try:
             # check precision behavior
-            q = u.Quantity(987654321.123456789, "m/s")
-            qa = np.array([7.89123, 123456789.987654321, 0]) * u.cm
+            q = u.Quantity(9.876543211234568e8, "m/s")
+            qa = np.array([7.89123, 1.2345678998765433e8, 0]) * u.cm
             np.set_printoptions(precision=8)
             assert (
                 q._repr_latex_() == r"$9.8765432 \times 10^{8} \; \mathrm{\frac{m}{s}}$"
