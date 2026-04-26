@@ -72,6 +72,7 @@ def quantity_support(format=None):
     """
 
     class MplQuantityConverterFormatted(MplQuantityConverter):
+        # Override to pass on `format`
         @staticmethod
         def axisinfo(unit, axis):
             return MplQuantityConverter.axisinfo(unit, axis, format)
@@ -97,7 +98,7 @@ class MplQuantityConverter(ConversionInterface, ContextDecorator):
 
     @staticmethod
     def axisinfo(unit, axis, format=None):
-        if not format:
+        if format is None:
             format = _default_format
         if unit == u.radian:
 
