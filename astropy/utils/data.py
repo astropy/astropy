@@ -1676,8 +1676,16 @@ def cache_total_size(pkgname="astropy"):
 
 
 def _do_download_files_in_parallel(kwargs):
-    with astropy.config.paths.set_temp_config(kwargs.pop("temp_config")):
-        with astropy.config.paths.set_temp_cache(kwargs.pop("temp_cache")):
+    if (temp_config_path := kwargs.pop("temp_config")) is not None:
+        temp_config_args = (temp_config_path,)
+    else:
+        temp_config_args = ()
+    if (temp_cache_path := kwargs.pop("temp_cache")) is not None:
+        temp_cache_args = (temp_cache_path,)
+    else:
+        temp_cache_args = ()
+    with astropy.config.paths.set_temp_config(*temp_config_args):
+        with astropy.config.paths.set_temp_cache(*temp_cache_args):
             return download_file(**kwargs)
 
 
@@ -1760,6 +1768,11 @@ def download_files_in_parallel(
     files will have been successfully downloaded and will remain in
     the cache.
     """
+    from astropy.config.paths import (
+        set_temp_cache,
+        set_temp_config,
+    )
+
     from .console import ProgressBar
 
     if timeout is None:
@@ -1798,8 +1811,8 @@ def download_files_in_parallel(
                 timeout=timeout,
                 sources=sources.get(u),
                 pkgname=pkgname,
-                temp_cache=astropy.config.paths.set_temp_cache._temp_path,
-                temp_config=astropy.config.paths.set_temp_config._temp_path,
+                temp_cache=set_temp_cache._get_current_override(),
+                temp_config=set_temp_config._get_current_override(),
             )
             for u in combined_urls
         ],

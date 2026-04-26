@@ -26,9 +26,9 @@ The ``astropy`` cache is stored in a centralized place (see
 :ref:`environment_variables` for more details).  You can check its location
 on your machine::
 
-   >>> import astropy.config.paths
-   >>> astropy.config.paths.get_cache_dir()  # doctest: +SKIP
-   '/home/burnell/.astropy/cache'
+   >>> from astropy.config import get_cache_dir_path
+   >>> get_cache_dir_path()  # doctest: +SKIP
+   PosixPath('/home/burnell/.cache/astropy')
 
 This centralization means that the cache is persistent and shared between all
 ``astropy`` runs in any virtualenv by one user on one machine (possibly more if
@@ -200,10 +200,9 @@ and are not cleared by `~astropy.utils.data.clear_download_cache`. To remove
 these old cache directories, you can run::
 
    >>> from shutil import rmtree
-   >>> from os.path import join
-   >>> from astropy.config.paths import get_cache_dir
-   >>> rmtree(join(get_cache_dir(), 'download', 'py2'), ignore_errors=True)  # doctest: +SKIP
-   >>> rmtree(join(get_cache_dir(), 'download', 'py3'), ignore_errors=True)  # doctest: +SKIP
+   >>> from astropy.config.paths import get_cache_dir_path
+   >>> rmtree(get_cache_dir_path() / 'download' / 'py2'), ignore_errors=True)  # doctest: +SKIP
+   >>> rmtree(get_cache_dir_path() / 'download' / 'py3'), ignore_errors=True)  # doctest: +SKIP
 
 Using Astropy With Limited or No Internet Access
 ================================================

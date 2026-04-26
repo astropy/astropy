@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-8.0-cosmology`
 * :ref:`whatsnew-8.0-codata2022`
+* :ref:`whatsnew-8.0-paths-discovery`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -166,3 +167,41 @@ Table formats
 =============
 A new table reader has been added to read history and profile output files from `MESA
 <https://mesastar.org>`_, a well-known code for stellar evolution calculations.
+
+
+.. _whatsnew-8.0-paths-discovery:
+
+Overhaul of cache and configuration path discovery mechanism
+============================================================
+
+Cache and configuration directories now adhere to the XDG specification
+by default. For example, the default cache location was changed from
+``$HOME/.astropy/cache`` to ``$XDG_CACHE_HOME/astropy``, where
+``XDG_CACHE_HOME``` itself defaults to ``$HOME/.cache``.
+
+In addition, temporary directories set through ``set_temp_cache``
+or ``set_temp_config`` will now not be symlinked to default locations.
+The new behavior is also meant as 100% cross platform: windows isn't
+special cased like it used to.
+
+``set_temp_cache`` and ``set_temp_config`` themselves (hereafter, legacy APIs) are now
+soft-deprecated, meaning their use is discouraged for new code but will not emit
+deprecation warnings, in favor of new, similar, but *not* drop-in replacement APIS:
+``temporary_cache_dir_path`` and ``temporary_config_dir_path`` respectively. These
+alternative functions come with a couple differences in design:
+- easily predictable behavior
+- safer defaults:
+  - temporary files and directories are not leaked by default (``delete=True`` is the default)
+  - pre-existing contents are never deleted (because the final dir is always *created*)
+- ``delete``` is keyword-only
+- ``dir_`` (path) is positional only
+- support ```suffix` and ``prefix``
+- ``yield`` value is a ``pathlib.Path`` (not a `str`)
+- the ``namespace`` argument is keyword-only and required, whereas legacy API's
+equivalent argument (``rootname``) was allowed positionally and defaulted to ``'astropy'``,
+which contributed to confusion surrounding these APIs.
+
+``ASTROPY_CACHE_DIR`` and ``ASTROPY_CONFIG_DIR`` environment variables are now supported,
+allowing finer, tool-specific control as compared with ``XDG_CACHE_HOME`` and
+``XDG_CONFIG_HOME`` which will only be used if astropy-specific environment variables
+are undefined or invalid (e.g. defined as relative paths or pointing to files).
