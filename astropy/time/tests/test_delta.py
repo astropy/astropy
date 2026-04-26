@@ -202,7 +202,7 @@ class TestTimeDelta:
         assert not out.isscalar
 
     @pytest.mark.parametrize(
-        "values", [(2455197.5, 2455198.5), ([2455197.5], [2455198.5])]
+        "values", [(2.4551975e6, 2.4551985e6), ([2.4551975e6], [2.4551985e6])]
     )
     def test_copy_timedelta(self, values):
         """Test copying the values of a TimeDelta object by passing it into the
@@ -719,7 +719,7 @@ quantity_str_basic_cases = [
     # Float hours
     ("2.5hr", "2hr 30min", 2.5 * 3600),
     # Variations on single input component with exponent to multiple output components
-    ("3.000001e7s", "347d 5hr 20min 10.0s", 30000010.0),
+    ("3.000001e7s", "347d 5hr 20min 10.0s", 3.000001e7),
     ("3.e7s", "347d 5hr 20min", 3.0e7),
     ("3e7s", "347d 5hr 20min", 3.0e7),
     # High precision seconds
@@ -822,7 +822,7 @@ def test_quantity_str_out_subfmt_to_value_subfmt():
 
 
 def test_quantity_str_out_subfmt_from_non_quantity_str():
-    dt = TimeDelta(30000010.0 * u.s)
+    dt = TimeDelta(3.000001e7 * u.s)
     for subfmt, exp in quantity_str_subfmt_exps.items():
         assert dt.to_value(format="quantity_str", subfmt=subfmt) == exp
 

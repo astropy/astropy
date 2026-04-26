@@ -341,7 +341,7 @@ class TestEraStructUfuncs:
         cls.sc = np.array([-0.763276255, -0.608633767, -0.216735543])
 
         # From t_atciq in t_erfa_c.c
-        astrom, eo = erfa_ufunc.apci13(2456165.5, 0.401182685)
+        astrom, eo = erfa_ufunc.apci13(2.4561655e6, 0.401182685)
         cls.astrom = astrom << ASTROM_UNIT
         cls.rc = 2.71 * u.rad
         cls.dc = 0.174 * u.rad
@@ -452,7 +452,7 @@ class TestEraStructUfuncs:
 
     def test_atioq_atoiq(self):
         astrom, _ = erfa_ufunc.apio13(
-            2456384.5,
+            2.4563845e6,
             0.969254051,
             0.1550675,
             -0.527800806,
@@ -472,13 +472,9 @@ class TestEraStructUfuncs:
         aob, zob, hob, dob, rob = erfa_ufunc.atioq(
             ri.to(u.deg), di.to(u.deg), astrom.si
         )
-        assert_quantity_allclose(
-            aob, 0.9233952224895122499e-1 * u.rad, atol=1e-12 * u.rad
-        )
+        assert_quantity_allclose(aob, 0.09233952224895123 * u.rad, atol=1e-12 * u.rad)
         assert_quantity_allclose(zob, 1.407758704513549991 * u.rad, atol=1e-12 * u.rad)
-        assert_quantity_allclose(
-            hob, -0.9247619879881698140e-1 * u.rad, atol=1e-12 * u.rad
-        )
+        assert_quantity_allclose(hob, -0.09247619879881698 * u.rad, atol=1e-12 * u.rad)
         assert_quantity_allclose(dob, 0.1717653435756234676 * u.rad, atol=1e-12 * u.rad)
         assert_quantity_allclose(rob, 2.710085107988480746 * u.rad, atol=1e-12 * u.rad)
 
@@ -497,7 +493,7 @@ class TestAp:
     def setup_class(cls):
         # Values from apco13 and apio test cases in t_erfa_c.c
         # with units changed so we can check conversion.
-        cls.utc1 = 2456384.5
+        cls.utc1 = 2.4563845e6
         cls.utc2 = 0.969254051
         cls.dut1 = (0.1550675 * u.s).to(u.ms)
         cls.sp = (-3.01974337e-11 * u.rad).to(u.deg)
@@ -560,30 +556,30 @@ class TestAp:
                    -0.2092452121603336166,
                    -0.09075578153885665295],
             "em": 0.9998233240913898141,
-            "v": [0.2078704994520489246e-4,
-                  -0.8955360133238868938e-4,
-                  -0.3863338993055887398e-4],
+            "v": [2.0787049945204893e-05,
+                  -8.955360133238868e-05,
+                  -3.863338993055887e-05],
             "bm1": 0.9999999950277561004,
             "bpn": np.array(
                 [[ 0.9999991390295147999,
-                   0.4978650075315529277e-7,
+                   4.9786500753155294e-08,
                    0.001312227200850293372],
-                 [-0.1136336652812486604e-7,
+                 [-1.1363366528124865e-08,
                    0.9999999995713154865,
-                  -0.2928086230975367296e-4],
+                  -2.9280862309753673e-05],
                  [-0.001312227201745553566,
-                   0.2928082218847679162e-4,
+                   2.928082218847679e-05,
                    0.9999991386008312212],
                 ]).T,
             "along": -0.5278008060295995733,
-            "xpl": 0.1133427418130752958e-5,
-            "ypl": 0.1453347595780646207e-5,
+            "xpl": 1.133427418130753e-06,
+            "ypl": 1.4533475957806462e-06,
             "sphi": -0.9440115679003211329,
             "cphi": 0.3299123514971474711,
             "diurab": 0,
             "eral": 2.617608909189664000,
-            "refa": 0.2014187785940396921e-3,
-            "refb": -0.2361408314943696227e-6,
+            "refa": 0.0002014187785940397,
+            "refb": -2.3614083149436963e-07,
         }.items():  # fmt: skip
             assert_quantity_allclose(astrom[name], expected * ASTROM_UNIT[name])
 
@@ -605,14 +601,14 @@ class TestAp:
         assert astrom.unit == ASTROM_UNIT
         for name, expected in {
             "along": -0.5278008060295995734,
-            "xpl": 0.1133427418130752958e-5,
-            "ypl": 0.1453347595780646207e-5,
+            "xpl": 1.133427418130753e-06,
+            "ypl": 1.4533475957806462e-06,
             "sphi": -0.9440115679003211329,
             "cphi": 0.3299123514971474711,
-            "diurab": 0.5135843661699913529e-6,
+            "diurab": 5.135843661699913e-07,
             "eral": 2.617608903970400427,
-            "refa": 0.2014187790000000000e-3,
-            "refb": -0.2361408310000000000e-6,
+            "refa": 0.000201418779,
+            "refb": -2.36140831e-07,
         }.items():
             assert_quantity_allclose(astrom[name], expected * ASTROM_UNIT[name])
 
@@ -622,7 +618,7 @@ class TestGeodetic:
     def setup_class(cls):
         cls.ellipsoid = 1
         cls.length_unit = u.Unit("m")
-        cls.equatorial_radius_value = 6378136.0
+        cls.equatorial_radius_value = 6.378136e6
         cls.equatorial_radius = (cls.equatorial_radius_value << cls.length_unit).to(
             u.km
         )

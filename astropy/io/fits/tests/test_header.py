@@ -131,7 +131,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_floating_point_value_card(self):
         """Test Card constructor with floating point value"""
 
-        c = fits.Card("floatnum", -467374636747637647347374734737437.0)
+        c = fits.Card("floatnum", -4.673746367476376e32)
 
         if str(c) != _pad("FLOATNUM= -4.6737463674763E+32") and str(c) != _pad(
             "FLOATNUM= -4.6737463674763E+032"

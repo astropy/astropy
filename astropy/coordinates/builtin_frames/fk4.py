@@ -158,7 +158,7 @@ def fk4_e_terms(equinox):
     # Eccentricity of the Earth's orbit
     ek = math.radians(k) * ((-1.26e-7 * T - 0.00004193) * T + 0.01673011)
     # Mean longitude of perigee of the solar orbit
-    g = np.radians((((0.012 * T + 1.65) * T + 6190.67) * T + 1015489.951) / 3600.0)
+    g = np.radians((((0.012 * T + 1.65) * T + 6190.67) * T + 1.015489951e6) / 3600.0)
     minus_ek_cos_g = -ek * np.cos(g)
     # Obliquity of the ecliptic
     o = erfa.obl80(equinox.jd, 0)

@@ -43,11 +43,11 @@ class TestCustomGeodeticRepresentations:
             _equatorial_radius = 4.0e6 * u.m
 
         class IAUMARS2000GeodeticRepresentation(BaseGeodeticRepresentation):
-            _equatorial_radius = 3396190.0 * u.m
+            _equatorial_radius = 3.39619e6 * u.m
             _flattening = 0.5886007555512007 * u.percent
 
         class IAUMARS2000BodycentricRepresentation(BaseBodycentricRepresentation):
-            _equatorial_radius = 3396190.0 * u.m
+            _equatorial_radius = 3.39619e6 * u.m
             _flattening = 0.5886007555512007 * u.percent
 
         cls.CustomGeodetic = CustomGeodetic
@@ -171,21 +171,21 @@ class TestCustomGeodeticRepresentations:
 
         gd = WGS84GeodeticRepresentation(e, p, h)
         xyz = gd.to_cartesian().get_xyz()
-        vvd(xyz[0], -5599000.5577049947, 1e-7, "eraGd2gc", "0/1", status)
+        vvd(xyz[0], -5.599000557704994e6, 1e-7, "eraGd2gc", "0/1", status)
         vvd(xyz[1], 233011.67223479203, 1e-7, "eraGd2gc", "1/1", status)
-        vvd(xyz[2], -3040909.4706983363, 1e-7, "eraGd2gc", "2/1", status)
+        vvd(xyz[2], -3.040909470698336e6, 1e-7, "eraGd2gc", "2/1", status)
 
         gd = GRS80GeodeticRepresentation(e, p, h)
         xyz = gd.to_cartesian().get_xyz()
-        vvd(xyz[0], -5599000.5577260984, 1e-7, "eraGd2gc", "0/2", status)
+        vvd(xyz[0], -5.599000557726098e6, 1e-7, "eraGd2gc", "0/2", status)
         vvd(xyz[1], 233011.6722356703, 1e-7, "eraGd2gc", "1/2", status)
-        vvd(xyz[2], -3040909.4706095476, 1e-7, "eraGd2gc", "2/2", status)
+        vvd(xyz[2], -3.0409094706095476e6, 1e-7, "eraGd2gc", "2/2", status)
 
         gd = WGS72GeodeticRepresentation(e, p, h)
         xyz = gd.to_cartesian().get_xyz()
-        vvd(xyz[0], -5598998.7626301490, 1e-7, "eraGd2gc", "0/3", status)
+        vvd(xyz[0], -5.598998762630149e6, 1e-7, "eraGd2gc", "0/3", status)
         vvd(xyz[1], 233011.5975297822, 1e-7, "eraGd2gc", "1/3", status)
-        vvd(xyz[2], -3040908.6861467111, 1e-7, "eraGd2gc", "2/3", status)
+        vvd(xyz[2], -3.040908686146711e6, 1e-7, "eraGd2gc", "2/3", status)
 
     @pytest.mark.parametrize(
         "representation",

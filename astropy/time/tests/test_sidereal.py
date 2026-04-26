@@ -31,8 +31,8 @@ class TestERFATestCases:
 
     def setup_class(cls):
         # Sidereal time tests use the following JD inputs.
-        cls.time_ut1 = Time(2400000.5, 53736.0, scale="ut1", format="jd")
-        cls.time_tt = Time(2400000.5, 53736.0, scale="tt", format="jd")
+        cls.time_ut1 = Time(2.4000005e6, 53736.0, scale="ut1", format="jd")
+        cls.time_tt = Time(2.4000005e6, 53736.0, scale="tt", format="jd")
         # but tt!=ut1 at these dates, unlike what is assumed, so we cannot
         # reproduce this exactly. Now it does not really matter,
         # but may as well fake this (and avoid IERS table lookup here)
@@ -83,7 +83,7 @@ class TestERFATestCases:
 
     def test_era(self):
         # Separate since it does not use the same time.
-        time_ut1 = Time(2400000.5, 54388.0, format="jd", scale="ut1")
+        time_ut1 = Time(2.4000005e6, 54388.0, format="jd", scale="ut1")
         era = time_ut1.earth_rotation_angle("tio")
         expected = 0.4022837240028158102
         assert np.abs(era.to_value(u.radian) - expected) < 1e-12
@@ -145,7 +145,7 @@ class TestST:
 
     def test_era(self):
         """Compare ERA relative to erfa.era00 test case."""
-        t = Time(2400000.5, 54388.0, format="jd", location=(0, 0), scale="ut1")
+        t = Time(2.4000005e6, 54388.0, format="jd", location=(0, 0), scale="ut1")
         era = t.earth_rotation_angle()
         expected = 0.4022837240028158102 * u.radian
         # Without the TIO locator/polar motion, this should be close already.
@@ -158,7 +158,7 @@ class TestST:
         expected1 = expected + (np.arctan2(r[0, 1], r[0, 0]) << u.radian)
         assert np.abs(era - expected1) < 1e-12 * u.radian
         # Now try at a longitude different from 0.
-        t2 = Time(2400000.5, 54388.0, format="jd", location=(45, 0), scale="ut1")
+        t2 = Time(2.4000005e6, 54388.0, format="jd", location=(45, 0), scale="ut1")
         era2 = t2.earth_rotation_angle()
         r2 = erfa.rz(np.deg2rad(45), r)
         expected2 = expected + (np.arctan2(r2[0, 1], r2[0, 0]) << u.radian)
