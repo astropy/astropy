@@ -430,7 +430,7 @@ def test_regression_15611():
     # type 3 SPICE kernel
     ephemeris_file = get_pkg_data_filename("coordinates/230965_2004XA192_nima_v6.bsp")
     # KBO 2004 XA192
-    pair = (10, 20230965)
+    pair = (10, 20_230_965)
     t = Time("2023-11-11T03:59:24")
     # get_body_barycentric should not raise an error
     get_body_barycentric([pair], t, ephemeris=ephemeris_file)
