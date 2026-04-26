@@ -1569,7 +1569,7 @@ def test_restfrq_restwav():
             "CUNIT1": "m/s",
             "CRPIX1": 1,
             "RESTWAV": 1,
-            "RESTFRQ": 295000000.0,
+            "RESTFRQ": 2.95e8,
         }
     )
 

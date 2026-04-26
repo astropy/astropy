@@ -67,9 +67,7 @@ class TestBasic:
             "value=['1999-01-01 00:00:00.123' '2010-01-01 00:00:00.000']>"
         )
         assert allclose_jd(t.jd1, np.array([2451180.0, 2455198.0]))
-        assert allclose_jd2(
-            t.jd2, np.array([-0.5 + 1.4288980208333335e-06, -0.50000000e00])
-        )
+        assert allclose_jd2(t.jd2, np.array([-0.5 + 1.4288980208333335e-06, -5.0e-1]))
 
         # Set scale to TAI
         t = t.tai
@@ -102,11 +100,11 @@ class TestBasic:
     def test_different_dimensions(self):
         """Test scalars, vector, and higher-dimensions"""
         # scalar
-        val, val1 = 2450000.0, 0.125
+        val, val1 = 2.45e6, 0.125
         t1 = Time(val, val1, format="jd")
         assert t1.isscalar is True and t1.shape == ()
         # vector
-        val = np.arange(2450000.0, 2450010.0)
+        val = np.arange(2.45e6, 2450010.0)
         t2 = Time(val, format="jd")
         assert t2.isscalar is False and t2.shape == val.shape
         # explicitly check broadcasting for mixed vector, scalar.
@@ -277,7 +275,7 @@ class TestBasic:
         assert allclose_jd(t.utc.jd, 2455197.5)
         assert allclose_jd(t.ut1.jd, 2455197.500003867)
         assert t.tcg.isot == "2010-01-01T00:01:06.910"
-        assert allclose_sec(t.unix, 1262304000.0)
+        assert allclose_sec(t.unix, 1.262304e9)
         assert allclose_sec(t.cxcsec, 378691266.184)
         assert allclose_sec(t.gps, 946339215.0)
         assert t.datetime == datetime.datetime(2010, 1, 1)
