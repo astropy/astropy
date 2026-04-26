@@ -9,6 +9,10 @@ from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
 __all__ = ["MplQuantityConverter", "quantity_support"]
 
+__doctest_skip__ = ["quantity_support"]
+
+_default_format = "latex_inline"
+
 if HAS_MATPLOTLIB:
     from matplotlib import ticker, units
 
@@ -96,15 +100,10 @@ if HAS_MATPLOTLIB:
                 units.registry[u.Quantity] = self._original_converter[u.Quantity]
 
 else:
-    # Create mock-up classes to avoid import errors when matplotlib is not available.
+    # Create mock-up class to avoid import errors when matplotlib is not available.
     class MplQuantityConverter:
         def __init__(self, *args, **kwargs):
             raise ImportError("matplotlib is required in order to use this class.")
-
-
-__doctest_skip__ = ["quantity_support"]
-
-_default_format = "latex_inline"
 
 
 def quantity_support(format=None):
