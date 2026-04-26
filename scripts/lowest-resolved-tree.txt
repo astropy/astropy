@@ -196,7 +196,7 @@ astropy
 ├── jplephem v2.17 (extra: all)
 │   └── numpy v2.0.0
 ├── jupyter-core v4.11.2 (extra: all) (*)
-├── matplotlib v3.9.1.post1 (extra: all)
+├── matplotlib v3.8.4 (extra: all)
 │   ├── contourpy v1.0.5
 │   │   └── numpy v2.0.0
 │   ├── cycler v0.10.0
@@ -221,7 +221,7 @@ astropy
 ├── dask[dataframe] v2024.8.0 (extra: docs) (*)
 ├── fsspec[http, s3] v2023.4.0 (extra: docs) (*)
 ├── jinja2 v3.1.3 (extra: docs) (*)
-├── matplotlib v3.9.1.post1 (extra: docs) (*)
+├── matplotlib v3.8.4 (extra: docs) (*)
 ├── narwhals v1.42.0 (extra: docs)
 ├── pytest v8.0.1 (extra: docs)
 │   ├── colorama v0.4.6
@@ -265,7 +265,7 @@ astropy
 │   ├── sphinx-automodapi v0.1
 │   ├── sphinx-gallery v0.0.4
 │   │   ├── joblib v0.8.0
-│   │   ├── matplotlib v3.9.1.post1 (*)
+│   │   ├── matplotlib v3.8.4 (*)
 │   │   ├── pillow v9.2.0
 │   │   └── sphinx v8.2.0 (*)
 │   ├── sphinxcontrib-jquery v1.0.0
@@ -294,7 +294,7 @@ astropy
 ├── ipywidgets v7.7.3 (extra: jupyter) (*)
 ├── jupyter-core v4.11.2 (extra: jupyter) (*)
 ├── pandas v2.2.2 (extra: jupyter) (*)
-├── matplotlib v3.9.1.post1 (extra: recommended) (*)
+├── matplotlib v3.8.4 (extra: recommended) (*)
 ├── narwhals v1.42.0 (extra: recommended)
 ├── scipy v1.13.0 (extra: recommended) (*)
 ├── coverage v7.2.0 (extra: test)
@@ -347,7 +347,7 @@ astropy
 ├── ipywidgets v7.7.3 (extra: test-all) (*)
 ├── jplephem v2.17 (extra: test-all) (*)
 ├── jupyter-core v4.11.2 (extra: test-all) (*)
-├── matplotlib v3.9.1.post1 (extra: test-all) (*)
+├── matplotlib v3.8.4 (extra: test-all) (*)
 ├── mpmath v1.2.1 (extra: test-all)
 ├── narwhals v1.42.0 (extra: test-all)
 ├── numpy-quaddtype v0.2.2 (extra: test-all)
