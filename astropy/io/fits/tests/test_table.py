@@ -45,7 +45,7 @@ def comparefloats(a, b):
     if aa.dtype.name == "float32" or bb.dtype.name == "float32":
         precision = 0.000001
     else:
-        precision = 0.0000000000000001
+        precision = 1.0e-16
     precision = 0.00001  # until precision problem is fixed in astropy.io.fits
     diff = np.absolute(aa - bb)
     mask0 = aa == 0
@@ -200,7 +200,7 @@ class TestTableFunctions(FitsTestCase):
         x2 = fits.ColDefs(tt[1])
         t2 = fits.BinTableHDU.from_columns(x2, nrows=2)
         ra = np.rec.array(
-            [(1, "abc", 3.7000002861022949, 0), (2, "xy ", 6.6999998092651367, 1)],
+            [(1, "abc", 3.700000286102295, 0), (2, "xy ", 6.699999809265137, 1)],
             names="c1, c2, c3, c4",
         )
 
@@ -252,7 +252,7 @@ class TestTableFunctions(FitsTestCase):
             "name": ["c1", "c2", "c3", "c4"],
             "format": ["1J", "3A", "1E", "1L"],
             "unit": ["", "", "", ""],
-            "null": [-2147483647, "", "", ""],
+            "null": [-2_147_483_647, "", "", ""],
             "bscale": ["", "", 3, ""],
             "bzero": ["", "", 0.4, ""],
             "disp": ["I11", "A3", "G15.7", "L6"],
@@ -269,7 +269,7 @@ class TestTableFunctions(FitsTestCase):
         assert t[1].columns.info(output=False) == info
 
         ra = np.rec.array(
-            [(1, "abc", 3.7000002861022949, 0), (2, "xy ", 6.6999998092651367, 1)],
+            [(1, "abc", 3.700000286102295, 0), (2, "xy ", 6.699999809265137, 1)],
             names="c1, c2, c3, c4",
         )
 
@@ -293,7 +293,7 @@ class TestTableFunctions(FitsTestCase):
         ra1 = np.rec.array(
             [
                 (10.123000144958496, 37),
-                (5.1999998092651367, 23),
+                (5.199999809265137, 23),
                 (15.609999656677246, 17),
                 (0.0, 0),
                 (345.0, 345),
@@ -2470,7 +2470,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="c2", format="B", array=a2)
         a3 = np.array([-30000, 1, 256], dtype=np.int16)
         c3 = fits.Column(name="c3", format="I", array=a3)
-        a4 = np.array([-123123123, 1234, 123123123], dtype=np.int32)
+        a4 = np.array([-123_123_123, 1234, 123_123_123], dtype=np.int32)
         c4 = fits.Column(name="c4", format="J", array=a4)
         a5 = np.array(["a", "abc", "ab"])
         c5 = fits.Column(name="c5", format="A3", array=a5)

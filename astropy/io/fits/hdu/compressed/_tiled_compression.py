@@ -25,7 +25,7 @@ ALGORITHMS = {
     "NOCOMPRESS": NoCompress,
 }
 
-DEFAULT_ZBLANK = -2147483648
+DEFAULT_ZBLANK = -2_147_483_648
 
 
 __all__ = [

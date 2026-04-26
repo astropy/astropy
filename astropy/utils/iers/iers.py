@@ -81,7 +81,7 @@ FROM_IERS_A_PREDICTION = 2
 TIME_BEFORE_IERS_RANGE = -1
 TIME_BEYOND_IERS_RANGE = -2
 
-MJD_ZERO = 2400000.5
+MJD_ZERO = 2.4000005e6
 
 INTERPOLATE_ERROR = """\
 interpolating from IERS_Auto using predictive values that are more

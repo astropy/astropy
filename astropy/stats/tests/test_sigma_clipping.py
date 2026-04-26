@@ -185,8 +185,8 @@ def test_sigma_clipped_stats_ddof():
         mean2, median2, stddev2 = sigma_clipped_stats(data, std_ddof=1)
         assert mean1 == mean2
         assert median1 == median2
-        assert_allclose(stddev1, 0.98156805711673156)
-        assert_allclose(stddev2, 0.98161731654802831)
+        assert_allclose(stddev1, 0.9815680571167316)
+        assert_allclose(stddev2, 0.9816173165480283)
 
 
 def test_sigma_clipped_stats_masked_col():

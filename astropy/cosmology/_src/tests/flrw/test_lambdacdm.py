@@ -378,7 +378,7 @@ def test_ogamma():
     # is analytic, which is a Ode = 0 flat universe.  In this case
     # Integrate(1/E(x),{x,0,z}) = 2 ( sqrt((1+Or z)/(1+z)) - 1 )/(Or - 1)
     # Recall that c/H0 * Integrate(1/E) is FLRW.comoving_distance.
-    Ogamma0h2 = 4 * 5.670373e-8 / 299792458.0**3 * 2.725**4 / 1.87837e-26
+    Ogamma0h2 = 4 * 5.670373e-8 / 2.99792458e8**3 * 2.725**4 / 1.87837e-26
     Onu0h2 = Ogamma0h2 * 7.0 / 8.0 * (4.0 / 11.0) ** (4.0 / 3.0) * 3.04
     Or0 = (Ogamma0h2 + Onu0h2) / 0.7**2
     Om0 = 1.0 - Or0
@@ -501,7 +501,7 @@ def test_angular_diameter_distance_z1z2():
     # http://www.astro.multivax.de:8000/phillip/angsiz_prog/README.HTML
     # Kayser, Helbig, and Schramm (Astron.Astrophys. 318 (1997) 680-686)
     assert u.allclose(
-        tcos.angular_diameter_distance_z1z2(1, 2), 646.22968662822018 * u.Mpc
+        tcos.angular_diameter_distance_z1z2(1, 2), 646.2296866282202 * u.Mpc
     )
 
     z1 = 2  # Separate test for z2<z1, returns negative value with warning
@@ -639,11 +639,11 @@ def test_xtfuncs():
     """Test of absorption and lookback integrand"""
     cosmo = LambdaCDM(70, 0.3, 0.5, Tcmb0=2.725)
     z = np.array([2.0, 3.2])
-    assert u.allclose(cosmo.lookback_time_integrand(3), 0.052218976654969378, rtol=1e-4)
+    assert u.allclose(cosmo.lookback_time_integrand(3), 0.05221897665496938, rtol=1e-4)
     assert u.allclose(
         cosmo.lookback_time_integrand(z), [0.10333179, 0.04644541], rtol=1e-4
     )
-    assert u.allclose(cosmo.abs_distance_integrand(3), 3.3420145059180402, rtol=1e-4)
+    assert u.allclose(cosmo.abs_distance_integrand(3), 3.34201450591804, rtol=1e-4)
     assert u.allclose(
         cosmo.abs_distance_integrand(z), [2.7899584, 3.44104758], rtol=1e-4
     )

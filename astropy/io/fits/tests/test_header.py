@@ -125,13 +125,13 @@ class TestHeaderFunctions(FitsTestCase):
     def test_long_integer_value_card(self):
         """Test Card constructor with long integer value"""
 
-        c = fits.Card("long_int", -467374636747637647347374734737437)
+        c = fits.Card("long_int", -467_374_636_747_637_647_347_374_734_737_437)
         assert str(c) == _pad("LONG_INT= -467374636747637647347374734737437")
 
     def test_floating_point_value_card(self):
         """Test Card constructor with floating point value"""
 
-        c = fits.Card("floatnum", -467374636747637647347374734737437.0)
+        c = fits.Card("floatnum", -4.673746367476376e32)
 
         if str(c) != _pad("FLOATNUM= -4.6737463674763E+32") and str(c) != _pad(
             "FLOATNUM= -4.6737463674763E+032"
@@ -162,7 +162,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_complex_value_card(self):
         """Test Card constructor with complex value"""
 
-        c = fits.Card("abc", (1.2345377437887837487e88 + 6324767364763746367e-33j))
+        c = fits.Card("abc", (1.2345377437887837e88 + 6324767364763746367e-33j))
         f1 = _pad("ABC     = (1.23453774378878E+88, 6.32476736476374E-15)")
         f2 = _pad("ABC     = (1.2345377437887E+088, 6.3247673647637E-015)")
         f3 = _pad("ABC     = (1.23453774378878E+88, 6.32476736476374E-15)")
@@ -366,7 +366,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_fixable_non_standard_fits_card(self, capsys):
         # fixable non-standard FITS card will keep the original format
         c = fits.Card.fromstring("abc     = +  2.1   e + 12")
-        assert c.value == 2100000000000.0
+        assert c.value == 2.1e12
 
         with pytest.warns(fits.verify.VerifyWarning) as w:
             assert str(c) == _pad("ABC     =             +2.1E+12")

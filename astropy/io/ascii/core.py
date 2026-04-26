@@ -175,7 +175,7 @@ class MaskedConstant(np.ma.core.MaskedConstant):
     def __hash__(self):
         """All instances of this class shall have the same hash."""
         # Any large number will do.
-        return 1234567890
+        return 1_234_567_890
 
     def __copy__(self) -> Self:
         """This is a singleton so just return self."""

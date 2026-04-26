@@ -63,7 +63,7 @@ def test_ipac_read_long_columns():
 
     # assert oid, as a long column, is int64
     oid = dat["oid"]
-    assert oid[0] == 90000000000000001
+    assert oid[0] == 90_000_000_000_000_001
     assert oid.dtype.kind == "i"
     assert oid.dtype.itemsize == 8
 
@@ -90,7 +90,7 @@ num,cadence
     # assert `num`` is exactly 64bit int
     assert dat["num"].dtype.kind == "i"
     assert dat["num"].dtype.itemsize == 8
-    assert dat["num"][0] == 110000000000000001
+    assert dat["num"][0] == 110_000_000_000_000_001
 
     # assert `cadence` is exactly 64bit int, even though the values are small numbers.
     assert dat["cadence"].dtype.kind == "i"

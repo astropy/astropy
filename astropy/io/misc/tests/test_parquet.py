@@ -634,7 +634,7 @@ scpmrv = SkyCoord(
 scrv = SkyCoord(
     [1, 2], [3, 4], [5, 6], unit="deg,deg,pc", radial_velocity=[11, 12] * u.km / u.s
 )
-tm = Time([2450814.5, 2450815.5], format="jd", scale="tai", location=el)
+tm = Time([2.4508145e6, 2.4508155e6], format="jd", scale="tai", location=el)
 
 # NOTE: in the test below the name of the column "x" for the Quantity is
 # important since it tests the fix for #10215 (namespace clash, where "x"

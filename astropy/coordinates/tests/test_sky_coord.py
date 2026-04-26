@@ -769,7 +769,7 @@ def test_repr_altaz():
 
     expected_el_repr = "(-2309223.0, -3695529.0, -4641767.0)"
 
-    loc = EarthLocation(-2309223 * u.m, -3695529 * u.m, -4641767 * u.m)
+    loc = EarthLocation(-2_309_223 * u.m, -3_695_529 * u.m, -4_641_767 * u.m)
     time = Time("2005-03-21 00:00:00")
     sc4 = sc2.transform_to(AltAz(location=loc, obstime=time))
     assert repr(sc4).startswith(
@@ -1414,7 +1414,7 @@ def test_search_around():
     """
     from astropy.utils import NumpyRNGContext
 
-    with NumpyRNGContext(987654321):
+    with NumpyRNGContext(987_654_321):
         sc1 = SkyCoord(
             np.random.rand(20) * 360.0 * u.degree,
             (np.random.rand(20) * 180.0 - 90.0) * u.degree,
@@ -1459,7 +1459,7 @@ def test_guess_from_table():
     from astropy.utils import NumpyRNGContext
 
     tab = Table()
-    with NumpyRNGContext(987654321):
+    with NumpyRNGContext(987_654_321):
         tab.add_column(Column(data=np.random.rand(10), unit="deg", name="RA[J2000]"))
         tab.add_column(Column(data=np.random.rand(10), unit="deg", name="DEC[J2000]"))
 

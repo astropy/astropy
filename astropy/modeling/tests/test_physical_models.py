@@ -32,8 +32,8 @@ fitters_bounds = [LevMarLSQFitter, TRFLSQFitter, DogBoxLSQFitter]
 def test_blackbody_evaluate(temperature):
     b = BlackBody(temperature=temperature, scale=1.0)
 
-    assert_quantity_allclose(b(1.4 * u.micron), 486787299458.15656 * u.MJy / u.sr)
-    assert_quantity_allclose(b(214.13747 * u.THz), 486787299458.15656 * u.MJy / u.sr)
+    assert_quantity_allclose(b(1.4 * u.micron), 4.8678729945815656e11 * u.MJy / u.sr)
+    assert_quantity_allclose(b(214.13747 * u.THz), 4.8678729945815656e11 * u.MJy / u.sr)
 
 
 def test_blackbody_weins_law():
@@ -75,7 +75,8 @@ def test_blackbody_return_units():
 
     # scale has units but evaluate scale has no units
     assert_quantity_allclose(
-        b.evaluate(1.0 * u.micron, 1000.0 * u.K, 4.0), 89668184.86321202 * u.MJy / u.sr
+        b.evaluate(1.0 * u.micron, 1000.0 * u.K, 4.0),
+        8.966818486321202e7 * u.MJy / u.sr,
     )
 
 
@@ -245,7 +246,7 @@ def test_NFW_evaluate(mass):
         ),
     )
     assert_quantity_allclose(
-        n200c.rho_scale, (7800150779863018.0 * (u.solMass / u.Mpc**3))
+        n200c.rho_scale, (7.800150779863018e15 * (u.solMass / u.Mpc**3))
     )
     assert_quantity_allclose(n200c.r_s, (0.24684627641195428 * u.Mpc))
     assert_quantity_allclose(n200c.r_virial, (2.0981933495016114 * u.Mpc))
@@ -268,7 +269,7 @@ def test_NFW_evaluate(mass):
         ),
     )
     assert_quantity_allclose(
-        n200m.rho_scale, (5118547639858115.0 * (u.solMass / u.Mpc**3))
+        n200m.rho_scale, (5.118547639858115e15 * (u.solMass / u.Mpc**3))
     )
     assert_quantity_allclose(n200m.r_s, (0.2840612517326848 * u.Mpc))
     assert_quantity_allclose(n200m.r_virial, (2.414520639727821 * u.Mpc))
@@ -291,7 +292,7 @@ def test_NFW_evaluate(mass):
         ),
     )
     assert_quantity_allclose(
-        nvir.rho_scale, (5649367524651067.0 * (u.solMass / u.Mpc**3))
+        nvir.rho_scale, (5.649367524651067e15 * (u.solMass / u.Mpc**3))
     )
     assert_quantity_allclose(nvir.r_s, (0.2748701862303786 * u.Mpc))
     assert_quantity_allclose(nvir.r_virial, (2.3363965829582183 * u.Mpc))
@@ -315,7 +316,7 @@ def test_NFW_evaluate(mass):
         ),
     )
     assert_quantity_allclose(
-        n200c.rho_scale, (7800150.779863021 * (u.solMass / u.kpc**3))
+        n200c.rho_scale, (7.800150779863021e6 * (u.solMass / u.kpc**3))
     )
     assert_quantity_allclose(n200c.r_s, (246.84627641195425 * u.kpc))
     assert_quantity_allclose(n200c.r_virial, (2098.193349501611 * u.kpc))
@@ -338,7 +339,7 @@ def test_NFW_evaluate(mass):
         ),
     )
     assert_quantity_allclose(
-        n200m.rho_scale, (5118547.639858116 * (u.solMass / u.kpc**3))
+        n200m.rho_scale, (5.118547639858116e6 * (u.solMass / u.kpc**3))
     )
     assert_quantity_allclose(n200m.r_s, (284.0612517326848 * u.kpc))
     assert_quantity_allclose(n200m.r_virial, (2414.5206397278207 * u.kpc))
@@ -361,7 +362,7 @@ def test_NFW_evaluate(mass):
         ),
     )
     assert_quantity_allclose(
-        nvir.rho_scale, (5649367.5246510655 * (u.solMass / u.kpc**3))
+        nvir.rho_scale, (5.6493675246510655e6 * (u.solMass / u.kpc**3))
     )
     assert_quantity_allclose(nvir.r_s, (274.87018623037864 * u.kpc))
     assert_quantity_allclose(nvir.r_virial, (2336.3965829582185 * u.kpc))

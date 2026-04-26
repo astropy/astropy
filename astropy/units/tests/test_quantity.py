@@ -420,7 +420,7 @@ class TestQuantityOperations:
 
         # Take units from left object, q2
         new_quantity = self.q2 / self.q1
-        assert_array_almost_equal(new_quantity.value, 0.70052539404553416, decimal=16)
+        assert_array_almost_equal(new_quantity.value, 0.7005253940455342, decimal=16)
         assert new_quantity.unit == (u.centimeter / u.meter)
 
         q1 = u.Quantity(11.4, unit=u.meter)
@@ -796,7 +796,7 @@ def test_quantity_value_views():
 def test_quantity_conversion_with_equiv():
     q1 = u.Quantity(0.1, unit=u.meter)
     v2 = q1.to_value(u.Hz, equivalencies=u.spectral())
-    assert_allclose(v2, 2997924580.0)
+    assert_allclose(v2, 2.99792458e9)
     q2 = q1.to(u.Hz, equivalencies=u.spectral())
     assert_allclose(q2.value, v2)
 
@@ -1111,21 +1111,21 @@ class TestQuantityDisplay:
                 id="zero_padding",
             ),
             pytest.param(
-                u.Quantity(1234567, "m"),
+                u.Quantity(1_234_567, "m"),
                 None,
                 ",",
                 "1,234,567.0 m",
                 id="thousands_separator",
             ),
             pytest.param(
-                u.Quantity(137000000, "lyr"),
+                u.Quantity(137_000_000, "lyr"),
                 None,
                 ">+30,.2e",
                 "                     +1.37e+08 lyr",
                 id="large_number_complex_format",
             ),
             pytest.param(
-                u.Quantity(1234567, "m"),
+                u.Quantity(1_234_567, "m"),
                 None,
                 "_",
                 "1_234_567.0 m",
@@ -1203,7 +1203,7 @@ class TestQuantityDisplay:
                 id="complex_number_latex_positive_alignment",
             ),
             pytest.param(
-                u.Quantity(137000000, "lyr"),
+                u.Quantity(137_000_000, "lyr"),
                 None,
                 ">+30,.2e",
                 "latex",
@@ -1251,7 +1251,7 @@ class TestQuantityDisplay:
                 id="scientific_notation_inline_latex_format",
             ),
             pytest.param(
-                u.Quantity(1239999123, "m/s"),
+                u.Quantity(1_239_999_123, "m/s"),
                 None,
                 None,
                 "latex",
@@ -1378,8 +1378,8 @@ class TestQuantityDisplay:
         oldlat = conf.latex_array_threshold
         try:
             # check precision behavior
-            q = u.Quantity(987654321.123456789, "m/s")
-            qa = np.array([7.89123, 123456789.987654321, 0]) * u.cm
+            q = u.Quantity(9.876543211234568e8, "m/s")
+            qa = np.array([7.89123, 1.2345678998765433e8, 0]) * u.cm
             np.set_printoptions(precision=8)
             assert (
                 q._repr_latex_() == r"$9.8765432 \times 10^{8} \; \mathrm{\frac{m}{s}}$"

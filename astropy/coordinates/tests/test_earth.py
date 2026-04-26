@@ -47,21 +47,21 @@ def test_gc2gd():
     location = EarthLocation.from_geocentric(x, y, z, u.m)
     e, p, h = location.to_geodetic("WGS84")
     e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
-    vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e2", status)
-    vvd(p, 0.97160184820607853, 1e-14, "eraGc2gd", "p2", status)
-    vvd(h, 331.41731754844348, 1e-8, "eraGc2gd", "h2", status)
+    vvd(e, 0.982793723247329, 1e-14, "eraGc2gd", "e2", status)
+    vvd(p, 0.9716018482060785, 1e-14, "eraGc2gd", "p2", status)
+    vvd(h, 331.41731754844346, 1e-8, "eraGc2gd", "h2", status)
 
     e, p, h = location.to_geodetic("GRS80")
     e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
-    vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e2", status)
-    vvd(p, 0.97160184820607853, 1e-14, "eraGc2gd", "p2", status)
-    vvd(h, 331.41731754844348, 1e-8, "eraGc2gd", "h2", status)
+    vvd(e, 0.982793723247329, 1e-14, "eraGc2gd", "e2", status)
+    vvd(p, 0.9716018482060785, 1e-14, "eraGc2gd", "p2", status)
+    vvd(h, 331.41731754844346, 1e-8, "eraGc2gd", "h2", status)
 
     e, p, h = location.to_geodetic("WGS72")
     e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
-    vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e3", status)
-    vvd(p, 0.97160181811015119, 1e-14, "eraGc2gd", "p3", status)
-    vvd(h, 333.27707261303181, 1e-8, "eraGc2gd", "h3", status)
+    vvd(e, 0.982793723247329, 1e-14, "eraGc2gd", "e3", status)
+    vvd(p, 0.9716018181101512, 1e-14, "eraGc2gd", "p3", status)
+    vvd(h, 333.2770726130318, 1e-8, "eraGc2gd", "h3", status)
 
 
 def test_gd2gc():
@@ -74,21 +74,21 @@ def test_gd2gc():
 
     location = EarthLocation.from_geodetic(e, p, h, ellipsoid="WGS84")
     xyz = tuple(v.to(u.m) for v in location.to_geocentric())
-    vvd(xyz[0], -5599000.5577049947, 1e-7, "eraGd2gc", "0/1", status)
+    vvd(xyz[0], -5.599000557704994e6, 1e-7, "eraGd2gc", "0/1", status)
     vvd(xyz[1], 233011.67223479203, 1e-7, "eraGd2gc", "1/1", status)
-    vvd(xyz[2], -3040909.4706983363, 1e-7, "eraGd2gc", "2/1", status)
+    vvd(xyz[2], -3.040909470698336e6, 1e-7, "eraGd2gc", "2/1", status)
 
     location = EarthLocation.from_geodetic(e, p, h, ellipsoid="GRS80")
     xyz = tuple(v.to(u.m) for v in location.to_geocentric())
-    vvd(xyz[0], -5599000.5577260984, 1e-7, "eraGd2gc", "0/2", status)
+    vvd(xyz[0], -5.599000557726098e6, 1e-7, "eraGd2gc", "0/2", status)
     vvd(xyz[1], 233011.6722356703, 1e-7, "eraGd2gc", "1/2", status)
-    vvd(xyz[2], -3040909.4706095476, 1e-7, "eraGd2gc", "2/2", status)
+    vvd(xyz[2], -3.0409094706095476e6, 1e-7, "eraGd2gc", "2/2", status)
 
     location = EarthLocation.from_geodetic(e, p, h, ellipsoid="WGS72")
     xyz = tuple(v.to(u.m) for v in location.to_geocentric())
-    vvd(xyz[0], -5598998.7626301490, 1e-7, "eraGd2gc", "0/3", status)
+    vvd(xyz[0], -5.598998762630149e6, 1e-7, "eraGd2gc", "0/3", status)
     vvd(xyz[1], 233011.5975297822, 1e-7, "eraGd2gc", "1/3", status)
-    vvd(xyz[2], -3040908.6861467111, 1e-7, "eraGd2gc", "2/3", status)
+    vvd(xyz[2], -3.040908686146711e6, 1e-7, "eraGd2gc", "2/3", status)
 
 
 class TestInput:

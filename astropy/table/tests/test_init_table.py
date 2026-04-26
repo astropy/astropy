@@ -242,7 +242,7 @@ def test_qtable_uses_masked_quantity_as_needed():
     assert isinstance(t["a"], u.Quantity)
     assert isinstance(t["b"], Column)
     assert t["a"].unit == u.m
-    assert_array_equal(t["a"], [1, 2000000] * u.m)
+    assert_array_equal(t["a"], [1, 2_000_000] * u.m)
     assert not t.masked
 
     t2 = QTable(data_ragged)
@@ -250,7 +250,7 @@ def test_qtable_uses_masked_quantity_as_needed():
     assert isinstance(t2["a"], Masked(u.Quantity))
     assert isinstance(t2["b"], MaskedColumn)
     assert t2["a"].unit == u.m
-    assert np.all(t2["a"] == [1, 2000000, 0] * u.m)
+    assert np.all(t2["a"] == [1, 2_000_000, 0] * u.m)
     assert_array_equal(t2["a"].mask, [False, False, True])
     assert_array_equal(t2["b"].mask, [False, True, False])
 
