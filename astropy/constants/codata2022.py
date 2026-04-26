@@ -35,28 +35,20 @@ c = CODATA2022(
 )
 
 G = CODATA2022(
-    "G", "Gravitational constant", 6.67430e-11, "m3 / (kg s2)", 0.00015e-11, system="si"
+    "G", "Gravitational constant", 6.67430e-11, "m3 / (kg s2)", 1.5e-15, system="si"
 )
 
 g0 = CODATA2022(
     "g0", "Standard acceleration of gravity", 9.80665, "m / s2", 0.0, system="si"
 )
 
-m_p = CODATA2022(
-    "m_p", "Proton mass", 1.67262192595e-27, "kg", 0.00000000052e-27, system="si"
-)
+m_p = CODATA2022("m_p", "Proton mass", 1.67262192595e-27, "kg", 5.2e-37, system="si")
 
-m_n = CODATA2022(
-    "m_n", "Neutron mass", 1.67492750056e-27, "kg", 0.00000000085e-27, system="si"
-)
+m_n = CODATA2022("m_n", "Neutron mass", 1.67492750056e-27, "kg", 8.5e-37, system="si")
 
-m_e = CODATA2022(
-    "m_e", "Electron mass", 9.1093837139e-31, "kg", 0.0000000028e-31, system="si"
-)
+m_e = CODATA2022("m_e", "Electron mass", 9.1093837139e-31, "kg", 2.8e-40, system="si")
 
-u = CODATA2022(
-    "u", "Atomic mass", 1.66053906892e-27, "kg", 0.00000000052e-27, system="si"
-)
+u = CODATA2022("u", "Atomic mass", 1.66053906892e-27, "kg", 5.2e-37, system="si")
 
 sigma_sb = CODATA2022(
     "sigma_sb",
@@ -74,7 +66,7 @@ eps0 = EMCODATA2022(
     "Vacuum electric permittivity",
     8.8541878188e-12,
     "F/m",
-    0.0000000014e-12,
+    1.4e-21,
     system="si",
 )
 
@@ -90,20 +82,16 @@ Ryd = CODATA2022(
     "Ryd", "Rydberg constant", 10973731.568157, "1 / (m)", 0.000012, system="si"
 )
 
-a0 = CODATA2022(
-    "a0", "Bohr radius", 5.29177210544e-11, "m", 0.00000000082e-11, system="si"
-)
+a0 = CODATA2022("a0", "Bohr radius", 5.29177210544e-11, "m", 8.2e-21, system="si")
 
-muB = CODATA2022(
-    "muB", "Bohr magneton", 9.2740100657e-24, "J/T", 0.0000000029e-24, system="si"
-)
+muB = CODATA2022("muB", "Bohr magneton", 9.2740100657e-24, "J/T", 2.9e-33, system="si")
 
 alpha = CODATA2022(
     "alpha",
     "Fine-structure constant",
     7.2973525643e-3,
     "",
-    0.0000000011e-3,
+    1.1e-12,
     system="si",
 )
 
@@ -114,7 +102,7 @@ mu0 = CODATA2022(
     "Vacuum magnetic permeability",
     1.25663706127e-6,
     "N/A2",
-    0.00000000020e-6,
+    2.0e-16,
     system="si",
 )
 
@@ -123,7 +111,7 @@ sigma_T = CODATA2022(
     "Thomson scattering cross-section",
     6.6524587051e-29,
     "m2",
-    0.0000000062e-29,
+    6.2e-38,
     system="si",
 )
 

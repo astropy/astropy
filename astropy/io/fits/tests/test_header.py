@@ -366,7 +366,7 @@ class TestHeaderFunctions(FitsTestCase):
     def test_fixable_non_standard_fits_card(self, capsys):
         # fixable non-standard FITS card will keep the original format
         c = fits.Card.fromstring("abc     = +  2.1   e + 12")
-        assert c.value == 2100000000000.0
+        assert c.value == 2.1e12
 
         with pytest.warns(fits.verify.VerifyWarning) as w:
             assert str(c) == _pad("ABC     =             +2.1E+12")

@@ -72,7 +72,7 @@ def test_select_step_scalar():
     assert_almost_equal(select_step_scalar(0.00577), 0.005)
     assert_almost_equal(select_step_scalar(0.00022), 0.0002)
     assert_almost_equal(select_step_scalar(0.000012), 0.00001)
-    assert_almost_equal(select_step_scalar(0.000000443), 0.0000005)
+    assert_almost_equal(select_step_scalar(4.43e-7), 5.0e-7)
 
 
 def test_get_coord_meta():

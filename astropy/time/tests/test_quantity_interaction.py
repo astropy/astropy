@@ -50,10 +50,10 @@ class TestTimeQuantity:
 
     def test_invalid_quantity_input(self):
         with pytest.raises(u.UnitsError):
-            Time(2450000.0 * u.m, format="jd", scale="utc")
+            Time(2.45e6 * u.m, format="jd", scale="utc")
 
         with pytest.raises(u.UnitsError):
-            Time(2450000.0 * u.dimensionless_unscaled, format="jd", scale="utc")
+            Time(2.45e6 * u.dimensionless_unscaled, format="jd", scale="utc")
 
     def test_column_with_and_without_units(self):
         """Ensure a Column without a unit is treated as an array [#3648]"""
@@ -116,10 +116,10 @@ class TestTimeDeltaQuantity:
 
     def test_invalid_quantity_input(self):
         with pytest.raises(u.UnitsError):
-            TimeDelta(2450000.0 * u.m, format="jd")
+            TimeDelta(2.45e6 * u.m, format="jd")
 
         with pytest.raises(u.UnitsError):
-            Time(2450000.0 * u.dimensionless_unscaled, format="jd", scale="utc")
+            Time(2.45e6 * u.dimensionless_unscaled, format="jd", scale="utc")
 
         with pytest.raises(TypeError):
             TimeDelta(100, format="sec") > 10.0 * u.m  # noqa: B015

@@ -45,7 +45,7 @@ def comparefloats(a, b):
     if aa.dtype.name == "float32" or bb.dtype.name == "float32":
         precision = 0.000001
     else:
-        precision = 0.0000000000000001
+        precision = 1.0e-16
     precision = 0.00001  # until precision problem is fixed in astropy.io.fits
     diff = np.absolute(aa - bb)
     mask0 = aa == 0
