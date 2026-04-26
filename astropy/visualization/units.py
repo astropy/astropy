@@ -70,7 +70,7 @@ if HAS_MATPLOTLIB:
                 and len(val) > 0
                 and isinstance(val[0], u.Quantity)
             ):
-                return [v.to_value(unit) for v in val]
+                return np.array([v.to_value(unit) for v in val])
             else:
                 return val
 
