@@ -14,7 +14,12 @@ import numpy as np
 
 from astropy import units as u
 from astropy.coordinates import Angle
-from astropy.visualization.units import quantity_support
+from astropy.visualization.units import MplQuantityConverter, quantity_support
+
+
+@pytest.fixture
+def converter_class() -> type[MplQuantityConverter]:
+    return MplQuantityConverter
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
@@ -170,3 +175,58 @@ def test_override_axis_unit():
         ax.yaxis.set_units(u.cm)
         fig.canvas.draw()
         assert ax.yaxis.get_units() == u.cm
+
+
+@pytest.mark.parametrize(
+    ("format", "expected"),
+    [
+        pytest.param(None, "$\\mathrm{erg\\,s^{-1}\\,cm^{-2}}$", id="None"),
+        pytest.param("console", "erg s^-1 cm^-2", id="console"),
+    ],
+)
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_axisinfo_label(converter_class, format, expected):
+    result = converter_class.axisinfo(u.erg / (u.cm**2 * u.s), None, format).label
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    ("val", "expected"),
+    [
+        pytest.param(u.Quantity([1, 2, 3], u.m), np.array([1, 2, 3]), id="Quantity[m]"),
+        pytest.param(
+            u.Quantity([1, 2, 3], u.cm), np.array([0.01, 0.02, 0.03]), id="Quantity[cm]"
+        ),
+        pytest.param(
+            np.array([1 * u.m, 2 * u.m, 3 * u.m], dtype=object),
+            np.array([1, 2, 3]),
+            id="np_array",
+        ),
+    ],
+)
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_convert(converter_class, val, expected):
+    result = converter_class.convert(val, u.m, None)
+    assert all(result == expected)
+
+
+@pytest.mark.parametrize(
+    ("x", "expected"),
+    [
+        pytest.param(u.Quantity([1, 2, 3], u.m), u.m, id="Quantity[m]"),
+        pytest.param(
+            u.Quantity([1, 2, 3]),
+            u.dimensionless_unscaled,
+            id="Quantity[dimensionless]",
+        ),
+        pytest.param([1, 2, 3], None, id="scalar list"),
+        pytest.param(
+            np.array([1 * u.m, 2 * u.m, 3 * u.m], dtype=object), u.m, id="np array"
+        ),
+        pytest.param(np.array([], dtype=object), None, id="np array empty"),
+    ],
+)
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_default_units(converter_class, x, expected):
+    result = converter_class.default_units(x, None)
+    assert result == expected
