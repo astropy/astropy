@@ -42,7 +42,7 @@ def test_distances():
         Distance(unit=u.km)
 
     # standard units are pre-defined
-    npt.assert_allclose(distance.lyr, 39.138765325702551)
+    npt.assert_allclose(distance.lyr, 39.13876532570255)
     npt.assert_allclose(distance.km, 3.70281309776063e14)
 
     # Coordinate objects can be assigned a distance object, giving them a full
@@ -73,7 +73,7 @@ def test_distances():
     # returns a *3d* distance between the c1 and c2 coordinates
     # not that this does *not*
     assert isinstance(sep12, Distance)
-    npt.assert_allclose(sep12.pc, 12005.784163916317, 10)
+    npt.assert_allclose(sep12.pc, 12005.784163916316, 10)
 
     """
     All spherical coordinate systems with distances can be converted to

@@ -134,9 +134,9 @@ class TestTimeUT1:
             t = Time("2012-06-30 12:00:00", scale="utc")
             assert not hasattr(t, "_delta_ut1_utc")
             # accessing delta_ut1_utc calculates it
-            assert allclose_sec(t.delta_ut1_utc, -0.58682110003124965)
+            assert allclose_sec(t.delta_ut1_utc, -0.5868211000312497)
             # and keeps it around
-            assert allclose_sec(t._delta_ut1_utc, -0.58682110003124965)
+            assert allclose_sec(t._delta_ut1_utc, -0.5868211000312497)
 
 
 class TestTimeUT1SpecificIERSTable:

@@ -22,7 +22,7 @@ __all__ = ["Distribution"]
 
 # we set this by hand because the symbolic expression (below) requires scipy
 # SMAD_SCALE_FACTOR = 1 / scipy.stats.norm.ppf(0.75)
-SMAD_SCALE_FACTOR = 1.48260221850560203193936104071326553821563720703125
+SMAD_SCALE_FACTOR = 1.482602218505602
 
 
 class Distribution:

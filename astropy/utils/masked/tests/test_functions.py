@@ -581,17 +581,17 @@ class TestStructuredUfuncs:
             0.55,
         )
         astrom = Masked(astrom)
-        ri = 2.710121572969038991
-        di = 0.1729371367218230438
+        ri = 2.710121572969039
+        di = 0.17293713672182304
         aob, zob, hob, dob, rob = erfa_ufunc.atioq(ri, di, astrom)
         assert isinstance(aob, Masked)
         # Really should not need to check the values, since done
         # in units/tests/test_quantity_erfa_ufuncs, but why not...
         assert_allclose(aob, 0.09233952224895123, atol=1e-12, rtol=0)
-        assert_allclose(zob, 1.407758704513549991, atol=1e-12, rtol=0)
+        assert_allclose(zob, 1.40775870451355, atol=1e-12, rtol=0)
         assert_allclose(hob, -0.09247619879881698, atol=1e-12, rtol=0)
-        assert_allclose(dob, 0.1717653435756234676, atol=1e-12, rtol=0)
-        assert_allclose(rob, 2.710085107988480746, atol=1e-12, rtol=0)
+        assert_allclose(dob, 0.17176534357562348, atol=1e-12, rtol=0)
+        assert_allclose(rob, 2.7100851079884807, atol=1e-12, rtol=0)
 
 
 def test_erfa_no_warnings_on_masked_entries():

@@ -972,8 +972,8 @@ def test_compare():
     w2 = _wcs.Wcsprm(header)
 
     with pytest.warns(RuntimeWarning):
-        w.cdelt[0] = np.float32(0.00416666666666666666666666)
-        w2.cdelt[0] = np.float64(0.00416666666666666666666666)
+        w.cdelt[0] = np.float32(0.004166666666666667)
+        w2.cdelt[0] = np.float64(0.004166666666666667)
 
         assert not w.compare(w2)
         assert w.compare(w2, tolerance=1e-6)

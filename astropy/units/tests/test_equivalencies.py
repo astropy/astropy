@@ -299,7 +299,7 @@ def test_spectral():
     assert_allclose(b, 1)
 
     a = u.m.to(u.Hz, 1, u.spectral())
-    assert_allclose(a, 2.9979245799999995e8)
+    assert_allclose(a, 2.9979245799999994e8)
     b = u.Hz.to(u.m, a, u.spectral())
     assert_allclose(b, 1)
 

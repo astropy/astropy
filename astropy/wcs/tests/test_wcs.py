@@ -1293,7 +1293,7 @@ def test_no_truncate_crval_p17():
     Regression test for https://github.com/astropy/astropy/issues/5162
     """
     w = wcs.WCS(naxis=2)
-    w.wcs.crval = [50.1234567890123456, 50.1234567890123456]
+    w.wcs.crval = [50.123456789012344, 50.123456789012344]
     w.wcs.cdelt = [1e-3, 1e-3]
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     w.wcs.set()

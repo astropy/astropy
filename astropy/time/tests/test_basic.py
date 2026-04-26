@@ -78,7 +78,7 @@ class TestBasic:
         assert allclose_jd(t.jd1, np.array([2.45118e6, 2.455198e6]))
         assert allclose_jd2(
             t.jd2,
-            np.array([-0.5 + 0.00037179926839122024, -0.5 + 0.00039351851851851852]),
+            np.array([-0.5 + 0.00037179926839122024, -0.5 + 0.0003935185185185185]),
         )
 
         # Get a new ``Time`` object which is referenced to the TT scale

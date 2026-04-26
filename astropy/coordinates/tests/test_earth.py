@@ -47,21 +47,21 @@ def test_gc2gd():
     location = EarthLocation.from_geocentric(x, y, z, u.m)
     e, p, h = location.to_geodetic("WGS84")
     e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
-    vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e2", status)
-    vvd(p, 0.97160184820607853, 1e-14, "eraGc2gd", "p2", status)
-    vvd(h, 331.41731754844348, 1e-8, "eraGc2gd", "h2", status)
+    vvd(e, 0.982793723247329, 1e-14, "eraGc2gd", "e2", status)
+    vvd(p, 0.9716018482060785, 1e-14, "eraGc2gd", "p2", status)
+    vvd(h, 331.41731754844346, 1e-8, "eraGc2gd", "h2", status)
 
     e, p, h = location.to_geodetic("GRS80")
     e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
-    vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e2", status)
-    vvd(p, 0.97160184820607853, 1e-14, "eraGc2gd", "p2", status)
-    vvd(h, 331.41731754844348, 1e-8, "eraGc2gd", "h2", status)
+    vvd(e, 0.982793723247329, 1e-14, "eraGc2gd", "e2", status)
+    vvd(p, 0.9716018482060785, 1e-14, "eraGc2gd", "p2", status)
+    vvd(h, 331.41731754844346, 1e-8, "eraGc2gd", "h2", status)
 
     e, p, h = location.to_geodetic("WGS72")
     e, p, h = e.to(u.radian), p.to(u.radian), h.to(u.m)
-    vvd(e, 0.98279372324732907, 1e-14, "eraGc2gd", "e3", status)
-    vvd(p, 0.97160181811015119, 1e-14, "eraGc2gd", "p3", status)
-    vvd(h, 333.27707261303181, 1e-8, "eraGc2gd", "h3", status)
+    vvd(e, 0.982793723247329, 1e-14, "eraGc2gd", "e3", status)
+    vvd(p, 0.9716018181101512, 1e-14, "eraGc2gd", "p3", status)
+    vvd(h, 333.2770726130318, 1e-8, "eraGc2gd", "h3", status)
 
 
 def test_gd2gc():
