@@ -140,7 +140,7 @@ def reasonable_jd():
     reasonable date) so that hypothesis' example simplification produces
     obviously simple examples when they trigger problems.
     """
-    moments = [(2455000.0, 0.0), (mjd0.jd1, mjd0.jd2), (today.jd1, today.jd2)]
+    moments = [(2.455e6, 0.0), (mjd0.jd1, mjd0.jd2), (today.jd1, today.jd2)]
     return one_of(sampled_from(moments), reasonable_ordinary_jd(), leap_second_tricky())
 
 
@@ -182,7 +182,7 @@ def test_abs_jd2_always_less_than_half():
     assert np.all(t1.jd1 % 1 == 0)
     assert np.all(abs(t1.jd2) < 0.5)
     t2 = Time(
-        2400000.0, [[0.5 - tiny, 0.5 + tiny], [-0.5 - tiny, -0.5 + tiny]], format="jd"
+        2.4e6, [[0.5 - tiny, 0.5 + tiny], [-0.5 - tiny, -0.5 + tiny]], format="jd"
     )
     assert np.all(t2.jd1 % 1 == 0)
     assert np.all(abs(t2.jd2) < 0.5)
@@ -601,7 +601,7 @@ def test_time_argminmaxsort(scale, jds, delta):
 
 
 @given(sampled_from(STANDARD_TIME_SCALES), unreasonable_jd(), unreasonable_jd())
-@example(scale="utc", jds_a=(2455000.0, 0.0), jds_b=(2443144.5, 0.5000462962962965))
+@example(scale="utc", jds_a=(2.455e6, 0.0), jds_b=(2443144.5, 0.5000462962962965))
 @example(
     scale="utc",
     jds_a=(2459003.0, 0.267502885949074),

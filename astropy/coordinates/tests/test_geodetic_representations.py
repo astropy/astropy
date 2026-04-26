@@ -32,15 +32,15 @@ class TestCustomGeodeticRepresentations:
 
         class CustomGeodetic(BaseGeodeticRepresentation):
             _flattening = 0.01832
-            _equatorial_radius = 4000000.0 * u.m
+            _equatorial_radius = 4.0e6 * u.m
 
         class CustomSphericGeodetic(BaseGeodeticRepresentation):
             _flattening = 0.0
-            _equatorial_radius = 4000000.0 * u.m
+            _equatorial_radius = 4.0e6 * u.m
 
         class CustomSphericBodycentric(BaseBodycentricRepresentation):
             _flattening = 0.0
-            _equatorial_radius = 4000000.0 * u.m
+            _equatorial_radius = 4.0e6 * u.m
 
         class IAUMARS2000GeodeticRepresentation(BaseGeodeticRepresentation):
             _equatorial_radius = 3396190.0 * u.m

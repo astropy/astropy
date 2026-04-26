@@ -156,7 +156,7 @@ def fk4_e_terms(equinox):
     #  Seidelmann (ed), University Science Books (1992).
     T = (equinox.jd - jd1950) / 36525.0
     # Eccentricity of the Earth's orbit
-    ek = math.radians(k) * ((-0.000000126 * T - 0.00004193) * T + 0.01673011)
+    ek = math.radians(k) * ((-1.26e-7 * T - 0.00004193) * T + 0.01673011)
     # Mean longitude of perigee of the solar orbit
     g = np.radians((((0.012 * T + 1.65) * T + 6190.67) * T + 1015489.951) / 3600.0)
     minus_ek_cos_g = -ek * np.cos(g)

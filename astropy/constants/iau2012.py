@@ -73,7 +73,7 @@ L_sun = IAU2012(
     "Solar luminosity",
     3.846e26,
     "W",
-    0.0005e26,
+    5.0e22,
     "Allen's Astrophysical Quantities 4th Ed.",
     system="si",
 )
@@ -84,7 +84,7 @@ M_sun = IAU2012(
     "Solar mass",
     1.9891e30,
     "kg",
-    0.00005e30,
+    5.0e25,
     "Allen's Astrophysical Quantities 4th Ed.",
     system="si",
 )
@@ -109,7 +109,7 @@ M_jup = IAU2012(
     "Jupiter mass",
     1.8987e27,
     "kg",
-    0.00005e27,
+    5.0e22,
     "Allen's Astrophysical Quantities 4th Ed.",
     system="si",
 )
@@ -120,7 +120,7 @@ R_jup = IAU2012(
     "Jupiter equatorial radius",
     7.1492e7,
     "m",
-    0.00005e7,
+    5.0e2,
     "Allen's Astrophysical Quantities 4th Ed.",
     system="si",
 )
@@ -131,7 +131,7 @@ M_earth = IAU2012(
     "Earth mass",
     5.9742e24,
     "kg",
-    0.00005e24,
+    5.0e19,
     "Allen's Astrophysical Quantities 4th Ed.",
     system="si",
 )
@@ -142,7 +142,7 @@ R_earth = IAU2012(
     "Earth equatorial radius",
     6.378136e6,
     "m",
-    0.0000005e6,
+    5.0e-1,
     "Allen's Astrophysical Quantities 4th Ed.",
     system="si",
 )

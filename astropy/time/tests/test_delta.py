@@ -327,7 +327,7 @@ class TestTimeDelta:
     def test_from_non_float(self):
         dt = TimeDelta("1.000000000000001", format="jd")
         assert dt != TimeDelta(1.000000000000001, format="jd")  # precision loss.
-        assert dt == TimeDelta(1, 0.000000000000001, format="jd")
+        assert dt == TimeDelta(1, 1.0e-15, format="jd")
         dt2 = TimeDelta(Decimal("1.000000000000001"), format="jd")
         assert dt2 == dt
 
@@ -720,8 +720,8 @@ quantity_str_basic_cases = [
     ("2.5hr", "2hr 30min", 2.5 * 3600),
     # Variations on single input component with exponent to multiple output components
     ("3.000001e7s", "347d 5hr 20min 10.0s", 30000010.0),
-    ("3.e7s", "347d 5hr 20min", 30000000.0),
-    ("3e7s", "347d 5hr 20min", 30000000.0),
+    ("3.e7s", "347d 5hr 20min", 3.0e7),
+    ("3e7s", "347d 5hr 20min", 3.0e7),
     # High precision seconds
     ("1.0123456789012345s", "1.012s", 1.0123456789012345),
     # High precision seconds, random/missing white space and a longer time interval
