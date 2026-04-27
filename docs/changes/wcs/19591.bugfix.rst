@@ -1,0 +1,9 @@
+Lazily-populated caches on a ``WCS`` (such as the internal
+``world_axis_object_components``/``world_axis_object_classes`` cache) are no
+longer included in the pickled state. They are regenerated on demand after
+unpickling, which keeps pickling robust even when a cache entry holds a
+non-picklable value.
+
+Fixed a bug where the ``preserve_units`` option passed to the ``WCS``
+constructor was silently reset to ``False`` when a ``WCS`` object was pickled
+and unpickled.
