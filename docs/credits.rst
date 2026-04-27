@@ -337,6 +337,7 @@ Core Package Contributors
 * Luke G\. Bouma
 * Luke Kelley
 * Luz Paz
+* M Bussonnier
 * M\. Atakan Gürkan
 * M\. S\. R\. Dinesh
 * Mabry Cervin
@@ -369,7 +370,6 @@ Core Package Contributors
 * Matthew Petroff
 * Matthew Pitkin
 * Matthew Turk
-* Matthias Bussonnier
 * Matthias Stein
 * Matthieu Bec
 * Mavani Bhautik
@@ -453,6 +453,7 @@ Core Package Contributors
 * Peter Scicluna
 * Peter Teuben
 * Peter Yoachim
+* Pierre Sassoulas
 * Pieter Eendebak
 * Piyush Sharma
 * Porter Averett
