@@ -121,7 +121,6 @@ Core Package Contributors
 * Conor MacBride
 * Cristian Ardelean
 * Curtis McCully
-* Curtis McCully
 * Cyrus
 * Damien LaRocque
 * Dan Foreman-Mackey
@@ -371,7 +370,6 @@ Core Package Contributors
 * Matthew Petroff
 * Matthew Pitkin
 * Matthew Turk
-* Matthias Bussonnier
 * Matthias Stein
 * Matthieu Bec
 * Mavani Bhautik
