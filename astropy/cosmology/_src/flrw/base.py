@@ -819,7 +819,7 @@ class FLRW(
 
         Parameters
         ----------
-        z, z2 : Quantity ['redshift'], array-like
+        z, z2 : Quantity-like ['redshift'], array-like
             Input redshifts. If one argument ``z`` is given, the distance
             :math:`d_c(0, z)` is returned. If two arguments ``z1, z2`` are
             given, the distance :math:`d_c(z_1, z_2)` is returned.
@@ -913,11 +913,18 @@ class FLRW(
 
         Parameters
         ----------
-        z, z2 : Quantity ['redshift'], array-like
-            Input redshifts. If one argument ``z`` is given, the distance :math:`d(0,
-            z)` is returned. If two arguments ``z1, z2`` are given, the distance
-            :math:`d(z_1, z_2)` is returned.
+        z, z2 : Quantity-like ['redshift'], array-like
+            Input redshifts. If one argument ``z`` is given, the distance
+            :math:`d(0, z)` is returned. If two arguments ``z1, z2`` are given, the
+            distance :math:`d(z_1, z_2)` is returned.
 
+        .. versionchanged:: 7.0
+            Passing ``z`` as a keyword argument is deprecated.
+
+        .. versionchanged:: 7.1
+            Passing ``z`` and ``z2`` as keyword arguments is deprecated. The
+            two-argument form ``comoving_transverse_distance(z1, z2)`` was added, and
+            ``z`` and ``z2`` are now positional-only.
         Returns
         -------
         d : Quantity ['length']
