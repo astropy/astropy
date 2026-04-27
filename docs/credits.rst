@@ -121,6 +121,7 @@ Core Package Contributors
 * Conor MacBride
 * Cristian Ardelean
 * Curtis McCully
+* Curtis McCully
 * Cyrus
 * Damien LaRocque
 * Dan Foreman-Mackey
@@ -337,6 +338,7 @@ Core Package Contributors
 * Luke G\. Bouma
 * Luke Kelley
 * Luz Paz
+* M Bussonnier
 * M\. Atakan Gürkan
 * M\. S\. R\. Dinesh
 * Mabry Cervin
@@ -453,6 +455,7 @@ Core Package Contributors
 * Peter Scicluna
 * Peter Teuben
 * Peter Yoachim
+* Pierre Sassoulas
 * Pieter Eendebak
 * Piyush Sharma
 * Porter Averett
