@@ -108,7 +108,7 @@ else:
 
 def quantity_support(format=None):
     """
-    Enable support for plotting `astropy.units.Quantity` instances in
+    Enable support for plotting :class:`astropy.units.Quantity` instances in
     matplotlib.
 
     May be (optionally) used with a ``with`` statement.
@@ -119,9 +119,9 @@ def quantity_support(format=None):
       >>> with visualization.quantity_support():
       ...     fig, ax = plt.subplots()
       ...     ax.plot([1, 2, 3] * u.m)
-      [...]
+      ...  # doctest: +ELLIPSIS
       ...     ax.plot([101, 125, 150] * u.cm)
-      [...]
+      ...  # doctest: +ELLIPSIS
       ...     ax.yaxis.set_units(u.km)
       ...     plt.draw()
 
@@ -132,7 +132,7 @@ def quantity_support(format=None):
 
     Parameters
     ----------
-    format : `astropy.units.format.Base` subclass or str or None, optional
+    format : :class:`astropy.units.format.Base` subclass or str or None, optional
         The name of a format or a formatter class.  If not
         provided, defaults to ``latex_inline``.
 
