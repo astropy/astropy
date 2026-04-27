@@ -212,7 +212,7 @@ def convolve(
     if nan_treatment not in ("interpolate", "fill"):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
-    if np.ma.is_masked(kernel) and kernel.mask.any():
+    if np.ma.is_masked(kernel):
         raise ValueError("Masked kernel present, please fill and try again")
 
     # OpenMP support is disabled at the C src code level, changing this will have
