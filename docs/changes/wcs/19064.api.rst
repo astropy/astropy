@@ -1,4 +1,6 @@
 ``wcs.high_level_objects_to_values`` and ``wcs.values_to_high_level_objects``
-now accept two new optional parameters - ``object_classes`` and ``object_components``, which are the
-``world_axis_object_classes`` and ``world_axis_object_components`` for a specific coordinate
-frame in the WCS pipeline. This change applies mostly to GWCS.
+no longer require their ``low_level_wcs`` argument to be a full
+`~astropy.wcs.wcsapi.BaseLowLevelWCS` instance. Any object exposing
+``world_axis_object_classes`` and ``world_axis_object_components`` attributes
+is accepted, and ``serialized_classes`` is now optional (treated as ``False``
+if absent).
