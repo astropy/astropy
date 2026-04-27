@@ -212,8 +212,8 @@ def test_values_to_objects():
 def test_low_level_wcs_duck_typed():
     # Anything exposing world_axis_object_classes and world_axis_object_components
     # should be accepted as low_level_wcs; serialized_classes is optional.
-    from collections import namedtuple
     from types import SimpleNamespace
+    from typing import NamedTuple
 
     wcs = SkyCoordDuplicateWCS()
     c1, c2 = wcs.pixel_to_world(1, 2, 3, 4)
@@ -229,7 +229,10 @@ def test_low_level_wcs_duck_typed():
     assert c1.ra == c1_out.ra and c1.dec == c1_out.dec
     assert c2.l == c2_out.l and c2.b == c2_out.b
 
-    Frame = namedtuple("Frame", ["world_axis_object_classes", "world_axis_object_components"])
+    class Frame(NamedTuple):
+        world_axis_object_classes: dict
+        world_axis_object_components: list
+
     nt = Frame(wcs.world_axis_object_classes, wcs.world_axis_object_components)
     assert np.allclose(
         high_level_objects_to_values(c1, c2, low_level_wcs=nt), [2, 4, 6, 8]
