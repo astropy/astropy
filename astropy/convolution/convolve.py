@@ -714,8 +714,10 @@ def convolve_fft(
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
 
-    if np.ma.is_masked(kernel) and kernel.mask.any():
-        raise ValueError("Masked kernel present, please fill and try again")
+    if np.ma.is_masked(kernel):
+        raise ValueError("The kernel is a masked array with masked values. "
+                         "Use kernel.filled(fill_value) to fill masked values "
+                         "before passing to convolve.")
 
     # Check kernel is kernel instance
     if isinstance(kernel, Kernel):
