@@ -192,14 +192,14 @@ class UnifiedInputRegistry(_UnifiedIORegistryBase):
         ctx = None
         try:
             # Expand a tilde-prefixed path if present in args[0]
-            if len(args):
+            if args:
                 args = (_expand_user_in_arg0(args[0]), *args[1:])
 
             if format is None:
                 path = None
                 fileobj = None
 
-                if len(args):
+                if args:
                     if isinstance(args[0], PATH_TYPES) and not os.path.isdir(args[0]):
                         from astropy.utils.data import get_readable_fileobj
 
@@ -373,13 +373,13 @@ class UnifiedOutputRegistry(_UnifiedIORegistryBase):
             .. versionadded:: 4.3
         """
         # Expand a tilde-prefixed path if present in args[0]
-        if len(args):
+        if args:
             args = (_expand_user_in_arg0(args[0]), *args[1:])
 
         if format is None:
             path = None
             fileobj = None
-            if len(args):
+            if args:
                 if isinstance(args[0], PATH_TYPES):
                     path = args[0]
                     fileobj = None
