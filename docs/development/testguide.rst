@@ -329,13 +329,13 @@ Tests that use the file cache
 By default, Astropy's test configuration sets up a clean file cache in a temporary
 directory that is used only for that test run and then destroyed.  This is to
 ensure consistency between test runs, as well as to not clutter users' caches
-(i.e., the cache directory returned by `~astropy.config.get_cache_dir`) with
+(i.e., the cache directory returned by `~astropy.config.get_cache_dir_path`) with
 test files.
 
 However, some test authors (especially for affiliated packages) may find it
 desirable to cache files downloaded during a test run in a more permanent
 location (e.g., for large data sets).  To this end the
-`~astropy.config.set_temp_cache` helper may be used.  It can be used either as
+`~astropy.config.temporary_cache_dir_path` helper may be used.  It can be used either as
 a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).

@@ -1477,7 +1477,7 @@ def download_file(
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
 
     http_headers : dict or None
         HTTP request headers to pass into ``urlopen`` if needed. (These headers
@@ -1645,7 +1645,7 @@ def is_url_in_cache(url_key, pkgname="astropy"):
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
 
 
     Returns
@@ -1676,8 +1676,16 @@ def cache_total_size(pkgname="astropy"):
 
 
 def _do_download_files_in_parallel(kwargs):
-    with astropy.config.paths.set_temp_config(kwargs.pop("temp_config")):
-        with astropy.config.paths.set_temp_cache(kwargs.pop("temp_cache")):
+    if (temp_config_path := kwargs.pop("temp_config")) is not None:
+        temp_config_args = (temp_config_path,)
+    else:
+        temp_config_args = ()
+    if (temp_cache_path := kwargs.pop("temp_cache")) is not None:
+        temp_cache_args = (temp_cache_path,)
+    else:
+        temp_cache_args = ()
+    with astropy.config.paths.set_temp_config(*temp_config_args):
+        with astropy.config.paths.set_temp_cache(*temp_cache_args):
             return download_file(**kwargs)
 
 
@@ -1746,7 +1754,7 @@ def download_files_in_parallel(
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
 
     Returns
     -------
@@ -1760,6 +1768,11 @@ def download_files_in_parallel(
     files will have been successfully downloaded and will remain in
     the cache.
     """
+    from astropy.config.paths import (
+        set_temp_cache,
+        set_temp_config,
+    )
+
     from .console import ProgressBar
 
     if timeout is None:
@@ -1798,8 +1811,8 @@ def download_files_in_parallel(
                 timeout=timeout,
                 sources=sources.get(u),
                 pkgname=pkgname,
-                temp_cache=astropy.config.paths.set_temp_cache._temp_path,
-                temp_config=astropy.config.paths.set_temp_config._temp_path,
+                temp_cache=set_temp_cache._get_current_override(),
+                temp_config=set_temp_config._get_current_override(),
             )
             for u in combined_urls
         ],
@@ -1861,7 +1874,7 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
     """
     try:
         dldir = _get_download_cache_loc(pkgname)
@@ -1917,7 +1930,7 @@ def _get_download_cache_loc(pkgname="astropy"):
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
 
     Returns
     -------
@@ -2000,7 +2013,7 @@ def check_download_cache(pkgname="astropy"):
     pkgname : str, optional
         The package name to use to locate the download cache, i.e., for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
 
     Raises
     ------
@@ -2135,7 +2148,7 @@ def import_file_to_cache(
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
     replace : boolean, optional
         Whether or not to replace an existing object in the cache, if one exists.
         If replacement is not requested but the object exists, silently pass.
@@ -2186,7 +2199,7 @@ def get_cached_urls(pkgname="astropy"):
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
 
     Returns
     -------
@@ -2247,7 +2260,7 @@ def export_download_cache(
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
 
     See Also
     --------
@@ -2288,7 +2301,7 @@ def import_download_cache(
     pkgname : `str`, optional
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
-        ``~/.astropy/cache``.
+        ``~/.cache/astropy``.
 
     See Also
     --------

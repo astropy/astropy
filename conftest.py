@@ -4,8 +4,6 @@
 # in particular if running e.g. ``pytest docs/``.
 
 import os
-import tempfile
-from pathlib import Path
 
 import hypothesis
 
@@ -65,17 +63,3 @@ default = (
     else "ci"
 )
 hypothesis.settings.load_profile(os.environ.get("HYPOTHESIS_PROFILE", default))
-
-# Make sure we use temporary directories for the config and cache
-# so that the tests are insensitive to local configuration.
-
-os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
-os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
-
-Path(os.environ["XDG_CONFIG_HOME"]).joinpath("astropy").mkdir()
-Path(os.environ["XDG_CACHE_HOME"]).joinpath("astropy").mkdir()
-
-# Note that we don't need to change the environment variables back or remove
-# them after testing, because they are only changed for the duration of the
-# Python process, and this configuration only matters if running pytest
-# directly, not from e.g. an IPython session.
