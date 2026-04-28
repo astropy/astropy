@@ -21,9 +21,11 @@ NANTREATMENT_OPTIONS = ("interpolate", "fill")
 NORMALIZE_OPTIONS = [True, False]
 PRESERVE_NAN_OPTIONS = [True, False]
 
-MASKED_KERNEL_ERRORMESSAGE = ("The kernel is a masked array with masked values. "
-                              "Use kernel.filled(fill_value) to fill masked values "
-                              "before passing to convolve.")
+MASKED_KERNEL_ERRORMESSAGE = (
+    "The kernel is a masked array with masked values. "
+    "Use kernel.filled(fill_value) to fill masked values "
+    "before passing to convolve."
+)
 
 """
 What does convolution mean?  We use the 'same size' assumption here (i.e.,
@@ -487,9 +489,7 @@ class TestConvolve1D:
         array = np.array([1.0, 2.0, 3.0], dtype="float64")
         kernel = np.array([1, 1, 1])
         masked_kernel = np.ma.masked_array(kernel, mask=[0, 1, 0])
-        with pytest.raises(
-            ValueError, match=MASKED_KERNEL_ERRORMESSAGE
-        ):
+        with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
             result = convolve_fft(array, masked_kernel, boundary="fill", fill_value=0.0)
 
         filled_masked_kernel = masked_kernel.filled(0.0)
@@ -498,9 +498,7 @@ class TestConvolve1D:
         )
         assert_floatclose(result, [1, 2, 1])
 
-        with pytest.raises(
-            ValueError, match=MASKED_KERNEL_ERRORMESSAGE
-        ):
+        with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
             # Now test against convolve()
             convolve_result = convolve(
                 array, masked_kernel, boundary="fill", fill_value=0.0
@@ -1032,9 +1030,7 @@ def test_convolve_fft_masked_kernel_raises():
     array = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     masked_kernel = np.ma.array([1, 1, 1], mask=[0, 1, 0])
 
-    with pytest.raises(
-        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
-    ):
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
         convolve_fft(array, masked_kernel, boundary="fill")
 
     # Test with 2D masked kernel with masked values
@@ -1043,17 +1039,13 @@ def test_convolve_fft_masked_kernel_raises():
         [[1, 1, 1], [1, 1, 1], [1, 1, 1]], mask=[[0, 0, 0], [0, 1, 0], [0, 0, 0]]
     )
 
-    with pytest.raises(
-        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
-    ):
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
         convolve_fft(array_2d, masked_kernel_2d, boundary="fill")
 
     # Test with all values masked
     all_masked_kernel = np.ma.array([1, 1, 1], mask=[1, 1, 1])
 
-    with pytest.raises(
-        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
-    ):
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
         convolve_fft(array, all_masked_kernel, boundary="fill")
 
 

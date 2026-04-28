@@ -216,9 +216,11 @@ def convolve(
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
 
     if np.ma.is_masked(kernel):
-        raise ValueError("The kernel is a masked array with masked values. "
-                         "Use kernel.filled(fill_value) to fill masked values "
-                         "before passing to convolve.")
+        raise ValueError(
+            "The kernel is a masked array with masked values. "
+            "Use kernel.filled(fill_value) to fill masked values "
+            "before passing to convolve."
+        )
 
     # OpenMP support is disabled at the C src code level, changing this will have
     # no effect.
@@ -716,9 +718,11 @@ def convolve_fft(
     # returned! Note that this always makes a copy.
 
     if np.ma.is_masked(kernel):
-        raise ValueError("The kernel is a masked array with masked values. "
-                         "Use kernel.filled(fill_value) to fill masked values "
-                         "before passing to convolve.")
+        raise ValueError(
+            "The kernel is a masked array with masked values. "
+            "Use kernel.filled(fill_value) to fill masked values "
+            "before passing to convolve."
+        )
 
     # Check kernel is kernel instance
     if isinstance(kernel, Kernel):
