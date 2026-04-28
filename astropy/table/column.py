@@ -168,11 +168,17 @@ def _contains_ma_masked(
 
     This does not create a copy of `data`.
     """
-    if ndim == 0:
-        return values is np_ma_masked
-    if ndim == 1:
-        return any(value is np_ma_masked for value in values)
-    return any(_contains_ma_masked(value, ndim - 1, np_ma_masked) for value in values)
+    match ndim:
+        case int(neg) if neg < 0:
+            raise AssertionError
+        case 0:
+            return values is np_ma_masked
+        case 1:
+            return any(value is np_ma_masked for value in values)
+        case _:
+            return any(
+                _contains_ma_masked(value, ndim - 1, np_ma_masked) for value in values
+            )
 
 
 def _convert_sequence_data_to_array(data, dtype=None):
