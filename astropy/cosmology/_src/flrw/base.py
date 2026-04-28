@@ -925,6 +925,7 @@ class FLRW(
             Passing ``z`` and ``z2`` as keyword arguments is deprecated. The
             two-argument form ``comoving_transverse_distance(z1, z2)`` was added, and
             ``z`` and ``z2`` are now positional-only.
+
         Returns
         -------
         d : Quantity ['length']
