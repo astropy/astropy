@@ -24,6 +24,10 @@ NANHANDLING_OPTIONS = ["interpolate", "fill"]
 NORMALIZE_OPTIONS = [True, False]
 PRESERVE_NAN_OPTIONS = [True, False]
 
+MASKED_KERNEL_ERRORMESSAGE = ("The kernel is a masked array with masked values. "
+                              "Use kernel.filled(fill_value) to fill masked values "
+                              "before passing to convolve.")
+
 convolve_options = []
 for boundary_option in BOUNDARY_OPTIONS:
     convolve_options.append((convolve, boundary_option))
@@ -387,7 +391,7 @@ class TestConvolve1D:
         )
 
         with pytest.raises(
-            ValueError, match="Masked kernel present, please fill and try again"
+            ValueError, match=MASKED_KERNEL_ERRORMESSAGE
         ):
             z = convolve(
                 x, y_masked, boundary=boundary, normalize_kernel=normalize_kernel
@@ -1320,7 +1324,7 @@ def test_convolve_masked_kernel_raises():
     masked_kernel = ma.array([1, 1, 1], mask=[0, 1, 0])
 
     with pytest.raises(
-        ValueError, match="Masked kernel present, please fill and try again"
+        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
     ):
         convolve(array, masked_kernel)
 
@@ -1331,7 +1335,7 @@ def test_convolve_masked_kernel_raises():
     )
 
     with pytest.raises(
-        ValueError, match="Masked kernel present, please fill and try again"
+        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
     ):
         convolve(array_2d, masked_kernel_2d)
 
@@ -1339,7 +1343,7 @@ def test_convolve_masked_kernel_raises():
     all_masked_kernel = ma.array([1, 1, 1], mask=[1, 1, 1])
 
     with pytest.raises(
-        ValueError, match="Masked kernel present, please fill and try again"
+        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
     ):
         convolve(array, all_masked_kernel)
 
