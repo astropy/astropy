@@ -27,7 +27,8 @@ PRESERVE_NAN_OPTIONS = [True, False]
 MASKED_KERNEL_ERRORMESSAGE = (
     "The kernel is a masked array with masked values. "
     r"Use kernel\.filled\(fill_value\) to fill masked values "
-    "before passing to convolve.")
+    "before passing to convolve."
+)
 
 convolve_options = []
 for boundary_option in BOUNDARY_OPTIONS:
