@@ -6,7 +6,12 @@ from pathlib import Path
 
 import astropy.io.registry as io_registry
 from astropy.table import Table
-from astropy.utils.compat.optional_deps import HAS_PANDAS
+from astropy.utils.compat.optional_deps import (
+    HAS_BS4,
+    HAS_HTML5LIB,
+    HAS_LXML,
+    HAS_PANDAS,
+)
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 __all__ = ["PANDAS_FMTS"]
@@ -22,33 +27,6 @@ PANDAS_FMTS = {
 }
 
 PANDAS_PREFIX = "pandas."
-
-# Imports for reading HTML
-_IMPORTS = False
-_HAS_BS4 = False
-_HAS_LXML = False
-_HAS_HTML5LIB = False
-
-
-def import_html_libs():
-    """Try importing dependencies for reading HTML.
-
-    This is copied from pandas.io.html
-    """
-    # import things we need
-    # but make this done on a first use basis
-
-    global _IMPORTS
-    if _IMPORTS:
-        return
-
-    global _HAS_BS4, _HAS_LXML, _HAS_HTML5LIB
-
-    from astropy.utils.compat.optional_deps import HAS_BS4 as _HAS_BS4
-    from astropy.utils.compat.optional_deps import HAS_HTML5LIB as _HAS_HTML5LIB
-    from astropy.utils.compat.optional_deps import HAS_LXML as _HAS_LXML
-
-    _IMPORTS = True
 
 
 def _pandas_read(fmt, filespec, **kwargs):
@@ -69,8 +47,7 @@ def _pandas_read(fmt, filespec, **kwargs):
     # not specifically selected a flavor.  If things go wrong the pandas exception
     # with instruction to install a library will come up.
     if pandas_fmt == "html" and "flavor" not in kwargs:
-        import_html_libs()
-        if not _HAS_LXML and _HAS_HTML5LIB and _HAS_BS4:
+        if not HAS_LXML and HAS_HTML5LIB and HAS_BS4:
             read_kwargs["flavor"] = "bs4"
 
     df = read_func(filespec, **read_kwargs)
