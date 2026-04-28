@@ -372,8 +372,8 @@ def temporary_cache_dir_path(
 
     Parameters
     ----------
-    namespace : str, keyword-only, mandatory
-        A unique identifier for the namespace associated to a temporary directory,
+    namespace : str, keyword-only
+        A mandatory unique identifier for the namespace associated to a temporary directory,
         which will used to name the directory itself.
         This string must be non-empty, and can only contain alphanumeric characters,
         ``_``, ``-`` or ``.``.
@@ -431,8 +431,8 @@ def temporary_config_dir_path(
 
     Parameters
     ----------
-    namespace: str, keyword-only, mandatory
-        A unique identifier for the namespace associated to a temporary directory,
+    namespace: str, keyword-only
+        A mandatory unique identifier for the namespace associated to a temporary directory,
         which will used to name the directory itself.
         This string must be non-empty, and can only contain alphanumeric characters,
         ``_``, ``-`` or ``.``.
