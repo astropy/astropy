@@ -153,8 +153,8 @@ def convolve(
     kernel : `numpy.ndarray` or `~astropy.convolution.Kernel`
         The convolution kernel. The number of dimensions should match
         those for the array, and the dimensions should be odd in all
-        directions. If a masked array, the masked values will be
-        replaced by ``fill_value``.
+        directions. The kernel cannot be a masked array with masked
+        values.
     boundary : str, optional
         A flag indicating how to handle boundaries:
 
@@ -187,9 +187,10 @@ def convolve(
         A "mask" array. Shape must match ``array``, and anything that
         is masked (i.e., not 0/`False`) will be set to NaN for the
         convolution. If `None`, no masking will be performed unless
-        ``array`` is a masked array. If ``mask`` is not `None` *and*
-        ``array`` is a masked array, a pixel is masked if it is masked
-        in either ``mask`` *or* ``array.mask``.
+        ``array`` is a masked array.   If ``mask`` is not `None` *and*
+        ``array`` is a masked array, a pixel is masked if it is masked in
+        either ``mask`` *or* ``array.mask``.  The mask cannot be a masked
+        array.
     normalization_zero_tol : float, optional
         The absolute tolerance on whether the kernel is different than
         zero. If the kernel sums to zero to within this precision, it
@@ -213,6 +214,13 @@ def convolve(
 
     if nan_treatment not in ("interpolate", "fill"):
         raise ValueError("nan_treatment must be one of 'interpolate','fill'")
+
+    if np.ma.is_masked(kernel):
+        raise ValueError(
+            "The kernel is a masked array with masked values. "
+            "Use kernel.filled(fill_value) to fill masked values "
+            "before passing to convolve."
+        )
 
     # OpenMP support is disabled at the C src code level, changing this will have
     # no effect.
@@ -528,7 +536,8 @@ def convolve_fft(
         all directions, unlike in the non-fft `convolve` function. The
         kernel will be normalized if ``normalize_kernel`` is set. It is
         assumed to be centered (i.e., shifts may result if your kernel
-        is asymmetric)
+        is asymmetric).  The kernel cannot be a masked array with masked
+        values.
     boundary : {'fill', 'wrap'}, optional
         A flag indicating how to handle boundaries:
 
@@ -566,9 +575,10 @@ def convolve_fft(
         A "mask" array. Shape must match ``array``, and anything that
         is masked (i.e., not 0/`False`) will be set to NaN for the
         convolution. If `None`, no masking will be performed unless
-        ``array`` is a masked array. If ``mask`` is not `None` *and*
-        ``array`` is a masked array, a pixel is masked if it is masked
-        in either ``mask`` *or* ``array.mask``.
+        ``array`` is a masked array.  If ``mask`` is not `None` *and*
+        ``array`` is a masked array, a pixel is masked if it is masked in
+        either ``mask`` *or* ``array.mask``.  The mask cannot be a masked
+        array.
     crop : bool, optional
         Default on. Return an image of the size of the larger of
         the input image and the kernel. If the image and kernel are
@@ -706,6 +716,13 @@ def convolve_fft(
     # Checking copied from convolve.py - however, since FFTs have real &
     # complex components, we change the types.  Only the real part will be
     # returned! Note that this always makes a copy.
+
+    if np.ma.is_masked(kernel):
+        raise ValueError(
+            "The kernel is a masked array with masked values. "
+            "Use kernel.filled(fill_value) to fill masked values "
+            "before passing to convolve."
+        )
 
     # Check kernel is kernel instance
     if isinstance(kernel, Kernel):

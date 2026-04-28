@@ -24,6 +24,12 @@ NANHANDLING_OPTIONS = ["interpolate", "fill"]
 NORMALIZE_OPTIONS = [True, False]
 PRESERVE_NAN_OPTIONS = [True, False]
 
+MASKED_KERNEL_ERRORMESSAGE = (
+    "The kernel is a masked array with masked values. "
+    r"Use kernel\.filled\(fill_value\) to fill masked values "
+    "before passing to convolve."
+)
+
 convolve_options = []
 for boundary_option in BOUNDARY_OPTIONS:
     convolve_options.append((convolve, boundary_option))
@@ -371,18 +377,28 @@ class TestConvolve1D:
     @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
     def test_int_masked_kernel(self, boundary, normalize_kernel):
         """
-        Test that convolve works correctly with integer masked kernels.
+        Test that convolve does not accept masked kernels.
+        As of PR #18363, masked kernels with actual masked values must be explicitly
+        filled before being passed to convolve.
         """
 
         if normalize_kernel:
             pytest.xfail("You can't normalize by a zero sum kernel")
 
         x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        y = ma.array(
+        y_masked = ma.array(
             [-1, -1, -1, -1, 8, -1, -1, -1, -1],
             mask=[1, 0, 0, 0, 0, 0, 0, 0, 0],
             fill_value=0.0,
         )
+
+        with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+            z = convolve(
+                x, y_masked, boundary=boundary, normalize_kernel=normalize_kernel
+            )
+
+        # Fill the masked kernel before passing to convolve
+        y = y_masked.filled()
 
         z = convolve(x, y, boundary=boundary, normalize_kernel=normalize_kernel)
 
@@ -1293,3 +1309,63 @@ def test_convolve_nan_zero_sum_kernel():
         ),
     ):
         convolve([1, np.nan, 3], [-1, 2, -1], normalize_kernel=False)
+
+
+def test_convolve_masked_kernel_raises():
+    """
+    Test that convolve raises ValueError when passed a masked kernel
+    with actual masked values.
+
+    This is a regression test for issue #7543 - masked kernels should not be silently
+    filled, as it can lead to unexpected behavior.
+    """
+    # Test with 1D masked kernel with masked values
+    array = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    masked_kernel = ma.array([1, 1, 1], mask=[0, 1, 0])
+
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+        convolve(array, masked_kernel)
+
+    # Test with 2D masked kernel with masked values
+    array_2d = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    masked_kernel_2d = ma.array(
+        [[1, 1, 1], [1, 1, 1], [1, 1, 1]], mask=[[0, 0, 0], [0, 1, 0], [0, 0, 0]]
+    )
+
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+        convolve(array_2d, masked_kernel_2d)
+
+    # Test with all values masked
+    all_masked_kernel = ma.array([1, 1, 1], mask=[1, 1, 1])
+
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+        convolve(array, all_masked_kernel)
+
+
+def test_convolve_unmasked_masked_array_kernel():
+    """
+    Test that convolve works correctly when passed a masked array kernel
+    with no actual masked values (i.e., all mask values are False).
+
+    This should work without raising an error since there are no masked values.
+    """
+    array = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    # Masked array with no actual masked values
+    unmasked_kernel = ma.array([1, 2, 1], mask=[0, 0, 0])
+
+    # This should work without error
+    result = convolve(array, unmasked_kernel, normalize_kernel=True)
+
+    # Verify result is reasonable (not testing exact values, just that it runs)
+    assert result.shape == array.shape
+    assert not np.any(np.isnan(result))
+
+    # Test with 2D as well
+    array_2d = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    unmasked_kernel_2d = ma.array(
+        [[0, 1, 0], [1, 1, 1], [0, 1, 0]], mask=[[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    )
+
+    result_2d = convolve(array_2d, unmasked_kernel_2d, normalize_kernel=True)
+    assert result_2d.shape == array_2d.shape
+    assert not np.any(np.isnan(result_2d))
