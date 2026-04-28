@@ -1,0 +1,2 @@
+Fixes edge treatment in ``convolve(..., boundary='fill', fill_value=nan)`` to be consistent with
+``convolve_fft``.

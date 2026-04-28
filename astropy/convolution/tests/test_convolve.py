@@ -1369,3 +1369,47 @@ def test_convolve_unmasked_masked_array_kernel():
     result_2d = convolve(array_2d, unmasked_kernel_2d, normalize_kernel=True)
     assert result_2d.shape == array_2d.shape
     assert not np.any(np.isnan(result_2d))
+
+
+def test_regression_16497_nan_treatment_consistency():
+    """
+    Regression test for issue #16497: convolve and convolve_fft should produce
+    consistent results when no NaN values are present in the input array.
+
+    Previously, convolve would introduce a NaN buffer of kernel_size//2 when
+    no NaN values were present, but would work correctly when NaN values were
+    present. This test ensures both functions produce consistent results
+    regardless of the presence of NaN values in the input.
+    """
+    # Create test data without NaN values
+    ar = np.ones((10, 10))
+    gaussian = Gaussian2DKernel(1, x_size=5, y_size=5)
+
+    # Test with no NaN values in input
+    result_convolve = convolve(
+        ar, gaussian, boundary="fill", fill_value=np.nan, preserve_nan=True
+    )
+    result_convolve_fft = convolve_fft(
+        ar, gaussian, boundary="fill", fill_value=np.nan, preserve_nan=True
+    )
+
+    # The results should be consistent between the two functions
+    assert_array_almost_equal(result_convolve, result_convolve_fft, decimal=10)
+
+    # Also test that the results are all finite (no NaN buffer)
+    assert np.all(np.isfinite(result_convolve))
+    assert np.all(np.isfinite(result_convolve_fft))
+
+    ar[5, 5] = np.nan
+    smoothed = convolve(
+        ar, gaussian, boundary="fill", fill_value=np.nan, preserve_nan=True
+    )
+    smoothed_fft = convolve_fft(
+        ar, gaussian, boundary="fill", fill_value=np.nan, preserve_nan=True
+    )
+    assert np.isnan(smoothed[5, 5])
+    assert np.sum(np.isnan(smoothed)) == 1
+    assert np.isnan(smoothed_fft[5, 5])
+    assert np.sum(np.isnan(smoothed_fft)) == 1
+
+    assert_array_almost_equal(smoothed, smoothed_fft, decimal=10)
