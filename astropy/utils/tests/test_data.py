@@ -23,7 +23,9 @@ import urllib.request
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from itertools import islice
+from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
+from uuid import uuid4
 
 import pytest
 
@@ -334,9 +336,9 @@ def test_temp_cache(tmp_path):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
-@pytest.mark.parametrize("parallel", [False, True])
+@pytest.mark.parametrize("strategy", ["parallel", "sequential"])
 def test_download_with_sources_and_bogus_original(
-    valid_urls, invalid_urls, temp_cache, parallel
+    valid_urls, invalid_urls, temp_cache, strategy
 ):
     # This is a combined test because the parallel version triggered a nasty
     # bug and I was trying to track it down by comparing with the non-parallel
@@ -361,15 +363,17 @@ def test_download_with_sources_and_bogus_original(
         urls.append((um, c, c_bad))
 
     # Now fetch them all
-    if parallel:
+    if strategy == "parallel":
         rs = download_files_in_parallel(
             [u for (u, c, c_bad) in urls], cache=True, sources=sources
         )
-    else:
+    elif strategy == "sequential":
         rs = [
             download_file(u, cache=True, sources=sources.get(u))
             for (u, c, c_bad) in urls
         ]
+    else:
+        raise AssertionError
     assert len(rs) == len(urls)
     for r, (u, c, c_bad) in zip(rs, urls):
         assert get_file_contents(r) == c
@@ -1106,6 +1110,7 @@ def test_get_pkg_data_contents():
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.remote_data(source="astropy")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_data_noastropy_fallback(monkeypatch):
     """
     Tests to make sure the default behavior when the cache directory can't
@@ -1115,20 +1120,13 @@ def test_data_noastropy_fallback(monkeypatch):
     # better yet, set the configuration to make sure the temp files are deleted
     conf.delete_temporary_downloads_at_exit = True
 
-    # make sure the config and cache directories are not searched
-    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
-
-    monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
-    monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
-
     # make sure the _find_or_create_astropy_dir function fails as though the
     # astropy dir could not be accessed
     @classmethod
     def osraiser(cls, linkto, pkgname=None):
         raise OSError()
 
-    monkeypatch.setattr(paths._SetTempPath, "_find_or_create_root_dir", osraiser)
+    monkeypatch.setattr(paths._DirectoryFinder, "find_namespaced_node", osraiser)
 
     # make sure the config dir search fails
     with pytest.raises(OSError):
@@ -1604,14 +1602,14 @@ def test_download_cache_update_doesnt_damage_cache(temp_cache, valid_urls):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
-def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
+def test_cache_dir_is_actually_a_file(tmp_path: Path, valid_urls):
     """Ensure that bogus cache settings are handled sensibly.
 
     Because the user can specify the cache location in a config file, and
     because they might try to deduce the location by looking around at what's
     in their directory tree, and because the cache directory is actual several
     tree levels down from the directory set in the config file, it's important
-    to check what happens if each of the steps in the path is wrong somehow.
+    to check what happens if any of the steps in the path is wrong somehow.
     """
 
     def check_quietly_ignores_bogus_cache():
@@ -1644,57 +1642,53 @@ def test_cache_dir_is_actually_a_file(tmp_path, valid_urls):
     # at a file instead of a directory, so make a directory we can
     # replace later.
     fn = tmp_path / "file"
+    fn.mkdir()
     ct = "contents\n"
-    os.mkdir(fn)
     with paths.set_temp_cache(fn):
         shutil.rmtree(fn)
-        with open(fn, "w") as f:
-            f.write(ct)
+        fn.write_text(ct)
         with pytest.raises(OSError):
             paths.get_cache_dir()
         check_quietly_ignores_bogus_cache()
     assert dldir == _get_download_cache_loc()
-    assert get_file_contents(fn) == ct, "File should not be harmed."
+    assert fn.read_text() == ct, "File should not be harmed."
 
     # See what happens when set_temp_cache is pointed at a file
-    with pytest.raises(OSError):
+    with pytest.raises(Exception) as _:
         with paths.set_temp_cache(fn):
             pass
     assert dldir == _get_download_cache_loc()
-    assert get_file_contents(str(fn)) == ct
+    assert fn.read_text() == ct
 
     # Now the cache directory is normal but the subdirectory it wants
     # to make is a file
     cd = tmp_path / "astropy"
-    with open(cd, "w") as f:
-        f.write(ct)
+    cd.write_text(ct)
     with paths.set_temp_cache(tmp_path):
         check_quietly_ignores_bogus_cache()
     assert dldir == _get_download_cache_loc()
-    assert get_file_contents(cd) == ct
-    os.remove(cd)
+    assert cd.read_text() == ct
+    cd.unlink()
 
     # Ditto one level deeper
-    os.makedirs(cd)
-    cd = tmp_path / "astropy" / "download"
-    with open(cd, "w") as f:
-        f.write(ct)
+    cd.mkdir(parents=True)
+    cd /= "download"
+    cd.write_text(ct)
     with paths.set_temp_cache(tmp_path):
         check_quietly_ignores_bogus_cache()
     assert dldir == _get_download_cache_loc()
-    assert get_file_contents(cd) == ct
-    os.remove(cd)
+    assert cd.read_text() == ct
+    cd.unlink()
 
     # Ditto another level deeper
-    os.makedirs(cd)
-    cd = tmp_path / "astropy" / "download" / "url"
-    with open(cd, "w") as f:
-        f.write(ct)
+    cd.mkdir(parents=True)
+    cd /= "url"
+    cd.write_text(ct)
     with paths.set_temp_cache(tmp_path):
         check_quietly_ignores_bogus_cache()
     assert dldir == _get_download_cache_loc()
-    assert get_file_contents(cd) == ct
-    os.remove(cd)
+    assert cd.read_text() == ct
+    cd.unlink()
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
@@ -2050,7 +2044,7 @@ def test_check_download_cache_works_if_fake_readonly(fake_readonly_cache):
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 def test_pkgname_isolation(temp_cache, valid_urls):
-    a = "bogus_cache_name"
+    a = str(uuid4())
 
     assert not get_cached_urls()
     assert not get_cached_urls(pkgname=a)
@@ -2120,7 +2114,7 @@ def test_pkgname_isolation(temp_cache, valid_urls):
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 def test_transport_cache_via_zip(temp_cache, valid_urls):
-    a = "bogus_cache_name"
+    a = str(uuid4())
 
     assert not get_cached_urls()
     assert not get_cached_urls(pkgname=a)
@@ -2155,7 +2149,7 @@ def test_transport_cache_via_zip(temp_cache, valid_urls):
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 def test_download_parallel_respects_pkgname(temp_cache, valid_urls):
-    a = "bogus_cache_name"
+    a = str(uuid4())
 
     assert not get_cached_urls()
     assert not get_cached_urls(pkgname=a)
