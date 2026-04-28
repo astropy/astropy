@@ -78,6 +78,30 @@ def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
         yield
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--run-slow",
+        action="store_true",
+        default=False,
+        help="run slow tests",
+    )
+    parser.addoption(
+        "--run-hugemem",
+        action="store_true",
+        default=False,
+        help="run memory intensive tests",
+    )
+    parser.addoption(
+        "-R",
+        nargs="?",
+        const="any",
+        default="none",
+        help="run tests with online data, requires pytest-remotedata",
+        dest="remote_data",
+        choices=["astropy", "any", "github", "none"],
+    )
+
+
 def pytest_configure(config):
     # Ensure number of columns and lines is deterministic for testing
     from astropy import conf
@@ -135,6 +159,8 @@ def pytest_configure(config):
             threads_per_worker = max(max_threads // int(xdist_worker_count), 1)
             threadpool_limits(threads_per_worker)
 
+    config.addinivalue_line("markers", "slow: mark test as slow to run")
+    config.addinivalue_line("markers", "hugemem: mark test as using a lot of memory")
     config.addinivalue_line(
         "markers",
         "only_optimized_interpreter: mark a test as skipped if the interpreter is not running with -OO flags",
