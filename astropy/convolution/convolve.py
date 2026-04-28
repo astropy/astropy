@@ -153,7 +153,8 @@ def convolve(
     kernel : `numpy.ndarray` or `~astropy.convolution.Kernel`
         The convolution kernel. The number of dimensions should match
         those for the array, and the dimensions should be odd in all
-        directions.
+        directions. The kernel cannot be a masked array with masked
+        values.
     boundary : str, optional
         A flag indicating how to handle boundaries:
 
