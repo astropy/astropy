@@ -39,12 +39,6 @@ astropy.coordinates
   ``search_around_3d()`` and ``search_around_sky()`` and the corresponding
   ``SkyCoord`` methods now have named attributes. [#18459]
 
-astropy.convolution
-^^^^^^^^^^^^^^^^^^^
-
-- ``convolve()`` and ``convolve_fft()`` now raise exceptions if the kernel is a
-masked array with masked values. [#18363]
-
 astropy.cosmology
 ^^^^^^^^^^^^^^^^^
 
