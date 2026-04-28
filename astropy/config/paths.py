@@ -468,7 +468,7 @@ def get_config_dir_path(rootname: str = "astropy") -> Path:
     .. versionchanged:: 8.0.0
         In previous versions, the return value pointed to ``$HOME/.astropy/config`` by default.
         A new environment variable ``ASTROPY_CONFIG_DIR`` is now supported.
-        Symlinks are no longer created under certain situations.
+        Symlinks are no longer created in any situation.
 
     Parameters
     ----------
@@ -516,7 +516,7 @@ def get_cache_dir_path(rootname: str = "astropy") -> Path:
     .. versionchanged:: 8.0.0
         In previous versions, the return value pointed to ``$HOME/.astropy/cache`` by default.
         A new environment variable ``ASTROPY_CACHE_DIR`` is now supported.
-        Symlinks are no longer created under certain situations.
+        Symlinks are no longer created in any situation.
 
     Parameters
     ----------
