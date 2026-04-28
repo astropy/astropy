@@ -12,6 +12,7 @@ from numpy.testing import (
 
 from astropy import units as u
 from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution.tests.test_convolve import MASKED_KERNEL_ERRORMESSAGE
 from astropy.utils.exceptions import AstropyUserWarning
 
 VALID_DTYPES = (">f4", "<f4", ">f8", "<f8")
@@ -21,11 +22,6 @@ NANTREATMENT_OPTIONS = ("interpolate", "fill")
 NORMALIZE_OPTIONS = [True, False]
 PRESERVE_NAN_OPTIONS = [True, False]
 
-MASKED_KERNEL_ERRORMESSAGE = (
-    "The kernel is a masked array with masked values. "
-    "Use kernel.filled(fill_value) to fill masked values "
-    "before passing to convolve."
-)
 
 """
 What does convolution mean?  We use the 'same size' assumption here (i.e.,
