@@ -21,6 +21,10 @@ NANTREATMENT_OPTIONS = ("interpolate", "fill")
 NORMALIZE_OPTIONS = [True, False]
 PRESERVE_NAN_OPTIONS = [True, False]
 
+MASKED_KERNEL_ERRORMESSAGE = ("The kernel is a masked array with masked values. "
+                              "Use kernel.filled(fill_value) to fill masked values "
+                              "before passing to convolve.")
+
 """
 What does convolution mean?  We use the 'same size' assumption here (i.e.,
 you expect an array of the exact same size as the one you put in)
@@ -484,7 +488,7 @@ class TestConvolve1D:
         kernel = np.array([1, 1, 1])
         masked_kernel = np.ma.masked_array(kernel, mask=[0, 1, 0])
         with pytest.raises(
-            ValueError, match="Masked kernel present, please fill and try again"
+            ValueError, match=MASKED_KERNEL_ERRORMESSAGE
         ):
             result = convolve_fft(array, masked_kernel, boundary="fill", fill_value=0.0)
 
@@ -495,7 +499,7 @@ class TestConvolve1D:
         assert_floatclose(result, [1, 2, 1])
 
         with pytest.raises(
-            ValueError, match="Masked kernel present, please fill and try again"
+            ValueError, match=MASKED_KERNEL_ERRORMESSAGE
         ):
             # Now test against convolve()
             convolve_result = convolve(
@@ -1029,7 +1033,7 @@ def test_convolve_fft_masked_kernel_raises():
     masked_kernel = np.ma.array([1, 1, 1], mask=[0, 1, 0])
 
     with pytest.raises(
-        ValueError, match="Masked kernel present, please fill and try again"
+        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
     ):
         convolve_fft(array, masked_kernel, boundary="fill")
 
@@ -1040,7 +1044,7 @@ def test_convolve_fft_masked_kernel_raises():
     )
 
     with pytest.raises(
-        ValueError, match="Masked kernel present, please fill and try again"
+        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
     ):
         convolve_fft(array_2d, masked_kernel_2d, boundary="fill")
 
@@ -1048,7 +1052,7 @@ def test_convolve_fft_masked_kernel_raises():
     all_masked_kernel = np.ma.array([1, 1, 1], mask=[1, 1, 1])
 
     with pytest.raises(
-        ValueError, match="Masked kernel present, please fill and try again"
+        ValueError, match=MASKED_KERNEL_ERRORMESSAGE
     ):
         convolve_fft(array, all_masked_kernel, boundary="fill")
 
