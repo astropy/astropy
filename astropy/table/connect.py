@@ -195,7 +195,7 @@ class IndexInfo(TypedDict):
     unique: bool
 
 
-def construct_sliced_index(tbl: Table, /, *, index_info: IndexInfo) -> SlicedIndex:
+def construct_sliced_index(tbl: Table, /, index_info: IndexInfo) -> SlicedIndex:
     """
     Construct an index (SlicedIndex) for a table from serialized index information.
 
@@ -240,9 +240,10 @@ def construct_sliced_index(tbl: Table, /, *, index_info: IndexInfo) -> SlicedInd
         case _:
             warnings.warn(
                 f'Cannot restore index with engine "{index_info["engine"]}".  '
-                "Index not created.",
+                "Index created using SortedArray engine",
                 AstropyWarning,
             )
+            engine_cls = SortedArray
     row_index_colname = index_info["index_colname"]
     row_index = tbl[row_index_colname]
     colnames = index_info["colnames"]
