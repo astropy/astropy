@@ -961,7 +961,7 @@ def convolve_fft(
 
     if (~np.isfinite(fftmult)).any():
         # this check should be unnecessary; call it an insanity check
-        raise ValueError("Encountered NaNs in convolve.  This is disallowed.")
+        raise ValueError("Encountered non-finite values in convolve.  This is disallowed.")
 
     fftmult *= kernel_scale
 
