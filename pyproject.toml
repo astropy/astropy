@@ -264,7 +264,8 @@ filterwarnings = [
     "ignore:invalid value encountered in do_format:RuntimeWarning",
     # https://github.com/astropy/astropy/issues/19511
     "ignore:Implicitly cleaning up <HTTPError 404:ResourceWarning",
-    "ignore:unclosed <socket.socket:ResourceWarning",
+    "ignore:unclosed <socket:ResourceWarning",
+    "ignore:unclosed <ssl.SSLSocket:ResourceWarning",
 ]
 doctest_norecursedirs = [
     "*/setup_package.py",
