@@ -426,7 +426,7 @@ def convolve(
         else:
             warnings.warn(
                 "Input array contains infinite values which will be "
-                "propagated to the output according to the kernel size. ",
+                "propagated to the output according to the kernel size.",
                 AstropyUserWarning,
             )
 
