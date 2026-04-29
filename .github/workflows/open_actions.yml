@@ -4,6 +4,9 @@ on:
   issues:
     types:
     - opened
+  # pull_request_target is only dangerous if combined with an explicit checkout
+  # of the opener's code, which it isn't here. See
+  # https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
   pull_request_target: # zizmor: ignore[dangerous-triggers]
     types:
     - opened
