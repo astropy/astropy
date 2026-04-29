@@ -301,9 +301,7 @@ def represent_indices(tbl: Table, /) -> Table:
       #   meta: !!omap
       #   - __indices__:
       #     - colnames: [a]
-      #       engine: SortedArray
       #       index_colname: __index__
-      #       unique: false
       # - {name: b, datatype: int64}
       # - {name: __index__, datatype: int64}
       # schema: astropy-2.0
