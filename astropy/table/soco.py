@@ -191,5 +191,5 @@ class SCEngine:
     def unique(self):
         return self._unique
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._nodes)
