@@ -787,14 +787,10 @@ def test_indices_read_unknown_engine():
     assert t.loc_indices[3] == 1
 
 
-def test_indices_serialization_representation_single():
-    """Add explicit test of serialization representation for single-index case.
-
-    The `primary` key is not included in this case.
-    """
+def test_indices_serialization_unique_representation():
     t = Table()
     t["a"] = [1, 3, 2]
-    t.add_index("a")
+    t.add_index("a", unique=True)
     out = io.StringIO()
     t.write(out, format="ecsv", write_indices=True)
     assert out.getvalue().splitlines() == [
@@ -806,9 +802,8 @@ def test_indices_serialization_representation_single():
         "#   meta: !!omap",
         "#   - __indices__:",
         "#     - colnames: [a]",
-        "#       engine: SortedArray",
         "#       index_colname: __index__",
-        "#       unique: false",
+        "#       unique: true",
         "# - {name: __index__, datatype: int64}",
         "# schema: astropy-2.0",
         "a __index__",
@@ -816,6 +811,43 @@ def test_indices_serialization_representation_single():
         "3 2",
         "2 1",
     ]
+    t2 = Table.read(out.getvalue(), format="ecsv")
+    assert t2.indices[0].data.unique is True
+
+
+@pytest.mark.parametrize("engine", [SortedArray, SCEngine])
+def test_indices_serialization_representation_single(engine):
+    """Add explicit test of serialization representation for single-index case.
+
+    The `primary` key is not included in this case.
+    """
+    t = Table()
+    t["a"] = [1, 3, 2]
+    t.add_index("a", engine=engine)
+    out = io.StringIO()
+    t.write(out, format="ecsv", write_indices=True)
+    exp_1 = [
+        "# %ECSV 1.0",
+        "# ---",
+        "# datatype:",
+        "# - name: a",
+        "#   datatype: int64",
+        "#   meta: !!omap",
+        "#   - __indices__:",
+        "#     - colnames: [a]",
+    ]
+    # `engine` is included in YAML only for non-default case
+    exp_2 = [] if engine is SortedArray else ["#       engine: SCEngine"]
+    exp_3 = [
+        "#       index_colname: __index__",
+        "# - {name: __index__, datatype: int64}",
+        "# schema: astropy-2.0",
+        "a __index__",
+        "1 0",
+        "3 2",
+        "2 1",
+    ]
+    assert out.getvalue().splitlines() == exp_1 + exp_2 + exp_3
 
 
 def test_indices_serialization_representation_multiple():
@@ -839,14 +871,10 @@ def test_indices_serialization_representation_multiple():
         "#   meta: !!omap",
         "#   - __indices__:",
         "#     - colnames: [a, __index__1]",
-        "#       engine: SortedArray",
         "#       index_colname: __index__",
         "#       primary: true",
-        "#       unique: false",
         "#     - colnames: [a]",
-        "#       engine: SortedArray",
         "#       index_colname: __index__2",
-        "#       unique: false",
         "# - {name: __index__1, datatype: int64}",
         "# - {name: __index__, datatype: int64}",
         "# - {name: __index__2, datatype: int64}",
