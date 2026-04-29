@@ -16,7 +16,7 @@ from astropy.table.soco import SCEngine
 from astropy.table.sorted_array import SortedArray
 from astropy.time import Time
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .test_table import SetupData
 
@@ -754,6 +754,37 @@ def test_nd_columun_as_index(masked):
         ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
     ):
         t.add_index("arr")
+
+
+def test_indices_read_unknown_engine():
+    lines = [
+        "# %ECSV 1.0",
+        "# ---",
+        "# datatype:",
+        "# - name: a",
+        "#   datatype: int64",
+        "#   meta: !!omap",
+        "#   - __indices__:",
+        "#     - colnames: [a]",
+        "#       engine: Foo",
+        "#       index_colname: __index__",
+        "#       unique: false",
+        "# - {name: __index__, datatype: int64}",
+        "# schema: astropy-2.0",
+        "a __index__",
+        "1 0",
+        "3 2",
+        "2 1",
+    ]
+    text = "\n".join(lines)
+
+    with pytest.warns(
+        AstropyWarning,
+        match=r"Cannot restore index with engine \"Foo\".  Index created using SortedArray engine",
+    ):
+        t = Table.read(text, format="ecsv")
+    # a==3 at row 1
+    assert t.loc_indices[3] == 1
 
 
 def test_indices_serialization_representation_single():
