@@ -66,11 +66,10 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .diff import FITSDiff, HDUDiff
 from .file import FILE_MODES, _File
 from .hdu.base import _BaseHDU, _ValidHDU
+from .hdu.compressed.compressed import CompImageHDU
 from .hdu.hdulist import HDUList, fitsopen
 from .hdu.image import ImageHDU, PrimaryHDU
 from .hdu.table import BinTableHDU
-from .hdu.compressed.compressed import CompImageHDU
-
 from .header import Header
 from .util import (
     _is_dask_array,
@@ -88,18 +87,26 @@ __all__ = [
     "getheader",
     "getval",
     "info",
+    "pack",
     "printdiff",
     "setval",
     "table_to_hdu",
     "tabledump",
     "tableload",
+    "unpack",
     "update",
     "writeto",
-    "pack",
-    "unpack"
 ]
 
-FITS_MANDATORY_KEYWORDS = ['SIMPLE', 'BITPIX', 'NAXIS', 'EXTEND', 'COMMENT', 'CHECKSUM', 'DATASUM']
+FITS_MANDATORY_KEYWORDS = [
+    "SIMPLE",
+    "BITPIX",
+    "NAXIS",
+    "EXTEND",
+    "COMMENT",
+    "CHECKSUM",
+    "DATASUM",
+]
 
 
 def getheader(filename, *args, **kwargs):
@@ -1094,7 +1101,9 @@ def unpack(compressed_hdulist: HDUList) -> HDUList:
             move_1_to_0 = False
             break
     if not move_1_to_0 or not isinstance(compressed_hdulist[1], CompImageHDU):
-        primary_hdu = PrimaryHDU(data=compressed_hdulist[0].data, header=compressed_hdulist[0].header)
+        primary_hdu = PrimaryHDU(
+            data=compressed_hdulist[0].data, header=compressed_hdulist[0].header
+        )
     else:
         data_type = str(compressed_hdulist[1].data.dtype)
         data = compressed_hdulist[1].data
@@ -1119,7 +1128,9 @@ def unpack(compressed_hdulist: HDUList) -> HDUList:
     return HDUList(hdulist)
 
 
-def pack(uncompressed_hdulist: HDUList, extension_quantizations: dict = None) -> HDUList:
+def pack(
+    uncompressed_hdulist: HDUList, extension_quantizations: dict = None
+) -> HDUList:
     """
     Pack a FITS HDUList in an equivalent way to fpack from the cfitsio library.
 
@@ -1140,7 +1151,6 @@ def pack(uncompressed_hdulist: HDUList, extension_quantizations: dict = None) ->
     extension as is required for a binary table HDU, which is what it is
     stored as internally.
     """
-
     if extension_quantizations is None:
         extension_quantizations = {}
     if uncompressed_hdulist[0].data is None:
@@ -1152,11 +1162,14 @@ def pack(uncompressed_hdulist: HDUList, extension_quantizations: dict = None) ->
             data = None
         else:
             data = np.ascontiguousarray(uncompressed_hdulist[0].data)
-        extname = uncompressed_hdulist[0].header.get('EXTNAME')
+        extname = uncompressed_hdulist[0].header.get("EXTNAME")
         quantize_level = extension_quantizations.get(extname, 64)
-        compressed_hdu = CompImageHDU(data=data,
-                                      header=uncompressed_hdulist[0].header, quantize_level=quantize_level,
-                                      quantize_method=1)
+        compressed_hdu = CompImageHDU(
+            data=data,
+            header=uncompressed_hdulist[0].header,
+            quantize_level=quantize_level,
+            quantize_method=1,
+        )
         hdulist = [primary_hdu, compressed_hdu]
 
     for hdu in uncompressed_hdulist[1:]:
@@ -1165,11 +1178,14 @@ def pack(uncompressed_hdulist: HDUList, extension_quantizations: dict = None) ->
                 data = None
             else:
                 data = np.ascontiguousarray(hdu.data)
-            extname = hdu.header.get('EXTNAME')
+            extname = hdu.header.get("EXTNAME")
             quantize_level = extension_quantizations.get(extname, 64)
-            compressed_hdu = CompImageHDU(data=data, header=hdu.header,
-                                          quantize_level=quantize_level,
-                                          quantize_method=1)
+            compressed_hdu = CompImageHDU(
+                data=data,
+                header=hdu.header,
+                quantize_level=quantize_level,
+                quantize_method=1,
+            )
             hdulist.append(compressed_hdu)
         else:
             hdulist.append(hdu)

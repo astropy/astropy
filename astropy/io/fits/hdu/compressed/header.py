@@ -310,9 +310,7 @@ def _image_header_to_empty_bintable(
 
     # To ensure that the TFIELDS exists (and therefore the after="TFIELDS")
     # produces the correct ordering, we need to set it first, before TTYPE1
-    bintable.header.set(
-        "TFIELDS", 1, "number of fields in each row", after="GCOUNT"
-    )
+    bintable.header.set("TFIELDS", 1, "number of fields in each row", after="GCOUNT")
     # Set the label for the first column in the table
     bintable.header.set(
         "TTYPE1", "COMPRESSED_DATA", "label for field 1", after="TFIELDS"
