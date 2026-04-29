@@ -208,6 +208,9 @@ class _DirectoryFinder:
             xdg=_Envvar(spec=_SpecSource.XDG, dirtype=self.dirtype),
         )
 
+    def legacy_default_base_node(self, namespace: str) -> Path:
+        return Path.home() / f".{namespace}" / self.dirtype.as_str()
+
     def default_base_node(self) -> Path:
         # default to a XDG-compliant scheme
         return Path.home() / f".{self.dirtype.as_str()}"
@@ -240,7 +243,21 @@ class _DirectoryFinder:
         return replace(de, base_node=self.default_base_node())
 
     def find_namespaced_node(self, namespace: str) -> Path:
-        return self.find_directory_elements(namespace).join()
+        legacy_node = self.legacy_default_base_node(namespace)
+        preferred_node = self.find_directory_elements(namespace).join()
+        if legacy_node.is_dir() and not preferred_node.exists():
+            # backward compatibility
+            # legacy_node is checked more strictly, because we only need to bridge the
+            # gap for previously supported cases
+            return legacy_node
+        else:
+            # we intentionally let through some possibly invalid state,
+            # like a file occupying the preferred node, where we expect a directory,
+            # The core reason is that there'll always be a difference between the time
+            # we look up the location and the time we actually use it, so it's
+            # impossible to make the look up perfectly safe. In turn, the responsibility
+            # to raise an exception falls on the function that'll actually try use it.
+            return preferred_node
 
 
 class _TempDirKwargs(TypedDict):

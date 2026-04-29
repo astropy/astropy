@@ -180,6 +180,8 @@ Cache and configuration directories now adhere to the XDG specification
 by default. For example, the default cache location was changed from
 ``$HOME/.astropy/cache`` to ``$XDG_CACHE_HOME/astropy``, where
 ``XDG_CACHE_HOME`` itself defaults to ``$HOME/.cache``.
+Legacy cache and configuration default locations are still silently selected
+if present and in case the new default locations do not exist.
 
 In addition, temporary directories set through ``set_temp_cache``
 or ``set_temp_config`` will now not be symlinked to default locations.
