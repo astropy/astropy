@@ -427,6 +427,19 @@ def test_get_path_without_creation(dirtype: _DirType, create_kwargs, tmp_path):
         assert os.path.exists(tmp_dir)
 
 
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_fallback_to_legacy_dir_if_found(dirtype):
+    df = _DirectoryFinder(dirtype)
+    namespace = str(uuid4())
+    node = df.find_namespaced_node(namespace)
+    legacy_node = df.legacy_default_base_node(namespace)
+    assert node != legacy_node
+
+    legacy_node.mkdir(parents=True)
+    assert df.find_namespaced_node(namespace) == legacy_node
+
+
 def test_set_temp_cache_resets_on_exception(tmp_path):
     """Test for regression of  bug #9704"""
     t = paths.get_cache_dir()
