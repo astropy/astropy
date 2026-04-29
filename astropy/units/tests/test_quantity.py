@@ -772,6 +772,79 @@ def test_regression_12964():
     assert x.dtype == np.float64
 
 
+def test_ilshift_rejects_views():
+    # In-place conversion on a view would corrupt the original's data.
+    a = u.Quantity([1.0], u.Mpc)
+    b = a.view(u.Quantity)
+
+    with pytest.raises(ValueError, match="cannot do in-place unit conversion"):
+        b <<= u.kpc
+
+    # Original unchanged
+    assert a.unit == u.Mpc
+    assert a.value[0] == 1.0
+
+    # Slices are also views
+    d = u.Quantity([1.0, 2.0, 3.0], u.Mpc)
+    e = d[1:]
+    with pytest.raises(ValueError, match="cannot do in-place unit conversion"):
+        e <<= u.kpc
+
+    # Non-view quantities still work
+    c = u.Quantity([1.0], u.Mpc)
+    c <<= u.kpc
+    assert c.unit == u.kpc
+    assert c.value[0] == 1000.0
+
+
+def test_ilshift_noop_on_views():
+    # No-op conversions (factor=1) are allowed on views since data is unchanged.
+    a = u.Quantity([1.0], u.Mpc)
+    b = a.view(u.Quantity)
+
+    b <<= u.Mpc
+    assert b.unit == u.Mpc
+    assert b.value[0] == 1.0
+    assert a.value[0] == 1.0
+
+    # Equivalent units
+    c = u.Quantity([1.0], u.m)
+    d = c.view(u.Quantity)
+    d <<= u.meter
+    assert d.unit == u.meter
+    assert d.value[0] == 1.0
+
+
+def test_ilshift_chained_views():
+    # Chained views should also be rejected.
+    a = u.Quantity([1.0], u.Mpc)
+    b = a.view(u.Quantity)
+    c = b.view(u.Quantity)
+
+    with pytest.raises(ValueError, match="cannot do in-place unit conversion"):
+        c <<= u.kpc
+
+    assert a.value[0] == 1.0
+    assert b.value[0] == 1.0
+    assert c.value[0] == 1.0
+
+
+def test_ilshift_on_original_with_views():
+    # Known limitation: we cannot detect when the original is mutated
+    # while views exist. This test documents the current behavior.
+    a = u.Quantity([1.0], u.Mpc)
+    b = a.view(u.Quantity)
+
+    # This goes through because a.base is not a Quantity
+    a <<= u.kpc
+
+    assert a.unit == u.kpc
+    assert a.value[0] == 1000.0
+    # b is now inconsistent: its data changed but unit did not
+    assert b.unit == u.Mpc
+    assert b.value[0] == 1000.0  # data was modified through shared buffer
+
+
 def test_quantity_value_views():
     q1 = u.Quantity([1.0, 2.0], unit=u.meter)
     # views if the unit is the same.

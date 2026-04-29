@@ -1,0 +1,1 @@
+In-place unit conversion (``<<=``) on Quantity views now raises ``ValueError`` to prevent silent data corruption.

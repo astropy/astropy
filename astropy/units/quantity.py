@@ -1180,6 +1180,15 @@ class Quantity(np.ndarray):
             # In principle, in-place might be possible.
             return NotImplemented
 
+        # Do not allow in-place conversion if this is a view of another
+        # Quantity, since that would change the data in the original without
+        # updating its unit.
+        if isinstance(self.base, Quantity) and not is_effectively_unity(factor):
+            raise ValueError(
+                "cannot do in-place unit conversion on a Quantity view; "
+                "use `q = q << unit` or `q = q.to(unit)` instead"
+            )
+
         view = self.view(np.ndarray)
         try:
             view *= factor  # operates on view
