@@ -1081,21 +1081,6 @@ def test_inf_and_nan_together():
     assert not np.any(np.isnan(result))
 
 
-def test_convolve_fft_kernel_with_inf():
-    """
-    Test that infinities in the kernel raise a ValueError for convolve_fft.
-    Regression test for issue #8099.
-    """
-    array = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype="float64")
-    # Kernel with infinity - should raise an error
-    kernel = np.array([1, np.inf, 1], dtype="float64")
-
-    with pytest.raises(
-        ValueError, match="Kernels containing infinities are not supported"
-    ):
-        convolve_fft(array, kernel, boundary="fill", nan_treatment="interpolate")
-
-
 def test_issue_8099_example():
     """
     Test the specific example from issue #8099 for convolve_fft.
