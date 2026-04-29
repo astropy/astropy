@@ -210,8 +210,8 @@ def construct_sliced_index(tbl: Table, /, index_info: IndexInfo) -> SlicedIndex:
         Table containing the columns and row index data.
     index_info : Mapping[str, object]
         Dictionary containing index metadata, including:
-        - 'engine' (str): Name of the index engine class.
-        - 'row_index_colname' ('SortedArray' or 'SCEngine'): Name of the column with row indices.
+        - 'engine' (str): Name of the index engine class ('SortedArray' or 'SCEngine')
+        - 'index_colname': Name of the column with row indices.
         - 'colnames' (tuple[str, ...]): Tuple of column names for the index.
         - 'unique' (bool): Whether the index is unique.
         - 'primary' (bool): Whether index is the primary key index (default=False).
@@ -228,11 +228,11 @@ def construct_sliced_index(tbl: Table, /, index_info: IndexInfo) -> SlicedIndex:
         no index is created.
     """
     from astropy.table import Table
-    from astropy.table.index import Index, SlicedIndex
+    from astropy.table.index import ENGINE_CLS_DEFAULT, Index, SlicedIndex
     from astropy.table.soco import SCEngine
     from astropy.table.sorted_array import SortedArray
 
-    match index_info["engine"]:
+    match index_info.get("engine", ENGINE_CLS_DEFAULT.__name__):
         case "SortedArray":
             engine_cls = SortedArray
         case "SCEngine":
@@ -259,7 +259,7 @@ def construct_sliced_index(tbl: Table, /, index_info: IndexInfo) -> SlicedIndex:
     engine = engine_cls(
         data=index_columns[row_index],  # index columns sorted by index
         row_index=row_index,
-        unique=index_info["unique"],
+        unique=index_info.get("unique", False),
     )
     index = Index(columns=list(index_columns.itercols()), engine=engine)
     sliced_index = SlicedIndex(index, index_slice=slice(None), original=True)
@@ -322,6 +322,8 @@ def represent_indices(tbl: Table, /) -> Table:
     Table
         Shallow copy of input table with index columns added and meta updated.
     """
+    from astropy.table.index import ENGINE_CLS_DEFAULT
+
     with tbl.index_mode("discard_on_copy"):
         tbl_out = tbl.copy(copy_data=False)
 
@@ -340,11 +342,14 @@ def represent_indices(tbl: Table, /) -> Table:
         index_info = {
             "index_colname": colname,
             "colnames": list(index.id),
-            "engine": index.data.__class__.__name__,
-            "unique": index.data.unique,
         }
+        if type(index.data) is not ENGINE_CLS_DEFAULT:
+            index_info["engine"] = type(index.data).__name__
+        if index.data.unique:
+            index_info["unique"] = True
         if len(tbl.indices) > 1 and index.id == tbl.primary_key:
             index_info["primary"] = True
+
         indices_info.append(index_info)
 
     for index_info in indices_info:

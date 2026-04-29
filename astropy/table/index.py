@@ -222,6 +222,9 @@ if TYPE_CHECKING:
     from . import QTable, Table
 
 
+ENGINE_CLS_DEFAULT = SortedArray
+
+
 @runtime_checkable
 class IndexEngine(Protocol):
     """Protocol defining an index engine class"""
@@ -285,9 +288,8 @@ class Index:
         if columns is not None:
             columns = list(columns)
 
-        # by default, use SortedArray
         if engine is None:
-            engine = SortedArray
+            engine = ENGINE_CLS_DEFAULT
 
         # Validate engine. This catches an easy mistake of `t.add_index("a", "b")`.
         engine_cls = engine if isinstance(engine, type) else engine.__class__
