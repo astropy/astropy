@@ -361,23 +361,24 @@ def temporary_cache_dir_path(
     Thread safety is guaranteed, but concurrency isn't:
     only a single thread at a time may execute code within this context.
 
+    All arguments from :py:class:`tempfile.TemporaryDirectory` are optionally supported,
+    with a couple differences:
+
+    - ``dir`` is positional-only and must come first
+    - all other arguments are keyword-only
+    - ``delete`` is supported even on Python 3.11
+
     .. versionadded:: 8.0.0
 
     Parameters
     ----------
-    namespace: str, keyword-only, mandatory
-      a unique identifier for the namespace associated to a temporary directory,
-      which will used to name the directory itself.
-      This string must be non-empty, and can only contain alphanumeric characters,
-      ``_``, ``-`` or ``.``.
-      ``.`` is special cased to represent a path separator (see ``os.sep``) in the
-      output directory.
-
-    All arguments from :ref:`tempfile.TemporaryDirectory` are optionally supported,
-    with a couple differences:
-    - ``dir`` is positional-only and must come first
-    - all other arguments are keyword-only
-    - ``delete`` is supported even on Python 3.11
+    namespace : str, keyword-only
+        A mandatory unique identifier for the namespace associated to a temporary directory,
+        which will used to name the directory itself.
+        This string must be non-empty, and can only contain alphanumeric characters,
+        ``_``, ``-`` or ``.``.
+        ``.`` is special cased to represent a path separator (see ``os.sep``) in the
+        output directory.
 
     See Also
     --------
@@ -419,23 +420,24 @@ def temporary_config_dir_path(
     Thread safety is guaranteed, but concurrency isn't:
     only a single thread at a time may execute code within this context.
 
+    All arguments from :py:class:`tempfile.TemporaryDirectory` are optionally supported,
+    with a couple differences:
+
+    - ``dir`` is positional-only and must come first
+    - all other arguments are keyword-only
+    - ``delete`` is supported even on Python 3.11
+
     .. versionadded:: 8.0.0
 
     Parameters
     ----------
-    namespace: str, keyword-only, mandatory
-      a unique identifier for the namespace associated to a temporary directory,
-      which will used to name the directory itself.
-      This string must be non-empty, and can only contain alphanumeric characters,
-      ``_``, ``-`` or ``.``.
-      ``.`` is special cased to represent a path separator (see ``os.sep``) in the
-      output directory.
-
-    All arguments from :ref:`tempfile.TemporaryDirectory` are optionally supported,
-    with a couple differences:
-    - ``dir`` is positional-only and must come first
-    - all other arguments are keyword-only
-    - ``delete`` is supported even on Python 3.11
+    namespace: str, keyword-only
+        A mandatory unique identifier for the namespace associated to a temporary directory,
+        which will used to name the directory itself.
+        This string must be non-empty, and can only contain alphanumeric characters,
+        ``_``, ``-`` or ``.``.
+        ``.`` is special cased to represent a path separator (see ``os.sep``) in the
+        output directory.
 
     See Also
     --------
@@ -464,19 +466,15 @@ def get_config_dir_path(rootname: str = "astropy") -> Path:
     ``temporary_config_dir_path``.
 
     .. versionchanged:: 8.0.0
-      in previous versions, the return value pointed to ``$HOME/.astropy/config`` by default
-
-    .. versionchanged:: 8.0.0
-      added support for ``ASTROPY_CONFIG_DIR``
-
-    .. versionchanged:: 8.0.0
-      no symlinks are ever created
+        In previous versions, the return value pointed to ``$HOME/.astropy/config`` by default.
+        A new environment variable ``ASTROPY_CONFIG_DIR`` is now supported.
+        Symlinks are no longer created in any situation.
 
     Parameters
     ----------
-    rootname : str, optional (default: 'astropy')
-        Namespace of the associated with the directory. For example, for ``'pkgname'``,
-        the directory would be ``$XDG_CONFIG_HOME/pkgname``
+    rootname : str, optional
+        Namespace associated with the directory. For example, for ``'pkgname'``,
+        the directory would be ``$XDG_CONFIG_HOME/pkgname``. Default: ``'astropy'``
 
     Returns
     -------
@@ -516,19 +514,15 @@ def get_cache_dir_path(rootname: str = "astropy") -> Path:
     :func:`temporary_cache_dir_path`.
 
     .. versionchanged:: 8.0.0
-      in previous versions, the return value pointed to ``$HOME/.astropy/cache`` by default
-
-    .. versionchanged:: 8.0.0
-      added support for ``ASTROPY_CACHE_DIR``
-
-    .. versionchanged:: 8.0.0
-      no symlinks are ever created
+        In previous versions, the return value pointed to ``$HOME/.astropy/cache`` by default.
+        A new environment variable ``ASTROPY_CACHE_DIR`` is now supported.
+        Symlinks are no longer created in any situation.
 
     Parameters
     ----------
-    rootname : str, optional (default: 'astropy')
-        Namespace of the associated with the directory. For example, for ``'pkgname'``,
-        the directory would be ``$XDG_CACHE_HOME/pkgname``
+    rootname : str, optional
+        Namespace associated with the directory. For example, for ``'pkgname'``,
+        the directory would be ``$XDG_CACHE_HOME/pkgname``. Default: ``'astropy'``
 
     Returns
     -------
@@ -656,9 +650,9 @@ class set_temp_config(_SetTempPath):
     only a single thread at a time may execute code within this context.
 
     .. versionchanged:: 8.0.0
-       This function is soft-deprecated. It won't emit deprecation warnings but its
-       use is discouraged for new code, as the exact behavior is hard to predict.
-       Prefer :func:`temporary_config_dir_path` where available.
+        This function is soft-deprecated. It won't emit deprecation warnings but its
+        use is discouraged for new code, as the exact behavior is hard to predict.
+        Prefer :func:`temporary_config_dir_path` where available.
 
     Parameters
     ----------
@@ -741,9 +735,9 @@ class set_temp_cache(_SetTempPath):
     only a single thread at a time may execute code within this context.
 
     .. versionchanged:: 8.0.0
-       This function is soft-deprecated. It won't emit deprecation warnings but its
-       use is discouraged for new code, as the exact behavior is hard to predict.
-       Prefer :func:`temporary_cache_dir_path` where available.
+        This function is soft-deprecated. It won't emit deprecation warnings but its
+        use is discouraged for new code, as the exact behavior is hard to predict.
+        Prefer :func:`temporary_cache_dir_path` where available.
 
     Parameters
     ----------

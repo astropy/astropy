@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-8.0-cosmology`
 * :ref:`whatsnew-8.0-codata2022`
+* :ref:`whatsnew-8.0-table-formats`
 * :ref:`whatsnew-8.0-paths-discovery`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
@@ -39,7 +40,7 @@ Cosmology
 The ``astropy.cosmology`` module has several updates in this release.
 
 Module Simplification
-*********************
+---------------------
 
 The deprecated module-level shim files in ``astropy.cosmology`` have been removed. These
 compatibility modules were originally deprecated in v7.1. With this release, all
@@ -73,7 +74,7 @@ After:
     from astropy.cosmology import Cosmology, FlatLambdaCDM, z_at_value
 
 Cosmology Traits
-****************
+----------------
 
 .. currentmodule:: astropy.cosmology.traits
 
@@ -126,7 +127,7 @@ np.float64(3.4...e-05)
 <Quantity 3.89... K>
 
 Machine Readable Table (MRT) I/O
-********************************
+--------------------------------
 
 The ``astropy.cosmology`` module now supports reading and writing cosmological
 objects in the Machine Readable Table (MRT) format. This adds MRT to the
@@ -162,12 +163,12 @@ CODATA 2022 has replaced CODATA 2018 as default. ``astropyconst80`` is
 available for ``constants`` science state, combining CODATA 2022 with
 IAU 2015. To use previous version of CODATA, see :ref:`astropy-constants-prior`.
 
+.. _whatsnew-8.0-table-formats:
 
 Table formats
 =============
 A new table reader has been added to read history and profile output files from `MESA
 <https://mesastar.org>`_, a well-known code for stellar evolution calculations.
-
 
 .. _whatsnew-8.0-paths-discovery:
 
@@ -181,7 +182,7 @@ by default. For example, the default cache location was changed from
 
 In addition, temporary directories set through ``set_temp_cache``
 or ``set_temp_config`` will now not be symlinked to default locations.
-The new behavior is also meant as 100% cross platform: windows isn't
+The new behavior is also meant as 100% cross platform: Windows isn't
 special cased like it used to.
 
 ``set_temp_cache`` and ``set_temp_config`` themselves (hereafter, legacy APIs) are now
@@ -189,6 +190,7 @@ soft-deprecated, meaning their use is discouraged for new code but will not emit
 deprecation warnings, in favor of new, similar, but *not* drop-in replacement APIS:
 ``temporary_cache_dir_path`` and ``temporary_config_dir_path`` respectively. These
 alternative functions come with a couple differences in design:
+
 - easily predictable behavior
 - safer defaults:
 
@@ -204,4 +206,4 @@ alternative functions come with a couple differences in design:
 ``ASTROPY_CACHE_DIR`` and ``ASTROPY_CONFIG_DIR`` environment variables are now supported,
 allowing finer, tool-specific control as compared with ``XDG_CACHE_HOME`` and
 ``XDG_CONFIG_HOME`` which will only be used if astropy-specific environment variables
-are undefined or invalid (e.g. defined as relative paths or pointing to files).
+are undefined or invalid (e.g., defined as relative paths or pointing to files).
