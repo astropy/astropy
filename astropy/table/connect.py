@@ -148,7 +148,7 @@ class TableWrite(registry.UnifiedReadWrite):
 
 def construct_indices(tbl: Table) -> None:
     """
-    Create indices on a table froml column meta ``__indices__`` values.
+    Create indices on a table from column meta ``__indices__`` values.
 
     This is the inverse of `represent_indices`.
 
@@ -188,7 +188,15 @@ def construct_indices(tbl: Table) -> None:
     tbl.remove_columns(row_index_colnames)
 
 
-def construct_sliced_index(tbl: Table, index_info: dict[str, Any]) -> SlicedIndex:
+from typing import TypedDict, Literal
+
+class IndexInfo(TypedDict):
+    engine: Literal["SortedArray", "SCEngine"]
+    colnames: tuple[str, ...]
+    index_colname: int
+    unique: bool
+
+def construct_sliced_index(tbl: Table, /, *, index_info: IndexInfo) -> SlicedIndex:
     """
     Construct an index (SlicedIndex) for a table from serialized index information.
 
@@ -201,13 +209,13 @@ def construct_sliced_index(tbl: Table, index_info: dict[str, Any]) -> SlicedInde
     ----------
     tbl : Table
         Table containing the columns and row index data.
-    index_info : dict[str, Any]
+    index_info : Mapping[str, object]
         Dictionary containing index metadata, including:
-        - 'engine': Name of the index engine class.
-        - 'row_index_colname': Name of the column with row indices.
-        - 'colnames': Tuple of column names for the index.
-        - 'unique': Whether the index is unique.
-        - 'primary': Whether index is the primary key index (default=False).
+        - 'engine' (str): Name of the index engine class.
+        - 'row_index_colname' ('SortedArray' or 'SCEngine'): Name of the column with row indices.
+        - 'colnames' (tuple[str, ...]): Tuple of column names for the index.
+        - 'unique' (bool): Whether the index is unique.
+        - 'primary' (bool): Whether index is the primary key index (default=False).
 
     Returns
     -------
@@ -259,7 +267,7 @@ def construct_sliced_index(tbl: Table, index_info: dict[str, Any]) -> SlicedInde
     return sliced_index
 
 
-def represent_indices(tbl: Table) -> Table:
+def represent_indices(tbl: Table, /) -> Table:
     """
     Return table with indices serialized as new columns and meta data.
 
