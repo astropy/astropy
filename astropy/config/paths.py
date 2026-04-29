@@ -19,7 +19,7 @@ from types import TracebackType
 from typing import (
     NewType,
     ParamSpec,
-    TypeAlias,
+    Protocol,
     TypedDict,
     assert_never,
     final,
@@ -41,7 +41,10 @@ __all__ = [
 ]
 
 P = ParamSpec("P")
-PathGetter: TypeAlias = Callable[[str], Path]
+
+
+class PathGetter(Protocol):
+    def __call__(self, p: str, /, *, ensure_exists: bool = False) -> Path: ...
 
 
 class _DirType(Enum):
@@ -456,7 +459,11 @@ def temporary_config_dir_path(
         yield tmp_path
 
 
-def get_config_dir_path(rootname: str = "astropy") -> Path:
+def get_config_dir_path(
+    rootname: str = "astropy",
+    *,
+    ensure_exists: bool = True,
+) -> Path:
     """
     Determines the configuration directory associated with a namespace and creates the
     directory if it doesn't exist.
@@ -476,6 +483,12 @@ def get_config_dir_path(rootname: str = "astropy") -> Path:
         Namespace associated with the directory. For example, for ``'pkgname'``,
         the directory would be ``$XDG_CONFIG_HOME/pkgname``. Default: ``'astropy'``
 
+    ensure_exists : bool, keyword-only, optional
+        Whether to create the directory (and its parents) if it's missing.
+        Default: True
+
+        .. versionadded:: 8.0.0
+
     Returns
     -------
     configdir : Path
@@ -483,12 +496,17 @@ def get_config_dir_path(rootname: str = "astropy") -> Path:
 
     """
     node = _finders.config.find_namespaced_node(rootname)
-    node.mkdir(parents=True, exist_ok=True)
+    if ensure_exists:
+        node.mkdir(parents=True, exist_ok=True)
     return node
 
 
-def get_config_dir(rootname: str = "astropy") -> str:
-    return str(get_config_dir_path(rootname))
+def get_config_dir(
+    rootname: str = "astropy",
+    *,
+    ensure_exists: bool = True,
+) -> str:
+    return str(get_config_dir_path(rootname, ensure_exists=ensure_exists))
 
 
 if get_config_dir_path.__doc__ is not None:
@@ -504,10 +522,14 @@ if get_config_dir_path.__doc__ is not None:
     )
 
 
-def get_cache_dir_path(rootname: str = "astropy") -> Path:
+def get_cache_dir_path(
+    rootname: str = "astropy",
+    *,
+    ensure_exists: bool = True,
+) -> Path:
     """
-    Determines the cache directory associated with a namespace and creates the
-    directory if it doesn't exist.
+    Determines the cache directory associated with a namespace and, optionally,
+    creates the directory if it doesn't exist.
 
     This directory is typically ``$XDG_CACHE_HOME/<namespace>``, but can be overwritten
     with the ``ASTROPY_CACHE_DIR`` environment variable, or with
@@ -524,6 +546,12 @@ def get_cache_dir_path(rootname: str = "astropy") -> Path:
         Namespace associated with the directory. For example, for ``'pkgname'``,
         the directory would be ``$XDG_CACHE_HOME/pkgname``. Default: ``'astropy'``
 
+    ensure_exists : bool, keyword-only, optional
+        Whether to create the directory (and its parents) if it's missing.
+        Default: True
+
+        .. versionadded:: 8.0.0
+
     Returns
     -------
     cachedir : Path
@@ -531,12 +559,17 @@ def get_cache_dir_path(rootname: str = "astropy") -> Path:
 
     """
     node = _finders.cache.find_namespaced_node(rootname)
-    node.mkdir(parents=True, exist_ok=True)
+    if ensure_exists:
+        node.mkdir(parents=True, exist_ok=True)
     return node
 
 
-def get_cache_dir(rootname: str = "astropy") -> str:
-    return str(get_cache_dir_path(rootname))
+def get_cache_dir(
+    rootname: str = "astropy",
+    *,
+    ensure_exists: bool = True,
+) -> str:
+    return str(get_cache_dir_path(rootname, ensure_exists=ensure_exists))
 
 
 if get_cache_dir_path.__doc__ is not None:
