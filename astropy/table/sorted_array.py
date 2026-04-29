@@ -328,5 +328,5 @@ class SortedArray:
         t["rows"] = self.row_index
         return f"<{self.__class__.__name__} length={len(t)}>\n{t}"
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.row_index)

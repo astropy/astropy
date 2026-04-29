@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 from __future__ import annotations
 
+import itertools
 import warnings
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from astropy.io import registry
 from astropy.utils.exceptions import AstropyWarning
@@ -188,13 +188,12 @@ def construct_indices(tbl: Table) -> None:
     tbl.remove_columns(row_index_colnames)
 
 
-from typing import TypedDict, Literal
-
 class IndexInfo(TypedDict):
     engine: Literal["SortedArray", "SCEngine"]
     colnames: tuple[str, ...]
     index_colname: int
     unique: bool
+
 
 def construct_sliced_index(tbl: Table, /, *, index_info: IndexInfo) -> SlicedIndex:
     """
@@ -300,15 +299,14 @@ def represent_indices(tbl: Table, /) -> Table:
       #   datatype: int64
       #   meta: !!omap
       #   - __indices__:
-      #     - colnames: !!python/tuple [a]
+      #     - colnames: [a]
       #       engine: SortedArray
-      #       primary: true
-      #       row_index_colname: __index__0
+      #       index_colname: __index__
       #       unique: false
       # - {name: b, datatype: int64}
-      # - {name: __index__0, datatype: int64}
+      # - {name: __index__, datatype: int64}
       # schema: astropy-2.0
-      a b __index__0
+      a b __index__
       2 3 2
       3 5 0
       1 4 1
@@ -321,22 +319,20 @@ def represent_indices(tbl: Table, /) -> Table:
     Returns
     -------
     Table
-        Copy of input table with index columns added and meta updated.
+        Shallow copy of input table with index columns added and meta updated.
     """
     with tbl.index_mode("discard_on_copy"):
         tbl_out = tbl.copy(copy_data=False)
 
     indices_info = []
-    ii_index = 0
     for index in tbl.indices:
         row_index = index.data.sorted_data()
 
         # Find unique column name for the index row data
-        while True:
+        for ii_index in itertools.count():
             colname = "__index__" + ("" if ii_index == 0 else str(ii_index))
             if colname not in tbl_out.colnames:
                 break
-            ii_index += 1
 
         # Make new column for row_index and add meta describing index
         tbl_out[colname] = row_index
