@@ -198,9 +198,8 @@ def convolve(
     treat_infs_as_nans : bool, optional
         If `True`, treat infinite values in the input ``array`` and ``kernel``
         as NaNs, and then handle them as according to ``nan_treatment``.
-        If this is not set, any ``inf`` values will be propagated exactly to the
-        size of the kernel.  This behavior is disabled by default because it
-        cannot be replicated in ``convolve_fft`` and is unlikely to be useful.
+        Default is `True`.  Set to `False` to allow ``inf`` propagation (not replicable in 
+        `convolve_fft`.
 
     Returns
     -------
