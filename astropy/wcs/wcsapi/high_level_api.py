@@ -1,6 +1,7 @@
 import abc
 import numbers
 from collections import OrderedDict, defaultdict
+from typing import Protocol
 
 import numpy as np
 
@@ -12,6 +13,21 @@ __all__ = [
     "high_level_objects_to_values",
     "values_to_high_level_objects",
 ]
+
+
+class _WorldAxisMetadata(Protocol):  # noqa: PYI046
+    """
+    Structural-subtyping interface for the world axis metadata used by
+    `high_level_objects_to_values` and `values_to_high_level_objects`.
+
+    Any object exposing the two attributes below is accepted as the
+    ``low_level_wcs`` argument of those functions; this includes any
+    `BaseLowLevelWCS` instance. The optional ``serialized_classes`` attribute
+    is recognised when present and otherwise treated as ``False``.
+    """
+
+    world_axis_object_classes: dict
+    world_axis_object_components: list
 
 
 def rec_getattr(obj, att):
@@ -148,7 +164,7 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
 
     Parameters
     ----------
-    *world_objects : object
+    *world_objects : `~astropy.coordinates.SkyCoord`, `~astropy.units.Quantity`, etc.
         High level coordinate objects.
 
     low_level_wcs : `.BaseLowLevelWCS` or object
@@ -291,7 +307,7 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
 
     Parameters
     ----------
-    *world_values : object
+    *world_values : scalar or `~numpy.ndarray`
         Low level, "values" representations of the world coordinates.
 
     low_level_wcs : `.BaseLowLevelWCS` or object
