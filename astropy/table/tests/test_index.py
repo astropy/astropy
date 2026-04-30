@@ -15,7 +15,7 @@ from astropy.table.index import SlicedIndex, get_index
 from astropy.table.soco import SCEngine
 from astropy.table.sorted_array import SortedArray
 from astropy.time import Time
-from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_SORTEDCONTAINERS
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .test_table import SetupData
@@ -894,6 +894,9 @@ def test_roundtrip_through_file(single_index, fmt, engine, tmp_path):
         # Save a few compute cycles, since single_index is really impacting just the
         # serialization data and the engine and fmt don't matter.
         return
+
+    if not HAS_H5PY and fmt == "hdf5":
+        pytest.skip("hdf5 tests require h5py")
 
     t = QTable()
     t["a"] = Time([1, 3, 2, 2], format="cxcsec")
