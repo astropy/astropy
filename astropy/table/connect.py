@@ -240,8 +240,8 @@ def construct_sliced_index(tbl: Table, /, index_info: IndexInfo) -> SlicedIndex:
             engine_cls = SCEngine
         case _:
             warnings.warn(
-                f"Cannot restore index with engine {index_info['engine']!r}.  "
-                "Index created using SortedArray engine",
+                f"Unknown index engine {index_info['engine']!r}, "
+                "creating index using SortedArray engine",
                 AstropyWarning,
                 stacklevel=2,
             )
