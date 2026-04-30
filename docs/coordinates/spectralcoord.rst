@@ -6,7 +6,7 @@ Using the SpectralCoord Class
 .. warning::
 
     The |SpectralCoord| class does not fully support cases
-    where the way multiple spectral values and multiple target frames are combined,
+    where multiple spectral values and multiple target frames are combined,
     so care should be taken in those cases. It is possible that there
     will be API changes in future versions of Astropy based on user feedback.
 
