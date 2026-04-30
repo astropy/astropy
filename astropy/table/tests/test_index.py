@@ -780,7 +780,7 @@ def test_indices_read_unknown_engine():
 
     with pytest.warns(
         AstropyWarning,
-        match=r"Cannot restore index with engine \"Foo\".  Index created using SortedArray engine",
+        match=r"Cannot restore index with engine 'Foo'.  Index created using SortedArray engine",
     ):
         t = Table.read(text, format="ecsv")
     # a==3 at row 1
