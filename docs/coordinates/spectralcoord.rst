@@ -5,10 +5,12 @@ Using the SpectralCoord Class
 
 .. warning::
 
-    The |SpectralCoord| class does not fully support cases
-    where multiple spectral values and multiple target frames are combined,
-    so care should be taken in those cases. It is possible that there
-    will be API changes in future versions of Astropy based on user feedback.
+    The |SpectralCoord| class at this time does not fully support cases where the
+    observer and target are moving relativistically relative to each other, so care
+    should be taken in those cases. The behavior of instances of multiple spectral values
+    combined with multiple target frames as an N * M dimensional |SpectralCoord|
+    has also not yet been finalised. It is possible that there will be API changes in future
+    versions of Astropy based on user feedback.
 
 The |SpectralCoord| class provides an interface for representing and
 transforming spectral coordinates such as frequencies, wavelengths, and photon
