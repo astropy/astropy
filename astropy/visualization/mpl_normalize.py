@@ -37,7 +37,7 @@ else:
             raise ImportError("matplotlib is required in order to use this class.")
 
 
-__all__ = ["ImageNormalize", "SimpleNorm", "imshow_norm", "simple_norm"]
+__all__ = ["ImageNormalize", "SimpleNorm", "imshow_norm", "simple_norm", "imshow_simple_norm"]
 
 __doctest_requires__ = {"*": ["matplotlib"]}
 
@@ -650,6 +650,81 @@ def imshow_norm(data, ax=None, **kwargs):
             norm_kwargs[pname] = imshow_kwargs.pop(pname)
 
     imshow_kwargs["norm"] = ImageNormalize(**norm_kwargs)
+    imshow_result = ax.imshow(data, **imshow_kwargs)
+
+    return imshow_result, imshow_kwargs["norm"]
+
+
+def imshow_simple_norm(data, ax=None, **kwargs):
+    """A convenience function to call matplotlib's `matplotlib.pyplot.imshow`
+    function, using an `SimpleNorm` object as the normalization.
+
+    Parameters
+    ----------
+    data : 2D or 3D array-like
+        The data to show. Can be whatever `~matplotlib.pyplot.imshow` and
+        `SimpleNorm` both accept. See `~matplotlib.pyplot.imshow`.
+    ax : None or `~matplotlib.axes.Axes`, optional
+        If None, use pyplot's imshow.  Otherwise, calls ``imshow`` method of
+        the supplied axes.
+    **kwargs : dict, optional
+        All other keyword arguments are parsed first by the
+        `SimpleNorm` initializer, then to
+        `~matplotlib.pyplot.imshow`.
+
+    Returns
+    -------
+    result : tuple
+        A tuple containing the `~matplotlib.image.AxesImage` generated
+        by `~matplotlib.pyplot.imshow` as well as the `SimpleNorm`
+        instance.
+
+    Notes
+    -----
+    The ``norm`` matplotlib keyword is not supported.
+
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from astropy.visualization import imshow_simple_norm
+
+        # Generate and display a test image
+        image = np.arange(65536).reshape((256, 256))
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        im, norm = imshow_simple_norm(image, ax, origin='lower',
+                               min_percent=1, max_percent=99.9,
+                               stretch='sinh')
+        fig.colorbar(im)
+    """
+
+    if ax is None:
+        if not HAS_MATPLOTLIB:
+            raise ModuleNotFoundError("matplotlib is required for imshow_simple_norm")
+
+        import matplotlib.pyplot as plt
+
+        ax = plt.gca()
+
+    if "norm" in kwargs:
+        raise ValueError(
+            "There is no point in using imshow_simple_norm if you give "
+            "the ``norm`` keyword - use imshow directly if you "
+            "want that."
+        )
+
+    imshow_kwargs = dict(kwargs)
+
+    norm_kwargs = {"data": data}
+    for pname in _norm_sig.parameters:
+        if pname in kwargs:
+            norm_kwargs[pname] = imshow_kwargs.pop(pname)
+
+    imshow_kwargs["norm"] = SimpleNorm(**norm_kwargs)
     imshow_result = ax.imshow(data, **imshow_kwargs)
 
     return imshow_result, imshow_kwargs["norm"]
