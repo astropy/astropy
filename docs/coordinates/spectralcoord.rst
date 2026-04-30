@@ -3,6 +3,13 @@
 Using the SpectralCoord Class
 *****************************
 
+.. warning::
+
+    The |SpectralCoord| class does not fully support cases
+    where the observer and target are moving relativistically relative to each
+    other, so care should be taken in those cases. It is possible that there
+    will be API changes in future versions of Astropy based on user feedback.
+
 The |SpectralCoord| class provides an interface for representing and
 transforming spectral coordinates such as frequencies, wavelengths, and photon
 energies, as well as equivalent Doppler velocities. While the plain |Quantity|
