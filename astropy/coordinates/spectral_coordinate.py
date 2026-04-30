@@ -138,15 +138,13 @@ class SpectralCoord(SpectralQuantity):
     """
     A spectral coordinate with its corresponding unit.
 
-    .. note:: The |SpectralCoord| class is new in Astropy v4.1 and should be
-              considered experimental at this time. Note that we do not fully
-              support cases where the observer and target are moving
-              relativistically relative to each other, so care should be taken
-              in those cases. It is possible that there will be API changes in
-              future versions of Astropy based on user feedback. If you have
-              specific ideas for how it might be improved, please  let us know
-              on the |astropy-dev mailing list| or at
-              http://feedback.astropy.org.
+    .. note::
+        The |SpectralCoord| class at this time does not fully support cases where the
+        observer and target are moving relativistically relative to each other, so care
+        should be taken in those cases. The behavior of instances of multiple spectral values
+        combined with multiple target frames as an N * M dimensional |SpectralCoord|
+        has also not yet been finalised. It is possible that there will be API changes in future
+        versions of Astropy based on user feedback.
 
     Parameters
     ----------
