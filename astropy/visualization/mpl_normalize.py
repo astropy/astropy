@@ -720,7 +720,7 @@ def imshow_simple_norm(data, ax=None, **kwargs):
     if "norm" in kwargs:
         raise ValueError(
             "There is no point in using imshow_simple_norm if you give "
-            "the ``norm`` keyword - use imshow directly if you "
+            "the norm keyword - use imshow directly if you "
             "want that."
         )
 

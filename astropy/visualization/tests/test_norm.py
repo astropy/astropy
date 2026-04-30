@@ -347,7 +347,7 @@ def test_imshow_norm():
 def test_imshow_simple_norm():
     from matplotlib.figure import Figure
 
-    image = np.random.randn(10, 10)
+    image = np.arange(100).reshape(10, 10)
 
     fig = Figure()
     ax = fig.add_subplot(label="test_imshow_simple_norm")
