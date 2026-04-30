@@ -864,28 +864,30 @@ def test_indices_serialization_representation_multiple():
     t.add_index("a")
     out = io.StringIO()
     t.write(out, format="ecsv", write_indices=True)
-    assert out.getvalue().splitlines() == [
+
+    exp = [
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - name: a",
-        "#   datatype: int64",
-        "#   meta: !!omap",
-        "#   - __indices__:",
-        "#     - colnames: [a, __index__1]",
-        "#       index_colname: __index__",
-        "#       primary: true",
-        "#     - colnames: [a]",
-        "#       index_colname: __index__2",
+        "# - {name: a, datatype: int64}",
         "# - {name: __index__1, datatype: int64}",
         "# - {name: __index__, datatype: int64}",
         "# - {name: __index__2, datatype: int64}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
+        "#     - colnames: [a, __index__1]",
+        "#       row_index_colname: __index__",
+        "#     - colnames: [a]",
+        "#       row_index_colname: __index__2",
+        "#     primary_key: [a, __index__1]",
         "# schema: astropy-2.0",
         "a __index__1 __index__ __index__2",
         "1 5 0 0",
         "3 4 2 2",
         "2 3 1 1",
     ]
+    assert out.getvalue().splitlines() == exp
 
 
 @pytest.mark.parametrize("single_index", [True, False])
