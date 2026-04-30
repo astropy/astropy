@@ -1,0 +1,1 @@
+Added ``astropy.io.fits.pack`` and ``astropy.io.fits.unpack`` which are convenience functions that operate on a full HDUList object to compress or uncompress the full file in analogous way to ``fpack`` and ``funpack`` which are provided by the cfitsio library.

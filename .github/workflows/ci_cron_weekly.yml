@@ -168,7 +168,7 @@ jobs:
             apt-get install -q -y --no-install-recommends \
                                   git \
                                   g++ \
-                                  cfitsio-bin \
+                                  libcfitsio-dev \
                                   pkg-config \
                                   python3 \
                                   python3-erfa \

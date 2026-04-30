@@ -6,7 +6,6 @@ import pathlib
 import shutil
 import subprocess
 import warnings
-from itertools import batched
 
 import numpy as np
 import pytest
@@ -609,6 +608,7 @@ class TestConvenience(FitsTestCase):
                 ["funpack", packed_filename],
                 capture_output=True,
                 text=True,
+                check=False,
             )
             assert funpack_result.returncode == 0, (
                 f"funpack failed:\n{funpack_result.stderr}"
@@ -631,6 +631,7 @@ class TestConvenience(FitsTestCase):
                 ["fpack", packed_filename],
                 capture_output=True,
                 text=True,
+                check=False,
             )
             assert fpack_result.returncode == 0, f"fpack failed:\n{fpack_result.stderr}"
             with fits.open(packed_filename + ".fz") as packed_hdulist:
@@ -740,7 +741,8 @@ def _simple_str_header_parser(header_str):
     """
     chunk_size = 80
     header = []
-    for chunk in batched(header_str, chunk_size):
+    for i in range(0, len(header_str), chunk_size):
+        chunk = header_str[i : i + chunk_size]
         bytes_chunk = bytes(chunk)
         if len(bytes_chunk.strip()) == 0:
             continue

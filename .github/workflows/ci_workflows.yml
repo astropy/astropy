@@ -101,7 +101,6 @@ jobs:
               - tzdata
               - libbz2-dev
               - libcfitsio-dev
-              - cfitsio-bin
           toxargs: -v --develop
           posargs: -n=4 --run-slow
           cache-path: .tox

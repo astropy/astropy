@@ -1129,7 +1129,7 @@ def unpack(compressed_hdulist: HDUList) -> HDUList:
 
 
 def pack(
-    uncompressed_hdulist: HDUList, extension_quantizations: dict = None
+    uncompressed_hdulist: HDUList, extension_quantizations: dict | None = None
 ) -> HDUList:
     """
     Pack a FITS HDUList in an equivalent way to fpack from the cfitsio library.
