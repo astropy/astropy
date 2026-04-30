@@ -331,7 +331,9 @@ def represent_indices(tbl: Table, /) -> Table:
     for index in tbl.indices:
         row_index = index.data.sorted_data()
 
-        # Find unique column name for the index row data
+        # Find unique column name for the index row data.  This must complete in no more
+        # than len(tbl_out.colnames) iterations. It is generating a distinct column name
+        # in each loop, and tbl_out.colnames has len(tbl_out.colnames) values.
         for ii_index in itertools.count():
             colname = "__index__" + ("" if ii_index == 0 else str(ii_index))
             if colname not in tbl_out.colnames:
