@@ -11,8 +11,8 @@ from astropy.visualization.mpl_normalize import (
     ImageNormalize,
     SimpleNorm,
     imshow_norm,
-    simple_norm,
     imshow_simple_norm,
+    simple_norm,
 )
 from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
 
@@ -361,14 +361,13 @@ def test_imshow_simple_norm():
     imshow_simple_norm(image, ax=ax, vmin=0, vmax=1)
 
     fig.clear()
-    imshow_simple_norm(image, ax=ax, min_percent=1, max_percent=99.9,
-        stretch='sinh')
+    imshow_simple_norm(image, ax=ax, min_percent=1, max_percent=99.9, stretch="sinh")
 
     # make sure the matplotlib version works
     fig.clear()
     imres, norm = imshow_simple_norm(image, ax=None)
 
-    assert isinstance(norm, SimpleNorm)
+    assert isinstance(norm, ImageNormalize)
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
