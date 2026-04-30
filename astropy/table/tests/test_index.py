@@ -53,7 +53,7 @@ def assert_col_equal(col, array):
         assert np.all(col == col.__class__(array))
 
 
-def assert_tables_equal(t1: Table, t2: Table):
+def assert_tables_equal(t1: Table, t2: Table) -> None:
     # Check table colnames equal and values equal
     vals_eq = t1.values_equal(t2)  # this raises if colnames not equal
     for col_eq in vals_eq.itercols():
@@ -784,7 +784,9 @@ def test_indices_read_unknown_engine():
     ):
         t = Table.read(text, format="ecsv")
     # a==3 at row 1
+    assert t.loc_indices[1] == 0
     assert t.loc_indices[3] == 1
+    assert t.loc_indices[2] == 2
 
 
 def test_indices_serialization_unique_representation():
@@ -893,7 +895,7 @@ def test_roundtrip_through_file(single_index, fmt, engine, tmp_path):
     if single_index and fmt != "ecsv":
         # Save a few compute cycles, since single_index is really impacting just the
         # serialization data and the engine and fmt don't matter.
-        return
+        pytest.skip()
 
     if not HAS_H5PY and fmt == "hdf5":
         pytest.skip("hdf5 tests require h5py")
