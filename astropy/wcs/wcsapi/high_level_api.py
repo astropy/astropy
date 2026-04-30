@@ -138,9 +138,9 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
     """
     Convert the input high level object to low level values.
 
-    This function uses the information in ``wcs.world_axis_object_classes`` and
-    ``wcs.world_axis_object_components`` to convert the high level objects
-    (such as `~.SkyCoord`) to low level "values" which should be scalars or
+    This function uses the information in ``low_level_wcs.world_axis_object_classes``
+    and ``low_level_wcs.world_axis_object_components`` to convert the high level
+    objects (such as `~.SkyCoord`) to low level "values" which should be scalars or
     Numpy arrays.
 
     This is used in `.HighLevelWCSMixin.world_to_pixel`, but provided as a
@@ -148,11 +148,18 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
 
     Parameters
     ----------
-    *world_objects: object
+    *world_objects : object
         High level coordinate objects.
 
-    low_level_wcs: `.BaseLowLevelWCS`
-        The WCS object to use to interpret the coordinates.
+    low_level_wcs : `.BaseLowLevelWCS` or object
+        Source of the world axis metadata to use for the conversion. A full
+        `.BaseLowLevelWCS` instance is accepted, but any object exposing
+        ``world_axis_object_classes`` and ``world_axis_object_components``
+        attributes also works (for example a `types.SimpleNamespace` or a
+        namedtuple). The ``serialized_classes`` attribute is read if present
+        and otherwise treated as ``False``. This is useful when the metadata
+        for the intended conversion direction does not match what a WCS
+        exposes by default.
     """
     # Cache the classes and components since this may be expensive
     serialized_classes = low_level_wcs.world_axis_object_classes
@@ -161,7 +168,7 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
     # Deserialize world_axis_object_classes using the default order
     classes = OrderedDict()
     for key in default_order(components):
-        if low_level_wcs.serialized_classes:
+        if getattr(low_level_wcs, "serialized_classes", False):
             classes[key] = deserialize_class(serialized_classes[key], construct=False)
         else:
             classes[key] = serialized_classes[key]
@@ -275,8 +282,8 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
     """
     Convert low level values into high level objects.
 
-    This function uses the information in ``wcs.world_axis_object_classes`` and
-    ``wcs.world_axis_object_components`` to convert low level "values"
+    This function uses the information in ``low_level_wcs.world_axis_object_classes``
+    and ``low_level_wcs.world_axis_object_components`` to convert low level "values"
     `~.Quantity` objects, to high level objects (such as `~.SkyCoord`).
 
     This is used in `.HighLevelWCSMixin.pixel_to_world`, but provided as a
@@ -284,11 +291,18 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
 
     Parameters
     ----------
-    *world_values: object
+    *world_values : object
         Low level, "values" representations of the world coordinates.
 
-    low_level_wcs: `.BaseLowLevelWCS`
-        The WCS object to use to interpret the coordinates.
+    low_level_wcs : `.BaseLowLevelWCS` or object
+        Source of the world axis metadata to use for the conversion. A full
+        `.BaseLowLevelWCS` instance is accepted, but any object exposing
+        ``world_axis_object_classes`` and ``world_axis_object_components``
+        attributes also works (for example a `types.SimpleNamespace` or a
+        namedtuple). The ``serialized_classes`` attribute is read if present
+        and otherwise treated as ``False``. This is useful when the metadata
+        for the intended conversion direction does not match what a WCS
+        exposes by default.
     """
     # Check the type of the input values - should be scalars or plain Numpy
     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
@@ -305,7 +319,7 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
     classes = low_level_wcs.world_axis_object_classes
 
     # Deserialize classes
-    if low_level_wcs.serialized_classes:
+    if getattr(low_level_wcs, "serialized_classes", False):
         classes_new = {}
         for key, value in classes.items():
             classes_new[key] = deserialize_class(value, construct=False)
