@@ -349,18 +349,12 @@ def represent_indices(tbl: Table, /) -> Table:
             index_info["engine"] = type(index.data).__name__
         if index.data.unique:
             index_info["unique"] = True
-        if len(tbl.indices) > 1 and index.id == tbl.primary_key:
-            index_info["primary"] = True
 
         indices_info.append(index_info)
 
-    for index_info in indices_info:
-        # Store the index information on the first column in the index. This is somewhat
-        # arbitrary but eliminates duplication of index_info for multi-column indices.
-        col = tbl_out[index_info["colnames"][0]]
-        if col.info.meta is None:
-            col.info.meta = {}
-        col_meta_indices = col.info.meta.setdefault("__indices__", [])
-        col_meta_indices.append(index_info)
+        tbl_out.meta["__table_indices__"] = {
+            "primary_key": list(tbl.primary_key),
+            "indices": indices_info,
+        }
 
     return tbl_out
