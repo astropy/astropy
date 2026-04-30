@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import itertools
 import warnings
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 from astropy.io import registry
 from astropy.utils.exceptions import AstropyWarning
@@ -189,10 +189,11 @@ def construct_indices(tbl: Table) -> None:
 
 
 class IndexInfo(TypedDict):
-    engine: Literal["SortedArray", "SCEngine"]
     colnames: tuple[str, ...]
     index_colname: int
-    unique: bool
+    engine: NotRequired[Literal["SortedArray", "SCEngine"]]
+    unique: NotRequired[bool]
+    primary: NotRequired[bool]
 
 
 def construct_sliced_index(tbl: Table, /, index_info: IndexInfo) -> SlicedIndex:
@@ -208,13 +209,13 @@ def construct_sliced_index(tbl: Table, /, index_info: IndexInfo) -> SlicedIndex:
     ----------
     tbl : Table
         Table containing the columns and row index data.
-    index_info : Mapping[str, object]
+    index_info : IndexInfo
         Dictionary containing index metadata, including:
-        - 'engine' (str): Name of the index engine class ('SortedArray' or 'SCEngine')
         - 'index_colname': Name of the column with row indices.
         - 'colnames' (tuple[str, ...]): Tuple of column names for the index.
-        - 'unique' (bool): Whether the index is unique.
-        - 'primary' (bool): Whether index is the primary key index (default=False).
+        - 'engine' (str, optional): Name of the index engine class ('SortedArray' or 'SCEngine')
+        - 'unique' (bool, optional): Whether the index is unique.
+        - 'primary' (bool, optional): Whether index is the primary key index (default=False).
 
     Returns
     -------
@@ -239,9 +240,10 @@ def construct_sliced_index(tbl: Table, /, index_info: IndexInfo) -> SlicedIndex:
             engine_cls = SCEngine
         case _:
             warnings.warn(
-                f'Cannot restore index with engine "{index_info["engine"]}".  '
+                f"Cannot restore index with engine {index_info['engine']!r}.  "
                 "Index created using SortedArray engine",
                 AstropyWarning,
+                stacklevel=2,
             )
             engine_cls = SortedArray
     row_index_colname = index_info["index_colname"]
