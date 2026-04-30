@@ -157,32 +157,23 @@ def construct_indices(tbl: Table) -> None:
     tbl : Table
         Table in which to create indices (in-place).
     """
-    indices: list[SlicedIndex] = []
-
-    primary_key = None
-    row_index_colnames = set()
-    for col in tbl.itercols():
-        if not col.info.meta or "__indices__" not in col.info.meta:
-            continue
-
-        for index_info in col.info.meta["__indices__"]:
-            if index_info.get("primary"):
-                primary_key = tuple(index_info["colnames"])
-            indices.append(construct_sliced_index(tbl, index_info))
-            row_index_colnames.add(index_info["index_colname"])
-
-    # No indices, do nothing
-    if not indices:
+    # No action if there are no indices defined in table meta. Otherwise get the
+    # table indices meta and pop that key off of meta.
+    if (indices_meta := tbl.meta.pop("__table_indices__", None)) is None:
         return
 
-    if primary_key is None:
-        primary_key = indices[0].id
+    indices: list[SlicedIndex] = []
+    row_index_colnames = set()
+
+    primary_key = tuple(indices_meta["primary_key"])
+    for index_info in indices_meta["indices"]:
+        indices.append(construct_sliced_index(tbl, index_info))
+        row_index_colnames.add(index_info["index_colname"])
 
     for index in indices:
-        # Add index to table by adding to each column indices and clean up column meta.
+        # Add index to table by adding to each column indices
         for colname in index.id:
             tbl[colname].info.indices.append(index)
-            tbl[colname].info.meta.pop("__indices__", None)
 
     tbl.primary_key = primary_key
     tbl.remove_columns(row_index_colnames)
