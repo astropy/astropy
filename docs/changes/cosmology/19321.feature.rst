@@ -1,0 +1,1 @@
+Add analytical primordial power spectra classes (scale-invariant, power-law, running, log-oscillatory, broken power-law) to ``astropy.cosmology`` and supporting infrastructure.
