@@ -38,6 +38,9 @@ import textwrap
 import uuid
 import warnings
 
+import threading
+import numpy as np
+
 # THIRD-PARTY
 import numpy as np
 from packaging.version import Version
@@ -716,6 +719,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         self._get_naxis(header)
 
         self._pixel_bounds = None
+        self._lock = threading.RLock()
 
     def __copy__(self):
         new_copy = self.__class__()
@@ -727,6 +731,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             (self.det2im1, self.det2im2),
         )
         new_copy.__dict__.update(self.__dict__)
+        new_copy._lock = threading.RLock()
         return new_copy
 
     def __deepcopy__(self, memo):
@@ -743,6 +748,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         )
         for key, val in self.__dict__.items():
             new_copy.__dict__[key] = deepcopy(val, memo)
+        new_copy._lock = threading.RLock()
         return new_copy
 
     def copy(self):
@@ -1667,7 +1673,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         )
 
     def all_pix2world(self, *args, **kwargs):
-        return self._array_converter(self._all_pix2world, "output", *args, **kwargs)
+        with self._lock:
+            return self._array_converter(self._all_pix2world, "output", *args, **kwargs)
 
     all_pix2world.__doc__ = f"""
         Transforms pixel coordinates to world coordinates.
@@ -1738,9 +1745,10 @@ reduce these to 2 dimensions using the naxis kwarg.
     def wcs_pix2world(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
-        return self._array_converter(
-            lambda xy, o: self.wcs.p2s(xy, o)["world"], "output", *args, **kwargs
-        )
+        with self._lock:
+            return self._array_converter(
+                lambda xy, o: self.wcs.p2s(xy, o)["world"], "output", *args, **kwargs
+            )
 
     wcs_pix2world.__doc__ = f"""
         Transforms pixel coordinates to world coordinates by doing
@@ -2097,6 +2105,8 @@ reduce these to 2 dimensions using the naxis kwarg.
                 # Apply correction:
                 pix -= dpix
                 k += 1
+            
+            return pix
 
         # ############################################################
         # #                  ADAPTIVE ITERATIONS:                   ##
@@ -2220,20 +2230,21 @@ reduce these to 2 dimensions using the naxis kwarg.
     ):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
-
-        return self._array_converter(
-            lambda *args, **kwargs: self._all_world2pix(
+        
+        with self._lock:
+            return self._array_converter(
+                lambda *args, **kwargs: self._all_world2pix(
+                    *args,
+                    tolerance=tolerance,
+                    maxiter=maxiter,
+                    adaptive=adaptive,
+                    detect_divergence=detect_divergence,
+                    quiet=quiet,
+                ),
+                "input",
                 *args,
-                tolerance=tolerance,
-                maxiter=maxiter,
-                adaptive=adaptive,
-                detect_divergence=detect_divergence,
-                quiet=quiet,
-            ),
-            "input",
-            *args,
-            **kwargs,
-        )
+                **kwargs,
+            )
 
     all_world2pix.__doc__ = f"""
         all_world2pix(*arg, tolerance=1.0e-4, maxiter=20,
@@ -2562,9 +2573,10 @@ reduce these to 2 dimensions using the naxis kwarg.
     def wcs_world2pix(self, *args, **kwargs):
         if self.wcs is None:
             raise ValueError("No basic WCS settings were created.")
-        return self._array_converter(
-            lambda xy, o: self.wcs.s2p(xy, o)["pixcrd"], "input", *args, **kwargs
-        )
+        with self._lock:
+            return self._array_converter(
+                lambda xy, o: self.wcs.s2p(xy, o)["pixcrd"], "input", *args, **kwargs
+            )
 
     wcs_world2pix.__doc__ = f"""
         Transforms world coordinates to pixel coordinates, using only
