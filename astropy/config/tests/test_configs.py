@@ -410,6 +410,23 @@ def test_set_temp_config(tmp_path, dirtype):
     assert configuration._cfgobjs == OLD_CONFIG
 
 
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.parametrize(
+    "create_kwargs",
+    [
+        pytest.param({}, id="implicit"),
+        pytest.param({"ensure_exists": True}, id="explicit"),
+    ],
+)
+def test_get_path_without_creation(dirtype: _DirType, create_kwargs, tmp_path):
+    with dirtype.legacy_context_manager(tmp_path) as tmp_dir:
+        assert not os.path.exists(tmp_dir)
+        dirtype.path_getter("astropy", ensure_exists=False)
+        assert not os.path.exists(tmp_dir)
+        dirtype.path_getter("astropy", **create_kwargs)
+        assert os.path.exists(tmp_dir)
+
+
 def test_set_temp_cache_resets_on_exception(tmp_path):
     """Test for regression of  bug #9704"""
     t = paths.get_cache_dir()
