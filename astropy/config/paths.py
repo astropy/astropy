@@ -478,7 +478,7 @@ def get_config_dir_path(rootname: str = "astropy") -> Path:
 
     Returns
     -------
-    configdir : Path
+    pathlib.Path
         The absolute path to the configuration directory.
 
     """
@@ -494,7 +494,7 @@ def get_config_dir(rootname: str = "astropy") -> str:
 if get_config_dir_path.__doc__ is not None:
     # guard against PYTHONOPTIMIZE mode
     get_config_dir.__doc__ = cleandoc(
-        get_config_dir_path.__doc__
+        get_config_dir_path.__doc__.replace("pathlib.Path", "str")
         + """
     See Also
     --------
@@ -526,7 +526,7 @@ def get_cache_dir_path(rootname: str = "astropy") -> Path:
 
     Returns
     -------
-    cachedir : Path
+    pathlib.Path
         The absolute path to the cache directory.
 
     """
@@ -542,7 +542,7 @@ def get_cache_dir(rootname: str = "astropy") -> str:
 if get_cache_dir_path.__doc__ is not None:
     # guard against PYTHONOPTIMIZE mode
     get_cache_dir.__doc__ = cleandoc(
-        get_cache_dir_path.__doc__
+        get_cache_dir_path.__doc__.replace("pathlib.Path", "str")
         + """
     See Also
     --------
