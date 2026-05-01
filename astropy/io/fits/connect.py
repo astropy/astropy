@@ -381,9 +381,19 @@ def read_table_fits(
     return _decode_mixins(t)
 
 
-def _encode_mixins(tbl):
-    """Encode a Table ``tbl`` that may have mixin columns to a Table with only
-    astropy Columns + appropriate meta-data to allow subsequent decoding.
+def _encode_mixins(tbl: Table) -> Table:
+    """Encode Table ``tbl`` to a Table with only astropy Columns + appropriate meta.
+
+    This handles:
+    - Mixin columns
+    - Columns with meta that cannot be directly stored to FITS
+    - Table with indices, where it is assumed that tbl.meta["__table_indices__"] is set
+      upstream in the Table connect code.
+
+    This function serializes that information appropriately and puts it into the
+    returned (new) table meta as "comments": list[str].
+
+    If none of the above situations apply the original table is returned.
     """
     # Determine if information will be lost without serializing meta.  This is hardcoded
     # to the set difference between column info attributes and what FITS can store
@@ -419,11 +429,11 @@ def _encode_mixins(tbl):
         meta_copy = deepcopy(tbl.meta)
         encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
 
-    # Get the YAML serialization of information describing the table columns.
-    # This is reusing ECSV code that combined existing table.meta with with
-    # the extra __serialized_columns__ key.  For FITS the table.meta is handled
-    # by the native FITS connect code, so don't include that in the YAML
-    # output.
+    # Get the YAML serialization of information describing the table columns as well as
+    # (optionally) information on table indices. This is reusing ECSV code that combined
+    # existing table.meta with the extra __serialized_columns__ key.  For FITS the
+    # table.meta is handled by the native FITS connect code, so don't include that in
+    # the YAML output.
     ser_keys_default = {
         "__serialized_columns__": {},
         "__table_indices__": None,
