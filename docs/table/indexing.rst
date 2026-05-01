@@ -325,6 +325,23 @@ property can be indexed either by column value, range of column values
 
 .. EXAMPLE END
 
+Storing the Table Indices to File
+=================================
+
+You can write a table with indices to FITS, ECVS, or HDF5 formats by supplying
+``write_indices=True`` in the call to the table `~astropy.table.Table.write` method. In
+this case the row index values are included in the table column data and column metadata
+to describe the indices is stored. This allows efficiently restoring the table index or
+indices when the data file is read back in. For an indexed table ``t``, you can do the
+following::
+
+    >>> t.write("data.fits", write_indices=True) # doctest: +SKIP
+    >>> t.write("data.ecsv", write_indices=True) # doctest: +SKIP
+    >>> t.write("data.hdf5", write_indices=True, path="root", serialize_meta=True) # doctest: +SKIP
+    >>> t_fits = Table.read("data.fits", astropy_native=True)  # doctest: +SKIP
+    >>> t_ecsv = Table.read("data.ecsv")  # doctest: +SKIP
+    >>> t_hdf5 = Table.read("data.hdf5", path="root")  # doctest: +SKIP
+
 Engines
 =======
 
