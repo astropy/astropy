@@ -2562,6 +2562,33 @@ class TestTableFunctions(FitsTestCase):
             assert (hdul[1].data["F1"] == [True, True]).all()
             assert (hdul[1].data["F2"] == [True, True]).all()
 
+    def test_logical_vla_bool_round_trip(self, tmp_path):
+        """Regression test for https://github.com/astropy/astropy/issues/18755.
+
+        Variable-length array (VLA) columns of FITS logical type
+        ('PL'/'QL') previously stored bool input as 1/0 bytes (not the
+        FITS L wire format ord('T') / ord('F')) and exposed read-back
+        values as raw int8 (84/70) rather than bool.
+        """
+        col = fits.Column(
+            name="flag",
+            format="PL()",
+            array=[
+                np.array([True, False, True]),
+                np.array([False, True]),
+            ],
+        )
+        out_path = tmp_path / "vla_bool.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(out_path)
+
+        with fits.open(out_path) as hdul:
+            data = hdul[1].data["flag"]
+            assert data[0].dtype == bool
+            assert list(data[0]) == [True, False, True]
+            assert list(data[1]) == [False, True]
+            heap = hdul[1].data._get_heap_data()
+            assert bytes(heap[:5]) == b"TFTFT"
+
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
 

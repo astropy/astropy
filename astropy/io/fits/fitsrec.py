@@ -809,7 +809,18 @@ class FITS_rec(np.recarray):
             vla_shape = tuple(
                 reversed(tuple(map(int, column.dim.strip("()").split(","))))
             )
-        dummy = _VLF([None] * len(self), dtype=recformat.dtype)
+
+        # Logical VLAs are exposed as bool arrays; the on-heap bytes are
+        # FITS L wire format (ord('T') / ord('F') / 0x00). The fixed-length
+        # L codepath does the same conversion in _convert_other, but for
+        # VLAs we have to do it here — the int8 → element_dtype coercion
+        # that _VLF.__setitem__ would apply to the intermediate value views
+        # any non-zero byte (incl. ord('F') = 70) as True, which would
+        # silently corrupt False values.
+        is_logical_vla = not column.ascii and recformat.format == "L"
+        element_dtype = "?" if is_logical_vla else recformat.dtype
+
+        dummy = _VLF([None] * len(self), dtype=element_dtype)
         raw_data = self._get_raw_data()
 
         if raw_data is None:
@@ -828,6 +839,11 @@ class FITS_rec(np.recarray):
                 da = raw_data[offset : offset + arr_len].view(dt)
                 da = get_chararray(da.view(dtype=dt), itemsize=count)
                 dummy[idx] = decode_ascii(da)
+            elif is_logical_vla:
+                # NULL bytes (0x00) collapse to False — they are
+                # indistinguishable from False without a wider raw-bytes
+                # API.
+                dummy[idx] = raw_data[offset : offset + count] == ord("T")
             else:
                 dt = np.dtype(recformat.dtype)
                 arr_len = count * dt.itemsize
@@ -1056,11 +1072,17 @@ class FITS_rec(np.recarray):
             for idx in range(self._nfields):
                 # data should already be byteswapped from the caller
                 # using _binary_table_byte_swap
-                if not isinstance(self.columns._recformats[idx], _FormatP):
+                recformat = self.columns._recformats[idx]
+                if not isinstance(recformat, _FormatP):
                     continue
 
+                # Logical VLAs hold their user-facing representation
+                # (bool); translate back to FITS L wire bytes here.
+                is_logical = recformat.format == "L"
                 for row in self.field(idx):
                     if len(row) > 0:
+                        if is_logical:
+                            row = _logical_to_fits_bytes(row)
                         data.append(row.view(type=np.ndarray, dtype=np.ubyte))
 
             if data:
@@ -1345,6 +1367,18 @@ class FITS_rec(np.recarray):
         column_lists = [self[name].tolist() for name in self.columns.names]
 
         return [list(row) for row in zip(*column_lists)]
+
+
+def _logical_to_fits_bytes(row):
+    """Convert a logical-VLA row to its FITS L wire-format bytes.
+
+    Returns an int8 array containing ord('T') / ord('F'). Bool inputs map
+    to T/F; numeric inputs treat zero as False and non-zero as True.
+    """
+    arr = np.asarray(row)
+    if arr.dtype == bool:
+        return np.where(arr, ord("T"), ord("F")).astype(np.int8)
+    return np.where(arr == 0, ord("F"), ord("T")).astype(np.int8)
 
 
 def _get_recarray_field(array, key):
