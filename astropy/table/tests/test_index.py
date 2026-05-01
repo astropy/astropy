@@ -792,7 +792,7 @@ def test_indices_read_unknown_engine():
 
 def test_indices_serialization_unique_representation():
     t = Table()
-    t["a"] = [1, 3, 2]
+    t["a"] = np.array([1, 3, 2], dtype="int64")
     t.add_index("a", unique=True)
     out = io.StringIO()
     t.write(out, format="ecsv", write_indices=True)
@@ -826,7 +826,7 @@ def test_indices_serialization_representation_single(engine):
     The `primary` key is not included in this case.
     """
     t = Table()
-    t["a"] = [1, 3, 2]
+    t["a"] = np.array([1, 3, 2], dtype="int64")
     t.add_index("a", engine=engine)
     out = io.StringIO()
     t.write(out, format="ecsv", write_indices=True)
@@ -861,7 +861,7 @@ def test_indices_serialization_representation_multiple():
     This includes the `primary` key and a collision.
     """
     t = Table()
-    t["a"] = [1, 3, 2]
+    t["a"] = np.array([1, 3, 2], dtype="int64")
     t["__index__1"] = [5, 4, 3]
     t.add_index(["a", "__index__1"])
     t.add_index("a")

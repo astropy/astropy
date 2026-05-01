@@ -281,9 +281,10 @@ def represent_indices(tbl: Table, /) -> Table:
 
       >>> from astropy.table import QTable
       >>> import sys
+      >>> import numpy as np
       >>> t = QTable()
-      >>> t["a"] = [2, 3, 1]
-      >>> t["b"] = [3, 5, 4]
+      >>> t["a"] = np.array([2, 3, 1], dtype="int64")
+      >>> t["b"] = np.array([3, 5, 4], dtype="int64")
       >>> t.add_index("a")
       >>> t.write(sys.stdout, format="ecsv", write_indices=True)
       # %ECSV 1.0
