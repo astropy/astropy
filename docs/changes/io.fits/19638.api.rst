@@ -1,0 +1,2 @@
+The ``strip_spaces`` option in ``Table.read`` to strip trailing whitespaces in
+string columns is now True by default. Set it to False to keep the old behavior.

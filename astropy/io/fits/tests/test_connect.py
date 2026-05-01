@@ -336,14 +336,15 @@ class TestSingleTable:
     @pytest.mark.parametrize("character_as_bytes", (False, True))
     def test_strip_spaces(self, tmp_path, character_as_bytes):
         filename = get_pkg_data_filename("data/tb.fits")
-        t = Table.read(
-            filename, character_as_bytes=character_as_bytes, strip_spaces=True
-        )
+        t = Table.read(filename, character_as_bytes=character_as_bytes)
         assert t["c2"].tolist() == ["abc", "xy"]
 
-        t = Table.read(filename, character_as_bytes=character_as_bytes)
+        t = Table.read(
+            filename, character_as_bytes=character_as_bytes, strip_spaces=False
+        )
         assert t["c2"].tolist() == ["abc", "xy "]
 
+        # strip_spaces automatically deactivated when memmap is enabled.
         t = Table.read(filename, character_as_bytes=character_as_bytes, memmap=True)
         assert t["c2"].tolist() == ["abc", "xy "]
         del t
