@@ -34,6 +34,19 @@ if HAS_MATPLOTLIB:
 
         @staticmethod
         def axisinfo(unit, axis, format=None):
+            """Return a :class:`matplotlib.units.AxisInfo` for *unit* and *axis*.                                                                          
+ 
+            Parameters                                                                                                                                     
+            ----------                                                                                                                                   
+            unit : `~astropy.units.UnitBase`
+                The unit to format the axis for.                                                                                                           
+            axis : `matplotlib.axis.Axis`
+                The matplotlib axis being formatted.                                                                                                       
+            format : `astropy.units.format.Base` subclass or str or None, optional                                                                         
+                The name of a format or a formatter class used to render the
+                axis label.  If `None`, the module-level default                                                                                           
+                (``"latex_inline"``) is used.                                                                                                              
+            """
             if format is None:
                 format = _default_format
             if unit == u.radian:
