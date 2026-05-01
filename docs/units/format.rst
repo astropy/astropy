@@ -204,38 +204,8 @@ formats:
     `Office of Guest Investigator Programs (OGIP)
     <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
-  - ``"console"``: Writes a representation of the unit useful for
-    display in a text console::
-
-      >>> print(fluxunit.to_string('console'))
-       erg s^-1 cm^-2
-
-    It is also possible to use a fraction, either on a single line,
-
-      >>> print(fluxunit.to_string('console', fraction='inline'))
-      erg / (s cm^2)
-
-    or using a multiline representation:
-
-      >>> print(fluxunit.to_string('console', fraction='multiline'))
-       erg
-      ------
-      s cm^2
-
-  - ``"unicode"``: Same as ``"console"``, except uses Unicode
-    characters::
-
-      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
-      2.1798724×10⁻¹⁸ m² kg s⁻²
-      >>> print(u.Ry.decompose().to_string('unicode', fraction=True))  # doctest: +FLOAT_CMP
-      2.1798724×10⁻¹⁸ m² kg / s²
-      >>> print(u.Ry.decompose().to_string('unicode', fraction='multiline'))  # doctest: +FLOAT_CMP
-                      m² kg
-      2.1798724×10⁻¹⁸ ─────
-                       s²
-
-`astropy.units` is also able to write, but not read, units in the
-following formats:
+`astropy.units` is also able to write units in the following formats, but
+parsing depends on the format, see details below:
 
   - ``"latex"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
@@ -268,6 +238,44 @@ following formats:
     .. math::
 
        \mathrm{erg\,s^{-1}\,cm^{-2}}
+
+  - ``"console"``: Writes a representation of the unit useful for
+    display in a text console::
+
+      >>> print(fluxunit.to_string('console'))
+       erg s^-1 cm^-2
+
+    It is also possible to use a fraction, either on a single line,
+
+      >>> print(fluxunit.to_string('console', fraction='inline'))
+      erg / (s cm^2)
+
+    or using a multiline representation:
+
+      >>> print(fluxunit.to_string('console', fraction='multiline'))
+       erg
+      ------
+      s cm^2
+
+    The ``"console"`` format can also be parsed back to a |Unit| object, but
+    this is only supported for the default and ``fraction="inline"`` format and
+    not the ``fraction="multiline"`` format. Exemplary the ``"inline"``
+    representation can be parsed back to the ```fluxunit``:
+
+      >>> u.Unit("erg / (s cm^2)") == fluxunit
+      True
+
+  - ``"unicode"``: Same as ``"console"``, except uses Unicode
+    characters::
+
+      >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
+      2.1798724×10⁻¹⁸ m² kg s⁻²
+      >>> print(u.Ry.decompose().to_string('unicode', fraction=True))  # doctest: +FLOAT_CMP
+      2.1798724×10⁻¹⁸ m² kg / s²
+      >>> print(u.Ry.decompose().to_string('unicode', fraction='multiline'))  # doctest: +FLOAT_CMP
+                      m² kg
+      2.1798724×10⁻¹⁸ ─────
+                       s²
 
 .. _astropy-units-format-unrecognized:
 
