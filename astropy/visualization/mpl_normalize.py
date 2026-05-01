@@ -663,7 +663,7 @@ def imshow_norm(data, ax=None, **kwargs):
     return imshow_result, imshow_kwargs["norm"]
 
 
-def imshow_simple_norm(data, ax=None, **kwargs):
+def imshow_simple_norm(data, ax=None, **kwargs) -> tuple:
     """A convenience function to call matplotlib's `matplotlib.pyplot.imshow`
     function, using an `SimpleNorm` object as the normalization.
 
