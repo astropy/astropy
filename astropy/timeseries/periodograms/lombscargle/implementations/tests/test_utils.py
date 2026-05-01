@@ -2,11 +2,16 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_equal
 
+from astropy.timeseries.periodograms.lombscargle._testing import (
+    assert_not_strictly_equal,
+)
 from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
     bitceil,
     extirpolate,
+    jn,
     trig_sum,
 )
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 @pytest.mark.parametrize("N", 2 ** np.arange(1, 12))
@@ -52,6 +57,19 @@ def test_extirpolate_with_integers(N, M, extirpolate_int_data):
     assert_allclose(np.dot(f(x), y), np.dot(f(x_hat), y_hat), rtol=1.7e-5)
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="SciPy is required to test jn() against jv()")
+def test_jn():
+    from scipy.special import jv
+
+    # Test the range used by NuFFT
+    n_vals = np.arange(-7, 16)
+    x_vals = np.linspace(-np.pi / 4, np.pi / 4, 1000)
+    N_grid, X_grid = np.meshgrid(n_vals, x_vals, indexing="ij")
+    custom_res = jn(N_grid, X_grid)
+    scipy_res = jv(N_grid, X_grid)
+    assert_allclose(custom_res, scipy_res, atol=1e-14, rtol=1e-13)
+
+
 @pytest.fixture
 def trig_sum_data():
     rng = np.random.default_rng(0)
@@ -68,25 +86,36 @@ def test_trig_sum(f0, adjust_t, freq_factor, df, trig_sum_data):
     t, h = trig_sum_data
 
     tfit = t - t.min() if adjust_t else t
-    S1, C1 = trig_sum(
-        tfit,
-        h,
-        df,
-        N=1000,
-        use_fft=True,
-        f0=f0,
-        freq_factor=freq_factor,
-        oversampling=10,
-    )
-    S2, C2 = trig_sum(
-        tfit,
-        h,
-        df,
-        N=1000,
-        use_fft=False,
-        f0=f0,
-        freq_factor=freq_factor,
-        oversampling=10,
-    )
-    assert_allclose(S1, S2, atol=1e-2)
-    assert_allclose(C1, C2, atol=1e-2)
+
+    kwargs_ref = {"use_fft": False, "f0": f0, "freq_factor": freq_factor}
+    S0, C0 = trig_sum(tfit, h, df, N=1000, **kwargs_ref)
+
+    results = [(S0, C0)]
+
+    fast_methods = [
+        (
+            {
+                "oversampling": 10,
+                "algorithm": "fasper",
+                "f0": f0,
+                "freq_factor": freq_factor,
+            },
+            1e-2,
+        ),
+        (
+            {"algorithm": "lra", "f0": f0, "freq_factor": freq_factor},
+            1e-7,
+        ),
+    ]
+
+    for alt_kwargs, tol in fast_methods:
+        S, C = trig_sum(tfit, h, df, N=1000, **alt_kwargs)
+
+        assert_allclose(S0, S, atol=tol)
+        assert_allclose(C0, C, atol=tol)
+
+        for prev_S, prev_C in results:
+            assert_not_strictly_equal(prev_S, S)
+            assert_not_strictly_equal(prev_C, C)
+
+        results.append((S, C))
