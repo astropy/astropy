@@ -103,7 +103,7 @@ def _decode_mixins(tbl):
     info = meta.get_header_from_yaml(lines)
 
     # Add serialized column information to table meta for use in constructing mixins
-    tbl.meta["__serialized_columns__"] = info["meta"]["__serialized_columns__"]
+    tbl.meta.update(info["meta"])
 
     # Use the `datatype` attribute info to update column attributes that are
     # NOT already handled via standard FITS column keys (name, dtype, unit).
@@ -396,6 +396,7 @@ def _encode_mixins(tbl):
         )
         for col in tbl.itercols()
     )
+    info_lost |= "__table_indices__" in tbl.meta
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.  This ignores
@@ -423,19 +424,34 @@ def _encode_mixins(tbl):
     # the extra __serialized_columns__ key.  For FITS the table.meta is handled
     # by the native FITS connect code, so don't include that in the YAML
     # output.
-    ser_col = "__serialized_columns__"
+    ser_keys_default = {
+        "__serialized_columns__": {},
+        "__table_indices__": None,
+    }
 
     # encode_tbl might not have a __serialized_columns__ key if there were no mixins,
     # but machinery below expects it to be available, so just make an empty dict.
-    encode_tbl.meta.setdefault(ser_col, {})
+    for key, default in ser_keys_default.items():
+        if default is not None:
+            encode_tbl.meta.setdefault(key, default)
 
+    # Temporarily redefine encode_tbl.meta to have *only* the keys from
+    # ser_key_defaults. Use this to get the corresponding YAML header.
     tbl_meta_copy = encode_tbl.meta.copy()
     try:
-        encode_tbl.meta = {ser_col: encode_tbl.meta[ser_col]}
+        encode_tbl.meta = {
+            key: encode_tbl.meta[key]
+            for key in ser_keys_default
+            if key in encode_tbl.meta
+        }
         meta_yaml_lines = meta.get_yaml_from_table(encode_tbl)
     finally:
         encode_tbl.meta = tbl_meta_copy
-    del encode_tbl.meta[ser_col]
+
+    # Remove those special keys so that later FITS doesn't try to put them into normal
+    # HEADER keys.
+    for key in ser_keys_default:
+        encode_tbl.meta.pop(key, None)
 
     if "comments" not in encode_tbl.meta:
         encode_tbl.meta["comments"] = []

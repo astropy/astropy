@@ -905,9 +905,6 @@ def test_indices_roundtrip_through_file(single_index, fmt, engine, tmp_path):
     if not HAS_H5PY and fmt == "hdf5":
         pytest.skip("hdf5 tests require h5py")
 
-    if fmt == "fits":
-        pytest.xfail("fits not yet supported")
-
     t = QTable()
     t["a"] = Time([1, 3, 2, 2], format="cxcsec")
     t["b"] = [3, 2, 2, 1]
