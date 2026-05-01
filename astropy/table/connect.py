@@ -289,14 +289,15 @@ def represent_indices(tbl: Table, /) -> Table:
       # %ECSV 1.0
       # ---
       # datatype:
-      # - name: a
-      #   datatype: int64
-      #   meta: !!omap
-      #   - __indices__:
-      #     - colnames: [a]
-      #       index_colname: __index__
+      # - {name: a, datatype: int64}
       # - {name: b, datatype: int64}
       # - {name: __index__, datatype: int64}
+      # meta: !!omap
+      # - __table_indices__:
+      #     indices:
+      #     - colnames: [a]
+      #       index_colname: __index__
+      #     primary_key: [a]
       # schema: astropy-2.0
       a b __index__
       2 3 2
