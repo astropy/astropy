@@ -367,6 +367,11 @@ def test_imshow_simple_norm():
     fig.clear()
     imres, norm = imshow_simple_norm(image, ax=None)
 
+    assert np.all(imres.get_array() == image)
+
+    # ensure the normalization is *not* just minmax like default imshow
+    assert (image.min(), image.max()) == imres.get_clim()
+
     assert isinstance(norm, ImageNormalize)
 
 
