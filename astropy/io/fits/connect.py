@@ -125,7 +125,7 @@ def read_table_fits(
     character_as_bytes=True,
     unit_parse_strict="warn",
     mask_invalid=True,
-    strip_spaces=False,
+    strip_spaces=True,
     use_fsspec=None,
     fsspec_kwargs=None,
 ):
@@ -183,9 +183,12 @@ def read_table_fits(
         penalty of doing this masking step. The masking is always deactivated
         when using ``memmap=True`` (see above).
     strip_spaces : bool, optional
-        Strip trailing whitespace in string columns, default is False and will be
-        changed to True in the next major release. This is deactivated when
-        using ``memmap=True`` (see above).
+        Strip trailing whitespace in string columns, default is True.
+        This is deactivated when using ``memmap=True`` (see above).
+
+        .. version-changed:: 8.0
+            The default is now `True` when ``memmap=False``.
+
     use_fsspec : bool, optional
         Use `fsspec.open` to open the file? Defaults to `False` unless
         ``name`` starts with the Amazon S3 storage prefix ``s3://`` or the
