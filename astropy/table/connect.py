@@ -157,32 +157,23 @@ def construct_indices(tbl: Table) -> None:
     tbl : Table
         Table in which to create indices (in-place).
     """
-    indices: list[SlicedIndex] = []
-
-    primary_key = None
-    row_index_colnames = set()
-    for col in tbl.itercols():
-        if not col.info.meta or "__indices__" not in col.info.meta:
-            continue
-
-        for index_info in col.info.meta["__indices__"]:
-            if index_info.get("primary"):
-                primary_key = tuple(index_info["colnames"])
-            indices.append(construct_sliced_index(tbl, index_info))
-            row_index_colnames.add(index_info["index_colname"])
-
-    # No indices, do nothing
-    if not indices:
+    # No action if there are no indices defined in table meta. Otherwise get the
+    # table indices meta and pop that key off of meta.
+    if (indices_meta := tbl.meta.pop("__table_indices__", None)) is None:
         return
 
-    if primary_key is None:
-        primary_key = indices[0].id
+    indices: list[SlicedIndex] = []
+    row_index_colnames = set()
+
+    primary_key = tuple(indices_meta["primary_key"])
+    for index_info in indices_meta["indices"]:
+        indices.append(construct_sliced_index(tbl, index_info))
+        row_index_colnames.add(index_info["index_colname"])
 
     for index in indices:
-        # Add index to table by adding to each column indices and clean up column meta.
+        # Add index to table by adding to each column indices
         for colname in index.id:
             tbl[colname].info.indices.append(index)
-            tbl[colname].info.meta.pop("__indices__", None)
 
     tbl.primary_key = primary_key
     tbl.remove_columns(row_index_colnames)
@@ -298,14 +289,15 @@ def represent_indices(tbl: Table, /) -> Table:
       # %ECSV 1.0
       # ---
       # datatype:
-      # - name: a
-      #   datatype: int64
-      #   meta: !!omap
-      #   - __indices__:
-      #     - colnames: [a]
-      #       index_colname: __index__
+      # - {name: a, datatype: int64}
       # - {name: b, datatype: int64}
       # - {name: __index__, datatype: int64}
+      # meta: !!omap
+      # - __table_indices__:
+      #     indices:
+      #     - colnames: [a]
+      #       index_colname: __index__
+      #     primary_key: [a]
       # schema: astropy-2.0
       a b __index__
       2 3 2
@@ -349,18 +341,12 @@ def represent_indices(tbl: Table, /) -> Table:
             index_info["engine"] = type(index.data).__name__
         if index.data.unique:
             index_info["unique"] = True
-        if len(tbl.indices) > 1 and index.id == tbl.primary_key:
-            index_info["primary"] = True
 
         indices_info.append(index_info)
 
-    for index_info in indices_info:
-        # Store the index information on the first column in the index. This is somewhat
-        # arbitrary but eliminates duplication of index_info for multi-column indices.
-        col = tbl_out[index_info["colnames"][0]]
-        if col.info.meta is None:
-            col.info.meta = {}
-        col_meta_indices = col.info.meta.setdefault("__indices__", [])
-        col_meta_indices.append(index_info)
+        tbl_out.meta["__table_indices__"] = {
+            "primary_key": list(tbl.primary_key),
+            "indices": indices_info,
+        }
 
     return tbl_out
