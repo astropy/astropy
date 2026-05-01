@@ -732,7 +732,7 @@ def test_masking_regression_1795():
     Regression test for #1795 - this bug originally caused columns where TNULL
     was not defined to have their first element masked.
     """
-    t = Table.read(get_pkg_data_filename("data/tb.fits"))
+    t = Table.read(get_pkg_data_filename("data/tb.fits"), strip_spaces=False)
     assert np.all(t["c1"].mask == np.array([False, False]))
     assert not hasattr(t["c2"], "mask")
     assert not hasattr(t["c3"], "mask")
