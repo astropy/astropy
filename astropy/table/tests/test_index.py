@@ -761,15 +761,16 @@ def test_indices_read_unknown_engine():
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - name: a",
-        "#   datatype: int64",
-        "#   meta: !!omap",
-        "#   - __indices__:",
+        "# - {name: a, datatype: int64}",
+        "# - {name: __index__, datatype: int64}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
         "#     - colnames: [a]",
         "#       engine: Foo",
         "#       index_colname: __index__",
-        "#       unique: false",
-        "# - {name: __index__, datatype: int64}",
+        "#       unique: true",
+        "#     primary_key: [a]",
         "# schema: astropy-2.0",
         "a __index__",
         "1 0",
@@ -799,14 +800,15 @@ def test_indices_serialization_unique_representation():
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - name: a",
-        "#   datatype: int64",
-        "#   meta: !!omap",
-        "#   - __indices__:",
+        "# - {name: a, datatype: int64}",
+        "# - {name: __index__, datatype: int64}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
         "#     - colnames: [a]",
         "#       index_colname: __index__",
         "#       unique: true",
-        "# - {name: __index__, datatype: int64}",
+        "#     primary_key: [a]",
         "# schema: astropy-2.0",
         "a __index__",
         "1 0",
@@ -828,28 +830,29 @@ def test_indices_serialization_representation_single(engine):
     t.add_index("a", engine=engine)
     out = io.StringIO()
     t.write(out, format="ecsv", write_indices=True)
-    exp_1 = [
+    exp = [
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - name: a",
-        "#   datatype: int64",
-        "#   meta: !!omap",
-        "#   - __indices__:",
-        "#     - colnames: [a]",
-    ]
-    # `engine` is included in YAML only for non-default case
-    exp_2 = [] if engine is SortedArray else ["#       engine: SCEngine"]
-    exp_3 = [
-        "#       index_colname: __index__",
+        "# - {name: a, datatype: int64}",
         "# - {name: __index__, datatype: int64}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
+        "#     - colnames: [a]",
+        "#       index_colname: __index__",
+        "#     primary_key: [a]",
         "# schema: astropy-2.0",
         "a __index__",
         "1 0",
         "3 2",
         "2 1",
     ]
-    assert out.getvalue().splitlines() == exp_1 + exp_2 + exp_3
+
+    if engine is SCEngine:
+        exp.insert(9, "#       engine: SCEngine")
+
+    assert out.getvalue().splitlines() == exp
 
 
 def test_indices_serialization_representation_multiple():
@@ -864,34 +867,36 @@ def test_indices_serialization_representation_multiple():
     t.add_index("a")
     out = io.StringIO()
     t.write(out, format="ecsv", write_indices=True)
-    assert out.getvalue().splitlines() == [
+
+    exp = [
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - name: a",
-        "#   datatype: int64",
-        "#   meta: !!omap",
-        "#   - __indices__:",
-        "#     - colnames: [a, __index__1]",
-        "#       index_colname: __index__",
-        "#       primary: true",
-        "#     - colnames: [a]",
-        "#       index_colname: __index__2",
+        "# - {name: a, datatype: int64}",
         "# - {name: __index__1, datatype: int64}",
         "# - {name: __index__, datatype: int64}",
         "# - {name: __index__2, datatype: int64}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
+        "#     - colnames: [a, __index__1]",
+        "#       index_colname: __index__",
+        "#     - colnames: [a]",
+        "#       index_colname: __index__2",
+        "#     primary_key: [a, __index__1]",
         "# schema: astropy-2.0",
         "a __index__1 __index__ __index__2",
         "1 5 0 0",
         "3 4 2 2",
         "2 3 1 1",
     ]
+    assert out.getvalue().splitlines() == exp
 
 
 @pytest.mark.parametrize("single_index", [True, False])
 @pytest.mark.parametrize("engine", [SortedArray, SCEngine])
 @pytest.mark.parametrize("fmt", ["fits", "ecsv", "hdf5"])
-def test_roundtrip_through_file(single_index, fmt, engine, tmp_path):
+def test_indices_roundtrip_through_file(single_index, fmt, engine, tmp_path):
     if single_index and fmt != "ecsv":
         # Save a few compute cycles, since single_index is really impacting just the
         # serialization data and the engine and fmt don't matter.
