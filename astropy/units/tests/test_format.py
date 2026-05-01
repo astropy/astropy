@@ -363,15 +363,15 @@ def test_ogip_negative_powers(string):
 
 
 class RoundtripBase:
-    def check_roundtrip(self, unit, output_format=None):
+    def check_roundtrip(self, unit, output_format=None, **kwargs):
         if output_format is None:
             output_format = self.format_.name
-        s = unit.to_string(output_format, deprecations="silent")
+        s = unit.to_string(output_format, deprecations="silent", **kwargs)
         if s in self.format_._deprecated_units:
             with pytest.raises(UnitsError, match="deprecated"):
-                unit.to_string(output_format, deprecations="raise")
+                unit.to_string(output_format, deprecations="raise", **kwargs)
             with pytest.warns(UnitsWarning, match="deprecated"):
-                assert unit.to_string(output_format) == s
+                assert unit.to_string(output_format, **kwargs) == s
             with pytest.warns(UnitsWarning, match="deprecated") as w:
                 a = Unit(s, format=self.format_)
             assert len(w) == 1
@@ -405,6 +405,12 @@ class TestRoundtripGeneric(RoundtripBase):
         self.check_roundtrip(unit, output_format="console")
         self.check_roundtrip(unit, output_format="unicode")
         self.check_roundtrip_decompose(unit)
+
+    @pytest.mark.parametrize("fraction", [None, "inline"])
+    @pytest.mark.parametrize("output_format", [None, "console", "unicode"])
+    def test_composite_roundtrip(self, output_format, fraction):
+        fluxunit = u.erg / (u.cm**2 * u.s)
+        self.check_roundtrip(fluxunit, output_format=output_format, fraction=fraction)
 
 
 class TestRoundtripVOUnit(RoundtripBase):
