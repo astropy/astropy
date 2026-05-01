@@ -1,9 +1,11 @@
 import abc
 import numbers
 from collections import OrderedDict, defaultdict
-from typing import Protocol
+from collections.abc import Callable
+from typing import Any, Protocol
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 from .utils import deserialize_class
 
@@ -15,7 +17,14 @@ __all__ = [
 ]
 
 
-class _WorldAxisMetadata(Protocol):  # noqa: PYI046
+_WorldAxisComponent = tuple[str, str | int, str | Callable[[Any], Any]]
+_WorldAxisClass = (
+    tuple[type | str, tuple[Any, ...], dict[str, Any]]
+    | tuple[type | str, tuple[Any, ...], dict[str, Any], Callable[..., Any]]
+)
+
+
+class _WorldAxisMetadata(Protocol):
     """
     Structural-subtyping interface for the world axis metadata used by
     `high_level_objects_to_values` and `values_to_high_level_objects`.
@@ -26,8 +35,8 @@ class _WorldAxisMetadata(Protocol):  # noqa: PYI046
     is recognised when present and otherwise treated as ``False``.
     """
 
-    world_axis_object_classes: dict
-    world_axis_object_components: list
+    world_axis_object_classes: dict[str, _WorldAxisClass]
+    world_axis_object_components: list[_WorldAxisComponent]
 
 
 def rec_getattr(obj, att):
@@ -150,7 +159,9 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
             )
 
 
-def high_level_objects_to_values(*world_objects, low_level_wcs):
+def high_level_objects_to_values(
+    *world_objects: Any, low_level_wcs: _WorldAxisMetadata
+) -> list:
     """
     Convert the input high level object to low level values.
 
@@ -294,7 +305,9 @@ def high_level_objects_to_values(*world_objects, low_level_wcs):
     return world
 
 
-def values_to_high_level_objects(*world_values, low_level_wcs):
+def values_to_high_level_objects(
+    *world_values: ArrayLike, low_level_wcs: _WorldAxisMetadata
+) -> list:
     """
     Convert low level values into high level objects.
 
@@ -307,7 +320,7 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
 
     Parameters
     ----------
-    *world_values : scalar or `~numpy.ndarray`
+    *world_values : `~numpy.typing.ArrayLike`
         Low level, "values" representations of the world coordinates.
 
     low_level_wcs : `.BaseLowLevelWCS` or object
