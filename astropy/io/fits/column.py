@@ -2243,7 +2243,13 @@ def _makep(array, descr_output, format, nrows=None):
     if not nrows:
         nrows = len(array)
 
-    data_output = _VLF([None] * nrows, dtype=format.dtype)
+    # Logical VLAs ('PL'/'QL') are stored in the _VLF as user-facing bool
+    # values. The FITS L wire format (ord('T')/ord('F')) is produced at
+    # heap-write time in FITS_rec._get_heap_data.
+    is_logical = format.format == "L"
+    element_dtype = "?" if is_logical else format.dtype
+
+    data_output = _VLF([None] * nrows, dtype=element_dtype)
 
     if format.dtype == "S":
         _nbytes = 1
@@ -2256,10 +2262,18 @@ def _makep(array, descr_output, format, nrows=None):
         else:
             if format.dtype == "S":
                 rowval = " " * data_output.max
+            elif is_logical:
+                rowval = np.zeros(data_output.max, dtype=element_dtype)
             else:
                 rowval = [0] * data_output.max
         if format.dtype == "S":
             data_output[idx] = get_chararray(encode_ascii(rowval), itemsize=1)
+        elif is_logical:
+            arr = np.asarray(rowval)
+            if arr.dtype == bool:
+                data_output[idx] = arr
+            else:
+                data_output[idx] = arr.astype(bool)
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 
