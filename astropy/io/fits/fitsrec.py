@@ -10,6 +10,7 @@ import numpy as np
 
 from astropy.utils import lazyproperty
 from astropy.utils.compat import chararray, get_chararray
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .column import (
     _VLF,
@@ -158,6 +159,7 @@ class FITS_rec(np.recarray):
 
     _record_type = FITS_record
     _character_as_bytes = False
+    _logical_as_bytes = False
     _load_variable_length_data = True
 
     def __new__(cls, input):
@@ -232,6 +234,7 @@ class FITS_rec(np.recarray):
 
         if isinstance(obj, FITS_rec):
             self._character_as_bytes = obj._character_as_bytes
+            self._logical_as_bytes = obj._logical_as_bytes
 
         if isinstance(obj, FITS_rec) and obj.dtype == self.dtype:
             self._converted = obj._converted
@@ -281,7 +284,14 @@ class FITS_rec(np.recarray):
         self._uint = False
 
     @classmethod
-    def from_columns(cls, columns, nrows=0, fill=False, character_as_bytes=False):
+    def from_columns(
+        cls,
+        columns,
+        nrows=0,
+        fill=False,
+        character_as_bytes=False,
+        logical_as_bytes=False,
+    ):
         """
         Given a `ColDefs` object of unknown origin, initialize a new `FITS_rec`
         object.
@@ -341,6 +351,7 @@ class FITS_rec(np.recarray):
         raw_data.fill(ord(columns._padding_byte))
         data = np.recarray(nrows, dtype=columns.dtype, buf=raw_data).view(cls)
         data._character_as_bytes = character_as_bytes
+        data._logical_as_bytes = logical_as_bytes
 
         # Previously this assignment was made from hdu.columns, but that's a
         # bug since if a _TableBaseHDU has a FITS_rec in its .data attribute
@@ -410,6 +421,12 @@ class FITS_rec(np.recarray):
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
                 inarr = np.where(inarr == np.False_, ord("F"), ord("T"))
+            elif recformat[-2:] == FITS2NUMPY["L"] and inarr.dtype.kind == "S":
+                # column is a logical column provided as raw bytes (e.g. via
+                # `logical_as_bytes=True`). View as int8 so the assignment
+                # below preserves the raw byte values — including NULL
+                # (b'\x00') — verbatim.
+                inarr = inarr.view(np.int8)
             elif column._physical_values and column._pseudo_unsigned_ints:
                 # Temporary hack...
                 bzero = column.bzero
@@ -471,8 +488,18 @@ class FITS_rec(np.recarray):
         # fields
         # This is required to prevent the issue reported in
         # https://github.com/spacetelescope/PyFITS/issues/99
-        for idx in range(len(columns)):
-            columns._arrays[idx] = data.field(idx)
+        # Suppress the NULL-values warning emitted by ``_convert_other``
+        # during this internal plumbing: the user has not yet accessed the
+        # data, so a warning issued here would be spurious. The warning is
+        # still emitted the next time the user reads the column.
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=r"Column '.*' contains NULL",
+                category=AstropyUserWarning,
+            )
+            for idx in range(len(columns)):
+                columns._arrays[idx] = data.field(idx)
 
         return data
 
@@ -1008,7 +1035,23 @@ class FITS_rec(np.recarray):
             column._physical_values = True
 
         elif _bool and field.dtype != bool:
-            field = np.equal(field, ord("T"))
+            if self._logical_as_bytes:
+                # Return a view of the raw bytes so that NULL (b'\x00') values
+                # can be distinguished from False (b'F') and True (b'T').
+                field = field.view("S1")
+            else:
+                # Check for NULL values (0x00) before converting
+                null_mask = field == 0
+                if np.any(null_mask):
+                    warnings.warn(
+                        f"Column '{column.name}' contains NULL (undefined) values "
+                        "which will be converted to False. To preserve NULL "
+                        "information, reopen the file with logical_as_bytes=True "
+                        "and check for bytes values of b'\\x00' (NULL), "
+                        "b'T' (True), and b'F' (False).",
+                        AstropyUserWarning,
+                    )
+                field = np.equal(field, ord("T"))
         elif _str:
             if not self._character_as_bytes:
                 with suppress(UnicodeDecodeError):
@@ -1223,7 +1266,14 @@ class FITS_rec(np.recarray):
                     np.array([ord("F")], dtype=np.int8)[0],
                     np.array([ord("T")], dtype=np.int8)[0],
                 )
-                raw_field[:] = np.choose(field, choices)
+                # Only overwrite raw bytes where the cached bool disagrees
+                # with the raw byte's implied bool value (b'T'==True,
+                # anything else==False). This preserves NULL (b'\x00') and
+                # other non-T/F raw bytes where the user has not modified
+                # the corresponding boolean value.
+                current_as_bool = raw_field == ord("T")
+                needs_update = field != current_as_bool
+                raw_field[needs_update] = np.choose(field[needs_update], choices)
 
         # Store the updated heapsize
         self._heapsize = heapsize
