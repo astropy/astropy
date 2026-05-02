@@ -21,6 +21,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from .test_table import SetupData
 
 available_engines = [BST, SortedArray]
+NATIVE_INT_NAME = np.array(0).dtype.name
 
 if HAS_SORTEDCONTAINERS:
     available_engines.append(SCEngine)
@@ -761,8 +762,8 @@ def test_indices_read_unknown_engine():
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - {name: a, datatype: int64}",
-        "# - {name: __index__, datatype: int64}",
+        f"# - {{name: a, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__, datatype: {NATIVE_INT_NAME}}}",
         "# meta: !!omap",
         "# - __table_indices__:",
         "#     indices:",
@@ -800,8 +801,8 @@ def test_indices_serialization_unique_representation():
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - {name: a, datatype: int64}",
-        "# - {name: __index__, datatype: int64}",
+        f"# - {{name: a, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__, datatype: {NATIVE_INT_NAME}}}",
         "# meta: !!omap",
         "# - __table_indices__:",
         "#     indices:",
@@ -834,8 +835,8 @@ def test_indices_serialization_representation_single(engine):
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - {name: a, datatype: int64}",
-        "# - {name: __index__, datatype: int64}",
+        f"# - {{name: a, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__, datatype: {NATIVE_INT_NAME}}}",
         "# meta: !!omap",
         "# - __table_indices__:",
         "#     indices:",
@@ -872,10 +873,10 @@ def test_indices_serialization_representation_multiple():
         "# %ECSV 1.0",
         "# ---",
         "# datatype:",
-        "# - {name: a, datatype: int64}",
-        "# - {name: __index__1, datatype: int64}",
-        "# - {name: __index__, datatype: int64}",
-        "# - {name: __index__2, datatype: int64}",
+        f"# - {{name: a, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__1, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__2, datatype: {NATIVE_INT_NAME}}}",
         "# meta: !!omap",
         "# - __table_indices__:",
         "#     indices:",
@@ -891,6 +892,22 @@ def test_indices_serialization_representation_multiple():
         "2 3 1 1",
     ]
     assert out.getvalue().splitlines() == exp
+
+
+@pytest.mark.parametrize("dtype", [np.int16, np.float32, np.int64, np.float64])
+def test_indices_roundtrip_various_dtypes(dtype):
+    """Test that serialization round-trip works for various index dtypes."""
+    t = Table()
+    t["a"] = np.array([1, 3, 2], dtype=dtype)
+    t["b"] = np.array([5, 6, 7], dtype=dtype)
+    t.add_index("a")
+    t.add_index(["a", "b"])
+    out = io.StringIO()
+    t.write(out, format="ecsv", write_indices=True)
+    t2 = Table.read(out.getvalue(), format="ecsv")
+
+    assert_tables_equal(t, t2)
+    assert_indices_equal(t, t2, [("a",), ("a", "b")])
 
 
 @pytest.mark.parametrize("single_index", [True, False])
@@ -931,6 +948,11 @@ def test_indices_roundtrip_through_file(single_index, fmt, engine, tmp_path):
         # FITS does not round-trip the format
         t2["a"].format = "cxcsec"
 
+    assert_tables_equal(t, t2)
+    assert_indices_equal(t, t2, indices_colnames)
+
+
+def assert_indices_equal(t, t2, indices_colnames):
     assert len(t.indices) == len(t2.indices)
     assert t.primary_key == t2.primary_key
 
