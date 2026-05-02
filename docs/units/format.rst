@@ -204,8 +204,8 @@ formats:
     `Office of Guest Investigator Programs (OGIP)
     <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
-`astropy.units` is also able to write, but not read, units in the
-following formats:
+`astropy.units` is also able to write units in the following formats, but
+parsing depends on the format, see details below:
 
   - ``"latex"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
@@ -256,6 +256,14 @@ following formats:
        erg
       ------
       s cm^2
+
+    The ``"console"`` format can also be parsed back to a |Unit| object, but
+    this is only supported for the default and ``fraction="inline"`` format and
+    not the ``fraction="multiline"`` format. Exemplary the ``"inline"``
+    representation can be parsed back to the ```fluxunit``:
+
+      >>> u.Unit("erg / (s cm^2)") == fluxunit
+      True
 
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
