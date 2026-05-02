@@ -1,3 +1,8 @@
+dependencies:
+- any:
+  - head-branch:
+    - '^update-astropy-iers-data-pin-\d+$'
+
 Docs:
 - changed-files:
   - any-glob-to-any-file:
