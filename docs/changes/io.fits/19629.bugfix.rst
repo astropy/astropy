@@ -1,0 +1,1 @@
+Fix variable-length array logical (``PL``/``QL``) columns being written as 1/0 bytes instead of FITS T/F and read back as raw int8 (84/70) instead of bool.
