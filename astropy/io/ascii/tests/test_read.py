@@ -433,6 +433,241 @@ def test_exclude_names_daophot():
     assert data.dtype.names == ("XCENTER", "MAG", "MSKY", "SHARPNESS", "PIER")
 
 
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_include_names_by_index(fast_reader):
+    """include_names accepts integer column indices (#7451)."""
+    text = "A B C D\n1 2 3 4\n5 6 7 8"
+    data = ascii.read(text, include_names=[0, 3], fast_reader=fast_reader)
+    assert data.colnames == ["A", "D"]
+    assert list(data["A"]) == [1, 5]
+    assert list(data["D"]) == [4, 8]
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_exclude_names_by_index(fast_reader):
+    """exclude_names accepts integer indices, including negatives (#7451)."""
+    text = "A B C D\n1 2 3 4\n5 6 7 8"
+    data = ascii.read(text, exclude_names=[0, -1], fast_reader=fast_reader)
+    assert data.colnames == ["B", "C"]
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_include_exclude_names_mixed(fast_reader):
+    """Names and integer indices may be mixed in the same list (#7451)."""
+    text = "A B C D E\n1 2 3 4 5\n6 7 8 9 10"
+    data = ascii.read(
+        text,
+        include_names=[0, "B", 3, "E"],
+        exclude_names=["B", 4],
+        fast_reader=fast_reader,
+    )
+    assert data.colnames == ["A", "D"]
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_include_names_by_index_out_of_range(fast_reader):
+    """Out-of-range integer indices raise IndexError (#7451)."""
+    text = "A B C\n1 2 3"
+    with pytest.raises(IndexError, match="include_names index 5"):
+        ascii.read(text, include_names=[5], fast_reader=fast_reader)
+    with pytest.raises(IndexError, match="exclude_names index -10"):
+        ascii.read(text, exclude_names=[-10], fast_reader=fast_reader)
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_fill_values_include_names_by_index(fast_reader):
+    """fill_include_names accepts integer indices (#7451)."""
+    f = "data/fill_values.txt"
+    testfile = get_testfiles(f)
+    data = ascii.read(
+        f,
+        fill_values=("a", "1"),
+        fast_reader=fast_reader,
+        fill_include_names=[1],  # column 'b'
+        **testfile["opts"],
+    )
+    check_fill_values(data)
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_fill_values_exclude_names_by_index(fast_reader):
+    """fill_exclude_names accepts integer indices (#7451)."""
+    f = "data/fill_values.txt"
+    testfile = get_testfiles(f)
+    data = ascii.read(
+        f,
+        fill_values=("a", "1"),
+        fast_reader=fast_reader,
+        fill_exclude_names=[0],  # column 'a'
+        **testfile["opts"],
+    )
+    check_fill_values(data)
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_fill_names_by_index_with_rename(fast_reader):
+    """fill_*_names indices resolve against post-rename names (#7451)."""
+    text = "A B C\n1 2 3\n9 9 9\n"
+    data = ascii.read(
+        text,
+        names=["X", "Y", "Z"],
+        fill_values=("9", "MASK"),
+        fill_include_names=[0],  # post-rename: 'X'
+        fast_reader=fast_reader,
+    )
+    assert data.colnames == ["X", "Y", "Z"]
+    assert data["X"][1] is np.ma.masked
+    assert data["Y"][1] is not np.ma.masked
+    assert data["Z"][1] is not np.ma.masked
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_include_names_by_index_bool_rejected(fast_reader):
+    """bool entries are rejected, not silently treated as 0/1 (#7451).
+
+    ``format='basic'`` and ``guess=False`` are needed because
+    ``ascii.read``'s format guesser swallows ``TypeError``.
+    """
+    text = "A B C\n1 2 3\n"
+    with pytest.raises(TypeError, match="include_names entries must be"):
+        ascii.read(
+            text,
+            format="basic",
+            guess=False,
+            include_names=[True],
+            fast_reader=fast_reader,
+        )
+    with pytest.raises(TypeError, match="exclude_names entries must be"):
+        ascii.read(
+            text,
+            format="basic",
+            guess=False,
+            exclude_names=[False],
+            fast_reader=fast_reader,
+        )
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_include_names_by_index_numpy_bool_rejected(fast_reader):
+    """``numpy.bool_`` is rejected just like Python ``bool`` (#7451).
+
+    ``isinstance(np.True_, bool)`` is ``False`` and ``np.bool_`` is not a
+    subclass of ``np.integer``, so without an explicit ``np.bool_`` guard
+    a numpy boolean would slip through and be silently mishandled.
+    """
+    text = "A B C\n1 2 3\n"
+    with pytest.raises(TypeError, match="include_names entries must be"):
+        ascii.read(
+            text,
+            format="basic",
+            guess=False,
+            include_names=[np.True_],
+            fast_reader=fast_reader,
+        )
+    with pytest.raises(TypeError, match="exclude_names entries must be"):
+        ascii.read(
+            text,
+            format="basic",
+            guess=False,
+            exclude_names=[np.False_],
+            fast_reader=fast_reader,
+        )
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_fill_names_does_not_mutate_user_input(fast_reader):
+    """The user's fill_include_names list must not be mutated (#7451)."""
+    user_fill = [0]
+    text = "A B C\n1 2 3\n9 9 9\n"
+    ascii.read(
+        text,
+        fill_values=("9", "MASK"),
+        fill_include_names=user_fill,
+        fast_reader=fast_reader,
+    )
+    assert user_fill == [0]
+
+
+def test_basic_reader_reuse_with_fill_index():
+    """Reusing a Basic reader across files with different schemas (#7451)."""
+    reader = ascii.get_reader(
+        reader_cls=ascii.Basic,
+        fill_values=("9", "MASK"),
+        fill_include_names=[0],
+    )
+    dat1 = reader.read("A B C\n1 2 3\n9 9 9\n")
+    assert reader.data.fill_include_names == [0]
+    assert dat1["A"][1] is np.ma.masked
+    assert dat1["B"][1] is not np.ma.masked
+    dat2 = reader.read("X Y Z\n9 8 7\n")
+    assert reader.data.fill_include_names == [0]
+    assert dat2["X"][0] is np.ma.masked
+    assert dat2["Y"][0] is not np.ma.masked
+
+
+def test_basic_reader_reuse_with_generator_fill_index():
+    """A generator passed as fill_include_names survives reader reuse (#7451).
+
+    Without materializing the user-supplied iterable, the second ``read()``
+    would see an exhausted generator and silently apply no fill at all.
+    """
+    reader = ascii.get_reader(
+        reader_cls=ascii.Basic,
+        fill_values=("9", "MASK"),
+        fill_include_names=(i for i in [0]),
+    )
+    dat1 = reader.read("A B C\n1 2 3\n9 9 9\n")
+    assert dat1["A"][1] is np.ma.masked
+    assert dat1["B"][1] is not np.ma.masked
+    # Second read with a different schema must still mask the first column.
+    dat2 = reader.read("X Y Z\n9 8 7\n")
+    assert dat2["X"][0] is np.ma.masked
+    assert dat2["Y"][0] is not np.ma.masked
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_fill_names_by_index_with_include_names(fast_reader):
+    """fill_*_names indices index the pre-filter column list (#7451).
+
+    Index 0 -> 'A', which include_names excludes, so the fill is a no-op.
+    """
+    text = "A B C D\n1 2 3 4\n9 9 9 9\n"
+    data = ascii.read(
+        text,
+        include_names=["B", "C", "D"],
+        fill_values=("9", "X"),
+        fill_include_names=[0],
+        fast_reader=fast_reader,
+    )
+    assert data.colnames == ["B", "C", "D"]
+    assert list(data["B"]) == [2, 9]
+    assert list(data["C"]) == [3, 9]
+    assert list(data["D"]) == [4, 9]
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_fill_names_by_index_out_of_range(fast_reader):
+    """Out-of-range fill_*_names integer indices raise IndexError (#7451)."""
+    f = "data/fill_values.txt"
+    testfile = get_testfiles(f)
+    with pytest.raises(IndexError, match="fill_include_names index 5"):
+        ascii.read(
+            f,
+            fill_values=("a", "1"),
+            fast_reader=fast_reader,
+            fill_include_names=[5],
+            **testfile["opts"],
+        )
+    with pytest.raises(IndexError, match="fill_exclude_names index -10"):
+        ascii.read(
+            f,
+            fill_values=("a", "1"),
+            fast_reader=fast_reader,
+            fill_exclude_names=[-10],
+            **testfile["opts"],
+        )
+
+
 def test_custom_process_lines():
     def process_lines(lines):
         bars_at_ends = re.compile(r"^\| | \|$", re.VERBOSE)
@@ -1933,6 +2168,27 @@ def test_deduplicate_names_basic(rdb, fast_reader):
     assert np.all(dat["b1"] == [1, 10])
     assert np.all(dat["b2"] == [2, 20])
     assert np.all(dat["b4"] == [4, 40])
+
+
+@pytest.mark.parametrize("fast_reader", [True, False, "force"])
+def test_deduplicate_names_with_fill_index(fast_reader):
+    """Integer indices in fill_*_names index the deduplicated column list (#7451).
+
+    Header ``a a_2 a_1 a a`` deduplicates to ``a, a_2, a_1, a_3, a_4``;
+    ``fill_include_names=[3]`` must therefore target ``a_3``, and only that
+    column should have its second-row 9 masked.
+    """
+    lines = ["a a_2 a_1 a a", "1 2 3 4 5", "9 9 9 9 9"]
+    dat = ascii.read(
+        lines,
+        fast_reader=fast_reader,
+        fill_values=("9", "MASK"),
+        fill_include_names=[3],
+    )
+    assert dat.colnames == ["a", "a_2", "a_1", "a_3", "a_4"]
+    assert dat["a_3"][1] is np.ma.masked
+    for other in ("a", "a_2", "a_1", "a_4"):
+        assert dat[other][1] is not np.ma.masked
 
 
 def test_include_names_rdb_fast():
