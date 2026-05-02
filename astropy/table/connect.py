@@ -277,32 +277,7 @@ def represent_indices(tbl: Table, /) -> Table:
     automatically serializes column meta into YAML comments, while table meta is assumed
     to be FITS keyword files.
 
-    The format is most easily illustrated via the ECSV output in this example::
-
-      >>> from astropy.table import QTable
-      >>> import sys
-      >>> t = QTable()
-      >>> t["a"] = [2, 3, 1]
-      >>> t["b"] = [3, 5, 4]
-      >>> t.add_index("a")
-      >>> t.write(sys.stdout, format="ecsv", write_indices=True)
-      # %ECSV 1.0
-      # ---
-      # datatype:
-      # - {name: a, datatype: int64}
-      # - {name: b, datatype: int64}
-      # - {name: __index__, datatype: int64}
-      # meta: !!omap
-      # - __table_indices__:
-      #     indices:
-      #     - colnames: [a]
-      #       index_colname: __index__
-      #     primary_key: [a]
-      # schema: astropy-2.0
-      a b __index__
-      2 3 2
-      3 5 0
-      1 4 1
+    See the ``test_indices_serialization_*` tests in ``test_index.py`` for examples.
 
     Parameters
     ----------
