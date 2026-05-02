@@ -1,0 +1,1 @@
+Registered ``ascii.latex`` as a valid format for reading ``Cosmology`` objects. The reader now gracefully skips LaTeX unit rows and successfully parses numeric columns, while array-valued parameters (like ``m_nu``) are now serialized in a non-lossy format to ensure accurate round-tripping.
