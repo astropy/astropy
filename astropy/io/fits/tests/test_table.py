@@ -2589,6 +2589,43 @@ class TestTableFunctions(FitsTestCase):
             heap = hdul[1].data._get_heap_data()
             assert bytes(heap[:5]) == b"TFTFT"
 
+    def test_logical_vla_legacy_file_compat(self):
+        """Backwards compatibility for logical VLA files written by
+        pre-fix astropy (heap encoded as 0x00/0x01 bytes rather than the
+        FITS L wire format 'T'/'F').
+        """
+        # The data file used here was generated with astropy prior to
+        # the fix using the following code (run against commit 0b44f93,
+        # the immediate parent of the fix commit):
+        #
+        #     import numpy as np
+        #     from astropy.io import fits
+        #
+        #     col = fits.Column(
+        #         name="flag",
+        #         format="PL()",
+        #         array=[
+        #             np.array([True, False, True]),
+        #             np.array([False, True]),
+        #             np.array([], dtype=bool),
+        #             np.array([True, True, False, False]),
+        #         ],
+        #     )
+        #     fits.BinTableHDU.from_columns([col]).writeto(
+        #         "vla_logical_pre_fix.fits"
+        #     )
+        path = self.data("vla_logical_pre_fix.fits")
+        with pytest.warns(
+            AstropyUserWarning, match="appears to have been written by an older"
+        ):
+            with fits.open(path) as hdul:
+                data = hdul[1].data["flag"]
+                assert data[0].dtype == bool
+                assert list(data[0]) == [True, False, True]
+                assert list(data[1]) == [False, True]
+                assert list(data[2]) == []
+                assert list(data[3]) == [True, True, False, False]
+
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
 

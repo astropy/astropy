@@ -10,6 +10,7 @@ import numpy as np
 
 from astropy.utils import lazyproperty
 from astropy.utils.compat import chararray, get_chararray
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .column import (
     _VLF,
@@ -829,6 +830,18 @@ class FITS_rec(np.recarray):
                 "array column."
             )
 
+        legacy_logical_vla = is_logical_vla and _detect_legacy_logical_vla_heap(
+            raw_data, field, self._heapoffset
+        )
+        if legacy_logical_vla:
+            warnings.warn(
+                f"Logical variable-length array column {column.name!r} appears to "
+                "have been written by an older astropy version (<8.0) that stored "
+                "boolean values as 0x00/0x01 bytes instead of the FITS L wire "
+                "format ord('T')/ord('F'). Reading 0x01 as True and 0x00 as False.",
+                AstropyUserWarning,
+            )
+
         for idx in range(len(self)):
             offset = int(field[idx, 1]) + self._heapoffset
             count = int(field[idx, 0])
@@ -840,10 +853,15 @@ class FITS_rec(np.recarray):
                 da = get_chararray(da.view(dtype=dt), itemsize=count)
                 dummy[idx] = decode_ascii(da)
             elif is_logical_vla:
-                # NULL bytes (0x00) collapse to False — they are
-                # indistinguishable from False without a wider raw-bytes
-                # API.
-                dummy[idx] = raw_data[offset : offset + count] == ord("T")
+                buf = raw_data[offset : offset + count]
+                if legacy_logical_vla:
+                    # Pre-fix astropy wrote 0x00/0x01; non-zero is True.
+                    dummy[idx] = buf.view(np.uint8) != 0
+                else:
+                    # NULL bytes (0x00) collapse to False — they are
+                    # indistinguishable from False without a wider
+                    # raw-bytes API.
+                    dummy[idx] = buf == ord("T")
             else:
                 dt = np.dtype(recformat.dtype)
                 arr_len = count * dt.itemsize
@@ -1379,6 +1397,28 @@ def _logical_to_fits_bytes(row):
     if arr.dtype == bool:
         return np.where(arr, ord("T"), ord("F")).astype(np.int8)
     return np.where(arr == 0, ord("F"), ord("T")).astype(np.int8)
+
+
+def _detect_legacy_logical_vla_heap(raw_data, field, heap_offset):
+    """Heuristically detect a logical VLA column written by pre-fix astropy.
+
+    Pre-fix astropy stored bool VLA values as 0x00/0x01 bytes instead of the
+    FITS L wire format ord('T') (0x54) / ord('F') (0x46). A column is
+    classified as legacy when its heap region contains the byte 0x01 and no
+    bytes other than 0x00 / 0x01 — those values cannot occur in a correctly
+    written L column (only 0x00, 0x46, 0x54 are valid). Heaps containing
+    only 0x00 are ambiguous but indistinguishable in either interpretation.
+    """
+    bufs = []
+    for idx in range(len(field)):
+        offset = int(field[idx, 1]) + heap_offset
+        count = int(field[idx, 0])
+        if count:
+            bufs.append(raw_data[offset : offset + count].view(np.uint8))
+    if not bufs:
+        return False
+    unique = np.unique(np.concatenate(bufs))
+    return bool(np.all(unique <= 1)) and 1 in unique
 
 
 def _get_recarray_field(array, key):
