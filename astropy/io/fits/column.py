@@ -2269,7 +2269,14 @@ def _makep(array, descr_output, format, nrows=None):
         if format.dtype == "S":
             data_output[idx] = get_chararray(encode_ascii(rowval), itemsize=1)
         elif is_logical:
-            data_output[idx] = np.asarray(rowval).astype(bool, copy=False)
+            # Route through int8 first so non-numeric/non-bool inputs
+            # (strings, None, ...) raise at write time, matching pre-fix
+            # astropy behavior; bypassing this and using ``astype(bool)``
+            # directly would silently coerce e.g. ``["T", "F"]`` to
+            # ``[True, True]``.
+            data_output[idx] = np.array(rowval, dtype=np.int8).astype(
+                bool, copy=False
+            )
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 
