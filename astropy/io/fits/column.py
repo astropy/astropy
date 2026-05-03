@@ -2269,11 +2269,7 @@ def _makep(array, descr_output, format, nrows=None):
         if format.dtype == "S":
             data_output[idx] = get_chararray(encode_ascii(rowval), itemsize=1)
         elif is_logical:
-            arr = np.asarray(rowval)
-            if arr.dtype == bool:
-                data_output[idx] = arr
-            else:
-                data_output[idx] = arr.astype(bool)
+            data_output[idx] = np.asarray(rowval).astype(bool, copy=False)
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 
