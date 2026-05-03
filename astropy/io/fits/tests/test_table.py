@@ -2626,6 +2626,25 @@ class TestTableFunctions(FitsTestCase):
                 assert list(data[2]) == []
                 assert list(data[3]) == [True, True, False, False]
 
+    @pytest.mark.parametrize(
+        "rowval, exc",
+        [
+            (["T", "F", "T"], ValueError),
+            (["Y", "N"], ValueError),
+            ([None, False, True], TypeError),
+        ],
+    )
+    def test_logical_vla_rejects_non_numeric_input(self, tmp_path, rowval, exc):
+        """Logical VLA columns reject non-numeric / non-bool inputs at
+        write time (matching pre-fix astropy behavior). Without this the
+        new bool conversion would silently coerce strings/None: e.g.
+        ``["T", "F", "T"]`` to ``[True, True, True]`` because non-empty
+        strings are truthy.
+        """
+        col = fits.Column(name="flag", format="PL()", array=[rowval])
+        with pytest.raises(exc):
+            fits.BinTableHDU.from_columns([col]).writeto(tmp_path / "bad.fits")
+
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
 
