@@ -119,6 +119,9 @@ jobs:
 
         - name: Python 3.12 with all optional dependencies (MacOS X)
           macos: py312-test-alldeps
+          libraries:
+            brew:
+              - cfitsio
           posargs: --durations=50 --run-slow
           runs-on: macos-latest
           cache-path: .tox

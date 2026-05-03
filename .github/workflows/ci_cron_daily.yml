@@ -75,7 +75,7 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         sudo apt-get update
-        sudo apt-get install language-pack-de tzdata
+        sudo apt-get install language-pack-de tzdata libcfitsio-dev -y
 
     - name: Install Python dependencies
       run: python -m pip install --upgrade tox
