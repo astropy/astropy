@@ -982,6 +982,13 @@ def test_parquet_read_generic(tmp_path):
 @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
 def test_parquet_read_pandas(tmp_path):
     """Test reading a pandas parquet file."""
+
+    import pandas
+
+    from astropy.utils import minversion
+
+    PANDAS_LT_3 = not minversion(pandas, "3.0.0")
+
     filename = tmp_path / "test_pandas.parq"
 
     t1 = Table()
@@ -999,4 +1006,9 @@ def test_parquet_read_pandas(tmp_path):
     for dtype in ALL_DTYPES:
         values = _default_values(dtype)
         assert np.all(t2[str(dtype)] == values)
-        assert t2[str(dtype)].dtype == dtype
+
+        if not PANDAS_LT_3 and dtype == "U3":
+            # FIXME: https://github.com/astropy/astropy/issues/19651
+            assert t2[str(dtype)].dtype == "O"
+        else:
+            assert t2[str(dtype)].dtype == dtype
