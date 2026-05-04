@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.0-paths-discovery`
 * :ref:`whatsnew-8.0-write-table-indices`
 * :ref:`whatsnew-8.0-vla-logical`
+* :ref:`whatsnew-8.0-timeseries-lra`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -264,3 +265,21 @@ For example::
     >>> hdu.writeto("example.fits", overwrite=True)  # doctest: +SKIP
     >>> fits.getdata("example.fits")["a"][0]  # doctest: +SKIP
     array([ True, False,  True])
+.. _whatsnew-8.0-timeseries-lra:
+
+Fast Lomb-Scargle: Low Rank Approximation
+=========================================
+
+Fast Lomb-Scargle Periodogram (``fast`` and ``fastchi2`` implementations)
+now uses Low Rank Approximation (LRA) algorithm by default.
+The LRA implementation is up 4x slower, when compared to the existing one,
+but also 8 to 10 orders of magnitude more accurate, nearly matching the
+accuracy of the slow method.
+
+While not having a significant impact on the typical accuracy of the
+standard fast implementation (except eliminating the negative powers issue),
+it significantly improves the ``fastchi2`` method, causing it to nearly
+match the slow ``chi2`` implementation in the terms of accuracy.
+
+Additionally, the Bessel function approximation relies on the Taylor
+series around ``x=0`` and as such no longer relies on SciPy for evaluation.
