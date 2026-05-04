@@ -1170,7 +1170,9 @@ class LeapSeconds(QTable):
         # already in cache.  The bools here indicate that the cache
         # should be used.
         trials = [
-            (f, True) for f in files if not urlparse(f).netloc or is_url_in_cache(f)
+            (f, True)
+            for f in files
+            if not urlparse(f).netloc or is_url_in_cache(f, on_missing="ignore")
         ]
         # If we are allowed to download, we try downloading new versions
         # if none of the above worked.
