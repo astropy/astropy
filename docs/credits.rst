@@ -121,6 +121,7 @@ Core Package Contributors
 * Conor MacBride
 * Cristian Ardelean
 * Curtis McCully
+* Curtis McCully
 * Cyrus
 * Damien LaRocque
 * Dan Foreman-Mackey
@@ -288,9 +289,13 @@ Core Package Contributors
 * JP Maia
 * Juan Luis Cano Rodríguez
 * Juanjo Bazán
+* Julian Harbeck
+* Julian Harbeck
 * Julien Woillez
 * Jurien Huisman
 * Kacper Kowalik
+* Kacper Rutkowski
+* Kacper Rutkowski
 * Kang Wang
 * Karan Grover
 * Karl Gordon
@@ -305,6 +310,7 @@ Core Package Contributors
 * Kieran Leschinski
 * Kim Searle
 * Kirill Tchernyshyov
+* kkrutkowski
 * Kris Stern
 * Kristin Berry
 * Kunam Balaram Reddy
@@ -341,6 +347,7 @@ Core Package Contributors
 * M\. Atakan Gürkan
 * M\. S\. R\. Dinesh
 * Mabry Cervin
+* Macdara Ó Murchú
 * Madhura Parikh
 * Magali Mebsout
 * maggiesam
@@ -370,6 +377,7 @@ Core Package Contributors
 * Matthew Petroff
 * Matthew Pitkin
 * Matthew Turk
+* Matthias Bussonnier
 * Matthias Stein
 * Matthieu Bec
 * Mavani Bhautik
