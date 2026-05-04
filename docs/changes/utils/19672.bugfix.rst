@@ -1,0 +1,1 @@
+Fixed a bug where values returned by ``cache_contents`` could include files and symlinks, instead of just directories.
