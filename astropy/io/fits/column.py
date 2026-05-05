@@ -2251,8 +2251,17 @@ def _makep(array, descr_output, format, nrows=None):
     # Logical VLAs ('PL'/'QL') are stored in the _VLF as user-facing bool
     # values. The FITS L wire format (ord('T')/ord('F')) is produced at
     # heap-write time in FITS_rec._get_heap_data.
+    # If the input rows are already |S1 byte arrays (produced by reading
+    # with ``logical_as_bytes=True``), the bytes are preserved verbatim
+    # so NULL (b'\x00') survives a round-trip.
     is_logical = format.format == "L"
-    element_dtype = "b1" if is_logical else format.dtype
+    is_logical_bytes = is_logical and any(
+        isinstance(row, np.ndarray) and row.dtype.kind == "S" for row in array
+    )
+    if is_logical:
+        element_dtype = "S1" if is_logical_bytes else "b1"
+    else:
+        element_dtype = format.dtype
 
     data_output = _VLF([None] * nrows, dtype=element_dtype)
 
@@ -2273,6 +2282,10 @@ def _makep(array, descr_output, format, nrows=None):
                 rowval = [0] * data_output.max
         if format.dtype == "S":
             data_output[idx] = get_chararray(encode_ascii(rowval), itemsize=1)
+        elif is_logical_bytes:
+            # |S1 byte input is preserved verbatim so NULL (b'\x00')
+            # survives a round-trip.
+            data_output[idx] = np.asarray(rowval, dtype="S1")
         elif is_logical:
             # Route through int8 first so non-numeric/non-bool inputs
             # (strings, None, ...) raise at write time, matching the
