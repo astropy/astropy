@@ -2648,6 +2648,68 @@ class TestTableFunctions(FitsTestCase):
         with pytest.raises(exc):
             fits.BinTableHDU.from_columns([col]).writeto(tmp_path / "bad.fits")
 
+    def test_logical_vla_as_bytes(self):
+        """``logical_as_bytes=True`` exposes the raw FITS L wire bytes
+        (b'T'/b'F'/b'\\x00') for VLA logical columns, so NULL is
+        distinguishable from False.
+        """
+        # The data file used here was generated with the following code
+        # so that its heap exercises all three FITS L wire bytes (b'T',
+        # b'F', and b'\x00'):
+        #
+        #     import numpy as np
+        #     from astropy.io import fits
+        #
+        #     col = fits.Column(
+        #         name="flag",
+        #         format="PL()",
+        #         array=[
+        #             np.array([True, False, True], dtype=bool),
+        #             np.array([False, True], dtype=bool),
+        #         ],
+        #     )
+        #     fits.BinTableHDU.from_columns([col]).writeto(
+        #         "vla_logical_null.fits"
+        #     )
+        #     # Replace the b'F' in row 0 with a NULL byte.
+        #     raw = bytearray(open("vla_logical_null.fits", "rb").read())
+        #     raw[raw.find(b"TFTFT") + 1] = 0
+        #     open("vla_logical_null.fits", "wb").write(bytes(raw))
+        path = self.data("vla_logical_null.fits")
+
+        # Default read warns about NULL and converts it to False.
+        with pytest.warns(AstropyUserWarning, match="contains NULL"):
+            with fits.open(path) as hdul:
+                d = hdul[1].data["flag"]
+                assert d[0].dtype == bool
+                assert list(d[0]) == [True, False, True]
+
+        # logical_as_bytes=True exposes the raw bytes; NULL is preserved.
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].dtype == np.dtype("S1")
+            assert d[0].tobytes() == b"T\x00T"
+            assert d[1].tobytes() == b"FT"
+
+    def test_logical_vla_as_bytes_roundtrip(self, tmp_path):
+        """A logical VLA read with ``logical_as_bytes=True`` can be
+        written back and re-read as bytes verbatim, including NULL.
+        """
+        path = tmp_path / "vla_log.fits"
+        # Write rows directly as |S1 byte arrays; NULL is preserved.
+        rows = [
+            np.array([b"T", b"\x00", b"T"], dtype="S1"),
+            np.array([b"F", b"T"], dtype="S1"),
+        ]
+        col = fits.Column(name="flag", format="PL()", array=rows)
+        fits.BinTableHDU.from_columns([col]).writeto(path)
+
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].dtype == np.dtype("S1")
+            assert d[0].tobytes() == b"T\x00T"
+            assert d[1].tobytes() == b"FT"
+
     def test_logical_as_bytes(self, tmp_path):
         """Test that logical_as_bytes returns raw FITS values for logical columns.
 
