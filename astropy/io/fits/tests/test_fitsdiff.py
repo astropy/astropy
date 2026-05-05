@@ -239,7 +239,8 @@ No differences found.
 
     @pytest.mark.filterwarnings(
         "ignore:Logical variable-length array column.*older astropy:"
-        "astropy.utils.exceptions.AstropyUserWarning"
+        "astropy.utils.exceptions.AstropyUserWarning",
+        "ignore:Column '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning",
     )
     def test_path(self, capsys):
         os.mkdir(self.temp("sub/"))
