@@ -302,11 +302,3 @@ Bytes read this way also round-trip through writing: a column read as
 A `~astropy.utils.exceptions.AstropyUserWarning` is now also issued
 whenever a logical column being read with ``logical_as_bytes=False``
 (the default) contains NULL bytes, alerting users to lost information.
-
-For example::
-
-    >>> from astropy.io import fits
-    >>> with fits.open("file_with_nulls.fits", logical_as_bytes=True) as hdul:  # doctest: +SKIP
-    ...     col = hdul[1].data["flag"]
-    ...     col.dtype                 # |S1
-    ...     (col == b"\x00").sum()    # count of NULL entries
