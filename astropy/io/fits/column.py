@@ -2247,7 +2247,7 @@ def _makep(array, descr_output, format, nrows=None):
     # values. The FITS L wire format (ord('T')/ord('F')) is produced at
     # heap-write time in FITS_rec._get_heap_data.
     is_logical = format.format == "L"
-    element_dtype = "?" if is_logical else format.dtype
+    element_dtype = "b1" if is_logical else format.dtype
 
     data_output = _VLF([None] * nrows, dtype=element_dtype)
 
@@ -2274,9 +2274,7 @@ def _makep(array, descr_output, format, nrows=None):
             # behavior of astropy <= 7.2.0; bypassing this and using
             # ``astype(bool)`` directly would silently coerce e.g.
             # ``["T", "F"]`` to ``[True, True]``.
-            data_output[idx] = np.array(rowval, dtype=np.int8).astype(
-                bool, copy=False
-            )
+            data_output[idx] = np.array(rowval, dtype=np.int8).astype(bool, copy=False)
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 

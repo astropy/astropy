@@ -819,7 +819,7 @@ class FITS_rec(np.recarray):
         # any non-zero byte (incl. ord('F') = 70) as True, which would
         # silently corrupt False values.
         is_logical_vla = not column.ascii and recformat.format == "L"
-        element_dtype = "?" if is_logical_vla else recformat.dtype
+        element_dtype = "b1" if is_logical_vla else recformat.dtype
 
         dummy = _VLF([None] * len(self), dtype=element_dtype)
         raw_data = self._get_raw_data()
