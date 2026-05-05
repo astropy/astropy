@@ -274,12 +274,9 @@ Fast Lomb-Scargle Periodogram (``fast`` and ``fastchi2`` implementations)
 now uses Low Rank Approximation (LRA) algorithm by default.
 The LRA implementation is up 4x slower, when compared to the existing one,
 but also 8 to 10 orders of magnitude more accurate, nearly matching the
-accuracy of the slow method.
+accuracy of their slow (non `fast`) counterparts.
 
-While not having a significant impact on the typical accuracy of the
-standard fast implementation (except eliminating the negative powers issue),
-it significantly improves the ``fastchi2`` method, causing it to nearly
-match the slow ``chi2`` implementation in the terms of accuracy.
+This change of default allows eliminating previously seen issues with negative powers.
 
-Additionally, the Bessel function approximation relies on the Taylor
-series around ``x=0`` and as such no longer relies on SciPy for evaluation.
+Additionally, the Bessel function approximation now relies on a Taylor
+expansion around ``x=0`` and as such no longer relies on SciPy for evaluation.
