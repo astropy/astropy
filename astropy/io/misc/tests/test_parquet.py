@@ -979,6 +979,46 @@ def test_parquet_read_generic(tmp_path):
         assert t2[str(dtype)].dtype == dtype
 
 
+@pytest.mark.parametrize(
+    "type_name, expected_dtype",
+    [
+        ("string", "<U3"),
+        ("large_string", "<U3"),
+        ("string_view", "<U3"),
+        ("binary", "|S3"),
+        ("large_binary", "|S3"),
+        ("binary_view", "|S3"),
+    ],
+)
+def test_parquet_read_string_binary_variants(tmp_path, type_name, expected_dtype):
+    """Each arrow string/binary type variant rounds-trips to the expected
+    fixed-width numpy dtype. This exercises the individual ``is_string`` /
+    ``is_large_string`` / ``is_string_view`` (and binary) sub-checks in the
+    reader's type detection.
+    """
+    filename = tmp_path / f"test_{type_name}.parq"
+
+    arrow_type = getattr(pyarrow, type_name)()
+    if expected_dtype.startswith("|S"):
+        values = [b"abc", b"def", b"ghi"]
+    else:
+        values = ["abc", "def", "ghi"]
+
+    schema = pyarrow.schema([("c", arrow_type)])
+    pa_table = pyarrow.Table.from_arrays(
+        [pyarrow.array(values, type=arrow_type)], schema=schema
+    )
+    _, parquet = get_pyarrow()
+    with parquet.ParquetWriter(filename, schema, version="2.4") as writer:
+        writer.write_table(pa_table)
+
+    with pytest.warns(AstropyUserWarning, match="No table::len"):
+        t = Table.read(filename)
+
+    assert t["c"].dtype == np.dtype(expected_dtype)
+    assert np.all(np.array(t["c"]) == np.array(values, dtype=expected_dtype))
+
+
 @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
 def test_parquet_read_pandas(tmp_path):
     """Test reading a pandas parquet file."""
