@@ -257,13 +257,9 @@ parsing depends on the format, see details below:
       ------
       s cm^2
 
-    The ``"console"`` format can also be parsed back to a |Unit| object, but
-    this is only supported for the default and ``fraction="inline"`` format and
-    not the ``fraction="multiline"`` format. Exemplary the ``"inline"``
-    representation can be parsed back to the ```fluxunit``:
-
-      >>> u.Unit("erg / (s cm^2)") == fluxunit
-      True
+    The ``"console"`` format is not meant to be parsed back to |Unit| objects, even
+    though it does generally work as long as no scale factors are present and one
+    does not use ``fraction="multiline"``.
 
   - ``"unicode"``: Same as ``"console"``, except uses Unicode
     characters::
