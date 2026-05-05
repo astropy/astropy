@@ -836,9 +836,10 @@ class FITS_rec(np.recarray):
         if legacy_logical_vla:
             warnings.warn(
                 f"Logical variable-length array column {column.name!r} appears to "
-                "have been written by an older astropy version (<8.0) that stored "
-                "boolean values as 0x00/0x01 bytes instead of the FITS L wire "
-                "format ord('T')/ord('F'). Reading 0x01 as True and 0x00 as False.",
+                "have been written by an older astropy version (<= 7.2.0) that "
+                "stored boolean values as 0x00/0x01 bytes instead of the FITS L "
+                "wire format ord('T')/ord('F'). Reading 0x01 as True and 0x00 as "
+                "False.",
                 AstropyUserWarning,
             )
 
@@ -855,7 +856,7 @@ class FITS_rec(np.recarray):
             elif is_logical_vla:
                 buf = raw_data[offset : offset + count]
                 if legacy_logical_vla:
-                    # Pre-fix astropy wrote 0x00/0x01; non-zero is True.
+                    # astropy <= 7.2.0 wrote 0x00/0x01; non-zero is True.
                     dummy[idx] = buf.view(np.uint8) != 0
                 else:
                     # NULL bytes (0x00) collapse to False — they are
@@ -1400,9 +1401,9 @@ def _logical_to_fits_bytes(row):
 
 
 def _detect_legacy_logical_vla_heap(raw_data, field, heap_offset):
-    """Heuristically detect a logical VLA column written by pre-fix astropy.
+    """Heuristically detect a logical VLA column written by astropy <= 7.2.0.
 
-    Pre-fix astropy stored bool VLA values as 0x00/0x01 bytes instead of the
+    astropy <= 7.2.0 stored bool VLA values as 0x00/0x01 bytes instead of the
     FITS L wire format ord('T') (0x54) / ord('F') (0x46). A column is
     classified as legacy when its heap region contains the byte 0x01 and no
     bytes other than 0x00 / 0x01 — those values cannot occur in a correctly

@@ -251,7 +251,7 @@ read and written correctly. Previously, bool input was written as raw 1/0
 bytes rather than the ASCII ``T``/``F`` bytes required by the FITS
 specification, and on read these columns were exposed as ``int8`` arrays
 containing the byte values (84 for ``T``, 70 for ``F``) instead of as bool.
-Files written by older astropy versions are still readable: the legacy
+Files written by astropy <= 7.2.0 are still readable: the legacy
 ``0x00``/``0x01`` encoding is auto-detected on read and decoded as bool,
 with an `~astropy.utils.exceptions.AstropyUserWarning` so that users are
 aware the file does not strictly conform to the FITS standard.

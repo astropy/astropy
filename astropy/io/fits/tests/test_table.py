@@ -2591,7 +2591,7 @@ class TestTableFunctions(FitsTestCase):
 
     def test_logical_vla_legacy_file_compat(self):
         """Backwards compatibility for logical VLA files written by
-        pre-fix astropy (heap encoded as 0x00/0x01 bytes rather than the
+        astropy <= 7.2.0 (heap encoded as 0x00/0x01 bytes rather than the
         FITS L wire format 'T'/'F').
         """
         # The data file used here was generated with astropy prior to
@@ -2636,10 +2636,10 @@ class TestTableFunctions(FitsTestCase):
     )
     def test_logical_vla_rejects_non_numeric_input(self, tmp_path, rowval, exc):
         """Logical VLA columns reject non-numeric / non-bool inputs at
-        write time (matching pre-fix astropy behavior). Without this the
-        new bool conversion would silently coerce strings/None: e.g.
-        ``["T", "F", "T"]`` to ``[True, True, True]`` because non-empty
-        strings are truthy.
+        write time (matching the behavior of astropy <= 7.2.0). Without
+        this the new bool conversion would silently coerce strings/None:
+        e.g. ``["T", "F", "T"]`` to ``[True, True, True]`` because
+        non-empty strings are truthy.
         """
         col = fits.Column(name="flag", format="PL()", array=[rowval])
         with pytest.raises(exc):
