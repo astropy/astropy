@@ -19,8 +19,8 @@ __all__ = [
 
 _WorldAxisComponent = tuple[str, str | int, str | Callable[[Any], Any]]
 _WorldAxisClass = (
-    tuple[type | str, tuple[Any, ...], dict[str, Any]]
-    | tuple[type | str, tuple[Any, ...], dict[str, Any], Callable[..., Any]]
+    tuple[type[Any] | str, tuple[Any, ...], dict[str, Any]]
+    | tuple[type[Any] | str, tuple[Any, ...], dict[str, Any], Callable[..., Any]]
 )
 
 
@@ -161,7 +161,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
 
 def high_level_objects_to_values(
     *world_objects: Any, low_level_wcs: _WorldAxisMetadata
-) -> list:
+) -> list[float | int | np.ndarray]:
     """
     Convert the input high level object to low level values.
 
@@ -307,7 +307,7 @@ def high_level_objects_to_values(
 
 def values_to_high_level_objects(
     *world_values: ArrayLike, low_level_wcs: _WorldAxisMetadata
-) -> list:
+) -> list[Any]:
     """
     Convert low level values into high level objects.
 
