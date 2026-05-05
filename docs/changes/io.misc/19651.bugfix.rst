@@ -1,0 +1,3 @@
+Fixed reading parquet files written by pandas 3.0+, where string columns are
+encoded as ``large_string`` rather than ``string`` and previously round-tripped
+to ``object`` dtype instead of the expected fixed-width Unicode dtype.
