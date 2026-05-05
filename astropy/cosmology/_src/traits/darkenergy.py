@@ -9,8 +9,10 @@ from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
+from .hubble import _HasH0overH
 
-class DarkEnergyComponent:
+
+class DarkEnergyComponent(_HasH0overH):
     # Subclasses should use `Parameter` to make this a parameter of the cosmology.
     Ode0: float | np.floating
     """Omega dark energy; dark energy density/critical density at z=0."""
