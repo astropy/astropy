@@ -760,7 +760,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert (hdul[2].data == data2).all()
 
     @pytest.mark.filterwarnings(
-        "ignore:Column '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
+        "ignore:.*[Cc]olumn '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
     )
     def test_hdul_fromstring(self):
         """
@@ -812,6 +812,8 @@ class TestHDUListFunctions(FitsTestCase):
                     "variable_length_table.fits",
                     "theap-gap.fits",
                     "vla_logical_pre_fix.fits",
+                    "vla_logical_null.fits",
+                    "vla_logical_all_zero.fits",
                 )
             ):
                 # Comparing variable length arrays is non-trivial and thus
