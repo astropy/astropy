@@ -1,0 +1,7 @@
+Added a ``logical_as_bytes`` parameter to ``fits.open()`` that, when set to
+``True``, causes FITS logical columns to be read as bytes (``S1``) instead of
+``bool``, preserving NULL (undefined) values that would otherwise be silently
+converted to ``False``. Columns read this way round-trip correctly when written
+back to a FITS file, preserving ``b'T'``, ``b'F'``, and ``b'\x00'`` (NULL)
+values. A warning is now emitted when NULL values are present and
+``logical_as_bytes`` is not set.
