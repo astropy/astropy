@@ -771,4 +771,7 @@ required-environments = [
 constraint-dependencies = [
     "asdf>=2.12.0",
     "asdf-coordinates-schemas>=0.2.0",
+
+    # https://github.com/astropy/astropy/issues/19651
+    "pandas<3"
 ]
