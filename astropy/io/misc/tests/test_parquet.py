@@ -1010,8 +1010,15 @@ def test_parquet_read_string_binary_variants(tmp_path, type_name, expected_dtype
         [pyarrow.array(values, type=arrow_type)], schema=schema
     )
     _, parquet = get_pyarrow()
-    with parquet.ParquetWriter(filename, schema, version="2.4") as writer:
-        writer.write_table(pa_table)
+    try:
+        with parquet.ParquetWriter(filename, schema, version="2.4") as writer:
+            writer.write_table(pa_table)
+    except pyarrow.lib.ArrowNotImplementedError as exc:
+        # Older pyarrow (e.g. 16) recognises the view types in memory but
+        # cannot write them to parquet; such files therefore cannot exist
+        # for that pyarrow version, so the corresponding reader branch
+        # is unreachable and the round-trip is not testable.
+        pytest.skip(f"pyarrow cannot write {type_name} to parquet: {exc}")
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         t = Table.read(filename)
