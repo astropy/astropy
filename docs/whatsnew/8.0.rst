@@ -277,6 +277,3 @@ but also 8 to 10 orders of magnitude more accurate, nearly matching the
 accuracy of their slow (non `fast`) counterparts.
 
 This change of default allows eliminating previously seen issues with negative powers.
-
-Additionally, the Bessel function approximation now relies on a Taylor
-expansion around ``x=0`` and as such no longer relies on SciPy for evaluation.
