@@ -1016,7 +1016,7 @@ def test_parquet_read_string_binary_variants(tmp_path, type_name, expected_dtype
         t = Table.read(filename)
 
     assert t["c"].dtype == np.dtype(expected_dtype)
-    assert np.all(np.array(t["c"]) == np.array(values, dtype=expected_dtype))
+    assert_array_equal(np.array(t["c"]), np.array(values, dtype=expected_dtype)
 
 
 @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
