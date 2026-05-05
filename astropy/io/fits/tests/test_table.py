@@ -560,7 +560,7 @@ class TestTableFunctions(FitsTestCase):
             assert comparerecords(hdu.data, hdul[1].data)
 
     @pytest.mark.filterwarnings(
-        "ignore:Column '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
+        "ignore:.*[Cc]olumn '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
     )
     def test_new_fitsrec(self):
         """

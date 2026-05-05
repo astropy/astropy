@@ -488,14 +488,14 @@ class FITS_rec(np.recarray):
         # fields
         # This is required to prevent the issue reported in
         # https://github.com/spacetelescope/PyFITS/issues/99
-        # Suppress the NULL-values warning emitted by ``_convert_other``
-        # during this internal plumbing: the user has not yet accessed the
-        # data, so a warning issued here would be spurious. The warning is
-        # still emitted the next time the user reads the column.
+        # Suppress the NULL-values warning emitted by ``_convert_other`` /
+        # ``_convert_p`` during this internal plumbing: the user has not yet
+        # accessed the data, so a warning issued here would be spurious. The
+        # warning is still emitted the next time the user reads the column.
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
-                message=r"Column '.*' contains NULL",
+                message=r".*[Cc]olumn '.*' contains NULL",
                 category=AstropyUserWarning,
             )
             for idx in range(len(columns)):
