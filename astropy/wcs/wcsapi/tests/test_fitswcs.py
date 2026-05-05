@@ -30,6 +30,7 @@ from astropy.units import Quantity, UnitsWarning
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.masked import Masked
 from astropy.wcs.wcs import WCS, WCSLIB_VERSION, FITSFixedWarning, NoConvergence, Sip
 from astropy.wcs.wcsapi.fitswcs import VELOCITY_FRAMES, custom_ctype_to_ucd_mapping
 from astropy.wcs.wcsapi.tests.helpers import assert_celestial_component
@@ -1598,6 +1599,7 @@ def test_restfrq_restwav():
 def test_array_index_conversions_arrays_1d():
     # Regression test for a bug that caused world_to_array_index to return lists
     # instead of Numpy arrays - 1D version
+    # Also ensures that pixels are plain arrays if the array is not Masked.
 
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ("FREQ",)
@@ -1610,7 +1612,7 @@ def test_array_index_conversions_arrays_1d():
 
     with pytest.warns(AstropyUserWarning, match="No observer defined on WCS"):
         x = wcs.world_to_pixel(coord)
-    assert isinstance(x, np.ndarray)
+    assert isinstance(x, np.ndarray) and not isinstance(x, Masked)
 
 
 def test_array_index_conversions_arrays_2d():
@@ -1628,7 +1630,21 @@ def test_array_index_conversions_arrays_2d():
 
     x, y = wcs.world_to_pixel(coord)
     assert isinstance(x, np.ndarray)
-    assert isinstance(x, np.ndarray)
+    assert isinstance(y, np.ndarray)
+
+    # Also check that pixels are plain arrays if the array is not Masked.
+    assert not isinstance(x, Masked) and not isinstance(y, Masked)
+    # But will be masked once mask has been set on any item.
+    coord[0] = np.ma.masked
+    x, y = wcs.world_to_pixel(coord)
+    assert isinstance(x, Masked) and isinstance(y, Masked)
+    assert_array_equal(x.mask, coord.mask)
+    assert_array_equal(y.mask, coord.mask)
+    # Even if the mask is later unset.
+    coord[:] = np.ma.nomask
+    x, y = wcs.world_to_pixel(coord)
+    assert isinstance(x, Masked) and isinstance(y, Masked)
+    assert not x.mask.any() and not y.mask.any()
 
 
 def test_array_index_conversions_scalars_1d():
@@ -1663,3 +1679,24 @@ def test_array_index_conversions_scalars_2d():
     x, y = wcs.world_to_pixel(scoord)
     assert isinstance(x, np.ndarray) and x.ndim == 0
     assert isinstance(y, np.ndarray) and y.ndim == 0
+
+
+class TestMaskedData:
+    wcs = WCS_SIMPLE_CELESTIAL
+
+    def test_pixel_to_world(self):
+        mask = [False, True]
+        x = Masked([4.907, -75.09299637], mask=mask)
+        y = Masked([73.8485, 223.84849637], mask=mask)
+        world = self.wcs.pixel_to_world(x, y)
+        assert_array_equal(world.mask, mask)
+
+    def test_world_to_pixel(self):
+        coord = SkyCoord(
+            l=Masked([0, 1] * u.deg, mask=[False, True]),
+            b=Masked([0, 1] * u.deg, mask=[False, True]),
+            frame="galactic",
+        )
+        x, y = self.wcs.world_to_pixel(coord)
+        assert_array_equal(x.mask, coord.mask)
+        assert_array_equal(y.mask, coord.mask)
