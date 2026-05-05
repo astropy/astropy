@@ -265,15 +265,16 @@ For example::
     >>> hdu.writeto("example.fits", overwrite=True)  # doctest: +SKIP
     >>> fits.getdata("example.fits")["a"][0]  # doctest: +SKIP
     array([ True, False,  True])
+
 .. _whatsnew-8.0-timeseries-lra:
 
 Fast Lomb-Scargle: Low Rank Approximation
 =========================================
 
-Fast Lomb-Scargle Periodogram (``fast`` and ``fastchi2`` implementations)
-now uses Low Rank Approximation (LRA) algorithm by default.
-The LRA implementation is up 4x slower, when compared to the existing one,
-but also 8 to 10 orders of magnitude more accurate, nearly matching the
-accuracy of their slow (non `fast`) counterparts.
+The fast Lomb-Scargle Periodograms (``fast`` and ``fastchi2`` implementations)
+now use Low Rank Approximation (LRA) algorithm by default.
+The LRA implementation may be a little slower than the previous fast
+implementation (although this is architecture-dependent) but is 8 to 10
+orders of magnitude more accurate, on par with their slow (non ``fast``) counterparts.
 
 This change of default allows eliminating previously seen issues with negative powers.
