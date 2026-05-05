@@ -2562,6 +2562,89 @@ class TestTableFunctions(FitsTestCase):
             assert (hdul[1].data["F1"] == [True, True]).all()
             assert (hdul[1].data["F2"] == [True, True]).all()
 
+    def test_logical_vla_bool_round_trip(self, tmp_path):
+        """Regression test for https://github.com/astropy/astropy/issues/18755.
+
+        Variable-length array (VLA) columns of FITS logical type
+        ('PL'/'QL') previously stored bool input as 1/0 bytes (not the
+        FITS L wire format ord('T') / ord('F')) and exposed read-back
+        values as raw int8 (84/70) rather than bool.
+        """
+        col = fits.Column(
+            name="flag",
+            format="PL()",
+            array=[
+                np.array([True, False, True]),
+                np.array([False, True]),
+            ],
+        )
+        out_path = tmp_path / "vla_bool.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(out_path)
+
+        with fits.open(out_path) as hdul:
+            data = hdul[1].data["flag"]
+            assert data[0].dtype == bool
+            assert list(data[0]) == [True, False, True]
+            assert list(data[1]) == [False, True]
+            heap = hdul[1].data._get_heap_data()
+            assert bytes(heap[:5]) == b"TFTFT"
+
+    def test_logical_vla_legacy_file_compat(self):
+        """Backwards compatibility for logical VLA files written by
+        astropy <= 7.2.0 (heap encoded as 0x00/0x01 bytes rather than the
+        FITS L wire format 'T'/'F').
+        """
+        # The data file used here was generated with astropy prior to
+        # the fix using the following code (run against commit 0b44f93,
+        # the immediate parent of the fix commit):
+        #
+        #     import numpy as np
+        #     from astropy.io import fits
+        #
+        #     col = fits.Column(
+        #         name="flag",
+        #         format="PL()",
+        #         array=[
+        #             np.array([True, False, True]),
+        #             np.array([False, True]),
+        #             np.array([], dtype=bool),
+        #             np.array([True, True, False, False]),
+        #         ],
+        #     )
+        #     fits.BinTableHDU.from_columns([col]).writeto(
+        #         "vla_logical_pre_fix.fits"
+        #     )
+        path = self.data("vla_logical_pre_fix.fits")
+        with pytest.warns(
+            AstropyUserWarning, match="appears to have been written by an older"
+        ):
+            with fits.open(path) as hdul:
+                data = hdul[1].data["flag"]
+                assert data[0].dtype == bool
+                assert list(data[0]) == [True, False, True]
+                assert list(data[1]) == [False, True]
+                assert list(data[2]) == []
+                assert list(data[3]) == [True, True, False, False]
+
+    @pytest.mark.parametrize(
+        "rowval, exc",
+        [
+            (["T", "F", "T"], ValueError),
+            (["Y", "N"], ValueError),
+            ([None, False, True], TypeError),
+        ],
+    )
+    def test_logical_vla_rejects_non_numeric_input(self, tmp_path, rowval, exc):
+        """Logical VLA columns reject non-numeric / non-bool inputs at
+        write time (matching the behavior of astropy <= 7.2.0). Without
+        this the new bool conversion would silently coerce strings/None:
+        e.g. ``["T", "F", "T"]`` to ``[True, True, True]`` because
+        non-empty strings are truthy.
+        """
+        col = fits.Column(name="flag", format="PL()", array=[rowval])
+        with pytest.raises(exc):
+            fits.BinTableHDU.from_columns([col]).writeto(tmp_path / "bad.fits")
+
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
 
