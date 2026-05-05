@@ -66,6 +66,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .diff import FITSDiff, HDUDiff
 from .file import FILE_MODES, _File
 from .hdu.base import _BaseHDU, _ValidHDU
+from .hdu.compressed.compressed import CompImageHDU
 from .hdu.hdulist import HDUList, fitsopen
 from .hdu.image import ImageHDU, PrimaryHDU
 from .hdu.table import BinTableHDU
@@ -86,13 +87,25 @@ __all__ = [
     "getheader",
     "getval",
     "info",
+    "pack",
     "printdiff",
     "setval",
     "table_to_hdu",
     "tabledump",
     "tableload",
+    "unpack",
     "update",
     "writeto",
+]
+
+FITS_MANDATORY_KEYWORDS = [
+    "SIMPLE",
+    "BITPIX",
+    "NAXIS",
+    "EXTEND",
+    "COMMENT",
+    "CHECKSUM",
+    "DATASUM",
 ]
 
 
@@ -1053,6 +1066,130 @@ def tableload(datafile, cdfile, hfile=None):
 
 if isinstance(tableload.__doc__, str):
     tableload.__doc__ += BinTableHDU._tdump_file_format.replace("\n", "\n    ")
+
+
+def unpack(compressed_hdulist: HDUList) -> HDUList:
+    """
+    Unpack a compressed FITS HDUList in an equivalent way to funpack from
+    the cfitsio library.
+
+    Parameters
+    ----------
+    compressed_hdulist : `HDUList`
+        The compressed FITS HDUList to be unpacked.
+
+    Returns
+    -------
+    uncompressed_hdulist : `HDUList`
+        The uncompressed FITS HDUList.
+
+    Notes
+    -----
+    If the primary HDU of the uncompressed HDUList is an image HDU, then
+    fpacked file will have a primary header with only the manadatory header
+    keywords for a FITS file. In this case, we remove this and make the original primary HDU, the uncompressed HDU so the newly uncompressed
+    file matches the original. If there are other keywords, in the header
+    of the compressed file, then the next HDU was not the primary and we
+    decompress accordingly.
+    """
+    # If the primary fits header only has the mandatory keywords, then we throw away that extension
+    # and extension 1 gets moved to 0
+    # Otherwise, the primary HDU is kept
+    move_1_to_0 = True
+    for keyword in compressed_hdulist[0].header:
+        if keyword not in FITS_MANDATORY_KEYWORDS:
+            move_1_to_0 = False
+            break
+    if not move_1_to_0 or not isinstance(compressed_hdulist[1], CompImageHDU):
+        primary_hdu = PrimaryHDU(
+            data=compressed_hdulist[0].data, header=compressed_hdulist[0].header
+        )
+    else:
+        data_type = str(compressed_hdulist[1].data.dtype)
+        data = compressed_hdulist[1].data
+        primary_hdu = PrimaryHDU(data=data, header=compressed_hdulist[1].header)
+    hdulist = [primary_hdu]
+    if move_1_to_0:
+        starting_extension = 2
+    else:
+        starting_extension = 1
+    for hdu in compressed_hdulist[starting_extension:]:
+        if isinstance(hdu, CompImageHDU):
+            if hdu.data is None:
+                data = hdu.data
+            else:
+                data_type = str(hdu.data.dtype)
+                data = np.array(hdu.data, hdu.data.dtype)
+            hdulist.append(ImageHDU(data=data, header=hdu.header))
+        elif isinstance(hdu, BinTableHDU):
+            hdulist.append(BinTableHDU(data=hdu.data, header=hdu.header))
+        else:
+            hdulist.append(ImageHDU(data=hdu.data, header=hdu.header))
+    return HDUList(hdulist)
+
+
+def pack(
+    uncompressed_hdulist: HDUList, extension_quantizations: dict | None = None
+) -> HDUList:
+    """
+    Pack a FITS HDUList in an equivalent way to fpack from the cfitsio library.
+
+    Parameters
+    ----------
+    uncompressed_hdulist : `HDUList`
+        The uncompressed FITS HDUList to be packed.
+    extension_quantizations : dict, optional
+        A dictionary specifying the quantization levels for each extension.
+        The keys are the extension names (EXTNAME) and the values are the
+        quantization levels. If not provided, a default quantization level
+        of 64 is used for all extensions.
+
+    Notes
+    -----
+    If the primary HDU only has header data, then it will remain the primary
+    HDU. If the Primary HDU has image data, it will be moved to the first
+    extension as is required for a binary table HDU, which is what it is
+    stored as internally.
+    """
+    if extension_quantizations is None:
+        extension_quantizations = {}
+    if uncompressed_hdulist[0].data is None:
+        primary_hdu = PrimaryHDU(header=uncompressed_hdulist[0].header)
+        hdulist = [primary_hdu]
+    else:
+        primary_hdu = PrimaryHDU()
+        if uncompressed_hdulist[0].data is None:
+            data = None
+        else:
+            data = np.ascontiguousarray(uncompressed_hdulist[0].data)
+        extname = uncompressed_hdulist[0].header.get("EXTNAME")
+        quantize_level = extension_quantizations.get(extname, 64)
+        compressed_hdu = CompImageHDU(
+            data=data,
+            header=uncompressed_hdulist[0].header,
+            quantize_level=quantize_level,
+            quantize_method=1,
+        )
+        hdulist = [primary_hdu, compressed_hdu]
+
+    for hdu in uncompressed_hdulist[1:]:
+        if isinstance(hdu, ImageHDU):
+            if hdu.data is None:
+                data = None
+            else:
+                data = np.ascontiguousarray(hdu.data)
+            extname = hdu.header.get("EXTNAME")
+            quantize_level = extension_quantizations.get(extname, 64)
+            compressed_hdu = CompImageHDU(
+                data=data,
+                header=hdu.header,
+                quantize_level=quantize_level,
+                quantize_method=1,
+            )
+            hdulist.append(compressed_hdu)
+        else:
+            hdulist.append(hdu)
+    return HDUList(hdulist)
 
 
 def _getext(filename, mode, *args, ext=None, extname=None, extver=None, **kwargs):
