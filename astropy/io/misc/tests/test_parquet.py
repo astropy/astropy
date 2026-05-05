@@ -4,6 +4,7 @@ from io import FileIO
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates import (
@@ -1016,7 +1017,7 @@ def test_parquet_read_string_binary_variants(tmp_path, type_name, expected_dtype
         t = Table.read(filename)
 
     assert t["c"].dtype == np.dtype(expected_dtype)
-    assert_array_equal(np.array(t["c"]), np.array(values, dtype=expected_dtype)
+    assert_array_equal(np.array(t["c"]), np.array(values, dtype=expected_dtype))
 
 
 @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
