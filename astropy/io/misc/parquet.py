@@ -119,6 +119,20 @@ def read_table_parquet(
     """
     pa, parquet = get_pyarrow()
 
+    def _is_string(t):
+        return (
+            pa.types.is_string(t)
+            or pa.types.is_large_string(t)
+            or pa.types.is_string_view(t)
+        )
+
+    def _is_binary(t):
+        return (
+            pa.types.is_binary(t)
+            or pa.types.is_large_binary(t)
+            or pa.types.is_binary_view(t)
+        )
+
     if not HAS_PANDAS:
         raise ModuleNotFoundError("pandas is required to read parquet files")
 
@@ -213,7 +227,7 @@ def read_table_parquet(
             # All other arrow column types are the value_type.
             value_type = t
 
-        if value_type not in (pa.string(), pa.binary()):
+        if not (_is_string(value_type) or _is_binary(value_type)):
             # Convert the pyarrow value type into a numpy dtype (which is returned
             # by the to_pandas_type() method).
             # If this is an array column, the numpy dtype needs the shape as well.
@@ -243,7 +257,7 @@ def read_table_parquet(
                 f" ({strlen} characters).",
                 AstropyUserWarning,
             )
-        strname = f"U{strlen}" if value_type == pa.string() else f"|S{strlen}"
+        strname = f"U{strlen}" if _is_string(value_type) else f"|S{strlen}"
 
         # If this is an array column, the numpy dtype needs the shape as well.
         if shape is None:
@@ -265,7 +279,7 @@ def read_table_parquet(
             col = pa_table[name].to_numpy()
 
             t = schema.field(name).type
-            if t in (pa.string(), pa.binary()):
+            if _is_string(t) or _is_binary(t):
                 # If it is a string/binary type, coerce it to the correct type.
                 col = col.astype(dt)
             elif isinstance(t, pa.FixedSizeListType):
@@ -275,7 +289,7 @@ def read_table_parquet(
                 if len(col) > 0:
                     col = np.stack(col)
 
-                    if t.value_type in (pa.string(), pa.binary()):
+                    if _is_string(t.value_type) or _is_binary(t.value_type):
                         # If it is a string/binary type, coerce it to the
                         # correct type.
                         # The conversion dtype is only the first element
@@ -288,7 +302,7 @@ def read_table_parquet(
             elif isinstance(t, pa.ListType):
                 # If we have a variable length string/binary column,
                 # we need to convert each row to the proper type.
-                if t.value_type in (pa.string(), pa.binary()):
+                if _is_string(t.value_type) or _is_binary(t.value_type):
                     col = np.array([row.astype(dt) for row in col], dtype=np.object_)
 
             table.add_column(Column(name=name, data=col))
