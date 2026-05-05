@@ -261,8 +261,8 @@ parsing depends on the format, see details below:
     though it does generally work as long as no scale factors are present and one
     does not use ``fraction="multiline"``.
 
-- ``"unicode"``: Same as ``"console"``, except uses Unicode characters.
-Similar restrictions for parsing the output back apply::
+  - ``"unicode"``: Same as ``"console"``, except uses Unicode characters.
+    Similar restrictions for parsing the output back apply::
 
       >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
       2.1798724×10⁻¹⁸ m² kg s⁻²
