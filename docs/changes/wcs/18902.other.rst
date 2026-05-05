@@ -1,0 +1,5 @@
+``SpectralCoord`` conversions through the APE 14 high-level WCS API no
+longer emit a warning when neither the WCS nor the input ``SpectralCoord``
+has an observer defined. Warnings are still emitted when only one of the
+two has observer information (and the conversion therefore proceeds
+without a velocity frame change).
