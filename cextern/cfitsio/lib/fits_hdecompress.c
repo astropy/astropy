@@ -35,6 +35,7 @@ The following modifications have been made to the original code:
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "fitsio2.h"
 
 /* WDP added test to see if min and max are already defined */
@@ -47,8 +48,8 @@ The following modifications have been made to the original code:
 
 static long nextchar;
 
-static int decode(unsigned char *infile, int *a, int *nx, int *ny, int *scale);
-static int decode64(unsigned char *infile, LONGLONG *a, int *nx, int *ny, int *scale);
+static int decode(unsigned char *infile, int *a, int na, int *nx, int *ny, int *scale);
+static int decode64(unsigned char *infile, LONGLONG *a, int na, int *nx, int *ny, int *scale);
 static int hinv(int a[], int nx, int ny, int smooth ,int scale);
 static int hinv64(LONGLONG a[], int nx, int ny, int smooth ,int scale);
 static void undigitize(int a[], int nx, int ny, int scale);
@@ -81,7 +82,7 @@ static void read_bdirect64(unsigned char *infile, LONGLONG a[], int n, int nqx, 
 static int  input_huffman(unsigned char *infile);
 
 /* ---------------------------------------------------------------------- */
-int fits_hdecompress(unsigned char *input, int smooth, int *a, int *ny, int *nx, 
+int fits_hdecompress(unsigned char *input, int smooth, int *a, int na, int *ny, int *nx, 
                      int *scale, int *status)
 {
   /* 
@@ -104,7 +105,7 @@ int stat;
 	/* decode the input array */
 
         FFLOCK;  /* decode uses the nextchar global variable */
-	stat = decode(input, a, nx, ny, scale);
+	stat = decode(input, a, na, nx, ny, scale);
         FFUNLOCK;
 
         *status = stat;
@@ -124,7 +125,7 @@ int stat;
   return(*status);
 }
 /* ---------------------------------------------------------------------- */
-int fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a, int *ny, int *nx, 
+int fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a, int na, int *ny, int *nx, 
                      int *scale, int *status)
 {
   /* 
@@ -147,7 +148,7 @@ int fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a, int *ny, i
 	/* decode the input array */
 
         FFLOCK;  /* decode uses the nextchar global variable */
-	stat = decode64(input, a, nx, ny, scale);
+	stat = decode64(input, a, na, nx, ny, scale);
         FFUNLOCK;
 
         *status = stat;
@@ -1041,11 +1042,12 @@ LONGLONG *p, scale64;
 static char code_magic[2] = { (char)0xDD, (char)0x99 };
 
 /*  ############################################################################  */
-static int decode(unsigned char *infile, int *a, int *nx, int *ny, int *scale)
+static int decode(unsigned char *infile, int *a, int na, int *nx, int *ny, int *scale)
 /*
 char *infile;				 input file							
-int  *a;				 address of output array [nx][ny]		
-int  *nx,*ny;				 size of output array					
+int  *a;				 address of output array [nx][ny]
+int  na;		                 size allocated for output array
+int  *nx,*ny;				 dimensions of image					
 int  *scale;				 scale factor for digitization		
 */
 {
@@ -1073,6 +1075,15 @@ char tmagic[2];
 	*ny =readint(infile);				/* y size of image			*/
 	*scale=readint(infile);				/* scale factor for digitization	*/
 	
+        if ((*nx) > INT_MAX/(*ny)) {
+                ffpmsg("numerical overflow during decompression");
+                return(DATA_DECOMPRESSION_ERR);
+        }
+        if ((*nx)*(*ny) > na) {
+                ffpmsg("wrong allocation size during decompression");
+		return(DATA_DECOMPRESSION_ERR);
+        }
+        
 	/* sum of all pixels	*/
 	sumall=readlonglong(infile);
 	/* # bits in quadrants	*/
@@ -1087,11 +1098,12 @@ char tmagic[2];
 	return(stat);
 }
 /*  ############################################################################  */
-static int decode64(unsigned char *infile, LONGLONG *a, int *nx, int *ny, int *scale)
+static int decode64(unsigned char *infile, LONGLONG *a, int na, int *nx, int *ny, int *scale)
 /*
 char *infile;				 input file							
-LONGLONG  *a;				 address of output array [nx][ny]		
-int  *nx,*ny;				 size of output array					
+LONGLONG  *a;				 address of output array [nx][ny]
+int  na;                                 size allocated for output array		
+int  *nx,*ny;				 dimensions of image					
 int  *scale;				 scale factor for digitization		
 */
 {
@@ -1119,6 +1131,15 @@ char tmagic[2];
 	*ny =readint(infile);				/* y size of image			*/
 	*scale=readint(infile);				/* scale factor for digitization	*/
 	
+        if ((*nx) > INT_MAX/(*ny)) {
+                ffpmsg("numerical overflow during decompression");
+                return(DATA_DECOMPRESSION_ERR);
+        }
+        if ((*nx)*(*ny) > na) {
+                ffpmsg("wrong allocation size during decompression");
+		return(DATA_DECOMPRESSION_ERR);
+        }
+        
 	/* sum of all pixels	*/
 	sumall=readlonglong(infile);
 	/* # bits in quadrants	*/
