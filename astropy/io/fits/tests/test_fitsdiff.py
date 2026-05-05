@@ -237,6 +237,10 @@ No differences found.
         assert out == ""
         assert err == ""
 
+    @pytest.mark.filterwarnings(
+        "ignore:Logical variable-length array column.*older astropy:"
+        "astropy.utils.exceptions.AstropyUserWarning"
+    )
     def test_path(self, capsys):
         os.mkdir(self.temp("sub/"))
         tmp_b = self.temp("sub/ascii.fits")

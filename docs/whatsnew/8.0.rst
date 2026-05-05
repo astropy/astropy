@@ -17,6 +17,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.0-table-formats`
 * :ref:`whatsnew-8.0-paths-discovery`
 * :ref:`whatsnew-8.0-write-table-indices`
+* :ref:`whatsnew-8.0-vla-logical`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -239,3 +240,27 @@ This functionality is enabled by passing ``write_indices=True`` to the table
 str1 float64 str1
 ---- ------- ----
    x     2.0    a
+
+.. _whatsnew-8.0-vla-logical:
+
+Variable-length array logical columns in FITS
+==============================================
+
+Variable-length array columns of FITS logical type (``PL``/``QL``) are now
+read and written correctly. Previously, bool input was written as raw 1/0
+bytes rather than the ASCII ``T``/``F`` bytes required by the FITS
+specification, and on read these columns were exposed as ``int8`` arrays
+containing the byte values (84 for ``T``, 70 for ``F``) instead of as bool.
+Files written by astropy <= 7.2.0 are still readable: the legacy
+``0x00``/``0x01`` encoding is auto-detected on read and decoded as bool,
+with an `~astropy.utils.exceptions.AstropyUserWarning` so that users are
+aware the file does not strictly conform to the FITS standard.
+
+For example::
+
+    >>> from astropy.io import fits
+    >>> col = fits.Column(name="a", format="PL", array=[[True, False, True]])
+    >>> hdu = fits.BinTableHDU.from_columns([col])
+    >>> hdu.writeto("example.fits", overwrite=True)  # doctest: +SKIP
+    >>> fits.getdata("example.fits")["a"][0]  # doctest: +SKIP
+    array([ True, False,  True])
