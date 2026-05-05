@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'astropy/astropy'
     steps:
-      - uses: pllim/action-astropy-stalebot@f0ec93492d5bbabfa5ddc058b5c7a32b29725f5b  # main
+      - uses: pllim/action-astropy-stalebot@8a20289632f0d5068e9c129360b27b0a35e4d256  # main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           STALEBOT_MAX_ISSUES: -1
