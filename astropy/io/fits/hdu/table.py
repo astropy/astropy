@@ -469,14 +469,14 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 # object of the HDU reference the same ndarray as the HDU's
                 # FITS_rec object.
                 # Suppress the NULL-values warning emitted by
-                # ``_convert_other`` during this internal plumbing: a
-                # warning here would fire before the user has explicitly
-                # read the column. The user will still see the warning on
-                # their first real access.
+                # ``_convert_other`` / ``_convert_p`` during this internal
+                # plumbing: a warning here would fire before the user has
+                # explicitly read the column. The user will still see the
+                # warning on their first real access.
                 with warnings.catch_warnings():
                     warnings.filterwarnings(
                         "ignore",
-                        message=r"Column '.*' contains NULL",
+                        message=r".*[Cc]olumn '.*' contains NULL",
                         category=AstropyUserWarning,
                     )
                     for idx, col in enumerate(self.columns):

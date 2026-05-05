@@ -6,6 +6,7 @@ import gc
 import pickle
 import re
 import sys
+import warnings
 
 import numpy as np
 import pytest
@@ -559,7 +560,7 @@ class TestTableFunctions(FitsTestCase):
             assert comparerecords(hdu.data, hdul[1].data)
 
     @pytest.mark.filterwarnings(
-        "ignore:Column '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
+        "ignore:.*[Cc]olumn '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
     )
     def test_new_fitsrec(self):
         """
@@ -2647,6 +2648,145 @@ class TestTableFunctions(FitsTestCase):
         col = fits.Column(name="flag", format="PL()", array=[rowval])
         with pytest.raises(exc):
             fits.BinTableHDU.from_columns([col]).writeto(tmp_path / "bad.fits")
+
+    def test_logical_vla_as_bytes(self):
+        """``logical_as_bytes=True`` exposes the raw FITS L wire bytes
+        (b'T'/b'F'/b'\\x00') for VLA logical columns, so NULL is
+        distinguishable from False.
+        """
+        # The data file used here was generated with the following code
+        # so that its heap exercises all three FITS L wire bytes (b'T',
+        # b'F', and b'\x00'):
+        #
+        #     import numpy as np
+        #     from astropy.io import fits
+        #
+        #     col = fits.Column(
+        #         name="flag",
+        #         format="PL()",
+        #         array=[
+        #             np.array([True, False, True], dtype=bool),
+        #             np.array([False, True], dtype=bool),
+        #         ],
+        #     )
+        #     fits.BinTableHDU.from_columns([col]).writeto(
+        #         "vla_logical_null.fits"
+        #     )
+        #     # Replace the b'F' in row 0 with a NULL byte.
+        #     raw = bytearray(open("vla_logical_null.fits", "rb").read())
+        #     raw[raw.find(b"TFTFT") + 1] = 0
+        #     open("vla_logical_null.fits", "wb").write(bytes(raw))
+        path = self.data("vla_logical_null.fits")
+
+        # Default read warns about NULL and converts it to False.
+        with pytest.warns(AstropyUserWarning, match="contains NULL"):
+            with fits.open(path) as hdul:
+                d = hdul[1].data["flag"]
+                assert d[0].dtype == bool
+                assert list(d[0]) == [True, False, True]
+
+        # logical_as_bytes=True exposes the raw bytes; NULL is preserved.
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].dtype == np.dtype("S1")
+            assert d[0].tobytes() == b"T\x00T"
+            assert d[1].tobytes() == b"FT"
+
+    def test_logical_vla_as_bytes_roundtrip(self, tmp_path):
+        """A logical VLA read with ``logical_as_bytes=True`` can be
+        written back and re-read as bytes verbatim, including NULL.
+        """
+        path = tmp_path / "vla_log.fits"
+        # Write rows directly as |S1 byte arrays; NULL is preserved.
+        rows = [
+            np.array([b"T", b"\x00", b"T"], dtype="S1"),
+            np.array([b"F", b"T"], dtype="S1"),
+        ]
+        col = fits.Column(name="flag", format="PL()", array=rows)
+        fits.BinTableHDU.from_columns([col]).writeto(path)
+
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].dtype == np.dtype("S1")
+            assert d[0].tobytes() == b"T\x00T"
+            assert d[1].tobytes() == b"FT"
+
+    def test_logical_fixed_all_zero_warns(self, tmp_path):
+        """A fixed-length L column whose data bytes are all 0x00 is
+        *not* ambiguous: astropy has never written 0x00 for ``False``
+        in a fixed-length L column (False has always been ``b'F'``),
+        so an all-zero column unambiguously means all-NULL. The
+        ``contains NULL`` warning should therefore still fire here.
+        This is the deliberate counterpart to
+        ``test_logical_vla_all_zero_heap_does_not_warn``: the same
+        on-disk byte pattern is ambiguous for VLAs but not for
+        fixed-length columns.
+        """
+        # Build the file via the |S1 write path so the data bytes are
+        # genuinely 0x00 (the bool path would write b'F').
+        raw = np.array([b"\x00", b"\x00", b"\x00"], dtype="S1")
+        col = fits.Column(name="flag", format="L", array=raw)
+        path = tmp_path / "fixed_all_zero.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(path)
+
+        with pytest.warns(AstropyUserWarning, match="contains NULL"):
+            with fits.open(path) as hdul:
+                d = hdul[1].data["flag"]
+                assert d.dtype == bool
+                assert list(d) == [False, False, False]
+
+    def test_logical_vla_all_zero_heap_does_not_warn(self):
+        """A logical VLA file whose heap is entirely 0x00 bytes is
+        genuinely ambiguous: under the FITS standard those bytes mean
+        NULL, under the astropy <= 7.2.0 legacy encoding they mean
+        False. The read value (``False``) is correct under either
+        interpretation, so no NULL warning should be emitted (it would
+        be misleading for legacy all-False files) and no legacy warning
+        should be emitted either (the legacy heuristic in
+        ``_detect_legacy_logical_vla_heap`` requires a 0x01 anchor and
+        therefore correctly does not classify all-zero heaps as legacy).
+        Users who wish to inspect the raw bytes can still reopen with
+        ``logical_as_bytes=True``.
+        """
+        # The data file used here was generated with the following
+        # code; it is a 2-row PL column whose 5-byte heap was patched
+        # from b'FFFFF' (False, False, False / False, False) to all
+        # NUL bytes:
+        #
+        #     import numpy as np
+        #     from astropy.io import fits
+        #
+        #     col = fits.Column(
+        #         name="flag",
+        #         format="PL()",
+        #         array=[
+        #             np.array([False, False, False], dtype=bool),
+        #             np.array([False, False], dtype=bool),
+        #         ],
+        #     )
+        #     fits.BinTableHDU.from_columns([col]).writeto(
+        #         "vla_logical_all_zero.fits"
+        #     )
+        #     raw = bytearray(open("vla_logical_all_zero.fits", "rb").read())
+        #     i = raw.find(b"FFFFF")
+        #     raw[i:i + 5] = b"\x00\x00\x00\x00\x00"
+        #     open("vla_logical_all_zero.fits", "wb").write(bytes(raw))
+        path = self.data("vla_logical_all_zero.fits")
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", AstropyUserWarning)
+            with fits.open(path) as hdul:
+                d = hdul[1].data["flag"]
+                assert d[0].dtype == bool
+                assert list(d[0]) == [False, False, False]
+                assert list(d[1]) == [False, False]
+
+        # logical_as_bytes=True still exposes the raw bytes verbatim.
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].dtype == np.dtype("S1")
+            assert d[0].tobytes() == b"\x00\x00\x00"
+            assert d[1].tobytes() == b"\x00\x00"
 
     def test_logical_as_bytes(self, tmp_path):
         """Test that logical_as_bytes returns raw FITS values for logical columns.
