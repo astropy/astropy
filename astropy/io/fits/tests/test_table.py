@@ -6,6 +6,7 @@ import gc
 import pickle
 import re
 import sys
+import warnings
 
 import numpy as np
 import pytest
@@ -2709,6 +2710,83 @@ class TestTableFunctions(FitsTestCase):
             assert d[0].dtype == np.dtype("S1")
             assert d[0].tobytes() == b"T\x00T"
             assert d[1].tobytes() == b"FT"
+
+    def test_logical_fixed_all_zero_warns(self, tmp_path):
+        """A fixed-length L column whose data bytes are all 0x00 is
+        *not* ambiguous: astropy has never written 0x00 for ``False``
+        in a fixed-length L column (False has always been ``b'F'``),
+        so an all-zero column unambiguously means all-NULL. The
+        ``contains NULL`` warning should therefore still fire here.
+        This is the deliberate counterpart to
+        ``test_logical_vla_all_zero_heap_does_not_warn``: the same
+        on-disk byte pattern is ambiguous for VLAs but not for
+        fixed-length columns.
+        """
+        # Build the file via the |S1 write path so the data bytes are
+        # genuinely 0x00 (the bool path would write b'F').
+        raw = np.array([b"\x00", b"\x00", b"\x00"], dtype="S1")
+        col = fits.Column(name="flag", format="L", array=raw)
+        path = tmp_path / "fixed_all_zero.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(path)
+
+        with pytest.warns(AstropyUserWarning, match="contains NULL"):
+            with fits.open(path) as hdul:
+                d = hdul[1].data["flag"]
+                assert d.dtype == bool
+                assert list(d) == [False, False, False]
+
+    def test_logical_vla_all_zero_heap_does_not_warn(self):
+        """A logical VLA file whose heap is entirely 0x00 bytes is
+        genuinely ambiguous: under the FITS standard those bytes mean
+        NULL, under the astropy <= 7.2.0 legacy encoding they mean
+        False. The read value (``False``) is correct under either
+        interpretation, so no NULL warning should be emitted (it would
+        be misleading for legacy all-False files) and no legacy warning
+        should be emitted either (the legacy heuristic in
+        ``_detect_legacy_logical_vla_heap`` requires a 0x01 anchor and
+        therefore correctly does not classify all-zero heaps as legacy).
+        Users who wish to inspect the raw bytes can still reopen with
+        ``logical_as_bytes=True``.
+        """
+        # The data file used here was generated with the following
+        # code; it is a 2-row PL column whose 5-byte heap was patched
+        # from b'FFFFF' (False, False, False / False, False) to all
+        # NUL bytes:
+        #
+        #     import numpy as np
+        #     from astropy.io import fits
+        #
+        #     col = fits.Column(
+        #         name="flag",
+        #         format="PL()",
+        #         array=[
+        #             np.array([False, False, False], dtype=bool),
+        #             np.array([False, False], dtype=bool),
+        #         ],
+        #     )
+        #     fits.BinTableHDU.from_columns([col]).writeto(
+        #         "vla_logical_all_zero.fits"
+        #     )
+        #     raw = bytearray(open("vla_logical_all_zero.fits", "rb").read())
+        #     i = raw.find(b"FFFFF")
+        #     raw[i:i + 5] = b"\x00\x00\x00\x00\x00"
+        #     open("vla_logical_all_zero.fits", "wb").write(bytes(raw))
+        path = self.data("vla_logical_all_zero.fits")
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", AstropyUserWarning)
+            with fits.open(path) as hdul:
+                d = hdul[1].data["flag"]
+                assert d[0].dtype == bool
+                assert list(d[0]) == [False, False, False]
+                assert list(d[1]) == [False, False]
+
+        # logical_as_bytes=True still exposes the raw bytes verbatim.
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].dtype == np.dtype("S1")
+            assert d[0].tobytes() == b"\x00\x00\x00"
+            assert d[1].tobytes() == b"\x00\x00"
 
     def test_logical_as_bytes(self, tmp_path):
         """Test that logical_as_bytes returns raw FITS values for logical columns.

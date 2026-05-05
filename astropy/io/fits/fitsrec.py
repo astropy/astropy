@@ -1479,16 +1479,33 @@ def _logical_to_fits_bytes(row):
 
 
 def _logical_vla_heap_has_null(raw_data, field, heap_offset):
-    """Return True if any byte in the column's heap region is 0x00.
+    """Return True if the heap unambiguously contains NULL bytes.
 
     Used to decide whether to warn that NULL values would be silently
     converted to False when reading a logical VLA column without
-    ``logical_as_bytes=True``.
+    ``logical_as_bytes=True``. To avoid a misleading warning on an
+    all-zero heap (which under the FITS standard means all-NULL but
+    under the astropy <= 7.2.0 legacy encoding means all-False), this
+    requires both a 0x00 byte AND at least one ord('T') / ord('F')
+    byte. The legacy-detection heuristic in
+    ``_detect_legacy_logical_vla_heap`` separately catches files with
+    a 0x01 byte; the only case this still treats as ambiguous is a
+    heap containing nothing but 0x00, where the read value (``False``)
+    is correct under either interpretation.
     """
+    has_null = False
+    has_tf = False
     for idx in range(len(field)):
         offset = int(field[idx, 1]) + heap_offset
         count = int(field[idx, 0])
-        if count and (raw_data[offset : offset + count] == 0).any():
+        if not count:
+            continue
+        chunk = raw_data[offset : offset + count]
+        if not has_null and (chunk == 0).any():
+            has_null = True
+        if not has_tf and ((chunk == ord("T")) | (chunk == ord("F"))).any():
+            has_tf = True
+        if has_null and has_tf:
             return True
     return False
 
