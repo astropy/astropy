@@ -488,14 +488,14 @@ class FITS_rec(np.recarray):
         # fields
         # This is required to prevent the issue reported in
         # https://github.com/spacetelescope/PyFITS/issues/99
-        # Suppress the NULL-values warning emitted by ``_convert_other``
-        # during this internal plumbing: the user has not yet accessed the
-        # data, so a warning issued here would be spurious. The warning is
-        # still emitted the next time the user reads the column.
+        # Suppress the NULL-values warning emitted by ``_convert_other`` /
+        # ``_convert_p`` during this internal plumbing: the user has not yet
+        # accessed the data, so a warning issued here would be spurious. The
+        # warning is still emitted the next time the user reads the column.
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
-                message=r"Column '.*' contains NULL",
+                message=r".*[Cc]olumn '.*' contains NULL",
                 category=AstropyUserWarning,
             )
             for idx in range(len(columns)):
@@ -844,8 +844,14 @@ class FITS_rec(np.recarray):
         # that _VLF.__setitem__ would apply to the intermediate value views
         # any non-zero byte (incl. ord('F') = 70) as True, which would
         # silently corrupt False values.
+        # When ``_logical_as_bytes`` is True the raw heap bytes are exposed
+        # as a |S1 chararray instead, so NULL (b'\x00') is distinguishable
+        # from False (b'F').
         is_logical_vla = not column.ascii and recformat.format == "L"
-        element_dtype = "b1" if is_logical_vla else recformat.dtype
+        if is_logical_vla:
+            element_dtype = "S1" if self._logical_as_bytes else "b1"
+        else:
+            element_dtype = recformat.dtype
 
         dummy = _VLF([None] * len(self), dtype=element_dtype)
         raw_data = self._get_raw_data()
@@ -868,6 +874,19 @@ class FITS_rec(np.recarray):
                 "False.",
                 AstropyUserWarning,
             )
+        elif (
+            is_logical_vla
+            and not self._logical_as_bytes
+            and _logical_vla_heap_has_null(raw_data, field, self._heapoffset)
+        ):
+            warnings.warn(
+                f"Variable-length array column {column.name!r} contains NULL "
+                "(undefined) values which will be converted to False. To "
+                "preserve NULL information, reopen the file with "
+                "logical_as_bytes=True and check for bytes values of "
+                "b'\\x00' (NULL), b'T' (True), and b'F' (False).",
+                AstropyUserWarning,
+            )
 
         for idx in range(len(self)):
             offset = int(field[idx, 1]) + self._heapoffset
@@ -881,7 +900,13 @@ class FITS_rec(np.recarray):
                 dummy[idx] = decode_ascii(da)
             elif is_logical_vla:
                 buf = raw_data[offset : offset + count]
-                if legacy_logical_vla:
+                if self._logical_as_bytes:
+                    # Expose raw heap bytes so NULL (b'\x00') is
+                    # distinguishable from False (b'F'). Legacy 0x00/0x01
+                    # heaps are also returned verbatim; the warning
+                    # above tells the user the file is non-standard.
+                    dummy[idx] = buf.view("S1")
+                elif legacy_logical_vla:
                     # astropy <= 7.2.0 wrote 0x00/0x01; non-zero is True.
                     dummy[idx] = buf.view(np.uint8) != 0
                 else:
@@ -1442,11 +1467,47 @@ def _logical_to_fits_bytes(row):
 
     Returns an int8 array containing ord('T') / ord('F'). Bool inputs map
     to T/F; numeric inputs treat zero as False and non-zero as True.
+    Bytes input (|S1, e.g. from reading with ``logical_as_bytes=True``)
+    is viewed as int8 verbatim so that NULL (b'\\x00') survives.
     """
     arr = np.asarray(row)
+    if arr.dtype.kind == "S":
+        return arr.view(np.int8)
     if arr.dtype == bool:
         return np.where(arr, ord("T"), ord("F")).astype(np.int8)
     return np.where(arr == 0, ord("F"), ord("T")).astype(np.int8)
+
+
+def _logical_vla_heap_has_null(raw_data, field, heap_offset):
+    """Return True if the heap unambiguously contains NULL bytes.
+
+    Used to decide whether to warn that NULL values would be silently
+    converted to False when reading a logical VLA column without
+    ``logical_as_bytes=True``. To avoid a misleading warning on an
+    all-zero heap (which under the FITS standard means all-NULL but
+    under the astropy <= 7.2.0 legacy encoding means all-False), this
+    requires both a 0x00 byte AND at least one ord('T') / ord('F')
+    byte. The legacy-detection heuristic in
+    ``_detect_legacy_logical_vla_heap`` separately catches files with
+    a 0x01 byte; the only case this still treats as ambiguous is a
+    heap containing nothing but 0x00, where the read value (``False``)
+    is correct under either interpretation.
+    """
+    has_null = False
+    has_tf = False
+    for idx in range(len(field)):
+        offset = int(field[idx, 1]) + heap_offset
+        count = int(field[idx, 0])
+        if not count:
+            continue
+        chunk = raw_data[offset : offset + count]
+        if not has_null and (chunk == 0).any():
+            has_null = True
+        if not has_tf and ((chunk == ord("T")) | (chunk == ord("F"))).any():
+            has_tf = True
+        if has_null and has_tf:
+            return True
+    return False
 
 
 def _detect_legacy_logical_vla_heap(raw_data, field, heap_offset):

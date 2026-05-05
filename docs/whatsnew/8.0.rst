@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.0-write-table-indices`
 * :ref:`whatsnew-8.0-vla-logical`
 * :ref:`whatsnew-8.0-timeseries-lra`
+* :ref:`whatsnew-8.0-logical-as-bytes`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -278,3 +279,26 @@ implementation (although this is architecture-dependent) but is 8 to 10
 orders of magnitude more accurate, on par with their slow (non ``fast``) counterparts.
 
 This change of default allows eliminating previously seen issues with negative powers.
+
+.. _whatsnew-8.0-logical-as-bytes:
+
+Preserving NULL values in FITS logical columns
+==============================================
+
+The FITS standard allows logical (``L`` / ``PL`` / ``QL``) column entries
+to take three byte values: ``b'T'`` (True), ``b'F'`` (False), or
+``b'\x00'`` (undefined / NULL). Astropy has historically converted such
+columns to a numpy ``bool`` array on read, which silently maps NULL to
+``False``.
+
+A new ``logical_as_bytes`` keyword argument has been added to
+:func:`~astropy.io.fits.open` (mirroring the existing
+``character_as_bytes`` switch). When set to ``True``, both fixed-length
+and variable-length logical columns are returned as ``|S1`` byte arrays
+rather than ``bool``, so ``b'\x00'`` is distinguishable from ``b'F'``.
+Bytes read this way also round-trip through writing: a column read as
+``|S1`` and written back to a FITS file preserves NULL bytes verbatim.
+
+A `~astropy.utils.exceptions.AstropyUserWarning` is now also issued
+whenever a logical column being read with ``logical_as_bytes=False``
+(the default) contains NULL bytes, alerting users to lost information.
