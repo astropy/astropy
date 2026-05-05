@@ -288,9 +288,11 @@ Core Package Contributors
 * JP Maia
 * Juan Luis Cano Rodríguez
 * Juanjo Bazán
+* Julian Harbeck
 * Julien Woillez
 * Jurien Huisman
 * Kacper Kowalik
+* Kacper Rutkowski
 * Kang Wang
 * Karan Grover
 * Karl Gordon
@@ -341,6 +343,7 @@ Core Package Contributors
 * M\. Atakan Gürkan
 * M\. S\. R\. Dinesh
 * Mabry Cervin
+* Macdara Ó Murchú
 * Madhura Parikh
 * Magali Mebsout
 * maggiesam
