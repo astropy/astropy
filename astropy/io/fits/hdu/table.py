@@ -1,13 +1,11 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import contextlib
 import csv
 import math
 import operator
 import os
 import re
-import sys
 import textwrap
 import warnings
 from contextlib import suppress
@@ -38,7 +36,7 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
-from astropy.utils.compat import NUMPY_LT_2_5, chararray
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
@@ -218,7 +216,7 @@ class _TableLikeHDU(_ValidHDU):
 
             data = raw_data.view(np.rec.recarray)
 
-        self._init_tbdata(data)
+        data = self._init_tbdata(data)
         data = data.view(self._data_type)
         data._load_variable_length_data = self._load_variable_length_data
         columns._add_listener(data)
@@ -230,9 +228,7 @@ class _TableLikeHDU(_ValidHDU):
         if NUMPY_LT_2_5:
             data.dtype = data.dtype.newbyteorder(">")
         else:
-            # TODO: see if a a view is possible still; initial trial gives
-            # error in test_table.py::TestVLATables::test_empty_vla_raw_data.
-            np.ndarray._set_dtype(data, data.dtype.newbyteorder(">"))
+            data = data.view(data.dtype.newbyteorder(">"))
 
         # hack to enable pseudo-uint support
         data._uint = self._uint
@@ -251,6 +247,7 @@ class _TableLikeHDU(_ValidHDU):
         # delete the _arrays attribute so that it is recreated to point to the
         # new data placed in the column object above
         del columns._arrays
+        return data
 
     def _update_load_data(self):
         """Load the data if asked to."""
@@ -940,31 +937,32 @@ class BinTableHDU(_TableBaseHDU):
         """
         Calculate the value for the ``DATASUM`` card given the input data.
         """
-        with _binary_table_byte_swap(self.data) as data:
-            csum = self._compute_checksum(data.view(type=np.ndarray, dtype=np.ubyte))
+        csum = 0
+        for piece in _as_bigendian_pieces(self.data):
+            csum = self._compute_checksum(piece, csum)
 
-            # determine if we can read the heap data from the file on disk
-            try_from_disk = self._manages_own_heap or not self._data_loaded
+        # determine if we can read the heap data from the file on disk
+        try_from_disk = self._manages_own_heap or not self._data_loaded
 
-            # Now add in the heap data to the checksum. We can skip any gap
-            # between the table and the heap since it's all zeros and doesn't
-            # contribute to the checksum. However, the heap may not start at a
-            # boundary between the 4-byte blocks used for the checksum (32 bits),
-            # either because there's no THEAP keyword and the main table data
-            # ends in the middle of a 4-byte block, or because the THEAP keyword
-            # exists and it's not a multiple of 4. In those cases, we must pad
-            # the heap data with zeros, such that it is aligned correctly
-            # for the checksum calculation. We do this by padding the first few
-            # bytes of the heap (if necessary), then calculating the checksum for
-            # the rest of the heap data normally.
-            heap_data = data._get_heap_data(try_from_disk)
-            if extra := self._theap % 4:
-                first_part = np.zeros(4, dtype=np.ubyte)
-                first_part[extra : extra + len(heap_data)] = heap_data[: 4 - extra]
-                csum = self._compute_checksum(first_part, csum)
-                return self._compute_checksum(heap_data[4 - extra :], csum)
+        # Now add in the heap data to the checksum. We can skip any gap
+        # between the table and the heap since it's all zeros and doesn't
+        # contribute to the checksum. However, the heap may not start at a
+        # boundary between the 4-byte blocks used for the checksum (32 bits),
+        # either because there's no THEAP keyword and the main table data
+        # ends in the middle of a 4-byte block, or because the THEAP keyword
+        # exists and it's not a multiple of 4. In those cases, we must pad
+        # the heap data with zeros, such that it is aligned correctly
+        # for the checksum calculation. We do this by padding the first few
+        # bytes of the heap (if necessary), then calculating the checksum for
+        # the rest of the heap data normally.
+        heap_data = self.data._get_heap_data(try_from_disk)
+        if extra := self._theap % 4:
+            first_part = np.zeros(4, dtype=np.ubyte)
+            first_part[extra : extra + len(heap_data)] = heap_data[: 4 - extra]
+            csum = self._compute_checksum(first_part, csum)
+            return self._compute_checksum(heap_data[4 - extra :], csum)
 
-            return self._compute_checksum(heap_data, csum)
+        return self._compute_checksum(heap_data, csum)
 
     def _calculate_datasum(self):
         """
@@ -985,65 +983,39 @@ class BinTableHDU(_TableBaseHDU):
     def _writedata_internal(self, fileobj):
         size = 0
 
-        if self.data is None:
+        data = self.data
+        if data is None:
             return size
 
-        with _binary_table_byte_swap(self.data) as data:
-            if _has_unicode_fields(data):
-                # If the raw data was a user-supplied recarray, we can't write
-                # unicode columns directly to the file, so we have to switch
-                # to a slower row-by-row write
-                self._writedata_by_row(fileobj)
-            else:
-                fileobj.writearray(data)
-                # write out the heap of variable length array columns this has
-                # to be done after the "regular" data is written (above)
-                # to avoid a bug in the lustre filesystem client, don't
-                # write 0-byte objects
-                if data._gap > 0:
-                    fileobj.write((data._gap * "\0").encode("ascii"))
+        if _has_unicode_fields(data):
+            raise RuntimeError("Found unicode fields. Please report.")
 
-            nbytes = data._gap
+        for piece in _as_bigendian_pieces(data):
+            fileobj.writearray(piece)
 
-            # determine of we can read the heap data from the file on disk
-            try_from_disk = self._manages_own_heap or not self._data_loaded
+        # write out the heap of variable length array columns this has
+        # to be done after the "regular" data is written (above)
+        # to avoid a bug in the lustre filesystem client, don't
+        # write 0-byte objects
+        if data._gap > 0:
+            fileobj.write(data._gap * b"\0")
 
-            heap_data = data._get_heap_data(try_from_disk)
-            if len(heap_data) > 0:
-                nbytes += len(heap_data)
-                fileobj.writearray(heap_data)
+        nbytes = data._gap
 
-            data._heapsize = nbytes - data._gap
-            size += nbytes
+        # determine of we can read the heap data from the file on disk
+        try_from_disk = self._manages_own_heap or not self._data_loaded
 
-        size += self.data.size * self.data._raw_itemsize
+        heap_data = data._get_heap_data(try_from_disk)
+        if len(heap_data) > 0:
+            nbytes += len(heap_data)
+            fileobj.writearray(heap_data)
+
+        data._heapsize = nbytes - data._gap
+        size += nbytes
+
+        size += data.size * data._raw_itemsize
 
         return size
-
-    def _writedata_by_row(self, fileobj):
-        fields = [self.data.field(idx) for idx in range(len(self.data.columns))]
-
-        # Creating Record objects is expensive (as in
-        # `for row in self.data:` so instead we just iterate over the row
-        # indices and get one field at a time:
-        for idx in range(len(self.data)):
-            for field in fields:
-                item = field[idx]
-                field_width = None
-
-                if field.dtype.kind == "U":
-                    # Read the field *width* by reading past the field kind.
-                    i = field.dtype.str.index(field.dtype.kind)
-                    field_width = int(field.dtype.str[i + 1 :])
-                    item = np.strings.encode(item, "ascii")
-
-                fileobj.writearray(item)
-                if field_width is not None:
-                    j = item.dtype.str.index(item.dtype.kind)
-                    item_length = int(item.dtype.str[j + 1 :])
-                    # Fix padding problem (see #5296).
-                    padding = "\x00" * (field_width - item_length)
-                    fileobj.write(padding.encode("ascii"))
 
     _tdump_file_format = textwrap.dedent(
         """
@@ -1532,79 +1504,41 @@ class BinTableHDU(_TableBaseHDU):
         return ColDefs(columns)
 
 
-@contextlib.contextmanager
-def _binary_table_byte_swap(data):
+def _as_bigendian_pieces(data):
+    """Convert the data to bigendian and view as bytes.
+
+    If any conversion is needed, iterates over 64k blocks of data, to
+    avoid copying possibly very large arrays.
     """
-    Ensures that all the data of a binary FITS table (represented as a FITS_rec
-    object) is in a big-endian byte order.  Columns are swapped in-place one
-    at a time, and then returned to their previous byte order when this context
-    manager exits.
+    dtype = data.dtype
+    dtype_big = dtype.newbyteorder(">")
+    if dtype == dtype_big:
+        yield data.view(type=np.ndarray, dtype=np.ubyte)
+        return
 
-    Because a new dtype is needed to represent the byte-swapped columns, the
-    new dtype is temporarily applied as well.
-    """
-    orig_dtype = data.dtype
-
-    names = []
-    formats = []
-    offsets = []
-
-    to_swap = []
-
-    if sys.byteorder == "little":
-        swap_types = ("<", "=")
-    else:
-        swap_types = ("<",)
-
-    for idx, name in enumerate(orig_dtype.names):
+    # Get indices that reorder bytes such that little endian items are
+    # converted to bigendian.
+    indices = np.arange(data.dtype.itemsize)
+    for idx, name in enumerate(dtype.names):
         field = _get_recarray_field(data, idx)
 
-        field_dtype, field_offset = orig_dtype.fields[name]
-        names.append(name)
-        formats.append(field_dtype)
-        offsets.append(field_offset)
-
-        if isinstance(field, chararray):
-            continue
-
-        # only swap unswapped
+        field_dtype, field_offset = dtype.fields[name]
+        # swap indices for fields that are not bigendian.
         # must use field_dtype.base here since for multi-element dtypes,
-        # the .str with be '|V<N>' where <N> is the total bytes per element
-        if field.itemsize > 1 and field_dtype.base.str[0] in swap_types:
-            to_swap.append(field)
-            # Override the dtype for this field in the new record dtype with
-            # the byteswapped version
-            formats[-1] = field_dtype.newbyteorder()
+        # the .str will be '|V<N>' where <N> is the total bytes per element.
+        if field_dtype != dtype_big.fields[name][0]:
+            offset = field_offset
+            itemsize = field_dtype.base.itemsize
+            # Reorder every element of a possible sub-array.
+            for i in range(math.prod(field_dtype.shape)):
+                indices[offset : offset + itemsize] = indices[
+                    offset : offset + itemsize
+                ][::-1]
+                offset += itemsize
 
-        # deal with var length table
-        recformat = data.columns._recformats[idx]
-        if isinstance(recformat, _FormatP):
-            coldata = data.field(idx)
-            for c in coldata:
-                if (
-                    not isinstance(c, chararray)
-                    and c.itemsize > 1
-                    and c.dtype.str[0] in swap_types
-                ):
-                    to_swap.append(c)
-
-    for arr in reversed(to_swap):
-        arr.byteswap(True)
-
-    new_dtype = np.dtype({"names": names, "formats": formats, "offsets": offsets})
-    if NUMPY_LT_2_5:
-        data.dtype = new_dtype
-    else:
-        # TODO: ensure self.data is never used with this context manager, so that
-        # a view here would work (and the second _set_dtype can be removed).
-        np.ndarray._set_dtype(data, new_dtype)
-
-    yield data
-
-    for arr in to_swap:
-        arr.byteswap(True)
-
-    if NUMPY_LT_2_5:
-        data.dtype = orig_dtype
-    else:
-        np.ndarray._set_dtype(data, orig_dtype)
+    # Reordering the data by indexing makes copies, so work in pieces.
+    data_bytes = data.view(np.ndarray)[..., np.newaxis].view(np.ubyte)
+    step = max(65536 // len(indices), 1)
+    for piece in np.split(data_bytes, range(0, len(data), step)):
+        if len(piece):
+            yield piece[..., indices].ravel()
