@@ -234,9 +234,6 @@ def fast_binparse_bool(const unsigned char[::1] data, int offset=0):
         value = True
     elif byte_val == ord(b'F') or byte_val == ord(b'f') or byte_val == ord(b'0'):
         value = False
-    elif byte_val == 0 or byte_val == ord(b' ') or byte_val == ord(b'?'):
-        value = False
-        is_null = True
     else:
         value = False
         is_null = True
