@@ -22,16 +22,15 @@ mv cfitsio/pliocomp.c cfitsio/lib/
 mv cfitsio/quantize.c cfitsio/lib/
 mv cfitsio/ricecomp.c cfitsio/lib/
 
+rm -f cfitsio/.gitattributes
+rm -f cfitsio/.gitignore
 rm -f cfitsio/README
 rm -f cfitsio/INSTALL
 rm -f cfitsio/configure
 rm -f cfitsio/install-sh
-rm -f cfitsio/docs/*.tex
-rm -f cfitsio/docs/*.ps
-rm -f cfitsio/docs/*.pdf
-rm -f cfitsio/docs/*.doc
-rm -f cfitsio/docs/*.toc
-rm -f cfitsio/docs/*.odt
+rm -f cfitsio/run-testprog
+rm -rf cfitsio/.github
+rm -rf cfitsio/docs/
 rm -rf cfitsio/[^L]*.*
 rm -rf cfitsio/utilities
 rm -rf cfitsio/cmake
