@@ -133,6 +133,15 @@ def fitsio_compressed_file_path(
         # fitsio fails with a compression error
         pytest.xfail("fitsio fails to write these")
 
+    if (
+        compression_type == "PLIO_1"
+        and np.dtype(dtype).kind == "u"
+        and np.dtype(dtype).itemsize >= 2
+    ):
+        # PLIO can't represent the BZERO-shifted unsigned values; cfitsio
+        # rejects 4/8-byte cases outright and segfaults on 2-byte ones.
+        pytest.xfail("PLIO_1 cannot encode unsigned multi-byte integers")
+
     if compression_type == "NOCOMPRESS":
         pytest.xfail("fitsio does not support NOCOMPRESS")
 
@@ -166,6 +175,13 @@ def astropy_compressed_file_path(
 ):
     compression_type, param, dtype = comp_param_dtype
     original_data = base_original_data.astype(dtype)
+
+    if (
+        compression_type == "PLIO_1"
+        and np.dtype(dtype).kind == "u"
+        and np.dtype(dtype).itemsize >= 2
+    ):
+        pytest.xfail("PLIO_1 cannot encode unsigned multi-byte integers")
 
     tmp_path = tmp_path_factory.mktemp("astropy")
     filename = tmp_path / f"{compression_type}_{dtype}.fits"
@@ -365,7 +381,32 @@ def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
             hdu.writeto(astropy_path)
         return
 
-    # PLIO_1 only encodes non-negative integers up to 2**24 - 1.
+    # PLIO_1 cannot encode unsigned multi-byte integers because the FITS
+    # BZERO=2**(N-1) offset astropy applies to unsigned data produces negative
+    # values that PLIO rejects. Astropy raises a clean ValueError for all
+    # unsigned itemsize >= 2; cfitsio raises only for itemsize >= 4 and
+    # segfaults on itemsize == 2 with full-range data, so the cross-check
+    # only runs for the 4/8-byte cases.
+    if (
+        compression_type == "PLIO_1"
+        and np_dtype.kind == "u"
+        and np_dtype.itemsize >= 2
+    ):
+        with pytest.raises(
+            ValueError,
+            match=r"PLIO_1 compression does not support unsigned integers",
+        ):
+            hdu.writeto(astropy_path)
+        if np_dtype.itemsize >= 4:
+            with pytest.raises(
+                ValueError,
+                match=r"Unsigned 4/8-byte integers currently not allowed",
+            ):
+                with fitsio.FITS(tmp_path / "fitsio.fits", "rw") as fts:
+                    fts.write(data, compress=compression_type)
+        return
+
+    # PLIO_1 also can't encode signed values outside [0, 2**24 - 1].
     if compression_type == "PLIO_1" and (info.min < 0 or info.max > 2**24 - 1):
         with pytest.raises(
             ValueError,
