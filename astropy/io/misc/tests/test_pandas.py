@@ -158,3 +158,20 @@ def test_excel_multi_sheet_error(tmp_path):
 
     with pytest.raises(ValueError, match="Multiple sheets"):
         Table.read(file, format="pandas.excel", sheet_name=None)
+
+
+def test_excel_multi_sheet_error_no_openpyxl(monkeypatch):
+    import pandas as pd
+
+    from astropy.table import Table
+
+    def mock_read_excel(*args, **kwargs):
+        return {
+            "s1": pd.DataFrame({"a": [1]}),
+            "s2": pd.DataFrame({"a": [2]}),
+        }
+
+    monkeypatch.setattr(pd, "read_excel", mock_read_excel)
+
+    with pytest.raises(ValueError, match="Multiple sheets"):
+        Table.read("dummy.xlsx", format="pandas.excel")
