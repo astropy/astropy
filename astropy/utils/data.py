@@ -2233,7 +2233,7 @@ def cache_contents(pkgname="astropy"):
         return _NOTHING
     with os.scandir(dldir) as it:
         for entry in it:
-            if entry.is_dir:
+            if entry.is_dir():
                 url = get_file_contents(
                     os.path.join(dldir, entry.name, "url"), encoding="utf-8"
                 )
