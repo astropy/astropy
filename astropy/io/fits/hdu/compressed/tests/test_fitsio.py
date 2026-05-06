@@ -274,7 +274,7 @@ def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
     data_hdu = fits.PrimaryHDU(data=data)
     compressed_hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
 
-    if compression_type in ("RICE_1", "PLIO_1") and nbytes == 8:
+    if compression_type in ("RICE_1", "PLIO_1", "HCOMPRESS_1") and nbytes == 8:
         test_func = pytest.raises if overflow else pytest.warns
         ctx = test_func(
             ValueError if overflow else AstropyUserWarning,
@@ -365,10 +365,12 @@ def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
     hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
 
     # 64-bit integer data with full-range sentinels overflows the 32-bit
-    # conversion that RICE_1 falls back to. (PLIO_1 + i8 also lands here;
-    # PLIO_1 + u8 is caught by the unsigned-multi-byte rejection below.)
+    # conversion that RICE_1 and HCOMPRESS_1 fall back to. (PLIO_1 + i8 also
+    # lands here; PLIO_1 + u8 is caught by the unsigned-multi-byte rejection
+    # below.) For these combos cfitsio also rejects the input outright, so
+    # cross-check that fitsio raises too.
     if (
-        compression_type == "RICE_1"
+        compression_type in ("RICE_1", "HCOMPRESS_1")
         and np_dtype.kind in ("i", "u")
         and np_dtype.itemsize == 8
     ) or (
@@ -384,6 +386,13 @@ def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
             ),
         ):
             hdu.writeto(astropy_path)
+        if compression_type == "HCOMPRESS_1":
+            with pytest.raises(
+                OSError,
+                match=r"writing T(U)?LONGLONG to compressed image is not supported",
+            ):
+                with fitsio.FITS(tmp_path / "fitsio.fits", "rw") as fts:
+                    fts.write(data, compress=compression_type)
         return
 
     # PLIO_1 cannot encode unsigned multi-byte integers because the FITS
