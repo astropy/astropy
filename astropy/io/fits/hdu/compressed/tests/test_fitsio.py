@@ -380,9 +380,7 @@ def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
         and np_dtype.kind in ("i", "u")
         and np_dtype.itemsize == 8
     ) or (
-        compression_type == "PLIO_1"
-        and np_dtype.kind == "i"
-        and np_dtype.itemsize == 8
+        compression_type == "PLIO_1" and np_dtype.kind == "i" and np_dtype.itemsize == 8
     ):
         with pytest.raises(
             ValueError,
@@ -407,11 +405,7 @@ def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
     # unsigned itemsize >= 2; cfitsio raises only for itemsize >= 4 and
     # segfaults on itemsize == 2 with full-range data, so the cross-check
     # only runs for the 4/8-byte cases.
-    if (
-        compression_type == "PLIO_1"
-        and np_dtype.kind == "u"
-        and np_dtype.itemsize >= 2
-    ):
+    if compression_type == "PLIO_1" and np_dtype.kind == "u" and np_dtype.itemsize >= 2:
         with pytest.raises(
             ValueError,
             match=r"PLIO_1 compression does not support unsigned integers",
