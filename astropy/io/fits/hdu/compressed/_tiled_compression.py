@@ -5,11 +5,13 @@ the FITS 4 standard.
 """
 
 import sys
+import warnings
 from math import prod
 
 import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
+from astropy.utils.exceptions import AstropyUserWarning
 
 from ._codecs import PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
 from ._quantization import DITHER_METHODS, QuantizationFailedException, Quantize
@@ -540,6 +542,26 @@ def compress_image_data(
     """
     if not isinstance(image_data, np.ndarray):
         raise TypeError("Image data must be a numpy.ndarray")
+
+    if (
+        compression_type in ("RICE_1", "PLIO_1")
+        and image_data.dtype.kind == "i"
+        and image_data.dtype.itemsize == 8
+    ):
+        new_dt = f"{image_data.dtype.byteorder}{image_data.dtype.kind}4"
+        try:
+            image_data = image_data.astype(new_dt, casting="same_value")
+            compressed_header["ZBITPIX"] = 32
+            warnings.warn(
+                f"{compression_type} compression doesn't support 64 integers, "
+                "data has been converted to 32 bits",
+                AstropyUserWarning,
+            )
+        except ValueError:
+            raise ValueError(
+                f"{compression_type} compression doesn't support 64 integers, "
+                "but data cannot be converted to 32 bits without overflow",
+            )
 
     _check_compressed_header(compressed_header)
 

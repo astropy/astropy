@@ -10,13 +10,15 @@ cfitsio.
 """
 
 import os
+from contextlib import nullcontext
 
 import numpy as np
 import pytest
 
 from astropy.io import fits
+from astropy.utils.exceptions import AstropyUserWarning
 
-from .conftest import _expand, fitsio_param_to_astropy_param
+from .conftest import COMPRESSION_TYPES, _expand, fitsio_param_to_astropy_param
 
 # This is so that tox can force this file to be run, and not be silently
 # skipped on CI, but in all other test runs it's skipped if fitsio isn't present.
@@ -240,3 +242,51 @@ def test_compress(
 
     with fits.open(astropy_compressed_file_path) as hdul:
         np.testing.assert_allclose(data, hdul[1].data, rtol=rtol, atol=atol)
+
+
+@pytest.mark.parametrize(
+    "nbytes,overflow", [(2, False), (4, False), (8, False), (8, True)]
+)
+@pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
+def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
+
+    testfile = tmp_path / "test.fits.fz"
+    data = np.random.poisson(1000, size=(52, 57)).astype(f"i{nbytes}")
+    if overflow:
+        data += np.iinfo(np.int32).max
+    data_hdu = fits.PrimaryHDU(data=data)
+    compressed_hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
+
+    if compression_type in ("RICE_1", "PLIO_1") and nbytes == 8:
+        test_func = pytest.raises if overflow else pytest.warns
+        ctx = test_func(
+            ValueError if overflow else AstropyUserWarning,
+            match=f"{compression_type} compression doesn't support 64 integers.*",
+        )
+        nbytes = 4
+    else:
+        ctx = nullcontext()
+
+    with ctx:
+        compressed_hdu.writeto(testfile)
+
+    if overflow:
+        # nothing more to test
+        return
+
+    with fits.open(testfile, disable_image_compression=True) as hdul:
+        assert hdul[1].header["ZCMPTYPE"] == compression_type
+        if compression_type == "RICE_1":
+            assert hdul[1].header["ZNAME2"] == "BYTEPIX"
+            assert hdul[1].header["ZVAL2"] == nbytes
+
+    with fits.open(testfile) as hdul:
+        np.testing.assert_array_equal(data, hdul[1].data)
+        assert hdul[1].data.dtype.kind == np.dtype(data.dtype).kind
+        assert hdul[1].data.dtype.itemsize == nbytes
+
+    if compression_type != "NOCOMPRESS" and nbytes != 8:
+        # fitsio does not support NOCOMPRESS or 64-bit data
+        fts = fitsio.FITS(testfile)
+        data2 = fts[1].read()
+        np.testing.assert_array_equal(data, data2)
