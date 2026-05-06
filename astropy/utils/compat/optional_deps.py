@@ -33,6 +33,7 @@ _optional_deps = [
     "mpmath",
     "narwhals",
     "numpy_quaddtype",
+    "openpyxl",
     "pandas",
     "PIL",
     "polars",

@@ -163,6 +163,10 @@ The further dependencies provide more specific features:
   :meth:`astropy.table.Table.show_in_notebook` to display the Astropy table
   in Jupyter notebook for ``backend="ipydatagrid"``.
 
+- `openpyxl <https://pypi.org/project/openpyxl/>`_: Used for reading and writing Excel files.
+  :class:`~astropy.table.Table` objects can be read from and written to Excel files using the
+  `pandas <https://pandas.pydata.org/>`_ reader/writer, which in turn uses `openpyxl` for Excel file handling.
+
 - `xmllint <https://gnome.pages.gitlab.gnome.org/libxml2/xmllint.html>`_: To validate VOTABLE XML files.
   This is a command line tool installed outside of Python.
 
