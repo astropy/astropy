@@ -563,6 +563,20 @@ def compress_image_data(
                 "but data cannot be converted to 32 bits without overflow",
             )
 
+    # PLIO_1 encodes only non-negative integers, but astropy stores unsigned
+    # FITS data via the BZERO=2**(N-1) convention which produces negative
+    # values for the lower half of the range. Reject unsigned multi-byte
+    # input to avoid corrupted writes.
+    if (
+        compression_type == "PLIO_1"
+        and image_data.dtype.kind == "u"
+        and image_data.dtype.itemsize >= 2
+    ):
+        raise ValueError(
+            "PLIO_1 compression does not support unsigned integers "
+            "larger than 8 bits"
+        )
+
     _check_compressed_header(compressed_header)
 
     # TODO: This implementation is memory inefficient as it generates all the
