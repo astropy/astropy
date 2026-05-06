@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 from astropy.io import fits
+from astropy.utils import NumpyRNGContext
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import COMPRESSION_TYPES, _expand, fitsio_param_to_astropy_param
@@ -290,3 +291,116 @@ def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
         fts = fitsio.FITS(testfile)
         data2 = fts[1].read()
         np.testing.assert_array_equal(data, data2)
+
+
+INTEGER_DTYPES_FULL_RANGE = [
+    "<i2",
+    ">i2",
+    "<i4",
+    ">i4",
+    "<i8",
+    ">i8",
+    "<u1",
+    ">u1",
+    "<u2",
+    ">u2",
+    "<u4",
+    ">u4",
+    "<u8",
+    ">u8",
+]
+
+
+def _full_range_integer_data(dtype, shape=(32, 32)):
+    info = np.iinfo(dtype)
+    sentinels = np.array(
+        [
+            info.min,
+            info.min + 1,
+            -1 if info.min < 0 else 0,
+            0,
+            1,
+            info.max - 1,
+            info.max,
+        ],
+        dtype=dtype,
+    )
+    with NumpyRNGContext(0):
+        data = np.random.randint(
+            info.min,
+            info.max + 1,
+            size=shape,
+            dtype=dtype.lstrip("<>"),
+        ).astype(dtype)
+    data.ravel()[: sentinels.size] = sentinels
+    return data
+
+
+@pytest.mark.parametrize("dtype", INTEGER_DTYPES_FULL_RANGE)
+@pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
+def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
+    """Cross-check exact round-tripping of boundary-spanning integer data
+    between astropy and fitsio for every standard FITS integer dtype and
+    every compression algorithm that supports it."""
+    data = _full_range_integer_data(dtype)
+    np_dtype = np.dtype(dtype)
+    info = np.iinfo(dtype)
+    astropy_path = tmp_path / "astropy.fits"
+    hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
+
+    # Signed 64-bit data with full-range sentinels overflows the int32
+    # conversion that RICE_1 and PLIO_1 fall back to.
+    if (
+        compression_type in ("RICE_1", "PLIO_1")
+        and np_dtype.kind == "i"
+        and np_dtype.itemsize == 8
+    ):
+        with pytest.raises(
+            ValueError,
+            match=(
+                f"{compression_type} compression doesn't support 64 integers, "
+                "but data cannot be converted to 32 bits without overflow"
+            ),
+        ):
+            hdu.writeto(astropy_path)
+        return
+
+    # PLIO_1 only encodes non-negative integers up to 2**24 - 1.
+    if compression_type == "PLIO_1" and (info.min < 0 or info.max > 2**24 - 1):
+        with pytest.raises(
+            ValueError,
+            match=r"data out of range for PLIO compression",
+        ):
+            hdu.writeto(astropy_path)
+        return
+
+    # 1. astropy writes a compressed file.
+    hdu.writeto(astropy_path)
+
+    # 2. astropy reads its own compressed file.
+    with fits.open(astropy_path) as hdul:
+        rt = hdul[1].data
+        assert rt.dtype.kind == np_dtype.kind
+        assert rt.dtype.itemsize == np_dtype.itemsize
+        np.testing.assert_array_equal(rt, data)
+
+    # fitsio doesn't support NOCOMPRESS, so the cross-checks stop here.
+    if compression_type == "NOCOMPRESS":
+        return
+
+    # 3. fitsio reads astropy's compressed file.
+    with fitsio.FITS(astropy_path) as fts:
+        rt_fitsio = fts[1].read()
+        assert rt_fitsio.dtype.kind == np_dtype.kind
+        assert rt_fitsio.dtype.itemsize == np_dtype.itemsize
+        np.testing.assert_array_equal(rt_fitsio, data)
+
+    # 4. astropy reads a file fitsio compressed.
+    fitsio_path = tmp_path / "fitsio.fits"
+    with fitsio.FITS(fitsio_path, "rw") as fts:
+        fts.write(data, compress=compression_type)
+    with fits.open(fitsio_path) as hdul:
+        rt_astropy = hdul[1].data
+        assert rt_astropy.dtype.kind == np_dtype.kind
+        assert rt_astropy.dtype.itemsize == np_dtype.itemsize
+        np.testing.assert_array_equal(rt_astropy, data)
