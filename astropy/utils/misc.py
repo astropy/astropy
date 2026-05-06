@@ -35,11 +35,9 @@ __all__ = [
     "find_api_page",
     "format_exception",
     "indent",
-    "is_path_hidden",
     "isiterable",
     "online_help",
     "silence",
-    "walk_skip_hidden",
 ]
 
 NOT_OVERWRITING_MSG: Final = (
@@ -335,78 +333,6 @@ def online_help(query: str) -> None:
     import webbrowser
 
     webbrowser.open(online_docs_root + f"search.html?{urlencode({'q': query})}")
-
-
-# _has_hidden_attribute() can be deleted together with deprecated is_path_hidden() and
-# walk_skip_hidden().
-if sys.platform == "win32":
-    import ctypes
-
-    def _has_hidden_attribute(filepath):
-        """
-        Returns True if the given filepath has the hidden attribute on
-        MS-Windows.  Based on a post here:
-        https://stackoverflow.com/questions/284115/cross-platform-hidden-file-detection.
-        """
-        if isinstance(filepath, bytes):
-            filepath = filepath.decode(sys.getfilesystemencoding())
-        try:
-            attrs = ctypes.windll.kernel32.GetFileAttributesW(filepath)
-            result = bool(attrs & 2) and attrs != -1
-        except AttributeError:
-            result = False
-        return result
-
-else:
-
-    def _has_hidden_attribute(filepath):
-        return False
-
-
-@deprecated(since="6.0")
-def is_path_hidden(filepath):
-    """
-    Determines if a given file or directory is hidden.
-
-    Parameters
-    ----------
-    filepath : str
-        The path to a file or directory
-
-    Returns
-    -------
-    hidden : bool
-        Returns `True` if the file is hidden
-    """
-    name = os.path.basename(os.path.abspath(filepath))
-    if isinstance(name, bytes):
-        is_dotted = name.startswith(b".")
-    else:
-        is_dotted = name.startswith(".")
-    return is_dotted or _has_hidden_attribute(filepath)
-
-
-@deprecated(since="6.0")
-def walk_skip_hidden(top, onerror=None, followlinks=False):
-    """
-    A wrapper for `os.walk` that skips hidden files and directories.
-
-    This function does not have the parameter ``topdown`` from
-    `os.walk`: the directories must always be recursed top-down when
-    using this function.
-
-    See Also
-    --------
-    os.walk : For a description of the parameters
-    """
-    for root, dirs, files in os.walk(
-        top, topdown=True, onerror=onerror, followlinks=followlinks
-    ):
-        # These lists must be updated in-place so os.walk will skip
-        # hidden directories
-        dirs[:] = [d for d in dirs if not is_path_hidden(d)]
-        files[:] = [f for f in files if not is_path_hidden(f)]
-        yield root, dirs, files
 
 
 class JsonCustomEncoder(json.JSONEncoder):
