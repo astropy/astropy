@@ -19,6 +19,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 from collections.abc import Container, Generator, Iterable
+from contextlib import suppress
 from importlib import import_module
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
@@ -1133,19 +1134,23 @@ def _find_hash_fn(
 
 
 @overload
-def get_free_space_in_dir(path: str, unit: Literal[False]) -> int: ...
+def get_free_space_in_dir(
+    path: str | os.PathLike[str], unit: Literal[False]
+) -> int: ...
 @overload
-def get_free_space_in_dir(path: str, unit: UnitBase | Literal[True]) -> Quantity: ...
+def get_free_space_in_dir(
+    path: str | os.PathLike[str], unit: UnitBase | Literal[True]
+) -> Quantity: ...
 
 
-def get_free_space_in_dir(path, unit: UnitBase | bool = False):
+def get_free_space_in_dir(path: str | os.PathLike[str], unit: UnitBase | bool = False):
     """
     Given a path to a directory, returns the amount of free space
     on that filesystem.
 
     Parameters
     ----------
-    path : str
+    path : str, os.PathLike
         The path to a directory.
 
     unit : bool or `~astropy.units.Unit`
@@ -1159,7 +1164,7 @@ def get_free_space_in_dir(path, unit: UnitBase | bool = False):
         If ``unit=False``, it is returned as plain integer (in bytes).
 
     """
-    if not os.path.isdir(path):
+    if not (path := Path(path)).is_dir():
         raise OSError(
             "Can only determine free space associated with directories, not files."
         )
@@ -1342,7 +1347,7 @@ def _download_file_from_source(
     ftp_tls=None,
     ssl_context=None,
     allow_insecure: bool = False,
-) -> str:
+) -> Path:
     from astropy.utils.console import ProgressBarOrSpinner
 
     if not conf.allow_internet:
@@ -1418,6 +1423,7 @@ def _download_file_from_source(
             with NamedTemporaryFile(
                 prefix=f"astropy-download-{os.getpid()}-", delete=False
             ) as f:
+                fp = Path(f.name)
                 try:
                     bytes_read = 0
                     block = remote.read(conf.download_block_size)
@@ -1439,13 +1445,10 @@ def _download_file_from_source(
                             content=None,
                         )
                 except BaseException:
-                    if os.path.exists(f.name):
-                        try:
-                            os.remove(f.name)
-                        except OSError:
-                            pass
+                    with suppress(PermissionError):
+                        fp.unlink()
                     raise
-    return f.name
+    return fp
 
 
 def download_file(
@@ -1591,9 +1594,9 @@ def download_file(
                     "otherwise use a boolean"
                 )
             else:
-                filename = os.path.join(dldir, _url_to_dirname(url_key), "contents")
-                if os.path.exists(filename):
-                    return os.path.abspath(filename)
+                filename = dldir / _url_to_dirname(url_key) / "contents"
+                if filename.exists():
+                    return str(filename.absolute())
 
     errors = {}
     for source_url in sources:
@@ -1634,7 +1637,7 @@ def download_file(
         try:
             return import_file_to_cache(
                 url_key,
-                f_name,
+                str(f_name),
                 remove_original=True,
                 replace=(cache == "update"),
                 pkgname=pkgname,
@@ -1689,8 +1692,8 @@ def is_url_in_cache(
         dldir = _get_download_cache_loc(pkgname)
     except OSError:
         return False
-    filename = os.path.join(dldir, _url_to_dirname(url_key), "contents")
-    return os.path.exists(filename)
+    filename = dldir / _url_to_dirname(url_key) / "contents"
+    return filename.exists()
 
 
 def cache_total_size(
@@ -1858,7 +1861,7 @@ def download_files_in_parallel(
 
 # This is used by download_file and _deltemps to determine the files to delete
 # when the interpreter exits
-_tempfilestodel = []
+_tempfilestodel: list[Path] = []
 
 
 @atexit.register
@@ -1866,14 +1869,14 @@ def _deltemps():
     if _tempfilestodel is not None:
         while len(_tempfilestodel) > 0:
             fn = _tempfilestodel.pop()
-            if os.path.isfile(fn):
+            if fn.is_file():
                 try:
-                    os.remove(fn)
+                    fn.unlink()
                 except OSError:
                     # oh well we tried
                     # could be held open by some process, on Windows
                     pass
-            elif os.path.isdir(fn):
+            elif fn.is_dir():
                 try:
                     shutil.rmtree(fn)
                 except OSError:
@@ -1923,7 +1926,7 @@ def clear_download_cache(
             # Optional: delete old incompatible caches too
             _rmtree(dldir)
         elif _is_url(hashorurl):
-            filepath = os.path.join(dldir, _url_to_dirname(hashorurl))
+            filepath = dldir / _url_to_dirname(hashorurl)
             _rmtree(filepath)
         else:
             # Not a URL, it should be either a filename or a hash
@@ -2015,7 +2018,13 @@ class CacheDamaged(ValueError):
     whichever is not None, should resolve this particular problem.
     """
 
-    def __init__(self, *args, bad_urls=None, bad_files=None, **kwargs):
+    def __init__(
+        self,
+        *args: object,
+        bad_urls: list[str] | None = None,
+        bad_files: list[Path] | None = None,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.bad_urls = bad_urls if bad_urls is not None else []
         self.bad_files = bad_files if bad_files is not None else []
@@ -2064,12 +2073,12 @@ def check_download_cache(
         :func:`clear_download_cache` to resolve, or may indicate some kind of
         misconfiguration.
     """
-    bad_files = set()
-    messages = set()
+    bad_files: str[Path] = set()
+    messages: set[str] = set()
     dldir = _get_download_cache_loc(pkgname=pkgname)
     with os.scandir(dldir) as it:
         for entry in it:
-            f = os.path.abspath(os.path.join(dldir, entry.name))
+            f = dldir.joinpath(entry.name).absolute()
             if entry.name.startswith("rmtree-"):
                 if f not in _tempfilestodel:
                     bad_files.add(f)
@@ -2078,12 +2087,12 @@ def check_download_cache(
                 for sf in os.listdir(f):
                     if sf in ["url", "contents"]:
                         continue
-                    sf = os.path.join(f, sf)
+                    sf = f / sf
                     bad_files.add(sf)
                     messages.add(f"Unexpected file f{sf}")
-                urlf = os.path.join(f, "url")
+                urlf = f / "url"
                 url = None
-                if not os.path.isfile(urlf):
+                if not urlf.is_file():
                     bad_files.add(urlf)
                     messages.add(f"Problem with URL file f{urlf}")
                 else:
@@ -2099,7 +2108,7 @@ def check_download_cache(
                                 f"URL hashes to {hashname} but is stored in"
                                 f" {entry.name}"
                             )
-                if not os.path.isfile(os.path.join(f, "contents")):
+                if not f.joinpath("contents").is_file():
                     bad_files.add(f)
                     if url is None:
                         messages.add(f"Hash {entry.name} is missing contents")
@@ -2111,7 +2120,7 @@ def check_download_cache(
                 bad_files.add(f)
                 messages.add(f"Left-over non-directory {f} in cache")
     if bad_files:
-        raise CacheDamaged("\n".join(messages), bad_files=bad_files)
+        raise CacheDamaged("\n".join(messages), bad_files=sorted(bad_files))
 
 
 def _rmtree(
@@ -2202,17 +2211,17 @@ def import_file_to_cache(
     """
     cache_dir = _get_download_cache_loc(pkgname=pkgname)
     cache_dirname = _url_to_dirname(url_key)
-    local_dirname = os.path.join(cache_dir, cache_dirname)
-    local_filename = os.path.join(local_dirname, "contents")
+    local_dirname = cache_dir / cache_dirname
+    local_filename = local_dirname / "contents"
     with TemporaryDirectory(
         prefix="temp_dir", dir=cache_dir, ignore_cleanup_errors=True
     ) as temp_dir:
-        temp_filename = os.path.join(temp_dir, "contents")
+        temp_path = Path(temp_dir)
+        temp_filename = temp_path / "contents"
         # Make sure we're on the same filesystem
         # This will raise an exception if the url_key doesn't turn into a valid filename
         shutil.copy(filename, temp_filename)
-        with open(os.path.join(temp_dir, "url"), "w", encoding="utf-8") as f:
-            f.write(url_key)
+        temp_path.joinpath("url").write_text(url_key, encoding="utf-8")
         if replace:
             _rmtree(local_dirname, replace=temp_dir)
         else:
@@ -2280,10 +2289,8 @@ def cache_contents(pkgname: str = "astropy") -> MappingProxyType[str, str]:
     with os.scandir(dldir) as it:
         for entry in it:
             if entry.is_dir():
-                url = get_file_contents(
-                    os.path.join(dldir, entry.name, "url"), encoding="utf-8"
-                )
-                r[url] = os.path.abspath(os.path.join(dldir, entry.name, "contents"))
+                url = get_file_contents(dldir / entry.name / "url", encoding="utf-8")
+                r[str(url)] = str(dldir.joinpath(entry.name, "contents").absolute())
     return MappingProxyType(r)
 
 
