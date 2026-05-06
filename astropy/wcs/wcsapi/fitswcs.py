@@ -573,30 +573,24 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             # accept plain quantities.
 
             def apply_velocity_frame_change(spectralcoord):
-                if (
-                    observer is not None
-                    and spectralcoord.observer is not None
-                    and spectralcoord.target is not None
-                ):
-                    return spectralcoord.with_observer_stationary_relative_to(observer)
+            if observer is None and spectralcoord.observer is None:
                 # When both observers are missing we silently skip the frame
                 # change since this is a common case and not worth warning
                 # about.
-                if observer is None and spectralcoord.observer is None:
-                    return spectralcoord
-                if observer is None:
-                    msg = "No observer defined on WCS"
-                elif spectralcoord.observer is None:
-                    msg = "No observer defined on SpectralCoord"
-                else:
-                    msg = "No target defined on SpectralCoord"
-                warnings.warn(
-                    f"{msg}, SpectralCoord "
-                    "will be converted without any velocity "
-                    "frame change",
-                    AstropyUserWarning,
-                )
                 return spectralcoord
+                
+            if observer is None:
+                msg = "No observer defined on WCS"
+            elif spectralcoord.observer is None:
+                msg = "No observer defined on SpectralCoord"
+            elif spectralcoord.target is None:
+                msg = "No target defined on SpectralCoord"
+            else:
+                return spectralcoord.with_observer_stationary_relative_to(observer)
+                
+            warnings.warn(f"{msg}, SpectralCoord will be converted without any velocity frame change", AstropyUserWarning)
+            
+            return spectralcoord
 
             if ctype == "ZOPT":
 
