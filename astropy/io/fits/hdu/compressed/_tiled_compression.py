@@ -558,7 +558,7 @@ def compress_image_data(
         )
 
     if (
-        compression_type in ("RICE_1", "PLIO_1")
+        compression_type in ("RICE_1", "PLIO_1", "HCOMPRESS_1")
         and image_data.dtype.kind in ("i", "u")
         and image_data.dtype.itemsize == 8
     ):
