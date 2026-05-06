@@ -9,7 +9,6 @@ import difflib
 import inspect
 import json
 import locale
-import os
 import re
 import sys
 import threading
