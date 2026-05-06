@@ -24,6 +24,7 @@ PANDAS_FMTS = {
     "fwf": {"read": {}},  # No writer
     "html": {"read": {}, "write": {"index": False}},
     "json": {"read": {}, "write": {}},
+    "excel": {"read": {}, "write": {"index": False}},
 }
 
 PANDAS_PREFIX = "pandas."
@@ -55,6 +56,9 @@ def _pandas_read(fmt, filespec, **kwargs):
     # Special case for HTML
     if pandas_fmt == "html":
         df = df[0]
+
+    if pandas_fmt == "excel" and isinstance(df, dict):
+        raise ValueError("Multiple sheets not supported. Please specify sheet_name.")
 
     return Table.from_pandas(df)
 

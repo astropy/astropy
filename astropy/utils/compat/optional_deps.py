@@ -46,6 +46,7 @@ _optional_deps = [
     "pyarrow",
     "pytest_mpl",
     "array_api_strict",
+    "openpyxl",
 ]
 _deps = {k.upper(): k for k in _optional_deps}
 

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from io import StringIO
+from io import BytesIO, StringIO
 
 import numpy as np
 import pytest
@@ -10,7 +10,12 @@ from astropy.coordinates import SkyCoord
 from astropy.io import ascii
 from astropy.io.misc.pandas import connect
 from astropy.table import QTable, Table
-from astropy.utils.compat.optional_deps import HAS_BS4, HAS_HTML5LIB, HAS_LXML
+from astropy.utils.compat.optional_deps import (
+    HAS_BS4,
+    HAS_HTML5LIB,
+    HAS_LXML,
+    HAS_OPENPYXL,
+)
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 # Check dependencies
@@ -34,26 +39,40 @@ def test_read_write_format(fmt):
     if fmt == "html" and not HAS_HTML_DEPS:
         pytest.skip("Missing lxml or bs4 + html5lib for HTML read/write test")
 
+    if fmt == "excel" and not HAS_OPENPYXL:
+        pytest.skip("Missing openpyxl for excel read/write test")
+
     pandas_fmt = "pandas." + fmt
     # Explicitly provide dtype to avoid casting 'a' to int32.
     # See https://github.com/astropy/astropy/issues/8682
     t = Table(
         [[1, 2, 3], [1.0, 2.5, 5.0], ["a", "b", "c"]], dtype=(np.int64, np.float64, str)
     )
-    buf = StringIO()
+    if fmt == "excel":
+        buf = BytesIO()
+    else:
+        buf = StringIO()
     t.write(buf, format=pandas_fmt)
 
     buf.seek(0)
     t2 = Table.read(buf, format=pandas_fmt)
 
     assert t.colnames == t2.colnames
-    assert np.all(t == t2)
+
+    if fmt == "excel":
+        assert np.all(t.as_array() == t2.as_array())
+    else:
+        assert np.all(t == t2)
 
 
 @pytest.mark.parametrize("fmt", WRITE_FMTS)
 def test_write_overwrite(tmp_path, fmt):
     """Test overwriting."""
-    tmpfile = tmp_path / f"test.{fmt}"
+
+    if fmt == "excel":
+        tmpfile = tmp_path / "test.xlsx"
+    else:
+        tmpfile = tmp_path / f"test.{fmt}"
     pandas_fmt = f"pandas.{fmt}"
 
     # Explicitly provide dtype to avoid casting 'a' to int32.
@@ -120,3 +139,20 @@ def test_write_with_mixins():
     exp_t = ascii.read(exp, converters={"i": [ascii.convert_numpy(np.int64)]})
     assert qt2.colnames == exp_t.colnames
     assert np.all(qt2 == exp_t)
+
+
+def test_excel_multi_sheet_error(tmp_path):
+    """Testing reading of excel files with multiple sheets when no sheet_name is specified."""
+    import pandas as pd
+
+    if not HAS_OPENPYXL:
+        pytest.skip("Missing openpyxl")
+    file = tmp_path / "multi.xlsx"
+
+    # create multi-sheet file
+    with pd.ExcelWriter(file, engine="openpyxl") as writer:
+        pd.DataFrame({"a": [1]}).to_excel(writer, sheet_name="s1")
+        pd.DataFrame({"a": [2]}).to_excel(writer, sheet_name="s2")
+
+    with pytest.raises(ValueError, match="Multiple sheets"):
+        Table.read(file, format="pandas.excel", sheet_name=None)
