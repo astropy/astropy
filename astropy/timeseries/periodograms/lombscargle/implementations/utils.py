@@ -5,7 +5,7 @@ import numpy as np
 
 def bitceil(N):
     """
-    Find the bit (i.e. power of 2) immediately greater than or equal to N
+    Find the bit (i.e., power of 2) immediately greater than or equal to N.
     Note: this works for numbers up to 2 ** 64.
     Roughly equivalent to int(2 ** np.ceil(np.log2(N))).
     """
@@ -16,6 +16,24 @@ def next_fast_len(N):
     """
     Find the next number, greater than N, which can be expressed
     as 2^n * 3^m for nonnegative integer values of n and m, with m <= 4.
+
+    Parameters
+    ----------
+    N : int
+        Number of integer bins to use.
+
+    Returns
+    -------
+    Nfft : int
+        The next number found, as described above.
+
+    Examples
+    --------
+    >>> from astropy.timeseries.periodograms.lombscargle.implementations.utils import next_fast_len
+    >>> next_fast_len(15)
+    16
+    >>> next_fast_len(1000)
+    1024
     """
     Nfft = bitceil(N)
 
@@ -43,14 +61,14 @@ def extirpolate(x, y, N=None, M=4):
     Parameters
     ----------
     x : array-like
-        array of abscissas
+        Array of abscissas
     y : array-like
-        array of ordinates
+        Array of ordinates
     N : int
-        number of integer bins to use. For best performance, N should be larger
+        Number of integer bins to use. For best performance, N should be larger
         than the maximum of x
     M : int
-        number of adjoining points on which to extirpolate.
+        Number of adjoining points on which to extirpolate.
 
     Returns
     -------
