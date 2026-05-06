@@ -562,9 +562,13 @@ def compress_image_data(
         and image_data.dtype.kind in ("i", "u")
         and image_data.dtype.itemsize == 8
     ):
-        new_dt = f"{image_data.dtype.byteorder}{image_data.dtype.kind}4"
+        # numpy's same_value check does not byteswap before comparing values,
+        # so non-native source data silently truncates instead of raising.
+        # Convert source to native byte order first.
+        native_source = image_data.astype(image_data.dtype.newbyteorder("="), copy=False)
+        new_dt = f"{image_data.dtype.kind}4"
         try:
-            image_data = image_data.astype(new_dt, casting="same_value")
+            image_data = native_source.astype(new_dt, casting="same_value")
             compressed_header["ZBITPIX"] = 32
             warnings.warn(
                 f"{compression_type} compression doesn't support 64 integers, "
