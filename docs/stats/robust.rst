@@ -37,7 +37,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Functional Sigma Clipping with astropy.stats.sigma_clip
 
 We can start by generating some data that has a mean of 0 and standard
@@ -66,10 +65,8 @@ The output masked array then can be used to calculate statistics on
 the data, fit models to the data, or otherwise explore the data.
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Object-Oriented Sigma Clipping with the astropy.stats.SigmaClip Class
 
 To perform the same sigma clipping with the
@@ -94,7 +91,6 @@ applied to other data using the same already defined sigma-clipping
 parameters.
 
 ..
-  EXAMPLE END
 
 For basic statistics, :func:`~astropy.stats.sigma_clipped_stats` is a
 convenience function to calculate the sigma-clipped mean, median, and
@@ -102,7 +98,6 @@ standard deviation of an array. As can be seen, rejecting the
 outliers returns accurate values for the underlying distribution.
 
 ..
-  EXAMPLE START
   Calculating the Sigma-Clipped Mean, Median, and Standard Deviation of an Array
 
 To use :func:`~astropy.stats.sigma_clipped_stats` for sigma-clipped statistics
@@ -165,7 +160,6 @@ statistics to provide improved outlier rejection as well.
 .. automodapi:: astropy.stats.sigma_clipping
 
 ..
-  EXAMPLE END
 
 Median Absolute Deviation
 =========================

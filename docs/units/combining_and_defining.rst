@@ -4,7 +4,6 @@ Combining and Defining Units
 Basic example
 =============
 
-.. EXAMPLE START: Combining Units and Quantities
 
 Units and quantities can be combined together using the regular Python
 numeric operators::
@@ -18,12 +17,10 @@ numeric operators::
   >>> 52.0 * fluxunit / u.s  # doctest: +FLOAT_CMP
   <Quantity  52. erg / (cm2 s2)>
 
-.. EXAMPLE END
 
 Fractional powers
 =================
 
-.. EXAMPLE START: Using Fractional Powers with Units
 
 Units support fractional powers, which retain their precision through
 complex operations. To do this, it is recommended to use
@@ -46,12 +43,10 @@ complex operations. To do this, it is recommended to use
         >>> x.powers
         [Fraction(1, 3)]
 
-.. EXAMPLE END
 
 Defining units
 ==============
 
-.. EXAMPLE START: Defining New Units
 
 Users are free to define new units, either fundamental or compound,
 using the :func:`~astropy.units.def_unit` function::
@@ -124,4 +119,3 @@ Now, the prefixed units can be parsed etc::
 
     >>> u.core._unit_registries.pop()  # doctest: +IGNORE_OUTPUT
 
-.. EXAMPLE END

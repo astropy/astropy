@@ -14,7 +14,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Reading from and Writing to VO Tables
 
 .. testsetup::
@@ -67,4 +66,3 @@ used to overwrite an existing file.
    >>> os.remove('new_catalog.xml')
 
 ..
-  EXAMPLE END

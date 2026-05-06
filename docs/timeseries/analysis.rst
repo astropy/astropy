@@ -13,7 +13,6 @@ different ways.
 Examples
 --------
 
-.. EXAMPLE START: Stacking Time Series Row-Wise Using table.vstack
 
 Time series can be stacked "vertically" or row-wise using the
 :func:`~astropy.table.vstack` function (although note that sampled time
@@ -49,9 +48,7 @@ series cannot be combined with binned time series and vice versa)::
 Note that :func:`~astropy.table.vstack` does not automatically sort, nor get rid
 of duplicates — this is something you would need to do explicitly afterwards.
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Stacking Time Series Column-Wise Using table.vstack
 
 Time series can also be combined "horizontally" or column-wise with other tables
 using the :func:`~astropy.table.hstack` function, though these should not be
@@ -72,12 +69,10 @@ time series (as having multiple time columns would be confusing)::
     2016-03-22T12:30:40.000     3.0        39.0
     2016-03-22T12:30:43.000     2.0        30.0
 
-.. EXAMPLE END
 
 Sorting Time Series
 ===================
 
-.. EXAMPLE START: Sorting Time Series
 
 Sorting time series in place can be done using the
 :meth:`~astropy.table.Table.sort` method, as for |Table|::
@@ -107,7 +102,6 @@ Sorting time series in place can be done using the
     2016-03-22T12:30:34.000     4.0
     2016-03-22T12:30:37.000     5.0
 
-.. EXAMPLE END
 
 Resampling
 ==========
@@ -123,7 +117,6 @@ specified to all columns.
 Example
 -------
 
-.. EXAMPLE START: Creating a BinnedTimeSeries with even contiguous bins
 
 The following example shows how to use
 :func:`~astropy.timeseries.aggregate_downsample` to bin a light curve from the
@@ -172,9 +165,7 @@ We can take a look at the results:
     ax.plot(kepler_binned.time_bin_start.jd, kepler_binned['sap_flux'], 'r-', drawstyle='steps-pre')
     ax.set(xlabel='Julian Date', ylabel='SAP Flux (e-/s)')
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Creating a BinnedTimeSeries with uneven contiguous bins
 
 The :func:`~astropy.timeseries.aggregate_downsample` can also be used
 to bin the light curve into custom bins. The following example shows
@@ -216,7 +207,6 @@ To learn more about the custom binning functionality in
 Folding
 =======
 
-.. EXAMPLE START: Phase Folding a Time Series
 
 The |TimeSeries| class has a
 :meth:`~astropy.timeseries.TimeSeries.fold` method that can be used to
@@ -251,12 +241,10 @@ Note that in this example we happened to know the period and midpoint from a
 previous periodogram analysis. See the example in :doc:`index` for how you
 might do this.
 
-.. EXAMPLE END
 
 Arithmetic
 ==========
 
-.. EXAMPLE START: Arithmetic with Time Series
 
 Since |TimeSeries| objects are subclasses of |Table|, they naturally support
 arithmetic on any of the data columns. As an example, we can take the folded
@@ -298,4 +286,3 @@ sigma-clipped median value.
     ax.plot(kepler_folded.time.jd, kepler_folded['sap_flux_norm'], 'k.', markersize=1)
     ax.set(xlabel='Time from midpoint epoch (days)', ylabel='Normalized flux')
 
-.. EXAMPLE END

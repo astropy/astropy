@@ -60,7 +60,6 @@ Example of embedding a SAMP hub in a Tk application
 ---------------------------------------------------
 
 ..
-  EXAMPLE START
   Embedding a SAMP Hub in a Tk Application
 
 The following code is a full example of a Tk application that watches for web
@@ -135,4 +134,3 @@ application. Once you click on "CONFIRM," future "Ping" calls will no longer
 bring up the dialog.
 
 ..
-  EXAMPLE END

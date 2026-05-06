@@ -24,7 +24,6 @@ objects might make sense, so we provide methods to convert to/from
 Example
 -------
 
-.. EXAMPLE START: Interfacing between Time Series and the Pandas DataFrame
 
 Consider a concise example starting from a :class:`~pandas.DataFrame`:
 
@@ -95,4 +94,3 @@ pandas' NaT object:
     2015-07-05  2  3.4
     NaT         3  5.4
 
-.. EXAMPLE END

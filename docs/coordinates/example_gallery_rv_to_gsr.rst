@@ -4,7 +4,6 @@ Convert a radial velocity to the Galactic Standard of Rest (GSR)
 ================================================================
 
 ..
-  EXAMPLE START
   Convert a radial velocity to the Galactic Standard of Rest (GSR)
 
 Radial or line-of-sight velocities of sources are often reported in a
@@ -100,4 +99,3 @@ reuse the above code:
 123.30460087379765 km / s
 
 ..
-  EXAMPLE END

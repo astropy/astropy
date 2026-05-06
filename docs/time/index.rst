@@ -34,7 +34,6 @@ the input.
 Examples
 --------
 
-.. EXAMPLE START: Creating a Time Object with astropy.time
 
 To create a |Time| object:
 
@@ -60,7 +59,6 @@ to UTC except for `Time from Epoch Formats`_. It is possible to change
 it (e.g., from UTC to TDB), which will cause the internal values to be
 adjusted accordingly.
 
-.. EXAMPLE END
 
 We could have written the above as::
 
@@ -229,7 +227,6 @@ ymdhms       :class:`~astropy.time.TimeYMDHMS`                  {'year': 2010, '
 Changing Format
 """""""""""""""
 
-.. EXAMPLE START: Changing Time Format
 
 The default representation can be changed by setting the ``format`` attribute::
 
@@ -252,7 +249,6 @@ preserved::
   >>> t.value
   '2000-01-02T00:00:00.000'
 
-.. EXAMPLE END
 
 Subformat
 """""""""
@@ -410,7 +406,6 @@ value, and likewise for arrays.
 Example
 """""""
 
-.. EXAMPLE START: Time Objects Holding Scalar or Array Values
 
 Like other arrays and lists, |Time| objects holding arrays are subscriptable,
 returning scalar or array objects as appropriate::
@@ -435,7 +430,6 @@ returning scalar or array objects as appropriate::
   >>> t[0]  # doctest: +FLOAT_CMP
   <Time object: scale='utc' format='mjd' value=[50000.  50000.5]>
 
-.. EXAMPLE END
 
 .. _astropy-time-shape-methods:
 
@@ -458,7 +452,6 @@ that you think should work.)
 Examples
 """"""""
 
-.. EXAMPLE START: Reshaping Time Instances Using NumPy Method Analogs
 
 To reshape |Time| instances::
 
@@ -478,14 +471,12 @@ Note that similarly to the `~numpy.ndarray` methods, all but
 with the data copied only if that is impossible (as discussed, for example, in
 the documentation for ``numpy`` :func:`~numpy.reshape`).
 
-.. EXAMPLE END
 
 Some arithmetic methods are supported as well: :meth:`~astropy.time.Time.min`,
 :meth:`~astropy.time.Time.max`, :meth:`~astropy.time.Time.ptp`,
 :meth:`~astropy.time.Time.sort`, :meth:`~astropy.time.Time.argmin`,
 :meth:`~astropy.time.Time.argmax`, and :meth:`~astropy.time.Time.argsort`.
 
-.. EXAMPLE START: Applying Arithmetic Methods to Time Instances
 
 To apply arithmetic methods to |Time| instances::
 
@@ -494,7 +485,6 @@ To apply arithmetic methods to |Time| instances::
   >>> t.min()
   <Time object: scale='utc' format='mjd' value=50000.0>
 
-.. EXAMPLE END
 
 .. _astropy-time-inferring-input:
 
@@ -511,7 +501,6 @@ string parsing will be faster if the format is provided.
 Example
 """""""
 
-.. EXAMPLE START: Inferring Input Format in the Time Class
 
 To infer input format::
 
@@ -523,7 +512,6 @@ To infer input format::
   >>> t.format
   'iso'
 
-.. EXAMPLE END
 
 Internal Representation
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -796,7 +784,6 @@ attributes.
 Examples
 """"""""
 
-.. EXAMPLE START: Get and Set Values for Time Objects
 
 To get an item or a subset of items::
 
@@ -820,7 +807,6 @@ You can also set values in place for an array-valued |Time| object::
   >>> print(t)
   ['1990:123' '2010:001' '1990:123' '2001:080']
 
-.. EXAMPLE END
 
 The new value (on the right hand side) when setting can be one of three
 possibilities:
@@ -854,7 +840,6 @@ missing or invalid. This is also known as masking, and is especially useful for
 Example
 """""""
 
-.. EXAMPLE START: Missing Values in Time and TimeDelta Objects
 
 You can set one or more items as missing when creating the object in one of two ways.
 First with a numpy masked array::
@@ -932,7 +917,6 @@ used to check whether or not a mask is in use internally::
             >>> print(tm.unmasked)
             ['2001:020' '2000:001' '2001:060']
 
-.. EXAMPLE END
 
 Once one or more values in the object are masked, any operations will
 propagate those values as masked, and access to format attributes such
@@ -1008,7 +992,6 @@ available format names is in the `time format`_ section.
 Example
 """""""
 
-.. EXAMPLE START: Get Representation of a Time Object
 
 To get the representation of a |Time| object::
 
@@ -1020,7 +1003,6 @@ To get the representation of a |Time| object::
   >>> fig.autofmt_xdate()  # orient date labels at a slant  # doctest: +SKIP
   >>> fig.show()  # doctest: +SKIP
 
-.. EXAMPLE END
 
 Convert Time Scale
 ^^^^^^^^^^^^^^^^^^
@@ -1036,7 +1018,6 @@ transformations.
 Examples
 """"""""
 
-.. EXAMPLE START: Converting Time Scales in Time Objects
 
 To create a |Time| object with a new time scale::
 
@@ -1049,7 +1030,6 @@ To create a |Time| object with a new time scale::
 In this process the ``format`` and other object attributes like ``lon``,
 ``lat``, and ``precision`` are also propagated to the new object.
 
-.. EXAMPLE END
 
 As noted in the `Time Object Basics`_ section, a |Time| object can only be
 changed by explicitly setting some of its elements. The process of changing the
@@ -1152,7 +1132,6 @@ offset. If ``location`` is not specified, the center of the Earth is assumed.
 Example
 ~~~~~~~
 
-.. EXAMPLE START: Transformation Offsets in Time Objects
 
 The following code replicates an example in the |SOFA| `Time Scale and Calendar
 Tools <https://www.iausofa.org/s/sofa_ts_c.pdf>`_ document. It does the transform
@@ -1178,7 +1157,6 @@ requires an observer location (here, latitude and longitude).
   >>> t.tcb.iso
   '2006-01-15 21:25:56.894'
 
-.. EXAMPLE END
 
 Hashing
 ^^^^^^^
@@ -1234,7 +1212,6 @@ and is rigorously corrected for polar motion.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Calculating Sidereal Time and Earth Rotation Angle for Time Objects
 
 To calculate sidereal time::
 
@@ -1252,7 +1229,6 @@ To calculate sidereal time::
   >>> t.sidereal_time('apparent', '-90d', 'IAU1994')  # doctest: +FLOAT_CMP +REMOTE_DATA
   <Longitude 23.08950365 hourangle>
 
-.. EXAMPLE END
 
 .. _time-delta:
 
@@ -1291,7 +1267,6 @@ quantity_str  :class:`~astropy.time.TimeDeltaQuantityString`
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Time Arithmetic Using the TimeDelta Class
 
 Use of the |TimeDelta| object is illustrated in the few examples below::
 
@@ -1353,7 +1328,6 @@ name and optional `subformat`_ or a valid ``astropy`` unit::
   >>> dt.to_value('jd', 'str')
   '31.0'
 
-.. EXAMPLE END
 
 Time Scales for Time Deltas
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1368,7 +1342,6 @@ object.
 Examples
 """"""""
 
-.. EXAMPLE START: Time Scales for Time Deltas
 
 To get the time scale for a |TimeDelta| object::
 
@@ -1420,7 +1393,6 @@ object (or is TAI in case of a UTC time)::
             >>> t + TimeDelta(0, format='jd') == t
             False
 
-.. EXAMPLE END
 
 .. _time-light-travel-time:
 
@@ -1437,7 +1409,6 @@ heliocenter.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Barycentric and Heliocentric Light Travel Time Corrections
 
 Suppose you observed the dwarf nova IP Peg from Greenwich and have a list of
 times in MJD form, in the UTC timescale. You then create appropriate |Time| and
@@ -1465,7 +1436,6 @@ your times to give the arrival time of the photons at the barycenter or
 heliocenter. Here, you should be careful with the timescales used; for more
 detailed information about timescales, see :ref:`time-scale`.
 
-.. EXAMPLE END
 
 The heliocenter is not a fixed point, and therefore the gravity
 continually changes at the heliocenter. Thus, the use of a relativistic
@@ -1484,7 +1454,6 @@ the TDB timescale::
 
     >>> time_barycentre = times.tdb + ltt_bary  # doctest: +REMOTE_DATA
 
-.. EXAMPLE START: Calculating Light Travel Time Using JPL Ephemerides
 
 By default, the light travel time is calculated using the position and velocity
 of Earth and the Sun from |ERFA|
@@ -1506,7 +1475,6 @@ should be suitable for most purposes. For more details about what ephemerides
 are available, including the requirements for using JPL ephemerides, see
 :ref:`astropy-coordinates-solarsystem`.
 
-.. EXAMPLE END
 
 Interaction with time-like Quantities
 -------------------------------------
@@ -1520,7 +1488,6 @@ of time.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Time Object Interaction with time-like Quantities
 
 To use |Quantity| objects with units of time::
 
@@ -1559,7 +1526,6 @@ To use |Quantity| objects with units of time::
   >>> dt * 10.*u.Unit(1)             # unless the Quantity is dimensionless  # doctest: +FLOAT_CMP
   <TimeDelta object: scale='None' format='jd' value=[100. 200. 300.]>
 
-.. EXAMPLE END
 
 Writing a Custom Format
 -----------------------
@@ -1573,7 +1539,6 @@ formats.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Writing a Custom Format with the TimeFormat Class
 
 The key elements of a new format class are illustrated by examining the
 code for the ``jd`` format (which is one of the most minimal)::
@@ -1606,9 +1571,7 @@ format specification. By default this checks for valid float, float array, or
 |Quantity| inputs. In contrast, the ``iso`` format class ensures the inputs
 meet the ISO format specification for strings.
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Customizing the TimeFormat Class with Changes to Date Format
 
 One special case that is relatively common and more convenient to implement is a
 format that makes a small change to the date format. For instance, you could
@@ -1651,9 +1614,7 @@ standard `~astropy.time.TimeISO` class from which it inherits::
   >>> from astropy.time import TIME_FORMATS
   >>> del TIME_FORMATS["yday_custom"]
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Customizing the TimeFormat Class with Time Since an Epoch
 
 Another special case that is relatively common is a format that represents the
 time since a particular epoch. The classic example is Unix time which is the
@@ -1686,7 +1647,6 @@ from the `~astropy.time.TimeFromEpoch` class and define a few class attributes::
   >>> from astropy.time import TIME_FORMATS
   >>> del TIME_FORMATS["unix_leap"]
 
-.. EXAMPLE END
 
 Going beyond this will probably require looking at the ``astropy`` code for more
 guidance, but if you get stuck, the ``astropy`` developers are more than happy
@@ -1704,7 +1664,6 @@ converted to timezone-aware datetime objects.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Timezones in Time Objects
 
 To convert a |Time| object to a timezone-aware datetime object::
 
@@ -1724,13 +1683,11 @@ for example, may be more convenient to use to create `~datetime.tzinfo`
 objects used to specify timezones rather than the `~astropy.time.TimezoneInfo`
 object.
 
-.. EXAMPLE END
 
 
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Initializing From a Timezone-aware Date
 
 Using the `dateutil <https://dateutil.readthedocs.io/en/stable/index.html>`_ package,
 you can parse times in a wide variety of supported formats to generate a
@@ -1741,7 +1698,6 @@ you can parse times in a wide variety of supported formats to generate a
   >>> Time(dtime)  # doctest: +SKIP
   <Time object: scale='utc' format='datetime' value=2020-10-28 21:20:46.950000>
 
-.. EXAMPLE END
 
 Custom String Formats with ``strftime`` and ``strptime``
 --------------------------------------------------------
@@ -1754,7 +1710,6 @@ method.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Custom String Formats with ``strftime`` and ``strptime``
 
 To get output string representation using the `~astropy.time.Time.strftime`
 method::
@@ -1774,7 +1729,6 @@ method::
   >>> t
   <Time object: scale='utc' format='isot' value=2015-06-30T23:59:60.000>
 
-.. EXAMPLE END
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do

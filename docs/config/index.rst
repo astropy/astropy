@@ -89,7 +89,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Changing the Persistent State of Configuration Values at Runtime
 
 Suppose there is a part of your configuration file that looks like:
@@ -132,7 +131,6 @@ You can also modify the values at runtime directly::
     4.5
 
 ..
-  EXAMPLE END
 
 Reloading Configuration
 -----------------------
@@ -145,7 +143,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Modifying and Reloading Configuration Files
 
 If you modify the configuration file to say:
@@ -197,7 +194,6 @@ value in the configuration file::
     'http://data.astropy.org/'
 
 ..
-  EXAMPLE END
 
 Exploring Configuration
 -----------------------

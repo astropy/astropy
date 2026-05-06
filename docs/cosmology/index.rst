@@ -44,7 +44,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Calculating Cosmological Quantities
 
 To calculate the Hubble constant at z=0 (i.e., ``H0``) and the number of
@@ -88,7 +87,6 @@ number of effective neutrino species) with default values; these can also be
 specified explicitly in the call to the constructor.
 
 ..
-  EXAMPLE END
 
 The cosmology sub-package makes use of :mod:`~astropy.units`, so in many cases
 returns values with units attached. Consult the documentation for that
@@ -124,7 +122,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Working with the FlatLambdaCDM Class
 
 You can create a new |FlatLambdaCDM| object with arguments giving the Hubble
@@ -171,10 +168,8 @@ See the |FLRW| and |FlatLambdaCDM| object docstring for all of the methods and
 attributes available.
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Working with Non-flat Universes with the LambdaCDM Class
 
 In addition to flat universes, non-flat varieties are supported, such as
@@ -231,7 +226,6 @@ describe the cosmology::
            m_nu=None, Ob0=0.0, w0=-1.016)
 
 ..
-  EXAMPLE END
 
 This is also an example with a different model for dark energy: a flat universe
 with a constant dark energy equation of state, but not necessarily a
@@ -246,7 +240,6 @@ you to make a copy with specified values changed. Note that you cannot change
 the type of cosmology with this operation (e.g., flat to non-flat).
 
 ..
-  EXAMPLE START
   Making New Cosmology Instances with the .clone() Method
 
 To make a copy of a cosmological instance using the ``clone`` operation:
@@ -261,7 +254,6 @@ To make a copy of a cosmological instance using the ``clone`` operation:
   (np.float64(0.7134130719051658), np.float64(0.6858130719051657))
 
 ..
-  EXAMPLE END
 
 Finding the Redshift at a Given Value of a Cosmological Quantity
 ----------------------------------------------------------------
@@ -273,7 +265,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Compute the Redshift at a Given Universe Age
 
 To find the redshift using ``z_at_value``:
@@ -286,7 +277,6 @@ To find the redshift using ``z_at_value``:
   <Quantity 3.19812061 redshift>
 
 ..
-  EXAMPLE END
 
 For some quantities, there can be more than one redshift that satisfies a value.
 In this case you can use the ``zmin`` and ``zmax`` keywords to restrict the
@@ -370,7 +360,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Calculating the Contribution of Photons and Neutrinos to the Energy Density
 
 The contribution of photons and neutrinos to the total mass-energy density can
@@ -436,7 +425,6 @@ While these examples used |FlatLambdaCDM|, the above examples also apply for
 all of the other cosmology classes.
 
 ..
-  EXAMPLE END
 
 See Also
 ========

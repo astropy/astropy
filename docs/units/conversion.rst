@@ -9,7 +9,6 @@ are rarely required in user code.
 Direct Conversion
 =================
 
-.. EXAMPLE START: Direct Conversions Between Units
 
 In this case, given a source and destination unit, the values in the
 new units are returned.
@@ -25,12 +24,10 @@ Arrays are permitted as arguments.
   >>> u.h.to(u.s, [1, 2, 5, 10.1])
   array([  3600.,   7200.,  18000.,  36360.])
 
-.. EXAMPLE END
 
 Obtaining a Conversion Function
 -------------------------------
 
-.. EXAMPLE START: Obtaining a Conversion Function
 
 Finally, one may obtain a function that can be used to convert to the
 new unit. Normally this may seem like overkill when all one needs to
@@ -48,13 +45,11 @@ and then applying it to the value, or values to be converted.
   >>> cms_to_kmph([1000, 2000])
   array([36., 72.])
 
-.. EXAMPLE END
 
 
 Incompatible Conversions
 ========================
 
-.. EXAMPLE START: Conversions Between Incompatible Units
 
 If you attempt to convert to a incompatible unit, a
 :class:`~astropy.units.UnitConversionError` will result:
@@ -75,4 +70,3 @@ You can check whether a particular conversion is possible using the
   >>> (u.m ** 3).is_equivalent(u.l)
   True
 
-.. EXAMPLE END

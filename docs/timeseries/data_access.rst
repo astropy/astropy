@@ -12,7 +12,6 @@ Accessing Data in Time Series
 Accessing Data
 ==============
 
-.. EXAMPLE START: Accessing Data in Time Series
 
 For the examples in this page, we will consider a sampled time series
 with two data columns — ``flux`` and ``temp``::
@@ -53,7 +52,6 @@ then a row, or vice versa::
     >>> ts['temp'][2]  # doctest: +FLOAT_CMP
     <Quantity 39. K>
 
-.. EXAMPLE END
 
 .. _timeseries-accessing-times:
 
@@ -71,7 +69,6 @@ more conveniently using the |time_attr| attribute::
      '2016-03-22T12:30:37.000' '2016-03-22T12:30:40.000'
      '2016-03-22T12:30:43.000']>
 
-.. EXAMPLE START: Accessing the Time Column in BinnedTimeSeries
 
 For |BinnedTimeSeries|, we provide three attributes: |time_bin_start|,
 |time_bin_center|, and |time_bin_end|::
@@ -100,7 +97,6 @@ In addition, the |time_bin_size| attribute can be used to access the bin sizes::
 Note that only |time_bin_start| and |time_bin_size| are available as actual
 columns, and |time_bin_center| and |time_bin_end| are computed on the fly.
 
-.. EXAMPLE END
 
 See :ref:`timeseries-times` for more information about changing between
 different representations of time.
@@ -108,7 +104,6 @@ different representations of time.
 Extracting a Subset of Columns
 ==============================
 
-.. EXAMPLE START: Extracting a Subset of Columns in TimeSeries
 
 We can create a new time series with just the ``flux`` column by doing::
 
@@ -140,12 +135,10 @@ We can also create a plain |QTable| by extracting just the ``flux`` and
        3.0    24.0
        2.0    20.0
 
-.. EXAMPLE END
 
 Extracting a Subset of Rows
 ===========================
 
-.. EXAMPLE START: Extracting a Subset of Rows in TimeSeries
 
 |TimeSeries| objects can be sliced by rows, using the same syntax as for |Time|,
 for example::
@@ -164,9 +157,7 @@ described in :ref:`table-indexing`. This provides the ability to access rows and
 a subset of rows using the :attr:`~astropy.timeseries.TimeSeries.loc` and
 :attr:`~astropy.timeseries.TimeSeries.iloc` attributes.
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Slicing TimeSeries by Time
 
 The :attr:`~astropy.timeseries.TimeSeries.loc` attribute can be used to slice
 |TimeSeries| objects by time. For example, the following can be used to extract
@@ -194,7 +185,6 @@ Or within a time range::
    2016-03-22T12:30:37.000     5.0    39.0
    2016-03-22T12:30:40.000     3.0    24.0
 
-.. EXAMPLE END
 
 Note that in this case we did not specify |Time| — this is not needed if the
 string is an ISO 8601 time string. As for the |QTable| and |Table| class ``loc``

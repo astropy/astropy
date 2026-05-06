@@ -75,7 +75,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Sigma Clipping with Astropy Stats sigma_clip Function
 
 To estimate the background of an image::
@@ -90,10 +89,8 @@ To estimate the background of an image::
     np.float64(4.285714285714286)
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Sigma Clipping with Astropy Stats SigmaClip Class
 
 Alternatively, the :class:`~astropy.stats.SigmaClip` class provides an
@@ -107,10 +104,8 @@ masked array by default::
            fill_value=999999)
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Calculating Sigma Clipping Statistics
 
 In addition, there are also several convenience functions for making
@@ -127,7 +122,6 @@ There are also tools for calculating :ref:`robust statistics
 histograms.
 
 ..
-  EXAMPLE END
 
 Most tools are fairly self-contained, and include relevant examples in
 their docstrings.

@@ -31,7 +31,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Generating Differences Between FITS Files Using astropy.io.fits.diff
 
 The :class:`HeaderDiff` class can be used to find the differences
@@ -51,4 +50,3 @@ between two :class:`Header` objects like so::
 See the API documentation for details on the different differ classes.
 
 ..
-  EXAMPLE END

@@ -13,7 +13,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Using SkyCoord to Get Coordinate Objects with Velocities
 
 A |SkyCoord| to represent a star with a measured radial velocity but unknown
@@ -43,7 +42,6 @@ a star with proper motions measured in ICRS::
       ( 0.22240398,  0.02316181)>
 
 ..
-  EXAMPLE END
 
 For more details on valid operations and limitations of velocity support in
 `astropy.coordinates` (particularly the :ref:`current accuracy limitations
@@ -79,7 +77,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Creating Frame Objects with Proper Motions
 
 To create frame objects with velocity data in the form of proper motion
@@ -115,10 +112,8 @@ Like the positional data, velocity data must be passed in as
 `~astropy.units.Quantity` objects.
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Changing the Differential Class when Creating Frame Objects
 
 The expected differential class can be changed to control the argument names
@@ -165,10 +160,8 @@ position and velocity components. For other frames, these are just ``x,y,z`` and
         (31., -10., 75.)>
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Shorthands for Convenient Access to Velocity Data in Frame Objects
 
 For any frame with velocity data with any representation, there are also
@@ -194,7 +187,6 @@ the radial (line-of-sight) velocity::
     <Quantity 23.42 km / s>
 
 ..
-  EXAMPLE END
 
 Adding Velocities to Existing Frame Objects
 ===========================================
@@ -209,7 +201,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Adding Velocities to Existing Frame Objects
 
 The following snippet accomplishes a well-defined case where the desired
@@ -257,7 +248,6 @@ radial velocity when you create the object::
         (500.,)>
 
 ..
-  EXAMPLE END
 
 .. _astropy-coordinate-transform-with-velocities:
 
@@ -272,7 +262,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Transforming Coordinate Frames with Velocities
 
 To transform a coordinate frame that contains velocity data::
@@ -287,7 +276,6 @@ To transform a coordinate frame that contains velocity data::
         (3.78957965, -15.44359693)>
 
 ..
-  EXAMPLE END
 
 However, the details of how the velocity components are transformed depends on
 the particular set of transforms required to get from the starting frame to the
@@ -318,7 +306,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Affine Frame Transformations
 
 To perform a matrix-only transformation::
@@ -349,7 +336,6 @@ for example, `~astropy.coordinates.ICRS` to `~astropy.coordinates.LSR`::
         (-24.51315607, -2.67935501, 27.07339176)>
 
 ..
-  EXAMPLE END
 
 .. _astropy-coordinate-finite-difference-velocities:
 
@@ -390,7 +376,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Transforming Velocity Data Between Frames Using a Finite Difference Scheme
 
 It is important to recognize that the finite difference transformations
@@ -485,7 +470,6 @@ timescales for the velocities are seconds. (The velocity of the Earth relative
 to a particular direction changes dramatically over the course of one year.)
 
 ..
-  EXAMPLE END
 
 Future versions of Astropy will improve on this algorithm to make the results
 more numerically stable and practical for use in these (not unusual) use cases.
@@ -507,7 +491,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Computing Barycentric or Heliocentric Radial Velocity Corrections
 
 This example demonstrates how to compute this correction if observing some
@@ -534,7 +517,6 @@ correction (e.g., the location, observation time, etc.). See the
 information.
 
 ..
-  EXAMPLE END
 
 Precision of `~astropy.coordinates.SkyCoord.radial_velocity_correction`
 ------------------------------------------------------------------------

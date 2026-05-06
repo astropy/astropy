@@ -4,7 +4,6 @@ Transforming positions and velocities to and from a Galactocentric frame
 ========================================================================
 
 ..
-  EXAMPLE START
   Transforming positions and velocities to and from a Galactocentric frames
 
 This example shows a few examples of how to use and customize the
@@ -171,4 +170,3 @@ Heliocentric coordinates:
     >>> plt.draw()
 
 ..
-  EXAMPLE END

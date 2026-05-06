@@ -355,7 +355,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Uncertainty with Correlation in NDData
 
 Without correlation, subtracting an `~astropy.nddata.NDDataRef` instance from
@@ -396,7 +395,6 @@ element is fully correlated and the second element partially correlates, while
 the third element is uncorrelated, and the fourth is anti-correlated.
 
 ..
-  EXAMPLE END
 
 Uncertainty with Unit
 ---------------------

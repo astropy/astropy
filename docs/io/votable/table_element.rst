@@ -45,7 +45,6 @@ The columns get their names from both the ``ID`` and ``name``
 attributes of the ``FIELD`` elements in the ``VOTABLE`` file.
 
 ..
-  EXAMPLE START
   Reading a VOTable File with astropy.io.votable
 
 Suppose we had a ``FIELD`` specified as follows:
@@ -112,7 +111,6 @@ or equivalently::
          17.2765703], dtype=object)
 
 ..
-  EXAMPLE END
 
 Datatype Mappings
 ^^^^^^^^^^^^^^^^^
@@ -168,7 +166,6 @@ To look up more information about a field in a table, you can use the
 the `~astropy.io.votable.tree.Field` object with the given ID.
 
 ..
-  EXAMPLE START
   Examining Field Types in VOTables with astropy.io.votable
 
 To look up more information about a field::
@@ -185,7 +182,6 @@ To look up more information about a field::
    changes, and then convert it back.
 
 ..
-  EXAMPLE END
 
 Building a New Table from Scratch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -194,7 +190,6 @@ It is also possible to build a new table, define some field datatypes,
 and populate it with data.
 
 ..
-  EXAMPLE START
   Building a New Table from a VOTable File
 
 To build a new table from a VOTable file::
@@ -230,7 +225,6 @@ To build a new table from a VOTable file::
   votable.to_xml("new_votable.xml")
 
 ..
-  EXAMPLE END
 
 Missing Values
 ^^^^^^^^^^^^^^

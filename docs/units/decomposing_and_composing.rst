@@ -14,7 +14,6 @@ methods.
 Examples
 --------
 
-.. EXAMPLE START: Reducing a Unit to Its Irreducible Parts
 
 To decompose a unit with :meth:`~astropy.units.core.UnitBase.decompose`::
 
@@ -51,7 +50,6 @@ Finally, if you want to know how a unit was defined::
   >>> u.Ry.represents
   Unit("13.6057 eV")
 
-.. EXAMPLE END
 
 Automatically Composing a Unit into More Complex Units
 ======================================================
@@ -63,7 +61,6 @@ may be multiple equally good results, a list is always returned.
 Examples
 --------
 
-.. EXAMPLE START: Recomposing a Unit into More Complex Units
 
 To recompose a unit with :meth:`~astropy.units.core.UnitBase.compose`::
 
@@ -107,7 +104,6 @@ unit to the fewest possible symbols::
    >>> (u.cd * u.sr * u.V * u.s).compose()
    [Unit("Wb lm"), Unit("1e+08 Mx lm")]
 
-.. EXAMPLE END
 
 Converting Between Systems
 ==========================
@@ -118,7 +114,6 @@ between unit systems.
 Examples
 --------
 
-.. EXAMPLE START: Converting Between Unit Systems
 
 To convert between unit systems::
 
@@ -145,4 +140,3 @@ units exists, it will be put sorted to the front::
    >>> unit.to_system(u.cgs)
    [Unit("10000 cm2 / s"), Unit("10000 St")]
 
-.. EXAMPLE END

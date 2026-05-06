@@ -89,7 +89,6 @@ format, like latex or HTML. When 3rd party cosmology packages register with
 Astropy's Cosmology I/O, ``to/from_format`` can be used to convert cosmology
 instances between packages!
 
-.. EXAMPLE START: Planck18 to QTable and back
 
 Another pre-registered format is "table", for converting a |Cosmology| to and
 from a |QTable|.
@@ -119,7 +118,6 @@ the |Planck18| cosmology from which it was created.
 Perhaps most usefully, |QTable| itself has ``read/write`` methods with numerous options,
 e.g. FITS, that now work with |Cosmology|.
 
-.. EXAMPLE END
 
 To see the a list of the available conversion formats:
 

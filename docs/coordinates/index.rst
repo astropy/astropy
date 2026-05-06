@@ -31,7 +31,6 @@ are commonly passed in as `~astropy.units.Quantity` objects and the frame is
 specified with the string name.
 
 ..
-  EXAMPLE START
   Using the SkyCoord Class
 
 To create a |SkyCoord| object to represent an ICRS (Right ascension [RA],
@@ -67,7 +66,6 @@ coordinate object:
   in the value (e.g., ``'+41d12m00s'``), or via the ``unit`` keyword.
 
 ..
-  EXAMPLE END
 
 |SkyCoord| and all other `~astropy.coordinates` objects also support
 array coordinates. These work in the same way as single-value coordinates, but
@@ -142,7 +140,6 @@ One convenient way to transform to a new coordinate frame is by accessing
 the appropriately named attribute.
 
 ..
-  EXAMPLE START
   Transforming to a New Coordinate Frame
 
 To get the coordinate in the `~astropy.coordinates.Galactic` frame use::
@@ -166,7 +163,6 @@ method, which accepts a frame name, frame class, or frame instance::
         (10.34209135, 41.13232112)>
 
 ..
-  EXAMPLE END
 
 This form of `~astropy.coordinates.SkyCoord.transform_to` also makes it
 possible to convert from celestial coordinates to
@@ -191,7 +187,6 @@ the ``representation_type`` for either |SkyCoord| objects or low-level frame
 coordinate objects.
 
 ..
-  EXAMPLE START
   Working with Nonspherical Coordinate Representations
 
 To initialize or work with a coordinate using a different representation such
@@ -212,7 +207,6 @@ as Cartesian or Cylindrical::
 For all of the details see :ref:`astropy-skycoord-representations`.
 
 ..
-  EXAMPLE END
 
 Distance
 --------
@@ -223,7 +217,6 @@ this can be, for example, centered on the earth, centered on the solar system
 barycenter, etc.
 
 ..
-  EXAMPLE START
   Specifying a Distance with SkyCoord
 
 Two angles and a distance specify a unique point in 3D space, which also allows
@@ -247,7 +240,6 @@ they can make use of the 3D information. For example, to compute the physical,
     <Distance 1.52286024 pc>
 
 ..
-  EXAMPLE END
 
 Convenience Methods
 -------------------
@@ -256,7 +248,6 @@ Convenience Methods
 computing on-sky (i.e., angular) and 3D separations between two coordinates.
 
 ..
-  EXAMPLE START
   SkyCoord Convenience Methods
 
 To compute on-sky and 3D separations between two coordinates::
@@ -275,7 +266,6 @@ Or cross-matching catalog coordinates (detailed in
     >>> idx, sep, _ = target_c.match_to_catalog_sky(catalog_c) # doctest: +SKIP
 
 ..
-  EXAMPLE END
 
 The `astropy.coordinates` sub-package also provides a quick way to get
 coordinates for named objects, assuming you have an active internet
@@ -284,7 +274,6 @@ uses `Sesame <https://cds.unistra.fr/cgi-bin/Sesame>`_ to retrieve coordinates
 for a particular named object.
 
 ..
-  EXAMPLE START
   Retrieving Coordinates for a Named Object with SkyCoord
 
 To retrieve coordinates for a particular named object::
@@ -306,7 +295,6 @@ use this option if you do not need sub-arcsecond accuracy for your coordinates::
         (296.11666667, -42.03583333)>
 
 ..
-  EXAMPLE END
 
 For sites (primarily observatories) on the Earth, `astropy.coordinates` provides
 a quick way to get an |EarthLocation| - the

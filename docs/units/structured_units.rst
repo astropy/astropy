@@ -21,7 +21,6 @@ through `~astropy.units.Unit`.
 Example
 -------
 
-.. EXAMPLE START: Creating Structured Quantities
 
 To create a structured quantity containing a position and velocity::
 
@@ -68,7 +67,6 @@ for :func:`erfa.ldn`::
              (9.5435e-04, 3.e-09, ([ 7.38098796e-01,  4.63658692e+00,  1.96931360e+00], [-7.55816922e-03,  1.26913722e-03,  7.27999001e-04])),
              (1.0000e+00, 6.e-06, ([-7.12174377e-04, -2.30478303e-03, -1.05865966e-03], [ 6.29235213e-06, -3.30888387e-07, -2.96486623e-07]))] (solMass, rad, (AU, AU / d))>
 
-.. EXAMPLE END
 
 Converting to Different Units
 =============================
@@ -80,7 +78,6 @@ equivalent.
 Example
 -------
 
-.. EXAMPLE START: Converting Structured Quantities to Different Units
 
 To convert a structured quantity to a different unit::
 
@@ -91,7 +88,6 @@ To convert a structured quantity to a different unit::
   <Quantity [([100000.,      0.,      0.], [     0.,  12500.,      0.]),
              ([     0., 100000.,      0.], [-12500.,      0.,      0.])] (cm, cm / s)>
 
-.. EXAMPLE END
 
 Use with ERFA
 =============
@@ -105,7 +101,6 @@ the |PyERFA| interface.
 Example
 -------
 
-.. EXAMPLE START: Using Structured Quantities with ERFA
 
 To use a position-velocity structured array with |PyERFA|::
 
@@ -129,4 +124,3 @@ To use a position-velocity structured array with |PyERFA|::
   <Quantity [([ 0., -1.,  0.], [0.125, 0.   , 0.   ]),
              ([ 1.,  0.,  0.], [0.   , 0.125, 0.   ])] (AU, AU / d)>
 
-.. EXAMPLE END

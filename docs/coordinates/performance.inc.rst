@@ -40,7 +40,6 @@ Finally, for more advanced users, note that you can use broadcasting to
 transform |SkyCoord| objects into frames with vector properties.
 
 ..
-  EXAMPLE START
   Performance Tips for Transforming SkyCoord Objects
 
 To use broadcasting to transform |SkyCoord| objects into frames with vector
@@ -67,14 +66,12 @@ properties::
     >>> aa_coos = coos.transform_to(aa_frame)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
 
 ..
-  EXAMPLE END
 
 
 Broadcasting Over Frame Data and Attributes
 -------------------------------------------
 
 ..
-  EXAMPLE START
   Broadcasting Over Frame Data and Attributes
 
 Frames in `astropy.coordinates` support
@@ -122,7 +119,6 @@ and sky coordinates, for which the target is above an altitude limit::
     (25, 100, 50)
 
 ..
-  EXAMPLE END
 
 
 Improving Performance for Arrays of ``obstime``
@@ -137,7 +133,6 @@ these calculations can be sped up by factors up to 100, whilst still keeping mic
 by utilizing interpolation instead of calculating Earth orientation parameters for each individual point.
 
 ..
-  EXAMPLE START
   Improving performance for obstime arrays
 
 To use interpolation for the astrometric values in coordinate transformation, use::
@@ -177,7 +172,6 @@ To use interpolation for the astrometric values in coordinate transformation, us
    >>> erfa_astrom.set(ErfaAstromInterpolator(300 * u.s))  # doctest:+SKIP
 
 ..
-  EXAMPLE END
 
 
 Here, we look into choosing an appropriate ``time_resolution``.

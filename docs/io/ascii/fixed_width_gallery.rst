@@ -30,7 +30,6 @@ Reading
 =======
 
 ..
-  EXAMPLE START
   Reading Fixed-Width Tables
 
 Fixed Width
@@ -284,10 +283,8 @@ Fixed Width Two Line
       2.4 's worlds
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Reading a reStructuredText Table
 
 **reStructuredText table:**
@@ -311,7 +308,6 @@ Fixed Width Two Line
       2.4 's worlds
 
 ..
-  EXAMPLE END
 
 **Text table designed for humans and test having position line before the header line:**
 ::
@@ -337,7 +333,6 @@ Writing
 =======
 
 ..
-  EXAMPLE START
   Writing Fixed-Width Tables
 
 Fixed Width
@@ -458,7 +453,6 @@ Fixed Width Two Line
   | 2.4|'s worlds|   2|   2|
 
 ..
-  EXAMPLE END
 
 Custom Header Rows
 ==================
@@ -471,7 +465,6 @@ column attributes are ``name``, ``dtype``, ``format``, ``description`` and
 ``header_rows`` keyword argument.
 
 ..
-  EXAMPLE START
   Custom Header Rows with Fixed Width
 
 ::
@@ -526,10 +519,8 @@ the same list of ``header_rows``::
     d   uint8 m / s
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Custom Header Rows with Fixed Width Two Line
 
 The same idea can be used with the ``fixed_width_two_line`` format::
@@ -559,7 +550,6 @@ The same idea can be used with the ``fixed_width_two_line`` format::
         3     3.0    e     6
 
 ..
-  EXAMPLE END
 
 Note that the ``two_line`` in the ``fixed_width_two_line`` format name refers to
 the default situation where the header consists two lines, a row of column names

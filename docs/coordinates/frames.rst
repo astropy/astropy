@@ -312,7 +312,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Defining a New Frame Class that Connects to astropy.coordinates
 
 To create a new frame that, by default, expects to receive its coordinate data
@@ -343,7 +342,6 @@ address each of these points by seeing some other ways of customizing frame
 subclasses.
 
 ..
-  EXAMPLE END
 
 Customizing Frame Component Names
 ---------------------------------
@@ -501,7 +499,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Customizing Display of Attributes in Coordinate Frames
 
 As an example of method ``_astropy_repr_in_frame``, say you have an
@@ -524,7 +521,6 @@ When it is displayed by the frame it will use the result of
   <Egg Frame (can=<A can of Spam>)>
 
 ..
-  EXAMPLE END
 
 Defining Transformations between Frames
 ---------------------------------------

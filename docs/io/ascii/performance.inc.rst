@@ -17,7 +17,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Performance Tips for Reading Large Tables with astropy.io.ascii
 
 If you are reading a simple CSV file with a one-line header with column names,
@@ -30,4 +29,3 @@ can be at least an order of magnitude faster than::
     read('example.csv')  # doctest: +SKIP
 
 ..
-  EXAMPLE END

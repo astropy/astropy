@@ -14,7 +14,6 @@ I/O framework for use by these methods. For details of the framework see
 :ref:`io_registry`. Note |Cosmology| ``to/from_format`` uses a custom registry,
 available at ``Cosmology.<to/from>_format.registry``.
 
-.. EXAMPLE START : custom to/from format
 
 As an example, the following is an implementation of an |Row| converter. We can
 and should use inbuilt parsers, like |QTable|, but to show a more complete
@@ -109,7 +108,6 @@ Now the registered functions can be used in |Cosmology.from_format| and
     >>> cosmo == Planck18  # test it round-trips
     True
 
-.. EXAMPLE END
 
 
 .. _custom_cosmology_readers_writers:
@@ -122,7 +120,6 @@ Cosmology I/O framework. For details of the framework see :ref:`io_registry`.
 Note |Cosmology| ``read/write`` uses a custom registry, available at
 ``Cosmology.<read/write>.registry``.
 
-.. EXAMPLE START : custom read/write
 
 As an example, in the following we will fully work out a |Cosmology| <-> JSON
 (de)serializer. Note that we can use other registered parsers -- here "mapping"
@@ -235,4 +232,3 @@ Now the registered functions can be used in |Cosmology.read| and
     ... except IORegistryError:
     ...     pass
 
-.. EXAMPLE END
