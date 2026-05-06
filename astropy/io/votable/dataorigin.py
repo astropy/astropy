@@ -129,8 +129,7 @@ class QueryOrigin:
     @standardID.setter
     def standardID(self, value: list):
         """Compatibility with previous version"""
-        if not self.service_protocol:
-            self.service_protocol = value
+        self.service_protocol = value
 
     def __str__(self) -> str:
         s = []
@@ -208,14 +207,12 @@ class DatasetOrigin:
         votable_element: astropy.io.votable.tree.Element, optional
                          indicates the VOTable element
         """
-        self.data_ivoid = None
         self.citation = None
         self.reference_url = None
         self.resource_version = None
         self.rights_uri = None
         self.rights = None
         self.creator = None
-        self.journal = None
         self.article = None
         self.cites = None
         self.is_derived_from = None
@@ -230,6 +227,28 @@ class DatasetOrigin:
         self.editor = deprecated_attribute(
             name="editor", alternative="journal", since="8.0"
         )
+        self.data_ivoid = None
+        self.journal = None
+
+    @property
+    def ivoid(self) -> list:
+        """Compatibility with previous version"""
+        return self.data_ivoid
+
+    @ivoid.setter
+    def ivoid(self, value: list):
+        """Compatibility with previous version"""
+        self.data_ivoid = value
+
+    @property
+    def editor(self) -> list:
+        """Compatibility with previous version"""
+        return self.journal
+
+    @editor.setter
+    def editor(self, value: list):
+        """Compatibility with previous version"""
+        self.journal = value
 
     def get_votable_element(self) -> astropy.io.votable.tree.Element:
         """
@@ -321,7 +340,7 @@ class DataOrigin:
                 if info_name == dataset_info:
                     dataset_origin.infos.append(info)
                     att = getattr(dataset_origin, dataset_info)
-                    if att is None or isinstance(att, property):
+                    if att is None:  # or isinstance(att, property):
                         setattr(dataset_origin, dataset_info, [info.value])
                     else:
                         att.append(info.value)
@@ -577,7 +596,7 @@ def add_data_origin_info(
     ValueError
         ``info_name`` is an unknown DataOrigin name.
     """
-    if info_name in DATAORIGIN_INFO:
+    if info_name in DATAORIGIN_INFO + DatasetOrigin._INFO_MAPPING:
         if not isinstance(
             vot_element,
             (
