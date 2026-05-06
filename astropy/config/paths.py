@@ -527,7 +527,7 @@ if sys.flags.optimize < 2:
         with the ``ASTROPY_CONFIG_DIR`` environment variable, or with
         ``temporary_config_dir_path``.
 
-        .. versionchanged:: 8.0.0
+        .. versionchanged:: 8.0
             In previous versions, the return value pointed to ``$HOME/.astropy/config`` by default.
             A new environment variable ``ASTROPY_CONFIG_DIR`` is now supported.
             Symlinks are no longer created in any situation.
@@ -552,7 +552,7 @@ if sys.flags.optimize < 2:
         with the ``ASTROPY_CACHE_DIR`` environment variable, or with
         :func:`temporary_cache_dir_path`.
 
-        .. versionchanged:: 8.0.0
+        .. versionchanged:: 8.0
             In previous versions, the return value pointed to ``$HOME/.astropy/cache`` by default.
             A new environment variable ``ASTROPY_CACHE_DIR`` is now supported.
             Symlinks are no longer created in any situation.
@@ -702,7 +702,7 @@ class set_temp_config(_SetTempPath):
     Thread safety is guaranteed since astropy 7.2.1, but concurrency isn't:
     only a single thread at a time may execute code within this context.
 
-    .. versionchanged:: 8.0.0
+    .. versionchanged:: 8.0
         This function is soft-deprecated. It won't emit deprecation warnings but its
         use is discouraged for new code, as the exact behavior is hard to predict.
         Prefer :func:`temporary_config_dir_path` where available.
@@ -787,7 +787,7 @@ class set_temp_cache(_SetTempPath):
     Thread safety is guaranteed since astropy 7.2.1, but concurrency isn't:
     only a single thread at a time may execute code within this context.
 
-    .. versionchanged:: 8.0.0
+    .. versionchanged:: 8.0
         This function is soft-deprecated. It won't emit deprecation warnings but its
         use is discouraged for new code, as the exact behavior is hard to predict.
         Prefer :func:`temporary_cache_dir_path` where available.
