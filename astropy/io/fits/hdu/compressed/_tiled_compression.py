@@ -553,8 +553,7 @@ def compress_image_data(
         and image_data.dtype.itemsize >= 2
     ):
         raise ValueError(
-            "PLIO_1 compression does not support unsigned integers "
-            "larger than 8 bits"
+            "PLIO_1 compression does not support unsigned integers larger than 8 bits"
         )
 
     if (
@@ -565,7 +564,9 @@ def compress_image_data(
         # numpy's same_value check does not byteswap before comparing values,
         # so non-native source data silently truncates instead of raising.
         # Convert source to native byte order first.
-        native_source = image_data.astype(image_data.dtype.newbyteorder("="), copy=False)
+        native_source = image_data.astype(
+            image_data.dtype.newbyteorder("="), copy=False
+        )
         new_dt = f"{image_data.dtype.kind}4"
         try:
             image_data = native_source.astype(new_dt, casting="same_value")
