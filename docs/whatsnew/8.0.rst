@@ -20,6 +20,12 @@ In particular, this release includes:
 * :ref:`whatsnew-8.0-vla-logical`
 * :ref:`whatsnew-8.0-timeseries-lra`
 * :ref:`whatsnew-8.0-logical-as-bytes`
+* :ref:`whatsnew-8.0-table-display`
+* :ref:`whatsnew-8.0-fits-strings`
+* :ref:`whatsnew-8.0-visualization`
+* :ref:`whatsnew-8.0-quantity-strings`
+* :ref:`whatsnew-8.0-deprecations`
+* :ref:`whatsnew-8.0-dependencies`
 
 In addition to these major changes, Astropy v8.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -156,6 +162,22 @@ Note that since MRT format does not preserve table metadata, the cosmology class
 is included as a column in the table rather than in metadata (similar to HTML
 and LaTeX formats). Multi-dimensional columns (such as neutrino masses) are
 automatically JSON-encoded when writing and decoded when reading.
+
+Angular diameter distance between two redshifts
+-----------------------------------------------
+
+The :meth:`~astropy.cosmology.FLRW.angular_diameter_distance` method now accepts
+either one or two redshift arguments. When two redshifts are supplied, it
+returns the angular diameter distance from an object at ``z1`` to an object at
+``z2``, replacing the use of the now-deprecated
+``angular_diameter_distance_z1z2`` method:
+
+.. code-block:: python
+
+    from astropy.cosmology import Planck18
+
+    Planck18.angular_diameter_distance(0.5)        # observer to z=0.5
+    Planck18.angular_diameter_distance(0.5, 2.0)   # z=0.5 to z=2.0
 
 
 .. _whatsnew-8.0-codata2022:
@@ -302,3 +324,96 @@ Bytes read this way also round-trip through writing: a column read as
 A `~astropy.utils.exceptions.AstropyUserWarning` is now also issued
 whenever a logical column being read with ``logical_as_bytes=False``
 (the default) contains NULL bytes, alerting users to lost information.
+
+.. _whatsnew-8.0-table-display:
+
+Table display and pandas conversion
+===================================
+
+Two improvements make tables with multidimensional columns easier to work with.
+
+A new ``conf.multidim_threshold`` configuration option controls how
+multidimensional columns are displayed. Setting it to a small value (for
+example, ``3``) shows full content for short arrays such as 3-vectors
+(``[1 2 3]``), while larger arrays still fall back to the abbreviated
+``first .. last`` representation.
+
+In addition, :meth:`~astropy.table.Table.to_pandas` now accepts
+tables with multidimensional columns: previously this would raise a
+``ValueError``, but they are now converted to 1D object arrays compatible
+with pandas.
+
+
+.. _whatsnew-8.0-fits-strings:
+
+FITS string column changes
+==========================
+
+A few changes affect how string columns are read from FITS binary tables.
+
+When reading FITS files via :meth:`~astropy.table.Table.read`, the
+``strip_spaces`` option now defaults to ``True``, so trailing whitespace in
+fixed-width string columns is stripped automatically. Pass
+``strip_spaces=False`` to recover the previous behavior.
+
+In preparation for the deprecation of ``np.char.chararray`` in NumPy 2.5,
+``astropy.io.fits`` will in a future release return ordinary NumPy arrays
+rather than ``chararray`` instances for string columns. Code that relies on
+``chararray``-specific methods (such as ``.rstrip()`` or ``.decode()``)
+should migrate to the equivalent functions in ``np.strings``.
+
+.. _whatsnew-8.0-visualization:
+
+New imshow_simple_norm convenience function
+===========================================
+
+A new :func:`~astropy.visualization.imshow_simple_norm` function provides a
+compact one-call alternative to building a ``SimpleNorm``/``simple_norm`` and
+passing it to ``imshow``, which is convenient for quick image previews:
+
+.. code-block:: python
+
+    from astropy.visualization import imshow_simple_norm
+
+    imshow_simple_norm(image, stretch="asinh", percent=99.5)
+
+.. _whatsnew-8.0-quantity-strings:
+
+Parsing vector strings into Quantity
+====================================
+
+It is now possible to construct a :class:`~astropy.units.Quantity` from a
+1D vector-like string, with or without units:
+
+.. code-block:: python
+
+    from astropy import units as u
+
+    u.Quantity("[1, 2, 3] m")
+    u.Quantity("1, 2, 3", unit="m")
+
+.. _whatsnew-8.0-deprecations:
+
+Deprecation of the built-in test runner
+=======================================
+
+The ``astropy.test()`` entry point and the
+:class:`~astropy.tests.runner.TestRunner` /
+:class:`~astropy.tests.runner.TestRunnerBase` classes are now formally
+deprecated and will be removed in a future release. Downstream packages that
+expose a ``packagename.test()`` function generated via ``TestRunner`` are
+affected and should migrate to invoking ``pytest`` directly. The previously
+deprecated ``astropy.tests.command`` module has been removed in this release.
+
+.. _whatsnew-8.0-dependencies:
+
+NumPy 2.0 is now required
+=========================
+
+The minimum supported NumPy version is now **2.0**. Code and downstream
+packages that still rely on the NumPy 1.x C API or the Python-level
+behaviours that changed in NumPy 2.0 will need to be updated.
+
+For users that cannot yet move to NumPy 2.0, the **7.2.x** series of releases
+will continue to receive support for six months following the 8.0 release.
+That branch remains compatible with NumPy 1.
