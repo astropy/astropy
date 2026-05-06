@@ -1,0 +1,6 @@
+``wcs.high_level_objects_to_values`` and ``wcs.values_to_high_level_objects``
+no longer require their ``low_level_wcs`` argument to be a full
+``astropy.wcs.wcsapi.BaseLowLevelWCS`` instance. Any object exposing
+``world_axis_object_classes`` and ``world_axis_object_components`` attributes
+is accepted, and ``serialized_classes`` is now optional (treated as ``False``
+if absent).

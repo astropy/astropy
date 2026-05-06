@@ -6,6 +6,7 @@ data/cache files used by Astropy should be placed.
 import os
 import re
 import shutil
+import sys
 from collections.abc import Callable, Generator
 from contextlib import contextmanager, nullcontext
 from copy import deepcopy
@@ -207,6 +208,9 @@ class _DirectoryFinder:
             xdg=_Envvar(spec=_SpecSource.XDG, dirtype=self.dirtype),
         )
 
+    def legacy_default_base_node(self, namespace: str) -> Path:
+        return Path.home() / f".{namespace}" / self.dirtype.as_str()
+
     def default_base_node(self) -> Path:
         # default to a XDG-compliant scheme
         return Path.home() / f".{self.dirtype.as_str()}"
@@ -239,7 +243,21 @@ class _DirectoryFinder:
         return replace(de, base_node=self.default_base_node())
 
     def find_namespaced_node(self, namespace: str) -> Path:
-        return self.find_directory_elements(namespace).join()
+        legacy_node = self.legacy_default_base_node(namespace)
+        preferred_node = self.find_directory_elements(namespace).join()
+        if legacy_node.is_dir() and not preferred_node.exists():
+            # backward compatibility
+            # legacy_node is checked more strictly, because we only need to bridge the
+            # gap for previously supported cases
+            return legacy_node
+        else:
+            # we intentionally let through some possibly invalid state,
+            # like a file occupying the preferred node, where we expect a directory,
+            # The core reason is that there'll always be a difference between the time
+            # we look up the location and the time we actually use it, so it's
+            # impossible to make the look up perfectly safe. In turn, the responsibility
+            # to raise an exception falls on the function that'll actually try use it.
+            return preferred_node
 
 
 class _TempDirKwargs(TypedDict):
@@ -464,37 +482,6 @@ def get_config_dir_path(
     *,
     ensure_exists: bool = True,
 ) -> Path:
-    """
-    Determines the configuration directory associated with a namespace and creates the
-    directory if it doesn't exist.
-
-    This directory is typically ``$XDG_CONFIG_HOME/<namespace>``, but can be overwritten
-    with the ``ASTROPY_CONFIG_DIR`` environment variable, or with
-    ``temporary_config_dir_path``.
-
-    .. versionchanged:: 8.0.0
-        In previous versions, the return value pointed to ``$HOME/.astropy/config`` by default.
-        A new environment variable ``ASTROPY_CONFIG_DIR`` is now supported.
-        Symlinks are no longer created in any situation.
-
-    Parameters
-    ----------
-    rootname : str, optional
-        Namespace associated with the directory. For example, for ``'pkgname'``,
-        the directory would be ``$XDG_CONFIG_HOME/pkgname``. Default: ``'astropy'``
-
-    ensure_exists : bool, keyword-only, optional
-        Whether to create the directory (and its parents) if it's missing.
-        Default: True
-
-        .. versionadded:: 8.0.0
-
-    Returns
-    -------
-    pathlib.Path
-        The absolute path to the configuration directory.
-
-    """
     node = _finders.config.find_namespaced_node(rootname)
     if ensure_exists:
         node.mkdir(parents=True, exist_ok=True)
@@ -509,55 +496,11 @@ def get_config_dir(
     return str(get_config_dir_path(rootname, ensure_exists=ensure_exists))
 
 
-if get_config_dir_path.__doc__ is not None:
-    # guard against PYTHONOPTIMIZE mode
-    get_config_dir.__doc__ = cleandoc(
-        get_config_dir_path.__doc__.replace("pathlib.Path", "str")
-        + """
-    See Also
-    --------
-    get_config_dir_path : same as this function, except that the return value is a pathlib.Path
-
-    """
-    )
-
-
 def get_cache_dir_path(
     rootname: str = "astropy",
     *,
     ensure_exists: bool = True,
 ) -> Path:
-    """
-    Determines the cache directory associated with a namespace and, optionally,
-    creates the directory if it doesn't exist.
-
-    This directory is typically ``$XDG_CACHE_HOME/<namespace>``, but can be overwritten
-    with the ``ASTROPY_CACHE_DIR`` environment variable, or with
-    :func:`temporary_cache_dir_path`.
-
-    .. versionchanged:: 8.0.0
-        In previous versions, the return value pointed to ``$HOME/.astropy/cache`` by default.
-        A new environment variable ``ASTROPY_CACHE_DIR`` is now supported.
-        Symlinks are no longer created in any situation.
-
-    Parameters
-    ----------
-    rootname : str, optional
-        Namespace associated with the directory. For example, for ``'pkgname'``,
-        the directory would be ``$XDG_CACHE_HOME/pkgname``. Default: ``'astropy'``
-
-    ensure_exists : bool, keyword-only, optional
-        Whether to create the directory (and its parents) if it's missing.
-        Default: True
-
-        .. versionadded:: 8.0.0
-
-    Returns
-    -------
-    pathlib.Path
-        The absolute path to the cache directory.
-
-    """
     node = _finders.cache.find_namespaced_node(rootname)
     if ensure_exists:
         node.mkdir(parents=True, exist_ok=True)
@@ -572,16 +515,93 @@ def get_cache_dir(
     return str(get_cache_dir_path(rootname, ensure_exists=ensure_exists))
 
 
-if get_cache_dir_path.__doc__ is not None:
-    # guard against PYTHONOPTIMIZE mode
-    get_cache_dir.__doc__ = cleandoc(
-        get_cache_dir_path.__doc__.replace("pathlib.Path", "str")
-        + """
-    See Also
-    --------
-    get_cache_dir_path : same as this function, except that the return value is a pathlib.Path
+if sys.flags.optimize < 2:
+    # with PYTHONOPTIMIZE=2, docstrings are stripped from everywhere,
+    # so don't add them dynamically in that case
 
-    """
+    _base_get_config_doc = """\
+        Determines the configuration directory associated with a namespace and creates the
+        directory if it doesn't exist.
+
+        This directory is typically ``$XDG_CONFIG_HOME/<namespace>``, but can be overwritten
+        with the ``ASTROPY_CONFIG_DIR`` environment variable, or with
+        ``temporary_config_dir_path``.
+
+        .. versionchanged:: 8.0
+            In previous versions, the return value pointed to ``$HOME/.astropy/config`` by default.
+            A new environment variable ``ASTROPY_CONFIG_DIR`` is now supported.
+            Symlinks are no longer created in any situation.
+
+        Parameters
+        ----------
+        rootname : str, optional
+            Namespace associated with the directory. For example, for ``'pkgname'``,
+            the directory would be ``$XDG_CONFIG_HOME/pkgname``. Default: ``'astropy'``
+
+        ensure_exists : bool, keyword-only, optional
+            Whether to create the directory (and its parents) if it's missing.
+            Default: True
+
+            .. versionadded:: 8.0.0
+        """
+    _base_get_cache_doc = """\
+        Determines the cache directory associated with a namespace and, optionally,
+        creates the directory if it doesn't exist.
+
+        This directory is typically ``$XDG_CACHE_HOME/<namespace>``, but can be overwritten
+        with the ``ASTROPY_CACHE_DIR`` environment variable, or with
+        :func:`temporary_cache_dir_path`.
+
+        .. versionchanged:: 8.0
+            In previous versions, the return value pointed to ``$HOME/.astropy/cache`` by default.
+            A new environment variable ``ASTROPY_CACHE_DIR`` is now supported.
+            Symlinks are no longer created in any situation.
+
+        Parameters
+        ----------
+        rootname : str, optional
+            Namespace associated with the directory. For example, for ``'pkgname'``,
+            the directory would be ``$XDG_CACHE_HOME/pkgname``. Default: ``'astropy'``
+
+        ensure_exists : bool, keyword-only, optional
+            Whether to create the directory (and its parents) if it's missing.
+            Default: True
+
+            .. versionadded:: 8.0.0
+        """
+    _ret_section = """
+        Returns
+        -------
+        {rettype}
+            The absolute path to the {dirtype} directory.
+        """
+
+    get_config_dir_path.__doc__ = cleandoc(
+        _base_get_config_doc + _ret_section.format(rettype="Path", dirtype="cache")
+    )
+
+    get_config_dir.__doc__ = cleandoc(
+        _base_get_config_doc
+        + _ret_section.format(rettype="str", dirtype="cache")
+        + """
+        See Also
+        --------
+        get_config_dir_path : same as this function, except that the return value is a pathlib.Path
+        """
+    )
+
+    get_cache_dir_path.__doc__ = cleandoc(
+        _base_get_cache_doc + _ret_section.format(rettype="Path", dirtype="cache")
+    )
+
+    get_cache_dir.__doc__ = cleandoc(
+        _base_get_cache_doc
+        + _ret_section.format(rettype="str", dirtype="cache")
+        + """
+        See Also
+        --------
+        get_cache_dir_path : same as this function, except that the return value is a pathlib.Path
+        """
     )
 
 
@@ -682,7 +702,7 @@ class set_temp_config(_SetTempPath):
     Thread safety is guaranteed since astropy 7.2.1, but concurrency isn't:
     only a single thread at a time may execute code within this context.
 
-    .. versionchanged:: 8.0.0
+    .. versionchanged:: 8.0
         This function is soft-deprecated. It won't emit deprecation warnings but its
         use is discouraged for new code, as the exact behavior is hard to predict.
         Prefer :func:`temporary_config_dir_path` where available.
@@ -767,7 +787,7 @@ class set_temp_cache(_SetTempPath):
     Thread safety is guaranteed since astropy 7.2.1, but concurrency isn't:
     only a single thread at a time may execute code within this context.
 
-    .. versionchanged:: 8.0.0
+    .. versionchanged:: 8.0
         This function is soft-deprecated. It won't emit deprecation warnings but its
         use is discouraged for new code, as the exact behavior is hard to predict.
         Prefer :func:`temporary_cache_dir_path` where available.

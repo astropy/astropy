@@ -1,0 +1,3 @@
+DataOrigin updated with IVOA version 1.2:
+
+* Terms changed in ``astropy.io.votable.dataorigin`` (``ivoid`` and ``editor`` renamed to ``ivoid_data`` and ``journal``)

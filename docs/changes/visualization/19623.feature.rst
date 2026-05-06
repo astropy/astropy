@@ -1,0 +1,2 @@
+Added the ``imshow_simple_norm`` function to provide a more compact interface
+to the ``SimpleNorm``/``simple_norm`` interface for quick visualization.

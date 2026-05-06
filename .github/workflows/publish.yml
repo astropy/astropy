@@ -26,7 +26,7 @@ jobs:
     # or if triggered manually via the workflow dispatch, or for a tag.
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@e97344095b099e1d729fe97429078c9975921d8a # v2.6.2
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef # v2.6.3
     if: |
       github.repository == 'astropy/astropy' && (
         startsWith(github.ref, 'refs/tags/v') ||
@@ -91,4 +91,4 @@ jobs:
           pattern: dist-*
           path: dist
       - name: Upload to PyPI
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0

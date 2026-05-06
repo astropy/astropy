@@ -19,6 +19,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 from importlib import import_module
+from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
 from types import MappingProxyType
 from warnings import warn
@@ -1922,7 +1923,7 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
 
 
-def _get_download_cache_loc(pkgname="astropy"):
+def _get_download_cache_loc(pkgname: str = "astropy") -> Path:
     """Finds the path to the cache directory and makes them if they don't exist.
 
     Parameters
@@ -1934,11 +1935,14 @@ def _get_download_cache_loc(pkgname="astropy"):
 
     Returns
     -------
-    datadir : str
+    datadir : pathlib.Path
         The path to the data cache directory.
     """
     try:
-        datadir = astropy.config.paths.get_cache_dir_path(pkgname) / "download" / "url"
+        datadir = astropy.config.paths.get_cache_dir_path(
+            pkgname,
+            ensure_exists=False,
+        ).joinpath("download", "url")
 
         if not datadir.exists():
             try:
@@ -2230,7 +2234,7 @@ def cache_contents(pkgname="astropy"):
         return _NOTHING
     with os.scandir(dldir) as it:
         for entry in it:
-            if entry.is_dir:
+            if entry.is_dir():
                 url = get_file_contents(
                     os.path.join(dldir, entry.name, "url"), encoding="utf-8"
                 )

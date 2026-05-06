@@ -1394,6 +1394,11 @@ class Column(NotifierMixin):
                 # boolean needs to be scaled back to storage values ('T', 'F')
                 if array.dtype == np.dtype("bool"):
                     return np.where(array == np.False_, ord("F"), ord("T"))
+                elif array.dtype.kind == "S":
+                    # Bytes input (e.g. from reading with logical_as_bytes=True)
+                    # is taken as-is so that NULL (b'\x00') values are preserved
+                    # in storage alongside b'T' and b'F'.
+                    return array.view(np.int8)
                 else:
                     return np.where(array == 0, ord("F"), ord("T"))
             elif "X" in format:
@@ -2243,7 +2248,22 @@ def _makep(array, descr_output, format, nrows=None):
     if not nrows:
         nrows = len(array)
 
-    data_output = _VLF([None] * nrows, dtype=format.dtype)
+    # Logical VLAs ('PL'/'QL') are stored in the _VLF as user-facing bool
+    # values. The FITS L wire format (ord('T')/ord('F')) is produced at
+    # heap-write time in FITS_rec._get_heap_data.
+    # If the input rows are already |S1 byte arrays (produced by reading
+    # with ``logical_as_bytes=True``), the bytes are preserved verbatim
+    # so NULL (b'\x00') survives a round-trip.
+    is_logical = format.format == "L"
+    is_logical_bytes = is_logical and any(
+        isinstance(row, np.ndarray) and row.dtype.kind == "S" for row in array
+    )
+    if is_logical:
+        element_dtype = "S1" if is_logical_bytes else "b1"
+    else:
+        element_dtype = format.dtype
+
+    data_output = _VLF([None] * nrows, dtype=element_dtype)
 
     if format.dtype == "S":
         _nbytes = 1
@@ -2256,10 +2276,23 @@ def _makep(array, descr_output, format, nrows=None):
         else:
             if format.dtype == "S":
                 rowval = " " * data_output.max
+            elif is_logical:
+                rowval = np.zeros(data_output.max, dtype=element_dtype)
             else:
                 rowval = [0] * data_output.max
         if format.dtype == "S":
             data_output[idx] = get_chararray(encode_ascii(rowval), itemsize=1)
+        elif is_logical_bytes:
+            # |S1 byte input is preserved verbatim so NULL (b'\x00')
+            # survives a round-trip.
+            data_output[idx] = np.asarray(rowval, dtype="S1")
+        elif is_logical:
+            # Route through int8 first so non-numeric/non-bool inputs
+            # (strings, None, ...) raise at write time, matching the
+            # behavior of astropy <= 7.2.0; bypassing this and using
+            # ``astype(bool)`` directly would silently coerce e.g.
+            # ``["T", "F"]`` to ``[True, True]``.
+            data_output[idx] = np.array(rowval, dtype=np.int8).astype(bool, copy=False)
         else:
             data_output[idx] = np.array(rowval, dtype=format.dtype)
 

@@ -1,8 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import io
 import warnings
 
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from astropy import units as u
@@ -13,12 +15,13 @@ from astropy.table.index import SlicedIndex, get_index
 from astropy.table.soco import SCEngine
 from astropy.table.sorted_array import SortedArray
 from astropy.time import Time
-from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_SORTEDCONTAINERS
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .test_table import SetupData
 
 available_engines = [BST, SortedArray]
+NATIVE_INT_NAME = np.array(0).dtype.name
 
 if HAS_SORTEDCONTAINERS:
     available_engines.append(SCEngine)
@@ -49,6 +52,15 @@ def assert_col_equal(col, array):
         assert np.all(col == Time(array, format="jyear"))
     else:
         assert np.all(col == col.__class__(array))
+
+
+def assert_tables_equal(t1: Table, t2: Table) -> None:
+    # Check table colnames equal and values equal
+    vals_eq = t1.values_equal(t2)  # this raises if colnames not equal
+    for col_eq in vals_eq.itercols():
+        npt.assert_equal(col_eq, True)
+
+    assert t1.meta == t2.meta
 
 
 @pytest.mark.usefixtures("table_types")
@@ -743,6 +755,233 @@ def test_nd_columun_as_index(masked):
         ValueError, match="Multi-dimensional column 'arr' cannot be used as an index."
     ):
         t.add_index("arr")
+
+
+def test_indices_read_unknown_engine():
+    lines = [
+        "# %ECSV 1.0",
+        "# ---",
+        "# datatype:",
+        f"# - {{name: a, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__, datatype: {NATIVE_INT_NAME}}}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
+        "#     - colnames: [a]",
+        "#       engine: Foo",
+        "#       index_colname: __index__",
+        "#       unique: true",
+        "#     primary_key: [a]",
+        "# schema: astropy-2.0",
+        "a __index__",
+        "1 0",
+        "3 2",
+        "2 1",
+    ]
+    text = "\n".join(lines)
+
+    with pytest.warns(
+        AstropyWarning,
+        match=r"Unknown index engine 'Foo', creating index using SortedArray engine",
+    ):
+        t = Table.read(text, format="ecsv")
+    # a==3 at row 1
+    assert t.loc_indices[1] == 0
+    assert t.loc_indices[3] == 1
+    assert t.loc_indices[2] == 2
+
+
+def test_indices_serialization_unique_representation():
+    t = Table()
+    t["a"] = [1, 3, 2]
+    t.add_index("a", unique=True)
+    out = io.StringIO()
+    t.write(out, format="ecsv", write_indices=True)
+    assert out.getvalue().splitlines() == [
+        "# %ECSV 1.0",
+        "# ---",
+        "# datatype:",
+        f"# - {{name: a, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__, datatype: {NATIVE_INT_NAME}}}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
+        "#     - colnames: [a]",
+        "#       index_colname: __index__",
+        "#       unique: true",
+        "#     primary_key: [a]",
+        "# schema: astropy-2.0",
+        "a __index__",
+        "1 0",
+        "3 2",
+        "2 1",
+    ]
+    t2 = Table.read(out.getvalue(), format="ecsv")
+    assert t2.indices[0].data.unique is True
+
+
+@pytest.mark.parametrize("engine", [SortedArray, SCEngine])
+def test_indices_serialization_representation_single(engine):
+    """Add explicit test of serialization representation for single-index case.
+
+    The `primary` key is not included in this case.
+    """
+    t = Table()
+    t["a"] = [1, 3, 2]
+    t.add_index("a", engine=engine)
+    out = io.StringIO()
+    t.write(out, format="ecsv", write_indices=True)
+    exp = [
+        "# %ECSV 1.0",
+        "# ---",
+        "# datatype:",
+        f"# - {{name: a, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__, datatype: {NATIVE_INT_NAME}}}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
+        "#     - colnames: [a]",
+        "#       index_colname: __index__",
+        "#     primary_key: [a]",
+        "# schema: astropy-2.0",
+        "a __index__",
+        "1 0",
+        "3 2",
+        "2 1",
+    ]
+
+    if engine is SCEngine:
+        exp.insert(9, "#       engine: SCEngine")
+
+    assert out.getvalue().splitlines() == exp
+
+
+def test_indices_serialization_representation_multiple():
+    """Add explicit test of serialization representation for single-index case.
+
+    This includes the `primary` key and a collision.
+    """
+    t = Table()
+    t["a"] = [1, 3, 2]
+    t["__index__1"] = [5, 4, 3]
+    t.add_index(["a", "__index__1"])
+    t.add_index("a")
+    out = io.StringIO()
+    t.write(out, format="ecsv", write_indices=True)
+
+    exp = [
+        "# %ECSV 1.0",
+        "# ---",
+        "# datatype:",
+        f"# - {{name: a, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__1, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__, datatype: {NATIVE_INT_NAME}}}",
+        f"# - {{name: __index__2, datatype: {NATIVE_INT_NAME}}}",
+        "# meta: !!omap",
+        "# - __table_indices__:",
+        "#     indices:",
+        "#     - colnames: [a, __index__1]",
+        "#       index_colname: __index__",
+        "#     - colnames: [a]",
+        "#       index_colname: __index__2",
+        "#     primary_key: [a, __index__1]",
+        "# schema: astropy-2.0",
+        "a __index__1 __index__ __index__2",
+        "1 5 0 0",
+        "3 4 2 2",
+        "2 3 1 1",
+    ]
+    assert out.getvalue().splitlines() == exp
+
+
+@pytest.mark.parametrize("dtype", [np.int16, np.float32, np.int64, np.float64])
+def test_indices_roundtrip_various_dtypes(dtype):
+    """Test that serialization round-trip works for various index dtypes."""
+    t = Table()
+    t["a"] = np.array([1, 3, 2], dtype=dtype)
+    t["b"] = np.array([5, 6, 7], dtype=dtype)
+    t.add_index("a")
+    t.add_index(["a", "b"])
+    out = io.StringIO()
+    t.write(out, format="ecsv", write_indices=True)
+    t2 = Table.read(out.getvalue(), format="ecsv")
+
+    assert_tables_equal(t, t2)
+    assert_indices_equal(t, t2, [("a",), ("a", "b")])
+
+
+@pytest.mark.parametrize("single_index", [True, False])
+@pytest.mark.parametrize("engine", [SortedArray, SCEngine])
+@pytest.mark.parametrize("fmt", ["fits", "ecsv", "hdf5"])
+def test_indices_roundtrip_through_file(single_index, fmt, engine, tmp_path):
+    if single_index and fmt != "ecsv":
+        # Save a few compute cycles, since single_index is really impacting just the
+        # serialization data and the engine and fmt don't matter.
+        pytest.skip()
+
+    if not HAS_H5PY and fmt == "hdf5":
+        pytest.skip("hdf5 tests require h5py")
+
+    t = QTable()
+    t["a"] = Time([1, 3, 2, 2], format="cxcsec")
+    t["b"] = [3, 2, 2, 1]
+    t["__index__"] = [3, 1, 4, 2]  # Force a collision
+    indices_colnames = [
+        ["a"],
+        ["b", "a"],
+        ["a", "b", "__index__"],
+        ["__index__"],
+    ]
+    if single_index:
+        indices_colnames = indices_colnames[:1]
+
+    for colnames in indices_colnames:
+        t.add_index(colnames, engine=engine)
+
+    path = tmp_path / f"out.{fmt}"
+    kwargs = {"serialize_meta": True, "path": "root"} if fmt == "hdf5" else {}
+    t.write(path, format=fmt, write_indices=True, **kwargs)
+
+    kwargs = {"astropy_native": True} if fmt == "fits" else {}
+    t2 = QTable.read(path, format=fmt, **kwargs)
+    if fmt == "fits":
+        # FITS does not round-trip the format
+        t2["a"].format = "cxcsec"
+
+    assert_tables_equal(t, t2)
+    assert_indices_equal(t, t2, indices_colnames)
+
+
+def assert_indices_equal(t, t2, indices_colnames):
+    assert len(t.indices) == len(t2.indices)
+    assert t.primary_key == t2.primary_key
+
+    for colnames in indices_colnames:
+        index = t.indices[colnames]
+        index2 = t2.indices[colnames]
+        assert index.id == index2.id
+        # Table rows sorted in index order
+        assert_tables_equal(
+            t.iloc.with_index(colnames)[:], t2.iloc.with_index(colnames)[:]
+        )
+        # Check that the engine row_index column/list is identical
+        assert np.all(index.data.sorted_data() == index2.data.sorted_data())
+        # Check engine items as a list of pairs of the form
+        # [(key, [row 1, row 2, ...]), ...].
+        assert index.data.items() == index2.data.items()
+
+        key0 = tuple(t.iloc.with_index(colnames)[0][colnames])
+        key1 = tuple(t.iloc.with_index(colnames)[-1][colnames])
+        assert t.loc.with_index(colnames)[key0] == t2.loc.with_index(colnames)[key0]
+        assert t.loc.with_index(colnames)[key1] == t2.loc.with_index(colnames)[key1]
+        assert (
+            t.loc_indices.with_index(colnames)[key0]
+            == t2.loc_indices.with_index(colnames)[key0]
+        )
+        assert (
+            t.loc_indices.with_index(colnames)[key1]
+            == t2.loc_indices.with_index(colnames)[key1]
+        )
 
 
 @pytest.mark.parametrize("index_first", [True, False])

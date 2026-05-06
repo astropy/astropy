@@ -759,6 +759,9 @@ class TestHDUListFunctions(FitsTestCase):
             assert (hdul[1].data == data2).all()
             assert (hdul[2].data == data2).all()
 
+    @pytest.mark.filterwarnings(
+        "ignore:.*[Cc]olumn '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
+    )
     def test_hdul_fromstring(self):
         """
         Test creating the HDUList structure in memory from a string containing
@@ -804,7 +807,15 @@ class TestHDUListFunctions(FitsTestCase):
                 # versions of Numpy on Windows.  See ticket:
                 # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
                 continue
-            elif filename.endswith(("variable_length_table.fits", "theap-gap.fits")):
+            elif filename.endswith(
+                (
+                    "variable_length_table.fits",
+                    "theap-gap.fits",
+                    "vla_logical_pre_fix.fits",
+                    "vla_logical_null.fits",
+                    "vla_logical_all_zero.fits",
+                )
+            ):
                 # Comparing variable length arrays is non-trivial and thus
                 # skipped at this point.
                 # TODO: That's probably possible, so one could make it work.

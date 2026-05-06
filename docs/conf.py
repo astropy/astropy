@@ -397,6 +397,7 @@ linkcheck_ignore = [
     "https://www.usno.navy.mil/USNO/time/gps/usno-gps-time-transfer",
     "https://aa.usno.navy.mil/publications/docs/Circular_179.php",
     "http://data.astropy.org",
+    "https://astropy-dei.orgmycology.com/",  # 403 Client Error: Forbidden
     "https://doi.org/",  # CI blocked by service provider
     "https://zenodo.org/",  # 403 Client Error: Forbidden
     "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
