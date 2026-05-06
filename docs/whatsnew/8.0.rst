@@ -397,7 +397,7 @@ It is now possible to construct a :class:`~astropy.units.Quantity` from a
 Deprecation of the built-in test runner
 =======================================
 
-The :func:`astropy.test` entry point and the
+The ``astropy.test()`` entry point and the
 :class:`~astropy.tests.runner.TestRunner` /
 :class:`~astropy.tests.runner.TestRunnerBase` classes are now formally
 deprecated and will be removed in a future release. Downstream packages that
