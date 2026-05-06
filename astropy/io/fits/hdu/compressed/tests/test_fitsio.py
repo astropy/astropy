@@ -440,7 +440,13 @@ def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
         np.testing.assert_array_equal(rt, data)
 
     # fitsio doesn't support NOCOMPRESS, so the cross-checks stop here.
-    if compression_type == "NOCOMPRESS":
+    # cfitsio also refuses to read or write GZIP-compressed 64-bit integer
+    # images even though the FITS Tile Compression Convention permits them,
+    # so astropy's standard-compliant output cannot be cross-validated for
+    # those combinations.
+    if compression_type == "NOCOMPRESS" or (
+        compression_type in ("GZIP_1", "GZIP_2") and np_dtype.itemsize == 8
+    ):
         return
 
     # 3. fitsio reads astropy's compressed file.
