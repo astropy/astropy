@@ -71,6 +71,8 @@ def test_write_overwrite(tmp_path, fmt):
 
     if fmt == "excel":
         tmpfile = tmp_path / "test.xlsx"
+        if not HAS_OPENPYXL:
+            pytest.skip("Missing openpyxl for excel read/write test")
     else:
         tmpfile = tmp_path / f"test.{fmt}"
     pandas_fmt = f"pandas.{fmt}"
