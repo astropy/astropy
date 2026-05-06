@@ -571,6 +571,11 @@ def compress_image_data(
         try:
             image_data = native_source.astype(new_dt, casting="same_value")
             compressed_header["ZBITPIX"] = 32
+            if image_data.dtype.kind == "u":
+                # The input image header carries BZERO=2**63 for the original
+                # uint64 storage; after converting to uint32 the offset must
+                # be 2**31 so the FITS reader reconstructs the right values.
+                compressed_header["BZERO"] = 2**31
             warnings.warn(
                 f"{compression_type} compression doesn't support 64 integers, "
                 "data has been converted to 32 bits",
