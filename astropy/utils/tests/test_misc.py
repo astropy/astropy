@@ -2,7 +2,6 @@
 
 import json
 import locale
-import os
 import urllib.error
 from datetime import datetime
 
