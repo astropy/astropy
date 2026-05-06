@@ -2043,6 +2043,7 @@ def test_check_download_cache_works_if_fake_readonly(fake_readonly_cache):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_pkgname_isolation(temp_cache, valid_urls):
     a = str(uuid4())
 
@@ -2113,6 +2114,7 @@ def test_pkgname_isolation(temp_cache, valid_urls):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_transport_cache_via_zip(temp_cache, valid_urls):
     a = str(uuid4())
 
