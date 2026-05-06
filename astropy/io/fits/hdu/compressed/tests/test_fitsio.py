@@ -364,10 +364,15 @@ def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
     astropy_path = tmp_path / "astropy.fits"
     hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
 
-    # Signed 64-bit data with full-range sentinels overflows the int32
-    # conversion that RICE_1 and PLIO_1 fall back to.
+    # 64-bit integer data with full-range sentinels overflows the 32-bit
+    # conversion that RICE_1 falls back to. (PLIO_1 + i8 also lands here;
+    # PLIO_1 + u8 is caught by the unsigned-multi-byte rejection below.)
     if (
-        compression_type in ("RICE_1", "PLIO_1")
+        compression_type == "RICE_1"
+        and np_dtype.kind in ("i", "u")
+        and np_dtype.itemsize == 8
+    ) or (
+        compression_type == "PLIO_1"
         and np_dtype.kind == "i"
         and np_dtype.itemsize == 8
     ):
