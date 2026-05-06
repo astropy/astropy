@@ -267,16 +267,22 @@ def test_compress(
         np.testing.assert_allclose(data, hdul[1].data, rtol=rtol, atol=atol)
 
 
+@pytest.mark.parametrize("kind", ["i", "u"])
 @pytest.mark.parametrize(
     "nbytes,overflow", [(2, False), (4, False), (8, False), (8, True)]
 )
 @pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
-def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
+def test_decompress_integers(nbytes, overflow, compression_type, kind, tmp_path):
+    if kind == "u" and compression_type == "PLIO_1" and nbytes >= 2:
+        pytest.skip(
+            "PLIO_1 cannot encode unsigned multi-byte integers (covered elsewhere)"
+        )
 
     testfile = tmp_path / "test.fits.fz"
-    data = np.random.poisson(1000, size=(52, 57)).astype(f"i{nbytes}")
+    data = np.random.poisson(1000, size=(52, 57)).astype(f"{kind}{nbytes}")
     if overflow:
-        data += np.iinfo(np.int32).max
+        # push past the 32-bit limit so the conversion fallback fails
+        data += np.iinfo(np.int32).max if kind == "i" else np.uint64(2**32)
     data_hdu = fits.PrimaryHDU(data=data)
     compressed_hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
 
