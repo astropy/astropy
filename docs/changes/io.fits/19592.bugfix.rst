@@ -1,0 +1,3 @@
+Prevent creating RICE_1 or PLIO_1 compressed files with (u)int64 data. If
+possible without overflow data is converted to (u)int32, otherwise an error is
+raised.
