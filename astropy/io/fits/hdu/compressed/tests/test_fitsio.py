@@ -129,6 +129,12 @@ def fitsio_compressed_file_path(
     ):
         pytest.xfail("fitsio won't write these")
 
+    if compression_type == "HCOMPRESS_1" and "u2" in dtype:
+        # cfitsio's HCOMPRESS encoder underestimates the output buffer size
+        # for uint16 data on certain tile configurations, raising "encode:
+        # output buffer too small". astropy's encoder handles the same combos.
+        pytest.xfail("cfitsio HCOMPRESS encoder buffer-size bug for uint16 input")
+
     if compression_type == "PLIO_1" and "f" in dtype:
         # fitsio fails with a compression error
         pytest.xfail("fitsio fails to write these")
