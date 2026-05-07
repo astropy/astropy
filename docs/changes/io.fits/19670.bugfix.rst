@@ -1,0 +1,8 @@
+Fix a bug that caused uint64 data to be silently shifted by 2**63 when
+round-tripping through compressed FITS files (the FITS BZERO=2**63 offset was
+missing at compression time but still applied on read). Extend the existing
+RICE_1 and PLIO_1 64-bit-to-32-bit conversion fallback to also cover uint64
+input and HCOMPRESS_1, and fix big-endian 64-bit input being silently truncated
+by the conversion check instead of raising. Reject PLIO_1 with unsigned
+multi-byte input outright, since the BZERO convention used to store unsigned
+FITS data produces negative values that PLIO cannot encode.
