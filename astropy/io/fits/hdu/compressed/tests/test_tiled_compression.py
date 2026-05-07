@@ -203,6 +203,12 @@ def test_roundtrip_high_D(
         np.count_nonzero(np.array(shape[:2]) % tile_shape[:2]) != 0
     ):
         pytest.xfail("HCOMPRESS requires 2D tiles.")
+    if (
+        compression_type == "PLIO_1"
+        and np.dtype(dtype).kind == "u"
+        and np.dtype(dtype).itemsize >= 2
+    ):
+        pytest.xfail("PLIO_1 cannot encode unsigned multi-byte integers")
     random = numpy_rng.uniform(high=255, size=shape)
     # Set first value to be exactly zero as zero values require special treatment
     # for SUBTRACTIVE_DITHER_2

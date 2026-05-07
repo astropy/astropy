@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 from astropy.io import fits
+from astropy.utils import NumpyRNGContext
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import COMPRESSION_TYPES, _expand, fitsio_param_to_astropy_param
@@ -128,9 +129,24 @@ def fitsio_compressed_file_path(
     ):
         pytest.xfail("fitsio won't write these")
 
+    if compression_type == "HCOMPRESS_1" and "u2" in dtype:
+        # cfitsio's HCOMPRESS encoder underestimates the output buffer size
+        # for uint16 data on certain tile configurations, raising "encode:
+        # output buffer too small". astropy's encoder handles the same combos.
+        pytest.xfail("cfitsio HCOMPRESS encoder buffer-size bug for uint16 input")
+
     if compression_type == "PLIO_1" and "f" in dtype:
         # fitsio fails with a compression error
         pytest.xfail("fitsio fails to write these")
+
+    if (
+        compression_type == "PLIO_1"
+        and np.dtype(dtype).kind == "u"
+        and np.dtype(dtype).itemsize >= 2
+    ):
+        # PLIO can't represent the BZERO-shifted unsigned values; cfitsio
+        # rejects 4/8-byte cases outright and segfaults on 2-byte ones.
+        pytest.xfail("PLIO_1 cannot encode unsigned multi-byte integers")
 
     if compression_type == "NOCOMPRESS":
         pytest.xfail("fitsio does not support NOCOMPRESS")
@@ -165,6 +181,13 @@ def astropy_compressed_file_path(
 ):
     compression_type, param, dtype = comp_param_dtype
     original_data = base_original_data.astype(dtype)
+
+    if (
+        compression_type == "PLIO_1"
+        and np.dtype(dtype).kind == "u"
+        and np.dtype(dtype).itemsize >= 2
+    ):
+        pytest.xfail("PLIO_1 cannot encode unsigned multi-byte integers")
 
     tmp_path = tmp_path_factory.mktemp("astropy")
     filename = tmp_path / f"{compression_type}_{dtype}.fits"
@@ -244,20 +267,26 @@ def test_compress(
         np.testing.assert_allclose(data, hdul[1].data, rtol=rtol, atol=atol)
 
 
+@pytest.mark.parametrize("kind", ["i", "u"])
 @pytest.mark.parametrize(
     "nbytes,overflow", [(2, False), (4, False), (8, False), (8, True)]
 )
 @pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
-def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
+def test_decompress_integers(nbytes, overflow, compression_type, kind, tmp_path):
+    if kind == "u" and compression_type == "PLIO_1" and nbytes >= 2:
+        pytest.skip(
+            "PLIO_1 cannot encode unsigned multi-byte integers (covered elsewhere)"
+        )
 
     testfile = tmp_path / "test.fits.fz"
-    data = np.random.poisson(1000, size=(52, 57)).astype(f"i{nbytes}")
+    data = np.random.poisson(1000, size=(52, 57)).astype(f"{kind}{nbytes}")
     if overflow:
-        data += np.iinfo(np.int32).max
+        # push past the 32-bit limit so the conversion fallback fails
+        data += np.iinfo(np.int32).max if kind == "i" else np.uint64(2**32)
     data_hdu = fits.PrimaryHDU(data=data)
     compressed_hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
 
-    if compression_type in ("RICE_1", "PLIO_1") and nbytes == 8:
+    if compression_type in ("RICE_1", "PLIO_1", "HCOMPRESS_1") and nbytes == 8:
         test_func = pytest.raises if overflow else pytest.warns
         ctx = test_func(
             ValueError if overflow else AstropyUserWarning,
@@ -290,3 +319,155 @@ def test_decompress_integers(nbytes, overflow, compression_type, tmp_path):
         fts = fitsio.FITS(testfile)
         data2 = fts[1].read()
         np.testing.assert_array_equal(data, data2)
+
+
+INTEGER_DTYPES_FULL_RANGE = [
+    "<i2",
+    ">i2",
+    "<i4",
+    ">i4",
+    "<i8",
+    ">i8",
+    "<u1",
+    ">u1",
+    "<u2",
+    ">u2",
+    "<u4",
+    ">u4",
+    "<u8",
+    ">u8",
+]
+
+
+def _full_range_integer_data(dtype, shape=(32, 32)):
+    info = np.iinfo(dtype)
+    sentinels = np.array(
+        [
+            info.min,
+            info.min + 1,
+            -1 if info.min < 0 else 0,
+            0,
+            1,
+            info.max - 1,
+            info.max,
+        ],
+        dtype=dtype,
+    )
+    with NumpyRNGContext(0):
+        data = np.random.randint(
+            info.min,
+            info.max + 1,
+            size=shape,
+            dtype=dtype.lstrip("<>"),
+        ).astype(dtype)
+    data.ravel()[: sentinels.size] = sentinels
+    return data
+
+
+@pytest.mark.parametrize("dtype", INTEGER_DTYPES_FULL_RANGE)
+@pytest.mark.parametrize("compression_type", COMPRESSION_TYPES)
+def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
+    """Cross-check exact round-tripping of boundary-spanning integer data
+    between astropy and fitsio for every standard FITS integer dtype and
+    every compression algorithm that supports it."""
+    data = _full_range_integer_data(dtype)
+    np_dtype = np.dtype(dtype)
+    info = np.iinfo(dtype)
+    astropy_path = tmp_path / "astropy.fits"
+    hdu = fits.CompImageHDU(data=data, compression_type=compression_type)
+
+    # 64-bit integer data with full-range sentinels overflows the 32-bit
+    # conversion that RICE_1 and HCOMPRESS_1 fall back to. (PLIO_1 + i8 also
+    # lands here; PLIO_1 + u8 is caught by the unsigned-multi-byte rejection
+    # below.) For these combos cfitsio also rejects the input outright, so
+    # cross-check that fitsio raises too.
+    if (
+        compression_type in ("RICE_1", "HCOMPRESS_1")
+        and np_dtype.kind in ("i", "u")
+        and np_dtype.itemsize == 8
+    ) or (
+        compression_type == "PLIO_1" and np_dtype.kind == "i" and np_dtype.itemsize == 8
+    ):
+        with pytest.raises(
+            ValueError,
+            match=(
+                f"{compression_type} compression doesn't support 64 integers, "
+                "but data cannot be converted to 32 bits without overflow"
+            ),
+        ):
+            hdu.writeto(astropy_path)
+        if compression_type == "HCOMPRESS_1":
+            with pytest.raises(
+                OSError,
+                match=r"writing T(U)?LONGLONG to compressed image is not supported",
+            ):
+                with fitsio.FITS(tmp_path / "fitsio.fits", "rw") as fts:
+                    fts.write(data, compress=compression_type)
+        return
+
+    # PLIO_1 cannot encode unsigned multi-byte integers because the FITS
+    # BZERO=2**(N-1) offset astropy applies to unsigned data produces negative
+    # values that PLIO rejects. Astropy raises a clean ValueError for all
+    # unsigned itemsize >= 2; cfitsio raises only for itemsize >= 4 and
+    # segfaults on itemsize == 2 with full-range data, so the cross-check
+    # only runs for the 4/8-byte cases.
+    if compression_type == "PLIO_1" and np_dtype.kind == "u" and np_dtype.itemsize >= 2:
+        with pytest.raises(
+            ValueError,
+            match=r"PLIO_1 compression does not support unsigned integers",
+        ):
+            hdu.writeto(astropy_path)
+        if np_dtype.itemsize >= 4:
+            with pytest.raises(
+                ValueError,
+                match=r"Unsigned 4/8-byte integers currently not allowed",
+            ):
+                with fitsio.FITS(tmp_path / "fitsio.fits", "rw") as fts:
+                    fts.write(data, compress=compression_type)
+        return
+
+    # PLIO_1 also can't encode signed values outside [0, 2**24 - 1].
+    if compression_type == "PLIO_1" and (info.min < 0 or info.max > 2**24 - 1):
+        with pytest.raises(
+            ValueError,
+            match=r"data out of range for PLIO compression",
+        ):
+            hdu.writeto(astropy_path)
+        return
+
+    # 1. astropy writes a compressed file.
+    hdu.writeto(astropy_path)
+
+    # 2. astropy reads its own compressed file.
+    with fits.open(astropy_path) as hdul:
+        rt = hdul[1].data
+        assert rt.dtype.kind == np_dtype.kind
+        assert rt.dtype.itemsize == np_dtype.itemsize
+        np.testing.assert_array_equal(rt, data)
+
+    # fitsio doesn't support NOCOMPRESS, so the cross-checks stop here.
+    # cfitsio also refuses to read or write GZIP-compressed 64-bit integer
+    # images even though the FITS Tile Compression Convention permits them,
+    # so astropy's standard-compliant output cannot be cross-validated for
+    # those combinations.
+    if compression_type == "NOCOMPRESS" or (
+        compression_type in ("GZIP_1", "GZIP_2") and np_dtype.itemsize == 8
+    ):
+        return
+
+    # 3. fitsio reads astropy's compressed file.
+    with fitsio.FITS(astropy_path) as fts:
+        rt_fitsio = fts[1].read()
+        assert rt_fitsio.dtype.kind == np_dtype.kind
+        assert rt_fitsio.dtype.itemsize == np_dtype.itemsize
+        np.testing.assert_array_equal(rt_fitsio, data)
+
+    # 4. astropy reads a file fitsio compressed.
+    fitsio_path = tmp_path / "fitsio.fits"
+    with fitsio.FITS(fitsio_path, "rw") as fts:
+        fts.write(data, compress=compression_type)
+    with fits.open(fitsio_path) as hdul:
+        rt_astropy = hdul[1].data
+        assert rt_astropy.dtype.kind == np_dtype.kind
+        assert rt_astropy.dtype.itemsize == np_dtype.itemsize
+        np.testing.assert_array_equal(rt_astropy, data)
