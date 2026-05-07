@@ -11,6 +11,11 @@ import numpy as np
 from astropy.utils import lazyproperty
 from astropy.utils.compat import chararray, get_chararray
 
+from ._logical_helpers import (
+    _detect_legacy_logical_vla_heap,
+    _logical_to_fits_bytes,
+    _logical_vla_heap_has_null,
+)
 from .column import (
     _VLF,
     ASCII2NUMPY,
