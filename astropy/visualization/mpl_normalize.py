@@ -4,7 +4,7 @@ colorbars.
 """
 
 import inspect
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 from numpy import ma
@@ -30,9 +30,12 @@ from .stretch import (
 )
 
 if HAS_MATPLOTLIB:
+    # TODO: Substitute this import with a lazy one when Python 3.15 will be our min version.
     import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize
-    from matplotlib.image import AxesImage
+
+    if TYPE_CHECKING:
+        from matplotlib.image import AxesImage
 else:
 
     class Normalize:
