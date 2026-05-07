@@ -1579,18 +1579,8 @@ def download_file(
             # Success!
             break
 
-        except urllib.error.URLError as e:
-            # errno 8 is from SSL "EOF occurred in violation of protocol"
-            if (
-                hasattr(e, "reason")
-                and hasattr(e.reason, "errno")
-                and e.reason.errno == 8
-            ):
-                e.reason.strerror = f"{e.reason.strerror}. requested URL: {remote_url}"
-                e.reason.args = (e.reason.errno, e.reason.strerror)
-            errors[source_url] = e
-
-        except TimeoutError as e:
+        except (urllib.error.URLError, TimeoutError) as e:
+            e.add_note(f"requested URL: {remote_url}")
             errors[source_url] = e
 
     else:  # No success
