@@ -123,4 +123,3 @@ To use a position-velocity structured array with |PyERFA|::
   >>> erfa.pvxpv(pv, z_axis)
   <Quantity [([ 0., -1.,  0.], [0.125, 0.   , 0.   ]),
              ([ 1.,  0.,  0.], [0.   , 0.125, 0.   ])] (AU, AU / d)>
-

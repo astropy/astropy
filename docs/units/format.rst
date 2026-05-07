@@ -394,4 +394,3 @@ unit or composing with other units, will fail.
      ...
    ValueError: The unit 'Angstroem' is unrecognized, so all arithmetic
    operations with it are invalid.
-

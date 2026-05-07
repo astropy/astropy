@@ -703,4 +703,3 @@ equivalencies, so you could add, for example,
 :func:`~astropy.units.spectral` and
 :func:`~astropy.units.spectral_density` (since these return
 lists, they should indeed be combined by adding them together).
-

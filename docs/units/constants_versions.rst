@@ -34,4 +34,3 @@ To initialize units to a prior version of constants:
 
 If :mod:`astropy.units` has already been imported, a :class:`RuntimeError` is
 raised.
-

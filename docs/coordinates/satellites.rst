@@ -126,4 +126,3 @@ so if you want to carry the velocity to the topocentric frame, you can do so as 
     >>> topo_itrs_p = itrs_geo_p - siding_spring.get_itrs(t).cartesian
     >>> topo_itrs_repr = topo_itrs_p.with_differentials(itrs_geo_v)
     >>> itrs_topo = ITRS(topo_itrs_repr, obstime = t, location=siding_spring)
-

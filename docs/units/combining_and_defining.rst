@@ -118,4 +118,3 @@ Now, the prefixed units can be parsed etc::
 .. testcleanup::
 
     >>> u.core._unit_registries.pop()  # doctest: +IGNORE_OUTPUT
-

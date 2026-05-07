@@ -139,4 +139,3 @@ units exists, it will be put sorted to the front::
    [Unit("10000 St"), Unit("10000 cm2 / s")]
    >>> unit.to_system(u.cgs)
    [Unit("10000 cm2 / s"), Unit("10000 St")]
-

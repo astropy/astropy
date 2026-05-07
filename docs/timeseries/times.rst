@@ -111,4 +111,3 @@ using::
 
     >>> ts_rel.time.to('second')
     <Quantity [ 0.,  3.,  6.,  9., 12.] s>
-

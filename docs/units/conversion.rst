@@ -69,4 +69,3 @@ You can check whether a particular conversion is possible using the
   False
   >>> (u.m ** 3).is_equivalent(u.l)
   True
-

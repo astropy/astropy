@@ -94,4 +94,3 @@ unit or between a |PhysicalType| and a string with a name of a
   PhysicalType({'diffusivity', 'kinematic viscosity'})
   >>> length / 'time'
   PhysicalType({'speed', 'velocity'})
-

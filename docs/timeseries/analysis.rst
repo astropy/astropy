@@ -285,4 +285,3 @@ sigma-clipped median value.
     fig, ax = plt.subplots()
     ax.plot(kepler_folded.time.jd, kepler_folded['sap_flux_norm'], 'k.', markersize=1)
     ax.set(xlabel='Time from midpoint epoch (days)', ylabel='Normalized flux')
-

@@ -231,4 +231,3 @@ Now the registered functions can be used in |Cosmology.read| and
     ...     readwrite_registry.get_reader("json", Cosmology)
     ... except IORegistryError:
     ...     pass
-

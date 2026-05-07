@@ -1308,4 +1308,3 @@ The example below illustrates finding the difference between two tables::
     b>  NEW 2018-05-08   nan   9.0
   >>> identical
   False
-

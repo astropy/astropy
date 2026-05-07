@@ -53,4 +53,3 @@ and operate on columns to ignore the masked entries::
     np.float64(1.0)
     >>> np.ma.median(ts['flux'])
     np.float64(4.0)
-

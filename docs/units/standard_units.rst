@@ -278,4 +278,3 @@ To enable only specific units, use :func:`~astropy.units.add_enabled_units`::
     ...     print(u.m.find_equivalent_units())
           Primary name | Unit definition | Aliases
     ...
-

@@ -1014,4 +1014,3 @@ The examples below illustrate dealing with bytestring data in ``astropy``::
     ------
         bä
        def
-

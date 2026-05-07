@@ -285,4 +285,3 @@ method takes a dictionary where the keys are column names::
 
 If you want to be able to skip some values when adding rows, you should make
 sure that masking is enabled — see :ref:`timeseries-masking` for more details.
-
