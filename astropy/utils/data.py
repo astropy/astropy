@@ -1058,6 +1058,7 @@ def get_pkg_data_path(*path, package=None):
                     f"use astropy.utils.iers.{_IERS_DATA_REDIRECTS[filename][0]} "
                     "instead.",
                     AstropyDeprecationWarning,
+                    stacklevel=2,
                 )
                 return _IERS_DATA_REDIRECTS[filename][1]
 
@@ -1269,7 +1270,7 @@ def _try_url_open(
                 raise urllib.error.URLError(msg)
             else:
                 msg += ". Re-trying with allow_insecure=True."
-                warn(msg, AstropyWarning)
+                warn(msg, AstropyWarning, stacklevel=2)
                 # Try again with a new urlopener allowing insecure connections
                 urlopener = _build_urlopener(
                     ftp_tls=ftp_tls, ssl_context=ssl_context, allow_insecure=True
@@ -1607,7 +1608,7 @@ def download_file(
         # FIXME: other kinds of cache problem can occur?
 
     if missing_cache:
-        warn(CacheMissingWarning(missing_cache, f_name))
+        warn(CacheMissingWarning(missing_cache, f_name), stacklevel=2)
     if conf.delete_temporary_downloads_at_exit:
         _tempfilestodel.append(f_name)
     return os.path.abspath(f_name)
@@ -1760,6 +1761,7 @@ def download_files_in_parallel(
             'it will be set to ``"update"``. You may need to manually remove '
             "the cached files with clear_download_cache() afterwards.",
             AstropyWarning,
+            stacklevel=2,
         )
         cache = "update"
 
@@ -1852,7 +1854,7 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
         # Just a warning, though
         msg = "Not clearing data cache - cache inaccessible due to "
         estr = "" if len(e.args) < 1 else (": " + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr), stacklevel=2)
         return
     try:
         if hashorurl is None:
@@ -1888,7 +1890,7 @@ def clear_download_cache(hashorurl=None, pkgname="astropy"):
     except OSError as e:
         msg = "Not clearing data from cache - problem arose "
         estr = "" if len(e.args) < 1 else (": " + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr), stacklevel=2)
 
 
 def _get_download_cache_loc(pkgname: str = "astropy") -> Path:
@@ -1922,7 +1924,7 @@ def _get_download_cache_loc(pkgname: str = "astropy") -> Path:
     except OSError as e:
         msg = "Remote data cache could not be accessed due to "
         estr = "" if len(e.args) < 1 else (": " + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr))
+        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr), stacklevel=2)
         raise
 
 
@@ -2060,12 +2062,13 @@ def _rmtree(path, replace=None):
                     f"Unable to remove directory {path} because a file in it "
                     "is in use and you are on Windows",
                     path,
-                )
+                ),
+                stacklevel=2,
             )
             raise
         except OSError as e:
             if e.errno == errno.EXDEV:
-                warn(e.strerror, AstropyWarning)
+                warn(e.strerror or "", AstropyWarning, stacklevel=2)
                 shutil.move(path, os.path.join(d, "to-zap"))
             else:
                 raise
@@ -2081,7 +2084,7 @@ def _rmtree(path, replace=None):
                     # already there, fine
                     pass
                 elif e.errno == errno.EXDEV:
-                    warn(e.strerror, AstropyWarning)
+                    warn(e.strerror or "", AstropyWarning, stacklevel=2)
                     shutil.move(replace, path)
                 else:
                     raise
