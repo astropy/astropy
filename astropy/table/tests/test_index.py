@@ -912,8 +912,17 @@ def test_indices_roundtrip_various_dtypes(dtype):
 
 @pytest.mark.parametrize("single_index", [True, False])
 @pytest.mark.parametrize("engine", [SortedArray, SCEngine])
-@pytest.mark.parametrize("fmt", ["fits", "ecsv", "hdf5"])
-def test_indices_roundtrip_through_file(single_index, fmt, engine, tmp_path):
+@pytest.mark.parametrize(
+    "fmt, read_kwargs, write_kwargs",
+    [
+        pytest.param("ecsv", {}, {}, id="ecsv"),
+        pytest.param("fits", {}, {"astropy_native": True}, id="fits"),
+        pytest.param("hdf5", {"serialize_meta": True, "path": "root"}, {}, id="hdf5"),
+    ],
+)
+def test_indices_roundtrip_through_file(
+    single_index, fmt, read_kwargs, write_kwargs, engine, tmp_path
+):
     if single_index and fmt != "ecsv":
         # Save a few compute cycles, since single_index is really impacting just the
         # serialization data and the engine and fmt don't matter.
@@ -939,11 +948,9 @@ def test_indices_roundtrip_through_file(single_index, fmt, engine, tmp_path):
         t.add_index(colnames, engine=engine)
 
     path = tmp_path / f"out.{fmt}"
-    kwargs = {"serialize_meta": True, "path": "root"} if fmt == "hdf5" else {}
-    t.write(path, format=fmt, write_indices=True, **kwargs)
+    t.write(path, format=fmt, write_indices=True, **read_kwargs)
 
-    kwargs = {"astropy_native": True} if fmt == "fits" else {}
-    t2 = QTable.read(path, format=fmt, **kwargs)
+    t2 = QTable.read(path, format=fmt, **write_kwargs)
     if fmt == "fits":
         # FITS does not round-trip the format
         t2["a"].format = "cxcsec"
