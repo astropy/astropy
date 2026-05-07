@@ -1,8 +1,9 @@
+from importlib.metadata import PackageNotFoundError, version as md_version
 from packaging.version import Version
 
 try:
-    from ._version import version
-except ImportError:
+    version = md_version(__name__.split(".")[0])
+except PackageNotFoundError:
     import warnings
 
     warnings.warn(
