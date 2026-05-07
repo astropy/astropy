@@ -38,7 +38,10 @@ def _expand(*params):
 
 ALL_INTEGER_DTYPES = [
     "".join(ele)
-    for ele in _expand([("<", ">"), ("i",), ("2", "4")], [("<", ">"), ("u",), ("1",)])
+    for ele in _expand(
+        [("<", ">"), ("i",), ("2", "4")],
+        [("<", ">"), ("u",), ("1", "2", "4")],
+    )
 ]
 ALL_FLOAT_DTYPES = ["".join(ele) for ele in _expand([("<", ">"), ("f",), ("4", "8")])]
 
