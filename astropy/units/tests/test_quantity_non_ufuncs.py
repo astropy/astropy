@@ -120,8 +120,8 @@ class TestShapeManipulation(InvariantUnitTestSetup):
     def test_moveaxis(self):
         self.check(np.moveaxis, 0, 1)
 
-    def test_rollaxis(self):
-        self.check(np.rollaxis, 0, 2)
+    def test_moveaxis_rollaxis_compat(self):
+        self.check(np.moveaxis, 0, 2)
 
     def test_swapaxes(self):
         self.check(np.swapaxes, 0, 1)
