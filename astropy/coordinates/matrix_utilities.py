@@ -216,7 +216,7 @@ def is_rotation(matrix, allow_improper=False, atol=None):
 
     See Also
     --------
-    astopy.coordinates.matrix_utilities.is_O3 :
+    astropy.coordinates.matrix_utilities.is_O3 :
         For the less restrictive check that a matrix is in the group O(3).
 
     Notes
