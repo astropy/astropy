@@ -358,12 +358,12 @@ def test_ephemeris_non_existing_url(monkeypatch):
         raise HTTPError(code=404, msg="Not Found", fp=None, hdrs=None, url="")
 
     monkeypatch.setattr("urllib.request.OpenerDirector.open", request_invalid_url)
-    with pytest.raises(HTTPError, match="^HTTP Error 404: Not Found$"):
-        get_body(
-            "earth",
-            time=Time("1960-01-12 00:00"),
-            ephemeris="https://www.astropy.org/path/to/nonexisting/file.bsp",
-        )
+    url = "https://www.astropy.org/path/to/nonexisting/file.bsp"
+    with pytest.raises(
+        HTTPError,
+        match=f"^HTTP Error 404: Not Found\nrequested URL: {url}$",
+    ):
+        get_body("earth", time=Time("1960-01-12 00:00"), ephemeris=url)
 
 
 @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
@@ -372,7 +372,10 @@ def test_ephemeris_non_existing_url(monkeypatch):
     [
         pytest.param(
             "de001",
-            pytest.raises(HTTPError, match="^HTTP Error 404: Not Found$"),
+            pytest.raises(
+                HTTPError,
+                match="^HTTP Error 404: Not Found\nrequested URL: https://",
+            ),
             marks=pytest.mark.remote_data,
             id="non_existing_JPL_ephemeris_version",
         ),

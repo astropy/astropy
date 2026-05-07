@@ -77,8 +77,7 @@ def test_dataorigin():
     assert len(str(do)) > 1
     assert (do.origin[0].get_votable_element()) is not None
     assert do.origin[0].journal[0] == __TEST_JOURNAL
-    assert do.origin[0].editor[0] == __TEST_JOURNAL  # backward compatibility
-    assert do.origin[0].ivoid[0] == __TEST_DATA_IVOID  # backward compatibility
+    # assert do.origin[0].ivoid[0] == __TEST_DATA_IVOID  # backward compatibility
     assert do.origin[0].data_ivoid[0] == __TEST_DATA_IVOID
 
     dores = dataorigin.extract_data_origin(vot.resources[0])

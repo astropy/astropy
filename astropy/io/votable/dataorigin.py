@@ -198,6 +198,9 @@ class DatasetOrigin:
 
     _INFO_MAPPING = ("editor", "ivoid")  # obsolete INFO
 
+    ivoid = deprecated_attribute(name="ivoid", alternative="data_ivoid", since="8.0")
+    editor = deprecated_attribute(name="editor", alternative="journal", since="8.0")
+
     def __init__(self, votable_element: astropy.io.votable.tree.Element = None):
         """
         Constructor
@@ -221,34 +224,8 @@ class DatasetOrigin:
         self.last_update_date = None
         self.__vo_elt = votable_element
         self.infos = []
-        self.ivoid = deprecated_attribute(
-            name="ivoid", alternative="data_ivoid", since="8.0"
-        )
-        self.editor = deprecated_attribute(
-            name="editor", alternative="journal", since="8.0"
-        )
         self.data_ivoid = None
         self.journal = None
-
-    @property
-    def ivoid(self) -> list:
-        """Compatibility with previous version"""
-        return self.data_ivoid
-
-    @ivoid.setter
-    def ivoid(self, value: list):
-        """Compatibility with previous version"""
-        self.data_ivoid = value
-
-    @property
-    def editor(self) -> list:
-        """Compatibility with previous version"""
-        return self.journal
-
-    @editor.setter
-    def editor(self, value: list):
-        """Compatibility with previous version"""
-        self.journal = value
 
     def get_votable_element(self) -> astropy.io.votable.tree.Element:
         """
@@ -340,7 +317,7 @@ class DataOrigin:
                 if info_name == dataset_info:
                     dataset_origin.infos.append(info)
                     att = getattr(dataset_origin, dataset_info)
-                    if att is None:  # or isinstance(att, property):
+                    if att is None:
                         setattr(dataset_origin, dataset_info, [info.value])
                     else:
                         att.append(info.value)
