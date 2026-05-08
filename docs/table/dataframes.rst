@@ -144,6 +144,13 @@ The pandas-specific methods provide full support for DataFrame indexing, which i
     >>> t_back.colnames
     ['tm', 'x']
 
+Pandas Excel Support
+--------------------
+
+Read an Excel file into a table by utilizing the pandas backend::
+
+    >>> t = Table.from_pandas(pandas.read_excel("myexceltable.xlsx"))
+
 When to Use Which Method
 ========================
 
@@ -185,7 +192,7 @@ Tables with :ref:`mixin_columns` such as `~astropy.time.Time`, `~astropy.coordin
 * **Quantity columns**: Converted to plain numeric columns with complete loss of unit information
 
 Complex Example with Both Methods
-==================================
+=================================
 
 .. EXAMPLE START: Complex DataFrame Conversion Example
 
