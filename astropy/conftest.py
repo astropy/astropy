@@ -105,14 +105,14 @@ def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
 
 @pytest.fixture(scope="session", autouse=True)
 def _session_level_cache_dir(tmp_path_factory):
-    tmp_path = tmp_path_factory.mktemp("cache_")
-    os.environ["ASTROPY_CACHE_DIR"] = str(tmp_path)
+    os.environ["ASTROPY_CACHE_DIR"] = str(tmp_path_factory.mktemp("astropy_cache_"))
+    os.environ["XDG_CACHE_HOME"] = str(tmp_path_factory.mktemp("xdg_cache_"))
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _session_level_config_dir(tmp_path_factory):
-    tmp_path = tmp_path_factory.mktemp("config_")
-    os.environ["ASTROPY_CONFIG_DIR"] = str(tmp_path)
+    os.environ["ASTROPY_CONFIG_DIR"] = str(tmp_path_factory.mktemp("astropy_config_"))
+    os.environ["XDG_CONFIG_HOME"] = str(tmp_path_factory.mktemp("xdg_config_"))
 
 
 def pytest_configure(config):
