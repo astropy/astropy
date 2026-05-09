@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
 
-import itertools
 import operator
 import pickle
 from contextlib import nullcontext
@@ -583,10 +582,10 @@ def test_compose_no_duplicates():
     assert len(composed) == 1
 
 
-@pytest.mark.parametrize(
-    "dtype", tuple(map("".join, itertools.product("<>", "if", "48")))
-)
-def test_endian_independence(dtype):
+@pytest.mark.parametrize("endian", ["<", ">"])
+@pytest.mark.parametrize("kind", ["i", "f"])
+@pytest.mark.parametrize("size", ["4", "8"])
+def test_endian_independence(endian, kind, size):
     """
     Regression test for #744
 
@@ -594,6 +593,7 @@ def test_endian_independence(dtype):
     converted because the dtype is '>f4', not 'float32', and the code was
     looking for the strings 'float' or 'int'.
     """
+    dtype = endian + kind + size
     x = np.array([1, 2, 3], dtype=dtype)
     assert u.m.to(u.cm, x).tolist() == [100.0, 200.0, 300.0]
 
