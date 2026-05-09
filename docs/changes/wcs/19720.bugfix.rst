@@ -1,0 +1,3 @@
+The issue occurs in multiple locations in `pyutil.c` and `wcslib_wrap.c`, where the error-handling block erroneously calls `Py_DECREF` on an item whose reference has already been stolen and decremented by the failed `PyList_SetItem` call.
+
+Fixed a bug where a reference to an item is incorrectly decremented after a failed `PyList_SetItem` call, causing a potential use-after-free or double-decrement crash because `PyList_SetItem` always steals the reference even on failure.
