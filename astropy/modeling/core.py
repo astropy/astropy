@@ -20,6 +20,7 @@ import functools
 import inspect
 import operator
 from collections import defaultdict, deque
+from collections.abc import Mapping
 from inspect import signature
 from textwrap import indent
 
@@ -556,28 +557,40 @@ class Model(metaclass=_ModelMeta):
         sets. Also, ``model_set_axis=False`` can be used to tell that a given
         input should be used to evaluate all the models in the model set.
 
-    fixed : dict, optional
+    fixed : dict or sequence, optional
         Dictionary ``{parameter_name: bool}`` setting the fixed constraint
         for one or more parameters.  `True` means the parameter is held fixed
         during fitting and is prevented from updates once an instance of the
         model has been created.
 
+        A sequence (e.g. tuple or list) of length ``len(param_names)`` may
+        also be passed, in which case values are assigned to parameters in the
+        order of `param_names`.
+
         Alternatively the `~astropy.modeling.Parameter.fixed` property of a
         parameter may be used to lock or unlock individual parameters.
 
-    tied : dict, optional
+    tied : dict or sequence, optional
         Dictionary ``{parameter_name: callable}`` of parameters which are
         linked to some other parameter. The dictionary values are callables
         providing the linking relationship.
+
+        A sequence (e.g. tuple or list) of length ``len(param_names)`` may
+        also be passed, in which case values are assigned to parameters in the
+        order of `param_names`.
 
         Alternatively the `~astropy.modeling.Parameter.tied` property of a
         parameter may be used to set the ``tied`` constraint on individual
         parameters.
 
-    bounds : dict, optional
+    bounds : dict or sequence, optional
         A dictionary ``{parameter_name: value}`` of lower and upper bounds of
         parameters. Keys are parameter names. Values are a list or a tuple
         of length 2 giving the desired range for the parameter.
+
+        A sequence (e.g. tuple or list) of length ``len(param_names)`` may
+        also be passed, in which case values are assigned to parameters in the
+        order of `param_names`.
 
         Alternatively the `~astropy.modeling.Parameter.min` and
         `~astropy.modeling.Parameter.max` or
@@ -627,6 +640,14 @@ class Model(metaclass=_ModelMeta):
     >>> g1.stddev.fixed
     False
     >>> g1.stddev.fixed = True
+    >>> g1.stddev.fixed
+    True
+
+    Constraints may also be given as a sequence in the order of
+    `param_names`:
+
+    >>> g1 = models.Gaussian1D(amplitude=10, mean=5, stddev=.3,
+    ...                        fixed=(False, False, True))
     >>> g1.stddev.fixed
     True
     """
@@ -2486,6 +2507,16 @@ class Model(metaclass=_ModelMeta):
         # Pop any constraints off the keyword arguments
         for constraint in self.parameter_constraints:
             values = kwargs.pop(constraint, {})
+            if not isinstance(values, Mapping):
+                # Sequence form: values are positional, in param_names order.
+                values = list(values)
+                if len(values) != len(self.param_names):
+                    raise ValueError(
+                        f"{constraint!r} sequence has length {len(values)} "
+                        f"but the model has {len(self.param_names)} "
+                        f"parameters"
+                    )
+                values = dict(zip(self.param_names, values))
             for ckey, cvalue in values.items():
                 param = getattr(self, ckey)
                 setattr(param, constraint, cvalue)
