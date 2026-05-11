@@ -735,7 +735,6 @@ get_pscards(
     }
 
     if (PyList_SetItem(result, i, subresult)) {
-      Py_DECREF(subresult);
       Py_DECREF(result);
       return NULL;
     }
@@ -846,7 +845,6 @@ get_pvcards(
     }
 
     if (PyList_SetItem(result, i, subresult)) {
-      Py_DECREF(subresult);
       Py_DECREF(result);
       return NULL;
     }
