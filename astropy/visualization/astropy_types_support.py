@@ -3,6 +3,8 @@ from contextlib import ExitStack, contextmanager
 from astropy.visualization.time import time_support
 from astropy.visualization.units import quantity_support
 
+__all__ = ["astropy_types_support"]
+
 
 @contextmanager
 def astropy_types_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
