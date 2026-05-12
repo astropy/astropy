@@ -18,24 +18,29 @@ def astropy_types_support(*, quantity_support_kwargs=None, time_support_kwargs=N
     .. plot::
         :include-source:
 
-        import matplotlib.pyplot as plt
+        from matplotlib.backends.backend_agg import FigureCanvasAgg
+        from matplotlib.figure import Figure
         import astropy.units as u
         from astropy.time import Time
         from astropy.visualization.astropy_types_support import astropy_types_support
 
         @astropy_types_support()
         def plot_example():
-            plt.figure()
-            plt.plot([1, 2, 3] * u.m)
-            plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
-            plt.draw()
-            plt.show()
+            fig = Figure()
+            canvas = FigureCanvasAgg(fig)
+            ax = fig.add_subplot()
+            times = Time(["2000-01-01", "2000-01-02", "2000-01-03"])
+            ax.plot([1, 2, 3] * u.m, times)
+            canvas.draw()
+            return fig
 
         with astropy_types_support():  # doctest: +IGNORE_OUTPUT
-            plt.figure()
-            plt.plot([1, 2, 3] * u.m)
-            plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)
-            plt.draw()
+            fig = Figure()
+            canvas = FigureCanvasAgg(fig)
+            ax = fig.add_subplot()
+            times = Time(["2000-01-01", "2000-01-02", "2000-01-03"])
+            ax.plot([1, 2, 3] * u.m, times)
+            canvas.draw()
 
     """
     with ExitStack() as stack:

@@ -1332,7 +1332,9 @@ def test_astropy_types_support():
     end_time = start_time + TimeDelta(2 / 24, format="jd")
 
     with astropy_types_support():
-        fig, ax = plt.subplots()
+        fig = Figure()
+        canvas = FigureCanvasAgg(fig)
+        ax = fig.add_subplot()
 
         ax.plot(x_meters, y_seconds, label="Meters vs. Seconds")
         ax.plot(x_kilometers, y_seconds, label="Kilometers vs. Seconds")
@@ -1342,6 +1344,7 @@ def test_astropy_types_support():
         ax.set_xlabel("Distance (m)")
         ax.set_ylabel("Time")
         ax.legend()
+        canvas.draw()
         return fig
 
 
