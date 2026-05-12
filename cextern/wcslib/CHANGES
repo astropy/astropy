@@ -1,3 +1,127 @@
+WCSLIB version 8.7 (2026/05/11)
+-------------------------------
+
+The changes in this release were prompted almost exclusively by
+Anthropic's Claude Code AI static code analysis tool.  Rob Seaman ran
+it on WCSLIB 8.7 and, under his supervision, Claude produced a detailed
+report of WCSLIB's shortcomings and a summary of its historical
+development.
+
+In addition to its own analysis, Claude Code relied heavily on three
+other static code analysis tools: scan-build and clang-tidy from LLVM
+22.1.2, and cppcheck 2.20.0.  In fact, clang-tidy made the majority of
+change suggestions, which prompted me to install a slightly older
+version, LLVM 20.1.2, and run it myself.  Curiously, scan-build, which
+is said to be the most thorough, produced a clean result.  cppcheck
+found a few issues that were missed by the others.
+
+Claude Code did a pretty good job of summarising the often tediously
+nit-picky output of the static analysers, and also in constructing a
+history of WCSLIB's code development.
+
+This exercise resulted in the changes to the C library detailed below.
+Mostly they could be described as armour-plating, if not gold-plating.
+However, there was one bug and several instances of potential memory-
+related issues, mostly in seldom-taken paths through the code such as
+error processing.
+
+* C library
+
+  - In wcshdo_util(), a static helper function for wcshdo(), fixed a
+    bug that would have caused the keycomment to be truncated to a
+    single character when keyvalues exceeded 20 characters.
+
+  - Fixed various memory-related issues, such as potential memory leaks
+    on error return, potentially dereferencing null pointers, incorrect
+    handling of failed calls to realloc(), etc. in wcsprt(), wcssub(),
+    wcstrim(), wcspcx(), disset(), discpy(), diswarp(), and various of
+    the static distortions helper functions.
+
+    In wcsprintf(), call va_end() if memory allocation fails in order
+    to release the memory allocated by va_start()
+
+    In wcserr_clear(), ensure that errp is non-NULL before dereferencing
+    it.
+
+    In tabini(), check that the total number of elements in the
+    coordinate array does not exceed INT_MAX.
+
+  - In prj.c and sph.c, removed the hand-coded copysign() macro, which
+    is now provided by C99.
+
+  - In wcsinit(), lininit(), and disinit(), check that the value
+    provided for naxis is not too large.  Negative values also now
+    return WCSERR_BAD_PARAM rather than WCSERR_MEMORY.
+
+    In conjunction with the above, global variables that record various
+    limits are now declared in a new header file, wcslimits.h.  Their
+    values are set in wcs.c, including a limit of 31 for NAXIS and also
+    the default limits for the number of PVi_ma, PSi_ma, DPja, and DQia
+    keywords, which may be changed.
+
+    In cylfix(), use the maximum value of NAXIS from wcslimits.h.
+
+  - Throughout the C library, replaced use of strcpy() (200 occurrences)
+    and strcat() (23 occurrences) with strncpy(), and sprintf() (202
+    occurrences) with snprintf().  These mostly related to in-memory
+    copying of string constants, etc., which are inherently well-
+    constrained.
+
+    Likewise, in wcsprintf() and wcsfprintf(), replaced use of
+    vsprintf() with vsnprintf().
+
+    Likewise for the test suite.
+
+  - In wcsmath.h, parenthesised three macro definitions to ensure the
+    correct order of precedence when used in arithmetic expressions.
+
+  - Addressed, by way of appeasement, a plethora of inconsequential
+    warnings from clang-tidy relating to putative "bug-prone"
+    constructs, none of which were bugs, in the following categories:
+     - bugprone-branch-clone
+     - bugprone-implicit-widening-of-multiplication-result
+     - bugprone-integer-division
+     - bugprone-multi-level-implicit-pointer-conversion
+     - bugprone-narrowing-conversions
+     - bugprone-not-null-terminated-result
+     - bugprone-suspicious-string-compare
+     - bugprone-switch-missing-default-case
+    The following categories were disabled:
+     - bugprone-assignment-in-if-condition  [I drew the line here!]
+     - bugprone-easily-swappable-parameters [can't change API!]
+     - bugprone-reserved-identifier         [only in sundazel]
+
+  - In the test suite, replaced the remaining heritage K&R-style
+    variable declarations with intermingled ANSI-style.  Likewise for
+    the last few surviving K&R-style function prototypes.
+
+* Fortran wrappers
+
+  - Replaced a single use of sprintf(), in keyget_(), with snprintf().
+
+* PGSBOX
+
+  - In cpgsbox() and cpglbox(), replaced use of strcpy() with strncpy(),
+    and sprintf() with snprintf().
+
+    Likewise for test program cpgtest.
+
+* Utilities
+
+  - Replaced use of strcpy() with strncpy(), and sprintf() with
+    snprintf().
+
+* Installation
+
+  - Added rules to invoke clang-tidy (for code development).
+
+* User manual
+
+  - Documentation generation moved to Doxygen 1.17.0 (was 1.15.0).
+    While the Doxygen bug reported in version 8.5 has now been fixed,
+    the makefile patch has been left in place for the time being.
+
+
 WCSLIB version 8.6 (2026/03/30)
 -------------------------------
 
@@ -12,7 +136,7 @@ WCSLIB version 8.6 (2026/03/30)
     is not defined outside the frame.  Previously this was important for
     determining axis crossings and hence axis labelling.  However, it is
     not valid for -TAB coordinates in FITS for which extrapolation is
-    strictly limited to half a pixel.  
+    strictly limited to half a pixel.
 
 * User manual
 
@@ -3647,4 +3771,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.6 2026/03/29 13:53:57 mcalabre Exp $
+$Id: CHANGES,v 8.7 2026/05/11 12:01:11 mcalabre Exp $

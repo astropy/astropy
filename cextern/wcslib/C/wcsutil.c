@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,13 +19,14 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsutil.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcsutil.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
 #include <locale.h>
 #include <math.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -47,14 +48,12 @@ void wcsdealloc(void *ptr)
 void wcsutil_strcvt(int n, char c, int nt, const char src[], char dst[])
 
 {
-  if (n <= 0) return;
+  if (n <= 0 || dst == 0x0) return;
 
   if (c != '\0') c = ' ';
 
   if (src == 0x0) {
-    if (dst) {
-      memset(dst, c, n);
-    }
+    memset(dst, c, n);
 
   } else {
     // Copy to the first NULL character.
@@ -186,7 +185,7 @@ int wcsutil_all_sval(int nelem, const char *sval, const char (*sarr)[72])
 
 {
   for (int i = 0; i < nelem; i++) {
-    if (strncmp(sarr[i], sval, 72)) return 0;
+    if (strncmp(sarr[i], sval, 72) != 0) return 0;
   }
 
   return 1;
@@ -200,7 +199,8 @@ int wcsutil_allEq(int nvec, int nelem, const double *first)
   if (nvec <= 0 || nelem <= 0) return 0;
 
   double v0 = *first;
-  for (const double *vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
+  const double *last = first + (ptrdiff_t)(nvec*nelem);
+  for (const double *vp = first+nelem; vp < last; vp += nelem) {
     if (*vp != v0) return 0;
   }
 
@@ -285,7 +285,7 @@ int wcsutil_strEq(int nelem, char (*sarr1)[72], char (*sarr2)[72])
     char *sval1 = (sarr1 ?  sarr1[i] : "");
     char *sval2 = (sarr2 ?  sarr2[i] : "");
 
-    if (strncmp(sval1, sval2, 72)) return 0;
+    if (strncmp(sval1, sval2, 72) != 0) return 0;
   }
 
   return 1;
@@ -299,7 +299,8 @@ void wcsutil_setAll(int nvec, int nelem, double *first)
   if (nvec <= 0 || nelem <= 0) return;
 
   double v0 = *first;
-  for (double *vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
+  double *last = first + (ptrdiff_t)(nvec*nelem);
+  for (double *vp = first+nelem; vp < last; vp += nelem) {
     *vp = v0;
   }
 }
@@ -312,7 +313,8 @@ void wcsutil_setAli(int nvec, int nelem, int *first)
   if (nvec <= 0 || nelem <= 0) return;
 
   int v0 = *first;
-  for (int *vp = first+nelem; vp < first + nvec*nelem; vp += nelem) {
+  int *last = first + (ptrdiff_t)(nvec*nelem);
+  for (int *vp = first+nelem; vp < last; vp += nelem) {
     *vp = v0;
   }
 }
@@ -354,18 +356,19 @@ char *wcsutil_fptr2str(void (*fptr)(void), char hext[19])
     le = -1;
   }
 
-  char *t = hext;
-  sprintf(t, "0x0");
-  t += 2;
+  strncpy(hext, "0x0", 4);
 
   int gotone = 0;
+  size_t tsize = 17;
+  char *tp = hext + 2;
   for (size_t i = 0; i < sizeof(fptr); i++) {
     // Skip leading zeroes.
     if (*p) gotone = 1;
 
     if (gotone) {
-      sprintf(t, "%02x", *p);
-      t += 2;
+      snprintf(tp, tsize, "%02x", *p);
+      tp += 2;
+      tsize -= 2;
     }
 
     p += le;
@@ -401,10 +404,14 @@ static void wcsutil_locale_to_dot(char *buf)
 }
 
 
-void wcsutil_double2str(char *buf, const char *format, double value)
+void wcsutil_double2str(
+  char *buf,
+  size_t bsize,
+  const char *format,
+  double value)
 
 {
-  sprintf(buf, format, value);
+  snprintf(buf, bsize, format, value);
   wcsutil_locale_to_dot(buf);
 
   // Look for a decimal point or exponent.
@@ -488,7 +495,7 @@ int wcsutil_str2double2(const char *buf, double *value)
   value[0] = floor(value[0]);
 
   char ctmp[72];
-  strcpy(ctmp, buf);
+  strncpy(ctmp, buf, 72);
 
   // Look for a decimal point.
   char *dptr = strchr(ctmp, '.');

@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsutil.h,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcsutil.h,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -421,6 +421,8 @@
 *   buf       char *    The buffer to write the string into.
 *
 * Given:
+*   size      size_t    Length of buf.
+*
 *   format    char *    The formatting directive, such as "%f".  This
 *                       may be any of the forms accepted by sprintf(), but
 *                       should only include a formatting directive and
@@ -490,7 +492,8 @@ void wcsutil_setAll(int nvec, int nelem, double *first);
 void wcsutil_setAli(int nvec, int nelem, int *first);
 void wcsutil_setBit(int nelem, const int *sel, int bits, int *array);
 char *wcsutil_fptr2str(void (*fptr)(void), char hext[19]);
-void wcsutil_double2str(char *buf, const char *format, double value);
+void wcsutil_double2str(char *buf, size_t bsize, const char *format,
+                        double value);
 int  wcsutil_str2double(const char *buf, double *value);
 int  wcsutil_str2double2(const char *buf, double *value);
 

@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: prj.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: prj.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -109,8 +109,6 @@ static const int XPH = 802;
     "One or more of the (lat, lng) coordinates were invalid for " \
     "%s projection", prj->name);
 
-#define copysign(X, Y) ((Y) < 0.0 ? -fabs(X) : fabs(X))
-
 
 /*============================================================================
 * Generic routines:
@@ -143,7 +141,7 @@ int prjini(struct prjprm *prj)
 {
   if (prj == 0x0) return PRJERR_NULL_POINTER;
 
-  strcpy(prj->code, "   ");
+  strncpy(prj->code, "   ", 4);
   prj->pv[0]  = 0.0;
   prj->pv[1]  = UNDEFINED;
   prj->pv[2]  = UNDEFINED;
@@ -154,7 +152,7 @@ int prjini(struct prjprm *prj)
   prj->theta0 = UNDEFINED;
   prj->bounds = 7;
 
-  strcpy(prj->name, "undefined");
+  strncpy(prj->name, "undefined", 40);
   for (int k = 9; k < 40; prj->name[k++] = '\0');
   prj->category  = 0;
   prj->pvrange   = 0;
@@ -608,13 +606,13 @@ int azpset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -AZP) return 0;
 
-  strcpy(prj->code, "AZP");
+  strncpy(prj->code, "AZP", 4);
 
   if (undefined(prj->pv[1])) prj->pv[1] = 0.0;
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "zenithal/azimuthal perspective");
+  strncpy(prj->name, "zenithal/azimuthal perspective", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 102;
   prj->simplezen = prj->pv[2] == 0.0;
@@ -929,14 +927,14 @@ int szpset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -SZP) return 0;
 
-  strcpy(prj->code, "SZP");
+  strncpy(prj->code, "SZP", 4);
 
   if (undefined(prj->pv[1])) prj->pv[1] =  0.0;
   if (undefined(prj->pv[2])) prj->pv[2] =  0.0;
   if (undefined(prj->pv[3])) prj->pv[3] = 90.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "slant zenithal perspective");
+  strncpy(prj->name, "slant zenithal perspective", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 103;
   prj->simplezen = prj->pv[3] == 90.0;
@@ -1254,11 +1252,11 @@ int tanset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -TAN) return 0;
 
-  strcpy(prj->code, "TAN");
+  strncpy(prj->code, "TAN", 4);
 
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "gnomonic");
+  strncpy(prj->name, "gnomonic", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 0;
   prj->simplezen = 1;
@@ -1477,9 +1475,9 @@ int stgset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -STG) return 0;
 
-  strcpy(prj->code, "STG");
+  strncpy(prj->code, "STG", 4);
 
-  strcpy(prj->name, "stereographic");
+  strncpy(prj->name, "stereographic", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 0;
   prj->simplezen = 1;
@@ -1695,13 +1693,13 @@ int sinset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -SIN) return 0;
 
-  strcpy(prj->code, "SIN");
+  strncpy(prj->code, "SIN", 4);
 
   if (undefined(prj->pv[1])) prj->pv[1] = 0.0;
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "orthographic/synthesis");
+  strncpy(prj->name, "orthographic/synthesis", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 102;
   prj->simplezen = (prj->pv[1] == 0.0 && prj->pv[2] == 0.0);
@@ -2033,9 +2031,9 @@ int arcset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -ARC) return 0;
 
-  strcpy(prj->code, "ARC");
+  strncpy(prj->code, "ARC", 4);
 
-  strcpy(prj->name, "zenithal/azimuthal equidistant");
+  strncpy(prj->name, "zenithal/azimuthal equidistant", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 0;
   prj->simplezen = 1;
@@ -2248,14 +2246,14 @@ int zpnset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -ZPN) return 0;
 
-  strcpy(prj->code, "ZPN");
+  strncpy(prj->code, "ZPN", 4);
 
   if (undefined(prj->pv[1])) prj->pv[1] = 0.0;
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (undefined(prj->pv[3])) prj->pv[3] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "zenithal/azimuthal polynomial");
+  strncpy(prj->name, "zenithal/azimuthal polynomial", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 30;
   prj->simplezen = 1;
@@ -2648,9 +2646,9 @@ int zeaset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -ZEA) return 0;
 
-  strcpy(prj->code, "ZEA");
+  strncpy(prj->code, "ZEA", 4);
 
-  strcpy(prj->name, "zenithal/azimuthal equal area");
+  strncpy(prj->name, "zenithal/azimuthal equal area", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 0;
   prj->simplezen = 1;
@@ -2883,12 +2881,12 @@ int airset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -AIR) return 0;
 
-  strcpy(prj->code, "AIR");
+  strncpy(prj->code, "AIR", 4);
 
   if (undefined(prj->pv[1])) prj->pv[1] = 90.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "Airy's zenithal");
+  strncpy(prj->name, "Airy's zenithal", 40);
   prj->category  = ZENITHAL;
   prj->pvrange   = 101;
   prj->simplezen = 1;
@@ -3195,12 +3193,12 @@ int cypset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -CYP) return 0;
 
-  strcpy(prj->code, "CYP");
+  strncpy(prj->code, "CYP", 4);
 
   if (undefined(prj->pv[1])) prj->pv[1] = 1.0;
   if (undefined(prj->pv[2])) prj->pv[2] = 1.0;
 
-  strcpy(prj->name, "cylindrical perspective");
+  strncpy(prj->name, "cylindrical perspective", 40);
   prj->category  = CYLINDRICAL;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -3431,11 +3429,11 @@ int ceaset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -CEA) return 0;
 
-  strcpy(prj->code, "CEA");
+  strncpy(prj->code, "CEA", 4);
 
   if (undefined(prj->pv[1])) prj->pv[1] = 1.0;
 
-  strcpy(prj->name, "cylindrical equal area");
+  strncpy(prj->name, "cylindrical equal area", 40);
   prj->category  = CYLINDRICAL;
   prj->pvrange   = 101;
   prj->simplezen = 0;
@@ -3649,9 +3647,9 @@ int carset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -CAR) return 0;
 
-  strcpy(prj->code, "CAR");
+  strncpy(prj->code, "CAR", 4);
 
-  strcpy(prj->name, "plate caree");
+  strncpy(prj->name, "plate caree", 40);
   prj->category  = CYLINDRICAL;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -3840,9 +3838,9 @@ int merset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -MER) return 0;
 
-  strcpy(prj->code, "MER");
+  strncpy(prj->code, "MER", 4);
 
-  strcpy(prj->name, "Mercator's");
+  strncpy(prj->name, "Mercator's", 40);
   prj->category  = CYLINDRICAL;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -4042,9 +4040,9 @@ int sflset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -SFL) return 0;
 
-  strcpy(prj->code, "SFL");
+  strncpy(prj->code, "SFL", 4);
 
-  strcpy(prj->name, "Sanson-Flamsteed");
+  strncpy(prj->name, "Sanson-Flamsteed", 40);
   prj->category  = PSEUDOCYLINDRICAL;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -4251,9 +4249,9 @@ int parset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -PAR) return 0;
 
-  strcpy(prj->code, "PAR");
+  strncpy(prj->code, "PAR", 4);
 
-  strcpy(prj->name, "parabolic");
+  strncpy(prj->name, "parabolic", 40);
   prj->category  = PSEUDOCYLINDRICAL;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -4491,11 +4489,11 @@ int molset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -MOL) return 0;
 
-  strcpy(prj->code, "MOL");
+  strncpy(prj->code, "MOL", 4);
 
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "Mollweide's");
+  strncpy(prj->name, "Mollweide's", 40);
   prj->category  = PSEUDOCYLINDRICAL;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -4783,11 +4781,11 @@ int aitset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -AIT) return 0;
 
-  strcpy(prj->code, "AIT");
+  strncpy(prj->code, "AIT", 4);
 
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "Hammer-Aitoff");
+  strncpy(prj->name, "Hammer-Aitoff", 40);
   prj->category  = CONVENTIONAL;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -5032,7 +5030,7 @@ int copset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -COP) return 0;
 
-  strcpy(prj->code, "COP");
+  strncpy(prj->code, "COP", 4);
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("copset");
@@ -5040,7 +5038,7 @@ int copset(struct prjprm *prj)
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "conic perspective");
+  strncpy(prj->name, "conic perspective", 40);
   prj->category  = CONIC;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -5307,7 +5305,7 @@ int coeset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -COE) return 0;
 
-  strcpy(prj->code, "COE");
+  strncpy(prj->code, "COE", 4);
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("coeset");
@@ -5315,7 +5313,7 @@ int coeset(struct prjprm *prj)
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "conic equal area");
+  strncpy(prj->name, "conic equal area", 40);
   prj->category  = CONIC;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -5572,7 +5570,7 @@ int codset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -COD) return 0;
 
-  strcpy(prj->code, "COD");
+  strncpy(prj->code, "COD", 4);
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("codset");
@@ -5580,7 +5578,7 @@ int codset(struct prjprm *prj)
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "conic equidistant");
+  strncpy(prj->name, "conic equidistant", 40);
   prj->category  = CONIC;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -5807,7 +5805,7 @@ int cooset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -COO) return 0;
 
-  strcpy(prj->code, "COO");
+  strncpy(prj->code, "COO", 4);
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("cooset");
@@ -5815,7 +5813,7 @@ int cooset(struct prjprm *prj)
   if (undefined(prj->pv[2])) prj->pv[2] = 0.0;
   if (prj->r0 == 0.0) prj->r0 = R2D;
 
-  strcpy(prj->name, "conic orthomorphic");
+  strncpy(prj->name, "conic orthomorphic", 40);
   prj->category  = CONIC;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -6074,7 +6072,7 @@ int bonset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -BON) return 0;
 
-  strcpy(prj->code, "BON");
+  strncpy(prj->code, "BON", 4);
 
   if (undefined(prj->pv[1])) {
     return PRJERR_BAD_PARAM_SET("bonset");
@@ -6085,7 +6083,7 @@ int bonset(struct prjprm *prj)
     return sflset(prj);
   }
 
-  strcpy(prj->name, "Bonne's");
+  strncpy(prj->name, "Bonne's", 40);
   prj->category  = POLYCONIC;
   prj->pvrange   = 101;
   prj->simplezen = 0;
@@ -6315,9 +6313,9 @@ int pcoset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -PCO) return 0;
 
-  strcpy(prj->code, "PCO");
+  strncpy(prj->code, "PCO", 4);
 
-  strcpy(prj->name, "polyconic");
+  strncpy(prj->name, "polyconic", 40);
   prj->category  = POLYCONIC;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -6603,9 +6601,9 @@ int tscset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -TSC) return 0;
 
-  strcpy(prj->code, "TSC");
+  strncpy(prj->code, "TSC", 4);
 
-  strcpy(prj->name, "tangential spherical cube");
+  strncpy(prj->name, "tangential spherical cube", 40);
   prj->category  = QUADCUBE;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -6959,9 +6957,9 @@ int cscset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -CSC) return 0;
 
-  strcpy(prj->code, "CSC");
+  strncpy(prj->code, "CSC", 4);
 
-  strcpy(prj->name, "COBE quadrilateralized spherical cube");
+  strncpy(prj->name, "COBE quadrilateralized spherical cube", 40);
   prj->category  = QUADCUBE;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -7321,39 +7319,39 @@ int cscs2x(
       case 1:
         xi  =  m;
         eta =  n;
-        x0  =  0.0;
-        y0  =  0.0;
+        x0  =  0.0f;
+        y0  =  0.0f;
         break;
       case 2:
         xi  = -l;
         eta =  n;
-        x0  =  2.0;
-        y0  =  0.0;
+        x0  =  2.0f;
+        y0  =  0.0f;
         break;
       case 3:
         xi  = -m;
         eta =  n;
-        x0  =  4.0;
-        y0  =  0.0;
+        x0  =  4.0f;
+        y0  =  0.0f;
         break;
       case 4:
         xi  =  l;
         eta =  n;
-        x0  =  6.0;
-        y0  =  0.0;
+        x0  =  6.0f;
+        y0  =  0.0f;
         break;
       case 5:
         xi  =  m;
         eta =  l;
-        x0  =  0.0;
-        y0  = -2.0;
+        x0  =  0.0f;
+        y0  = -2.0f;
         break;
       default:
         // face == 0
         xi  =  m;
         eta = -l;
-        x0  =  0.0;
-        y0  =  2.0;
+        x0  =  0.0f;
+        y0  =  2.0f;
         break;
       }
 
@@ -7429,9 +7427,9 @@ int qscset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -QSC) return 0;
 
-  strcpy(prj->code, "QSC");
+  strncpy(prj->code, "QSC", 4);
 
-  strcpy(prj->name, "quadrilateralized spherical cube");
+  strncpy(prj->name, "quadrilateralized spherical cube", 40);
   prj->category  = QUADCUBE;
   prj->pvrange   = 0;
   prj->simplezen = 0;
@@ -7606,7 +7604,6 @@ int qscx2s(
         }
 
         zeta = -1.0;
-        zeco =  2.0;
         w    =  0.0;
       } else {
         w = sqrt(zeco*(2.0-zeco)/tau);
@@ -7979,12 +7976,12 @@ int hpxset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -HPX) return 0;
 
-  strcpy(prj->code, "HPX");
+  strncpy(prj->code, "HPX", 4);
 
   if (undefined(prj->pv[1])) prj->pv[1] = 4.0;
   if (undefined(prj->pv[2])) prj->pv[2] = 3.0;
 
-  strcpy(prj->name, "HEALPix");
+  strncpy(prj->name, "HEALPix", 40);
   prj->category  = HEALPIX;
   prj->pvrange   = 102;
   prj->simplezen = 0;
@@ -8322,9 +8319,9 @@ int xphset(struct prjprm *prj)
   if (prj == 0x0) return PRJERR_NULL_POINTER;
   if (prj->flag == -XPH) return 0;
 
-  strcpy(prj->code, "XPH");
+  strncpy(prj->code, "XPH", 4);
 
-  strcpy(prj->name, "butterfly");
+  strncpy(prj->name, "butterfly", 40);
   prj->category  = HEALPIX;
   prj->pvrange   = 0;
   prj->simplezen = 0;

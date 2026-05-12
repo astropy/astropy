@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsmath.h,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
+  $Id: wcslimits.h,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *=============================================================================
 *
 * WCSLIB 8.7 - C routines that implement the FITS World Coordinate System
@@ -27,46 +27,24 @@
 * overview of the library.
 *
 *
-* Summary of wcsmath.h
-* --------------------
-* Definition of mathematical constants used by WCSLIB.
+* Summary of wcslimits.h
+* ----------------------
+* Declaration of global variables that set limits for arrays used by WCSLIB.
+* The external variables are defined in wcs.c.
 *
 *===========================================================================*/
 
-#ifndef WCSLIB_WCSMATH
-#define WCSLIB_WCSMATH
+#ifndef WCSLIB_WCSLIMITS
+#define WCSLIB_WCSLIMITS
 
-#ifdef PI
-#undef PI
-#endif
+// Maximum number of image axes, NAXIS.  Limited to 31 by cylfix().
+#define NAXMAX 31
 
-#ifdef D2R
-#undef D2R
-#endif
+// Maximum number of PVi_ma and PSi_ma keywords.  May be changed by wcsnpv().
+extern int NPVMAX;
+extern int NPSMAX;
 
-#ifdef R2D
-#undef R2D
-#endif
+// Maximum number of DPja or DQia keywords.  May be changed by disndp().
+extern int NDPMAX;
 
-#ifdef SQRT2
-#undef SQRT2
-#endif
-
-#ifdef SQRT2INV
-#undef SQRT2INV
-#endif
-
-#define PI 3.141592653589793238462643
-#define D2R (PI/180.0)
-#define R2D (180.0/PI)
-#define SQRT2 1.4142135623730950488
-#define SQRT2INV (1.0/SQRT2)
-
-#ifdef UNDEFINED
-#undef UNDEFINED
-#endif
-
-#define UNDEFINED 987654321.0e99
-#define undefined(value) (value == UNDEFINED)
-
-#endif // WCSLIB_WCSMATH
+#endif // WCSLIB_WCSLIMITS

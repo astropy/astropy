@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/computing/software/wcs
-# $Id: configure.ac,v 8.6 2026/03/29 13:53:57 mcalabre Exp $
+# $Id: configure.ac,v 8.7 2026/05/11 12:01:11 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB],[8.6],[mark@calabretta.id.au],[wcslib-8.6])
+AC_INIT([WCSLIB],[8.7],[mark@calabretta.id.au],[wcslib-8.7])
 AC_PREREQ([2.71])
-AC_REVISION([$Revision: 8.6 $])
+AC_REVISION([$Revision: 8.7 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -622,6 +622,7 @@ AC_MSG_NOTICE([End of auxiliary configuration.
 
 # Set from the environment for code development.
 AC_SUBST([FLAVOUR])
+AC_SUBST([ANALYSE])
 AC_SUBST([MODE])
 AC_SUBST([VALGRIND])
 AC_SUBST([EXTRA_CLEAN])
