@@ -427,6 +427,16 @@ def test_imshow_norm_no_ax():
     assert np.all(gca().imshow(image).get_array() == imNorm.im.get_array())
 
 
+def test_imshow_norm_no_PLT(monkeypatch):
+    image = np.random.randn(10, 10)
+
+    monkeypatch.setattr("astropy.visualization.mpl_normalize.HAS_MATPLOTLIB", False)
+
+    # Check if correct error is raised when matplotlib is not available
+    with pytest.raises(ModuleNotFoundError):
+        imshow_norm(image, ax=None)
+
+
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
 def test_imshow_simple_norm_image_axis():
     from matplotlib.figure import Figure
@@ -566,6 +576,16 @@ def test_imshow_simple_norm_no_ax():
 
     # Check if the return of the function is the same as original imshow with the same parameters
     assert np.all(gca().imshow(image).get_array() == imNorm.im.get_array())
+
+
+def test_imshow_simple_norm_no_PLT(monkeypatch):
+    image = np.arange(100).reshape(10, 10)
+
+    monkeypatch.setattr("astropy.visualization.mpl_normalize.HAS_MATPLOTLIB", False)
+
+    # Check if correct error is raised when matplotlib is not available
+    with pytest.raises(ModuleNotFoundError):
+        imshow_simple_norm(image, ax=None)
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
