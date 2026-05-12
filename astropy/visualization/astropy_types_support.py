@@ -5,7 +5,7 @@ from astropy.visualization.units import quantity_support
 
 
 @contextmanager
-def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
+def astropy_types_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
     """
     Enable support for plotting `astropy.units.Quantity` and `astropy.time.Time` instances in
     matplotlib.
@@ -21,9 +21,9 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
         import matplotlib.pyplot as plt
         import astropy.units as u
         from astropy.time import Time
-        from astropy.visualization.astropy_support import astropy_support
+        from astropy.visualization.astropy_types_support import astropy_types_support
 
-        @astropy_support()
+        @astropy_types_support()
         def plot_example():
             plt.figure()
             plt.plot([1, 2, 3] * u.m)
@@ -31,7 +31,7 @@ def astropy_support(*, quantity_support_kwargs=None, time_support_kwargs=None):
             plt.draw()
             plt.show()
 
-        with astropy_support():  # doctest: +IGNORE_OUTPUT
+        with astropy_types_support():  # doctest: +IGNORE_OUTPUT
             plt.figure()
             plt.plot([1, 2, 3] * u.m)
             plt.plot(Time(['2000-01-01', '2000-01-02', '2000-01-03']).plot_date)

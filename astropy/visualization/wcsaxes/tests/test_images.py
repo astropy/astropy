@@ -22,7 +22,7 @@ from astropy.tests.figures import figure_test
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.visualization.astropy_support import astropy_support
+from astropy.visualization.astropy_types_support import astropy_types_support
 from astropy.visualization.wcsaxes import WCSAxes, add_beam, add_scalebar
 from astropy.visualization.wcsaxes.frame import EllipticalFrame
 from astropy.visualization.wcsaxes.patches import Quadrangle, SphericalCircle
@@ -1319,7 +1319,7 @@ def test_allsky_labels_wrap():
 
 
 @figure_test(tolerance=1)
-def test_astropy_support():
+def test_astropy_types_support():
     x_meters = np.linspace(1, 10, 50) * u.m  # Distances in meters
     x_kilometers = np.linspace(0.002, 0.011, 50) * u.km  # Distances in kilometers
 
@@ -1331,7 +1331,7 @@ def test_astropy_support():
     start_time = Time("2000-01-01T00:00:00", scale="utc")
     end_time = start_time + TimeDelta(2 / 24, format="jd")
 
-    with astropy_support():
+    with astropy_types_support():
         fig, ax = plt.subplots()
 
         ax.plot(x_meters, y_seconds, label="Meters vs. Seconds")
