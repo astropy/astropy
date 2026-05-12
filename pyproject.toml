@@ -187,6 +187,14 @@ dataframe = [
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0", # keep in sync with other declarations
 ]
+image_tests = [
+    "pytest-mpl>=0.18",
+]
+pyinstaller = [
+    "pyinstaller>=6.16.0",
+    {include-group = "image_tests"},
+]
+
 # re-define historical optional dependencies (a.k.a. 'extras') as
 # user-invisible, PEP 735 dependency groups
 # These group together all the dependencies needed for developing in Astropy.
@@ -199,6 +207,7 @@ dev = [
 dev_all = [
     {include-group = "dev"},
     {include-group = "dataframe"},
+    {include-group = "image_tests"},
     "astropy[test_all]",
     "tox>=4.33.0", # keep in sync with tox.minversion in tox.ini
 ]
@@ -810,6 +819,9 @@ no-build-package = [
     # even with --resolution=lowest
     "cffi",
     "joblib",
+
+    # via pyinstaller
+    "altgraph",
 ]
 
 # ensure that uv resolves envs that are compatible with macOS arm64,
