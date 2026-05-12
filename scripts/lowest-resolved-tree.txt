@@ -250,9 +250,20 @@ astropy
 │   │   └── sphinx v8.2.0 (*)
 │   └── sphinxcontrib-serializinghtml v1.1.9
 │       └── sphinx v8.2.0 (*)
-├── sphinx-astropy[confv2] v1.9.1 (extra: docs)
-│   ├── astropy-sphinx-theme v1.0
-│   │   └── setuptools v18.5
+├── sphinx-astropy[confv3] v1.11 (extra: docs)
+│   ├── astropy-sphinx-theme v3.0
+│   │   ├── sphinx v8.2.0 (*)
+│   │   └── sunpy-sphinx-theme v2.1.1
+│   │       ├── pydata-sphinx-theme v0.17.0
+│   │       │   ├── accessible-pygments v0.0.1
+│   │       │   │   └── pygments v2.17.0
+│   │       │   ├── babel v2.13.0
+│   │       │   ├── beautifulsoup4 v4.11.2 (*)
+│   │       │   ├── docutils v0.20
+│   │       │   ├── pygments v2.17.0
+│   │       │   ├── sphinx v8.2.0 (*)
+│   │       │   └── typing-extensions v4.10.0
+│   │       └── sphinx v8.2.0 (*)
 │   ├── numpydoc v1.0.0
 │   │   ├── jinja2 v3.1.3 (*)
 │   │   └── sphinx v8.2.0 (*)
@@ -270,9 +281,9 @@ astropy
 │   │   └── sphinx v8.2.0 (*)
 │   ├── sphinxcontrib-jquery v1.0.0
 │   │   └── setuptools v18.5
-│   ├── pydata-sphinx-theme v0.1.0 (extra: confv2)
-│   │   └── sphinx v8.2.0 (*)
-│   └── sphinx-copybutton v0.1 (extra: confv2)
+│   ├── astropy-sphinx-theme v3.0 (extra: confv3) (*)
+│   ├── pydata-sphinx-theme v0.17.0 (extra: confv3) (*)
+│   └── sphinx-copybutton v0.1 (extra: confv3)
 ├── sphinx-changelog v1.2.0 (extra: docs)
 │   ├── sphinx v8.2.0 (*)
 │   └── towncrier v22.8.0
