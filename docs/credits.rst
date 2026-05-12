@@ -38,6 +38,7 @@ Core Package Contributors
 * Alfio Puglisi
 * Alpha-Ursae-Minoris
 * Amit Kumar
+* Ana Clara Galvão
 * Ana Posses
 * Anany Shrey Jain
 * Anchit Jain
@@ -559,6 +560,7 @@ Core Package Contributors
 * Sushobhana Patra
 * Suyog Garg
 * Swapnil Sharma
+* Syn Pu
 * T\. Carl Beery
 * T\. E\. Pickering
 * Tanuj Rastogi
