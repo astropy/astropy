@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,17 +19,19 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcs.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcs.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "wcserr.h"
 #include "wcsmath.h"
+#include "wcslimits.h"
 #include "wcsprintf.h"
 #include "wcstrig.h"
 #include "wcsunits.h"
@@ -45,9 +47,12 @@
 #include "tab.h"
 #include "wcs.h"
 
-// Maximum number of PVi_ma and PSi_ma keywords.
+// Maximum number of PVi_ma and PSi_ma keywords.  May be changed by wcsnpv().
 int NPVMAX = 64;
 int NPSMAX =  8;
+
+// Maximum number of DPja or DQia keywords.  May be changed by disndp().
+int NDPMAX = 256;
 
 // Map status return value to message.
 const char *wcs_errmsg[] = {
@@ -218,10 +223,19 @@ int wcsinit(
     wcs->m_wtb   = 0x0;
   }
 
+  // Sanity check on naxis.
   if (naxis < 0) {
-    return wcserr_set(WCSERR_SET(WCSERR_MEMORY),
+    return wcserr_set(WCSERR_SET(WCSERR_BAD_PARAM),
       "naxis must not be negative (got %d)", naxis);
   }
+
+  if (NAXMAX < naxis) {
+    return wcserr_set(WCSERR_SET(WCSERR_BAD_PARAM),
+      "naxis exceeds %d (got %d)", NAXMAX, naxis);
+  }
+
+  // Balm for clang-tidy.
+  size_t naxszt = naxis;
 
 
   // Allocate memory for arrays if required.
@@ -258,7 +272,7 @@ int wcsinit(
         wcs->crpix = wcs->m_crpix;
 
       } else {
-        if ((wcs->crpix = calloc(naxis, sizeof(double))) == 0x0) {
+        if ((wcs->crpix = calloc(naxszt, sizeof(double))) == 0x0) {
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
 
@@ -274,7 +288,7 @@ int wcsinit(
         wcs->pc = wcs->m_pc;
 
       } else {
-        if ((wcs->pc = calloc(naxis*naxis, sizeof(double))) == 0x0) {
+        if ((wcs->pc = calloc(naxszt*naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -291,7 +305,7 @@ int wcsinit(
         wcs->cdelt = wcs->m_cdelt;
 
       } else {
-        if ((wcs->cdelt = calloc(naxis, sizeof(double))) == 0x0) {
+        if ((wcs->cdelt = calloc(naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -308,7 +322,7 @@ int wcsinit(
         wcs->crval = wcs->m_crval;
 
       } else {
-        if ((wcs->crval = calloc(naxis, sizeof(double))) == 0x0) {
+        if ((wcs->crval = calloc(naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -325,7 +339,7 @@ int wcsinit(
         wcs->cunit = wcs->m_cunit;
 
       } else {
-        if ((wcs->cunit = calloc(naxis, sizeof(char [72]))) == 0x0) {
+        if ((wcs->cunit = calloc(naxszt, sizeof(char [72]))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -342,7 +356,7 @@ int wcsinit(
         wcs->ctype = wcs->m_ctype;
 
       } else {
-        if ((wcs->ctype = calloc(naxis, sizeof(char [72]))) == 0x0) {
+        if ((wcs->ctype = calloc(naxszt, sizeof(char [72]))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -405,7 +419,7 @@ int wcsinit(
         wcs->cd = wcs->m_cd;
 
       } else {
-        if ((wcs->cd = calloc(naxis*naxis, sizeof(double))) == 0x0) {
+        if ((wcs->cd = calloc(naxszt*naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -422,7 +436,7 @@ int wcsinit(
         wcs->crota = wcs->m_crota;
 
       } else {
-        if ((wcs->crota = calloc(naxis, sizeof(double))) == 0x0) {
+        if ((wcs->crota = calloc(naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -439,7 +453,7 @@ int wcsinit(
         wcs->colax = wcs->m_colax;
 
       } else {
-        if ((wcs->colax = calloc(naxis, sizeof(int))) == 0x0) {
+        if ((wcs->colax = calloc(naxszt, sizeof(int))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -456,7 +470,7 @@ int wcsinit(
         wcs->cname = wcs->m_cname;
 
       } else {
-        if ((wcs->cname = calloc(naxis, sizeof(char [72]))) == 0x0) {
+        if ((wcs->cname = calloc(naxszt, sizeof(char [72]))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -473,7 +487,7 @@ int wcsinit(
         wcs->crder = wcs->m_crder;
 
       } else {
-        if ((wcs->crder = calloc(naxis, sizeof(double))) == 0x0) {
+        if ((wcs->crder = calloc(naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -490,7 +504,7 @@ int wcsinit(
         wcs->csyer = wcs->m_csyer;
 
       } else {
-        if ((wcs->csyer = calloc(naxis, sizeof(double))) == 0x0) {
+        if ((wcs->csyer = calloc(naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -507,7 +521,7 @@ int wcsinit(
         wcs->czphs = wcs->m_czphs;
 
       } else {
-        if ((wcs->czphs = calloc(naxis, sizeof(double))) == 0x0) {
+        if ((wcs->czphs = calloc(naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -524,7 +538,7 @@ int wcsinit(
         wcs->cperi = wcs->m_cperi;
 
       } else {
-        if ((wcs->cperi = calloc(naxis, sizeof(double))) == 0x0) {
+        if ((wcs->cperi = calloc(naxszt, sizeof(double))) == 0x0) {
           wcsfree(wcs);
           return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
         }
@@ -670,8 +684,8 @@ int wcsinit(
   wcs->wtb  = 0x0;
 
   // Reset derived values.
-  strcpy(wcs->lngtyp, "    ");
-  strcpy(wcs->lattyp, "    ");
+  strncpy(wcs->lngtyp, "    ", 8);
+  strncpy(wcs->lattyp, "    ", 8);
   wcs->lng  = -1;
   wcs->lat  = -1;
   wcs->spec = -1;
@@ -978,8 +992,8 @@ int wcssub(
         if (map[j] == 0) continue;
 
         // Axis numbers in axmap[] are 0-relative.
-        int axmap[32];
-        for (int jhat = 0; jhat < 32; jhat++) {
+        int axmap[NAXMAX];
+        for (int jhat = 0; jhat < NAXMAX; jhat++) {
           axmap[jhat] = -1;
         }
 
@@ -995,7 +1009,7 @@ int wcssub(
 
           ndp++;
 
-          if (strncmp(fp, "NAXES", 6) == 0) {
+          if (strcmp(fp, "NAXES") == 0) {
             Nhat = dpkeyi(dpsrc);
           } else if (strncmp(fp, "AXIS.", 5) == 0) {
             int jhat;
@@ -1004,7 +1018,7 @@ int wcssub(
           }
         }
 
-        if (Nhat < 0 || (Nhat == 0 && 1 < ndp) || naxis < Nhat || 32 < Nhat) {
+        if (Nhat < 0 || (Nhat == 0 && 1 < ndp) || naxis < Nhat) {
           status = wcserr_set(WCSERR_SET(WCSERR_BAD_PARAM),
             "NAXES was not set (or bad) for %s distortion on axis %d",
             dissrc->dtype[j], j+1);
@@ -1066,7 +1080,8 @@ int wcssub(
 
     if (dissrc && !disdst) {
       if ((disdst = calloc(1, sizeof(struct disprm))) == 0x0) {
-        return wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
+        status = wcserr_set(WCS_ERRMSG(WCSERR_MEMORY));
+        goto cleanup;
       }
 
       // Also inits disdst.
@@ -1380,8 +1395,8 @@ int wcssub(
         if (axes[j] == 0) continue;
 
         // Determine the axis mapping.
-        int axmap[32];
-        for (int jhat = 0; jhat < 32; jhat++) {
+        int axmap[NAXMAX];
+        for (int jhat = 0; jhat < NAXMAX; jhat++) {
           axmap[jhat] = -1;
         }
 
@@ -1394,7 +1409,7 @@ int wcssub(
           if ((fp = strchr(dpsrc->field, '.')) == 0x0) continue;
           fp++;
 
-          if (strncmp(fp, "NAXES", 6) == 0) {
+          if (strcmp(fp, "NAXES") == 0) {
             Nhat = dpkeyi(dpsrc);
           } else if (strncmp(fp, "AXIS.", 5) == 0) {
             int jhat;
@@ -1425,19 +1440,20 @@ int wcssub(
 
           *dpdst = *dpsrc;
           char ctmp[16];
-          sprintf(ctmp, "%d", j+1);
+          snprintf(ctmp, 16, "%d", j+1);
           dpdst->field[2] = ctmp[0];
           dpdst->j = j+1;
 
           ndp++;
           dpdst++;
 
-          if (strncmp(fp, "NAXES", 6) == 0) {
+          if (strcmp(fp, "NAXES") == 0) {
             for (int jhat = 0; jhat < Nhat; jhat++) {
-              strcpy(dpdst->field, dpsrc->field);
+              strncpy(dpdst->field, dpsrc->field, 72);
               dpdst->field[2] = ctmp[0];
               fp = strchr(dpdst->field, '.') + 1;
-              sprintf(fp, "AXIS.%d", jhat+1);
+              size_t fsize = (dpdst->field + 72) - fp;
+              snprintf(fp, fsize, "AXIS.%d", jhat+1);
               dpdst->j = j+1;
               dpdst->type = 0;
               dpdst->value.i = map[axmap[jhat]];
@@ -1551,7 +1567,7 @@ int wcscompare(
     for (j = 0; j < wcs2->nps; ++j) {
       if (wcs1->ps[i].i == wcs2->ps[j].i &&
           wcs1->ps[i].m == wcs2->ps[j].m) {
-        if (strncmp(wcs1->ps[i].value, wcs2->ps[j].value, 72)) {
+        if (strncmp(wcs1->ps[i].value, wcs2->ps[j].value, 72) != 0) {
           return 0;
         }
         break;
@@ -1573,7 +1589,7 @@ int wcscompare(
   }
 
   if (!(cmp & WCSCOMPARE_ANCILLARY)) {
-    if (strncmp(wcs1->alt, wcs2->alt, 4) ||
+    if (strncmp(wcs1->alt, wcs2->alt, 4) != 0 ||
         wcs1->colnum != wcs2->colnum ||
         !wcsutil_intEq(naxis, wcs1->colax, wcs2->colax) ||
         !wcsutil_strEq(naxis, wcs1->cname, wcs2->cname) ||
@@ -1581,19 +1597,19 @@ int wcscompare(
         !wcsutil_dblEq(naxis, tol, wcs1->csyer, wcs2->csyer) ||
         !wcsutil_dblEq(naxis, tol, wcs1->czphs, wcs2->czphs) ||
         !wcsutil_dblEq(naxis, tol, wcs1->cperi, wcs2->cperi) ||
-        strncmp(wcs1->wcsname,  wcs2->wcsname,  72) ||
-        strncmp(wcs1->timesys,  wcs2->timesys,  72) ||
-        strncmp(wcs1->trefpos,  wcs2->trefpos,  72) ||
-        strncmp(wcs1->trefdir,  wcs2->trefdir,  72) ||
-        strncmp(wcs1->plephem,  wcs2->plephem,  72) ||
-        strncmp(wcs1->timeunit, wcs2->timeunit, 72) ||
-        strncmp(wcs1->dateref,  wcs2->dateref,  72) ||
+        strncmp(wcs1->wcsname,  wcs2->wcsname,  72) != 0 ||
+        strncmp(wcs1->timesys,  wcs2->timesys,  72) != 0 ||
+        strncmp(wcs1->trefpos,  wcs2->trefpos,  72) != 0 ||
+        strncmp(wcs1->trefdir,  wcs2->trefdir,  72) != 0 ||
+        strncmp(wcs1->plephem,  wcs2->plephem,  72) != 0 ||
+        strncmp(wcs1->timeunit, wcs2->timeunit, 72) != 0 ||
+        strncmp(wcs1->dateref,  wcs2->dateref,  72) != 0 ||
         !wcsutil_dblEq(2, tol,  wcs1->mjdref,    wcs2->mjdref)   ||
         !wcsutil_dblEq(1, tol, &wcs1->timeoffs, &wcs2->timeoffs) ||
-        strncmp(wcs1->dateobs,  wcs2->dateobs, 72) ||
-        strncmp(wcs1->datebeg,  wcs2->datebeg, 72) ||
-        strncmp(wcs1->dateavg,  wcs2->dateavg, 72) ||
-        strncmp(wcs1->dateend,  wcs2->dateend, 72) ||
+        strncmp(wcs1->dateobs,  wcs2->dateobs, 72) != 0 ||
+        strncmp(wcs1->datebeg,  wcs2->datebeg, 72) != 0 ||
+        strncmp(wcs1->dateavg,  wcs2->dateavg, 72) != 0 ||
+        strncmp(wcs1->dateend,  wcs2->dateend, 72) != 0 ||
         !wcsutil_dblEq(1, tol, &wcs1->mjdobs,   &wcs2->mjdobs)   ||
         !wcsutil_dblEq(1, tol, &wcs1->mjdbeg,   &wcs2->mjdbeg)   ||
         !wcsutil_dblEq(1, tol, &wcs1->mjdavg,   &wcs2->mjdavg)   ||
@@ -1609,14 +1625,14 @@ int wcscompare(
         !wcsutil_dblEq(1, tol, &wcs1->timedel,  &wcs2->timedel)  ||
         !wcsutil_dblEq(1, tol, &wcs1->timepixr, &wcs2->timepixr) ||
         !wcsutil_dblEq(6, tol,  wcs1->obsgeo,    wcs2->obsgeo)   ||
-        strncmp(wcs1->obsorbit, wcs2->obsorbit, 72) ||
-        strncmp(wcs1->radesys,  wcs2->radesys,  72) ||
+        strncmp(wcs1->obsorbit, wcs2->obsorbit, 72) != 0 ||
+        strncmp(wcs1->radesys,  wcs2->radesys,  72) != 0 ||
         !wcsutil_dblEq(1, tol, &wcs1->equinox,  &wcs2->equinox)  ||
-        strncmp(wcs1->specsys,  wcs2->specsys,  72) ||
-        strncmp(wcs1->ssysobs,  wcs2->ssysobs,  72) ||
+        strncmp(wcs1->specsys,  wcs2->specsys,  72) != 0 ||
+        strncmp(wcs1->ssysobs,  wcs2->ssysobs,  72) != 0 ||
         !wcsutil_dblEq(1, tol, &wcs1->velosys,  &wcs2->velosys)  ||
         !wcsutil_dblEq(1, tol, &wcs1->zsource,  &wcs2->zsource)  ||
-        strncmp(wcs1->ssyssrc,  wcs2->ssyssrc,  72) ||
+        strncmp(wcs1->ssyssrc,  wcs2->ssyssrc,  72) != 0 ||
         !wcsutil_dblEq(1, tol, &wcs1->velangl,  &wcs2->velangl)) {
       return 0;
     }
@@ -1801,7 +1817,9 @@ int wcstrim(struct wcsprm *wcs)
       } else {
         size_t size = wcs->npv * sizeof(struct pvcard);
         // No error if realloc() fails, it will leave the array untouched.
-        if ((wcs->pv = wcs->m_pv = realloc(wcs->m_pv, size))) {
+        struct pvcard *pvp = realloc(wcs->m_pv, size);
+        if (pvp != 0x0) {
+          wcs->pv = wcs->m_pv = pvp;
           wcs->npvmax = wcs->npv;
         }
       }
@@ -1816,7 +1834,9 @@ int wcstrim(struct wcsprm *wcs)
       } else {
         size_t size = wcs->nps * sizeof(struct pscard);
         // No error if realloc() fails, it will leave the array untouched.
-        if ((wcs->ps = wcs->m_ps = realloc(wcs->m_ps, size))) {
+        struct pscard *psp = realloc(wcs->m_ps, size);
+        if (psp != 0x0) {
+          wcs->ps = wcs->m_ps = psp;
           wcs->npsmax = wcs->nps;
         }
       }
@@ -1907,78 +1927,78 @@ int wcssize(const struct wcsprm *wcs, int sizes[2])
   int naxis = wcs->naxis;
 
   // wcsprm::crpix[].
-  sizes[1] += naxis * sizeof(double);
+  sizes[1] += naxis * (int)sizeof(double);
 
   // wcsprm::pc[].
-  sizes[1] += naxis*naxis * sizeof(double);
+  sizes[1] += naxis*naxis * (int)sizeof(double);
 
   // wcsprm::cdelt[].
-  sizes[1] += naxis * sizeof(double);
+  sizes[1] += naxis * (int)sizeof(double);
 
   // wcsprm::crval[].
-  sizes[1] += naxis * sizeof(double);
+  sizes[1] += naxis * (int)sizeof(double);
 
   // wcsprm::cunit[].
   if (wcs->cunit) {
-    sizes[1] += naxis * sizeof(char [72]);
+    sizes[1] += naxis * (int)sizeof(char [72]);
   }
 
   // wcsprm::ctype[].
-  sizes[1] += naxis * sizeof(char [72]);
+  sizes[1] += naxis * (int)sizeof(char [72]);
 
   // wcsprm::pv[].
   if (wcs->pv) {
-    sizes[1] += wcs->npvmax * sizeof(struct pvcard);
+    sizes[1] += wcs->npvmax * (int)sizeof(struct pvcard);
   }
 
   // wcsprm::ps[].
   if (wcs->ps) {
-    sizes[1] += wcs->npsmax * sizeof(struct pscard);
+    sizes[1] += wcs->npsmax * (int)sizeof(struct pscard);
   }
 
   // wcsprm::cd[].
   if (wcs->cd) {
-    sizes[1] += naxis*naxis * sizeof(double);
+    sizes[1] += naxis*naxis * (int)sizeof(double);
   }
 
   // wcsprm::crota[].
   if (wcs->crota) {
-    sizes[1] += naxis * sizeof(double);
+    sizes[1] += naxis * (int)sizeof(double);
   }
 
   // wcsprm::colax[].
   if (wcs->colax) {
-    sizes[1] += naxis * sizeof(int);
+    sizes[1] += naxis * (int)sizeof(int);
   }
 
   // wcsprm::cname[].
   if (wcs->cname) {
-    sizes[1] += naxis * sizeof(char [72]);
+    sizes[1] += naxis * (int)sizeof(char [72]);
   }
 
   // wcsprm::crder[].
   if (wcs->crder) {
-    sizes[1] += naxis * sizeof(double);
+    sizes[1] += naxis * (int)sizeof(double);
   }
 
   // wcsprm::csyer[].
   if (wcs->csyer) {
-    sizes[1] += naxis * sizeof(double);
+    sizes[1] += naxis * (int)sizeof(double);
   }
 
   // wcsprm::czphs[].
   if (wcs->czphs) {
-    sizes[1] += naxis * sizeof(double);
+    sizes[1] += naxis * (int)sizeof(double);
   }
 
   // wcsprm::cperi[].
   if (wcs->cperi) {
-    sizes[1] += naxis * sizeof(double);
+    sizes[1] += naxis * (int)sizeof(double);
   }
 
   // wcsprm::aux.
   if (wcs->aux) {
-    sizes[1] += sizeof(struct auxprm);
+    sizes[1] += (int)sizeof(struct auxprm);
   }
 
   // wcsprm::tab.
@@ -1989,7 +2009,7 @@ int wcssize(const struct wcsprm *wcs, int sizes[2])
 
   // wcsprm::wtb.
   if (wcs->wtb) {
-    sizes[1] += wcs->nwtb * sizeof(struct wtbarr);
+    sizes[1] += wcs->nwtb * (int)sizeof(struct wtbarr);
   }
 
   // wcsprm::lin.
@@ -2014,7 +2034,7 @@ int auxsize(const struct auxprm *aux, int sizes[2])
   }
 
   // Base size, in bytes.
-  sizes[0] = sizeof(struct auxprm);
+  sizes[0] = (int)sizeof(struct auxprm);
 
   // Total size of allocated memory, in bytes.
   sizes[1] = 0;
@@ -2462,8 +2482,12 @@ int wcsprt(const struct wcsprm *wcs)
       wcsprintf("        row: %ld\n", wtbp->row);
       wcsprintf("       ndim: %d\n", wtbp->ndim);
       WCSPRINTF_PTR("     dimlen: ", wtbp->dimlen, "\n");
-      WCSPRINTF_PTR("     arrayp: ", wtbp->arrayp, " -> ");
-      WCSPRINTF_PTR("", *(wtbp->arrayp), "\n");
+      WCSPRINTF_PTR("     arrayp: ", wtbp->arrayp, "");
+      if (wtbp->arrayp) {
+        WCSPRINTF_PTR(" -> ", *(wtbp->arrayp), "\n");
+      } else {
+        wcsprintf("\n");
+      }
     }
   }
 
@@ -2554,9 +2578,9 @@ int wcsset(struct wcsprm *wcs)
   }
 
   int naxis = wcs->naxis;
-  if (32 < naxis) {
+  if (NAXMAX < naxis) {
     return wcserr_set(WCSERR_SET(WCSERR_BAD_PARAM),
-      "naxis must not exceed 32 (got %d)", naxis);
+      "naxis must not exceed %d (got %d)", NAXMAX, naxis);
   }
 
 
@@ -2592,22 +2616,22 @@ int wcsset(struct wcsprm *wcs)
       if (strncmp(wcsprj->code, "TPU", 3) == 0) {
         // Prior distortion.
         lindist(1, wcslin, dis, ndpmax);
-        strcpy(dpq, "DP");
+        strncpy(dpq, "DP", 16);
       } else {
         // Sequent distortion.
         lindist(2, wcslin, dis, ndpmax);
-        strcpy(dpq, "DQ");
+        strncpy(dpq, "DQ", 16);
       }
 
       // Yes, the distortion type is "TPV" even for TPU.
-      strcpy(dis->dtype[wcs->lng], "TPV");
-      strcpy(dis->dtype[wcs->lat], "TPV");
+      strncpy(dis->dtype[wcs->lng], "TPV", 72);
+      strncpy(dis->dtype[wcs->lat], "TPV", 72);
 
       // Keep the keywords in axis-order to aid debugging.
       struct dpkey *keyp = dis->dp;
       dis->ndp = 0;
 
-      sprintf(dpq+2, "%d", wcs->lng+1);
+      snprintf(dpq+2, 14, "%d", wcs->lng+1);
       dpfill(keyp++, dpq, "NAXES",  0, 0, 2, 0.0);
       dpfill(keyp++, dpq, "AXIS.1", 0, 0, 1, 0.0);
       dpfill(keyp++, dpq, "AXIS.2", 0, 0, 2, 0.0);
@@ -2616,13 +2640,13 @@ int wcsset(struct wcsprm *wcs)
       // Copy distortion parameters for the longitude axis.
       for (int k = 0; k < wcs->npv; k++) {
         if (wcs->pv[k].i != wcs->lng+1) continue;
-        sprintf(keyp->field, "%s.TPV.%d", dpq, wcs->pv[k].m);
+        snprintf(keyp->field, 72, "%s.TPV.%d", dpq, wcs->pv[k].m);
         dpfill(keyp++, 0x0, 0x0, 0, 1, 0, wcs->pv[k].value);
         dis->ndp++;
       }
 
       // Now the latitude axis.
-      sprintf(dpq+2, "%d", wcs->lat+1);
+      snprintf(dpq+2, 14, "%d", wcs->lat+1);
       dpfill(keyp++, dpq, "NAXES",  0, 0, 2, 0.0);
       dpfill(keyp++, dpq, "AXIS.1", 0, 0, 2, 0.0);
       dpfill(keyp++, dpq, "AXIS.2", 0, 0, 1, 0.0);
@@ -2630,7 +2654,7 @@ int wcsset(struct wcsprm *wcs)
 
       for (int k = 0; k < wcs->npv; k++) {
         if (wcs->pv[k].i != wcs->lat+1) continue;
-        sprintf(keyp->field, "%s.TPV.%d", dpq, wcs->pv[k].m);
+        snprintf(keyp->field, 72, "%s.TPV.%d", dpq, wcs->pv[k].m);
         dpfill(keyp++, 0x0, 0x0, 0, 1, 0, wcs->pv[k].value);
         dis->ndp++;
       }
@@ -2649,24 +2673,24 @@ int wcsset(struct wcsprm *wcs)
       }
 
       wcs->npv = n;
-      strcpy(wcsprj->code, "TAN");
+      strncpy(wcsprj->code, "TAN", 4);
 
       // As the PVi_ma have now been erased, ctype must be reset to prevent
       // this translation from re-occurring if wcsset() is called again.
-      strcpy(wcs->ctype[wcs->lng]+5, "TAN");
-      strcpy(wcs->ctype[wcs->lat]+5, "TAN");
+      strncpy(wcs->ctype[wcs->lng]+5, "TAN", 4);
+      strncpy(wcs->ctype[wcs->lat]+5, "TAN", 4);
 
     } else if (strncmp(wcsprj->code, "TNX", 3) == 0) {
       // The WAT distortion should already have been encoded in disseq.
-      strcpy(wcsprj->code, "TAN");
-      strcpy(wcs->ctype[wcs->lng]+5, "TAN");
-      strcpy(wcs->ctype[wcs->lat]+5, "TAN");
+      strncpy(wcsprj->code, "TAN", 4);
+      strncpy(wcs->ctype[wcs->lng]+5, "TAN", 4);
+      strncpy(wcs->ctype[wcs->lat]+5, "TAN", 4);
 
     } else if (strncmp(wcsprj->code, "ZPX", 3) == 0) {
       // The WAT distortion should already have been encoded in disseq.
-      strcpy(wcsprj->code, "ZPN");
-      strcpy(wcs->ctype[wcs->lng]+5, "ZPN");
-      strcpy(wcs->ctype[wcs->lat]+5, "ZPN");
+      strncpy(wcsprj->code, "ZPN", 4);
+      strncpy(wcs->ctype[wcs->lng]+5, "ZPN", 4);
+      strncpy(wcs->ctype[wcs->lat]+5, "ZPN", 4);
     }
 
     // PVi_ma keyvalues.
@@ -2719,7 +2743,7 @@ int wcsset(struct wcsprm *wcs)
       wcscel->offset = 1;
       wcscel->phi0   = 0.0;
       wcscel->theta0 = wcs->crval[wcs->lat];
-      strcpy(wcsprj->code, "SFL");
+      strncpy(wcsprj->code, "SFL", 4);
 
     } else if (strncmp(wcs->ctype[wcs->lng]+5, "NCP", 3) == 0) {
       // Convert NCP to SIN.
@@ -2728,7 +2752,7 @@ int wcsset(struct wcsprm *wcs)
           "Invalid projection: NCP blows up on the equator");
       }
 
-      strcpy(wcsprj->code, "SIN");
+      strncpy(wcsprj->code, "SIN", 4);
       wcsprj->pv[1] = 0.0;
       wcsprj->pv[2] = cosd(wcscel->ref[1])/sind(wcscel->ref[1]);
     }
@@ -2762,6 +2786,9 @@ int wcsset(struct wcsprm *wcs)
         case 4:
           wcs->pv[k].value = wcscel->ref[3];
           break;
+        default:
+          // Ignore it.
+          break;
         }
       }
     }
@@ -2777,8 +2804,8 @@ int wcsset(struct wcsprm *wcs)
                           0x0, 0x0, err))) {
       return status;
     }
-    strcpy(wcsspc->type, stype);
-    strcpy(wcsspc->code, scode);
+    strncpy(wcsspc->type, stype, 8);
+    strncpy(wcsspc->code, scode, 4);
 
     // CRVALia, RESTFRQa, and RESTWAVa keyvalues.
     wcsspc->crval = wcs->crval[wcs->spec];
@@ -2842,7 +2869,7 @@ int wcsset(struct wcsprm *wcs)
           "ALTLIN == %d but CROTAj absent", wcs->altlin);
       }
 
-      int i, j;
+      ptrdiff_t i, j;
       if ((i = wcs->lng) >= 0 && (j = wcs->lat) >= 0) {
         double rho = wcs->crota[j];
 
@@ -2875,11 +2902,11 @@ int wcsset(struct wcsprm *wcs)
       strcmp(wcs->lngtyp, "HLON") == 0) {
     if (wcs->radesys[0] == '\0') {
       if (undefined(wcs->equinox)) {
-        strcpy(wcs->radesys, "ICRS");
+        strncpy(wcs->radesys, "ICRS", 72);
       } else if (wcs->equinox < 1984.0) {
-        strcpy(wcs->radesys, "FK4");
+        strncpy(wcs->radesys, "FK4", 72);
       } else {
-        strcpy(wcs->radesys, "FK5");
+        strncpy(wcs->radesys, "FK5", 72);
       }
 
     } else if (strcmp(wcs->radesys, "ICRS")  == 0 ||
@@ -3026,8 +3053,8 @@ static int wcs_types(struct wcsprm *wcs)
     // Translate AIPS spectral types for spctyp().
     char specsys[9];
     if (spcaips(ctypei, wcs->velref, ctypei, specsys) == 0) {
-      strcpy(wcs->ctype[i], ctypei);
-      if (wcs->specsys[0] == '\0') strcpy(wcs->specsys, specsys);
+      strncpy(wcs->ctype[i], ctypei, 72);
+      if (wcs->specsys[0] == '\0') strncpy(wcs->specsys, specsys, 72);
     }
 
     // Process linear axes.
@@ -3044,7 +3071,7 @@ static int wcs_types(struct wcsprm *wcs)
         wcs->types[i] += 2000;
         if (wcs->lng < 0) {
           wcs->lng = i;
-          strcpy(wcs->lngtyp, ctypei);
+          strncpy(wcs->lngtyp, ctypei, 8);
         }
 
       } else if (strcmp(ctypei,   "DEC") == 0 ||
@@ -3054,7 +3081,7 @@ static int wcs_types(struct wcsprm *wcs)
         wcs->types[i] += 2001;
         if (wcs->lat < 0) {
           wcs->lat = i;
-          strcpy(wcs->lattyp, ctypei);
+          strncpy(wcs->lattyp, ctypei, 8);
         }
 
       } else if (strcmp(ctypei, "CUBEFACE") == 0) {
@@ -3128,44 +3155,44 @@ static int wcs_types(struct wcsprm *wcs)
     wcs->types[i] = 2200;
     if (*pcode == '\0') {
       // The first of the two celestial axes.
-      sprintf(pcode, "%.3s", ctypei+5);
+      snprintf(pcode, 4, "%.3s", ctypei+5);
 
       if (strncmp(ctypei, "RA--", 4) == 0) {
         wcs->lng = i;
-        strcpy(wcs->lngtyp, "RA");
-        strcpy(wcs->lattyp, "DEC");
+        strncpy(wcs->lngtyp, "RA", 8);
+        strncpy(wcs->lattyp, "DEC", 8);
         ndx = &wcs->lat;
-        sprintf(requir, "DEC--%s", pcode);
+        snprintf(requir, 16, "DEC--%s", pcode);
       } else if (strncmp(ctypei, "DEC-", 4) == 0) {
         wcs->lat = i;
-        strcpy(wcs->lngtyp, "RA");
-        strcpy(wcs->lattyp, "DEC");
+        strncpy(wcs->lngtyp, "RA", 8);
+        strncpy(wcs->lattyp, "DEC", 8);
         ndx = &wcs->lng;
-        sprintf(requir, "RA---%s", pcode);
+        snprintf(requir, 16, "RA---%s", pcode);
       } else if (strncmp(ctypei+1, "LON", 3) == 0) {
         wcs->lng = i;
-        sprintf(wcs->lngtyp, "%cLON", ctypei[0]);
-        sprintf(wcs->lattyp, "%cLAT", ctypei[0]);
+        snprintf(wcs->lngtyp, 8, "%cLON", ctypei[0]);
+        snprintf(wcs->lattyp, 8, "%cLAT", ctypei[0]);
         ndx = &wcs->lat;
-        sprintf(requir, "%s-%s", wcs->lattyp, pcode);
+        snprintf(requir, 16, "%s-%s", wcs->lattyp, pcode);
       } else if (strncmp(ctypei+1, "LAT", 3) == 0) {
         wcs->lat = i;
-        sprintf(wcs->lngtyp, "%cLON", ctypei[0]);
-        sprintf(wcs->lattyp, "%cLAT", ctypei[0]);
+        snprintf(wcs->lngtyp, 8, "%cLON", ctypei[0]);
+        snprintf(wcs->lattyp, 8, "%cLAT", ctypei[0]);
         ndx = &wcs->lng;
-        sprintf(requir, "%s-%s", wcs->lngtyp, pcode);
+        snprintf(requir, 16, "%s-%s", wcs->lngtyp, pcode);
       } else if (strncmp(ctypei+2, "LN", 2) == 0) {
         wcs->lng = i;
-        sprintf(wcs->lngtyp, "%c%cLN", ctypei[0], ctypei[1]);
-        sprintf(wcs->lattyp, "%c%cLT", ctypei[0], ctypei[1]);
+        snprintf(wcs->lngtyp, 8, "%c%cLN", ctypei[0], ctypei[1]);
+        snprintf(wcs->lattyp, 8, "%c%cLT", ctypei[0], ctypei[1]);
         ndx = &wcs->lat;
-        sprintf(requir, "%s-%s", wcs->lattyp, pcode);
+        snprintf(requir, 16, "%s-%s", wcs->lattyp, pcode);
       } else if (strncmp(ctypei+2, "LT", 2) == 0) {
         wcs->lat = i;
-        sprintf(wcs->lngtyp, "%c%cLN", ctypei[0], ctypei[1]);
-        sprintf(wcs->lattyp, "%c%cLT", ctypei[0], ctypei[1]);
+        snprintf(wcs->lngtyp, 8, "%c%cLN", ctypei[0], ctypei[1]);
+        snprintf(wcs->lattyp, 8, "%c%cLT", ctypei[0], ctypei[1]);
         ndx = &wcs->lng;
-        sprintf(requir, "%s-%s", wcs->lngtyp, pcode);
+        snprintf(requir, 16, "%s-%s", wcs->lngtyp, pcode);
       } else {
         // Unrecognized celestial type.
         wcs->types[i] = -1;
@@ -3198,7 +3225,7 @@ static int wcs_types(struct wcsprm *wcs)
   }
 
   // Do we have a complementary pair of celestial axes?
-  if (strcmp(requir, "")) {
+  if (strcmp(requir, "") != 0) {
     // Unmatched celestial axis.
     wcs->lng = -1;
     wcs->lat = -1;
@@ -3266,8 +3293,8 @@ static int time_code(const char *ctype, int nc)
   // Is it a code applicable to time-like axes?
   const char *code = ctype + 4;
   if (*code == '-') {
-    if (strncmp(code, "-LOG", 5) == 0) return 1;
-    if (strncmp(code, "-TAB", 5) == 0) return 1;
+    if (strcmp(code, "-LOG") == 0) return 1;
+    if (strcmp(code, "-TAB") == 0) return 1;
   }
 
   return 0;
@@ -3293,12 +3320,12 @@ static int wcs_units(struct wcsprm *wcs)
     switch (wcs->types[i]/1000) {
     case 2:
       // Celestial axis.
-      strcpy(units, "deg");
+      strncpy(units, "deg", 16);
       break;
 
     case 3:
       // Spectral axis.
-      strncpy(ctype, wcs->ctype[i], 8);
+      strncpy(ctype, wcs->ctype[i], 9);
       ctype[8] = '\0';
       spctyp(ctype, 0x0, 0x0, 0x0, units, 0x0, 0x0, 0x0);
       break;
@@ -3332,15 +3359,16 @@ static int wcs_units(struct wcsprm *wcs)
 
         if (wcs->cd) {
           for (int j = 0; j < naxis; j++) {
-            *(wcs->cd + i*naxis + j) *= scale;
+            ptrdiff_t cdij = i*naxis + j;
+            *(wcs->cd + cdij) *= scale;
           }
         }
 
-        strcpy(wcs->cunit[i], units);
+        strncpy(wcs->cunit[i], units, 72);
       }
 
     } else {
-      strcpy(wcs->cunit[i], units);
+      strncpy(wcs->cunit[i], units, 72);
     }
   }
 
@@ -3398,11 +3426,13 @@ static int wcs_chksum(const struct wcsprm *wcs)
     chksum = wcs_fletcher32(chksum, wcs->crota, nszd);
   }
 
-  chksum = wcs_fletcher32(chksum, &wcs->altlin, szi);
-  chksum = wcs_fletcher32(chksum, &wcs->ntab, szi);
-  chksum = wcs_fletcher32(chksum, &wcs->nwtb, szi);
-  chksum = wcs_fletcher32(chksum, &wcs->tab, sizeof(struct tabprm *));
-  chksum = wcs_fletcher32(chksum, &wcs->wtb, sizeof(struct wtbarr *));
+  chksum = wcs_fletcher32(chksum, (const void *)(&wcs->altlin), szi);
+  chksum = wcs_fletcher32(chksum, (const void *)(&wcs->ntab), szi);
+  chksum = wcs_fletcher32(chksum, (const void *)(&wcs->nwtb), szi);
+  chksum = wcs_fletcher32(chksum, (const void *)(&wcs->tab),
+                          sizeof(struct tabprm *));
+  chksum = wcs_fletcher32(chksum, (const void *)(&wcs->wtb),
+                          sizeof(struct wtbarr *));
 
   return chksum;
 }
@@ -3518,9 +3548,8 @@ int wcsp2s(
           struct disprm *dispre = lin->dispre;
           struct disprm *disseq = lin->disseq;
           for (int i = 0; i < wcs->naxis; i++) {
-            if (dispre && dispre->disp2x[i]) {
-              disaxes |= (1 << i);
-            } else if (disseq && disseq->disp2x[i]) {
+            if ((dispre && dispre->disp2x[i]) ||
+                (disseq && disseq->disp2x[i])) {
               disaxes |= (1 << i);
             }
           }
@@ -3602,6 +3631,7 @@ int wcsp2s(
             default:
               *statp |= bits;
               status = wcserr_set(WCS_ERRMSG(WCSERR_BAD_PIX));
+              break;
             }
           }
 
@@ -3973,9 +4003,8 @@ int wcss2p(
           struct disprm *dispre = lin->dispre;
           struct disprm *disseq = lin->disseq;
           for (int i = 0; i < wcs->naxis; i++) {
-            if (dispre && dispre->disp2x[i]) {
-              disaxes |= (1 << i);
-            } else if (disseq && disseq->disp2x[i]) {
+            if ((dispre && dispre->disp2x[i]) ||
+                (disseq && disseq->disp2x[i])) {
               disaxes |= (1 << i);
             }
           }
@@ -4892,7 +4921,7 @@ int wcssptr(
   wcs->cdelt[j] = cdelt;
   wcs->crval[j] = crval;
   spctyp(ctype, 0x0, 0x0, 0x0, wcs->cunit[j], 0x0, 0x0, 0x0);
-  strcpy(wcs->ctype[j], ctype);
+  strncpy(wcs->ctype[j], ctype, 72);
 
   // This keeps things tidy if the spectral axis is linear.
   spcfree(&(wcs->spc));

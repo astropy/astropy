@@ -26123,8 +26123,8 @@ static const yy_state_type yy_NUL_trans[1458] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "wcsbth.l"
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2025, Mark Calabretta
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -26143,7 +26143,7 @@ static const yy_state_type yy_NUL_trans[1458] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsbth.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcsbth.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical
@@ -26271,7 +26271,7 @@ struct wcsbth_extra {
 // A convenience macro to get around incompatibilities between unput() and
 // yyless(): put yytext followed by a blank back onto the input stream.
 #define WCSBTH_PUTBACK \
-  sprintf(strtmp, "%s ", yytext); \
+  snprintf(strtmp, 80, "%s ", yytext); \
   size_t iz = strlen(strtmp); \
   while (iz) unput(strtmp[--iz]);
 
@@ -28859,7 +28859,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -28889,7 +28889,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "invalid image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -28915,7 +28915,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "invalid image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -28932,7 +28932,7 @@ YY_RULE_SETUP
 	  if (relax & WCSHDR_reject) {
 	    // Looks too much like a FITS WCS keyword not to flag it.
 	    errmsg = errtxt;
-	    sprintf(errmsg, "keyword looks very much like %s but isn't",
+	    snprintf(errmsg, 80, "keyword looks very much like %s but isn't",
 	      keyname);
 	    BEGIN(ERROR);
 	
@@ -28962,7 +28962,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg, "%s keyword is non-standard", keyname);
+	    snprintf(errmsg, 80, "%s keyword is non-standard", keyname);
 	    BEGIN(ERROR);
 	
 	  } else {
@@ -28987,9 +28987,9 @@ YY_RULE_SETUP
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
 	    if (!vptr) {
-	      sprintf(errmsg, "%s keyword is non-standard", keyname);
+	      snprintf(errmsg, 80, "%s keyword is non-standard", keyname);
 	    } else {
-	      sprintf(errmsg,
+	      snprintf(errmsg, 80,
 	        "%s keyword may not have an alternate version code", keyname);
 	    }
 	    BEGIN(ERROR);
@@ -29055,7 +29055,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29128,7 +29128,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "invalid image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29168,7 +29168,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "invalid image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29202,13 +29202,13 @@ YY_RULE_SETUP
 {
 	  if (relax & WCSHDR_ALLIMG) {
 	    errmsg = errtxt;
-	    sprintf(errmsg, "%s keyword must use an underscore, not a dash",
-	      keyname);
+	    snprintf(errmsg, 80,
+	      "%s keyword must use an underscore, not a dash", keyname);
 	    BEGIN(ERROR);
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "invalid image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29233,7 +29233,7 @@ YY_RULE_SETUP
 	
 	    } else if (relax & WCSHDR_reject) {
 	      errmsg = errtxt;
-	      sprintf(errmsg,
+	      snprintf(errmsg, 80,
 	        "this form of the %s keyword is deprecated, use %s",
 	        keyname, keyname);
 	      BEGIN(ERROR);
@@ -29245,7 +29245,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "deprecated image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29295,7 +29295,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg, "%s keyword is non-standard", keyname);
+	    snprintf(errmsg, 80, "%s keyword is non-standard", keyname);
 	    BEGIN(ERROR);
 	
 	  } else {
@@ -29388,7 +29388,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "deprecated image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29445,7 +29445,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "%s keyword may not have an alternate version code", keyname);
 	    BEGIN(ERROR);
 	
@@ -29483,7 +29483,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29500,8 +29500,8 @@ YY_RULE_SETUP
 	  if (relax & WCSHDR_reject) {
 	    // Looks too much like a FITS WCS keyword not to flag it.
 	    errmsg = errtxt;
-	    sprintf(errmsg, "invalid alternate code, keyword resembles %s "
-	      "but isn't", keyname);
+	    snprintf(errmsg, 80, "invalid alternate code, keyword resembles "
+	      "%s but isn't", keyname);
 	    BEGIN(ERROR);
 	
 	  } else {
@@ -29595,7 +29595,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29668,7 +29668,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "invalid image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29708,7 +29708,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "invalid image-header keyword %s in binary table", keyname);
 	    BEGIN(ERROR);
 	
@@ -29741,8 +29741,8 @@ YY_RULE_SETUP
 #line 2620 "wcsbth.l"
 {
 	  errmsg = errtxt;
-	  sprintf(errmsg, "%s keyword must use an underscore, not a dash",
-	    keyname);
+	  snprintf(errmsg, 80,
+	    "%s keyword must use an underscore, not a dash", keyname);
 	  BEGIN(ERROR);
 	}
 	YY_BREAK
@@ -29785,7 +29785,7 @@ YY_RULE_SETUP
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg, "the %s keyword is non-standard", keyname);
+	    snprintf(errmsg, 80, "the %s keyword is non-standard", keyname);
 	    BEGIN(ERROR);
 	
 	  } else {
@@ -29937,11 +29937,11 @@ YY_RULE_SETUP
 	    if (relax & WCSHDR_reject) {
 	      errmsg = errtxt;
 	      if (i > 99 || j > 99) {
-	        sprintf(errmsg, "axis number exceeds 99");
+	        snprintf(errmsg, 80, "axis number exceeds 99");
 	      } else if (m > 99) {
-	        sprintf(errmsg, "parameter number exceeds 99");
+	        snprintf(errmsg, 80, "parameter number exceeds 99");
 	      } else if (n > 999 || k > 999) {
-	        sprintf(errmsg, "column number exceeds 999");
+	        snprintf(errmsg, 80, "column number exceeds 999");
 	      }
 	      BEGIN(ERROR);
 	
@@ -29971,7 +29971,7 @@ YY_RULE_SETUP
 	      BEGIN(STRING_VAL);
 	    } else {
 	      errmsg = errtxt;
-	      sprintf(errmsg, "internal parser ERROR, bad data type: %d",
+	      snprintf(errmsg, 80, "internal parser ERROR, bad data type: %d",
 	        valtype);
 	      BEGIN(ERROR);
 	    }
@@ -30206,7 +30206,7 @@ YY_RULE_SETUP
 	          }
 	
 	          char *cptr = (char *)wptr;
-	          strcpy(cptr, strtmp);
+	          strncpy(cptr, strtmp, 72);
 	        }
 	      }
 	    }

@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile definitions for building WCSLIB 8.6
+# GNU makefile definitions for building WCSLIB 8.7
 #
 # makedefs is generated from makedefs.in by configure.  It contains variable
 # definitions and some general-purpose rules for building WCSLIB.
@@ -39,11 +39,11 @@
 #      compiled separately without this option.
 #
 #      The shared library will be installed with version number, e.g. as
-#      libwcs.so.8.6 or libwcs.8.6.dylib with or without the symlink
+#      libwcs.so.8.7 or libwcs.8.7.dylib with or without the symlink
 #      required to make it visible to the linker (controlled by the SHRLN
 #      variable).  On Macs it is deliberately not created because its very
 #      existence precludes static linking with the cctools linker.  You can
-#      still link dynamically by using -lwcs.8.6.
+#      still link dynamically by using -lwcs.8.7.
 #
 #   4) PGPLOT is Tim Pearson's Fortran graphics library with separate C
 #      interface available from astro.caltech.edu.  It is only required by
@@ -74,7 +74,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/computing/software/wcs
-# $Id: makedefs.in,v 8.6 2026/03/29 13:53:57 mcalabre Exp $
+# $Id: makedefs.in,v 8.7 2026/05/11 12:01:11 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Version.
   LIBVER    := @LIBVER@
@@ -265,6 +265,7 @@ show :: wcsconfig.h
 	-@ echo ''
 	-@ echo 'For code development...'
 	-@ echo '  FLAVOUR     := $(FLAVOUR)'
+	-@ echo '  ANALYSE     := $(ANALYSE)'
 	-@ echo '  MODE        := $(MODE)'
 	-@ echo '  VALGRIND    := $(VALGRIND)'
 	-@ echo '  EXTRA_CLEAN := $(EXTRA_CLEAN)'
@@ -272,6 +273,7 @@ show :: wcsconfig.h
 
 # For code development.
 FLAVOUR     := @FLAVOUR@
+ANALYSE     := @ANALYSE@
 MODE        := @MODE@
 VALGRIND    := @VALGRIND@
 EXTRA_CLEAN := @EXTRA_CLEAN@

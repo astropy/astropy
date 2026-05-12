@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: fitshdr.l,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: fitshdr.l,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *=============================================================================
 *
 * fitshdr.l is a Flex description file containing a lexical scanner
@@ -311,7 +311,7 @@ const char *fitshdr_errmsg[] = {
 	      // 64-bit integer (up to 18 digits) implemented as int[3].
 	      kptr->keyvalue.k[2] = 0;
 	
-	      sprintf(ctmp, "%%%dd%%9d", yyleng-9);
+	      snprintf(ctmp, 72, "%%%dd%%9d", yyleng-9);
 	      if (sscanf(yytext, ctmp, kptr->keyvalue.k+1,
 	                 kptr->keyvalue.k) < 1) {
 	        kptr->status |= FITSHDR_KEYVALUE;
@@ -328,7 +328,7 @@ const char *fitshdr_errmsg[] = {
 <VALUE>{INTVL} {
 	  // Very long integer keyvalue (and 19-digit int64).
 	  kptr->type = 4;
-	  strcpy(ctmp, yytext);
+	  strncpy(ctmp, yytext, 72);
 	  int j, k = yyleng;
 	  for (j = 0; j < 8; j++) {
 	    // Read it backwards.
@@ -422,7 +422,7 @@ const char *fitshdr_errmsg[] = {
 	  // String keyvalue.
 	  kptr->type = 8;
 	  char *cptr = kptr->keyvalue.s;
-	  strcpy(cptr, yytext+1);
+	  strncpy(cptr, yytext+1, 72);
 	
 	  // Squeeze out repeated quotes.
 	  int k = 0;
@@ -492,7 +492,7 @@ const char *fitshdr_errmsg[] = {
 	}
 
 <COMMENT>.* {
-	  strcpy(kptr->comment, yytext);
+	  strncpy(kptr->comment, yytext, 84);
 	  nullfill(kptr->comment, 84);
 	  BEGIN(FLUSH);
 	}
@@ -500,7 +500,7 @@ const char *fitshdr_errmsg[] = {
 <ERROR>.* {
 	  if (!continuation) kptr->type = -abs(kptr->type);
 	
-	  sprintf(kptr->comment, "%.80s", yyextra->hdr-80);
+	  snprintf(kptr->comment, 84, "%.80s", yyextra->hdr-80);
 	  kptr->comment[80] = '\0';
 	  nullfill(kptr->comment+80, 4);
 	

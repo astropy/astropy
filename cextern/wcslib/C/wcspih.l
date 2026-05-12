@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcspih.l,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcspih.l,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *=============================================================================
 *
 * wcspih.l is a Flex description file containing the definition of a lexical
@@ -1592,7 +1592,7 @@ static int wcspih_timepixr(double timepixr);
 	  if (relax & WCSHDR_reject) {
 	    // Looks too much like a FITS WCS keyword not to flag it.
 	    errmsg = errtxt;
-	    sprintf(errmsg, "keyword looks very much like %s but isn't",
+	    snprintf(errmsg, 80, "keyword looks very much like %s but isn't",
 	      keyname);
 	    BEGIN(ERROR);
 	
@@ -1675,8 +1675,8 @@ static int wcspih_timepixr(double timepixr);
 <CCi_ja>{Z2}-{Z3} |
 <CCi_ja>{Z1}-{Z4} {
 	  errmsg = errtxt;
-	  sprintf(errmsg, "%s keyword must use an underscore, not a dash",
-	    keyname);
+	  snprintf(errmsg, 80,
+	    "%s keyword must use an underscore, not a dash", keyname);
 	  BEGIN(ERROR);
 	}
 
@@ -1690,7 +1690,7 @@ static int wcspih_timepixr(double timepixr);
 	
 	  } else if (relax & WCSHDR_reject) {
 	    errmsg = errtxt;
-	    sprintf(errmsg,
+	    snprintf(errmsg, 80,
 	      "this form of the %s keyword is deprecated, use %s",
 	      keyname, keyname);
 	    BEGIN(ERROR);
@@ -1721,8 +1721,8 @@ static int wcspih_timepixr(double timepixr);
 	  if (relax & WCSHDR_reject) {
 	    // Looks too much like a FITS WCS keyword not to flag it.
 	    errmsg = errtxt;
-	    sprintf(errmsg, "invalid alternate code, keyword resembles %s "
-	      "but isn't", keyname);
+	    snprintf(errmsg, 80, "invalid alternate code, keyword resembles "
+	      "%s but isn't", keyname);
 	    BEGIN(ERROR);
 	
 	  } else {
@@ -1803,8 +1803,8 @@ static int wcspih_timepixr(double timepixr);
 <CCi_ma>{Z2}-{Z3} |
 <CCi_ma>{Z1}-{Z4} {
 	  errmsg = errtxt;
-	  sprintf(errmsg, "%s keyword must use an underscore, not a dash",
-	    keyname);
+	  snprintf(errmsg, 80,
+	    "%s keyword must use an underscore, not a dash", keyname);
 	  BEGIN(ERROR);
 	}
 
@@ -1955,7 +1955,7 @@ static int wcspih_timepixr(double timepixr);
 	      BEGIN(RECORD_VAL);
 	    } else {
 	      errmsg = errtxt;
-	      sprintf(errmsg, "internal parser ERROR, bad data type: %d",
+	      snprintf(errmsg, 80, "internal parser ERROR, bad data type: %d",
 	        valtype);
 	      BEGIN(ERROR);
 	    }
@@ -2152,9 +2152,9 @@ static int wcspih_timepixr(double timepixr);
 	
 	          // SIP doesn't have alternates.
 		  char keyword[16];
-	          sprintf(keyword, "DP%d", i);
-	          sprintf(strtmp, "SIP.%s.%d_%d", (sipflag==2)?"FWD":"REV",
-	                  p, q);
+	          snprintf(keyword, 16, "DP%d", i);
+	          snprintf(strtmp, 80, "SIP.%s.%d_%d",
+	                  (sipflag==2)?"FWD":"REV", p, q);
 	          if (valtype == INTEGER) {
 	            dpfill(disp->dp+ipx, keyword, strtmp, i, 0, inttmp, 0.0);
 	          } else {
@@ -2169,7 +2169,7 @@ static int wcspih_timepixr(double timepixr);
 	
 	          } else if (dssflag == 2) {
 	            // Temporary parameter for DSS used by wcspih_final().
-	            strcpy((char *)vptr, strtmp);
+	            strncpy((char *)vptr, strtmp, 8);
 	
 	          } else {
 	            // Translate a DSS keyword into DQia.
@@ -2179,8 +2179,8 @@ static int wcspih_timepixr(double timepixr);
 	
 	              // DSS doesn't have alternates.
 		      char keyword[16];
-	              sprintf(keyword, "DQ%d", i);
-	              sprintf(strtmp, "DSS.AMD.%d", m);
+	              snprintf(keyword, 16, "DQ%d", i);
+	              snprintf(strtmp, 80, "DSS.AMD.%d", m);
 	              dpfill(disp->dp+ipx, keyword, strtmp, i, 1, 0, dbltmp);
 	
 	              // Also required by wcspih_final().
@@ -2192,7 +2192,7 @@ static int wcspih_timepixr(double timepixr);
 	
 	        } else if (watflag) {
 	          // String array for TNX and ZPX used by wcspih_final().
-	          strcpy((char *)vptr, strtmp);
+	          strncpy((char *)vptr, strtmp, 68);
 	
 	        } else {
 	          // An "ordinary" keyword.
@@ -2281,16 +2281,16 @@ static int wcspih_timepixr(double timepixr);
 	            }
 	
 	            char *cptr = (char *)wptr;
-	            strcpy(cptr, strtmp);
+	            strncpy(cptr, strtmp, 72);
 	
 	          } else if (valtype == RECORD) {
 	            int ipx = (disp->ndp)++;
 	
 		    char keyword[16];
 	            if (a == ' ') {
-	              sprintf(keyword, "%.2s%d", keyname, i);
+	              snprintf(keyword, 16, "%.2s%d", keyname, i);
 	            } else {
-	              sprintf(keyword, "%.2s%d%c", keyname, i, a);
+	              snprintf(keyword, 16, "%.2s%d%c", keyname, i, a);
 	            }
 	
 	            dpfill(disp->dp+ipx, keyword, strtmp, i, rectype, inttmp,
@@ -2890,7 +2890,7 @@ int wcspih_final(
     strncpy(wcsp->ctype[0], "RA---TAN", 72);
     strncpy(wcsp->ctype[1], "DEC--TAN", 72);
 
-    sprintf(wcsp->wcsname, "DSS PLATEID %.4s", (char *)(dsstmp+13));
+    snprintf(wcsp->wcsname, 72, "DSS PLATEID %.4s", (char *)(dsstmp+13));
 
     // Erase the approximate WCS provided in modern DSS headers.
     wcsp->cd[0] = 0.0;
@@ -3043,7 +3043,7 @@ int wcspih_final(
       char field[40];
       for (int m = 0; m < 4; m++) {
         sscanf(wp, "%lf", &wval);
-        sprintf(field, "WAT.%c%s", (m<2)?'X':'Y', (m%2)?"MAX":"MIN");
+        snprintf(field, 40, "WAT.%c%s", (m<2)?'X':'Y', (m%2)?"MAX":"MIN");
         dpfill(disp->dp+(idp++), "DQ", field, i+1, 1, 0, wval);
 
         if ((wp = strchr(wp, ' ')) == 0x0) {
@@ -3064,7 +3064,7 @@ int wcspih_final(
           sscanf(wp, "%lf", &wval);
           if (wval == 0.0) continue;
 
-          sprintf(field, "WAT.%s.%d_%d", wpoly, m, n);
+          snprintf(field, 40, "WAT.%s.%d_%d", wpoly, m, n);
           dpfill(disp->dp+(idp++), "DQ", field, i+1, 1, 0, wval);
 
           if ((wp = strchr(wp, ' ')) == 0x0) {

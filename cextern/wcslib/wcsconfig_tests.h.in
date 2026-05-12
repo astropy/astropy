@@ -1,11 +1,11 @@
 /*============================================================================
 * wcsconfig_test.h is generated from wcsconfig_test.h.in by 'configure'.  It
-* contains C preprocessor definitions for compiling the WCSLIB 8.6 test/demo
+* contains C preprocessor definitions for compiling the WCSLIB 8.7 test/demo
 * programs.
 *
 * Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 * http://www.atnf.csiro.au/computing/software/wcs
-* $Id: wcsconfig_tests.h.in,v 8.6 2026/03/29 13:53:57 mcalabre Exp $
+* $Id: wcsconfig_tests.h.in,v 8.7 2026/05/11 12:01:11 mcalabre Exp $
 *===========================================================================*/
 
 #include <wcsconfig.h>
@@ -15,3 +15,6 @@
 
 // Define to the printf format modifier for size_t type.
 #undef MODZ
+
+// Needed to get nanosleep() from time.h.
+#define _POSIX_C_SOURCE 199309L

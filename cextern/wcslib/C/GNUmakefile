@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.6 and its test suite.
+# GNU makefile for building WCSLIB 8.7 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,16 +31,17 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/computing/software/wcs
-# $Id: GNUmakefile,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+# $Id: GNUmakefile,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
 include ../makedefs
 
 FLEXMODS := $(patsubst %.l,%.c,$(wildcard *.l))
+CFILES   := $(filter-out $(FLEXMODS), $(wildcard *.c))
 MODULES  := $(sort \
               $(patsubst %.c,%.o, \
-                $(filter-out getwcstab.c,$(wildcard *.c)) $(FLEXMODS)))
+                $(filter-out getwcstab.c,$(CFILES)) $(FLEXMODS)))
 
 ifeq "$(WCSTRIG)" "MACRO"
   CPPFLAGS += -DWCSTRIG_MACRO
@@ -184,6 +185,11 @@ $(PICLIB)(%.o) : $(WCSLIB)(%.o)
 %.fits : test/%.keyrec ../utils/tofits
 	   ../utils/tofits < $< > $@
 
+# Static code analysis (clang-tidy).
+%.sca : %.c ../.clang-tidy
+	-@ echo ''
+	   $(ANALYSE) $< -- 2>&1 | tee $@
+
 # Use 'make VALGRIND=T run_%' to have VALGRIND defined (from flavours).
 # Use 'make VALGRIND=T check < /dev/null |& tee check_valgrind.log' to run
 # valgrind on the lot.
@@ -266,8 +272,8 @@ run_% : %
 # Static and static pattern rules
 #--------------------------------
 
-.PHONY : build check clean cleaner cleanest distclean install lib realclean \
-         run_% test tests uninstall
+.PHONY : analyse build check clean cleaner cleanest distclean install lib \
+         realclean run_% test tests uninstall
 
 build : lib
 
@@ -314,6 +320,8 @@ $(PICLIB) : $(LIBLOCK) $(MODULES:%=$(PICLIB)(%))
 $(LIBLOCK) : FORCE
 	 @ $(RM) *.o
 	 @ touch $@
+
+analyse : $(CFILES:%.c=%.sca)
 
 install : build
 	-  if [ ! -d "$(LIBDIR)" ] ; then \
@@ -363,7 +371,7 @@ uninstall :
 	-  $(RM) $(INCLINK)
 
 clean :
-	- $(RM) *.o $(LIBLOCK) *.i a.out t*.out core *.dSYM
+	- $(RM) *.o $(LIBLOCK) *.i a.out t*.out core *.dSYM *.sca
 	- $(RM) -r $(EXTRA_CLEAN)
 
 cleaner : clean
@@ -470,6 +478,7 @@ GNUmakefile : ../makedefs ;
 
 show ::
 	-@ echo '  FLEXMODS    := $(FLEXMODS)'
+	-@ echo '  CFILES      := $(CFILES)'
 	-@ echo '  MODULES     := $(MODULES)'
 	-@ echo '  DO_CFITSIO  := $(DO_CFITSIO)'
 	-@ echo '  DO_PGPLOT   := $(DO_PGPLOT)'
@@ -481,9 +490,9 @@ show ::
 
 $(WCSLIB)(cel.o)      : cel.h prj.h sph.h wcsconfig.h wcserr.h wcsmath.h \
                         wcsprintf.h wcstrig.h
-$(WCSLIB)(dis.o)      : dis.h wcserr.h wcsprintf.h wcsutil.h
+$(WCSLIB)(dis.o)      : dis.h wcserr.h wcslimits.h wcsprintf.h wcsutil.h
 $(WCSLIB)(fitshdr.o)  : fitshdr.h wcsconfig.h wcsutil.h
-$(WCSLIB)(lin.o)      : dis.h lin.h wcserr.h wcsprintf.h
+$(WCSLIB)(lin.o)      : dis.h lin.h wcserr.h wcslimits.h wcsprintf.h
 $(WCSLIB)(log.o)      : log.h
 $(WCSLIB)(prj.o)      : prj.h wcsconfig.h wcserr.h wcsmath.h wcsprintf.h \
                         wcstrig.h wcsutil.h
@@ -493,13 +502,13 @@ $(WCSLIB)(sph.o)      : sph.h wcsconfig.h wcstrig.h
 $(WCSLIB)(spx.o)      : spx.h wcserr.h wcsmath.h
 $(WCSLIB)(tab.o)      : tab.h wcserr.h wcsmath.h wcsprintf.h wcsutil.h
 $(WCSLIB)(wcs.o)      : cel.h dis.h lin.h log.h prj.h spc.h sph.h spx.h \
-                        tab.h wcs.h wcsconfig.h wcserr.h wcsmath.h \
-                        wcsprintf.h wcstrig.h wcsunits.h wcsutil.h
+                        tab.h wcs.h wcsconfig.h wcserr.h wcslimits.h \
+                        wcsmath.h wcsprintf.h wcstrig.h wcsunits.h wcsutil.h
 $(WCSLIB)(wcsbth.o)   : cel.h lin.h prj.h spc.h spx.h wcs.h wcshdr.h \
                         wcsmath.h wcsprintf.h wcsutil.h
 $(WCSLIB)(wcserr.o)   : wcserr.h wcsprintf.h
 $(WCSLIB)(wcsfix.o)   : cel.h lin.h prj.h spc.h sph.h spx.h wcs.h wcserr.h \
-                        wcsfix.h wcsmath.h wcsunits.h wcsutil.h
+                        wcsfix.h wcslimits.h wcsmath.h wcsunits.h wcsutil.h
 $(WCSLIB)(wcshdr.o)   : cel.h dis.h lin.h prj.h spc.h spx.h tab.h wcs.h \
                         wcserr.h wcshdr.h wcsmath.h wcsutil.h
 $(WCSLIB)(wcspih.o)   : cel.h dis.h lin.h prj.h spc.h spx.h wcs.h wcshdr.h \

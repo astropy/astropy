@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsfix.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcsfix.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -33,14 +33,12 @@
 #include "wcs.h"
 #include "wcserr.h"
 #include "wcsfix.h"
+#include "wcslimits.h"
 #include "wcsmath.h"
 #include "wcstrig.h"
 #include "wcsunits.h"
 #include "wcsutil.h"
 #include "wtbarr.h"
-
-// Maximum number of coordinate axes that can be handled.
-#define NMAX 16
 
 // Map status return value to message.
 const char *wcsfix_errmsg[] = {
@@ -229,7 +227,7 @@ int cdfix(struct wcsprm *wcs)
   int status = FIXERR_NO_CHANGE;
   for (int i = 0; i < naxis; i++) {
     // Row of zeros?
-    double *cd = wcs->cd + i*naxis;
+    double *cd = wcs->cd + (size_t)(i*naxis);
     for (int k = 0; k < naxis; k++, cd++) {
       if (*cd != 0.0) goto next;
     }
@@ -240,7 +238,7 @@ int cdfix(struct wcsprm *wcs)
       if (*cd != 0.0) goto next;
     }
 
-    cd = wcs->cd + i * (naxis + 1);
+    cd = wcs->cd + (size_t)(i*(naxis + 1));
     *cd = 1.0;
     status = FIXERR_SUCCESS;
 
@@ -265,22 +263,22 @@ static int parse_date(const char *buf, int *hour, int *minute, double *sec)
 }
 
 
-static void write_date(char *buf, int hour, int minute, double sec)
+static void write_date(char buf[32], int hour, int minute, double sec)
 
 {
   char ctmp[32];
-  wcsutil_double2str(ctmp, "%04.1f", sec);
-  sprintf(buf, "T%.2d:%.2d:%s", hour, minute, ctmp);
+  wcsutil_double2str(ctmp, 32, "%04.1f", sec);
+  snprintf(buf, 32, "T%.2d:%.2d:%.5s", hour, minute, ctmp);
 }
 
 
-static char *newline(char **cp)
+static char *newline(char **cp, char *cpe)
 
 {
-  size_t k;
-  if ((k = strlen(*cp))) {
+  size_t k = strlen(*cp);
+  if (k) {
     *cp += k;
-    strcat(*cp, ".\n");
+    strncpy(*cp, ".\n", cpe - *cp);
     *cp += 2;
   }
 
@@ -307,9 +305,9 @@ int datfix(struct wcsprm *wcs)
   if (wcs == 0x0) return FIXERR_NULL_POINTER;
   struct wcserr **err = &(wcs->err);
 
-  char infomsg[512];
-  char *cp = infomsg;
-  *cp = '\0';
+  char infomsg[512], *cp = infomsg, *cpe = infomsg + 512;
+  infomsg[0] = '\0';
+  size_t csize;
 
   int status = FIXERR_NO_CHANGE;
 
@@ -344,6 +342,7 @@ int datfix(struct wcsprm *wcs)
 
     char orig_date[72];
     strncpy(orig_date, date, 72);
+    orig_date[71] = '\0';
 
     if (date[0] == '\0') {
       // Fill in DATE from MJD if possible.
@@ -352,12 +351,16 @@ int datfix(struct wcsprm *wcs)
         // See if we have jepoch or bepoch.
         if (!undefined(wcs->jepoch)) {
           *wcsmjd = mjd2000 + (wcs->jepoch - 2000.0)*djy;
-          sprintf(newline(&cp), "Set MJD-OBS to %.6f from JEPOCH", *wcsmjd);
+          newline(&cp, cpe);
+          csize = cpe - cp;
+          snprintf(cp, csize, "Set MJD-OBS to %.6f from JEPOCH", *wcsmjd);
           if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
 
         } else if (!undefined(wcs->bepoch)) {
           *wcsmjd = mjd1900 + (wcs->bepoch - 1900.0)*dty;
-          sprintf(newline(&cp), "Set MJD-OBS to %.6f from BEPOCH", *wcsmjd);
+          newline(&cp, cpe);
+          csize = cpe - cp;
+          snprintf(cp, csize, "Set MJD-OBS to %.6f from BEPOCH", *wcsmjd);
           if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
         }
       }
@@ -392,7 +395,7 @@ int datfix(struct wcsprm *wcs)
         year  = n4/1461 - 4712;
         month = (2 + dd/306)%12 + 1;
         day   = (dd%306)/10 + 1;
-        sprintf(date, "%.4d-%.2d-%.2d", year, month, day);
+        snprintf(date, 72, "%.4d-%.2d-%.2d", year, month, day);
 
         // Write time part only if non-zero.
         if (0.0 < (t = mjd[1])) {
@@ -408,11 +411,11 @@ int datfix(struct wcsprm *wcs)
           dd -= 3600000 * hour;
           minute = dd / 60000;
           int msec = dd - 60000 * minute;
-          sprintf(date+10, "T%.2d:%.2d:%.2d", hour, minute, msec/1000);
+          snprintf(date+10, 62, "T%.2d:%.2d:%.2d", hour, minute, msec/1000);
 
           // Write fractions of a second only if non-zero.
           if (msec%1000) {
-            sprintf(date+19, ".%.3d", msec%1000);
+            snprintf(date+19, 53, ".%.3d", msec%1000);
           }
         }
       }
@@ -421,7 +424,9 @@ int datfix(struct wcsprm *wcs)
       if (strlen(date) < 8) {
         // Can't be a valid date.
         status = FIXERR_BAD_PARAM;
-        sprintf(newline(&cp), "Invalid DATE%s format '%s' is too short",
+        newline(&cp, cpe);
+        csize = cpe - cp;
+        snprintf(cp, csize, "Invalid DATE%s format '%s' is too short",
           dateid, date);
         continue;
       }
@@ -431,14 +436,18 @@ int datfix(struct wcsprm *wcs)
         // Standard year-2000 form: CCYY-MM-DD[Thh:mm:ss[.sss...]]
         if (sscanf(date, "%4d-%2d-%2d", &year, &month, &day) < 3) {
           status = FIXERR_BAD_PARAM;
-          sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid, date);
+          newline(&cp, cpe);
+          csize = cpe - cp;
+          snprintf(cp, csize, "Invalid DATE%s format '%s'", dateid, date);
           continue;
         }
 
         if (date[10] == 'T') {
           if (parse_date(date+11, &hour, &minute, &sec)) {
             status = FIXERR_BAD_PARAM;
-            sprintf(newline(&cp), "Invalid time in DATE%s '%s'", dateid,
+            newline(&cp, cpe);
+            csize = cpe - cp;
+            snprintf(cp, csize, "Invalid time in DATE%s '%s'", dateid,
               date+11);
             continue;
           }
@@ -457,14 +466,18 @@ int datfix(struct wcsprm *wcs)
         // Also allow CCYY/MM/DD[Thh:mm:ss[.sss...]]
         if (sscanf(date, "%4d/%2d/%2d", &year, &month, &day) < 3) {
           status = FIXERR_BAD_PARAM;
-          sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid, date);
+          newline(&cp, cpe);
+          csize = cpe - cp;
+          snprintf(cp, csize, "Invalid DATE%s format '%s'", dateid, date);
           continue;
         }
 
         if (date[10] == 'T') {
           if (parse_date(date+11, &hour, &minute, &sec)) {
             status = FIXERR_BAD_PARAM;
-            sprintf(newline(&cp), "Invalid time in DATE%s '%s'", dateid,
+            newline(&cp, cpe);
+            csize = cpe - cp;
+            snprintf(cp, csize, "Invalid time in DATE%s '%s'", dateid,
               date+11);
             continue;
           }
@@ -488,7 +501,9 @@ int datfix(struct wcsprm *wcs)
           // Old format DATE-OBS date: DD/MM/YY, also allowing DD/MM/CCYY.
           if (sscanf(date, "%2d/%2d/%4d", &day, &month, &year) < 3) {
             status = FIXERR_BAD_PARAM;
-            sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid,
+            newline(&cp, cpe);
+            csize = cpe - cp;
+            snprintf(cp, csize, "Invalid DATE%s format '%s'", dateid,
               date);
             continue;
           }
@@ -497,7 +512,9 @@ int datfix(struct wcsprm *wcs)
           // Also recognize DD-MM-YY and DD-MM-CCYY
           if (sscanf(date, "%2d-%2d-%4d", &day, &month, &year) < 3) {
             status = FIXERR_BAD_PARAM;
-            sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid,
+            newline(&cp, cpe);
+            csize = cpe - cp;
+            snprintf(cp, csize, "Invalid DATE%s format '%s'", dateid,
               date);
             continue;
           }
@@ -505,22 +522,25 @@ int datfix(struct wcsprm *wcs)
         } else {
           // Not a valid date format.
           status = FIXERR_BAD_PARAM;
-          sprintf(newline(&cp), "Invalid DATE%s format '%s'", dateid, date);
+          newline(&cp, cpe);
+          csize = cpe - cp;
+          snprintf(cp, csize, "Invalid DATE%s format '%s'", dateid, date);
           continue;
         }
 
         if (year < 100) year += 1900;
 
         // Doesn't have a time.
-        sprintf(date, "%.4d-%.2d-%.2d", year, month, day);
+        snprintf(date, 72, "%.4d-%.2d-%.2d", year, month, day);
       }
 
-      // Compute MJD.
+      // Compute MJD using Hatcher's algorithm, based on integer division.
       double mjd[2];
-      mjd[0] = (double)((1461*(year - (12-month)/10 + 4712))/4
+      int m = (1461*(year - (12-month)/10 + 4712))/4
                + (306*((month+9)%12) + 5)/10
                - (3*((year - (12-month)/10 + 4900)/100))/4
-               + day - 2399904);
+               + day - 2399904;
+      mjd[0] = (double)m;
       mjd[1] = (hour + (minute + sec/60.0)/60.0)/24.0;
       double mjdsum = mjd[0] + mjd[1];
 
@@ -531,7 +551,9 @@ int datfix(struct wcsprm *wcs)
         } else {
           *wcsmjd = mjdsum;
         }
-        sprintf(newline(&cp), "Set MJD%s to %.6f from DATE%s", dateid,
+        newline(&cp, cpe);
+        csize = cpe - cp;
+        snprintf(cp, csize, "Set MJD%s to %.6f from DATE%s", dateid,
           mjdsum, dateid);
 
         if (status == FIXERR_NO_CHANGE) status = FIXERR_SUCCESS;
@@ -547,7 +569,9 @@ int datfix(struct wcsprm *wcs)
 
         if (0.001 < fabs(mjdsum - mjdtmp)) {
           status = FIXERR_BAD_PARAM;
-          sprintf(newline(&cp),
+          newline(&cp, cpe);
+          csize = cpe - cp;
+          snprintf(cp, csize,
             "Invalid parameter values: MJD%s and DATE%s are inconsistent",
             dateid, dateid);
         }
@@ -560,7 +584,9 @@ int datfix(struct wcsprm *wcs)
 
           if (0.000002 < fabs(jepoch - wcs->jepoch)) {
             // Informational only, no error.
-            sprintf(newline(&cp), "JEPOCH is inconsistent with DATE-OBS");
+            newline(&cp, cpe);
+            csize = cpe - cp;
+            snprintf(cp, csize, "JEPOCH is inconsistent with DATE-OBS");
           }
         }
 
@@ -570,18 +596,24 @@ int datfix(struct wcsprm *wcs)
 
           if (0.000002 < fabs(bepoch - wcs->bepoch)) {
             // Informational only, no error.
-            sprintf(newline(&cp), "BEPOCH is inconsistent with DATE-OBS");
+            newline(&cp, cpe);
+            csize = cpe - cp;
+            snprintf(cp, csize, "BEPOCH is inconsistent with DATE-OBS");
           }
         }
       }
     }
 
-    if (strncmp(orig_date, date, 72)) {
+    if (strncmp(orig_date, date, 72) != 0) {
       if (orig_date[0] == '\0') {
-        sprintf(newline(&cp), "Set DATE%s to '%s' from MJD%s", dateid, date,
+        newline(&cp, cpe);
+        csize = cpe - cp;
+        snprintf(cp, csize, "Set DATE%s to '%s' from MJD%s", dateid, date,
           dateid);
       } else {
-        sprintf(newline(&cp), "Changed DATE%s from '%s' to '%s'", dateid,
+        newline(&cp, cpe);
+        csize = cpe - cp;
+        snprintf(cp, csize, "Changed DATE%s from '%s' to '%s'", dateid,
           orig_date, date);
       }
 
@@ -643,8 +675,9 @@ int obsfix(int ctrl, struct wcsprm *wcs)
   }
 
 
-  char infomsg[256];
+  char infomsg[256], *cp = infomsg, *cpe = infomsg + 256;
   infomsg[0] = '\0';
+  size_t csize;
 
   int status = FIXERR_NO_CHANGE;
 
@@ -665,11 +698,11 @@ int obsfix(int ctrl, struct wcsprm *wcs)
     if (havexyz < 7) {
       // One or more of the Cartesian elements was undefined.
       status = FIXERR_SUCCESS;
-      char *cp = infomsg;
 
       if (ctrl == 1 || !(havexyz & 1)) {
         wcs->obsgeo[0] = x;
-        sprintf(cp, "%s OBSGEO-X to %12.3f from OBSGEO-[LBH]",
+        csize = cpe - cp;
+        snprintf(cp, csize, "%s OBSGEO-X to %12.3f from OBSGEO-[LBH]",
           (havexyz & 1) ? "Reset" : "Set", x);
       }
 
@@ -677,22 +710,26 @@ int obsfix(int ctrl, struct wcsprm *wcs)
         wcs->obsgeo[1] = y;
 
         if ((k = strlen(cp))) {
-          strcat(cp+k, ".\n");
-          cp += k + 2;
+          cp += k;
+          strncpy(cp, ".\n", cpe - cp);
+          cp += 2;
         }
 
-        sprintf(cp, "%s OBSGEO-Y to %12.3f from OBSGEO-[LBH]",
+        csize = cpe - cp;
+        snprintf(cp, csize, "%s OBSGEO-Y to %12.3f from OBSGEO-[LBH]",
           (havexyz & 2) ? "Reset" : "Set", y);
       }
 
       if (ctrl == 1 || !(havexyz & 4)) {
         wcs->obsgeo[2] = z;
         if ((k = strlen(cp))) {
-          strcat(cp+k, ".\n");
-          cp += k + 2;
+          cp += k;
+          strncpy(cp, ".\n", cpe - cp);
+          cp += 2;
         }
 
-        sprintf(cp, "%s OBSGEO-Z to %12.3f from OBSGEO-[LBH]",
+        csize = cpe - cp;
+        snprintf(cp, csize, "%s OBSGEO-Z to %12.3f from OBSGEO-[LBH]",
           (havexyz & 4) ? "Reset" : "Set", z);
       }
 
@@ -729,33 +766,37 @@ int obsfix(int ctrl, struct wcsprm *wcs)
     if (havelbh < 7) {
       // One or more of the Geodetic elements was undefined.
       status = FIXERR_SUCCESS;
-      char *cp = infomsg;
 
       if (ctrl == 1 || !(havelbh & 1)) {
         wcs->obsgeo[3] = lng;
-        sprintf(cp, "%s OBSGEO-L to %12.6f from OBSGEO-[XYZ]",
+        csize = cpe - cp;
+        snprintf(cp, csize, "%s OBSGEO-L to %12.6f from OBSGEO-[XYZ]",
           (havelbh & 1) ? "Reset" : "Set", lng);
       }
 
       if (ctrl == 1 || !(havelbh & 2)) {
         wcs->obsgeo[4] = lat;
         if ((k = strlen(cp))) {
-          strcat(cp+k, ".\n");
-          cp += k + 2;
+          cp += k;
+          strncpy(cp, ".\n", cpe - cp);
+          cp += 2;
         }
 
-        sprintf(cp, "%s OBSGEO-B to %12.6f from OBSGEO-[XYZ]",
+        csize = cpe - cp;
+        snprintf(cp, csize, "%s OBSGEO-B to %12.6f from OBSGEO-[XYZ]",
           (havelbh & 2) ? "Reset" : "Set", lat);
       }
 
       if (ctrl == 1 || !(havelbh & 4)) {
         wcs->obsgeo[5] = hgt;
         if ((k = strlen(cp))) {
-          strcat(cp+k, ".\n");
-          cp += k + 2;
+          cp += k;
+          strncpy(cp, ".\n", cpe - cp);
+          cp += 2;
         }
 
-        sprintf(cp, "%s OBSGEO-H to %12.3f from OBSGEO-[XYZ]",
+        csize = cpe - cp;
+        snprintf(cp, csize, "%s OBSGEO-H to %12.3f from OBSGEO-[XYZ]",
           (havelbh & 4) ? "Reset" : "Set", hgt);
       }
 
@@ -826,7 +867,7 @@ int unitfix(int ctrl, struct wcsprm *wcs)
       if (msglen < 511) {
         wcsutil_null_fill(72, orig_unit);
         char msgtmp[192];
-        sprintf(msgtmp, "\n  '%s' -> '%s',", orig_unit, wcs->cunit[i]);
+        snprintf(msgtmp, 192, "\n  '%s' -> '%s',", orig_unit, wcs->cunit[i]);
         strncpy(msg+msglen, msgtmp, 511-msglen);
         status = FIXERR_UNITS_ALIAS;
       }
@@ -873,7 +914,7 @@ int spcfix(struct wcsprm *wcs)
 
       // Was ctype translated?  Have to null-fill for comparing them.
       wcsutil_null_fill(9, wcs->ctype[i]);
-      if (strncmp(wcs->ctype[i], ctype, 9)) {
+      if (strncmp(wcs->ctype[i], ctype, 9) != 0) {
         // ctype was translated...
         if (status == FIXERR_SUCCESS) {
           // ...and specsys was also.
@@ -930,8 +971,8 @@ int celfix(struct wcsprm *wcs)
   if (wcs->lat >= 0) {
     // Check ctype.
     if (strcmp(wcs->ctype[wcs->lat]+5, "NCP") == 0) {
-      strcpy(wcs->ctype[wcs->lng]+5, "SIN");
-      strcpy(wcs->ctype[wcs->lat]+5, "SIN");
+      strncpy(wcs->ctype[wcs->lng]+5, "SIN", 4);
+      strncpy(wcs->ctype[wcs->lat]+5, "SIN", 4);
 
       if (wcs->npvmax < wcs->npv + 2) {
         // Allocate space for two more PVi_ma keyvalues.
@@ -971,8 +1012,8 @@ int celfix(struct wcsprm *wcs)
       return FIXERR_SUCCESS;
 
     } else if (strcmp(wcs->ctype[wcs->lat]+5, "GLS") == 0) {
-      strcpy(wcs->ctype[wcs->lng]+5, "SFL");
-      strcpy(wcs->ctype[wcs->lat]+5, "SFL");
+      strncpy(wcs->ctype[wcs->lng]+5, "SFL", 4);
+      strncpy(wcs->ctype[wcs->lat]+5, "SFL", 4);
 
       if (wcs->crval[wcs->lng] != 0.0 || wcs->crval[wcs->lat] != 0.0) {
         // In the AIPS convention, setting the reference longitude and
@@ -1055,13 +1096,13 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
   // Compute the native longitude in each corner of the image.
   unsigned short ncnr = 1 << wcs->naxis;
 
-  unsigned short indx[NMAX];
-  for (int k = 0; k < NMAX; k++) {
+  unsigned short indx[NAXMAX];
+  for (int k = 0; k < NAXMAX; k++) {
     indx[k] = 1 << k;
   }
 
   int    stat[4];
-  double img[4][NMAX], phi[4], pix[4][NMAX], theta[4], world[4][NMAX];
+  double img[4][NAXMAX], phi[4], pix[4][NAXMAX], theta[4], world[4][NAXMAX];
 
   double phimin =  1.0e99;
   double phimax = -1.0e99;
@@ -1079,8 +1120,8 @@ int cylfix(const int naxis[], struct wcsprm *wcs)
       }
     }
 
-    if (!(status = wcsp2s(wcs, 4, NMAX, pix[0], img[0], phi, theta, world[0],
-                          stat))) {
+    if (!(status = wcsp2s(wcs, 4, NAXMAX, pix[0], img[0], phi, theta,
+                          world[0], stat))) {
       for (int j = 0; j < 4; j++) {
         if (phi[j] < phimin) phimin = phi[j];
         if (phi[j] > phimax) phimax = phi[j];
@@ -1185,13 +1226,14 @@ int wcspcx(
 
   // Allocate memory in bulk for two nxn matrices.
   int naxis = wcs->naxis;
+  size_t naxiz = naxis;
   double *mem;
-  if ((mem = calloc(2*naxis*naxis, sizeof(double))) == 0x0) {
+  if ((mem = calloc(2*naxiz*naxiz, sizeof(double))) == 0x0) {
     return wcserr_set(WCSFIX_ERRMSG(FIXERR_MEMORY));
   }
 
   double *mat = mem;
-  double *inv = mem + naxis*naxis;
+  double *inv = mem + naxiz*naxiz;
 
   // Construct the transpose of CDi_j with each element squared.
   double *matij = mat;
@@ -1204,7 +1246,8 @@ int wcspcx(
   }
 
   // Invert the matrix.
-  if ((status = matinv(naxis, mat, inv))) {
+  if (matinv(naxis, mat, inv)) {
+    free(mem);
     return wcserr_set(WCSERR_SET(FIXERR_SINGULAR_MTX),
       "No solution for CDi_j matrix decomposition");
   }
@@ -1240,7 +1283,7 @@ int wcspcx(
 
   // Ensure that latitude always follows longitude.
   if (wcs->lng >= 0 && wcs->lat >= 0) {
-    double *pci = wcs->pc + naxis*wcs->lng;
+    double *pci = wcs->pc + naxiz*wcs->lng;
 
     // Take the first non-zero element in the row.
     for (int j = 0; j < naxis; j++) {
@@ -1277,12 +1320,33 @@ int wcspcx(
     }
   }
 
+  // Check validity of the permutation map.
+  int badmap = 0;
+  for (int j = 0; j < naxis; j++) {
+    int i;
+    for (i = 0; i < naxis; i++) {
+      if (mapto[i] == j) break;
+    }
+
+    if (i == naxis) {
+      badmap = 1;
+      break;
+    }
+  }
+
+  if (badmap) {
+    // Bail out.
+    for (int i = 0; i < naxis; i++) {
+      mapto[i] = i;
+    }
+  }
+
 
   // Fix the sign of CDELTi.  Celestial axes are special, otherwise diagonal
   // elements of the correctly permuted matrix should be positive.
   for (int i = 0; i < naxis; i++) {
     int chsgn;
-    double *pci = wcs->pc + naxis*i;
+    double *pci = wcs->pc + naxiz*i;
 
     // Celestial axes are special.
     if (i == wcs->lng) {
@@ -1434,12 +1498,13 @@ int unscramble(
       return 1;
     }
 
-    for (int i = 0; i < n; i++) {
-      dtmp[mapto[i]] = dval[i*step];
+    for (int i = 0, j = 0; i < n; i++, j += step) {
+      int k = mapto[i];
+      dtmp[k] = dval[j];
     }
 
-    for (int i = 0; i < n; i++) {
-      dval[i*step] = dtmp[i];
+    for (int i = 0, j = 0; i < n; i++, j += step) {
+      dval[j] = dtmp[i];
     }
 
     free(dtmp);
@@ -1447,12 +1512,13 @@ int unscramble(
   } else if (type == 2) {
     char (*cval)[72] = (char (*)[72])vptr;
     char (*ctmp)[72];
-    if ((ctmp = (char (*)[72])malloc(n*72*sizeof(char))) == 0x0) {
+    if ((ctmp = (char (*)[72])malloc(n*sizeof(char[72]))) == 0x0) {
       return 1;
     }
 
     for (int i = 0; i < n; i++) {
-      memcpy(ctmp[mapto[i]], cval[i], 72);
+      int k = mapto[i];
+      memcpy(ctmp[k], cval[i], 72);
     }
 
     for (int i = 0; i < n; i++) {
@@ -1469,7 +1535,8 @@ int unscramble(
     }
 
     for (int i = 0; i < n; i++) {
-      itmp[mapto[i]] = ival[i];
+      int k = mapto[i];
+      itmp[k] = ival[i];
     }
 
     for (int i = 0; i < n; i++) {

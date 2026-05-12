@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsutrn.l,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcsutrn.l,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical
@@ -120,181 +120,181 @@ static YY_DECL;
 	}
 
 Angstroms|angstroms? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "Angstrom");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "Angstrom", 80);
 	  BEGIN(NEXT);
 	}
 
 arcmins|ARCMINS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "arcmin");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "arcmin", 80);
 	  BEGIN(NEXT);
 	}
 
 arcsecs|ARCSECS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "arcsec");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "arcsec", 80);
 	  BEGIN(NEXT);
 	}
 
 BEAM	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "beam");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "beam", 80);
 	  BEGIN(NEXT);
 	}
 
 Byte	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "byte");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "byte", 80);
 	  BEGIN(NEXT);
 	}
 
 days?|DAYS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "d");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "d", 80);
 	  BEGIN(NEXT);
 	}
 
 D	{
 	  unsafe = 1;
-	  strcpy(orig, yytext);
-	  strcpy(subs, (ctrl & 4) ? "d" : "D");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, (ctrl & 4) ? "d" : "D", 80);
 	  BEGIN(NEXT);
 	}
 
 degrees?|Deg|Degrees?|DEG|DEGREES? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "deg");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "deg", 80);
 	  BEGIN(NEXT);
 	}
 
 GHZ	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "GHz");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "GHz", 80);
 	  BEGIN(NEXT);
 	}
 
 hr|HR	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "h");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "h", 80);
 	  BEGIN(NEXT);
 	}
 
 H	{
 	  unsafe = 1;
-	  strcpy(orig, yytext);
-	  strcpy(subs, (ctrl & 2) ? "h" : "H");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, (ctrl & 2) ? "h" : "H", 80);
 	  BEGIN(NEXT);
 	}
 
 hz|HZ	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "Hz");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "Hz", 80);
 	  BEGIN(NEXT);
 	}
 
 KHZ	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "kHz");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "kHz", 80);
 	  BEGIN(NEXT);
 	}
 
 JY	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "Jy");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "Jy", 80);
 	  BEGIN(NEXT);
 	}
 
 [kK]elvins?|KELVINS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "K");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "K", 80);
 	  BEGIN(NEXT);
 	}
 
 KM	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "km");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "km", 80);
 	  BEGIN(NEXT);
 	}
 
 metres?|meters?|M|METRES?|METERS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "m");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "m", 80);
 	  BEGIN(NEXT);
 	}
 
 MIN	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "min");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "min", 80);
 	  BEGIN(NEXT);
 	}
 
 MHZ	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "MHz");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "MHz", 80);
 	  BEGIN(NEXT);
 	}
 
 Ohm	{
-	  strcpy(orig, yytext);
-	  strcpy(subs, "ohm");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "ohm", 80);
 	  BEGIN(NEXT);
 	}
 
 [pP]ascals?|PASCALS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "Pa");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "Pa", 80);
 	  BEGIN(NEXT);
 	}
 
 pixels|PIXELS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "pixel");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "pixel", 80);
 	  BEGIN(NEXT);
 	}
 
 radians?|RAD|RADIANS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "rad");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "rad", 80);
 	  BEGIN(NEXT);
 	}
 
 sec|seconds?|SEC|SECONDS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "s");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "s", 80);
 	  BEGIN(NEXT);
 	}
 
 S	{
 	  unsafe = 1;
-	  strcpy(orig, yytext);
-	  strcpy(subs, (ctrl & 1) ? "s" : "S");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, (ctrl & 1) ? "s" : "S", 80);
 	  BEGIN(NEXT);
 	}
 
 [vV]olts?|VOLTS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "V");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "V", 80);
 	  BEGIN(NEXT);
 	}
 
 years?|YR|YEARS? {
-	  strcpy(orig, yytext);
-	  strcpy(subs, "yr");
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, "yr", 80);
 	  BEGIN(NEXT);
 	}
 
 [A-Za-z]+ {
 	  // Not a recognized alias.
-	  strcpy(orig, yytext);
-	  strcpy(subs, orig);
+	  strncpy(orig, yytext, 80);
+	  strncpy(subs, orig, 80);
 	  BEGIN(NEXT);
 	}
 
 <NEXT>[A-Za-z]+ {
 	  // Reject the alias match.
 	  strcat(orig, yytext);
-	  strcpy(subs, orig);
+	  strncpy(subs, orig, 80);
 	}
 
 <NEXT>" "+[^A-Za-z] {
