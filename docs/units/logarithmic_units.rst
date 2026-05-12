@@ -260,7 +260,7 @@ to work::
     ``units/function/core.py`` and by explicitly disabling some array methods in
     :class:`~astropy.units.FunctionQuantity`.  If you believe a
     function or method is incorrectly treated, please
-    :ref:`let us know <astropy-org-contribute>`.
+    :ref:`let us know <astropy.org:astropy-org-contribute>`.
 
 Dimensionless Logarithmic Quantities
 ====================================
