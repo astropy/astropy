@@ -231,6 +231,11 @@ ASCIITNULL = 0
 # converting from binary to ASCII tables
 DEFAULT_ASCII_TNULL = "---"
 
+# Per the FITS standard, indexed column keywords (TTYPEn, TFORMn, ...) must
+# fit within the 8-character keyword limit, so n is restricted to 1-3 digits.
+# This caps both binary and ASCII tables at 999 columns. See issue #19236.
+_FITS_MAX_COLUMNS = 999
+
 
 class Delayed:
     """Delayed file-reading data."""
@@ -1509,9 +1514,40 @@ class ColDefs(NotifierMixin):
                 "of Columns, or a record/field array."
             )
 
+        self._validate_column_count()
+
         # Listen for changes on all columns
         for col in self.columns:
             col._add_listener(self)
+
+    def _validate_column_count(self, ncols=None):
+        """Reject column counts the FITS standard cannot represent.
+
+        FITS uses indexed per-column keywords like ``TTYPEn`` and ``TFORMn``,
+        where ``n`` is a positive integer suffix. To keep keyword names
+        within the FITS 8-character limit, ``n`` is restricted to 1-3
+        digits, capping binary and ASCII tables at ``_FITS_MAX_COLUMNS``
+        (999) columns. Without this guard the failure surfaces only at
+        write time as a cryptic ``VerifyError``; see issue #19236.
+
+        Parameters
+        ----------
+        ncols : int, optional
+            The column count to validate. Defaults to ``len(self.columns)``,
+            which is what callers want after construction. Pass an explicit
+            value (e.g. ``len(self.columns) + 1``) when validating *before*
+            an in-place mutation, so the ``ColDefs`` is not left in a
+            partially-modified state on failure.
+        """
+        if ncols is None:
+            ncols = len(self.columns)
+        if ncols > _FITS_MAX_COLUMNS:
+            raise ValueError(
+                f"cannot construct a FITS table with {ncols} columns: "
+                f"FITS tables support at most {_FITS_MAX_COLUMNS} columns. "
+                f"Consider using a subset of the columns, or splitting the "
+                f"table across multiple HDUs."
+            )
 
     def _init_from_coldefs(self, coldefs):
         """Initialize from an existing ColDefs object (just copy the
@@ -1838,6 +1874,10 @@ class ColDefs(NotifierMixin):
         """
         if not isinstance(column, Column):
             raise AssertionError
+
+        # Reject before any mutation so the ColDefs is not left in a
+        # partially-modified state on failure (issue #19236).
+        self._validate_column_count(len(self.columns) + 1)
 
         # Ask the HDU object to load the data before we modify our columns
         self._notify("load_data")
