@@ -1243,6 +1243,11 @@ class Table:
         # mixin class
         if (not isinstance(data, Column) and not data_is_mixin
                 and isinstance(data, np.ndarray) and len(data.dtype) > 1):
+            warnings.warn(
+                "Adding a structured np.ndarray to a Table is deprecated and will "
+                "be changed in version 5.2. Instead wrap the data in a Column with "
+                "``col = Column(data)`` and add that to the Table.",
+                FutureWarning, stacklevel=4)
             data = data.view(NdarrayMixin)
             data_is_mixin = True
 
