@@ -717,6 +717,34 @@ def test_multi_column_write_table_html_fill_values_masked():
     assert buffer_output.getvalue() == buffer_expected.getvalue()
 
 
+def test_write_table_html_formats():
+    """
+    Test that the formats argument is applied when writing HTML tables.
+    """
+    buffer_output = StringIO()
+    t = Table([[1.234567], [8.9012345]], names=('a', 'b'))
+    ascii.write(t, buffer_output, formats={'a': '%.2f', 'b': '%.3f'},
+                format='html')
+    out = buffer_output.getvalue()
+    assert '1.23' in out
+    assert '8.901' in out
+    # Make sure full precision is not written
+    assert '1.234567' not in out
+    assert '8.9012345' not in out
+
+
+def test_write_table_html_formats_callable():
+    """
+    Test that callable formats are applied when writing HTML tables.
+    """
+    buffer_output = StringIO()
+    t = Table([[1.0], [2.0]], names=('a', 'b'))
+    ascii.write(t, buffer_output, formats={'a': lambda x: f'val={x:.1f}'},
+                format='html')
+    out = buffer_output.getvalue()
+    assert 'val=1.0' in out
+
+
 @pytest.mark.skipif('not HAS_BS4')
 def test_read_html_unicode():
     """
