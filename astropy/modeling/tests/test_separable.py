@@ -13,6 +13,7 @@ from astropy.modeling.models import Mapping
 from astropy.modeling.separable import (_coord_matrix, is_separable, _cdot,
                                         _cstack, _arith_oper, separability_matrix)
 from astropy.modeling.core import ModelDefinitionError
+from astropy.modeling.models import Pix2Sky_TAN, Linear1D
 
 
 sh1 = models.Shift(1, name='shift1')
@@ -133,6 +134,46 @@ def test_arith_oper():
 def test_separable(compound_model, result):
     assert_allclose(is_separable(compound_model), result[0])
     assert_allclose(separability_matrix(compound_model), result[1])
+
+
+def test_nested_compound_model_separability():
+    """Regression test for nested CompoundModel separability (issue #12907).
+
+    Nested compound models like `A & (B & C)` must produce the same correct
+    block-diagonal separability matrix as the flat equivalent `A & B & C`.
+    """
+    tan = Pix2Sky_TAN()
+    lin1 = Linear1D(10)
+    lin2 = Linear1D(5)
+
+    # Nested: tan & (lin1 & lin2)
+    nested = tan & (lin1 & lin2)
+    # Flat (left-associative): (tan & lin1) & lin2
+    flat = tan & lin1 & lin2
+
+    expected = np.array([
+        [True,  True,  False, False],
+        [True,  True,  False, False],
+        [False, False, True,  False],
+        [False, False, False, True],
+    ])
+
+    assert_allclose(separability_matrix(nested), expected)
+    assert_allclose(separability_matrix(flat), expected)
+
+    # Nested with Rotation2D and Shift models
+    nested_rot = rot & (sh1 & sh2)
+    flat_rot = rot & sh1 & sh2
+
+    expected_rot = np.array([
+        [True,  True,  False, False],
+        [True,  True,  False, False],
+        [False, False, True,  False],
+        [False, False, False, True],
+    ])
+
+    assert_allclose(separability_matrix(nested_rot), expected_rot)
+    assert_allclose(separability_matrix(flat_rot), expected_rot)
 
 
 def test_custom_model_separable():
