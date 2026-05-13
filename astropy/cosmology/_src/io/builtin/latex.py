@@ -57,6 +57,8 @@ By default the parameter names are converted to LaTeX format. To disable this, s
 from collections.abc import Mapping
 from typing import Any, TypeVar
 
+import numpy as np
+
 import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology._src.core import Cosmology
@@ -89,21 +91,29 @@ _FORMAT_TABLE = {
     "zp": "$z_{p}$",
 }
 
-_STANDARD_COSMO_UNITS = {
-    "H0": u.km,
-    "Om0": None,
-    "Tcmb0": u.K,
-    "Neff": None,
-    "m_nu": u.eV,
-    "Ob0": None,
-}
+
+def _parse_latex_value(val):
+    """Convert LaTeX-parsed string numeric values into actual numeric values"""
+    if not isinstance(val, (str, np.str_)):
+        return val
+
+    s = val.strip()
+
+    if s.startswith("[") and s.endswith("]"):
+        nums = s[1:-1].split()
+        return np.array([float(x) for x in nums])
+
+    try:
+        return float(val)
+    except ValueError:
+        return val
 
 
 def read_latex(
     filename: PathLike | ReadableFileLike[Table],
+    units: Mapping[str, object],
     index: int | str | None = None,
     *,
-    units: Mapping[str, object] | None = None,
     move_to_meta: bool = False,
     cosmology: str | type[_CosmoT] | None = None,
     latex_names: bool = True,
@@ -115,14 +125,14 @@ def read_latex(
     ----------
     filename : path-like or file-like
         From where to read the Cosmology.
+    units : Mapping[str, object]
+        A str-to-object mapping containing column names in the string format mapped to either a Unit object. This helps in precisely reading back the Cosmology in LaTeX format without any confusion about the units of various parameters. If no units are given to a parameter which in general has units, it falls back onto its default unit in a cosmology.
     index : int or str or None, optional
         Needed to select the row in tables with multiple rows. ``index`` can be an
         integer for the row number or, if the table is indexed by a column, the value of
         that column. If the table is not indexed and ``index`` is a string, the "name"
         column is used as the indexing column.
 
-    units: Mapping[str, object] or None, optional keyword-only
-        A str-to-object mapping containing column names in the string format mapped to either a Unit object or None. This helps in precisely reading back the Cosmology in LaTeX format without any confusion about the units of various parameters. It assumes that parameters in general have standard units, if not different units for a parameter should be given in a `dict`. (eg. ``units = {"H0": u.km, "Om0": None, "Tcmb0": u.K, "Neff": None,  "m_nu": u.eV,"Ob0": None}``)
     move_to_meta : bool, optional keyword-only
         Whether to move keyword arguments that are not in the Cosmology class' signature
         to the Cosmology's metadata. This will only be applied if the Cosmology does NOT
@@ -167,7 +177,7 @@ def read_latex(
         >>> file = Path(temp_dir.name) / "file.tex"
 
         >>> Planck18.write(file, format="ascii.latex")
-        >>> cosmo = Cosmology.read(file)
+        >>> cosmo = Cosmology.read(file, units={})
         >>> cosmo
         FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
 
@@ -187,6 +197,9 @@ def read_latex(
     if fmt != "ascii.latex":
         raise ValueError(f"format must be 'ascii.latex', not {fmt}")
 
+    # for key in units.keys():
+    #     units[_FORMAT_TABLE[key]] = units.pop(key)
+
     # Reading is handled by `QTable`.
     with u.add_enabled_units(cu):
         table = QTable.read(filename, format="ascii.latex", **kwargs)
@@ -197,12 +210,13 @@ def read_latex(
             if latex in table_columns:
                 table.rename_column(latex, name)
 
-    if not (units):
-        units = _STANDARD_COSMO_UNITS
-
     table_columns = table.colnames
-    data = {col: [table[col][1]] for col in table_columns}
-    new_table = QTable(data, units=units)
+    data = {col: [_parse_latex_value(table[col][1])] for col in table_columns}
+
+    for col, unit in units.items():
+        data[col] = data[col] * unit
+
+    new_table = QTable(data)
 
     return from_table(
         new_table, index, move_to_meta=move_to_meta, cosmology=cosmology, rename=None

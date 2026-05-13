@@ -2,6 +2,7 @@
 
 import pytest
 
+from astropy import units as u
 from astropy.cosmology._src.io.builtin.latex import (
     _FORMAT_TABLE,
     read_latex,
@@ -9,6 +10,7 @@ from astropy.cosmology._src.io.builtin.latex import (
 )
 from astropy.io.registry.base import IORegistryError
 from astropy.table import QTable, Table
+from astropy.units.errors import UnitConversionError
 
 from .base import ReadWriteDirectTestBase, ReadWriteTestMixinBase
 
@@ -32,11 +34,11 @@ class ReadWriteLATEXTestMixin(ReadWriteTestMixinBase):
 
         # single-row table and has a non-0/None index
         with pytest.raises(IndexError, match="index 2 out of range"):
-            read(fp, index=2, format="ascii.latex")
+            read(fp, index=2, format="ascii.latex", units={})
 
         # string index where doesn't match
         with pytest.raises(KeyError, match="No matches found for key"):
-            read(fp, index="row 0", format="ascii.latex")
+            read(fp, index="row 0", format="ascii.latex", units={})
 
     def test_read_latex_invalid_path(self, read):
         """Test passing an invalid or non-existent path"""
@@ -45,7 +47,7 @@ class ReadWriteLATEXTestMixin(ReadWriteTestMixinBase):
         invalid_fp = "blabla.tex"
 
         with pytest.raises(FileNotFoundError, match="No such file or directory"):
-            read(invalid_fp, format="ascii.latex")
+            read(invalid_fp, format="ascii.latex", units={})
 
     def test_latex_column_mnu(self, read, write, tmp_path):
         """Test for table column m_nu to have a numpy array, essential for proper cosmology conversion"""
@@ -106,6 +108,23 @@ class ReadWriteLATEXTestMixin(ReadWriteTestMixinBase):
             pytest.raises(IORegistryError, match="No writer defined for format")
             write(fp, format=invalid_format)
 
+    @pytest.mark.parametrize(
+        "units",
+        [
+            {"H0": u.m, "Tcmb0": u.C, "m_nu": u.eV},
+            {"H0": u.km / (u.mpc * u.s), "Tcmb0": u.C, "m_nu": u.eV},
+        ],
+    )
+    def test_latex_wrong_units(self, read, write, tmp_path, units):
+        """f"""
+        fp = tmp_path / "test_to_latex_bad_index.tex"
+
+        write(fp, format="ascii.latex")
+
+        # Reading back with wrong units
+        with pytest.raises(UnitConversionError):
+            read(fp, format="ascii.latex", units=units)
+
 
 class TestReadWriteLaTex(ReadWriteDirectTestBase, ReadWriteLATEXTestMixin):
     """
@@ -128,7 +147,7 @@ class TestReadWriteLaTex(ReadWriteDirectTestBase, ReadWriteLATEXTestMixin):
             # for now, Cosmology as metadata and name is stored in first 2 slots
             assert column_name in _FORMAT_TABLE.values()
 
-        cosmo = read(fp, format="ascii.latex")
+        cosmo = read(fp, format="ascii.latex", units={})
         converted_tbl = cosmo.to_format("astropy.table")
 
         # asserts each column name has been reverted

@@ -46,6 +46,9 @@ def read_json(filename, **kwargs):
             if isinstance(v, dict) and "value" in v and "unit" in v:
                 mapping["meta"][k] = u.Quantity(v["value"], v["unit"])
 
+    # pop out "units" kwarg
+    kwargs.pop("units", None)
+
     return Cosmology.from_format(mapping, format="mapping", **kwargs)
 
 
