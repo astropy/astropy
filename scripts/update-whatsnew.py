@@ -1,13 +1,12 @@
 """Update `docs/whatsnew/<version>.rst` with the auto-generated release summary.
 
 Usage:
-    python scripts/update-whatsnew.py 8.0
+    python scripts/update-whatsnew.py 8.0 v7.2.0
 
-Reads the local git history (so the previous-release tag is whichever one
-`git describe --tags --abbrev=0` finds on the current branch), queries
-GitHub for the merged-PR and closed-issue counts in the corresponding
-date window, and splices the stats paragraph + contributor list into the
-target file between sentinel comments:
+Reads the local git history, queries GitHub for the merged-PR and
+closed-issue counts in the corresponding date window, and splices the
+stats bullets + contributor list into the target file between sentinel
+comments:
 
     .. release-summary-start
 
@@ -96,12 +95,12 @@ def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("version", help="Version key matching docs/whatsnew/<version>.rst (e.g. 8.0).")
+    p.add_argument("prev_tag", help="Previous release tag to compare against (e.g. v7.2.0).")
     p.add_argument("--whatsnew-dir", default="docs/whatsnew",
                    help="Directory containing <version>.rst (default: docs/whatsnew).")
     p.add_argument("--project", default="astropy", help="Project name, used to default --repo and --pretty-name (default: astropy).")
     p.add_argument("--repo", help="GitHub repo OWNER/NAME (default: <project>/<project>).")
     p.add_argument("--pretty-name", help="Display name (default: <project>).")
-    p.add_argument("--tag", help="Previous release tag. If omitted, derived from `git describe` excluding pre-release tags.")
     p.add_argument("--numeric", action="store_true", help="Sort contributors by commit count.")
     p.add_argument("--counts", action="store_true", help="Show commit count next to each name.")
     p.add_argument("--pat", help="GitHub PAT (or set GH_TOKEN / GITHUB_TOKEN).")
@@ -111,33 +110,23 @@ def main():
     if not path.exists():
         raise SystemExit(f"{path} not found")
 
-    prev_tag = args.tag or git(
-        "describe", "--tags", "--abbrev=0",
-        # Skip pre-release / sentinel tags (e.g. astropy's `v8.1.0.dev`)
-        # so we compare against the last actual release. Run from a
-        # release branch (e.g. v8.0.x) so a real release tag is reachable;
-        # on main only `.dev` sentinels exist, in which case pass --tag.
-        "--exclude=*dev*", "--exclude=*rc*",
-        "--exclude=*alpha*", "--exclude=*beta*",
-    )
-
     name = args.pretty_name or args.project
     repo = args.repo or f"{args.project}/{args.project}"
     token = args.pat or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
         p.error("a GitHub token is required (--pat or GH_TOKEN / GITHUB_TOKEN env var)")
 
-    current = shortlog(f"{prev_tag}..HEAD", numeric=args.numeric)
-    previous_names = {n for _, n in shortlog(prev_tag)}
+    current = shortlog(f"{args.prev_tag}..HEAD", numeric=args.numeric)
+    previous_names = {n for _, n in shortlog(args.prev_tag)}
     current_names = {n for _, n in current}
     new = current_names - previous_names
 
-    ncommits = int(git("rev-list", "--count", f"{prev_tag}..HEAD"))
-    since = dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", prev_tag))
+    ncommits = int(git("rev-list", "--count", f"{args.prev_tag}..HEAD"))
+    since = dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", args.prev_tag))
     upto = dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", "HEAD"))
     prcnt, icnt = gh_counts(repo, since, upto, token)
 
-    short = prev_tag.lstrip("v")[:3]
+    short = args.prev_tag.lstrip("v")[:3]
     bullets = "\n".join(
         "  -  " + (f"{c}\t" if args.counts else "") + n + ("  *" if n in new else "")
         for c, n in current
