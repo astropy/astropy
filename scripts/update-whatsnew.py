@@ -37,7 +37,6 @@ import urllib.request
 from pathlib import Path
 
 GH_GRAPHQL = "https://api.github.com/graphql"
-PYPI_JSON = "https://pypi.org/pypi/{project}/json"
 
 
 def git(*args):
@@ -81,12 +80,6 @@ def gh_counts(repo, since, upto, token):
     return data["pulls"]["issueCount"], data["issues"]["issueCount"]
 
 
-def pypi_release_date(project, version):
-    with urllib.request.urlopen(PYPI_JSON.format(project=project)) as r:
-        info = json.load(r)
-    return dt.datetime.fromisoformat(info["releases"][version][0]["upload_time"])
-
-
 def splice(text, marker, payload):
     pattern = re.compile(
         rf"(\.\. {re.escape(marker)}-start\s*?\n).*?(\n\.\. {re.escape(marker)}-end)",
@@ -105,11 +98,10 @@ def main():
     p.add_argument("version", help="Version key matching docs/whatsnew/<version>.rst (e.g. 8.0).")
     p.add_argument("--whatsnew-dir", default="docs/whatsnew",
                    help="Directory containing <version>.rst (default: docs/whatsnew).")
-    p.add_argument("--project", default="astropy", help="PyPI project name (default: astropy).")
+    p.add_argument("--project", default="astropy", help="Project name, used to default --repo and --pretty-name (default: astropy).")
     p.add_argument("--repo", help="GitHub repo OWNER/NAME (default: <project>/<project>).")
     p.add_argument("--pretty-name", help="Display name (default: <project>).")
-    p.add_argument("--tag", help="Previous release tag. If omitted, derived from `git describe`.")
-    p.add_argument("--prev-version", help="PyPI version of previous release (default: --tag without 'v').")
+    p.add_argument("--tag", help="Previous release tag. If omitted, derived from `git describe` excluding pre-release tags.")
     p.add_argument("--numeric", action="store_true", help="Sort contributors by commit count.")
     p.add_argument("--counts", action="store_true", help="Show commit count next to each name.")
     p.add_argument("--pat", help="GitHub PAT (or set GH_TOKEN / GITHUB_TOKEN).")
@@ -119,10 +111,15 @@ def main():
     if not path.exists():
         raise SystemExit(f"{path} not found")
 
-    prev_tag = args.tag or git("describe", "--tags", "--abbrev=0")
-    prev_version = args.prev_version or prev_tag.lstrip("v")
-    if prev_version.startswith("v"):
-        p.error("--prev-version should not start with 'v'")
+    prev_tag = args.tag or git(
+        "describe", "--tags", "--abbrev=0",
+        # Skip pre-release / sentinel tags (e.g. astropy's `v8.1.0.dev`)
+        # so we compare against the last actual release. Run from a
+        # release branch (e.g. v8.0.x) so a real release tag is reachable;
+        # on main only `.dev` sentinels exist, in which case pass --tag.
+        "--exclude=*dev*", "--exclude=*rc*",
+        "--exclude=*alpha*", "--exclude=*beta*",
+    )
 
     name = args.pretty_name or args.project
     repo = args.repo or f"{args.project}/{args.project}"
@@ -136,11 +133,11 @@ def main():
     new = current_names - previous_names
 
     ncommits = int(git("rev-list", "--count", f"{prev_tag}..HEAD"))
-    since = pypi_release_date(args.project, prev_version)
+    since = dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", prev_tag))
     upto = dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", "HEAD"))
     prcnt, icnt = gh_counts(repo, since, upto, token)
 
-    short = prev_version[:3]
+    short = prev_tag.lstrip("v")[:3]
     bullets = "\n".join(
         "  -  " + (f"{c}\t" if args.counts else "") + n + ("  *" if n in new else "")
         for c, n in current
