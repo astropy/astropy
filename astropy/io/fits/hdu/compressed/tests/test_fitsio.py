@@ -322,6 +322,8 @@ def test_decompress_integers(nbytes, overflow, compression_type, kind, tmp_path)
 
 
 INTEGER_DTYPES_FULL_RANGE = [
+    "<i1",
+    ">i1",
     "<i2",
     ">i2",
     "<i4",
