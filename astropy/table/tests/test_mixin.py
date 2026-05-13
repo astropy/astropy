@@ -6,6 +6,8 @@ import copy
 import pickle
 from io import StringIO
 
+import warnings
+
 import pytest
 import numpy as np
 
@@ -758,6 +760,43 @@ def test_ndarray_mixin():
         "     (2, 'b')    (20, 'bb')   (200., 'rbb')   2 .. 3",
         "     (3, 'c')    (30, 'cc')   (300., 'rcc')   4 .. 5",
         "     (4, 'd')    (40, 'dd')   (400., 'rdd')   6 .. 7"]
+
+
+def test_structured_ndarray_deprecation_warning_message():
+    """Regression test for #13236: FutureWarning message guides users to the fix.
+
+    The message must mention Column wrapping so users know how to silence it.
+    """
+    a = np.array([(1, 'x'), (2, 'y')], dtype=[('f0', 'i4'), ('f1', 'U1')])
+    with pytest.warns(FutureWarning, match=r'col = Column\(data\)') as record:
+        Table([a], names=['a'])
+    assert 'version 5.2' in str(record[0].message)
+
+
+def test_structured_ndarray_column_wrapper_no_warning():
+    """Regression test for #13236: wrapping in Column() suppresses the deprecation.
+
+    The recommended workaround must not emit any FutureWarning.
+    """
+    a = np.array([(1, 'x'), (2, 'y')], dtype=[('f0', 'i4'), ('f1', 'U1')])
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', FutureWarning)
+        t = Table([Column(a)], names=['a'])
+    assert isinstance(t['a'], Column)
+
+
+def test_ndarray_mixin_view_no_warning():
+    """Regression test for #13236: an NdarrayMixin view does not trigger deprecation.
+
+    Only raw structured ndarrays should warn; an explicit NdarrayMixin is already
+    in the correct form.
+    """
+    a = np.array([(1, 'x'), (2, 'y')], dtype=[('f0', 'i4'), ('f1', 'U1')])
+    mixin = a.view(NdarrayMixin)
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', FutureWarning)
+        t = Table([mixin], names=['a'])
+    assert isinstance(t['a'], NdarrayMixin)
 
 
 def test_possible_string_format_functions():
