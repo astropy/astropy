@@ -1521,7 +1521,7 @@ def test_download_file_local_directory(tmp_path):
 def test_download_file_schedules_deletion(valid_urls):
     u, c = next(valid_urls)
     f = download_file(u)
-    assert f in _tempfilestodel
+    assert Path(f) in _tempfilestodel
     # how to test deletion actually occurs?
 
 
@@ -1541,7 +1541,7 @@ def test_check_download_cache_finds_bogus_entries(temp_cache, valid_urls):
     u, c = next(valid_urls)
     download_file(u, cache=True)
     dldir = _get_download_cache_loc()
-    bf = os.path.abspath(os.path.join(dldir, "bogus"))
+    bf = dldir.joinpath("bogus").absolute()
     with open(bf, "w") as f:
         f.write("bogus file that exists")
     with pytest.raises(CacheDamaged) as e:
@@ -1553,10 +1553,9 @@ def test_check_download_cache_finds_bogus_entries(temp_cache, valid_urls):
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 def test_check_download_cache_finds_bogus_subentries(temp_cache, valid_urls):
     u, c = next(valid_urls)
-    f = download_file(u, cache=True)
-    bf = os.path.abspath(os.path.join(os.path.dirname(f), "bogus"))
-    with open(bf, "w") as f:
-        f.write("bogus file that exists")
+    f = Path(download_file(u, cache=True))
+    bf = f.parent.joinpath("bogus").absolute()
+    bf.write_text("bogus file that exists")
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()
     assert bf in e.value.bad_files
@@ -1569,28 +1568,24 @@ def test_check_download_cache_cleanup(temp_cache, valid_urls):
     fn = download_file(u, cache=True)
     dldir = _get_download_cache_loc()
 
-    bf1 = os.path.abspath(os.path.join(dldir, "bogus1"))
-    with open(bf1, "w") as f:
-        f.write("bogus file that exists")
+    bf1 = dldir.joinpath("bogus1").absolute()
+    bf1.write_text("bogus file that exists")
 
-    bf2 = os.path.abspath(os.path.join(os.path.dirname(fn), "bogus2"))
-    with open(bf2, "w") as f:
-        f.write("other bogus file that exists")
+    bf2 = Path(fn).parent.joinpath("bogus2").absolute()
+    bf2.write_text("other bogus file that exists")
 
-    bf3 = os.path.abspath(os.path.join(dldir, "contents"))
-    with open(bf3, "w") as f:
-        f.write("awkwardly-named bogus file that exists")
+    bf3 = dldir.joinpath("contents").absolute()
+    bf3.write_text("awkwardly-named bogus file that exists")
 
-    u2, c2 = next(valid_urls)
-    f2 = download_file(u, cache=True)
-    os.unlink(f2)
-    bf4 = os.path.dirname(f2)
+    f2 = Path(download_file(u, cache=True))
+    f2.unlink()
+    bf4 = f2.parent
 
     with pytest.raises(CacheDamaged) as e:
         check_download_cache()
     assert set(e.value.bad_files) == {bf1, bf2, bf3, bf4}
     for bf in e.value.bad_files:
-        clear_download_cache(bf)
+        clear_download_cache(str(bf))
     # download cache will be checked on exit
 
 
