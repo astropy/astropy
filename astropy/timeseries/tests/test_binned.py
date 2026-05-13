@@ -320,6 +320,12 @@ def test_required_columns():
     assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - expected "
                                  "'time_bin_start' as the first columns but found 'b'")
 
+    # Second required column missing (time_bin_start present, time_bin_size removed)
+    with pytest.raises(ValueError) as exc:
+        ts.copy().remove_column('time_bin_size')
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - "
+                                 "required column 'time_bin_size' is missing")
+
 
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
 def test_periodogram(cls):
