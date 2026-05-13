@@ -422,7 +422,13 @@ def test_gcrs_altaz_moonish(testframe):
 def test_gcrs_altaz_bothroutes(testframe):
     """
     Repeat of both the moonish and sunish tests above to make sure the two
-    routes through the coordinate graph are consistent with each other
+    routes through the coordinate graph are consistent with each other.
+
+    Note: the ITRS→AltAz path now uses a direct geometric transform (no CIRS),
+    so it differs from the ICRS→AltAz path by the stellar aberration correction
+    (~20 arcsec).  For distant objects (Sun, Moon) the correct path is through
+    ICRS.  The ITRS path is intended for nearby/Earth-fixed objects where stellar
+    aberration should NOT be applied.
     """
     sun = get_sun(testframe.obstime)
     sunaa_viaicrs = sun.transform_to(ICRS()).transform_to(testframe)
@@ -432,8 +438,13 @@ def test_gcrs_altaz_bothroutes(testframe):
     moonaa_viaicrs = moon.transform_to(ICRS()).transform_to(testframe)
     moonaa_viaitrs = moon.transform_to(ITRS(obstime=testframe.obstime)).transform_to(testframe)
 
-    assert_allclose(sunaa_viaicrs.cartesian.xyz, sunaa_viaitrs.cartesian.xyz)
-    assert_allclose(moonaa_viaicrs.cartesian.xyz, moonaa_viaitrs.cartesian.xyz)
+    # The ITRS path omits stellar aberration (~20 arcsec for the Sun at 1 AU
+    # ≈ 14,500 km Cartesian offset).  Allow generous tolerance; for precise work
+    # with distant objects, use the ICRS path directly.
+    assert_allclose(sunaa_viaicrs.cartesian.xyz, sunaa_viaitrs.cartesian.xyz,
+                    atol=5e7*u.m)   # 50,000 km — comfortably covers stellar aberration
+    assert_allclose(moonaa_viaicrs.cartesian.xyz, moonaa_viaitrs.cartesian.xyz,
+                    atol=5e5*u.m)   # 500 km — covers stellar aberration at Moon distance
 
 
 @pytest.mark.parametrize('testframe', totest_frames)
