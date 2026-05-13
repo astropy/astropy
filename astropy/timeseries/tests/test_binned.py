@@ -294,6 +294,33 @@ def test_read():
     assert timeseries['B'].sum() == 1151.54
 
 
+def test_required_columns():
+
+    ts = BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31',
+                          time_bin_size=3 * u.s, data=[[1, 4, 3]], names=['a'])
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().remove_column('time_bin_start')
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - "
+                                 "required column 'time_bin_start' is missing")
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().rename_column('time_bin_start', 'banana')
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - "
+                                 "required column 'time_bin_start' is missing")
+
+    with pytest.raises(ValueError) as exc:
+        ts.copy().keep_columns(['a'])
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - "
+                                 "required column 'time_bin_start' is missing")
+
+    with pytest.raises(ValueError) as exc:
+        from astropy.table import Column
+        ts.copy().add_column(Column([1, 4, 3], name='b'), index=0)
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - expected "
+                                 "'time_bin_start' as the first columns but found 'b'")
+
+
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
 def test_periodogram(cls):
 

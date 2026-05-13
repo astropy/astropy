@@ -377,23 +377,19 @@ def test_required_columns():
 
     with pytest.raises(ValueError) as exc:
         ts.copy().keep_columns(['a', 'b'])
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'a'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column 'time' is missing")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().remove_column('time')
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'a'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column 'time' is missing")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().remove_columns(['time', 'a'])
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'b'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column 'time' is missing")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().rename_column('time', 'banana')
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'banana'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required column 'time' is missing")
 
 
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
