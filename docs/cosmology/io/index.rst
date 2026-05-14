@@ -58,10 +58,12 @@ To see a list of the available read/write file formats:
 
     >>> from astropy.cosmology import Cosmology
     >>> Cosmology.read.list_formats()
-      Format   Read Write Auto-identify
-    ---------- ---- ----- -------------
-    ascii.ecsv  Yes   Yes           Yes
-    ascii.html  Yes   Yes           Yes
+       Format   Read Write Auto-identify
+    ----------- ---- ----- -------------
+     ascii.ecsv  Yes   Yes           Yes
+     ascii.html  Yes   Yes           Yes
+    ascii.latex  Yes   Yes           Yes
+      ascii.mrt  Yes   Yes           Yes
 
     >>> Cosmology.write.list_formats()
        Format   Read Write Auto-identify
