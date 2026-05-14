@@ -134,6 +134,30 @@ jobs:
           cache-path: .tox
           cache-key: doubletest-${{ github.ref_name }}
 
+  test_empty_cache_config:
+    # A fresh CI runner has no ~/.astropy directory, but developer machines
+    # usually do. Run the minimal-dependency test suite with empty
+    # .astropy/cache and .astropy/config directories present to catch
+    # failures that only show up in that situation.
+    name: Python 3.12 with minimal dependencies and empty .astropy cache/config dirs
+    needs: [initial_checks]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        name: Install Python
+        with:
+          python-version: "3.12"
+      - name: Install astropy with minimal test dependencies
+        run: python -m pip install -e ".[test]"
+      - name: Create empty .astropy cache and config directories
+        run: mkdir -p ~/.astropy/cache ~/.astropy/config
+      - name: Run tests
+        run: pytest --pyargs astropy
+
   allowed_failures:
     needs: [initial_checks]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
