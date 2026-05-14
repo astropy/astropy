@@ -2131,9 +2131,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             )
 
         if b_over_a is not None and not (0 < b_over_a <= 1):
-            raise ValueError(
-                f"'b_over_a' must be in the range (0, 1], got {b_over_a}."
-            )
+            raise ValueError(f"'b_over_a' must be in the range (0, 1], got {b_over_a}.")
 
         pa = Angle(pa)
 
