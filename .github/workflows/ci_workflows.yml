@@ -159,11 +159,13 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install astropy with minimal test dependencies
-        run: python -m pip install -e ".[test]"
+        run: python -m pip install ".[test]"
       - name: Create empty .astropy cache and config directories
         run: python -c "from pathlib import Path; [(Path.home() / '.astropy' / d).mkdir(parents=True, exist_ok=True) for d in ('cache', 'config')]"
       - name: Run tests
         run: pytest --pyargs astropy
+        env:
+          PYTHONSAFEPATH: 1
 
   allowed_failures:
     needs: [initial_checks]
