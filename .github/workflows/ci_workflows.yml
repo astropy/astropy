@@ -163,7 +163,12 @@ jobs:
       - name: Create empty .astropy cache and config directories
         run: python -c "from pathlib import Path; [(Path.home() / '.astropy' / d).mkdir(parents=True, exist_ok=True) for d in ('cache', 'config')]"
       - name: Run tests
-        run: pytest --pyargs astropy
+        # run from an empty directory so the source tree is not collected
+        # alongside the installed package (avoids ImportPathMismatchError)
+        run: |
+          mkdir -p .tmp/run
+          cd .tmp/run
+          pytest --pyargs astropy
         env:
           PYTHONSAFEPATH: 1
 
