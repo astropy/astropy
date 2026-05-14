@@ -2065,6 +2065,98 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             unit=u.degree,
         )
 
+    def separation_projected(
+        self,
+        other: Union["BaseCoordinateFrame", "SkyCoord"],
+        pa: Angle,
+        *,
+        b_over_a: float | None = None,
+        return_components: bool = False,
+        origin_mismatch: Literal["ignore", "warn", "error"] = "warn",
+    ) -> Angle | tuple[Angle, Angle]:
+        """
+        Computes the on-sky separation projected along a given position angle.
+
+        This decomposes the angular separation vector between ``self`` and
+        ``other`` into components parallel and perpendicular to an axis
+        defined by a position angle ``pa`` (measured East from North).
+
+        This is useful for measuring, e.g., distances along the major axis
+        of a galaxy or along a jet axis.
+
+        Parameters
+        ----------
+        other : `~astropy.coordinates.BaseCoordinateFrame` or `~astropy.coordinates.SkyCoord`
+            The coordinate to get the projected separation to.
+        pa : `~astropy.coordinates.Angle`
+            The position angle of the reference axis, measured East from
+            North.
+        b_over_a : float, optional, keyword-only
+            The minor-to-major axis ratio (0 < b/a <= 1). If provided,
+            returns the elliptical distance where the minor axis separation
+            is scaled by 1/b_over_a.
+        return_components : bool, optional, keyword-only
+            If `True`, return a tuple of signed ``(d_parallel, d_perpendicular)``
+            components instead of a single distance. Cannot be used together
+            with ``b_over_a``.
+        origin_mismatch : {"warn", "ignore", "error"}, keyword-only
+            How to handle non-rotation frame transformations. See
+            `~astropy.coordinates.BaseCoordinateFrame.separation` for details.
+
+        Returns
+        -------
+        sep : `~astropy.coordinates.Angle`
+            The projected separation. If ``return_components=True``, returns
+            a tuple ``(d_parallel, d_perpendicular)`` where ``d_parallel`` is
+            the component along ``pa`` and ``d_perpendicular`` is the component
+            perpendicular to it. Signs indicate direction: positive
+            ``d_parallel`` means ``other`` is in the direction of ``pa``,
+            positive ``d_perpendicular`` means ``other`` is 90 degrees
+            East of ``pa``.
+
+        Examples
+        --------
+        >>> from astropy import units as u
+        >>> from astropy.coordinates import SkyCoord, Angle
+        >>> c1 = SkyCoord(0*u.deg, 0*u.deg)
+        >>> c2 = SkyCoord(0*u.deg, 1*u.deg)
+        >>> c1.separation_projected(c2, pa=Angle(0, unit=u.deg)).to(u.deg)
+        <Angle 1. deg>
+        >>> c1.separation_projected(c2, pa=Angle(90, unit=u.deg)).to(u.deg)  # doctest: +FLOAT_CMP
+        <Angle 0. deg>
+        """
+        if b_over_a is not None and return_components:
+            raise ValueError(
+                "Cannot specify both 'b_over_a' and 'return_components=True'."
+            )
+
+        if b_over_a is not None and not (0 < b_over_a <= 1):
+            raise ValueError(
+                f"'b_over_a' must be in the range (0, 1], got {b_over_a}."
+            )
+
+        pa = Angle(pa)
+
+        # Get the total separation and position angle of the separation vector
+        sep = self.separation(other, origin_mismatch=origin_mismatch)
+        pa_sep = self.position_angle(other)
+
+        # Decompose into components along and perpendicular to the reference axis
+        delta = pa_sep - pa
+        d_parallel = sep * np.cos(delta)
+        d_perpendicular = sep * np.sin(delta)
+
+        if return_components:
+            return Angle(d_parallel), Angle(d_perpendicular)
+
+        if b_over_a is not None:
+            # Elliptical distance: inflate the perpendicular component
+            d_ellip = np.sqrt(d_parallel**2 + (d_perpendicular / b_over_a) ** 2)
+            return Angle(d_ellip)
+
+        # Default: return absolute projected distance along the axis
+        return Angle(np.abs(d_parallel))
+
     def separation_3d(self, other):
         """
         Computes three dimensional separation between this coordinate
