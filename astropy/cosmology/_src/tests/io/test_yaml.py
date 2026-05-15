@@ -168,7 +168,8 @@ class TestToFromYAML(ToFromDirectTestBase, ToFromYAMLTestMixin):
         self.functions = {"to": to_yaml, "from": from_yaml}
 
     @pytest.fixture(scope="class", autouse=True)
-    def setup(self):
+    @classmethod
+    def setup(cls):
         """
         Setup and teardown for tests.
         This overrides from super because `ToFromDirectTestBase` adds a custom
