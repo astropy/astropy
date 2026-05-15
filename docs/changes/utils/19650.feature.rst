@@ -1,0 +1,3 @@
+``astropy.utils.data`` functions are now more resilient
+against a missing cache directory and avoid forcing its
+creation on call.
