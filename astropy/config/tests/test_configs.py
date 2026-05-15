@@ -335,14 +335,21 @@ def test_env_variables_missing_dir(monkeypatch, tmp_path, dirtype):
 )
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_env_variables_missing_subdir_and_default(
-    monkeypatch, tmp_path, dirtype: _DirType, setup
+    monkeypatch, tmp_path_factory, dirtype: _DirType, setup
 ):
+    mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME_LOCAL")
+
+    def mock_home():
+        return mock_home_dir
+
+    monkeypatch.setattr(Path, "home", mock_home)
+
     # have the env var point to a writable location,
     # where an 'astropy' subdir is missing, but can be created silently
     default_parent_dir = Path.home() / ".astropy"
     assert not default_parent_dir.exists()
 
-    target_dir = tmp_path
+    target_dir = tmp_path_factory.mktemp("target")
     env_var = f"XDG_{dirtype.name}_HOME"
     monkeypatch.setenv(env_var, str(target_dir))
 
