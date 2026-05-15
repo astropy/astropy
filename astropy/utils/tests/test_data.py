@@ -133,7 +133,8 @@ def invalid_urls(tmp_path):
 
 @pytest.fixture
 def temp_cache(tmp_path):
-    with paths.set_temp_cache(tmp_path):
+    with paths.set_temp_cache(tmp_path) as tmpdir:
+        os.makedirs(os.path.join(tmpdir, "download", "url"))
         yield None
         check_download_cache()
 
@@ -302,40 +303,6 @@ def a_file(tmp_path):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
-def test_temp_cache(tmp_path):
-    dldir0 = _get_download_cache_loc()
-    check_download_cache()
-
-    with paths.set_temp_cache(tmp_path):
-        dldir1 = _get_download_cache_loc()
-        check_download_cache()
-        assert dldir1 != dldir0
-
-    dldir2 = _get_download_cache_loc()
-    check_download_cache()
-    assert dldir2 != dldir1
-    assert dldir2 == dldir0
-
-    # Check that things are okay even if we exit via an exception
-    class Special(Exception):
-        pass
-
-    try:
-        with paths.set_temp_cache(tmp_path):
-            dldir3 = _get_download_cache_loc()
-            check_download_cache()
-            assert dldir3 == dldir1
-            raise Special
-    except Special:
-        pass
-
-    dldir4 = _get_download_cache_loc()
-    check_download_cache()
-    assert dldir4 != dldir3
-    assert dldir4 == dldir0
-
-
-@pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.parametrize("strategy", ["parallel", "sequential"])
 def test_download_with_sources_and_bogus_original(
     valid_urls, invalid_urls, temp_cache, strategy
@@ -499,7 +466,7 @@ def test_clear_download_multiple_references_doesnt_corrupt_storage(
         with NamedTemporaryFile("w", dir=tmp_path, delete=False) as f:
             f.write(content)
         url = url_to(f.name)
-        clear_download_cache(url)
+        clear_download_cache(url, on_missing="ignore")
         filename = download_file(url, cache=True)
         return url, filename
 
@@ -686,7 +653,7 @@ def test_download_cache_after_clear(tmp_path, temp_cache, valid_urls):
     testurl, contents = next(valid_urls)
     # Test issues raised in #4427 with clear_download_cache() without a URL,
     # followed by subsequent download.
-    download_dir = _get_download_cache_loc()
+    download_dir = _get_download_cache_loc(on_missing="ignore")
 
     fnout = download_file(testurl, cache=True)
     assert os.path.isfile(fnout)
@@ -716,11 +683,10 @@ def test_download_parallel_from_internet_works(temp_cache):
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.parametrize("method", [None, "spawn"])
-def test_download_parallel_fills_cache(tmp_path, valid_urls, method):
+def test_download_parallel_fills_cache(valid_urls, method):
     urls = []
-    # tmp_path is shared between many tests, and that can cause weird
-    # interactions if we set the temporary cache too directly
-    with paths.set_temp_cache(tmp_path):
+    with paths.temporary_cache_dir_path(namespace="astropy") as tmp_path:
+        tmp_path.joinpath("download", "url").mkdir(parents=True)
         for um, c in islice(valid_urls, FEW):
             assert not is_url_in_cache(um)
             urls.append((um, c))
@@ -733,7 +699,10 @@ def test_download_parallel_fills_cache(tmp_path, valid_urls, method):
         for r, (_, c) in zip(rs, urls):
             assert get_file_contents(r) == c
         check_download_cache()
-    assert not url_set.intersection(get_cached_urls())
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", CacheMissingWarning)
+        new_urls = get_cached_urls()
+    assert not url_set.intersection(new_urls)
     check_download_cache()
 
 
@@ -841,7 +810,7 @@ def test_download_parallel_update(temp_cache, tmp_path):
         with open(fn, "w") as f:
             f.write(c)
         u = url_to(fn)
-        clear_download_cache(u)
+        clear_download_cache(u, on_missing="ignore")
         td.append((fn, u, c))
 
     r1 = download_files_in_parallel([u for (fn, u, c) in td])
@@ -1124,48 +1093,46 @@ def test_data_noastropy_fallback(monkeypatch):
     # astropy dir could not be accessed
     @classmethod
     def osraiser(cls, linkto, pkgname=None):
-        raise OSError()
+        raise OSError("mock os error")
 
     monkeypatch.setattr(paths._DirectoryFinder, "find_namespaced_node", osraiser)
 
     # make sure the config dir search fails
-    with pytest.raises(OSError):
+    with pytest.raises(OSError, match="^mock os error$"):
         paths.get_cache_dir(rootname="astropy")
 
-    with pytest.raises(OSError):
+    with pytest.raises(OSError, match="^mock os error$"):
         paths.get_cache_dir_path(rootname="astropy")
 
     with pytest.warns(CacheMissingWarning) as warning_lines:
         fnout = download_file(TESTURL, cache=True)
     n_warns = len(warning_lines)
 
-    partial_warn_msgs = ["remote data cache could not be accessed", "temporary file"]
+    allowed_warn_msgs = ["remote data cache could not be accessed", "temporary file"]
     if n_warns == 4:
-        partial_warn_msgs.extend(["socket", "socket"])
+        allowed_warn_msgs.extend(["socket", "socket"])
 
+    unexpected_warn_msgs: list[str] = []
     for wl in warning_lines:
-        cur_w = str(wl).lower()
-        for i, partial_msg in enumerate(partial_warn_msgs):
-            if partial_msg in cur_w:
-                del partial_warn_msgs[i]
+        msg = str(wl).lower()
+        for allowed in allowed_warn_msgs:
+            if allowed in msg:
                 break
-    assert len(partial_warn_msgs) == 0, (
-        f"Got some unexpected warnings: {partial_warn_msgs}"
-    )
+        else:
+            unexpected_warn_msgs.append(msg)
 
-    assert n_warns in (2, 4), f"Expected 2 or 4 warnings, got {n_warns}"
+    assert not unexpected_warn_msgs, (
+        f"Got some unexpected warnings: {unexpected_warn_msgs}"
+    )
 
     assert os.path.isfile(fnout)
 
     # clearing the cache should be a no-up that doesn't affect fnout
-    with pytest.warns(CacheMissingWarning) as record:
+    with pytest.warns(
+        CacheMissingWarning,
+        match="^Not clearing data from cache - problem arose OSError: mock os error$",
+    ):
         clear_download_cache(TESTURL)
-    assert len(record) == 2
-    assert (
-        record[0].message.args[0]
-        == "Remote data cache could not be accessed due to OSError"
-    )
-    assert "Not clearing data cache - cache inaccessible" in record[1].message.args[0]
     assert os.path.isfile(fnout)
 
     # now remove it so tests don't clutter up the temp dir this should get
@@ -1310,7 +1277,7 @@ def test_check_download_cache(tmp_path, temp_cache, valid_urls, invalid_urls):
     testurl2, testurl2_contents = next(valid_urls)
 
     zip_file_name = tmp_path / "the.zip"
-    clear_download_cache()
+    clear_download_cache(on_missing="ignore")
     assert not check_download_cache()
 
     download_file(testurl, cache=True)
@@ -1457,7 +1424,7 @@ def test_cache_size_changes_correctly_when_files_are_added_and_removed(
     temp_cache, valid_urls
 ):
     u, c = next(valid_urls)
-    clear_download_cache(u)
+    clear_download_cache(u, on_missing="ignore")
     s_i = cache_total_size()
     download_file(u, cache=True)
     assert cache_total_size() == s_i + len(c) + len(u.encode("utf-8"))
@@ -1526,12 +1493,16 @@ def test_download_file_schedules_deletion(valid_urls):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
-def test_clear_download_cache_refuses_to_delete_outside_the_cache(tmp_path):
+def test_clear_download_cache_refuses_to_delete_outside_the_cache(tmp_path, temp_cache):
     fn = str(tmp_path / "file")
     with open(fn, "w") as f:
         f.write("content")
     assert os.path.exists(fn)
-    with pytest.raises(RuntimeError):
+
+    with pytest.raises(
+        RuntimeError,
+        match="attempted to use clear_download_cache on the path",
+    ):
         clear_download_cache(fn)
     assert os.path.exists(fn)
 
@@ -1607,31 +1578,42 @@ def test_cache_dir_is_actually_a_file(tmp_path: Path, valid_urls):
     to check what happens if any of the steps in the path is wrong somehow.
     """
 
-    def check_quietly_ignores_bogus_cache():
+    def check_quietly_ignores_bogus_cache(expect_file: bool = False) -> None:
         """We want a broken cache to produce a warning but then astropy should
         act like there isn't a cache.
         """
-        with pytest.warns(CacheMissingWarning):
+        if expect_file:
+            ctx = pytest.raises(OSError)
+            ctx2 = pytest.warns(CacheMissingWarning)
+            ctx3 = contextlib.nullcontext()
+            ctx4 = ctx
+        else:
+            ctx = pytest.warns(CacheMissingWarning)
+            ctx2 = contextlib.nullcontext()
+            ctx3 = ctx
+            ctx4 = contextlib.nullcontext()
+
+        with ctx:
             assert not get_cached_urls()
-        with pytest.warns(CacheMissingWarning):
+        with ctx:
             assert not is_url_in_cache("http://www.example.com/")
-        with pytest.warns(CacheMissingWarning):
+        with ctx:
             assert not cache_contents()
-        with pytest.warns(CacheMissingWarning):
+        with ctx3:
             u, c = next(valid_urls)
-            r = download_file(u, cache=True)
+            with ctx2:
+                r = download_file(u, cache=True)
             assert get_file_contents(r) == c
             # check the filename r appears in a warning message?
             # check r is added to the delete_at_exit list?
             # in fact should there be testing of the delete_at_exit mechanism,
             # as far as that is possible?
-        with pytest.warns(CacheMissingWarning):
+        with ctx:
             assert not is_url_in_cache(u)
-        with pytest.warns(CacheMissingWarning):
-            with pytest.raises(OSError):
-                check_download_cache()
+        with ctx4:
+            check_download_cache()
 
-    dldir = _get_download_cache_loc()
+    dldir = _get_download_cache_loc(ensure_exists=True)
     # set_temp_cache acts weird if it is pointed at a file (see below)
     # but we want to see what happens when the cache is pointed
     # at a file instead of a directory, so make a directory we can
@@ -1680,7 +1662,7 @@ def test_cache_dir_is_actually_a_file(tmp_path: Path, valid_urls):
     cd /= "url"
     cd.write_text(ct)
     with paths.set_temp_cache(tmp_path):
-        check_quietly_ignores_bogus_cache()
+        check_quietly_ignores_bogus_cache(expect_file=True)
     assert dldir == _get_download_cache_loc()
     assert cd.read_text() == ct
     cd.unlink()
@@ -2043,7 +2025,9 @@ def test_pkgname_isolation(temp_cache, valid_urls):
     a = str(uuid4())
 
     assert not get_cached_urls()
-    assert not get_cached_urls(pkgname=a)
+    with pytest.warns(CacheMissingWarning):
+        a_urls = get_cached_urls(pkgname=a)
+    assert not a_urls
 
     for u, _ in islice(valid_urls, FEW):
         download_file(u, cache=True, pkgname=a)
@@ -2101,11 +2085,17 @@ def test_pkgname_isolation(temp_cache, valid_urls):
 
     clear_download_cache(pkgname=a)
     assert len(get_cached_urls()) == FEW
-    assert not get_cached_urls(pkgname=a)
+    with pytest.warns(CacheMissingWarning):
+        a_urls = get_cached_urls(pkgname=a)
+    assert not a_urls
 
     clear_download_cache()
-    assert not get_cached_urls()
-    assert not get_cached_urls(pkgname=a)
+    with pytest.warns(CacheMissingWarning):
+        urls = get_cached_urls()
+    assert not urls
+    with pytest.warns(CacheMissingWarning):
+        a_urls = get_cached_urls(pkgname=a)
+    assert not a_urls
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
@@ -2114,7 +2104,9 @@ def test_transport_cache_via_zip(temp_cache, valid_urls):
     a = str(uuid4())
 
     assert not get_cached_urls()
-    assert not get_cached_urls(pkgname=a)
+    with pytest.warns(CacheMissingWarning):
+        a_urls = get_cached_urls(pkgname=a)
+    assert not a_urls
 
     for u, _ in islice(valid_urls, FEW):
         download_file(u, cache=True)
@@ -2149,7 +2141,9 @@ def test_download_parallel_respects_pkgname(temp_cache, valid_urls):
     a = str(uuid4())
 
     assert not get_cached_urls()
-    assert not get_cached_urls(pkgname=a)
+    with pytest.warns(CacheMissingWarning):
+        a_urls = get_cached_urls(pkgname=a)
+    assert not a_urls
 
     download_files_in_parallel([u for (u, c) in islice(valid_urls, FEW)], pkgname=a)
     assert not get_cached_urls()
