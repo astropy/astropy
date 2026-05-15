@@ -18,6 +18,13 @@ except ImportError:
 
 # This has to be in the root dir or it will not display in CI.
 def pytest_configure(config):
+    # Strip COLUMNS/LINES so shutil.get_terminal_size() falls back to (80, 24)
+    # in the test session. Interactive shells (bash, zsh) export these on
+    # window resize, and pytest inherits them, so otherwise tests and doctests
+    # that read the terminal size are non-deterministic across environments.
+    os.environ.pop("COLUMNS", None)
+    os.environ.pop("LINES", None)
+
     PYTEST_HEADER_MODULES["PyERFA"] = "erfa"
     PYTEST_HEADER_MODULES["Cython"] = "cython"
     PYTEST_HEADER_MODULES["Scikit-image"] = "skimage"
