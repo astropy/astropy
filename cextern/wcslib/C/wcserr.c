@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -20,7 +20,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcserr.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcserr.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -52,13 +52,13 @@ int wcserr_size(const struct wcserr *err, int sizes[2])
   }
 
   // Base size, in bytes.
-  sizes[0] = sizeof(struct wcserr);
+  sizes[0] = (int)sizeof(struct wcserr);
 
   // Total size of allocated memory, in bytes.
   sizes[1] = 0;
 
   if (err->msg) {
-    sizes[1] += strlen(err->msg) + 1;
+    sizes[1] += (int)(strlen(err->msg) + 1);
   }
 
   return 0;
@@ -101,7 +101,7 @@ int wcserr_prt(const struct wcserr *err, const char *prefix)
 int wcserr_clear(struct wcserr **errp)
 
 {
-  if (*errp) {
+  if (errp && *errp) {
     if ((*errp)->msg) {
       free((*errp)->msg);
     }
@@ -124,16 +124,12 @@ int wcserr_set(
   ...)
 
 {
-  int  msglen;
-  struct wcserr *err;
-  va_list argp;
-
   if (!wcserr_enabled) return status;
 
   if (errp == 0x0) {
     return status;
   }
-  err = *errp;
+  struct wcserr *err = *errp;
 
   if (status) {
     if (err == 0x0) {
@@ -151,8 +147,9 @@ int wcserr_set(
     err->msg      = 0x0;
 
     // Determine the required message buffer size.
+    va_list argp;
     va_start(argp, format);
-    msglen = vsnprintf(0x0, 0, format, argp) + 1;
+    int msglen = vsnprintf(0x0, 0, format, argp) + 1;
     va_end(argp);
 
     if (msglen <= 0 || (err->msg = malloc(msglen)) == 0x0) {
@@ -178,8 +175,6 @@ int wcserr_set(
 int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
 
 {
-  size_t msglen;
-
   if (src == 0x0) {
     if (dst) {
       memset(dst, 0, sizeof(struct wcserr));
@@ -191,9 +186,9 @@ int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
     memcpy(dst, src, sizeof(struct wcserr));
 
     if (src->msg) {
-      msglen = strlen(src->msg) + 1;
+      size_t msglen = strlen(src->msg) + 1;
       if ((dst->msg = malloc(msglen))) {
-        strcpy(dst->msg, src->msg);
+        strncpy(dst->msg, src->msg, msglen);
       }
     }
   }

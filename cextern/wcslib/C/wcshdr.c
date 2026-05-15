@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,12 +19,13 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcshdr.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcshdr.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -61,8 +62,8 @@ static const int WCSSET    =  137;	// Matching wcs.c
 static const int DIS_DOTPD = 1024;	// Matching dis.c
 
 // Internal helper functions, not for general use.
-static void wcshdo_format(int, int, const double [], char *);
-static void wcshdo_tpdterm(int, int, char *);
+static void wcshdo_format(int, int, const double [], char [16]);
+static void wcshdo_tpdterm(int, int, char [16]);
 static void wcshdo_util(int, const char [], const char [], int, const char [],
   int, int, int, char, int, int [], char [], const char [], int *, char **,
   int *);
@@ -158,18 +159,21 @@ int wcstab(struct wcsprm *wcs)
       switch (wcs->ps[ip].m) {
       case 0:
         // EXTNAME.
-        strcpy(PSi_0a[itabax], wcs->ps[ip].value);
+        strncpy(PSi_0a[itabax], wcs->ps[ip].value, 72);
         wcsutil_null_fill(72, PSi_0a[itabax]);
         break;
       case 1:
         // TTYPEn for coordinate array.
-        strcpy(PSi_1a[itabax], wcs->ps[ip].value);
+        strncpy(PSi_1a[itabax], wcs->ps[ip].value, 72);
         wcsutil_null_fill(72, PSi_1a[itabax]);
         break;
       case 2:
         // TTYPEn for index vector.
-        strcpy(PSi_2a[itabax], wcs->ps[ip].value);
+        strncpy(PSi_2a[itabax], wcs->ps[ip].value, 72);
         wcsutil_null_fill(72, PSi_2a[itabax]);
+        break;
+      default:
+        // Undefined (ignored).
         break;
       }
     }
@@ -190,6 +194,9 @@ int wcstab(struct wcsprm *wcs)
       case 3:
         // Table axis number.
         PVi_3a[itabax] = (int)(wcs->pv[ip].value + 0.5);
+        break;
+      default:
+        // Undefined (ignored).
         break;
       }
     }
@@ -311,10 +318,10 @@ int wcstab(struct wcsprm *wcs)
         wtbp->m = PVi_3a[itabax];
         wtbp->kind = 'c';
 
-        strcpy(wtbp->extnam, PSi_0a[itabax]);
+        strncpy(wtbp->extnam, PSi_0a[itabax], 72);
         wtbp->extver = PVi_1a[itabax];
         wtbp->extlev = PVi_2a[itabax];
-        strcpy(wtbp->ttype, PSi_1a[itabax]);
+        strncpy(wtbp->ttype, PSi_1a[itabax], 72);
         wtbp->row    = 1L;
         wtbp->ndim   = wcs->tab[itab].M + 1;
         wtbp->dimlen = wcs->tab[itab].K;
@@ -334,10 +341,10 @@ int wcstab(struct wcsprm *wcs)
         wtbp->kind = 'i';
 
         int m = wtbp->m - 1;
-        strcpy(wtbp->extnam, PSi_0a[itabax]);
+        strncpy(wtbp->extnam, PSi_0a[itabax], 72);
         wtbp->extver = PVi_1a[itabax];
         wtbp->extlev = PVi_2a[itabax];
-        strcpy(wtbp->ttype, PSi_2a[itabax]);
+        strncpy(wtbp->ttype, PSi_2a[itabax], 72);
         wtbp->row    = 1L;
         wtbp->ndim   = 1;
         wtbp->dimlen = wcs->tab[itab].K + m;
@@ -404,7 +411,9 @@ int wcsidx(int nwcs, struct wcsprm **wcs, int alts[27])
 int wcsbdx(int nwcs, struct wcsprm **wcs, int type, short alts[1000][28])
 
 {
-  for (short *ip = alts[0]; ip < alts[0] + 28*1000; ip++) {
+  // End of the array.
+  short *ipend = alts[0] + (ptrdiff_t)(28*1000);
+  for (short *ip = alts[0]; ip < ipend; ip++) {
     *ip = -1;
   }
 
@@ -417,7 +426,7 @@ int wcsbdx(int nwcs, struct wcsprm **wcs, int type, short alts[1000][28])
   }
 
   struct wcsprm *wcsp = *wcs;
-  for (int iwcs = 0; iwcs < nwcs; iwcs++, wcsp++) {
+  for (short iwcs = 0; iwcs < (short)nwcs; iwcs++, wcsp++) {
     int a;
     if (wcsp->alt[0] == ' ') {
       a = 0;
@@ -429,11 +438,11 @@ int wcsbdx(int nwcs, struct wcsprm **wcs, int type, short alts[1000][28])
       // Pixel list.
       if (wcsp->colax[0]) {
         for (int i = 0; i < wcsp->naxis; i++) {
-          alts[wcsp->colax[i]][a]  = iwcs;
+          alts[wcsp->colax[i]][a] = iwcs;
           alts[wcsp->colax[i]][27]++;
         }
       } else if (!wcsp->colnum) {
-        alts[0][a]  = iwcs;
+        alts[0][a] = iwcs;
         alts[0][27]++;
       }
 
@@ -443,7 +452,7 @@ int wcsbdx(int nwcs, struct wcsprm **wcs, int type, short alts[1000][28])
         alts[wcsp->colnum][a] = iwcs;
         alts[wcsp->colnum][27]++;
       } else if (!wcsp->colax[0]) {
-        alts[0][a]  = iwcs;
+        alts[0][a] = iwcs;
         alts[0][27]++;
       }
     }
@@ -496,15 +505,13 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   const char axid[] = "xyxuvu", *cp;
   const int  nTPD[] = {1, 4, 7, 12, 17, 24, 31, 40, 49, 60};
 
-  char comment[128], keyvalue[96], keyword[16];
-  int  status = 0;
-
   *nkeyrec = 0;
   *header  = 0x0;
 
   if (wcs == 0x0) return WCSHDRERR_NULL_POINTER;
   struct wcserr **err = &(wcs->err);
 
+  int status = 0;
   if (abs(wcs->flag) != WCSSET) {
     if ((status = wcsset(wcs))) return status;
   }
@@ -537,17 +544,17 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   char format[16];
   *format = '\0';
   if (ctrl & WCSHDO_P17) {
-    strcpy(format, "% 20.17G");
+    strncpy(format, "% 20.17G", 16);
   } else if (ctrl & WCSHDO_P16) {
-    strcpy(format, "% 20.16G");
+    strncpy(format, "% 20.16G", 16);
   } else if (ctrl & WCSHDO_P15) {
-    strcpy(format, "% 20.15G");
+    strncpy(format, "% 20.15G", 16);
   } else if (ctrl & WCSHDO_P14) {
-    strcpy(format, "% 20.14G");
+    strncpy(format, "% 20.14G", 16);
   } else if (ctrl & WCSHDO_P13) {
-    strcpy(format, "% 20.13G");
+    strncpy(format, "% 20.13G", 16);
   } else if (ctrl & WCSHDO_P12) {
-    strcpy(format, "%20.12G");
+    strncpy(format, "%20.12G", 16);
   }
 
   if (*format && (ctrl & WCSHDO_EFMT)) {
@@ -560,10 +567,14 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   int dofmt = (*format == '\0');
 
+  char keyword[16],  *kwe = keyword  + 16;
+  char keyvalue[96], *kve = keyvalue + 96;
+  char comment[128], *cme = comment + 128;
+
 
   // WCS dimension.
   if (!pixlist) {
-    sprintf(keyvalue, "%20d", naxis);
+    snprintf(keyvalue, 96, "%20d", naxis);
     wcshdo_util(ctrl, "WCSAXES", "WCAX", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "Number of coordinate axes", nkeyrec, header, &status);
   }
@@ -571,7 +582,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   // Reference pixel coordinates.
   if (dofmt) wcshdo_format('G', naxis, wcs->crpix, format);
   for (int j = 0; j < naxis; j++) {
-    wcsutil_double2str(keyvalue, format, wcs->crpix[j]);
+    wcsutil_double2str(keyvalue, 96, format, wcs->crpix[j]);
     wcshdo_util(ctrl, "CRPIX", "CRP", WCSHDO_CRPXna, "CRPX", 0, j+1, 0, alt,
       colnum, colax, keyvalue, "Pixel coordinate of reference point", nkeyrec,
       header, &status);
@@ -588,7 +599,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         if (wcs->pc[k] == 0.0) continue;
       }
 
-      wcsutil_double2str(keyvalue, format, wcs->pc[k]);
+      wcsutil_double2str(keyvalue, 96, format, wcs->pc[k]);
       wcshdo_util(ctrl, "PC", bintab ? "PC" : "P", WCSHDO_TPCn_ka,
         bintab ? 0x0 : "PC", i+1, j+1, 0, alt, colnum, colax,
         keyvalue, "Coordinate transformation matrix element",
@@ -599,10 +610,12 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   // Coordinate increment at reference point.
   if (dofmt) wcshdo_format('G', naxis, wcs->cdelt, format);
   for (int i = 0; i < naxis; i++) {
-    wcsutil_double2str(keyvalue, format, wcs->cdelt[i]);
+    wcsutil_double2str(keyvalue, 96, format, wcs->cdelt[i]);
     comment[0] = '\0';
-    if (wcs->cunit[i][0]) sprintf(comment, "[%s] ", wcs->cunit[i]);
-    strcat(comment, "Coordinate increment at reference point");
+    if (wcs->cunit[i][0]) snprintf(comment, 128, "[%s] ", wcs->cunit[i]);
+    char *cm = comment + strlen(comment);
+    size_t csize = cme - cm;
+    strncpy(cm, "Coordinate increment at reference point", csize);
     wcshdo_util(ctrl, "CDELT", "CDE", WCSHDO_CRPXna, "CDLT", i+1, 0, 0, alt,
       colnum, colax, keyvalue, comment, nkeyrec, header, &status);
   }
@@ -611,7 +624,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   for (int i = 0; i < naxis; i++) {
     if (wcs->cunit[i][0] == '\0') continue;
 
-    sprintf(keyvalue, "'%s'", wcs->cunit[i]);
+    snprintf(keyvalue, 96, "'%s'", wcs->cunit[i]);
     wcshdo_util(ctrl, "CUNIT", "CUN", WCSHDO_CRPXna, "CUNI", i+1, 0, 0, alt,
       colnum, colax, keyvalue, "Units of coordinate increment and value",
       nkeyrec, header, &status);
@@ -631,7 +644,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         // if possible, unless specifically requested to write it as TPD.
         dotpd = (dis->iparm[i][I_DTYPE] & DIS_DOTPD);
 
-        if (!dotpd) {;
+        if (!dotpd) {
           if (alt ||
               dis->Nhat[0]      != 2 ||
               dis->Nhat[1]      != 2 ||
@@ -650,15 +663,17 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
             // Must have been read as a 'SIP' distortion, CPDISja = 'SIP'.
             // Cannot be written as native SIP so write it as TPD.
             dotpd = DIS_DOTPD;
-          } else if (strncmp(wcs->ctype[0], "RA---TAN", 8) ||
-                     strncmp(wcs->ctype[1], "DEC--TAN", 8)) {
+          }
+
+          if (strncmp(wcs->ctype[0], "RA---TAN", 8) != 0 ||
+              strncmp(wcs->ctype[1], "DEC--TAN", 8) != 0) {
             // Must have been permuted by wcssub().
             // Native SIP doesn't have axis mapping so write it as TPD.
             dotpd = DIS_DOTPD;
           }
 
           if (dotpd) {
-            strcpy(tpdsrc, "SIP coordinates");
+            strncpy(tpdsrc, "SIP coordinates", 24);
           } else {
             dosip = 1;
           }
@@ -695,7 +710,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
           }
 
           if (dotpd) {
-            strcpy(tpdsrc, "TPV \"projection\"");
+            strncpy(tpdsrc, "TPV \"projection\"", 24);
           } else {
             dotpv = 1;
           }
@@ -706,17 +721,19 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
       } else if (strcmp(dis->dtype[i], "DSS") == 0) {
         // Always written as TPD.
         dotpd = DIS_DOTPD;
-        strcpy(tpdsrc, dis->dtype[i]);
+        strncpy(tpdsrc, dis->dtype[i], 24);
 
       } else if (strncmp(dis->dtype[i], "WAT", 3) == 0) {
         // Always written as TPD.
         dotpd = DIS_DOTPD;
-        strcpy(tpdsrc, dis->dtype[i]+4);
+        strncpy(tpdsrc, dis->dtype[i]+4, 24);
 
         if (strcmp(dis->dtype[i], "DSS") == 0) {
-          strcpy(tpdsrc, wcs->wcsname);
+          strncpy(tpdsrc, wcs->wcsname, 24);
         } else {
-          strcat(tpdsrc, " \"projection\"");
+          char *tp = tpdsrc + strlen(tpdsrc);
+          size_t tsize = (tpdsrc + 24) - tp;
+          strncpy(tp, " \"projection\"", tsize);
         }
 
         break;
@@ -728,82 +745,96 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   for (int i = 0; i < naxis; i++) {
     if (wcs->ctype[i][0] == '\0') continue;
 
-    sprintf(keyvalue, "'%s'", wcs->ctype[i]);
-    strcpy(comment, "Coordinate type code");
+    snprintf(keyvalue, 96, "'%s'", wcs->ctype[i]);
+    strncpy(comment, "Coordinate type code", 128);
 
     char *ctypei = keyvalue + 1;
     if (i == wcs->lng || i == wcs->lat) {
       // Alter ctype for particular distortions.
       if (dosip) {
         // It could have come in as CPDISja = 'SIP'.
-        strcpy(ctypei+8, "-SIP'");
+        strncpy(ctypei+8, "-SIP'", 6);
       } else if (dotpv) {
         // Reinstate projection code edited by wcsset().
-        strcpy(ctypei+4, "-TPV'");
+        strncpy(ctypei+4, "-TPV'", 6);
       }
 
       if (strncmp(ctypei+8, "-SIP", 4) == 0) {
-        strcpy(comment, "TAN (gnomonic) projection + SIP distortions");
+        strncpy(comment, "TAN (gnomonic) projection + SIP distortions", 128);
 
       } else if (strncmp(ctypei+4, "-TPV", 4) == 0) {
-        strcpy(comment, "TAN (gnomonic) projection + distortions");
+        strncpy(comment, "TAN (gnomonic) projection + distortions", 128);
 
       } else {
         if (strncmp(ctypei, "RA--", 4) == 0) {
-          strcpy(comment, "Right ascension, ");
+          strncpy(comment, "Right ascension, ", 128);
 
         } else if (strncmp(ctypei, "DEC-", 4) == 0) {
-          strcpy(comment, "Declination, ");
+          strncpy(comment, "Declination, ", 128);
 
         } else if (strncmp(ctypei+1, "LON", 3) == 0 ||
                    strncmp(ctypei+1, "LAT", 3) == 0) {
-          ctypei[0] = toupper(ctypei[0]);
+          ctypei[0] = (char)toupper((unsigned char)ctypei[0]);
 
           switch (ctypei[0]) {
           case 'G':
-            strcpy(comment, "Galactic l");
+            strncpy(comment, "Galactic l", 128);
             break;
           case 'E':
-            strcpy(comment, "Ecliptic l");
+            strncpy(comment, "Ecliptic l", 128);
             break;
           case 'H':
-            strcpy(comment, "Helioecliptic l");
+            strncpy(comment, "Helioecliptic l", 128);
             break;
           case 'S':
-            strcpy(comment, "Supergalactic l");
+            strncpy(comment, "Supergalactic l", 128);
             break;
           default:
             // User-defined coordinate system.
-            strcpy(comment, "L");
+            strncpy(comment, "L", 128);
             break;
           }
 
+          char *cm = comment + strlen(comment);
+          size_t csize = cme - cm;
           if (i == wcs->lng) {
-            strcat(comment, "ongitude, ");
+            strncpy(cm, "ongitude, ", csize);
           } else {
-            strcat(comment, "atitude, ");
+            strncpy(cm, "atitude, ", csize);
           }
         }
 
-        strcat(comment, wcs->cel.prj.name);
-        strcat(comment, " projection");
+        char *cm = comment + strlen(comment);
+        size_t csize = cme - cm;
+        strncpy(cm, wcs->cel.prj.name, csize);
+
+        cm += strlen(cm);
+        csize = cme - cm;
+        strncpy(cm, " projection", csize);
       }
 
     } else if (i == wcs->spec) {
       char ptype, xtype;
       spctyp(wcs->ctype[i], 0x0, 0x0, comment, 0x0, &ptype, &xtype, 0x0);
+
+      char *cm = comment + strlen(comment);
+      size_t csize = cme - cm;
+
       if (ptype == xtype) {
-        strcat(comment, " (linear)");
+        strncpy(cm, " (linear)", csize);
       } else {
         switch (xtype) {
         case 'F':
-          strcat(comment, " (linear in frequency)");
+          strncpy(cm, " (linear in frequency)", csize);
           break;
         case 'V':
-          strcat(comment, " (linear in velocity)");
+          strncpy(cm, " (linear in velocity)", csize);
           break;
         case 'W':
-          strcat(comment, " (linear in wavelength)");
+          strncpy(cm, " (linear in wavelength)", csize);
+          break;
+        default:
+          strncpy(cm, " (not recognised)", csize);
           break;
         }
       }
@@ -816,51 +847,62 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   // Coordinate value at reference point.
   for (int i = 0; i < naxis; i++) {
     if (dofmt) wcshdo_format('G', 1, wcs->crval+i, format);
-    wcsutil_double2str(keyvalue, format, wcs->crval[i]);
+    wcsutil_double2str(keyvalue, 96, format, wcs->crval[i]);
     comment[0] = '\0';
-    if (wcs->cunit[i][0]) sprintf(comment, "[%s] ", wcs->cunit[i]);
-    strcat(comment, "Coordinate value at reference point");
+    if (wcs->cunit[i][0]) snprintf(comment, 128, "[%s] ", wcs->cunit[i]);
+    char *cm = comment + strlen(comment);
+    size_t csize = cme - cm;
+    strncpy(cm, "Coordinate value at reference point", csize);
     wcshdo_util(ctrl, "CRVAL", "CRV", WCSHDO_CRPXna, "CRVL", i+1, 0, 0, alt,
       colnum, colax, keyvalue, comment, nkeyrec, header, &status);
   }
 
   // Parameter values.
-  if (dofmt) strcpy(format, "%20.12G");
+  if (dofmt) strncpy(format, "%20.12G", 16);
   for (int k = 0; k < wcs->npv; k++) {
-    wcsutil_double2str(keyvalue, format, (wcs->pv[k]).value);
+    wcsutil_double2str(keyvalue, 96, format, (wcs->pv[k]).value);
     if ((wcs->pv[k]).i == (wcs->lng + 1)) {
       switch ((wcs->pv[k]).m) {
       case 1:
-        strcpy(comment, "[deg] Native longitude of the reference point");
+        strncpy(comment, "[deg] Native longitude of the reference point",
+          128);
         break;
       case 2:
-        strcpy(comment, "[deg] Native latitude  of the reference point");
+        strncpy(comment, "[deg] Native latitude  of the reference point",
+          128);
         break;
       case 3:
         if (primage) {
-          sprintf(keyword, "LONPOLE%c", alt);
+          snprintf(keyword, 16, "LONPOLE%c", alt);
         } else if (bintab) {
-          sprintf(keyword, "LONP%d%c", colnum, alt);
+          snprintf(keyword, 16, "LONP%d%c", colnum, alt);
         } else {
-          sprintf(keyword, "LONP%d%c", colax[(wcs->pv[k]).i - 1], alt);
+          snprintf(keyword, 16, "LONP%d%c", colax[(wcs->pv[k]).i - 1], alt);
         }
-        sprintf(comment, "[deg] alias for %s (has precedence)", keyword);
+        snprintf(comment, 128, "[deg] alias for %s (has precedence)",
+          keyword);
         break;
       case 4:
         if (primage) {
-          sprintf(keyword, "LATPOLE%c", alt);
+          snprintf(keyword, 16, "LATPOLE%c", alt);
         } else if (bintab) {
-          sprintf(keyword, "LATP%d%c", colnum, alt);
+          snprintf(keyword, 16, "LATP%d%c", colnum, alt);
         } else {
-          sprintf(keyword, "LATP%d%c", colax[(wcs->pv[k]).i - 1], alt);
+          snprintf(keyword, 16, "LATP%d%c", colax[(wcs->pv[k]).i - 1], alt);
         }
-        sprintf(comment, "[deg] alias for %s (has precedence)", keyword);
+        snprintf(comment, 128, "[deg] alias for %s (has precedence)",
+          keyword);
+        break;
+      default:;
+        char *cm = comment + strlen(comment);
+        size_t csize = cme - cm;
+        strncpy(cm, " (not recognised)", csize);
         break;
       }
     } else if ((wcs->pv[k]).i == (wcs->lat + 1)) {
-      sprintf(comment, "%s projection parameter", wcs->cel.prj.code);
+      snprintf(comment, 128, "%s projection parameter", wcs->cel.prj.code);
     } else {
-      strcpy(comment, "Coordinate transformation parameter");
+      strncpy(comment, "Coordinate transformation parameter", 128);
     }
 
     wcshdo_util(ctrl, "PV", "V", WCSHDO_PVn_ma, "PV", wcs->pv[k].i, -1,
@@ -869,7 +911,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   }
 
   for (int k = 0; k < wcs->nps; k++) {
-    sprintf(keyvalue, "'%s'", (wcs->ps[k]).value);
+    snprintf(keyvalue, 96, "'%s'", (wcs->ps[k]).value);
     wcshdo_util(ctrl, "PS", "S", WCSHDO_PVn_ma, "PS", wcs->ps[k].i, -1,
       wcs->ps[k].m, alt, colnum, colax, keyvalue,
       "Coordinate transformation parameter", nkeyrec, header, &status);
@@ -877,41 +919,41 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Celestial and spectral transformation parameters.
   if (!undefined(wcs->lonpole)) {
-    wcsutil_double2str(keyvalue, format, wcs->lonpole);
+    wcsutil_double2str(keyvalue, 96, format, wcs->lonpole);
     wcshdo_util(ctrl, "LONPOLE", "LONP", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "[deg] Native longitude of celestial pole", nkeyrec, header,
       &status);
   }
 
   if (!undefined(wcs->latpole)) {
-    wcsutil_double2str(keyvalue, format, wcs->latpole);
+    wcsutil_double2str(keyvalue, 96, format, wcs->latpole);
     wcshdo_util(ctrl, "LATPOLE", "LATP", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "[deg] Native latitude of celestial pole", nkeyrec, header,
       &status);
   }
 
   if (wcs->restfrq != 0.0) {
-    wcsutil_double2str(keyvalue, format, wcs->restfrq);
+    wcsutil_double2str(keyvalue, 96, format, wcs->restfrq);
     wcshdo_util(ctrl, "RESTFRQ", "RFRQ", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "[Hz] Line rest frequency", nkeyrec, header, &status);
   }
 
   if (wcs->restwav != 0.0) {
-    wcsutil_double2str(keyvalue, format, wcs->restwav);
+    wcsutil_double2str(keyvalue, 96, format, wcs->restwav);
     wcshdo_util(ctrl, "RESTWAV", "RWAV", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "[Hz] Line rest wavelength", nkeyrec, header, &status);
   }
 
   // - - - - - - - - - - - - - - - - -  Auxiliary coordinate axis information.
   char timeunit[16];
-  sprintf(timeunit, "%.15s", wcs->timeunit[0] ? wcs->timeunit : "s");
+  snprintf(timeunit, 16, "%.15s", wcs->timeunit[0] ? wcs->timeunit : "s");
 
   // Coordinate axis title.
   if (wcs->cname) {
     for (int i = 0; i < naxis; i++) {
       if (wcs->cname[i][0] == '\0') continue;
 
-      sprintf(keyvalue, "'%s'", wcs->cname[i]);
+      snprintf(keyvalue, 96, "'%s'", wcs->cname[i]);
       wcshdo_util(ctrl, "CNAME", "CNA", WCSHDO_CNAMna, "CNAM", i+1, 0, 0,
         alt, colnum, colax, keyvalue, "Axis name for labelling purposes",
         nkeyrec, header, &status);
@@ -923,10 +965,12 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     for (int i = 0; i < naxis; i++) {
       if (undefined(wcs->crder[i])) continue;
 
-      wcsutil_double2str(keyvalue, format, wcs->crder[i]);
+      wcsutil_double2str(keyvalue, 96, format, wcs->crder[i]);
       comment[0] = '\0';
-      if (wcs->cunit[i][0]) sprintf(comment, "[%s] ", wcs->cunit[i]);
-      strcat(comment, "Random error in coordinate");
+      if (wcs->cunit[i][0]) snprintf(comment, 128, "[%s] ", wcs->cunit[i]);
+      char *cm = comment + strlen(comment);
+      size_t csize = cme - cm;
+      strncpy(cm, "Random error in coordinate", csize);
       wcshdo_util(ctrl, "CRDER", "CRD", WCSHDO_CNAMna, "CRDE", i+1, 0, 0,
         alt, colnum, colax, keyvalue, comment, nkeyrec, header, &status);
     }
@@ -937,10 +981,12 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     for (int i = 0; i < naxis; i++) {
       if (undefined(wcs->csyer[i])) continue;
 
-      wcsutil_double2str(keyvalue, format, wcs->csyer[i]);
+      wcsutil_double2str(keyvalue, 96, format, wcs->csyer[i]);
       comment[0] = '\0';
-      if (wcs->cunit[i][0]) sprintf(comment, "[%s] ", wcs->cunit[i]);
-      strcat(comment, "Systematic error in coordinate");
+      if (wcs->cunit[i][0]) snprintf(comment, 128, "[%s] ", wcs->cunit[i]);
+      char *cm = comment + strlen(comment);
+      size_t csize = cme - cm;
+      strncpy(cm, "Systematic error in coordinate", csize);
       wcshdo_util(ctrl, "CSYER", "CSY", WCSHDO_CNAMna, "CSYE", i+1, 0, 0,
         alt, colnum, colax, keyvalue, comment, nkeyrec, header, &status);
     }
@@ -951,8 +997,9 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     for (int i = 0; i < naxis; i++) {
       if (undefined(wcs->czphs[i])) continue;
 
-      wcsutil_double2str(keyvalue, format, wcs->czphs[i]);
-      sprintf(comment, "[%s] Time at zero point of phase axis", timeunit);
+      wcsutil_double2str(keyvalue, 96, format, wcs->czphs[i]);
+      snprintf(comment, 128, "[%s] Time at zero point of phase axis",
+        timeunit);
       wcshdo_util(ctrl, "CZPHS", "CZP", WCSHDO_CNAMna, "CZPH", i+1, 0, 0,
         alt, colnum, colax, keyvalue, comment, nkeyrec, header, &status);
     }
@@ -963,8 +1010,8 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     for (int i = 0; i < naxis; i++) {
       if (undefined(wcs->cperi[i])) continue;
 
-      wcsutil_double2str(keyvalue, format, wcs->cperi[i]);
-      sprintf(comment, "[%s] Period of phase axis", timeunit);
+      wcsutil_double2str(keyvalue, 96, format, wcs->cperi[i]);
+      snprintf(comment, 128, "[%s] Period of phase axis", timeunit);
       wcshdo_util(ctrl, "CPERI", "CPR", WCSHDO_CNAMna, "CPER", i+1, 0, 0,
         alt, colnum, colax, keyvalue, comment, nkeyrec, header, &status);
     }
@@ -974,7 +1021,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Coordinate system title.
   if (wcs->wcsname[0]) {
-    sprintf(keyvalue, "'%s'", wcs->wcsname);
+    snprintf(keyvalue, 96, "'%s'", wcs->wcsname);
     if (bintab) {
       wcshdo_util(ctrl, "WCSNAME", "WCSN", 0, 0x0, 0, 0, 0, alt, colnum,
         colax, keyvalue, "Coordinate system title", nkeyrec, header, &status);
@@ -990,28 +1037,28 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Time scale.
   if (wcs->timesys[0]) {
-    sprintf(keyvalue, "'%s'", wcs->timesys);
+    snprintf(keyvalue, 96, "'%s'", wcs->timesys);
     wcshdo_util(ctrl, "TIMESYS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "Time scale", nkeyrec, header, &status);
   }
 
   // Time reference position.
   if (wcs->trefpos[0]) {
-    sprintf(keyvalue, "'%s'", wcs->trefpos);
+    snprintf(keyvalue, 96, "'%s'", wcs->trefpos);
     wcshdo_util(ctrl, "TREFPOS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "Time reference position", nkeyrec, header, &status);
   }
 
   // Time reference direction.
   if (wcs->trefdir[0]) {
-    sprintf(keyvalue, "'%s'", wcs->trefdir);
+    snprintf(keyvalue, 96, "'%s'", wcs->trefdir);
     wcshdo_util(ctrl, "TREFDIR", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "Time reference direction", nkeyrec, header, &status);
   }
 
   // Ephemerides used for pathlength delay calculation.
   if (wcs->plephem[0]) {
-    sprintf(keyvalue, "'%s'", wcs->plephem);
+    snprintf(keyvalue, 96, "'%s'", wcs->plephem);
     wcshdo_util(ctrl, "PLEPHEM", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "Ephemerides used for pathlength delays", nkeyrec, header,
       &status);
@@ -1019,7 +1066,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Time units.
   if (wcs->timeunit[0]) {
-    sprintf(keyvalue, "'%s'", wcs->timeunit);
+    snprintf(keyvalue, 96, "'%s'", wcs->timeunit);
     wcshdo_util(ctrl, "TIMEUNIT", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "Time units", nkeyrec, header, &status);
   }
@@ -1027,14 +1074,14 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   // Fiducial (reference) time.
   if (wcs->mjdref[0] == 0.0 && wcs->mjdref[1] == 0.0) {
     // MJD of fiducial time (simplified if it takes its default value).
-    wcsutil_double2str(keyvalue, format, 0.0);
+    wcsutil_double2str(keyvalue, 96, format, 0.0);
     wcshdo_util(ctrl, "MJDREF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "[d] MJD of fiducial time", nkeyrec, header, &status);
 
   } else {
     // ISO-8601 fiducial time.
     if (wcs->dateref[0]) {
-      sprintf(keyvalue, "'%s'", wcs->dateref);
+      snprintf(keyvalue, 96, "'%s'", wcs->dateref);
       wcshdo_util(ctrl, "DATEREF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "ISO-8601 fiducial time", nkeyrec, header, &status);
     }
@@ -1042,7 +1089,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     if (wcs->mjdref[1] == 0.0) {
       // MJD of fiducial time (no fractional part).
       if (!undefined(wcs->mjdref[0])) {
-        wcsutil_double2str(keyvalue, format, wcs->mjdref[0]);
+        wcsutil_double2str(keyvalue, 96, format, wcs->mjdref[0]);
         wcshdo_util(ctrl, "MJDREF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           keyvalue, "[d] MJD of fiducial time", nkeyrec, header, &status);
       }
@@ -1050,7 +1097,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     } else {
       // MJD of fiducial time, integer part.
       if (!undefined(wcs->mjdref[0])) {
-        wcsutil_double2str(keyvalue, format, wcs->mjdref[0]);
+        wcsutil_double2str(keyvalue, 96, format, wcs->mjdref[0]);
         wcshdo_util(ctrl, "MJDREFI", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           keyvalue, "[d] MJD of fiducial time, integer part", nkeyrec,
           header, &status);
@@ -1058,7 +1105,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
       // MJD of fiducial time, fractional part.
       if (!undefined(wcs->mjdref[1])) {
-        wcsutil_double2str(keyvalue, format, wcs->mjdref[1]);
+        wcsutil_double2str(keyvalue, 96, format, wcs->mjdref[1]);
         wcshdo_util(ctrl, "MJDREFF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           keyvalue, "[d] MJD of fiducial time, fractional part", nkeyrec,
           header, &status);
@@ -1068,8 +1115,8 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Clock correction.
   if (!undefined(wcs->timeoffs)) {
-    wcsutil_double2str(keyvalue, format, wcs->timeoffs);
-    sprintf(comment, "[%s] Clock correction", timeunit);
+    wcsutil_double2str(keyvalue, 96, format, wcs->timeoffs);
+    snprintf(comment, 128, "[%s] Clock correction", timeunit);
     wcshdo_util(ctrl, "TIMEOFFS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, comment, nkeyrec, header, &status);
   }
@@ -1078,8 +1125,8 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // ISO-8601 time of observation.
   if (wcs->dateobs[0]) {
-    sprintf(keyvalue, "'%s'", wcs->dateobs);
-    strcpy(comment, "ISO-8601 time of observation");
+    snprintf(keyvalue, 96, "'%s'", wcs->dateobs);
+    strncpy(comment, "ISO-8601 time of observation", 128);
 
     if (ctrl & 1) {
       // Allow DOBSn.
@@ -1094,21 +1141,21 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // MJD of observation.
   if (!undefined(wcs->mjdobs)) {
-    wcsutil_double2str(keyvalue, format, wcs->mjdobs);
+    wcsutil_double2str(keyvalue, 96, format, wcs->mjdobs);
     wcshdo_util(ctrl, "MJD-OBS", "MJDOB", 0, 0x0, 0, 0, 0, ' ', colnum, colax,
       keyvalue, "[d] MJD of observation", nkeyrec, header, &status);
   }
 
   // Julian epoch of observation.
   if (!undefined(wcs->jepoch)) {
-    wcsutil_double2str(keyvalue, format, wcs->jepoch);
+    wcsutil_double2str(keyvalue, 96, format, wcs->jepoch);
     wcshdo_util(ctrl, "JEPOCH", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "[a] Julian epoch of observation", nkeyrec, header, &status);
   }
 
   // Besselian epoch of observation.
   if (!undefined(wcs->bepoch)) {
-    wcsutil_double2str(keyvalue, format, wcs->bepoch);
+    wcsutil_double2str(keyvalue, 96, format, wcs->bepoch);
     wcshdo_util(ctrl, "BEPOCH", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "[a] Besselian epoch of observation", nkeyrec, header,
       &status);
@@ -1116,7 +1163,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // ISO-8601 time at start of observation.
   if (wcs->datebeg[0]) {
-    sprintf(keyvalue, "'%s'", wcs->datebeg);
+    snprintf(keyvalue, 96, "'%s'", wcs->datebeg);
     wcshdo_util(ctrl, "DATE-BEG", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "ISO-8601 time at start of observation", nkeyrec, header,
       &status);
@@ -1124,15 +1171,15 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // MJD at start of observation.
   if (!undefined(wcs->mjdbeg)) {
-    wcsutil_double2str(keyvalue, format, wcs->mjdbeg);
+    wcsutil_double2str(keyvalue, 96, format, wcs->mjdbeg);
     wcshdo_util(ctrl, "MJD-BEG", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "[d] MJD at start of observation", nkeyrec, header, &status);
   }
 
   // Time elapsed at start since fiducial time.
   if (!undefined(wcs->tstart)) {
-    wcsutil_double2str(keyvalue, format, wcs->tstart);
-    sprintf(comment, "[%s] Time elapsed since fiducial time at start",
+    wcsutil_double2str(keyvalue, 96, format, wcs->tstart);
+    snprintf(comment, 128, "[%s] Time elapsed since fiducial time at start",
       timeunit);
     wcshdo_util(ctrl, "TSTART", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, comment, nkeyrec, header, &status);
@@ -1140,7 +1187,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // ISO-8601 time at midpoint of observation.
   if (wcs->dateavg[0]) {
-    sprintf(keyvalue, "'%s'", wcs->dateavg);
+    snprintf(keyvalue, 96, "'%s'", wcs->dateavg);
     wcshdo_util(ctrl, "DATE-AVG", "DAVG", 0, 0x0, 0, 0, 0, ' ', colnum, colax,
       keyvalue, "ISO-8601 time at midpoint of observation", nkeyrec, header,
       &status);
@@ -1148,7 +1195,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // MJD at midpoint of observation.
   if (!undefined(wcs->mjdavg)) {
-    wcsutil_double2str(keyvalue, format, wcs->mjdavg);
+    wcsutil_double2str(keyvalue, 96, format, wcs->mjdavg);
     wcshdo_util(ctrl, "MJD-AVG", "MJDA", 0, 0x0, 0, 0, 0, ' ', colnum, colax,
       keyvalue, "[d] MJD at midpoint of observation", nkeyrec, header,
       &status);
@@ -1156,7 +1203,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // ISO-8601 time at end of observation.
   if (wcs->dateend[0]) {
-    sprintf(keyvalue, "'%s'", wcs->dateend);
+    snprintf(keyvalue, 96, "'%s'", wcs->dateend);
     wcshdo_util(ctrl, "DATE-END", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "ISO-8601 time at end of observation", nkeyrec, header,
       &status);
@@ -1164,15 +1211,15 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // MJD at end of observation.
   if (!undefined(wcs->mjdend)) {
-    wcsutil_double2str(keyvalue, format, wcs->mjdend);
+    wcsutil_double2str(keyvalue, 96, format, wcs->mjdend);
     wcshdo_util(ctrl, "MJD-END", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "[d] MJD at end of observation", nkeyrec, header, &status);
   }
 
   // Time elapsed at end since fiducial time.
   if (!undefined(wcs->tstop)) {
-    wcsutil_double2str(keyvalue, format, wcs->tstop);
-    sprintf(comment, "[%s] Time elapsed since fiducial time at end",
+    wcsutil_double2str(keyvalue, 96, format, wcs->tstop);
+    snprintf(comment, 128, "[%s] Time elapsed since fiducial time at end",
       timeunit);
     wcshdo_util(ctrl, "TSTOP", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, comment, nkeyrec, header, &status);
@@ -1180,16 +1227,16 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Exposure (integration) time.
   if (!undefined(wcs->xposure)) {
-    wcsutil_double2str(keyvalue, format, wcs->xposure);
-    sprintf(comment, "[%s] Exposure (integration) time", timeunit);
+    wcsutil_double2str(keyvalue, 96, format, wcs->xposure);
+    snprintf(comment, 128, "[%s] Exposure (integration) time", timeunit);
     wcshdo_util(ctrl, "XPOSURE", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, comment, nkeyrec, header, &status);
   }
 
   // Elapsed time (start to stop).
   if (!undefined(wcs->telapse)) {
-    wcsutil_double2str(keyvalue, format, wcs->telapse);
-    sprintf(comment, "[%s] Elapsed time (start to stop)", timeunit);
+    wcsutil_double2str(keyvalue, 96, format, wcs->telapse);
+    snprintf(comment, 128, "[%s] Elapsed time (start to stop)", timeunit);
     wcshdo_util(ctrl, "TELAPSE", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, comment, nkeyrec, header, &status);
   }
@@ -1198,31 +1245,33 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Systematic error in time measurements.
   if (!undefined(wcs->timsyer)) {
-    wcsutil_double2str(keyvalue, format, wcs->timsyer);
-    sprintf(comment, "[%s] Systematic error in time measurements", timeunit);
+    wcsutil_double2str(keyvalue, 96, format, wcs->timsyer);
+    snprintf(comment, 128, "[%s] Systematic error in time measurements",
+      timeunit);
     wcshdo_util(ctrl, "TIMSYER", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, comment, nkeyrec, header, &status);
   }
 
   // Relative error in time measurements.
   if (!undefined(wcs->timrder)) {
-    wcsutil_double2str(keyvalue, format, wcs->timrder);
-    sprintf(comment, "[%s] Relative error in time measurements", timeunit);
+    wcsutil_double2str(keyvalue, 96, format, wcs->timrder);
+    snprintf(comment, 128, "[%s] Relative error in time measurements",
+      timeunit);
     wcshdo_util(ctrl, "TIMRDER", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, comment, nkeyrec, header, &status);
   }
 
   // Time resolution.
   if (!undefined(wcs->timedel)) {
-    wcsutil_double2str(keyvalue, format, wcs->timedel);
-    sprintf(comment, "[%s] Time resolution", timeunit);
+    wcsutil_double2str(keyvalue, 96, format, wcs->timedel);
+    snprintf(comment, 128, "[%s] Time resolution", timeunit);
     wcshdo_util(ctrl, "TIMEDEL", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, comment, nkeyrec, header, &status);
   }
 
   // Reference position of timestamp in binned data.
   if (!undefined(wcs->timepixr)) {
-    wcsutil_double2str(keyvalue, format, wcs->timepixr);
+    wcsutil_double2str(keyvalue, 96, format, wcs->timepixr);
     wcshdo_util(ctrl, "TIMEPIXR", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "Reference position of timestamp in binned data", nkeyrec,
       header, &status);
@@ -1237,8 +1286,8 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
     char obsgeo[16] = "OBSGEO-?", obsg[8] = "OBSG?", xyz[] = "XYZ";
     for (int k = 0; k < 3; k++) {
-      wcsutil_double2str(keyvalue, format, wcs->obsgeo[k]);
-      sprintf(comment, "[m] observatory %c-coordinate", xyz[k]);
+      wcsutil_double2str(keyvalue, 96, format, wcs->obsgeo[k]);
+      snprintf(comment, 128, "[m] observatory %c-coordinate", xyz[k]);
       obsgeo[7] = xyz[k];
       obsg[4]   = xyz[k];
       wcshdo_util(ctrl, obsgeo, obsg, 0, 0x0, 0, 0, 0, ' ', colnum, colax,
@@ -1250,17 +1299,17 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
       !undefined(wcs->obsgeo[4]) &&
       !undefined(wcs->obsgeo[5])) {
 
-    wcsutil_double2str(keyvalue, format, wcs->obsgeo[3]);
+    wcsutil_double2str(keyvalue, 96, format, wcs->obsgeo[3]);
     wcshdo_util(ctrl, "OBSGEO-L", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "[deg] IAU(1976) observatory longitude", nkeyrec, header,
       &status);
 
-    wcsutil_double2str(keyvalue, format, wcs->obsgeo[4]);
+    wcsutil_double2str(keyvalue, 96, format, wcs->obsgeo[4]);
     wcshdo_util(ctrl, "OBSGEO-B", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "[deg] IAU(1976) observatory latitude", nkeyrec, header,
       &status);
 
-    wcsutil_double2str(keyvalue, format, wcs->obsgeo[5]);
+    wcsutil_double2str(keyvalue, 96, format, wcs->obsgeo[5]);
     wcshdo_util(ctrl, "OBSGEO-L", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "[m]   IAU(1976) observatory height", nkeyrec, header,
       &status);
@@ -1268,21 +1317,21 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Spacecraft orbit ephemeris file.
   if (wcs->obsorbit[0]) {
-    sprintf(keyvalue, "'%s'", wcs->obsorbit);
+    snprintf(keyvalue, 96, "'%s'", wcs->obsorbit);
     wcshdo_util(ctrl, "OBSORBIT", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
       keyvalue, "Spacecraft orbit ephemeris file", nkeyrec, header, &status);
   }
 
   // Equatorial coordinate system type.
   if (wcs->radesys[0]) {
-    sprintf(keyvalue, "'%s'", wcs->radesys);
+    snprintf(keyvalue, 96, "'%s'", wcs->radesys);
     wcshdo_util(ctrl, "RADESYS", "RADE", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "Equatorial coordinate system", nkeyrec, header, &status);
   }
 
   // Equinox of equatorial coordinate system.
   if (!undefined(wcs->equinox)) {
-    wcsutil_double2str(keyvalue, format, wcs->equinox);
+    wcsutil_double2str(keyvalue, 96, format, wcs->equinox);
     wcshdo_util(ctrl, "EQUINOX", "EQUI", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "[yr] Equinox of equatorial coordinates", nkeyrec, header,
       &status);
@@ -1290,7 +1339,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Reference frame of spectral coordinates.
   if (wcs->specsys[0]) {
-    sprintf(keyvalue, "'%s'", wcs->specsys);
+    snprintf(keyvalue, 96, "'%s'", wcs->specsys);
     wcshdo_util(ctrl, "SPECSYS", "SPEC", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "Reference frame of spectral coordinates", nkeyrec, header,
       &status);
@@ -1298,7 +1347,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Reference frame of spectral observation.
   if (wcs->ssysobs[0]) {
-    sprintf(keyvalue, "'%s'", wcs->ssysobs);
+    snprintf(keyvalue, 96, "'%s'", wcs->ssysobs);
     wcshdo_util(ctrl, "SSYSOBS", "SOBS", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "Reference frame of spectral observation", nkeyrec, header,
       &status);
@@ -1306,21 +1355,21 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Observer's velocity towards source.
   if (!undefined(wcs->velosys)) {
-    wcsutil_double2str(keyvalue, format, wcs->velosys);
+    wcsutil_double2str(keyvalue, 96, format, wcs->velosys);
     wcshdo_util(ctrl, "VELOSYS", "VSYS", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "[m/s] Velocity towards source", nkeyrec, header, &status);
   }
 
   // Redshift of the source.
   if (!undefined(wcs->zsource)) {
-    wcsutil_double2str(keyvalue, format, wcs->zsource);
+    wcsutil_double2str(keyvalue, 96, format, wcs->zsource);
     wcshdo_util(ctrl, "ZSOURCE", "ZSOU", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "Redshift of the source", nkeyrec, header, &status);
   }
 
   // Reference frame of source redshift.
   if (wcs->ssyssrc[0]) {
-    sprintf(keyvalue, "'%s'", wcs->ssyssrc);
+    snprintf(keyvalue, 96, "'%s'", wcs->ssyssrc);
     wcshdo_util(ctrl, "SSYSSRC", "SSRC", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "Reference frame of source redshift", nkeyrec, header,
       &status);
@@ -1328,7 +1377,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   // Velocity orientation angle.
   if (!undefined(wcs->velangl)) {
-    wcsutil_double2str(keyvalue, format, wcs->velangl);
+    wcsutil_double2str(keyvalue, 96, format, wcs->velangl);
     wcshdo_util(ctrl, "VELANGL", "VANG", 0, 0x0, 0, 0, 0, alt, colnum, colax,
       keyvalue, "[deg] Velocity orientation angle", nkeyrec, header, &status);
   }
@@ -1338,26 +1387,26 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
   struct auxprm *aux;
   if ((aux = wcs->aux)) {
     if (!undefined(aux->rsun_ref)) {
-      wcsutil_double2str(keyvalue, format, aux->rsun_ref);
+      wcsutil_double2str(keyvalue, 96, format, aux->rsun_ref);
       wcshdo_util(ctrl, "RSUN_REF", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[m] Solar radius", nkeyrec, header, &status);
     }
 
     if (!undefined(aux->dsun_obs)) {
-      wcsutil_double2str(keyvalue, format, aux->dsun_obs);
+      wcsutil_double2str(keyvalue, 96, format, aux->dsun_obs);
       wcshdo_util(ctrl, "DSUN_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[m] Distance from centre of Sun to observer", nkeyrec,
         header, &status);
     }
 
     if (!undefined(aux->crln_obs)) {
-      wcsutil_double2str(keyvalue, format, aux->crln_obs);
+      wcsutil_double2str(keyvalue, 96, format, aux->crln_obs);
       wcshdo_util(ctrl, "CRLN_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[deg] Carrington heliographic lng of observer", nkeyrec,
         header, &status);
 
       if (!undefined(aux->hglt_obs)) {
-        wcsutil_double2str(keyvalue, format, aux->hglt_obs);
+        wcsutil_double2str(keyvalue, 96, format, aux->hglt_obs);
         wcshdo_util(ctrl, "CRLT_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           keyvalue, "[deg] Heliographic latitude of observer", nkeyrec,
           header, &status);
@@ -1365,13 +1414,13 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     }
 
     if (!undefined(aux->hgln_obs)) {
-      wcsutil_double2str(keyvalue, format, aux->hgln_obs);
+      wcsutil_double2str(keyvalue, 96, format, aux->hgln_obs);
       wcshdo_util(ctrl, "HGLN_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[deg] Stonyhurst heliographic lng of observer", nkeyrec,
         header, &status);
 
       if (!undefined(aux->hglt_obs)) {
-        wcsutil_double2str(keyvalue, format, aux->hglt_obs);
+        wcsutil_double2str(keyvalue, 96, format, aux->hglt_obs);
         wcshdo_util(ctrl, "HGLT_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           keyvalue, "[deg] Heliographic latitude of observer", nkeyrec,
           header, &status);
@@ -1379,42 +1428,42 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
     }
 
     if (!undefined(aux->a_radius)) {
-      wcsutil_double2str(keyvalue, format, aux->a_radius);
+      wcsutil_double2str(keyvalue, 96, format, aux->a_radius);
       wcshdo_util(ctrl, "A_RADIUS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[m] Object ellipsoid semi-major axis", nkeyrec,
         header, &status);
     }
 
     if (!undefined(aux->b_radius)) {
-      wcsutil_double2str(keyvalue, format, aux->b_radius);
+      wcsutil_double2str(keyvalue, 96, format, aux->b_radius);
       wcshdo_util(ctrl, "B_RADIUS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[m] Object ellipsoid semi-intermediate axis", nkeyrec,
         header, &status);
     }
 
     if (!undefined(aux->c_radius)) {
-      wcsutil_double2str(keyvalue, format, aux->c_radius);
+      wcsutil_double2str(keyvalue, 96, format, aux->c_radius);
       wcshdo_util(ctrl, "C_RADIUS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[m] Object ellipsoid semi-minor axis", nkeyrec,
         header, &status);
     }
 
     if (!undefined(aux->blon_obs)) {
-      wcsutil_double2str(keyvalue, format, aux->blon_obs);
+      wcsutil_double2str(keyvalue, 96, format, aux->blon_obs);
       wcshdo_util(ctrl, "BLON_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[deg] Bodycentric longitude of observer", nkeyrec,
         header, &status);
     }
 
     if (!undefined(aux->blat_obs)) {
-      wcsutil_double2str(keyvalue, format, aux->blat_obs);
+      wcsutil_double2str(keyvalue, 96, format, aux->blat_obs);
       wcshdo_util(ctrl, "BLAT_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[deg] Bodycentric latitude of observer", nkeyrec,
         header, &status);
     }
 
     if (!undefined(aux->bdis_obs)) {
-      wcsutil_double2str(keyvalue, format, aux->bdis_obs);
+      wcsutil_double2str(keyvalue, 96, format, aux->bdis_obs);
       wcshdo_util(ctrl, "BDIS_OBS", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, "[m] Bodycentric distance of observer", nkeyrec,
         header, &status);
@@ -1438,7 +1487,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
       for (int idp = 0; idp < dis->ndp; idp++, ikeyp++) {
         cp = strchr(ikeyp->field, '.') + 1;
         if (strncmp(cp, "SIP.", 4) != 0) continue;
-        wcsutil_double2str(keyvalue, "%20.13E", dpkeyd(ikeyp));
+        wcsutil_double2str(keyvalue, 96, "%20.13E", dpkeyd(ikeyp));
 
         int kpi = 15;
         while (kp0 < kpi && keyvalue[kpi] == '0') kpi--;
@@ -1448,7 +1497,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
       int precision = kp0 - 2;
       if (precision < 1)  precision = 1;
       if (13 < precision) precision = 13;
-      sprintf(format, "%%20.%dE", precision);
+      snprintf(format, 16, "%%20.%dE", precision);
     }
 
     // Ensure the coefficients are written in a human-readable sequence.
@@ -1458,9 +1507,9 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         "", "", nkeyrec, header, &status);
 
       if (j == 0) {
-        strcpy(keyword, "A_");
+        strncpy(keyword, "A_", 16);
       } else {
-        strcpy(keyword, "B_");
+        strncpy(keyword, "B_", 16);
       }
 
       int degree;
@@ -1469,9 +1518,10 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         if (ncoeff <= nTPD[degree]) break;
       }
 
-      strcpy(keyword+2, "ORDER");
-      sprintf(keyvalue, "%20d", degree);
-      sprintf(comment, "SIP polynomial degree, axis %d, pixel-to-sky", j+1);
+      strncpy(keyword+2, "ORDER", 14);
+      snprintf(keyvalue, 96, "%20d", degree);
+      snprintf(comment, 128, "SIP polynomial degree, axis %d, pixel-to-sky",
+        j+1);
       wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, comment, nkeyrec, header, &status);
 
@@ -1483,22 +1533,22 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         cp = strchr(ikeyp->field, '.') + 1;
         if (strncmp(cp, "SIP.FWD.", 8) != 0) continue;
         cp += 8;
-        strcpy(keyword+2, cp);
+        strncpy(keyword+2, cp, 14);
         int p, q;
         sscanf(cp, "%d_%d", &p, &q);
         strncpy(term, "xxxxxxxxx", p);
         strncpy(term+p, "yyyyyyyyy", q);
         term[p+q] = '\0';
 
-        wcsutil_double2str(keyvalue, format, keyval);
-        sprintf(comment, "SIP distortion coefficient: %s", term);
+        wcsutil_double2str(keyvalue, 96, format, keyval);
+        snprintf(comment, 128, "SIP distortion coefficient: %s", term);
         wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           keyvalue, comment, nkeyrec, header, &status);
       }
 
       if (dis->maxdis[j] != 0.0) {
-        strcpy(keyword+2, "DMAX");
-        wcsutil_double2str(keyvalue, "%20.3f", dis->maxdis[j]);
+        strncpy(keyword+2, "DMAX", 14);
+        wcsutil_double2str(keyvalue, 96, "%20.3f", dis->maxdis[j]);
         wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           keyvalue, "Maximum value of distortion function", nkeyrec,
           header, &status);
@@ -1511,9 +1561,9 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         "", "", nkeyrec, header, &status);
 
       if (j == 0) {
-        strcpy(keyword, "AP_");
+        strncpy(keyword, "AP_", 16);
       } else {
-        strcpy(keyword, "BP_");
+        strncpy(keyword, "BP_", 16);
       }
 
       ncoeff = dis->iparm[j][I_NDPARM] - dis->iparm[j][I_TPDNCO];
@@ -1521,9 +1571,10 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         if (ncoeff <= nTPD[degree]) break;
       }
 
-      strcpy(keyword+3, "ORDER");
-      sprintf(keyvalue, "%20d", degree);
-      sprintf(comment, "SIP polynomial degree, axis %d, sky-to-pixel", j+1);
+      strncpy(keyword+3, "ORDER", 13);
+      snprintf(keyvalue, 96, "%20d", degree);
+      snprintf(comment, 128, "SIP polynomial degree, axis %d, sky-to-pixel",
+        j+1);
       wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
         keyvalue, comment, nkeyrec, header, &status);
 
@@ -1535,15 +1586,15 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         cp = strchr(ikeyp->field, '.') + 1;
         if (strncmp(cp, "SIP.REV.", 8) != 0) continue;
         cp += 8;
-        strcpy(keyword+3, cp);
+        strncpy(keyword+3, cp, 13);
         int p, q;
         sscanf(cp, "%d_%d", &p, &q);
         strncpy(term, "xxxxxxxxx", p);
         strncpy(term+p, "yyyyyyyyy", q);
         term[p+q] = '\0';
 
-        wcsutil_double2str(keyvalue, format, keyval);
-        sprintf(comment, "SIP inverse coefficient: %s", term);
+        wcsutil_double2str(keyvalue, 96, format, keyval);
+        snprintf(comment, 128, "SIP inverse coefficient: %s", term);
         wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           keyvalue, comment, nkeyrec, header, &status);
       }
@@ -1569,14 +1620,14 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         // coefficients to avoid trailing zeroes common to all of them.
         if (dofmt) wcshdo_format('E', iparm[I_NDPARM], dparm, format);
         char fmt01[8];
-        sprintf(fmt01, "%.3ss", format);
+        snprintf(fmt01, 8, "%.3ss", format);
 
         wcshdo_util(ctrl, "", 0x0, 0, 0x0, 0, 0, 0, ' ', 0, 0x0,
           "", "", nkeyrec, header, &status);
 
         // Distortion function polynomial coefficients.
-        sprintf(keyword, "PV%d_", j+1);
-        char *kp = keyword + strlen(keyword);
+        snprintf(keyword, 16, "PV%d_", j+1);
+        char *kw = keyword + strlen(keyword);
 
         struct dpkey *ikeyp = dis->dp;
         for (int idp = 0; idp < dis->ndp; idp++, ikeyp++) {
@@ -1585,18 +1636,20 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
           cp = strchr(ikeyp->field, '.') + 1;
           if (strncmp(cp, "TPV.", 4) != 0) continue;
-          strcpy(kp, cp+4);
+
+          size_t ksize = kwe - kw;
+          strncpy(kw, cp+4, ksize);
 
           // Identify the term of the TPV polynomial for human readers.
           int m;
           sscanf(cp+4, "%d", &m);
           wcshdo_tpdterm(m, j == wcs->lng, term);
-          sprintf(comment, "TPV coefficient: %s", term);
+          snprintf(comment, 128, "TPV coefficient: %s", term);
 
           if (keyval == 1.0) {
-            sprintf(keyvalue, fmt01, "1.0");
+            snprintf(keyvalue, 96, fmt01, "1.0");
           } else {
-            wcsutil_double2str(keyvalue, format, keyval);
+            wcsutil_double2str(keyvalue, 96, format, keyval);
           }
           wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
             keyvalue, comment, nkeyrec, header, &status);
@@ -1615,24 +1668,26 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         } else if (strncmp(dis->dtype[j], "Polynomial", 10) == 0) {
           // Polynomial distortion.  Write it as TPD by request?
           dotpd = (iparm[I_DTYPE] & DIS_DOTPD);
-          strcpy(tpdsrc, "Polynomial distortion");
+          strncpy(tpdsrc, "Polynomial distortion", 24);
         }
 
         char pq = idis ? 'Q' : 'P';
         int Nhat = dis->Nhat[j];
 
         // CPDISja/CQDISia
-        sprintf(keyword, "C%cDIS%d", pq, j+1);
+        snprintf(keyword, 16, "C%cDIS%d", pq, j+1);
         if (idis == 0) {
-          strcpy(comment, "P = prior, ");
+          strncpy(comment, "P = prior, ", 128);
         } else {
-          strcpy(comment, "Q = sequent, ");
+          strncpy(comment, "Q = sequent, ", 128);
         }
 
         int direct = 0, doaux = 0;
+        char *cm = comment + strlen(comment);
+        size_t csize = cme - cm;
         if (dotpd) {
-          strcpy(keyvalue, "'TPD'");
-          strcat(comment, "Template Polynomial Distortion");
+          strncpy(keyvalue, "'TPD'", 96);
+          strncpy(cm, "Template Polynomial Distortion", csize);
 
           // For identifying terms of the TPD polynomial.
           int *axmap = dis->axmap[j];
@@ -1650,22 +1705,22 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
             }
           }
         } else {
-          strcpy(keyvalue, "'Polynomial'");
-          strcat(comment, "general Polynomial distortion");
+          strncpy(keyvalue, "'Polynomial'", 96);
+          strncpy(cm, "general Polynomial distortion", csize);
         }
 
         wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
           keyvalue, comment, nkeyrec, header, &status);
 
         // NAXES.
-        sprintf(keyword,  "D%c%d", pq, j+1);
-        sprintf(keyvalue, "'NAXES:  %d'", Nhat);
+        snprintf(keyword, 16,  "D%c%d", pq, j+1);
+        snprintf(keyvalue, 96, "'NAXES:  %d'", Nhat);
         if (Nhat == 1) {
-          strcpy(comment,  "One independent variable");
+          strncpy(comment,  "One independent variable", 128);
         } else if (Nhat == 2) {
-          strcpy(comment,  "Two independent variables");
+          strncpy(comment,  "Two independent variables", 128);
         } else {
-          strcpy(comment,  "Number of independent variables");
+          strncpy(comment,  "Number of independent variables", 128);
         }
         wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
           keyvalue, comment, nkeyrec, header, &status);
@@ -1673,25 +1728,26 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         // AXIS.jhat
         for (int jhat = 0; jhat < Nhat; jhat++) {
           int *axmap = dis->axmap[j];
-          sprintf(keyvalue, "'AXIS.%d: %d'", jhat+1, axmap[jhat]+1);
+          snprintf(keyvalue, 96, "'AXIS.%d: %d'", jhat+1, axmap[jhat]+1);
           if (jhat == 0) {
-            strcpy(comment, "1st");
+            strncpy(comment, "1st", 128);
           } else if (jhat == 1) {
-            strcpy(comment, "2nd");
+            strncpy(comment, "2nd", 128);
           } else if (jhat == 2) {
-            strcpy(comment, "3rd");
+            strncpy(comment, "3rd", 128);
           } else {
-            sprintf(comment, "%dth", jhat+1);
+            snprintf(comment, 128, "%dth", jhat+1);
           }
 
-          sprintf(comment+strlen(comment), " independent variable: axis %d",
+          snprintf(comment, 128+strlen(comment),
+            " independent variable: axis %d",
             axmap[jhat]+1);
           if (dotpd) {
             // axid is "xyxuvu".
             cp = axid;
             if (!direct) cp++;
             if (doaux) cp += 3;
-            sprintf(comment+strlen(comment), " (= %c)", cp[jhat]);
+            snprintf(comment, 128-strlen(comment), " (= %c)", cp[jhat]);
           }
 
           wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
@@ -1705,9 +1761,10 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         for (int jhat = 0; jhat < Nhat; jhat++) {
           if (dis->offset[j][jhat] == 0.0) continue;
 
-          wcsutil_double2str(ctemp, format, dis->offset[j][jhat]);
-          sprintf(keyvalue, "'OFFSET.%d: %s'", jhat+1, ctemp);
-          sprintf(comment, "Variable %d renormalization offset", jhat+1);
+          wcsutil_double2str(ctemp, 32, format, dis->offset[j][jhat]);
+          snprintf(keyvalue, 96, "'OFFSET.%d: %s'", jhat+1, ctemp);
+          snprintf(comment, 128, "Variable %d renormalization offset",
+            jhat+1);
 
           wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
             keyvalue, comment, nkeyrec, header, &status);
@@ -1718,9 +1775,9 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
         for (int jhat = 0; jhat < Nhat; jhat++) {
           if (dis->scale[j][jhat] == 1.0) continue;
 
-          wcsutil_double2str(ctemp, format, dis->scale[j][jhat]);
-          sprintf(keyvalue, "'SCALE.%d: %s'", jhat+1, ctemp);
-          sprintf(comment, "Variable %d renormalization scale", jhat+1);
+          wcsutil_double2str(ctemp, 32, format, dis->scale[j][jhat]);
+          snprintf(keyvalue, 96, "'SCALE.%d: %s'", jhat+1, ctemp);
+          snprintf(comment, 128, "Variable %d renormalization scale", jhat+1);
 
           wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
             keyvalue, comment, nkeyrec, header, &status);
@@ -1744,25 +1801,25 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
           // Output is therefore handled via dparm.
           if (dofmt) wcshdo_format('E', iparm[I_NDPARM], dparm, format);
           char fmt01[8];
-          sprintf(fmt01, "%.3ss", format);
+          snprintf(fmt01, 8, "%.3ss", format);
 
           // AUX.jhat.COEFF.m
           if (doaux) {
             for (int idp = 0; idp < 6; idp++) {
               if (dparm[idp] == 0.0) {
-                sprintf(ctemp, fmt01, "0.0");
+                snprintf(ctemp, 32, fmt01, "0.0");
               } else if (dparm[idp] == 1.0) {
-                sprintf(ctemp, fmt01, "1.0");
+                snprintf(ctemp, 32, fmt01, "1.0");
               } else {
-                wcsutil_double2str(ctemp, format, dparm[idp]);
+                wcsutil_double2str(ctemp, 32, format, dparm[idp]);
               }
 
               if (idp < 3) {
-                sprintf(keyvalue, "'AUX.1.COEFF.%d: %s'", idp%3, ctemp);
-                sprintf(comment, "TPD: x = c0 + c1*u + c2*v");
+                snprintf(keyvalue, 96, "'AUX.1.COEFF.%d: %s'", idp%3, ctemp);
+                snprintf(comment, 128, "TPD: x = c0 + c1*u + c2*v");
               } else {
-                sprintf(keyvalue, "'AUX.2.COEFF.%d: %s'", idp%3, ctemp);
-                sprintf(comment, "TPD: y = d0 + d1*u + d2*v");
+                snprintf(keyvalue, 96, "'AUX.2.COEFF.%d: %s'", idp%3, ctemp);
+                snprintf(comment, 128, "TPD: y = d0 + d1*u + d2*v");
               }
 
               wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
@@ -1778,15 +1835,16 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
             if (dparm[idp] == 0.0) continue;
 
             if (dparm[idp] == 1.0) {
-              sprintf(ctemp, fmt01, "1.0");
+              snprintf(ctemp, 32, fmt01, "1.0");
             } else {
-              wcsutil_double2str(ctemp, format, dparm[idp]);
+              wcsutil_double2str(ctemp, 32, format, dparm[idp]);
             }
 
             int m = idp;
-            sprintf(keyvalue, "'TPD.FWD.%d:%s %s'", m, (m<10)?" ":"", ctemp);
+            snprintf(keyvalue, 96, "'TPD.FWD.%d:%s %s'", m, (m<10)?" ":"",
+              ctemp);
             wcshdo_tpdterm(m, direct, term);
-            sprintf(comment, "TPD coefficient: %s", term);
+            snprintf(comment, 128, "TPD coefficient: %s", term);
 
             wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
               keyvalue, comment, nkeyrec, header, &status);
@@ -1794,9 +1852,9 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
           // CPERRja/CQERRia
           if (dis->maxdis[j] != 0.0) {
-            sprintf(keyword,  "C%cERR%d", pq, j+1);
-            sprintf(keyvalue, "%20.2f", dis->maxdis[j]);
-            sprintf(comment, "%sMaximum absolute value of distortion",
+            snprintf(keyword, 16,  "C%cERR%d", pq, j+1);
+            snprintf(keyvalue, 96, "%20.2f", dis->maxdis[j]);
+            snprintf(comment, 128, "%sMaximum absolute value of distortion",
               idis?"":"[pix] ");
             wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
               keyvalue, comment, nkeyrec, header, &status);
@@ -1809,15 +1867,16 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
             "", "", nkeyrec, header, &status);
 
           // TPD.REV.m
-          sprintf(keyword,  "D%c%d", pq, j+1);
+          snprintf(keyword, 16,  "D%c%d", pq, j+1);
           for (int idp = iparm[I_TPDNCO]; idp < iparm[I_NDPARM]; idp++) {
             if (dparm[idp] == 0.0) continue;
 
-            wcsutil_double2str(ctemp, format, dparm[idp]);
+            wcsutil_double2str(ctemp, 32, format, dparm[idp]);
             int m = idp - iparm[I_TPDNCO];
-            sprintf(keyvalue, "'TPD.REV.%d:%s %s'", m, (m<10)?" ":"", ctemp);
+            snprintf(keyvalue, 96, "'TPD.REV.%d:%s %s'", m, (m<10)?" ":"",
+              ctemp);
             wcshdo_tpdterm(m, direct, term);
-            sprintf(comment, "TPD coefficient: %s", term);
+            snprintf(comment, 128, "TPD coefficient: %s", term);
 
             wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
               keyvalue, comment, nkeyrec, header, &status);
@@ -1835,7 +1894,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
             cp = strchr(ikeyp->field, '.') + 1;
             if (strncmp(cp, "NAUX", 4) != 0) continue;
 
-            sprintf(keyvalue, "'%s: %d'", cp, dpkeyi(ikeyp));
+            snprintf(keyvalue, 96, "'%s: %d'", cp, dpkeyi(ikeyp));
             wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
               keyvalue, "Number of auxiliary variables", nkeyrec, header,
               &status);
@@ -1851,33 +1910,36 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
               int m;
               sscanf(cp+4, "%d", &m);
-              sprintf(keyvalue, "'%s:", cp);
+              snprintf(keyvalue, 96, "'%s:", cp);
 
               cp = strchr(cp+4, '.') + 1;
-              char *kp = keyvalue + strlen(keyvalue);
 
+              char *kv = keyvalue + strlen(keyvalue);
+              size_t ksize = kve - kv;
               if ((double)((int)keyval) == keyval) {
-                sprintf(kp, "%4d'", (int)keyval);
+                snprintf(kv, ksize, "%4d'", (int)keyval);
               } else if (keyval == 0.5) {
-                strcat(kp, " 0.5'");
+                strncpy(kv, " 0.5'", ksize);
               } else {
-                wcsutil_double2str(kp, "%21.13E", keyval);
-                strcat(keyvalue, "'");
+                wcsutil_double2str(kv, ksize, "%21.13E", keyval);
+                kv += strlen(kv);
+                ksize = kve - kv;
+                strncpy(kv, "'", ksize);
               }
 
               int p;
               sscanf(cp+6, "%d", &p);
               if (strncmp(cp, "POWER.", 4) == 0) {
                 if (p) {
-                  sprintf(comment, "Aux %d: var %d power", m, p);
+                  snprintf(comment, 128, "Aux %d: var %d power", m, p);
                 } else {
-                  sprintf(comment, "Aux %d: power of sum of terms", m);
+                  snprintf(comment, 128, "Aux %d: power of sum of terms", m);
                 }
               } else {
                 if (p) {
-                  sprintf(comment, "Aux %d: var %d coefficient", m, p);
+                  snprintf(comment, 128, "Aux %d: var %d coefficient", m, p);
                 } else {
-                  sprintf(comment, "Aux %d: offset term", m);
+                  snprintf(comment, 128, "Aux %d: offset term", m);
                 }
               }
 
@@ -1896,7 +1958,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
             cp = strchr(ikeyp->field, '.') + 1;
             if (strncmp(cp, "NTERMS", 6) != 0) continue;
 
-            sprintf(keyvalue, "'%s: %d'", cp, dpkeyi(ikeyp));
+            snprintf(keyvalue, 96, "'%s: %d'", cp, dpkeyi(ikeyp));
             wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
               keyvalue, "Number of terms in the polynomial", nkeyrec, header,
               &status);
@@ -1913,30 +1975,35 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
             int m;
             sscanf(cp+5, "%d", &m);
-            sprintf(keyvalue, "'%s:%s ", cp, (m<10)?" ":"");
+            snprintf(keyvalue, 96, "'%s:%s ", cp, (m<10)?" ":"");
 
             cp = strchr(cp+5, '.') + 1;
-            char *kp = keyvalue + strlen(keyvalue);
+            char *kv = keyvalue + strlen(keyvalue);
+            size_t ksize = kve - kv;
             if (strncmp(cp, "VAR.", 4) == 0) {
               if ((double)((int)keyval) == keyval) {
-                sprintf(kp, "%20d", (int)keyval);
+                snprintf(kv, ksize, "%20d", (int)keyval);
               } else {
-                wcsutil_double2str(kp, "%20.13f", keyval);
+                wcsutil_double2str(kv, ksize, "%20.13f", keyval);
               }
 
               int p;
               sscanf(cp+4, "%d", &p);
               if (p <= Nhat) {
-                sprintf(comment, "Poly term %d: var %d power", m, p);
+                snprintf(comment, 128, "Poly term %d: var %d power", m, p);
               } else {
-                sprintf(comment, "Poly term %d: aux %d power", m, p-Nhat);
+                snprintf(comment, 128, "Poly term %d: aux %d power", m,
+                  p-Nhat);
               }
 
             } else {
-              wcsutil_double2str(kp, "%20.13E", keyval);
-              sprintf(comment, "Poly term %d: coefficient", m);
+              wcsutil_double2str(kv, ksize, "%20.13E", keyval);
+              snprintf(comment, 128, "Poly term %d: coefficient", m);
             }
-            strcat(keyvalue, "'");
+
+            kv += strlen(kv);
+            ksize = kve - kv;
+            strncpy(kv, "'", ksize);
 
             wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
               keyvalue, comment, nkeyrec, header, &status);
@@ -1944,9 +2011,9 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
           // CPERRja/CQERRia
           if (dis->maxdis[j] != 0.0) {
-            sprintf(keyword,  "C%cERR%d", pq, j+1);
-            sprintf(keyvalue, "%20.2f", dis->maxdis[j]);
-            sprintf(comment, "%sMaximum absolute value of distortion",
+            snprintf(keyword, 16,  "C%cERR%d", pq, j+1);
+            snprintf(keyvalue, 96, "%20.2f", dis->maxdis[j]);
+            snprintf(comment, 128, "%sMaximum absolute value of distortion",
               idis?"":"[pix] ");
             wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
               keyvalue, comment, nkeyrec, header, &status);
@@ -1957,8 +2024,8 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
     // DVERRa
     if (dis->totdis != 0.0) {
-      sprintf(keyvalue, "%20.2f", dis->totdis);
-      sprintf(comment, "Maximum combined distortion");
+      snprintf(keyvalue, 96, "%20.2f", dis->totdis);
+      snprintf(comment, 128, "Maximum combined distortion");
       wcshdo_util(ctrl, "DVERR", 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,
         keyvalue, comment, nkeyrec, header, &status);
     }
@@ -1971,10 +2038,10 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 
   if (dotpd == DIS_DOTPD) {
     // TPD by translation.
-    sprintf(comment, "Translated from %s to TPD by WCSLIB %s", tpdsrc,
+    snprintf(comment, 128, "Translated from %s to TPD by WCSLIB %s", tpdsrc,
       wcslib_version(0x0));
   } else {
-    sprintf(comment, "WCS header keyrecords produced by WCSLIB %s",
+    snprintf(comment, 128, "WCS header keyrecords produced by WCSLIB %s",
       wcslib_version(0x0));
   }
 
@@ -1991,11 +2058,11 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
 //----------------------------------------------------------------------------
 // Determine a suitable floating point format for a set of parameters.
 
-void wcshdo_format(
+static void wcshdo_format(
   int fmt,
   int nval,
   const double val[],
-  char *format)
+  char format[16])
 
 {
   int emax = -999;
@@ -2005,7 +2072,7 @@ void wcshdo_format(
     // Double precision has at least 15 significant digits, and up to 17:
     // http://en.wikipedia.org/wiki/Double-precision_floating-point_format
     char cval[24];
-    wcsutil_double2str(cval, "%21.14E", val[i]);
+    wcsutil_double2str(cval, 24, "%21.14E", val[i]);
 
     int cpi = 16;
     while (2 < cpi && cval[cpi] == '0') cpi--;
@@ -2039,15 +2106,15 @@ void wcshdo_format(
     precision = -emin;
     if (precision < 1)  precision = 1;
     if (17 < precision) precision = 17;
-    sprintf(format, "%%20.%df", precision);
+    snprintf(format, 16, "%%20.%df", precision);
 
   } else {
     if (precision < 1)  precision = 1;
     if (14 < precision) precision = 14;
     if (precision < 14) {
-      sprintf(format, "%%20.%dE", precision);
+      snprintf(format, 16, "%%20.%dE", precision);
     } else {
-      sprintf(format, "%%21.%dE", precision);
+      snprintf(format, 16, "%%21.%dE", precision);
     }
   }
 }
@@ -2055,10 +2122,10 @@ void wcshdo_format(
 //----------------------------------------------------------------------------
 // Construct a string that identifies the term of a TPD or TPV polynomial.
 
-void wcshdo_tpdterm(
+static void wcshdo_tpdterm(
   int m,
   int direct,
-  char *term)
+  char term[16])
 
 {
   const int nTPD[] = {1, 4, 7, 12, 17, 24, 31, 40, 49, 60};
@@ -2069,7 +2136,7 @@ void wcshdo_tpdterm(
   }
 
   if (degree == 0) {
-    strcpy(term, "1");
+    strncpy(term, "1", 16);
 
   } else {
     int k = degree - (m - nTPD[degree-1]);
@@ -2091,7 +2158,7 @@ void wcshdo_tpdterm(
 //----------------------------------------------------------------------------
 // Construct a keyrecord from the components given.
 
-void wcshdo_util(
+static void wcshdo_util(
   int relax,
   const char pikey[],
   const char tbkey[],
@@ -2115,7 +2182,7 @@ void wcshdo_util(
   // Reallocate memory in blocks of 2880 bytes.
   char *hptr;
   if ((*nkeyrec)%32 == 0) {
-    int nbyte = ((*nkeyrec)/32 + 1) * 2880;
+    int nbyte = ((*nkeyrec)/32 + 1) * 2880 + 1;
     if (!(hptr = realloc(*header, nbyte))) {
       *status = WCSHDRERR_MEMORY;
       return;
@@ -2131,32 +2198,32 @@ void wcshdo_util(
     // Binary table image array.
     if (i > 0 && j) {
       if (j > 0) {
-        sprintf(keyword, "%d%d%s%d%c", i, j, tbkey, btcol, alt);
+        snprintf(keyword, 32, "%d%d%s%d%c", i, j, tbkey, btcol, alt);
       } else {
-        sprintf(keyword, "%d%s%d_%d%c", i, tbkey, btcol, m, alt);
+        snprintf(keyword, 32, "%d%s%d_%d%c", i, tbkey, btcol, m, alt);
       }
     } else if (i > 0) {
-      sprintf(keyword, "%d%s%d%c", i, tbkey, btcol, alt);
+      snprintf(keyword, 32, "%d%s%d%c", i, tbkey, btcol, alt);
     } else if (j > 0) {
-      sprintf(keyword, "%d%s%d%c", j, tbkey, btcol, alt);
+      snprintf(keyword, 32, "%d%s%d%c", j, tbkey, btcol, alt);
     } else {
-      sprintf(keyword, "%s%d%c", tbkey, btcol, alt);
+      snprintf(keyword, 32, "%s%d%c", tbkey, btcol, alt);
     }
 
     if ((strlen(keyword) < 8) && tlkey && (relax & level)) {
       // Use the long form.
       if (i > 0 && j) {
         if (j > 0) {
-          sprintf(keyword, "%d%d%s%d%c", i, j, tlkey, btcol, alt);
+          snprintf(keyword, 32, "%d%d%s%d%c", i, j, tlkey, btcol, alt);
         } else {
-          sprintf(keyword, "%d%s%d_%d%c", i, tlkey, btcol, m, alt);
+          snprintf(keyword, 32, "%d%s%d_%d%c", i, tlkey, btcol, m, alt);
         }
       } else if (i > 0) {
-        sprintf(keyword, "%d%s%d%c", i, tlkey, btcol, alt);
+        snprintf(keyword, 32, "%d%s%d%c", i, tlkey, btcol, alt);
       } else if (j > 0) {
-        sprintf(keyword, "%d%s%d%c", j, tlkey, btcol, alt);
+        snprintf(keyword, 32, "%d%s%d%c", j, tlkey, btcol, alt);
       } else {
-        sprintf(keyword, "%s%d%c", tlkey, btcol, alt);
+        snprintf(keyword, 32, "%s%d%c", tlkey, btcol, alt);
       }
     }
 
@@ -2164,47 +2231,49 @@ void wcshdo_util(
     // Pixel list.
     if (i > 0 && j) {
       if (j > 0) {
-        sprintf(keyword, "T%s%d_%d%c", tbkey, plcol[i-1], plcol[j-1], alt);
+        snprintf(keyword, 32, "T%s%d_%d%c", tbkey, plcol[i-1], plcol[j-1],
+          alt);
       } else {
-        sprintf(keyword, "T%s%d_%d%c", tbkey, plcol[i-1], m, alt);
+        snprintf(keyword, 32, "T%s%d_%d%c", tbkey, plcol[i-1], m, alt);
       }
     } else if (i > 0) {
-      sprintf(keyword, "T%s%d%c", tbkey, plcol[i-1], alt);
+      snprintf(keyword, 32, "T%s%d%c", tbkey, plcol[i-1], alt);
     } else if (j > 0) {
-      sprintf(keyword, "T%s%d%c", tbkey, plcol[j-1], alt);
+      snprintf(keyword, 32, "T%s%d%c", tbkey, plcol[j-1], alt);
     } else {
-      sprintf(keyword, "%s%d%c", tbkey, plcol[0], alt);
+      snprintf(keyword, 32, "%s%d%c", tbkey, plcol[0], alt);
     }
 
     if ((strlen(keyword) < 8) && tlkey && (relax & level)) {
       // Use the long form.
       if (i > 0 && j) {
         if (j > 0) {
-          sprintf(keyword, "T%s%d_%d%c", tlkey, plcol[i-1], plcol[j-1], alt);
+          snprintf(keyword, 32, "T%s%d_%d%c", tlkey, plcol[i-1], plcol[j-1],
+            alt);
         } else {
-          sprintf(keyword, "T%s%d_%d%c", tlkey, plcol[i-1], m, alt);
+          snprintf(keyword, 32, "T%s%d_%d%c", tlkey, plcol[i-1], m, alt);
         }
       } else if (i > 0) {
-        sprintf(keyword, "T%s%d%c", tlkey, plcol[i-1], alt);
+        snprintf(keyword, 32, "T%s%d%c", tlkey, plcol[i-1], alt);
       } else if (j > 0) {
-        sprintf(keyword, "T%s%d%c", tlkey, plcol[j-1], alt);
+        snprintf(keyword, 32, "T%s%d%c", tlkey, plcol[j-1], alt);
       } else {
-        sprintf(keyword, "%s%d%c", tlkey, plcol[0], alt);
+        snprintf(keyword, 32, "%s%d%c", tlkey, plcol[0], alt);
       }
     }
   } else {
     if (i > 0 && j) {
       if (j > 0) {
-        sprintf(keyword, "%s%d_%d%c", pikey, i, j, alt);
+        snprintf(keyword, 32, "%s%d_%d%c", pikey, i, j, alt);
       } else {
-        sprintf(keyword, "%s%d_%d%c", pikey, i, m, alt);
+        snprintf(keyword, 32, "%s%d_%d%c", pikey, i, m, alt);
       }
     } else if (i > 0) {
-      sprintf(keyword, "%s%d%c", pikey, i, alt);
+      snprintf(keyword, 32, "%s%d%c", pikey, i, alt);
     } else if (j > 0) {
-      sprintf(keyword, "%s%d%c", pikey, j, alt);
+      snprintf(keyword, 32, "%s%d%c", pikey, j, alt);
     } else {
-      sprintf(keyword, "%s%c", pikey, alt);
+      snprintf(keyword, 32, "%s%c", pikey, alt);
     }
   }
 
@@ -2245,18 +2314,18 @@ void wcshdo_util(
   }
 
   int nc = 47, nv;
-  if ((nv = strlen(keyvalue) > 20)) {
+  if ((nv = (int)strlen(keyvalue)) > 20) {
     // Rob the keycomment to make space for the keyvalue.
     nc -= (nv - 20);
   }
 
-  hptr = *header + (80 * ((*nkeyrec)++));
+  hptr = *header + (ptrdiff_t)(80*((*nkeyrec)++));
   if (*keyword == '\0') {
-    sprintf(hptr, "%80.80s", " ");
+    snprintf(hptr, 81, "%80.80s", " ");
   } else if (strcmp(keyword, "COMMENT") == 0) {
-    sprintf(hptr, "%-8.8s %-71.71s", keyword, keycomment);
+    snprintf(hptr, 81, "%-8.8s %-71.71s", keyword, keycomment);
   } else {
-    sprintf(hptr, "%-8.8s= %-20s / %-*.*s", keyword, keyvalue, nc, nc,
+    snprintf(hptr, 81, "%-8.8s= %-20s / %-*.*s", keyword, keyvalue, nc, nc,
       keycomment);
   }
 }

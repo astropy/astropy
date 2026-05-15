@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: spc.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: spc.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -89,8 +89,8 @@ int spcini(struct spcprm *spc)
   if (spc == 0x0) return SPCERR_NULL_POINTER;
 
   memset(spc->type, 0, 8);
-  strcpy(spc->type, "    ");
-  strcpy(spc->code, "   ");
+  strncpy(spc->type, "    ", 8);
+  strncpy(spc->code, "   ", 4);
 
   spc->crval = UNDEFINED;
   spc->restfrq =  0.0;
@@ -301,14 +301,18 @@ int spcset(struct spcprm *spc)
   memset(ctype, 0, 9);
   memcpy(ctype, spc->type, 4);
   if (*(spc->code) != ' ') {
-    sprintf(ctype+4, "-%s", spc->code);
+    snprintf(ctype+4, 5, "-%s", spc->code);
   }
 
   double restfrq = spc->restfrq;
   double restwav = spc->restwav;
-  char   ptype, xtype;
-  int    restreq, status;
-  double crvalX, dXdS;
+
+  // The initialisations here are solely to appease clang-tidy.
+  char   ptype = ' ', xtype = ' ';
+  int    restreq = 0;
+  double crvalX = 0.0, dXdS = 0.0;
+
+  int status;
   if ((status = spcspxe(ctype, spc->crval, restfrq, restwav, &ptype, &xtype,
                         &restreq, &crvalX, &dXdS, &(spc->err)))) {
     return status;
@@ -789,58 +793,58 @@ int spctype(
 
   // Copy with blank padding.
   char ctype[9];
-  sprintf(ctype, "%-8.8s", ctypei);
+  snprintf(ctype, 9, "%-8.8s", ctypei);
   ctype[8] = '\0';
 
   char sname_t[32], units_t[8], ptype_t;
   int  restreq_t = 0;
   // Validate the S-type spectral variable.
   if (strncmp(ctype, "FREQ", 4) == 0) {
-    strcpy(sname_t, "Frequency");
-    strcpy(units_t, "Hz");
+    strncpy(sname_t, "Frequency", 32);
+    strncpy(units_t, "Hz", 8);
     ptype_t = 'F';
   } else if (strncmp(ctype, "AFRQ", 4) == 0) {
-    strcpy(sname_t, "Angular frequency");
-    strcpy(units_t, "rad/s");
+    strncpy(sname_t, "Angular frequency", 32);
+    strncpy(units_t, "rad/s", 8);
     ptype_t = 'F';
   } else if (strncmp(ctype, "ENER", 4) == 0) {
-    strcpy(sname_t, "Photon energy");
-    strcpy(units_t, "J");
+    strncpy(sname_t, "Photon energy", 32);
+    strncpy(units_t, "J", 8);
     ptype_t = 'F';
   } else if (strncmp(ctype, "WAVN", 4) == 0) {
-    strcpy(sname_t, "Wavenumber");
-    strcpy(units_t, "/m");
+    strncpy(sname_t, "Wavenumber", 32);
+    strncpy(units_t, "/m", 8);
     ptype_t = 'F';
   } else if (strncmp(ctype, "VRAD", 4) == 0) {
-    strcpy(sname_t, "Radio velocity");
-    strcpy(units_t, "m/s");
+    strncpy(sname_t, "Radio velocity", 32);
+    strncpy(units_t, "m/s", 8);
     ptype_t = 'F';
     restreq_t = 1;
   } else if (strncmp(ctype, "WAVE", 4) == 0) {
-    strcpy(sname_t, "Vacuum wavelength");
-    strcpy(units_t, "m");
+    strncpy(sname_t, "Vacuum wavelength", 32);
+    strncpy(units_t, "m", 8);
     ptype_t = 'W';
   } else if (strncmp(ctype, "VOPT", 4) == 0) {
-    strcpy(sname_t, "Optical velocity");
-    strcpy(units_t, "m/s");
+    strncpy(sname_t, "Optical velocity", 32);
+    strncpy(units_t, "m/s", 8);
     ptype_t = 'W';
     restreq_t = 1;
   } else if (strncmp(ctype, "ZOPT", 4) == 0) {
-    strcpy(sname_t, "Redshift");
-    strcpy(units_t, "");
+    strncpy(sname_t, "Redshift", 32);
+    strncpy(units_t, "", 8);
     ptype_t = 'W';
     restreq_t = 1;
   } else if (strncmp(ctype, "AWAV", 4) == 0) {
-    strcpy(sname_t, "Air wavelength");
-    strcpy(units_t, "m");
+    strncpy(sname_t, "Air wavelength", 32);
+    strncpy(units_t, "m", 8);
     ptype_t = 'A';
   } else if (strncmp(ctype, "VELO", 4) == 0) {
-    strcpy(sname_t, "Relativistic velocity");
-    strcpy(units_t, "m/s");
+    strncpy(sname_t, "Relativistic velocity", 32);
+    strncpy(units_t, "m/s", 8);
     ptype_t = 'V';
   } else if (strncmp(ctype, "BETA", 4) == 0) {
-    strcpy(sname_t, "Velocity ratio (v/c)");
-    strcpy(units_t, "");
+    strncpy(sname_t, "Velocity ratio (v/c)", 32);
+    strncpy(units_t, "", 8);
     ptype_t = 'V';
   } else {
     return wcserr_set(WCSERR_SET(SPCERR_BAD_SPEC_PARAMS),
@@ -897,7 +901,7 @@ int spctype(
 
   } else if (ctype[7] == ctype[5]) {
     // Degenerate algorithm code.
-    sprintf(ctype+4, "    ");
+    snprintf(ctype+4, 5, "    ");
   }
 
 
@@ -922,9 +926,9 @@ int spctype(
     memcpy(stype, ctype, 4);
     stype[4] = '\0';
   }
-  if (scode) strcpy(scode, ctype+5);
-  if (sname) strcpy(sname, sname_t);
-  if (units) strcpy(units, units_t);
+  if (scode) strncpy(scode, ctype+5, 4);
+  if (sname) strncpy(sname, sname_t, 22);
+  if (units) strncpy(units, units_t, 8);
   if (ptype) *ptype = ptype_t;
   if (xtype) *xtype = xtype_t;
   if (restreq) *restreq = restreq_t;
@@ -989,7 +993,7 @@ int spcspxe(
 
   // Compute all spectral parameters and their derivatives.
   char type[8];
-  strcpy(type, stype);
+  strncpy(type, stype, 8);
 
   struct spxprm spx;
   spx.err = (err ? *err : 0x0);
@@ -1167,13 +1171,13 @@ int spcxpse(
   // Compute all spectral parameters and their derivatives.
   char type[8];
   if (*xtype == 'F') {
-    strcpy(type, "FREQ");
+    strncpy(type, "FREQ", 8);
   } else if (*xtype == 'W' || *xtype == 'w') {
-    strcpy(type, "WAVE");
+    strncpy(type, "WAVE", 8);
   } else if (*xtype == 'A' || *xtype == 'a') {
-    strcpy(type, "AWAV");
+    strncpy(type, "AWAV", 8);
   } else if (*xtype == 'V') {
-    strcpy(type, "VELO");
+    strncpy(type, "VELO", 8);
   }
 
   struct spxprm spx;
@@ -1353,9 +1357,9 @@ int spctrne(
   if (strncmp(ctypeS2+5, "???", 3) == 0) {
     // Set the algorithm code if required.
     if (xtype1 == 'w') {
-      strcpy(ctypeS2+5, "GRI");
+      strncpy(ctypeS2+5, "GRI", 4);
     } else if (xtype1 == 'a') {
-      strcpy(ctypeS2+5, "GRA");
+      strncpy(ctypeS2+5, "GRA", 4);
     } else {
       ctypeS2[5] = xtype1;
       ctypeS2[6] = '2';
@@ -1377,7 +1381,7 @@ int spctrne(
 
   if (ctypeS2[7] == '?') {
     if (ptype2 == xtype2) {
-      strcpy(ctypeS2+4, "    ");
+      strncpy(ctypeS2+4, "    ", 5);
     } else {
       ctypeS2[7] = ptype2;
     }
@@ -1415,11 +1419,11 @@ int spcaips(
     char *fcode;
     if (*(fcode = ctype+4)) {
       if (strcmp(fcode, "-LSR") == 0) {
-        strcpy(specsys, "LSRK");
+        strncpy(specsys, "LSRK", 9);
       } else if (strcmp(fcode, "-HEL") == 0) {
-        strcpy(specsys, "BARYCENT");
+        strncpy(specsys, "BARYCENT", 9);
       } else if (strcmp(fcode, "-OBS") == 0) {
-        strcpy(specsys, "TOPOCENT");
+        strncpy(specsys, "TOPOCENT", 9);
       } else {
         // Not a recognized AIPS spectral type.
         return SPCERR_NO_CHANGE;
@@ -1432,7 +1436,7 @@ int spcaips(
     // VELREF takes precedence if present.
     int ivf = velref%256;
     if (0 < ivf && ivf <= 7) {
-      strcpy(specsys, frames[ivf-1]);
+      strncpy(specsys, frames[ivf-1], 9);
       status = 0;
     } else if (ivf) {
       status = SPCERR_BAD_SPEC_PARAMS;
@@ -1444,9 +1448,9 @@ int spcaips(
         // 'VELO' in AIPS means radio or optical depending on VELREF.
         ivf = velref/256;
         if (ivf == 0) {
-          strcpy(ctype, "VOPT");
+          strncpy(ctype, "VOPT", 9);
         } else if (ivf == 1) {
-          strcpy(ctype, "VRAD");
+          strncpy(ctype, "VRAD", 9);
         } else {
           status = SPCERR_BAD_SPEC_PARAMS;
         }
@@ -1454,7 +1458,7 @@ int spcaips(
     } else if (strcmp(ctype, "FELO") == 0) {
       // Uniform in frequency but expressed as an optical velocity (strictly
       // we should also have found an AIPS-convention Doppler frame).
-      strcpy(ctype, "VOPT-F2W");
+      strncpy(ctype, "VOPT-F2W", 9);
       if (status < 0) status = 0;
     }
   }

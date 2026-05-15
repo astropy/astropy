@@ -18,7 +18,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 8.6 2026/03/29 13:53:57 mcalabre Exp $
+# $Id: flavours,v 8.7 2026/05/11 12:01:11 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
 F :=
@@ -105,6 +105,8 @@ ifeq "$(FLAVOUR)" "profile"
   override EXTRA_CLEAN := gmon.out bb.out
 endif
 
+# Uses .clang-tidy to define checks.
+ANALYSE := clang-tidy-20
 
 # Check FLAVOUR.
 ifeq "$F" ""
@@ -132,6 +134,7 @@ endif
 
 # Pass to configure though the environment.
 export FLAVOUR
+export ANALYSE
 export VALGRIND
 export MODE
 export EXTRA_CLEAN

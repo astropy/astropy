@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,14 +19,14 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: sph.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: sph.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
+#include <stddef.h>
+
 #include "wcstrig.h"
 #include "sph.h"
-
-#define copysign(X, Y) ((Y) < 0.0 ? -fabs(X) : fabs(X))
 
 #define tol 1.0e-5
 
@@ -63,10 +63,10 @@ int sphx2s(
 
       int jphi = 0;
       const double *thetap = theta;
-      double *lngp   = lng;
-      double *latp   = lat;
+      double *lngp = lng;
+      double *latp = lat;
       for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-        const double *phip = phi + (jphi%nphi)*spt;
+        const double *phip = phi + (ptrdiff_t)((jphi%nphi)*spt);
         for (int iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
           *lngp = *phip + dlng;
           *latp = *thetap;
@@ -95,10 +95,10 @@ int sphx2s(
 
       int jphi = 0;
       const double *thetap = theta;
-      double *lngp   = lng;
-      double *latp   = lat;
+      double *lngp = lng;
+      double *latp = lat;
       for (int itheta = 0; itheta < ntheta; itheta++, thetap += spt) {
-        const double *phip = phi + (jphi%nphi)*spt;
+        const double *phip = phi + (ptrdiff_t)((jphi%nphi)*spt);
         for (int iphi = 0; iphi < mphi; iphi++, phip += spt, jphi++) {
           *lngp = dlng - *phip;
           *latp = -(*thetap);
@@ -249,7 +249,7 @@ int sphs2x(
       double *phip   = phi;
       double *thetap = theta;
       for (int ilat = 0; ilat < nlat; ilat++, latp += sll) {
-        const double *lngp = lng + (jlng%nlng)*sll;
+        const double *lngp = lng + (ptrdiff_t)((jlng%nlng)*sll);
         for (int ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
           *phip = fmod(*lngp + dphi, 360.0);
           *thetap = *latp;
@@ -275,7 +275,7 @@ int sphs2x(
       double *phip   = phi;
       double *thetap = theta;
       for (int ilat = 0; ilat < nlat; ilat++, latp += sll) {
-        const double *lngp = lng + (jlng%nlng)*sll;
+        const double *lngp = lng + (ptrdiff_t)((jlng%nlng)*sll);
         for (int ilng = 0; ilng < mlng; ilng++, lngp += sll, jlng++) {
           *phip = fmod(dphi - *lngp, 360.0);
           *thetap = -(*latp);

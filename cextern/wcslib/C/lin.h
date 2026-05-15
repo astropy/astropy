@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.7 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: lin.h,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: lin.h,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.7 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -709,10 +709,11 @@ enum lin_errmsg_enum {
   LINERR_SUCCESS      = 0,	// Success.
   LINERR_NULL_POINTER = 1,	// Null linprm pointer passed.
   LINERR_MEMORY       = 2,	// Memory allocation failed.
-  LINERR_SINGULAR_MTX = 3,	// PCi_ja matrix is singular.
-  LINERR_DISTORT_INIT = 4,	// Failed to initialise distortions.
-  LINERR_DISTORT      = 5,	// Distort error.
-  LINERR_DEDISTORT    = 6	// De-distort error.
+  LINERR_BAD_PARAM    = 3,	// Invalid parameter value.
+  LINERR_SINGULAR_MTX = 4,	// PCi_ja matrix is singular.
+  LINERR_DISTORT_INIT = 5,	// Failed to initialise distortions.
+  LINERR_DISTORT      = 6,	// Distort error.
+  LINERR_DEDISTORT    = 7	// De-distort error.
 };
 
 struct linprm {
