@@ -225,22 +225,26 @@ class TestParameter(ParameterTestMixin):
             _COSMOLOGY_CLASSES.pop(cls.__qualname__, None)
 
     @pytest.fixture(scope="class", params=["Example1", "Example2"])
-    def cosmo_cls(self, request):
+    @classmethod
+    def cosmo_cls(cls, request):
         """Cosmology class."""
-        return self.classes[request.param]
+        return cls.classes[request.param]
 
     @pytest.fixture(scope="class")
-    def cosmo(self, cosmo_cls):
+    @classmethod
+    def cosmo(cls, cosmo_cls):
         """Cosmology instance"""
         return cosmo_cls()
 
     @pytest.fixture(scope="class")
-    def param(self, cosmo_cls):
+    @classmethod
+    def param(cls, cosmo_cls):
         """Get Parameter 'param' from cosmology class."""
         return cosmo_cls.parameters["param"]
 
     @pytest.fixture(scope="class")
-    def param_cls(self, param):
+    @classmethod
+    def param_cls(cls, param):
         """Get Parameter class from cosmology class."""
         return type(param)
 
