@@ -119,9 +119,10 @@ class CosmologyTest(
         return tuple(self._cls_args.values())
 
     @pytest.fixture(scope="class")
-    def cosmo_cls(self):
+    @classmethod
+    def cosmo_cls(cls):
         """The Cosmology class as a :func:`pytest.fixture`."""
-        return self.cls
+        return cls.cls
 
     @pytest.fixture(scope="function")  # ensure not cached.
     def ba(self):
@@ -131,9 +132,14 @@ class CosmologyTest(
         return ba
 
     @pytest.fixture(scope="class")
-    def cosmo(self, cosmo_cls):
+    @classmethod
+    def cosmo(cls, cosmo_cls):
         """The cosmology instance with which to test."""
-        ba = inspect.signature(self.cls).bind(*self.cls_args, **self.cls_kwargs)
+        # `cls_args` is a @property on the test class, which doesn't fire
+        # when accessed via cls (only via self), so dereference _cls_args
+        # directly here.
+        cls_args = tuple(cls._cls_args.values())
+        ba = inspect.signature(cls.cls).bind(*cls_args, **cls.cls_kwargs)
         ba.apply_defaults()
         return cosmo_cls(*ba.args, **ba.kwargs)
 
