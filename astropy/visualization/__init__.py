@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from .astropy_types_support import *
 from .basic_rgb import *
 from .hist import *
 from .interval import *
