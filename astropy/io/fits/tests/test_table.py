@@ -2635,19 +2635,112 @@ class TestTableFunctions(FitsTestCase):
         [
             (["T", "F", "T"], ValueError),
             (["Y", "N"], ValueError),
-            ([None, False, True], TypeError),
         ],
     )
     def test_logical_vla_rejects_non_numeric_input(self, tmp_path, rowval, exc):
         """Logical VLA columns reject non-numeric / non-bool inputs at
         write time (matching the behavior of astropy <= 7.2.0). Without
-        this the new bool conversion would silently coerce strings/None:
+        this the new bool conversion would silently coerce strings:
         e.g. ``["T", "F", "T"]`` to ``[True, True, True]`` because
-        non-empty strings are truthy.
+        non-empty strings are truthy. Lists containing ``None`` are
+        accepted and produce NULL bytes; see
+        ``test_logical_vla_writes_null_from_masked_or_none``.
         """
         col = fits.Column(name="flag", format="PL()", array=[rowval])
         with pytest.raises(exc):
             fits.BinTableHDU.from_columns([col]).writeto(tmp_path / "bad.fits")
+
+    def test_logical_vla_writes_null_from_masked_or_none(self, tmp_path):
+        """Masked positions in an ``np.ma.MaskedArray`` row, and ``None``
+        entries in a list/tuple row, are written as NULL bytes (b'\\x00')
+        to the heap of a logical VLA column. ``logical_as_bytes=True``
+        on read exposes the raw bytes so the round-trip is verifiable.
+        """
+        col = fits.Column(
+            name="flag",
+            format="PL()",
+            array=[
+                np.ma.masked_array([False, False, True], mask=[True, False, False]),
+                [None, False, True],
+            ],
+        )
+        out_path = tmp_path / "vla_null_write.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(out_path)
+
+        with fits.open(out_path, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].dtype == np.dtype("S1")
+            assert d[0].tobytes() == b"\x00FT"
+            assert d[1].tobytes() == b"\x00FT"
+
+    def test_logical_vla_writes_mixed_null_and_plain_rows(self, tmp_path):
+        """When the column array mixes rows that carry NULL information
+        (``np.ma.MaskedArray`` or list-with-``None``) with rows that
+        don't, the column switches to |S1 storage and the plain rows
+        are converted alongside the NULL-carrying ones without losing
+        their bool values.
+        """
+        col = fits.Column(
+            name="flag",
+            format="PL()",
+            array=[
+                np.ma.masked_array([False, False, True], mask=[True, False, False]),
+                [True, False, True],
+            ],
+        )
+        out_path = tmp_path / "vla_mixed.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(out_path)
+
+        with fits.open(out_path, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].tobytes() == b"\x00FT"
+            assert d[1].tobytes() == b"TFT"
+
+    def test_logical_fixed_writes_null_from_masked_or_none(self, tmp_path):
+        """Same NULL-preservation works for fixed-length logical columns.
+        Three input shapes are accepted: a list of rows where some rows
+        are ``np.ma.MaskedArray`` or contain ``None``; a whole-array
+        ``np.ma.MaskedArray`` of shape (nrows, repeat); and (for
+        ``format='1L'``) a flat list of scalars with ``None``.
+        """
+        # Case 1: list with MaskedArray row + list-with-None row
+        col = fits.Column(
+            name="flag",
+            format="3L",
+            array=[
+                np.ma.masked_array([False, False, True], mask=[True, False, False]),
+                [None, False, True],
+            ],
+        )
+        path1 = tmp_path / "fixed_list.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(path1)
+        with fits.open(path1, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].tobytes() == b"\x00FT"
+            assert d[1].tobytes() == b"\x00FT"
+
+        # Case 2: whole-array MaskedArray of shape (nrows, repeat)
+        ma = np.ma.masked_array(
+            [[False, False, True], [True, False, False]],
+            mask=[[True, False, False], [False, True, False]],
+        )
+        col = fits.Column(name="flag", format="3L", array=ma)
+        path2 = tmp_path / "fixed_ma.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(path2)
+        with fits.open(path2, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].tobytes() == b"\x00FT"
+            assert d[1].tobytes() == b"T\x00F"
+
+        # Case 3: format='1L' flat list with None at outer level
+        col = fits.Column(name="flag", format="1L", array=[True, None, False])
+        path3 = tmp_path / "fixed_1L.fits"
+        fits.BinTableHDU.from_columns([col]).writeto(path3)
+        with fits.open(path3, logical_as_bytes=True) as hdul:
+            d = hdul[1].data["flag"]
+            assert d[0].tobytes() == b"T"
+            assert d[1].tobytes() == b"\x00"
+            assert d[2].tobytes() == b"F"
 
     def test_logical_vla_as_bytes(self):
         """``logical_as_bytes=True`` exposes the raw FITS L wire bytes

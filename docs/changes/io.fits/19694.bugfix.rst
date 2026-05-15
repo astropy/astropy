@@ -1,0 +1,5 @@
+Logical (``'L'``) columns now accept ``np.ma.MaskedArray`` input and
+Python lists/tuples containing ``None`` on write, with masked /
+``None`` positions written to the heap as the FITS NULL byte
+(``b'\x00'``). This applies to both fixed-length and variable-length
+logical columns.

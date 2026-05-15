@@ -18,6 +18,10 @@ from astropy.utils import lazyproperty
 from astropy.utils.compat import chararray, get_chararray
 from astropy.utils.exceptions import AstropyUserWarning
 
+from ._logical_helpers import (
+    _logical_row_to_byte_storage,
+    _logical_row_uses_byte_storage,
+)
 from .card import CARD_LENGTH, Card
 from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii
 from .verify import VerifyError, VerifyWarning
@@ -695,7 +699,33 @@ class Column(NotifierMixin):
         # input arrays can be just list or tuple, not required to be ndarray
         # does not include Object array because there is no guarantee
         # the elements in the object array are consistent.
+        # Detect logical L columns (both fixed-length and VLA), so the
+        # NULL-preservation pre-conversion below applies to both.
+        is_fixed_logical = getattr(self.format, "format", None) == "L"
+        is_vla_logical = getattr(self.format, "p_format", None) == "L"
+        is_logical = is_fixed_logical or is_vla_logical
+
+        # Whole-array ``np.ma.MaskedArray`` for a logical column: convert
+        # directly to |S1 with NULL at masked positions. This case skips
+        # the ``not isinstance(array, np.ndarray)`` branch below because
+        # MaskedArray is itself an ndarray subclass.
+        if array is not None and is_logical and np.ma.isMaskedArray(array):
+            array = _logical_row_to_byte_storage(array)
+
         if not isinstance(array, (np.ndarray, chararray, Delayed)):
+            # For logical columns, ``np.array`` would silently drop the
+            # mask of a ``np.ma.MaskedArray`` row and refuse to handle a
+            # row containing ``None``. Convert such inputs up front to
+            # |S1 byte arrays so the NULL information survives.
+            if array is not None and is_logical:
+                if any(_logical_row_uses_byte_storage(row) for row in array):
+                    # List of rows, some of which need byte storage
+                    array = [_logical_row_to_byte_storage(row) for row in array]
+                elif is_fixed_logical and any(v is None for v in array):
+                    # Fixed-length L (e.g. format='1L') with a flat list
+                    # of scalars containing ``None``; treat the whole
+                    # list as a single sequence with NULL at None.
+                    array = _logical_row_to_byte_storage(list(array))
             try:  # try to convert to a ndarray first
                 if array is not None:
                     array = np.array(array)
@@ -2249,14 +2279,15 @@ def _makep(array, descr_output, format, nrows=None):
         nrows = len(array)
 
     # Logical VLAs ('PL'/'QL') are stored in the _VLF as user-facing bool
-    # values. The FITS L wire format (ord('T')/ord('F')) is produced at
-    # heap-write time in FITS_rec._get_heap_data.
-    # If the input rows are already |S1 byte arrays (produced by reading
-    # with ``logical_as_bytes=True``), the bytes are preserved verbatim
-    # so NULL (b'\x00') survives a round-trip.
+    # values. The FITS L storage bytes (ord('T')/ord('F')) are written
+    # to the heap in FITS_rec._get_heap_data.
+    # Rows that need to carry NULL information (|S1 byte arrays from a
+    # ``logical_as_bytes=True`` read, ``np.ma.MaskedArray`` input, or a
+    # Python list/tuple containing ``None``) force the column to use
+    # |S1 storage so that NULL (b'\x00') survives the round-trip.
     is_logical = format.format == "L"
     is_logical_bytes = is_logical and any(
-        isinstance(row, np.ndarray) and row.dtype.kind == "S" for row in array
+        _logical_row_uses_byte_storage(row) for row in array
     )
     if is_logical:
         element_dtype = "S1" if is_logical_bytes else "b1"
@@ -2284,8 +2315,10 @@ def _makep(array, descr_output, format, nrows=None):
             data_output[idx] = get_chararray(encode_ascii(rowval), itemsize=1)
         elif is_logical_bytes:
             # |S1 byte input is preserved verbatim so NULL (b'\x00')
-            # survives a round-trip.
-            data_output[idx] = np.asarray(rowval, dtype="S1")
+            # survives a round-trip; ``np.ma.MaskedArray`` and lists
+            # containing ``None`` are converted to |S1 with NULL bytes
+            # at the masked / None positions.
+            data_output[idx] = _logical_row_to_byte_storage(rowval)
         elif is_logical:
             # Route through int8 first so non-numeric/non-bool inputs
             # (strings, None, ...) raise at write time, matching the
