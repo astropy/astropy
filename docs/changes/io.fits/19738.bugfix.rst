@@ -1,0 +1,4 @@
+Fix a bug that caused int8 data to be shifted by 128 when round-tripping
+through compressed FITS files (the FITS BZERO=-128 offset was missing at
+compression time but still applied on read), so writing ``[0, 1]`` and
+reading back returned ``[-128, -127]``.
