@@ -17,6 +17,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import warnings
 import zipfile
 from collections.abc import Container, Generator, Iterable
 from contextlib import suppress
@@ -24,7 +25,7 @@ from importlib import import_module
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory, gettempdir
 from types import MappingProxyType
-from typing import Literal, overload
+from typing import Literal, assert_never, overload
 from warnings import warn
 
 import astropy_iers_data
@@ -1164,7 +1165,7 @@ def get_free_space_in_dir(path: str | os.PathLike[str], unit: UnitBase | bool = 
         If ``unit=False``, it is returned as plain integer (in bytes).
 
     """
-    if not (path := Path(path)).is_dir():
+    if (path := Path(path)).is_file():
         raise OSError(
             "Can only determine free space associated with directories, not files."
         )
@@ -1403,8 +1404,7 @@ def _download_file_from_source(
 
         if size is not None:
             check_free_space_in_dir(gettempdir(), size)
-            if cache:
-                dldir = _get_download_cache_loc(pkgname)
+            if cache and (dldir := _get_download_cache_loc(pkgname)).exists():
                 check_free_space_in_dir(dldir, size)
 
         # If a user has overridden sys.stdout it might not have the
@@ -1577,7 +1577,7 @@ def download_file(
 
     if cache:
         try:
-            dldir = _get_download_cache_loc(pkgname)
+            dldir = _get_download_cache_loc(pkgname, ensure_exists=True)
         except OSError as e:
             cache = False
             missing_cache = (
@@ -1661,6 +1661,8 @@ def download_file(
 def is_url_in_cache(
     url_key: str,
     pkgname: str = "astropy",
+    *,
+    on_missing: Literal["ignore", "warn", "error"] = "warn",
 ) -> bool:
     """Check if a download for ``url_key`` is in the cache.
 
@@ -1676,7 +1678,11 @@ def is_url_in_cache(
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
         ``~/.cache/astropy``.
+    on_missing : 'ignore', 'warn', or 'error'
+        What to do if the cache directory doesn't exist.
+        Default: 'warn'
 
+        .. versionadded:: 8.0.0
 
     Returns
     -------
@@ -1688,9 +1694,8 @@ def is_url_in_cache(
     --------
     cache_contents : obtain a dictionary listing everything in the cache
     """
-    try:
-        dldir = _get_download_cache_loc(pkgname)
-    except OSError:
+    dldir = _get_download_cache_loc(pkgname, on_missing=on_missing)
+    if not dldir.exists():
         return False
     filename = dldir / _url_to_dirname(url_key) / "contents"
     return filename.exists()
@@ -1701,7 +1706,7 @@ def cache_total_size(
 ) -> int:
     """Return the total size in bytes of all files in the cache."""
     size = 0
-    dldir = _get_download_cache_loc(pkgname=pkgname)
+    dldir = _get_download_cache_loc(pkgname=pkgname, on_missing="ignore")
     for root, _, files in os.walk(dldir):
         size += sum(os.path.getsize(os.path.join(root, name)) for name in files)
     return size
@@ -1888,6 +1893,8 @@ def _deltemps():
 def clear_download_cache(
     hashorurl: str | None = None,
     pkgname: str = "astropy",
+    *,
+    on_missing: Literal["ignore", "warn", "error"] = "warn",
 ) -> None:
     """Clears the data file cache by deleting the local file(s).
 
@@ -1911,17 +1918,30 @@ def clear_download_cache(
         The package name to use to locate the download cache. i.e. for
         ``pkgname='astropy'`` the default cache location is
         ``~/.cache/astropy``.
+
+    on_missing : 'ignore', 'warn', or 'error'
+        What to do if the path requested for deletion doesn't exist.
+        Default: 'warn'
+
+        .. versionadded:: 8.0.0
     """
     try:
-        dldir = _get_download_cache_loc(pkgname)
-    except OSError as e:
-        # Problem arose when trying to open the cache
-        # Just a warning, though
-        msg = "Not clearing data cache - cache inaccessible due to "
-        estr = "" if len(e.args) < 1 else (": " + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr), stacklevel=2)
-        return
-    try:
+        dldir = _get_download_cache_loc(pkgname, on_missing="ignore")
+        if not dldir.exists():
+            match on_missing:
+                case "ignore":
+                    pass
+                case "warn":
+                    warn(
+                        f"{dldir} does not exist",
+                        CacheMissingWarning,
+                        stacklevel=2,
+                    )
+                case "error":
+                    raise FileNotFoundError(f"no such file or directory {dldir}")
+                case _ as unreachable:
+                    assert_never(unreachable)
+            return
         if hashorurl is None:
             # Optional: delete old incompatible caches too
             _rmtree(dldir)
@@ -1930,7 +1950,7 @@ def clear_download_cache(
             _rmtree(filepath)
         else:
             # Not a URL, it should be either a filename or a hash
-            filepath = os.path.join(dldir, hashorurl)
+            filepath = dldir / hashorurl
             rp = os.path.relpath(filepath, dldir)
             if rp.startswith(".."):
                 raise RuntimeError(
@@ -1942,7 +1962,7 @@ def clear_download_cache(
                 # It's a filename not the hash of a URL
                 # so we want to zap the directory containing the
                 # files "url" and "contents"
-                filepath = os.path.join(dldir, d)
+                filepath = dldir / d
             if os.path.exists(filepath):
                 _rmtree(filepath)
             elif len(hashorurl) == 2 * hashlib.md5(
@@ -1958,8 +1978,13 @@ def clear_download_cache(
         warn(CacheMissingWarning(msg + e.__class__.__name__ + estr), stacklevel=2)
 
 
-def _get_download_cache_loc(pkgname: str = "astropy") -> Path:
-    """Finds the path to the cache directory and makes them if they don't exist.
+def _get_download_cache_loc(
+    pkgname: str = "astropy",
+    *,
+    ensure_exists: bool = False,
+    on_missing: Literal["ignore", "warn", "error"] = "warn",
+) -> Path:
+    """Finds the path to the cache directory.
 
     Parameters
     ----------
@@ -1968,32 +1993,49 @@ def _get_download_cache_loc(pkgname: str = "astropy") -> Path:
         ``pkgname='astropy'`` the default cache location is
         ``~/.cache/astropy``.
 
+    ensure_exists : bool, optional, keyword-only
+        Default: False
+
+    on_missing : 'ignore', 'warn', or 'error'
+        What to do if the download cache directory doesn't exist.
+        Default: 'warn'
+
+        .. versionadded:: 8.0.0
+
     Returns
     -------
     datadir : pathlib.Path
         The path to the data cache directory.
     """
-    try:
-        datadir = astropy.config.paths.get_cache_dir_path(
-            pkgname,
-            ensure_exists=False,
-        ).joinpath("download", "url")
+    dldir = astropy.config.paths.get_cache_dir_path(
+        pkgname,
+        ensure_exists=False,
+    ).joinpath("download", "url")
 
-        if not datadir.exists():
-            try:
-                datadir.mkdir(parents=True)
-            except OSError:
-                if not datadir.exists():
-                    raise
-        elif not datadir.is_dir():
-            raise OSError(f"Data cache directory {datadir} is not a directory")
+    if ensure_exists:
+        dldir.mkdir(parents=True, exist_ok=True)
 
-        return datadir
-    except OSError as e:
-        msg = "Remote data cache could not be accessed due to "
-        estr = "" if len(e.args) < 1 else (": " + str(e))
-        warn(CacheMissingWarning(msg + e.__class__.__name__ + estr), stacklevel=2)
-        raise
+    if dldir.is_dir():
+        return dldir
+
+    if dldir.exists():
+        raise NotADirectoryError(f"Data cache directory {dldir} is not a directory")
+
+    match on_missing:
+        case "ignore":
+            pass
+        case "warn":
+            warnings.warn(
+                f"{dldir} does not exist",
+                CacheMissingWarning,
+                stacklevel=2,
+            )
+        case "error":
+            raise FileNotFoundError(f"No such file or directory {dldir}")
+        case _ as unreachable:
+            assert_never(unreachable)
+
+    return dldir
 
 
 def _url_to_dirname(url: str) -> str:
@@ -2007,9 +2049,6 @@ def _url_to_dirname(url: str) -> str:
         urlobj[2] = "/"
     url_c = urllib.parse.urlunsplit(urlobj)
     return hashlib.md5(url_c.encode("utf-8"), usedforsecurity=False).hexdigest()
-
-
-_NOTHING = MappingProxyType({})
 
 
 class CacheDamaged(ValueError):
@@ -2075,7 +2114,9 @@ def check_download_cache(
     """
     bad_files: str[Path] = set()
     messages: set[str] = set()
-    dldir = _get_download_cache_loc(pkgname=pkgname)
+    dldir = _get_download_cache_loc(pkgname=pkgname, on_missing="ignore")
+    if not dldir.exists():
+        return
     with os.scandir(dldir) as it:
         for entry in it:
             f = dldir.joinpath(entry.name).absolute()
@@ -2209,7 +2250,7 @@ def import_file_to_cache(
         Whether or not to replace an existing object in the cache, if one exists.
         If replacement is not requested but the object exists, silently pass.
     """
-    cache_dir = _get_download_cache_loc(pkgname=pkgname)
+    cache_dir = _get_download_cache_loc(pkgname=pkgname, ensure_exists=True)
     cache_dirname = _url_to_dirname(url_key)
     local_dirname = cache_dir / cache_dirname
     local_filename = local_dirname / "contents"
@@ -2243,6 +2284,8 @@ def import_file_to_cache(
 
 def get_cached_urls(
     pkgname: str = "astropy",
+    *,
+    on_missing: Literal["ignore", "warn", "error"] = "warn",
 ) -> list[str]:
     """
     Get the list of URLs in the cache. Especially useful for looking up what
@@ -2259,6 +2302,12 @@ def get_cached_urls(
         ``pkgname='astropy'`` the default cache location is
         ``~/.cache/astropy``.
 
+    on_missing : 'ignore', 'warn', or 'error'
+        What to do if the cache directory doesn't exist.
+        Default: 'warn'
+
+        .. versionadded:: 8.0.0
+
     Returns
     -------
     cached_urls : list
@@ -2268,10 +2317,14 @@ def get_cached_urls(
     --------
     cache_contents : obtain a dictionary listing everything in the cache
     """
-    return sorted(cache_contents(pkgname=pkgname).keys())
+    return sorted(cache_contents(pkgname=pkgname, on_missing=on_missing).keys())
 
 
-def cache_contents(pkgname: str = "astropy") -> MappingProxyType[str, str]:
+def cache_contents(
+    pkgname: str = "astropy",
+    *,
+    on_missing: Literal["ignore", "warn", "error"] = "warn",
+) -> MappingProxyType[str, str]:
     """Obtain a dict mapping cached URLs to filenames.
 
     This dictionary is a read-only snapshot of the state of the cache when this
@@ -2281,11 +2334,11 @@ def cache_contents(pkgname: str = "astropy") -> MappingProxyType[str, str]:
     busy with many running astropy processes, although the same issues apply to
     most functions in this module.
     """
+    dldir = _get_download_cache_loc(pkgname=pkgname, on_missing=on_missing)
+    if not dldir.exists():
+        return MappingProxyType({})
+
     r: dict[str, str] = {}
-    try:
-        dldir = _get_download_cache_loc(pkgname=pkgname)
-    except OSError:
-        return _NOTHING
     with os.scandir(dldir) as it:
         for entry in it:
             if entry.is_dir():
@@ -2380,7 +2433,11 @@ def import_download_cache(
             # but throughout this file.
             if urls is not None and url not in urls:
                 continue
-            if not update_cache and is_url_in_cache(url, pkgname=pkgname):
+            if (
+                not update_cache
+                and _get_download_cache_loc(pkgname, on_missing="ignore").exists()
+                and is_url_in_cache(url, pkgname=pkgname)
+            ):
                 continue
             f_temp_name = os.path.join(d, str(i))
             with z.open(zf) as f_zip, open(f_temp_name, "wb") as f_temp:
