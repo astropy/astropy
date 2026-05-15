@@ -176,14 +176,16 @@ Parameters for ``read()``
   names found in the header (if it exists). If not supplied then
   use names from the header or auto-generated names if there is no header.
 
-**include_names** : list of names to include in output
+**include_names** : list of names or 0-based integer indices to include in output
   From the list of column names found from the header or the ``names``
-  parameter, select for output only columns within this list. If not supplied,
-  then include all names.
+  parameter, select for output only columns within this list. If not
+  supplied, then include all names. Entries may be column names (``str``)
+  or 0-based integer indices (negatives count from the end), and the two
+  may be mixed, e.g. ``include_names=[0, "B", -1]``.
 
-**exclude_names** : list of names to exclude from output
-  Exclude these names from the list of output columns. This is applied *after*
-  the ``include_names`` filtering. If not specified then no columns are excluded.
+**exclude_names** : list of names or 0-based integer indices to exclude from output
+  Exclude these columns from the output. Applied *after* ``include_names``.
+  Accepts the same name/index mix as ``include_names``.
 
 **fill_values** : list of fill value specifiers
   Specify input table entries which should be masked in the output table
@@ -191,16 +193,16 @@ Parameters for ``read()``
   for more information and examples. The default is that any blank table
   values are treated as missing.
 
-**fill_include_names** : list of column names affected by ``fill_values``
-  This is a list of column names (found from the header or the ``names``
-  parameter) for all columns where values will be filled. `None` (the default) will
-  apply ``fill_values`` to all columns.
+**fill_include_names** : list of names or 0-based integer indices affected by ``fill_values``
+  Restrict ``fill_values`` to this list of columns. Accepts names or
+  0-based integer indices (negatives count from the end). Integer indices
+  refer to the *original* column list, before any
+  ``include_names``/``exclude_names`` filtering. `None` (the default)
+  applies ``fill_values`` to all columns.
 
-**fill_exclude_names** : list of column names not affected by ``fill_values``
-  This is a list of column names (found from the header or the ``names``
-  parameter) for all columns where values will be **not** be filled.
-  This parameter takes precedence over ``fill_include_names``.  A value
-  of `None` (default) does not exclude any columns.
+**fill_exclude_names** : list of names or 0-based integer indices not affected by ``fill_values``
+  Like ``fill_include_names`` but inverted; takes precedence over it.
+  `None` (the default) excludes no columns.
 
 **fast_reader** : whether to use the C engine
   This can be ``True`` or ``False``, and also be a ``dict`` with options.
