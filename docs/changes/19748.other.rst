@@ -1,2 +1,0 @@
-Made cosmology test-suite class-scoped fixtures compatible with pytest 9.1,
-which deprecates class-scoped fixtures defined as instance methods.
