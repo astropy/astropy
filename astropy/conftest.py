@@ -84,14 +84,15 @@ def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
             pristine_config_finder,
         )
 
-        # also mock $HOME as it's part of the global state taken into account
-        # for path detection
-        mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME")
+        if "HOME" in os.environ:
+            # also mock $HOME as it's part of the global state taken into account
+            # for path detection
+            mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME")
 
-        def mock_home():
-            return mock_home_dir
+            def mock_home():
+                return mock_home_dir
 
-        monkeypatch.setattr(Path, "home", mock_home)
+            monkeypatch.setattr(Path, "home", mock_home)
 
         yield
 
