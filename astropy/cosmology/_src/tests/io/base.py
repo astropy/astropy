@@ -36,16 +36,19 @@ class ToFromTestMixinBase(IOTestBase):
     """
 
     @pytest.fixture(scope="class")
-    def from_format(self):
+    @classmethod
+    def from_format(cls):
         """Convert to Cosmology using ``Cosmology.from_format()``."""
         return Cosmology.from_format
 
     @pytest.fixture(scope="class")
-    def to_format(self, cosmo):
+    @classmethod
+    def to_format(cls, cosmo):
         """Convert Cosmology instance using ``.to_format()``."""
         return cosmo.to_format
 
-    def can_autodentify(self, format):
+    @staticmethod
+    def can_autodentify(format):
         """Check whether a format can auto-identify."""
         return format in Cosmology.from_format.registry._identifiers
 
@@ -61,12 +64,14 @@ class ReadWriteTestMixinBase(IOTestBase):
     """
 
     @pytest.fixture(scope="class")
-    def read(self):
+    @classmethod
+    def read(cls):
         """Read Cosmology instance using ``Cosmology.read()``."""
         return Cosmology.read
 
     @pytest.fixture(scope="class")
-    def write(self, cosmo):
+    @classmethod
+    def write(cls, cosmo):
         """Write Cosmology using ``.write()``."""
         return cosmo.write
 
@@ -95,7 +100,8 @@ class IODirectTestBase(IOTestBase):
     """
 
     @pytest.fixture(scope="class", autouse=True)
-    def setup(self):
+    @classmethod
+    def setup(cls):
         """Setup and teardown for tests."""
 
         @dataclass_decorator
@@ -115,14 +121,16 @@ class IODirectTestBase(IOTestBase):
         _COSMOLOGY_CLASSES.pop(CosmologyWithKwargs.__qualname__, None)
 
     @pytest.fixture(scope="class", params=cosmo_instances)
-    def cosmo(self, request):
+    @classmethod
+    def cosmo(cls, request):
         """Cosmology instance."""
         if isinstance(request.param, str):  # CosmologyWithKwargs
             return _COSMOLOGY_CLASSES[request.param](Tcmb0=3)
         return request.param
 
     @pytest.fixture(scope="class")
-    def cosmo_cls(self, cosmo):
+    @classmethod
+    def cosmo_cls(cls, cosmo):
         """Cosmology classes."""
         return cosmo.__class__
 
@@ -146,21 +154,23 @@ class ToFromDirectTestBase(IODirectTestBase, ToFromTestMixinBase):
     """
 
     @pytest.fixture(scope="class")
-    def from_format(self):
+    @classmethod
+    def from_format(cls):
         """Convert to Cosmology using function ``from``."""
 
         def use_from_format(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
-            return self.functions["from"](*args, **kwargs)
+            return cls.functions["from"](*args, **kwargs)
 
         return use_from_format
 
     @pytest.fixture(scope="class")
-    def to_format(self, cosmo):
+    @classmethod
+    def to_format(cls, cosmo):
         """Convert Cosmology to format using function ``to``."""
 
         def use_to_format(*args, **kwargs):
-            return self.functions["to"](cosmo, *args, **kwargs)
+            return cls.functions["to"](cosmo, *args, **kwargs)
 
         return use_to_format
 
@@ -184,20 +194,22 @@ class ReadWriteDirectTestBase(IODirectTestBase, ToFromTestMixinBase):
     """
 
     @pytest.fixture(scope="class")
-    def read(self):
+    @classmethod
+    def read(cls):
         """Read Cosmology from file using function ``read``."""
 
         def use_read(*args, **kwargs):
             kwargs.pop("format", None)  # specific to Cosmology.from_format
-            return self.functions["read"](*args, **kwargs)
+            return cls.functions["read"](*args, **kwargs)
 
         return use_read
 
     @pytest.fixture(scope="class")
-    def write(self, cosmo):
+    @classmethod
+    def write(cls, cosmo):
         """Write Cosmology to file using function ``write``."""
 
         def use_write(*args, **kwargs):
-            return self.functions["write"](cosmo, *args, **kwargs)
+            return cls.functions["write"](cosmo, *args, **kwargs)
 
         return use_write
