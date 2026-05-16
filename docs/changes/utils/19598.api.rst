@@ -1,0 +1,2 @@
+``minversion`` now always fetches version metadata from installed packages
+and doesn't dynamically import modules when passed a name.
