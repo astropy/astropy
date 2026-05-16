@@ -1,0 +1,1 @@
+Removed redundant file handle check in FileString.__cinit__.
