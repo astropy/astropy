@@ -400,8 +400,8 @@ Deprecation of the built-in test runner
 =======================================
 
 The ``astropy.test()`` entry point and the
-:class:`~astropy.tests.runner.TestRunner` /
-:class:`~astropy.tests.runner.TestRunnerBase` classes are now formally
+``~astropy.tests.runner.TestRunner`` /
+``~astropy.tests.runner.TestRunnerBase`` classes are now formally
 deprecated and will be removed in a future release. Downstream packages that
 expose a ``packagename.test()`` function generated via ``TestRunner`` are
 affected and should migrate to invoking ``pytest`` directly. The previously
