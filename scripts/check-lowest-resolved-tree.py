@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
-#     "uv==0.10.2",
+#     "uv==0.11.4",
 # ]
 # ///
 
@@ -53,6 +53,7 @@ def generate_tree(debug: bool) -> str:
             uv.find_uv_bin(),
             "tree",
             "--resolution=lowest",
+            "--exclude-newer=1week",
             "--all-groups",
             "--universal",
         ],
