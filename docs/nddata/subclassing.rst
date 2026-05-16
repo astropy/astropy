@@ -130,7 +130,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Adding Operations When Working with NDDataRef
 
 To add a power function::
@@ -171,7 +170,6 @@ To allow propagation also with ``uncertainty`` see subclassing
 `~astropy.nddata.NDUncertainty`.
 
 ..
-  EXAMPLE END
 
 The ``_prepare_then_do_arithmetic`` implements the relevant checks if it was
 called on the class or the instance, and if one or two operands were given,
@@ -192,7 +190,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Customizing Existing Properties During Arithmetic in NDData
 
 To customize how the ``meta`` will be affected during arithmetic::
@@ -242,7 +239,6 @@ be anything except ``None`` or ``"first_found"``::
     ``**kwargs``.
 
 ..
-  EXAMPLE END
 
 Changing the Default Argument for Arithmetic Operations
 -------------------------------------------------------
@@ -257,7 +253,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Changing the Default Argument for Arithmetic Operations in NDData
 
 To change the default value of an existing parameter for arithmetic methods::
@@ -290,7 +285,6 @@ so using the ``*args``, ``**kwargs`` approach allows you to only alter one
 default without needing to care about the positional order of arguments.
 
 ..
-  EXAMPLE END
 
 Arithmetic with an Additional Property
 --------------------------------------
@@ -427,7 +421,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Implementing the NDDataBase Interface
 
 To implement the NDDataBase interface by creating a read-only container::
@@ -481,7 +474,6 @@ To implement the NDDataBase interface by creating a read-only container::
   return arbitrary values but the properties **must** be defined.
 
 ..
-  EXAMPLE END
 
 Subclassing `~astropy.nddata.NDUncertainty`
 ===========================================

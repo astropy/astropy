@@ -116,7 +116,6 @@ bars ``dy`` can also optionally be provided.
 Example
 -------
 
-.. EXAMPLE START: Evaluating BLS Periodograms
 
 To evaluate the periodogram for a simulated data set:
 
@@ -159,7 +158,6 @@ This result can be plotted using matplotlib:
 
 In this figure, you can see the peak at the correct period of three days.
 
-.. EXAMPLE END
 
 Objectives
 ==========
@@ -172,7 +170,6 @@ depth is measured as an objective function.
 Example
 -------
 
-.. EXAMPLE START: Transit Search with BoxLeastSquares.power and Signal-to-Noise
 
 To compute the log likelihood of the model fit, call
 `~astropy.timeseries.BoxLeastSquares.power` or
@@ -203,7 +200,6 @@ This objective will generally produce a periodogram that is qualitatively
 similar to the log likelihood spectrum, but it has been used to improve the
 reliability of transit search in the presence of correlated noise.
 
-.. EXAMPLE END
 
 Period Grid
 ===========
@@ -223,7 +219,6 @@ method are given in the API documentation for
 Example
 -------
 
-.. EXAMPLE START: Computing Transit Periodograms on a Grid of Periods
 
 It is possible to provide a specific period grid as follows:
 
@@ -273,7 +268,6 @@ However, if the period grid is too coarse, the correct period might be missed.
     ax.plot(periodogram.period, periodogram.power, "k")
     ax.set(xlabel="period [day]", ylabel="power")
 
-.. EXAMPLE END
 
 Peak Statistics
 ===============

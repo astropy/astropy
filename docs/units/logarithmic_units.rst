@@ -17,7 +17,6 @@ a logarithmic unit.
 Example
 -------
 
-.. EXAMPLE START: Creating Logarithmic Quantities
 
 To create a logarithmic quantity::
 
@@ -44,7 +43,6 @@ Above, we make use of the fact that the units ``mag``, ``dex``, and
 respectively). The same happens as required when strings are parsed
 by :class:`~astropy.units.Unit`.
 
-.. EXAMPLE END
 
 As for normal |Quantity| objects, you can access the value with the
 `~astropy.units.Quantity.value` attribute. In addition, you can convert to a
@@ -66,7 +64,6 @@ units, be it another logarithmic unit or a physical one.
 Example
 -------
 
-.. EXAMPLE START: Converting Logarithmic Quantities to Different Units
 
 To convert a logarithmic quantity to a different unit::
 
@@ -86,7 +83,6 @@ units::
     >>> logg.si  # doctest: +FLOAT_CMP
     <Dex 3. dex(m / s2)>
 
-.. EXAMPLE END
 
 Arithmetic and Photometric Applications
 =======================================
@@ -98,7 +94,6 @@ seen through an example of a photometric reduction.
 Example
 -------
 
-.. EXAMPLE START: Photometric Reduction with Logarithmic Quantities
 
 First, calculate instrumental magnitudes assuming some count rates for three
 objects::
@@ -217,7 +212,6 @@ work only for dimensionless magnitudes (otherwise, the physical unit would have
 to be raised to some power), and |Quantity| objects, unlike logarithmic
 quantities, allow units like ``mag / d``.
 
-.. EXAMPLE END
 
 Note that you can take the automatic unit conversion quite far (perhaps too
 far, but it is fun). For instance, suppose we also knew the bolometric

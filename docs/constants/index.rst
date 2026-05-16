@@ -47,7 +47,6 @@ Unit Conversion
 ===============
 
 ..
-  EXAMPLE START
   Converting Constants to Different Units
 
 Explicitly :ref:`quantity_unit_conversion` is often not necessary, but can be
@@ -88,7 +87,6 @@ cannot be used in expressions without specifying a system::
     <Quantity 4.8032045057134676e-08 Fr>
 
 ..
-  EXAMPLE END
 
 .. _astropy-constants-prior:
 

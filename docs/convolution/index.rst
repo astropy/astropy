@@ -143,7 +143,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Convolution for User-Specified Kernels
 
 To convolve a 1D dataset with a user-specified kernel, you can do::
@@ -167,13 +166,11 @@ first point is ``1``, and any value above the last point is ``8``::
 For a more detailed discussion of boundary treatment, see :doc:`using`.
 
 ..
-  EXAMPLE END
 
 Example
 -------
 
 ..
-  EXAMPLE START
   Convolution for Built-In Kernels
 
 The convolution module also includes built-in kernels that can be imported as,
@@ -227,7 +224,6 @@ The kernel can then be used directly when calling
     plt.show()
 
 ..
-  EXAMPLE END
 
 Using ``astropy``'s Convolution to Replace Bad Data
 ---------------------------------------------------
@@ -267,7 +263,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Kernel Interpolation to Fill in Flagged-Out Pixels
 
 The script below shows an example of kernel interpolation to fill in
@@ -328,13 +323,11 @@ flagged-out pixels:
    )
 
 ..
-  EXAMPLE END
 
 Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Kernel Interpolation to Reconstruct Images from Sparse Sampling.
 
 This script shows the power of this technique for reconstructing images from
@@ -409,7 +402,6 @@ eye.
    )
 
 ..
-  EXAMPLE END
 
 Using `astropy.convolution`
 ===========================

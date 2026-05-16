@@ -17,7 +17,6 @@ or scales.
 Example
 -------
 
-.. EXAMPLE START: Converting the Time Column to Different Time Formats
 
 To get the times as modified Julian Dates from a minimal time series::
 
@@ -44,7 +43,6 @@ To find the current time scale of the data, you can do::
 See :ref:`astropy-time` for more documentation on how to access and convert
 times.
 
-.. EXAMPLE END
 
 Formatting Times
 ================
@@ -56,7 +54,6 @@ and ``scale`` attributes.
 Example
 -------
 
-.. EXAMPLE START: Formatting the Time Column in Time Series
 
 To change the display of the time series::
 
@@ -83,7 +80,6 @@ To change the display of the time series::
     1458649840.0     2.0
     1458649843.0     4.0
 
-.. EXAMPLE END
 
 Times Relative to Other Times
 =============================
@@ -95,7 +91,6 @@ for example, by subtracting a reference time from an existing |Time| object.
 Example
 -------
 
-.. EXAMPLE START: Times Relative to Other Times in Time Series
 
 To use a relative rather than an absolute time::
 
@@ -116,5 +111,3 @@ using::
 
     >>> ts_rel.time.to('second')
     <Quantity [ 0.,  3.,  6.,  9., 12.] s>
-
-.. EXAMPLE END

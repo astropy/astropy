@@ -14,7 +14,6 @@ improved performance for certain table operations.
 Creating an Index
 =================
 
-.. EXAMPLE START: Creating Indices on Table Columns
 
 To create an index on a table, use the |add_index| method::
 
@@ -52,12 +51,10 @@ property::
      2   8    0
      3   7    1>>
 
-.. EXAMPLE END
 
 Row Retrieval using Indices
 ===========================
 
-.. EXAMPLE START: Retrieving Table Rows using Indices
 
 Row retrieval can be accomplished using two table properties:
 `~astropy.table.Table.loc` and `~astropy.table.Table.iloc`. The
@@ -163,7 +160,6 @@ example::
        4     9
        1    10
 
-.. EXAMPLE END
 
 Effects on Performance
 ======================
@@ -193,7 +189,6 @@ indexing by allowing the user to enter a specific indexing mode via a context
 manager. There are currently three indexing modes: ``'freeze'``,
 ``'copy_on_getitem'``, and ``'discard_on_copy'``.
 
-.. EXAMPLE START: Table Indexing with the "freeze" Index Mode
 
 The ``'freeze'`` mode prevents automatic index updates whenever a column of the
 index is modified, and all indices refresh themselves after the context ends::
@@ -219,9 +214,7 @@ index is modified, and all indices refresh themselves after the context ends::
     3    2
     4    3>>
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Table Indexing with the "copy_on_getitem" Index Mode
 
 The ``'copy_on_getitem'`` mode forces columns to copy and relabel their indices
 upon slicing. In the absence of this mode, table slices will preserve
@@ -239,9 +232,7 @@ indices while column slices will not::
     2    0
     4    1>>]
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Table Indexing with the "discard_on_copy" Index Mode
 
 The ``'discard_on_copy'`` mode prevents indices from being copied whenever a
 column or table is copied::
@@ -260,12 +251,10 @@ column or table is copied::
   ...    print(t2.indices)
   []
 
-.. EXAMPLE END
 
 Updating Rows using Indices
 ===========================
 
-.. EXAMPLE START: Updating Table Rows using Indices
 
 Row updates can be accomplished by assigning the table property
 `~astropy.table.Table.loc` a complete row or a list of rows::
@@ -306,12 +295,10 @@ Row updates can be accomplished by assigning the table property
       y     9
       c    56
 
-.. EXAMPLE END
 
 Retrieving the Location of Rows using Indices
 =============================================
 
-.. EXAMPLE START: Retrieving the Location of Table Rows using Indices
 
 Retrieval of the location of rows can be accomplished using a table property:
 `~astropy.table.Table.loc_indices`. The `~astropy.table.Table.loc_indices`
@@ -323,7 +310,6 @@ property can be indexed either by column value, range of column values
    >>> t.loc_indices['x']
    np.int64(1)
 
-.. EXAMPLE END
 
 Storing the Table Indices to File
 =================================

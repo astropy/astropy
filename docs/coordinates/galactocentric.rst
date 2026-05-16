@@ -187,7 +187,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Setting Galactocentric Coordinate Frame Defaults at Runtime
 
 The default parameter values can be seen by initializing the
@@ -245,7 +244,6 @@ Just as in the previous examples, the new parameter set can be get / set::
     [0.36 0.62 0.38] km / s
 
 ..
-  EXAMPLE END
 
 Unless set with the `~astropy.coordinates.galactocentric_frame_defaults` class,
 the default parameter values for the `~astropy.coordinates.Galactocentric`

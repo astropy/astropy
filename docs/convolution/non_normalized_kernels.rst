@@ -14,7 +14,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Convolving with Unnormalized Kernels
 
 For an example of applying a filter with a kernel that is not normalized, we
@@ -59,10 +58,8 @@ can try to run a commonly used peak enhancing kernel:
                     interpolation='nearest', cmap='viridis')
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Replacing NaN Values with Interpolated Values Using Kernels
 
 If you have an image with missing values (NaNs), you have to replace them with
@@ -120,4 +117,3 @@ before applying the peak-finding kernel.
                    interpolation='nearest', cmap='viridis')
 
 ..
-  EXAMPLE END

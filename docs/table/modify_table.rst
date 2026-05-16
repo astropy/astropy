@@ -18,7 +18,6 @@ The code below shows the basics of modifying a table and its data.
 Examples
 --------
 
-.. EXAMPLE START: Making a Table and Modifying Data
 
 .. _table-mod-make-a-table:
 
@@ -77,14 +76,12 @@ the conventions of `~astropy.units.Quantity` by using the
   classes is to use a |QTable|. See :ref:`quantity_and_qtable` for more
   information.
 
-.. EXAMPLE END
 
 .. _table-mod-add-a-column-or-columns:
 
 Add a column or columns
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Adding Columns to Tables
 
 A single column can be added to a table using syntax like adding a key-value
 pair to a :class:`dict`. The value on the right hand side can be a
@@ -122,14 +119,12 @@ convenient to add a |Quantity| to a |QTable| instead, see
   4.0
   5.0
 
-.. EXAMPLE END
 
 .. _table-mod-remove-columns:
 
 Remove columns
 ^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Removing Columns from Tables
 
 To remove a column from a table::
 
@@ -139,14 +134,12 @@ To remove a column from a table::
   >>> del t['h', 'i']
   >>> t.keep_columns(['a', 'b'])
 
-.. EXAMPLE END
 
 .. _table-mod-replace-a-column:
 
 Replace a column
 ^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Replacing Columns in Tables
 
 You can entirely replace an existing column with a new column by setting the
 column to any object that could be used to initialize a table column (e.g.,  a
@@ -161,7 +154,6 @@ will be done, for example::
 
   >>> t['a'] = 1  # Internally does t['a'][:] = 1
 
-.. EXAMPLE END
 
 .. _table-mod-perform-a-dictionary-style-update:
 
@@ -264,7 +256,6 @@ Either way the (possibly just inserted) column in the table is returned::
 Rename columns
 ^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Renaming Columns in Tables
 
 To rename a column::
 
@@ -275,27 +266,23 @@ To rename multiple columns at once::
 
   >>> t.rename_columns(['a_new', 'b_new'], ['a', 'b'])
 
-.. EXAMPLE END
 
 .. _table-mod-add-a-row-of-data:
 
 Add a row of data
 ^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Adding a Row of Data to a Table
 
 To add a row::
 
   >>> t.add_row([-8, -9])
 
-.. EXAMPLE END
 
 .. _table-mod-remove-rows:
 
 Remove rows
 ^^^^^^^^^^^
 
-.. EXAMPLE START: Removing Rows of Data from Tables
 
 To remove a row::
 
@@ -303,54 +290,46 @@ To remove a row::
   >>> t.remove_rows(slice(4, 5))
   >>> t.remove_rows([1, 2])
 
-.. EXAMPLE END
 
 .. _table-mod-sort-by-one-or-more-columns:
 
 Sort by one or more columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Sorting Columns in Tables
 
 To sort columns::
 
   >>> t.sort('b')
   >>> t.sort(['a', 'b'])
 
-.. EXAMPLE END
 
 .. _table-mod-reverse-table-rows:
 
 Reverse table rows
 ^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Reversing Table Rows
 
 To reverse the order of table rows::
 
   >>> t.reverse()
 
-.. EXAMPLE END
 
 .. _table-mod-modify-metadata:
 
 Modify metadata
 ^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Modifying Metadata in Tables
 
 To modify metadata::
 
   >>> t.meta['key'] = 'value'
 
-.. EXAMPLE END
 
 .. _table-mod-select-or-reorder-columns:
 
 Select or reorder columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Selecting or Reordering Columns in Tables
 
 A new table with a subset or reordered list of columns can be
 created as shown in the following example::
@@ -364,7 +343,6 @@ as the item, as shown below::
   >>> new_order = ['a', 'c', 'b']  # List or tuple
   >>> t_acb = t[new_order]
 
-.. EXAMPLE END
 
 Caveats
 =======

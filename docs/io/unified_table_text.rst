@@ -158,7 +158,6 @@ column use:
    :ref:`ecsv_format_masked_columns`.
 
 ..
-  EXAMPLE END
 
 .. _table_io_pandas:
 

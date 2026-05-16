@@ -167,7 +167,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Accessing Variable Length Array Columns in FITS Tables
 
 This example shows a variable length array field of data type int16::
@@ -187,7 +186,6 @@ possible. A user has to process the field row by row as though they are
 independent arrays.
 
 ..
-  EXAMPLE END
 
 
 Creating a Variable Length Array Table
@@ -203,7 +201,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Creating a Variable Length Array Column in a FITS Table
 
 Here is an example of creating a table with two fields; one is regular and the
@@ -235,7 +232,6 @@ other a variable length array::
     TFORM2  = '2I      '
 
 ..
-  EXAMPLE END
 
 .. _random-groups:
 
@@ -297,7 +293,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Group Parameters in Random Access Group HDUs
 
 To show the contents of the third group, including parameters and data::
@@ -370,7 +365,6 @@ parameter is shared by more than one parameters::
     array([2.44572930e+06, 8.40000000e+01])
 
 ..
-  EXAMPLE END
 
 Data: Image Data
 ----------------
@@ -397,7 +391,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Creating a Random Access Group HDU in a FITS File
 
 To create a Random Access Group HDU::
@@ -451,7 +444,6 @@ To create a Random Access Group HDU::
                dtype=(numpy.record, [('abc', '<f4'), ('xyz', '<f4'), ('_xyz', '<f4'), ('DATA', '<f4', (1, 1, 3, 5))]))
 
 ..
-  EXAMPLE END
 
 Compressed Image Data
 =====================
@@ -489,7 +481,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Accessing Compressed FITS Image HDU Headers
 
 The content of the decompressed HDU header may be accessed using the ``.header`` attribute::
@@ -522,7 +513,6 @@ convenience function or method::
       1  COMPRESSED_IMAGE    1 CompImageHDU      7   (10, 10)   int16
 
 ..
-  EXAMPLE END
 
 Data
 ----
@@ -543,7 +533,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Accessing Compressed FITS Image HDU Data
 
 The contents of the uncompressed HDU data may be accessed using the ``.data``
@@ -567,7 +556,6 @@ this rarely needs be accessed directly. It may be useful for performing direct
 copies of the compressed data without needing to decompress it first.
 
 ..
-  EXAMPLE END
 
 
 Creating a Compressed Image HDU
@@ -582,7 +570,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Creating a Compressed FITS Image HDU
 
 To create a compressed image HDU::
@@ -596,8 +583,6 @@ The API documentation for the :class:`CompImageHDU` initializer method
 describes the possible options for constructing a :class:`CompImageHDU` object.
 
 ..
-  EXAMPLE END
-
 
 Supported Integer Data Types
 ----------------------------

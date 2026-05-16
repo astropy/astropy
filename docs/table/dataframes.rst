@@ -37,7 +37,6 @@ The generic methods support DataFrame libraries with eager execution, including:
 Basic Multi-Backend Example
 ---------------------------
 
-.. EXAMPLE START: Using Generic Multi-Backend Methods
 
 Create a table and convert to different DataFrame backends::
 
@@ -61,7 +60,6 @@ Create a table from any supported DataFrame::
     >>> t2 = Table.from_df(df_pandas)  # From pandas
     >>> t3 = Table.from_df(df_polars)  # From polars
 
-.. EXAMPLE END
 
 Known Backend-Specific Differences
 ----------------------------------
@@ -88,7 +86,6 @@ For pandas users, Astropy provides dedicated methods that offer the most direct 
 Basic Pandas Example
 --------------------
 
-.. EXAMPLE START: Using Pandas-Specific Methods
 
 To demonstrate, we can create a minimal table::
 
@@ -122,7 +119,6 @@ Create a table from a pandas DataFrame::
         3       c
         4       d
 
-.. EXAMPLE END
 
 Pandas Index Support
 --------------------
@@ -194,7 +190,6 @@ Tables with :ref:`mixin_columns` such as `~astropy.time.Time`, `~astropy.coordin
 Complex Example with Both Methods
 =================================
 
-.. EXAMPLE START: Complex DataFrame Conversion Example
 
 Create a table with masked and mixin columns::
 
@@ -263,7 +258,6 @@ Note the data transformations that occurred:
 3. **SkyCoord columns**: Split into separate ``ra`` and ``dec`` columns, losing coordinate frame and unit information
 4. **Quantity columns**: Converted to plain float columns, completely losing unit information
 
-.. EXAMPLE END
 
 Method Reference
 ================

@@ -25,7 +25,6 @@ package::
 Creating from Scratch
 ---------------------
 
-.. EXAMPLE START: Creating an Astropy Table from Scratch
 
 A |Table| can be created without any initial input data or even without any
 initial columns. This is useful for building tables dynamically if the initial
@@ -62,12 +61,10 @@ stored in the table as a native |Quantity| and bring the full power of
   >>> type(t['b'])
   <class 'astropy.units.quantity.Quantity'>
 
-.. EXAMPLE END
 
 List of Columns
 ---------------
 
-.. EXAMPLE START: Creating an Astropy Table from a List of Columns
 
 A typical case is where you have a number of data columns with the same length
 defined in different variables. These might be Python lists or ``numpy`` arrays
@@ -90,7 +87,6 @@ keyword or they will be automatically generated as ``col<N>``.
       1     2.0    x
       4     5.0    y
 
-.. EXAMPLE END
 
 **Make a new table using columns from the first table**
 
@@ -144,7 +140,6 @@ Notice that in the third column the existing column name ``'axis'`` is used.
 Dict of Columns
 ---------------
 
-.. EXAMPLE START: Creating an Astropy Table from a Dictionary of Columns
 
 A :class:`dict` of column data can be used to initialize a |Table|::
 
@@ -160,7 +155,6 @@ A :class:`dict` of column data can be used to initialize a |Table|::
       1     2.0    x
       4     5.0    y
 
-.. EXAMPLE END
 
 **Specify the column order and optionally the data types**
 ::
@@ -472,7 +466,6 @@ to data "rows" and the second index corresponds to data "columns."
 From an Existing Table
 ----------------------
 
-.. EXAMPLE START: Creating an Astropy Table from an Existing Table
 
 A new table can be created by selecting a subset of columns in an existing
 table::
@@ -518,12 +511,10 @@ To create a copy of an existing table that is empty (has no rows)::
  float64 float64
  ------- -------
 
-.. EXAMPLE END
 
 Empty Array of a Known Size
 ---------------------------
 
-.. EXAMPLE START: Creating an Astropy Table from an Empty Array
 
 If you do know the size that your table will be, but do not know the values in
 advance, you can create a zeroed |ndarray| and build the |Table| from it::
@@ -554,7 +545,6 @@ from another table, or generated on the fly::
       1     2.5  True
       2     5.0 False
 
-.. EXAMPLE END
 
 SkyCoord
 --------
@@ -574,7 +564,6 @@ and table manipulation methods in `pandas <https://pandas.pydata.org/>`_.
 Comment Lines
 -------------
 
-.. EXAMPLE START: Adding Comment Lines in an ASCII File
 
 Comment lines in a text file can be added via the ``'comments'`` key in the
 table's metadata. The following will insert two comment lines in the output
@@ -592,7 +581,6 @@ text file unless ``comment=False`` is explicitly set in ``write()``::
   a b c
   1.0 2 x
 
-.. EXAMPLE END
 
 Initialization Details
 ======================
@@ -933,7 +921,6 @@ work.
 
 **Function**
 
-.. EXAMPLE START: Initialization Options for Column Objects
 
 The greatest flexibility can be achieved by setting a formatting function. This
 function must accept a single argument (the value) and return a string. One
@@ -960,7 +947,6 @@ following example this is used to make a LaTeX ready output::
     \end{tabular}
     \end{table}
 
-.. EXAMPLE END
 
 **Format string for structured array column**
 
@@ -1091,7 +1077,6 @@ subcomponents::
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Subclassing the Table Class
 
 As a more practical example, suppose you have a table of data with a certain
 set of fixed columns, but you also want to carry an arbitrary dictionary of
@@ -1173,12 +1158,10 @@ fields. This might look something like::
 
           # ... and then the rest of the original __getitem__ ...
 
-.. EXAMPLE END
 
 Columns and Quantities
 ======================
 
-.. EXAMPLE START: Handling Astropy Column and Quantity Objects within Tables
 
 ``astropy`` `~astropy.units.Quantity` objects can be handled within tables in
 two complementary ways. The first method stores the `~astropy.units.Quantity`
@@ -1213,7 +1196,6 @@ a `~astropy.table.Column` object with a ``unit`` attribute::
 To learn more about using standard `~astropy.table.Column` objects with defined
 units, see the :ref:`columns_with_units` section.
 
-.. EXAMPLE END
 
 .. _Table-like Objects:
 

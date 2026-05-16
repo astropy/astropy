@@ -29,7 +29,6 @@ Examples
 ========
 
 ..
-  EXAMPLE START
   Using the Solar System Ephemerides
 
 Here is an example of using these functions with built-in ephemerides (i.e.,
@@ -85,7 +84,6 @@ to the various functions:
       (1.00340683, -0.00579417, -0.00280064)>
 
 ..
-  EXAMPLE END
 
 For a list of the bodies for which positions can be calculated, do:
 

@@ -38,7 +38,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Using Ripley's K Function Estimators
 
 To use Ripley's K Function Estimators from ``astropy``'s stats sub-package:
@@ -70,7 +69,6 @@ To use Ripley's K Function Estimators from ``astropy``'s stats sub-package:
     ax.legend()
 
 ..
-  EXAMPLE END
 
 References
 ==========

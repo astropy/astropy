@@ -23,7 +23,6 @@ the unit part of a |Quantity| are also applicable to a |Unit| instance.
 Examples
 --------
 
-.. EXAMPLE START: Converting Units to String Representations
 
 To render |Quantity| or |Unit| objects as strings::
 
@@ -86,7 +85,6 @@ Because |ndarray| does not accept most format specifiers, using specifiers like
 
 Examine the NumPy documentation for more examples with :func:`numpy.array_str`.
 
-.. EXAMPLE END
 
 A |Unit|, or the unit part of a |Quantity|, can also be formatted in a number
 of different styles. By default, the string format used is the "generic"
@@ -150,7 +148,6 @@ As a last resort, it is possible to silence the warnings::
 Converting from Strings
 =======================
 
-.. EXAMPLE START: Creating Units from Strings
 
 Units can also be created from strings in a number of different
 formats using the `~astropy.units.Unit` class::
@@ -176,7 +173,6 @@ It is also possible to create a scalar |Quantity| from a string::
    useful, however, if your unit definitions are coming from a file format such
    as FITS or VOTable.
 
-.. EXAMPLE END
 
 Built-In Formats
 ================
@@ -325,7 +321,6 @@ as demonstrated below), or to define new units via
 Examples
 --------
 
-.. EXAMPLE START: Define Aliases for Units
 
 To set unit aliases, pass :func:`~astropy.units.set_enabled_aliases` a
 :class:`dict` mapping the misspelt string to an astropy unit. The following
@@ -370,9 +365,7 @@ limiting where a particular alias is used::
     'u.add_enabled_units'. For details, see
     https://docs.astropy.org/en/latest/units/combining_and_defining.html
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Using `~astropy.units.UnrecognizedUnit`
 
 To pass an unrecognized unit string::
 
@@ -401,5 +394,3 @@ unit or composing with other units, will fail.
      ...
    ValueError: The unit 'Angstroem' is unrecognized, so all arithmetic
    operations with it are invalid.
-
-.. EXAMPLE END

@@ -35,7 +35,6 @@ from TLE orbital element sets. Full support for handling TLE files is available 
 the `Skyfield <https://rhodesmill.org/skyfield/>`_ library, but some advice for dealing
 with satellite data in ``astropy`` is below.
 
-.. EXAMPLE START Using sgp4 to get a TEME coordinate
 
 You will need some external library to compute the position and velocity of the satellite from the
 TLE orbital elements. The `SGP4 <https://pypi.org/project/sgp4/>`_ library can do this. An example
@@ -71,7 +70,6 @@ position in the `~astropy.coordinates.TEME` reference frame:
     >>> teme_v = CartesianDifferential(teme_v*u.km/u.s)
     >>> teme = TEME(teme_p.with_differentials(teme_v), obstime=t)
 
-.. EXAMPLE END
 
 Note how we are careful to set the observed time of the `~astropy.coordinates.TEME` frame to
 the time at which we calculated satellite position.
@@ -84,7 +82,6 @@ into any `astropy.coordinates` frame.
 
 For example, to find the overhead latitude, longitude, and height of the satellite:
 
-.. EXAMPLE START Transforming TEME
 
 .. doctest-requires:: sgp4
 
@@ -129,5 +126,3 @@ so if you want to carry the velocity to the topocentric frame, you can do so as 
     >>> topo_itrs_p = itrs_geo_p - siding_spring.get_itrs(t).cartesian
     >>> topo_itrs_repr = topo_itrs_p.with_differentials(itrs_geo_v)
     >>> itrs_topo = ITRS(topo_itrs_repr, obstime = t, location=siding_spring)
-
-.. EXAMPLE END

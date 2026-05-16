@@ -48,7 +48,6 @@ a new table from one or more input tables. This includes:
 Grouped Operations
 ------------------
 
-.. EXAMPLE START: Grouped Operations in Tables
 
 Sometimes in a table or table column there are natural groups within the dataset
 for which it makes sense to compute some derived values. A minimal example is a
@@ -71,7 +70,6 @@ list of objects with photometry from various observing runs::
   >>> obs['mag_b'].info.format = '{:.1f}'
   >>> obs['mag_v'].info.format = '{:.1f}'
 
-.. EXAMPLE END
 
 Table Groups
 ^^^^^^^^^^^^
@@ -150,7 +148,6 @@ follows::
 Manipulating Groups
 ^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Manipulating Groups in Tables
 
 Once you have applied grouping to a table then you can access the individual
 groups or subsets of groups. In all cases this returns a new grouped table.
@@ -222,7 +219,6 @@ You can iterate over the group subtables and corresponding keys with::
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
 
-.. EXAMPLE END
 
 Column Groups
 ^^^^^^^^^^^^^
@@ -239,7 +235,6 @@ does not make sense for a |Column|.
 Examples
 ~~~~~~~~
 
-.. EXAMPLE START: Grouping Column Objects in Tables
 
 To generate grouping in columns::
 
@@ -270,7 +265,6 @@ To generate grouping in columns::
     5
     6
 
-.. EXAMPLE END
 
 Aggregation
 ^^^^^^^^^^^
@@ -302,7 +296,6 @@ then drop that column from the output result. Note that the ``name`` column is
 one of the ``keys`` used to determine the grouping so it is automatically
 ignored from aggregation.
 
-.. EXAMPLE START: Performing Aggregation on Grouped Tables
 
 From a grouped table it is possible to select one or more columns on which
 to perform the aggregation::
@@ -337,7 +330,6 @@ A single column of data can be aggregated as well::
   Sum for foo = 8
   Sum for qux = 11
 
-.. EXAMPLE END
 
 If the specified function has a :meth:`numpy.ufunc.reduceat` method, this will
 be called instead. This can improve the performance by a factor of 10 to 100
@@ -400,7 +392,6 @@ It must then return either `True` or `False`.
 Example
 ~~~~~~~
 
-.. EXAMPLE START: Filtering Table Groups
 
 The following will select all table groups with only positive values in the
 non-key columns::
@@ -450,7 +441,6 @@ still must return either `True` or `False`. For example::
   def all_positive(column):
       return np.all(column > 0)
 
-.. EXAMPLE END
 
 .. _table_binning:
 
@@ -480,7 +470,6 @@ output bin.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Binning a Table using Grouped Operations
 
 As an example, we generate a fake light curve::
 
@@ -514,7 +503,6 @@ We can plot the results with ``plt.plot(dat_binned['year'], dat_binned['mag'],
 This time, try plotting with ``plt.plot(dat_binned['phase'],
 dat_binned['mag'])``.
 
-.. EXAMPLE END
 
 .. _stack-vertically:
 
@@ -529,7 +517,6 @@ to the :func:`numpy.vstack` function.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Stacking (or Concatenating) Tables Vertically
 
 Suppose we have two tables of observations with several column names in
 common::
@@ -603,7 +590,6 @@ for details on how these characteristics of the input tables are merged in the
 single output table. Note also that you can use a single table |Row| instead of
 a full table as one of the inputs.
 
-.. EXAMPLE END
 
 .. _stack-horizontally:
 
@@ -617,7 +603,6 @@ roughly to the :func:`numpy.hstack` function.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Stacking (or Concatenating) Tables Horizontally
 
 Suppose we have the following two tables::
 
@@ -675,7 +660,6 @@ The metadata from the input tables is merged by the process described in the
 `Merging metadata`_ section. Note also that you can use a single table |Row|
 instead of a full table as one of the inputs.
 
-.. EXAMPLE END
 
 .. _stack-depthwise:
 
@@ -689,7 +673,6 @@ The |Table| class supports stacking columns within tables depth-wise using the
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Stacking (or Concatenating) Tables Depth-Wise
 
 Suppose we have tables of data for sources giving information on the enclosed
 source counts for different PSF fractions::
@@ -732,7 +715,6 @@ for details on how these characteristics of the input tables are merged in the
 single output table. Note also that you can use a single table |Row| instead of
 a full table as one of the inputs.
 
-.. EXAMPLE END
 
 .. _table-join:
 
@@ -747,7 +729,6 @@ columns.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Combining Tables using the Database Join Operation
 
 Suppose we have two tables of observations, the first with B and V magnitudes
 and the second with X-ray luminosities of an overlapping (but not identical)
@@ -790,7 +771,6 @@ occurs in both tables, it has been split into two columns, ``obs_date_1`` and
 ``obs_date_2``. The values are taken from the "left" (``optical``) and "right"
 (``xray``) tables, respectively.
 
-.. EXAMPLE END
 
 Different Join Options
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -798,7 +778,6 @@ Different Join Options
 The table joins so far are known as "inner" joins and represent the strict
 intersection of the two tables on the key columns.
 
-.. EXAMPLE START: Table Join Options
 
 If you want to make a new table which has *every* row from the left table and
 includes matching values from the right table when available, this is known as a
@@ -857,12 +836,10 @@ available rows. In this case there are no key columns (and supplying the
     M101 2012-10-31  15.1  15.5     M31 1999-01-05  43.1
     M101 2012-10-31  15.1  15.5     M82 2012-10-29  45.0
 
-.. EXAMPLE END
 
 Non-Identical Key Column Names
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Joining Tables with Unique Key Column Names
 
 To use the |join| function with non-identical key column names, use the
 ``keys_left`` and ``keys_right`` arguments. In the following example one table
@@ -890,12 +867,10 @@ The ``keys_left`` and ``keys_right`` arguments can also take a list of column
 names or even a list of column-like objects. The latter case allows specifying
 the matching key column values independent of the tables being joined.
 
-.. EXAMPLE END
 
 Identical Key Values
 ^^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Joining Tables with Identical Key Values
 
 The |Table| join operation works even if there are multiple rows with identical
 key values. For example, the following tables have multiple rows for the column
@@ -953,7 +928,6 @@ section on `Column renaming`_. See also the sections on `Merging metadata`_ and
 `Merging column attributes`_ for details on how these characteristics of the
 input tables are merged in the single output table.
 
-.. EXAMPLE END
 
 Merging Details
 ---------------
@@ -1044,7 +1018,6 @@ tables in order and taking the last value which is defined (i.e., is not
 Example
 ~~~~~~~
 
-.. EXAMPLE START: Merging Column Attributes in a Table
 
 To merge column attributes ``unit``, ``format``, or ``description``::
 
@@ -1064,7 +1037,6 @@ To merge column attributes ``unit``, ``format``, or ``description``::
 The rules for merging are the same as for `Merging metadata`_, and the
 ``metadata_conflicts`` option also controls the merging of column attributes.
 
-.. EXAMPLE END
 
 .. _astropy-table-join-functions:
 
@@ -1100,7 +1072,6 @@ This is supported using the ``join_funcs`` argument.
 Example
 ~~~~~~~
 
-.. EXAMPLE START: Joining a Table on Coordinates
 
 To join two tables on a |SkyCoord| key column we use the ``join_funcs`` keyword
 to supply a :class:`dict` of functions that specify how to match a particular
@@ -1154,7 +1125,6 @@ Now we show the whole process:
 The joined table has matched the sources within 0.2 deg and created a new
 column ``sc_id`` with a unique identifier for each source.
 
-.. EXAMPLE END
 
 You might be wondering what is happening in the join function defined above,
 especially if you are interested in defining your own such function. This could
@@ -1206,7 +1176,6 @@ returns a sorted table containing all of the fully unique rows.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Grouping Unique Rows in Tables
 
 An example of a situation where you might want to use rows with unique key
 columns is a list of objects with photometry from various observing
@@ -1250,7 +1219,6 @@ Using multiple columns as ``keys``::
    M82 2012-02-14  16.2  14.5
    M82 2012-03-26  15.7  16.5
 
-.. EXAMPLE END
 
 .. _set-difference:
 
@@ -1274,7 +1242,6 @@ will return an empty table.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Using Set Difference in Tables
 
 The example below illustrates finding the set difference of two observation
 lists using a common subset of the columns in two tables.::
@@ -1298,7 +1265,6 @@ In this example there is a column in the first table that is not
 present in the second table, so the ``keys`` parameter must be used to specify
 the desired column names.
 
-.. EXAMPLE END
 
 .. _table-diff:
 
@@ -1312,7 +1278,6 @@ identical to :ref:`FITS diff <io-fits-differs>`.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Using Table Diff to Compare Tables
 
 The example below illustrates finding the difference between two tables::
 
@@ -1343,5 +1308,3 @@ The example below illustrates finding the difference between two tables::
     b>  NEW 2018-05-08   nan   9.0
   >>> identical
   False
-
-.. EXAMPLE END

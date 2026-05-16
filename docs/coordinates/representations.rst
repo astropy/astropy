@@ -151,7 +151,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Array Values and NumPy Array Method Analogs
 
 To pass array `~astropy.units.Quantity` objects to representations::
@@ -198,7 +197,6 @@ as they are compatible in their units and number of dimensions)::
   ValueError: value must be representable as CartesianRepresentation without loss of information.
 
 ..
-  EXAMPLE END
 
 .. _astropy-coordinates-representations-arithmetic:
 
@@ -222,7 +220,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Vector Arithmetic Operations with Representation Objects
 
 To see how vector arithmetic operations work with representation objects,
@@ -289,7 +286,6 @@ consider the following examples::
         (-4.00000000e+00, -3.00000000e+00, -12.)]]>
 
 ..
-  EXAMPLE END
 
 .. _astropy-coordinates-differentials:
 
@@ -310,7 +306,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Differentials and Derivatives of Representations
 
 To see how the ``Differential`` classes of representations works, consider the
@@ -350,10 +345,8 @@ important::
       (1.10714872, 0., 2.23606798)>
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Working with Proper Motions and Radial Velocities in Differential Objects
 
 Often, you may have just a proper motion or a radial velocity, but not both::
@@ -417,7 +410,6 @@ supply the ``base`` (representation)::
    re-representation of the differential will not necessarily be correct.
 
 ..
-  EXAMPLE END
 
 Attaching ``Differential`` Objects to ``Representation`` Objects
 ================================================================
@@ -431,7 +423,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Attaching Differential Objects to Representation Objects
 
 To store a single velocity differential with a position::
@@ -452,14 +443,12 @@ To store a single velocity differential with a position::
        (1., 2., 3.)>}
 
 ..
-  EXAMPLE END
 
 The ``Differential`` objects are stored as a Python dictionary on the
 ``Representation`` object with keys equal to the (string) unit with which the
 differential derivatives are taken (converted to SI).
 
 ..
-  EXAMPLE START
   Differential and Representation Object Storage
 
 In this case the key is ``'s'`` (second) because the ``Differential`` units are
@@ -482,10 +471,8 @@ specify multiple differentials::
       (4., 5., 6.)>
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Attaching Differential Objects to a Representation after Creation
 
 ``Differential`` objects can also be attached to a ``Representation`` after
@@ -513,10 +500,8 @@ This works for array data as well, as long as the shape of the
    (has differentials w.r.t.: 's')>
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Converting Positional Data to a New Representation
 
 As with a ``Representation`` instance without a differential, to convert the
@@ -550,10 +535,8 @@ must specify target classes for the ``Differential`` as well::
        ( 5.55111512e-17, 0.00000000e+00, 13.37908816)]>
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Shape-Changing Operations with Differential Objects
 
 Shape-changing operations (e.g., reshapes) are propagated to all
@@ -604,7 +587,6 @@ object and use this ``Differential``-free object for any arithmetic operation::
        (45., 105., 165.)]>
 
 ..
-  EXAMPLE END
 
 .. _astropy-coordinates-create-repr:
 

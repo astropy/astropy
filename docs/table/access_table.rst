@@ -367,7 +367,6 @@ We can check table data equality using two different methods:
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Checking Table Equality
 
 To check table equality::
 
@@ -408,7 +407,6 @@ To check table equality::
   False False False
    True  True False
 
-.. EXAMPLE END
 
 Formatted Printing
 ------------------
@@ -439,7 +437,6 @@ too large, then rows and/or columns are cut from the middle so it fits.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Printing Formatted Tables
 
 To print a formatted table::
 
@@ -474,7 +471,6 @@ To print a formatted table::
   2970 2971 2972 2973 2974 2975 2976 ...  2993  2994  2995  2996  2997  2998  2999
   Length = 100 rows
 
-  .. EXAMPLE END
 
 more() method
 ^^^^^^^^^^^^^
@@ -835,7 +831,6 @@ standard ``numpy`` mechanism for printing the array::
 Structured array columns
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Creating a formatted Astropy Table with a Structured Column
 
 For columns which are structured arrays, the format string must be a a string
 that uses `"new style" format strings
@@ -870,7 +865,6 @@ field values and controlling the overall output::
       1   1.23 (-20.0,   3.0)
       2  12.35 (  4.6,  33.0)
 
-.. EXAMPLE END
 
 .. _columns_with_units:
 
@@ -979,7 +973,6 @@ unacceptable.
 Examples
 """"""""
 
-.. EXAMPLE START: Bytestring Data in Astropy Tables
 
 The examples below illustrate dealing with bytestring data in ``astropy``::
 
@@ -1021,5 +1014,3 @@ The examples below illustrate dealing with bytestring data in ``astropy``::
     ------
         bä
        def
-
-.. EXAMPLE END

@@ -4,7 +4,6 @@ Create a new coordinate frame class for Mars
 ============================================
 
 ..
-  EXAMPLE START
   Create a new coordinate frame class for Mars
 
 This example describes how to subclass and define a custom coordinate frame for a
@@ -112,4 +111,3 @@ representations.
     ...     plt.draw()
 
 ..
-  EXAMPLE END

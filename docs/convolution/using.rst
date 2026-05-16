@@ -48,7 +48,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Smoothing Arrays with Custom Kernels
 
 Smooth a 1D array with a custom kernel and no boundary treatment::
@@ -70,10 +69,8 @@ interpolated using the kernel::
     array([1.6 , 3.6 , 5.  , 5.75, 6.5 , 7.25, 7.8 ])
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Constructing Kernels from Lists
 
 Kernels and arrays can be specified either as lists or as ``numpy``
@@ -98,7 +95,6 @@ And a 3D array as a list::
     >>> result = convolve(cube, kernel)  # doctest: +SKIP
 
 ..
-  EXAMPLE END
 
 Kernels
 =======

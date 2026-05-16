@@ -17,7 +17,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Reading from and Writing to HDF5 Files
 
 To read a table called ``data`` from an HDF5 file named ``observations.hdf5``,
@@ -59,7 +58,6 @@ used to ensure that the data is compressed on disk::
     >>> t.write('new_file.hdf5', path='updated_data', compression=True, overwrite=True)
 
 ..
-  EXAMPLE END
 
 Metadata and Mixin Columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

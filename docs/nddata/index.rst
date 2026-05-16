@@ -109,7 +109,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Working with Two-Dimensional Data Using NDData
 
 First, construct a two-dimensional image with a few sources, some Gaussian
@@ -161,7 +160,6 @@ The "cosmic ray" can be masked out in this test image, like this::
     >>> mask = (data == cosmic_ray_value)
 
 ..
-  EXAMPLE END
 
 `~astropy.nddata.CCDData` Class for Images
 ------------------------------------------
@@ -211,7 +209,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Image Arithmetic Including Uncertainty in NDData
 
 This example creates an uncertainty that is Poisson error, stored as a
@@ -236,7 +233,6 @@ changes as expected::
     np.float64(0.99999999999999989)
 
 ..
-  EXAMPLE END
 
 .. _nddata_reading_writing:
 
@@ -278,7 +274,6 @@ Examples
 ~~~~~~~~
 
 ..
-  EXAMPLE START
   Accessing Cutouts in NDData
 
 This example pulls out the large "galaxy" in the lower left of the image, with
@@ -366,7 +361,6 @@ the options for handling cutouts that go beyond the bounds of the original
 image, see :ref:`cutout_images`.
 
 ..
-  EXAMPLE END
 
 Image Resizing
 ^^^^^^^^^^^^^^
@@ -378,7 +372,6 @@ Example
 ~~~~~~~
 
 ..
-  EXAMPLE START
   Image Resizing in NDData
 
 This example reduces the size of the image by a factor of 4. Note that the
@@ -422,7 +415,6 @@ By default, both `~astropy.nddata.block_reduce` and
 `~astropy.nddata.block_replicate` conserve flux.
 
 ..
-  EXAMPLE END
 
 Other Image Classes
 -------------------

@@ -146,7 +146,6 @@ support manipulating tables with missing or invalid data.
 Mask
 ----
 
-.. EXAMPLE START: Manipulating Tables with Missing Data using Masks
 
 The mask for a column can be viewed and modified via the ``mask`` attribute::
 
@@ -178,12 +177,10 @@ To get the indices of masked elements, use an expression like::
   >>> t['a'].mask.nonzero()[0]  # doctest: +SKIP
   array([1])
 
-.. EXAMPLE END
 
 Filling
 -------
 
-.. EXAMPLE START: Manipulating Tables with Missing Data by Filling Masked Values
 
 The entries which are masked (i.e., missing or invalid) can be replaced with
 specified fill values. Filling a |MaskedColumn| produces a |Column|. Each
@@ -220,5 +217,3 @@ attribute.
   ---- ----
      1 1000
   1000    4
-
-.. EXAMPLE END

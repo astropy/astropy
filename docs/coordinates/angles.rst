@@ -23,7 +23,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Different Ways to Create an Angle Object
 
 There are a number of ways to create an |Angle|::
@@ -60,7 +59,6 @@ There are a number of ways to create an |Angle|::
     <Angle 10.2345 deg>
 
 ..
-  EXAMPLE END
 
 Representation
 ==============
@@ -72,7 +70,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Representation of Angle Object Values
 
 There are many ways to represent the value of an |Angle|::
@@ -118,7 +115,6 @@ There are many ways to represent the value of an |Angle|::
     np.str_('3.81972')
 
 ..
-  EXAMPLE END
 
 Usage
 =====
@@ -129,7 +125,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Arithmetic Operations Using Angle Objects
 
 To use |Angle| objects in arithmetic operations::
@@ -145,7 +140,6 @@ To use |Angle| objects in arithmetic operations::
     array(False, dtype=bool)
 
 ..
-  EXAMPLE END
 
 |Angle| objects can also be used for creating coordinate objects.
 
@@ -153,7 +147,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Creating Coordinate Objects with Angle Objects
 
 To create a coordinate object using an |Angle|::
@@ -164,7 +157,6 @@ To create a coordinate object using an |Angle|::
         (1., 0.5)>
 
 ..
-  EXAMPLE END
 
 Wrapping and Bounds
 ===================

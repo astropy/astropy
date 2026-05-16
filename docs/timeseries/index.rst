@@ -31,7 +31,6 @@ representing time series as measurements in discrete time bins, you will likely
 be interested in the |BinnedTimeSeries| subclass which we show in
 :ref:`using-timeseries`).
 
-.. EXAMPLE START: Using the TimeSeries Class
 
 To start off, we retrieve a FITS file containing a Kepler light curve for a
 source::
@@ -79,9 +78,7 @@ Time series are specialized kinds of |Table| objects::
     2009-05-11T18:06:13.328  1.014689e-03 ...  3.5967610e-03  3.1329831e-03
     2009-05-11T18:07:12.186  1.014713e-03 ...  3.5948332e-03  3.1252259e-03
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Slicing TimeSeries Objects Using Index Notation
 
 In the same way as for |Table| objects, the various columns and rows of
 |TimeSeries| objects can be accessed and sliced using index notation::
@@ -127,9 +124,7 @@ In the same way as for |Table| objects, the various columns and rows of
     2009-05-02T00:43:38.045  6.631103e-04 ...  1.5665225e-03 -1.4616371e-03
     2009-05-02T00:44:36.894  6.631350e-04 ...  1.5586632e-03 -1.4692718e-03
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Accessing the Time Column in TimeSeries Objects
 
 As seen in the previous examples, |TimeSeries| objects have a ``time``
 column, which is always the first column. This column can also be accessed using
@@ -198,7 +193,6 @@ To run the periodogram analysis, we use a box with a duration of 0.2 days::
     >>> transit_time  # doctest: +REMOTE_DATA
     <Time object: scale='tdb' format='isot' value=2009-05-02T20:51:16.338>
 
-.. EXAMPLE END
 
 For more information on available periodogram algorithms, see
 :ref:`periodogram-algorithms`.

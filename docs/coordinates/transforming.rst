@@ -19,7 +19,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Transforming Coordinates to Another Frame
 
 The recommended method of transformation is shown below::
@@ -48,10 +47,8 @@ accept either a frame name, class, or instance::
         ( 229.0146935, -1.05560349)>
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Using SkyCoord Objects as the Frame in Transformations
 
 As a convenience, it is also possible to use a |SkyCoord| object as the frame in
@@ -64,10 +61,8 @@ coordinate object into the frame of another::
         ( 229.0146935, -1.05560349)>
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Self Transformations of Coordinate Frames
 
 Some coordinate frames (including `~astropy.coordinates.FK5`,
@@ -111,7 +106,6 @@ back again without change, while low-level classes may lose information
 and hence often do not round-trip.
 
 ..
-  EXAMPLE END
 
 .. _astropy-coordinates-transforming-ephemerides:
 
@@ -130,7 +124,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Calculating Transformations Using Solar System Ephemeris
 
 To use the JPL ephemerides, use the
@@ -151,4 +144,3 @@ are available, including the requirements for using JPL ephemerides, see
 :ref:`astropy-coordinates-solarsystem`.
 
 ..
-  EXAMPLE END

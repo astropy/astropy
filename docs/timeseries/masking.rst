@@ -12,7 +12,6 @@ initialize a |TimeSeries| object using the ``masked=True`` option.
 Example
 -------
 
-.. EXAMPLE START: Masking Values in TimeSeries Objects
 
 We start by initializing a |TimeSeries| object with ``masked=True``::
 
@@ -54,5 +53,3 @@ and operate on columns to ignore the masked entries::
     np.float64(1.0)
     >>> np.ma.median(ts['flux'])
     np.float64(4.0)
-
-.. EXAMPLE END

@@ -25,7 +25,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Writing Text Tables Using astropy.io.ascii
 
 To write a formatted text table using the |write| function::
@@ -98,7 +97,6 @@ To disable this engine, use the parameter ``fast_writer``::
    >>> ascii.write(data, 'values.csv', format='csv', fast_writer=False)  # doctest: +SKIP
 
 ..
-  EXAMPLE END
 
 .. Note::
 
@@ -255,7 +253,6 @@ Examples
 """"""""
 
 ..
-  EXAMPLE START
   Writing MRT Format Tables Using astropy.io.ascii
 
 The command ``ascii.write(format='mrt')`` writes an ``astropy`` `~astropy.table.Table`
@@ -429,7 +426,6 @@ The following example shows a similar situation, using the option to send the ou
   ASASSN-14li 2019.0 100 0.0188 4e+03 2.55935e-08 2.044   450.0 183.754980099243  21.051410763027
 
 ..
-  EXAMPLE END
 
 .. attention::
 

@@ -16,7 +16,6 @@ specified.
 Evenly Sampled Time Series
 --------------------------
 
-.. EXAMPLE START: Constructing an Evenly Sampled TimeSeries
 
 The most convenient way to construct an evenly sampled |TimeSeries| is to
 specify the start time, the time interval, and the number of samples::
@@ -43,12 +42,10 @@ directly. Note that the ``n_samples`` argument is only needed if you are not
 also passing in data during initialization (see `Passing Data During
 Initialization`_).
 
-.. EXAMPLE END
 
 Arbitrarily Sampled Time Series
 -------------------------------
 
-.. EXAMPLE START: Constructing an Arbitrarily Sampled TimeSeries
 
 To construct a sampled time series with samples at arbitrary times, you can
 pass multiple times to the ``time`` argument::
@@ -81,7 +78,6 @@ argument.::
     2011-01-01T00:00:00.400
     2011-01-01T00:00:00.700
 
-.. EXAMPLE END
 
 .. _timeseries-binned-initializing:
 
@@ -99,7 +95,6 @@ arguments related to the times should be specified as described below.
 Equal-Sized Contiguous Bins
 ---------------------------
 
-.. EXAMPLE START: Initializing a Binned Time Series with Equal Contiguous Bins
 
 To create a binned time series with equal-size contiguous bins, it is sufficient
 to specify a start time as well as a bin size::
@@ -127,12 +122,10 @@ to specify a start time as well as a bin size::
 Note that the ``n_bins`` argument is only needed if you are not also passing in
 data during initialization (see `Passing Data During Initialization`_).
 
-.. EXAMPLE END
 
 Uneven Contiguous Bins
 ----------------------
 
-.. EXAMPLE START: Initializing a Binned Time Series with Uneven Contiguous Bins
 
 When creating a binned time series with uneven contiguous bins, the bin size can
 be changed to give multiple values (note that in this case ``n_bins`` is not
@@ -170,12 +163,10 @@ times as well as a single end time::
     2016-03-22T12:30:37.000               2.0
     2016-03-22T12:30:39.000               3.0
 
-.. EXAMPLE END
 
 Uneven Non-Contiguous Bins
 --------------------------
 
-.. EXAMPLE START: Initializing a Binned Time Series with Uneven Non-Contiguous
    Bins
 
 To create a binned time series with non-contiguous bins, you can either
@@ -214,7 +205,6 @@ Or in the most general case, you can also specify multiple times for
     2016-03-22T12:30:33.000                2.0
     2016-03-22T12:30:40.000                1.0
 
-.. EXAMPLE END
 
 Adding Data to the Time Series
 ==============================
@@ -226,7 +216,6 @@ as with the |Table| class.
 Passing Data During Initialization
 ----------------------------------
 
-.. EXAMPLE START: Adding Data to a TimeSeries Object During Initialization
 
 It is possible to pass data during the initialization of a |TimeSeries|
 object, as for |Table| objects. For instance::
@@ -248,12 +237,10 @@ object, as for |Table| objects. For instance::
     2016-03-22T12:30:37.000               2.0     5.0
     2016-03-22T12:30:39.000               3.0     6.0
 
-.. EXAMPLE END
 
 Adding Data After Initialization
 --------------------------------
 
-.. EXAMPLE START: Adding Data to a TimeSeries Object After Initialization
 
 Once a |TimeSeries| object is initialized, you can add columns/fields to it as
 you would for a |Table| object::
@@ -272,12 +259,10 @@ you would for a |Table| object::
     2016-03-22T12:30:40.000     6.0
     2016-03-22T12:30:43.000     4.0
 
-.. EXAMPLE END
 
 Adding Rows
 -----------
 
-.. EXAMPLE START: Adding Rows to a TimeSeries or BinnedTimeSeries
 
 Adding rows to |TimeSeries| or |BinnedTimeSeries| can be done using the
 :meth:`~astropy.table.Table.add_row` method, as for |Table| and |QTable|. This
@@ -300,5 +285,3 @@ method takes a dictionary where the keys are column names::
 
 If you want to be able to skip some values when adding rows, you should make
 sure that masking is enabled — see :ref:`timeseries-masking` for more details.
-
-.. EXAMPLE END

@@ -23,7 +23,6 @@ Examples
 ----------
 
 ..
-  EXAMPLE START
   Using 1D Kernels to Smooth Noisy Data
 
 One application of filtering is to smooth noisy data. In this case we
@@ -95,13 +94,11 @@ but will not work properly if NaN values are present in the data.
 >>> smoothed = np.convolve(data_1D, box_kernel.array, mode='same')
 
 ..
-  EXAMPLE END
 
 2D Kernels
 ----------
 
 ..
-  EXAMPLE START
   Using 2D Kernels to Smooth Noisy Data
 
 As all 2D kernels are symmetric, it is sufficient to specify the width in one
@@ -209,7 +206,6 @@ structures (i.e., background), but produces a negative ring around the source.
 The best choice for the filter strongly depends on the application.
 
 ..
-  EXAMPLE END
 
 Available Kernels
 =================
@@ -247,7 +243,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Adding and Subtracting Kernels in astropy.convolution
 
 One basic example of subtracting kernels would be the definition of a
@@ -272,7 +267,6 @@ explicitly:
 >>> SoG.normalize()
 
 ..
-  EXAMPLE END
 
 Convolution
 -----------
@@ -285,7 +279,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Convolving Kernels in astropy.convolution
 
 To convolve two kernels with each other:
@@ -320,7 +313,6 @@ Which, in most cases, will also be faster than the first method because only
 one convolution with the often times larger data array will be necessary.
 
 ..
-  EXAMPLE END
 
 Discretization
 ==============

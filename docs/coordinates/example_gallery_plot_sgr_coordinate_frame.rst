@@ -4,7 +4,6 @@ Create a new coordinate class (for the Sagittarius stream)
 ==========================================================
 
 ..
-  EXAMPLE START
   Create a new coordinate class (for the Sagittarius stream)
 
 This document describes in detail how to subclass and define a custom spherical
@@ -234,4 +233,3 @@ by the `~astropy.coordinates.Galactic` class.
     >>> plt.draw()
 
 ..
-  EXAMPLE END
