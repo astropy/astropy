@@ -384,6 +384,7 @@ astropy
 ├── sortedcontainers v2.1.0 (extra: test-all)
 ├── threadpoolctl v3.0.0 (extra: test-all)
 ├── uncompresspy v0.4.0 (extra: test-all)
+├── matplotlib v3.8.4 (extra: typing) (*)
 ├── narwhals v1.42.0 (extra: typing)
 ├── pandas-stubs v2.0.2.230605 (extra: typing)
 │   ├── numpy v2.0.0
