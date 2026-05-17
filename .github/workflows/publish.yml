@@ -26,7 +26,7 @@ jobs:
     # or if triggered manually via the workflow dispatch, or for a tag.
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef # v2.6.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@6ae6691dfae7f207db7b694e2bbe1c515cf907ab
     if: |
       github.repository == 'astropy/astropy' && (
         startsWith(github.ref, 'refs/tags/v') ||
@@ -45,6 +45,8 @@ jobs:
       anaconda_keep_n_latest: 10
       env: |
         EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
+        PIP_PRE: '1'
+        PIP_EXTRA_INDEX_URL: https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
 
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
