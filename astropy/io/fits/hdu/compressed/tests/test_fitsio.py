@@ -135,6 +135,10 @@ def fitsio_compressed_file_path(
         # output buffer too small". astropy's encoder handles the same combos.
         pytest.xfail("cfitsio HCOMPRESS encoder buffer-size bug for uint16 input")
 
+    if compression_type == "HCOMPRESS_1" and "i1" in dtype:
+        # Same buffer-sizing limitation in cfitsio applies to int8 input.
+        pytest.xfail("cfitsio HCOMPRESS encoder buffer-size bug for int8 input")
+
     if compression_type == "PLIO_1" and "f" in dtype:
         # fitsio fails with a compression error
         pytest.xfail("fitsio fails to write these")
@@ -322,6 +326,8 @@ def test_decompress_integers(nbytes, overflow, compression_type, kind, tmp_path)
 
 
 INTEGER_DTYPES_FULL_RANGE = [
+    "<i1",
+    ">i1",
     "<i2",
     ">i2",
     "<i4",
@@ -426,8 +432,13 @@ def test_integer_full_range_roundtrip(compression_type, dtype, tmp_path):
                     fts.write(data, compress=compression_type)
         return
 
-    # PLIO_1 also can't encode signed values outside [0, 2**24 - 1].
-    if compression_type == "PLIO_1" and (info.min < 0 or info.max > 2**24 - 1):
+    # PLIO_1 also can't encode signed values outside [0, 2**24 - 1]. int8 is
+    # exempt because the BZERO=-128 transform leaves the stored bytes in
+    # [0, 255], which PLIO_1 encodes fine.
+    is_int8 = np_dtype.kind == "i" and np_dtype.itemsize == 1
+    if compression_type == "PLIO_1" and (
+        (not is_int8 and info.min < 0) or info.max > 2**24 - 1
+    ):
         with pytest.raises(
             ValueError,
             match=r"data out of range for PLIO compression",

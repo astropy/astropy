@@ -138,11 +138,13 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
     """Test the classes CosmologyRead/Write."""
 
     @pytest.fixture(scope="class", params=cosmo_instances)
-    def cosmo(self, request):
+    @classmethod
+    def cosmo(cls, request):
         return getattr(cosmology.realizations, request.param)
 
     @pytest.fixture(scope="class")
-    def cosmo_cls(self, cosmo):
+    @classmethod
+    def cosmo_cls(cls, cosmo):
         return cosmo.__class__
 
     # ==============================================================
@@ -270,11 +272,13 @@ class TestCosmologyToFromFormat(ToFromFormatTestMixin):
     """Test Cosmology[To/From]Format classes."""
 
     @pytest.fixture(scope="class", params=cosmo_instances)
-    def cosmo(self, request):
+    @classmethod
+    def cosmo(cls, request):
         return getattr(cosmology.realizations, request.param)
 
     @pytest.fixture(scope="class")
-    def cosmo_cls(self, cosmo):
+    @classmethod
+    def cosmo_cls(cls, cosmo):
         return cosmo.__class__
 
     # ==============================================================

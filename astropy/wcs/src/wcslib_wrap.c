@@ -930,7 +930,6 @@ PyWcsprm_find_all_wcs(
     }
 
     if (PyList_SetItem(result, i, (PyObject *)subresult) == -1) {
-      Py_DECREF(subresult);
       Py_DECREF(result);
       wcsvfree(&nwcs, &wcs);
       return NULL;
@@ -4305,7 +4304,6 @@ PyWcsprm_get_tab(
     }
 
     if (PyList_SetItem(result, i, subresult) == -1) {
-      Py_DECREF(subresult);
       Py_DECREF(result);
       return NULL;
     }
@@ -4657,7 +4655,6 @@ int add_prj_codes(PyObject* module)
     for (k = 0; k < prj_ncode; k++) {
         code = PyUnicode_FromString(prj_codes[k]);
         if (PyList_SetItem(list, k, code)) {
-            Py_DECREF(code);
             Py_DECREF(list);
             return -1;
         }

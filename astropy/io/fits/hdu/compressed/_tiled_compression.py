@@ -620,6 +620,11 @@ def compress_image_data(
                 tile_data = (tile_data.astype(np.int64) - 2**31).astype(np.int32)
             elif tile_data.dtype.itemsize == 2:
                 tile_data = (tile_data.astype(np.int32) - 2**15).astype(np.int16)
+        elif tile_data.dtype.kind == "i" and tile_data.dtype.itemsize == 1:
+            # FITS BITPIX=8 storage is unsigned, so int8 input is recorded via
+            # BZERO=-128 and the stored bytes must be shifted by +128. Without
+            # this the BZERO=-128 applied on read offsets every value by 128.
+            tile_data = (tile_data.astype(np.int16) + 128).astype(np.uint8)
 
         settings = _update_tile_settings(settings, compression_type, tile_data.shape)
 

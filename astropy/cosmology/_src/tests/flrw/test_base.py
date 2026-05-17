@@ -75,7 +75,8 @@ class FLRWTest(
         )
 
     @pytest.fixture(scope="class")
-    def nonflatcosmo(self):
+    @classmethod
+    def nonflatcosmo(cls):
         """A non-flat cosmology used in equivalence tests."""
         return LambdaCDM(70, 0.4, 0.8)
 

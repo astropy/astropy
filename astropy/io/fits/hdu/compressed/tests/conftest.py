@@ -39,7 +39,7 @@ def _expand(*params):
 ALL_INTEGER_DTYPES = [
     "".join(ele)
     for ele in _expand(
-        [("<", ">"), ("i",), ("2", "4")],
+        [("<", ">"), ("i",), ("1", "2", "4")],
         [("<", ">"), ("u",), ("1", "2", "4")],
     )
 ]
