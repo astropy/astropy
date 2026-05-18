@@ -599,6 +599,7 @@ Core Package Contributors
 * Vital Fernández
 * Volodymyr Savchenko
 * VSN Reddy Janga
+* Wang Rui
 * Wilfred Tyler Gee
 * William Jamieson
 * Wolfgang Kerzendorf
