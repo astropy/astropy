@@ -1105,7 +1105,6 @@ def unpack(compressed_hdulist: HDUList) -> HDUList:
             data=compressed_hdulist[0].data, header=compressed_hdulist[0].header
         )
     else:
-        data_type = str(compressed_hdulist[1].data.dtype)
         data = compressed_hdulist[1].data
         primary_hdu = PrimaryHDU(data=data, header=compressed_hdulist[1].header)
     hdulist = [primary_hdu]
@@ -1115,16 +1114,15 @@ def unpack(compressed_hdulist: HDUList) -> HDUList:
         starting_extension = 1
     for hdu in compressed_hdulist[starting_extension:]:
         if isinstance(hdu, CompImageHDU):
+            # If the data has been lazy loaded, we need to actualize the data
+            # into an array.
             if hdu.data is None:
                 data = hdu.data
             else:
-                data_type = str(hdu.data.dtype)
                 data = np.array(hdu.data, hdu.data.dtype)
             hdulist.append(ImageHDU(data=data, header=hdu.header))
-        elif isinstance(hdu, BinTableHDU):
-            hdulist.append(BinTableHDU(data=hdu.data, header=hdu.header))
         else:
-            hdulist.append(ImageHDU(data=hdu.data, header=hdu.header))
+            hdulist.append(hdu.copy())
     return HDUList(hdulist)
 
 
@@ -1158,10 +1156,7 @@ def pack(
         hdulist = [primary_hdu]
     else:
         primary_hdu = PrimaryHDU()
-        if uncompressed_hdulist[0].data is None:
-            data = None
-        else:
-            data = np.ascontiguousarray(uncompressed_hdulist[0].data)
+        data = np.ascontiguousarray(uncompressed_hdulist[0].data)
         extname = uncompressed_hdulist[0].header.get("EXTNAME")
         quantize_level = extension_quantizations.get(extname, 64)
         compressed_hdu = CompImageHDU(
