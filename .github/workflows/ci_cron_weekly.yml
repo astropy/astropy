@@ -191,4 +191,8 @@ jobs:
             pip install -U --no-build-isolation pyerfa
             ASTROPY_USE_SYSTEM_ALL=1 pip install -v --no-build-isolation -e .[test]
             pip list
+            # A fresh CI runner has no ~/.astropy directory, but developer
+            # machines usually do. Create empty cache and config directories
+            # so we catch failures that only show up when they already exist.
+            python3 -c "from pathlib import Path; [(Path.home() / '.astropy' / d).mkdir(parents=True, exist_ok=True) for d in ('cache', 'config')]"
             python3 -m pytest --strict-markers --pyargs astropy -m "not hypothesis"

@@ -27,6 +27,7 @@ jobs:
       matrix:
         include:
           - branch: "main"
+          - branch: "v8.0.x"
           - branch: "v7.2.x"
     steps:
       - name: Trigger workflow dispatch for auto-update

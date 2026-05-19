@@ -7160,7 +7160,7 @@ Other Changes and Additions
   against the system libraries. [#9730]
 
 - The infrastructure of the package has been updated in line with the
-  APE 17 roadmap (https://github.com/astropy/astropy-APEs/blob/master/APE17.rst).
+  APE 17 roadmap (https://github.com/astropy/astropy-APEs/blob/main/APE17.rst).
   The main changes are that the ``python setup.py test`` and
   ``python setup.py build_docs`` commands will no longer work. The easiest
   way to replicate these commands is to install the tox
@@ -16516,7 +16516,7 @@ astropy.coordinates
 ^^^^^^^^^^^^^^^^^^^
 
 - The coordinates package has undergone major changes to implement
-  `APE5 <https://github.com/astropy/astropy-APEs/blob/master/APE5.rst>`_ .
+  `APE5 <https://github.com/astropy/astropy-APEs/blob/main/APE5.rst>`_ .
   These include backwards-incompatible changes, as the underlying framework
   has changed substantially. See the APE5 text and the package documentation
   for more details. [#2422]
@@ -16776,7 +16776,7 @@ Misc
   independent package, making it easier for Affiliated Packages to depend on
   these features.  astropy-helpers replaces/deprecates some of the submodules
   in the ``astropy`` package (see API Changes below).  See also
-  `APE 4 <https://github.com/astropy/astropy-APEs/blob/master/APE4.rst>`_
+  `APE 4 <https://github.com/astropy/astropy-APEs/blob/main/APE4.rst>`_
   for more details on the motivation behind and implementation of
   astropy-helpers.  [#1563]
 
