@@ -288,6 +288,47 @@ class TestTableFunctions(FitsTestCase):
 
         t.close()
 
+    def test_table_header_order(self):
+        # Make sure the table keywords are in the right order and are above other
+        # header keywords
+        table = Table({"col1": ["foo", "bar"], "col2": ["test1", "test2"]})
+        header = fits.Header()
+        header["a"] = "b"
+        header["c"] = "d"
+        table_hdu = fits.BinTableHDU(table, header=header)
+        table_hdu.add_checksum()
+
+        actual_header = list(table_hdu._header.cards)
+
+        expected_header = [
+            ("XTENSION", "BINTABLE", "binary table extension"),
+            ("BITPIX", 8, "array data type"),
+            ("NAXIS", 2, "number of array dimensions"),
+            ("NAXIS1", 8, "length of dimension 1"),
+            ("NAXIS2", 2, "length of dimension 2"),
+            ("PCOUNT", 0, "number of group parameters"),
+            ("GCOUNT", 1, "number of groups"),
+            ("TFIELDS", 2, "number of table fields"),
+            ("TTYPE1", "col1", ""),
+            ("TFORM1", "3A", ""),
+            ("TTYPE2", "col2", ""),
+            ("TFORM2", "5A", ""),
+            ("A", "b", ""),
+            ("C", "d", ""),
+            (
+                "CHECKSUM",
+                "XIamYIUlXIalXIUl",
+                "HDU checksum updated 2026-05-18T16:19:52",
+            ),
+            ("DATASUM", "2478295628", "data unit checksum updated 2026-05-18T16:19:52"),
+        ]
+        for actual, expected in zip(actual_header, expected_header):
+            actual_key, actual_value, _ = actual
+            expected_key, expected_value, _ = expected
+            assert actual_key == expected_key
+            if actual_key != "CHECKSUM":
+                assert actual_value == expected_value
+
     def test_ascii_table(self):
         # ASCII table
         a = fits.open(self.data("ascii.fits"))
