@@ -1,4 +1,0 @@
-Simplified private ``_src/`` ``__init__.py`` files in ``astropy.cosmology`` to
-use wildcard imports instead of explicit per-symbol imports, enabled by fixing
-``__all__`` entries in three leaf modules (``comparison``, ``darkenergy``,
-``parameter/utils``). No public API changes.
