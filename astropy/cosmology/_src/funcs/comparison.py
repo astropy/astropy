@@ -20,7 +20,7 @@ from astropy import table
 # isort: split
 from astropy.cosmology._src.core import Cosmology
 
-__all__: list[str] = []  # Nothing is scoped here
+__all__ = ("cosmology_equal",)
 
 
 ##############################################################################
