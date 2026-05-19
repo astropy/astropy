@@ -1573,3 +1573,87 @@ def test_compimghdu_with_primary_header_no_dual_keywords(tmp_path):
         bintable_header = hdul[1].header
         assert "ZSIMPLE" in bintable_header
         assert "ZTENSION" not in bintable_header
+
+
+def _simple_str_header_parser(header_str):
+    """
+    A simple parser to check that the header on disk makes sense.
+    We throw away comments, checksum, and datasum keywords.
+    """
+    chunk_size = 80
+    header = []
+    for i in range(0, len(header_str), chunk_size):
+        chunk = header_str[i : i + chunk_size]
+        bytes_chunk = bytes(chunk)
+        if len(bytes_chunk.strip()) == 0:
+            continue
+        if bytes_chunk.startswith(b"COMMENT"):
+            continue
+        if bytes_chunk.strip() == b"END":
+            break
+        key_value = bytes_chunk.split(b"/")[0]
+        key, value = key_value.split(b"=", 1)
+        key = key.strip()
+        value = value.strip()
+        header.append((key, value))
+
+    return header
+
+
+def test_compressed_hdu_header_order():
+    """Test that the headers cards end up in the correct order for the
+    compressed image HDU."""
+
+    rng = np.random.default_rng(seed=5301753)
+    header = fits.Header()
+    header["a"] = "b"
+    header["c"] = "d"
+    nx, ny = 512, 517
+    compressed_hdu = fits.CompImageHDU(
+        data=rng.poisson(1000, size=(ny, nx)).astype(np.int16),
+        header=header,
+    )
+
+    expected_header = [
+        (b"XTENSION", b"'BINTABLE'"),
+        (b"BITPIX", b"8"),
+        (b"NAXIS", b"2"),
+        (b"NAXIS1", b"8"),
+        (b"NAXIS2", b"517"),
+        (b"PCOUNT", b"257628"),
+        (b"GCOUNT", b"1"),
+        (b"TFIELDS", b"1"),
+        (b"TTYPE1", b"'COMPRESSED_DATA'"),
+        (b"TFORM1", b"'1PB(509)'"),
+        (b"ZIMAGE", b"T"),
+        (b"ZTENSION", b"'IMAGE   '"),
+        (b"ZBITPIX", b"16"),
+        (b"ZNAXIS", b"2"),
+        (b"ZNAXIS1", b"512"),
+        (b"ZNAXIS2", b"517"),
+        (b"ZPCOUNT", b"0"),
+        (b"ZGCOUNT", b"1"),
+        (b"ZTILE1", b"512"),
+        (b"ZTILE2", b"1"),
+        (b"ZCMPTYPE", b"'RICE_1  '"),
+        (b"ZNAME1", b"'BLOCKSIZE'"),
+        (b"ZVAL1", b"32"),
+        (b"ZNAME2", b"'BYTEPIX '"),
+        (b"ZVAL2", b"2"),
+        (b"EXTNAME", b"'COMPRESSED_IMAGE'"),
+        (b"A", b"'b       '"),
+        (b"C", b"'d       '"),
+    ]
+    hdulist = fits.HDUList([fits.PrimaryHDU(), compressed_hdu])
+    buffer = io.BytesIO()
+    hdulist.writeto(buffer)
+    buffer.seek(0)
+    # Throw away the primary header
+    buffer.read(2880)
+    actual_header = _simple_str_header_parser(buffer.read(2880))
+    for actual, expected in zip(actual_header, expected_header):
+        actual_key, actual_value = actual
+        expected_key, expected_value = expected
+        assert actual_key == expected_key
+        if actual_key != "CHECKSUM":
+            assert actual_value == expected_value
