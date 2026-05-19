@@ -344,10 +344,7 @@ def _image_header_to_empty_bintable(
         # floating point image has 'COMPRESSED_DATA',
         # 'GZIP_COMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
         # lossless compression, per CFITSIO)
-        ncols = 4
-        bintable.header.set(
-            "TFIELDS", ncols, "number of fields in each row", after="GCOUNT"
-        )
+        bintable.header["TFIELDS"] = 4
 
         ttype2 = "GZIP_COMPRESSED_DATA"
 
