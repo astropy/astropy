@@ -454,7 +454,11 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         return getattr(self, self.components[0]).shape
 
     @shape.setter
+    @deprecated(since="9.0", alternative="_set_shape()")
     def shape(self, shape):
+        self._set_shape(shape)
+
+    def _set_shape(self, shape):
         # We keep track of arrays that were already reshaped since we may have
         # to return those to their original shape if a later shape-setting
         # fails. (This can happen since coordinates are broadcast together.)

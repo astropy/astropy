@@ -905,7 +905,11 @@ class TimeBase(MaskableShapedLikeNDArray):
         return self._time.jd1.shape
 
     @shape.setter
+    @deprecated(since="9.0", alternative="_set_shape()")
     def shape(self, shape):
+        self._set_shape(shape)
+
+    def _set_shape(self, shape):
         del self.cache
 
         # We have to keep track of arrays that were already reshaped,
