@@ -34,10 +34,26 @@ Exceptions
 import io
 import re
 from textwrap import dedent
-from warnings import warn
 
 from astropy import config as _config
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.xml.exceptions import (
+    XMLWarning,
+    raise_exception,
+    reraise,
+    warn,
+)
+from astropy.utils.xml.exceptions import (
+    _format_message as _xml_format_message,
+)
+from astropy.utils.xml.exceptions import (
+    _suppressed_warning as _xml_suppressed_warning,
+)
+from astropy.utils.xml.exceptions import (
+    warn_or_raise as _xml_warn_or_raise,
+)
+from astropy.utils.xml.exceptions import (
+    warn_unknown_attrs as _xml_warn_unknown_attrs,
+)
 
 __all__ = [
     "Conf",
@@ -74,92 +90,58 @@ conf = Conf()
 
 
 def _format_message(message, name, config=None, pos=None):
-    if config is None:
-        config = {}
-    if pos is None:
-        pos = ("?", "?")
-    filename = config.get("filename", "?")
-    return f"{filename}:{pos[0]}:{pos[1]}: {name}: {message}"
+    return _xml_format_message(message, name, config, pos)
 
 
 def _suppressed_warning(warning, config, stacklevel=2):
-    warning_class = type(warning)
-    config.setdefault("_warning_counts", {}).setdefault(warning_class, 0)
-    config["_warning_counts"][warning_class] += 1
-    message_count = config["_warning_counts"][warning_class]
-    if message_count <= conf.max_warnings:
-        if message_count == conf.max_warnings:
-            warning.formatted_message += (
-                " (suppressing further warnings of this type...)"
-            )
-        warn(warning, stacklevel=stacklevel + 1)
+    return _xml_suppressed_warning(
+        warning, config, conf.max_warnings, stacklevel=stacklevel
+    )
 
 
 def warn_or_raise(
     warning_class, exception_class=None, args=(), config=None, pos=None, stacklevel=1
 ):
-    """
-    Warn or raise an exception, depending on the verify setting.
-    """
-    if config is None:
-        config = {}
-    # NOTE: the default here is deliberately warn rather than ignore, since
-    # one would expect that calling warn_or_raise without config should not
-    # silence the warnings.
-    config_value = config.get("verify", "warn")
-    if config_value == "exception":
-        if exception_class is None:
-            exception_class = warning_class
-        vo_raise(exception_class, args, config, pos)
-    elif config_value == "warn":
-        vo_warn(warning_class, args, config, pos, stacklevel=stacklevel + 1)
+    return _xml_warn_or_raise(
+        warning_class,
+        exception_class=exception_class,
+        args=args,
+        config=config,
+        pos=pos,
+        stacklevel=stacklevel,
+        max_warnings=conf.max_warnings,
+    )
 
 
 def vo_raise(exception_class, args=(), config=None, pos=None):
-    """
-    Raise an exception, with proper position information if available.
-    """
-    if config is None:
-        config = {}
-    raise exception_class(args, config, pos)
+    return raise_exception(exception_class, args, config, pos)
 
 
 def vo_reraise(exc, config=None, pos=None, additional=""):
-    """
-    Raise an exception, with proper position information if available.
-
-    Restores the original traceback of the exception, and should only
-    be called within an "except:" block of code.
-    """
-    if config is None:
-        config = {}
-    message = _format_message(str(exc), exc.__class__.__name__, config, pos)
-    if message.split()[0] == str(exc).split()[0]:
-        message = str(exc)
-    if len(additional):
-        message += " " + additional
-    exc.args = (message,)
-    raise exc
+    return reraise(exc, config, pos, additional=additional)
 
 
 def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
-    """
-    Warn, with proper position information if available.
-    """
-    if config is None:
-        config = {}
-    # NOTE: the default here is deliberately warn rather than ignore, since
-    # one would expect that calling warn_or_raise without config should not
-    # silence the warnings.
-    if config.get("verify", "warn") != "ignore":
-        warning = warning_class(args, config, pos)
-        _suppressed_warning(warning, config, stacklevel=stacklevel + 1)
+    return warn(
+        warning_class,
+        args,
+        config,
+        pos,
+        stacklevel=stacklevel,
+        max_warnings=conf.max_warnings,
+    )
 
 
-def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
-    for attr in attrs:
-        if attr not in good_attr:
-            vo_warn(W48, (attr, element), config, pos, stacklevel=stacklevel + 1)
+def warn_unknown_attrs(element, attrs, config, pos, good_attr=None, stacklevel=1):
+    return _xml_warn_unknown_attrs(
+        W48,
+        element,
+        attrs,
+        config,
+        pos,
+        good_attr=good_attr,
+        stacklevel=stacklevel,
+    )
 
 
 _warning_pat = re.compile(
@@ -210,37 +192,7 @@ def parse_vowarning(line):
     return result
 
 
-class VOWarning(AstropyWarning):
-    """
-    The base class of all VO warnings and exceptions.
-
-    Handles the formatting of the message with a warning or exception
-    code, filename, line and column number.
-    """
-
-    default_args = ()
-    message_template = ""
-
-    def __init__(self, args, config=None, pos=None):
-        if config is None:
-            config = {}
-        if not isinstance(args, tuple):
-            args = (args,)
-        msg = self.message_template.format(*args)
-
-        self.formatted_message = _format_message(
-            msg, self.__class__.__name__, config, pos
-        )
-        Warning.__init__(self, self.formatted_message)
-
-    def __str__(self):
-        return self.formatted_message
-
-    @classmethod
-    def get_short_name(cls):
-        if len(cls.default_args):
-            return cls.message_template.format(*cls.default_args)
-        return cls.message_template
+VOWarning = XMLWarning
 
 
 class VOTableChangeWarning(VOWarning, SyntaxWarning):

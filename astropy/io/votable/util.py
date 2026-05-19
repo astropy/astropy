@@ -4,87 +4,17 @@ Various utilities and cookbook-like things.
 """
 
 # STDLIB
-import codecs
-import contextlib
-import gzip
-import io
-import os
 import re
 
 from packaging.version import Version
+
+from astropy.utils.xml.io import convert_to_writable_filelike
 
 __all__ = [
     "coerce_range_list_param",
     "convert_to_writable_filelike",
     "stc_reference_frames",
 ]
-
-
-@contextlib.contextmanager
-def convert_to_writable_filelike(fd, compressed=False):
-    """
-    Returns a writable file-like object suitable for streaming output.
-
-    Parameters
-    ----------
-    fd : str or file-like
-        May be:
-
-            - a file path string, in which case it is opened, and the file
-              object is returned.
-
-            - an object with a :meth:``write`` method, in which case that
-              object is returned.
-
-    compressed : bool, optional
-        If `True`, create a gzip-compressed file.  (Default is `False`).
-
-    Returns
-    -------
-    fd : :term:`file-like (writeable)`
-    """
-    if isinstance(fd, str):
-        fd = os.path.expanduser(fd)
-        if fd.endswith(".gz") or compressed:
-            with gzip.GzipFile(filename=fd, mode="wb") as real_fd:
-                encoded_fd = io.TextIOWrapper(real_fd, encoding="utf8")
-                yield encoded_fd
-                encoded_fd.flush()
-                real_fd.flush()
-                return
-        else:
-            with open(fd, "w", encoding="utf8") as real_fd:
-                yield real_fd
-                return
-    elif hasattr(fd, "write"):
-        assert callable(fd.write)
-
-        if compressed:
-            fd = gzip.GzipFile(fileobj=fd, mode="wb")
-
-        # If we can't write Unicode strings, use a codecs.StreamWriter
-        # object
-        needs_wrapper = False
-        try:
-            fd.write("")
-        except TypeError:
-            needs_wrapper = True
-
-        if not hasattr(fd, "encoding") or fd.encoding is None:
-            needs_wrapper = True
-
-        if needs_wrapper:
-            yield codecs.getwriter("utf-8")(fd)
-        else:
-            yield fd
-
-        fd.flush()
-        if isinstance(fd, gzip.GzipFile):
-            fd.close()
-
-        return
-    else:
-        raise TypeError("Can not be coerced to writable file-like object")
 
 
 # <http://www.ivoa.net/documents/REC/DM/STC-20071030.html>
