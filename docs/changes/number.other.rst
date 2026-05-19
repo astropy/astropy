@@ -1,0 +1,1 @@
+Removed deprecated methods ``find_mod_objs`` and ``isinstancemethod`` from the ``astropy.utils.introspection`` module and their respective tests.  
