@@ -460,7 +460,7 @@ class Parameter:
         return self._internal_value.shape
 
     @shape.setter
-    @deprecated(since="9.0", alternative="_set_shape()")
+    @deprecated(since="9.0")
     def shape(self, value):
         self._set_shape(value)
 

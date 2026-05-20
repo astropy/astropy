@@ -905,7 +905,7 @@ class TimeBase(MaskableShapedLikeNDArray):
         return self._time.jd1.shape
 
     @shape.setter
-    @deprecated(since="9.0", alternative="_set_shape()")
+    @deprecated(since="9.0")
     def shape(self, shape):
         self._set_shape(shape)
 
