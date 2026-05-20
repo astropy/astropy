@@ -311,7 +311,14 @@ class IERS(QTable):
         utc = jd1 - (MJD_ZERO + mjd) + jd2
         return mjd, utc
 
-    def ut1_utc(self, jd1, jd2=0.0, return_status=False):
+    def ut1_utc(
+        self,
+        jd1,
+        jd2=0.0,
+        interpolation="linear",
+        interpolation_order=None,
+        return_status=False,
+    ):
         """Interpolate UT1-UTC corrections in IERS Table for given dates.
 
         Parameters
@@ -339,10 +346,22 @@ class IERS(QTable):
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
         return self._interpolate(
-            jd1, jd2, ["UT1_UTC"], self.ut1_utc_source if return_status else None
+            jd1,
+            jd2,
+            ["UT1_UTC"],
+            self.ut1_utc_source if return_status else None,
+            interpolation=interpolation,
+            interpolation_order=interpolation_order,
         )
 
-    def dcip_xy(self, jd1, jd2=0.0, return_status=False):
+    def dcip_xy(
+        self,
+        jd1,
+        jd2=0.0,
+        interpolation="linear",
+        interpolation_order=None,
+        return_status=False,
+    ):
         """Interpolate CIP corrections in IERS Table for given dates.
 
         Parameters
@@ -375,9 +394,18 @@ class IERS(QTable):
             jd2,
             ["dX_2000A", "dY_2000A"],
             self.dcip_source if return_status else None,
+            interpolation=interpolation,
+            interpolation_order=interpolation_order,
         )
 
-    def pm_xy(self, jd1, jd2=0.0, return_status=False):
+    def pm_xy(
+        self,
+        jd1,
+        jd2=0.0,
+        interpolation="linear",
+        interpolation_order=None,
+        return_status=False,
+    ):
         """Interpolate polar motions from IERS Table for given dates.
 
         Parameters
@@ -407,7 +435,12 @@ class IERS(QTable):
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
         return self._interpolate(
-            jd1, jd2, ["PM_x", "PM_y"], self.pm_source if return_status else None
+            jd1,
+            jd2,
+            ["PM_x", "PM_y"],
+            self.pm_source if return_status else None,
+            interpolation=interpolation,
+            interpolation_order=interpolation_order,
         )
 
     def _check_interpolate_indices(self, indices_orig, indices_clipped, max_input_mjd):
@@ -437,7 +470,178 @@ class IERS(QTable):
                 warn(msg, IERSDegradedAccuracyWarning)
             # No IERS data covering the time(s) and user is OK with no warning.
 
-    def _interpolate(self, jd1, jd2, columns, source=None):
+    def _lagrange_interp(self, x_vals, y_vals, xint):
+        val = np.zeros((y_vals.shape[1:]), dtype=y_vals.dtype)
+        n = len(x_vals)
+
+        for i in range(n):
+            term = y_vals[i]
+            for j in range(n):
+                if i != j:
+                    term *= (xint - x_vals[j]) / (x_vals[i] - x_vals[j])
+            val += term
+
+        return val
+
+    def _get_ray_luni_solar_tides(self, rjd):
+        half_pi = np.pi / 2
+        T = (rjd - 51544.5) / 36525.0
+
+        L = (
+            -0.00024470 * T**4
+            + 0.051635 * T**3
+            + 31.8792 * T**2
+            + 1717915923.2178 * T
+            + 485868.249036
+        )
+        L = np.mod(L, 1296000)
+
+        cap_f = (
+            0.00000417 * T**4
+            - 0.001037 * T**3
+            - 12.7512 * T**2
+            + 1739527262.8478 * T
+            + 335779.526232
+        )
+        cap_f = np.mod(cap_f, 1296000)
+
+        cap_d = (
+            -0.00003169 * T**4
+            + 0.006593 * T**3
+            - 6.3706 * T**2
+            + 1602961601.2090 * T
+            + 1072260.70369
+        )
+        cap_d = np.mod(cap_d, 1296000)
+
+        omega = (
+            -0.00005939 * T**4
+            + 0.007702 * T**3
+            + 7.4722 * T**2
+            - 6962890.2665 * T
+            + 450160.398036
+        )
+        omega = np.mod(omega, 1296000)
+
+        theta = (
+            67310.54841
+            + (876600 * 3600 + 8640184.812866) * T
+            + 0.093104 * T**2
+            - 6.2e-6 * T**3
+        ) * 15.0 + 648000.0
+
+        arg7 = (
+            np.mod(
+                (-L - 2.0 * cap_f - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi
+            )
+            - half_pi
+        )
+        arg1 = (
+            np.mod((-2.0 * cap_f - 2.0 * omega + theta) * np.pi / 648000.0, 2 * np.pi)
+            - half_pi
+        )
+        arg2 = (
+            np.mod(
+                (-2.0 * cap_f + 2.0 * cap_d - 2.0 * omega + theta) * np.pi / 648000.0,
+                2 * np.pi,
+            )
+            - half_pi
+        )
+        arg3 = np.mod(theta * np.pi / 648000.0, 2 * np.pi) + half_pi
+        arg4 = np.mod(
+            (-L - 2.0 * cap_f - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi
+        )
+        arg5 = np.mod(
+            (-2.0 * cap_f - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0, 2 * np.pi
+        )
+        arg6 = np.mod(
+            (-2.0 * cap_f + 2.0 * cap_d - 2.0 * omega + 2.0 * theta) * np.pi / 648000.0,
+            2 * np.pi,
+        )
+        arg8 = np.mod((2.0 * theta) * np.pi / 648000.0, 2 * np.pi)
+
+        arg = np.stack([arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8], axis=0)
+
+        corx_sin = np.array(
+            [
+                -0.133,  # ARG1
+                -0.050,  # ARG2
+                -0.152,  # ARG3
+                -0.057,  # ARG4
+                -0.330,  # ARG5
+                -0.145,  # ARG6
+                -0.026,  # ARG7
+                -0.036,  # ARG8
+            ]
+        )
+
+        corx_cos = np.array(
+            [
+                0.049,  # ARG1
+                0.025,  # ARG2
+                0.078,  # ARG3
+                -0.013,  # ARG4
+                -0.028,  # ARG5
+                0.064,  # ARG6
+                0.006,  # ARG7
+                0.017,  # ARG8
+            ]
+        )
+
+        cory_sin = np.array(
+            [-0.049, -0.025, -0.078, 0.011, 0.037, 0.059, -0.006, 0.018]
+        )
+
+        cory_cos = np.array(
+            [-0.133, -0.050, -0.152, 0.033, 0.196, 0.087, -0.026, 0.022]
+        )
+
+        cort_sin = np.array(
+            [0.1210, 0.0286, 0.0864, -0.0380, -0.1617, -0.0759, 0.0245, -0.0196]
+        )
+
+        cort_cos = np.array(
+            [0.1605, 0.0516, 0.1771, -0.0154, -0.0720, -0.0004, 0.0503, -0.0038]
+        )
+
+        sin_vals = np.sin(arg)
+        cos_vals = np.cos(arg)
+
+        ndims = len(arg.shape)
+        for i in range(ndims - 1):
+            corx_sin = corx_sin[:, np.newaxis]
+            corx_cos = corx_cos[:, np.newaxis]
+            cory_sin = cory_sin[:, np.newaxis]
+            cory_cos = cory_cos[:, np.newaxis]
+            cort_sin = cort_sin[:, np.newaxis]
+            cort_cos = cort_cos[:, np.newaxis]
+
+        dx_sin = np.sum(corx_sin * sin_vals, axis=0)
+        dx_cos = np.sum(corx_cos * cos_vals, axis=0)
+        dy_sin = np.sum(cory_sin * sin_vals, axis=0)
+        dy_cos = np.sum(cory_cos * cos_vals, axis=0)
+        dt_sin = np.sum(cort_sin * sin_vals, axis=0)
+        dt_cos = np.sum(cort_cos * cos_vals, axis=0)
+
+        dx = dx_sin + dx_cos
+        dy = dy_sin + dy_cos
+        dt = dt_sin + dt_cos
+
+        dx *= 1.0e-3
+        dy *= 1.0e-3
+        dt *= 0.1e-3
+
+        return dx, dy, dt
+
+    def _interpolate(
+        self,
+        jd1,
+        jd2,
+        columns,
+        source=None,
+        interpolation="linear",
+        interpolation_order=None,
+    ):
         mjd, utc = self.mjd_utc(jd1, jd2)
         # enforce array
         is_scalar = not hasattr(mjd, "__array__") or mjd.ndim == 0
@@ -454,22 +658,58 @@ class IERS(QTable):
 
         # Get index to MJD at or just below given mjd, clipping to ensure we
         # stay in range of table (status will be set below for those outside)
-        i1 = np.clip(i, 1, len(self) - 1)
-        i0 = i1 - 1
-        mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
+        if interpolation == "linear":
+            num_points = 2
+        elif interpolation == "lagrange":
+            num_points = interpolation_order or 4
+        else:
+            raise ValueError(f"Unknown interpolation method: {interpolation}")
+        i1 = np.clip(i, num_points - 1, len(self) - 1)
+        i0 = i1 - num_points + 1
         results = []
         for column in columns:
-            val_0, val_1 = self[column][i0], self[column][i1]
-            d_val = val_1 - val_0
-            if column == "UT1_UTC":
-                # Check & correct for possible leap second (correcting diff.,
-                # not 1st point, since jump can only happen right at 2nd point)
-                d_val -= d_val.round()
-            # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
-            # may want to follow IERS gazette #13 for more precise
-            # interpolation and correction for tidal effects;
-            # https://maia.usno.navy.mil/iers-gaz13)
-            val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
+            if interpolation == "lagrange":
+                indices = np.arange(num_points)[:, *([None] * len(i0.shape))] + i0[None]
+                mjds = self["MJD"][indices].value
+                vals = self[column][indices].value
+
+                if column == "UT1_UTC":
+                    # transform to ut1-tai by subtracting the leap seconds
+                    leap_seconds = np.round(np.diff(vals, axis=0, prepend=0))
+                    leap_seconds = np.cumsum(leap_seconds, axis=0)
+                    vals -= leap_seconds
+
+                    # transform to ut1r-tai by subtracting the ray-luni-solar tides
+                    _, _, dt = self._get_ray_luni_solar_tides(mjds)
+                    vals += dt
+
+                # Lagrange interpolation
+                val = self._lagrange_interp(mjds, vals, mjd)
+
+                if column == "UT1_UTC":
+                    # transform back to ut1-tai by adding the ray-luni-solar tides
+                    dt = np.choose(i - i0 - 1, dt, mode="wrap")
+                    val -= dt
+
+                    # transform back to ut1-utc by adding the leap seconds
+                    leap_seconds = np.choose(i - i0 - 1, leap_seconds, mode="wrap")
+                    val += leap_seconds
+
+                val = val * self[column].unit
+
+            elif interpolation == "linear":
+                mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
+                val_0, val_1 = self[column][i0], self[column][i1]
+                d_val = val_1 - val_0
+
+                if column == "UT1_UTC":
+                    d_val -= np.round(d_val)
+
+                # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
+                # may want to follow IERS gazette #13 for more precise
+                # interpolation and correction for tidal effects;
+                # https://maia.usno.navy.mil/iers-gaz13)
+                val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
 
             # Do not extrapolate outside range, instead just propagate last values.
             val[i == 0] = self[column][0]
