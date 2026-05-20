@@ -10,6 +10,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import ascii
 from astropy.io.misc.pandas import connect
 from astropy.table import QTable, Table
+from astropy.utils.compat.optional_deps import HAS_OPENPYXL
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 # Check dependencies
@@ -18,12 +19,13 @@ pandas = pytest.importorskip("pandas")
 connect.import_html_libs()
 HAS_HTML_DEPS = connect._HAS_LXML or (connect._HAS_BS4 and connect._HAS_HTML5LIB)
 
+HAS_EXCEL_DEPS = HAS_OPENPYXL
 
 WRITE_FMTS = [fmt for fmt in connect.PANDAS_FMTS if "write" in connect.PANDAS_FMTS[fmt]]
 
 
 @pytest.mark.parametrize("fmt", WRITE_FMTS)
-def test_read_write_format(fmt):
+def test_read_write_format(tmp_path, fmt):
     """
     Test round-trip through pandas write/read for supported formats.
 
@@ -33,6 +35,10 @@ def test_read_write_format(fmt):
     # Skip the reading tests
     if fmt == "html" and not HAS_HTML_DEPS:
         pytest.skip("Missing lxml or bs4 + html5lib for HTML read/write test")
+    if fmt == "excel" and not HAS_EXCEL_DEPS:
+        pytest.skip(
+            "Missing pandas Excel writer/reader dependencies for Excel read/write test"
+        )
 
     pandas_fmt = "pandas." + fmt
     # Explicitly provide dtype to avoid casting 'a' to int32.
@@ -40,11 +46,16 @@ def test_read_write_format(fmt):
     t = Table(
         [[1, 2, 3], [1.0, 2.5, 5.0], ["a", "b", "c"]], dtype=(np.int64, np.float64, str)
     )
-    buf = StringIO()
-    t.write(buf, format=pandas_fmt)
 
-    buf.seek(0)
-    t2 = Table.read(buf, format=pandas_fmt)
+    if fmt == "excel":
+        tmpfile = tmp_path / "test.xlsx"
+        t.write(tmpfile, format=pandas_fmt)
+        t2 = Table.read(tmpfile, format=pandas_fmt)
+    else:
+        buf = StringIO()
+        t.write(buf, format=pandas_fmt)
+        buf.seek(0)
+        t2 = Table.read(buf, format=pandas_fmt)
 
     assert t.colnames == t2.colnames
     assert np.all(t == t2)
@@ -53,7 +64,10 @@ def test_read_write_format(fmt):
 @pytest.mark.parametrize("fmt", WRITE_FMTS)
 def test_write_overwrite(tmp_path, fmt):
     """Test overwriting."""
-    tmpfile = tmp_path / f"test.{fmt}"
+    if fmt == "excel":
+        tmpfile = tmp_path / "test.xlsx"
+    else:
+        tmpfile = tmp_path / f"test.{fmt}"
     pandas_fmt = f"pandas.{fmt}"
 
     # Explicitly provide dtype to avoid casting 'a' to int32.
