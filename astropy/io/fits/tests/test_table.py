@@ -298,7 +298,7 @@ class TestTableFunctions(FitsTestCase):
         table_hdu = fits.BinTableHDU(table, header=header)
         table_hdu.add_checksum()
 
-        actual_header = list(table_hdu._header.cards)
+        actual_header = table_hdu.header.cards
 
         expected_header = [
             ("XTENSION", "BINTABLE", "binary table extension"),
