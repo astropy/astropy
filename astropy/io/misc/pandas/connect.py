@@ -16,6 +16,7 @@ __all__ = ["PANDAS_FMTS"]
 # customization of all options.
 PANDAS_FMTS = {
     "csv": {"read": {}, "write": {"index": False}},
+    "excel": {"read": {}, "write": {"index": False}},
     "fwf": {"read": {}},  # No writer
     "html": {"read": {}, "write": {"index": False}},
     "json": {"read": {}, "write": {}},
@@ -25,9 +26,19 @@ PANDAS_PREFIX = "pandas."
 
 # Imports for reading HTML
 _IMPORTS = False
+_HTML_IMPORTS = False
 _HAS_BS4 = False
 _HAS_LXML = False
 _HAS_HTML5LIB = False
+
+_HAS_OPENPYXL = False
+
+
+def import_excel_libs():
+    """Try importing dependencies for reading/writing Excel files."""
+    global _HAS_OPENPYXL
+
+    from astropy.utils.compat.optional_deps import HAS_OPENPYXL as _HAS_OPENPYXL
 
 
 def import_html_libs():
@@ -38,8 +49,8 @@ def import_html_libs():
     # import things we need
     # but make this done on a first use basis
 
-    global _IMPORTS
-    if _IMPORTS:
+    global _HTML_IMPORTS
+    if _HTML_IMPORTS:
         return
 
     global _HAS_BS4, _HAS_LXML, _HAS_HTML5LIB
@@ -48,7 +59,7 @@ def import_html_libs():
     from astropy.utils.compat.optional_deps import HAS_HTML5LIB as _HAS_HTML5LIB
     from astropy.utils.compat.optional_deps import HAS_LXML as _HAS_LXML
 
-    _IMPORTS = True
+    _HTML_IMPORTS = True
 
 
 def _pandas_read(fmt, filespec, **kwargs):
@@ -73,6 +84,12 @@ def _pandas_read(fmt, filespec, **kwargs):
         if not _HAS_LXML and _HAS_HTML5LIB and _HAS_BS4:
             read_kwargs["flavor"] = "bs4"
 
+    # Special case for Excel
+    if pandas_fmt == "excel":
+        import_excel_libs()
+        if not _HAS_OPENPYXL:
+            raise ModuleNotFoundError("openpyxl must be installed to read Excel files")
+
     df = read_func(filespec, **read_kwargs)
 
     # Special case for HTML
@@ -85,6 +102,12 @@ def _pandas_read(fmt, filespec, **kwargs):
 def _pandas_write(fmt, tbl, filespec, overwrite=False, **kwargs):
     """Provide io Table connector to write table using pandas."""
     pandas_fmt = fmt[len(PANDAS_PREFIX) :]  # chop the 'pandas.' in front
+
+    # Special case for Excel
+    if pandas_fmt == "excel":
+        import_excel_libs()
+        if not _HAS_OPENPYXL:
+            raise ModuleNotFoundError("openpyxl must be installed to write Excel files")
 
     # Get defaults and then override with user-supplied values
     write_kwargs = PANDAS_FMTS[pandas_fmt]["write"].copy()
