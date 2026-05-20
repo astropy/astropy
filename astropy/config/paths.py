@@ -240,25 +240,25 @@ class _DirectoryFinder:
                 case _ as unreachable:
                     assert_never(unreachable)
 
-        # Default resolution. For backward compatibility, honor a legacy
-        # ~/.<root>/<dirtype> directory if it exists and the new default
-        # location does not. This deliberately lives in the default branch so
-        # it cannot shadow an explicit override or environment variable.
-        default_de = replace(de, base_node=self.default_base_node())
-        legacy_node = self.legacy_default_base_node(namespace)
-        if legacy_node.is_dir() and not default_de.join().exists():
-            return _DirectoryElements(base_node=legacy_node)
-        return default_de
+        return replace(de, base_node=self.default_base_node())
 
     def find_namespaced_node(self, namespace: str) -> Path:
+        legacy_node = self.legacy_default_base_node(namespace)
+        de = self.find_directory_elements(namespace)
+        if not de.join().exists() and legacy_node.is_dir():
+            # Default resolution. For backward compatibility, honor a legacy
+            # ~/.<root>/<dirtype> directory if it exists and the new default
+            # location does not. This deliberately lives in the default branch so
+            # it cannot shadow an explicit override or environment variable.
+            de = replace(de, base_node=legacy_node, sub_nodes=[])
+
         # we intentionally let through some possibly invalid state,
-        # like a file occupying the node where we expect a directory.
-        # The core reason is that there'll always be a difference between the
-        # time we look up the location and the time we actually use it, so it's
-        # impossible to make the look up perfectly safe. In turn, the
-        # responsibility to raise an exception falls on the function that'll
-        # actually try to use it.
-        return self.find_directory_elements(namespace).join()
+        # like a file occupying the preferred node, where we expect a directory,
+        # The core reason is that there'll always be a difference between the time
+        # we look up the location and the time we actually use it, so it's
+        # impossible to make the look up perfectly safe. In turn, the responsibility
+        # to raise an exception falls on the function that'll actually try use it.
+        return de.join()
 
 
 class _TempDirKwargs(TypedDict):
