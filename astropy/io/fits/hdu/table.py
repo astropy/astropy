@@ -1528,13 +1528,21 @@ def _as_bigendian_pieces(data):
         # the .str will be '|V<N>' where <N> is the total bytes per element.
         if field_dtype != dtype_big.fields[name][0]:
             offset = field_offset
-            itemsize = field_dtype.base.itemsize
-            # Reorder every element of a possible sub-array.
-            for i in range(math.prod(field_dtype.shape)):
-                indices[offset : offset + itemsize] = indices[
-                    offset : offset + itemsize
+            # For complex types, swap each float component independently
+            # rather than reversing all bytes of the complex number
+            # (which would swap real and imaginary parts).
+            if field_dtype.base.kind == "c":
+                swap_itemsize = field_dtype.base.itemsize // 2
+            else:
+                swap_itemsize = field_dtype.base.itemsize
+            # Reorder every element of a possible sub-array,
+            # and every component of complex numbers.
+            n_swaps = field_dtype.itemsize // swap_itemsize
+            for i in range(n_swaps):
+                indices[offset : offset + swap_itemsize] = indices[
+                    offset : offset + swap_itemsize
                 ][::-1]
-                offset += itemsize
+                offset += swap_itemsize
 
     # Reordering the data by indexing makes copies, so work in pieces.
     data_bytes = data.view(np.ndarray)[..., np.newaxis].view(np.ubyte)
