@@ -62,7 +62,7 @@ example, download an example Spitzer catalog (a :ref:`VOTable <astropy-io-votabl
 .. doctest-remote-data::
 
     >>> from astropy.table import Table
-    >>> t = Table.read("https://raw.githubusercontent.com/astropy/astropy-data/refs/heads/gh-pages/photometry/spitzer_example_catalog.xml", format="votable")
+    >>> t = Table.read("http://www.astropy.org/astropy-data/photometry/spitzer_example_catalog.xml", format="votable")
 
 For certain file formats the format can be automatically detected, for
 example, from the filename extension::
