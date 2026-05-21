@@ -17,20 +17,20 @@
 
 
 /***************************************************************************
- * PyWtbarr methods                                                        *
+ * Wtbarr methods                                                        *
  ***************************************************************************/
 
 static PyObject*
-PyWtbarr_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-  PyWtbarr* self;
+Wtbarr_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
+  Wtbarr* self;
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-  self = (PyWtbarr*)alloc_func(type, 0);
+  self = (Wtbarr*)alloc_func(type, 0);
   return (PyObject*)self;
 }
 
 
 static int
-PyWtbarr_traverse(PyWtbarr* self, visitproc visit, void *arg) {
+Wtbarr_traverse(Wtbarr* self, visitproc visit, void *arg) {
   Py_VISIT(self->owner);
   Py_VISIT(Py_TYPE((PyObject*)self));
   return 0;
@@ -38,14 +38,14 @@ PyWtbarr_traverse(PyWtbarr* self, visitproc visit, void *arg) {
 
 
 static int
-PyWtbarr_clear(PyWtbarr* self) {
+Wtbarr_clear(Wtbarr* self) {
   Py_CLEAR(self->owner);
   return 0;
 }
 
 
-static void PyWtbarr_dealloc(PyWtbarr* self) {
-  PyWtbarr_clear(self);
+static void Wtbarr_dealloc(Wtbarr* self) {
+  Wtbarr_clear(self);
   PyTypeObject *tp = Py_TYPE((PyObject*)self);
   freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
   free_func((PyObject*)self);
@@ -53,11 +53,11 @@ static void PyWtbarr_dealloc(PyWtbarr* self) {
 }
 
 
-PyWtbarr* PyWtbarr_cnew(PyObject* wcsprm, struct wtbarr* x) {
-  PyWtbarr* self;
-  PyTypeObject* type = (PyTypeObject*)PyWtbarrType;
+Wtbarr* Wtbarr_cnew(PyObject* wcsprm, struct wtbarr* x) {
+  Wtbarr* self;
+  PyTypeObject* type = (PyTypeObject*)WtbarrType;
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-  self = (PyWtbarr*)alloc_func(type, 0);
+  self = (Wtbarr*)alloc_func(type, 0);
   if (self == NULL) return NULL;
   self->x = x;
   Py_INCREF(wcsprm);
@@ -93,7 +93,7 @@ static void wtbarrprt(const struct wtbarr *wtb) {
 }
 
 
-static PyObject* PyWtbarr_print_contents(PyWtbarr* self) {
+static PyObject* Wtbarr_print_contents(Wtbarr* self) {
   /* This is not thread-safe, but since we're holding onto the GIL,
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
@@ -104,7 +104,7 @@ static PyObject* PyWtbarr_print_contents(PyWtbarr* self) {
 }
 
 
-static PyObject* PyWtbarr___str__(PyWtbarr* self) {
+static PyObject* Wtbarr___str__(Wtbarr* self) {
   /* This is not thread-safe, but since we're holding onto the GIL,
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
@@ -118,108 +118,108 @@ static PyObject* PyWtbarr___str__(PyWtbarr* self) {
  */
 
 
-static PyObject* PyWtbarr_get_i(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_i(Wtbarr* self, void* closure) {
   return get_int("i", self->x->i);
 }
 
 
-static PyObject* PyWtbarr_get_m(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_m(Wtbarr* self, void* closure) {
   return get_int("m", self->x->m);
 }
 
 
-static PyObject* PyWtbarr_get_extver(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_extver(Wtbarr* self, void* closure) {
   return get_int("extver", self->x->extver);
 }
 
 
-static PyObject* PyWtbarr_get_extlev(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_extlev(Wtbarr* self, void* closure) {
   return get_int("extlev", self->x->extlev);
 }
 
 
-static PyObject* PyWtbarr_get_ndim(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_ndim(Wtbarr* self, void* closure) {
   return get_int("ndim", self->x->ndim);
 }
 
 
-static PyObject* PyWtbarr_get_row(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_row(Wtbarr* self, void* closure) {
   return get_int("row", self->x->row);
 }
 
 
-static PyObject* PyWtbarr_get_extnam(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_extnam(Wtbarr* self, void* closure) {
   if (is_null(self->x->extnam)) return NULL;
   return get_string("extnam", self->x->extnam);
 }
 
 
-static PyObject* PyWtbarr_get_ttype(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_ttype(Wtbarr* self, void* closure) {
   if (is_null(self->x->ttype)) return NULL;
   return get_string("ttype", self->x->ttype);
 }
 
 
-static PyObject* PyWtbarr_get_kind(PyWtbarr* self, void* closure) {
+static PyObject* Wtbarr_get_kind(Wtbarr* self, void* closure) {
   return PyUnicode_FromFormat("%c", self->x->kind);
 }
 
 
 /***************************************************************************
- * PyWtbarr definition structures
+ * Wtbarr definition structures
  */
 
-static PyGetSetDef PyWtbarr_getset[] = {
-  {"i", (getter)PyWtbarr_get_i, NULL, (char *) doc_i},
-  {"m", (getter)PyWtbarr_get_m, NULL, (char *) doc_m},
-  {"kind", (getter)PyWtbarr_get_kind, NULL, (char *) doc_kind},
-  {"extnam", (getter)PyWtbarr_get_extnam, NULL, (char *) doc_extnam},
-  {"extver", (getter)PyWtbarr_get_extver, NULL, (char *) doc_extver},
-  {"extlev", (getter)PyWtbarr_get_extlev, NULL, (char *) doc_extlev},
-  {"ttype", (getter)PyWtbarr_get_ttype, NULL, (char *) doc_ttype},
-  {"row", (getter)PyWtbarr_get_row, NULL, (char *) doc_row},
-  {"ndim", (getter)PyWtbarr_get_ndim, NULL, (char *) doc_ndim},
-/*  {"dimlen", (getter)PyWtbarr_get_dimlen, NULL, (char *) NULL}, */
-/*  {"arrayp", (getter)PyWtbarr_get_arrayp, NULL, (char *) NULL}, */
+static PyGetSetDef Wtbarr_getset[] = {
+  {"i", (getter)Wtbarr_get_i, NULL, (char *) doc_i},
+  {"m", (getter)Wtbarr_get_m, NULL, (char *) doc_m},
+  {"kind", (getter)Wtbarr_get_kind, NULL, (char *) doc_kind},
+  {"extnam", (getter)Wtbarr_get_extnam, NULL, (char *) doc_extnam},
+  {"extver", (getter)Wtbarr_get_extver, NULL, (char *) doc_extver},
+  {"extlev", (getter)Wtbarr_get_extlev, NULL, (char *) doc_extlev},
+  {"ttype", (getter)Wtbarr_get_ttype, NULL, (char *) doc_ttype},
+  {"row", (getter)Wtbarr_get_row, NULL, (char *) doc_row},
+  {"ndim", (getter)Wtbarr_get_ndim, NULL, (char *) doc_ndim},
+/*  {"dimlen", (getter)Wtbarr_get_dimlen, NULL, (char *) NULL}, */
+/*  {"arrayp", (getter)Wtbarr_get_arrayp, NULL, (char *) NULL}, */
   {NULL}
 };
 
 
-static PyMethodDef PyWtbarr_methods[] = {
-  {"print_contents", (PyCFunction)PyWtbarr_print_contents, METH_NOARGS, doc_print_contents_wtbarr},
+static PyMethodDef Wtbarr_methods[] = {
+  {"print_contents", (PyCFunction)Wtbarr_print_contents, METH_NOARGS, doc_print_contents_wtbarr},
   {NULL}
 };
 
-static PyType_Spec PyWtbarrType_spec = {
+static PyType_Spec WtbarrType_spec = {
   .name = "astropy.wcs.Wtbarr",
-  .basicsize = sizeof(PyWtbarr),
+  .basicsize = sizeof(Wtbarr),
   .itemsize = 0,
   .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
   .slots = (PyType_Slot[]){
-    {Py_tp_dealloc, (destructor)PyWtbarr_dealloc},
-    {Py_tp_str, (reprfunc)PyWtbarr___str__},
+    {Py_tp_dealloc, (destructor)Wtbarr_dealloc},
+    {Py_tp_str, (reprfunc)Wtbarr___str__},
     {Py_tp_doc, doc_Wtbarr},
-    {Py_tp_traverse, (traverseproc)PyWtbarr_traverse},
-    {Py_tp_clear, (inquiry)PyWtbarr_clear},
-    {Py_tp_getset, PyWtbarr_getset},
-    {Py_tp_methods, PyWtbarr_methods},
+    {Py_tp_traverse, (traverseproc)Wtbarr_traverse},
+    {Py_tp_clear, (inquiry)Wtbarr_clear},
+    {Py_tp_getset, Wtbarr_getset},
+    {Py_tp_methods, Wtbarr_methods},
     // FIXME: this seems logical but this slot was not previously defined
     // maybe an error from https://github.com/astropy/astropy/pull/9641 ?
-    // {Py_tp_new, (newfunc)PyWtbarr_new},
+    // {Py_tp_new, (newfunc)Wtbarr_new},
     {0, NULL},
   },
 };
 
-PyObject* PyWtbarrType = NULL;
+PyObject* WtbarrType = NULL;
 
 int
 _setup_wtbarr_type(PyObject* m) {
-  PyWtbarrType = PyType_FromSpec(&PyWtbarrType_spec);
-  if (PyWtbarrType == NULL) {
+  WtbarrType = PyType_FromSpec(&WtbarrType_spec);
+  if (WtbarrType == NULL) {
     return -1;
   }
 
-  PyModule_AddObject(m, "Wtbarr", PyWtbarrType);
+  PyModule_AddObject(m, "Wtbarr", WtbarrType);
 
   return 0;
 }

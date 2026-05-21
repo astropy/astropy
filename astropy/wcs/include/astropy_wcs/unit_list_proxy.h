@@ -16,7 +16,7 @@
  ***************************************************************************/
 
 /*@null@*/ PyObject *
-PyUnitListProxy_New(
+UnitListProxy_New(
     PyObject* owner,
     Py_ssize_t size,
     char (*array)[72],
@@ -35,7 +35,7 @@ get_unit_list(
     PyObject* owner,
     int readonly) {
 
-  return PyUnitListProxy_New(owner, len, array, readonly);
+  return UnitListProxy_New(owner, len, array, readonly);
 }
 
 int

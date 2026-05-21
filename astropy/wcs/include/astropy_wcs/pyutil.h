@@ -16,7 +16,7 @@
 #include <numpy/npy_math.h>
 
 PyObject*
-PyArrayProxy_New(
+ArrayProxy_New(
     PyObject* self,
     int nd,
     const npy_intp* dims,
@@ -24,7 +24,7 @@ PyArrayProxy_New(
     const void* data);
 
 PyObject*
-PyArrayReadOnlyProxy_New(
+ArrayReadOnlyProxy_New(
     PyObject* self,
     int nd,
     const npy_intp* dims,
@@ -32,7 +32,7 @@ PyArrayReadOnlyProxy_New(
     const void* data);
 
 /*@null@*/ PyObject *
-PyStrListProxy_New(
+StrListProxy_New(
     PyObject* owner,
     Py_ssize_t size,
     Py_ssize_t maxsize,
@@ -240,7 +240,7 @@ get_double_array(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
+  return ArrayProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
 }
 
 /*@null@*/ static INLINE PyObject*
@@ -251,7 +251,7 @@ get_double_array_readonly(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayReadOnlyProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
+  return ArrayReadOnlyProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
 }
 
 int
@@ -270,7 +270,7 @@ get_int_array(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayProxy_New(owner, ndims, dims, NPY_INT, value);
+  return ArrayProxy_New(owner, ndims, dims, NPY_INT, value);
 }
 
 int
@@ -289,7 +289,7 @@ get_str_list(
     Py_ssize_t maxlen,
     PyObject* owner) {
 
-  return PyStrListProxy_New(owner, len, maxlen, array);
+  return StrListProxy_New(owner, len, maxlen, array);
 }
 
 int
