@@ -1082,6 +1082,15 @@ def test_info_attributes_with_no_mixins(tmp_path):
     assert t2["col0"].meta["a"] == {"b": "c"}
 
 
+def test_round_trip_complex(tmp_path):
+    """FITS portion of https://github.com/astropy/astropy/issues/19775"""
+    filename = tmp_path / "test.fits"
+    t = Table({"a": [1 + 4.3j, 2.2 + 6.1j, 3 + 7.2j]})
+    t.write(filename, format="fits")
+    t2 = Table.read(filename, format="fits")
+    assert np.allclose(t["a"], t2["a"], rtol=1e-5, atol=1e-8)
+
+
 @pytest.mark.parametrize("method", ["set_cols", "names", "class"])
 def test_round_trip_masked_table_serialize_mask(tmp_path, method):
     """
