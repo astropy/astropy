@@ -902,7 +902,7 @@ class FLRW(
     # ---------------------------------------------------------------
 
     def comoving_transverse_distance(
-        self, z: _InputT, z2: _InputT | None = None, /
+        self, z: _InputT | float, z2: _InputT | float | None = None, /
     ) -> u.Quantity:
         r"""Comoving transverse distance :math:`d(z1, z2)` in Mpc.
 
