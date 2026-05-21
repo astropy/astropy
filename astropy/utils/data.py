@@ -1165,10 +1165,17 @@ def get_free_space_in_dir(path: str | os.PathLike[str], unit: UnitBase | bool = 
         If ``unit=False``, it is returned as plain integer (in bytes).
 
     """
-    if (path := Path(path)).is_file():
-        raise OSError(
-            "Can only determine free space associated with directories, not files."
-        )
+    if not (path := Path(path)).is_dir():
+        exc_type: type[Exception]
+        note: str
+        if path.is_file():
+            exc_type = FileExistsError
+            note = "found a file, expected a directory"
+        else:
+            exc_type = FileNotFoundError
+            note = "no such file or directory"
+        msg = f"Cannot determine free space from {path} ({note})"
+        raise exc_type(msg)
         # Actually you can on Linux but I want to avoid code that fails
         # on Windows only.
     free_space = shutil.disk_usage(path).free

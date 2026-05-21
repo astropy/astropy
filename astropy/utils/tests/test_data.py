@@ -13,6 +13,7 @@ import os
 import pathlib
 import platform
 import random
+import re
 import shutil
 import stat
 import sys
@@ -1450,14 +1451,27 @@ def test_free_space_checker_huge(tmp_path, desired_size):
         check_free_space_in_dir(tmp_path, desired_size)
 
 
+@pytest.mark.parametrize(
+    "setup, note",
+    [
+        pytest.param(lambda _: None, "no such file or directory", id="filenotfound"),
+        pytest.param(
+            lambda p: p.touch(), "found a file, expected a directory", id="fileexists"
+        ),
+    ],
+)
+def test_get_free_space_in_dir_oserror(setup, note, tmp_path):
+    d = tmp_path / str(uuid4())
+    setup(d)
+    with pytest.raises(
+        OSError,
+        match=(rf"^Cannot determine free space from {re.escape(str(d))} \({note}\)$"),
+    ):
+        get_free_space_in_dir(d)
+
+
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 def test_get_free_space_file_directory(tmp_path):
-    fn = tmp_path / "file"
-    with open(fn, "w"):
-        pass
-    with pytest.raises(OSError):
-        get_free_space_in_dir(fn)
-
     free_space = get_free_space_in_dir(tmp_path)
     assert free_space > 0 and not hasattr(free_space, "unit")
 
