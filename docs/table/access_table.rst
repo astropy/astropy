@@ -817,7 +817,7 @@ Structured array columns
 
 .. EXAMPLE START: Creating a formatted Astropy Table with a Structured Column
 
-For columns which are structured arrays, the format string must be a a string
+For columns which are structured arrays, the format string must be a string
 that uses `"new style" format strings
 <https://docs.python.org/3/library/string.html#format-string-syntax>`_  with
 parameter substitutions corresponding to the field names in the structured
