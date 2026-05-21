@@ -43,7 +43,7 @@ def parse_codata_text(
     name_width: int = 60,
     value_width: int = 25,
     uncertainty_width: int = 25,
-):
+) -> dict[str, CODATAEntry]:
     """Parse CODATA fixed-width text into a dict keyed by constant name."""
     entries: dict[str, CODATAEntry] = {}
     in_table = False
@@ -87,7 +87,7 @@ def parse_codata_text(
     return entries
 
 
-def parse_codata_file(path: str | Path):
+def parse_codata_file(path: str | Path) -> dict[str, CODATAEntry]:
     """Parse a CODATA table from a text file path."""
     text = Path(path).read_text(encoding="utf-8")
     return parse_codata_text(text)
