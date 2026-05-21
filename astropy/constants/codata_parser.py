@@ -38,7 +38,11 @@ def _parse_uncertainty_field(field: str):
 
 
 def parse_codata_text(
-    text: str, *, name_width: int = 60, value_width: int = 25, uncertainty_width: int = 25
+    text: str,
+    *,
+    name_width: int = 60,
+    value_width: int = 25,
+    uncertainty_width: int = 25,
 ):
     """Parse CODATA fixed-width text into a dict keyed by constant name."""
     entries: dict[str, CODATAEntry] = {}
