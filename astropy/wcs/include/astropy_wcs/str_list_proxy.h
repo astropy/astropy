@@ -18,7 +18,7 @@
 typedef int (*str_verify_fn)(const char *);
 
 /*@null@*/ PyObject *
-PyStrListProxy_New(
+StrListProxy_New(
     PyObject* owner,
     Py_ssize_t size,
     Py_ssize_t maxsize,

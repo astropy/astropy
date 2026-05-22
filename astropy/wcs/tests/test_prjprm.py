@@ -8,10 +8,10 @@ from astropy import wcs
 
 
 def test_prjprm_init():
-    # test PyPrjprm_cnew
+    # test Prjprm_cnew
     assert wcs.WCS().wcs.cel.prj
 
-    # test PyPrjprm_new
+    # test Prjprm_new
     assert wcs.Prjprm()
 
     with pytest.raises(wcs.InvalidPrjParametersError):
