@@ -1583,7 +1583,7 @@ def test_compressed_hdu_header_order():
     header = fits.Header()
     header["a"] = "b"
     header["c"] = "d"
-    nx, ny = 512, 517
+    nx, ny = 52, 57
     compressed_hdu = fits.CompImageHDU(
         data=rng.poisson(1000, size=(ny, nx)).astype(np.int16),
         header=header,
@@ -1594,21 +1594,21 @@ def test_compressed_hdu_header_order():
         ("BITPIX", 8),
         ("NAXIS", 2),
         ("NAXIS1", 8),
-        ("NAXIS2", 517),
-        ("PCOUNT", 257628),
+        ("NAXIS2", 57),
+        ("PCOUNT", 3003),
         ("GCOUNT", 1),
         ("TFIELDS", 1),
         ("TTYPE1", "COMPRESSED_DATA"),
-        ("TFORM1", "1PB(509)"),
+        ("TFORM1", "1PB(55)"),
         ("ZIMAGE", True),
         ("ZTENSION", "IMAGE"),
         ("ZBITPIX", 16),
         ("ZNAXIS", 2),
-        ("ZNAXIS1", 512),
-        ("ZNAXIS2", 517),
+        ("ZNAXIS1", 52),
+        ("ZNAXIS2", 57),
         ("ZPCOUNT", 0),
         ("ZGCOUNT", 1),
-        ("ZTILE1", 512),
+        ("ZTILE1", 52),
         ("ZTILE2", 1),
         ("ZCMPTYPE", "RICE_1"),
         ("ZNAME1", "BLOCKSIZE"),
