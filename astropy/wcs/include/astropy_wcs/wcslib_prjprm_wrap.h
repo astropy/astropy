@@ -4,16 +4,16 @@
 #include "pyutil.h"
 #include "wcs.h"
 
-extern PyObject* PyPrjprmType;
+extern PyObject* PrjprmType;
 
 typedef struct {
     PyObject_HEAD
     struct prjprm* x;
     int* prefcount;
     PyObject* owner;
-} PyPrjprm;
+} Prjprm;
 
-PyPrjprm* PyPrjprm_cnew(PyObject* celprm, struct prjprm* x, int* prefcount);
+Prjprm* Prjprm_cnew(PyObject* celprm, struct prjprm* x, int* prefcount);
 
 int _setup_prjprm_type(PyObject* m);
 
