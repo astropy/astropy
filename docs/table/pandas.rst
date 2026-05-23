@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _pandas:
 
 Interfacing with the Pandas Package
