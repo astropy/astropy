@@ -1,0 +1,1 @@
+Enabled doctest for dataframes.rst and fixed outdated pandas DataFrame class output.
