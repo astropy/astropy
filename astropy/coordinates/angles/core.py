@@ -462,9 +462,28 @@ class Angle(SpecificTypeQuantity):
             `~astropy.coordinates.Angle` object with angles wrapped accordingly.
             Otherwise wrap in place and return `None`.
         """
-        wrap_angle = Angle(wrap_angle, copy=False)  # Convert to an Angle
         if not inplace:
             self = self.copy()
+
+        # Avoid the full _wrap_at path when every value is already in range.
+        # This keeps the NaN/read-only behavior unchanged because NaN makes the
+        # scalar comparisons fail and fall through to _wrap_at.
+        a360 = u.degree.to(self.unit, 360.0)
+        if isinstance(wrap_angle, (Angle, u.Quantity)):
+            wrap_value = float(wrap_angle.to_value(self.unit))
+        else:
+            wrap_angle = Angle(wrap_angle, copy=False)  # Convert to an Angle
+            wrap_value = float(wrap_angle.to_value(self.unit))
+        self_angle = self.view(np.ndarray)
+        if (
+            self_angle.size > 0
+            and self_angle.min() >= wrap_value - a360
+            and self_angle.max() < wrap_value
+        ):
+            return None if inplace else self
+
+        if not isinstance(wrap_angle, Angle):
+            wrap_angle = Angle(wrap_angle, copy=False)
         self._wrap_at(wrap_angle)
         return None if inplace else self
 

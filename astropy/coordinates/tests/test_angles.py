@@ -709,6 +709,30 @@ def test_wrap_at_inplace():
     assert np.all(a.degree == np.array([-20.0, 150.0, -10.0, 0.0]))
 
 
+def test_wrap_at_inplace_readonly_in_range():
+    values = np.array([10.0, 20.0, 30.0])
+    values.flags.writeable = False
+    a = Angle(values, u.deg, copy=False)
+    out = a.wrap_at("180d", inplace=True)
+    assert out is None
+    assert_array_equal(a.degree, values)
+
+
+def test_wrap_at_inplace_readonly_nan():
+    values = np.array([10.0, np.nan, 30.0])
+    values.flags.writeable = False
+    a = Angle(values, u.deg, copy=False)
+    out = a.wrap_at("180d", inplace=True)
+    assert out is None
+    assert_array_equal(a.degree, values)
+
+
+def test_wrap_at_empty_angle():
+    a = Angle([], u.deg)
+    out = a.wrap_at("180d")
+    assert out.shape == (0,)
+
+
 def test_latitude():
     """Test input validation for setting Latitude angles."""
 
