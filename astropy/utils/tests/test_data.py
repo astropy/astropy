@@ -1105,26 +1105,14 @@ def test_data_noastropy_fallback(monkeypatch):
     with pytest.raises(OSError, match="^mock os error$"):
         paths.get_cache_dir_path(rootname="astropy")
 
-    with pytest.warns(CacheMissingWarning) as warning_lines:
+    with pytest.warns(
+        CacheMissingWarning,
+        match=(
+            r"Cache directory cannot be read or created \(mock os error\), "
+            r"providing data in temporary file instead\."
+        ),
+    ):
         fnout = download_file(TESTURL, cache=True)
-    n_warns = len(warning_lines)
-
-    allowed_warn_msgs = ["remote data cache could not be accessed", "temporary file"]
-    if n_warns == 4:
-        allowed_warn_msgs.extend(["socket", "socket"])
-
-    unexpected_warn_msgs: list[str] = []
-    for wl in warning_lines:
-        msg = str(wl).lower()
-        for allowed in allowed_warn_msgs:
-            if allowed in msg:
-                break
-        else:
-            unexpected_warn_msgs.append(msg)
-
-    assert not unexpected_warn_msgs, (
-        f"Got some unexpected warnings: {unexpected_warn_msgs}"
-    )
 
     assert os.path.isfile(fnout)
 
