@@ -61,18 +61,11 @@ def _validate_logical_input(row):
     if arr.dtype == bool:
         return
 
-    # ``int8`` is the on-disk storage dtype for L columns
-    # (``FITS2NUMPY["L"] == "i1"``); internal load paths such as
-    # ``ColDefs._init_from_array`` build ``Column`` objects backed by
-    # ``i1`` arrays whose values are ord('T'), ord('F'), or 0. Treat
-    # all ``i1`` as valid storage so reading a FITS file does not fire
-    # the deprecation warning.
-    if arr.dtype == np.int8:
-        return
-
-    # Wider integer arrays (including unsigned) are accepted without
-    # warning iff every value is 0 or 1, since those map unambiguously
-    # to False / True.
+    # Integer arrays (signed or unsigned, any width) are accepted
+    # without warning iff every value is 0 or 1; those map unambiguously
+    # to False / True. Internal callers that legitimately need to pass
+    # arbitrary ``int8`` storage bytes (e.g. ``ColDefs._init_from_array``
+    # reading from disk) use ``Column(..., _skip_validation=True)``.
     if arr.dtype.kind in ("i", "u"):
         if arr.size == 0 or bool(((arr == 0) | (arr == 1)).all()):
             return

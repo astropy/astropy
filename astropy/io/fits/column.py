@@ -577,6 +577,7 @@ class Column(NotifierMixin):
         coord_ref_value=None,
         coord_inc=None,
         time_ref_pos=None,
+        _skip_validation=False,
     ):
         """
         Construct a `Column` by specifying attributes.  All attributes
@@ -695,7 +696,15 @@ class Column(NotifierMixin):
         # Restrict logical ('L') column input to bool or |S1 bytes
         # (with values b'T', b'F', or b'\x00'). Anything else emits an
         # AstropyDeprecationWarning; out-of-spec |S1 bytes raise.
-        if array is not None and not isinstance(array, Delayed):
+        # ``_skip_validation`` is set by internal callers that pass
+        # storage-dtype arrays (e.g. ``ColDefs._init_from_array``
+        # reading from disk, or uninitialized recarray fields built
+        # by ``BinTableHDU.load``).
+        if (
+            array is not None
+            and not _skip_validation
+            and not isinstance(array, Delayed)
+        ):
             fmt_obj = valid_kwargs.get("format")
             is_fixed_logical = getattr(fmt_obj, "format", None) == "L"
             is_vla_logical = getattr(fmt_obj, "p_format", None) == "L"
@@ -1593,6 +1602,7 @@ class ColDefs(NotifierMixin):
                 array=array.view(np.ndarray)[cname],
                 bzero=bzero,
                 dim=dim,
+                _skip_validation=True,
             )
             self.columns.append(c)
 
