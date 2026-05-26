@@ -1,0 +1,5 @@
+Passing input other than a bool array (or a ``|S1`` byte array containing
+only ``b'T'``, ``b'F'``, or ``b'\x00'``) to a FITS logical (``'L'``) column
+now emits an ``AstropyDeprecationWarning`` and will raise in a future
+version. ``|S1`` input with any other byte value raises ``ValueError``
+immediately.

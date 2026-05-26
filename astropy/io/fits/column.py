@@ -18,6 +18,7 @@ from astropy.utils import lazyproperty
 from astropy.utils.compat import chararray, get_chararray
 from astropy.utils.exceptions import AstropyUserWarning
 
+from ._logical_helpers import _validate_logical_input
 from .card import CARD_LENGTH, Card
 from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii
 from .verify import VerifyError, VerifyWarning
@@ -690,6 +691,19 @@ class Column(NotifierMixin):
         # Awful hack to use for now to keep track of whether the column holds
         # pseudo-unsigned int data
         self._pseudo_unsigned_ints = False
+
+        # Restrict logical ('L') column input to bool or |S1 bytes
+        # (with values b'T', b'F', or b'\x00'). Anything else emits an
+        # AstropyDeprecationWarning; out-of-spec |S1 bytes raise.
+        if array is not None and not isinstance(array, Delayed):
+            fmt_obj = valid_kwargs.get("format")
+            is_fixed_logical = getattr(fmt_obj, "format", None) == "L"
+            is_vla_logical = getattr(fmt_obj, "p_format", None) == "L"
+            if is_vla_logical:
+                for row in array:
+                    _validate_logical_input(row)
+            elif is_fixed_logical:
+                _validate_logical_input(array)
 
         # if the column data is not ndarray, make it to be one, i.e.
         # input arrays can be just list or tuple, not required to be ndarray
