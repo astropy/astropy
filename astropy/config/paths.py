@@ -390,7 +390,7 @@ def temporary_cache_dir_path(
     - all other arguments are keyword-only
     - ``delete`` is supported even on Python 3.11
 
-    .. versionadded:: 8.0.0
+    .. versionadded:: 8.0
 
     Parameters
     ----------
@@ -449,7 +449,7 @@ def temporary_config_dir_path(
     - all other arguments are keyword-only
     - ``delete`` is supported even on Python 3.11
 
-    .. versionadded:: 8.0.0
+    .. versionadded:: 8.0
 
     Parameters
     ----------
@@ -543,7 +543,7 @@ if sys.flags.optimize < 2:
             Whether to create the directory (and its parents) if it's missing.
             Default: True
 
-            .. versionadded:: 8.0.0
+            .. versionadded:: 8.0
         """
     _base_get_cache_doc = """\
         Determines the cache directory associated with a namespace and, optionally,
@@ -568,7 +568,7 @@ if sys.flags.optimize < 2:
             Whether to create the directory (and its parents) if it's missing.
             Default: True
 
-            .. versionadded:: 8.0.0
+            .. versionadded:: 8.0
         """
     _ret_section = """
         Returns
