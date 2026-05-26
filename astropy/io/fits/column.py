@@ -577,7 +577,6 @@ class Column(NotifierMixin):
         coord_ref_value=None,
         coord_inc=None,
         time_ref_pos=None,
-        _skip_validation=False,
     ):
         """
         Construct a `Column` by specifying attributes.  All attributes
@@ -696,15 +695,11 @@ class Column(NotifierMixin):
         # Restrict logical ('L') column input to bool or |S1 bytes
         # (with values b'T', b'F', or b'\x00'). Anything else emits an
         # AstropyDeprecationWarning; out-of-spec |S1 bytes raise.
-        # ``_skip_validation`` is set by internal callers that pass
-        # storage-dtype arrays (e.g. ``ColDefs._init_from_array``
-        # reading from disk, or uninitialized recarray fields built
-        # by ``BinTableHDU.load``).
-        if (
-            array is not None
-            and not _skip_validation
-            and not isinstance(array, Delayed)
-        ):
+        # Internal callers that wrap on-disk storage in an ``int8``
+        # array (e.g. ``ColDefs._init_from_array``) view-cast it to
+        # ``|S1`` before reaching here so the byte-value check applies
+        # without a separate escape-hatch.
+        if array is not None and not isinstance(array, Delayed):
             fmt_obj = valid_kwargs.get("format")
             is_fixed_logical = getattr(fmt_obj, "format", None) == "L"
             is_vla_logical = getattr(fmt_obj, "p_format", None) == "L"
@@ -1596,13 +1591,28 @@ class ColDefs(NotifierMixin):
                 elif "K" in format:
                     bzero = np.uint64(2**63)
 
+            col_array = array.view(np.ndarray)[cname]
+            # When a logical ('L') column's recarray field arrives as
+            # ``int8`` storage (e.g. from reading a FITS file), view
+            # it as ``|S1`` so the Column constructor's byte-value
+            # validation runs on the actual on-disk bytes
+            # (b'T'/b'F'/b'\x00') instead of firing the integer 0/1
+            # deprecation warning. ``b1`` (numpy bool) fields are
+            # left as-is and pass the bool branch of the validator.
+            # ``getattr(...) == "L"`` avoids the format object's
+            # ``__eq__`` which would try to reparse "L" through the
+            # ASCII format constructor for ASCII tables.
+            if (
+                getattr(format, "format", None) == "L"
+                and col_array.dtype == np.int8
+            ):
+                col_array = col_array.view("S1")
             c = Column(
                 name=cname,
                 format=format,
-                array=array.view(np.ndarray)[cname],
+                array=col_array,
                 bzero=bzero,
                 dim=dim,
-                _skip_validation=True,
             )
             self.columns.append(c)
 
