@@ -691,11 +691,22 @@ class WCSAxes(Axes):
 
         self._all_coords.append(coords)
 
-        # Common settings for overlay
-        coords[0].set_axislabel_position("t")
-        coords[1].set_axislabel_position("r")
-        coords[0].set_ticklabel_position("t")
-        coords[1].set_ticklabel_position("r")
+        # Common settings for overlay: place overlay labels on the
+        # opposite side from the main axes labels. For rectangular frames
+        # this means 't' (top) and 'r' (right). For non-rectangular
+        # frames (e.g., EllipticalFrame), 't' and 'r' are not valid spine
+        # names so we leave the tick label positions empty (no tick labels
+        # shown by default for overlays on non-rectangular frames).
+        if issubclass(self.frame_class, RectangularFrame):
+            coords[0].set_axislabel_position("t")
+            coords[1].set_axislabel_position("r")
+            coords[0].set_ticklabel_position("t")
+            coords[1].set_ticklabel_position("r")
+        else:
+            coords[0].set_axislabel_position("")
+            coords[1].set_axislabel_position("")
+            coords[0].set_ticklabel_position("")
+            coords[1].set_ticklabel_position("")
 
         self.overlay_coords = coords
 
