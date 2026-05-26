@@ -486,6 +486,22 @@ class TimeDeltaInfo(TimeInfoBase):
         return out
 
 
+class _TimeBoolArray(np.ndarray):
+    """ndarray subclass for `TimeBase.__eq__` results.
+
+    Python's ``in`` operator evaluates ``bool(x == element)`` for each element
+    in a plain list.  Plain numpy arrays raise ``ValueError`` in ``__bool__``
+    when they have more than one element.  This subclass overrides ``__bool__``
+    to return ``np.all(self)`` so that array `Time` instances can be used with
+    the ``in`` operator on ordinary Python lists without error.
+
+    All other array behavior is inherited unchanged from `numpy.ndarray`.
+    """
+
+    def __bool__(self):
+        return bool(np.all(self.view(np.ndarray)))
+
+
 class TimeBase(MaskableShapedLikeNDArray):
     """Base time class from which Time and TimeDelta inherit."""
 
@@ -1844,7 +1860,10 @@ class TimeBase(MaskableShapedLikeNDArray):
         if self.scale is not None and other.scale is not None:
             other = getattr(other, self.scale)
 
-        return op((self.jd1 - other.jd1) + (self.jd2 - other.jd2), 0.0)
+        result = op((self.jd1 - other.jd1) + (self.jd2 - other.jd2), 0.0)
+        if op is operator.eq and isinstance(result, np.ndarray):
+            return result.view(_TimeBoolArray)
+        return result
 
     def __lt__(self, other):
         return self._time_comparison(other, operator.lt)

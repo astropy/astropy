@@ -216,3 +216,17 @@ def test_isclose_timedelta_exceptions():
     )
     with pytest.raises(TypeError, match=match):
         t1.isclose(t2, 1.5)
+
+
+def test_time_array_contains():
+    """Regression test for #19633 `in` operator on array Time should not raise."""
+    t1 = Time(["2026-05-01", "2026-05-02"])
+    t1c = t1.copy()
+    # this was already fine
+    assert t1 in [t1, t1c]
+    # this was raising ValueError
+    assert t1 in [t1c, t1]
+    assert t1 in [t1c]
+    # sanity: check something definitely not in the list
+    t2 = Time(["2026-05-03", "2026-05-04"])
+    assert t2 not in [t1, t1c]

@@ -766,7 +766,6 @@ def test_configitem_options(tmp_path):
 
 @pytest.mark.no_optimized_interpreter
 def test_help(capsys):
-
     use_color_msg = cleandoc(
         """
         ConfigItem: use_color
@@ -790,7 +789,6 @@ def test_help(capsys):
 
 @pytest.mark.no_optimized_interpreter
 def test_help_invalid_config_item():
-
     with pytest.raises(
         KeyError,
         match=(
@@ -992,7 +990,6 @@ class TestEnvvarRegressions:
 
     @pytest.mark.usefixtures("ignore_config_paths_global_state")
     def test_resources_cleanup_cfgobjs(self, monkeypatch, tmp_path):
-
         _ = conf.max_width  # populate _cfgobjs once
         ref = sorted(configuration._cfgobjs)
 
