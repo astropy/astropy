@@ -1699,7 +1699,7 @@ def is_url_in_cache(
         What to do if the cache directory doesn't exist.
         Default: 'warn'
 
-        .. versionadded:: 8.0.0
+        .. versionadded:: 8.0
 
     Returns
     -------
@@ -1940,7 +1940,7 @@ def clear_download_cache(
         What to do if the path requested for deletion doesn't exist.
         Default: 'warn'
 
-        .. versionadded:: 8.0.0
+        .. versionadded:: 8.0
     """
     try:
         dldir = _get_download_cache_loc(pkgname, on_missing="ignore")
@@ -2017,7 +2017,7 @@ def _get_download_cache_loc(
         What to do if the download cache directory doesn't exist.
         Default: 'warn'
 
-        .. versionadded:: 8.0.0
+        .. versionadded:: 8.0
 
     Returns
     -------
@@ -2323,7 +2323,7 @@ def get_cached_urls(
         What to do if the cache directory doesn't exist.
         Default: 'warn'
 
-        .. versionadded:: 8.0.0
+        .. versionadded:: 8.0
 
     Returns
     -------
