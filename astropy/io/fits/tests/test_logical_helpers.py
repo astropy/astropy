@@ -46,6 +46,11 @@ class TestValidateLogicalInput:
             np.array([1, 2, 3]),
             np.array([0.0, 1.0]),
             [True, None, False],
+            # ``int8`` is the on-disk storage dtype but user-facing
+            # int8 input is still subject to the 0/1 rule; internal
+            # load paths use Column(..., _skip_validation=True).
+            np.array([5, 6, 7], dtype=np.int8),
+            np.array([ord("T"), ord("F"), 0], dtype=np.int8),
         ],
     )
     def test_deprecates_non_bool_non_bytes(self, row):
