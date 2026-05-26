@@ -1,0 +1,3 @@
+Added elif to ensure we only write ``ZSIMPLE`` or ``ZTENSION`` as they are
+mutually exclusive. Fixed the ordering of the compressed hdu header
+keywords so that the ``TFORM`` and ``TTYPE`` columns always come directly after ``TFIELDS``.

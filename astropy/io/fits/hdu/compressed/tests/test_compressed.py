@@ -1573,3 +1573,63 @@ def test_compimghdu_with_primary_header_no_dual_keywords(tmp_path):
         bintable_header = hdul[1].header
         assert "ZSIMPLE" in bintable_header
         assert "ZTENSION" not in bintable_header
+
+
+def test_compressed_hdu_header_order():
+    """Test that the headers cards end up in the correct order for the
+    compressed image HDU."""
+
+    rng = np.random.default_rng(seed=5301753)
+    header = fits.Header()
+    header["a"] = "b"
+    header["c"] = "d"
+    nx, ny = 52, 57
+    compressed_hdu = fits.CompImageHDU(
+        data=rng.poisson(1000, size=(ny, nx)).astype(np.int16),
+        header=header,
+    )
+
+    expected_header = [
+        ("XTENSION", "BINTABLE"),
+        ("BITPIX", 8),
+        ("NAXIS", 2),
+        ("NAXIS1", 8),
+        ("NAXIS2", 57),
+        ("PCOUNT", 3003),
+        ("GCOUNT", 1),
+        ("TFIELDS", 1),
+        ("TTYPE1", "COMPRESSED_DATA"),
+        ("TFORM1", "1PB(55)"),
+        ("ZIMAGE", True),
+        ("ZTENSION", "IMAGE"),
+        ("ZBITPIX", 16),
+        ("ZNAXIS", 2),
+        ("ZNAXIS1", 52),
+        ("ZNAXIS2", 57),
+        ("ZPCOUNT", 0),
+        ("ZGCOUNT", 1),
+        ("ZTILE1", 52),
+        ("ZTILE2", 1),
+        ("ZCMPTYPE", "RICE_1"),
+        ("ZNAME1", "BLOCKSIZE"),
+        ("ZVAL1", 32),
+        ("ZNAME2", "BYTEPIX"),
+        ("ZVAL2", 2),
+        ("EXTNAME", "COMPRESSED_IMAGE"),
+        ("A", "b"),
+        ("C", "d"),
+    ]
+    hdulist = fits.HDUList([fits.PrimaryHDU(), compressed_hdu])
+    buffer = io.BytesIO()
+    hdulist.writeto(buffer)
+    buffer.seek(0)
+
+    hdulist = fits.open(buffer, disable_image_compression=True)
+
+    actual_header = hdulist[1].header.cards
+    for actual, expected in zip(actual_header, expected_header):
+        actual_key, actual_value, _ = actual
+        expected_key, expected_value = expected
+        assert actual_key == expected_key
+        if actual_key != "CHECKSUM":
+            assert actual_value == expected_value
