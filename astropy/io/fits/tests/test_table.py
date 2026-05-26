@@ -625,7 +625,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
         tbhdu.writeto(self.temp("table1.fits"))
@@ -636,7 +636,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[0, 1, 0, 0])
+        c5 = fits.Column(name="flag", format="L", array=[False, True, False, False])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
         tbhdu.writeto(self.temp("table2.fits"))
@@ -778,7 +778,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
 
@@ -808,7 +808,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
 
@@ -850,7 +850,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
 
@@ -896,7 +896,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
         tbhdu.writeto(self.temp("table1.fits"))
@@ -907,7 +907,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts1", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes1", format="A10")
         c4 = fits.Column(name="spectrum1", format="5E")
-        c5 = fits.Column(name="flag1", format="L", array=[0, 1, 0, 0])
+        c5 = fits.Column(name="flag1", format="L", array=[False, True, False, False])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
         tbhdu.writeto(self.temp("table2.fits"))
@@ -1146,7 +1146,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
         tbhdu.writeto(self.temp("table1.fits"))
@@ -1289,7 +1289,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
         tbhdu.writeto(self.temp("table1.fits"))
@@ -1315,7 +1315,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
 
         tbhdu1 = fits.BinTableHDU.from_columns(coldefs)
@@ -1398,7 +1398,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
 
         tbhdu1 = fits.BinTableHDU.from_columns(coldefs)
@@ -1409,7 +1409,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[0, 1, 0, 0])
+        c5 = fits.Column(name="flag", format="L", array=[False, True, False, False])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
 
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
@@ -1481,7 +1481,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
 
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
@@ -1572,7 +1572,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
 
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
@@ -1680,7 +1680,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
 
         tbhdu = fits.BinTableHDU.from_columns(coldefs)
@@ -1809,7 +1809,7 @@ class TestTableFunctions(FitsTestCase):
         c2 = fits.Column(name="counts", format="J", unit="DN", array=counts)
         c3 = fits.Column(name="notes", format="A10")
         c4 = fits.Column(name="spectrum", format="5E")
-        c5 = fits.Column(name="flag", format="L", array=[1, 0, 1, 1])
+        c5 = fits.Column(name="flag", format="L", array=[True, False, True, True])
         coldefs = fits.ColDefs([c1, c2, c3, c4, c5])
 
         tbhdu1 = fits.BinTableHDU.from_columns(coldefs)
@@ -2684,9 +2684,11 @@ class TestTableFunctions(FitsTestCase):
         write time (matching the behavior of astropy <= 7.2.0). Without
         this the new bool conversion would silently coerce strings/None:
         e.g. ``["T", "F", "T"]`` to ``[True, True, True]`` because
-        non-empty strings are truthy.
+        non-empty strings are truthy. Construction also fires the new
+        non-bool/non-bytes deprecation warning.
         """
-        col = fits.Column(name="flag", format="PL()", array=[rowval])
+        with pytest.warns(AstropyDeprecationWarning, match="bool array"):
+            col = fits.Column(name="flag", format="PL()", array=[rowval])
         with pytest.raises(exc):
             fits.BinTableHDU.from_columns([col]).writeto(tmp_path / "bad.fits")
 
