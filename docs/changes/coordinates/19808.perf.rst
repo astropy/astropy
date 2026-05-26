@@ -1,0 +1,2 @@
+Improved the performance of the no-op path in ``Angle.wrap_at`` for angle
+arrays that are already within the requested wrap interval.
