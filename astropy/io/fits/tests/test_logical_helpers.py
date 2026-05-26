@@ -27,6 +27,11 @@ class TestValidateLogicalInput:
             np.array([], dtype=bool),
             np.array([], dtype="S1"),
             np.array([0, 1, 1], dtype=np.int8),
+            [1, 0, 1, 1],
+            (0, 1),
+            np.array([0, 1, 1]),
+            np.array([0, 1, 1], dtype=np.uint16),
+            np.array([], dtype=np.int64),
         ],
     )
     def test_accepts(self, row):
@@ -36,9 +41,9 @@ class TestValidateLogicalInput:
     @pytest.mark.parametrize(
         "row",
         [
-            [1, 0, 1, 1],
-            (0, 1),
-            np.array([0, 1, 1]),
+            [2, 0, 1],
+            (1, -1),
+            np.array([1, 2, 3]),
             np.array([0.0, 1.0]),
             [True, None, False],
         ],
