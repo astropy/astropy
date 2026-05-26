@@ -48,7 +48,7 @@ class TestValidateLogicalInput:
             [True, None, False],
             # ``int8`` is the on-disk storage dtype but user-facing
             # int8 input is still subject to the 0/1 rule; internal
-            # load paths use Column(..., _skip_validation=True).
+            # load paths view-cast i1 to |S1 before validation.
             np.array([5, 6, 7], dtype=np.int8),
             np.array([ord("T"), ord("F"), 0], dtype=np.int8),
         ],

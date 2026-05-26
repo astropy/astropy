@@ -63,9 +63,10 @@ def _validate_logical_input(row):
 
     # Integer arrays (signed or unsigned, any width) are accepted
     # without warning iff every value is 0 or 1; those map unambiguously
-    # to False / True. Internal callers that legitimately need to pass
-    # arbitrary ``int8`` storage bytes (e.g. ``ColDefs._init_from_array``
-    # reading from disk) use ``Column(..., _skip_validation=True)``.
+    # to False / True. Internal callers that wrap on-disk ``int8``
+    # storage (e.g. ``ColDefs._init_from_array``) view-cast it to
+    # ``|S1`` so the byte-value check above runs on the actual storage
+    # bytes (b'T'/b'F'/b'\x00') instead of going through this branch.
     if arr.dtype.kind in ("i", "u"):
         if arr.size == 0 or bool(((arr == 0) | (arr == 1)).all()):
             return
