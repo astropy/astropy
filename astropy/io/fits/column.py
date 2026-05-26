@@ -1602,10 +1602,7 @@ class ColDefs(NotifierMixin):
             # ``getattr(...) == "L"`` avoids the format object's
             # ``__eq__`` which would try to reparse "L" through the
             # ASCII format constructor for ASCII tables.
-            if (
-                getattr(format, "format", None) == "L"
-                and col_array.dtype == np.int8
-            ):
+            if getattr(format, "format", None) == "L" and col_array.dtype == np.int8:
                 col_array = col_array.view("S1")
             c = Column(
                 name=cname,
