@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.7 - an implementation of the FITS WCS standard.
+  WCSLIB 8.8 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: tab.c,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
+  $Id: tab.c,v 8.8 2026/05/22 11:19:30 mcalabre Exp $
 *===========================================================================*/
 
 #include <limits.h>
@@ -83,7 +83,10 @@ int tabini(int alloc, int M, const int K[], struct tabprm *tab)
           "non-negative, got %d", K[m]);
       }
 
-      if (N < INT_MAX / K[m]) {
+      if (K[m] == 0) {
+        // Axis lengths as yet unknown.
+	N = 0;
+      } else if (N < INT_MAX / K[m]) {
         N *= K[m];
       } else {
         return wcserr_set(WCSERR_SET(TABERR_BAD_PARAMS),

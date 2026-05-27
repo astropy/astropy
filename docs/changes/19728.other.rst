@@ -1,1 +1,1 @@
-Upgraded WCSLIB to version 8.7. For a full list of changes - see ``astropy/cextern/wcslib/CHANGES``.
+Upgraded WCSLIB to version 8.8. For a full list of changes - see ``astropy/cextern/wcslib/CHANGES``.

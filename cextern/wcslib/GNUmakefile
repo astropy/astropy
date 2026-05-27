@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.7
+# GNU makefile for building WCSLIB 8.8
 #
 # Summary of the main targets
 # ---------------------------
@@ -34,7 +34,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/computing/software/wcs
-# $Id: GNUmakefile,v 8.7 2026/05/11 12:01:11 mcalabre Exp $
+# $Id: GNUmakefile,v 8.8 2026/05/22 11:19:31 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := .

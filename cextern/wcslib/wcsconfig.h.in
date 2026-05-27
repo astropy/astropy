@@ -1,10 +1,10 @@
 /*============================================================================
 * wcsconfig.h is generated from wcsconfig.h.in by 'configure'.  It contains
-* C preprocessor macro definitions for compiling WCSLIB 8.7
+* C preprocessor macro definitions for compiling WCSLIB 8.8
 *
 * Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 * http://www.atnf.csiro.au/computing/software/wcs
-* $Id: wcsconfig.h.in,v 8.7 2026/05/11 12:01:11 mcalabre Exp $
+* $Id: wcsconfig.h.in,v 8.8 2026/05/22 11:19:31 mcalabre Exp $
 *===========================================================================*/
 
 // wcslib_version() is available (as of 5.0).

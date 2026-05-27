@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.7 - an implementation of the FITS WCS standard.
+  WCSLIB 8.8 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsbth.l,v 8.7 2026/05/11 12:01:10 mcalabre Exp $
+  $Id: wcsbth.l,v 8.8 2026/05/22 11:19:30 mcalabre Exp $
 *=============================================================================
 *
 * wcsbth.l is a Flex description file containing the definition of a lexical

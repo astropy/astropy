@@ -1,9 +1,21 @@
+WCSLIB version 8.8 (2026/05/22)
+-------------------------------
+
+* C library
+
+  - In tabini(), persuant to the previous revision, when checking that
+    the total number of elements in the coordinate array does not exceed
+    INT_MAX, we need to allow for the possibility that K[m] == 0 for all
+    m, meaning that the axis lengths are as yet unknown.  Reported by
+    Thomas Robitaille with patch.
+
+
 WCSLIB version 8.7 (2026/05/11)
 -------------------------------
 
 The changes in this release were prompted almost exclusively by
 Anthropic's Claude Code AI static code analysis tool.  Rob Seaman ran
-it on WCSLIB 8.7 and, under his supervision, Claude produced a detailed
+it on WCSLIB 8.6 and, under his supervision, Claude produced a detailed
 report of WCSLIB's shortcomings and a summary of its historical
 development.
 
@@ -17,7 +29,7 @@ found a few issues that were missed by the others.
 
 Claude Code did a pretty good job of summarising the often tediously
 nit-picky output of the static analysers, and also in constructing a
-history of WCSLIB's code development.
+history of WCSLIB's code development from the RCS revisions.
 
 This exercise resulted in the changes to the C library detailed below.
 Mostly they could be described as armour-plating, if not gold-plating.
@@ -38,7 +50,7 @@ error processing.
     the static distortions helper functions.
 
     In wcsprintf(), call va_end() if memory allocation fails in order
-    to release the memory allocated by va_start()
+    to release the memory allocated by va_start().
 
     In wcserr_clear(), ensure that errp is non-NULL before dereferencing
     it.
@@ -117,8 +129,8 @@ error processing.
 
 * User manual
 
-  - Documentation generation moved to Doxygen 1.17.0 (was 1.15.0).
-    While the Doxygen bug reported in version 8.5 has now been fixed,
+  - Documentation generation moved to Doxygen 1.17.0 (was 1.16.0).
+    While the Doxygen bug reported in WCSLIB 8.5 has now been fixed,
     the makefile patch has been left in place for the time being.
 
 
@@ -3771,4 +3783,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.7 2026/05/11 12:01:11 mcalabre Exp $
+$Id: CHANGES,v 8.8 2026/05/22 11:19:31 mcalabre Exp $
