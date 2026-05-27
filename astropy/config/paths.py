@@ -527,7 +527,7 @@ if sys.flags.optimize < 2:
         This directory is typically ``$XDG_CONFIG_HOME/<namespace>``, but can be overwritten
         with the ``ASTROPY_CONFIG_DIR`` environment variable, or with
         ``temporary_config_dir_path``.
-
+        {post_header}
         .. versionchanged:: 8.0
             In previous versions, the return value pointed to ``$HOME/.astropy/config`` by default.
             A new environment variable ``ASTROPY_CONFIG_DIR`` is now supported.
@@ -552,7 +552,7 @@ if sys.flags.optimize < 2:
         This directory is typically ``$XDG_CACHE_HOME/<namespace>``, but can be overwritten
         with the ``ASTROPY_CACHE_DIR`` environment variable, or with
         :func:`temporary_cache_dir_path`.
-
+        {post_header}
         .. versionchanged:: 8.0
             In previous versions, the return value pointed to ``$HOME/.astropy/cache`` by default.
             A new environment variable ``ASTROPY_CACHE_DIR`` is now supported.
@@ -578,11 +578,12 @@ if sys.flags.optimize < 2:
         """
 
     get_config_dir_path.__doc__ = cleandoc(
-        _base_get_config_doc + _ret_section.format(rettype="Path", dirtype="cache")
+        _base_get_config_doc.format(post_header="\n        .. versionadded:: 7.0\n")
+        + _ret_section.format(rettype="Path", dirtype="cache")
     )
 
     get_config_dir.__doc__ = cleandoc(
-        _base_get_config_doc
+        _base_get_config_doc.format(post_header="")
         + _ret_section.format(rettype="str", dirtype="cache")
         + """
         See Also
@@ -592,11 +593,12 @@ if sys.flags.optimize < 2:
     )
 
     get_cache_dir_path.__doc__ = cleandoc(
-        _base_get_cache_doc + _ret_section.format(rettype="Path", dirtype="cache")
+        _base_get_cache_doc.format(post_header="\n        .. versionadded:: 7.0\n")
+        + _ret_section.format(rettype="Path", dirtype="cache")
     )
 
     get_cache_dir.__doc__ = cleandoc(
-        _base_get_cache_doc
+        _base_get_cache_doc.format(post_header="")
         + _ret_section.format(rettype="str", dirtype="cache")
         + """
         See Also
