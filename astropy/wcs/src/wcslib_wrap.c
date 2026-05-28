@@ -1500,10 +1500,18 @@ Wcsprm_mix(
     goto exit;
   }
 
-  /* Convert pixel coordinates to 1-based */
+  /* Force a call to wcsset via Wcsprm_cset before entering the parallel
+   * region (see the matching note in Wcs_all_pix2world).  This ensures
+   * wcs->flag == WCSSET so that wcsmix below does not invoke wcsset
+   * itself, allowing the wcsprm_python2c / wcsprm_c2python round-trip
+   * to be dropped (astropy/astropy#19174). */
+  if (Wcsprm_cset(self, 1)) {
+    goto exit;
+  }
+
+  /* Convert pixel coordinates to 1-based. */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
-  wcsprm_python2c(&self->x);
   status = wcsmix(
       &self->x,
       mixpix,
@@ -1516,7 +1524,6 @@ Wcsprm_mix(
       (double*)PyArray_DATA(theta),
       (double*)PyArray_DATA(imgcrd),
       (double*)PyArray_DATA(pixcrd));
-  wcsprm_c2python(&self->x);
   unoffset_array(pixcrd, origin);
   unoffset_array(imgcrd, origin);
   Py_END_ALLOW_THREADS
@@ -1632,18 +1639,28 @@ Wcsprm_p2s(
     goto exit;
   }
 
-  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
-  // calling wcsp2s, but we need to call it ourselves using Wcsprm_cset so that we can
-  // catch cases where the units might change if e.g. they are not in SI to start with.
-  /* Force a call to wcsset here*/
-  if (self->preserve_units && Wcsprm_cset(self, 1)) {
+  // Force a call to wcsset via Wcsprm_cset before entering the parallel
+  // region (see the matching note in Wcs_all_pix2world).  This ensures
+  // wcs->flag == WCSSET so that wcsp2s below does not invoke wcsset
+  // itself -- with wcsset moved out of the parallel region, wcsp2s is
+  // read-only on the wcsprm struct, and the wcsprm_python2c /
+  // wcsprm_c2python round-trip can be dropped (astropy/astropy#19174).
+  if (Wcsprm_cset(self, 1)) {
     return NULL;
   }
 
-  /* Make the call */
+  /* Make the call.
+   *
+   * wcsp2s does not read any of the optional sentinel-valued fields
+   * (obsgeo, mjdobs, mjdavg, mjdref, equinox, etc.) and does not modify
+   * the wcsprm struct (wcsset has already been called above via Wcsprm_cset).
+   * The NaN->UNDEFINED round-trip via wcsprm_python2c/c2python is therefore
+   * unnecessary here, and removing it lets concurrent threads call this
+   * function on the same WCS without racing on the struct's sentinel fields
+   * (see astropy/astropy#19174).
+   */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
-  wcsprm_python2c(&self->x);
   status = wcsp2s(
       &self->x,
       ncoord,
@@ -1654,7 +1671,6 @@ Wcsprm_p2s(
       (double*)PyArray_DATA(theta),
       (double*)PyArray_DATA(world),
       (int*)PyArray_DATA(stat));
-  wcsprm_c2python(&self->x);
   unoffset_array(pixcrd, origin);
   /* unoffset_array(world, origin); */
   unoffset_array(imgcrd, origin);
@@ -1762,12 +1778,13 @@ Wcsprm_s2p(
     goto exit;
   }
 
-  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
-  // calling wcsp2s, but we need to call it ourselves using Wcsprm_cset so that we can
-  // catch cases where the units might change if e.g. they are not in SI to start with.
-  /* Force a call to wcsset here*/
+  // Force a call to wcsset via Wcsprm_cset before entering the parallel
+  // region (see the matching note in Wcs_all_pix2world).  This ensures
+  // wcs->flag == WCSSET so that wcss2p below does not invoke wcsset
+  // itself, allowing the wcsprm_python2c / wcsprm_c2python round-trip to
+  // be dropped (astropy/astropy#19174).
 
-  if (self->preserve_units && Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self, 1)) {
     return NULL;
   }
 
@@ -1829,10 +1846,13 @@ Wcsprm_s2p(
     goto exit;
   }
 
-  /* Make the call */
+  /* Make the call.  See the comment in Wcsprm_p2s for why the
+   * wcsprm_python2c / wcsprm_c2python round-trip is intentionally absent
+   * here -- wcss2p does not read sentinel-valued fields and is read-only
+   * with respect to the wcsprm struct, so removing the round-trip lets
+   * concurrent transforms run race-free (astropy/astropy#19174). */
   Py_BEGIN_ALLOW_THREADS
   /* preoffset_array(world, origin); */
-  wcsprm_python2c(&self->x);
   status = wcss2p(
       &self->x,
       ncoord,
@@ -1843,7 +1863,6 @@ Wcsprm_s2p(
       (double*)PyArray_DATA(imgcrd),
       (double*)PyArray_DATA(pixcrd),
       (int*)PyArray_DATA(stat));
-  wcsprm_c2python(&self->x);
   /* unoffset_array(world, origin); */
   unoffset_array(pixcrd, origin);
   unoffset_array(imgcrd, origin);
