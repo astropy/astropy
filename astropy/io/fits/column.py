@@ -712,7 +712,11 @@ class Column(NotifierMixin):
         # FITS_rec where the data is presumed-valid and would otherwise
         # pay an O(N) validation cost on every slice (see commit message
         # for details).
-        if array is not None and not isinstance(array, Delayed) and not _skip_validation:
+        if (
+            array is not None
+            and not isinstance(array, Delayed)
+            and not _skip_validation
+        ):
             fmt_obj = valid_kwargs.get("format")
             is_fixed_logical = getattr(fmt_obj, "format", None) == "L"
             is_vla_logical = getattr(fmt_obj, "p_format", None) == "L"
