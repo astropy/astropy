@@ -1917,6 +1917,18 @@ Wcsprm_s2p(
   }
 }
 
+#ifdef Py_GIL_DISABLED
+// On a free-threaded build the GIL no longer serialises concurrent callers
+// of Wcsprm_cset, so the wcsenq guard alone cannot prevent two threads from
+// running wcsset simultaneously on the same struct (which is not thread
+// safe).  A single process-wide PyMutex around the wcsset path is enough:
+// the fast path (wcsenq-succeeds) is lock-free, so contention only happens
+// the first time a WCS is set or after a user mutation, which is rare.
+// On a GIL build this macro is undefined and the lock is compiled out --
+// the GIL itself serialises us since Wcsprm_cset never releases it.
+static PyMutex wcsset_mutex;
+#endif
+
 int
 Wcsprm_cset(
     Wcsprm* self,
@@ -1930,6 +1942,18 @@ Wcsprm_cset(
     return 0;
   }
 
+#ifdef Py_GIL_DISABLED
+  PyMutex_Lock(&wcsset_mutex);
+  // Re-check after acquiring the lock: another thread may have raced us
+  // here and already done the wcsset.  Without this, we'd just be
+  // serialising redundant wcsset calls; with it, the second arriver
+  // returns immediately and only one thread actually runs the work.
+  if (wcsenq(&self->x, WCSENQ_CHK)) {
+    PyMutex_Unlock(&wcsset_mutex);
+    return 0;
+  }
+#endif
+
   initialize_preserve_units(self);
 
   if (convert) wcsprm_python2c(&self->x);
@@ -1937,6 +1961,10 @@ Wcsprm_cset(
   if (convert) wcsprm_c2python(&self->x);
 
   check_unit_changes(self);
+
+#ifdef Py_GIL_DISABLED
+  PyMutex_Unlock(&wcsset_mutex);
+#endif
 
   if (status == 0) {
     return 0;
