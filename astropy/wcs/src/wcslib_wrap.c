@@ -1504,7 +1504,7 @@ Wcsprm_mix(
    * region (see the matching note in Wcs_all_pix2world).  This ensures
    * wcs->flag == WCSSET so that wcsmix below does not invoke wcsset
    * itself, allowing the wcsprm_python2c / wcsprm_c2python round-trip
-   * to be dropped (astropy/astropy#19174). */
+   * to be dropped. */
   if (Wcsprm_cset(self, 1)) {
     goto exit;
   }
@@ -1644,20 +1644,21 @@ Wcsprm_p2s(
   // wcs->flag == WCSSET so that wcsp2s below does not invoke wcsset
   // itself -- with wcsset moved out of the parallel region, wcsp2s is
   // read-only on the wcsprm struct, and the wcsprm_python2c /
-  // wcsprm_c2python round-trip can be dropped (astropy/astropy#19174).
+  // wcsprm_c2python round-trip can be dropped.
   if (Wcsprm_cset(self, 1)) {
     return NULL;
   }
 
   /* Make the call.
    *
-   * wcsp2s does not read any of the optional sentinel-valued fields
-   * (obsgeo, mjdobs, mjdavg, mjdref, equinox, etc.) and does not modify
-   * the wcsprm struct (wcsset has already been called above via Wcsprm_cset).
-   * The NaN->UNDEFINED round-trip via wcsprm_python2c/c2python is therefore
-   * unnecessary here, and removing it lets concurrent threads call this
-   * function on the same WCS without racing on the struct's sentinel fields
-   * (see astropy/astropy#19174).
+   * After wcsset has run (now hoisted into Wcsprm_cset above), wcsp2s is
+   * read-only on the wcsprm struct: it consumes the precomputed sub-structs
+   * wcs->lin / wcs->cel / wcs->spc plus wcs->crval[i], and never re-reads
+   * the raw arrays (cd, cdelt, crpix, crota, obsgeo, mjdobs, ...) that the
+   * wcsprm_python2c / wcsprm_c2python pair was rewriting NaN <-> UNDEFINED
+   * in place.  The round-trip can therefore be dropped here without
+   * changing the transform's output, and concurrent threads no longer
+   * race on those raw arrays.
    */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
@@ -1782,7 +1783,7 @@ Wcsprm_s2p(
   // region (see the matching note in Wcs_all_pix2world).  This ensures
   // wcs->flag == WCSSET so that wcss2p below does not invoke wcsset
   // itself, allowing the wcsprm_python2c / wcsprm_c2python round-trip to
-  // be dropped (astropy/astropy#19174).
+  // be dropped.
 
   if (Wcsprm_cset(self, 1)) {
     return NULL;
@@ -1846,11 +1847,11 @@ Wcsprm_s2p(
     goto exit;
   }
 
-  /* Make the call.  See the comment in Wcsprm_p2s for why the
-   * wcsprm_python2c / wcsprm_c2python round-trip is intentionally absent
-   * here -- wcss2p does not read sentinel-valued fields and is read-only
-   * with respect to the wcsprm struct, so removing the round-trip lets
-   * concurrent transforms run race-free (astropy/astropy#19174). */
+  /* Make the call.  See the comment in Wcsprm_p2s for the rationale --
+   * wcss2p is read-only on the wcsprm struct after wcsset has run, so
+   * the wcsprm_python2c / wcsprm_c2python round-trip can be dropped and
+   * concurrent transforms no longer race on the raw arrays
+   *. */
   Py_BEGIN_ALLOW_THREADS
   /* preoffset_array(world, origin); */
   status = wcss2p(

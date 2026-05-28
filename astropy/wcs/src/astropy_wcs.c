@@ -256,20 +256,23 @@ Wcs_all_pix2world(
   // only writer wcsp2s would otherwise trigger, and by running it eagerly
   // under the GIL here (short-circuited by wcsenq on subsequent calls) we
   // can safely drop the wcsprm_python2c / wcsprm_c2python round-trip from
-  // around pipeline_all_pixel2world (astropy/astropy#19174).
+  // around pipeline_all_pixel2world.
   if (Wcsprm_cset(((Wcsprm*)(self->py_wcsprm)), 1)) {
     return NULL;
   }
 
   /* Make the call.
    *
-   * The pipeline performs distortion / SIP / wcslib stages, none of which
-   * read the sentinel-valued metadata fields (obsgeo, mjdobs, mjdavg,
-   * mjdref, etc.) or modify the wcsprm struct.  The NaN<->UNDEFINED
-   * round-trip via wcsprm_python2c / wcsprm_c2python is therefore
-   * unnecessary here, and removing it lets concurrent threads call this
-   * function on the same WCS without racing on the struct's sentinel
-   * fields (see astropy/astropy#19174).
+   * The pipeline (det2im / SIP / distortion / wcsp2s stages) is read-only
+   * on the wcsprm struct -- after wcsset has run (now hoisted into
+   * Wcsprm_cset above), the transform routines consume the precomputed
+   * sub-structs wcs->lin / wcs->cel / wcs->spc plus wcs->crval[i], and
+   * never re-read the raw arrays (cd, cdelt, crpix, crota, obsgeo,
+   * mjdobs, ...) that the wcsprm_python2c / wcsprm_c2python pair was
+   * rewriting NaN <-> UNDEFINED in place.  The round-trip can therefore
+   * be dropped here without changing the transform's output, and
+   * concurrent threads no longer race on those raw arrays
+   *.
    */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
