@@ -1,0 +1,3 @@
+Made the WCS coordinate transform paths (``pixel_to_world``, ``world_to_pixel``,
+``all_pix2world``, ``wcs_pix2world``, ``wcs_world2pix``, ``mix``) safe to call
+concurrently on a shared ``WCS`` instance from multiple threads.
