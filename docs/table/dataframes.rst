@@ -50,10 +50,10 @@ Convert to pandas DataFrame:
 
     >>> df_pandas = t.to_df("pandas")
 
-.. doctest-skip::
+.. doctest-requires:: pandas>=3.0
 
     >>> type(df_pandas)
-    <class 'pandas.core.frame.DataFrame'>
+    <class 'pandas.DataFrame'>
 
 Convert to polars DataFrame:
 
@@ -121,10 +121,10 @@ Convert to a pandas DataFrame using the pandas-specific method:
     2  3  c
     3  4  d
 
-.. doctest-skip::
+.. doctest-requires:: pandas>=3.0
 
     >>> type(df)
-    <class 'pandas.core.frame.DataFrame'>
+    <class 'pandas.DataFrame'>
 
 Create a table from a pandas DataFrame:
 
