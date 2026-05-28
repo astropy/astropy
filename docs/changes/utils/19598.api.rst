@@ -1,5 +1,5 @@
 ``minversion`` now always fetches version metadata from installed packages
 and doesn't dynamically import modules when passed a name.
 As a direct implication, if a module's ``__version__`` attribute is out of sync
-with its version metadata, the latter is now always treated as the source of truth,
-while previously only the former was considered for module objects.
+with its version metadata, the latter is now preferred when available,
+while the former is now only considered as a last resort.
