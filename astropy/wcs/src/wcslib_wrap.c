@@ -1918,18 +1918,6 @@ Wcsprm_s2p(
   }
 }
 
-#ifdef Py_GIL_DISABLED
-// On a free-threaded build the GIL no longer serialises concurrent callers
-// of Wcsprm_cset, so the wcsenq guard alone cannot prevent two threads from
-// running wcsset simultaneously on the same struct (which is not thread
-// safe).  A single process-wide PyMutex around the wcsset path is enough:
-// the fast path (wcsenq-succeeds) is lock-free, so contention only happens
-// the first time a WCS is set or after a user mutation, which is rare.
-// On a GIL build this macro is undefined and the lock is compiled out --
-// the GIL itself serialises us since Wcsprm_cset never releases it.
-static PyMutex wcsset_mutex;
-#endif
-
 int
 Wcsprm_cset(
     Wcsprm* self,
@@ -1944,11 +1932,19 @@ Wcsprm_cset(
   }
 
 #ifdef Py_GIL_DISABLED
+  // On a free-threaded build the GIL no longer serialises concurrent callers
+  // of Wcsprm_cset, so the wcsenq guard alone cannot prevent two threads from
+  // running wcsset simultaneously on the same struct (which is not thread
+  // safe).  A single process-wide PyMutex around the wcsset path is enough:
+  // the fast path (wcsenq-succeeds) above is lock-free, so contention only
+  // happens the first time a WCS is set or after a user mutation, which is
+  // rare.  On a GIL build this macro is undefined and the lock is compiled
+  // out -- the GIL itself serialises us since Wcsprm_cset never releases it.
+  static PyMutex wcsset_mutex;
   PyMutex_Lock(&wcsset_mutex);
-  // Re-check after acquiring the lock: another thread may have raced us
-  // here and already done the wcsset.  Without this, we'd just be
-  // serialising redundant wcsset calls; with it, the second arriver
-  // returns immediately and only one thread actually runs the work.
+  // Double-checked locking: re-check under the lock so that if two threads
+  // both missed the fast path above, only the first one actually runs
+  // wcsset and the second returns immediately.
   if (wcsenq(&self->x, WCSENQ_CHK)) {
     PyMutex_Unlock(&wcsset_mutex);
     return 0;
