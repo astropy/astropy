@@ -577,6 +577,7 @@ class Column(NotifierMixin):
         coord_ref_value=None,
         coord_inc=None,
         time_ref_pos=None,
+        _skip_validation=False,
     ):
         """
         Construct a `Column` by specifying attributes.  All attributes
@@ -705,8 +706,13 @@ class Column(NotifierMixin):
         # validation is unnecessary here -- the data already exists on
         # disk in a presumed-valid wire format (and legacy 0x00/0x01
         # heaps are handled separately by
-        # ``_detect_legacy_logical_vla_heap``).
-        if array is not None and not isinstance(array, Delayed):
+        # ``_detect_legacy_logical_vla_heap``).  ``_skip_validation`` is
+        # also set by ``ColDefs._init_from_array`` when called from
+        # ``FITS_rec.__array_finalize__``: that path slices an existing
+        # FITS_rec where the data is presumed-valid and would otherwise
+        # pay an O(N) validation cost on every slice (see commit message
+        # for details).
+        if array is not None and not isinstance(array, Delayed) and not _skip_validation:
             fmt_obj = valid_kwargs.get("format")
             is_fixed_logical = getattr(fmt_obj, "format", None) == "L"
             is_vla_logical = getattr(fmt_obj, "p_format", None) == "L"
@@ -1557,6 +1563,21 @@ class ColDefs(NotifierMixin):
                 f"Input data with shape {array.shape} is not a valid representation "
                 "of a row-oriented table. Expected a 1D array with rows as elements."
             )
+
+        # When invoked from ``FITS_rec.__array_finalize__`` -- the only
+        # call path that reaches ``_init_from_array`` with a FITS_rec --
+        # the column data has already been validated at the FITS_rec's
+        # original construction (or came from a presumed-valid on-disk
+        # wire format).  Re-running ``_validate_logical_input`` on every
+        # field would pay an O(N) cost on every slice; suppress it here.
+        # ColDefs(FITS_rec_with_coldefs_set) does not reach this branch
+        # (the ColDefs constructor short-circuits to
+        # ``_init_from_coldefs``), so this only fires for the slicing
+        # path.
+        from .fitsrec import FITS_rec
+
+        skip_validation = isinstance(array, FITS_rec)
+
         self.columns = []
         for idx in range(len(array.dtype)):
             cname = array.dtype.names[idx]
@@ -1617,6 +1638,7 @@ class ColDefs(NotifierMixin):
                 array=col_array,
                 bzero=bzero,
                 dim=dim,
+                _skip_validation=skip_validation,
             )
             self.columns.append(c)
 
