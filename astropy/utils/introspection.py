@@ -115,7 +115,7 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
     >>> minversion(numpy, '1.21.0')
     True
     """
-    if inspect.ismodule(module):
+    if is_module := inspect.ismodule(module):
         module_name = module.__name__
     elif isinstance(module, str):
         module_name = module
@@ -136,8 +136,16 @@ def minversion(module: ModuleType | str, version: str, inclusive: bool = True) -
         # Calling packages_distributions is costly so we do it only
         # if necessary, as only a few packages don't have the same
         # distribution name.
-        dist_names = packages_distributions()
-        module_version = metadata.version(dist_names[module_name][0])
+        if module_name in (dist_names := packages_distributions()):
+            module_dist = dist_names[module_name]
+            module_version = metadata.version(module_dist[0])
+        elif is_module and hasattr(module, "__version__"):
+            # A package may be importable *but* not found in package distributions
+            # this path is reached with pyinstaller e.g. for erfa (distributed as 'pyerfa')
+            # last resort strategy
+            module_version = module.__version__
+        else:
+            raise
 
     comp = ge if inclusive else gt
     return comp(Version(module_version), Version(version))
