@@ -1500,10 +1500,18 @@ PyWcsprm_mix(
     goto exit;
   }
 
-  /* Convert pixel coordinates to 1-based */
+  /* Force a call to wcsset via PyWcsprm_cset before entering the parallel
+   * region (see the matching note in Wcs_all_pix2world).  This ensures
+   * wcs->flag == WCSSET so that wcsmix below does not invoke wcsset
+   * itself, allowing the wcsprm_python2c / wcsprm_c2python round-trip
+   * to be dropped. */
+  if (PyWcsprm_cset(self, 1)) {
+    goto exit;
+  }
+
+  /* Convert pixel coordinates to 1-based. */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
-  wcsprm_python2c(&self->x);
   status = wcsmix(
       &self->x,
       mixpix,
@@ -1516,7 +1524,6 @@ PyWcsprm_mix(
       (double*)PyArray_DATA(theta),
       (double*)PyArray_DATA(imgcrd),
       (double*)PyArray_DATA(pixcrd));
-  wcsprm_c2python(&self->x);
   unoffset_array(pixcrd, origin);
   unoffset_array(imgcrd, origin);
   Py_END_ALLOW_THREADS
@@ -1632,18 +1639,29 @@ PyWcsprm_p2s(
     goto exit;
   }
 
-  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
-  // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
-  // catch cases where the units might change if e.g. they are not in SI to start with.
-  /* Force a call to wcsset here*/
-  if (self->preserve_units && PyWcsprm_cset(self, 1)) {
+  // Force a call to wcsset via PyWcsprm_cset before entering the parallel
+  // region (see the matching note in Wcs_all_pix2world).  This ensures
+  // wcs->flag == WCSSET so that wcsp2s below does not invoke wcsset
+  // itself -- with wcsset moved out of the parallel region, wcsp2s is
+  // read-only on the wcsprm struct, and the wcsprm_python2c /
+  // wcsprm_c2python round-trip can be dropped.
+  if (PyWcsprm_cset(self, 1)) {
     return NULL;
   }
 
-  /* Make the call */
+  /* Make the call.
+   *
+   * After wcsset has run (now hoisted into PyWcsprm_cset above), wcsp2s is
+   * read-only on the wcsprm struct: it consumes the precomputed sub-structs
+   * wcs->lin / wcs->cel / wcs->spc plus wcs->crval[i], and never re-reads
+   * the raw arrays (cd, cdelt, crpix, crota, obsgeo, mjdobs, ...) that the
+   * wcsprm_python2c / wcsprm_c2python pair was rewriting NaN <-> UNDEFINED
+   * in place.  The round-trip can therefore be dropped here without
+   * changing the transform's output, and concurrent threads no longer
+   * race on those raw arrays.
+   */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
-  wcsprm_python2c(&self->x);
   status = wcsp2s(
       &self->x,
       ncoord,
@@ -1654,7 +1672,6 @@ PyWcsprm_p2s(
       (double*)PyArray_DATA(theta),
       (double*)PyArray_DATA(world),
       (int*)PyArray_DATA(stat));
-  wcsprm_c2python(&self->x);
   unoffset_array(pixcrd, origin);
   /* unoffset_array(world, origin); */
   unoffset_array(imgcrd, origin);
@@ -1762,12 +1779,13 @@ PyWcsprm_s2p(
     goto exit;
   }
 
-  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
-  // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
-  // catch cases where the units might change if e.g. they are not in SI to start with.
-  /* Force a call to wcsset here*/
+  // Force a call to wcsset via PyWcsprm_cset before entering the parallel
+  // region (see the matching note in Wcs_all_pix2world).  This ensures
+  // wcs->flag == WCSSET so that wcss2p below does not invoke wcsset
+  // itself, allowing the wcsprm_python2c / wcsprm_c2python round-trip to
+  // be dropped.
 
-  if (self->preserve_units && PyWcsprm_cset(self, 1)) {
+  if (PyWcsprm_cset(self, 1)) {
     return NULL;
   }
 
@@ -1829,10 +1847,13 @@ PyWcsprm_s2p(
     goto exit;
   }
 
-  /* Make the call */
+  /* Make the call.  See the comment in Wcsprm_p2s for the rationale --
+   * wcss2p is read-only on the wcsprm struct after wcsset has run, so
+   * the wcsprm_python2c / wcsprm_c2python round-trip can be dropped and
+   * concurrent transforms no longer race on the raw arrays
+   *. */
   Py_BEGIN_ALLOW_THREADS
   /* preoffset_array(world, origin); */
-  wcsprm_python2c(&self->x);
   status = wcss2p(
       &self->x,
       ncoord,
@@ -1843,7 +1864,6 @@ PyWcsprm_s2p(
       (double*)PyArray_DATA(imgcrd),
       (double*)PyArray_DATA(pixcrd),
       (int*)PyArray_DATA(stat));
-  wcsprm_c2python(&self->x);
   /* unoffset_array(world, origin); */
   unoffset_array(pixcrd, origin);
   unoffset_array(imgcrd, origin);
@@ -1911,6 +1931,26 @@ PyWcsprm_cset(
     return 0;
   }
 
+#ifdef Py_GIL_DISABLED
+  // On a free-threaded build the GIL no longer serialises concurrent callers
+  // of PyWcsprm_cset, so the wcsenq guard alone cannot prevent two threads from
+  // running wcsset simultaneously on the same struct (which is not thread
+  // safe).  A single process-wide PyMutex around the wcsset path is enough:
+  // the fast path (wcsenq-succeeds) above is lock-free, so contention only
+  // happens the first time a WCS is set or after a user mutation, which is
+  // rare.  On a GIL build this macro is undefined and the lock is compiled
+  // out -- the GIL itself serialises us since PyWcsprm_cset never releases it.
+  static PyMutex wcsset_mutex;
+  PyMutex_Lock(&wcsset_mutex);
+  // Double-checked locking: re-check under the lock so that if two threads
+  // both missed the fast path above, only the first one actually runs
+  // wcsset and the second returns immediately.
+  if (wcsenq(&self->x, WCSENQ_CHK)) {
+    PyMutex_Unlock(&wcsset_mutex);
+    return 0;
+  }
+#endif
+
   initialize_preserve_units(self);
 
   if (convert) wcsprm_python2c(&self->x);
@@ -1918,6 +1958,10 @@ PyWcsprm_cset(
   if (convert) wcsprm_c2python(&self->x);
 
   check_unit_changes(self);
+
+#ifdef Py_GIL_DISABLED
+  PyMutex_Unlock(&wcsset_mutex);
+#endif
 
   if (status == 0) {
     return 0;
@@ -2378,7 +2422,7 @@ PyWcsprm_to_header(
   // If the user has requested to preserve the original units, then we
   // could try and edit the header returned by wcshdo - however, this
   // might be tricky and not robust to future WCSLIB changes. Instead,
-  // we make a copy of the Wcsprm object, change the units on that and
+  // we make a copy of the PyWcsprm object, change the units on that and
   // prevent WCSLIB fixing the units, then convert to a header.
   if (self->unit_scaling != NULL) {
 

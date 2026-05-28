@@ -249,24 +249,38 @@ Wcs_all_pix2world(
     goto exit;
   }
 
-  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
-  // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
-  // catch cases where the units might change if e.g. they are not in SI to start with.
-  /* Force a call to wcsset here*/
-  if (((PyWcsprm*)(self->py_wcsprm))->preserve_units && PyWcsprm_cset(((PyWcsprm*)(self->py_wcsprm)), 1)) {
+  // Force a call to wcsset via Wcsprm_cset before entering the parallel
+  // region.  This serves two purposes: (1) preserve_units unit-change
+  // detection (the original reason), and (2) ensuring wcs->flag == WCSSET
+  // so the wcsp2s call below will not invoke wcsset itself.  wcsset is the
+  // only writer wcsp2s would otherwise trigger, and by running it eagerly
+  // under the GIL here (short-circuited by wcsenq on subsequent calls) we
+  // can safely drop the wcsprm_python2c / wcsprm_c2python round-trip from
+  // around pipeline_all_pixel2world.
+  if (PyWcsprm_cset(((PyWcsprm*)(self->py_wcsprm)), 1)) {
     return NULL;
   }
 
-  /* Make the call */
+  /* Make the call.
+   *
+   * The pipeline (det2im / SIP / distortion / wcsp2s stages) is read-only
+   * on the wcsprm struct -- after wcsset has run (now hoisted into
+   * Wcsprm_cset above), the transform routines consume the precomputed
+   * sub-structs wcs->lin / wcs->cel / wcs->spc plus wcs->crval[i], and
+   * never re-read the raw arrays (cd, cdelt, crpix, crota, obsgeo,
+   * mjdobs, ...) that the wcsprm_python2c / wcsprm_c2python pair was
+   * rewriting NaN <-> UNDEFINED in place.  The round-trip can therefore
+   * be dropped here without changing the transform's output, and
+   * concurrent threads no longer race on those raw arrays
+   *.
+   */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
-  wcsprm_python2c(self->x.wcs);
   status = pipeline_all_pixel2world(&self->x,
                                     (unsigned int)ncoord,
                                     (unsigned int)nelem,
                                     (double*)PyArray_DATA(pixcrd),
                                     (double*)PyArray_DATA(world));
-  wcsprm_c2python(self->x.wcs);
   unoffset_array(pixcrd, origin);
   Py_END_ALLOW_THREADS
   /* unoffset_array(world, origin); */
