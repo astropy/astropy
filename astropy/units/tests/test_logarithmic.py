@@ -807,6 +807,23 @@ class TestLogQuantityArithmetic:
         assert t.unit.is_equivalent(lq2.unit.function_unit)
         assert_allclose(t.to(lq2.unit.function_unit), lq2._function_view * 2)
 
+    def test_multiplication_division_dimensionless_scaled(self):
+        # Scaled dimensionless can also be dealt with.
+        lq = np.arange(1, 11.0) << u.mag("m/cm")
+        lq2 = u.Magnitude(2.0)
+        got = lq / lq2
+        exp = lq.to(u.mag) / lq2.to(u.mag)
+        assert got.unit == exp.unit == u.dimensionless_unscaled
+        assert_allclose(got.value, exp.value)
+
+        # If possible, the result is still a magnitude.
+        q2 = np.arange(10.0)
+        got = lq * q2
+        exp = u.Magnitude(lq.to(u.mag).value * q2)
+        assert isinstance(got, u.Magnitude)
+        assert got.unit == exp.unit == u.mag
+        assert_allclose(got.value, exp.value)
+
     @pytest.mark.parametrize("power", (2, 0.5, 1, 0))
     def test_raise_to_power(self, power):
         """Check that raising LogQuantities to some power is only possible when
@@ -1049,3 +1066,13 @@ class TestLogQuantityFunctions:
         res = np.ptp(mag)
         assert np.all(res.value == np.ptp(mag._function_view).value)
         assert res.unit == u.mag()
+
+    def test_linspace(self):
+        res = np.linspace(0 * u.dex("AA"), 2 * u.dex("cm"), 11)
+        assert isinstance(res, u.Dex)
+        assert res.unit == u.dex("AA")
+        assert_allclose(res.value, np.arange(0, 11))
+        res2 = np.linspace(0 * u.dex("cm"), 2 * u.dex("AA"), 7)
+        assert isinstance(res2, u.Dex)
+        assert res2.unit == u.dex("cm")
+        assert_allclose(res2.value, np.arange(0, -7, -1))
