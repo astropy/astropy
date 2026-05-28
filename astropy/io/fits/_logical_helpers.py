@@ -48,7 +48,7 @@ def _validate_logical_input(row):
                 | (view == _VALID_LOGICAL_BYTES[1])
                 | (view == _VALID_LOGICAL_BYTES[2])
             )
-            if not bool(allowed.all()):
+            if not allowed.all():
                 bad = np.unique(view[~allowed])
                 bad_repr = ", ".join(repr(bytes([int(b)])) for b in bad)
                 raise ValueError(
@@ -68,7 +68,7 @@ def _validate_logical_input(row):
     # ``|S1`` so the byte-value check above runs on the actual storage
     # bytes (b'T'/b'F'/b'\x00') instead of going through this branch.
     if arr.dtype.kind in ("i", "u"):
-        if arr.size == 0 or bool(((arr == 0) | (arr == 1)).all()):
+        if arr.size == 0 or ((arr == 0) | (arr == 1)).all():
             return
 
     _warn_logical_input(arr.dtype.str)

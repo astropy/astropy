@@ -698,7 +698,14 @@ class Column(NotifierMixin):
         # Internal callers that wrap on-disk storage in an ``int8``
         # array (e.g. ``ColDefs._init_from_array``) view-cast it to
         # ``|S1`` before reaching here so the byte-value check applies
-        # without a separate escape-hatch.
+        # without a separate escape-hatch.  ``Delayed`` arrays are
+        # placeholders for a column we have not yet read off the file;
+        # the actual array is swapped in via ``_get_recarray_field``
+        # at ``FITS_rec._from_columns`` and bypasses this __init__, so
+        # validation is unnecessary here -- the data already exists on
+        # disk in a presumed-valid wire format (and legacy 0x00/0x01
+        # heaps are handled separately by
+        # ``_detect_legacy_logical_vla_heap``).
         if array is not None and not isinstance(array, Delayed):
             fmt_obj = valid_kwargs.get("format")
             is_fixed_logical = getattr(fmt_obj, "format", None) == "L"
