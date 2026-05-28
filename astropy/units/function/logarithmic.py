@@ -214,6 +214,9 @@ class DecibelUnit(LogUnit):
         return Decibel
 
 
+UFUNC_TO_SUPPORTED_OPERATOR = {np.add: "add", np.subtract: "sub"}
+
+
 class LogQuantity(FunctionQuantity):
     """A representation of a (scaled) logarithm of a number with a unit.
 
@@ -262,6 +265,20 @@ class LogQuantity(FunctionQuantity):
 
     # only override of FunctionQuantity
     _unit_class = LogUnit
+
+    def __array_ufunc__(self, function, method, *inputs, **kwargs):
+        if (
+            method == "__call__"
+            and (op := UFUNC_TO_SUPPORTED_OPERATOR.get(function)) is not None
+        ):
+            out = kwargs.get("out")
+            inplace = "i" if out is inputs[0] else ""
+            if isinstance(inputs[0], LogQuantity) and (out is None or inplace):
+                return getattr(self, f"__{inplace}{op}__")(inputs[1])
+            elif isinstance(inputs[1], LogQuantity) and out is None:
+                return getattr(self, f"__r{op}__")(inputs[0])
+
+        return super().__array_ufunc__(function, method, *inputs, **kwargs)
 
     # additions that work just for logarithmic units
     def __add__(self, other):
