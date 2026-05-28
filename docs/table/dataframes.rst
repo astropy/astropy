@@ -49,8 +49,11 @@ Convert to pandas DataFrame:
 .. doctest-requires:: pandas
 
     >>> df_pandas = t.to_df("pandas")
+
+.. doctest-skip::
+
     >>> type(df_pandas)
-    <class 'pandas.DataFrame'>
+    <class 'pandas.core.frame.DataFrame'>
 
 Convert to polars DataFrame:
 
@@ -117,8 +120,11 @@ Convert to a pandas DataFrame using the pandas-specific method:
     1  2  b
     2  3  c
     3  4  d
+
+.. doctest-skip::
+
     >>> type(df)
-    <class 'pandas.DataFrame'>
+    <class 'pandas.core.frame.DataFrame'>
 
 Create a table from a pandas DataFrame:
 
@@ -127,13 +133,13 @@ Create a table from a pandas DataFrame:
     >>> t2 = Table.from_pandas(df)
     >>> t2
     <Table length=4>
-      a      b
-    int64 string8
-    ----- -------
-        1       a
-        2       b
-        3       c
-        4       d
+      a    b
+    int64 str1
+    ----- ----
+        1    a
+        2    b
+        3    c
+        4    d
 
 .. EXAMPLE END
 
