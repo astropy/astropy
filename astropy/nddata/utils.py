@@ -785,11 +785,19 @@ class Cutout2D:
         if ax is None:
             ax = plt.gca()
 
-        height, width = self.shape
-        hw, hh = width / 2.0, height / 2.0
-        pos_xy = self.position_original - np.array([hw, hh])
+        xmin = self.xmin_original - 0.5
+        xmax = self.xmax_original + 0.5
+
+        ymin = self.ymin_original - 0.5
+        ymax = self.ymax_original + 0.5
+
+        pos_xy = (xmin, ymin)
+        width = xmax - xmin
+        height = ymax - ymin
+
         patch = mpatches.Rectangle(pos_xy, width, height, angle=0.0, **kwargs)
         ax.add_patch(patch)
+
         return ax
 
     @staticmethod
