@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import numbers
+import operator
 from functools import cached_property
 
 import numpy as np
@@ -12,6 +13,8 @@ from astropy.units import (
     UnitTypeError,
     dimensionless_unscaled,
 )
+from astropy.units.quantity_helper import check_output
+from astropy.units.quantity_helper.helpers import get_converter
 
 from .core import FunctionQuantity, FunctionUnitBase
 
@@ -214,7 +217,7 @@ class DecibelUnit(LogUnit):
         return Decibel
 
 
-ADD_SUBTRACT_UFUNCS = {np.add: "add", np.subtract: "sub"}
+ADD_SUBTRACT_UFUNCS = {np.add: operator.add, np.subtract: operator.sub}
 
 
 class LogQuantity(FunctionQuantity):
@@ -267,59 +270,61 @@ class LogQuantity(FunctionQuantity):
     _unit_class = LogUnit
 
     def __array_ufunc__(self, function, method, *inputs, **kwargs):
-        if method == "__call__" and (op := ADD_SUBTRACT_UFUNCS.get(function)):
-            out = kwargs.get("out")
-            inplace = "i" if out is inputs[0] else ""
-            if isinstance(inputs[0], LogQuantity) and (out is None or inplace):
-                return getattr(self, f"__{inplace}{op}__")(inputs[1])
-            elif isinstance(inputs[1], LogQuantity) and out is None:
-                return getattr(self, f"__r{op}__")(inputs[0])
+        # Addition and subtraction are possible for LogQuantity, but
+        # anything else we can just pass on.
+        # TODO: for dimensionless, also support reduce, etc.?
+        if method != "__call__" or not (op := ADD_SUBTRACT_UFUNCS.get(function)):
+            return super().__array_ufunc__(function, method, *inputs, **kwargs)
 
-        return super().__array_ufunc__(function, method, *inputs, **kwargs)
+        # Get single output from output tuple (if present).
+        out = kwargs.get("out", [None])[0]
 
-    # additions that work just for logarithmic units
-    def __add__(self, other):
-        # Add function units, thus multiplying physical units. If no unit is
-        # given, assume dimensionless_unscaled; this will give the appropriate
-        # exception in LogUnit.__add__.
-        new_unit = self.unit + getattr(other, "unit", dimensionless_unscaled)
-        # Add actual logarithmic values, rescaling, e.g., dB -> dex.
-        result = self._function_view + getattr(other, "_function_view", other)
-        return self._new_view(result, new_unit)
+        # Add or subtract the function units, thus multiplying or dividing
+        # physical units. If no unit is given, assume dimensionless; this
+        # will raise appropriately in LogUnit.__add__ or __sub__.
+        units = [getattr(a, "unit", dimensionless_unscaled) for a in inputs]
+        try:
+            new_unit = op(*units)
+        except TypeError:
+            # Operation on units failed.  This can happen only if the units
+            # were not LogUnit so did not support addition or subtraction
+            # (LogUnit.__add/sub__ can only raise UnitsError). In turn, this
+            # implies the inputs were not LogQuantity, and hence we must have
+            # gotten here because of a LogQuantity output, with something like
+            # np.add(1*u.dex, 2*u.dex, out=u.Dex(0)) (which would go directly
+            # to LogQuantity.__array_ufunc__ since LogQuantity is a subclass
+            # of Quantity).  We assert this somewhat complex logic, so that if
+            # anything changes, test cases will break.
+            assert out is self
+            assert not any(isinstance(a, LogQuantity) for a in inputs)
+            new_unit = out._unit_class(function_unit=units[0])
 
-    def __radd__(self, other):
-        return self.__add__(other)
+        # Use function views for the calculation, and take into account
+        # conversions of dB to dex, etc. In principle, we could do this
+        # using a Quantity calculation with the function views, but faster
+        # to short-circuit. Plus, it allows to convert directly to the
+        # desired function unit of the result.
+        new_fu = new_unit.function_unit
+        arrays = []
+        for input_ in inputs:
+            fv = getattr(input_, "_function_view", input_)
+            array = fv.value
+            if converter := get_converter(fv.unit, new_fu):
+                array = converter(array)
+            arrays.append(array)
 
-    def __iadd__(self, other):
-        new_unit = self.unit + getattr(other, "unit", dimensionless_unscaled)
-        # Do calculation in-place using _function_view of array.
-        function_view = self._function_view
-        function_view += getattr(other, "_function_view", other)
-        self._set_unit(new_unit)
-        return self
+        if out is not None:
+            fv = getattr(out, "_function_view", out)
+            array = check_output(fv, new_fu, arrays, function=function)
+            arrays.append(array)
 
-    def __sub__(self, other):
-        # Subtract function units, thus dividing physical units.
-        new_unit = self.unit - getattr(other, "unit", dimensionless_unscaled)
-        # Subtract actual logarithmic values, rescaling, e.g., dB -> dex.
-        result = self._function_view - getattr(other, "_function_view", other)
-        return self._new_view(result, new_unit)
+        result = function(*arrays)
 
-    def __rsub__(self, other):
-        new_unit = self.unit.__rsub__(getattr(other, "unit", dimensionless_unscaled))
-        result = self._function_view.__rsub__(getattr(other, "_function_view", other))
-        # Ensure the result is in right function unit scale
-        # (with rsub, this does not have to be one's own).
-        result = result.to(new_unit.function_unit)
-        return self._new_view(result, new_unit)
-
-    def __isub__(self, other):
-        new_unit = self.unit - getattr(other, "unit", dimensionless_unscaled)
-        # Do calculation in-place using _function_view of array.
-        function_view = self._function_view
-        function_view -= getattr(other, "_function_view", other)
-        self._set_unit(new_unit)
-        return self
+        if out is not None:
+            out._set_unit(new_unit)
+            return out
+        else:
+            return self._new_view(result, new_unit)
 
     def __mul__(self, other):
         # Multiply by a float or a dimensionless quantity

@@ -676,11 +676,10 @@ class FunctionQuantity(Quantity):
 
     @property
     def _in_function_unit(self):
-        return (
-            self._function_view
-            if self.unit.physical_unit == dimensionless_unscaled
-            else self.to(self.unit.function_unit)
-        )
+        if self.unit.physical_unit == dimensionless_unscaled:
+            return self._function_view
+        else:
+            return self.to(self.unit.function_unit)
 
     # ↓↓↓ methods overridden to change behavior
     def __mul__(self, other):

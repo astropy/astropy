@@ -7,7 +7,7 @@ import pickle
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import constants as c
 from astropy import units as u
@@ -816,12 +816,14 @@ class TestLogQuantityArithmetic:
         assert got.unit == exp.unit == u.dimensionless_unscaled
         assert_allclose(got.value, exp.value)
 
+    def test_multiplication_with_dimensionless_array(self):
         # If possible, the result is still a magnitude.
-        q2 = np.arange(10.0)
-        got = lq * q2
-        exp = u.Magnitude(lq.to(u.mag).value * q2)
+        lq = np.arange(1, 11.0) << u.mag("m/cm")
+        a = np.arange(10.0)
+        got = lq * a
+        exp = u.Magnitude(lq.to(u.mag).value * a)
         assert isinstance(got, u.Magnitude)
-        assert got.unit == exp.unit == u.mag
+        assert got.unit == exp.unit
         assert_allclose(got.value, exp.value)
 
     @pytest.mark.parametrize("power", (2, 0.5, 1, 0))
@@ -879,6 +881,7 @@ class TestLogQuantityArithmetic:
         (
             1.23 * u.mag,
             2.34 * u.mag(),
+            2 * u.dex,
             u.Magnitude(3.45 * u.Jy),
             u.Magnitude(4.56 * u.m),
             5.67 * u.Unit(2 * u.mag),
@@ -928,6 +931,7 @@ class TestLogQuantityArithmetic:
         (
             1.23 * u.mag,
             2.34 * u.mag(),
+            2 * u.dex,
             u.Magnitude(3.45 * u.Jy),
             u.Magnitude(4.56 * u.m),
             5.67 * u.Unit(2 * u.mag),
@@ -961,6 +965,110 @@ class TestLogQuantityArithmetic:
         assert M_st.unit.is_equivalent(u.erg / u.s / u.AA)
         ratio = M_st.physical / (m_st.physical * 4.0 * np.pi * (100.0 * u.pc) ** 2)
         assert np.abs(ratio - 1.0) < 1.0e-15
+
+    @pytest.mark.parametrize(
+        "other",
+        (
+            pytest.param(1.23 * u.mag, id="Quantity[mag]"),
+            pytest.param(2.34 * u.mag(), id="Magnitude, dimenionless"),
+            pytest.param(2 * u.dex, id="Quantity with dex unit"),
+            pytest.param(u.Magnitude(3.45 * u.Jy), id="Magnitude[Jy]"),
+            pytest.param(u.Magnitude(4.56 * u.m), id="Magnitude[m]"),
+            pytest.param(5.67 * u.Unit(2 * u.mag), id="Quantity[2mag]"),
+            pytest.param(u.Magnitude(6.78, 2.0 * u.mag), id="Magnitude[2mag]"),
+        ),
+    )
+    @pytest.mark.parametrize("func", (np.add, np.subtract))
+    def test_np_add_subtract_inplace(self, other, func):
+        # Python operators call numpy functions so np.add and np.subtract are
+        # already tested indirectly above, including in-place on the first
+        # argument. Here, we test that inplace output arrays work generally,
+        # with the output is either the same as either input, or different.
+        lq = u.Magnitude(np.arange(1.0, 10.0) * u.Jy)
+        exp1 = func(lq, other)
+        exp2 = func(other, lq)
+        # Regular order, in-place in first argument.
+        out = lq.copy()
+        got1a = func(out, other, out=out)
+        assert got1a is out
+        assert got1a.unit == exp1.unit
+        assert_array_equal(got1a.value, exp1.value)
+        # Regular order, separate in-place array.
+        out = np.zeros_like(lq)
+        got1b = func(lq, other, out=out)
+        assert got1b is out
+        assert got1b.unit == exp1.unit
+        assert_array_equal(got1b.value, exp1.value)
+        # Reverse order, in-place in second argument.
+        out = lq.copy()
+        got2a = func(other, out, out=out)
+        assert got2a is out
+        assert got2a.unit == exp2.unit
+        assert_array_equal(got2a.value, exp2.value)
+        # Reverse order, separate in-place array.
+        out = np.zeros_like(out)
+        got2b = func(other, lq, out=out)
+        assert got2b is out
+        assert got2b.unit == exp2.unit
+        assert_array_equal(got2b.value, exp2.value)
+
+    @pytest.mark.parametrize("func", (np.add, np.subtract))
+    def test_np_add_subtract_regular_to_log_quantity(self, func):
+        # Inplace to function quantity with regular quantities as input.
+        lq1 = u.Magnitude([1.0, 2.0, 3.0])
+        lq2 = u.Magnitude(5.0, 2 * u.mag)
+        q1 = u.Quantity(lq1)
+        q2 = u.Quantity(lq2)
+        exp = func(lq1, lq2)
+        out = u.Magnitude(np.zeros(exp.shape))
+        got = func(q1, q2, out=out)
+        assert got is out
+        assert type(got) is u.Magnitude
+        assert got.unit == exp.unit
+        assert_array_equal(got.value, exp.value)
+        # Reverse order, which gives different function unit.
+        exp2 = func(lq2, lq1)
+        out2 = u.Magnitude(np.zeros(exp2.shape))
+        got2 = func(q2, q1, out=out2)
+        assert got2 is out2
+        assert type(got2) is u.Magnitude
+        assert got2.unit == exp2.unit
+        assert_array_equal(got2.value, exp2.value)
+
+        with pytest.raises(u.UnitsError, match="Cannot initialize 'MagUnit'"):
+            func(q1.value, q2.value, out=out)
+
+        with pytest.raises(u.UnitsError, match="Cannot initialize 'MagUnit'"):
+            func(q1.value << u.m, q2.value << u.cm, out=out)
+
+    @pytest.mark.parametrize("func", (np.add, np.subtract))
+    def test_np_add_subtract_log_to_regular_quantity(self, func):
+        # Inplace to regular quantity with function quantities as input.
+        lq1 = u.Magnitude([1.0, 2.0, 3.0])
+        lq2 = u.Magnitude(5.0, 2 * u.mag)
+        q1 = u.Quantity(lq1)
+        q2 = u.Quantity(lq2)
+        exp = func(q1, q2)
+        out = u.Quantity(np.zeros(exp.shape))
+        got = func(lq1, lq2, out=out)
+        assert got is out
+        assert type(got) is u.Quantity
+        assert got.unit == exp.unit
+        assert_array_equal(got.value, exp.value)
+        # Reverse order, which gives different unit.
+        exp2 = func(q2, q1)
+        out2 = u.Quantity(np.zeros(exp2.shape))
+        got2 = func(lq2, lq1, out=out2)
+        assert got2 is out2
+        assert type(got2) is u.Quantity
+        assert got2.unit == exp2.unit
+        assert_array_equal(got2.value, exp2.value)
+
+        with pytest.raises(u.UnitsError, match="require normal units"):
+            func(lq1, 5.0 * u.mag(u.Jy), out=out)
+
+        with pytest.raises(u.UnitsError, match="only.*compatible type"):
+            func(4.0 * u.m, 5.0 * u.mag(u.Jy), out=out)
 
 
 class TestLogQuantityComparisons:
@@ -1069,10 +1177,10 @@ class TestLogQuantityFunctions:
 
     def test_linspace(self):
         res = np.linspace(0 * u.dex("AA"), 2 * u.dex("cm"), 11)
-        assert isinstance(res, u.Dex)
+        assert type(res) is u.Dex
         assert res.unit == u.dex("AA")
         assert_allclose(res.value, np.arange(0, 11))
         res2 = np.linspace(0 * u.dex("cm"), 2 * u.dex("AA"), 7)
-        assert isinstance(res2, u.Dex)
+        assert type(res2) is u.Dex
         assert res2.unit == u.dex("cm")
         assert_allclose(res2.value, np.arange(0, -7, -1))
