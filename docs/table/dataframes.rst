@@ -1,5 +1,3 @@
-.. doctest-skip-all
-
 .. _df_narwhals:
 
 Interfacing with DataFrames
@@ -39,26 +37,40 @@ Basic Multi-Backend Example
 
 .. EXAMPLE START: Using Generic Multi-Backend Methods
 
-Create a table and convert to different DataFrame backends::
+Create a table and convert to different DataFrame backends:
 
     >>> from astropy.table import Table
     >>> t = Table()
     >>> t['a'] = [1, 2, 3, 4]
     >>> t['b'] = ['a', 'b', 'c', 'd']
 
-    # Convert to pandas DataFrame
-    >>> df_pandas = t.to_df("pandas")
-    >>> type(df_pandas)
-    <class 'pandas.core.frame.DataFrame'>
+Convert to pandas DataFrame:
 
-    # Convert to polars DataFrame
+.. doctest-requires:: pandas
+
+    >>> df_pandas = t.to_df("pandas")
+
+.. doctest-requires:: pandas>=3.0
+
+    >>> type(df_pandas)
+    <class 'pandas.DataFrame'>
+
+Convert to polars DataFrame:
+
+.. doctest-requires:: polars
+
     >>> df_polars = t.to_df("polars")
     >>> type(df_polars)
     <class 'polars.dataframe.frame.DataFrame'>
 
-Create a table from any supported DataFrame::
+Create a table from any supported DataFrame:
+
+.. doctest-requires:: pandas
 
     >>> t2 = Table.from_df(df_pandas)  # From pandas
+
+.. doctest-requires:: polars
+
     >>> t3 = Table.from_df(df_polars)  # From polars
 
 .. EXAMPLE END
@@ -97,7 +109,9 @@ To demonstrate, we can create a minimal table::
     >>> t['a'] = [1, 2, 3, 4]
     >>> t['b'] = ['a', 'b', 'c', 'd']
 
-Convert to a pandas DataFrame using the pandas-specific method::
+Convert to a pandas DataFrame using the pandas-specific method:
+
+.. doctest-requires:: pandas
 
     >>> df = t.to_pandas()
     >>> df
@@ -106,40 +120,51 @@ Convert to a pandas DataFrame using the pandas-specific method::
     1  2  b
     2  3  c
     3  4  d
-    >>> type(df)
-    <class 'pandas.core.frame.DataFrame'>
 
-Create a table from a pandas DataFrame::
+.. doctest-requires:: pandas>=3.0
+
+    >>> type(df)
+    <class 'pandas.DataFrame'>
+
+Create a table from a pandas DataFrame:
+
+.. doctest-requires:: pandas
 
     >>> t2 = Table.from_pandas(df)
     >>> t2
     <Table length=4>
-      a      b
-    int64 string8
-    ----- -------
-        1       a
-        2       b
-        3       c
-        4       d
+      a    b
+    int64 str1
+    ----- ----
+        1    a
+        2    b
+        3    c
+        4    d
 
 .. EXAMPLE END
 
 Pandas Index Support
 --------------------
 
-The pandas-specific methods provide full support for DataFrame indexing, which is a unique pandas feature::
+The pandas-specific methods provide full support for DataFrame indexing, which is a unique pandas feature:
 
     >>> from astropy.time import Time
     >>> tm = Time([1998, 2002], format="jyear")
     >>> x = [1, 2]
     >>> t = Table([tm, x], names=["tm", "x"])
 
-    # Use a column as the DataFrame index
+Use a column as the DataFrame index:
+
+.. doctest-requires:: pandas
+
     >>> df = t.to_pandas(index="tm")
     >>> df.index.name
     'tm'
 
-    # Convert back including the index as a column
+Convert back including the index as a column:
+
+.. doctest-requires:: pandas
+
     >>> t_back = Table.from_pandas(df, index=True)
     >>> t_back.colnames
     ['tm', 'x']
@@ -147,7 +172,9 @@ The pandas-specific methods provide full support for DataFrame indexing, which i
 Pandas Excel Support
 --------------------
 
-Read an Excel file into a table by utilizing the pandas backend::
+Read an Excel file into a table by utilizing the pandas backend:
+
+.. doctest-skip::
 
     >>> t = Table.from_pandas(pandas.read_excel("myexceltable.xlsx"))
 
@@ -221,7 +248,9 @@ Create a table with masked and mixin columns::
        --     2.0    b 2021-01-02 00:00:00.000  2.0,5.0     2.0
         3      --    c 2021-01-03 00:00:00.000  3.0,6.0     3.0
 
-Convert using the pandas-specific method::
+Convert using the pandas-specific method:
+
+.. doctest-requires:: pandas
 
     >>> df_pandas = t.to_pandas()
     >>> df_pandas
@@ -230,12 +259,16 @@ Convert using the pandas-specific method::
     1  <NA>  2.0    b 2021-01-02    2.0     5.0  2.0
     2     3  NaN    c 2021-01-03    3.0     6.0  3.0
 
-Convert using the generic method to pandas::
+Convert using the generic method to pandas:
+
+.. doctest-requires:: pandas
 
     >>> df_generic = t.to_df("pandas")
     >>> # Results are identical to df_pandas
 
-Convert to polars using the generic method::
+Convert to polars using the generic method:
+
+.. doctest-requires:: polars
 
     >>> df_polars = t.to_df("polars")
     >>> df_polars
@@ -250,10 +283,15 @@ Convert to polars using the generic method::
     │ 3    ┆ null ┆ c    ┆ 2021-01-03 00:00:00 ┆ 3.0   ┆ 6.0    ┆ 3.0 │
     └──────┴──────┴──────┴─────────────────────┴───────┴────────┴─────┘
 
-Convert back to tables::
+Convert back to tables:
+
+.. doctest-requires:: pandas
 
     >>> t_from_pandas = QTable.from_pandas(df_pandas)  # Using pandas-specific method
     >>> t_from_generic = QTable.from_df(df_pandas)     # Using generic method
+
+.. doctest-requires:: polars
+
     >>> t_from_polars = QTable.from_df(df_polars)      # From polars DataFrame
 
 Note the data transformations that occurred:
