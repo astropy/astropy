@@ -1,0 +1,1 @@
+Dropped support for ``ipython`` 8.0.x. Version ``8.1.0`` and later are still supported.
