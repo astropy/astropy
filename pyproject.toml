@@ -62,7 +62,7 @@ recommended = [
 # you are using Astropy from an IPython-dependent IDE, like Jupyter, this should enforce
 # the minimum supported version of IPython.
 ipython = [
-    "ipython>=8.0.0",
+    "ipython>=8.1.0",
 ]
 jupyter = [  # these are optional dependencies for utils.console and table
     "astropy[ipython]",
@@ -138,7 +138,7 @@ docs = [
     "sphinx>=8.2.0,<9",  # keep in sync with docs/conf.py
     "sphinx-astropy[confv3]>=1.11",
     "pytest>=8.0.0",
-    "sphinx-changelog>=1.2.0",
+    "sphinx-changelog>=1.4.0",
     "sphinx_design>=0.6.1",
     "Jinja2>=3.1.3",
     "sphinxcontrib-globalsubs>=0.1.1",
