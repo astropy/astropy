@@ -24,14 +24,27 @@ def _convolveNd_c(np.ndarray result,
                   bool nan_interpolate,
                   bool embed_result_within_padded_region,
                   int n_threads):
-    convolveNd_c(
-        <np.float64_t*>np.PyArray_DATA(result),
-        <np.float64_t*>np.PyArray_DATA(array_to_convolve),
-        array_to_convolve.ndim,
-        <size_t*>array_to_convolve.shape,
-        <np.float64_t*>np.PyArray_DATA(kernel),
-        <size_t*>kernel.shape,
-        nan_interpolate,
-        embed_result_within_padded_region,
-        n_threads,
-    )
+    # Cache attributes we need with the GIL before releasing it.
+    cdef:
+        np.float64_t * result_ptr = <np.float64_t*>np.PyArray_DATA(result)
+        const np.float64_t * array_ptr = <np.float64_t*>np.PyArray_DATA(array_to_convolve)
+        const unsigned ndim = array_to_convolve.ndim
+        const size_t * array_shape = <size_t*>array_to_convolve.shape
+        const np.float64_t * kernel_ptr = <np.float64_t*>np.PyArray_DATA(kernel)
+        const size_t * kernel_shape = <size_t*>kernel.shape
+    # convolveNd_c is declared nogil in the C header; release the GIL
+    # around the call so threaded executors (e.g. dask, joblib threading
+    # backend) can run multiple convolutions in parallel instead of being
+    # serialised at the Python layer.
+    with nogil:
+        convolveNd_c(
+            result_ptr,
+            array_ptr,
+            ndim,
+            array_shape,
+            kernel_ptr,
+            kernel_shape,
+            nan_interpolate,
+            embed_result_within_padded_region,
+            n_threads,
+        )
