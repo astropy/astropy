@@ -1019,22 +1019,34 @@ class CoordinateHelper:
                     continue
                 axes0 = transData.transform(pixel0)
 
-                # Advance 2 pixels in figure coordinates
-                pixel1 = axes0.copy()
-                pixel1[:, 0] += 2.0
-                pixel1 = invertedTransLimits.transform(pixel1)
-                with np.errstate(invalid="ignore"):
-                    world1 = self.transform.transform(pixel1)[:, self.coord_index]
+                # Define a helper function to minimize code repetition
+                def shifted_pixel_to_world(index, shift):
+                    pixel = axes0.copy()
+                    pixel[:, index] += shift
+                    pixel = invertedTransLimits.transform(pixel)
+                    with np.errstate(invalid="ignore"):
+                        return self.transform.transform(pixel)[:, self.coord_index]
 
-                # Advance 2 pixels in figure coordinates
-                pixel2 = axes0.copy()
-                pixel2[:, 1] += 2.0 if self.frame.origin == "lower" else -2.0
-                pixel2 = invertedTransLimits.transform(pixel2)
-                with np.errstate(invalid="ignore"):
-                    world2 = self.transform.transform(pixel2)[:, self.coord_index]
-
+                # Advance 2 pixels to the right in figure coordinates
+                world1 = shifted_pixel_to_world(0, 2)
                 dx = world1 - world0
+
+                # Where advancing to the right results in NaN, advance to the left instead
+                invalid1 = np.isnan(world1)
+                if invalid1.any():
+                    world1 = shifted_pixel_to_world(0, -2)
+                    dx[invalid1] = (world0 - world1)[invalid1]
+
+                # Advance 2 pixels up in figure coordinates
+                amount = 2.0 if self.frame.origin == "lower" else -2.0
+                world2 = shifted_pixel_to_world(1, amount)
                 dy = world2 - world0
+
+                # Where advancing up results in NaN, advance down instead
+                invalid2 = np.isnan(world2)
+                if invalid2.any():
+                    world2 = shifted_pixel_to_world(1, -amount)
+                    dy[invalid2] = (world0 - world2)[invalid2]
 
                 # Rotate by 90 degrees
                 dx, dy = -dy, dx
