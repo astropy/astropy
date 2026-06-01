@@ -232,6 +232,7 @@ Core Package Contributors
 * Humna Awan
 * iamsoto
 * Igor Lemos
+* Ikbar Faiz
 * ikkamens
 * Inada Naoki
 * J\. Berg
@@ -287,6 +288,7 @@ Core Package Contributors
 * Joseph Schlitz
 * Jost Migenda
 * JP Maia
+* Juan Escudero Pedrosa
 * Juan Luis Cano Rodríguez
 * Juanjo Bazán
 * Julian Harbeck
