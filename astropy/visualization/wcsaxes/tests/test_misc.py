@@ -615,6 +615,108 @@ def test_multiple_draws_grid_contours(tmp_path):
     fig.savefig(tmp_path / "plot.png")
 
 
+def _coord_range_nan_diagnostics(wcs, extent):
+    """Diagnostic dump for the all-NaN ``get_coord_range`` failure seen on some
+    platforms (e.g. Debian mips64el, see issues #15442 / #17403).
+
+    Used only as an ``assert`` message, so it is evaluated solely when the test
+    fails and its output is captured in the build log -- the failure has been
+    seen only on specific build hosts we cannot get a shell on. It dumps the
+    wcslib setup constants (so we can see which one was poisoned to NaN), what
+    ``find_coordinate_range`` actually sees, and a small libm probe battery.
+    Never raises: each probe degrades to a note on error.
+    """
+    lines = ["", "=== get_coord_range NaN-regression diagnostics ==="]
+
+    def safe(label, fn):
+        try:
+            lines.append(f"  {label}: {fn()}")
+        except Exception as exc:  # pragma: no cover - diagnostic only
+            lines.append(f"  {label}: <unavailable: {exc!r}>")
+
+    from astropy.wcs import _wcs
+
+    safe("wcslib version", lambda: _wcs.WCSLIB_VERSION)
+    try:
+        import ctypes
+
+        safe("fegetround()", lambda: ctypes.CDLL("libm.so.6").fegetround())
+    except Exception as exc:  # pragma: no cover - diagnostic only
+        lines.append(f"  fegetround(): <unavailable: {exc!r}>")
+
+    wp = wcs.wcs
+    # Global setup constants computed once by wcsset/celset/linset. If the
+    # platform poisons one of these to NaN, every transformed point is NaN.
+    constants = {
+        "crval": lambda: list(wp.crval),
+        "cdelt": lambda: list(wp.cdelt),
+        "pc": lambda: np.asarray(wp.pc).tolist(),
+        "lonpole": lambda: float(wp.lonpole),
+        "latpole": lambda: float(wp.latpole),
+        "cel.euler": lambda: list(wp.cel.euler),
+        "cel.ref": lambda: list(wp.cel.ref),
+        "prj.w[:5]": lambda: list(wp.cel.prj.w[:5]),
+        "prj.r0/x0/y0": lambda: [wp.cel.prj.r0, wp.cel.prj.x0, wp.cel.prj.y0],
+    }
+    nan_constants = []
+    for label, fn in constants.items():
+        try:
+            value = fn()
+            if np.isnan(np.asarray(value, dtype=float)).any():
+                nan_constants.append(label)
+            lines.append(f"  {label}: {value}")
+        except Exception as exc:  # pragma: no cover - diagnostic only
+            lines.append(f"  {label}: <unavailable: {exc!r}>")
+    lines.append(f"  >>> setup constants containing NaN: {nan_constants or 'none'}")
+
+    # What find_coordinate_range sees over the sampled grid. astropy's p2s
+    # wrapper NaNs all stage outputs for flagged points, so this cannot localise
+    # lin-vs-prj-vs-cel; the useful signals are how many points are flagged and
+    # whether the world coordinates are entirely NaN.
+    try:
+        x = np.linspace(extent[0], extent[1], 51)
+        y = np.linspace(extent[2], extent[3], 51)
+        xp, yp = np.meshgrid(x, y)
+        out = wp.p2s(np.vstack([xp.ravel(), yp.ravel()]).T, 0)
+        world = np.asarray(out["world"])
+        npts = world.shape[0]
+        n_world_nan = int(np.isnan(world).any(axis=-1).sum())
+        n_flagged = int((np.asarray(out["stat"]) != 0).sum())
+        lines.append(f"  grid points: {npts}")
+        lines.append(f"  points flagged invalid (stat != 0): {n_flagged}")
+        lines.append(f"  points with NaN world coords: {n_world_nan}")
+        lines.append(f"  >>> ENTIRE world grid is NaN: {n_world_nan == npts}")
+        with np.errstate(invalid="ignore"):
+            lines.append(
+                "  nan-min/max world (what get_coord_range reduces): "
+                f"lon=[{np.nanmin(world[:, 0])}, {np.nanmax(world[:, 0])}] "
+                f"lat=[{np.nanmin(world[:, 1])}, {np.nanmax(world[:, 1])}]"
+            )
+    except Exception as exc:  # pragma: no cover - diagnostic only
+        lines.append(f"  grid breakdown: <unavailable: {exc!r}>")
+
+    # libm transcendental self-test: wcslib's MOL/celestial setup leans on these
+    # (often via the WCSTRIG_MACRO + sincos path). Comparing a failing host's
+    # output against a healthy one's pinpoints a libm/FPU divergence.
+    import math
+
+    probes = {
+        "asin(1.0)": lambda: math.asin(1.0),
+        "asin(nextafter(1,2))": lambda: math.asin(math.nextafter(1.0, 2.0)),
+        "sqrt(2.0)": lambda: math.sqrt(2.0),
+        "atan2(0.0, 0.0)": lambda: math.atan2(0.0, 0.0),
+        "sin(radians(180))": lambda: math.sin(math.radians(180.0)),
+        "cos(radians(90))": lambda: math.cos(math.radians(90.0)),
+    }
+    for label, fn in probes.items():
+        try:
+            lines.append(f"  libm {label} = {fn()!r}")
+        except Exception as exc:
+            lines.append(f"  libm {label} -> {exc!r}")
+    lines.append("=== end diagnostics ===")
+    return "\n".join(lines)
+
+
 def test_get_coord_range_nan_regression():
     # Test to make sure there is no internal casting of NaN to integers
     # NumPy 1.24 raises a RuntimeWarning if a NaN is cast to an integer
@@ -637,7 +739,7 @@ def test_get_coord_range_nan_regression():
                 (-44.02289164685554, 44.80732766607591),
             ]
         ),
-    )
+    ), _coord_range_nan_diagnostics(wcs, [300, 700, 300, 500])
 
     # Extend the X limits to include invalid longitudes/RAs, so the world coordinates have NaNs
     ax.set_xlim(0, 700)
@@ -646,7 +748,28 @@ def test_get_coord_range_nan_regression():
         np.array(
             [(-131.3193386797236, 180.0), (-44.02289164685554, 44.80732766607591)]
         ),
+    ), _coord_range_nan_diagnostics(wcs, [0, 700, 300, 500])
+
+
+def test_find_coordinate_range_all_nan():
+    # When the sampled world coordinates are entirely non-finite the range is
+    # undefined; find_coordinate_range should deliberately return the natural
+    # full extent per coordinate type rather than relying on NaN propagation
+    # through the min/max clamping (see issues #15442 / #17403).
+    from astropy.visualization.wcsaxes.coordinate_range import find_coordinate_range
+
+    class _AllNaNTransform:
+        def transform(self, pixel):
+            return np.full((pixel.shape[0], 2), np.nan)
+
+    ranges = find_coordinate_range(
+        _AllNaNTransform(),
+        [0, 700, 300, 500],
+        ["longitude", "latitude"],
+        [u.deg, u.deg],
+        [180 * u.deg, None],
     )
+    assert ranges == [(0.0, 360.0), (-90.0, 90.0)]
 
 
 def test_imshow_error():

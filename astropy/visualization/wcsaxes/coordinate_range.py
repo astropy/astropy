@@ -89,6 +89,24 @@ def find_coordinate_range(transform, extent, coord_types, coord_units, coord_wra
             xw_min = np.nanmin(xw)
             xw_max = np.nanmax(xw)
 
+        # If the sampled world coordinates are entirely non-finite the range is
+        # undefined. This happens when the whole viewport projects outside the
+        # valid region, and has also been seen as a platform-specific
+        # floating-point issue that poisons the transform (see issues #15442 and
+        # #17403). Return the natural full extent for the coordinate type
+        # explicitly, rather than relying on the NaN-propagation behaviour of the
+        # comparisons and min/max clamping further down.
+        if not np.isfinite(xw_min):
+            if coord_type == "longitude":
+                xw_min, xw_max = 0.0, 360.0
+            elif coord_type == "latitude":
+                xw_min, xw_max = -90.0, 90.0
+            if coord_type in LONLAT:
+                xw_min *= u.deg.to(unit)
+                xw_max *= u.deg.to(unit)
+            ranges.append((xw_min, xw_max))
+            continue
+
         # Check if range is smaller when normalizing to the range 0 to 360
 
         if coord_type in LONLAT:
