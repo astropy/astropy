@@ -2684,9 +2684,11 @@ class TestTableFunctions(FitsTestCase):
         write time (matching the behavior of astropy <= 7.2.0). Without
         this the new bool conversion would silently coerce strings/None:
         e.g. ``["T", "F", "T"]`` to ``[True, True, True]`` because
-        non-empty strings are truthy.
+        non-empty strings are truthy. Construction also fires the new
+        non-bool/non-bytes deprecation warning.
         """
-        col = fits.Column(name="flag", format="PL()", array=[rowval])
+        with pytest.warns(AstropyDeprecationWarning, match="bool array"):
+            col = fits.Column(name="flag", format="PL()", array=[rowval])
         with pytest.raises(exc):
             fits.BinTableHDU.from_columns([col]).writeto(tmp_path / "bad.fits")
 

@@ -1,6 +1,85 @@
 """Helpers for handling FITS logical (``'L'``) variable-length array data."""
 
+import warnings
+
 import numpy as np
+
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+_VALID_LOGICAL_BYTES = (ord("T"), ord("F"), 0)
+
+
+def _validate_logical_input(row):
+    """Validate user input for a FITS logical column.
+
+    Accepts only bool arrays/sequences and |S1 byte arrays whose values
+    are limited to ``b'T'``, ``b'F'``, and ``b'\\x00'`` (the FITS L
+    wire-format values for True, False, and NULL).
+
+    |S1 input with any other byte value raises ``ValueError``.
+
+    Any other input type (int, float, object, ...) emits an
+    ``AstropyDeprecationWarning`` and is left to the existing coercion
+    path; in a future version such input will be rejected with
+    ``TypeError``.
+    """
+    if isinstance(row, (bool, np.bool_)):
+        return
+
+    try:
+        arr = np.asarray(row)
+    except Exception:
+        _warn_logical_input(type(row).__name__)
+        return
+
+    if arr.dtype.kind == "S":
+        if arr.dtype.itemsize > 1:
+            raise ValueError(
+                "FITS logical column byte input must have itemsize 1 "
+                f"(|S1); got {arr.dtype.str}."
+            )
+        if arr.size:
+            view = arr.view(np.uint8)
+            allowed = (
+                (view == _VALID_LOGICAL_BYTES[0])
+                | (view == _VALID_LOGICAL_BYTES[1])
+                | (view == _VALID_LOGICAL_BYTES[2])
+            )
+            if not allowed.all():
+                bad = np.unique(view[~allowed])
+                bad_repr = ", ".join(repr(bytes([int(b)])) for b in bad)
+                raise ValueError(
+                    "FITS logical column |S1 input contains invalid "
+                    f"byte{'s' if bad.size > 1 else ''} {bad_repr}; "
+                    "only b'T', b'F', and b'\\x00' are allowed."
+                )
+        return
+
+    if arr.dtype == bool:
+        return
+
+    # Integer arrays (signed or unsigned, any width) are accepted
+    # without warning iff every value is 0 or 1; those map unambiguously
+    # to False / True. Internal callers that wrap on-disk ``int8``
+    # storage (e.g. ``ColDefs._init_from_array``) view-cast it to
+    # ``|S1`` so the byte-value check above runs on the actual storage
+    # bytes (b'T'/b'F'/b'\x00') instead of going through this branch.
+    if arr.dtype.kind in ("i", "u"):
+        if arr.size == 0 or ((arr == 0) | (arr == 1)).all():
+            return
+
+    _warn_logical_input(arr.dtype.str)
+
+
+def _warn_logical_input(typename):
+    warnings.warn(
+        "Passing input of type "
+        f"{typename!r} to a FITS logical ('L') column is deprecated "
+        "and will raise in a future version. Pass a bool array, or "
+        "a |S1 byte array containing only b'T', b'F', or b'\\x00'.",
+        AstropyDeprecationWarning,
+        stacklevel=3,
+    )
 
 
 def _logical_to_fits_bytes(row):

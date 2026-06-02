@@ -1,13 +1,71 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
 from astropy.io.fits._logical_helpers import (
     _detect_legacy_logical_vla_heap,
     _logical_to_fits_bytes,
     _logical_vla_heap_has_null,
+    _validate_logical_input,
 )
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+
+class TestValidateLogicalInput:
+    @pytest.mark.parametrize(
+        "row",
+        [
+            True,
+            False,
+            np.True_,
+            np.array([True, False, True]),
+            [True, False, True],
+            (True, False),
+            np.array([b"T", b"F", b"\x00"], dtype="S1"),
+            np.array([], dtype=bool),
+            np.array([], dtype="S1"),
+            np.array([0, 1, 1], dtype=np.int8),
+            [1, 0, 1, 1],
+            (0, 1),
+            np.array([0, 1, 1]),
+            np.array([0, 1, 1], dtype=np.uint16),
+            np.array([], dtype=np.int64),
+        ],
+    )
+    def test_accepts(self, row):
+        # No warning, no error.
+        _validate_logical_input(row)
+
+    @pytest.mark.parametrize(
+        "row",
+        [
+            [2, 0, 1],
+            (1, -1),
+            np.array([1, 2, 3]),
+            np.array([0.0, 1.0]),
+            [True, None, False],
+            # ``int8`` is the on-disk storage dtype but user-facing
+            # int8 input is still subject to the 0/1 rule; internal
+            # load paths view-cast i1 to |S1 before validation.
+            np.array([5, 6, 7], dtype=np.int8),
+            np.array([ord("T"), ord("F"), 0], dtype=np.int8),
+        ],
+    )
+    def test_deprecates_non_bool_non_bytes(self, row):
+        with pytest.warns(AstropyDeprecationWarning, match="deprecated"):
+            _validate_logical_input(row)
+
+    def test_rejects_invalid_byte_value(self):
+        row = np.array([b"T", b"X", b"F"], dtype="S1")
+        with pytest.raises(ValueError, match="invalid byte"):
+            _validate_logical_input(row)
+
+    def test_rejects_multibyte_string_dtype(self):
+        row = np.array([b"TT", b"FF"], dtype="S2")
+        with pytest.raises(ValueError, match="itemsize 1"):
+            _validate_logical_input(row)
 
 
 class TestLogicalToFitsBytes:

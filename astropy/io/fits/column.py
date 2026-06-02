@@ -18,6 +18,7 @@ from astropy.utils import lazyproperty
 from astropy.utils.compat import chararray, get_chararray
 from astropy.utils.exceptions import AstropyUserWarning
 
+from ._logical_helpers import _validate_logical_input
 from .card import CARD_LENGTH, Card
 from .util import NotifierMixin, _convert_array, _is_int, cmp, encode_ascii
 from .verify import VerifyError, VerifyWarning
@@ -576,6 +577,7 @@ class Column(NotifierMixin):
         coord_ref_value=None,
         coord_inc=None,
         time_ref_pos=None,
+        _skip_validation=False,
     ):
         """
         Construct a `Column` by specifying attributes.  All attributes
@@ -690,6 +692,39 @@ class Column(NotifierMixin):
         # Awful hack to use for now to keep track of whether the column holds
         # pseudo-unsigned int data
         self._pseudo_unsigned_ints = False
+
+        # Restrict logical ('L') column input to bool or |S1 bytes
+        # (with values b'T', b'F', or b'\x00'). Anything else emits an
+        # AstropyDeprecationWarning; out-of-spec |S1 bytes raise.
+        # Internal callers that wrap on-disk storage in an ``int8``
+        # array (e.g. ``ColDefs._init_from_array``) view-cast it to
+        # ``|S1`` before reaching here so the byte-value check applies
+        # without a separate escape-hatch.  ``Delayed`` arrays are
+        # placeholders for a column we have not yet read off the file;
+        # the actual array is swapped in via ``_get_recarray_field``
+        # at ``FITS_rec._from_columns`` and bypasses this __init__, so
+        # validation is unnecessary here -- the data already exists on
+        # disk in a presumed-valid wire format (and legacy 0x00/0x01
+        # heaps are handled separately by
+        # ``_detect_legacy_logical_vla_heap``).  ``_skip_validation`` is
+        # also set by ``ColDefs._init_from_array`` when called from
+        # ``FITS_rec.__array_finalize__``: that path slices an existing
+        # FITS_rec where the data is presumed-valid and would otherwise
+        # pay an O(N) validation cost on every slice (see commit message
+        # for details).
+        if (
+            array is not None
+            and not isinstance(array, Delayed)
+            and not _skip_validation
+        ):
+            fmt_obj = valid_kwargs.get("format")
+            is_fixed_logical = getattr(fmt_obj, "format", None) == "L"
+            is_vla_logical = getattr(fmt_obj, "p_format", None) == "L"
+            if is_vla_logical:
+                for row in array:
+                    _validate_logical_input(row)
+            elif is_fixed_logical:
+                _validate_logical_input(array)
 
         # if the column data is not ndarray, make it to be one, i.e.
         # input arrays can be just list or tuple, not required to be ndarray
@@ -1532,6 +1567,21 @@ class ColDefs(NotifierMixin):
                 f"Input data with shape {array.shape} is not a valid representation "
                 "of a row-oriented table. Expected a 1D array with rows as elements."
             )
+
+        # When invoked from ``FITS_rec.__array_finalize__`` -- the only
+        # call path that reaches ``_init_from_array`` with a FITS_rec --
+        # the column data has already been validated at the FITS_rec's
+        # original construction (or came from a presumed-valid on-disk
+        # wire format).  Re-running ``_validate_logical_input`` on every
+        # field would pay an O(N) cost on every slice; suppress it here.
+        # ColDefs(FITS_rec_with_coldefs_set) does not reach this branch
+        # (the ColDefs constructor short-circuits to
+        # ``_init_from_coldefs``), so this only fires for the slicing
+        # path.
+        from .fitsrec import FITS_rec
+
+        skip_validation = isinstance(array, FITS_rec)
+
         self.columns = []
         for idx in range(len(array.dtype)):
             cname = array.dtype.names[idx]
@@ -1573,12 +1623,26 @@ class ColDefs(NotifierMixin):
                 elif "K" in format:
                     bzero = np.uint64(2**63)
 
+            col_array = array.view(np.ndarray)[cname]
+            # When a logical ('L') column's recarray field arrives as
+            # ``int8`` storage (e.g. from reading a FITS file), view
+            # it as ``|S1`` so the Column constructor's byte-value
+            # validation runs on the actual on-disk bytes
+            # (b'T'/b'F'/b'\x00') instead of firing the integer 0/1
+            # deprecation warning. ``b1`` (numpy bool) fields are
+            # left as-is and pass the bool branch of the validator.
+            # ``getattr(...) == "L"`` avoids the format object's
+            # ``__eq__`` which would try to reparse "L" through the
+            # ASCII format constructor for ASCII tables.
+            if getattr(format, "format", None) == "L" and col_array.dtype == np.int8:
+                col_array = col_array.view("S1")
             c = Column(
                 name=cname,
                 format=format,
-                array=array.view(np.ndarray)[cname],
+                array=col_array,
                 bzero=bzero,
                 dim=dim,
+                _skip_validation=skip_validation,
             )
             self.columns.append(c)
 
