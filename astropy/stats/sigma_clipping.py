@@ -9,6 +9,7 @@ from numpy.lib.array_utils import normalize_axis_index
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
+from astropy.stats._masked_compat import support_masked
 from astropy.stats.biweight import biweight_location, biweight_scale
 from astropy.stats.funcs import mad_std
 from astropy.stats.nanfunctions import (
@@ -544,6 +545,7 @@ class SigmaClip:
         else:
             return filtered_data
 
+    @support_masked()
     def __call__(
         self,
         data: ArrayLike,

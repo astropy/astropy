@@ -1,0 +1,5 @@
+Several ``astropy.stats`` functions ignored the mask of (or raised a
+``TypeError`` on) astropy ``Masked`` inputs such as ``MaskedNDArray`` and
+``MaskedQuantity``. ``sigma_clip``, ``SigmaClip``, ``biweight_location``,
+``biweight_scale`` and ``biweight_midvariance`` now honour the mask of such
+inputs and return a ``Masked`` result of the same flavour, preserving any unit.

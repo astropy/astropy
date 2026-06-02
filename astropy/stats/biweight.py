@@ -9,6 +9,7 @@ from collections.abc import Callable
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from astropy.stats._masked_compat import support_masked
 from astropy.stats.funcs import median_absolute_deviation
 from astropy.stats.nanfunctions import nanmedian, nansum
 
@@ -41,6 +42,7 @@ def _stat_functions(
     return median_func, sum_func
 
 
+@support_masked()
 def biweight_location(
     data: ArrayLike,
     c: float = 6.0,
@@ -179,6 +181,7 @@ def biweight_location(
         return where_func(mad.squeeze(axis=axis) == 0, M.squeeze(axis=axis), value)
 
 
+@support_masked()
 def biweight_scale(
     data: ArrayLike,
     c: float = 9.0,
@@ -305,6 +308,7 @@ def biweight_scale(
     )
 
 
+@support_masked()
 def biweight_midvariance(
     data: ArrayLike,
     c: float = 9.0,
