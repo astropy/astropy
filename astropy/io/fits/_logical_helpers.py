@@ -26,14 +26,11 @@ def _validate_logical_input(row):
     if isinstance(row, (bool, np.bool_)):
         return
 
-    if isinstance(row, np.ndarray):
-        arr = row
-    else:
-        try:
-            arr = np.asarray(row)
-        except Exception:
-            _warn_logical_input(type(row).__name__)
-            return
+    try:
+        arr = np.asarray(row)
+    except Exception:
+        _warn_logical_input(type(row).__name__)
+        return
 
     if arr.dtype.kind == "S":
         if arr.dtype.itemsize > 1:
