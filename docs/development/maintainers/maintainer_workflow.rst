@@ -44,7 +44,7 @@ You must be careful to clean up the final commit message before pushing the butt
   Merge commits, if any, do not have to be mentioned.
 * Fix typo, as needed.
 * Fill in details about the pull request, as needed.
-* Remove all the directives to skip CI (``[ci skip]`` or ``[skip ci]``).
+* Remove all the directives to skip CI (``[ci skip]``,``[skip ci]``, or ``[skip docs]``).
 * Ensure co-authors are properly credited at the bottom of the final message.
 * Make sure it is the correct button! Your browser remembers a previous selection even from
   a different GitHub repository, which might or might not be the button you want to push.
@@ -150,7 +150,7 @@ issues. The bot makes use of the pre-commit hook described in detail in :ref:`pr
 
 By default the bot will run a code-style check on every push to a pull request with the
 results reported in the checks section of the pull request.  The bot will skip running
-its check if a commit message contains ``[skip ci]``, ``[ci skip]``, ``[skip pre-commit.ci]``,
+its check if a commit message contains ``[skip pre-commit.ci]``
 or ``[pre-commit.ci skip]``.
 
 One can control the bot by making comments on the pull request:
