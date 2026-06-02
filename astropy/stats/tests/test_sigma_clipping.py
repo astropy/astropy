@@ -117,6 +117,67 @@ def test_sigma_clip_masked_array():
     assert_allclose(np.nanmean(out), 1.0)
 
 
+@pytest.mark.parametrize("unit", [None, u.percent])
+def test_sigma_clip_masked(unit):
+    """
+    Regression test for gh-13200 and gh-14360: sigma_clip must honour the
+    mask of astropy ``Masked`` inputs (``MaskedNDArray`` / ``MaskedQuantity``)
+    rather than ignoring it or raising ``TypeError``, and should return a
+    ``Masked`` instance of the same flavour (preserving any unit).
+    """
+    values = np.array([1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 500.0])
+    in_mask = np.array([False, False, False, False, False, True, False])
+    data = Masked(values, mask=in_mask)
+    if unit is not None:
+        data = data << unit
+
+    result = sigma_clip(data, sigma=2)
+
+    assert isinstance(result, Masked)
+    # output flavour matches input flavour (MaskedQuantity in, unit preserved)
+    assert (result.unit == unit) if unit is not None else not hasattr(result, "unit")
+    # the pre-existing mask is preserved and the 500 outlier is also clipped
+    expected_mask = in_mask | (values == 500.0)
+    assert_equal(np.asarray(result.mask), expected_mask)
+    assert_allclose(np.asarray(result.unmasked), values)
+
+    # identical behaviour to the equivalent np.ma input (the supported path)
+    ref = sigma_clip(np.ma.MaskedArray(values, mask=in_mask), sigma=2)
+    assert_equal(np.asarray(result.mask), np.ma.getmaskarray(ref))
+
+
+def test_sigma_clip_masked_axis_and_bounds():
+    """``Masked`` input with an explicit axis, masked=False and return_bounds."""
+    arr = np.ones((3, 5))
+    arr[1, 2] = 99.0
+    data = Masked(arr, mask=np.zeros((3, 5), dtype=bool))
+
+    result, lower, upper = sigma_clip(
+        data, sigma=2, axis=1, masked=False, return_bounds=True
+    )
+    assert isinstance(result, Masked)
+    # the single outlier is flagged; everything else is finite/unmasked
+    assert result.mask[1, 2]
+    assert result.mask.sum() == 1
+    assert lower.shape == upper.shape == (3,)
+
+
+def test_sigma_clip_masked_quantity_bounds_units():
+    """return_bounds must carry the unit through for MaskedQuantity input."""
+    data = Masked([1.0, 2.0, 3.0, 100.0], mask=[False, False, True, False]) * u.m
+    result, lower, upper = sigma_clip(data, sigma=2, return_bounds=True)
+    assert result.unit == u.m
+    assert lower.unit == u.m
+    assert upper.unit == u.m
+
+
+def test_sigma_clip_masked_unsupported_dtype():
+    """Non-numeric Masked input is rejected rather than silently mishandled."""
+    data = Masked(np.array(["a", "b", "c"]), mask=[False, False, True])
+    with pytest.raises(NotImplementedError, match="plain numeric data"):
+        sigma_clip(data)
+
+
 def test_sigma_clip_class():
     with NumpyRNGContext(12345):
         data = np.random.randn(100)

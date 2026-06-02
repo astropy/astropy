@@ -13,6 +13,7 @@ from astropy.stats.biweight import (
     biweight_scale,
 )
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.masked import Masked
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -586,3 +587,28 @@ def test_biweight_scl_var_constant_units():
     assert isinstance(biwvar, u.Quantity)
     assert_quantity_allclose(biwscl, np.nan << unit)
     assert_quantity_allclose(biwvar, np.nan << unit**2)
+
+
+@pytest.mark.parametrize("unit", [None, u.Jy])
+@pytest.mark.parametrize(
+    "func", [biweight_location, biweight_scale, biweight_midvariance]
+)
+def test_biweight_masked(func, unit):
+    """
+    The biweight estimators must honour the mask of astropy ``Masked`` inputs
+    (``MaskedNDArray`` / ``MaskedQuantity``) and return a ``Masked`` result of
+    the same flavour, matching the equivalent ``np.ma.MaskedArray`` input.
+    """
+    values = np.array([1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 999.0])
+    mask = np.array([False, False, False, False, False, False, True])
+
+    data = Masked(values, mask=mask)
+    reference = func(np.ma.MaskedArray(values, mask=mask))
+    if unit is not None:
+        data = data << unit
+
+    result = func(data)
+
+    assert isinstance(result, Masked)
+    assert (result.unit == unit) if unit is not None else not hasattr(result, "unit")
+    assert_allclose(np.asarray(result.unmasked), float(reference))
