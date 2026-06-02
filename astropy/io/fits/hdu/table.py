@@ -1407,7 +1407,9 @@ class BinTableHDU(_TableBaseHDU):
         # can convert from this format to an actual FITS file on disk without
         # needing enough physical memory to hold the entire thing at once
         hdu = BinTableHDU.from_columns(
-            np.recarray(shape=1, dtype=dtype), nrows=nrows, fill=True
+            np.zeros(1, dtype=dtype).view(np.recarray),
+            nrows=nrows,
+            fill=True,
         )
 
         # TODO: It seems to me a lot of this could/should be handled from
