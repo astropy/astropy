@@ -91,9 +91,10 @@ ArrayReadOnlyProxy_New(
 
 typedef struct {
   PyObject_HEAD
-  PyObject* parent;   /* owning Wcsprm, holds a reference */
-  double*   dest;     /* &parent->x.<field> */
-  npy_intp  nelem;
+  PyObject*   parent;    /* owning Wcsprm, holds a reference */
+  double*     dest;      /* &parent->x.<field> */
+  npy_intp    nelem;
+  const char* propname;  /* static field name, for the deprecation message */
 } WCSParamWriteback;
 
 static void
@@ -170,6 +171,25 @@ PyTypeObject WCSParameterArray_Type = {
 
 static int
 WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) {
+  PyObject* base = PyArray_BASE((PyArrayObject*)self);
+
+  /* In-place mutation of an auxiliary WCS parameter array is deprecated.
+   * Only the interceptable paths (a[i]=, a[:]=) reach here; the eventual fix
+   * is to return a read-only array so that every write path (including
+   * np.fill_diagonal, a.flat[i]=, a+=) raises loudly instead.
+   * TODO: switch these getters to read-only arrays and delete this subclass. */
+  if (base != NULL && Py_TYPE(base) == &WCSParamWriteback_Type) {
+    WCSParamWriteback* wb = (WCSParamWriteback*)base;
+    if (PyErr_WarnFormat(
+            PyExc_DeprecationWarning, 1,
+            "In-place modification of wcs.wcs.%s is deprecated and will stop "
+            "working in a future version; assign the whole attribute instead, "
+            "e.g. wcs.wcs.%s = new_values.",
+            wb->propname, wb->propname) < 0) {
+      return -1;  /* warning escalated to an error */
+    }
+  }
+
   /* Perform the normal ndarray assignment first (NaN is allowed). */
   if (PyArray_Type.tp_as_mapping->mp_ass_subscript(self, key, value) != 0) {
     return -1;
@@ -177,7 +197,6 @@ WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) 
 
   /* Then sync the whole (small) buffer back into the wcsprm field,
    * translating NaN -> UNDEFINED. */
-  PyObject* base = PyArray_BASE((PyArrayObject*)self);
   if (base != NULL && Py_TYPE(base) == &WCSParamWriteback_Type) {
     WCSParamWriteback* wb = (WCSParamWriteback*)base;
     const double* src = (const double*)PyArray_DATA((PyArrayObject*)self);
@@ -246,8 +265,8 @@ new_double_array(PyTypeObject* subtype, int ndims, const npy_intp* dims,
 }
 
 /*@null@*/ PyObject*
-WCSParameterArray_New(PyObject* owner, int ndims, const npy_intp* dims,
-                      double* value) {
+WCSParameterArray_New(PyObject* owner, const char* propname, int ndims,
+                      const npy_intp* dims, double* value) {
   npy_intp nelem = 0;
   PyObject* arr = new_double_array(&WCSParameterArray_Type, ndims, dims, value,
                                    &nelem);
@@ -263,6 +282,7 @@ WCSParameterArray_New(PyObject* owner, int ndims, const npy_intp* dims,
   wb->parent = owner;
   wb->dest = value;
   wb->nelem = nelem;
+  wb->propname = propname;
   if (PyArray_SetBaseObject((PyArrayObject*)arr, (PyObject*)wb) < 0) {
     Py_DECREF(wb);
     Py_DECREF(arr);
