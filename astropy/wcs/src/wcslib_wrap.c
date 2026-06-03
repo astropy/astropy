@@ -1651,15 +1651,22 @@ Wcsprm_p2s(
 
   /* Make the call.
    *
-   * After wcsset has run (hoisted into Wcsprm_cset above), wcsp2s is
-   * read-only on the wcsprm struct, so concurrent transforms no longer race
-   * on it.  We must also avoid the historical in-place 0->1-based offset of
-   * the caller's pixcrd array: that array may be shared between threads, and
-   * the transient mutation corrupts other threads' results (GH-16244).  When
-   * an offset is needed (origin == 0) we copy the input in bounded-size
-   * blocks into a scratch buffer and offset there, so the extra memory is
-   * O(block) rather than O(ncoord).  When origin == 1 no offset is needed,
-   * pixscratch stays NULL and pixcrd is read directly in a single pass.
+   * After wcsset has run (now hoisted into Wcsprm_cset above), wcsp2s is
+   * read-only on the wcsprm struct: it consumes the precomputed sub-structs
+   * wcs->lin / wcs->cel / wcs->spc plus wcs->crval[i], and never re-reads
+   * the raw arrays (cd, cdelt, crpix, crota, obsgeo, mjdobs, ...) that the
+   * wcsprm_python2c / wcsprm_c2python pair was rewriting NaN <-> UNDEFINED
+   * in place.  The round-trip can therefore be dropped here without
+   * changing the transform's output, and concurrent threads no longer
+   * race on those raw arrays.
+   *
+   * We must likewise avoid the historical in-place 0->1-based offset of the
+   * caller's pixcrd array: that array may be shared between threads, and the
+   * transient mutation corrupts other threads' results (GH-16244).  When an
+   * offset is needed (origin == 0) we copy the input in bounded-size blocks
+   * into a scratch buffer and offset there, so the extra memory is O(block)
+   * rather than O(ncoord).  When origin == 1 no offset is needed, pixscratch
+   * stays NULL and pixcrd is read directly in a single pass.
    */
   double delta = (origin == 1) ? 0.0 : (double)(1 - origin);
 
