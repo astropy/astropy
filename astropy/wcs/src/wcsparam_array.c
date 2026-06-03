@@ -184,6 +184,9 @@ WCSParameterArray_New(PyObject* owner, int ndims,
   PyObject* capsule = PyCapsule_New(wb, WCSPARAM_CAPSULE_NAME,
                                     wcsparam_writeback_destructor);
   if (capsule == NULL) {
+    /* The capsule was never created, so its destructor will not run; undo the
+     * INCREF and free wb by hand, mirroring what the destructor would do.  Do
+     * NOT also call the destructor here, or owner would be double-freed. */
     Py_DECREF(owner);
     free(wb);
     Py_DECREF(arr);

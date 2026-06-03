@@ -2007,7 +2007,10 @@ Wcsprm_print_contents(
     Wcsprm* self) {
 
   /* This is not thread-safe, but since we're holding onto the GIL,
-     we can assume we won't have thread conflicts */
+     we can assume we won't have thread conflicts.
+     TODO: WCSLIB's wcsprintf buffer is process-global, so this remains a
+     thread-safety gap under free-threaded Python (no GIL); print_contents and
+     __str__ on a shared Wcsprm from multiple threads can interleave output. */
   wcsprintf_set(NULL);
 
   if (Wcsprm_cset(self)) {
@@ -2087,7 +2090,10 @@ Wcsprm___str__(
     Wcsprm* self) {
 
   /* This is not thread-safe, but since we're holding onto the GIL,
-     we can assume we won't have thread conflicts */
+     we can assume we won't have thread conflicts.
+     TODO: WCSLIB's wcsprintf buffer is process-global, so this remains a
+     thread-safety gap under free-threaded Python (no GIL); print_contents and
+     __str__ on a shared Wcsprm from multiple threads can interleave output. */
   wcsprintf_set(NULL);
 
   if (Wcsprm_cset(self)) {

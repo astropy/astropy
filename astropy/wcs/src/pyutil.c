@@ -471,7 +471,7 @@ set_double(
 
 /* get_double_array is inlined */
 
-int
+static int
 _set_double_array(
     const char* propname,
     PyObject* value,

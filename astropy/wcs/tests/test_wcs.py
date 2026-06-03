@@ -2621,3 +2621,27 @@ def test_nan_in_core_param_propagates():
     w.wcs.crval[1] = np.nan
     result = w.wcs_pix2world(1, 2, 0)
     assert np.isnan(result[1])
+
+
+def test_to_header_concurrent_consistency():
+    # Regression for the in-place NaN<->UNDEFINED conversion of the shared
+    # struct: calling to_header() on one shared WCS from many threads must
+    # always produce the single correct header, never a torn one containing
+    # "NAN" cards. This has real teeth only on a free-threaded interpreter; on
+    # a GIL build it still exercises the path and can never fail spuriously.
+    w = wcs.WCS(naxis=2)
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    w.wcs.crval = [10.0, 20.0]
+    w.wcs.crpix = [256.0, 256.0]
+    w.wcs.cdelt = [-1e-3, 1e-3]
+    w.wcs.set()
+    reference = w.wcs.to_header()
+
+    def make_headers(_):
+        return {w.wcs.to_header() for _ in range(200)}
+
+    with ThreadPool(8) as pool:
+        seen = set().union(*pool.map(make_headers, range(8)))
+
+    assert seen == {reference}
+    assert not any("NAN" in h.upper() for h in seen)
