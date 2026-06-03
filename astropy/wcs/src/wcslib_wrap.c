@@ -477,7 +477,6 @@ Wcsprm_init(
     if (Wcsprm_cset(self, 0)) {
       return -1;
     }
-    wcsprm_c2python(&self->x);
 
     return 0;
   } else { /* header != NULL */
@@ -657,7 +656,6 @@ Wcsprm_init(
     }
 
     note_change(self);
-    wcsprm_c2python(&self->x);
     wcsvfree(&nwcs, &wcs);
     return 0;
   }
@@ -688,7 +686,6 @@ Wcsprm_bounds_check(
       bounds |= 1;
   }
 
-  wcsprm_python2c(&self->x);
   wcsbchk(&self->x, bounds);
 
   Py_RETURN_NONE;
@@ -709,9 +706,7 @@ Wcsprm_copy(
 
   wcsini(0, self->x.naxis, &copy->x);
 
-  wcsprm_python2c(&self->x);
   status = wcscopy(1, &self->x, &copy->x);
-  wcsprm_c2python(&self->x);
 
   // Also copy over any information related to preserving units
 
@@ -746,7 +741,6 @@ Wcsprm_copy(
       return NULL;
     }
 
-    wcsprm_c2python(&copy->x);
     return (PyObject*)copy;
   } else {
     Py_XDECREF((PyObject*)copy);
@@ -936,7 +930,6 @@ Wcsprm_find_all_wcs(
     }
 
     subresult->x.flag = 0;
-    wcsprm_c2python(&subresult->x);
   }
 
   wcsvfree(&nwcs, &wcs);
@@ -949,9 +942,7 @@ Wcsprm_cdfix(
 
   int status = 0;
 
-  wcsprm_python2c(&self->x);
   status = cdfix(&self->x);
-  wcsprm_c2python(&self->x);
 
   if (status == -1 || status == 0) {
     return PyLong_FromLong((long)status);
@@ -967,9 +958,7 @@ Wcsprm_celfix(
 
   int status = 0;
 
-  wcsprm_python2c(&self->x);
   status = celfix(&self->x);
-  wcsprm_c2python(&self->x);
 
   if (status == -1 || status == 0) {
     return PyLong_FromLong((long)status);
@@ -1000,11 +989,7 @@ Wcsprm_compare(
   }
 
 
-  wcsprm_python2c(&self->x);
-  wcsprm_python2c(&other->x);
   status = wcscompare(cmp, tolerance, &self->x, &other->x, &equal);
-  wcsprm_c2python(&self->x);
-  wcsprm_c2python(&other->x);
 
   if (status) {
     wcserr_fix_to_python_exc(self->x.err);
@@ -1054,9 +1039,7 @@ Wcsprm_cylfix(
     naxis = (int*)PyArray_DATA(naxis_array);
   }
 
-  wcsprm_python2c(&self->x);
   status = cylfix(naxis, &self->x);
-  wcsprm_c2python(&self->x);
 
   Py_XDECREF((PyObject*)naxis_array);
 
@@ -1074,9 +1057,7 @@ Wcsprm_datfix(
 
   int status = 0;
 
-  wcsprm_python2c(&self->x);
   status = datfix(&self->x);
-  wcsprm_c2python(&self->x);
 
   if (status == -1 || status == 0) {
     return PyLong_FromLong((long)status);
@@ -1239,9 +1220,7 @@ Wcsprm_fix(
 
   initialize_preserve_units(self);
 
-  wcsprm_python2c(&self->x);
   wcsfixi(ctrl, naxis, &self->x, stat, err);
-  wcsprm_c2python(&self->x);
 
   check_unit_changes(self);
 
@@ -1953,9 +1932,7 @@ Wcsprm_cset(
 
   initialize_preserve_units(self);
 
-  if (convert) wcsprm_python2c(&self->x);
   status = wcsset(&self->x);
-  if (convert) wcsprm_c2python(&self->x);
 
   check_unit_changes(self);
 
@@ -2034,9 +2011,7 @@ Wcsprm_print_contents(
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
 
-  wcsprm_python2c(&self->x);
   if (Wcsprm_cset(self, 0)) {
-    wcsprm_c2python(&self->x);
     return NULL;
   }
 
@@ -2046,7 +2021,6 @@ if (self->unit_scaling != NULL) {
     Wcsprm_dealloc(copy);
   } else {
     wcsprt(&self->x);
-    wcsprm_c2python(&self->x);
   }
 
   printf("%s", wcsprintf_buf());
@@ -2062,9 +2036,7 @@ Wcsprm_spcfix(
 
   int status = 0;
 
-  wcsprm_python2c(&self->x);
   status = spcfix(&self->x);
-  wcsprm_c2python(&self->x);
 
   if (status == -1 || status == 0) {
     return PyLong_FromLong((long)status);
@@ -2100,9 +2072,7 @@ Wcsprm_sptr(
 
   strncpy(ctype, py_ctype, 9);
 
-  wcsprm_python2c(&self->x);
   status = wcssptr(&self->x, &i, ctype);
-  wcsprm_c2python(&self->x);
 
   if (status == 0) {
     Py_INCREF(Py_None);
@@ -2121,9 +2091,7 @@ Wcsprm___str__(
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
 
-  wcsprm_python2c(&self->x);
   if (Wcsprm_cset(self, 0)) {
-    wcsprm_c2python(&self->x);
     return NULL;
   }
 
@@ -2133,7 +2101,6 @@ Wcsprm___str__(
     Wcsprm_dealloc(copy);
   } else {
     wcsprt(&self->x);
-    wcsprm_c2python(&self->x);
   }
 
   return PyUnicode_FromString(wcsprintf_buf());
@@ -2151,13 +2118,9 @@ PyObject *Wcsprm_richcompare(PyObject *a, PyObject *b, int op) {
     ax = &((Wcsprm *)a)->x;
     bx = &((Wcsprm *)b)->x;
 
-    wcsprm_python2c(ax);
-    wcsprm_python2c(bx);
     status = wcscompare(
         WCSCOMPARE_ANCILLARY, 0.0,
         ax, bx, &equal);
-    wcsprm_c2python(ax);
-    wcsprm_c2python(bx);
 
     if (status == 0) {
       if (op == Py_NE) {
@@ -2321,9 +2284,7 @@ Wcsprm_sub(
     goto exit;
   }
 
-  wcsprm_python2c(&self->x);
   status = wcssub(1, &self->x, &nsub, axes, &py_dest_wcs->x);
-  wcsprm_c2python(&self->x);
 
   // At this point, we need to copy over any relevant preserve_units
   // information, but we need to be careful since axes may have been removed or
@@ -2361,7 +2322,6 @@ Wcsprm_sub(
     status = -1;
     goto exit;
   }
-  wcsprm_c2python(&py_dest_wcs->x);
 
   if (status != 0) {
     goto exit;
@@ -2428,7 +2388,6 @@ Wcsprm_to_header(
 
     Wcsprm* copy = Wcsprm_copy_with_patched_units(self);
 
-    wcsprm_python2c(&copy->x);
     status = wcshdo(relax, &copy->x, &nkeyrec, &header);
 
     if (status != 0) {
@@ -2441,9 +2400,7 @@ Wcsprm_to_header(
 
   } else {
 
-    wcsprm_python2c(&self->x);
     status = wcshdo(relax, &self->x, &nkeyrec, &header);
-    wcsprm_c2python(&self->x);
 
     if (status != 0) {
       wcs_to_python_exc(&(self->x));

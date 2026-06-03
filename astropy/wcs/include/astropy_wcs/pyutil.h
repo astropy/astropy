@@ -111,6 +111,11 @@ is_null(/*@null@*/ void *);
 
 typedef void (*value_fixer_t)(double*, unsigned int);
 
+/* DEPRECATED (GH-16409): the wcsprm struct is now stored canonically in
+ * WCSLIB's native UNDEFINED form, with NaN<->UNDEFINED translation done at the
+ * Python attribute boundary, so no in-place conversion is ever needed.  These
+ * two functions are now no-ops, retained only for C-API (AstropyWcs_API slots
+ * 1 and 2) backwards compatibility; do not call them in new code. */
 void
 wcsprm_c2python(
     /*@null@*/ struct wcsprm* x);
