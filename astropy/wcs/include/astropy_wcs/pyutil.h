@@ -254,7 +254,6 @@ set_double(
 /*@null@*/ PyObject*
 WCSParameterArray_New(
     PyObject* owner,
-    const char* propname,
     int ndims,
     const npy_intp* dims,
     double* value);
@@ -287,13 +286,13 @@ get_double_array_readonly(
 /* Auxiliary UNDEFINED-capable double arrays: translating write-back array. */
 /*@null@*/ static INLINE PyObject*
 get_double_array_undefined(
-    const char* propname,
+    /*@unused@*/ const char* propname,
     double* value,
     int ndims,
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return WCSParameterArray_New(owner, propname, ndims, dims, value);
+  return WCSParameterArray_New(owner, ndims, dims, value);
 }
 
 int

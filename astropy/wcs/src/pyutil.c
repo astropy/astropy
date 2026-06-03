@@ -97,7 +97,6 @@ typedef struct {
   PyObject*   parent;    /* owning Wcsprm, holds a reference */
   double*     dest;      /* &parent->x.<field> */
   npy_intp    nelem;
-  const char* propname;  /* static field name, for the deprecation message */
 } WCSParamWriteback;
 
 static const char* const WCSPARAM_CAPSULE_NAME = "astropy.wcs._wcsparam_writeback";
@@ -143,21 +142,10 @@ WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) 
     wb = (WCSParamWriteback*)PyCapsule_GetPointer(base, WCSPARAM_CAPSULE_NAME);
   }
 
-  /* In-place mutation of an auxiliary WCS parameter array is deprecated.  Only
-   * the interceptable paths (a[i]=, a[:]=) reach here; the eventual fix is to
-   * return a read-only array so that every write path (np.fill_diagonal,
-   * a.flat[i]=, a+=) raises loudly instead.
-   * TODO: switch these getters to read-only arrays and delete this subclass. */
-  if (wb != NULL) {
-    if (PyErr_WarnFormat(
-            PyExc_DeprecationWarning, 1,
-            "In-place modification of wcs.wcs.%s is deprecated and will stop "
-            "working in a future version; assign the whole attribute instead, "
-            "e.g. wcs.wcs.%s = new_values.",
-            wb->propname, wb->propname) < 0) {
-      return -1;  /* warning escalated to an error */
-    }
-  }
+  /* Only the interceptable assignment paths (a[i]=, a[:]=) reach here; writes
+   * that bypass __setitem__ (np.fill_diagonal, a.flat[i]=, a+=) are not synced
+   * back.  Making every write path safe would mean returning read-only arrays
+   * and steering users to whole-attribute assignment -- left to a follow-up. */
 
   /* Perform the normal ndarray assignment first (NaN is allowed). */
   if (ndarray_ass_subscript(self, key, value) != 0) {
@@ -242,7 +230,7 @@ new_double_array(PyTypeObject* subtype, int ndims, const npy_intp* dims,
 }
 
 /*@null@*/ PyObject*
-WCSParameterArray_New(PyObject* owner, const char* propname, int ndims,
+WCSParameterArray_New(PyObject* owner, int ndims,
                       const npy_intp* dims, double* value) {
   npy_intp nelem = 0;
   PyObject* arr = new_double_array((PyTypeObject*)WCSParameterArray_Type, ndims,
@@ -260,7 +248,6 @@ WCSParameterArray_New(PyObject* owner, const char* propname, int ndims,
   wb->parent = owner;
   wb->dest = value;
   wb->nelem = nelem;
-  wb->propname = propname;
 
   PyObject* capsule = PyCapsule_New(wb, WCSPARAM_CAPSULE_NAME,
                                     wcsparam_writeback_destructor);

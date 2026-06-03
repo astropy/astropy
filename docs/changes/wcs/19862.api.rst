@@ -1,6 +1,0 @@
-Modifying the auxiliary ``astropy.wcs.Wcsprm`` parameter arrays that WCSLIB
-represents with undefined values (``obsgeo``, ``crder``, ``csyer``, ``cperi``,
-``czphs`` and ``mjdref``) in place, for example ``wcs.wcs.obsgeo[0] = value``,
-now emits a deprecation warning. Assign the whole attribute instead, for
-example ``wcs.wcs.obsgeo = new_values``. In-place modification of these arrays
-will stop working in a future release.
