@@ -2610,3 +2610,14 @@ def test_thread_safe_conversions():
         results = pool.map(round_trip_transform, (pixel,) * 8)
         for pixel2 in results:
             assert_allclose(pixel, pixel2, atol=1e-7)
+
+
+def test_nan_in_core_param_propagates():
+    # Core linear parameters (crval/crpix/cdelt/pc/...) are not UNDEFINED-capable
+    # in WCSLIB, so a user-supplied NaN is passed straight through rather than
+    # turned into the UNDEFINED sentinel (which would surface as ~9.9e107). See
+    # GH-16409 / the "Much better!" example in the PR description.
+    w = wcs.WCS(naxis=2)
+    w.wcs.crval[1] = np.nan
+    result = w.wcs_pix2world(1, 2, 0)
+    assert np.isnan(result[1])

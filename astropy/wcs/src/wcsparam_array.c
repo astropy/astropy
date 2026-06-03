@@ -78,7 +78,14 @@ WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) 
   /* Only the interceptable assignment paths (a[i]=, a[:]=) reach here; writes
    * that bypass __setitem__ (np.fill_diagonal, a.flat[i]=, a+=) are not synced
    * back.  Making every write path safe would mean returning read-only arrays
-   * and steering users to whole-attribute assignment -- left to a follow-up. */
+   * and steering users to whole-attribute assignment -- left to a follow-up.
+   *
+   * The write-back below (memcpy + nan2undefined + flag reset) is also a
+   * non-atomic read-modify-write of the shared struct, so two threads writing
+   * to the *same* field concurrently can clobber each other.  That is no worse
+   * than any other concurrent mutation of a shared object -- mutating a WCS
+   * from multiple threads is the caller's responsibility; this PR only makes
+   * concurrent *readers* safe. */
 
   /* Perform the normal ndarray assignment first (NaN is allowed). */
   if (ndarray_ass_subscript(self, key, value) != 0) {
@@ -107,12 +114,14 @@ static PyType_Spec WCSParameterArray_spec = {
   "astropy.wcs.WCSParameterArray",
   0,  /* basicsize == 0 inherits from the base type (ndarray) */
   0,  /* itemsize */
-  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+  Py_TPFLAGS_DEFAULT,  /* not BASETYPE: the type is sealed, no further subclassing */
   WCSParameterArray_slots
 };
 
 int
 _setup_wcsparameter_array_type(PyObject* m) {
+  /* PyType_GetSlot has accepted static types (such as NumPy's PyArray_Type)
+   * since Python 3.10, i.e. on every version astropy supports (>= 3.11). */
   ndarray_subscript =
       (binaryfunc)PyType_GetSlot(&PyArray_Type, Py_mp_subscript);
   ndarray_ass_subscript =
@@ -157,6 +166,11 @@ WCSParameterArray_New(PyObject* owner, int ndims,
   memcpy(PyArray_DATA((PyArrayObject*)arr), value, (size_t)nelem * sizeof(double));
   undefined2nan((double*)PyArray_DATA((PyArrayObject*)arr), (unsigned int)nelem);
 
+  /* wb->dest points into the owning wcsprm's arrays.  The capsule below holds
+   * a reference to the parent, so it cannot be freed while this array is alive;
+   * however, re-initialising the same Wcsprm in place (Wcsprm.__init__ on an
+   * existing object, which wcsfree/wcsini's the dynamic arrays) would leave
+   * dest dangling.  That is the same hazard plain array views already have. */
   WCSParamWriteback* wb = (WCSParamWriteback*)malloc(sizeof(WCSParamWriteback));
   if (wb == NULL) {
     Py_DECREF(arr);
