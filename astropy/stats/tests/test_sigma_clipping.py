@@ -126,10 +126,10 @@ def test_sigma_clip_masked(unit):
     ``Masked`` instance of the same flavour (preserving any unit).
     """
     values = np.array([1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 500.0])
+    if unit is not None:
+        values <<= unit
     in_mask = np.array([False, False, False, False, False, True, False])
     data = Masked(values, mask=in_mask)
-    if unit is not None:
-        data = data << unit
 
     result = sigma_clip(data, sigma=2)
 
@@ -137,28 +137,37 @@ def test_sigma_clip_masked(unit):
     # output flavour matches input flavour (MaskedQuantity in, unit preserved)
     assert (result.unit == unit) if unit is not None else not hasattr(result, "unit")
     # the pre-existing mask is preserved and the 500 outlier is also clipped
-    expected_mask = in_mask | (values == 500.0)
-    assert_equal(np.asarray(result.mask), expected_mask)
-    assert_allclose(np.asarray(result.unmasked), values)
+    expected_mask = in_mask | (values == 500.0 * values[0])
+    assert_equal(result.mask, expected_mask)
+    assert_equal(result.unmasked, values)
 
-    # identical behaviour to the equivalent np.ma input (the supported path)
-    ref = sigma_clip(np.ma.MaskedArray(values, mask=in_mask), sigma=2)
-    assert_equal(np.asarray(result.mask), np.ma.getmaskarray(ref))
+    if unit is None:
+        # identical behaviour to the equivalent np.ma input
+        # (the supported path, but only for plain arrays).
+        ref = sigma_clip(np.ma.MaskedArray(values, mask=in_mask), sigma=2)
+        assert_equal(result.mask, ref.mask)
+        assert_equal(result.unmasked, ref.data)
 
 
-def test_sigma_clip_masked_axis_and_bounds():
-    """``Masked`` input with an explicit axis, masked=False and return_bounds."""
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clip_masked_axis_and_bounds(masked_array):
+    """Masked input with an explicit axis, masked=False and return_bounds."""
     arr = np.ones((3, 5))
     arr[1, 2] = 99.0
-    data = Masked(arr, mask=np.zeros((3, 5), dtype=bool))
+    data = masked_array(arr, mask=np.zeros((3, 5), dtype=bool))
 
     result, lower, upper = sigma_clip(
         data, sigma=2, axis=1, masked=False, return_bounds=True
     )
-    assert isinstance(result, Masked)
-    # the single outlier is flagged; everything else is finite/unmasked
-    assert result.mask[1, 2]
-    assert result.mask.sum() == 1
+    # Since masked=False, return type is not masked
+    assert not isinstance(result, masked_array)
+    assert isinstance(result, type(arr))
+    # the single outlier is replaced with np.nan
+    assert result.shape == arr.shape
+    assert np.isnan(result).sum() == 1
+    assert np.isnan(result[1, 2])
+    assert not isinstance(lower, masked_array)
+    assert not isinstance(upper, masked_array)
     assert lower.shape == upper.shape == (3,)
 
 
@@ -171,10 +180,11 @@ def test_sigma_clip_masked_quantity_bounds_units():
     assert upper.unit == u.m
 
 
-def test_sigma_clip_masked_unsupported_dtype():
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clip_masked_unsupported_dtype(masked_array):
     """Non-numeric Masked input is rejected rather than silently mishandled."""
-    data = Masked(np.array(["a", "b", "c"]), mask=[False, False, True])
-    with pytest.raises(NotImplementedError, match="plain numeric data"):
+    data = masked_array(np.array(["a", "b", "c"]), mask=[False, False, True])
+    with pytest.raises(TypeError, match="not supported for the input types"):
         sigma_clip(data)
 
 
