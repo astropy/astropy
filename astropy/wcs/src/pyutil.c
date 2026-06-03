@@ -271,16 +271,6 @@ WCSParameterArray_New(PyObject* owner, int ndims, const npy_intp* dims,
   return arr;
 }
 
-/*@null@*/ PyObject*
-WCSParameterArray_NewReadOnly(int ndims, const npy_intp* dims, double* value) {
-  PyObject* arr = new_double_array(&PyArray_Type, ndims, dims, value, NULL);
-  if (arr == NULL) {
-    return NULL;
-  }
-  PyArray_CLEARFLAGS((PyArrayObject*)arr, NPY_ARRAY_WRITEABLE);
-  return arr;
-}
-
 void
 preoffset_array(
     PyArrayObject* array,
@@ -680,12 +670,13 @@ set_double(
 /* get_double_array is inlined */
 
 int
-set_double_array(
+_set_double_array(
     const char* propname,
     PyObject* value,
     int ndims,
     const npy_intp* dims,
-    double* dest) {
+    double* dest,
+    int to_undefined) {
 
   PyArrayObject* value_array = NULL;
   npy_int        i           = 0;
@@ -715,19 +706,41 @@ set_double_array(
     }
   }
 
-  /* Copy into the wcsprm field, translating NaN -> WCSLIB UNDEFINED
-   * (GH-16409). */
-  {
+  if (to_undefined) {
+    /* Auxiliary UNDEFINED-capable field: translate NaN -> UNDEFINED. */
     npy_intp n = PyArray_SIZE(value_array);
     const double* src = (const double*)PyArray_DATA(value_array);
-    for (npy_intp i = 0; i < n; ++i) {
-      dest[i] = npy_isnan(src[i]) ? UNDEFINED : src[i];
+    for (npy_intp j = 0; j < n; ++j) {
+      dest[j] = npy_isnan(src[j]) ? UNDEFINED : src[j];
     }
+  } else {
+    /* Core/derived field: stored verbatim (NaN stays NaN). */
+    copy_array_to_c_double(value_array, dest);
   }
 
   Py_DECREF(value_array);
 
   return 0;
+}
+
+int
+set_double_array(
+    const char* propname,
+    PyObject* value,
+    int ndims,
+    const npy_intp* dims,
+    double* dest) {
+  return _set_double_array(propname, value, ndims, dims, dest, 0);
+}
+
+int
+set_double_array_undefined(
+    const char* propname,
+    PyObject* value,
+    int ndims,
+    const npy_intp* dims,
+    double* dest) {
+  return _set_double_array(propname, value, ndims, dims, dest, 1);
 }
 
 int

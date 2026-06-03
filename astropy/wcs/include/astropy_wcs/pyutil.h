@@ -244,7 +244,13 @@ set_double(
 
 /* WCSParameterArray: a writeable ndarray subclass that exposes a wcsprm
  * double array with UNDEFINED<->NaN translation and writes element
- * assignments back into the owning struct (GH-16409). */
+ * assignments back into the owning struct (GH-16409).  Used ONLY for the
+ * auxiliary fields that WCSLIB represents with the UNDEFINED sentinel
+ * (obsgeo, crder, csyer, cperi, czphs, mjdref).  The core linear parameters
+ * (crpix/crval/cdelt/pc/cd/crota) are never UNDEFINED in WCSLIB, so they are
+ * exposed as ordinary writeable views with no translation (see
+ * get_double_array below) -- this keeps live-view semantics and makes a
+ * user-supplied NaN propagate honestly instead of becoming a sentinel. */
 /*@null@*/ PyObject*
 WCSParameterArray_New(
     PyObject* owner,
@@ -252,14 +258,9 @@ WCSParameterArray_New(
     const npy_intp* dims,
     double* value);
 
-/*@null@*/ PyObject*
-WCSParameterArray_NewReadOnly(
-    int ndims,
-    const npy_intp* dims,
-    double* value);
-
 int _setup_wcsparameter_array_type(PyObject* m);
 
+/* Core/derived double arrays: plain writeable view, no UNDEFINED translation. */
 /*@null@*/ static INLINE PyObject*
 get_double_array(
     /*@unused@*/ const char* propname,
@@ -268,7 +269,7 @@ get_double_array(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return WCSParameterArray_New(owner, ndims, dims, value);
+  return ArrayProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
 }
 
 /*@null@*/ static INLINE PyObject*
@@ -279,11 +280,32 @@ get_double_array_readonly(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return WCSParameterArray_NewReadOnly(ndims, dims, value);
+  return ArrayReadOnlyProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
+}
+
+/* Auxiliary UNDEFINED-capable double arrays: translating write-back array. */
+/*@null@*/ static INLINE PyObject*
+get_double_array_undefined(
+    /*@unused@*/ const char* propname,
+    double* value,
+    int ndims,
+    const npy_intp* dims,
+    /*@shared@*/ PyObject* owner) {
+
+  return WCSParameterArray_New(owner, ndims, dims, value);
 }
 
 int
 set_double_array(
+    const char* propname,
+    PyObject* value,
+    int ndims,
+    const npy_intp* dims,
+    double* dest);
+
+/* As set_double_array, but translates NaN -> WCSLIB UNDEFINED (aux fields). */
+int
+set_double_array_undefined(
     const char* propname,
     PyObject* value,
     int ndims,
