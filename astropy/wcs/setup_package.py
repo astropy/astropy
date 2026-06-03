@@ -300,6 +300,7 @@ def get_extensions():
         "docstrings.c",
         "pipeline.c",
         "pyutil.c",
+        "wcsparam_array.c",
         "astropy_wcs.c",
         "astropy_wcs_api.c",
         "sip.c",
