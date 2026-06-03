@@ -172,7 +172,11 @@ def test_crder():
     w = _wcs.Wcsprm()
     assert w.crder.dtype == float
     assert np.all(np.isnan(w.crder))
-    w.crder[0] = 0
+    # crder is an auxiliary (UNDEFINED-capable) field; assign the whole
+    # attribute rather than mutating in place (see GH-16409).
+    crder = np.array(w.crder)
+    crder[0] = 0
+    w.crder = crder
     assert np.isnan(w.crder[1])
     assert w.crder[0] == 0
     w.crder = w.crder
@@ -232,7 +236,11 @@ def test_csyer():
     w = _wcs.Wcsprm()
     assert w.csyer.dtype == float
     assert np.all(np.isnan(w.csyer))
-    w.csyer[0] = 0
+    # csyer is an auxiliary (UNDEFINED-capable) field; assign the whole
+    # attribute rather than mutating in place (see GH-16409).
+    csyer = np.array(w.csyer)
+    csyer[0] = 0
+    w.csyer = csyer
     assert np.isnan(w.csyer[1])
     assert w.csyer[0] == 0
     w.csyer = w.csyer
