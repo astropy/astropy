@@ -237,6 +237,24 @@ set_double(
     PyObject* value,
     double* dest);
 
+/* WCSParameterArray: a writeable ndarray subclass that exposes a wcsprm
+ * double array with UNDEFINED<->NaN translation and writes element
+ * assignments back into the owning struct (GH-16409). */
+/*@null@*/ PyObject*
+WCSParameterArray_New(
+    PyObject* owner,
+    int ndims,
+    const npy_intp* dims,
+    double* value);
+
+/*@null@*/ PyObject*
+WCSParameterArray_NewReadOnly(
+    int ndims,
+    const npy_intp* dims,
+    double* value);
+
+int _setup_wcsparameter_array_type(PyObject* m);
+
 /*@null@*/ static INLINE PyObject*
 get_double_array(
     /*@unused@*/ const char* propname,
@@ -245,7 +263,7 @@ get_double_array(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return ArrayProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
+  return WCSParameterArray_New(owner, ndims, dims, value);
 }
 
 /*@null@*/ static INLINE PyObject*
@@ -256,7 +274,7 @@ get_double_array_readonly(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return ArrayReadOnlyProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
+  return WCSParameterArray_NewReadOnly(ndims, dims, value);
 }
 
 int

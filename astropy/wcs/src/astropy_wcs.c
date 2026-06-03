@@ -877,6 +877,7 @@ PyInit__wcs(void)
   if (_setup_api(m)                 ||
       _setup_str_list_proxy_type(m) ||
       _setup_unit_list_proxy_type(m)||
+      _setup_wcsparameter_array_type(m) ||
       _setup_wcsprm_type(m)         ||
       _setup_auxprm_type(m)         ||
       _setup_prjprm_type(m)         ||

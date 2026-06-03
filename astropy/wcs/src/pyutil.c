@@ -8,6 +8,7 @@
 /* util.h must be imported first */
 #include "astropy_wcs/pyutil.h"
 #include "astropy_wcs/docstrings.h"
+#include "astropy_wcs/wcslib_wrap.h"  /* for the Wcsprm struct (write-back) */
 
 #include <stdlib.h> // malloc, free
 #include <string.h> // memcpy
@@ -71,6 +72,158 @@ ArrayReadOnlyProxy_New(
     const void* data) {
 
   return _ArrayProxy_New(self, nd, dims, typenum, data, 0);
+}
+
+/****************************************************************************
+ * WCSParameterArray
+ *
+ * The wcsprm struct is stored canonically in WCSLIB's native UNDEFINED form
+ * (GH-16409).  An array-valued parameter (crpix, cdelt, cd, pc, ...) is
+ * exposed to Python as a WCSParameterArray: an ndarray subclass holding a
+ * *copy* of the field with UNDEFINED translated to NaN.  Item assignment is
+ * written straight back into the owning wcsprm field with NaN translated to
+ * UNDEFINED, so `w.wcs.cdelt[1] = np.nan` stores UNDEFINED.
+ *
+ * Parent/destination are carried on a tiny write-back token set as the
+ * array's base object, so the subclass itself needs no extra inline fields
+ * (its tp_basicsize equals ndarray's) and NumPy manages the token's lifetime.
+ ****************************************************************************/
+
+typedef struct {
+  PyObject_HEAD
+  PyObject* parent;   /* owning Wcsprm, holds a reference */
+  double*   dest;     /* &parent->x.<field> */
+  npy_intp  nelem;
+} WCSParamWriteback;
+
+static void
+WCSParamWriteback_dealloc(WCSParamWriteback* self) {
+  Py_XDECREF(self->parent);
+  Py_TYPE(self)->tp_free((PyObject*)self);
+}
+
+static PyTypeObject WCSParamWriteback_Type = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  .tp_name = "astropy.wcs._WCSParamWriteback",
+  .tp_basicsize = sizeof(WCSParamWriteback),
+  .tp_flags = Py_TPFLAGS_DEFAULT,
+  .tp_dealloc = (destructor)WCSParamWriteback_dealloc,
+};
+
+static PyMappingMethods WCSParameterArray_as_mapping;
+
+PyTypeObject WCSParameterArray_Type = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  .tp_name = "astropy.wcs.WCSParameterArray",
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+  /* tp_base, tp_basicsize and tp_as_mapping are filled in at setup time
+   * because NumPy's true ndarray size is only known at runtime. */
+};
+
+static int
+WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) {
+  /* Perform the normal ndarray assignment first (NaN is allowed). */
+  if (PyArray_Type.tp_as_mapping->mp_ass_subscript(self, key, value) != 0) {
+    return -1;
+  }
+
+  /* Then sync the whole (small) buffer back into the wcsprm field,
+   * translating NaN -> UNDEFINED. */
+  PyObject* base = PyArray_BASE((PyArrayObject*)self);
+  if (base != NULL && Py_TYPE(base) == &WCSParamWriteback_Type) {
+    WCSParamWriteback* wb = (WCSParamWriteback*)base;
+    const double* src = (const double*)PyArray_DATA((PyArrayObject*)self);
+    for (npy_intp i = 0; i < wb->nelem; ++i) {
+      wb->dest[i] = npy_isnan(src[i]) ? UNDEFINED : src[i];
+    }
+    /* Equivalent to note_change(): force a wcsset on next use. */
+    ((Wcsprm*)wb->parent)->x.flag = 0;
+  }
+  return 0;
+}
+
+int
+_setup_wcsparameter_array_type(PyObject* m) {
+  if (PyType_Ready(&WCSParamWriteback_Type) < 0) {
+    return -1;
+  }
+
+  /* Inherit ndarray's mapping methods, override only assignment. */
+  WCSParameterArray_as_mapping = *PyArray_Type.tp_as_mapping;
+  WCSParameterArray_as_mapping.mp_ass_subscript = WCSParameterArray_ass_subscript;
+
+  WCSParameterArray_Type.tp_base = &PyArray_Type;
+  WCSParameterArray_Type.tp_basicsize = PyArray_Type.tp_basicsize;
+  WCSParameterArray_Type.tp_as_mapping = &WCSParameterArray_as_mapping;
+  if (PyType_Ready(&WCSParameterArray_Type) < 0) {
+    return -1;
+  }
+  Py_INCREF(&WCSParameterArray_Type);
+  if (PyModule_AddObject(m, "WCSParameterArray",
+                         (PyObject*)&WCSParameterArray_Type) < 0) {
+    Py_DECREF(&WCSParameterArray_Type);
+    return -1;
+  }
+  return 0;
+}
+
+static PyObject*
+new_double_array(PyTypeObject* subtype, int ndims, const npy_intp* dims,
+                 double* value, npy_intp* nelem_out) {
+  npy_intp nelem = 1;
+  for (int i = 0; i < ndims; ++i) {
+    nelem *= dims[i];
+  }
+  PyObject* arr = PyArray_NewFromDescr(
+      subtype, PyArray_DescrFromType(NPY_DOUBLE), ndims, (npy_intp*)dims,
+      NULL, NULL, NPY_ARRAY_C_CONTIGUOUS, NULL);
+  if (arr == NULL) {
+    return NULL;
+  }
+  double* d = (double*)PyArray_DATA((PyArrayObject*)arr);
+  for (npy_intp i = 0; i < nelem; ++i) {
+    d[i] = undefined(value[i]) ? (double)NPY_NAN : value[i];
+  }
+  if (nelem_out) {
+    *nelem_out = nelem;
+  }
+  return arr;
+}
+
+/*@null@*/ PyObject*
+WCSParameterArray_New(PyObject* owner, int ndims, const npy_intp* dims,
+                      double* value) {
+  npy_intp nelem = 0;
+  PyObject* arr = new_double_array(&WCSParameterArray_Type, ndims, dims, value,
+                                   &nelem);
+  if (arr == NULL) {
+    return NULL;
+  }
+  WCSParamWriteback* wb = PyObject_New(WCSParamWriteback, &WCSParamWriteback_Type);
+  if (wb == NULL) {
+    Py_DECREF(arr);
+    return NULL;
+  }
+  Py_INCREF(owner);
+  wb->parent = owner;
+  wb->dest = value;
+  wb->nelem = nelem;
+  if (PyArray_SetBaseObject((PyArrayObject*)arr, (PyObject*)wb) < 0) {
+    Py_DECREF(wb);
+    Py_DECREF(arr);
+    return NULL;
+  }
+  return arr;
+}
+
+/*@null@*/ PyObject*
+WCSParameterArray_NewReadOnly(int ndims, const npy_intp* dims, double* value) {
+  PyObject* arr = new_double_array(&PyArray_Type, ndims, dims, value, NULL);
+  if (arr == NULL) {
+    return NULL;
+  }
+  PyArray_CLEARFLAGS((PyArrayObject*)arr, NPY_ARRAY_WRITEABLE);
+  return arr;
 }
 
 void
@@ -507,7 +660,15 @@ set_double_array(
     }
   }
 
-  copy_array_to_c_double(value_array, dest);
+  /* Copy into the wcsprm field, translating NaN -> WCSLIB UNDEFINED
+   * (GH-16409). */
+  {
+    npy_intp n = PyArray_SIZE(value_array);
+    const double* src = (const double*)PyArray_DATA(value_array);
+    for (npy_intp i = 0; i < n; ++i) {
+      dest[i] = npy_isnan(src[i]) ? UNDEFINED : src[i];
+    }
+  }
 
   Py_DECREF(value_array);
 
