@@ -28,6 +28,13 @@ from astropy.utils.masked import Masked, get_data_and_mask
 __all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"]
 
 
+def _make_masked(data, mask, **kwargs):
+    if isinstance(data, Masked):
+        return Masked(data, mask, **kwargs)
+    else:
+        return np.ma.MaskedArray(data, mask, **kwargs)
+
+
 class SigmaClip:
     """
     Class to perform sigma clipping.
@@ -321,7 +328,6 @@ class SigmaClip:
             )
         if mask_reshaped is not None:
             mask |= mask_reshaped
-            data, _ = get_data_and_mask(data)
 
         bound_lo, bound_hi = _sigma_clip_fast(
             data_reshaped,
@@ -346,8 +352,9 @@ class SigmaClip:
             )
 
         if masked:
-            result = np.ma.array(data, mask=mask, copy=copy)
+            result = _make_masked(data, mask, copy=copy)
         else:
+            data, _ = get_data_and_mask(data)
             if data.dtype.kind != "f":
                 # float array type is needed to insert nans into the array
                 result = data.astype(np.float32)  # also makes a copy
@@ -446,26 +453,26 @@ class SigmaClip:
         In this case, we replace clipped values with NaNs as placeholder
         values.
         """
+        data, mask = get_data_and_mask(data)
         if data.dtype.kind != "f":
             # float array type is needed to insert nans into the array
             filtered_data = data.astype(np.float32)  # also makes a copy
         else:
             filtered_data = data.copy()
 
-        # remove invalid values
-        bad_mask = ~np.isfinite(filtered_data)
+        # Set bad values and possible existing masked ones to NaN
+        bad_mask = ~np.isfinite(data)
+        if mask is not None:
+            bad_mask |= mask
         if np.any(bad_mask):
             filtered_data[bad_mask] = np.nan
-            warnings.warn(
-                "Input data contains invalid values (NaNs or "
-                "infs), which were automatically clipped.",
-                AstropyUserWarning,
-            )
-
-        # remove masked values and convert to plain ndarray
-        if isinstance(filtered_data, np.ma.MaskedArray):
-            filtered_data = np.ma.masked_invalid(filtered_data).astype(float)
-            filtered_data = filtered_data.filled(np.nan)
+            # Warn if any bad values were *not* masked.
+            if mask is None or np.any(bad_mask & ~mask):
+                warnings.warn(
+                    "Input data contains invalid values (NaNs or "
+                    "infs), which were automatically clipped.",
+                    AstropyUserWarning,
+                )
 
         if axis is not None:
             # convert negative axis/axes
@@ -1325,10 +1332,7 @@ def sigma_clipped_stats(
     SigmaClippedStats, SigmaClip, sigma_clip
     """
     if mask is not None:
-        if isinstance(data, Masked):
-            data = Masked(data, mask)
-        else:
-            data = np.ma.MaskedArray(data, mask=mask)
+        data = _make_masked(data, mask)
 
     if mask_value is not None:
         data = np.ma.masked_values(data, mask_value)
