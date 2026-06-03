@@ -441,15 +441,20 @@ def test_sigmaclip_negative_axis():
     sigma_clip(data, axis=-1)
 
 
+@pytest.mark.parametrize("unit", [None, u.m])
 @pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
-def test_sigmaclip_fully_masked(masked_array):
+def test_sigmaclip_fully_masked(masked_array, unit):
     """
     Make sure a fully masked array is returned when sigma clipping a
     fully masked array.
     """
+    if masked_array is np.ma.MaskedArray and unit is not None:
+        pytest.skip("np.ma.MaskedArray cannot deal with units.")
+
     data = masked_array([[1.0, 0.0], [0.0, 1.0]], mask=[[True, True], [True, True]])
     clipped_data = sigma_clip(data)
-    assert_equal(data, clipped_data)
+    assert isinstance(clipped_data, masked_array)
+    assert_equal(clipped_data, data)
 
     clipped_data = sigma_clip(data, masked=False)
     assert not isinstance(clipped_data, (Masked, np.ma.MaskedArray))
@@ -457,6 +462,11 @@ def test_sigmaclip_fully_masked(masked_array):
     assert np.all(np.isnan(clipped_data))
 
     clipped_data = sigma_clip(data, axis=1)
+    assert isinstance(clipped_data, masked_array)
+    assert hasattr(clipped_data, "mask")
+    assert np.all(clipped_data.mask)
+
+    clipped_data = sigma_clip(data, axis=1, masked=False)
     assert not isinstance(clipped_data, (Masked, np.ma.MaskedArray))
     assert not hasattr(clipped_data, "mask")
     assert np.all(np.isnan(clipped_data))
