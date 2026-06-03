@@ -17,6 +17,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_MPMATH, HAS_SCIPY
+from astropy.utils.masked import Masked
 
 from . import _stats
 
@@ -841,21 +842,17 @@ def median_absolute_deviation(
         # for normal arrays should not be done (summary: np.ma.median always
         # returns an masked array even if the result should be scalar). (#4658)
         if isinstance(data, np.ma.MaskedArray):
-            is_masked = True
             func = np.ma.median
             if ignore_nan:
                 data = np.ma.masked_where(np.isnan(data), data, copy=True)
+        elif isinstance(data, Masked):
+            func = np.nanmedian if ignore_nan else np.median
         elif ignore_nan:
             # prevent circular import
-            from astropy.stats.nanfunctions import nanmedian
+            from astropy.stats.nanfunctions import nanmedian as func
 
-            is_masked = False
-            func = nanmedian
         else:
-            is_masked = False
             func = np.median  # drops units if result is NaN
-    else:
-        is_masked = None
 
     data = np.asanyarray(data)
     # np.nanmedian has `keepdims`, which is a good option if we're not allowing
@@ -870,14 +867,6 @@ def median_absolute_deviation(
         result = func(np.abs(data - data_median), axis=axis)
     else:
         result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
-
-    if axis is None and np.ma.isMaskedArray(result):
-        # return scalar version
-        result = result.item()
-    elif np.ma.isMaskedArray(result) and not is_masked:
-        # if the input array was not a masked array, we don't want to return a
-        # masked array
-        result = result.filled(fill_value=np.nan)
 
     return result
 
