@@ -1,0 +1,9 @@
+``astropy.wcs.WCS`` now stores the underlying WCSLIB parameter struct in
+WCSLIB's native representation instead of converting it in place to and from a
+NaN-based representation around every WCSLIB call. This removes the in-place
+mutation of the shared struct that occurred during coordinate transforms and
+attribute access, which could produce incorrect results when a single ``WCS``
+object was used concurrently from multiple threads. Setting a core linear
+parameter (``crpix``, ``crval``, ``cdelt``, ``pc`` or ``cd``) to NaN now also
+propagates as NaN through the transforms, rather than being turned into a
+sentinel that yielded an incorrect finite result.
