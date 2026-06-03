@@ -419,15 +419,17 @@ class SigmaClip:
         self._niterations = iteration
 
         if masked:
-            # return a masked array and optional bounds
-            filtered_data = np.ma.masked_invalid(data, copy=copy)
-
-            # update the mask in place, ignoring RuntimeWarnings for
-            # comparisons with NaN data values
+            # For masked output, calculate the new mask. Since filtered_data
+            # was shrunk, we need to redo the value comparisons, taking care
+            # to ignore RuntimeWarnings for comparisons with NaN.
+            # TODO: move np.isfinite call above before reshape for reuse here.
             with np.errstate(invalid="ignore"):
-                filtered_data.mask[
-                    (data < self._min_value) | (data > self._max_value)
-                ] = True
+                clip_mask = (
+                    ~np.isfinite(data)
+                    | (data < self._min_value)
+                    | (data > self._max_value)
+                )
+            filtered_data = _make_masked(data, clip_mask, copy=copy)
 
         if return_bounds:
             return filtered_data, self._min_value, self._max_value
@@ -531,20 +533,8 @@ class SigmaClip:
 
         if masked:
             # create an output masked array
-            if copy:
-                filtered_data = np.ma.MaskedArray(
-                    data, ~np.isfinite(filtered_data), copy=True
-                )
-            else:
-                # ignore RuntimeWarnings for comparisons with NaN data values
-                with np.errstate(invalid="ignore"):
-                    out = np.ma.masked_invalid(data, copy=False)
-
-                    filtered_data = np.ma.masked_where(
-                        np.logical_or(out < self._min_value, out > self._max_value),
-                        out,
-                        copy=False,
-                    )
+            result_mask = ~np.isfinite(filtered_data)
+            filtered_data = _make_masked(filtered_data, result_mask, copy=copy)
 
         if return_bounds:
             return filtered_data, self._min_value, self._max_value
@@ -626,8 +616,8 @@ class SigmaClip:
         data = np.asanyarray(data)
 
         if data.size == 0 or np.all(getattr(data, "mask", np.False_)):
-            if masked and not hasattr(data, "mask"):
-                result = np.ma.MaskedArray(data)
+            if masked:
+                result = _make_masked(data, True)
             else:
                 result = np.full(data.shape, np.nan)
 
@@ -1006,12 +996,14 @@ class SigmaClippedStats:
             grow=grow,
         )
 
-        if mask is not None:
-            data = np.ma.MaskedArray(data, mask)
         if mask_value is not None:
-            data = np.ma.masked_values(data, mask_value)
+            value_mask = np.ma.masked_values(data, mask_value).mask
+            mask = value_mask if mask is None else value_mask | mask
 
-        if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+        if mask is not None:
+            data = _make_masked(data, mask)
+
+        if getattr(data, "mask", np.False_).all():
             raise ValueError("input data is all masked")
 
         self.data = sigclip(
