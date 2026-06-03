@@ -223,6 +223,11 @@ get_double(
     const char* propname,
     double value) {
 
+  /* The struct stores values in WCSLIB's native UNDEFINED form (GH-16409);
+   * present undefined scalars to Python as NaN. */
+  if (undefined(value)) {
+    return PyFloat_FromDouble((double)NPY_NAN);
+  }
   return PyFloat_FromDouble(value);
 }
 

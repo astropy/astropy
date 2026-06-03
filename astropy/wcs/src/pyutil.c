@@ -458,13 +458,15 @@ set_double(
     return -1;
   }
 
-  *dest = PyFloat_AsDouble(value);
+  double v = PyFloat_AsDouble(value);
 
   if (PyErr_Occurred()) {
     return -1;
-  } else {
-    return 0;
   }
+
+  /* Store NaN as WCSLIB's native UNDEFINED (GH-16409). */
+  *dest = npy_isnan(v) ? UNDEFINED : v;
+  return 0;
 }
 
 /* get_double_array is inlined */
