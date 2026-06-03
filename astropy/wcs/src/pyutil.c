@@ -112,12 +112,60 @@ static PyTypeObject WCSParamWriteback_Type = {
 
 static PyMappingMethods WCSParameterArray_as_mapping;
 
+/* Instances carry a __dict__ (NumPy/astropy.units expect any ndarray subclass
+ * to have one), stored in an extra pointer past NumPy's ndarray fields.  The
+ * offset and basicsize are set in setup since ndarray's size is only known at
+ * runtime.  The dict must be cleared on dealloc and traversed for GC. */
+static void
+WCSParameterArray_dealloc(PyObject* self) {
+  PyObject** dictptr = _PyObject_GetDictPtr(self);
+  if (dictptr != NULL) {
+    Py_CLEAR(*dictptr);
+  }
+  PyArray_Type.tp_dealloc(self);
+}
+
+static int
+WCSParameterArray_traverse(PyObject* self, visitproc visit, void* arg) {
+  PyObject** dictptr = _PyObject_GetDictPtr(self);
+  if (dictptr != NULL) {
+    Py_VISIT(*dictptr);
+  }
+  if (PyArray_Type.tp_traverse != NULL) {
+    return PyArray_Type.tp_traverse(self, visit, arg);
+  }
+  return 0;
+}
+
+static int
+WCSParameterArray_clear(PyObject* self) {
+  PyObject** dictptr = _PyObject_GetDictPtr(self);
+  if (dictptr != NULL) {
+    Py_CLEAR(*dictptr);
+  }
+  if (PyArray_Type.tp_clear != NULL) {
+    return PyArray_Type.tp_clear(self);
+  }
+  return 0;
+}
+
+/* Expose obj.__dict__ (PyType_Ready does not add the descriptor automatically
+ * for a static type that merely sets tp_dictoffset). */
+static PyGetSetDef WCSParameterArray_getset[] = {
+  {"__dict__", PyObject_GenericGetDict, PyObject_GenericSetDict, NULL, NULL},
+  {NULL}
+};
+
 PyTypeObject WCSParameterArray_Type = {
   PyVarObject_HEAD_INIT(NULL, 0)
   .tp_name = "astropy.wcs.WCSParameterArray",
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-  /* tp_base, tp_basicsize and tp_as_mapping are filled in at setup time
-   * because NumPy's true ndarray size is only known at runtime. */
+  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+  .tp_dealloc = (destructor)WCSParameterArray_dealloc,
+  .tp_traverse = WCSParameterArray_traverse,
+  .tp_clear = WCSParameterArray_clear,
+  .tp_getset = WCSParameterArray_getset,
+  /* tp_base, tp_basicsize, tp_dictoffset and tp_as_mapping are filled in at
+   * setup time because NumPy's true ndarray size is only known at runtime. */
 };
 
 static int
@@ -153,7 +201,10 @@ _setup_wcsparameter_array_type(PyObject* m) {
   WCSParameterArray_as_mapping.mp_ass_subscript = WCSParameterArray_ass_subscript;
 
   WCSParameterArray_Type.tp_base = &PyArray_Type;
-  WCSParameterArray_Type.tp_basicsize = PyArray_Type.tp_basicsize;
+  /* Reserve one extra pointer past ndarray's fields for the instance __dict__. */
+  WCSParameterArray_Type.tp_basicsize =
+      PyArray_Type.tp_basicsize + sizeof(PyObject*);
+  WCSParameterArray_Type.tp_dictoffset = PyArray_Type.tp_basicsize;
   WCSParameterArray_Type.tp_as_mapping = &WCSParameterArray_as_mapping;
   if (PyType_Ready(&WCSParameterArray_Type) < 0) {
     return -1;
@@ -174,9 +225,13 @@ new_double_array(PyTypeObject* subtype, int ndims, const npy_intp* dims,
   for (int i = 0; i < ndims; ++i) {
     nelem *= dims[i];
   }
+  /* data == NULL here, so the flags argument is interpreted by NumPy as a
+   * boolean Fortran-order flag -- pass 0 for C order (NOT
+   * NPY_ARRAY_C_CONTIGUOUS, whose nonzero value would request Fortran order
+   * and transpose 2-D fields like pc/cd). */
   PyObject* arr = PyArray_NewFromDescr(
       subtype, PyArray_DescrFromType(NPY_DOUBLE), ndims, (npy_intp*)dims,
-      NULL, NULL, NPY_ARRAY_C_CONTIGUOUS, NULL);
+      NULL, NULL, 0, NULL);
   if (arr == NULL) {
     return NULL;
   }
