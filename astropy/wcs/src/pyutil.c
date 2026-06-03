@@ -89,97 +89,66 @@ ArrayReadOnlyProxy_New(
  * (its tp_basicsize equals ndarray's) and NumPy manages the token's lifetime.
  ****************************************************************************/
 
+/* Write-back context for an auxiliary WCSParameterArray.  It is carried on the
+ * array's base object as a PyCapsule rather than a custom C type, because a
+ * capsule is fully compatible with the limited C API / abi3 builds (a static
+ * PyTypeObject is not). */
 typedef struct {
-  PyObject_HEAD
   PyObject*   parent;    /* owning Wcsprm, holds a reference */
   double*     dest;      /* &parent->x.<field> */
   npy_intp    nelem;
   const char* propname;  /* static field name, for the deprecation message */
 } WCSParamWriteback;
 
+static const char* const WCSPARAM_CAPSULE_NAME = "astropy.wcs._wcsparam_writeback";
+
 static void
-WCSParamWriteback_dealloc(WCSParamWriteback* self) {
-  Py_XDECREF(self->parent);
-  Py_TYPE(self)->tp_free((PyObject*)self);
+wcsparam_writeback_destructor(PyObject* capsule) {
+  WCSParamWriteback* wb =
+      (WCSParamWriteback*)PyCapsule_GetPointer(capsule, WCSPARAM_CAPSULE_NAME);
+  if (wb != NULL) {
+    Py_XDECREF(wb->parent);
+    free(wb);
+  }
 }
 
-static PyTypeObject WCSParamWriteback_Type = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-  .tp_name = "astropy.wcs._WCSParamWriteback",
-  .tp_basicsize = sizeof(WCSParamWriteback),
-  .tp_flags = Py_TPFLAGS_DEFAULT,
-  .tp_dealloc = (destructor)WCSParamWriteback_dealloc,
-};
+/* Created at setup via PyType_FromSpecWithBases so the whole subclass works
+ * under the limited API.  ndarray's own subscript slots are fetched with
+ * PyType_GetSlot and delegated to. */
+static PyObject*     WCSParameterArray_Type = NULL;
+static binaryfunc    ndarray_subscript = NULL;
+static objobjargproc ndarray_ass_subscript = NULL;
 
-static PyMappingMethods WCSParameterArray_as_mapping;
-
-/* Instances carry a __dict__ (NumPy/astropy.units expect any ndarray subclass
- * to have one), stored in an extra pointer past NumPy's ndarray fields.  The
- * offset and basicsize are set in setup since ndarray's size is only known at
- * runtime.  The dict must be cleared on dealloc and traversed for GC. */
-static void
-WCSParameterArray_dealloc(PyObject* self) {
-  PyObject** dictptr = _PyObject_GetDictPtr(self);
-  if (dictptr != NULL) {
-    Py_CLEAR(*dictptr);
+/* Read indexing decays to a plain ndarray, so a slice or element of an
+ * auxiliary array is an ordinary array and downstream code (e.g.
+ * astropy.units) never has to handle the subclass -- which also means the
+ * subclass needs no instance __dict__. */
+static PyObject*
+WCSParameterArray_subscript(PyObject* self, PyObject* key) {
+  PyObject* result = ndarray_subscript(self, key);
+  if (result != NULL && PyArray_Check(result) &&
+      Py_TYPE(result) == (PyTypeObject*)WCSParameterArray_Type) {
+    PyObject* plain = PyArray_View((PyArrayObject*)result, NULL, &PyArray_Type);
+    Py_DECREF(result);
+    return plain;
   }
-  PyArray_Type.tp_dealloc(self);
+  return result;
 }
-
-static int
-WCSParameterArray_traverse(PyObject* self, visitproc visit, void* arg) {
-  PyObject** dictptr = _PyObject_GetDictPtr(self);
-  if (dictptr != NULL) {
-    Py_VISIT(*dictptr);
-  }
-  if (PyArray_Type.tp_traverse != NULL) {
-    return PyArray_Type.tp_traverse(self, visit, arg);
-  }
-  return 0;
-}
-
-static int
-WCSParameterArray_clear(PyObject* self) {
-  PyObject** dictptr = _PyObject_GetDictPtr(self);
-  if (dictptr != NULL) {
-    Py_CLEAR(*dictptr);
-  }
-  if (PyArray_Type.tp_clear != NULL) {
-    return PyArray_Type.tp_clear(self);
-  }
-  return 0;
-}
-
-/* Expose obj.__dict__ (PyType_Ready does not add the descriptor automatically
- * for a static type that merely sets tp_dictoffset). */
-static PyGetSetDef WCSParameterArray_getset[] = {
-  {"__dict__", PyObject_GenericGetDict, PyObject_GenericSetDict, NULL, NULL},
-  {NULL}
-};
-
-PyTypeObject WCSParameterArray_Type = {
-  PyVarObject_HEAD_INIT(NULL, 0)
-  .tp_name = "astropy.wcs.WCSParameterArray",
-  .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-  .tp_dealloc = (destructor)WCSParameterArray_dealloc,
-  .tp_traverse = WCSParameterArray_traverse,
-  .tp_clear = WCSParameterArray_clear,
-  .tp_getset = WCSParameterArray_getset,
-  /* tp_base, tp_basicsize, tp_dictoffset and tp_as_mapping are filled in at
-   * setup time because NumPy's true ndarray size is only known at runtime. */
-};
 
 static int
 WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) {
   PyObject* base = PyArray_BASE((PyArrayObject*)self);
+  WCSParamWriteback* wb = NULL;
+  if (base != NULL && PyCapsule_IsValid(base, WCSPARAM_CAPSULE_NAME)) {
+    wb = (WCSParamWriteback*)PyCapsule_GetPointer(base, WCSPARAM_CAPSULE_NAME);
+  }
 
-  /* In-place mutation of an auxiliary WCS parameter array is deprecated.
-   * Only the interceptable paths (a[i]=, a[:]=) reach here; the eventual fix
-   * is to return a read-only array so that every write path (including
-   * np.fill_diagonal, a.flat[i]=, a+=) raises loudly instead.
+  /* In-place mutation of an auxiliary WCS parameter array is deprecated.  Only
+   * the interceptable paths (a[i]=, a[:]=) reach here; the eventual fix is to
+   * return a read-only array so that every write path (np.fill_diagonal,
+   * a.flat[i]=, a+=) raises loudly instead.
    * TODO: switch these getters to read-only arrays and delete this subclass. */
-  if (base != NULL && Py_TYPE(base) == &WCSParamWriteback_Type) {
-    WCSParamWriteback* wb = (WCSParamWriteback*)base;
+  if (wb != NULL) {
     if (PyErr_WarnFormat(
             PyExc_DeprecationWarning, 1,
             "In-place modification of wcs.wcs.%s is deprecated and will stop "
@@ -191,14 +160,13 @@ WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) 
   }
 
   /* Perform the normal ndarray assignment first (NaN is allowed). */
-  if (PyArray_Type.tp_as_mapping->mp_ass_subscript(self, key, value) != 0) {
+  if (ndarray_ass_subscript(self, key, value) != 0) {
     return -1;
   }
 
   /* Then sync the whole (small) buffer back into the wcsprm field,
    * translating NaN -> UNDEFINED. */
-  if (base != NULL && Py_TYPE(base) == &WCSParamWriteback_Type) {
-    WCSParamWriteback* wb = (WCSParamWriteback*)base;
+  if (wb != NULL) {
     const double* src = (const double*)PyArray_DATA((PyArrayObject*)self);
     for (npy_intp i = 0; i < wb->nelem; ++i) {
       wb->dest[i] = npy_isnan(src[i]) ? UNDEFINED : src[i];
@@ -209,32 +177,41 @@ WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) 
   return 0;
 }
 
+static PyType_Slot WCSParameterArray_slots[] = {
+  {Py_mp_subscript, (void*)WCSParameterArray_subscript},
+  {Py_mp_ass_subscript, (void*)WCSParameterArray_ass_subscript},
+  {0, NULL}
+};
+
+static PyType_Spec WCSParameterArray_spec = {
+  "astropy.wcs.WCSParameterArray",
+  0,  /* basicsize == 0 inherits from the base type (ndarray) */
+  0,  /* itemsize */
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+  WCSParameterArray_slots
+};
+
 int
 _setup_wcsparameter_array_type(PyObject* m) {
-  if (PyType_Ready(&WCSParamWriteback_Type) < 0) {
+  ndarray_subscript =
+      (binaryfunc)PyType_GetSlot(&PyArray_Type, Py_mp_subscript);
+  ndarray_ass_subscript =
+      (objobjargproc)PyType_GetSlot(&PyArray_Type, Py_mp_ass_subscript);
+  if (ndarray_subscript == NULL || ndarray_ass_subscript == NULL) {
     return -1;
   }
 
-  /* Inherit ndarray's mapping methods, override only assignment. */
-  WCSParameterArray_as_mapping = *PyArray_Type.tp_as_mapping;
-  WCSParameterArray_as_mapping.mp_ass_subscript = WCSParameterArray_ass_subscript;
-
-  WCSParameterArray_Type.tp_base = &PyArray_Type;
-  /* Reserve one extra pointer past ndarray's fields for the instance __dict__. */
-  WCSParameterArray_Type.tp_basicsize =
-      PyArray_Type.tp_basicsize + sizeof(PyObject*);
-  WCSParameterArray_Type.tp_dictoffset = PyArray_Type.tp_basicsize;
-  WCSParameterArray_Type.tp_as_mapping = &WCSParameterArray_as_mapping;
-  if (PyType_Ready(&WCSParameterArray_Type) < 0) {
+  PyObject* bases = PyTuple_Pack(1, (PyObject*)&PyArray_Type);
+  if (bases == NULL) {
     return -1;
   }
-  Py_INCREF(&WCSParameterArray_Type);
-  if (PyModule_AddObject(m, "WCSParameterArray",
-                         (PyObject*)&WCSParameterArray_Type) < 0) {
-    Py_DECREF(&WCSParameterArray_Type);
+  WCSParameterArray_Type =
+      PyType_FromSpecWithBases(&WCSParameterArray_spec, bases);
+  Py_DECREF(bases);
+  if (WCSParameterArray_Type == NULL) {
     return -1;
   }
-  return 0;
+  return PyModule_AddObjectRef(m, "WCSParameterArray", WCSParameterArray_Type);
 }
 
 static PyObject*
@@ -268,23 +245,34 @@ new_double_array(PyTypeObject* subtype, int ndims, const npy_intp* dims,
 WCSParameterArray_New(PyObject* owner, const char* propname, int ndims,
                       const npy_intp* dims, double* value) {
   npy_intp nelem = 0;
-  PyObject* arr = new_double_array(&WCSParameterArray_Type, ndims, dims, value,
-                                   &nelem);
+  PyObject* arr = new_double_array((PyTypeObject*)WCSParameterArray_Type, ndims,
+                                   dims, value, &nelem);
   if (arr == NULL) {
     return NULL;
   }
-  WCSParamWriteback* wb = PyObject_New(WCSParamWriteback, &WCSParamWriteback_Type);
+
+  WCSParamWriteback* wb = (WCSParamWriteback*)malloc(sizeof(WCSParamWriteback));
   if (wb == NULL) {
     Py_DECREF(arr);
-    return NULL;
+    return PyErr_NoMemory();
   }
   Py_INCREF(owner);
   wb->parent = owner;
   wb->dest = value;
   wb->nelem = nelem;
   wb->propname = propname;
-  if (PyArray_SetBaseObject((PyArrayObject*)arr, (PyObject*)wb) < 0) {
-    Py_DECREF(wb);
+
+  PyObject* capsule = PyCapsule_New(wb, WCSPARAM_CAPSULE_NAME,
+                                    wcsparam_writeback_destructor);
+  if (capsule == NULL) {
+    Py_DECREF(owner);
+    free(wb);
+    Py_DECREF(arr);
+    return NULL;
+  }
+  /* SetBaseObject steals the capsule reference on success. */
+  if (PyArray_SetBaseObject((PyArrayObject*)arr, capsule) < 0) {
+    Py_DECREF(capsule);  /* runs the destructor: DECREF owner + free wb */
     Py_DECREF(arr);
     return NULL;
   }
