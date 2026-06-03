@@ -29,7 +29,7 @@ __all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"
 
 
 def _make_masked(data, mask, **kwargs):
-    if isinstance(data, Masked):
+    if isinstance(data, (Masked, Quantity)):
         return Masked(data, mask, **kwargs)
     else:
         return np.ma.MaskedArray(data, mask, **kwargs)
@@ -1331,11 +1331,12 @@ def sigma_clipped_stats(
     --------
     SigmaClippedStats, SigmaClip, sigma_clip
     """
+    if mask_value is not None:
+        value_mask = np.ma.masked_values(data, mask_value).mask
+        mask = value_mask if mask is None else value_mask | mask
+
     if mask is not None:
         data = _make_masked(data, mask)
-
-    if mask_value is not None:
-        data = np.ma.masked_values(data, mask_value)
 
     if getattr(data, "mask", np.False_).all():
         return np.ma.masked, np.ma.masked, np.ma.masked

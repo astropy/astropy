@@ -217,29 +217,40 @@ def test_sigma_clip_invalid_cenfunc_stdfunc():
         SigmaClip(stdfunc="invalid")
 
 
-def test_sigma_clipped_stats():
+@pytest.mark.parametrize("data_cls", [np.array, np.ma.MaskedArray, Masked])
+@pytest.mark.parametrize("unit", [None, u.m])
+def test_sigma_clipped_stats(data_cls, unit):
     """Test list data with input mask or mask_value (#3268)."""
+    if data_cls is np.ma.MaskedArray and unit is not None:
+        pytest.skip("np.ma.MaskedArray cannot deal with units.")
     # test list data with mask
-    data = [0, 1]
+    data = data_cls([0, 1])
+    if unit is not None:
+        data <<= unit
     mask = np.array([True, False])
+    expected = (1.0, 1.0, 0.0)
+    if unit is not None:
+        expected = tuple(expected << unit)
     result = sigma_clipped_stats(data, mask=mask)
     # Check that the result of np.ma.median was converted to a scalar
-    assert isinstance(result[1], float)
-    assert result == (1.0, 1.0, 0.0)
+    assert isinstance(result[1], type(expected[1]))
+    assert result == expected
 
     result2 = sigma_clipped_stats(data, mask=mask, axis=0)
     assert_equal(result, result2)
 
     # test list data with mask_value
     result = sigma_clipped_stats(data, mask_value=0.0)
-    assert isinstance(result[1], float)
-    assert result == (1.0, 1.0, 0.0)
+    assert isinstance(result[1], type(expected[1]))
+    assert result == expected
 
     # test without mask
-    data = [0, 2]
+    expected = (0.5, 0.5, 0.5)
+    if unit is not None:
+        expected = tuple(expected << unit)
     result = sigma_clipped_stats(data)
-    assert isinstance(result[1], float)
-    assert result == (1.0, 1.0, 1.0)
+    assert isinstance(result[1], type(expected[1]))
+    assert result == expected
 
 
 def test_sigma_clipped_stats_ddof():
