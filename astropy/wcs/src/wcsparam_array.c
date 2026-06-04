@@ -75,10 +75,24 @@ WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) 
     wb = (WCSParamWriteback*)PyCapsule_GetPointer(base, WCSPARAM_CAPSULE_NAME);
   }
 
-  /* Only the interceptable assignment paths (a[i]=, a[:]=) reach here; writes
-   * that bypass __setitem__ (np.fill_diagonal, a.flat[i]=, a+=) are not synced
-   * back.  Making every write path safe would mean returning read-only arrays
-   * and steering users to whole-attribute assignment -- left to a follow-up.
+  /* Anything that goes through __setitem__ reaches here and IS synced back,
+   * including element-wise augmented assignment, because the interpreter
+   * expands it into a __setitem__ store:
+   *
+   *     wcs.wcs.obsgeo[i] = x        ->  obsgeo.__setitem__(i, x)
+   *     wcs.wcs.obsgeo[i] += x       ->  obsgeo.__setitem__(i, obsgeo[i] + x)
+   *     wcs.wcs.obsgeo[:] = x        ->  obsgeo.__setitem__(slice, x)
+   *
+   * What is NOT synced back are writes that mutate the array buffer without
+   * ever calling __setitem__ on it, e.g. np.fill_diagonal(arr, ...),
+   * arr.flat[i] = x, or an in-place op on a *saved* reference to the whole
+   * array (`arr = wcs.wcs.obsgeo; arr += x`, which is arr.__iadd__(x): it
+   * mutates only the detached copy, with no __setitem__ and no attribute
+   * store back onto the WCS).  Note that `wcs.wcs.obsgeo += x` -- augmenting
+   * the attribute itself rather than a saved reference -- does sync, because
+   * it ends in the attribute setter.  Making every buffer-write path safe
+   * would mean returning read-only arrays and steering users to
+   * whole-attribute assignment -- left to a follow-up.
    *
    * The write-back below (memcpy + nan2undefined + flag reset) is also a
    * non-atomic read-modify-write of the shared struct, so two threads writing
