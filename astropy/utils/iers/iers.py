@@ -192,7 +192,7 @@ class Conf(_config.ConfigNamespace):
         ["error", "warn", "ignore"],
         "IERS behavior if the range of available IERS data does not "
         "cover the times when converting time scales, potentially leading "
-        "to degraded accuracy.  Applies also when using cached IERS-A data.",
+        "to degraded accuracy. Applies only when using IERS-B data on its own.",
     )
     system_leap_second_file = _config.ConfigItem("", "System file with leap seconds.")
     iers_leap_second_auto_url = _config.ConfigItem(
