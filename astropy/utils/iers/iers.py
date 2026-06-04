@@ -192,7 +192,7 @@ class Conf(_config.ConfigNamespace):
         ["error", "warn", "ignore"],
         "IERS behavior if the range of available IERS data does not "
         "cover the times when converting time scales, potentially leading "
-        "to degraded accuracy.  Applies only when using IERS-B data on its own.",
+        "to degraded accuracy.  Applies also when using cached IERS-A data.",
     )
     system_leap_second_file = _config.ConfigItem("", "System file with leap seconds.")
     iers_leap_second_auto_url = _config.ConfigItem(
@@ -862,7 +862,10 @@ class IERS_Auto(IERS_A):
             max_input_mjd > predictive_mjd
             and self.time_now.mjd - predictive_mjd > auto_max_age
         ):
-            raise ValueError(INTERPOLATE_ERROR.format(auto_max_age))
+            if conf.iers_degraded_accuracy == "error":
+                raise ValueError(INTERPOLATE_ERROR.format(auto_max_age))
+            elif conf.iers_degraded_accuracy == "ignore":
+                pass
 
     def _refresh_table_as_needed(self, mjd):
         """Potentially update the IERS table in place depending on the requested
