@@ -249,8 +249,17 @@ html_copy_source = False
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + "doc"
 
-# Set canonical URL from the Read the Docs Domain
-html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+# Set canonical URL from the Read the Docs Domain. RTD always sets
+# READTHEDOCS_CANONICAL_URL to the stable URL regardless of the build version,
+# so we reconstruct the per-version base URL using READTHEDOCS_VERSION.
+_rtd_canonical = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+_rtd_version = os.environ.get("READTHEDOCS_VERSION", "")
+if _rtd_canonical and _rtd_version:
+    html_baseurl = (
+        "/".join(_rtd_canonical.rstrip("/").split("/")[:-1]) + f"/{_rtd_version}/"
+    )
+else:
+    html_baseurl = _rtd_canonical
 
 
 def _custom_edit_url(
