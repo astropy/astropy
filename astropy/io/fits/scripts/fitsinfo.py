@@ -48,7 +48,10 @@ def fitsinfo(filename):
     """
     try:
         fits.info(filename)
-    except OSError as e:
+    except (OSError, ImportError) as e:
+        # ImportError covers the case where an optional dependency required to
+        # read a particular compressed file format (e.g. ``uncompresspy`` for
+        # ``.Z`` files) is not installed.
         log.error(str(e))
 
 
