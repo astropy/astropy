@@ -1,8 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 .. warning::
-    ``astropy.samp`` was deprecated in version 9.0 and will be removed in a future version;
-    please use ``pyvo.astropy_samp`` instead.
+    ``astropy.samp`` was deprecated in version 8.0 and will be removed in a future version;
+    please use ``pyvo.samp`` instead.
 
 This subpackage provides classes to communicate with other applications via the
 `Simple Application Messaging Protocol (SAMP)
@@ -27,9 +27,9 @@ from .integrated_client import *
 from .utils import *
 
 warnings.warn(
-    "astropy.samp was deprecated in version 9.0 "
+    "astropy.samp was deprecated in version 8.0 "
     "and will be removed in a future version; "
-    "please use pyvo.astropy_samp instead.",
+    "please use pyvo.samp instead.",
     AstropyDeprecationWarning,
 )
 

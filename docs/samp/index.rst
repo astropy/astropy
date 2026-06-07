@@ -7,8 +7,8 @@ SAMP (Simple Application Messaging Protocol) (`astropy.samp`)
 *************************************************************
 
 .. warning::
-    ``astropy.samp`` was deprecated in version 9.0 and will be removed in a future version;
-    please use ``pyvo.astropy_samp`` instead.
+    ``astropy.samp`` was deprecated in version 8.0 and will be removed in a future version;
+    please use ``pyvo.samp`` instead.
 
 `astropy.samp` is a Python implementation of the SAMP messaging system.
 
