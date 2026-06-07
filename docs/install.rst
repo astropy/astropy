@@ -86,7 +86,6 @@ one of the following commands::
     python -m pip install astropy                # Minimum required dependencies
     python -m pip install "astropy[recommended]" # Recommended dependencies
     python -m pip install "astropy[all]"         # All optional dependencies
-    python -m pip install "astropy[dev_all]"     # All optional and test dependencies
 
 In most cases, this will install a pre-compiled version of ``astropy`` (called a
 *wheel*). However, if you are installing astropy on an uncommon platform, astropy will be
@@ -163,7 +162,7 @@ The further dependencies provide more specific features:
   :meth:`astropy.table.Table.show_in_notebook` to display the Astropy table
   in Jupyter notebook for ``backend="ipydatagrid"``.
 
-- `xmllint <http://www.xmlsoft.org/>`_: To validate VOTABLE XML files.
+- `xmllint <https://gnome.pages.gitlab.gnome.org/libxml2/xmllint.html>`_: To validate VOTABLE XML files.
   This is a command line tool installed outside of Python.
 
 - `pandas <https://pandas.pydata.org/>`_: To convert

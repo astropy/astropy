@@ -1,0 +1,2 @@
+Expose ``MplQuantityConverter`` class in ``astropy.visualization`` and
+except numpy arrays in its ``convert`` and ``default_units`` methods.

@@ -103,7 +103,7 @@ def _decode_mixins(tbl):
     info = meta.get_header_from_yaml(lines)
 
     # Add serialized column information to table meta for use in constructing mixins
-    tbl.meta["__serialized_columns__"] = info["meta"]["__serialized_columns__"]
+    tbl.meta.update(info["meta"])
 
     # Use the `datatype` attribute info to update column attributes that are
     # NOT already handled via standard FITS column keys (name, dtype, unit).
@@ -125,7 +125,7 @@ def read_table_fits(
     character_as_bytes=True,
     unit_parse_strict="warn",
     mask_invalid=True,
-    strip_spaces=False,
+    strip_spaces=True,
     use_fsspec=None,
     fsspec_kwargs=None,
 ):
@@ -183,9 +183,12 @@ def read_table_fits(
         penalty of doing this masking step. The masking is always deactivated
         when using ``memmap=True`` (see above).
     strip_spaces : bool, optional
-        Strip trailing whitespace in string columns, default is False and will be
-        changed to True in the next major release. This is deactivated when
-        using ``memmap=True`` (see above).
+        Strip trailing whitespace in string columns, default is True.
+        This is deactivated when using ``memmap=True`` (see above).
+
+        .. version-changed:: 8.0
+            The default is now `True` when ``memmap=False``.
+
     use_fsspec : bool, optional
         Use `fsspec.open` to open the file? Defaults to `False` unless
         ``name`` starts with the Amazon S3 storage prefix ``s3://`` or the
@@ -381,9 +384,19 @@ def read_table_fits(
     return _decode_mixins(t)
 
 
-def _encode_mixins(tbl):
-    """Encode a Table ``tbl`` that may have mixin columns to a Table with only
-    astropy Columns + appropriate meta-data to allow subsequent decoding.
+def _encode_mixins(tbl: Table) -> Table:
+    """Encode Table ``tbl`` to a Table with only astropy Columns + appropriate meta.
+
+    This handles:
+    - Mixin columns
+    - Columns with meta that cannot be directly stored to FITS
+    - Table with indices, where it is assumed that tbl.meta["__table_indices__"] is set
+      upstream in the Table connect code.
+
+    This function serializes that information appropriately and puts it into the
+    returned (new) table meta as "comments": list[str].
+
+    If none of the above situations apply the original table is returned.
     """
     # Determine if information will be lost without serializing meta.  This is hardcoded
     # to the set difference between column info attributes and what FITS can store
@@ -396,6 +409,7 @@ def _encode_mixins(tbl):
         )
         for col in tbl.itercols()
     )
+    info_lost |= "__table_indices__" in tbl.meta
 
     # Convert the table to one with no mixins, only Column objects.  This adds
     # meta data which is extracted with meta.get_yaml_from_table.  This ignores
@@ -418,24 +432,39 @@ def _encode_mixins(tbl):
         meta_copy = deepcopy(tbl.meta)
         encode_tbl = Table(tbl.columns, meta=meta_copy, copy=False)
 
-    # Get the YAML serialization of information describing the table columns.
-    # This is reusing ECSV code that combined existing table.meta with with
-    # the extra __serialized_columns__ key.  For FITS the table.meta is handled
-    # by the native FITS connect code, so don't include that in the YAML
-    # output.
-    ser_col = "__serialized_columns__"
+    # Get the YAML serialization of information describing the table columns as well as
+    # (optionally) information on table indices. This is reusing ECSV code that combined
+    # existing table.meta with the extra __serialized_columns__ key.  For FITS the
+    # table.meta is handled by the native FITS connect code, so don't include that in
+    # the YAML output.
+    ser_keys_default = {
+        "__serialized_columns__": {},
+        "__table_indices__": None,
+    }
 
     # encode_tbl might not have a __serialized_columns__ key if there were no mixins,
     # but machinery below expects it to be available, so just make an empty dict.
-    encode_tbl.meta.setdefault(ser_col, {})
+    for key, default in ser_keys_default.items():
+        if default is not None:
+            encode_tbl.meta.setdefault(key, default)
 
+    # Temporarily redefine encode_tbl.meta to have *only* the keys from
+    # ser_key_defaults. Use this to get the corresponding YAML header.
     tbl_meta_copy = encode_tbl.meta.copy()
     try:
-        encode_tbl.meta = {ser_col: encode_tbl.meta[ser_col]}
+        encode_tbl.meta = {
+            key: encode_tbl.meta[key]
+            for key in ser_keys_default
+            if key in encode_tbl.meta
+        }
         meta_yaml_lines = meta.get_yaml_from_table(encode_tbl)
     finally:
         encode_tbl.meta = tbl_meta_copy
-    del encode_tbl.meta[ser_col]
+
+    # Remove those special keys so that later FITS doesn't try to put them into normal
+    # HEADER keys.
+    for key in ser_keys_default:
+        encode_tbl.meta.pop(key, None)
 
     if "comments" not in encode_tbl.meta:
         encode_tbl.meta["comments"] = []

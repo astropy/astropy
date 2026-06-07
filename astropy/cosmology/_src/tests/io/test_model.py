@@ -32,7 +32,8 @@ class ToFromModelTestMixin(ToFromTestMixinBase):
     """
 
     @pytest.fixture(scope="class")
-    def method_name(self, cosmo):
+    @classmethod
+    def method_name(cls, cosmo):
         # get methods, ignoring private and dunder
         methods = get_redshift_methods(cosmo, include_private=False, include_z2=True)
 

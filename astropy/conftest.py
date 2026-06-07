@@ -6,9 +6,10 @@ This file contains pytest configuration settings that are astropy-specific.
 import builtins
 import os
 import sys
-import tempfile
 import warnings
+from dataclasses import replace
 from pathlib import Path
+from threading import Lock
 
 try:
     from pytest_astropy_header.display import PYTEST_HEADER_MODULES, TESTED_VERSIONS
@@ -49,6 +50,72 @@ def fast_thread_switching():
     sys.setswitchinterval(old)
 
 
+_IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
+
+
+@pytest.fixture
+def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
+    import astropy.config.paths
+
+    # ignore global state of the test session
+    # and preserve thread safety across all users of this fixture
+    with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
+        monkeypatch.delenv("ASTROPY_CACHE_DIR", raising=False)
+        monkeypatch.delenv("ASTROPY_CONFIG_DIR", raising=False)
+        monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
+        monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+
+        pristine_cache_finder = replace(
+            astropy.config.paths._finders.cache,
+            overrides={},
+        )
+        monkeypatch.setattr(
+            astropy.config.paths._finders,
+            "cache",
+            pristine_cache_finder,
+        )
+        pristine_config_finder = replace(
+            astropy.config.paths._finders.config,
+            overrides={},
+        )
+        monkeypatch.setattr(
+            astropy.config.paths._finders,
+            "config",
+            pristine_config_finder,
+        )
+
+        if "HOME" in os.environ:
+            # also mock $HOME as it's part of the global state taken into account
+            # for path detection
+            mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME")
+
+            def mock_home():
+                return mock_home_dir
+
+            monkeypatch.setattr(Path, "home", mock_home)
+
+        yield
+
+
+# Make sure we use temporary directories for the config and cache
+# so that the tests are insensitive to local configuration. Note that this
+# is also set in the test runner, but we need to also set it here for
+# things to work properly in parallel mode
+# note: session-level + autouse doesn't require a cleanup phase
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _session_level_cache_dir(tmp_path_factory):
+    os.environ["ASTROPY_CACHE_DIR"] = str(tmp_path_factory.mktemp("astropy_cache_"))
+    os.environ["XDG_CACHE_HOME"] = str(tmp_path_factory.mktemp("xdg_cache_"))
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _session_level_config_dir(tmp_path_factory):
+    os.environ["ASTROPY_CONFIG_DIR"] = str(tmp_path_factory.mktemp("astropy_config_"))
+    os.environ["XDG_CONFIG_HOME"] = str(tmp_path_factory.mktemp("xdg_config_"))
+
+
 def pytest_configure(config):
     # Ensure number of columns and lines is deterministic for testing
     from astropy import conf
@@ -69,20 +136,6 @@ def pytest_configure(config):
             matplotlibrc_cache.update(mpl.rcParams)
             mpl.rcdefaults()
             mpl.use("Agg")
-
-    # Make sure we use temporary directories for the config and cache
-    # so that the tests are insensitive to local configuration. Note that this
-    # is also set in the test runner, but we need to also set it here for
-    # things to work properly in parallel mode
-
-    builtins._xdg_config_home_orig = os.environ.get("XDG_CONFIG_HOME")
-    builtins._xdg_cache_home_orig = os.environ.get("XDG_CACHE_HOME")
-
-    os.environ["XDG_CONFIG_HOME"] = tempfile.mkdtemp("astropy_config")
-    os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp("astropy_cache")
-
-    Path(os.environ["XDG_CONFIG_HOME"]).joinpath("astropy").mkdir()
-    Path(os.environ["XDG_CACHE_HOME"]).joinpath("astropy").mkdir()
 
     config.option.astropy_header = True
     PYTEST_HEADER_MODULES["PyERFA"] = "erfa"
@@ -106,6 +159,23 @@ def pytest_configure(config):
             threads_per_worker = max(max_threads // int(xdist_worker_count), 1)
             threadpool_limits(threads_per_worker)
 
+    config.addinivalue_line(
+        "markers",
+        "only_optimized_interpreter: mark a test as skipped if the interpreter is not running with -OO flags",
+    )
+    config.addinivalue_line(
+        "markers",
+        "no_optimized_interpreter: mark a test as skipped if the interpreter is running with -OO flags",
+    )
+
+
+def pytest_runtest_setup(item):
+    for m in item.iter_markers():
+        if m.name == "only_optimized_interpreter" and sys.flags.optimize < 2:
+            pytest.skip("interpreter isn't running in optimized mode")
+        if m.name == "no_optimized_interpreter" and sys.flags.optimize >= 2:
+            pytest.skip("interpreter is running in optimized mode")
+
 
 def pytest_unconfigure(config):
     # Undo settings related to number of lines/columns to show
@@ -126,16 +196,6 @@ def pytest_unconfigure(config):
             warnings.simplefilter("ignore")
             mpl.rcParams.update(matplotlibrc_cache)
             matplotlibrc_cache.clear()
-
-    if builtins._xdg_config_home_orig is None:
-        os.environ.pop("XDG_CONFIG_HOME")
-    else:
-        os.environ["XDG_CONFIG_HOME"] = builtins._xdg_config_home_orig
-
-    if builtins._xdg_cache_home_orig is None:
-        os.environ.pop("XDG_CACHE_HOME")
-    else:
-        os.environ["XDG_CACHE_HOME"] = builtins._xdg_cache_home_orig
 
 
 def pytest_terminal_summary(terminalreporter):

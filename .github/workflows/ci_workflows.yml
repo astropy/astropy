@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check base branch
-      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8.0.0
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
       if: github.event_name == 'pull_request' && github.repository == 'astropy/astropy'
       with:
         script: |
@@ -47,9 +47,29 @@ jobs:
             core.info(`PR opened correctly against ${allowed_basebranch}`);
           }
 
+  lowest-tree-check:
+    name: Check environment lowest resolution against reference
+    needs: [initial_checks]
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        name: Install Python
+        with:
+          python-version: "3.14"
+      - run: pipx run scripts/check-lowest-resolved-tree.py
+
+      - if: failure()
+        run: pipx run scripts/check-lowest-resolved-tree.py --markdown --quiet >> "$GITHUB_STEP_SUMMARY" || true
+
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@99401c364fa51c9c507d3cd6d272049278ac0b2c  # v2.4.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
@@ -73,8 +93,8 @@ jobs:
           cache-path: .tox
           cache-key: mindeps-${{ github.ref_name }}
 
-        - name: Python 3.12 in Parallel with all optional dependencies
-          linux: py312-test-alldeps-fitsio
+        - name: Python 3.13 in Parallel with all optional dependencies
+          linux: py313-test-alldeps-fitsio
           libraries:
             apt:
               - language-pack-fr
@@ -91,22 +111,21 @@ jobs:
           posargs: --remote-data=astropy
           coverage: codecov
 
-        - name: Python 3.12 with all optional dependencies (Windows)
-          windows: py312-test-alldeps
+        - name: Python 3.13 with all optional dependencies (Windows)
+          windows: py313-test-alldeps
           posargs: --durations=50
           cache-path: .tox
           cache-key: alldeps-windows-${{ github.ref_name }}
 
-        - name: Python 3.12 with all optional dependencies (MacOS X)
-          macos: py312-test-alldeps
+        - name: Python 3.13 with all optional dependencies (MacOS X)
+          macos: py313-test-alldeps
           posargs: --durations=50 --run-slow
           runs-on: macos-latest
           cache-path: .tox
           cache-key: alldeps-macos-${{ github.ref_name }}
 
-        # FIXME: Add aarch64 to name when bump Python version.
-        - name: Python 3.11 Double test (Run tests twice)
-          linux: py311-test-double
+        - name: Python 3.13 aarch64, Run tests twice
+          linux: py313-test-double
           runs-on: ubuntu-24.04-arm
           posargs: -n=4
           setenv: |
@@ -117,7 +136,7 @@ jobs:
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@99401c364fa51c9c507d3cd6d272049278ac0b2c  # v2.4.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -130,13 +149,13 @@ jobs:
           - language-pack-de
           - tzdata
       envs: |
-        - name: (Allowed Failure) Python 3.13 with remote data and dev version of key dependencies
-          linux: py313-test-devdeps
+        - name: (Allowed Failure) Python 3.14 with remote data and dev version of key dependencies
+          linux: py314-test-devdeps
           posargs: --remote-data=any --verbose
 
   stub_tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@99401c364fa51c9c507d3cd6d272049278ac0b2c  # v2.4.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -149,11 +168,13 @@ jobs:
           cache-key: stub_tests-${{ github.ref_name }}
 
   test_wheel_building:
-    needs: [initial_checks]
+    needs:
+      - initial_checks
+      - lowest-tree-check
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@99401c364fa51c9c507d3cd6d272049278ac0b2c  # v2.4.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
     with:
       upload_to_pypi: false
       upload_to_anaconda: false
@@ -176,7 +197,9 @@ jobs:
             - windows-latest
     runs-on: ${{ matrix.os }}
     name: Python 3.11 (build only, partial) with limited API (${{ matrix.os }})
-    needs: [initial_checks]
+    needs:
+      - initial_checks
+      - lowest-tree-check
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:

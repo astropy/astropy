@@ -1,0 +1,1 @@
+Fix reference-count handling after ``PyList_SetItem`` steals references.

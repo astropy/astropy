@@ -32,7 +32,7 @@
 static int _setup_wcs_type(PyObject* m);
 
 
-PyObject* PyWcsprm_set_wtbarr_fitsio_callback(PyObject *dummy, PyObject *args) {
+PyObject* Wcsprm_set_wtbarr_fitsio_callback(PyObject *dummy, PyObject *args) {
     PyObject *callback;
 
     if (PyArg_ParseTuple(args, "O:set_wtbarr_fitsio_callback", &callback)) {
@@ -143,7 +143,7 @@ Wcs_init(
   /* Check and set Distortion lookup tables */
   for (i = 0; i < 2; ++i) {
     if (py_det2im[i] != NULL && py_det2im[i] != Py_None) {
-      if (!PyObject_TypeCheck(py_det2im[i], (PyTypeObject*)PyDistLookupType)) {
+      if (!PyObject_TypeCheck(py_det2im[i], (PyTypeObject*)DistLookupType)) {
         PyErr_SetString(PyExc_TypeError,
                         "Arg 4 must be a pair of DistortionLookupTable or None objects");
         return -1;
@@ -152,13 +152,13 @@ Wcs_init(
       Py_CLEAR(self->py_det2im[i]);
       self->py_det2im[i] = py_det2im[i];
       Py_INCREF(py_det2im[i]);
-      self->x.det2im[i] = &(((PyDistLookup*)py_det2im[i])->x);
+      self->x.det2im[i] = &(((DistLookup*)py_det2im[i])->x);
     }
   }
 
   /* Check and set SIP */
   if (py_sip != NULL && py_sip != Py_None) {
-    if (!PyObject_TypeCheck(py_sip, (PyTypeObject*)PySipType)) {
+    if (!PyObject_TypeCheck(py_sip, (PyTypeObject*)SipType)) {
       PyErr_SetString(PyExc_TypeError,
                       "Arg 1 must be Sip object");
       return -1;
@@ -167,13 +167,13 @@ Wcs_init(
     Py_CLEAR(self->py_sip);
     self->py_sip = py_sip;
     Py_INCREF(py_sip);
-    self->x.sip = &(((PySip*)py_sip)->x);
+    self->x.sip = &(((Sip*)py_sip)->x);
   }
 
   /* Check and set Distortion lookup tables */
   for (i = 0; i < 2; ++i) {
     if (py_distortion_lookup[i] != NULL && py_distortion_lookup[i] != Py_None) {
-      if (!PyObject_TypeCheck(py_distortion_lookup[i], (PyTypeObject*)PyDistLookupType)) {
+      if (!PyObject_TypeCheck(py_distortion_lookup[i], (PyTypeObject*)DistLookupType)) {
         PyErr_SetString(PyExc_TypeError,
                         "Arg 2 must be a pair of DistortionLookupTable or None objects");
         return -1;
@@ -182,13 +182,13 @@ Wcs_init(
       Py_CLEAR(self->py_distortion_lookup[i]);
       self->py_distortion_lookup[i] = py_distortion_lookup[i];
       Py_INCREF(py_distortion_lookup[i]);
-      self->x.cpdis[i] = &(((PyDistLookup*)py_distortion_lookup[i])->x);
+      self->x.cpdis[i] = &(((DistLookup*)py_distortion_lookup[i])->x);
     }
   }
 
   /* Set and lookup Wcsprm object */
   if (py_wcsprm != NULL && py_wcsprm != Py_None) {
-    if (!PyObject_TypeCheck(py_wcsprm, (PyTypeObject*)PyWcsprmType)) {
+    if (!PyObject_TypeCheck(py_wcsprm, (PyTypeObject*)WcsprmType)) {
       PyErr_SetString(PyExc_TypeError,
                       "Arg 3 must be Wcsprm object");
       return -1;
@@ -197,7 +197,7 @@ Wcs_init(
     Py_CLEAR(self->py_wcsprm);
     self->py_wcsprm = py_wcsprm;
     Py_INCREF(py_wcsprm);
-    self->x.wcs = &(((PyWcsprm*)py_wcsprm)->x);
+    self->x.wcs = &(((Wcsprm*)py_wcsprm)->x);
   }
 
   return 0;
@@ -249,24 +249,38 @@ Wcs_all_pix2world(
     goto exit;
   }
 
-  // Here we force a call to wcsset. Normally, WCSLIB will call wcsset automatically when
-  // calling wcsp2s, but we need to call it ourselves using PyWcsprm_cset so that we can
-  // catch cases where the units might change if e.g. they are not in SI to start with.
-  /* Force a call to wcsset here*/
-  if (((PyWcsprm*)(self->py_wcsprm))->preserve_units && PyWcsprm_cset(((PyWcsprm*)(self->py_wcsprm)), 1)) {
+  // Force a call to wcsset via Wcsprm_cset before entering the parallel
+  // region.  This serves two purposes: (1) preserve_units unit-change
+  // detection (the original reason), and (2) ensuring wcs->flag == WCSSET
+  // so the wcsp2s call below will not invoke wcsset itself.  wcsset is the
+  // only writer wcsp2s would otherwise trigger, and by running it eagerly
+  // under the GIL here (short-circuited by wcsenq on subsequent calls) we
+  // can safely drop the wcsprm_python2c / wcsprm_c2python round-trip from
+  // around pipeline_all_pixel2world.
+  if (Wcsprm_cset(((Wcsprm*)(self->py_wcsprm)), 1)) {
     return NULL;
   }
 
-  /* Make the call */
+  /* Make the call.
+   *
+   * The pipeline (det2im / SIP / distortion / wcsp2s stages) is read-only
+   * on the wcsprm struct -- after wcsset has run (now hoisted into
+   * Wcsprm_cset above), the transform routines consume the precomputed
+   * sub-structs wcs->lin / wcs->cel / wcs->spc plus wcs->crval[i], and
+   * never re-read the raw arrays (cd, cdelt, crpix, crota, obsgeo,
+   * mjdobs, ...) that the wcsprm_python2c / wcsprm_c2python pair was
+   * rewriting NaN <-> UNDEFINED in place.  The round-trip can therefore
+   * be dropped here without changing the transform's output, and
+   * concurrent threads no longer race on those raw arrays
+   *.
+   */
   Py_BEGIN_ALLOW_THREADS
   preoffset_array(pixcrd, origin);
-  wcsprm_python2c(self->x.wcs);
   status = pipeline_all_pixel2world(&self->x,
                                     (unsigned int)ncoord,
                                     (unsigned int)nelem,
                                     (double*)PyArray_DATA(pixcrd),
                                     (double*)PyArray_DATA(world));
-  wcsprm_c2python(self->x.wcs);
   unoffset_array(pixcrd, origin);
   Py_END_ALLOW_THREADS
   /* unoffset_array(world, origin); */
@@ -277,9 +291,9 @@ Wcs_all_pix2world(
   if (status == 0 || status == 8) {
     // Since the conversion succeeded, if user has requested to preserve units,
     // we convert the world coordinates to the original units
-    if (((PyWcsprm*)(self->py_wcsprm))->unit_scaling != NULL) {
+    if (((Wcsprm*)(self->py_wcsprm))->unit_scaling != NULL) {
       double *world_data = (double *)PyArray_DATA(world);
-      double *unit_scaling = ((PyWcsprm*)(self->py_wcsprm))->unit_scaling;
+      double *unit_scaling = ((Wcsprm*)(self->py_wcsprm))->unit_scaling;
       for (npy_intp i = 0; i < nelem; ++i) {
         for (npy_intp j = 0; j < ncoord; ++j) {
             world_data[j * nelem + i] /= unit_scaling[i];
@@ -529,7 +543,7 @@ Wcs_set_wcs(
   self->x.wcs = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyWcsprmType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)WcsprmType)) {
       PyErr_SetString(PyExc_TypeError,
                       "wcs must be Wcsprm object");
       return -1;
@@ -537,7 +551,7 @@ Wcs_set_wcs(
 
     Py_INCREF(value);
     self->py_wcsprm = value;
-    self->x.wcs = &(((PyWcsprm*)value)->x);
+    self->x.wcs = &(((Wcsprm*)value)->x);
   }
 
   return 0;
@@ -567,7 +581,7 @@ Wcs_set_cpdis1(
   self->x.cpdis[0] = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyDistLookupType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)DistLookupType)) {
       PyErr_SetString(PyExc_TypeError,
                       "cpdis1 must be DistortionLookupTable object");
       return -1;
@@ -575,7 +589,7 @@ Wcs_set_cpdis1(
 
     Py_INCREF(value);
     self->py_distortion_lookup[0] = value;
-    self->x.cpdis[0] = &(((PyDistLookup*)value)->x);
+    self->x.cpdis[0] = &(((DistLookup*)value)->x);
   }
 
   return 0;
@@ -605,7 +619,7 @@ Wcs_set_cpdis2(
   self->x.cpdis[1] = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyDistLookupType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)DistLookupType)) {
       PyErr_SetString(PyExc_TypeError,
                       "cpdis2 must be DistortionLookupTable object");
       return -1;
@@ -613,7 +627,7 @@ Wcs_set_cpdis2(
 
     Py_INCREF(value);
     self->py_distortion_lookup[1] = value;
-    self->x.cpdis[1] = &(((PyDistLookup*)value)->x);
+    self->x.cpdis[1] = &(((DistLookup*)value)->x);
   }
 
   return 0;
@@ -643,7 +657,7 @@ Wcs_set_det2im1(
   self->x.det2im[0] = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyDistLookupType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)DistLookupType)) {
       PyErr_SetString(PyExc_TypeError,
                       "det2im1 must be DistortionLookupTable object");
       return -1;
@@ -651,7 +665,7 @@ Wcs_set_det2im1(
 
     Py_INCREF(value);
     self->py_det2im[0] = value;
-    self->x.det2im[0] = &(((PyDistLookup*)value)->x);
+    self->x.det2im[0] = &(((DistLookup*)value)->x);
   }
 
   return 0;
@@ -681,7 +695,7 @@ Wcs_set_det2im2(
   self->x.det2im[1] = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, (PyTypeObject*)PyDistLookupType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)DistLookupType)) {
       PyErr_SetString(PyExc_TypeError,
                       "det2im2 must be DistortionLookupTable object");
       return -1;
@@ -689,7 +703,7 @@ Wcs_set_det2im2(
 
     Py_INCREF(value);
     self->py_det2im[1] = value;
-    self->x.det2im[1] = &(((PyDistLookup*)value)->x);
+    self->x.det2im[1] = &(((DistLookup*)value)->x);
   }
 
   return 0;
@@ -719,7 +733,7 @@ Wcs_set_sip(
   self->x.sip = NULL;
 
   if (value != NULL && value != Py_None) {
-    if (!PyObject_TypeCheck(value, (PyTypeObject*)PySipType)) {
+    if (!PyObject_TypeCheck(value, (PyTypeObject*)SipType)) {
       PyErr_SetString(PyExc_TypeError,
                       "sip must be Sip object");
       return -1;
@@ -727,7 +741,7 @@ Wcs_set_sip(
 
     Py_INCREF(value);
     self->py_sip = value;
-    self->x.sip = &(((PySip*)value)->x);
+    self->x.sip = &(((Sip*)value)->x);
   }
 
   return 0;
@@ -772,8 +786,8 @@ static PyMethodDef Wcs_methods[] = {
 
 static PyMethodDef module_methods[] = {
   {"_sanity_check", (PyCFunction)_sanity_check, METH_NOARGS, ""},
-  {"find_all_wcs", (PyCFunction)PyWcsprm_find_all_wcs, METH_VARARGS|METH_KEYWORDS, doc_find_all_wcs},
-  {"set_wtbarr_fitsio_callback", (PyCFunction)PyWcsprm_set_wtbarr_fitsio_callback, METH_VARARGS, NULL},
+  {"find_all_wcs", (PyCFunction)Wcsprm_find_all_wcs, METH_VARARGS|METH_KEYWORDS, doc_find_all_wcs},
+  {"set_wtbarr_fitsio_callback", (PyCFunction)Wcsprm_set_wtbarr_fitsio_callback, METH_VARARGS, NULL},
   {NULL}  /* Sentinel */
 };
 

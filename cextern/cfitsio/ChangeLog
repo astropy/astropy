@@ -1,4 +1,30 @@
                    Log of Changes Made to CFITSIO
+                   
+Version 4.6.4 - Apr 2026
+
+  - This release includes patches to security vulnerabilities.  We 
+    strongly encourage this upgrade, particularly for those running 
+    CFITSIO in web accessible applications.
+    
+    Our thanks to A. Denkiewicz, J.B. Ferreira, S.A. Vives, 
+    Otis0408 and K.B. de Pouqueville for their help with this. 
+
+  - Input files iter_image.fits and vari.fits added for use in 
+    iter_image and iter_var example programs. (R. Mathar)
+    New configure/build options --enable-iterprogs for 'configure', 
+    and -DITERPROGS=ON for CMAKE.
+
+  - Absolute paths for installation directories now supported in 
+    CMAKE builds.
+
+  - Bug fixes for edge cases involving lossless compression of int-type
+    images, and for float-types that cannot undergo lossy compression. 
+    (M. Becker)
+
+  - Bug fix for case of switching between HDUs of lossless and quantized
+    compression.  (J. Bosch)
+
+  - Bug fix for applying histogram binning to image extensions.
 
 Version 4.6.3 - Sep 2025
 

@@ -9,8 +9,10 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.metadata import MetaData
 from astropy.utils.misc import dtype_bytes_or_chars
 
@@ -160,6 +162,26 @@ def _expand_string_array_for_values(arr, values):
     return arr
 
 
+def _contains_ma_masked(
+    values: list, ndim: int, np_ma_masked: np.ma.core.MaskedConstant
+) -> bool:
+    """Look for np.ma.masked in the regular N-d nested sequence.
+
+    This does not create a copy of `data`.
+    """
+    match ndim:
+        case int(neg) if neg < 0:
+            raise AssertionError
+        case 0:
+            return values is np_ma_masked
+        case 1:
+            return any(value is np_ma_masked for value in values)
+        case _:
+            return any(
+                _contains_ma_masked(value, ndim - 1, np_ma_masked) for value in values
+            )
+
+
 def _convert_sequence_data_to_array(data, dtype=None):
     """Convert N-d sequence-like data to ndarray or MaskedArray.
 
@@ -246,22 +268,9 @@ def _convert_sequence_data_to_array(data, dtype=None):
 
     # Now we need to determine if there is an np.ma.masked anywhere in input data.
 
-    # Make a statement like below to look for np.ma.masked in a nested sequence.
-    # Because np.array(data) succeeded we know that `data` has a regular N-d
-    # structure. Find ma_masked:
-    #   any(any(any(d2 is ma_masked for d2 in d1) for d1 in d0) for d0 in data)
-    # Using this eval avoids creating a copy of `data` in the more-usual case of
-    # no masked elements.
-    any_statement = "d0 is ma_masked"
-    for ii in reversed(range(np_data.ndim)):
-        if ii == 0:
-            any_statement = f"any({any_statement} for d0 in data)"
-        elif ii == np_data.ndim - 1:
-            any_statement = f"any(d{ii} is ma_masked for d{ii} in d{ii - 1})"
-        else:
-            any_statement = f"any({any_statement} for d{ii} in d{ii - 1})"
-    context = {"ma_masked": np.ma.masked, "data": data}
-    has_masked = eval(any_statement, context)
+    # Look for np.ma.masked in the regular N-d nested sequence without creating
+    # a copy of `data` in the common case where there are no masked elements.
+    has_masked = _contains_ma_masked(data, np_data.ndim, np_ma_masked)
 
     # If there are any masks then explicitly change each one to a fill value and
     # set a mask boolean array. If not has_masked then we're done.
@@ -1264,7 +1273,19 @@ class Column(BaseColumn):
             raise AttributeError(
                 "cannot set mask value to a column in non-masked Table"
             )
-        super().__setattr__(item, value)
+        if not NUMPY_LT_2_5 and item == "dtype":
+            warnings.warn(
+                "Setting the Column dtype attribute is deprecated since astropy 8.0.0 "
+                "and it will stop working in a future version. "
+                "As an alternative, you can create a view with a new dtype via "
+                "column.view(dtype=new_dtype). This follows a similar "
+                "deprecation in numpy 2.5.0.",
+                AstropyDeprecationWarning,
+                stacklevel=2,
+            )
+            self._set_dtype(value)
+        else:
+            super().__setattr__(item, value)
 
         if item == "unit" and issubclass(self.dtype.type, np.number):
             try:
@@ -1662,6 +1683,23 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             index.replace_col(self_data, self)
 
         return self
+
+    def __deepcopy__(self, memo=None):
+        out = super().__deepcopy__(memo)
+
+        # MaskedArray.__deepcopy__ copies self.__dict__ entries directly via
+        # deepcopy(), bypassing the DataInfo descriptor.  That leaves a raw
+        # deep-copied MaskedColumnInfo in out.__dict__["info"] which has
+        # _attrs (e.g. serialize_method) but lacks bound-only slot state such
+        # as _format_funcs.  Re-assigning through the descriptor (DataInfo.__set__)
+        # creates a fresh bound MaskedColumnInfo, copies across the _attrs from
+        # the raw object, and sets _format_funcs = {} as expected.
+        #
+        # See https://github.com/astropy/astropy/pull/19466 for more details.
+        if "info" in out.__dict__:
+            out.info = self.info
+
+        return out
 
     @property
     def fill_value(self):

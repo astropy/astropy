@@ -4,6 +4,7 @@ import inspect
 import os
 import pydoc
 import re
+import sys
 
 from .base import IORegistryError
 
@@ -60,6 +61,12 @@ class UnifiedReadWrite:
         Instead one can supplied a file handle object as ``out`` and the output
         will be written to that handle.
 
+        Raises
+        ------
+        RuntimeError
+            If called within a python runtime running with optimization level >= 2
+            (-OO CLI flag).
+
         Parameters
         ----------
         format : str
@@ -67,6 +74,11 @@ class UnifiedReadWrite:
         out : None or file-like
             Output destination (default is stdout via a pager)
         """
+        if sys.flags.optimize >= 2:
+            raise RuntimeError(
+                "The help method is not available under Python's optimized mode."
+            )
+
         cls = self._cls
         method_name = self._method_name
 

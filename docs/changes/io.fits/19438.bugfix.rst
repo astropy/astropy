@@ -1,0 +1,3 @@
+Fix a bug that caused header verification for CompImageHDU to not work correctly and
+in some cases produce corrupt files when the decompressed header was a primary HDU
+header not an extension header.

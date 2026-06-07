@@ -1395,6 +1395,13 @@ def matrix_rank(A, tol=None, *args, **kwargs):
     if tol is not None:
         tol = _interpret_tol(tol, A.unit)
 
+    if (atol := kwargs.get("atol")) is not None:
+        kwargs["atol"] = _interpret_tol(atol, A.unit)
+
+    if (rtol := kwargs.get("rtol")) is not None:
+        # Handle relative tolerance (should be dimensionless)
+        kwargs["rtol"] = _interpret_tol(rtol, dimensionless_unscaled)
+
     return (A.view(np.ndarray), tol) + args, kwargs, None, None
 
 

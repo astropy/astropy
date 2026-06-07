@@ -692,3 +692,19 @@ def test_version_checks_from_api():
     votable.version = "1.3"
     with pytest.warns((W47, W15)):
         tree.Param(votable, ID="REF", datatype="int")
+
+
+def test_votablefile_write(tmp_path):
+    vot = VOTableFile()
+    vot.params.append(tree.Param(vot, name="TestParam", value="42", datatype="int"))
+    vot.infos.append(tree.Info(name="TestInfo", value="hello"))
+
+    out = tmp_path / "out.xml"
+    vot.write(str(out))
+
+    roundtripped = parse(str(out))
+    assert roundtripped.params[0].name == "TestParam"
+    assert roundtripped.infos[0].name == "TestInfo"
+
+    # format kwarg should be accepted and ignored for API compatibility
+    vot.write(str(out), format="votable")

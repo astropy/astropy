@@ -1,0 +1,2 @@
+Fixes a problem where deepcopying a MaskedColumn did not correctly create the ``info``
+attribute. This resulted in an inability to print the column after the deepcopy.

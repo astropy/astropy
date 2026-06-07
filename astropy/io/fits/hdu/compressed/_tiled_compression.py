@@ -5,11 +5,13 @@ the FITS 4 standard.
 """
 
 import sys
+import warnings
 from math import prod
 
 import numpy as np
 
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
+from astropy.utils.exceptions import AstropyUserWarning
 
 from ._codecs import PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
 from ._quantization import DITHER_METHODS, QuantizationFailedException, Quantize
@@ -206,7 +208,12 @@ def _check_compressed_header(header):
                 raise TypeError(f"{kw} should be an integer")
 
     for suffix in range(1, header["TFIELDS"] + 1):
-        if header.get(f"TTYPE{suffix}", "").endswith("COMPRESSED_DATA"):
+        # Only validate COMPRESSED_DATA and GZIP_COMPRESSED_DATA columns.
+        # UNCOMPRESSED_DATA columns can have floating-point formats (PE, PD, etc.)
+        if header.get(f"TTYPE{suffix}", "") in (
+            "COMPRESSED_DATA",
+            "GZIP_COMPRESSED_DATA",
+        ):
             for valid in ["PB", "PI", "PJ", "QB", "QI", "QJ"]:
                 if header[f"TFORM{suffix}"].startswith((valid, f"1{valid}")):
                     break
@@ -262,6 +269,10 @@ def _column_dtype(compressed_coldefs, column_name):
         dtype = ">i2"
     elif tform[1] == "J":
         dtype = ">i4"
+    elif tform[1] == "E":
+        dtype = ">f4"
+    elif tform[1] == "D":
+        dtype = ">f8"
     return np.dtype(dtype)
 
 
@@ -362,6 +373,8 @@ def decompress_image_data_section(
 
     gzip_compressed_data_column = None
     gzip_compressed_data_dtype = None
+    uncompressed_data_column = None
+    uncompressed_data_dtype = None
 
     # If all the data is requested, read in all the heap.
     if tuple(buffer_shape) == tuple(data_shape):
@@ -383,35 +396,61 @@ def decompress_image_data_section(
         settings = _update_tile_settings(settings, compression_type, actual_tile_shape)
 
         if compressed_data_column[row_index][0] == 0:
-            if gzip_compressed_data_column is None:
-                gzip_compressed_data_column = np.array(
-                    compressed_data["GZIP_COMPRESSED_DATA"]
-                )
-                gzip_compressed_data_dtype = _column_dtype(
-                    compressed_coldefs, "GZIP_COMPRESSED_DATA"
-                )
-
             # When quantizing floating point data, sometimes the data will not
             # quantize efficiently. In these cases the raw floating point data can
             # be losslessly GZIP compressed and stored in the `GZIP_COMPRESSED_DATA`
-            # column.
+            # column, or stored uncompressed in the `UNCOMPRESSED_DATA` column.
 
-            cdata = _get_data_from_heap(
-                bintable,
-                *gzip_compressed_data_column[row_index],
-                gzip_compressed_data_dtype,
-                heap_cache=heap_cache,
-            )
+            if "GZIP_COMPRESSED_DATA" in compressed_coldefs.dtype.names:
+                if gzip_compressed_data_column is None:
+                    gzip_compressed_data_column = np.array(
+                        compressed_data["GZIP_COMPRESSED_DATA"]
+                    )
+                    gzip_compressed_data_dtype = _column_dtype(
+                        compressed_coldefs, "GZIP_COMPRESSED_DATA"
+                    )
 
-            tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
+                cdata = _get_data_from_heap(
+                    bintable,
+                    *gzip_compressed_data_column[row_index],
+                    gzip_compressed_data_dtype,
+                    heap_cache=heap_cache,
+                )
 
-            tile_data = _finalize_array(
-                tile_buffer,
-                bitpix=zbitpix,
-                tile_shape=actual_tile_shape,
-                algorithm="GZIP_1",
-                lossless=True,
-            )
+                tile_buffer = _decompress_tile(cdata, algorithm="GZIP_1")
+
+                tile_data = _finalize_array(
+                    tile_buffer,
+                    bitpix=zbitpix,
+                    tile_shape=actual_tile_shape,
+                    algorithm="GZIP_1",
+                    lossless=True,
+                )
+
+            elif "UNCOMPRESSED_DATA" in compressed_coldefs.dtype.names:
+                if uncompressed_data_column is None:
+                    uncompressed_data_column = np.array(
+                        compressed_data["UNCOMPRESSED_DATA"]
+                    )
+                    uncompressed_data_dtype = _column_dtype(
+                        compressed_coldefs, "UNCOMPRESSED_DATA"
+                    )
+
+                tile_data = _get_data_from_heap(
+                    bintable,
+                    *uncompressed_data_column[row_index],
+                    uncompressed_data_dtype,
+                    heap_cache=heap_cache,
+                )
+
+                # Data is already uncompressed, just reshape it
+                tile_data = tile_data.reshape(actual_tile_shape)
+
+            else:
+                raise ValueError(
+                    "COMPRESSED_DATA column has zero length but neither "
+                    "GZIP_COMPRESSED_DATA nor UNCOMPRESSED_DATA column exists"
+                )
 
         else:
             cdata = _get_data_from_heap(
@@ -504,6 +543,50 @@ def compress_image_data(
     if not isinstance(image_data, np.ndarray):
         raise TypeError("Image data must be a numpy.ndarray")
 
+    # PLIO_1 encodes only non-negative integers, but astropy stores unsigned
+    # FITS data via the BZERO=2**(N-1) convention which produces negative
+    # values for the lower half of the range. Reject unsigned multi-byte
+    # input to avoid corrupted writes.
+    if (
+        compression_type == "PLIO_1"
+        and image_data.dtype.kind == "u"
+        and image_data.dtype.itemsize >= 2
+    ):
+        raise ValueError(
+            "PLIO_1 compression does not support unsigned integers larger than 8 bits"
+        )
+
+    if (
+        compression_type in ("RICE_1", "PLIO_1", "HCOMPRESS_1")
+        and image_data.dtype.kind in ("i", "u")
+        and image_data.dtype.itemsize == 8
+    ):
+        # numpy's same_value check does not byteswap before comparing values,
+        # so non-native source data silently truncates instead of raising.
+        # Convert source to native byte order first.
+        native_source = image_data.astype(
+            image_data.dtype.newbyteorder("="), copy=False
+        )
+        new_dt = f"{image_data.dtype.kind}4"
+        try:
+            image_data = native_source.astype(new_dt, casting="same_value")
+            compressed_header["ZBITPIX"] = 32
+            if image_data.dtype.kind == "u":
+                # The input image header carries BZERO=2**63 for the original
+                # uint64 storage; after converting to uint32 the offset must
+                # be 2**31 so the FITS reader reconstructs the right values.
+                compressed_header["BZERO"] = 2**31
+            warnings.warn(
+                f"{compression_type} compression doesn't support 64 integers, "
+                "data has been converted to 32 bits",
+                AstropyUserWarning,
+            )
+        except ValueError:
+            raise ValueError(
+                f"{compression_type} compression doesn't support 64 integers, "
+                "but data cannot be converted to 32 bits without overflow",
+            )
+
     _check_compressed_header(compressed_header)
 
     # TODO: This implementation is memory inefficient as it generates all the
@@ -528,10 +611,20 @@ def compress_image_data(
         tile_data = image_data[tile_slices]
 
         if tile_data.dtype.kind == "u":
-            if tile_data.dtype.itemsize == 4:
+            if tile_data.dtype.itemsize == 8:
+                # Subtract 2**63 in wrap-around uint64 arithmetic, then
+                # reinterpret the bits as int64. This is equivalent to flipping
+                # the high bit and matches the FITS BZERO=2**63 convention.
+                tile_data = (tile_data - np.uint64(2**63)).view(np.int64)
+            elif tile_data.dtype.itemsize == 4:
                 tile_data = (tile_data.astype(np.int64) - 2**31).astype(np.int32)
             elif tile_data.dtype.itemsize == 2:
                 tile_data = (tile_data.astype(np.int32) - 2**15).astype(np.int16)
+        elif tile_data.dtype.kind == "i" and tile_data.dtype.itemsize == 1:
+            # FITS BITPIX=8 storage is unsigned, so int8 input is recorded via
+            # BZERO=-128 and the stored bytes must be shifted by +128. Without
+            # this the BZERO=-128 applied on read offsets every value by 128.
+            tile_data = (tile_data.astype(np.int16) + 128).astype(np.uint8)
 
         settings = _update_tile_settings(settings, compression_type, tile_data.shape)
 

@@ -17,6 +17,7 @@ import io
 import operator
 import os
 import pkgutil
+import sys
 import warnings
 from collections.abc import Generator
 from contextlib import contextmanager, nullcontext
@@ -140,6 +141,15 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
             provided then info about all the configuration items will be
             printed.
 
+        Raises
+        ------
+        KeyError
+           If name is not a valid configuration item.
+
+        RuntimeError
+            If called within a python runtime running with optimization level >= 2
+            (-OO CLI flag).
+
         Examples
         --------
         >>> from astropy import conf
@@ -151,6 +161,11 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
           module=astropy
           value=False
         """
+        if sys.flags.optimize >= 2:
+            raise RuntimeError(
+                "The help method is not available under Python's optimized mode."
+            )
+
         if name is None:
             print(self)
         else:
@@ -605,11 +620,13 @@ def get_config(packageormod=None, reload=False, rootname=None):
     cobj = _cfgobjs.get(pkgname)
 
     if cobj is None or reload:
+        cfgfile = str(
+            get_config_dir_path(rootname, ensure_exists=False)
+            .joinpath(pkgname)
+            .with_suffix(".cfg")
+        )
         try:
-            cobj = configobj.ConfigObj(
-                str((get_config_dir_path(rootname) / pkgname).with_suffix(".cfg")),
-                interpolation=False,
-            )
+            cobj = configobj.ConfigObj(cfgfile, interpolation=False)
         except OSError:
             # This can happen when HOME is not set
             cobj = configobj.ConfigObj(interpolation=False)
@@ -683,6 +700,7 @@ def generate_config(pkgname="astropy", filename=None, verbose=False):
 
     with contextlib.ExitStack() as stack:
         if isinstance(filename, (str, os.PathLike)):
+            Path(filename).parent.mkdir(parents=True, exist_ok=True)
             fp = stack.enter_context(open(filename, "w"))
         else:
             # assume it's a file object, or io.StringIO
@@ -803,13 +821,14 @@ def create_config_file(pkg, rootname="astropy", overwrite=False):
     doupdate = True
 
     # if the file already exists, check that it has not been modified
-    if cfgfn is not None and cfgfn.is_file():
+    if cfgfn.is_file():
         with open(cfgfn, encoding="latin-1") as fd:
             content = fd.read()
 
         doupdate = is_unedited_config_file(content, template_content)
 
     if doupdate or overwrite:
+        cfgfn.parent.mkdir(parents=True, exist_ok=True)
         with open(cfgfn, "w", encoding="latin-1") as fw:
             fw.write(template_content)
         log.info(f"The configuration file has been successfully written to {cfgfn}")

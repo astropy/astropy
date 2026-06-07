@@ -70,11 +70,10 @@ if missing_requirements:
     logger.error(msg)
     sys.exit(1)
 
-from sphinx_astropy.conf.v2 import *  # noqa: E402, F403
-from sphinx_astropy.conf.v2 import (  # noqa: E402
+from sphinx_astropy.conf.v3 import *  # noqa: E402, F403
+from sphinx_astropy.conf.v3 import (  # noqa: E402
     exclude_patterns,
     extensions,
-    html_theme_options,
     intersphinx_mapping,
     numpydoc_xref_aliases,
     numpydoc_xref_astropy_aliases,
@@ -107,7 +106,7 @@ intersphinx_mapping.update(
         "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
         "pytest": ("https://docs.pytest.org/en/stable/", None),
         "ipython": ("https://ipython.readthedocs.io/en/stable/", None),
-        "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+        "pandas": ("https://pandas.pydata.org/docs/", None),
         "sphinx_automodapi": (
             "https://sphinx-automodapi.readthedocs.io/en/stable/",
             None,
@@ -231,33 +230,18 @@ modindex_common_prefix = ["astropy."]
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme_options.update(
-    {
-        "analytics": {
-            "google_analytics_id": "G-R0510VK4B6",
-        },
-        "github_url": "https://github.com/astropy/astropy",
-        "external_links": [
-            {"name": "Learn", "url": "https://learn.astropy.org/"},
-            {"name": "Packages", "url": "https://www.astropy.org/affiliated/"},
-        ],
-        "use_edit_page_button": True,
-        "logo": {
-            "image_light": "_static/astropy_banner_96.png",
-            "image_dark": "_static/astropy_banner_96_dark.png",
-        },
-        # https://github.com/pydata/pydata-sphinx-theme/issues/1492
-        "navigation_with_keys": False,
-        "announcement": "https://www.astropy.org/annoucement_banner.html",
-        "header_links_before_dropdown": 6,
-    }
-)
+html_theme_options = {
+    "analytics": {
+        "google_analytics_id": "G-R0510VK4B6",
+    },
+    "github_url": "https://github.com/astropy/astropy",
+    "use_edit_page_button": True,
+}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = f"{project} v{release}"
 
-html_favicon = "_static/astropy_logo.ico"
 html_static_path = ["_static"]
 html_css_files = ["astropy.css"]
 html_copy_source = False
@@ -397,11 +381,14 @@ linkcheck_ignore = [
     "https://www.usno.navy.mil/USNO/time/gps/usno-gps-time-transfer",
     "https://aa.usno.navy.mil/publications/docs/Circular_179.php",
     "http://data.astropy.org",
+    "https://astropy-dei.orgmycology.com/",  # 403 Client Error: Forbidden
     "https://doi.org/",  # CI blocked by service provider
+    "https://zenodo.org/",  # 403 Client Error: Forbidden
     "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
     "https://hst-docs.stsci.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://stackoverflow.com/",  # 403 Client Error: Forbidden
+    "https://docutils.sourceforge.io",  # 403 Client Error: Forbidden
     "https://ieeexplore.ieee.org/",  # 418 Client Error: I'm a teapot
     "https://pyfits.readthedocs.io/en/v3.2.1/",  # defunct page in CHANGES.rst
     "https://pkgs.dev.azure.com/astropy-project",  # defunct page in CHANGES.rst

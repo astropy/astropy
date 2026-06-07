@@ -1,3 +1,4 @@
+// clang-format off
 int unquantize_i1r4(long row,
             unsigned char *input,         /* I - array of values to be converted     */
             long ntodo,           /* I - number of elements in the array     */

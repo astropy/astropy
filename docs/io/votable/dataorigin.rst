@@ -27,13 +27,13 @@ the VO service of interest::
     >>> votable = VOTableFile().from_table(table)
     >>> votable.description = "Period variations of 32 contact binaries (Hong+, 2024)"
     >>> # Order is important here for the example.
-    >>> add_data_origin_info(votable, "ivoid", "ivo://cds.vizier/j/aj/167/18",
+    >>> add_data_origin_info(votable, "data_ivoid", "ivo://cds.vizier/j/aj/167/18",
     ...                      content="IVOID of underlying data collection")
     >>> add_data_origin_info(votable, "creator", "Hong K.",
     ...                      content="First author or institution")
     >>> add_data_origin_info(votable, "cites", "bibcode:2024AJ....167...18H",
     ...                      content="Article or Data origin sources")
-    >>> add_data_origin_info(votable, "editor", "Astronomical Journal (AAS)",
+    >>> add_data_origin_info(votable, "journal", "Astronomical Journal (AAS)",
     ...                      content="Editor name (article)")
     >>> add_data_origin_info(votable, "original_date", "2024",
     ...                      content="Year of the article publication")
@@ -60,12 +60,12 @@ To extract DataOrigin from VOTable::
     request_date: 2025-03-05T14:18:05
     contact: cds-question@unistra.fr
     <BLANKLINE>
-    ivoid: ivo://cds.vizier/j/aj/167/18
+    data_ivoid: ivo://cds.vizier/j/aj/167/18
     citation: doi:10.26093/cds/vizier.51670018
     reference_url: https://cdsarc.cds.unistra.fr/viz-bin/cat/J/AJ/167/18
     rights_uri: https://cds.unistra.fr/vizier-org/licences_vizier.html
     creator: Hong K.
-    editor: Astronomical Journal (AAS)
+    journal: Astronomical Journal (AAS)
     cites: bibcode:2024AJ....167...18H
     original_date: 2024
     publication_date: 2024-11-06
@@ -105,10 +105,10 @@ DataOrigin container includes VO Elements:
     >>> for dataset_origin in data_origin.origin:
     ...    for info in dataset_origin.infos:
     ...        print(f"{info.name}: {info.value} ({info.content})")
-    ivoid: ivo://cds.vizier/j/aj/167/18 (IVOID of underlying data collection)
+    data_ivoid: ivo://cds.vizier/j/aj/167/18 (IVOID of underlying data collection)
     creator: Hong K. (First author or institution)
     cites: bibcode:2024AJ....167...18H (Article or Data origin sources)
-    editor: Astronomical Journal (AAS) (Editor name (article))
+    journal: Astronomical Journal (AAS) (Editor name (article))
     original_date: 2024 (Year of the article publication)
     ...
 

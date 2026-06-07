@@ -2309,7 +2309,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
     def get_ref(self):
         """
-        Lookup the :class:`Param` instance that this :class:``PARAMref``
+        Lookup the :class:`Param` instance that this ``PARAMref``
         references.
         """
         for param in self._table._votable.iter_fields_and_params():
@@ -4486,6 +4486,28 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                 for element_set in element_sets:
                     for element in element_set:
                         element.to_xml(w, **kwargs)
+
+    def write(self, output, **kwargs):
+        """
+        Write the VOTable to a file.
+
+        This is a wrapper around
+        `~astropy.io.votable.tree.VOTableFile.to_xml` that accepts the same
+        ``output`` argument as `~astropy.table.Table.write`, allowing
+        `~astropy.io.votable.tree.VOTableFile` objects to be passed directly
+        to code that expects a ``write`` method with a compatible signature.
+
+        Parameters
+        ----------
+        output : str or file-like
+            Where to write the file. If a file-like object, must be writable.
+        **kwargs
+            Additional keyword arguments are passed on to
+            `~astropy.io.votable.tree.VOTableFile.to_xml`. The ``format``
+            keyword is accepted for API compatibility but ignored.
+        """
+        kwargs.pop("format", None)
+        self.to_xml(output, **kwargs)
 
     def iter_tables(self):
         """

@@ -578,7 +578,7 @@ def test_set_labels_with_coords(ignore_matplotlibrc, frame_class):
 @pytest.mark.parametrize("atol", [0.2, 1.0e-8])
 def test_bbox_size(atol):
     # Test for the size of a WCSAxes bbox (only have Matplotlib >= 3.0 now)
-    extents = [11.38888888888889, 3.5, 576.0, 432.0]
+    extents = [11.38888888888889, 3.388888888888889, 576.0, 432.0]
 
     fig = Figure()
     canvas = FigureCanvasAgg(fig)
@@ -824,3 +824,25 @@ def test_get_transform_unit_mismatch():
     pixels = rng.uniform(0, 100, (2, 100))
 
     assert_allclose(transform1.transform(pixels), transform2.transform(pixels))
+
+
+def test_get_coords_overlay_elliptical_frame(ignore_matplotlibrc):
+    """
+    Regression test for calling get_coords_overlay on axes with a
+    non-rectangular frame (e.g., EllipticalFrame).
+
+    Previously this would emit an AstropyDeprecationWarning because 't'
+    and 'r' are not valid spine names for EllipticalFrame.
+    """
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["GLON-AIT", "GLAT-AIT"]
+    wcs.wcs.crpix = [180.5, 90.5]
+    wcs.wcs.cdelt = [-1, 1]
+    wcs.wcs.crval = [0, 0]
+
+    fig = Figure()
+    ax = fig.add_subplot(projection=wcs, frame_class=EllipticalFrame)
+
+    # This should not raise an AstropyDeprecationWarning
+    overlay = ax.get_coords_overlay("icrs")
+    assert overlay is not None

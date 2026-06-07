@@ -90,13 +90,6 @@ def test_testwarn(tw):
 
 
 class TestUfuncHelpers:
-    # Note that this test may fail if scipy is present, although the
-    # scipy.special ufuncs are only loaded on demand. This is because
-    # if a prior test has already imported scipy.special, then this test will be
-    # disrupted.
-    # The test passes independently of whether erfa is already loaded
-    # (which will be the case for a full test, since coordinates uses it).
-    @pytest.mark.skipif(HAS_SCIPY, reason="scipy coverage is known to be incomplete")
     def test_coverage(self):
         """Test that we cover all ufunc's"""
         all_np_ufuncs = {
@@ -106,15 +99,24 @@ class TestUfuncHelpers:
         all_q_ufuncs = qh.UNSUPPORTED_UFUNCS | set(qh.UFUNC_HELPERS.keys())
         # Check that every numpy ufunc is covered.
         assert all_np_ufuncs - all_q_ufuncs == set()
-        # Check that all ufuncs we cover come from numpy or erfa.
-        # (Since coverage for erfa is incomplete, we do not check
+        # Check all ufuncs we cover come from numpy, erfa, or scipy.
+        # (Since coverage for erfa and scipy are incomplete, we do not check
         # this the other way).
         all_erfa_ufuncs = {
             ufunc
             for ufunc in erfa_ufunc.__dict__.values()
             if isinstance(ufunc, np.ufunc)
         }
-        assert all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs == set()
+        if HAS_SCIPY:
+            import scipy.special as sps
+
+            all_sps_ufuncs = {
+                ufunc for ufunc in sps.__dict__.values() if isinstance(ufunc, np.ufunc)
+            }
+        else:
+            all_sps_ufuncs = set()
+
+        assert all_q_ufuncs - all_np_ufuncs - all_erfa_ufuncs - all_sps_ufuncs == set()
 
     @pytest.mark.skipif(
         HAS_SCIPY,
@@ -1660,3 +1662,25 @@ if HAS_SCIPY:
                 ),
             ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+
+class TestLinalg:
+    def test_matrix_rank(self):
+        q = np.eye(3) * u.m
+        rank = np.linalg.matrix_rank(q)
+        assert rank == 3
+        # Rank is an integer, typically np.int64,
+        # but size might vary across architectures
+        assert isinstance(rank, np.integer)
+        q2 = np.ones((3, 3)) * u.s
+        rank2 = np.linalg.matrix_rank(q2)
+        assert rank2 == 1
+
+    @pytest.mark.parametrize(
+        "function, expected_unit", [(np.linalg.det, u.m**2), (np.linalg.norm, u.m)]
+    )
+    def test_other_linalg(self, function, expected_unit):
+        # Det and Norm are often used with Quantities
+        q = np.eye(2) * u.m
+        result = function(q)
+        assert result.unit == expected_unit

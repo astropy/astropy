@@ -8,5 +8,6 @@ Maintaining astropy and affiliated packages
 
    astropy-package-template
    maintainer_workflow
+   managing-dependencies
    releasing
    testhelpers

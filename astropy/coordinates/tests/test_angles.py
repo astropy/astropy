@@ -783,6 +783,10 @@ def test_lon_as_lat():
         lat = Latitude([20], "deg")
         lat[0] = lon
 
+    # Also check list of longitudes (regression test for gh-11757).
+    with pytest.raises(TypeError, match="cannot be created from"):
+        Latitude([lon, lon])
+
     # Check we can work around the Lat vs Long checks by casting explicitly to Angle.
     lat = Latitude(Angle(lon))
     assert lat.value == 10.0

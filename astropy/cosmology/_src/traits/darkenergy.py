@@ -1,3 +1,5 @@
+__all__ = ("DarkEnergyComponent",)
+
 from abc import abstractmethod
 from math import exp, log
 

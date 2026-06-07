@@ -1,0 +1,3 @@
+Cache directories are not created on discovery anymore. Meaning some functions
+that only retrieve a file or directory by name and without populating it won't
+guarantee that the path returned already exists.
