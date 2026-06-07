@@ -18,7 +18,6 @@ from astropy.io.fits.hdu.compressed.utils import _tile_shape, _validate_tile_sha
 from astropy.io.fits.hdu.image import ImageHDU
 from astropy.io.fits.header import Header
 from astropy.io.fits.util import _is_int
-from astropy.io.fits.verify import _ErrList
 from astropy.utils.decorators import lazyproperty
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -400,6 +399,15 @@ class CompImageHDU(ImageHDU):
         return True
 
     @property
+    def _expected_header_primary_like(self):
+        # CompImageHDU can have either a primary-style header (SIMPLE) or an
+        # extension-style header (XTENSION) depending on whether the original
+        # image was a primary HDU or an extension HDU. fpack-compressed primary
+        # HDUs have ZSIMPLE in the bintable header which becomes SIMPLE in the
+        # image header.
+        return "SIMPLE" in self._header
+
+    @property
     def compression_type(self):
         return self._compression_type
 
@@ -673,27 +681,6 @@ class CompImageHDU(ImageHDU):
         """
         return CompImageSection(self)
 
-    def _verify(self, *args, **kwargs):
-        # The following is the default _verify for ImageHDU
-        errs = super()._verify(*args, **kwargs)
-
-        # However in some cases the decompressed header is actually like a
-        # PrimaryHDU header rather than an ImageHDU header, in which case
-        # there are certain errors we can ignore
-        if "SIMPLE" in self.header:
-            errs_filtered = []
-            for err in errs:
-                if len(err) >= 2 and err[1] in (
-                    "'XTENSION' card does not exist.",
-                    "'PCOUNT' card does not exist.",
-                    "'GCOUNT' card does not exist.",
-                ):
-                    continue
-                errs_filtered.append(err)
-            return _ErrList(errs_filtered)
-        else:
-            return errs
-
     def fileinfo(self):
         if self._bintable is not None:
             return self._bintable.fileinfo()
@@ -736,3 +723,21 @@ class CompImageHDU(ImageHDU):
         # to None in __init__.
         if value is not None:
             raise RuntimeError("Cannot set CompImageHDU._data_size")
+
+    @property
+    def _file(self):
+        # Delegate to bintable since that's where the actual file reference lives
+        if self._bintable is not None:
+            return self._bintable._file
+        return None
+
+    @_file.setter
+    def _file(self, value):
+        # Delegate to bintable. When _flush_resize updates the HDU's file
+        # reference, this ensures the bintable's file reference is also updated.
+        # See https://github.com/astropy/astropy/issues/18612
+        #
+        # Only set non-None values to avoid overwriting the bintable's valid
+        # file reference when the parent's __init__ sets _file = None.
+        if value is not None and self._bintable is not None:
+            self._bintable._file = value

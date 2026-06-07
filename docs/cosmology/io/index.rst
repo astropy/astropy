@@ -62,6 +62,7 @@ To see a list of the available read/write file formats:
     ---------- ---- ----- -------------
     ascii.ecsv  Yes   Yes           Yes
     ascii.html  Yes   Yes           Yes
+    ascii.mrt   Yes   Yes           Yes
 
     >>> Cosmology.write.list_formats()
        Format   Read Write Auto-identify
@@ -69,6 +70,7 @@ To see a list of the available read/write file formats:
      ascii.ecsv  Yes   Yes           Yes
      ascii.html  Yes   Yes           Yes
     ascii.latex   No   Yes           Yes
+      ascii.mrt  Yes   Yes           Yes
 
 This list will include both built-in and registered 3rd-party formats.
 

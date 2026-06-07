@@ -1,0 +1,64 @@
+# Regularly update the credits.rst file, to reduce maintenance burden at the time
+# of release. This will allow issues with the .mailmap issues to be spotted early.
+
+name: Auto-update credits
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly
+  pull_request:
+    paths:
+      - '.github/workflows/update_credits.yml'
+      - '.github/workflows/update_credits.md'
+      - 'scripts/update-credits.py'
+      - 'docs/credits.rst'
+      - '.mailmap'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  update-credits:
+    permissions:
+      contents: write  # to create a branch
+      pull-requests: write  # to create a PR
+    name: Auto-update credits
+    runs-on: ubuntu-latest
+    if: github.repository == 'astropy/astropy' || github.event_name == 'pull_request'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      with:
+        persist-credentials: true  # needed for git push
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+      with:
+        python-version: 3.x
+    - name: Run update script
+      run: pipx run scripts/update-credits.py
+    - name: Show diff
+      run: git diff docs/credits.rst
+    - name: Commit changes
+      if: github.event_name != 'pull_request'
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        BRANCH_NAME=update-credits-$(date +"%s")
+        git switch -c "$BRANCH_NAME"
+        git add docs/credits.rst
+        if ! git diff --cached --exit-code; then
+          git commit -m "Update docs/credits.rst with new contributors"
+        fi
+        git push --set-upstream origin "$BRANCH_NAME"
+    - name: Create Pull Request
+      if: github.event_name != 'pull_request'
+      run: |
+        gh pr create \
+          --title "Update credits to add new contributors" \
+          --label no-changelog-entry-needed --label Docs \
+          --body-file .github/workflows/update_credits.md
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

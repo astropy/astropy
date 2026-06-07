@@ -1,0 +1,2 @@
+``convolve()`` and ``convolve_fft()`` now raise exceptions if the kernel is a
+masked array with masked values.

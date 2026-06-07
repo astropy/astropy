@@ -7,7 +7,7 @@
 
 #include "pyutil.h"
 
-extern PyObject* PyWcsprmType;
+extern PyObject* WcsprmType;
 
 typedef struct {
 
@@ -28,12 +28,12 @@ typedef struct {
   char   (*original_cunit)[72];
   double *unit_scaling;
 
-} PyWcsprm;
+} Wcsprm;
 
 int _setup_wcsprm_type(PyObject* m);
 
 PyObject*
-PyWcsprm_find_all_wcs(
+Wcsprm_find_all_wcs(
     PyObject* self,
     PyObject* args,
     PyObject* kwds);
@@ -42,6 +42,6 @@ int _update_wtbarr_from_hdulist(PyObject *hdulist, struct wtbarr *wtb);
 
 void _set_wtbarr_callback(PyObject* callback);
 
-int PyWcsprm_cset(PyWcsprm* self, const int convert);
+int Wcsprm_cset(Wcsprm* self, const int convert);
 
 #endif

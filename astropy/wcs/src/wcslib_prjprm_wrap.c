@@ -40,10 +40,10 @@ static int wcslib_prj_to_python_exc(int status)
 }
 
 
-static int is_readonly(PyPrjprm* self)
+static int is_readonly(Prjprm* self)
 {
     if (self != NULL && self->owner != NULL &&
-        ((PyCelprm*)self->owner)->owner != NULL) {
+        ((Celprm*)self->owner)->owner != NULL) {
         PyErr_SetString(
             PyExc_AttributeError,
             "Attribute 'prj' of 'astropy.wcs.Wcsprm.cel' objects is read-only.");
@@ -54,7 +54,7 @@ static int is_readonly(PyPrjprm* self)
 }
 
 
-static int is_prj_null(PyPrjprm* self)
+static int is_prj_null(Prjprm* self)
 {
     if (self->x == NULL) {
         PyErr_SetString(PyExc_MemoryError, "Underlying 'prjprm' object is NULL.");
@@ -66,14 +66,14 @@ static int is_prj_null(PyPrjprm* self)
 
 
 /***************************************************************************
- * PyPrjprm methods                                                        *
+ * Prjprm methods                                                        *
  ***************************************************************************/
 
-static PyObject* PyPrjprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+static PyObject* Prjprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
-    PyPrjprm* self;
+    Prjprm* self;
     allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-    self = (PyPrjprm*)alloc_func(type, 0);
+    self = (Prjprm*)alloc_func(type, 0);
     if (self == NULL) return NULL;
     self->owner = NULL;
     self->x = NULL;
@@ -98,7 +98,7 @@ static PyObject* PyPrjprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds
 }
 
 
-static int PyPrjprm_traverse(PyPrjprm* self, visitproc visit, void *arg)
+static int Prjprm_traverse(Prjprm* self, visitproc visit, void *arg)
 {
     Py_VISIT(self->owner);
     Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
@@ -106,16 +106,16 @@ static int PyPrjprm_traverse(PyPrjprm* self, visitproc visit, void *arg)
 }
 
 
-static int PyPrjprm_clear(PyPrjprm* self)
+static int Prjprm_clear(Prjprm* self)
 {
     Py_CLEAR(self->owner);
     return 0;
 }
 
 
-static void PyPrjprm_dealloc(PyPrjprm* self)
+static void Prjprm_dealloc(Prjprm* self)
 {
-    PyPrjprm_clear(self);
+    Prjprm_clear(self);
     if (self->prefcount && (--(*self->prefcount)) == 0) {
         wcslib_prj_to_python_exc(prjfree(self->x));
         free(self->x);
@@ -128,12 +128,12 @@ static void PyPrjprm_dealloc(PyPrjprm* self)
 }
 
 
-PyPrjprm* PyPrjprm_cnew(PyObject* celprm_obj, struct prjprm* x, int* prefcount)
+Prjprm* Prjprm_cnew(PyObject* celprm_obj, struct prjprm* x, int* prefcount)
 {
-    PyPrjprm* self;
-    PyTypeObject* type = (PyTypeObject*)PyPrjprmType;
+    Prjprm* self;
+    PyTypeObject* type = (PyTypeObject*)PrjprmType;
     allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-    self = (PyPrjprm*)alloc_func(type, 0);
+    self = (Prjprm*)alloc_func(type, 0);
     if (self == NULL) return NULL;
     self->x = x;
     Py_XINCREF(celprm_obj);
@@ -144,18 +144,18 @@ PyPrjprm* PyPrjprm_cnew(PyObject* celprm_obj, struct prjprm* x, int* prefcount)
 }
 
 
-static PyObject* PyPrjprm_copy(PyPrjprm* self)
+static PyObject* Prjprm_copy(Prjprm* self)
 {
-    PyPrjprm* copy = NULL;
-    copy = PyPrjprm_cnew(self->owner, self->x, self->prefcount);
+    Prjprm* copy = NULL;
+    copy = Prjprm_cnew(self->owner, self->x, self->prefcount);
     if (copy == NULL) return NULL;
     return (PyObject*)copy;
 }
 
 
-static PyObject* PyPrjprm_deepcopy(PyPrjprm* self)
+static PyObject* Prjprm_deepcopy(Prjprm* self)
 {
-    PyPrjprm* copy = (PyPrjprm*) PyPrjprm_new((PyTypeObject*)PyPrjprmType, NULL, NULL);
+    Prjprm* copy = (Prjprm*) Prjprm_new((PyTypeObject*)PrjprmType, NULL, NULL);
     if (copy == NULL) return NULL;
 
     memcpy(copy->x, self->x, sizeof(struct prjprm));
@@ -164,7 +164,7 @@ static PyObject* PyPrjprm_deepcopy(PyPrjprm* self)
 }
 
 
-static PyObject* PyPrjprm___str__(PyPrjprm* self)
+static PyObject* Prjprm___str__(Prjprm* self)
 {
     wcsprintf_set(NULL);
     if (wcslib_prj_to_python_exc(prjprt(self->x))) {
@@ -174,7 +174,7 @@ static PyObject* PyPrjprm___str__(PyPrjprm* self)
 }
 
 
-static int PyPrjprm_cset(PyPrjprm* self)
+static int Prjprm_cset(Prjprm* self)
 {
     if (wcslib_prj_to_python_exc(prjset(self->x))) {
         return -1;
@@ -183,14 +183,14 @@ static int PyPrjprm_cset(PyPrjprm* self)
 }
 
 
-static PyObject* PyPrjprm_set(PyPrjprm* self)
+static PyObject* Prjprm_set(Prjprm* self)
 {
-    if (is_readonly(self) || PyPrjprm_cset(self)) return NULL;
+    if (is_readonly(self) || Prjprm_cset(self)) return NULL;
     Py_RETURN_NONE;
 }
 
 
-static PyObject* _prj_eval(PyPrjprm* self, int (*prjfn)(PRJX2S_ARGS),
+static PyObject* _prj_eval(Prjprm* self, int (*prjfn)(PRJX2S_ARGS),
                            PyObject* x1_in, PyObject* x2_in)
 {
     Py_ssize_t i, ndim;
@@ -287,7 +287,7 @@ static PyObject* _prj_eval(PyPrjprm* self, int (*prjfn)(PRJX2S_ARGS),
 }
 
 
-static PyObject* PyPrjprm_prjx2s(PyPrjprm* self, PyObject* args, PyObject* kwds)
+static PyObject* Prjprm_prjx2s(Prjprm* self, PyObject* args, PyObject* kwds)
 {
     PyObject* x = NULL;
     PyObject* y = NULL;
@@ -307,7 +307,7 @@ static PyObject* PyPrjprm_prjx2s(PyPrjprm* self, PyObject* args, PyObject* kwds)
                 "Attribute 'prj' of 'astropy.wcs.Wcsprm.cel' objects is "
                 "read-only and cannot be automatically set.");
             return NULL;
-        } else if (PyPrjprm_cset(self)) {
+        } else if (Prjprm_cset(self)) {
             return NULL;
         }
     }
@@ -316,7 +316,7 @@ static PyObject* PyPrjprm_prjx2s(PyPrjprm* self, PyObject* args, PyObject* kwds)
 }
 
 
-static PyObject* PyPrjprm_prjs2x(PyPrjprm* self, PyObject* args, PyObject* kwds)
+static PyObject* Prjprm_prjs2x(Prjprm* self, PyObject* args, PyObject* kwds)
 {
     PyObject* phi = NULL;
     PyObject* theta = NULL;
@@ -336,7 +336,7 @@ static PyObject* PyPrjprm_prjs2x(PyPrjprm* self, PyObject* args, PyObject* kwds)
                 "Attribute 'prj' of 'astropy.wcs.Wcsprm.cel' objects is "
                 "read-only and cannot be automatically set.");
             return NULL;
-        } else if (PyPrjprm_cset(self)) {
+        } else if (Prjprm_cset(self)) {
             return NULL;
         }
     }
@@ -349,7 +349,7 @@ static PyObject* PyPrjprm_prjs2x(PyPrjprm* self, PyObject* args, PyObject* kwds)
  * Member getters/setters (properties)
  */
 
-static PyObject* PyPrjprm_get_flag(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_flag(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -359,7 +359,7 @@ static PyObject* PyPrjprm_get_flag(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_code(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_code(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -369,7 +369,7 @@ static PyObject* PyPrjprm_get_code(PyPrjprm* self, void* closure)
 }
 
 
-static int PyPrjprm_set_code(PyPrjprm* self, PyObject* value, void* closure)
+static int Prjprm_set_code(Prjprm* self, PyObject* value, void* closure)
 {
     char code[4];
     int code_len;
@@ -380,7 +380,7 @@ static int PyPrjprm_set_code(PyPrjprm* self, PyObject* value, void* closure)
         if (strcmp("   ", self->x->code)) {
             strcpy(self->x->code, "   ");
             self->x->flag = 0;
-            if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+            if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         }
     } else {
         if (set_string("code", value, code, 4)) return -1;
@@ -396,14 +396,14 @@ static int PyPrjprm_set_code(PyPrjprm* self, PyObject* value, void* closure)
             strncpy(self->x->code, code, 4);
             self->x->code[3] = '\0';  /* just to be safe */
             self->x->flag = 0;
-            if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+            if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         }
     }
     return 0;
 }
 
 
-static PyObject* PyPrjprm_get_r0(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_r0(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -415,7 +415,7 @@ static PyObject* PyPrjprm_get_r0(PyPrjprm* self, void* closure)
 }
 
 
-static int PyPrjprm_set_r0(PyPrjprm* self, PyObject* value, void* closure)
+static int Prjprm_set_r0(Prjprm* self, PyObject* value, void* closure)
 {
     int result;
     double r0;
@@ -425,7 +425,7 @@ static int PyPrjprm_set_r0(PyPrjprm* self, PyObject* value, void* closure)
         if (self->x->r0 != UNDEFINED) {
             self->x->r0 = UNDEFINED;
             self->x->flag = 0;
-            if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+            if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         }
     } else {
         result = set_double("r0", value, &r0);
@@ -433,14 +433,14 @@ static int PyPrjprm_set_r0(PyPrjprm* self, PyObject* value, void* closure)
         if (r0 != self->x->r0) {
             self->x->r0 = r0;
             self->x->flag = 0;
-            if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+            if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         }
     }
     return 0;
 }
 
 
-static PyObject* PyPrjprm_get_phi0(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_phi0(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -452,7 +452,7 @@ static PyObject* PyPrjprm_get_phi0(PyPrjprm* self, void* closure)
 }
 
 
-static int PyPrjprm_set_phi0(PyPrjprm* self, PyObject* value, void* closure)
+static int Prjprm_set_phi0(Prjprm* self, PyObject* value, void* closure)
 {
     int result;
     double phi0;
@@ -462,7 +462,7 @@ static int PyPrjprm_set_phi0(PyPrjprm* self, PyObject* value, void* closure)
         if (self->x->phi0 != UNDEFINED) {
             self->x->phi0 = UNDEFINED;
             self->x->flag = 0;
-            if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+            if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         }
     } else {
         result = set_double("phi0", value, &phi0);
@@ -470,14 +470,14 @@ static int PyPrjprm_set_phi0(PyPrjprm* self, PyObject* value, void* closure)
         if (phi0 != self->x->phi0) {
             self->x->phi0 = phi0;
             self->x->flag = 0;
-            if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+            if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         }
     }
     return 0;
 }
 
 
-static PyObject* PyPrjprm_get_theta0(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_theta0(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -489,7 +489,7 @@ static PyObject* PyPrjprm_get_theta0(PyPrjprm* self, void* closure)
 }
 
 
-static int PyPrjprm_set_theta0(PyPrjprm* self, PyObject* value, void* closure)
+static int Prjprm_set_theta0(Prjprm* self, PyObject* value, void* closure)
 {
     int result;
     double theta0;
@@ -499,7 +499,7 @@ static int PyPrjprm_set_theta0(PyPrjprm* self, PyObject* value, void* closure)
         if (self->x->theta0 != UNDEFINED) {
             self->x->theta0 = UNDEFINED;
             self->x->flag = 0;
-            if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+            if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         }
     } else {
         result = set_double("theta0", value, &theta0);
@@ -507,14 +507,14 @@ static int PyPrjprm_set_theta0(PyPrjprm* self, PyObject* value, void* closure)
         if (theta0 != self->x->theta0) {
             self->x->theta0 = theta0;
             self->x->flag = 0;
-            if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+            if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         }
     }
     return 0;
 }
 
 
-static PyObject* PyPrjprm_get_pv(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_pv(Prjprm* self, void* closure)
 {
     int k;
     Py_ssize_t size = PVN;
@@ -540,7 +540,7 @@ static PyObject* PyPrjprm_get_pv(PyPrjprm* self, void* closure)
 }
 
 
-static int PyPrjprm_set_pv(PyPrjprm* self, PyObject* value, void* closure)
+static int Prjprm_set_pv(Prjprm* self, PyObject* value, void* closure)
 {
     int k, modified;
     npy_intp size;
@@ -556,7 +556,7 @@ static int PyPrjprm_set_pv(PyPrjprm* self, PyObject* value, void* closure)
         for (k = 1; k < 4; self->x->pv[k++] = UNDEFINED);
         for (k = 4; k < PVN; self->x->pv[k++] = 0.0);
         self->x->flag = 0;
-        if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+        if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         return 0;
     }
 
@@ -612,13 +612,13 @@ static int PyPrjprm_set_pv(PyPrjprm* self, PyObject* value, void* closure)
 
     if (modified) {
         self->x->flag = 0;
-        if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+        if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
     }
     return 0;
 }
 
 
-static PyObject* PyPrjprm_get_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds)
+static PyObject* Prjprm_get_pvi(Prjprm* self, PyObject* args, PyObject* kwds)
 {
     int idx;
     PyObject* index = NULL;
@@ -655,7 +655,7 @@ static PyObject* PyPrjprm_get_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
 }
 
 
-static PyObject* PyPrjprm_set_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds)
+static PyObject* Prjprm_set_pvi(Prjprm* self, PyObject* args, PyObject* kwds)
 {
     int idx, size;
     double data;
@@ -695,7 +695,7 @@ static PyObject* PyPrjprm_set_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
         /* If pv is set to None - reset pv to prjini values: */
         self->x->pv[idx] = (idx > 0 && idx < 4) ? UNDEFINED : 0.0;
         self->x->flag = 0;
-        if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+        if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
         Py_RETURN_NONE;
     }
 
@@ -746,7 +746,7 @@ static PyObject* PyPrjprm_set_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
 
     if (!is_dbl_equal(self->x->pv[idx], data)) {
         self->x->flag = 0;
-        if (self->owner) ((PyCelprm*)self->owner)->x->flag = 0;
+        if (self->owner) ((Celprm*)self->owner)->x->flag = 0;
     }
     self->x->pv[idx] = data;
 
@@ -754,7 +754,7 @@ static PyObject* PyPrjprm_set_pvi(PyPrjprm* self, PyObject* args, PyObject* kwds
 }
 
 
-static PyObject* PyPrjprm_get_bounds(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_bounds(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -764,7 +764,7 @@ static PyObject* PyPrjprm_get_bounds(PyPrjprm* self, void* closure)
 }
 
 
-static int PyPrjprm_set_bounds(PyPrjprm* self, PyObject* value, void* closure)
+static int Prjprm_set_bounds(Prjprm* self, PyObject* value, void* closure)
 {
     if (is_prj_null(self) || is_readonly(self)) {
         return -1;
@@ -777,7 +777,7 @@ static int PyPrjprm_set_bounds(PyPrjprm* self, PyObject* value, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_w(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_w(Prjprm* self, void* closure)
 {
     Py_ssize_t size = 10;
     int k;
@@ -802,7 +802,7 @@ static PyObject* PyPrjprm_get_w(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_name(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_name(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -812,7 +812,7 @@ static PyObject* PyPrjprm_get_name(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_category(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_category(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -822,7 +822,7 @@ static PyObject* PyPrjprm_get_category(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_pvrange(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_pvrange(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -832,7 +832,7 @@ static PyObject* PyPrjprm_get_pvrange(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_simplezen(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_simplezen(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -842,7 +842,7 @@ static PyObject* PyPrjprm_get_simplezen(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_equiareal(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_equiareal(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -852,7 +852,7 @@ static PyObject* PyPrjprm_get_equiareal(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_conformal(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_conformal(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -862,7 +862,7 @@ static PyObject* PyPrjprm_get_conformal(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_global_projection(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_global_projection(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -872,7 +872,7 @@ static PyObject* PyPrjprm_get_global_projection(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_divergent(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_divergent(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -882,7 +882,7 @@ static PyObject* PyPrjprm_get_divergent(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_x0(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_x0(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -892,7 +892,7 @@ static PyObject* PyPrjprm_get_x0(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_y0(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_y0(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -902,7 +902,7 @@ static PyObject* PyPrjprm_get_y0(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_m(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_m(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -912,7 +912,7 @@ static PyObject* PyPrjprm_get_m(PyPrjprm* self, void* closure)
 }
 
 
-static PyObject* PyPrjprm_get_n(PyPrjprm* self, void* closure)
+static PyObject* Prjprm_get_n(Prjprm* self, void* closure)
 {
     if (is_prj_null(self)) {
         return NULL;
@@ -923,70 +923,70 @@ static PyObject* PyPrjprm_get_n(PyPrjprm* self, void* closure)
 
 
 /***************************************************************************
- * PyPrjprm definition structures
+ * Prjprm definition structures
  */
 
-static PyGetSetDef PyPrjprm_getset[] = {
-    {"r0", (getter)PyPrjprm_get_r0, (setter)PyPrjprm_set_r0, (char *)doc_prjprm_r0},
-    {"phi0", (getter)PyPrjprm_get_phi0, (setter)PyPrjprm_set_phi0, (char *)doc_prjprm_phi0},
-    {"theta0", (getter)PyPrjprm_get_theta0, (setter)PyPrjprm_set_theta0, (char *)doc_prjprm_theta0},
-    {"pv", (getter)PyPrjprm_get_pv, (setter)PyPrjprm_set_pv, (char *)doc_prjprm_pv},
-    {"w", (getter)PyPrjprm_get_w, NULL, (char *)doc_prjprm_w},
-    {"name", (getter)PyPrjprm_get_name, NULL, (char *)doc_prjprm_name},
-    {"code", (getter)PyPrjprm_get_code, (setter)PyPrjprm_set_code, (char *)doc_prjprm_code},
-    {"bounds", (getter)PyPrjprm_get_bounds, (setter)PyPrjprm_set_bounds, (char *)doc_prjprm_bounds},
-    {"category", (getter)PyPrjprm_get_category, NULL, (char *)doc_prjprm_category},
-    {"pvrange", (getter)PyPrjprm_get_pvrange, NULL, (char *)doc_prjprm_pvrange},
-    {"simplezen", (getter)PyPrjprm_get_simplezen, NULL, (char *)doc_prjprm_simplezen},
-    {"equiareal", (getter)PyPrjprm_get_equiareal, NULL, (char *)doc_prjprm_equiareal},
-    {"conformal", (getter)PyPrjprm_get_conformal, NULL, (char *)doc_prjprm_conformal},
-    {"global_projection", (getter)PyPrjprm_get_global_projection, NULL, (char *)doc_prjprm_global_projection},
-    {"divergent", (getter)PyPrjprm_get_divergent, NULL, (char *)doc_prjprm_divergent},
-    {"x0", (getter)PyPrjprm_get_x0, NULL, (char *)doc_prjprm_x0},
-    {"y0", (getter)PyPrjprm_get_y0, NULL, (char *)doc_prjprm_y0},
-    {"m", (getter)PyPrjprm_get_m, NULL, (char *)doc_prjprm_m},
-    {"n", (getter)PyPrjprm_get_n, NULL, (char *)doc_prjprm_n},
-    {"_flag", (getter)PyPrjprm_get_flag, NULL, ""},
+static PyGetSetDef Prjprm_getset[] = {
+    {"r0", (getter)Prjprm_get_r0, (setter)Prjprm_set_r0, (char *)doc_prjprm_r0},
+    {"phi0", (getter)Prjprm_get_phi0, (setter)Prjprm_set_phi0, (char *)doc_prjprm_phi0},
+    {"theta0", (getter)Prjprm_get_theta0, (setter)Prjprm_set_theta0, (char *)doc_prjprm_theta0},
+    {"pv", (getter)Prjprm_get_pv, (setter)Prjprm_set_pv, (char *)doc_prjprm_pv},
+    {"w", (getter)Prjprm_get_w, NULL, (char *)doc_prjprm_w},
+    {"name", (getter)Prjprm_get_name, NULL, (char *)doc_prjprm_name},
+    {"code", (getter)Prjprm_get_code, (setter)Prjprm_set_code, (char *)doc_prjprm_code},
+    {"bounds", (getter)Prjprm_get_bounds, (setter)Prjprm_set_bounds, (char *)doc_prjprm_bounds},
+    {"category", (getter)Prjprm_get_category, NULL, (char *)doc_prjprm_category},
+    {"pvrange", (getter)Prjprm_get_pvrange, NULL, (char *)doc_prjprm_pvrange},
+    {"simplezen", (getter)Prjprm_get_simplezen, NULL, (char *)doc_prjprm_simplezen},
+    {"equiareal", (getter)Prjprm_get_equiareal, NULL, (char *)doc_prjprm_equiareal},
+    {"conformal", (getter)Prjprm_get_conformal, NULL, (char *)doc_prjprm_conformal},
+    {"global_projection", (getter)Prjprm_get_global_projection, NULL, (char *)doc_prjprm_global_projection},
+    {"divergent", (getter)Prjprm_get_divergent, NULL, (char *)doc_prjprm_divergent},
+    {"x0", (getter)Prjprm_get_x0, NULL, (char *)doc_prjprm_x0},
+    {"y0", (getter)Prjprm_get_y0, NULL, (char *)doc_prjprm_y0},
+    {"m", (getter)Prjprm_get_m, NULL, (char *)doc_prjprm_m},
+    {"n", (getter)Prjprm_get_n, NULL, (char *)doc_prjprm_n},
+    {"_flag", (getter)Prjprm_get_flag, NULL, ""},
     {NULL}
 };
 
 
-static PyMethodDef PyPrjprm_methods[] = {
-    {"set", (PyCFunction)PyPrjprm_set, METH_NOARGS, (char*)doc_prjprm_set},
-    {"prjx2s", (PyCFunction)PyPrjprm_prjx2s, METH_VARARGS|METH_KEYWORDS, (char*)doc_prjprm_prjx2s},
-    {"prjs2x", (PyCFunction)PyPrjprm_prjs2x, METH_VARARGS|METH_KEYWORDS, (char*)doc_prjprm_prjs2x},
-    {"set_pvi", (PyCFunction)PyPrjprm_set_pvi, METH_VARARGS|METH_KEYWORDS, (char*)doc_prjprm_pvi},
-    {"get_pvi", (PyCFunction)PyPrjprm_get_pvi, METH_VARARGS|METH_KEYWORDS, (char*)doc_prjprm_pvi},
-    {"__copy__", (PyCFunction)PyPrjprm_copy, METH_NOARGS, ""},
-    {"__deepcopy__", (PyCFunction)PyPrjprm_deepcopy, METH_O, ""},
+static PyMethodDef Prjprm_methods[] = {
+    {"set", (PyCFunction)Prjprm_set, METH_NOARGS, (char*)doc_prjprm_set},
+    {"prjx2s", (PyCFunction)Prjprm_prjx2s, METH_VARARGS|METH_KEYWORDS, (char*)doc_prjprm_prjx2s},
+    {"prjs2x", (PyCFunction)Prjprm_prjs2x, METH_VARARGS|METH_KEYWORDS, (char*)doc_prjprm_prjs2x},
+    {"set_pvi", (PyCFunction)Prjprm_set_pvi, METH_VARARGS|METH_KEYWORDS, (char*)doc_prjprm_pvi},
+    {"get_pvi", (PyCFunction)Prjprm_get_pvi, METH_VARARGS|METH_KEYWORDS, (char*)doc_prjprm_pvi},
+    {"__copy__", (PyCFunction)Prjprm_copy, METH_NOARGS, ""},
+    {"__deepcopy__", (PyCFunction)Prjprm_deepcopy, METH_O, ""},
     {NULL}
 };
 
-static PyType_Spec PyPrjprm_spec = {
+static PyType_Spec Prjprm_spec = {
     .name = "astropy.wcs.Prjprm",
-    .basicsize = sizeof(PyPrjprm),
+    .basicsize = sizeof(Prjprm),
     .itemsize = 0,
     .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
     .slots = (PyType_Slot[]) {
-        {Py_tp_dealloc, (destructor)PyPrjprm_dealloc},
-        {Py_tp_str, (reprfunc)PyPrjprm___str__},
+        {Py_tp_dealloc, (destructor)Prjprm_dealloc},
+        {Py_tp_str, (reprfunc)Prjprm___str__},
         {Py_tp_doc, doc_Prjprm},
-        {Py_tp_traverse, (traverseproc)PyPrjprm_traverse},
-        {Py_tp_clear, (inquiry)PyPrjprm_clear},
-        {Py_tp_methods, PyPrjprm_methods},
-        {Py_tp_getset, PyPrjprm_getset},
-        {Py_tp_new, PyPrjprm_new},
+        {Py_tp_traverse, (traverseproc)Prjprm_traverse},
+        {Py_tp_clear, (inquiry)Prjprm_clear},
+        {Py_tp_methods, Prjprm_methods},
+        {Py_tp_getset, Prjprm_getset},
+        {Py_tp_new, Prjprm_new},
         {0, NULL},
     },
 };
 
-PyObject* PyPrjprmType = NULL;
+PyObject* PrjprmType = NULL;
 
 int _setup_prjprm_type(PyObject* m)
 {
-    PyPrjprmType = PyType_FromSpec(&PyPrjprm_spec);
-    if (PyPrjprmType == NULL) return -1;
-    PyModule_AddObject(m, "Prjprm", PyPrjprmType);
+    PrjprmType = PyType_FromSpec(&Prjprm_spec);
+    if (PrjprmType == NULL) return -1;
+    PyModule_AddObject(m, "Prjprm", PrjprmType);
 
     prj_errexc[0] = NULL;                         /* Success */
     prj_errexc[1] = &PyExc_MemoryError;           /* Null prjprm pointer passed */

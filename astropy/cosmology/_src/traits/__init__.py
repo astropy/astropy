@@ -4,30 +4,15 @@
 The public API is provided by `astropy.cosmology.traits`.
 """
 
-__all__ = (
-    "BaryonComponent",
-    "CriticalDensity",
-    "CurvatureComponent",
-    "DarkEnergyComponent",
-    "DarkMatterComponent",
-    "HubbleParameter",
-    "MatterComponent",
-    "NeutrinoComponent",
-    "PhotonComponent",
-    "ScaleFactor",
-    "TemperatureCMB",
-    "TotalComponent",
-)
-
-from .baryons import BaryonComponent
-from .curvature import CurvatureComponent
-from .darkenergy import DarkEnergyComponent
-from .darkmatter import DarkMatterComponent
-from .hubble import HubbleParameter
-from .matter import MatterComponent
-from .neutrino import NeutrinoComponent
-from .photoncomponent import PhotonComponent
-from .rhocrit import CriticalDensity
-from .scale_factor import ScaleFactor
-from .tcmb import TemperatureCMB
-from .totalcomponent import TotalComponent
+from .baryons import *
+from .curvature import *
+from .darkenergy import *
+from .darkmatter import *
+from .hubble import *
+from .matter import *
+from .neutrino import *
+from .photoncomponent import *
+from .rhocrit import *
+from .scale_factor import *
+from .tcmb import *
+from .totalcomponent import *

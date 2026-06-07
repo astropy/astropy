@@ -310,6 +310,10 @@ class LombScargle(BasePeriodogram):
         -------
         frequency, power : ndarray
             The frequency and Lomb-Scargle power
+
+        .. versionchanged:: 8.0
+           The default method chosen when ``method='auto'`` now prefers the
+           low-rank approximation implementation when applicable.
         """
         frequency = self.autofrequency(
             samples_per_peak=samples_per_peak,

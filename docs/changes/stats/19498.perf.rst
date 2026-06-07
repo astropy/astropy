@@ -1,0 +1,3 @@
+Vectorized the ``var-width`` mode in ``RipleysKEstimator`` by precomputing the
+full distance matrix, replacing a triple nested Python loop. This yields
+speedups of several thousand times for typical input sizes.

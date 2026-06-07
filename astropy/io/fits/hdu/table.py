@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 
-import contextlib
 import csv
+import math
 import operator
 import os
 import re
-import sys
 import textwrap
+import warnings
 from contextlib import suppress
 
 import numpy as np
@@ -36,7 +36,8 @@ from astropy.io.fits.fitsrec import FITS_rec, _get_recarray_field, _has_unicode_
 from astropy.io.fits.header import Header, _pad_length
 from astropy.io.fits.util import _is_int, _str_to_num, path_like
 from astropy.utils import lazyproperty
-from astropy.utils.compat import chararray
+from astropy.utils.compat import NUMPY_LT_2_5
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .base import DELAYED, ExtensionHDU, _ValidHDU
 
@@ -91,6 +92,7 @@ class _TableLikeHDU(_ValidHDU):
         nrows=0,
         fill=False,
         character_as_bytes=False,
+        logical_as_bytes=False,
         **kwargs,
     ):
         """
@@ -137,6 +139,14 @@ class _TableLikeHDU(_ValidHDU):
             HDU. By default this is `False` and (unicode) strings are returned,
             but for large tables this may use up a lot of memory.
 
+        logical_as_bytes : bool
+            Whether to return raw bytes for logical columns when accessed from
+            the HDU. By default this is `False` and boolean values are returned.
+            When `True`, columns with format ``L`` are returned as single-byte
+            string arrays (dtype ``|S1``) whose elements are ``b'T'`` for True,
+            ``b'F'`` for False, and ``b'\x00'`` for undefined (NULL). This
+            allows distinguishing between False and NULL values.
+
         Notes
         -----
         Any additional keyword arguments accepted by the HDU class's
@@ -144,10 +154,18 @@ class _TableLikeHDU(_ValidHDU):
         """
         coldefs = cls._columns_type(columns)
         data = FITS_rec.from_columns(
-            coldefs, nrows=nrows, fill=fill, character_as_bytes=character_as_bytes
+            coldefs,
+            nrows=nrows,
+            fill=fill,
+            character_as_bytes=character_as_bytes,
+            logical_as_bytes=logical_as_bytes,
         )
         hdu = cls(
-            data=data, header=header, character_as_bytes=character_as_bytes, **kwargs
+            data=data,
+            header=header,
+            character_as_bytes=character_as_bytes,
+            logical_as_bytes=logical_as_bytes,
+            **kwargs,
         )
         coldefs._add_listener(hdu)
         return hdu
@@ -198,7 +216,7 @@ class _TableLikeHDU(_ValidHDU):
 
             data = raw_data.view(np.rec.recarray)
 
-        self._init_tbdata(data)
+        data = self._init_tbdata(data)
         data = data.view(self._data_type)
         data._load_variable_length_data = self._load_variable_length_data
         columns._add_listener(data)
@@ -207,7 +225,10 @@ class _TableLikeHDU(_ValidHDU):
     def _init_tbdata(self, data):
         columns = self.columns
 
-        data.dtype = data.dtype.newbyteorder(">")
+        if NUMPY_LT_2_5:
+            data.dtype = data.dtype.newbyteorder(">")
+        else:
+            data = data.view(data.dtype.newbyteorder(">"))
 
         # hack to enable pseudo-uint support
         data._uint = self._uint
@@ -226,6 +247,7 @@ class _TableLikeHDU(_ValidHDU):
         # delete the _arrays attribute so that it is recreated to point to the
         # new data placed in the column object above
         del columns._arrays
+        return data
 
     def _update_load_data(self):
         """Load the data if asked to."""
@@ -243,6 +265,7 @@ class _TableLikeHDU(_ValidHDU):
             nrows=self._nrows,
             fill=False,
             character_as_bytes=self._character_as_bytes,
+            logical_as_bytes=self._logical_as_bytes,
         )
 
     def _update_column_removed(self, columns, col_idx):
@@ -256,6 +279,7 @@ class _TableLikeHDU(_ValidHDU):
             nrows=self._nrows,
             fill=False,
             character_as_bytes=self._character_as_bytes,
+            logical_as_bytes=self._logical_as_bytes,
         )
 
 
@@ -286,6 +310,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
+    logical_as_bytes : bool
+        Whether to return raw bytes for logical columns. By default this is
+        `False` and boolean values are returned. When `True`, columns with
+        format ``L`` are returned as single-byte string arrays (dtype ``|S1``)
+        whose elements are ``b'T'`` for True, ``b'F'`` for False, and
+        ``b'\x00'`` for undefined (NULL). This allows distinguishing between
+        False and NULL values.
     """
 
     _manages_own_heap = False
@@ -306,11 +337,13 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         uint=False,
         ver=None,
         character_as_bytes=False,
+        logical_as_bytes=False,
     ):
         super().__init__(data=data, header=header, name=name, ver=ver)
 
         self._uint = uint
         self._character_as_bytes = character_as_bytes
+        self._logical_as_bytes = logical_as_bytes
 
         if data is DELAYED:
             # this should never happen
@@ -383,6 +416,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
         data = self._get_tbdata()
         data._coldefs = self.columns
         data._character_as_bytes = self._character_as_bytes
+        data._logical_as_bytes = self._logical_as_bytes
         # Columns should now just return a reference to the data._coldefs
         del self.columns
         return data
@@ -431,8 +465,19 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
                 # Make the ndarrays in the Column objects of the ColDefs
                 # object of the HDU reference the same ndarray as the HDU's
                 # FITS_rec object.
-                for idx, col in enumerate(self.columns):
-                    col.array = self.data.field(idx)
+                # Suppress the NULL-values warning emitted by
+                # ``_convert_other`` / ``_convert_p`` during this internal
+                # plumbing: a warning here would fire before the user has
+                # explicitly read the column. The user will still see the
+                # warning on their first real access.
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "ignore",
+                        message=r".*[Cc]olumn '.*' contains NULL",
+                        category=AstropyUserWarning,
+                    )
+                    for idx, col in enumerate(self.columns):
+                        col.array = self.data.field(idx)
 
                 # Delete the _arrays attribute so that it is recreated to
                 # point to the new data placed in the column objects above
@@ -673,12 +718,19 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
     def _populate_table_keywords(self):
         """Populate the new table definition keywords from the header."""
+        # Ensure that TFIELDS is written so that we can append the other
+        # keywords after it
+        self._header.set("TFIELDS", len(self.columns), after="GCOUNT")
+
+        # Put the table keywords in order after TFIELDS
+        after = "TFIELDS"
         for idx, column in enumerate(self.columns):
             for keyword, attr in KEYWORD_TO_ATTRIBUTE.items():
                 val = getattr(column, attr)
                 if val is not None:
                     keyword = keyword + str(idx + 1)
-                    self._header[keyword] = val
+                    self._header.set(keyword, val, after=after)
+                    after = keyword
 
 
 class TableHDU(_TableBaseHDU):
@@ -702,6 +754,10 @@ class TableHDU(_TableBaseHDU):
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
+    logical_as_bytes : bool
+        Whether to return raw bytes for logical columns. By default this is
+        `False` and boolean values are returned. Note: ASCII tables do not
+        support logical columns, so this parameter has no effect for TableHDU.
 
     """
 
@@ -714,11 +770,25 @@ class TableHDU(_TableBaseHDU):
     __format_RE = re.compile(r"(?P<code>[ADEFIJ])(?P<width>\d+)(?:\.(?P<prec>\d+))?")
 
     def __init__(
-        self, data=None, header=None, name=None, ver=None, character_as_bytes=False
+        self,
+        data=None,
+        header=None,
+        name=None,
+        ver=None,
+        character_as_bytes=False,
+        logical_as_bytes=False,
     ):
         super().__init__(
-            data, header, name=name, ver=ver, character_as_bytes=character_as_bytes
+            data,
+            header,
+            name=name,
+            ver=ver,
+            character_as_bytes=character_as_bytes,
+            logical_as_bytes=logical_as_bytes,
         )
+        # Note: ASCII tables don't support logical columns, but we accept
+        # this parameter for API consistency with BinTableHDU
+        self._logical_as_bytes = logical_as_bytes
 
     @classmethod
     def match_header(cls, header):
@@ -817,6 +887,13 @@ class BinTableHDU(_TableBaseHDU):
         Whether to return bytes for string columns. By default this is `False`
         and (unicode) strings are returned, but this does not respect memory
         mapping and loads the whole column in memory when accessed.
+    logical_as_bytes : bool
+        Whether to return raw bytes for logical columns. By default this is
+        `False` and boolean values are returned. When `True`, columns with
+        format ``L`` are returned as single-byte string arrays (dtype ``|S1``)
+        whose elements are ``b'T'`` for True, ``b'F'`` for False, and
+        ``b'\x00'`` for undefined (NULL). This allows distinguishing between
+        False and NULL values.
 
     """
 
@@ -831,6 +908,7 @@ class BinTableHDU(_TableBaseHDU):
         uint=False,
         ver=None,
         character_as_bytes=False,
+        logical_as_bytes=False,
     ):
         if data is not None and data is not DELAYED:
             from astropy.table import Table
@@ -851,6 +929,7 @@ class BinTableHDU(_TableBaseHDU):
             uint=uint,
             ver=ver,
             character_as_bytes=character_as_bytes,
+            logical_as_bytes=logical_as_bytes,
         )
 
     @classmethod
@@ -865,31 +944,32 @@ class BinTableHDU(_TableBaseHDU):
         """
         Calculate the value for the ``DATASUM`` card given the input data.
         """
-        with _binary_table_byte_swap(self.data) as data:
-            csum = self._compute_checksum(data.view(type=np.ndarray, dtype=np.ubyte))
+        csum = 0
+        for piece in _as_bigendian_pieces(self.data):
+            csum = self._compute_checksum(piece, csum)
 
-            # determine if we can read the heap data from the file on disk
-            try_from_disk = self._manages_own_heap or not self._data_loaded
+        # determine if we can read the heap data from the file on disk
+        try_from_disk = self._manages_own_heap or not self._data_loaded
 
-            # Now add in the heap data to the checksum. We can skip any gap
-            # between the table and the heap since it's all zeros and doesn't
-            # contribute to the checksum. However, the heap may not start at a
-            # boundary between the 4-byte blocks used for the checksum (32 bits),
-            # either because there's no THEAP keyword and the main table data
-            # ends in the middle of a 4-byte block, or because the THEAP keyword
-            # exists and it's not a multiple of 4. In those cases, we must pad
-            # the heap data with zeros, such that it is aligned correctly
-            # for the checksum calculation. We do this by padding the first few
-            # bytes of the heap (if necessary), then calculating the checksum for
-            # the rest of the heap data normally.
-            heap_data = data._get_heap_data(try_from_disk)
-            if extra := self._theap % 4:
-                first_part = np.zeros(4, dtype=np.ubyte)
-                first_part[extra : extra + len(heap_data)] = heap_data[: 4 - extra]
-                csum = self._compute_checksum(first_part, csum)
-                return self._compute_checksum(heap_data[4 - extra :], csum)
+        # Now add in the heap data to the checksum. We can skip any gap
+        # between the table and the heap since it's all zeros and doesn't
+        # contribute to the checksum. However, the heap may not start at a
+        # boundary between the 4-byte blocks used for the checksum (32 bits),
+        # either because there's no THEAP keyword and the main table data
+        # ends in the middle of a 4-byte block, or because the THEAP keyword
+        # exists and it's not a multiple of 4. In those cases, we must pad
+        # the heap data with zeros, such that it is aligned correctly
+        # for the checksum calculation. We do this by padding the first few
+        # bytes of the heap (if necessary), then calculating the checksum for
+        # the rest of the heap data normally.
+        heap_data = self.data._get_heap_data(try_from_disk)
+        if extra := self._theap % 4:
+            first_part = np.zeros(4, dtype=np.ubyte)
+            first_part[extra : extra + len(heap_data)] = heap_data[: 4 - extra]
+            csum = self._compute_checksum(first_part, csum)
+            return self._compute_checksum(heap_data[4 - extra :], csum)
 
-            return self._compute_checksum(heap_data, csum)
+        return self._compute_checksum(heap_data, csum)
 
     def _calculate_datasum(self):
         """
@@ -910,65 +990,39 @@ class BinTableHDU(_TableBaseHDU):
     def _writedata_internal(self, fileobj):
         size = 0
 
-        if self.data is None:
+        data = self.data
+        if data is None:
             return size
 
-        with _binary_table_byte_swap(self.data) as data:
-            if _has_unicode_fields(data):
-                # If the raw data was a user-supplied recarray, we can't write
-                # unicode columns directly to the file, so we have to switch
-                # to a slower row-by-row write
-                self._writedata_by_row(fileobj)
-            else:
-                fileobj.writearray(data)
-                # write out the heap of variable length array columns this has
-                # to be done after the "regular" data is written (above)
-                # to avoid a bug in the lustre filesystem client, don't
-                # write 0-byte objects
-                if data._gap > 0:
-                    fileobj.write((data._gap * "\0").encode("ascii"))
+        if _has_unicode_fields(data):
+            raise RuntimeError("Found unicode fields. Please report.")
 
-            nbytes = data._gap
+        for piece in _as_bigendian_pieces(data):
+            fileobj.writearray(piece)
 
-            # determine of we can read the heap data from the file on disk
-            try_from_disk = self._manages_own_heap or not self._data_loaded
+        # write out the heap of variable length array columns this has
+        # to be done after the "regular" data is written (above)
+        # to avoid a bug in the lustre filesystem client, don't
+        # write 0-byte objects
+        if data._gap > 0:
+            fileobj.write(data._gap * b"\0")
 
-            heap_data = data._get_heap_data(try_from_disk)
-            if len(heap_data) > 0:
-                nbytes += len(heap_data)
-                fileobj.writearray(heap_data)
+        nbytes = data._gap
 
-            data._heapsize = nbytes - data._gap
-            size += nbytes
+        # determine of we can read the heap data from the file on disk
+        try_from_disk = self._manages_own_heap or not self._data_loaded
 
-        size += self.data.size * self.data._raw_itemsize
+        heap_data = data._get_heap_data(try_from_disk)
+        if len(heap_data) > 0:
+            nbytes += len(heap_data)
+            fileobj.writearray(heap_data)
+
+        data._heapsize = nbytes - data._gap
+        size += nbytes
+
+        size += data.size * data._raw_itemsize
 
         return size
-
-    def _writedata_by_row(self, fileobj):
-        fields = [self.data.field(idx) for idx in range(len(self.data.columns))]
-
-        # Creating Record objects is expensive (as in
-        # `for row in self.data:` so instead we just iterate over the row
-        # indices and get one field at a time:
-        for idx in range(len(self.data)):
-            for field in fields:
-                item = field[idx]
-                field_width = None
-
-                if field.dtype.kind == "U":
-                    # Read the field *width* by reading past the field kind.
-                    i = field.dtype.str.index(field.dtype.kind)
-                    field_width = int(field.dtype.str[i + 1 :])
-                    item = np.strings.encode(item, "ascii")
-
-                fileobj.writearray(item)
-                if field_width is not None:
-                    j = item.dtype.str.index(item.dtype.kind)
-                    item_length = int(item.dtype.str[j + 1 :])
-                    # Fix padding problem (see #5296).
-                    padding = "\x00" * (field_width - item_length)
-                    fileobj.write(padding.encode("ascii"))
 
     _tdump_file_format = textwrap.dedent(
         """
@@ -1353,7 +1407,9 @@ class BinTableHDU(_TableBaseHDU):
         # can convert from this format to an actual FITS file on disk without
         # needing enough physical memory to hold the entire thing at once
         hdu = BinTableHDU.from_columns(
-            np.recarray(shape=1, dtype=dtype), nrows=nrows, fill=True
+            np.zeros(1, dtype=dtype).view(np.recarray),
+            nrows=nrows,
+            fill=True,
         )
 
         # TODO: It seems to me a lot of this could/should be handled from
@@ -1401,7 +1457,7 @@ class BinTableHDU(_TableBaseHDU):
                     idx += vla_len
                 elif dtype[col].shape:
                     # This is an array column
-                    array_size = int(np.multiply.reduce(dtype[col].shape))
+                    array_size = math.prod(dtype[col].shape)
                     slice_ = slice(idx, idx + array_size)
                     idx += array_size
                 else:
@@ -1457,70 +1513,49 @@ class BinTableHDU(_TableBaseHDU):
         return ColDefs(columns)
 
 
-@contextlib.contextmanager
-def _binary_table_byte_swap(data):
+def _as_bigendian_pieces(data):
+    """Convert the data to bigendian and view as bytes.
+
+    If any conversion is needed, iterates over 64k blocks of data, to
+    avoid copying possibly very large arrays.
     """
-    Ensures that all the data of a binary FITS table (represented as a FITS_rec
-    object) is in a big-endian byte order.  Columns are swapped in-place one
-    at a time, and then returned to their previous byte order when this context
-    manager exits.
+    dtype = data.dtype
+    dtype_big = dtype.newbyteorder(">")
+    if dtype == dtype_big:
+        yield data.view(type=np.ndarray, dtype=np.ubyte)
+        return
 
-    Because a new dtype is needed to represent the byte-swapped columns, the
-    new dtype is temporarily applied as well.
-    """
-    orig_dtype = data.dtype
-
-    names = []
-    formats = []
-    offsets = []
-
-    to_swap = []
-
-    if sys.byteorder == "little":
-        swap_types = ("<", "=")
-    else:
-        swap_types = ("<",)
-
-    for idx, name in enumerate(orig_dtype.names):
+    # Get indices that reorder bytes such that little endian items are
+    # converted to bigendian.
+    indices = np.arange(data.dtype.itemsize)
+    for idx, name in enumerate(dtype.names):
         field = _get_recarray_field(data, idx)
 
-        field_dtype, field_offset = orig_dtype.fields[name]
-        names.append(name)
-        formats.append(field_dtype)
-        offsets.append(field_offset)
-
-        if isinstance(field, chararray):
-            continue
-
-        # only swap unswapped
+        field_dtype, field_offset = dtype.fields[name]
+        # swap indices for fields that are not bigendian.
         # must use field_dtype.base here since for multi-element dtypes,
-        # the .str with be '|V<N>' where <N> is the total bytes per element
-        if field.itemsize > 1 and field_dtype.base.str[0] in swap_types:
-            to_swap.append(field)
-            # Override the dtype for this field in the new record dtype with
-            # the byteswapped version
-            formats[-1] = field_dtype.newbyteorder()
+        # the .str will be '|V<N>' where <N> is the total bytes per element.
+        if field_dtype != dtype_big.fields[name][0]:
+            offset = field_offset
+            # For complex types, swap each float component independently
+            # rather than reversing all bytes of the complex number
+            # (which would swap real and imaginary parts).
+            if field_dtype.base.kind == "c":
+                swap_itemsize = field_dtype.base.itemsize // 2
+            else:
+                swap_itemsize = field_dtype.base.itemsize
+            # Reorder every element of a possible sub-array,
+            # and every component of complex numbers.
+            n_swaps = field_dtype.itemsize // swap_itemsize
+            for i in range(n_swaps):
+                indices[offset : offset + swap_itemsize] = indices[
+                    offset : offset + swap_itemsize
+                ][::-1]
+                offset += swap_itemsize
 
-        # deal with var length table
-        recformat = data.columns._recformats[idx]
-        if isinstance(recformat, _FormatP):
-            coldata = data.field(idx)
-            for c in coldata:
-                if (
-                    not isinstance(c, chararray)
-                    and c.itemsize > 1
-                    and c.dtype.str[0] in swap_types
-                ):
-                    to_swap.append(c)
-
-    for arr in reversed(to_swap):
-        arr.byteswap(True)
-
-    data.dtype = np.dtype({"names": names, "formats": formats, "offsets": offsets})
-
-    yield data
-
-    for arr in to_swap:
-        arr.byteswap(True)
-
-    data.dtype = orig_dtype
+    # Reordering the data by indexing makes copies, so work in pieces.
+    data_bytes = data.view(np.ndarray)[..., np.newaxis].view(np.ubyte)
+    step = max(65536 // len(indices), 1)
+    for piece in np.split(data_bytes, range(0, len(data), step)):
+        if len(piece):
+            yield piece[..., indices].ravel()

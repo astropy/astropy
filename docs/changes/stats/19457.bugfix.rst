@@ -1,0 +1,1 @@
+Fixed missing pointer dereference in ``fast_sigma_clip.c`` that caused ``mad_buffer`` to be allocated regardless of the ``use_mad_std`` value.

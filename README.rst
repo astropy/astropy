@@ -43,7 +43,8 @@ For guidance on contributing to or submitting feedback for the Astropy Project,
 see the `contributions page <https://www.astropy.org/contribute.html>`_.
 For contributing code specifically, the developer docs have a
 `guide <https://docs.astropy.org/en/latest/index_dev.html>`_ with a quickstart.
-There's also a `summary of contribution guidelines <CONTRIBUTING.md>`_.
+There's also a `summary of contribution guidelines <CONTRIBUTING.md>`_, and
+Astropy's `AI Policy <https://github.com/astropy/astropy-project/blob/main/policies/ai-policy.md>`_.
 
 Developing with Codespaces
 ==========================

@@ -1,0 +1,1 @@
+Fixed a bug that caused reading FITS files to not work properly on WASM when relying on the default memmap settings.

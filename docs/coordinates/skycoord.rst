@@ -878,7 +878,7 @@ To change the representation of a coordinate object by setting the
     >>> c.x
     Traceback (most recent call last):
     ...
-    AttributeError: 'SkyCoord' object has no attribute 'x'
+    AttributeError: 'SkyCoord' object has no attribute 'x'...
 
     >>> c.representation_type = 'spherical'
     >>> c  # doctest: +FLOAT_CMP

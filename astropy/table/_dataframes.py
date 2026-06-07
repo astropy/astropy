@@ -65,10 +65,10 @@ def _encode_mixins(tbl: Table) -> Table:
         for col in time_cols:
             if isinstance(col, TimeDelta):
                 new_col = (col.sec * 1e9).astype("timedelta64[ns]")
-                nat = np.timedelta64("NaT")
+                nat = np.timedelta64("NaT", "ns")
             else:
                 new_col = col.datetime64.copy()
-                nat = np.datetime64("NaT")
+                nat = np.datetime64("NaT", "ns")
             if col.masked:
                 new_col[col.mask] = nat
             tbl[col.info.name] = new_col
@@ -154,7 +154,6 @@ def _handle_index_argument(
         elif index is None:
             return False
         else:
-            assert index is True
             raise ValueError("index=True requires a single-column primary key.")
 
     elif isinstance(index, str):

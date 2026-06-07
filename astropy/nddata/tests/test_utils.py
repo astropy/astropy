@@ -19,6 +19,7 @@ from astropy.nddata import (
     subpixel_indices,
 )
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 from astropy.wcs import WCS, Sip
 from astropy.wcs.utils import proj_plane_pixel_area
 
@@ -699,6 +700,41 @@ class TestCutout2D:
         assert_allclose(
             w.all_pix2world(*w.wcs.crpix, 1), w.wcs.crval, rtol=0.0, atol=1e-6 * pscale
         )
+
+    @pytest.mark.skipif(not HAS_MATPLOTLIB, reason="requires matplotlib")
+    @pytest.mark.parametrize(
+        "position, size",
+        [
+            ((2, 2), (4, 4)),  # even-sized cutout
+            ((2, 2), (3, 3)),  # odd-sized cutout
+            ((2.1, 1.9), (3, 5)),  # non-integer position, asymmetric size
+        ],
+    )
+    def test_plot_on_original(self, position, size):
+        """
+        Regression test to ensure plot_on_original draws a rectangle
+        that matches the actual pixel extent of the cutout.
+        """
+        import matplotlib.pyplot as plt
+
+        cutout = Cutout2D(self.data, position, size)
+
+        fig, ax = plt.subplots()
+        cutout.plot_on_original(ax=ax)
+        patch = ax.patches[0]
+
+        # The rectangle should span from (xmin - 0.5) to (xmax + 0.5)
+        # and (ymin - 0.5) to (ymax + 0.5) in pixel coordinates.
+        x0, y0 = patch.get_xy()
+        width = patch.get_width()
+        height = patch.get_height()
+
+        assert_allclose(x0, cutout.xmin_original - 0.5)
+        assert_allclose(y0, cutout.ymin_original - 0.5)
+        assert_allclose(width, cutout.xmax_original - cutout.xmin_original + 1)
+        assert_allclose(height, cutout.ymax_original - cutout.ymin_original + 1)
+
+        plt.close(fig)
 
     def test_cutout_with_nddata_as_input(self):
         # This is essentially a copy/paste of test_skycoord with the

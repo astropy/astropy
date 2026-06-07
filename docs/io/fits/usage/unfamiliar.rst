@@ -597,3 +597,106 @@ describes the possible options for constructing a :class:`CompImageHDU` object.
 
 ..
   EXAMPLE END
+
+
+Supported Integer Data Types
+----------------------------
+
+Not every compression algorithm can be used with every integer data type. The
+table below summarizes which combinations work, including the cases where
+``astropy`` accepts the input only when the values lie within a more
+restricted range.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Compression
+     - ``int16``
+     - ``int32``
+     - ``int64``
+     - ``uint8``
+     - ``uint16``
+     - ``uint32``
+     - ``uint64``
+   * - ``GZIP_1``
+     - ✅
+     - ✅
+     - ⚠️ [1]_
+     - ✅
+     - ✅
+     - ✅
+     - ⚠️ [1]_
+   * - ``GZIP_2``
+     - ✅
+     - ✅
+     - ⚠️ [1]_
+     - ✅
+     - ✅
+     - ✅
+     - ⚠️ [1]_
+   * - ``RICE_1``
+     - ✅
+     - ✅
+     - 🟡 [2]_
+     - ✅
+     - ✅
+     - ✅
+     - 🟡 [2]_
+   * - ``HCOMPRESS_1``
+     - ✅
+     - ✅
+     - 🟡 [2]_
+     - ✅
+     - ✅
+     - ✅
+     - 🟡 [2]_
+   * - ``PLIO_1``
+     - 🟡 [3]_
+     - 🟡 [3]_
+     - 🟡 [2]_ [3]_
+     - ✅
+     - ❌ [4]_
+     - ❌ [4]_
+     - ❌ [4]_
+   * - ``NOCOMPRESS``
+     - ✅
+     - ✅
+     - ✅
+     - ✅
+     - ✅
+     - ✅
+     - ✅
+
+Legend:
+
+* ✅ Full support: any value within the type's range round-trips losslessly.
+* 🟡 Partial support: works only when input values satisfy the numeric
+  restriction in the corresponding footnote; a ``ValueError`` is raised
+  otherwise.
+* ⚠️ Caveat: round-trips correctly within ``astropy``, but the resulting
+  file may not be readable by other FITS libraries (see footnote).
+* ❌ Not supported: writing the data raises a ``ValueError``.
+
+.. [1] ``astropy`` writes a standards-compliant file, but ``cfitsio`` and
+   tools built on top of it (including ``funpack``, ``fitsio``, and DS9) do
+   not currently support reading 64-bit integer images compressed with
+   ``GZIP_1`` or ``GZIP_2``. The file round-trips correctly when read by
+   ``astropy`` itself.
+
+.. [2] 64-bit integer input is converted to a 32-bit type on write. The
+   conversion succeeds only if every input value fits in the corresponding
+   32-bit range: ``[-2**31, 2**31 - 1]`` for signed and ``[0, 2**32 - 1]``
+   for unsigned. Otherwise a ``ValueError`` is raised. When the conversion
+   succeeds an ``AstropyUserWarning`` is emitted to signal the precision
+   change.
+
+.. [3] ``PLIO_1`` is designed for pixel masks and supports only non-negative
+   integer values up to ``2**24 - 1`` (``16777215``). Negative values or
+   values above this limit cause a ``ValueError`` at write time. For
+   ``int64`` input both this restriction and the 32-bit conversion in
+   footnote [2]_ apply.
+
+.. [4] ``PLIO_1`` cannot store unsigned 16-, 32-, or 64-bit integers. Use
+   ``RICE_1``, ``HCOMPRESS_1``, ``GZIP_1``, or ``GZIP_2`` for unsigned data
+   that does not fit in ``uint8``.

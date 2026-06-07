@@ -1,0 +1,1 @@
+Fix support for reading FITS files using image tile compression with UNCOMPRESSED_DATA columns.

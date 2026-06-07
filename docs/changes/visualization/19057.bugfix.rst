@@ -1,0 +1,1 @@
+Fixed issues with the placement of WCSAxes tick labels for non-perpendicular grids or ticks.

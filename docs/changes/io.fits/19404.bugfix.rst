@@ -1,0 +1,4 @@
+Fixed silent data corruption in ``FITS_rec.__setitem__`` when using negative
+slice indices. Assigning to slices like ``data[-2:] = new_rows`` previously
+wrote to the wrong rows because negative indices were clamped to 0 instead of
+being resolved relative to the array length.

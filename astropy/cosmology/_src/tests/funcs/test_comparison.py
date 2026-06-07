@@ -33,11 +33,13 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
     """
 
     @pytest.fixture(scope="class")
-    def cosmo(self):
+    @classmethod
+    def cosmo(cls):
         return Planck18
 
     @pytest.fixture(scope="class")
-    def cosmo_eqvxflat(self, cosmo):
+    @classmethod
+    def cosmo_eqvxflat(cls, cosmo):
         if isinstance(cosmo, FlatCosmologyMixin):
             return cosmo.nonflat
 
@@ -51,23 +53,27 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
             {k for k, _ in convert_registry._readers.keys()} - {"astropy.cosmology"}
         ),
     )
-    def format(self, request):
+    @classmethod
+    def format(cls, request):
         return request.param
 
     @pytest.fixture(scope="class")
-    def xfail_cant_autoidentify(self, format):
+    @classmethod
+    def xfail_cant_autoidentify(cls, format):
         """`pytest.fixture` form of method ``can_autoidentify`."""
-        if not self.can_autodentify(format):
+        if not cls.can_autodentify(format):
             pytest.xfail("cannot autoidentify")
 
     @pytest.fixture(scope="class")
-    def converted(self, to_format, format):
+    @classmethod
+    def converted(cls, to_format, format):
         if format == "astropy.model":  # special case Model
             return to_format(format, method="comoving_distance")
         return to_format(format)
 
     @pytest.fixture(scope="class")
-    def pert_cosmo(self, cosmo):
+    @classmethod
+    def pert_cosmo(cls, cosmo):
         # change one parameter
         p, v = next(iter(cosmo.parameters.items()))
         return cosmo.clone(
@@ -75,7 +81,8 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
         )
 
     @pytest.fixture(scope="class")
-    def pert_cosmo_eqvxflat(self, pert_cosmo):
+    @classmethod
+    def pert_cosmo_eqvxflat(cls, pert_cosmo):
         if isinstance(pert_cosmo, FlatCosmologyMixin):
             return pert_cosmo.nonflat
 
@@ -84,7 +91,8 @@ class ComparisonFunctionTestBase(ToFromTestMixinBase):
         )
 
     @pytest.fixture(scope="class")
-    def pert_converted(self, pert_cosmo, format):
+    @classmethod
+    def pert_converted(cls, pert_cosmo, format):
         if format == "astropy.model":  # special case Model
             return pert_cosmo.to_format(format, method="comoving_distance")
         return pert_cosmo.to_format(format)
@@ -94,7 +102,8 @@ class Test_parse_format(ComparisonFunctionTestBase):
     """Test functions ``_parse_format``."""
 
     @pytest.fixture(scope="class")
-    def converted(self, to_format, format):
+    @classmethod
+    def converted(cls, to_format, format):
         if format == "astropy.model":  # special case Model
             return to_format(format, method="comoving_distance")
 

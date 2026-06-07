@@ -148,7 +148,7 @@ def test_name_resolve_cache(tmp_path):
     target_name = "castor"
     (temp_cache_dir := tmp_path / "cache").mkdir()
     with paths.set_temp_cache(temp_cache_dir):
-        assert not get_cached_urls()  # sanity check
+        assert not get_cached_urls(on_missing="ignore")  # sanity check
         icrs = get_icrs_coordinates(target_name, cache=True)
         urls = get_cached_urls()
         assert len(urls) == 1

@@ -17,23 +17,32 @@ from astropy.cosmology._src import core
 # FUNCTIONS
 
 
-def get_redshift_methods(cosmology, include_private=True, include_z2=True):
+def get_redshift_methods(
+    cosmology,
+    include_deprecated: bool = False,
+    include_private: bool = True,
+    include_z2: bool = True,
+) -> set[str]:
     """Get redshift methods from a cosmology.
 
     Parameters
     ----------
     cosmology : |Cosmology| class or instance
-    include_private : bool
+    include_deprecated : bool, optional
+        Whether to include deprecated methods, i.e. methods with a
+        ``__deprecated__`` attribute. Default is False.
+    include_private : bool, optional
         Whether to include private methods, i.e. starts with an underscore.
-    include_z2 : bool
+        Default is True.
+    include_z2 : bool, optional
         Whether to include methods that are functions of 2 (or more) redshifts,
-        not the more common 1 redshift argument.
+        not the more common 1 redshift argument. Default is True.
 
     Returns
     -------
     set[str]
         The names of the redshift methods on `cosmology`, satisfying
-        `include_private` and `include_z2`.
+        `include_deprecated`, `include_private` and `include_z2`.
     """
     # Get all the method names, optionally sieving out private methods
     methods = set()
@@ -43,8 +52,12 @@ def get_redshift_methods(cosmology, include_private=True, include_z2=True):
         except NotImplementedError:
             continue
 
-        # Add anything callable, optionally excluding private methods.
-        if callable(m) and (not n.startswith("_") or include_private):
+        # Add anything callable, optionally excluding private and deprecated methods.
+        if (
+            callable(m)
+            and (not n.startswith("_") or include_private)
+            and (not hasattr(m, "__deprecated__") or include_deprecated)
+        ):
             methods.add(n)
 
     # Sieve out incompatible methods.

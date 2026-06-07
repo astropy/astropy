@@ -1,0 +1,3 @@
+Added a ``ensure_exists`` boolean option to cache and config path getters, allowing
+callers to disable directory creation on discovery with ``ensure_exists=False``.
+When False, callers should handle missing directory on their own.

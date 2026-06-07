@@ -89,8 +89,6 @@ yaccdevel   = False            # Set to True if developing yacc.  This turns off
 
 resultlimit = 40               # Size limit of results when running in debug mode.
 
-pickle_protocol = 0            # Protocol to use when writing pickle files
-
 # String type-checking compatibility
 if sys.version_info[0] < 3:
     string_types = basestring
@@ -1997,33 +1995,6 @@ class LRTable(object):
         self.lr_method = parsetab._lr_method
         return parsetab._lr_signature
 
-    def read_pickle(self, filename):
-        try:
-            import cPickle as pickle
-        except ImportError:
-            import pickle
-
-        if not os.path.exists(filename):
-          raise ImportError
-
-        in_f = open(filename, 'rb')
-
-        tabversion = pickle.load(in_f)
-        if tabversion != __tabversion__:
-            raise VersionError('yacc table file version is out of date')
-        self.lr_method = pickle.load(in_f)
-        signature      = pickle.load(in_f)
-        self.lr_action = pickle.load(in_f)
-        self.lr_goto   = pickle.load(in_f)
-        productions    = pickle.load(in_f)
-
-        self.lr_productions = []
-        for p in productions:
-            self.lr_productions.append(MiniProduction(*p))
-
-        in_f.close()
-        return signature
-
     # Bind all production function names to callable objects in pdict
     def bind_callables(self, pdict):
         for p in self.lr_productions:
@@ -2841,32 +2812,6 @@ del _lr_goto_items
             raise
 
 
-    # -----------------------------------------------------------------------------
-    # pickle_table()
-    #
-    # This function pickles the LR parsing tables to a supplied file object
-    # -----------------------------------------------------------------------------
-
-    def pickle_table(self, filename, signature=''):
-        try:
-            import cPickle as pickle
-        except ImportError:
-            import pickle
-        with open(filename, 'wb') as outf:
-            pickle.dump(__tabversion__, outf, pickle_protocol)
-            pickle.dump(self.lr_method, outf, pickle_protocol)
-            pickle.dump(signature, outf, pickle_protocol)
-            pickle.dump(self.lr_action, outf, pickle_protocol)
-            pickle.dump(self.lr_goto, outf, pickle_protocol)
-
-            outp = []
-            for p in self.lr_productions:
-                if p.func:
-                    outp.append((p.str, p.name, p.len, p.func, os.path.basename(p.file), p.line))
-                else:
-                    outp.append((str(p), p.name, p.len, None, None, None))
-            pickle.dump(outp, outf, pickle_protocol)
-
 # -----------------------------------------------------------------------------
 #                            === INTROSPECTION ===
 #
@@ -3215,17 +3160,13 @@ class ParserReflect(object):
 
 def yacc(method='LALR', debug=yaccdebug, module=None, tabmodule=tab_module, start=None,
          check_recursion=True, optimize=False, write_tables=True, debugfile=debug_file,
-         outputdir=None, debuglog=None, errorlog=None, picklefile=None):
+         outputdir=None, debuglog=None, errorlog=None):
 
     if tabmodule is None:
         tabmodule = tab_module
 
     # Reference to the parsing method of the last built parser
     global parse
-
-    # If pickling is enabled, table files are not created
-    if picklefile:
-        write_tables = 0
 
     if errorlog is None:
         errorlog = PlyLogger(sys.stderr)
@@ -3287,10 +3228,7 @@ def yacc(method='LALR', debug=yaccdebug, module=None, tabmodule=tab_module, star
     # Read the tables
     try:
         lr = LRTable()
-        if picklefile:
-            read_signature = lr.read_pickle(picklefile)
-        else:
-            read_signature = lr.read_table(tabmodule)
+        read_signature = lr.read_table(tabmodule)
         if optimize or (read_signature == signature):
             try:
                 lr.bind_callables(pinfo.pdict)
@@ -3486,13 +3424,6 @@ def yacc(method='LALR', debug=yaccdebug, module=None, tabmodule=tab_module, star
                 del sys.modules[tabmodule]
         except IOError as e:
             errorlog.warning("Couldn't create %r. %s" % (tabmodule, e))
-
-    # Write a pickled version of the tables
-    if picklefile:
-        try:
-            lr.pickle_table(picklefile, signature)
-        except IOError as e:
-            errorlog.warning("Couldn't create %r. %s" % (picklefile, e))
 
     # Build the parser
     lr.bind_callables(pinfo.pdict)

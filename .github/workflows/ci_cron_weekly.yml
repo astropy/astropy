@@ -70,10 +70,13 @@ jobs:
             python: '3.14'
             toxenv: py314-test-devpytest
 
-          - name: Python 3.13t (free-threading) with recommended dependencies
+          - name: Python 3.14t (free-threading) with recommended dependencies
             os: ubuntu-latest
-            python: '3.13t'
-            toxenv: py313t-test-recdeps
+            python: '3.14t'
+            toxenv: py314t-test-recdeps
+            PYTHON_GIL: 0
+            # https://github.com/astropy/astropy/issues/19205
+            PYTHON_CONTEXT_AWARE_WARNINGS: 0
 
           - name: Documentation link check
             os: ubuntu-latest
@@ -103,6 +106,9 @@ jobs:
       run: python -m pip install --upgrade tox
     - name: Run tests
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
+      env:
+        PYTHON_GIL: ${{ matrix.PYTHON_GIL }}
+        PYTHON_CONTEXT_AWARE_WARNINGS: ${{ matrix.PYTHON_CONTEXT_AWARE_WARNINGS }}
 
 
   tests_more_architectures:
@@ -139,7 +145,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: uraimo/run-on-arch-action@d94c13912ea685de38fccc1109385b83fd79427d # v3.0.1
+      - uses: uraimo/run-on-arch-action@f9b26e3a1a408d5fd530d20c17b9f3f4428ff8d9 # v3.1.0
         name: Run tests
         id: build
         with:
@@ -185,4 +191,8 @@ jobs:
             pip install -U --no-build-isolation pyerfa
             ASTROPY_USE_SYSTEM_ALL=1 pip install -v --no-build-isolation -e .[test]
             pip list
+            # A fresh CI runner has no ~/.astropy directory, but developer
+            # machines usually do. Create empty cache and config directories
+            # so we catch failures that only show up when they already exist.
+            python3 -c "from pathlib import Path; [(Path.home() / '.astropy' / d).mkdir(parents=True, exist_ok=True) for d in ('cache', 'config')]"
             python3 -m pytest --strict-markers --pyargs astropy -m "not hypothesis"

@@ -11,7 +11,7 @@ guidelines.
 
 For newcomers the process may initially seem overwhelming, but with a little patience
 and practice you will see that it is not so complex. The key is to follow the steps
-outlined here and `ask for help <https://www.astropy.org/help.html>`_ if you get stuck.
+outlined here and :ref:`ask for help <astropy-org-help>` if you get stuck.
 The Astropy community is welcoming and friendly and will help you!
 
 {% if is_development %}
@@ -22,8 +22,7 @@ cover provide a deeper dive and a reference for both developers and maintainers.
 
 .. Important:: There are useful ways to contribute to Astropy without diving
     into the developer workflow which is described here. For an
-    an overview see the `Contribute to Astropy <https://www.astropy.org/contribute.html>`_
-    page.
+    an overview see the :ref:`astropy-org-contribute` page.
 
 
 Contributing quickstart
@@ -31,6 +30,9 @@ Contributing quickstart
 
 This section provides a contributing quickstart guide for Astropy. With minor changes the
 process will apply to contributing updates to coordinated and many affiliated packages.
+
+.. Important:: All contributions must comply with our
+    `AI policy  <https://github.com/astropy/astropy-project/blob/main/policies/ai-policy.md>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -69,7 +71,7 @@ Details
    development/maintainers/index
 
 .. Note:: Parts of this guide were adapted from the
-    `pandas developer documentation <https://pandas.pydata.org/pandas-docs/stable/development/index.html>`_. Astropy is grateful to the pandas team for their documentation efforts.
+    :ref:`pandas developer documentation <pandas:development>`. Astropy is grateful to the ``pandas`` team for their documentation efforts.
 
 {%else%}
 

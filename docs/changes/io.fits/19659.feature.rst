@@ -1,0 +1,9 @@
+Extended the ``logical_as_bytes`` option of ``fits.open()`` to apply to
+variable-length array (``PL``/``QL``) logical columns. When ``True``,
+VLA logical columns are returned as ``S1`` byte arrays (one byte per
+entry) so that ``b'\x00'`` (NULL) is distinguishable from ``b'F'``
+(False); ``S1`` row arrays also round-trip through writing. A warning
+is emitted when NULL bytes are present in a VLA logical column read
+with ``logical_as_bytes=False``, except for the ambiguous case of a
+column whose heap is entirely ``\x00`` (which may instead be an
+all-False column written by astropy <= 7.2.0).

@@ -15,6 +15,7 @@ from astropy.cosmology._src.tests.io import (
     test_latex,
     test_mapping,
     test_model,
+    test_mrt,
     test_row,
     test_table,
     test_yaml,
@@ -34,6 +35,7 @@ readwrite_formats = [
     ("ascii.ecsv", True, True),
     ("ascii.html", False, HAS_BS4),
     ("ascii.latex", False, True),
+    ("ascii.mrt", False, True),
     ("json", True, True),
     ("latex", False, True),
 ]
@@ -59,6 +61,7 @@ class ReadWriteTestMixin(
     test_html.ReadWriteHTMLTestMixin,
     test_json.ReadWriteJSONTestMixin,
     test_latex.WriteLATEXTestMixin,
+    test_mrt.ReadWriteMRTTestMixin,
 ):
     """
     Tests for a CosmologyRead/Write on a |Cosmology|.
@@ -135,11 +138,13 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
     """Test the classes CosmologyRead/Write."""
 
     @pytest.fixture(scope="class", params=cosmo_instances)
-    def cosmo(self, request):
+    @classmethod
+    def cosmo(cls, request):
         return getattr(cosmology.realizations, request.param)
 
     @pytest.fixture(scope="class")
-    def cosmo_cls(self, cosmo):
+    @classmethod
+    def cosmo_cls(cls, cosmo):
         return cosmo.__class__
 
     # ==============================================================
@@ -267,11 +272,13 @@ class TestCosmologyToFromFormat(ToFromFormatTestMixin):
     """Test Cosmology[To/From]Format classes."""
 
     @pytest.fixture(scope="class", params=cosmo_instances)
-    def cosmo(self, request):
+    @classmethod
+    def cosmo(cls, request):
         return getattr(cosmology.realizations, request.param)
 
     @pytest.fixture(scope="class")
-    def cosmo_cls(self, cosmo):
+    @classmethod
+    def cosmo_cls(cls, cosmo):
         return cosmo.__class__
 
     # ==============================================================
