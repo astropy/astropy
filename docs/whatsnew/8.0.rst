@@ -411,7 +411,7 @@ Deprecation of astropy.samp
 ===========================
 
 The ``astropy.samp`` module has been moved downstream into the PyVO package and is available since
-the PyVO v1.9. Therefore it is now deprecated in astropy itself.
+the PyVO v1.9 release. Therefore it is now deprecated in astropy itself.
 
 .. _whatsnew-8.0-dependencies:
 
