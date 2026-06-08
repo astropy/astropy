@@ -1195,6 +1195,19 @@ class W58(VOTableSpecWarning):
     default_args = ("name", "x")
 
 
+class W59(VOTableSpecWarning):
+    """
+    The ``unicodeChar`` datatype is deprecated as of VOTable 1.6.
+    Use ``char`` (UTF-8 encoded) instead.
+    """
+
+    message_template = (
+        'FIELD ({}) has datatype="unicodeChar" which is deprecated in VOTable 1.6+; '
+        'use datatype="char" with UTF-8 encoding instead'
+    )
+    default_args = ("",)
+
+
 class E01(VOWarning, ValueError):
     """Invalid size specifier for a field.
 

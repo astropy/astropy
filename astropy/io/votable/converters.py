@@ -35,6 +35,7 @@ from .exceptions import (
     W49,
     W51,
     W55,
+    W59,
     vo_raise,
     vo_warn,
     warn_or_raise,
@@ -294,7 +295,12 @@ class Converter:
 
 class Char(Converter):
     """
-    Handles the char datatype. (7-bit unsigned characters).
+    Handles the char datatype.
+
+    Pre-VOTable 1.6: 7-bit ASCII characters only.
+    VOTable 1.6+: UTF-8 encoded; arraysize gives the byte length, not the
+    character count.  The optional ``width`` attribute records the maximum
+    number of characters.
 
     Missing values are not handled for string or unicode types.
     """
@@ -304,7 +310,7 @@ class Char(Converter):
     def __init__(self, field, config=None, pos=None):
         if config is None:
             config = {}
-        self._config = config if config else {}
+        self._config = config or {}
 
         Converter.__init__(self, field, config, pos)
 
@@ -349,7 +355,7 @@ class Char(Converter):
                 self.binparse = self._binparse_fixed
                 self.binoutput = self._binoutput_fixed
 
-            self._struct_format = f">{self.arraysize:d}s"
+            self._struct_format = f">{self.arraysize_bytes:d}s"
 
     def supports_empty_values(self, config):
         return True
@@ -384,7 +390,9 @@ class Char(Converter):
             try:
                 value.encode("ascii")
             except UnicodeEncodeError:
-                warn_or_raise(E24, E24, (value, self.field_name), self._config)
+                warn_or_raise(
+                    E24, UnicodeEncodeError, (value, self.field_name), self._config
+                )
 
         return xml_escape_cdata(value)
 
@@ -405,11 +413,9 @@ class Char(Converter):
 
         end = s.find(_zero_byte)
         encoding = "utf-8" if self.is_utf8_version else "ascii"
-        decoded = s.decode(encoding, errors="replace")
-
         if end != -1:
             return s[:end].decode(encoding, errors="replace"), False
-        return decoded, False
+        return s.decode(encoding, errors="replace"), False
 
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
@@ -420,7 +426,9 @@ class Char(Converter):
                 value = value.encode(encoding)
             except (ValueError, UnicodeEncodeError):
                 if not self.is_utf8_version:
-                    warn_or_raise(E24, E24, (value, self.field_name), self._config)
+                    warn_or_raise(
+                        E24, UnicodeEncodeError, (value, self.field_name), self._config
+                    )
                 value = value.encode(encoding, errors="replace")
 
         if self.arraysize != "*" and len(value) > self.arraysize:
@@ -437,7 +445,9 @@ class Char(Converter):
                 value_bytes = value.encode(encoding)
             except (ValueError, UnicodeEncodeError):
                 if not self.is_utf8_version:
-                    warn_or_raise(E24, E24, (value, self.field_name), self._config)
+                    warn_or_raise(
+                        E24, UnicodeEncodeError, (value, self.field_name), self._config
+                    )
                 value_bytes = value.encode(encoding, errors="replace")
         else:
             value_bytes = value
@@ -478,7 +488,12 @@ class UnicodeChar(Converter):
     default = ""
 
     def __init__(self, field, config=None, pos=None):
+        if config is None:
+            config = {}
         Converter.__init__(self, field, config, pos)
+
+        if config.get("version_1_6_or_later"):
+            vo_warn(W59, (field.name,), config, pos)
 
         if field.arraysize is None:
             vo_warn(W47, (), config, pos)
