@@ -1,0 +1,1 @@
+Fixed a typo in the ``stretch`` parameter description in ``simple_norm``, ``SimpleNorm``, and ``fits2bitmap`` docstrings to prevent Sphinx from auto-linking the ``power`` option to the ``power`` unit.
