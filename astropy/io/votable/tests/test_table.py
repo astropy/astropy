@@ -15,7 +15,7 @@ import pytest
 from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
 from astropy.io.votable.converters import Char, UnicodeChar, get_converter
-from astropy.io.votable.exceptions import E01, E25, W39, W46, W50, VOWarning
+from astropy.io.votable.exceptions import E01, E25, W39, W46, W50, W58, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable.tree import Field, VOTableFile
 from astropy.table import Column, Table
@@ -1256,6 +1256,56 @@ def test_char_invalid_utf8_handling():
     result, mask = converter._binparse_var(mock_read)
     assert isinstance(result, str)
     assert mask is False
+
+
+def test_char_utf8_bounded_variable_length():
+    """VOTable 1.6 char with arraysize="N*": byte-count limit is enforced."""
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="val",
+            datatype="char",
+            arraysize="20*",
+            ID="val",
+        )
+    )
+
+    table.create_arrays(3)
+    table.array[0]["val"] = "café"
+    table.array[1]["val"] = "hello"
+    table.array[2]["val"] = ""
+
+    for fmt in ["tabledata", "binary", "binary2"]:
+        bio = io.BytesIO()
+        table.format = fmt
+        votable.to_xml(bio)
+        bio.seek(0)
+
+        votable2 = parse(bio)
+        table2 = votable2.get_first_table()
+        assert table2.array[0]["val"] == "café", f"fmt={fmt}"
+        assert table2.array[1]["val"] == "hello", f"fmt={fmt}"
+        assert table2.array[2]["val"] == "", f"fmt={fmt}"
+
+
+def test_unicodechar_deprecation_warning_16():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    with pytest.warns(W58, match="deprecated"):
+        tree.Field(
+            votable,
+            name="uc",
+            datatype="unicodeChar",
+            arraysize="10",
+            ID="uc",
+        )
 
 
 def test_validate_tilde_path(home_is_data):
