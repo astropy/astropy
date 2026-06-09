@@ -237,7 +237,7 @@ class SimpleNorm:
 
     Parameters
     ----------
-    stretch : {'linear', 'sqrt', 'power', log', 'asinh', 'sinh'}, optional
+    stretch : {'linear', 'sqrt', 'power', 'log', 'asinh', 'sinh'}, optional
         The stretch function to apply to the image. The default is
         'linear'.
 
@@ -494,7 +494,7 @@ def simple_norm(
     data : ndarray
         The image array.
 
-    stretch : {'linear', 'sqrt', 'power', log', 'asinh', 'sinh'}, optional
+    stretch : {'linear', 'sqrt', 'power', 'log', 'asinh', 'sinh'}, optional
         The stretch function to apply to the image. The default is
         'linear'.
 
