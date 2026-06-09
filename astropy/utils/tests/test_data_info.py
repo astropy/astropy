@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pickle
+
 import numpy as np
 import pytest
 
@@ -8,7 +10,7 @@ from astropy.coordinates import SkyCoord
 from astropy.table import QTable
 from astropy.table.index import SlicedIndex
 from astropy.time import Time
-from astropy.utils.data_info import dtype_info_name
+from astropy.utils.data_info import DataInfo, dtype_info_name
 
 STRING_TYPE_NAMES = {(True, "S"): "bytes", (True, "U"): "str"}
 
@@ -106,3 +108,10 @@ def test_setting_info_name_to_with_invalid_type():
     qt["a"] = [1, 2] * u.m
     with pytest.raises(TypeError, match="Expected a str value, got 1 with type int"):
         qt["a"].info.name = 1
+
+
+def test_pickle_unbound_data_info():
+    """Test that an unbound DataInfo object can be pickled."""
+    di = DataInfo()
+    di_rt = pickle.loads(pickle.dumps(di))
+    assert isinstance(di_rt, DataInfo)
