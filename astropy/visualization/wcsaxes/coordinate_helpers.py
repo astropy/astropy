@@ -510,7 +510,7 @@ class CoordinateHelper:
         else:
             raise TypeError("separator should be a string, a tuple, or None")
 
-    def set_format_unit(self, unit, decimal=None, show_decimal_unit=True):
+    def set_format_unit(self, unit, decimal=None, show_decimal_unit=True, equivalencies=None):
         """
         Set the unit for the major tick labels.
 
@@ -524,10 +524,15 @@ class CoordinateHelper:
             and `True` for all other units.
         show_decimal_unit : bool, optional
             Whether to include units when in decimal mode.
+        equivalencies : list, optional
+            A list of equivalency pairs to try if the unit is not directly
+            convertible. See `~astropy.units.equivalencies` for options,
+            e.g. ``u.spectral()`` for wavelength/frequency/energy conversions.
         """
         self._formatter_locator.format_unit = u.Unit(unit)
         self._formatter_locator.decimal = decimal
         self._formatter_locator.show_decimal_unit = show_decimal_unit
+        self._formatter_locator.equivalencies = equivalencies
 
     def get_format_unit(self):
         """
