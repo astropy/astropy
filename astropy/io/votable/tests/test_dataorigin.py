@@ -5,6 +5,7 @@ import pytest
 import astropy.io.votable
 import astropy.io.votable.dataorigin as dataorigin
 from astropy.table import Column, Table
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def __generate_votable_test():
@@ -77,9 +78,12 @@ def test_dataorigin():
     assert len(str(do)) > 1
     assert (do.origin[0].get_votable_element()) is not None
     assert do.origin[0].journal[0] == __TEST_JOURNAL
-    assert do.origin[0].editor[0] == __TEST_JOURNAL  # backward compatibility
-    assert do.origin[0].ivoid[0] == __TEST_DATA_IVOID  # backward compatibility
     assert do.origin[0].data_ivoid[0] == __TEST_DATA_IVOID
+    # the deprecated names stay backward compatible and redirect to the new ones
+    with pytest.warns(AstropyDeprecationWarning, match="data_ivoid"):
+        assert do.origin[0].ivoid[0] == __TEST_DATA_IVOID
+    with pytest.warns(AstropyDeprecationWarning, match="journal"):
+        assert do.origin[0].editor[0] == __TEST_JOURNAL
 
     dores = dataorigin.extract_data_origin(vot.resources[0])
     dot = dataorigin.extract_data_origin(vot.resources[0].tables[0])
@@ -100,6 +104,29 @@ def test_dataorigin():
 
     for resource in do:
         assert len(resource.creator) > 0
+
+
+def test_dataorigin_deprecated_attributes():
+    # The 1.2 names ``ivoid`` and ``editor`` were renamed to ``data_ivoid`` and
+    # ``journal``. They must still work for backward compatibility while emitting
+    # a deprecation warning that points at the new name.
+    origin = dataorigin.DatasetOrigin()
+    origin.data_ivoid = ["ivo://id"]
+    origin.journal = ["AJ"]
+
+    with pytest.warns(AstropyDeprecationWarning, match="data_ivoid"):
+        assert origin.ivoid == ["ivo://id"]
+    with pytest.warns(AstropyDeprecationWarning, match="journal"):
+        assert origin.editor == ["AJ"]
+
+    # the deprecated setters must redirect to the new attributes
+    with pytest.warns(AstropyDeprecationWarning, match="data_ivoid"):
+        origin.ivoid = ["ivo://other"]
+    assert origin.data_ivoid == ["ivo://other"]
+
+    with pytest.warns(AstropyDeprecationWarning, match="journal"):
+        origin.editor = ["ApJ"]
+    assert origin.journal == ["ApJ"]
 
 
 def test_dataorigin_unsupported_input_error():

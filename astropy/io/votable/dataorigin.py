@@ -28,7 +28,7 @@ For more information, please see :ref:`DataOrigin documentation <astropy-io-vota
 """
 
 import astropy.io.votable.tree
-from astropy.utils.decorators import deprecated_attribute
+from astropy.utils.decorators import deprecated
 
 __all__ = [
     "DataOrigin",
@@ -221,33 +221,29 @@ class DatasetOrigin:
         self.last_update_date = None
         self.__vo_elt = votable_element
         self.infos = []
-        self.ivoid = deprecated_attribute(
-            name="ivoid", alternative="data_ivoid", since="8.0"
-        )
-        self.editor = deprecated_attribute(
-            name="editor", alternative="journal", since="8.0"
-        )
         self.data_ivoid = None
         self.journal = None
 
     @property
-    def ivoid(self) -> list:
-        """Compatibility with previous version"""
+    @deprecated("8.0", alternative="data_ivoid")
+    def ivoid(self):
+        """Compatibility with previous version (renamed to ``data_ivoid``)."""
         return self.data_ivoid
 
     @ivoid.setter
-    def ivoid(self, value: list):
-        """Compatibility with previous version"""
+    @deprecated("8.0", alternative="data_ivoid")
+    def ivoid(self, value):
         self.data_ivoid = value
 
     @property
-    def editor(self) -> list:
-        """Compatibility with previous version"""
+    @deprecated("8.0", alternative="journal")
+    def editor(self):
+        """Compatibility with previous version (renamed to ``journal``)."""
         return self.journal
 
     @editor.setter
-    def editor(self, value: list):
-        """Compatibility with previous version"""
+    @deprecated("8.0", alternative="journal")
+    def editor(self, value):
         self.journal = value
 
     def get_votable_element(self) -> astropy.io.votable.tree.Element:
@@ -340,7 +336,7 @@ class DataOrigin:
                 if info_name == dataset_info:
                     dataset_origin.infos.append(info)
                     att = getattr(dataset_origin, dataset_info)
-                    if att is None:  # or isinstance(att, property):
+                    if att is None:
                         setattr(dataset_origin, dataset_info, [info.value])
                     else:
                         att.append(info.value)
