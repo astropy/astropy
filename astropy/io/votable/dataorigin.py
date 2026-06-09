@@ -27,8 +27,11 @@ Examples
 For more information, please see :ref:`DataOrigin documentation <astropy-io-votable-dataorigin>`.
 """
 
+import warnings
+
 import astropy.io.votable.tree
 from astropy.utils.decorators import deprecated
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = [
     "DataOrigin",
@@ -196,7 +199,10 @@ class DatasetOrigin:
         list of ``<INFO>`` used by DataOrigin (default: None)
     """
 
-    _INFO_MAPPING = ("editor", "ivoid")  # obsolete INFO
+    # obsolete INFO names kept for backward compatibility, mapped to their
+    # current equivalent in DATAORIGIN_INFO
+    _DEPRECATED_INFO = {"editor": "journal", "ivoid": "data_ivoid"}
+    _INFO_MAPPING = tuple(_DEPRECATED_INFO)  # obsolete INFO
 
     def __init__(self, votable_element: astropy.io.votable.tree.Element = None):
         """
@@ -592,7 +598,17 @@ def add_data_origin_info(
     ValueError
         ``info_name`` is an unknown DataOrigin name.
     """
-    if info_name in DATAORIGIN_INFO + DatasetOrigin._INFO_MAPPING:
+    if info_name in DatasetOrigin._INFO_MAPPING:
+        new_name = DatasetOrigin._DEPRECATED_INFO[info_name]
+        warnings.warn(
+            f"The {info_name!r} DataOrigin INFO name is deprecated since "
+            f"version 8.0, use {new_name!r} instead.",
+            AstropyDeprecationWarning,
+            stacklevel=2,
+        )
+        info_name = new_name
+
+    if info_name in DATAORIGIN_INFO:
         if not isinstance(
             vot_element,
             (
