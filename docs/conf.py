@@ -162,6 +162,7 @@ numpydoc_xref_ignore.update(
         # TODO! not need to ignore.
         "flag",
         "bits",
+        "power",
     }
 )
 
