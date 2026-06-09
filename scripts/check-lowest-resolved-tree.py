@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
-#     "uv==0.11.13",
+#     "uv==0.11.19",
 # ]
 # ///
 
