@@ -136,7 +136,7 @@ typing = [
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
     "sphinx>=8.2.0,<9",  # keep in sync with docs/conf.py
-    "sphinx-astropy[confv3]>=1.11",
+    "sphinx-astropy[confv3] @ git+https://github.com/astrofrog/sphinx-astropy.git@fix-physical-type-xref-collision",
     "pytest>=8.0.0",
     "sphinx-changelog>=1.4.0",
     "sphinx_design>=0.6.1",
