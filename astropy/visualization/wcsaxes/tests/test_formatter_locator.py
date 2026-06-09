@@ -643,3 +643,10 @@ class TestScalarFormatterLocator:
         fl = ScalarFormatterLocator(unit=u.cm, format_unit=u.m)
         fl.format = "x.x"
         assert_quantity_allclose(fl.locator(1, 19)[0], [10] * u.cm)
+
+    def test_equivalencies_stored(self):
+        fl = ScalarFormatterLocator(unit=u.m)
+        assert fl.equivalencies == []
+
+        fl2 = ScalarFormatterLocator(unit=u.m, equivalencies=u.spectral())
+        assert fl2.equivalencies == u.spectral()
