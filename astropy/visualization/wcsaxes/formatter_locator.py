@@ -638,8 +638,13 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                     from .utils import select_step_scalar
 
                     spacing = select_step_scalar(
-                        dv.to_value(self._format_unit)
-                    ) * self._format_unit.to(self._unit)
+                        dv.to_value(
+                            self._format_unit,
+                            equivalencies=self._equivalencies,
+                        )
+                    ) * self._format_unit.to(
+                        self._unit, equivalencies=self._equivalencies
+                    )
 
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this
@@ -662,7 +667,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             return _fix_minus(
                 [
                     ("{0:." + str(precision) + "f}").format(
-                        x.to_value(self._format_unit)
+                        x.to_value(self._format_unit, equivalencies=self._equivalencies)
                     )
                     for x in values
                 ]

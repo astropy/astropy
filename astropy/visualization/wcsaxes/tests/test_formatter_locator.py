@@ -650,3 +650,13 @@ class TestScalarFormatterLocator:
 
         fl2 = ScalarFormatterLocator(unit=u.m, equivalencies=u.spectral())
         assert fl2.equivalencies == u.spectral()
+
+    def test_formatter_with_equivalencies(self):
+        # Wavelength in nm, display in Hz using spectral equivalency
+        fl = ScalarFormatterLocator(unit=u.nm, format_unit=u.Hz, equivalencies=u.spectral())
+        values = [500.0] * u.nm  # 500 nm visible light
+        _, spacing = fl.locator(400.0, 700.0)
+        result = fl.formatter(values, spacing)
+        assert len(result) == 1
+        # 500 nm = 5.996e14 Hz; just verify it formats without error and is non-zero
+        assert result[0] != "0"
