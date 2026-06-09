@@ -42,7 +42,7 @@ def fits2bitmap(
         The filename of the output bitmap image. The type of bitmap is
         determined by the filename extension (e.g. '.jpg', '.png'). The
         default is a PNG file with the same name as the FITS file.
-    stretch : {'linear', 'sqrt', 'power', log', 'asinh'}
+    stretch : {'linear', 'sqrt', 'power', 'log', 'asinh'}
         The stretching function to apply to the image. The default is
         'linear'.
     power : float, optional
