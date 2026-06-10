@@ -625,6 +625,19 @@ class TestLogQuantityCreation:
         with pytest.raises(u.UnitTypeError, match="require normal units"):
             u.Quantity(lq)
 
+    @pytest.mark.parametrize(
+        "lq, expected_unit",
+        [(u.Magnitude(5.0), u.mag), (u.Dex(5.0), u.dex), (u.Decibel(5.0), u.dB)],
+    )
+    def test_quantity_from_dimensionless_logquantity(self, lq, expected_unit):
+        """A dimensionless logarithmic quantity still converts to a Quantity in
+        the corresponding unit (mag/dex/dB).
+        """
+        q = u.Quantity(lq)
+        assert type(q) is u.Quantity
+        assert q.unit == expected_unit
+        assert q.value == 5.0
+
 
 def test_conversion_to_and_from_physical_quantities():
     """Ensures we can convert from regular quantities."""

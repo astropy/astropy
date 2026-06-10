@@ -867,7 +867,7 @@ class Quantity(np.ndarray):
                 # Trying to go through a string ensures that, e.g., Magnitudes with
                 # dimensionless physical unit become Quantity with units of mag.
                 parsed = Unit(str(unit), parse_strict="silent")
-                # ``parse_strict="silent"`` turns an unparseable string into an
+                # ``parse_strict="silent"`` turns an unparsable string into an
                 # ``UnrecognizedUnit`` (which is a ``UnitBase``), so a function
                 # unit with a non-default scale like ``2 mag(m)`` would otherwise
                 # slip through. Reject it like any other non-normal unit.
