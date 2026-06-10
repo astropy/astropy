@@ -63,6 +63,7 @@ def read_table_parquet(
     exclude_names=None,
     schema_only=False,
     filters=None,
+    *,
     string_lengths=None,
 ):
     """
