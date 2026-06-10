@@ -20,7 +20,13 @@ from astropy import config as _config
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyWarning
 
-from .core import Unit, UnitBase, dimensionless_unscaled, get_current_unit_registry
+from .core import (
+    Unit,
+    UnitBase,
+    UnrecognizedUnit,
+    dimensionless_unscaled,
+    get_current_unit_registry,
+)
 from .errors import UnitConversionError, UnitsError, UnitTypeError
 from .format import Base, Latex
 from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
@@ -860,12 +866,19 @@ class Quantity(np.ndarray):
             else:
                 # Trying to go through a string ensures that, e.g., Magnitudes with
                 # dimensionless physical unit become Quantity with units of mag.
-                unit = Unit(str(unit), parse_strict="silent")
-                if not isinstance(unit, (UnitBase, StructuredUnit)):
+                parsed = Unit(str(unit), parse_strict="silent")
+                # ``parse_strict="silent"`` turns an unparseable string into an
+                # ``UnrecognizedUnit`` (which is a ``UnitBase``), so a function
+                # unit with a non-default scale like ``2 mag(m)`` would otherwise
+                # slip through. Reject it like any other non-normal unit.
+                if not isinstance(parsed, (UnitBase, StructuredUnit)) or isinstance(
+                    parsed, UnrecognizedUnit
+                ):
                     raise UnitTypeError(
                         f"{self.__class__.__name__} instances require normal units, "
                         f"not {unit.__class__} instances."
                     )
+                unit = parsed
 
         self._unit = unit
 

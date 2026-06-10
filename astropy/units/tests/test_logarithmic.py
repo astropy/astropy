@@ -614,6 +614,17 @@ class TestLogQuantityCreation:
         q = u.Quantity(1.0, lu, subok=True)
         assert type(q) is lu._quantity_class
 
+    @pytest.mark.parametrize(
+        "lq", [u.Magnitude(5.0 * u.m), u.Magnitude(5.0 * u.m, 2 * u.mag)]
+    )
+    def test_quantity_from_logquantity_rejected(self, lq):
+        """A plain Quantity cannot be initialized from a logarithmic quantity,
+        including one with a non-default function unit like ``2 mag``; see
+        issue #19867.
+        """
+        with pytest.raises(u.UnitTypeError, match="require normal units"):
+            u.Quantity(lq)
+
 
 def test_conversion_to_and_from_physical_quantities():
     """Ensures we can convert from regular quantities."""
