@@ -27,8 +27,11 @@ Examples
 For more information, please see :ref:`DataOrigin documentation <astropy-io-votable-dataorigin>`.
 """
 
+import warnings
+
 import astropy.io.votable.tree
-from astropy.utils.decorators import deprecated_attribute
+from astropy.utils.decorators import deprecated
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 __all__ = [
     "DataOrigin",
@@ -129,8 +132,7 @@ class QueryOrigin:
     @standardID.setter
     def standardID(self, value: list):
         """Compatibility with previous version"""
-        if not self.service_protocol:
-            self.service_protocol = value
+        self.service_protocol = value
 
     def __str__(self) -> str:
         s = []
@@ -197,7 +199,10 @@ class DatasetOrigin:
         list of ``<INFO>`` used by DataOrigin (default: None)
     """
 
-    _INFO_MAPPING = ("editor", "ivoid")  # obsolete INFO
+    # obsolete INFO names kept for backward compatibility, mapped to their
+    # current equivalent in DATAORIGIN_INFO
+    _DEPRECATED_INFO = {"editor": "journal", "ivoid": "data_ivoid"}
+    _INFO_MAPPING = tuple(_DEPRECATED_INFO)  # obsolete INFO
 
     def __init__(self, votable_element: astropy.io.votable.tree.Element = None):
         """
@@ -208,14 +213,12 @@ class DatasetOrigin:
         votable_element: astropy.io.votable.tree.Element, optional
                          indicates the VOTable element
         """
-        self.data_ivoid = None
         self.citation = None
         self.reference_url = None
         self.resource_version = None
         self.rights_uri = None
         self.rights = None
         self.creator = None
-        self.journal = None
         self.article = None
         self.cites = None
         self.is_derived_from = None
@@ -224,12 +227,30 @@ class DatasetOrigin:
         self.last_update_date = None
         self.__vo_elt = votable_element
         self.infos = []
-        self.ivoid = deprecated_attribute(
-            name="ivoid", alternative="data_ivoid", since="8.0"
-        )
-        self.editor = deprecated_attribute(
-            name="editor", alternative="journal", since="8.0"
-        )
+        self.data_ivoid = None
+        self.journal = None
+
+    @property
+    @deprecated("8.0", alternative="data_ivoid")
+    def ivoid(self):
+        """Compatibility with previous version (renamed to ``data_ivoid``)."""
+        return self.data_ivoid
+
+    @ivoid.setter
+    @deprecated("8.0", alternative="data_ivoid")
+    def ivoid(self, value):
+        self.data_ivoid = value
+
+    @property
+    @deprecated("8.0", alternative="journal")
+    def editor(self):
+        """Compatibility with previous version (renamed to ``journal``)."""
+        return self.journal
+
+    @editor.setter
+    @deprecated("8.0", alternative="journal")
+    def editor(self, value):
+        self.journal = value
 
     def get_votable_element(self) -> astropy.io.votable.tree.Element:
         """
@@ -321,7 +342,7 @@ class DataOrigin:
                 if info_name == dataset_info:
                     dataset_origin.infos.append(info)
                     att = getattr(dataset_origin, dataset_info)
-                    if att is None or isinstance(att, property):
+                    if att is None:
                         setattr(dataset_origin, dataset_info, [info.value])
                     else:
                         att.append(info.value)
@@ -577,6 +598,16 @@ def add_data_origin_info(
     ValueError
         ``info_name`` is an unknown DataOrigin name.
     """
+    if info_name in DatasetOrigin._INFO_MAPPING:
+        new_name = DatasetOrigin._DEPRECATED_INFO[info_name]
+        warnings.warn(
+            f"The {info_name!r} DataOrigin INFO name is deprecated since "
+            f"version 8.0, use {new_name!r} instead.",
+            AstropyDeprecationWarning,
+            stacklevel=2,
+        )
+        info_name = new_name
+
     if info_name in DATAORIGIN_INFO:
         if not isinstance(
             vot_element,
