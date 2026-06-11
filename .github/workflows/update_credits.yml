@@ -11,7 +11,9 @@ on:
       - '.github/workflows/update_credits.yml'
       - '.github/workflows/update_credits.md'
       - 'scripts/update-credits.py'
+      - 'scripts/update-latest-whatsnew-stats.py'
       - 'docs/credits.rst'
+      - 'docs/whatsnew/*.rst'
       - '.mailmap'
   workflow_dispatch:
 
@@ -62,3 +64,28 @@ jobs:
           --body-file .github/workflows/update_credits.md
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Smoke test that the What's New stats script still runs against the latest
+  # What's New page. This does not commit anything; it just guards against the
+  # script or the page markers breaking. Not run on the weekly cron schedule.
+  check-whatsnew-stats:
+    permissions:
+      contents: read
+    name: Check What's New stats script
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      with:
+        fetch-depth: 0  # needed for the contributor history and release tags
+    - name: Set up Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+      with:
+        python-version: 3.x
+    - name: Run script on the latest What's New page
+      run: python scripts/update-latest-whatsnew-stats.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Show resulting diff
+      run: git diff docs/whatsnew/
