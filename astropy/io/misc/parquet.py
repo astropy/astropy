@@ -698,3 +698,74 @@ def register_parquet_votable():
 
     io_registry.register_reader("parquet.votable", Table, read_parquet_votable)
     io_registry.register_writer("parquet.votable", Table, write_parquet_votable)
+
+    try:
+        io_registry.register_identifier(
+            "parquet.votable", Table, parquet_votable_identify
+        )
+    except Exception:
+        pass
+
+
+def parquet_votable_identify(origin, filepath, fileobj, *args, **kwargs):
+    """Identify a VOParquet file by inspecting only the Parquet metadata.
+
+    This checks for the presence of the IVOA VOTable-Parquet metadata keys and
+    does a XML sanity check. Any errors return False.
+    """
+    try:
+        import xml.etree.ElementTree
+
+        import pyarrow.parquet as pq
+    except Exception:
+        return False
+
+    try:
+        # Use either fileobj (if available) or filepath. pq.ParquetFile accepts
+        # both a path and a file-like object that supports random access.
+        target = (
+            fileobj
+            if fileobj is not None
+            else (str(filepath) if filepath is not None else None)
+        )
+        if target is None:
+            return False
+
+        pf = pq.ParquetFile(target)
+        md = pf.metadata.metadata or {}
+
+        content = md.get(b"IVOA.VOTable-Parquet.content")
+        if content is None:
+            return False
+
+        # content may be either bytes or str; ensure we have a string
+        if isinstance(content, bytes):
+            try:
+                content_str = content.decode("utf-8")
+            except Exception:
+                return False
+        else:
+            content_str = str(content)
+
+        # Do a XML parse and sanity-check for a TABLE element
+        # containing a PARQUET child. Use tag suffix checks to be robust to
+        # namespaces.
+        root = xml.etree.ElementTree.fromstring(content_str)
+        table_elem = None
+        for elem in root.iter():
+            if elem.tag.endswith("}TABLE") or elem.tag == "TABLE":
+                table_elem = elem
+                break
+        if table_elem is None:
+            return False
+
+        # Look for PARQUET child under TABLE
+        found_parquet = False
+        for child in table_elem:
+            if child.tag.endswith("}PARQUET") or child.tag == "PARQUET":
+                found_parquet = True
+                break
+
+        return found_parquet
+    except Exception:
+        return False
