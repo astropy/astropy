@@ -65,9 +65,10 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Smoke test that the What's New stats script still runs against the latest
-  # What's New page. This does not commit anything; it just guards against the
-  # script or the page markers breaking. Not run on the weekly cron schedule.
+  # Smoke test for the What's New stats script: check that the latest What's New
+  # page is discoverable and still has the sentinel markers the script writes
+  # into. The live counts need the previous release tag (only present on a
+  # release branch), so this validates structure only. Not run on the cron.
   check-whatsnew-stats:
     permissions:
       contents: read
@@ -78,14 +79,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       with:
-        fetch-depth: 0  # needed for the contributor history and release tags
+        persist-credentials: false
     - name: Set up Python
       uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
       with:
         python-version: 3.x
-    - name: Run script on the latest What's New page
-      run: python scripts/update-latest-whatsnew-stats.py
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Show resulting diff
-      run: git diff docs/whatsnew/
+    - name: Check the latest What's New page
+      run: python scripts/update-latest-whatsnew-stats.py --check

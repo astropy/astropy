@@ -64,7 +64,9 @@ def git(*args):
 
 def commit_date(ref):
     """Committer date of ``ref`` as a datetime, peeling annotated tags."""
-    return dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", f"{ref}^{{commit}}"))
+    return dt.datetime.fromisoformat(
+        git("show", "-s", "--format=%cI", f"{ref}^{{commit}}")
+    )
 
 
 def shortlog(revspec):
@@ -100,10 +102,14 @@ def previous_version(path):
     versions = [v for v, _ in whatsnew_pages(path.parent)]
     target = tuple(int(n) for n in path.stem.split("."))
     if target not in versions:
-        raise SystemExit(f"{path.name} is not a recognised <major>.<minor> whatsnew page")
+        raise SystemExit(
+            f"{path.name} is not a recognised <major>.<minor> whatsnew page"
+        )
     idx = versions.index(target)
     if idx == 0:
-        raise SystemExit(f"{path.name} has no preceding whatsnew page to compare against")
+        raise SystemExit(
+            f"{path.name} has no preceding whatsnew page to compare against"
+        )
     return ".".join(str(n) for n in versions[idx - 1])
 
 
@@ -111,8 +117,10 @@ def post_graphql(query, token):
     req = urllib.request.Request(
         GH_GRAPHQL,
         data=json.dumps({"query": query}).encode(),
-        headers={"Authorization": f"Bearer {token}",
-                 "Content-Type": "application/json"},
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
     )
     with urllib.request.urlopen(req, timeout=30) as r:
         body = json.load(r)
@@ -124,12 +132,15 @@ def post_graphql(query, token):
 def gh_counts(since, upto, token):
     """Returns (merged_prs, closed_issues) in [since, upto] via one GraphQL request."""
     span = f"{since.date()}..{upto.date()}"
-    data = post_graphql(f"""
+    data = post_graphql(
+        f"""
     {{
       pulls:  search(query: "repo:{REPO} is:pr    is:merged base:main merged:{span}", type: ISSUE, first: 1) {{ issueCount }}
       issues: search(query: "repo:{REPO} is:issue is:closed closed:{span}", type: ISSUE, first: 1) {{ issueCount }}
     }}
-    """, token)
+    """,
+        token,
+    )
     return data["pulls"]["issueCount"], data["issues"]["issueCount"]
 
 
@@ -146,12 +157,25 @@ def splice(text, marker, payload):
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("path", nargs="?",
-                   help="Path to the whatsnew page to update "
-                        f"(default: the latest page in {WHATSNEW_DIR}).")
-    p.add_argument("--pat", help="GitHub personal access token (or set GH_TOKEN / GITHUB_TOKEN).")
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    p.add_argument(
+        "path",
+        nargs="?",
+        help="Path to the whatsnew page to update "
+        f"(default: the latest page in {WHATSNEW_DIR}).",
+    )
+    p.add_argument(
+        "--pat", help="GitHub personal access token (or set GH_TOKEN / GITHUB_TOKEN)."
+    )
+    p.add_argument(
+        "--check",
+        action="store_true",
+        help="Validate page discovery and markers without git, network, or writing. "
+        "Used by CI; the live counts need the previous release tag, which only "
+        "exists on a release branch.",
+    )
     args = p.parse_args()
 
     if args.path:
@@ -160,6 +184,16 @@ def main():
             raise SystemExit(f"{path} not found")
     else:
         path = latest_page(WHATSNEW_DIR)
+
+    if args.check:
+        prev_version = previous_version(path)
+        text = path.read_text()
+        for marker in ("release-summary", "release-contributors"):
+            splice(text, marker, "")  # raises if the marker pair is missing
+        print(
+            f"OK: {path} resolves previous release v{prev_version}.0; markers present"
+        )
+        return
 
     token = args.pat or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
@@ -179,9 +213,7 @@ def main():
     prcnt, icnt = gh_counts(since, upto, token)
 
     short = f"v{prev_version}"
-    bullets = "\n".join(
-        f"  -  {n}" + ("  *" if n in new else "") for _, n in current
-    )
+    bullets = "\n".join(f"  -  {n}" + ("  *" if n in new else "") for _, n in current)
 
     stats = f"""\
 * {ncommits} commits have been added since {short}
