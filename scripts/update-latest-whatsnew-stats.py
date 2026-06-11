@@ -50,9 +50,10 @@ import os
 import re
 import subprocess
 import sys
+import textwrap
 import urllib.request
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -66,6 +67,12 @@ RELEASE_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+$")
 @dataclass(slots=True, frozen=True)
 class Error:
     message: str
+
+
+@dataclass(slots=True, frozen=True, order=True)
+class WhatsNewPage:
+    version: tuple[int, ...]
+    path: Path = field(compare=False)
 
 
 def git(*args: str) -> str:
@@ -97,10 +104,10 @@ def shortlog(revspec: str) -> list[tuple[str, str]]:
     return rows
 
 
-def whatsnew_pages(dirpath: Path) -> list[tuple[tuple[int, ...], Path]]:
-    """[(version_tuple, Path), ...] of <major>.<minor>.rst pages, sorted ascending."""
+def whatsnew_pages(dirpath: Path) -> list[WhatsNewPage]:
+    """The <major>.<minor>.rst pages in ``dirpath``, sorted ascending by version."""
     pages = [
-        (tuple(int(n) for n in p.stem.split(".")), p)
+        WhatsNewPage(tuple(int(n) for n in p.stem.split(".")), p)
         for p in dirpath.glob("*.rst")
         if VERSION_RE.match(p.stem)
     ]
@@ -112,12 +119,12 @@ def latest_page(dirpath: Path) -> Path | Error:
     pages = whatsnew_pages(dirpath)
     if not pages:
         return Error(f"no <major>.<minor> whatsnew pages found in {dirpath}")
-    return pages[-1][1]
+    return pages[-1].path
 
 
 def previous_version(path: Path) -> str | Error:
     """The whatsnew version immediately before ``path`` in the same directory."""
-    versions = [v for v, _ in whatsnew_pages(path.parent)]
+    versions = [page.version for page in whatsnew_pages(path.parent)]
     target = tuple(int(n) for n in path.stem.split("."))
     if target not in versions:
         return Error(f"{path.name} is not a recognised <major>.<minor> whatsnew page")
@@ -235,22 +242,26 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     bullets = "\n".join(f"  -  {n}" + ("  *" if n in new else "") for _, n in current)
 
-    stats = f"""\
-* {ncommits} commits have been added since {short}
-* {icnt} issues have been closed since {short}
-* {prcnt} pull requests have been merged since {short}
-* {len(current_names)} people have contributed since {short}
-* {len(new)} of which are new contributors"""
+    stats = textwrap.dedent(f"""\
+        * {ncommits} commits have been added since {short}
+        * {icnt} issues have been closed since {short}
+        * {prcnt} pull requests have been merged since {short}
+        * {len(current_names)} people have contributed since {short}
+        * {len(new)} of which are new contributors""")
 
-    contributors = f"""\
-The people who have contributed to the code for this release are:
+    # dedent the template before interpolating the (multi-line) bullets, so their
+    # own indentation is preserved rather than being clipped by dedent.
+    contributors = textwrap.dedent("""\
+        The people who have contributed to the code for this release are:
 
-.. hlist::
-  :columns: 4
+        .. hlist::
+          :columns: 4
 
-{bullets}
+        {bullets}
 
-Where a * indicates that this release contains their first contribution to astropy."""
+        Where a * indicates that this release contains their first contribution to astropy.""").format(
+        bullets=bullets
+    )
 
     text = path.read_text()
     for marker, payload in (
