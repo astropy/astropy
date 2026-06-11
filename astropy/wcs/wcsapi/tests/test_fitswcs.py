@@ -1691,3 +1691,13 @@ class TestMaskedData:
         x, y = self.wcs.world_to_pixel(coord)
         assert_array_equal(x.mask, coord.mask)
         assert_array_equal(y.mask, coord.mask)
+
+
+def test_components_and_classes_cache():
+    # Regression test for the components and classes cache never hitting
+    # when the equinox was undefined, because the NaN it contributed to the
+    # cache key compares unequal to itself
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.set()
+    assert wcs.world_axis_object_components is wcs.world_axis_object_components
