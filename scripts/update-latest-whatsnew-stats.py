@@ -5,7 +5,13 @@
 """Update a ``docs/whatsnew/<version>.rst`` file with the release summary.
 
 Usage:
-    python scripts/update_whatsnew_stats.py docs/whatsnew/8.0.rst --pat=$GITHUB_PAT
+    python scripts/update-latest-whatsnew-stats.py --pat=$GITHUB_PAT
+    python scripts/update-latest-whatsnew-stats.py docs/whatsnew/8.0.rst --pat=$GITHUB_PAT
+
+With no path, the latest ``docs/whatsnew/<major>.<minor>.rst`` page present in
+the checkout is used, so the script also works as-is on a release branch (where
+that page is the one being released). A path may be passed explicitly to target
+a different page.
 
 The target version is taken from the file name, and the previous release is
 taken from the whatsnew page immediately before it in the same directory (so
@@ -47,12 +53,18 @@ import urllib.request
 from pathlib import Path
 
 REPO = "astropy/astropy"
+WHATSNEW_DIR = Path("docs/whatsnew")
 GH_GRAPHQL = "https://api.github.com/graphql"
 VERSION_RE = re.compile(r"^\d+\.\d+$")
 
 
 def git(*args):
     return subprocess.check_output(("git", *args), text=True).strip()
+
+
+def commit_date(ref):
+    """Committer date of ``ref`` as a datetime, peeling annotated tags."""
+    return dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", f"{ref}^{{commit}}"))
 
 
 def shortlog(revspec):
@@ -65,13 +77,27 @@ def shortlog(revspec):
     return rows
 
 
+def whatsnew_pages(dirpath):
+    """[(version_tuple, Path), ...] of <major>.<minor>.rst pages, sorted ascending."""
+    pages = [
+        (tuple(int(n) for n in p.stem.split(".")), p)
+        for p in dirpath.glob("*.rst")
+        if VERSION_RE.match(p.stem)
+    ]
+    return sorted(pages)
+
+
+def latest_page(dirpath):
+    """The highest-version whatsnew page in ``dirpath``."""
+    pages = whatsnew_pages(dirpath)
+    if not pages:
+        raise SystemExit(f"no <major>.<minor> whatsnew pages found in {dirpath}")
+    return pages[-1][1]
+
+
 def previous_version(path):
     """The whatsnew version immediately before ``path`` in the same directory."""
-    versions = sorted(
-        tuple(int(n) for n in p.stem.split("."))
-        for p in path.parent.glob("*.rst")
-        if VERSION_RE.match(p.stem)
-    )
+    versions = [v for v, _ in whatsnew_pages(path.parent)]
     target = tuple(int(n) for n in path.stem.split("."))
     if target not in versions:
         raise SystemExit(f"{path.name} is not a recognised <major>.<minor> whatsnew page")
@@ -122,13 +148,18 @@ def splice(text, marker, payload):
 def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("path", help="Path to the whatsnew page to update (e.g. docs/whatsnew/8.0.rst).")
+    p.add_argument("path", nargs="?",
+                   help="Path to the whatsnew page to update "
+                        f"(default: the latest page in {WHATSNEW_DIR}).")
     p.add_argument("--pat", help="GitHub personal access token (or set GH_TOKEN / GITHUB_TOKEN).")
     args = p.parse_args()
 
-    path = Path(args.path)
-    if not path.exists():
-        raise SystemExit(f"{path} not found")
+    if args.path:
+        path = Path(args.path)
+        if not path.exists():
+            raise SystemExit(f"{path} not found")
+    else:
+        path = latest_page(WHATSNEW_DIR)
 
     token = args.pat or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
@@ -143,8 +174,8 @@ def main():
     new = current_names - previous_names
 
     ncommits = int(git("rev-list", "--count", f"{prev_tag}..HEAD"))
-    since = dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", prev_tag))
-    upto = dt.datetime.fromisoformat(git("show", "-s", "--format=%cI", "HEAD"))
+    since = commit_date(prev_tag)
+    upto = commit_date("HEAD")
     prcnt, icnt = gh_counts(since, upto, token)
 
     short = f"v{prev_version}"

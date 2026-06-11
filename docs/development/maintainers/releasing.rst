@@ -170,11 +170,12 @@ branch, you should switch to it first, e.g.::
 
    $ git checkout v6.0.x
 
-The ``scripts/update_whatsnew_stats.py`` script fills in the statistics and the
-contributor list automatically. Run it from the root of the repository, passing
-the path to the What's New page for this release::
+The ``scripts/update-latest-whatsnew-stats.py`` script fills in the statistics
+and the contributor list automatically. Run it from the root of the repository;
+with no arguments it updates the latest What's New page present on the branch,
+which on the release branch is the one being released::
 
-   $ python scripts/update_whatsnew_stats.py docs/whatsnew/6.0.rst --pat=<a GitHub personal access token>
+   $ python scripts/update-latest-whatsnew-stats.py --pat=<a GitHub personal access token>
 
 You will need a GitHub personal access token with default permissions (no scopes
 selected). The script works out the previous release from the preceding What's
@@ -183,7 +184,9 @@ history, and queries GitHub for the issue and pull request counts. It writes the
 results straight into the page, between the ``.. release-summary-start`` /
 ``.. release-summary-end`` and ``.. release-contributors-start`` /
 ``.. release-contributors-end`` marker comments that are part of the What's New
-template, so there is nothing to copy and paste and it is safe to re-run.
+template, so there is nothing to copy and paste and it is safe to re-run. You can
+also pass an explicit page (e.g. ``docs/whatsnew/6.0.rst``) to target a different
+release.
 
 At this point, you will likely need to update the Astropy ``.mailmap`` file,
 which maps contributor emails to names, as there are often contributors who
