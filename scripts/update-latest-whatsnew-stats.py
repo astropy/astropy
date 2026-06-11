@@ -55,13 +55,15 @@ import urllib.request
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 REPO = "astropy/astropy"
 WHATSNEW_DIR = Path("docs", "whatsnew")
 GH_GRAPHQL = "https://api.github.com/graphql"
 VERSION_RE = re.compile(r"^\d+\.\d+$")
 RELEASE_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+$")
+
+T = TypeVar("T")
 
 
 @dataclass(slots=True, frozen=True)
@@ -73,6 +75,13 @@ class Error:
 class WhatsNewPage:
     version: tuple[int, ...]
     path: Path = field(compare=False)
+
+
+def unwrap(value: T | Error) -> T:
+    """Return ``value`` unchanged, or print its message and exit if it is an Error."""
+    if isinstance(value, Error):
+        sys.exit(value.message)
+    return value
 
 
 def git(*args: str) -> str:
@@ -134,7 +143,7 @@ def previous_version(path: Path) -> str | Error:
     return ".".join(str(n) for n in versions[idx - 1])
 
 
-def post_graphql(query: str, token: str) -> dict[str, Any]:
+def post_graphql(query: str, token: str) -> dict[str, Any] | Error:
     req = urllib.request.Request(
         GH_GRAPHQL,
         data=json.dumps({"query": query}).encode(),
@@ -146,12 +155,14 @@ def post_graphql(query: str, token: str) -> dict[str, Any]:
     with urllib.request.urlopen(req, timeout=30) as r:
         body = json.load(r)
     if "errors" in body:
-        raise RuntimeError(body["errors"])
+        return Error(f"GitHub GraphQL error: {body['errors']}")
     data: dict[str, Any] = body["data"]
     return data
 
 
-def gh_counts(since: dt.datetime, upto: dt.datetime, token: str) -> tuple[int, int]:
+def gh_counts(
+    since: dt.datetime, upto: dt.datetime, token: str
+) -> tuple[int, int] | Error:
     """Returns (merged_prs, closed_issues) in [since, upto] via one GraphQL request."""
     span = f"{since.date()}..{upto.date()}"
     data = post_graphql(
@@ -163,6 +174,8 @@ def gh_counts(since: dt.datetime, upto: dt.datetime, token: str) -> tuple[int, i
     """,
         token,
     )
+    if isinstance(data, Error):
+        return data
     return int(data["pulls"]["issueCount"]), int(data["issues"]["issueCount"])
 
 
@@ -201,30 +214,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     args = p.parse_args(argv)
 
-    if args.path:
-        path = Path(args.path)
+    if args.path is not None:
+        path = args.path
         if not path.exists():
-            print(f"{path} not found", file=sys.stderr)
-            return 1
+            sys.exit(f"{path} not found")
     else:
-        latest = latest_page(WHATSNEW_DIR)
-        if isinstance(latest, Error):
-            print(latest.message, file=sys.stderr)
-            return 1
-        path = latest
+        path = unwrap(latest_page(WHATSNEW_DIR))
 
     token = args.pat or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
         p.error("a GitHub token is required (--pat or GH_TOKEN / GITHUB_TOKEN env var)")
 
-    if isinstance(prev_version := previous_version(path), Error):
-        print(prev_version.message, file=sys.stderr)
-        return 1
+    prev_version = unwrap(previous_version(path))
 
     if args.check:
-        if isinstance(prev_tag := latest_release_tag(), Error):
-            print(prev_tag.message, file=sys.stderr)
-            return 1
+        prev_tag = unwrap(latest_release_tag())
         short = prev_tag
     else:
         prev_tag = f"v{prev_version}.0"
@@ -238,7 +242,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     ncommits = int(git("rev-list", "--count", f"{prev_tag}..HEAD"))
     since = commit_date(prev_tag)
     upto = commit_date("HEAD")
-    prcnt, icnt = gh_counts(since, upto, token)
+    prcnt, icnt = unwrap(gh_counts(since, upto, token))
 
     bullets = "\n".join(f"  -  {n}" + ("  *" if n in new else "") for _, n in current)
 
@@ -268,11 +272,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ("release-summary", stats),
         ("release-contributors", contributors),
     ):
-        spliced = splice(text, marker, payload)
-        if isinstance(spliced, Error):
-            print(spliced.message, file=sys.stderr)
-            return 1
-        text = spliced
+        text = unwrap(splice(text, marker, payload))
     path.write_text(text)
     print(f"Updated {path} (since {prev_tag})")
     return 0
