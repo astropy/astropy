@@ -5,7 +5,6 @@ on:
   schedule:
     # run every day at 4am UTC
     - cron: '0 4 * * *'
-  workflow_dispatch:
   push:
   pull_request:
     # We also want this workflow triggered if the 'Build all wheels' label is added

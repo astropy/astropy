@@ -14,7 +14,6 @@ on:
       - 'scripts/update-credits.py'
       - 'docs/credits.rst'
       - '.mailmap'
-  workflow_dispatch:
 
 permissions:
   contents: read
