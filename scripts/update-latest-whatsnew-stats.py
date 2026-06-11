@@ -214,12 +214,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     args = p.parse_args(argv)
 
-    if args.path is not None:
-        path = args.path
-        if not path.exists():
-            sys.exit(f"{path} not found")
-    else:
+    if args.path is None:
         path = unwrap(latest_page(WHATSNEW_DIR))
+    else:
+        path = args.path
+    if not path.exists():
+        sys.exit(f"{path} not found")
 
     token = args.pat or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
