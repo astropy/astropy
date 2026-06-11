@@ -1,6 +1,7 @@
 name: Wheel building
 
 on:
+  workflow_dispatch:
   schedule:
     # run every day at 4am UTC
     - cron: '0 4 * * *'

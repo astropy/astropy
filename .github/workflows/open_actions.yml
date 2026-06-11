@@ -1,6 +1,7 @@
 name: "When Opened"
 
 on:
+  workflow_dispatch:
   issues:
     types:
     - opened
