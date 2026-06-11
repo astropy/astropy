@@ -86,7 +86,7 @@ jobs:
       with:
         python-version: 3.x
     - name: Check the latest What's New page
-      run: python scripts/update-latest-whatsnew-stats.py --check
+      run: pipx run scripts/update-latest-whatsnew-stats.py --check
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Show resulting diff

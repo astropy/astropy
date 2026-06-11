@@ -53,32 +53,35 @@ import urllib.request
 from pathlib import Path
 
 REPO = "astropy/astropy"
-WHATSNEW_DIR = Path("docs/whatsnew")
+WHATSNEW_DIR = Path("docs", "whatsnew")
 GH_GRAPHQL = "https://api.github.com/graphql"
 VERSION_RE = re.compile(r"^\d+\.\d+$")
 RELEASE_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+$")
 
 
-def git(*args):
+@dataclass(slots=True, frozen=True)
+class Error:
+    message: str
+def git(*args: str) -> str:
     return subprocess.check_output(("git", *args), text=True).strip()
 
 
-def commit_date(ref):
+def commit_date(ref: str) -> dt.datetime:
     """Committer date of ``ref`` as a datetime, peeling annotated tags."""
     return dt.datetime.fromisoformat(
         git("show", "-s", "--format=%cI", f"{ref}^{{commit}}")
     )
 
 
-def latest_release_tag():
+def latest_release_tag() -> str | Error:
     """The highest final release tag (vX.Y.Z, no pre-release suffix) in the repo."""
     for tag in git("tag", "--list", "v*", "--sort=-version:refname").splitlines():
         if RELEASE_TAG_RE.match(tag):
             return tag
-    raise SystemExit("no release tag (vX.Y.Z) found")
+    return Error("no release tag (vX.Y.Z) found")
 
 
-def shortlog(revspec):
+def shortlog(revspec: str) -> list[str]:
     """Return [(count_str, name), ...] from `git shortlog`, bots filtered out."""
     rows = []
     for line in git("shortlog", "-s", "--no-merges", revspec).splitlines():
@@ -88,7 +91,7 @@ def shortlog(revspec):
     return rows
 
 
-def whatsnew_pages(dirpath):
+def whatsnew_pages(dirpath: Path) -> list[tuple[...]]:
     """[(version_tuple, Path), ...] of <major>.<minor>.rst pages, sorted ascending."""
     pages = [
         (tuple(int(n) for n in p.stem.split(".")), p)
@@ -98,25 +101,25 @@ def whatsnew_pages(dirpath):
     return sorted(pages)
 
 
-def latest_page(dirpath):
+def latest_page(dirpath: Path) -> tuple[int, int, int] | Error:
     """The highest-version whatsnew page in ``dirpath``."""
     pages = whatsnew_pages(dirpath)
     if not pages:
-        raise SystemExit(f"no <major>.<minor> whatsnew pages found in {dirpath}")
+        return Error(f"no <major>.<minor> whatsnew pages found in {dirpath}")
     return pages[-1][1]
 
 
-def previous_version(path):
+def previous_version(path: Path) -> str | Error:
     """The whatsnew version immediately before ``path`` in the same directory."""
     versions = [v for v, _ in whatsnew_pages(path.parent)]
     target = tuple(int(n) for n in path.stem.split("."))
     if target not in versions:
-        raise SystemExit(
+        return Error(
             f"{path.name} is not a recognised <major>.<minor> whatsnew page"
         )
     idx = versions.index(target)
     if idx == 0:
-        raise SystemExit(
+        return Error(
             f"{path.name} has no preceding whatsnew page to compare against"
         )
     return ".".join(str(n) for n in versions[idx - 1])
@@ -153,25 +156,26 @@ def gh_counts(since, upto, token):
     return data["pulls"]["issueCount"], data["issues"]["issueCount"]
 
 
-def splice(text, marker, payload):
+def splice(text: str, marker: str, payload: str) -> str | Error:
     pattern = re.compile(
         rf"(\.\. {re.escape(marker)}-start[^\n]*\n).*?(^\.\. {re.escape(marker)}-end)",
         re.DOTALL | re.MULTILINE,
     )
     if not pattern.search(text):
-        raise SystemExit(
+        return Error(
             f"Could not find marker pair '.. {marker}-start' / '.. {marker}-end' in file"
         )
     return pattern.sub(lambda m: f"{m.group(1)}\n{payload}\n\n{m.group(2)}", text)
 
 
-def main():
+def main(argv: Sequence[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     p.add_argument(
         "path",
         nargs="?",
+        type=Path,
         help="Path to the whatsnew page to update "
         f"(default: the latest page in {WHATSNEW_DIR}).",
     )
@@ -185,23 +189,30 @@ def main():
         "page's previous release tag (which may be unreleased on main). Used by CI, "
         "which shows the resulting diff but never commits it.",
     )
-    args = p.parse_args()
+    args = p.parse_args(argv)
 
     if args.path:
         path = Path(args.path)
         if not path.exists():
-            raise SystemExit(f"{path} not found")
+            print(f"{path} not found", file=sys.stderr)
+            return 1
     else:
-        path = latest_page(WHATSNEW_DIR)
+        if isinstance(path := latest_page(WHATSNEW_DIR), Error):
+            print(path.message, file=sys.stderr)
+            return 1
 
     token = args.pat or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
         p.error("a GitHub token is required (--pat or GH_TOKEN / GITHUB_TOKEN env var)")
 
-    prev_version = previous_version(path)
+    if isinstance(prev_version := previous_version(path), Error):
+        print(prev_version.message, file=sys.stderr)
+        return 1
 
     if args.check:
-        prev_tag = latest_release_tag()
+        if isinstance(prev_tag := latest_release_tag(), Error):
+            print(prev_tag.message, file=sys.stderr)
+            return 1
         short = prev_tag
     else:
         prev_tag = f"v{prev_version}.0"
@@ -237,11 +248,16 @@ The people who have contributed to the code for this release are:
 Where a * indicates that this release contains their first contribution to astropy."""
 
     text = path.read_text()
-    text = splice(text, "release-summary", stats)
-    text = splice(text, "release-contributors", contributors)
-    path.write_text(text)
+    if isinstance(summary := splice(text, "release-summary", stats), Error):
+        print(summary.message, file=sys.stderr)
+        return 1
+    if isinstance(contributors := splice(text, "release-contributors", contributors), Error):
+        print(summary.message, file=sys.stderr)
+        return 1
+    path.write_text(text + summary + contributors)
     print(f"Updated {path} (since {prev_tag})")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
