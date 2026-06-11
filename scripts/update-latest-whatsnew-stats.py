@@ -56,6 +56,7 @@ REPO = "astropy/astropy"
 WHATSNEW_DIR = Path("docs/whatsnew")
 GH_GRAPHQL = "https://api.github.com/graphql"
 VERSION_RE = re.compile(r"^\d+\.\d+$")
+RELEASE_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+$")
 
 
 def git(*args):
@@ -67,6 +68,14 @@ def commit_date(ref):
     return dt.datetime.fromisoformat(
         git("show", "-s", "--format=%cI", f"{ref}^{{commit}}")
     )
+
+
+def latest_release_tag():
+    """The highest final release tag (vX.Y.Z, no pre-release suffix) in the repo."""
+    for tag in git("tag", "--list", "v*", "--sort=-version:refname").splitlines():
+        if RELEASE_TAG_RE.match(tag):
+            return tag
+    raise SystemExit("no release tag (vX.Y.Z) found")
 
 
 def shortlog(revspec):
@@ -172,9 +181,9 @@ def main():
     p.add_argument(
         "--check",
         action="store_true",
-        help="Validate page discovery and markers without git, network, or writing. "
-        "Used by CI; the live counts need the previous release tag, which only "
-        "exists on a release branch.",
+        help="Smoke test: count from the latest existing release tag instead of the "
+        "page's previous release tag (which may be unreleased on main). Used by CI, "
+        "which shows the resulting diff but never commits it.",
     )
     args = p.parse_args()
 
@@ -185,22 +194,18 @@ def main():
     else:
         path = latest_page(WHATSNEW_DIR)
 
-    if args.check:
-        prev_version = previous_version(path)
-        text = path.read_text()
-        for marker in ("release-summary", "release-contributors"):
-            splice(text, marker, "")  # raises if the marker pair is missing
-        print(
-            f"OK: {path} resolves previous release v{prev_version}.0; markers present"
-        )
-        return
-
     token = args.pat or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
         p.error("a GitHub token is required (--pat or GH_TOKEN / GITHUB_TOKEN env var)")
 
     prev_version = previous_version(path)
-    prev_tag = f"v{prev_version}.0"
+
+    if args.check:
+        prev_tag = latest_release_tag()
+        short = prev_tag
+    else:
+        prev_tag = f"v{prev_version}.0"
+        short = f"v{prev_version}"
 
     current = shortlog(f"{prev_tag}..HEAD")
     previous_names = {n for _, n in shortlog(prev_tag)}
@@ -212,7 +217,6 @@ def main():
     upto = commit_date("HEAD")
     prcnt, icnt = gh_counts(since, upto, token)
 
-    short = f"v{prev_version}"
     bullets = "\n".join(f"  -  {n}" + ("  *" if n in new else "") for _, n in current)
 
     stats = f"""\
