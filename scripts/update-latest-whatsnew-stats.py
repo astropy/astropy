@@ -126,7 +126,7 @@ def gh_counts(since, upto, token):
     span = f"{since.date()}..{upto.date()}"
     data = post_graphql(f"""
     {{
-      pulls:  search(query: "repo:{REPO} is:pr    is:merged merged:{span}", type: ISSUE, first: 1) {{ issueCount }}
+      pulls:  search(query: "repo:{REPO} is:pr    is:merged base:main merged:{span}", type: ISSUE, first: 1) {{ issueCount }}
       issues: search(query: "repo:{REPO} is:issue is:closed closed:{span}", type: ISSUE, first: 1) {{ issueCount }}
     }}
     """, token)
@@ -142,7 +142,7 @@ def splice(text, marker, payload):
         raise SystemExit(
             f"Could not find marker pair '.. {marker}-start' / '.. {marker}-end' in file"
         )
-    return pattern.sub(lambda m: f"{m.group(1)}\n{payload}\n{m.group(2)}", text)
+    return pattern.sub(lambda m: f"{m.group(1)}\n{payload}\n\n{m.group(2)}", text)
 
 
 def main():

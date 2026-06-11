@@ -26,11 +26,14 @@ By the numbers:
 
 .. release-summary-end
 
-.. release-contributors-start
-.. release-contributors-end
-
 Full change log
 ===============
 
 To see a detailed list of all changes in version v8.1, including changes in
 API, please see the :ref:`changelog`.
+
+Contributors to the 8.1 release
+===============================
+
+.. release-contributors-start
+.. release-contributors-end
