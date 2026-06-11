@@ -54,6 +54,7 @@ import urllib.request
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 REPO = "astropy/astropy"
 WHATSNEW_DIR = Path("docs", "whatsnew")
@@ -126,7 +127,7 @@ def previous_version(path: Path) -> str | Error:
     return ".".join(str(n) for n in versions[idx - 1])
 
 
-def post_graphql(query, token):
+def post_graphql(query: str, token: str) -> dict[str, Any]:
     req = urllib.request.Request(
         GH_GRAPHQL,
         data=json.dumps({"query": query}).encode(),
@@ -139,10 +140,11 @@ def post_graphql(query, token):
         body = json.load(r)
     if "errors" in body:
         raise RuntimeError(body["errors"])
-    return body["data"]
+    data: dict[str, Any] = body["data"]
+    return data
 
 
-def gh_counts(since, upto, token):
+def gh_counts(since: dt.datetime, upto: dt.datetime, token: str) -> tuple[int, int]:
     """Returns (merged_prs, closed_issues) in [since, upto] via one GraphQL request."""
     span = f"{since.date()}..{upto.date()}"
     data = post_graphql(
@@ -154,7 +156,7 @@ def gh_counts(since, upto, token):
     """,
         token,
     )
-    return data["pulls"]["issueCount"], data["issues"]["issueCount"]
+    return int(data["pulls"]["issueCount"]), int(data["issues"]["issueCount"])
 
 
 def splice(text: str, marker: str, payload: str) -> str | Error:
@@ -198,9 +200,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"{path} not found", file=sys.stderr)
             return 1
     else:
-        if isinstance(path := latest_page(WHATSNEW_DIR), Error):
-            print(path.message, file=sys.stderr)
+        latest = latest_page(WHATSNEW_DIR)
+        if isinstance(latest, Error):
+            print(latest.message, file=sys.stderr)
             return 1
+        path = latest
 
     token = args.pat or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
@@ -253,9 +257,11 @@ Where a * indicates that this release contains their first contribution to astro
         ("release-summary", stats),
         ("release-contributors", contributors),
     ):
-        if isinstance(text := splice(text, marker, payload), Error):
-            print(text.message, file=sys.stderr)
+        spliced = splice(text, marker, payload)
+        if isinstance(spliced, Error):
+            print(spliced.message, file=sys.stderr)
             return 1
+        text = spliced
     path.write_text(text)
     print(f"Updated {path} (since {prev_tag})")
     return 0
