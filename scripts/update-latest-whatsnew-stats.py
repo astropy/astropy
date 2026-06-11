@@ -49,7 +49,10 @@ import json
 import os
 import re
 import subprocess
+import sys
 import urllib.request
+from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 REPO = "astropy/astropy"
@@ -62,6 +65,8 @@ RELEASE_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+$")
 @dataclass(slots=True, frozen=True)
 class Error:
     message: str
+
+
 def git(*args: str) -> str:
     return subprocess.check_output(("git", *args), text=True).strip()
 
@@ -81,7 +86,7 @@ def latest_release_tag() -> str | Error:
     return Error("no release tag (vX.Y.Z) found")
 
 
-def shortlog(revspec: str) -> list[str]:
+def shortlog(revspec: str) -> list[tuple[str, str]]:
     """Return [(count_str, name), ...] from `git shortlog`, bots filtered out."""
     rows = []
     for line in git("shortlog", "-s", "--no-merges", revspec).splitlines():
@@ -91,7 +96,7 @@ def shortlog(revspec: str) -> list[str]:
     return rows
 
 
-def whatsnew_pages(dirpath: Path) -> list[tuple[...]]:
+def whatsnew_pages(dirpath: Path) -> list[tuple[tuple[int, ...], Path]]:
     """[(version_tuple, Path), ...] of <major>.<minor>.rst pages, sorted ascending."""
     pages = [
         (tuple(int(n) for n in p.stem.split(".")), p)
@@ -101,7 +106,7 @@ def whatsnew_pages(dirpath: Path) -> list[tuple[...]]:
     return sorted(pages)
 
 
-def latest_page(dirpath: Path) -> tuple[int, int, int] | Error:
+def latest_page(dirpath: Path) -> Path | Error:
     """The highest-version whatsnew page in ``dirpath``."""
     pages = whatsnew_pages(dirpath)
     if not pages:
@@ -114,14 +119,10 @@ def previous_version(path: Path) -> str | Error:
     versions = [v for v, _ in whatsnew_pages(path.parent)]
     target = tuple(int(n) for n in path.stem.split("."))
     if target not in versions:
-        return Error(
-            f"{path.name} is not a recognised <major>.<minor> whatsnew page"
-        )
+        return Error(f"{path.name} is not a recognised <major>.<minor> whatsnew page")
     idx = versions.index(target)
     if idx == 0:
-        return Error(
-            f"{path.name} has no preceding whatsnew page to compare against"
-        )
+        return Error(f"{path.name} has no preceding whatsnew page to compare against")
     return ".".join(str(n) for n in versions[idx - 1])
 
 
@@ -248,13 +249,14 @@ The people who have contributed to the code for this release are:
 Where a * indicates that this release contains their first contribution to astropy."""
 
     text = path.read_text()
-    if isinstance(summary := splice(text, "release-summary", stats), Error):
-        print(summary.message, file=sys.stderr)
-        return 1
-    if isinstance(contributors := splice(text, "release-contributors", contributors), Error):
-        print(summary.message, file=sys.stderr)
-        return 1
-    path.write_text(text + summary + contributors)
+    for marker, payload in (
+        ("release-summary", stats),
+        ("release-contributors", contributors),
+    ):
+        if isinstance(text := splice(text, marker, payload), Error):
+            print(text.message, file=sys.stderr)
+            return 1
+    path.write_text(text)
     print(f"Updated {path} (since {prev_tag})")
     return 0
 
