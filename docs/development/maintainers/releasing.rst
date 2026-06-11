@@ -166,51 +166,29 @@ Updating the What's new and contributors
 Make sure to update the "What's new"
 section with the stats on the number of issues, PRs, and contributors.
 Since the What's New for the feature release is now only present in the release
-branch, you should switch to it to, e.g.::
+branch, you should switch to it first, e.g.::
 
    $ git checkout v6.0.x
 
-To find the statistics and contributors, use the `generate_releaserst.xsh`_
-script. This requires `xonsh <https://xon.sh/>`_ and `docopt
-<http://docopt.org/>`_ which you can install with::
+The ``scripts/update_whatsnew_stats.py`` script fills in the statistics and the
+contributor list automatically. Run it from the root of the repository, passing
+the path to the What's New page for this release::
 
-   python -m pip install xonsh docopt requests
+   $ python scripts/update_whatsnew_stats.py docs/whatsnew/6.0.rst --pat=<a GitHub personal access token>
 
-You should then run the script in the root of the astropy repository as follows::
-
-   xonsh generate_releaserst.xsh 5.3 v6.0.0.dev \
-                                 --project-name=astropy \
-                                 --pretty-project-name=astropy \
-                                 --pat=<a GitHub personal access token>
-
-The first argument should be the last major version (before any bug fix releases
-and ignoring the .0 part of the version number, while the second argument should
-be the ``.dev`` tag that was just after the branching of the last major version.
-Finally, you will need a GitHub personal access token with default permissions
-(no scopes selected).
-
-The output will look similar to::
-
-   This release of astropy contains 2573 commits in 163 merged pull requests
-   closing 104 issues from 98 people, 50 of which are first-time contributors
-   to astropy.
-
-   * 2573 commits have been added since 5.3
-   * 104 issues have been closed since 5.3
-   * 163 pull requests have been merged since 5.3
-   * 98 people have contributed since 5.3
-   * 50 of which are new contributors
-
-   The people who have contributed to the code for this release are:
-
-   - Name 1 *
-   - Name 2 *
-   - Name 3
+You will need a GitHub personal access token with default permissions (no scopes
+selected). The script works out the previous release from the preceding What's
+New page (so for ``6.0.rst`` it compares against ``v5.3.0``), reads the local git
+history, and queries GitHub for the issue and pull request counts. It writes the
+results straight into the page, between the ``.. release-summary-start`` /
+``.. release-summary-end`` and ``.. release-contributors-start`` /
+``.. release-contributors-end`` marker comments that are part of the What's New
+template, so there is nothing to copy and paste and it is safe to re-run.
 
 At this point, you will likely need to update the Astropy ``.mailmap`` file,
 which maps contributor emails to names, as there are often contributors who
 are not careful about using the same e-mail address for every commit, meaning
-that they appear multiple times in the contributor list above, sometimes with
+that they appear multiple times in the contributor list, sometimes with
 different spelling, and sometimes you may also just see their GitHub username
 with no full name.
 
@@ -223,10 +201,9 @@ Edit the ``.mailmap`` file to add entries for new email addresses for already
 known contributors (matched to the appropriate canonical name/email address).
 You can also try and investigate users with no name to see if you can determine
 their full name from other sources - if you do, add a new entry for them in
-the ``.mailmap`` file. Once you have done this, you can re-run the
-``generate_releaserst.xsh`` script (you will likely need to iterate a few times).
-Once you are happy with the output, copy it into the 'What's new' page for
-the current release and commit this. E.g., ::
+the ``.mailmap`` file. Once you have done this, re-run the script (you will
+likely need to iterate a few times). Once you are happy with the result, commit
+it::
 
    $ git add docs/whatsnew/6.0.rst
    $ git commit -m "Added contributor statistics and names"
@@ -235,17 +212,19 @@ Push the release branch back to GitHub, e.g.::
 
       $ git push upstream v6.0.x
 
-Switch to a new branch that tracks the ``main`` branch and update the
-``docs/credits.rst`` file to include any new contributors from the above step,
-and commit this and the ``.mailmap`` changes::
+If you updated the ``.mailmap`` file above, also regenerate the list of
+contributors in ``docs/credits.rst`` so it picks up the corrected names. This is
+done by the ``scripts/update-credits.py`` script, which rebuilds the list from
+the (mailmap-aware) git history. Switch to a new branch that tracks the ``main``
+branch, run the script, and commit both files::
 
    $ git checkout -b v6.0.0-mailmap-credits upstream/main
-   $ git add .mailmap
-   $ git add docs/credits.rst
+   $ python scripts/update-credits.py
+   $ git add .mailmap docs/credits.rst
    $ git commit -m "Updated list of contributors and .mailmap file"
 
-Open a pull request to merge this into ``main`` and mark it as requiring backporting to
-the release branch.
+Open a pull request to merge this into ``main`` and mark it as requiring
+backporting to the release branch.
 
 .. _release-procedure-check-ci:
 
@@ -434,9 +413,9 @@ Post-Release procedures
    https://github.com/astropy/astropy.github.com.
 
 #. Cherry-pick the commit rendering the changelog and deleting the fragments and
-   open a PR to the astropy *main* branch. Also make sure you cherry-pick the
-   commit updating the ``.mailmap`` and ``docs/credits.rst`` files to the *main*
-   branch in a separate PR.
+   open a PR to the astropy *main* branch. If you updated the ``.mailmap`` and
+   ``docs/credits.rst`` files during the release, make sure the separate PR with
+   those changes is also opened against the *main* branch.
 
 #. Turn off any branch protection you might have enabled in
    :ref:`release-procedure-restrict-branch`.
@@ -661,4 +640,3 @@ it's harder for commits that need to be backported from getting lost.
 .. _astropy-tools repository: https://github.com/astropy/astropy-tools
 .. _Anaconda: https://conda.io/docs/
 .. _twine: https://packaging.python.org/key_projects/#twine
-.. _generate_releaserst.xsh: https://raw.githubusercontent.com/sunpy/sunpy/main/tools/generate_releaserst.xsh
