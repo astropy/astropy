@@ -177,8 +177,9 @@ which on the release branch is the one being released::
 
    $ python scripts/update-latest-whatsnew-stats.py --pat=<a GitHub personal access token>
 
-You will need a GitHub personal access token with default permissions (no scopes
-selected). The script works out the previous release from the preceding What's
+You will need a `GitHub personal access token
+<https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens>`__
+with default permissions (no scopes selected). The script works out the previous release from the preceding What's
 New page (so for ``6.0.rst`` it compares against ``v5.3.0``), reads the local git
 history, and queries GitHub for the issue and pull request counts. It writes the
 results straight into the page, between the ``.. release-summary-start`` /
