@@ -1087,8 +1087,9 @@ class Table:
             Single column name or tuple or list of column names to index.
         engine : type or None
             Indexing engine class to use, either `~astropy.table.SortedArray`,
-            `~astropy.table.BST`, or `~astropy.table.SCEngine`. If the supplied
-            argument is None (by default), use `~astropy.table.SortedArray`.
+            `~astropy.table.SCEngine`, or the deprecated `~astropy.table.BST`.
+            If the supplied argument is None (by default), use
+            `~astropy.table.SortedArray`.
         unique : bool (default: False)
             If set to True, an exception will be raised if duplicate rows exist.
 

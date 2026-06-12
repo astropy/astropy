@@ -47,7 +47,7 @@ Core Classes:
 Index Engines:
     - `SortedArray`: Array-based sorted container implementation (default)
     - `SCEngine`: SortedContainers-based implementation (when available)
-    - `BST`: Binary search tree implementation for sorted data (not for production)
+    - `BST`: Binary search tree implementation for sorted data (deprecated)
 
 Query Interface Classes:
     - `TableLoc`: Value-based row retrieval using ``.loc[]``.
@@ -272,8 +272,8 @@ class Index:
         List of columns on which to create an index. If None,
         create an empty index for purposes of deep copying.
     engine : type, instance, or None
-        Indexing engine class to use (from among SortedArray, BST,
-        and SCEngine) or actual engine instance.
+        Indexing engine class to use (from among SortedArray, SCEngine,
+        and the deprecated BST) or actual engine instance.
         If the supplied argument is None (by default), use SortedArray.
     unique : bool (defaults to False)
         Whether the values of the index must be unique

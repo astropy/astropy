@@ -5,6 +5,8 @@ from numbers import Integral
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated
+
 __all__ = ["BST"]
 
 
@@ -157,6 +159,10 @@ class Node:
         return str(self)
 
 
+@deprecated(
+    since="9.0",
+    alternative="SortedArray (the default engine) or SCEngine",
+)
 class BST:
     """
     A basic binary search tree in pure Python, used
