@@ -93,7 +93,7 @@ class SortedArray:
 
     def find_pos(self, key, data, exact=False):
         """
-        Return the index of the largest key in data greater than or
+        Return the index of the first key in data greater than or
         equal to the given key, data pair.
 
         Parameters
@@ -197,7 +197,8 @@ class SortedArray:
             return self.find_pos(key, 0)
 
         def bisect_right(key):
-            # Position just past the last entry whose key is == ``key``.
+            # Position of the first entry whose key is > ``key`` (i.e. just
+            # past the last entry equal to ``key``).
             if self.unique:
                 pos = self.find_pos(key, 0)
                 if pos < n and tuple(col[pos] for col in self.cols) == key:
