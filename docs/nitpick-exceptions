@@ -45,6 +45,7 @@ py:obj Bbox
 py:obj Transform
 py:obj Figure
 py:obj AbstractPathEffect
+py:obj MultiNorm
 py:obj N
 py:obj masked
 
