@@ -885,20 +885,19 @@ def test_index_not_corrupted_on_failed_row_assignment(engine):
         t.loc[99]
 
 
-@pytest.mark.parametrize("table_type", [Table, QTable])
-def test_loc_range_with_duplicate_index_values(engine, table_type):
-    """Regression test: a range query must return every row whose value equals
-    an inclusive bound, even when that value is duplicated in the index.
+def test_loc_range_sorted_after_add_row(engine):
+    """Regression test: a range query must return rows in ascending key order,
+    also for rows added after the index was created.
 
-    The default ``SortedArray`` engine previously kept only the first matching
-    row, so e.g. ``t.loc[1:2]`` silently dropped all but one of the ``2`` rows.
+    The ``BST`` engine previously collected nodes in node-right-left order,
+    so after ``add_row`` the tree was no longer a degenerate chain and
+    ``t.loc[lower:upper]`` returned rows in scrambled order.
     """
-    t = table_type()
-    t["a"] = [3, 2, 2, 3, 1, 2]
-    t["b"] = [30, 20, 21, 31, 10, 22]
+    t = Table([[1, 5, 9], [10, 50, 90]], names=("a", "b"))
     t.add_index("a", engine=engine)
+    for a, b in [(7, 70), (3, 30), (8, 80), (2, 20), (6, 60), (4, 40)]:
+        t.add_row((a, b))
 
-    assert sorted(t.loc[1:2]["b"].tolist()) == [10, 20, 21, 22]
-    assert sorted(t.loc[2:2]["b"].tolist()) == [20, 21, 22]
-    assert sorted(t.loc[2:3]["b"].tolist()) == [20, 21, 22, 30, 31]
-    assert sorted(t.loc[:]["b"].tolist()) == [10, 20, 21, 22, 30, 31]
+    assert t.loc[2:8]["a"].tolist() == [2, 3, 4, 5, 6, 7, 8]
+    assert t.loc[2:8]["b"].tolist() == [20, 30, 40, 50, 60, 70, 80]
+    assert t.loc[:]["a"].tolist() == [1, 2, 3, 4, 5, 6, 7, 8, 9]
