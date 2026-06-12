@@ -1,0 +1,3 @@
+Fixed the new ``format="ecsv"`` reader raising ``InconsistentTableError`` when
+reading an empty table that has no columns. Such tables are now read from the
+header metadata alone, matching the legacy ``format="ascii.ecsv"`` reader.
