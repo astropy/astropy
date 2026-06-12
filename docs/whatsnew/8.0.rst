@@ -31,11 +31,15 @@ In addition to these major changes, Astropy v8.0 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
 By the numbers:
 
+.. release-summary-start
+
 * 973 commits have been added since 7.2
 * 157 issues have been closed since 7.2
 * 328 pull requests have been merged since 7.2
 * 68 people have contributed since 7.2
 * 35 of which are new contributors
+
+.. release-summary-end
 
 Full change log
 ===============
@@ -429,6 +433,8 @@ That branch remains compatible with NumPy 1.
 Contributors to the 8.0 release
 ===============================
 
+.. release-contributors-start
+
 The people who have contributed to the code for this release are:
 
 .. hlist::
@@ -504,3 +510,5 @@ The people who have contributed to the code for this release are:
   -  Περικλής Παντελαίος  *
 
 Where a * indicates that this release contains their first contribution to astropy.
+
+.. release-contributors-end
