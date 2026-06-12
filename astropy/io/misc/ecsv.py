@@ -741,6 +741,13 @@ def read_data(
     """
     from astropy.table import Table
 
+    # A table with no columns has no CSV data section to read: the comment lines
+    # that follow the header would otherwise be misparsed as the CSV data header
+    # (see #19895). Return an empty table; the caller rebuilds it from the header
+    # metadata alone.
+    if not header.cols:
+        return Table()
+
     engine = ECSVEngine.engines[engine_name]()
 
     # Get the engine-specific kwargs for reading the CSV data.
@@ -1214,22 +1221,15 @@ def read_ecsv(
     # Read the ECSV header from the input.
     header = read_header(input_file, encoding=encoding)
 
-    # A table with no columns has no CSV data section (not even a header line of
-    # column names), so skip reading data and build an empty table from the header
-    # metadata alone. Attempting to read the data otherwise misinterprets the
-    # remaining comment lines as the CSV header (see #19895).
-    if header.cols:
-        # Read the CSV data from the input starting at the line after the header.
-        # This includes handling that is particular to the engine.
-        data_raw = read_data(
-            input_file,
-            header,
-            null_values=null_values,
-            encoding=encoding,
-            engine_name=engine,
-        )
-    else:
-        data_raw = {}
+    # Read the CSV data from the input starting at the line after the header. This
+    # includes handling that is particular to the engine.
+    data_raw = read_data(
+        input_file,
+        header,
+        null_values=null_values,
+        encoding=encoding,
+        engine_name=engine,
+    )
 
     # Convert the column data to the appropriate numpy dtype. This is mostly concerned
     # with JSON-encoded data but also handles cases like pyarrow not supporting float16.
