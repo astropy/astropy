@@ -33,11 +33,11 @@ By the numbers:
 
 .. release-summary-start
 
-* 973 commits have been added since 7.2
-* 157 issues have been closed since 7.2
-* 328 pull requests have been merged since 7.2
-* 68 people have contributed since 7.2
-* 35 of which are new contributors
+* 1009 commits have been added since v7.2
+* 176 issues have been closed since v7.2
+* 356 pull requests have been merged since v7.2
+* 70 people have contributed since v7.2
+* 37 of which are new contributors
 
 .. release-summary-end
 
@@ -463,6 +463,7 @@ The people who have contributed to the code for this release are:
   -  Evan Chen  *
   -  Fazeel Usmani  *
   -  Hans Moritz Günther
+  -  Ikbar Faiz  *
   -  J. Berg  *
   -  Jett Higgins  *
   -  Joren Hammudoglu  *
@@ -481,6 +482,7 @@ The people who have contributed to the code for this release are:
   -  Nadia Dencheva
   -  Naksh Yadav  *
   -  Nathaniel Starkman
+  -  Om S Habib  *
   -  P. L. Lim
   -  Pierre Sassoulas  *
   -  Preshanth Jagannathan
