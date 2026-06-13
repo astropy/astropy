@@ -77,13 +77,6 @@ class WhatsNewPage:
     path: Path = field(compare=False)
 
 
-def unwrap(value: T | Error) -> T:
-    """Return ``value`` unchanged, or print its message and exit if it is an Error."""
-    if isinstance(value, Error):
-        sys.exit(value.message)
-    return value
-
-
 def git(*args: str) -> str:
     return subprocess.check_output(("git", *args), text=True).strip()
 
@@ -160,9 +153,13 @@ def post_graphql(query: str, token: str) -> dict[str, Any] | Error:
     return data
 
 
-def gh_counts(
-    since: dt.datetime, upto: dt.datetime, token: str
-) -> tuple[int, int] | Error:
+@dataclass(kw_only=True, slots=True, frozen=True)
+class Counts:
+    issues: int
+    prs: int
+
+
+def gh_counts(since: dt.datetime, upto: dt.datetime, token: str) -> Counts | Error:
     """Returns (merged_prs, closed_issues) in [since, upto] via one GraphQL request."""
     span = f"{since.date()}..{upto.date()}"
     data = post_graphql(
@@ -176,7 +173,10 @@ def gh_counts(
     )
     if isinstance(data, Error):
         return data
-    return int(data["pulls"]["issueCount"]), int(data["issues"]["issueCount"])
+    return Counts(
+        issues=int(data["pulls"]["issueCount"]),
+        prs=int(data["issues"]["issueCount"]),
+    )
 
 
 def splice(text: str, marker: str, payload: str) -> str | Error:
@@ -215,7 +215,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     if args.path is None:
-        path = unwrap(latest_page(WHATSNEW_DIR))
+        if isinstance(path := latest_page(WHATSNEW_DIR), Error):
+            print(path.message, file=sys.stderr)
+            return 1
     else:
         path = args.path
     if not path.exists():
@@ -225,10 +227,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not token:
         p.error("a GitHub token is required (--pat or GH_TOKEN / GITHUB_TOKEN env var)")
 
-    prev_version = unwrap(previous_version(path))
+    if isinstance(prev_version := previous_version(path), Error):
+        print(prev_version.message, file=sys.stderr)
+        return 1
 
     if args.check:
-        prev_tag = unwrap(latest_release_tag())
+        if isinstance(prev_tag := latest_release_tag(), Error):
+            print(prev_tag.message, file=sys.stderr)
+            return 1
         short = prev_tag
     else:
         prev_tag = f"v{prev_version}.0"
@@ -242,14 +248,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     ncommits = int(git("rev-list", "--count", f"{prev_tag}..HEAD"))
     since = commit_date(prev_tag)
     upto = commit_date("HEAD")
-    prcnt, icnt = unwrap(gh_counts(since, upto, token))
+    if isinstance(counts := gh_counts(since, upto, token), Error):
+        print(counts.message, file=sys.stderr)
+        return 1
 
     bullets = "\n".join(f"  -  {n}" + ("  *" if n in new else "") for _, n in current)
 
     stats = textwrap.dedent(f"""\
         * {ncommits} commits have been added since {short}
-        * {icnt} issues have been closed since {short}
-        * {prcnt} pull requests have been merged since {short}
+        * {counts.issues} issues have been closed since {short}
+        * {counts.prs} pull requests have been merged since {short}
         * {len(current_names)} people have contributed since {short}
         * {len(new)} of which are new contributors""")
 
@@ -272,7 +280,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         ("release-summary", stats),
         ("release-contributors", contributors),
     ):
-        text = unwrap(splice(text, marker, payload))
+        if isinstance(res := splice(text, marker, payload), Error):
+            print(res.message, file=sys.stderr)
+            return 1
+        text = res
     path.write_text(text)
     print(f"Updated {path} (since {prev_tag})")
     return 0
