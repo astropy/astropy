@@ -335,9 +335,8 @@ To read a FITS table into `~astropy.table.Table`:
     >>> from astropy.time import Time
     >>> from astropy.table import Table
     >>> from astropy.coordinates import EarthLocation
-    >>> t = Table()
-    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd',
-    ...               location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))
+    >>> t = Table({'a': Time([100.0, 200.0], scale='tt', format='mjd',
+    ...                      location=EarthLocation(-2446354, 4237210, 4077985, unit='m'))})
     >>> t.write('my_table.fits', overwrite=True)
     >>> tm = Table.read('my_table.fits', astropy_native=True)
     >>> tm['a']
@@ -557,8 +556,7 @@ Examples
 
 Consider the following Time column::
 
-    >>> t = Table()
-    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd')
+    >>> t = Table({'a': Time([100.0, 200.0], scale='tt', format='mjd')})
 
 The FITS standard requires an additional translation layer back into
 the desired format. The Time column ``t['a']`` will undergo the translation
@@ -581,8 +579,7 @@ following example::
     >>> from astropy.time import Time
     >>> from astropy.table import Table
     >>> from astropy.coordinates import EarthLocation
-    >>> t = Table()
-    >>> t['a'] = Time([100.0, 200.0], scale='tt', format='mjd')
+    >>> t = Table({'a': Time([100.0, 200.0], scale='tt', format='mjd')})
     >>> t.write('my_table.fits', overwrite=True,
     ...         serialize_method={Time: 'formatted_value'})
     >>> tm = Table.read('my_table.fits')

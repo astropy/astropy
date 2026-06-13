@@ -71,10 +71,11 @@ ECSV format is auto-selected due to ``.ecsv`` suffix::
 
   >>> import numpy as np
   >>> from astropy.table import Table
-  >>> data = Table()
-  >>> data['a'] = np.array([1, 2], dtype=np.int8)
-  >>> data['b'] = np.array([1, 2], dtype=np.float32)
-  >>> data['c'] = np.array(['hello', 'world'])
+  >>> data = Table({
+  ...     'a': np.array([1, 2], dtype=np.int8),
+  ...     'b': np.array([1, 2], dtype=np.float32),
+  ...     'c': np.array(['hello', 'world']),
+  ... })
   >>> data.write('my_data.ecsv')  # doctest: +SKIP
 
 The contents of ``my_data.ecsv`` are shown below::
@@ -113,11 +114,11 @@ masked values. This is a bit more common outside of ``astropy`` and does not
 require any astropy-specific extensions.
 
   >>> from astropy.table import MaskedColumn
-  >>> t = Table()
-  >>> t['x'] = MaskedColumn([1.0, 2.0, 3.0], unit='m', dtype='float32')
-  >>> t['x'][1] = np.ma.masked
-  >>> t['y'] = MaskedColumn([False, True, False], dtype='bool')
-  >>> t['y'][0] = np.ma.masked
+  >>> x = MaskedColumn([1.0, 2.0, 3.0], unit='m', dtype='float32')
+  >>> x[1] = np.ma.masked
+  >>> y = MaskedColumn([False, True, False], dtype='bool')
+  >>> y[0] = np.ma.masked
+  >>> t = Table({'x': x, 'y': y})
 
   >>> t.write('my_data.ecsv', format='ascii.ecsv', overwrite=True)  # doctest: +SKIP
 
@@ -297,10 +298,7 @@ and `~astropy.coordinates.SkyCoord` mixin columns::
   >>> sc.info.description = 'flying circus'
   >>> q = [1, 2] * u.m
   >>> q.info.format = '.2f'
-  >>> t = QTable()
-  >>> t['c'] = [1, 2]
-  >>> t['q'] = q
-  >>> t['sc'] = sc
+  >>> t = QTable({'c': [1, 2], 'q': q, 'sc': sc})
 
   >>> t.write('my_data.ecsv')  # doctest: +SKIP
 
@@ -368,9 +366,7 @@ astropy 4.3 and ECSV version 1.0.
 We start by defining a table with 2 rows where each element in the second column
 ``'b'`` is itself a 3x2 array::
 
-  >>> t = Table()
-  >>> t['a'] = ['x', 'y']
-  >>> t['b'] = np.arange(12, dtype=np.float64).reshape(2, 3, 2)
+  >>> t = Table({'a': ['x', 'y'], 'b': np.arange(12, dtype=np.float64).reshape(2, 3, 2)})
   >>> t
   <Table length=2>
    a        b
@@ -440,11 +436,10 @@ above the subtype would have been ``int64[4,4,null]``.
 
 .. doctest-skip::
 
-  >>> t = Table()
-  >>> t['a'] = np.empty(3, dtype=object)
-  >>> t['a'] = [np.array([1, 2], dtype=np.int64),
-  ...           np.array([3, 4, 5], dtype=np.int64),
-  ...           np.array([6, 7, 8, 9], dtype=np.int64)]
+  >>> a = [np.array([1, 2], dtype=np.int64),
+  ...      np.array([3, 4, 5], dtype=np.int64),
+  ...      np.array([6, 7, 8, 9], dtype=np.int64)]
+  >>> t = Table({'a': a})
   >>> ascii.write(t, format='ecsv')
   # %ECSV 1.0
   # ---
@@ -479,10 +474,9 @@ representation.
 
 .. doctest-skip::
 
-  >>> t = Table()
-  >>> t['a'] = np.array([{'a': 1},
-  ...                    {'b': [2.5, None]},
-  ...                    True], dtype=object)
+  >>> t = Table({'a': np.array([{'a': 1},
+  ...                           {'b': [2.5, None]},
+  ...                           True], dtype=object)})
   >>> ascii.write(t, format='ecsv')
   # %ECSV 1.0
   # ---

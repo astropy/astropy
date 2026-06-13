@@ -342,9 +342,7 @@ astropy where this is done, where the structured column has three elements
 value, a minimum allowed value and a maximum allowed value. Here we demonstrate
 including the simple structured array defined previously as a column::
 
-  >>> table = Table()
-  >>> table['name'] = ['Micah', 'Mazzy']
-  >>> table['arr'] = arr
+  >>> table = Table({'name': ['Micah', 'Mazzy'], 'arr': arr})
   >>> print(table)
    name arr [a, b, c]
   ----- -------------
@@ -1190,8 +1188,7 @@ table::
 
   >>> from astropy.table import QTable
   >>> from astropy import units as u
-  >>> t = QTable()
-  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> t = QTable({'velocity': [3, 4] * u.m / u.s})
   >>> type(t['velocity'])
   <class 'astropy.units.quantity.Quantity'>
 
@@ -1203,8 +1200,7 @@ with legacy code that does not handle quantities) and there are
 a `~astropy.table.Column` object with a ``unit`` attribute::
 
   >>> from astropy.table import Table
-  >>> t = Table()
-  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> t = Table({'velocity': [3, 4] * u.m / u.s})
   >>> type(t['velocity'])
   <class 'astropy.table.column.Column'>
   >>> t['velocity'].unit

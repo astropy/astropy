@@ -33,9 +33,8 @@ To write a formatted text table using the |write| function::
   >>> import numpy as np
   >>> from astropy.io import ascii
   >>> from astropy.table import Table
-  >>> data = Table()
-  >>> data['x'] = np.array([1, 2, 3], dtype=np.int32)
-  >>> data['y'] = data['x'] ** 2
+  >>> x = np.array([1, 2, 3], dtype=np.int32)
+  >>> data = Table({'x': x, 'y': x ** 2})
   >>> ascii.write(data, 'values.dat', overwrite=True)  # doctest: +SKIP
 
 The ``values.dat`` file will then contain::
@@ -275,15 +274,21 @@ has masked values.
   >>> from astropy.io import ascii
   >>> from astropy.table import Table, Column, MaskedColumn
   >>> from astropy import units as u
-  >>> table = Table()
-  >>> table['Name'] = ['ASASSN-15lh', 'ASASSN-14li']
+  >>> name = ['ASASSN-15lh', 'ASASSN-14li']
   >>> # MRT Standard requires all quantities in SI units.
   >>> temperature = [0.0334, 0.297] * u.K
-  >>> table['Temperature'] = temperature.to(u.keV, equivalencies=u.temperature_energy())
-  >>> table['nH'] = Column([0.025, 0.0188], unit=u.Unit(10**22))
-  >>> table['Flux'] = ([2.044 * 10**-11] * u.erg * u.cm**-2).to(u.Jy * u.Unit(10**12))
-  >>> table['Flux'] = MaskedColumn(table['Flux'], mask=[True, False])
-  >>> table['magnitude'] = [u.Magnitude(25), u.Magnitude(-9)]
+  >>> temp_kev = temperature.to(u.keV, equivalencies=u.temperature_energy())
+  >>> nh = Column([0.025, 0.0188], unit=u.Unit(10**22))
+  >>> flux_val = ([2.044 * 10**-11, 2.044 * 10**-11] * u.erg * u.cm**-2).to(u.Jy * u.Unit(10**12))
+  >>> flux = MaskedColumn(flux_val, mask=[True, False])
+  >>> mag = [u.Magnitude(25), u.Magnitude(-9)]
+  >>> table = Table({
+  ...     'Name': name,
+  ...     'Temperature': temp_kev,
+  ...     'nH': nh,
+  ...     'Flux': flux,
+  ...     'magnitude': mag,
+  ... })
 
 Note that for columns with `~astropy.time.Time`, `~astropy.time.TimeDelta` and related values,
 the writer does not do any internal conversion or modification. These columns should be

@@ -40,9 +40,7 @@ Basic Multi-Backend Example
 Create a table and convert to different DataFrame backends:
 
     >>> from astropy.table import Table
-    >>> t = Table()
-    >>> t['a'] = [1, 2, 3, 4]
-    >>> t['b'] = ['a', 'b', 'c', 'd']
+    >>> t = Table({'a': [1, 2, 3, 4], 'b': ['a', 'b', 'c', 'd']})
 
 Convert to pandas DataFrame:
 
@@ -105,9 +103,7 @@ Basic Pandas Example
 To demonstrate, we can create a minimal table::
 
     >>> from astropy.table import Table
-    >>> t = Table()
-    >>> t['a'] = [1, 2, 3, 4]
-    >>> t['b'] = ['a', 'b', 'c', 'd']
+    >>> t = Table({'a': [1, 2, 3, 4], 'b': ['a', 'b', 'c', 'd']})
 
 Convert to a pandas DataFrame using the pandas-specific method:
 
@@ -230,13 +226,14 @@ Create a table with masked and mixin columns::
     >>> from astropy.time import Time
     >>> from astropy.coordinates import SkyCoord
     >>> import astropy.units as u
-    >>> t = QTable()
-    >>> t['a'] = MaskedColumn([1, 2, 3], mask=[False, True, False])
-    >>> t['b'] = MaskedColumn([1.0, 2.0, 3.0], mask=[False, False, True])
-    >>> t['c'] = MaskedColumn(["a", "b", "c"], mask=[True, False, False])
-    >>> t['tm'] = Time(["2021-01-01", "2021-01-02", "2021-01-03"])
-    >>> t['sc'] = SkyCoord(ra=[1, 2, 3] * u.deg, dec=[4, 5, 6] * u.deg)
-    >>> t['q'] = [1, 2, 3] * u.m
+    >>> t = QTable({
+    ...     'a': MaskedColumn([1, 2, 3], mask=[False, True, False]),
+    ...     'b': MaskedColumn([1.0, 2.0, 3.0], mask=[False, False, True]),
+    ...     'c': MaskedColumn(["a", "b", "c"], mask=[True, False, False]),
+    ...     'tm': Time(["2021-01-01", "2021-01-02", "2021-01-03"]),
+    ...     'sc': SkyCoord(ra=[1, 2, 3] * u.deg, dec=[4, 5, 6] * u.deg),
+    ...     'q': [1, 2, 3] * u.m,
+    ... })
 
     >>> t
     <QTable length=3>

@@ -585,11 +585,12 @@ Column alignment
 Individual columns have the ability to be aligned in a number of different
 ways for an enhanced viewing experience::
 
-  >>> t1 = Table()
-  >>> t1['long column name 1'] = [1, 2, 3]
-  >>> t1['long column name 2'] = [4, 5, 6]
-  >>> t1['long column name 3'] = [7, 8, 9]
-  >>> t1['long column name 4'] = [700000, 800000, 900000]
+  >>> t1 = Table({
+  ...     'long column name 1': [1, 2, 3],
+  ...     'long column name 2': [4, 5, 6],
+  ...     'long column name 3': [7, 8, 9],
+  ...     'long column name 4': [700000, 800000, 900000],
+  ... })
   >>> t1['long column name 2'].info.format = '<'
   >>> t1['long column name 3'].info.format = '0='
   >>> t1['long column name 4'].info.format = '^'
@@ -603,9 +604,7 @@ ways for an enhanced viewing experience::
 Conveniently, alignment can be handled another way — by passing a list to the
 keyword argument ``align``::
 
-  >>> t1 = Table()
-  >>> t1['column1'] = [1, 2, 3]
-  >>> t1['column2'] = [2, 4, 6]
+  >>> t1 = Table({'column1': [1, 2, 3], 'column2': [2, 4, 6]})
   >>> t1.pprint(align=['<', '0='])
   column1 column2
   ------- -------
@@ -764,12 +763,13 @@ The specification of names for these attributes can include Unix-style globs
 like ``*`` and ``?``. See `fnmatch` for details (and in particular how to
 escape those characters if needed). For example::
 
-  >>> t = Table()
+  >>> t = Table({
+  ...     'a': [1],
+  ...     'b': ['b'],
+  ...     'boring_ra': [122.0],
+  ...     'boring_dec': [89.9],
+  ... })
   >>> t.pprint_exclude_names = ['boring*']
-  >>> t['a'] = [1]
-  >>> t['b'] = ['b']
-  >>> t['boring_ra'] = [122.0]
-  >>> t['boring_dec'] = [89.9]
   >>> print(t)
    a   b
   --- ---
@@ -784,14 +784,13 @@ itself an array. In the example below there are three rows, each of which is a
 and last value of each row element and indicates the array dimensions in the
 column name header::
 
-  >>> t = Table()
   >>> arr = [ np.array([[ 1.,  2.],
   ...                   [10., 20.]]),
   ...         np.array([[ 3.,  4.],
   ...                   [30., 40.]]),
   ...         np.array([[ 5.,  6.],
   ...                   [50., 60.]]) ]
-  >>> t['a'] = arr
+  >>> t = Table({'a': arr})
   >>> t['a'].shape
   (3, 2, 2)
   >>> t.pprint()
@@ -850,9 +849,7 @@ the value, min and max are stored in the in the column as fields named ``val``,
     ...    (12.345678, 4.5678, 33)],
     ...   dtype=[('val', 'f8'), ('min', 'f8'), ('max', 'f8')]
     ... )
-    >>> t = Table()
-    >>> t['a'] = [1, 2]
-    >>> t['par'] = pars
+    >>> t = Table({'a': [1, 2], 'par': pars})
     >>> print(t)
      a     par [val, min, max]
     --- -------------------------

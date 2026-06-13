@@ -148,9 +148,8 @@ function::
   >>> import numpy as np
   >>> from astropy.io import ascii
   >>> from astropy.table import Table
-  >>> data = Table()
-  >>> data['x'] = np.array([1, 2, 3], dtype=np.int32)
-  >>> data['y'] = data['x'] ** 2
+  >>> x = np.array([1, 2, 3], dtype=np.int32)
+  >>> data = Table({'x': x, 'y': x ** 2})
   >>> ascii.write(data, 'values.dat', overwrite=True)
 
 The ``values.dat`` file will then contain::

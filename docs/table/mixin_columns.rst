@@ -27,9 +27,7 @@ As an example we can create a table and add a time column::
 
   >>> from astropy.table import Table
   >>> from astropy.time import Time
-  >>> t = Table()
-  >>> t['index'] = [1, 2]
-  >>> t['time'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
+  >>> t = Table({'index': [1, 2], 'time': Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])})
   >>> print(t)
   index           time
   ----- -----------------------
@@ -76,10 +74,11 @@ this case the quantity is converted to a |Column| (which has a ``unit``
 attribute but does not have all of the features of a |Quantity|)::
 
   >>> import astropy.units as u
-  >>> t = Table()
-  >>> t['index'] = [1, 2]
-  >>> t['time'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
-  >>> t['velocity'] = [3, 4] * u.m / u.s
+  >>> t = Table({
+  ...     'index': [1, 2],
+  ...     'time': Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02']),
+  ...     'velocity': [3, 4] * u.m / u.s,
+  ... })
 
   >>> print(t)
   index           time          velocity
@@ -101,10 +100,11 @@ So instead let's do the same thing using a |QTable|::
 
   >>> from astropy.table import QTable
 
-  >>> qt = QTable()
-  >>> qt['index'] = [1, 2]
-  >>> qt['time'] = Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02'])
-  >>> qt['velocity'] = [3, 4] * u.m / u.s
+  >>> qt = QTable({
+  ...     'index': [1, 2],
+  ...     'time': Time(['2001-01-02T12:34:56', '2001-02-03T00:01:02']),
+  ...     'velocity': [3, 4] * u.m / u.s,
+  ... })
 
 The ``velocity`` column is now a |Quantity| and behaves accordingly::
 
