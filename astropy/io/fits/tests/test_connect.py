@@ -1002,3 +1002,32 @@ def test_meta_not_modified(tmp_path):
     t.write(filename)
     assert len(t.meta) == 1
     assert t.meta["comments"] == ["a", "b"]
+
+
+def test_is_fits_with_empty_args():
+    """Test that is_fits doesn't raise IndexError when args is empty.
+    
+    This is a regression test for https://github.com/astropy/astropy/issues/15788
+    """
+    from astropy.io.fits.connect import is_fits
+    
+    # Test with empty args - should return False, not raise IndexError
+    result = is_fits("write", "test.ecsv", None, [], {})
+    assert result is False
+    
+    # Test with non-FITS extension and empty args
+    result = is_fits("write", "test.csv", None, [], {})
+    assert result is False
+    
+    # Test with FITS extension - should return True
+    result = is_fits("write", "test.fits", None, [], {})
+    assert result is True
+    
+    # Test with HDUList in args - should return True
+    hdu_list = HDUList()
+    result = is_fits("write", None, None, hdu_list, {})
+    assert result is True
+    
+    # Test with non-HDU in args - should return False
+    result = is_fits("write", None, None, "not a hdu", {})
+    assert result is False
