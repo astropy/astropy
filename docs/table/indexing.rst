@@ -352,7 +352,7 @@ specified to use a particular indexing engine. The available engines are:
   sorted |Table|.
 * `~astropy.table.SCEngine`, a sorted list engine using the `Sorted Containers
   <https://pypi.org/project/sortedcontainers/>`_ package.
-* `~astropy.table.BST`, a Python-based binary search tree engine (deprecated).
+* `~astropy.table.BST`, a Python-based binary search tree engine (not recommended, deprecated).
 
 The SCEngine depends on the ``sortedcontainers`` dependency. The most important takeaway is that
 `~astropy.table.SortedArray` (the default engine) is usually best, although
