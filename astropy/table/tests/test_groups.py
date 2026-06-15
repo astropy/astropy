@@ -758,3 +758,39 @@ def test_group_stable_sort(add_index, a):
     tg = t.group_by("a")
     for grp in tg.groups:
         assert np.all(grp["b"] == np.sort(grp["b"]))
+
+
+def test_get_group(T1):
+    """Test getting a group by its key using get_group()."""
+    t = QTable(T1)
+
+    # Single column group
+    tg = t.group_by("a")
+    g = tg.groups.get_group(1)
+    assert np.all(g["a"] == 1)
+    assert len(g) == 3
+
+    # Single column group using dict
+    g2 = tg.groups.get_group({"a": 1})
+    assert np.all(g["b"] == g2["b"])
+
+    # Two column group
+    tg = t.group_by(["a", "b"])
+    g = tg.groups.get_group((2, "b"))
+    assert np.all(g["a"] == 2)
+    assert np.all(g["b"] == "b")
+    assert len(g) == 2
+
+    # Two column group using dict
+    g2 = tg.groups.get_group({"a": 2, "b": "b"})
+    assert np.all(g["c"] == g2["c"])
+
+    # Error cases
+    with pytest.raises(KeyError):
+        tg.groups.get_group((3, "b"))  # Non-existent key
+
+    with pytest.raises(ValueError):
+        tg.groups.get_group(2)  # Missing part of key
+
+    with pytest.raises(ValueError):
+        tg.groups.get_group({"a": 2, "c": 3})  # Invalid column in dict
