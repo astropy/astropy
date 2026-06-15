@@ -1,0 +1,1 @@
+Added a new ``get_group`` method to ``TableGroups`` and ``ColumnGroups`` that allows retrieving a specific group by its key value (e.g., a tuple, dict, or scalar), similar to pandas.
