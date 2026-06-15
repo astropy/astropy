@@ -794,3 +794,12 @@ def test_get_group(T1):
 
     with pytest.raises(ValueError):
         tg.groups.get_group({"a": 2, "c": 3})  # Invalid column in dict
+
+
+def test_get_group_column(T1):
+    """Test getting a group from a grouped column by its key."""
+    c = T1["c"]
+    cg = c.group_by(T1["a"])
+    g = cg.groups.get_group(1)
+    assert len(g) == 3
+    assert np.all(g == [3.0, 2.0, 1.0])
