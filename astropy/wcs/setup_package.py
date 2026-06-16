@@ -211,6 +211,16 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
         cfg["sources"].extend(join(wcslib_cpath, x) for x in wcslib_files)
         cfg["include_dirs"].append(wcslib_cpath)
 
+        # WCSLIB's wcsprintf.c declares its module-static output buffer with the
+        # thread-local storage specifier WCSLIB_TLS so concurrent callers each
+        # get their own buffer.  Upstream supplies this via configure
+        # (-DWCSLIB_TLS=...), but astropy compiles the bundled sources without
+        # running configure, so define it here per compiler.
+        if get_compiler() == "msvc":
+            cfg["define_macros"].append(("WCSLIB_TLS", "__declspec(thread)"))
+        else:
+            cfg["define_macros"].append(("WCSLIB_TLS", "__thread"))
+
     if debug:
         cfg["define_macros"].append(("DEBUG", None))
         cfg["undef_macros"].append("NDEBUG")
