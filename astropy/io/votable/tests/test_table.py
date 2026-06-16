@@ -11,6 +11,8 @@ import warnings
 
 import numpy as np
 import pytest
+from numpy.ma import masked_array
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
@@ -521,6 +523,28 @@ def test_validate_output_valid():
     assert validate_out is True
 
 
+def test_validate_output_valid_with_char_array():
+    """
+    Issue #12603. Test that we get the correct output from votable.validate with a valid
+    votable.
+    """
+    # A valid votable. (Example from the votable standard:
+    # https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html )
+    valid_votable_filepath = get_pkg_data_filename("data/valid_votable_with_char_array.xml")
+
+    # When output is None, check that validate returns validation output as a string
+    validate_out = validate(valid_votable_filepath, output=None)
+    assert isinstance(validate_out, str)
+    # Check for known good output string
+    assert "astropy.io.votable found no violations" in validate_out
+
+    # When output is not set, check that validate returns a bool
+    validate_out = validate(valid_votable_filepath)
+    assert isinstance(validate_out, bool)
+    # Check that validation output is correct (votable is valid)
+    assert validate_out is True
+
+
 def test_binary2_single_bounded_char_array():
     """
     Test that variable length char arrays with a max length
@@ -532,8 +556,8 @@ def test_binary2_single_bounded_char_array():
 
     assert len(astropy_table) == 1
     assert (
-        astropy_table[0]["access_format"]
-        == "application/x-votable+xml;content=datalink"
+            astropy_table[0]["access_format"]
+            == "application/x-votable+xml;content=datalink"
     )
 
     output = io.BytesIO()
@@ -546,9 +570,83 @@ def test_binary2_single_bounded_char_array():
 
     assert len(astropy_table2) == 1
     assert (
-        astropy_table2[0]["access_format"]
-        == "application/x-votable+xml;content=datalink"
+            astropy_table2[0]["access_format"]
+            == "application/x-votable+xml;content=datalink"
     )
+
+
+def test_binary2_single_fix_char_array():
+    """
+    Test that variable length char arrays with a max length
+    (arraysize="128*") are read correctly in BINARY2 format.
+    """
+    votable = parse(get_pkg_data_filename("data/binary2_fix_length_array_char.xml"))
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    print(astropy_table)
+    actual = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    data = ['1234567890', 'abcdefghij', '0987654321', 'jihgfedcba']
+
+    dtype = np.dtype([('access_format', '<U10', (4,))])
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+
+    assert_array_equal(astropy_table[0]["access_format"], ['1234567890', 'abcdefghij', '0987654321', 'jihgfedcba'])
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+    output.seek(0)
+
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+
+    assert len(astropy_table2) == 1
+    assert astropy_table2[0]["access_format"] == ['1234567890' 'abcdefghij' '0987654321' 'jihgfedcba']
+    print(table2)
+
+
+def test_binary2_single_variable_char_array():
+    """
+    Test that variable length char arrays with a max length
+    (arraysize="128*") are read correctly in BINARY2 format.
+    """
+    votable = parse(get_pkg_data_filename("data/binary2_variable_length_array_char.xml"))
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    data = ['1234567890', 'abcdefghij', '0987654321', 'jihgfedcba']
+
+    dtype = np.dtype([('access_format', 'O')])
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+
+    assert_array_equal(astropy_table[0]["access_format"], ['1234567890', 'abcdefghij', '0987654321', 'jihgfedcba'])
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+    output.seek(0)
+
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+
+    assert len(astropy_table2) == 1
+    assert astropy_table2[0]["access_format"] == ['1234567890' 'abcdefghij' '0123456789' 'jihgfedcba']
 
 
 def test_binary2_bounded_variable_length_char():
@@ -562,6 +660,7 @@ def test_binary2_bounded_variable_length_char():
     table = tree.TableElement(votable)
     resource.tables.append(table)
 
+    # A variable-length array with a maximum length of 128 characters.
     table.fields.append(
         tree.Field(
             votable,
@@ -598,8 +697,8 @@ def test_binary2_bounded_variable_length_char():
             f"Data mismatch with format {format_name}"
         )
         assert (
-            table2.array[1]["bounded_char"]
-            == "Longer string that still fits the 128 characters"
+                table2.array[1]["bounded_char"]
+                == "Longer string that still fits the 128 characters"
         ), f"Data mismatch with format {format_name}"
 
 
@@ -641,6 +740,7 @@ def test_binary2_bounded_variable_length_char_edge_cases():
 
     votable2 = parse(bio)
     table2 = votable2.get_first_table()
+    actual = table2.array
 
     assert table2.fields[0].arraysize == "10*", "Failed to preserve arraysize"
     assert table2.array[0]["bounded_char"] == "", "Empty string not preserved"
@@ -650,6 +750,133 @@ def test_binary2_bounded_variable_length_char_edge_cases():
     assert table2.array[2]["bounded_char"] == "12345", (
         "Partial length string not preserved"
     )
+
+
+def test_char_array_fix_size():
+    """
+    Test edge cases for bounded variable-length char arrays in BINARY2 format
+    """
+    votable = tree.VOTableFile()
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table._config = table._config or {}
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="bounded_char",
+            datatype="char",
+            arraysize="10x3",
+            ID="bounded_char",
+        )
+    )
+
+    table.create_arrays(1)
+    table.array[0]["bounded_char"] = ["1234567890", "  345678  ", "  34567890"]
+
+    bio = io.BytesIO()
+
+    votable.version = "1.3"
+    table._config["version_1_3_or_later"] = True
+
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+    actual = table2.array
+    print()
+    print(table2)
+    print(type(actual))
+    print(actual)
+    print(actual.dtype)
+
+    assert table2.fields[0].arraysize == "10x3", "Failed to preserve arraysize"
+    assert table2.array[0]["bounded_char"][0] == '1234567890'
+    assert table2.array[0]["bounded_char"][1] == '  345678  '
+    assert table2.array[0]["bounded_char"][2] == '  34567890'
+
+    data = ['1234567890', '  345678  ', '  34567890']
+
+    dtype = np.dtype([('bounded_char', '<U10', (3,))])
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+
+
+def test_variable_char_arrray_size():
+    """
+    Test edge cases for bounded variable-length char arrays in BINARY2 format
+    """
+    votable = tree.VOTableFile()
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table._config = table._config or {}
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="bounded_char",
+            datatype="char",
+            arraysize="10x*",
+            ID="bounded_char",
+        )
+    )
+
+    table.create_arrays(1)
+    my_str_list = ["1234567890", "  345678  ", "  34567890", "abcdefghij"]
+    assert sum([len(s) for s in my_str_list]) == 40
+
+    table.array[0]["bounded_char"] = my_str_list
+
+    my_str = "1234567890    345678    34567890 abcdefghij"
+    assert len(my_str) == 43
+
+    bio = io.BytesIO()
+
+    votable.version = "1.3"
+    table._config["version_1_3_or_later"] = True
+
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+    actual = table2.array
+    print()
+    print(table2)
+    print(type(actual))
+    print(actual)
+    print(actual.dtype)
+
+    assert table2.fields[0].arraysize == "10x*", "Failed to preserve arraysize"
+    assert table2.array[0]["bounded_char"][0] == '1234567890'
+    assert table2.array[0]["bounded_char"][1] == '  345678  '
+    assert table2.array[0]["bounded_char"][2] == '  34567890'
+    assert table2.array[0]["bounded_char"][3] == 'abcdefghij'
+
+    dtype = np.dtype([('bounded_char', 'O')])
+
+    assert actual.dtype == dtype
+
+    expected = np.array([
+        (
+            masked_array(data=['1234567890', '  345678  ', '  34567890', 'abcdefghij'],
+                         mask=[False, False, False, False], fill_value='N/A', dtype='<U10'),
+        )
+    ], dtype=object)
+
+    for (actual_ma,), (expected_ma,) in zip(actual, expected):
+        assert_array_equal(actual_ma, expected_ma)
 
 
 def test_binary2_char_fields_vizier_data():
@@ -711,6 +938,102 @@ def test_char_bounds_validation():
             result = converter._binoutput_var(long_string, False)
 
         assert any("char" in str(w.message) and "2" in str(w.message) for w in record)
+
+
+def test_char_arrayVarArray():
+    from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
+
+    """
+    Test that char converter correctly validates the bounds.
+    """
+
+    # Create a new VOTable file...
+    votable = VOTableFile()
+
+    # ...with one resource...
+    resource = Resource()
+    votable.resources.append(resource)
+
+    # ... with one table
+    table = TableElement(votable)
+    resource.tables.append(table)
+
+    # Define some fields
+    table.fields.extend(
+        [
+            Field(votable, name="filename", datatype="char", arraysize="*"),
+            Field(votable, name="matrix", datatype="double", arraysize="2x*"),
+            Field(votable, name="matrix_fix", datatype="double", arraysize="2x2"),
+        ]
+    )
+
+    # Now, use those field definitions to create the numpy record arrays, with
+    # the given number of rows
+    table.create_arrays(2)
+
+    # Now table.array can be filled with data
+    table.array[0] = ("test1.xml", [[1, 0], [0, 1]], [[9, 9], [9, 9]])
+    table.array[1] = ("test2.xml", [[0.5, 0.3], [0.1, 0.0], [1.0, 0.0]], [[9, 9], [9, 9]])
+
+    bio = io.BytesIO()
+
+    votable.version = "1.3"
+    table._config["version_1_3_or_later"] = True
+
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+    actual = table2.array
+    print()
+    print(table2)
+    print(type(actual))
+    print(actual)
+    print(actual.dtype)
+
+    dtype = np.dtype([
+        ('filename', object),
+        ('matrix', object),
+        ('matrix_fix', np.float64, (2, 2))
+    ])
+
+    assert actual.dtype == dtype
+
+    arr = [
+        ('test1.xml',
+         masked_array(
+             data=[[1.0, 0.0], [0.0, 1.0]],
+             mask=[[False, False], [False, False]],
+             fill_value=1e+20), [[9.0, 9.0], [9.0, 9.0]]),
+        ('test2.xml',
+         masked_array(
+             data=[[0.5, 0.3], [0.1, 0.0], [1.0, 0.0]],
+             mask=[[False, False], [False, False],
+                   [False, False]], fill_value=1e+20), [[9.0, 9.0], [9.0, 9.0]])
+    ]
+
+    assert len(table2.array) == len(arr)
+
+    for row1, row2 in zip(np.asarray(table2.array, dtype=object), arr):
+        n1, m1, r1 = row1
+        n2, m2, r2 = row2
+
+        assert n1 == n2
+        assert_array_equal(m1, m2)
+        assert_array_equal(r1, r2)
+
+
+def test_char_array():
+    """
+    Test that char converter correctly validates the bounds.
+    """
+    votable = tree.VOTableFile()
+    field = tree.Field(
+        votable, name="bounded_char", datatype="char", arraysize="100x2", ID="bounded_char"
+    )
+
+    converter = get_converter(field)
 
 
 def test_binary2_bounded_char_warnings():
