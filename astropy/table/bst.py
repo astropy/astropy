@@ -160,7 +160,7 @@ class Node:
 
 
 @deprecated(
-    since="9.0",
+    since="8.1",
     alternative="SortedArray (the default engine) or SCEngine",
 )
 class BST:

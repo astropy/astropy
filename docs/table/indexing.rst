@@ -359,7 +359,7 @@ The SCEngine depends on the ``sortedcontainers`` dependency. The most important 
 `~astropy.table.SCEngine` may be more appropriate for an index created on an
 empty column since adding new values is quicker.
 
-.. deprecated:: 9.0
+.. deprecated:: 8.1
 
    The `~astropy.table.BST` engine demonstrates a simple pure Python
    implementation of a search tree engine, but the performance is poor for
