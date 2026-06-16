@@ -148,10 +148,10 @@ def _test_regression(tmp_path, _python_based=False, binary_mode=1):
     )
 
     with open(
-        get_pkg_data_filename(
-            f"data/regression.bin.tabledata.truth.{votable.version}.xml"
-        ),
-        encoding="utf-8",
+            get_pkg_data_filename(
+                f"data/regression.bin.tabledata.truth.{votable.version}.xml"
+            ),
+            encoding="utf-8",
     ) as fd:
         truth = fd.readlines()
     with open(str(tmp_path / "regression.bin.tabledata.xml"), encoding="utf-8") as fd:
@@ -270,8 +270,8 @@ def test_select_missing_columns_error_message(columns, expected_missing):
     # see https://github.com/astropy/astropy/pull/15956
     filename = get_pkg_data_filename("data/regression.xml")
     with pytest.raises(
-        ValueError,
-        match=re.escape(f"Columns {expected_missing!r} were not found in fields list"),
+            ValueError,
+            match=re.escape(f"Columns {expected_missing!r} were not found in fields list"),
     ):
         parse_single_table(filename, columns=columns)
 
@@ -381,7 +381,7 @@ def test_select_columns_by_name():
     ],
 )
 def test_select_columns_by_name_edge_cases(
-    column_ids, use_names_over_ids, expected_names
+        column_ids, use_names_over_ids, expected_names
 ):
     # see https://github.com/astropy/astropy/issues/14943
     filename = get_pkg_data_filename("data/regression.xml")
@@ -697,9 +697,9 @@ class TestParse:
     def test_repr(self):
         assert "3 tables" in repr(self.votable)
         assert (
-            repr(list(self.votable.iter_fields_and_params())[0])
-            == '<PARAM ID="awesome" arraysize="*" datatype="float" '
-            'name="INPUT" unit="deg" value="[0.0 0.0]"/>'
+                repr(list(self.votable.iter_fields_and_params())[0])
+                == '<PARAM ID="awesome" arraysize="*" datatype="float" '
+                   'name="INPUT" unit="deg" value="[0.0 0.0]"/>'
         )
         # Smoke test
         repr(list(self.votable.iter_groups()))
@@ -881,12 +881,48 @@ def table_from_scratch():
     votable.to_xml(out)
 
 
+def table_from_scratch_char_array():
+    from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
+
+    # Create a new VOTable file...
+    votable = VOTableFile()
+
+    # ...with one resource...
+    resource = Resource()
+    votable.resources.append(resource)
+
+    # ... with one table
+    table = TableElement(votable)
+    resource.tables.append(table)
+
+    # Define some fields
+    table.fields.extend(
+        [
+            Field(votable, ID="filename", datatype="char", arraysize="2x*"),
+            Field(votable, ID="matrix", datatype="double", arraysize="2x2"),
+        ]
+    )
+
+    # Now, use those field definitions to create the numpy record arrays, with
+    # the given number of rows
+    table.create_arrays(2)
+
+    # Now table.array can be filled with data
+    table.array[0] = ("test1.xml", ['aa', 'bb', 'cc'])
+    table.array[1] = ("test2.xml", ['dd', 'ee'])
+
+    # Now write the whole thing to a file.
+    # Note, we have to use the top-level votable file object
+    out = io.StringIO()
+    votable.to_xml(out)
+
+
 # https://github.com/astropy/astropy/issues/13341
 @np.errstate(over="ignore")
 def test_open_files():
     for filename in get_pkg_data_filenames("data", pattern="*.xml"):
         if not filename.endswith(
-            ("custom_datatype.xml", "timesys_errors.xml", "parquet_binary.xml")
+                ("custom_datatype.xml", "timesys_errors.xml", "parquet_binary.xml")
         ):
             parse(filename)
 
@@ -944,6 +980,68 @@ def test_build_from_scratch(tmp_path):
             ],
             dtype=[("filename", "?"), ("matrix", "?", (2, 2))],
         ),
+    )
+
+
+def test_build_from_scratch(tmp_path):
+    # Create a new VOTable file...
+    votable = tree.VOTableFile()
+
+    # ...with one resource...
+    resource = tree.Resource()
+    votable.resources.append(resource)
+
+    # ... with one table
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    # Define some fields
+    table.fields.extend(
+        [
+            tree.Field(votable, ID="filename", name="filename", datatype="char", arraysize="*"),
+            tree.Field(votable, ID="array_1", name="array_1", datatype="char", arraysize="3x*"),
+            tree.Field(votable, ID="array_2", name="array_2", datatype="char", arraysize="2x2"),
+        ]
+    )
+
+    # Now, use those field definitions to create the numpy record arrays, with
+    # the given number of rows
+    table.create_arrays(2)
+
+    # Now table.array can be filled with data
+    table.array[0] = ("test1.xml", ['aaa', 'bbb', 'ccc'], ['dd', 'ee'])
+    table.array[1] = ("test2.xml", ['111', '222', '333'], ['44', '55'])
+
+    # Now write the whole thing to a file.
+    # Note, we have to use the top-level votable file object
+    votable.to_xml(str(tmp_path / "new_votable.xml"))
+
+    votable = parse(str(tmp_path / "new_votable.xml"))
+
+    table = votable.get_first_table()
+
+    print()
+    print(table.array[0])
+
+    print(table.array[0][1])
+    print(table.array[0][2])
+
+    assert_array_equal(table.array[0][1], ['aaa', 'bbb', 'ccc'])
+    assert_array_equal(table.array[0][2], ['dd', 'ee'])
+
+    print(len(table.array.mask))
+    print(table.array.mask)
+    print(table.array.mask[0])
+    print(table.array.mask[1])
+
+    print(table.array.mask.dtype)
+
+    print()
+    assert_array_equal(
+        table.array.mask,
+        np.array([(False, [False, False, False], [False, False]), (False, [False, False, False], [False, False])],
+                 dtype=[('filename', '?'), ('array_1', '?', (3,)), ('array_2', '?', (2,))],
+                 )
     )
 
 
@@ -1045,6 +1143,43 @@ def _run_test_from_scratch_example():
     # Now table.array can be filled with data
     table.array[0] = ("test1.xml", [[1, 0], [0, 1]])
     table.array[1] = ("test2.xml", [[0.5, 0.3], [0.2, 0.1]])
+
+    assert table.array[0][0] == "test1.xml"
+
+
+def test_from_scratch_char_array_example():
+    _run_test_from_scratch_char_array_example()
+
+
+def _run_test_from_scratch_char_array_example():
+    from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
+
+    # Create a new VOTable file...
+    votable = VOTableFile()
+
+    # ...with one resource...
+    resource = Resource()
+    votable.resources.append(resource)
+
+    # ... with one table
+    table = TableElement(votable)
+    resource.tables.append(table)
+
+    # Define some fields
+    table.fields.extend(
+        [
+            Field(votable, name="filename", datatype="char", arraysize="2x*"),
+            Field(votable, name="matrix", datatype="double", arraysize="2x2"),
+        ]
+    )
+
+    # Now, use those field definitions to create the numpy record arrays, with
+    # the given number of rows
+    table.create_arrays(2)
+
+    # Now table.array can be filled with data
+    table.array[0] = ("test1.xml", ['aa', 'bb', 'cc'])
+    table.array[1] = ("test2.xml", ['dd', 'ee'])
 
     assert table.array[0][0] == "test1.xml"
 
