@@ -1739,9 +1739,9 @@ class Field(
             and self.converter.output_format != "{!s:>}"
         ):
             column.format = self.converter.output_format
-        elif isinstance(self.converter, converters.Char):
+        elif isinstance(self.converter, (converters.Char, converters.CharArray, converters.CharArrayVarArray)):
             column.info.meta["_votable_string_dtype"] = "char"
-            if self.arraysize is not None and self.arraysize.endswith("*"):
+            if self.arraysize is not None and (self.arraysize.endswith("*") or 'x' in self.arraysize):
                 column.info.meta["_votable_arraysize"] = self.arraysize
         elif isinstance(self.converter, converters.UnicodeChar):
             column.info.meta["_votable_string_dtype"] = "unicodeChar"

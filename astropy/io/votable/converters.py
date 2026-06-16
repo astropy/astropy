@@ -16,7 +16,6 @@ from numpy import ma
 
 # ASTROPY
 from astropy.utils.xml.writer import xml_escape_cdata
-
 # LOCAL
 from .exceptions import (
     E01,
@@ -52,7 +51,6 @@ from .fast_converters import (
 
 __all__ = ["Converter", "get_converter", "table_column_to_votable_datatype"]
 
-
 pedantic_array_splitter = re.compile(r" +")
 array_splitter = re.compile(r"\s+|(?:\s*,\s*)")
 """
@@ -65,7 +63,6 @@ files in the wild use them.
 _zero_int = b"\0\0\0\0"
 _empty_bytes = b""
 _zero_byte = b"\0"
-
 
 if sys.byteorder == "little":
 
@@ -91,6 +88,16 @@ def _make_masked_array(data, mask):
     """
     # np.ma doesn't like setting mask to []
     if len(data):
+        print(type(data))
+        # print(data.dtype)
+
+        print(type(mask))
+        # print(mask.dtype)
+
+        print(data)
+        print(mask)
+        print(ma.array(np.array(data), mask=np.array(mask, dtype="bool")))
+
         return ma.array(np.array(data), mask=np.array(mask, dtype="bool"))
     else:
         return ma.array(np.array(data))
@@ -169,6 +176,14 @@ class Converter:
     @staticmethod
     def _write_length(length):
         return struct.pack(">I", int(length))
+
+    @staticmethod
+    def _parse_char_length(read):
+        return struct.unpack("c", read(1))[0]
+
+    @staticmethod
+    def _parse_unicodechar_length(read):
+        return read(4).decode("utf-32-be")
 
     def supports_empty_values(self, config):
         """
@@ -282,6 +297,311 @@ class Converter:
         raise NotImplementedError("This datatype must implement a 'binoutput' method.")
 
 
+class Array(Converter):
+    """
+    Handles both fixed and variable-lengths arrays.
+    """
+
+    def __init__(self, field, config=None, pos=None):
+        if config is None:
+            config = {}
+        Converter.__init__(self, field, config, pos)
+        if config.get("verify", "ignore") == "exception":
+            self._splitter = self._splitter_pedantic
+        else:
+            self._splitter = self._splitter_lax
+
+    def parse_scalar(self, value, config=None, pos=0):
+        return self._base.parse_scalar(value, config, pos)
+
+    @staticmethod
+    def _splitter_pedantic(value, config=None, pos=None):
+        return pedantic_array_splitter.split(value)
+
+    @staticmethod
+    def _splitter_lax(value, config=None, pos=None):
+        if "," in value:
+            vo_warn(W01, (), config, pos)
+        return array_splitter.split(value)
+
+    @staticmethod
+    def _splitter_string(value, config=None, pos=None, shape=None):
+        if "," in value:
+            vo_warn(W01, (), config, pos)
+
+        n, width = shape
+        return [value[pos:pos + width] for pos in range(0, n * (width + 1), width + 1)]
+
+
+class VarArray(Array):
+    """
+    Handles variable lengths arrays (i.e. where *arraysize* is '*').
+    """
+
+    format = "O"
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+        Array.__init__(self, field, config)
+
+        self._base = base
+        self.default = np.array([], dtype=self._base.format)
+
+    def output(self, value, mask):
+        output = self._base.output
+        result = [output(x, m) for x, m in np.broadcast(value, mask)]
+        return " ".join(result)
+
+    def binparse(self, read):
+        length = self._parse_length(read)
+
+        result = []
+        result_mask = []
+        binparse = self._base.binparse
+        for i in range(length):
+            val, mask = binparse(read)
+            result.append(val)
+            result_mask.append(mask)
+
+        return _make_masked_array(result, result_mask), False
+
+    def binoutput(self, value, mask):
+        if value is None or len(value) == 0:
+            return _zero_int
+
+        length = len(value)
+        result = [self._write_length(length)]
+        binoutput = self._base.binoutput
+        for x, m in zip(value, value.mask):
+            result.append(binoutput(x, m))
+        return _empty_bytes.join(result)
+
+
+class ArrayVarArray(VarArray):
+    """
+    Handles an array of variable-length arrays, i.e. where *arraysize* ends in '*'.
+    """
+
+    def parse(self, value, config=None, pos=None):
+        if value.strip() == "":
+            return ma.array([]), False
+
+        parts = self._splitter(value, config, pos)
+        items = self._base._items
+        parse_parts = self._base.parse_parts
+        if len(parts) % items != 0:
+            vo_raise(E02, (items, len(parts)), config, pos)
+        result = []
+        result_mask = []
+        for i in range(0, len(parts), items):
+            value, mask = parse_parts(parts[i: i + items], config, pos)
+            result.append(value)
+            result_mask.append(mask)
+
+        return _make_masked_array(result, result_mask), False
+
+
+class CharArrayVarArray(ArrayVarArray):
+    """
+    Handles a char array of variable-length arrays, i.e. where *arraysize* ends in '*'.
+    """
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+        ArrayVarArray.__init__(self, field, base, arraysize, config, pos)
+
+        if config is None:
+            self.config = {}
+        else:
+            self.config = config
+
+        self._base = base
+        self._orig_arraysize = arraysize.copy()
+        self._string_length = self._orig_arraysize.pop()
+        self._items = prod(arraysize)
+        self._char_format = f'U{self._string_length:d}'
+        self.field_name = field.name
+        self._splitter = self._splitter_string
+
+    def parse(self, value, config=None, pos=None):
+        if value.strip() == "":
+            return ma.array([]), False
+
+        items = len(value) // self._string_length
+
+        parts = self._splitter_string(value, config, pos, [items, self._string_length])
+        items = self._base._items
+        # parse_parts = self._base.parse_parts
+        total_length = sum(len(s) for s in parts)
+        if total_length % items != 0:
+            vo_raise(E02, (items, len(parts)), config, pos)
+        result = []
+        result_mask = []
+        _value, _mask = self.parse_parts(parts, config, pos)
+        result.extend(_value)
+        result_mask.extend(_mask)
+        return _make_masked_array(result, result_mask), False
+
+    def parse_parts(self, parts, config=None, pos=None):
+        base_parse = self._base.parse
+        result = []
+        result_mask = []
+        for x in parts:
+            value, mask = self.char_parse(x, config, pos)
+            result.append(value)
+            result_mask.append(mask)
+        result = np.array(result, dtype=self._char_format)
+        result_mask = np.array(result_mask, dtype="bool")
+        return result, result_mask
+
+    def char_parse(self, value, config=None, pos=None):
+        if len(value) > self._string_length:
+            vo_warn(W46, ("char", self._string_length), config, pos)
+
+        # Warn about non-ascii characters if warnings are enabled.
+        try:
+            value.encode("ascii")
+        except UnicodeEncodeError:
+            vo_warn(W55, (self.field_name, value), config, pos)
+        return value, False
+
+    def binparse(self, read):
+        _items = self._parse_length(read)
+
+        _struct_format = f">{self._string_length * _items:d}s"
+
+        s = struct.unpack(_struct_format, read(self._string_length * _items))[0]
+
+        end = s.find(_zero_byte)
+        s = s.decode("ascii")
+
+        if end != -1:
+            s = s[:end]
+
+        chunks = [s[i:i + self._string_length] for i in range(0, len(s), self._string_length)]
+
+        return chunks, False
+
+    def binoutput(self, value, mask):
+        if mask or value is None or value == "":
+            return _zero_int
+
+        items = len(value) // self._string_length
+        if not isinstance(value, str):
+            vo_raise(E24, (value, self.field_name))
+
+        try:
+            value = value.encode("ascii")
+        except ValueError:
+            vo_raise(E24, (value, self.field_name))
+
+        if "*" not in self._orig_arraysize and len(value) > self._string_length * items:
+            vo_warn(W46, ("char", self._string_length * items), None, None)
+
+        return self._write_length(items) + value
+
+
+class CharArray(Array):
+    """
+    Handles a fixed-length array of char scalars.
+    """
+
+    vararray_type = CharArrayVarArray
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+        Array.__init__(self, field, config, pos)
+
+        self.field_name = field.name
+        self._base = base
+        self._orig_arraysize = arraysize
+        _copy_arraysize = arraysize.copy()
+
+        self._string_length = _copy_arraysize.pop()
+        self._arraysize = _copy_arraysize
+        char_format = f'U{self._string_length:d}'
+        self.format = f"{tuple(_copy_arraysize)}{char_format}"
+
+        self._items = prod(_copy_arraysize)
+        self._memsize = np.dtype(self.format).itemsize
+        self._bigendian_format = ">" + self.format
+
+        self._struct_format = f">{self._string_length * self._items:d}s"
+
+        self.default = np.empty(_copy_arraysize, dtype=object)
+        self.default[...] = self._base.default
+
+        self._splitter = self._splitter_string
+
+    def parse(self, value, config=None, pos=None):
+        if config is None:
+            config = {}
+        elif config["version_1_3_or_later"] and value == "":
+            return np.zeros(self._arraysize, dtype=self._base.format), True
+        parts = self._splitter(value, config, pos, self._orig_arraysize)
+        if len(parts) != self._items:
+            warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
+        if config.get("verify", "ignore") == "exception":
+            _value, _mask = self.parse_parts(parts, config, pos)
+            return [], False
+        else:
+            if len(parts) == self._items:
+                pass
+            elif len(parts) > self._items:
+                parts = parts[: self._items]
+            else:
+                parts = parts + ([self._base.default] * (self._items - len(parts)))
+            # _value, _mask = self.parse_parts(parts, config, pos)
+            result = []
+            result_mask = []
+            _value, _mask = self.parse_parts(parts, config, pos)
+            result.extend(_value)
+            result_mask.extend(_mask)
+            return _make_masked_array(result, result_mask), False
+
+    def parse_parts(self, parts, config=None, pos=None):
+        base_parse = self._base.parse
+        result = []
+        result_mask = []
+        for x in parts:
+            value, mask = base_parse(x, config, pos)
+            result.append(value)
+            result_mask.append(mask)
+        result = np.array(result, dtype=self._base.format).reshape(self._arraysize)
+        result_mask = np.array(result_mask, dtype="bool").reshape(self._arraysize)
+        return result, result_mask
+
+    def output(self, value, mask):
+        base_output = self._base.output
+        value = np.asarray(value)
+        mask = np.asarray(mask)
+        if mask.size <= 1:
+            func = np.broadcast
+        else:  # When mask is already array but value is scalar, this prevents broadcast
+            func = zip
+        return " ".join(base_output(x, m) for x, m in func(value.flat, mask.flat))
+
+    def binparse(self, read):
+        s = struct.unpack(self._struct_format, read(self._string_length * self._items))[0]
+
+        end = s.find(_zero_byte)
+        s = s.decode("ascii")
+
+        if end != -1:
+            s = s[:end]
+
+        chunks = [s[i:i + self._string_length] for i in range(0, len(s), self._string_length)]
+
+        return chunks, False
+
+    def binoutput(self, value, mask):
+        if mask:
+            value = _empty_bytes
+        elif isinstance(value, str):
+            try:
+                value = value.encode("ascii")
+            except ValueError:
+                vo_raise(E24, (value, self.field_name))
+        return struct.pack('c', value)
+
+
 class Char(Converter):
     """
     Handles the char datatype. (7-bit unsigned characters).
@@ -289,6 +609,7 @@ class Char(Converter):
     Missing values are not handled for string or unicode types.
     """
 
+    array_type = CharArray
     default = _empty_bytes
 
     def __init__(self, field, config=None, pos=None):
@@ -311,23 +632,29 @@ class Char(Converter):
         else:
             # Check if this is a bounded variable-length field
             is_variable = field.arraysize.endswith("*")
-            numeric_part = field.arraysize.removesuffix("*")
-            try:
-                self.arraysize = int(numeric_part)
-            except ValueError:
-                vo_raise(E01, (numeric_part, "char", field.ID), config)
+            numeric_part = field.arraysize.removesuffix("*").removesuffix("x")
 
-            self.format = f"U{self.arraysize:d}"
+            if 'x' not in field.arraysize:
+                try:
+                    self.arraysize = int(numeric_part)
+                except ValueError:
+                    vo_raise(E01, (numeric_part, "char", field.ID), config)
 
-            # For bounded variable-length fields use the variable methods
-            if is_variable:
-                self.binparse = self._binparse_var
-                self.binoutput = self._binoutput_var
+                self.format = f"U{self.arraysize:d}"
+
+                # For bounded variable-length fields use the variable methods
+                if is_variable:
+                    self.binparse = self._binparse_var
+                    self.binoutput = self._binoutput_var
+                else:
+                    self.binparse = self._binparse_fixed
+                    self.binoutput = self._binoutput_fixed
+
+                self._struct_format = f">{self.arraysize:d}s"
             else:
-                self.binparse = self._binparse_fixed
-                self.binoutput = self._binoutput_fixed
-
-            self._struct_format = f">{self.arraysize:d}s"
+                arraysize = [int(x) for x in numeric_part.split("x") if '*' != x]
+                self.arraysize = arraysize[0]
+                self.format = f"U{arraysize[0]:d}"
 
     def supports_empty_values(self, config):
         return True
@@ -489,102 +816,6 @@ class UnicodeChar(Converter):
         if mask:
             value = ""
         return struct.pack(self._struct_format, value.encode("utf_16_be"))
-
-
-class Array(Converter):
-    """
-    Handles both fixed and variable-lengths arrays.
-    """
-
-    def __init__(self, field, config=None, pos=None):
-        if config is None:
-            config = {}
-        Converter.__init__(self, field, config, pos)
-        if config.get("verify", "ignore") == "exception":
-            self._splitter = self._splitter_pedantic
-        else:
-            self._splitter = self._splitter_lax
-
-    def parse_scalar(self, value, config=None, pos=0):
-        return self._base.parse_scalar(value, config, pos)
-
-    @staticmethod
-    def _splitter_pedantic(value, config=None, pos=None):
-        return pedantic_array_splitter.split(value)
-
-    @staticmethod
-    def _splitter_lax(value, config=None, pos=None):
-        if "," in value:
-            vo_warn(W01, (), config, pos)
-        return array_splitter.split(value)
-
-
-class VarArray(Array):
-    """
-    Handles variable lengths arrays (i.e. where *arraysize* is '*').
-    """
-
-    format = "O"
-
-    def __init__(self, field, base, arraysize, config=None, pos=None):
-        Array.__init__(self, field, config)
-
-        self._base = base
-        self.default = np.array([], dtype=self._base.format)
-
-    def output(self, value, mask):
-        output = self._base.output
-        result = [output(x, m) for x, m in np.broadcast(value, mask)]
-        return " ".join(result)
-
-    def binparse(self, read):
-        length = self._parse_length(read)
-
-        result = []
-        result_mask = []
-        binparse = self._base.binparse
-        for i in range(length):
-            val, mask = binparse(read)
-            result.append(val)
-            result_mask.append(mask)
-
-        return _make_masked_array(result, result_mask), False
-
-    def binoutput(self, value, mask):
-        if value is None or len(value) == 0:
-            return _zero_int
-
-        length = len(value)
-        result = [self._write_length(length)]
-        binoutput = self._base.binoutput
-        for x, m in zip(value, value.mask):
-            result.append(binoutput(x, m))
-        return _empty_bytes.join(result)
-
-
-class ArrayVarArray(VarArray):
-    """
-    Handles an array of variable-length arrays, i.e. where *arraysize*
-    ends in '*'.
-    """
-
-    def parse(self, value, config=None, pos=None):
-        if value.strip() == "":
-            return ma.array([]), False
-
-        parts = self._splitter(value, config, pos)
-        items = self._base._items
-        parse_parts = self._base.parse_parts
-        if len(parts) % items != 0:
-            vo_raise(E02, (items, len(parts)), config, pos)
-        result = []
-        result_mask = []
-        for i in range(0, len(parts), items):
-            value, mask = parse_parts(parts[i : i + items], config, pos)
-            result.append(value)
-            result_mask.append(mask)
-
-        return _make_masked_array(result, result_mask), False
 
 
 class ScalarVarArray(VarArray):
@@ -1009,7 +1240,7 @@ class ComplexArrayVarArray(VarArray):
         result = []
         result_mask = []
         for i in range(0, len(parts), items):
-            value, mask = parse_parts(parts[i : i + items], config, pos)
+            value, mask = parse_parts(parts[i: i + items], config, pos)
             result.append(value)
             result_mask.append(mask)
 
@@ -1030,7 +1261,7 @@ class ComplexVarArray(VarArray):
         result = []
         result_mask = []
         for i in range(0, len(parts), 2):
-            value = [float(x) for x in parts[i : i + 2]]
+            value = [float(x) for x in parts[i: i + 2]]
             value, mask = parse_parts(value, config, pos)
             result.append(value)
             result_mask.append(mask)
@@ -1065,7 +1296,7 @@ class ComplexArray(NumericArray):
         result = []
         result_mask = []
         for i in range(0, self._items, 2):
-            value = [float(x) for x in parts[i : i + 2]]
+            value = [float(x) for x in parts[i: i + 2]]
             value, mask = base_parse(value, config, pos)
             result.append(value)
             result_mask.append(mask)
@@ -1373,7 +1604,7 @@ def get_converter(field, config=None, pos=None):
 
     # With numeric datatypes, special things need to happen for
     # arrays.
-    if field.datatype not in ("char", "unicodeChar") and arraysize is not None:
+    if arraysize is not None:
         if arraysize[-1] == "*":
             arraysize = arraysize[:-1]
             last_x = arraysize.rfind("x")
@@ -1386,16 +1617,22 @@ def get_converter(field, config=None, pos=None):
             fixed = True
 
         if arraysize != "":
-            arraysize = [int(x) for x in arraysize.split("x")]
-            arraysize.reverse()
+            if 'x' in arraysize:
+                arraysize = [int(x) for x in arraysize.split("x")]
+                arraysize.reverse()
+            else:
+                arraysize = [int(arraysize)]
+
         else:
             arraysize = []
 
-        if arraysize != []:
-            converter = converter.array_type(field, converter, arraysize, config)
+        if field.datatype not in ("char", "unicodeChar") or 'x' in field.arraysize:
 
-        if not fixed:
-            converter = converter.vararray_type(field, converter, arraysize, config)
+            if arraysize != []:
+                converter = converter.array_type(field, converter, arraysize, config)
+
+            if not fixed:
+                converter = converter.vararray_type(field, converter, arraysize, config)
 
     return converter
 
@@ -1508,19 +1745,30 @@ def table_column_to_votable_datatype(column):
         # Check if we have stored the original arraysize with bounds
         # If so, extract the max length
         original_arraysize = column.info.meta.get("_votable_arraysize")
-        if (
-            original_arraysize is not None
-            and original_arraysize.endswith("*")
-            and not original_arraysize == "*"
-        ):
-            max_length = original_arraysize[:-1]
 
     if column.dtype.char == "O":
         arraysize = "*"
 
+        if (
+                original_arraysize is not None
+                and original_arraysize.endswith("*")
+                and not original_arraysize == "*"
+        ):
+            max_length = original_arraysize[:-1]
+
+        elif (
+                original_arraysize is not None
+                and 'char' == votable_string_dtype
+                and 'x' in original_arraysize
+        ):
+            max_length = original_arraysize.split("x", 1)[1]
+
         # If max length is stored use it to create a bounded var-length array
         if max_length is not None:
-            arraysize = f"{max_length}*"
+            if votable_string_dtype is not None and 'char' == votable_string_dtype:
+                arraysize = f"{max_length}"
+            else:
+                arraysize = f"{max_length}*"
 
         if votable_string_dtype is not None:
             return {"datatype": votable_string_dtype, "arraysize": arraysize}
