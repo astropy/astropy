@@ -1,1 +1,0 @@
-``world_to_pixel`` and ``pixel_to_world`` now can take ``Masked`` input.
