@@ -6,11 +6,6 @@ from astropy.table.bst import BST
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
-def test_bst_deprecation():
-    with pytest.warns(AstropyDeprecationWarning, match="The BST class is deprecated"):
-        BST([], [])
-
-
 def get_tree(TreeType):
     # BST is deprecated, so its constructor emits the warning here.
     with pytest.warns(AstropyDeprecationWarning, match="The BST class is deprecated"):
