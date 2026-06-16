@@ -1,3 +1,179 @@
+Version 7.2.1 (2026-06-16)
+==========================
+
+
+Bug Fixes
+---------
+
+astropy.config
+^^^^^^^^^^^^^^
+
+- Disabling thread concurrency within ``set_temp_cache`` and ``set_temp_config``
+  context managers, ensuring thread safety. [#19559]
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- The ``refresh_cache`` parameter of ``EarthLocation.of_site()`` and
+  ``EarthLocation.get_site_names()`` methods now works. [#18687]
+
+- Relativistic Doppler shifts are now applied to ``SpectralCoord`` in the correct
+  direction even if the ``astropy.units.spectral()`` equivalency is enabled.
+  Previously enabling the equivalency could cause wrong results with the
+  ``SpectralCoord.to_rest()``,
+  ``SpectralCoord.with_observer_stationary_relative_to()`` or
+  ``SpectralCoord.with_radial_velocity_shift()`` methods. [#19001]
+
+- Fixed a broadcasting bug in ``astropy.uncertainty.distributions.uniform`` where
+  multi-dimensional inputs (``ndim >= 2``) would raise a ``ValueError``. [#19308]
+
+- Send a User-Agent header to the OpenStreetMap API in ``EarthLocation.of_address``
+  to fix access denied errors. [#19330]
+
+- Fixed a missing f-string in a TypeError from ``BaseAffineTransform._apply_transform`` that caused ``{data.__class__}`` to appear literally in the error message. [#19403]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fix ``getdata()``'s lower and upper keywords. [#19023]
+
+- ``np.char.chararray`` being deprecated in Numpy 2.5, in a future version
+  ``io.fits`` will return a normal array instead of a ``chararray`` for string
+  columns. As a consequence the special chararray methods will be deprecated in
+  version 8.0 (e.g., ``.rstrip()`` or ``.decode()``). In version 7.2.x deprecation
+  warnings from Numpy are simply filtered. [#19335]
+
+- Fix a bug which caused CompImageHDU to have both SIMPLE and XTENSION keywords when initialized from a PrimaryHDU header. [#19362]
+
+- Fix support for reading FITS files using image tile compression with UNCOMPRESSED_DATA columns. [#19363]
+
+- Fixed a bug that caused reading FITS files to not work properly on WASM when relying on the default memmap settings. [#19367]
+
+- Fixed silent data corruption in ``FITS_rec.__setitem__`` when using negative
+  slice indices. Assigning to slices like ``data[-2:] = new_rows`` previously
+  wrote to the wrong rows because negative indices were clamped to 0 instead of
+  being resolved relative to the array length. [#19404]
+
+- Fixed a bug that caused compressed FITS files to become corrupted when opened in update mode and modifying the header. [#19416]
+
+- Fix a bug that caused header verification for CompImageHDU to not work correctly and
+  in some cases produce corrupt files when the decompressed header was a primary HDU
+  header not an extension header. [#19438]
+
+- Prevent creating RICE_1 or PLIO_1 compressed files with (u)int64 data. If
+  possible without overflow data is converted to (u)int32, otherwise an error is
+  raised. [#19592]
+
+- Fix a bug that caused uint64 data to be silently shifted by 2**63 when
+  round-tripping through compressed FITS files (the FITS BZERO=2**63 offset was
+  missing at compression time but still applied on read). Extend the existing
+  RICE_1 and PLIO_1 64-bit-to-32-bit conversion fallback to also cover uint64
+  input and HCOMPRESS_1, and fix big-endian 64-bit input being silently truncated
+  by the conversion check instead of raising. Reject PLIO_1 with unsigned
+  multi-byte input outright, since the BZERO convention used to store unsigned
+  FITS data produces negative values that PLIO cannot encode. [#19670]
+
+- Fix a bug that caused int8 data to be shifted by 128 when round-tripping
+  through compressed FITS files (the FITS BZERO=-128 offset was missing at
+  compression time but still applied on read), so writing ``[0, 1]`` and
+  reading back returned ``[-128, -127]``. [#19738]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Bugfix for ``Parameter.value`` accessor when the parameter value has not been set yet. [#19189]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fix unexpected behavior in ``Cutout2D.plot_on_original()``. The displayed region spanned pixels not included in the cutout array. [#19829]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fixed pickling of ``SigmaClip`` objects when Bottleneck is installed. ``_dtype_dispatch`` returned a local closure which cannot be pickled; replaced with a picklable ``_DtypeDispatch`` class. [#19372]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Tables can now be joined and stacked also if they contain columns with
+  user-defined data types such as ``QuadPrecDtype``. [#19199]
+
+- ﻿Fixed ``AssertionError`` when passing ``numpy.bool_`` as the
+  ``index`` argument to ``Table.to_pandas()`` or ``Table.to_dataframe()``.
+  The correct ``ValueError`` is now raised instead. [#19358]
+
+- Fixed table index getting corrupted when a row assignment raises an exception
+  mid-update. The index is now properly restored to its original state on failure. [#19450]
+
+- Fixes a problem where deepcopying a MaskedColumn did not correctly create the ``info``
+  attribute. This resulted in an inability to print the column after the deepcopy. [#19466]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Fixed missing ``goto fail`` in ``create_parser`` in ``parse_times.c`` after setting a ``ValueError`` for invalid parameter array size, preventing execution from continuing with an exception already set. [#19368]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Fixed a bug in the ``np.average`` function when weights with units and a
+  different shape to the input array were passed and the optionally-returned sum
+  of the weights was requested. The sum of the weights now has correct units. [#19055]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``AttributeError`` will no longer occur when attempting to pickle an unbound ``DataInfo`` instance. [#19141]
+
+- Pickling ``Masked`` subclasses with an initialized ``info`` attribute no longer fails. [#19142]
+
+- ``ShapedLikeNDArray.take()`` now raises ``NotImplementedError`` when ``out`` is passed, instead of returning the exception object. [#19351]
+
+- Ensure that ``utils.masked.get_data_and_mask`` works properly with containers,
+  returning ``None`` for the mask if ``masked`` is not set (instead of returning
+  an all-False array). [#19534]
+
+- The dummy file object used by ``astropy.utils.misc.silence`` to replace
+  ``sys.stdout``/``sys.stderr`` now implements ``flush()`` and ``isatty()``,
+  so importing libraries that probe the stream (e.g. IPython 9.13 at import
+  time) no longer raises ``AttributeError`` under ``silence``. [#19594]
+
+- Fixed a bug where values returned by ``cache_contents`` could include files and symlinks, instead of just directories. [#19672]
+
+- Add missing ``stacklevel`` arguments in warnings emitted from ``astropy.utils.data`` APIs [#19700]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed issues with the placement of WCSAxes tick labels for non-perpendicular grids or ticks. [#19057]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug where degree units were hardcoded into the FITS WCS APE 14 ``world_to_pixel`` method. [#19506]
+
+- Lazily-populated caches on a ``WCS`` (such as the internal
+  ``world_axis_object_components``/``world_axis_object_classes`` cache) are no
+  longer included in the pickled state. They are regenerated on demand after
+  unpickling, which keeps pickling robust even when a cache entry holds a
+  non-picklable value.
+
+  Fixed a bug where the ``preserve_units`` option passed to the ``WCS``
+  constructor was silently reset to ``False`` when a ``WCS`` object was pickled
+  and unpickled. [#19591]
+
+- Fix reference-count handling after ``PyList_SetItem`` steals references. [#19720]
+
+- Made the WCS coordinate transform paths (``pixel_to_world``, ``world_to_pixel``,
+  ``all_pix2world``, ``wcs_pix2world``, ``wcs_world2pix``, ``mix``) safe to call
+  concurrently on a shared ``WCS`` instance from multiple threads. [#19819]
+
+Other Changes and Additions
+---------------------------
+
+- Publishing files to PyPI is now done using the Trusted Publisher mechanism (https://docs.pypi.org/trusted-publishers/). [#19347]
+
 Version 7.2.0 (2025-11-25)
 ==========================
 
