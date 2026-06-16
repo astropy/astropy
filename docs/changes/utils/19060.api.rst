@@ -1,2 +1,0 @@
-The ``astropy.utils.iers.IERS.time_now`` property is deprecated.
-The ``astropy.time.Time.now()`` function can be used as a replacement.

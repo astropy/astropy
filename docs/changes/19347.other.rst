@@ -1,1 +1,0 @@
-Publishing files to PyPI is now done using the Trusted Publisher mechanism (https://docs.pypi.org/trusted-publishers/).
