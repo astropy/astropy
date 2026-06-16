@@ -1,1 +1,0 @@
-``ShapedLikeNDArray.take()`` now raises ``NotImplementedError`` when ``out`` is passed, instead of returning the exception object.
