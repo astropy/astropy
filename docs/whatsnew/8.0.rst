@@ -33,9 +33,9 @@ By the numbers:
 
 .. release-summary-start
 
-* 1009 commits have been added since v7.2
-* 176 issues have been closed since v7.2
-* 356 pull requests have been merged since v7.2
+* 1014 commits have been added since v7.2
+* 179 issues have been closed since v7.2
+* 364 pull requests have been merged since v7.2
 * 70 people have contributed since v7.2
 * 37 of which are new contributors
 
