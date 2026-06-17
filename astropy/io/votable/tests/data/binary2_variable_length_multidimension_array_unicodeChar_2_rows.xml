@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<VOTABLE version="1.4"
+ xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<!--
+ !  VOTable written by STIL version 4.3-2 (uk.ac.starlink.votable.VOTableWriter)
+ !  at 2026-06-27T18:05:18
+ !-->
+<RESOURCE>
+<TABLE name="results" nrows="2">
+<DESCRIPTION>
+Velocities and Distance estimations
+</DESCRIPTION>
+<FIELD ID="col6" arraysize="*" datatype="unicodeChar" name="xxx" ucd="pos.distance;pos.heliocentric" unit="Mpc">
+<DESCRIPTION>Distance of Galaxy, assuming H=75km/s/Mpc</DESCRIPTION>
+</FIELD>
+<FIELD ID="col7" arraysize="5x4x*" datatype="unicodeChar" name="vary_char_array" ucd="pos.distance;pos.heliocentric">
+<DESCRIPTION>Char array of variable length</DESCRIPTION>
+</FIELD>
+<FIELD ID="col8" arraysize="5x4x2" datatype="unicodeChar" name="fix_char_array" ucd="pos.distance;pos.heliocentric">
+<DESCRIPTION>Char array of fix length</DESCRIPTION>
+</FIELD>
+<DATA>
+<BINARY2>
+<STREAM encoding='base64'>
+AAAAAAoAIAAgA7EDsgOzA7QDtQAgACAAIAAAACgA4QDpAO0A8wD6AOEA6QDtAPMA
++gD6AMEAyQDNANMARQBzAHAAYQDxA7EDsgOzA7QDtU9gWX0AMQAyADMAMAA5ADgA
+NwA2AGEAYgBjAGQAZQDhAOkA7QDzAPoA4QDpAO0A8wD6APoAwQDJAM0A0wBFAHMA
+cABhAPEDsQOyA7MDtAO1T2BZfQAxADIAMwAwADkAOAA3ADYAYQBiAGMAZABlAAAA
+AAoAIAAgA7EDsgOzA7QDtQAgACAAIAAAACgA4QDpAO0A8wD6AOEA6QDtAPMA+gD6
+AMEAyQDNANMARQBzAHAAYQDxA7EDsgOzA7QDtU9gWX0AMQAyADMAMAA5ADgANwA2
+AGEAYgBjAGQAZQDhAOkA7QDzAPoA4QDpAO0A8wD6APoAwQDJAM0A0wBFAHMAcABh
+APEDsQOyA7MDtAO1T2BZfQAxADIAMwAwADkAOAA3ADYAYQBiAGMAZABl
+</STREAM>
+</BINARY2>
+</DATA>
+</TABLE>
+</RESOURCE>
+</VOTABLE>
