@@ -38,6 +38,10 @@ repos:
       - id: end-of-file-fixer
         # Makes sure files end in a newline and only a newline.
         exclude: ".*(data.*|extern.*|licenses.*|_static.*|_parsetab.py)$"
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        # Forces all text files to use LF line endings.
+        exclude: ".*(data.*|extern.*|licenses.*|_static.*|_parsetab.py)$"
       # - id: fix-encoding-pragma  # covered by pyupgrade
       - id: trailing-whitespace
         # Trims trailing whitespace.
