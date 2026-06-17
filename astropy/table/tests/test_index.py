@@ -20,7 +20,17 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .test_table import SetupData
 
-available_engines = [BST, SortedArray]
+# BST is deprecated but remains tested until it is removed.
+available_engines = [
+    pytest.param(
+        BST,
+        id="BST",
+        marks=pytest.mark.filterwarnings(
+            "ignore:The BST class is deprecated:astropy.utils.exceptions.AstropyDeprecationWarning"
+        ),
+    ),
+    SortedArray,
+]
 NATIVE_INT_NAME = np.array(0).dtype.name
 
 if HAS_SORTEDCONTAINERS:
