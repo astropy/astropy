@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.8 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: dis.h,v 8.8 2026/05/22 11:19:30 mcalabre Exp $
+  $Id: dis.h,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.8 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.9 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -75,6 +75,8 @@
 * supported.  The TPV projection, originally proposed in a draft of WCS Paper
 * II, consists of a TAN projection with sequent polynomial distortion, the
 * coefficients of which are encoded in PVi_ma keyrecords.  Full details may be
+* found at
+*
 =   http://fits.gsfc.nasa.gov/registry/tpvwcs/tpv.html
 *
 * Internally, wcsset() changes TPV to a TAN projection, translates the PVi_ma

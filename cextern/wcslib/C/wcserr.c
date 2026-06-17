@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.8 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -20,7 +20,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcserr.c,v 8.8 2026/05/22 11:19:30 mcalabre Exp $
+  $Id: wcserr.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -30,6 +30,23 @@
 
 #include "wcserr.h"
 #include "wcsprintf.h"
+
+// Serialise access in threaded execution via a single process-wide spinlock
+// using stdatomic's mandatory atomic_flag, native to C11.
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && \
+    !defined(__STDC_NO_ATOMICS__)
+#  include <stdatomic.h>
+   static atomic_flag wcserr_spinlock = ATOMIC_FLAG_INIT;
+#  define WCSERR_LOCK() \
+     while (atomic_flag_test_and_set_explicit(&wcserr_spinlock, \
+                                              memory_order_acquire)) {}
+#  define WCSERR_UNLOCK() \
+     atomic_flag_clear_explicit(&wcserr_spinlock, memory_order_release)
+#else
+// Default to no-op for pre-C11 compilers, thread conflicts remain unhandled.
+#  define WCSERR_LOCK()   ((void)0)
+#  define WCSERR_UNLOCK() ((void)0)
+#endif
 
 static int wcserr_enabled = 0;
 
@@ -101,6 +118,7 @@ int wcserr_prt(const struct wcserr *err, const char *prefix)
 int wcserr_clear(struct wcserr **errp)
 
 {
+  WCSERR_LOCK();
   if (errp && *errp) {
     if ((*errp)->msg) {
       free((*errp)->msg);
@@ -108,6 +126,7 @@ int wcserr_clear(struct wcserr **errp)
     free(*errp);
     *errp = 0x0;
   }
+  WCSERR_UNLOCK();
 
   return 0;
 }
@@ -129,6 +148,8 @@ int wcserr_set(
   if (errp == 0x0) {
     return status;
   }
+
+  WCSERR_LOCK();
   struct wcserr *err = *errp;
 
   if (status) {
@@ -137,7 +158,13 @@ int wcserr_set(
     }
 
     if (err == 0x0) {
+      WCSERR_UNLOCK();
       return status;
+    }
+
+    // Free any previous message buffer to avoid leaking it.
+    if (err->msg) {
+      free(err->msg);
     }
 
     err->status   = status;
@@ -153,7 +180,13 @@ int wcserr_set(
     va_end(argp);
 
     if (msglen <= 0 || (err->msg = malloc(msglen)) == 0x0) {
-      wcserr_clear(errp);
+      // Inline wcserr_clear to avoid reacquiring the lock.
+      if (err->msg) {
+        free(err->msg);
+      }
+      free(err);
+      *errp = 0x0;
+      WCSERR_UNLOCK();
       return status;
     }
 
@@ -163,10 +196,16 @@ int wcserr_set(
     va_end(argp);
 
     if (msglen < 0) {
-      wcserr_clear(errp);
+      // Inline wcserr_clear to avoid reacquiring the lock.
+      if (err->msg) {
+        free(err->msg);
+      }
+      free(err);
+      *errp = 0x0;
     }
   }
 
+  WCSERR_UNLOCK();
   return status;
 }
 
@@ -182,6 +221,9 @@ int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
     return 0;
   }
 
+  WCSERR_LOCK();
+  int status = src->status;
+
   if (dst) {
     memcpy(dst, src, sizeof(struct wcserr));
 
@@ -192,6 +234,7 @@ int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
       }
     }
   }
+  WCSERR_UNLOCK();
 
-  return src->status;
+  return status;
 }

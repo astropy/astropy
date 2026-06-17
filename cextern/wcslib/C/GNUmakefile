@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-# GNU makefile for building WCSLIB 8.8 and its test suite.
+# GNU makefile for building WCSLIB 8.9 and its test suite.
 #
 # Summary of the main targets
 # ---------------------------
@@ -31,7 +31,7 @@
 #
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/computing/software/wcs
-# $Id: GNUmakefile,v 8.8 2026/05/22 11:19:30 mcalabre Exp $
+# $Id: GNUmakefile,v 8.9 2026/06/17 14:32:24 mcalabre Exp $
 #-----------------------------------------------------------------------------
 # Get configure settings.
 SUBDIR := C
@@ -83,7 +83,7 @@ TEST_P := tspc tprj2 tcel1 tcel2 ttab2 ttab3 twcsmix
 TEST_B := tpih2
 
 # Test programs for POSIX threads.
-TEST_T := tpih_pthread twcs_pthread
+TEST_T := tpih_pthread twcs_pthread twcsprintf_pthread
 
 # Test programs that are compiled but not automatically exercised.
 TEST_X := tsphdpa twcshdr

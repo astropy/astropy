@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------
-WCSLIB 8.8 and PGSBOX 8.8 INSTALLATION
+WCSLIB 8.9 and PGSBOX 8.9 INSTALLATION
 --------------------------------------
 
 WCSLIB requires an ANSI C compiler with standard ANSI C environment, that is,
@@ -9,8 +9,8 @@ Ritchie, 2nd ed.
 If you are running a typical Linux distro and have installed WCSLIB before,
 then all you should need to do is
 
-  tar pxvf wcslib-8.8.tar.bz2
-  cd wcslib-8.8
+  tar pxvf wcslib-8.9.tar.bz2
+  cd wcslib-8.9
   make install
 
 Otherwise, read on.
@@ -19,8 +19,8 @@ Installation of WCSLIB is handled by GNU autoconf; GNU make (referred to here
 as 'gmake') must be used.  The WCSLIB distribution also includes PGSBOX (refer
 to the README file).  To unpack the tar file, type
 
-  bzcat wcslib-8.8.tar.bz2 | tar pvxf -
-  cd wcslib-8.8
+  bzcat wcslib-8.9.tar.bz2 | tar pvxf -
+  cd wcslib-8.9
 
 then if you do not need to specify any configuration options, simply run
 
@@ -102,7 +102,7 @@ The INSTALL file provided with GNU autoconf 2.53 is appended without change.
 
 Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 http://www.atnf.csiro.au/computing/software/wcs
-$Id: INSTALL,v 8.8 2026/05/22 11:19:31 mcalabre Exp $
+$Id: INSTALL,v 8.9 2026/06/17 14:32:25 mcalabre Exp $
 
 ==============================================================================
 

@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.8 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcshdr.c,v 8.8 2026/05/22 11:19:30 mcalabre Exp $
+  $Id: wcshdr.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *===========================================================================*/
 
 #include <ctype.h>
@@ -1739,7 +1739,7 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
             snprintf(comment, 128, "%dth", jhat+1);
           }
 
-          snprintf(comment, 128+strlen(comment),
+          snprintf(comment+strlen(comment), 128-strlen(comment),
             " independent variable: axis %d",
             axmap[jhat]+1);
           if (dotpd) {
@@ -1747,7 +1747,8 @@ int wcshdo(int ctrl, struct wcsprm *wcs, int *nkeyrec, char **header)
             cp = axid;
             if (!direct) cp++;
             if (doaux) cp += 3;
-            snprintf(comment, 128-strlen(comment), " (= %c)", cp[jhat]);
+            snprintf(comment+strlen(comment), 128-strlen(comment), " (= %c)",
+              cp[jhat]);
           }
 
           wcshdo_util(ctrl, keyword, 0x0, 0, 0x0, 0, 0, 0, alt, 0, 0x0,

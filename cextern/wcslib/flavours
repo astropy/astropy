@@ -18,7 +18,7 @@
 #
 # Reminder: add '-d' to FLFLAGS for debugging.
 #
-# $Id: flavours,v 8.8 2026/05/22 11:19:31 mcalabre Exp $
+# $Id: flavours,v 8.9 2026/06/17 14:32:25 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
 F :=

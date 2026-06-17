@@ -3,12 +3,12 @@
 #-----------------------------------------------------------------------------
 # Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
 # http://www.atnf.csiro.au/computing/software/wcs
-# $Id: configure.ac,v 8.8 2026/05/22 11:19:31 mcalabre Exp $
+# $Id: configure.ac,v 8.9 2026/06/17 14:32:25 mcalabre Exp $
 #-----------------------------------------------------------------------------
 
-AC_INIT([WCSLIB],[8.8],[mark@calabretta.id.au],[wcslib-8.8])
+AC_INIT([WCSLIB],[8.9],[mark@calabretta.id.au],[wcslib-8.9])
 AC_PREREQ([2.71])
-AC_REVISION([$Revision: 8.8 $])
+AC_REVISION([$Revision: 8.9 $])
 AC_SUBST([PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED([WCSLIB_VERSION], [$PACKAGE_VERSION], [Define wcslib version])
 
@@ -105,7 +105,7 @@ fi
 # as stdio.h is included in the generated C code before any part of the
 # description.  See fileno(3) and feature_test_macros(7).
 if test "x$ac_cv_c_compiler_gnu" = xyes ; then
-  FLFLAGS="$FLFLAGS -D_POSIX_C_SOURCE=1"
+  FLFLAGS="$FLFLAGS -D_POSIX_C_SOURCE=200112L"
 fi
 AC_SUBST([FLFLAGS])
 
@@ -154,6 +154,40 @@ AC_RUN_IFELSE(
   AC_DEFINE([MODZ], [""],  [printf format modifier for size_t type.])
     AC_MSG_RESULT(assumed not)
 )
+
+# Check for an appropriate thread-local storage (TLS) specifier (for C99).
+# The order here is significant, e.g. GCC will accept _Thread_local but issue
+# "warning: ISO C99 does not support ‘_Thread_local’ [-Wpedantic]".
+AC_MSG_CHECKING([for thread-local storage (TLS) specifier])
+tls=
+if test "x$tls" = x; then
+  # Microsoft Visual Studio (_MSC_VER).
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([__declspec(thread) int dummy = 0;])],
+      tls="__declspec(thread)")
+fi
+if test "x$tls" = x; then
+  # GCC (__GNUC__), Clang (__clang__), and Intel (__INTEL_COMPILER).
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([__thread int dummy = 0;])],
+      tls="__thread")
+fi
+if test "x$tls" = x; then
+  # Provided by the C11 standard (__STDC_VERSION__ >= 201112L).
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([_Thread_local int dummy = 0;])],
+      tls="_Thread_local")
+fi
+if test "x$tls" = x; then
+  # Provided natively by the C23 standard (__STDC_VERSION__ >= 202311), and
+  # also by C11 via threads.h as a macro that equates to _Thread_local.
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([thread_local int dummy = 0;])],
+      tls="thread_local")
+fi
+
+AC_MSG_RESULT($tls)
+CPPFLAGS="$CPPFLAGS -DWCSLIB_TLS=$tls"
 
 
 # Starting values, may be augmented later.
@@ -228,14 +262,14 @@ else
     for flib in $FLIBS
     do
       case "$flib" in
-      -L*)  
+      -L*)
         dir=`echo "$flib" | sed -e 's/-L//'`
         dir=-L`cd "$dir" && pwd`
         dirs="$dirs $dir"
-        ;;  
-      *) 
+        ;;
+      *)
         libs="$libs $flib"
-        ;;  
+        ;;
       esac
     done
 

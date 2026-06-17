@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.8 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcs.c,v 8.8 2026/05/22 11:19:30 mcalabre Exp $
+  $Id: wcs.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -77,10 +77,11 @@ const int wcs_linerr[] = {
   WCSERR_SUCCESS,		//  0: LINERR_SUCCESS
   WCSERR_NULL_POINTER,		//  1: LINERR_NULL_POINTER
   WCSERR_MEMORY,		//  2: LINERR_MEMORY
-  WCSERR_SINGULAR_MTX,		//  3: LINERR_SINGULAR_MTX
-  WCSERR_BAD_PARAM,		//  4: LINERR_DISTORT_INIT
-  WCSERR_BAD_PIX,		//  5: LINERR_DISTORT
-  WCSERR_BAD_WORLD		//  6: LINERR_DEDISTORT
+  WCSERR_BAD_PARAM,		//  3: LINERR_BAD_PARAM
+  WCSERR_SINGULAR_MTX,		//  4: LINERR_SINGULAR_MTX
+  WCSERR_BAD_PARAM,		//  5: LINERR_DISTORT_INIT
+  WCSERR_BAD_PIX,		//  6: LINERR_DISTORT
+  WCSERR_BAD_WORLD		//  7: LINERR_DEDISTORT
 };
 
 const int wcs_logerr[] = {

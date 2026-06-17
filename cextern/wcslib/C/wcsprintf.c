@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.8 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsprintf.c,v 8.8 2026/05/22 11:19:30 mcalabre Exp $
+  $Id: wcsprintf.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -28,10 +28,11 @@
 
 #include "wcsprintf.h"
 
-static FILE  *wcsprintf_file = 0x0;
-static char  *wcsprintf_buff = 0x0;
-static char  *wcsprintf_bufp = 0x0;
-static size_t wcsprintf_size = 0;
+// WCSLIB_TLS, the thread-local storage (TLS) specifier, defined by configure.
+static WCSLIB_TLS FILE  *wcsprintf_file = 0x0;
+static WCSLIB_TLS char  *wcsprintf_buff = 0x0;
+static WCSLIB_TLS char  *wcsprintf_bufp = 0x0;
+static WCSLIB_TLS size_t wcsprintf_size = 0;
 
 //----------------------------------------------------------------------------
 

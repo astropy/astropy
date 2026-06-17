@@ -1,3 +1,79 @@
+WCSLIB version 8.9 (2026/06/18)
+-------------------------------
+
+WCSLIB policy over the years has been to use the oldest version of C
+that is sufficient for the job, currently C99.  However, as of this
+release, C11 is essentially now a prerequisite for thread-safe
+execution.  This arises from the need to use functions from stdatomic.h
+to deal with race conditions that may arise in the wcserr routines (see
+below).  For now, C99 is still sufficient for thread-safe execution if
+the C99 compiler supports thread-local storage as required by wcsprintf
+(most do), and if wcserr is not used.  However, that situation may not
+persist.
+
+It does not seem unreasonable, nor particularly onerous, to require a
+more modern, thread-aware compiler, namely C11, for threaded execution.
+(It's still pretty old!)
+
+This release is the product of Thomas Robitaille's investigations into
+thread-related problems experienced by Astropy.
+
+* C library
+
+  - In wcsprintf.c, added the thread-local storage (TLS) specifier to
+    static variables.  Without it the module-static output buffer is
+    shared across all threads.  Consequently, if two threads call
+    wcsprintf() concurrently after either has called wcsprintf_set(NULL)
+    they will interleave their writes into the same wcsprintf_buff.
+    While not a problem in itself, if the buffer needs to grow they will
+    race on the realloc() of wcsprintf_buff, thereby corrupting the
+    heap and typically crashing inside realloc().  Reported by Thomas
+    Robitaille with patch.
+
+  - In wcserr.c, conflicts may arise among threads that share a struct
+    containing a wcserr struct (namely celprm, disprm, linprm, prjprm,
+    spcprm, spxprm, tabprm, and wcsprm).  Two threads may attempt
+    simultaneously to operate on the shared wcserr struct, i.e. to set,
+    clear, or copy it, leading to race conditions and potentially
+    segfaults if one thread attempts to read a wcserr struct that is in
+    the process of being cleared by another.  The solution consists of
+    a simple locking mechanism - a spinlock native to C11, provided by
+    stdatomic.h - implemented as a pre-processor macro.  For C99, the
+    macro defaults to a no-op, which means that the problem persists.
+    Consequently, C11 is now required for thread-safe execution if
+    wcserr is used.  Reported by Thomas Robitaille with patch. 
+
+  - In wcs.c, amended error return mapping for the lin routines to
+    account for the addition of LINERR_BAD_PARAM in WCSLIB 8.7.
+    Reported by Thomas Robitaille with patch. 
+
+  - In wcshdo(), fixed a bug introduced in the last release in
+    converting from sprintf() to snprintf() when writing the keycomment
+    for AXIS.jhat.  Reported by Thomas Robitaille with patch.
+
+  - New test program, twcsprintf_pthread, exercises wcsprintf() in
+    threaded execution.  Contributed by Thomas Robitaille.
+
+* Installation
+
+  - Bumped the value of _POSIX_C_SOURCE to 200112L in configure.ac.  The
+    old value, 1, restricts stdio.h to POSIX.1-1990 interfaces, which
+    does not include snprintf().  WCSLIB was failing to compile on macOS
+    with recent versions of clang (16 and later), which promote implicit
+    function declarations from a warning to a hard error.  Reported by
+    Thomas Robitaille.
+
+  - In configure.ac, added tests for an appropriate thread-local storage
+    (TLS) qualifier for C99 (it's native in C11).  Propagated by pre-
+    processor macro WCSLIB_TLS via CPPFLAGS, specifically to the static
+    variables in wcsprintf.c (see above).
+
+* User manual
+
+  - Updated the section on thread-safety in light of the above changes
+    to wcsprintf and wcserr.
+
+
 WCSLIB version 8.8 (2026/05/22)
 -------------------------------
 
@@ -63,7 +139,8 @@ error processing.
 
   - In wcsinit(), lininit(), and disinit(), check that the value
     provided for naxis is not too large.  Negative values also now
-    return WCSERR_BAD_PARAM rather than WCSERR_MEMORY.
+    return WCSERR_BAD_PARAM, LINERR_BAD_PARAM (new), and
+    DISERR_BAD_PARAM rather than WCSERR_MEMORY, etc.
 
     In conjunction with the above, global variables that record various
     limits are now declared in a new header file, wcslimits.h.  Their
@@ -3783,4 +3860,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.8 2026/05/22 11:19:31 mcalabre Exp $
+$Id: CHANGES,v 8.9 2026/06/18 13:00:04 mcalabre Exp $
