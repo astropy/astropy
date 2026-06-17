@@ -37,8 +37,8 @@
                         <TD>-297</TD>
                         <TD>5</TD>
                         <TD>0.7</TD>
-                        <TD>1234567890    345678    34567890 abcdefghij</TD>
-                        <TD>1234567890 qwertyuiop 0987654321 abcdefghij</TD>
+                        <TD>1234567890  34567   1234567890abcdefghij</TD>
+                        <TD>1234567890qwertyuiop0987654321abcdefghij</TD>
                     </TR>
                     <TR>
                         <TD>287.43</TD>
@@ -47,8 +47,8 @@
                         <TD>839</TD>
                         <TD>6</TD>
                         <TD>10.4</TD>
-                        <TD>1234567890    345678    34567890</TD>
-                        <TD>1234567890 qwertyuiop 0987654321 abcdefghij</TD>
+                        <TD>1234567890  34567   1234567890</TD>
+                        <TD>1234567890qwertyuiop0987654321abcdefghij</TD>
                     </TR>
                     <TR>
                         <TD>023.48</TD>
@@ -57,8 +57,8 @@
                         <TD>-182</TD>
                         <TD>3</TD>
                         <TD>0.7</TD>
-                        <TD>   345678    34567890</TD>
-                        <TD>1234567890 qwertyuiop 0987654321 abcdefghij</TD>
+                        <TD>1234567890qwertyuiop</TD>
+                        <TD>1234567890qwertyuiop0987654321abcdefghij</TD>
                     </TR>
                 </TABLEDATA>
             </DATA>
