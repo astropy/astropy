@@ -1,0 +1,1 @@
+Wheels for 32-bit Windows targets (win32) are discontinued.
