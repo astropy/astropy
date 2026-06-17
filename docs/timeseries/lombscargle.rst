@@ -40,7 +40,6 @@ unevenly spaced observations.
 Example
 -------
 
-.. EXAMPLE START: Using the Lomb-Scargle Periodogram to Detect Periodic Signals
 
 To detect periodic signals in unevenly spaced observations, consider the
 following data:
@@ -84,7 +83,6 @@ Plotting the result with Matplotlib gives:
 The periodogram shows a clear spike at a frequency of 1 cycle per unit time,
 as we would expect from the data we constructed.
 
-.. EXAMPLE END
 
 Measurement Uncertainties
 -------------------------
@@ -95,7 +93,6 @@ measurement uncertainties.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Using the Lomb-Scargle Periodogram with Measurement Uncertainties
 
 If all uncertainties are the same, you can pass a scalar:
 
@@ -112,7 +109,6 @@ an array:
 Gaussian uncertainties are assumed, and ``dy`` here specifies the standard
 deviation (not the variance).
 
-.. EXAMPLE END
 
 Periodograms and Units
 ----------------------
@@ -124,7 +120,6 @@ and will validate the inputs to make sure units are appropriate.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Using the LombScargle Class with Quantity Objects
 
 To use the :class:`~astropy.timeseries.LombScargle` for
 :class:`~astropy.units.Quantity` objects with units attached:
@@ -147,7 +142,6 @@ specify units as well:
 
 >>> frequency, power = LombScargle(t_days, y_mags, dy_mags).autopower(minimum_frequency=1e-5*u.Hz)
 
-.. EXAMPLE END
 
 Specifying the Frequency
 ------------------------
@@ -167,7 +161,6 @@ For this reason, the heuristic can be tuned through keywords passed to the
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Specifying the Frequency with the LombScargle.autopower method
 
 To tune the heuristic using keywords passed to the
 :func:`~astropy.timeseries.LombScargle.autopower` method:
@@ -193,7 +186,6 @@ Note that the fastest Lomb-Scargle implementation requires regularly spaced
 frequencies; if frequencies are irregularly spaced, a slower method will be
 used instead.
 
-.. EXAMPLE END
 
 Frequency Grid Spacing
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -205,7 +197,6 @@ are missed entirely.
 Example
 """""""
 
-.. EXAMPLE START: Frequency Grid Spacing in Periodograms
 
 Imagine you chose to evaluate your periodogram at 100 points:
 
@@ -269,7 +260,6 @@ the :func:`~astropy.timeseries.LombScargle.autopower` method:
 With a finer grid (here 884 points between 0.1 and 1.9),
 it is clear that there is a very strong periodic signal in the data.
 
-.. EXAMPLE END
 
 By default, the heuristic aims to have roughly five grid points across each
 significant periodogram peak; this can be increased by changing the
@@ -296,7 +286,6 @@ often helpful to plot the best-fit sinusoid over the phased data.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Computing a Best-Fit Sinusoid Using the LombScargle Class
 
 This best-fit sinusoid can be computed using the
 :func:`~astropy.timeseries.LombScargle.model` method of the
@@ -362,7 +351,6 @@ and cosine terms for you:
 >>> np.allclose(y_fit, offset + design_matrix.dot(theta))
 True
 
-.. EXAMPLE END
 
 Additional Arguments
 --------------------
@@ -527,7 +515,6 @@ the data consists of Gaussian noise with no periodic component.
 Example
 -------
 
-.. EXAMPLE START: Lomb-Scargle Peak Significance via False Alarm Probabilities
 
 To use the Lomb-Scargle periodogram to decide if our signal contains a periodic
 component, we can start by simulating 60 observations of a sine wave with noise:
@@ -581,7 +568,6 @@ This tells us that to attain a 10% false alarm probability requires the highest
 periodogram peak to be approximately 0.25; 5% requires 0.27, and 1% requires
 0.32.
 
-.. EXAMPLE END
 
 False Alarm Approximations
 --------------------------
@@ -806,7 +792,6 @@ Fourier terms for a multi-term fit.
 RR Lyrae Example
 ================
 
-.. EXAMPLE START: Computing a Periodogram for RR Lyrae Data
 
 An example of computing the periodogram for a more realistic dataset is shown in
 the following figure. The data here consists of 50 nightly observations of a
@@ -915,7 +900,6 @@ guarantee that the highest peak corresponds to the best frequency, and results
 must be interpreted carefully.  For a detailed discussion of these effects, see
 [11]_.
 
-.. EXAMPLE END
 
 Literature References
 =====================

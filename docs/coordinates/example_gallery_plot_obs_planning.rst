@@ -4,7 +4,6 @@ Determining and plotting the altitude/azimuth of a celestial object
 ===================================================================
 
 ..
-  EXAMPLE START
   Determining and plotting the altitude/azimuth of a celestial object
 
 This example demonstrates coordinate transformations and the creation of
@@ -151,4 +150,3 @@ Astropy can answer that.
     ...     plt.draw()
 
 ..
-  EXAMPLE END

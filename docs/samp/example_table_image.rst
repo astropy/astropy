@@ -166,7 +166,6 @@ Example
 =======
 
 ..
-  EXAMPLE START
   Receiving and Reading a Table over SAMP
 
 The following is a full example of a script that can be used to receive and
@@ -223,7 +222,6 @@ reads the table once it has::
     print t
 
 ..
-  EXAMPLE END
 
 Sending an Image to DS9 and Aladin
 ==================================

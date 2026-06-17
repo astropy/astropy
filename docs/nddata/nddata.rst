@@ -31,7 +31,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Creating Instances with NumPy NDarray-like Data
 
 To create an instance::
@@ -63,7 +62,6 @@ modified in place::
            [  0,   1,   0]])
 
 ..
-  EXAMPLE END
 
 Data During Initialization
 --------------------------
@@ -75,7 +73,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Data Convertible to a NumPy NDarray During Initialization
 
 To provide data that is convertible to a `numpy.ndarray`, you can pass a `list`
@@ -144,7 +141,6 @@ objects used to store the data while providing a useful default (``numpy``
 array).
 
 ..
-  EXAMPLE END
 
 Mask
 ====
@@ -160,7 +156,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Masks Used to Indicate Valid or Invalid Data Points in NDData
 
 One possibility is to create a mask by using ``numpy``'s comparison operators::
@@ -194,7 +189,6 @@ long as it follows the convention that ``True`` indicates a value that should
 be ignored.
 
 ..
-  EXAMPLE END
 
 Unit
 ====
@@ -229,7 +223,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Setting Uncertainties During Initialization in NDData
 
 Like the other properties the ``uncertainty`` can be set during
@@ -262,7 +255,6 @@ It is also possible to convert between uncertainty types::
     InverseVariance([0.1       , 0.14285714, 0.08333333, 0.04545455])
 
 ..
-  EXAMPLE END
 
 Covariance
 ----------
@@ -293,7 +285,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Metadata in NDData
 
 If the ``meta`` property is given it must be `dict`-like::
@@ -333,7 +324,6 @@ Elements of the metadata dictionary can be set to any valid Python object::
     >>> ndd.meta['history'] = ['calibrated', 'aligned', 'flat-fielded']
 
 ..
-  EXAMPLE END
 
 Initialization with Copy
 ========================
@@ -346,7 +336,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Creating an NDData Instance with Copy
 
 If the ``data`` is a `list` then during initialization this is copied
@@ -369,14 +358,12 @@ copies during initialization by setting the ``copy`` parameter to ``True``::
     cases are if the ``data`` is a `list` or `tuple`.
 
 ..
-  EXAMPLE END
 
 
 Collapsing an NDData object along one or more axes
 ==================================================
 
 ..
-  EXAMPLE START
   Collapsing an NDData object along one or more axes
 
 A common operation on an `~numpy.ndarray` is to take the sum, mean,
@@ -472,7 +459,6 @@ for only unmasked values with the ``operation_ignores_mask`` option::
     NDDataArray([5, 9], unit='m')
 
 ..
-  EXAMPLE END
 
 Converting NDData to Other Classes
 ==================================

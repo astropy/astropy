@@ -15,7 +15,6 @@ Creating Quantity Instances
 Examples
 --------
 
-.. EXAMPLE START: Creating Quantity Instances Through Multiplication
 
 To create a |Quantity| to represent 15 m/s:
 
@@ -34,9 +33,7 @@ This extends as expected to division by a unit, or using ``numpy`` arrays or
     >>> np.array([1, 2, 3]) * u.m  # doctest: +FLOAT_CMP
     <Quantity [1., 2., 3.] m>
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Creating Quantity Instances Using the Quantity Constructor
 
 You can also create instances using the |Quantity| constructor directly, by
 specifying a value and unit:
@@ -72,7 +69,6 @@ The current unit and value can be accessed via the
           <https://numpy.org/doc/stable/glossary.html#term-view>`_ by passing
           ``copy=False`` to |Quantity| or by using the ``<<`` operator.
 
-.. EXAMPLE END
 
 .. _quantity_unit_conversion:
 
@@ -85,7 +81,6 @@ Converting to Different Units
 Examples
 --------
 
-.. EXAMPLE START: Converting Quantity Objects to Different Units
 
 To convert |Quantity| objects to different units:
 
@@ -162,7 +157,6 @@ units are equivalent.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Addition and Subtraction Between Quantity Objects
 
 When the units are equal, the resulting object has the same unit:
 
@@ -194,7 +188,6 @@ Quantities`_) or special values like zero and infinity::
     quantities when other argument is not a quantity (unless the
     latter is all zero/infinity/nan)
 
-.. EXAMPLE END
 
 Multiplication and Division
 ---------------------------
@@ -206,7 +199,6 @@ equivalent units, the **resulting object has composite units**.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Multiplication and Division Between Quantity Objects
 
 To perform these operations on |Quantity| objects:
 
@@ -241,7 +233,6 @@ This method is also useful for more complicated arithmetic:
     >>> (15. * u.kg * 32. * u.cm * 15 * u.m / (11. * u.s * 1914.15 * u.ms)).decompose()  # doctest: +FLOAT_CMP
     <Quantity 3.41950973 m2 kg / s2>
 
-.. EXAMPLE END
 
 .. _quantity_and_numpy:
 
@@ -361,7 +352,6 @@ with.
 Examples
 --------
 
-.. EXAMPLE START: Functions that Accept Quantities
 
 To verify if a |Quantity| argument can be used in calculations::
 
@@ -434,7 +424,6 @@ for example
 This both checks that the return value of your function is consistent with what
 you expect and makes it much neater to display the results of the function.
 
-.. EXAMPLE END
 
 Specifying a list of valid equivalent units or :ref:`physical_types` is
 supported for functions that should accept inputs with multiple valid units:
@@ -470,7 +459,6 @@ the initializer.
 Examples
 --------
 
-.. EXAMPLE START: Creating and Converting Quantities without Copies
 
 To avoid duplication using ``copy=False``::
 
@@ -488,7 +476,6 @@ This may be particularly useful in functions which do not change their input
 while ensuring that if a user passes in a |Quantity| then it will be converted
 to the desired unit.
 
-.. EXAMPLE END
 
 As a shortcut, you can "shift" to the requested unit using the ``<<``
 operator::

@@ -13,7 +13,6 @@ For a list of physical types, see `astropy.units.physical`.
 Accessing Physical Types
 ========================
 
-.. EXAMPLE START: Accessing Physical Types
 
 Using :func:`~astropy.units.get_physical_type` lets us acquire |PhysicalType|
 instances from strings with a name of a physical type, units, |Quantity|
@@ -38,12 +37,10 @@ The physical type of a unit can be accessed via its
   >>> (u.meter ** 2).physical_type
   PhysicalType('area')
 
-.. EXAMPLE END
 
 Using Physical Types
 ====================
 
-.. EXAMPLE START: Using Physical Types
 
 An equality comparison between a |PhysicalType| and a string will return
 `True` if the string is a name of the |PhysicalType|::
@@ -73,12 +70,10 @@ of a |PhysicalType|::
   >>> 'work' in u.J.physical_type
   True
 
-.. EXAMPLE END
 
 Dimensional Analysis
 ====================
 
-.. EXAMPLE START: Dimensional Analysis With Physical Types
 
 |PhysicalType| instances support multiplication, division,
 and exponentiation. Because of this, they can be used for
@@ -99,5 +94,3 @@ unit or between a |PhysicalType| and a string with a name of a
   PhysicalType({'diffusivity', 'kinematic viscosity'})
   >>> length / 'time'
   PhysicalType({'speed', 'velocity'})
-
-.. EXAMPLE END

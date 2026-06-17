@@ -20,7 +20,6 @@ with the :class:`~astropy.table.Table` class (see :ref:`I/O Registry <io_registr
     unified_table_votable
 
 ..
-  EXAMPLE START
   Reading a DAOPhot Table
 
 To use this interface, first import the :class:`~astropy.table.Table` class,
@@ -50,10 +49,8 @@ the file format, for instance ``'ascii.daophot'``:
     >>> os.remove('photometry.dat')
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Reading a Table directly from the Internet
 
 It is possible to load tables directly from the Internet using URLs. For
@@ -70,10 +67,8 @@ example, from the filename extension::
     >>> t = Table.read('table.tex')
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Writing a LaTeX Table
 
 For writing a table, the format can be explicitly specified::
@@ -101,7 +96,6 @@ writing an ISO format Time column as a pair of JD1/JD2 floating
 point values (for full resolution) or as a formatted ISO date string.
 
 ..
-  EXAMPLE END
 
 .. _built_in_readers_writers:
 
@@ -200,7 +194,6 @@ Examples
 """"""""
 
 ..
-  EXAMPLE START
   Table Serialization Methods in astropy.io
 
 Start by making a table with a Time column and masked column::
@@ -249,12 +242,10 @@ The ``serialize_method`` argument can be set in two different ways:
   method.
 
 ..
-  EXAMPLE END
 
 Reading and Writing Column Objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. EXAMPLE START: Reading and Writing Column Objects
 
 Individual table columns do not have their own functions for reading and writing
 but it is easy to select just a single column (here "obstime") from a table for writing::
@@ -279,7 +270,6 @@ Then, we can read back that single-column table and extract the column from it::
     >>> import pathlib
     >>> pathlib.Path.unlink('obstime.fits')
 
-.. EXAMPLE END
 
 Note on Filenames
 ^^^^^^^^^^^^^^^^^
@@ -305,7 +295,6 @@ Example
 """""""
 
 ..
-  EXAMPLE START
   Viewing the Contents of a Table on the Command Line
 
 To view the contents of a table on the command line::

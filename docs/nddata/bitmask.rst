@@ -62,7 +62,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Creating Boolean Masks from Bit Field Arrays
 
 .. _table1:
@@ -86,7 +85,6 @@ Example
     +--------------+--------------+--------------+--------------+------------+
 
 ..
-  EXAMPLE END
 
 Specifying Bit Flags
 ====================
@@ -108,7 +106,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Specifying Bit Flags in NDData
 
 To specify bit flags:
@@ -150,13 +147,11 @@ In the example below we define a simple mask map:
     array([0, 1, 0, 1], dtype=uint8)
 
 ..
-  EXAMPLE END
 
 Using Bit Flags Name Maps
 =========================
 
 ..
-  EXAMPLE START
 
 In order to allow the use of mnemonic bit flag names to describe the flags
 to be taken into consideration or ignored when creating a *boolean* mask, we
@@ -207,7 +202,6 @@ either as *case-insensitive* class attributes or keys in a dictionary:
     8
 
 ..
-  EXAMPLE END
 
 Modifying the Formula for Creating Boolean Masks
 ================================================
@@ -226,7 +220,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Inverting Bit Masks in NDData
 
 In `~astropy.nddata.bitmask.bitfield_to_boolean_mask` specifying bit flags that
@@ -259,7 +252,6 @@ bit flag values, you can prepend a single ``~`` to the list:
     array([False,  True, False,  True]...)
 
 ..
-  EXAMPLE END
 
 Inverting Boolean Masks
 -----------------------
@@ -278,7 +270,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Inverting Boolean Masks in NDData
 
 To obtain an inverted mask in which flagged data are converted to `False`
@@ -289,4 +280,3 @@ instead of `True`:
     array([ True, False,  True, False]...)
 
 ..
-  EXAMPLE END

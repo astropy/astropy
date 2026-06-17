@@ -12,7 +12,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Accounting for Space Motion with SkyCoord Objects
 
 First we will create a |SkyCoord| object with a specified ``obstime``::
@@ -49,7 +48,6 @@ Or, we can specify the new time to evaluate the position at::
         ( 33.99944073, -117.00016248,  0.00098937)>
 
 ..
-  EXAMPLE END
 
 If the |SkyCoord| object has no specified radial velocity (RV), the RV is
 assumed to be 0. The new position of the source is determined assuming the
@@ -63,7 +61,6 @@ Example: Use velocity to compute sky position at different epochs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ..
-  EXAMPLE START
   Using Velocity to Compute Sky Position at Different Epochs
 
 In this example, we will use *Gaia* `TGAS
@@ -184,4 +181,3 @@ colors::
     (1.0151743233481962, 1.3731746233481958)
 
 ..
-  EXAMPLE END

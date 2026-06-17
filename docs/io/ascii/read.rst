@@ -33,7 +33,6 @@ by trying all of the supported formats.
    For large files it is recommended to disable guessing with ``guess=False``.
 
 ..
-  EXAMPLE START
   Reading Text Tables Using astropy.io.ascii
 
 For unusually formatted tables where guessing does not work, give additional
@@ -67,7 +66,6 @@ example::
 See the :ref:`guess_formats` section for additional details on format guessing.
 
 ..
-  EXAMPLE END
 
 For simpler formats such as CSV, |read| will automatically try reading with the
 Cython/C parsing engine, which is significantly faster than the ordinary Python
@@ -236,7 +234,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Specifying Header and Data Location for Text Tables
 
 To use the parameters ``header_start``, ``data_start``, and ``data_end``
@@ -269,7 +266,6 @@ count backward from the end, so ``data_end=-1`` (like ``rows[5:-1]``) would
 work in this case.
 
 ..
-  EXAMPLE END
 
 .. _replace_bad_or_missing_values:
 
@@ -283,7 +279,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Text Tables with Bad or Missing Values
 
 Take this example of a table with blank entries::
@@ -379,7 +374,6 @@ values in with typical placeholders::
          would wind up as float.
 
 ..
-  EXAMPLE END
 
 Selecting columns for masking
 -----------------------------
@@ -387,7 +381,6 @@ The |read| function provides the parameters ``fill_include_names`` and ``fill_ex
 to select which columns will be used in the ``fill_values`` masking process described above.
 
 ..
-  EXAMPLE START
   Using the ``fill_include_names`` and ``fill_exclude_names`` parameters for Text tables
 
 The use of these parameters is not common but in some cases can considerably simplify
@@ -422,7 +415,6 @@ in the most basic and typical cases::
             --           --
 
 ..
-  EXAMPLE END
 
 .. _guess_formats:
 
@@ -514,7 +506,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Comments and Metadata in Text Tables
 
 Comment lines detected during reading are inserted into the output table as
@@ -544,7 +535,6 @@ comments. Here is one example, where comments are of the form "# KEY = VALUE"::
       BAND       V
 
 ..
-  EXAMPLE END
 
 .. _io-ascii-read-converters:
 
@@ -577,7 +567,6 @@ converters to all other columns in the table::
   >>> ascii.read('file.dat', converters=converters)  # doctest: +SKIP
 
 ..
-  EXAMPLE START
   Reading True / False values as boolean type
 
 The value in the converters ``dict`` can also be a list of types, in which case
@@ -601,7 +590,6 @@ following::
   bool
 
 ..
-  EXAMPLE END
 
 Advanced usage
 --------------
@@ -654,7 +642,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Advanced Customization to Extend Base Functionality of astropy.io.ascii
 
 For special cases, these examples demonstrate how to extend the base
@@ -836,7 +823,6 @@ in a function::
    >>> rdb_reader.data.splitter.process_val = process_val
 
 ..
-  EXAMPLE END
 
 .. _chunk_reading:
 
@@ -875,7 +861,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Reading Large Tables in Chunks with astropy.io.ascii
 
 .. testsetup::
@@ -932,7 +917,6 @@ them at the end.
   with processing each chunk, so the fewer chunks the better.
 
   ..
-    EXAMPLE END
 
 .. _io_ascii_how_to_examples:
 
@@ -1097,7 +1081,6 @@ or::
 With either of the above changes you can read the file with no problem using default settings.
 
 ..
-  EXAMPLE START
   Make a table easier to read
 
 To read the table without editing the files, we need to ignore the badly formatted header line and
@@ -1118,7 +1101,6 @@ That can be done without any modification of the table file by setting the ``dat
    Altair            A7
 
 ..
-  EXAMPLE END
 
 Badly formatted data line
 ^^^^^^^^^^^^^^^^^^^^^^^^^

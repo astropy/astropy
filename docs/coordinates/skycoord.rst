@@ -69,7 +69,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Initializing SkyCoord Objects Using Spherical Coordinates
 
 The coordinate values and frame specification can be provided using
@@ -142,7 +141,6 @@ not explicitly set. If the coordinate above were created with
 with a different ``equinox`` would raise an exception.
 
 ..
-  EXAMPLE END
 
 Initialization Syntax
 ---------------------
@@ -311,7 +309,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Storing Arrays of Coordinates in a SkyCoord Object
 
 To store arrays of coordinates in a |SkyCoord| object::
@@ -328,10 +325,8 @@ To store arrays of coordinates in a |SkyCoord| object::
   100 loops, best of 3: 21.8 ms per loop
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Array Operations Using SkyCoord
 
 In addition to vectorized transformations, you can do the usual array slicing,
@@ -368,7 +363,6 @@ use new views of the data, with the data copied only if that is impossible
 :func:`~numpy.reshape`).
 
 ..
-  EXAMPLE END
 
 .. _astropy-coordinates-modifying-in-place:
 
@@ -392,7 +386,6 @@ object being modified:
 - Identical "extra" frame attributes (e.g., ``obstime`` for an ICRS coord)
 
 ..
-  EXAMPLE START
   Modifying an Array of Coordinates in a SkyCoord Object
 
 To modify an array of coordinates in a |SkyCoord| object use the same
@@ -406,10 +399,8 @@ syntax for a numpy array::
       [(10., 20.), ( 2.,  4.)]>
 
 ..
-  EXAMPLE END
 
 ..
-  EXAMPLE START
   Inserting Coordinates into a SkyCoord Object
 
 You can insert a scalar or array-valued |SkyCoord| object into another
@@ -422,7 +413,6 @@ compatible |SkyCoord| object::
       [( 1.,  3.), (10., 20.), ( 2.,  4.)]>
 
 ..
-  EXAMPLE END
 
 With the ability to modify a |SkyCoord| object in-place, all of the
 :ref:`table_operations` such as joining, stacking, and inserting are
@@ -627,7 +617,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Transforming Between Frames
 
 To transform from one frame to another::
@@ -655,7 +644,6 @@ coordinates are in the exact same reference frame::
       (0.48726331, 1.77731617)>
 
 ..
-  EXAMPLE END
 
 .. _astropy-skycoord-representations:
 
@@ -682,7 +670,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Initialization of a SkyCoord Object Using Different Representations
 
 To initialize an object using a representation type other than spherical::
@@ -728,7 +715,6 @@ all capital letters (e.g., ``FRAME``) describe a user input of that element
 type. Elements in square brackets are optional.
 
 ..
-  EXAMPLE END
 
 **COMP1**, **COMP2**, **COMP3**
 
@@ -858,7 +844,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Changing the Representation of a Coordinate Object
 
 To change the representation of a coordinate object by setting the
@@ -908,13 +893,11 @@ state of the |SkyCoord| object, you should instead use the
     <class 'astropy.coordinates...SphericalRepresentation'>
 
 ..
-  EXAMPLE END
 
 Example 1: Plotting random data in Aitoff projection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ..
-  EXAMPLE START
   Plotting Random Data in Aitoff Projection
 
 This is an example of how to make a plot in the Aitoff projection using data
@@ -1013,13 +996,11 @@ its usual position to avoid overlap with the axis labels.
     plt.show()
 
 ..
-  EXAMPLE END
 
 Example 2: Plotting star positions in bulge and disk
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ..
-  EXAMPLE START
   Plotting Star Positions in Bulge and Disk
 
 This is a more realistic example of how to make a plot in the Aitoff projection
@@ -1108,7 +1089,6 @@ We use the same plotting setup as in the last example:
     plt.show()
 
 ..
-  EXAMPLE END
 
 .. _coordinates-skycoord-comparing:
 

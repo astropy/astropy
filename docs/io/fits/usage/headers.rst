@@ -184,7 +184,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Manipulating FITS Headers in astropy.io.fits
 
 To add a new commentary card::
@@ -217,7 +216,6 @@ commentary card by using the :meth:`Header.insert` method.
     value.
 
 ..
-  EXAMPLE END
 
 Undefined Values
 ----------------
@@ -269,7 +267,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Card Images in FITS Headers in astropy.io.fits
 
 To create a new Card object::
@@ -322,7 +319,6 @@ copy — modifications to it will not affect the header from which it came. Use
 the methods provided by the :class:`Header` class instead.
 
 ..
-  EXAMPLE END
 
 
 CONTINUE Cards
@@ -343,7 +339,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   CONTINUE Cards for Long String Values in astropy.io.fits
 
 The examples below show that the use of CONTINUE is automatic for long
@@ -376,7 +371,6 @@ about the details of the format. Keywords that resolve to a set of CONTINUE
 cards can be accessed and updated just like regular keywords.
 
 ..
-  EXAMPLE END
 
 
 HIERARCH Cards
@@ -399,7 +393,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   HIERARCH Cards for Keywords Longer than Eight Characters in astropy.io.fits
 
 ``astropy`` will use a HIERARCH card and issue a warning when keywords contain
@@ -427,7 +420,6 @@ more than eight characters::
     HIERARCH abcdefghi = 10
 
 ..
-  EXAMPLE END
 
 .. note::
 

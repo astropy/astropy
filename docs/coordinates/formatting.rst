@@ -10,7 +10,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Getting and Formatting String Representations of Coordinates
 
 To get the string representation of a coordinate::
@@ -44,4 +43,3 @@ string expressions, such as IAU-style coordinates or even full sentences::
   'The galaxy M87, at an RA of 12.51 hours and Dec of 12.4 degrees, has an impressive jet.'
 
 ..
-  EXAMPLE END

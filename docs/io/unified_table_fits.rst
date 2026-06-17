@@ -327,7 +327,6 @@ Example
 ~~~~~~~
 
 ..
-  EXAMPLE START
   Writing and Reading Time Columns to/from FITS Tables
 
 To read a FITS table into `~astropy.table.Table`:
@@ -350,7 +349,6 @@ To read a FITS table into `~astropy.table.Table`:
 The same will work with ``QTable``.
 
 ..
-  EXAMPLE END
 
 In addition to binary table columns, various global time informational FITS
 keywords are treated specially with ``astropy_native=True``. In particular,
@@ -416,7 +414,6 @@ Examples
 ~~~~~~~~
 
 ..
-  EXAMPLE START
   Reading FITS Standard Compliant Time Coordinate Columns in Binary Tables
 
 The following is an example of a Header extract of a Chandra event list:
@@ -463,7 +460,6 @@ By default, FITS table columns will be read as standard `~astropy.table.Column`
 objects without taking the FITS time standard into consideration.
 
 ..
-  EXAMPLE END
 
 * String time column in ISO 8601 Datetime format
 
@@ -552,7 +548,6 @@ Examples
 ~~~~~~~~
 
 ..
-  EXAMPLE START
   Time Columns in FITS Files
 
 Consider the following Time column::
@@ -623,4 +618,3 @@ By default, ``serialize_method`` for Time columns is equal to
      following this convention.
 
 ..
-  EXAMPLE END

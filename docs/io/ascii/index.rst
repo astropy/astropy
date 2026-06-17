@@ -139,7 +139,6 @@ available for writing. This provides a great deal of flexibility in the format
 for writing.
 
 ..
-  EXAMPLE START
   Writing Data Tables as Formatted Text Tables
 
 The following shows how to write a formatted text table using the |write|
@@ -196,7 +195,6 @@ The ``.ecsv`` extension is recognized and implies using ECSV (equivalent to
   3 9
 
 ..
-  EXAMPLE END
 
 .. _supported_formats:
 

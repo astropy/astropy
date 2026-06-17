@@ -106,7 +106,6 @@ Using `astropy.uncertainty`
 Creating Distributions
 ----------------------
 
-.. EXAMPLE START: Creating Distributions Using Arrays or Quantities
 
 The most direct way to create a distribution is to use an array or |Quantity|
 that carries the samples in the *last* dimension::
@@ -131,9 +130,7 @@ latter does have these attributes. This is reflected in how they interact with
 other objects, for example, the ``NdarrayDistribution`` will not combine with
 |Quantity| objects containing units.
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Creating Distributions Using Helper Functions
 
 For commonly used distributions, helper functions exist to make creating them
 more convenient. The examples below demonstrate several equivalent ways to
@@ -169,7 +166,6 @@ Additionally, Poisson and uniform |Distribution| creation functions exist::
                [...],
                [...]] kpc with n_samples=1000>
 
-.. EXAMPLE END
 
 Users are free to create their own distribution classes following similar
 patterns.
@@ -177,7 +173,6 @@ patterns.
 Using Distributions
 -------------------
 
-.. EXAMPLE START: Accessing Properties of Distributions
 
 This object now acts much like a |Quantity| or |ndarray| for all but the
 non-sampled dimension, but with additional statistical operations that work on
@@ -223,9 +218,7 @@ attribute::
   >>> distr.distribution.shape
   (4, 1000)
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Interaction Between Quantity Objects and Distributions
 
 A |Quantity| distribution interacts naturally with non-|Distribution|
 |Quantity| objects, assuming the |Quantity| is a Dirac delta distribution::
@@ -249,7 +242,6 @@ discussion of covariances)::
   >>> combined_distr.pdf_var()  # doctest: +FLOAT_CMP
   <Quantity [  2.15512118,   4.817324  ,  39.0614616 , 394.82969655] kpc2>
 
-.. EXAMPLE END
 
 Covariance in Distributions and Discrete Sampling Effects
 ---------------------------------------------------------
@@ -259,7 +251,6 @@ critically requires proper treatment of covariance. This comes naturally in the
 Monte Carlo sampling approach used by the |Distribution| class, as long as
 proper care is taken with sampling error.
 
-.. EXAMPLE START: Covariance in Distributions
 
 To start with a basic example, two un-correlated distributions should produce
 an un-correlated joint distribution plot:
@@ -316,9 +307,7 @@ This demonstrates that the correlations naturally arise from the variables, but
 there is no need to explicitly account for it: the sampling process naturally
 recovers correlations that are present.
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Preserving Covariance in Distributions
 
 An important note of warning, however, is that the covariance is only preserved
 if the sampling axes are exactly matched sample by sample. If they are not, all
@@ -360,7 +349,6 @@ uncertainties in any of the relevant quantities. These tend to be of order
 :math:`\sqrt{n_{\rm samples}}` in any derived quantity, but that depends on the
 complexity of the distribution in question.
 
-.. EXAMPLE END
 
 .. note that if this section gets too long, it should be moved to a separate
    doc page - see the top of performance.inc.rst for the instructions on how to do

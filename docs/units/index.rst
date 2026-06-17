@@ -28,7 +28,6 @@ units. It works with scalars, sequences, and ``numpy`` arrays.
 Examples
 --------
 
-.. EXAMPLE START: Creating and Combining Quantities with Units
 
 To create a |Quantity| object::
 
@@ -68,9 +67,7 @@ Unit conversion is done using the
     >>> x.to(u.km)  # doctest: +FLOAT_CMP
     <Quantity 30856775814671.914 km>
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Creating Custom Units for Quantity Objects
 
 It is also possible to work directly with units at a lower level, for
 example, to create custom units::
@@ -99,9 +96,7 @@ multiply a value by the unscaled dimensionless unit::
     >>> q.unit
     Unit(dimensionless)
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Matching and Converting Between Units
 
 `astropy.units` is able to match compound units against the units it already
 knows about::
@@ -144,9 +139,7 @@ But by passing an equivalency list, in this case
     >>> (1000 * u.nm).to(u.Hz, equivalencies=u.spectral())  # doctest: +FLOAT_CMP
     <Quantity  2.99792458e+14 Hz>
 
-.. EXAMPLE END
 
-.. EXAMPLE START: Printing Quantities and Units to Strings
 
 Quantities and units can be :ref:`printed nicely to strings
 <astropy-units-format>` using the `Format String Syntax
@@ -169,7 +162,6 @@ for units can be used to choose the unit formatter::
     >>> f"{q.value:0.03f} {q.unit:FITS}"
     '0.472 m s-1'
 
-.. EXAMPLE END
 
 Using `astropy.units`
 =====================

@@ -41,7 +41,6 @@ Examples
     which take either the relative or absolute path as string or :term:`python:path-like object`.
 
 ..
-  EXAMPLE START
   Image Data as an Array in astropy.io.fits
 
 Here is a summary of reading and updating image data values::
@@ -81,7 +80,6 @@ positive::
 These examples show the concise nature of ``numpy`` array operations.
 
 ..
-  EXAMPLE END
 
 
 Scaled Data
@@ -125,7 +123,6 @@ Example
 ^^^^^^^
 
 ..
-  EXAMPLE START
   Reading Scaled Image Data with astropy.io.fits
 
 Here is an example of what happens to scaled data, before and after the data is
@@ -173,7 +170,6 @@ touched::
     the scaling to the new physical values upon saving.
 
 ..
-  EXAMPLE END
 
 
 Writing Scaled Image Data
@@ -187,7 +183,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Writing Scaled Image Data in astropy.io.fits
 
 To write scaled data with the `~ImageHDU.scale` method::
@@ -222,7 +217,6 @@ an example of what happens to the :attr:`~ImageHDU.data` attribute after the
     >>> hdu.writeto('new.fits')
 
 ..
-  EXAMPLE END
 
 .. _data-sections:
 
@@ -262,7 +256,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   Data Sections in astropy.io.fits
 
 Here is an example of getting the median image from three input images of the
@@ -291,4 +284,3 @@ Sections cannot currently be assigned. Any modifications made to a data
 section are not saved back to the original file.
 
 ..
-  EXAMPLE END

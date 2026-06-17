@@ -122,7 +122,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Removing Masked Data in NDDataRef
 
 To get all of the valid data points by slicing with the mask::
@@ -159,4 +158,3 @@ Or all invalid points::
     one-dimensional!
 
 ..
-  EXAMPLE END

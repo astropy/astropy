@@ -90,7 +90,6 @@ Example
     which take either the relative or absolute path as string or :term:`python:path-like object`.
 
 ..
-  EXAMPLE START
   Reading a FITS Table with astropy.io.fits
 
 To read a FITS Table::
@@ -131,7 +130,6 @@ and format in TFORM1.
     fields by name rather than by index.
 
 ..
-  EXAMPLE END
 
 
 Table Operations
@@ -148,7 +146,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Selecting Records in a Table Using a "Mask Array"
 
 Assuming the table's second field as having the name 'magnitude', an output
@@ -171,7 +168,6 @@ It is also possible to update the data from the HDU object in-place::
     ...     hdu.writeto('newtable2.fits')
 
 ..
-  EXAMPLE END
 
 Merging Tables
 --------------
@@ -182,7 +178,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Merging FITS Tables
 
 To merge the column definitions of the input tables::
@@ -228,7 +223,6 @@ Now ``newtable.fits`` contains a new table with the original table, plus the
 two new columns filled with zeros.
 
 ..
-  EXAMPLE END
 
 Appending Tables
 ----------------
@@ -240,7 +234,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Appending to FITS Tables
 
 Here, the first example is to append by field indices, and the second one is to
@@ -257,7 +250,6 @@ attributes (name, format, etc.) of the first table::
     ...             hdu.data[colname][nrows1:] = hdul2[1].data[colname]
 
 ..
-  EXAMPLE END
 
 Scaled Data in Tables
 =====================
@@ -345,7 +337,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Creating a FITS Table
 
 Here are a few Columns using various combinations of the optional arguments::
@@ -470,7 +461,6 @@ In a future version of ``astropy``, table creation will be simplified and this
 process will not be necessary.
 
 ..
-  EXAMPLE END
 
 .. _fits_time_column:
 
@@ -490,7 +480,6 @@ Example
 -------
 
 ..
-  EXAMPLE START
   FITS Tables with Time Columns
 
 The following is an example of a Header extract of a binary table (event list)
@@ -512,7 +501,6 @@ with a time column:
     TCUNI1  = ’s       ’
 
 ..
-  EXAMPLE END
 
 However, the FITS standard and the ``astropy`` Time object are not perfectly
 mapped and some compromises must be made. To help the user understand how the

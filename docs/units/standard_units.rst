@@ -160,7 +160,6 @@ when their powers are multiplied.
 Examples
 --------
 
-.. EXAMPLE START: Dimensionless Units
 
 To use the ``dimensionless_unscaled`` object::
 
@@ -214,7 +213,6 @@ use the `~astropy.units.core.UnitBase.physical_type` property::
    >>> (u.m / u.m) == u.dimensionless_unscaled
    True
 
-.. EXAMPLE END
 
 .. _enabling-other-units:
 
@@ -232,7 +230,6 @@ astrophysical units. However, you may wish to enable the `Imperial
 Example
 -------
 
-.. EXAMPLE START: Enabling Other Units
 
 To enable Imperial units, do::
 
@@ -281,5 +278,3 @@ To enable only specific units, use :func:`~astropy.units.add_enabled_units`::
     ...     print(u.m.find_equivalent_units())
           Primary name | Unit definition | Aliases
     ...
-
-.. EXAMPLE END

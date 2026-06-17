@@ -44,7 +44,6 @@ assist in these derivations and unify the distance measures.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Using redshift-dimensionless equivalency
 
 To convert to or from dimensionless to "redshift" units:
 
@@ -79,10 +78,8 @@ To temporarily remove the equivalency and enforce unit strictness, use
     ...         print("equivalency disabled")
     equivalency disabled
 
-.. EXAMPLE END
 
 
-.. EXAMPLE START: Using `with_redshift` equivalency
 
 The other redshift equivalency is `~astropy.cosmology.units.with_redshift`,
 enabling redshift to be converted to other units, like CMB temperature:
@@ -127,7 +124,6 @@ To use this equivalency in a larger block of code:
     ...     z.to(u.K)
     <Quantity 3000.7755 K>
 
-.. EXAMPLE END
 
 
 .. _littleh-and-H0-equivalency:
@@ -147,7 +143,6 @@ physical to "little h" units.
 Examples
 ^^^^^^^^
 
-.. EXAMPLE START: Using the "little h" Equivalency
 
 To convert to or from physical to "little h" units:
 
@@ -187,7 +182,6 @@ scaling:
     >>> mag_quantity.to(u.mag, cu.with_H0(H0_70))  # doctest: +FLOAT_CMP
     <Quantity 11.2254902 mag>
 
-.. EXAMPLE END
 
 
 Reference/API

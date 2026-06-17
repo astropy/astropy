@@ -17,7 +17,6 @@ light curves in FITS format from the `Kepler
 Example
 -------
 
-.. EXAMPLE START: Reading and Writing Kepler and TESS TimeSeries
 
 In this demonstration of using Kepler FITS time series, we start off by fetching
 an example file:
@@ -59,7 +58,6 @@ Now we can check that the time series has been read in correctly:
    ax.plot(kepler.time.jd, kepler['sap_flux'], 'k.', markersize=1)
    ax.set(xlabel='Julian Date', ylabel='SAP Flux (e-/s)')
 
-.. EXAMPLE END
 
 Reading Common Light Curve Formats
 ==================================
@@ -78,7 +76,6 @@ names of the important columns.
 Examples
 --------
 
-.. EXAMPLE START: Reading Common Light Curve Formats for Storing Time Series
 
 If you are reading in a file called :download:`sampled.csv <sampled.csv>` where
 the time column is called ``Date`` and is an ISO string, you can do::
@@ -124,7 +121,6 @@ See the documentation for :meth:`TimeSeries.read
 <astropy.timeseries.TimeSeries.read>` and :meth:`BinnedTimeSeries.read
 <astropy.timeseries.BinnedTimeSeries.read>` for more details.
 
-.. EXAMPLE END
 
 Alternatively, you can read in the table using your own code then construct the
 |TimeSeries| object as described in :ref:`timeseries-initializing`, although

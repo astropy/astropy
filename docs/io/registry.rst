@@ -37,7 +37,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Using astropy.io.registry to Create a Custom Reader/Writer
 
 Here we assume that we are trying to write a reader/writer for the
@@ -141,7 +140,6 @@ Since we have already registered the identifier function, we can also do::
 
 
 ..
-  EXAMPLE END
 
 
 Registries, local and default

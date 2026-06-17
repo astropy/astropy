@@ -37,7 +37,6 @@ in unevenly spaced observations with multiple bands of data present.
 Example
 -------
 
-.. EXAMPLE START: Using the Lomb-Scargle Periodogram to Detect Periodic Signals
 
 To detect periodic signals in unevenly spaced observations, consider the
 following multiband data, where 5 bands (u, g, r, i, and z) have 60 datapoints each.
@@ -105,7 +104,6 @@ as we would expect from the data we constructed. The resulting power is a
 single array, with combined input from each of the bands dependent upon the
 implementation chosen in the ``method`` keyword.
 
-.. EXAMPLE END
 
 Periodograms from :class:`~astropy.timeseries.TimeSeries` objects
 =================================================================
@@ -122,7 +120,6 @@ an associated band label column, these columns may be passed directly to
 Example
 -------
 
-.. EXAMPLE START: Loading from a :class:`~astropy.timeseries.TimeSeries` object
 
 Consider the following generator code for a
 :class:`~astropy.timeseries.TimeSeries` object where timeseries data is
@@ -216,7 +213,6 @@ For example:
 
 >>> frequency,power = ls.autopower()
 
-.. EXAMPLE END
 
 Consistencies with :class:`~astropy.timeseries.LombScargle`
 ===========================================================
@@ -254,7 +250,6 @@ likewise, a custom frequency grid may be supplied directly to the
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Specifying the Frequency Grid
 
 >>> frequency = np.linspace(0, 2, 1000)
 >>> power = LombScargleMultiband(t, y, bands, dy).power(frequency)
@@ -290,7 +285,6 @@ Example
     fig, ax = plt.subplots()
     ax.plot(frequency,power)
 
-.. EXAMPLE END
 
 Periodogram Implementations
 ---------------------------
@@ -316,7 +310,6 @@ underlying speed of the choice of ``sb_method``.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: Periodogram Implementations
 
 ``flexible``:
 
@@ -327,7 +320,6 @@ Example
 
 >>> frequency, power = LombScargleMultiband(t,y,bands,dy).autopower(method='fast', sb_method='fast')
 
-.. EXAMPLE END
 
 .. _gatspy: https://www.astroml.org/gatspy/
 
@@ -352,7 +344,6 @@ bands offset model.
 Example
 ^^^^^^^
 
-.. EXAMPLE START: The Multiband Lomb-Scargle Model
 
 The following example uses the same data as above.
 :func:`~astropy.timeseries.LombScargleMultiband.autopower` is used to return
@@ -422,7 +413,6 @@ has recovered the expected sinusoid recovered at the correct frequency:
    ax.legend()
    ax.grid()
 
-.. EXAMPLE END
 
 False Alarm Probabilities
 -------------------------

@@ -32,7 +32,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Read and Write a CSV File Using Fast ASCII
 
 To open a CSV file and write it back out::
@@ -65,7 +64,6 @@ To disable the fast engine, specify ``fast_reader=False`` or
    and/or other options such as the delimiter.
 
 ..
-  EXAMPLE END
 
 Reading
 =======
@@ -102,7 +100,6 @@ Example
 =======
 
 ..
-  EXAMPLE START
   Fast Conversion Options for Faster Table Reading
 
 To specify additional parameters using ``fast_reader``::
@@ -111,7 +108,6 @@ To specify additional parameters using ``fast_reader``::
    ...            fast_reader={'use_fast_converter': True}) # doctest: +SKIP
 
 ..
-  EXAMPLE END
 
 These options allow for even faster table reading when enabled, but both are
 disabled by default because they come with some caveats.

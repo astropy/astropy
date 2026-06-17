@@ -21,7 +21,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Reading from and Writing to Parquet Files
 
 .. testsetup::
@@ -62,4 +61,3 @@ To read only a subset of the columns, use the ``include_names`` and/or ``exclude
 
 
 ..
-  EXAMPLE END

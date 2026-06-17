@@ -196,7 +196,6 @@ Examples
 ^^^^^^^^
 
 ..
-  EXAMPLE START
   Verification at Each Card in astropy.io.fits
 
 Here is a list of fixable and not fixable Cards:
@@ -306,7 +305,6 @@ We will summarize the verification with a "life-cycle" example::
     >>> hdul.close()
 
 ..
-  EXAMPLE END
 
 Verification Using the FITS Checksum Keyword Convention
 =======================================================
@@ -345,7 +343,6 @@ Examples
 --------
 
 ..
-  EXAMPLE START
   Verification Using the FITS Checksum Keyword Convention
 
 To verify the checksum values for HDUs when opening a file::
@@ -384,4 +381,3 @@ To verify the checksum values for HDUs when opening a file::
     >>> hdul.close()
 
 ..
-  EXAMPLE END

@@ -21,7 +21,6 @@ The available built-in mixin column classes are:
 Basic Example
 =============
 
-.. EXAMPLE START: Using Mixin Columns in Tables
 
 As an example we can create a table and add a time column::
 
@@ -44,7 +43,6 @@ object::
   >>> t['time'].mjd  # doctest: +FLOAT_CMP
   array([51911.52425926, 51943.00071759])
 
-.. EXAMPLE END
 
 .. _quantity_and_qtable:
 
@@ -68,7 +66,6 @@ probably the best class to use.
 Example
 -------
 
-.. EXAMPLE START: Using Quantity Columns and QTables
 
 To illustrate these concepts we first create a standard |Table| where we supply
 as input a |Time| object and a |Quantity| object with units of ``m / s``. In
@@ -151,7 +148,6 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
    be converted to ``float``. Therefore such columns typically should not be
    assigned with any unit.
 
-.. EXAMPLE END
 
 .. _mixin_attributes:
 

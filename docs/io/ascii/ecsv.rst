@@ -63,7 +63,6 @@ either ignored or raise an error.
 Simple Table
 ------------
 ..
-  EXAMPLE START
   Writing Data Tables as ECSV: Simple Table
 
 The following writes a table as a simple space-delimited file. The
@@ -96,7 +95,6 @@ defines the list of columns and the ``schema`` relates to astropy-specific
 extensions that are used for writing `Mixin Columns`_.
 
 ..
-  EXAMPLE END
 
 Masked Data
 -----------
@@ -198,7 +196,6 @@ and reassemble them back into the appropriate masked columns.
    arbitrary class here.
 
 ..
-  EXAMPLE START
   Using ECSV Format to Write Astropy Tables with Masked or Missing Data
 
 Per-column control
@@ -249,7 +246,6 @@ When you read this back in, both the empty (zero-length) string and the masked
 ``'d'`` value in the column ``'c'`` will be preserved.
 
 ..
-  EXAMPLE END
 
 .. _ecsv_format_mixin_columns:
 
@@ -283,7 +279,6 @@ original column. For example, a `~astropy.coordinates.SkyCoord` mixin column in
 ``frame``.
 
 ..
-  EXAMPLE START
   Writing a Table with a SkyCoord Column in ECSV Format
 
 This example demonstrates writing a `~astropy.table.QTable` that has `~astropy.time.Time`
@@ -348,7 +343,6 @@ standard `~astropy.table.Column` attributes like ``description`` or ``format``,
 for any mixin columns that are represented by more than one serialized column.
 
 ..
-  EXAMPLE END
 
 .. _ecsv_format_masked_columns:
 
@@ -362,7 +356,6 @@ supported by ECSV including :ref:`mixin_columns`. This capability is added in
 astropy 4.3 and ECSV version 1.0.
 
 ..
-  EXAMPLE START
   Using ECSV Format to Write Astropy Tables with Multidimensional Columns
 
 We start by defining a table with 2 rows where each element in the second column
@@ -406,7 +399,6 @@ When you read this back in, the sequence of JSON-encoded column items are then
 decoded using JSON back into the original N-d column.
 
 ..
-  EXAMPLE END
 
 Variable-length arrays
 ----------------------
@@ -430,7 +422,6 @@ could have a column with ``np.ndarray`` cells having shapes of ``(4,4,2)``,
 ``(4,4,5)``, and ``(4,4,3)`` respectively.
 
 ..
-  EXAMPLE START
   Using ECSV Format to Write Astropy Tables with Variable-Length Arrays
 
 The example below shows writing a variable-length 1-d array to ECSV. Notice the
@@ -457,7 +448,6 @@ above the subtype would have been ``int64[4,4,null]``.
   [6,7,8,9]
 
 ..
-  EXAMPLE END
 
 Object arrays
 -------------
@@ -469,7 +459,6 @@ More precisely, any object that can be serialized to `JSON
 <https://docs.python.org/3/library/json.html>`__ package is supported.
 
 ..
-  EXAMPLE START
   Using ECSV Format to Write Astropy Tables with Object Arrays
 
 The example below shows writing an object array to ECSV. Because JSON requires
@@ -495,7 +484,6 @@ representation.
   true
 
 ..
-  EXAMPLE END
 
 Meta data
 ---------
