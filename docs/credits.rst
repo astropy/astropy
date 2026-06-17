@@ -593,6 +593,7 @@ Core Package Contributors
 * Varun Kasyap Pentamaraju
 * Varun Nikam
 * Vatsala Swaroop
+* veyron
 * Víctor Terrón
 * Víctor Zabalza
 * Victoria Dye
