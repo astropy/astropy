@@ -15,12 +15,13 @@ from unittest import mock
 # THIRD-PARTY
 import numpy as np
 import pytest
+from numpy.ma import masked_array
 from numpy.testing import assert_array_equal
 
 # LOCAL
 from astropy.io.votable import tree
 from astropy.io.votable.exceptions import W31, W39, VOTableSpecError, VOWarning
-from astropy.io.votable.table import parse, parse_single_table, validate
+from astropy.io.votable.table import parse, parse_single_table, validate, writeto
 from astropy.io.votable.xmlutil import validate_schema
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
 
@@ -148,10 +149,10 @@ def _test_regression(tmp_path, _python_based=False, binary_mode=1):
     )
 
     with open(
-            get_pkg_data_filename(
-                f"data/regression.bin.tabledata.truth.{votable.version}.xml"
-            ),
-            encoding="utf-8",
+        get_pkg_data_filename(
+            f"data/regression.bin.tabledata.truth.{votable.version}.xml"
+        ),
+        encoding="utf-8",
     ) as fd:
         truth = fd.readlines()
     with open(str(tmp_path / "regression.bin.tabledata.xml"), encoding="utf-8") as fd:
@@ -270,8 +271,8 @@ def test_select_missing_columns_error_message(columns, expected_missing):
     # see https://github.com/astropy/astropy/pull/15956
     filename = get_pkg_data_filename("data/regression.xml")
     with pytest.raises(
-            ValueError,
-            match=re.escape(f"Columns {expected_missing!r} were not found in fields list"),
+        ValueError,
+        match=re.escape(f"Columns {expected_missing!r} were not found in fields list"),
     ):
         parse_single_table(filename, columns=columns)
 
@@ -381,7 +382,7 @@ def test_select_columns_by_name():
     ],
 )
 def test_select_columns_by_name_edge_cases(
-        column_ids, use_names_over_ids, expected_names
+    column_ids, use_names_over_ids, expected_names
 ):
     # see https://github.com/astropy/astropy/issues/14943
     filename = get_pkg_data_filename("data/regression.xml")
@@ -697,9 +698,9 @@ class TestParse:
     def test_repr(self):
         assert "3 tables" in repr(self.votable)
         assert (
-                repr(list(self.votable.iter_fields_and_params())[0])
-                == '<PARAM ID="awesome" arraysize="*" datatype="float" '
-                   'name="INPUT" unit="deg" value="[0.0 0.0]"/>'
+            repr(list(self.votable.iter_fields_and_params())[0])
+            == '<PARAM ID="awesome" arraysize="*" datatype="float" '
+            'name="INPUT" unit="deg" value="[0.0 0.0]"/>'
         )
         # Smoke test
         repr(list(self.votable.iter_groups()))
@@ -845,8 +846,8 @@ def test_select_columns_binary(format_):
     assert table.colnames == ["string_test", "string_test_2", "unicode_test"]
 
 
-def table_from_scratch():
-    from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
+def test_table_from_scratch(tmp_path):
+    from astropy.io.votable.tree import Resource, TableElement, VOTableFile
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -862,8 +863,12 @@ def table_from_scratch():
     # Define some fields
     table.fields.extend(
         [
-            Field(votable, ID="filename", datatype="char"),
-            Field(votable, ID="matrix", datatype="double", arraysize="2x2"),
+            tree.Field(
+                votable, ID="filename", name="filename", datatype="char", arraysize="9"
+            ),
+            tree.Field(
+                votable, ID="matrix", name="matrix", datatype="double", arraysize="2x2"
+            ),
         ]
     )
 
@@ -875,14 +880,23 @@ def table_from_scratch():
     table.array[0] = ("test1.xml", [[1, 0], [0, 1]])
     table.array[1] = ("test2.xml", [[0.5, 0.3], [0.2, 0.1]])
 
-    # Now write the whole thing to a file.
-    # Note, we have to use the top-level votable file object
-    out = io.StringIO()
-    votable.to_xml(out)
+    output = io.BytesIO()
+
+    writeto(votable, output)
+
+    output.seek(0)
+    votable = parse(output)
+
+    table = votable.get_first_table()
+
+    data = table.array[0]
+
+    assert data["filename"] == "test1.xml"
+    assert data["matrix"].tolist() == [[1, 0], [0, 1]]
 
 
-def table_from_scratch_char_array():
-    from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
+def test_table_from_scratch_char_array():
+    from astropy.io.votable.tree import Resource, TableElement, VOTableFile
 
     # Create a new VOTable file...
     votable = VOTableFile()
@@ -898,8 +912,23 @@ def table_from_scratch_char_array():
     # Define some fields
     table.fields.extend(
         [
-            Field(votable, ID="filename", datatype="char", arraysize="2x*"),
-            Field(votable, ID="matrix", datatype="double", arraysize="2x2"),
+            tree.Field(
+                votable,
+                ID="filename_id",
+                name="filename",
+                datatype="char",
+                arraysize="9",
+            ),
+            tree.Field(
+                votable, ID="matrix_id", name="matrix", datatype="char", arraysize="2x2"
+            ),
+            tree.Field(
+                votable,
+                ID="matrix2_id",
+                name="matrix2",
+                datatype="double",
+                arraysize="2x2",
+            ),
         ]
     )
 
@@ -908,13 +937,29 @@ def table_from_scratch_char_array():
     table.create_arrays(2)
 
     # Now table.array can be filled with data
-    table.array[0] = ("test1.xml", ['aa', 'bb', 'cc'])
-    table.array[1] = ("test2.xml", ['dd', 'ee'])
+    table.array[0] = ("test1.xml", ["&&", "<<"], [[1, 2], [3, 4]])
+    table.array[1] = ("test2.xml", [">>", "+-"], [[1, 2], [3, 4]])
 
-    # Now write the whole thing to a file.
-    # Note, we have to use the top-level votable file object
-    out = io.StringIO()
-    votable.to_xml(out)
+    output = io.BytesIO()
+
+    writeto(votable, output)
+
+    output.seek(0)
+    votable = parse(output)
+
+    table = votable.get_first_table()
+
+    data = table.array[0]
+
+    assert data["filename"] == "test1.xml"
+    assert data["matrix"].tolist() == ["&&", "<<"]
+    assert data["matrix2"].tolist() == [[1, 2], [3, 4]]
+
+    data = table.array[1]
+
+    assert data["filename"] == "test2.xml"
+    assert data["matrix"].tolist() == [">>", "+-"]
+    assert data["matrix2"].tolist() == [[1, 2], [3, 4]]
 
 
 # https://github.com/astropy/astropy/issues/13341
@@ -922,7 +967,7 @@ def table_from_scratch_char_array():
 def test_open_files():
     for filename in get_pkg_data_filenames("data", pattern="*.xml"):
         if not filename.endswith(
-                ("custom_datatype.xml", "timesys_errors.xml", "parquet_binary.xml")
+            ("custom_datatype.xml", "timesys_errors.xml", "parquet_binary.xml")
         ):
             parse(filename)
 
@@ -930,6 +975,133 @@ def test_open_files():
 def test_too_many_columns():
     with pytest.raises(VOTableSpecError):
         parse(get_pkg_data_filename("data/too_many_columns.xml.gz"))
+
+
+def test_char_array_columns():
+    votable = parse(get_pkg_data_filename("data/valid_votable_with_char_array2.xml"))
+    table = votable.get_first_table().to_table()
+    actual = table[0]
+
+    assert actual["col6"] == "cdefgh"
+    assert_array_equal(
+        actual["col7"],
+        np.ma.masked_array(data=["1234567890", "qwertyuiop"], mask=[False, False]),
+    )
+    assert_array_equal(
+        actual["col8"],
+        np.ma.masked_array(
+            data=["1234567890", "qwertyuiop", "0987654321", "abcdefghij"],
+            mask=[False, False, False, False],
+        ),
+    )
+    assert_array_equal(
+        actual["col9"],
+        np.ma.masked_array(
+            data=["12345678  ", "  ertyui  ", "  876543  ", "abcdefghij"],
+            mask=[False, False, False, False],
+        ),
+    )
+
+
+def test_unicodeChar_array_columns():
+    votable = parse(
+        get_pkg_data_filename("data/valid_votable_with_unicodeChar_array2.xml")
+    )
+    table = votable.get_first_table().to_table()
+    actual = table[0]
+
+    assert actual["col6"] == "cαβγδε"
+    assert_array_equal(
+        actual["col7"],
+        np.ma.masked_array(data=["你好12345678", "αβγδε12345"], mask=[False, False]),
+    )
+    assert_array_equal(
+        actual["col8"],
+        np.ma.masked_array(
+            data=["café123456", "你好12345678", "αβγδε12345", "España2025"],
+            mask=[False, False, False, False],
+        ),
+    )
+    assert_array_equal(
+        actual["col9"],
+        np.ma.masked_array(
+            data=["café1234  ", "你好123456  ", "αβγδε123  ", " spaña2025"],
+            mask=[False, False, False, False],
+        ),
+    )
+
+
+def test_string_multidimensional_array_columns():
+    votable = parse(
+        get_pkg_data_filename("data/valid_votable_with_char_multidimensinal_array.xml")
+    )
+    table = votable.get_first_table().to_table()
+    actual = table[0]
+
+    assert actual["col6"] == "cdefgh"
+
+    data = [["12345", "qwert", "09876", "abcde"], ["12345", "qwert", "09876", "abcde"]]
+    mask = [False, False, False, False, False, False, False, False]
+
+    assert_array_equal(actual["col7"], np.ma.masked_array(data=data, mask=mask))
+    assert_array_equal(actual["col8"], np.ma.masked_array(data=data, mask=mask))
+
+    data = [["12345", " wer ", " 987 ", " bcd "], [" 234 ", " wer ", " 987 ", "abcde"]]
+    assert_array_equal(actual["col9"], np.ma.masked_array(data=data, mask=mask))
+
+
+def test_unicodeChar_multidimensional_array_columns():
+    votable = parse(
+        get_pkg_data_filename(
+            "data/valid_votable_with_unicodeChar_multidimensinal_array.xml"
+        )
+    )
+    table = votable.get_first_table().to_table()
+
+    assert len(table) == 1
+
+    actual = table[0]
+
+    assert actual["col6"] == "αβγδε"
+
+    data = [
+        ["áéíóú", "áéíóú", "úÁÉÍÓ", "Españ"],
+        ["αβγδε", "你好123", "09876", "abcde"],
+    ]
+    mask = [False, False, False, False, False, False, False, False]
+
+    assert_array_equal(actual["col7"], np.ma.masked_array(data=data, mask=mask))
+    assert_array_equal(actual["col8"], np.ma.masked_array(data=data, mask=mask))
+
+    data = [
+        ["áéíóú", " éíó ", " ÁÉÍ ", " spañ"],
+        [" βγδ ", "你好12 ", "09876", "abcde"],
+    ]
+    assert_array_equal(actual["col9"], np.ma.masked_array(data=data, mask=mask))
+
+
+def test_unicodeChar_multidimensional_array_columns_multiple_2_rows():
+    votable = parse(
+        get_pkg_data_filename(
+            "data/binary2_variable_length_multidimension_array_unicodeChar_2_rows.xml"
+        )
+    )
+    table = votable.get_first_table().to_table()
+
+    assert len(table) == 2
+
+    actual = table[0]
+
+    assert actual["col6"] == "  αβγδε   "
+
+    data = [
+        ["áéíóú", "áéíóú", "úÁÉÍÓ", "Españ"],
+        ["αβγδε", "你好123", "09876", "abcde"],
+    ]
+    mask = [False, False, False, False, False, False, False, False]
+
+    assert_array_equal(actual["col7"], np.ma.masked_array(data=data, mask=mask))
+    assert_array_equal(actual["col8"], np.ma.masked_array(data=data, mask=mask))
 
 
 def test_build_from_scratch(tmp_path):
@@ -948,7 +1120,7 @@ def test_build_from_scratch(tmp_path):
     table.fields.extend(
         [
             tree.Field(
-                votable, ID="filename", name="filename", datatype="char", arraysize="1"
+                votable, ID="filename", name="filename", datatype="char", arraysize="10"
             ),
             tree.Field(
                 votable, ID="matrix", name="matrix", datatype="double", arraysize="2x2"
@@ -983,7 +1155,7 @@ def test_build_from_scratch(tmp_path):
     )
 
 
-def test_build_from_scratch(tmp_path):
+def test_build_from_scratch_atring_array(tmp_path):
     # Create a new VOTable file...
     votable = tree.VOTableFile()
 
@@ -998,9 +1170,34 @@ def test_build_from_scratch(tmp_path):
     # Define some fields
     table.fields.extend(
         [
-            tree.Field(votable, ID="filename", name="filename", datatype="char", arraysize="*"),
-            tree.Field(votable, ID="array_1", name="array_1", datatype="char", arraysize="3x*"),
-            tree.Field(votable, ID="array_2", name="array_2", datatype="char", arraysize="2x2"),
+            tree.Field(
+                votable,
+                ID="id_filename",
+                name="filename",
+                datatype="char",
+                arraysize="*",
+            ),
+            tree.Field(
+                votable,
+                ID="id_array_1",
+                name="array_1",
+                datatype="char",
+                arraysize="3x*",
+            ),
+            tree.Field(
+                votable,
+                ID="id_array_2",
+                name="array_2",
+                datatype="char",
+                arraysize="2x2",
+            ),
+            tree.Field(
+                votable,
+                ID="id_array_3",
+                name="array_3",
+                datatype="unicodeChar",
+                arraysize="2x2",
+            ),
         ]
     )
 
@@ -1009,8 +1206,8 @@ def test_build_from_scratch(tmp_path):
     table.create_arrays(2)
 
     # Now table.array can be filled with data
-    table.array[0] = ("test1.xml", ['aaa', 'bbb', 'ccc'], ['dd', 'ee'])
-    table.array[1] = ("test2.xml", ['111', '222', '333'], ['44', '55'])
+    table.array[0] = ("test1.xml", ["aaa", "bbb", "ccc"], ["dd", "ee"], ["δε", "你好"])
+    table.array[1] = ("test2.xml", ["111", "222"], ["44", "55"], ["δε", "你好"])
 
     # Now write the whole thing to a file.
     # Note, we have to use the top-level votable file object
@@ -1020,29 +1217,26 @@ def test_build_from_scratch(tmp_path):
 
     table = votable.get_first_table()
 
-    print()
-    print(table.array[0])
+    astropy_table = table.to_table()
 
-    print(table.array[0][1])
-    print(table.array[0][2])
+    assert len(astropy_table) == 2
 
-    assert_array_equal(table.array[0][1], ['aaa', 'bbb', 'ccc'])
-    assert_array_equal(table.array[0][2], ['dd', 'ee'])
+    actual_row = astropy_table[0]
 
-    print(len(table.array.mask))
-    print(table.array.mask)
-    print(table.array.mask[0])
-    print(table.array.mask[1])
-
-    print(table.array.mask.dtype)
-
-    print()
-    assert_array_equal(
-        table.array.mask,
-        np.array([(False, [False, False, False], [False, False]), (False, [False, False, False], [False, False])],
-                 dtype=[('filename', '?'), ('array_1', '?', (3,)), ('array_2', '?', (2,))],
-                 )
+    dtype = np.dtype(
+        [
+            ("id_filename", "O"),
+            ("id_array_1", "O"),
+            ("id_array_2", "<U2", (2,)),
+            ("id_array_3", "<U2", (2,)),
+        ]
     )
+
+    assert actual_row.dtype == dtype
+
+    assert_array_equal(actual_row[1], masked_array(["aaa", "bbb", "ccc"], dtype="<U3"))
+    assert_array_equal(actual_row[2], masked_array(["dd", "ee"], dtype="<U3"))
+    assert_array_equal(actual_row[3], masked_array(["δε", "你好"], dtype="<U3"))
 
 
 def test_validate(test_path_object=False):
@@ -1178,10 +1372,11 @@ def _run_test_from_scratch_char_array_example():
     table.create_arrays(2)
 
     # Now table.array can be filled with data
-    table.array[0] = ("test1.xml", ['aa', 'bb', 'cc'])
-    table.array[1] = ("test2.xml", ['dd', 'ee'])
+    table.array[0] = (["aa", "bb", "cc"], [1, 2])
+    table.array[1] = (["aa"], [1, 2])
 
-    assert table.array[0][0] == "test1.xml"
+    assert table.array[0][0] == ["aa", "bb", "cc"]
+    assert table.array[1][0] == ["aa"]
 
 
 def test_fileobj():
