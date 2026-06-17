@@ -948,6 +948,44 @@ class TestSubFormat:
             t.yday == np.array(["2000:336:00:00:00.000", "2001:335:01:01:01.123"])
         )
 
+    @pytest.mark.parametrize("fmt", ["iso", "isot", "yday", "fits"])
+    @pytest.mark.parametrize("precision", [0, 3, 9])
+    def test_string_value_matches_per_element(self, monkeypatch, fmt, precision):
+        """The vectorized string output matches the per-element formatting.
+
+        Includes a masked value and a couple of leap-day boundaries, and runs
+        each format at a few precisions.
+        """
+        times = [
+            "2001-01-01T00:00:00.000000001",
+            "2002-06-15T12:30:45.500000000",
+            "2004-02-29T23:59:59.999999999",
+            "2000-02-29T06:00:00.000000000",
+            "2003-12-31T18:18:18.181818181",
+            "2001-07-04T01:02:03.040506070",
+        ]
+
+        def make():
+            t = Time(times, format="isot", scale="utc").reshape(2, 3)
+            t[0, 1] = np.ma.masked
+            t.precision = precision
+            return t
+
+        got = getattr(make(), fmt)
+        # Disable the vectorized path and compare against the original loop.
+        monkeypatch.setattr(TimeString, "_value_fast", lambda self, str_fmt: None)
+        ref = getattr(make(), fmt)
+        assert_array_equal(got.unmasked, ref.unmasked)
+        assert_array_equal(got.mask, ref.mask)
+
+    def test_string_value_fallback_on_mixed_year_width(self):
+        """Years of differing width fall back and still format correctly."""
+        t = Time(
+            ["0500-03-01T00:00:00", "2003-01-01T00:00:00"], format="isot", scale="tt"
+        )
+        assert t._time._value_fast("{year:d}-{mon:02d}") is None
+        assert np.all(t.isot == ["500-03-01T00:00:00.000", "2003-01-01T00:00:00.000"])
+
     def test_scale_input(self):
         """Test for issues related to scale input"""
         # Check case where required scale is defined by the TimeFormat.
