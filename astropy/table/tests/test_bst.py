@@ -3,10 +3,13 @@
 import pytest
 
 from astropy.table.bst import BST
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 def get_tree(TreeType):
-    b = TreeType([], [])
+    # BST is deprecated, so its constructor emits the warning here.
+    with pytest.warns(AstropyDeprecationWarning, match="The BST class is deprecated"):
+        b = TreeType([], [])
     for val in [5, 2, 9, 3, 4, 1, 6, 10, 8, 7]:
         b.add(val)
     return b
