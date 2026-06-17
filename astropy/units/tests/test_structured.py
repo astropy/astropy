@@ -659,7 +659,7 @@ class TestStructuredQuantityFunctions(StructuredTestBaseWithUnits):
         # ``test_quantity_non_ufuncs.TestRecFunctions.test_structured_to_unstructured``
 
     def test_unstructured_to_structured(self):
-        # can't structure something that's already structured
+        # can't structure something with incompatible shape
         dtype = np.dtype([("f1", float), ("f2", float)])
         with pytest.raises(ValueError, match="The length of the last dimension"):
             rfn.unstructured_to_structured(self.q_pv, dtype=self.q_pv.dtype)
