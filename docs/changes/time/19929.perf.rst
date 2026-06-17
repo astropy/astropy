@@ -1,0 +1,5 @@
+Converting a ``Time`` to a string format (e.g. ``iso``, ``isot``, ``yday``,
+``fits`` or ``datetime64``) is now built with array operations instead of a
+Python loop over the elements, making it well over ten times faster for large
+arrays. This speeds up printing and writing tables that contain a ``Time``
+column.
