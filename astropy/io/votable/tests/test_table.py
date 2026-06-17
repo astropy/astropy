@@ -525,12 +525,13 @@ def test_validate_output_valid():
 
 def test_validate_output_valid_with_char_array():
     """
-    Issue #12603. Test that we get the correct output from votable.validate with a valid
-    votable.
+    Make use of a votable with char array
     """
     # A valid votable. (Example from the votable standard:
     # https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html )
-    valid_votable_filepath = get_pkg_data_filename("data/valid_votable_with_char_array.xml")
+    valid_votable_filepath = get_pkg_data_filename(
+        "data/valid_votable_with_char_array.xml"
+    )
 
     # When output is None, check that validate returns validation output as a string
     validate_out = validate(valid_votable_filepath, output=None)
@@ -545,7 +546,30 @@ def test_validate_output_valid_with_char_array():
     assert validate_out is True
 
 
-def test_binary2_single_bounded_char_array():
+def test_validate_output_valid_with_unicodeChar_array():
+    """
+    Make use of a votable with unicodeChar array
+    """
+    # A valid votable. (Example from the votable standard:
+    # https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html )
+    valid_votable_filepath = get_pkg_data_filename(
+        "data/valid_votable_with_unicodeChar_array.xml"
+    )
+
+    # When output is None, check that validate returns validation output as a string
+    validate_out = validate(valid_votable_filepath, output=None)
+    assert isinstance(validate_out, str)
+    # Check for known good output string
+    assert "astropy.io.votable found no violations" in validate_out
+
+    # When output is not set, check that validate returns a bool
+    validate_out = validate(valid_votable_filepath)
+    assert isinstance(validate_out, bool)
+    # Check that validation output is correct (votable is valid)
+    assert validate_out is True
+
+
+def test_binary2_char_bounded_array():
     """
     Test that variable length char arrays with a max length
     (arraysize="128*") are read correctly in BINARY2 format.
@@ -556,8 +580,8 @@ def test_binary2_single_bounded_char_array():
 
     assert len(astropy_table) == 1
     assert (
-            astropy_table[0]["access_format"]
-            == "application/x-votable+xml;content=datalink"
+        astropy_table[0]["access_format"]
+        == "application/x-votable+xml;content=datalink"
     )
 
     output = io.BytesIO()
@@ -570,27 +594,26 @@ def test_binary2_single_bounded_char_array():
 
     assert len(astropy_table2) == 1
     assert (
-            astropy_table2[0]["access_format"]
-            == "application/x-votable+xml;content=datalink"
+        astropy_table2[0]["access_format"]
+        == "application/x-votable+xml;content=datalink"
     )
 
 
-def test_binary2_single_fix_char_array():
+def test_binary2_char_fix_array():
     """
-    Test that variable length char arrays with a max length
-    (arraysize="128*") are read correctly in BINARY2 format.
+    [#19974] Test that fix length char arrays with a max length (arraysize="10x4") are read correctly in
+    BINARY2 format.
     """
     votable = parse(get_pkg_data_filename("data/binary2_fix_length_array_char.xml"))
     table = votable.get_first_table()
     astropy_table = table.to_table()
-    print(astropy_table)
     actual = astropy_table[0]
 
     assert len(astropy_table) == 1
 
-    data = ['1234567890', 'abcdefghij', '0987654321', 'jihgfedcba']
+    data = ["1234567890", "abcdefghij", "0987654321", "jihgfedcba"]
 
-    dtype = np.dtype([('access_format', '<U10', (4,))])
+    dtype = np.dtype([("access_format", "<U10", (4,))])
 
     assert actual.dtype == dtype
 
@@ -598,36 +621,46 @@ def test_binary2_single_fix_char_array():
 
     assert_array_equal(actual, expected)
 
-    assert_array_equal(astropy_table[0]["access_format"], ['1234567890', 'abcdefghij', '0987654321', 'jihgfedcba'])
+    assert_array_equal(astropy_table[0]["access_format"], data)
 
     output = io.BytesIO()
     astropy_table.write(output, format="votable", tabledata_format="binary2")
-    output.seek(0)
 
+    output.seek(0)
     votable2 = parse(output)
     table2 = votable2.get_first_table()
     astropy_table2 = table2.to_table()
+    print(astropy_table2)
+    actual = astropy_table2[0]
 
     assert len(astropy_table2) == 1
-    assert astropy_table2[0]["access_format"] == ['1234567890' 'abcdefghij' '0987654321' 'jihgfedcba']
-    print(table2)
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+
+    assert_array_equal(actual["access_format"], data)
 
 
-def test_binary2_single_variable_char_array():
+def test_binary2_char_fix_array_with_nulls():
     """
-    Test that variable length char arrays with a max length
-    (arraysize="128*") are read correctly in BINARY2 format.
+    [#19974] Test that fix length char arrays, where each element contains nulls (with an arraysize="10x4") are
+     read correctly in  BINARY2 format.
     """
-    votable = parse(get_pkg_data_filename("data/binary2_variable_length_array_char.xml"))
+    votable = parse(
+        get_pkg_data_filename("data/binary2_fix_length_array_char_with_nulls.xml")
+    )
     table = votable.get_first_table()
     astropy_table = table.to_table()
     actual = astropy_table[0]
 
     assert len(astropy_table) == 1
 
-    data = ['1234567890', 'abcdefghij', '0987654321', 'jihgfedcba']
+    data = ["12345", "abcde", "09876", "jihgf"]
 
-    dtype = np.dtype([('access_format', 'O')])
+    dtype = np.dtype([("access_format", "<U10", (4,))])
 
     assert actual.dtype == dtype
 
@@ -635,7 +668,58 @@ def test_binary2_single_variable_char_array():
 
     assert_array_equal(actual, expected)
 
-    assert_array_equal(astropy_table[0]["access_format"], ['1234567890', 'abcdefghij', '0987654321', 'jihgfedcba'])
+    assert_array_equal(astropy_table[0]["access_format"], data)
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+
+    output.seek(0)
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+    print(astropy_table2)
+    actual = astropy_table2[0]
+
+    assert len(astropy_table2) == 1
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+
+    assert_array_equal(actual["access_format"], data)
+
+
+def test_binary2_char_variable_array():
+    """
+    [#19974] Test that variable length char arrays with a max length (arraysize="10x*") are read correctly in
+    BINARY2 format.
+    """
+    votable = parse(
+        get_pkg_data_filename("data/binary2_variable_length_array_char.xml")
+    )
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual_row = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    dtype = np.dtype([("access_format", "O")])
+
+    assert actual_row.dtype == dtype
+
+    actual = astropy_table[0]["access_format"]
+
+    data = ["1234567890", "abcdefghij", "0987654321", "jihgfedcba"]
+
+    expected = masked_array(
+        data=data, mask=[False, False, False, False], fill_value="N/A", dtype="<U10"
+    )
+
+    assert len(actual) == len(expected)
+
+    assert_array_equal(actual, expected)
 
     output = io.BytesIO()
     astropy_table.write(output, format="votable", tabledata_format="binary2")
@@ -644,9 +728,542 @@ def test_binary2_single_variable_char_array():
     votable2 = parse(output)
     table2 = votable2.get_first_table()
     astropy_table2 = table2.to_table()
+    actual_row = astropy_table2[0]
 
     assert len(astropy_table2) == 1
-    assert astropy_table2[0]["access_format"] == ['1234567890' 'abcdefghij' '0123456789' 'jihgfedcba']
+
+    dtype = np.dtype([("access_format", "O")])
+
+    assert actual_row.dtype == dtype
+
+    actual = astropy_table2[0]["access_format"]
+
+    expected = masked_array(
+        data=data, mask=[False, False, False, False], fill_value="N/A", dtype="<U10"
+    )
+
+    assert len(actual) == len(expected)
+
+    assert_array_equal(actual, expected)
+
+
+def test_binary2_char_fix_multidimension_array():
+    """
+    [#19974] Test that fix length char arrays with a max length (arraysize="10x4x2") are read correctly in
+    BINARY2 format.
+    """
+    votable = parse(
+        get_pkg_data_filename("data/binary2_fix_length_multidimension_array_char.xml")
+    )
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    data = [
+        ["1234567890", "abcdefghij", "0987654321", "jihgfedcba"],
+        ["1234567890", "abcdefghij", "0987654321", "jihgfedcba"],
+    ]
+
+    dtype = np.dtype(
+        [
+            (
+                "access_format",
+                "<U10",
+                (
+                    2,
+                    4,
+                ),
+            )
+        ]
+    )
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+    assert_array_equal(astropy_table[0]["access_format"], data)
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+
+    output.seek(0)
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+    print(astropy_table2)
+    actual = astropy_table2[0]
+
+    assert len(astropy_table2) == 1
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+    assert_array_equal(actual["access_format"], data)
+
+
+def test_binary2_char_variable_multidimension_array():
+    """
+    [#19974] Test that variable length char arrays with a max length (arraysize="10x4x*") are read correctly in
+    BINARY2 format.
+    """
+    votable = parse(
+        get_pkg_data_filename(
+            "data/binary2_variable_length_multidimension_array_char.xml"
+        )
+    )
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    data = [
+        ["1234567890", "abcdefghij", "0987654321", "jihgfedcba"],
+        ["1234567890", "abcdefghij", "0987654321", "jihgfedcba"],
+    ]
+
+    dtype = np.dtype(
+        [
+            (
+                "access_format",
+                "O",
+            )
+        ]
+    )
+
+    assert actual.dtype == dtype
+
+    expected = masked_array(
+        data=data,
+        mask=[False, False, False, False, False, False, False, False],
+        fill_value="N/A",
+        dtype="<U10",
+    )
+
+    assert_array_equal(astropy_table[0]["access_format"], data)
+    assert_array_equal(astropy_table[0]["access_format"], expected)
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+
+    output.seek(0)
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+    print(astropy_table2)
+    actual = astropy_table2[0]
+
+    assert len(astropy_table2) == 1
+
+    assert actual.dtype == dtype
+
+    assert_array_equal(actual["access_format"], data)
+    assert_array_equal(astropy_table[0]["access_format"], expected)
+
+
+def test_binary2_unicodeChar_fix_array():
+    """
+    [#19974] Test that fix length unicodeChar arrays with a max length (arraysize="10x4") are read correctly in
+    BINARY2 format.
+    """
+    votable = parse(
+        get_pkg_data_filename("data/binary2_fix_length_array_unicodeChar.xml")
+    )
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    data = [
+        "café123456",  # 10 chars
+        "你好12345678",  # 10 chars
+        "αβγδε12345",  # 10 chars
+        "España2025",  # 10 chars
+    ]
+
+    dtype = np.dtype([("access_format", "<U10", (4,))])
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+    assert_array_equal(astropy_table[0]["access_format"], data)
+
+    output = io.BytesIO()
+
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+
+    output.seek(0)
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+
+    assert len(astropy_table2) == 1
+
+    actual = astropy_table2[0]
+
+    assert actual.dtype == dtype
+
+    assert_array_equal(actual, expected)
+    assert_array_equal(actual["access_format"], data)
+
+
+def test_binary2_unicodeChar_fix_array_with_nulls():
+    """
+    [#19974] Test that fix length unicodeChar arrays, where each element contains nulls (with an arraysize="10x4") are
+    read correctly in BINARY2 format.
+    """
+    votable = parse(
+        get_pkg_data_filename(
+            "data/binary2_fix_length_array_unicodeChar_with_nulls.xml"
+        )
+    )
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    data = [
+        "café1",
+        "你好123",
+        "αβγδε",
+        "Españ",
+    ]
+
+    dtype = np.dtype([("access_format", "<U10", (4,))])
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+    assert_array_equal(astropy_table[0]["access_format"], data)
+
+    output = io.BytesIO()
+
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+
+    output.seek(0)
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+
+    assert len(astropy_table2) == 1
+
+    actual = astropy_table2[0]
+
+    assert actual.dtype == dtype
+
+    assert_array_equal(actual, expected)
+    assert_array_equal(actual["access_format"], data)
+
+
+def test_binary2_unicodeChar_variable_array():
+    """
+    [#19974] Test that variable length unicodeChar arrays with a max length (arraysize="10x*") are read correctly in
+    BINARY2 format.
+    """
+    votable = parse(
+        get_pkg_data_filename("data/binary2_variable_length_array_unicodeChar.xml")
+    )
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual_row = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    dtype = np.dtype([("access_format", "O")])
+
+    assert actual_row.dtype == dtype
+
+    actual = astropy_table[0]["access_format"]
+
+    data = [
+        "café123456",  # 10 chars
+        "你好12345678",  # 10 chars
+        "αβγδε12345",  # 10 chars
+        "España2025",  # 10 chars
+    ]
+
+    expected = masked_array(
+        data=data, mask=[False, False, False, False], fill_value="N/A", dtype="<U10"
+    )
+
+    assert len(actual) == len(expected)
+
+    assert_array_equal(actual, expected)
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+    output.seek(0)
+
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+    actual_row = astropy_table2[0]
+
+    assert len(astropy_table2) == 1
+
+    dtype = np.dtype([("access_format", "O")])
+
+    assert actual_row.dtype == dtype
+
+    actual = astropy_table2[0]["access_format"]
+
+    expected = masked_array(
+        data=data, mask=[False, False, False, False], fill_value="N/A", dtype="<U10"
+    )
+
+    assert len(actual) == len(expected)
+
+    assert_array_equal(actual, expected)
+
+
+def test_binary2_unicodeChar_fix_multidimension_array():
+    """
+    [#19974] Test that fix length unicodeChar arrays with a max length (arraysize="10x4x2") are read correctly in
+    BINARY2 format.
+    """
+    votable = parse(
+        get_pkg_data_filename(
+            "data/binary2_fix_length_multidimension_array_unicodeChar.xml"
+        )
+    )
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    data = [
+        ["café123456", "你好12345678", "αβγδε12345", "España2025"],
+        ["café123456", "你好12345678", "αβγδε12345", "España2025"],
+    ]
+
+    dtype = np.dtype([("access_format", "<U10", (2, 4))])
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+    assert_array_equal(astropy_table[0]["access_format"], data)
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+
+    output.seek(0)
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+    print(astropy_table2)
+    actual = astropy_table2[0]
+
+    assert len(astropy_table2) == 1
+
+    assert actual.dtype == dtype
+
+    expected = np.array([(data,)], dtype=dtype)
+
+    assert_array_equal(actual, expected)
+    assert_array_equal(actual["access_format"], data)
+
+
+def test_binary2_unicodeChar_variable_multidimension_array():
+    """
+    [#19974] Test that variable length unicodeChar arrays with a max length (arraysize="10x4x*") are read correctly in
+    BINARY2 format.
+    """
+    votable = parse(
+        get_pkg_data_filename(
+            "data/binary2_variable_length_multidimension_array_unicodeChar.xml"
+        )
+    )
+    table = votable.get_first_table()
+    astropy_table = table.to_table()
+    actual = astropy_table[0]
+
+    assert len(astropy_table) == 1
+
+    data = [
+        ["café123456", "你好12345678", "αβγδε12345", "España2025"],
+        ["café123456", "你好12345678", "αβγδε12345", "España2025"],
+    ]
+
+    dtype = np.dtype(
+        [
+            (
+                "access_format",
+                "O",
+            )
+        ]
+    )
+
+    assert actual.dtype == dtype
+
+    expected = masked_array(
+        data=data,
+        mask=[False, False, False, False, False, False, False, False],
+        fill_value="N/A",
+        dtype="<U10",
+    )
+
+    assert_array_equal(astropy_table[0]["access_format"], data)
+    assert_array_equal(astropy_table[0]["access_format"], expected)
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable", tabledata_format="binary2")
+
+    output.seek(0)
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+    print(astropy_table2)
+    actual = astropy_table2[0]
+
+    assert len(astropy_table2) == 1
+
+    assert actual.dtype == dtype
+
+    assert_array_equal(actual["access_format"], data)
+    assert_array_equal(astropy_table[0]["access_format"], expected)
+
+
+@pytest.mark.parametrize(
+    "input_filename",
+    [
+        "data/binary2_fix_length_array_char.xml",
+        # "data/binary2_fix_length_array_unicodeChar.xml",
+        # "data/binary2_fix_length_multidimension_array_char.xml",
+        # "data/binary2_variable_length_multidimension_array_char.xml",
+        # "data/binary2_variable_length_array_char.xml",
+        # "data/binary2_variable_length_array_unicodeChar.xml",
+        "data/valid_votable_with_char_array.xml",
+    ],
+)
+def test_table_write_char_arrays_verify(tmp_path, input_filename):
+    """
+    [#19974]
+        "votable" — VOTable XML
+        "fits" — FITS table
+        "ascii" — generic ASCII table
+        "ascii.csv" — CSV
+        "ascii.ecsv" — Enhanced CSV
+        "ascii.tab" — tab-separated
+        "hdf5" — HDF5
+        "parquet" — Parquet (if dependencies are installed)
+    """
+
+    exception_message = (
+        "column(s) with dimension > 1 cannot be be written with this format, try using 'ecsv' "
+        "(Enhanced CSV) format"
+    )
+
+    exception_ecsv_message = (
+        "column(s) with dimension > 2 cannot be be written with this format, try using 'ecsv' "
+        "(Enhanced CSV) format"
+    )
+
+    votable = parse(get_pkg_data_filename(input_filename), verify="exception")
+    assert votable is not None
+
+    # ascii
+
+    filename = tmp_path / "output.txt"
+
+    table = votable.get_first_table().to_table()  # convert to Astropy Table
+    with pytest.raises(Exception) as exc_info:
+        table.write(filename, format="ascii", overwrite=True)
+    assert exc_info.value.args[0] == exception_message
+
+    assert votable is not None
+
+    # Ecsv
+
+    filename = tmp_path / "output.ecsv"
+
+    if "multidimension_array" in input_filename:
+        with pytest.raises(Exception) as exc_info:
+            table.write(filename, format="ascii.tab", overwrite=True)
+        assert exc_info.value.args[0] == exception_ecsv_message
+    else:
+        table.write(filename, format="ascii.ecsv", overwrite=True)
+
+        assert votable is not None
+
+    # fits
+
+    if not (
+        "unicodeChar" in input_filename
+        or "valid_votable_with_char_array" in input_filename
+    ):
+        filename = tmp_path / "output.fits"
+        table.write(filename, format="fits", overwrite=True)
+
+        assert votable is not None
+
+    # HDF5
+    # table.write("output.hdf5", format="hdf5", overwrite=True)
+    # assert votable is not None
+
+    # Latex
+
+    filename = tmp_path / "output.tex"
+
+    table.write(filename, format="ascii.latex", overwrite=True)
+
+    assert votable is not None
+
+    # json: Excluded due to a problem with the dependencies in GitHub
+
+    # filename = tmp_path / "output.json"
+    # table.write(filename, format="pandas.json", overwrite=True)
+    # assert votable is not None
+
+    # parquet: Excluded due to a problem with the dependencies in GitHub
+
+    # filename = tmp_path / "output.parquet"
+    # table.write(filename, format="parquet", overwrite=True)
+    # assert votable is not None
+
+    # TAB
+
+    filename = tmp_path / "output.tab"
+
+    with pytest.raises(Exception) as exc_info:
+        table.write(filename, format="ascii.tab", overwrite=True)
+    assert exc_info.value.args[0] == exception_message
+
+    assert votable is not None
+
+    # CSV
+
+    filename = tmp_path / "output.csv"
+
+    with pytest.raises(Exception) as exc_info:
+        table.write(filename, format="ascii.csv", overwrite=True)
+    assert exc_info.value.args[0] == exception_message
+
+    assert votable is not None
+
+    # Excluded due to a problem with the dependencies in GitHub
+
+    # filename = tmp_path / "output.csv"
+    # table.write(filename, format="pandas.csv", overwrite=True)
+    # assert votable is not None
+
+    # Excluded due to a problem in the class io/ascii/html.py
+    # filename = tmp_path / "output.html"
+    # table.write(filename, format="html", overwrite=True)
+    # assert votable is not None
 
 
 def test_binary2_bounded_variable_length_char():
@@ -697,8 +1314,8 @@ def test_binary2_bounded_variable_length_char():
             f"Data mismatch with format {format_name}"
         )
         assert (
-                table2.array[1]["bounded_char"]
-                == "Longer string that still fits the 128 characters"
+            table2.array[1]["bounded_char"]
+            == "Longer string that still fits the 128 characters"
         ), f"Data mismatch with format {format_name}"
 
 
@@ -795,13 +1412,13 @@ def test_char_array_fix_size():
     print(actual.dtype)
 
     assert table2.fields[0].arraysize == "10x3", "Failed to preserve arraysize"
-    assert table2.array[0]["bounded_char"][0] == '1234567890'
-    assert table2.array[0]["bounded_char"][1] == '  345678  '
-    assert table2.array[0]["bounded_char"][2] == '  34567890'
+    assert table2.array[0]["bounded_char"][0] == "1234567890"
+    assert table2.array[0]["bounded_char"][1] == "  345678  "
+    assert table2.array[0]["bounded_char"][2] == "  34567890"
 
-    data = ['1234567890', '  345678  ', '  34567890']
+    data = ["1234567890", "  345678  ", "  34567890"]
 
-    dtype = np.dtype([('bounded_char', '<U10', (3,))])
+    dtype = np.dtype([("bounded_char", "<U10", (3,))])
 
     assert actual.dtype == dtype
 
@@ -859,21 +1476,28 @@ def test_variable_char_arrray_size():
     print(actual.dtype)
 
     assert table2.fields[0].arraysize == "10x*", "Failed to preserve arraysize"
-    assert table2.array[0]["bounded_char"][0] == '1234567890'
-    assert table2.array[0]["bounded_char"][1] == '  345678  '
-    assert table2.array[0]["bounded_char"][2] == '  34567890'
-    assert table2.array[0]["bounded_char"][3] == 'abcdefghij'
+    assert table2.array[0]["bounded_char"][0] == "1234567890"
+    assert table2.array[0]["bounded_char"][1] == "  345678  "
+    assert table2.array[0]["bounded_char"][2] == "  34567890"
+    assert table2.array[0]["bounded_char"][3] == "abcdefghij"
 
-    dtype = np.dtype([('bounded_char', 'O')])
+    dtype = np.dtype([("bounded_char", "O")])
 
     assert actual.dtype == dtype
 
-    expected = np.array([
-        (
-            masked_array(data=['1234567890', '  345678  ', '  34567890', 'abcdefghij'],
-                         mask=[False, False, False, False], fill_value='N/A', dtype='<U10'),
-        )
-    ], dtype=object)
+    expected = np.array(
+        [
+            (
+                masked_array(
+                    data=["1234567890", "  345678  ", "  34567890", "abcdefghij"],
+                    mask=[False, False, False, False],
+                    fill_value="N/A",
+                    dtype="<U10",
+                ),
+            )
+        ],
+        dtype=object,
+    )
 
     for (actual_ma,), (expected_ma,) in zip(actual, expected):
         assert_array_equal(actual_ma, expected_ma)
@@ -973,7 +1597,11 @@ def test_char_arrayVarArray():
 
     # Now table.array can be filled with data
     table.array[0] = ("test1.xml", [[1, 0], [0, 1]], [[9, 9], [9, 9]])
-    table.array[1] = ("test2.xml", [[0.5, 0.3], [0.1, 0.0], [1.0, 0.0]], [[9, 9], [9, 9]])
+    table.array[1] = (
+        "test2.xml",
+        [[0.5, 0.3], [0.1, 0.0], [1.0, 0.0]],
+        [[9, 9], [9, 9]],
+    )
 
     bio = io.BytesIO()
 
@@ -992,25 +1620,31 @@ def test_char_arrayVarArray():
     print(actual)
     print(actual.dtype)
 
-    dtype = np.dtype([
-        ('filename', object),
-        ('matrix', object),
-        ('matrix_fix', np.float64, (2, 2))
-    ])
+    dtype = np.dtype(
+        [("filename", object), ("matrix", object), ("matrix_fix", np.float64, (2, 2))]
+    )
 
     assert actual.dtype == dtype
 
     arr = [
-        ('test1.xml',
-         masked_array(
-             data=[[1.0, 0.0], [0.0, 1.0]],
-             mask=[[False, False], [False, False]],
-             fill_value=1e+20), [[9.0, 9.0], [9.0, 9.0]]),
-        ('test2.xml',
-         masked_array(
-             data=[[0.5, 0.3], [0.1, 0.0], [1.0, 0.0]],
-             mask=[[False, False], [False, False],
-                   [False, False]], fill_value=1e+20), [[9.0, 9.0], [9.0, 9.0]])
+        (
+            "test1.xml",
+            masked_array(
+                data=[[1.0, 0.0], [0.0, 1.0]],
+                mask=[[False, False], [False, False]],
+                fill_value=1e20,
+            ),
+            [[9.0, 9.0], [9.0, 9.0]],
+        ),
+        (
+            "test2.xml",
+            masked_array(
+                data=[[0.5, 0.3], [0.1, 0.0], [1.0, 0.0]],
+                mask=[[False, False], [False, False], [False, False]],
+                fill_value=1e20,
+            ),
+            [[9.0, 9.0], [9.0, 9.0]],
+        ),
     ]
 
     assert len(table2.array) == len(arr)
@@ -1030,7 +1664,11 @@ def test_char_array():
     """
     votable = tree.VOTableFile()
     field = tree.Field(
-        votable, name="bounded_char", datatype="char", arraysize="100x2", ID="bounded_char"
+        votable,
+        name="bounded_char",
+        datatype="char",
+        arraysize="100x2",
+        ID="bounded_char",
     )
 
     converter = get_converter(field)
