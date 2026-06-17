@@ -883,3 +883,22 @@ def test_index_not_corrupted_on_failed_row_assignment(engine):
     # No ghost entry for the attempted new value
     with pytest.raises(KeyError):
         t.loc[99]
+
+
+@pytest.mark.parametrize("table_type", [Table, QTable])
+def test_loc_range_with_duplicate_index_values(engine, table_type):
+    """Regression test: a range query must return every row whose value equals
+    an inclusive bound, even when that value is duplicated in the index.
+
+    The default ``SortedArray`` engine previously kept only the first matching
+    row, so e.g. ``t.loc[1:2]`` silently dropped all but one of the ``2`` rows.
+    """
+    t = table_type()
+    t["a"] = [3, 2, 2, 3, 1, 2]
+    t["b"] = [30, 20, 21, 31, 10, 22]
+    t.add_index("a", engine=engine)
+
+    assert sorted(t.loc[1:2]["b"].tolist()) == [10, 20, 21, 22]
+    assert sorted(t.loc[2:2]["b"].tolist()) == [20, 21, 22]
+    assert sorted(t.loc[2:3]["b"].tolist()) == [20, 21, 22, 30, 31]
+    assert sorted(t.loc[:]["b"].tolist()) == [10, 20, 21, 22, 30, 31]
