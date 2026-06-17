@@ -1,0 +1,1 @@
+The ``VOTable`` reader can handle one-dimensional and multi-dimensional character/unicode arrays (in FIELDs or PARAMs).
