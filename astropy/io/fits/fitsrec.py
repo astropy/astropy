@@ -386,7 +386,17 @@ class FITS_rec(np.recarray):
 
             if arr is None:
                 # The input column had an empty array, so just use the fill
-                # value
+                # value.  For a binary-table logical ('L') column the fill
+                # byte is 0x00, which the FITS standard reserves for NULL
+                # (undefined); a column created without data should instead
+                # default to False (b'F'), matching the ``field[:] = ord("F")``
+                # default applied below when an explicit bool array is given.
+                recformat = column.format.recformat
+                if (
+                    not isinstance(recformat, _FormatP)
+                    and recformat[-2:] == FITS2NUMPY["L"]
+                ):
+                    _get_recarray_field(data, idx)[:] = ord("F")
                 continue
 
             n = min(len(arr), nrows)

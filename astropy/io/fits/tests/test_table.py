@@ -2878,6 +2878,41 @@ class TestTableFunctions(FitsTestCase):
             with fits.open(out_path) as hdul:
                 assert hdul[1].data["flag"].tolist() == [True, False, False]
 
+    def test_logical_nrows_fill_then_assign(self, tmp_path):
+        """A logical ('L') column created via ``from_columns(..., nrows=N)``
+        without an input array must default to False (b'F'), not NULL
+        (b'\\x00'). Otherwise a row later assigned ``False`` is left as the
+        zero-fill byte and silently stored as NULL, because ``_scale_back``
+        cannot distinguish an untouched NULL from an explicit False once both
+        appear as raw 0x00 with a cached bool of ``False``. Regression test
+        for the breakage introduced by logical-NULL support in 8.0.0.
+        """
+        hdu = fits.BinTableHDU.from_columns([fits.Column("FLAG", "L")], nrows=4)
+        for i, value in enumerate([True, False, True, False]):
+            hdu.data[i]["FLAG"] = value
+        path = tmp_path / "flags.fits"
+        hdu.writeto(path)
+
+        # Raw bytes: the False rows must be b'F', never NULL (b'\x00').
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            raw = hdul[1].data["FLAG"]
+            assert raw.tobytes() == b"TFTF"
+
+        # A normal read must therefore neither warn about NULL nor mangle
+        # the values.
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", AstropyUserWarning)
+            with fits.open(path) as hdul:
+                assert hdul[1].data["FLAG"].tolist() == [True, False, True, False]
+
+        # Rows left untouched after creation also default to False, not NULL.
+        hdu = fits.BinTableHDU.from_columns([fits.Column("FLAG", "L")], nrows=3)
+        hdu.data[0]["FLAG"] = True
+        partial_path = tmp_path / "partial.fits"
+        hdu.writeto(partial_path)
+        with fits.open(partial_path, logical_as_bytes=True) as hdul:
+            assert hdul[1].data["FLAG"].tobytes() == b"TFF"
+
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
 
