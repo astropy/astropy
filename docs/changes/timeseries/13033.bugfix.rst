@@ -1,0 +1,2 @@
+Fixed misleading error message in ``TimeSeries`` and ``BinnedTimeSeries`` when
+required columns other than the first one were missing.

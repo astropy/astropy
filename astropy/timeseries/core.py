@@ -70,15 +70,32 @@ class BaseTimeSeries(QTable):
 
             if not self._required_columns_relax and len(self.colnames) == 0:
 
-                raise ValueError("{} object is invalid - expected '{}' "
-                                 "as the first column{} but time series has no columns"
-                                 .format(self.__class__.__name__, required_columns[0], plural))
+                raise ValueError("{} object is invalid - time series has no columns, "
+                                 "expected required column{}: {}"
+                                 .format(self.__class__.__name__, plural,
+                                         ', '.join(required_columns)))
 
-            elif self.colnames[:len(required_columns)] != required_columns:
+            elif self.colnames[0] != required_columns[0]:
 
                 raise ValueError("{} object is invalid - expected '{}' "
                                  "as the first column{} but found '{}'"
                                  .format(self.__class__.__name__, required_columns[0], plural, self.colnames[0]))
+
+            elif self.colnames[:len(required_columns)] != required_columns:
+
+                missing = [name for name in required_columns
+                           if name not in self.colnames[:len(required_columns)]]
+
+                if len(required_columns) == 1:
+                    raise ValueError("{} object is invalid - expected '{}' "
+                                     "as the first column{} but found '{}'"
+                                     .format(self.__class__.__name__, required_columns[0], plural, self.colnames[0]))
+                else:
+                    raise ValueError("{} object is invalid - expected '{}' "
+                                     "as the first column{} but found '{}', "
+                                     "missing required column{}: {}"
+                                     .format(self.__class__.__name__, required_columns[0], plural,
+                                             self.colnames[0], plural, ', '.join(missing)))
 
             if (self._required_columns_relax
                     and self._required_columns == self.colnames[:len(self._required_columns)]):

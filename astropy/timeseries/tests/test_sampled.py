@@ -396,6 +396,25 @@ def test_required_columns():
                                  "'time' as the first column but found 'banana'")
 
 
+def test_required_columns_missing():
+
+    # Regression test for misleading error message when a required column
+    # other than the first one is missing.
+
+    ts = TimeSeries(time=INPUT_TIME,
+                    data=[[10, 2, 3], [4, 5, 6]],
+                    names=['flux', 'other'])
+    ts._required_columns = ['time', 'flux']
+
+    with pytest.raises(ValueError) as exc:
+        ts.remove_column('flux')
+    assert "missing required column" in exc.value.args[0]
+    assert "flux" in exc.value.args[0]
+    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
+                                 "'time' as the first columns but found 'time', "
+                                 "missing required columns: flux")
+
+
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
 def test_periodogram(cls):
 

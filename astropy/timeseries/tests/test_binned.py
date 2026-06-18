@@ -31,6 +31,25 @@ def test_empty_initialization_invalid():
                                  "'time_bin_start' as the first column but found 'flux'")
 
 
+def test_required_columns_missing():
+
+    # Regression test for misleading error message when a required column
+    # other than the first one is missing.
+
+    ts = BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31',
+                          time_bin_size=3 * u.s, data=[[1, 4, 3], [3, 4, 3]],
+                          names=['flux', 'other'])
+    ts._required_columns = ['time_bin_start', 'time_bin_size', 'flux']
+
+    with pytest.raises(ValueError) as exc:
+        ts.remove_column('flux')
+    assert "missing required column" in exc.value.args[0]
+    assert "flux" in exc.value.args[0]
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - expected "
+                                 "'time_bin_start' as the first columns but found "
+                                 "'time_bin_start', missing required columns: flux")
+
+
 def test_initialization_time_bin_invalid():
 
     # Make sure things crash when time_bin_* is passed incorrectly.
