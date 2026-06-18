@@ -1472,7 +1472,7 @@ _DAYS_BEFORE_MONTH = np.array([0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304,
 # Matches a "{name:spec}" replacement field and an integer format spec such as
 # "d", "02d" or "+06d" within the subformat templates used by TimeString.
 _SUBFMT_FIELD = re.compile(r"\{(\w+):([^}]*)\}")
-_INT_SPEC = re.compile(r"([+\- ]?)0?(\d*)d")
+_INT_SPEC = re.compile(r"([+\- ]?)(0?)(\d*)d")
 
 
 def _day_of_year(year, month, day):
@@ -1768,19 +1768,20 @@ class TimeString(TimeUnique):
         match = _INT_SPEC.fullmatch(spec)
         if match is None:
             return None, None
-        sign, digits = match.group(1), match.group(2)
+        sign, zero, digits = match.group(1, 2, 3)
         if digits:
-            return int(digits), sign == "+"
+            # We build columns by zero-padding, so a fixed width without the
+            # "0" flag (which pads with spaces) is left to the per-element path.
+            return (int(digits), sign == "+") if zero else (None, None)
         # A bare "d" has no field width, so the width follows the values and we
-        # can only pre-size the column if they share a digit count and are
-        # non-negative (a leading minus sign would make the width vary too).
+        # can only pre-size the column if they share a digit count and need no
+        # sign (a forced "+" or a negative value would make the width vary too).
         if values.size == 0:
             return 1, False
-        if values.min() < 0:
-            return None, None
-        lo = len(str(int(values.min())))
+        low = int(values.min())
+        lo = len(str(low))
         hi = len(str(int(values.max())))
-        if lo != hi:
+        if sign or low < 0 or lo != hi:
             return None, None
         return hi, False
 

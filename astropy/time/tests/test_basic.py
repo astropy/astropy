@@ -986,6 +986,23 @@ class TestSubFormat:
         assert t._time._value_fast("{year:d}-{mon:02d}") is None
         assert np.all(t.isot == ["500-03-01T00:00:00.000", "2003-01-01T00:00:00.000"])
 
+    def test_string_field_width(self):
+        """Integer specs that can/can't be built as a fixed-width column."""
+        vals = np.array([2003, 2004])
+        # Specs used by the built-in templates take the fast path.
+        assert TimeString._field_width("d", vals) == (4, False)
+        assert TimeString._field_width("02d", vals) == (2, False)
+        assert TimeString._field_width("+06d", vals) == (6, True)
+        assert TimeString._field_width("d", np.array([], dtype=int)) == (1, False)
+        # Anything we would format wrongly by zero-padding is left to the loop:
+        # space padding, a bare width that varies, negatives, or a sign with no
+        # width, as well as non-integer specs.
+        assert TimeString._field_width("6d", vals) == (None, None)
+        assert TimeString._field_width("d", np.array([99, 2003])) == (None, None)
+        assert TimeString._field_width("d", np.array([-5, 5])) == (None, None)
+        assert TimeString._field_width("+d", vals) == (None, None)
+        assert TimeString._field_width(".3f", vals) == (None, None)
+
     def test_scale_input(self):
         """Test for issues related to scale input"""
         # Check case where required scale is defined by the TimeFormat.
