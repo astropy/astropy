@@ -1,0 +1,3 @@
+Fixed the misleading exception message when a required column is removed from a
+``TimeSeries`` (or subclass). The error now reports that a required column is
+missing, rather than appearing to complain about the ``time`` column.

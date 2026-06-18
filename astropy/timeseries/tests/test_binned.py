@@ -294,6 +294,46 @@ def test_read():
     assert timeseries['B'].sum() == 1151.54
 
 
+def test_remove_required_column():
+
+    # Test that removing a required column (other than time_bin_start) reports
+    # the missing column clearly instead of a misleading first-column mismatch
+    # message.
+
+    ts = BinnedTimeSeries(time_bin_start='2016-03-22T12:30:31',
+                          time_bin_size=3 * u.s, data=[[1, 4, 3], [3, 4, 3]], names=['a', 'b'])
+    # _required_columns is a class-level list, so we work on a copy to avoid
+    # mutating the shared attribute. Note that ts.copy() reconstructs the
+    # object from the table data and resets _required_columns to the class
+    # default, so we set it explicitly on the copied instance before removing
+    # columns.
+    required_columns = ts._required_columns + ['a']
+
+    # Removing a later required column reports the missing column.
+    ts2 = ts.copy()
+    ts2._required_columns = required_columns
+    with pytest.raises(ValueError) as exc:
+        ts2.remove_column('a')
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - required "
+                                 "column missing: ['a']")
+
+    # Removing multiple columns reports all missing required columns.
+    ts2 = ts.copy()
+    ts2._required_columns = required_columns
+    with pytest.raises(ValueError) as exc:
+        ts2.remove_columns(['a', 'b'])
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - required "
+                                 "column missing: ['a']")
+
+    # Removing the time_bin_start column still reports the missing required column.
+    ts2 = ts.copy()
+    ts2._required_columns = required_columns
+    with pytest.raises(ValueError) as exc:
+        ts2.remove_column('time_bin_start')
+    assert exc.value.args[0] == ("BinnedTimeSeries object is invalid - required "
+                                 "column missing: ['time_bin_start']")
+
+
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])
 def test_periodogram(cls):
 

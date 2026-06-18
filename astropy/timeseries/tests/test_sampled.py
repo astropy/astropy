@@ -377,23 +377,63 @@ def test_required_columns():
 
     with pytest.raises(ValueError) as exc:
         ts.copy().keep_columns(['a', 'b'])
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'a'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required "
+                                 "column missing: ['time']")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().remove_column('time')
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'a'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required "
+                                 "column missing: ['time']")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().remove_columns(['time', 'a'])
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'b'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required "
+                                 "column missing: ['time']")
 
     with pytest.raises(ValueError) as exc:
         ts.copy().rename_column('time', 'banana')
-    assert exc.value.args[0] == ("TimeSeries object is invalid - expected "
-                                 "'time' as the first column but found 'banana'")
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required "
+                                 "column missing: ['time']")
+
+
+def test_remove_required_column():
+
+    # Test that removing a required column (other than time) reports the missing
+    # column clearly instead of a misleading first-column mismatch message.
+
+    ts = TimeSeries(time=INPUT_TIME,
+                    data=[[10, 2, 3], [4, 5, 6]],
+                    names=['a', 'b'])
+    # _required_columns is a class-level list, so we work on a copy to avoid
+    # mutating the shared attribute. Note that ts.copy() reconstructs the
+    # object from the table data and resets _required_columns to the class
+    # default, so we set it explicitly on the copied instance before removing
+    # columns.
+    required_columns = ts._required_columns + ['a']
+
+    # Removing a later required column reports the missing column.
+    ts2 = ts.copy()
+    ts2._required_columns = required_columns
+    with pytest.raises(ValueError) as exc:
+        ts2.remove_column('a')
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required "
+                                 "column missing: ['a']")
+
+    # Removing multiple columns reports all missing required columns.
+    ts2 = ts.copy()
+    ts2._required_columns = required_columns
+    with pytest.raises(ValueError) as exc:
+        ts2.remove_columns(['a', 'b'])
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required "
+                                 "column missing: ['a']")
+
+    # Removing the time column still reports the missing required column.
+    ts2 = ts.copy()
+    ts2._required_columns = required_columns
+    with pytest.raises(ValueError) as exc:
+        ts2.remove_column('time')
+    assert exc.value.args[0] == ("TimeSeries object is invalid - required "
+                                 "column missing: ['time']")
 
 
 @pytest.mark.parametrize('cls', [BoxLeastSquares, LombScargle])

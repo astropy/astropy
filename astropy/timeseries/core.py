@@ -66,19 +66,28 @@ class BaseTimeSeries(QTable):
             else:
                 required_columns = self._required_columns
 
-            plural = 's' if len(required_columns) > 1 else ''
+            if self._required_columns_relax:
+                # In relax mode we only validate the prefix of columns that exist.
+                if self.colnames[:len(required_columns)] != required_columns:
+                    plural = 's' if len(required_columns) > 1 else ''
+                    raise ValueError("{} object is invalid - expected '{}' "
+                                     "as the first column{} but found '{}'"
+                                     .format(self.__class__.__name__, required_columns[0], plural, self.colnames[0]))
+            else:
+                # Strict mode: every required column must be present, in order,
+                # starting at the first column.
+                missing = [name for name in required_columns if name not in self.colnames]
+                if missing:
+                    plural = 's' if len(missing) > 1 else ''
+                    raise ValueError("{} object is invalid - required "
+                                     "column{} missing: {}"
+                                     .format(self.__class__.__name__, plural, missing))
 
-            if not self._required_columns_relax and len(self.colnames) == 0:
-
-                raise ValueError("{} object is invalid - expected '{}' "
-                                 "as the first column{} but time series has no columns"
-                                 .format(self.__class__.__name__, required_columns[0], plural))
-
-            elif self.colnames[:len(required_columns)] != required_columns:
-
-                raise ValueError("{} object is invalid - expected '{}' "
-                                 "as the first column{} but found '{}'"
-                                 .format(self.__class__.__name__, required_columns[0], plural, self.colnames[0]))
+                if self.colnames[:len(required_columns)] != required_columns:
+                    plural = 's' if len(required_columns) > 1 else ''
+                    raise ValueError("{} object is invalid - expected '{}' "
+                                     "as the first column{} but found '{}'"
+                                     .format(self.__class__.__name__, required_columns[0], plural, self.colnames[0]))
 
             if (self._required_columns_relax
                     and self._required_columns == self.colnames[:len(self._required_columns)]):
