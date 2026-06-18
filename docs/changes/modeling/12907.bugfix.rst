@@ -1,0 +1,2 @@
+Fixed ``separability_matrix`` so it returns the correct correlation matrix
+when a ``CompoundModel`` contains another ``CompoundModel`` built with ``&``.

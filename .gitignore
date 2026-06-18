@@ -86,3 +86,8 @@ v
 
 .tmp
 pip-wheel-metadata
+
+# worca runtime
+.worca/
+logs/
+.claude/settings.local.json

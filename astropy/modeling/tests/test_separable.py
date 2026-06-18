@@ -113,6 +113,18 @@ def test_cstack():
                     )
 
 
+def test_cstack_ndarray_right():
+    # Regression test for astropy/astropy#12907: when the right operand of &
+    # is already a separability matrix, its actual values must be preserved.
+    right = np.array([[1, 0], [0, 1]])
+    result = _cstack(rot, right)
+    assert_allclose(result,
+                    np.array([[1, 1, 0, 0],
+                              [1, 1, 0, 0],
+                              [0, 0, 1, 0],
+                              [0, 0, 0, 1]]))
+
+
 def test_arith_oper():
     # Models as inputs
     result = _arith_oper(sh1, scl1)
@@ -148,3 +160,55 @@ def test_custom_model_separable():
 
     assert not model_c().separable
     assert np.all(separability_matrix(model_c()) == [True, True])
+
+
+def test_nested_compound_separability_matrix():
+    # Regression tests for astropy/astropy#12907: nested CompoundModels built
+    # with & must produce the same separability matrices as their flattened
+    # counterparts.
+    cm = models.Linear1D(10) & models.Linear1D(5)
+
+    # Nested on the right
+    flat = separability_matrix(models.Pix2Sky_TAN() & models.Linear1D(10) &
+                               models.Linear1D(5))
+    nested = separability_matrix(models.Pix2Sky_TAN() & cm)
+    assert_allclose(flat, nested)
+
+    # Compound on both sides of &
+    cm2 = models.Linear1D(3) & models.Linear1D(7)
+    both = separability_matrix(cm & cm2)
+    assert_allclose(both, np.eye(4, dtype=bool))
+    assert np.all(is_separable(cm & cm2))
+
+    # Compound on the left of &
+    left_nested = separability_matrix(cm & models.Pix2Sky_TAN())
+    assert_allclose(left_nested,
+                    np.array([[True, False, False, False],
+                              [False, True, False, False],
+                              [False, False, True, True],
+                              [False, False, True, True]]))
+
+    # Deeper nesting
+    deep = separability_matrix(cm & models.Linear1D(3))
+    assert_allclose(deep, np.eye(3, dtype=bool))
+
+    # Nested & followed by |
+    pipe = separability_matrix((models.Linear1D(1) & models.Linear1D(2)) |
+                               (models.Linear1D(3) & models.Linear1D(4)))
+    assert_allclose(pipe, np.eye(2, dtype=bool))
+
+
+def test_nested_compound_custom_separability_matrix():
+    @custom_model
+    def custom(x, y):
+        return x + y
+
+    custom.n_outputs = 1
+    custom.separable = True
+    custom._calculate_separability_matrix = lambda self: np.array([[0, 1]])
+
+    model = custom() & models.Linear1D(1)
+    expected = np.array([[0, 1, 0],
+                         [0, 0, 1]])
+    assert_allclose(separability_matrix(model), expected)
+    assert np.all(is_separable(model))
