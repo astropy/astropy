@@ -1,0 +1,5 @@
+Fixed a bug where a byte other than the FITS L wire-format values ``b'T'``,
+``b'F'`` and ``b'\x00'`` assigned into a fixed-length logical (``'L'``) column
+read with ``logical_as_bytes=True`` was written to the file unchecked (and
+silently read back as ``False``). Such bytes now raise ``ValueError`` on write,
+matching the validation applied to ``|S1`` column input at construction time.
