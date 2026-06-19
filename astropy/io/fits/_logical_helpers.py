@@ -2,6 +2,8 @@
 
 import numpy as np
 
+_VALID_LOGICAL_BYTES = (ord("T"), ord("F"), 0)
+
 
 def _logical_to_fits_bytes(row):
     """Convert a logical-VLA row to its FITS L wire-format bytes.
