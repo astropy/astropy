@@ -960,19 +960,53 @@ class TestSubFormat:
             "2001-01-01T00:00:00.000000001",
             "2002-06-15T12:30:45.500000000",
             "2004-02-29T23:59:59.999999999",
+            "2004-03-01T00:00:00.000001",
             "2000-02-29T06:00:00.000000000",
+            "2000-03-01T00:00:00.000000000",
             "2003-12-31T18:18:18.181818181",
             "2001-07-04T01:02:03.040506070",
         ]
 
         def make():
-            t = Time(times, format="isot", scale="utc").reshape(2, 3)
+            t = Time(times, format="isot", scale="utc").reshape(2, 4)
             t[0, 1] = np.ma.masked
             t.precision = precision
             return t
 
         got = getattr(make(), fmt)
         # Disable the vectorized path and compare against the original loop.
+        monkeypatch.setattr(TimeString, "_value_fast", lambda self, str_fmt: None)
+        ref = getattr(make(), fmt)
+        assert_array_equal(got.unmasked, ref.unmasked)
+        assert_array_equal(got.mask, ref.mask)
+
+    @pytest.mark.parametrize(
+        "fmt, out_subfmt",
+        [
+            ("iso", "date_hm"),
+            ("iso", "date"),
+            ("isot", "date_hm"),
+            ("yday", "date"),
+            ("fits", "date"),
+        ],
+    )
+    def test_string_value_non_default_out_subfmt(self, monkeypatch, fmt, out_subfmt):
+        """The vectorized output matches the per-element path for sub-formats
+        other than the default, including ones that drop the seconds field."""
+        times = [
+            "2001-01-01T01:02:03.400000000",
+            "2004-02-29T23:59:59.900000000",
+            "2003-12-31T18:18:18.100000000",
+            "2002-06-15T00:00:00.000000000",
+        ]
+
+        def make():
+            t = Time(times, format="isot", scale="utc").reshape(2, 2)
+            t[0, 1] = np.ma.masked
+            t.out_subfmt = out_subfmt
+            return t
+
+        got = getattr(make(), fmt)
         monkeypatch.setattr(TimeString, "_value_fast", lambda self, str_fmt: None)
         ref = getattr(make(), fmt)
         assert_array_equal(got.unmasked, ref.unmasked)
