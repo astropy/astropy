@@ -143,10 +143,10 @@ def lombscargle(
         - 'fast': use the O[N log N] fast method. Note that this requires
           evenly-spaced frequencies: by default this will be checked unless
           ``assume_regular_frequency`` is set to True.
-        - `cython`: use the O[N^2] method written in cython. Note that this
-          method conditionally enables a recursive increase in frequency,
-          typically leading to a significant performance boost
-          if `assume_regular_frequency` is set to True.
+        - 'cython': use the O[N^2] method written in cython. Note that this
+          method conditionally enables a recursive update of the trigonometric
+          terms across the frequency grid, typically leading to a significant
+          performance boost if ``assume_regular_frequency`` is set to True.
         - `slow`: use the O[N^2] pure-python implementation
         - `chi2`: use the O[N^2] chi2/linear-fitting implementation
         - `fastchi2`: use the O[N log N] chi2 implementation. Note that this

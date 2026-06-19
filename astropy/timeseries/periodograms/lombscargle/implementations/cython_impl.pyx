@@ -80,8 +80,8 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
     w = dy ** -2
     w /= np.sum(w)
     if fit_mean or center_data:
-        # compute MLE for mean in the presence of noise.
-        y = y - np.dot(w, y) / np.sum(w)
+        # compute MLE for mean in the presence of noise (w is already normalized)
+        y = y - np.dot(w, y)
 
     _lomb_scargle(t, y, w, 2 * np.pi * frequency, PLS, fit_mean = fit_mean, assume_regular_frequency = assume_regular_frequency)
 
@@ -102,15 +102,15 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
-
 cdef _lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1] w,
-                            const DTYPE_t[::1] omega, DTYPE_t[::1] PLS, const bint fit_mean, const bint assume_regular_frequency):
+                   const DTYPE_t[::1] omega, DTYPE_t[::1] PLS,
+                   const bint fit_mean, const bint assume_regular_frequency):
 
-    cdef int i, j
+    cdef Py_ssize_t i, j
     cdef ITYPE_t N_freq = omega.shape[0]
     cdef ITYPE_t N_obs = t.shape[0]
 
-    cdef DTYPE_t S, C, Sh, Ch, Sw, Cw, S2, C2, S2w, C2w, YC, YS, YY, tan_2omega_tau
+    cdef DTYPE_t S, C, Sh, Ch, Sw, Cw, S2, C2, S2w, C2w, YC, YS, YY, CC, SS, tmp, tan_2omega_tau
 
     # allocate buffers used to speed-up the computation for regular grids
     cdef DTYPE_t* sin_buffer = <DTYPE_t*>malloc(N_obs * sizeof(DTYPE_t))
@@ -121,8 +121,16 @@ cdef _lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1
         dsin_buffer = <DTYPE_t*>malloc(N_obs * sizeof(DTYPE_t))
         dcos_buffer = <DTYPE_t*>malloc(N_obs * sizeof(DTYPE_t))
 
-    if assume_regular_frequency:
-        #init the buffers to enable recursion
+    if (sin_buffer == NULL or cos_buffer == NULL
+            or (assume_regular_frequency and (dsin_buffer == NULL or dcos_buffer == NULL))):
+        free(sin_buffer)
+        free(cos_buffer)
+        free(dsin_buffer)
+        free(dcos_buffer)
+        raise MemoryError("could not allocate buffers for the Lomb-Scargle computation")
+
+    # init the buffers to enable recursion (skipped when there is no step to take)
+    if assume_regular_frequency and N_freq > 1:
         for j in range(N_obs):
             tmp = t[j] * (omega[N_freq-1] - omega[0]) / (N_freq - 1)
             dsin_buffer[j] = sin(tmp)
@@ -136,13 +144,12 @@ cdef _lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1
     for i in range(N_freq):
         S = C = Sh = Ch = Sw = Cw = S2 = C2 = S2w = C2w = YS = YC = 0
 
-
-        if not assume_regular_frequency or i % 64 == 0 :
-             for j in range(N_obs):
+        if not assume_regular_frequency or i % 64 == 0:
+            for j in range(N_obs):
                 sin_buffer[j] = sin(omega[i] * t[j])
                 cos_buffer[j] = cos(omega[i] * t[j])
-        elif assume_regular_frequency :
-            # exp(x + dx) = exp(x) * exp(dx)
+        else:
+            # advance the recursion: exp(x + dx) = exp(x) * exp(dx)
             for j in range(N_obs):
                 tmp = cos_buffer[j] * dcos_buffer[j] - sin_buffer[j] * dsin_buffer[j]
                 sin_buffer[j] = cos_buffer[j] * dsin_buffer[j] + sin_buffer[j] * dcos_buffer[j]
