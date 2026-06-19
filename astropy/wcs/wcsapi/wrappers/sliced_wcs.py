@@ -244,6 +244,13 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
 
     def world_to_pixel_values(self, *world_arrays):
         world_arrays = tuple(map(np.asanyarray, world_arrays))
+
+        # Fetch the constant values of any dropped world dimensions, so that the
+        # underlying WCS inversion uses the correct coordinates along those axes
+        # rather than a hard-coded placeholder (see astropy/astropy#13579).
+        dropped_values = self.dropped_world_dimensions.get('value', [])
+        dropped_iter = iter(dropped_values)
+
         world_arrays_new = []
         iworld_curr = -1
         for iworld in range(self._wcs.world_n_dim):
@@ -251,7 +258,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
                 iworld_curr += 1
                 world_arrays_new.append(world_arrays[iworld_curr])
             else:
-                world_arrays_new.append(1.)
+                world_arrays_new.append(next(dropped_iter))
 
         world_arrays_new = np.broadcast_arrays(*world_arrays_new)
         pixel_arrays = list(self._wcs.world_to_pixel_values(*world_arrays_new))

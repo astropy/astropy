@@ -16,6 +16,7 @@ from astropy.wcs.wcsapi.utils import wcs_info_str
 import astropy.units as u
 
 from astropy.coordinates.spectral_coordinate import SpectralCoord
+from astropy.wcs.wcsapi.high_level_wcs_wrapper import HighLevelWCSWrapper
 
 # To test the slicing we start off from standard FITS WCS
 # objects since those implement the low-level API. We create
@@ -899,3 +900,79 @@ def test_pixel_to_world_values_different_int_types():
     for int_coord, np64_coord in zip(int_sliced.pixel_to_world_values(*pixel_arrays),
                                      np64_sliced.pixel_to_world_values(*pixel_arrays)):
         assert all(int_coord == np64_coord)
+
+
+HEADER_CORRELATED_SPECTRAL_CUBE = """
+NAXIS   = 3
+NAXIS1  = 100
+NAXIS2  = 25
+NAXIS3  = 2
+CRPIX1  = 50.5
+CRPIX2  = 13.0
+CRPIX3  = 1.0
+PC1_1   = 0.0
+PC1_2   = -1.0
+PC1_3   = 0.0
+PC2_1   = 1.0
+PC2_2   = 0.0
+PC2_3   = -1.0
+PC3_1   = 0.0
+PC3_2   = 0.0
+PC3_3   = 1.0
+CDELT1  = 5.0
+CDELT2  = 5.0
+CDELT3  = 0.055
+CUNIT1  = deg
+CUNIT2  = deg
+CUNIT3  = Angstrom
+CTYPE1  = GLON-TAN
+CTYPE2  = GLAT-TAN
+CTYPE3  = WAVE
+CRVAL1  = 0.0
+CRVAL2  = 0.0
+CRVAL3  = 1.05
+"""
+
+
+def test_world_to_pixel_dropped_dimension_value():
+    """
+    Regression test for astropy/astropy#13579.
+
+    When a spectral/spatial PC matrix couples the axes, slicing out a single
+    wavelength and then calling ``world_to_pixel_values`` on the spatial
+    coordinates must use the actual wavelength of the slice, not a placeholder
+    ``1.0`` (in internal SI units).
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', VerifyWarning)
+        wcs = WCS(Header.fromstring(HEADER_CORRELATED_SPECTRAL_CUBE, sep='\n'))
+
+    # First spectral slice (CRPIX3=1, CDELT3=0.055 Angstrom, CRVAL3=1.05 Angstrom)
+    sliced = SlicedLowLevelWCS(wcs, 0)
+
+    # Spatial world coordinate at the reference pixel of the first spectral slice.
+    spatial_world = (0.0, 0.0)
+
+    # The wavelength at the slice in SI units (meters), as expected by the
+    # low-level API.
+    wavelength_si = 1.05e-10
+
+    expected_spatial_pixel = wcs.world_to_pixel_values(
+        spatial_world[0], spatial_world[1], wavelength_si
+    )[:2]
+
+    result = sliced.world_to_pixel_values(*spatial_world)
+    assert_allclose(result, expected_spatial_pixel)
+
+    # Also verify the high-level wrapper delegates correctly.  The high-level
+    # API expects the grouped world object (here a single SkyCoord for the
+    # coupled celestial axes).
+    hl = HighLevelWCSWrapper(sliced)
+    from astropy.coordinates import SkyCoord
+    spatial_coord = SkyCoord(spatial_world[0] * u.deg, spatial_world[1] * u.deg,
+                              frame='galactic')
+    assert_allclose(hl.world_to_pixel(spatial_coord), expected_spatial_pixel)
+
+    # And confirm round-trip consistency for the sliced WCS.
+    round_trip = sliced.pixel_to_world_values(*result)
+    assert_allclose(round_trip, spatial_world, atol=1e-12)
