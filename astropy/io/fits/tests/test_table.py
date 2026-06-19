@@ -2911,6 +2911,35 @@ class TestTableFunctions(FitsTestCase):
         with fits.open(partial_path, logical_as_bytes=True) as hdul:
             assert hdul[1].data["FLAG"].tobytes() == b"TFF"
 
+    def test_logical_as_bytes_invalid_byte_rejected_on_write(self, tmp_path):
+        """Bytes assigned into a logical ('L') column read with
+        ``logical_as_bytes=True`` alias the raw data directly, bypassing the
+        construction-time validation. Writing a column whose raw bytes are not
+        one of the FITS L wire-format values b'T', b'F', b'\\x00' therefore
+        raises ``ValueError`` at write time.
+        """
+        src = np.array([b"T", b"\x00", b"F"], dtype="S1")
+        path = tmp_path / "src.fits"
+        fits.BinTableHDU.from_columns([fits.Column("flag", "L", array=src)]).writeto(
+            path
+        )
+
+        # Valid wire-format bytes round-trip without error.
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            hdul[1].data["flag"][0] = b"\x00"
+            hdul[1].data["flag"][2] = b"T"
+            out = tmp_path / "ok.fits"
+            hdul.writeto(out)
+        with fits.open(out, logical_as_bytes=True) as hdul:
+            assert hdul[1].data["flag"].tobytes() == b"\x00\x00T"
+
+        # An invalid byte is rejected on write.
+        for bad in (b"X", b"1", b"t"):
+            with fits.open(path, logical_as_bytes=True) as hdul:
+                hdul[1].data["flag"][0] = bad
+                with pytest.raises(ValueError, match="only b'T', b'F'"):
+                    hdul.writeto(tmp_path / f"bad_{bad}.fits")
+
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
 
