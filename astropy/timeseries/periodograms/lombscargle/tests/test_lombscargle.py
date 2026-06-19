@@ -121,7 +121,9 @@ def test_all_methods(
 @pytest.mark.parametrize("assume_regular_frequency", [True, False])
 @pytest.mark.parametrize("center_data", [True, False])
 @pytest.mark.parametrize("fit_mean", [True, False])
-def test_cython_regular_frequency(data, fit_mean, center_data, assume_regular_frequency):
+def test_cython_regular_frequency(
+    data, fit_mean, center_data, assume_regular_frequency
+):
     # The cython method has a fast path for regular frequency grids that updates
     # the trigonometric terms recursively. Check that it matches the reference
     # 'slow' implementation, both when the regularity is assumed and when it is
