@@ -2940,7 +2940,7 @@ class TestTableFunctions(FitsTestCase):
             with fits.open(path, logical_as_bytes=True) as hdul:
                 hdul[1].data["flag"][0] = bad
                 with pytest.raises(ValueError, match="only b'T', b'F'"):
-                    hdul.writeto(tmp_path / "bad.fits", overwrite=True)
+                    hdul.writeto(tmp_path / "bad.fits")
 
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
