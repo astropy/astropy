@@ -54,8 +54,18 @@ def time_support(*, scale=None, format=None, simplify=True):
         # Note: we default to AutoLocator since many time formats
         # can just use this.
 
+        # Parameters controlling tick density.  Subclasses can override these
+        # to change tick placement without duplicating tick_values().
+        _nbins_default = 4
+        # Ranges of at most this many years use monthly ticks instead of yearly.
+        _year_threshold = 1
+        # Divisor used when estimating the year / month step size.
+        _step_divisor = 3
+        # Divisor used when estimating the sub-day (hour/minute/second) step.
+        _hour_divisor = 3
+
         def __init__(self, converter, *args, **kwargs):
-            kwargs["nbins"] = 4
+            kwargs["nbins"] = self._nbins_default
             super().__init__(*args, **kwargs)
             self._converter = converter
 
@@ -88,9 +98,13 @@ def time_support(*, scale=None, format=None, simplify=True):
                     ymin = tmin.year
                     ymax = tmax.year
 
-                    if ymax > ymin + 1:  # greater than a year
+                    if ymax > ymin + self._year_threshold:  # greater than a year
                         # Find the step we want to use
-                        ystep = int(select_step_scalar(max(1, (ymax - ymin) / 3)))
+                        ystep = int(
+                            select_step_scalar(
+                                max(1, (ymax - ymin) / self._step_divisor)
+                            )
+                        )
 
                         ymin = ystep * (ymin // ystep)
 
@@ -103,7 +117,11 @@ def time_support(*, scale=None, format=None, simplify=True):
                         mmin = tmin.month
                         mmax = tmax.month + 12 * (ymax - ymin)
 
-                        mstep = int(select_step_scalar(max(1, (mmax - mmin) / 3)))
+                        mstep = int(
+                            select_step_scalar(
+                                max(1, (mmax - mmin) / self._step_divisor)
+                            )
+                        )
 
                         mmin = mstep * max(1, mmin // mstep)
 
@@ -127,7 +145,7 @@ def time_support(*, scale=None, format=None, simplify=True):
 
                 else:
                     # Determine ideal step
-                    dv = (vmax - vmin) / 3 * 24 << u.hourangle
+                    dv = (vmax - vmin) / self._hour_divisor * 24 << u.hourangle
 
                     # And round to nearest sensible value
                     dv = select_step_hour(dv).to_value(u.hourangle) / 24
@@ -146,6 +164,26 @@ def time_support(*, scale=None, format=None, simplify=True):
         def __call__(self):
             vmin, vmax = self.axis.get_view_interval()
             return self.tick_values(vmin, vmax)
+
+    class AstropyConciseTimeLocator(AstropyTimeLocator):
+        """Time locator for use with `~astropy.visualization.time_support` and
+        ``simplify='concise'``.
+
+        Produces more ticks than `AstropyTimeLocator` (targeting ~8 ticks
+        rather than ~4) and subdivides multi-year spans into monthly ticks,
+        matching the density of `~matplotlib.dates.AutoDateLocator`.
+        """
+
+        _nbins_default = 8
+        _year_threshold = 3
+        _step_divisor = 6
+        _hour_divisor = 6
+
+        def __init__(self, converter, *args, **kwargs):
+            # Call MaxNLocator directly so _nbins_default from this subclass
+            # is used rather than AstropyTimeLocator's value.
+            MaxNLocator.__init__(self, nbins=self._nbins_default)
+            self._converter = converter
 
     class AstropyTimeFormatter(ScalarFormatter):
         _MONTH_ABBR = [
@@ -391,7 +429,10 @@ def time_support(*, scale=None, format=None, simplify=True):
             """
             Return major and minor tick locators and formatters.
             """
-            majloc = AstropyTimeLocator(self)
+            if self.simplify == "concise":
+                majloc = AstropyConciseTimeLocator(self)
+            else:
+                majloc = AstropyTimeLocator(self)
             majfmt = AstropyTimeFormatter(self)
             return units.AxisInfo(
                 majfmt=majfmt, majloc=majloc, label=f"Time ({self.scale})"
