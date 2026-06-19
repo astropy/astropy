@@ -1,0 +1,5 @@
+Fixed a regression where a FITS logical (``'L'``) column created with
+``BinTableHDU.from_columns(..., nrows=N)`` and no input array stored its
+values as NULL (``b'\x00'``) instead of False (``b'F'``). Rows later
+assigned ``False`` were silently written as NULL, and a spurious
+``contains NULL`` warning was emitted when reading the file back.
