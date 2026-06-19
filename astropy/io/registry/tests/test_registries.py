@@ -20,6 +20,7 @@ import pytest
 import astropy.units as u
 from astropy.io import registry as io_registry
 from astropy.io.registry import (
+    IOIdentifierExceptions,
     IORegistryError,
     UnifiedInputRegistry,
     UnifiedIORegistry,
@@ -244,8 +245,8 @@ class TestUnifiedIORegistryBase:
         formats = registry.identify_format(*argsFail)
         assert fmt in formats
 
-        with pytest.raises(ExceptionGroup) as exc:
-            registry.unregister_identifier(fmt, cls)
+        registry.unregister_identifier(fmt, cls)
+        with pytest.raises(IOIdentifierExceptions) as exc:
             formats = registry.identify_format(*argsFail)
         assert str(exc.value.exceptions[0]) == "Failed"
 

@@ -8,11 +8,15 @@ from operator import itemgetter
 
 import numpy as np
 
-__all__ = ["IORegistryError"]
+__all__ = ["IOIdentifierExceptions", "IORegistryError"]
 
 
 class IORegistryError(Exception):
     """Custom error for registry clashes."""
+
+
+class IOIdentifierExceptions(ExceptionGroup):
+    """Custom exception group for identifier functions errors."""
 
 
 # -----------------------------------------------------------------------------
@@ -327,7 +331,7 @@ class _UnifiedIORegistryBase:
                     exceptions_raised.append(e)
 
         if valid_formats == [] and exceptions_raised != []:
-            raise ExceptionGroup("No valid format found", exceptions_raised)
+            raise IOIdentifierExceptions("No valid format found", exceptions_raised)
         return valid_formats
 
     # =========================================================================
