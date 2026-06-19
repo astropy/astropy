@@ -592,15 +592,19 @@ def test_gcrs_altaz_bothroutes(testframe):
     """
     sun = get_sun(testframe.obstime)
     sunaa_viaicrs = sun.transform_to(ICRS()).transform_to(testframe)
-    sunaa_viaitrs = sun.transform_to(ITRS(obstime=testframe.obstime)).transform_to(
-        testframe
-    )
+    # The route through ITRS now uses the direct, topocentric ITRS<->AltAz
+    # transform for Earth-fixed/nearby objects.  To keep this test checking
+    # consistency with the celestial ICRS route, force the ITRS leg through
+    # CIRS.
+    sunaa_viaitrs = sun.transform_to(
+        ITRS(obstime=testframe.obstime)
+    ).transform_to(CIRS(obstime=testframe.obstime)).transform_to(testframe)
 
     moon = GCRS(MOONDIST_CART, obstime=testframe.obstime)
     moonaa_viaicrs = moon.transform_to(ICRS()).transform_to(testframe)
-    moonaa_viaitrs = moon.transform_to(ITRS(obstime=testframe.obstime)).transform_to(
-        testframe
-    )
+    moonaa_viaitrs = moon.transform_to(
+        ITRS(obstime=testframe.obstime)
+    ).transform_to(CIRS(obstime=testframe.obstime)).transform_to(testframe)
 
     assert_allclose(sunaa_viaicrs.cartesian.xyz, sunaa_viaitrs.cartesian.xyz)
     assert_allclose(moonaa_viaicrs.cartesian.xyz, moonaa_viaitrs.cartesian.xyz)
@@ -1012,6 +1016,142 @@ def test_straight_overhead():
     hd = cirs_topo.transform_to(HADec(obstime=t, location=home))
     assert_allclose(hd.ha, 0 * u.hourangle, atol=1 * u.uas, rtol=0)
     assert_allclose(hd.dec, 52 * u.deg, atol=1 * u.uas, rtol=0)
+
+
+
+def test_itrs_altaz_nearby():
+    """
+    Check that a nearby object directly above an observer in ITRS transforms
+    to ~zenith in AltAz and round-trips without going through a celestial frame
+    (which would introduce geocentric-aberration errors).
+    """
+    t = Time('J2010')
+    home = EarthLocation(-1*u.deg, 52*u.deg, height=0*u.km)
+    geodetic = home.to_geodetic('WGS84')
+
+    # Build the geodetic "up" direction in ITRS (the local vertical).
+    slon = np.sin(geodetic.lon.to_value(u.radian))
+    clon = np.cos(geodetic.lon.to_value(u.radian))
+    slat = np.sin(geodetic.lat.to_value(u.radian))
+    clat = np.cos(geodetic.lat.to_value(u.radian))
+    local_vertical = CartesianRepresentation(
+        clat*clon, clat*slon, slat, copy=False)
+
+    itrs_home = home.get_itrs(t).cartesian
+    offset = local_vertical * 500*u.km
+    itrs_target = ITRS(itrs_home + offset, obstime=t)
+
+    aa = itrs_target.transform_to(AltAz(obstime=t, location=home))
+    assert_allclose(aa.alt, 90*u.deg, atol=1*u.uas, rtol=0)
+
+    # Round-trip
+    itrs_back = aa.transform_to(ITRS(obstime=t))
+    assert_allclose(itrs_target.cartesian.xyz, itrs_back.cartesian.xyz,
+                    atol=1*u.m)
+
+
+def test_itrs_hadec_nearby():
+    """
+    Check that a nearby object directly above an observer in ITRS transforms
+    to the expected HADec and round-trips.
+    """
+    t = Time('J2010')
+    home = EarthLocation(-1*u.deg, 52*u.deg, height=0*u.km)
+    geodetic = home.to_geodetic('WGS84')
+
+    # Build the geodetic "up" direction in ITRS (the local vertical).
+    slon = np.sin(geodetic.lon.to_value(u.radian))
+    clon = np.cos(geodetic.lon.to_value(u.radian))
+    slat = np.sin(geodetic.lat.to_value(u.radian))
+    clat = np.cos(geodetic.lat.to_value(u.radian))
+    local_vertical = CartesianRepresentation(
+        clat*clon, clat*slon, slat, copy=False)
+
+    itrs_home = home.get_itrs(t).cartesian
+    offset = local_vertical * 500*u.km
+    itrs_target = ITRS(itrs_home + offset, obstime=t)
+
+    hd = itrs_target.transform_to(HADec(obstime=t, location=home))
+    # At the zenith the hour angle is undefined (x=y=0 in the HADec
+    # Cartesian basis), so only declination is meaningful.
+    assert_allclose(hd.dec, 52*u.deg, atol=1*u.uas, rtol=0)
+
+    # Round-trip
+    itrs_back = hd.transform_to(ITRS(obstime=t))
+    assert_allclose(itrs_target.cartesian.xyz, itrs_back.cartesian.xyz,
+                    atol=1*u.m)
+
+
+def test_itrs_altaz_time_invariant():
+    """
+    Check that an ITRS coordinate is treated as time-invariant: the same
+    fixed-ITRS target transformed to AltAz at different obstimes and back
+    returns the same ITRS vector, and the intermediate AltAz differs only by
+    the Earth's rotation of the observer (which is encoded in the *obstime*, not
+    by moving the target).
+    """
+    t1 = Time('J2010')
+    t2 = Time('J2020')
+    loc = EarthLocation(-1*u.deg, 52*u.deg)
+    itrs = ITRS(CartesianRepresentation([7000, 0, 0]*u.km, copy=False),
+                obstime=t1)
+
+    aa1 = itrs.transform_to(AltAz(obstime=t1, location=loc))
+    aa2 = itrs.transform_to(AltAz(obstime=t2, location=loc))
+
+    # Both AltAz coordinates round-trip to the same fixed ITRS vector.
+    assert_allclose(itrs.cartesian.xyz,
+                    aa1.transform_to(ITRS(obstime=t1)).cartesian.xyz,
+                    atol=1*u.m)
+    assert_allclose(itrs.cartesian.xyz,
+                    aa2.transform_to(ITRS(obstime=t2)).cartesian.xyz,
+                    atol=1*u.m)
+
+    # Because an EarthLocation has a fixed ITRS position, the topocentric
+    # vector for a fixed-ITRS target is the same at both times.  The local basis
+    # also depends only on the fixed geodetic location.  Therefore the direct
+    # ITRS->AltAz result is independent of obstime for a fixed-Earth observer.
+    assert_allclose(aa1.alt, aa2.alt, atol=1*u.uas, rtol=0)
+    assert_allclose(aa1.az, aa2.az, atol=1*u.uas, rtol=0)
+
+
+def test_itrs_hadec_time_invariant():
+    """
+    Mirror of ``test_itrs_altaz_time_invariant`` for the HADec path.
+    """
+    t1 = Time('J2010')
+    t2 = Time('J2020')
+    loc = EarthLocation(-1*u.deg, 52*u.deg)
+    itrs = ITRS(CartesianRepresentation([7000, 0, 0]*u.km, copy=False),
+                obstime=t1)
+
+    hd1 = itrs.transform_to(HADec(obstime=t1, location=loc))
+    hd2 = itrs.transform_to(HADec(obstime=t2, location=loc))
+
+    assert_allclose(itrs.cartesian.xyz,
+                    hd1.transform_to(ITRS(obstime=t1)).cartesian.xyz,
+                    atol=1*u.m)
+    assert_allclose(itrs.cartesian.xyz,
+                    hd2.transform_to(ITRS(obstime=t2)).cartesian.xyz,
+                    atol=1*u.m)
+
+    assert_allclose(hd1.dec, hd2.dec, atol=1*u.uas, rtol=0)
+    assert_allclose(hd1.ha, hd2.ha, atol=1*u.uas, rtol=0)
+
+
+def test_itrs_altaz_nodist():
+    """
+    Check that a UnitSphericalRepresentation ITRS coordinate round-trips for
+    the ITRS<->AltAz transformation and stays unit-spherical.
+    """
+    t = Time('J2010')
+    loc = EarthLocation(-1*u.deg, 52*u.deg)
+    coo0 = ITRS(UnitSphericalRepresentation(10*u.deg, 20*u.deg), obstime=t)
+
+    aa = coo0.transform_to(AltAz(obstime=t, location=loc))
+    coo1 = aa.transform_to(ITRS(obstime=t))
+    assert isinstance(coo1.data, UnitSphericalRepresentation)
+    assert_allclose(coo0.cartesian.xyz, coo1.cartesian.xyz)
 
 
 def test_itrs_straight_overhead():

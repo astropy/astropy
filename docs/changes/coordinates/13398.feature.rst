@@ -1,0 +1,7 @@
+Added direct ITRS ↔ AltAz/HADec transformations in
+``astropy/coordinates/builtin_frames/itrs_observed_transforms.py``.  These
+paths stay entirely within the ITRS and treat the input ITRS position as
+time-invariant, which is the desired behaviour for Earth-fixed or nearby
+objects such as satellites and aircraft.  They are topocentric and do not
+apply refraction, aberration, or precession-nutation, so they differ from the
+existing celestial routes (ICRS/CIRS → observed) for distant sources.

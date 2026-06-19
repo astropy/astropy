@@ -71,6 +71,14 @@ doc_footer = """
     results.  For much better numerical stability, leave the ``pressure`` at
     ``0`` (the default), thereby disabling the refraction correction and
     yielding "topocentric" equatorial coordinates.
+
+    Direct transformations from `~astropy.coordinates.ITRS` to HADec are also
+    available.  These stay entirely within the ITRS and are intended for nearby
+    or Earth-fixed objects (satellites, aircraft, ground features).  They treat
+    the ITRS Cartesian vector as time-invariant, do not apply refraction even if
+    ``pressure`` is set, and will give different answers than the celestial
+    ICRS/CIRS → HADec routes for distant sources where geocentric aberration is
+    relevant.
     """
 
 

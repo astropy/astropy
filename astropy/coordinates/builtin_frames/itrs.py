@@ -63,6 +63,12 @@ class ITRS(BaseCoordinateFrame):
     range due to the curved path of light through the atmosphere, so Astropy is no
     substitute for the ILRS software in these respects.
 
+    Direct transformations to the observed frames `~astropy.coordinates.AltAz`
+    and `~astropy.coordinates.HADec` are also available.  These paths keep the ITRS
+    Cartesian vector fixed and only use the observed frame's ``obstime`` to
+    evaluate the observer's location and local basis.  They are intended for
+    nearby or Earth-fixed targets and do not apply refraction.
+
     """
 
     default_representation = CartesianRepresentation
