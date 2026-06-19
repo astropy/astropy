@@ -1,0 +1,7 @@
+Fix HTML table writer so that the ``formats`` keyword is used to format
+ columns in the output. [#13451]
+
+Also fixed a bug where multicolumn HTML output could fail because the
+ ``colspan`` attribute was passed as an integer, and suppressed an lxml
+ ``DeprecationWarning`` about the unused ``strip_cdata`` option when
+ reading HTML tables.

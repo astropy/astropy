@@ -332,6 +332,34 @@ class HTML(core.BaseReader):
 
     max_ndim = 2  # HTML supports writing 2-d columns with shape (n, m)
 
+    # lxml's HTMLParser (used by BeautifulSoup for the lxml builder) issues a
+    # DeprecationWarning because it passes ``strip_cdata=False`` even though
+    # that option has never had any effect.  Register a subclass of the bs4
+    # lxml HTML builder that omits that argument.  This is done once at class
+    # definition time so all subsequent HTML reads use the patched builder.
+    try:
+        from bs4.builder import LXMLTreeBuilder as _LXMLTreeBuilder
+        from bs4.builder import builder_registry as _builder_registry
+        from lxml import etree as _etree
+
+        def _make_no_strip_cdata_builder(etree_mod, base_builder):
+            class _LXMLTreeBuilderNoStripCdata(base_builder):
+                """lxml HTML builder that avoids the deprecated ``strip_cdata`` argument."""
+                def parser_for(self, encoding):
+                    return etree_mod.HTMLParser(target=self, recover=True,
+                                                encoding=encoding)
+            return _LXMLTreeBuilderNoStripCdata
+
+        # Register this subclass ahead of the stock LXMLTreeBuilder so that
+        # BeautifulSoup's feature lookup resolves to it for 'lxml' and related
+        # feature names.  Repeated registration is safe; the registry simply
+        # keeps multiple entries but lookup returns the first match.
+        _builder_registry.register(
+            _make_no_strip_cdata_builder(_etree, _LXMLTreeBuilder))
+    except Exception:
+        # If lxml/bs4 are not available, fall back to the default builders.
+        pass
+
     def __init__(self, htmldict={}):
         """
         Initialize classes for HTML reading and writing.
@@ -430,7 +458,7 @@ class HTML(core.BaseReader):
                             for col in cols:
                                 if len(col.shape) > 1 and self.html["multicol"]:
                                     # Set colspan attribute for multicolumns
-                                    w.start("th", colspan=col.shape[1])
+                                    w.start("th", colspan=str(col.shape[1]))
                                 else:
                                     w.start("th")
                                 w.data(col.info.name.strip())

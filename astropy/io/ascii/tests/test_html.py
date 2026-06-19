@@ -837,3 +837,21 @@ def test_read_html_unicode():
     ]
     dat = Table.read(table_in, format="ascii.html")
     assert np.all(dat["col1"] == ["Δ", "Δ"])
+
+
+def test_write_table_formatted_columns():
+    """
+    Test that passing formats formats columns in HTML output.
+    Regression test for https://github.com/astropy/astropy/issues/13451
+    """
+    buffer_output = StringIO()
+    t = Table([[1, 2], [1.234e-11, 2.345e-11]], names=('C1', 'C2'))
+    ascii.write(t, buffer_output, format='html',
+                formats={'C1': '%04d', 'C2': '%.2e'})
+
+    t_expected = Table([['0001', '0002'], ['1.23e-11', '2.35e-11']],
+                         names=('C1', 'C2'))
+    buffer_expected = StringIO()
+    ascii.write(t_expected, buffer_expected, format='html')
+
+    assert buffer_output.getvalue() == buffer_expected.getvalue()
