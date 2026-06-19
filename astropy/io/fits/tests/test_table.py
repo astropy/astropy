@@ -405,6 +405,42 @@ class TestTableFunctions(FitsTestCase):
 
         a.close()
 
+    def test_writeto_after_denywrite_open(self):
+        """Writing a table opened with ``mode='denywrite'`` to a new file must
+        not fail. ``_scale_back`` rewrites the raw column bytes in place for any
+        column whose stored form differs from its in-memory values -- scaled
+        numbers (TSCALn/TZEROn), logical (``'L'``) and bit (``'X'``) columns --
+        and a denywrite buffer is read-only, so the write is performed on a
+        writeable copy instead of raising "assignment destination is read-only".
+        """
+        cols = [
+            fits.Column("plain", "J", array=np.array([10, 20, 30])),
+            fits.Column(
+                "scaled", "E", array=np.array([1.0, 2.0, 3.0]), bscale=2.0, bzero=5.0
+            ),
+            fits.Column("bits", "2X", array=np.array([[1, 0], [0, 1], [1, 1]])),
+            fits.Column("flag", "L", array=np.array([True, False, True])),
+        ]
+        in_path = self.temp("denywrite_in.fits")
+        fits.BinTableHDU.from_columns(cols).writeto(in_path)
+
+        out_path = self.temp("denywrite_out.fits")
+        with fits.open(in_path, mode="denywrite") as hdul:
+            # Materialize every column, applying scaling and caching the
+            # bit/bool views, so that _scale_back has bytes to rewrite.
+            for name in hdul[1].columns.names:
+                hdul[1].data[name]
+            # The source buffer is read-only; this previously raised
+            # "assignment destination is read-only".
+            hdul.writeto(out_path)
+
+        with fits.open(out_path) as hdul:
+            data = hdul[1].data
+            assert data["plain"].tolist() == [10, 20, 30]
+            np.testing.assert_allclose(data["scaled"], [1.0, 2.0, 3.0])
+            assert data["bits"].tolist() == [[True, False], [False, True], [True, True]]
+            assert data["flag"].tolist() == [True, False, True]
+
     def test_endianness(self):
         x = np.ndarray((1,), dtype=object)
         channelsIn = np.array([3], dtype="uint8")

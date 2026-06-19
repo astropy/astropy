@@ -524,6 +524,11 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
 
     def _prewriteto(self, inplace=False):
         if self._has_data:
+            # ``_scale_back`` rewrites raw column bytes in place, which fails on a
+            # read-only buffer (e.g. a ``denywrite`` table written to a new file),
+            # so copy first; own-heap HDUs (compression) don't rewrite here.
+            if not self._manages_own_heap and not self.data.flags.writeable:
+                self.data = self.data.copy()
             self.data._scale_back(update_heap_pointers=not self._manages_own_heap)
             # check TFIELDS and NAXIS2
             self._header["TFIELDS"] = len(self.data._coldefs)

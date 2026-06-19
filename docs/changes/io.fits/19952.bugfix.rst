@@ -1,0 +1,6 @@
+Fixed a crash when writing a table to a new file after opening it with
+``mode='denywrite'`` (which exposes the data through a read-only buffer).
+Columns whose stored bytes are derived from their in-memory values, such as
+scaled numbers (``TSCALn``/``TZEROn``), logical (``'L'``) and bit (``'X'``)
+columns, are now written through a writeable copy instead of raising
+``ValueError: assignment destination is read-only``.
