@@ -13,6 +13,7 @@ from astropy.utils.compat import chararray, get_chararray
 from astropy.utils.exceptions import AstropyUserWarning
 
 from ._logical_helpers import (
+    _VALID_LOGICAL_BYTES,
     _detect_legacy_logical_vla_heap,
     _logical_to_fits_bytes,
     _logical_vla_heap_has_null,
@@ -1359,6 +1360,26 @@ class FITS_rec(np.recarray):
                 current_as_bool = raw_field == ord("T")
                 needs_update = field != current_as_bool
                 raw_field[needs_update] = np.choose(field[needs_update], choices)
+
+            # Validate the on-disk bytes of a fixed-length logical ('L')
+            # column: only b'T', b'F', and b'\x00' are legal. This catches
+            # invalid bytes assigned directly into a logical_as_bytes view,
+            # which aliases the raw data and so bypasses the validation applied
+            # to |S1 column input at construction time.
+            if (
+                _bool
+                and not isinstance(recformat, _FormatP)
+                and not isinstance(self._coldefs, _AsciiColDefs)
+            ):
+                invalid = ~np.isin(raw_field, _VALID_LOGICAL_BYTES)
+                if invalid.any():
+                    bad = ", ".join(
+                        repr(bytes([int(b)])) for b in np.unique(raw_field[invalid])
+                    )
+                    raise ValueError(
+                        f"FITS logical ('L') column {name!r} contains invalid "
+                        f"byte(s) {bad}; only b'T', b'F', and b'\\x00' are allowed."
+                    )
 
         # Store the updated heapsize
         self._heapsize = heapsize
