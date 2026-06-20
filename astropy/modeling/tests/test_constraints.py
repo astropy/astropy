@@ -672,3 +672,58 @@ def test_set_constraints():
         "c0_1": (None, None),
         "c1_1": (None, None),
     }
+
+
+# Regression test for https://github.com/astropy/astropy/issues/3028
+class TestConstraintsAsSequence:
+    """
+    Constraints (``fixed``, ``tied``, ``bounds``) may be supplied as a
+    sequence in the order of ``param_names``, in addition to the dict form.
+    """
+
+    @staticmethod
+    def _tie_center(model):
+        return 50 * model.stddev
+
+    def test_fixed_as_tuple(self):
+        g = models.Gaussian1D(10, 5, 0.3, fixed=(False, False, True))
+        assert g.amplitude.fixed is False
+        assert g.mean.fixed is False
+        assert g.stddev.fixed is True
+
+    def test_fixed_as_list(self):
+        g = models.Gaussian1D(10, 5, 0.3, fixed=[True, False, True])
+        assert g.amplitude.fixed is True
+        assert g.mean.fixed is False
+        assert g.stddev.fixed is True
+
+    def test_all_three_constraints_as_sequences(self):
+        g = models.Gaussian1D(
+            10,
+            5,
+            0.3,
+            fixed=(False, False, True),
+            tied=(False, self._tie_center, False),
+            bounds=((5, 15), (None, None), (0.2, 0.4)),
+        )
+        assert g.stddev.fixed is True
+        assert g.mean.tied is self._tie_center
+        assert g.amplitude.bounds == (5.0, 15.0)
+        assert g.stddev.bounds == (0.2, 0.4)
+
+    def test_dict_form_still_works(self):
+        g = models.Gaussian1D(10, 5, 0.3, fixed={"stddev": True})
+        assert g.stddev.fixed is True
+        assert g.amplitude.fixed is False
+
+    def test_length_too_short_raises(self):
+        with pytest.raises(
+            ValueError, match=r"'fixed' sequence has length 2 but the model"
+        ):
+            models.Gaussian1D(10, 5, 0.3, fixed=(True, False))
+
+    def test_length_too_long_raises(self):
+        with pytest.raises(
+            ValueError, match=r"'bounds' sequence has length 4 but the model"
+        ):
+            models.Gaussian1D(10, 5, 0.3, bounds=((0, 1), (0, 1), (0, 1), (0, 1)))
