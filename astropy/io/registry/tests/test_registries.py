@@ -245,10 +245,22 @@ class TestUnifiedIORegistryBase:
         formats = registry.identify_format(*argsFail)
         assert fmt in formats
 
-        registry.unregister_identifier(fmt, cls)
+        # test with no successful format inference and one single exception raised
+        registry.unregister_identifier(fmt, cls2)
         with pytest.raises(IOIdentifierExceptions) as exc:
             formats = registry.identify_format(*argsFail)
+        assert len(exc.value.exceptions) == 1
         assert str(exc.value.exceptions[0]) == "Failed"
+
+        # test with no successful format inference and multiple exceptions raised
+        nTests = 9
+        for i in range(3, nTests):
+            registry.register_identifier(f"test{i}", cls2, mock_identifier)
+            with pytest.raises(IOIdentifierExceptions) as exc:
+                formats = registry.identify_format(*argsFail)
+            assert len(exc.value.exceptions) == i - 1
+            for exception in exc.value.exceptions:
+                assert str(exception) == "Failed"
 
     # ===========================================
     # Compat tests
