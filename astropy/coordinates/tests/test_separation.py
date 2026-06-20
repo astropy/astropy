@@ -406,3 +406,119 @@ def test_separation_origin_mismatch_action(
         coord_class(0 * u.deg, 0 * u.deg).separation(
             SkyCoord(0 * u.deg, 0 * u.deg, frame=GCRS), **origin_mismatch_kwarg
         )
+
+
+# ---- Tests for separation_projected ----
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+def test_separation_projected_along_dec(coord_class):
+    """Separation along the north direction should equal dec difference."""
+    c1 = coord_class(0 * u.deg, 0 * u.deg)
+    c2 = coord_class(0 * u.deg, 1 * u.deg)
+    # PA = 0 deg (North), so projected separation should be 1 deg
+    result = c1.separation_projected(c2, pa=Angle(0, unit=u.deg))
+    assert_quantity_allclose(result, 1 * u.deg, atol=1e-10 * u.deg)
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+def test_separation_projected_perpendicular(coord_class):
+    """Separation perpendicular to the axis should be zero projected distance."""
+    c1 = coord_class(0 * u.deg, 0 * u.deg)
+    c2 = coord_class(0 * u.deg, 1 * u.deg)
+    # PA = 90 deg (East), separation is along North, so projected = 0
+    result = c1.separation_projected(c2, pa=Angle(90, unit=u.deg))
+    assert_quantity_allclose(result, 0 * u.deg, atol=1e-6 * u.deg)
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+def test_separation_projected_return_components(coord_class):
+    """Test that return_components gives signed parallel and perpendicular."""
+    c1 = coord_class(0 * u.deg, 0 * u.deg)
+    c2 = coord_class(0 * u.deg, 1 * u.deg)
+    d_par, d_perp = c1.separation_projected(
+        c2, pa=Angle(0, unit=u.deg), return_components=True
+    )
+    # Parallel to North should be +1 deg
+    assert_quantity_allclose(d_par, 1 * u.deg, atol=1e-10 * u.deg)
+    # Perpendicular should be ~0
+    assert_quantity_allclose(d_perp, 0 * u.deg, atol=1e-6 * u.deg)
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+def test_separation_projected_components_negative(coord_class):
+    """Other is south of self, so d_parallel along PA=0 should be negative."""
+    c1 = coord_class(0 * u.deg, 1 * u.deg)
+    c2 = coord_class(0 * u.deg, 0 * u.deg)
+    d_par, d_perp = c1.separation_projected(
+        c2, pa=Angle(0, unit=u.deg), return_components=True
+    )
+    assert d_par < 0 * u.deg
+    assert_quantity_allclose(d_par, -1 * u.deg, atol=1e-10 * u.deg)
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+def test_separation_projected_elliptical(coord_class):
+    """Elliptical distance with b/a < 1 should inflate perpendicular component."""
+    c1 = coord_class(0 * u.deg, 0 * u.deg)
+    # Place other at 45 deg PA, 1 deg away
+    c2 = coord_class(0 * u.deg, 1 * u.deg)
+    # With PA=90 (East), the full separation is perpendicular
+    # Elliptical distance with b/a=0.5 should double the distance
+    r_ellip = c1.separation_projected(c2, pa=Angle(90, unit=u.deg), b_over_a=0.5)
+    assert_quantity_allclose(r_ellip, 2 * u.deg, atol=1e-6 * u.deg)
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+def test_separation_projected_elliptical_circular(coord_class):
+    """With b/a=1 (circular), elliptical distance equals total separation."""
+    c1 = coord_class(0 * u.deg, 0 * u.deg)
+    c2 = coord_class(0 * u.deg, 1 * u.deg)
+    r_ellip = c1.separation_projected(c2, pa=Angle(45, unit=u.deg), b_over_a=1.0)
+    sep = c1.separation(c2)
+    assert_quantity_allclose(r_ellip, sep, atol=1e-10 * u.deg)
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+def test_separation_projected_return_type(coord_class):
+    """Verify return types are Angle."""
+    c1 = coord_class(0 * u.deg, 0 * u.deg)
+    c2 = coord_class(1 * u.deg, 1 * u.deg)
+    result = c1.separation_projected(c2, pa=Angle(0, unit=u.deg))
+    assert type(result) is Angle
+
+    d_par, d_perp = c1.separation_projected(
+        c2, pa=Angle(0, unit=u.deg), return_components=True
+    )
+    assert type(d_par) is Angle
+    assert type(d_perp) is Angle
+
+
+def test_separation_projected_invalid_b_over_a():
+    """b_over_a must be in (0, 1]."""
+    c1 = SkyCoord(0 * u.deg, 0 * u.deg)
+    c2 = SkyCoord(1 * u.deg, 0 * u.deg)
+    with pytest.raises(ValueError, match="b_over_a"):
+        c1.separation_projected(c2, pa=Angle(0, unit=u.deg), b_over_a=0)
+    with pytest.raises(ValueError, match="b_over_a"):
+        c1.separation_projected(c2, pa=Angle(0, unit=u.deg), b_over_a=1.5)
+
+
+def test_separation_projected_b_over_a_and_components_exclusive():
+    """Cannot specify both b_over_a and return_components."""
+    c1 = SkyCoord(0 * u.deg, 0 * u.deg)
+    c2 = SkyCoord(1 * u.deg, 0 * u.deg)
+    with pytest.raises(ValueError, match="Cannot specify both"):
+        c1.separation_projected(
+            c2, pa=Angle(0, unit=u.deg), b_over_a=0.5, return_components=True
+        )
+
+
+@pytest.mark.parametrize("coord_class", [SkyCoord, ICRS])
+def test_separation_projected_array_coords(coord_class):
+    """Test with array-valued coordinates."""
+    c1 = coord_class(0 * u.deg, 0 * u.deg)
+    c2 = coord_class([0, 1, 0] * u.deg, [1, 0, 2] * u.deg)
+    result = c1.separation_projected(c2, pa=Angle(0, unit=u.deg))
+    # PA=0 (North): projected sep should be |dec difference|
+    assert_quantity_allclose(result, [1, 0, 2] * u.deg, atol=1e-6 * u.deg)
