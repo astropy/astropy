@@ -205,7 +205,8 @@ def where_not_allclose(a, b, rtol=1e-5, atol=1e-8, return_maxdiff=False):
             max_absolute = max_relative = 0
         else:
             # remove all invalid values before computing max differences
-            relative = absolute / np.abs(b[finites])
+            with np.errstate(divide="ignore", invalid="ignore"):
+                relative = absolute / np.abs(b[finites])
             max_absolute = float(np.max(absolute))
             max_relative = np.max(relative)
         return indices, max_absolute, max_relative
