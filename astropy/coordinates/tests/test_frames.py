@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
+import typing
 from copy import deepcopy
 
 import numpy as np
@@ -1778,3 +1779,12 @@ def test_insert():
     # Insert length=2 array at end of array
     c = c0.insert(2, c3)
     assert skycoord_equal(c, ICRS([1, 2, 10, 20] * u.deg, [3, 4, 30, 40] * u.deg))
+
+
+def test_base_coordinate_frame_annotations():
+    # Ensure annotations resolve at runtime without NameError
+    hints = typing.get_type_hints(BaseCoordinateFrame)
+    assert "default_representation" in hints
+    assert "default_differential" in hints
+    assert "frame_specific_representation_info" in hints
+    assert "frame_attributes" in hints
