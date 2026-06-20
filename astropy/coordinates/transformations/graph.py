@@ -542,12 +542,16 @@ class TransformGraph:
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 )
-                stdout, stderr = proc.communicate(dotgraph)
+                stdout, stderr = proc.communicate(dotgraph.encode("utf-8"))
                 if proc.returncode != 0:
-                    raise OSError("problem running graphviz: \n" + stderr)
+                    raise OSError(
+                        "problem running graphviz:\n"
+                        + stderr.decode("utf-8", errors="replace")
+                    )
 
-                with open(savefn, "w") as f:
+                with open(savefn, "wb") as f:
                     f.write(stdout)
+
             else:
                 raise NotImplementedError(f'savelayout="{savelayout}" is not supported')
 

@@ -1,0 +1,4 @@
+Fixed a bug in ``TransformGraph.to_dot_graph`` where Graphviz was called with
+a string input instead of bytes, which could raise a ``TypeError`` on some
+platforms. The output is now written in binary mode to correctly support
+non-text formats such as PNG and PDF.
