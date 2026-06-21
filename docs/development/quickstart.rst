@@ -1,8 +1,8 @@
 .. _contributing_quickstart:
 
-=========================
+=======================
 Contributing Quickstart
-=========================
+=======================
 
 .. _contributing_environment:
 
@@ -302,7 +302,7 @@ If your PR is still a work in progress then instead of clicking "Create pull req
 click on the small down arrow next to it and select "`Create draft pull request <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests>`__".
 In addition, if your commits are not ready for CI testing, you
 should include ``[ci skip]`` the last commit message – but note that code formatting
-checks and documentation building will still be done. Formatting and style errors *should*
+checks will still be done. Formatting and style errors *should*
 already have been fixed before committing if you have locally
 :ref:`installed pre-commit<contributing.pre-commit>`; but if you have not,
 you can use the :ref:`pre-commit_bot` to fix them automatically in the PR.
