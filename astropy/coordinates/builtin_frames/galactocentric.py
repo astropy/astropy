@@ -362,7 +362,7 @@ doc_footer = """
         plane. Unless you really know what this means, you probably should
         not change this!
 
-    .. versionchanged :: 8.0
+    .. versionchanged:: 8.0
        ``galcen_v_sun`` is now a `~astropy.coordinates.CartesianRepresentation`
        rather than a `~astropy.coordinates.CartesianDifferential`.
 
