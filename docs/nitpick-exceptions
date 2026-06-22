@@ -90,4 +90,3 @@ py:class a shallow copy of D
 # Matplotlib/Numpy dependency updates
 py:obj MultiNorm
 py:obj numpy._typing._array_like.ArrayLike
-
