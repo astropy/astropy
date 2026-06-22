@@ -305,28 +305,17 @@ astropy
 │   ├── attrs v20.1.0
 │   └── sortedcontainers v2.1.0
 ├── pytest v8.0.1 (extra: test) (*)
-├── pytest-astropy v0.11.0 (extra: test)
-│   ├── attrs v20.1.0
-│   ├── hypothesis v6.84.0 (*)
-│   ├── pytest v8.0.1 (*)
-│   ├── pytest-arraydiff v0.5.0
-│   │   ├── numpy v2.0.0
-│   │   └── pytest v8.0.1 (*)
-│   ├── pytest-astropy-header v0.2.2
-│   │   └── pytest v8.0.1 (*)
-│   ├── pytest-cov v2.3.1
-│   │   ├── coverage v7.2.0
-│   │   └── pytest v8.0.1 (*)
-│   ├── pytest-doctestplus v1.4.0 (*)
-│   ├── pytest-filter-subpackage v0.1.2
-│   │   └── pytest v8.0.1 (*)
-│   ├── pytest-mock v2.0.0
-│   │   └── pytest v8.0.1 (*)
-│   └── pytest-remotedata v0.4.1
-│       ├── packaging v25.0
-│       └── pytest v8.0.1 (*)
-├── pytest-astropy-header v0.2.2 (extra: test) (*)
+├── pytest-astropy-header v0.2.2 (extra: test)
+│   └── pytest v8.0.1 (*)
+├── pytest-cov v2.3.1 (extra: test)
+│   ├── coverage v7.2.0
+│   └── pytest v8.0.1 (*)
 ├── pytest-doctestplus v1.4.0 (extra: test) (*)
+├── pytest-remotedata v0.4.1 (extra: test)
+│   ├── packaging v25.0
+│   └── pytest v8.0.1 (*)
+├── pytest-skip-slow v1.1.0 (extra: test)
+│   └── pytest v8.0.1 (*)
 ├── pytest-xdist v3.6.1 (extra: test)
 │   ├── execnet v2.1.0
 │   └── pytest v8.0.1 (*)
@@ -360,9 +349,11 @@ astropy
 ├── pandas v2.2.2 (extra: test-all) (*)
 ├── pyarrow v16.0.0 (extra: test-all) (*)
 ├── pytest v8.0.1 (extra: test-all) (*)
-├── pytest-astropy v0.11.0 (extra: test-all) (*)
 ├── pytest-astropy-header v0.2.2 (extra: test-all) (*)
+├── pytest-cov v2.3.1 (extra: test-all) (*)
 ├── pytest-doctestplus v1.4.0 (extra: test-all) (*)
+├── pytest-remotedata v0.4.1 (extra: test-all) (*)
+├── pytest-skip-slow v1.1.0 (extra: test-all) (*)
 ├── pytest-xdist v3.6.1 (extra: test-all) (*)
 ├── pytz v2020.1 (extra: test-all)
 ├── s3fs v2023.4.0 (extra: test-all) (*)

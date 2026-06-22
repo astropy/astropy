@@ -89,7 +89,9 @@ jobs:
                                   python3-extension-helpers \
                                   python3-jinja2 \
                                   python3-numpy \
-                                  python3-pytest-astropy \
+                                  python3-pytest-astropy-header \
+                                  python3-pytest-cov \
+                                  python3-pytest-remotedata \
                                   python3-setuptools-scm \
                                   python3-yaml \
                                   python3-venv \

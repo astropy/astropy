@@ -138,7 +138,8 @@ Test coverage reports
 
 Coverage reports can be generated using the `pytest-cov
 <https://pypi.org/project/pytest-cov/>`_ plugin (which is installed
-automatically when installing pytest-astropy) by using e.g.::
+automatically when installing astropy with ``test`` extra dependencies)
+by using e.g.::
 
     pytest --cov astropy --cov-report html
 
@@ -494,7 +495,7 @@ Imagine if random testing gave you minimal, non-flaky failing examples,
 and a clean way to describe even the most complicated data - that's
 property-based testing!
 
-``pytest-astropy`` includes a dependency on `Hypothesis
+astropy's ``test`` extra includes a dependency on `Hypothesis
 <https://hypothesis.readthedocs.io/>`_, so installation is easy -
 you can just read the docs or `work through the tutorial
 <https://github.com/Zac-HD/escape-from-automanual-testing/>`_
