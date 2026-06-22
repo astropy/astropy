@@ -848,6 +848,10 @@ class TestParameters:
         param = Parameter(name="test", default=[1, 2, 3, 4] * u.m)
         assert param_repr_oneline(param) == "[1., 2., 3., 4.] m"
 
+    def test_repr_with_unset_getter_setter_parameter(self):
+        param = Parameter(setter=np.deg2rad, getter=np.rad2deg)
+        assert repr(param) == "Parameter('', value=nan)"
+
     def test_getter_setter(self):
         msg = "setter and getter must both be input"
         with pytest.raises(ValueError, match=msg):

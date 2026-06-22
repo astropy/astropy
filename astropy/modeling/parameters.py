@@ -340,6 +340,8 @@ class Parameter:
         """The unadorned value proxied by this parameter."""
         if self._getter is None and self._setter is None:
             value = self._value
+        elif not hasattr(self, "_internal_value"):
+            value = np.array(np.nan)
         else:
             # This new implementation uses the names of internal_unit
             # in place of raw_unit used previously. The contrast between
