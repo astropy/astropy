@@ -86,3 +86,8 @@ py:class None.  Update D from dict/iterable E and F.
 py:class None.  Update D from mapping/iterable E and F.
 py:class an object providing a view on D's values
 py:class a shallow copy of D
+
+# Matplotlib/Numpy dependency updates
+py:obj MultiNorm
+py:obj numpy._typing._array_like.ArrayLike
+
