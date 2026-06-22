@@ -498,6 +498,7 @@ Core Package Contributors
 * Rohit Kapoor
 * Rohit Patil
 * Roland Weber
+* Romain Thomas
 * Roman Tolesnikov
 * Roy Smart
 * Rui Xue
