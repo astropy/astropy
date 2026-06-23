@@ -395,6 +395,11 @@ for line in open("nitpick-exceptions"):
     dtype, target = line.split(None, 1)
     nitpick_ignore.append((dtype, target.strip()))
 
+# NumPy frequently relocates its private typing namespace between releases
+# (e.g. numpy._typing.ArrayLike -> numpy._typing._array_like.ArrayLike), so
+# match the whole private namespace rather than tracking individual paths.
+nitpick_ignore_regex = [("py:obj", r"numpy\._typing\..*")]
+
 suppress_warnings = [
     "config.cache",  # our rebuild is okay
 ]
