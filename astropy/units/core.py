@@ -2038,8 +2038,9 @@ class _UnitMetaClass(type):
                 s, represents, format=format, namespace=namespace, doc=doc
             )
 
-        if isinstance(s, (str, bytes)):
-            if len(s.strip()) == 0:
+        if isinstance(s, str):
+            s = s.strip()
+            if not s:
                 # Return the NULL unit
                 return dimensionless_unscaled
 
@@ -2052,8 +2053,6 @@ class _UnitMetaClass(type):
 
                 err.add_note(known_parsers())
                 raise err
-            if isinstance(s, bytes):
-                s = s.decode("ascii")
 
             try:
                 return f._validate_unit(s)  # Try a shortcut
@@ -2104,6 +2103,12 @@ class _UnitMetaClass(type):
                         raise ValueError(msg)
                     warnings.warn(msg, UnitsWarning)
                 return UnrecognizedUnit(s)
+
+        if isinstance(s, bytes):
+            # Recurse.  We do it here so we do not slow down the str case.
+            return cls.__call__(
+                s.decode("ascii"), format=format, parse_strict=parse_strict
+            )
 
         from .quantity import Quantity
 
