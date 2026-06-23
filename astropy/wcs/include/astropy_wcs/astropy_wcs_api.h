@@ -64,7 +64,7 @@ void** AstropyWcs_API;
 #define sip_foc2pix (*(int (*)(sip_t*, unsigned int, unsigned int, double*, double*)) AstropyWcs_API[13])
 #define sip_foc2deltas (*(int (*)(sip_t*, unsigned int, unsigned int, double*, double*)) AstropyWcs_API[14])
 #define pipeline_clear (*(void (*)(pipeline_t*)) AstropyWcs_API[15])
-#define pipeline_init (*(void (*)(pipeline_t*, sip_t*, distortion_lookup_t**, struct wcsprm*)) AstropyWcs_API[16])
+#define pipeline_init (*(void (*)(pipeline_t*, distortion_lookup_t**, sip_t*, distortion_lookup_t**, struct wcsprm*)) AstropyWcs_API[16])
 #define pipeline_free (*(void (*)(pipeline_t*)) AstropyWcs_API[17])
 #define pipeline_all_pixel2world (*(int (*)(pipeline_t*, unsigned int, unsigned int, double*, double*)) AstropyWcs_API[18])
 #define pipeline_pix2foc (*(int (*)(pipeline_t*, unsigned int, unsigned int, double*, double*)) AstropyWcs_API[19])
