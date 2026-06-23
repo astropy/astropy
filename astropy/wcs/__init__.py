@@ -32,6 +32,14 @@ from .wcs import InvalidTabularParametersError  # just for docs
 def get_include():
     """
     Get the path to astropy.wcs's C header files.
+
+    .. note::
+        The C API exposed through these headers is provided only for backward
+        compatibility with existing downstream packages and is no longer
+        recommended.  Most of its members are deprecated, and calling one emits
+        a ``DeprecationWarning``.  The API as a whole may be deprecated and
+        removed in a future version of astropy, so new code should not rely on
+        it.
     """
     import os
 
