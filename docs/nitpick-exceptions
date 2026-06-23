@@ -12,6 +12,7 @@ py:class astropy.modeling.polynomial.PolynomialBase
 py:class astropy.io.fits.hdu.base.ExtensionHDU
 py:class astropy.io.fits.util.NotifierMixin
 py:class astropy.io.fits.hdu.compressed._codecs.Codec
+py:class numcodecs.abc.Codec
 
 # astropy.io.misc.yaml
 py:class yaml.dumper.SafeDumper
@@ -60,7 +61,7 @@ py:obj n
 py:obj v
 py:obj ndarray
 py:obj args
-py:obj numpy._typing.ArrayLike
+# numpy._typing.* private namespace is handled by nitpick_ignore_regex in conf.py
 
 # other classes and functions that cannot be linked to
 py:class xmlrpc.client.Error
