@@ -84,8 +84,7 @@ def wcsapi_test(tmp_path_factory):
     )
     if proc.returncode != 0:
         message = (
-            "building the wcsapi_test extension failed:\n"
-            f"{proc.stdout}\n{proc.stderr}"
+            f"building the wcsapi_test extension failed:\n{proc.stdout}\n{proc.stderr}"
         )
         # On CI we want to know if this breaks; elsewhere a missing compiler or
         # development headers should not fail the suite.
@@ -141,7 +140,7 @@ def test_all_pix2world(wcsapi_test):
     w = _make_wcs()
     x, y, origin = 200.0, 150.0, 1
     cx, cy = wcsapi_test.all_pix2world(w, x, y, origin)
-    (ex, ey),  = w.all_pix2world([[x, y]], origin)
+    ((ex, ey),) = w.all_pix2world([[x, y]], origin)
     assert cx == pytest.approx(ex, abs=1e-9)
     assert cy == pytest.approx(ey, abs=1e-9)
 
