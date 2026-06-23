@@ -100,7 +100,7 @@ all = [
 ]
 # The base set of test-time dependencies.
 test = [
-    "setuptools>=18.5",
+    "setuptools>=77.0.0",
     "coverage>=7.2.0",
     "hypothesis>=6.84.0",
     "pytest>=8.0.1",
