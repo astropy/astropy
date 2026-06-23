@@ -15,6 +15,7 @@ import operator
 import numpy as np
 
 from astropy.units import MagUnit, Quantity, dimensionless_unscaled
+from astropy.utils.decorators import deprecated
 
 from .utils import array_repr_oneline, get_inputs_and_params
 
@@ -459,7 +460,11 @@ class Parameter:
         return self._internal_value.shape
 
     @shape.setter
+    @deprecated(since="9.0")
     def shape(self, value):
+        self._set_shape(value)
+
+    def _set_shape(self, value):
         if isinstance(self.value, np.generic):
             if value not in ((), (1,)):
                 raise ValueError("Cannot assign this shape to a scalar quantity")

@@ -454,7 +454,11 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         return getattr(self, self.components[0]).shape
 
     @shape.setter
+    @deprecated(since="9.0")
     def shape(self, shape):
+        self._set_shape(shape)
+
+    def _set_shape(self, shape):
         # We keep track of arrays that were already reshaped since we may have
         # to return those to their original shape if a later shape-setting
         # fails. (This can happen since coordinates are broadcast together.)
@@ -1190,21 +1194,20 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
             return self.from_cartesian(result)
 
     # We need to override this setter to support differentials
-    @BaseRepresentationOrDifferential.shape.setter
-    def shape(self, shape):
+    def _set_shape(self, shape):
         orig_shape = self.shape
 
         # See: https://stackoverflow.com/questions/3336767/ for an example
-        BaseRepresentationOrDifferential.shape.fset(self, shape)
+        BaseRepresentationOrDifferential._set_shape(self, shape)
 
         # also try to perform shape-setting on any associated differentials
         try:
             for k in self.differentials:
-                self.differentials[k].shape = shape
+                self.differentials[k]._set_shape(shape)
         except Exception:
-            BaseRepresentationOrDifferential.shape.fset(self, orig_shape)
+            BaseRepresentationOrDifferential._set_shape(self, orig_shape)
             for k in self.differentials:
-                self.differentials[k].shape = orig_shape
+                self.differentials[k]._set_shape(orig_shape)
 
             raise
 
