@@ -306,7 +306,7 @@ class TestCompressedImage(FitsTestCase):
 
         # Try reshaping the data, then closing and reopening the file; let's
         # see if all the changes are preserved properly
-        hdul[1].data.shape = (42, 10)
+        hdul[1].data = hdul[1].data.reshape(42, 10)
         hdul.close()
 
         hdul = fits.open(self.temp("scale.fits"))
