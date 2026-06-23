@@ -1254,11 +1254,13 @@ class _UnitRegistry:
             self.add_enabled_units(init)
             self.add_enabled_equivalencies(equivalencies)
             self.add_enabled_aliases(aliases)
+        self._parsed_units = {}
 
     def _reset_units(self) -> None:
         self._all_units = set()
         self._non_prefix_units = set()
         self._registry = {}
+        self._parsed_units = {}
         self._by_physical_type = {}
 
     def _reset_equivalencies(self) -> None:
@@ -1266,6 +1268,7 @@ class _UnitRegistry:
 
     def _reset_aliases(self) -> None:
         self._aliases = {}
+        self._parsed_units = {}
 
     @property
     def registry(self) -> dict[str, UnitBase]:
@@ -2044,6 +2047,18 @@ class _UnitMetaClass(type):
                 # Return the NULL unit
                 return dimensionless_unscaled
 
+            # For plain Unit(str) call, check if we saw this string before.
+            # Note that cache has to be on the current unit registry, since
+            # parsing depends on what units and aliases are defined.
+            if format is None and parse_strict == "raise":
+                _parsed_units = get_current_unit_registry()._parsed_units
+                if (unit := _parsed_units.get(s)) is not None:
+                    return unit
+
+            else:
+                # Signal that we do not want to cache the unit below.
+                _parsed_units = None
+
             from .format import Generic, get_format
 
             try:
@@ -2055,54 +2070,57 @@ class _UnitMetaClass(type):
                 raise err
 
             try:
-                return f._validate_unit(s)  # Try a shortcut
+                unit = f._validate_unit(s)  # Try a shortcut
             except (AttributeError, KeyError):
                 # No `f._validate_unit()` (AttributeError)
                 # or `s` was a composite unit (KeyError).
-                pass
-
-            try:
-                with (
-                    _WARNING_LOCK,
-                    warnings.catch_warnings(
-                        action=_WARNING_ACTIONS[parse_strict],
-                        category=UnitParserWarning,
-                    ),
-                ):
-                    return f.parse(s)
-            except NotImplementedError:
-                raise
-            except UnitParserWarning as err:
-                new_err = ValueError(err)
-                new_err.add_note(
-                    "If you cannot change the unit string then try specifying the "
-                    "'parse_strict' argument."
-                )
-                raise new_err from err
-            except KeyError as err:
-                if parse_strict in _WARNING_ACTIONS:
+                try:
+                    with (
+                        _WARNING_LOCK,
+                        warnings.catch_warnings(
+                            action=_WARNING_ACTIONS[parse_strict],
+                            category=UnitParserWarning,
+                        ),
+                    ):
+                        unit = f.parse(s)
+                except NotImplementedError:
                     raise
-                raise ValueError(
-                    "'parse_strict' must be 'warn', 'raise' or 'silent'"
-                ) from None
-            except Exception as e:
-                if parse_strict != "silent":
-                    # Deliberately not issubclass here. Subclasses
-                    # should use their name.
-                    format_clause = "" if f is Generic else f.name + " "
-                    msg = (
-                        f"'{s}' did not parse as {format_clause}unit: {str(e)} "
-                        "If this is meant to be a custom unit, "
-                        "define it with 'u.def_unit'. To have it "
-                        "recognized inside a file reader or other code, "
-                        "enable it with 'u.add_enabled_units'. "
-                        "For details, see "
-                        "https://docs.astropy.org/en/latest/units/combining_and_defining.html"
+                except UnitParserWarning as err:
+                    new_err = ValueError(err)
+                    new_err.add_note(
+                        "If you cannot change the unit string then try "
+                        "specifying the 'parse_strict' argument."
                     )
-                    if parse_strict == "raise":
-                        raise ValueError(msg)
-                    warnings.warn(msg, UnitsWarning)
-                return UnrecognizedUnit(s)
+                    raise new_err from err
+                except KeyError as err:
+                    if parse_strict in _WARNING_ACTIONS:
+                        raise
+                    raise ValueError(
+                        "'parse_strict' must be 'warn', 'raise' or 'silent'"
+                    ) from None
+                except Exception as e:
+                    if parse_strict != "silent":
+                        # Deliberately not issubclass here. Subclasses
+                        # should use their name.
+                        format_clause = "" if f is Generic else f.name + " "
+                        msg = (
+                            f"'{s}' did not parse as {format_clause}unit: {e} "
+                            "If this is meant to be a custom unit, "
+                            "define it with 'u.def_unit'. To have it "
+                            "recognized inside a file reader or other code, "
+                            "enable it with 'u.add_enabled_units'. "
+                            "For details, see "
+                            "https://docs.astropy.org/en/latest/units/combining_and_defining.html"
+                        )
+                        if parse_strict == "raise":
+                            raise ValueError(msg)
+                        warnings.warn(msg, UnitsWarning)
+                    return UnrecognizedUnit(s)
+
+            if _parsed_units is not None:
+                _parsed_units[s] = unit
+
+            return unit
 
         if isinstance(s, bytes):
             # Recurse.  We do it here so we do not slow down the str case.
