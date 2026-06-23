@@ -100,6 +100,8 @@ import_astropy_wcs(void) {
     return -1;
   }
 
+  status = 0;
+
  exit:
   Py_XDECREF(wcs_module);
   Py_XDECREF(c_api);

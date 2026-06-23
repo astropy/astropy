@@ -1,0 +1,6 @@
+Fixed two issues in the public ``astropy.wcs`` C API header
+(``astropy_wcs_api.h``): the ``pipeline_init`` function-pointer macro declared
+four parameters instead of the five the underlying function takes, and
+``import_astropy_wcs`` returned a failure code even on success.  The
+``pipeline_init`` signature now matches the function, and ``import_astropy_wcs``
+returns zero on success so downstream extensions can check its return value.
