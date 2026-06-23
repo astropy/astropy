@@ -19,42 +19,32 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcslib.h,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
+  $Id: wcslimits.h,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *=============================================================================
 *
 * WCSLIB 8.9 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
-* Summary of wcslib.h
-* -------------------
-* This header file is provided purely for convenience.  Use it to include all
-* of the separate WCSLIB headers.
+*
+* Summary of wcslimits.h
+* ----------------------
+* Declaration of global variables that set limits for arrays used by WCSLIB.
+* The external variables are defined in wcs.c.
 *
 *===========================================================================*/
 
-#ifndef WCSLIB_WCSLIB
-#define WCSLIB_WCSLIB
+#ifndef WCSLIB_WCSLIMITS
+#define WCSLIB_WCSLIMITS
 
-#include "cel.h"
-#include "dis.h"
-#include "fitshdr.h"
-#include "lin.h"
-#include "log.h"
-#include "prj.h"
-#include "spc.h"
-#include "sph.h"
-#include "spx.h"
-#include "tab.h"
-#include "wcs.h"
-#include "wcserr.h"
-#include "wcsfix.h"
-#include "wcshdr.h"
-#include "wcsmath.h"
-#include "wcsprintf.h"
-#include "wcstrig.h"
-#include "wcsunits.h"
-#include "wcsutil.h"
-#include "wtbarr.h"
+// Maximum number of image axes, NAXIS.  Limited to 31 by cylfix().
+#define NAXMAX 31
 
-#endif // WCSLIB_WCSLIB
+// Maximum number of PVi_ma and PSi_ma keywords.  May be changed by wcsnpv().
+extern int NPVMAX;
+extern int NPSMAX;
+
+// Maximum number of DPja or DQia keywords.  May be changed by disndp().
+extern int NDPMAX;
+
+#endif // WCSLIB_WCSLIMITS

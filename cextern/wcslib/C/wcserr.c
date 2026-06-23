@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -20,7 +20,7 @@
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   Module author: Michael Droettboom
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcserr.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcserr.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -30,6 +30,23 @@
 
 #include "wcserr.h"
 #include "wcsprintf.h"
+
+// Serialise access in threaded execution via a single process-wide spinlock
+// using stdatomic's mandatory atomic_flag, native to C11.
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && \
+    !defined(__STDC_NO_ATOMICS__)
+#  include <stdatomic.h>
+   static atomic_flag wcserr_spinlock = ATOMIC_FLAG_INIT;
+#  define WCSERR_LOCK() \
+     while (atomic_flag_test_and_set_explicit(&wcserr_spinlock, \
+                                              memory_order_acquire)) {}
+#  define WCSERR_UNLOCK() \
+     atomic_flag_clear_explicit(&wcserr_spinlock, memory_order_release)
+#else
+// Default to no-op for pre-C11 compilers, thread conflicts remain unhandled.
+#  define WCSERR_LOCK()   ((void)0)
+#  define WCSERR_UNLOCK() ((void)0)
+#endif
 
 static int wcserr_enabled = 0;
 
@@ -52,13 +69,13 @@ int wcserr_size(const struct wcserr *err, int sizes[2])
   }
 
   // Base size, in bytes.
-  sizes[0] = sizeof(struct wcserr);
+  sizes[0] = (int)sizeof(struct wcserr);
 
   // Total size of allocated memory, in bytes.
   sizes[1] = 0;
 
   if (err->msg) {
-    sizes[1] += strlen(err->msg) + 1;
+    sizes[1] += (int)(strlen(err->msg) + 1);
   }
 
   return 0;
@@ -101,13 +118,15 @@ int wcserr_prt(const struct wcserr *err, const char *prefix)
 int wcserr_clear(struct wcserr **errp)
 
 {
-  if (*errp) {
+  WCSERR_LOCK();
+  if (errp && *errp) {
     if ((*errp)->msg) {
       free((*errp)->msg);
     }
     free(*errp);
     *errp = 0x0;
   }
+  WCSERR_UNLOCK();
 
   return 0;
 }
@@ -124,16 +143,14 @@ int wcserr_set(
   ...)
 
 {
-  int  msglen;
-  struct wcserr *err;
-  va_list argp;
-
   if (!wcserr_enabled) return status;
 
   if (errp == 0x0) {
     return status;
   }
-  err = *errp;
+
+  WCSERR_LOCK();
+  struct wcserr *err = *errp;
 
   if (status) {
     if (err == 0x0) {
@@ -141,7 +158,13 @@ int wcserr_set(
     }
 
     if (err == 0x0) {
+      WCSERR_UNLOCK();
       return status;
+    }
+
+    // Free any previous message buffer to avoid leaking it.
+    if (err->msg) {
+      free(err->msg);
     }
 
     err->status   = status;
@@ -151,12 +174,19 @@ int wcserr_set(
     err->msg      = 0x0;
 
     // Determine the required message buffer size.
+    va_list argp;
     va_start(argp, format);
-    msglen = vsnprintf(0x0, 0, format, argp) + 1;
+    int msglen = vsnprintf(0x0, 0, format, argp) + 1;
     va_end(argp);
 
     if (msglen <= 0 || (err->msg = malloc(msglen)) == 0x0) {
-      wcserr_clear(errp);
+      // Inline wcserr_clear to avoid reacquiring the lock.
+      if (err->msg) {
+        free(err->msg);
+      }
+      free(err);
+      *errp = 0x0;
+      WCSERR_UNLOCK();
       return status;
     }
 
@@ -166,10 +196,16 @@ int wcserr_set(
     va_end(argp);
 
     if (msglen < 0) {
-      wcserr_clear(errp);
+      // Inline wcserr_clear to avoid reacquiring the lock.
+      if (err->msg) {
+        free(err->msg);
+      }
+      free(err);
+      *errp = 0x0;
     }
   }
 
+  WCSERR_UNLOCK();
   return status;
 }
 
@@ -178,8 +214,6 @@ int wcserr_set(
 int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
 
 {
-  size_t msglen;
-
   if (src == 0x0) {
     if (dst) {
       memset(dst, 0, sizeof(struct wcserr));
@@ -187,16 +221,20 @@ int wcserr_copy(const struct wcserr *src, struct wcserr *dst)
     return 0;
   }
 
+  WCSERR_LOCK();
+  int status = src->status;
+
   if (dst) {
     memcpy(dst, src, sizeof(struct wcserr));
 
     if (src->msg) {
-      msglen = strlen(src->msg) + 1;
+      size_t msglen = strlen(src->msg) + 1;
       if ((dst->msg = malloc(msglen))) {
-        strcpy(dst->msg, src->msg);
+        strncpy(dst->msg, src->msg, msglen);
       }
     }
   }
+  WCSERR_UNLOCK();
 
-  return src->status;
+  return status;
 }

@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsprintf.c,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcsprintf.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *===========================================================================*/
 
 #include <stdarg.h>
@@ -28,10 +28,11 @@
 
 #include "wcsprintf.h"
 
-static FILE  *wcsprintf_file = 0x0;
-static char  *wcsprintf_buff = 0x0;
-static char  *wcsprintf_bufp = 0x0;
-static size_t wcsprintf_size = 0;
+// WCSLIB_TLS, the thread-local storage (TLS) specifier, defined by configure.
+static WCSLIB_TLS FILE  *wcsprintf_file = 0x0;
+static WCSLIB_TLS char  *wcsprintf_buff = 0x0;
+static WCSLIB_TLS char  *wcsprintf_bufp = 0x0;
+static WCSLIB_TLS size_t wcsprintf_size = 0;
 
 //----------------------------------------------------------------------------
 
@@ -82,39 +83,38 @@ const char *wcsprintf_buf(void)
 int wcsprintf(const char *format, ...)
 
 {
-  char *realloc_buff;
-  int  nbytes;
-  size_t  used;
-  va_list arg_list;
-
   if (wcsprintf_buff == 0x0 && wcsprintf_file == 0x0) {
     // Send output to stdout if wcsprintf_set() hasn't been called.
     wcsprintf_file = stdout;
   }
 
+  va_list arg_list;
   va_start(arg_list, format);
 
+  int nbytes;
   if (wcsprintf_file) {
     // Output to file.
     nbytes = vfprintf(wcsprintf_file, format, arg_list);
 
   } else {
     // Output to buffer.
-    used = wcsprintf_bufp - wcsprintf_buff;
+    size_t used = wcsprintf_bufp - wcsprintf_buff;
     if (wcsprintf_size - used < 128) {
       // Expand the buffer.
       wcsprintf_size += 1024;
-      realloc_buff = realloc(wcsprintf_buff, wcsprintf_size);
+      char *realloc_buff = realloc(wcsprintf_buff, wcsprintf_size);
       if (realloc_buff == NULL) {
         free(wcsprintf_buff);
         wcsprintf_buff = 0x0;
+        va_end(arg_list);
         return 1;
       }
       wcsprintf_buff = realloc_buff;
       wcsprintf_bufp = wcsprintf_buff + used;
     }
 
-    nbytes = vsprintf(wcsprintf_bufp, format, arg_list);
+    size_t size = wcsprintf_size - used;
+    nbytes = vsnprintf(wcsprintf_bufp, size, format, arg_list);
     wcsprintf_bufp += nbytes;
   }
 
@@ -128,39 +128,38 @@ int wcsprintf(const char *format, ...)
 int wcsfprintf(FILE *stream, const char *format, ...)
 
 {
-  char *realloc_buff;
-  int  nbytes;
-  size_t  used;
-  va_list arg_list;
-
   if (wcsprintf_buff == 0x0 && wcsprintf_file == 0x0) {
     // Send output to stream if wcsprintf_set() hasn't been called.
     wcsprintf_file = stream;
   }
 
+  va_list arg_list;
   va_start(arg_list, format);
 
+  int nbytes;
   if (wcsprintf_file) {
     // Output to file.
     nbytes = vfprintf(wcsprintf_file, format, arg_list);
 
   } else {
     // Output to buffer.
-    used = wcsprintf_bufp - wcsprintf_buff;
+    size_t used = wcsprintf_bufp - wcsprintf_buff;
     if (wcsprintf_size - used < 128) {
       // Expand the buffer.
       wcsprintf_size += 1024;
-      realloc_buff = realloc(wcsprintf_buff, wcsprintf_size);
+      char *realloc_buff = realloc(wcsprintf_buff, wcsprintf_size);
       if (realloc_buff == NULL) {
         free(wcsprintf_buff);
         wcsprintf_buff = 0x0;
+        va_end(arg_list);
         return 1;
       }
       wcsprintf_buff = realloc_buff;
       wcsprintf_bufp = wcsprintf_buff + used;
     }
 
-    nbytes = vsprintf(wcsprintf_bufp, format, arg_list);
+    size_t size = wcsprintf_size - used;
+    nbytes = vsnprintf(wcsprintf_bufp, size, format, arg_list);
     wcsprintf_bufp += nbytes;
   }
 
