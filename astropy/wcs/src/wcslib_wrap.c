@@ -1670,13 +1670,22 @@ Wcsprm_p2s(
    */
   double delta = (origin == 1) ? 0.0 : (double)(1 - origin);
 
-  /* Coordinates per scratch block, sized so the tile stays L1-resident (also
-   * friendly to threads sharing a cache).  Throughput is flat over a wide
-   * range, so the exact value is not critical. */
+  /* Size the scratch tile at NPY_BUFSIZE bytes, numpy's default buffer size,
+   * so it stays L1-resident (also friendly to threads sharing a cache).  We
+   * pick the number of coordinates per block so that block * nelem doubles fit
+   * in that budget, which keeps the scratch footprint independent of nelem.
+   * Throughput is flat over a wide range, so the exact value is not critical. */
+  const npy_intp block_doubles = NPY_BUFSIZE / (npy_intp)sizeof(double);
   npy_intp block = ncoord;
   double* pixscratch = NULL;
   if (delta != 0.0 && ncoord > 0) {
-    block = (ncoord < 1024) ? ncoord : 1024;
+    block = block_doubles / nelem;
+    if (block < 1) {
+      block = 1;
+    }
+    if (block > ncoord) {
+      block = ncoord;
+    }
     pixscratch = (double*)malloc((size_t)block * nelem * sizeof(double));
     if (pixscratch == NULL) {
       PyErr_NoMemory();
