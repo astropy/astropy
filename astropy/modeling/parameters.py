@@ -241,6 +241,7 @@ class Parameter:
         # use this to convert to and from the public unit defined for the
         # parameter.
         self._internal_unit = None
+        self._internal_value = None
         if not self._model_required:
             if self._default is not None:
                 self.value = self._default
@@ -779,6 +780,12 @@ def _wrap_ufunc(ufunc):
             orig_unit is the value after the ufunc has been applied
             it is assumed ufunc(raw_unit) == orig_unit
         """
+        # Make sure value is ufunc compatible
+        #   parameters are expected to be real floats
+        # If the value is `None` this will result in a NaN
+        if not isinstance(value, Quantity):
+            value = np.float64(value)
+
         if orig_unit is not None:
             return ufunc(value) * orig_unit
         elif raw_unit is not None:
