@@ -1476,7 +1476,22 @@ _INT_SPEC = re.compile(r"([+\- ]?)(0?)(\d*)d")
 
 
 def _day_of_year(year, month, day):
-    """Day of year for proleptic Gregorian dates given as integer arrays."""
+    """Day of year for proleptic Gregorian dates given as integer arrays.
+
+    Parameters
+    ----------
+    year : array_like of int
+        Full proleptic Gregorian year (e.g. 2000).
+    month : array_like of int
+        Month number, 1–12.
+    day : array_like of int
+        Day of month, 1–31.
+
+    Returns
+    -------
+    yday : ndarray of int
+        Day of year, 1–366.
+    """
     leap = ((year % 4 == 0) & (year % 100 != 0)) | (year % 400 == 0)
     return _DAYS_BEFORE_MONTH[month - 1] + day + ((month > 2) & leap)
 
@@ -1486,6 +1501,19 @@ def _write_decimal(out, values, width, signed):
 
     ``out`` is a view into a code-point buffer with ``width`` columns along its
     last axis. With ``signed`` the first column holds an explicit ``+``/``-``.
+
+    Parameters
+    ----------
+    out : ndarray of uint32, shape (..., width)
+        Output buffer slice to write into. Modified in place.
+    values : array_like of int
+        Integer values to format. Must be non-negative when ``signed`` is
+        ``False``; negative values are supported when ``signed`` is ``True``.
+    width : int
+        Number of character columns to write. Must be wide enough to hold the
+        zero-padded digits (and sign column when ``signed`` is ``True``).
+    signed : bool
+        If ``True``, overwrite the first column with ``'+'`` or ``'-'``.
     """
     digits = np.asarray(values, dtype=np.int64)
     if signed:
@@ -1764,6 +1792,24 @@ class TimeString(TimeUnique):
         be built as a fixed-width column (e.g. a bare ``d`` whose values do not
         all have the same number of digits), signalling that the caller should
         fall back to formatting element by element.
+
+        Parameters
+        ----------
+        spec : str
+            The format spec portion of a ``{name:spec}`` replacement field,
+            e.g. ``"d"``, ``"02d"``, or ``"+06d"``.
+        values : ndarray of int
+            The integer values that will be formatted under this spec.
+
+        Returns
+        -------
+        width : int or None
+            Fixed character width of the field, or ``None`` if the field
+            cannot be rendered at a uniform width by this function.
+        signed : bool or None
+            ``True`` if the first character is an explicit ``'+'``/``'-'``
+            sign, ``False`` if the field is unsigned, or ``None`` when
+            ``width`` is ``None``.
         """
         match = _INT_SPEC.fullmatch(spec)
         if match is None:
@@ -1790,6 +1836,20 @@ class TimeString(TimeUnique):
 
         Returns ``None`` if ``str_fmt`` has a field we cannot lay out at a fixed
         width, leaving the caller to format the times one element at a time.
+
+        Parameters
+        ----------
+        str_fmt : str
+            Output template string containing ``{name:spec}`` replacement
+            fields, e.g. ``"{year:d}-{mon:02d}-{day:02d}"``.
+
+        Returns
+        -------
+        out : ndarray of str or None
+            Array of formatted time strings with the same shape as
+            ``self.jd1``, or ``None`` if any field in ``str_fmt`` cannot be
+            rendered at a fixed width (signalling the caller to fall back to
+            per-element formatting).
         """
         scale = (self.scale.upper().encode("ascii"),)
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision, self.jd1, self.jd2)
