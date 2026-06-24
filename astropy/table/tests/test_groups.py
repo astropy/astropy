@@ -760,30 +760,32 @@ def test_group_stable_sort(add_index, a):
         assert np.all(grp["b"] == np.sort(grp["b"]))
 
 
-def test_get_group(T1):
+def test_get_group_single_key(T1):
     """Test getting a group by its key using get_group()."""
-    t = QTable(T1)
-
     # Single column group
-    tg = t.group_by("a")
+    tg = T1.group_by("a")
     g = tg.groups.get_group(1)
-    assert np.all(g["a"] == 1)
-    assert len(g) == 3
+    assert g.pformat() == [
+        " a   b   c   d   q ",
+        "                 m ",
+        "--- --- --- --- ---",
+        "  1   b 3.0   5 5.0",
+        "  1   a 2.0   6 6.0",
+        "  1   a 1.0   7 7.0",
+    ]
 
-    # Single column group using dict
-    g2 = tg.groups.get_group({"a": 1})
-    assert np.all(g["b"] == g2["b"])
 
+def test_get_group_multi_key_and_errors(T1):
     # Two column group
-    tg = t.group_by(["a", "b"])
+    tg = T1.group_by(["a", "b"])
     g = tg.groups.get_group((2, "b"))
-    assert np.all(g["a"] == 2)
-    assert np.all(g["b"] == "b")
-    assert len(g) == 2
-
-    # Two column group using dict
-    g2 = tg.groups.get_group({"a": 2, "b": "b"})
-    assert np.all(g["c"] == g2["c"])
+    assert g.pformat() == [
+        " a   b   c   d   q ",
+        "                 m ",
+        "--- --- --- --- ---",
+        "  2   b 5.0   1 1.0",
+        "  2   b 6.0   2 2.0",
+    ]
 
     # Error cases
     with pytest.raises(KeyError):
@@ -793,7 +795,7 @@ def test_get_group(T1):
         tg.groups.get_group(2)  # Missing part of key
 
     with pytest.raises(ValueError):
-        tg.groups.get_group({"a": 2, "c": 3})  # Invalid column in dict
+        tg.groups.get_group((3, "b", 4))  # Wrong number of elements in key
 
 
 def test_get_group_column(T1):
@@ -801,5 +803,10 @@ def test_get_group_column(T1):
     c = T1["c"]
     cg = c.group_by(T1["a"])
     g = cg.groups.get_group(1)
-    assert len(g) == 3
-    assert np.all(g == [3.0, 2.0, 1.0])
+    assert g.pformat() == [
+        " c ",
+        "---",
+        "3.0",
+        "2.0",
+        "1.0",
+    ]
