@@ -114,6 +114,7 @@ Examples creating a WCS programmatically
    Example of Cube WCS <example_cube_wcs.rst>
    Example of a Planetary WCS <creating_planetary_wcs.rst>
    Loading From a FITS File <loading_from_fits.rst>
+   Creating a celestial WCS from a center and field of view <quick_init_celestial.rst>
 
 WCS Tools
 =========

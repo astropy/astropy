@@ -13,6 +13,7 @@ the 8.0 release.
 In particular, this release includes:
 
 * :ref:`whatsnew-8.1-time-string-formats`
+* :ref:`whatsnew-8.1-wcs-init`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -42,6 +43,36 @@ Converting a :class:`~astropy.time.Time` to one of the string-based formats
 array operations instead of a Python loop over the individual times. For large
 arrays this is more than ten times faster, which speeds up printing a ``Time``
 and writing tables that contain a time column.
+
+.. _whatsnew-8.1-wcs-init:
+
+New method to initialize a WCS without a FITS file
+==================================================
+
+A new method :func:`~astropy.wcs.WCS.quick_init_celestial` now allows to instantiate a
+WCS instance with a center coordinate and a field of view:
+
+>>> import numpy as np
+>>> import astropy.units as u
+>>> from astropy.coordinates import Angle, SkyCoord
+>>> from astropy.wcs.utils import quick_init_celestial_wcs
+>>> # Initialize a celestial WCS instance without a FITS file
+>>> center = SkyCoord(266.4, -29, unit="deg")
+>>> fov = Angle([0.4, 0.2], unit="deg")
+>>> wcs = quick_init_celestial_wcs(center, fov, pixel_scale=[-0.005, 0.005] * u.deg)
+
+Alternatively, for finer grain control, one can also instantiate with an image shape
+rather than with the desired field of view:
+
+>>> import numpy as np
+>>> import astropy.units as u
+>>> from astropy.coordinates import Angle, SkyCoord
+>>> from astropy.wcs.utils import quick_init_celestial_wcs
+>>> # Initialize a celestial WCS instance without a FITS file
+>>> center = SkyCoord(266.4, -29, unit="deg")
+>>> image_shape = [80, 40]
+>>> wcs = quick_init_celestial_wcs(center, fov, pixel_scale=[-0.005, 0.005] * u.deg)
+
 
 Contributors to the 8.1 release
 ===============================

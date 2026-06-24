@@ -7,6 +7,7 @@ import numpy as np
 
 import astropy.units as u
 from astropy.coordinates import (
+    ICRS,
     ITRS,
     BaseBodycentricRepresentation,
     BaseCoordinateFrame,
@@ -406,6 +407,104 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
     raise ValueError(
         "Could not determine WCS corresponding to the specified coordinate frame."
     )
+
+
+def quick_init_celestial_wcs(
+    reference_position,
+    view_size,
+    *,
+    pixel_scale=None,
+    reference_pixel=None,
+    frame=None,
+    projection="AIT",
+    rotation=None,
+):
+    """Create a sky WCS from a reference position and a field of view.
+
+    Parameters
+    ----------
+    reference_position : `~astropy.coordinates.SkyCoord`
+        The coordinates of the center of the WCS.
+    view_size : `~astropy.coordinates.Angle` of length 2 or Sequence[int, int]
+        The size of the view. If a `~astropy.coordinates.Angle` is provided, then this
+        is the field of view in physical units. If a sequence of two integers is given,
+        then this is the image size in pixels.
+    pixel_scale : `~astropy.coordinates.Angle` of length 2, optional
+        The pixel scale along x and y axis, by default [-1, 1] arcmin/pixel
+    reference_pixel : Sequence[int, int], optional
+        Reference pixel for the projection. It is zero-indexed (Python convention) and
+        one pixel will be added to fit with the WCS convention. If ``None``, it will be
+        set to the center of the view.
+    frame : `~astropy.coordinates.BaseCoordinateFrame`, optional
+        An instance of `~astropy.coordinates.BaseCoordinateFrame` or subclass
+        instance. Defaults to `~astropy.coordinates.ICRS`.
+    projection : str, optional
+        Any valid WCS projection code, by default "AIT"
+    rotation : `~astropy.coordinates.Angle`, optional
+        The angle of rotation. It will be converted to a ``PC_ij`` matrix. By
+        default no rotation.
+
+    Returns
+    -------
+    `~astropy.wcs.WCS`
+
+    Examples
+    --------
+    >>> from astropy.wcs.utils import quick_init_celestial_wcs
+    >>> from astropy.coordinates import Angle, SkyCoord
+    >>> center = SkyCoord(266.4, -29, unit="deg")
+    >>> fov = Angle([8, 4], unit="deg")
+    >>> wcs = quick_init_celestial_wcs(center, fov,
+    ...                                pixel_scale=Angle([-0.1, 0.1], unit="deg"))
+    >>> print(wcs)
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 2
+    CTYPE : 'RA---AIT' 'DEC--AIT'
+    CUNIT : '' ''
+    CRVAL : 266.4 -29.0
+    CRPIX : 40.5 20.5
+    PC1_1 PC1_2  : 1.0 0.0
+    PC2_1 PC2_2  : 0.0 1.0
+    CDELT : -0.1 0.1
+    NAXIS : 40  80
+    """
+    if frame is None:
+        frame = ICRS()
+    wcs = celestial_frame_to_wcs(frame=frame, projection=projection)
+
+    if pixel_scale is None:
+        arcmin_in_deg = 1 / 60.0
+        wcs.wcs.cdelt = [-arcmin_in_deg, arcmin_in_deg]
+    else:
+        wcs.wcs.cdelt[0] = float(pixel_scale[0].to_value("deg"))
+        wcs.wcs.cdelt[1] = float(pixel_scale[1].to_value("deg"))
+
+    coo_for_frame = reference_position.transform_to(frame)
+    wcs.wcs.crval = [coo_for_frame.data.lon.deg, coo_for_frame.data.lat.deg]
+
+    if hasattr(view_size, "to_value"):  # field of view as an Angle or quantity
+        wcs.array_shape = [
+            abs(round(angle.to_value("deg") / cdelt))
+            for angle, cdelt in zip(view_size, wcs.wcs.cdelt)
+        ]
+    else:  # image size
+        wcs.array_shape = view_size
+
+    if reference_pixel:
+        wcs.wcs.crpix = [reference_pixel[0] + 1, reference_pixel[1] + 1]
+    else:
+        wcs.wcs.crpix = [wcs.array_shape[0] / 2.0 + 0.5, wcs.array_shape[1] / 2.0 + 0.5]
+
+    if rotation is not None:
+        theta = rotation.radian
+        ratio = wcs.wcs.cdelt[1] / wcs.wcs.cdelt[0]  # case of rectangular pixels
+        wcs.wcs.pc = [
+            [np.cos(theta), -ratio * np.sin(theta)],
+            [np.sin(theta) / ratio, np.cos(theta)],
+        ]
+
+    return wcs
 
 
 def proj_plane_pixel_scales(wcs):

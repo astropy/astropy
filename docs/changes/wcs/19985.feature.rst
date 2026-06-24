@@ -1,0 +1,2 @@
+Added ``quick_init_celestial`` method to ``WCS`` to instantiate a sky WCS from a center
+position and a field of view.
