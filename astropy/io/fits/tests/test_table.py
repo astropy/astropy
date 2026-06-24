@@ -405,6 +405,64 @@ class TestTableFunctions(FitsTestCase):
 
         a.close()
 
+    @pytest.mark.parametrize("mode", ["readonly", "denywrite", "update"])
+    def test_writeto_after_open_modes(self, tmp_path, mode):
+        """Writing a table to a new file must not fail in any open mode, even
+        though scaled (TSCALn/TZEROn), logical (``'L'``) and bit (``'X'``)
+        columns have an on-disk form that differs from their in-memory values.
+        A ``mode='denywrite'`` buffer is read-only, so nothing could have been
+        modified and ``_scale_back`` does not write it back -- this previously
+        raised "assignment destination is read-only".
+        """
+        cols = [
+            fits.Column("plain", "J", array=np.array([10, 20, 30])),
+            fits.Column(
+                "scaled", "E", array=np.array([1.0, 2.0, 3.0]), bscale=2.0, bzero=5.0
+            ),
+            fits.Column("bits", "2X", array=np.array([[1, 0], [0, 1], [1, 1]])),
+            fits.Column("flag", "L", array=np.array([True, False, True])),
+        ]
+        in_path = tmp_path / "in.fits"
+        fits.BinTableHDU.from_columns(cols).writeto(in_path)
+
+        out_path = tmp_path / "out.fits"
+        with fits.open(in_path, mode=mode) as hdul:
+            for name in hdul[1].columns.names:
+                hdul[1].data[name]
+            hdul.writeto(out_path)
+
+        with fits.open(out_path) as hdul:
+            data = hdul[1].data
+            assert data["plain"].tolist() == [10, 20, 30]
+            np.testing.assert_allclose(data["scaled"], [1.0, 2.0, 3.0])
+            assert data["bits"].tolist() == [[True, False], [False, True], [True, True]]
+            assert data["flag"].tolist() == [True, False, True]
+
+    @pytest.mark.parametrize(
+        "fmt, array, kwargs",
+        [
+            ("J", [10, 20, 30], {}),
+            ("E", [1.0, 2.0, 3.0], {"bscale": 2.0, "bzero": 5.0}),
+            ("2X", [[1, 0], [0, 1], [1, 1]], {}),
+            ("L", [True, False, True], {}),
+        ],
+        ids=["int", "scaled", "bits", "logical"],
+    )
+    def test_denywrite_columns_are_readonly(self, tmp_path, fmt, array, kwargs):
+        """A table opened with ``mode='denywrite'`` exposes every column as a
+        read-only array, including scaled / logical / bit columns whose
+        in-memory form is a freshly converted array rather than a view of the
+        raw buffer. An in-place edit therefore raises instead of being silently
+        dropped on write (consistent with plain columns and image data).
+        """
+        in_path = tmp_path / "in.fits"
+        col = fits.Column("c", fmt, array=np.array(array), **kwargs)
+        fits.BinTableHDU.from_columns([col]).writeto(in_path)
+        with fits.open(in_path, mode="denywrite") as hdul:
+            data = hdul[1].data["c"]
+            with pytest.raises(ValueError, match="read-only"):
+                data[0] = data[0]
+
     def test_endianness(self):
         x = np.ndarray((1,), dtype=object)
         channelsIn = np.array([3], dtype="uint8")

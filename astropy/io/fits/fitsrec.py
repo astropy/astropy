@@ -780,6 +780,15 @@ class FITS_rec(np.recarray):
                 # fields
                 converted = self._convert_other(column, field, recformat)
 
+            # If the underlying data is read-only (e.g. opened with
+            # mode='denywrite'), hand out a read-only array so that editing a
+            # scaled/logical/bit column raises rather than being silently
+            # dropped on write -- matching plain columns and image data, which
+            # are direct views of the read-only buffer.
+            if converted is not field and not field.flags.writeable:
+                with suppress(ValueError):
+                    converted.flags.writeable = False
+
             # Note: Never assign values directly into the self._converted dict;
             # always go through self._cache_field; this way self._converted is
             # only used to store arrays that are not already direct views of
@@ -1264,6 +1273,12 @@ class FITS_rec(np.recarray):
         the heap.  Currently this is only used as an optimization for
         CompImageHDU that does its own handling of the heap.
         """
+        # Read-only data (e.g. opened with mode='denywrite') cannot have been
+        # modified -- field() hands out read-only arrays -- so the raw bytes are
+        # already the correct on-disk form and must not (and cannot) be written
+        # back. We still walk the columns to recompute the heap size.
+        read_only = not self.flags.writeable
+
         # Running total for the new heap size
         heapsize = 0
 
@@ -1281,7 +1296,7 @@ class FITS_rec(np.recarray):
                 # an array of characters.
                 dtype = np.array([], dtype=recformat.dtype).dtype
 
-                if update_heap_pointers and name in self._converted:
+                if update_heap_pointers and name in self._converted and not read_only:
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     raw_field[:] = 0  # reset
@@ -1297,6 +1312,11 @@ class FITS_rec(np.recarray):
                 # Even if this VLA has not been read or updated, we need to
                 # include the size of its constituent arrays in the heap size
                 # total
+
+            # Read-only data was not modified and its buffer cannot be written,
+            # so skip all the column write-back below (heap size is done above).
+            if read_only:
+                continue
 
             if isinstance(recformat, _FormatX) and name in self._converted:
                 _wrapx(self._converted[name], raw_field, recformat.repeat)
