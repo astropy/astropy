@@ -1020,6 +1020,28 @@ class TestSubFormat:
         assert t._time._value_fast("{year:d}-{mon:02d}") is None
         assert np.all(t.isot == ["500-03-01T00:00:00.000", "2003-01-01T00:00:00.000"])
 
+    def test_string_value_trailing_literal(self):
+        """A template ending in literal text after the last field exercises the
+        trailing-literal branch of the vectorized builder."""
+        t = Time(
+            ["2001-01-02T00:00:00", "2004-02-29T00:00:00"], format="isot", scale="tt"
+        )
+        out = t._time._value_fast("{year:d}-{mon:02d}-{day:02d}Z")
+        assert_array_equal(out, ["2001-01-02Z", "2004-02-29Z"])
+
+    def test_string_value_unknown_field_falls_back(self):
+        """An unrecognized field name makes the fast path bail out."""
+        t = Time(["2001-01-01T00:00:00"], format="isot", scale="tt")
+        assert t._time._value_fast("{bogus:02d}") is None
+
+    def test_string_write_decimal_signed(self):
+        """The signed branch writes an explicit ``+``/``-`` in the first column."""
+        from astropy.time.formats import _write_decimal
+
+        buf = np.zeros((2, 6), dtype=np.uint32)
+        _write_decimal(buf, np.array([2003, -42]), 6, signed=True)
+        assert_array_equal(buf.view("U6").reshape(2), ["+02003", "-00042"])
+
     def test_string_field_width(self):
         """Integer specs that can/can't be built as a fixed-width column."""
         vals = np.array([2003, 2004])
