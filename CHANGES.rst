@@ -199,6 +199,12 @@ astropy.visualization
   symmetric extent about a midpoint, and the extent that contains both the image
   minimum and maximum can be automatically determined. [#18602]
 
+- `~astropy.visualization.wcsaxes.CoordinateHelper.set_format_unit` now accepts
+  an ``equivalencies`` keyword argument, allowing tick labels to be displayed in
+  units that are physically equivalent but dimensionally different from the
+  coordinate unit (e.g., converting a wavelength axis in nm to frequency in Hz
+  using ``u.spectral()``). [#16478]
+
 astropy.wcs
 ^^^^^^^^^^^
 
