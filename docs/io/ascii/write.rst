@@ -168,14 +168,16 @@ details.
   Define the complete list of output column names to write for the data table,
   overriding the existing column names.
 
-**include_names**: list of names to include in output
+**include_names**: list of names or 0-based integer indices to include in output
   From the list of column names found from the data table or the ``names``
-  parameter, select for output only columns within this list. If not supplied
-  then include all names.
+  parameter, select for output only columns within this list. If not
+  supplied then include all names. Entries may be column names (``str``)
+  or 0-based integer indices (negatives count from the end), and the two
+  may be mixed.
 
-**exclude_names**: list of names to exclude from output
-  Exclude these names from the list of output columns. This is applied *after*
-  the ``include_names`` filtering. If not specified then no columns are excluded.
+**exclude_names**: list of names or 0-based integer indices to exclude from output
+  Exclude these columns from the output. Applied *after* ``include_names``.
+  Accepts the same name/index mix as ``include_names``.
 
 **fill_values**: list of fill value specifiers
   This can be used to fill missing values in the table or replace values with special meaning.
@@ -219,11 +221,15 @@ details.
   number of characters. In the example above, ``fill_values=[(' nan',' N/A')]``
   would work.
 
-**fill_include_names**: list of column names, which are affected by ``fill_values``
-  If not supplied, then ``fill_values`` can affect all columns.
+**fill_include_names**: list of names or 0-based integer indices affected by ``fill_values``
+  Restrict ``fill_values`` to this list of columns. Accepts names or
+  integer indices (see :ref:`io_ascii_read_parameters` for details on
+  index semantics). If not supplied, ``fill_values`` can affect all
+  columns.
 
-**fill_exclude_names**: list of column names, which are not affected by ``fill_values``
-  If not supplied, then ``fill_values`` can affect all columns.
+**fill_exclude_names**: list of names or 0-based integer indices not affected by ``fill_values``
+  Like ``fill_include_names`` but inverted. If not supplied, no columns
+  are excluded.
 
 **fast_writer**: whether to use the fast Cython writer
   If this parameter is ``None`` (which it is by default), |write| will attempt

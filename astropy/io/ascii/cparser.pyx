@@ -365,12 +365,20 @@ cdef class CParser:
         else:
             self.names = self.header_names
 
-        # self.use_cols should only contain columns included in output
+        # self.use_cols should only contain columns included in output.
+        # Integer indices in include/exclude_names are resolved here
+        # (issue #7451).
         self.use_cols = set(self.names)
         if filter_names and self.include_names is not None:
-            self.use_cols.intersection_update(self.include_names)
+            include_names = core._expand_name_indices(
+                self.include_names, list(self.names), "include_names"
+            )
+            self.use_cols.intersection_update(include_names)
         if filter_names and self.exclude_names is not None:
-            self.use_cols.difference_update(self.exclude_names)
+            exclude_names = core._expand_name_indices(
+                self.exclude_names, list(self.names), "exclude_names"
+            )
+            self.use_cols.difference_update(exclude_names)
 
         self.width = <int>len(self.names)
 
@@ -407,10 +415,17 @@ cdef class CParser:
     cdef _set_fill_values(self):
         if self.fill_names is None:
             self.fill_names = set(self.names)
+            # Integer indices resolved against pre-filter names (issue #7451).
             if self.fill_include_names is not None:
-                self.fill_names.intersection_update(self.fill_include_names)
+                fill_include_names = core._expand_name_indices(
+                    self.fill_include_names, list(self.names), "fill_include_names"
+                )
+                self.fill_names.intersection_update(fill_include_names)
             if self.fill_exclude_names is not None:
-                self.fill_names.difference_update(self.fill_exclude_names)
+                fill_exclude_names = core._expand_name_indices(
+                    self.fill_exclude_names, list(self.names), "fill_exclude_names"
+                )
+                self.fill_names.difference_update(fill_exclude_names)
         self.fill_values, self.fill_empty = get_fill_values(self.fill_values)
 
     cdef _get_comments(self, tokenizer_t *t):
@@ -790,10 +805,17 @@ cdef class FastWriter:
         self.strip_whitespace = strip_whitespace
         use_names = set(table.colnames)
 
-        # Apply include_names before exclude_names
+        # Apply include_names before exclude_names. Integer indices in
+        # include/exclude_names resolved here (issue #7451).
         if include_names is not None:
+            include_names = core._expand_name_indices(
+                include_names, list(table.colnames), "include_names"
+            )
             use_names.intersection_update(include_names)
         if exclude_names is not None:
+            exclude_names = core._expand_name_indices(
+                exclude_names, list(table.colnames), "exclude_names"
+            )
             use_names.difference_update(exclude_names)
         # preserve column ordering via list
         self.use_names = [x for x in table.colnames if x in use_names]
@@ -813,10 +835,17 @@ cdef class FastWriter:
                 pass
 
         fill_names = set(self.use_names)
-        # Apply fill_include_names before fill_exclude_names
+        # Apply fill_include_names before fill_exclude_names; resolve any
+        # integer indices against the original column list (issue #7451).
         if fill_include_names is not None:
+            fill_include_names = core._expand_name_indices(
+                fill_include_names, list(table.colnames), "fill_include_names"
+            )
             fill_names.intersection_update(fill_include_names)
         if fill_exclude_names is not None:
+            fill_exclude_names = core._expand_name_indices(
+                fill_exclude_names, list(table.colnames), "fill_exclude_names"
+            )
             fill_names.difference_update(fill_exclude_names)
         # Preserve column ordering
         self.fill_cols = set([i for i, name in enumerate(self.use_names) if

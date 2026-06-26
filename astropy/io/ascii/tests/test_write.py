@@ -394,6 +394,35 @@ a b c
 1.00 w 3
 """,
     },
+    # Issue #7451: integer indices in fill_include_names / fill_exclude_names.
+    {
+        "kwargs": {"fill_values": ("1", "w"), "fill_include_names": [1]},
+        "out": """\
+a b c
+1 2 3
+1 w 3
+""",
+    },
+    {
+        "kwargs": {"fill_values": ("1", "w"), "fill_exclude_names": [0]},
+        "out": """\
+a b c
+1 2 3
+1 w 3
+""",
+    },
+    {
+        "kwargs": {
+            "fill_values": ("1", "w"),
+            "fill_include_names": [0, "b"],
+            "fill_exclude_names": [-1],
+        },
+        "out": """\
+a b c
+w 2 3
+w w 3
+""",
+    },
 ]
 
 test_def_masked_fill_value = [
@@ -785,6 +814,191 @@ def test_columns_names_with_formats(formats, issues_warning):
 
     if issues_warning:
         assert len(warn) == 1
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_include_exclude_names_by_index(fast_writer):
+    """include_names/exclude_names accept integer indices on write (#7451)."""
+    t = table.Table([[1, 2], [3, 4], [5, 6], [7, 8]], names=("A", "B", "C", "D"))
+
+    out = StringIO()
+    ascii.write(t, out, include_names=[0, 3], fast_writer=fast_writer)
+    assert out.getvalue().splitlines() == ["A D", "1 7", "2 8"]
+
+    out = StringIO()
+    ascii.write(t, out, exclude_names=[0, -1], fast_writer=fast_writer)
+    assert out.getvalue().splitlines() == ["B C", "3 5", "4 6"]
+
+    # Mixing names and indices, with include applied before exclude.
+    out = StringIO()
+    ascii.write(
+        t,
+        out,
+        include_names=[0, "B", 3],
+        exclude_names=[1],
+        fast_writer=fast_writer,
+    )
+    assert out.getvalue().splitlines() == ["A D", "1 7", "2 8"]
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_include_names_by_index_out_of_range(fast_writer):
+    """Out-of-range integer indices raise IndexError on write (#7451)."""
+    t = table.Table([[1, 2], [3, 4]], names=("A", "B"))
+    out = StringIO()
+    with pytest.raises(IndexError, match="include_names index 5"):
+        ascii.write(t, out, include_names=[5], fast_writer=fast_writer)
+    out = StringIO()
+    with pytest.raises(IndexError, match="exclude_names index -10"):
+        ascii.write(t, out, exclude_names=[-10], fast_writer=fast_writer)
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_names_by_index_with_rename(fast_writer):
+    """fill_*_names indices resolve against post-rename names on write (#7451)."""
+    t = table.Table([[1, 9], [2, 9], [3, 9]], names=("a", "b", "c"))
+    out = StringIO()
+    ascii.write(
+        t,
+        out,
+        names=["X", "Y", "Z"],
+        fill_values=("9", "MASK"),
+        fill_include_names=[0],  # post-rename: 'X'
+        fast_writer=fast_writer,
+    )
+    assert out.getvalue().splitlines() == ["X Y Z", "1 2 3", "MASK 9 9"]
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_include_names_bool_rejected(fast_writer):
+    """bool entries are rejected, not silently treated as 0/1 (#7451)."""
+    t = table.Table([[1, 2], [3, 4]], names=("A", "B"))
+    out = StringIO()
+    with pytest.raises(TypeError, match="include_names entries must be"):
+        ascii.write(t, out, include_names=[True], fast_writer=fast_writer)
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_include_names_numpy_bool_rejected(fast_writer):
+    """``numpy.bool_`` is rejected just like Python ``bool`` on write (#7451)."""
+    t = table.Table([[1, 2], [3, 4]], names=("A", "B"))
+    out = StringIO()
+    with pytest.raises(TypeError, match="include_names entries must be"):
+        ascii.write(t, out, include_names=[np.True_], fast_writer=fast_writer)
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_names_does_not_mutate_user_input(fast_writer):
+    """The user's fill_include_names list must not be mutated (#7451)."""
+    user_fill = [0]
+    t = table.Table([[1, 9], [2, 9]], names=("A", "B"))
+    out = StringIO()
+    ascii.write(
+        t,
+        out,
+        fill_values=("9", "MASK"),
+        fill_include_names=user_fill,
+        fast_writer=fast_writer,
+    )
+    assert user_fill == [0]
+
+
+def test_basic_writer_reuse_with_fill_index():
+    """Reusing a Basic writer across tables with different schemas (#7451).
+
+    Slow path only: ``FastBasic`` constructs a fresh ``CParser`` per call
+    and has no reusable state to corrupt.
+    """
+    writer = ascii.get_writer(
+        writer_cls=ascii.Basic,
+        fast_writer=False,
+        fill_values=("9", "MASK"),
+        fill_include_names=[0],
+    )
+    t1 = table.Table([[1, 9], [2, 9]], names=("A", "B"))
+    out1 = writer.write(t1)
+    assert writer.data.fill_include_names == [0]
+    assert out1 == ["A B", "1 2", "MASK 9"]
+    t2 = table.Table([[9, 8]], names=("Z",))
+    out2 = writer.write(t2)
+    assert writer.data.fill_include_names == [0]
+    assert out2 == ["Z", "MASK", "8"]
+
+
+def test_basic_writer_reuse_with_generator_fill_index():
+    """A generator passed as fill_include_names survives writer reuse (#7451).
+
+    Without materializing the user-supplied iterable, the second ``write()``
+    would see an exhausted generator and silently apply no fill at all.
+    """
+    writer = ascii.get_writer(
+        writer_cls=ascii.Basic,
+        fast_writer=False,
+        fill_values=("9", "MASK"),
+        fill_include_names=(i for i in [0]),
+    )
+    t1 = table.Table([[1, 9], [2, 9]], names=("A", "B"))
+    out1 = writer.write(t1)
+    assert out1 == ["A B", "1 2", "MASK 9"]
+    t2 = table.Table([[9, 8]], names=("Z",))
+    out2 = writer.write(t2)
+    assert out2 == ["Z", "MASK", "8"]
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_names_by_index_with_include_names(fast_writer):
+    """fill_*_names indices index the pre-filter column list on write (#7451).
+
+    Index 1 -> 'B' (kept) applies the fill; index 0 -> 'A' (excluded) is
+    a no-op.
+    """
+    t = table.Table([[1, 9], [2, 9], [3, 9], [4, 9]], names=("A", "B", "C", "D"))
+
+    out = StringIO()
+    ascii.write(
+        t,
+        out,
+        include_names=["B", "C", "D"],
+        fill_values=("9", "X"),
+        fill_include_names=[1],
+        fast_writer=fast_writer,
+    )
+    assert out.getvalue().splitlines() == ["B C D", "2 3 4", "X 9 9"]
+
+    out = StringIO()
+    ascii.write(
+        t,
+        out,
+        include_names=["B", "C", "D"],
+        fill_values=("9", "X"),
+        fill_include_names=[0],
+        fast_writer=fast_writer,
+    )
+    assert out.getvalue().splitlines() == ["B C D", "2 3 4", "9 9 9"]
+
+
+@pytest.mark.parametrize("fast_writer", [True, False])
+def test_write_fill_names_by_index_out_of_range(fast_writer):
+    """Out-of-range fill_*_names integer indices raise IndexError (#7451)."""
+    t = table.Table([[1, 2], [3, 4]], names=("A", "B"))
+    out = StringIO()
+    with pytest.raises(IndexError, match="fill_include_names index 5"):
+        ascii.write(
+            t,
+            out,
+            fill_values=("1", "w"),
+            fill_include_names=[5],
+            fast_writer=fast_writer,
+        )
+    out = StringIO()
+    with pytest.raises(IndexError, match="fill_exclude_names index -10"):
+        ascii.write(
+            t,
+            out,
+            fill_values=("1", "w"),
+            fill_exclude_names=[-10],
+            fast_writer=fast_writer,
+        )
 
 
 @pytest.mark.parametrize("fast_writer", [True, False])
