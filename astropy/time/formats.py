@@ -541,7 +541,7 @@ class TimeNumeric(TimeFormat):
         ):
             raise TypeError(
                 f"for {self.name} class, input should be doubles "
-                "(or a first item convertible to double), "
+                "or a first item convertible to double"
                 "and second values are only allowed for doubles."
             )
 
