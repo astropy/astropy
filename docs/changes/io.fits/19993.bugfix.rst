@@ -1,0 +1,4 @@
+Fixed ``fitsinfo`` crashing with an unhandled ``ModuleNotFoundError``
+instead of printing a clean error message when given an LZW (``.Z``)
+compressed FITS file and the optional ``uncompresspy`` package is not
+installed.
