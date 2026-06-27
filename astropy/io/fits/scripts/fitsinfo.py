@@ -48,7 +48,7 @@ def fitsinfo(filename):
     """
     try:
         fits.info(filename)
-    except OSError as e:
+    except (OSError, ModuleNotFoundError) as e:
         log.error(str(e))
 
 

@@ -3,6 +3,7 @@
 import pytest
 
 from astropy import __version__ as version
+from astropy.io import fits
 from astropy.io.fits.scripts import fitsinfo
 
 from .conftest import FitsTestCase
@@ -48,3 +49,17 @@ class TestFitsinfo(FitsTestCase):
         assert out[7].startswith(
             "  1                1 TableHDU        20   5R x 2C   [E10.4, I5]"
         )
+
+    def test_uncompresspy_not_installed(self, capsys, monkeypatch):
+        """
+        Regression test for #19852: fitsinfo should log an error and
+        continue, rather than crash with an unhandled ModuleNotFoundError,
+        when the optional uncompresspy package isn't available and an LZW
+        (.Z) compressed FITS file is given.
+        """
+        monkeypatch.setattr(fits.file, "HAS_UNCOMPRESSPY", False)
+
+        fitsinfo.main([self.data("lzw.fits.Z")])
+        out, err = capsys.readouterr()
+        assert out == ""
+        assert "uncompresspy" in err
