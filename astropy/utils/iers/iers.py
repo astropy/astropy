@@ -806,12 +806,21 @@ class IERS_Auto(IERS_A):
             With IERS (Earth rotation) data columns
 
         """
-        if not conf.auto_download:
+        # Start off by reading the available file, and then check how old it is
+        if hasattr(cls, "_iers_table_bundled"):
+            _iers_table_bundled = cls._iers_table_bundled
+        else:
+            _iers_table_bundled = cls.read()
+        _iers_table_bundled_age = (
+            Time.now().mjd - _iers_table_bundled.meta["predictive_mjd"]
+        )
+
+        if not conf.auto_download or _iers_table_bundled_age < _none_to_float(
+            conf.auto_max_age
+        ):
             # If auto_download is changed to False mid-session, iers_table may have already been
             # made from non-bundled files, so it should be remade from bundled files
-            if not hasattr(cls, "_iers_table_bundled"):
-                cls._iers_table_bundled = cls.read()
-            cls.iers_table = cls._iers_table_bundled
+            cls.iers_table = _iers_table_bundled
             return cls.iers_table
 
         all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
