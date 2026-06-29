@@ -1496,36 +1496,6 @@ def _day_of_year(year, month, day):
     return _DAYS_BEFORE_MONTH[month - 1] + day + ((month > 2) & leap)
 
 
-def _write_decimal(out, values, width, signed):
-    """Write the zero-padded decimal digits of ``values`` into ``out``.
-
-    ``out`` is a view into a code-point buffer with ``width`` columns along its
-    last axis. With ``signed`` the first column holds an explicit ``+``/``-``.
-
-    Parameters
-    ----------
-    out : ndarray of uint32, shape (..., width)
-        Output buffer slice to write into. Modified in place.
-    values : array_like of int
-        Integer values to format. Must be non-negative when ``signed`` is
-        ``False``; negative values are supported when ``signed`` is ``True``.
-    width : int
-        Number of character columns to write. Must be wide enough to hold the
-        zero-padded digits (and sign column when ``signed`` is ``True``).
-    signed : bool
-        If ``True``, overwrite the first column with ``'+'`` or ``'-'``.
-    """
-    digits = np.asarray(values, dtype=np.int64)
-    if signed:
-        negative = digits < 0
-        digits = np.abs(digits)
-    for i in range(width - 1, -1, -1):
-        out[..., i] = digits % 10 + ord("0")
-        digits = digits // 10
-    if signed:
-        out[..., 0] = np.where(negative, ord("-"), ord("+"))
-
-
 class TimeString(TimeUnique):
     """
     Base class for string-like time representations.
@@ -1876,7 +1846,7 @@ class TimeString(TimeUnique):
         for match in _SUBFMT_FIELD.finditer(str_fmt):
             if match.start() > pos:
                 literal = str_fmt[pos : match.start()]
-                pieces.append((literal, None, None))
+                pieces.append((literal, len(literal), None))
                 width += len(literal)
             name, spec = match.group(1, 2)
             if name not in fields:
@@ -1889,24 +1859,32 @@ class TimeString(TimeUnique):
             pos = match.end()
         if pos < len(str_fmt):
             literal = str_fmt[pos:]
-            pieces.append((literal, None, None))
+            pieces.append((literal, len(literal), None))
             width += len(literal)
 
-        # Write each piece into its slice of a single code-point buffer, then
-        # reinterpret the rows as fixed-width unicode strings.
-        buf = np.empty(fields["year"].shape + (width,), dtype=np.uint32)
+        # Create the output unicode array and write each piece into its slice.
+        # We do this via a view to be able to work inplace.
+        res = np.empty(self.jd1.shape, f"U{width}")
+        if res.size == 0:
+            # zfill cannot handle empty arrays, but there's nothing to do anyway.
+            return res
+        buf = np.atleast_1d(res).view(np.uint32).reshape(res.shape + (width,))
         col = 0
         for value, field_width, signed in pieces:
-            if field_width is None:  # literal text
-                buf[..., col : col + len(value)] = [ord(char) for char in value]
-                col += len(value)
-            else:
-                _write_decimal(
-                    buf[..., col : col + field_width], value, field_width, signed
-                )
-                col += field_width
+            strings = np.array(value, f"U{field_width}")
+            if signed is not None:  # not literal text, i.e., numbers.
+                strings = np.strings.zfill(strings, field_width)
+            # View as 32-bit integers for in-place setting.
+            ords = strings.view(np.uint32).reshape(strings.shape + (field_width,))
+            if signed:
+                # In-place replacement of 0 with + for positive values.
+                first_ord = ords[..., 0]
+                first_ord[first_ord == ord("0")] = ord("+")
 
-        return buf.view(f"U{width}").reshape(self.jd1.shape)
+            buf[..., col : col + field_width] = ords
+            col += field_width
+
+        return res
 
     @property
     def value(self):

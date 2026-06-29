@@ -1034,14 +1034,6 @@ class TestSubFormat:
         t = Time(["2001-01-01T00:00:00"], format="isot", scale="tt")
         assert t._time._value_fast("{bogus:02d}") is None
 
-    def test_string_write_decimal_signed(self):
-        """The signed branch writes an explicit ``+``/``-`` in the first column."""
-        from astropy.time.formats import _write_decimal
-
-        buf = np.zeros((2, 6), dtype=np.uint32)
-        _write_decimal(buf, np.array([2003, -42]), 6, signed=True)
-        assert_array_equal(buf.view("U6").reshape(2), ["+02003", "-00042"])
-
     def test_string_field_width(self):
         """Integer specs that can/can't be built as a fixed-width column."""
         vals = np.array([2003, 2004])
