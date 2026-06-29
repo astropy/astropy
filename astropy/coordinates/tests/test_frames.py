@@ -41,6 +41,7 @@ from astropy.coordinates.representation import (
     CartesianDifferential,
 )
 from astropy.coordinates.tests.helper import skycoord_equal
+from astropy.tests.helper import CI, IS_CRON
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
@@ -1781,6 +1782,10 @@ def test_insert():
     assert skycoord_equal(c, ICRS([1, 2, 10, 20] * u.deg, [3, 4, 30, 40] * u.deg))
 
 
+@pytest.mark.skipif(
+    CI and not IS_CRON,
+    reason="Docs-only concern, skip in regular CI",
+)
 def test_base_coordinate_frame_annotations():
     # Ensure annotations resolve at runtime without NameError
     hints = typing.get_type_hints(BaseCoordinateFrame)
