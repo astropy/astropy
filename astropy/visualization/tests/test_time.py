@@ -223,6 +223,110 @@ def test_formats_simplify(format, expected):
         assert get_ticklabels(ax.xaxis) == expected
 
 
+CONCISE_RANGE_CASES = [
+    # Many years - only year varies
+    (
+        ("2014-03-22T12:30:30.9", "2077-03-22T12:30:32.1"),
+        ["2020", "2030", "2040", "2050", "2060", "2070"],
+        "",
+    ),
+    # A few years - broken into monthly ticks
+    (
+        ("2014-03-22T12:30:30.9", "2017-03-22T12:30:32.1"),
+        [
+            "2014 May",
+            "2014 Oct",
+            "2015 Mar",
+            "2015 Aug",
+            "2016 Jan",
+            "2016 Jun",
+            "2016 Nov",
+        ],
+        "",
+    ),
+    # Just under a year - months vary within same year
+    (
+        ("2014-03-22T12:30:30.9", "2015-01-22T12:30:32.1"),
+        ["Apr", "Jun", "Aug", "Oct", "Dec"],
+        "2014",
+    ),
+    # A few months spanning a year boundary
+    (
+        ("2014-11-22T12:30:30.9", "2015-02-22T12:30:32.1"),
+        ["2014 Dec", "2015 Jan", "2015 Feb"],
+        "",
+    ),
+    # Just over an hour - HH:MM, date as offset
+    (
+        ("2014-03-22T12:30:30.9", "2014-03-22T13:31:30.9"),
+        ["12:40", "12:50", "13:00", "13:10", "13:20", "13:30"],
+        "2014-03-22",
+    ),
+    # A few seconds - HH:MM:SS, date as offset
+    (
+        ("2014-03-22T12:30:30.9", "2014-03-22T12:30:40.9"),
+        ["12:30:32", "12:30:34", "12:30:36", "12:30:38", "12:30:40"],
+        "2014-03-22",
+    ),
+    # Under a second - more ticks, trailing zeros stripped
+    (
+        ("2014-03-22T12:30:30.89", "2014-03-22T12:30:31.19"),
+        [
+            "12:30:30.9",
+            "12:30:30.95",
+            "12:30:31",
+            "12:30:31.05",
+            "12:30:31.1",
+            "12:30:31.15",
+        ],
+        "2014-03-22",
+    ),
+]
+
+
+def get_offset(axis):
+    axis.figure.canvas.draw()
+    return axis.get_major_formatter().get_offset()
+
+
+@pytest.mark.parametrize(
+    ("interval", "expected_labels", "expected_offset"), CONCISE_RANGE_CASES
+)
+def test_concise_formatter(interval, expected_labels, expected_offset):
+    with time_support(simplify="concise"):
+        fig = Figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlim(
+            Time(interval[0], scale=DEFAULT_SCALE),
+            Time(interval[1], scale=DEFAULT_SCALE),
+        )
+        assert get_ticklabels(ax.xaxis) == expected_labels
+        assert get_offset(ax.xaxis) == expected_offset
+
+
+CONCISE_FORMAT_CASES = [
+    ("fits", ["2020", "2030", "2040", "2050", "2060", "2070"], ""),
+    ("iso", ["2020", "2030", "2040", "2050", "2060", "2070"], ""),
+    ("isot", ["2020", "2030", "2040", "2050", "2060", "2070"], ""),
+    ("yday", ["2020", "2030", "2040", "2050", "2060", "2070"], ""),
+]
+
+
+@pytest.mark.parametrize(
+    ("format", "expected_labels", "expected_offset"), CONCISE_FORMAT_CASES
+)
+def test_concise_formatter_formats(format, expected_labels, expected_offset):
+    with time_support(format=format, simplify="concise"):
+        fig = Figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.set_xlim(
+            Time("2014-03-22T12:30:30.9", scale=DEFAULT_SCALE),
+            Time("2077-03-22T12:30:32.1", scale=DEFAULT_SCALE),
+        )
+        assert get_ticklabels(ax.xaxis) == expected_labels
+        assert get_offset(ax.xaxis) == expected_offset
+
+
 def test_plot():
     # Make sure that plot() works properly
     with time_support():
