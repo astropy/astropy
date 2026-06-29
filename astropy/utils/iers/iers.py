@@ -804,7 +804,6 @@ class IERS_Auto(IERS_A):
         -------
         `~astropy.table.QTable` instance
             With IERS (Earth rotation) data columns
-
         """
         if not conf.auto_download:
             # If auto_download is changed to False mid-session, iers_table may have already been
@@ -823,17 +822,25 @@ class IERS_Auto(IERS_A):
             if cls.iers_table.meta.get("data_url") in all_urls:
                 return cls.iers_table
 
+        # Keep track of issues and only report them at the end if no valid table
+        # was found, to avoid emitting warnings when a valid table is found somewhere
+        warning_details = []
+
         for url in all_urls:
             try:
                 filename = download_file(url, cache=True)
+                if url == all_urls[0]:
+                    raise Exception()
             except Exception as err:
-                warn(f"failed to download {url}: {err}", IERSWarning)
+                warning_details.append(f"failed to download {url}: {err}")
                 continue
 
             try:
                 cls.iers_table = cls.read(file=filename)
+                if url == all_urls[1]:
+                    raise Exception()
             except Exception as err:
-                warn(f"malformed IERS table from {url}: {err}", IERSWarning)
+                warning_details.append(f"malformed IERS table from {url}: {err}")
                 continue
             cls.iers_table.meta["data_url"] = url
             break
@@ -843,7 +850,8 @@ class IERS_Auto(IERS_A):
             # will be raised downstream if actually trying to interpolate
             # predictive values.
             warn(
-                "unable to download valid IERS file, using bundled IERS-A", IERSWarning
+                f"unable to download valid IERS file ({",".join(warning_details)}), "
+                f"using bundled IERS-A", IERSWarning
             )
             cls.iers_table = cls.read()
 
