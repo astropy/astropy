@@ -9,6 +9,7 @@ from decimal import Decimal
 
 import erfa
 import numpy as np
+from numpy._core.umath import _zfill as umath_zfill
 
 import astropy.units as u
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
@@ -1863,26 +1864,19 @@ class TimeString(TimeUnique):
             width += len(literal)
 
         # Create the output unicode array and write each piece into its slice.
-        # We do this via a view to be able to work inplace.
+        # We use the view to allow getting slices which can be set inplace.
         res = np.empty(self.jd1.shape, f"U{width}")
-        if res.size == 0:
-            # zfill cannot handle empty arrays, but there's nothing to do anyway.
-            return res
-        buf = np.atleast_1d(res).view(np.uint32).reshape(res.shape + (width,))
-        col = 0
-        for value, field_width, signed in pieces:
-            strings = np.array(value, f"U{field_width}")
-            if signed is not None:  # not literal text, i.e., numbers.
-                strings = np.strings.zfill(strings, field_width)
-            # View as 32-bit integers for in-place setting.
-            ords = strings.view(np.uint32).reshape(strings.shape + (field_width,))
-            if signed:
-                # In-place replacement of 0 with + for positive values.
-                first_ord = ords[..., 0]
-                first_ord[first_ord == ord("0")] = ord("+")
-
-            buf[..., col : col + field_width] = ords
-            col += field_width
+        buf = np.atleast_1d(res).view(np.uint32).reshape(iys.shape + (width,))
+        buf_pieces = np.split(buf, np.cumsum([p[1] for p in pieces]), axis=-1)
+        for (value, field_width, signed), buf_piece in zip(pieces, buf_pieces):
+            res_piece = buf_piece.view(f"U{field_width}").reshape(iys.shape)
+            if signed is None:  # literal text
+                res_piece[...] = value
+            else:
+                umath_zfill(value.astype(f"U{field_width}"), field_width, out=res_piece)
+                if signed:
+                    first_char = buf_piece[..., :1].view("U1")
+                    first_char[first_char == "0"] = "+"
 
         return res
 
