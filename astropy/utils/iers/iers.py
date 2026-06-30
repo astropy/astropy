@@ -886,7 +886,26 @@ class IERS_Auto(IERS_A):
                 )
                 return
 
-            new_table = self.__class__.read(file=filename)
+            try:
+                new_table = self.__class__.read(file=filename)
+            except Exception as err:
+                # The download succeeded but the content could not be parsed as
+                # an IERS table (e.g. the server returned an error page).  Keep
+                # using the existing table; an exception will be raised
+                # downstream when actually trying to interpolate predictive
+                # values.
+                warn(
+                    AstropyWarning(
+                        "malformed IERS table downloaded from"
+                        f" {' and '.join(all_urls)}: {err}.\nA coordinate or"
+                        " time-related calculation might be compromised or fail"
+                        " because the dates are not covered by the available IERS"
+                        ' file.  See the "IERS data access" section of the astropy'
+                        " documentation for additional information on working"
+                        " offline."
+                    )
+                )
+                return
             new_table.meta["data_url"] = str(all_urls[0])
 
             # New table has new values?
