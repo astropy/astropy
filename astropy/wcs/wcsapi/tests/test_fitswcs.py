@@ -1663,3 +1663,13 @@ def test_array_index_conversions_scalars_2d():
     x, y = wcs.world_to_pixel(scoord)
     assert isinstance(x, np.ndarray) and x.ndim == 0
     assert isinstance(y, np.ndarray) and y.ndim == 0
+
+
+def test_components_and_classes_cache():
+    # Regression test for the components and classes cache never hitting
+    # when the equinox was undefined, because the NaN it contributed to the
+    # cache key compares unequal to itself
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.set()
+    assert wcs.world_axis_object_components is wcs.world_axis_object_components
