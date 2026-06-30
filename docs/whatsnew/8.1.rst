@@ -37,8 +37,18 @@ API, please see the :ref:`changelog`.
 Add concise option to time_support
 ==================================
 
-A new option `simplify='concise'` added to `~astropy.visualization.time.time_support` which mimics
-`~matplotlib.dates.ConciseDateFormatter`.
+A new option ``simplify='concise'`` added to `~astropy.visualization.time.time_support` which mimics
+`~matplotlib.dates.ConciseDateFormatter` behaviour.
+
+>>> from matplotlib import pyplot as plt
+>>> from astropy.time import Time
+>>> from astropy.visualization import time_support
+>>> fig, ax = plt.subplots(2, 1, figsize=(9, 6))
+>>> with time_support(simplify=True):
+>>>     ax[0].set_xlim(Time(["2014-03-22T12:30:30.9", "2014-03-22T13:31:30.9"]))
+>>> with time_support(simplify='concise'):
+>>>     ax[1].set_xlim(Time(["2014-03-22T12:30:30.9", "2014-03-22T13:31:30.9"]))
+>>> plt.show()
 
 Contributors to the 8.1 release
 ===============================
