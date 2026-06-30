@@ -18,7 +18,7 @@ name, and parameters as columns.
     \begin{tabular}{cccccccc}
     cosmology & name & $H_0$ & $\Omega_{m,0}$ & $T_{0}$ & $N_{eff}$ & $m_{nu}$ & $\Omega_{b,0}$ \\
     &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
-    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
     \end{tabular}
     \end{table}
     <BLANKLINE>
@@ -44,7 +44,7 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     \begin{tabular}{cccccccc}
     cosmology & name & H0 & Om0 & Tcmb0 & Neff & m_nu & Ob0 \\
     &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
-    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+    FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
     \end{tabular}
     \end{table}
     <BLANKLINE>
@@ -54,16 +54,25 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     >>> temp_dir.cleanup()
 """
 
+from collections.abc import Mapping
 from typing import Any, TypeVar
 
+import numpy as np
+
+import astropy.cosmology.units as cu
 import astropy.units as u
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import readwrite_registry
 from astropy.cosmology._src.parameter import Parameter
-from astropy.io.typing import PathLike, WriteableFileLike
+from astropy.cosmology._src.typing import _CosmoT
+from astropy.io.typing import (
+    PathLike,
+    ReadableFileLike,  # not sure if i should place it here but let's see if it all works...!
+    WriteableFileLike,
+)
 from astropy.table import QTable, Table
 
-from .table import to_table
+from .table import from_table, to_table
 
 _TableT = TypeVar("_TableT", bound=Table)
 
@@ -81,6 +90,137 @@ _FORMAT_TABLE = {
     "wp": "$w_{p}$",
     "zp": "$z_{p}$",
 }
+
+
+def _parse_latex_value(val):
+    """Convert LaTeX-parsed string numeric values into actual numeric values"""
+    if not isinstance(val, (str, np.str_)):
+        return val
+
+    s = val.strip()
+
+    if s.startswith("[") and s.endswith("]"):
+        nums = s[1:-1].split()
+        return np.array([float(x) for x in nums])
+
+    try:
+        return float(val)
+    except ValueError:
+        return val
+
+
+def read_latex(
+    filename: PathLike | ReadableFileLike[Table],
+    units: Mapping[str, object],
+    index: int | str | None = None,
+    *,
+    move_to_meta: bool = False,
+    cosmology: str | type[_CosmoT] | None = None,
+    latex_names: bool = True,
+    **kwargs: Any,
+) -> _CosmoT:
+    r"""Read a |Cosmology| from a LaTeX file.
+
+    Parameters
+    ----------
+    filename : path-like or file-like
+        From where to read the Cosmology.
+    units : Mapping[str, object]
+        A str-to-object mapping containing column names in the string format mapped to either a Unit object. This helps in precisely reading back the Cosmology in LaTeX format without any confusion about the units of various parameters. If no units are given to a parameter which in general has units, it falls back onto its default unit in a cosmology.
+    index : int or str or None, optional
+        Needed to select the row in tables with multiple rows. ``index`` can be an
+        integer for the row number or, if the table is indexed by a column, the value of
+        that column. If the table is not indexed and ``index`` is a string, the "name"
+        column is used as the indexing column.
+
+    move_to_meta : bool, optional keyword-only
+        Whether to move keyword arguments that are not in the Cosmology class' signature
+        to the Cosmology's metadata. This will only be applied if the Cosmology does NOT
+        have a keyword-only argument (e.g. ``**kwargs``). Arguments moved to the
+        metadata will be merged with existing metadata, preferring specified metadata in
+        the case of a merge conflict (e.g. for ``Cosmology(meta={'key':10}, key=42)``,
+        the ``Cosmology.meta`` will be ``{'key': 10}``).
+    cosmology : str or |Cosmology| class or None, optional keyword-only
+        The cosmology class (or string name thereof) to use when constructing the
+        cosmology instance. The class also provides default parameter values, filling in
+        any non-mandatory arguments missing in 'table'.
+    latex_names : bool, optional keyword-only
+        Whether the |Table| (might) have latex column names for the parameters that need
+        to be mapped to the correct parameter name -- e.g. $H_0$ to 'H0'. This is
+        `True` by default, but can be turned off (set to `False`) if there is a known
+        name conflict (e.g. both an 'H0' and '$H_0$' column) as this will raise an
+        error. In this case, the correct name ('H0') is preferred.
+    **kwargs : Any
+        Passed to ``QTable.read``. ``format`` is set to 'ascii.latex', regardless of
+        input.
+
+    Returns
+    -------
+    |Cosmology| subclass instance
+
+    Raises
+    ------
+    ValueError
+        If the keyword argument 'format' is given and is not "ascii.latex".
+
+    Examples
+    --------
+    We assume the following setup:
+
+        >>> from pathlib import Path
+        >>> from tempfile import TemporaryDirectory
+        >>> temp_dir = TemporaryDirectory()
+
+    We can write and then read a cosmology to a LaTeX file.
+
+        >>> from astropy.cosmology import Planck18, Cosmology
+        >>> file = Path(temp_dir.name) / "file.tex"
+
+        >>> Planck18.write(file, format="ascii.latex")
+        >>> cosmo = Cosmology.read(file, units={})
+        >>> cosmo
+        FlatLambdaCDM(name='Planck18', H0=<Quantity 67.66 km / (Mpc s)>, Om0=0.30966, Tcmb0=<Quantity 2.7255 K>, Neff=3.046, m_nu=<Quantity [0.  , 0.  , 0.06] eV>, Ob0=0.04897)
+
+        >>> cosmo == Planck18
+        True
+        >>> cosmo.meta == Planck18.meta
+        False
+
+    Note that the cosmology's metadata was not included in the table.
+
+    .. testcleanup::
+
+        >>> temp_dir.cleanup()
+    """
+    # Check that the format is 'ascii.latex' (or not specified)
+    fmt = kwargs.pop("format", "ascii.latex")
+    if fmt != "ascii.latex":
+        raise ValueError(f"format must be 'ascii.latex', not {fmt}")
+
+    # for key in units.keys():
+    #     units[_FORMAT_TABLE[key]] = units.pop(key)
+
+    # Reading is handled by `QTable`.
+    with u.add_enabled_units(cu):
+        table = QTable.read(filename, format="ascii.latex", **kwargs)
+
+    if latex_names:
+        table_columns = set(table.colnames)
+        for name, latex in _FORMAT_TABLE.items():
+            if latex in table_columns:
+                table.rename_column(latex, name)
+
+    table_columns = table.colnames
+    data = {col: [_parse_latex_value(table[col][1])] for col in table_columns}
+
+    for col, unit in units.items():
+        data[col] = data[col] * unit
+
+    new_table = QTable(data)
+
+    return from_table(
+        new_table, index, move_to_meta=move_to_meta, cosmology=cosmology, rename=None
+    )
 
 
 def write_latex(
@@ -136,7 +276,7 @@ def write_latex(
         \begin{tabular}{cccccccc}
         cosmology & name & $H_0$ & $\Omega_{m,0}$ & $T_{0}$ & $N_{eff}$ & $m_{nu}$ & $\Omega_{b,0}$ \\
         &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
-        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
         \end{tabular}
         \end{table}
         <BLANKLINE>
@@ -162,7 +302,7 @@ def write_latex(
         \begin{tabular}{cccccccc}
         cosmology & name & H0 & Om0 & Tcmb0 & Neff & m_nu & Ob0 \\
         &  & $\mathrm{km\,Mpc^{-1}\,s^{-1}}$ &  & $\mathrm{K}$ &  & $\mathrm{eV}$ &  \\
-        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & 0.0 .. 0.06 & 0.04897 \\
+        FlatLambdaCDM & Planck18 & 67.66 & 0.30966 & 2.7255 & 3.046 & [0.   0.   0.06] & 0.04897 \\
         \end{tabular}
         \end{table}
         <BLANKLINE>
@@ -210,5 +350,6 @@ def latex_identify(
 # ===================================================================
 # Register
 
+readwrite_registry.register_reader("ascii.latex", Cosmology, read_latex)
 readwrite_registry.register_writer("ascii.latex", Cosmology, write_latex)
 readwrite_registry.register_identifier("ascii.latex", Cosmology, latex_identify)
