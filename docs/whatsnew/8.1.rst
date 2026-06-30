@@ -12,7 +12,7 @@ the 8.0 release.
 
 In particular, this release includes:
 
-*
+* :ref:`whatsnew-8.1-time_support-concise`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -31,6 +31,24 @@ Full change log
 
 To see a detailed list of all changes in version v8.1, including changes in
 API, please see the :ref:`changelog`.
+
+.. _whatsnew-8.1-time_support-concise:
+
+Add concise option to time_support
+==================================
+
+A new option ``simplify='concise'`` added to `~astropy.visualization.time.time_support` which mimics
+`~matplotlib.dates.ConciseDateFormatter` behaviour.
+
+>>> from matplotlib import pyplot as plt
+>>> from astropy.time import Time
+>>> from astropy.visualization import time_support
+>>> fig, ax = plt.subplots(2, 1, figsize=(9, 6))
+>>> with time_support(simplify=True):
+>>>     ax[0].set_xlim(Time(["2014-03-22T12:30:30.9", "2014-03-22T13:31:30.9"]))
+>>> with time_support(simplify='concise'):
+>>>     ax[1].set_xlim(Time(["2014-03-22T12:30:30.9", "2014-03-22T13:31:30.9"]))
+>>> plt.show()
 
 Contributors to the 8.1 release
 ===============================

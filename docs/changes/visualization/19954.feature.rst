@@ -1,0 +1,1 @@
+Add an ``concise`` option to `astropy.visualization.time.time_support` which mimics `~matplotlib.dates.ConciseDateFormatter`.
