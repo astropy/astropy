@@ -12,7 +12,7 @@ the 8.0 release.
 
 In particular, this release includes:
 
-*
+* :ref:`whatsnew-8.1-time-string-formats`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -31,6 +31,17 @@ Full change log
 
 To see a detailed list of all changes in version v8.1, including changes in
 API, please see the :ref:`changelog`.
+
+.. _whatsnew-8.1-time-string-formats:
+
+Faster Time string formats
+==========================
+
+Converting a :class:`~astropy.time.Time` to one of the string-based formats
+(``iso``, ``isot``, ``yday``, ``fits`` or ``datetime64``) is now done with
+array operations instead of a Python loop over the individual times. For large
+arrays this is more than ten times faster, which speeds up printing a ``Time``
+and writing tables that contain a time column.
 
 Contributors to the 8.1 release
 ===============================
