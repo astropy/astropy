@@ -39,6 +39,11 @@ from .errors import (
     NonRotationTransformationError,
     NonRotationTransformationWarning,
 )
+from .representation import (
+    BaseDifferential,
+    BaseRepresentation,
+    BaseRepresentationOrDifferential,
+)
 from .transformations import (
     DynamicMatrixTransform,
     StaticMatrixTransform,
@@ -437,13 +442,13 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     where ``{lon}`` and ``{lat}`` are the frame names of the angular components.
     """
 
-    default_representation: ClassVar[type[r.BaseRepresentation] | None] = None
-    default_differential: ClassVar[type[r.BaseDifferential] | None] = None
+    default_representation: ClassVar[type[BaseRepresentation] | None] = None
+    default_differential: ClassVar[type[BaseDifferential] | None] = None
 
     # Specifies special names and units for representation and differential
     # attributes.
     frame_specific_representation_info: ClassVar[
-        dict[type[r.BaseRepresentationOrDifferential], list[RepresentationMapping]]
+        dict[type[BaseRepresentationOrDifferential], list[RepresentationMapping]]
     ] = {}
 
     frame_attributes: dict[str, Attribute] = {}
