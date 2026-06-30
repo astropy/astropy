@@ -1554,8 +1554,14 @@ def _as_bigendian_pieces(data):
                 offset += swap_itemsize
 
     # Reordering the data by indexing makes copies, so work in pieces.
+    # Each piece except the last must span a whole number of 4-byte words:
+    # _calculate_datasum_with_heap feeds the pieces to the 32-bit FITS
+    # checksum one at a time, so a piece ending mid-word would misalign the
+    # running checksum and yield a wrong DATASUM. Rounding the row count down
+    # to a multiple of four keeps every piece length (rows * itemsize) a
+    # multiple of four bytes.
     data_bytes = data.view(np.ndarray)[..., np.newaxis].view(np.ubyte)
-    step = max(65536 // len(indices), 1)
+    step = max(65536 // len(indices) // 4 * 4, 4)
     for piece in np.split(data_bytes, range(0, len(data), step)):
         if len(piece):
             yield piece[..., indices].ravel()
