@@ -1,0 +1,8 @@
+``IERS_Auto.open`` no longer downloads the latest IERS-A table over the network.
+It now always reads the table bundled in ``astropy-iers-data`` (or a
+``finals2000A.all`` file in the current working directory, if present), and the
+auto-download is deferred until a calculation actually requests ``UT1-UTC`` or
+polar motion values beyond the predictive range of the bundled table while that
+table is older than ``astropy.utils.iers.conf.auto_max_age`` days. This avoids
+network access, and the associated warnings when offline, in the common case
+where the bundled table is recent enough.
