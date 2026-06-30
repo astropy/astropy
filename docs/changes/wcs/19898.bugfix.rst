@@ -1,0 +1,1 @@
+Fix caching of ``wcs.world_axis_object_components`` and ``world_axis_object_classes`` in cases where the equinox was NaN
