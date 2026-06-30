@@ -276,10 +276,11 @@ class TestIERS_Auto:
                             warnings.simplefilter("ignore", iers.IERSStaleWarning)
                             iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
-    def test_auto_max_age_none(self):
+    def test_auto_max_age_none(self, monkeypatch):
         """Make sure that iers.INTERPOLATE_ERROR's advice about setting
         auto_max_age = None actually works.
         """
+        monkeypatch.setattr(iers, "IERS_A_FILE", self.iers_a_file_1)
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             with iers.conf.set_temp("auto_max_age", None):
                 iers_table = iers.IERS_Auto.open()
@@ -303,6 +304,7 @@ class TestIERS_Auto:
                     _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
     def test_simple(self, monkeypatch):
+        monkeypatch.setattr(iers, "IERS_A_FILE", self.iers_a_file_1)
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             dat = iers.IERS_Auto.open()
             assert dat["MJD"][0] == 57359.0 * u.d
