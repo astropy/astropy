@@ -42,6 +42,6 @@ int _update_wtbarr_from_hdulist(PyObject *hdulist, struct wtbarr *wtb);
 
 void _set_wtbarr_callback(PyObject* callback);
 
-int Wcsprm_cset(Wcsprm* self, const int convert);
+int Wcsprm_cset(Wcsprm* self);
 
 #endif
