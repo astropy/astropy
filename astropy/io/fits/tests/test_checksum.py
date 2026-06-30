@@ -160,6 +160,39 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert "DATASUM" in hdul[1].header
             assert hdul[1].header["DATASUM"] == "1062205743"
 
+    def test_checksum_byteswapped_table_spanning_multiple_chunks(self):
+        """
+        Regression test for #19990.
+
+        For a byte-swapped (little-endian) binary table large enough to be
+        checksummed in more than one chunk, the DATASUM is accumulated one
+        chunk at a time. Each chunk must be a whole number of 4-byte words,
+        otherwise the running 32-bit checksum is misaligned and the DATASUM
+        is valid in memory but fails to verify once the file is read back.
+        """
+        nrows = 8000
+        cols = fits.ColDefs(
+            [
+                fits.Column(name="a", format="J", array=np.arange(nrows, dtype="i4")),
+                fits.Column(name="b", format="D", array=np.linspace(0, 1, nrows)),
+                # An 11A column makes the row 4 + 8 + 11 = 23 bytes, which is
+                # not a multiple of 4, so the chunk boundaries fall mid-word.
+                fits.Column(name="s", format="11A", array=np.array(["xy"] * nrows)),
+            ]
+        )
+        tbhdu = fits.BinTableHDU.from_columns(cols)
+        # The table must span more than one checksum chunk to exercise the bug.
+        assert tbhdu.data.nbytes > 65536
+        tbhdu.add_checksum()
+        assert tbhdu.verify_checksum() == 1
+        assert tbhdu.verify_datasum() == 1
+        tbhdu.writeto(self.temp("tmp.fits"), overwrite=True)
+        with fits.open(self.temp("tmp.fits"), checksum=True) as hdul:
+            assert tbhdu.data.dtype.itemsize % 4 != 0
+            assert hdul[1].verify_checksum() == 1
+            assert hdul[1].verify_datasum() == 1
+            assert comparerecords(tbhdu.data, hdul[1].data)
+
     def test_variable_length_table_data(self):
         c1 = fits.Column(
             name="var",
