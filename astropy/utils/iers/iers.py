@@ -785,20 +785,19 @@ class IERS_Auto(IERS_A):
 
     @classmethod
     def open(cls):
-        """If the configuration setting ``astropy.utils.iers.conf.auto_download``
-        is set to True (default), then open a recent version of the IERS-A
-        table with predictions for UT1-UTC and polar motion out to
-        approximately one year from now.  If the available version of this file
-        is older than ``astropy.utils.iers.conf.auto_max_age`` days old
-        (or non-existent) then it will be downloaded over the network and cached.
+        """
+        This reads in the bundled IERS_A table (or the version of the file in
+        the current working directory, if present - see `IERS_A.read`).
+
+        Subsequently, if values are requested which are more recent than the
+        range of validity of the bundled table, an updated version of the table
+        will be downloaded if the configuration setting
+        ``astropy.utils.iers.conf.auto_download`` is set to True (default) and
+        if the available version of this file is older than
+        ``astropy.utils.iers.conf.auto_max_age`` days old.
 
         If the configuration setting ``astropy.utils.iers.conf.auto_download``
-        is set to False then the bundled IERS-A table will be used rather than
-        any downloaded version of the IERS-A table.
-
-        On the first call in a session, the table will be memoized (in the
-        ``iers_table`` class attribute), and further calls to ``open`` will
-        return this stored table.
+        is set to False then the bundled IERS-A table will always be used.
 
         Returns
         -------
@@ -806,56 +805,8 @@ class IERS_Auto(IERS_A):
             With IERS (Earth rotation) data columns
 
         """
-        # Start off by reading the available file, and then check how old it is
-        if hasattr(cls, "_iers_table_bundled"):
-            _iers_table_bundled = cls._iers_table_bundled
-        else:
-            _iers_table_bundled = cls.read()
-        _iers_table_bundled_age = (
-            Time.now().mjd - _iers_table_bundled.meta["predictive_mjd"]
-        )
-
-        if not conf.auto_download or _iers_table_bundled_age < _none_to_float(
-            conf.auto_max_age
-        ):
-            # If auto_download is changed to False mid-session, iers_table may have already been
-            # made from non-bundled files, so it should be remade from bundled files
-            cls.iers_table = _iers_table_bundled
-            return cls.iers_table
-
-        all_urls = (conf.iers_auto_url, conf.iers_auto_url_mirror)
-
-        if cls.iers_table is not None:
-            # If the URL has changed, we need to redownload the file, so we
-            # should ignore the internally cached version.
-
-            if cls.iers_table.meta.get("data_url") in all_urls:
-                return cls.iers_table
-
-        for url in all_urls:
-            try:
-                filename = download_file(url, cache=True)
-            except Exception as err:
-                warn(f"failed to download {url}: {err}", IERSWarning)
-                continue
-
-            try:
-                cls.iers_table = cls.read(file=filename)
-            except Exception as err:
-                warn(f"malformed IERS table from {url}: {err}", IERSWarning)
-                continue
-            cls.iers_table.meta["data_url"] = url
-            break
-
-        else:
-            # Issue a warning here, perhaps user is offline.  An exception
-            # will be raised downstream if actually trying to interpolate
-            # predictive values.
-            warn(
-                "unable to download valid IERS file, using bundled IERS-A", IERSWarning
-            )
+        if cls.iers_table is None:
             cls.iers_table = cls.read()
-
         return cls.iers_table
 
     def _check_interpolate_indices(self, indices_orig, indices_clipped, max_input_mjd):
