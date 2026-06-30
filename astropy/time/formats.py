@@ -1818,7 +1818,17 @@ class TimeString(TimeUnique):
         if digits:
             # We build columns by zero-padding, so a fixed width without the
             # "0" flag (which pads with spaces) is left to the per-element path.
-            return (int(digits), sign == "+") if zero else (None, None)
+            # And "real" formatting widens the field when a value does not fit,
+            # so a value needing more characters than ``width`` would be silently
+            # truncated in our fixed-width column; fall back in that (rare) case
+            # too -- e.g. a year past 9999 in the signed FITS ``{year:+06d}``.
+            width = int(digits)
+            signed = sign == "+"
+            fits = zero
+            if zero and values.size:
+                n_sign = 1 if signed or int(values.min()) < 0 else 0
+                fits = len(str(int(np.abs(values).max()))) + n_sign <= width
+            return (width, signed) if fits else (None, None)
         # A bare "d" has no field width, so the width follows the values and we
         # can only pre-size the column if they share a digit count and need no
         # sign (a forced "+" or a negative value would make the width vary too).

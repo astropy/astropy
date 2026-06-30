@@ -1045,9 +1045,10 @@ class TestSubFormat:
     def test_string_field_width(self):
         """Integer specs that can/can't be built as a fixed-width column."""
         vals = np.array([2003, 2004])
-        # Specs used by the built-in templates take the fast path.
+        # Specs used by the built-in templates take the fast path when the
+        # values fit in the field.
         assert TimeString._field_width("d", vals) == (4, False)
-        assert TimeString._field_width("02d", vals) == (2, False)
+        assert TimeString._field_width("02d", np.array([1, 12])) == (2, False)
         assert TimeString._field_width("+06d", vals) == (6, True)
         assert TimeString._field_width("d", np.array([], dtype=int)) == (1, False)
         # Anything we would format wrongly by zero-padding is left to the loop:
@@ -1058,6 +1059,25 @@ class TestSubFormat:
         assert TimeString._field_width("d", np.array([-5, 5])) == (None, None)
         assert TimeString._field_width("+d", vals) == (None, None)
         assert TimeString._field_width(".3f", vals) == (None, None)
+        # A value too wide for its zero-padded field would be truncated, so it
+        # falls back too rather than silently dropping digits.
+        assert TimeString._field_width("02d", np.array([1, 100])) == (None, None)
+        assert TimeString._field_width("04d", np.array([12345])) == (None, None)
+        assert TimeString._field_width("+06d", np.array([100002])) == (None, None)
+
+    def test_string_fits_very_large_years(self, monkeypatch):
+        """A year too wide for the FITS ``+06d`` field falls back and stays correct."""
+        times = ["J500", "J100000"]
+        t = Time(times)
+        t.format = "fits"
+        fmt = t._time.subfmts[2][2] + ".{fracsec:0" + str(t.precision) + "d}"
+        # The six-digit year overflows the signed ``+06d`` field, so the fast
+        # path bails out and we format these element by element.
+        assert t._time._value_fast(fmt) is None
+        got = t.fits
+        monkeypatch.setattr(TimeString, "_value_fast", lambda self, str_fmt: None)
+        ref = Time(times).fits
+        assert_array_equal(got, ref)
 
     def test_scale_input(self):
         """Test for issues related to scale input"""
