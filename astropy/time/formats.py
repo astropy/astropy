@@ -1502,6 +1502,13 @@ def _write_decimal(out, values, width, signed):
     ``out`` is a view into a code-point buffer with ``width`` columns along its
     last axis. With ``signed`` the first column holds an explicit ``+``/``-``.
 
+    Writing the digits with plain integer arithmetic is deliberate: it is
+    several times faster than going through NumPy's string casts (e.g.
+    ``values.astype("U")`` or ``.astype("T")``), which format each element via
+    a Python string conversion.  See
+    https://github.com/numpy/numpy/blob/9721c24ba87e6323f29e0b2f4f73aa22574c2aef/numpy/_core/src/multiarray/stringdtype/casts.cpp#L871-L877
+    Please keep this in mind before "simplifying" to one of those.
+
     Parameters
     ----------
     out : ndarray of uint32, shape (..., width)
