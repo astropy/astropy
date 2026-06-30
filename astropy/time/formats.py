@@ -1527,8 +1527,11 @@ def _write_decimal(out, values, width, signed):
         negative = digits < 0
         digits = np.abs(digits)
     for i in range(width - 1, -1, -1):
-        out[..., i] = digits % 10 + ord("0")
-        digits = digits // 10
+        # Equivalent to ``digits % 10`` but a bit faster, since the floor
+        # division is reused instead of doing a second (costly) division.
+        by10 = digits // 10
+        out[..., i] = (digits - 10 * by10) + ord("0")
+        digits = by10
     if signed:
         out[..., 0] = np.where(negative, ord("-"), ord("+"))
 
