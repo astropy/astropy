@@ -8,11 +8,15 @@ from operator import itemgetter
 
 import numpy as np
 
-__all__ = ["IORegistryError"]
+__all__ = ["IOIdentifierExceptions", "IORegistryError"]
 
 
 class IORegistryError(Exception):
     """Custom error for registry clashes."""
+
+
+class IOIdentifierExceptions(ExceptionGroup):
+    """Custom exception group for identifier functions errors."""
 
 
 # -----------------------------------------------------------------------------
@@ -315,13 +319,19 @@ class _UnifiedIORegistryBase:
             List of matching formats.
         """
         valid_formats = []
+        exceptions_raised = []
         for data_format, data_class in self._identifiers:
             if self._is_best_match(data_class_required, data_class, self._identifiers):
-                if self._identifiers[(data_format, data_class)](
-                    origin, path, fileobj, *args, **kwargs
-                ):
-                    valid_formats.append(data_format)
+                try:
+                    if self._identifiers[(data_format, data_class)](
+                        origin, path, fileobj, *args, **kwargs
+                    ):
+                        valid_formats.append(data_format)
+                except Exception as e:
+                    exceptions_raised.append(e)
 
+        if valid_formats == [] and exceptions_raised != []:
+            raise IOIdentifierExceptions("No valid format found", exceptions_raised)
         return valid_formats
 
     # =========================================================================

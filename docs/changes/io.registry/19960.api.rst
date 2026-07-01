@@ -1,0 +1,3 @@
+Allows the ``identify_format`` in ``_UnifiedIORegistryBase`` class to raise a ExceptionGroup
+of type ``IOIdentifierExceptions`` containing all exceptions raised by the identifier function.
+This exception is only raised when a valid format was not found for that format inference.
