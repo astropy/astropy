@@ -247,18 +247,17 @@ class TestIERS_Auto:
         self._auto_download = iers.conf.auto_download
         iers.conf.auto_download = True
 
+        # Ensure no IERS_Auto table is cached from an earlier test, so that the
+        # first test's open() re-reads the (possibly monkeypatched) bundled file
+        # rather than returning a stale memoized table; teardown_method keeps it
+        # clean for the remaining tests.
+        iers.IERS_Auto.close()
+
         # auto_download = False is tested in test_IERS_B_parameters_loading_into_IERS_Auto()
 
     def teardown_class(self):
         # Restore the auto downloading setting
         iers.conf.auto_download = self._auto_download
-
-    def setup_method(self, method):
-        """Run this before every test."""
-        # Ensure no IERS_Auto table is cached from an earlier test, so that
-        # open() actually re-reads the (possibly monkeypatched) bundled file
-        # rather than returning a stale memoized table.
-        iers.IERS_Auto.close()
 
     def teardown_method(self, method):
         """Run this after every test."""
