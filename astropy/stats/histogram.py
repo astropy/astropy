@@ -64,7 +64,11 @@ def calculate_bin_edges(
     # if range is specified, we need to truncate the data for
     # the bin-finding routines
     if range is not None:
-        a = a[(a >= range[0]) & (a <= range[1])]
+        a = np.asarray(a)
+        mask = (a >= range[0]) & (a <= range[1])
+        a = a[mask]
+        if weights is not None:
+            weights = np.asarray(weights)[mask]
 
     # if bins is a string, first compute bin edges with the desired heuristic
     if isinstance(bins, str):
