@@ -1,0 +1,3 @@
+Logarithmic quantities such as ``Magnitude`` no longer fall back to
+``Quantity`` if the physical unit is equivalent but not equal to
+dimensionless.
