@@ -182,3 +182,11 @@ def test_histogram_badargs():
     # bad bins arg gives ValueError
     with pytest.raises(ValueError):
         histogram(x, bins="bad_argument")
+
+
+def test_histogram_range_weights():
+    data = np.array([-10.0, 2.5, 5.0, 7.5, 50.0])
+    weights = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    hist, edges = histogram(data, bins=5, range=(0, 10), weights=weights)
+    assert_allclose(hist, [0.0, 2.0, 3.0, 4.0, 0.0])
+    assert_allclose(edges, [0.0, 2.0, 4.0, 6.0, 8.0, 10.0])
