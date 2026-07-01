@@ -17,7 +17,7 @@ from astropy.coordinates import (
 )
 from astropy.utils import unbroadcast
 
-from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+from .wcs import PRJ_CODES, WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
@@ -399,6 +399,11 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
         ...     celestial_frame_to_wcs(...)
 
     """
+    if projection not in PRJ_CODES:
+        raise ValueError(
+            "Must specify valid projection code from list of supported types: ",
+            ", ".join(PRJ_CODES),
+        )
     for mapping_set in FRAME_WCS_MAPPINGS:
         for func in mapping_set:
             wcs = func(frame, projection=projection)
@@ -1248,41 +1253,7 @@ def fit_wcs_from_points(
     if not use_center_as_proj_point:
         assert proj_point.size == 1
 
-    proj_codes = [
-        "AZP",
-        "SZP",
-        "TAN",
-        "STG",
-        "SIN",
-        "ARC",
-        "ZEA",
-        "AIR",
-        "CYP",
-        "CEA",
-        "CAR",
-        "MER",
-        "SFL",
-        "PAR",
-        "MOL",
-        "AIT",
-        "COP",
-        "COE",
-        "COD",
-        "COO",
-        "BON",
-        "PCO",
-        "TSC",
-        "CSC",
-        "QSC",
-        "HPX",
-        "XPH",
-    ]
     if type(projection) == str:
-        if projection not in proj_codes:
-            raise ValueError(
-                "Must specify valid projection code from list of supported types: ",
-                ", ".join(proj_codes),
-            )
         # empty wcs to fill in with fit values
         wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)
     else:  # if projection is not string, should be wcs object. use as template.

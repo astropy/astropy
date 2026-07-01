@@ -569,6 +569,11 @@ def test_celestial_frame_to_wcs():
         celestial_frame_to_wcs(frame)
 
     frame = ICRS()
+    projection = "ABC"
+    with pytest.raises(ValueError, match="Must specify valid projection code*"):
+        celestial_frame_to_wcs(frame, projection)
+
+    frame = ICRS()
     mywcs = celestial_frame_to_wcs(frame)
     mywcs.wcs.set()
     assert tuple(mywcs.wcs.ctype) == ("RA---TAN", "DEC--TAN")
