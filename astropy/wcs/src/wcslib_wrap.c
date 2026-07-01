@@ -1659,33 +1659,89 @@ Wcsprm_p2s(
    * in place.  The round-trip can therefore be dropped here without
    * changing the transform's output, and concurrent threads no longer
    * race on those raw arrays.
+   *
+   * We must likewise avoid the historical in-place 0->1-based offset of the
+   * caller's pixcrd array: that array may be shared between threads, and the
+   * transient mutation corrupts other threads' results (GH-16244).  When an
+   * offset is needed (origin == 0) we copy the input in bounded-size blocks
+   * into a scratch buffer and offset there, so the extra memory is O(block)
+   * rather than O(ncoord).  When origin == 1 no offset is needed, pixscratch
+   * stays NULL and pixcrd is read directly in a single pass.
    */
-  Py_BEGIN_ALLOW_THREADS
-  preoffset_array(pixcrd, origin);
-  status = wcsp2s(
-      &self->x,
-      ncoord,
-      nelem,
-      (double*)PyArray_DATA(pixcrd),
-      (double*)PyArray_DATA(imgcrd),
-      (double*)PyArray_DATA(phi),
-      (double*)PyArray_DATA(theta),
-      (double*)PyArray_DATA(world),
-      (int*)PyArray_DATA(stat));
-  unoffset_array(pixcrd, origin);
-  /* unoffset_array(world, origin); */
-  unoffset_array(imgcrd, origin);
-  if (status == 8) {
-    set_invalid_to_nan(
-        ncoord, nelem, (double*)PyArray_DATA(imgcrd), (int*)PyArray_DATA(stat));
-    set_invalid_to_nan(
-        ncoord, 1, (double*)PyArray_DATA(phi), (int*)PyArray_DATA(stat));
-    set_invalid_to_nan(
-        ncoord, 1, (double*)PyArray_DATA(theta), (int*)PyArray_DATA(stat));
-    set_invalid_to_nan(
-        ncoord, nelem, (double*)PyArray_DATA(world), (int*)PyArray_DATA(stat));
+  double delta = (origin == 1) ? 0.0 : (double)(1 - origin);
+
+  /* Size the scratch tile at NPY_BUFSIZE bytes, numpy's default buffer size,
+   * so it stays L1-resident (also friendly to threads sharing a cache).  We
+   * pick the number of coordinates per block so that block * nelem doubles fit
+   * in that budget, which keeps the scratch footprint independent of nelem.
+   * Throughput is flat over a wide range, so the exact value is not critical. */
+  const npy_intp block_doubles = NPY_BUFSIZE / (npy_intp)sizeof(double);
+  npy_intp block = ncoord;
+  double* pixscratch = NULL;
+  if (delta != 0.0 && ncoord > 0) {
+    block = block_doubles / nelem;
+    if (block < 1) {
+      block = 1;
+    }
+    if (block > ncoord) {
+      block = ncoord;
+    }
+    pixscratch = (double*)malloc((size_t)block * nelem * sizeof(double));
+    if (pixscratch == NULL) {
+      PyErr_NoMemory();
+      status = -1;
+      goto exit;
+    }
   }
+
+  const double* pix_data = (const double*)PyArray_DATA(pixcrd);
+  double* img_data   = (double*)PyArray_DATA(imgcrd);
+  double* phi_data   = (double*)PyArray_DATA(phi);
+  double* theta_data = (double*)PyArray_DATA(theta);
+  double* world_data = (double*)PyArray_DATA(world);
+  int*    stat_data  = (int*)PyArray_DATA(stat);
+  int     any_invalid = 0;
+
+  Py_BEGIN_ALLOW_THREADS
+  for (npy_intp c = 0; c < ncoord; c += block) {
+    int n = (int)((ncoord - c < block) ? (ncoord - c) : block);
+    const double* src = pix_data + c * nelem;
+    if (pixscratch != NULL) {
+      /* fused copy + offset: one read of the input, one write of scratch */
+      for (npy_intp j = 0; j < (npy_intp)n * nelem; ++j) {
+        pixscratch[j] = src[j] + delta;
+      }
+      src = pixscratch;
+    }
+    status = wcsp2s(
+        &self->x, n, nelem, src,
+        img_data + c * nelem,
+        phi_data + c,
+        theta_data + c,
+        world_data + c * nelem,
+        stat_data + c);
+    if (status == 8) {
+      any_invalid = 1;
+      set_invalid_to_nan(n, nelem, img_data + c * nelem, stat_data + c);
+      set_invalid_to_nan(n, 1, phi_data + c, stat_data + c);
+      set_invalid_to_nan(n, 1, theta_data + c, stat_data + c);
+      set_invalid_to_nan(n, nelem, world_data + c * nelem, stat_data + c);
+      status = 0;
+    } else if (status != 0) {
+      break;
+    }
+  }
+  if (status == 0 && any_invalid) {
+    status = 8;
+  }
+  /* unoffset only the freshly-allocated imgcrd output; the caller's pixcrd is
+   * never modified. */
+  unoffset_array(imgcrd, origin);
   Py_END_ALLOW_THREADS
+
+  if (pixscratch != NULL) {
+    free(pixscratch);
+  }
 
   if (status == 0 || status == 8) {
     // Since the conversion succeeded, if user has requested to preserve units,
