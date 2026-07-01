@@ -1,0 +1,4 @@
+Fixed ``fitsinfo`` crashing with a traceback when run on an LZW-compressed
+``.Z`` file while the optional ``uncompresspy`` dependency is not installed.
+The script now reports a clean error message, matching the behaviour of the
+``fitsdiff`` script.

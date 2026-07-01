@@ -3,6 +3,7 @@
 import pytest
 
 from astropy import __version__ as version
+from astropy.io import fits
 from astropy.io.fits.scripts import fitsinfo
 
 from .conftest import FitsTestCase
@@ -20,6 +21,20 @@ class TestFitsinfo(FitsTestCase):
             out = capsys.readouterr()[0]
             assert out == f"fitsinfo {version}"
         assert e.value.code == 0
+
+    def test_missing_optional_dependency(self, caplog, monkeypatch):
+        # Regression test for #19852: fitsinfo on a .Z file used to raise an
+        # uncaught ``ModuleNotFoundError`` when the optional ``uncompresspy``
+        # dependency was not installed, producing a long traceback instead of a
+        # clean error message.
+        monkeypatch.setattr(fits.file, "HAS_UNCOMPRESSPY", False)
+        Zfile = self.data("lzw.fits.Z")
+
+        fitsinfo.main([Zfile])
+
+        assert any(
+            "uncompresspy" in record.message for record in caplog.records
+        ), f"Expected a clean error mentioning uncompresspy, got: {caplog.records}"
 
     def test_onefile(self, capsys):
         fitsinfo.main([self.data("arange.fits")])
