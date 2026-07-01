@@ -1,0 +1,1 @@
+Fixed a bug in ``MaskedNDArray`` where sliced views lost their mask information when being pickled.
