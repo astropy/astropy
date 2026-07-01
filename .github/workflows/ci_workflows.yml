@@ -54,11 +54,11 @@ jobs:
       contents: none
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         name: Install Python
         with:
           python-version: "3.14"
@@ -69,7 +69,7 @@ jobs:
 
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@e5af21e4ae37af089a73bb032e10b78b0e746174  # v3.0.1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
@@ -136,7 +136,7 @@ jobs:
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@e5af21e4ae37af089a73bb032e10b78b0e746174  # v3.0.1
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -155,7 +155,7 @@ jobs:
 
   stub_tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@e5af21e4ae37af089a73bb032e10b78b0e746174  # v3.0.1
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -174,7 +174,7 @@ jobs:
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@2835f0cacddf3f8de198db9afdb5354a5cebe0ef  # v2.6.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@e5af21e4ae37af089a73bb032e10b78b0e746174  # v3.0.1
     with:
       upload_to_pypi: false
       upload_to_anaconda: false
@@ -201,11 +201,11 @@ jobs:
       - initial_checks
       - lowest-tree-check
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
         name: Install Python
         with:
           python-version: "3.11"
