@@ -31,6 +31,86 @@ def test_oversize_char():
     assert len(w) == 1
 
 
+def test_char_fix_array():
+    config = {"verify": "exception"}
+    field = tree.Field(None, name="c", arraysize="2x2", datatype="char", config=config)
+    c = converters.get_converter(field, config=config)
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], True)
+        == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    )
+
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[False, False], [False, False]])
+        == "FooBarFooBar"
+    )
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[True, False], [True, False]])
+        == "\x00\x00\x00Bar\x00\x00\x00Bar"
+    )
+
+
+def test_char_variable_array():
+    config = {"verify": "exception"}
+    field = tree.Field(None, name="c", arraysize="2x*", datatype="char", config=config)
+    c = converters.get_converter(field, config=config)
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], True)
+        == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    )
+
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[False, False], [False, False]])
+        == "FooBarFooBar"
+    )
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[True, False], [True, False]])
+        == "\x00\x00\x00Bar\x00\x00\x00Bar"
+    )
+
+
+def test_unicodeChar_array():
+    config = {"verify": "exception"}
+    field = tree.Field(
+        None, name="c", arraysize="2x2", datatype="unicodeChar", config=config
+    )
+    c = converters.get_converter(field, config=config)
+    assert (
+        c.output([["áéí", "ÁÉÍ"], ["áéí", "ÁÉÍ"]], True)
+        == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    )
+
+    assert (
+        c.output([["áéí", "ÁÉÍ"], ["áéí", "ÁÉÍ"]], [[False, False], [False, False]])
+        == "áéíÁÉÍáéíÁÉÍ"
+    )
+    assert (
+        c.output([["áéí", "ÁÉÍ"], ["áéí", "ÁÉÍ"]], [[True, False], [True, False]])
+        == "\x00\x00\x00\x00\x00\x00ÁÉÍ\x00\x00\x00\x00\x00\x00ÁÉÍ"
+    )
+
+
+def test_unicodeChar_fix_array():
+    config = {"verify": "exception"}
+    field = tree.Field(
+        None, name="c", arraysize="2x*", datatype="unicodeChar", config=config
+    )
+    c = converters.get_converter(field, config=config)
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], True)
+        == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    )
+
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[False, False], [False, False]])
+        == "FooBarFooBar"
+    )
+    assert (
+        c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[True, False], [True, False]])
+        == "\x00\x00\x00\x00\x00\x00Bar\x00\x00\x00\x00\x00\x00Bar"
+    )
+
+
 def test_char_mask():
     config = {"verify": "exception"}
     field = tree.Field(None, name="c", arraysize="1", datatype="char", config=config)
@@ -114,6 +194,106 @@ def test_unicode_as_char_binary():
         c._binoutput_fixed("zła", False)
 
 
+def test_unicode_as_char_fix_array():
+    config = {"verify": "exception"}
+    field = tree.Field(
+        None, name="unicode_in_char", datatype="char", arraysize="3x2", config=config
+    )
+    c = converters.get_converter(field, config=config)
+
+    # Test parsing.
+    c.parse("XYZABC")  # ASCII succeeds
+    with pytest.warns(
+        exceptions.W55,
+        match=(
+            r'FIELD \(unicode_in_char\) has datatype="char" but contains non-ASCII'
+            r" value"
+        ),
+    ):
+        c.parse("złazła")  # non-ASCII
+
+    # Test output.
+    c.output("XYZABC", False)  # ASCII str succeeds
+    c.output(b"XYZABC", False)  # ASCII bytes succeeds
+    value = "zła zła"
+    value_bytes = value.encode("utf-8")
+    with pytest.warns(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        c.output(value, False)  # non-ASCII str raises
+    with pytest.warns(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        c.output(value_bytes, False)  # non-ASCII bytes raises
+
+
+def test_unicode_as_char_variable_array():
+    config = {"verify": "exception"}
+    field = tree.Field(
+        None, name="unicode_in_char", datatype="char", arraysize="3x*", config=config
+    )
+    c = converters.get_converter(field, config=config)
+
+    # Test parsing.
+    c.parse("XYZABC")  # ASCII succeeds
+    with pytest.warns(
+        exceptions.W55,
+        match=(
+            r'FIELD \(unicode_in_char\) has datatype="char" but contains non-ASCII'
+            r" value"
+        ),
+    ):
+        c.parse("złazła")  # non-ASCII
+
+    # Test output.
+    c.output("XYZABC", False)  # ASCII str succeeds
+    c.output(b"XYZABC", False)  # ASCII bytes succeeds
+    value = "złazła"
+    value_bytes = value.encode("utf-8")
+    with pytest.warns(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        c.output(value, False)  # non-ASCII str raises
+    with pytest.warns(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        c.output(value_bytes, False)  # non-ASCII bytes raises
+
+
+def test_unicode_as_char_binary_fix_array():
+    config = {"verify": "exception"}
+
+    field = tree.Field(
+        None, name="unicode_in_char", datatype="char", arraysize="3x2", config=config
+    )
+    converter = converters.get_converter(field, config=config)
+    converter.binoutput(["abc", "def"], [False, False])  # ASCII succeeds
+    with pytest.raises(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        converter.binoutput(["zła", "zła"], [False, False])
+
+    field = tree.Field(
+        None, name="unicode_in_char", datatype="char", arraysize="3", config=config
+    )
+    converter = converters.get_converter(field, config=config)
+    converter.binoutput("xyz abc", False)
+    with pytest.raises(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        converter.binoutput("zła", False)
+
+
+def test_unicode_as_char_binary_varible_array():
+    config = {"verify": "exception"}
+
+    field = tree.Field(
+        None, name="unicode_in_char", datatype="char", arraysize="3x*", config=config
+    )
+    converter = converters.get_converter(field, config=config)
+    converter.binoutput(
+        np.ma.array(["abc", "def"], mask=[False, False]), False
+    )  # ASCII succeeds
+    with pytest.raises(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        converter.binoutput(np.ma.array(["zła", "zła"], mask=[False, False]), False)
+
+    field = tree.Field(
+        None, name="unicode_in_char", datatype="char", arraysize="3", config=config
+    )
+    converter = converters.get_converter(field, config=config)
+    converter.binoutput("xyz abc", False)
+    with pytest.raises(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        converter.binoutput("zła", False)
+
+
 def test_wrong_number_of_elements():
     config = {"verify": "exception"}
     field = tree.Field(None, name="c", datatype="int", arraysize="2x3*", config=config)
@@ -171,6 +351,20 @@ def test_double_array():
 
     assert_array_equal(a[0], [2, 3, 4])
     assert_array_equal(a[1], False)
+
+    config = {"verify": "exception"}
+    field = tree.Field(
+        None, name="c", arraysize="2x2", datatype="double", config=config
+    )
+    c = converters.get_converter(field, config=config)
+    assert c.output([[1, 2], [3, 4]], [[False, False], [False, False]]) == "1 2 3 4"
+
+    config = {"verify": "exception"}
+    field = tree.Field(
+        None, name="c", arraysize="2x2", datatype="double", config=config
+    )
+    c = converters.get_converter(field, config=config)
+    assert c.output([[1, 2], [3, 4]], [[True, False], [True, True]]) == "NaN 2 NaN NaN"
 
 
 def test_complex_array_vararray():

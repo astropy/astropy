@@ -25,6 +25,7 @@ from .exceptions import (
     E04,
     E05,
     E06,
+    E19,
     E24,
     W01,
     W30,
@@ -65,6 +66,7 @@ files in the wild use them.
 _zero_int = b"\0\0\0\0"
 _empty_bytes = b""
 _zero_byte = b"\0"
+_unicode_null = "\x00"
 
 
 if sys.byteorder == "little":
@@ -282,6 +284,356 @@ class Converter:
         raise NotImplementedError("This datatype must implement a 'binoutput' method.")
 
 
+class Array(Converter):
+    """
+    Handles both fixed and variable-lengths arrays.
+    """
+
+    def __init__(self, field, config=None, pos=None):
+        if config is None:
+            config = {}
+        Converter.__init__(self, field, config, pos)
+        if config.get("verify", "ignore") == "exception":
+            self._splitter = self._splitter_pedantic
+        else:
+            self._splitter = self._splitter_lax
+
+    def parse_scalar(self, value, config=None, pos=0):
+        return self._base.parse_scalar(value, config, pos)
+
+    @staticmethod
+    def _splitter_pedantic(value, config=None, pos=None):
+        return pedantic_array_splitter.split(value)
+
+    @staticmethod
+    def _splitter_lax(value, config=None, pos=None):
+        if "," in value:
+            vo_warn(W01, (), config, pos)
+        return array_splitter.split(value)
+
+    @staticmethod
+    def _splitter_string(value, config=None, pos=None, width=None):
+        if "," in value:
+            vo_warn(W01, (), config, pos)
+
+        if width is None or width <= 0:
+            vo_raise(E19, (width,), config, pos)
+
+        if len(value) % width != 0:
+            vo_raise(E19, (len(value) // width, len(value)), config, pos)
+
+        return [value[i : i + width] for i in range(0, len(value), width)]
+
+
+class VarArray(Array):
+    """
+    Handles variable lengths arrays (i.e. where *arraysize* is '*').
+    """
+
+    format = "O"
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+        Array.__init__(self, field, config)
+
+        self._base = base
+        self.default = np.array([], dtype=self._base.format)
+
+    def output(self, value, mask):
+        output = self._base.output
+        result = [output(x, m) for x, m in np.broadcast(value, mask)]
+        return " ".join(result)
+
+    def binparse(self, read):
+        length = self._parse_length(read)
+
+        result = []
+        result_mask = []
+        binparse = self._base.binparse
+        for i in range(length):
+            val, mask = binparse(read)
+            result.append(val)
+            result_mask.append(mask)
+
+        return _make_masked_array(result, result_mask), False
+
+    def binoutput(self, value, mask):
+        if value is None or len(value) == 0:
+            return _zero_int
+
+        length = len(value)
+        result = [self._write_length(length)]
+        binoutput = self._base.binoutput
+        for x, m in zip(value, value.mask):
+            result.append(binoutput(x, m))
+        return _empty_bytes.join(result)
+
+
+class ArrayVarArray(VarArray):
+    """
+    Handles an array of variable-length arrays, i.e. where *arraysize* ends in '*'.
+    """
+
+    null = None
+
+    def parse(self, value, config=None, pos=None):
+        if value.strip() == "":
+            return ma.array([]), False
+
+        parts = self._splitter(value, config, pos)
+        items = self._base._items
+        parse_parts = self._base.parse_parts
+        if len(parts) % items != 0:
+            vo_raise(E02, (items, len(parts)), config, pos)
+        result = []
+        result_mask = []
+        for i in range(0, len(parts), items):
+            value, mask = parse_parts(parts[i : i + items], config, pos)
+            result.append(value)
+            result_mask.append(mask)
+
+        return _make_masked_array(result, result_mask), False
+
+
+class CharArrayVarArray(ArrayVarArray):
+    """
+    Handles a char array of variable-length arrays, i.e. where *arraysize* ends in '*'.
+    """
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+
+        ArrayVarArray.__init__(self, field, base, arraysize, config, pos)
+
+        self.config = {} if config is None else config
+
+        self._base = base
+        self._orig_arraysize = arraysize
+        shape = list(arraysize)
+
+        self._string_length = shape.pop()
+        self._arraysize = shape
+        self._char_format = f"U{self._string_length:d}"
+        self.field_name = field.name
+        self._splitter = self._splitter_string
+
+    def parse(self, value, config=None, pos=None):
+        if value is None or value.strip() == "":
+            return ma.array([]), False
+
+        parts = self._splitter(value, config, pos, int(self._string_length))
+        items = self._base._items
+        parse_parts = self._base.parse_parts
+        if len(parts) % items != 0:
+            vo_raise(E02, (items, len(parts)), config, pos)
+        result = []
+        result_mask = []
+        for i in range(0, len(parts), items):
+            _value, _mask = parse_parts(parts[i : i + items], config, pos)
+            result.append(_value)
+            result_mask.append(_mask)
+
+        return _make_masked_array(result, result_mask), False
+
+    def output(self, value, mask):
+        output = self._base.output
+        return "".join(output(value, mask))
+
+    def binparse(self, read):
+        items = self._parse_length(read)
+
+        base_items = prod(self._arraysize) if self._arraysize else 1
+        shape = (items // (base_items * self._string_length), *self._arraysize)
+
+        dtype = f"{shape}S{self._string_length:d}"
+
+        memsize = np.dtype(dtype).itemsize
+
+        raw_strings = np.frombuffer(read(memsize), dtype=dtype)[0]
+
+        decoded = []
+        for field in raw_strings.ravel():
+            end = field.find(_zero_byte)
+            if end != -1:
+                field = field[:end]
+            decoded.append(field.tobytes().decode("ascii"))
+
+        result = np.array(
+            decoded,
+            dtype=f"U{self._string_length}",
+        ).reshape(shape)
+
+        return _make_masked_array(result, self._is_null(result)), False
+
+    def _is_null(self, value):
+        return value is None or value == self.null
+
+    def binoutput(self, value, mask):
+
+        if value is None or len(value) == 0:
+            return _zero_int
+
+        filtered = self.filter_array(value, _zero_byte * self._string_length)
+
+        packed = []
+        fmt = f">{self._string_length:d}s"
+        for element in filtered.flat:
+            try:
+                encoded = element.encode("ascii")
+            except UnicodeEncodeError:
+                vo_raise(E24, (value, self.field_name))
+            packed.append(struct.pack(fmt, encoded))
+
+        join_values = b"".join(packed)
+
+        items = filtered.size
+        if (
+            "*" not in self._orig_arraysize
+            and len(join_values) > self._string_length * items
+        ):
+            vo_warn(W46, ("char", self._string_length * items), None, None)
+
+        total_chars = sum(len(s) for s in value.ravel())
+        return self._write_length(total_chars) + join_values
+
+    def filter_array(self, value, filled_value):
+        return value.filled(filled_value)
+
+
+class CharArray(Array):
+    """
+    Handles a fixed-length array of char scalars.
+    """
+
+    vararray_type = CharArrayVarArray
+    null = None
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+        Array.__init__(self, field, config, pos)
+
+        self.field_name = field.name
+        self._base = base
+        self._orig_arraysize = arraysize
+        self._copy_arraysize = list(arraysize)
+
+        self._string_length = self._copy_arraysize.pop()
+        self._arraysize = self._copy_arraysize
+        char_format = f"U{self._string_length:d}"
+        self.format = f"{tuple(self._copy_arraysize)}{char_format}"
+        self.format_2 = f"{tuple(self._copy_arraysize)}S{self._string_length:d}"
+
+        self._items = prod(self._copy_arraysize)
+
+        self.default = np.empty(self._copy_arraysize, dtype=object)
+        self.default[...] = self._base.default
+
+        self._splitter = self._splitter_string
+
+    def parse(self, value, config=None, pos=None):
+
+        config = config or {}
+
+        if config.get("version_1_3_or_later", False) and value == "":
+            return np.zeros(self._arraysize, dtype=self._base.format), True
+
+        parts = self._splitter(value, config, pos, int(self._string_length))
+        if len(parts) != self._items:
+            warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
+        if config.get("verify", "ignore") == "exception":
+            return self.parse_parts(parts, config, pos)
+        else:
+            if len(parts) == self._items:
+                pass
+            elif len(parts) > self._items:
+                parts = parts[: self._items]
+            else:
+                parts = parts + ([self._base.default] * (self._items - len(parts)))
+
+            result, result_mask = self.parse_parts(parts, config, pos)
+            return _make_masked_array(result, result_mask), False
+
+    def parse_parts(self, parts, config=None, pos=None):
+        base_parse = self._base.parse
+        result = []
+        result_mask = []
+        for part in parts:
+            _value, _mask = base_parse(part, config, pos)
+            result.append(_value)
+            result_mask.append(_mask)
+        result = np.array(result, dtype=self._base.format).reshape(self._arraysize)
+        result_mask = np.array(result_mask, dtype="bool").reshape(self._arraysize)
+        return result, result_mask
+
+    def output(self, value, mask):
+        base_output = self._base.output
+        value = np.asarray(value)
+        mask = np.asarray(mask)
+        if mask.size <= 1:
+            func = np.broadcast
+        else:
+            func = zip
+        return "".join(
+            base_output(x, m) if not m else base_output(_unicode_null * len(x), not m)
+            for x, m in func(value.flat, mask.flat)
+        )
+
+    def binparse(self, read):
+
+        expected = np.prod(self._arraysize) * self._string_length
+
+        raw_strings = np.frombuffer(read(expected), dtype=self.format_2)[0]
+
+        decoded = []
+        for field in raw_strings.ravel():
+            end = field.find(_zero_byte)
+            if end != -1:
+                field = field[:end]
+            decoded.append(field.tobytes().decode("ascii"))
+
+        result = np.array(decoded, dtype=f"U{self._string_length}").reshape(
+            self._arraysize
+        )
+
+        return result, self._is_null(result)
+
+    def _is_null(self, value):
+        return value is None or value == self.null
+
+    def binoutput(self, value, mask):
+
+        if value is None or len(value) == 0:
+            vo_raise(E24, (value, self.field_name))
+
+        filtered = self.filter_array(value, mask, _zero_byte * self._string_length)
+
+        packed = []
+        fmt = f">{self._string_length:d}s"
+        for element in filtered.flat:
+            try:
+                encoded = element.encode("ascii")
+            except UnicodeEncodeError:
+                vo_raise(E24, (value, self.field_name))
+            packed.append(struct.pack(fmt, encoded))
+
+        join_values = b"".join(packed)
+        items = filtered.size
+
+        if (
+            "*" not in self._orig_arraysize
+            and len(join_values) > self._string_length * items
+        ):
+            vo_warn(W46, ("char", self._string_length * items), None, None)
+
+        return join_values
+
+    def filter_array(self, value, mask, fill_value):
+        value = np.asarray(value)
+        mask = np.asarray(mask)
+
+        if value.shape != mask.shape:
+            raise ValueError("value and mask must have the same shape")
+
+        return np.where(mask, fill_value, value)
+
+
 class Char(Converter):
     """
     Handles the char datatype. (7-bit unsigned characters).
@@ -289,6 +641,7 @@ class Char(Converter):
     Missing values are not handled for string or unicode types.
     """
 
+    array_type = CharArray
     default = _empty_bytes
 
     def __init__(self, field, config=None, pos=None):
@@ -311,23 +664,31 @@ class Char(Converter):
         else:
             # Check if this is a bounded variable-length field
             is_variable = field.arraysize.endswith("*")
-            numeric_part = field.arraysize.removesuffix("*")
-            try:
-                self.arraysize = int(numeric_part)
-            except ValueError:
-                vo_raise(E01, (numeric_part, "char", field.ID), config)
+            numeric_part = field.arraysize.removesuffix("*").removesuffix("x")
 
-            self.format = f"U{self.arraysize:d}"
+            if "x" not in field.arraysize:
+                try:
+                    self.arraysize = int(numeric_part)
+                except ValueError:
+                    vo_raise(E01, (numeric_part, "char", field.ID), config)
 
-            # For bounded variable-length fields use the variable methods
-            if is_variable:
-                self.binparse = self._binparse_var
-                self.binoutput = self._binoutput_var
+                self.format = f"U{self.arraysize:d}"
+
+                # For bounded variable-length fields use the variable methods
+                if is_variable:
+                    self.binparse = self._binparse_var
+                    self.binoutput = self._binoutput_var
+                else:
+                    self.binparse = self._binparse_fixed
+                    self.binoutput = self._binoutput_fixed
+
+                self._struct_format = f">{self.arraysize:d}s"
             else:
-                self.binparse = self._binparse_fixed
-                self.binoutput = self._binoutput_fixed
-
-            self._struct_format = f">{self.arraysize:d}s"
+                arraysize = [
+                    int(x) for x in numeric_part.split("x") if x not in ("", "*")
+                ]
+                self.arraysize = arraysize[0]
+                self.format = f"U{arraysize[0]:d}"
 
     def supports_empty_values(self, config):
         return True
@@ -386,24 +747,278 @@ class Char(Converter):
             return _zero_int
         if isinstance(value, str):
             try:
-                value = value.encode("ascii")
+                encoded = value.encode("ascii")
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
 
-        if self.arraysize != "*" and len(value) > self.arraysize:
+        if self.arraysize != "*" and len(encoded) > self.arraysize:
             vo_warn(W46, ("char", self.arraysize), None, None)
 
-        return self._write_length(len(value)) + value
+        return self._write_length(len(encoded)) + encoded
 
     def _binoutput_fixed(self, value, mask):
         if mask:
-            value = _empty_bytes
+            encoded = _empty_bytes
         elif isinstance(value, str):
             try:
-                value = value.encode("ascii")
+                encoded = value.encode("ascii")
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
-        return struct.pack(self._struct_format, value)
+        return struct.pack(self._struct_format, encoded)
+
+
+class UnicodeArrayVarArray(ArrayVarArray):
+    """
+    Handles a unicodeChar array of variable-length arrays, i.e. where *arraysize* ends in '*'.
+    """
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+
+        ArrayVarArray.__init__(self, field, base, arraysize, config, pos)
+
+        self.config = {} if config is None else config
+        self.pos = pos
+        self._base = base
+        self._orig_arraysize = arraysize
+        shape = list(arraysize)
+
+        self._string_length = shape.pop()
+        self._arraysize = shape
+        self._char_format = f"U{self._string_length:d}"
+        self.field_name = field.name
+        self._splitter = self._splitter_string
+
+    def parse(self, value, config=None, pos=None):
+        if value.strip() == "":
+            return ma.array([]), False
+
+        parts = self._splitter(value, config, pos, int(self._string_length))
+        items = self._base._items
+        parse_parts = self._base.parse_parts
+        if len(parts) % items != 0:
+            vo_raise(E02, (items, len(parts)), config, pos)
+        result = []
+        result_mask = []
+        for i in range(0, len(parts), items):
+            _value, _mask = parse_parts(parts[i : i + items], config, pos)
+            result.append(_value)
+            result_mask.append(_mask)
+
+        return _make_masked_array(result, result_mask), False
+
+    def output(self, value, mask):
+        output = self._base.output
+        return "".join(output(value, mask))
+
+    def binparse(self, read):
+        items = self._parse_length(read)
+
+        base_items = prod(self._arraysize) if self._arraysize else 1
+        shape = (items // (base_items * self._string_length), *self._arraysize)
+
+        expected_chars = items
+        byte_count = expected_chars * 2  # utf-16 = 2 bytes per code unit
+
+        raw_strings = np.frombuffer(read(byte_count), dtype=">u2")
+
+        if raw_strings.size != expected_chars:
+            vo_raise(E19, (expected_chars, raw_strings.size), self.config, self.pos)
+
+        strings = np.array(
+            [
+                s.tobytes().decode("utf-16-be")
+                for s in raw_strings.reshape(-1, self._string_length)
+            ],
+            dtype=f"U{self._string_length}",
+        )
+
+        result = strings.reshape(shape)
+
+        for i, s in enumerate(result.ravel()):
+            end = s.find(_unicode_null)
+            if end != -1:
+                result[i] = s[:end]
+
+        return _make_masked_array(result, self._is_null(result)), False
+
+    def _is_null(self, value):
+        return value is None or value == self.null
+
+    def binoutput(self, value, mask):
+
+        if value is None or value.size == 0:
+            return _zero_int
+
+        filtered = self.filter_array(value, _zero_byte * self._string_length * 2)
+
+        packed = []
+        fmt = f">{2 * self._string_length:d}s"
+        for element in filtered.flat:
+            try:
+                encoded = element.encode("utf-16-be")
+            except UnicodeEncodeError:
+                vo_raise(E24, (value, self.field_name))
+            packed.append(struct.pack(fmt, encoded))
+
+        join_values = b"".join(packed)
+        items = filtered.size
+        if (
+            "*" not in self._orig_arraysize
+            and len(join_values) > 2 * self._string_length * items
+        ):
+            vo_warn(W46, ("unicodeChar", self._string_length * items), None, None)
+
+        total_chars = sum(len(s) for s in value.ravel())
+        return self._write_length(total_chars) + join_values
+
+    def filter_array(self, value, filled_value):
+        return value.filled(filled_value)
+
+
+class UnicodeArray(Array):
+    """
+    Handles a fixed-length array of unicodeChar scalars.
+    """
+
+    vararray_type = UnicodeArrayVarArray
+    null = None
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+        Array.__init__(self, field, config, pos)
+
+        self.field_name = field.name
+        self._base = base
+        self._orig_arraysize = arraysize
+        shape = list(arraysize)
+
+        self._string_length = shape.pop()
+        self._arraysize = shape
+        char_format = f"U{self._string_length:d}"
+        self.format = f"{tuple(self._arraysize)}{char_format}"
+        self.format_2 = f"{tuple(self._arraysize)}{self._string_length:d}u2"
+
+        self._items = prod(self._arraysize)
+
+        self.default = np.empty(self._arraysize, dtype=object)
+        self.default[...] = self._base.default
+
+        self._splitter = self._splitter_string
+
+    def parse(self, value, config=None, pos=None):
+
+        config = config or {}
+
+        if config["version_1_3_or_later"] and value == "":
+            return np.zeros(self._arraysize, dtype=self._base.format), True
+
+        parts = self._splitter(value, config, pos, int(self._string_length))
+        if len(parts) != self._items:
+            warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
+        if config.get("verify", "ignore") == "exception":
+            return self.parse_parts(parts, config, pos)
+        else:
+            if len(parts) == self._items:
+                pass
+            elif len(parts) > self._items:
+                parts = parts[: self._items]
+            else:
+                parts = parts + ([self._base.default] * (self._items - len(parts)))
+
+            value, mask = self.parse_parts(parts, config, pos)
+            return _make_masked_array(value, mask), False
+
+    def parse_parts(self, parts, config=None, pos=None):
+        base_parse = self._base.parse
+        result = []
+        result_mask = []
+        for x in parts:
+            value, mask = base_parse(x, config, pos)
+            result.append(value)
+            result_mask.append(mask)
+        result = np.array(result, dtype=self._base.format).reshape(self._arraysize)
+        result_mask = np.array(result_mask, dtype="bool").reshape(self._arraysize)
+        return result, result_mask
+
+    def output(self, value, mask):
+        base_output = self._base.output
+        value = np.asarray(value)
+        mask = np.asarray(mask)
+        if mask.size <= 1:
+            func = np.broadcast
+        else:
+            func = zip
+        return "".join(
+            base_output(x, m)
+            if not m
+            else base_output(_unicode_null * 2 * len(x), not m)
+            for x, m in func(value.flat, mask.flat)
+        )
+
+    def binparse(self, read):
+        byte_count = np.prod(self._arraysize) * self._string_length
+
+        raw_strings = np.frombuffer(read(byte_count * 2), dtype=">u2")
+
+        if raw_strings.size != byte_count:
+            vo_raise(E19, (byte_count, raw_strings.size), self.config, self.pos)
+
+        strings = np.array(
+            [
+                s.tobytes().decode("utf-16-be")
+                for s in raw_strings.reshape(-1, self._string_length)
+            ],
+            dtype=f"U{self._string_length}",
+        )
+
+        for i, s in enumerate(strings):
+            end = s.find(_unicode_null)
+            if end != -1:
+                strings[i] = s[:end]
+
+        result = strings.reshape(self._arraysize)
+
+        return result, self._is_null(result)
+
+    def _is_null(self, value):
+        return value is None or value == self.null
+
+    def binoutput(self, value, mask):
+
+        if value is None or len(value) == 0:
+            vo_raise(E24, (value, self.field_name))
+
+        filtered = self.filter_array(
+            value, mask, _unicode_null * self._string_length * 2
+        )
+
+        packed = []
+        fmt = f">{2 * self._string_length:d}s"
+        for element in filtered.flat:
+            try:
+                encoded = element.encode("utf-16-be")
+            except UnicodeEncodeError:
+                vo_raise(E24, (value, self.field_name))
+            packed.append(struct.pack(fmt, encoded))
+
+        join_values = b"".join(packed)
+        items = filtered.size
+
+        if (
+            "*" not in self._orig_arraysize
+            and len(join_values) > 2 * self._string_length * items
+        ):
+            vo_warn(W46, ("unicodeChar", self._string_length * items), None, None)
+
+        return join_values
+
+    def filter_array(self, value, mask, fill_value):
+        value = np.asarray(value)
+        mask = np.asarray(mask)
+
+        if value.shape != mask.shape:
+            vo_raise(E19, (value.shape, mask.shape), self.config, self.pos)
+
+        return np.where(mask, fill_value, value)
 
 
 class UnicodeChar(Converter):
@@ -413,9 +1028,13 @@ class UnicodeChar(Converter):
     Missing values are not handled for string or unicode types.
     """
 
+    array_type = UnicodeArray
     default = ""
 
     def __init__(self, field, config=None, pos=None):
+        if config is None:
+            config = {}
+
         Converter.__init__(self, field, config, pos)
 
         if field.arraysize is None:
@@ -430,22 +1049,31 @@ class UnicodeChar(Converter):
         else:
             # Check if this is a bounded variable-length field
             is_variable = field.arraysize.endswith("*")
-            numeric_part = field.arraysize.removesuffix("*")
-            try:
-                self.arraysize = int(numeric_part)
-            except ValueError:
-                vo_raise(E01, (numeric_part, "unicode", field.ID), config)
+            numeric_part = field.arraysize.removesuffix("*").removesuffix("x")
 
-            self.format = f"U{self.arraysize:d}"
+            if "x" not in field.arraysize:
+                try:
+                    self.arraysize = int(numeric_part)
+                except ValueError:
+                    vo_raise(E01, (numeric_part, "unicode", field.ID), config)
 
-            if is_variable:
-                self.binparse = self._binparse_var
-                self.binoutput = self._binoutput_var
+                self.format = f"U{self.arraysize:d}"
+
+                if is_variable:
+                    self.binparse = self._binparse_var
+                    self.binoutput = self._binoutput_var
+                else:
+                    self.binparse = self._binparse_fixed
+                    self.binoutput = self._binoutput_fixed
+
+                self._struct_format = f">{self.arraysize * 2:d}s"
+
             else:
-                self.binparse = self._binparse_fixed
-                self.binoutput = self._binoutput_fixed
-
-            self._struct_format = f">{self.arraysize * 2:d}s"
+                arraysize = [
+                    int(x) for x in numeric_part.split("x") if x not in ("", "*")
+                ]
+                self.arraysize = arraysize[0]
+                self.format = f"U{arraysize[0]:d}"
 
     def parse(self, value, config=None, pos=None):
         if self.arraysize != "*" and len(value) > self.arraysize:
@@ -463,11 +1091,11 @@ class UnicodeChar(Converter):
         if self.arraysize != "*" and length > self.arraysize:
             vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
 
-        return read(length * 2).decode("utf_16_be"), False
+        return read(length * 2).decode("utf-16-be"), False
 
     def _binparse_fixed(self, read):
         s = struct.unpack(self._struct_format, read(self.arraysize * 2))[0]
-        s = s.decode("utf_16_be")
+        s = s.decode("utf-16-be")
         end = s.find("\0")
         if end != -1:
             return s[:end], False
@@ -481,110 +1109,14 @@ class UnicodeChar(Converter):
             vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
             value = value[: self.arraysize]
 
-        encoded = value.encode("utf_16_be")
+        encoded = value.encode("utf-16-be")
 
         return self._write_length(len(encoded) // 2) + encoded
 
     def _binoutput_fixed(self, value, mask):
         if mask:
             value = ""
-        return struct.pack(self._struct_format, value.encode("utf_16_be"))
-
-
-class Array(Converter):
-    """
-    Handles both fixed and variable-lengths arrays.
-    """
-
-    def __init__(self, field, config=None, pos=None):
-        if config is None:
-            config = {}
-        Converter.__init__(self, field, config, pos)
-        if config.get("verify", "ignore") == "exception":
-            self._splitter = self._splitter_pedantic
-        else:
-            self._splitter = self._splitter_lax
-
-    def parse_scalar(self, value, config=None, pos=0):
-        return self._base.parse_scalar(value, config, pos)
-
-    @staticmethod
-    def _splitter_pedantic(value, config=None, pos=None):
-        return pedantic_array_splitter.split(value)
-
-    @staticmethod
-    def _splitter_lax(value, config=None, pos=None):
-        if "," in value:
-            vo_warn(W01, (), config, pos)
-        return array_splitter.split(value)
-
-
-class VarArray(Array):
-    """
-    Handles variable lengths arrays (i.e. where *arraysize* is '*').
-    """
-
-    format = "O"
-
-    def __init__(self, field, base, arraysize, config=None, pos=None):
-        Array.__init__(self, field, config)
-
-        self._base = base
-        self.default = np.array([], dtype=self._base.format)
-
-    def output(self, value, mask):
-        output = self._base.output
-        result = [output(x, m) for x, m in np.broadcast(value, mask)]
-        return " ".join(result)
-
-    def binparse(self, read):
-        length = self._parse_length(read)
-
-        result = []
-        result_mask = []
-        binparse = self._base.binparse
-        for i in range(length):
-            val, mask = binparse(read)
-            result.append(val)
-            result_mask.append(mask)
-
-        return _make_masked_array(result, result_mask), False
-
-    def binoutput(self, value, mask):
-        if value is None or len(value) == 0:
-            return _zero_int
-
-        length = len(value)
-        result = [self._write_length(length)]
-        binoutput = self._base.binoutput
-        for x, m in zip(value, value.mask):
-            result.append(binoutput(x, m))
-        return _empty_bytes.join(result)
-
-
-class ArrayVarArray(VarArray):
-    """
-    Handles an array of variable-length arrays, i.e. where *arraysize*
-    ends in '*'.
-    """
-
-    def parse(self, value, config=None, pos=None):
-        if value.strip() == "":
-            return ma.array([]), False
-
-        parts = self._splitter(value, config, pos)
-        items = self._base._items
-        parse_parts = self._base.parse_parts
-        if len(parts) % items != 0:
-            vo_raise(E02, (items, len(parts)), config, pos)
-        result = []
-        result_mask = []
-        for i in range(0, len(parts), items):
-            value, mask = parse_parts(parts[i : i + items], config, pos)
-            result.append(value)
-            result_mask.append(mask)
-
-        return _make_masked_array(result, result_mask), False
+        return struct.pack(self._struct_format, value.encode("utf-16-be"))
 
 
 class ScalarVarArray(VarArray):
@@ -1373,7 +1905,7 @@ def get_converter(field, config=None, pos=None):
 
     # With numeric datatypes, special things need to happen for
     # arrays.
-    if field.datatype not in ("char", "unicodeChar") and arraysize is not None:
+    if arraysize is not None:
         if arraysize[-1] == "*":
             arraysize = arraysize[:-1]
             last_x = arraysize.rfind("x")
@@ -1386,16 +1918,21 @@ def get_converter(field, config=None, pos=None):
             fixed = True
 
         if arraysize != "":
-            arraysize = [int(x) for x in arraysize.split("x")]
-            arraysize.reverse()
+            if "x" in arraysize:
+                arraysize = [int(x) for x in arraysize.split("x")]
+                arraysize.reverse()
+            else:
+                arraysize = [int(arraysize)]
+
         else:
             arraysize = []
 
-        if arraysize != []:
-            converter = converter.array_type(field, converter, arraysize, config)
+        if field.datatype not in ("char", "unicodeChar") or "x" in field.arraysize:
+            if arraysize != []:
+                converter = converter.array_type(field, converter, arraysize, config)
 
-        if not fixed:
-            converter = converter.vararray_type(field, converter, arraysize, config)
+            if not fixed:
+                converter = converter.vararray_type(field, converter, arraysize, config)
 
     return converter
 
@@ -1508,6 +2045,10 @@ def table_column_to_votable_datatype(column):
         # Check if we have stored the original arraysize with bounds
         # If so, extract the max length
         original_arraysize = column.info.meta.get("_votable_arraysize")
+
+    if column.dtype.char == "O":
+        arraysize = "*"
+
         if (
             original_arraysize is not None
             and original_arraysize.endswith("*")
@@ -1515,12 +2056,18 @@ def table_column_to_votable_datatype(column):
         ):
             max_length = original_arraysize[:-1]
 
-    if column.dtype.char == "O":
-        arraysize = "*"
+        if max_length is not None and max_length.endswith("x"):
+            max_length = max_length[:-1]
 
         # If max length is stored use it to create a bounded var-length array
         if max_length is not None:
-            arraysize = f"{max_length}*"
+            if votable_string_dtype is not None and votable_string_dtype in (
+                "char",
+                "unicodeChar",
+            ):
+                arraysize = f"{original_arraysize}"
+            else:
+                arraysize = f"{max_length}*"
 
         if votable_string_dtype is not None:
             return {"datatype": votable_string_dtype, "arraysize": arraysize}
