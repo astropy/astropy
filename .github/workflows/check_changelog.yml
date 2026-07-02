@@ -1,6 +1,7 @@
 name: Check PR change log
 
 on:
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize, labeled, unlabeled]
 

@@ -4,6 +4,7 @@
 name: Auto-update credits
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 6 * * 1'  # Weekly
   pull_request:
@@ -15,7 +16,6 @@ on:
       - 'docs/credits.rst'
       - 'docs/whatsnew/*.rst'
       - '.mailmap'
-  workflow_dispatch:
 
 permissions:
   contents: read
