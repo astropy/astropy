@@ -343,7 +343,7 @@ class TestImageFunctions(FitsTestCase):
                 # with all changes made up to now, to a new file.  This method
                 # works the same disregard the mode the HDUList was opened
                 # with.
-                u.append(r[3])
+                u.append(r[3].copy())
                 u.writeto(self.temp("test_new.fits"))
             del u
 
