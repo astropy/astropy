@@ -19,7 +19,7 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import metadata
-from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 from astropy.utils.masked import Masked
 
 from . import _np_utils
@@ -369,6 +369,7 @@ def join(
     table_names=["1", "2"],
     metadata_conflicts="warn",
     join_funcs=None,
+    engine="astropy",
 ):
     """
     Perform a join of the left table with the right table on specified keys.
@@ -454,6 +455,7 @@ def join(
             join_funcs,
             keys_left=keys_left,
             keys_right=keys_right,
+            engine=engine,
         )
         if sort_table is not None:
             # Sort joined table to the original order and remove the temporary column.
@@ -1099,8 +1101,14 @@ def _get_join_sort_idxs(keys, left, right):
         sortable_table[key][:len_left] = sort_left[key]
         sortable_table[key][len_left:] = sort_right[key]
 
-    # Finally do the (lexical) argsort and make a new sorted version
-    idx_sort = sortable_table.argsort(order=sort_keys)
+    # Finally do the argsort and make a new sorted version. For a single key it is much
+    # faster to argsort the column directly instead of a lexical sort using a structured
+    # array. In this case force a (slightly slower) stable sort for back-compatibility
+    # with the original behavior from argsort(order=sort_keys).
+    if len(sort_keys) == 1:
+        idx_sort = np.argsort(sortable_table[sort_keys[0]], kind="stable")
+    else:
+        idx_sort = sortable_table.argsort(order=sort_keys)
     sorted_table = sortable_table[idx_sort]
 
     # Get indexes of unique elements (i.e. the group boundaries)
@@ -1141,6 +1149,7 @@ def _join(
     join_funcs=None,
     keys_left=None,
     keys_right=None,
+    engine="astropy",
 ):
     """
     Perform a join of the left and right Tables on specified keys.
@@ -1170,6 +1179,10 @@ def _join(
     join_funcs : dict, None
         Dict of functions to use for matching the corresponding key column(s).
         See `~astropy.table.join_skycoord` for an example and details.
+    engine : str
+        The engine to use for the join.  The default is 'astropy' which uses
+        the implementation in this module.  The other option is 'pandas' which uses
+        the pandas library.  The pandas engine is typically faster for large tables.
 
     Returns
     -------
@@ -1246,10 +1259,16 @@ def _join(
     if len_left == 0 or len_right == 0:
         raise ValueError("input tables for join must both have at least one row")
 
-    try:
-        idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
-    except NotImplementedError:
-        raise TypeError("one or more key columns are not sortable")
+    if engine == "astropy":
+        compute_join_indices = _compute_join_indices_astropy
+    elif engine == "pandas":
+        compute_join_indices = _compute_join_indices_pandas
+    else:
+        raise ValueError(f"Invalid join engine: {engine!r}")
+
+    masked, n_out, left_out, left_mask, right_out, right_mask = compute_join_indices(
+        left, right, keys, join_type, len_left
+    )
 
     # Now that we have idxs and idx_sort, revert to the original table args to
     # carry on with making the output joined table. `keys` is set to an empty
@@ -1263,15 +1282,6 @@ def _join(
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
     col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
     out_descrs = get_descrs([left, right], col_name_map)
-
-    # Main inner loop in Cython to compute the cartesian product
-    # indices for the given join type
-    int_join_type = {"inner": 0, "outer": 1, "left": 2, "right": 3, "cartesian": 1}[
-        join_type
-    ]
-    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-        idxs, idx_sort, len_left, int_join_type
-    )
 
     out = _get_out_class([left, right])()
 
@@ -1345,6 +1355,131 @@ def _join(
         out[out_name] = col
 
     return out
+
+
+def _compute_join_indices_astropy(left, right, keys, join_type, len_left):
+    """Compute row index arrays and masks for joins using the astropy engine.
+
+    This helper sorts the concatenated join keys from ``left`` and ``right`` to
+    identify matching groups, then delegates to ``_np_utils.join_inner`` to
+    build output row indices and masks for the requested join type.
+
+    Parameters
+    ----------
+    left : Table
+        Left input table.
+    right : Table
+        Right input table.
+    keys : tuple[str]
+        Join key column names.
+    join_type : {'inner', 'outer', 'left', 'right', 'cartesian'}
+        Requested join type.
+    len_left : int
+        Number of rows in ``left``.
+
+    Returns
+    -------
+    masked : bool
+        Whether any output columns require masking due to missing side rows.
+    n_out : int
+        Number of output rows.
+    left_out : ndarray
+        Row indices into ``left`` for each output row.
+    left_mask : ndarray
+        Boolean mask indicating output rows without a matching ``left`` row.
+    right_out : ndarray
+        Row indices into ``right`` for each output row.
+    right_mask : ndarray
+        Boolean mask indicating output rows without a matching ``right`` row.
+    """
+    try:
+        idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
+    except NotImplementedError:
+        raise TypeError("one or more key columns are not sortable")
+        # Main inner loop in Cython to compute the cartesian product
+        # indices for the given join type
+    int_join_type = {"inner": 0, "outer": 1, "left": 2, "right": 3, "cartesian": 1}[
+        join_type
+    ]
+    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+        idxs, idx_sort, len_left, int_join_type
+    )
+
+    return masked, n_out, left_out, left_mask, right_out, right_mask
+
+
+def _compute_join_indices_pandas(left, right, keys, join_type, len_left):
+    """Compute row index arrays and masks for joins using the pandas engine.
+
+    This helper uses pandas.merge() to do the work. It is typically faster than the
+    astropy engine for large tables, but requires the pandas library.
+
+    Parameters
+    ----------
+    left : Table
+        Left input table.
+    right : Table
+        Right input table.
+    keys : tuple[str]
+        Join key column names.
+    join_type : {'inner', 'outer', 'left', 'right', 'cartesian'}
+        Requested join type.
+    len_left : int
+        Number of rows in ``left``.
+
+    Returns
+    -------
+    masked : bool
+        Whether any output columns require masking due to missing side rows.
+    n_out : int
+        Number of output rows.
+    left_out : ndarray
+        Row indices into ``left`` for each output row.
+    left_mask : ndarray
+        Boolean mask indicating output rows without a matching ``left`` row.
+    right_out : ndarray
+        Row indices into ``right`` for each output row.
+    right_mask : ndarray
+        Boolean mask indicating output rows without a matching ``right`` row.
+    """
+    if not HAS_PANDAS:
+        raise ImportError("pandas library is required for pandas join engine")
+    import pandas as pd
+
+    # Make a light copy of left and right with only `keys` columns
+    left = left.copy(copy_data=False)
+    right = right.copy(copy_data=False)
+    # Remove all columns in each new table that are not in keys using remove_columns()
+    for tbl in (left, right):
+        remove_colnames = [col for col in tbl.colnames if col not in keys]
+        if remove_colnames:
+            tbl.remove_columns(remove_colnames)
+
+    left_pd = left.to_pandas()
+    left_pd["idx_left"] = pd.Series(np.arange(len(left_pd)), dtype=pd.Int64Dtype())
+    right_pd = right.to_pandas()
+    right_pd["idx_right"] = pd.Series(np.arange(len(right_pd)), dtype=pd.Int64Dtype())
+
+    # Cartesian join is handled differently in pandas
+    kwargs = (
+        {"how": "cross"} if join_type == "cartesian" else {"on": keys, "how": join_type}
+    )
+
+    merged = pd.merge(
+        left_pd,
+        right_pd,
+        sort=False,
+        **kwargs,
+    )
+
+    left_out = np.asarray(merged["idx_left"].fillna(0))
+    right_out = np.asarray(merged["idx_right"].fillna(0))
+    left_mask = merged["idx_left"].isna().values
+    right_mask = merged["idx_right"].isna().values
+    masked = right_mask.any() or left_mask.any()
+    n_out = len(merged)
+
+    return masked, n_out, left_out, left_mask, right_out, right_mask
 
 
 def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):
