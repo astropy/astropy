@@ -215,12 +215,21 @@ You can iterate over the group subtables and corresponding keys with::
    M31 2012-01-02  17.0  17.5
    M31 2012-01-02  17.1  17.4
    M31 2012-02-14  16.9  17.3
-  ****** M82 *******
+   ****** M82 *******
   name  obs_date  mag_b mag_v
   ---- ---------- ----- -----
    M82 2012-02-14  16.2  14.5
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
+
+You can also access a specific group by its key using the :meth:`~astropy.table.groups.TableGroups.get_group` method::
+
+  >>> print(obs_by_name.groups.get_group("M31"))
+  name  obs_date  mag_b mag_v
+  ---- ---------- ----- -----
+   M31 2012-01-02  17.0  17.5
+   M31 2012-01-02  17.1  17.4
+   M31 2012-02-14  16.9  17.3
 
 .. EXAMPLE END
 
