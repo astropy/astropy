@@ -6,12 +6,7 @@ from pathlib import Path
 
 import astropy.io.registry as io_registry
 from astropy.table import Table
-from astropy.utils.compat.optional_deps import (
-    HAS_BS4,
-    HAS_HTML5LIB,
-    HAS_LXML,
-    HAS_PANDAS,
-)
+from astropy.utils.compat.optional_deps import HAS_PANDAS
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
 __all__ = ["PANDAS_FMTS"]
@@ -41,14 +36,6 @@ def _pandas_read(fmt, filespec, **kwargs):
     # Get defaults and then override with user-supplied values
     read_kwargs = PANDAS_FMTS[pandas_fmt]["read"].copy()
     read_kwargs.update(kwargs)
-
-    # Special case: pandas defaults to HTML lxml for reading, but does not attempt
-    # to fall back to bs4 + html5lib.  So do that now for convenience if user has
-    # not specifically selected a flavor.  If things go wrong the pandas exception
-    # with instruction to install a library will come up.
-    if pandas_fmt == "html" and "flavor" not in kwargs:
-        if not HAS_LXML and HAS_HTML5LIB and HAS_BS4:
-            read_kwargs["flavor"] = "bs4"
 
     df = read_func(filespec, **read_kwargs)
 

@@ -64,21 +64,25 @@ recommended = [
 ipython = [
     "ipython>=8.1.0",
 ]
+pandas = [
+    "pandas[html]>=2.2.2", # keep in sync with astropy[typing]
+]
 jupyter = [  # these are optional dependencies for utils.console and table
     "astropy[ipython]",
+    "astropy[pandas]",
     "ipywidgets>=7.7.3",
     "ipykernel>=6.16.0",
     "ipydatagrid>=1.1.13",
     # jupyter-core is a transitive dependency via ipykernel, we declare it as
     # a direct dependency in order to set a lower bound for oldest-deps testing
     "jupyter-core>=4.11.2",
-    "pandas>=2.2.2",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
     # Install grouped optional dependencies
     "astropy[recommended]",
     "astropy[ipython]",
+    "astropy[pandas]",
     "astropy[jupyter]",
     # Install all remaining optional dependencies
     "certifi>=2022.6.15.1",
@@ -86,7 +90,6 @@ all = [
     "h5py>=3.11.0",
     "pyarrow>=16.0",
     "beautifulsoup4>=4.11.2", # imposed by pandas==2.2.2
-    "html5lib>=1.1",
     "bleach>=3.2.1",
     "sortedcontainers>=2.1.0", # imposed by testing with hypothesis
     "pytz>=2016.10", # (older versions may work)
@@ -129,7 +132,7 @@ test_all = [
     "numpy-quaddtype>=0.2.2",
 ]
 typing = [
-    "pandas-stubs>=2.0.2",
+    "pandas-stubs>=2.2.2", # keep in sync with astropy[pandas]
     "scipy-stubs>=1.14.1.6",
     "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
 ]
@@ -180,9 +183,9 @@ dataframe = [
     # keep in sync with project.optional-dependencies.recommended
     # and project.optional-dependencies.all
     # and project.optional-dependencies.typing
+    "astropy[pandas]",
     "narwhals>=1.42.0",
     "pyarrow>=16.0",
-    "pandas>=2.2.2",
     "polars>=1.18.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0", # keep in sync with other declarations
