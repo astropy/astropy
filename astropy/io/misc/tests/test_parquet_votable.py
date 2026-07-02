@@ -1,17 +1,23 @@
 import copy
+import warnings
 
 import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.io.misc.parquet import read_parquet_votable, write_parquet_votable
+from astropy.io.misc.parquet import (
+    read_parquet_votable,
+    read_table_parquet,
+    write_parquet_votable,
+)
 from astropy.table import Table
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 # Skip all tests in this file if we cannot import pyarrow
-pyarrow = pytest.importorskip("pyarrow")
+pa = pytest.importorskip("pyarrow")
+pq = pytest.importorskip("pyarrow.parquet")
 
 
 number_of_objects = 10
@@ -59,8 +65,7 @@ def test_parquet_votable(tmp_path):
 
     write_parquet_votable(input_table, filename, metadata=column_metadata)
 
-    with pytest.warns(AstropyUserWarning, match="No table::len"):
-        loaded_table = read_parquet_votable(filename)
+    loaded_table = read_parquet_votable(filename)
 
     # Compare data content, but not metadata (input had none)
     assert np.all(input_table == loaded_table)
@@ -81,8 +86,7 @@ def test_parquet_votable_input_column_unit(overwrite_metadata, tmp_path):
         overwrite_metadata=overwrite_metadata,
     )
 
-    with pytest.warns(AstropyUserWarning, match="No table::len"):
-        loaded_table = read_parquet_votable(filename)
+    loaded_table = read_parquet_votable(filename)
 
     # Compare data content
     assert np.all(modified_input == loaded_table)
@@ -102,8 +106,7 @@ def test_parquet_votable_input_column_metadata(tmp_path):
     modified_input["mass"].meta["foo"] = "bar"
     write_parquet_votable(modified_input, filename, metadata=column_metadata)
 
-    with pytest.warns(AstropyUserWarning, match="No table::len"):
-        loaded_table = read_parquet_votable(filename)
+    loaded_table = read_parquet_votable(filename)
 
     assert "foo" in loaded_table["mass"].meta
     assert loaded_table["mass"].meta["foo"] == "bar"
@@ -118,8 +121,7 @@ def test_parquet_votable_input_metadata(tmp_path):
     modified_input.meta["table_foo"] = "table_bar"
     write_parquet_votable(modified_input, filename, metadata=column_metadata)
 
-    with pytest.warns(AstropyUserWarning, match="No table::len"):
-        loaded_table = read_parquet_votable(filename)
+    loaded_table = read_parquet_votable(filename)
 
     assert "table_foo" in loaded_table.meta
     assert loaded_table.meta["table_foo"] == "table_bar"
@@ -133,6 +135,11 @@ def test_compare_parquet_votable(tmp_path):
 
     with pytest.warns(AstropyUserWarning, match="No table::len"):
         parquet_table = Table.read(filename, format="parquet")
+
+    # VOParquet read derives string lengths from the embedded VOTable XML,
+    # so no warning should be emitted.
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyUserWarning)
         parquet_votable = Table.read(filename, format="parquet.votable")
 
     assert len(parquet_table["sfr"].meta) == 0
@@ -198,3 +205,134 @@ def test_read_write_existing(tmp_path):
 
     with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
         write_parquet_votable(input_table, filename, metadata=column_metadata)
+
+
+def _write_voparquet(path, data, votable_xml):
+    """Write a minimal VOParquet file using pyarrow directly.
+
+    This bypasses astropy's writer to simulate a TAP service producing
+    a VOParquet file without the table::len metadata.
+    """
+    pa_table = pa.table(data)
+    metadata = {
+        b"IVOA.VOTable-Parquet.version": b"1.0",
+        b"IVOA.VOTable-Parquet.content": votable_xml.encode(),
+    }
+    pq.write_table(pa_table.replace_schema_metadata(metadata), path)
+
+
+def test_read_parquet_votable_no_warning(tmp_path):
+    """Reading a VOParquet file must not emit table::len warnings."""
+    filename = tmp_path / "test.parq"
+    write_parquet_votable(input_table, filename, metadata=column_metadata)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyUserWarning)
+        Table.read(filename, format="parquet.votable")
+
+
+def test_read_parquet_votable_string_dtype_from_arraysize(tmp_path):
+    """String column dtype must use arraysize from the VOTable XML, not scanned data."""
+    votable_xml = (
+        "<?xml version='1.0' encoding='utf-8'?>"
+        '<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">'
+        '<RESOURCE type="results"><TABLE>'
+        '<FIELD name="band" ID="band" datatype="char" arraysize="20"/>'
+        "</TABLE></RESOURCE></VOTABLE>"
+    )
+    filename = tmp_path / "test.parq"
+    _write_voparquet(
+        filename, {"band": pa.array(["r", "g", "i"], type=pa.string())}, votable_xml
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyUserWarning)
+        loaded = Table.read(filename, format="parquet.votable")
+
+    assert loaded["band"].dtype == np.dtype("U20")
+
+
+def test_read_parquet_votable_variable_arraysize(tmp_path):
+    """Variable-length string columns (arraysize='*') use object dtype without warning."""
+    votable_xml = (
+        "<?xml version='1.0' encoding='utf-8'?>"
+        '<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">'
+        '<RESOURCE type="results"><TABLE>'
+        '<FIELD name="label" ID="label" datatype="char" arraysize="*"/>'
+        "</TABLE></RESOURCE></VOTABLE>"
+    )
+    filename = tmp_path / "test.parq"
+    _write_voparquet(
+        filename,
+        {"label": pa.array(["short", "a longer label"], type=pa.string())},
+        votable_xml,
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyUserWarning)
+        loaded = Table.read(filename, format="parquet.votable")
+
+    assert loaded["label"].dtype == np.dtype("object")
+    assert list(loaded["label"]) == ["short", "a longer label"]
+
+
+def test_read_parquet_votable_scalar_char(tmp_path):
+    """Scalar char columns (no arraysize) get width 1 per VOTable spec."""
+    votable_xml = (
+        "<?xml version='1.0' encoding='utf-8'?>"
+        '<VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">'
+        '<RESOURCE type="results"><TABLE>'
+        '<FIELD name="flag" ID="flag" datatype="char"/>'
+        "</TABLE></RESOURCE></VOTABLE>"
+    )
+    filename = tmp_path / "test.parq"
+    _write_voparquet(
+        filename, {"flag": pa.array(["a", "b", "c"], type=pa.string())}, votable_xml
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyUserWarning)
+        loaded = Table.read(filename, format="parquet.votable")
+
+    assert loaded["flag"].dtype == np.dtype("U1")
+
+
+def test_read_table_parquet_string_still_warns(tmp_path):
+    """Plain parquet files without table::len metadata still warn."""
+    filename = tmp_path / "test.parq"
+    # Write with pyarrow directly, as astropy's own writer adds table::len
+    pq.write_table(
+        pa.table({"col": pa.array(["foo", "bar"], type=pa.string())}), filename
+    )
+
+    with pytest.warns(AstropyUserWarning, match="No table::len"):
+        Table.read(filename, format="parquet")
+
+
+def test_read_table_parquet_string_lengths_parameter(tmp_path):
+    """string_lengths parameter suppresses the warning and sets the correct dtype."""
+    filename = tmp_path / "test.parq"
+    pq.write_table(pa.table({"band": pa.array(["r", "g"], type=pa.string())}), filename)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyUserWarning)
+        loaded = read_table_parquet(filename, string_lengths={"band": 20})
+
+    assert loaded["band"].dtype == np.dtype("U20")
+
+
+def test_read_table_parquet_string_lengths_schema_only(tmp_path):
+    """string_lengths=None sentinel yields object dtype in schema_only mode without warning."""
+    filename = tmp_path / "test.parq"
+    pq.write_table(
+        pa.table({"label": pa.array(["short", "longer"], type=pa.string())}), filename
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyUserWarning)
+        schema_table = read_table_parquet(
+            filename, schema_only=True, string_lengths={"label": None}
+        )
+
+    assert len(schema_table) == 0
+    assert schema_table["label"].dtype == np.dtype("object")
