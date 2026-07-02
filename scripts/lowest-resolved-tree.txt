@@ -1,5 +1,5 @@
 astropy
-├── astropy-iers-data v0.2026.6.1.17.39.59
+├── astropy-iers-data v0.2026.6.22.1.23.34
 ├── numpy v2.0.0
 ├── packaging v25.0
 ├── pyerfa v2.0.1.3
@@ -29,7 +29,7 @@ astropy
 │   ├── asdf-standard v1.1.0
 │   ├── asdf-transform-schemas v0.5.0 (*)
 │   ├── astropy
-│   │   ├── astropy-iers-data v0.2026.6.1.17.39.59
+│   │   ├── astropy-iers-data v0.2026.6.22.1.23.34
 │   │   ├── numpy v2.0.0
 │   │   ├── packaging v25.0
 │   │   ├── pyerfa v2.0.1.3 (*)
@@ -72,7 +72,7 @@ astropy
 │   │   ├── polars v1.18.0 (group: dataframe)
 │   │   ├── pyarrow v16.0.0 (group: dataframe) (*)
 │   │   ├── astropy[docs, recommended, test, typing] (group: dev)
-│   │   │   ├── astropy-iers-data v0.2026.6.1.17.39.59
+│   │   │   ├── astropy-iers-data v0.2026.6.22.1.23.34
 │   │   │   ├── numpy v2.0.0
 │   │   │   ├── packaging v25.0
 │   │   │   ├── pyerfa v2.0.1.3 (*)
@@ -248,7 +248,7 @@ astropy
 │   │   │   ├── pyarrow v16.0.0 (group: dataframe) (*)
 │   │   │   ├── astropy[docs, recommended, test, typing] (group: dev) (*)
 │   │   │   ├── astropy[docs, recommended, test, test-all, typing] (group: dev-all)
-│   │   │   │   ├── astropy-iers-data v0.2026.6.1.17.39.59
+│   │   │   │   ├── astropy-iers-data v0.2026.6.22.1.23.34
 │   │   │   │   ├── numpy v2.0.0
 │   │   │   │   ├── packaging v25.0
 │   │   │   │   ├── pyerfa v2.0.1.3 (*)
