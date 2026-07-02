@@ -887,7 +887,7 @@ class Model(metaclass=_ModelMeta):
         param_names = self.param_names
 
         if param_names is not None and attr in self.param_names:
-            param = self.__dict__[attr]
+            param: Parameter = self.__dict__[attr]
             value = _tofloat(value)
             if param._validator is not None:
                 param._validator(self, value)
@@ -906,21 +906,8 @@ class Model(metaclass=_ModelMeta):
                     f"Value for parameter {attr} does not match shape or size\nexpected"
                     f" by model ({vshape}, {np.size(value)}) vs ({eshape}, {esize})"
                 )
-            if param.unit is None:
-                if isinstance(value, Quantity):
-                    param._unit = value.unit
-                    param.value = value.value
-                else:
-                    param.value = value
-            else:
-                if not isinstance(value, Quantity):
-                    raise UnitsError(
-                        f"The '{param.name}' parameter should be given as a"
-                        " Quantity because it was originally "
-                        "initialized as a Quantity"
-                    )
-                param._unit = value.unit
-                param.value = value.value
+
+            param.model_set_value(self, value)
         else:
             if attr in ["fittable", "linear"]:
                 self.__dict__[attr] = value
@@ -1648,10 +1635,8 @@ class Model(metaclass=_ModelMeta):
             inputs_unit, outputs_unit
         )
         for name, unit in parameter_units.items():
-            parameter = getattr(model, name)
-            if parameter.unit is not None:
-                parameter.value = parameter.quantity.to(unit).value
-                parameter._set_unit(None, force=True)
+            parameter: Parameter = getattr(model, name)
+            parameter.strip_units(unit)
 
         if isinstance(model, CompoundModel):
             model.strip_units_from_tree()
@@ -1696,8 +1681,8 @@ class Model(metaclass=_ModelMeta):
     def strip_units_from_tree(self):
         for item in self._leaflist:
             for parname in item.param_names:
-                par = getattr(item, parname)
-                par._set_unit(None, force=True)
+                par: Parameter = getattr(item, parname)
+                par.strip_units(par.unit)
 
     def with_units_from_data(self, **kwargs):
         """
@@ -1743,8 +1728,8 @@ class Model(metaclass=_ModelMeta):
         # don't want to convert the parameter, just add the unit directly,
         # hence the call to ``_set_unit``.
         for name, unit in parameter_units.items():
-            parameter = getattr(model, name)
-            parameter._set_unit(unit, force=True)
+            parameter: Parameter = getattr(model, name)
+            parameter.attach_unit(unit)
 
         return model
 
@@ -2661,48 +2646,9 @@ class Model(metaclass=_ModelMeta):
         if isinstance(value, Parameter):
             self.__dict__[param_name] = value
             return
-        param = getattr(self, param_name)
-        # Use default if value is not provided
-        if value is None:
-            default = param.default
-            if default is None:
-                # No value was supplied for the parameter and the
-                # parameter does not have a default, therefore the model
-                # is underspecified
-                raise TypeError(
-                    f"{self.__class__.__name__}.__init__() requires a value for "
-                    f"parameter {param_name!r}"
-                )
-            value = default
-            unit = param.unit
-        else:
-            if isinstance(value, Quantity):
-                unit = value.unit
-                value = value.value
-            else:
-                unit = None
-        if unit is None and param.unit is not None:
-            raise InputParameterError(
-                f"{self.__class__.__name__}.__init__() requires a Quantity for"
-                f" parameter {param_name!r}"
-            )
+        param: Parameter = getattr(self, param_name)
 
-        param._unit = unit
-        param._set_unit(unit, force=True)
-        param.internal_unit = None
-        if param._setter is not None:
-            if unit is not None:
-                _val = param._setter(value * unit)
-            else:
-                _val = param._setter(value)
-            if isinstance(_val, Quantity):
-                param.internal_unit = _val.unit
-                param._internal_value = np.array(_val.value)
-            else:
-                param.internal_unit = None
-                param._internal_value = np.array(_val)
-        else:
-            param._value = np.array(value)
+        param.initialize_value(self, value)
 
     def _initialize_slices(self):
         param_metrics = self._param_metrics

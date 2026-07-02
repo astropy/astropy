@@ -88,7 +88,7 @@ def test_parameter_lose_units():
     g = Gaussian1D(1 * u.Jy, 3, 0.1)
 
     MESSAGE = (
-        r"The .* parameter should be given as a .* because it was originally"
+        r"The .* parameter of .* should be given as a .* because it was originally"
         r" initialized as a .*"
     )
     with pytest.raises(UnitsError, match=MESSAGE):
