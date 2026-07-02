@@ -13,6 +13,8 @@ of the same type of model, but with potentially different values of the
 parameters in each model making up the set.
 """
 
+from __future__ import annotations
+
 # pylint: disable=invalid-name, protected-access, redefined-outer-name
 import abc
 import copy
@@ -58,15 +60,6 @@ __all__ = [
 ]
 
 
-def _model_oper(oper, **kwargs):
-    """
-    Returns a function that evaluates a given Python arithmetic operator
-    between two models.  The operator should be given as a string, like ``'+'``
-    or ``'**'``.
-    """
-    return lambda left, right: CompoundModel(oper, left, right, **kwargs)
-
-
 class ModelDefinitionError(TypeError):
     """Used for incorrect models definitions."""
 
@@ -99,23 +92,11 @@ class _ModelMeta(abc.ABCMeta):
         # See the docstring for _is_dynamic above
         if "_is_dynamic" not in members:
             members["_is_dynamic"] = cls._is_dynamic
-        opermethods = [
-            ("__add__", _model_oper("+")),
-            ("__sub__", _model_oper("-")),
-            ("__mul__", _model_oper("*")),
-            ("__truediv__", _model_oper("/")),
-            ("__pow__", _model_oper("**")),
-            ("__or__", _model_oper("|")),
-            ("__and__", _model_oper("&")),
-            ("_fix_inputs", _model_oper("fix_inputs")),
-        ]
 
         members["_parameters_"] = {
             k: v for k, v in members.items() if isinstance(v, Parameter)
         }
 
-        for opermethod, opercall in opermethods:
-            members[opermethod] = opercall
         self = super().__new__(cls, name, bases, members, **kwds)
 
         param_names = list(members["_parameters_"])
@@ -451,16 +432,6 @@ class _ModelMeta(abc.ABCMeta):
             update_wrapper(new_init, cls)
             cls.__init__ = new_init
 
-    # *** Arithmetic operators for creating compound models ***
-    __add__ = _model_oper("+")
-    __sub__ = _model_oper("-")
-    __mul__ = _model_oper("*")
-    __truediv__ = _model_oper("/")
-    __pow__ = _model_oper("**")
-    __or__ = _model_oper("|")
-    __and__ = _model_oper("&")
-    _fix_inputs = _model_oper("fix_inputs")
-
     # *** Other utilities ***
 
     def _format_cls_repr(cls, keywords=[]):
@@ -767,6 +738,30 @@ class Model(metaclass=_ModelMeta):
                 setattr(self, name, value)
 
         return kwargs
+
+    def __add__(self, other: Model) -> CompoundModel:
+        return CompoundModel("+", self, other)
+
+    def __sub__(self, other: Model) -> CompoundModel:
+        return CompoundModel("-", self, other)
+
+    def __mul__(self, other: Model) -> CompoundModel:
+        return CompoundModel("*", self, other)
+
+    def __truediv__(self, other: Model) -> CompoundModel:
+        return CompoundModel("/", self, other)
+
+    def __pow__(self, other: Model) -> CompoundModel:
+        return CompoundModel("**", self, other)
+
+    def __or__(self, other: Model) -> CompoundModel:
+        return CompoundModel("|", self, other)
+
+    def __and__(self, other: Model) -> CompoundModel:
+        return CompoundModel("&", self, other)
+
+    def _fix_inputs(self, other: Model) -> CompoundModel:
+        return CompoundModel("fix_inputs", self, other)
 
     @property
     def inputs(self):
@@ -3736,14 +3731,6 @@ class CompoundModel(Model):
                 self._map_parameters()
             self._fittable = all(m.fittable for m in self._leaflist)
         return self._fittable
-
-    __add__ = _model_oper("+")
-    __sub__ = _model_oper("-")
-    __mul__ = _model_oper("*")
-    __truediv__ = _model_oper("/")
-    __pow__ = _model_oper("**")
-    __or__ = _model_oper("|")
-    __and__ = _model_oper("&")
 
     def _map_parameters(self):
         """
