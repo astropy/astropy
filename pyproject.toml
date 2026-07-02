@@ -100,6 +100,7 @@ all = [
 ]
 # The base set of test-time dependencies.
 test = [
+    "setuptools>=77.0.0",  # can be removed once the astropy.wcs C API tests are removed
     "coverage>=7.2.0",
     "hypothesis>=6.84.0",
     "pytest>=8.0.1",
