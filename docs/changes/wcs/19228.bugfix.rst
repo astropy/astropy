@@ -1,0 +1,4 @@
+Fixed WCS distortion keyword handling to respect alternate WCS key suffixes.
+Secondary WCS (key='A', 'B', etc.) now correctly read their own distortion
+keywords (CPDIS1A, DP1A, etc.) instead of incorrectly loading primary WCS
+distortion or crashing. [#18914]
