@@ -495,22 +495,36 @@ def test_iers_b_out_of_range_handling():
             (now + 100 * u.day).ut1
 
 
+@pytest.fixture
+def reset_iers_auto_cache():
+    """Clear the IERS_A/IERS_Auto/IERS caches around a test.
+
+    IERS_Auto.open() memoizes its table in a class attribute, so a test that
+    loads a non-default bundled table (e.g. a truncated fixture) would otherwise
+    leak that table into later tests through earth_orientation_table.  close()
+    only nulls the cached table, so this is safe regardless of the current
+    IERS_A_FILE value.
+    """
+    for cls in (iers.IERS_A, iers.IERS_Auto, iers.IERS):
+        cls.close()
+    yield
+    for cls in (iers.IERS_A, iers.IERS_Auto, iers.IERS):
+        cls.close()
+
+
 @pytest.mark.remote_data
-def test_iers_download_error_handling(tmp_path, monkeypatch):
+def test_iers_download_error_handling(tmp_path, monkeypatch, reset_iers_auto_cache):
     # IERS_Auto.open() now reads the bundled table and only attempts a download
     # later, when predictive values beyond the table range are requested while
     # the table is older than auto_max_age.  Point at an old bundled table so
-    # that requesting a recent date triggers a download attempt.
+    # that requesting a recent date triggers a download attempt.  The truncated
+    # fixture it loads is cleared afterwards by reset_iers_auto_cache.
     monkeypatch.setattr(
         iers,
         "IERS_A_FILE",
         get_pkg_data_filename(os.path.join("data", "finals2000A-2016-02-30-test")),
     )
-    # Make sure an IERS-A table isn't already loaded
     with set_temp_cache(tmp_path), iers.conf.set_temp("auto_download", True):
-        iers.IERS_A.close()
-        iers.IERS_Auto.close()
-        iers.IERS.close()
         now = Time.now()
 
         # Primary URL is a bad site name and the mirror is a site that exists
