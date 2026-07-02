@@ -267,6 +267,18 @@ class TestLogUnitConversion:
         with pytest.raises(u.UnitsError):
             lu2.to(lu2.function_unit, values)
 
+    def test_get_converter(self):
+        # get_converter is tested indirectly by all the above conversion
+        # tests, but perhaps good to have a few explicit tests too.
+        conv1 = u.dB("mW").get_converter(u.dex("W"))
+        assert_allclose(conv1(30.0), 0.0)
+
+        conv2 = u.STmag.get_converter(
+            u.ABmag, equivalencies=u.spectral_density(5500 * u.AA)
+        )
+        ab_st0 = conv2(21.1)
+        assert_allclose(ab_st0, 21.1, atol=0.1)
+
     @pytest.mark.parametrize("physical_unit", pu_sample)
     @pytest.mark.parametrize("tlu_unit", lu_units)
     @pytest.mark.parametrize("flu_unit", lu_units)
