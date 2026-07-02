@@ -1203,6 +1203,10 @@ class TimeBase(MaskableShapedLikeNDArray):
             if hasattr(self, attr):
                 delattr(self, attr)
 
+        # "is np.nan" check is intentional: we really want to encourage the use of
+        # setting with np.ma.masked to set the mask; using np.nan is a leftover from
+        # when nan was used internally to indicate a value was masked.
+        # So this is just for backwards compatibility; we do not want to extend it.
         if value is np.ma.masked or value is np.nan:  # noqa: PLW0177, RUF100
             if not isinstance(self._time.jd2, Masked):
                 self._time.jd1 = Masked(self._time.jd1, copy=False)
