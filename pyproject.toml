@@ -745,6 +745,8 @@ ignore-words-list = """
 """
 
 [tool.uv]
+# exclude packages published less than a week ago (ISO 8601)
+exclude-newer = "P7D"
 # always allow arbitrarily new versions of astropy-iers-data
 exclude-newer-package = { "astropy-iers-data" = false }
 
@@ -876,3 +878,20 @@ constraint-dependencies = [
 # uv sync's default behavior includes the 'dev' group.
 # Disable this so we get lightweight envs by default.
 default-groups = []
+
+# this strategy matches pip's:
+# always consider packages from all configured indexes
+# It is called "unsafe" because it allows dependency confusion-based attacks
+# but we trust anaconda.org's nightly channels because they only serve a
+# very limited set of packages that can't easily be expanded.
+index-strategy = "unsafe-best-match"
+
+[[tool.uv.index]]
+name = "sp-nightlies"
+url = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"
+exclude-newer = false
+
+[[tool.uv.index]]
+name = "erfa-nightlies"
+url = "https://pypi.anaconda.org/liberfa/simple"
+exclude-newer = false
