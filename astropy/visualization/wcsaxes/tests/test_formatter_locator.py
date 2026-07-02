@@ -131,6 +131,26 @@ class TestAngleFormatterLocator:
 
         minor_values = fl.minor_locator(spacing, 2, 34.3, 55.4)
 
+        assert_almost_equal(minor_values.to_value(u.degree), [0.55, 7.5])
+
+    def test_minor_locator_with_explicit_values(self):
+        # gh-19529: minor ticks used to be dropped entirely when the major
+        # tick values were specified explicitly
+        fl = AngleFormatterLocator(values=np.arange(25, 33) * u.degree)
+
+        values, spacing = fl.locator(24.0, 33.0)
+
+        minor_values = fl.minor_locator(spacing, 4, 24.0, 33.0)
+
+        expected = (np.arange(25, 32)[:, None] + np.array([0.25, 0.5, 0.75])).ravel()
+        assert_almost_equal(minor_values.to_value(u.degree), expected)
+
+        # a single tick value or a frequency of 1 gives no minor ticks
+        minor_values = fl.minor_locator(spacing, 1, 24.0, 33.0)
+        assert_almost_equal(minor_values.to_value(u.degree), [])
+
+        fl.values = [30.0] * u.degree
+        minor_values = fl.minor_locator(spacing, 4, 24.0, 33.0)
         assert_almost_equal(minor_values.to_value(u.degree), [])
 
     @pytest.mark.parametrize(
@@ -579,7 +599,7 @@ class TestScalarFormatterLocator:
 
         minor_values = fl.minor_locator(spacing, 2, 34.3, 55.4)
 
-        assert_almost_equal(minor_values.value, [])
+        assert_almost_equal(minor_values.value, [0.55, 7.5])
 
     @pytest.mark.parametrize(
         ("format", "string"),
