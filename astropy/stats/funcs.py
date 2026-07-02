@@ -836,12 +836,13 @@ def median_absolute_deviation(
     --------
     mad_std
     """
+    is_ma_maskedarray = isinstance(data, np.ma.MaskedArray)
     if func is None:
         # Check if the array has a mask and if so use np.ma.median
         # See https://github.com/numpy/numpy/issues/7330 why using np.ma.median
         # for normal arrays should not be done (summary: np.ma.median always
         # returns an masked array even if the result should be scalar). (#4658)
-        if isinstance(data, np.ma.MaskedArray):
+        if is_ma_maskedarray:
             func = np.ma.median
             if ignore_nan:
                 data = np.ma.masked_where(np.isnan(data), data, copy=True)
@@ -867,6 +868,11 @@ def median_absolute_deviation(
         result = func(np.abs(data - data_median), axis=axis)
     else:
         result = func(np.abs(data - data_median), axis=axis, overwrite_input=True)
+
+    if not is_ma_maskedarray and isinstance(result, np.ma.MaskedArray):
+        # If the input array was not a masked array, we don't want to return a
+        # masked array.
+        result = result.data[()]
 
     return result
 
