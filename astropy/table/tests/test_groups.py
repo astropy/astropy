@@ -758,3 +758,55 @@ def test_group_stable_sort(add_index, a):
     tg = t.group_by("a")
     for grp in tg.groups:
         assert np.all(grp["b"] == np.sort(grp["b"]))
+
+
+def test_get_group_single_key(T1):
+    """Test getting a group by its key using get_group()."""
+    # Single column group
+    tg = T1.group_by("a")
+    g = tg.groups.get_group(1)
+    assert g.pformat() == [
+        " a   b   c   d   q ",
+        "                 m ",
+        "--- --- --- --- ---",
+        "  1   b 3.0   5 5.0",
+        "  1   a 2.0   6 6.0",
+        "  1   a 1.0   7 7.0",
+    ]
+
+
+def test_get_group_multi_key_and_errors(T1):
+    # Two column group
+    tg = T1.group_by(["a", "b"])
+    g = tg.groups.get_group((2, "b"))
+    assert g.pformat() == [
+        " a   b   c   d   q ",
+        "                 m ",
+        "--- --- --- --- ---",
+        "  2   b 5.0   1 1.0",
+        "  2   b 6.0   2 2.0",
+    ]
+
+    # Error cases
+    with pytest.raises(KeyError):
+        tg.groups.get_group((3, "b"))  # Non-existent key
+
+    with pytest.raises(ValueError):
+        tg.groups.get_group(2)  # Missing part of key
+
+    with pytest.raises(ValueError):
+        tg.groups.get_group((3, "b", 4))  # Wrong number of elements in key
+
+
+def test_get_group_column(T1):
+    """Test getting a group from a grouped column by its key."""
+    c = T1["c"]
+    cg = c.group_by(T1["a"])
+    g = cg.groups.get_group(1)
+    assert g.pformat() == [
+        " c ",
+        "---",
+        "3.0",
+        "2.0",
+        "1.0",
+    ]
