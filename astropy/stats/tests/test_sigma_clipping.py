@@ -18,6 +18,7 @@ from astropy.stats.sigma_clipping import (
 from astropy.table import MaskedColumn
 from astropy.utils.compat.optional_deps import HAS_BOTTLENECK, HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import Masked
 from astropy.utils.misc import NumpyRNGContext
 
 
@@ -98,7 +99,8 @@ def test_sigma_clip_scalar_mask():
     assert result.mask.shape != ()
 
 
-def test_sigma_clip_masked_array():
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clip_masked_array(masked_array):
     """
     Regression test to check that MaskedArray masks are propagated
     correctly if cenfunc/stdfunc is not the default, axis is not None,
@@ -106,14 +108,86 @@ def test_sigma_clip_masked_array():
     """
     arr = np.ones(10).astype(float)
     arr[-2:] = 5
-    arr = np.ma.masked_where(arr > 1, arr)
+    arr = masked_array(arr, mask=arr > 1)
     out = sigma_clip(arr, cenfunc=np.mean, axis=0, masked=False)
+    assert not isinstance(out, masked_array)
     assert np.all(np.isnan(out[-2:]))
     assert_allclose(np.nanmean(out), 1.0)
 
     out = sigma_clip(arr, stdfunc=np.std, axis=0, masked=False)
     assert np.all(np.isnan(out[-2:]))
     assert_allclose(np.nanmean(out), 1.0)
+
+
+@pytest.mark.parametrize("unit", [None, u.percent])
+def test_sigma_clip_masked(unit):
+    """
+    Regression test for gh-13200 and gh-14360: sigma_clip must honour the
+    mask of astropy ``Masked`` inputs (``MaskedNDArray`` / ``MaskedQuantity``)
+    rather than ignoring it or raising ``TypeError``, and should return a
+    ``Masked`` instance of the same flavour (preserving any unit).
+    """
+    values = np.array([1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 500.0])
+    if unit is not None:
+        values <<= unit
+    in_mask = np.array([False, False, False, False, False, True, False])
+    data = Masked(values, mask=in_mask)
+
+    result = sigma_clip(data, sigma=2)
+
+    assert isinstance(result, Masked)
+    # output flavour matches input flavour (MaskedQuantity in, unit preserved)
+    assert (result.unit == unit) if unit is not None else not hasattr(result, "unit")
+    # the pre-existing mask is preserved and the 500 outlier is also clipped
+    expected_mask = in_mask | (values == 500.0 * values[0])
+    assert_equal(result.mask, expected_mask)
+    assert_equal(result.unmasked, values)
+
+    if unit is None:
+        # identical behaviour to the equivalent np.ma input
+        # (the supported path, but only for plain arrays).
+        ref = sigma_clip(np.ma.MaskedArray(values, mask=in_mask), sigma=2)
+        assert_equal(result.mask, ref.mask)
+        assert_equal(result.unmasked, ref.data)
+
+
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clip_masked_axis_and_bounds(masked_array):
+    """Masked input with an explicit axis, masked=False and return_bounds."""
+    arr = np.ones((3, 5))
+    arr[1, 2] = 99.0
+    data = masked_array(arr, mask=np.zeros((3, 5), dtype=bool))
+
+    result, lower, upper = sigma_clip(
+        data, sigma=2, axis=1, masked=False, return_bounds=True
+    )
+    # Since masked=False, return type is not masked
+    assert not isinstance(result, masked_array)
+    assert isinstance(result, type(arr))
+    # the single outlier is replaced with np.nan
+    assert result.shape == arr.shape
+    assert np.isnan(result).sum() == 1
+    assert np.isnan(result[1, 2])
+    assert not isinstance(lower, masked_array)
+    assert not isinstance(upper, masked_array)
+    assert lower.shape == upper.shape == (3,)
+
+
+def test_sigma_clip_masked_quantity_bounds_units():
+    """return_bounds must carry the unit through for MaskedQuantity input."""
+    data = Masked([1.0, 2.0, 3.0, 100.0], mask=[False, False, True, False]) * u.m
+    result, lower, upper = sigma_clip(data, sigma=2, return_bounds=True)
+    assert result.unit == u.m
+    assert lower.unit == u.m
+    assert upper.unit == u.m
+
+
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clip_masked_unsupported_dtype(masked_array):
+    """Non-numeric Masked input is rejected rather than silently mishandled."""
+    data = masked_array(np.array(["a", "b", "c"]), mask=[False, False, True])
+    with pytest.raises(TypeError, match="not supported for the input types"):
+        sigma_clip(data)
 
 
 def test_sigma_clip_class():
@@ -143,38 +217,40 @@ def test_sigma_clip_invalid_cenfunc_stdfunc():
         SigmaClip(stdfunc="invalid")
 
 
-def test_sigma_clipped_stats():
+@pytest.mark.parametrize("data_cls", [np.array, np.ma.MaskedArray, Masked])
+@pytest.mark.parametrize("unit", [None, u.m])
+def test_sigma_clipped_stats(data_cls, unit):
     """Test list data with input mask or mask_value (#3268)."""
+    if data_cls is np.ma.MaskedArray and unit is not None:
+        pytest.skip("np.ma.MaskedArray cannot deal with units.")
     # test list data with mask
-    data = [0, 1]
+    data = data_cls([0, 1])
+    if unit is not None:
+        data <<= unit
     mask = np.array([True, False])
+    expected = (1.0, 1.0, 0.0)
+    if unit is not None:
+        expected = tuple(expected << unit)
     result = sigma_clipped_stats(data, mask=mask)
     # Check that the result of np.ma.median was converted to a scalar
-    assert isinstance(result[1], float)
-    assert result == (1.0, 1.0, 0.0)
+    assert isinstance(result[1], type(expected[1]))
+    assert result == expected
 
     result2 = sigma_clipped_stats(data, mask=mask, axis=0)
     assert_equal(result, result2)
 
     # test list data with mask_value
     result = sigma_clipped_stats(data, mask_value=0.0)
-    assert isinstance(result[1], float)
-    assert result == (1.0, 1.0, 0.0)
+    assert isinstance(result[1], type(expected[1]))
+    assert result == expected
 
     # test without mask
-    data = [0, 2]
+    expected = (0.5, 0.5, 0.5)
+    if unit is not None:
+        expected = tuple(expected << unit)
     result = sigma_clipped_stats(data)
-    assert isinstance(result[1], float)
-    assert result == (1.0, 1.0, 1.0)
-
-    _data = np.arange(10)
-    data = np.ma.MaskedArray([_data, _data, 10 * _data])
-    mean = sigma_clip(data, axis=0, sigma=1).mean(axis=0)
-    assert_equal(mean, _data)
-    mean, median, stddev = sigma_clipped_stats(data, axis=0, sigma=1)
-    assert_equal(mean, _data)
-    assert_equal(median, _data)
-    assert_equal(stddev, np.zeros_like(_data))
+    assert isinstance(result[1], type(expected[1]))
+    assert result == expected
 
 
 def test_sigma_clipped_stats_ddof():
@@ -187,6 +263,18 @@ def test_sigma_clipped_stats_ddof():
         assert median1 == median2
         assert_allclose(stddev1, 0.98156805711673156)
         assert_allclose(stddev2, 0.98161731654802831)
+
+
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clipped_stats_ma(masked_array):
+    _data = np.arange(10)
+    data = masked_array([_data, _data, 10 * _data])
+    mean = sigma_clip(data, axis=0, sigma=1).mean(axis=0)
+    assert_equal(mean, _data)
+    mean, median, stddev = sigma_clipped_stats(data, axis=0, sigma=1)
+    assert_equal(mean, _data)
+    assert_equal(median, _data)
+    assert_equal(stddev, np.zeros_like(_data))
 
 
 def test_sigma_clipped_stats_masked_col():
@@ -302,7 +390,8 @@ def test_sigma_clip_large_float32_arrays(shape):
         assert_allclose(res, expected, rtol=3e-3)
 
 
-def test_invalid_sigma_clip():
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_invalid_sigma_clip(masked_array):
     """Test sigma_clip of data containing invalid values."""
 
     data = np.ones((5, 5))
@@ -310,7 +399,7 @@ def test_invalid_sigma_clip():
     data[3, 4] = np.nan
     data[1, 1] = np.inf
 
-    data_ma = np.ma.MaskedArray(data)
+    data_ma = masked_array(data)
 
     with pytest.warns(AstropyUserWarning, match=r"Input data contains invalid values"):
         result = sigma_clip(data)
@@ -352,38 +441,54 @@ def test_sigmaclip_negative_axis():
     sigma_clip(data, axis=-1)
 
 
-def test_sigmaclip_fully_masked():
+@pytest.mark.parametrize("unit", [None, u.m])
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigmaclip_fully_masked(masked_array, unit):
     """
     Make sure a fully masked array is returned when sigma clipping a
     fully masked array.
     """
-    data = np.ma.MaskedArray(
-        data=[[1.0, 0.0], [0.0, 1.0]], mask=[[True, True], [True, True]]
-    )
+    if masked_array is np.ma.MaskedArray and unit is not None:
+        pytest.skip("np.ma.MaskedArray cannot deal with units.")
+
+    data = masked_array([[1.0, 0.0], [0.0, 1.0]], mask=[[True, True], [True, True]])
     clipped_data = sigma_clip(data)
-    assert np.ma.allequal(data, clipped_data)
+    assert isinstance(clipped_data, masked_array)
+    assert_equal(clipped_data, data)
 
     clipped_data = sigma_clip(data, masked=False)
-    assert not isinstance(clipped_data, np.ma.MaskedArray)
+    assert not isinstance(clipped_data, (Masked, np.ma.MaskedArray))
+    assert not hasattr(clipped_data, "mask")
+    assert np.all(np.isnan(clipped_data))
+
+    clipped_data = sigma_clip(data, axis=1)
+    assert isinstance(clipped_data, masked_array)
+    assert hasattr(clipped_data, "mask")
+    assert np.all(clipped_data.mask)
+
+    clipped_data = sigma_clip(data, axis=1, masked=False)
+    assert not isinstance(clipped_data, (Masked, np.ma.MaskedArray))
+    assert not hasattr(clipped_data, "mask")
     assert np.all(np.isnan(clipped_data))
 
     clipped_data, low, high = sigma_clip(data, return_bounds=True)
-    assert np.ma.allequal(data, clipped_data)
+    assert_equal(data, clipped_data)
     assert np.isnan(low)
     assert np.isnan(high)
 
 
-def test_sigmaclip_empty_masked():
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigmaclip_empty_masked(masked_array):
     """
     Make sure an empty masked array is returned when sigma clipping an
     empty masked array.
     """
-    data = np.ma.MaskedArray(data=[], mask=[])
+    data = masked_array(data=[], mask=[])
     clipped_data = sigma_clip(data)
-    assert np.ma.allequal(data, clipped_data)
+    assert_equal(data, clipped_data)
 
     clipped_data, low, high = sigma_clip(data, return_bounds=True)
-    assert np.ma.allequal(data, clipped_data)
+    assert_equal(data, clipped_data)
     assert np.isnan(low)
     assert np.isnan(high)
 
@@ -451,20 +556,20 @@ def test_sigma_clippped_stats_unit():
     assert result == (1.0 * u.kpc, 1.0 * u.kpc, 0.0 * u.kpc)
 
 
-def test_sigma_clippped_stats_all_masked():
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clippped_stats_all_masked(masked_array):
     """
     Test sigma_clipped_stats when the input array is completely masked.
     """
 
-    arr = np.ma.MaskedArray(np.arange(10), mask=True)
+    arr = masked_array(np.arange(10), mask=True)
     result = sigma_clipped_stats(arr)
     assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
 
-    arr = np.ma.MaskedArray(np.zeros(10), mask=False)
+    arr = masked_array(np.zeros(10), mask=False)
     result = sigma_clipped_stats(arr, mask_value=0.0)
     assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
 
-    arr = np.ma.MaskedArray(np.arange(10), mask=False)
     mask = arr < 20
     result = sigma_clipped_stats(arr, mask=mask)
     assert result == (np.ma.masked, np.ma.masked, np.ma.masked)
