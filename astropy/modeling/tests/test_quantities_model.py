@@ -140,3 +140,23 @@ def test_read_only(m):
         m.input_units_allow_dimensionless = {}
     with pytest.raises(AttributeError):
         m.input_units_strict = {}
+
+
+def test_compound_input_units_operand_order():
+    """input_units of an arithmetic compound model should not depend on the
+    order of the operands. Regression test for
+    https://github.com/astropy/astropy/issues/17040
+    """
+    gauss = models.Gaussian1D(mean=976.8 * u.AA, amplitude=4 * u.DN, stddev=1 * u.AA)
+    const = models.Const1D(amplitude=1 * u.DN)
+
+    expected = {"x": u.AA}
+    assert (const + gauss).input_units == expected
+    assert (gauss + const).input_units == expected
+
+    # other arithmetic operators behave the same way
+    assert (const * gauss).input_units == expected
+    assert (const - gauss).input_units == expected
+
+    # if neither operand constrains the units the result is still None
+    assert (const + models.Const1D(amplitude=1 * u.DN)).input_units is None
