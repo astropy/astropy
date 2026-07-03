@@ -32,9 +32,7 @@ class TestFitsinfo(FitsTestCase):
 
         fitsinfo.main([Zfile])
 
-        assert any(
-            "uncompresspy" in record.message for record in caplog.records
-        ), f"Expected a clean error mentioning uncompresspy, got: {caplog.records}"
+        assert "optional package uncompresspy is necessary" in caplog.records[0].message
 
     def test_onefile(self, capsys):
         fitsinfo.main([self.data("arange.fits")])
