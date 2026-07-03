@@ -222,7 +222,7 @@ You can iterate over the group subtables and corresponding keys with::
    M82 2012-02-14  15.2  15.5
    M82 2012-03-26  15.7  16.5
 
-You can also access a specific group by its key using the :meth:`~astropy.table.groups.TableGroups.get_group` method::
+You can also access a specific group by its key using the ``get_group()`` method::
 
   >>> print(obs_by_name.groups.get_group("M31"))
   name  obs_date  mag_b mag_v
