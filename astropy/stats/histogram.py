@@ -63,12 +63,12 @@ def calculate_bin_edges(
     """
     # if bins is a string, first compute bin edges with the desired heuristic
     if isinstance(bins, str):
-        # The Astropy bin-width estimators (knuth, scott, freedman, blocks)
-        # calculate bin widths from the actual data distribution, so they must
-        # only see data that falls inside the requested range.  We therefore
-        # filter `a` here.  Note: weights are not supported for string bins
-        # (the NotImplementedError below fires before any masking issue arises),
-        # so we do not need to filter weights along with `a`.
+        # Astropy's bin-width estimators (knuth, scott, freedman, blocks)
+        # compute bin widths from the data distribution, so they should only
+        # consider values within the requested range. Filter `a` here.  
+        #
+        # Weights are not supported for these estimators (see the
+        # NotImplementedError below), so they do not need to be filtered.
         a = np.asarray(a).ravel()
         if range is not None:
             a = a[(a >= range[0]) & (a <= range[1])]
@@ -102,9 +102,8 @@ def calculate_bin_edges(
                 bins[-1] = range[1]
 
     elif np.ndim(bins) == 0:
-        # Number of bins was given. NumPy handles `range` and `weights`
-        # internally for this case, so delegate directly to
-        # numpy.histogram_bin_edges() instead of pre-filtering the inputs.
+        # Number of bins was given. Delegate range and weight handling
+        # to NumPy's histogram_bin_edges()
         bins = np.histogram_bin_edges(a, bins, range=range, weights=weights)
 
     return bins
