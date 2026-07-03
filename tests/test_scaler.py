@@ -53,4 +53,5 @@ def test_with_array(dtype, order):
         assert a.flags["F_CONTIGUOUS"] and not a.flags["C_CONTIGUOUS"]
     got = Scaler(10.0)(a)
     exp = a * 10.0
+    assert got.dtype == exp.dtype
     assert_array_equal(got, exp)

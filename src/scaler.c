@@ -10,35 +10,34 @@ typedef struct {
     PyObject_HEAD
     /* Type-specific fields go here. */
     double factor;
+    double factor_imag; // always set to 0, to have complex factor.
+    float factor_f;
+    float factor_f_imag; // always set to 0.
     PyObject *O_factor;
     PyObject *A_factor;
+    PyObject *A_factor_f;
     vectorcallfunc vectorcall;
 } ScalerObject;
 
 static PyUFuncObject *multiply = NULL;
 
-static PyObject *use_contiguous_loop(PyArrayObject *arr, double *factor)
+static PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr)
 {
-    static PyUFuncGenericFunction loop = NULL; // [NPY_CDOUBLE] = {NULL};
-    const char type_num = PyArray_DESCR(arr)->type_num;
+    static PyUFuncGenericFunction loops[6] = {NULL};
+    const char type_num = PyArray_TYPE(arr);
+    PyUFuncGenericFunction loop = loops[(int)(type_num - NPY_FLOAT)];
     if (loop == NULL) {
         // Unfortunately, new-style loops are not exposed, so get legacy one.
         int nargs = multiply->nargs;
         const char *types = multiply->types;
-        int i, j;
-        for (i = 0; i < multiply->ntypes; ++i) {
-            for (j = 0; j < nargs; ++j) {
-                if (types[j] != type_num) {
-                    break;
-                }
-            }
-            if (j == nargs) {
-                loop = multiply->functions[i];
+        for (int i = 0; i < multiply->ntypes; i++) {
+            if (types[0] == type_num && types[1] == type_num && types[2] == type_num) {
+                loop = loops[(int)(type_num - NPY_FLOAT)] = multiply->functions[i];
                 break;
             }
             types += nargs;
         }
-        if (i == multiply->ntypes) {
+        if (loop == NULL) {
             PyErr_SetString(PyExc_RuntimeError, "could not find loop");
             return NULL;
         }
@@ -46,7 +45,7 @@ static PyObject *use_contiguous_loop(PyArrayObject *arr, double *factor)
     // do it!
     PyObject *res =
         PyArray_EMPTY(PyArray_NDIM(arr), PyArray_DIMS(arr), type_num, PyArray_ISFORTRAN(arr));
-    char *data[3] = {PyArray_DATA(arr), (char *)factor, PyArray_DATA((PyArrayObject *)res)};
+    char *data[3] = {PyArray_DATA(arr), factor_ptr, PyArray_DATA((PyArrayObject *)res)};
     npy_intp n = PyArray_SIZE(arr);
     npy_intp strides[3] = {PyArray_ITEMSIZE(arr), 0, PyArray_ITEMSIZE(arr)};
     PyUFunc_clearfperr();
@@ -78,22 +77,24 @@ static PyObject *Scaler_vectorcall(
     }
     else if (PyArray_CheckExact(obj)) {
         PyArrayObject *const arr = (PyArrayObject *)obj;
-        if (PyArray_DESCR(arr)->type_num == NPY_FLOAT64 && PyArray_ISONESEGMENT(arr)) {
-            // speed up over ufunc by using strided loop directly.
-            return use_contiguous_loop(arr, &self->factor);
+        char type_num = PyArray_TYPE(arr);
+        npy_bool needs_float = type_num == NPY_FLOAT || type_num == NPY_CFLOAT;
+        char *f_ptr = needs_float ? (char *)&self->factor_f : (char *)&self->factor;
+        // Pass contiguous float or complex arrays directly to multiply loop,
+        // bypassing ufunc setup.
+        if (PyArray_ISONESEGMENT(arr) &&
+            (type_num == NPY_DOUBLE || type_num == NPY_CDOUBLE || needs_float)) {
+            return use_contiguous_loop(arr, f_ptr);
         }
-        if (self->A_factor == NULL) {
-            npy_intp const dims[0];
-            self->A_factor = PyArray_SimpleNewFromData(0, dims, NPY_FLOAT64, &self->factor);
-            if (self->A_factor == NULL) {
-                npy_intp const dims[0];
-                self->A_factor = PyArray_SimpleNewFromData(0, dims, NPY_FLOAT64, &self->factor);
-                if (self->A_factor == NULL) {
-                    return NULL;
-                }
-            }
-            return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, self->A_factor);
+        // If not, convert factor to array here, since that makes ufunc
+        // call substantially faster.
+        PyObject **A_factor = needs_float ? &self->A_factor_f : &self->A_factor;
+        if (*A_factor == NULL) {
+            const npy_intp dims[1] = {0};
+            *A_factor =
+                PyArray_SimpleNewFromData(0, dims, needs_float ? NPY_FLOAT : NPY_DOUBLE, f_ptr);
         }
+        return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, *A_factor);
     }
     else if (PyLong_CheckExact(obj)) {
         double d = PyLong_AsDouble(obj);
@@ -102,15 +103,18 @@ static PyObject *Scaler_vectorcall(
         }
         return PyFloat_FromDouble(d * self->factor);
     }
-    // For cases without special treatment, we need the float object, so
-    // construct it ahead of time.
+    // For cases without special treatment, we need the float object;
+    // construct it if not done already.
     if (self->O_factor == NULL) {
         self->O_factor = PyFloat_FromDouble(self->factor);
         if (self->O_factor == NULL) {
-            return NULL;
+            self->O_factor = PyFloat_FromDouble(self->factor);
+            if (self->O_factor == NULL) {
+                return NULL;
+            }
         }
     }
-    // fast path, go directly for the slot, to avoid PyNumber call.
+    // Fast path, go directly for the slot, to avoid PyNumber call.
     if (Py_TYPE(obj)->tp_as_number != NULL) {
         binaryfunc slotv = Py_TYPE(obj)->tp_as_number->nb_multiply;
         if (slotv != NULL) {
@@ -121,8 +125,8 @@ static PyObject *Scaler_vectorcall(
             // Fall back to slow path, which will almost certainly raise.
             Py_DECREF(res);
         }
+        return PyNumber_Multiply(obj, self->O_factor);
     }
-    return PyNumber_Multiply(obj, self->O_factor);
 }
 
 static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -140,8 +144,12 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
     self->factor = factor;
-    self->O_factor = NULL;
+    self->factor_imag = 0; // allows using &self->factor for complex.
+    self->factor_f = (float)factor;
+    self->factor_f_imag = 0;
+    self->O_factor = NULL; // following initialized only if needed in call.
     self->A_factor = NULL;
+    self->A_factor_f = NULL;
     self->vectorcall = (vectorcallfunc)&Scaler_vectorcall;
     return (PyObject *)self;
 }
@@ -150,6 +158,7 @@ static void Scaler_dealloc(ScalerObject *self)
 {
     Py_XDECREF(self->O_factor);
     Py_XDECREF(self->A_factor);
+    Py_XDECREF(self->A_factor_f);
     Py_TYPE(self)->tp_free(self);
 }
 
@@ -158,13 +167,13 @@ static PyMemberDef Scaler_members[] = {
      Py_T_DOUBLE,
      offsetof(ScalerObject, factor),
      Py_READONLY,
-     "factor with which input is multiplied"},
+     "Factor with which input is multiplied."},
     {NULL},
 };
 
 static PyTypeObject ScalerType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "Scaler",
-    .tp_doc = PyDoc_STR("Multiplies input by the given scale factor"),
+    .tp_doc = PyDoc_STR("Multiplies input by the given scale factor."),
     .tp_basicsize = sizeof(ScalerObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL,
@@ -180,11 +189,9 @@ static int scaler_module_exec(PyObject *m)
     if (PyType_Ready(&ScalerType) < 0) {
         return -1;
     }
-
     if (PyModule_AddObjectRef(m, "Scaler", (PyObject *)&ScalerType) < 0) {
         return -1;
     }
-
     return 0;
 }
 
@@ -198,7 +205,7 @@ static PyModuleDef_Slot scaler_module_slots[] = {
 static PyModuleDef scaler_module = {
     .m_base = PyModuleDef_HEAD_INIT,
     .m_name = "scaler",
-    .m_doc = "Example module that creates an extension type.",
+    .m_doc = "Provides the inspectable Scaler class.",
     .m_size = 0,
     .m_slots = scaler_module_slots,
 };
