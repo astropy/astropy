@@ -158,6 +158,6 @@ def test_compound_input_units_operand_order():
     assert (const * gauss).input_units == expected
     assert (const - gauss).input_units == expected
     assert (const / gauss).input_units == expected
-    assert (const ** gauss).input_units == expected
+    assert (const**gauss).input_units == expected
     # if neither operand constrains the units the result is still None
     assert (const + models.Const1D(amplitude=1 * u.DN)).input_units is None
