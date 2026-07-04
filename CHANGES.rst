@@ -1,3 +1,79 @@
+Version 8.0.1 (2026-07-03)
+==========================
+
+API Changes
+-----------
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Astropy will now no longer download the latest IERS-A table over the network unless it is actually needed, and will also not warn about download issues unless all mirrors fail. The ``IERS_Auto.open`` method now always reads the table bundled in ``astropy-iers-data`` (or a ``finals2000A.all`` file in the current working directory, if present), and the auto-download is deferred until a calculation actually requests ``UT1-UTC`` or polar motion values beyond the predictive range of the bundled table while that table is older than ``astropy.utils.iers.conf.auto_max_age`` days. This avoids network access, and the associated warnings when offline, in the common case where the bundled table is recent enough. [#19995]
+
+
+Bug Fixes
+---------
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fixed a regression where a FITS logical (``'L'``) column created with
+  ``BinTableHDU.from_columns(..., nrows=N)`` and no input array stored its
+  values as NULL (``b'\x00'``) instead of False (``b'F'``). Rows later
+  assigned ``False`` were silently written as NULL, and a spurious
+  ``contains NULL`` warning was emitted when reading the file back. [#19939]
+
+- Fixed a bug where a byte other than the FITS L wire-format values ``b'T'``,
+  ``b'F'`` and ``b'\x00'`` assigned into a fixed-length logical (``'L'``) column
+  read with ``logical_as_bytes=True`` was written to the file unchecked (and
+  silently read back as ``False``). Such bytes now raise ``ValueError`` on write,
+  matching the validation applied to ``|S1`` column input at construction time. [#19940]
+
+- Fixed an incorrect ``DATASUM`` (and therefore ``CHECKSUM``) being written for
+  byte-swapped binary tables larger than 64 kB. The data was checksummed in
+  chunks that were not aligned to 4-byte word boundaries, so the stored value was
+  valid in memory but failed to verify once the file was read back. [#20001]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Bugfix for a ``Parameter`` with a custom ``getter`` / ``setter`` pair raising an
+  ``AttributeError`` when accessing the ``value`` of the ``Parameter`` before any
+  value for the parameter has been set. The ``Parameter`` will now return the result
+  of the ``getter`` applied to a ``nan`` value in this case which is consistent
+  with the behavior of a ``Parameter`` without a custom ``getter`` / ``setter`` pair. [#19979]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fix unexpected behavior in ``Cutout2D.plot_on_original()``. The displayed region spanned pixels not included in the cutout array. [#19829]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fixed a bug where a ``Table.loc[]`` range query using the default
+  ``SortedArray`` index engine silently dropped rows when the upper bound
+  matched a value that appears more than once in the indexed column. [#19903]
+
+- Fixed a bug where a ``Table.loc[]`` range query using the ``BST`` index
+  engine returned rows in scrambled order if rows had been added after the
+  index was created. [#19912]
+
+astropy.units
+^^^^^^^^^^^^^
+
+- Fixed a bug where ``numpy.lib.recfunctions.structured_to_unstructured`` failed when applied to a ``StructuredQuantity`` by improving unit extraction logic. [#19106]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed issues with the placement of WCSAxes tick labels for non-perpendicular grids or ticks. [#19057]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fix caching of ``wcs.world_axis_object_components`` and ``world_axis_object_classes`` in cases where the equinox was NaN [#19898]
+
+
 Version 8.0.0 (2026-06-16)
 ==========================
 
