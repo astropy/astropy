@@ -1,3 +1,4 @@
-Allows the ``identify_format`` in ``_UnifiedIORegistryBase`` class to raise a ExceptionGroup
-of type ``IOIdentifierExceptions`` containing all exceptions raised by the identifier function.
-This exception is only raised when a valid format was not found for that format inference.
+Allows the ``identify_format`` in ``_UnifiedIORegistryBase`` class to immediately raise a ``RuntimeError``
+exception if one of its identifier functions raises an exception. The raised identifier function's exception
+is chained to the ``RuntimeError`` exception.
+This exception is raised even when a valid format was found for that format inference.
