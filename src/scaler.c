@@ -19,30 +19,12 @@ typedef struct {
     vectorcallfunc vectorcall;
 } ScalerObject;
 
-static PyUFuncObject *multiply = NULL;
+static PyUFuncGenericFunction loops[6] = {NULL};
 
-static PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr)
+static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr)
 {
-    static PyUFuncGenericFunction loops[6] = {NULL};
     const char type_num = PyArray_TYPE(arr);
     PyUFuncGenericFunction loop = loops[(int)(type_num - NPY_FLOAT)];
-    if (loop == NULL) {
-        // Unfortunately, new-style loops are not exposed, so get legacy one.
-        int nargs = multiply->nargs;
-        const char *types = multiply->types;
-        for (int i = 0; i < multiply->ntypes; i++) {
-            if (types[0] == type_num && types[1] == type_num && types[2] == type_num) {
-                loop = loops[(int)(type_num - NPY_FLOAT)] = multiply->functions[i];
-                break;
-            }
-            types += nargs;
-        }
-        if (loop == NULL) {
-            PyErr_SetString(PyExc_RuntimeError, "could not find loop");
-            return NULL;
-        }
-    }
-    // do it!
     PyObject *res =
         PyArray_EMPTY(PyArray_NDIM(arr), PyArray_DIMS(arr), type_num, PyArray_ISFORTRAN(arr));
     char *data[3] = {PyArray_DATA(arr), factor_ptr, PyArray_DATA((PyArrayObject *)res)};
@@ -56,8 +38,8 @@ static PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr)
             Py_DECREF(res);
             return NULL;
         }
+        return res;
     }
-    return res;
 }
 
 static PyObject *Scaler_vectorcall(
@@ -184,12 +166,51 @@ static PyTypeObject ScalerType = {
     .tp_members = Scaler_members,
 };
 
+static int get_multiply_loops(PyUFuncGenericFunction loops[6])
+{
+    // Get and cache multiplication loops for use with plain ndarray.
+    PyObject *mod = PyImport_ImportModule("numpy");
+    if (mod == NULL) {
+        return -1;
+    }
+    PyUFuncObject *multiply = (PyUFuncObject *)PyObject_GetAttrString(mod, "multiply");
+    Py_DECREF(mod);
+    if (multiply == NULL) {
+        return -1;
+    }
+    // Unfortunately, new-style loops are not exposed, so get legacy ones.
+    for (int k = 0; k < 5; k++) {
+        char type = (char)(k + (int)NPY_FLOAT);
+        if (type == NPY_LONGDOUBLE) {
+            continue;
+        }
+        const char *types = multiply->types;
+        for (int i = 0; i < multiply->ntypes; i++) {
+            if (types[0] == type && types[1] == type && types[2] == type) {
+                loops[k] = multiply->functions[i];
+                break;
+            }
+            types += 3;
+        }
+        if (loops[k] == NULL) {
+            PyErr_SetString(PyExc_RuntimeError, "could not find loop");
+            return -1;
+        }
+    }
+    // Keep reference to multiply since we are using its loops
+    // (not that it will ever disappear...).
+    return 0;
+}
+
 static int scaler_module_exec(PyObject *m)
 {
     if (PyType_Ready(&ScalerType) < 0) {
         return -1;
     }
     if (PyModule_AddObjectRef(m, "Scaler", (PyObject *)&ScalerType) < 0) {
+        return -1;
+    }
+    if (get_multiply_loops(loops) < 0) {
         return -1;
     }
     return 0;
@@ -216,14 +237,6 @@ PyMODINIT_FUNC PyInit_scaler(void)
         return NULL;
     }
     if (PyArray_ImportNumPyAPI() < 0) {
-        return NULL;
-    }
-    PyObject *mod = PyImport_ImportModule("numpy");
-    if (mod != NULL) {
-        multiply = (PyUFuncObject *)PyObject_GetAttrString(mod, "multiply");
-        Py_DECREF(mod);
-    }
-    if (multiply == NULL) {
         return NULL;
     }
     return PyModuleDef_Init(&scaler_module);
