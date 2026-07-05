@@ -168,6 +168,11 @@ static void Scaler_dealloc(ScalerObject *self)
     Py_TYPE(self)->tp_free(self);
 }
 
+static PyObject *Scaler_repr(ScalerObject *self)
+{
+    return PyUnicode_FromFormat("Scaler(%S)", PyFloat_FromDouble(self->factor));
+}
+
 static PyMemberDef Scaler_members[] = {
     {"factor",
      Py_T_DOUBLE,
@@ -184,6 +189,7 @@ static PyTypeObject ScalerType = {
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL,
     .tp_new = Scaler_new,
+    .tp_repr = (reprfunc)Scaler_repr,
     .tp_dealloc = (destructor)Scaler_dealloc,
     .tp_vectorcall_offset = offsetof(ScalerObject, vectorcall),
     .tp_call = &PyVectorcall_Call,

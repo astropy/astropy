@@ -70,3 +70,8 @@ def test_with_wrong_items(item):
     sc = Scaler(10.0)
     with pytest.raises(ValueError, match="compatible.*convertible"):
         sc(item)
+
+
+def test_repr():
+    sc = Scaler(10.0)
+    assert repr(sc) == "Scaler(10.0)"
