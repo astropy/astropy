@@ -20,7 +20,6 @@ import pytest
 import astropy.units as u
 from astropy.io import registry as io_registry
 from astropy.io.registry import (
-    IOIdentifierExceptions,
     IORegistryError,
     UnifiedInputRegistry,
     UnifiedIORegistry,
@@ -242,25 +241,33 @@ class TestUnifiedIORegistryBase:
 
         # test with a identifier function that raises an error but a valid format could be found
         registry.register_identifier(fmt2, cls2, mock_identifier)
-        formats = registry.identify_format(*argsFail)
-        assert fmt in formats
+        with pytest.raises(RuntimeError) as exc:
+            formats = registry.identify_format(*argsFail)
+        assert type(exc.value.__cause__) == IORegistryError
+        assert "Failed" in str(exc.value.__cause__)
+        assert f"{fmt2!r}" in str(exc.value)
+        assert "'mock_identifier'" in str(exc.value)
 
         # test with no successful format inference and one single exception raised
         registry.unregister_identifier(fmt, cls2)
-        with pytest.raises(IOIdentifierExceptions) as exc:
+        with pytest.raises(RuntimeError) as exc:
             formats = registry.identify_format(*argsFail)
-        assert len(exc.value.exceptions) == 1
-        assert str(exc.value.exceptions[0]) == "Failed"
+        assert type(exc.value.__cause__) == IORegistryError
+        assert "Failed" in str(exc.value.__cause__)
+        assert f"{fmt2!r}" in str(exc.value)
+        assert "'mock_identifier'" in str(exc.value)
 
-        # test with no successful format inference and multiple exceptions raised
+        # test with no successful format inference and multiple possible exceptions raised
+        #
         nTests = 9
         for i in range(3, nTests):
             registry.register_identifier(f"test{i}", cls2, mock_identifier)
-            with pytest.raises(IOIdentifierExceptions) as exc:
+            with pytest.raises(RuntimeError) as exc:
                 formats = registry.identify_format(*argsFail)
-            assert len(exc.value.exceptions) == i - 1
-            for exception in exc.value.exceptions:
-                assert str(exception) == "Failed"
+            assert type(exc.value.__cause__) == IORegistryError
+            assert "Failed" in str(exc.value.__cause__)
+            assert f"{fmt2!r}" in str(exc.value)
+            assert "'mock_identifier'" in str(exc.value)
 
     # ===========================================
     # Compat tests
