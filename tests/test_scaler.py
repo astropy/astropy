@@ -55,3 +55,18 @@ def test_with_array(dtype, order):
     exp = a * 10.0
     assert got.dtype == exp.dtype
     assert_array_equal(got, exp)
+
+
+def test_with_list():
+    a = [[1.0, 2.0], [3.0, 4.0]]
+    got = Scaler(10.0)(a)
+    exp = np.array(a) * 10.0
+    assert got.dtype == exp.dtype
+    assert_array_equal(got, exp)
+
+
+@pytest.mark.parametrize("item", [["abc"], [{}]])
+def test_with_wrong_items(item):
+    sc = Scaler(10.0)
+    with pytest.raises(ValueError, match="compatible.*convertible"):
+        sc(item)

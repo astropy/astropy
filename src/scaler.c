@@ -38,8 +38,8 @@ static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr
             Py_DECREF(res);
             return NULL;
         }
-        return res;
     }
+    return res;
 }
 
 static PyObject *Scaler_vectorcall(
@@ -90,25 +90,49 @@ static PyObject *Scaler_vectorcall(
     if (self->O_factor == NULL) {
         self->O_factor = PyFloat_FromDouble(self->factor);
         if (self->O_factor == NULL) {
-            self->O_factor = PyFloat_FromDouble(self->factor);
-            if (self->O_factor == NULL) {
-                return NULL;
-            }
+            return NULL;
         }
     }
-    // Fast path, go directly for the slot, to avoid PyNumber call.
-    if (Py_TYPE(obj)->tp_as_number != NULL) {
-        binaryfunc slotv = Py_TYPE(obj)->tp_as_number->nb_multiply;
-        if (slotv != NULL) {
-            PyObject *res = slotv(obj, self->O_factor);
-            if (res != Py_NotImplemented) {
-                return res;
+    // If a known type of object, like a subclass, or something that has
+    // a dtype or supports the Array API, just run multiply.
+    if (PyFloat_Check(obj) || PyComplex_Check(obj) || PyLong_Check(obj) || PyArray_Check(obj) ||
+        PyObject_HasAttrString(obj, "dtype") ||
+        PyObject_HasAttrString(obj, "__array_namespace__")) {
+        // Generally, should be possible to go directly for the slot.
+        if (Py_TYPE(obj)->tp_as_number != NULL) {
+            binaryfunc slotv = Py_TYPE(obj)->tp_as_number->nb_multiply;
+            if (slotv != NULL) {
+                PyObject *res = slotv(obj, self->O_factor);
+                if (res != Py_NotImplemented) {
+                    return res;
+                }
+                // Fall back to slow path, which will likely raise,
+                // thus giving a reasonable error message.
+                Py_DECREF(res);
             }
-            // Fall back to slow path, which will almost certainly raise.
-            Py_DECREF(res);
         }
         return PyNumber_Multiply(obj, self->O_factor);
     }
+    // If not a known type, try converting to an array.
+    PyObject *arr = PyArray_FromAny(obj, NULL, 0, 0, 0, NULL);
+    if (arr == NULL) {
+        return NULL;
+    }
+    PyObject *res = NULL;
+    if (PyArray_ISNUMBER((PyArrayObject *)arr)) {
+        // Re-enter to use the array path.
+        res = Scaler_vectorcall(self, &arr, 1, NULL);
+    }
+    else {
+        // If not numeric, same error message as in _condition_arg.
+        PyErr_SetString(
+            PyExc_ValueError,
+            "Value not scalar compatible or convertible to "
+            "an int, float, or complex array"
+        );
+    }
+    Py_DECREF(arr);
+    return res;
 }
 
 static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
