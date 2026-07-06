@@ -2912,3 +2912,70 @@ def test_immutable_location(kwargs):
     with pytest.warns(FutureWarning):
         # in the future, this should be an AttributeError
         t.location = loc
+
+
+def test_datenum_format_registered():
+    """Verify datenum format is registered."""
+    assert "datenum" in Time.FORMATS
+
+
+def test_datenum_basic_creation():
+    """Test basic Time creation from MATLAB datenum."""
+    # Known value: 739252.5 should correspond to 2024-03-29 12:00:00 UTC
+    datenum = 739252.5
+    t = Time(datenum, format="datenum", scale="utc")
+    assert isinstance(t.jd, (float, np.ndarray))
+    # Should be able to retrieve datenum
+    assert np.isclose(t.datenum, datenum, atol=1e-10)
+
+
+def test_datenum_roundtrip():
+    """Test round-trip conversion: datenum -> Time -> datenum."""
+    datenum_orig = 739252.5
+    t = Time(datenum_orig, format="datenum")
+    datenum_back = t.datenum
+    assert np.isclose(datenum_orig, datenum_back, atol=1e-10)
+
+
+def test_datenum_from_iso():
+    """Test conversion from ISO to datenum."""
+    # Create from ISO
+    t_iso = Time("2024-03-29 12:00:00", scale="utc", format="iso")
+    datenum_val = t_iso.datenum
+    # Create from datenum
+    t_datenum = Time(datenum_val, format="datenum", scale="utc")
+    # Should match within floating-point precision
+    assert np.isclose(t_iso.jd, t_datenum.jd, atol=1e-9)
+
+
+def test_datenum_array():
+    """Test datenum with 1D array input."""
+    datenum_array = np.array([739252.0, 739252.5, 739253.0])
+    t = Time(datenum_array, format="datenum")
+    assert isinstance(t.datenum, np.ndarray)
+    assert np.allclose(t.datenum, datenum_array, atol=1e-10)
+
+
+def test_datenum_2d_array():
+    """Test datenum with 2D array input."""
+    datenum_array = np.array([[739252.0, 739252.5], [739253.0, 739253.5]])
+    t = Time(datenum_array, format="datenum")
+    assert t.datenum.shape == (2, 2)
+    assert np.allclose(t.datenum, datenum_array, atol=1e-10)
+
+
+def test_datenum_conversion_to_formats():
+    """Test converting datenum to other formats."""
+    datenum = 739252.5
+    t = Time(datenum, format="datenum")
+    
+    # Should be able to convert to other formats
+    jd = t.jd
+    mjd = t.mjd
+    unix = t.unix
+    iso = t.iso
+    
+    assert isinstance(jd, (float, np.ndarray))
+    assert isinstance(mjd, (float, np.ndarray))
+    assert isinstance(unix, (float, np.ndarray))
+    assert isinstance(iso, str)

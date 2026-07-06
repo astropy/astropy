@@ -47,6 +47,7 @@ __all__ = [
     "TimeJD",
     "TimeJulianEpoch",
     "TimeJulianEpochString",
+    "TimeMatlabDatenum",
     "TimeMJD",
     "TimeNumeric",
     "TimePlotDate",
@@ -1034,6 +1035,62 @@ class TimeStardate(TimeFromEpoch):
     epoch_val = "2318-07-05 11:00:00"  # Date and time of stardate 00000.00
     epoch_val2 = None
     epoch_scale = "tai"
+    epoch_format = "iso"
+
+
+class TimeMatlabDatenum(TimeFromEpoch):
+    """
+    MATLAB datenum format: days since 0000-01-01 00:00:00 UTC.
+
+    MATLAB serial date numbers represent time as the number of days since
+    00:00:00 on January 1, 0000 in the proleptic Gregorian calendar.
+    Fractional days represent fractions of a 24-hour day (e.g., 0.5 = noon).
+
+    For example, datenum = 739252.5 corresponds to 2024-03-29 12:00:00 UTC.
+
+    Notes
+    -----
+    The MATLAB datenum format represents time as floating-point days. This
+    differs from integer-second based formats (unix, gps) in precision
+    characteristics:
+
+    - **Precision**: MATLAB uses IEEE 754 double precision (64-bit float),
+      preserving approximately 15-16 significant digits and microsecond-level
+      precision for dates in the modern era.
+    - **Round-trip conversions**: Converting to/from integer-second based
+      formats (unix, gps) may introduce rounding errors on the order of
+      microseconds due to the different representations.
+
+    Examples
+    --------
+    Create a Time object from a MATLAB datenum value:
+
+    >>> from astropy.time import Time
+    >>> t = Time(739252.5, format='datenum')
+    >>> t.iso  # doctest: +SKIP
+    '2024-03-29 12:00:00.000'
+
+    Convert a Time object to MATLAB datenum:
+
+    >>> t = Time('2024-03-29 12:00:00', scale='utc')
+    >>> t.datenum  # doctest: +SKIP
+    739252.5
+
+    Round-trip conversions work with fractional precision:
+
+    >>> import numpy as np
+    >>> datenum_orig = 739252.123456
+    >>> t = Time(datenum_orig, format='datenum')
+    >>> datenum_roundtrip = t.datenum
+    >>> np.isclose(datenum_orig, datenum_roundtrip)  # doctest: +SKIP
+    True
+    """
+
+    name = "datenum"
+    unit = 1.0  # Input is already in days
+    epoch_val = "0000-01-01 00:00:00"
+    epoch_val2 = None
+    epoch_scale = "utc"
     epoch_format = "iso"
 
 
