@@ -225,6 +225,7 @@ class BaseGroups:
     def __len__(self):
         _len = len(self.indices)
         if _len == 1:
+            # Should never happen, indices should with have length = 0 or length >= 2.
             raise RuntimeError("malformed groups.indices with length=1, this is a bug")
         return _len - 1 if _len > 0 else 0
 
@@ -243,6 +244,9 @@ class ColumnGroups(BaseGroups):
             return self.parent_table.groups.indices
         else:
             if self._indices is None:
+                # No explicit groups have been defined so default to a single group if
+                # the column has any rows, otherwise return an empty array of indices to
+                # match what group_by() does for an empty column.
                 _len = len(self.parent_column)
                 return np.array([0, _len]) if _len > 0 else np.array([], dtype=int)
             else:
@@ -348,6 +352,9 @@ class TableGroups(BaseGroups):
     @property
     def indices(self):
         if self._indices is None:
+            # No explicit groups have been defined so default to a single group if
+            # the table has any rows, otherwise return an empty array of indices to
+            # match what group_by() does for an empty table.
             _len = len(self.parent_table)
             return np.array([0, _len]) if _len > 0 else np.array([], dtype=int)
         else:
