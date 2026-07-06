@@ -166,7 +166,13 @@ def fitsio_compressed_file_path(
         pytest.xfail("fitsio writes these files with very large/incorrect zzero values")
 
     tmp_path = tmp_path_factory.mktemp("fitsio")
-    original_data = base_original_data.astype(dtype)
+    # fitsio corrupts non-native-endian float input to compressed HDUs (it
+    # runs a non-finite check on a byteswapped view of the values and
+    # replaces false positives, see https://github.com/esheldon/fitsio/issues/513),
+    # so always hand it native-endian data. The file on disk is identical
+    # either way, and astropy's handling of non-native input is covered by
+    # test_compress.
+    original_data = base_original_data.astype(np.dtype(dtype).newbyteorder("="))
 
     filename = tmp_path / f"{compression_type}_{dtype}.fits"
     fits = fitsio.FITS(filename, "rw")
