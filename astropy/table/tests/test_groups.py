@@ -581,7 +581,15 @@ def test_table_aggregate_reduceat_empty():
             },
             masked=masked,
         )
-        tga = tg.group_by("action").groups.aggregate(np.sum)
+        # Test default groups for empty table
+        assert len(tg.groups) == 0
+        assert list(tg.groups) == []
+
+        # Test explicit grouping by one column
+        grouped = tg.group_by("action")
+        assert len(grouped.groups) == 0
+        assert list(grouped.groups) == []
+        tga = grouped.groups.aggregate(np.sum)
         assert tga.pformat() == ["action duration", "------ --------"]
 
 

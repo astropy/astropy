@@ -223,7 +223,10 @@ class BaseGroups:
         return f"<{self.__class__.__name__} indices={self.indices}>"
 
     def __len__(self):
-        return len(self.indices) - 1
+        _len = len(self.indices)
+        if _len == 1:
+            raise RuntimeError("malformed groups.indices with length=1, this is a bug")
+        return _len - 1 if _len > 0 else 0
 
 
 class ColumnGroups(BaseGroups):
@@ -240,7 +243,8 @@ class ColumnGroups(BaseGroups):
             return self.parent_table.groups.indices
         else:
             if self._indices is None:
-                return np.array([0, len(self.parent_column)])
+                _len = len(self.parent_column)
+                return np.array([0, _len]) if _len > 0 else np.array([], dtype=int)
             else:
                 return self._indices
 
@@ -344,7 +348,8 @@ class TableGroups(BaseGroups):
     @property
     def indices(self):
         if self._indices is None:
-            return np.array([0, len(self.parent_table)])
+            _len = len(self.parent_table)
+            return np.array([0, _len]) if _len > 0 else np.array([], dtype=int)
         else:
             return self._indices
 
