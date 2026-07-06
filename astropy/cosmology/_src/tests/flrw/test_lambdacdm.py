@@ -433,8 +433,8 @@ def test_comoving_transverse_distance():
 
     # In a flat universe comoving distance and comoving transverse
     # distance are identical
-    z1 = 0, 0, 2, 0.5, 1
-    z2 = 2, 1, 1, 2.5, 1.1
+    z1 = np.array([0, 0, 2, 0.5, 1])
+    z2 = np.array([2, 1, 1, 2.5, 1.1])
 
     assert u.allclose(
         tcos.comoving_distance(z1, z2),
