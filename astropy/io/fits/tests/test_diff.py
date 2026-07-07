@@ -723,6 +723,61 @@ class TestDiff(FitsTestCase):
             assert f"Data differs at [{y + 1}, 1]" in report
         assert "100 different pixels found (100.00% different)." in report
 
+    def test_context_specific_tolerances(self):
+        data_a = np.arange(100.0).reshape(10, 10)
+        data_b = data_a.copy()
+        data_b[0, 0] += 1.0e-4
+
+        header_a = Header([("FLOAT", 1.0)])
+        header_b = header_a.copy()
+        header_b["FLOAT"] = 1.0001
+
+        hdula = HDUList([PrimaryHDU(data=data_a, header=header_a)])
+        hdulb = HDUList([PrimaryHDU(data=data_b, header=header_b)])
+
+        diff = FITSDiff(
+            hdula,
+            hdulb,
+            tolerances={
+                "default": {
+                    "header": {"rtol": 0.0, "atol": 0.0},
+                    "data": {"rtol": 0.0, "atol": 1.0e-3},
+                }
+            },
+        )
+
+        assert not diff.identical
+        hdudiff = diff.diff_hdus[0][1]
+        assert not hdudiff.diff_headers.identical
+        assert hdudiff.diff_data.identical
+
+    def test_extension_specific_tolerances(self):
+        data_a = np.arange(4.0).reshape(2, 2)
+
+        sci_a = ImageHDU(data=data_a.copy(), name="SCI")
+        sci_b = ImageHDU(data=data_a.copy(), name="SCI")
+        sci_b.data[0, 0] += 1.0e-4
+
+        err_a = ImageHDU(data=data_a.copy(), name="ERR")
+        err_b = ImageHDU(data=data_a.copy(), name="ERR")
+        err_b.data[0, 0] += 1.0e-4
+
+        hdula = HDUList([PrimaryHDU(), sci_a, err_a])
+        hdulb = HDUList([PrimaryHDU(), sci_b, err_b])
+
+        diff = FITSDiff(
+            hdula,
+            hdulb,
+            tolerances={
+                "default": {"data": {"rtol": 0.0, "atol": 0.0}},
+                "extensions": {"SCI": {"data": {"rtol": 0.0, "atol": 1.0e-3}}},
+            },
+        )
+
+        assert len(diff.diff_hdus) == 1
+        assert diff.diff_hdus[0][0] == 2
+        assert diff.diff_hdus[0][2] == "ERR"
+
     def test_partially_identical_files3(self):
         """
         Test files that have some identical HDUs but a different extension
