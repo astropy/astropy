@@ -65,7 +65,7 @@ def calculate_bin_edges(
     if isinstance(bins, str):
         # Astropy's bin-width estimators (knuth, scott, freedman, blocks)
         # compute bin widths from the data distribution, so they should only
-        # consider values within the requested range. Filter `a` here.  
+        # consider values within the requested range. Filter `a` here.
         #
         # Weights are not supported for these estimators (see the
         # NotImplementedError below), so they do not need to be filtered.
