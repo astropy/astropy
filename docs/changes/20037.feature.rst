@@ -1,1 +1,0 @@
-Added the ``tolerances`` parameter to ``FITSDiff`` and ``HDUDiff`` to allow different tolerances for headers and data as well as different configuration per extension.
