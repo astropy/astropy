@@ -620,6 +620,17 @@ def test_column_aggregate_f8():
         assert tga.pformat() == [" a ", "---", "0.0", "1.0"]
 
 
+def test_table_group_select_empty():
+    """Test selecting no groups returns a table with no keys and no indices"""
+    tg = Table({"a": [1, 2], "b": [3, 4]}).group_by("a")
+    tgs = tg.groups[[]]
+    assert len(tgs) == 0
+    assert len(tgs.groups) == 0
+    assert len(tgs.groups.keys) == 0
+    assert len(tgs.groups.indices) == 0
+    assert tgs.groups.keys.colnames == ["a"]
+
+
 def test_table_filter():
     """
     Table groups filtering

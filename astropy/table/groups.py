@@ -215,7 +215,11 @@ class BaseGroups:
                 mask[i0:i1] = True
             out = parent[mask]
             out.groups._keys = parent.groups.keys[item]
-            out.groups._indices = np.concatenate([[0], np.cumsum(i1s - i0s)])
+            out.groups._indices = (
+                np.array([], dtype=int)  # No selected groups so no indices
+                if len(out) == 0
+                else np.concatenate([[0], np.cumsum(i1s - i0s)])
+            )
 
         return out
 
