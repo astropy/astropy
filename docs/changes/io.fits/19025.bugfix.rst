@@ -1,2 +1,0 @@
-Fix use of TNULL with float columns in ASCII tables. Undefined values in float
-columns are now replaced by NaNs (instead of 0).

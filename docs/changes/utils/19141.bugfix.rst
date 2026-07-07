@@ -1,1 +1,0 @@
-``AttributeError`` will no longer occur when attempting to pickle an unbound ``DataInfo`` instance.

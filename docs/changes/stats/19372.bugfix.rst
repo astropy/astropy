@@ -1,1 +1,0 @@
-Fixed pickling of ``SigmaClip`` objects when Bottleneck is installed. ``_dtype_dispatch`` returned a local closure which cannot be pickled; replaced with a picklable ``_DtypeDispatch`` class.

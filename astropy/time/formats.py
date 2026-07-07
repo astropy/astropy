@@ -1465,6 +1465,77 @@ class TimezoneInfo(datetime.tzinfo):
         return self._dst
 
 
+# Cumulative number of days in the year before the first of each month, used to
+# turn a (year, month, day) date into a day-of-year without a Python loop.
+_DAYS_BEFORE_MONTH = np.array([0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334])
+
+# Matches a "{name:spec}" replacement field and an integer format spec such as
+# "d", "02d" or "+06d" within the subformat templates used by TimeString.
+_SUBFMT_FIELD = re.compile(r"\{(\w+):([^}]*)\}")
+_INT_SPEC = re.compile(r"([+\- ]?)(0?)(\d*)d")
+
+
+def _day_of_year(year, month, day):
+    """Day of year for proleptic Gregorian dates given as integer arrays.
+
+    Parameters
+    ----------
+    year : array_like of int
+        Full proleptic Gregorian year (e.g. 2000).
+    month : array_like of int
+        Month number, 1–12.
+    day : array_like of int
+        Day of month, 1–31.
+
+    Returns
+    -------
+    yday : ndarray of int
+        Day of year, 1–366.
+    """
+    leap = ((year % 4 == 0) & (year % 100 != 0)) | (year % 400 == 0)
+    return _DAYS_BEFORE_MONTH[month - 1] + day + ((month > 2) & leap)
+
+
+def _write_decimal(out, values, width, signed):
+    """Write the zero-padded decimal digits of ``values`` into ``out``.
+
+    ``out`` is a view into a code-point buffer with ``width`` columns along its
+    last axis. With ``signed`` the first column holds an explicit ``+``/``-``.
+
+    Writing the digits with plain integer arithmetic is deliberate: it is
+    several times faster than going through NumPy's string casts (e.g.
+    ``values.astype("U")`` or ``.astype("T")``), which format each element via
+    a Python string conversion.  See
+    https://github.com/numpy/numpy/blob/9721c24ba87e6323f29e0b2f4f73aa22574c2aef/numpy/_core/src/multiarray/stringdtype/casts.cpp#L871-L877
+    Please keep this in mind before "simplifying" to one of those.
+
+    Parameters
+    ----------
+    out : ndarray of uint32, shape (..., width)
+        Output buffer slice to write into. Modified in place.
+    values : array_like of int
+        Integer values to format. Must be non-negative when ``signed`` is
+        ``False``; negative values are supported when ``signed`` is ``True``.
+    width : int
+        Number of character columns to write. Must be wide enough to hold the
+        zero-padded digits (and sign column when ``signed`` is ``True``).
+    signed : bool
+        If ``True``, overwrite the first column with ``'+'`` or ``'-'``.
+    """
+    digits = np.asarray(values, dtype=np.int64)
+    if signed:
+        negative = digits < 0
+        digits = np.abs(digits)
+    for i in range(width - 1, -1, -1):
+        # Equivalent to ``digits % 10`` but a bit faster, since the floor
+        # division is reused instead of doing a second (costly) division.
+        by10 = digits // 10
+        out[..., i] = (digits - 10 * by10) + ord("0")
+        digits = by10
+    if signed:
+        out[..., 0] = np.where(negative, ord("-"), ord("+"))
+
+
 class TimeString(TimeUnique):
     """
     Base class for string-like time representations.
@@ -1723,6 +1794,140 @@ class TimeString(TimeUnique):
         """
         return str_fmt.format(**kwargs)
 
+    @staticmethod
+    def _field_width(spec, values):
+        """Fixed character width of an integer format ``spec`` over ``values``.
+
+        Returns ``(width, signed)``, or ``(None, None)`` when the field cannot
+        be built as a fixed-width column (e.g. a bare ``d`` whose values do not
+        all have the same number of digits), signalling that the caller should
+        fall back to formatting element by element.
+
+        Parameters
+        ----------
+        spec : str
+            The format spec portion of a ``{name:spec}`` replacement field,
+            e.g. ``"d"``, ``"02d"``, or ``"+06d"``.
+        values : ndarray of int
+            The integer values that will be formatted under this spec.
+
+        Returns
+        -------
+        width : int or None
+            Fixed character width of the field, or ``None`` if the field
+            cannot be rendered at a uniform width by this function.
+        signed : bool or None
+            ``True`` if the first character is an explicit ``'+'``/``'-'``
+            sign, ``False`` if the field is unsigned, or ``None`` when
+            ``width`` is ``None``.
+        """
+        match = _INT_SPEC.fullmatch(spec)
+        if match is None:
+            return None, None
+        sign, zero, digits = match.group(1, 2, 3)
+        if digits:
+            # We build columns by zero-padding, so a fixed width without the
+            # "0" flag (which pads with spaces) is left to the per-element path.
+            # And "real" formatting widens the field when a value does not fit,
+            # so a value needing more characters than ``width`` would be silently
+            # truncated in our fixed-width column; fall back in that (rare) case
+            # too -- e.g. a year past 9999 in the signed FITS ``{year:+06d}``.
+            width = int(digits)
+            signed = sign == "+"
+            fits = zero
+            if zero and values.size:
+                n_sign = 1 if signed or int(values.min()) < 0 else 0
+                fits = len(str(int(np.abs(values).max()))) + n_sign <= width
+            return (width, signed) if fits else (None, None)
+        # A bare "d" has no field width, so the width follows the values and we
+        # can only pre-size the column if they share a digit count and need no
+        # sign (a forced "+" or a negative value would make the width vary too).
+        if values.size == 0:
+            return 1, False
+        low = int(values.min())
+        lo = len(str(low))
+        hi = len(str(int(values.max())))
+        if sign or low < 0 or lo != hi:
+            return None, None
+        return hi, False
+
+    def _value_fast(self, str_fmt):
+        """Build the output strings for ``str_fmt`` with array operations.
+
+        Returns ``None`` if ``str_fmt`` has a field we cannot lay out at a fixed
+        width, leaving the caller to format the times one element at a time.
+
+        Parameters
+        ----------
+        str_fmt : str
+            Output template string containing ``{name:spec}`` replacement
+            fields, e.g. ``"{year:d}-{mon:02d}-{day:02d}"``.
+
+        Returns
+        -------
+        out : ndarray of str or None
+            Array of formatted time strings with the same shape as
+            ``self.jd1``, or ``None`` if any field in ``str_fmt`` cannot be
+            rendered at a fixed width (signalling the caller to fall back to
+            per-element formatting).
+        """
+        scale = (self.scale.upper().encode("ascii"),)
+        iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision, self.jd1, self.jd2)
+        # A masked Time gives MaskedNDArray components here; the mask is applied
+        # downstream, so we format the underlying integers (matching the
+        # per-element path, which iterates over the same underlying values).
+        fields = {
+            "year": np.asarray(iys),
+            "mon": np.asarray(ims),
+            "day": np.asarray(ids),
+            "hour": np.asarray(ihmsfs["h"]),
+            "min": np.asarray(ihmsfs["m"]),
+            "sec": np.asarray(ihmsfs["s"]),
+            "fracsec": np.asarray(ihmsfs["f"]),
+        }
+        if "{yday:" in str_fmt:
+            fields["yday"] = _day_of_year(fields["year"], fields["mon"], fields["day"])
+
+        # Split the template into literal text and replacement fields, recording
+        # the fixed width of each piece so the whole row fits one buffer.
+        pieces = []
+        width = 0
+        pos = 0
+        for match in _SUBFMT_FIELD.finditer(str_fmt):
+            if match.start() > pos:
+                literal = str_fmt[pos : match.start()]
+                pieces.append((literal, None, None))
+                width += len(literal)
+            name, spec = match.group(1, 2)
+            if name not in fields:
+                return None
+            field_width, signed = self._field_width(spec, fields[name])
+            if field_width is None:
+                return None
+            pieces.append((fields[name], field_width, signed))
+            width += field_width
+            pos = match.end()
+        if pos < len(str_fmt):
+            literal = str_fmt[pos:]
+            pieces.append((literal, None, None))
+            width += len(literal)
+
+        # Write each piece into its slice of a single code-point buffer, then
+        # reinterpret the rows as fixed-width unicode strings.
+        buf = np.empty(fields["year"].shape + (width,), dtype=np.uint32)
+        col = 0
+        for value, field_width, signed in pieces:
+            if field_width is None:  # literal text
+                buf[..., col : col + len(value)] = [ord(char) for char in value]
+                col += len(value)
+            else:
+                _write_decimal(
+                    buf[..., col : col + field_width], value, field_width, signed
+                )
+                col += field_width
+
+        return buf.view(f"U{width}").reshape(self.jd1.shape)
+
     @property
     def value(self):
         # Select the first available subformat based on current
@@ -1730,12 +1935,20 @@ class TimeString(TimeUnique):
         subfmts = self._select_subfmts(self.out_subfmt)
         _, _, str_fmt = subfmts[0]
 
-        # TODO: fix this ugly hack
+        # When seconds are present the fractional part is appended here rather
+        # than baked into the template, since its width follows self.precision.
         if self.precision > 0 and str_fmt.endswith("{sec:02d}"):
             str_fmt += ".{fracsec:0" + str(self.precision) + "d}"
 
-        # Try to optimize this later.  Can't pre-allocate because length of
-        # output could change, e.g. year rolls from 999 to 1000.
+        # Build the strings with array operations where we can. This falls back
+        # to per-element formatting for a custom format_string or any layout
+        # that is not a fixed-width run of integer fields (e.g. years that span
+        # different numbers of digits within one array).
+        if type(self).format_string is TimeString.format_string:
+            out = self._value_fast(str_fmt)
+            if out is not None:
+                return out
+
         outs = []
         for kwargs in self.str_kwargs():
             outs.append(str(self.format_string(str_fmt, **kwargs)))

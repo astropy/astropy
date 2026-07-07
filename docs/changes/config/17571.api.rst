@@ -1,2 +1,0 @@
-The ``ConfNamespace.help`` method now raises an exception if called under
-Python's optimized mode (``-OO`` flag).

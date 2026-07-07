@@ -1,2 +1,0 @@
-Removed deprecated functions ``is_path_hidden`` and ``walk_skip_hidden``
-from ``astropy.utils.misc``.

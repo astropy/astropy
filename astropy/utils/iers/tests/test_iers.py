@@ -20,7 +20,7 @@ from astropy.table import QTable
 from astropy.tests.helper import CI, assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.iers import iers
 
 FILE_NOT_FOUND_ERROR = getattr(__builtins__, "FileNotFoundError", OSError)
@@ -247,6 +247,12 @@ class TestIERS_Auto:
         self._auto_download = iers.conf.auto_download
         iers.conf.auto_download = True
 
+        # Ensure no IERS_Auto table is cached from an earlier test, so that the
+        # first test's open() re-reads the (possibly monkeypatched) bundled file
+        # rather than returning a stale memoized table; teardown_method keeps it
+        # clean for the remaining tests.
+        iers.IERS_Auto.close()
+
         # auto_download = False is tested in test_IERS_B_parameters_loading_into_IERS_Auto()
 
     def teardown_class(self):
@@ -257,10 +263,11 @@ class TestIERS_Auto:
         """Run this after every test."""
         iers.IERS_Auto.close()
 
-    def test_interpolate_error_formatting(self):
+    def test_interpolate_error_formatting(self, monkeypatch):
         """Regression test: make sure the error message in
         IERS_Auto._check_interpolate_indices() is formatted correctly.
         """
+        monkeypatch.setattr(iers, "IERS_A_FILE", self.iers_a_file_1)
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             with iers.conf.set_temp("iers_auto_url_mirror", self.iers_a_url_1):
                 with iers.conf.set_temp("auto_max_age", self.ame):
@@ -276,10 +283,11 @@ class TestIERS_Auto:
                             warnings.simplefilter("ignore", iers.IERSStaleWarning)
                             iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
-    def test_auto_max_age_none(self):
+    def test_auto_max_age_none(self, monkeypatch):
         """Make sure that iers.INTERPOLATE_ERROR's advice about setting
         auto_max_age = None actually works.
         """
+        monkeypatch.setattr(iers, "IERS_A_FILE", self.iers_a_file_1)
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             with iers.conf.set_temp("auto_max_age", None):
                 iers_table = iers.IERS_Auto.open()
@@ -303,6 +311,7 @@ class TestIERS_Auto:
                     _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
     def test_simple(self, monkeypatch):
+        monkeypatch.setattr(iers, "IERS_A_FILE", self.iers_a_file_1)
         with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
             dat = iers.IERS_Auto.open()
             assert dat["MJD"][0] == 57359.0 * u.d
@@ -486,33 +495,58 @@ def test_iers_b_out_of_range_handling():
             (now + 100 * u.day).ut1
 
 
+@pytest.fixture
+def reset_iers_auto_cache():
+    """Clear the IERS_A/IERS_Auto/IERS caches around a test.
+
+    IERS_Auto.open() memoizes its table in a class attribute, so a test that
+    loads a non-default bundled table (e.g. a truncated fixture) would otherwise
+    leak that table into later tests through earth_orientation_table.  close()
+    only nulls the cached table, so this is safe regardless of the current
+    IERS_A_FILE value.
+    """
+    for cls in (iers.IERS_A, iers.IERS_Auto, iers.IERS):
+        cls.close()
+    yield
+    for cls in (iers.IERS_A, iers.IERS_Auto, iers.IERS):
+        cls.close()
+
+
 @pytest.mark.remote_data
-def test_iers_download_error_handling(tmp_path):
-    # Make sure an IERS-A table isn't already loaded
+def test_iers_download_error_handling(tmp_path, monkeypatch, reset_iers_auto_cache):
+    # IERS_Auto.open() now reads the bundled table and only attempts a download
+    # later, when predictive values beyond the table range are requested while
+    # the table is older than auto_max_age.  Point at an old bundled table so
+    # that requesting a recent date triggers a download attempt.  The truncated
+    # fixture it loads is cleared afterwards by reset_iers_auto_cache.
+    monkeypatch.setattr(
+        iers,
+        "IERS_A_FILE",
+        get_pkg_data_filename(os.path.join("data", "finals2000A-2016-02-30-test")),
+    )
     with set_temp_cache(tmp_path), iers.conf.set_temp("auto_download", True):
-        iers.IERS_A.close()
-        iers.IERS_Auto.close()
-        iers.IERS.close()
         now = Time.now()
 
-        # bad site name
-        with iers.conf.set_temp("iers_auto_url", "FAIL FAIL"):
-            # site that exists but doesn't have IERS data
-            with iers.conf.set_temp("iers_auto_url_mirror", "https://google.com"):
-                with pytest.warns(iers.IERSWarning) as record:
-                    with iers.conf.set_temp("iers_degraded_accuracy", "ignore"):
-                        (now + 400 * u.day).ut1
-
-                assert len(record) == 3
-                assert str(record[0].message).startswith(
-                    "failed to download FAIL FAIL: Malformed URL"
-                )
-                assert str(record[1].message).startswith(
-                    "malformed IERS table from https://google.com"
-                )
-                assert str(record[2].message).startswith(
-                    "unable to download valid IERS file, using bundled IERS-A"
-                )
+        # Primary URL is a bad site name and the mirror is a site that exists
+        # but does not provide a valid IERS table, so the refresh cannot find
+        # usable data.
+        with (
+            iers.conf.set_temp("iers_auto_url", "FAIL FAIL"),
+            iers.conf.set_temp("iers_auto_url_mirror", "https://google.com"),
+            iers.conf.set_temp("iers_degraded_accuracy", "ignore"),
+        ):
+            # The failed refresh is reported with a warning (the download fails
+            # or the downloaded content cannot be parsed), and since the bundled
+            # table is too old to cover the requested predictive date the
+            # interpolation then raises.
+            with pytest.warns(
+                AstropyWarning, match="failed to download|malformed IERS table"
+            ):
+                with pytest.raises(
+                    ValueError,
+                    match="interpolating from IERS_Auto using predictive values",
+                ):
+                    (now + 400 * u.day).ut1
 
 
 OLD_DATA_FILES = {

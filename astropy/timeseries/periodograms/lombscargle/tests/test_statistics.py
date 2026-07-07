@@ -121,7 +121,7 @@ def test_inverse_bootstrap(normalization, use_errs, units):
 @pytest.mark.parametrize("use_errs", [True, False])
 @pytest.mark.parametrize("N", [10, 100, 1000])
 @pytest.mark.parametrize("units", [False, True])
-def test_inverses(method, normalization, use_errs, N, units, T=5):
+def test_inverses(method, normalization, use_errs, N, units):
     if not HAS_SCIPY and method in ["baluev", "davies"]:
         pytest.skip("SciPy required")
 

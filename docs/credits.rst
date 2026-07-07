@@ -498,6 +498,7 @@ Core Package Contributors
 * Rohit Kapoor
 * Rohit Patil
 * Roland Weber
+* Romain Thomas
 * Roman Tolesnikov
 * Roy Smart
 * Rui Xue
@@ -596,6 +597,7 @@ Core Package Contributors
 * Varun Kasyap Pentamaraju
 * Varun Nikam
 * Vatsala Swaroop
+* veyron
 * Víctor Terrón
 * Víctor Zabalza
 * Victoria Dye

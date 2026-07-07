@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsprintf.h,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcsprintf.h,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.6 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.9 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -84,9 +84,17 @@
 *   wcsout    FILE*     Pointer to an output stream that has been opened for
 *                       writing, e.g. by the fopen() stdio library function,
 *                       or one of the predefined stdio output streams - stdout
-*                       and stderr.  If zero (NULL), output is written to an
-*                       internally-allocated string buffer, the address of
-*                       which may be obtained by wcsprintf_buf().
+*                       and stderr.
+*
+*                       If zero (NULL), output is written to an internally-
+*                       allocated string buffer, the address of which may be
+*                       obtained by wcsprintf_buf().  In threaded execution,
+*                       thread-local storage (TLS) is used for the buffer and
+*                       its indices and this may be used to aggregate messages
+*                       for each thread prior to output.  The buffer must be
+*                       freed prior to the termination of the thread by
+*                       calling wcsprintf_set() with a valid FILE*, e.g.
+*                       stdout.
 *
 * Function return value:
 *             int       Status return value:
@@ -103,7 +111,8 @@
 *                       Address of the internal string buffer.  The user may
 *                       free this buffer by calling wcsprintf_set() with a
 *                       valid FILE*, e.g. stdout.  The free() stdlib library
-*                       function must NOT be invoked on this const pointer.
+*                       function must NOT be invoked directly on this const
+*                       pointer.
 *
 *
 * WCSPRINTF_PTR() macro - Print addresses in a consistent way

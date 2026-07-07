@@ -47,7 +47,7 @@ Core Classes:
 Index Engines:
     - `SortedArray`: Array-based sorted container implementation (default)
     - `SCEngine`: SortedContainers-based implementation (when available)
-    - `BST`: Binary search tree implementation for sorted data (not for production)
+    - `BST`: Binary search tree implementation for sorted data (not for production, deprecated)
 
 Query Interface Classes:
     - `TableLoc`: Value-based row retrieval using ``.loc[]``.

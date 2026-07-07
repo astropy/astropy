@@ -405,6 +405,64 @@ class TestTableFunctions(FitsTestCase):
 
         a.close()
 
+    @pytest.mark.parametrize("mode", ["readonly", "denywrite", "update"])
+    def test_writeto_after_open_modes(self, tmp_path, mode):
+        """Writing a table to a new file must not fail in any open mode, even
+        though scaled (TSCALn/TZEROn), logical (``'L'``) and bit (``'X'``)
+        columns have an on-disk form that differs from their in-memory values.
+        A ``mode='denywrite'`` buffer is read-only, so nothing could have been
+        modified and ``_scale_back`` does not write it back -- this previously
+        raised "assignment destination is read-only".
+        """
+        cols = [
+            fits.Column("plain", "J", array=np.array([10, 20, 30])),
+            fits.Column(
+                "scaled", "E", array=np.array([1.0, 2.0, 3.0]), bscale=2.0, bzero=5.0
+            ),
+            fits.Column("bits", "2X", array=np.array([[1, 0], [0, 1], [1, 1]])),
+            fits.Column("flag", "L", array=np.array([True, False, True])),
+        ]
+        in_path = tmp_path / "in.fits"
+        fits.BinTableHDU.from_columns(cols).writeto(in_path)
+
+        out_path = tmp_path / "out.fits"
+        with fits.open(in_path, mode=mode) as hdul:
+            for name in hdul[1].columns.names:
+                hdul[1].data[name]
+            hdul.writeto(out_path)
+
+        with fits.open(out_path) as hdul:
+            data = hdul[1].data
+            assert data["plain"].tolist() == [10, 20, 30]
+            np.testing.assert_allclose(data["scaled"], [1.0, 2.0, 3.0])
+            assert data["bits"].tolist() == [[True, False], [False, True], [True, True]]
+            assert data["flag"].tolist() == [True, False, True]
+
+    @pytest.mark.parametrize(
+        "fmt, array, kwargs",
+        [
+            ("J", [10, 20, 30], {}),
+            ("E", [1.0, 2.0, 3.0], {"bscale": 2.0, "bzero": 5.0}),
+            ("2X", [[1, 0], [0, 1], [1, 1]], {}),
+            ("L", [True, False, True], {}),
+        ],
+        ids=["int", "scaled", "bits", "logical"],
+    )
+    def test_denywrite_columns_are_readonly(self, tmp_path, fmt, array, kwargs):
+        """A table opened with ``mode='denywrite'`` exposes every column as a
+        read-only array, including scaled / logical / bit columns whose
+        in-memory form is a freshly converted array rather than a view of the
+        raw buffer. An in-place edit therefore raises instead of being silently
+        dropped on write (consistent with plain columns and image data).
+        """
+        in_path = tmp_path / "in.fits"
+        col = fits.Column("c", fmt, array=np.array(array), **kwargs)
+        fits.BinTableHDU.from_columns([col]).writeto(in_path)
+        with fits.open(in_path, mode="denywrite") as hdul:
+            data = hdul[1].data["c"]
+            with pytest.raises(ValueError, match="read-only"):
+                data[0] = data[0]
+
     def test_endianness(self):
         x = np.ndarray((1,), dtype=object)
         channelsIn = np.array([3], dtype="uint8")
@@ -2877,6 +2935,70 @@ class TestTableFunctions(FitsTestCase):
         with pytest.warns(AstropyUserWarning, match="contains NULL"):
             with fits.open(out_path) as hdul:
                 assert hdul[1].data["flag"].tolist() == [True, False, False]
+
+    def test_logical_nrows_fill_then_assign(self, tmp_path):
+        """A logical ('L') column created via ``from_columns(..., nrows=N)``
+        without an input array must default to False (b'F'), not NULL
+        (b'\\x00'). Otherwise a row later assigned ``False`` is left as the
+        zero-fill byte and silently stored as NULL, because ``_scale_back``
+        cannot distinguish an untouched NULL from an explicit False once both
+        appear as raw 0x00 with a cached bool of ``False``. Regression test
+        for the breakage introduced by logical-NULL support in 8.0.0.
+        """
+        hdu = fits.BinTableHDU.from_columns([fits.Column("FLAG", "L")], nrows=4)
+        for i, value in enumerate([True, False, True, False]):
+            hdu.data[i]["FLAG"] = value
+        path = tmp_path / "flags.fits"
+        hdu.writeto(path)
+
+        # Raw bytes: the False rows must be b'F', never NULL (b'\x00').
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            raw = hdul[1].data["FLAG"]
+            assert raw.tobytes() == b"TFTF"
+
+        # A normal read must therefore neither warn about NULL nor mangle
+        # the values.
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", AstropyUserWarning)
+            with fits.open(path) as hdul:
+                assert hdul[1].data["FLAG"].tolist() == [True, False, True, False]
+
+        # Rows left untouched after creation also default to False, not NULL.
+        hdu = fits.BinTableHDU.from_columns([fits.Column("FLAG", "L")], nrows=3)
+        hdu.data[0]["FLAG"] = True
+        partial_path = tmp_path / "partial.fits"
+        hdu.writeto(partial_path)
+        with fits.open(partial_path, logical_as_bytes=True) as hdul:
+            assert hdul[1].data["FLAG"].tobytes() == b"TFF"
+
+    def test_logical_as_bytes_invalid_byte_rejected_on_write(self, tmp_path):
+        """Bytes assigned into a logical ('L') column read with
+        ``logical_as_bytes=True`` alias the raw data directly, bypassing the
+        construction-time validation. Writing a column whose raw bytes are not
+        one of the FITS L wire-format values b'T', b'F', b'\\x00' therefore
+        raises ``ValueError`` at write time.
+        """
+        src = np.array([b"T", b"\x00", b"F"], dtype="S1")
+        path = tmp_path / "src.fits"
+        fits.BinTableHDU.from_columns([fits.Column("flag", "L", array=src)]).writeto(
+            path
+        )
+
+        # Valid wire-format bytes round-trip without error.
+        with fits.open(path, logical_as_bytes=True) as hdul:
+            hdul[1].data["flag"][0] = b"\x00"
+            hdul[1].data["flag"][2] = b"T"
+            out = tmp_path / "ok.fits"
+            hdul.writeto(out)
+        with fits.open(out, logical_as_bytes=True) as hdul:
+            assert hdul[1].data["flag"].tobytes() == b"\x00\x00T"
+
+        # An invalid byte is rejected on write.
+        for bad in (b"X", b"1", b"t"):
+            with fits.open(path, logical_as_bytes=True) as hdul:
+                hdul[1].data["flag"][0] = bad
+                with pytest.raises(ValueError, match="only b'T', b'F'"):
+                    hdul.writeto(tmp_path / f"bad_{bad}.fits")
 
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""

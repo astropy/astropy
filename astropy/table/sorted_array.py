@@ -93,7 +93,7 @@ class SortedArray:
 
     def find_pos(self, key, data, exact=False):
         """
-        Return the index of the largest key in data greater than or
+        Return the index of the first key in data greater than or
         equal to the given key, data pair.
 
         Parameters
@@ -190,27 +190,40 @@ class SortedArray:
             argument corresponds to an inclusive lower bound,
             and the second argument to an inclusive upper bound.
         """
-        # Find initial positions for lower and upper bounds. Just like a slice object,
-        # None values for `lower` or `upper` correspond to no bound in that direction.
-        lower_pos = 0 if lower is None else self.find_pos(lower, 0)
-        upper_pos = len(self.row_index) if upper is None else self.find_pos(upper, 0)
+        n = len(self.row_index)
 
-        if lower_pos == len(self.row_index):
-            return []
+        def bisect_left(key):
+            # Position of the first entry whose key is >= ``key``.
+            return self.find_pos(key, 0)
 
-        lower_bound = tuple(col[lower_pos] for col in self.cols)
-        if not bounds[0] and lower_bound == lower:
-            lower_pos += 1  # data[lower_pos] > lower
+        def bisect_right(key):
+            # Position of the first entry whose key is > ``key`` (i.e. just
+            # past the last entry equal to ``key``).
+            if self.unique:
+                pos = self.find_pos(key, 0)
+                if pos < n and tuple(col[pos] for col in self.cols) == key:
+                    pos += 1
+                return pos
+            # For a non-unique index the stored keys include the row number, so
+            # searching with a row number larger than any real row lands just
+            # past the last entry equal to ``key`` (and thus past all duplicates).
+            return self.find_pos(key, n)
 
-        # data[lower_pos] >= lower
-        # data[upper_pos] >= upper
-        if upper_pos < len(self.row_index):
-            upper_bound = tuple(col[upper_pos] for col in self.cols)
-            if not bounds[1] and upper_bound == upper:
-                upper_pos -= 1  # data[upper_pos] < upper
-            elif upper_bound > upper:
-                upper_pos -= 1  # data[upper_pos] <= upper
-        return self.row_index[lower_pos : upper_pos + 1]
+        # Compute a half-open range [lower_pos, upper_pos). Just like a slice
+        # object, a None value for `lower` or `upper` means no bound in that
+        # direction. Using bisect_left/bisect_right ensures all entries that
+        # share a value with an inclusive bound are included, even duplicates.
+        if lower is None:
+            lower_pos = 0
+        else:
+            lower_pos = bisect_left(lower) if bounds[0] else bisect_right(lower)
+
+        if upper is None:
+            upper_pos = n
+        else:
+            upper_pos = bisect_right(upper) if bounds[1] else bisect_left(upper)
+
+        return self.row_index[lower_pos:upper_pos]
 
     def remove(self, key: tuple, data: int) -> bool:
         """

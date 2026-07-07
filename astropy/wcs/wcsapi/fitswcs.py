@@ -397,13 +397,16 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # it. We start off by defining a hash based on the attributes of the
         # WCS that matter here (we can't just use the WCS object as a hash since
         # it is mutable)
+        # NaN values must be normalized since NaN != NaN would otherwise
+        # defeat the cache comparison below.
+        equinox = self.wcs.equinox
         wcs_hash = (
             self.naxis,
             list(self.wcs.ctype),
             list(self.wcs.cunit),
             self.wcs.radesys,
             self.wcs.specsys,
-            self.wcs.equinox,
+            None if np.isnan(equinox) else equinox,
             self.wcs.dateobs,
             self.wcs.lng,
             self.wcs.lat,

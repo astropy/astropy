@@ -20,7 +20,17 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .test_table import SetupData
 
-available_engines = [BST, SortedArray]
+# BST is deprecated but remains tested until it is removed.
+available_engines = [
+    pytest.param(
+        BST,
+        id="BST",
+        marks=pytest.mark.filterwarnings(
+            "ignore:The BST class is deprecated:astropy.utils.exceptions.AstropyDeprecationWarning"
+        ),
+    ),
+    SortedArray,
+]
 NATIVE_INT_NAME = np.array(0).dtype.name
 
 if HAS_SORTEDCONTAINERS:
@@ -912,8 +922,17 @@ def test_indices_roundtrip_various_dtypes(dtype):
 
 @pytest.mark.parametrize("single_index", [True, False])
 @pytest.mark.parametrize("engine", [SortedArray, SCEngine])
-@pytest.mark.parametrize("fmt", ["fits", "ecsv", "hdf5"])
-def test_indices_roundtrip_through_file(single_index, fmt, engine, tmp_path):
+@pytest.mark.parametrize(
+    "fmt, read_kwargs, write_kwargs",
+    [
+        pytest.param("ecsv", {}, {}, id="ecsv"),
+        pytest.param("fits", {}, {"astropy_native": True}, id="fits"),
+        pytest.param("hdf5", {"serialize_meta": True, "path": "root"}, {}, id="hdf5"),
+    ],
+)
+def test_indices_roundtrip_through_file(
+    single_index, fmt, read_kwargs, write_kwargs, engine, tmp_path
+):
     if single_index and fmt != "ecsv":
         # Save a few compute cycles, since single_index is really impacting just the
         # serialization data and the engine and fmt don't matter.
@@ -939,11 +958,9 @@ def test_indices_roundtrip_through_file(single_index, fmt, engine, tmp_path):
         t.add_index(colnames, engine=engine)
 
     path = tmp_path / f"out.{fmt}"
-    kwargs = {"serialize_meta": True, "path": "root"} if fmt == "hdf5" else {}
-    t.write(path, format=fmt, write_indices=True, **kwargs)
+    t.write(path, format=fmt, write_indices=True, **read_kwargs)
 
-    kwargs = {"astropy_native": True} if fmt == "fits" else {}
-    t2 = QTable.read(path, format=fmt, **kwargs)
+    t2 = QTable.read(path, format=fmt, **write_kwargs)
     if fmt == "fits":
         # FITS does not round-trip the format
         t2["a"].format = "cxcsec"
@@ -1122,3 +1139,40 @@ def test_index_not_corrupted_on_failed_row_assignment(engine):
     # No ghost entry for the attempted new value
     with pytest.raises(KeyError):
         t.loc[99]
+
+
+@pytest.mark.parametrize("table_type", [Table, QTable])
+def test_loc_range_with_duplicate_index_values(engine, table_type):
+    """Regression test: a range query must return every row whose value equals
+    an inclusive bound, even when that value is duplicated in the index.
+
+    The default ``SortedArray`` engine previously kept only the first matching
+    row, so e.g. ``t.loc[1:2]`` silently dropped all but one of the ``2`` rows.
+    """
+    t = table_type()
+    t["a"] = [3, 2, 2, 3, 1, 2]
+    t["b"] = [30, 20, 21, 31, 10, 22]
+    t.add_index("a", engine=engine)
+
+    assert sorted(t.loc[1:2]["b"].tolist()) == [10, 20, 21, 22]
+    assert sorted(t.loc[2:2]["b"].tolist()) == [20, 21, 22]
+    assert sorted(t.loc[2:3]["b"].tolist()) == [20, 21, 22, 30, 31]
+    assert sorted(t.loc[:]["b"].tolist()) == [10, 20, 21, 22, 30, 31]
+
+
+def test_loc_range_sorted_after_add_row(engine):
+    """Regression test: a range query must return rows in ascending key order,
+    also for rows added after the index was created.
+
+    The ``BST`` engine previously collected nodes in node-right-left order,
+    so after ``add_row`` the tree was no longer a degenerate chain and
+    ``t.loc[lower:upper]`` returned rows in scrambled order.
+    """
+    t = Table([[1, 5, 9], [10, 50, 90]], names=("a", "b"))
+    t.add_index("a", engine=engine)
+    for a, b in [(7, 70), (3, 30), (8, 80), (2, 20), (6, 60), (4, 40)]:
+        t.add_row((a, b))
+
+    assert t.loc[2:8]["a"].tolist() == [2, 3, 4, 5, 6, 7, 8]
+    assert t.loc[2:8]["b"].tolist() == [20, 30, 40, 50, 60, 70, 80]
+    assert t.loc[:]["a"].tolist() == [1, 2, 3, 4, 5, 6, 7, 8, 9]

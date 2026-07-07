@@ -1,2 +1,0 @@
-Send a User-Agent header to the OpenStreetMap API in ``EarthLocation.of_address``
-to fix access denied errors.

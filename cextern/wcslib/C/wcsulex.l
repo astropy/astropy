@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.6 - an implementation of the FITS WCS standard.
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsulex.l,v 8.6 2026/03/29 13:53:56 mcalabre Exp $
+  $Id: wcsulex.l,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *=============================================================================
 *
 * wcsulex.l is a Flex description file containing the definition of a

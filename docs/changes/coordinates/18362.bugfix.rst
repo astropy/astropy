@@ -1,2 +1,0 @@
-``Galactocentric`` and ``LSR`` now raise an error if their velocities are
-initialized with something that does not have velocity units.

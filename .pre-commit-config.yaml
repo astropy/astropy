@@ -38,6 +38,10 @@ repos:
       - id: end-of-file-fixer
         # Makes sure files end in a newline and only a newline.
         exclude: ".*(data.*|extern.*|licenses.*|_static.*|_parsetab.py)$"
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        # Forces all text files to use LF line endings.
+        exclude: ".*(data.*|extern.*|licenses.*|_static.*|_parsetab.py)$"
       # - id: fix-encoding-pragma  # covered by pyupgrade
       - id: trailing-whitespace
         # Trims trailing whitespace.
@@ -55,7 +59,7 @@ repos:
         # Forbid files which have a UTF-8 Unicode replacement character.
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.25.2
+    rev: v1.26.1
     hooks:
     - id: zizmor
 
@@ -68,14 +72,14 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.15.20
     hooks:
       - id: ruff-check
         args: ["--fix", "--show-fixes"]
       - id: ruff-format
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2026.04.04
+    rev: 2026.06.18
     hooks:
       - id: sp-repo-review
 

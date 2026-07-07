@@ -1,1 +1,0 @@
-Allow 1d vector-like strings, with or without units, to be converted into ``Quantity``.

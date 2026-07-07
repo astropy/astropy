@@ -1,1 +1,0 @@
-Improved error messages from ``get_free_space_in_dir``.

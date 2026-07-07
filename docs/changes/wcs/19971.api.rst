@@ -1,0 +1,6 @@
+Deprecated the unused members of the public ``astropy.wcs`` C API exposed
+through ``astropy.wcs.get_include()``.  Calling any of them through the
+function-pointer table now emits a ``DeprecationWarning``.  The six members
+used by downstream code (``wcsprm_python2c``, ``wcsprm_c2python``,
+``pipeline_all_pixel2world``, ``wcss2p``, ``wcsprt`` and
+``wcslib_get_error_message``), along with ``wcsp2s``, are unaffected.

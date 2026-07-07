@@ -1,1 +1,0 @@
-The whole ``astropy.samp`` module is deprecated. Please use ``pyvo.samp`` instead.
