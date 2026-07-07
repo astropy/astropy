@@ -778,6 +778,177 @@ class TestDiff(FitsTestCase):
         assert diff.diff_hdus[0][0] == 2
         assert diff.diff_hdus[0][2] == "ERR"
 
+    def test_tolerances_invalid_type(self):
+        hdula = HDUList([PrimaryHDU()])
+        hdulb = HDUList([PrimaryHDU()])
+        with pytest.raises(TypeError, match="FITSDiff tolerances must be a mapping"):
+            FITSDiff(hdula, hdulb, tolerances="invalid")
+
+    def test_tolerances_unknown_section(self):
+        hdula = HDUList([PrimaryHDU()])
+        hdulb = HDUList([PrimaryHDU()])
+        with pytest.raises(ValueError, match="unknown FITSDiff tolerance sections"):
+            FITSDiff(hdula, hdulb, tolerances={"unknown_section": {}})
+
+    def test_tolerances_invalid_context_name(self):
+        hdula = HDUList([PrimaryHDU()])
+        hdulb = HDUList([PrimaryHDU()])
+        with pytest.raises(
+            ValueError, match="tolerance contexts must be 'header' or 'data'"
+        ):
+            FITSDiff(
+                hdula, hdulb, tolerances={"default": {"invalid_ctx": {"rtol": 0.0}}}
+            )
+
+    def test_tolerances_invalid_context_value_type(self):
+        hdula = HDUList([PrimaryHDU()])
+        hdulb = HDUList([PrimaryHDU()])
+        with pytest.raises(TypeError, match="tolerances for context"):
+            FITSDiff(hdula, hdulb, tolerances={"default": {"header": "invalid"}})
+
+    def test_tolerances_invalid_tolerance_key(self):
+        hdula = HDUList([PrimaryHDU()])
+        hdulb = HDUList([PrimaryHDU()])
+        with pytest.raises(ValueError, match="tolerance keys must be 'rtol' or 'atol'"):
+            FITSDiff(
+                hdula,
+                hdulb,
+                tolerances={"default": {"header": {"invalid_key": 1.0}}},
+            )
+
+    def test_tolerances_extensions_invalid_type(self):
+        hdula = HDUList([PrimaryHDU()])
+        hdulb = HDUList([PrimaryHDU()])
+        with pytest.raises(
+            TypeError, match="FITSDiff extension tolerances must be a mapping"
+        ):
+            FITSDiff(hdula, hdulb, tolerances={"extensions": "invalid"})
+
+    def test_tolerances_extensions_non_string_key(self):
+        hdula = HDUList([PrimaryHDU()])
+        hdulb = HDUList([PrimaryHDU()])
+        with pytest.raises(
+            TypeError, match="FITSDiff extension tolerance keys must be strings"
+        ):
+            FITSDiff(
+                hdula, hdulb, tolerances={"extensions": {123: {"data": {"atol": 0.0}}}}
+            )
+
+    def test_tolerances_case_insensitive_extension(self):
+        data_a = np.arange(4.0).reshape(2, 2)
+        sci_a = ImageHDU(data=data_a.copy(), name="SCI")
+        sci_b = ImageHDU(data=data_a.copy(), name="SCI")
+        sci_b.data[0, 0] += 1.0e-4
+
+        hdula = HDUList([PrimaryHDU(), sci_a])
+        hdulb = HDUList([PrimaryHDU(), sci_b])
+
+        # Lowercase "sci" should match uppercase "SCI"
+        diff = FITSDiff(
+            hdula,
+            hdulb,
+            tolerances={"extensions": {"sci": {"data": {"atol": 1.0e-3}}}},
+        )
+        assert diff.identical
+
+    def test_tolerances_primary_hdu(self):
+        data_a = np.arange(4.0).reshape(2, 2)
+        data_b = data_a.copy()
+        data_b[0, 0] += 1.0e-4
+
+        hdula = HDUList([PrimaryHDU(data=data_a)])
+        hdulb = HDUList([PrimaryHDU(data=data_b)])
+
+        diff = FITSDiff(
+            hdula,
+            hdulb,
+            tolerances={"extensions": {"PRIMARY": {"data": {"atol": 1.0e-3}}}},
+        )
+        assert diff.identical
+
+    def test_tolerances_fallback_to_default(self):
+        data_a = np.arange(4.0).reshape(2, 2)
+
+        sci_a = ImageHDU(data=data_a.copy(), name="SCI")
+        sci_b = ImageHDU(data=data_a.copy(), name="SCI")
+        sci_b.data[0, 0] += 1.0e-4
+
+        err_a = ImageHDU(data=data_a.copy(), name="ERR")
+        err_b = ImageHDU(data=data_a.copy(), name="ERR")
+        err_b.data[0, 0] += 1.0e-4
+
+        hdula = HDUList([PrimaryHDU(), sci_a, err_a])
+        hdulb = HDUList([PrimaryHDU(), sci_b, err_b])
+
+        # Both SCI and ERR differ; default tolerates both
+        diff = FITSDiff(
+            hdula,
+            hdulb,
+            tolerances={"default": {"data": {"atol": 1.0e-3}}},
+        )
+        assert diff.identical
+
+    def test_tolerances_hdu_diff_direct(self):
+        data_a = np.arange(4.0).reshape(2, 2)
+        data_b = data_a.copy()
+        data_b[0, 0] += 1.0e-4
+
+        hdu_a = PrimaryHDU(data=data_a)
+        hdu_b = PrimaryHDU(data=data_b)
+
+        # Without tolerances: different
+        diff_no_tol = HDUDiff(hdu_a, hdu_b)
+        assert not diff_no_tol.diff_data.identical
+
+        # With data tolerance: identical
+        diff_with_tol = HDUDiff(hdu_a, hdu_b, tolerances={"data": {"atol": 1.0e-3}})
+        assert diff_with_tol.diff_data.identical
+
+    def test_tolerances_report_shows_configured(self):
+        hdula = HDUList([PrimaryHDU()])
+        hdulb = HDUList([PrimaryHDU()])
+        diff = FITSDiff(
+            hdula,
+            hdulb,
+            tolerances={"default": {"data": {"atol": 1.0e-3}}},
+        )
+        report = diff.report()
+        assert "Context-specific tolerances configured." in report
+
+    def test_tolerances_table_data(self):
+        col_a = Column(name="flux", format="E", array=np.array([1.0, 2.0, 3.0]))
+        col_b = Column(name="flux", format="E", array=np.array([1.0001, 2.0, 3.0]))
+        table_a = BinTableHDU.from_columns([col_a], name="TABLE")
+        table_b = BinTableHDU.from_columns([col_b], name="TABLE")
+
+        hdula = HDUList([PrimaryHDU(), table_a])
+        hdulb = HDUList([PrimaryHDU(), table_b])
+
+        # Without tolerances: different
+        diff_no_tol = FITSDiff(hdula, hdulb)
+        assert not diff_no_tol.identical
+
+        # With data tolerance: identical
+        diff_with_tol = FITSDiff(
+            hdula,
+            hdulb,
+            tolerances={"default": {"data": {"atol": 1.0e-3}}},
+        )
+        assert diff_with_tol.identical
+
+    def test_tolerances_none_behaves_like_default(self):
+        """tolerances=None should behave the same as no tolerances (backward compat)."""
+        data_a = np.arange(4.0).reshape(2, 2)
+        data_b = data_a.copy()
+        data_b[0, 0] += 1.0e-4
+
+        hdula = HDUList([PrimaryHDU(data=data_a)])
+        hdulb = HDUList([PrimaryHDU(data=data_b)])
+
+        diff_none = FITSDiff(hdula, hdulb, tolerances=None)
+        diff_default = FITSDiff(hdula, hdulb)
+        assert diff_none.identical == diff_default.identical
+
     def test_partially_identical_files3(self):
         """
         Test files that have some identical HDUs but a different extension
