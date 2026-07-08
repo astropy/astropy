@@ -229,7 +229,7 @@ class BaseGroups:
     def __len__(self):
         _len = len(self.indices)
         if _len == 1:
-            # Should never happen, indices should with have length = 0 or length >= 2.
+            # Should never happen, indices should either have length = 0 or length >= 2.
             raise RuntimeError("malformed groups.indices with length=1, this is a bug")
         return _len - 1 if _len > 0 else 0
 

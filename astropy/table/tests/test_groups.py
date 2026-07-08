@@ -595,8 +595,7 @@ def test_table_aggregate_reduceat_empty():
 
 def test_groups_len_malformed_indices_raises_runtime_error():
     tg = Table({"a": [1, 2], "b": [3, 4]}).group_by("a")
-    tg.groups._indices = [1]
-
+    tg.groups._indices = np.array([1], dtype=int)
     with pytest.raises(RuntimeError, match="malformed groups.indices"):
         len(tg.groups)
 
@@ -621,8 +620,7 @@ def test_column_aggregate_f8():
 
 
 def test_table_group_select_empty():
-    """Test selecting no groups returns a table with no keys and no indices"""
-    tg = Table({"a": [1, 2], "b": [3, 4]}).group_by("a")
+    """Test selecting no groups returns a table with empty keys and no indices"""
     tgs = tg.groups[[]]
     assert len(tgs) == 0
     assert len(tgs.groups) == 0
