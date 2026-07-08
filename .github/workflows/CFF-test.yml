@@ -2,6 +2,8 @@ name: Checking CITATION.cff
 
 on:
   workflow_dispatch:
+    paths:
+      - "CITATION.cff"
   push:
     paths:
       - "CITATION.cff"
