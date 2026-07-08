@@ -4,7 +4,6 @@
 name: Auto-update credits
 
 on:
-  workflow_dispatch:
   schedule:
     - cron: '0 6 * * 1'  # Weekly
   pull_request:
@@ -14,6 +13,7 @@ on:
       - 'scripts/update-credits.py'
       - 'docs/credits.rst'
       - '.mailmap'
+  workflow_dispatch:
 
 permissions:
   contents: read
