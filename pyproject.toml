@@ -303,7 +303,7 @@ test-skip = "*-musllinux_x86_64"
 enable = ["cpython-prerelease"]
 skip = [
     "cp*t-*",  # https://github.com/astropy/astropy/issues/16916
-    "cp315*-win*",  # numpy has no nightlies yet and doesn't build trivially
+    "cp315*-win*",  # https://github.com/astropy/astropy/issues/20049
 ]
 environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
