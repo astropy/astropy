@@ -22,10 +22,22 @@ from astropy.wcs import WCS, NoWcslibHeadersError, get_include
 
 HERE = os.path.dirname(__file__)
 
-pytestmark = pytest.mark.skipif(
-    not os.path.exists(os.path.join(sysconfig.get_path("include"), "Python.h")),
-    reason="CPython development headers are required to build the test extension",
-)
+pytestmark = [
+    pytest.mark.skipif(
+        not os.path.exists(os.path.join(sysconfig.get_path("include"), "Python.h")),
+        reason="CPython development headers are required to build the test extension",
+    ),
+    # Environments that build astropy against a system WCSLIB (the same
+    # condition setup_package.py checks) must opt out explicitly: such builds
+    # do not ship the headers needed to compile the extension.  Anywhere else,
+    # missing headers are a packaging bug and the build failure below is real.
+    pytest.mark.skipif(
+        int(os.environ.get("ASTROPY_USE_SYSTEM_WCSLIB", "0"))
+        or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", "0")),
+        reason="astropy was built against a system WCSLIB, which does not ship "
+        "the headers needed to build extensions against the astropy.wcs C API",
+    ),
+]
 
 # Built at test time against the headers published by astropy.wcs.get_include(),
 # with the same include directories a downstream package such as drizzlepac uses.
@@ -69,13 +81,6 @@ setup(
 
 @pytest.fixture(scope="module")
 def wcsapi_test(tmp_path_factory):
-    try:
-        get_include()
-    except NoWcslibHeadersError as exc:
-        # astropy was built against a system WCSLIB, so the headers needed to
-        # build the extension are not available.
-        pytest.skip(str(exc))
-
     # Build the extension in a scratch directory so we don't leave artifacts in
     # the source tree.
     build_dir = tmp_path_factory.mktemp("wcsapi_test")
