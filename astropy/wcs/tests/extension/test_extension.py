@@ -18,7 +18,7 @@ import warnings
 
 import pytest
 
-from astropy.wcs import WCS
+from astropy.wcs import WCS, NoWcslibHeadersError, get_include
 
 HERE = os.path.dirname(__file__)
 
@@ -69,6 +69,13 @@ setup(
 
 @pytest.fixture(scope="module")
 def wcsapi_test(tmp_path_factory):
+    try:
+        get_include()
+    except NoWcslibHeadersError as exc:
+        # astropy was built against a system WCSLIB, so the headers needed to
+        # build the extension are not available.
+        pytest.skip(str(exc))
+
     # Build the extension in a scratch directory so we don't leave artifacts in
     # the source tree.
     build_dir = tmp_path_factory.mktemp("wcsapi_test")
@@ -161,3 +168,11 @@ def test_deprecated_slot_warns(wcsapi_test):
     # A deprecated member of the table (pipeline_clear) warns when used.
     with pytest.warns(DeprecationWarning, match="pipeline_clear"):
         wcsapi_test.call_deprecated()
+
+
+def test_get_include_missing_headers(monkeypatch):
+    # Simulate an installation built against a system WCSLIB, which does not
+    # ship wcsconfig.h or the WCSLIB headers.
+    monkeypatch.setattr("os.path.exists", lambda path: False)
+    with pytest.raises(NoWcslibHeadersError, match="system installation of WCSLIB"):
+        get_include()

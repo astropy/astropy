@@ -1,0 +1,4 @@
+``astropy.wcs.get_include()`` now raises the new
+``astropy.wcs.NoWcslibHeadersError`` exception if astropy was built against a
+system installation of WCSLIB, in which case the header files needed to build
+extensions against the ``astropy.wcs`` C API are not included.

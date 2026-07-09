@@ -29,9 +29,25 @@ from .wcs import *
 from .wcs import InvalidTabularParametersError  # just for docs
 
 
+class NoWcslibHeadersError(Exception):
+    """
+    Raised by `~astropy.wcs.get_include` when the header files needed to build
+    extensions against the ``astropy.wcs`` C API are not included in the
+    installed version of astropy, which is the case when astropy was built
+    against a system installation of WCSLIB.
+    """
+
+
 def get_include():
     """
     Get the path to astropy.wcs's C header files.
+
+    Raises
+    ------
+    NoWcslibHeadersError
+        If astropy was built against a system installation of WCSLIB, in
+        which case the WCSLIB headers needed to build extensions against the
+        ``astropy.wcs`` C API are not included.
 
     .. note::
         The C API exposed through these headers is provided only for backward
@@ -43,4 +59,17 @@ def get_include():
     """
     import os
 
-    return os.path.join(os.path.dirname(__file__), "include")
+    include_dir = os.path.join(os.path.dirname(__file__), "include")
+    for required in (
+        os.path.join("astropy_wcs", "wcsconfig.h"),
+        os.path.join("wcslib", "wcs.h"),
+    ):
+        if not os.path.exists(os.path.join(include_dir, required)):
+            raise NoWcslibHeadersError(
+                "This installation of astropy was built against a system "
+                "installation of WCSLIB, so the header files needed to build "
+                "extensions against the astropy.wcs C API are not included. "
+                "Use an installation of astropy built with the bundled WCSLIB "
+                "(such as a wheel from PyPI) instead."
+            )
+    return include_dir
