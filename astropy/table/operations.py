@@ -1068,8 +1068,11 @@ def _get_join_sort_idxs(keys, left, right):
         # get_sortable_arrays() returns a list of ndarrays that can be lexically
         # sorted to represent the order of the column. In most cases this is just
         # a single element of the column itself.
-        left_sort_cols = left[key].info.get_sortable_arrays()
-        right_sort_cols = right[key].info.get_sortable_arrays()
+        try:
+            left_sort_cols = left[key].info.get_sortable_arrays()
+            right_sort_cols = right[key].info.get_sortable_arrays()
+        except NotImplementedError as err:
+            raise TypeError("one or more key columns are not sortable") from err
 
         if len(left_sort_cols) != len(right_sort_cols):
             # Should never happen because cols are screened beforehand for compatibility
@@ -1392,12 +1395,10 @@ def _compute_join_indices_astropy(left, right, keys, join_type, len_left):
     right_mask : ndarray
         Boolean mask indicating output rows without a matching ``right`` row.
     """
-    try:
-        idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
-    except NotImplementedError:
-        raise TypeError("one or more key columns are not sortable")
-        # Main inner loop in Cython to compute the cartesian product
-        # indices for the given join type
+    idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
+
+    # Main inner loop in Cython to compute the cartesian product
+    # indices for the given join type
     int_join_type = {"inner": 0, "outer": 1, "left": 2, "right": 3, "cartesian": 1}[
         join_type
     ]
