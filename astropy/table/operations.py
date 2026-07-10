@@ -1050,12 +1050,44 @@ def result_type(cols):
         raise tme from err
 
 
-def _get_join_sort_idxs(keys, left, right):
-    # Go through each of the key columns in order and make columns for
-    # a new structured array that represents the lexical ordering of those
-    # key columns. This structured array is then argsort'ed. The trick here
-    # is that some columns (e.g. Time) may need to be expanded into multiple
-    # columns for ordering here.
+def _get_join_sortable_arrays(keys: list[str], left: "Table", right: "Table"):
+    """Get sortable key arrays used to build join index inputs.
+
+    For each join key column, this helper calls ``Column.info.get_sortable_arrays()`` on
+    both tables to obtain one or more 1-D arrays that represent lexical sort order for
+    that key. Some key column types expand into multiple sortable arrays.
+
+    Parameters
+    ----------
+    keys : list[str]
+        Join key column names.
+    left : Table
+        Left input table.
+    right : Table
+        Right input table.
+
+    Returns
+    -------
+    sort_keys_dtypes : list[tuple[str, dtype]]
+        Structured-dtype specification for sortable key fields.
+    sort_keys : list[str]
+        Generated sortable key field names (``"0"``, ``"1"``, ...).
+    sort_left : dict[str, ndarray]
+        Mapping of sortable key field name to 1-D array for ``left``.
+    sort_right : dict[str, ndarray]
+        Mapping of sortable key field name to 1-D array for ``right``.
+
+    Raises
+    ------
+    TypeError
+        If any key column is not sortable.
+    RuntimeError
+        If left/right sortable array shapes or expansion lengths differ.
+    ValueError
+        If any sortable key array is not 1-D.
+    """
+    # Go through each of the key columns in order and make columns for that represent
+    # the lexical ordering of those key columns.
 
     ii = 0  # Index for uniquely naming the sort columns
     # sortable_table dtypes as list of (name, dtype_str, shape) tuples
@@ -1096,6 +1128,43 @@ def _get_join_sort_idxs(keys, left, right):
             dtype_str = result_type([left_sort_col, right_sort_col])
             sort_keys_dtypes.append((sort_key, dtype_str))
             ii += 1
+
+    return sort_keys_dtypes, sort_keys, sort_left, sort_right
+
+
+def _get_join_sort_idxs(keys, left, right):
+    """Compute sorted-row and group-boundary indices for join keys.
+
+    This helper builds sortable key arrays for ``left`` and ``right``, combines them
+    into a single structured array, and sorts that array lexically by key. It then
+    identifies boundaries between unique key groups in the sorted result.
+
+    Parameters
+    ----------
+    keys : list[str]
+        Join key column names.
+    left : Table
+        Left input table.
+    right : Table
+        Right input table.
+
+    Returns
+    -------
+    idxs : ndarray
+        Indices of key-group boundaries in the sorted combined table, including
+        leading 0 and trailing ``len(sorted_table)`` sentinels.
+    idx_sort : ndarray
+        Row indices that sort the concatenated rows from ``left`` then ``right``
+        by join key.
+    """
+    # Go through each of the key columns in order and make columns for
+    # a new structured array that represents the lexical ordering of those
+    # key columns. This structured array is then argsort'ed. The trick here
+    # is that some columns (e.g. Time) may need to be expanded into multiple
+    # columns for ordering here.
+    sort_keys_dtypes, sort_keys, sort_left, sort_right = _get_join_sortable_arrays(
+        keys, left, right
+    )
 
     # Make the empty sortable table and fill it
     len_left = len(left)
@@ -1447,23 +1516,20 @@ def _compute_join_indices_pandas(left, right, keys, join_type, len_left):
         raise ImportError("pandas library is required for pandas join engine")
     import pandas as pd
 
-    # Make a light copy of left and right with only `keys` columns
-    left = left.copy(copy_data=False)
-    right = right.copy(copy_data=False)
-    # Remove all columns in each new table that are not in keys using remove_columns()
-    for tbl in (left, right):
-        remove_colnames = [col for col in tbl.colnames if col not in keys]
-        if remove_colnames:
-            tbl.remove_columns(remove_colnames)
+    sort_keys_dtypes, sort_keys, sort_left, sort_right = _get_join_sortable_arrays(
+        keys, left, right
+    )
 
-    left_pd = left.to_pandas()
+    left_pd = pd.DataFrame(sort_left)
     left_pd["idx_left"] = pd.Series(np.arange(len(left_pd)), dtype=pd.Int64Dtype())
-    right_pd = right.to_pandas()
+    right_pd = pd.DataFrame(sort_right)
     right_pd["idx_right"] = pd.Series(np.arange(len(right_pd)), dtype=pd.Int64Dtype())
 
     # Cartesian join is handled differently in pandas
     kwargs = (
-        {"how": "cross"} if join_type == "cartesian" else {"on": keys, "how": join_type}
+        {"how": "cross"}
+        if join_type == "cartesian"
+        else {"on": sort_keys, "how": join_type}
     )
 
     merged = pd.merge(
