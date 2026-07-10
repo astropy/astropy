@@ -410,6 +410,12 @@ def join(
     join_funcs : dict, None
         Dict of functions to use for matching the corresponding key column(s).
         See `~astropy.table.join_skycoord` for an example and details.
+    engine : str
+        The engine to use for the join. Supported values are ``'astropy'``,
+        ``'pandas'``, and ``'auto'``. The default is ``'astropy'`` which uses
+        the implementation in this module. The ``'pandas'`` engine uses the
+        pandas library and is typically faster for large tables. The ``'auto'``
+        engine selects ``'pandas'`` if available, otherwise ``'astropy'``.
 
     Returns
     -------
@@ -1210,6 +1216,42 @@ def _apply_join_funcs(left, right, keys, join_funcs):
     return left, right, keys
 
 
+def _select_join_engine(engine: str):
+    """Select the concrete join engine from a user request.
+
+    Parameters
+    ----------
+    engine : str
+        Requested engine. Allowed values are ``"astropy"``, ``"pandas"``,
+        and ``"auto"``.
+
+    Returns
+    -------
+    engine : str
+        Concrete engine name (``"astropy"`` or ``"pandas"``).
+    compute_join_indices : callable
+        Function used to compute row index arrays and masks for the selected
+        engine.
+
+    Raises
+    ------
+    ValueError
+        If ``engine`` is not one of the supported values.
+    """
+    if engine == "auto":
+        engine = "pandas" if HAS_PANDAS else "astropy"
+
+    if engine not in ("astropy", "pandas"):
+        raise ValueError(f"Invalid join engine: {engine!r}")
+
+    compute_join_indices = {
+        "astropy": _compute_join_indices_astropy,
+        "pandas": _compute_join_indices_pandas,
+    }[engine]
+
+    return engine, compute_join_indices
+
+
 def _join(
     left,
     right,
@@ -1252,9 +1294,11 @@ def _join(
         Dict of functions to use for matching the corresponding key column(s).
         See `~astropy.table.join_skycoord` for an example and details.
     engine : str
-        The engine to use for the join.  The default is 'astropy' which uses
-        the implementation in this module.  The other option is 'pandas' which uses
-        the pandas library.  The pandas engine is typically faster for large tables.
+        The engine to use for the join. Supported values are ``'astropy'``,
+        ``'pandas'``, and ``'auto'``. The default is ``'astropy'`` which uses
+        the implementation in this module. The ``'pandas'`` engine uses the
+        pandas library and is typically faster for large tables. The ``'auto'``
+        engine selects ``'pandas'`` if available, otherwise ``'astropy'``.
 
     Returns
     -------
@@ -1331,12 +1375,7 @@ def _join(
     if len_left == 0 or len_right == 0:
         raise ValueError("input tables for join must both have at least one row")
 
-    if engine == "astropy":
-        compute_join_indices = _compute_join_indices_astropy
-    elif engine == "pandas":
-        compute_join_indices = _compute_join_indices_pandas
-    else:
-        raise ValueError(f"Invalid join engine: {engine!r}")
+    engine, compute_join_indices = _select_join_engine(engine)
 
     masked, n_out, left_out, left_mask, right_out, right_mask = compute_join_indices(
         left, right, keys, join_type, len_left

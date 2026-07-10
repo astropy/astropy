@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+import astropy.table.operations as ato
 from astropy import table
 from astropy import units as u
 from astropy.coordinates import (
@@ -89,6 +90,32 @@ def check_mask(col, exp_mask):
 @pytest.fixture(params=JOIN_ENGINES)
 def join_engine(request):
     return request.param
+
+
+def test_select_join_engine():
+    engine, compute_join_indices = ato._select_join_engine("astropy")
+    assert engine == "astropy"
+    assert compute_join_indices is ato._compute_join_indices_astropy
+
+    engine, compute_join_indices = ato._select_join_engine("pandas")
+    assert engine == "pandas"
+    assert compute_join_indices is ato._compute_join_indices_pandas
+
+    engine, _ = ato._select_join_engine("auto")
+    assert engine == ("pandas" if HAS_PANDAS else "astropy")
+
+    with pytest.raises(ValueError, match="Invalid join engine"):
+        ato._select_join_engine("bad-engine")
+
+
+def test_join_engine_auto_smoke_test():
+    t1 = Table({"a": [1, 2], "b": ["x", "y"]})
+    t2 = Table({"a": [2, 3], "c": [10, 11]})
+
+    out = table.join(t1, t2, keys="a", join_type="inner", engine="auto")
+    assert out.colnames == ["a", "b", "c"]
+    assert len(out) == 1
+    assert out["a"].tolist() == [2]
 
 
 class TestJoin:
