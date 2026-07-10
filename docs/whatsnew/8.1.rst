@@ -51,10 +51,13 @@ Faster Table joins
 
 The :func:`astropy.table.join` function now has the ability to use `pandas.merge
 <https://pandas.pydata.org/docs/reference/api/pandas.merge.html>`_ as the internal
-engine for join operations. This can speed up the join by 5x or more for large tables.
-This is supported with a new ``engine`` option that can have the values ``"astropy"``,
-``"pandas"``, and ``"auto"``. The ``"auto"`` mode uses pandas if it is available and
-otherwise falls back to the built-in astropy join implementation.
+engine for join operations. This can speed up the join by up to ~10x for large tables
+relative to astropy 8.0. This is supported with a new ``engine`` option that can have
+the values ``"astropy"``, ``"pandas"``, and ``"auto"``. The ``"auto"`` mode uses pandas
+if it is available and otherwise falls back to the built-in astropy join implementation.
+
+In addition, the built-in astropy join was sped up by a factor of ~2x for the common
+case of a single join column.
 
 Contributors to the 8.1 release
 ===============================
