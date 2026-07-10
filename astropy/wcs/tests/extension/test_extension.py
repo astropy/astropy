@@ -18,14 +18,26 @@ import warnings
 
 import pytest
 
-from astropy.wcs import WCS
+from astropy.wcs import WCS, NoWcslibHeadersError, get_include
 
 HERE = os.path.dirname(__file__)
 
-pytestmark = pytest.mark.skipif(
-    not os.path.exists(os.path.join(sysconfig.get_path("include"), "Python.h")),
-    reason="CPython development headers are required to build the test extension",
-)
+pytestmark = [
+    pytest.mark.skipif(
+        not os.path.exists(os.path.join(sysconfig.get_path("include"), "Python.h")),
+        reason="CPython development headers are required to build the test extension",
+    ),
+    # Environments that build astropy against a system WCSLIB (the same
+    # condition setup_package.py checks) must opt out explicitly: such builds
+    # do not ship the headers needed to compile the extension.  Anywhere else,
+    # missing headers are a packaging bug and the build failure below is real.
+    pytest.mark.skipif(
+        int(os.environ.get("ASTROPY_USE_SYSTEM_WCSLIB", "0"))
+        or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", "0")),
+        reason="astropy was built against a system WCSLIB, which does not ship "
+        "the headers needed to build extensions against the astropy.wcs C API",
+    ),
+]
 
 # Built at test time against the headers published by astropy.wcs.get_include(),
 # with the same include directories a downstream package such as drizzlepac uses.
@@ -161,3 +173,11 @@ def test_deprecated_slot_warns(wcsapi_test):
     # A deprecated member of the table (pipeline_clear) warns when used.
     with pytest.warns(DeprecationWarning, match="pipeline_clear"):
         wcsapi_test.call_deprecated()
+
+
+def test_get_include_missing_headers(monkeypatch):
+    # Simulate an installation built against a system WCSLIB, which does not
+    # ship wcsconfig.h or the WCSLIB headers.
+    monkeypatch.setattr("os.path.exists", lambda path: False)
+    with pytest.raises(NoWcslibHeadersError, match="system installation of WCSLIB"):
+        get_include()

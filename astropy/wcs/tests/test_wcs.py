@@ -1863,6 +1863,251 @@ def test_swapaxes_same_val_roundtrip():
     assert np.allclose(w.wcs_world2pix([val_ref], 0)[0], imcoord, rtol=0, atol=1e-8)
 
 
+def test_alternate_wcs_distortion_primary():
+    """
+    Test that primary WCS (key=' ') loads distortion correctly.
+    Regression test for issue with WCS key suffixes on distortion keywords.
+    """
+    # Create primary HDU with WCS
+    primary = fits.PrimaryHDU()
+    header = primary.header
+
+    # Basic WCS keywords
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 1024
+    header["NAXIS2"] = 1024
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CRPIX1"] = 512
+    header["CRPIX2"] = 512
+    header["CRVAL1"] = 150.0
+    header["CRVAL2"] = -35.0
+    header["CDELT1"] = -0.0002777778
+    header["CDELT2"] = 0.0002777778
+
+    # Primary WCS distortion keywords (no suffix)
+    header["CPDIS1"] = "LOOKUP"
+    header["CPDIS2"] = "LOOKUP"
+    header["DP1.EXTVER"] = 1
+    header["DP1.NAXES"] = 2
+    header["DP1.AXIS.1"] = 1
+    header["DP1.AXIS.2"] = 2
+    header["DP2.EXTVER"] = 1
+    header["DP2.NAXES"] = 2
+    header["DP2.AXIS.1"] = 1
+    header["DP2.AXIS.2"] = 2
+
+    # Create distortion array
+    dist_data = np.random.randn(129, 129).astype(np.float32) * 0.01
+    dist_hdu = fits.ImageHDU(dist_data, name="WCSDVARR")
+    dist_hdu.ver = 1
+    dist_hdu.header["CRPIX1"] = 65.0
+    dist_hdu.header["CRPIX2"] = 65.0
+    dist_hdu.header["CRVAL1"] = 513.0
+    dist_hdu.header["CRVAL2"] = 1.0
+    dist_hdu.header["CDELT1"] = 8.0
+    dist_hdu.header["CDELT2"] = 8.0
+
+    # Create HDUList
+    hdulist = fits.HDUList([primary, dist_hdu])
+
+    # Load WCS with default key (primary WCS)
+    w = wcs.WCS(header, hdulist)
+
+    # Verify distortion was loaded
+    assert w.cpdis1 is not None, "Primary WCS should load CPDIS1"
+    assert w.cpdis2 is not None, "Primary WCS should load CPDIS2"
+    assert isinstance(w.cpdis1, wcs.DistortionLookupTable)
+    assert isinstance(w.cpdis2, wcs.DistortionLookupTable)
+
+
+def test_alternate_wcs_distortion_key_isolation():
+    """
+    Test that secondary WCS (key='A') does NOT load primary distortion.
+    Regression test for bug where secondary WCS would incorrectly load
+    the primary WCS's distortion when the secondary had no distortion
+    keywords with the appropriate suffix.
+    """
+    # Create primary HDU with WCS and distortion for PRIMARY only
+    primary = fits.PrimaryHDU()
+    header = primary.header
+
+    # Basic WCS keywords for PRIMARY
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 1024
+    header["NAXIS2"] = 1024
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CRPIX1"] = 512
+    header["CRPIX2"] = 512
+    header["CRVAL1"] = 150.0
+    header["CRVAL2"] = -35.0
+    header["CDELT1"] = -0.0002777778
+    header["CDELT2"] = 0.0002777778
+
+    # Basic WCS keywords for SECONDARY (key='A')
+    header["CTYPE1A"] = "HPLN-TAN"
+    header["CTYPE2A"] = "HPLT-TAN"
+    header["CRPIX1A"] = 512
+    header["CRPIX2A"] = 512
+    header["CRVAL1A"] = 0.0
+    header["CRVAL2A"] = 0.0
+    header["CDELT1A"] = 0.5
+    header["CDELT2A"] = 0.5
+
+    # Primary WCS distortion keywords (no suffix) - ONLY for primary
+    header["CPDIS1"] = "LOOKUP"
+    header["CPDIS2"] = "LOOKUP"
+    header["DP1.EXTVER"] = 1
+    header["DP1.NAXES"] = 2
+    header["DP1.AXIS.1"] = 1
+    header["DP1.AXIS.2"] = 2
+    header["DP2.EXTVER"] = 1
+    header["DP2.NAXES"] = 2
+    header["DP2.AXIS.1"] = 1
+    header["DP2.AXIS.2"] = 2
+
+    # NOTE: No CPDIS1A, CPDIS2A keywords - secondary has no distortion
+
+    # Create distortion array for primary
+    dist_data = np.random.randn(129, 129).astype(np.float32) * 0.01
+    dist_hdu = fits.ImageHDU(dist_data, name="WCSDVARR")
+    dist_hdu.ver = 1
+    dist_hdu.header["CRPIX1"] = 65.0
+    dist_hdu.header["CRPIX2"] = 65.0
+    dist_hdu.header["CRVAL1"] = 513.0
+    dist_hdu.header["CRVAL2"] = 1.0
+    dist_hdu.header["CDELT1"] = 8.0
+    dist_hdu.header["CDELT2"] = 8.0
+
+    # Create HDUList
+    hdulist = fits.HDUList([primary, dist_hdu])
+
+    # Load PRIMARY WCS - should have distortion
+    wcs_primary = wcs.WCS(header, hdulist, key=" ")
+    assert wcs_primary.cpdis1 is not None, "Primary WCS should have distortion"
+    assert wcs_primary.cpdis2 is not None, "Primary WCS should have distortion"
+
+    # Load SECONDARY WCS - should NOT have distortion
+    wcs_secondary = wcs.WCS(header, hdulist, key="A")
+
+    # THE FIX: Secondary WCS should NOT load primary's distortion
+    assert wcs_secondary.cpdis1 is None, (
+        "Secondary WCS should NOT load primary WCS distortion when CPDIS1A is missing"
+    )
+    assert wcs_secondary.cpdis2 is None, (
+        "Secondary WCS should NOT load primary WCS distortion when CPDIS2A is missing"
+    )
+
+
+def test_alternate_wcs_distortion_independent():
+    """
+    Test that secondary WCS (key='A') loads its own distortion when present.
+    Verifies that the corrected keyword names (with 'A' suffix) are
+    properly recognized and loaded independently from primary WCS.
+    """
+    # Create primary HDU
+    primary = fits.PrimaryHDU()
+    header = primary.header
+
+    # Basic WCS keywords for both primary and secondary
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 1024
+    header["NAXIS2"] = 1024
+
+    # Primary WCS
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CRPIX1"] = 512
+    header["CRPIX2"] = 512
+    header["CRVAL1"] = 150.0
+    header["CRVAL2"] = -35.0
+    header["CDELT1"] = -0.0002777778
+    header["CDELT2"] = 0.0002777778
+
+    # Secondary WCS (key='A')
+    header["CTYPE1A"] = "HPLN-TAN"
+    header["CTYPE2A"] = "HPLT-TAN"
+    header["CRPIX1A"] = 512
+    header["CRPIX2A"] = 512
+    header["CRVAL1A"] = 0.0
+    header["CRVAL2A"] = 0.0
+    header["CDELT1A"] = 0.5
+    header["CDELT2A"] = 0.5
+
+    # Primary WCS distortion keywords
+    header["CPDIS1"] = "LOOKUP"
+    header["CPDIS2"] = "LOOKUP"
+    header["DP1.EXTVER"] = 1
+    header["DP1.NAXES"] = 2
+    header["DP1.AXIS.1"] = 1
+    header["DP1.AXIS.2"] = 2
+    header["DP2.EXTVER"] = 1
+    header["DP2.NAXES"] = 2
+    header["DP2.AXIS.1"] = 1
+    header["DP2.AXIS.2"] = 2
+
+    # Secondary WCS distortion keywords (with 'A' suffix)
+    header["CPDIS1A"] = "LOOKUP"
+    header["CPDIS2A"] = "LOOKUP"
+    header["DP1A.EXTVER"] = 2  # Different EXTVER for secondary
+    header["DP1A.NAXES"] = 2
+    header["DP1A.AXIS.1"] = 1
+    header["DP1A.AXIS.2"] = 2
+    header["DP2A.EXTVER"] = 2
+    header["DP2A.NAXES"] = 2
+    header["DP2A.AXIS.1"] = 1
+    header["DP2A.AXIS.2"] = 2
+
+    # Create two different distortion arrays
+    dist_data_primary = np.random.randn(129, 129).astype(np.float32) * 0.01
+    dist_hdu_primary = fits.ImageHDU(dist_data_primary, name="WCSDVARR")
+    dist_hdu_primary.ver = 1
+    dist_hdu_primary.header["CRPIX1"] = 65.0
+    dist_hdu_primary.header["CRPIX2"] = 65.0
+    dist_hdu_primary.header["CRVAL1"] = 513.0
+    dist_hdu_primary.header["CRVAL2"] = 1.0
+    dist_hdu_primary.header["CDELT1"] = 8.0
+    dist_hdu_primary.header["CDELT2"] = 8.0
+
+    dist_data_secondary = np.random.randn(129, 129).astype(np.float32) * 0.02
+    dist_hdu_secondary = fits.ImageHDU(dist_data_secondary, name="WCSDVARR")
+    dist_hdu_secondary.ver = 2
+    dist_hdu_secondary.header["CRPIX1"] = 65.0
+    dist_hdu_secondary.header["CRPIX2"] = 65.0
+    dist_hdu_secondary.header["CRVAL1"] = 513.0
+    dist_hdu_secondary.header["CRVAL2"] = 1.0
+    dist_hdu_secondary.header["CDELT1"] = 8.0
+    dist_hdu_secondary.header["CDELT2"] = 8.0
+
+    # Create HDUList with both distortion arrays
+    hdulist = fits.HDUList([primary, dist_hdu_primary, dist_hdu_secondary])
+
+    # Load PRIMARY WCS
+    wcs_primary = wcs.WCS(header, hdulist, key=" ")
+    assert wcs_primary.cpdis1 is not None
+    assert wcs_primary.cpdis2 is not None
+
+    # Load SECONDARY WCS
+    wcs_secondary = wcs.WCS(header, hdulist, key="A")
+    assert wcs_secondary.cpdis1 is not None, (
+        "Secondary WCS should load its own distortion from CPDIS1A"
+    )
+    assert wcs_secondary.cpdis2 is not None, (
+        "Secondary WCS should load its own distortion from CPDIS2A"
+    )
+
+    # Verify they loaded different distortion data
+    assert wcs_primary.cpdis1 is not wcs_secondary.cpdis1, (
+        "Primary and secondary should have independent distortion objects"
+    )
+
+    # Verify the data is different
+    assert not np.array_equal(wcs_primary.cpdis1.data, wcs_secondary.cpdis1.data), (
+        "Primary and secondary should use different distortion data"
+    )
+
+
 def test_DistortionLookupTable():
     img_world_wcs = wcs.WCS(naxis=2)
     # A simple "pixel coordinates are world coordinates" WCS, to which we'll
