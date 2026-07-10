@@ -10,6 +10,7 @@ from numpy.testing import assert_allclose
 
 import astropy.units as u
 from astropy.modeling import models, rotations
+from astropy.table import MaskedColumn
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.wcs import wcs
 
@@ -379,3 +380,10 @@ def test__SkyRotation__evaluate():
         assert mkEval.call_args_list == [
             mk.call(model, phi, theta, lon, lat, lon_pole, "zxz")
         ]
+
+
+def test_SphericalRotationSequence_on_MaskedColumn():
+    """https://github.com/astropy/astropy/issues/20052"""
+    m = models.SphericalRotationSequence([0, 0, 0], axes_order=["x", "y", "z"])
+    c = MaskedColumn([1, 2])
+    m(c, c)
