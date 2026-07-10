@@ -792,6 +792,24 @@ occurs in both tables, it has been split into two columns, ``obs_date_1`` and
 
 .. EXAMPLE END
 
+Different Join Engine
+^^^^^^^^^^^^^^^^^^^^^
+
+The |join| function supports an ``engine`` option that controls which
+implementation is used to compute row matches. The default is
+``engine='astropy'``.
+
+- ``engine='astropy'``: uses the built-in astropy implementation.
+- ``engine='pandas'``: uses `pandas <https://pandas.pydata.org/>`_, which can be
+  significantly faster for large tables.
+- ``engine='auto'``: selects pandas if it is available, otherwise falls back to the
+  built-in astropy implementation.
+
+.. note::
+
+   The join semantics and output table content are the same across engines, but
+   the *row order* may be different.
+
 Different Join Options
 ^^^^^^^^^^^^^^^^^^^^^^
 
