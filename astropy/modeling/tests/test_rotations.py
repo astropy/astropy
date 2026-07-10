@@ -114,7 +114,8 @@ def test_Rotation2D_errors():
     # Bad evaluation input shapes
     x = np.array([1, 2])
     y = np.array([1, 2, 3])
-    MESSAGE = "all input arrays must have the same shape"
+    MESSAGE = r"Expected input arrays to have the same shape"
+
     with pytest.raises(ValueError, match=MESSAGE):
         model.evaluate(x, y, model.angle)
     with pytest.raises(ValueError, match=MESSAGE):
@@ -123,7 +124,7 @@ def test_Rotation2D_errors():
     # Bad evaluation units
     x = np.array([1, 2])
     y = np.array([1, 2])
-    MESSAGE = r"'' \(dimensionless\) and 'm' \(length\) are not convertible"
+    MESSAGE = r"x and y must have compatible units"
     with pytest.raises(u.UnitsError, match=MESSAGE):
         model.evaluate(x * u.m, y, model.angle)
 
