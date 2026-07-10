@@ -33,7 +33,11 @@ from astropy.time import Time, TimeDelta
 from astropy.timeseries import TimeSeries
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
-from astropy.utils.compat.optional_deps import HAS_NUMPY_QUADDTYPE, HAS_SCIPY
+from astropy.utils.compat.optional_deps import (
+    HAS_NUMPY_QUADDTYPE,
+    HAS_PANDAS,
+    HAS_SCIPY,
+)
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MergeConflictError
 
@@ -45,6 +49,10 @@ MIXINS_WITH_FULL_MASK_SUPPORT = (
     SkyCoord,
     EarthLocation,  # Currently, a Quantity subclass, but that may change.
 )
+
+JOIN_ENGINES = ["astropy"]
+if HAS_PANDAS:
+    JOIN_ENGINES.append("pandas")
 
 
 def sort_eq(list1, list2):
@@ -78,7 +86,7 @@ def check_mask(col, exp_mask):
     return out
 
 
-@pytest.fixture(params=["astropy", "pandas"])
+@pytest.fixture(params=JOIN_ENGINES)
 def join_engine(request):
     return request.param
 
