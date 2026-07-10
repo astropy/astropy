@@ -479,6 +479,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
             if np.isnan(self.wcs.obsgeo[0]):
                 observer = None
+            elif np.isnan(self.wcs.mjdobs) and np.isnan(self.wcs.mjdavg):
+                # obsgeo is defined but no observation time is available;
+                # we cannot construct a time-dependent observer frame, so
+                # fall back to treating the observer as unknown.
+                observer = None
             else:
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
 
