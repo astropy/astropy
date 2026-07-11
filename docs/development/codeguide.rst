@@ -434,5 +434,4 @@ the hierarchy.
 .. _Scipy: https://www.scipy.org/
 .. _matplotlib: https://matplotlib.org/
 .. _Cython: https://cython.org/
-.. _PyPI: https://pypi.org/project
 .. _ruff: https://docs.astral.sh/ruff/

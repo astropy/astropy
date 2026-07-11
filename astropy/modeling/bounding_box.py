@@ -816,7 +816,7 @@ class ModelBoundingBox(_BoundingDomain):
             The new model for which this will be a bounding_box
         fixed_inputs : dict
             Dictionary of inputs which have been fixed by this bounding box.
-        keep_ignored : bool
+        _keep_ignored : bool
             Keep the ignored inputs of the bounding box (internal argument only)
         """
         new = self.copy()
