@@ -107,6 +107,12 @@ def test_select_join_engine():
     with pytest.raises(ValueError, match="Invalid join engine"):
         ato._select_join_engine("bad-engine")
 
+    if not HAS_PANDAS:
+        t1 = Table({"a": [1]})
+        t2 = Table({"a": [1]})
+        with pytest.raises(ImportError, match="pandas library is required"):
+            table.join(t1, t2, keys="a", engine="pandas")
+
 
 def test_join_engine_auto_smoke_test():
     t1 = Table({"a": [1, 2], "b": ["x", "y"]})
@@ -499,7 +505,7 @@ class TestJoin:
             ("d", MyCol),
             ("e", MyMaskedCol),
         ):
-            assert type(t12[name] is exp_type)
+            assert type(t12[name]) is exp_type
 
         t21 = table.join(t2, t1, join_type="left", engine=join_engine)
         # Note col 'b' gets upgraded from MyCol to MaskedColumn since it needs to be
@@ -511,7 +517,7 @@ class TestJoin:
             ("d", MyCol),
             ("e", MyMaskedCol),
         ):
-            assert type(t21[name] is exp_type)
+            assert type(t21[name]) is exp_type
 
     def test_col_rename(self, operation_table_type, join_engine):
         self._setup(operation_table_type)

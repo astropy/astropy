@@ -1555,7 +1555,7 @@ def _compute_join_indices_pandas(left, right, keys, join_type, len_left):
         raise ImportError("pandas library is required for pandas join engine")
     import pandas as pd
 
-    sort_keys_dtypes, sort_keys, sort_left, sort_right = _get_join_sortable_arrays(
+    _, sort_keys, sort_left, sort_right = _get_join_sortable_arrays(
         keys, left, right
     )
 
