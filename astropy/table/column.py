@@ -501,6 +501,10 @@ class ColumnInfo(BaseColumnInfo):
         -------
         arrays : list of ndarray
         """
+        col = self._parent
+        # For a structured array return each of the individual fields in order
+        if col.dtype.names:
+            return [col[name] for name in col.dtype.names]
         return [self._parent]
 
 

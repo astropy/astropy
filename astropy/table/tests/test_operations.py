@@ -1045,9 +1045,6 @@ class TestJoin:
 
     def test_join_structured_column(self, join_engine):
         """Regression tests for gh-13271."""
-        if join_engine == "pandas":
-            pytest.xfail("pandas engine does not support structured columns")
-
         # Two tables with matching names, including a structured column.
         t1 = Table(
             [
