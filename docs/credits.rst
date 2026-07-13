@@ -33,6 +33,7 @@ Core Package Contributors
 * Alex Hagen
 * Alex Rudy
 * Alexander Bakanov
+* Alexander Hu
 * Alexandre Beelen
 * Alexandre R\. Bomfim Junior
 * Alfio Puglisi
@@ -166,6 +167,7 @@ Core Package Contributors
 * Edward Betts
 * Edward Slavich
 * Eero Vaher
+* Eesh Saxena
 * Eli Bressert
 * Elijah Bernstein-Cooper
 * Elise Chavez
@@ -387,6 +389,7 @@ Core Package Contributors
 * Médéric Boquien
 * Megan Sosey
 * Melissa Weber Mendonça
+* Mengjia Shang
 * Michael Belfrage
 * Michael Brewer
 * Michael Droettboom
@@ -540,6 +543,7 @@ Core Package Contributors
 * Shivansh Mishra
 * Shreeharsh Shinde
 * Shresth Verma
+* Shreya Vernekar
 * Shreyas Bapat
 * Sigurd Næss
 * Simon Alinder
