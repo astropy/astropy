@@ -29,6 +29,7 @@ def test_with_scalar(dtype):
 
 
 @pytest.mark.parametrize("order", ["C", "F"])
+@pytest.mark.parametrize("swapbyteorder", [False, True])
 @pytest.mark.parametrize(
     "dtype",
     [
@@ -40,10 +41,13 @@ def test_with_scalar(dtype):
         np.uint64,
     ],
 )
-def test_with_array(dtype, order):
+def test_with_array(dtype, swapbyteorder, order):
+    dtype = np.dtype(dtype)
+    if swapbyteorder:
+        dtype = dtype.newbyteorder()
     a = np.arange(10, dtype=dtype).reshape(2, 5)
-    if issubclass(dtype, np.complexfloating):
-        a = a - 4.0j
+    if dtype.kind == "c":
+        a -= 4.0j
     a = a.copy(order=order)
 
     assert a.dtype == dtype
@@ -53,8 +57,7 @@ def test_with_array(dtype, order):
         assert a.flags["F_CONTIGUOUS"] and not a.flags["C_CONTIGUOUS"]
     got = Scaler(10.0)(a)
     exp = a * 10.0
-    assert got.dtype == exp.dtype
-    assert_array_equal(got, exp)
+    assert_array_equal(got, exp, strict=True)
 
 
 def test_with_list():

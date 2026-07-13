@@ -64,7 +64,7 @@ static PyObject *Scaler_vectorcall(
         char *f_ptr = needs_float ? (char *)&self->factor_f : (char *)&self->factor;
         // Pass contiguous float or complex arrays directly to multiply loop,
         // bypassing ufunc setup.
-        if (PyArray_ISONESEGMENT(arr) &&
+        if (PyArray_ISONESEGMENT(arr) && PyArray_ISNOTSWAPPED(arr) &&
             (type_num == NPY_DOUBLE || type_num == NPY_CDOUBLE || needs_float)) {
             return use_contiguous_loop(arr, f_ptr);
         }
