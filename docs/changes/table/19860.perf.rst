@@ -1,0 +1,7 @@
+Added the ability to use pandas as a join engine for ``astropy.table.join`` operations.
+This can speed up the join by up to ~10x relative to astropy 8.0. This is supported
+with a new ``engine`` option that can have the values ``"astropy"``, ``"pandas"``, and
+``"auto"``. The ``"auto"`` mode selects the pandas join implementation if pandas is
+available and otherwise falls back to the built-in astropy join implementation. In
+addition, the built-in astropy join was sped up by a factor of 2x for the case of a
+single join column.
