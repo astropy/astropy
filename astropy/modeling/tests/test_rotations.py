@@ -393,7 +393,9 @@ def test_masked_column_rotation(model):
     mdl = model([0, 0, 0], axes_order=["x", "y", "z"])
     col = MaskedColumn([1, 2])
     truth = (np.array([1, 2]),)
-    if model is rotations.RotationSequence3D:
-        assert_allclose(mdl(col, col, col), truth * 3)
-    else:
-        assert_allclose(mdl(col, col), truth * 2)
+    assert_allclose(mdl(*((col,) * mdl.n_inputs)), truth * mdl.n_inputs)
+
+    # TODO: move this test for masked inputs to a more general place.
+    col2 = MaskedColumn([1, 2], mask=[False, True])
+    with pytest.raises(ValueError, match="do not accept masked"):
+        mdl(*((col2,) * mdl.n_inputs))
