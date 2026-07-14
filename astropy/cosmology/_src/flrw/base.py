@@ -8,7 +8,6 @@ from dataclasses import field
 from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
-from numbers import Number
 from typing import Any, Final, NamedTuple, TypeVar, overload
 
 import numpy as np
@@ -50,7 +49,7 @@ from astropy.cosmology._src.traits import (
 from astropy.cosmology._src.utils import aszarr, vectorize_redshift_method
 
 __doctest_requires__ = {"*": ["scipy"]}
-_InputT = TypeVar("_InputT", bound=u.Quantity | np.ndarray | np.generic | Number)
+_InputT = TypeVar("_InputT", bound=u.Quantity | ArrayLike)
 
 
 ##############################################################################
@@ -819,7 +818,7 @@ class FLRW(
 
         Parameters
         ----------
-        z, z2 : Quantity ['redshift']
+        z, z2 : Quantity ['redshift'], array-like
             Input redshifts. If one argument ``z`` is given, the distance
             :math:`d_c(0, z)` is returned. If two arguments ``z1, z2`` are
             given, the distance :math:`d_c(z_1, z_2)` is returned.
@@ -901,18 +900,22 @@ class FLRW(
 
     # ---------------------------------------------------------------
 
-    def comoving_transverse_distance(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
-        r"""Comoving transverse distance in Mpc at a given redshift.
+    def comoving_transverse_distance(
+        self, z: _InputT | float, z2: _InputT | float | None = None, /
+    ) -> u.Quantity:
+        r"""Comoving transverse distance :math:`d(z1, z2)` in Mpc.
 
-        This value is the transverse comoving distance at redshift ``z``
-        corresponding to an angular separation of 1 radian. This is the same as
-        the comoving distance if :math:`\Omega_k` is zero (as in the current
-        concordance Lambda-CDM model).
+        This value is the transverse comoving distance between redshifts ``z1`` and
+        ``z2`` corresponding to an angular separation of 1 radian. This is the same as
+        the comoving distance if :math:`\Omega_k` is zero (as in the current concordance
+        Lambda-CDM model).
 
         Parameters
         ----------
-        z : Quantity-like ['redshift'], array-like
-            Input redshift.
+        z, z2 : Quantity['redshift'], array-like, positional-only
+            Input redshifts. If one argument ``z`` is given, the distance :math:`d(0,
+            z)` is returned. If two arguments ``z1, z2`` are given, the distance
+            :math:`d(z_1, z_2)` is returned.
 
         Returns
         -------
@@ -923,34 +926,12 @@ class FLRW(
         -----
         This quantity is also called the 'proper motion distance' in some texts.
         """
-        return self._comoving_transverse_distance_z1z2(0, z)
+        z1_val, z2_val = (0.0, z) if z2 is None else (z, z2)
+        z1 = aszarr(z1_val)
+        z2_arr = aszarr(z2_val)
 
-    def _comoving_transverse_distance_z1z2(
-        self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike, /
-    ) -> u.Quantity:
-        r"""Comoving transverse distance in Mpc between two redshifts.
-
-        This value is the transverse comoving distance at redshift ``z2`` as
-        seen from redshift ``z1`` corresponding to an angular separation of
-        1 radian. This is the same as the comoving distance if :math:`\Omega_k`
-        is zero (as in the current concordance Lambda-CDM model).
-
-        Parameters
-        ----------
-        z1, z2 : Quantity-like ['redshift'], array-like
-            Input redshifts.
-
-        Returns
-        -------
-        d : Quantity ['length']
-            Comoving transverse distance in Mpc between input redshift.
-
-        Notes
-        -----
-        This quantity is also called the 'proper motion distance' in some texts.
-        """
         Ok0 = self.Ok0
-        dc = self._comoving_distance_z1z2(z1, z2)
+        dc = self._comoving_distance_z1z2(z1, z2_arr)
         if Ok0 == 0:
             return dc
         sqrtOk0 = sqrt(abs(Ok0))
@@ -1001,15 +982,16 @@ class FLRW(
         .. [2] Weedman, D. (1986). Quasar astronomy, pp 65-67.
         .. [3] Peebles, P. (1993). Principles of Physical Cosmology, pp 325-327.
         """
-        z1, z2 = (0.0, z) if z2 is None else (z, z2)
-        z1, z2 = aszarr(z1), aszarr(z2)
-        if np.any(z2 < z1):
+        z1_val, z2_val = (0.0, z) if z2 is None else (z, z2)
+        z1 = aszarr(z1_val)
+        z2_arr = aszarr(z2_val)
+        if np.any(z2_arr < z1):
             warnings.warn(
-                f"Second redshift(s) z2 ({z2}) is less than first "
+                f"Second redshift(s) z2 ({z2_arr}) is less than first "
                 f"redshift(s) z1 ({z1}).",
                 AstropyUserWarning,
             )
-        return self._comoving_transverse_distance_z1z2(z1, z2) / (z2 + 1.0)
+        return self.comoving_transverse_distance(z1, z2_arr) / (z2_arr + 1.0)
 
     @deprecated(
         since="8.0", message="Use ``angular_diameter_distance(z1, z2)`` instead."

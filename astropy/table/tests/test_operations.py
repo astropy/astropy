@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+import astropy.table.operations as ato
 from astropy import table
 from astropy import units as u
 from astropy.coordinates import (
@@ -33,7 +34,11 @@ from astropy.time import Time, TimeDelta
 from astropy.timeseries import TimeSeries
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
-from astropy.utils.compat.optional_deps import HAS_NUMPY_QUADDTYPE, HAS_SCIPY
+from astropy.utils.compat.optional_deps import (
+    HAS_NUMPY_QUADDTYPE,
+    HAS_PANDAS,
+    HAS_SCIPY,
+)
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MergeConflictError
 
@@ -45,6 +50,10 @@ MIXINS_WITH_FULL_MASK_SUPPORT = (
     SkyCoord,
     EarthLocation,  # Currently, a Quantity subclass, but that may change.
 )
+
+JOIN_ENGINES = ["astropy"]
+if HAS_PANDAS:
+    JOIN_ENGINES.append("pandas")
 
 
 def sort_eq(list1, list2):
@@ -76,6 +85,43 @@ def check_mask(col, exp_mask):
         # not required by the join).
         out = np.all(exp_mask == False)  # noqa: E712
     return out
+
+
+@pytest.fixture(params=JOIN_ENGINES)
+def join_engine(request):
+    return request.param
+
+
+def test_select_join_engine():
+    engine, compute_join_indices = ato._select_join_engine("astropy")
+    assert engine == "astropy"
+    assert compute_join_indices is ato._compute_join_indices_astropy
+
+    engine, compute_join_indices = ato._select_join_engine("pandas")
+    assert engine == "pandas"
+    assert compute_join_indices is ato._compute_join_indices_pandas
+
+    engine, _ = ato._select_join_engine("auto")
+    assert engine == ("pandas" if HAS_PANDAS else "astropy")
+
+    with pytest.raises(ValueError, match="Invalid join engine"):
+        ato._select_join_engine("bad-engine")
+
+    if not HAS_PANDAS:
+        t1 = Table({"a": [1]})
+        t2 = Table({"a": [1]})
+        with pytest.raises(ImportError, match="pandas library is required"):
+            table.join(t1, t2, keys="a", engine="pandas")
+
+
+def test_join_engine_auto_smoke_test():
+    t1 = Table({"a": [1, 2], "b": ["x", "y"]})
+    t2 = Table({"a": [2, 3], "c": [10, 11]})
+
+    out = table.join(t1, t2, keys="a", join_type="inner", engine="auto")
+    assert out.colnames == ["a", "b", "c"]
+    assert len(out) == 1
+    assert out["a"].tolist() == [2]
 
 
 class TestJoin:
@@ -111,51 +157,67 @@ class TestJoin:
             ]
         )
 
-    def test_table_meta_merge(self, operation_table_type):
+    def test_table_meta_merge(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
-        out = table.join(self.t1, self.t2, join_type="inner")
+        out = table.join(self.t1, self.t2, join_type="inner", engine=join_engine)
         assert out.meta == self.meta_merge
 
-    def test_table_meta_merge_conflict(self, operation_table_type):
+    def test_table_meta_merge_conflict(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
 
         with pytest.warns(metadata.MergeConflictWarning) as w:
-            out = table.join(self.t1, self.t3, join_type="inner")
+            out = table.join(self.t1, self.t3, join_type="inner", engine=join_engine)
         assert len(w) == 3
 
         assert out.meta == self.t3.meta
 
         with pytest.warns(metadata.MergeConflictWarning) as w:
             out = table.join(
-                self.t1, self.t3, join_type="inner", metadata_conflicts="warn"
+                self.t1,
+                self.t3,
+                join_type="inner",
+                metadata_conflicts="warn",
+                engine=join_engine,
             )
         assert len(w) == 3
 
         assert out.meta == self.t3.meta
 
         out = table.join(
-            self.t1, self.t3, join_type="inner", metadata_conflicts="silent"
+            self.t1,
+            self.t3,
+            join_type="inner",
+            metadata_conflicts="silent",
+            engine=join_engine,
         )
 
         assert out.meta == self.t3.meta
 
         with pytest.raises(MergeConflictError):
             out = table.join(
-                self.t1, self.t3, join_type="inner", metadata_conflicts="error"
+                self.t1,
+                self.t3,
+                join_type="inner",
+                metadata_conflicts="error",
+                engine=join_engine,
             )
 
         with pytest.raises(ValueError):
             out = table.join(
-                self.t1, self.t3, join_type="inner", metadata_conflicts="nonsense"
+                self.t1,
+                self.t3,
+                join_type="inner",
+                metadata_conflicts="nonsense",
+                engine=join_engine,
             )
 
-    def test_both_unmasked_inner(self, operation_table_type):
+    def test_both_unmasked_inner(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
 
         # Basic join with default parameters (inner join on common keys)
-        t12 = table.join(t1, t2)
+        t12 = table.join(t1, t2, engine=join_engine)
         assert type(t12) is operation_table_type
         assert type(t12["a"]) is type(t1["a"])
         assert type(t12["b"]) is type(t1["b"])
@@ -175,7 +237,7 @@ class TestJoin:
         # Table meta merged properly
         assert t12.meta == self.meta_merge
 
-    def test_both_unmasked_left_right_outer(self, operation_table_type):
+    def test_both_unmasked_left_right_outer(self, operation_table_type, join_engine):
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -183,7 +245,7 @@ class TestJoin:
         t2 = self.t2
 
         # Left join
-        t12 = table.join(t1, t2, join_type="left")
+        t12 = table.join(t1, t2, join_type="left", engine=join_engine)
         assert t12.has_masked_columns is True
         assert t12.masked is False
         for name in ("a", "b", "c"):
@@ -203,7 +265,7 @@ class TestJoin:
         )
 
         # Right join
-        t12 = table.join(t1, t2, join_type="right")
+        t12 = table.join(t1, t2, join_type="right", engine=join_engine)
         assert t12.has_masked_columns is True
         assert t12.masked is False
         assert sort_eq(
@@ -219,7 +281,7 @@ class TestJoin:
         )
 
         # Outer join
-        t12 = table.join(t1, t2, join_type="outer")
+        t12 = table.join(t1, t2, join_type="outer", engine=join_engine)
         assert t12.has_masked_columns is True
         assert t12.masked is False
         assert sort_eq(
@@ -237,17 +299,19 @@ class TestJoin:
         )
 
         # Check that the common keys are 'a', 'b'
-        t12a = table.join(t1, t2, join_type="outer")
-        t12b = table.join(t1, t2, join_type="outer", keys=["a", "b"])
+        t12a = table.join(t1, t2, join_type="outer", engine=join_engine)
+        t12b = table.join(
+            t1, t2, join_type="outer", keys=["a", "b"], engine=join_engine
+        )
         assert np.all(t12a.as_array() == t12b.as_array())
 
-    def test_both_unmasked_single_key_inner(self, operation_table_type):
+    def test_both_unmasked_single_key_inner(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
 
         # Inner join on 'a' column
-        t12 = table.join(t1, t2, keys="a")
+        t12 = table.join(t1, t2, keys="a", engine=join_engine)
         assert type(t12) is operation_table_type
         assert type(t12["a"]) is type(t1["a"])
         assert type(t12["b_1"]) is type(t1["b"])
@@ -268,7 +332,9 @@ class TestJoin:
             ],
         )
 
-    def test_both_unmasked_single_key_left_right_outer(self, operation_table_type):
+    def test_both_unmasked_single_key_left_right_outer(
+        self, operation_table_type, join_engine
+    ):
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -276,7 +342,7 @@ class TestJoin:
         t2 = self.t2
 
         # Left join
-        t12 = table.join(t1, t2, join_type="left", keys="a")
+        t12 = table.join(t1, t2, join_type="left", keys="a", engine=join_engine)
         assert t12.has_masked_columns is True
         assert sort_eq(
             t12.pformat(),
@@ -293,7 +359,7 @@ class TestJoin:
         )
 
         # Right join
-        t12 = table.join(t1, t2, join_type="right", keys="a")
+        t12 = table.join(t1, t2, join_type="right", keys="a", engine=join_engine)
         assert t12.has_masked_columns is True
         assert sort_eq(
             t12.pformat(),
@@ -310,7 +376,7 @@ class TestJoin:
         )
 
         # Outer join
-        t12 = table.join(t1, t2, join_type="outer", keys="a")
+        t12 = table.join(t1, t2, join_type="outer", keys="a", engine=join_engine)
         assert t12.has_masked_columns is True
         assert sort_eq(
             t12.pformat(),
@@ -327,7 +393,7 @@ class TestJoin:
             ],
         )
 
-    def test_masked_unmasked(self, operation_table_type):
+    def test_masked_unmasked(self, operation_table_type, join_engine):
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -336,17 +402,17 @@ class TestJoin:
         t2 = self.t2
 
         # Result table is never masked
-        t1m2 = table.join(t1m, t2, join_type="inner")
+        t1m2 = table.join(t1m, t2, join_type="inner", engine=join_engine)
         assert t1m2.masked is False
 
         # Result should match non-masked result
-        t12 = table.join(t1, t2)
+        t12 = table.join(t1, t2, engine=join_engine)
         assert np.all(t12.as_array() == np.array(t1m2))
 
         # Mask out some values in left table and make sure they propagate
         t1m["b"].mask[1] = True
         t1m["c"].mask[2] = True
-        t1m2 = table.join(t1m, t2, join_type="inner", keys="a")
+        t1m2 = table.join(t1m, t2, join_type="inner", keys="a", engine=join_engine)
         assert sort_eq(
             t1m2.pformat(),
             [
@@ -360,7 +426,7 @@ class TestJoin:
             ],
         )
 
-        t21m = table.join(t2, t1m, join_type="inner", keys="a")
+        t21m = table.join(t2, t1m, join_type="inner", keys="a", engine=join_engine)
         assert sort_eq(
             t21m.pformat(),
             [
@@ -374,7 +440,7 @@ class TestJoin:
             ],
         )
 
-    def test_masked_masked(self, operation_table_type):
+    def test_masked_masked(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         """Two masked tables"""
         if operation_table_type is QTable:
@@ -385,20 +451,20 @@ class TestJoin:
         t2m = operation_table_type(self.t2, masked=True)
 
         # Result table is never masked but original column types are preserved
-        t1m2m = table.join(t1m, t2m, join_type="inner")
+        t1m2m = table.join(t1m, t2m, join_type="inner", engine=join_engine)
         assert t1m2m.masked is False
         for col in t1m2m.itercols():
             assert type(col) is MaskedColumn
 
         # Result should match non-masked result
-        t12 = table.join(t1, t2)
+        t12 = table.join(t1, t2, engine=join_engine)
         assert np.all(t12.as_array() == np.array(t1m2m))
 
         # Mask out some values in both tables and make sure they propagate
         t1m["b"].mask[1] = True
         t1m["c"].mask[2] = True
         t2m["d"].mask[2] = True
-        t1m2m = table.join(t1m, t2m, join_type="inner", keys="a")
+        t1m2m = table.join(t1m, t2m, join_type="inner", keys="a", engine=join_engine)
         assert sort_eq(
             t1m2m.pformat(),
             [
@@ -412,7 +478,7 @@ class TestJoin:
             ],
         )
 
-    def test_classes(self):
+    def test_classes(self, join_engine):
         """Ensure that classes and subclasses get through as expected"""
 
         class MyCol(Column):
@@ -431,7 +497,7 @@ class TestJoin:
         t2["d"] = MyCol([3, 4])
         t2["e"] = MyMaskedCol([5, 6])
 
-        t12 = table.join(t1, t2, join_type="inner")
+        t12 = table.join(t1, t2, join_type="inner", engine=join_engine)
         for name, exp_type in (
             ("a", MyCol),
             ("b", MyCol),
@@ -439,9 +505,9 @@ class TestJoin:
             ("d", MyCol),
             ("e", MyMaskedCol),
         ):
-            assert type(t12[name] is exp_type)
+            assert type(t12[name]) is exp_type
 
-        t21 = table.join(t2, t1, join_type="left")
+        t21 = table.join(t2, t1, join_type="left", engine=join_engine)
         # Note col 'b' gets upgraded from MyCol to MaskedColumn since it needs to be
         # masked, but col 'c' stays since MyMaskedCol supports masking.
         for name, exp_type in (
@@ -451,9 +517,9 @@ class TestJoin:
             ("d", MyCol),
             ("e", MyMaskedCol),
         ):
-            assert type(t21[name] is exp_type)
+            assert type(t21[name]) is exp_type
 
-    def test_col_rename(self, operation_table_type):
+    def test_col_rename(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         """
         Test auto col renaming when there is a conflict.  Use
@@ -467,10 +533,11 @@ class TestJoin:
             uniq_col_name="x_{table_name}_{col_name}_y",
             table_names=["L", "R"],
             keys="a",
+            engine=join_engine,
         )
         assert t12.colnames == ["a", "x_L_b_y", "c", "x_R_b_y", "d"]
 
-    def test_rename_conflict(self, operation_table_type):
+    def test_rename_conflict(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         """
         Test that auto-column rename fails because of a conflict
@@ -480,25 +547,25 @@ class TestJoin:
         t2 = self.t2
         t1["b_1"] = 1  # Add a new column b_1 that will conflict with auto-rename
         with pytest.raises(TableMergeError):
-            table.join(t1, t2, keys="a")
+            table.join(t1, t2, keys="a", engine=join_engine)
 
-    def test_missing_keys(self, operation_table_type):
+    def test_missing_keys(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         """Merge on a key column that doesn't exist"""
         t1 = self.t1
         t2 = self.t2
         with pytest.raises(TableMergeError):
-            table.join(t1, t2, keys=["a", "not there"])
+            table.join(t1, t2, keys=["a", "not there"], engine=join_engine)
 
-    def test_bad_join_type(self, operation_table_type):
+    def test_bad_join_type(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         """Bad join_type input"""
         t1 = self.t1
         t2 = self.t2
         with pytest.raises(ValueError):
-            table.join(t1, t2, join_type="illegal value")
+            table.join(t1, t2, join_type="illegal value", engine=join_engine)
 
-    def test_no_common_keys(self, operation_table_type):
+    def test_no_common_keys(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         """Merge tables with no common keys"""
         t1 = self.t1
@@ -508,21 +575,21 @@ class TestJoin:
         del t2["a"]
         del t2["b"]
         with pytest.raises(TableMergeError):
-            table.join(t1, t2)
+            table.join(t1, t2, engine=join_engine)
 
-    def test_masked_key_column(self, operation_table_type):
+    def test_masked_key_column(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         """Merge on a key column that has a masked element"""
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         t1 = self.t1
         t2 = operation_table_type(self.t2, masked=True)
-        table.join(t1, t2)  # OK
+        table.join(t1, t2, engine=join_engine)  # OK
         t2["a"].mask[0] = True
         with pytest.raises(TableMergeError):
-            table.join(t1, t2)
+            table.join(t1, t2, engine=join_engine)
 
-    def test_col_meta_merge(self, operation_table_type):
+    def test_col_meta_merge(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -562,7 +629,7 @@ class TestJoin:
             ctx = nullcontext()
 
         with ctx:
-            t12 = table.join(t1, t2, keys=["a", "b"])
+            t12 = table.join(t1, t2, keys=["a", "b"], engine=join_engine)
 
         assert t12["a"].unit == "m"
         assert t12["b"].info.description == "t1_b"
@@ -574,7 +641,7 @@ class TestJoin:
         assert t12["c_2"].info.format == "%6s"
         assert t12["c_2"].info.description == "t2_c"
 
-    def test_join_multidimensional(self, operation_table_type):
+    def test_join_multidimensional(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
 
         # Regression test for #2984, which was an issue where join did not work
@@ -588,13 +655,13 @@ class TestJoin:
         t2["a"] = [1, 2, 3]
         t2["c"] = [4, 5, 6]
 
-        t3 = table.join(t1, t2)
+        t3 = table.join(t1, t2, engine=join_engine)
 
         np.testing.assert_allclose(t3["a"], t1["a"])
         np.testing.assert_allclose(t3["b"], t1["b"])
         np.testing.assert_allclose(t3["c"], t2["c"])
 
-    def test_join_multidimensional_masked(self, operation_table_type):
+    def test_join_multidimensional_masked(self, operation_table_type, join_engine):
         self._setup(operation_table_type)
         """
         Test for outer join with multidimensional columns where masking is required.
@@ -628,7 +695,7 @@ class TestJoin:
         )
         t1 = operation_table_type([a, b])
         t2 = operation_table_type([a2, c])
-        t12 = table.join(t1, t2, join_type="inner")
+        t12 = table.join(t1, t2, join_type="inner", engine=join_engine)
 
         assert np.all(
             t12["b"].mask
@@ -639,7 +706,7 @@ class TestJoin:
         )
         assert not hasattr(t12["c"], "mask")
 
-        t12 = table.join(t1, t2, join_type="outer")
+        t12 = table.join(t1, t2, join_type="outer", engine=join_engine)
         assert np.all(
             t12["b"].mask
             == [
@@ -659,7 +726,7 @@ class TestJoin:
             ]
         )
 
-    def test_mixin_functionality(self, mixin_cols):
+    def test_mixin_functionality(self, mixin_cols, join_engine):
         col = mixin_cols["m"]
         cls_name = type(col).__name__
         len_col = len(col)
@@ -671,7 +738,7 @@ class TestJoin:
         t2 = t2[[0, 2, 3]]
 
         # Test inner join, which works for all mixin_cols
-        out = table.join(t1, t2, join_type="inner")
+        out = table.join(t1, t2, join_type="inner", engine=join_engine)
         assert len(out) == 2
         assert out["m2"].__class__ is col.__class__
         assert np.all(out["idx"] == [0, 3])
@@ -689,7 +756,7 @@ class TestJoin:
         # Check for left, right, outer join which requires masking. Works for
         # the listed mixins classes.
         if isinstance(col, MIXINS_WITH_FULL_MASK_SUPPORT):
-            out = table.join(t1, t2, join_type="left")
+            out = table.join(t1, t2, join_type="left", engine=join_engine)
             assert len(out) == 3
             assert np.all(out["idx"] == [0, 1, 3])
             assert np.all(out["m1"] == t1["m1"])
@@ -697,7 +764,7 @@ class TestJoin:
             check_mask(out["m1"], [False, False, False])
             check_mask(out["m2"], [False, True, False])
 
-            out = table.join(t1, t2, join_type="right")
+            out = table.join(t1, t2, join_type="right", engine=join_engine)
             assert len(out) == 3
             assert np.all(out["idx"] == [0, 2, 3])
             assert np.all(out["m1"] == t1["m1"])
@@ -705,7 +772,7 @@ class TestJoin:
             check_mask(out["m1"], [False, True, False])
             check_mask(out["m2"], [False, False, False])
 
-            out = table.join(t1, t2, join_type="outer")
+            out = table.join(t1, t2, join_type="outer", engine=join_engine)
             assert len(out) == 4
             assert np.all(out["idx"] == [0, 1, 2, 3])
             assert np.all(out["m1"] == col)
@@ -716,15 +783,15 @@ class TestJoin:
             # Otherwise make sure it fails with the right exception message
             for join_type in ("outer", "left", "right"):
                 with pytest.raises(NotImplementedError) as err:
-                    table.join(t1, t2, join_type=join_type)
+                    table.join(t1, t2, join_type=join_type, engine=join_engine)
                 assert "join requires masking" in str(
                     err.value
                 ) or "join unavailable" in str(err.value)
 
-    def test_cartesian_join(self, operation_table_type):
+    def test_cartesian_join(self, operation_table_type, join_engine):
         t1 = Table(rows=[(1, "a"), (2, "b")], names=["a", "b"])
         t2 = Table(rows=[(3, "c"), (4, "d")], names=["a", "c"])
-        t12 = table.join(t1, t2, join_type="cartesian")
+        t12 = table.join(t1, t2, join_type="cartesian", engine=join_engine)
 
         assert t1.colnames == ["a", "b"]
         assert t2.colnames == ["a", "c"]
@@ -739,15 +806,19 @@ class TestJoin:
         ]
 
         with pytest.raises(ValueError, match="cannot supply keys for a cartesian join"):
-            t12 = table.join(t1, t2, join_type="cartesian", keys="a")
+            t12 = table.join(
+                t1, t2, join_type="cartesian", keys="a", engine=join_engine
+            )
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_skycoord_sky(self):
+    def test_join_with_join_skycoord_sky(self, join_engine):
         sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit="deg")
         sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit="deg")
         t1 = Table([sc1], names=["sc"])
         t2 = Table([sc2], names=["sc"])
-        t12 = table.join(t1, t2, join_funcs={"sc": join_skycoord(0.2 * u.deg)})
+        t12 = table.join(
+            t1, t2, join_funcs={"sc": join_skycoord(0.2 * u.deg)}, engine=join_engine
+        )
         exp = [
             "sc_id   sc_1    sc_2  ",
             "      deg,deg deg,deg ",
@@ -760,13 +831,13 @@ class TestJoin:
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
     @pytest.mark.parametrize("distance_func", ["search_around_3d", search_around_3d])
-    def test_join_with_join_skycoord_3d(self, distance_func):
+    def test_join_with_join_skycoord_3d(self, distance_func, join_engine):
         sc1 = SkyCoord([0, 1, 1.1, 2] * u.deg, [0, 0, 0, 0] * u.deg, [1, 1, 2, 1] * u.m)
         sc2 = SkyCoord([0.5, 1.05, 2.1] * u.deg, [0, 0, 0] * u.deg, [1, 1, 1] * u.m)
         t1 = Table([sc1], names=["sc"])
         t2 = Table([sc2], names=["sc"])
         join_func = join_skycoord(np.deg2rad(0.2) * u.m, distance_func=distance_func)
-        t12 = table.join(t1, t2, join_funcs={"sc": join_func})
+        t12 = table.join(t1, t2, join_funcs={"sc": join_func}, engine=join_engine)
         exp = [
             "sc_id     sc_1        sc_2    ",
             "       deg,deg,m   deg,deg,m  ",
@@ -777,7 +848,7 @@ class TestJoin:
         assert str(t12).splitlines() == exp
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_distance_1d(self):
+    def test_join_with_join_distance_1d(self, join_engine):
         c1 = [0, 1, 1.1, 2]
         c2 = [0.5, 1.05, 2.1]
         t1 = Table([c1], names=["col"])
@@ -785,7 +856,9 @@ class TestJoin:
         join_func = join_distance(
             0.2, kdtree_args={"leafsize": 32}, query_args={"p": 2}
         )
-        t12 = table.join(t1, t2, join_type="outer", join_funcs={"col": join_func})
+        t12 = table.join(
+            t1, t2, join_type="outer", join_funcs={"col": join_func}, engine=join_engine
+        )
         exp = [
             "col_id col_1 col_2",
             "------ ----- -----",
@@ -798,7 +871,7 @@ class TestJoin:
         assert str(t12).splitlines() == exp
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_distance_1d_multikey(self):
+    def test_join_with_join_distance_1d_multikey(self, join_engine):
         c1 = [0, 1, 1.1, 1.2, 2]
         id1 = [0, 1, 2, 2, 3]
         o1 = ["a", "b", "c", "d", "e"]
@@ -809,7 +882,9 @@ class TestJoin:
         t2 = Table([c2, id2, o2], names=["col", "id", "o2"])
         join_func = join_distance(0.2)
         join_funcs = {"col": join_func}
-        t12 = table.join(t1, t2, join_type="outer", join_funcs=join_funcs)
+        t12 = table.join(
+            t1, t2, join_type="outer", join_funcs=join_funcs, engine=join_engine
+        )
         exp = [
             "col_id col_1  id  o1 col_2  o2",
             "------ ----- --- --- ----- ---",
@@ -827,13 +902,13 @@ class TestJoin:
         assert keys == ("col_id", "id")
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_distance_1d_quantity(self):
+    def test_join_with_join_distance_1d_quantity(self, join_engine):
         c1 = [0, 1, 1.1, 2] * u.m
         c2 = [500, 1050, 2100] * u.mm
         t1 = QTable([c1], names=["col"])
         t2 = QTable([c2], names=["col"])
         join_func = join_distance(20 * u.cm)
-        t12 = table.join(t1, t2, join_funcs={"col": join_func})
+        t12 = table.join(t1, t2, join_funcs={"col": join_func}, engine=join_engine)
         exp = [
             "col_id col_1 col_2 ",
             "         m     mm  ",
@@ -847,7 +922,7 @@ class TestJoin:
         # Generate column name conflict
         t2["col_id"] = [0, 0, 0]
         t2["col__id"] = [0, 0, 0]
-        t12 = table.join(t1, t2, join_funcs={"col": join_func})
+        t12 = table.join(t1, t2, join_funcs={"col": join_func}, engine=join_engine)
         exp = [
             "col___id col_1 col_2  col_id col__id",
             "           m     mm                 ",
@@ -859,7 +934,7 @@ class TestJoin:
         assert str(t12).splitlines() == exp
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_distance_2d(self):
+    def test_join_with_join_distance_2d(self, join_engine):
         c1 = np.array([[0, 1, 1.1, 2], [0, 0, 1, 0]]).transpose()
         c2 = np.array([[0.5, 1.05, 2.1], [0, 0, 0]]).transpose()
         t1 = Table([c1], names=["col"])
@@ -867,7 +942,9 @@ class TestJoin:
         join_func = join_distance(
             0.2, kdtree_args={"leafsize": 32}, query_args={"p": 2}
         )
-        t12 = table.join(t1, t2, join_type="outer", join_funcs={"col": join_func})
+        t12 = table.join(
+            t1, t2, join_type="outer", join_funcs={"col": join_func}, engine=join_engine
+        )
         exp = [
             "col_id   col_1       col_2   ",
             f"{t12['col_id'].dtype.name}  float64[2]  float64[2]",  # int32 or int64
@@ -880,7 +957,7 @@ class TestJoin:
         ]
         assert t12.pformat(show_dtype=True) == exp
 
-    def test_keys_left_right_basic(self):
+    def test_keys_left_right_basic(self, join_engine):
         """Test using the keys_left and keys_right args to specify different
         join keys. This takes the standard test case but renames column 'a'
         to 'x' and 'y' respectively for tables 1 and 2. Then it compares the
@@ -891,7 +968,9 @@ class TestJoin:
             t1 = self.t1.copy()
             t2 = self.t2.copy()
             # Expected is same as joining on 'a' but with names 'x', 'y' instead
-            t12_exp = table.join(t1, t2, keys="a", join_type=join_type)
+            t12_exp = table.join(
+                t1, t2, keys="a", join_type=join_type, engine=join_engine
+            )
             t12_exp.add_column(t12_exp["a"], name="x", index=1)
             t12_exp.add_column(t12_exp["a"], name="y", index=len(t1.colnames) + 1)
             del t12_exp["a"]
@@ -913,6 +992,7 @@ class TestJoin:
                     keys_left=keys_left,
                     keys_right=keys_right,
                     join_type=join_type,
+                    engine=join_engine,
                 )
 
                 assert t12.colnames == t12_exp.colnames
@@ -920,7 +1000,7 @@ class TestJoin:
                     assert np.all(col)
                 assert t12_exp.meta == t12.meta
 
-    def test_keys_left_right_exceptions(self):
+    def test_keys_left_right_exceptions(self, join_engine):
         """Test exceptions using the keys_left and keys_right args to specify
         different join keys.
         """
@@ -930,29 +1010,40 @@ class TestJoin:
 
         msg = r"left table does not have key column 'z'"
         with pytest.raises(ValueError, match=msg):
-            table.join(t1, t2, keys_left="z", keys_right=["a"])
+            table.join(t1, t2, keys_left="z", keys_right=["a"], engine=join_engine)
 
         msg = r"left table has different length from key \[1, 2\]"
         with pytest.raises(ValueError, match=msg):
-            table.join(t1, t2, keys_left=[[1, 2]], keys_right=["a"])
+            table.join(t1, t2, keys_left=[[1, 2]], keys_right=["a"], engine=join_engine)
 
         msg = r"keys arg must be None if keys_left and keys_right are supplied"
         with pytest.raises(ValueError, match=msg):
-            table.join(t1, t2, keys_left="z", keys_right=["a"], keys="a")
+            table.join(
+                t1, t2, keys_left="z", keys_right=["a"], keys="a", engine=join_engine
+            )
 
         msg = r"keys_left and keys_right args must have same length"
         with pytest.raises(ValueError, match=msg):
-            table.join(t1, t2, keys_left=["a", "b"], keys_right=["a"])
+            table.join(
+                t1, t2, keys_left=["a", "b"], keys_right=["a"], engine=join_engine
+            )
 
         msg = r"keys_left and keys_right must both be provided"
         with pytest.raises(ValueError, match=msg):
-            table.join(t1, t2, keys_left=["a", "b"])
+            table.join(t1, t2, keys_left=["a", "b"], engine=join_engine)
 
         msg = r"cannot supply join_funcs arg and keys_left / keys_right"
         with pytest.raises(ValueError, match=msg):
-            table.join(t1, t2, keys_left=["a"], keys_right=["a"], join_funcs={})
+            table.join(
+                t1,
+                t2,
+                keys_left=["a"],
+                keys_right=["a"],
+                join_funcs={},
+                engine=join_engine,
+            )
 
-    def test_join_structured_column(self):
+    def test_join_structured_column(self, join_engine):
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
         t1 = Table(
@@ -969,7 +1060,7 @@ class TestJoin:
             ],
             names=["structured", "string"],
         )
-        t12 = table.join(t1, t2, ["structured"], join_type="outer")
+        t12 = table.join(t1, t2, ["structured"], join_type="outer", engine=join_engine)
         assert t12.pformat() == (
             [
                 "structured [f, i] string_1 string_2",
@@ -2341,7 +2432,7 @@ def test_vstack_unicode():
     assert t2["a"].itemsize == 4
 
 
-def test_join_mixins_time_quantity():
+def test_join_mixins_time_quantity(join_engine):
     """
     Test for table join using non-ndarray key columns.
     """
@@ -2365,7 +2456,7 @@ def test_join_mixins_time_quantity():
     #   2.00000000000351     2.0     1    10
     #  3.000000000000469     3.0    --    20
 
-    t12 = table.join(t1, t2, join_type="outer", keys=["tm", "q"])
+    t12 = table.join(t1, t2, join_type="outer", keys=["tm", "q"], engine=join_engine)
     # Key cols are lexically sorted
     assert np.all(t12["tm"] == Time([1, 2, 2, 3], format="cxcsec"))
     assert np.all(t12["q"] == [1, 1, 2, 3] * u.m)
@@ -2373,7 +2464,7 @@ def test_join_mixins_time_quantity():
     assert np.all(t12["idx_2"] == np.ma.array([0, 0, 10, 20], mask=[1, 1, 0, 0]))
 
 
-def test_join_mixins_not_sortable():
+def test_join_mixins_not_sortable(join_engine):
     """
     Test for table join using non-ndarray key columns that are not sortable.
     """
@@ -2382,7 +2473,7 @@ def test_join_mixins_not_sortable():
     t2 = Table([sc, [10, 20]], names=["sc", "idx2"])
 
     with pytest.raises(TypeError, match="one or more key columns are not sortable"):
-        table.join(t1, t2, keys="sc")
+        table.join(t1, t2, keys="sc", engine=join_engine)
 
 
 def test_join_non_1d_key_column():

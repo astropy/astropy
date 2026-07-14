@@ -19,7 +19,7 @@ import numpy as np
 
 from astropy.units import Quantity
 from astropy.utils import metadata
-from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 from astropy.utils.masked import Masked
 
 from . import _np_utils
@@ -369,6 +369,7 @@ def join(
     table_names=["1", "2"],
     metadata_conflicts="warn",
     join_funcs=None,
+    engine="astropy",
 ):
     """
     Perform a join of the left table with the right table on specified keys.
@@ -409,6 +410,12 @@ def join(
     join_funcs : dict, None
         Dict of functions to use for matching the corresponding key column(s).
         See `~astropy.table.join_skycoord` for an example and details.
+    engine : str
+        The engine to use for the join. Supported values are ``'astropy'``,
+        ``'pandas'``, and ``'auto'``. The default is ``'astropy'`` which uses
+        the implementation in this module. The ``'pandas'`` engine uses the
+        pandas library and is typically faster for large tables. The ``'auto'``
+        engine selects ``'pandas'`` if available, otherwise ``'astropy'``.
 
     Returns
     -------
@@ -454,6 +461,7 @@ def join(
             join_funcs,
             keys_left=keys_left,
             keys_right=keys_right,
+            engine=engine,
         )
         if sort_table is not None:
             # Sort joined table to the original order and remove the temporary column.
@@ -1048,12 +1056,44 @@ def result_type(cols):
         raise tme from err
 
 
-def _get_join_sort_idxs(keys, left, right):
-    # Go through each of the key columns in order and make columns for
-    # a new structured array that represents the lexical ordering of those
-    # key columns. This structured array is then argsort'ed. The trick here
-    # is that some columns (e.g. Time) may need to be expanded into multiple
-    # columns for ordering here.
+def _get_join_sortable_arrays(keys: list[str], left: "Table", right: "Table"):
+    """Get sortable key arrays used to build join index inputs.
+
+    For each join key column, this helper calls ``Column.info.get_sortable_arrays()`` on
+    both tables to obtain one or more 1-D arrays that represent lexical sort order for
+    that key. Some key column types expand into multiple sortable arrays.
+
+    Parameters
+    ----------
+    keys : list[str]
+        Join key column names.
+    left : Table
+        Left input table.
+    right : Table
+        Right input table.
+
+    Returns
+    -------
+    sort_keys_dtypes : list[tuple[str, dtype]]
+        Structured-dtype specification for sortable key fields.
+    sort_keys : list[str]
+        Generated sortable key field names (``"0"``, ``"1"``, ...).
+    sort_left : dict[str, ndarray]
+        Mapping of sortable key field name to 1-D array for ``left``.
+    sort_right : dict[str, ndarray]
+        Mapping of sortable key field name to 1-D array for ``right``.
+
+    Raises
+    ------
+    TypeError
+        If any key column is not sortable.
+    RuntimeError
+        If left/right sortable array shapes or expansion lengths differ.
+    ValueError
+        If any sortable key array is not 1-D.
+    """
+    # Go through each of the key columns in order and make columns for that represent
+    # the lexical ordering of those key columns.
 
     ii = 0  # Index for uniquely naming the sort columns
     # sortable_table dtypes as list of (name, dtype_str, shape) tuples
@@ -1066,8 +1106,11 @@ def _get_join_sort_idxs(keys, left, right):
         # get_sortable_arrays() returns a list of ndarrays that can be lexically
         # sorted to represent the order of the column. In most cases this is just
         # a single element of the column itself.
-        left_sort_cols = left[key].info.get_sortable_arrays()
-        right_sort_cols = right[key].info.get_sortable_arrays()
+        try:
+            left_sort_cols = left[key].info.get_sortable_arrays()
+            right_sort_cols = right[key].info.get_sortable_arrays()
+        except NotImplementedError as err:
+            raise TypeError("one or more key columns are not sortable") from err
 
         if len(left_sort_cols) != len(right_sort_cols):
             # Should never happen because cols are screened beforehand for compatibility
@@ -1092,6 +1135,43 @@ def _get_join_sort_idxs(keys, left, right):
             sort_keys_dtypes.append((sort_key, dtype_str))
             ii += 1
 
+    return sort_keys_dtypes, sort_keys, sort_left, sort_right
+
+
+def _get_join_sort_idxs(keys, left, right):
+    """Compute sorted-row and group-boundary indices for join keys.
+
+    This helper builds sortable key arrays for ``left`` and ``right``, combines them
+    into a single structured array, and sorts that array lexically by key. It then
+    identifies boundaries between unique key groups in the sorted result.
+
+    Parameters
+    ----------
+    keys : list[str]
+        Join key column names.
+    left : Table
+        Left input table.
+    right : Table
+        Right input table.
+
+    Returns
+    -------
+    idxs : ndarray
+        Indices of key-group boundaries in the sorted combined table, including
+        leading 0 and trailing ``len(sorted_table)`` sentinels.
+    idx_sort : ndarray
+        Row indices that sort the concatenated rows from ``left`` then ``right``
+        by join key.
+    """
+    # Go through each of the key columns in order and make columns for
+    # a new structured array that represents the lexical ordering of those
+    # key columns. This structured array is then argsort'ed. The trick here
+    # is that some columns (e.g. Time) may need to be expanded into multiple
+    # columns for ordering here.
+    sort_keys_dtypes, sort_keys, sort_left, sort_right = _get_join_sortable_arrays(
+        keys, left, right
+    )
+
     # Make the empty sortable table and fill it
     len_left = len(left)
     sortable_table = np.empty(len_left + len(right), dtype=sort_keys_dtypes)
@@ -1099,8 +1179,14 @@ def _get_join_sort_idxs(keys, left, right):
         sortable_table[key][:len_left] = sort_left[key]
         sortable_table[key][len_left:] = sort_right[key]
 
-    # Finally do the (lexical) argsort and make a new sorted version
-    idx_sort = sortable_table.argsort(order=sort_keys)
+    # Finally do the argsort and make a new sorted version. For a single key it is much
+    # faster to argsort the column directly instead of a lexical sort using a structured
+    # array. In this case force a (slightly slower) stable sort for back-compatibility
+    # with the original behavior from argsort(order=sort_keys).
+    if len(sort_keys) == 1:
+        idx_sort = np.argsort(sortable_table[sort_keys[0]], kind="stable")
+    else:
+        idx_sort = sortable_table.argsort(order=sort_keys)
     sorted_table = sortable_table[idx_sort]
 
     # Get indexes of unique elements (i.e. the group boundaries)
@@ -1130,6 +1216,42 @@ def _apply_join_funcs(left, right, keys, join_funcs):
     return left, right, keys
 
 
+def _select_join_engine(engine: str):
+    """Select the concrete join engine from a user request.
+
+    Parameters
+    ----------
+    engine : str
+        Requested engine. Allowed values are ``"astropy"``, ``"pandas"``,
+        and ``"auto"``.
+
+    Returns
+    -------
+    engine : str
+        Concrete engine name (``"astropy"`` or ``"pandas"``).
+    compute_join_indices : callable
+        Function used to compute row index arrays and masks for the selected
+        engine.
+
+    Raises
+    ------
+    ValueError
+        If ``engine`` is not one of the supported values.
+    """
+    if engine == "auto":
+        engine = "pandas" if HAS_PANDAS else "astropy"
+
+    if engine not in ("astropy", "pandas"):
+        raise ValueError(f"Invalid join engine: {engine!r}")
+
+    compute_join_indices = {
+        "astropy": _compute_join_indices_astropy,
+        "pandas": _compute_join_indices_pandas,
+    }[engine]
+
+    return engine, compute_join_indices
+
+
 def _join(
     left,
     right,
@@ -1141,6 +1263,7 @@ def _join(
     join_funcs=None,
     keys_left=None,
     keys_right=None,
+    engine="astropy",
 ):
     """
     Perform a join of the left and right Tables on specified keys.
@@ -1170,6 +1293,12 @@ def _join(
     join_funcs : dict, None
         Dict of functions to use for matching the corresponding key column(s).
         See `~astropy.table.join_skycoord` for an example and details.
+    engine : str
+        The engine to use for the join. Supported values are ``'astropy'``,
+        ``'pandas'``, and ``'auto'``. The default is ``'astropy'`` which uses
+        the implementation in this module. The ``'pandas'`` engine uses the
+        pandas library and is typically faster for large tables. The ``'auto'``
+        engine selects ``'pandas'`` if available, otherwise ``'astropy'``.
 
     Returns
     -------
@@ -1246,10 +1375,11 @@ def _join(
     if len_left == 0 or len_right == 0:
         raise ValueError("input tables for join must both have at least one row")
 
-    try:
-        idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
-    except NotImplementedError:
-        raise TypeError("one or more key columns are not sortable")
+    engine, compute_join_indices = _select_join_engine(engine)
+
+    masked, n_out, left_out, left_mask, right_out, right_mask = compute_join_indices(
+        left, right, keys, join_type, len_left
+    )
 
     # Now that we have idxs and idx_sort, revert to the original table args to
     # carry on with making the output joined table. `keys` is set to an empty
@@ -1263,15 +1393,6 @@ def _join(
     # Joined array dtype as a list of descr (name, type_str, shape) tuples
     col_name_map = get_col_name_map([left, right], keys, uniq_col_name, table_names)
     out_descrs = get_descrs([left, right], col_name_map)
-
-    # Main inner loop in Cython to compute the cartesian product
-    # indices for the given join type
-    int_join_type = {"inner": 0, "outer": 1, "left": 2, "right": 3, "cartesian": 1}[
-        join_type
-    ]
-    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
-        idxs, idx_sort, len_left, int_join_type
-    )
 
     out = _get_out_class([left, right])()
 
@@ -1345,6 +1466,124 @@ def _join(
         out[out_name] = col
 
     return out
+
+
+def _compute_join_indices_astropy(left, right, keys, join_type, len_left):
+    """Compute row index arrays and masks for joins using the astropy engine.
+
+    This helper sorts the concatenated join keys from ``left`` and ``right`` to
+    identify matching groups, then delegates to ``_np_utils.join_inner`` to
+    build output row indices and masks for the requested join type.
+
+    Parameters
+    ----------
+    left : Table
+        Left input table.
+    right : Table
+        Right input table.
+    keys : tuple[str]
+        Join key column names.
+    join_type : {'inner', 'outer', 'left', 'right', 'cartesian'}
+        Requested join type.
+    len_left : int
+        Number of rows in ``left``.
+
+    Returns
+    -------
+    masked : bool
+        Whether any output columns require masking due to missing side rows.
+    n_out : int
+        Number of output rows.
+    left_out : ndarray
+        Row indices into ``left`` for each output row.
+    left_mask : ndarray
+        Boolean mask indicating output rows without a matching ``left`` row.
+    right_out : ndarray
+        Row indices into ``right`` for each output row.
+    right_mask : ndarray
+        Boolean mask indicating output rows without a matching ``right`` row.
+    """
+    idxs, idx_sort = _get_join_sort_idxs(keys, left, right)
+
+    # Main inner loop in Cython to compute the cartesian product
+    # indices for the given join type
+    int_join_type = {"inner": 0, "outer": 1, "left": 2, "right": 3, "cartesian": 1}[
+        join_type
+    ]
+    masked, n_out, left_out, left_mask, right_out, right_mask = _np_utils.join_inner(
+        idxs, idx_sort, len_left, int_join_type
+    )
+
+    return masked, n_out, left_out, left_mask, right_out, right_mask
+
+
+def _compute_join_indices_pandas(left, right, keys, join_type, len_left):
+    """Compute row index arrays and masks for joins using the pandas engine.
+
+    This helper uses pandas.merge() to do the work. It is typically faster than the
+    astropy engine for large tables, but requires the pandas library.
+
+    Parameters
+    ----------
+    left : Table
+        Left input table.
+    right : Table
+        Right input table.
+    keys : tuple[str]
+        Join key column names.
+    join_type : {'inner', 'outer', 'left', 'right', 'cartesian'}
+        Requested join type.
+    len_left : int
+        Number of rows in ``left``.
+
+    Returns
+    -------
+    masked : bool
+        Whether any output columns require masking due to missing side rows.
+    n_out : int
+        Number of output rows.
+    left_out : ndarray
+        Row indices into ``left`` for each output row.
+    left_mask : ndarray
+        Boolean mask indicating output rows without a matching ``left`` row.
+    right_out : ndarray
+        Row indices into ``right`` for each output row.
+    right_mask : ndarray
+        Boolean mask indicating output rows without a matching ``right`` row.
+    """
+    if not HAS_PANDAS:
+        raise ImportError("pandas library is required for pandas join engine")
+    import pandas as pd
+
+    _, sort_keys, sort_left, sort_right = _get_join_sortable_arrays(keys, left, right)
+
+    left_pd = pd.DataFrame(sort_left)
+    left_pd["idx_left"] = pd.Series(np.arange(len(left_pd)), dtype=pd.Int64Dtype())
+    right_pd = pd.DataFrame(sort_right)
+    right_pd["idx_right"] = pd.Series(np.arange(len(right_pd)), dtype=pd.Int64Dtype())
+
+    # Cartesian join is handled differently in pandas
+    kwargs = (
+        {"how": "cross"}
+        if join_type == "cartesian"
+        else {"on": sort_keys, "how": join_type}
+    )
+
+    merged = pd.merge(
+        left_pd,
+        right_pd,
+        sort=False,
+        **kwargs,
+    )
+
+    left_out = np.asarray(merged["idx_left"].fillna(0))
+    right_out = np.asarray(merged["idx_right"].fillna(0))
+    left_mask = merged["idx_left"].isna().values
+    right_mask = merged["idx_right"].isna().values
+    masked = right_mask.any() or left_mask.any()
+    n_out = len(merged)
+
+    return masked, n_out, left_out, left_mask, right_out, right_mask
 
 
 def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):
