@@ -1972,9 +1972,11 @@ class JointFitter(Fitter):
             params = model.parameters.tolist()
             joint_params = self.jointparams[model]
             param_metrics = model._param_metrics
+            joints_to_remove = []
             for param_name in joint_params:
                 slice_ = param_metrics[param_name]["slice"]
-                del params[slice_]
+                joints_to_remove.append(slice_.start)
+            params = np.delete(params, joints_to_remove)
             fparams.extend(params)
         return fparams
 
