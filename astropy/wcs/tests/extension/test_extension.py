@@ -133,7 +133,7 @@ def test_error_message(wcsapi_test):
 
 
 def test_roundtrip(wcsapi_test):
-    # Slots 1, 2, 20, 21: wcsprm_python2c, wcsprm_c2python, wcsp2s and wcss2p.
+    # Slots 20, 21: wcsp2s and wcss2p.
     w = _make_wcs()
     x, y = 200.0, 150.0
     rx, ry = wcsapi_test.roundtrip(w.wcs, x, y)
@@ -181,3 +181,18 @@ def test_get_include_missing_headers(monkeypatch):
     monkeypatch.setattr("os.path.exists", lambda path: False)
     with pytest.raises(NoWcslibHeadersError, match="system installation of WCSLIB"):
         get_include()
+
+
+def test_deprecated_conversion_slots_warn(wcsapi_test):
+    # Slots 1 and 2: wcsprm_python2c and wcsprm_c2python are deprecated no-ops
+    # now that the wcsprm struct is stored canonically in WCSLIB form, but
+    # calling wcsp2s bracketed by them (as drizzlepac does) still works.
+    w = _make_wcs()
+    with pytest.warns(DeprecationWarning) as record:
+        wx, wy = wcsapi_test.call_conversions(w.wcs, 200.0, 150.0)
+    messages = [str(r.message) for r in record]
+    assert any("wcsprm_python2c" in m for m in messages)
+    assert any("wcsprm_c2python" in m for m in messages)
+    ((ex, ey),) = w.wcs.p2s([[200.0, 150.0]], 1)["world"]
+    assert wx == pytest.approx(ex, abs=1e-9)
+    assert wy == pytest.approx(ey, abs=1e-9)

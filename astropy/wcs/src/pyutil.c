@@ -158,7 +158,8 @@ is_null(
 
    These two functions are retained as no-ops only because they are part of
    astropy's exported WCS C API (see astropy_wcs_api.c).  They no longer
-   mutate the struct.
+   mutate the struct, and the exported table slots are deprecated and emit a
+   DeprecationWarning when called.
 */
 
 void
