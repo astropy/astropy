@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.1-qtable-int-columns`
 * :ref:`whatsnew-8.1-reading-int-columns`
 * :ref:`whatsnew-8.1-pyodide-wheels`
+* :ref:`whatsnew-8.1-wcs-init`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -145,6 +146,36 @@ Astropy now builds and publishes WebAssembly wheels (``pyemscripten_*_wasm32``, 
 installed with ``pip`` (for example via ``micropip``) under `Pyodide
 <https://pyodide.org>`_ and PyScript, rather than relying on the copy vendored in the
 Pyodide distribution.
+.. _whatsnew-8.1-wcs-init:
+
+New method to initialize a WCS without a FITS file
+==================================================
+
+A new method :func:`~astropy.wcs.WCS.skycoord_to_celestial_wcs` now allows to instantiate a
+WCS instance with a center coordinate and a field of view:
+
+>>> import numpy as np
+>>> import astropy.units as u
+>>> from astropy.coordinates import Angle, SkyCoord
+>>> from astropy.wcs.utils import skycoord_to_celestial_wcs
+>>> # Initialize a celestial WCS instance without a FITS file
+>>> center = SkyCoord(266.4, -29, unit="deg")
+>>> fov = Angle([0.4, 0.2], unit="deg")
+>>> wcs = skycoord_to_celestial_wcs(center, fov=fov, pixel_scale=[-0.005, 0.005] * u.deg)
+
+Alternatively, for finer grain control, one can also instantiate with an image shape
+rather than with the desired field of view:
+
+>>> import numpy as np
+>>> import astropy.units as u
+>>> from astropy.coordinates import Angle, SkyCoord
+>>> from astropy.wcs.utils import skycoord_to_celestial_wcs
+>>> # Initialize a celestial WCS instance without a FITS file
+>>> center = SkyCoord(266.4, -29, unit="deg")
+>>> image_shape = [80, 40]
+>>> wcs = skycoord_to_celestial_wcs(center, shape=image_shape,
+...                                 pixel_scale=[-0.005, 0.005] * u.deg)
+
 
 Contributors to the 8.1 release
 ===============================
