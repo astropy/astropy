@@ -109,7 +109,6 @@ copy_array_to_c_int(
 int
 is_null(/*@null@*/ void *);
 
-typedef void (*value_fixer_t)(double*, unsigned int);
 
 /* DEPRECATED (GH-16409): the wcsprm struct is now stored canonically in
  * WCSLIB's native UNDEFINED form, with NaN<->UNDEFINED translation done at the

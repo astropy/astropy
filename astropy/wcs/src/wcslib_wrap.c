@@ -355,7 +355,7 @@ int _update_wtbarr_from_hdulist(PyObject *hdulist, struct wtbarr *wtb) {
  */
 
 int
-Wcsprm_cset(Wcsprm* self, const int convert);
+Wcsprm_cset(Wcsprm* self);
 
 static INLINE void
 note_change(Wcsprm* self) {
@@ -474,7 +474,7 @@ Wcsprm_init(
 
     self->x.alt[0] = key[0];
 
-    if (Wcsprm_cset(self, 0)) {
+    if (Wcsprm_cset(self)) {
       return -1;
     }
 
@@ -736,7 +736,7 @@ Wcsprm_copy(
 
 
   if (status == 0) {
-    if (Wcsprm_cset(copy, 0)) {
+    if (Wcsprm_cset(copy)) {
       Py_XDECREF((PyObject*)copy);
       return NULL;
     }
@@ -1269,7 +1269,7 @@ Wcsprm_get_cdelt_func(
     return NULL;
   }
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -1296,7 +1296,7 @@ Wcsprm_get_pc_func(
     return NULL;
   }
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -1361,7 +1361,7 @@ static PyObject*
 Wcsprm_is_unity(
     Wcsprm* self) {
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -1484,7 +1484,7 @@ Wcsprm_mix(
    * wcs->flag == WCSSET so that wcsmix below does not invoke wcsset
    * itself, allowing the wcsprm_python2c / wcsprm_c2python round-trip
    * to be dropped. */
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     goto exit;
   }
 
@@ -1624,7 +1624,7 @@ Wcsprm_p2s(
   // itself -- with wcsset moved out of the parallel region, wcsp2s is
   // read-only on the wcsprm struct, and the wcsprm_python2c /
   // wcsprm_c2python round-trip can be dropped.
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -1820,7 +1820,7 @@ Wcsprm_s2p(
   // itself, allowing the wcsprm_python2c / wcsprm_c2python round-trip to
   // be dropped.
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -1955,8 +1955,7 @@ Wcsprm_s2p(
 
 int
 Wcsprm_cset(
-    Wcsprm* self,
-    const int convert) {
+    Wcsprm* self) {
 
   int status = 0;
 
@@ -2008,7 +2007,7 @@ Wcsprm_cset(
 Wcsprm_set(
     Wcsprm* self) {
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -2064,7 +2063,7 @@ Wcsprm_print_contents(
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
 
-  if (Wcsprm_cset(self, 0)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -2142,7 +2141,7 @@ Wcsprm___str__(
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
 
-  if (Wcsprm_cset(self, 0)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -2369,7 +2368,7 @@ Wcsprm_sub(
     check_unit_changes(py_dest_wcs);
 
 }
-  if (Wcsprm_cset(py_dest_wcs, 0)) {
+  if (Wcsprm_cset(py_dest_wcs)) {
     status = -1;
     goto exit;
   }
@@ -2563,7 +2562,7 @@ Wcsprm_get_axis_types(
     return NULL;
   }
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -3376,7 +3375,7 @@ Wcsprm_get_imgpix_matrix(
     return NULL;
   }
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -3417,7 +3416,7 @@ Wcsprm_get_lat(
     Wcsprm* self,
     /*@unused@*/ void* closure) {
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -3457,7 +3456,7 @@ Wcsprm_get_lattyp(
     return NULL;
   }
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -3469,7 +3468,7 @@ Wcsprm_get_lng(
     Wcsprm* self,
     /*@unused@*/ void* closure) {
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -3485,7 +3484,7 @@ Wcsprm_get_lngtyp(
     return NULL;
   }
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 
@@ -4163,7 +4162,7 @@ Wcsprm_get_piximg_matrix(
     return NULL;
   }
 
-  if (Wcsprm_cset(self, 1)) {
+  if (Wcsprm_cset(self)) {
     return NULL;
   }
 

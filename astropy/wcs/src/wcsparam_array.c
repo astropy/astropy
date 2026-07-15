@@ -20,6 +20,7 @@
 #include "astropy_wcs/wcslib_wrap.h"  /* for the Wcsprm struct (write-back) */
 
 #include <stdlib.h>  /* malloc, free */
+#include <string.h>  /* memcpy */
 
 /* Write-back context for an auxiliary WCSParameterArray.  It is carried on the
  * array's base object as a PyCapsule rather than a custom C type, because a
@@ -87,10 +88,9 @@ WCSParameterArray_ass_subscript(PyObject* self, PyObject* key, PyObject* value) 
   /* Then sync the whole (small) buffer back into the wcsprm field,
    * translating NaN -> UNDEFINED. */
   if (wb != NULL) {
-    const double* src = (const double*)PyArray_DATA((PyArrayObject*)self);
-    for (npy_intp i = 0; i < wb->nelem; ++i) {
-      wb->dest[i] = npy_isnan(src[i]) ? UNDEFINED : src[i];
-    }
+    memcpy(wb->dest, PyArray_DATA((PyArrayObject*)self),
+           (size_t)wb->nelem * sizeof(double));
+    nan2undefined(wb->dest, (unsigned int)wb->nelem);
     /* Equivalent to note_change(): force a wcsset on next use. */
     ((Wcsprm*)wb->parent)->x.flag = 0;
   }
@@ -134,42 +134,28 @@ _setup_wcsparameter_array_type(PyObject* m) {
   return PyModule_AddObjectRef(m, "WCSParameterArray", WCSParameterArray_Type);
 }
 
-static PyObject*
-new_double_array(PyTypeObject* subtype, int ndims, const npy_intp* dims,
-                 double* value, npy_intp* nelem_out) {
+/*@null@*/ PyObject*
+WCSParameterArray_New(PyObject* owner, int ndims,
+                      const npy_intp* dims, double* value) {
   npy_intp nelem = 1;
   for (int i = 0; i < ndims; ++i) {
     nelem *= dims[i];
   }
+
   /* data == NULL here, so the flags argument is interpreted by NumPy as a
    * boolean Fortran-order flag -- pass 0 for C order (NOT
    * NPY_ARRAY_C_CONTIGUOUS, whose nonzero value would request Fortran order
    * and transpose 2-D fields like pc/cd). */
   PyObject* arr = PyArray_NewFromDescr(
-      subtype, PyArray_DescrFromType(NPY_DOUBLE), ndims, (npy_intp*)dims,
-      NULL, NULL, 0, NULL);
+      (PyTypeObject*)WCSParameterArray_Type, PyArray_DescrFromType(NPY_DOUBLE),
+      ndims, (npy_intp*)dims, NULL, NULL, 0, NULL);
   if (arr == NULL) {
     return NULL;
   }
-  double* d = (double*)PyArray_DATA((PyArrayObject*)arr);
-  for (npy_intp i = 0; i < nelem; ++i) {
-    d[i] = undefined(value[i]) ? (double)NPY_NAN : value[i];
-  }
-  if (nelem_out) {
-    *nelem_out = nelem;
-  }
-  return arr;
-}
 
-/*@null@*/ PyObject*
-WCSParameterArray_New(PyObject* owner, int ndims,
-                      const npy_intp* dims, double* value) {
-  npy_intp nelem = 0;
-  PyObject* arr = new_double_array((PyTypeObject*)WCSParameterArray_Type, ndims,
-                                   dims, value, &nelem);
-  if (arr == NULL) {
-    return NULL;
-  }
+  /* Expose a copy with UNDEFINED translated to NaN. */
+  memcpy(PyArray_DATA((PyArrayObject*)arr), value, (size_t)nelem * sizeof(double));
+  undefined2nan((double*)PyArray_DATA((PyArrayObject*)arr), (unsigned int)nelem);
 
   WCSParamWriteback* wb = (WCSParamWriteback*)malloc(sizeof(WCSParamWriteback));
   if (wb == NULL) {

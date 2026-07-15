@@ -257,7 +257,7 @@ Wcs_all_pix2world(
   // under the GIL here (short-circuited by wcsenq on subsequent calls) we
   // can safely drop the wcsprm_python2c / wcsprm_c2python round-trip from
   // around pipeline_all_pixel2world.
-  if (Wcsprm_cset(((Wcsprm*)(self->py_wcsprm)), 1)) {
+  if (Wcsprm_cset(((Wcsprm*)(self->py_wcsprm)))) {
     return NULL;
   }
 
