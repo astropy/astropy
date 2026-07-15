@@ -23,7 +23,6 @@ typedef struct {
   /*@null@*/ /*@shared@*/ PyObject* pyobject;
   Py_ssize_t size;
   char (*array)[ARRAYSIZE];
-  PyObject* unit_class;
   int readonly;
 } UnitListProxy;
 
@@ -51,7 +50,6 @@ UnitListProxy_new(
   self = (UnitListProxy*)alloc_func(type, 0);
   if (self != NULL) {
     self->pyobject = NULL;
-    self->unit_class = NULL;
   }
   return (PyObject*)self;
 }
@@ -63,7 +61,6 @@ UnitListProxy_traverse(
     void *arg) {
 
   Py_VISIT(self->pyobject);
-  Py_VISIT(self->unit_class);
   Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
   return 0;
 }
@@ -73,7 +70,6 @@ UnitListProxy_clear(
     UnitListProxy *self) {
 
   Py_CLEAR(self->pyobject);
-  Py_CLEAR(self->unit_class);
 
   return 0;
 }
@@ -86,27 +82,6 @@ UnitListProxy_New(
     int readonly) {
 
   UnitListProxy* self = NULL;
-  PyObject *units_module;
-  PyObject *units_dict;
-  PyObject *unit_class;
-
-  units_module = PyImport_ImportModule("astropy.units");
-  if (units_module == NULL) {
-    return NULL;
-  }
-
-  units_dict = PyModule_GetDict(units_module);
-  if (units_dict == NULL) {
-    return NULL;
-  }
-
-  unit_class = PyDict_GetItemString(units_dict, "Unit");
-  if (unit_class == NULL) {
-    PyErr_SetString(PyExc_RuntimeError, "Could not import Unit class");
-    return NULL;
-  }
-
-  Py_INCREF(unit_class);
 
   PyTypeObject* type = (PyTypeObject*)UnitListProxyType;
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
@@ -119,7 +94,6 @@ UnitListProxy_New(
   self->pyobject = owner;
   self->size = size;
   self->array = array;
-  self->unit_class = unit_class;
   self->readonly = readonly;
   return (PyObject*)self;
 }
@@ -131,42 +105,12 @@ UnitListProxy_len(
   return self->size;
 }
 
-static PyObject*
-_get_unit(
-    PyObject *unit_class,
-    PyObject *unit) {
-
-  PyObject *args;
-  PyObject *kw;
-  PyObject *result;
-
-  kw = Py_BuildValue("{s:s,s:s}", "format", "fits", "parse_strict", "warn");
-  if (kw == NULL) {
-      return NULL;
-  }
-
-  args = PyTuple_New(1);
-  if (args == NULL) {
-      Py_DECREF(kw);
-      return NULL;
-  }
-  PyTuple_SetItem(args, 0, unit);
-  Py_INCREF(unit);
-
-  result = PyObject_Call(unit_class, args, kw);
-
-  Py_DECREF(args);
-  Py_DECREF(kw);
-  return result;
-}
-
 /*@null@*/ static PyObject*
 UnitListProxy_getitem(
     UnitListProxy* self,
     Py_ssize_t index) {
 
   PyObject *value;
-  PyObject *result;
 
   if (index >= self->size || index < 0) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
@@ -175,10 +119,7 @@ UnitListProxy_getitem(
 
   value = PyUnicode_FromString(self->array[index]);
 
-  result = _get_unit(self->unit_class, value);
-
-  Py_DECREF(value);
-  return result;
+  return value;
 }
 
 static PyObject*
@@ -198,9 +139,6 @@ UnitListProxy_richcmp(
     Py_RETURN_NOTIMPLEMENTED;
   }
 
-  /* The actual comparison of the two objects. unit_class is ignored because
-   * it's not an essential property of the instances.
-   */
   lhs = (UnitListProxy *)a;
   rhs = (UnitListProxy *)b;
   if (lhs->size != rhs->size) {
@@ -230,7 +168,6 @@ UnitListProxy_setitem(
     return -1;
   }
 
-  PyObject* value;
   PyObject* unicode_value;
   PyObject* bytes_value;
 
@@ -239,17 +176,15 @@ UnitListProxy_setitem(
     return -1;
   }
 
-  value = _get_unit(self->unit_class, arg);
-  if (value == NULL) {
+  if (!PyObject_HasAttrString(arg, "to_string")) {
+    PyErr_SetString(PyExc_TypeError, "Object must be a unit-like object providing a 'to_string' method.");
     return -1;
   }
 
-  unicode_value = PyObject_CallMethod(value, "to_string", "s", "fits");
+  unicode_value = PyObject_CallMethod(arg, "to_string", "s", "fits");
   if (unicode_value == NULL) {
-    Py_DECREF(value);
     return -1;
   }
-  Py_DECREF(value);
 
   if (PyUnicode_Check(unicode_value)) {
     bytes_value = PyUnicode_AsASCIIString(unicode_value);
