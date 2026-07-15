@@ -114,7 +114,8 @@ is_null(/*@null@*/ void *);
  * WCSLIB's native UNDEFINED form, with NaN<->UNDEFINED translation done at the
  * Python attribute boundary, so no in-place conversion is ever needed.  These
  * two functions are now no-ops, retained only for C-API (AstropyWcs_API slots
- * 1 and 2) backwards compatibility; do not call them in new code. */
+ * 1 and 2) backwards compatibility; the exported slots emit a
+ * DeprecationWarning when called.  Do not call them in new code. */
 void
 wcsprm_c2python(
     /*@null@*/ struct wcsprm* x);
