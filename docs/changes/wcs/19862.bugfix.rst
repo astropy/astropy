@@ -1,0 +1,16 @@
+Improved the thread safety of ``astropy.wcs`` by storing the underlying WCSLIB
+parameter struct in WCSLIB's native representation instead of converting it in
+place to and from a NaN-based representation around every WCSLIB call. The
+in-place mutation of the shared struct during coordinate transforms and
+attribute access could produce incorrect results when a single ``WCS`` object
+was used concurrently from multiple threads. Setting a core linear parameter
+(``crpix``, ``crval``, ``cdelt``, ``pc`` or ``cd``) to NaN now also propagates
+as NaN through the transforms, rather than being turned into a sentinel that
+yielded an incorrect finite result. The ``wcsprm_python2c`` and
+``wcsprm_c2python`` functions in the public C API, which used to perform these
+conversions, are now deprecated no-ops and emit a ``DeprecationWarning`` when
+called through the function-pointer table. Note that, as before, an array
+previously returned by one of the auxiliary parameters (``obsgeo``, ``crder``,
+``csyer``, ``cperi``, ``czphs`` or ``mjdref``) is a snapshot: it is not updated
+if that parameter is subsequently changed through the ``WCS`` object, and is
+left dangling if the ``WCS`` is re-initialised in place.
