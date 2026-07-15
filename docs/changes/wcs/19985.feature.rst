@@ -1,0 +1,2 @@
+Added ``skycoord_to_celestial_wcs`` method to ``WCS`` to instantiate a sky WCS from a center
+position and a field of view or image shape.
