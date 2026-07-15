@@ -10,6 +10,7 @@ import textwrap
 import unicodedata
 import warnings
 from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
+from contextlib import ContextDecorator
 from functools import cached_property
 from threading import RLock
 from types import TracebackType
@@ -1442,7 +1443,7 @@ class _UnitRegistry:
                 self._aliases[alias] = unit
 
 
-class _UnitContext:
+class _UnitContext(ContextDecorator):
     def __init__(self, init=[], equivalencies=[]):
         _unit_registries.append(_UnitRegistry(init=init, equivalencies=equivalencies))
 
