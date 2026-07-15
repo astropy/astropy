@@ -81,7 +81,8 @@ class DistanceMeasures(HubbleParameter):
 
         See Also
         --------
-        z_at_value : Find the redshift corresponding to a lookback time.
+        astropy.cosmology.z_at_value
+            Find the redshift corresponding to a lookback time.
         """
         # NOTE: for performance, this method is overwritten in the FLRW subclass.
         return self.hubble_time * quad(self.lookback_time_integrand, 0, z)[0]
@@ -133,7 +134,8 @@ class DistanceMeasures(HubbleParameter):
 
         See Also
         --------
-        z_at_value : Find the redshift corresponding to an age.
+        astropy.cosmology.z_at_value
+            Find the redshift corresponding to an age.
         """
         # NOTE: for performance, this method is overwritten in the FLRW subclass.
         return self.hubble_time * quad(self.lookback_time_integrand, z, np.inf)[0]
@@ -335,7 +337,8 @@ class DistanceMeasures(HubbleParameter):
 
         See Also
         --------
-        z_at_value : Find the redshift corresponding to a luminosity distance.
+        astropy.cosmology.z_at_value
+            Find the redshift corresponding to a luminosity distance.
 
         References
         ----------
@@ -423,7 +426,8 @@ class DistanceMeasures(HubbleParameter):
 
         See Also
         --------
-        z_at_value : Find the redshift corresponding to a distance modulus.
+        astropy.cosmology.z_at_value
+            Find the redshift corresponding to a distance modulus.
         """
         # Remember that the luminosity distance is in Mpc
         # Abs is necessary because in certain obscure closed cosmologies
