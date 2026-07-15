@@ -2833,7 +2833,7 @@ Wcsprm_get_crder(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return get_double_array("crder", self->x.crder, 1, &naxis, (PyObject*)self);
+  return get_double_array_undefined("crder", self->x.crder, 1, &naxis, (PyObject*)self);
 }
 
 static int
@@ -2850,7 +2850,7 @@ Wcsprm_set_crder(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return set_double_array("crder", value, 1, &naxis, self->x.crder);
+  return set_double_array_undefined("crder", value, 1, &naxis, self->x.crder);
 }
 
 /*@null@*/ static PyObject*
@@ -3006,7 +3006,7 @@ Wcsprm_get_csyer(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return get_double_array("csyer", self->x.csyer, 1, &naxis, (PyObject*)self);
+  return get_double_array_undefined("csyer", self->x.csyer, 1, &naxis, (PyObject*)self);
 }
 
 static int
@@ -3023,7 +3023,7 @@ Wcsprm_set_csyer(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return set_double_array("csyer", value, 1, &naxis, self->x.csyer);
+  return set_double_array_undefined("csyer", value, 1, &naxis, self->x.csyer);
 }
 
 /*@null@*/ static PyObject*
@@ -3162,7 +3162,7 @@ Wcsprm_get_czphs(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return get_double_array("czphs", self->x.czphs, 1, &naxis, (PyObject*)self);
+  return get_double_array_undefined("czphs", self->x.czphs, 1, &naxis, (PyObject*)self);
 }
 
 static int
@@ -3179,7 +3179,7 @@ Wcsprm_set_czphs(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return set_double_array("czphs", value, 1, &naxis, self->x.czphs);
+  return set_double_array_undefined("czphs", value, 1, &naxis, self->x.czphs);
 }
 
 /*@null@*/ static PyObject*
@@ -3195,7 +3195,7 @@ Wcsprm_get_cperi(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return get_double_array("cperi", self->x.cperi, 1, &naxis, (PyObject*)self);
+  return get_double_array_undefined("cperi", self->x.cperi, 1, &naxis, (PyObject*)self);
 }
 
 static int
@@ -3212,7 +3212,7 @@ Wcsprm_set_cperi(
 
   naxis = (Py_ssize_t)self->x.naxis;
 
-  return set_double_array("cperi", value, 1, &naxis, self->x.cperi);
+  return set_double_array_undefined("cperi", value, 1, &naxis, self->x.cperi);
 }
 
 /*@null@*/ static PyObject*
@@ -3613,7 +3613,7 @@ Wcsprm_get_mjdref(
 
   npy_intp size = 2;
 
-  return get_double_array("mjdref", self->x.mjdref, 1, &size, (PyObject*)self);
+  return get_double_array_undefined("mjdref", self->x.mjdref, 1, &size, (PyObject*)self);
 }
 
 static int
@@ -3629,7 +3629,7 @@ Wcsprm_set_mjdref(
     self->x.mjdref[1] = NPY_NAN;
     return 0;
   }
-  return set_double_array("mjdref", value, 1, &size, self->x.mjdref);
+  return set_double_array_undefined("mjdref", value, 1, &size, self->x.mjdref);
 }
 
 
@@ -4025,7 +4025,7 @@ Wcsprm_get_obsgeo(
     return NULL;
   }
 
-  return get_double_array("obsgeo", self->x.obsgeo, 1, &size, (PyObject*)self);
+  return get_double_array_undefined("obsgeo", self->x.obsgeo, 1, &size, (PyObject*)self);
 }
 
 static int
@@ -4050,7 +4050,7 @@ Wcsprm_set_obsgeo(
     return 0;
   }
 
-  return set_double_array("obsgeo", value, 1, &size, self->x.obsgeo);
+  return set_double_array_undefined("obsgeo", value, 1, &size, self->x.obsgeo);
 }
 
 /*@null@*/ static PyObject*
