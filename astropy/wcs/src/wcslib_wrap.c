@@ -2586,7 +2586,7 @@ Wcsprm_set_bepoch(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.bepoch = (double)NPY_NAN;
+    self->x.bepoch = UNDEFINED;
     return 0;
   }
 
@@ -3357,7 +3357,7 @@ Wcsprm_set_equinox(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) { /* deletion */
-    self->x.equinox = (double)NPY_NAN;
+    self->x.equinox = UNDEFINED;
     return 0;
   }
 
@@ -3403,7 +3403,7 @@ Wcsprm_set_jepoch(
   note_change(self);
 
   if (value == NULL) {
-    self->x.jepoch = (double)NPY_NAN;
+    self->x.jepoch = UNDEFINED;
     return 0;
   }
 
@@ -3508,7 +3508,7 @@ Wcsprm_set_lonpole(
   note_change(self);
 
   if (value == NULL) {
-    self->x.lonpole = (double)NPY_NAN;
+    self->x.lonpole = UNDEFINED;
     return 0;
   }
 
@@ -3530,7 +3530,7 @@ Wcsprm_set_mjdavg(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.mjdavg = (double)NPY_NAN;
+    self->x.mjdavg = UNDEFINED;
     return 0;
   }
 
@@ -3552,7 +3552,7 @@ Wcsprm_set_mjdbeg(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.mjdbeg = (double)NPY_NAN;
+    self->x.mjdbeg = UNDEFINED;
     return 0;
   }
 
@@ -3574,7 +3574,7 @@ Wcsprm_set_mjdend(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.mjdend = (double)NPY_NAN;
+    self->x.mjdend = UNDEFINED;
     return 0;
   }
 
@@ -3598,7 +3598,7 @@ Wcsprm_set_mjdobs(
   note_change(self);
 
   if (value == NULL) {
-    self->x.mjdobs = (double)NPY_NAN;
+    self->x.mjdobs = UNDEFINED;
     return 0;
   }
 
@@ -3624,8 +3624,8 @@ Wcsprm_set_mjdref(
   npy_intp size = 2;
 
   if (value == NULL) {
-    self->x.mjdref[0] = NPY_NAN;
-    self->x.mjdref[1] = NPY_NAN;
+    self->x.mjdref[0] = UNDEFINED;
+    self->x.mjdref[1] = UNDEFINED;
     return 0;
   }
   return set_double_array_undefined("mjdref", value, 1, &size, self->x.mjdref);
@@ -3772,7 +3772,7 @@ Wcsprm_set_tstart(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.tstart = (double)NPY_NAN;
+    self->x.tstart = UNDEFINED;
     return 0;
   }
 
@@ -3794,7 +3794,7 @@ Wcsprm_set_tstop(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.tstop = (double)NPY_NAN;
+    self->x.tstop = UNDEFINED;
     return 0;
   }
 
@@ -3816,7 +3816,7 @@ Wcsprm_set_telapse(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.telapse = (double)NPY_NAN;
+    self->x.telapse = UNDEFINED;
     return 0;
   }
 
@@ -3838,7 +3838,7 @@ Wcsprm_set_timeoffs(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.timeoffs = (double)NPY_NAN;
+    self->x.timeoffs = UNDEFINED;
     return 0;
   }
 
@@ -3860,7 +3860,7 @@ Wcsprm_set_timsyer(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.timsyer = (double)NPY_NAN;
+    self->x.timsyer = UNDEFINED;
     return 0;
   }
 
@@ -3882,7 +3882,7 @@ Wcsprm_set_timrder(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.timrder = (double)NPY_NAN;
+    self->x.timrder = UNDEFINED;
     return 0;
   }
 
@@ -3904,7 +3904,7 @@ Wcsprm_set_timedel(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.timedel = (double)NPY_NAN;
+    self->x.timedel = UNDEFINED;
     return 0;
   }
 
@@ -3926,7 +3926,7 @@ Wcsprm_set_timepixr(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.timepixr = (double)NPY_NAN;
+    self->x.timepixr = UNDEFINED;
     return 0;
   }
 
@@ -3973,7 +3973,7 @@ Wcsprm_set_xposure(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) {
-    self->x.xposure = (double)NPY_NAN;
+    self->x.xposure = UNDEFINED;
     return 0;
   }
 
@@ -4040,12 +4040,12 @@ Wcsprm_set_obsgeo(
   }
 
   if (value == NULL) {
-    self->x.obsgeo[0] = NPY_NAN;
-    self->x.obsgeo[1] = NPY_NAN;
-    self->x.obsgeo[2] = NPY_NAN;
-    self->x.obsgeo[3] = NPY_NAN;
-    self->x.obsgeo[4] = NPY_NAN;
-    self->x.obsgeo[5] = NPY_NAN;
+    self->x.obsgeo[0] = UNDEFINED;
+    self->x.obsgeo[1] = UNDEFINED;
+    self->x.obsgeo[2] = UNDEFINED;
+    self->x.obsgeo[3] = UNDEFINED;
+    self->x.obsgeo[4] = UNDEFINED;
+    self->x.obsgeo[5] = UNDEFINED;
     return 0;
   }
 
@@ -4144,7 +4144,7 @@ Wcsprm_set_phi0(
   note_change(self);
 
   if (value == NULL) {
-    self->x.cel.phi0 = (double)NPY_NAN;
+    self->x.cel.phi0 = UNDEFINED;
     return 0;
   }
 
@@ -4213,7 +4213,7 @@ Wcsprm_set_restfrq(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) { /* deletion */
-    self->x.restfrq = (double)NPY_NAN;
+    self->x.restfrq = UNDEFINED;
     return 0;
   }
 
@@ -4237,7 +4237,7 @@ Wcsprm_set_restwav(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) { /* deletion */
-    self->x.restwav = (double)NPY_NAN;
+    self->x.restwav = UNDEFINED;
     return 0;
   }
 
@@ -4380,7 +4380,7 @@ Wcsprm_set_theta0(
   note_change(self);
 
   if (value == NULL) {
-    self->x.cel.theta0 = (double)NPY_NAN;
+    self->x.cel.theta0 = UNDEFINED;
     return 0;
   }
 
@@ -4402,7 +4402,7 @@ Wcsprm_set_velangl(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) { /* deletion */
-    self->x.velangl = (double)NPY_NAN;
+    self->x.velangl = UNDEFINED;
     return 0;
   }
 
@@ -4424,7 +4424,7 @@ Wcsprm_set_velosys(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) { /* deletion */
-    self->x.velosys = (double)NPY_NAN;
+    self->x.velosys = UNDEFINED;
     return 0;
   }
 
@@ -4493,7 +4493,7 @@ Wcsprm_set_zsource(
     /*@unused@*/ void* closure) {
 
   if (value == NULL) { /* deletion */
-    self->x.zsource = (double)NPY_NAN;
+    self->x.zsource = UNDEFINED;
     return 0;
   }
 
