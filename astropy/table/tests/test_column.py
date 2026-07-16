@@ -279,6 +279,54 @@ class TestColumn:
         q = [10, 100, 1000] * u.AA
         np.testing.assert_allclose(d.to(u.AA), q)
 
+    def test_inplace_arithmetic_with_quantity(self, Column):
+        """
+        Regression test for gh-20075: in-place arithmetic with a Quantity
+        should work for Column instances that carry a unit.
+        """
+        ra = Column([0.0, 1.0, 2.0], name="ra", unit=u.deg)
+        dra = np.array([0.0, 1.0, 2.0]) * u.deg
+        ra_id = id(ra)
+        ra += dra
+        assert id(ra) == ra_id
+        assert isinstance(ra, Column)
+        assert ra.unit == u.deg
+        assert_array_equal(ra, [0.0, 2.0, 4.0])
+
+        # Unit conversion of the Quantity operand must be applied.
+        ra = Column([0.0, 1.0, 2.0], name="ra", unit=u.deg)
+        ra += np.array([0.0, 3600.0, 0.0]) * u.arcsec
+        assert ra.unit == u.deg
+        np.testing.assert_allclose(ra, [0.0, 2.0, 2.0])
+
+        # Operations that change the physical dimension update Column.unit,
+        # matching Quantity's in-place behaviour.
+        # MaskedColumn inherits numpy.ma in-place helpers that do not support
+        # changing units via Quantity operands, so only exercise this for Column.
+        if not issubclass(Column, table.MaskedColumn):
+            length = Column([1.0, 2.0], name="length", unit=u.m)
+            length *= 2.0 * u.s
+            assert length.unit == u.m * u.s
+            assert_array_equal(length, [2.0, 4.0])
+
+        # Explicit out= path used by ufuncs.
+        col = Column([0.0, 0.0], unit=u.deg)
+        result = np.add(
+            np.array([1.0, 2.0]) * u.deg, np.array([3.0, 4.0]) * u.deg, out=col
+        )
+        assert result is col
+        assert_array_equal(col, [4.0, 6.0])
+        assert col.unit == u.deg
+
+        # Non-inplace arithmetic still works and preserves units.
+        ra = Column([1.0, 2.0], unit=u.deg)
+        out = ra + (1.0 * u.deg)
+        assert out.unit == u.deg
+        assert_array_equal(np.asarray(out), [2.0, 3.0])
+        if not issubclass(Column, table.MaskedColumn):
+            # Plain Column + Quantity returns a Quantity.
+            assert isinstance(out, u.Quantity)
+
     def test_item_access_type(self, Column):
         """
         Tests for #3095, which forces integer item access to always return a plain

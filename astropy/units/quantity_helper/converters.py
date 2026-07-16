@@ -374,6 +374,26 @@ def check_output(output, unit, inputs, function=None):
         return output.view(np.ndarray)
 
     else:
+        # Not a Quantity subclass.  Still allow outputs that carry a unit
+        # attribute (most notably ``Column``), so dimensional results can be
+        # stored in-place.  The unit metadata is updated afterwards in
+        # ``Quantity._result_as_quantity`` when needed.
+        output_unit = getattr(output, "unit", None)
+        if output_unit is not None:
+            # Mirror the dtype safety check used for Quantity outputs.
+            if inputs and not getattr(output.dtype, "names", None):
+                result_type = np.result_type(*inputs)
+                if not (
+                    result_type.names
+                    or np.can_cast(result_type, output.dtype, casting="same_kind")
+                ):
+                    raise TypeError(
+                        "Arguments cannot be cast safely to inplace "
+                        f"output with dtype={output.dtype}"
+                    )
+            # Prefer a plain ndarray view so we do not re-enter array_ufunc.
+            return output.view(np.ndarray)
+
         # output is not a Quantity, so cannot obtain a unit.
         if not (unit is None or unit == dimensionless_unscaled):
             raise UnitTypeError(

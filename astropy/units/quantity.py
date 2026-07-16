@@ -750,6 +750,12 @@ class Quantity(np.ndarray):
             # for out to be ndarray and the unit to be dimensionless.)
             out._set_unit(unit)
 
+        elif unit is not None and getattr(out, "unit", None) is not None:
+            # Non-Quantity outputs that carry unit metadata (e.g. table
+            # Column).  Keep the unit in sync with the values that were just
+            # written, matching Quantity's inplace behaviour.
+            out.unit = unit
+
         return out
 
     def __quantity_subclass__(self, unit):
