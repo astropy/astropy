@@ -282,4 +282,15 @@ To enable only specific units, use :func:`~astropy.units.add_enabled_units`::
           Primary name | Unit definition | Aliases
     ...
 
+  Alternatively to enable Imperial or specific units for a whole function the
+  function may also be used as a decorator::
+    >>> @imperial.enable()
+    ... def print_equivalent_units(unit):
+    ...     print(unit.find_equivalent_units())
+    ...
+    >>> print_equivalent_units(u.m)
+          Primary name | Unit definition | Aliases
+    ...
+
+
 .. EXAMPLE END
