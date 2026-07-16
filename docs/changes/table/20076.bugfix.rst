@@ -1,0 +1,3 @@
+In-place arithmetic between a unit-bearing ``Column`` and a ``Quantity``
+(for example ``column += quantity``) now works instead of raising
+``UnitTypeError``.
