@@ -86,7 +86,7 @@ jobs:
           echo "Contender: ${GITHUB_SHA} (${BASE_LABEL})"
 
           # Run benchmarks for current commit against base
-          ASV_OPTIONS="--split --show-stderr --factor $ASV_FACTOR --conf asv.ci.conf.json"
+          ASV_OPTIONS="--split --show-stderr --factor $ASV_FACTOR --conf asv.ci.conf.json --verbose"
           python -m asv continuous $ASV_OPTIONS ${BASE_SHA} ${GITHUB_SHA}
 
       - name: "Check ccache performance"
