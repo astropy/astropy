@@ -12,7 +12,7 @@
    "matrix": {
          "numpy": ["2.5"],
          "scipy": ["1.18"],
-         "matplotlib": ["3.11"],
+         "matplotlib": ["3.11"]
    },
    "environment_type": "virtualenv",
    "benchmark_dir": "astropy-benchmarks/benchmarks"
