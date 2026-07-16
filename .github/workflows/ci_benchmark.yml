@@ -74,7 +74,7 @@ jobs:
           BASE_LABEL: ${{ github.event.pull_request.base.label }}
         run: |
           set -x
-          python -m pip install asv virtualenv packaging
+          python -m pip install "asv==0.6.5" virtualenv packaging
 
           git clone -b main https://github.com/astropy/astropy-benchmarks.git --single-branch
 
