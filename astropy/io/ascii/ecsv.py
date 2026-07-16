@@ -465,17 +465,26 @@ class EcsvData(basic.BasicData):
                         pass
                     return json.dumps(obj, separators=(",", ":"))
 
+                try:
+                    col.str_vals = [format_col_item(idx) for idx in range(len(col))]
+                except TypeError as exc:
+                    raise TypeError(
+                        f"could not convert column {col.info.name!r} to string: {exc}"
+                    ) from exc
+
             else:
-
-                def format_col_item(idx):
-                    return str(col[idx])
-
-            try:
-                col.str_vals = [format_col_item(idx) for idx in range(len(col))]
-            except TypeError as exc:
-                raise TypeError(
-                    f"could not convert column {col.info.name!r} to string: {exc}"
-                ) from exc
+                # Fast path for 1-d non-object columns: iterate over the plain
+                # ndarray rather than indexing the column, which avoids the
+                # significant per-item overhead of MaskedColumn
+                data = col.data
+                if isinstance(data, np.ma.MaskedArray):
+                    data = data.data
+                try:
+                    col.str_vals = [str(val) for val in data]
+                except TypeError as exc:
+                    raise TypeError(
+                        f"could not convert column {col.info.name!r} to string: {exc}"
+                    ) from exc
 
             # Replace every masked value in a 1-d column with an empty string.
             # For multi-dim columns this gets done by JSON via "null".
