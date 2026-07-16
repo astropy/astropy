@@ -196,7 +196,7 @@ class TestJointFitter:
             [self.g3, self.g4], 
             {self.g3: ["amplitude", "mean"], self.g4: ["amplitude", "mean"]}, 
             self.jf2_joint_param_guesses
-        ) # old way broke by getting fitparams as [ 9.8, 14. , 14.9, 13. ]
+        ) 
 
     def test_initial_parameter_values(self):
         """
