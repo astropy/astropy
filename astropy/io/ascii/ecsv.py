@@ -475,12 +475,19 @@ class EcsvData(basic.BasicData):
             else:
                 # Fast path for 1-d non-object columns: iterate over the plain
                 # ndarray rather than indexing the column, which avoids the
-                # significant per-item overhead of MaskedColumn
+                # significant per-item overhead of (Masked)Column.__getitem__.
                 data = col.data
                 if isinstance(data, np.ma.MaskedArray):
                     data = data.data
                 try:
-                    col.str_vals = [str(val) for val in data]
+                    if data.dtype.kind == "S":
+                        # Column.__getitem__ decodes bytes scalars to str; match
+                        # that here so bytes columns are not written as b'...'.
+                        col.str_vals = [
+                            val.decode("utf-8", errors="replace") for val in data
+                        ]
+                    else:
+                        col.str_vals = [str(val) for val in data]
                 except TypeError as exc:
                     raise TypeError(
                         f"could not convert column {col.info.name!r} to string: {exc}"
