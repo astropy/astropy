@@ -8,7 +8,12 @@
    ],
    "branches": ["main"],
    "show_commit_url": "https://github.com/astropy/astropy/commit/",
-   "pythons": ["3.13"],
+   "pythons": ["3.14"],
+   "matrix": {
+         "numpy": ["2.5"],
+         "scipy": ["1.18"],
+         "matplotlib": ["3.11"],
+   },
    "environment_type": "virtualenv",
    "benchmark_dir": "astropy-benchmarks/benchmarks"
  }
