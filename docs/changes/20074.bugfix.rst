@@ -1,0 +1,1 @@
+Bugfix for ``JointFitter`` gathering initial fitting values from wrong parameters in the models. The ``JointFitter`` will now correctly obtain initial values for those parameters not being jointly fitted.
