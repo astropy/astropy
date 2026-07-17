@@ -8,6 +8,7 @@ from packaging.version import Version
 
 from astropy import units as u
 from astropy.coordinates import (
+    ICRS,
     ITRS,
     Angle,
     BaseCoordinateFrame,
@@ -692,6 +693,34 @@ def test_skycoord_to_celestial_wcs_errors():
         skycoord_to_celestial_wcs(
             center, fov=fov, pixel_scale=pixel_scale, reference_pixel=scalar_ref_pixel
         )
+
+
+def test_crota_vs_pc_in_skycoord_to_celestial_wcs():
+    # see https://github.com/astropy/astropy/pull/19985#discussion_r3596900938
+    center = SkyCoord(0, 0, unit="deg")
+    shape = (100, 200)
+    pixel_scale = Angle([1, 0.5], unit="arcmin")
+    rotation = Angle(30, unit="deg")
+
+    wcs_pc = skycoord_to_celestial_wcs(
+        center, shape=shape, pixel_scale=pixel_scale, rotation=rotation
+    )
+
+    wcs_crota = celestial_frame_to_wcs(frame=ICRS(), projection="TAN")
+    wcs_crota.wcs.cdelt[0] = float(pixel_scale[0].to_value("deg"))
+    wcs_crota.wcs.cdelt[1] = float(pixel_scale[1].to_value("deg"))
+    wcs_crota.wcs.crval = [0, 0]
+    wcs_crota.array_shape = shape
+    wcs_crota.wcs.crpix = [50.5, 100.5]
+    wcs_crota.wcs.crota = 0, 30
+
+    x = np.arange(100)
+    y = np.arange(0, 200, 2)
+    pixel_pc = pixel_to_skycoord(x, y, wcs=wcs_pc)
+    pixel_crota = pixel_to_skycoord(x, y, wcs=wcs_crota)
+
+    assert_allclose(pixel_pc.data.lon.value, pixel_crota.data.lon.value)
+    assert_allclose(pixel_pc.data.lat.value, pixel_crota.data.lat.value)
 
 
 def test_body_to_wcs_frame():
