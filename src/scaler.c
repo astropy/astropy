@@ -4,11 +4,10 @@
 #include <Python.h>
 #include <numpy/ndarrayobject.h>
 #include <numpy/ufuncobject.h>
-#include <stddef.h> /* for offsetof() */
+#include <stddef.h> // for offsetof()
 
 typedef struct {
     PyObject_HEAD
-    /* Type-specific fields go here. */
     double factor;
     double factor_imag; // always set to 0, to have complex factor.
     float factor_f;
@@ -21,15 +20,18 @@ typedef struct {
 
 static PyUFuncGenericFunction loops[6] = {NULL};
 
+// Multiply a contiguous array directly with the factor, using np.multiply's
+// loop function.
 static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr)
 {
-    const char type_num = PyArray_TYPE(arr);
-    PyUFuncGenericFunction loop = loops[(int)(type_num - NPY_FLOAT)];
-    PyObject *res =
-        PyArray_EMPTY(PyArray_NDIM(arr), PyArray_DIMS(arr), type_num, PyArray_ISFORTRAN(arr));
-    char *data[3] = {PyArray_DATA(arr), factor_ptr, PyArray_DATA((PyArrayObject *)res)};
+    const int type_num = PyArray_TYPE(arr);
+    PyUFuncGenericFunction loop = loops[type_num - NPY_FLOAT];
+    PyArrayObject *res = (PyArrayObject *)PyArray_EMPTY(
+        PyArray_NDIM(arr), PyArray_DIMS(arr), type_num, PyArray_ISFORTRAN(arr)
+    );
     npy_intp n = PyArray_SIZE(arr);
     npy_intp strides[3] = {PyArray_ITEMSIZE(arr), 0, PyArray_ITEMSIZE(arr)};
+    char *data[3] = {PyArray_DATA(arr), factor_ptr, PyArray_DATA(res)};
     PyUFunc_clearfperr();
     loop(data, &n, strides, NULL);
     int fpe_errors = PyUFunc_getfperr();
@@ -39,9 +41,10 @@ static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr
             return NULL;
         }
     }
-    return res;
+    return (PyObject *)res;
 }
 
+// Get the factor as a PyFloat, caching it as needed.
 static inline PyObject *get_o_factor(ScalerObject *self)
 {
     if (self->O_factor == NULL) {
@@ -53,43 +56,48 @@ static inline PyObject *get_o_factor(ScalerObject *self)
     return self->O_factor;
 }
 
+// Scale the input with the factor, using shortcuts where possible.
 static PyObject *Scaler_vectorcall(
     ScalerObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
 )
 {
-    PyObject *const obj = args[0];
     if (PyVectorcall_NARGS(len_args) != 1) {
         PyErr_Format(
             PyExc_TypeError, "scaler() takes 1 argument, not %d", PyVectorcall_NARGS(len_args)
         );
         return NULL;
     }
+    PyObject *const obj = args[0];
     // fastest paths: special-case known objects.
     if (PyFloat_CheckExact(obj)) {
         return PyFloat_FromDouble(PyFloat_AS_DOUBLE(obj) * self->factor);
     }
-    else if (PyArray_CheckExact(obj)) {
+    if (PyArray_CheckExact(obj)) {
         PyArrayObject *const arr = (PyArrayObject *)obj;
-        char type_num = PyArray_TYPE(arr);
+        const int type_num = PyArray_TYPE(arr);
         npy_bool needs_float = type_num == NPY_FLOAT || type_num == NPY_CFLOAT;
+        npy_bool supported_fast_type =
+            (needs_float || type_num == NPY_DOUBLE || type_num == NPY_CDOUBLE);
         char *f_ptr = needs_float ? (char *)&self->factor_f : (char *)&self->factor;
         // Pass contiguous float or complex arrays directly to multiply loop,
         // bypassing ufunc setup.
-        if (PyArray_ISONESEGMENT(arr) && PyArray_ISNOTSWAPPED(arr) &&
-            (type_num == NPY_DOUBLE || type_num == NPY_CDOUBLE || needs_float)) {
+        if (supported_fast_type && PyArray_ISONESEGMENT(arr) && PyArray_ISNOTSWAPPED(arr)) {
             return use_contiguous_loop(arr, f_ptr);
         }
         // If not, convert factor to array here, since that makes ufunc
-        // call substantially faster.
+        // call substantially faster.  Use cached version if available.
         PyObject **A_factor = needs_float ? &self->A_factor_f : &self->A_factor;
         if (*A_factor == NULL) {
             const npy_intp dims[1] = {0};
             *A_factor =
                 PyArray_SimpleNewFromData(0, dims, needs_float ? NPY_FLOAT : NPY_DOUBLE, f_ptr);
+            if (*A_factor == NULL) {
+                return NULL;
+            }
         }
         return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, *A_factor);
     }
-    else if (PyLong_CheckExact(obj)) {
+    if (PyLong_CheckExact(obj)) {
         double d = PyLong_AsDouble(obj);
         if (d == -1.0 && PyErr_Occurred()) {
             return NULL;
@@ -121,7 +129,7 @@ static PyObject *Scaler_vectorcall(
         }
         return PyNumber_Multiply(obj, O_factor);
     }
-    // If not a known type, try converting to an array.
+    // If obj is not a known type, try converting it to an array.
     PyObject *arr = PyArray_FromAny(obj, NULL, 0, 0, 0, NULL);
     if (arr == NULL) {
         return NULL;
@@ -157,14 +165,15 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (self == NULL) {
         return NULL;
     }
-    self->factor = factor;
-    self->factor_imag = 0; // allows using &self->factor for complex.
-    self->factor_f = (float)factor;
-    self->factor_f_imag = 0;
-    self->O_factor = NULL; // following initialized only if needed in call.
-    self->A_factor = NULL;
-    self->A_factor_f = NULL;
     self->vectorcall = (vectorcallfunc)&Scaler_vectorcall;
+    self->factor = factor;
+    self->factor_f = (float)factor;
+    // No need to explicitly set to zero, since zeroed by tp_alloc.
+    // self->factor_imag = 0;  // allows using &self->factor for complex.
+    // self->factor_f_imag = 0;
+    // self->O_factor = NULL;  // initialized as needed in call.
+    // self->A_factor = NULL;
+    // self->A_factor_f = NULL;
     return (PyObject *)self;
 }
 
@@ -178,24 +187,30 @@ static void Scaler_dealloc(ScalerObject *self)
 
 static PyObject *Scaler_repr(ScalerObject *self)
 {
-    return PyUnicode_FromFormat("Scaler(%S)", PyFloat_FromDouble(self->factor));
+    PyObject *O_factor = get_o_factor(self);
+    if (O_factor == NULL) {
+        return NULL;
+    }
+    return PyUnicode_FromFormat("Scaler(%S)", O_factor);
 }
 
 static PyObject *Scaler_richcompare(PyObject *self, PyObject *other, int op)
 {
     if (op != Py_EQ && op != Py_NE) {
-        Py_INCREF(Py_NotImplemented);
-        return Py_NotImplemented;
+        Py_RETURN_NOTIMPLEMENTED;
     }
     npy_bool same =
         (Py_TYPE(other) == Py_TYPE(self) &&
          (((ScalerObject *)other)->factor == ((ScalerObject *)self)->factor));
-    PyObject *res = (op == Py_EQ) ^ same ? Py_False : Py_True;
-    Py_INCREF(res);
-    return res;
+    if ((op == Py_EQ) ^ same) {
+        Py_RETURN_FALSE;
+    }
+    else {
+        Py_RETURN_TRUE;
+    }
 }
 
-Py_hash_t Scaler_hash(PyObject *self)
+static Py_hash_t Scaler_hash(PyObject *self)
 {
     PyObject *O_factor = get_o_factor((ScalerObject *)self);
     if (O_factor == NULL) {
@@ -225,7 +240,7 @@ static PyMethodDef Scaler_methods[] = {
 
 static PyTypeObject ScalerType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "scaler.Scaler",
-    .tp_doc = PyDoc_STR("Multiplies input by the given scale factor."),
+    .tp_doc = PyDoc_STR("When called, multiplies input by the given scale factor."),
     .tp_basicsize = sizeof(ScalerObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL,
@@ -240,9 +255,11 @@ static PyTypeObject ScalerType = {
     .tp_hash = Scaler_hash,
 };
 
+// Get and cache multiplication loops for use with plain ndarray.
+// Only gets float, double, complex float and complex double,
+// not the long double ones.
 static int get_multiply_loops(PyUFuncGenericFunction loops[6])
 {
-    // Get and cache multiplication loops for use with plain ndarray.
     PyObject *mod = PyImport_ImportModule("numpy");
     if (mod == NULL) {
         return -1;
@@ -254,7 +271,7 @@ static int get_multiply_loops(PyUFuncGenericFunction loops[6])
     }
     // Unfortunately, new-style loops are not exposed, so get legacy ones.
     for (int k = 0; k < 5; k++) {
-        char type = (char)(k + (int)NPY_FLOAT);
+        char type = (char)(k + NPY_FLOAT);
         if (type == NPY_LONGDOUBLE) {
             continue;
         }
@@ -266,7 +283,7 @@ static int get_multiply_loops(PyUFuncGenericFunction loops[6])
             }
             types += 3;
         }
-        if (loops[k] == NULL) {
+        if (loops[k] == NULL) { // Should never happen.
             PyErr_SetString(PyExc_RuntimeError, "could not find loop");
             return -1;
         }
@@ -300,7 +317,7 @@ static PyModuleDef_Slot scaler_module_slots[] = {
 static PyModuleDef scaler_module = {
     .m_base = PyModuleDef_HEAD_INIT,
     .m_name = "scaler",
-    .m_doc = "Provides the inspectable Scaler class.",
+    .m_doc = "Compiled module providing the inspectable Scaler class.",
     .m_size = 0,
     .m_slots = scaler_module_slots,
 };
