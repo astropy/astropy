@@ -42,6 +42,17 @@ static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr
     return res;
 }
 
+static inline PyObject *get_o_factor(ScalerObject *self)
+{
+    if (self->O_factor == NULL) {
+        self->O_factor = PyFloat_FromDouble(self->factor);
+        if (self->O_factor == NULL) {
+            return NULL;
+        }
+    }
+    return self->O_factor;
+}
+
 static PyObject *Scaler_vectorcall(
     ScalerObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
 )
@@ -85,13 +96,10 @@ static PyObject *Scaler_vectorcall(
         }
         return PyFloat_FromDouble(d * self->factor);
     }
-    // For cases without special treatment, we need the float object;
-    // construct it if not done already.
-    if (self->O_factor == NULL) {
-        self->O_factor = PyFloat_FromDouble(self->factor);
-        if (self->O_factor == NULL) {
-            return NULL;
-        }
+    // For cases without special treatment, we need the float object.
+    PyObject *O_factor = get_o_factor(self);
+    if (O_factor == NULL) {
+        return NULL;
     }
     // If a known type of object, like a subclass, or something that has
     // a dtype or supports the Array API, just run multiply.
@@ -102,7 +110,7 @@ static PyObject *Scaler_vectorcall(
         if (Py_TYPE(obj)->tp_as_number != NULL) {
             binaryfunc slotv = Py_TYPE(obj)->tp_as_number->nb_multiply;
             if (slotv != NULL) {
-                PyObject *res = slotv(obj, self->O_factor);
+                PyObject *res = slotv(obj, O_factor);
                 if (res != Py_NotImplemented) {
                     return res;
                 }
@@ -111,7 +119,7 @@ static PyObject *Scaler_vectorcall(
                 Py_DECREF(res);
             }
         }
-        return PyNumber_Multiply(obj, self->O_factor);
+        return PyNumber_Multiply(obj, O_factor);
     }
     // If not a known type, try converting to an array.
     PyObject *arr = PyArray_FromAny(obj, NULL, 0, 0, 0, NULL);
@@ -173,6 +181,34 @@ static PyObject *Scaler_repr(ScalerObject *self)
     return PyUnicode_FromFormat("Scaler(%S)", PyFloat_FromDouble(self->factor));
 }
 
+static PyObject *Scaler_richcompare(PyObject *self, PyObject *other, int op)
+{
+    if (op != Py_EQ && op != Py_NE) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+    npy_bool same =
+        (Py_TYPE(other) == Py_TYPE(self) &&
+         (((ScalerObject *)other)->factor == ((ScalerObject *)self)->factor));
+    PyObject *res = (op == Py_EQ) ^ same ? Py_False : Py_True;
+    Py_INCREF(res);
+    return res;
+}
+
+Py_hash_t Scaler_hash(PyObject *self)
+{
+    PyObject *O_factor = get_o_factor((ScalerObject *)self);
+    if (O_factor == NULL) {
+        return -1;
+    }
+    return (PyObject_Hash((PyObject *)Py_TYPE(self)) ^ PyObject_Hash(O_factor));
+}
+
+static PyObject *Scaler___reduce__(ScalerObject *self)
+{
+    return Py_BuildValue("(O(d))", Py_TYPE(self), self->factor);
+}
+
 static PyMemberDef Scaler_members[] = {
     {"factor",
      Py_T_DOUBLE,
@@ -182,8 +218,13 @@ static PyMemberDef Scaler_members[] = {
     {NULL},
 };
 
+static PyMethodDef Scaler_methods[] = {
+    {"__reduce__", (PyCFunction)Scaler___reduce__, METH_NOARGS, NULL},
+    {NULL, NULL, 0, NULL},
+};
+
 static PyTypeObject ScalerType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "Scaler",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "scaler.Scaler",
     .tp_doc = PyDoc_STR("Multiplies input by the given scale factor."),
     .tp_basicsize = sizeof(ScalerObject),
     .tp_itemsize = 0,
@@ -194,6 +235,9 @@ static PyTypeObject ScalerType = {
     .tp_vectorcall_offset = offsetof(ScalerObject, vectorcall),
     .tp_call = &PyVectorcall_Call,
     .tp_members = Scaler_members,
+    .tp_methods = Scaler_methods,
+    .tp_richcompare = Scaler_richcompare,
+    .tp_hash = Scaler_hash,
 };
 
 static int get_multiply_loops(PyUFuncGenericFunction loops[6])

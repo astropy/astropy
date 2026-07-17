@@ -1,3 +1,6 @@
+import operator
+import pickle
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -78,3 +81,37 @@ def test_with_wrong_items(item):
 def test_repr():
     sc = Scaler(10.0)
     assert repr(sc) == "Scaler(10.0)"
+
+
+def test_pickle():
+    sc = Scaler(10.0)
+    p = pickle.dumps(sc)
+    got = pickle.loads(p)
+    assert type(got) is Scaler
+    assert got.factor == sc.factor
+
+
+def test_equality():
+    sc1 = Scaler(10.0)
+    sc1_2 = Scaler(10.0)
+    assert sc1_2 == sc1
+    assert not (sc1_2 != sc1)
+    sc2 = Scaler(20.0)
+    assert sc1 != sc2
+    assert not (sc1 == sc2)
+
+
+def test_hash():
+    sc1 = Scaler(10.0)
+    assert hash(sc1) != hash(10.0)
+    sc1_2 = Scaler(10.0)
+    assert hash(sc1_2) == hash(sc1)
+    sc2 = Scaler(20.0)
+    assert hash(sc2) != hash(sc1)
+
+
+@pytest.mark.parametrize("op", [operator.lt, operator.le, operator.gt, operator.ge])
+def test_comparison_impossible(op):
+    sc = Scaler(10.0)
+    with pytest.raises(TypeError, match="not supported"):
+        op(sc, sc)
