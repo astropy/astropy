@@ -581,8 +581,23 @@ def test_table_aggregate_reduceat_empty():
             },
             masked=masked,
         )
-        tga = tg.group_by("action").groups.aggregate(np.sum)
+        # Test default groups for empty table
+        assert len(tg.groups) == 0
+        assert list(tg.groups) == []
+
+        # Test explicit grouping by one column
+        grouped = tg.group_by("action")
+        assert len(grouped.groups) == 0
+        assert list(grouped.groups) == []
+        tga = grouped.groups.aggregate(np.sum)
         assert tga.pformat() == ["action duration", "------ --------"]
+
+
+def test_groups_len_malformed_indices_raises_runtime_error():
+    tg = Table({"a": [1, 2], "b": [3, 4]}).group_by("a")
+    tg.groups._indices = np.array([1], dtype=int)
+    with pytest.raises(RuntimeError, match="malformed groups.indices"):
+        len(tg.groups)
 
 
 def test_column_aggregate(T1):
@@ -602,6 +617,17 @@ def test_column_aggregate_f8():
         tg = Table({"a": np.arange(2, dtype=">f8")}, masked=masked).group_by("a")
         tga = tg["a"].groups.aggregate(np.sum)
         assert tga.pformat() == [" a ", "---", "0.0", "1.0"]
+
+
+def test_table_group_select_empty():
+    """Test selecting no groups returns a table with empty keys and no indices"""
+    tg = Table({"a": [1, 2], "b": [3, 4]}).group_by("a")
+    tgs = tg.groups[[]]
+    assert len(tgs) == 0
+    assert len(tgs.groups) == 0
+    assert len(tgs.groups.keys) == 0
+    assert len(tgs.groups.indices) == 0
+    assert tgs.groups.keys.colnames == ["a"]
 
 
 def test_table_filter():
