@@ -1,0 +1,3 @@
+Fixed ``rename_columns`` (and ``info.name`` assignment) on a deep-copied
+``Table``, which previously left the column mapping out of sync because copied
+columns lost their link to the copied parent table.

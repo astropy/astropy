@@ -2473,6 +2473,27 @@ def test_deepcopy_object_column(data):
     assert t3.meta["test"] is not t1.meta["test"]
 
 
+def test_deepcopy_rename_columns():
+    # Regression test for #20087: renaming columns of a deep-copied Table
+    # left the column mapping out of sync because the copied columns lost
+    # their link to the copied parent table.
+    t = Table({"px": [1.0, 2.0], "py": [3.0, 4.0]})
+    td = copy.deepcopy(t)
+
+    td.rename_columns(["px", "py"], ["x", "y"])
+    assert td.colnames == ["x", "y"]
+    assert list(td["x"]) == [1.0, 2.0]
+    assert list(td["y"]) == [3.0, 4.0]
+
+    # renaming via the info name setter works too
+    td["x"].info.name = "xx"
+    assert td.colnames == ["xx", "y"]
+
+    # the original table is unaffected
+    assert t.colnames == ["px", "py"]
+    assert list(t["px"]) == [1.0, 2.0]
+
+
 def test_replace_column_qtable():
     """Replace existing Quantity column with a new column in a QTable"""
     a = [1, 2, 3] * u.m
