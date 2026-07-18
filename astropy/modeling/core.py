@@ -3897,7 +3897,9 @@ class CompoundModel(Model):
         # ``inputs_map`` only records the left one. Fill in the units of any
         # input that the left operand does not constrain from the right operand
         # so the result does not depend on the operand order (GH #17040).
-        if self.op in ("+", "-", "*", "/", "**"):
+        if self.op in ("+", "-", "*", "/", "**") and any(
+            key not in input_units_dict for key in self.inputs
+        ):
             right_units = self.right.input_units
             if right_units:
                 for left_key, right_key in zip(self.inputs, self.right.inputs):
