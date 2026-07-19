@@ -1,0 +1,2 @@
+Fixed ``vstack`` returning the input table itself when given a single table.
+It now returns a copy, consistent with its documented new-table behavior.
