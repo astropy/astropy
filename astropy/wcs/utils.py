@@ -420,7 +420,7 @@ def skycoord_to_celestial_wcs(
     *,
     fov=None,
     shape=None,
-    pixel_scale,
+    pixel_angular_size,
     reference_pixel=None,
     frame=None,
     projection="TAN",
@@ -438,9 +438,10 @@ def skycoord_to_celestial_wcs(
     shape : Sequence[int, int]
         The image size in pixels (NAXIS). ``fov`` and ``shape`` are mutually exclusive
         and one of them must be provided.
-    pixel_scale : `~astropy.coordinates.Angle` of length 1 or 2
-        The pixel scale along the x and y axis. It is either of length 2 for each axis
-        or of length 1. Then ``cdelt`` will be set to ``[-pixel_scale, pixel_scale]``
+    pixel_angular_size : `~astropy.coordinates.Angle` of length 1 or 2
+        The pixel angular size along the x and y axis. It is either of length 2 for each
+        axis or of length 1. Then ``cdelt`` will be set to
+        ``[-pixel_angular_size, pixel_angular_size]``
     reference_pixel : Sequence[int, int], optional
         Reference pixel for the projection. In zero-indexed (Python convention) numpy
         order (swapped with respect to the WCS convention). If ``None``, it will be set
@@ -466,8 +467,10 @@ def skycoord_to_celestial_wcs(
     >>> from astropy.coordinates import Angle, SkyCoord
     >>> center = SkyCoord(266.4, -29, unit="deg")
     >>> fov = Angle([8, 4], unit="deg")
-    >>> wcs = skycoord_to_celestial_wcs(center, fov=fov,
-    ...                                 pixel_scale=Angle([-0.1, 0.1], unit="deg"))
+    >>> wcs = skycoord_to_celestial_wcs(
+    ...           center, fov=fov,
+    ...           pixel_angular_size=Angle([-0.1, 0.1], unit="deg")
+    ...           )
     >>> print(wcs)
     WCS Keywords
     <BLANKLINE>
@@ -483,8 +486,10 @@ def skycoord_to_celestial_wcs(
 
     You can also use ``shape`` instead of ``fov``:
     >>> shape = (80, 40)
-    >>> wcs = skycoord_to_celestial_wcs(center, shape=shape,
-    ...                                 pixel_scale=Angle([-0.1, 0.1], unit="deg"))
+    >>> wcs = skycoord_to_celestial_wcs(
+    ...           center, fov=fov,
+    ...           pixel_angular_size=Angle([-0.1, 0.1], unit="deg")
+    ...           )
     >>> print(wcs)
     WCS Keywords
     <BLANKLINE>
@@ -519,15 +524,15 @@ def skycoord_to_celestial_wcs(
         frame = ICRS()
     wcs = celestial_frame_to_wcs(frame=frame, projection=projection)
 
-    if pixel_scale.isscalar:
-        pixel_scale_in_deg = float(pixel_scale.to_value("deg"))
-        wcs.wcs.cdelt = [-pixel_scale_in_deg, pixel_scale_in_deg]
-    elif len(pixel_scale) == 2:
-        wcs.wcs.cdelt[0] = float(pixel_scale[0].to_value("deg"))
-        wcs.wcs.cdelt[1] = float(pixel_scale[1].to_value("deg"))
+    if pixel_angular_size.isscalar:
+        pixel_angular_size_in_deg = float(pixel_angular_size.to_value("deg"))
+        wcs.wcs.cdelt = [-pixel_angular_size_in_deg, pixel_angular_size_in_deg]
+    elif len(pixel_angular_size) == 2:
+        wcs.wcs.cdelt = pixel_angular_size.to_value("deg")
     else:
         raise ValueError(
-            f"'pixel_scale' should be of length 1 or 2 but is {len(pixel_scale)}."
+            "'pixel_angular_size' should be of length 1 or 2 but "
+            f"is {len(pixel_angular_size)}."
         )
 
     coo_for_frame = reference_position.transform_to(frame)
