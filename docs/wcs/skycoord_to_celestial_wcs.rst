@@ -10,5 +10,7 @@ and field of view values:
 >>> from astropy.wcs.utils import skycoord_to_celestial_wcs
 >>> center = SkyCoord(266.4, -29, unit="deg")
 >>> fov = Angle([0.4, 0.2], unit="deg")
->>> wcs = skycoord_to_celestial_wcs(center, fov=fov,
-...                                 pixel_scale=Angle([-0.005, 0.005], unit="deg"))
+>>> wcs = skycoord_to_celestial_wcs(
+...         center, fov=fov,
+...         pixel_angular_size=Angle([-0.005, 0.005], unit="deg")
+...         )
