@@ -215,7 +215,11 @@ class BaseGroups:
                 mask[i0:i1] = True
             out = parent[mask]
             out.groups._keys = parent.groups.keys[item]
-            out.groups._indices = np.concatenate([[0], np.cumsum(i1s - i0s)])
+            out.groups._indices = (
+                np.array([], dtype=int)  # No selected groups so no indices
+                if len(out) == 0
+                else np.concatenate([[0], np.cumsum(i1s - i0s)])
+            )
 
         return out
 
@@ -223,7 +227,11 @@ class BaseGroups:
         return f"<{self.__class__.__name__} indices={self.indices}>"
 
     def __len__(self):
-        return len(self.indices) - 1
+        _len = len(self.indices)
+        if _len == 1:
+            # Should never happen, indices should either have length = 0 or length >= 2.
+            raise RuntimeError("malformed groups.indices with length=1, this is a bug")
+        return _len - 1 if _len > 0 else 0
 
 
 class ColumnGroups(BaseGroups):
@@ -240,7 +248,11 @@ class ColumnGroups(BaseGroups):
             return self.parent_table.groups.indices
         else:
             if self._indices is None:
-                return np.array([0, len(self.parent_column)])
+                # No explicit groups have been defined so default to a single group if
+                # the column has any rows, otherwise return an empty array of indices to
+                # match what group_by() does for an empty column.
+                _len = len(self.parent_column)
+                return np.array([0, _len]) if _len > 0 else np.array([], dtype=int)
             else:
                 return self._indices
 
@@ -344,7 +356,11 @@ class TableGroups(BaseGroups):
     @property
     def indices(self):
         if self._indices is None:
-            return np.array([0, len(self.parent_table)])
+            # No explicit groups have been defined so default to a single group if
+            # the table has any rows, otherwise return an empty array of indices to
+            # match what group_by() does for an empty table.
+            _len = len(self.parent_table)
+            return np.array([0, _len]) if _len > 0 else np.array([], dtype=int)
         else:
             return self._indices
 

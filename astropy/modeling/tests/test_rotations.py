@@ -10,6 +10,7 @@ from numpy.testing import assert_allclose
 
 import astropy.units as u
 from astropy.modeling import models, rotations
+from astropy.table import MaskedColumn
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.wcs import wcs
 
@@ -379,3 +380,20 @@ def test__SkyRotation__evaluate():
         assert mkEval.call_args_list == [
             mk.call(model, phi, theta, lon, lat, lon_pole, "zxz")
         ]
+
+
+@pytest.mark.parametrize(
+    "model", [rotations.RotationSequence3D, rotations.SphericalRotationSequence]
+)
+def test_masked_column_rotation(model):
+    """
+    Test that the rotation of a masked column table is handled correctly.
+        This is a regression test for #20052
+    """
+    mdl = model([0, 0, 0], axes_order=["x", "y", "z"])
+    col = MaskedColumn([1, 2])
+    truth = (np.array([1, 2]),)
+    if model is rotations.RotationSequence3D:
+        assert_allclose(mdl(col, col, col), truth * 3)
+    else:
+        assert_allclose(mdl(col, col), truth * 2)

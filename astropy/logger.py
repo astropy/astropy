@@ -229,7 +229,7 @@ class AstropyLogger(Logger):
         # name.  The module.__file__ is the original source file name.
         mod_name = None
         mod_path = Path(mod_path).with_suffix("")
-        for mod in sys.modules.values():
+        for mod in list(sys.modules.values()):
             try:
                 # Believe it or not this can fail in some cases:
                 # https://github.com/astropy/astropy/issues/2671

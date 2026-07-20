@@ -127,9 +127,10 @@ class RotationSequence3D(Model):
         """
         if x.shape != y.shape or x.shape != z.shape:
             raise ValueError("Expected input arrays to have the same shape")
-        inarr = np.stack([x, y, z], axis=-2)
-        result = np.matmul(_create_matrix(angles[0], self.axes_order), inarr)
-        return tuple(np.moveaxis(result, -2, 0))
+        xyz = np.stack([x, y, z], axis=-1)
+        rotmat = _create_matrix(angles[0], self.axes_order)
+        rxyz = np.einsum("...j,ij->...i", xyz, rotmat)
+        return tuple(rxyz.T)
 
 
 class SphericalRotationSequence(RotationSequence3D):

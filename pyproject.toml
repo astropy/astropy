@@ -750,7 +750,8 @@ ignore-words-list = """
 
 [tool.uv]
 # always allow arbitrarily new versions of astropy-iers-data
-exclude-newer-package = { "astropy-iers-data" = false }
+# temp workaround for fitsio: https://github.com/astropy/astropy/issues/20030
+exclude-newer-package = { "astropy-iers-data" = false , "fitsio" = "P3D" }
 
 # never build the following packages from source. Prefer more recent versions
 # with binary distributions even with --resolution=lowest[-direct]
