@@ -523,8 +523,7 @@ def skycoord_to_celestial_wcs(
         pixel_scale_in_deg = float(pixel_scale.to_value("deg"))
         wcs.wcs.cdelt = [-pixel_scale_in_deg, pixel_scale_in_deg]
     elif len(pixel_scale) == 2:
-        wcs.wcs.cdelt[0] = float(pixel_scale[0].to_value("deg"))
-        wcs.wcs.cdelt[1] = float(pixel_scale[1].to_value("deg"))
+        wcs.wcs.cdelt = pixel_scale.to_value("deg")
     else:
         raise ValueError(
             f"'pixel_scale' should be of length 1 or 2 but is {len(pixel_scale)}."

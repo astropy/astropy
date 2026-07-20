@@ -707,15 +707,13 @@ def test_crota_vs_pc_in_skycoord_to_celestial_wcs():
     )
 
     wcs_crota = celestial_frame_to_wcs(frame=ICRS(), projection="TAN")
-    wcs_crota.wcs.cdelt[0] = float(pixel_scale[0].to_value("deg"))
-    wcs_crota.wcs.cdelt[1] = float(pixel_scale[1].to_value("deg"))
+    wcs_crota.wcs.cdelt = pixel_scale.to_value("deg")
     wcs_crota.wcs.crval = [0, 0]
     wcs_crota.array_shape = shape
     wcs_crota.wcs.crpix = [50.5, 100.5]
     wcs_crota.wcs.crota = 0, 30
 
-    x = np.arange(100)
-    y = np.arange(0, 200, 2)
+    y, x = np.mgrid[0:200:20, 0:100:10]
     pixel_pc = pixel_to_skycoord(x, y, wcs=wcs_pc)
     pixel_crota = pixel_to_skycoord(x, y, wcs=wcs_crota)
 
