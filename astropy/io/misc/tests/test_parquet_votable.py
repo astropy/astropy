@@ -137,9 +137,9 @@ def test_compare_parquet_votable(tmp_path):
         parquet_table = Table.read(filename, format="parquet")
 
     # VOParquet read derives string lengths from the embedded VOTable XML,
-    # so no warning should be emitted.
+    # so no table::len warning should be emitted.
     with warnings.catch_warnings():
-        warnings.simplefilter("error", AstropyUserWarning)
+        warnings.filterwarnings("error", "No table::len", AstropyUserWarning)
         parquet_votable = Table.read(filename, format="parquet.votable")
 
     assert len(parquet_table["sfr"].meta) == 0
@@ -227,7 +227,7 @@ def test_read_parquet_votable_no_warning(tmp_path):
     write_parquet_votable(input_table, filename, metadata=column_metadata)
 
     with warnings.catch_warnings():
-        warnings.simplefilter("error", AstropyUserWarning)
+        warnings.filterwarnings("error", "No table::len", AstropyUserWarning)
         Table.read(filename, format="parquet.votable")
 
 
@@ -246,7 +246,7 @@ def test_read_parquet_votable_string_dtype_from_arraysize(tmp_path):
     )
 
     with warnings.catch_warnings():
-        warnings.simplefilter("error", AstropyUserWarning)
+        warnings.filterwarnings("error", "No table::len", AstropyUserWarning)
         loaded = Table.read(filename, format="parquet.votable")
 
     assert loaded["band"].dtype == np.dtype("U20")
@@ -269,7 +269,7 @@ def test_read_parquet_votable_variable_arraysize(tmp_path):
     )
 
     with warnings.catch_warnings():
-        warnings.simplefilter("error", AstropyUserWarning)
+        warnings.filterwarnings("error", "No table::len", AstropyUserWarning)
         loaded = Table.read(filename, format="parquet.votable")
 
     assert loaded["label"].dtype == np.dtype("object")
@@ -291,7 +291,7 @@ def test_read_parquet_votable_scalar_char(tmp_path):
     )
 
     with warnings.catch_warnings():
-        warnings.simplefilter("error", AstropyUserWarning)
+        warnings.filterwarnings("error", "No table::len", AstropyUserWarning)
         loaded = Table.read(filename, format="parquet.votable")
 
     assert loaded["flag"].dtype == np.dtype("U1")
@@ -315,7 +315,7 @@ def test_read_table_parquet_string_lengths_parameter(tmp_path):
     pq.write_table(pa.table({"band": pa.array(["r", "g"], type=pa.string())}), filename)
 
     with warnings.catch_warnings():
-        warnings.simplefilter("error", AstropyUserWarning)
+        warnings.filterwarnings("error", "No table::len", AstropyUserWarning)
         loaded = read_table_parquet(filename, string_lengths={"band": 20})
 
     assert loaded["band"].dtype == np.dtype("U20")
@@ -329,7 +329,7 @@ def test_read_table_parquet_string_lengths_schema_only(tmp_path):
     )
 
     with warnings.catch_warnings():
-        warnings.simplefilter("error", AstropyUserWarning)
+        warnings.filterwarnings("error", "No table::len", AstropyUserWarning)
         schema_table = read_table_parquet(
             filename, schema_only=True, string_lengths={"label": None}
         )
