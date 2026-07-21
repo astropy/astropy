@@ -258,45 +258,80 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Raises
         ------
-        `~astropy.units.UnitsError`
+        UnitsError
             If units are inconsistent.
+        """
+        return self.get_converter(Unit(other), equivalencies)(value)
+
+    def get_converter(self, other, equivalencies=[]):
+        """
+        Create a function that converts values from this unit to another.
+
+        Parameters
+        ----------
+        other : `~astropy.units.Unit` or `~astropy.units.FunctionUnitBase`
+            The unit to convert to.
+
+        equivalencies : list of tuple
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            This list is in meant to treat only equivalencies between different
+            physical units; the built-in equivalency between the function
+            unit and the physical one is automatically taken into account.
+
+        Returns
+        -------
+        func : callable
+            A callable that takes an array-like argument and returns
+            it converted from units of self to units of other.
+
+        Raises
+        ------
+        UnitsError
+            If units are inconsistent.
+
+        Notes
+        -----
+        This method is used internally in `FunctionQuantity` to convert to
+        different units. Note that the function returned takes
+        and returns values, not quantities.
         """
         # conversion to one's own physical unit should be fastest
         if other is self.physical_unit:
-            return self.to_physical(value)
+            return self.to_physical
 
         other_function_unit = getattr(other, "function_unit", other)
         if self.function_unit.is_equivalent(other_function_unit):
             # when other is an equivalent function unit:
-            # first convert physical units to other's physical units
+            # First get the function unit converter.
+            fu_converter = self.function_unit.get_converter(other_function_unit)
+            # Next, check whether we need to convert physical units.
             other_physical_unit = getattr(
                 other, "physical_unit", dimensionless_unscaled
             )
-            if self.physical_unit != other_physical_unit:
-                value_other_physical = self.physical_unit.to(
-                    other_physical_unit, self.to_physical(value), equivalencies
-                )
-                # make function unit again, in own system
-                value = self.from_physical(value_other_physical)
+            if self.physical_unit == other_physical_unit:
+                return fu_converter
 
-            # convert possible difference in function unit (e.g., dex->dB)
-            return self.function_unit.to(other_function_unit, value)
+            pu_converter = self.physical_unit.get_converter(
+                other_physical_unit, equivalencies
+            )
+            return lambda value: fu_converter(
+                self.from_physical(pu_converter(self.to_physical(value)))
+            )
 
         else:
             try:
                 # when other is not a function unit
-                return self.physical_unit.to(
-                    other, self.to_physical(value), equivalencies
-                )
+                pu_converter = self.physical_unit.get_converter(other, equivalencies)
             except UnitConversionError as e:
                 if self.function_unit == Unit("mag"):
                     # One can get to raw magnitudes via math that strips the dimensions off.
                     # Include extra information in the exception to remind users of this.
                     msg = "Did you perhaps subtract magnitudes so the unit got lost?"
-                    e.args += (msg,)
-                    raise e
-                else:
-                    raise
+                    e.add_note(msg)
+                raise e
+
+            return lambda value: pu_converter(self.to_physical(value))
 
     def is_unity(self):
         return False
