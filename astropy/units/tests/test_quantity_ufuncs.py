@@ -332,7 +332,7 @@ class TestQuantityTrigonometricFuncs:
         with pytest.raises(
             AttributeError,
             match=(
-                "'NoneType' object has no attribute 'get_converter'"
+                "'NoneType' object has no attribute '_get_converter'"
                 ".*\n.*treated as dimensionless"
             ),
         ):

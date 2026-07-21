@@ -553,6 +553,10 @@ class UnitBase:
         different units. Note that the function returned takes
         and returns values, not quantities.
         """
+        return self._get_converter(Unit(other), equivalencies=equivalencies)
+
+    def _get_converter(self, other, equivalencies=[]):
+        # Private function of above that requires other to be a Unit.
         # First see if it is just a scaling.
         try:
             scale = self._to(other)
@@ -579,7 +583,7 @@ class UnitBase:
                 for funit, tunit, _, b in other.equivalencies:
                     if other is funit:
                         try:
-                            converter = self.get_converter(tunit, equivalencies)
+                            converter = self._get_converter(tunit, equivalencies)
                         except Exception:
                             pass
                         else:
@@ -656,7 +660,7 @@ class UnitBase:
         if other is self and value is UNITY:
             return UNITY
         else:
-            return self.get_converter(Unit(other), equivalencies)(value)
+            return self.get_converter(other, equivalencies)(value)
 
     @deprecated(since="7.0", alternative="to()")
     def in_units(self, other, value=1.0, equivalencies=[]):

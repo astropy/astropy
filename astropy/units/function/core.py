@@ -269,7 +269,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Parameters
         ----------
-        other : `~astropy.units.Unit` or `~astropy.units.FunctionUnitBase`
+        other : unit-like
             The unit to convert to.
 
         equivalencies : list of tuple
@@ -296,6 +296,10 @@ class FunctionUnitBase(metaclass=ABCMeta):
         different units. Note that the function returned takes
         and returns values, not quantities.
         """
+        return self._get_converter(Unit(other), equivalencies=equivalencies)
+
+    def _get_converter(self, other, equivalencies=[]):
+        # Private function of above that requires other to be a (Function)Unit.
         # conversion to one's own physical unit should be fastest
         if other is self.physical_unit:
             return self.to_physical
