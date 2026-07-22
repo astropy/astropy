@@ -14,9 +14,49 @@
  ***************************************************************************/
 
 #define MAXSIZE 68
-#define ARRAYSIZE 72
+static PyObject* UnitListProxyType = NULL;
 
-static PyObject* UnitListProxyType;
+/* === DEPENDENCY INJECTION CACHE === */
+static PyObject* cached_Unit_class = NULL;
+
+static PyObject*
+_setup_unit_class(PyObject* self, PyObject* args) {
+  PyObject* unit_class;
+  if (!PyArg_ParseTuple(args, "O", &unit_class)) {
+    return NULL;
+  }
+  Py_XINCREF(unit_class);
+  Py_XDECREF(cached_Unit_class);
+  cached_Unit_class = unit_class;
+  Py_RETURN_NONE;
+}
+
+/* Helper to instantiate units from C using the cached class */
+static PyObject*
+_get_unit(const char* unit_str) {
+  PyObject* py_str;
+  PyObject* args;
+  PyObject* result;
+
+  if (cached_Unit_class == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "astropy.units.Unit has not been injected.");
+    return NULL;
+  }
+
+  py_str = PyUnicode_FromString(unit_str);
+  if (py_str == NULL) return NULL;
+
+  args = PyTuple_Pack(1, py_str);
+  Py_DECREF(py_str);
+  if (args == NULL) return NULL;
+
+  result = PyObject_CallObject(cached_Unit_class, args);
+  Py_DECREF(args);
+
+  return result;
+}
+
+#define ARRAYSIZE 72
 
 typedef struct {
   PyObject_HEAD
@@ -110,16 +150,12 @@ UnitListProxy_getitem(
     UnitListProxy* self,
     Py_ssize_t index) {
 
-  PyObject *value;
-
   if (index >= self->size || index < 0) {
     PyErr_SetString(PyExc_IndexError, "index out of range");
     return NULL;
   }
 
-  value = PyUnicode_FromString(self->array[index]);
-
-  return value;
+  return _get_unit(self->array[index]);
 }
 
 static PyObject*
@@ -168,6 +204,7 @@ UnitListProxy_setitem(
     return -1;
   }
 
+  PyObject* unit_obj = NULL;
   PyObject* unicode_value;
   PyObject* bytes_value;
 
@@ -176,15 +213,33 @@ UnitListProxy_setitem(
     return -1;
   }
 
-  if (!PyObject_HasAttrString(arg, "to_string")) {
-    PyErr_SetString(PyExc_TypeError, "Object must be a unit-like object providing a 'to_string' method.");
+  /* 1. Dependency Injection: If the object has a to_string method, use it directly */
+  if (PyObject_HasAttrString(arg, "to_string")) {
+    Py_INCREF(arg);
+    unit_obj = arg;
+  }
+  /* 2. If it's a string, use the cached Unit class to parse and warn */
+  else if (cached_Unit_class != NULL) {
+    PyObject* kwargs = Py_BuildValue("{s:s,s:s}", "format", "fits", "parse_strict", "warn");
+    PyObject* args_tuple = PyTuple_Pack(1, arg);
+
+    unit_obj = PyObject_Call(cached_Unit_class, args_tuple, kwargs);
+
+    Py_DECREF(args_tuple);
+    Py_DECREF(kwargs);
+
+    if (unit_obj == NULL) {
+      return -1;
+    }
+  } else {
+    PyErr_SetString(PyExc_TypeError, "Object must provide a 'to_string' method or Unit class must be injected.");
     return -1;
   }
 
-  unicode_value = PyObject_CallMethod(arg, "to_string", "s", "fits");
-  if (unicode_value == NULL) {
-    return -1;
-  }
+  unicode_value = PyObject_CallMethod(unit_obj, "to_string", "s", "fits");
+  Py_DECREF(unit_obj);
+
+  if (unicode_value == NULL) return -1;
 
   if (PyUnicode_Check(unicode_value)) {
     bytes_value = PyUnicode_AsASCIIString(unicode_value);
@@ -229,8 +284,6 @@ static PyType_Spec UnitListProxyType_spec = {
     {0, NULL},
   },
 };
-
-static PyObject* UnitListProxyType = NULL;
 
 int
 set_unit_list(
@@ -300,6 +353,15 @@ _setup_unit_list_proxy_type(
   if (UnitListProxyType == NULL) {
     return 1;
   }
+
+  static PyMethodDef setup_def = {
+    "_setup_unit_class",
+    (PyCFunction)_setup_unit_class,
+    METH_VARARGS,
+    "Inject the astropy.units.Unit class into the C extension."
+  };
+  PyObject* func = PyCFunction_New(&setup_def, NULL);
+  PyModule_AddObject(m, "_setup_unit_class", func);
 
   return 0;
 }

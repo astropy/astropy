@@ -132,18 +132,19 @@ from ._wcs import (
     WCSHDR_reject,
     WCSHDR_strict,
     WCSHDR_VELREFa,
+    Wcsprm,
     Wtbarr,
     _sanity_check,
+    _setup_unit_class,
     set_wtbarr_fitsio_callback,
-)
-from ._wcs import (
-    Wcsprm as _Wcsprm,
 )
 from ._wcs import _Wcs as WCSBase
 from ._wcs import find_all_wcs as find_all_wcs_c
 
 # Mix-in class that provides the APE 14 API
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
+
+_setup_unit_class(u.Unit)
 
 __all__ = [
     "PRJ_CODES",
@@ -297,27 +298,6 @@ def _parse_keysel(keysel):
         keysel_flags = -1
 
     return keysel_flags
-
-
-class Wcsprm(_Wcsprm):
-    @property
-    def cunit(self):
-        return _Wcsprm.cunit.__get__(self)
-
-    @cunit.setter
-    def cunit(self, value):
-        parsed_units = []
-        for v in value:
-            if isinstance(v, (str, bytes)):
-                try:
-                    parsed_units.append(u.Unit(v, parse_strict="warn"))
-                except ValueError:
-                    warnings.warn(f"Invalid unit: {v}", u.UnitsWarning)
-                    parsed_units.append(u.Unit("Unrecognized", parse_strict="silent"))
-            else:
-                parsed_units.append(v)
-
-        _Wcsprm.cunit.__set__(self, parsed_units)
 
 
 class NoConvergence(Exception):
