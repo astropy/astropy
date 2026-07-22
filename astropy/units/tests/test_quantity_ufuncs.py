@@ -1117,6 +1117,63 @@ class TestInplaceUfuncs:
         arr *= 1 / np.cos(0 * u.deg)
         assert arr[0] == 1
 
+    def test_unit_bearing_non_quantity_inplace(self):
+        """
+        Regression coverage for gh-20075 / gh-20076.
+
+        Non-Quantity arrays that expose a ``unit`` attribute (e.g. table
+        ``Column``) must accept dimensional Quantity results in-place, and
+        have their unit metadata updated when the physical dimension changes.
+        """
+
+        class UnitArray(np.ndarray):
+            """Minimal ndarray subclass that carries a unit attribute."""
+
+            def __new__(cls, input_array, unit=None):
+                obj = np.array(input_array, dtype=float, copy=True).view(cls)
+                obj.unit = unit
+                return obj
+
+            def __array_finalize__(self, obj):
+                if obj is None:
+                    return
+                self.unit = getattr(obj, "unit", None)
+
+        # Same-unit addition via out=.
+        out = UnitArray([0.0, 0.0], unit=u.m)
+        result = np.add(np.array([1.0, 2.0]) * u.m, np.array([3.0, 4.0]) * u.m, out=out)
+        assert result is out
+        assert_array_equal(out, [4.0, 6.0])
+        assert out.unit == u.m
+
+        # In-place operator form.
+        arr = UnitArray([1.0, 2.0], unit=u.m)
+        arr_id = id(arr)
+        arr += np.array([1.0, 1.0]) * u.m
+        assert id(arr) == arr_id
+        assert_array_equal(arr, [2.0, 3.0])
+        assert arr.unit == u.m
+
+        # Operand unit conversion.
+        arr = UnitArray([1.0, 2.0], unit=u.m)
+        arr += np.array([100.0, 0.0]) * u.cm
+        assert arr.unit == u.m
+        assert_array_equal(arr, [2.0, 2.0])
+
+        # Dimension-changing in-place multiply updates unit metadata.
+        arr = UnitArray([1.0, 2.0], unit=u.m)
+        arr *= 2.0 * u.s
+        assert arr.unit == u.m * u.s
+        assert_array_equal(arr, [2.0, 4.0])
+
+        # Unsafe dtype cast still raises (mirrors Quantity output checks).
+        out_i = UnitArray([0, 0], unit=u.m)
+        # Force integer storage.
+        out_i = out_i.astype(int)
+        out_i.unit = u.m
+        with pytest.raises(TypeError, match="cast safely"):
+            np.add(np.array([1.5, 2.5]) * u.m, np.array([0.5, 0.5]) * u.m, out=out_i)
+
 
 class TestWhere:
     """Test the where argument in ufuncs."""
