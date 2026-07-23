@@ -2483,10 +2483,15 @@ def test_deepcopy_rename_columns(masked):
 
     td = copy.deepcopy(t)
 
+    # Deep-copied columns must be linked to the copied table.
+    for name in td.colnames:
+        assert td[name].info.parent_table is td
+        assert td[name].parent_table is td
+
     td.rename_columns(["px", "py"], ["x", "y"])
     assert td.colnames == ["x", "y"]
-    assert list(td["x"]) == [1.0, 2.0]
-    assert list(td["y"]) == [3.0, 4.0]
+    assert_array_equal(td["x"].data, [1.0, 2.0])
+    assert_array_equal(td["y"].data, [3.0, 4.0])
     if masked:
         assert_array_equal(td["x"].mask, [False, True])
         assert_array_equal(td["y"].mask, [False, False])
@@ -2497,7 +2502,7 @@ def test_deepcopy_rename_columns(masked):
 
     # the original table is unaffected
     assert t.colnames == ["px", "py"]
-    assert list(t["px"]) == [1.0, 2.0]
+    assert_array_equal(t["px"].data, [1.0, 2.0])
     if masked:
         assert_array_equal(t["px"].mask, [False, True])
 
