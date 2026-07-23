@@ -1,6 +1,0 @@
-Fix incorrect ``NaN`` propagation and masked-array handling in
-``RotationSequence3D.evaluate``. Previous fix for masked-array support
-introduced incorrect broadcasting behavior, causing ``NaN`` values in
-the inputs to be propagated to all outputs. The rotation is now applied with
-the correct ``einsum`` operand order that also avoids using transpose
-operations that corrupt masked arrays.
