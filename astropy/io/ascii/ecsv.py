@@ -14,7 +14,7 @@ import numpy as np
 
 from astropy.io.ascii.core import convert_numpy
 from astropy.io.misc.ecsv import table_meta_as_dict
-from astropy.table import meta, serialize
+from astropy.table import Column, MaskedColumn, meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -457,41 +457,41 @@ class EcsvData(basic.BasicData):
         for col in self.cols:
             if len(col.shape) > 1 or col.info.dtype.kind == "O":
 
-                def format_col_item(idx):
-                    obj = col[idx]
-                    try:
-                        obj = obj.tolist()
-                    except AttributeError:
-                        pass
-                    return json.dumps(obj, separators=(",", ":"))
+                def format_col(col: Column | MaskedColumn) -> list[str]:
 
-                try:
-                    col.str_vals = [format_col_item(idx) for idx in range(len(col))]
-                except TypeError as exc:
-                    raise TypeError(
-                        f"could not convert column {col.info.name!r} to string: {exc}"
-                    ) from exc
+                    def format_col_item(idx):
+                        obj = col[idx]
+                        try:
+                            obj = obj.tolist()
+                        except AttributeError:
+                            pass
+                        return json.dumps(obj, separators=(",", ":"))
+
+                    return [format_col_item(idx) for idx in range(len(col))]
 
             else:
-                # Fast path for 1-d non-object columns: iterate over the plain
-                # ndarray rather than indexing the column, which avoids the
-                # significant per-item overhead of (Masked)Column.__getitem__.
-                data = col.data
-                if isinstance(data, np.ma.MaskedArray):
-                    data = data.data
-                try:
+
+                def format_col(col: Column | MaskedColumn) -> list[str]:
+                    # Fast path for 1-d non-object columns: iterate over the plain
+                    # ndarray rather than indexing the column, which avoids the
+                    # significant per-item overhead of (Masked)Column.__getitem__.
+                    data = col.data
+                    if isinstance(data, np.ma.MaskedArray):
+                        data = data.data
+
                     if data.dtype.kind == "S":
                         # Column.__getitem__ decodes bytes scalars to str; match
                         # that here so bytes columns are not written as b'...'.
-                        col.str_vals = [
-                            val.decode("utf-8", errors="replace") for val in data
-                        ]
+                        return [val.decode("utf-8", errors="replace") for val in data]
                     else:
-                        col.str_vals = [str(val) for val in data]
-                except TypeError as exc:
-                    raise TypeError(
-                        f"could not convert column {col.info.name!r} to string: {exc}"
-                    ) from exc
+                        return [str(val) for val in data]
+
+            try:
+                col.str_vals = format_col(col)
+            except TypeError as exc:
+                raise TypeError(
+                    f"could not convert column {col.info.name!r} to string: {exc}"
+                ) from exc
 
             # Replace every masked value in a 1-d column with an empty string.
             # For multi-dim columns this gets done by JSON via "null".
