@@ -1,3 +1,5 @@
-Fixed ``rename_columns`` (and ``info.name`` assignment) on a deep-copied
-``Table``, which previously left the column mapping out of sync because copied
-columns lost their link to the copied parent table.
+Fixed an issue when deep-copying a ``Table`` where the copied columns lost their link to
+the new parent table. This led to problems in ``rename_columns`` and ``info.name``
+assignment. Other potential problems included table-aware unit conversion/replacement in
+QTable, grouped-column linkage to table group metadata, and synchronized pprint
+include/exclude name bookkeeping on rename or delete.
