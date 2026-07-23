@@ -2473,17 +2473,23 @@ def test_deepcopy_object_column(data):
     assert t3.meta["test"] is not t1.meta["test"]
 
 
-def test_deepcopy_rename_columns():
-    # Regression test for #20087: renaming columns of a deep-copied Table
-    # left the column mapping out of sync because the copied columns lost
-    # their link to the copied parent table.
-    t = Table({"px": [1.0, 2.0], "py": [3.0, 4.0]})
+@pytest.mark.parametrize("masked", [False, True], ids=["unmasked", "masked"])
+def test_deepcopy_rename_columns(masked):
+    # Regression test for #20087 for unmasked and masked tables: renaming
+    # columns of a deep-copied Table must keep column mapping in sync.
+    t = Table({"px": [1.0, 2.0], "py": [3.0, 4.0]}, masked=masked)
+    if masked:
+        t["px"].mask = [False, True]
+
     td = copy.deepcopy(t)
 
     td.rename_columns(["px", "py"], ["x", "y"])
     assert td.colnames == ["x", "y"]
     assert list(td["x"]) == [1.0, 2.0]
     assert list(td["y"]) == [3.0, 4.0]
+    if masked:
+        assert_array_equal(td["x"].mask, [False, True])
+        assert_array_equal(td["y"].mask, [False, False])
 
     # renaming via the info name setter works too
     td["x"].info.name = "xx"
@@ -2492,6 +2498,8 @@ def test_deepcopy_rename_columns():
     # the original table is unaffected
     assert t.colnames == ["px", "py"]
     assert list(t["px"]) == [1.0, 2.0]
+    if masked:
+        assert_array_equal(t["px"].mask, [False, True])
 
 
 def test_replace_column_qtable():
