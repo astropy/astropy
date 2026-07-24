@@ -759,6 +759,7 @@ no-build-package = [
     "bottleneck",
     "coverage",
     "h5py",
+    "hypothesis",
     "numpy",
     "pandas",
     "polars",
