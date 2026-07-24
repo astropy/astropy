@@ -167,6 +167,9 @@ class FITS_rec(np.recarray):
     _character_as_bytes = False
     _logical_as_bytes = False
     _load_variable_length_data = True
+    # True while ``from_columns`` materializes columns internally, so a logical
+    # column's bool conversion is not counted as a user-facing read.
+    _converting_internally = False
 
     def __new__(cls, input):
         """
@@ -212,6 +215,7 @@ class FITS_rec(np.recarray):
 
         for attrs in [
             "_converted",
+            "_logical_null_coerced",
             "_heapoffset",
             "_heapsize",
             "_tbsize",
@@ -244,6 +248,7 @@ class FITS_rec(np.recarray):
 
         if isinstance(obj, FITS_rec) and obj.dtype == self.dtype:
             self._converted = obj._converted
+            self._logical_null_coerced = obj._logical_null_coerced
             self._heapoffset = obj._heapoffset
             self._heapsize = obj._heapsize
             self._tbsize = obj._tbsize
@@ -257,6 +262,7 @@ class FITS_rec(np.recarray):
             # just other FITS_rec objects
             self._nfields = len(self.dtype.fields)
             self._converted = {}
+            self._logical_null_coerced = set()
 
             self._heapoffset = getattr(obj, "_heapoffset", 0)
             self._heapsize = getattr(obj, "_heapsize", 0)
@@ -281,6 +287,9 @@ class FITS_rec(np.recarray):
         """Initializes internal attributes specific to FITS-isms."""
         self._nfields = 0
         self._converted = {}
+        # Logical columns whose NULL (b'\x00') was coerced to False by a bool
+        # read; written back as b'T'/b'F' only (see _scale_back).
+        self._logical_null_coerced = set()
         self._heapoffset = 0
         self._heapsize = 0
         self._tbsize = 0
@@ -508,14 +517,20 @@ class FITS_rec(np.recarray):
         # ``_convert_p`` during this internal plumbing: the user has not yet
         # accessed the data, so a warning issued here would be spurious. The
         # warning is still emitted the next time the user reads the column.
+        # ``_converting_internally`` also stops ``_convert_other`` marking these
+        # NULLs as coerced, so |S1-supplied NULL bytes survive the round-trip.
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
                 message=r".*[Cc]olumn '.*' contains NULL",
                 category=AstropyUserWarning,
             )
-            for idx in range(len(columns)):
-                columns._arrays[idx] = data.field(idx)
+            data._converting_internally = True
+            try:
+                for idx in range(len(columns)):
+                    columns._arrays[idx] = data.field(idx)
+            finally:
+                data._converting_internally = False
 
         return data
 
@@ -591,6 +606,7 @@ class FITS_rec(np.recarray):
         out._coldefs = ColDefs(self._coldefs)
         arrays = []
         out._converted = {}
+        out._logical_null_coerced = set(self._logical_null_coerced)
         for idx, name in enumerate(self._coldefs.names):
             #
             # Store the new arrays for the _coldefs object
@@ -1126,7 +1142,7 @@ class FITS_rec(np.recarray):
             else:
                 # Check for NULL values (0x00) before converting
                 null_mask = field == 0
-                if np.any(null_mask):
+                if np.any(null_mask) and not self._converting_internally:
                     warnings.warn(
                         f"Column '{column.name}' contains NULL (undefined) values "
                         "which will be converted to False. To preserve NULL "
@@ -1135,6 +1151,10 @@ class FITS_rec(np.recarray):
                         "b'T' (True), and b'F' (False).",
                         AstropyUserWarning,
                     )
+                    # The user saw the lossy bool view (which can't represent
+                    # NULL), so record the column: _scale_back then writes
+                    # b'T'/b'F' for every row, collapsing NULL to match the warning.
+                    self._logical_null_coerced.add(column.name)
                 field = np.equal(field, ord("T"))
         elif _str:
             if not self._character_as_bytes:
@@ -1368,18 +1388,29 @@ class FITS_rec(np.recarray):
 
             # ASCII table does not have Boolean type
             elif _bool and name in self._converted:
-                choices = (
-                    np.array([ord("F")], dtype=np.int8)[0],
-                    np.array([ord("T")], dtype=np.int8)[0],
-                )
-                # Only overwrite raw bytes where the cached bool disagrees
-                # with the raw byte's implied bool value (b'T'==True,
-                # anything else==False). This preserves NULL (b'\x00') and
-                # other non-T/F raw bytes where the user has not modified
-                # the corresponding boolean value.
-                current_as_bool = raw_field == ord("T")
-                needs_update = field != current_as_bool
-                raw_field[needs_update] = np.choose(field[needs_update], choices)
+                if field.dtype.kind == "S":
+                    # logical_as_bytes=True: ``field`` holds the raw L wire bytes
+                    # (b'T'/b'F'/b'\x00'); copy verbatim so NULL is preserved.
+                    raw_field[:] = field.view(np.int8)
+                else:
+                    choices = (
+                        np.array([ord("F")], dtype=np.int8)[0],
+                        np.array([ord("T")], dtype=np.int8)[0],
+                    )
+                    if name in self._logical_null_coerced:
+                        # Read as bool (warned): that view can't represent NULL,
+                        # so write b'T'/b'F' for every row -- NULL collapses to
+                        # False and an explicit False is stored as b'F', not NULL.
+                        raw_field[:] = np.choose(field, choices)
+                    else:
+                        # No lossy bool read (e.g. built from a |S1 array with
+                        # explicit NULL): only rewrite rows where the cached bool
+                        # disagrees with the raw byte, preserving genuine NULL.
+                        current_as_bool = raw_field == ord("T")
+                        needs_update = field != current_as_bool
+                        raw_field[needs_update] = np.choose(
+                            field[needs_update], choices
+                        )
 
             # Validate the on-disk bytes of a fixed-length logical ('L')
             # column: only b'T', b'F', and b'\x00' are legal. This catches
