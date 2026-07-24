@@ -385,15 +385,9 @@ def test__SkyRotation__evaluate():
 @pytest.mark.parametrize(
     "model", [rotations.RotationSequence3D, rotations.SphericalRotationSequence]
 )
-@pytest.mark.parametrize(
-    "masked", [True, False]
-)
-@pytest.mark.parametrize(
-    "nan", [True, False]
-)
-@pytest.mark.parametrize(
-    "dim", [1, 2]
-)
+@pytest.mark.parametrize("masked", [True, False])
+@pytest.mark.parametrize("nan", [True, False])
+@pytest.mark.parametrize("dim", [1, 2])
 def test_masked_column_rotation(model, masked, nan, dim):
     """
     Test that the rotation of a masked column table is handled correctly.
@@ -450,9 +444,11 @@ def test_masked_column_rotation(model, masked, nan, dim):
         if nan:
             assert_allclose(
                 np.array(mdl(x, y, z))[..., np.logical_not(is_nan)],
-                np.array(truth_xyz)[..., np.logical_not(is_nan)]
+                np.array(truth_xyz)[..., np.logical_not(is_nan)],
             )
-            assert np.all(np.equal(is_nan, np.sum(np.isnan(mdl(x, y, z)), axis=0, dtype=bool)))
+            assert np.all(
+                np.equal(is_nan, np.sum(np.isnan(mdl(x, y, z)), axis=0, dtype=bool))
+            )
         else:
             assert_allclose(np.array(mdl(x, y, z)), np.array(truth_xyz))
 
@@ -477,4 +473,6 @@ def test_masked_column_rotation(model, masked, nan, dim):
         mdl_out = np.array(mdl(lon, lat))
         assert_allclose(mdl_out[..., m], truth_rot_lonlat)
         if nan:
-            assert np.all(np.equal(is_nan, np.sum(np.isnan(mdl_out), axis=0, dtype=bool)))
+            assert np.all(
+                np.equal(is_nan, np.sum(np.isnan(mdl_out), axis=0, dtype=bool))
+            )
