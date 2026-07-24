@@ -2380,7 +2380,7 @@ class Time(TimeBase):
         available_models = SIDEREAL_TIME_MODELS[kind.lower()]
 
         if model is None:
-            model = sorted(available_models)[-1]
+            model = max(available_models)
         elif model.upper() not in available_models:
             raise ValueError(
                 f"Model {model} not implemented for {kind} sidereal time; "
