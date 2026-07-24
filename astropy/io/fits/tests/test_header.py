@@ -2636,18 +2636,18 @@ class TestHeaderFunctions(FitsTestCase):
             h.set("HISTORY", "abc\ndef")
 
         test_cards = [
-            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18           "
-            "HISTORY File modified by user ' fred' with fv  on 2013-04-23T11:16:29           "
-            "HISTORY File modified by user ' fred' with fv  on 2013-11-04T16:59:14           "
-            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18\nFile modif"
-            "HISTORY ied by user 'wilma' with fv  on 2013-04-23T11:16:29\nFile modified by use"
-            "HISTORY r ' fred' with fv  on 2013-11-04T16:59:14                               "
-            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18\nFile modif"
-            "HISTORY ied by user 'wilma' with fv  on 2013-04-23T11:16:29\nFile modified by use"
-            "HISTORY r ' fred' with fv  on 2013-11-04T16:59:14\nFile modified by user 'wilma' "
-            "HISTORY with fv  on 2013-04-22T21:42:18\nFile modif\nied by user 'wilma' with fv  "
-            "HISTORY on 2013-04-23T11:16:29\nFile modified by use\nr ' fred' with fv  on 2013-1"
-            "HISTORY 1-04T16:59:14                                                           "
+            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18           ",
+            "HISTORY File modified by user ' fred' with fv  on 2013-04-23T11:16:29           ",
+            "HISTORY File modified by user ' fred' with fv  on 2013-11-04T16:59:14           ",
+            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18\nFile modif",
+            "HISTORY ied by user 'wilma' with fv  on 2013-04-23T11:16:29\nFile modified by use",
+            "HISTORY r ' fred' with fv  on 2013-11-04T16:59:14                               ",
+            "HISTORY File modified by user 'wilma' with fv  on 2013-04-22T21:42:18\nFile modif",
+            "HISTORY ied by user 'wilma' with fv  on 2013-04-23T11:16:29\nFile modified by use",
+            "HISTORY r ' fred' with fv  on 2013-11-04T16:59:14\nFile modified by user 'wilma' ",
+            "HISTORY with fv  on 2013-04-22T21:42:18\nFile modif\nied by user 'wilma' with fv  ",
+            "HISTORY on 2013-04-23T11:16:29\nFile modified by use\nr ' fred' with fv  on 2013-1",
+            "HISTORY 1-04T16:59:14                                                           ",
         ]
 
         for card_image in test_cards:
