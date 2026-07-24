@@ -186,6 +186,9 @@ jobs:
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
+            # forbid source installs for hypothesis for now (recent rust-based versions
+            # do not build transparently on exotic platforms)
+            pip install hypothesis --only-binary hypothesis
             # cython and pyerfa versions in ubuntu repos are too old currently
             pip install -U cython setuptools packaging
             pip install -U --no-build-isolation pyerfa
