@@ -747,6 +747,29 @@ def test_to_string():
         assert with_kwargs == wrap("+01h02m03.000s +01d02m03.000s")
 
 
+@pytest.mark.parametrize("style", ["decimal", "dms", "hmsdms"])
+def test_to_string_array(style):
+    """Array ``to_string`` matches formatting each coordinate on its own.
+
+    This covers the vectorized code path, which formats both angles for the
+    whole array at once instead of looping over the elements.
+    """
+    rng = np.random.default_rng(12345)
+    ra = rng.uniform(0, 360, 25)
+    dec = rng.uniform(-90, 90, 25)
+    sc = SkyCoord(ra, dec, unit="deg")
+
+    result = sc.to_string(style)
+    expected = [SkyCoord(r, d, unit="deg").to_string(style) for r, d in zip(ra, dec)]
+    assert result == expected
+
+    # And the shape is preserved for a multidimensional coordinate.
+    sc2d = sc[:24].reshape(4, 6)
+    result2d = sc2d.to_string(style)
+    assert result2d.shape == sc2d.shape
+    assert np.all(result2d.ravel() == np.array(expected[:24]))
+
+
 def test_repr():
     sc1 = SkyCoord(0 * u.deg, 1 * u.deg, frame="icrs")
     sc2 = SkyCoord(1 * u.deg, 1 * u.deg, frame="icrs", distance=1 * u.kpc)
