@@ -22,7 +22,9 @@ from warnings import warn
 import numpy as np
 
 from astropy import units as u
+from astropy.time.formats import _write_decimal
 from astropy.utils import parsing
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_1
 
 from .errors import (
     IllegalHourError,
@@ -450,3 +452,117 @@ def _decimal_to_sexagesimal_string(
             last_value = "0" + last_value
         literal += f"{last_value}{sep[2]}"
     return literal
+
+
+def _fixed_width_decimal(values, width):
+    """Zero-padded, fixed-``width`` decimal strings for non-negative integers.
+
+    The digits are written with plain integer arithmetic (via
+    `~astropy.time.formats._write_decimal`), which is several times faster than
+    ``values.astype("U")`` or ``np.strings.mod("%d", ...)`` because those format
+    each element through a Python string conversion.
+    """
+    values = np.asarray(values)
+    buf = np.empty(values.shape + (width,), dtype=np.uint32)
+    _write_decimal(buf, values, width, False)
+    return buf.view(f"U{width}").reshape(values.shape)
+
+
+def _decimal_to_sexagesimal_string_array(
+    angle, precision=None, pad=False, sep=(":",), fields=3
+):
+    """Vectorized equivalent of `_decimal_to_sexagesimal_string`.
+
+    Formats a whole array of angles at once with NumPy string operations,
+    which is much faster than looping `_decimal_to_sexagesimal_string` over the
+    elements.  The output is identical to formatting each element on its own.
+
+    Returns ``None`` when the array cannot be handled this way -- currently on
+    NumPy < 2.1 (where ``np.strings.zfill`` is buggy) or for degree values too
+    large for a 64-bit integer -- so the caller can fall back to the
+    per-element path.
+    """
+    if NUMPY_LT_2_1:
+        return None
+
+    if fields < 1 or fields > 3:
+        raise ValueError("fields must be 1, 2, or 3")
+
+    angle = np.asarray(angle, dtype=float)
+    d, m, s = _decimal_to_sexagesimal(angle)
+    # The sign is carried on the degrees; work with magnitudes and put it back
+    # at the end, matching `_decimal_to_sexagesimal_string`.
+    sign = np.copysign(1.0, d)
+    d, m, s = np.abs(d), np.abs(m), np.abs(s)
+
+    # Normalize the separators exactly as the per-element version does.
+    if not isinstance(sep, tuple):
+        sep = tuple(sep)
+    if not sep:
+        sep = ("", "", "")
+    elif len(sep) == 1:
+        if fields == 3:
+            sep = sep + (sep[0], "")
+        elif fields == 2:
+            sep = sep + ("", "")
+        else:
+            sep = ("", "", "")
+    elif len(sep) == 2:
+        sep = sep + ("",)
+    elif len(sep) != 3:
+        raise ValueError(
+            "Invalid separator specification for converting angle to string."
+        )
+
+    # Carry rounding upwards through the fields, as in the per-element version.
+    rounding_thresh = 60.0 - (10.0 ** -(8 if precision is None else precision))
+    if fields == 3:
+        carry = s >= rounding_thresh
+        s = np.where(carry, 0.0, s)
+        m = np.where(carry, m + 1.0, m)
+    else:
+        m = np.where(s >= 30.0, m + 1.0, m)
+    if fields >= 2:
+        carry = m >= 60.0
+        m = np.where(carry, 0.0, m)
+        d = np.where(carry, d + 1.0, d)
+    else:
+        d = np.where(m >= 30.0, d + 1.0, d)
+
+    # Degrees have a variable number of digits, so size the buffer from the
+    # largest finite value.  Infinities render as "inf" like the per-element
+    # path; NaNs are dealt with by the caller.
+    finite = np.isfinite(d)
+    dmax = int(d[finite].max()) if finite.any() else 0
+    if dmax >= 10**18:
+        # Would overflow the int64 buffer below; leave it to the slow path.
+        return None
+    degrees = _fixed_width_decimal(
+        np.where(finite, d, 0.0).astype(np.int64), max(1, len(str(dmax)))
+    )
+    degrees = np.strings.lstrip(degrees, "0")
+    if pad:
+        degrees = np.strings.zfill(degrees, 2)
+    else:
+        degrees = np.where(degrees == "", "0", degrees)
+    if not finite.all():
+        degrees = np.where(finite, degrees, "inf")
+    degrees = np.where(sign < 0, np.strings.add("-", degrees), degrees)
+
+    # Zero out non-finite entries before the integer cast (their strings are
+    # replaced by "inf"/"nan" elsewhere), so it does not raise on inf/NaN.
+    m = np.where(finite, m, 0.0)
+
+    out = np.strings.add(degrees, sep[0])
+    if fields >= 2:
+        minutes = _fixed_width_decimal(m.astype(np.int64), 2)
+        out = np.strings.add(out, np.strings.add(minutes, sep[1]))
+    if fields == 3:
+        if precision is None:
+            seconds = np.strings.mod("%011.8f", s)
+            seconds = np.strings.rstrip(np.strings.rstrip(seconds, "0"), ".")
+        else:
+            width = precision + 3 if precision else 2
+            seconds = np.strings.mod(f"%0{width}.{precision}f", s)
+        out = np.strings.add(out, np.strings.add(seconds, sep[2]))
+    return out
