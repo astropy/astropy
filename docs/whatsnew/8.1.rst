@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-8.1-time-string-formats`
 * :ref:`whatsnew-8.1-faster-table-joins`
+* :ref:`whatsnew-8.1-angle-to-string`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -58,6 +59,20 @@ if it is available and otherwise falls back to the built-in astropy join impleme
 
 In addition, the built-in astropy join was sped up by a factor of ~2x for the common
 case of a single join column.
+
+.. _whatsnew-8.1-angle-to-string:
+
+Faster Angle and SkyCoord string formatting
+===========================================
+
+Formatting an :class:`~astropy.coordinates.Angle` (and therefore a
+:class:`~astropy.coordinates.Longitude`, :class:`~astropy.coordinates.Latitude`
+or :class:`~astropy.coordinates.SkyCoord`) into a sexagesimal string with
+:meth:`~astropy.coordinates.Angle.to_string` now assembles the strings with
+array operations rather than looping over the elements. For large arrays this
+is roughly ten times faster, and :meth:`~astropy.coordinates.SkyCoord.to_string`
+is faster still since it no longer formats the coordinates one at a time. This
+noticeably speeds up printing catalogues and writing them to text tables.
 
 Contributors to the 8.1 release
 ===============================
