@@ -1,0 +1,5 @@
+Model inputs should not contain masks, but previously this was not
+explicitly checked, resulting sometimes in obscure problems and other
+times in the mask being silently stripped. Now, for mask inputs, if
+any value is masked, an error is raised, and it is ensure that the
+outputs are always unmasked.

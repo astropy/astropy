@@ -30,6 +30,7 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.utils import find_current_module, metadata, sharedmethod
 from astropy.utils.codegen import make_function_with_signature
+from astropy.utils.masked import get_data_and_mask
 
 from .bounding_box import CompoundBoundingBox, ModelBoundingBox
 from .parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
@@ -2104,7 +2105,14 @@ class Model(metaclass=_ModelMeta):
             model_set_axis = self.model_set_axis
 
         params = [getattr(self, name) for name in self.param_names]
-        inputs = [np.asanyarray(_input, dtype=float) for _input in inputs]
+        arrays = [np.asanyarray(_input, dtype=float) for _input in inputs]
+        # Ensure inputs are unmasked arrays
+        inputs = []
+        for array in arrays:
+            data, mask = get_data_and_mask(array)
+            if mask is not None and np.any(mask):
+                raise ValueError("models do not accept masked values.")
+            inputs.append(data)
 
         self._validate_input_shapes(inputs, self.inputs, model_set_axis)
 
