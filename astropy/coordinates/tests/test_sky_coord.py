@@ -24,6 +24,7 @@ from astropy.coordinates import (
     Attribute,
     BaseCoordinateFrame,
     CartesianRepresentation,
+    Distance,
     EarthLocation,
     Galactic,
     Latitude,
@@ -1895,6 +1896,27 @@ def test_apply_space_motion():
 
     with pytest.raises(ValueError):
         c2.apply_space_motion(new_obstime=t2)
+
+
+def test_apply_space_motion_after_display():
+    """Regression test for source-coordinate mutation in gh-18334."""
+    coord = SkyCoord(
+        ra=66.42197 * u.deg,
+        dec=-70.003723 * u.deg,
+        distance=Distance(parallax=22.76407875 * u.mas),
+        pm_ra_cosdec=144.91354358 * u.mas / u.yr,
+        pm_dec=5.44564809 * u.mas / u.yr,
+        obstime="J2000",
+    )
+    new_obstime = Time("2027-01-01")
+    original_diff = coord.frame.data.differentials["s"]
+
+    result_before = coord.apply_space_motion(new_obstime)
+    str(coord)
+    result_after = coord.apply_space_motion(new_obstime)
+
+    assert coord.frame.data.differentials["s"] is original_diff
+    assert skycoord_equal(result_before, result_after)
 
 
 def test_custom_frame_skycoord():

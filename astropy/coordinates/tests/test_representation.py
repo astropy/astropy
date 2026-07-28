@@ -1964,6 +1964,34 @@ class TestCartesianRepresentationWithDifferential:
             rep1.represent_as("name")
         assert "use frame object" in str(excinfo.value)
 
+    def test_represent_as_same_class_does_not_modify_differential(self):
+        diff = SphericalCosLatDifferential(
+            d_lon_coslat=1 * u.mas / u.yr,
+            d_lat=2 * u.mas / u.yr,
+            d_distance=3 * u.km / u.s,
+        )
+        rep = SphericalRepresentation(
+            lon=15 * u.deg,
+            lat=30 * u.deg,
+            distance=1 * u.pc,
+            differentials=diff,
+        )
+
+        new_rep = rep.represent_as(SphericalRepresentation, SphericalDifferential)
+
+        assert new_rep is not rep
+        assert rep.differentials["s"] is diff
+        assert isinstance(new_rep.differentials["s"], SphericalDifferential)
+        assert_allclose_quantity(
+            new_rep.differentials["s"].d_lon * np.cos(rep.lat),
+            diff.d_lon_coslat,
+        )
+        assert_allclose_quantity(new_rep.differentials["s"].d_lat, diff.d_lat)
+        assert_allclose_quantity(
+            new_rep.differentials["s"].d_distance,
+            diff.d_distance,
+        )
+
     @pytest.mark.parametrize(
         "sph_diff,usph_diff",
         [
