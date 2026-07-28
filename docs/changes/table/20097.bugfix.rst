@@ -1,2 +1,3 @@
-Fixed ``vstack`` returning the input table itself when given a single table.
-It now returns a copy, consistent with its documented new-table behavior.
+Fixed an issue where ``vstack`` was returning the input table itself when given 
+a single table. It now returns a copy of that table, consistent with the documented 
+behavior of always returning a new table.
