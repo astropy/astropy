@@ -461,9 +461,8 @@ class _UnifiedIORegistryBase:
             new_lines.extend(
                 [
                     "",
-                    "Deprecated format names like ``aastex`` will be "
-                    "removed in a future version. Use the full ",
-                    "name (e.g. ``ascii.aastex``) instead.",
+                    "Deprecated format names like ``aastex`` will be removed in a future version.",
+                    "Use the full name (e.g. ``ascii.aastex``) instead.",
                 ]
             )
 

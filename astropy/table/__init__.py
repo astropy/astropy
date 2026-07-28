@@ -29,7 +29,6 @@ __all__ = [
     "TableMergeError",
     "TableReplaceWarning",
     "conf",
-    "conf",
     "connect",
     "dstack",
     "hstack",

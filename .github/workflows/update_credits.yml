@@ -44,6 +44,7 @@ jobs:
     - name: Show diff
       run: git diff docs/credits.rst
     - name: Commit changes
+      id: commit
       if: github.event_name != 'pull_request'
       run: |
         git config user.name github-actions
@@ -53,11 +54,14 @@ jobs:
         git add docs/credits.rst
         if ! git diff --cached --exit-code; then
           git commit -m "Update docs/credits.rst with new contributors"
+          echo "pr-needed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "pr-needed=false" >> "$GITHUB_OUTPUT"
         fi
-        git push --set-upstream origin "$BRANCH_NAME"
     - name: Create Pull Request
-      if: github.event_name != 'pull_request'
+      if: ${{ steps.commit.outputs.pr-needed && github.event_name != 'pull_request' }}
       run: |
+        git push --set-upstream origin "$BRANCH_NAME"
         gh pr create \
           --title "Update credits to add new contributors" \
           --label no-changelog-entry-needed --label Docs \

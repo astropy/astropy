@@ -14,7 +14,7 @@ import numpy as np
 
 from astropy.io.ascii.core import convert_numpy
 from astropy.io.misc.ecsv import table_meta_as_dict
-from astropy.table import meta, serialize
+from astropy.table import Column, MaskedColumn, meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -411,6 +411,38 @@ class EcsvOutputter(core.TableOutputter):
                 raise ValueError(f"column {col.name!r} failed to convert: {exc}")
 
 
+# Formatting helper functions for EcsvData.str_vals() to convert column values to
+# strings for writing.
+def _format_col_item(obj) -> str:
+    # For multi-dim or object data, use JSON to convert an item to a string.
+    try:
+        obj = obj.tolist()
+    except AttributeError:
+        pass
+    return json.dumps(obj, separators=(",", ":"))
+
+
+def _format_col_nd_or_object(col: Column | MaskedColumn) -> list[str]:
+    # For multi-dim or object columns, use JSON to convert each item to a string.
+    return [_format_col_item(item) for item in col]
+
+
+def _format_col_1d_non_object(col: Column | MaskedColumn) -> list[str]:
+    # Fast path for 1-d non-object columns: iterate over the plain
+    # ndarray rather than indexing the column, which avoids the
+    # significant per-item overhead of (Masked)Column.__getitem__.
+    data = col.data
+    if isinstance(data, np.ma.MaskedArray):
+        data = data.data
+
+    if data.dtype.kind == "S":
+        # Column.__getitem__ decodes bytes scalars to str; match
+        # that here so bytes columns are not written as b'...'.
+        return [val.decode("utf-8", errors="replace") for val in data]
+    else:
+        return [str(val) for val in data]
+
+
 class EcsvData(basic.BasicData):
     def _set_fill_values(self, cols):
         """READ: Set the fill values of the individual cols based on fill_values of BaseData.
@@ -455,23 +487,13 @@ class EcsvData(basic.BasicData):
         - Only replace masked values with "", not the generalized filling
         """
         for col in self.cols:
-            if len(col.shape) > 1 or col.info.dtype.kind == "O":
-
-                def format_col_item(idx):
-                    obj = col[idx]
-                    try:
-                        obj = obj.tolist()
-                    except AttributeError:
-                        pass
-                    return json.dumps(obj, separators=(",", ":"))
-
-            else:
-
-                def format_col_item(idx):
-                    return str(col[idx])
-
+            format_col = (
+                _format_col_nd_or_object
+                if len(col.shape) > 1 or col.info.dtype.kind == "O"
+                else _format_col_1d_non_object
+            )
             try:
-                col.str_vals = [format_col_item(idx) for idx in range(len(col))]
+                col.str_vals = format_col(col)
             except TypeError as exc:
                 raise TypeError(
                     f"could not convert column {col.info.name!r} to string: {exc}"

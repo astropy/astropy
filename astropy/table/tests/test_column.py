@@ -109,6 +109,46 @@ class TestColumn:
         d.convert_unit_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
 
+    def test_inplace_operation_with_unit(self, Column):
+        """Regression test for #20075 - in-place operations with a Quantity
+        on a Column with a unit used to raise UnitTypeError."""
+        d = Column([1.0, 2.0, 3.0], name="a", unit="deg")
+        d += np.array([0.0, 1.0, 2.0]) * u.deg
+        assert np.all(d == [1.0, 3.0, 5.0])
+        assert d.unit == u.deg
+        assert isinstance(d, Column)
+
+        # units are converted for in-place operations
+        d = Column([1.0, 2.0, 3.0], name="a", unit="deg")
+        d += np.array([0.0, 60.0, 120.0]) * u.arcmin
+        assert np.allclose(d, [1.0, 3.0, 5.0])
+        assert d.unit == u.deg
+
+        d -= np.array([1.0, 1.0, 1.0]) * u.deg
+        assert np.allclose(d, [0.0, 2.0, 4.0])
+        d *= 2.0
+        assert np.allclose(d, [0.0, 4.0, 8.0])
+        d /= 2.0
+        assert np.allclose(d, [0.0, 2.0, 4.0])
+
+        # incompatible units still raise
+        with pytest.raises(u.UnitsError):
+            d += np.array([1.0, 1.0, 1.0]) * u.m
+
+        # a plain column without unit cannot accept a quantity in-place
+        d = Column([1.0, 2.0], name="b")
+        with pytest.raises(u.UnitsError):
+            d += np.array([1.0, 1.0]) * u.deg
+
+        # a result unit that differs from the column's unit is still rejected
+        d = Column([1.0, 2.0], name="c", unit="deg")
+        with pytest.raises(u.UnitTypeError):
+            np.add(
+                np.array([60.0, 120.0]) * u.arcmin,
+                np.array([1.0, 1.0]) * u.deg,
+                out=d,
+            )
+
     def test_array_wrap(self):
         """Test that the __array_wrap__ method converts a reduction ufunc
         output that has a different shape into an ndarray view.  Without this a

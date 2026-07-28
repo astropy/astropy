@@ -3829,7 +3829,11 @@ class Table:
     def __deepcopy__(self, memo=None):
         out = self.copy(False)
         for name in out.colnames:
-            out.columns.__setitem__(name, deepcopy(self[name]), validated=True)
+            new_col = deepcopy(self[name])
+            out.columns.__setitem__(name, new_col, validated=True)
+            # The deep-copied column dropped its link to the original parent
+            # table, so re-link it to the copied table (#20087).
+            out._set_col_parent_table_and_mask(new_col)
         out.meta = deepcopy(self.meta)
         return out
 
