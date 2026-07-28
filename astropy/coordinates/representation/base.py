@@ -948,7 +948,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 # The default is to convert via cartesian coordinates
                 new_rep = other_class.from_cartesian(self.to_cartesian())
             else:
-                new_rep = self
+                new_rep = self.without_differentials()
 
             new_rep._differentials = self._re_represent_differentials(
                 new_rep, differential_class
