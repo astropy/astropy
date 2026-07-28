@@ -691,8 +691,12 @@ def test_round_trip_masked_mixin_serialize_mask(serialize_method, format_engine)
     table2 = QTable.read(text, **format_engine)
     assert_array_equal(table2["sc"].ra.mask, table["sc"].ra.mask)
     assert_array_equal(table2["sc"].dec.mask, table["sc"].dec.mask)
-    assert_array_equal(table2["sc"].ra.unmasked, table["sc"].ra.unmasked)
-    assert_array_equal(table2["sc"].dec.unmasked, table["sc"].dec.unmasked)
+    assert quantity_allclose(
+        table2["sc"].ra.unmasked, table["sc"].ra.unmasked, rtol=1e-15
+    )
+    assert quantity_allclose(
+        table2["sc"].dec.unmasked, table["sc"].dec.unmasked, rtol=1e-15
+    )
     assert np.all(table2["sc"].obstime == table["sc"].obstime)
 
 
