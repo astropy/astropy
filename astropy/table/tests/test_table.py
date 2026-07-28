@@ -2473,6 +2473,40 @@ def test_deepcopy_object_column(data):
     assert t3.meta["test"] is not t1.meta["test"]
 
 
+@pytest.mark.parametrize("masked", [False, True], ids=["unmasked", "masked"])
+def test_deepcopy_rename_columns(masked):
+    # Regression test for #20087 for unmasked and masked tables: renaming
+    # columns of a deep-copied Table must keep column mapping in sync.
+    t = Table({"px": [1.0, 2.0], "py": [3.0, 4.0]}, masked=masked)
+    if masked:
+        t["px"].mask = [False, True]
+
+    td = copy.deepcopy(t)
+
+    # Deep-copied columns must be linked to the copied table.
+    for name in td.colnames:
+        assert td[name].info.parent_table is td
+        assert td[name].parent_table is td
+
+    td.rename_columns(["px", "py"], ["x", "y"])
+    assert td.colnames == ["x", "y"]
+    assert_array_equal(td["x"].data, [1.0, 2.0])
+    assert_array_equal(td["y"].data, [3.0, 4.0])
+    if masked:
+        assert_array_equal(td["x"].mask, [False, True])
+        assert_array_equal(td["y"].mask, [False, False])
+
+    # renaming via the info name setter works too
+    td["x"].info.name = "xx"
+    assert td.colnames == ["xx", "y"]
+
+    # the original table is unaffected
+    assert t.colnames == ["px", "py"]
+    assert_array_equal(t["px"].data, [1.0, 2.0])
+    if masked:
+        assert_array_equal(t["px"].mask, [False, True])
+
+
 def test_replace_column_qtable():
     """Replace existing Quantity column with a new column in a QTable"""
     a = [1, 2, 3] * u.m
