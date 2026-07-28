@@ -385,15 +385,94 @@ def test__SkyRotation__evaluate():
 @pytest.mark.parametrize(
     "model", [rotations.RotationSequence3D, rotations.SphericalRotationSequence]
 )
-def test_masked_column_rotation(model):
+@pytest.mark.parametrize("masked", [True, False])
+@pytest.mark.parametrize("nan", [True, False])
+@pytest.mark.parametrize("dim", [1, 2])
+def test_masked_column_rotation(model, masked, nan, dim):
     """
     Test that the rotation of a masked column table is handled correctly.
         This is a regression test for #20052
     """
-    mdl = model([0, 0, 0], axes_order=["x", "y", "z"])
-    col = MaskedColumn([1, 2])
-    truth = (np.array([1, 2]),)
+    mdl = model([11, 59, 311], axes_order=["x", "y", "z"])
+    mdl = model([11, 59, 311], axes_order=["x", "y", "z"])
+
+    lon = np.array([0.0, 0.0, 31.0, 97.0, 173.0, 227.0, 311.0])
+    lat = np.array([0.0, 67.0, 29.0, 7.0, -13.0, -43.0, -73.0])
+
+    truth_rot_lon = np.array(
+        [49.0, -148.033692, 133.459203, 139.215027, -145.276751, -21.697609, 24.292652]
+    )
+    truth_rot_lat = np.array(
+        [59.0, 53.159384, 57.506618, -7.98327, -72.625255, -46.036043, -17.300519]
+    )
+
+    mask1 = np.array([True, False, False, False, False, True, False])
+    mask2 = np.array([False, False, False, False, False, True, False])
+
+    is_nan = np.array([True, False, False, False, False, True, True])
+
+    if dim == 2:
+        lon = np.array([lon, lon])
+        lat = np.array([lat, lat])
+        truth_rot_lon = np.array([truth_rot_lon, truth_rot_lon])
+        truth_rot_lat = np.array([truth_rot_lat, truth_rot_lat])
+        is_nan = np.array([is_nan, is_nan])
+        mask1 = np.array([mask1, mask1])
+        mask2 = np.array([mask2, mask2])
+
     if model is rotations.RotationSequence3D:
-        assert_allclose(mdl(col, col, col), truth * 3)
+        x, y, z = rotations.spherical2cartesian(lon, lat)
+        if nan:
+            x[..., 0] = np.nan
+            y[..., 0] = np.nan
+            z[..., 0] = np.nan
+            x[..., -2] = np.nan
+            y[..., -1] = np.nan
+
+        if masked:
+            # TODO: notice RotationSequence3D behaves differently than
+            # SphericalRotationSequence with masked columns.
+            # The former evaluates the model even for masked values, while the
+            # latter returns unmodified input values if they were masked.
+            # This will need to be investigated and documented.
+            x = MaskedColumn(x, mask=mask1)
+            y = MaskedColumn(y, mask=mask1)
+            z = MaskedColumn(z, mask=mask2)
+
+        truth_xyz = rotations.spherical2cartesian(truth_rot_lon, truth_rot_lat)
+
+        if nan:
+            assert_allclose(
+                np.array(mdl(x, y, z))[..., np.logical_not(is_nan)],
+                np.array(truth_xyz)[..., np.logical_not(is_nan)],
+            )
+            assert np.all(
+                np.equal(is_nan, np.sum(np.isnan(mdl(x, y, z)), axis=0, dtype=bool))
+            )
+        else:
+            assert_allclose(np.array(mdl(x, y, z)), np.array(truth_xyz))
+
     else:
-        assert_allclose(mdl(col, col), truth * 2)
+        if nan:
+            lon[..., 0] = np.nan
+            lat[..., 0] = np.nan
+            lon[..., -2] = np.nan
+            lat[..., -1] = np.nan
+
+        if masked:
+            m = np.logical_not(np.logical_or(mask1, mask2))
+            lon = MaskedColumn(lon, mask=mask1)
+            lat = MaskedColumn(lat, mask=mask2)
+            if nan:
+                m = np.logical_and(m, np.logical_not(is_nan))
+            truth_rot_lonlat = np.array([truth_rot_lon, truth_rot_lat])[..., m]
+        else:
+            m = np.logical_not(is_nan) if nan else slice(None)
+            truth_rot_lonlat = np.array([truth_rot_lon, truth_rot_lat])[..., m]
+
+        mdl_out = np.array(mdl(lon, lat))
+        assert_allclose(mdl_out[..., m], truth_rot_lonlat)
+        if nan:
+            assert np.all(
+                np.equal(is_nan, np.sum(np.isnan(mdl_out), axis=0, dtype=bool))
+            )
