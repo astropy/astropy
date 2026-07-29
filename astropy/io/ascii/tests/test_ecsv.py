@@ -1236,6 +1236,21 @@ def test_write_structured_masked_column(masked, format_engine):
     assert (t2["mc"].mask == mc.mask).all()
 
 
+@pytest.mark.parametrize("masked", [Column, MaskedColumn])
+def test_write_read_bytes_string_column(masked, format_engine):
+    # Special case bytes roundtrip test. Make sure b'abc' is encoded
+    # as 'abc' and not "b'abc'"
+    kwargs = {"mask": [False, True, False]} if masked is MaskedColumn else {}
+    col = masked(np.array([b"abc", b"de", b"f"], dtype="S3"), **kwargs)
+    t = Table([col], names=["s"])
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), **format_engine)
+    assert np.all(t2["s"] == col.astype("U"))
+    if masked is MaskedColumn:
+        assert np.all(t2["s"].mask == col.mask)
+
+
 def test_write_masked_time_ymdhms_mixin(format_engine):
     # Regression test for gh-16370
     # Make a masked time,

@@ -36,7 +36,7 @@ def get_converter(from_unit, to_unit):
     i.e., if the inferred scale is unity.
     """
     try:
-        converter = from_unit.get_converter(to_unit)
+        converter = from_unit._get_converter(to_unit)
     except AttributeError as exc:
         # Check for lack of unit only now, to avoid delay for cases where a unit
         # was present. Note that cases where dimensionless is expected are
@@ -45,7 +45,7 @@ def get_converter(from_unit, to_unit):
         if from_unit is not None:  # pragma: no cover
             raise
         try:
-            converter = dimensionless_unscaled.get_converter(to_unit)
+            converter = dimensionless_unscaled._get_converter(to_unit)
         except UnitsError:
             exc.add_note(
                 "Input without a 'unit' attribute? Such input is treated "

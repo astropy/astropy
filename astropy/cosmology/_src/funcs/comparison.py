@@ -26,7 +26,7 @@ __all__ = ("cosmology_equal",)
 ##############################################################################
 # PARAMETERS
 
-_FormatType: TypeAlias = bool | None | str
+_FormatType: TypeAlias = bool | str | None
 _FormatsType: TypeAlias = _FormatType | tuple[_FormatType, ...]
 
 _COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}

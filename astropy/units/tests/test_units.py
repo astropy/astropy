@@ -97,8 +97,9 @@ def test_convert(original, expectation):
 
 
 def test_convert_roundtrip():
-    c1 = u.cm.get_converter(u.m)
-    c2 = u.m.get_converter(u.cm)
+    # Use strings here to check get_converter can take those.
+    c1 = u.cm.get_converter("m")
+    c2 = u.m.get_converter("cm")
     assert_allclose(c1(c2(10.0)), c2(c1(10.0)), rtol=1e-15, atol=0)
 
 
@@ -106,6 +107,11 @@ def test_convert_roundtrip_with_equivalency():
     c1 = u.arcsec.get_converter(u.pc, u.parallax())
     c2 = u.pc.get_converter(u.arcsec, u.parallax())
     assert_allclose(c1(c2(10.0)), c2(c1(10.0)), rtol=1e-15, atol=0)
+
+
+def test_get_converter_bad_unit():
+    with pytest.raises(ValueError, match="did not parse as unit"):
+        u.m.get_converter("this is not a unit")
 
 
 def test_convert_fail():

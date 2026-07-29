@@ -721,7 +721,7 @@ def vstack(tables, join_type="outer", metadata_conflicts="warn"):
 
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
-        return tables[0]  # no point in stacking a single table
+        return tables[0].copy()
 
     out = _vstack(tables, join_type, metadata_conflicts)
 

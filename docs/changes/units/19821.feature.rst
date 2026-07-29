@@ -1,0 +1,2 @@
+Function units like ``MagUnit`` now have a ``get_converter()`` method,
+similar to regular units.
