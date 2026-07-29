@@ -56,7 +56,7 @@ def _check_multidim_table(table: Table, max_ndim: int | None) -> None:
     if nd_names:
         raise ValueError(
             f"column(s) with dimension > {max_ndim} "
-            "cannot be be written with this format, try using 'ecsv' "
+            "cannot be written with this format, try using 'ecsv' "
             "(Enhanced CSV) format"
         )
 
