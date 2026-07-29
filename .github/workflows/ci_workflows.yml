@@ -50,7 +50,7 @@ jobs:
 
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1  # v3.0.2
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
@@ -83,9 +83,8 @@ jobs:
           posargs: -n=4 --run-slow
 
         - name: Python 3.11 with oldest supported version of all dependencies
-          linux: py311-test-oldestdeps-alldeps-cov-clocale
+          linux: py311-test-oldestdeps-alldeps-clocale
           posargs: --remote-data=astropy
-          coverage: codecov
 
         - name: Python 3.12 with all optional dependencies (Windows)
           windows: py312-test-alldeps
@@ -107,7 +106,7 @@ jobs:
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1  # v3.0.2
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -126,7 +125,7 @@ jobs:
 
   stub_tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1  # v3.0.2
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -141,7 +140,7 @@ jobs:
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@d9b81a07e789d1b1921ab5fe33de2ddcbbd02c3f  # v2.3.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1  # v3.0.2
     with:
       upload_to_pypi: false
       upload_to_anaconda: false
