@@ -25,15 +25,24 @@ static PyUFuncGenericFunction loops[6] = {NULL};
 static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr)
 {
     const int type_num = PyArray_TYPE(arr);
-    PyUFuncGenericFunction loop = loops[type_num - NPY_FLOAT];
     PyArrayObject *res = (PyArrayObject *)PyArray_EMPTY(
         PyArray_NDIM(arr), PyArray_DIMS(arr), type_num, PyArray_ISFORTRAN(arr)
     );
+    if (res == NULL) {
+        return NULL;
+    }
     npy_intp n = PyArray_SIZE(arr);
+    if (n == 0) {
+        return (PyObject *)res; // Nothing to do.
+    }
+    PyUFuncGenericFunction loop = loops[type_num - NPY_FLOAT];
     npy_intp strides[3] = {PyArray_ITEMSIZE(arr), 0, PyArray_ITEMSIZE(arr)};
     char *data[3] = {PyArray_DATA(arr), factor_ptr, PyArray_DATA(res)};
     PyUFunc_clearfperr();
+    NPY_BEGIN_THREADS_DEF;
+    NPY_BEGIN_THREADS_THRESHOLDED(n);
     loop(data, &n, strides, NULL);
+    NPY_END_THREADS;
     int fpe_errors = PyUFunc_getfperr();
     if (fpe_errors) {
         if (PyUFunc_GiveFloatingpointErrors("multiply", fpe_errors) < 0) {

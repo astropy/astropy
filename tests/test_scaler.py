@@ -95,7 +95,7 @@ def test_equality():
     sc1 = Scaler(10.0)
     sc1_2 = Scaler(10.0)
     assert sc1_2 == sc1
-    assert not (sc1_2 != sc1)
+    assert not (sc1_2 != sc1)  # noqa: SIM202
     sc2 = Scaler(20.0)
     assert sc1 != sc2
     assert not (sc1 == sc2)
