@@ -19,6 +19,7 @@ from astropy.utils.compat.numpycompat import (
     NUMPY_LT_2_2,
     NUMPY_LT_2_3,
     NUMPY_LT_2_5,
+    NUMPY_LT_2_6,
 )
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
@@ -332,6 +333,13 @@ def helper_divmod(f, unit1, unit2):
     return converters, (dimensionless_unscaled, result_unit)
 
 
+def helper_unwrap(f, unit1, unit2):
+    from astropy.units.si import radian
+
+    converters, _ = get_converters_and_unit(f, unit1, unit2)
+    return converters, radian
+
+
 def helper_clip(f, unit1, unit2, unit3):
     # Treat the array being clipped as primary.
     converters = [None]
@@ -581,5 +589,8 @@ UFUNC_HELPERS[np.divmod] = helper_divmod
 # Check for clip ufunc; note that np.clip is a wrapper function, not the ufunc.
 if isinstance(getattr(np_umath, "clip", None), np.ufunc):
     UFUNC_HELPERS[np_umath.clip] = helper_clip
+# Check for unwrap ufunc; note that np.unwrap is a wrapper function, not the ufunc.
+if (not NUMPY_LT_2_6) or isinstance(getattr(np_umath, "_unwrap", None), np.ufunc):
+    UFUNC_HELPERS[np_umath._unwrap] = helper_unwrap
 
 del ufunc

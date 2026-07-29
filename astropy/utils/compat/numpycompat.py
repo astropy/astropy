@@ -21,6 +21,7 @@ __all__ = [
     "NUMPY_LT_2_4",
     "NUMPY_LT_2_4_1",
     "NUMPY_LT_2_5",
+    "NUMPY_LT_2_6",
     "chararray",
     "get_chararray",
 ]
@@ -34,6 +35,7 @@ NUMPY_LT_2_3 = not minversion(np, "2.3.0.dev0")
 NUMPY_LT_2_4 = not minversion(np, "2.4.0.dev0")
 NUMPY_LT_2_4_1 = not minversion(np, "2.4.1.dev0")
 NUMPY_LT_2_5 = not minversion(np, "2.5.0.dev0")
+NUMPY_LT_2_6 = not minversion(np, "2.6.0.dev0")
 
 
 def __getattr__(attr):
