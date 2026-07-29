@@ -153,7 +153,7 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
     """Name of the representation or differential.
 
     When a subclass is defined, by default, the name is the lower-cased name of the
-    class with with any trailing 'representation' or 'differential' removed. (E.g.,
+    class with any trailing 'representation' or 'differential' removed. (E.g.,
     'spherical' for `~astropy.coordinates.SphericalRepresentation` or
     `~astropy.coordinates.SphericalDifferential`.)
 

@@ -61,7 +61,7 @@ def normal(
         if std is None:
             std = np.asanyarray(ivar) ** -0.5
         else:
-            raise ValueError("normal cannot take both ivar and and std or var")
+            raise ValueError("normal cannot take both ivar and std or var")
     if std is None:
         raise ValueError("normal requires one of std, var, or ivar")
     else:
