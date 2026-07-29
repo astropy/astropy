@@ -3575,8 +3575,7 @@ class Table:
         order of that column, and assembles the results from all the key
         columns using `numpy.lexsort` (or `numpy.argsort` if there is only a
         single sortable array).  This allows efficient and correct sorting of
-        mixin columns like `~astropy.time.Time`, which would otherwise need to
-        be converted to a slow structured or object array.
+        mixin columns like `~astropy.time.Time`.
 
         Parameters
         ----------
