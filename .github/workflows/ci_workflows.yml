@@ -83,9 +83,8 @@ jobs:
           posargs: -n=4 --run-slow
 
         - name: Python 3.11 with oldest supported version of all dependencies
-          linux: py311-test-oldestdeps-alldeps-cov-clocale
+          linux: py311-test-oldestdeps-alldeps-clocale
           posargs: --remote-data=astropy
-          coverage: codecov
 
         - name: Python 3.12 with all optional dependencies (Windows)
           windows: py312-test-alldeps
