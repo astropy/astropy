@@ -105,8 +105,10 @@ test = [
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
     "pytest>=8.0.0",
     "pytest-doctestplus>=1.4.0",
-    "pytest-astropy-header>=0.2.1",
-    "pytest-astropy>=0.10.0",
+    "pytest-astropy-header>=0.2.2",
+    "pytest-cov>=2.3.1",
+    "pytest-remotedata>=0.4.1",
+    "pytest-skip-slow==1.1.0",
     "pytest-xdist>=2.5.0",
     "threadpoolctl>=3.0.0",
 ]
