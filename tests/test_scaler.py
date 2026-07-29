@@ -8,59 +8,72 @@ from numpy.testing import assert_array_equal
 from scaler import Scaler
 
 
-@pytest.mark.parametrize(
-    "dtype",
-    [
-        float,
-        np.float32,
-        np.float64,
-        complex,
-        np.complex64,
-        np.complex128,
-        int,
-        np.int32,
-        np.uint64,
-    ],
-)
-def test_with_scalar(dtype):
-    a = dtype(5)
-    if issubclass(dtype, (complex, np.complexfloating)):
-        a = a - 4.0j
+NUMPY_SCALAR_TYPES = [np.float32, np.float64, np.complex64, np.complex128]
+SCALAR_TYPES = NUMPY_SCALAR_TYPES + [float, complex, int, np.int32, np.uint64]
 
-    assert isinstance(a, dtype)
-    assert Scaler(10.0)(a) == a * 10.0
+FLOATING_DTYPES = ["f4", "f8", "c8", "c16"]
+DTYPES = FLOATING_DTYPES + ["i4", "u8"]
+
+
+class TestScalar:
+    @pytest.mark.parametrize("scalar_type", SCALAR_TYPES)
+    def test_scalar(self, scalar_type):
+        a = scalar_type(5)
+        if issubclass(scalar_type, (complex, np.complexfloating)):
+            a = a - 4.0j
+
+        assert isinstance(a, scalar_type)
+        scaler = Scaler(10.0)
+        got = scaler(a)
+        exp = a * 10.0
+        assert got == exp
+
+    @pytest.mark.parametrize("scalar_type", NUMPY_SCALAR_TYPES)
+    def test_scalar_overflow(self, scalar_type):
+        a = scalar_type(np.finfo(scalar_type).max)
+        if issubclass(scalar_type, (complex, np.complexfloating)):
+            a = a - 4.0j
+
+        assert isinstance(a, scalar_type)
+        scaler = Scaler(1000.0)
+        with pytest.warns(RuntimeWarning, match="overflow.*scalar multiply"):
+            scaler(a)
 
 
 @pytest.mark.parametrize("order", ["C", "F"])
 @pytest.mark.parametrize("swapbyteorder", [False, True])
-@pytest.mark.parametrize(
-    "dtype",
-    [
-        np.float32,
-        np.float64,
-        np.complex64,
-        np.complex128,
-        np.int32,
-        np.uint64,
-    ],
-)
-def test_with_array(dtype, swapbyteorder, order):
-    dtype = np.dtype(dtype)
-    if swapbyteorder:
-        dtype = dtype.newbyteorder()
-    a = np.arange(10, dtype=dtype).reshape(2, 5)
-    if dtype.kind == "c":
-        a -= 4.0j
-    a = a.copy(order=order)
+class TestArray:
+    def get_dtype(self, dtype, swapbyteorder):
+        dtype = np.dtype(dtype)
+        return dtype.newbyteorder() if swapbyteorder else dtype
 
-    assert a.dtype == dtype
-    if order == "C":
-        assert a.flags["C_CONTIGUOUS"] and not a.flags["F_CONTIGUOUS"]
-    else:
-        assert a.flags["F_CONTIGUOUS"] and not a.flags["C_CONTIGUOUS"]
-    got = Scaler(10.0)(a)
-    exp = a * 10.0
-    assert_array_equal(got, exp, strict=True)
+    def get_array(self, data, dtype, order, imag=-4j):
+        if dtype.kind == "c":
+            data = np.asanyarray(data) + np.asanyarray(imag)
+        data = np.array(data).astype(dtype, order=order)
+        assert data.dtype == dtype
+        return data
+
+    @pytest.mark.parametrize("dtype", DTYPES)
+    def test_array(self, dtype, swapbyteorder, order):
+        dtype = self.get_dtype(dtype, swapbyteorder)
+        a = self.get_array(np.arange(10).reshape(2, 5), dtype, order)
+        if order == "C":
+            assert a.flags["C_CONTIGUOUS"] and not a.flags["F_CONTIGUOUS"]
+        else:
+            assert a.flags["F_CONTIGUOUS"] and not a.flags["C_CONTIGUOUS"]
+        scaler = Scaler(10.0)
+        got = scaler(a)
+        exp = a * 10.0
+        assert_array_equal(got, exp, strict=True)
+
+    @pytest.mark.parametrize("dtype", FLOATING_DTYPES)
+    def test_array_overflow(self, dtype, swapbyteorder, order):
+        dtype = self.get_dtype(dtype, swapbyteorder)
+        a = self.get_array([1.0, np.finfo(dtype).max], dtype, order)
+        scaler = Scaler(1000.0)
+        with pytest.warns(RuntimeWarning, match="overflow.*multiply"):
+            scaler(a)
 
 
 def test_with_list():

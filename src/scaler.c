@@ -2,6 +2,7 @@
 #define PY_SSIZE_T_CLEAN
 #include "numpy/arrayobject.h"
 #include <Python.h>
+#include <numpy/arrayscalars.h>
 #include <numpy/ndarrayobject.h>
 #include <numpy/ufuncobject.h>
 #include <stddef.h> // for offsetof()
@@ -87,10 +88,11 @@ static PyObject *Scaler_vectorcall(
         return NULL;
     }
     PyObject *const obj = args[0];
-    // fastest paths: special-case known objects.
+    // Fast paths for python double.
     if (PyFloat_CheckExact(obj)) {
         return PyFloat_FromDouble(PyFloat_AS_DOUBLE(obj) * self->factor);
     }
+    // Fast path for plain ndarray, with special care for contiguous data.
     if (PyArray_CheckExact(obj)) {
         PyArrayObject *const arr = (PyArrayObject *)obj;
         const int type_num = PyArray_TYPE(arr);
@@ -116,6 +118,30 @@ static PyObject *Scaler_vectorcall(
         }
         return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, *A_factor);
     }
+// Fast paths for numpy double and float scalars; particularly useful for
+// float32, where it avoids double->float conversion.
+// Note: keep PyArray_VAL and ASSIGN where they are: they prevent the compiler
+// from reordering the multiplication with the fperr calls.
+#define FAST_PATH_NUMPY_SCALAR(obj, Type, npy_type, factor) \
+    if (PyArray_IsScalar(obj, Type)) { \
+        PyObject *res = PyArrayScalar_New(Type); \
+        if (res == NULL) { \
+            return NULL; \
+        } \
+        PyUFunc_clearfperr(); \
+        npy_type x = PyArrayScalar_VAL(obj, Type); \
+        npy_type out = x * factor; \
+        PyArrayScalar_ASSIGN(res, Type, out); \
+        int fpe_errors = PyUFunc_getfperr(); \
+        if (fpe_errors && PyUFunc_GiveFloatingpointErrors("scalar multiply", fpe_errors) < 0) { \
+            Py_CLEAR(res); \
+        } \
+        return res; \
+    }
+    FAST_PATH_NUMPY_SCALAR(obj, Double, npy_double, self->factor);
+    FAST_PATH_NUMPY_SCALAR(obj, Float, npy_float, self->factor_f);
+#undef FAST_PATH_NUMPY_SCALAR
+    // Fast path for python integers.
     if (PyLong_CheckExact(obj)) {
         double d = PyLong_AsDouble(obj);
         if (d == -1.0 && PyErr_Occurred()) {
