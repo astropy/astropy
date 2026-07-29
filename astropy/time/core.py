@@ -265,9 +265,14 @@ class TimeInfoBase(MixinInfo):
         -------
         arrays : list of ndarray
         """
+        # Same approach as Time.argsort(): split the full jd1 + jd2 precision
+        # into an approximate value and a remainder, both of which are plain
+        # float arrays that can be lexically sorted. This avoids the far more
+        # expensive approach of creating a new Time object and subtracting.
         parent = self._parent
-        jd_approx = parent.jd
-        jd_remainder = (parent - parent.__class__(jd_approx, format="jd")).jd
+        jd1, jd2 = parent.jd1, parent.jd2
+        jd_approx = jd1 + jd2
+        jd_remainder = (jd1 - jd_approx) + jd2
         return [jd_approx, jd_remainder]
 
     @property
