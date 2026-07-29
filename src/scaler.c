@@ -8,17 +8,16 @@
 
 typedef struct {
     PyObject_HEAD
+    vectorcallfunc vectorcall;
     double factor;
-    double factor_imag; // always set to 0, to have complex factor.
     float factor_f;
-    float factor_f_imag; // always set to 0.
     PyObject *O_factor;
     PyObject *A_factor;
     PyObject *A_factor_f;
-    vectorcallfunc vectorcall;
 } ScalerObject;
 
-static PyUFuncGenericFunction loops[6] = {NULL};
+// Double and float multiply loops, filled in on initialization.
+static PyUFuncGenericFunction loops[2] = {NULL, NULL};
 
 // Multiply a contiguous array directly with the factor, using np.multiply's
 // loop function.
@@ -35,9 +34,20 @@ static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr
     if (n == 0) {
         return (PyObject *)res; // Nothing to do.
     }
-    PyUFuncGenericFunction loop = loops[type_num - NPY_FLOAT];
-    npy_intp strides[3] = {PyArray_ITEMSIZE(arr), 0, PyArray_ITEMSIZE(arr)};
+    PyUFuncGenericFunction loop;
+    npy_intp strides[3];
     char *data[3] = {PyArray_DATA(arr), factor_ptr, PyArray_DATA(res)};
+    if (type_num == NPY_DOUBLE || type_num == NPY_FLOAT) {
+        strides[0] = PyArray_ITEMSIZE(arr);
+        loop = loops[type_num - NPY_FLOAT];
+    }
+    else { // For complex, with real factor, we can use real loop.
+        strides[0] = PyArray_ITEMSIZE(arr) / 2;
+        n *= 2;
+        loop = loops[type_num - NPY_CFLOAT];
+    }
+    strides[1] = 0;
+    strides[2] = strides[0];
     PyUFunc_clearfperr();
     NPY_BEGIN_THREADS_DEF;
     NPY_BEGIN_THREADS_THRESHOLDED(n);
@@ -178,8 +188,6 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     self->factor = factor;
     self->factor_f = (float)factor;
     // No need to explicitly set to zero, since zeroed by tp_alloc.
-    // self->factor_imag = 0;  // allows using &self->factor for complex.
-    // self->factor_f_imag = 0;
     // self->O_factor = NULL;  // initialized as needed in call.
     // self->A_factor = NULL;
     // self->A_factor_f = NULL;
@@ -265,9 +273,9 @@ static PyTypeObject ScalerType = {
 };
 
 // Get and cache multiplication loops for use with plain ndarray.
-// Only gets float, double, complex float and complex double,
-// not the long double ones.
-static int get_multiply_loops(PyUFuncGenericFunction loops[6])
+// Only gets double and float loops, since those can be used for
+// complex too. We ignore long double for our fast path.
+static int get_multiply_loops(PyUFuncGenericFunction loops[2])
 {
     PyObject *mod = PyImport_ImportModule("numpy");
     if (mod == NULL) {
@@ -279,11 +287,8 @@ static int get_multiply_loops(PyUFuncGenericFunction loops[6])
         return -1;
     }
     // Unfortunately, new-style loops are not exposed, so get legacy ones.
-    for (int k = 0; k < 5; k++) {
+    for (int k = 0; k < 2; k++) {
         char type = (char)(k + NPY_FLOAT);
-        if (type == NPY_LONGDOUBLE) {
-            continue;
-        }
         const char *types = multiply->types;
         for (int i = 0; i < multiply->ntypes; i++) {
             if (types[0] == type && types[1] == type && types[2] == type) {
