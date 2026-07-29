@@ -6,6 +6,7 @@ import os
 import pathlib
 import pickle
 import sys
+import warnings
 from collections import OrderedDict
 from contextlib import nullcontext
 from inspect import currentframe, getframeinfo
@@ -1505,6 +1506,22 @@ def test_sort_kind(kwargs):
     with ctx:
         t.sort(["a", "b"], **kwargs)
     assert np.all(t.as_array() == np.sort(t_struct, **kwargs))
+
+
+@pytest.mark.parametrize("kind", [None, "stable", "mergesort", "quicksort", "heapsort"])
+def test_sort_kind_single_key(kind):
+    """A single key column with a single sortable array passes ``kind``
+    through directly to `numpy.argsort` with no warning, for any valid
+    `numpy.argsort` ``kind`` value.
+    """
+    t = Table()
+    t["a"] = [2, 1, 3, 2, 3, 1]
+    a_struct = t["a"].copy()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        i = t.argsort("a", kind=kind)
+    kwargs = {"kind": kind} if kind else {}
+    assert np.all(i == np.argsort(a_struct, **kwargs))
 
 
 @pytest.mark.usefixtures("table_types")
