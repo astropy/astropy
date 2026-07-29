@@ -34,7 +34,7 @@ import astropy.utils.data
 from astropy import units as _u  # u is taken
 from astropy.config import paths
 from astropy.io import fits
-from astropy.tests.helper import CI, IS_CRON
+from astropy.tests.helper import CI
 from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA, HAS_UNCOMPRESSPY
 from astropy.utils.data import (
     CacheDamaged,
@@ -2319,8 +2319,8 @@ def test_clear_download_cache_raises_os_error(temp_cache, valid_urls, monkeypatc
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.skipif(
-    CI and not IS_CRON,
-    reason="Flaky/too much external traffic for regular CI",
+    CI,
+    reason="Flaky/too much external traffic for CI",
 )
 @pytest.mark.remote_data
 def test_ftp_tls_auto(temp_cache):

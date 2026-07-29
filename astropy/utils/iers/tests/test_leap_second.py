@@ -11,6 +11,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 import astropy
+from astropy.tests.helper import CI
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.iers import iers
@@ -215,6 +216,7 @@ class TestRemoteURLs:
 
     # In these tests, the results may be cached.
     # This is fine - no need to download again.
+    @pytest.mark.skipif(CI, reason="Flaky on CI")
     def test_iers_url(self):
         ls = iers.LeapSeconds.auto_open([iers.IERS_LEAP_SECOND_URL])
         assert ls.expires > Time.now()

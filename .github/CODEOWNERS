@@ -26,7 +26,7 @@ astropy/modeling            @astropy/modeling
 # astropy/nddata
 # astropy/samp
 astropy/stats               @larrybradley
-astropy/table               @taldcroft    @neutrinoceros
+astropy/table               @taldcroft
 astropy/time                @taldcroft
 # astropy/timeseries
 # astropy/uncertainty

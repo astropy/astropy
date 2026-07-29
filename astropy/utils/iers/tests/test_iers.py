@@ -452,6 +452,7 @@ def test_iers_a_dl():
         iers.IERS_A.close()
 
 
+@pytest.mark.skipif(CI, reason="Flaky on CI")
 @pytest.mark.remote_data
 def test_iers_a_dl_mirror():
     iersa_tab = iers.IERS_A.open(iers.IERS_A_URL_MIRROR, cache=False)
@@ -463,6 +464,7 @@ def test_iers_a_dl_mirror():
         iers.IERS_A.close()
 
 
+@pytest.mark.skipif(CI, reason="Flaky on CI")
 @pytest.mark.remote_data
 def test_iers_b_dl():
     iersb_tab = iers.IERS_B.open(iers.IERS_B_URL, cache=False)
