@@ -10,7 +10,7 @@ Introduction
 The `~astropy.utils.iers` package provides access to the tables provided by the
 `International Earth Rotation and Reference Systems <https://www.iers.org/>`_
 (IERS) service, in particular the `Earth Orientation data
-<https://www.iers.org/IERS/EN/DataProducts/EarthOrientationData/eop.html>`_
+<https://www.iers.org/iers/en/dataproducts/earthorientationdata/eop/>`_
 allowing interpolation of published UT1-UTC and polar motion values for given
 times.  The UT1-UTC values are used in :ref:`astropy-time` to provide UT1 values, and
 the polar motions are used in `astropy.coordinates` to determine Earth
