@@ -16,7 +16,7 @@
 #define MAXSIZE 68
 #define ARRAYSIZE 72
 
-static PyObject* PyUnitListProxyType;
+static PyObject* UnitListProxyType;
 
 typedef struct {
   PyObject_HEAD
@@ -25,11 +25,11 @@ typedef struct {
   char (*array)[ARRAYSIZE];
   PyObject* unit_class;
   int readonly;
-} PyUnitListProxy;
+} UnitListProxy;
 
 static void
-PyUnitListProxy_dealloc(
-    PyUnitListProxy* self) {
+UnitListProxy_dealloc(
+    UnitListProxy* self) {
 
   PyObject_GC_UnTrack(self);
   Py_XDECREF(self->pyobject);
@@ -40,15 +40,15 @@ PyUnitListProxy_dealloc(
 }
 
 /*@null@*/ static PyObject *
-PyUnitListProxy_new(
+UnitListProxy_new(
     PyTypeObject* type,
     /*@unused@*/ PyObject* args,
     /*@unused@*/ PyObject* kwds) {
 
-  PyUnitListProxy* self = NULL;
+  UnitListProxy* self = NULL;
 
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-  self = (PyUnitListProxy*)alloc_func(type, 0);
+  self = (UnitListProxy*)alloc_func(type, 0);
   if (self != NULL) {
     self->pyobject = NULL;
     self->unit_class = NULL;
@@ -57,8 +57,8 @@ PyUnitListProxy_new(
 }
 
 static int
-PyUnitListProxy_traverse(
-    PyUnitListProxy* self,
+UnitListProxy_traverse(
+    UnitListProxy* self,
     visitproc visit,
     void *arg) {
 
@@ -69,8 +69,8 @@ PyUnitListProxy_traverse(
 }
 
 static int
-PyUnitListProxy_clear(
-    PyUnitListProxy *self) {
+UnitListProxy_clear(
+    UnitListProxy *self) {
 
   Py_CLEAR(self->pyobject);
   Py_CLEAR(self->unit_class);
@@ -79,13 +79,13 @@ PyUnitListProxy_clear(
 }
 
 /*@null@*/ PyObject *
-PyUnitListProxy_New(
+UnitListProxy_New(
     /*@shared@*/ PyObject* owner,
     Py_ssize_t size,
     char (*array)[ARRAYSIZE],
     int readonly) {
 
-  PyUnitListProxy* self = NULL;
+  UnitListProxy* self = NULL;
   PyObject *units_module;
   PyObject *units_dict;
   PyObject *unit_class;
@@ -108,9 +108,9 @@ PyUnitListProxy_New(
 
   Py_INCREF(unit_class);
 
-  PyTypeObject* type = (PyTypeObject*)PyUnitListProxyType;
+  PyTypeObject* type = (PyTypeObject*)UnitListProxyType;
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-  self = (PyUnitListProxy*)alloc_func(type, 0);
+  self = (UnitListProxy*)alloc_func(type, 0);
   if (self == NULL) {
     return NULL;
   }
@@ -125,8 +125,8 @@ PyUnitListProxy_New(
 }
 
 static Py_ssize_t
-PyUnitListProxy_len(
-    PyUnitListProxy* self) {
+UnitListProxy_len(
+    UnitListProxy* self) {
 
   return self->size;
 }
@@ -161,8 +161,8 @@ _get_unit(
 }
 
 /*@null@*/ static PyObject*
-PyUnitListProxy_getitem(
-    PyUnitListProxy* self,
+UnitListProxy_getitem(
+    UnitListProxy* self,
     Py_ssize_t index) {
 
   PyObject *value;
@@ -182,16 +182,16 @@ PyUnitListProxy_getitem(
 }
 
 static PyObject*
-PyUnitListProxy_richcmp(
+UnitListProxy_richcmp(
   PyObject *a,
   PyObject *b,
   int op){
-  PyUnitListProxy *lhs, *rhs;
+  UnitListProxy *lhs, *rhs;
   Py_ssize_t idx;
   int equal = 1;
   assert(a != NULL && b != NULL);
-  if (!PyObject_TypeCheck(a, (PyTypeObject*)PyUnitListProxyType) ||
-      !PyObject_TypeCheck(b, (PyTypeObject*)PyUnitListProxyType)) {
+  if (!PyObject_TypeCheck(a, (PyTypeObject*)UnitListProxyType) ||
+      !PyObject_TypeCheck(b, (PyTypeObject*)UnitListProxyType)) {
     Py_RETURN_NOTIMPLEMENTED;
   }
   if (op != Py_EQ && op != Py_NE) {
@@ -201,8 +201,8 @@ PyUnitListProxy_richcmp(
   /* The actual comparison of the two objects. unit_class is ignored because
    * it's not an essential property of the instances.
    */
-  lhs = (PyUnitListProxy *)a;
-  rhs = (PyUnitListProxy *)b;
+  lhs = (UnitListProxy *)a;
+  rhs = (UnitListProxy *)b;
   if (lhs->size != rhs->size) {
     equal = 0;
   }
@@ -220,8 +220,8 @@ PyUnitListProxy_richcmp(
 }
 
 static int
-PyUnitListProxy_setitem(
-    PyUnitListProxy* self,
+UnitListProxy_setitem(
+    UnitListProxy* self,
     Py_ssize_t index,
     PyObject* arg) {
 
@@ -269,33 +269,33 @@ PyUnitListProxy_setitem(
 }
 
 /*@null@*/ static PyObject*
-PyUnitListProxy_repr(
-    PyUnitListProxy* self) {
+UnitListProxy_repr(
+    UnitListProxy* self) {
 
   return str_list_proxy_repr(self->array, self->size, MAXSIZE);
 }
 
-static PyType_Spec PyUnitListProxyType_spec = {
+static PyType_Spec UnitListProxyType_spec = {
   .name = "astropy.wcs.UnitListProxy",
-  .basicsize = sizeof(PyUnitListProxy),
+  .basicsize = sizeof(UnitListProxy),
   .itemsize = 0,
   .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
   .slots = (PyType_Slot[]){
-    {Py_tp_dealloc, (destructor)PyUnitListProxy_dealloc},
-    {Py_tp_repr, (reprfunc)PyUnitListProxy_repr},
-    {Py_tp_str, (reprfunc)PyUnitListProxy_repr},
-    {Py_tp_traverse, (traverseproc)PyUnitListProxy_traverse},
-    {Py_tp_clear, (inquiry)PyUnitListProxy_clear},
-    {Py_tp_richcompare, (richcmpfunc)PyUnitListProxy_richcmp},
-    {Py_tp_new, (newfunc)PyUnitListProxy_new},
-    {Py_sq_length, (lenfunc)PyUnitListProxy_len},
-    {Py_sq_item, (ssizeargfunc)PyUnitListProxy_getitem},
-    {Py_sq_ass_item, (ssizeobjargproc)PyUnitListProxy_setitem},
+    {Py_tp_dealloc, (destructor)UnitListProxy_dealloc},
+    {Py_tp_repr, (reprfunc)UnitListProxy_repr},
+    {Py_tp_str, (reprfunc)UnitListProxy_repr},
+    {Py_tp_traverse, (traverseproc)UnitListProxy_traverse},
+    {Py_tp_clear, (inquiry)UnitListProxy_clear},
+    {Py_tp_richcompare, (richcmpfunc)UnitListProxy_richcmp},
+    {Py_tp_new, (newfunc)UnitListProxy_new},
+    {Py_sq_length, (lenfunc)UnitListProxy_len},
+    {Py_sq_item, (ssizeargfunc)UnitListProxy_getitem},
+    {Py_sq_ass_item, (ssizeobjargproc)UnitListProxy_setitem},
     {0, NULL},
   },
 };
 
-static PyObject* PyUnitListProxyType = NULL;
+static PyObject* UnitListProxyType = NULL;
 
 int
 set_unit_list(
@@ -330,7 +330,7 @@ set_unit_list(
     return -1;
   }
 
-  proxy = PyUnitListProxy_New(owner, len, dest, 0);
+  proxy = UnitListProxy_New(owner, len, dest, 0);
   if (proxy == NULL) {
       return -1;
   }
@@ -361,8 +361,8 @@ int
 _setup_unit_list_proxy_type(
     /*@unused@*/ PyObject* m) {
 
-  PyUnitListProxyType = PyType_FromSpec(&PyUnitListProxyType_spec);
-  if (PyUnitListProxyType == NULL) {
+  UnitListProxyType = PyType_FromSpec(&UnitListProxyType_spec);
+  if (UnitListProxyType == NULL) {
     return 1;
   }
 

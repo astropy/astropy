@@ -9,13 +9,13 @@
 #include "pyutil.h"
 #include "distortion.h"
 
-extern PyObject* PyDistLookupType;
+extern PyObject* DistLookupType;
 
 typedef struct {
   PyObject_HEAD
   distortion_lookup_t                    x;
   /*@null@*/ /*@shared@*/ PyArrayObject* py_data;
-} PyDistLookup;
+} DistLookup;
 
 int
 _setup_distortion_type(

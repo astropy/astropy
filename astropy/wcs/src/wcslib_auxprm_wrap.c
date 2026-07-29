@@ -16,21 +16,21 @@
 
 
 /***************************************************************************
- * PyAuxprm methods                                                        *
+ * Auxprm methods                                                        *
  ***************************************************************************/
 
 static PyObject*
-PyAuxprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-  PyAuxprm* self;
+Auxprm_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
+  Auxprm* self;
 
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-  self = (PyAuxprm*)alloc_func(type, 0);
+  self = (Auxprm*)alloc_func(type, 0);
   return (PyObject*)self;
 }
 
 
 static int
-PyAuxprm_traverse(PyAuxprm* self, visitproc visit, void *arg) {
+Auxprm_traverse(Auxprm* self, visitproc visit, void *arg) {
   Py_VISIT(self->owner);
   Py_VISIT((PyObject*)Py_TYPE((PyObject*)self));
   return 0;
@@ -38,14 +38,14 @@ PyAuxprm_traverse(PyAuxprm* self, visitproc visit, void *arg) {
 
 
 static int
-PyAuxprm_clear(PyAuxprm* self) {
+Auxprm_clear(Auxprm* self) {
   Py_CLEAR(self->owner);
   return 0;
 }
 
 
-static void PyAuxprm_dealloc(PyAuxprm* self) {
-  PyAuxprm_clear(self);
+static void Auxprm_dealloc(Auxprm* self) {
+  Auxprm_clear(self);
   PyTypeObject *tp = Py_TYPE((PyObject*)self);
   freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
   free_func((PyObject*)self);
@@ -53,11 +53,11 @@ static void PyAuxprm_dealloc(PyAuxprm* self) {
 }
 
 
-PyAuxprm* PyAuxprm_cnew(PyObject* wcsprm, struct auxprm* x) {
-  PyAuxprm* self;
-  PyTypeObject* type = (PyTypeObject*)PyAuxprmType;
+Auxprm* Auxprm_cnew(PyObject* wcsprm, struct auxprm* x) {
+  Auxprm* self;
+  PyTypeObject* type = (PyTypeObject*)AuxprmType;
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-  self = (PyAuxprm*)alloc_func(type, 0);
+  self = (Auxprm*)alloc_func(type, 0);
   if (self == NULL) return NULL;
   self->x = x;
   Py_INCREF(wcsprm);
@@ -96,7 +96,7 @@ static void auxprmprt(const struct auxprm *aux) {
 }
 
 
-static PyObject* PyAuxprm___str__(PyAuxprm* self) {
+static PyObject* Auxprm___str__(Auxprm* self) {
   /* This is not thread-safe, but since we're holding onto the GIL,
      we can assume we won't have thread conflicts */
   wcsprintf_set(NULL);
@@ -109,7 +109,7 @@ static PyObject* PyAuxprm___str__(PyAuxprm* self) {
  * Member getters/setters (properties)
  */
 
-static PyObject* PyAuxprm_get_rsun_ref(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_rsun_ref(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->rsun_ref == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -117,7 +117,7 @@ static PyObject* PyAuxprm_get_rsun_ref(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_rsun_ref(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_rsun_ref(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -128,7 +128,7 @@ static int PyAuxprm_set_rsun_ref(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_dsun_obs(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_dsun_obs(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->dsun_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -136,7 +136,7 @@ static PyObject* PyAuxprm_get_dsun_obs(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_dsun_obs(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_dsun_obs(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -147,7 +147,7 @@ static int PyAuxprm_set_dsun_obs(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_crln_obs(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_crln_obs(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->crln_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -155,7 +155,7 @@ static PyObject* PyAuxprm_get_crln_obs(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_crln_obs(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_crln_obs(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -166,7 +166,7 @@ static int PyAuxprm_set_crln_obs(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_hgln_obs(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_hgln_obs(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->hgln_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -174,7 +174,7 @@ static PyObject* PyAuxprm_get_hgln_obs(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_hgln_obs(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_hgln_obs(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -185,7 +185,7 @@ static int PyAuxprm_set_hgln_obs(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_hglt_obs(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_hglt_obs(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->hglt_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -193,7 +193,7 @@ static PyObject* PyAuxprm_get_hglt_obs(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_hglt_obs(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_hglt_obs(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -204,7 +204,7 @@ static int PyAuxprm_set_hglt_obs(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_a_radius(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_a_radius(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->a_radius == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -212,7 +212,7 @@ static PyObject* PyAuxprm_get_a_radius(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_a_radius(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_a_radius(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -223,7 +223,7 @@ static int PyAuxprm_set_a_radius(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_b_radius(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_b_radius(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->b_radius == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -231,7 +231,7 @@ static PyObject* PyAuxprm_get_b_radius(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_b_radius(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_b_radius(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -242,7 +242,7 @@ static int PyAuxprm_set_b_radius(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_c_radius(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_c_radius(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->c_radius == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -250,7 +250,7 @@ static PyObject* PyAuxprm_get_c_radius(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_c_radius(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_c_radius(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -261,7 +261,7 @@ static int PyAuxprm_set_c_radius(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_bdis_obs(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_bdis_obs(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->bdis_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -269,7 +269,7 @@ static PyObject* PyAuxprm_get_bdis_obs(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_bdis_obs(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_bdis_obs(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -280,7 +280,7 @@ static int PyAuxprm_set_bdis_obs(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_blon_obs(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_blon_obs(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->blon_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -288,7 +288,7 @@ static PyObject* PyAuxprm_get_blon_obs(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_blon_obs(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_blon_obs(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -299,7 +299,7 @@ static int PyAuxprm_set_blon_obs(PyAuxprm* self, PyObject* value, void* closure)
   }
 }
 
-static PyObject* PyAuxprm_get_blat_obs(PyAuxprm* self, void* closure) {
+static PyObject* Auxprm_get_blat_obs(Auxprm* self, void* closure) {
   if(self->x == NULL || self->x->blat_obs == UNDEFINED) {
     Py_RETURN_NONE;
   } else {
@@ -307,7 +307,7 @@ static PyObject* PyAuxprm_get_blat_obs(PyAuxprm* self, void* closure) {
   }
 }
 
-static int PyAuxprm_set_blat_obs(PyAuxprm* self, PyObject* value, void* closure) {
+static int Auxprm_set_blat_obs(Auxprm* self, PyObject* value, void* closure) {
   if(self->x == NULL) {
     return -1;
   } else if (value == Py_None) {
@@ -320,53 +320,53 @@ static int PyAuxprm_set_blat_obs(PyAuxprm* self, PyObject* value, void* closure)
 
 
 /***************************************************************************
- * PyAuxprm definition structures
+ * Auxprm definition structures
  */
 
-static PyGetSetDef PyAuxprm_getset[] = {
-  {"rsun_ref", (getter)PyAuxprm_get_rsun_ref, (setter)PyAuxprm_set_rsun_ref, (char *)doc_rsun_ref},
-  {"dsun_obs", (getter)PyAuxprm_get_dsun_obs, (setter)PyAuxprm_set_dsun_obs, (char *)doc_dsun_obs},
-  {"crln_obs", (getter)PyAuxprm_get_crln_obs, (setter)PyAuxprm_set_crln_obs, (char *)doc_crln_obs},
-  {"hgln_obs", (getter)PyAuxprm_get_hgln_obs, (setter)PyAuxprm_set_hgln_obs, (char *)doc_hgln_obs},
-  {"hglt_obs", (getter)PyAuxprm_get_hglt_obs, (setter)PyAuxprm_set_hglt_obs, (char *)doc_hglt_obs},
-  {"a_radius", (getter)PyAuxprm_get_a_radius, (setter)PyAuxprm_set_a_radius, (char *)doc_a_radius},
-  {"b_radius", (getter)PyAuxprm_get_b_radius, (setter)PyAuxprm_set_b_radius, (char *)doc_b_radius},
-  {"c_radius", (getter)PyAuxprm_get_c_radius, (setter)PyAuxprm_set_c_radius, (char *)doc_c_radius},
-  {"bdis_obs", (getter)PyAuxprm_get_bdis_obs, (setter)PyAuxprm_set_bdis_obs, (char *)doc_bdis_obs},
-  {"blon_obs", (getter)PyAuxprm_get_blon_obs, (setter)PyAuxprm_set_blon_obs, (char *)doc_blon_obs},
-  {"blat_obs", (getter)PyAuxprm_get_blat_obs, (setter)PyAuxprm_set_blat_obs, (char *)doc_blat_obs},
+static PyGetSetDef Auxprm_getset[] = {
+  {"rsun_ref", (getter)Auxprm_get_rsun_ref, (setter)Auxprm_set_rsun_ref, (char *)doc_rsun_ref},
+  {"dsun_obs", (getter)Auxprm_get_dsun_obs, (setter)Auxprm_set_dsun_obs, (char *)doc_dsun_obs},
+  {"crln_obs", (getter)Auxprm_get_crln_obs, (setter)Auxprm_set_crln_obs, (char *)doc_crln_obs},
+  {"hgln_obs", (getter)Auxprm_get_hgln_obs, (setter)Auxprm_set_hgln_obs, (char *)doc_hgln_obs},
+  {"hglt_obs", (getter)Auxprm_get_hglt_obs, (setter)Auxprm_set_hglt_obs, (char *)doc_hglt_obs},
+  {"a_radius", (getter)Auxprm_get_a_radius, (setter)Auxprm_set_a_radius, (char *)doc_a_radius},
+  {"b_radius", (getter)Auxprm_get_b_radius, (setter)Auxprm_set_b_radius, (char *)doc_b_radius},
+  {"c_radius", (getter)Auxprm_get_c_radius, (setter)Auxprm_set_c_radius, (char *)doc_c_radius},
+  {"bdis_obs", (getter)Auxprm_get_bdis_obs, (setter)Auxprm_set_bdis_obs, (char *)doc_bdis_obs},
+  {"blon_obs", (getter)Auxprm_get_blon_obs, (setter)Auxprm_set_blon_obs, (char *)doc_blon_obs},
+  {"blat_obs", (getter)Auxprm_get_blat_obs, (setter)Auxprm_set_blat_obs, (char *)doc_blat_obs},
   {NULL}
 };
 
-PyType_Spec PyAuxprmType_spec = {
+PyType_Spec AuxprmType_spec = {
   .name = "astropy.wcs.Auxprm",
-  .basicsize = sizeof(PyAuxprm),
+  .basicsize = sizeof(Auxprm),
   .itemsize = 0,
   .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
   .slots = (PyType_Slot[]) {
-    {Py_tp_dealloc, (destructor)PyAuxprm_dealloc},
-    {Py_tp_str, (reprfunc)PyAuxprm___str__},
+    {Py_tp_dealloc, (destructor)Auxprm_dealloc},
+    {Py_tp_str, (reprfunc)Auxprm___str__},
     {Py_tp_doc, doc_Auxprm},
-    {Py_tp_traverse, (traverseproc)PyAuxprm_traverse},
-    {Py_tp_clear, (inquiry)PyAuxprm_clear},
-    {Py_tp_getset, PyAuxprm_getset},
+    {Py_tp_traverse, (traverseproc)Auxprm_traverse},
+    {Py_tp_clear, (inquiry)Auxprm_clear},
+    {Py_tp_getset, Auxprm_getset},
     // FIXME: this seems logical but this slot wasn't previously set
     // maybe a mistake from https://github.com/astropy/astropy/pull/10333 ?
-    // {Py_tp_new, (void*)PyAuxprm_new},
+    // {Py_tp_new, (void*)Auxprm_new},
     {0, NULL}
   },
 };
 
-PyObject* PyAuxprmType = NULL;
+PyObject* AuxprmType = NULL;
 
 int
 _setup_auxprm_type(PyObject* m) {
-  PyAuxprmType = PyType_FromSpec(&PyAuxprmType_spec);
-  if (PyAuxprmType == NULL) {
+  AuxprmType = PyType_FromSpec(&AuxprmType_spec);
+  if (AuxprmType == NULL) {
     return -1;
   }
 
-  PyModule_AddObject(m, "Auxprm", PyAuxprmType);
+  PyModule_AddObject(m, "Auxprm", AuxprmType);
 
   return 0;
 }

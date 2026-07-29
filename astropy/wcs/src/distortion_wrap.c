@@ -11,8 +11,8 @@
 #include <structmember.h> /* From Python */
 
 static int
-PyDistLookup_traverse(
-    PyDistLookup* self,
+DistLookup_traverse(
+    DistLookup* self,
     visitproc visit,
     void* arg) {
 
@@ -23,8 +23,8 @@ PyDistLookup_traverse(
 }
 
 static int
-PyDistLookup_clear(
-    PyDistLookup* self) {
+DistLookup_clear(
+    DistLookup* self) {
 
   Py_CLEAR(self->py_data);
 
@@ -32,8 +32,8 @@ PyDistLookup_clear(
 }
 
 static void
-PyDistLookup_dealloc(
-    PyDistLookup* self) {
+DistLookup_dealloc(
+    DistLookup* self) {
 
   PyObject_GC_UnTrack(self);
   distortion_lookup_t_free(&self->x);
@@ -45,15 +45,15 @@ PyDistLookup_dealloc(
 }
 
 /*@null@*/ static PyObject *
-PyDistLookup_new(
+DistLookup_new(
     PyTypeObject* type,
     /*@unused@*/ PyObject* args,
     /*@unused@*/ PyObject* kwds) {
 
-  PyDistLookup* self;
+  DistLookup* self;
 
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-  self = (PyDistLookup*)alloc_func(type, 0);
+  self = (DistLookup*)alloc_func(type, 0);
   if (self != NULL) {
     if (distortion_lookup_t_init(&self->x)) {
       return NULL;
@@ -64,8 +64,8 @@ PyDistLookup_new(
 }
 
 static int
-PyDistLookup_init(
-    PyDistLookup* self,
+DistLookup_init(
+    DistLookup* self,
     PyObject* args,
     /*@unused@*/ PyObject* kwds) {
 
@@ -94,8 +94,8 @@ PyDistLookup_init(
 }
 
 static PyObject*
-PyDistLookup_get_cdelt(
-    PyDistLookup* self,
+DistLookup_get_cdelt(
+    DistLookup* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t naxis = 2;
@@ -104,8 +104,8 @@ PyDistLookup_get_cdelt(
 }
 
 static int
-PyDistLookup_set_cdelt(
-    PyDistLookup* self,
+DistLookup_set_cdelt(
+    DistLookup* self,
     PyObject* value,
     /*@unused@*/ void* closure) {
 
@@ -115,8 +115,8 @@ PyDistLookup_set_cdelt(
 }
 
 static PyObject*
-PyDistLookup_get_crpix(
-    PyDistLookup* self,
+DistLookup_get_crpix(
+    DistLookup* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t naxis = 2;
@@ -125,8 +125,8 @@ PyDistLookup_get_crpix(
 }
 
 static int
-PyDistLookup_set_crpix(
-    PyDistLookup* self,
+DistLookup_set_crpix(
+    DistLookup* self,
     PyObject* value,
     /*@unused@*/ void* closure) {
 
@@ -136,8 +136,8 @@ PyDistLookup_set_crpix(
 }
 
 static PyObject*
-PyDistLookup_get_crval(
-    PyDistLookup* self,
+DistLookup_get_crval(
+    DistLookup* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t naxis = 2;
@@ -146,8 +146,8 @@ PyDistLookup_get_crval(
 }
 
 static int
-PyDistLookup_set_crval(
-    PyDistLookup* self,
+DistLookup_set_crval(
+    DistLookup* self,
     PyObject* value,
     /*@unused@*/ void* closure) {
 
@@ -157,8 +157,8 @@ PyDistLookup_set_crval(
 }
 
 /*@shared@*/ static PyObject*
-PyDistLookup_get_data(
-    PyDistLookup* self,
+DistLookup_get_data(
+    DistLookup* self,
     /*@unused@*/ void* closure) {
 
   if (self->py_data == NULL) {
@@ -171,8 +171,8 @@ PyDistLookup_get_data(
 }
 
 static int
-PyDistLookup_set_data(
-    PyDistLookup* self,
+DistLookup_set_data(
+    DistLookup* self,
     PyObject* value,
     /*@unused@*/ void* closure) {
 
@@ -201,8 +201,8 @@ PyDistLookup_set_data(
 }
 
 /*@null@*/ static PyObject*
-PyDistLookup_get_offset(
-    PyDistLookup* self,
+DistLookup_get_offset(
+    DistLookup* self,
     PyObject* args,
     /*@unused@*/ PyObject* kwds) {
 
@@ -224,15 +224,15 @@ PyDistLookup_get_offset(
 }
 
 static PyObject*
-PyDistLookup___copy__(
-    PyDistLookup* self,
+DistLookup___copy__(
+    DistLookup* self,
     /*@unused@*/ PyObject* args,
     /*@unused@*/ PyObject* kwds) {
 
-  PyDistLookup* copy = NULL;
+  DistLookup* copy = NULL;
   int           i    = 0;
 
-  copy = (PyDistLookup*)PyDistLookup_new((PyTypeObject*)PyDistLookupType, NULL, NULL);
+  copy = (DistLookup*)DistLookup_new((PyTypeObject*)DistLookupType, NULL, NULL);
   if (copy == NULL) {
     return NULL;
   }
@@ -245,23 +245,23 @@ PyDistLookup___copy__(
   }
 
   if (self->py_data) {
-    PyDistLookup_set_data(copy, (PyObject*)self->py_data, NULL);
+    DistLookup_set_data(copy, (PyObject*)self->py_data, NULL);
   }
 
   return (PyObject*)copy;
 }
 
 static PyObject*
-PyDistLookup___deepcopy__(
-    PyDistLookup* self,
+DistLookup___deepcopy__(
+    DistLookup* self,
     PyObject* memo,
     /*@unused@*/ PyObject* kwds) {
 
-  PyDistLookup* copy;
+  DistLookup* copy;
   PyObject*     obj_copy;
   int           i = 0;
 
-  copy = (PyDistLookup*)PyDistLookup_new((PyTypeObject*)PyDistLookupType, NULL, NULL);
+  copy = (DistLookup*)DistLookup_new((PyTypeObject*)DistLookupType, NULL, NULL);
   if (copy == NULL) {
     return NULL;
   }
@@ -279,7 +279,7 @@ PyDistLookup___deepcopy__(
       Py_DECREF(copy);
       return NULL;
     }
-    PyDistLookup_set_data(copy, (PyObject*)obj_copy, NULL);
+    DistLookup_set_data(copy, (PyObject*)obj_copy, NULL);
     Py_DECREF(obj_copy);
   }
 
@@ -287,48 +287,48 @@ PyDistLookup___deepcopy__(
 }
 
 
-static PyGetSetDef PyDistLookup_getset[] = {
-  {"cdelt", (getter)PyDistLookup_get_cdelt, (setter)PyDistLookup_set_cdelt, (char *)doc_cdelt},
-  {"crpix", (getter)PyDistLookup_get_crpix, (setter)PyDistLookup_set_crpix, (char *)doc_crpix},
-  {"crval", (getter)PyDistLookup_get_crval, (setter)PyDistLookup_set_crval, (char *)doc_crval},
-  {"data",  (getter)PyDistLookup_get_data,  (setter)PyDistLookup_set_data,  (char *)doc_data},
+static PyGetSetDef DistLookup_getset[] = {
+  {"cdelt", (getter)DistLookup_get_cdelt, (setter)DistLookup_set_cdelt, (char *)doc_cdelt},
+  {"crpix", (getter)DistLookup_get_crpix, (setter)DistLookup_set_crpix, (char *)doc_crpix},
+  {"crval", (getter)DistLookup_get_crval, (setter)DistLookup_set_crval, (char *)doc_crval},
+  {"data",  (getter)DistLookup_get_data,  (setter)DistLookup_set_data,  (char *)doc_data},
   {NULL}
 };
 
-static PyMethodDef PyDistLookup_methods[] = {
-  {"__copy__", (PyCFunction)PyDistLookup___copy__, METH_NOARGS, NULL},
-  {"__deepcopy__", (PyCFunction)PyDistLookup___deepcopy__, METH_O, NULL},
-  {"get_offset", (PyCFunction)PyDistLookup_get_offset, METH_VARARGS, doc_get_offset},
+static PyMethodDef DistLookup_methods[] = {
+  {"__copy__", (PyCFunction)DistLookup___copy__, METH_NOARGS, NULL},
+  {"__deepcopy__", (PyCFunction)DistLookup___deepcopy__, METH_O, NULL},
+  {"get_offset", (PyCFunction)DistLookup_get_offset, METH_VARARGS, doc_get_offset},
   {NULL}
 };
 
-static PyType_Spec PyDistLookupType_spec = {
+static PyType_Spec DistLookupType_spec = {
   .name = "astropy.wcs.DistortionLookupTable",
-  .basicsize = sizeof(PyDistLookup),
+  .basicsize = sizeof(DistLookup),
   .itemsize = 0,
   .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
   .slots = (PyType_Slot[]){
-    {Py_tp_dealloc, (destructor)PyDistLookup_dealloc},
+    {Py_tp_dealloc, (destructor)DistLookup_dealloc},
     {Py_tp_doc, doc_DistortionLookupTable},
-    {Py_tp_traverse, (traverseproc)PyDistLookup_traverse},
-    {Py_tp_clear, (inquiry)PyDistLookup_clear},
-    {Py_tp_methods, PyDistLookup_methods},
-    {Py_tp_getset, PyDistLookup_getset},
-    {Py_tp_init, (initproc)PyDistLookup_init},
-    {Py_tp_new, PyDistLookup_new},
+    {Py_tp_traverse, (traverseproc)DistLookup_traverse},
+    {Py_tp_clear, (inquiry)DistLookup_clear},
+    {Py_tp_methods, DistLookup_methods},
+    {Py_tp_getset, DistLookup_getset},
+    {Py_tp_init, (initproc)DistLookup_init},
+    {Py_tp_new, DistLookup_new},
     {0, NULL},
   },
 };
 
-PyObject* PyDistLookupType = NULL;
+PyObject* DistLookupType = NULL;
 
 int _setup_distortion_type(
     PyObject* m) {
 
-  PyDistLookupType = PyType_FromSpec(&PyDistLookupType_spec);
-  if (PyDistLookupType == NULL) {
+  DistLookupType = PyType_FromSpec(&DistLookupType_spec);
+  if (DistLookupType == NULL) {
     return -1;
   }
 
-  return PyModule_AddObject(m, "DistortionLookupTable", PyDistLookupType);
+  return PyModule_AddObject(m, "DistortionLookupTable", DistLookupType);
 }

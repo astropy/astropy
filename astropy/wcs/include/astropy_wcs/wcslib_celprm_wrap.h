@@ -4,16 +4,16 @@
 #include "pyutil.h"
 #include "wcs.h"
 
-extern PyObject* PyCelprmType;
+extern PyObject* CelprmType;
 
 typedef struct {
     PyObject_HEAD
     struct celprm* x;
     int* prefcount;
     PyObject* owner;
-} PyCelprm;
+} Celprm;
 
-PyCelprm* PyCelprm_cnew(PyObject* wcsprm_obj, struct celprm* x, int* prefcount);
+Celprm* Celprm_cnew(PyObject* wcsprm_obj, struct celprm* x, int* prefcount);
 
 int _setup_celprm_type(PyObject* m);
 
