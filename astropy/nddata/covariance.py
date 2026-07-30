@@ -16,7 +16,24 @@ from .nddata import NDUncertainty
 
 # Required scipy.sparse imports
 if HAS_SCIPY:
-    from scipy.sparse import coo_matrix, csr_matrix, find, isspmatrix_csr, triu
+    import scipy
+
+    from astropy.utils import minversion
+
+    SCIPY_LT_2_0 = not minversion(scipy, "2.0.0.dev")
+
+    if SCIPY_LT_2_0:
+        from scipy.sparse import coo_matrix, csr_matrix, find, isspmatrix_csr, triu
+    else:
+        from scipy.sparse import coo_array as coo_matrix
+        from scipy.sparse import csr_array as csr_matrix
+        from scipy.sparse import find, triu
+
+        def isspmatrix_csr(arr):
+            from scipy.sparse import issparse
+
+            return issparse(arr) and arr.format == "csr"
+
 else:
     err = "Use of 'astropy.nddata.Covariance' requires 'scipy.sparse' module!"
 
