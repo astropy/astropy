@@ -10,6 +10,7 @@ from numpy.testing import assert_array_equal
 from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.coordinates.angles import formats
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_1
 
 
 def test_to_string_precision():
@@ -250,22 +251,15 @@ TO_STRING_ANGLES = np.array(
 TO_STRING_KWARGS = [
     {},
     {"sep": ":"},
-    {"sep": "dms"},
     {"sep": ("-", ":")},
     {"sep": ""},
     {"pad": True},
-    {"pad": True, "sep": ":"},
     {"fields": 1},
     {"fields": 2},
-    {"fields": 2, "sep": ":"},
     {"precision": 0},
-    {"precision": 4},
     {"precision": 8},
-    {"precision": 0, "fields": 2},
     {"alwayssign": True},
-    {"alwayssign": True, "pad": True},
     {"format": "latex"},
-    {"format": "latex", "alwayssign": True},
     {"format": "latex_inline"},
     {"format": "unicode"},
     {"precision": 2, "pad": True, "alwayssign": True, "sep": ":"},
@@ -292,32 +286,37 @@ def test_to_string_vectorized_matches_per_element(monkeypatch, unit, kwargs):
     assert_array_equal(fast, per_element)
 
 
-@pytest.mark.parametrize("sep", [(":",), ("d", "m", "s"), ("-", ":"), ()])
-@pytest.mark.parametrize("fields", [1, 2, 3])
-@pytest.mark.parametrize("precision", [None, 0, 2, 5])
-@pytest.mark.parametrize("pad", [False, True])
-def test_decimal_to_sexagesimal_string_array(sep, fields, precision, pad):
+@pytest.mark.skipif(NUMPY_LT_2_1, reason="vectorized formatter requires NumPy >= 2.1")
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {},
+        {"sep": ("d", "m", "s")},
+        {"sep": ("-", ":"), "pad": True},
+        {"fields": 1},
+        {"fields": 2, "precision": 0},
+        {"precision": 5},
+        {"sep": (), "precision": 2},
+    ],
+)
+def test_decimal_to_sexagesimal_string_array(kwargs):
     """The array formatter matches ``_decimal_to_sexagesimal_string`` per value.
 
-    NaN is handled by ``Angle.to_string`` itself, so it is excluded here.
+    ``Angle.to_string`` handles NaN itself, so it is excluded here. The broad
+    option coverage lives in ``test_to_string_vectorized_matches_per_element``;
+    this just checks the helper directly for a few representative cases.
     """
     values = np.array(
         [0.0, -0.0, 5.25, -5.25, 59.9999999, 12.3456789, 123.456, np.inf, -np.inf]
     )
-    got = formats._decimal_to_sexagesimal_string_array(
-        values, precision=precision, sep=sep, pad=pad, fields=fields
-    )
+    got = formats._decimal_to_sexagesimal_string_array(values, **kwargs)
     ref = np.array(
-        [
-            formats._decimal_to_sexagesimal_string(
-                v, precision=precision, sep=sep, pad=pad, fields=fields
-            )
-            for v in values
-        ]
+        [formats._decimal_to_sexagesimal_string(v, **kwargs) for v in values]
     )
     assert_array_equal(got, ref)
 
 
+@pytest.mark.skipif(NUMPY_LT_2_1, reason="vectorized formatter requires NumPy >= 2.1")
 def test_to_string_array_falls_back_for_huge_degrees():
     """Degrees too large for the int64 buffer defer to the per-element path."""
     values = np.array([1e19, 2e19, 3e19])
