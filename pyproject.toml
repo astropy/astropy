@@ -104,9 +104,10 @@ test = [
     "coverage>=6.4.4",
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
     "pytest>=8.0.0",
-    "pytest-doctestplus>=1.4.0",
     "pytest-astropy-header>=0.2.2",
     "pytest-cov>=2.3.1",
+    "pytest-doctestplus>=1.4.0",
+    "pytest-filter-subpackage>=0.2.0",
     "pytest-remotedata>=0.4.1",
     "pytest-skip-slow==1.1.0",
     "pytest-xdist>=2.5.0",
