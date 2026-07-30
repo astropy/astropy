@@ -196,6 +196,18 @@ def test_cds_solMass_str():
     assert u.cds.solMass.to_string("cds") == "solMass"
 
 
+@pytest.mark.parametrize(
+    ("unit", "string"),
+    [(u.solRad, "solRad"), (u.solLum, "solLum")],
+    ids=str,
+)
+def test_cds_solar_unit_str(unit, string):
+    # CDS allows both spellings (e.g. Rsun and solRad), but like solMass the
+    # astropy and cds versions should agree, and match the astropy unit name.
+    assert unit.to_string("cds") == string
+    assert getattr(u.cds, string).to_string("cds") == string
+
+
 # These examples are taken from the EXAMPLES section of
 # https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/
 @pytest.mark.parametrize(
