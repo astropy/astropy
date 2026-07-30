@@ -51,8 +51,8 @@ def test_scipy_funcs():
     # Functions should always be callable, regardless of whether or not scipy is installed
     assert callable(covariance.find), "find should be callable"
     assert callable(covariance.triu), "triu should be callable"
-    assert callable(covariance.csr_matrix), "csr_matrix should be callable"
-    assert callable(covariance.coo_matrix), "coo_matrix should be callable"
+    assert callable(covariance.csr_array), "csr_array should be callable"
+    assert callable(covariance.coo_array), "coo_array should be callable"
     assert callable(covariance.isspmatrix_csr), "isspmatrix_csr should be callable"
 
     if not HAS_SCIPY:
@@ -62,9 +62,9 @@ def test_scipy_funcs():
         with pytest.raises(ModuleNotFoundError):
             covariance.triu()
         with pytest.raises(ModuleNotFoundError):
-            covariance.csr_matrix()
+            covariance.csr_array()
         with pytest.raises(ModuleNotFoundError):
-            covariance.coo_matrix()
+            covariance.coo_array()
         with pytest.raises(ModuleNotFoundError):
             covariance.isspmatrix_csr()
 
@@ -79,7 +79,7 @@ def test_get_csr():
     clist = covariance._get_csr(c.tolist())
     assert np.array_equal(clist.toarray(), c), "List not converted properly"
     # Return input array if already a csr_matrix
-    ccsr = covariance.csr_matrix(c)
+    ccsr = covariance.csr_array(c)
     _ccsr = covariance._get_csr(ccsr)
     assert _ccsr is ccsr, "Should return reference to the input"
     # Fail if cannot be converted
@@ -89,7 +89,7 @@ def test_get_csr():
 
 @scipy_required
 def test_impose_sparse_value_threshold():
-    c = covariance.csr_matrix(mock_cov())
+    c = covariance.csr_array(mock_cov())
 
     _c = covariance._impose_sparse_value_threshold(c, 0.0)
     assert c is _c, "All elements are above 0, so array should be returned exactly."
@@ -203,7 +203,7 @@ def test_init():
     cov = covariance.Covariance(array=c)
 
     # Convert to a CSR sparse matrix
-    c_csr = covariance.csr_matrix(c)
+    c_csr = covariance.csr_array(c)
     # And instantiate
     cov = covariance.Covariance(array=c_csr)
 
@@ -223,7 +223,7 @@ def test_stored_nnz():
 
 @scipy_required
 def test_nnz():
-    c_csr = covariance.csr_matrix(mock_cov())
+    c_csr = covariance.csr_array(mock_cov())
     cov = covariance.Covariance(array=c_csr)
     assert c_csr.nnz == cov.nnz, "Number of non-zero elements differ"
 
@@ -276,7 +276,7 @@ def test_indices():
 @scipy_required
 def test_coo():
     # 1D
-    cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
+    cov = covariance.Covariance(array=covariance.csr_array(mock_cov()))
     i, j, cij = cov.coordinate_data()
     assert i.size == cov.stored_nnz, "Coordinate data length is the incorrect size"
 
@@ -286,7 +286,7 @@ def test_coo():
 
     # 2D
     data_shape, c = mock_cov_2d()
-    c_csr = covariance.csr_matrix(c)
+    c_csr = covariance.csr_array(c)
     cov = covariance.Covariance(array=c_csr, data_shape=data_shape)
     # Try without reshaping
     ic, jc, cij = cov.coordinate_data(reshape=False)
@@ -306,7 +306,7 @@ def test_coo():
 
     # 3D
     data_shape, c = mock_cov_3d()
-    c_csr = covariance.csr_matrix(c)
+    c_csr = covariance.csr_array(c)
     cov = covariance.Covariance(array=c_csr, data_shape=data_shape)
     i, j, cij = cov.coordinate_data(reshape=True)
     assert len(i) == len(data_shape), "Dimensionality does not match"
@@ -315,7 +315,7 @@ def test_coo():
 
 @scipy_required
 def test_copy():
-    cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
+    cov = covariance.Covariance(array=covariance.csr_array(mock_cov()))
     _cov = cov.copy()
     assert cov is not _cov, "Objects have the same reference"
     assert cov._cov is not _cov._cov, "Object arrays have the same reference"
@@ -324,7 +324,7 @@ def test_copy():
 
 @scipy_required
 def test_tbls():
-    cov = covariance.Covariance(array=covariance.csr_matrix(mock_cov()))
+    cov = covariance.Covariance(array=covariance.csr_array(mock_cov()))
     covar = cov.to_table()
     assert isinstance(covar, Table), "correlation data should be output as a table"
     assert len(covar) == np.sum(np.triu(mock_cov()) > 0), (
@@ -345,7 +345,7 @@ def test_tbls():
         _cov = covariance.Covariance.from_table(_covar)
 
     data_shape, c = mock_cov_3d()
-    cov = covariance.Covariance(array=covariance.csr_matrix(c), data_shape=data_shape)
+    cov = covariance.Covariance(array=covariance.csr_array(c), data_shape=data_shape)
     covar = cov.to_table()
     assert len(covar) == np.sum(np.triu(c) > 0), "Incorrect number of table entries"
     assert len(covar.colnames) == 3, "Incorrect number of columns"
