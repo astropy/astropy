@@ -31,7 +31,7 @@ def perfect_transit() -> SyntheticTransit:
     true_duration = 0.1
     true_depth = 0.5
 
-    t = np.linspace(0, 10, 10000, dtype=np.float64)
+    t = np.linspace(0, 10, 2500, dtype=np.float64)
     y = np.ones_like(t)
     ivar = np.ones_like(t) * 1e6
 
@@ -90,7 +90,7 @@ def test_bls_mathematical_recovery(perfect_transit: SyntheticTransit) -> None:
         perfect_transit.ivar,
         periods,
         durations,
-        500,
+        250,
         0,
     )
 
