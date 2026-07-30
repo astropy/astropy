@@ -1,0 +1,1 @@
+Updated the bundled ``configobj`` to version 5.0.9, dropping Python 2 workarounds.
