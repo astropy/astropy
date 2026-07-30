@@ -18,5 +18,6 @@ This is a backwards compatibility-shim to support:
  from configobj import validate
  ```
 """
-from configobj.validate import *
+# ASTROPY PATCH: relative import since this is vendored, not pip-installed
+from ..configobj.validate import *
 
