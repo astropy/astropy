@@ -81,7 +81,7 @@ def test_bls_exact_types_and_shapes(perfect_transit: SyntheticTransit) -> None:
 
 def test_bls_mathematical_recovery(perfect_transit: SyntheticTransit) -> None:
     """Check if the C-engine recovers the planted signal with high accuracy."""
-    periods = np.linspace(1.5, 2.5, 100, dtype=np.float64)
+    periods = np.linspace(1.5, 2.5, 101, dtype=np.float64)
     durations = np.linspace(0.05, 0.2, 10, dtype=np.float64)
 
     results = bls_impl(
