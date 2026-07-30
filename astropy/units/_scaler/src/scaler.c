@@ -427,7 +427,7 @@ static PyType_Slot Scaler_slots[] = {
 };
 
 static PyType_Spec Scaler_spec = {
-    .name = "scaler.Scaler",
+    .name = "astropy.units._scaler.Scaler",
     .basicsize = sizeof(ScalerObject),
     .flags = SCALER_TP_FLAGS,
     .slots = Scaler_slots,

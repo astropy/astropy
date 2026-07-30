@@ -5,8 +5,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from scaler import Scaler
-
+from astropy.units._scaler import Scaler
 
 NUMPY_SCALAR_TYPES = [np.float32, np.float64, np.complex64, np.complex128]
 SCALAR_TYPES = NUMPY_SCALAR_TYPES + [float, complex, int, np.int32, np.uint64]
