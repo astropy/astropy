@@ -2161,7 +2161,8 @@ class ConfigObj(Section):
             if preserve_errors:
                 # We do this once to remove a top level dependency on the validate module
                 # Which makes importing configobj faster
-                from configobj.validate import VdtMissingValue
+                # ASTROPY PATCH: relative import since this is vendored, not pip-installed
+                from ..validate import VdtMissingValue
                 self._vdtMissingValue = VdtMissingValue
 
             section = self
