@@ -20,6 +20,7 @@ from astropy.io.fits.convenience import _getext
 from astropy.io.fits.diff import FITSDiff
 from astropy.io.fits.file import GZIP_MAGIC, _File
 from astropy.io.tests import safeio
+from astropy.tests.helper import CI
 from astropy.utils import data
 from astropy.utils.compat.optional_deps import (
     HAS_BZ2,  # NOTE: Python can be built without bz2
@@ -707,6 +708,7 @@ class TestFileFunctions(FitsTestCase):
                     with fits.open(urlobj, mode=mode) as _:
                         pass
 
+    @pytest.mark.skipif(CI, reason="Flaky on CI")
     @pytest.mark.remote_data(source="astropy")
     def test_open_from_remote_url(self):
         for dataurl in (conf.dataurl, conf.dataurl_mirror):
