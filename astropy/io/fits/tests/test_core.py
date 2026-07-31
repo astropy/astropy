@@ -10,7 +10,7 @@ import shutil
 import sys
 import urllib.request
 import zipfile
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
