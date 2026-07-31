@@ -72,7 +72,7 @@ configuration parameters. For instance, to get the default URL for
 
     >>> from astropy.utils.data import conf
     >>> conf.dataurl
-    'http://data.astropy.org/'
+    'http://www.astropy.org/astropy-data/'
 
 Changing Values at Runtime
 --------------------------
@@ -121,7 +121,7 @@ takes care of resetting the value you changed when you are done using it::
 You can also modify the values at runtime directly::
 
     >>> conf.dataurl
-    'http://data.astropy.org/'
+    'http://www.astropy.org/astropy-data/'
     >>> conf.dataurl = 'http://astropydata.mywebsite.com'
     >>> conf.dataurl
     'http://astropydata.mywebsite.com'
@@ -194,7 +194,7 @@ value in the configuration file::
 
     >>> conf.reset('dataurl')
     >>> conf.dataurl
-    'http://data.astropy.org/'
+    'http://www.astropy.org/astropy-data/'
 
 ..
   EXAMPLE END
