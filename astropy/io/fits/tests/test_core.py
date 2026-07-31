@@ -2,6 +2,7 @@
 
 import errno
 import gzip
+import http
 import io
 import mmap
 import os
