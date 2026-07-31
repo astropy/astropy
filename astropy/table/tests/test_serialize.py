@@ -61,9 +61,11 @@ class TestRepresentNdColumnsAs1dColumns:
         """
         tbl = Table({"a": np.arange(6).reshape(3, 2), "a.0": [10, 20, 30]})
         out = represent_nd_columns_as_1d_columns(tbl)
-        # Original 1-D column is preserved unchanged
+        # Original 1-D column is preserved unchanged with data shared (since copy=False)
         assert "a.0" in out.colnames
         np.testing.assert_array_equal(out["a.0"], [10, 20, 30])
+        tbl["a.0"][0] = -99
+        assert out["a.0"][0] == -99
         # Flattened N-D sub-columns use the escalated base name
         assert "a_.0" in out.colnames
         assert "a_.1" in out.colnames
