@@ -83,12 +83,23 @@ static PyObject *Scaler_vectorcall(
     ScalerObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
 )
 {
-    if (PyVectorcall_NARGS(len_args) != 1) {
+    if (kwnames != NULL && PyTuple_GET_SIZE(kwnames) > 0) {
         PyErr_Format(
-            PyExc_TypeError, "scaler() takes 1 argument, not %d", PyVectorcall_NARGS(len_args)
+            PyExc_TypeError,
+            "scaler() got an unexpected keyword argument %R",
+            PyTuple_GET_ITEM(kwnames, 0)
         );
         return NULL;
     }
+    if (PyVectorcall_NARGS(len_args) != 1) {
+        PyErr_Format(
+            PyExc_TypeError,
+            "scaler() takes 1 positional argument but %d were given",
+            PyVectorcall_NARGS(len_args)
+        );
+        return NULL;
+    }
+
     PyObject *const obj = args[0];
     // Fast paths for python double.
     if (PyFloat_CheckExact(obj)) {
@@ -216,11 +227,15 @@ static inline PyObject *Scaler_from_factor(PyTypeObject *type, double factor)
 
 static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    if (kwds != NULL || PyTuple_GET_SIZE(args) != 1) {
-        PyErr_SetString(PyExc_TypeError, "Scaler takes exactly 1 positional argument.");
+    double factor;
+    Py_ssize_t nargs = PyTuple_GET_SIZE(args);
+    if (nargs != 1 || kwds != NULL) {
+        // Use parser to give error message.
+        char *const kwlist[] = {"", NULL};
+        PyArg_ParseTupleAndKeywords(args, kwds, "d:Scaler", kwlist, &factor);
         return NULL;
     }
-    double factor = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
+    factor = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
     if (factor == -1.0 && PyErr_Occurred()) {
         return NULL;
     }

@@ -91,6 +91,44 @@ def test_with_wrong_items(item):
         sc(item)
 
 
+def test_scale_attribute():
+    sc = Scaler(10.0)
+    assert sc.factor == 10.0
+
+
+def test_init_errors():
+    with pytest.raises(TypeError, match=r"exactly 1 positional.*\(0 given\)"):
+        Scaler()
+    with pytest.raises(TypeError, match=r"exactly 1 positional.*\(0 given\)"):
+        Scaler(b=20.0)
+    with pytest.raises(TypeError, match=r"at most 1 argument \(2 given\)"):
+        Scaler(10.0, 20.0)
+    with pytest.raises(TypeError, match=r"at most 1 argument \(2 given\)"):
+        Scaler(10.0, b=20.0)
+    with pytest.raises(TypeError, match=r"at most 1 argument \(3 given\)"):
+        Scaler(10.0, 20.0, b=20.0)
+    with pytest.raises(TypeError, match=r"at most 1 argument \(3 given\)"):
+        Scaler(10.0, b=20.0, c=20.0)
+    with pytest.raises(TypeError, match="must be real number, not"):
+        Scaler(1 + 1j)
+    with pytest.raises(TypeError, match="must be real number, not"):
+        Scaler({})
+
+
+def test_call_errors():
+    sc = Scaler(10.0)
+    with pytest.raises(TypeError, match="takes 1 positional.*0 were given"):
+        sc()
+    with pytest.raises(TypeError, match="takes 1 positional.*2 were given"):
+        sc(10.0, 20.0)
+    with pytest.raises(TypeError, match="got an unexpected.*'b'"):
+        sc(b=20.0)
+    with pytest.raises(TypeError, match="got an unexpected.*'b'"):
+        sc(10.0, b=20.0)
+    with pytest.raises(TypeError, match="got an unexpected.*'b'"):
+        sc(10.0, 20.0, b=20.0)
+
+
 def test_unity_scaler_is_singleton():
     sc1a = Scaler(1.0)
     sc2a = Scaler(2.0)
