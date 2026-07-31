@@ -716,7 +716,9 @@ class TestFileFunctions(FitsTestCase):
 
         for mode in ("ostream", "append", "update"):
             urlobj = http.client.HTTPResponse(Mock())
-            with pytest.raises(ValueError, match=f"Mode {mode} not supported for HTTPResponse"):
+            with pytest.raises(
+                ValueError, match=f"Mode {mode} not supported for HTTPResponse"
+            ):
                 fits.open(urlobj, mode=mode)
 
     def test_open_gzipped(self):
