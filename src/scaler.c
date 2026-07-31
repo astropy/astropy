@@ -7,6 +7,17 @@
 #include <numpy/ufuncobject.h>
 #include <stddef.h> // for offsetof()
 
+PyDoc_STRVAR(scaler_module_doc, "Compiled module providing the inspectable Scaler class.");
+PyDoc_STRVAR(
+    Scaler_doc,
+    "Multiplies input by the given scale factor.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "factor : float, positional only\n"
+    "    The scale factor with which, when called, an argument will be multiplied.\n"
+);
+
+
 typedef struct {
     PyObject_HEAD
     vectorcallfunc vectorcall;
@@ -308,7 +319,7 @@ static PyMethodDef Scaler_methods[] = {
 
 static PyTypeObject ScalerType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "scaler.Scaler",
-    .tp_doc = PyDoc_STR("When called, multiplies input by the given scale factor."),
+    .tp_doc = Scaler_doc,
     .tp_basicsize = sizeof(ScalerObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL,
@@ -386,7 +397,7 @@ static PyModuleDef_Slot scaler_module_slots[] = {
 static PyModuleDef scaler_module = {
     .m_base = PyModuleDef_HEAD_INIT,
     .m_name = "scaler",
-    .m_doc = "Compiled module providing the inspectable Scaler class.",
+    .m_doc = scaler_module_doc,
     .m_size = 0,
     .m_slots = scaler_module_slots,
 };
