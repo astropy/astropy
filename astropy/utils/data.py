@@ -109,10 +109,11 @@ class Conf(_config.ConfigNamespace):
     """
 
     dataurl = _config.ConfigItem(
-        "http://data.astropy.org/", "Primary URL for astropy remote data site."
+        "http://www.astropy.org/astropy-data/",
+        "Primary URL for astropy remote data site.",
     )
     dataurl_mirror = _config.ConfigItem(
-        "http://www.astropy.org/astropy-data/",
+        "http://data.astropy.org/",
         "Mirror URL for astropy remote data site.",
     )
     default_http_user_agent = _config.ConfigItem(
