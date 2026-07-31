@@ -709,19 +709,15 @@ class TestFileFunctions(FitsTestCase):
 
     @pytest.mark.remote_data(source="astropy")
     def test_open_from_remote_url(self):
-        # NOTE: conf.dataurl_mirror is not tested here to avoid spamming server.
-        dataurl = conf.dataurl
-        remote_url = f"{dataurl}/allsky/allsky_rosat.fits"
+        remote_url = f"{conf.dataurl}/allsky/allsky_rosat.fits"
         with urllib.request.urlopen(remote_url) as urlobj:
             with fits.open(urlobj) as fits_handle:
                 assert len(fits_handle) == 1
 
-            for mode in ("ostream", "append", "update"):
-                with (
-                    pytest.raises(ValueError),
-                    fits.open(urlobj, mode=mode) as fits_handle,
-                ):
-                    assert len(fits_handle) == 1
+        for mode in ("ostream", "append", "update"):
+            urlobj = http.client.HTTPResponse(Mock())
+            with pytest.raises(ValueError, match=f"Mode {mode} not supported for HTTPResponse"):
+                fits.open(urlobj, mode=mode)
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
