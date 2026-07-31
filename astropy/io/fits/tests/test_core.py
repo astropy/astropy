@@ -709,24 +709,16 @@ class TestFileFunctions(FitsTestCase):
 
     @pytest.mark.remote_data(source="astropy")
     def test_open_from_remote_url(self):
-        for dataurl in (conf.dataurl, conf.dataurl_mirror):
-            remote_url = f"{dataurl}/allsky/allsky_rosat.fits"
-            try:
-                with urllib.request.urlopen(remote_url) as urlobj:
-                    with fits.open(urlobj) as fits_handle:
-                        assert len(fits_handle) == 1
+        # NOTE: conf.dataurl_mirror is not tested here to avoid spamming server.
+        dataurl = conf.dataurl
+        remote_url = f"{dataurl}/allsky/allsky_rosat.fits"
+        with urllib.request.urlopen(remote_url) as urlobj:
+            with fits.open(urlobj) as fits_handle:
+                assert len(fits_handle) == 1
 
-                for mode in ("ostream", "append", "update"):
-                    with pytest.raises(ValueError):
-                        with urllib.request.urlopen(remote_url) as urlobj:
-                            with fits.open(urlobj, mode=mode) as fits_handle:
-                                assert len(fits_handle) == 1
-            except (urllib.error.HTTPError, urllib.error.URLError):
-                continue
-            else:
-                break
-        else:
-            raise Exception("Could not download file")
+            for mode in ("ostream", "append", "update"):
+                with pytest.raises(ValueError), fits.open(urlobj, mode=mode) as fits_handle:
+                    assert len(fits_handle) == 1
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
