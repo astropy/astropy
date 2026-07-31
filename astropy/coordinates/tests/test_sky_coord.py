@@ -430,6 +430,26 @@ def test_equal():
     assert not v
 
 
+def test_equal_radial_velocity_broadcasting():
+    """Test equality comparison with broadcasting of radial_velocity."""
+    sc_scalar = SkyCoord(1 * u.deg, 3 * u.deg, radial_velocity=1 * u.km / u.s)
+    sc_array = SkyCoord(
+        [1, 1] * u.deg,
+        [3, 3] * u.deg,
+        radial_velocity=[1, 20] * u.km / u.s,
+    )
+
+    eq = sc_scalar == sc_array
+    ne = sc_scalar != sc_array
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+    eq = sc_array == sc_scalar
+    ne = sc_array != sc_scalar
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+
 def test_equal_different_type():
     sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime="B1955")
     # Test equals and not equals operators against different types
