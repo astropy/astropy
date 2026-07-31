@@ -259,12 +259,36 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return Scaler_from_factor(type, factor);
 }
 
+// traverse: Visit all references from an object, including its type
+// (since we're a heap type, which can get deallocated).
+static int Scaler_traverse(ScalerObject *self, visitproc visit, void *arg)
+{
+    // Visit the type
+    Py_VISIT(Py_TYPE(self));
+
+    // Visit attributes that may hold references.
+    Py_VISIT(self->O_factor);
+    Py_VISIT(self->A_factor);
+    Py_VISIT(self->A_factor_f);
+    return 0;
+}
+
+// Clear internal references; called from finalize and dealloc.
+static int Scaler_clear(ScalerObject *self)
+{
+    Py_CLEAR(self->O_factor);
+    Py_CLEAR(self->A_factor);
+    Py_CLEAR(self->A_factor_f);
+    return 0;
+}
+
 static void Scaler_dealloc(ScalerObject *self)
 {
-    Py_XDECREF(self->O_factor);
-    Py_XDECREF(self->A_factor);
-    Py_XDECREF(self->A_factor_f);
-    Py_TYPE(self)->tp_free(self);
+    PyObject_GC_UnTrack(self);
+    Scaler_clear(self);
+    PyTypeObject *type = Py_TYPE(self);
+    type->tp_free(self);
+    Py_DECREF(type);
 }
 
 static PyObject *Scaler_repr(ScalerObject *self)
@@ -307,17 +331,21 @@ static PyObject *Scaler___reduce__(ScalerObject *self)
 }
 
 static PyMemberDef Scaler_members[] = {
-    {"factor",
 #if Py_Version < 0x03120000
+    {"factor",
      T_DOUBLE,
      offsetof(ScalerObject, factor),
      READONLY,
+     "Factor with which input is multiplied."},
+    {"__vectorcalloffset__", T_PYSSIZET, offsetof(ScalerObject, vectorcall), READONLY},
 #else
+    {"factor",
      Py_T_DOUBLE,
      offsetof(ScalerObject, factor),
      Py_READONLY,
-#endif
      "Factor with which input is multiplied."},
+    {"__vectorcalloffset__", Py_T_PYSSIZET, offsetof(ScalerObject, vectorcall), Py_READONLY},
+#endif
     {NULL},
 };
 
@@ -326,21 +354,27 @@ static PyMethodDef Scaler_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static PyTypeObject ScalerType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "scaler.Scaler",
-    .tp_doc = Scaler_doc,
-    .tp_basicsize = sizeof(ScalerObject),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL,
-    .tp_new = Scaler_new,
-    .tp_repr = (reprfunc)Scaler_repr,
-    .tp_dealloc = (destructor)Scaler_dealloc,
-    .tp_vectorcall_offset = offsetof(ScalerObject, vectorcall),
-    .tp_call = &PyVectorcall_Call,
-    .tp_members = Scaler_members,
-    .tp_methods = Scaler_methods,
-    .tp_richcompare = Scaler_richcompare,
-    .tp_hash = Scaler_hash,
+static PyType_Slot Scaler_slots[] = {
+    {Py_tp_doc, Scaler_doc},
+    {Py_tp_new, (newfunc)Scaler_new},
+    {Py_tp_traverse, (traverseproc)Scaler_traverse},
+    {Py_tp_clear, (inquiry)Scaler_clear},
+    {Py_tp_dealloc, (destructor)Scaler_dealloc},
+    {Py_tp_repr, (reprfunc)Scaler_repr},
+    {Py_tp_richcompare, (richcmpfunc)Scaler_richcompare},
+    {Py_tp_hash, (hashfunc)Scaler_hash},
+    {Py_tp_call, &PyVectorcall_Call},
+    {Py_tp_members, Scaler_members},
+    {Py_tp_methods, Scaler_methods},
+    {0, NULL},
+};
+
+static PyType_Spec Scaler_spec = {
+    .name = "scaler.Scaler",
+    .basicsize = sizeof(ScalerObject),
+    .flags =
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
+    .slots = Scaler_slots,
 };
 
 // Get and cache multiplication loops for use with plain ndarray.
@@ -380,13 +414,14 @@ static int get_multiply_loops(PyUFuncGenericFunction loops[2])
 
 static int scaler_module_exec(PyObject *m)
 {
-    if (PyType_Ready(&ScalerType) < 0) {
+    PyTypeObject *Scaler = (PyTypeObject *)PyType_FromModuleAndSpec(m, &Scaler_spec, NULL);
+    if (Scaler == NULL) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "Scaler", (PyObject *)&ScalerType) < 0) {
+    if (PyModule_AddType(m, Scaler) < 0) {
         return -1;
     }
-    unity_scaler = Scaler_from_factor(&ScalerType, 1.0);
+    unity_scaler = Scaler_from_factor(Scaler, 1.0);
     if (unity_scaler == NULL) {
         return -1;
     }
