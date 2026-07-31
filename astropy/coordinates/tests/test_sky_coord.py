@@ -437,19 +437,39 @@ def test_equal_different_type():
     assert not (sc1 == "a string")
 
 
-def test_equal_exceptions():
-    sc1 = SkyCoord(1 * u.deg, 2 * u.deg, obstime="B1955")
-    sc2 = SkyCoord(1 * u.deg, 2 * u.deg)
-    with pytest.raises(
-        ValueError,
-        match=(
-            "cannot compare: extra frame attribute 'obstime' is not equivalent"
-            r" \(perhaps compare the frames directly to avoid this exception\)"
-        ),
-    ):
-        sc1 == sc2  # noqa: B015
-    # Note that this exception is the only one raised directly in SkyCoord.
-    # All others come from lower-level classes and are tested in test_frames.py.
+def test_equal_extra_frame_attributes():
+    obstime = Time(["B1955", "B1956"])
+    sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime=obstime)
+    sc2 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime="B1955")
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+    sc3 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
+    eq = sc1 == sc3
+    ne = sc1 != sc3
+    assert np.all(eq == [False, False])
+    assert np.all(ne == [True, True])
+
+
+def test_equal_extra_frame_attribute_broadcasting():
+    sc1 = SkyCoord(
+        [[1, 2], [1, 2]] * u.deg,
+        [[3, 4], [3, 4]] * u.deg,
+        obstime=Time([["B1955"], ["B1956"]]),
+    )
+    sc2 = SkyCoord(
+        [[1, 2], [1, 2]] * u.deg,
+        [[3, 4], [3, 4]] * u.deg,
+        obstime="B1955",
+    )
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [[True, True], [False, False]])
+    assert np.all(ne == [[False, False], [True, True]])
 
 
 def test_attr_inheritance():

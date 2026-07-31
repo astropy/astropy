@@ -309,17 +309,41 @@ class SkyCoord(MaskableShapedLikeNDArray):
         if not isinstance(value, SkyCoord):
             return NotImplemented
 
-        # Make sure that any extra frame attribute names are equivalent.
-        for attr in self._extra_frameattr_names | value._extra_frameattr_names:
-            if not self.frame._frameattr_equiv(
-                getattr(self, attr), getattr(value, attr)
-            ):
-                raise ValueError(
-                    f"cannot compare: extra frame attribute '{attr}' is not equivalent"
-                    " (perhaps compare the frames directly to avoid this exception)"
-                )
+        frame_eq = self._sky_coord_frame == value._sky_coord_frame
+        extra_attrs_eq = self._extra_frameattr_equiv(value, np.shape(frame_eq))
 
-        return self._sky_coord_frame == value._sky_coord_frame
+        return np.logical_and(frame_eq, extra_attrs_eq)
+
+    def _extra_frameattr_equiv(self, value, shape):
+        """Compare SkyCoord-only frame attributes element-wise.
+
+        Missing attributes compare as False everywhere. Existing attributes are
+        broadcast to the SkyCoord comparison shape before comparing.
+        """
+        extra_attrs_eq = np.ones(shape, dtype=bool)
+        extra_attrs = self._extra_frameattr_names | value._extra_frameattr_names
+
+        for attr in extra_attrs:
+            has_attr = (
+                attr in self._extra_frameattr_names
+                and attr in value._extra_frameattr_names
+            )
+            if not has_attr:
+                attr_eq = np.zeros(shape, dtype=bool)
+            else:
+                try:
+                    left = np.broadcast_to(getattr(self, attr), shape)
+                    right = np.broadcast_to(getattr(value, attr), shape)
+                except ValueError as err:
+                    raise ValueError(
+                        f"cannot compare: extra frame attribute '{attr}' has shape mismatch"
+                    ) from err
+
+                attr_eq = left == right
+
+            extra_attrs_eq &= attr_eq
+
+        return extra_attrs_eq
 
     def __ne__(self, value):
         return np.logical_not(self == value)
