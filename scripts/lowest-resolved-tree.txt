@@ -87,7 +87,12 @@ astropy
 │   │   │   ├── numpy v2.0.0
 │   │   │   ├── python-dateutil v2.8.2 (*)
 │   │   │   ├── pytz v2020.1
-│   │   │   └── tzdata v2022.7
+│   │   │   ├── tzdata v2022.7
+│   │   │   ├── beautifulsoup4 v4.11.2 (extra: html) (*)
+│   │   │   ├── html5lib v1.1 (extra: html)
+│   │   │   │   ├── six v1.9.0
+│   │   │   │   └── webencodings v0.5.1
+│   │   │   └── lxml v4.9.2 (extra: html)
 │   │   └── pyarrow v16.0.0
 │   │       └── numpy v2.0.0
 │   ├── numpy v2.0.0 (extra: dataframe)
@@ -95,9 +100,6 @@ astropy
 ├── fsspec[http, s3] v2023.4.0 (extra: all) (*)
 ├── h5py v3.11.0 (extra: all)
 │   └── numpy v2.0.0
-├── html5lib v1.1 (extra: all)
-│   ├── six v1.9.0
-│   └── webencodings v0.5.1
 ├── ipydatagrid v1.1.13 (extra: all)
 │   ├── bqplot v0.11.6
 │   │   ├── ipywidgets v7.7.3
@@ -204,7 +206,7 @@ astropy
 │   └── python-dateutil v2.8.2 (*)
 ├── mpmath v1.2.1 (extra: all)
 ├── narwhals v1.42.0 (extra: all)
-├── pandas v2.2.2 (extra: all) (*)
+├── pandas[html] v2.2.2 (extra: all) (*)
 ├── pyarrow v16.0.0 (extra: all) (*)
 ├── pytz v2020.1 (extra: all)
 ├── s3fs v2023.4.0 (extra: all) (*)
@@ -296,7 +298,8 @@ astropy
 ├── ipython v8.1.0 (extra: jupyter) (*)
 ├── ipywidgets v7.7.3 (extra: jupyter) (*)
 ├── jupyter-core v4.11.2 (extra: jupyter) (*)
-├── pandas v2.2.2 (extra: jupyter) (*)
+├── pandas[html] v2.2.2 (extra: jupyter) (*)
+├── pandas[html] v2.2.2 (extra: pandas) (*)
 ├── matplotlib v3.8.4 (extra: recommended) (*)
 ├── narwhals v1.42.0 (extra: recommended)
 ├── scipy v1.13.0 (extra: recommended) (*)
@@ -335,7 +338,6 @@ astropy
 ├── dask[dataframe] v2024.8.0 (extra: test-all) (*)
 ├── fsspec[http, s3] v2023.4.0 (extra: test-all) (*)
 ├── h5py v3.11.0 (extra: test-all) (*)
-├── html5lib v1.1 (extra: test-all) (*)
 ├── hypothesis v6.84.0 (extra: test-all) (*)
 ├── ipydatagrid v1.1.13 (extra: test-all) (*)
 ├── ipykernel v6.16.0 (extra: test-all) (*)
@@ -350,7 +352,7 @@ astropy
 │   └── numpy v2.0.0
 ├── objgraph v3.1.2 (extra: test-all)
 │   └── graphviz v0.1
-├── pandas v2.2.2 (extra: test-all) (*)
+├── pandas[html] v2.2.2 (extra: test-all) (*)
 ├── pyarrow v16.0.0 (extra: test-all) (*)
 ├── pytest v8.0.1 (extra: test-all) (*)
 ├── pytest-astropy-header v0.2.2 (extra: test-all) (*)
@@ -374,24 +376,23 @@ astropy
 ├── threadpoolctl v3.0.0 (extra: test-all)
 ├── uncompresspy v0.4.0 (extra: test-all)
 ├── narwhals v1.42.0 (extra: typing)
-├── pandas-stubs v2.0.2.230605 (extra: typing)
+├── pandas-stubs v2.2.2.240514 (extra: typing)
 │   ├── numpy v2.0.0
 │   └── types-pytz v2022.1.1
 ├── scipy-stubs v1.14.1.6 (extra: typing)
 │   └── optype v0.7.3
 │       └── typing-extensions v4.10.0
+├── astropy[pandas] (group: dataframe) (*)
 ├── dask[dataframe] v2024.8.0 (group: dataframe) (*)
 ├── duckdb v1.1.0 (group: dataframe)
 ├── narwhals v1.42.0 (group: dataframe)
-├── pandas v2.2.2 (group: dataframe) (*)
 ├── polars v1.18.0 (group: dataframe)
 ├── pyarrow v16.0.0 (group: dataframe) (*)
 ├── astropy[docs, recommended, test, typing] (group: dev) (*)
-├── astropy[docs, recommended, test, test-all, typing] (group: dev-all) (*)
+├── astropy[docs, pandas, recommended, test, test-all, typing] (group: dev-all) (*)
 ├── dask[dataframe] v2024.8.0 (group: dev-all) (*)
 ├── duckdb v1.1.0 (group: dev-all)
 ├── narwhals v1.42.0 (group: dev-all)
-├── pandas v2.2.2 (group: dev-all) (*)
 ├── polars v1.18.0 (group: dev-all)
 ├── pyarrow v16.0.0 (group: dev-all) (*)
 └── tox v4.33.0 (group: dev-all)
