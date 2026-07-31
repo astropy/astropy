@@ -20,6 +20,14 @@ PyDoc_STRVAR(
     "    The scale factor with which, when called, an argument will be multiplied.\n"
 );
 
+// Module state
+typedef struct {
+    PyTypeObject *Scaler;
+    PyObject *unity_scaler;
+} scaler_state;
+
+// Forward definition.
+static PyModuleDef scaler_module;
 
 typedef struct {
     PyObject_HEAD
@@ -33,8 +41,6 @@ typedef struct {
 
 // Double and float multiply loops, filled in on initialization.
 static PyUFuncGenericFunction loops[2] = {NULL, NULL};
-// Unity scaler, which is kept unique, filled in on initialization.
-static PyObject *unity_scaler = NULL;
 
 // Multiply a contiguous array directly with the factor, using np.multiply's
 // loop function.
@@ -253,8 +259,16 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (factor == -1.0 && PyErr_Occurred()) {
         return NULL;
     }
-    if (factor == 1.0) { // Use singleton.
-        return Py_NewRef(unity_scaler);
+    if (factor == 1.0) { // Get singleton from module state.
+        PyObject *m = PyType_GetModuleByDef(type, &scaler_module);
+        if (m == NULL) {
+            return NULL;
+        }
+        scaler_state *state = PyModule_GetState(m);
+        if (state == NULL) {
+            return NULL;
+        }
+        return Py_NewRef(state->unity_scaler);
     }
     return Scaler_from_factor(type, factor);
 }
@@ -414,21 +428,50 @@ static int get_multiply_loops(PyUFuncGenericFunction loops[2])
 
 static int scaler_module_exec(PyObject *m)
 {
-    PyTypeObject *Scaler = (PyTypeObject *)PyType_FromModuleAndSpec(m, &Scaler_spec, NULL);
-    if (Scaler == NULL) {
+    scaler_state *state = PyModule_GetState(m);
+    state->Scaler = (PyTypeObject *)PyType_FromModuleAndSpec(m, &Scaler_spec, NULL);
+    if (state->Scaler == NULL) {
         return -1;
     }
-    if (PyModule_AddType(m, Scaler) < 0) {
+    if (PyModule_AddType(m, state->Scaler) < 0) {
         return -1;
     }
-    unity_scaler = Scaler_from_factor(Scaler, 1.0);
-    if (unity_scaler == NULL) {
+    state->unity_scaler = Scaler_from_factor(state->Scaler, 1.0);
+    if (state->unity_scaler == NULL) {
         return -1;
     }
     if (get_multiply_loops(loops) < 0) {
         return -1;
     }
     return 0;
+}
+
+static int scaler_module_traverse(PyObject *m, visitproc visit, void *arg)
+{
+    scaler_state *state = PyModule_GetState(m);
+    if (state == NULL) {
+        return 0;
+    }
+    Py_VISIT(state->Scaler);
+    Py_VISIT(state->unity_scaler);
+    return 0;
+}
+
+static int scaler_module_clear(PyObject *m)
+{
+    scaler_state *state = PyModule_GetState(m);
+    if (state == NULL) {
+        return 0;
+    }
+    Py_CLEAR(state->Scaler);
+    Py_CLEAR(state->unity_scaler);
+    return 0;
+}
+
+static void scaler_module_free(PyObject *m)
+{
+    // allow scaler_modexec to omit calling scaler_clear on error
+    scaler_module_clear(m);
 }
 
 static PyModuleDef_Slot scaler_module_slots[] = {
@@ -443,7 +486,10 @@ static PyModuleDef scaler_module = {
     .m_base = PyModuleDef_HEAD_INIT,
     .m_name = "scaler",
     .m_doc = scaler_module_doc,
-    .m_size = 0,
+    .m_size = sizeof(scaler_state),
+    .m_traverse = (traverseproc)scaler_module_traverse,
+    .m_clear = (inquiry)scaler_module_clear,
+    .m_free = (freefunc)scaler_module_free,
     .m_slots = scaler_module_slots,
 };
 
