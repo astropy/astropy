@@ -91,6 +91,16 @@ def test_with_wrong_items(item):
         sc(item)
 
 
+def test_unity_scaler_is_singleton():
+    sc1a = Scaler(1.0)
+    sc2a = Scaler(2.0)
+    sc1b = Scaler(1.0)
+    sc2b = Scaler(2.0)
+    assert sc1a is sc1b
+    assert sc1a is not sc2a
+    assert sc2b is not sc2a
+
+
 def test_repr():
     sc = Scaler(10.0)
     assert repr(sc) == "Scaler(10.0)"

@@ -19,6 +19,8 @@ typedef struct {
 
 // Double and float multiply loops, filled in on initialization.
 static PyUFuncGenericFunction loops[2] = {NULL, NULL};
+// Unity scaler, which is kept unique, filled in on initialization.
+static PyObject *unity_scaler = NULL;
 
 // Multiply a contiguous array directly with the factor, using np.multiply's
 // loop function.
@@ -196,16 +198,8 @@ static PyObject *Scaler_vectorcall(
     return res;
 }
 
-static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+static inline PyObject *Scaler_from_factor(PyTypeObject *type, double factor)
 {
-    if (kwds != NULL || PyTuple_Size(args) != 1) {
-        PyErr_SetString(PyExc_TypeError, "Scaler takes exactly 1 positional argument.");
-        return NULL;
-    }
-    double factor = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
-    if (factor == -1.0 && PyErr_Occurred()) {
-        return NULL;
-    }
     ScalerObject *self = (ScalerObject *)type->tp_alloc(type, 0);
     if (self == NULL) {
         return NULL;
@@ -218,6 +212,22 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     // self->A_factor = NULL;
     // self->A_factor_f = NULL;
     return (PyObject *)self;
+}
+
+static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    if (kwds != NULL || PyTuple_GET_SIZE(args) != 1) {
+        PyErr_SetString(PyExc_TypeError, "Scaler takes exactly 1 positional argument.");
+        return NULL;
+    }
+    double factor = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
+    if (factor == -1.0 && PyErr_Occurred()) {
+        return NULL;
+    }
+    if (factor == 1.0) { // Use singleton.
+        return Py_NewRef(unity_scaler);
+    }
+    return Scaler_from_factor(type, factor);
 }
 
 static void Scaler_dealloc(ScalerObject *self)
@@ -339,6 +349,10 @@ static int scaler_module_exec(PyObject *m)
         return -1;
     }
     if (PyModule_AddObjectRef(m, "Scaler", (PyObject *)&ScalerType) < 0) {
+        return -1;
+    }
+    unity_scaler = Scaler_from_factor(&ScalerType, 1.0);
+    if (unity_scaler == NULL) {
         return -1;
     }
     if (get_multiply_loops(loops) < 0) {
