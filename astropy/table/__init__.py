@@ -37,6 +37,7 @@ __all__ = [
     "join_skycoord",
     "registry",
     "represent_mixins_as_columns",
+    "represent_nd_columns_as_1d_columns",
     "setdiff",
     "unique",
     "vstack",
@@ -107,7 +108,11 @@ from .operations import (
     unique,
     vstack,
 )
-from .serialize import SerializedColumn, represent_mixins_as_columns
+from .serialize import (
+    SerializedColumn,
+    represent_mixins_as_columns,
+    represent_nd_columns_as_1d_columns,
+)
 from .soco import SCEngine
 from .sorted_array import SortedArray
 from .table import (
