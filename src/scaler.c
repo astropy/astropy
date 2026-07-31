@@ -22,8 +22,11 @@ PyDoc_STRVAR(
 
 // Module state
 typedef struct {
-    PyTypeObject *Scaler;
-    PyObject *unity_scaler;
+    PyTypeObject *Scaler;   // The class
+    PyObject *unity_scaler; // Singleton for scale=1.0
+    PyObject *np_multiply;  // Reference to multiply, for holding on to loops.
+    // Double and float multiply loops, filled in on initialization.
+    PyUFuncGenericFunction loops[2];
 } scaler_state;
 
 // Forward definition.
@@ -39,13 +42,23 @@ typedef struct {
     PyObject *A_factor_f;
 } ScalerObject;
 
-// Double and float multiply loops, filled in on initialization.
-static PyUFuncGenericFunction loops[2] = {NULL, NULL};
 
 // Multiply a contiguous array directly with the factor, using np.multiply's
 // loop function.
-static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr)
+static inline PyObject *use_contiguous_loop(
+    ScalerObject *self, PyArrayObject *arr, char *factor_ptr
+)
 {
+    // Get loops from module state.
+    PyObject *m = PyType_GetModuleByDef(Py_TYPE(self), &scaler_module);
+    if (m == NULL) {
+        return NULL;
+    }
+    scaler_state *state = PyModule_GetState(m);
+    if (state == NULL) {
+        return NULL;
+    }
+    // Create result array.
     const int type_num = PyArray_TYPE(arr);
     PyArrayObject *res = (PyArrayObject *)PyArray_EMPTY(
         PyArray_NDIM(arr), PyArray_DIMS(arr), type_num, PyArray_ISFORTRAN(arr)
@@ -62,12 +75,12 @@ static inline PyObject *use_contiguous_loop(PyArrayObject *arr, char *factor_ptr
     char *data[3] = {PyArray_DATA(arr), factor_ptr, PyArray_DATA(res)};
     if (type_num == NPY_DOUBLE || type_num == NPY_FLOAT) {
         strides[0] = PyArray_ITEMSIZE(arr);
-        loop = loops[type_num - NPY_FLOAT];
+        loop = state->loops[type_num - NPY_FLOAT];
     }
     else { // For complex, with real factor, we can use real loop.
         strides[0] = PyArray_ITEMSIZE(arr) / 2;
         n *= 2;
-        loop = loops[type_num - NPY_CFLOAT];
+        loop = state->loops[type_num - NPY_CFLOAT];
     }
     strides[1] = 0;
     strides[2] = strides[0];
@@ -136,7 +149,7 @@ static PyObject *Scaler_vectorcall(
         // Pass contiguous float or complex arrays directly to multiply loop,
         // bypassing ufunc setup.
         if (supported_fast_type && PyArray_ISONESEGMENT(arr) && PyArray_ISNOTSWAPPED(arr)) {
-            return use_contiguous_loop(arr, f_ptr);
+            return use_contiguous_loop(self, arr, f_ptr);
         }
         // If not, convert factor to array here, since that makes ufunc
         // call substantially faster.  Use cached version if available.
@@ -394,35 +407,36 @@ static PyType_Spec Scaler_spec = {
 // Get and cache multiplication loops for use with plain ndarray.
 // Only gets double and float loops, since those can be used for
 // complex too. We ignore long double for our fast path.
-static int get_multiply_loops(PyUFuncGenericFunction loops[2])
+static int get_multiply_loops(scaler_state *state)
 {
     PyObject *mod = PyImport_ImportModule("numpy");
     if (mod == NULL) {
         return -1;
     }
-    PyUFuncObject *multiply = (PyUFuncObject *)PyObject_GetAttrString(mod, "multiply");
+    // Keep reference to multiply since we are using its loops
+    // (not that it will ever disappear...).
+    state->np_multiply = PyObject_GetAttrString(mod, "multiply");
     Py_DECREF(mod);
-    if (multiply == NULL) {
+    if (state->np_multiply == NULL) {
         return -1;
     }
     // Unfortunately, new-style loops are not exposed, so get legacy ones.
+    PyUFuncObject *multiply = (PyUFuncObject *)state->np_multiply;
     for (int k = 0; k < 2; k++) {
         char type = (char)(k + NPY_FLOAT);
         const char *types = multiply->types;
         for (int i = 0; i < multiply->ntypes; i++) {
             if (types[0] == type && types[1] == type && types[2] == type) {
-                loops[k] = multiply->functions[i];
+                state->loops[k] = multiply->functions[i];
                 break;
             }
             types += 3;
         }
-        if (loops[k] == NULL) { // Should never happen.
+        if (state->loops[k] == NULL) { // Should never happen.
             PyErr_SetString(PyExc_RuntimeError, "could not find loop");
             return -1;
         }
     }
-    // Keep reference to multiply since we are using its loops
-    // (not that it will ever disappear...).
     return 0;
 }
 
@@ -440,7 +454,7 @@ static int scaler_module_exec(PyObject *m)
     if (state->unity_scaler == NULL) {
         return -1;
     }
-    if (get_multiply_loops(loops) < 0) {
+    if (get_multiply_loops(state) < 0) {
         return -1;
     }
     return 0;
@@ -454,6 +468,7 @@ static int scaler_module_traverse(PyObject *m, visitproc visit, void *arg)
     }
     Py_VISIT(state->Scaler);
     Py_VISIT(state->unity_scaler);
+    Py_VISIT(state->np_multiply);
     return 0;
 }
 
@@ -465,6 +480,9 @@ static int scaler_module_clear(PyObject *m)
     }
     Py_CLEAR(state->Scaler);
     Py_CLEAR(state->unity_scaler);
+    Py_CLEAR(state->np_multiply);
+    state->loops[0] = NULL;
+    state->loops[1] = NULL;
     return 0;
 }
 
@@ -477,7 +495,8 @@ static void scaler_module_free(PyObject *m)
 static PyModuleDef_Slot scaler_module_slots[] = {
     {Py_mod_exec, scaler_module_exec},
 #if Py_Version >= 0x03120000
-    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_NOT_SUPPORTED},
+    // Just use this while using static types
+    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED},
 #endif
     {0, NULL}
 };
