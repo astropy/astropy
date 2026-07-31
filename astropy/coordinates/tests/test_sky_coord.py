@@ -438,6 +438,7 @@ def test_equal_different_type():
 
 
 def test_equal_extra_frame_attributes():
+    """Extra frame attributes contribute element-wise to equality results."""
     obstime = Time(["B1955", "B1956"])
     sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime=obstime)
     sc2 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime="B1955")
@@ -454,7 +455,8 @@ def test_equal_extra_frame_attributes():
     assert np.all(ne == [True, True])
 
 
-def test_equal_extra_frame_attribute_broadcasting():
+def test_equal_extra_frame_attribute_broadcasting_mismatch():
+    """Broadcast extra frame attributes to SkyCoord shape before comparison."""
     sc1 = SkyCoord(
         [[1, 2], [1, 2]] * u.deg,
         [[3, 4], [3, 4]] * u.deg,
@@ -470,6 +472,26 @@ def test_equal_extra_frame_attribute_broadcasting():
     ne = sc1 != sc2
     assert np.all(eq == [[True, True], [False, False]])
     assert np.all(ne == [[False, False], [True, True]])
+
+
+def test_equal_extra_frame_attribute_shape_mismatch():
+    """Raise when an extra frame attribute cannot broadcast to comparison shape."""
+    sc1 = SkyCoord(
+        [1, 2] * u.deg,
+        [3, 4] * u.deg,
+        obstime=Time([["B1955"], ["B1956"]]),
+    )
+    sc2 = SkyCoord(
+        [1, 2] * u.deg,
+        [3, 4] * u.deg,
+        obstime="B1955",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="cannot compare: extra frame attribute 'obstime' has shape mismatch",
+    ):
+        sc1 == sc2  # noqa: B015
 
 
 def test_attr_inheritance():
