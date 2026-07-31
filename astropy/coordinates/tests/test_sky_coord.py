@@ -450,6 +450,55 @@ def test_equal_radial_velocity_broadcasting():
     assert np.all(ne == [False, True])
 
 
+def test_equal_fk4_frame_attribute_arrays_mismatch():
+    """FK4 equality works with shape-mismatched primary frame attributes."""
+    sc1 = SkyCoord(1 * u.deg, 3 * u.deg, frame="fk4", equinox="B1950")
+    sc2 = SkyCoord(1 * u.deg, 3 * u.deg, frame="fk4", equinox="B1951")
+    with pytest.raises(
+        TypeError, match="cannot compare: objects must have equivalent frames"
+    ):
+        sc1 == sc2  # noqa: B015
+
+
+def test_equal_fk4_frame_attribute_arrays_default():
+    """FK4 equality works with shape-mismatched primary frame attributes."""
+    sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, frame="fk4", equinox="B1950")
+    sc2 = SkyCoord(
+        [1, 20] * u.deg, [3, 4] * u.deg, frame="fk4", equinox=["B1950", "B1950"]
+    )
+    assert sc1.equinox.shape == ()
+    assert sc2.equinox.shape == (2,)
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+
+def test_equal_fk4_frame_attribute_arrays():
+    """FK4 equality works with array-valued primary frame attributes."""
+    equinox = Time(["B1950", "B1951"])
+    obstime = Time(["B1960", "B1961"])
+    sc1 = SkyCoord(
+        [1, 2] * u.deg,
+        [3, 4] * u.deg,
+        frame="fk4",
+        equinox=equinox,
+        obstime=obstime,
+    )
+    sc2 = SkyCoord(
+        [1, 20] * u.deg,
+        [3, 4] * u.deg,
+        frame="fk4",
+        equinox=equinox,
+        obstime=obstime,
+    )
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+
 def test_equal_different_type():
     sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime="B1955")
     # Test equals and not equals operators against different types
