@@ -2,7 +2,7 @@
 
 import errno
 import gzip
-import http
+import http.client
 import io
 import mmap
 import os
@@ -711,16 +711,14 @@ class TestFileFunctions(FitsTestCase):
     @pytest.mark.remote_data(source="astropy")
     def test_open_from_remote_url(self):
         remote_url = f"{conf.dataurl}/allsky/allsky_rosat.fits"
-        with urllib.request.urlopen(remote_url) as urlobj:
-            with fits.open(urlobj) as fits_handle:
-                assert len(fits_handle) == 1
+        with urllib.request.urlopen(remote_url) as urlobj, fits.open(urlobj) as fits_handle:
+            assert len(fits_handle) == 1
 
-        for mode in ("ostream", "append", "update"):
-            urlobj = http.client.HTTPResponse(Mock())
-            with pytest.raises(
-                ValueError, match=f"Mode {mode} not supported for HTTPResponse"
-            ):
-                fits.open(urlobj, mode=mode)
+    @pytest.mark.parametrize("mode", ("ostream", "append", "update"))
+    def test_open_url_invalid_mode(self, mode):
+        urlobj = http.client.HTTPResponse(Mock())
+        with pytest.raises(ValueError, match=f"Mode {mode} not supported for HTTPResponse"):
+            fits.open(urlobj, mode=mode)
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()
