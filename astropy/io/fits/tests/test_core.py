@@ -717,7 +717,10 @@ class TestFileFunctions(FitsTestCase):
                 assert len(fits_handle) == 1
 
             for mode in ("ostream", "append", "update"):
-                with pytest.raises(ValueError), fits.open(urlobj, mode=mode) as fits_handle:
+                with (
+                    pytest.raises(ValueError),
+                    fits.open(urlobj, mode=mode) as fits_handle,
+                ):
                     assert len(fits_handle) == 1
 
     def test_open_gzipped(self):
