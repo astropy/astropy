@@ -193,6 +193,7 @@ def test_cds_solMass_str():
     # CDS allows writing solar mass as Msun or solMass,
     # but cds.solMass and u.solMass should be consistent.
     assert u.solMass.to_string("cds") == "solMass"
+    assert u.Msun.to_string("cds") == "solMass"
     assert u.cds.solMass.to_string("cds") == "solMass"
 
 
@@ -200,6 +201,7 @@ def test_cds_solRad_str():
     # CDS allows writing solar radius as Rsun or solRad,
     # but cds.solRad and u.solRad should be consistent.
     assert u.solRad.to_string("cds") == "solRad"
+    assert u.Rsun.to_string("cds") == "solRad"
     assert u.cds.solRad.to_string("cds") == "solRad"
 
 
@@ -207,6 +209,7 @@ def test_cds_solLum_str():
     # CDS allows writing solar luminosity as Lsun or solLum,
     # but cds.solLum and u.solLum should be consistent.
     assert u.solLum.to_string("cds") == "solLum"
+    assert u.Lsun.to_string("cds") == "solLum"
     assert u.cds.solLum.to_string("cds") == "solLum"
 
 
