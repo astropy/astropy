@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import inspect
 import warnings
 from unittest.mock import MagicMock
 
@@ -16,6 +17,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import (
     EllipticalFrame,
@@ -42,6 +44,33 @@ def test_grid_regression(ignore_matplotlibrc):
     mpl.rc("axes", grid=True)
     fig = Figure(figsize=(3, 3))
     WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
+
+
+def test_grid_visible_keyword(ignore_matplotlibrc):
+    # Regression test for a bug that meant that ax.grid(visible=False),
+    # using the parameter name from matplotlib.axes.Axes.grid, silently
+    # turned the grid on instead of off.
+    assert "visible" in inspect.signature(WCSAxes.grid).parameters
+
+    fig = Figure(figsize=(3, 3))
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8])
+
+    ax.grid(visible=True)
+    assert all(coord._grid_lines_kwargs["visible"] for coord in ax.coords)
+
+    ax.grid(visible=False)
+    assert not any(coord._grid_lines_kwargs["visible"] for coord in ax.coords)
+
+    # Passing visible directly to CoordinateHelper.grid should also work
+    ax.coords[0].grid(visible=True)
+    assert ax.coords[0]._grid_lines_kwargs["visible"]
+    ax.coords[0].grid(visible=False)
+    assert not ax.coords[0]._grid_lines_kwargs["visible"]
+
+    # The old parameter name should still work but emit a deprecation warning
+    with pytest.warns(AstropyDeprecationWarning, match='"b" was deprecated'):
+        ax.grid(b=False)
+    assert not any(coord._grid_lines_kwargs["visible"] for coord in ax.coords)
 
 
 def test_format_coord_regression(ignore_matplotlibrc, tmp_path):
