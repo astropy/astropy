@@ -1,14 +1,63 @@
 #define NPY_TARGET_VERSION NPY_2_0_API_VERSION // For PyUFunc_GiveFloatingpointErrors
+#define Py_LIMITED_API 0x030B0000
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#if Py_Version < 0x03120000
-#include <structmember.h> // for PyMemberDef, not in Python.h for python <= 3.11
-#endif
 #include <numpy/arrayobject.h>
 #include <numpy/arrayscalars.h>
 #include <numpy/ndarrayobject.h>
 #include <numpy/ufuncobject.h>
 #include <stddef.h> // for offsetof()
+
+// Once we're at 3.12, move SCALER_TP_FLAGS to its use, and remove this whole block.
+#if Py_LIMITED_API + 0 >= 0x030C0000
+#define SCALER_TP_FLAGS \
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE
+#else                     // work-arounds for python 3.11 limited API
+#include <structmember.h> // for PyMemberDef
+#define PyType_GetModuleByDef(type, unused) PyType_GetModule(type) // hence, cannot subclass
+#define vectorcallfunc void *
+#define Py_TPFLAGS_HAVE_VECTORCALL (1UL << 11)
+#define SCALER_TP_FLAGS Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL | Py_TPFLAGS_HAVE_GC
+#ifndef Py_T_DOUBLE
+// Most of these are macros whose availability depends on which python we're compiling on,
+// but which do not influence support in different versions (tested by compiling on
+// 3.11 and running tests on 3.14 with the resulting .so file).
+// But more annoyingly, we also need to define our own PyVectorcall_Call;
+// Note that what is below is specific to our class; it cannot be used generally!
+#define Py_T_DOUBLE T_DOUBLE
+#define Py_READONLY READONLY
+#define Py_T_PYSSIZET T_PYSSIZET
+#define PY_VECTORCALL_ARGUMENTS_OFFSET (_Py_STATIC_CAST(size_t, 1) << (8 * sizeof(size_t) - 1))
+#define PyVectorcall_NARGS(nargsf) (Py_ssize_t)(nargsf & ~PY_VECTORCALL_ARGUMENTS_OFFSET)
+static PyObject *Scaler_vectorcall(
+    PyObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
+);
+static PyObject *PyVectorcall_Call(PyObject *self, PyObject *tuple, PyObject *dict)
+{
+    if (dict != NULL && PyDict_Size(dict) > 0) {
+        Py_ssize_t pos = 0;
+        PyObject *key, *value;
+        PyDict_Next(dict, &pos, &key, &value);
+        PyErr_Format(PyExc_TypeError, "scaler() got an unexpected keyword argument %R", key);
+        return NULL;
+    }
+    if (PyTuple_Size(tuple) != 1) {
+        PyErr_Format(
+            PyExc_TypeError,
+            "scaler() takes 1 positional argument but %d were given",
+            PyTuple_Size(tuple)
+        );
+        return NULL;
+    }
+    PyObject *args[1];
+    args[0] = PyTuple_GetItem(tuple, 0);
+    if (args[0] == NULL) {
+        return NULL;
+    }
+    return Scaler_vectorcall(self, args, 1, NULL);
+}
+#endif
+#endif
 
 PyDoc_STRVAR(scaler_module_doc, "Compiled module providing the inspectable Scaler class.");
 PyDoc_STRVAR(
@@ -45,9 +94,7 @@ typedef struct {
 
 // Multiply a contiguous array directly with the factor, using np.multiply's
 // loop function.
-static inline PyObject *use_contiguous_loop(
-    ScalerObject *self, PyArrayObject *arr, char *factor_ptr
-)
+static inline PyObject *use_contiguous_loop(PyObject *self, PyArrayObject *arr, char *factor_ptr)
 {
     // Get loops from module state.
     PyObject *m = PyType_GetModuleByDef(Py_TYPE(self), &scaler_module);
@@ -100,27 +147,27 @@ static inline PyObject *use_contiguous_loop(
 }
 
 // Get the factor as a PyFloat, caching it as needed.
-static inline PyObject *get_o_factor(ScalerObject *self)
+static inline PyObject *get_o_factor(ScalerObject *scaler)
 {
-    if (self->O_factor == NULL) {
-        self->O_factor = PyFloat_FromDouble(self->factor);
-        if (self->O_factor == NULL) {
+    if (scaler->O_factor == NULL) {
+        scaler->O_factor = PyFloat_FromDouble(scaler->factor);
+        if (scaler->O_factor == NULL) {
             return NULL;
         }
     }
-    return self->O_factor;
+    return scaler->O_factor;
 }
 
 // Scale the input with the factor, using shortcuts where possible.
 static PyObject *Scaler_vectorcall(
-    ScalerObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
+    PyObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
 )
 {
-    if (kwnames != NULL && PyTuple_GET_SIZE(kwnames) > 0) {
+    if (kwnames != NULL && PyTuple_Size(kwnames) > 0) {
         PyErr_Format(
             PyExc_TypeError,
             "scaler() got an unexpected keyword argument %R",
-            PyTuple_GET_ITEM(kwnames, 0)
+            PyTuple_GetItem(kwnames, 0)
         );
         return NULL;
     }
@@ -132,11 +179,11 @@ static PyObject *Scaler_vectorcall(
         );
         return NULL;
     }
-
+    ScalerObject *scaler = (ScalerObject *)self;
     PyObject *const obj = args[0];
     // Fast paths for python double.
     if (PyFloat_CheckExact(obj)) {
-        return PyFloat_FromDouble(PyFloat_AS_DOUBLE(obj) * self->factor);
+        return PyFloat_FromDouble(PyFloat_AsDouble(obj) * scaler->factor);
     }
     // Fast path for plain ndarray, with special care for contiguous data.
     if (PyArray_CheckExact(obj)) {
@@ -145,7 +192,7 @@ static PyObject *Scaler_vectorcall(
         npy_bool needs_float = type_num == NPY_FLOAT || type_num == NPY_CFLOAT;
         npy_bool supported_fast_type =
             (needs_float || type_num == NPY_DOUBLE || type_num == NPY_CDOUBLE);
-        char *f_ptr = needs_float ? (char *)&self->factor_f : (char *)&self->factor;
+        char *f_ptr = needs_float ? (char *)&scaler->factor_f : (char *)&scaler->factor;
         // Pass contiguous float or complex arrays directly to multiply loop,
         // bypassing ufunc setup.
         if (supported_fast_type && PyArray_ISONESEGMENT(arr) && PyArray_ISNOTSWAPPED(arr)) {
@@ -153,7 +200,7 @@ static PyObject *Scaler_vectorcall(
         }
         // If not, convert factor to array here, since that makes ufunc
         // call substantially faster.  Use cached version if available.
-        PyObject **A_factor = needs_float ? &self->A_factor_f : &self->A_factor;
+        PyObject **A_factor = needs_float ? &scaler->A_factor_f : &scaler->A_factor;
         if (*A_factor == NULL) {
             const npy_intp dims[1] = {0};
             *A_factor =
@@ -162,30 +209,32 @@ static PyObject *Scaler_vectorcall(
                 return NULL;
             }
         }
-        return Py_TYPE(obj)->tp_as_number->nb_multiply(obj, *A_factor);
+        return PyNumber_Multiply(obj, *A_factor);
     }
 // Fast paths for numpy double and float scalars; particularly useful for
 // float32, where it avoids double->float conversion.
-// Note: keep PyArray_VAL and ASSIGN where they are: they prevent the compiler
+// Note: keep the PyArray_Scalar* calls where they are: they prevent the compiler
 // from reordering the multiplication with the fperr calls.
 #define FAST_PATH_NUMPY_SCALAR(obj, Type, npy_type, factor) \
     if (PyArray_IsScalar(obj, Type)) { \
-        PyObject *res = PyArrayScalar_New(Type); \
+        npy_type out; \
+        PyUFunc_clearfperr(); \
+        PyArray_ScalarAsCtype(obj, (char *)&out); \
+        out *= factor; \
+        PyArray_Descr *dtype = PyArray_DescrFromScalar(obj); \
+        PyObject *res = PyArray_Scalar((char *)&out, dtype, NULL); \
+        Py_DECREF(dtype); \
         if (res == NULL) { \
             return NULL; \
         } \
-        PyUFunc_clearfperr(); \
-        npy_type x = PyArrayScalar_VAL(obj, Type); \
-        npy_type out = x * factor; \
-        PyArrayScalar_ASSIGN(res, Type, out); \
         int fpe_errors = PyUFunc_getfperr(); \
         if (fpe_errors && PyUFunc_GiveFloatingpointErrors("scalar multiply", fpe_errors) < 0) { \
             Py_CLEAR(res); \
         } \
         return res; \
     }
-    FAST_PATH_NUMPY_SCALAR(obj, Double, npy_double, self->factor);
-    FAST_PATH_NUMPY_SCALAR(obj, Float, npy_float, self->factor_f);
+    FAST_PATH_NUMPY_SCALAR(obj, Double, npy_double, scaler->factor);
+    FAST_PATH_NUMPY_SCALAR(obj, Float, npy_float, scaler->factor_f);
 #undef FAST_PATH_NUMPY_SCALAR
     // Fast path for python integers.
     if (PyLong_CheckExact(obj)) {
@@ -193,10 +242,10 @@ static PyObject *Scaler_vectorcall(
         if (d == -1.0 && PyErr_Occurred()) {
             return NULL;
         }
-        return PyFloat_FromDouble(d * self->factor);
+        return PyFloat_FromDouble(d * scaler->factor);
     }
     // For cases without special treatment, we need the float object.
-    PyObject *O_factor = get_o_factor(self);
+    PyObject *O_factor = get_o_factor(scaler);
     if (O_factor == NULL) {
         return NULL;
     }
@@ -206,18 +255,6 @@ static PyObject *Scaler_vectorcall(
         PyObject_HasAttrString(obj, "dtype") ||
         PyObject_HasAttrString(obj, "__array_namespace__")) {
         // Generally, should be possible to go directly for the slot.
-        if (Py_TYPE(obj)->tp_as_number != NULL) {
-            binaryfunc slotv = Py_TYPE(obj)->tp_as_number->nb_multiply;
-            if (slotv != NULL) {
-                PyObject *res = slotv(obj, O_factor);
-                if (res != Py_NotImplemented) {
-                    return res;
-                }
-                // Fall back to slow path, which will likely raise,
-                // thus giving a reasonable error message.
-                Py_DECREF(res);
-            }
-        }
         return PyNumber_Multiply(obj, O_factor);
     }
     // If obj is not a known type, try converting it to an array.
@@ -244,31 +281,32 @@ static PyObject *Scaler_vectorcall(
 
 static inline PyObject *Scaler_from_factor(PyTypeObject *type, double factor)
 {
-    ScalerObject *self = (ScalerObject *)type->tp_alloc(type, 0);
+    PyObject *self = PyType_GenericAlloc(type, 0);
     if (self == NULL) {
         return NULL;
     }
-    self->vectorcall = (vectorcallfunc)&Scaler_vectorcall;
-    self->factor = factor;
-    self->factor_f = (float)factor;
+    ScalerObject *scaler = (ScalerObject *)self;
+    scaler->vectorcall = (vectorcallfunc)&Scaler_vectorcall;
+    scaler->factor = factor;
+    scaler->factor_f = (float)factor;
     // No need to explicitly set to zero, since zeroed by tp_alloc.
-    // self->O_factor = NULL;  // initialized as needed in call.
-    // self->A_factor = NULL;
-    // self->A_factor_f = NULL;
-    return (PyObject *)self;
+    // scaler->O_factor = NULL;  // initialized as needed in call.
+    // scaler->A_factor = NULL;
+    // scaler->A_factor_f = NULL;
+    return self;
 }
 
 static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     double factor;
-    Py_ssize_t nargs = PyTuple_GET_SIZE(args);
+    Py_ssize_t nargs = PyTuple_Size(args);
     if (nargs != 1 || kwds != NULL) {
         // Use parser to give error message.
         char *const kwlist[] = {"", NULL};
         PyArg_ParseTupleAndKeywords(args, kwds, "d:Scaler", kwlist, &factor);
         return NULL;
     }
-    factor = PyFloat_AsDouble(PyTuple_GET_ITEM(args, 0));
+    factor = PyFloat_AsDouble(PyTuple_GetItem(args, 0));
     if (factor == -1.0 && PyErr_Occurred()) {
         return NULL;
     }
@@ -288,39 +326,40 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 // traverse: Visit all references from an object, including its type
 // (since we're a heap type, which can get deallocated).
-static int Scaler_traverse(ScalerObject *self, visitproc visit, void *arg)
+static int Scaler_traverse(PyObject *self, visitproc visit, void *arg)
 {
     // Visit the type
     Py_VISIT(Py_TYPE(self));
 
     // Visit attributes that may hold references.
-    Py_VISIT(self->O_factor);
-    Py_VISIT(self->A_factor);
-    Py_VISIT(self->A_factor_f);
+    ScalerObject *scaler = (ScalerObject *)self;
+    Py_VISIT(scaler->O_factor);
+    Py_VISIT(scaler->A_factor);
+    Py_VISIT(scaler->A_factor_f);
     return 0;
 }
 
 // Clear internal references; called from finalize and dealloc.
-static int Scaler_clear(ScalerObject *self)
+static int Scaler_clear(PyObject *self)
 {
-    Py_CLEAR(self->O_factor);
-    Py_CLEAR(self->A_factor);
-    Py_CLEAR(self->A_factor_f);
+    ScalerObject *scaler = (ScalerObject *)self;
+    Py_CLEAR(scaler->O_factor);
+    Py_CLEAR(scaler->A_factor);
+    Py_CLEAR(scaler->A_factor_f);
     return 0;
 }
 
-static void Scaler_dealloc(ScalerObject *self)
+static void Scaler_dealloc(PyObject *self)
 {
     PyObject_GC_UnTrack(self);
     Scaler_clear(self);
-    PyTypeObject *type = Py_TYPE(self);
-    type->tp_free(self);
-    Py_DECREF(type);
+    PyObject_GC_Del(self);
+    Py_DECREF(Py_TYPE(self));
 }
 
-static PyObject *Scaler_repr(ScalerObject *self)
+static PyObject *Scaler_repr(PyObject *self)
 {
-    PyObject *O_factor = get_o_factor(self);
+    PyObject *O_factor = get_o_factor((ScalerObject *)self);
     if (O_factor == NULL) {
         return NULL;
     }
@@ -352,27 +391,18 @@ static Py_hash_t Scaler_hash(PyObject *self)
     return (PyObject_Hash((PyObject *)Py_TYPE(self)) ^ PyObject_Hash(O_factor));
 }
 
-static PyObject *Scaler___reduce__(ScalerObject *self)
+static PyObject *Scaler___reduce__(PyObject *self)
 {
-    return Py_BuildValue("(O(d))", Py_TYPE(self), self->factor);
+    return Py_BuildValue("(O(d))", Py_TYPE(self), ((ScalerObject *)self)->factor);
 }
 
 static PyMemberDef Scaler_members[] = {
-#if Py_Version < 0x03120000
-    {"factor",
-     T_DOUBLE,
-     offsetof(ScalerObject, factor),
-     READONLY,
-     "Factor with which input is multiplied."},
-    {"__vectorcalloffset__", T_PYSSIZET, offsetof(ScalerObject, vectorcall), READONLY},
-#else
     {"factor",
      Py_T_DOUBLE,
      offsetof(ScalerObject, factor),
      Py_READONLY,
      "Factor with which input is multiplied."},
     {"__vectorcalloffset__", Py_T_PYSSIZET, offsetof(ScalerObject, vectorcall), Py_READONLY},
-#endif
     {NULL},
 };
 
@@ -399,8 +429,7 @@ static PyType_Slot Scaler_slots[] = {
 static PyType_Spec Scaler_spec = {
     .name = "scaler.Scaler",
     .basicsize = sizeof(ScalerObject),
-    .flags =
-        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE,
+    .flags = SCALER_TP_FLAGS,
     .slots = Scaler_slots,
 };
 
@@ -494,11 +523,7 @@ static void scaler_module_free(PyObject *m)
 
 static PyModuleDef_Slot scaler_module_slots[] = {
     {Py_mod_exec, scaler_module_exec},
-#if Py_Version >= 0x03120000
-    // Just use this while using static types
-    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED},
-#endif
-    {0, NULL}
+    {0, NULL},
 };
 
 static PyModuleDef scaler_module = {
