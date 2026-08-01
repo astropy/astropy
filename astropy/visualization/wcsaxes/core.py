@@ -382,6 +382,11 @@ class WCSAxes(Axes):
         --------
         matplotlib.axes.Axes.plot :
             This method is called from this function with all arguments passed to it.
+            Unlike this method, it interprets plain numbers as pixel coordinates by
+            default, and world coordinates only if a ``transform`` constructed with
+            :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` is passed.
+        scatter_coord : The equivalent method for `matplotlib.axes.Axes.scatter`.
+        text_coord : The equivalent method for `matplotlib.axes.Axes.text`.
         """
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
@@ -415,6 +420,11 @@ class WCSAxes(Axes):
         --------
         matplotlib.axes.Axes.text :
             This method is called from this function with all arguments passed to it.
+            Unlike this method, it interprets plain numbers as pixel coordinates by
+            default, and world coordinates only if a ``transform`` constructed with
+            :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` is passed.
+        plot_coord : The equivalent method for `matplotlib.axes.Axes.plot`.
+        scatter_coord : The equivalent method for `matplotlib.axes.Axes.scatter`.
         """
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
@@ -446,7 +456,13 @@ class WCSAxes(Axes):
 
         See Also
         --------
-        matplotlib.axes.Axes.scatter : This method is called from this function with all arguments passed to it.
+        matplotlib.axes.Axes.scatter :
+            This method is called from this function with all arguments passed to it.
+            Unlike this method, it interprets plain numbers as pixel coordinates by
+            default, and world coordinates only if a ``transform`` constructed with
+            :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` is passed.
+        plot_coord : The equivalent method for `matplotlib.axes.Axes.plot`.
+        text_coord : The equivalent method for `matplotlib.axes.Axes.text`.
         """
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 

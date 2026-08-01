@@ -2,13 +2,21 @@
 Overplotting markers and artists
 ********************************
 
-The class :class:`~astropy.visualization.wcsaxes.WCSAxes` provides two handy methods:
+In addition to all the Matplotlib methods inherited from
+`~matplotlib.axes.Axes`, the :class:`~astropy.visualization.wcsaxes.WCSAxes`
+class provides three additional handy methods:
 :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord`,
-:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter_coord`
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter_coord`, and
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.text_coord`.
 
-Used to plots and scatter respectively :class:`~astropy.coordinates.SkyCoord` or :class:`~astropy.coordinates.BaseCoordinateFrame` coordinates on the axes. The ``transform`` keyword argument will be created based on the coordinate, specifying it here will throw a :class:`~TypeError`.
+These are used to plot markers or lines, scatter markers, and add text
+respectively, at the positions given by
+:class:`~astropy.coordinates.SkyCoord` or
+:class:`~astropy.coordinates.BaseCoordinateFrame` objects. The ``transform``
+keyword argument will be created automatically based on the coordinate frame
+of the input, so specifying it explicitly will raise a :class:`TypeError`.
 
-For the example in the following page we start from the example introduced in
+For the examples in the following page we start from the example introduced in
 :ref:`initialization`.
 
 .. plot::
@@ -29,6 +37,57 @@ For the example in the following page we start from the example introduced in
     ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
 
+Plotting coordinate objects
+***************************
+
+If you have positions as :class:`~astropy.coordinates.SkyCoord` (or
+:class:`~astropy.coordinates.BaseCoordinateFrame`) objects, the easiest way to
+overplot them is to use
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord`,
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter_coord`, or
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.text_coord`. These methods are
+additions provided by `~astropy.visualization.wcsaxes.WCSAxes`, and are not
+part of Matplotlib itself. They take the coordinate object as the first
+argument, work out the appropriate transformation from its coordinate frame
+automatically, and then call the corresponding Matplotlib method
+(:meth:`~matplotlib.axes.Axes.plot`, :meth:`~matplotlib.axes.Axes.scatter`, or
+:meth:`~matplotlib.axes.Axes.text`), so all remaining arguments are the same
+as for those methods:
+
+.. plot::
+   :context:
+   :include-source:
+   :align: center
+
+    from astropy import units as u
+    from astropy.coordinates import SkyCoord
+
+    # The following line makes it so that the zoom level no longer changes,
+    # otherwise Matplotlib has a tendency to zoom out when adding overlays.
+    ax.set_autoscale_on(False)
+
+    # Add a marker with plot_coord
+    c1 = SkyCoord('17h45m40s', '-29d00m28s', frame='icrs')
+    ax.plot_coord(c1, 'x', color='white', markersize=10)
+
+    # Add scatter markers with scatter_coord
+    c2 = SkyCoord([266.2, 266.3] * u.deg, [-29.1, -28.9] * u.deg, frame='icrs')
+    ax.scatter_coord(c2, s=100, edgecolor='yellow', facecolor='none')
+
+    # Add a text label with text_coord
+    ax.text_coord(c1, 'Sgr A*', color='white')
+
+Note that in contrast, the plain Matplotlib methods
+:meth:`~matplotlib.axes.Axes.plot`, :meth:`~matplotlib.axes.Axes.scatter`, and
+:meth:`~matplotlib.axes.Axes.text` interpret plain numbers as **pixel
+coordinates** by default (see `Pixel coordinates`_ below), so for example
+``ax.text(266.4, -29.0, 'label')`` would silently place the text at pixel
+position (266.4, -29.0), which is typically not what you want when working
+with world coordinates. The plain Matplotlib methods can still be used with
+world coordinates by explicitly passing a ``transform`` argument constructed
+with :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` (see `World
+coordinates`_ below).
+
 Pixel coordinates
 *****************
 
@@ -43,6 +102,23 @@ data in **pixel coordinates** by default.
 
 In the following example, the scatter markers and the rectangle will be plotted
 in pixel coordinates:
+
+.. plot::
+   :context: reset
+   :nofigs:
+
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    from astropy.utils.data import get_pkg_data_filename
+    import matplotlib.pyplot as plt
+
+    filename = get_pkg_data_filename('galactic_center/gc_msx_e.fits')
+
+    hdu = fits.open(filename)[0]
+    wcs = WCS(hdu.header)
+
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
+    ax.imshow(hdu.data, vmin=-2.e-5, vmax=2.e-4, origin='lower')
 
 .. plot::
    :context:
