@@ -1,7 +1,10 @@
-#define NPY_TARGET_VERSION NPY_2_0_API_VERSION
+#define NPY_TARGET_VERSION NPY_2_0_API_VERSION // For PyUFunc_GiveFloatingpointErrors
 #define PY_SSIZE_T_CLEAN
-#include "numpy/arrayobject.h"
 #include <Python.h>
+#if Py_Version < 0x03120000
+#include <structmember.h> // for PyMemberDef, not in Python.h for python <= 3.11
+#endif
+#include <numpy/arrayobject.h>
 #include <numpy/arrayscalars.h>
 #include <numpy/ndarrayobject.h>
 #include <numpy/ufuncobject.h>
@@ -305,9 +308,15 @@ static PyObject *Scaler___reduce__(ScalerObject *self)
 
 static PyMemberDef Scaler_members[] = {
     {"factor",
+#if Py_Version < 0x03120000
+     T_DOUBLE,
+     offsetof(ScalerObject, factor),
+     READONLY,
+#else
      Py_T_DOUBLE,
      offsetof(ScalerObject, factor),
      Py_READONLY,
+#endif
      "Factor with which input is multiplied."},
     {NULL},
 };
@@ -389,8 +398,9 @@ static int scaler_module_exec(PyObject *m)
 
 static PyModuleDef_Slot scaler_module_slots[] = {
     {Py_mod_exec, scaler_module_exec},
-    // Just use this while using static types
+#if Py_Version >= 0x03120000
     {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_NOT_SUPPORTED},
+#endif
     {0, NULL}
 };
 
