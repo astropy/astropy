@@ -1,1 +1,2 @@
-Updated the bundled ``configobj`` to version 5.0.9, dropping Python 2 workarounds.
+Stopped bundling ``configobj`` in ``astropy.extern`` and switched to depending on
+the ``configobj>=5.0.9`` package from PyPI instead.
