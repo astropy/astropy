@@ -1474,7 +1474,7 @@ def set_enabled_units(units: object) -> _UnitContext:
     `UnitBase.find_equivalent_units`, for example.
 
     This may be used either permanently, or as a context manager using
-    the ``with`` statement (see example below).
+    the ``with`` statement or as a decorator (see example below).
 
     Parameters
     ----------
@@ -1509,6 +1509,17 @@ def set_enabled_units(units: object) -> _UnitContext:
       pc           | 3.08568e+16 m   | parsec                           ,
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
     ]
+    >>> @u.set_enabled_units([u.pc])
+    ... def print_equivalent_units(unit):
+    ...     print(unit.find_equivalent_units())
+    ...
+    >>> print_equivalent_units(u.m)
+          Primary name | Unit definition | Aliases
+    ...
+      Primary name | Unit definition | Aliases
+    [
+      pc           | 3.08568e+16 m   | parsec  ,
+    ]
     """
     # get a context with a new registry, using equivalencies of the current one
     context = _UnitContext(equivalencies=get_current_unit_registry().equivalencies)
@@ -1525,7 +1536,7 @@ def add_enabled_units(units: object) -> _UnitContext:
     `UnitBase.find_equivalent_units`, for example.
 
     This may be used either permanently, or as a context manager using
-    the ``with`` statement (see example below).
+    the ``with`` statement or as a decorator (see example below).
 
     Parameters
     ----------
@@ -1564,6 +1575,13 @@ def add_enabled_units(units: object) -> _UnitContext:
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
       yd           | 0.9144 m        | yard                             ,
     ]
+    >>> @u.add_enabled_units(imperial)
+    ... def print_equivalent_units(unit):
+    ...     print(unit.find_equivalent_units())
+    ...
+    >>> print_equivalent_units(u.m)
+          Primary name | Unit definition | Aliases
+    ...
     """
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())

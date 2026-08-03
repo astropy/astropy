@@ -206,7 +206,7 @@ def enable() -> _UnitContext:
     all of the "default" `astropy.units` units, since there
     are some namespace clashes between the two.
 
-    This may be used with the ``with`` statement to enable CDS
-    units only temporarily.
+    This may be used with the ``with`` statement or as a decorator
+    to enable CDS units only temporarily.
     """
     return set_enabled_units(globals())
