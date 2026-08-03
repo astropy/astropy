@@ -49,7 +49,7 @@ jobs:
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        BRANCH_NAME=update-credits-$(date +"%s")
+        echo "BRANCH_NAME=update-credits-$(date +'%s')" >> "$GITHUB_ENV"
         git switch -c "$BRANCH_NAME"
         git add docs/credits.rst
         if ! git diff --cached --exit-code; then

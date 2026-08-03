@@ -38,19 +38,23 @@ jobs:
         uv run scripts/check-lowest-resolved-tree.py --overwrite
 
     - name: Commit changes
+      id: commit
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        BRANCH_NAME=update-astropy-iers-data-pin-$(date +"%s")
+        echo "BRANCH_NAME=update-astropy-iers-data-pin-$(date +'%s')" >> "$GITHUB_ENV"
         git switch -c "$BRANCH_NAME"
         git add --update
         if ! git diff --cached --exit-code; then
           git commit -m "Update minimum required version of astropy-iers-data"
+          echo "pr-needed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "pr-needed=false" >> "$GITHUB_OUTPUT"
         fi
-        git push --set-upstream origin "$BRANCH_NAME"
-
     - name: Create Pull Request
+      if: ${{ steps.commit.outputs.pr-needed && github.event_name != 'pull_request' }}
       run: |
+        git push --set-upstream origin "$BRANCH_NAME"
         gh pr create \
           --title "Update minimum required version of astropy-iers-data" \
           --label no-changelog-entry-needed --label utils.iers --label skip-basebranch-check \
