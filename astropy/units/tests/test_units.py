@@ -1039,6 +1039,28 @@ def test_enable_unit_groupings():
         assert imperial.inch in u.m.find_equivalent_units()
 
 
+def test_enable_unit_decorator():
+    """Test that the decorator enables the unit grouping only for the duration of
+    the function call."""
+    from astropy.units import cds
+
+    @cds.enable()
+    def cds_func():
+        assert cds.geoMass in u.kg.find_equivalent_units()
+
+    cds_func()
+    assert cds.geoMass not in u.kg.find_equivalent_units()
+
+    from astropy.units import imperial
+
+    @imperial.enable()
+    def imperial_func():
+        assert imperial.inch in u.m.find_equivalent_units()
+
+    imperial_func()
+    assert imperial.inch not in u.m.find_equivalent_units()
+
+
 def test_raise_to_negative_power():
     """Test that order of bases is changed when raising to negative power.
 
