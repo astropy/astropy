@@ -1031,7 +1031,7 @@ def test_enable_unit_groupings():
     from astropy.units import cds
 
     with cds.enable():
-        assert cds.geoMass in u.kg.find_equivalent_units()
+        assert cds.mmHg in u.Pa.find_equivalent_units()
 
     from astropy.units import imperial
 
@@ -1046,10 +1046,10 @@ def test_enable_unit_decorator():
 
     @cds.enable()
     def cds_func():
-        assert cds.geoMass in u.kg.find_equivalent_units()
+        assert cds.mmHg in u.Pa.find_equivalent_units()
 
     cds_func()
-    assert cds.geoMass not in u.kg.find_equivalent_units()
+    assert cds.mmHg not in u.Pa.find_equivalent_units()
 
     from astropy.units import imperial
 
