@@ -174,8 +174,10 @@ tool that runs a number of :ref:`Continuous Integration (CI) <contributing.ci>` 
 is likely that one or more of those CI checks will fail when you make a pull request,
 resulting in lost time (yours and CI resources).
 
-Installation is straightforward. From the root of the astropy repository, run::
+With the development environment activated, installation is straightforward. From the
+root of the astropy repository, run::
 
+    python -m pip install pre-commit
     pre-commit install
 
 Now all of the styling checks will be run each time you commit changes, ensuring that
