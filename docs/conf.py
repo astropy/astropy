@@ -61,10 +61,12 @@ for line in metadata.requires("astropy"):
 
 if missing_requirements:
     msg = (
-        "The following packages could not be found and are required to "
-        "build the documentation:\n"
-        "%s"
-        '\nPlease install the "docs" requirements.',
+        (
+            "The following packages could not be found and are required to "
+            "build the documentation:\n"
+            "%s"
+            '\nPlease install the "docs" requirements.'
+        ),
         "\n".join([f"    * {key} {val}" for key, val in missing_requirements.items()]),
     )
     logger.error(msg)
