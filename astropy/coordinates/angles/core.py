@@ -341,15 +341,46 @@ class Angle(SpecificTypeQuantity):
         if format == "latex_inline":
             format = "latex"
 
-        # Create an iterator so we can format each element of what
-        # might be an array.
-        is_sexagesimal = not decimal and (unit == u.degree or unit == u.hourangle)
-        if is_sexagesimal:
+        # Convert Quantity to value in the requested unit so we can format it.
+        values = self.to_value(unit)
+
+        # For sexagmesimal formatting, try using a vectorized path for non-small arrays,
+        # otherwise fall back to a per-element loop by defining a formatting function.
+        if not decimal and (unit == u.degree or unit == u.hourangle):
             # Sexagesimal.
             if sep == "fromunit":
                 if format not in separators:
                     raise ValueError(f"Unknown format '{format}'")
                 sep = separators[format][unit]
+
+            # Fast path: build the whole sexagesimal array with NumPy string operations
+            # instead of looping ``do_format`` over the elements. The helper returns
+            # ``None`` for cases it cannot handle (very old NumPy or out-of-range
+            # degrees), in which case we fall through to the per-element path below. The
+            # vectorized path carries a fixed setup cost, so for a scalar or just a
+            # handful of values the plain loop is quicker.
+            if values.size > _VECTORIZE_MIN_SIZE:
+                result = formats._decimal_to_sexagesimal_string_array(
+                    values, precision=precision, sep=sep, pad=pad, fields=fields
+                )
+                if result is not None:
+                    if alwayssign:
+                        result = np.where(
+                            np.strings.startswith(result, "-"),
+                            result,
+                            np.strings.add("+", result),
+                        )
+                    if format == "latex":
+                        result = np.strings.add("$", np.strings.add(result, "$"))
+                    is_nan = np.isnan(values)
+                    if is_nan.any():
+                        result = np.where(is_nan, "nan", result)
+                    # NumPy string ops can collapse a scalar to a 0-d string; make
+                    # sure we return a bare Python string in that case, as before.
+                    result = np.asarray(result)
+                    return result if result.ndim else result[()]
+
+            # Cannot do vectorized formatting, continue on with per-element formatting
             func = functools.partial(
                 formats._decimal_to_sexagesimal_string,
                 precision=precision,
@@ -387,35 +418,6 @@ class Angle(SpecificTypeQuantity):
             if alwayssign and not s.startswith("-"):
                 s = "+" + s
             return f"${s}$" if format == "latex" else s
-
-        values = self.to_value(unit)
-
-        # Fast path: build the whole sexagesimal array with NumPy string
-        # operations instead of looping ``do_format`` over the elements. The
-        # helper returns ``None`` for cases it cannot handle (very old NumPy or
-        # out-of-range degrees), in which case we fall through to the per-element
-        # path below. The vectorized path carries a fixed setup cost, so for a
-        # scalar or just a handful of values the plain loop is quicker.
-        if is_sexagesimal and values.size > _VECTORIZE_MIN_SIZE:
-            result = formats._decimal_to_sexagesimal_string_array(
-                values, precision=precision, sep=sep, pad=pad, fields=fields
-            )
-            if result is not None:
-                if alwayssign:
-                    result = np.where(
-                        np.strings.startswith(result, "-"),
-                        result,
-                        np.strings.add("+", result),
-                    )
-                if format == "latex":
-                    result = np.strings.add("$", np.strings.add(result, "$"))
-                is_nan = np.isnan(values)
-                if is_nan.any():
-                    result = np.where(is_nan, "nan", result)
-                # NumPy string ops can collapse a scalar to a 0-d string; make
-                # sure we return a bare Python string in that case, as before.
-                result = np.asarray(result)
-                return result if result.ndim else result[()]
 
         format_ufunc = np.vectorize(do_format, otypes=["U"])
         result = format_ufunc(values)
