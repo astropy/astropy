@@ -17,11 +17,6 @@ Interface and Dependencies
   <https://github.com/astropy/astropy/blob/main/pyproject.toml>`_ file of the
   core package.
 
-* The core package should be importable with no
-  dependencies other than components already in the Astropy core, the
-  `Python Standard Library <https://docs.python.org/3/library/index.html>`_,
-  and |NumPy| |minimum_numpy_version| or later.
-
 * Additional dependencies - such as |SciPy|, |Matplotlib|, or other
   third-party packages - are allowed for sub-modules or in function
   calls, but they must be noted in the package documentation and
@@ -430,7 +425,6 @@ the hierarchy.
 .. note:: For more information on the benefits of `super`, see
           https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
 
-.. _Numpy: https://numpy.org/
 .. _Scipy: https://www.scipy.org/
 .. _matplotlib: https://matplotlib.org/
 .. _Cython: https://cython.org/
