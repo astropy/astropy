@@ -11,6 +11,7 @@ from astropy.io.fits.verify import VerifyWarning
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.wcs.wcs import WCS, FITSFixedWarning
+from astropy.wcs.wcsapi import HighLevelWCSWrapper
 from astropy.wcs.wcsapi.tests.helpers import assert_celestial_component
 from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
     SlicedLowLevelWCS,
@@ -1047,3 +1048,23 @@ def test_coupled_world_slicing():
     out_pix = sl.world_to_pixel_values(world[0], world[1])
 
     assert np.allclose(out_pix[0], 0)
+
+
+def test_high_level_world_to_pixel_with_partial_coupled_world():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "FREQ", "TIME"
+    wcs.wcs.cunit = "Hz", "s"
+    wcs.wcs.cdelt = 1, 1
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.crval = 10, 0
+    wcs.wcs.mjdref = 50000, 0
+    wcs.wcs.pc = np.array([[1, 0], [1, 1]])
+
+    _, time = wcs.pixel_to_world(0, 3)
+    sliced_wcs = HighLevelWCSWrapper(SlicedLowLevelWCS(wcs, np.s_[0, :]))
+    sliced_fits_wcs = wcs[np.s_[0, :]]
+
+    assert sliced_wcs.world_n_dim == 2
+    assert len(sliced_wcs.low_level_wcs.world_axis_object_classes) == 2
+    assert_allclose(sliced_wcs.world_to_pixel(time), 3)
+    assert_allclose(sliced_fits_wcs.world_to_pixel(time), 3)

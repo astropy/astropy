@@ -292,6 +292,77 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
     def world_axis_object_components(self):
         return [self._wcs.world_axis_object_components[idx] for idx in self._world_keep]
 
+    def _high_level_world_to_pixel(self, *world_objects):
+        """
+        Convert one high-level object on a 1D sliced WCS to a pixel coordinate.
+
+        A sliced WCS can have a single remaining pixel axis that is still
+        correlated with multiple world objects. When callers provide one of
+        those objects, use the sliced WCS forward transform for that component
+        along the remaining pixel axis rather than requiring all coupled world
+        objects.
+        """
+        from types import SimpleNamespace
+
+        from astropy.wcs.wcsapi.high_level_api import (
+            default_order,
+            high_level_objects_to_values,
+        )
+        from astropy.wcs.wcsapi.utils import deserialize_class
+
+        components = self.world_axis_object_components
+        class_info = self.world_axis_object_classes
+        object_keys = default_order(components)
+
+        # Only a single 1D pixel axis with one of several coupled objects supplied.
+        if self.pixel_n_dim != 1 or len(world_objects) != 1 or len(object_keys) < 2:
+            return NotImplemented
+
+        (world_object,) = world_objects
+        classes = {
+            key: deserialize_class(class_info[key], construct=False)
+            if self.serialized_classes
+            else class_info[key]
+            for key in object_keys
+        }
+        matches = [
+            key
+            for key, (klass, *_) in classes.items()
+            if isinstance(world_object, klass)
+        ]
+        if len(matches) != 1:
+            return NotImplemented
+
+        (supplied_key,) = matches
+        supplied_components = [c for c in components if c[0] == supplied_key]
+        supplied_metadata = SimpleNamespace(
+            world_axis_object_components=supplied_components,
+            world_axis_object_classes={supplied_key: classes[supplied_key]},
+            serialized_classes=False,
+        )
+        supplied_values = high_level_objects_to_values(
+            world_object, low_level_wcs=supplied_metadata
+        )
+        if len(supplied_values) != 1:
+            return NotImplemented
+
+        supplied_index = components.index(supplied_components[0])
+        world_values_0 = self.pixel_to_world_values(0)
+        world_values_1 = self.pixel_to_world_values(1)
+        if self.world_n_dim == 1:
+            world_values_0 = (world_values_0,)
+            world_values_1 = (world_values_1,)
+
+        value_0 = np.asanyarray(world_values_0[supplied_index], dtype=float)
+        value_1 = np.asanyarray(world_values_1[supplied_index], dtype=float)
+        target = np.asanyarray(supplied_values[0], dtype=float)
+
+        if np.any(value_1 == value_0):
+            return NotImplemented
+        # This partial-object path is limited to the locally linear behavior
+        # represented by the adjacent pixel samples.
+        return (target - value_0) / (value_1 - value_0)
+
     @property
     def world_axis_object_classes(self):
         keys_keep = [item[0] for item in self.world_axis_object_components]

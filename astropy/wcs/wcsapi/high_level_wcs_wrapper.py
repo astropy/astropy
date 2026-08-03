@@ -72,6 +72,16 @@ class HighLevelWCSWrapper(HighLevelWCSMixin):
         """
         return self.low_level_wcs.axis_correlation_matrix
 
+    def world_to_pixel(self, *world_objects):
+        """
+        See `~astropy.wcs.wcsapi.BaseHighLevelWCS.world_to_pixel`.
+        """
+        if hasattr(self.low_level_wcs, "_high_level_world_to_pixel"):
+            result = self.low_level_wcs._high_level_world_to_pixel(*world_objects)
+            if result is not NotImplemented:
+                return result
+        return super().world_to_pixel(*world_objects)
+
     def _as_mpl_axes(self):
         """
         See `~astropy.wcs.wcsapi.BaseLowLevelWCS._as_mpl_axes`.
