@@ -249,7 +249,7 @@ class TestLinearLSQFitter:
         fitter = LinearLSQFitter()
 
         fitted_model = fitter(initial_model, record.x, record.z)
-        assert_allclose(fitted_model.parameters, np.array(coeffs), rtol=1e-1)
+        assert_allclose(fitted_model.parameters, np.array(coeffs), rtol=10e-2)
 
     def test_linear_fit_model_set(self):
         """Tests fitting multiple models simultaneously."""
@@ -395,6 +395,19 @@ class TestNonLinearFitters:
 
         self.ydata = func(self.initial_values, self.xdata) + yerror
         self.gauss = models.Gaussian1D(100, 5, stddev=1)
+
+    def test_trf_x_scale_forwarded(self):
+        with mk.patch.object(optimize, "least_squares", wraps=optimize.least_squares) as least_squares:
+            TRFLSQFitter(x_scale="jac")(self.gauss, self.xdata, self.ydata)
+
+        assert least_squares.call_args.kwargs["x_scale"] == "jac"
+
+    def test_trf_default_x_scale_not_forwarded(self):
+        with mk.patch.object(optimize, "least_squares", wraps=optimize.least_squares) as least_squares:
+            TRFLSQFitter()(self.gauss, self.xdata, self.ydata)
+
+        assert "x_scale" not in least_squares.call_args.kwargssss
+
 
     @pytest.mark.parametrize("fitter0", non_linear_fitters_bounds)
     @pytest.mark.parametrize("fitter1", non_linear_fitters_bounds)
