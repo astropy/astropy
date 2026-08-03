@@ -1,0 +1,2 @@
+Unit context manager can also be used as decorator by adding ``ContextDecorator``
+as base class of ``_UnitContext``.
