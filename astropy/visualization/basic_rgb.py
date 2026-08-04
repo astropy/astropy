@@ -153,7 +153,7 @@ class RGBImageMapping:
         return image_rgb.astype(output_dtype)
 
 
-def make_rgb(
+def make_rgb(  # ruff: ignore[PLR0917] historical API
     image_r,
     image_g,
     image_b,

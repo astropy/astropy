@@ -1177,7 +1177,7 @@ class Header:
 
         self._modified = True
 
-    def extend(
+    def extend(  # ruff: ignore[PLR0917] historical API
         self,
         cards,
         strip=True,

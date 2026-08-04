@@ -456,7 +456,7 @@ class BST:
         nodes = self._same_prefix(val, self.root, [])
         return [x for node in nodes for x in node.data]
 
-    def _range(self, lower, upper, op1, op2, node, lst):
+    def _range(self, lower, upper, op1, op2, node, lst):  # ruff: ignore[PLR0917] historical API
         # In-order traversal (left, node, right) so that matching nodes
         # are collected in ascending key order.
         if lower < node.key and node.left is not None:

@@ -177,7 +177,7 @@ class JSViewer:
         ).strip()
 
 
-def write_table_jsviewer(
+def write_table_jsviewer(  # ruff: ignore[PLR0917] historical API
     table,
     filename,
     table_id=None,

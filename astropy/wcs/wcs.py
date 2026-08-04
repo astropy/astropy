@@ -252,7 +252,7 @@ _WCS_TPD_WARN_LT74 = Version(WCSLIB_VERSION) < Version("7.4")
 
 
 # Set coordinate extraction callback for WCS -TAB:
-def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):
+def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):  # ruff: ignore[PLR0917] historical API
     arr = hdulist[(extnam, extver)].data[ttype][row - 1]
 
     if arr.ndim != ndim:
@@ -506,7 +506,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         header=None,
         fobj=None,
@@ -1846,7 +1846,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         """
 
-    def _all_world2pix(
+    def _all_world2pix(  # ruff: ignore[PLR0917] historical API
         self, world, origin, tolerance, maxiter, adaptive, detect_divergence, quiet
     ):
         # ############################################################

@@ -708,7 +708,7 @@ class Table:
 
         return data
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data=None,
         masked=False,
@@ -1630,7 +1630,7 @@ class Table:
         for colname in self.columns:
             yield self[colname]
 
-    def _base_repr_(
+    def _base_repr_(  # ruff: ignore[PLR0917] historical API
         self,
         html=False,
         descr_vals=None,
@@ -1734,7 +1734,7 @@ class Table:
         return has_info_class(col, MixinInfo) and not has_info_class(col, QuantityInfo)
 
     @format_doc(_pprint_docs)
-    def pprint(
+    def pprint(  # ruff: ignore[PLR0917] historical API
         self,
         max_lines=None,
         max_width=None,
@@ -1777,7 +1777,7 @@ class Table:
                 print(line)
 
     @format_doc(_pprint_docs)
-    def pprint_all(
+    def pprint_all(  # ruff: ignore[PLR0917] historical API
         self,
         max_lines=-1,
         max_width=-1,
@@ -1870,7 +1870,7 @@ class Table:
                 If you are actively using this method, please let us know
                 at https://github.com/astropy/astropy/issues/16067""",
     )
-    def show_in_browser(
+    def show_in_browser(  # ruff: ignore[PLR0917] historical API
         self,
         max_lines=5000,
         jsviewer=False,
@@ -1966,7 +1966,7 @@ class Table:
             br.open(urljoin("file:", pathname2url(str(path))))
 
     @format_doc(_pformat_docs, id="{id}")
-    def pformat(
+    def pformat(  # ruff: ignore[PLR0917] historical API
         self,
         max_lines=-1,
         max_width=-1,
@@ -2012,7 +2012,7 @@ class Table:
 
     @deprecated(since="7.0", alternative="Table.pformat")
     @format_doc(_pformat_docs, id="{id}")
-    def pformat_all(
+    def pformat_all(  # ruff: ignore[PLR0917] historical API
         self,
         max_lines=-1,
         max_width=-1,
@@ -2337,7 +2337,7 @@ class Table:
         except ValueError:
             raise ValueError(f"Column {name} does not exist")
 
-    def add_column(
+    def add_column(  # ruff: ignore[PLR0917] historical API
         self,
         col,
         index=None,

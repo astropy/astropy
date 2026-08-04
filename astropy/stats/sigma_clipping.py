@@ -171,7 +171,7 @@ class SigmaClip:
     standard deviation is higher.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         sigma: float = 3.0,
         sigma_lower: float | None = None,
@@ -658,7 +658,7 @@ class SigmaClip:
             )
 
 
-def sigma_clip(
+def sigma_clip(  # ruff: ignore[PLR0917] historical API
     data: ArrayLike,
     sigma: float = 3.0,
     sigma_lower: float | None = None,
@@ -1216,7 +1216,7 @@ class SigmaClippedStats:
         return mad_std(self.data, axis=self.axis, ignore_nan=True)
 
 
-def sigma_clipped_stats(
+def sigma_clipped_stats(  # ruff: ignore[PLR0917] historical API
     data: ArrayLike,
     mask: NDArray | None = None,
     mask_value: float | None = None,

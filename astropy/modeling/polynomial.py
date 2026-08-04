@@ -148,7 +148,7 @@ class _PolyDomainWindow1D(PolynomialModel):
     This class sets ``domain`` and ``window`` of 1D polynomials.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         degree,
         domain=None,
@@ -235,7 +235,7 @@ class OrthoPolynomialBase(PolynomialBase):
     n_inputs = 2
     n_outputs = 1
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         x_degree,
         y_degree,
@@ -495,7 +495,7 @@ class Chebyshev1D(_PolyDomainWindow1D):
 
     _separable = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         degree,
         domain=None,
@@ -616,7 +616,7 @@ class Hermite1D(_PolyDomainWindow1D):
 
     _separable = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         degree,
         domain=None,
@@ -743,7 +743,7 @@ class Hermite2D(OrthoPolynomialBase):
 
     _separable = False
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         x_degree,
         y_degree,
@@ -886,7 +886,7 @@ class Legendre1D(_PolyDomainWindow1D):
 
     _separable = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         degree,
         domain=None,
@@ -997,7 +997,7 @@ class Polynomial1D(_PolyDomainWindow1D):
 
     _separable = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         degree,
         domain=None,
@@ -1134,7 +1134,7 @@ class Polynomial2D(PolynomialModel):
 
     _separable = False
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         degree,
         x_domain=None,
@@ -1399,7 +1399,7 @@ class Chebyshev2D(OrthoPolynomialBase):
 
     _separable = False
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         x_degree,
         y_degree,
@@ -1554,7 +1554,7 @@ class Legendre2D(OrthoPolynomialBase):
 
     _separable = False
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         x_degree,
         y_degree,
@@ -1666,7 +1666,7 @@ class _SIP1D(PolynomialBase):
 
     _separable = False
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         order,
         coeff_prefix,
@@ -1805,7 +1805,7 @@ class SIP(Model):
 
     _separable = False
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         crpix,
         a_order,
@@ -1905,7 +1905,7 @@ class InverseSIP(Model):
 
     _separable = False
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         ap_order,
         bp_order,

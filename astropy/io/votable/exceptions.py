@@ -95,7 +95,7 @@ def _suppressed_warning(warning, config, stacklevel=2):
         warn(warning, stacklevel=stacklevel + 1)
 
 
-def warn_or_raise(
+def warn_or_raise(  # ruff: ignore[PLR0917] historical API
     warning_class, exception_class=None, args=(), config=None, pos=None, stacklevel=1
 ):
     """
@@ -156,7 +156,7 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
         _suppressed_warning(warning, config, stacklevel=stacklevel + 1)
 
 
-def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):
+def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):  # ruff: ignore[PLR0917] historical API
     for attr in attrs:
         if attr not in good_attr:
             vo_warn(W48, (attr, element), config, pos, stacklevel=stacklevel + 1)

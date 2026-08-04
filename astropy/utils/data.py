@@ -204,7 +204,7 @@ def _is_inside(path, parent_path):
 
 
 @contextlib.contextmanager
-def get_readable_fileobj(
+def get_readable_fileobj(  # ruff: ignore[PLR0917] historical API
     name_or_obj,
     encoding=None,
     cache=False,
@@ -1234,7 +1234,7 @@ class _ftptlswrapper(urllib.request.ftpwrapper):
 
 
 class _FTPTLSHandler(urllib.request.FTPHandler):
-    def connect_ftp(self, user, passwd, host, port, dirs, timeout):
+    def connect_ftp(self, user, passwd, host, port, dirs, timeout):  # ruff: ignore[PLR0917] historical API
         return _ftptlswrapper(user, passwd, host, port, dirs, timeout, persistent=False)
 
 
@@ -1288,7 +1288,7 @@ def _build_urlopener(
     return urlopener
 
 
-def _try_url_open(
+def _try_url_open(  # ruff: ignore[PLR0917] historical API
     source_url: str,
     timeout: float | None = None,
     http_headers=None,
@@ -1345,7 +1345,7 @@ def _try_url_open(
         raise
 
 
-def _download_file_from_source(
+def _download_file_from_source(  # ruff: ignore[PLR0917] historical API
     source_url: str,
     show_progress: bool = True,
     timeout: float | None = None,
@@ -1459,7 +1459,7 @@ def _download_file_from_source(
     return fp
 
 
-def download_file(
+def download_file(  # ruff: ignore[PLR0917] historical API
     remote_url: str,
     cache: bool | Literal["update"] = False,
     show_progress: bool = True,
@@ -1734,7 +1734,7 @@ def _do_download_files_in_parallel(kwargs) -> str:
             return download_file(**kwargs)
 
 
-def download_files_in_parallel(
+def download_files_in_parallel(  # ruff: ignore[PLR0917] historical API
     urls: list[str],
     cache: bool | Literal["update"] = "update",
     show_progress: bool = True,

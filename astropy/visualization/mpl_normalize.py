@@ -88,7 +88,7 @@ class ImageNormalize(Normalize):
     If ``vmin == vmax``, the input data will be mapped to 0.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data: np.ndarray | None = None,
         interval: BaseInterval | None = None,
@@ -464,7 +464,7 @@ class SimpleNorm:
     ],
     since=["7.1"] * 11,
 )
-def simple_norm(
+def simple_norm(  # ruff: ignore[PLR0917] historical API
     data,
     stretch="linear",
     power=1.0,
