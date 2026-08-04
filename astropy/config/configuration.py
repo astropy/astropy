@@ -29,8 +29,8 @@ from typing import Final
 from warnings import warn
 
 import configobj
-import configobj.validate as validate
 import numpy as np
+from configobj import validate
 
 from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
