@@ -1252,7 +1252,7 @@ def _select_join_engine(engine: str):
     return engine, compute_join_indices
 
 
-def _join(
+def _join(  # ruff: ignore[PLR0917] historical API
     left,
     right,
     keys=None,
@@ -1586,7 +1586,7 @@ def _compute_join_indices_pandas(left, right, keys, join_type, len_left):
     return masked, n_out, left_out, left_mask, right_out, right_mask
 
 
-def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):
+def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):  # ruff: ignore[PLR0917] historical API
     """Do processing to handle keys_left / keys_right args for join.
 
     This takes the keys_left/right inputs and turns them into a list of left/right

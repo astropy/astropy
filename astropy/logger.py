@@ -171,7 +171,7 @@ class AstropyLogger(Logger):
     easily capture messages to a file or list.
     """
 
-    def makeRecord(
+    def makeRecord(  # ruff: ignore[PLR0917] historical API
         self,
         name,
         level,

@@ -9,6 +9,7 @@ the documentation so that there is a place to find out how the mask is
 interpreted.
 
 """
+# ruff: file-ignore[PLR0917]
 
 import warnings
 

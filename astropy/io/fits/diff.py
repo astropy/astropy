@@ -205,7 +205,7 @@ class FITSDiff(_BaseDiff):
       representing the differences between the two HDUs.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         a,
         b,
@@ -475,7 +475,7 @@ class HDUDiff(_BaseDiff):
       HDUs containing non-empty data of an indeterminate type).
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         a,
         b,
@@ -691,7 +691,7 @@ class HeaderDiff(_BaseDiff):
     all keywords that appear in both headers.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         a,
         b,
@@ -1271,7 +1271,7 @@ class TableDataDiff(_BaseDiff):
     those columns.
     """
 
-    def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0):
+    def __init__(self, a, b, ignore_fields=[], numdiffs=10, rtol=0.0, atol=0.0):  # ruff: ignore[PLR0917] historical API
         """
         Parameters
         ----------

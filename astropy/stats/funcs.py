@@ -295,7 +295,7 @@ def binom_conf_interval(
     return conf_interval
 
 
-def binned_binom_proportion(
+def binned_binom_proportion(  # ruff: ignore[PLR0917] historical API
     x: ArrayLike,
     success: ArrayLike,
     bins: int | ArrayLike = 10,
@@ -945,7 +945,7 @@ def mad_std(
     return MAD * 1.482602218505602
 
 
-def signal_to_noise_oir_ccd(
+def signal_to_noise_oir_ccd(  # ruff: ignore[PLR0917] historical API
     t: float | NDArray,
     source_eps: float,
     sky_eps: float,

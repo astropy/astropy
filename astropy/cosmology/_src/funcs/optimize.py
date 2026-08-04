@@ -88,7 +88,7 @@ class _ZAtValueKWArgs(TypedDict):  # noqa: PYI049
     """Print diagnostic output from solver."""
 
 
-def _z_at_scalar_value(
+def _z_at_scalar_value(  # ruff: ignore[PLR0917] historical API
     func,
     fval: float | FArray | Quantity,
     zmin: float | FArray | Quantity = 1e-8,
@@ -194,7 +194,7 @@ def _z_at_scalar_value(
     return res.x
 
 
-def z_at_value(
+def z_at_value(  # ruff: ignore[PLR0917] historical API
     func,
     fval,
     zmin: ArrayLike = 1e-8,

@@ -205,7 +205,7 @@ def extract_array(
 ) -> NDArray[DT]: ...
 
 
-def extract_array(
+def extract_array(  # ruff: ignore[PLR0917] historical API
     array_large,
     shape,
     position,
@@ -622,7 +622,7 @@ class Cutout2D:
      [nan  4.  5.]]
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data,
         position,
