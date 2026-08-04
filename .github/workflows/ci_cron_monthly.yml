@@ -103,6 +103,8 @@ jobs:
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
+            # configobj version in ubuntu repos is too old currently
+            pip install -U configobj
             pip install -v --no-build-isolation -e .[test]
             pip list
             python3 -m pytest --strict-markers --pyargs astropy -m "not hypothesis"
