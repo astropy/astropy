@@ -1,5 +1,6 @@
 astropy
 ├── astropy-iers-data v0.2026.6.22.1.23.34
+├── configobj v5.0.9
 ├── numpy v2.0.0
 ├── packaging v25.0
 ├── pyerfa v2.0.1.3
