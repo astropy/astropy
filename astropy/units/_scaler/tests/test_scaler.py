@@ -95,37 +95,38 @@ def test_scale_attribute():
     assert sc.factor == 10.0
 
 
-def test_init_errors():
-    with pytest.raises(TypeError, match=r"exactly 1 positional.*\(0 given\)"):
-        Scaler()
-    with pytest.raises(TypeError, match=r"exactly 1 positional.*\(0 given\)"):
-        Scaler(b=20.0)
-    with pytest.raises(TypeError, match=r"at most 1 argument \(2 given\)"):
-        Scaler(10.0, 20.0)
-    with pytest.raises(TypeError, match=r"at most 1 argument \(2 given\)"):
-        Scaler(10.0, b=20.0)
-    with pytest.raises(TypeError, match=r"at most 1 argument \(3 given\)"):
-        Scaler(10.0, 20.0, b=20.0)
-    with pytest.raises(TypeError, match=r"at most 1 argument \(3 given\)"):
-        Scaler(10.0, b=20.0, c=20.0)
-    with pytest.raises(TypeError, match="must be real number, not"):
-        Scaler(1 + 1j)
-    with pytest.raises(TypeError, match="must be real number, not"):
-        Scaler({})
+@pytest.mark.parametrize(
+    "args, kwargs, expected_msg",
+    [
+        ((), {}, r"exactly 1 positional.*\(0 given\)"),
+        ((), {"b": 20.0}, r"exactly 1 positional.*\(0 given\)"),
+        ((10.0, 20.0), {}, r"at most 1 argument \(2 given\)"),
+        ((10.0,), {"b": 20.0}, r"at most 1 argument \(2 given\)"),
+        ((10.0, 20.0), {"b": 20.0}, r"at most 1 argument \(3 given\)"),
+        ((10.0, 20.0), {"b": 20.0, "c": 20.0}, r"at most 1 argument \(4 given\)"),
+        ((1 + 1j,), {}, r"must be real number, not"),
+        (({},), {}, r"must be real number, not"),
+    ],
+)
+def test_init_errors(args, kwargs, expected_msg):
+    with pytest.raises(TypeError, match=expected_msg):
+        Scaler(*args, **kwargs)
 
 
-def test_call_errors():
+@pytest.mark.parametrize(
+    "args, kwargs, expected_msg",
+    [
+        ((), {}, r"takes 1 positional.*but 0 were given"),
+        ((10.0, 20.0), {}, r"takes 1 positional.*but 2 were given"),
+        ((), {"b": 20.0}, r"got an unexpected.*'b'"),
+        ((10.0,), {"b": 20.0}, r"got an unexpected.*'b'"),
+        ((10.0, 20.0), {"b": 20.0}, r"got an unexpected.*'b'"),
+    ],
+)
+def test_call_errors(args, kwargs, expected_msg):
     sc = Scaler(10.0)
-    with pytest.raises(TypeError, match="takes 1 positional.*0 were given"):
-        sc()
-    with pytest.raises(TypeError, match="takes 1 positional.*2 were given"):
-        sc(10.0, 20.0)
-    with pytest.raises(TypeError, match="got an unexpected.*'b'"):
-        sc(b=20.0)
-    with pytest.raises(TypeError, match="got an unexpected.*'b'"):
-        sc(10.0, b=20.0)
-    with pytest.raises(TypeError, match="got an unexpected.*'b'"):
-        sc(10.0, 20.0, b=20.0)
+    with pytest.raises(TypeError, match=expected_msg):
+        sc(*args, **kwargs)
 
 
 def test_unity_scaler_is_singleton():

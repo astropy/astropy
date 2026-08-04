@@ -1,5 +1,5 @@
-#define NPY_TARGET_VERSION NPY_2_0_API_VERSION // For PyUFunc_GiveFloatingpointErrors
-#define Py_LIMITED_API 0x030B0000
+// Licensed under a 3-clause BSD style license - see LICENSE.rst
+
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <numpy/arrayobject.h>
@@ -8,56 +8,7 @@
 #include <numpy/ufuncobject.h>
 #include <stddef.h> // for offsetof()
 
-// Once we're at 3.12, move SCALER_TP_FLAGS to its use, and remove this whole block.
-#if Py_LIMITED_API + 0 >= 0x030C0000
-#define SCALER_TP_FLAGS \
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE
-#else                     // work-arounds for python 3.11 limited API
-#include <structmember.h> // for PyMemberDef
-#define PyType_GetModuleByDef(type, unused) PyType_GetModule(type) // hence, cannot subclass
-#define vectorcallfunc void *
-#define Py_TPFLAGS_HAVE_VECTORCALL (1UL << 11)
-#define SCALER_TP_FLAGS Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL | Py_TPFLAGS_HAVE_GC
-#ifndef Py_T_DOUBLE
-// Most of these are macros whose availability depends on which python we're compiling on,
-// but which do not influence support in different versions (tested by compiling on
-// 3.11 and running tests on 3.14 with the resulting .so file).
-// But more annoyingly, we also need to define our own PyVectorcall_Call;
-// Note that what is below is specific to our class; it cannot be used generally!
-#define Py_T_DOUBLE T_DOUBLE
-#define Py_READONLY READONLY
-#define Py_T_PYSSIZET T_PYSSIZET
-#define PY_VECTORCALL_ARGUMENTS_OFFSET (_Py_STATIC_CAST(size_t, 1) << (8 * sizeof(size_t) - 1))
-#define PyVectorcall_NARGS(nargsf) (Py_ssize_t)(nargsf & ~PY_VECTORCALL_ARGUMENTS_OFFSET)
-static PyObject *Scaler_vectorcall(
-    PyObject *self, PyObject *const *args, size_t len_args, PyObject *kwnames
-);
-static PyObject *PyVectorcall_Call(PyObject *self, PyObject *tuple, PyObject *dict)
-{
-    if (dict != NULL && PyDict_Size(dict) > 0) {
-        Py_ssize_t pos = 0;
-        PyObject *key, *value;
-        PyDict_Next(dict, &pos, &key, &value);
-        PyErr_Format(PyExc_TypeError, "scaler() got an unexpected keyword argument %R", key);
-        return NULL;
-    }
-    if (PyTuple_Size(tuple) != 1) {
-        PyErr_Format(
-            PyExc_TypeError,
-            "scaler() takes 1 positional argument but %d were given",
-            PyTuple_Size(tuple)
-        );
-        return NULL;
-    }
-    PyObject *args[1];
-    args[0] = PyTuple_GetItem(tuple, 0);
-    if (args[0] == NULL) {
-        return NULL;
-    }
-    return Scaler_vectorcall(self, args, 1, NULL);
-}
-#endif
-#endif
+#include "scaler_limited_api_workarounds.h"
 
 PyDoc_STRVAR(scaler_module_doc, "Compiled module providing the inspectable Scaler class.");
 PyDoc_STRVAR(
@@ -74,7 +25,7 @@ typedef struct {
     PyTypeObject *Scaler;   // The class
     PyObject *unity_scaler; // Singleton for scale=1.0
     PyObject *np_multiply;  // Reference to multiply, for holding on to loops.
-    // Double and float multiply loops, filled in on initialization.
+    // Float and double multiply loops, filled in on initialization.
     PyUFuncGenericFunction loops[2];
 } scaler_state;
 
@@ -302,7 +253,7 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     Py_ssize_t nargs = PyTuple_Size(args);
     if (nargs != 1 || kwds != NULL) {
         // Use parser to give error message.
-        char *const kwlist[] = {"", NULL};
+        char *kwlist[] = {"", NULL};
         PyArg_ParseTupleAndKeywords(args, kwds, "d:Scaler", kwlist, &factor);
         return NULL;
     }
