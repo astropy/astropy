@@ -514,6 +514,7 @@ exclude = [
     "B018",  # UselessExpression
     "D",  # pydocstyle
     "S101",  # Use of assert detected
+    "PLR0917", # too-many-positional-arguments, not relevant for pytest fixtures
 ]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
 "conftest.py" = ["INP001"]  # Part of configuration, not a package.
