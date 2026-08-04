@@ -3,7 +3,7 @@ import numpy as np
 __all__ = ["lombscargle_mbflex"]
 
 
-def lombscargle_mbflex(
+def lombscargle_mbflex(  # ruff: ignore[PLR0917] historical API
     t,
     y,
     bands,

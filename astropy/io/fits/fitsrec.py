@@ -47,7 +47,7 @@ class FITS_record:
     class expects a `FITS_rec` object as input.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self, input, row=0, start=None, end=None, step=None, base=None, **kwargs
     ):
         """
@@ -1539,7 +1539,7 @@ def _get_recarray_field(array, key):
 
 
 class _UnicodeArrayEncodeError(UnicodeEncodeError):
-    def __init__(self, encoding, object_, start, end, reason, index):
+    def __init__(self, encoding, object_, start, end, reason, index):  # ruff: ignore[PLR0917] historical API
         super().__init__(encoding, object_, start, end, reason)
         self.index = index
 

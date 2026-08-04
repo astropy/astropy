@@ -286,7 +286,7 @@ class _UnifiedIORegistryBase:
                 f" {data_class.__name__!r}"
             )
 
-    def identify_format(self, origin, data_class_required, path, fileobj, args, kwargs):
+    def identify_format(self, origin, data_class_required, path, fileobj, args, kwargs):  # ruff: ignore[PLR0917] historical API
         """Loop through identifiers to see which formats match.
 
         Parameters
@@ -353,7 +353,7 @@ class _UnifiedIORegistryBase:
                     return False
         return False
 
-    def _get_valid_format(self, mode, cls, path, fileobj, args, kwargs):
+    def _get_valid_format(self, mode, cls, path, fileobj, args, kwargs):  # ruff: ignore[PLR0917] historical API
         """
         Returns the first valid format that can be used to read/write the data in
         question.  Mode can be either 'read' or 'write'.
