@@ -13,7 +13,7 @@ from numpy.testing import assert_allclose
 
 from astropy import constants as c
 from astropy import units as u
-from astropy.units import cds, utils
+from astropy.units import cds, imperial, utils
 from astropy.units.required_by_vounit import GsolLum, ksolMass, nsolRad
 from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -1034,15 +1034,30 @@ def test_fractional_rounding_errors_simple():
 
 
 def test_enable_unit_groupings():
-    from astropy.units import cds
-
     with cds.enable():
-        assert cds.geoMass in u.kg.find_equivalent_units()
-
-    from astropy.units import imperial
+        assert cds.mmHg in u.Pa.find_equivalent_units()
 
     with imperial.enable():
         assert imperial.inch in u.m.find_equivalent_units()
+
+
+@pytest.mark.parametrize(
+    ("unit_grouping", "unit", "si_unit"),
+    [
+        pytest.param(cds, cds.mmHg, u.Pa, id="cds"),
+        pytest.param(imperial, imperial.inch, u.m, id="imperial"),
+    ],
+)
+def test_enable_unit_decorator(unit_grouping, unit, si_unit):
+    """Test that the decorator enables the unit grouping only for the duration of
+    the function call."""
+
+    @unit_grouping.enable()
+    def unit_func():
+        assert unit in si_unit.find_equivalent_units()
+
+    unit_func()
+    assert unit not in si_unit.find_equivalent_units()
 
 
 def test_raise_to_negative_power():

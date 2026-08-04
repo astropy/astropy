@@ -10,6 +10,7 @@ import textwrap
 import unicodedata
 import warnings
 from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
+from contextlib import ContextDecorator
 from functools import cached_property
 from threading import RLock
 from types import TracebackType
@@ -1446,7 +1447,7 @@ class _UnitRegistry:
                 self._aliases[alias] = unit
 
 
-class _UnitContext:
+class _UnitContext(ContextDecorator):
     def __init__(self, init=[], equivalencies=[]):
         _unit_registries.append(_UnitRegistry(init=init, equivalencies=equivalencies))
 
@@ -1477,7 +1478,7 @@ def set_enabled_units(units: object) -> _UnitContext:
     `UnitBase.find_equivalent_units`, for example.
 
     This may be used either permanently, or as a context manager using
-    the ``with`` statement (see example below).
+    the ``with`` statement or as a decorator (see examples below).
 
     Parameters
     ----------
@@ -1512,6 +1513,18 @@ def set_enabled_units(units: object) -> _UnitContext:
       pc           | 3.08568e+16 m   | parsec                           ,
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
     ]
+
+    The same could be done using the context as a decorator:
+
+    >>> @u.set_enabled_units([u.pc])
+    ... def print_equivalent_units(unit):
+    ...     print(unit.find_equivalent_units())
+    ...
+    >>> print_equivalent_units(u.m)
+      Primary name | Unit definition | Aliases
+    [
+      pc           | 3.08568e+16 m   | parsec  ,
+    ]
     """
     # get a context with a new registry, using equivalencies of the current one
     context = _UnitContext(equivalencies=get_current_unit_registry().equivalencies)
@@ -1528,7 +1541,7 @@ def add_enabled_units(units: object) -> _UnitContext:
     `UnitBase.find_equivalent_units`, for example.
 
     This may be used either permanently, or as a context manager using
-    the ``with`` statement (see example below).
+    the ``with`` statement or as a decorator (see examples below).
 
     Parameters
     ----------
@@ -1567,6 +1580,16 @@ def add_enabled_units(units: object) -> _UnitContext:
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
       yd           | 0.9144 m        | yard                             ,
     ]
+
+    The same could be done using the context as a decorator:
+
+    >>> @u.add_enabled_units(imperial)
+    ... def print_equivalent_units(unit):
+    ...     print(unit.find_equivalent_units())
+    ...
+    >>> print_equivalent_units(u.m)
+          Primary name | Unit definition | Aliases
+    ...
     """
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
