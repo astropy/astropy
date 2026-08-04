@@ -192,8 +192,8 @@ jobs:
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
-            # cython and pyerfa versions in ubuntu repos are too old currently
-            pip install -U cython setuptools packaging
+            # cython, pyerfa, configobj versions in ubuntu repos are too old currently
+            pip install -U cython setuptools packaging configobj
             pip install -U --no-build-isolation pyerfa
             pip install -v --no-build-isolation -e .[test]
             pip list
