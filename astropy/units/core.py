@@ -1474,7 +1474,7 @@ def set_enabled_units(units: object) -> _UnitContext:
     `UnitBase.find_equivalent_units`, for example.
 
     This may be used either permanently, or as a context manager using
-    the ``with`` statement or as a decorator (see example below).
+    the ``with`` statement or as a decorator (see examples below).
 
     Parameters
     ----------
@@ -1509,6 +1509,9 @@ def set_enabled_units(units: object) -> _UnitContext:
       pc           | 3.08568e+16 m   | parsec                           ,
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
     ]
+
+    The same could be done using the context as a decorator:
+
     >>> @u.set_enabled_units([u.pc])
     ... def print_equivalent_units(unit):
     ...     print(unit.find_equivalent_units())
@@ -1534,7 +1537,7 @@ def add_enabled_units(units: object) -> _UnitContext:
     `UnitBase.find_equivalent_units`, for example.
 
     This may be used either permanently, or as a context manager using
-    the ``with`` statement or as a decorator (see example below).
+    the ``with`` statement or as a decorator (see examples below).
 
     Parameters
     ----------
@@ -1573,6 +1576,9 @@ def add_enabled_units(units: object) -> _UnitContext:
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
       yd           | 0.9144 m        | yard                             ,
     ]
+
+    The same could be done using the context as a decorator:
+
     >>> @u.add_enabled_units(imperial)
     ... def print_equivalent_units(unit):
     ...     print(unit.find_equivalent_units())
