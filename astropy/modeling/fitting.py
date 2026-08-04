@@ -1654,7 +1654,7 @@ class TRFLSQFitter(_NLLSQFitter):
         Default: False
     x_scale : array-like or {"jac"}, optional
         Characteristic scale of each fitted parameter passed to
-        `scipy.optimize.least_squares`. If `"jac"`, the scale is iteratively
+        `scipy.optimize.least_squares`. If "jac", the scale is iteratively
         updated using the inverse norms of the Jacobian columns. If `None`,
         the existing optimizer default is retained.
 
