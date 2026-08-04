@@ -513,7 +513,7 @@ class Quantity(np.ndarray):
         # TODO: ensure we do interact with NDArray.__class_getitem__.
         return Annotated[cls, unit]
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls: type[Self],
         value: QuantityLike,
         unit=None,

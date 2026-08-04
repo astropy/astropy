@@ -43,7 +43,7 @@ class _ImageBaseHDU(_ValidHDU):
         "GCOUNT": "number of groups",
     }
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data=None,
         header=None,
@@ -1079,7 +1079,7 @@ class PrimaryHDU(_ImageBaseHDU):
     _default_name = "PRIMARY"
     _expected_header_primary_like = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data=None,
         header=None,
@@ -1185,7 +1185,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
 
     _extension = "IMAGE"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data=None,
         header=None,

@@ -596,7 +596,7 @@ class LambdaCDM(FLRW):
         return (zp1**2 * ((Or * zp1 + self.Om0) * zp1 + self.Ok0) + self.Ode0) ** (-0.5)
 
 
-def phi_amplitude_b_outside(
+def phi_amplitude_b_outside(  # ruff: ignore[PLR0917] historical API
     Om0: float, Ok0: float, kappa: float, y1: float, A: float, z: NDArray[np.number], /
 ) -> NDArray[np.number]:
     r"""Phi amplitude for b<0 and b>2 cases.

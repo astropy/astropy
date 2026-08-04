@@ -26,7 +26,7 @@ CORNERS = {
 }
 
 
-def add_beam(
+def add_beam(  # ruff: ignore[PLR0917] historical API
     ax,
     header=None,
     major=None,
@@ -124,7 +124,7 @@ def add_beam(
     ax.add_artist(box)
 
 
-def add_scalebar(
+def add_scalebar(  # ruff: ignore[PLR0917] historical API
     ax,
     length,
     label=None,

@@ -52,7 +52,7 @@ def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
     return np.transpose(XT)
 
 
-def periodic_fit(t, y, dy, frequency, t_fit, center_data=True, fit_mean=True, nterms=1):
+def periodic_fit(t, y, dy, frequency, t_fit, center_data=True, fit_mean=True, nterms=1):  # ruff: ignore[PLR0917] historical API
     """Compute the Lomb-Scargle model fit at a given frequency.
 
     Parameters

@@ -660,7 +660,7 @@ class Link(SimpleElement, _IDProperty):
     ]
     _element_name = "LINK"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         ID=None,
         title=None,
@@ -782,7 +782,7 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty, _UtypeProperty
     _attr_list_12 = _attr_list_11 + ["xtype", "ref", "unit", "ucd", "utype"]
     _utype_in_v1_2 = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         ID=None,
         name=None,
@@ -953,7 +953,7 @@ class Values(Element, _IDProperty):
     name, documented below.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         votable,
         field,
@@ -1331,7 +1331,7 @@ class Field(
     _attr_list_12 = _attr_list_11 + ["xtype"]
     _element_name = "FIELD"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         votable,
         ID=None,
@@ -1793,7 +1793,7 @@ class Param(Field):
     _attr_list_12 = Field._attr_list_12 + ["value"]
     _element_name = "PARAM"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         votable,
         ID=None,
@@ -1874,7 +1874,7 @@ class CooSys(SimpleElement):
     _element_name = "COOSYS"
     _reference_frames = None
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         ID=None,
         equinox=None,
@@ -2064,7 +2064,7 @@ class TimeSys(SimpleElement):
     _attr_list = ["ID", "timeorigin", "timescale", "refposition"]
     _element_name = "TIMESYS"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         ID=None,
         timeorigin=None,
@@ -2198,7 +2198,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
     _utype_in_v1_2 = True
     _ucd_in_v1_2 = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self, table, ref, ucd=None, utype=None, config=None, pos=None, **extra
     ):
         """
@@ -2271,7 +2271,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
     _utype_in_v1_2 = True
     _ucd_in_v1_2 = True
 
-    def __init__(self, table, ref, ucd=None, utype=None, config=None, pos=None):
+    def __init__(self, table, ref, ucd=None, utype=None, config=None, pos=None):  # ruff: ignore[PLR0917] historical API
         if config is None:
             config = {}
 
@@ -2338,7 +2338,7 @@ class Group(
     name, documented below.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         table,
         ID=None,
@@ -2499,7 +2499,7 @@ class TableElement(
     name, documented below.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         votable,
         ID=None,
@@ -3819,7 +3819,7 @@ class Resource(
     name, documented below.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         name=None,
         ID=None,

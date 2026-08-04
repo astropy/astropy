@@ -167,7 +167,7 @@ class NDArithmeticMixin:
 
     """
 
-    def _arithmetic(
+    def _arithmetic(  # ruff: ignore[PLR0917] historical API
         self,
         operation,
         operand,

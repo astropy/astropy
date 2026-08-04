@@ -70,7 +70,7 @@ class BaseFormatterLocator:
     A joint formatter/locator.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         values=None,
         number=None,
@@ -169,7 +169,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         Number of ticks.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         values=None,
         number=None,
@@ -515,7 +515,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     A joint formatter/locator.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         values=None,
         number=None,

@@ -55,7 +55,7 @@ class SAMPClient:
 
     # TODO: define what is meant by callable
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         hub,
         name=None,
@@ -208,12 +208,12 @@ class SAMPClient:
 
         self.client.server_close()
 
-    def _ping(self, private_key, sender_id, msg_id, msg_mtype, msg_params, message):
+    def _ping(self, private_key, sender_id, msg_id, msg_mtype, msg_params, message):  # ruff: ignore[PLR0917] historical API
         reply = {"samp.status": SAMP_STATUS_OK, "samp.result": {}}
 
         self.hub.reply(private_key, msg_id, reply)
 
-    def _client_env_get(
+    def _client_env_get(  # ruff: ignore[PLR0917] historical API
         self, private_key, sender_id, msg_id, msg_mtype, msg_params, message
     ):
         if msg_params["name"] in os.environ:

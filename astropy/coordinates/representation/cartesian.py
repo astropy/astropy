@@ -46,7 +46,7 @@ class CartesianRepresentation(BaseRepresentation):
 
     _xyz = None
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self, x, y=None, z=None, unit=None, xyz_axis=None, differentials=None, copy=True
     ):
         if y is None and z is None:
@@ -335,7 +335,7 @@ class CartesianDifferential(BaseDifferential):
     base_representation = CartesianRepresentation
     _d_xyz = None
 
-    def __init__(self, d_x, d_y=None, d_z=None, unit=None, xyz_axis=None, copy=True):
+    def __init__(self, d_x, d_y=None, d_z=None, unit=None, xyz_axis=None, copy=True):  # ruff: ignore[PLR0917] historical API
         if d_y is None and d_z is None:
             if isinstance(d_x, np.ndarray) and d_x.dtype.kind not in "OV":
                 # Short-cut for 3-D array input.

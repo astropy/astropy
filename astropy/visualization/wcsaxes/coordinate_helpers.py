@@ -81,7 +81,7 @@ class CoordinateHelper:
         The axis label to show by default if none is set later.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         parent_axes=None,
         parent_map=None,
@@ -535,7 +535,7 @@ class CoordinateHelper:
         """
         return self._formatter_locator.format_unit
 
-    def set_ticks(
+    def set_ticks(  # ruff: ignore[PLR0917] historical API
         self,
         values=None,
         spacing=None,
@@ -1120,7 +1120,7 @@ class CoordinateHelper:
         for kwargs, txt in zip(self._lblinfo, text):
             self._ticklabels.add(text=txt, **kwargs)
 
-    def _compute_ticks(
+    def _compute_ticks(  # ruff: ignore[PLR0917] historical API
         self, tick_world_coordinates, spine, axis, w1, w2, tick_angle, ticks="major"
     ):
         if self.coord_type == "longitude":

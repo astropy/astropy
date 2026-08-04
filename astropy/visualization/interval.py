@@ -302,7 +302,7 @@ class ZScaleInterval(BaseInterval):
         5.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         n_samples=1000,
         contrast=0.25,
