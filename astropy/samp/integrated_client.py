@@ -44,7 +44,7 @@ class SAMPIntegratedClient:
         receive any.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         name=None,
         description=None,

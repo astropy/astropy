@@ -245,7 +245,7 @@ class TableFormatter:
 
         return max_lines, max_width
 
-    def _pformat_col(
+    def _pformat_col(  # ruff: ignore[PLR0917]
         self,
         col: ColumnLike,
         max_lines: int | None = None,
@@ -412,7 +412,7 @@ class TableFormatter:
         )
         return f"{name}{sep}[{structure}]"
 
-    def _pformat_col_iter(
+    def _pformat_col_iter(  # ruff: ignore[PLR0917]
         self,
         col: ColumnLike,
         max_lines: int | None,
@@ -602,7 +602,7 @@ class TableFormatter:
         outs["i_centers"] = i_centers
         outs["i_dashes"] = i_dashes
 
-    def _pformat_table(
+    def _pformat_table(  # ruff: ignore[PLR0917]
         self,
         table: Table,
         max_lines: int | None = -1,
@@ -775,7 +775,7 @@ class TableFormatter:
 
         return rows, outs
 
-    def _more_tabcol(
+    def _more_tabcol(  # ruff: ignore[PLR0917]
         self,
         tabcol: Table | ColumnLike,
         max_lines: int | None = None,

@@ -186,7 +186,7 @@ class JSViewer:
         ).strip()
 
 
-def write_table_jsviewer(
+def write_table_jsviewer(  # ruff: ignore[PLR0917]
     table: Table,
     filename: str | Path,
     table_id: str | None = None,

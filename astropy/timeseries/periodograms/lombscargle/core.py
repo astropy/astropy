@@ -103,7 +103,7 @@ class LombScargle(BasePeriodogram):
 
     available_methods = available_methods()
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         t,
         y,
@@ -256,7 +256,7 @@ class LombScargle(BasePeriodogram):
         else:
             return minimum_frequency + df * np.arange(Nf)
 
-    def autopower(
+    def autopower(  # ruff: ignore[PLR0917]
         self,
         method="auto",
         method_kwds=None,
@@ -591,7 +591,7 @@ class LombScargle(BasePeriodogram):
         dist = _statistics.cdf_single if cumulative else _statistics.pdf_single
         return dist(power, len(self._trel), self.normalization, dH=dH, dK=dK)
 
-    def false_alarm_probability(
+    def false_alarm_probability(  # ruff: ignore[PLR0917]
         self,
         power,
         method="baluev",
@@ -686,7 +686,7 @@ class LombScargle(BasePeriodogram):
             method_kwds=method_kwds,
         )
 
-    def false_alarm_level(
+    def false_alarm_level(  # ruff: ignore[PLR0917]
         self,
         false_alarm_probability,
         method="baluev",
