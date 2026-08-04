@@ -392,7 +392,6 @@ lint.extend-select = [
     "C4",    # flake8-comprehensions
     "C90",   # mccabe
     "COM",   # flake8-commas
-    # "CPY",   # flake8-copyright  # TODO: enable when out of preview
     "D",     # pydocstyle
     "DJ",    # flake8-django
     # "DOC",   # pydocstyle  # TODO: enable when out of preview
