@@ -103,6 +103,7 @@ all = [
 test = [
     "coverage>=6.4.4",
     "pre-commit>=2.9.3", # lower bound is not tested beyond installation
+    "hypothesis>=6.84.0",
     "pytest>=8.0.0",
     "pytest-astropy-header>=0.2.2",
     "pytest-cov>=2.3.1",
