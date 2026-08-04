@@ -1514,8 +1514,6 @@ def set_enabled_units(units: object) -> _UnitContext:
     ...     print(unit.find_equivalent_units())
     ...
     >>> print_equivalent_units(u.m)
-          Primary name | Unit definition | Aliases
-    ...
       Primary name | Unit definition | Aliases
     [
       pc           | 3.08568e+16 m   | parsec  ,
