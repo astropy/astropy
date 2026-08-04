@@ -1,0 +1,4 @@
+``solRad`` and ``solLum`` are now written as ``"solRad"`` and ``"solLum"``
+in the CDS format instead of ``"Rsun"`` and ``"Lsun"``, matching the
+astropy unit names as ``solMass`` already does. Both spellings are still
+parsed.

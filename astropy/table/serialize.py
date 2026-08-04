@@ -1,4 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+import itertools
 from collections import OrderedDict
 from copy import deepcopy
 from importlib import import_module
@@ -472,3 +473,66 @@ def _construct_mixins_from_columns(tbl):
     out_cls = QTable if has_quantities else Table
 
     return out_cls(list(out.values()), names=out.colnames, copy=False, meta=meta)
+
+
+def represent_nd_columns_as_1d_columns(tbl: Table, copy: bool = False) -> Table:
+    """
+    Represent any N-D columns in a table as multiple 1-D columns.
+
+    This function represents (or "flattens") any N-D columns in ``tbl`` as multiple 1-D
+    `~astropy.table.Column` objects and returns a new Table.
+
+    The schema for transforming N-D to multiple 1-D is to create new column names by
+    appending the indices of the N-D column to the original column name, separated by a
+    dot. For example, a 2-D column named ``data`` with shape (3, 4) would be represented
+    as 12 1-D columns named ``data.0_0``, ``data.0_1``, ..., ``data.2_3``.
+
+    If any of these new column  names conflict with existing column names, underscores
+    are appended to the base name until the conflict is resolved. For example, if a
+    column named ``data.0_0`` already exists, the new column would be named
+    ``data_.0_0``. If that also exists, the new column would be named ``data__.0_0``,
+    and so on.
+
+    Parameters
+    ----------
+    tbl : `~astropy.table.Table`
+        Table to flatten.
+    copy : bool, optional
+        If True, always return a copy of the table.  If False, return a copy only if the
+        table has N-D columns.  Default is False.
+
+    Returns
+    -------
+    out : `~astropy.table.Table`
+        Flattened table.
+    """
+    # Note: astropy mixin protocol only requires a `shape` attribute so `ndim` might not
+    # be available.
+    if all(len(col.shape) == 1 for col in tbl.itercols()):
+        return tbl.copy() if copy else tbl
+
+    # Pre-seed the reserved name set with all existing column names collision checks.
+    reserved = set(tbl.colnames)
+
+    cols_out = {}
+    for col in tbl.itercols():
+        if len(col.shape) == 1:
+            cols_out[col.info.name] = col
+        else:
+            ranges = [range(ii) for ii in col.shape[1:]]
+            dims_list = list(itertools.product(*ranges))
+            # Find a base name whose flattened sub-column names don't collide
+            # with any reserved name.  Start with the column's own name and
+            # append underscores until the whole set is conflict-free.
+            base = col.info.name
+            while any(
+                base + "." + "_".join(str(ii) for ii in dims) in reserved
+                for dims in dims_list
+            ):
+                base += "_"
+            for dims in dims_list:
+                name = base + "." + "_".join(str(ii) for ii in dims)
+                cols_out[name] = col[(...,) + dims]
+                reserved.add(name)
+
+    return tbl.__class__(cols_out, copy=copy)
