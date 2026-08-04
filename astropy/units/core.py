@@ -9,13 +9,37 @@ import operator
 import textwrap
 import unicodedata
 import warnings
-from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
+from collections.abc import (
+    Callable,
+    Collection,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
+from dataclasses import astuple, dataclass
 from functools import cached_property
 from threading import RLock
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Final,
+    Literal,
+    NamedTuple,
+    Protocol,
+    Self,
+    TypeAlias,
+    TypeVar,
+    Union,
+    assert_never,
+    final,
+    overload,
+    runtime_checkable,
+)
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
@@ -69,6 +93,86 @@ _WARNING_ACTIONS: Final[dict[str, str]] = {
     "warn": "default",
     "raise": "error",
 }
+
+
+@runtime_checkable
+class _HasDtype(Protocol):
+    dtype: np.dtype
+
+
+@runtime_checkable
+class _HasArrayNamespace(Protocol):
+    @staticmethod
+    def __array_namespace__(*, api_version: str | None = None) -> Any: ...
+
+
+# known good invariant types
+KNOWN_GOOD = np.ndarray | float | int | complex | _HasDtype | _HasArrayNamespace
+
+# type-check time typevar to represent KNOWN_GOOD types as stable under certain APIs
+_I = TypeVar("_I", np.ndarray, float, int, complex, _HasDtype, _HasArrayNamespace)
+
+
+class _ScaleConverter(Protocol):
+    @overload
+    @staticmethod
+    def __call__(value: _I) -> _I: ...
+    @overload
+    @staticmethod
+    def __call__(value: ArrayLike) -> np.ndarray: ...
+    @staticmethod
+    def __call__(value): ...
+
+
+_T = TypeVar("_T")
+_Transform: TypeAlias = Callable[[_T], _T]  # TODO: should this be _ScaleConverter ?
+
+_OptionalUnit: TypeAlias = "UnitBase | None"
+_EquivalencyTuple2Elem: TypeAlias = tuple[_OptionalUnit, _OptionalUnit]
+_EquivalencyTuple3Elem: TypeAlias = tuple[_OptionalUnit, _OptionalUnit, _Transform]
+_EquivalencyTuple4Elem: TypeAlias = tuple[
+    _OptionalUnit,
+    _OptionalUnit,
+    _Transform,
+    _Transform,
+]
+_AnyEquivalencyTuple: TypeAlias = (
+    _EquivalencyTuple2Elem | _EquivalencyTuple3Elem | _EquivalencyTuple4Elem
+)
+
+
+@final
+@dataclass(kw_only=True, slots=True, frozen=True)
+class _Equivalency:
+    from_unit: _OptionalUnit
+    to_unit: _OptionalUnit
+    forward_func: _Transform
+    backward_func: _Transform
+
+    def __post_init__(self) -> None:
+        if not (
+            self.from_unit is Unit(self.from_unit)
+            and (self.to_unit is None or self.to_unit is Unit(self.to_unit))
+            and callable(self.forward_func)
+            and callable(self.backward_func)
+        ):
+            raise AssertionError(self)
+
+    @classmethod
+    def from_tuple(cls, t: _AnyEquivalencyTuple, /) -> "_Equivalency":
+        match t:
+            case funit, tunit, a, b:
+                pass
+            case funit, tunit, a:
+                b = a
+            case funit, tunit:
+                a = b = lambda x: x
+            case _ as unreachable:
+                assert_never(unreachable)
+
+        return _Equivalency(
+            from_unit=funit, to_unit=tunit, forward_func=a, backward_func=b
+        )
 
 
 class UnitBase:
@@ -211,7 +315,9 @@ class UnitBase:
             return format(str(self), format_spec)
 
     @staticmethod
-    def _normalize_equivalencies(equivalencies):
+    def _normalize_equivalencies(
+        equivalencies: Iterable[_AnyEquivalencyTuple],
+    ) -> list[_EquivalencyTuple4Elem]:
         """Normalizes equivalencies, ensuring each is a 4-tuple.
 
         The resulting tuple is of the form::
@@ -414,7 +520,11 @@ class UnitBase:
     def __neg__(self) -> "astropy.units.Quantity":
         return self * -1.0
 
-    def is_equivalent(self, other, equivalencies=[]):
+    def is_equivalent(
+        self,
+        other: UnitLike,
+        equivalencies: Iterable[_AnyEquivalencyTuple] = [],
+    ) -> bool:
         """Check whether this unit is equivalent to ``other``.
 
         Parameters
@@ -443,7 +553,11 @@ class UnitBase:
 
         return self._is_equivalent(other, equivalencies)
 
-    def _is_equivalent(self, other, equivalencies=[]):
+    def _is_equivalent(
+        self,
+        other: UnitLike,
+        equivalencies: Iterable[_EquivalencyTuple4Elem] = [],
+    ) -> bool:
         """Returns `True` if this unit is equivalent to `other`.
         See `is_equivalent`, except that a proper Unit object should be
         given (i.e., no string) and that the equivalency list should be
@@ -521,7 +635,11 @@ class UnitBase:
 
         raise UnitConversionError(f"{unit_str} and {other_str} are not convertible")
 
-    def get_converter(self, other, equivalencies=[]):
+    def get_converter(
+        self,
+        other: UnitLike,
+        equivalencies: list[_AnyEquivalencyTuple] = [],
+    ) -> _ScaleConverter:
         """
         Create a function that converts values from this unit to another.
 
@@ -690,7 +808,12 @@ class UnitBase:
         raise NotImplementedError()
 
     def _compose(
-        self, equivalencies=[], namespace=[], max_depth=2, depth=0, cached_results=None
+        self,
+        equivalencies: list[_EquivalencyTuple4Elem] = [],
+        namespace=[],
+        max_depth=2,
+        depth=0,
+        cached_results=None,
     ):
         def is_final_result(unit: UnitBase) -> bool:
             # Returns True if this result contains only the expected
@@ -1017,7 +1140,9 @@ class UnitBase:
 
         return physical.get_physical_type(self)
 
-    def _get_units_with_same_physical_type(self, equivalencies=[]):
+    def _get_units_with_same_physical_type(
+        self, equivalencies: list[_EquivalencyTuple4Elem] = []
+    ):
         """
         Return a list of registered units with the same physical type
         as this unit.
@@ -1182,7 +1307,9 @@ def _flatten_units_collection(items: object) -> set[UnitBase]:
     return result
 
 
-def _normalize_equivalencies(equivalencies):
+def _normalize_equivalencies(
+    equivalencies: Iterable[_AnyEquivalencyTuple],
+) -> list[_EquivalencyTuple4Elem]:
     """Normalizes equivalencies ensuring each is a 4-tuple.
 
     The resulting tuple is of the form::
@@ -1195,32 +1322,27 @@ def _normalize_equivalencies(equivalencies):
 
     Raises
     ------
-    ValueError if an equivalency cannot be interpreted
+    ValueError if a single equivalency cannot be interpreted
+    ExceptionGroup of ValueErrors if more than one error occurs
     """
     if equivalencies is None:
         return []
 
     normalized = []
+    exceptions: list[ValueError] = []
 
     for i, equiv in enumerate(equivalencies):
-        if len(equiv) == 2:
-            funit, tunit = equiv
-            a = b = lambda x: x
-        elif len(equiv) == 3:
-            funit, tunit, a = equiv
-            b = a
-        elif len(equiv) == 4:
-            funit, tunit, a, b = equiv
+        try:
+            eq = _Equivalency.from_tuple(equiv)
+        except AssertionError:
+            exceptions.append(ValueError(f"Invalid equivalence entry {i}: {equiv!r}"))
         else:
-            raise ValueError(f"Invalid equivalence entry {i}: {equiv!r}")
-        if not (
-            funit is Unit(funit)
-            and (tunit is None or tunit is Unit(tunit))
-            and callable(a)
-            and callable(b)
-        ):
-            raise ValueError(f"Invalid equivalence entry {i}: {equiv!r}")
-        normalized.append((funit, tunit, a, b))
+            normalized.append(astuple(eq))
+
+    if len(exceptions) == 1:
+        raise exceptions[0]
+    elif exceptions:
+        raise ExceptionGroup("Multiple invalid equivalencies", exceptions)
 
     return normalized
 
@@ -1370,7 +1492,9 @@ class _UnitRegistry:
         self._reset_equivalencies()
         return self.add_enabled_equivalencies(equivalencies)
 
-    def add_enabled_equivalencies(self, equivalencies):
+    def add_enabled_equivalencies(
+        self, equivalencies: Iterable[_AnyEquivalencyTuple]
+    ) -> None:
         """
         Adds to the set of equivalencies enabled in the unit registry.
 
@@ -2703,7 +2827,10 @@ def def_unit(
     return result
 
 
-KNOWN_GOOD = np.ndarray | float | int | complex
+@overload
+def _condition_arg(value: _I) -> _I: ...
+@overload
+def _condition_arg(value: ArrayLike) -> np.ndarray: ...
 
 
 def _condition_arg(value):
@@ -2727,11 +2854,7 @@ def _condition_arg(value):
         If value is not as expected
 
     """
-    if (
-        isinstance(value, KNOWN_GOOD)
-        or hasattr(value, "dtype")
-        or hasattr(value, "__array_namespace__")
-    ):
+    if isinstance(value, KNOWN_GOOD):
         return value
 
     value = np.array(value)
@@ -2743,6 +2866,10 @@ def _condition_arg(value):
     return value
 
 
+@overload
+def unit_scale_converter(val: _I) -> _I: ...
+@overload
+def unit_scale_converter(val: ArrayLike) -> np.ndarray: ...
 def unit_scale_converter(val):
     """Function that just multiplies the value by unity.
 
