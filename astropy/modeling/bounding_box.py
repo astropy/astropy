@@ -495,11 +495,9 @@ class _BoundingDomain(abc.ABC):
         ----------
         evaluate : Callable
             callable which takes in the valid inputs to evaluate model
-        valid_inputs : list of numpy arrays
-            The inputs reduced to just those inputs which are all inside
-            their respective bounding box intervals
-        valid_index : numpy array
-            array of all indices inside the bounding box
+        inputs : list of numpy arrays
+            The inputs to reduce to those inside their respective bounding
+            box intervals
         input_shape : tuple
             The shape that all inputs have be reshaped/broadcasted into
         fill_value : float
@@ -557,11 +555,9 @@ class _BoundingDomain(abc.ABC):
         ----------
         evaluate : callable
             callable which takes in the valid inputs to evaluate model
-        valid_inputs : list
-            The inputs reduced to just those inputs which are all inside
-            their respective bounding box intervals
-        valid_index : array_like
-            array of all indices inside the bounding box
+        inputs : list
+            The inputs to reduce to those inside their respective bounding
+            box intervals
         fill_value : float
             The value which will be assigned to inputs which are outside
             the bounding box
