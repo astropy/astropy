@@ -1,0 +1,4 @@
+Documented the parameters the multiband ``periodic_fit`` actually takes:
+``bands_fit``, ``nterms_base``, ``nterms_band``, ``reg_base``, ``reg_band``
+and ``regularize_by_trace``. The docstring previously described ``nterms``,
+which the function does not accept.
