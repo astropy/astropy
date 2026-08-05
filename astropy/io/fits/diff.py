@@ -720,13 +720,6 @@ class HeaderDiff(_BaseDiff):
             A list of header keywords whose comments should be ignored in the
             comparison.  May contain wildcard strings as with ignore_keywords.
 
-        numdiffs : int, optional
-            The number of pixel/table values to output when reporting HDU data
-            differences.  Though the count of differences is the same either
-            way, this allows controlling the number of different values that
-            are kept in memory or output.  If a negative value is given, then
-            numdiffs is treated as unlimited (default: 10).
-
         rtol : float, optional
             The relative difference to allow when comparing two float values
             either in header values, image arrays, or table columns
