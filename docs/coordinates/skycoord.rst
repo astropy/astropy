@@ -1149,15 +1149,19 @@ For example, when comparing, e.g., two |SkyCoord| objects::
 
     >>> left_skycoord == right_skycoord  # doctest: +SKIP
 
-the right object must be strictly consistent with the left object for
-comparison:
+Two objects are equal only if all of the following are identical:
 
-- Identical class
-- Equivalent frames (`~astropy.coordinates.BaseCoordinateFrame.is_equivalent_frame`)
-- Identical representation_types
-- Identical representation differentials keys
-- Identical frame attributes
-- Identical "extra" frame attributes (e.g., ``obstime`` for an ICRS coord)
+- Class
+- Frame class
+- Representation type
+- Representation differentials keys
+- Representation component data (which may include velocities)
+- Frame attributes (e.g., ``equinox`` for an FK5 coord)
+- "Extra" frame attributes (e.g., ``obstime`` for an ICRS coord)
+
+The first four of these have no element-wise answer, so a mismatch raises an
+exception. The rest are compared element-wise, so array-valued inputs give an
+array-valued result.
 
 In the first example we show simple comparisons using array-valued coordinates::
 
@@ -1173,28 +1177,56 @@ In the first example we show simple comparisons using array-valued coordinates::
   >>> sc1 != sc2  # Not equal
   array([False,  True])
 
-In addition to numerically comparing the representation component data (which
-may include velocities), the equality comparison includes strict tests that all
-of the frame attributes like ``equinox`` or ``obstime`` are exactly equal.  Any
-mismatch in attributes will result in an exception being raised.  For example::
+Frame attributes are compared alongside the component data, so a difference in
+``equinox`` or ``obstime`` makes the coordinates unequal even where the
+component data agree::
 
   >>> sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg)
   >>> sc2 = SkyCoord([1, 20]*u.deg, [3, 4]*u.deg, obstime='2020-01-01')
-  >>> sc1 == sc2  # doctest: +SKIP
-  ...
-  ValueError: cannot compare: extra frame attribute 'obstime' is not equivalent
-   (perhaps compare the frames directly to avoid this exception)
+  >>> sc1 == sc2
+  array([False, False])
 
-In this example the ``obstime`` attribute is a so-called "extra" frame attribute
-that does not apply directly to the ICRS coordinate frame. So we could compare
-with the following, this time using the ``!=`` operator for variety::
+Here the ``obstime`` attribute is a so-called "extra" frame attribute that does
+not apply directly to the ICRS coordinate frame. Since ``sc1`` has no
+``obstime`` at all, no element can be equal. To compare only the component data,
+compare the frames instead, this time using the ``!=`` operator for variety::
 
   >>> sc1.frame != sc2.frame
   array([False, True])
 
+For the same reason, comparing a |SkyCoord| directly to a
+:class:`~astropy.coordinates.BaseCoordinateFrame` ignores the extra frame
+attributes entirely, since a frame makes no claim about them::
+
+  >>> sc2 == sc1.frame
+  array([ True, False])
+
+Attributes are compared element-wise, so array-valued attributes that agree for
+only some elements give a partially `True` result::
+
+  >>> from astropy.time import Time
+  >>> sc1 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, obstime=Time(['2020-01-01', '2021-01-01']))
+  >>> sc2 = SkyCoord([1, 2]*u.deg, [3, 4]*u.deg, obstime='2020-01-01')
+  >>> sc1 == sc2
+  array([ True, False])
+
+Comparing coordinates in different frame classes has no element-wise answer, so
+it raises instead::
+
+  >>> SkyCoord(1*u.deg, 2*u.deg, frame='icrs') == SkyCoord(1*u.deg, 2*u.deg, frame='fk5')
+  Traceback (most recent call last):
+  ...
+  TypeError: cannot compare: objects must have equivalent frames: <ICRS Frame> vs. <FK5 Frame (equinox=J2000.000)>
+
+Note that equality is more permissive about frame attributes than
+`~astropy.coordinates.BaseCoordinateFrame.is_equivalent_frame`, which is what
+governs whether operations like item assignment or
+:func:`~astropy.coordinates.concatenate` are allowed. Those are all-or-nothing
+and still require that *every* element of *every* frame attribute matches.
+
 One slightly special case is comparing two frames that both have no data, where
-the return value is the same as ``frame1.is_equivalent_frame(frame2)``. For
-example::
+the return value is the same as ``frame1.is_equivalent_frame(frame2)``, a single
+`bool` even for array-valued frame attributes. For example::
 
   >>> from astropy.coordinates import FK4
   >>> FK4() == FK4(obstime='2020-01-01')

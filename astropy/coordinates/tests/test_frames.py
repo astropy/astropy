@@ -45,6 +45,7 @@ from astropy.tests.helper import CI, IS_CRON
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
+from astropy.utils.exceptions import AstropyWarning
 
 from .test_representation import unitphysics  # this fixture is used below  # noqa: F401
 
@@ -1070,17 +1071,6 @@ def test_equal_exceptions():
     ):
         sc1 == sc2  # noqa: B015
 
-    # Different frame attribute
-    sc1 = FK5(1 * u.deg, 2 * u.deg)
-    sc2 = FK5(1 * u.deg, 2 * u.deg, equinox="J1999")
-    with pytest.raises(
-        TypeError,
-        match=r"cannot compare: objects must have equivalent "
-        r"frames: <FK5 Frame \(equinox=J2000.000\)> "
-        r"vs. <FK5 Frame \(equinox=J1999.000\)>",
-    ):
-        sc1 == sc2  # noqa: B015
-
     # Different frame
     sc1 = FK4(1 * u.deg, 2 * u.deg)
     sc2 = FK5(1 * u.deg, 2 * u.deg, equinox="J2000")
@@ -1102,6 +1092,145 @@ def test_equal_exceptions():
         ValueError, match="cannot compare: one frame has data and the other does not"
     ):
         sc2 == sc1  # noqa: B015
+
+
+def test_equal_frame_attribute_scalar_mismatch():
+    """A scalar frame attribute mismatch gives False instead of raising."""
+    sc1 = FK5(1 * u.deg, 2 * u.deg)
+    sc2 = FK5(1 * u.deg, 2 * u.deg, equinox="J1999")
+
+    assert (sc1 == sc2) is np.False_
+    assert (sc1 != sc2) is np.True_
+
+    # But the frames are still not equivalent, which is what governs e.g. setitem.
+    assert not sc1.is_equivalent_frame(sc2)
+
+
+def test_equal_frame_attribute_arrays():
+    """Array-valued frame attributes are compared element-wise."""
+    sc1 = FK4([1, 2] * u.deg, [3, 4] * u.deg, equinox=Time(["B1950", "B1951"]))
+    sc2 = FK4([1, 20] * u.deg, [3, 4] * u.deg, equinox=Time(["B1950", "B1952"]))
+
+    # First element: data matches and equinox matches.  Second element: both differ.
+    assert np.all((sc1 == sc2) == [True, False])
+    assert np.all((sc1 != sc2) == [False, True])
+
+    # Only the equinox differs, in one element.
+    sc3 = FK4([1, 2] * u.deg, [3, 4] * u.deg, equinox=Time(["B1950", "B1952"]))
+    assert np.all((sc1 == sc3) == [True, False])
+
+    # A scalar attribute broadcasts against an array-valued one.
+    sc4 = FK4([1, 2] * u.deg, [3, 4] * u.deg, equinox="B1950")
+    assert np.all((sc1 == sc4) == [True, False])
+
+
+@pytest.mark.parametrize(
+    ["frame_cls", "attr", "value1", "value2"],
+    [
+        pytest.param(AltAz, "obstime", Time(["J2000", "J2001"]), None, id="time"),
+        pytest.param(AltAz, "pressure", [1, 2] * u.hPa, [1, 3] * u.hPa, id="quantity"),
+        pytest.param(
+            AltAz,
+            "location",
+            EarthLocation.from_geodetic([10, 20] * u.deg, [30, 30] * u.deg),
+            EarthLocation.from_geodetic([10, 21] * u.deg, [30, 30] * u.deg),
+            id="earthlocation",
+        ),
+        pytest.param(
+            GCRS,
+            "obsgeoloc",
+            r.CartesianRepresentation([1, 2], [0, 0], [0, 0], unit=u.km),
+            r.CartesianRepresentation([1, 3], [0, 0], [0, 0], unit=u.km),
+            id="representation",
+        ),
+        pytest.param(
+            Galactocentric,
+            "galcen_v_sun",
+            CartesianDifferential([1, 2], [0, 0], [0, 0], unit=u.km / u.s),
+            CartesianDifferential([1, 3], [0, 0], [0, 0], unit=u.km / u.s),
+            id="differential",
+        ),
+        pytest.param(
+            Galactocentric,
+            "galcen_coord",
+            ICRS([1, 2] * u.deg, [0, 0] * u.deg),
+            ICRS([1, 3] * u.deg, [0, 0] * u.deg),
+            id="coordinate",
+        ),
+    ],
+)
+def test_equal_frame_attribute_types_elementwise(frame_cls, attr, value1, value2):
+    """Every frame attribute type supports element-wise comparison."""
+    if value2 is None:
+        value2 = Time(["J2000", "J2002"])
+    data = (
+        ([1, 2] * u.kpc, [0, 0] * u.kpc, [0, 0] * u.kpc)
+        if frame_cls is Galactocentric
+        else ([1, 2] * u.deg, [3, 4] * u.deg)
+    )
+    f1 = frame_cls(*data, **{attr: value1})
+    f2 = frame_cls(*data, **{attr: value2})
+
+    assert np.all((f1 == f2) == [True, False])
+    assert np.all((f1 != f2) == [False, True])
+
+
+def test_equal_frame_attribute_unset():
+    """An attribute set on one frame but not the other compares as False."""
+    obstime = Time(["J2000", "J2001"])
+    f1 = AltAz([1, 2] * u.deg, [3, 4] * u.deg)
+    f2 = AltAz([1, 2] * u.deg, [3, 4] * u.deg, obstime=obstime)
+    assert f1.obstime is None
+
+    assert np.all((f1 == f2) == [False, False])
+    assert np.all((f2 == f1) == [False, False])
+
+
+def test_equal_frame_attribute_coordinate_not_comparable():
+    """A coordinate attribute that cannot be compared gives False, not an exception."""
+    kwargs = {"ra": [1, 2] * u.deg, "dec": [0, 0] * u.deg, "distance": [1, 1] * u.kpc}
+    hcrs = HCRS(**kwargs, obstime="J2000")
+    eq = BaseCoordinateFrame._frameattr_eq_elementwise
+
+    # A different frame class: comparing directly would raise.
+    icrs = ICRS(**kwargs)
+    with pytest.raises(TypeError, match="must have equivalent frames"):
+        hcrs == icrs  # noqa: B015
+    assert eq(hcrs, icrs) is False
+
+    # One has data and the other does not: comparing directly would raise.
+    with pytest.raises(ValueError, match="one frame has data and the other does not"):
+        hcrs == HCRS(obstime="J2000")  # noqa: B015
+    assert eq(hcrs, HCRS(obstime="J2000")) is False
+
+    # But a differing frame attribute on the coordinate attribute itself just
+    # recurses into the element-wise comparison.
+    assert np.all(eq(hcrs, HCRS(**kwargs, obstime="J2001")) == [False, False])
+    other = HCRS(ra=[1, 9] * u.deg, dec=[0, 0] * u.deg, distance=[1, 1] * u.kpc)
+    assert np.all(eq(hcrs, other.replicate(obstime="J2000")) == [True, False])
+
+
+def test_equal_frame_attribute_representation_with_differentials():
+    """Representation attributes with differentials compare instead of warning."""
+    rep = r.CartesianRepresentation([1, 2], [0, 0], [0, 0], unit=u.km)
+    rep1 = rep.with_differentials(
+        CartesianDifferential([1, 1], [0, 0], [0, 0], unit=u.km / u.s)
+    )
+    rep2 = rep.with_differentials(
+        CartesianDifferential([1, 9], [0, 0], [0, 0], unit=u.km / u.s)
+    )
+
+    # The scalar helper warns and gives False ...
+    with pytest.warns(AstropyWarning, match="at least one of them has differentials"):
+        assert BaseCoordinateFrame._frameattr_equiv(rep1, rep2) is False
+
+    # ... but the element-wise one compares the differentials properly.
+    assert np.all(
+        BaseCoordinateFrame._frameattr_eq_elementwise(rep1, rep2) == [True, False]
+    )
+
+    # Mismatched differential keys or classes still give False.
+    assert BaseCoordinateFrame._frameattr_eq_elementwise(rep1, rep) is False
 
 
 def test_dynamic_attrs():
@@ -1693,10 +1822,11 @@ def test_frame_coord_comparison():
     with pytest.raises(TypeError, match=error_msg):
         frame == SkyCoord(AltAz("0d", "1d"))  # noqa: B015
 
+    # Same class but a differing frame attribute is simply not equal.
     coord = SkyCoord(ra=12 * u.hourangle, dec=5 * u.deg, frame=FK5(equinox="J1950"))
     frame = FK5(ra=12 * u.hourangle, dec=5 * u.deg, equinox="J2000")
-    with pytest.raises(TypeError, match=error_msg):
-        coord == frame  # noqa: B015
+    assert (coord == frame) is np.False_
+    assert (coord != frame) is np.True_
 
     frame = ICRS()
     coord = SkyCoord(0 * u.deg, 0 * u.deg, frame=frame)
