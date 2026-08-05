@@ -94,11 +94,11 @@ def periodic_fit(
     nterms_band : int (default=1)
         number of frequency terms to use for the residuals between the base
         model and each individual band
-    reg_base : float or None (default = None)
+    reg_base : float or None (default=None)
         amount of regularization to use on the base model parameters
-    reg_band : float or None (default = 1E-6)
+    reg_band : float or None (default=1E-6)
         amount of regularization to use on the band model parameters
-    regularize_by_trace : bool (default = True)
+    regularize_by_trace : bool (default=True)
         if True, then regularization is expressed in units of the trace of
         the normal matrix
 
