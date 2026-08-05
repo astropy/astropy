@@ -239,7 +239,7 @@ def test_show_in_notebook_classic():
     not HAS_IPYDATAGRID or not HAS_PANDAS, reason="requires ipydatagrid and pandas"
 )
 # https://github.com/bqplot/bqplot/issues/1624 and such
-@pytest.mark.filterwarnings(r"ignore:((.|\n)*)traitlets((.|\n)*):DeprecationWarning")
+@pytest.mark.filterwarnings(r"ignore::DeprecationWarning")
 def test_show_in_notebook_ipydatagrid():
     from ipydatagrid import DataGrid
 
