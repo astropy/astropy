@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-8.1-time-string-formats`
 * :ref:`whatsnew-8.1-faster-table-joins`
+* :ref:`whatsnew-8.1-coordinates-equality`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -58,6 +59,42 @@ if it is available and otherwise falls back to the built-in astropy join impleme
 
 In addition, the built-in astropy join was sped up by a factor of ~2x for the common
 case of a single join column.
+
+.. _whatsnew-8.1-coordinates-equality:
+
+Element-wise equality for coordinates
+=====================================
+
+Comparing |SkyCoord| or :class:`~astropy.coordinates.BaseCoordinateFrame` objects
+with ``==`` now takes frame attributes such as ``equinox``, ``obstime`` or
+``location`` into account element-wise, in the same way as the coordinate data
+itself. Previously any difference in a frame attribute raised an exception, even
+when only a single element of an array-valued attribute differed.
+
+For example, an ``obstime`` that matches for only some of the coordinates now
+gives a partially `True` result::
+
+  >>> import astropy.units as u
+  >>> from astropy.coordinates import SkyCoord
+  >>> from astropy.time import Time
+  >>> obstime = Time(["2020-01-01", "2021-01-01"])
+  >>> sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, frame="fk4", obstime=obstime)
+  >>> sc2 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, frame="fk4", obstime="2020-01-01")
+  >>> sc1 == sc2
+  array([ True, False])
+
+This also removes an inconsistency in how |SkyCoord| treated the same attribute
+depending on the frame. An attribute that is not part of the coordinate's own
+frame is carried along as an "extra" frame attribute -- ``obstime`` on an ICRS
+coordinate, for instance -- and these were handled differently from the frame's
+own attributes. Both are now compared the same way.
+
+Comparing coordinates in different frame classes still raises, since there is no
+element-wise answer in that case, and
+`~astropy.coordinates.BaseCoordinateFrame.is_equivalent_frame` is unchanged.
+Operations that require strictly equivalent frames, such as item assignment,
+:func:`~astropy.coordinates.concatenate` and frame transformations, therefore
+behave exactly as before.
 
 Contributors to the 8.1 release
 ===============================

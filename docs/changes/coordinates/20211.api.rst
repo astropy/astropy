@@ -1,0 +1,18 @@
+Equality comparison of |SkyCoord| and
+`~astropy.coordinates.BaseCoordinateFrame` objects now compares frame attributes
+element-wise instead of requiring that they be equivalent. Previously a mismatch
+in a frame attribute such as ``equinox`` raised ``TypeError``, and a mismatch in
+a |SkyCoord| "extra" frame attribute such as ``obstime`` on an ICRS coordinate
+raised ``ValueError``. Both now contribute to the comparison result like the
+coordinate data does, so that array-valued attributes that agree for only some
+elements give a partially `True` result.
+
+Comparing coordinates of different frame classes still raises ``TypeError``,
+since there is no element-wise answer in that case, and
+`~astropy.coordinates.BaseCoordinateFrame.is_equivalent_frame` is unchanged, so
+operations that require equivalent frames (item assignment,
+:func:`~astropy.coordinates.concatenate`, frame transformations) are unaffected.
+
+As part of this, comparing frames whose representation-valued attributes carry
+differentials no longer warns and returns `False`; the differentials are now
+compared properly.
