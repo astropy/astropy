@@ -382,7 +382,7 @@ def parallel_fit_dask(
         The fitter to use in the fitting process.
     data : `numpy.ndarray` or `dask.array.core.Array`
         The N-dimensional data to fit.
-    data_units : `astropy.units.Unit`
+    data_unit : `astropy.units.Unit`
         Units for the data array, for when the data array is not a ``Quantity``
         instance.
     weights : `numpy.ndarray`, `dask.array.core.Array` or `astropy.nddata.NDUncertainty`
