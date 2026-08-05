@@ -85,10 +85,22 @@ def periodic_fit(
         The frequency at which to compute the model
     t_fit : float or array-like
         The times at which the fit should be computed
+    bands_fit : array-like, or str
+        Bands to use in fitting, must be subset of bands in input data.
     center_data : bool (default=True)
         If True, center the input data before applying the fit
-    nterms : int (default=1)
-        The number of Fourier terms to include in the fit
+    nterms_base : int (default=1)
+        number of frequency terms to use for the base model common to all bands.
+    nterms_band : int (default=1)
+        number of frequency terms to use for the residuals between the base
+        model and each individual band
+    reg_base : float or None (default = None)
+        amount of regularization to use on the base model parameters
+    reg_band : float or None (default = 1E-6)
+        amount of regularization to use on the band model parameters
+    regularize_by_trace : bool (default = True)
+        if True, then regularization is expressed in units of the trace of
+        the normal matrix
 
     Returns
     -------
