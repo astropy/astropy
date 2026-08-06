@@ -163,10 +163,19 @@ class TickLabels(Text):
                     # non-number (and non-decimal place) character we can find.
                     start = _find_start_of_last_number(t2)
                 else:
-                    for j in range(len(t1)):
+                    start = 0
+                    for j in range(min(len(t1), len(t2))):
                         if t1[j] != t2[j]:
                             start = _find_start_of_last_number(t2[: j + 1])
                             break
+                    else:
+                        # One of the strings is a prefix of the other (up to
+                        # the length of the shorter one) without any
+                        # differing character, so the entire overlapping
+                        # part can be considered shared and only the extra
+                        # trailing part of t2 (if any) needs to be shown.
+                        if len(t2) > len(t1):
+                            start = _find_start_of_last_number(t2[: len(t1) + 1])
 
                 if start != 0:
                     starts_dollar = t2.startswith("$")
