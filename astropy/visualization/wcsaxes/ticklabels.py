@@ -224,7 +224,6 @@ class TickLabels(Text):
 
         if self._simplify:
             self.simplify_labels()
-        text_size = renderer.points_to_pixels(self.get_size())
 
         visible_axes = self.get_visible_axes()
         self.xy = {axis: {} for axis in visible_axes}
