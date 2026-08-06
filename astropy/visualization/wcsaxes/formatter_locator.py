@@ -608,6 +608,9 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 # spacing was manually specified
                 spacing = self.spacing.to_value(self._unit)
 
+            elif self.number == 0:
+                return [] * self._unit, np.nan * self._unit
+
             elif self.number is not None:
                 # number of ticks was specified, work out optimal spacing
 
