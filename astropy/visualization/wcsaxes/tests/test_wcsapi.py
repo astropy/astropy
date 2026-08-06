@@ -186,6 +186,44 @@ def test_world2pixel_transform_empty_input_1d_wcs():
     assert result.shape == (0, 2)
 
 
+def test_pixel2world_transform_empty_input_shape():
+    # Regression test: the empty-input branch of the pixel->world transform
+    # should return the same (N, dims) shape convention as the non-empty
+    # branch, instead of a transposed (dims, N) shape.
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.crpix = [256.0, 256.0]
+    wcs.wcs.cdelt = [-0.05, 0.05]
+    wcs.wcs.crval = [120.0, -19.0]
+
+    fig = Figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    transform = ax.get_transform("world").inverted()
+
+    result = transform.transform_non_affine(np.zeros((0, 2)))
+    assert result.shape == (0, 2)
+
+
+def test_pixel2world_transform_empty_input_1d_wcs():
+    # Regression test: the pixel->world transform for a 1-d WCS should
+    # return a 2-d (0, 1) shaped array for empty input, not a 3-d array.
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.crpix = [256.0]
+    wcs.wcs.cdelt = [-0.05]
+    wcs.wcs.crval = [50.0]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    # ax.coords[i].transform is the documented public transform for a given
+    # coordinate, and for a 1-d WCS is the bare pixel-to-world transform.
+    transform = ax.coords[0].transform
+
+    result = transform.transform_non_affine(np.zeros((0, 1)))
+    assert result.shape == (0, 1)
+
+
 def test_coord_type_from_ctype(cube_wcs):
     _, coord_meta = transform_coord_meta_from_wcs(
         cube_wcs, RectangularFrame, slices=(50, "y", "x")

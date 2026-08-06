@@ -446,7 +446,10 @@ class WCSPixel2WorldTransform(CurvedTransform):
             pixel = pixel[::-1]
 
         if len(pixel[0]) == 0:
-            world = np.zeros((0, self.wcs.world_n_dim))
+            if self.wcs.world_n_dim == 1:
+                world = np.array([])
+            else:
+                world = [np.array([])] * self.wcs.world_n_dim
         else:
             world = self.wcs.pixel_to_world_values(*pixel)
 
