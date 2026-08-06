@@ -458,6 +458,63 @@ def test_custom_ucd_coord_meta_mapping_partial_conflict():
         pass
 
 
+class LowLevelWCSRANonInternedDeg(BaseLowLevelWCS):
+    # APE 14 WCS whose RA axis unit is equal to but not the interned u.deg
+    # singleton, to test that the hourangle format-unit override does not
+    # rely on object identity.
+
+    @property
+    def pixel_n_dim(self):
+        return 2
+
+    @property
+    def world_n_dim(self):
+        return 2
+
+    @property
+    def world_axis_physical_types(self):
+        return ["pos.eq.ra", "pos.eq.dec"]
+
+    @property
+    def world_axis_units(self):
+        return ["1 deg", "1 deg"]
+
+    @property
+    def world_axis_names(self):
+        return ["RA", "DEC"]
+
+    def pixel_to_world_values(self, *pixel_arrays):
+        return pixel_arrays
+
+    def world_to_pixel_values(self, *world_arrays):
+        return world_arrays
+
+    @property
+    def world_axis_object_components(self):
+        return [
+            ("celestial", 0, "spherical.lon.degree"),
+            ("celestial", 1, "spherical.lat.degree"),
+        ]
+
+    @property
+    def world_axis_object_classes(self):
+        return {"celestial": (SkyCoord, (), {"unit": "deg"})}
+
+
+def test_coord_type_ra_non_interned_deg_unit():
+    # Regression test: the RA -> hourangle format-unit override should not
+    # rely on axis_unit being the interned u.deg singleton.
+    assert u.Unit("1 deg") == u.deg
+    assert u.Unit("1 deg") is not u.deg
+
+    _, coord_meta = transform_coord_meta_from_wcs(
+        LowLevelWCSRANonInternedDeg(), RectangularFrame
+    )
+
+    assert coord_meta["type"] == ["longitude", "latitude"]
+    assert coord_meta["format_unit"] == [u.hourangle, u.Unit("1 deg")]
+
+
 def test_coord_type_1d_1d_wcs():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ["WAVE"]
