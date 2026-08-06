@@ -102,13 +102,23 @@ def custom_ucd_coord_meta_mapping(mapping, *, overwrite=False):
     <BLANKLINE>
     >
     """
+    normalized = {}
+    for k, v in mapping.items():
+        k = k.removeprefix("custom:")
+        if k in normalized:
+            raise ValueError(f"UCD metadata mapping {k} specified more than once.")
+        normalized[k] = v
+    mapping = normalized
+
+    if not overwrite:
+        for k in mapping:
+            if k in CUSTOM_UCD_COORD_META_MAPPING:
+                raise ValueError(f"UCD metadata mapping {k} already exists.")
+
     added_keys = []
     overwritten = {}
     for k, v in mapping.items():
-        k = k.removeprefix("custom:")
         if k in CUSTOM_UCD_COORD_META_MAPPING:
-            if not overwrite:
-                raise ValueError(f"UCD metadata mapping {k} already exists.")
             overwritten[k] = CUSTOM_UCD_COORD_META_MAPPING[k]
         else:
             added_keys.append(k)

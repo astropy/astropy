@@ -437,6 +437,40 @@ def test_custom_coord_type_1d_2d_wcs_overwrite():
     assert coord_meta["wrap"] == [None, None]
 
 
+def test_custom_ucd_coord_meta_mapping_partial_conflict():
+    # Regression test: if a later key in the mapping conflicts with an
+    # existing entry and overwrite=False, no keys from the mapping should
+    # be added, including ones that come before the conflicting key.
+    custom_meta = {
+        "pos.newkey": {"coord_type": "longitude"},
+        "pos.heliographic.stonyhurst.lon": {"coord_type": "latitude"},
+    }
+
+    with pytest.raises(
+        ValueError, match="pos.heliographic.stonyhurst.lon already exists"
+    ):
+        with custom_ucd_coord_meta_mapping(custom_meta):
+            pass
+
+    # If the failed call above had already registered "pos.newkey", then
+    # registering it again with overwrite=False would raise; it must not.
+    with custom_ucd_coord_meta_mapping({"pos.newkey": {"coord_type": "longitude"}}):
+        pass
+
+
+def test_custom_ucd_coord_meta_mapping_duplicate_key():
+    # A mapping containing both 'custom:X' and 'X' defines the same UCD
+    # twice and should raise instead of silently keeping the last value.
+    custom_meta = {
+        "custom:pos.eggs": {"coord_type": "longitude"},
+        "pos.eggs": {"coord_type": "latitude"},
+    }
+
+    with pytest.raises(ValueError, match="specified more than once"):
+        with custom_ucd_coord_meta_mapping(custom_meta):
+            pass
+
+
 def test_coord_type_1d_1d_wcs():
     wcs = WCS(naxis=1)
     wcs.wcs.ctype = ["WAVE"]
