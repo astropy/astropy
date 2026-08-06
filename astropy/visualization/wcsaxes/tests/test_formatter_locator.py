@@ -665,6 +665,14 @@ def test_set_ticks_number_zero_scalar():
     canvas.draw()
 
 
+def test_scalar_percent_format_uses_format_unit():
+    # Regression test for a bug where a '%'-style format ignored the format
+    # unit and instead formatted the coordinate's native unit.
+    fl = ScalarFormatterLocator(number=5, format="%.2f", unit=u.m)
+    fl.format_unit = u.km
+    assert fl.formatter([2000.0] * u.m, None)[0] == "2.00"
+
+
 def test_set_major_formatter_rejects_malformed_separator():
     # Regression test for a bug where the format-string regexes used an
     # unescaped '.', so a non-dot separator before the fractional field was

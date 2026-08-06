@@ -646,7 +646,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 else:
                     precision = 0
             elif self.format.startswith("%"):
-                return [(self.format % x.value) for x in values]
+                return [(self.format % x.to_value(self._format_unit)) for x in values]
             else:
                 precision = self._precision
 
