@@ -680,9 +680,11 @@ class WCSAxes(Axes):
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
         if isinstance(frame, WCS):
-            transform, coord_meta = transform_coord_meta_from_wcs(
+            transform, wcs_coord_meta = transform_coord_meta_from_wcs(
                 frame, self.frame_class
             )
+            if coord_meta is None:
+                coord_meta = wcs_coord_meta
         else:
             transform = self._get_transform_no_transdata(frame)
 

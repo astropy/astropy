@@ -827,6 +827,28 @@ def test_get_transform_unit_mismatch():
     assert_allclose(transform1.transform(pixels), transform2.transform(pixels))
 
 
+def test_get_coords_overlay_wcs_honors_coord_meta(ignore_matplotlibrc):
+    # Regression test for a bug where get_coords_overlay silently discarded
+    # a caller-supplied coord_meta when the frame passed in was a WCS,
+    # unlike every other frame type.
+    wcs = WCS(TARGET_HEADER)
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
+    custom_coord_meta = {
+        "type": ("scalar", "scalar"),
+        "wrap": (None, None),
+        "unit": (u.deg, u.deg),
+        "name": ("x", "y"),
+    }
+
+    overlay = ax.get_coords_overlay(WCS(TARGET_HEADER), coord_meta=custom_coord_meta)
+
+    assert overlay[0].coord_type == "scalar"
+    assert overlay[1].coord_type == "scalar"
+
+
 def test_get_coords_overlay_elliptical_frame(ignore_matplotlibrc):
     """
     Regression test for calling get_coords_overlay on axes with a
