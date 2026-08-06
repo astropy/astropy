@@ -81,7 +81,7 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
     codes[2:][discontinuous] = Path.MOVETO
 
     # The above missed the first step, so check that too
-    if step[0] > DISCONT_FACTOR * step[1]:
+    if len(step) >= 2 and step[0] > DISCONT_FACTOR * step[1]:
         codes[1] = Path.MOVETO
 
     # Create the path

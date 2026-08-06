@@ -1,8 +1,34 @@
 import numpy as np
 import pytest
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 from matplotlib.lines import Path
 
+from astropy.visualization.wcsaxes import conf
 from astropy.visualization.wcsaxes.grid_paths import get_lon_lat_path
+from astropy.wcs import WCS
+
+
+def test_gridline_two_samples_no_error():
+    # Regression test for a bug where drawing a gridline sampled with only
+    # two points raised an IndexError while checking for discontinuities.
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.crval = [0, 0]
+    wcs.wcs.crpix = [1, 1]
+    wcs.wcs.cdelt = [-1, 1]
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
+    original_grid_samples = conf.grid_samples
+    conf.grid_samples = 2
+    try:
+        ax.coords[0].grid()
+        canvas.draw()
+    finally:
+        conf.grid_samples = original_grid_samples
 
 
 @pytest.mark.parametrize("step_in_degrees", [10, 1, 0.01])
