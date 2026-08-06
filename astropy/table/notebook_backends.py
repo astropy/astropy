@@ -31,6 +31,11 @@ def classic(
         id is the unique integer id of the table object, id(table), and XXX
         is a random number to avoid conflicts when printing the same table
         multiple times.
+    css : str
+        A valid CSS string declaring the formatting for the table. Defaults
+        to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
+    display_length : int, optional
+        Number or rows to show. Defaults to 50.
     table_class : str or None
         A string with a list of HTML classes used to style the table.
         The special default string ('astropy-default') means that the string
@@ -39,11 +44,6 @@ def classic(
         table classes may make use of bootstrap, as this is loaded with the
         notebook.  See `this page <https://getbootstrap.com/css/#tables>`_
         for the list of classes.
-    css : str
-        A valid CSS string declaring the formatting for the table. Defaults
-        to ``astropy.table.jsviewer.DEFAULT_CSS_NB``.
-    display_length : int, optional
-        Number or rows to show. Defaults to 50.
     show_row_index : str or False
         If this does not evaluate to False, a column with the given name
         will be added to the version of the table that gets displayed.

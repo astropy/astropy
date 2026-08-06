@@ -930,7 +930,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             Include a header row for unit. Default is False.
 
         show_dtype : bool
-            Include column dtype. Default is True.
+            Include column dtype. Default is False.
         """
         _pformat_col = self._formatter._pformat_col
         lines, outs = _pformat_col(
@@ -1192,6 +1192,12 @@ class Column(BaseColumn):
         accepts a single value and returns a string.
     meta : dict-like or None
         Meta-data associated with the column
+    copy : bool or None, optional
+        Copy the input ``data``.  If `True` always copy, if `False` never copy
+        (raising a `ValueError` if a copy cannot be avoided), and if `None`
+        (default) copy only if needed, following the `numpy.array` convention.
+    copy_indices : bool, optional
+        Copy any indices in the input ``data``. Default is True.
 
     Examples
     --------
@@ -1556,6 +1562,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         accepts a single value and returns a string.
     meta : dict-like or None
         Meta-data associated with the column
+    copy : bool or None, optional
+        Copy the input ``data``.  If `True` always copy, if `False` never copy
+        (raising a `ValueError` if a copy cannot be avoided), and if `None`
+        (default) copy only if needed, following the `numpy.array` convention.
+    copy_indices : bool, optional
+        Copy any indices in the input ``data``. Default is True.
 
     Examples
     --------

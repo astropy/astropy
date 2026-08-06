@@ -2992,6 +2992,10 @@ class Table:
             Input dtype.kind
         out_kind : str
             Output dtype.kind
+        encode_decode_func : function
+            Function used to convert the column data when the fast ASCII
+            conversion fails, called as ``encode_decode_func(col, 'utf-8')``.
+            This is `numpy.strings.encode` or `numpy.strings.decode`.
         """
         for col in self.itercols():
             if col.dtype.kind == in_kind:
@@ -3272,6 +3276,8 @@ class Table:
 
         Parameters
         ----------
+        index : int
+            Insert the new row before this row index position
         vals : tuple, list, dict or None
             Use the specified values in the new row
         mask : tuple, list, dict or None

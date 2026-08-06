@@ -240,6 +240,9 @@ class TableFormatter:
 
         Parameters
         ----------
+        col : column-like
+            Column to format
+
         max_lines : int
             Maximum lines of output (header + data rows)
 
@@ -401,6 +404,9 @@ class TableFormatter:
 
         Parameters
         ----------
+        col : column-like
+            Column to format
+
         max_lines : int
             Maximum lines of output (header + data rows)
 
@@ -592,6 +598,9 @@ class TableFormatter:
 
         Parameters
         ----------
+        table : `~astropy.table.Table`
+            Table to format
+
         max_lines : int or None
             Maximum number of rows to output
             -1 (default) implies no limit, ``None`` implies using the
@@ -611,7 +620,7 @@ class TableFormatter:
             for the unit.
 
         show_dtype : bool
-            Include a header row for column dtypes. Default is to False.
+            Include a header row for column dtypes. Default is False.
 
         html : bool
             Format the output as an HTML table. Default is False.
@@ -757,6 +766,9 @@ class TableFormatter:
 
         Parameters
         ----------
+        tabcol : `~astropy.table.Table` or column-like
+            Table or column to browse
+
         max_lines : int or None
             Maximum number of rows to output
 
