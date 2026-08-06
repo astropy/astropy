@@ -468,6 +468,12 @@ class WCSAxes(Axes):
 
         self._all_coords = [self.coords]
 
+        # Any overlays added via get_coords_overlay have been dropped above,
+        # so make sure the cursor position display does not try to index
+        # into a now out-of-range overlay.
+        if hasattr(self, "_display_coords_index"):
+            self._display_coords_index = 0
+
         # Common default settings for Rectangular Frame
         for ind, pos in enumerate(
             coord_meta.get("default_axislabel_position", ["b", "l"])
