@@ -791,6 +791,19 @@ def test_simplify_cases(before, after):
     assert ticklabels.text["axis"] == after
 
 
+def test_simplify_labels_prefix(ignore_matplotlibrc):
+    # Regression test for crashes in simplify_labels (IndexError or
+    # UnboundLocalError/NameError) when one tick label is a prefix of an
+    # adjacent one, which can happen with tick labels of varying length.
+    ticklabels = TickLabels(frame=MagicMock())
+    for i, label in enumerate(["10d30m", "10d3"]):
+        ticklabels.add(
+            axis="axis", world=0, angle=0, text=label, axis_displacement=i, data=(i, i)
+        )
+    ticklabels.simplify_labels()
+    assert ticklabels.text["axis"] == ["10d30m", "10d3"]
+
+
 def test_get_transform_unit_mismatch():
     """
     Regression test for a bug that caused get_transform to ignore differences
