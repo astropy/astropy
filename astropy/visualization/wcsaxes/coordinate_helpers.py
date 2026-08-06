@@ -1464,12 +1464,17 @@ class CoordinateHelper:
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
 
-        if self.coord_type == "longitude":
-            # Find biggest gap in tick_world_coordinates and wrap in middle
-            # For now just assume spacing is equal, so any mid-point will do
-            mid = 0.5 * (
-                tick_world_coordinates_values[0] + tick_world_coordinates_values[1]
-            )
+        if self.coord_type == "longitude" and len(tick_world_coordinates_values) > 0:
+            if len(tick_world_coordinates_values) > 1:
+                # Find biggest gap in tick_world_coordinates and wrap in middle
+                # For now just assume spacing is equal, so any mid-point will do
+                mid = 0.5 * (
+                    tick_world_coordinates_values[0] + tick_world_coordinates_values[1]
+                )
+            else:
+                # With a single tick, wrap on the opposite side of the sphere
+                # so the discontinuity cannot cross the contour level
+                mid = tick_world_coordinates_values[0] + 180.0
             field = wrap_angle_at(field, mid)
             tick_world_coordinates_values = wrap_angle_at(
                 tick_world_coordinates_values, mid

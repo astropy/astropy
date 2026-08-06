@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
+from matplotlib.path import Path
 
 from astropy import units as u
 from astropy.io import fits
@@ -397,6 +398,53 @@ def test_set_ticks_values():
     lbl_locations = u.Quantity(lbl_world1, unit=u.deg)
     assert u.allclose(lbl_locations, ax.coords[0]._formatter_locator.values)
     assert u.Quantity(lbl_world).unit is xticks.unit
+
+
+@pytest.mark.parametrize("n_ticks", [0, 1])
+def test_grid_contour_few_ticks(n_ticks):
+    # Regression test for an IndexError when drawing a contour-type grid
+    # for a longitude coordinate that has 0 or 1 major ticks.
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    if n_ticks == 0:
+        ax.coords[0].set_ticks(number=0)
+    else:
+        ax.coords[0].set_ticks(values=[320] * u.deg)
+
+    ax.coords[0].grid(grid_type="contours")
+
+    canvas.draw()
+
+
+def test_grid_contour_one_tick_crossing_wrap():
+    # A single longitude tick on a field of view that crosses the longitude
+    # wrap should produce one gridline, not an additional spurious line
+    # along the wrap discontinuity.
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.crval = [0, 0]
+    wcs.wcs.crpix = [50, 50]
+    wcs.wcs.cdelt = [-0.1, 0.1]
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    fig.add_axes(ax)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+
+    ax.coords[0].set_ticks(values=[358] * u.deg)
+    ax.coords[0].grid(grid_type="contours")
+
+    canvas.draw()
+
+    n_lines = sum(
+        np.sum(path.codes == Path.MOVETO) for path in ax.coords[0]._grid.get_paths()
+    )
+    assert n_lines == 1
 
 
 def test_ticks_multiple_intersections_non_degree_longitude():
