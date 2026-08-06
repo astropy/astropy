@@ -21,7 +21,7 @@ from astropy.units.quantity_helper.function_helpers import (
     TBD_FUNCTIONS,
     UNSUPPORTED_FUNCTIONS,
 )
-from astropy.utils.compat import NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
+from astropy.utils.compat import NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4, NUMPY_LT_2_6
 
 VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
 VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
@@ -80,10 +80,18 @@ class BasicTestSetup:
 
 class InvariantUnitTestSetup(BasicTestSetup):
     def check(self, func, *args, **kwargs):
-        o = func(self.q, *args, **kwargs)
-        expected = func(self.q.value, *args, **kwargs) * self.q.unit
-        assert o.shape == expected.shape
-        assert np.all(o == expected)
+        out = func(self.q, *args, **kwargs)
+        expected = func(self.q.value, *args, **kwargs)
+
+        if isinstance(expected, tuple):
+            assert isinstance(out, tuple)
+        else:
+            out = (out,)
+            expected = (expected,)
+
+        for a, e in zip(out, expected, strict=True):
+            assert a.shape == e.shape
+            assert_array_equal(a.view(np.ndarray), e)
 
 
 class NoUnitTestSetup(BasicTestSetup):
@@ -846,6 +854,11 @@ class TestUfuncReductions(InvariantUnitTestSetup):
     def test_cumulative_prod(self):
         with pytest.raises(u.UnitsError):
             np.cumulative_prod(self.q, axis=1)
+
+    @pytest.mark.skipif(NUMPY_LT_2_6, reason="np.top_k is new in Numpy 2.6")
+    def test_top_k(self):
+        self.check(np.top_k, 1)
+        self.check(np.top_k, 2)
 
 
 class TestUfuncLike(InvariantUnitTestSetup):
