@@ -175,9 +175,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
 
         if axis_type is not None:
             axis_type_split = axis_type.split(".")
-
-            if len(axis_type_split):
-                axis_type_split[0] = axis_type_split[0].replace("custom:", "")
+            axis_type_split[0] = axis_type_split[0].replace("custom:", "")
 
             for ucd, meta in CUSTOM_UCD_COORD_META_MAPPING.items():
                 if ucd in axis_type:
