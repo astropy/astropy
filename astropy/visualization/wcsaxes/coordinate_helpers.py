@@ -1170,9 +1170,11 @@ class CoordinateHelper:
 
                 if self.coord_type == "longitude":
                     if self._coord_scale_to_deg is not None:
-                        t *= self._coord_scale_to_deg
+                        world = t * self._coord_scale_to_deg
+                    else:
+                        world = t
 
-                    world = wrap_angle_at(t, self.coord_wrap.to_value(u.deg))
+                    world = wrap_angle_at(world, self.coord_wrap.to_value(u.deg))
 
                     if self._coord_scale_to_deg is not None:
                         world /= self._coord_scale_to_deg
