@@ -112,6 +112,12 @@ def auto_assign_coord_positions(ax):
             n_tick_max = n_tick
             best_option = option
 
+    # If no option was found to be consistent with fixed tick positions,
+    # fall back to not showing any of the automatically-placed coordinates
+    # rather than crashing.
+    if best_option is None:
+        best_option = (" ",) * len(auto_coords)
+
     # Finalize assignments
     for coord, spine in zip(auto_coords, best_option):
         position = [spine, "#"] if spine != " " else "#"
