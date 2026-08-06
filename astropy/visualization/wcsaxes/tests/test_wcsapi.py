@@ -168,6 +168,24 @@ def test_3d():
     np.testing.assert_allclose(world[:, 1], world_2[:, 1])
 
 
+def test_world2pixel_transform_empty_input_1d_wcs():
+    # Regression test: transforming an empty array of world coordinates
+    # should not crash for a 1-d WCS (e.g. RectangularFrame1D axes).
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.crpix = [256.0]
+    wcs.wcs.cdelt = [-0.05]
+    wcs.wcs.crval = [50.0]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    transform = ax.get_transform("world")
+
+    result = transform.transform_non_affine(np.zeros((0, 2)))
+    assert result.shape == (0, 2)
+
+
 def test_coord_type_from_ctype(cube_wcs):
     _, coord_meta = transform_coord_meta_from_wcs(
         cube_wcs, RectangularFrame, slices=(50, "y", "x")
