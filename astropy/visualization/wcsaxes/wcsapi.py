@@ -433,7 +433,7 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
         if len(pixel) != self.wcs.pixel_n_dim:
             raise ValueError(
-                f"Expected {self.wcs.pixel_n_dim} world coordinates, got {len(pixel)} "
+                f"Expected {self.wcs.pixel_n_dim} pixel coordinates, got {len(pixel)}"
             )
 
         if self.invert_xy:

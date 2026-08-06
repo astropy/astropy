@@ -224,6 +224,25 @@ def test_pixel2world_transform_empty_input_1d_wcs():
     assert result.shape == (0, 1)
 
 
+def test_pixel2world_transform_wrong_dimension_message():
+    # Regression test: the pixel->world transform validates the number of
+    # *pixel* coordinates, so the error message should refer to pixel
+    # coordinates, not world coordinates.
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.crpix = [256.0]
+    wcs.wcs.cdelt = [-0.05]
+    wcs.wcs.crval = [50.0]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    transform = ax.get_transform("world").inverted()
+
+    with pytest.raises(ValueError, match=r"Expected 1 pixel coordinates, got 2"):
+        transform.transform_non_affine(np.ones((3, 2)))
+
+
 def test_coord_type_from_ctype(cube_wcs):
     _, coord_meta = transform_coord_meta_from_wcs(
         cube_wcs, RectangularFrame, slices=(50, "y", "x")
