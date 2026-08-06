@@ -1344,10 +1344,14 @@ class TimeBase(MaskableShapedLikeNDArray):
             Examples: 'copy', '__getitem__', 'reshape', `~numpy.broadcast_to`.
         args : tuple
             Any positional arguments for ``method``.
+        format : str, optional
+            Time format of the replica.  If `None` (default), the format of
+            this object is used.
+        cls : type, optional
+            Class of the replica.  If `None` (default), the class of this
+            object is used.
         kwargs : dict
-            Any keyword arguments for ``method``.  If the ``format`` keyword
-            argument is present, this will be used as the Time format of the
-            replica.
+            Any keyword arguments for ``method``.
 
         Examples
         --------
@@ -2902,7 +2906,6 @@ class TimeDelta(TimeBase):
         precision=None,
         in_subfmt=None,
         out_subfmt=None,
-        location=None,
         copy=False,
     ):
         if isinstance(val, TimeDelta):
