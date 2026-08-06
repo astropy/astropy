@@ -19,12 +19,12 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.units import UnitsError
 
-DMS_RE = re.compile("^dd(:mm(:ss(.(s)+)?)?)?$")
-HMS_RE = re.compile("^hh(:mm(:ss(.(s)+)?)?)?$")
-DDEC_RE = re.compile("^d(.(d)+)?$")
-DMIN_RE = re.compile("^m(.(m)+)?$")
-DSEC_RE = re.compile("^s(.(s)+)?$")
-SCAL_RE = re.compile("^x(.(x)+)?$")
+DMS_RE = re.compile(r"^dd(:mm(:ss(\.(s)+)?)?)?$")
+HMS_RE = re.compile(r"^hh(:mm(:ss(\.(s)+)?)?)?$")
+DDEC_RE = re.compile(r"^d(\.(d)+)?$")
+DMIN_RE = re.compile(r"^m(\.(m)+)?$")
+DSEC_RE = re.compile(r"^s(\.(s)+)?$")
+SCAL_RE = re.compile(r"^x(\.(x)+)?$")
 
 
 # Units with custom representations - see the note where it is used inside

@@ -3,15 +3,23 @@
 import numpy as np
 import pytest
 from matplotlib import rc_context
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 from numpy.testing import assert_almost_equal
 
 from astropy import units as u
+from astropy.io import fits
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
+from astropy.utils.data import get_pkg_data_filename
+from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.formatter_locator import (
     AngleFormatterLocator,
     ScalarFormatterLocator,
 )
+from astropy.wcs import WCS
+
+MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename("data/msx_header"))
 
 
 class TestAngleFormatterLocator:
@@ -643,3 +651,18 @@ class TestScalarFormatterLocator:
         fl = ScalarFormatterLocator(unit=u.cm, format_unit=u.m)
         fl.format = "x.x"
         assert_quantity_allclose(fl.locator(1, 19)[0], [10] * u.cm)
+
+
+def test_set_major_formatter_rejects_malformed_separator():
+    # Regression test for a bug where the format-string regexes used an
+    # unescaped '.', so a non-dot separator before the fractional field was
+    # silently accepted (and the fractional field silently dropped) instead
+    # of raising a ValueError.
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+    canvas.draw()
+
+    with pytest.raises(ValueError, match="Invalid format"):
+        ax.coords[1].set_major_formatter("dd:mm:ssXs")
