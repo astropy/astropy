@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import matplotlib as mpl
 import numpy as np
 import pytest
+from matplotlib.backend_bases import KeyEvent
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.contour import QuadContourSet
 from matplotlib.figure import Figure
@@ -846,6 +847,38 @@ def test_get_coords_overlay_elliptical_frame(ignore_matplotlibrc):
     # This should not raise an AstropyDeprecationWarning
     overlay = ax.get_coords_overlay("icrs")
     assert overlay is not None
+
+
+def test_reset_wcs_resets_display_coords_index(ignore_matplotlibrc):
+    # Regression test for a bug where reset_wcs dropped overlays from
+    # _all_coords without resetting _display_coords_index, so that if the
+    # cursor display had been advanced to an overlay (by pressing "w"),
+    # format_coord would later raise an IndexError.
+    wcs = WCS(TARGET_HEADER)
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    canvas.draw()
+
+    ax.get_coords_overlay("icrs")
+
+    # Simulate the user pressing "w" to advance the cursor display to the
+    # overlay coordinates.
+    event = KeyEvent("key_press_event", canvas, "w")
+    canvas.callbacks.process("key_press_event", event)
+
+    ax.reset_wcs(wcs=wcs)
+
+    # This should not raise an IndexError.
+    assert ax.format_coord(10, 10) != ""
+
+    # Pressing "w" once more cycles past the world coordinates to the pixel
+    # display mode, which is still valid after reset_wcs and should survive it.
+    canvas.callbacks.process("key_press_event", event)
+    assert "pixel" in ax.format_coord(10, 10)
+
+    ax.reset_wcs(wcs=wcs)
+    assert "pixel" in ax.format_coord(10, 10)
 
 
 def test_auto_assign_coord_positions_no_consistent_option(

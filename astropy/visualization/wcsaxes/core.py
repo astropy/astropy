@@ -141,12 +141,12 @@ class WCSAxes(Axes):
             # data->pixel mapping
             self.transData = transData
 
+        self._display_coords_index = 0
         self.reset_wcs(
             wcs=wcs, slices=slices, transform=transform, coord_meta=coord_meta
         )
         self._hide_parent_artists()
         self.format_coord = self._display_world_coords
-        self._display_coords_index = 0
         fig.canvas.mpl_connect("key_press_event", self._set_cursor_prefs)
         self.patch = self.coords.frame.patch
         self._wcsaxesartist = _WCSAxesArtist()
@@ -467,6 +467,13 @@ class WCSAxes(Axes):
             self.coords.frame.set_linewidth(previous_frame["linewidth"])
 
         self._all_coords = [self.coords]
+
+        # Any overlays added via get_coords_overlay have been dropped above,
+        # so make sure the cursor position display does not try to index
+        # into a now out-of-range overlay. The -1 (pixel display) state
+        # remains valid, so leave it alone.
+        if self._display_coords_index >= len(self._all_coords):
+            self._display_coords_index = 0
 
         # Common default settings for Rectangular Frame
         for ind, pos in enumerate(
