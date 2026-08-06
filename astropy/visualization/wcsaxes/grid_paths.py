@@ -47,7 +47,7 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
     with np.errstate(invalid="ignore"):
         sep[sep > np.pi] -= 2.0 * np.pi
 
-        mask = np.abs(sep > ROUND_TRIP_RTOL * scale_size)
+        mask = sep > ROUND_TRIP_RTOL * scale_size
 
     # Mask values with invalid pixel positions
     mask = mask | np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
