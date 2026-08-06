@@ -1464,7 +1464,7 @@ class CoordinateHelper:
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
 
-        if self.coord_type == "longitude":
+        if self.coord_type == "longitude" and len(tick_world_coordinates_values) > 1:
             # Find biggest gap in tick_world_coordinates and wrap in middle
             # For now just assume spacing is equal, so any mid-point will do
             mid = 0.5 * (

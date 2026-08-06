@@ -399,6 +399,25 @@ def test_set_ticks_values():
     assert u.Quantity(lbl_world).unit is xticks.unit
 
 
+@pytest.mark.parametrize("n_ticks", [0, 1])
+def test_grid_contour_few_ticks(n_ticks):
+    # Regression test for an IndexError when drawing a contour-type grid
+    # for a longitude coordinate that has 0 or 1 major ticks.
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    if n_ticks == 0:
+        ax.coords[0].set_ticks(number=0)
+    else:
+        ax.coords[0].set_ticks(values=[320] * u.deg)
+
+    ax.coords[0].grid(grid_type="contours")
+
+    canvas.draw()
+
+
 def test_ticks_multiple_intersections_non_degree_longitude():
     # Regression test for a bug where, for a longitude coordinate whose unit
     # is not degrees, a tick with more than one intersection along a single
