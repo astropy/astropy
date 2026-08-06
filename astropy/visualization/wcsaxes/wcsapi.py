@@ -245,12 +245,6 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
     for i in range(len(coord_meta["type"])):
         coord_meta["visible"].append(i in world_map)
 
-    inv_all_corr = [False] * wcs.world_n_dim
-    m = transform_wcs.axis_correlation_matrix.copy()
-    if invert_xy:
-        inv_all_corr = np.all(m, axis=1)
-        m = m[:, ::-1]
-
     if frame_class in (RectangularFrame, RectangularFrame1D):
         for index in world_map:
             coord_meta["default_axislabel_position"][index] = "#"
