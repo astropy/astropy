@@ -653,6 +653,19 @@ class TestScalarFormatterLocator:
         assert_quantity_allclose(fl.locator(1, 19)[0], [10] * u.cm)
 
 
+def test_set_ticks_number_zero_scalar():
+    # Regression test for a bug that caused a ZeroDivisionError when
+    # set_ticks(number=0) was used on a scalar (non-angle) coordinate.
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(naxis=1))
+    fig.add_axes(ax)
+
+    ax.coords[0].set_ticks(number=0)
+    ax.coords[0].display_minor_ticks(True)
+    canvas.draw()
+
+
 def test_set_major_formatter_rejects_malformed_separator():
     # Regression test for a bug where the format-string regexes used an
     # unescaped '.', so a non-dot separator before the fractional field was

@@ -134,7 +134,7 @@ class BaseFormatterLocator:
         self._values = None
 
     def minor_locator(self, spacing, frequency, value_min, value_max):
-        if self.values is not None:
+        if self.values is not None or self.number == 0:
             return [] * self._unit
 
         minor_spacing = spacing.value / frequency
@@ -607,6 +607,11 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             if self.spacing is not None:
                 # spacing was manually specified
                 spacing = self.spacing.to_value(self._unit)
+
+            elif self.number == 0:
+                # Return a finite spacing in case the caller needs to format
+                # a single coordinate, e.g. for the mouseover display.
+                return [] * self._unit, 1 * self._unit
 
             elif self.number is not None:
                 # number of ticks was specified, work out optimal spacing
