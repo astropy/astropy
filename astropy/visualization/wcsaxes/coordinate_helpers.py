@@ -11,7 +11,6 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
-from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from astropy import units as u
 from astropy.utils.decorators import deprecated_renamed_argument
@@ -115,11 +114,7 @@ class CoordinateHelper:
         self.set_coord_type(coord_type, coord_wrap)
 
         # Initialize ticks
-        self.dpi_transform = Affine2D()
-        self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
-        self._ticks = Ticks(
-            frame=self.frame, transform=parent_axes.transData + self.offset_transform
-        )
+        self._ticks = Ticks(frame=self.frame, transform=parent_axes.transData)
 
         # Initialize tick labels
         self._ticklabels = TickLabels(
