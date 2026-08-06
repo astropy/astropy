@@ -846,3 +846,26 @@ def test_get_coords_overlay_elliptical_frame(ignore_matplotlibrc):
     # This should not raise an AstropyDeprecationWarning
     overlay = ax.get_coords_overlay("icrs")
     assert overlay is not None
+
+
+def test_auto_assign_coord_positions_no_consistent_option(
+    ignore_matplotlibrc, tmp_path
+):
+    # Regression test for a bug where auto_assign_coord_positions crashed
+    # with a TypeError if no assignment of spines to coordinates was
+    # consistent with fixed tick positions (best_option stayed None).
+    wcs = WCS(TARGET_HEADER)
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
+    # Coordinate 0 has fixed tick label position on 'b', so 'b' is excluded
+    # from the spines available for automatic placement.
+    ax.coords[0].set_ticklabel_position("b")
+    ax.coords[0].set_ticks_position("b")
+
+    # Coordinate 1 has fixed tick position on 'b' but automatic tick labels,
+    # so every candidate spine assignment is inconsistent.
+    ax.coords[1].set_ticks_position("b")
+    ax.coords[1].set_ticklabel_position("#")
+
+    fig.savefig(tmp_path / "plot.png")
