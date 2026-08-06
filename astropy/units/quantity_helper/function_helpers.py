@@ -49,6 +49,7 @@ from astropy.utils.compat import (
     NUMPY_LT_2_2,
     NUMPY_LT_2_4,
     NUMPY_LT_2_4_1,
+    NUMPY_LT_2_6,
 )
 
 if NUMPY_LT_2_0:
@@ -1720,3 +1721,15 @@ def merge_arrays(
         unit,
         None,
     )
+
+
+if not NUMPY_LT_2_6:
+
+    @function_helper
+    def top_k(a, k, /, *, axis=-1, mode="largest", sorted=True):
+        return (
+            (a.view(np.ndarray), k),
+            {"axis": axis, "mode": mode, "sorted": sorted},
+            (a.unit, None),
+            None,
+        )
