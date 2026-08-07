@@ -65,6 +65,46 @@ def test_warnings_logging_overridden():
         log.disable_warnings_logging()
 
 
+def test_set_defaults_tolerates_overridden_showwarning():
+    # Regression test for #20005: _set_defaults() runs at import time via
+    # _init_log(). If another library (e.g. the pytest-cov coverage plugin)
+    # has replaced warnings.showwarning after Astropy installed its own, the
+    # reset must not raise LoggingError and make `import astropy` fail. The
+    # third-party hook must be left in place / recoverable rather than clobbered.
+    log.enable_warnings_logging()
+
+    def sentinel(*args, **kwargs):
+        pass
+
+    warnings.showwarning = sentinel
+
+    # Must not raise.
+    log._set_defaults()
+
+    # conf.log_warnings defaults to True, so _set_defaults re-installs Astropy's
+    # own handler on top, saving the third-party hook as the recoverable original.
+    assert log._showwarning_orig is sentinel
+
+
+def test_set_defaults_tolerates_overridden_excepthook():
+    # Sibling of the above for the exception-logging path (#20005). A
+    # third-party sys.excepthook installed after Astropy's must not cause
+    # _set_defaults() to raise; Astropy relinquishes its bookkeeping and leaves
+    # the third-party excepthook untouched (conf.log_exceptions defaults False).
+    log.enable_exception_logging()
+
+    def sentinel_excepthook(*args, **kwargs):
+        pass
+
+    sys.excepthook = sentinel_excepthook
+
+    # Must not raise.
+    log._set_defaults()
+
+    assert sys.excepthook is sentinel_excepthook
+    assert not log.exception_logging_enabled()
+
+
 def test_warnings_logging():
     # Without warnings logging
     with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
