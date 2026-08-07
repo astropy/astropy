@@ -135,7 +135,17 @@ class BaseFormatterLocator:
 
     def minor_locator(self, spacing, frequency, value_min, value_max):
         if self.values is not None:
-            return [] * self._unit
+            # There is no global spacing to subdivide, so place minor ticks
+            # by subdividing the intervals between consecutive tick values.
+            values = np.sort(self.values.to_value(self._unit))
+            if len(values) < 2 or frequency < 2:
+                return [] * self._unit
+            fractions = np.arange(1, frequency) / frequency
+            intervals = np.diff(values)
+            minor = (
+                values[:-1, None] + intervals[:, None] * fractions[None, :]
+            ).ravel()
+            return minor * self._unit
 
         minor_spacing = spacing.value / frequency
         values = self._locate_values(value_min, value_max, minor_spacing)
