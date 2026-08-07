@@ -44,6 +44,9 @@ def simple_table(size=3, cols=None, kinds="ifS", masked=False):
         String consisting of the column dtype.kinds.  This string
         will be cycled through to generate the column dtype.
         The allowed values are 'i', 'f', 'S', 'O'.
+    masked : bool, optional
+        If `True` return a masked table with some values masked.
+        Default is False.
 
     Returns
     -------
