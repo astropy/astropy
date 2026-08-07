@@ -41,38 +41,77 @@ class TestScalar:
 
 @pytest.mark.parametrize("order", ["C", "F"])
 @pytest.mark.parametrize("swapbyteorder", [False, True])
+@pytest.mark.parametrize("aligned", [False, True])
 class TestArray:
     def get_dtype(self, dtype, swapbyteorder):
         dtype = np.dtype(dtype)
         return dtype.newbyteorder() if swapbyteorder else dtype
 
-    def get_array(self, data, dtype, order, imag=-4j):
+    def get_array(self, data, dtype, order="C", aligned=True, imag=-4j):
         if dtype.kind == "c":
             data = np.asanyarray(data) + np.asanyarray(imag)
         data = np.array(data).astype(dtype, order=order)
         assert data.dtype == dtype
+        if not aligned:
+            new_dt = np.dtype([("c", "S1"), ("v", dtype)])
+            new = np.zeros(data.shape, new_dt)
+            new["v"] = data
+            data = new["v"]
         return data
 
     @pytest.mark.parametrize("dtype", DTYPES)
-    def test_array(self, dtype, swapbyteorder, order):
+    def test_array(self, dtype, swapbyteorder, order, aligned):
         dtype = self.get_dtype(dtype, swapbyteorder)
-        a = self.get_array(np.arange(10).reshape(2, 5), dtype, order)
-        if order == "C":
-            assert a.flags["C_CONTIGUOUS"] and not a.flags["F_CONTIGUOUS"]
+        a = self.get_array(np.arange(10).reshape(2, 5), dtype, order, aligned)
+        if aligned:
+            if order == "C":
+                assert a.flags["C_CONTIGUOUS"] and not a.flags["F_CONTIGUOUS"]
+            else:
+                assert a.flags["F_CONTIGUOUS"] and not a.flags["C_CONTIGUOUS"]
         else:
-            assert a.flags["F_CONTIGUOUS"] and not a.flags["C_CONTIGUOUS"]
+            assert not a.flags["ALIGNED"]
+            assert not a.flags["C_CONTIGUOUS"] and not a.flags["F_CONTIGUOUS"]
         scaler = Scaler(10.0)
         got = scaler(a)
         exp = a * 10.0
         assert_array_equal(got, exp, strict=True)
 
     @pytest.mark.parametrize("dtype", FLOATING_DTYPES)
-    def test_array_overflow(self, dtype, swapbyteorder, order):
+    def test_array_overflow(self, dtype, swapbyteorder, order, aligned):
         dtype = self.get_dtype(dtype, swapbyteorder)
-        a = self.get_array([1.0, np.finfo(dtype).max], dtype, order)
+        a = self.get_array([1.0, np.finfo(dtype).max], dtype, order, aligned)
         scaler = Scaler(1000.0)
         with pytest.warns(RuntimeWarning, match="overflow.*multiply"):
-            scaler(a)
+            got = scaler(a)
+        with pytest.warns(RuntimeWarning, match="overflow.*multiply"):
+            exp = a * 1000.0
+        assert_array_equal(got, exp, strict=True)
+
+    @pytest.mark.parametrize("dtype", FLOATING_DTYPES)
+    def test_array_inf_nan(self, dtype, swapbyteorder, order, aligned):
+        dtype = self.get_dtype(dtype, swapbyteorder)
+        data_r = [1.0, np.nan, 0.0, np.inf, 0.0]
+        data_i = [1.0, 0.0, np.nan, 0.0, np.inf]
+        a = self.get_array(data_r, dtype, order, aligned, imag=data_i)
+        scaler = Scaler(1000.0)
+        if dtype.kind == "c":
+            with pytest.warns(RuntimeWarning, match="invalid.*multiply"):
+                got = scaler(a)
+            with pytest.warns(RuntimeWarning, match="invalid.*multiply"):
+                exp = a * 1000.0
+        else:
+            got = scaler(a)
+            exp = a * 1000.0
+        assert_array_equal(got, exp, strict=True)
+
+
+def test_float16_array():
+    scaler = Scaler(10.0)
+    a = np.arange(10.0, dtype="f2")
+    got = scaler(a)
+    assert got.dtype == a.dtype
+    exp = a * 10.0
+    assert_array_equal(got, exp, strict=True)
 
 
 def test_with_list():

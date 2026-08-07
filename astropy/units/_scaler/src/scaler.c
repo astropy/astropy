@@ -26,7 +26,7 @@ typedef struct {
     PyObject *unity_scaler; // Singleton for scale=1.0
     PyObject *np_multiply;  // Reference to multiply, for holding on to loops.
     // Float and double multiply loops, filled in on initialization.
-    PyUFuncGenericFunction loops[2];
+    PyUFuncGenericFunction loops[6];
 } scaler_state;
 
 // Forward definition.
@@ -36,7 +36,9 @@ typedef struct {
     PyObject_HEAD
     vectorcallfunc vectorcall;
     double factor;
+    double factor_imag; // So factor can be treated as complex; always 0.
     float factor_f;
+    float factor_f_imag;
     PyObject *O_factor;
     PyObject *A_factor;
     PyObject *A_factor_f;
@@ -68,20 +70,9 @@ static inline PyObject *use_contiguous_loop(PyObject *self, PyArrayObject *arr, 
     if (n == 0) {
         return (PyObject *)res; // Nothing to do.
     }
-    PyUFuncGenericFunction loop;
-    npy_intp strides[3];
+    PyUFuncGenericFunction loop = state->loops[type_num - NPY_FLOAT];
+    npy_intp strides[3] = {PyArray_ITEMSIZE(arr), 0, PyArray_ITEMSIZE(res)};
     char *data[3] = {PyArray_DATA(arr), factor_ptr, PyArray_DATA(res)};
-    if (type_num == NPY_DOUBLE || type_num == NPY_FLOAT) {
-        strides[0] = PyArray_ITEMSIZE(arr);
-        loop = state->loops[type_num - NPY_FLOAT];
-    }
-    else { // For complex, with real factor, we can use real loop.
-        strides[0] = PyArray_ITEMSIZE(arr) / 2;
-        n *= 2;
-        loop = state->loops[type_num - NPY_CFLOAT];
-    }
-    strides[1] = 0;
-    strides[2] = strides[0];
     PyUFunc_clearfperr();
     NPY_BEGIN_THREADS_DEF;
     NPY_BEGIN_THREADS_THRESHOLDED(n);
@@ -136,31 +127,38 @@ static PyObject *Scaler_vectorcall(
     if (PyFloat_CheckExact(obj)) {
         return PyFloat_FromDouble(PyFloat_AsDouble(obj) * scaler->factor);
     }
-    // Fast path for plain ndarray, with special care for contiguous data.
+    // Fast path for plain real or complex ndarray, with special care for contiguous data.
     if (PyArray_CheckExact(obj)) {
         PyArrayObject *const arr = (PyArrayObject *)obj;
+        PyObject *O_factor; // becomes A_factor or O_factor in slow paths.
         const int type_num = PyArray_TYPE(arr);
         npy_bool needs_float = type_num == NPY_FLOAT || type_num == NPY_CFLOAT;
         npy_bool supported_fast_type =
             (needs_float || type_num == NPY_DOUBLE || type_num == NPY_CDOUBLE);
-        char *f_ptr = needs_float ? (char *)&scaler->factor_f : (char *)&scaler->factor;
-        // Pass contiguous float or complex arrays directly to multiply loop,
-        // bypassing ufunc setup.
-        if (supported_fast_type && PyArray_ISONESEGMENT(arr) && PyArray_ISNOTSWAPPED(arr)) {
-            return use_contiguous_loop(self, arr, f_ptr);
-        }
-        // If not, convert factor to array here, since that makes ufunc
-        // call substantially faster.  Use cached version if available.
-        PyObject **A_factor = needs_float ? &scaler->A_factor_f : &scaler->A_factor;
-        if (*A_factor == NULL) {
-            const npy_intp dims[1] = {0};
-            *A_factor =
-                PyArray_SimpleNewFromData(0, dims, needs_float ? NPY_FLOAT : NPY_DOUBLE, f_ptr);
-            if (*A_factor == NULL) {
-                return NULL;
+        if (supported_fast_type) {
+            char *f_ptr = needs_float ? (char *)&scaler->factor_f : (char *)&scaler->factor;
+            // Pass contiguous real or complex arrays directly to multiply loop,
+            // bypassing ufunc setup.
+            if (PyArray_ISONESEGMENT(arr) && PyArray_ISNOTSWAPPED(arr) && PyArray_ISALIGNED(arr)) {
+                return use_contiguous_loop(self, arr, f_ptr);
             }
+            // If not, convert factor to array here, since that makes ufunc
+            // call substantially faster.  Use cached version if available.
+            PyObject **A_factor = needs_float ? &scaler->A_factor_f : &scaler->A_factor;
+            if (*A_factor == NULL) {
+                const npy_intp dims[1] = {0};
+                *A_factor =
+                    PyArray_SimpleNewFromData(0, dims, needs_float ? NPY_FLOAT : NPY_DOUBLE, f_ptr);
+            }
+            O_factor = *A_factor;
         }
-        return PyNumber_Multiply(obj, *A_factor);
+        else {
+            O_factor = get_o_factor(scaler);
+        }
+        if (O_factor == NULL) {
+            return NULL;
+        }
+        return PyNumber_Multiply(O_factor, obj);
     }
 // Fast paths for numpy double and float scalars; particularly useful for
 // float32, where it avoids double->float conversion.
@@ -200,8 +198,8 @@ static PyObject *Scaler_vectorcall(
     if (O_factor == NULL) {
         return NULL;
     }
-    // If a known type of object, like a subclass, or something that has
-    // a dtype or supports the Array API, just run multiply.
+    // If a known type of object, like an ndarray subclass, or something that
+    // has a dtype or supports the Array API, just run multiply.
     if (PyFloat_Check(obj) || PyComplex_Check(obj) || PyLong_Check(obj) || PyArray_Check(obj) ||
         PyObject_HasAttrString(obj, "dtype") ||
         PyObject_HasAttrString(obj, "__array_namespace__")) {
@@ -364,7 +362,7 @@ static PyMethodDef Scaler_methods[] = {
 };
 
 static PyType_Slot Scaler_slots[] = {
-    {Py_tp_doc, Scaler_doc},
+    {Py_tp_doc, (char *)Scaler_doc},
     {Py_tp_new, (newfunc)Scaler_new},
     {Py_tp_traverse, (traverseproc)Scaler_traverse},
     {Py_tp_clear, (inquiry)Scaler_clear},
@@ -403,7 +401,10 @@ static int get_multiply_loops(scaler_state *state)
     }
     // Unfortunately, new-style loops are not exposed, so get legacy ones.
     PyUFuncObject *multiply = (PyUFuncObject *)state->np_multiply;
-    for (int k = 0; k < 2; k++) {
+    for (int k = 0; k < 5; k++) {
+        if (k == 2) {
+            continue; // no support for long doubles (or complex)
+        }
         char type = (char)(k + NPY_FLOAT);
         const char *types = multiply->types;
         for (int i = 0; i < multiply->ntypes; i++) {
@@ -462,8 +463,9 @@ static int scaler_module_clear(PyObject *m)
     Py_CLEAR(state->Scaler);
     Py_CLEAR(state->unity_scaler);
     Py_CLEAR(state->np_multiply);
-    state->loops[0] = NULL;
-    state->loops[1] = NULL;
+    for (int k = 0; k < 6; k++) {
+        state->loops[k] = NULL;
+    }
     return 0;
 }
 
