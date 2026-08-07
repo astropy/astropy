@@ -11,6 +11,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats.funcs import median_absolute_deviation
 from astropy.stats.nanfunctions import nanmedian, nansum
+from astropy.utils.masked import Masked
 
 # TODO: typing: use a custom-defined 'ArrayLike-but-not-a-scalar' type for `float | ArrayLike` or `ArrayLike | float` hints
 
@@ -31,9 +32,21 @@ def _stat_functions(
     if isinstance(data, np.ma.MaskedArray):
         median_func = np.ma.median
         sum_func = np.ma.sum
+
+    elif isinstance(data, Masked):
+        if ignore_nan:
+            median_func = np.nanmedian
+            sum_func = np.nansum
+        else:
+            median_func = np.median
+
+            def sum_func(x, *args, **kwargs):
+                return np.sum(x.filled(0.0), *args, **kwargs)
+
     elif ignore_nan:
         median_func = nanmedian
         sum_func = nansum
+
     else:
         median_func = np.median
         sum_func = np.sum
@@ -452,7 +465,7 @@ def biweight_midvariance(
     # ignore RuntimeWarnings for comparisons with NaN data values
     with np.errstate(invalid="ignore"):
         mask = np.abs(u) < 1
-    if isinstance(mask, np.ma.MaskedArray):
+    if hasattr(mask, "mask"):
         mask = mask.filled(fill_value=False)  # exclude masked data values
 
     u = u**2
@@ -462,7 +475,7 @@ def biweight_midvariance(
     else:
         # set good values to 1, bad values to 0
         include_mask = np.ones(data.shape)
-        if isinstance(data, np.ma.MaskedArray):
+        if hasattr(data, "mask"):
             include_mask[data.mask] = 0
         if ignore_nan:
             include_mask[np.isnan(data)] = 0
