@@ -1601,6 +1601,76 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
 
         return np.all(left_fattr == right_fattr)
 
+    @staticmethod
+    def _frameattr_eq_elementwise(left_fattr, right_fattr):  # noqa: PLR0911
+        """
+        Element-wise counterpart of ``_frameattr_equiv``.
+
+        This mirrors the structure of
+        `~astropy.coordinates.BaseCoordinateFrame._frameattr_equiv`, but instead
+        of collapsing the comparison with `numpy.all` it returns the element-wise
+        result.  This way a mismatch in a single element of an array-valued frame
+        attribute does not make the comparison `False` everywhere.
+
+        The return value is a `bool` or a boolean array which broadcasts against
+        the comparison of the frame data.  Situations that have no meaningful
+        element-wise answer -- one attribute unset, mismatched attribute types,
+        coordinate attributes whose own frames are of different classes -- give
+        `False`, just as in ``_frameattr_equiv``.
+
+        Unlike ``_frameattr_equiv``, representations that have differentials are
+        compared properly instead of warning and returning `False`.
+        """
+        if left_fattr is right_fattr:
+            # shortcut if it's exactly the same object (this covers both being None)
+            return True
+        elif left_fattr is None or right_fattr is None:
+            # shortcut if one attribute is unspecified and the other isn't
+            return False
+
+        left_is_repr = isinstance(left_fattr, r.BaseRepresentationOrDifferential)
+        if left_is_repr ^ isinstance(right_fattr, r.BaseRepresentationOrDifferential):
+            return False
+        if left_is_repr:
+            # Both are representations (or differentials).  Comparing these raises
+            # if the differentials do not line up, so check that up front.
+            left_diffs = getattr(left_fattr, "differentials", {})
+            right_diffs = getattr(right_fattr, "differentials", {})
+            if left_diffs.keys() != right_diffs.keys() or any(
+                type(left_diffs[key]) is not type(right_diffs[key])
+                for key in left_diffs
+            ):
+                return False
+
+            if type(left_fattr) is not type(right_fattr):
+                if left_diffs or any(
+                    isinstance(fattr, r.BaseDifferential)
+                    for fattr in (left_fattr, right_fattr)
+                ):
+                    # ``to_cartesian()`` drops differentials, and for a differential
+                    # it needs a base representation that is not available here.
+                    return False
+                left_fattr = left_fattr.to_cartesian()
+                right_fattr = right_fattr.to_cartesian()
+
+            return left_fattr == right_fattr
+
+        left_is_coord = isinstance(left_fattr, BaseCoordinateFrame)
+        if left_is_coord ^ isinstance(right_fattr, BaseCoordinateFrame):
+            return False
+        if left_is_coord:
+            # Both are coordinates.  Comparing coordinates of different classes
+            # raises, as does comparing one that has data with one that does not,
+            # so check for those cases first.  Anything else recurses into the
+            # element-wise comparison of the frames themselves.
+            if left_fattr.__class__ is not right_fattr.__class__:
+                return False
+            if left_fattr.has_data != right_fattr.has_data:
+                return False
+            return left_fattr == right_fattr
+
+        return left_fattr == right_fattr
+
     def is_equivalent_frame(self, other):
         """
         Checks if this object is the same frame as the ``other`` object.
@@ -1929,19 +1999,23 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
     def __eq__(self, value):
         """Equality operator for frame.
 
-        This implements strict equality and requires that the frames are
-        equivalent and that the representation data are exactly equal.
+        This implements strict equality and requires that the frames are of the
+        same class and that the representation data and the frame attributes are
+        exactly equal.
+
+        Frame attributes are compared element-wise, so array-valued attributes
+        that agree for only some elements give a partially `True` result rather
+        than raising.  Comparing frames of different classes still raises, since
+        there is no element-wise answer in that case.
         """
         if not isinstance(value, BaseCoordinateFrame):
             return NotImplemented
 
-        is_equiv = self.is_equivalent_frame(value)
-
         if self._data is None and value._data is None:
             # For Frame with no data, == compare is same as is_equivalent_frame()
-            return is_equiv
+            return self.is_equivalent_frame(value)
 
-        if not is_equiv:
+        if self.__class__ is not value.__class__:
             raise TypeError(
                 "cannot compare: objects must have equivalent frames: "
                 f"{self.replicate_without_data()} vs. {value.replicate_without_data()}"
@@ -1952,7 +2026,17 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 "cannot compare: one frame has data and the other does not"
             )
 
-        return self._data == value._data
+        # Compare the data first so that a shape mismatch raises the informative
+        # error from the representation classes.  Frame attributes are already
+        # broadcast against the data (see ``Attribute.__get__``), so the
+        # element-wise attribute comparisons broadcast against ``out``.
+        out = self._data == value._data
+        for attr in self.frame_attributes:
+            out = out & self._frameattr_eq_elementwise(
+                getattr(self, attr), getattr(value, attr)
+            )
+
+        return out
 
     def __ne__(self, value):
         return np.logical_not(self == value)

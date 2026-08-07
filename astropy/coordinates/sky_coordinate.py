@@ -296,9 +296,16 @@ class SkyCoord(MaskableShapedLikeNDArray):
     def __eq__(self, value):
         """Equality operator for SkyCoord.
 
-        This implements strict equality and requires that the frames are
-        equivalent, extra frame attributes are equivalent, and that the
-        representation data are exactly equal.
+        This implements strict equality and requires that the frames are of the
+        same class and that the representation data, the frame attributes, and
+        the extra frame attributes are exactly equal.
+
+        Frame attributes and extra frame attributes are compared element-wise,
+        so array-valued attributes that agree for only some elements give a
+        partially `True` result rather than raising.
+
+        Note that comparing to a bare frame ignores the extra frame attributes,
+        since a frame makes no claim about them.
         """
         if isinstance(value, BaseCoordinateFrame):
             if value._data is None:
@@ -309,17 +316,39 @@ class SkyCoord(MaskableShapedLikeNDArray):
         if not isinstance(value, SkyCoord):
             return NotImplemented
 
-        # Make sure that any extra frame attribute names are equivalent.
-        for attr in self._extra_frameattr_names | value._extra_frameattr_names:
-            if not self.frame._frameattr_equiv(
-                getattr(self, attr), getattr(value, attr)
-            ):
-                raise ValueError(
-                    f"cannot compare: extra frame attribute '{attr}' is not equivalent"
-                    " (perhaps compare the frames directly to avoid this exception)"
-                )
+        frame_eq = self._sky_coord_frame == value._sky_coord_frame
 
-        return self._sky_coord_frame == value._sky_coord_frame
+        return self._extra_frameattr_equiv(value, frame_eq)
+
+    def _extra_frameattr_equiv(self, value, out):
+        """Fold the SkyCoord-only frame attributes into the frame comparison ``out``.
+
+        Attributes present on only one of the two objects compare as `False`
+        everywhere.  Attributes present on both are compared element-wise.
+
+        Unlike frame attributes, extra frame attributes are not broadcast against
+        the coordinate data when they are set, so ``out`` is broadcast against
+        them here and the result can have a larger shape than either input.
+        """
+        for attr in sorted(self._extra_frameattr_names | value._extra_frameattr_names):
+            if (
+                attr in self._extra_frameattr_names
+                and attr in value._extra_frameattr_names
+            ):
+                try:
+                    attr_eq = BaseCoordinateFrame._frameattr_eq_elementwise(
+                        getattr(self, attr), getattr(value, attr)
+                    )
+                    out = np.logical_and(out, attr_eq)
+                except ValueError as err:
+                    raise ValueError(
+                        f"cannot compare: extra frame attribute '{attr}' has shape"
+                        " mismatch"
+                    ) from err
+            else:
+                out = np.logical_and(out, False)
+
+        return out
 
     def __ne__(self, value):
         return np.logical_not(self == value)
