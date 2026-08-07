@@ -2,8 +2,14 @@
 #ifndef _SCALER_LIMITED_API_WORKAROUNDS_H
 #define _SCALER_LIMITED_API_WORKAROUNDS_H
 
-// Once we're at 3.13, move SCALER_TP_FLAGS to its use in scaler.c,
+// Once we're at 3.13, move SCALER_TP_FLAGS to its use in scaler.c
 // and remove this whole include file.
+
+#if PY_VERSION_HEX < 0x030D00B3
+#define Py_BEGIN_CRITICAL_SECTION(op) {
+#define Py_END_CRITICAL_SECTION() }
+#endif
+
 #if !defined(Py_LIMITED_API) || Py_LIMITED_API + 0 >= 0x030D0000
 #define SCALER_TP_FLAGS \
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_VECTORCALL | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE

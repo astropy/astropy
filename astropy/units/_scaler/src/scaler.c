@@ -91,12 +91,11 @@ static inline PyObject *use_contiguous_loop(PyObject *self, PyArrayObject *arr, 
 // Get the factor as a PyFloat, caching it as needed.
 static inline PyObject *get_o_factor(ScalerObject *scaler)
 {
+    Py_BEGIN_CRITICAL_SECTION(scaler);
     if (scaler->O_factor == NULL) {
         scaler->O_factor = PyFloat_FromDouble(scaler->factor);
-        if (scaler->O_factor == NULL) {
-            return NULL;
-        }
     }
+    Py_END_CRITICAL_SECTION();
     return scaler->O_factor;
 }
 
@@ -144,6 +143,7 @@ static PyObject *Scaler_vectorcall(
             }
             // If not, convert factor to array here, since that makes ufunc
             // call substantially faster.  Use cached version if available.
+            Py_BEGIN_CRITICAL_SECTION(scaler);
             PyObject **A_factor = needs_float ? &scaler->A_factor_f : &scaler->A_factor;
             if (*A_factor == NULL) {
                 const npy_intp dims[1] = {0};
@@ -151,6 +151,7 @@ static PyObject *Scaler_vectorcall(
                     PyArray_SimpleNewFromData(0, dims, needs_float ? NPY_FLOAT : NPY_DOUBLE, f_ptr);
             }
             O_factor = *A_factor;
+            Py_END_CRITICAL_SECTION();
         }
         else {
             O_factor = get_o_factor(scaler);
@@ -288,7 +289,7 @@ static int Scaler_traverse(PyObject *self, visitproc visit, void *arg)
     return 0;
 }
 
-// Clear internal references; called from finalize and dealloc.
+// Clear internal references; called from dealloc.
 static int Scaler_clear(PyObject *self)
 {
     ScalerObject *scaler = (ScalerObject *)self;
@@ -425,6 +426,9 @@ static int get_multiply_loops(scaler_state *state)
 static int scaler_module_exec(PyObject *m)
 {
     scaler_state *state = PyModule_GetState(m);
+    if (state == NULL) {
+        return -1;
+    }
     state->Scaler = (PyTypeObject *)PyType_FromModuleAndSpec(m, &Scaler_spec, NULL);
     if (state->Scaler == NULL) {
         return -1;
