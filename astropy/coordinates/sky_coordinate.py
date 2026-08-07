@@ -32,6 +32,7 @@ from .representation import (
 )
 from .sky_coordinate_parsers import (
     _get_frame_class,
+    get_frame_class,
     _get_frame_without_data,
     _parse_coordinate_data,
 )
@@ -459,7 +460,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
         """
         # TODO! like matplotlib, do string overrides for modified methods
         new_frame = (
-            _get_frame_class(new_frame) if isinstance(new_frame, str) else new_frame
+            get_frame_class(new_frame) if isinstance(new_frame, str) else new_frame
         )
         return self.frame.is_transformable_to(new_frame)
 
@@ -506,7 +507,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
         # Frame name (string) or frame class?  Coerce into an instance.
         try:
-            frame = _get_frame_class(frame)()
+            frame = get_frame_class(frame)()
         except Exception:
             pass
 
