@@ -152,6 +152,10 @@ def test_init_errors(args, kwargs, expected_msg):
         Scaler(*args, **kwargs)
 
 
+def test_init_empty_kwargs_ok():
+    Scaler(10.0, **{})  # noqa: PIE804
+
+
 @pytest.mark.parametrize(
     "args, kwargs, expected_msg",
     [

@@ -249,7 +249,7 @@ static PyObject *Scaler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     double factor;
     Py_ssize_t nargs = PyTuple_Size(args);
-    if (nargs != 1 || kwds != NULL) {
+    if (nargs != 1 || (kwds != NULL && PyDict_Size(kwds) > 0)) {
         // Use parser to give error message.
         char *kwlist[] = {"", NULL};
         PyArg_ParseTupleAndKeywords(args, kwds, "d:Scaler", kwlist, &factor);
