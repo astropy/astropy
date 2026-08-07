@@ -304,8 +304,9 @@ static void Scaler_dealloc(PyObject *self)
 {
     PyObject_GC_UnTrack(self);
     Scaler_clear(self);
+    PyTypeObject *type = Py_TYPE(self);
     PyObject_GC_Del(self);
-    Py_DECREF(Py_TYPE(self));
+    Py_DECREF(type);
 }
 
 static PyObject *Scaler_repr(PyObject *self)
