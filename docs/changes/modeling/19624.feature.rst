@@ -1,0 +1,1 @@
+Model parameter constraints (``fixed``, ``tied``, ``bounds``) may now be passed as a sequence in the order of ``param_names``, in addition to the existing ``dict`` form.
