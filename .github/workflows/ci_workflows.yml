@@ -107,8 +107,8 @@ jobs:
           cache-path: .tox
           cache-key: alldeps-linux-${{ github.ref_name }}
 
-        - name: Python 3.11 with oldest supported version of all dependencies
-          linux: py311-test-oldestdeps-alldeps-cov-clocale
+        - name: Python 3.12 with oldest supported version of all dependencies
+          linux: py312-test-oldestdeps-alldeps-cov-clocale
           posargs: --remote-data=astropy
           coverage: codecov
 
@@ -181,8 +181,11 @@ jobs:
       upload_to_anaconda: false
       test_extras: test
       test_command: pytest -Wdefault --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --strict-markers --pyargs astropy
+
+      # check building a wheel for our oldest supported Python version, as it is
+      # generally the easiest target to miss
       targets: |
-        - cp311-manylinux_x86_64
+        - cp312-manylinux_x86_64
 
 
   test_limited_api_build:
@@ -197,7 +200,7 @@ jobs:
             - macos-latest
             - windows-latest
     runs-on: ${{ matrix.os }}
-    name: Python 3.11 (build only, partial) with limited API (${{ matrix.os }})
+    name: Python 3.12 (build only) with limited API (${{ matrix.os }})
     needs:
       - initial_checks
       - lowest-tree-check
@@ -209,10 +212,12 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         name: Install Python
         with:
-          python-version: "3.11"
+          # Intentionally run against our oldest supported Python version,
+          # as the most restricted version of the Limited API we need to conform to.
+          python-version: "3.12"
       - run: |
           python -m pip install build
           python -m build
         name: Run build
         env:
-          EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
+          EXTENSION_HELPERS_PY_LIMITED_API: 'cp312'

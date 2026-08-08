@@ -179,6 +179,13 @@ lint.ignore = [
     "TRY004",  # prefer-type-error
     "TRY201",  # verbose-raise
     "TRY301",  # raise-within-try
+
+    # pyupgrade (UP)
+    # temporarily delay upgrades to Python 3.12's PEP 695 typevars
+    # https://github.com/astropy/astropy/issues/20225
+    "UP040",  # non-pep695-type-alias
+    "UP046",  # non-pep695-generic-class
+    "UP047",  # non-pep695-generic-function
 ]
 lint.unfixable = [
     "E711"  # NoneComparison. Hard to fix b/c numpy has it's own None.

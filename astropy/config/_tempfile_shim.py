@@ -133,12 +133,7 @@ else:
                     if not ignore_errors:
                         raise
 
-            if sys.version_info < (3, 12):
-                onexc_kwarg = "onerror"
-            else:
-                onexc_kwarg = "onexc"
-
-            _shutil.rmtree(name, **{onexc_kwarg: onexc})
+            _shutil.rmtree(name, onexc=onexc)
 
         @classmethod
         def _cleanup(cls, name, warn_message, ignore_errors=False, delete=True):
