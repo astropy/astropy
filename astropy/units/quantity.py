@@ -354,6 +354,11 @@ class Quantity(np.ndarray):
 
     Unless the ``dtype`` argument is explicitly specified, integer
     or (non-Quantity) object inputs are converted to `float` by default.
+
+    Some functions from ``scipy.special`` do not currently support
+    `~astropy.units.Quantity` inputs directly. In such cases, users may
+    need to convert quantities to plain values using ``.value`` before
+    passing them to these functions.
     """
 
     # Need to set a class-level default for _equivalencies, or
