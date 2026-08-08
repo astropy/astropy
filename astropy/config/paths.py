@@ -388,7 +388,6 @@ def temporary_cache_dir_path(
 
     - ``dir`` is positional-only and must come first
     - all other arguments are keyword-only
-    - ``delete`` is supported even on Python 3.11
 
     .. versionadded:: 8.0
 
@@ -447,7 +446,6 @@ def temporary_config_dir_path(
 
     - ``dir`` is positional-only and must come first
     - all other arguments are keyword-only
-    - ``delete`` is supported even on Python 3.11
 
     .. versionadded:: 8.0
 

@@ -2035,8 +2035,7 @@ Wcsprm_set(
     return NULL;
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 /*@null@*/ static PyObject*
@@ -2057,8 +2056,7 @@ Wcsprm_set_ps(
 
   note_change(self);
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 /*@null@*/ static PyObject*
@@ -2074,8 +2072,7 @@ Wcsprm_set_pv(
   } else {
     self->x.m_pv = self->x.pv;
     note_change(self);
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   }
 }
 
@@ -2108,8 +2105,7 @@ if (self->unit_scaling != NULL) {
   printf("%s", wcsprintf_buf());
   fflush(stdout);
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 /*@null@*/ static PyObject*
@@ -2161,8 +2157,7 @@ Wcsprm_sptr(
   wcsprm_c2python(&self->x);
 
   if (status == 0) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   } else {
     wcs_to_python_exc(&(self->x));
     return NULL;
@@ -4559,7 +4554,7 @@ Wcsprm_get_unit_scaling(
   PyObject* result;
 
   if (self->unit_scaling == NULL) {
-    return Py_None;
+    Py_RETURN_NONE;
   }
 
   naxis = self->x.naxis;

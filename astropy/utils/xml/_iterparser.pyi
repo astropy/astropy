@@ -1,8 +1,8 @@
 import collections.abc
 from collections.abc import Callable, Iterator
-from typing import AnyStr, Protocol, TypeAlias, final
+from typing import AnyStr, Protocol, final
 
-_IterparseEvent: TypeAlias = tuple[
+type _IterparseEvent = tuple[
     bool, str, collections.abc.Mapping[str, str] | str, tuple[int, int]
 ]
 

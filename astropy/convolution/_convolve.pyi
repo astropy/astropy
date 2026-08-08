@@ -1,10 +1,10 @@
-from typing import TypeAlias, TypeVar
+from typing import TypeVar
 
 import numpy as np
 
-_D1: TypeAlias = tuple[int]
-_D2: TypeAlias = tuple[int, int]
-_D3: TypeAlias = tuple[int, int, int]
+type _D1 = tuple[int]
+type _D2 = tuple[int, int]
+type _D3 = tuple[int, int, int]
 _D = TypeVar("_D", _D1, _D2, _D3)
 
 def _convolveNd_c(
