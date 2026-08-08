@@ -1,0 +1,2 @@
+Writing a unit with a fractional power to the ``cds`` format now raises a
+``ValueError`` instead of emitting a string that the CDS format cannot parse.
