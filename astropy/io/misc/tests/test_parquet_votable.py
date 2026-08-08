@@ -198,3 +198,58 @@ def test_read_write_existing(tmp_path):
 
     with pytest.raises(OSError, match=_NOT_OVERWRITING_MSG_MATCH):
         write_parquet_votable(input_table, filename, metadata=column_metadata)
+
+
+def test_autodetect_parquet_votable(tmp_path):
+    """VOParquet files should be auto-detected when no format is given."""
+    filename = tmp_path / "test_votable_auto.parq"
+
+    write_parquet_votable(input_table, filename, metadata=column_metadata)
+
+    # Read without specifying the format should detect parquet.votable
+    auto = Table.read(str(filename))
+    explicit = Table.read(str(filename), format="parquet.votable")
+
+    # Data must match and VO metadata must be present
+    assert np.all(auto == explicit)
+    assert explicit["sfr"].meta["ucd"] == "phys.SFR"
+
+
+def test_autodetect_generic_parquet_fallback(tmp_path):
+    """Ordinary parquet files should still use the generic parquet reader."""
+    filename = tmp_path / "test_generic.parq"
+
+    # Write generic parquet using registered writer
+    input_table.write(str(filename), format="parquet")
+
+    auto = Table.read(str(filename))
+    explicit = Table.read(str(filename), format="parquet")
+
+    assert np.all(auto == explicit)
+    # generic parquet does not preserve the VO metadata/unit
+    assert explicit["sfr"].unit is None
+
+
+def test_malformed_votable_metadata_fallback(tmp_path):
+    """Malformed VOTable metadata should not crash auto-detection and should
+    fall back to generic parquet reader.
+    """
+    filename = tmp_path / "test_malformed.parq"
+
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    # Create a pyarrow table from the input_table
+    pa_table = pa.Table.from_pydict({c: input_table[c] for c in input_table.colnames})
+    # Inject malformed VOTable metadata
+    original_metadata = pa_table.schema.metadata or {}
+    bad_metadata = {**original_metadata, b"IVOA.VOTable-Parquet.content": b"not-xml"}
+    pa_table = pa_table.replace_schema_metadata(bad_metadata)
+
+    pq.write_table(pa_table, str(filename))
+
+    # Reading without format should not raise and should use generic parquet
+    auto = Table.read(str(filename))
+    explicit = Table.read(str(filename), format="parquet")
+
+    assert np.all(auto == explicit)
