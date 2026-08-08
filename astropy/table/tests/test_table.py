@@ -2814,19 +2814,12 @@ def test_table_attribute_ecsv():
 
 
 def test_table_attribute_fail():
-    if sys.version_info[:2] >= (3, 12):
-        ctx = pytest.raises(ValueError, match=".* not allowed as TableAttribute")
-    else:
-        # Code raises ValueError(f'{attr} not allowed as TableAttribute') but in this
-        # context it gets re-raised as a RuntimeError during class definition.
-        ctx = pytest.raises(RuntimeError, match="Error calling __set_name__")
-
-    with ctx:
+    with pytest.raises(ValueError, match=".* not allowed as TableAttribute"):
 
         class MyTable2(Table):
             descriptions = TableAttribute()  # Conflicts with init arg
 
-    with ctx:
+    with pytest.raises(ValueError, match=".* not allowed as TableAttribute"):
 
         class MyTable3(Table):
             colnames = TableAttribute()  # Conflicts with built-in property

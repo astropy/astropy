@@ -10,14 +10,13 @@ authors = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE.rst", "licenses/*.rst"]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: C",
     "Programming Language :: Cython",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -47,7 +46,7 @@ dependencies = [
     "numpy>=2.0",
     "packaging>=25.0",
     "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
-    "PyYAML>=6.0.0",
+    "PyYAML>=6.0.1",
 ]
 
 [project.optional-dependencies]
@@ -92,7 +91,7 @@ all = [
     "pytz>=2016.10", # (older versions may work)
     "jplephem>=2.17.0",
     "mpmath>=1.2.1",
-    "asdf-astropy>=0.7.0",
+    "asdf-astropy>=0.11.0",
     "bottleneck>=1.4.0",
     "fsspec[http,s3]>=2023.4.0",  # keep in sync with dependency-groups.dataframe
     "s3fs>=2023.4.0",
@@ -101,7 +100,7 @@ all = [
 # The base set of test-time dependencies.
 test = [
     "setuptools>=77.0.0",  # can be removed once the astropy.wcs C API tests are removed
-    "coverage>=7.2.0",
+    "coverage>=7.2.7",
     "hypothesis>=6.84.0",
     "pytest>=8.0.1",
     "pytest-astropy-header>=0.2.2",
@@ -120,9 +119,8 @@ test_all = [
     # Install all remaining dependencies
     "objgraph>=3.1.2",
     "skyfield>=1.42.0",
-    "sgp4>=2.22",
+    "sgp4>=2.23",
     "array-api-strict>=1.0",
-    "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 
     # 0.2.2 works on *some* platforms we support, though not all
     # 1.0.0 would be a more universal lower bound, but it also
@@ -278,11 +276,8 @@ doctest_norecursedirs = [
     "*/tests/command.py",
 ]
 doctest_subpackage_requires = [
-    "astropy/cosmology/_src/io/builtin/mapping.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
-    "astropy/cosmology/_src/io/builtin/row.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
-    "astropy/cosmology/_src/io/builtin/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
-    "astropy/table/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/table/mixins/dask.py = dask",
+    "astropy/table/table.py = pandas",
     "docs/units/type_hints.rst = python<=3.13",  # PYTHON_LT_3_14 (PR 18140)
     "docs/units/structured_units.rst = pyerfa<2.0.1.7",  # PYERFA_LT_2_0_1_7
     "docs/timeseries/index.rst = numpy>=2.2.0",  # not NUMPY_LT_2_2 (PR 19509)
@@ -699,14 +694,14 @@ ignore = [
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
 
-    [tool.gilesbot.circleci_artifacts.py311-test-image-mpl380]
-        url = ".tmp/py311-test-image-mpl380/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py311-test-image-mpl380."
+    [tool.gilesbot.circleci_artifacts.py312-test-image-mpl380]
+        url = ".tmp/py312-test-image-mpl380/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py312-test-image-mpl380."
         report_on_fail = true
 
-    [tool.gilesbot.circleci_artifacts.py311-test-image-mpldev]
-        url = ".tmp/py311-test-image-mpldev/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons for py311-test-image-mpldev."
+    [tool.gilesbot.circleci_artifacts.py312-test-image-mpldev]
+        url = ".tmp/py312-test-image-mpldev/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons for py312-test-image-mpldev."
         report_on_fail = true
 
 [tool.codespell]
@@ -765,12 +760,10 @@ no-build-package = [
     "numpy",
     "pandas",
     "polars",
+    "pyyaml",
     "requests",
     "scipy",
     "sgp4",
-
-    # via jsonschema v4.0.1 via asdf v2.15.0 via asdf-astropy v0.8.0
-    "pyrsistent", # can be removed once we drop asdf-astropy<=0.8 https://github.com/astropy/asdf-astropy/pull/297
 
     # via fsspec
     "aiohttp",
@@ -836,6 +829,7 @@ required-environments = [
 constraint-dependencies = [
     "asdf>=2.15.1",
     "asdf-coordinates-schemas>=0.2.0",
+    "six>=1.16.0", # for Python 3.12+ compat
 
     # via pytest
     # iniconfig 1.0.1 is the first version with proper wheels
@@ -856,7 +850,6 @@ constraint-dependencies = [
     "pygments>=2.11.0",
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
-    "typing_extensions>=4.6; python_version<'3.12'",
 
     # via ipython (can be removed once ipython<8.17 is dropped)
     "pickleshare>=0.7.5",
@@ -870,15 +863,12 @@ constraint-dependencies = [
     "soupsieve>=1.6.1",
 
     # via matplotlib
-    # can be removed once mpl>=3.10.7 is min
-    "pyparsing>=2.4.0",
+    "pyparsing>=2.4.0", # can be removed once mpl>=3.10.7 is min
+    "cycler>=0.11.0", # https://github.com/matplotlib/matplotlib/pull/32188
 
     # via dask
     "toolz>=0.12.0", # can be removed once dask<=2025.11.0 is dropped
     "cloudpickle>=2.1.0", # can be removed once dask<2024.8.1 is dropped
-
-    # see https://github.com/astropy/astropy/issues/18292
-    "array-api-strict<2.4 ; python_version<'3.12'",
 ]
 
 # uv sync's default behavior includes the 'dev' group.

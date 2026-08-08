@@ -44,7 +44,7 @@ jobs:
       anaconda_package: astropy
       anaconda_keep_n_latest: 10
       env: |
-        EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
+        EXTENSION_HELPERS_PY_LIMITED_API: 'cp312'
 
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it

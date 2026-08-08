@@ -12,7 +12,7 @@ jobs:
       jobname:
         type: string
     docker:
-      - image: cimg/python:3.11
+      - image: cimg/python:3.12 # coupled with py3xx factors
     environment:
       TOXENV: << parameters.jobname >>
       PY_COLORS: "1"
@@ -48,7 +48,7 @@ jobs:
       jobname:
         type: string
     docker:
-      - image: cimg/python:3.11
+      - image: cimg/python:3.12 # coupled with py3xx factors
     environment:
       TOXENV: << parameters.jobname >>
       PY_COLORS: "1"
@@ -88,16 +88,23 @@ workflows:
           matrix:
             parameters:
               jobname:
-                - "py311-test-image-mpl380-cov"
-                - "py311-test-image-mpldev-cov"
+                # image tests with oldest supported Python + matplotlib versions
+                - "py312-test-image-mpl380-cov"
+                # image tests with oldest supported Python + matplotlib dev
+                # In principle, it would make more sense to use the
+                # latest stable Python version here, because matplotlib dev might drop
+                # old versions faster than we do, but that would require restructuring
+                # this configuration as everything is coupled together at the time
+                # of writing.
+                - "py312-test-image-mpldev-cov"
 
       - deploy-reference-images:
           name: baseline-<< matrix.jobname >>
           matrix:
             parameters:
               jobname:
-                - "py311-test-image-mpl380-cov"
-                - "py311-test-image-mpldev-cov"
+                - "py312-test-image-mpl380-cov"
+                - "py312-test-image-mpldev-cov"
           requires:
             - << matrix.jobname >>
           filters:
