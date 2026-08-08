@@ -1,0 +1,4 @@
+The hash of units has been changed to ensure that it depends not just
+on the names of units, but also on what they mean. This should have
+no practical consequence expect if one defined multiple different
+units with the same name.

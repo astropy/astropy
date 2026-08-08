@@ -1195,6 +1195,20 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu2) == hash(unit)
 
 
+def test_hash_correctly_different():
+    # Bit of a test against "don't do that", but still.
+    myfoot = u.Unit("foo", 34 * u.cm)
+    yourfoot = u.Unit("foo", 25 * u.m)
+    assert str(myfoot) == str(yourfoot)  # cannot be helped
+    assert myfoot != yourfoot
+    assert hash(myfoot) != hash(yourfoot)
+    myspeed = myfoot / u.s
+    yourspeed = yourfoot / u.s
+    assert str(myspeed) == str(yourspeed)  # cannot be helped
+    assert myspeed != yourspeed
+    assert hash(myspeed) != hash(yourspeed)
+
+
 @pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="tests array_api_strict")
 def test_array_api_strict_arrays():
     # Ensure strict array api arrays can be passed in/out of Unit.to()
