@@ -741,6 +741,12 @@ def read_data(
     """
     from astropy.table import Table
 
+    # A table with no columns has no CSV data section to read: the comment
+    # lines that follow the header would otherwise be misparsed as the CSV
+    # data header (see #19895). Return an empty table immediately.
+    if not header.cols:
+        return Table()
+
     engine = ECSVEngine.engines[engine_name]()
 
     # Get the engine-specific kwargs for reading the CSV data.
