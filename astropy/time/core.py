@@ -1226,6 +1226,18 @@ class TimeBase(MaskableShapedLikeNDArray):
         # Finally directly set the jd1/2 values.  Locations are known to match.
         if self.scale is not None:
             value = getattr(value, self.scale)
+
+        # If the value carries a mask but we do not, we have to upgrade our
+        # internal jd1/jd2 to Masked first, otherwise the mask of the value
+        # would be silently dropped (gh-20173).
+        if not isinstance(self._time.jd2, Masked) and isinstance(
+            value._time.jd2, Masked
+        ):
+            self._time.jd1 = Masked(self._time.jd1, copy=False)
+            self._time.jd2 = Masked(
+                self._time.jd2, mask=self._time.jd1.mask, copy=False
+            )
+
         self._time.jd1[item] = value._time.jd1
         self._time.jd2[item] = value._time.jd2
 
