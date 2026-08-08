@@ -19,6 +19,7 @@ import yaml
 from numpy.testing import assert_array_equal
 
 from astropy import units as u
+from astropy.coordinates import SkyCoord
 from astropy.io import ascii
 from astropy.io.ascii.ecsv import DELIMITERS, InvalidEcsvDatatypeWarning
 from astropy.io.ascii.tests.common import TEST_DIR
@@ -658,6 +659,71 @@ def test_round_trip_masked_table_serialize_mask(tmp_path, format_engine):
         t[name].mask = False
         t2[name].mask = False
         assert np.all(t2[name] == t[name])
+
+
+@pytest.mark.parametrize(
+    "serialize_method",
+    ["data_mask", {"sc": "data_mask"}, {SkyCoord: "data_mask"}],
+)
+def test_round_trip_masked_mixin_serialize_mask(serialize_method, format_engine):
+    """Test that data-mask serialization propagates to masked mixin components."""
+    table = QTable()
+    table["sc"] = SkyCoord(
+        ra=Masked([1.0, 2.0, 3.0], mask=[True, False, False]),
+        dec=Masked([5.0, 6.0, 7.0], mask=[False, True, False]),
+        unit="hourangle,deg",
+        obstime=Time(["2020-01-01", "2020-01-02", "2020-01-03"]),
+    )
+
+    out = StringIO()
+    table.write(out, format="ascii.ecsv", serialize_method=serialize_method)
+    text = out.getvalue()
+    colnames = next(
+        line for line in text.splitlines() if not line.startswith("#")
+    ).split()
+
+    assert "sc.ra.mask" in colnames
+    assert "sc.dec.mask" in colnames
+    assert "sc.obstime" in colnames
+    assert "sc.obstime.jd1" not in colnames
+    assert "sc.obstime.jd2" not in colnames
+
+    table2 = QTable.read(text, **format_engine)
+    assert_array_equal(table2["sc"].ra.mask, table["sc"].ra.mask)
+    assert_array_equal(table2["sc"].dec.mask, table["sc"].dec.mask)
+    assert quantity_allclose(
+        table2["sc"].ra.unmasked, table["sc"].ra.unmasked, rtol=1e-15
+    )
+    assert quantity_allclose(
+        table2["sc"].dec.unmasked, table["sc"].dec.unmasked, rtol=1e-15
+    )
+    assert np.all(table2["sc"].obstime == table["sc"].obstime)
+
+
+def test_masked_mixin_serialize_method_scope():
+    """Test top-level matching and context restoration for a masked mixin."""
+    table = QTable()
+    table["sc"] = SkyCoord(
+        ra=Masked([1.0, 2.0], mask=[True, False]),
+        dec=Masked([3.0, 4.0], mask=[False, True]),
+        unit="deg",
+    )
+
+    def mask_columns_present(serialize_method):
+        out = StringIO()
+        table.write(out, format="ascii.ecsv", serialize_method=serialize_method)
+        colnames = next(
+            line for line in out.getvalue().splitlines() if not line.startswith("#")
+        ).split()
+        return "sc.ra.mask" in colnames, "sc.dec.mask" in colnames
+
+    methods = [None, {"other": "data_mask"}, {"sc": "data_mask"}, None]
+    assert [mask_columns_present(method) for method in methods] == [
+        (False, False),
+        (False, False),
+        (True, True),
+        (False, False),
+    ]
 
 
 @pytest.mark.parametrize("table_cls", (Table, QTable))

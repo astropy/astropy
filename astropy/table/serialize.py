@@ -126,7 +126,31 @@ class SerializedColumn(dict):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
 
-def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=()):
+def _get_mixin_obj_attrs(col, serialize_method):
+    """Get the representation, applying a compatible masked-data override."""
+    original_sm = None
+    if serialize_method and hasattr(col.info, "serialize_method"):
+        current_sm = col.info.serialize_method
+        methods = current_sm.values()
+        if "data_mask" in methods and serialize_method in methods:
+            original_sm = current_sm
+            col.info.serialize_method = dict.fromkeys(current_sm, serialize_method)
+
+    try:
+        return col.info._represent_as_dict()
+    finally:
+        if original_sm is not None:
+            col.info.serialize_method = original_sm
+
+
+def _represent_mixin_as_column(
+    col,
+    name,
+    new_cols,
+    mixin_cols,
+    exclude_classes=(),
+    serialize_method=None,
+):
     """Carry out processing needed to serialize ``col`` in an output table
     consisting purely of plain ``Column`` or ``MaskedColumn`` columns.  This
     relies on the object determine if any transformation is required and may
@@ -148,7 +172,7 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=
     to imply serialization.  Starting with version 3.1, the non-mixin
     ``MaskedColumn`` can also be serialized.
     """
-    obj_attrs = col.info._represent_as_dict()
+    obj_attrs = _get_mixin_obj_attrs(col, serialize_method)
 
     # If serialization is not required (see function docstring above)
     # or explicitly specified as excluded, then treat as a normal column.
@@ -222,7 +246,13 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=
         # a Mixin column, a structured Column, a MaskedColumn for which mask is
         # stored, etc.), it will define obj_attrs[new_name]. Otherwise, it will
         # just add to new_cols and all we have to do is to link to the new name.
-        _represent_mixin_as_column(data, new_name, new_cols, obj_attrs)
+        _represent_mixin_as_column(
+            data,
+            new_name,
+            new_cols,
+            obj_attrs,
+            serialize_method=serialize_method,
+        )
         obj_attrs[data_attr] = SerializedColumn(
             obj_attrs.pop(new_name, {"name": new_name})
         )
@@ -307,9 +337,16 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
 
     # Go through table columns and represent each column as one or more
     # plain Column objects (in new_cols) + metadata (in mixin_cols).
+    from .info import _get_serialize_method
+
     for col in tbl.itercols():
         _represent_mixin_as_column(
-            col, col.info.name, new_cols, mixin_cols, exclude_classes=exclude_classes
+            col,
+            col.info.name,
+            new_cols,
+            mixin_cols,
+            exclude_classes=exclude_classes,
+            serialize_method=_get_serialize_method(col),
         )
 
     # If no metadata was created then just return the original table.

@@ -1,0 +1,3 @@
+Fixed ``serialize_method="data_mask"`` to preserve masks and underlying data
+in masked components nested inside mixin columns such as
+`~astropy.coordinates.SkyCoord`.
