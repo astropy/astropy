@@ -2116,8 +2116,14 @@ class _UnitMetaClass(type):
                 # No `f._validate_unit()` (AttributeError)
                 # or `s` was a composite unit (KeyError).
                 try:
+                    # We not only check for parser warnings following
+                    # parse_strict, but record all others, since we want to
+                    # avoid caching the string if any are emitted.
                     with (
                         _WARNING_LOCK,
+                        warnings.catch_warnings(
+                            action="always", record=True
+                        ) as captured_warnings,
                         warnings.catch_warnings(
                             action=_WARNING_ACTIONS[parse_strict],
                             category=UnitParserWarning,
@@ -2154,9 +2160,23 @@ class _UnitMetaClass(type):
                             "https://docs.astropy.org/en/latest/units/combining_and_defining.html"
                         )
                         if parse_strict == "raise":
-                            raise ValueError(msg)
+                            raise ValueError(msg) from None
                         warnings.warn(msg, UnitsWarning)
                     return UnrecognizedUnit(s)
+
+                # We parsed without raising an exception, including any from
+                # parse_raise="strict". If warnings were captured, replay them,
+                # and just return the unit, not falling through to cache it.
+                if captured_warnings:
+                    for w in captured_warnings:
+                        warnings.warn_explicit(
+                            message=w.message,
+                            category=w.category,
+                            filename=w.filename,
+                            lineno=w.lineno,
+                            source=w.source,
+                        )
+                    return unit
 
             if _parsed_units is not None:
                 _parsed_units[s] = unit
