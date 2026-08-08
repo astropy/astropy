@@ -85,7 +85,7 @@ astropy
 │   │   │   │   │   ├── certifi v2022.6.15.1
 │   │   │   │   │   ├── charset-normalizer v2.0.0
 │   │   │   │   │   ├── idna v2.5
-│   │   │   │   │   └── urllib3 v1.25.4
+│   │   │   │   │   └── urllib3 v1.26.5
 │   │   │   │   └── s3fs v2023.4.0 (extra: s3)
 │   │   │   │       ├── aiobotocore v2.5.0
 │   │   │   │       │   ├── aiohttp v3.9.0 (*)
@@ -93,7 +93,7 @@ astropy
 │   │   │   │       │   ├── botocore v1.29.76
 │   │   │   │       │   │   ├── jmespath v0.7.1
 │   │   │   │       │   │   ├── python-dateutil v2.8.2 (*)
-│   │   │   │       │   │   └── urllib3 v1.25.4
+│   │   │   │       │   │   └── urllib3 v1.26.5
 │   │   │   │       │   └── wrapt v1.14.2
 │   │   │   │       ├── aiohttp v3.9.0 (*)
 │   │   │   │       └── fsspec v2023.4.0
@@ -270,9 +270,7 @@ astropy
 │   │   │   │   │   └── numpy v2.0.0
 │   │   │   │   ├── asdf-astropy v0.11.0 (extra: test-all) (*)
 │   │   │   │   ├── beautifulsoup4 v4.11.2 (extra: test-all) (*)
-│   │   │   │   ├── bleach v3.2.1 (extra: test-all)
-│   │   │   │   │   ├── packaging v25.0
-│   │   │   │   │   ├── six v1.16.0
+│   │   │   │   ├── bleach v6.2.0 (extra: test-all)
 │   │   │   │   │   └── webencodings v0.5.1
 │   │   │   │   ├── bottleneck v1.4.0 (extra: test-all)
 │   │   │   │   │   └── numpy v2.0.0
@@ -310,8 +308,7 @@ astropy
 │   │   │   │   │   │   │   │   │   ├── pygments v2.17.0
 │   │   │   │   │   │   │   │   │   ├── setuptools v77.0.1
 │   │   │   │   │   │   │   │   │   ├── stack-data v0.6.0
-│   │   │   │   │   │   │   │   │   │   ├── asttokens v2.1.0
-│   │   │   │   │   │   │   │   │   │   │   └── six v1.16.0
+│   │   │   │   │   │   │   │   │   │   ├── asttokens v3.0.0
 │   │   │   │   │   │   │   │   │   │   ├── executing v1.2.0
 │   │   │   │   │   │   │   │   │   │   └── pure-eval v0.1.0
 │   │   │   │   │   │   │   │   │   └── traitlets v5.13.0
@@ -456,7 +453,7 @@ astropy
 │   ├── numpy v2.0.0
 │   └── packaging v25.0
 ├── beautifulsoup4 v4.11.2 (extra: all) (*)
-├── bleach v3.2.1 (extra: all) (*)
+├── bleach v6.2.0 (extra: all) (*)
 ├── bottleneck v1.4.0 (extra: all) (*)
 ├── certifi v2022.6.15.1 (extra: all)
 ├── dask[dataframe] v2024.8.0 (extra: all) (*)
@@ -517,7 +514,7 @@ astropy
 ├── array-api-strict v1.0 (extra: test-all) (*)
 ├── asdf-astropy v0.11.0 (extra: test-all) (*)
 ├── beautifulsoup4 v4.11.2 (extra: test-all) (*)
-├── bleach v3.2.1 (extra: test-all) (*)
+├── bleach v6.2.0 (extra: test-all) (*)
 ├── bottleneck v1.4.0 (extra: test-all) (*)
 ├── certifi v2022.6.15.1 (extra: test-all)
 ├── coverage v7.2.7 (extra: test-all)

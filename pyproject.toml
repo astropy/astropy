@@ -86,7 +86,7 @@ all = [
     "pyarrow>=16.0",
     "beautifulsoup4>=4.11.2", # imposed by pandas==2.2.2
     "html5lib>=1.1",
-    "bleach>=3.2.1",
+    "bleach>=6.2.0",
     "sortedcontainers>=2.1.0", # imposed by testing with hypothesis
     "pytz>=2016.10", # (older versions may work)
     "jplephem>=2.17.0",
@@ -830,6 +830,7 @@ constraint-dependencies = [
     "asdf>=2.15.1",
     "asdf-coordinates-schemas>=0.2.0",
     "six>=1.16.0", # for Python 3.12+ compat
+    "urllib3>=1.26.5", # via requests, upgraded vendored six to 1.16.0
 
     # via pytest
     # iniconfig 1.0.1 is the first version with proper wheels
@@ -854,6 +855,9 @@ constraint-dependencies = [
     # via ipython (can be removed once ipython<8.17 is dropped)
     "pickleshare>=0.7.5",
 
+    # via ipython (indirect)
+    "asttokens>=3.0.0", # via stack-data 0.17
+
     # via ipykernel (indirect) oldestdeps
     "py>=v1.11.0", # workaround a portability issue with oldestdeps resolution
 
@@ -869,6 +873,8 @@ constraint-dependencies = [
     # via dask
     "toolz>=0.12.0", # can be removed once dask<=2025.11.0 is dropped
     "cloudpickle>=2.1.0", # can be removed once dask<2024.8.1 is dropped
+
+
 ]
 
 # uv sync's default behavior includes the 'dev' group.
