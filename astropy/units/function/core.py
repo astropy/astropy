@@ -596,7 +596,7 @@ class FunctionQuantity(Quantity):
     _supported_ufuncs = SUPPORTED_UFUNCS
     _supported_functions = SUPPORTED_FUNCTIONS
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls,
         value,
         unit=None,

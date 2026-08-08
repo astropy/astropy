@@ -128,7 +128,7 @@ class NDData(NDDataBase):
     # Tables. It will check if the meta is dict-like or raise an exception.
     meta = MetaData(doc=_meta_doc, copy=False)
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data,
         uncertainty=None,

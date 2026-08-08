@@ -405,7 +405,7 @@ class LinearLSQFitter(Fitter):
             return False
         return True
 
-    def _add_fitting_uncertainties(self, model, a, n_coeff, x, y, z=None, resids=None):
+    def _add_fitting_uncertainties(self, model, a, n_coeff, x, y, z=None, resids=None):  # ruff: ignore[PLR0917] historical API
         """
         Calculate and parameter covariance matrix and standard deviations
         and set `cov_matrix` and `stds` attributes.
@@ -519,7 +519,7 @@ class LinearLSQFitter(Fitter):
             return xnew, ynew
 
     @fitter_unit_support
-    def __call__(
+    def __call__(  # ruff: ignore[PLR0917] historical API
         self,
         model,
         x,
@@ -1201,7 +1201,7 @@ class _NonLinearLSQFitter(Fitter):
         model.stds = StandardDeviations(cov_matrix, free_param_names)
 
     @staticmethod
-    def _wrap_deriv(params, model, weights, x, y, z=None, fit_param_indices=None):
+    def _wrap_deriv(params, model, weights, x, y, z=None, fit_param_indices=None):  # ruff: ignore[PLR0917] historical API
         """
         Wraps the method calculating the Jacobian of the function to account
         for model constraints.
@@ -1277,7 +1277,7 @@ class _NonLinearLSQFitter(Fitter):
                     for _ in weights * np.array(model.fit_deriv(x, y, *params))
                 ]
 
-    def _compute_param_cov(
+    def _compute_param_cov(  # ruff: ignore[PLR0917] historical API
         self, model, y, init_values, cov_x, fitparams, farg, fkwarg, weights=None
     ):
         # now try to compute the true covariance matrix
@@ -1303,7 +1303,7 @@ class _NonLinearLSQFitter(Fitter):
             if self.fit_info["param_cov"] is not None:
                 self._add_fitting_uncertainties(model, self.fit_info["param_cov"])
 
-    def _run_fitter(
+    def _run_fitter(  # ruff: ignore[PLR0917] historical API
         self, model, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
     ):
         return None, None, None
@@ -1338,7 +1338,7 @@ class _NonLinearLSQFitter(Fitter):
         )
 
     @fitter_unit_support
-    def __call__(
+    def __call__(  # ruff: ignore[PLR0917] historical API
         self,
         model,
         x,
@@ -1491,7 +1491,7 @@ class LevMarLSQFitter(_NonLinearLSQFitter):
             "param_cov": None,
         }
 
-    def _run_fitter(
+    def _run_fitter(  # ruff: ignore[PLR0917] historical API
         self, model, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
     ):
         from scipy import optimize
@@ -1566,7 +1566,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         super().__init__(calc_uncertainties, use_min_max_bounds)
         self._method = method
 
-    def _run_fitter(
+    def _run_fitter(  # ruff: ignore[PLR0917] historical API
         self, model, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
     ):
         from scipy import optimize
@@ -1697,7 +1697,7 @@ class LMLSQFitter(_NLLSQFitter):
         super().__init__("lm", calc_uncertainties, True)
 
     @fitter_unit_support
-    def __call__(
+    def __call__(  # ruff: ignore[PLR0917] historical API
         self,
         model,
         x,

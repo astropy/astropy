@@ -427,7 +427,7 @@ class TransformGraph:
         """
         return list(self._cached_names.keys())
 
-    def to_dot_graph(
+    def to_dot_graph(  # ruff: ignore[PLR0917] historical API
         self,
         priorities=True,
         addnodes=[],

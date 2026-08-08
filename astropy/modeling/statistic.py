@@ -135,7 +135,7 @@ def leastsquare_2d(measured_vals, updated_model, weights, x, y):
     return np.sum((weights * (model_vals - measured_vals)) ** 2)
 
 
-def leastsquare_3d(measured_vals, updated_model, weights, x, y, z):
+def leastsquare_3d(measured_vals, updated_model, weights, x, y, z):  # ruff: ignore[PLR0917] historical API
     """
     Least square statistic with optional weights.
     Safer than the general :func:`~astropy.modeling.statistic.leastsquare`

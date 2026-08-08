@@ -3,7 +3,7 @@ import numpy as np
 __all__ = ["construct_regularization", "design_matrix", "periodic_fit"]
 
 
-def design_matrix(t, bands, frequency, dy=None, nterms_base=1, nterms_band=1):
+def design_matrix(t, bands, frequency, dy=None, nterms_base=1, nterms_band=1):  # ruff: ignore[PLR0917] historical API
     t = np.asarray(t)
     omega = np.asarray(2 * np.pi * frequency)
     unique_bands = np.unique(bands)
@@ -58,7 +58,7 @@ def construct_regularization(
     return regularization
 
 
-def periodic_fit(
+def periodic_fit(  # ruff: ignore[PLR0917] historical API
     t,
     y,
     dy,

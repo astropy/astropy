@@ -3,7 +3,7 @@ import numpy as np
 from .mle import design_matrix
 
 
-def lombscargle_chi2(
+def lombscargle_chi2(  # ruff: ignore[PLR0917] historical API
     t,
     y,
     dy,

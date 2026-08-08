@@ -48,7 +48,7 @@ class Convolution(CompoundModel):
     interpolates the results from this cache.
     """
 
-    def __init__(self, operator, model, kernel, bounding_box, resolution, cache=True):
+    def __init__(self, operator, model, kernel, bounding_box, resolution, cache=True):  # ruff: ignore[PLR0917] historical API
         super().__init__(operator, model, kernel)
 
         self.bounding_box = bounding_box

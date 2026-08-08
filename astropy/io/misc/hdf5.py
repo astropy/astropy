@@ -206,7 +206,7 @@ def _encode_mixins(tbl):
         return serialize.represent_mixins_as_columns(tbl)
 
 
-def write_table_hdf5(
+def write_table_hdf5(  # ruff: ignore[PLR0917] historical API
     table,
     output,
     path=None,

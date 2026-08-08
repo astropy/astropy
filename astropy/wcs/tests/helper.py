@@ -5,7 +5,7 @@ from astropy.io import fits
 
 
 class SimModelTAB:
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         nx=150,
         ny=200,
