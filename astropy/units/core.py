@@ -21,6 +21,7 @@ import numpy as np
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
+from ._scaler import Scaler
 from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
 from .typing import (
     PhysicalTypeID,
@@ -487,8 +488,13 @@ class UnitBase:
         """
 
         def make_converter(scale1, func, scale2):
+            # We need to do func(v / scale1) * scale2, so we need two scalers.
+            # The first we cannot omit, since it also does the sanity checks on input.
+            scaler1 = Scaler(1 / scale1)
+            scaler2 = Scaler(scale2) if scale2 != 1.0 else lambda x: x
+
             def convert(v):
-                return func(_condition_arg(v) / scale1) * scale2
+                return scaler2(func(scaler1(v)))
 
             return convert
 
@@ -574,15 +580,7 @@ class UnitBase:
         except UnitsError:
             pass
         else:
-            # Yes, it is a simple scaling.
-            if scale == 1.0:
-                # If no conversion is necessary, returns ``unit_scale_converter``
-                # (which is used as a check in quantity helpers).
-                converter = unit_scale_converter
-            else:
-                converter = lambda val: scale * _condition_arg(val)
-            # Cache the converter before returning it.
-            _CONVERTER_CACHE[(self, other)] = converter
+            converter = _CONVERTER_CACHE[(self, other)] = Scaler(scale)
             return converter
 
         # if that doesn't work, maybe we can do it with equivalencies?
@@ -2767,54 +2765,12 @@ def def_unit(
     return result
 
 
-KNOWN_GOOD = np.ndarray | float | int | complex
+unit_scale_converter = Scaler(1.0)
+"""Callable that just multiplies the value by unity.
 
-
-def _condition_arg(value):
-    """Validate value is acceptable for conversion purposes.
-
-    Will convert into an array if not a scalar or array-like, where scalars
-    and arrays can be python and numpy types, anything that defines
-    ``__array_namespace__`` or anything that has a ``.dtype`` attribute.
-
-    Parameters
-    ----------
-    value : scalar or array-like
-
-    Returns
-    -------
-    Scalar value or array
-
-    Raises
-    ------
-    ValueError
-        If value is not as expected
-
-    """
-    if (
-        isinstance(value, KNOWN_GOOD)
-        or hasattr(value, "dtype")
-        or hasattr(value, "__array_namespace__")
-    ):
-        return value
-
-    value = np.array(value)
-    if value.dtype.kind not in "ifc":
-        raise ValueError(
-            "Value not scalar compatible or convertible to "
-            "an int, float, or complex array"
-        )
-    return value
-
-
-def unit_scale_converter(val):
-    """Function that just multiplies the value by unity.
-
-    This is a separate function so it can be recognized and
-    discarded in unit conversion.
-    """
-    return 1.0 * _condition_arg(val)
-
+This is a singleton and defined here so it can be recognized and
+discarded in unit conversion.
+"""
 
 dimensionless_unscaled: Final[CompositeUnit] = CompositeUnit(
     1, [], [], _error_check=False
