@@ -3574,15 +3574,28 @@ class Table:
     def argsort(self, keys=None, kind=None, reverse=False):
         """
         Return the indices which would sort the table according to one or
-        more key columns.  This simply calls the `numpy.argsort` function on
-        the table with the ``order`` parameter set to ``keys``.
+        more key columns.
+
+        For each key column this calls ``col.info.get_sortable_arrays()`` to get
+        one or more arrays which can be lexically sorted to represent the sort
+        order of that column, and assembles the results from all the key
+        columns using `numpy.lexsort` (or `numpy.argsort` if there is only a
+        single sortable array).  This allows efficient and correct sorting of
+        mixin columns like `~astropy.time.Time`.
 
         Parameters
         ----------
         keys : str or list of str
             The column name(s) to order the table by
         kind : {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
-            Sorting algorithm used by ``numpy.argsort``.
+            Sorting algorithm used by `numpy.argsort`.  This is only used
+            when sorting on a single key column that provides a single
+            sortable array.  For multiple key columns, or a single mixin
+            column (like ``Time``) that expands into multiple sortable
+            arrays, sorting is always done with `numpy.lexsort`, which
+            implements a stable sort and does not accept a ``kind`` argument.
+            In that case a value of ``kind`` other than `None`, ``'stable'``,
+            or ``'mergesort'`` is ignored and triggers a warning.
         reverse : bool
             Sort in reverse order (default=False)
 
@@ -3602,29 +3615,37 @@ class Table:
                 idx = np.asarray(index.sorted_data())
                 return idx[::-1] if reverse else idx
 
-        kwargs = {}
-        if keys:
-            # For multiple keys return a structured array which gets sorted,
-            # while for a single key return a single ndarray.  Sorting a
-            # one-column structured array is slower than ndarray (e.g. a
-            # factor of ~6 for a 10 million long random array), and much slower
-            # for in principle sortable columns like Time, which get stored as
-            # object arrays.
-            if len(keys) > 1:
-                kwargs["order"] = keys
-                data = self.as_array(names=keys)
-            else:
-                data = self[keys[0]]
+        key_names = keys if keys is not None else self.colnames
+
+        # Get the list of sortable arrays for each key column and flatten them
+        # into a single list.  Most columns provide just a single array (the
+        # column data itself), but some mixin columns need more than one array
+        # to fully and efficiently represent the sort order (e.g. Time uses
+        # two float arrays instead of an object array of Time instances).
+        sortable_arrays = []
+        for key in key_names:
+            try:
+                sortable_arrays.extend(self[key].info.get_sortable_arrays())
+            except NotImplementedError as err:
+                raise TypeError(f"column {key!r} is not sortable") from err
+
+        if len(sortable_arrays) == 1:
+            kwargs = {"kind": kind} if kind else {}
+            idx = np.argsort(sortable_arrays[0], **kwargs)
         else:
-            # No keys provided so sort on all columns.
-            data = self.as_array()
-
-        if kind:
-            kwargs["kind"] = kind
-
-        # np.argsort will look for a possible .argsort method (e.g., for Time),
-        # and if that fails cast to an array and try sorting that way.
-        idx = np.argsort(data, **kwargs)
+            if kind is not None and kind not in ("stable", "mergesort"):
+                warnings.warn(
+                    f"argsort() 'kind' argument {kind!r} is ignored when "
+                    "sorting on multiple columns, or on a mixin column that "
+                    "expands into multiple sortable arrays, since "
+                    "numpy.lexsort always performs a stable sort",
+                    AstropyUserWarning,
+                    stacklevel=2,
+                )
+            # np.lexsort treats its last argument as the primary sort key,
+            # while the sortable arrays are ordered from most to least
+            # significant, so reverse the order before calling lexsort.
+            idx = np.lexsort(sortable_arrays[::-1])
 
         return idx[::-1] if reverse else idx
 
