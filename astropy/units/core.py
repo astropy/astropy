@@ -366,7 +366,11 @@ class UnitBase:
 
     @cached_property
     def _hash(self) -> int:
-        return hash((self.scale, *[x.name for x in self.bases], *map(str, self.powers)))
+        # if we're just a wrapper around another unit, let our hash be the same
+        # as that unit's.
+        if self.scale == 1 and len(self.powers) == 1 and self.powers[0] == 1:
+            return hash(self.bases[0])
+        return hash((self.scale, *self.bases, *self.powers))
 
     def __getstate__(self) -> dict[str, object]:
         # If we get pickled, we should *not* store the memoized members since
@@ -1936,6 +1940,10 @@ class IrreducibleUnit(NamedUnit):
             (self.__class__, list(self.names), self.name in registry),
             self.__getstate__(),
         )
+
+    @cached_property
+    def _hash(self) -> int:
+        return hash((self.name, self.__class__.__name__))
 
     @property
     def represents(self) -> Self:
