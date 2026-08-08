@@ -19,12 +19,12 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.units import UnitsError
 
-DMS_RE = re.compile("^dd(:mm(:ss(.(s)+)?)?)?$")
-HMS_RE = re.compile("^hh(:mm(:ss(.(s)+)?)?)?$")
-DDEC_RE = re.compile("^d(.(d)+)?$")
-DMIN_RE = re.compile("^m(.(m)+)?$")
-DSEC_RE = re.compile("^s(.(s)+)?$")
-SCAL_RE = re.compile("^x(.(x)+)?$")
+DMS_RE = re.compile(r"^dd(:mm(:ss(\.(s)+)?)?)?$")
+HMS_RE = re.compile(r"^hh(:mm(:ss(\.(s)+)?)?)?$")
+DDEC_RE = re.compile(r"^d(\.(d)+)?$")
+DMIN_RE = re.compile(r"^m(\.(m)+)?$")
+DSEC_RE = re.compile(r"^s(\.(s)+)?$")
+SCAL_RE = re.compile(r"^x(\.(x)+)?$")
 
 
 # Units with custom representations - see the note where it is used inside
@@ -608,6 +608,9 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 # spacing was manually specified
                 spacing = self.spacing.to_value(self._unit)
 
+            elif self.number == 0:
+                return [] * self._unit, np.nan * self._unit
+
             elif self.number is not None:
                 # number of ticks was specified, work out optimal spacing
 
@@ -643,7 +646,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 else:
                     precision = 0
             elif self.format.startswith("%"):
-                return [(self.format % x.value) for x in values]
+                return [(self.format % x.to_value(self._format_unit)) for x in values]
             else:
                 precision = self._precision
 

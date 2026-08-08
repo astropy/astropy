@@ -47,7 +47,7 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
     with np.errstate(invalid="ignore"):
         sep[sep > np.pi] -= 2.0 * np.pi
 
-        mask = np.abs(sep > ROUND_TRIP_RTOL * scale_size)
+        mask = sep > ROUND_TRIP_RTOL * scale_size
 
     # Mask values with invalid pixel positions
     mask = mask | np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])
@@ -81,7 +81,7 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
     codes[2:][discontinuous] = Path.MOVETO
 
     # The above missed the first step, so check that too
-    if step[0] > DISCONT_FACTOR * step[1]:
+    if len(step) >= 2 and step[0] > DISCONT_FACTOR * step[1]:
         codes[1] = Path.MOVETO
 
     # Create the path

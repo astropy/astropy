@@ -468,6 +468,12 @@ class WCSAxes(Axes):
 
         self._all_coords = [self.coords]
 
+        # Any overlays added via get_coords_overlay have been dropped above,
+        # so make sure the cursor position display does not try to index
+        # into a now out-of-range overlay.
+        if hasattr(self, "_display_coords_index"):
+            self._display_coords_index = 0
+
         # Common default settings for Rectangular Frame
         for ind, pos in enumerate(
             coord_meta.get("default_axislabel_position", ["b", "l"])
@@ -673,9 +679,11 @@ class WCSAxes(Axes):
         # Here we can't use get_transform because that deals with
         # pixel-to-pixel transformations when passing a WCS object.
         if isinstance(frame, WCS):
-            transform, coord_meta = transform_coord_meta_from_wcs(
+            transform, wcs_coord_meta = transform_coord_meta_from_wcs(
                 frame, self.frame_class
             )
+            if coord_meta is None:
+                coord_meta = wcs_coord_meta
         else:
             transform = self._get_transform_no_transdata(frame)
 

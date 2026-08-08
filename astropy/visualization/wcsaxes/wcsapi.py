@@ -102,13 +102,17 @@ def custom_ucd_coord_meta_mapping(mapping, *, overwrite=False):
     <BLANKLINE>
     >
     """
+    mapping = {k.removeprefix("custom:"): v for k, v in mapping.items()}
+
+    if not overwrite:
+        for k in mapping:
+            if k in CUSTOM_UCD_COORD_META_MAPPING:
+                raise ValueError(f"UCD metadata mapping {k} already exists.")
+
     added_keys = []
     overwritten = {}
     for k, v in mapping.items():
-        k = k.removeprefix("custom:")
         if k in CUSTOM_UCD_COORD_META_MAPPING:
-            if not overwrite:
-                raise ValueError(f"UCD metadata mapping {k} already exists.")
             overwritten[k] = CUSTOM_UCD_COORD_META_MAPPING[k]
         else:
             added_keys.append(k)
@@ -165,9 +169,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
 
         if axis_type is not None:
             axis_type_split = axis_type.split(".")
-
-            if len(axis_type_split):
-                axis_type_split[0] = axis_type_split[0].replace("custom:", "")
+            axis_type_split[0] = axis_type_split[0].replace("custom:", "")
 
             for ucd, meta in CUSTOM_UCD_COORD_META_MAPPING.items():
                 if ucd in axis_type:
@@ -180,7 +182,7 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
                         # We only do the following if the original unit was
                         # degrees. If the unit was e.g. arcsec, it seems
                         # reasonable to stick to the WCS unit.
-                        if ucd == "ra" and axis_unit is u.deg:
+                        if ucd == "ra" and axis_unit == u.deg:
                             dim_meta["format_unit"] = u.hourangle
                         break
 
@@ -242,12 +244,6 @@ def transform_coord_meta_from_wcs(wcs, frame_class, slices=None):
 
     for i in range(len(coord_meta["type"])):
         coord_meta["visible"].append(i in world_map)
-
-    inv_all_corr = [False] * wcs.world_n_dim
-    m = transform_wcs.axis_correlation_matrix.copy()
-    if invert_xy:
-        inv_all_corr = np.all(m, axis=1)
-        m = m[:, ::-1]
 
     if frame_class in (RectangularFrame, RectangularFrame1D):
         for index in world_map:
@@ -374,7 +370,10 @@ class WCSWorld2PixelTransform(CurvedTransform):
             world = world[0:1]
 
         if len(world[0]) == 0:
-            pixel = np.zeros((0, 2))
+            if self.wcs.pixel_n_dim == 1:
+                pixel = np.array([])
+            else:
+                pixel = [np.array([])] * self.wcs.pixel_n_dim
         else:
             pixel = self.wcs.world_to_pixel_values(*world)
 
@@ -434,14 +433,17 @@ class WCSPixel2WorldTransform(CurvedTransform):
 
         if len(pixel) != self.wcs.pixel_n_dim:
             raise ValueError(
-                f"Expected {self.wcs.pixel_n_dim} world coordinates, got {len(pixel)} "
+                f"Expected {self.wcs.pixel_n_dim} pixel coordinates, got {len(pixel)}"
             )
 
         if self.invert_xy:
             pixel = pixel[::-1]
 
         if len(pixel[0]) == 0:
-            world = np.zeros((0, self.wcs.world_n_dim))
+            if self.wcs.world_n_dim == 1:
+                world = np.array([])
+            else:
+                world = [np.array([])] * self.wcs.world_n_dim
         else:
             world = self.wcs.pixel_to_world_values(*pixel)
 
