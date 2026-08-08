@@ -8,6 +8,7 @@ from .baryons import *
 from .curvature import *
 from .darkenergy import *
 from .darkmatter import *
+from .distances import *
 from .hubble import *
 from .matter import *
 from .neutrino import *
