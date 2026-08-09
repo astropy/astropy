@@ -1653,7 +1653,9 @@ def _format_template(template, fields, shape):
             buf[..., col : col + len(value)] = [ord(char) for char in value]
             col += len(value)
         else:
-            _write_decimal(buf[..., col : col + value_width], value, value_width, signed)
+            _write_decimal(
+                buf[..., col : col + value_width], value, value_width, signed
+            )
             col += value_width
 
     return buf.view(f"U{width}").reshape(shape)
@@ -1916,7 +1918,6 @@ class TimeString(TimeUnique):
         but subclasses can add to this.
         """
         return str_fmt.format(**kwargs)
-
 
     def _value_fast(self, str_fmt):
         """Build the output strings for ``str_fmt`` with array operations.
