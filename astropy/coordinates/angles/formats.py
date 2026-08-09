@@ -489,11 +489,16 @@ def _decimal_to_sexagesimal_string_array(
         raise ValueError("fields must be 1, 2, or 3")
 
     angle = np.asarray(angle, dtype=float)
-    d, m, s = _decimal_to_sexagesimal(angle)
-    # The sign is carried on the degrees; work with magnitudes and put it back
-    # at the end, matching `_decimal_to_sexagesimal_string`.
-    sign = np.copysign(1.0, d)
-    d, m, s = np.abs(d), np.abs(m), np.abs(s)
+    # Infinities cannot pass the integer casts below, so zero them here and
+    # restore their strings at the end.  The sign is taken first, so that -inf
+    # keeps it.
+    finite = np.isfinite(angle)
+    sign = np.copysign(1.0, angle)
+    if not finite.all():
+        angle = np.where(finite, angle, 0.0)
+
+    # np.array, not np.asarray: the fields are updated in place below.
+    d, m, s = (np.array(part) for part in _decimal_to_sexagesimal(np.abs(angle)))
 
     # Normalize the separators exactly as the per-element version does.
     if not isinstance(sep, tuple):
@@ -518,45 +523,39 @@ def _decimal_to_sexagesimal_string_array(
     rounding_thresh = 60.0 - (10.0 ** -(8 if precision is None else precision))
     if fields == 3:
         carry = s >= rounding_thresh
-        s = np.where(carry, 0.0, s)
-        m = np.where(carry, m + 1.0, m)
+        s[carry] = 0.0
+        m[carry] += 1.0
     else:
-        m = np.where(s >= 30.0, m + 1.0, m)
+        m[s >= 30.0] += 1.0
     if fields >= 2:
         carry = m >= 60.0
-        m = np.where(carry, 0.0, m)
-        d = np.where(carry, d + 1.0, d)
+        m[carry] = 0.0
+        d[carry] += 1.0
     else:
-        d = np.where(m >= 30.0, d + 1.0, d)
+        d[m >= 30.0] += 1.0
 
     # Degrees have a variable number of digits, so size the buffer from the
-    # largest finite value.  Infinities render as "inf" like the per-element
-    # path; NaNs are dealt with by the caller.
-    finite = np.isfinite(d)
-    dmax = int(d[finite].max()) if finite.any() else 0
+    # largest value.
+    dmax = int(d.max()) if d.size else 0
     if dmax >= 10**18:
         # Would overflow the int64 buffer below; leave it to the slow path.
         return None
-    degrees = _fixed_width_decimal(
-        np.where(finite, d, 0.0).astype(np.int64), max(1, len(str(dmax)))
-    )
-    degrees = np.strings.lstrip(degrees, "0")
+    degrees = _fixed_width_decimal(d.astype(np.int64), max(1, len(str(dmax))))
+    # np.asarray: the string operations give a scalar for 0-d input.
+    degrees = np.asarray(np.strings.lstrip(degrees, "0"))
     if pad:
         degrees = np.strings.zfill(degrees, 2)
     else:
-        degrees = np.where(degrees == "", "0", degrees)
+        degrees[degrees == ""] = "0"
     if not finite.all():
+        # Not in place: "inf" needs a wider dtype.
         degrees = np.where(finite, degrees, "inf")
-    degrees = np.where(sign < 0, np.strings.add("-", degrees), degrees)
+    degrees = np.where(sign < 0, "-", "") + degrees
 
-    # Zero out non-finite entries before the integer cast (their strings are
-    # replaced by "inf"/"nan" elsewhere), so it does not raise on inf/NaN.
-    m = np.where(finite, m, 0.0)
-
-    out = np.strings.add(degrees, sep[0])
+    out = degrees + sep[0]
     if fields >= 2:
         minutes = _fixed_width_decimal(m.astype(np.int64), 2)
-        out = np.strings.add(out, np.strings.add(minutes, sep[1]))
+        out = out + minutes + sep[1]
     if fields == 3:
         if precision is None:
             seconds = np.strings.mod("%011.8f", s)
@@ -564,5 +563,5 @@ def _decimal_to_sexagesimal_string_array(
         else:
             width = precision + 3 if precision else 2
             seconds = np.strings.mod(f"%0{width}.{precision}f", s)
-        out = np.strings.add(out, np.strings.add(seconds, sep[2]))
+        out = out + seconds + sep[2]
     return out
