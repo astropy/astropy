@@ -209,8 +209,8 @@ class TestIERS_A:
     def teardown_class(cls):
         iers.IERS_A.close()
 
-    @pytest.mark.parametrize("interpolation,atol", [("linear", 0.1), ("tides", 0.2)])
-    def test_simple(self, interpolation, atol):
+    @pytest.mark.parametrize("interpolation", ("linear", "tides"))
+    def test_simple(self, interpolation):
         """Test that open() by default reads a 'finals2000A.all' file."""
         # Ensure we remove any cached table (gh-5131).
         iers.IERS_A.close()
@@ -224,7 +224,7 @@ class TestIERS_A:
             assert_quantity_allclose(
                 ut1_utc,
                 [-0.5868211, -0.5868184, -0.5868184, 0.4131816, 0.41328895] * u.s,
-                atol=atol * u.ms,
+                atol=0.1 * u.ms,
             )
             ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.0, return_status=True)
             assert status2 == iers.TIME_BEYOND_IERS_RANGE
