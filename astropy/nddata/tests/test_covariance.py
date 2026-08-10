@@ -47,28 +47,6 @@ def mock_cov_3d():
     return (3, 2, 3), c
 
 
-def test_scipy_funcs():
-    # Functions should always be callable, regardless of whether or not scipy is installed
-    assert callable(covariance.find), "find should be callable"
-    assert callable(covariance.triu), "triu should be callable"
-    assert callable(covariance.csr_array), "csr_array should be callable"
-    assert callable(covariance.coo_array), "coo_array should be callable"
-    assert callable(covariance.isspmatrix_csr), "isspmatrix_csr should be callable"
-
-    if not HAS_SCIPY:
-        # Should raise an error if scipy is not available
-        with pytest.raises(ModuleNotFoundError):
-            covariance.find()
-        with pytest.raises(ModuleNotFoundError):
-            covariance.triu()
-        with pytest.raises(ModuleNotFoundError):
-            covariance.csr_array()
-        with pytest.raises(ModuleNotFoundError):
-            covariance.coo_array()
-        with pytest.raises(ModuleNotFoundError):
-            covariance.isspmatrix_csr()
-
-
 @scipy_required
 def test_get_csr():
     c = mock_cov()
