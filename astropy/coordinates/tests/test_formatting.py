@@ -152,6 +152,25 @@ def test_sexagesimal_rounding_up():
     assert a.to_string(fields=1, precision=5) == "4d"
 
 
+@pytest.mark.parametrize(
+    "angle, precision, expected",
+    [
+        # Just below half a unit in the last digit shown: no carry.
+        ("1d2m59.49999s", 0, "1d02m59s"),
+        ("1d2m59.94s", 1, "1d02m59.9s"),
+        ("1d2m59.994s", 2, "1d02m59.99s"),
+        # At or above it: the seconds carry into the minutes, and on into
+        # the degrees.
+        ("1d2m59.5s", 0, "1d03m00s"),
+        ("1d2m59.96s", 1, "1d03m00.0s"),
+        ("1d59m59.5s", 0, "2d00m00s"),
+        ("-1d2m59.49999s", 0, "-1d02m59s"),
+    ],
+)
+def test_sexagesimal_seconds_round_at_half_a_unit(angle, precision, expected):
+    assert Angle(angle).to_string(precision=precision) == expected
+
+
 def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
     assert isinstance(a.to_string(), str)

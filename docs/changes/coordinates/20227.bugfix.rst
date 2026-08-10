@@ -1,0 +1,3 @@
+Fixed ``Angle.to_string`` rounding the seconds up to the next minute half a
+unit too early, so that, e.g., ``Angle("1d2m59.49999s").to_string(precision=0)``
+gave ``1d03m00s`` instead of ``1d02m59s``.
