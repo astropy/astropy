@@ -612,7 +612,8 @@ class IERS(QTable):
 
         secrad = np.pi / (180 * 3600)
 
-        T = (rjd - 51544.5) / 36525.0
+        rjd_flat = np.ravel(rjd)
+        T = (rjd_flat - 51544.5) / 36525.0
 
         chi = (
             67310.54841
@@ -661,16 +662,7 @@ class IERS(QTable):
             + 450160.398036
         )
 
-        arg = np.array(
-            [
-                chi,
-                L,
-                Lp,
-                cap_f,
-                cap_d,
-                omega,
-            ]
-        )
+        arg = np.array([chi, L, Lp, cap_f, cap_d, omega])
         arg = np.mod(arg, 1296000) * secrad
 
         ag = OCEANS_ARG @ arg
@@ -684,6 +676,10 @@ class IERS(QTable):
         cor_x = np.sum(xsin[:, None] * sin_ag + xcos[:, None] * cos_ag, axis=0)
         cor_y = np.sum(ysin[:, None] * sin_ag + ycos[:, None] * cos_ag, axis=0)
         cor_ut1 = np.sum(utsin[:, None] * sin_ag + utcos[:, None] * cos_ag, axis=0)
+
+        cor_x = np.reshape(cor_x, rjd.shape)
+        cor_y = np.reshape(cor_y, rjd.shape)
+        cor_ut1 = np.reshape(cor_ut1, rjd.shape)
 
         return cor_x * 1e-6, cor_y * 1e-6, cor_ut1 * 1e-6
 
@@ -736,7 +732,11 @@ class IERS(QTable):
                 vals += dt
 
                 # transform back to ut1-utc by adding the leap seconds
-                leap_seconds = leap_seconds[i - i0_tides - 1, np.arange(len(i0_tides))]
+                leap_seconds = np.take_along_axis(
+                    leap_seconds,
+                    (i - i0_tides)[None],
+                    axis=0,
+                )[0]
                 vals += leap_seconds
 
                 val = vals * self[column].unit
