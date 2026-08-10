@@ -1,3 +1,6 @@
-Fixed ``Angle.to_string`` rounding the seconds up to the next minute half a
-unit too early, so that, e.g., ``Angle("1d2m59.49999s").to_string(precision=0)``
-gave ``1d03m00s`` instead of ``1d02m59s``.
+Fixed two rounding errors in ``Angle.to_string``. The seconds were carried into
+the next minute half a unit too early, so that, e.g.,
+``Angle("1d2m59.49999s").to_string(precision=0)`` gave ``1d03m00s`` instead of
+``1d02m59s``. And with ``fields=1`` the seconds were rounded into the minutes
+before the minutes were rounded into the degrees, rounding twice, so that, e.g.,
+``Angle("285d29m41.76s").to_string(fields=1)`` gave ``286d`` instead of ``285d``.

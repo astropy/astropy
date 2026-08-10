@@ -423,16 +423,19 @@ def _decimal_to_sexagesimal_string(
     # Builtin round, not NumPy's, which disagrees with the formatting on ties.
     ndp = 8 if precision is None else precision
 
-    if fields == 3 and round(float(values[2]), ndp) >= 60.0:
-        values[2] = 0.0
-        values[1] += 1.0
-    elif fields < 3 and values[2] >= 30.0:
-        values[1] += 1.0
+    if fields == 3:
+        if round(float(values[2]), ndp) >= 60.0:
+            values[2] = 0.0
+            values[1] += 1.0
+    elif fields == 2:
+        if values[2] >= 30.0:
+            values[1] += 1.0
+    # Rounding the seconds into the minutes here too would round twice.
+    elif values[1] + values[2] / 60.0 >= 30.0:
+        values[0] += 1.0
 
     if fields >= 2 and values[1] >= 60.0:
         values[1] = 0.0
-        values[0] += 1.0
-    elif fields < 2 and values[1] >= 30.0:
         values[0] += 1.0
 
     literal = f"{np.copysign(values[0], sign):0{pad}.0f}{sep[0]}"

@@ -171,6 +171,23 @@ def test_sexagesimal_seconds_round_at_half_a_unit(angle, precision, expected):
     assert Angle(angle).to_string(precision=precision) == expected
 
 
+@pytest.mark.parametrize(
+    "angle, expected",
+    [
+        # Below half a degree of the next one: no carry.  The seconds must not
+        # be rounded into the minutes first, or these would round twice.
+        ("285d29m41.76s", "285d"),
+        ("285d29m59.9s", "285d"),
+        ("-285d29m41.76s", "-285d"),
+        # Half a degree or more: carry.
+        ("285d30m", "286d"),
+        ("285d30m00.1s", "286d"),
+    ],
+)
+def test_sexagesimal_degrees_round_once(angle, expected):
+    assert Angle(angle).to_string(fields=1) == expected
+
+
 def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
     assert isinstance(a.to_string(), str)
