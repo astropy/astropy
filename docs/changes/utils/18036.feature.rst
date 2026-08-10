@@ -1,2 +1,3 @@
-The interpolation for IERS data now allows for lagrange interpolation of custom order
-and luni-solar tide correction for UT1-UTC.
+Setting the `ut1_utc_interpolation` configuration parameter to `tides`
+now allows for lagrange interpolation with luni-solar tide correction for UT1-UTC.
+Default is `linear` for unchanged behavior.

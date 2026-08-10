@@ -202,6 +202,12 @@ class Conf(_config.ConfigNamespace):
     ietf_leap_second_auto_url = _config.ConfigItem(
         IETF_LEAP_SECOND_URL, "Alternate URL for auto-downloading leap seconds."
     )
+    ut1_utc_interpolation = _config.ConfigItem(
+        ["linear", "tides"],
+        "Interpolation method to use for UTC to UT1 conversion. "
+        "Options are 'linear' (default) or 'tides' "
+        "(Lagrange interpolation with tidal corrections).",
+    )
 
 
 conf = Conf()
@@ -312,14 +318,7 @@ class IERS(QTable):
         utc = jd1 - (MJD_ZERO + mjd) + jd2
         return mjd, utc
 
-    def ut1_utc(
-        self,
-        jd1,
-        jd2=0.0,
-        interpolation="linear",
-        interpolation_order=None,
-        return_status=False,
-    ):
+    def ut1_utc(self, jd1, jd2=0.0, return_status=False):
         """Interpolate UT1-UTC corrections in IERS Table for given dates.
 
         Parameters
@@ -347,22 +346,10 @@ class IERS(QTable):
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
         return self._interpolate(
-            jd1,
-            jd2,
-            ["UT1_UTC"],
-            self.ut1_utc_source if return_status else None,
-            interpolation=interpolation,
-            interpolation_order=interpolation_order,
+            jd1, jd2, ["UT1_UTC"], self.ut1_utc_source if return_status else None
         )
 
-    def dcip_xy(
-        self,
-        jd1,
-        jd2=0.0,
-        interpolation="linear",
-        interpolation_order=None,
-        return_status=False,
-    ):
+    def dcip_xy(self, jd1, jd2=0.0, return_status=False):
         """Interpolate CIP corrections in IERS Table for given dates.
 
         Parameters
@@ -395,18 +382,9 @@ class IERS(QTable):
             jd2,
             ["dX_2000A", "dY_2000A"],
             self.dcip_source if return_status else None,
-            interpolation=interpolation,
-            interpolation_order=interpolation_order,
         )
 
-    def pm_xy(
-        self,
-        jd1,
-        jd2=0.0,
-        interpolation="linear",
-        interpolation_order=None,
-        return_status=False,
-    ):
+    def pm_xy(self, jd1, jd2=0.0, return_status=False):
         """Interpolate polar motions from IERS Table for given dates.
 
         Parameters
@@ -436,12 +414,7 @@ class IERS(QTable):
             ``iers.TIME_BEYOND_IERS_RANGE``
         """
         return self._interpolate(
-            jd1,
-            jd2,
-            ["PM_x", "PM_y"],
-            self.pm_source if return_status else None,
-            interpolation=interpolation,
-            interpolation_order=interpolation_order,
+            jd1, jd2, ["PM_x", "PM_y"], self.pm_source if return_status else None
         )
 
     def _check_interpolate_indices(self, indices_orig, indices_clipped, max_input_mjd):
@@ -634,15 +607,7 @@ class IERS(QTable):
 
         return dx, dy, dt
 
-    def _interpolate(
-        self,
-        jd1,
-        jd2,
-        columns,
-        source=None,
-        interpolation="linear",
-        interpolation_order=None,
-    ):
+    def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
         # enforce array
         is_scalar = not hasattr(mjd, "__array__") or mjd.ndim == 0
@@ -657,19 +622,20 @@ class IERS(QTable):
         # self['MJD'][i-1]<=mjd<self['MJD'][i]
         i = np.searchsorted(self["MJD"].value, mjd, side="right")
 
+        interpolation = conf.ut1_utc_interpolation
         # Get index to MJD at or just below given mjd, clipping to ensure we
         # stay in range of table (status will be set below for those outside)
         if interpolation == "linear":
             num_points = 2
-        elif interpolation == "lagrange":
-            num_points = interpolation_order or 4
+        elif interpolation == "tides":
+            num_points = 4
         else:
             raise ValueError(f"Unknown interpolation method: {interpolation}")
         i1 = np.clip(i, num_points - 1, len(self) - 1)
         i0 = i1 - num_points + 1
         results = []
         for column in columns:
-            if interpolation == "lagrange":
+            if interpolation == "tides":
                 indices = np.arange(num_points)[:, *([None] * len(i0.shape))] + i0[None]
                 mjds = self["MJD"][indices].value
                 vals = self[column][indices].value

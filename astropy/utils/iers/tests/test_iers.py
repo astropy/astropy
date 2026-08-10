@@ -32,7 +32,7 @@ class TestBasic:
     """Basic tests that IERS_B returns correct values"""
 
     @pytest.mark.parametrize("iers_cls", (iers.IERS_B, iers.IERS))
-    @pytest.mark.parametrize("interpolation", ("linear", "lagrange"))
+    @pytest.mark.parametrize("interpolation", ("linear", "tides"))
     def test_simple(self, iers_cls, interpolation):
         """Test the default behaviour for IERS_B and IERS."""
         # Arguably, IERS itself should not be used at all, but it used to
@@ -48,41 +48,39 @@ class TestBasic:
         assert (iers_tab["UT1_UTC"].unit / u.second).is_unity()
         assert (iers_tab["PM_x"].unit / u.arcsecond).is_unity()
         assert (iers_tab["PM_y"].unit / u.arcsecond).is_unity()
-        jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
-        jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0.0, 0.5])
-        ut1_utc = iers_tab.ut1_utc(jd1, jd2, interpolation=interpolation)
-        assert isinstance(ut1_utc, u.Quantity)
-        assert (ut1_utc.unit / u.second).is_unity()
-        # IERS files change at the 0.1 ms level; see gh-6981
-        assert_quantity_allclose(
-            ut1_utc,
-            [-0.5868211, -0.5868184, -0.5868184, 0.4131816, 0.41328895] * u.s,
-            atol=0.1 * u.ms,
-        )
-        # should be future-proof; surely we've moved to another planet by then
-        with pytest.raises(IndexError):
-            ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.0, interpolation=interpolation)
-        # also check it returns the right status
-        ut1_utc2, status2 = iers_tab.ut1_utc(
-            jd1, jd2, interpolation=interpolation, return_status=True
-        )
-        assert np.all(status2 == iers.FROM_IERS_B)
-        ut1_utc4, status4 = iers_tab.ut1_utc(
-            1e11, 0.0, interpolation=interpolation, return_status=True
-        )
-        assert status4 == iers.TIME_BEYOND_IERS_RANGE
 
-        # check it works via Time too
-        t = Time(jd1, jd2, format="jd", scale="utc")
-        ut1_utc3 = iers_tab.ut1_utc(t, interpolation=interpolation)
-        assert_quantity_allclose(
-            ut1_utc3,
-            [-0.5868211, -0.5868184, -0.5868184, 0.4131816, 0.41328895] * u.s,
-            atol=0.1 * u.ms,
-        )
+        with iers.conf.set_temp("ut1_utc_interpolation", interpolation):
+            jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
+            jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0.0, 0.5])
+            ut1_utc = iers_tab.ut1_utc(jd1, jd2)
+            assert isinstance(ut1_utc, u.Quantity)
+            assert (ut1_utc.unit / u.second).is_unity()
+            # IERS files change at the 0.1 ms level; see gh-6981
+            assert_quantity_allclose(
+                ut1_utc,
+                [-0.5868211, -0.5868184, -0.5868184, 0.4131816, 0.41328895] * u.s,
+                atol=0.1 * u.ms,
+            )
+            # should be future-proof; surely we've moved to another planet by then
+            with pytest.raises(IndexError):
+                ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.0)
+            # also check it returns the right status
+            ut1_utc2, status2 = iers_tab.ut1_utc(jd1, jd2, return_status=True)
+            assert np.all(status2 == iers.FROM_IERS_B)
+            ut1_utc4, status4 = iers_tab.ut1_utc(1e11, 0.0, return_status=True)
+            assert status4 == iers.TIME_BEYOND_IERS_RANGE
 
-        # Table behaves properly as a table (e.g. can be sliced)
-        assert len(iers_tab[:2]) == 2
+            # check it works via Time too
+            t = Time(jd1, jd2, format="jd", scale="utc")
+            ut1_utc3 = iers_tab.ut1_utc(t)
+            assert_quantity_allclose(
+                ut1_utc3,
+                [-0.5868211, -0.5868184, -0.5868184, 0.4131816, 0.41328895] * u.s,
+                atol=0.1 * u.ms,
+            )
+
+            # Table behaves properly as a table (e.g. can be sliced)
+            assert len(iers_tab[:2]) == 2
 
     def test_open_filename(self):
         iers.IERS_B.close()
@@ -129,7 +127,7 @@ class TestIERS_AExcerpt:
     def teardown_class(cls):
         iers.IERS_A.close()
 
-    @pytest.mark.parametrize("interpolation", ("linear", "lagrange"))
+    @pytest.mark.parametrize("interpolation", ("linear", "tides"))
     def test_simple(self, interpolation):
         # Test the IERS A reader. It is also a regression tests that ensures
         # values do not get overridden by IERS B; see #4933.
@@ -167,48 +165,43 @@ class TestIERS_AExcerpt:
             | (iers_tab["PolPMFlag"] == "B")
         )
 
-        t = Time([57053.0, 57054.0, 57055.0], format="mjd")
-        ut1_utc, status = iers_tab.ut1_utc(
-            t, interpolation=interpolation, return_status=True
-        )
-        assert status[0] == iers.FROM_IERS_B
-        assert np.all(status[1:] == iers.FROM_IERS_A)
-        # These values are *exactly* as given in the table, so they should
-        # match to double precision accuracy.
-        assert_quantity_allclose(
-            ut1_utc, [-0.4916557, -0.4925323, -0.4934373] * u.s, atol=0.1 * u.ms
-        )
+        with iers.conf.set_temp("ut1_utc_interpolation", interpolation):
+            t = Time([57053.0, 57054.0, 57055.0], format="mjd")
+            ut1_utc, status = iers_tab.ut1_utc(t, return_status=True)
+            assert status[0] == iers.FROM_IERS_B
+            assert np.all(status[1:] == iers.FROM_IERS_A)
+            # These values are *exactly* as given in the table, so they should
+            # match to double precision accuracy.
+            assert_quantity_allclose(
+                ut1_utc, [-0.4916557, -0.4925323, -0.4934373] * u.s, atol=0.1 * u.ms
+            )
 
-        dcip_x, dcip_y, status = iers_tab.dcip_xy(
-            t, interpolation=interpolation, return_status=True
-        )
-        assert status[0] == iers.FROM_IERS_B
-        assert np.all(status[1:] == iers.FROM_IERS_A)
-        # These values are *exactly* as given in the table, so they should
-        # match to double precision accuracy.
-        print(dcip_x)
-        print(dcip_y)
-        assert_quantity_allclose(
-            dcip_x, [-0.086, -0.093, -0.087] * u.marcsec, atol=1.0 * u.narcsec
-        )
-        assert_quantity_allclose(
-            dcip_y, [0.094, 0.081, 0.072] * u.marcsec, atol=1 * u.narcsec
-        )
+            dcip_x, dcip_y, status = iers_tab.dcip_xy(t, return_status=True)
+            assert status[0] == iers.FROM_IERS_B
+            assert np.all(status[1:] == iers.FROM_IERS_A)
+            # These values are *exactly* as given in the table, so they should
+            # match to double precision accuracy.
+            print(dcip_x)
+            print(dcip_y)
+            assert_quantity_allclose(
+                dcip_x, [-0.086, -0.093, -0.087] * u.marcsec, atol=1.0 * u.narcsec
+            )
+            assert_quantity_allclose(
+                dcip_y, [0.094, 0.081, 0.072] * u.marcsec, atol=1 * u.narcsec
+            )
 
-        pm_x, pm_y, status = iers_tab.pm_xy(
-            t, interpolation=interpolation, return_status=True
-        )
-        assert status[0] == iers.FROM_IERS_B
-        assert np.all(status[1:] == iers.FROM_IERS_A)
-        assert_quantity_allclose(
-            pm_x, [0.003734, 0.004581, 0.004623] * u.arcsec, atol=0.1 * u.marcsec
-        )
-        assert_quantity_allclose(
-            pm_y, [0.310824, 0.313150, 0.315517] * u.arcsec, atol=0.1 * u.marcsec
-        )
+            pm_x, pm_y, status = iers_tab.pm_xy(t, return_status=True)
+            assert status[0] == iers.FROM_IERS_B
+            assert np.all(status[1:] == iers.FROM_IERS_A)
+            assert_quantity_allclose(
+                pm_x, [0.003734, 0.004581, 0.004623] * u.arcsec, atol=0.1 * u.marcsec
+            )
+            assert_quantity_allclose(
+                pm_y, [0.310824, 0.313150, 0.315517] * u.arcsec, atol=0.1 * u.marcsec
+            )
 
-        # Table behaves properly as a table (e.g. can be sliced)
-        assert len(iers_tab[:2]) == 2
+            # Table behaves properly as a table (e.g. can be sliced)
+            assert len(iers_tab[:2]) == 2
 
 
 class TestIERS_A:
@@ -216,35 +209,31 @@ class TestIERS_A:
     def teardown_class(cls):
         iers.IERS_A.close()
 
-    @pytest.mark.parametrize("interpolation,atol", [("linear", 0.1), ("lagrange", 0.2)])
+    @pytest.mark.parametrize("interpolation,atol", [("linear", 0.1), ("tides", 0.2)])
     def test_simple(self, interpolation, atol):
         """Test that open() by default reads a 'finals2000A.all' file."""
         # Ensure we remove any cached table (gh-5131).
         iers.IERS_A.close()
         iers_tab = iers.IERS_A.open()
-        jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
-        jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0.0, 0.5])
-        ut1_utc, status = iers_tab.ut1_utc(
-            jd1, jd2, interpolation=interpolation, return_status=True
-        )
-        assert np.all(status == iers.FROM_IERS_B)
-        assert_quantity_allclose(
-            ut1_utc,
-            [-0.5868211, -0.5868184, -0.5868184, 0.4131816, 0.41328895] * u.s,
-            atol=atol * u.ms,
-        )
-        ut1_utc2, status2 = iers_tab.ut1_utc(
-            1e11, 0.0, interpolation=interpolation, return_status=True
-        )
-        assert status2 == iers.TIME_BEYOND_IERS_RANGE
 
-        tnow = Time.now()
+        with iers.conf.set_temp("ut1_utc_interpolation", interpolation):
+            jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
+            jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0.0, 0.5])
+            ut1_utc, status = iers_tab.ut1_utc(jd1, jd2, return_status=True)
+            assert np.all(status == iers.FROM_IERS_B)
+            assert_quantity_allclose(
+                ut1_utc,
+                [-0.5868211, -0.5868184, -0.5868184, 0.4131816, 0.41328895] * u.s,
+                atol=atol * u.ms,
+            )
+            ut1_utc2, status2 = iers_tab.ut1_utc(1e11, 0.0, return_status=True)
+            assert status2 == iers.TIME_BEYOND_IERS_RANGE
 
-        ut1_utc3, status3 = iers_tab.ut1_utc(
-            tnow, interpolation=interpolation, return_status=True
-        )
-        assert status3 == iers.FROM_IERS_A_PREDICTION
-        assert ut1_utc3 != 0.0
+            tnow = Time.now()
+
+            ut1_utc3, status3 = iers_tab.ut1_utc(tnow, return_status=True)
+            assert status3 == iers.FROM_IERS_A_PREDICTION
+            assert ut1_utc3 != 0.0
 
 
 class TestIERS_Auto:
@@ -329,112 +318,92 @@ class TestIERS_Auto:
                     iers_table = iers.IERS_Auto.open()
                     _ = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
-    @pytest.mark.parametrize("interpolation", ("linear", "lagrange"))
+    @pytest.mark.parametrize("interpolation", ("linear", "tides"))
     def test_simple(self, monkeypatch, interpolation):
         monkeypatch.setattr(iers, "IERS_A_FILE", self.iers_a_file_1)
 
-        with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
-            dat = iers.IERS_Auto.open()
-            assert dat["MJD"][0] == 57359.0 * u.d
-            assert dat["MJD"][-1] == 57539.0 * u.d
+        with iers.conf.set_temp("ut1_utc_interpolation", interpolation):
+            with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
+                dat = iers.IERS_Auto.open()
+                assert dat["MJD"][0] == 57359.0 * u.d
+                assert dat["MJD"][-1] == 57539.0 * u.d
 
-            # Pretend we are accessing at a time 7 days after start of predictive data
-            predictive_mjd = dat.meta["predictive_mjd"]
-            monkeypatch.setattr(
-                Time, "now", lambda: Time(predictive_mjd, format="mjd") + 7 * u.d
-            )
+                # Pretend we are accessing at a time 7 days after start of predictive data
+                predictive_mjd = dat.meta["predictive_mjd"]
+                monkeypatch.setattr(
+                    Time, "now", lambda: Time(predictive_mjd, format="mjd") + 7 * u.d
+                )
 
-            # Look at times before and after the test file begins.  0.1292934 is
-            # the IERS-B value from MJD=57359.  The value in
-            # finals2000A-2016-02-30-test has been replaced at this point.
-            assert np.allclose(
-                dat.ut1_utc(
-                    Time(50000, format="mjd").jd, interpolation=interpolation
-                ).value,
-                0.1292934,
-            )
-            assert np.allclose(
-                dat.ut1_utc(
-                    Time(60000, format="mjd").jd, interpolation=interpolation
-                ).value,
-                -0.2246227,
-            )
+                # Look at times before and after the test file begins.  0.1292934 is
+                # the IERS-B value from MJD=57359.  The value in
+                # finals2000A-2016-02-30-test has been replaced at this point.
+                assert np.allclose(
+                    dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1292934
+                )
+                assert np.allclose(
+                    dat.ut1_utc(Time(60000, format="mjd").jd).value, -0.2246227
+                )
 
-            # Now pretend we are accessing at time 60 days after start of predictive data.
-            # There will be a warning when downloading the file doesn't give new data
-            # and an exception when extrapolating into the future with insufficient data.
-            monkeypatch.setattr(
-                Time, "now", lambda: Time(predictive_mjd, format="mjd") + 60 * u.d
-            )
-            assert np.allclose(
-                dat.ut1_utc(
-                    Time(50000, format="mjd").jd, interpolation=interpolation
-                ).value,
-                0.1292934,
-            )
-            with (
-                pytest.warns(
+                # Now pretend we are accessing at time 60 days after start of predictive data.
+                # There will be a warning when downloading the file doesn't give new data
+                # and an exception when extrapolating into the future with insufficient data.
+                monkeypatch.setattr(
+                    Time, "now", lambda: Time(predictive_mjd, format="mjd") + 60 * u.d
+                )
+                assert np.allclose(
+                    dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1292934
+                )
+                with (
+                    pytest.warns(
+                        iers.IERSStaleWarning,
+                        match="IERS_Auto predictive values are older",
+                    ) as warns,
+                    pytest.raises(
+                        ValueError,
+                        match="interpolating from IERS_Auto using predictive values",
+                    ),
+                ):
+                    dat.ut1_utc(Time(60000, format="mjd").jd)
+                assert len(warns) == 1
+
+                # Confirm that disabling the download means no warning because there is no
+                # refresh to even fail, but there will still be the interpolation error
+                with (
+                    iers.conf.set_temp("auto_download", False),
+                    pytest.raises(
+                        ValueError,
+                        match="interpolating from IERS_Auto using predictive values that are more",
+                    ),
+                ):
+                    dat.ut1_utc(Time(60000, format="mjd").jd)
+
+                # Warning only (i.e., no exception) if we are getting return status
+                with pytest.warns(
                     iers.IERSStaleWarning, match="IERS_Auto predictive values are older"
-                ) as warns,
-                pytest.raises(
-                    ValueError,
-                    match="interpolating from IERS_Auto using predictive values",
-                ),
-            ):
-                dat.ut1_utc(Time(60000, format="mjd").jd, interpolation=interpolation)
-            assert len(warns) == 1
+                ):
+                    dat.ut1_utc(Time(60000, format="mjd").jd, return_status=True)
 
-            # Confirm that disabling the download means no warning because there is no
-            # refresh to even fail, but there will still be the interpolation error
-            with (
-                iers.conf.set_temp("auto_download", False),
-                pytest.raises(
-                    ValueError,
-                    match="interpolating from IERS_Auto using predictive values that are more",
-                ),
-            ):
-                dat.ut1_utc(Time(60000, format="mjd").jd, interpolation=interpolation)
+                # Now set auto_max_age = None which says that we don't care how old the
+                # available IERS-A file is.  There should be no warnings or exceptions.
+                with iers.conf.set_temp("auto_max_age", None):
+                    dat.ut1_utc(Time(60000, format="mjd").jd)
 
-            # Warning only (i.e., no exception) if we are getting return status
-            with pytest.warns(
-                iers.IERSStaleWarning, match="IERS_Auto predictive values are older"
-            ):
-                dat.ut1_utc(
-                    Time(60000, format="mjd").jd,
-                    interpolation=interpolation,
-                    return_status=True,
+            # Now point to a later file with same values but MJD increased by
+            # 60 days and see that things work.  Time.now() is still monkeypatched
+            # as before, i.e. right around the start of predictive values for the new file.
+            # (In other words this is like downloading the latest file online right now).
+            with iers.conf.set_temp("iers_auto_url", self.iers_a_url_2):
+                # Look at times before and after the test file begins.  This forces a new download.
+                assert np.allclose(
+                    dat.ut1_utc(Time(50000, format="mjd").jd).value, 0.1292934
+                )
+                assert np.allclose(
+                    dat.ut1_utc(Time(60000, format="mjd").jd).value, -0.3
                 )
 
-            # Now set auto_max_age = None which says that we don't care how old the
-            # available IERS-A file is.  There should be no warnings or exceptions.
-            with iers.conf.set_temp("auto_max_age", None):
-                dat.ut1_utc(
-                    Time(60000, format="mjd").jd,
-                    interpolation=interpolation,
-                )
-
-        # Now point to a later file with same values but MJD increased by
-        # 60 days and see that things work.  Time.now() is still monkeypatched
-        # as before, i.e. right around the start of predictive values for the new file.
-        # (In other words this is like downloading the latest file online right now).
-        with iers.conf.set_temp("iers_auto_url", self.iers_a_url_2):
-            # Look at times before and after the test file begins.  This forces a new download.
-            assert np.allclose(
-                dat.ut1_utc(
-                    Time(50000, format="mjd").jd, interpolation=interpolation
-                ).value,
-                0.1292934,
-            )
-            assert np.allclose(
-                dat.ut1_utc(
-                    Time(60000, format="mjd").jd, interpolation=interpolation
-                ).value,
-                -0.3,
-            )
-
-            # Now the time range should be different.
-            assert dat["MJD"][0] == 57359.0 * u.d
-            assert dat["MJD"][-1] == (57539.0 + 60) * u.d
+                # Now the time range should be different.
+                assert dat["MJD"][0] == 57359.0 * u.d
+                assert dat["MJD"][-1] == (57539.0 + 60) * u.d
 
 
 @pytest.mark.parametrize("query", ["ut1_utc", "pm_xy"])
