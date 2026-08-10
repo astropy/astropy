@@ -631,7 +631,7 @@ class IERS(QTable):
             num_points = 4
         else:
             raise ValueError(f"Unknown interpolation method: {interpolation}")
-        i1 = np.clip(i, num_points - 1, len(self) - 1)
+        i1 = np.clip(i + num_points // 2 - 1, num_points - 1, len(self) - 1)
         i0 = i1 - num_points + 1
         results = []
         for column in columns:
