@@ -246,6 +246,16 @@ class TimeFormat:
         if self._jd1 is not None:
             self._jd1, self._jd2 = _broadcast_writeable(self._jd1, self._jd2)
 
+    def _convert_to_masked(self):
+        """Ensure that jd1 and jd2 are `~astropy.utils.masked.Masked` arrays.
+
+        The two share the same (initially all-`False`) mask.  This is a no-op if
+        the values are masked already.
+        """
+        if not isinstance(self.jd2, Masked):
+            self.jd1 = Masked(self.jd1, copy=False)
+            self.jd2 = Masked(self.jd2, mask=self.jd1.mask, copy=False)
+
     @classmethod
     @functools.cache
     def fill_value(cls, subfmt):
