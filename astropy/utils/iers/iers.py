@@ -710,19 +710,21 @@ class IERS(QTable):
 
         # For tides interpolation, we need 4 points, so we take the index
         # just above the given mjd, and then take 3 points below that.
-        i1_tides = np.clip(i + 1, 3, len(self) - 2)
+        i1_tides = np.clip(i + 1, 3, len(self) - 1)
         i0_tides = i1_tides - 3
 
         results = []
         for column in columns:
             # TODO: expand tides interpolation to other columns than UT1_UTC
             if interpolation == "tides" and column == "UT1_UTC":
-                indices = np.arange(4)[:, *([None] * len(i0.shape))] + i0[None]
+                indices = (
+                    np.arange(4)[:, *([None] * len(i0_tides.shape))] + i0_tides[None]
+                )
                 mjds = self["MJD"][indices].value
                 vals = self[column][indices].value
 
                 # transform to ut1-tai by subtracting the leap seconds
-                leap_seconds = np.round(np.diff(vals, axis=0, prepend=0))
+                leap_seconds = np.round(np.diff(vals, axis=0, prepend=vals[:1]))
                 leap_seconds = np.cumsum(leap_seconds, axis=0)
                 vals -= leap_seconds
 
@@ -734,7 +736,7 @@ class IERS(QTable):
                 vals += dt
 
                 # transform back to ut1-utc by adding the leap seconds
-                leap_seconds = np.choose(i - i0_tides - 1, leap_seconds, mode="wrap")
+                leap_seconds = leap_seconds[i - i0_tides - 1, np.arange(len(i0_tides))]
                 vals += leap_seconds
 
                 val = vals * self[column].unit
