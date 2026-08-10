@@ -524,8 +524,14 @@ def parse_angles(values, unit=None):
     third, _, trailing = _partition(rest, ":")
 
     def _is_number(field):
-        digits = np.strings.replace(np.strings.replace(field, ".", ""), "-", "")
-        return np.strings.isdigit(digits) | (np.strings.str_len(field) == 0)
+        # A sign is only allowed at the front, and only one of them, so that
+        # something like "12-34" is handed on rather than fed to numpy.
+        body = np.strings.lstrip(field, "+-")
+        one_sign = (np.strings.str_len(field) - np.strings.str_len(body)) <= 1
+        digits = np.strings.replace(body, ".", "")
+        return (np.strings.str_len(field) == 0) | (
+            one_sign & (np.strings.count(body, ".") <= 1) & np.strings.isdigit(digits)
+        )
 
     parsed = (
         _is_number(first)
