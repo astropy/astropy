@@ -734,7 +734,7 @@ class IERS(QTable):
                 # transform back to ut1-utc by adding the leap seconds
                 leap_seconds = np.take_along_axis(
                     leap_seconds,
-                    (i - i0_tides)[None],
+                    (i - i0_tides - 1)[None],
                     axis=0,
                 )[0]
                 vals += leap_seconds
