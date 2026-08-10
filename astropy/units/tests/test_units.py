@@ -213,9 +213,18 @@ def test_multiple_solidus():
     ):
         assert u.Unit("m/s/kg").to_string() == "m / (kg s)"
 
+    # Check we always warn, not just the first time.
+    with pytest.warns(
+        u.UnitsWarning,
+        match="'m/s/kg' contains multiple slashes, which is discouraged",
+    ):
+        assert u.Unit("m/s/kg").to_string() == "m / (kg s)"
+
     with pytest.raises(ValueError, match="contains multiple slashes"):
         u.Unit("m/s/kg", format="vounit")
 
+
+def test_multiple_solidus_in_exponent_is_ok():
     # Regression test for #9000: solidi in exponents do not count towards this.
     x = u.Unit("kg(3/10) * m(5/2) / s", format="vounit")
     assert x.to_string() == "m(5/2) kg(3/10) / s"
