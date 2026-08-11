@@ -1536,6 +1536,129 @@ def _write_decimal(out, values, width, signed):
         out[..., 0] = np.where(negative, ord("-"), ord("+"))
 
 
+def _field_width(spec, values):
+    """Fixed character width of an integer format ``spec`` over ``values``.
+
+    Returns ``(width, signed)``, or ``(None, None)`` when the field cannot
+    be built as a fixed-width column (e.g. a bare ``d`` whose values do not
+    all have the same number of digits), signalling that the caller should
+    fall back to formatting element by element.
+
+    Parameters
+    ----------
+    spec : str
+        The format spec portion of a ``{name:spec}`` replacement field,
+        e.g. ``"d"``, ``"02d"``, or ``"+06d"``.
+    values : ndarray of int
+        The integer values that will be formatted under this spec.
+
+    Returns
+    -------
+    width : int or None
+        Fixed character width of the field, or ``None`` if the field
+        cannot be rendered at a uniform width by this function.
+    signed : bool or None
+        ``True`` if the first character is an explicit ``'+'``/``'-'``
+        sign, ``False`` if the field is unsigned, or ``None`` when
+        ``width`` is ``None``.
+    """
+    match = _INT_SPEC.fullmatch(spec)
+    if match is None:
+        return None, None
+    sign, zero, digits = match.group(1, 2, 3)
+    if digits:
+        # We build columns by zero-padding, so a fixed width without the
+        # "0" flag (which pads with spaces) is left to the per-element path.
+        # And "real" formatting widens the field when a value does not fit,
+        # so a value needing more characters than ``width`` would be silently
+        # truncated in our fixed-width column; fall back in that (rare) case
+        # too -- e.g. a year past 9999 in the signed FITS ``{year:+06d}``.
+        width = int(digits)
+        signed = sign == "+"
+        fits = zero
+        if zero and values.size:
+            n_sign = 1 if signed or int(values.min()) < 0 else 0
+            fits = len(str(int(np.abs(values).max()))) + n_sign <= width
+        return (width, signed) if fits else (None, None)
+    # A bare "d" has no field width, so the width follows the values and we
+    # can only pre-size the column if they share a digit count and need no
+    # sign (a forced "+" or a negative value would make the width vary too).
+    if values.size == 0:
+        return 1, False
+    low = int(values.min())
+    lo = len(str(low))
+    hi = len(str(int(values.max())))
+    if sign or low < 0 or lo != hi:
+        return None, None
+    return hi, False
+
+
+def _format_template(template, fields, shape):
+    """Render ``template`` for arrays of integer ``fields``.
+
+    `TimeString` uses this to build its output from the subformat templates,
+    and `astropy.coordinates` to build sexagesimal angles from the separators
+    given to ``Angle.to_string``.
+
+    Parameters
+    ----------
+    template : str
+        Format string of literal text and ``{name:spec}`` replacement fields,
+        e.g. ``"{deg:d}d{min:02d}m{sec:02d}s"``. Every ``spec`` must be an
+        integer one that `_field_width` can size.
+    fields : dict of str to ndarray of int
+        Values for the replacement fields, broadcastable to ``shape``.
+    shape : tuple of int
+        Shape of the result.
+
+    Returns
+    -------
+    out : ndarray of str, or None
+        The rendered strings, or `None` if any field cannot be rendered at a
+        fixed width, in which case the caller should format element by element.
+    """
+    # Split the template into literal text and replacement fields, recording
+    # the fixed width of each piece so the whole row fits one buffer.
+    pieces = []
+    width = 0
+    pos = 0
+    for match in _SUBFMT_FIELD.finditer(template):
+        if match.start() > pos:
+            literal = template[pos : match.start()]
+            pieces.append((literal, None, None))
+            width += len(literal)
+        name, spec = match.group(1, 2)
+        if name not in fields:
+            return None
+        value_width, signed = _field_width(spec, fields[name])
+        if value_width is None:
+            return None
+        pieces.append((fields[name], value_width, signed))
+        width += value_width
+        pos = match.end()
+    if pos < len(template):
+        literal = template[pos:]
+        pieces.append((literal, None, None))
+        width += len(literal)
+
+    if width == 0:
+        return np.zeros(shape, dtype="U1")
+
+    # Write each piece into its slice of a single code-point buffer, then
+    # reinterpret the rows as fixed-width unicode strings.
+    buf = np.empty(shape + (width,), dtype=np.uint32)
+    col = 0
+    for value, value_width, signed in pieces:
+        if value_width is None:  # literal text
+            buf[..., col : col + len(value)] = [ord(char) for char in value]
+            col += len(value)
+        else:
+            _write_decimal(buf[..., col : col + value_width], value, value_width, signed)
+            col += value_width
+
+    return buf.view(f"U{width}").reshape(shape)
+
+
 class TimeString(TimeUnique):
     """
     Base class for string-like time representations.
@@ -1794,62 +1917,6 @@ class TimeString(TimeUnique):
         """
         return str_fmt.format(**kwargs)
 
-    @staticmethod
-    def _field_width(spec, values):
-        """Fixed character width of an integer format ``spec`` over ``values``.
-
-        Returns ``(width, signed)``, or ``(None, None)`` when the field cannot
-        be built as a fixed-width column (e.g. a bare ``d`` whose values do not
-        all have the same number of digits), signalling that the caller should
-        fall back to formatting element by element.
-
-        Parameters
-        ----------
-        spec : str
-            The format spec portion of a ``{name:spec}`` replacement field,
-            e.g. ``"d"``, ``"02d"``, or ``"+06d"``.
-        values : ndarray of int
-            The integer values that will be formatted under this spec.
-
-        Returns
-        -------
-        width : int or None
-            Fixed character width of the field, or ``None`` if the field
-            cannot be rendered at a uniform width by this function.
-        signed : bool or None
-            ``True`` if the first character is an explicit ``'+'``/``'-'``
-            sign, ``False`` if the field is unsigned, or ``None`` when
-            ``width`` is ``None``.
-        """
-        match = _INT_SPEC.fullmatch(spec)
-        if match is None:
-            return None, None
-        sign, zero, digits = match.group(1, 2, 3)
-        if digits:
-            # We build columns by zero-padding, so a fixed width without the
-            # "0" flag (which pads with spaces) is left to the per-element path.
-            # And "real" formatting widens the field when a value does not fit,
-            # so a value needing more characters than ``width`` would be silently
-            # truncated in our fixed-width column; fall back in that (rare) case
-            # too -- e.g. a year past 9999 in the signed FITS ``{year:+06d}``.
-            width = int(digits)
-            signed = sign == "+"
-            fits = zero
-            if zero and values.size:
-                n_sign = 1 if signed or int(values.min()) < 0 else 0
-                fits = len(str(int(np.abs(values).max()))) + n_sign <= width
-            return (width, signed) if fits else (None, None)
-        # A bare "d" has no field width, so the width follows the values and we
-        # can only pre-size the column if they share a digit count and need no
-        # sign (a forced "+" or a negative value would make the width vary too).
-        if values.size == 0:
-            return 1, False
-        low = int(values.min())
-        lo = len(str(low))
-        hi = len(str(int(values.max())))
-        if sign or low < 0 or lo != hi:
-            return None, None
-        return hi, False
 
     def _value_fast(self, str_fmt):
         """Build the output strings for ``str_fmt`` with array operations.
@@ -1888,45 +1955,7 @@ class TimeString(TimeUnique):
         if "{yday:" in str_fmt:
             fields["yday"] = _day_of_year(fields["year"], fields["mon"], fields["day"])
 
-        # Split the template into literal text and replacement fields, recording
-        # the fixed width of each piece so the whole row fits one buffer.
-        pieces = []
-        width = 0
-        pos = 0
-        for match in _SUBFMT_FIELD.finditer(str_fmt):
-            if match.start() > pos:
-                literal = str_fmt[pos : match.start()]
-                pieces.append((literal, None, None))
-                width += len(literal)
-            name, spec = match.group(1, 2)
-            if name not in fields:
-                return None
-            field_width, signed = self._field_width(spec, fields[name])
-            if field_width is None:
-                return None
-            pieces.append((fields[name], field_width, signed))
-            width += field_width
-            pos = match.end()
-        if pos < len(str_fmt):
-            literal = str_fmt[pos:]
-            pieces.append((literal, None, None))
-            width += len(literal)
-
-        # Write each piece into its slice of a single code-point buffer, then
-        # reinterpret the rows as fixed-width unicode strings.
-        buf = np.empty(fields["year"].shape + (width,), dtype=np.uint32)
-        col = 0
-        for value, field_width, signed in pieces:
-            if field_width is None:  # literal text
-                buf[..., col : col + len(value)] = [ord(char) for char in value]
-                col += len(value)
-            else:
-                _write_decimal(
-                    buf[..., col : col + field_width], value, field_width, signed
-                )
-                col += field_width
-
-        return buf.view(f"U{width}").reshape(self.jd1.shape)
+        return _format_template(str_fmt, fields, self.jd1.shape)
 
     @property
     def value(self):
