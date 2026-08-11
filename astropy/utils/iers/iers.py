@@ -564,9 +564,15 @@ class IERS(QTable):
         ysin, ycos = oceans["YSIN"], oceans["YCOS"]
         utsin, utcos = oceans["UTSIN"], oceans["UTCOS"]
 
-        cor_x = np.sum(xsin[:, None] * sin_ag + xcos[:, None] * cos_ag, axis=0)
-        cor_y = np.sum(ysin[:, None] * sin_ag + ycos[:, None] * cos_ag, axis=0)
-        cor_ut1 = np.sum(utsin[:, None] * sin_ag + utcos[:, None] * cos_ag, axis=0)
+        cor_x = np.sum(
+            xsin[:, np.newaxis] * sin_ag + xcos[:, np.newaxis] * cos_ag, axis=0
+        )
+        cor_y = np.sum(
+            ysin[:, np.newaxis] * sin_ag + ycos[:, np.newaxis] * cos_ag, axis=0
+        )
+        cor_ut1 = np.sum(
+            utsin[:, np.newaxis] * sin_ag + utcos[:, np.newaxis] * cos_ag, axis=0
+        )
 
         cor_x = np.reshape(cor_x, rjd.shape)
         cor_y = np.reshape(cor_y, rjd.shape)
