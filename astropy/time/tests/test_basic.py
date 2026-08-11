@@ -1044,26 +1044,28 @@ class TestSubFormat:
 
     def test_string_field_width(self):
         """Integer specs that can/can't be built as a fixed-width column."""
+        from astropy.time.formats import _field_width
+
         vals = np.array([2003, 2004])
         # Specs used by the built-in templates take the fast path when the
         # values fit in the field.
-        assert TimeString._field_width("d", vals) == (4, False)
-        assert TimeString._field_width("02d", np.array([1, 12])) == (2, False)
-        assert TimeString._field_width("+06d", vals) == (6, True)
-        assert TimeString._field_width("d", np.array([], dtype=int)) == (1, False)
+        assert _field_width("d", vals) == (4, False)
+        assert _field_width("02d", np.array([1, 12])) == (2, False)
+        assert _field_width("+06d", vals) == (6, True)
+        assert _field_width("d", np.array([], dtype=int)) == (1, False)
         # Anything we would format wrongly by zero-padding is left to the loop:
         # space padding, a bare width that varies, negatives, or a sign with no
         # width, as well as non-integer specs.
-        assert TimeString._field_width("6d", vals) == (None, None)
-        assert TimeString._field_width("d", np.array([99, 2003])) == (None, None)
-        assert TimeString._field_width("d", np.array([-5, 5])) == (None, None)
-        assert TimeString._field_width("+d", vals) == (None, None)
-        assert TimeString._field_width(".3f", vals) == (None, None)
+        assert _field_width("6d", vals) == (None, None)
+        assert _field_width("d", np.array([99, 2003])) == (None, None)
+        assert _field_width("d", np.array([-5, 5])) == (None, None)
+        assert _field_width("+d", vals) == (None, None)
+        assert _field_width(".3f", vals) == (None, None)
         # A value too wide for its zero-padded field would be truncated, so it
         # falls back too rather than silently dropping digits.
-        assert TimeString._field_width("02d", np.array([1, 100])) == (None, None)
-        assert TimeString._field_width("04d", np.array([12345])) == (None, None)
-        assert TimeString._field_width("+06d", np.array([100002])) == (None, None)
+        assert _field_width("02d", np.array([1, 100])) == (None, None)
+        assert _field_width("04d", np.array([12345])) == (None, None)
+        assert _field_width("+06d", np.array([100002])) == (None, None)
 
     def test_string_fits_very_large_years(self, monkeypatch):
         """A year too wide for the FITS ``+06d`` field falls back and stays correct."""
