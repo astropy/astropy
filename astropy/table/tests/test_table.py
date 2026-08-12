@@ -1498,6 +1498,20 @@ def test_sort_kind(kwargs):
     assert np.all(t.as_array() == np.sort(t_struct, **kwargs))
 
 
+@pytest.mark.parametrize("kind", [None, "stable", "mergesort", "quicksort", "heapsort"])
+def test_sort_kind_single_key(kind):
+    """A single key column with a single sortable array passes ``kind``
+    through directly to `numpy.argsort`, for any valid `numpy.argsort`
+    ``kind`` value.
+    """
+    t = Table()
+    t["a"] = [2, 1, 3, 2, 3, 1]
+    a_struct = t["a"].copy()
+    i = t.argsort("a", kind=kind)
+    kwargs = {"kind": kind} if kind else {}
+    assert np.all(i == np.argsort(a_struct, **kwargs))
+
+
 @pytest.mark.usefixtures("table_types")
 class TestIterator:
     def test_iterator(self, table_types):

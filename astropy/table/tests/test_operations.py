@@ -2505,6 +2505,34 @@ def test_argsort_time_column():
     assert np.all(i == times.argsort())
 
 
+def test_argsort_multiple_keys_with_time_column():
+    """Regression test for gh-14942.
+
+    ``Table.argsort()`` uses ``col.info.get_sortable_arrays()`` for each key
+    column so that mixin columns like ``Time`` are sorted efficiently and
+    correctly, even when combined with other key columns.
+    """
+    times = Time(["2018-01-01", "2018-01-01", "2017-01-01", "2016-01-01"])
+    idx = [1, 0, 1, 0]
+    t = Table([times, idx], names=["time", "idx"])
+
+    # Sort primarily by 'time', secondarily by 'idx'.
+    i = t.argsort(["time", "idx"])
+    assert np.all(i == [3, 2, 1, 0])
+
+    # Sort primarily by 'idx', secondarily by 'time'.
+    i = t.argsort(["idx", "time"])
+    assert np.all(i == [3, 1, 2, 0])
+
+
+def test_argsort_non_sortable_mixin_raises():
+    """Columns without ``info.get_sortable_arrays()`` raise a clear TypeError."""
+    sc = SkyCoord([1, 2, 3], [4, 5, 6], unit="deg,deg")
+    t = Table([sc, [1, 2, 3]], names=["sc", "a"])
+    with pytest.raises(TypeError, match="column 'sc' is not sortable"):
+        t.argsort("sc")
+
+
 def test_sort_indexed_table():
     """Test fix for #9473 and #6545 - and another regression test for #10823."""
     t = Table([[1, 3, 2], [6, 4, 5]], names=("a", "b"))
