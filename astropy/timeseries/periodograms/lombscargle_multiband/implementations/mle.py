@@ -85,8 +85,8 @@ def periodic_fit(
         The frequency at which to compute the model
     t_fit : float or array-like
         The times at which the fit should be computed
-    bands_fit : array-like or str
-        Bands to use in the fit, must be a subset of the bands in the input data
+    bands_fit : array-like
+        The unique bands to use in the fit, must be a subset of the bands in the input data
     center_data : bool (default=True)
         If True, center the input data before applying the fit
     nterms_base : int (default=1)
