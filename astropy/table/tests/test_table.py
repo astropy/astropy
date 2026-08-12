@@ -6,7 +6,6 @@ import os
 import pathlib
 import pickle
 import sys
-import warnings
 from collections import OrderedDict
 from contextlib import nullcontext
 from inspect import currentframe, getframeinfo
@@ -1494,32 +1493,21 @@ def test_sort_kind(kwargs):
     t["a"] = [2, 1, 3, 2, 3, 1]
     t["b"] = [6, 5, 4, 3, 5, 4]
     t_struct = t.as_array()
-    # Since sort calls Table.argsort this covers `kind` for both methods.
-    # Sorting on multiple keys always uses np.lexsort, which ignores `kind`
-    # except for `None`, "stable" or "mergesort", so a warning is issued for
-    # any other value (e.g. "quicksort").
-    ctx = (
-        pytest.warns(AstropyUserWarning, match="'kind' argument 'quicksort'")
-        if kwargs.get("kind") == "quicksort"
-        else nullcontext()
-    )
-    with ctx:
-        t.sort(["a", "b"], **kwargs)
+    # Since sort calls Table.argsort this covers `kind` for both methods
+    t.sort(["a", "b"], **kwargs)
     assert np.all(t.as_array() == np.sort(t_struct, **kwargs))
 
 
 @pytest.mark.parametrize("kind", [None, "stable", "mergesort", "quicksort", "heapsort"])
 def test_sort_kind_single_key(kind):
     """A single key column with a single sortable array passes ``kind``
-    through directly to `numpy.argsort` with no warning, for any valid
-    `numpy.argsort` ``kind`` value.
+    through directly to `numpy.argsort`, for any valid `numpy.argsort`
+    ``kind`` value.
     """
     t = Table()
     t["a"] = [2, 1, 3, 2, 3, 1]
     a_struct = t["a"].copy()
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        i = t.argsort("a", kind=kind)
+    i = t.argsort("a", kind=kind)
     kwargs = {"kind": kind} if kind else {}
     assert np.all(i == np.argsort(a_struct, **kwargs))
 

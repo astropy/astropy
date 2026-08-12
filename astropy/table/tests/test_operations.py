@@ -39,7 +39,6 @@ from astropy.utils.compat.optional_deps import (
     HAS_PANDAS,
     HAS_SCIPY,
 )
-from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MergeConflictError
 
@@ -2524,20 +2523,6 @@ def test_argsort_multiple_keys_with_time_column():
     # Sort primarily by 'idx', secondarily by 'time'.
     i = t.argsort(["idx", "time"])
     assert np.all(i == [3, 1, 2, 0])
-
-
-@pytest.mark.parametrize("kind", [None, "stable", "mergesort", "quicksort"])
-def test_argsort_kind_warning_multiple_keys(kind):
-    """``kind`` is ignored (with a warning) for multi-key/lexsort argsort."""
-    t = Table([[2, 1, 3], [6, 5, 4]], names=["a", "b"])
-    ctx = (
-        pytest.warns(AstropyUserWarning, match="'kind' argument")
-        if kind not in (None, "stable", "mergesort")
-        else nullcontext()
-    )
-    with ctx:
-        i = t.argsort(["a", "b"], kind=kind)
-    assert np.all(i == t.argsort(["a", "b"]))
 
 
 def test_argsort_non_sortable_mixin_raises():

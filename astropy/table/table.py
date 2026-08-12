@@ -3582,14 +3582,9 @@ class Table:
         keys : str or list of str
             The column name(s) to order the table by
         kind : {'quicksort', 'mergesort', 'heapsort', 'stable'}, optional
-            Sorting algorithm used by `numpy.argsort`.  This is only used
-            when sorting on a single key column that provides a single
-            sortable array.  For multiple key columns, or a single mixin
-            column (like ``Time``) that expands into multiple sortable
-            arrays, sorting is always done with `numpy.lexsort`, which
-            implements a stable sort and does not accept a ``kind`` argument.
-            In that case a value of ``kind`` other than `None`, ``'stable'``,
-            or ``'mergesort'`` is ignored and triggers a warning.
+            Passed on to `numpy.argsort` if sorting is on a single column,
+            ignored for sorting on multiple columns (including mixin columns
+            that expand into multiple sortable arrays, like |Time|).
         reverse : bool
             Sort in reverse order (default=False)
 
@@ -3627,15 +3622,6 @@ class Table:
             kwargs = {"kind": kind} if kind else {}
             idx = np.argsort(sortable_arrays[0], **kwargs)
         else:
-            if kind is not None and kind not in ("stable", "mergesort"):
-                warnings.warn(
-                    f"argsort() 'kind' argument {kind!r} is ignored when "
-                    "sorting on multiple columns, or on a mixin column that "
-                    "expands into multiple sortable arrays, since "
-                    "numpy.lexsort always performs a stable sort",
-                    AstropyUserWarning,
-                    stacklevel=2,
-                )
             # np.lexsort treats its last argument as the primary sort key,
             # while the sortable arrays are ordered from most to least
             # significant, so reverse the order before calling lexsort.
