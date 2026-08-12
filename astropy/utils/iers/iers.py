@@ -484,11 +484,75 @@ class IERS(QTable):
         pre, _, gravi = interp.rpartition("data(")
         oceans = pre.partition("data(")[2]
 
-        return self._parse_interp_data_block(oceans)
+        oceans = self._parse_interp_data_block(oceans)
+        gravi = self._parse_interp_data_block(gravi)
 
-    def _pmut1_oceans_tide_correction(self, rjd):
-        oceans = self._read_interp_oceans_data()
+        return oceans, gravi
 
+    def _pmut1_oceans(self, oceans, arg):
+        oceans_arg = np.stack(
+            [
+                oceans["NARG1"],
+                oceans["NARG2"],
+                oceans["NARG3"],
+                oceans["NARG4"],
+                oceans["NARG5"],
+                oceans["NARG6"],
+            ],
+            axis=1,
+        )
+
+        ag = oceans_arg @ arg
+        sin_ag = np.sin(ag)
+        cos_ag = np.cos(ag)
+
+        xsin, xcos = oceans["XSIN"], oceans["XCOS"]
+        ysin, ycos = oceans["YSIN"], oceans["YCOS"]
+        utsin, utcos = oceans["UTSIN"], oceans["UTCOS"]
+
+        cor_x = np.sum(
+            xsin[:, np.newaxis] * sin_ag + xcos[:, np.newaxis] * cos_ag, axis=0
+        )
+        cor_y = np.sum(
+            ysin[:, np.newaxis] * sin_ag + ycos[:, np.newaxis] * cos_ag, axis=0
+        )
+        cor_ut1 = np.sum(
+            utsin[:, np.newaxis] * sin_ag + utcos[:, np.newaxis] * cos_ag, axis=0
+        )
+
+        return cor_x * 1e-6, cor_y * 1e-6, cor_ut1 * 1e-6
+
+    def _gravi(self, gravi, arg):
+        gravi_arg = np.stack(
+            [
+                gravi["NARG1"],
+                gravi["NARG2"],
+                gravi["NARG3"],
+                gravi["NARG4"],
+                gravi["NARG5"],
+                gravi["NARG6"],
+            ],
+            axis=1,
+        )
+
+        ag = gravi_arg @ arg
+        ag = np.mod(ag, 2 * np.pi)
+        sinag, cosag = np.sin(ag), np.cos(ag)
+
+        xcos, ycos = gravi["XCOS"], gravi["YCOS"]
+        xsin, ysin = gravi["XSIN"], gravi["YSIN"]
+
+        cor_x = np.sum(
+            xsin[:, np.newaxis] * sinag + xcos[:, np.newaxis] * cosag, axis=0
+        )
+        cor_y = np.sum(
+            ysin[:, np.newaxis] * sinag + ycos[:, np.newaxis] * cosag, axis=0
+        )
+
+        return cor_x * 1e-6, cor_y * 1e-6
+
+    def _interp_tide_correction(self, rjd):
+        oceans, gravi = self._read_interp_oceans_data()
         secrad = np.pi / (180 * 3600)
 
         rjd_flat = np.ravel(rjd)
@@ -544,41 +608,16 @@ class IERS(QTable):
         arg = np.array([chi, L, Lp, cap_f, cap_d, omega])
         arg = np.mod(arg, 1296000) * secrad
 
-        oceans_arg = np.stack(
-            [
-                oceans["NARG1"],
-                oceans["NARG2"],
-                oceans["NARG3"],
-                oceans["NARG4"],
-                oceans["NARG5"],
-                oceans["NARG6"],
-            ],
-            axis=1,
-        )
+        oceans_corx, oceans_cory, corut1 = self._pmut1_oceans(oceans, arg)
+        gravi_corx, gravi_cory = self._gravi(gravi, arg)
 
-        ag = oceans_arg @ arg
-        sin_ag = np.sin(ag)
-        cos_ag = np.cos(ag)
+        corx, cory = oceans_corx + gravi_corx, oceans_cory + gravi_cory
 
-        xsin, xcos = oceans["XSIN"], oceans["XCOS"]
-        ysin, ycos = oceans["YSIN"], oceans["YCOS"]
-        utsin, utcos = oceans["UTSIN"], oceans["UTCOS"]
+        corx = corx.reshape(rjd.shape)
+        cory = cory.reshape(rjd.shape)
+        corut1 = corut1.reshape(rjd.shape)
 
-        cor_x = np.sum(
-            xsin[:, np.newaxis] * sin_ag + xcos[:, np.newaxis] * cos_ag, axis=0
-        )
-        cor_y = np.sum(
-            ysin[:, np.newaxis] * sin_ag + ycos[:, np.newaxis] * cos_ag, axis=0
-        )
-        cor_ut1 = np.sum(
-            utsin[:, np.newaxis] * sin_ag + utcos[:, np.newaxis] * cos_ag, axis=0
-        )
-
-        cor_x = np.reshape(cor_x, rjd.shape)
-        cor_y = np.reshape(cor_y, rjd.shape)
-        cor_ut1 = np.reshape(cor_ut1, rjd.shape)
-
-        return cor_x * 1e-6, cor_y * 1e-6, cor_ut1 * 1e-6
+        return corx, cory, corut1
 
     def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
@@ -606,39 +645,45 @@ class IERS(QTable):
         i1_tides = np.clip(i + 1, 3, len(self) - 1)
         i0_tides = i1_tides - 3
 
+        tide_corr = {}
+        if interpolation == "tides":
+            dx, dy, dt = self._interp_tide_correction(mjd + utc)
+            tide_corr = {"PM_x": dx, "PM_y": dy, "UT1_UTC": dt}
+
         results = []
         for column in columns:
             # TODO: expand tides interpolation to other columns than UT1_UTC
-            if interpolation == "tides" and column == "UT1_UTC":
+            if column in tide_corr:
                 indices = (
                     np.arange(4)[:, *([None] * len(i0_tides.shape))] + i0_tides[None]
                 )
                 mjds = self["MJD"][indices].value
                 vals = self[column][indices].value
 
-                # transform to ut1-tai by subtracting the leap seconds
-                leap_seconds = np.round(np.diff(vals, axis=0, prepend=vals[:1]))
-                leap_seconds = np.cumsum(leap_seconds, axis=0)
-                vals -= leap_seconds
+                if column == "UT1_UTC":
+                    # transform to ut1-tai by subtracting the leap seconds
+                    leap_seconds = np.round(np.diff(vals, axis=0, prepend=vals[:1]))
+                    leap_seconds = np.cumsum(leap_seconds, axis=0)
+                    vals -= leap_seconds
 
                 # Lagrange interpolation
                 vals = self._lagrange_interp(mjds, vals, mjd + utc)
 
-                # correct for ocean tides
-                _, _, dt = self._pmut1_oceans_tide_correction(mjd + utc)
-                vals += dt
+                # Correct for ocean tides
+                vals += tide_corr[column]
 
-                # transform back to ut1-utc by adding the leap seconds
-                leap_seconds = np.take_along_axis(
-                    leap_seconds,
-                    (i - i0_tides - 1)[None],
-                    axis=0,
-                )[0]
-                vals += leap_seconds
+                if column == "UT1_UTC":
+                    # transform back to ut1-utc by adding the leap seconds
+                    leap_seconds = np.take_along_axis(
+                        leap_seconds,
+                        (i - i0_tides - 1)[None],
+                        axis=0,
+                    )[0]
+                    vals += leap_seconds
 
                 val = vals * self[column].unit
 
-            elif interpolation == "linear" or column != "UT1_UTC":
+            else:
                 mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
                 val_0, val_1 = self[column][i0], self[column][i1]
                 d_val = val_1 - val_0

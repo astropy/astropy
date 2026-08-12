@@ -127,8 +127,11 @@ class TestIERS_AExcerpt:
     def teardown_class(cls):
         iers.IERS_A.close()
 
-    @pytest.mark.parametrize("interpolation", ("linear", "tides"))
-    def test_simple(self, interpolation):
+    @pytest.mark.parametrize(
+        "interpolation,pmxy_atol",
+        [("linear", 0.1 * u.marcsec), ("tides", 0.3 * u.marcsec)],
+    )
+    def test_simple(self, interpolation, pmxy_atol):
         # Test the IERS A reader. It is also a regression tests that ensures
         # values do not get overridden by IERS B; see #4933.
         iers_tab = iers.IERS_A.open(IERS_A_EXCERPT)
@@ -194,10 +197,10 @@ class TestIERS_AExcerpt:
             assert status[0] == iers.FROM_IERS_B
             assert np.all(status[1:] == iers.FROM_IERS_A)
             assert_quantity_allclose(
-                pm_x, [0.003734, 0.004581, 0.004623] * u.arcsec, atol=0.1 * u.marcsec
+                pm_x, [0.003734, 0.004581, 0.004623] * u.arcsec, atol=pmxy_atol
             )
             assert_quantity_allclose(
-                pm_y, [0.310824, 0.313150, 0.315517] * u.arcsec, atol=0.1 * u.marcsec
+                pm_y, [0.310824, 0.313150, 0.315517] * u.arcsec, atol=pmxy_atol
             )
 
             # Table behaves properly as a table (e.g. can be sliced)
