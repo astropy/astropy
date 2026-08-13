@@ -79,7 +79,7 @@ def periodic_fit(
     ----------
     t, y, dy : float or array-like
         The times, observations, and uncertainties to fit
-    bands : str, or array-like
+    bands : array-like
         The bands of each observation
     frequency : float
         The frequency at which to compute the model
