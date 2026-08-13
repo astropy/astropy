@@ -23,7 +23,7 @@ from astropy.units.tests.test_quantity_non_ufuncs import (
     get_covered_functions,
     get_wrapped_functions,
 )
-from astropy.utils.compat import NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
+from astropy.utils.compat import NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4, NUMPY_LT_2_6
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.masked.function_helpers import (
     APPLY_TO_BOTH_FUNCTIONS,
@@ -900,11 +900,26 @@ class TestArrayAPI:
     def check(self, func, *args, **kwargs):
         out = func(self.ma, *args, **kwargs)
         expected = func(self.a, *args, **kwargs)
-        assert type(out) is MaskedNDArray
-        assert out.dtype.kind == "f"
-        assert_array_equal(out.unmasked, expected)
-        assert_array_equal(out.mask, self.mask_a)
-        assert not np.may_share_memory(out.mask, self.mask_a)
+
+        if isinstance(expected, tuple):
+            assert isinstance(out, tuple)
+        else:
+            out = (out,)
+            expected = (expected,)
+
+        MASK_FROM_INDICES_FUNCTIONS = {"top_k"}
+        for ma, e in zip(out, expected, strict=True):
+            assert type(ma) is MaskedNDArray
+            assert ma.dtype == e.dtype
+            assert_array_equal(ma.unmasked, e)
+            assert not np.may_share_memory(ma.mask, self.mask_a)
+
+            if func.__name__ in MASK_FROM_INDICES_FUNCTIONS:
+                continue
+
+            assert_array_equal(ma.mask, self.mask_a)
+
+        return out, expected
 
     @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_prod is new in NumPy 2.1")
     def test_cumulative_prod(self):
@@ -913,6 +928,19 @@ class TestArrayAPI:
     @pytest.mark.skipif(NUMPY_LT_2_1, reason="np.cumulative_sum is new in NumPy 2.1")
     def test_cumulative_sum(self):
         self.check(np.cumulative_sum, axis=0)
+
+    @pytest.mark.skipif(NUMPY_LT_2_6, reason="np.top_k is new in Numpy 2.6")
+    def test_top_k(self):
+        out, expected = self.check(np.top_k, self.mask_a.shape[-1], axis=-1)
+
+        assert len(out) == len(expected)
+        assert len(out) == 2
+        arr, indices = out
+
+        assert_array_equal(
+            arr.mask,
+            np.take_along_axis(self.mask_a, indices, axis=-1),
+        )
 
 
 class TestOuterLikeFunctions(MaskedArraySetup):
