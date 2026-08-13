@@ -24,6 +24,7 @@ from .convenience import table_to_hdu
 from .hdu.hdulist import FITS_SIGNATURE
 from .hdu.hdulist import fitsopen as fits_open
 from .util import first
+from .verify import VerifyError
 
 # Keywords to remove for all tables that are read in
 REMOVE_KEYWORDS = [
@@ -505,6 +506,11 @@ def write_table_fits(input, output, overwrite=False, append=False, name=None):
     """
     # Encode any mixin columns into standard Columns.
     input = _encode_mixins(input)
+
+    if (n_columns := len(input.columns)) > 999:
+        raise VerifyError(
+            f"FITS tables cannot contain more than 999 columns (got {n_columns})"
+        )
 
     table_hdu = table_to_hdu(input, character_as_bytes=True, name=name)
 
