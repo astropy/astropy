@@ -65,7 +65,7 @@ def enable():
     `~astropy.units.UnitBase.find_equivalent_units` and
     `~astropy.units.UnitBase.compose`.
 
-    This may be used with the ``with`` statement to enable deprecated
-    units only temporarily.
+    This may be used with the ``with`` statement or as a decorator
+    to enable deprecated units only temporarily.
     """
     return add_enabled_units(local_units)

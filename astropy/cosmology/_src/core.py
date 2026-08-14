@@ -289,7 +289,7 @@ class Cosmology(metaclass=ABCMeta):
     # comparison methods
 
     def is_equivalent(
-        self, other: Any, /, *, format: bool | None | str = False
+        self, other: Any, /, *, format: bool | str | None = False
     ) -> bool:
         r"""Check equivalence between Cosmologies.
 

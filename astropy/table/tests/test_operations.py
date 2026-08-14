@@ -1540,11 +1540,23 @@ class TestVStack:
         assert out["c"].info.format == "%6s"
         assert out["c"].info.description == "t2_c"
 
-    def test_vstack_one_table(self, operation_table_type):
+    @pytest.mark.parametrize("as_list", [False, True])
+    def test_vstack_one_table(self, operation_table_type, as_list):
+        """Regression tests for issues #3313 and #18910."""
         self._setup(operation_table_type)
-        """Regression test for issue #3313"""
-        assert (self.t1 == table.vstack(self.t1)).all()
-        assert (self.t1 == table.vstack([self.t1])).all()
+        self.t1.meta["my_special_value"] = 42
+
+        tables = [self.t1] if as_list else self.t1
+        out = table.vstack(tables)
+
+        assert type(out) is type(self.t1)
+        assert out is not self.t1
+        assert (self.t1 == out).all()
+
+        out["a"][0] = 10
+        out.meta = {"my_special_value": 17}
+        assert self.t1["a"][0] == 0
+        assert self.t1.meta["my_special_value"] == 42
 
     @pytest.mark.parametrize("empty_table1", [False, True])
     @pytest.mark.parametrize("empty_table2", [False, True])
@@ -2491,6 +2503,34 @@ def test_argsort_time_column():
     t = Table([times], names=["time"])
     i = t.argsort("time")
     assert np.all(i == times.argsort())
+
+
+def test_argsort_multiple_keys_with_time_column():
+    """Regression test for gh-14942.
+
+    ``Table.argsort()`` uses ``col.info.get_sortable_arrays()`` for each key
+    column so that mixin columns like ``Time`` are sorted efficiently and
+    correctly, even when combined with other key columns.
+    """
+    times = Time(["2018-01-01", "2018-01-01", "2017-01-01", "2016-01-01"])
+    idx = [1, 0, 1, 0]
+    t = Table([times, idx], names=["time", "idx"])
+
+    # Sort primarily by 'time', secondarily by 'idx'.
+    i = t.argsort(["time", "idx"])
+    assert np.all(i == [3, 2, 1, 0])
+
+    # Sort primarily by 'idx', secondarily by 'time'.
+    i = t.argsort(["idx", "time"])
+    assert np.all(i == [3, 1, 2, 0])
+
+
+def test_argsort_non_sortable_mixin_raises():
+    """Columns without ``info.get_sortable_arrays()`` raise a clear TypeError."""
+    sc = SkyCoord([1, 2, 3], [4, 5, 6], unit="deg,deg")
+    t = Table([sc, [1, 2, 3]], names=["sc", "a"])
+    with pytest.raises(TypeError, match="column 'sc' is not sortable"):
+        t.argsort("sc")
 
 
 def test_sort_indexed_table():

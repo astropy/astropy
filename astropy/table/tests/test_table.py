@@ -1498,6 +1498,20 @@ def test_sort_kind(kwargs):
     assert np.all(t.as_array() == np.sort(t_struct, **kwargs))
 
 
+@pytest.mark.parametrize("kind", [None, "stable", "mergesort", "quicksort", "heapsort"])
+def test_sort_kind_single_key(kind):
+    """A single key column with a single sortable array passes ``kind``
+    through directly to `numpy.argsort`, for any valid `numpy.argsort`
+    ``kind`` value.
+    """
+    t = Table()
+    t["a"] = [2, 1, 3, 2, 3, 1]
+    a_struct = t["a"].copy()
+    i = t.argsort("a", kind=kind)
+    kwargs = {"kind": kind} if kind else {}
+    assert np.all(i == np.argsort(a_struct, **kwargs))
+
+
 @pytest.mark.usefixtures("table_types")
 class TestIterator:
     def test_iterator(self, table_types):
@@ -2471,6 +2485,40 @@ def test_deepcopy_object_column(data):
     assert c3 is not c1
     assert c3[0] is c1[0]
     assert t3.meta["test"] is not t1.meta["test"]
+
+
+@pytest.mark.parametrize("masked", [False, True], ids=["unmasked", "masked"])
+def test_deepcopy_rename_columns(masked):
+    # Regression test for #20087 for unmasked and masked tables: renaming
+    # columns of a deep-copied Table must keep column mapping in sync.
+    t = Table({"px": [1.0, 2.0], "py": [3.0, 4.0]}, masked=masked)
+    if masked:
+        t["px"].mask = [False, True]
+
+    td = copy.deepcopy(t)
+
+    # Deep-copied columns must be linked to the copied table.
+    for name in td.colnames:
+        assert td[name].info.parent_table is td
+        assert td[name].parent_table is td
+
+    td.rename_columns(["px", "py"], ["x", "y"])
+    assert td.colnames == ["x", "y"]
+    assert_array_equal(td["x"].data, [1.0, 2.0])
+    assert_array_equal(td["y"].data, [3.0, 4.0])
+    if masked:
+        assert_array_equal(td["x"].mask, [False, True])
+        assert_array_equal(td["y"].mask, [False, False])
+
+    # renaming via the info name setter works too
+    td["x"].info.name = "xx"
+    assert td.colnames == ["xx", "y"]
+
+    # the original table is unaffected
+    assert t.colnames == ["px", "py"]
+    assert_array_equal(t["px"].data, [1.0, 2.0])
+    if masked:
+        assert_array_equal(t["px"].mask, [False, True])
 
 
 def test_replace_column_qtable():

@@ -1,0 +1,7 @@
+``Table.argsort()`` and ``Table.sort()`` now use ``col.info.get_sortable_arrays()``
+to sort each key column, instead of building a structured array via
+``Table.as_array()``. This is over 1000x faster for multi-key sorts that include a
+mixin column like ``Time``, since it avoids falling back to slow object-array
+comparisons, and is also a few times faster for plain multi-column sorts. As part of
+this change, ``Time.info.get_sortable_arrays()`` was also sped up to avoid
+constructing an intermediate ``Time`` object.

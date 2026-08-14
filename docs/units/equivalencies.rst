@@ -723,6 +723,16 @@ To enable radians to be treated as a dimensionless unit use
   >>> c  # doctest: +FLOAT_CMP
   <Quantity -1.+1.2246468e-16j>
 
+Alternatively :func:`~astropy.units.set_enabled_equivalencies` can also be
+used as a `decorator <https://docs.python.org/3/glossary.html#term-decorator>`_:
+to enable an equivalency for a whole function, but not globally:
+
+  >>> @u.set_enabled_equivalencies(u.dimensionless_angles())
+  ... def tangential_velocity(distance, proper_motion):
+  ...     return (distance * proper_motion).to("km/s")
+  >>> tangential_velocity(1*u.kpc, 1.0 * u.mas / u.yr)  # doctest: +FLOAT_CMP
+  <Quantity 4.74047046 km / s>
+
 To permanently and globally enable radians to be treated as a dimensionless
 unit use :func:`~astropy.units.set_enabled_equivalencies` not as a context
 manager:

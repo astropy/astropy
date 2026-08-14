@@ -10,6 +10,7 @@ import textwrap
 import unicodedata
 import warnings
 from collections.abc import Collection, Iterable, Mapping, MutableMapping, Sequence
+from contextlib import ContextDecorator
 from functools import cached_property
 from threading import RLock
 from types import TracebackType
@@ -69,6 +70,8 @@ _WARNING_ACTIONS: Final[dict[str, str]] = {
     "warn": "default",
     "raise": "error",
 }
+
+_CONVERTER_CACHE = {}
 
 
 class UnitBase:
@@ -365,7 +368,11 @@ class UnitBase:
 
     @cached_property
     def _hash(self) -> int:
-        return hash((self.scale, *[x.name for x in self.bases], *map(str, self.powers)))
+        # if we're just a wrapper around another unit, let our hash be the same
+        # as that unit's.
+        if self.scale == 1 and len(self.powers) == 1 and self.powers[0] == 1:
+            return hash(self.bases[0])
+        return hash((self.scale, *self.bases, *self.powers))
 
     def __getstate__(self) -> dict[str, object]:
         # If we get pickled, we should *not* store the memoized members since
@@ -553,18 +560,30 @@ class UnitBase:
         different units. Note that the function returned takes
         and returns values, not quantities.
         """
-        # First see if it is just a scaling.
+        return self._get_converter(Unit(other), equivalencies=equivalencies)
+
+    def _get_converter(self, other, equivalencies=[]):
+        # Private function of above that requires other to be a Unit.
+        # Check if we have cached this -- we do this only with simple
+        # scalings, since equivalencies can come and go.
+        if (converter := _CONVERTER_CACHE.get((self, other))) is not None:
+            return converter
+        # If not cached, first see if it is just a scaling.
         try:
             scale = self._to(other)
         except UnitsError:
             pass
         else:
+            # Yes, it is a simple scaling.
             if scale == 1.0:
                 # If no conversion is necessary, returns ``unit_scale_converter``
                 # (which is used as a check in quantity helpers).
-                return unit_scale_converter
+                converter = unit_scale_converter
             else:
-                return lambda val: scale * _condition_arg(val)
+                converter = lambda val: scale * _condition_arg(val)
+            # Cache the converter before returning it.
+            _CONVERTER_CACHE[(self, other)] = converter
+            return converter
 
         # if that doesn't work, maybe we can do it with equivalencies?
         try:
@@ -579,7 +598,7 @@ class UnitBase:
                 for funit, tunit, _, b in other.equivalencies:
                     if other is funit:
                         try:
-                            converter = self.get_converter(tunit, equivalencies)
+                            converter = self._get_converter(tunit, equivalencies)
                         except Exception:
                             pass
                         else:
@@ -656,7 +675,7 @@ class UnitBase:
         if other is self and value is UNITY:
             return UNITY
         else:
-            return self.get_converter(Unit(other), equivalencies)(value)
+            return self.get_converter(other, equivalencies)(value)
 
     @deprecated(since="7.0", alternative="to()")
     def in_units(self, other, value=1.0, equivalencies=[]):
@@ -1250,11 +1269,13 @@ class _UnitRegistry:
             self.add_enabled_units(init)
             self.add_enabled_equivalencies(equivalencies)
             self.add_enabled_aliases(aliases)
+        self._parsed_units = {}
 
     def _reset_units(self) -> None:
         self._all_units = set()
         self._non_prefix_units = set()
         self._registry = {}
+        self._parsed_units = {}
         self._by_physical_type = {}
 
     def _reset_equivalencies(self) -> None:
@@ -1262,6 +1283,7 @@ class _UnitRegistry:
 
     def _reset_aliases(self) -> None:
         self._aliases = {}
+        self._parsed_units = {}
 
     @property
     def registry(self) -> dict[str, UnitBase]:
@@ -1442,7 +1464,7 @@ class _UnitRegistry:
                 self._aliases[alias] = unit
 
 
-class _UnitContext:
+class _UnitContext(ContextDecorator):
     def __init__(self, init=[], equivalencies=[]):
         _unit_registries.append(_UnitRegistry(init=init, equivalencies=equivalencies))
 
@@ -1473,7 +1495,7 @@ def set_enabled_units(units: object) -> _UnitContext:
     `UnitBase.find_equivalent_units`, for example.
 
     This may be used either permanently, or as a context manager using
-    the ``with`` statement (see example below).
+    the ``with`` statement or as a decorator (see examples below).
 
     Parameters
     ----------
@@ -1508,6 +1530,18 @@ def set_enabled_units(units: object) -> _UnitContext:
       pc           | 3.08568e+16 m   | parsec                           ,
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
     ]
+
+    The same could be done using the context as a decorator:
+
+    >>> @u.set_enabled_units([u.pc])
+    ... def print_equivalent_units(unit):
+    ...     print(unit.find_equivalent_units())
+    ...
+    >>> print_equivalent_units(u.m)
+      Primary name | Unit definition | Aliases
+    [
+      pc           | 3.08568e+16 m   | parsec  ,
+    ]
     """
     # get a context with a new registry, using equivalencies of the current one
     context = _UnitContext(equivalencies=get_current_unit_registry().equivalencies)
@@ -1524,7 +1558,7 @@ def add_enabled_units(units: object) -> _UnitContext:
     `UnitBase.find_equivalent_units`, for example.
 
     This may be used either permanently, or as a context manager using
-    the ``with`` statement (see example below).
+    the ``with`` statement or as a decorator (see examples below).
 
     Parameters
     ----------
@@ -1563,6 +1597,16 @@ def add_enabled_units(units: object) -> _UnitContext:
       solRad       | 6.957e+08 m     | R_sun, Rsun                      ,
       yd           | 0.9144 m        | yard                             ,
     ]
+
+    The same could be done using the context as a decorator:
+
+    >>> @u.add_enabled_units(imperial)
+    ... def print_equivalent_units(unit):
+    ...     print(unit.find_equivalent_units())
+    ...
+    >>> print_equivalent_units(u.m)
+          Primary name | Unit definition | Aliases
+    ...
     """
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
@@ -1907,6 +1951,10 @@ class IrreducibleUnit(NamedUnit):
             self.__getstate__(),
         )
 
+    @cached_property
+    def _hash(self) -> int:
+        return hash((self.name, self.__class__.__name__))
+
     @property
     def represents(self) -> Self:
         """The unit that this named unit represents.
@@ -2034,10 +2082,37 @@ class _UnitMetaClass(type):
                 s, represents, format=format, namespace=namespace, doc=doc
             )
 
-        if isinstance(s, (str, bytes)):
-            if len(s.strip()) == 0:
+        if isinstance(s, str):
+            s = s.strip()
+            if not s:
                 # Return the NULL unit
                 return dimensionless_unscaled
+
+            # For plain Unit(str) call, check if we saw this string before.
+            # Note that cache has to be on the current unit registry, since
+            # parsing depends on what units and aliases are defined.
+            if format is None and parse_strict == "raise":
+                _parsed_units = get_current_unit_registry()._parsed_units
+                if (unit := _parsed_units.get(s)) is not None:
+                    return unit
+
+                # Recurse, recording warnings, as we want to cache the result
+                # only if none are emitted (otherwise, on a next invocation we
+                # would use the cache and bypass the warnings machinery).
+                with _WARNING_LOCK, warnings.catch_warnings(record=True) as w:
+                    unit = cls(s, format="generic")
+                # Sadly, one cannot record without silencing, so replay any warnings.
+                for w_ in w:
+                    warnings.warn_explicit(
+                        message=w_.message,
+                        category=w_.category,
+                        filename=w_.filename,
+                        lineno=w_.lineno,
+                        source=w_.source,
+                    )
+                if not w:
+                    _parsed_units[s] = unit
+                return unit
 
             from .format import Generic, get_format
 
@@ -2048,8 +2123,6 @@ class _UnitMetaClass(type):
 
                 err.add_note(known_parsers())
                 raise err
-            if isinstance(s, bytes):
-                s = s.decode("ascii")
 
             try:
                 return f._validate_unit(s)  # Try a shortcut
@@ -2088,7 +2161,7 @@ class _UnitMetaClass(type):
                     # should use their name.
                     format_clause = "" if f is Generic else f.name + " "
                     msg = (
-                        f"'{s}' did not parse as {format_clause}unit: {str(e)} "
+                        f"'{s}' did not parse as {format_clause}unit: {e} "
                         "If this is meant to be a custom unit, "
                         "define it with 'u.def_unit'. To have it "
                         "recognized inside a file reader or other code, "
@@ -2097,9 +2170,15 @@ class _UnitMetaClass(type):
                         "https://docs.astropy.org/en/latest/units/combining_and_defining.html"
                     )
                     if parse_strict == "raise":
-                        raise ValueError(msg)
+                        raise ValueError(msg) from None
                     warnings.warn(msg, UnitsWarning)
                 return UnrecognizedUnit(s)
+
+        if isinstance(s, bytes):
+            # Recurse.  We do it here so we do not slow down the str case.
+            return cls.__call__(
+                s.decode("ascii"), format=format, parse_strict=parse_strict
+            )
 
         from .quantity import Quantity
 

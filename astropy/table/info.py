@@ -55,6 +55,8 @@ def table_info(tbl, option="attributes", out=""):
 
     Parameters
     ----------
+    tbl : `~astropy.table.Table`
+        Table to get information about.
     option : str, callable, list of (str or callable)
         Info option, defaults to 'attributes'.
     out : file-like, None

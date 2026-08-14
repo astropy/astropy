@@ -31,12 +31,12 @@ jobs:
     if: github.repository == 'astropy/astropy' || github.event_name == 'pull_request'
     steps:
     - name: Checkout code
-      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         persist-credentials: true  # needed for git push
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       with:
         python-version: 3.x
     - name: Run update script
@@ -44,20 +44,24 @@ jobs:
     - name: Show diff
       run: git diff docs/credits.rst
     - name: Commit changes
+      id: commit
       if: github.event_name != 'pull_request'
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        BRANCH_NAME=update-credits-$(date +"%s")
+        echo "BRANCH_NAME=update-credits-$(date +'%s')" >> "$GITHUB_ENV"
         git switch -c "$BRANCH_NAME"
         git add docs/credits.rst
         if ! git diff --cached --exit-code; then
           git commit -m "Update docs/credits.rst with new contributors"
+          echo "pr-needed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "pr-needed=false" >> "$GITHUB_OUTPUT"
         fi
-        git push --set-upstream origin "$BRANCH_NAME"
     - name: Create Pull Request
-      if: github.event_name != 'pull_request'
+      if: ${{ steps.commit.outputs.pr-needed && github.event_name != 'pull_request' }}
       run: |
+        git push --set-upstream origin "$BRANCH_NAME"
         gh pr create \
           --title "Update credits to add new contributors" \
           --label no-changelog-entry-needed --label Docs \
@@ -77,12 +81,12 @@ jobs:
     if: github.event_name != 'schedule'
     steps:
     - name: Checkout code
-      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         persist-credentials: false
         fetch-depth: 0  # needed for the contributor history and release tags
     - name: Set up Python
-      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       with:
         python-version: 3.x
     - name: Check the latest What's New page

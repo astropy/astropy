@@ -17,7 +17,7 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_3
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_3, NUMPY_LT_2_6
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
@@ -332,7 +332,7 @@ class TestQuantityTrigonometricFuncs:
         with pytest.raises(
             AttributeError,
             match=(
-                "'NoneType' object has no attribute 'get_converter'"
+                "'NoneType' object has no attribute '_get_converter'"
                 ".*\n.*treated as dimensionless"
             ),
         ):
@@ -1220,6 +1220,35 @@ class TestClip:
             self.clip(q, -1, 0.0)
         with pytest.raises(u.UnitsError):
             self.clip(q, 0.0, 1.0)
+
+
+@pytest.mark.skipif(NUMPY_LT_2_6, reason="no _unwrap ufunc available")
+class TestUnwrap:
+    """Test the np._core.umath._unwrap ufunc.
+
+    In numpy, this is hidden behind `~numpy.unwrap`, a function that inserts
+    dimensionless defaults for discont and period that are a bit strange to
+    deal with (unless one wanted an implicitly ``u.dimensionless_angles()``.
+    So, we continue to override the function, which means that in practice
+    this ufunc is never called with Quantity.  But we support it for
+    completeness.
+
+    """
+
+    @classmethod
+    def setup_class(cls):
+        cls.unwrap = np_umath._unwrap
+
+    def test_unwrap_simple(self):
+        a = [10.0, 90.0, 440.0] * u.deg
+        discont = np.pi * u.rad
+        period = 1 * u.cycle
+        got = self.unwrap(a, discont, period)
+        assert got.unit == a.unit
+        exp_value = self.unwrap(
+            a.value, discont.to_value(a.unit), period.to_value(a.unit)
+        )
+        assert_array_equal(got.value, exp_value)
 
 
 class TestUfuncAt:

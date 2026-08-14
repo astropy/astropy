@@ -721,7 +721,7 @@ def vstack(tables, join_type="outer", metadata_conflicts="warn"):
 
     tables = _get_list_of_tables(tables)  # validates input
     if len(tables) == 1:
-        return tables[0]  # no point in stacking a single table
+        return tables[0].copy()
 
     out = _vstack(tables, join_type, metadata_conflicts)
 
@@ -821,17 +821,17 @@ def unique(input_table, keys=None, silent=False, keep="first"):
     keys : str or list of str
         Name(s) of column(s) used to create unique rows.
         Default is to use all columns.
+    silent : bool
+        If `True`, masked value column(s) are silently removed from
+        ``keys``. If `False`, an exception is raised when ``keys``
+        contains masked value column(s).
+        Default is `False`.
     keep : {'first', 'last', 'none'}
         Whether to keep the first or last row for each set of
         duplicates. If 'none', all rows that are duplicate are
         removed, leaving only rows that are already unique in
         the input.
         Default is 'first'.
-    silent : bool
-        If `True`, masked value column(s) are silently removed from
-        ``keys``. If `False`, an exception is raised when ``keys``
-        contains masked value column(s).
-        Default is `False`.
 
     Returns
     -------
@@ -1293,6 +1293,12 @@ def _join(
     join_funcs : dict, None
         Dict of functions to use for matching the corresponding key column(s).
         See `~astropy.table.join_skycoord` for an example and details.
+    keys_left : str or list of str or list of column-like, optional
+        Left column(s) used to match rows instead of ``keys`` arg. This can be
+        be a single left table column name or list of column names, or a list of
+        column-like values with the same lengths as the left table.
+    keys_right : str or list of str or list of column-like, optional
+        Same as ``keys_left``, but for the right side of the join.
     engine : str
         The engine to use for the join. Supported values are ``'astropy'``,
         ``'pandas'``, and ``'auto'``. The default is ``'astropy'`` which uses
@@ -1681,6 +1687,11 @@ def _vstack(arrays, join_type="outer", metadata_conflicts="warn"):
         Tables to stack by rows (vertically)
     join_type : str
         Join type ('inner' | 'exact' | 'outer'), default is 'outer'
+    metadata_conflicts : str
+        How to proceed with metadata conflicts. This should be one of:
+            * ``'silent'``: silently pick the last conflicting meta-data value
+            * ``'warn'``: pick the last conflicting meta-data value, but emit a warning (default)
+            * ``'error'``: raise an exception.
 
     Returns
     -------

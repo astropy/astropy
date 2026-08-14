@@ -19,6 +19,7 @@ from astropy.utils.compat.numpycompat import (
     NUMPY_LT_2_2,
     NUMPY_LT_2_3,
     NUMPY_LT_2_5,
+    NUMPY_LT_2_6,
 )
 
 from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
@@ -36,7 +37,7 @@ def get_converter(from_unit, to_unit):
     i.e., if the inferred scale is unity.
     """
     try:
-        converter = from_unit.get_converter(to_unit)
+        converter = from_unit._get_converter(to_unit)
     except AttributeError as exc:
         # Check for lack of unit only now, to avoid delay for cases where a unit
         # was present. Note that cases where dimensionless is expected are
@@ -45,7 +46,7 @@ def get_converter(from_unit, to_unit):
         if from_unit is not None:  # pragma: no cover
             raise
         try:
-            converter = dimensionless_unscaled.get_converter(to_unit)
+            converter = dimensionless_unscaled._get_converter(to_unit)
         except UnitsError:
             exc.add_note(
                 "Input without a 'unit' attribute? Such input is treated "
@@ -368,6 +369,22 @@ def helper_clip(f, unit1, unit2, unit3):
     return converters, result_unit
 
 
+def helper_unwrap(f, unit1, unit2, unit3):
+    """Support the private numpy ufunc np._core.umath._unwrap.
+
+    This ufunc is used internally in `~numpy.unwrap`, and like for clip, the
+    first array is the primary one, and discont and period should simply be
+    converted to its unit.
+
+    A tricky part is that `~numpy.unwrap` has dimensionless defaults for
+    discont and period, which are simply passed on.  Rather than deal with
+    these here, we just continue to override `~numpy.unwrap` in
+    ``astropy.units.quantity_helpers.function_helpers``.
+
+    """
+    return helper_clip(f, unit1, unit2, unit3)
+
+
 # list of ufuncs:
 # https://numpy.org/doc/stable/reference/ufuncs.html#available-ufuncs
 
@@ -581,5 +598,9 @@ UFUNC_HELPERS[np.divmod] = helper_divmod
 # Check for clip ufunc; note that np.clip is a wrapper function, not the ufunc.
 if isinstance(getattr(np_umath, "clip", None), np.ufunc):
     UFUNC_HELPERS[np_umath.clip] = helper_clip
+
+if not NUMPY_LT_2_6:
+    # See docstring of helper_unwrap about this private numpy ufunc.
+    UFUNC_HELPERS[np_umath._unwrap] = helper_unwrap
 
 del ufunc

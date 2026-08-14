@@ -366,6 +366,22 @@ as the item, as shown below::
 
 .. EXAMPLE END
 
+Flatten table with mixin or N-D columns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The astropy table object supports  :ref:`mixin_columns` such as `~astropy.time.Time` or
+`~astropy.coordinates.SkyCoord` columns along with multidimensional N-d columns of
+simple data types. In some cases it may be convenient to "flatten" the table so that
+each column is a 1-D array of simple data types. This can help with writing the table to
+a file format that does not support mixin or N-D columns or converting to a data frame
+in a package such as `pandas <https://pandas.pydata.org>`_.
+
+This can be done with either or both of the following methods:
+
+- :func:`~astropy.table.represent_nd_columns_as_1d_columns` - flattens any N-D columns
+  into one or more 1-D `~astropy.table.Column` or `~astropy.table.MaskedColumn` columns.
+- :func:`~astropy.table.represent_mixins_as_columns` - flattens any mixin columns into
+  one or more `~astropy.table.Column` or `~astropy.table.MaskedColumn` columns.
+
 Caveats
 =======
 

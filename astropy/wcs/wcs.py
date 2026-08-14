@@ -3418,8 +3418,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        wcs : `~astropy.wcs.WCS`
-            The WCS with naxis to be chopped to naxis-1
         dropax : int
             The index of the WCS to drop, counting from 0 (i.e., python convention,
             not FITS convention)
@@ -3443,8 +3441,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        wcs : `~astropy.wcs.WCS`
-            The WCS to have its axes swapped
         ax0 : int
         ax1 : int
             The indices of the WCS to be swapped, counting from 0 (i.e., python

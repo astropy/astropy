@@ -114,7 +114,7 @@ def _initialize_module():
         (["k"], _si.k_B, "Boltzmann"),
         (["l"], u.l, "litre", ["a"]),
         (["lm"], u.lm, "lumen"),
-        (["Lsun", "solLum"], u.solLum, "solar luminosity"),
+        (["solLum", "Lsun"], u.solLum, "solar luminosity"),
         (["lx"], u.lx, "lux"),
         (["m"], u.m, "meter"),
         (["mag"], u.mag, "magnitude"),
@@ -139,7 +139,7 @@ def _initialize_module():
         (["rad"], u.radian, "radian"),
         (["Rgeo"], _si.R_earth, "Earth equatorial radius"),
         (["Rjup"], _si.R_jup, "Jupiter equatorial radius"),
-        (["Rsun", "solRad"], u.solRad, "solar radius"),
+        (["solRad", "Rsun"], u.solRad, "solar radius"),
         (["Ry"], u.Ry, "Rydberg"),
         (["S"], u.S, "Siemens"),
         (["s", "sec"], u.s, "second"),
@@ -206,7 +206,7 @@ def enable() -> _UnitContext:
     all of the "default" `astropy.units` units, since there
     are some namespace clashes between the two.
 
-    This may be used with the ``with`` statement to enable CDS
-    units only temporarily.
+    This may be used with the ``with`` statement or as a decorator
+    to enable CDS units only temporarily.
     """
     return set_enabled_units(globals())

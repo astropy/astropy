@@ -2,6 +2,7 @@
 
 import errno
 import gzip
+import http.client
 import io
 import mmap
 import os
@@ -10,7 +11,7 @@ import shutil
 import sys
 import urllib.request
 import zipfile
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -709,24 +710,20 @@ class TestFileFunctions(FitsTestCase):
 
     @pytest.mark.remote_data(source="astropy")
     def test_open_from_remote_url(self):
-        for dataurl in (conf.dataurl, conf.dataurl_mirror):
-            remote_url = f"{dataurl}/allsky/allsky_rosat.fits"
-            try:
-                with urllib.request.urlopen(remote_url) as urlobj:
-                    with fits.open(urlobj) as fits_handle:
-                        assert len(fits_handle) == 1
+        remote_url = f"{conf.dataurl}/allsky/allsky_rosat.fits"
+        with (
+            urllib.request.urlopen(remote_url) as urlobj,
+            fits.open(urlobj) as fits_handle,
+        ):
+            assert len(fits_handle) == 1
 
-                for mode in ("ostream", "append", "update"):
-                    with pytest.raises(ValueError):
-                        with urllib.request.urlopen(remote_url) as urlobj:
-                            with fits.open(urlobj, mode=mode) as fits_handle:
-                                assert len(fits_handle) == 1
-            except (urllib.error.HTTPError, urllib.error.URLError):
-                continue
-            else:
-                break
-        else:
-            raise Exception("Could not download file")
+    @pytest.mark.parametrize("mode", ("ostream", "append", "update"))
+    def test_open_url_invalid_mode(self, mode):
+        urlobj = http.client.HTTPResponse(Mock())
+        with pytest.raises(
+            ValueError, match=f"Mode {mode} not supported for HTTPResponse"
+        ):
+            fits.open(urlobj, mode=mode)
 
     def test_open_gzipped(self):
         gzip_file = self._make_gzip_file()

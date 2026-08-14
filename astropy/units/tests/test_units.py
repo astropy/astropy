@@ -13,7 +13,7 @@ from numpy.testing import assert_allclose
 
 from astropy import constants as c
 from astropy import units as u
-from astropy.units import cds, utils
+from astropy.units import cds, imperial, utils
 from astropy.units.required_by_vounit import GsolLum, ksolMass, nsolRad
 from astropy.utils.compat.optional_deps import HAS_ARRAY_API_STRICT, HAS_DASK
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -97,8 +97,9 @@ def test_convert(original, expectation):
 
 
 def test_convert_roundtrip():
-    c1 = u.cm.get_converter(u.m)
-    c2 = u.m.get_converter(u.cm)
+    # Use strings here to check get_converter can take those.
+    c1 = u.cm.get_converter("m")
+    c2 = u.m.get_converter("cm")
     assert_allclose(c1(c2(10.0)), c2(c1(10.0)), rtol=1e-15, atol=0)
 
 
@@ -106,6 +107,11 @@ def test_convert_roundtrip_with_equivalency():
     c1 = u.arcsec.get_converter(u.pc, u.parallax())
     c2 = u.pc.get_converter(u.arcsec, u.parallax())
     assert_allclose(c1(c2(10.0)), c2(c1(10.0)), rtol=1e-15, atol=0)
+
+
+def test_get_converter_bad_unit():
+    with pytest.raises(ValueError, match="did not parse as unit"):
+        u.m.get_converter("this is not a unit")
 
 
 def test_convert_fail():
@@ -207,9 +213,18 @@ def test_multiple_solidus():
     ):
         assert u.Unit("m/s/kg").to_string() == "m / (kg s)"
 
+    # Check we always warn, not just the first time.
+    with pytest.warns(
+        u.UnitsWarning,
+        match="'m/s/kg' contains multiple slashes, which is discouraged",
+    ):
+        assert u.Unit("m/s/kg").to_string() == "m / (kg s)"
+
     with pytest.raises(ValueError, match="contains multiple slashes"):
         u.Unit("m/s/kg", format="vounit")
 
+
+def test_multiple_solidus_in_exponent_is_ok():
     # Regression test for #9000: solidi in exponents do not count towards this.
     x = u.Unit("kg(3/10) * m(5/2) / s", format="vounit")
     assert x.to_string() == "m(5/2) kg(3/10) / s"
@@ -1028,15 +1043,30 @@ def test_fractional_rounding_errors_simple():
 
 
 def test_enable_unit_groupings():
-    from astropy.units import cds
-
     with cds.enable():
-        assert cds.geoMass in u.kg.find_equivalent_units()
-
-    from astropy.units import imperial
+        assert cds.mmHg in u.Pa.find_equivalent_units()
 
     with imperial.enable():
         assert imperial.inch in u.m.find_equivalent_units()
+
+
+@pytest.mark.parametrize(
+    ("unit_grouping", "unit", "si_unit"),
+    [
+        pytest.param(cds, cds.mmHg, u.Pa, id="cds"),
+        pytest.param(imperial, imperial.inch, u.m, id="imperial"),
+    ],
+)
+def test_enable_unit_decorator(unit_grouping, unit, si_unit):
+    """Test that the decorator enables the unit grouping only for the duration of
+    the function call."""
+
+    @unit_grouping.enable()
+    def unit_func():
+        assert unit in si_unit.find_equivalent_units()
+
+    unit_func()
+    assert unit not in si_unit.find_equivalent_units()
 
 
 def test_raise_to_negative_power():
@@ -1172,6 +1202,20 @@ def test_hash_represents_unit(unit, power):
     assert hash(tu) == hash(unit)
     tu2 = (unit ** (1 / power)) ** power
     assert hash(tu2) == hash(unit)
+
+
+def test_hash_correctly_different():
+    # Bit of a test against "don't do that", but still.
+    myfoot = u.Unit("foo", 34 * u.cm)
+    yourfoot = u.Unit("foo", 25 * u.m)
+    assert str(myfoot) == str(yourfoot)  # cannot be helped
+    assert myfoot != yourfoot
+    assert hash(myfoot) != hash(yourfoot)
+    myspeed = myfoot / u.s
+    yourspeed = yourfoot / u.s
+    assert str(myspeed) == str(yourspeed)  # cannot be helped
+    assert myspeed != yourspeed
+    assert hash(myspeed) != hash(yourspeed)
 
 
 @pytest.mark.skipif(not HAS_ARRAY_API_STRICT, reason="tests array_api_strict")

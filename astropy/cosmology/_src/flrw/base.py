@@ -956,7 +956,7 @@ class FLRW(
 
         Parameters
         ----------
-        z1, z2 : Quantity-like ['redshift'], array-like
+        z, z2 : Quantity-like ['redshift'], array-like
             Input redshifts. If one argument ``z`` is given, the distance :math:`d_A(0,
             z)` is returned. If two arguments ``z1, z2`` are given, the distance
             :math:`d_A(z_1, z_2)` is returned.

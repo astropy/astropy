@@ -1,0 +1,4 @@
+Adds a new table function ``represent_nd_columns_as_1d_columns`` that flattens any N-D
+columns into multiple 1-D `~astropy.table.Column` or `~astropy.table.MaskedColumn`
+columns. This can be useful for writing tables to file formats that do not support N-D
+columns or converting to a data frame.

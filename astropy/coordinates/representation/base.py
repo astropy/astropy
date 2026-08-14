@@ -153,7 +153,7 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
     """Name of the representation or differential.
 
     When a subclass is defined, by default, the name is the lower-cased name of the
-    class with with any trailing 'representation' or 'differential' removed. (E.g.,
+    class with any trailing 'representation' or 'differential' removed. (E.g.,
     'spherical' for `~astropy.coordinates.SphericalRepresentation` or
     `~astropy.coordinates.SphericalDifferential`.)
 
@@ -948,7 +948,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 # The default is to convert via cartesian coordinates
                 new_rep = other_class.from_cartesian(self.to_cartesian())
             else:
-                new_rep = self
+                new_rep = self.without_differentials()
 
             new_rep._differentials = self._re_represent_differentials(
                 new_rep, differential_class
