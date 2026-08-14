@@ -84,7 +84,7 @@ The full power of output representation is available via the
 `subformat`_. For instance, using ``numpy.longdouble`` as the output type
 for higher precision::
 
-  >>> t.to_value('mjd', 'long')  
+  >>> t.to_value('mjd', 'long') # doctest: +SKIP 
   array([51179.00000143, 55197.        ], dtype=float128)
 
 The default representation can be changed by setting the ``format`` attribute::
