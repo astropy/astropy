@@ -35,13 +35,24 @@ PANDAS_LIKE: PandasLikeSentinel = PandasLikeSentinel(object())
 INTEGER_DTYPE_KINDS = frozenset({"u", "i"})
 
 
-def _numpy_to_pandas_dtype(dtype: np.dtype) -> str:
-    """Convert a numpy dtype to a pandas dtype string, handling nullable integers."""
-    dtype_name = dtype.name
-    # Special case needed for uint -> UInt
-    if dtype_name.startswith("uint"):
-        return "UInt" + dtype_name.removeprefix("uint")
-    return dtype.name.title()
+def _pandas_nullable_int_array(data, mask):
+    """Make a pandas nullable integer array from integer ``data`` and ``mask``.
+
+    The obvious ways of getting a masked integer column into pandas (letting
+    pandas apply the mask and then casting to a nullable dtype, or passing a
+    masked array to ``Series(..., dtype="Int64")``) both go through a float64
+    intermediate.  That silently corrupts integers which are not exactly
+    representable as float64, i.e. those above 2**53, such as Gaia source ids
+    (gh-14442).  Building the nullable array from the integer values and the
+    mask directly avoids the float intermediate entirely.
+    """
+    from pandas.arrays import IntegerArray
+
+    data = np.asarray(data)
+    if not data.dtype.isnative:
+        data = data.byteswap().view(data.dtype.newbyteorder("="))
+    # copy=True since ``data`` and ``mask`` are generally views on the table.
+    return IntegerArray(data, np.asarray(mask), copy=True)
 
 
 def _encode_mixins(tbl: Table) -> Table:
@@ -235,14 +246,17 @@ def to_df(
     # Convert to dataframe
     df_native = df_nw.to_native()
 
-    # Fix pandas-like nullable integers
+    # Fix pandas-like nullable integers.  These are rebuilt from the original
+    # integer data and mask rather than cast from the masked (hence float64)
+    # column in ``df_native``, which would corrupt values above 2**53.
     if backend_impl.is_pandas_like() and tbl.has_masked_columns and use_nullable_int:
         for name in masked_cols:
-            dtype = array[name].dtype
-            if (dtype := array[name].dtype).kind not in INTEGER_DTYPE_KINDS:
+            if array[name].dtype.kind not in INTEGER_DTYPE_KINDS:
                 continue
 
-            df_native[name] = df_native[name].astype(_numpy_to_pandas_dtype(dtype))
+            df_native[name] = _pandas_nullable_int_array(
+                array[name].data, array[name].mask
+            )
 
     # Pandas-like index
     if index:
@@ -401,18 +415,15 @@ def to_pandas(
 
         if isinstance(column, MaskedColumn) and np.any(column.mask):
             if column.dtype.kind in ["i", "u"]:
-                pd_dtype = column.dtype.name
-                if use_nullable_int:
-                    # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
-                    pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
-                else:
+                if not use_nullable_int:
                     from pandas.errors import IntCastingNaNError
 
                     raise IntCastingNaNError(
                         "Cannot convert masked integer columns to DataFrame without using nullable integers. "
                         f"Set use_nullable_int=True or remove the offending column: {name}."
                     )
-                out[name] = Series(out[name], dtype=pd_dtype)
+                # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
+                out[name] = Series(_pandas_nullable_int_array(out[name], column.mask))
 
             elif column.dtype.kind not in ["f", "c"]:
                 out[name] = column.astype(object).filled(np.nan)
