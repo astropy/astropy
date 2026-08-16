@@ -41,7 +41,9 @@ def _stat_functions(
             median_func = np.median
 
             def sum_func(x, *args, **kwargs):
-                return np.sum(x.filled(0.0), *args, **kwargs)
+                if isinstance(x, Masked):
+                    kwargs["where"] = kwargs.get("where", True) & ~x.mask
+                return np.sum(x, *args, **kwargs)
 
     elif ignore_nan:
         median_func = nanmedian

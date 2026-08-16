@@ -1,10 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pickle
+import warnings
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
 from astropy import units as u
 from astropy.coordinates import Angle
@@ -117,6 +118,32 @@ def test_sigma_clip_masked_array(masked_array):
     out = sigma_clip(arr, stdfunc=np.std, axis=0, masked=False)
     assert np.all(np.isnan(out[-2:]))
     assert_allclose(np.nanmean(out), 1.0)
+
+
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clip_masked_array2(masked_array):
+    """
+    Another example which gave problems in gh-19858, with the mask
+    for Masked being set to a MaskedNDArray.
+    """
+    ma = masked_array(
+        [1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 500.0],
+        mask=[False, False, False, False, False, True, False],
+    )
+    exp = ma.copy()
+    exp.mask[-1] = True
+    got = sigma_clip(ma, sigma=2)
+    assert_array_equal(got, exp, strict=True)
+
+
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_sigma_clip_masked_nan_and_inf(masked_array):
+    """Sigma clip should not warn on masked NaN."""
+    arr = masked_array(
+        np.ma.masked_invalid([[1.0, 2.0, np.nan], [3.0, 4.0, 5.0], [1.0, 2.0, 3.0]])
+    )
+    with warnings.catch_warnings(action="error"):
+        sigma_clip(arr, axis=0)
 
 
 @pytest.mark.parametrize("unit", [None, u.percent])

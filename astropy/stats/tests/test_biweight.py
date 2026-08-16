@@ -257,6 +257,18 @@ def test_biweight_midvariance_small():
     assert_allclose(var, 2.3390765)
 
 
+@pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
+def test_biweight_midvariance_small_masked(masked_array):
+    data = masked_array(
+        [1, 3, 5, 500, 2, 1000], [False, False, False, False, False, True]
+    )
+    var = biweight_midvariance(data)
+    assert_allclose(var, 2.9238456)
+
+    var = biweight_midvariance(data, modify_sample_size=True)
+    assert_allclose(var, 2.3390765)
+
+
 def test_biweight_midvariance_5127():
     # test a regression introduced in #5127
     rand = np.random.default_rng(12345)

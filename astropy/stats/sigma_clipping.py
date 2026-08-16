@@ -30,7 +30,9 @@ __all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"
 
 def _make_masked(data, mask, **kwargs):
     if isinstance(data, (Masked, Quantity)):
-        return Masked(data, mask, **kwargs)
+        # TODO: really a bug in Masked that it lets masked masks
+        # through; see https://github.com/astropy/astropy/issues/20246
+        return Masked(data, np.asarray(mask), **kwargs)
     else:
         return np.ma.MaskedArray(data, mask, **kwargs)
 
@@ -318,7 +320,7 @@ class SigmaClip:
         if data_reshaped.dtype.kind != "f" or data_reshaped.dtype.itemsize > 8:
             data_reshaped = data_reshaped.astype(float)
 
-        data_reshaped, mask_reshaped = get_data_and_mask(data_reshaped)
+        # Any unmasked infinities or nans?
         mask = ~np.isfinite(data_reshaped)
         if np.any(mask):
             warnings.warn(
@@ -326,8 +328,12 @@ class SigmaClip:
                 "infs), which were automatically clipped.",
                 AstropyUserWarning,
             )
+
+        # Get unmasked data and its possible mask.
+        data_reshaped, mask_reshaped = get_data_and_mask(data_reshaped)
         if mask_reshaped is not None:
-            mask |= mask_reshaped
+            # If the data was masked, mask must be too. Just fill it.
+            mask = mask.filled(True)
 
         bound_lo, bound_hi = _sigma_clip_fast(
             data_reshaped,
