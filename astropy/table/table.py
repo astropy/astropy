@@ -904,11 +904,10 @@ class Table:
 
         self._check_names_dtype(names, dtype, n_cols)
 
-        # Finally do the real initialization
-        init_func(data, names, dtype, n_cols, copy)
-
         # Set table meta.  If copy=True then deepcopy meta otherwise use the
-        # user-supplied meta directly.
+        # user-supplied meta directly.  This is done before the real initialization
+        # since a TableAttribute stored in meta can change how the columns get
+        # converted (e.g. the QTable ``preserve_quantity_dtype`` attribute).
         if meta is not None:
             self.meta = deepcopy(meta) if copy else meta
 
@@ -917,6 +916,9 @@ class Table:
         if meta_table_attrs:
             for attr, value in meta_table_attrs.items():
                 setattr(self, attr, value)
+
+        # Finally do the real initialization
+        init_func(data, names, dtype, n_cols, copy)
 
         # Whatever happens above, the masked property should be set to a boolean
         if self.masked not in (None, True, False):
@@ -4386,10 +4388,16 @@ class QTable(Table):
         List or dict of units to apply to columns.
     descriptions : list, dict, optional
         List or dict of descriptions to apply to columns.
+    preserve_quantity_dtype : bool, optional
+        If `True`, always preserve the dtype of input data with units when converting to
+        `~astropy.units.Quantity`. By default, integer types are converted to float,
+        following the behavior of `~astropy.units.Quantity`.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
 
     """
+
+    preserve_quantity_dtype = TableAttribute()
 
     def _is_mixin_for_table(self, col):
         """
@@ -4407,8 +4415,10 @@ class QTable(Table):
             # We need to turn the column into a quantity; use subok=True to allow
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
+            # Quantity casts integer data to float unless dtype=None is supplied.
+            kwargs = {"dtype": None} if self.preserve_quantity_dtype else {}
             try:
-                qcol = q_cls(col.data, col.unit, copy=None, subok=True)
+                qcol = q_cls(col.data, col.unit, copy=None, subok=True, **kwargs)
             except Exception as exc:
                 warnings.warn(
                     f"column {col.info.name} has a unit but is kept as "

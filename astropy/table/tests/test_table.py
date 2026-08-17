@@ -31,6 +31,7 @@ from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.masked import Masked
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 from .conftest import MaskedTable
@@ -2149,6 +2150,71 @@ class TestQTableColumnConversionCornerCases:
         with pytest.warns(AstropyUserWarning, match="convert it to Quantity failed"):
             t["a"] = Column(["a"], unit=u.m)
         assert isinstance(t["a"], Column)
+
+
+class TestPreserveQuantityDtype:
+    """Test the QTable ``preserve_quantity_dtype`` attribute (#17963)."""
+
+    # Integers that are not exactly representable as float64.
+    VALS = [2741100559643251862, 2733456478647137226]
+
+    def get_table(self):
+        return Table(
+            [
+                Column(self.VALS, name="a", unit="m"),
+                MaskedColumn(self.VALS, name="b", unit="", mask=[False, True]),
+            ]
+        )
+
+    def test_default_is_not_set(self):
+        """By default integer columns with a unit are cast to float."""
+        t = QTable(self.get_table())
+        assert t.preserve_quantity_dtype is None
+        # The unset attribute does not clutter the table meta.
+        assert t.meta == {}
+        assert t["a"].dtype.kind == "f"
+        assert t["b"].dtype.kind == "f"
+
+    def test_init_kwarg(self):
+        t = QTable(self.get_table(), preserve_quantity_dtype=True)
+        assert t.preserve_quantity_dtype is True
+        assert t["a"].dtype == np.int64
+        assert t["b"].dtype == np.int64
+        assert np.all(t["a"].value == self.VALS)
+        assert isinstance(t["a"], u.Quantity)
+        assert isinstance(t["b"], Masked)
+        assert t["a"].unit == u.m
+        assert np.all(t["b"].mask == [False, True])
+
+    def test_set_attribute_then_add_column(self):
+        t = QTable()
+        t.preserve_quantity_dtype = True
+        t["a"] = Column(self.VALS, unit="m")
+        assert t["a"].dtype == np.int64
+        assert np.all(t["a"].value == self.VALS)
+
+    def test_attribute_persists(self):
+        """The attribute is stored in meta so it survives slicing and copying."""
+        t = QTable(self.get_table(), preserve_quantity_dtype=True)
+        assert t.meta["__attributes__"] == {"preserve_quantity_dtype": True}
+        for t2 in (t[:1], t.copy(), QTable(t), QTable(Table(t))):
+            assert t2.preserve_quantity_dtype is True
+            assert t2["a"].dtype == np.int64
+
+    def test_kwarg_takes_precedence_over_meta(self):
+        t = QTable(self.get_table(), preserve_quantity_dtype=True)
+        t2 = QTable(Table(t), preserve_quantity_dtype=False)
+        assert t2.preserve_quantity_dtype is False
+        assert t2["a"].dtype.kind == "f"
+
+    def test_float_column_unaffected(self):
+        vals = [1.5, 2.5]
+        t = QTable(
+            [Column(vals, name="a", unit="m", dtype=np.float32)],
+            preserve_quantity_dtype=True,
+        )
+        assert t["a"].dtype == np.float32
+        assert np.all(t["a"].value == vals)
 
 
 class Test__Astropy_Table__:

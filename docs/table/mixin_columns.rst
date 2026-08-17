@@ -141,15 +141,56 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
    ordinary `~astropy.table.Table` then it gets converted to an ordinary
    `~astropy.table.Column` with the corresponding ``unit`` attribute.
 
-.. attention::
+.. EXAMPLE END
 
-   When a column of ``int`` ``dtype`` is converted to `~astropy.units.Quantity`,
-   its ``dtype`` is converted to ``float``.
+Quantity and Integer Columns
+============================
 
-   For example, for a quality flag column of ``int``, if it is
-   assigned with the :ref:`dimensionless unit <doc_dimensionless_unit>`, it will still
-   be converted to ``float``. Therefore such columns typically should not be
-   assigned with any unit.
+When a column of ``int`` ``dtype`` has a defined unit and is converted to
+`~astropy.units.Quantity`, its ``dtype`` is converted to `float` by default. This
+situation is common when reading VOtable or FITS data tables that have integer count
+data or source IDs with defined units.
+
+You can change this behavior and preserve the original ``dtype``  by providing
+``preserve_quantity_dtype=True`` when creating the `~astropy.table.QTable`. You can also
+change this behavior for an existing `~astropy.table.QTable` by setting the
+``preserve_quantity_dtype`` attribute to `True`. This attribute is stored in the table
+``meta`` so it is preserved through table operations such as copying, slicing, and
+pickling, as well as writing to ECSV.
+
+Example::
+
+    >>> from astropy.table import Column
+    >>> source = Column([2741100559643251862, 2733456478647137226], unit="")
+    >>> counts = Column([401, 15023], unit="count")
+    >>> QTable({"source": source, "counts": counts})
+    <QTable length=2>
+            source          counts
+                              ct
+          float64          float64
+    ---------------------- -------
+    2.7411005596432517e+18   401.0
+    2.7334564786471373e+18 15023.0
+    >>> qt_int = QTable({"source": source, "counts": counts}, preserve_quantity_dtype=True)
+    >>> qt_int
+    <QTable length=2>
+           source        counts
+                           ct
+          int64          int64
+    ------------------- ------
+    2741100559643251862    401
+    2733456478647137226  15023
+    >>> qt_int.preserve_quantity_dtype
+    True
+
+.. note::
+
+   When reading a file into a `~astropy.table.QTable`, the ``dtype`` is preserved only
+   if the file stores the data as a plain column with a unit *and* the
+   ``preserve_quantity_dtype`` attribute is in the table ``meta``. A column that was
+   written as a serialized `~astropy.units.Quantity` column, for instance in an ECSV
+   file written from a `~astropy.table.QTable`, is still converted to `float` when it is
+   read back.
 
 .. EXAMPLE END
 
