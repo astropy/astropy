@@ -1,0 +1,4 @@
+Reading a VOTable into a ``QTable`` now respects the ``FIELD`` ``datatype``. Previously
+an integer column that also had a unit, for instance an object identifier, was silently
+cast to float, which changes values that are too large to be represented exactly as a
+float64.

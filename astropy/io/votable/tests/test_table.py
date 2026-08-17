@@ -18,7 +18,7 @@ from astropy.io.votable.converters import Char, UnicodeChar, get_converter
 from astropy.io.votable.exceptions import E01, E25, W39, W46, W50, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable.tree import Field, VOTableFile
-from astropy.table import Column, Table
+from astropy.table import Column, QTable, Table
 from astropy.table.table_helpers import simple_table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 from astropy.utils.data import (
@@ -446,6 +446,60 @@ def test_empty_table():
     votable = parse(get_pkg_data_filename("data/empty_table.xml"))
     table = votable.get_first_table()
     table.to_table()
+
+
+VOTABLE_INT_WITH_UNIT = b"""<?xml version='1.0'?>
+<VOTABLE version="1.2" xmlns="http://www.ivoa.net/xml/VOTable/v1.2">
+<RESOURCE><TABLE nrows="2">
+<FIELD ID="object_id" datatype="long" name="object_id" unit="NA">
+<VALUES null='-9223372036854775808'/>
+</FIELD>
+<FIELD ID="counts" datatype="long" name="counts" unit="ct"/>
+<FIELD ID="ra" datatype="double" name="ra" unit="deg"/>
+<DATA><TABLEDATA>
+  <TR><TD>2741100559643251862</TD><TD>401</TD><TD>274.11005599493853</TD></TR>
+  <TR><TD>2733456478647137226</TD><TD>15023</TD><TD>273.34564786062185</TD></TR>
+</TABLEDATA></DATA>
+</TABLE></RESOURCE></VOTABLE>
+"""
+
+# Object IDs that are not exactly representable as float64.
+OBJECT_IDS = [2741100559643251862, 2733456478647137226]
+
+
+def test_qtable_preserves_int_datatype():
+    """The FIELD datatype must survive the conversion to Quantity.
+
+    Reading a ``long`` column that also has a unit used to give a float64 QTable
+    column, silently changing values above 2**53.  See #17963.
+    """
+    qt = QTable.read(io.BytesIO(VOTABLE_INT_WITH_UNIT), format="votable")
+
+    assert qt["object_id"].dtype == np.int64
+    assert qt["counts"].dtype == np.int64
+    assert qt["ra"].dtype == np.float64
+    assert np.all(qt["object_id"].value == OBJECT_IDS)
+    assert qt["counts"].unit == u.count
+    assert qt.preserve_quantity_dtype is True
+
+    # A plain Table was never affected and is unchanged.
+    t = Table.read(io.BytesIO(VOTABLE_INT_WITH_UNIT), format="votable")
+    assert t["object_id"].dtype == np.int64
+    assert np.all(t["object_id"] == OBJECT_IDS)
+
+
+def test_qtable_preserves_int_datatype_round_trip(tmp_path):
+    """Writing and re-reading keeps the exact integer values."""
+    qt = QTable.read(io.BytesIO(VOTABLE_INT_WITH_UNIT), format="votable")
+
+    fn = tmp_path / "int_with_unit.xml"
+    # W50: "NA" is not a valid VOUnit, so writing it back out warns.
+    with pytest.warns(W50, match="Invalid unit string 'NA'"):
+        qt.write(fn, format="votable")
+    qt2 = QTable.read(fn, format="votable")
+
+    assert qt2["object_id"].dtype == np.int64
+    assert np.all(qt2["object_id"].value == OBJECT_IDS)
 
 
 def test_no_field_not_empty_table():

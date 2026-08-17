@@ -1,0 +1,11 @@
+Reading a VOTable into a ``QTable`` now gives an integer column for a ``FIELD`` with an
+integer ``datatype`` and a unit, where previously such a column was converted to a float
+``Quantity``. Code that relied on getting a float column will now get an integer
+``Quantity``, for which true division and in-place assignment of float values behave as
+they do for any integer array. Reading into a plain ``Table`` is unchanged.
+
+In addition, the ``meta`` of a table returned by
+``astropy.io.votable.tree.TableElement.to_table()``, and therefore by
+``Table.read(..., format='votable')``, now always contains an ``__attributes__`` entry
+holding the ``QTable`` ``preserve_quantity_dtype`` attribute. This is written out by file
+formats that preserve table ``meta``, such as ECSV.

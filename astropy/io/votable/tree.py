@@ -3535,6 +3535,12 @@ class TableElement(
         else:
             names = [field.ID for field in self.fields]
 
+        # The FIELD ``datatype`` attribute is authoritative, so an integer column that
+        # also has a unit must not be silently cast to float when this table is
+        # converted to a `~astropy.table.QTable`. This sets the QTable
+        # ``preserve_quantity_dtype`` table attribute, which is stored in the meta.
+        meta["__attributes__"] = {"preserve_quantity_dtype": True}
+
         table = Table(self.array, names=names, meta=meta)
 
         for name, field in zip(names, self.fields):
