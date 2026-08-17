@@ -192,8 +192,6 @@ Example::
    file written from a `~astropy.table.QTable`, is still converted to `float` when it is
    read back.
 
-.. EXAMPLE END
-
 .. _mixin_attributes:
 
 Mixin Attributes
