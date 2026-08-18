@@ -50,7 +50,7 @@ jobs:
 
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1  # v3.0.2
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
@@ -106,7 +106,7 @@ jobs:
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1  # v3.0.2
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -125,7 +125,7 @@ jobs:
 
   stub_tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1  # v3.0.2
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -140,7 +140,7 @@ jobs:
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1  # v3.0.2
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
     with:
       upload_to_pypi: false
       upload_to_anaconda: false
