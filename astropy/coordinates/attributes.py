@@ -1,6 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 # Dependencies
+from collections import defaultdict
+from contextlib import contextmanager
+from contextvars import ContextVar
+
 import numpy as np
 
 # Project
@@ -20,6 +24,71 @@ __all__ = [
     "QuantityAttribute",
     "TimeAttribute",
 ]
+
+_assumed_attributes: ContextVar[defaultdict | None] = ContextVar(
+    "_assumed_attributes", default=None
+)
+
+
+def _get_assumed_attributes():
+    """A helper function so that we don't have a mutable default in ContextVar."""
+    return _assumed_attributes.get() or {}
+
+
+@contextmanager
+def assume_frame_attributes(**kwargs):
+    """
+    Assume a value of one or more frame attributes.
+
+    Parameters
+    ----------
+    kwargs
+        This function accepts any keyword arguments and will override
+        any frame attribute with a name matching that of the keyword
+        name.
+
+    Examples
+    --------
+    >>> import astropy.units as u
+    >>> from astropy.coordinates import EarthLocation, SkyCoord
+    >>> from astropy.coordinates.attributes import assume_frame_attributes
+
+    >>> location = EarthLocation(-5466045*u.m, -2404388*u.m, 2242133*u.m)
+
+    Say you have two coordinates that represent points in images which are very close in time but not exactly the same:
+
+    >>> coord1 = SkyCoord(10, 20, unit=u.deg, obstime="2026-01-01T00:00:00", location=location, frame="altaz")
+    >>> coord2 = SkyCoord(10, 20, unit=u.deg, obstime="2026-01-01T00:01:00", location=location, frame="altaz")
+
+    If you transform these to other frames, they will give slightly different results:
+
+    >>> coord1.transform_to("icrs")
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (36.10412254, 80.47633131)>
+    >>> coord2.transform_to("icrs")
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (36.35158456, 80.47671193)>
+
+    If however, you are happy to ignore this small change in observer
+    location, and you want to avoid more complex transformations or
+    other effects through the transform graph, you can do this:
+
+    >>> with assume_frame_attributes(obstime="2026-01-01T00:00:00"):
+    ...     coord2.transform_to("icrs")
+    <SkyCoord (ICRS): (ra, dec) in deg
+        (36.10412254, 80.47633131)>
+    """
+    # Get the current assumed attributes
+    current_attrs = _get_assumed_attributes()
+    # Build the new set, overriding current with kwargs
+    new_attrs = {**current_attrs, **kwargs}
+    # Set the new assumed attrs, but make sure it's still a defaultdict
+    token = _assumed_attributes.set(defaultdict(lambda: None, new_attrs))
+    try:
+        yield
+    finally:
+        # Reset to previous value using token
+        _assumed_attributes.reset(token)
 
 
 class Attribute:
@@ -124,7 +193,11 @@ class Attribute:
             # Return the descriptor instance to enable the retrieval of the docstring
             return self
 
-        out = getattr(instance, "_" + self.name, self.default)
+        if (assumed_value := _get_assumed_attributes().get(self.name)) is not None:
+            out = assumed_value
+        else:
+            out = getattr(instance, "_" + self.name, self.default)
+
         if out is None:
             out = getattr(instance, self.secondary_attribute, self.default)
 
