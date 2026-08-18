@@ -21,6 +21,7 @@ from astropy.coordinates.attributes import (
     EarthLocationAttribute,
     QuantityAttribute,
     TimeAttribute,
+    assume_frame_attributes,
 )
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
 from astropy.coordinates.builtin_frames import (
@@ -96,6 +97,49 @@ def test_frame_attribute_descriptor():
     with pytest.raises(AttributeError) as err:
         t.attr_none = 5
     assert "Cannot set frame attribute" in str(err.value)
+
+
+def test_assume_obstime():
+    assumed_obstime = Time("2012-01-01T00:00:00")
+
+    coo1 = GCRS(obstime="2026-01-01T00:00:00")
+
+    assert coo1 != assumed_obstime
+
+    with assume_frame_attributes(obstime=assumed_obstime):
+        assert coo1.obstime == assumed_obstime
+
+
+def test_altaz_transform_with_assume_obstime():
+    location = EarthLocation(-5466045 * u.m, -2404388 * u.m, 2242133 * u.m)
+    coord1 = SkyCoord(
+        10,
+        20,
+        unit=u.deg,
+        obstime="2026-01-01T00:00:00",
+        location=location,
+        frame="altaz",
+    )
+    coord2 = SkyCoord(
+        10,
+        20,
+        unit=u.deg,
+        obstime="2026-01-01T00:01:00",
+        location=location,
+        frame="altaz",
+    )
+
+    out1 = coord1.transform_to("icrs")
+    out2 = coord2.transform_to("icrs")
+
+    assert not u.allclose(out1.ra, out2.dec)
+    assert not u.allclose(out1.ra, out2.dec)
+
+    with assume_frame_attributes(obstime="2026-01-01T00:00:00"):
+        out_assumed = coord2.transform_to("icrs")
+
+    assert not u.allclose(out2.ra, out_assumed.dec)
+    assert not u.allclose(out2.ra, out_assumed.dec)
 
 
 def test_frame_subclass_attribute_descriptor():
