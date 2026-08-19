@@ -99,18 +99,18 @@ def test_frame_attribute_descriptor():
     assert "Cannot set frame attribute" in str(err.value)
 
 
-def test_assume_obstime():
-    assumed_obstime = Time("2012-01-01T00:00:00")
+def test_impose_obstime():
+    imposed_obstime = Time("2012-01-01T00:00:00")
 
     coo1 = GCRS(obstime="2026-01-01T00:00:00")
 
-    assert coo1 != assumed_obstime
+    assert coo1 != imposed_obstime
 
-    with impose_frame_attributes(obstime=assumed_obstime):
-        assert coo1.obstime == assumed_obstime
+    with impose_frame_attributes(obstime=imposed_obstime):
+        assert coo1.obstime == imposed_obstime
 
 
-def test_altaz_transform_with_assume_obstime():
+def test_altaz_transform_with_imposed_obstime():
     location = EarthLocation(-5466045 * u.m, -2404388 * u.m, 2242133 * u.m)
     coord1 = SkyCoord(
         10,
@@ -136,10 +136,10 @@ def test_altaz_transform_with_assume_obstime():
     assert not u.allclose(out1.ra, out2.dec)
 
     with impose_frame_attributes(obstime="2026-01-01T00:00:00"):
-        out_assumed = coord2.transform_to("icrs")
+        out_imposed = coord2.transform_to("icrs")
 
-    assert not u.allclose(out2.ra, out_assumed.dec)
-    assert not u.allclose(out2.ra, out_assumed.dec)
+    assert not u.allclose(out2.ra, out_imposed.dec)
+    assert not u.allclose(out2.ra, out_imposed.dec)
 
 
 def test_frame_subclass_attribute_descriptor():
