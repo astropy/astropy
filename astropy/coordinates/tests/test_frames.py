@@ -21,7 +21,7 @@ from astropy.coordinates.attributes import (
     EarthLocationAttribute,
     QuantityAttribute,
     TimeAttribute,
-    assume_frame_attributes,
+    impose_frame_attributes,
 )
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
 from astropy.coordinates.builtin_frames import (
@@ -106,7 +106,7 @@ def test_assume_obstime():
 
     assert coo1 != assumed_obstime
 
-    with assume_frame_attributes(obstime=assumed_obstime):
+    with impose_frame_attributes(obstime=assumed_obstime):
         assert coo1.obstime == assumed_obstime
 
 
@@ -135,7 +135,7 @@ def test_altaz_transform_with_assume_obstime():
     assert not u.allclose(out1.ra, out2.dec)
     assert not u.allclose(out1.ra, out2.dec)
 
-    with assume_frame_attributes(obstime="2026-01-01T00:00:00"):
+    with impose_frame_attributes(obstime="2026-01-01T00:00:00"):
         out_assumed = coord2.transform_to("icrs")
 
     assert not u.allclose(out2.ra, out_assumed.dec)
