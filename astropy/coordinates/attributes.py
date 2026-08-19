@@ -25,18 +25,18 @@ __all__ = [
     "TimeAttribute",
 ]
 
-_assumed_attributes: ContextVar[defaultdict | None] = ContextVar(
-    "_assumed_attributes", default=None
+_imposed_attributes: ContextVar[defaultdict | None] = ContextVar(
+    "_imposed_attributes", default=None
 )
 
 
-def _get_assumed_attributes():
+def _get_imposed_attributes():
     """A helper function so that we don't have a mutable default in ContextVar."""
-    return _assumed_attributes.get() or {}
+    return _imposed_attributes.get() or {}
 
 
 @contextmanager
-def assume_frame_attributes(**kwargs):
+def impose_frame_attributes(**kwargs):
     """
     Assume a value of one or more frame attributes.
 
@@ -51,7 +51,7 @@ def assume_frame_attributes(**kwargs):
     --------
     >>> import astropy.units as u
     >>> from astropy.coordinates import EarthLocation, SkyCoord
-    >>> from astropy.coordinates.attributes import assume_frame_attributes
+    >>> from astropy.coordinates.attributes import impose_frame_attributes
 
     >>> location = EarthLocation(-5466045*u.m, -2404388*u.m, 2242133*u.m)
 
@@ -73,22 +73,22 @@ def assume_frame_attributes(**kwargs):
     location, and you want to avoid more complex transformations or
     other effects through the transform graph, you can do this:
 
-    >>> with assume_frame_attributes(obstime="2026-01-01T00:00:00"):
+    >>> with impose_frame_attributes(obstime="2026-01-01T00:00:00"):
     ...     coord2.transform_to("icrs")
     <SkyCoord (ICRS): (ra, dec) in deg
         (36.10412254, 80.47633131)>
     """
-    # Get the current assumed attributes
-    current_attrs = _get_assumed_attributes()
+    # Get the current imposed attributes
+    current_attrs = _get_imposed_attributes()
     # Build the new set, overriding current with kwargs
     new_attrs = {**current_attrs, **kwargs}
-    # Set the new assumed attrs, but make sure it's still a defaultdict
-    token = _assumed_attributes.set(defaultdict(lambda: None, new_attrs))
+    # Set the new imposed attrs, but make sure it's still a defaultdict
+    token = _imposed_attributes.set(defaultdict(lambda: None, new_attrs))
     try:
         yield
     finally:
         # Reset to previous value using token
-        _assumed_attributes.reset(token)
+        _imposed_attributes.reset(token)
 
 
 class Attribute:
@@ -193,8 +193,8 @@ class Attribute:
             # Return the descriptor instance to enable the retrieval of the docstring
             return self
 
-        if (assumed_value := _get_assumed_attributes().get(self.name)) is not None:
-            out = assumed_value
+        if (imposed_value := _get_imposed_attributes().get(self.name)) is not None:
+            out = imposed_value
         else:
             out = getattr(instance, "_" + self.name, self.default)
 
