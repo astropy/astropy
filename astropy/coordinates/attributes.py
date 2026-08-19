@@ -77,6 +77,31 @@ def impose_frame_attributes(**kwargs):
     ...     coord2.transform_to("icrs")
     <SkyCoord (ICRS): (ra, dec) in deg
         (36.10412254, 80.47633131)>
+
+    Another example is computing the separation between two `~.HCRS` frames with slightly different obstimes.
+
+    >>> import astropy.units as u
+    >>> from astropy.coordinates import SkyCoord
+
+    >>> coord1 = SkyCoord(10*u.deg, 20*u.deg, frame='hcrs', obstime='2026-01-01 00:00:00')
+    >>> coord2 = SkyCoord(20*u.deg, 30*u.deg, frame='hcrs', obstime='2026-01-01 00:00:00.001')
+
+    When you try and compute the separation an error is raised because of the origin shift.
+
+    >>> print(coord1.separation(coord2))  # doctest: +SKIP
+    ...
+    astropy.units.errors.UnitsError: The input HCRS coordinates do not have length units. This probably means you created coordinates with lat/lon but no distance.  Heliocentric<->ICRS transforms cannot function in this case because there is an origin shift.
+
+    However, using this context manager:
+
+    >>> with impose_frame_attributes(obstime=coord1.obstime):
+    ...     print(coord1.separation(coord2))
+    13d28m54.20360928s
+
+    Both of these examples are trivial when constructing coordinates
+    like this, but when operating on a large number of coordinates
+    read from a file or with coordinate transforms in packages such as
+    ``reproject``, it becomes harder to make these changes manually.
     """
     # Get the current imposed attributes
     current_attrs = _get_imposed_attributes()
