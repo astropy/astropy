@@ -187,7 +187,7 @@ ANSWERS!*
 
 Set ``astropy.utils.iers.conf.iers_degraded_accuracy`` to either ``'warn'``
 or ``'ignore'``. These prevent the normal exception that occurs if a
-time conversion falls outside the bounds of available local IERS-B data.
+time conversion falls outside the bounds of available IERS data.
 
 
 Direct table access

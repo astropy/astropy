@@ -283,6 +283,34 @@ class TestIERS_Auto:
                             warnings.simplefilter("ignore", iers.IERSStaleWarning)
                             iers_table.ut1_utc(self.t.jd1, self.t.jd2)
 
+    def test_iers_degraded_accuracy_warn(self, monkeypatch):
+        """The iers_degraded_accuracy setting applies to stale IERS_Auto values."""
+        monkeypatch.setattr(iers, "IERS_A_FILE", self.iers_a_file_1)
+        with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
+            with iers.conf.set_temp("iers_auto_url_mirror", self.iers_a_url_1):
+                with iers.conf.set_temp("auto_max_age", self.ame):
+                    iers_table = iers.IERS_Auto.open()
+                    with warnings.catch_warnings():
+                        # Ignore stale-warning noise from the refresh; the
+                        # degradation warning below is what we are asserting on.
+                        warnings.simplefilter("ignore", iers.IERSStaleWarning)
+                        with iers.conf.set_temp("iers_degraded_accuracy", "warn"):
+                            with pytest.warns(iers.IERSDegradedAccuracyWarning):
+                                iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+
+    def test_iers_degraded_accuracy_ignore(self, monkeypatch):
+        """With iers_degraded_accuracy='ignore' stale IERS_Auto values are silent."""
+        monkeypatch.setattr(iers, "IERS_A_FILE", self.iers_a_file_1)
+        with iers.conf.set_temp("iers_auto_url", self.iers_a_url_1):
+            with iers.conf.set_temp("iers_auto_url_mirror", self.iers_a_url_1):
+                with iers.conf.set_temp("auto_max_age", self.ame):
+                    iers_table = iers.IERS_Auto.open()
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", iers.IERSStaleWarning)
+                        with iers.conf.set_temp("iers_degraded_accuracy", "ignore"):
+                            delta = iers_table.ut1_utc(self.t.jd1, self.t.jd2)
+        assert delta.shape == (self.N,)
+
     def test_auto_max_age_none(self, monkeypatch):
         """Make sure that iers.INTERPOLATE_ERROR's advice about setting
         auto_max_age = None actually works.
