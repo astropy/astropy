@@ -478,14 +478,16 @@ def test_qtable_preserves_int_datatype():
     assert qt["object_id"].dtype == np.int64
     assert qt["counts"].dtype == np.int64
     assert qt["ra"].dtype == np.float64
-    assert np.all(qt["object_id"].value == OBJECT_IDS)
+    # Compare via tolist() because a float64 column compares equal to these ints:
+    # the ints get promoted to float64, which is exactly the lossy step being tested.
+    assert qt["object_id"].value.tolist() == OBJECT_IDS
     assert qt["counts"].unit == u.count
     assert qt.preserve_quantity_dtype is True
 
     # A plain Table was never affected and is unchanged.
     t = Table.read(io.BytesIO(VOTABLE_INT_WITH_UNIT), format="votable")
     assert t["object_id"].dtype == np.int64
-    assert np.all(t["object_id"] == OBJECT_IDS)
+    assert t["object_id"].tolist() == OBJECT_IDS
 
 
 def test_qtable_preserves_int_datatype_round_trip(tmp_path):
@@ -499,7 +501,7 @@ def test_qtable_preserves_int_datatype_round_trip(tmp_path):
     qt2 = QTable.read(fn, format="votable")
 
     assert qt2["object_id"].dtype == np.int64
-    assert np.all(qt2["object_id"].value == OBJECT_IDS)
+    assert qt2["object_id"].value.tolist() == OBJECT_IDS
 
 
 def test_no_field_not_empty_table():
