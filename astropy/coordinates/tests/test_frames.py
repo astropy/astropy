@@ -99,15 +99,16 @@ def test_frame_attribute_descriptor():
     assert "Cannot set frame attribute" in str(err.value)
 
 
-def test_impose_obstime():
+def test_impose_nested_obstime():
     imposed_obstime = Time("2012-01-01T00:00:00")
 
     coo1 = GCRS(obstime="2026-01-01T00:00:00")
 
     assert coo1 != imposed_obstime
 
-    with impose_frame_attributes(obstime=imposed_obstime):
-        assert coo1.obstime == imposed_obstime
+    with impose_frame_attributes(obstime="2020-01-01T00:00:00"):
+        with impose_frame_attributes(obstime=imposed_obstime):
+            assert coo1.obstime == imposed_obstime
 
 
 def test_altaz_transform_with_imposed_obstime():
