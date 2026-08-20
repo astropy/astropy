@@ -23,6 +23,7 @@ __all__ = [
     "EarthLocationAttribute",
     "QuantityAttribute",
     "TimeAttribute",
+    "impose_frame_attributes",
 ]
 
 _imposed_attributes: ContextVar[defaultdict | None] = ContextVar(
