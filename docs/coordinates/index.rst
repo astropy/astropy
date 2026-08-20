@@ -547,6 +547,7 @@ listed below.
    common_errors
    definitions
    inplace
+   imposing_attributes
    example_gallery_index
 
 In addition, another resource for the capabilities of this package is the
