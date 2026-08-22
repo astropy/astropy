@@ -5,6 +5,7 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
+import ast
 import builtins
 import numbers
 import operator
@@ -257,34 +258,62 @@ NUM: Final = r"""
     ([eE][+-]?\d+)?
     [.+-]?
 """
+
+SEP_SPACE: Final = r"""\s*\]\s*\[\s*"""
+SEP_COMMA: Final = r"""\s*\]\s*,\s*\[\s*"""
+
 # List of numbers separated by "," or whitespace.
-VECTOR_COMMA: Final = rf"""
-    \[\s*
+NUMLST_COMMA: Final = rf"""
+    \s*
     {NUM}
-    (?: (\s*,\s*){NUM})*
+    (?:(\s*,\s*){NUM})*
     (\s*,\s*)?
-    \s*\]
 """
-VECTOR_WSPACE: Final = rf"""
-    \[\s*
+NUMLST_WSPACE: Final = rf"""
+    \s*
     {NUM}
-    (?: (\s+){NUM})*
-    \s*\]
+    (?:(\s*){NUM})*
 """
-VECTOR_1D: Final = rf"{VECTOR_COMMA} | {VECTOR_WSPACE}"
-NUMBER_PATTERN: Final = re.compile(rf"\s*(?:{NUM}|{VECTOR_1D})\s*", re.VERBOSE)
+TENSOR_COMMA: Final = rf"""
+    \[+
+    \s*
+    {NUMLST_COMMA}
+    (?: {SEP_COMMA}{NUMLST_COMMA})*
+    (\s*,\s*)?
+    \]+
+"""
+TENSOR_WSPACE: Final = rf"""
+    \[+
+    \s*
+    {NUMLST_WSPACE}
+    (?: {SEP_SPACE}{NUMLST_WSPACE})*
+    \]+
+"""
+
+TENSOR: Final = rf"{TENSOR_COMMA}|{TENSOR_WSPACE}"
+NUMBER_PATTERN: Final = re.compile(rf"\s*(?:{NUM}|{TENSOR})\s*", re.VERBOSE)
 
 
-def _parse_quantity_string(string: str) -> tuple[float | list[float], Unit]:
-    """Parse a string as a number or list of numbers.
+def _parse_quantity_string(
+    string: str,
+) -> tuple[float | list[float] | list[list[float]], Unit]:
+    """Parse a string as a number or list of numbers or a list of list of numbers.
 
     Returns a tuple of value (float or array) and unit.
     Raises if not possible.
     """
     v = re.match(NUMBER_PATTERN, string)
-    items = v.group().replace(",", " ").strip().strip("[]").split()
-    value = [float(a) for a in items] if "[" in string else float(items[0])
+    num_str = v.group()
+
+    if "," not in num_str:
+        num_str = re.sub(rf"{SEP_SPACE}", "],[", num_str)
+        num_str = re.sub(r"\s+", ",", num_str.strip())
+
+    items = ast.literal_eval(num_str)
+
+    value = np.array(items, dtype=np.float64).tolist()
     unit = Unit(unit_str) if (unit_str := v.string[v.end() :].strip()) else None
+
     return value, unit
 
 
