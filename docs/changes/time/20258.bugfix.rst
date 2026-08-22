@@ -1,0 +1,3 @@
+``Time.insert`` now preserves masks: the mask on the time being inserted
+into is carried over to the result, and inserting masked values promotes
+the result to masked.
