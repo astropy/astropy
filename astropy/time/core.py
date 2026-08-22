@@ -1186,6 +1186,19 @@ class TimeBase(MaskableShapedLikeNDArray):
         out._time.jd1[idx0 + n_values :] = self._time.jd1[idx0:]
         out._time.jd2[idx0 + n_values :] = self._time.jd2[idx0:]
 
+        # The assignments above copy only the data, so any mask on ``self`` or
+        # on ``values`` is dropped (gh-20230); carry the masks over explicitly.
+        values_mask = values.mask if isinstance(values, self.__class__) else False
+        if self.masked or np.any(values_mask):
+            if not out.masked:
+                out._time.jd1 = Masked(out._time.jd1, copy=False)
+                out._time.jd2 = Masked(
+                    out._time.jd2, mask=out._time.jd1.mask, copy=False
+                )
+            out._time.jd2.mask[:idx0] = self.mask[:idx0]
+            out._time.jd2.mask[idx0 : idx0 + n_values] = values_mask
+            out._time.jd2.mask[idx0 + n_values :] = self.mask[idx0:]
+
         return out
 
     def __setitem__(self, item, value):

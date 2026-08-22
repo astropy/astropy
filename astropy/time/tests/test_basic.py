@@ -2489,6 +2489,48 @@ def test_insert_time():
     assert np.all(tm2 == Time([10, 20, 1, 2], format="unix"))
 
 
+def test_insert_time_masked():
+    """Insert must preserve masks on self and on the inserted values (gh-20230)."""
+    tm = Time([1, 2, 3], format="unix")
+    tm[0] = np.ma.masked
+    tm[2] = np.ma.masked
+
+    # Mask on self survives an unmasked scalar insert.
+    tm2 = tm.insert(1, Time(60, format="unix"))
+    assert tm2.masked
+    assert np.all(tm2.mask == [True, False, False, True])
+    assert np.all(tm2.unmasked == Time([1, 60, 2, 3], format="unix").unmasked)
+
+    # Also at the end, where only the head copy runs.
+    tm2 = tm.insert(3, Time(60, format="unix"))
+    assert np.all(tm2.mask == [True, False, True, False])
+
+    # Masked values inserted into an unmasked Time promote the result.
+    tm_plain = Time([1, 2], format="unix")
+    masked_value = Time([60], format="unix")
+    masked_value[0] = np.ma.masked
+    tm2 = tm_plain.insert(1, masked_value)
+    assert tm2.masked
+    assert np.all(tm2.mask == [False, True, False])
+
+    # Both sides masked.
+    tm2 = tm.insert(1, masked_value)
+    assert np.all(tm2.mask == [True, True, False, True])
+
+    # Fully unmasked stays unmasked.
+    tm2 = tm_plain.insert(1, Time(60, format="unix"))
+    assert not tm2.masked
+
+
+def test_insert_timedelta_masked():
+    """TimeDelta shares Time.insert; masks must survive there too (gh-20230)."""
+    td = TimeDelta([1.0, 2.0, 3.0], format="jd")
+    td[1] = np.ma.masked
+    td2 = td.insert(0, TimeDelta(9.0, format="jd"))
+    assert td2.masked
+    assert np.all(td2.mask == [False, False, True, False])
+
+
 def test_insert_time_out_subfmt():
     # Check insert() with out_subfmt set
     T = Time(["1999-01-01", "1999-01-02"], out_subfmt="date")
