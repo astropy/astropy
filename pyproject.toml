@@ -268,6 +268,8 @@ filterwarnings = [
     "ignore:invalid value encountered in do_format:RuntimeWarning",
     # Remove this when we delete samp subpackage
     "ignore:astropy\\.samp was deprecated:astropy.utils.exceptions.AstropyDeprecationWarning",
+    # https://github.com/astropy/astropy/issues/20164
+    "ignore:.*matrix.*is being replaced:DeprecationWarning",
     # https://github.com/astropy/astropy/issues/19511
     "ignore:Implicitly cleaning up <HTTPError 404:ResourceWarning",
     "ignore:unclosed <socket:ResourceWarning",
@@ -306,7 +308,6 @@ test-skip = "*-musllinux_x86_64"
 enable = ["cpython-prerelease"]
 skip = [
     "cp*t-*",  # https://github.com/astropy/astropy/issues/16916
-    "cp315*-win*",  # https://github.com/astropy/astropy/issues/20049
 ]
 environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
