@@ -563,7 +563,6 @@ def test_iers_download_error_handling(tmp_path, monkeypatch, reset_iers_auto_cac
         with (
             iers.conf.set_temp("iers_auto_url", "FAIL FAIL"),
             iers.conf.set_temp("iers_auto_url_mirror", "https://google.com"),
-            iers.conf.set_temp("iers_degraded_accuracy", "ignore"),
         ):
             # The failed refresh is reported with a warning (the download fails
             # or the downloaded content cannot be parsed), and since the bundled
