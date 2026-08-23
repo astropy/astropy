@@ -18,10 +18,10 @@ import numpy as np
 # NOTE: Python can be built without bz2.
 from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA, HAS_UNCOMPRESSPY
 from astropy.utils.data import (
-    _is_url,
     _requires_fsspec,
     download_file,
     get_readable_fileobj,
+    is_url,
 )
 from astropy.utils.decorators import classproperty
 from astropy.utils.exceptions import AstropyUserWarning
@@ -214,7 +214,7 @@ class _File:
         if (
             isinstance(fileobj, (str, bytes))
             and mode not in ("ostream", "append", "update")
-            and _is_url(fileobj)
+            and is_url(fileobj)
         ):
             self.name = download_file(fileobj, cache=cache)
         # Handle responses from URL requests that have already been opened
