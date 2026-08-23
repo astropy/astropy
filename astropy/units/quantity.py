@@ -303,15 +303,17 @@ def _parse_quantity_string(
     Raises if not possible.
     """
     v = re.match(NUMBER_PATTERN, string)
-    num_str = v.group()
 
-    if "," not in num_str:
-        num_str = re.sub(rf"{SEP_SPACE}", "],[", num_str)
-        num_str = re.sub(r"\s+", ",", num_str.strip())
+    match = v.group().strip()
+    if "[" in match and "," not in match:
+        match = re.sub(rf"{SEP_SPACE}", "],[", match)
+        match = re.sub(r"\s+", ",", match)
 
-    items = ast.literal_eval(num_str)
-
-    value = np.array(items, dtype=np.float64).tolist()
+    value = (
+        np.array(ast.literal_eval(match), dtype=np.float64).tolist()
+        if "[" in match
+        else float(match)
+    )
     unit = Unit(unit_str) if (unit_str := v.string[v.end() :].strip()) else None
 
     return value, unit
