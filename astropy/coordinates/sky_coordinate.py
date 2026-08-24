@@ -296,9 +296,22 @@ class SkyCoord(MaskableShapedLikeNDArray):
     def __eq__(self, value):
         """Equality operator for SkyCoord.
 
-        This implements strict equality and requires that the frames are
-        equivalent, extra frame attributes are equivalent, and that the
-        representation data are exactly equal.
+        This implements strict equality, requiring that the right object be
+        strictly consistent with the left one:
+
+        - Identical frame type
+        - Identical ``representation_type``
+        - Identical representation differentials keys
+        - Identical frame attributes
+        - Identical "extra" frame attributes (e.g. ``obstime`` for an ICRS coord)
+
+        All of these, along with the coordinate data itself, are held by
+        ``self.info._represent_as_dict()``, which is what is required to
+        reconstruct the object.  The comparison is therefore just an item by item
+        comparison of two such dicts.  Items are compared element-wise and
+        broadcast against each other, so the result has the broadcast shape of
+        everything involved.  An item defined on only one of the two objects
+        makes the comparison `False` everywhere.
         """
         if isinstance(value, BaseCoordinateFrame):
             if value._data is None:
@@ -309,17 +322,26 @@ class SkyCoord(MaskableShapedLikeNDArray):
         if not isinstance(value, SkyCoord):
             return NotImplemented
 
-        # Make sure that any extra frame attribute names are equivalent.
-        for attr in self._extra_frameattr_names | value._extra_frameattr_names:
-            if not self.frame._frameattr_equiv(
-                getattr(self, attr), getattr(value, attr)
-            ):
-                raise ValueError(
-                    f"cannot compare: extra frame attribute '{attr}' is not equivalent"
-                    " (perhaps compare the frames directly to avoid this exception)"
-                )
+        repr1 = self.info._represent_as_dict()
+        repr2 = value.info._represent_as_dict()
 
-        return self._sky_coord_frame == value._sky_coord_frame
+        if repr1.keys() != repr2.keys():
+            # A different frame type, or an attribute that is set on one of the
+            # two objects but not the other, so nothing can be equal.
+            return np.zeros(np.broadcast_shapes(self.shape, value.shape), bool)[()]
+
+        extra_attrs = self._extra_frameattr_names | value._extra_frameattr_names
+        out = True
+        for attr, val1 in repr1.items():
+            try:
+                out = out & (val1 == repr2[attr])
+            except ValueError as err:
+                kind = "extra frame attribute" if attr in extra_attrs else "attribute"
+                raise ValueError(
+                    f"cannot compare: {kind} {attr!r} has shape mismatch"
+                ) from err
+
+        return out
 
     def __ne__(self, value):
         return np.logical_not(self == value)
