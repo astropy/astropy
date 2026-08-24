@@ -592,6 +592,38 @@ def test_equal_extra_frame_attribute_shape_mismatch():
         sc1 == sc2  # noqa: B015
 
 
+def test_equal_frame():
+    """Comparing to a bare frame goes through the same comparison as a SkyCoord.
+
+    A frame carries no "extra" frame attributes, so a |SkyCoord| that has any is
+    never equal to one.
+    """
+    frame = ICRS([1, 2] * u.deg, [3, 4] * u.deg)
+    sc = SkyCoord([1, 20] * u.deg, [3, 4] * u.deg)
+
+    assert np.all((sc == frame) == [True, False])
+    assert np.all((frame == sc) == [True, False])
+    assert np.all((sc != frame) == [False, True])
+
+    # An extra frame attribute makes the SkyCoord unequal to any bare frame.
+    sc_obstime = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime="B1955")
+    assert np.all((sc_obstime == frame) == [False, False])
+    assert np.all((frame == sc_obstime) == [False, False])
+
+    # A differing frame attribute or frame class gives False, not an exception.
+    assert (
+        SkyCoord(1 * u.deg, 2 * u.deg, frame="fk5", equinox="J1950")
+        == FK5(1 * u.deg, 2 * u.deg, equinox="J2000")
+    ) is np.False_
+    assert (SkyCoord(1 * u.deg, 2 * u.deg) == FK5(1 * u.deg, 2 * u.deg)) is np.False_
+
+    # But a frame without data cannot be compared at all.
+    with pytest.raises(
+        ValueError, match="Can only compare SkyCoord to Frame with data"
+    ):
+        sc == ICRS()  # noqa: B015
+
+
 def test_attr_inheritance():
     """
     When initializing from an existing coord the representation attrs like
