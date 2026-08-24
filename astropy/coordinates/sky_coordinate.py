@@ -317,7 +317,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
             if value._data is None:
                 raise ValueError("Can only compare SkyCoord to Frame with data")
 
-            return self.frame == value
+            return self == SkyCoord(value, copy=False)
 
         if not isinstance(value, SkyCoord):
             return NotImplemented
