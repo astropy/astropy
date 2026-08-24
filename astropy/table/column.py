@@ -1717,6 +1717,27 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return out
 
+    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
+        out_arr = super().__array_wrap__(out_arr, context, return_scalar)
+
+        # Workaround for a numpy.ma footgun: ma.MaskedArray.__array_wrap__
+        # copies the input's raw `_fill_value` onto the ufunc output
+        # without checking it is still valid for the output's dtype.  This
+        # matters for ufuncs that change dtype.  So for example,
+        # np.strings.find, on a string masked column returns an int array
+        # but keeps the original string fill_value.  That stale fill_value
+        # doesn't fail immediately, but blows up later (e.g. when
+        # MaskedColumn.data calls self.view()).  Detect that case here and
+        # reset to the dtype-appropriate default instead.
+        fill_value = getattr(out_arr, "_fill_value", None)
+        if fill_value is not None and hasattr(out_arr, "dtype"):
+            try:
+                ma.core._check_fill_value(fill_value, out_arr.dtype)
+            except (TypeError, ValueError):
+                out_arr._fill_value = None
+
+        return out_arr
+
     @property
     def fill_value(self):
         return self.get_fill_value()  # defer to native ma.MaskedArray method
