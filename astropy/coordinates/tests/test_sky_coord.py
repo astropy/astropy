@@ -27,9 +27,11 @@ from astropy.coordinates import (
     Distance,
     EarthLocation,
     Galactic,
+    Galactocentric,
     Latitude,
     RepresentationMapping,
     SkyCoord,
+    SkyOffsetFrame,
     SphericalRepresentation,
     UnitSphericalRepresentation,
     frame_transform_graph,
@@ -38,6 +40,7 @@ from astropy.coordinates.representation import (
     DUPLICATE_REPRESENTATIONS,
     REPRESENTATION_CLASSES,
 )
+from astropy.coordinates.sky_coordinate import _item_equal
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.io import fits
@@ -622,6 +625,48 @@ def test_equal_frame():
         ValueError, match="Can only compare SkyCoord to Frame with data"
     ):
         sc == ICRS()  # noqa: B015
+
+
+def test_equal_coordinate_frame_attribute():
+    """A frame-valued attribute that cannot be compared is simply not equal.
+
+    Comparing two frames that are not equivalent, or one that has data with one
+    that does not, raises rather than giving `False`, so equality of a coordinate
+    frame attribute such as ``SkyOffsetFrame.origin`` has to allow for that.
+    """
+    origin1 = FK5(1 * u.deg, 2 * u.deg, equinox="J2000")
+    origin2 = FK5(1 * u.deg, 2 * u.deg, equinox="J1999")
+    # Comparing the two origins directly would raise.
+    with pytest.raises(TypeError, match="must have equivalent frames"):
+        origin1 == origin2  # noqa: B015
+
+    data = ICRS(3 * u.deg, 4 * u.deg).data
+    offset = lambda origin: SkyCoord(SkyOffsetFrame(origin=origin).realize_frame(data))
+    assert (offset(origin1) == offset(origin2)) is np.False_
+
+    # An equivalent origin still compares equal, and the data still matters.
+    assert (offset(origin1) == offset(FK5(1 * u.deg, 2 * u.deg))) is np.True_
+    other = SkyCoord(
+        SkyOffsetFrame(origin=origin1).realize_frame(ICRS(9 * u.deg, 4 * u.deg).data)
+    )
+    assert (offset(origin1) == other) is np.False_
+
+    # An error that is not the frame comparison declining to compare is not
+    # swallowed.
+    class Boom(FK5):
+        def __eq__(self, other):
+            raise TypeError("something else entirely")
+
+    with pytest.raises(TypeError, match="something else entirely"):
+        _item_equal(Boom(1 * u.deg, 2 * u.deg), origin1)
+
+    # Likewise when only one of the two attributes has data.
+    galcen = lambda coord: SkyCoord(
+        Galactocentric(
+            [1, 2] * u.kpc, [0, 0] * u.kpc, [0, 0] * u.kpc, galcen_coord=coord
+        )
+    )
+    assert np.all((galcen(ICRS(1 * u.deg, 2 * u.deg)) == galcen(ICRS())) == [False] * 2)
 
 
 def test_attr_inheritance():
