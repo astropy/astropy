@@ -39,6 +39,25 @@ from .sky_coordinate_parsers import (
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
 
+def _item_equal(val1, val2):
+    """Compare two items of a ``SkyCoord.info._represent_as_dict()`` dict."""
+    if isinstance(val1, BaseCoordinateFrame):
+        # A coordinate frame attribute, e.g. the ``origin`` of a
+        # ``SkyOffsetFrame``.  Comparing two frames raises instead of giving
+        # False when they are not equivalent, or when only one of them has data,
+        # but for an attribute that simply means the two are not equal.
+        try:
+            return val1 == val2
+        except (TypeError, ValueError) as err:
+            # Only the frame comparison itself declining to compare, not e.g. an
+            # unrelated TypeError from within it.
+            if not str(err).startswith("cannot compare"):
+                raise
+            return False
+
+    return val1 == val2
+
+
 class SkyCoordInfo(CoordinateFrameInfo):
     # Information for a SkyCoord is almost identical to that of a frame;
     # we only need to add the name of the frame used underneath.
@@ -334,7 +353,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
         out = True
         for attr, val1 in repr1.items():
             try:
-                out = out & (val1 == repr2[attr])
+                out = out & _item_equal(val1, repr2[attr])
             except ValueError as err:
                 kind = "extra frame attribute" if attr in extra_attrs else "attribute"
                 raise ValueError(
