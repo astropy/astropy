@@ -1,0 +1,2 @@
+Fixed a bug where ``np.strings.find`` used on ``MaskedColumn`` caused a
+``TypeError`` from a stale ``fill_value`` dtype.
