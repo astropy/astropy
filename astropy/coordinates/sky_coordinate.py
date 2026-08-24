@@ -347,7 +347,12 @@ class SkyCoord(MaskableShapedLikeNDArray):
         if repr1.keys() != repr2.keys():
             # A different frame type, or an attribute that is set on one of the
             # two objects but not the other, so nothing can be equal.
-            return np.zeros(np.broadcast_shapes(self.shape, value.shape), bool)[()]
+            try:
+                shape = np.broadcast_shapes(self.shape, value.shape)
+            except ValueError as err:
+                raise ValueError(f"cannot compare: {err}") from err
+
+            return np.zeros(shape, bool)[()]
 
         extra_attrs = self._extra_frameattr_names | value._extra_frameattr_names
         out = True
@@ -357,7 +362,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
             except ValueError as err:
                 kind = "extra frame attribute" if attr in extra_attrs else "attribute"
                 raise ValueError(
-                    f"cannot compare: {kind} {attr!r} has shape mismatch"
+                    f"cannot compare: {kind} {attr!r} has shape mismatch: {err}"
                 ) from err
 
         return out
