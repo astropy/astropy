@@ -2185,6 +2185,8 @@ class TestQuantityConvertKeepInt:
         assert isinstance(t["b"], Masked)
         assert t["a"].unit == u.m
         assert np.all(t["b"].mask == [False, True])
+        # Values are exact under the mask as well as outside it.
+        assert np.all(t["b"].unmasked.value == self.VALS)
 
     def test_set_attribute_then_add_column(self):
         t = QTable()
