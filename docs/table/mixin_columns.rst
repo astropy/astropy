@@ -151,10 +151,10 @@ When a column of ``int`` ``dtype`` has a defined unit and is converted to
 situation is common when reading VOtable or FITS data tables that have integer count
 data or source IDs with defined units.
 
-You can change this behavior and preserve the original ``dtype``  by providing
-``preserve_quantity_dtype=True`` when creating the `~astropy.table.QTable`. You can also
-change this behavior for an existing `~astropy.table.QTable` by setting the
-``preserve_quantity_dtype`` attribute to `True`. This attribute is stored in the table
+You can change this behavior and keep the integer ``dtype`` by providing
+``quantity_convert_keep_int=True`` when creating the `~astropy.table.QTable`. You can
+also change this behavior for an existing `~astropy.table.QTable` by setting the
+``quantity_convert_keep_int`` attribute to `True`. This attribute is stored in the table
 ``meta`` so it is preserved through table operations such as copying, slicing, and
 pickling, as well as writing to ECSV.
 
@@ -171,7 +171,7 @@ Example::
     ---------------------- -------
     2.7411005596432517e+18   401.0
     2.7334564786471373e+18 15023.0
-    >>> qt_int = QTable({"source": source, "counts": counts}, preserve_quantity_dtype=True)
+    >>> qt_int = QTable({"source": source, "counts": counts}, quantity_convert_keep_int=True)
     >>> qt_int
     <QTable length=2>
            source        counts
@@ -180,14 +180,14 @@ Example::
     ------------------- ------
     2741100559643251862    401
     2733456478647137226  15023
-    >>> qt_int.preserve_quantity_dtype
+    >>> qt_int.quantity_convert_keep_int
     True
 
 .. note::
 
-   When reading a file into a `~astropy.table.QTable`, the ``dtype`` is preserved only
-   if the file stores the data as a plain column with a unit *and* the
-   ``preserve_quantity_dtype`` attribute is in the table ``meta``. A column that was
+   When reading a file into a `~astropy.table.QTable`, the integer ``dtype`` is kept
+   only if the file stores the data as a plain column with a unit *and* the
+   ``quantity_convert_keep_int`` attribute is in the table ``meta``. A column that was
    written as a serialized `~astropy.units.Quantity` column, for instance in an ECSV
    file written from a `~astropy.table.QTable`, is still converted to `float` when it is
    read back.

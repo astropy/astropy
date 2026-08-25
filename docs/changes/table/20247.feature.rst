@@ -1,4 +1,4 @@
-Added a new ``QTable`` keyword argument and attribute ``preserve_quantity_dtype``. When
+Added a new ``QTable`` keyword argument and attribute ``quantity_convert_keep_int``. When
 set to `True`, an integer column with a unit keeps its ``dtype`` when it is converted to
 a ``Quantity`` instead of being cast to float. This avoids silently losing precision for
 integer columns such as source identifiers, which are commonly read from VOTable or FITS

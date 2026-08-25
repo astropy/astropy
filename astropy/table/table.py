@@ -907,7 +907,7 @@ class Table:
         # Set table meta.  If copy=True then deepcopy meta otherwise use the
         # user-supplied meta directly.  This is done before the real initialization
         # since a TableAttribute stored in meta can change how the columns get
-        # converted (e.g. the QTable ``preserve_quantity_dtype`` attribute).
+        # converted (e.g. the QTable ``quantity_convert_keep_int`` attribute).
         if meta is not None:
             self.meta = deepcopy(meta) if copy else meta
 
@@ -4388,16 +4388,17 @@ class QTable(Table):
         List or dict of units to apply to columns.
     descriptions : list, dict, optional
         List or dict of descriptions to apply to columns.
-    preserve_quantity_dtype : bool, optional
-        If `True`, always preserve the dtype of input data with units when converting to
-        `~astropy.units.Quantity`. By default, integer types are converted to float,
-        following the behavior of `~astropy.units.Quantity`.
+    quantity_convert_keep_int : bool, optional
+        If `True`, an integer column with a unit keeps its ``dtype`` when it is
+        converted to `~astropy.units.Quantity`. By default such a column is cast to
+        float, following the behavior of `~astropy.units.Quantity`. Columns that are
+        already float or complex are unaffected either way.
     **kwargs : dict, optional
         Additional keyword args when converting table-like object.
 
     """
 
-    preserve_quantity_dtype = TableAttribute()
+    quantity_convert_keep_int = TableAttribute()
 
     def _is_mixin_for_table(self, col):
         """
@@ -4416,7 +4417,7 @@ class QTable(Table):
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
             # Quantity casts integer data to float unless dtype=None is supplied.
-            kwargs = {"dtype": None} if self.preserve_quantity_dtype else {}
+            kwargs = {"dtype": None} if self.quantity_convert_keep_int else {}
             try:
                 qcol = q_cls(col.data, col.unit, copy=None, subok=True, **kwargs)
             except Exception as exc:
