@@ -2161,7 +2161,7 @@ class TestQuantityConvertKeepInt:
     def get_table(self):
         return Table(
             [
-                Column(self.VALS, name="a", unit="m"),
+                Column(self.VALS, name="a", unit="ct"),
                 MaskedColumn(self.VALS, name="b", unit="", mask=[False, True]),
             ]
         )
@@ -2183,7 +2183,7 @@ class TestQuantityConvertKeepInt:
         assert np.all(t["a"].value == self.VALS)
         assert isinstance(t["a"], u.Quantity)
         assert isinstance(t["b"], Masked)
-        assert t["a"].unit == u.m
+        assert t["a"].unit == u.ct
         assert np.all(t["b"].mask == [False, True])
         # Values are exact under the mask as well as outside it.
         assert np.all(t["b"].unmasked.value == self.VALS)
