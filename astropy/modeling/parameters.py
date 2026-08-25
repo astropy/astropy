@@ -721,11 +721,6 @@ class Parameter:
                 if model is not None:
                     # Don't make a partial function unless we're tied to a
                     # specific model instance
-                    #
-                    # FIXME: replace with the following (Python 3.14):
-                    #
-                    #   wrapper = functools.partial(
-                    #       wrapper, functools.Placeholder, model)
                     model_arg = inputs[1].name
                     wrapper = functools.partial(wrapper, **{model_arg: model})
             else:
