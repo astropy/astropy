@@ -29,8 +29,10 @@ from astropy.table import (
 )
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time
+from astropy.units.quantity import conf as quantity_conf
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.masked import Masked
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 from .conftest import MaskedTable
@@ -2149,6 +2151,86 @@ class TestQTableColumnConversionCornerCases:
         with pytest.warns(AstropyUserWarning, match="convert it to Quantity failed"):
             t["a"] = Column(["a"], unit=u.m)
         assert isinstance(t["a"], Column)
+
+
+class TestQTableIntColumnWithUnit:
+    """An integer column with a unit keeps its dtype in a QTable (#17963)."""
+
+    # Integers that are not exactly representable as float64.
+    VALS = [2741100559643251862, 2733456478647137226]
+
+    def get_table(self):
+        return Table(
+            [
+                Column(self.VALS, name="a", unit="ct"),
+                MaskedColumn(self.VALS, name="b", unit="ct", mask=[False, True]),
+            ]
+        )
+
+    def test_default_keeps_int(self):
+        t = QTable(self.get_table())
+        assert t["a"].dtype == np.int64
+        assert isinstance(t["a"], u.Quantity)
+        assert t["a"].unit == u.ct
+        assert np.all(t["a"].value == self.VALS)
+
+    def test_masked_column(self):
+        col = QTable(self.get_table())["b"]
+        assert col.dtype == np.int64
+        assert isinstance(col, Masked)
+        assert np.all(col.mask == [False, True])
+        # Values are exact under the mask as well as outside it.
+        assert np.all(col.unmasked.value == self.VALS)
+
+    def test_add_column_later(self):
+        t = QTable()
+        t["a"] = Column(self.VALS, unit="ct")
+        assert t["a"].dtype == np.int64
+        assert np.all(t["a"].value == self.VALS)
+
+    def test_conf_always_converts_to_float(self):
+        """``always`` gives the behavior of astropy 7.x and earlier."""
+        with quantity_conf.set_temp("quantity_convert_int_to_float", "always"):
+            t = QTable(self.get_table())
+        assert t["a"].dtype.kind == "f"
+        assert t["b"].dtype.kind == "f"
+
+    def test_conf_never_keeps_int(self):
+        with quantity_conf.set_temp("quantity_convert_int_to_float", "never"):
+            t = QTable(self.get_table())
+        assert t["a"].dtype == np.int64
+
+    def test_float_column_unaffected(self):
+        vals = [1.5, 2.5]
+        t = QTable([Column(vals, name="a", unit="m", dtype=np.float32)])
+        assert t["a"].dtype == np.float32
+        assert np.all(t["a"].value == vals)
+
+    def test_plain_table_unaffected(self):
+        """A plain Table keeps the Column and never converts to Quantity."""
+        t = Table(self.get_table())
+        assert t["a"].dtype == np.int64
+        assert isinstance(t["a"], Column)
+
+    @pytest.mark.parametrize("fmt", ["ascii.ecsv", "fits", "votable"])
+    def test_round_trip(self, tmp_path, fmt):
+        """The dtype and the exact values survive a write/read round trip.
+
+        Note that the value hidden underneath a mask is not stored by these
+        formats, so only the unmasked values are compared.
+        """
+        t = QTable(self.get_table())
+        filename = tmp_path / "test_file"
+        t.write(filename, format=fmt)
+        t2 = QTable.read(filename, format=fmt)
+        for name in ("a", "b"):
+            col = t2[name]
+            assert col.dtype.kind in "iu"
+            assert col.unit == u.ct
+            mask = getattr(col, "mask", np.zeros(len(col), dtype=bool))
+            vals = np.asarray(getattr(col, "unmasked", col).value)
+            assert np.all(vals[~mask] == np.array(self.VALS)[~mask])
+        assert np.all(t2["b"].mask == [False, True])
 
 
 class Test__Astropy_Table__:

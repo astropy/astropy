@@ -6,7 +6,7 @@ from importlib import import_module
 
 import numpy as np
 
-from astropy.units.quantity import QuantityInfo
+from astropy.units.quantity import QuantityInfo, _keep_integer_dtype
 from astropy.utils.data_info import MixinInfo
 
 from .column import Column, MaskedColumn
@@ -462,8 +462,13 @@ def _construct_mixins_from_columns(tbl):
 
     out = _TableLite(tbl.columns)
 
-    for new_name, obj_attrs in mixin_cols.items():
-        _construct_mixin_from_columns(new_name, obj_attrs, out)
+    # Reconstructing a serialized column reproduces what was written, so an integer
+    # column keeps its dtype even where creating the object from scratch would convert
+    # it to float. However this can be modified by the
+    # ``units.quantity_convert_int_to_float`` configuration item.
+    with _keep_integer_dtype():
+        for new_name, obj_attrs in mixin_cols.items():
+            _construct_mixin_from_columns(new_name, obj_attrs, out)
 
     # If no quantity subclasses are in the output then output as Table.
     # For instance ascii.read(file, format='ecsv') doesn't specify an

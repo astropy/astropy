@@ -1,0 +1,10 @@
+An integer ``Column`` with a unit now keeps its ``dtype`` when it is converted to a
+``Quantity`` in a ``QTable``, instead of being cast to float. This avoids silently losing
+precision for integer columns such as source identifiers or counts, which are commonly
+read from VOTable or FITS files with a unit defined. The ``dtype`` is now also preserved
+through a write/read round trip for the formats that serialize ``Quantity`` columns, such
+as ECSV, FITS, HDF5 and parquet.
+
+To restore the previous behavior, set the new ``units.quantity_convert_int_to_float``
+configuration item to ``always``, either globally or with
+``conf.set_temp("quantity_convert_int_to_float", "always")``.

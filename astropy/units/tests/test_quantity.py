@@ -13,7 +13,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_almost_equal, assert_array_equal
 
 from astropy import units as u
-from astropy.units.quantity import _UNIT_NOT_INITIALISED
+from astropy.units.quantity import _UNIT_NOT_INITIALISED, _keep_integer_dtype, conf
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -2135,3 +2135,65 @@ class TestQuantitySubclassAboveAndBelow:
         assert not isinstance(mq21, self.MyQuantity2)
         assert mq21.my_attr == "2"
         assert mq21.unit is u.m
+
+
+class TestQuantityConvertIntToFloat:
+    """Test the ``quantity_convert_int_to_float`` configuration item."""
+
+    # Integers that are not exactly representable as float64.
+    VALS = [2741100559643251862, 2733456478647137226]
+
+    @pytest.mark.parametrize("value", ["default", "always"])
+    def test_int_is_converted_to_float(self, value):
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            q = u.Quantity(self.VALS, u.ct)
+        assert q.dtype.kind == "f"
+
+    def test_never_keeps_int(self):
+        with conf.set_temp("quantity_convert_int_to_float", "never"):
+            q = u.Quantity(self.VALS, u.ct)
+        assert q.dtype == np.int64
+        assert np.all(q.value == self.VALS)
+
+    def test_never_applies_to_multiplication(self):
+        """The ``value * unit`` idiom goes through the same code path."""
+        with conf.set_temp("quantity_convert_int_to_float", "never"):
+            assert (np.array(self.VALS) * u.ct).dtype == np.int64
+
+    def test_never_keeps_int_from_quantity(self):
+        """The fast path for Quantity input is also covered."""
+        with conf.set_temp("quantity_convert_int_to_float", "never"):
+            q = u.Quantity(np.array(self.VALS, dtype=np.int64), u.ct)
+            assert u.Quantity(q).dtype == np.int64
+            assert u.Quantity(q, u.ct).dtype == np.int64
+
+    @pytest.mark.parametrize("value", ["default", "always", "never"])
+    def test_explicit_dtype_wins(self, value):
+        """An explicit ``dtype`` is honored whatever the configuration says."""
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            assert u.Quantity(self.VALS, u.ct, dtype=float).dtype.kind == "f"
+            assert u.Quantity([1.5, 2.5], u.ct, dtype=int).dtype.kind == "i"
+            assert u.Quantity(self.VALS, u.ct, dtype=None).dtype == np.int64
+
+    @pytest.mark.parametrize("value", ["default", "always", "never"])
+    @pytest.mark.parametrize("dtype", [np.float32, np.float64, np.complex64, bool])
+    def test_non_integer_input_unaffected(self, value, dtype):
+        """Only integer input is affected, since the default is ``np.inexact``."""
+        arr = np.ones(2, dtype=dtype)
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            assert u.Quantity(arr, u.ct).dtype == arr.dtype
+
+    def test_invalid_value(self):
+        with pytest.raises(TypeError, match="Provided value for configuration item"):
+            conf.quantity_convert_int_to_float = "sometimes"
+
+    @pytest.mark.parametrize(
+        ("value", "kind"), [("default", "i"), ("always", "f"), ("never", "i")]
+    )
+    def test_keep_integer_dtype_context(self, value, kind):
+        """``always`` overrides a context that would otherwise keep integers."""
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            with _keep_integer_dtype():
+                assert u.Quantity(self.VALS, u.ct).dtype.kind == kind
+            # The configuration is restored on exit.
+            assert conf.quantity_convert_int_to_float == value

@@ -6,6 +6,7 @@ but will deal with unit conversions internally.
 """
 
 import builtins
+import contextlib
 import numbers
 import operator
 import re
@@ -65,9 +66,34 @@ class Conf(_config.ConfigNamespace):
         "negative number means that the value will instead be whatever numpy "
         "gets from get_printoptions.",
     )
+    quantity_convert_int_to_float = _config.ConfigItem(
+        ["default", "always", "never"],
+        "Whether integer values are converted to float when a Quantity is "
+        "created without an explicit ``dtype``. With ``default`` the conversion "
+        "is done, but a particular context may override it, as when a column is "
+        "added to a QTable. With ``always`` the conversion is done and such "
+        "overrides are ignored. With ``never`` integer values keep their dtype.",
+    )
 
 
 conf = Conf()
+
+
+@contextlib.contextmanager
+def _keep_integer_dtype():
+    """Context in which integer input keeps its dtype when creating a Quantity.
+
+    This is for an operation that should not change the dtype of what it is
+    given, such as adding a column to a `~astropy.table.QTable` or
+    reconstructing a serialized column.  Setting the
+    ``quantity_convert_int_to_float`` configuration item to ``always``
+    overrides this, giving the conversion to float of astropy 7.x and earlier.
+    """
+    convert = conf.quantity_convert_int_to_float
+    with conf.set_temp(
+        "quantity_convert_int_to_float", "never" if convert == "default" else convert
+    ):
+        yield
 
 
 class QuantityIterator:
@@ -464,10 +490,11 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
-        # inexact -> upcast to float dtype
+        # inexact -> upcast to float dtype, unless configured not to.
         float_default = dtype is np.inexact
         if float_default:
             dtype = None
+            float_default = conf.quantity_convert_int_to_float != "never"
 
         # optimize speed for Quantity with no dtype given, copy=None
         if isinstance(value, Quantity):
