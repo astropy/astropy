@@ -30,6 +30,7 @@ from astropy.table import (
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time
 from astropy.units.quantity import conf as quantity_conf
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYARROW
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.masked import Masked
@@ -2212,24 +2213,48 @@ class TestQTableIntColumnWithUnit:
         assert t["a"].dtype == np.int64
         assert isinstance(t["a"], Column)
 
-    @pytest.mark.parametrize("fmt", ["ascii.ecsv", "fits", "votable"])
-    def test_round_trip(self, tmp_path, fmt):
+    @pytest.mark.parametrize("conf_value", ["default", "always", "never"])
+    @pytest.mark.parametrize(
+        "fmt", ["ascii.ecsv", "fits", "hdf5", "parquet", "votable"]
+    )
+    def test_round_trip(self, tmp_path, fmt, conf_value):
         """The dtype and the exact values survive a write/read round trip.
+
+        The ``quantity_convert_int_to_float`` configuration item applies on
+        reading as well as on writing, so ``always`` gives back the float column
+        of astropy 7.x and earlier.
 
         Note that the value hidden underneath a mask is not stored by these
         formats, so only the unmasked values are compared.
         """
+        if fmt == "hdf5" and not HAS_H5PY:
+            pytest.skip("hdf5 tests require h5py")
+        if fmt == "parquet" and not HAS_PYARROW:
+            pytest.skip("parquet tests require pyarrow")
+
+        hdf5_kwargs = {"path": "the_table"} if fmt == "hdf5" else {}
+
         t = QTable(self.get_table())
         filename = tmp_path / "test_file"
-        t.write(filename, format=fmt)
-        t2 = QTable.read(filename, format=fmt)
+        t.write(
+            filename,
+            format=fmt,
+            **hdf5_kwargs,
+            **({"serialize_meta": True} if fmt == "hdf5" else {}),
+        )
+        with quantity_conf.set_temp("quantity_convert_int_to_float", conf_value):
+            t2 = QTable.read(filename, format=fmt, **hdf5_kwargs)
+
+        expected_kind = "f" if conf_value == "always" else "i"
         for name in ("a", "b"):
             col = t2[name]
-            assert col.dtype.kind in "iu"
+            assert col.dtype.kind == expected_kind
             assert col.unit == u.ct
-            mask = getattr(col, "mask", np.zeros(len(col), dtype=bool))
-            vals = np.asarray(getattr(col, "unmasked", col).value)
-            assert np.all(vals[~mask] == np.array(self.VALS)[~mask])
+            if expected_kind == "i":
+                # Only an integer dtype can hold these values exactly.
+                mask = getattr(col, "mask", np.zeros(len(col), dtype=bool))
+                vals = np.asarray(getattr(col, "unmasked", col).value)
+                assert np.all(vals[~mask] == np.array(self.VALS)[~mask])
         assert np.all(t2["b"].mask == [False, True])
 
 
