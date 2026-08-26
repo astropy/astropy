@@ -7,4 +7,8 @@ ignore such overrides) and ``never`` (keep the integer ``dtype``)::
     with conf.set_temp("quantity_convert_int_to_float", "never"):
         q = [1, 2] * u.ct  # int64 rather than float64
 
-An explicit ``dtype`` argument is always honored, whatever the configuration says.
+An explicit ``dtype`` argument is always honored regardless of the configuration.
+
+Note that ``Quantity`` subclasses in astropy such as ``Angle``, ``Distance`` and
+``Magnitude`` are unaffected by the configuration. They always default to floating-point
+``dtype``.

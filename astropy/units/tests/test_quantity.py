@@ -13,6 +13,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_almost_equal, assert_array_equal
 
 from astropy import units as u
+from astropy.coordinates import Angle, Distance
 from astropy.units.quantity import _UNIT_NOT_INITIALISED, _keep_integer_dtype, conf
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
@@ -2174,6 +2175,20 @@ class TestQuantityConvertIntToFloat:
             assert u.Quantity(self.VALS, u.ct, dtype=float).dtype.kind == "f"
             assert u.Quantity([1.5, 2.5], u.ct, dtype=int).dtype.kind == "i"
             assert u.Quantity(self.VALS, u.ct, dtype=None).dtype == np.int64
+            # ``np.inexact`` is an explicit request to upcast, distinct from
+            # not giving a dtype at all.
+            assert u.Quantity(self.VALS, u.ct, dtype=np.inexact).dtype.kind == "f"
+
+    @pytest.mark.parametrize("value", ["default", "always", "never"])
+    @pytest.mark.parametrize(("cls", "unit"), [(Angle, u.deg), (Distance, u.kpc)])
+    def test_inherently_float_subclasses(self, cls, unit, value):
+        """Subclasses that declare ``dtype=np.inexact`` stay floating point.
+
+        An angle or a distance is inherently a floating point quantity, so these
+        request the conversion explicitly and are unaffected by the setting.
+        """
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            assert cls([1, 2], unit).dtype.kind == "f"
 
     @pytest.mark.parametrize("value", ["default", "always", "never"])
     @pytest.mark.parametrize("dtype", [np.float32, np.float64, np.complex64, bool])

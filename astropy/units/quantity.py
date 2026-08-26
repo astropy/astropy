@@ -79,6 +79,21 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
+class _DtypeNotGiven:
+    """Sentinel for the ``dtype`` argument of `Quantity` not being given.
+
+    This is distinct from an explicit ``dtype=numpy.inexact``, which requests
+    that integer input be upcast to float whatever the
+    ``quantity_convert_int_to_float`` configuration item says.
+    """
+
+    def __repr__(self):
+        return "<dtype not given>"
+
+
+_DTYPE_NOT_GIVEN = _DtypeNotGiven()
+
+
 @contextlib.contextmanager
 def _keep_integer_dtype():
     """Context in which integer input keeps its dtype when creating a Quantity.
@@ -337,9 +352,11 @@ class Quantity(np.ndarray):
         The dtype of the resulting Numpy array or scalar that will
         hold the value.  If not provided, it is determined from the input,
         except that any integer and (non-Quantity) object inputs are converted
-        to float by default.
+        to float by default, as set by the ``quantity_convert_int_to_float``
+        configuration item.
         If `None`, the normal `numpy.dtype` introspection is used, e.g.
-        preventing upcasting of integers.
+        preventing upcasting of integers.  If `numpy.inexact`, integer and
+        object inputs are converted to float whatever the configuration says.
 
     copy : bool, optional
         If `True` (default), then the value is copied.  Otherwise, a copy will
@@ -480,7 +497,7 @@ class Quantity(np.ndarray):
         cls: type[Self],
         value: QuantityLike,
         unit=None,
-        dtype=np.inexact,
+        dtype=_DTYPE_NOT_GIVEN,
         copy=True,
         order=None,
         subok=False,
@@ -490,12 +507,16 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
-        if dtype is np.inexact:
-            # This is the sentinel for "no dtype given" rather than a dtype that
-            # numpy can use, so it always has to be replaced.  Whether integer
-            # input is then upcast to float is up to the configuration.
+        if dtype is _DTYPE_NOT_GIVEN:
+            # No dtype was given, so whether integer input is upcast to float is
+            # up to the configuration.
             dtype = None
             float_default = conf.quantity_convert_int_to_float != "never"
+        elif dtype is np.inexact:
+            # An explicit request to upcast integer input to float.  This is not
+            # a dtype numpy can use, so it has to be replaced.
+            dtype = None
+            float_default = True
         else:
             float_default = False
 
