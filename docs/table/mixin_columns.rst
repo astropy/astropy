@@ -141,15 +141,17 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
    ordinary `~astropy.table.Table` then it gets converted to an ordinary
    `~astropy.table.Column` with the corresponding ``unit`` attribute.
 
-.. attention::
+.. note::
 
-   When a column of ``int`` ``dtype`` is converted to `~astropy.units.Quantity`,
-   its ``dtype`` is converted to ``float``.
+   A column of ``int`` ``dtype`` keeps its ``dtype`` when it is converted to
+   `~astropy.units.Quantity`, so an integer column such as a source identifier or
+   a count does not silently lose precision. This is controlled by the
+   :ref:`quantity_convert_int_to_float <quantity-convert-int-to-float>`
+   configuration item; setting it to ``always`` gives the conversion to ``float``
+   of astropy 7.x and earlier.
 
-   For example, for a quality flag column of ``int``, if it is
-   assigned with the :ref:`dimensionless unit <doc_dimensionless_unit>`, it will still
-   be converted to ``float``. Therefore such columns typically should not be
-   assigned with any unit.
+   .. versionchanged:: 8.1
+      Integer columns were previously converted to ``float``.
 
 .. EXAMPLE END
 

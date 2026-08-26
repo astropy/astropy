@@ -526,7 +526,7 @@ argument.
 
 Like for `numpy.ndarray`, ``dtype`` does not have to be specified, in which case
 the data is inspected to find the best ``dtype``. For `numpy` this means
-integers remain integers, while |Quantity| instead upcasts integers to floats.
+integers remain integers, while |Quantity| by default upcasts integers to floats.
 
     >>> v = np.array(1)
     >>> np.issubdtype(v.dtype, np.integer)
@@ -536,13 +536,62 @@ integers remain integers, while |Quantity| instead upcasts integers to floats.
     >>> np.issubdtype(q.dtype, np.integer)
     False
 
-|Quantity| promotes integer to floating types because it has a different default
-value for ``dtype`` than `numpy` -- `numpy.inexact` versus `None`. For |Quantity|
-to use the same ``dtype`` inspection as `numpy`, use ``dtype=None``.
+Only integer input is affected. Data that are already floating point or complex
+keep their ``dtype``.
+
+    >>> u.Quantity(np.float32(1.0)).dtype
+    dtype('float32')
+
+For |Quantity| to use the same ``dtype`` inspection as `numpy`, use
+``dtype=None``.
 
     >>> q = u.Quantity(1, dtype=None)
     >>> np.issubdtype(q.dtype, np.integer)
     True
+
+.. _quantity-convert-int-to-float:
+
+Controlling the Conversion of Integers
+--------------------------------------
+
+Whether integer input is upcast is set by the ``quantity_convert_int_to_float``
+configuration item, which takes one of three values:
+
+``default``
+    Integer input is upcast to float, but an operation that should not change
+    the ``dtype`` of what it is given may override this. Adding a column to a
+    |QTable| does so, as does reading a serialized column back from a file, so
+    an integer column with a unit keeps its ``dtype``.
+
+``always``
+    Integer input is upcast to float and those overrides are ignored. This gives
+    the behavior of astropy 7.x and earlier, in which an integer column with a
+    unit became a float |Quantity| in a |QTable|.
+
+``never``
+    Integer input keeps its ``dtype``.
+
+The value can be set for a block of code with
+:meth:`~astropy.config.ConfigNamespace.set_temp`:
+
+    >>> from astropy.units.quantity import conf
+    >>> with conf.set_temp("quantity_convert_int_to_float", "never"):
+    ...     q = u.Quantity([1, 2], u.ct)
+    >>> q.dtype
+    dtype('int64')
+
+An explicit ``dtype`` argument is always honored, whatever the configuration
+says. In particular `numpy.inexact` requests the upcast explicitly rather than
+relying on the default, so it is not affected:
+
+    >>> with conf.set_temp("quantity_convert_int_to_float", "never"):
+    ...     q = u.Quantity([1, 2], u.ct, dtype=np.inexact)
+    >>> q.dtype
+    dtype('float64')
+
+Classes representing quantities that are inherently floating point, such as
+|Angle| and `~astropy.coordinates.Distance`, declare ``dtype=numpy.inexact`` for
+that reason and so are never affected by the configuration.
 
 Note that `numpy.inexact` is a deprecated ``dtype`` argument for
 `numpy.ndarray`. |Quantity| changes `numpy.inexact` to `numpy.float64`, but does
