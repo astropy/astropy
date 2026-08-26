@@ -490,11 +490,14 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
-        # inexact -> upcast to float dtype, unless configured not to.
-        float_default = dtype is np.inexact
-        if float_default:
+        if dtype is np.inexact:
+            # This is the sentinel for "no dtype given" rather than a dtype that
+            # numpy can use, so it always has to be replaced.  Whether integer
+            # input is then upcast to float is up to the configuration.
             dtype = None
             float_default = conf.quantity_convert_int_to_float != "never"
+        else:
+            float_default = False
 
         # optimize speed for Quantity with no dtype given, copy=None
         if isinstance(value, Quantity):
