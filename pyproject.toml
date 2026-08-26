@@ -772,8 +772,28 @@ ignore-words-list = """
 # always allow arbitrarily new versions of astropy-iers-data
 exclude-newer-package = { "astropy-iers-data" = false }
 
-# never build the following packages from source. Prefer more recent versions
+# ensure that uv resolves envs that are compatible with macOS arm64,
+# even in drastic conditions like --resolution=lowest[-direct],
+# taking into account tool.uv.no-build-package
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+# The following tools (no-build-package and constraint-dependencies) serve as guiding
+# rules for uv as a resolver. Effectively, we provide metadata that's either missing
+# or incorrect for packages we require directly or indirectly, in order to consolidate
+# resolution in constrained conditions (e.g. using --resolution=lowest[-direct])
+
+# TLDR; never build the following packages from source. Prefer more recent versions
 # with binary distributions even with --resolution=lowest[-direct]
+#
+# no-build-package is the best tool available (at the time of writing) to exclude
+# source installs for packages that are either complex or expensive to build, as well
+# as a security measure against arbitrary code running in build backends we do not
+# control. Ideally, we would like to whitelist packages that are allowed to install
+# from source instead, though this isn't supported as of uv 0.12.6
+# See https://github.com/astral-sh/uv/issues/12607
+
 no-build-package = [
     "bottleneck",
     "coverage",
@@ -848,14 +868,16 @@ no-build-package = [
     "future",
 ]
 
-# ensure that uv resolves envs that are compatible with macOS arm64,
-# even in drastic conditions like --resolution=lowest[-direct],
-# taking into account tool.uv.no-build-package
-required-environments = [
-    "sys_platform == 'darwin' and platform_machine == 'arm64'",
-]
-
-# constrain acceptable versions of some known-problematic, indirect dependencies
+# TLDR; Constrain acceptable versions of some known-problematic, indirect dependencies.
+#
+# Ideally, all of the content should be upstreamed and eventually cleaned up here as
+# it becomes redundant with metadata from oldest versions of our direct dependencies.
+# Reader, beware that this is a long game: the only way to reliably remove these
+# settings entirely would be to thoroughly outsource minimum dependency testing
+# throughout our entire dependency tree (including several layers of indirect,
+# optional or indirect optional dependencies), *and* make sure every upstream package
+# actively curates deprecation warnings for years on-end. Still, we should aim towards
+# this goal and progressively simplify this list.
 constraint-dependencies = [
     "asdf>=2.15.1",
     "asdf-coordinates-schemas>=0.2.0",
