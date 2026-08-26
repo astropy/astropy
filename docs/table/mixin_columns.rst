@@ -146,10 +146,11 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
 Quantity and Integer Columns
 ============================
 
-When a column of ``int`` ``dtype`` has a defined unit and is converted to
-`~astropy.units.Quantity`, its ``dtype`` is converted to `float` by default. This
-situation is common when reading VOtable or FITS data tables that have integer count
-data or source IDs with defined units.
+When a `~astropy.table.Column` or `~astropy.table.MaskedColumn` with a defined unit is
+added to a `~astropy.table.QTable`, it is converted to `~astropy.units.Quantity`. By
+default, an `int` ``dtype`` is converted to `float`, following the normal behavior of
+`~astropy.units.Quantity`. A common example is integer count data with a ``count`` or
+``ct`` unit.
 
 You can change this behavior and keep the integer ``dtype`` by providing
 ``quantity_convert_keep_int=True`` when creating the `~astropy.table.QTable`. You can
