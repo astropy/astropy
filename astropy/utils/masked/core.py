@@ -289,6 +289,13 @@ class Masked(NDArrayShapeMethods):
             if self_dtype and self_dtype.names
             else np.dtype("?")
         )
+        # A mask that is itself a Masked or np.ma.MaskedArray would otherwise
+        # be stored as a (nested) masked array, so strip any wrapper and keep
+        # only the plain boolean values (ignoring the mask-of-the-mask, as
+        # recommended in astropy/astropy#20246). For all other inputs we keep
+        # the original behaviour.
+        if isinstance(mask, (Masked, np.ma.MaskedArray)):
+            mask = get_data_and_mask(mask)[0]
         ma = np.asanyarray(mask, dtype=mask_dtype)
         if ma.shape != self.shape:
             # This will fail (correctly) if not broadcastable.
