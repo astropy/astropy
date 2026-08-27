@@ -115,3 +115,8 @@ repos:
     hooks:
       - id: clang-format
         files: \.(c|h)$
+
+  - repo: https://github.com/numpy/numpydoc
+    rev: v1.10.0
+    hooks:
+      - id: numpydoc-validation
