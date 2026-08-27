@@ -778,7 +778,8 @@ exclude = [  # Don't report on objects that match any of these regex
     '\.__repr__$',
 ]
 exclude_files = [ # don't process filepaths that match these regex
-    '^tests/.*',
+    '^astropy/.*/tests/.*',
+    '^astropy/io/ascii/.*',
 ]
 
 [tool.uv]
