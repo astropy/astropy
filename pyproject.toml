@@ -790,6 +790,7 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/tests/.*',
     '^astropy/__init__.py',
     '^astropy/config/.*',
+    '^astropy/conftest.py',
     '^astropy/constants/.*',
     '^astropy/convolution/.*',
     '^astropy/coordinates/.*',
