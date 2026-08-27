@@ -762,6 +762,25 @@ ignore-words-list = """
     wirth,
 """
 
+[tool.numpydoc_validation]
+checks = [
+    "all",  # Report on all checks, except the below
+    "EX01", # No examples section found
+    "SA01", # See Also section not found
+    "ES01", # No extended summary found
+    "PR09", # Parameter description should finish with a period
+    "RT02", # First line of return should contain only the type
+    "RT05", # Return value description should finish with a period
+]
+# NOTE: Remember to use single quotes for regex in TOML
+exclude = [  # Don't report on objects that match any of these regex
+    '\.__str__$',
+    '\.__repr__$',
+]
+exclude_files = [ # don't process filepaths that match these regex
+    '^tests/.*',
+]
+
 [tool.uv]
 # always allow arbitrarily new versions of astropy-iers-data
 exclude-newer-package = { "astropy-iers-data" = false }
