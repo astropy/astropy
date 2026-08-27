@@ -783,7 +783,7 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/io/ascii/.*',
     '^astropy/io/fits/.*',
     '^astropy/io/registry/.*',
-    '^astropy/timeseries/.*'.
+    '^astropy/timeseries/.*',
     '^astropy/visualization/wcsaxes/.*',
 ]
 
