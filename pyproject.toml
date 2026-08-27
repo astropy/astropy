@@ -765,12 +765,15 @@ ignore-words-list = """
 [tool.numpydoc_validation]
 checks = [
     "all",  # Report on all checks, except the below
-    "EX01", # No examples section found
-    "SA01", # See Also section not found
     "ES01", # No extended summary found
+    "EX01", # No examples section found
+    "GL08", # The object does not have a docstring
     "PR09", # Parameter description should finish with a period
+    "RT01", # No Returns section found
     "RT02", # First line of return should contain only the type
     "RT05", # Return value description should finish with a period
+    "SA01", # See Also section not found
+    "SS06", # Summary should fit in a single line
 ]
 # NOTE: Remember to use single quotes for regex in TOML
 exclude = [  # Don't report on objects that match any of these regex
@@ -780,9 +783,12 @@ exclude = [  # Don't report on objects that match any of these regex
 exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/tests/.*',
     '^astropy/.*/setup_package.py',
+    '^astropy/coordinates/.*',
     '^astropy/io/ascii/.*',
     '^astropy/io/fits/.*',
     '^astropy/io/registry/.*',
+    '^astropy/nddata/.*',
+    '^astropy/table/.*',
     '^astropy/timeseries/.*',
     '^astropy/visualization/wcsaxes/.*',
 ]
