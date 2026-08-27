@@ -776,6 +776,7 @@ checks = [
     "RT05", # Return value description should finish with a period
     "SA01", # See Also section not found
     "SA04", # Missing description for See Also
+    "SS05", # Summary must start with infinitive verb
     "SS06", # Summary should fit in a single line
     "YD01", # No Yields section found
 ]
@@ -788,10 +789,12 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/tests/.*',
     '^astropy/tests/.*',
     '^astropy/.*/setup_package.py',
+    '^astropy/config/.*',
     '^astropy/constants/.*',
     '^astropy/convolution/.*',
     '^astropy/coordinates/.*',
     '^astropy/cosmology/.*',
+    '^astropy/extern/.*',
     '^astropy/io/ascii/.*',
     '^astropy/io/fits/.*',
     '^astropy/io/misc/.*',
