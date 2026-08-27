@@ -767,13 +767,17 @@ checks = [
     "all",  # Report on all checks, except the below
     "ES01", # No extended summary found
     "EX01", # No examples section found
+    "GL01", # Docstring text (summary) should start in the line immediately after the opening quotes
+    "GL02", # Closing quotes should be placed in the line after the last text in the docstring
     "GL08", # The object does not have a docstring
     "PR09", # Parameter description should finish with a period
     "RT01", # No Returns section found
     "RT02", # First line of return should contain only the type
     "RT05", # Return value description should finish with a period
     "SA01", # See Also section not found
+    "SA04", # Missing description for See Also
     "SS06", # Summary should fit in a single line
+    "YD01", # No Yields section found
 ]
 # NOTE: Remember to use single quotes for regex in TOML
 exclude = [  # Don't report on objects that match any of these regex
@@ -783,18 +787,22 @@ exclude = [  # Don't report on objects that match any of these regex
 exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/tests/.*',
     '^astropy/.*/setup_package.py',
+    '^astropy/constants/.*',
     '^astropy/coordinates/.*',
     '^astropy/cosmology/_src/.*',
     '^astropy/io/ascii/.*',
     '^astropy/io/fits/.*',
+    '^astropy/io/misc/.*',
     '^astropy/io/registry/.*',
     '^astropy/io/votable/.*',
+    '^astropy/modeling/.*',
     '^astropy/nddata/.*',
     '^astropy/samp/.*',
     '^astropy/stats/.*',
     '^astropy/table/.*',
     '^astropy/time/.*',
     '^astropy/timeseries/.*',
+    '^astropy/utils/.*',
     '^astropy/visualization/wcsaxes/.*',
 ]
 
