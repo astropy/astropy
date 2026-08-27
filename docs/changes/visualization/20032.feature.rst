@@ -1,0 +1,5 @@
+``~astropy.visualization.wcsaxes.CoordinateHelper.set_format_unit`` now accepts
+an ``equivalencies`` keyword argument, allowing tick labels to be displayed in
+units that are physically equivalent but dimensionally different from the
+coordinate unit, e.g. converting a wavelength axis in nm to frequency in Hz
+using ``astropy.units.spectral()``.
