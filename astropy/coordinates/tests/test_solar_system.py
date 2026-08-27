@@ -24,7 +24,6 @@ from astropy.coordinates.solar_system import (
 from astropy.tests.helper import CI, assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
-from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM, HAS_SKYFIELD
 from astropy.utils.data import download_file, get_pkg_data_filename
 
