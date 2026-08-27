@@ -1,0 +1,2 @@
+The ``find_api_page()`` function is deprecated.
+The similar ``online_help()`` function can be used instead.
