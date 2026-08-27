@@ -173,7 +173,7 @@ static PyObject *decompress_plio_1_c(PyObject *self, PyObject *args)
 
     decompressed_values = (int *)calloc(tilesize, sizeof(int));
 
-    pl_l2pi(compressed_values, count / 2, 1, decompressed_values, tilesize);
+    pl_l2pi(compressed_values, count * sizeof(char) / sizeof(short), 1, decompressed_values, tilesize);
 
     if (PyErr_Occurred() != NULL) {
         // If an error condition inside the cfitsio function, the call inside
