@@ -151,8 +151,9 @@ def test_masked_mask_strips_nested_mask():
     assert_array_equal(m2.mask, np.array([True, False, True]))
 
     # And for a mask given as an np.ma.MaskedArray.
-    m3 = Masked([0, 1, 2], mask=np.ma.array([False, True, False],
-                                             mask=[True, False, True]))
+    m3 = Masked(
+        [0, 1, 2], mask=np.ma.array([False, True, False], mask=[True, False, True])
+    )
     assert not isinstance(m3.mask, Masked)
     assert_array_equal(m3.mask, np.array([False, True, False]))
 
