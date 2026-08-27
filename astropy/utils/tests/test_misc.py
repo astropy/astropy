@@ -144,11 +144,6 @@ def test_dtype_bytes_or_chars():
     assert misc.dtype_bytes_or_chars(np.array("12345").dtype) == 5
 
 
-def test_indent_deprecation():
-    with pytest.warns(AstropyDeprecationWarning, match=r"Use textwrap\.indent"):
-        misc.indent("Obsolete since Python 3.3")
-
-
 def test_format_exception_deprecation():
     with pytest.warns(AstropyDeprecationWarning):
         misc.format_exception("this is deprecated")
