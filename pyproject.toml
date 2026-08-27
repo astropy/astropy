@@ -786,15 +786,18 @@ exclude = [  # Don't report on objects that match any of these regex
 ]
 exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/tests/.*',
+    '^astropy/tests/.*',
     '^astropy/.*/setup_package.py',
     '^astropy/constants/.*',
+    '^astropy/convolution/.*',
     '^astropy/coordinates/.*',
-    '^astropy/cosmology/_src/.*',
+    '^astropy/cosmology/.*',
     '^astropy/io/ascii/.*',
     '^astropy/io/fits/.*',
     '^astropy/io/misc/.*',
     '^astropy/io/registry/.*',
     '^astropy/io/votable/.*',
+    '^astropy/logger.py',
     '^astropy/modeling/.*',
     '^astropy/nddata/.*',
     '^astropy/samp/.*',
@@ -802,8 +805,11 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/table/.*',
     '^astropy/time/.*',
     '^astropy/timeseries/.*',
+    '^astropy/uncertainty/.*',
+    '^astropy/units/.*',
     '^astropy/utils/.*',
-    '^astropy/visualization/wcsaxes/.*',
+    '^astropy/visualization/.*',
+    '^astropy/wcs/.*',
 ]
 
 [tool.uv]
