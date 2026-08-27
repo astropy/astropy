@@ -91,6 +91,7 @@ __doctest_skip__ = [
 
 __doctest_requires__ = {
     ("Table.from_df", "Table.to_df"): ["pandas", "polars"],
+    ("Table.from_pandas", "Table.to_pandas"): ["pandas"],
 }
 
 _pprint_docs = """
