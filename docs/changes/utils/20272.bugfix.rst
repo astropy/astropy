@@ -1,5 +1,5 @@
-Fixed a bug in :class:`~astropy.utils.masked.Masked` where passing a mask
-that was itself a ``Masked`` or `~numpy.ma.MaskedArray` array caused the
+Fixed a bug in ``Masked`` where passing a mask that was itself a ``Masked``
+or ``numpy.ma.MaskedArray`` array caused the
 mask to be stored as a nested masked array (so the mask-of-the-mask was
 silently applied and masked values could disappear). The wrapped mask is
 now stripped to its plain boolean values on both initialization and
