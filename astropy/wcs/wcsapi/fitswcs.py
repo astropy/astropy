@@ -203,7 +203,15 @@ class custom_ctype_to_ucd_mapping:
 
 
 class SlicedFITSWCS(SlicedLowLevelWCS, HighLevelWCSMixin):
-    pass
+    def world_to_pixel(self, *world_objects):
+        """
+        See `~astropy.wcs.wcsapi.BaseHighLevelWCS.world_to_pixel`.
+        """
+        result = self._high_level_world_to_pixel(*world_objects)
+        if result is not NotImplemented:
+            return result
+
+        return super().world_to_pixel(*world_objects)
 
 
 class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
