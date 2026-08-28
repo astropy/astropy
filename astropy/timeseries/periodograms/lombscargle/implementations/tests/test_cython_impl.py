@@ -67,15 +67,7 @@ def test_cython_lombscargle_exact_recovery(perfect_sine_wave: SyntheticSignal):
     assert np.isclose(recovered_frequency, perfect_sine_wave.true_frequency, rtol=1e-4)
 
 
-@pytest.mark.parametrize(
-    "norm_type",
-    [
-        pytest.param("standard", id="norm_standard"),
-        pytest.param("model", id="norm_model"),
-        pytest.param("log", id="norm_log"),
-        pytest.param("psd", id="norm_psd"),
-    ],
-)
+@pytest.mark.parametrize("norm_type", ["standard", "model", "log", "psd"])
 def test_cython_lombscargle_normalizations(
     perfect_sine_wave: SyntheticSignal, norm_type: str
 ):
