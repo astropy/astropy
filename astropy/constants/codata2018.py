@@ -5,7 +5,9 @@ for a complete listing of constants defined in Astropy.
 """
 
 import math
+from pathlib import Path
 
+from .codata_parser import parse_codata_file
 from .constant import Constant, EMConstant
 
 # PHYSICAL CONSTANTS
@@ -22,41 +24,86 @@ class EMCODATA2018(CODATA2018, EMConstant):
     _registry = CODATA2018._registry
 
 
-h = CODATA2018("h", "Planck constant", 6.62607015e-34, "J s", 0.0, system="si")
+CODATA2018txt = parse_codata_file(Path(__file__).with_name("data") / "codata2018.txt")
+
+
+def get_codata2018_constant(name):
+    return CODATA2018txt[name]
+
+
+h_entry = get_codata2018_constant("Planck constant")
+h = CODATA2018(
+    "h", h_entry.name, h_entry.value, h_entry.unit, h_entry.uncertainty, system="si"
+)
 
 hbar = CODATA2018(
     "hbar", "Reduced Planck constant", h.value / (2 * math.pi), "J s", 0.0, system="si"
 )
 
-k_B = CODATA2018("k_B", "Boltzmann constant", 1.380649e-23, "J / (K)", 0.0, system="si")
+k_B_entry = get_codata2018_constant("Boltzmann constant")
+k_B = CODATA2018(
+    "k_B",
+    k_B_entry.name,
+    k_B_entry.value,
+    k_B_entry.unit,
+    k_B_entry.uncertainty,
+    system="si",
+)
 
+c_entry = get_codata2018_constant("speed of light in vacuum")
 c = CODATA2018(
-    "c", "Speed of light in vacuum", 299792458.0, "m / (s)", 0.0, system="si"
+    "c", c_entry.name, c_entry.value, c_entry.unit, c_entry.uncertainty, system="si"
 )
 
 
+G_entry = get_codata2018_constant("Newtonian constant of gravitation")
 G = CODATA2018(
-    "G", "Gravitational constant", 6.67430e-11, "m3 / (kg s2)", 0.00015e-11, system="si"
+    "G", G_entry.name, G_entry.value, G_entry.unit, G_entry.uncertainty, system="si"
 )
 
+g0_entry = get_codata2018_constant("standard acceleration of gravity")
 g0 = CODATA2018(
-    "g0", "Standard acceleration of gravity", 9.80665, "m / s2", 0.0, system="si"
+    "g0",
+    g0_entry.name,
+    g0_entry.value,
+    g0_entry.unit,
+    g0_entry.uncertainty,
+    system="si",
 )
 
+m_p_entry = get_codata2018_constant("proton mass")
 m_p = CODATA2018(
-    "m_p", "Proton mass", 1.67262192369e-27, "kg", 0.00000000051e-27, system="si"
+    "m_p",
+    m_p_entry.name,
+    m_p_entry.value,
+    m_p_entry.unit,
+    m_p_entry.uncertainty,
+    system="si",
 )
 
+m_n_entry = get_codata2018_constant("neutron mass")
 m_n = CODATA2018(
-    "m_n", "Neutron mass", 1.67492749804e-27, "kg", 0.00000000095e-27, system="si"
+    "m_n",
+    m_n_entry.name,
+    m_n_entry.value,
+    m_n_entry.unit,
+    m_n_entry.uncertainty,
+    system="si",
 )
 
+m_e_entry = get_codata2018_constant("electron mass")
 m_e = CODATA2018(
-    "m_e", "Electron mass", 9.1093837015e-31, "kg", 0.0000000028e-31, system="si"
+    "m_e",
+    m_e_entry.name,
+    m_e_entry.value,
+    m_e_entry.unit,
+    m_e_entry.uncertainty,
+    system="si",
 )
 
+u_entry = get_codata2018_constant("atomic mass constant")
 u = CODATA2018(
-    "u", "Atomic mass", 1.66053906660e-27, "kg", 0.00000000050e-27, system="si"
+    "u", u_entry.name, u_entry.value, u_entry.unit, u_entry.uncertainty, system="si"
 )
 
 sigma_sb = CODATA2018(
@@ -68,63 +115,102 @@ sigma_sb = CODATA2018(
     system="si",
 )
 
-e = EMCODATA2018("e", "Electron charge", 1.602176634e-19, "C", 0.0, system="si")
+e_entry = get_codata2018_constant("elementary charge")
+e = EMCODATA2018(
+    "e", e_entry.name, e_entry.value, e_entry.unit, e_entry.uncertainty, system="si"
+)
 
+eps0_entry = get_codata2018_constant("vacuum electric permittivity")
 eps0 = EMCODATA2018(
     "eps0",
-    "Vacuum electric permittivity",
-    8.8541878128e-12,
-    "F/m",
-    0.0000000013e-12,
+    eps0_entry.name,
+    eps0_entry.value,
+    eps0_entry.unit,
+    eps0_entry.uncertainty,
     system="si",
 )
 
+N_A_entry = get_codata2018_constant("Avogadro constant")
 N_A = CODATA2018(
-    "N_A", "Avogadro's number", 6.02214076e23, "1 / (mol)", 0.0, system="si"
+    "N_A",
+    N_A_entry.name,
+    N_A_entry.value,
+    N_A_entry.unit,
+    N_A_entry.uncertainty,
+    system="si",
 )
 
 R = CODATA2018(
     "R", "Gas constant", k_B.value * N_A.value, "J / (K mol)", 0.0, system="si"
 )
 
+Ryd_entry = get_codata2018_constant("Rydberg constant")
 Ryd = CODATA2018(
-    "Ryd", "Rydberg constant", 10973731.568160, "1 / (m)", 0.000021, system="si"
+    "Ryd",
+    Ryd_entry.name,
+    Ryd_entry.value,
+    Ryd_entry.unit,
+    Ryd_entry.uncertainty,
+    system="si",
 )
 
+a0_entry = get_codata2018_constant("Bohr radius")
 a0 = CODATA2018(
-    "a0", "Bohr radius", 5.29177210903e-11, "m", 0.00000000080e-11, system="si"
+    "a0",
+    a0_entry.name,
+    a0_entry.value,
+    a0_entry.unit,
+    a0_entry.uncertainty,
+    system="si",
 )
 
+muB_entry = get_codata2018_constant("Bohr magneton")
 muB = CODATA2018(
-    "muB", "Bohr magneton", 9.2740100783e-24, "J/T", 0.0000000028e-24, system="si"
+    "muB",
+    muB_entry.name,
+    muB_entry.value,
+    muB_entry.unit,
+    muB_entry.uncertainty,
+    system="si",
 )
 
+alpha_entry = get_codata2018_constant("fine-structure constant")
 alpha = CODATA2018(
     "alpha",
-    "Fine-structure constant",
-    7.2973525693e-3,
-    "",
-    0.0000000011e-3,
+    alpha_entry.name,
+    alpha_entry.value,
+    alpha_entry.unit,
+    alpha_entry.uncertainty,
     system="si",
 )
 
-atm = CODATA2018("atm", "Standard atmosphere", 101325, "Pa", 0.0, system="si")
+atm_entry = get_codata2018_constant("standard atmosphere")
+atm = CODATA2018(
+    "atm",
+    atm_entry.name,
+    atm_entry.value,
+    atm_entry.unit,
+    atm_entry.uncertainty,
+    system="si",
+)
 
+mu0_entry = get_codata2018_constant("vacuum mag. permeability")
 mu0 = CODATA2018(
     "mu0",
-    "Vacuum magnetic permeability",
-    1.25663706212e-6,
-    "N/A2",
-    0.00000000019e-6,
+    mu0_entry.name,
+    mu0_entry.value,
+    mu0_entry.unit,
+    mu0_entry.uncertainty,
     system="si",
 )
 
+sigma_T_entry = get_codata2018_constant("Thomson cross section")
 sigma_T = CODATA2018(
     "sigma_T",
-    "Thomson scattering cross-section",
-    6.6524587321e-29,
-    "m2",
-    0.0000000060e-29,
+    sigma_T_entry.name,
+    sigma_T_entry.value,
+    sigma_T_entry.unit,
+    sigma_T_entry.uncertainty,
     system="si",
 )
 
