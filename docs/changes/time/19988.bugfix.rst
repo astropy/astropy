@@ -1,0 +1,1 @@
+Clarified the ``TypeError`` message raised by ``TimeNumeric`` when input cannot be converted to a float, to indicate that the first item should be convertible to double.
