@@ -667,6 +667,67 @@ class NDArithmeticMixin:
             np.true_divide, operand, operand2, **kwargs
         )
 
+    def pow(self, exponent, propagate_uncertainties=True, **kwargs):
+        """Raises ``self`` to the power of an exponent.
+
+        Non-integer and non-positive exponents are not supported
+        if uncertainties must be propagated.
+        **kwargs are passed to NDData constructor.
+
+        Parameters
+        ----------
+        exponent: `numbers.Integral`
+            The exponent to which ``self`` is raised.  Must be > 0
+
+        propagate_uncertainties : `bool` or ``None``, optional
+            If ``None`` the result will have no uncertainty. If ``False`` the
+            result will have a copied version of the first operand that has an
+            uncertainty. If ``True`` the result will have a correctly propagated
+            uncertainty from the uncertainties of the operands but this assumes
+            that the uncertainties are `NDUncertainty`-like. Default is ``True``.
+
+        Returns
+        -------
+        result : `~astropy.nddata.NDData`-like
+            The resulting dataset
+        """
+
+        if (self.uncertainty is not None and propagate_uncertainties is True and
+                not (isinstance(exponent, numbers.Integral) and exponent > 0)):
+            raise TypeError("Non-positive and non-integer exponents not supported "
+                            "if propagate_uncertainties is True.")
+        # If exponent is 1, NDData is unchanged.
+        if exponent == 1 and isinstance(propagate_uncertainties, bool):
+            if kwargs.get("copy", False) is True:
+                return deepcopy(self)
+            else:
+                return self
+        # Raise data and uncertainty to power of exponent.
+        data = self.data ** exponent
+        if self.unit is None:
+            unit = None
+        else:
+            unit = u.Unit(self.unit) ** exponent
+        # Propagate uncertainties if user desires.
+        if self.uncertainty is None or propagate_uncertainties is None:
+            uncertainty = None
+        elif propagate_uncertainties is False:
+            uncertainty = self.uncertainty
+        elif propagate_uncertainties is True:
+            uncertainty = deepcopy(self.uncertainty)
+            i = 1
+            while i < exponent:
+                result_data = self.data**i  # The result_data arg to propagate method.
+                if self.unit is not None:
+                    result_data = result_data * u.Unit(self.unit) ** i
+                uncertainity = uncertainity.propagate(np.multiply, self, result_data, 1)
+                i += 1
+        else:
+            raise ValueError("Value of propagate_uncertainties not understood.  "
+                             "Must be True, False, or None.")
+        return type(self)(data=data, uncertainty=uncertainty, mask=self.mask,
+                          wcs=self.wcs, meta=self.meta, unit=unit, **kwargs)
+
     @sharedmethod
     def sum(self, **kwargs):
         return self._prepare_then_do_arithmetic(np.sum, **kwargs)
