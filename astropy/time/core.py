@@ -1208,7 +1208,7 @@ class TimeBase(MaskableShapedLikeNDArray):
         # when nan was used internally to indicate a value was masked.
         # So this is just for backwards compatibility; we do not want to extend it.
         if value is np.ma.masked or value is np.nan:  # noqa: PLW0177, RUF100
-            self._time._convert_to_masked()
+            self._time._ensure_masked()
             self._time.jd2.mask[item] = True
             return
 
@@ -1226,8 +1226,8 @@ class TimeBase(MaskableShapedLikeNDArray):
         # If the value carries a mask but we do not, we have to upgrade our
         # internal jd1/jd2 to Masked first, otherwise the mask of the value
         # would be silently dropped (gh-20173).
-        if isinstance(value._time.jd2, Masked):
-            self._time._convert_to_masked()
+        if value.masked:
+            self._time._ensure_masked()
 
         self._time.jd1[item] = value._time.jd1
         self._time.jd2[item] = value._time.jd2
