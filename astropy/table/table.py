@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import TYPE_CHECKING, Any, Literal, Self, overload
 
 import numpy as np
 from numpy import ma
@@ -301,6 +301,13 @@ class TableColumns(OrderedDict):
                     newcols.append(col)
             cols = newcols
         super().__init__(cols)
+
+    @overload
+    def __getitem__(self, item: str) -> ColumnLike: ...
+    @overload
+    def __getitem__(self, item: int | np.integer) -> ColumnLike: ...
+    @overload
+    def __getitem__(self, item: tuple[str, ...] | slice) -> TableColumns: ...
 
     def __getitem__(
         self, item: str | int | np.integer | tuple[str, ...] | slice
@@ -2220,6 +2227,13 @@ class Table:
             show_unit=show_unit,
             show_dtype=show_dtype,
         )
+
+    @overload
+    def __getitem__(self, item: str) -> ColumnLike: ...
+    @overload
+    def __getitem__(self, item: int | np.integer) -> Row: ...
+    @overload
+    def __getitem__(self, item: slice | list | tuple | np.ndarray) -> Self: ...
 
     def __getitem__(
         self, item: str | int | np.integer | slice | list | tuple | np.ndarray
