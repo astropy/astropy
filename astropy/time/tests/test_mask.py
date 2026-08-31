@@ -7,7 +7,7 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import EarthLocation
-from astropy.table import Table
+from astropy.table import QTable, Table, vstack
 from astropy.time import Time, conf
 from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_H5PY
@@ -117,6 +117,52 @@ def test_mask_not_writeable():
     assert np.all(t.mask == [True, True])
     # Check that the mask remains shared.
     assert np.may_share_memory(t._time.jd1.mask, t._time.jd2.mask)
+
+
+def test_setitem_masked_value():
+    # Regression test for gh-20173: assigning a masked Time into an unmasked
+    # one silently dropped the mask, revealing the underlying value again.
+    t = Time(["2000:001", "2000:002", "2000:003"])
+    assert not t.masked
+
+    value = Time(["2001:001", "2001:002"])
+    value[1] = np.ma.masked
+
+    t[:2] = value
+    assert t.masked
+    assert np.all(t.mask == [False, True, False])
+    assert t.unmasked[0] == Time("2001:001")
+    assert t.unmasked[2] == Time("2000:003")
+    # jd1 and jd2 should share the mask, like they do elsewhere.
+    assert np.may_share_memory(t._time.jd1.mask, t._time.jd2.mask)
+
+    # Scalar assignment of a masked element should mask the target too.
+    t2 = Time(["2000:001", "2000:002"])
+    t2[0] = value[1]
+    assert np.all(t2.mask == [True, False])
+
+    # An unmasked value must not clear an existing mask elsewhere, and
+    # assigning over a masked element unmasks it again.
+    t[0] = np.ma.masked
+    t[1:] = Time(["2002:001", "2002:002"])
+    assert np.all(t.mask == [True, False, False])
+
+
+def test_vstack_masked():
+    # Regression test for gh-20173: vstack dropped the mask of Time columns.
+    t1 = QTable()
+    t1["time"] = Time(["2024-01-01T01:00:00", "2024-01-01T02:00:00"])
+    t1["time"][1] = np.ma.masked
+
+    t2 = QTable()
+    t2["time"] = Time(["2024-01-02T03:00:00", "2024-01-02T04:00:00"])
+    t2["time"][0] = np.ma.masked
+
+    combined = vstack([t1, t2])
+    assert combined["time"].masked
+    assert np.all(combined["time"].mask == [False, True, True, False])
+    assert np.all(combined["time"].unmasked[:2] == t1["time"].unmasked)
+    assert np.all(combined["time"].unmasked[2:] == t2["time"].unmasked)
 
 
 def test_str():

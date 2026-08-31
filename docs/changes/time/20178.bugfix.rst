@@ -1,0 +1,3 @@
+Fixed ``Time.__setitem__`` silently dropping the mask when a masked ``Time`` was
+assigned into an unmasked one. As a result, ``vstack`` no longer loses the mask
+on ``Time`` mixin columns.
