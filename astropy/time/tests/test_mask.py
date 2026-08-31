@@ -214,10 +214,9 @@ def test_transform():
 
 
 def test_masked_input():
-    # ``v0`` has ``mask is np.ma.nomask``, which is the subtle case: the mask
-    # that reaches ``TimeBase._init_from_vals`` is ``np.False_`` rather than a
-    # bool array, and it is only distinguished from "no mask at all" by
-    # ``np.False_ is not False``.  See test_masked_input_stays_masked.
+    # ``v0`` has ``mask is np.ma.nomask``, i.e. it is a masked array in which
+    # nothing is actually masked.  Initializing from it still gives a masked
+    # Time.  See test_masked_input_stays_masked.
     v0 = np.ma.MaskedArray([[1, 2], [3, 4]])  # No masked elements
     v1 = np.ma.MaskedArray([[1, 2], [3, 4]], mask=[[True, False], [False, False]])
     v2 = np.ma.MaskedArray([[10, 20], [30, 40]], mask=[[False, False], [False, True]])
