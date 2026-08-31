@@ -1,0 +1,5 @@
+Creating a ``Time`` or ``TimeDelta`` object from a masked input array (e.g. a
+``numpy.ma.MaskedArray`` or an ``astropy.utils.masked.Masked`` array) now always
+gives a masked instance, i.e. one with ``masked=True``, even if none of the
+input elements are actually masked. Previously the result was unmasked if the
+input mask was all `False`.

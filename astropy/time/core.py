@@ -576,7 +576,7 @@ class TimeBase(MaskableShapedLikeNDArray):
         # If any inputs were masked then mask both jd1 and jd2 accordingly,
         # using a shared mask.  From above, ``mask`` must be either Python
         # bool False or an bool ndarray with the correct shape.
-        if mask is not False and np.any(mask):
+        if mask is not False:
             # Ensure that if the class is already masked, we do not lose it.
             self._time.jd1 = Masked(self._time.jd1, copy=False)
             self._time.jd1.mask |= mask
