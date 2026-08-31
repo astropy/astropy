@@ -222,7 +222,7 @@ def test_masked_input():
     t = Time(v0, format="cxcsec")
     assert np.ma.allclose(t.value, v0)
     assert np.all(t.mask == [[False, False], [False, False]])
-    assert t.masked is False
+    assert t.masked is True
 
     t = Time(v1, format="cxcsec")
     assert np.ma.allclose(t.value, v1)
