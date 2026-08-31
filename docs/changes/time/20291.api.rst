@@ -2,4 +2,9 @@ Creating a ``Time`` or ``TimeDelta`` object from a masked input array (e.g. a
 ``numpy.ma.MaskedArray`` or an ``astropy.utils.masked.Masked`` array) now always
 gives a masked instance, i.e. one with ``masked=True``, even if none of the
 input elements are actually masked. Previously the result was unmasked if the
-input mask was all `False`.
+input mask was all `False`. As a consequence, writing a table with such a
+``Time`` column to a format that uses the mixin serialization machinery (e.g.
+ECSV or HDF5) now records the column value as a masked array in the header
+``__serialized_columns__`` block. The data are unchanged and such files still
+round-trip correctly, but the header differs from that written by previous
+versions.

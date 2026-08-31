@@ -214,6 +214,10 @@ def test_transform():
 
 
 def test_masked_input():
+    # ``v0`` has ``mask is np.ma.nomask``, which is the subtle case: the mask
+    # that reaches ``TimeBase._init_from_vals`` is ``np.False_`` rather than a
+    # bool array, and it is only distinguished from "no mask at all" by
+    # ``np.False_ is not False``.  See test_masked_input_stays_masked.
     v0 = np.ma.MaskedArray([[1, 2], [3, 4]])  # No masked elements
     v1 = np.ma.MaskedArray([[1, 2], [3, 4]], mask=[[True, False], [False, False]])
     v2 = np.ma.MaskedArray([[10, 20], [30, 40]], mask=[[False, False], [False, True]])
@@ -257,6 +261,35 @@ def test_masked_input():
     assert np.all(t2.value == t_iso)
     assert np.all(t2.mask == v2.mask)
     assert t2.masked is True
+
+
+@pytest.mark.parametrize("cls", [Time, TimeDelta])
+@pytest.mark.parametrize("masked_cls", [np.ma.MaskedArray, Masked])
+@pytest.mark.parametrize("mask", [False, [False, False]], ids=["nomask", "all_false"])
+def test_masked_input_stays_masked(cls, masked_cls, mask):
+    """Masked input always gives a masked output, even with nothing masked.
+
+    The "maskedness" of the input is a property of its type, not of its values,
+    so it is preserved regardless of whether any element is actually masked.
+    """
+    val = [1.0, 2.0]
+    if masked_cls is np.ma.MaskedArray and mask is False:
+        # ``np.ma.MaskedArray(val, mask=False)`` gives ``mask is np.ma.nomask``,
+        # while ``Masked`` always stores a full bool array.
+        val = np.ma.MaskedArray(val)
+    else:
+        val = masked_cls(val, mask=mask)
+
+    format_ = "cxcsec" if cls is Time else "sec"
+    t = cls(val, format=format_)
+    assert t.masked is True
+    assert np.all(t.mask == [False, False])
+    assert np.all(t.value == [1.0, 2.0])
+
+    # Maskedness survives a round-trip through the class itself and through
+    # a format change.
+    assert cls(t).masked is True
+    assert hasattr(t.jd, "mask")
 
 
 @pytest.mark.parametrize("masked_cls", [np.ma.MaskedArray, Masked])
