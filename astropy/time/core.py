@@ -573,9 +573,15 @@ class TimeBase(MaskableShapedLikeNDArray):
             self._location = self._time._location
             del self._time._location
 
-        # If any inputs were masked then mask both jd1 and jd2 accordingly,
-        # using a shared mask.  From above, ``mask`` must be either Python
-        # bool False or an bool ndarray with the correct shape.
+        # If any input carried a mask then mask both jd1 and jd2 accordingly,
+        # using a shared mask.  Note that we deliberately do not check whether
+        # any element is actually masked: a masked input always gives a masked
+        # output, so that the "maskedness" of the input is preserved even if no
+        # element happens to be masked (like for Masked and np.ma.MaskedArray).
+        # From above, ``mask`` is either Python bool ``False`` (no input had a
+        # mask at all), ``np.False_`` (from a ``np.ma.MaskedArray`` with
+        # ``nomask``), or a bool ndarray broadcastable to the jd1/jd2 shape.
+        # The ``is not False`` test relies on ``np.False_ is not False``.
         if mask is not False:
             # Ensure that if the class is already masked, we do not lose it.
             self._time.jd1 = Masked(self._time.jd1, copy=False)
