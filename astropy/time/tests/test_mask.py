@@ -143,8 +143,9 @@ def test_setitem_masked_value():
 
     # An unmasked value must not clear an existing mask elsewhere, and
     # assigning over a masked element unmasks it again.
+    t[0] = np.ma.masked
     t[1:] = Time(["2002:001", "2002:002"])
-    assert np.all(t.mask == [False, False, False])
+    assert np.all(t.mask == [True, False, False])
 
 
 def test_vstack_masked():
@@ -160,8 +161,8 @@ def test_vstack_masked():
     combined = vstack([t1, t2])
     assert combined["time"].masked
     assert np.all(combined["time"].mask == [False, True, True, False])
-    assert combined["time"].unmasked[0] == t1["time"].unmasked[0]
-    assert combined["time"].unmasked[3] == t2["time"].unmasked[1]
+    assert np.all(combined["time"].unmasked[:2] == t1["time"].unmasked)
+    assert np.all(combined["time"].unmasked[2:] == t2["time"].unmasked)
 
 
 def test_str():
