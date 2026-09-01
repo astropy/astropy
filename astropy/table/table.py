@@ -16,7 +16,7 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
-from astropy.units.quantity import _keep_integer_dtype
+from astropy.units.quantity import preserve_dtype_by_default
 from astropy.utils import deprecated
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
@@ -4412,7 +4412,7 @@ class QTable(Table):
             try:
                 # An integer column keeps its dtype by default but can be modified by
                 # the ``quantity_convert_int_to_float`` configuration item.
-                with _keep_integer_dtype():
+                with preserve_dtype_by_default():
                     qcol = q_cls(col.data, col.unit, copy=None, subok=True)
             except Exception as exc:
                 warnings.warn(

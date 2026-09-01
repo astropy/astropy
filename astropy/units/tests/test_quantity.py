@@ -14,7 +14,7 @@ from numpy.testing import assert_allclose, assert_array_almost_equal, assert_arr
 
 from astropy import units as u
 from astropy.coordinates import Angle, Distance
-from astropy.units.quantity import _UNIT_NOT_INITIALISED, _keep_integer_dtype, conf
+from astropy.units.quantity import _UNIT_NOT_INITIALISED, conf
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -2205,10 +2205,10 @@ class TestQuantityConvertIntToFloat:
     @pytest.mark.parametrize(
         ("value", "kind"), [("default", "i"), ("always", "f"), ("never", "i")]
     )
-    def test_keep_integer_dtype_context(self, value, kind):
+    def test_preserve_dtype_by_default_context(self, value, kind):
         """``always`` overrides a context that would otherwise keep integers."""
         with conf.set_temp("quantity_convert_int_to_float", value):
-            with _keep_integer_dtype():
+            with u.preserve_dtype_by_default():
                 assert u.Quantity(self.VALS, u.ct).dtype.kind == kind
             # The configuration is restored on exit.
             assert conf.quantity_convert_int_to_float == value

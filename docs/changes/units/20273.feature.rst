@@ -9,6 +9,10 @@ particular context such as adding a column to a ``QTable`` to override), ``alway
 
 An explicit ``dtype`` argument is always honored regardless of the configuration.
 
+Also added a :func:`~astropy.units.preserve_dtype_by_default` context manager to
+preserve the input ``dtype`` unless the ``quantity_convert_int_to_float``
+configuration is set to ``always``.
+
 Note that ``Quantity`` subclasses in astropy such as ``Angle``, ``Distance`` and
 ``Magnitude`` are unaffected by the configuration. They always default to floating-point
 ``dtype``.

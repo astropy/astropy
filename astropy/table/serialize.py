@@ -6,7 +6,7 @@ from importlib import import_module
 
 import numpy as np
 
-from astropy.units.quantity import QuantityInfo, _keep_integer_dtype
+from astropy.units.quantity import QuantityInfo, preserve_dtype_by_default
 from astropy.utils.data_info import MixinInfo
 
 from .column import Column, MaskedColumn
@@ -465,8 +465,8 @@ def _construct_mixins_from_columns(tbl):
     # Reconstructing a serialized column reproduces what was written, so an integer
     # column keeps its dtype even where creating the object from scratch would convert
     # it to float. However this can be modified by the
-    # ``units.quantity_convert_int_to_float`` configuration item.
-    with _keep_integer_dtype():
+    # ``units.quantity.conf.quantity_convert_int_to_float`` configuration item.
+    with preserve_dtype_by_default():
         for new_name, obj_attrs in mixin_cols.items():
             _construct_mixin_from_columns(new_name, obj_attrs, out)
 

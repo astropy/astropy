@@ -580,6 +580,24 @@ The value can be set for a block of code with
     >>> q.dtype
     dtype('int64')
 
+An operation that should preserve the input ``dtype`` can use the
+:func:`~astropy.units.preserve_dtype_by_default` context manager, which is what adding a
+column to a |QTable| does internally:
+
+    >>> with u.preserve_dtype_by_default():
+    ...     q = u.Quantity([1, 2], u.ct)
+    >>> q.dtype
+    dtype('int64')
+
+Unlike setting the configuration item to ``never``, this defers to a user who has
+set it to ``always``:
+
+    >>> with conf.set_temp("quantity_convert_int_to_float", "always"):
+    ...     with u.preserve_dtype_by_default():
+    ...         q = u.Quantity([1, 2], u.ct)
+    >>> q.dtype
+    dtype('float64')
+
 An explicit ``dtype`` argument is always honored, whatever the configuration
 says. In particular `numpy.inexact` requests the upcast explicitly rather than
 relying on the default, so it is not affected:
