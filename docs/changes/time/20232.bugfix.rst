@@ -1,0 +1,4 @@
+Fixed a bug where ``Time.insert`` (and therefore ``Table.add_row`` for a ``Time``
+column) silently dropped the mask, exposing values that should have stayed
+masked.  This affected both the mask of the original object and the mask of the
+inserted values.

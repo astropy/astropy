@@ -1163,7 +1163,8 @@ class TimeBase(MaskableShapedLikeNDArray):
         # For non-Time object, use numpy to help figure out the length.  (Note annoying
         # case of a string input that has a length which is not the length we want).
         if not isinstance(values, self.__class__):
-            values = np.asarray(values)
+            # asanyarray, not asarray, so that a Masked input keeps its mask.
+            values = np.asanyarray(values)
         n_values = len(values) if values.shape else 1
 
         # Finally make the new object with the correct length and set values for the
@@ -1172,12 +1173,17 @@ class TimeBase(MaskableShapedLikeNDArray):
             [self], len(self) + n_values, name=self.info.name
         )
 
-        out._time.jd1[:idx0] = self._time.jd1[:idx0]
-        out._time.jd2[:idx0] = self._time.jd2[:idx0]
+        # Copy the initial elements of self to out. ``new_like`` always makes an
+        # unmasked object, but copying `self` here using the full Time slice will
+        # upgrade ``out`` as needed.
+        out[:idx0] = self[:idx0]
 
         # This uses the Time setting machinery to coerce and validate as necessary.
         out[idx0 : idx0 + n_values] = values
 
+        # Finally we can just do a direct copy of the jd1/2 values since we know the
+        # masking is already handled.  This is more efficient than using the Time
+        # setting machinery.
         out._time.jd1[idx0 + n_values :] = self._time.jd1[idx0:]
         out._time.jd2[idx0 + n_values :] = self._time.jd2[idx0:]
 
