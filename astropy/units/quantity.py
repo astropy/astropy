@@ -79,21 +79,6 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-class _DtypeNotGiven:
-    """Sentinel for the ``dtype`` argument of `Quantity` not being given.
-
-    This is distinct from an explicit ``dtype=numpy.inexact``, which requests
-    that integer input be upcast to float whatever the
-    ``quantity_convert_int_to_float`` configuration item says.
-    """
-
-    def __repr__(self):
-        return "<dtype not given>"
-
-
-_DTYPE_NOT_GIVEN = _DtypeNotGiven()
-
-
 @contextlib.contextmanager
 def _keep_integer_dtype():
     """Context in which integer input keeps its dtype when creating a Quantity.
@@ -497,7 +482,7 @@ class Quantity(np.ndarray):
         cls: type[Self],
         value: QuantityLike,
         unit=None,
-        dtype=_DTYPE_NOT_GIVEN,
+        dtype=np._NoValue,
         copy=True,
         order=None,
         subok=False,
@@ -507,7 +492,7 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
-        if dtype is _DTYPE_NOT_GIVEN:
+        if dtype is np._NoValue:
             # No dtype was given, so whether integer input is upcast to float is
             # up to the configuration.
             dtype = None
