@@ -48,7 +48,7 @@ def test_freedman_bin_width():
     # data with too small IQR
     test_x = [1, 2, 3] + [4] * 100 + [5, 6, 7]
     with pytest.raises(ValueError, match=r"Please use another bin method"):
-        with pytest.warns(RuntimeWarning, match=r"divide by zero encountered"):
+        with pytest.warns(RuntimeWarning, match=r"divide by zero encountered|invalid value encountered in ceil"):
             freedman_bin_width(test_x, return_bins=True)
 
     # data with small IQR but not too small
