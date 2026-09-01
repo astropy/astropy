@@ -2247,7 +2247,7 @@ class TestQTableIntColumnWithUnit:
             if expected_kind == "i":
                 # Only an integer dtype can hold these values exactly.
                 mask = getattr(col, "mask", np.zeros(len(col), dtype=bool))
-                vals = np.asarray(getattr(col, "unmasked", col).value)
+                vals = getattr(col, "unmasked", col).value
                 assert np.all(vals[~mask] == np.array(self.VALS)[~mask])
         assert np.all(t2["b"].mask == [False, True])
 
