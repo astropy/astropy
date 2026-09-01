@@ -8,7 +8,7 @@ from astropy.io.misc.pyarrow.csv import register_pyarrow_csv_table
 from . import hdf5, parquet
 
 hdf5.register_hdf5()
-parquet.register_parquet()
 parquet.register_parquet_votable()
+parquet.register_parquet()
 register_pyarrow_csv_table()
 register_ecsv_table()
