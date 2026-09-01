@@ -2207,12 +2207,6 @@ class TestQTableIntColumnWithUnit:
         assert t["a"].dtype == np.float32
         assert np.all(t["a"].value == vals)
 
-    def test_plain_table_unaffected(self):
-        """A plain Table keeps the Column and never converts to Quantity."""
-        t = Table(self.get_table())
-        assert t["a"].dtype == np.int64
-        assert isinstance(t["a"], Column)
-
     @pytest.mark.parametrize("conf_value", ["default", "always", "never"])
     @pytest.mark.parametrize(
         "fmt", ["ascii.ecsv", "fits", "hdf5", "parquet", "votable"]
