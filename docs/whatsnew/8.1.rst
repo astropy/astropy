@@ -73,7 +73,8 @@ sometimes this is not desired and in the worst case it silently loses precision 
 large values that ``float64`` cannot represent exactly.
 
 This is now controlled by a new configuration item,
-``units.quantity.conf.quantity_convert_int_to_float``, which takes one of three values: ``default``,
+`astropy.units.quantity.conf.quantity_convert_int_to_float
+<astropy.units.quantity.Conf.quantity_convert_int_to_float>`, which takes one of three values: ``default``,
 ``always``, or ``never``. An explicit ``dtype`` argument is always honored regardless of
 the configuration.
 
@@ -113,7 +114,8 @@ different number from the one that went in. This is an API change: code that rel
 being float may need updating, and integer division or overflow behavior now
 applies where floating point behavior did before.
 
-To restore the previous behavior, set ``units.quantity.conf.quantity_convert_int_to_float``
+To restore the previous behavior, set the `astropy.units.quantity.conf.quantity_convert_int_to_float
+<astropy.units.quantity.Conf.quantity_convert_int_to_float>`
 configuration value to ``always``, either in your configuration file or for a block of
 code with :meth:`~astropy.config.ConfigNamespace.set_temp`.
 
@@ -128,8 +130,9 @@ column with a unit read from VOTable, FITS, ECSV, HDF5 or parquet now keeps its
 
 This is strictly speaking an API change, but it is really a bug fix: the previous
 behavior corrupted values that the file itself stored exactly, with nothing to indicate
-that anything had been lost. Setting ``units.quantity.conf.quantity_convert_int_to_float`` to
-``always`` restores the previous behavior if needed.
+that anything had been lost. Setting `astropy.units.quantity.conf.quantity_convert_int_to_float
+<astropy.units.quantity.Conf.quantity_convert_int_to_float>`
+to ``always`` restores the previous behavior if needed.
 
 Contributors to the 8.1 release
 ===============================

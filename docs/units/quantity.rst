@@ -554,8 +554,10 @@ For |Quantity| to use the same ``dtype`` inspection as `numpy`, use
 Controlling the Conversion of Integers
 --------------------------------------
 
-Whether integer input is upcast is set by the ``quantity_convert_int_to_float``
-configuration item, which takes one of three values:
+Whether integer input is upcast is set by the
+`astropy.units.quantity.conf.quantity_convert_int_to_float
+<astropy.units.quantity.Conf.quantity_convert_int_to_float>` configuration item
+in the :ref:`astropy_config`, which takes one of three values:
 
 ``default``
     Integer input is upcast to float, but an operation that should not change
