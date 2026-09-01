@@ -30,6 +30,14 @@ INPUT_TIME = Time(
 )
 
 
+def basic_test_ts(shuffle_indices=None):
+    """Create a basic TimeSeries object used in many tests"""
+    ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4, 5]], names=["a"])
+    if shuffle_indices is None:
+        return ts
+    return ts[shuffle_indices]
+
+
 def assert_masked_equal(a, b):
     assert type(a) is type(b)
     a_data, a_mask = get_data_and_mask(a)
@@ -193,11 +201,22 @@ def test_nbins():
         assert len(down_nbins) == n_times
 
 
-def test_downsample():
-    ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3, 4, 5]], names=["a"])
-    ts_units = TimeSeries(
-        time=INPUT_TIME, data=[[1, 2, 3, 4, 5] * u.count], names=["a"]
-    )
+@pytest.mark.parametrize(
+    "ts, label",
+    [
+        (
+            basic_test_ts(),
+            "Basic TimeSeries object",
+        ),
+        (
+            basic_test_ts(shuffle_indices=[0, 4, 2, 3, 1]),
+            "Unsorted TimeSeries object",
+        ),
+    ],
+)
+def test_downsample(ts, label):
+    # the label parameter is not used in the codes,
+    # but to make the test cases easier to identify
 
     # Avoid precision problems with floating-point comparisons on 32bit
     if sys.maxsize > 2**32:
@@ -263,6 +282,8 @@ def test_downsample():
     )
     assert_equal(down_4["a"].data.data, np.array([2, 5]))
 
+    ts_units = ts.copy()
+    ts_units["a"] = ts_units["a"] * u.count
     down_units = aggregate_downsample(
         ts_units, time_bin_size=4 * time_bin_incr, time_bin_start=time_bin_start
     )
