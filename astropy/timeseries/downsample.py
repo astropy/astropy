@@ -151,7 +151,9 @@ def aggregate_downsample(
         time_bin_end = Time(time_bin_end)
 
     # Use the table sorted by time
-    ts_sorted = time_series.iloc[:]
+    #   time_series.iloc[:] is not used to workaround #11704 / #20297
+    ts_sorted = time_series.copy()
+    ts_sorted.sort("time")
 
     # If start time is not provided, it is assumed to be the start of the timeseries
     if time_bin_start is None:

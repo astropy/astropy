@@ -212,6 +212,10 @@ def test_nbins():
             basic_test_ts(shuffle_indices=[0, 4, 2, 3, 1]),
             "Unsorted TimeSeries object",
         ),
+        (
+            basic_test_ts()["time", "a"],
+            "TimeSeries object with subset of columns for #20297",
+        ),
     ],
 )
 def test_downsample(ts, label):
