@@ -61,6 +61,7 @@ __all__ = [
     "STANDARD_TIME_SCALES",
     "TIME_DELTA_SCALES",
     "TIME_SCALES",
+    "NormalizedPhaseTimeDelta",
     "OperandTypeError",
     "ScaleValueError",
     "Time",
@@ -3344,6 +3345,94 @@ class TimeDelta(TimeBase):
 
         return np.isclose(
             self.to_value(u.day), other_day, rtol=rtol, atol=atol.to_value(u.day)
+        )
+
+
+class NormalizedPhaseTimeDelta(TimeDelta):
+    """TimeDelta variant of which the values are in unitless normalized phase.
+    The period is also stored such  that the values can be converted to non-normalized ones, e.g., in JD, seconds, etc.
+    Parameters format, etc., describe the parameter period.
+
+    A NormalizedPhaseTimeDelta object behaves almost identical to a regular TimeDelta object,
+    except that the property ``.value`` are in normalized phase.
+    """
+
+    def __new__(
+        cls,
+        val,
+        period,
+        format=None,
+        scale=None,
+        *,
+        precision=None,
+        in_subfmt=None,
+        out_subfmt=None,
+        copy=None,
+    ):
+        if isinstance(val, NormalizedPhaseTimeDelta):
+            self = val.replicate(format=format, copy=copy, cls=cls)
+        else:
+            self = super().__new__(
+                cls,
+                val,
+                val2=None,
+                format=format,
+                scale=scale,
+                precision=precision,
+                in_subfmt=in_subfmt,
+                out_subfmt=out_subfmt,
+                copy=copy,
+            )
+        return self
+
+    def __init__(
+        self,
+        val,
+        period,
+        format=None,
+        scale=None,
+        *,
+        precision=None,
+        in_subfmt=None,
+        out_subfmt=None,
+        copy=None,
+    ):
+        # "de-normalize": convert val from normalized phase to say, JD
+        val_in_format = np.asarray(val) * period
+        super().__init__(
+            val_in_format,
+            val2=None,
+            format=format,
+            scale=scale,
+            precision=precision,
+            in_subfmt=in_subfmt,
+            out_subfmt=out_subfmt,
+            copy=copy,
+        )
+        self._period = period
+
+    def _apply(self, method, *args, format=None, cls=None, **kwargs):
+        result = super()._apply(method, *args, format=format, cls=cls, **kwargs)
+        result._period = self._period
+        return result
+
+    @property
+    def period(self):
+        return self._period
+
+    @property
+    def normalized_phase(self):
+        val_in_format = self._time.jd1 + self._time.jd2
+        return val_in_format / self.period
+
+    @property
+    def value(self):
+        return self.normalized_phase
+
+    def __repr__(self):
+        return (
+            f"<{type(self).__name__} object: scale='{self.scale}' "
+            f"format='{self.format}' period={self.period} value={self.to_string()}>"
         )
 
 

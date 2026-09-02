@@ -8,10 +8,10 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy import units as u
 from astropy.table import Column, Table
 from astropy.tests.helper import assert_quantity_allclose
-from astropy.time import Time, TimeDelta
+from astropy.time import NormalizedPhaseTimeDelta, Time, TimeDelta
 from astropy.timeseries.periodograms import BoxLeastSquares, LombScargle
 from astropy.timeseries.sampled import TimeSeries
-from astropy.units import Quantity, UnitsWarning
+from astropy.units import UnitsWarning
 from astropy.utils.data import get_pkg_data_filename
 
 INPUT_TIME = Time(["2016-03-22T12:30:31", "2015-01-21T12:30:32", "2016-03-22T12:30:40"])
@@ -203,9 +203,9 @@ def test_fold():
     # Try without epoch time, as it should default to the first time and
     # wrapping at half the period.
     tsf = ts.fold(period=3.2 * u.s, normalize_phase=True)
-    assert isinstance(tsf.time, Quantity)
+    assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.to_value(u.one),
+        tsf.time.value,  # TODO: used to be .to_value(u.one),
         [0, 1 / 3.2, -1.2 / 3.2, 0.6 / 3.2, -1.6 / 3.2, 1.4 / 3.2],
         rtol=1e-6,
     )
@@ -214,9 +214,9 @@ def test_fold():
     tsf = ts.fold(
         period=3.2 * u.s, epoch_time=Time(1.6, format="unix"), normalize_phase=True
     )
-    assert isinstance(tsf.time, Quantity)
+    assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.to_value(u.one),
+        tsf.time.value,  # TODO: used to be .to_value(u.one),
         [-0.6 / 3.2, 0.4 / 3.2, 1.4 / 3.2, 0.0 / 3.2, 1.0 / 3.2, 0.8 / 3.2],
         rtol=1e-6,
         atol=1e-6,
@@ -224,18 +224,18 @@ def test_fold():
 
     # Now with wrap_phase set to the full period
     tsf = ts.fold(period=3.2 * u.s, wrap_phase=1, normalize_phase=True)
-    assert isinstance(tsf.time, Quantity)
+    assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.to_value(u.one),
+        tsf.time.value,  # TODO: used to be .to_value(u.one),
         [0, 1 / 3.2, 2 / 3.2, 0.6 / 3.2, 1.6 / 3.2, 1.4 / 3.2],
         rtol=1e-6,
     )
 
     # Now set epoch_phase to be 1/4 of the way through the phase
     tsf = ts.fold(period=3.2 * u.s, epoch_phase=0.25, normalize_phase=True)
-    assert isinstance(tsf.time, Quantity)
+    assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.to_value(u.one),
+        tsf.time.value,  # TODO: used to be .to_value(u.one),
         [0.8 / 3.2, -1.4 / 3.2, -0.4 / 3.2, 1.4 / 3.2, -0.8 / 3.2, -1.0 / 3.2],
         rtol=1e-6,
     )
@@ -244,9 +244,9 @@ def test_fold():
     tsf = ts.fold(
         period=3.2 * u.s, epoch_phase=0.25, wrap_phase=1, normalize_phase=True
     )
-    assert isinstance(tsf.time, Quantity)
+    assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.to_value(u.one),
+        tsf.time.value,  # TODO: used to be .to_value(u.one),
         [0.8 / 3.2, 1.8 / 3.2, 2.8 / 3.2, 1.4 / 3.2, 2.4 / 3.2, 2.2 / 3.2],
         rtol=1e-6,
     )
