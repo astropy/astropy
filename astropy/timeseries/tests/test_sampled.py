@@ -205,7 +205,7 @@ def test_fold():
     tsf = ts.fold(period=3.2 * u.s, normalize_phase=True)
     assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.value,  # TODO: used to be .to_value(u.one),
+        tsf.time.to_value(u.one),  # or just .`value`
         [0, 1 / 3.2, -1.2 / 3.2, 0.6 / 3.2, -1.6 / 3.2, 1.4 / 3.2],
         rtol=1e-6,
     )
@@ -216,7 +216,7 @@ def test_fold():
     )
     assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.value,  # TODO: used to be .to_value(u.one),
+        tsf.time.to_value(u.one),  # or just .`value`
         [-0.6 / 3.2, 0.4 / 3.2, 1.4 / 3.2, 0.0 / 3.2, 1.0 / 3.2, 0.8 / 3.2],
         rtol=1e-6,
         atol=1e-6,
@@ -226,7 +226,7 @@ def test_fold():
     tsf = ts.fold(period=3.2 * u.s, wrap_phase=1, normalize_phase=True)
     assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.value,  # TODO: used to be .to_value(u.one),
+        tsf.time.to_value(u.one),  # or just .`value`
         [0, 1 / 3.2, 2 / 3.2, 0.6 / 3.2, 1.6 / 3.2, 1.4 / 3.2],
         rtol=1e-6,
     )
@@ -235,7 +235,7 @@ def test_fold():
     tsf = ts.fold(period=3.2 * u.s, epoch_phase=0.25, normalize_phase=True)
     assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.value,  # TODO: used to be .to_value(u.one),
+        tsf.time.to_value(u.one),  # or just .`value`
         [0.8 / 3.2, -1.4 / 3.2, -0.4 / 3.2, 1.4 / 3.2, -0.8 / 3.2, -1.0 / 3.2],
         rtol=1e-6,
     )
@@ -246,7 +246,7 @@ def test_fold():
     )
     assert isinstance(tsf.time, NormalizedPhaseTimeDelta)
     assert_allclose(
-        tsf.time.value,  # TODO: used to be .to_value(u.one),
+        tsf.time.to_value(u.one),  # or just .`value`
         [0.8 / 3.2, 1.8 / 3.2, 2.8 / 3.2, 1.4 / 3.2, 2.4 / 3.2, 2.2 / 3.2],
         rtol=1e-6,
     )

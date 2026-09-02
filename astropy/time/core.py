@@ -3435,6 +3435,26 @@ class NormalizedPhaseTimeDelta(TimeDelta):
             f"format='{self.format}' period={self.period} value={self.to_string()}>"
         )
 
+    #
+    # Quantity-like compatibility API / behavior
+    #
+
+    @property
+    def unit(self):
+        return u.one
+
+    def to_value(self, *args, **kwargs):
+        """Provide ``Quantity.to_value()`` behavior, in addition to
+        the standard TimeDelta ``to_value()``behavior.
+        """
+        if len(args) == 1 and isinstance(args[0], u.UnitBase):
+            # Quantity behavior, e.g., to_value(u.one)
+            return (self.value * u.one).to(args[0])
+        # TODO: other Quantity call variation, e.g., to_value(unit=u.one)
+
+        # standard TimeDelta behavior
+        return super().to_value(*args, **kwargs)
+
 
 class ScaleValueError(Exception):
     pass
