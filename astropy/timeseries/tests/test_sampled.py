@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import pytest
-from numpy.testing import assert_allclose, assert_equal
+from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
 from astropy import units as u
 from astropy.table import Column, Table
@@ -250,6 +250,18 @@ def test_fold():
         [0.8 / 3.2, 1.8 / 3.2, 2.8 / 3.2, 1.4 / 3.2, 2.4 / 3.2, 2.2 / 3.2],
         rtol=1e-6,
     )
+
+    # ensure FoldedTimeSeries with normalize_phase=True
+    # works in various cases (#18070)
+    # a. `.sec` , used by `aggregate_downsample()`
+    tsf = ts.fold(period=3.2 * u.s, normalize_phase=True)
+    assert_allclose(
+        tsf.time.sec, ts.fold(period=3.2 * u.s, normalize_phase=False).time.sec
+    )
+    # b. `.copy()`
+    tsf_copied = tsf.copy()
+    assert_array_equal(tsf_copied.time.value, tsf.time.value)
+    assert_array_equal(tsf_copied["flux"], tsf["flux"])
 
 
 def test_fold_invalid_options():
