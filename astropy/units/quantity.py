@@ -110,6 +110,27 @@ def preserve_dtype_by_default():
         yield
 
 
+def _upcast_int_to_float(dtype_arg):
+    """Whether integer or object input should be upcast to float.
+
+    Parameters
+    ----------
+    dtype_arg : object
+        The ``dtype`` argument as passed to `Quantity`.  `numpy.inexact` is an
+        explicit request to upcast; ``np._NoValue`` means no dtype was given
+        and it is up to the ``quantity_convert_int_to_float`` configuration
+        item; anything else is a real dtype and settles the question itself.
+
+    Notes
+    -----
+    Call this only for input that is actually integer or object and might thus
+    be upcast, since reading a ``ConfigItem`` is far from free (~1 us).
+    """
+    return dtype_arg is np.inexact or (
+        dtype_arg is np._NoValue and conf.quantity_convert_int_to_float != "never"
+    )
+
+
 class QuantityIterator:
     """
     Flat iterator object to iterate over Quantities.
@@ -524,15 +545,7 @@ class Quantity(np.ndarray):
             if type(value) is not cls and not (subok and isinstance(value, cls)):
                 value = value.view(cls)
 
-            if value.dtype.kind in "iu" and (
-                dtype_arg is np.inexact
-                # Reading a ConfigItem is far from free (~1 us), so only ask it
-                # for input that is actually integer and might thus be upcast.
-                or (
-                    dtype_arg is np._NoValue
-                    and conf.quantity_convert_int_to_float != "never"
-                )
-            ):
+            if value.dtype.kind in "iu" and _upcast_int_to_float(dtype_arg):
                 dtype = float
 
             return np.array(
@@ -620,13 +633,7 @@ class Quantity(np.ndarray):
             raise TypeError("The value must be a valid Python or Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if value.dtype.kind in "iuO" and (
-            dtype_arg is np.inexact
-            or (
-                dtype_arg is np._NoValue
-                and conf.quantity_convert_int_to_float != "never"
-            )
-        ):
+        if value.dtype.kind in "iuO" and _upcast_int_to_float(dtype_arg):
             value = value.astype(float)
 
         # if we allow subclasses, allow a class from the unit.
