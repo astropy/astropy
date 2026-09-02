@@ -9,7 +9,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import NUMPY_LT_2_5
+from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -1720,21 +1720,25 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
     def __array_wrap__(self, out_arr, context=None, return_scalar=False):
         out_arr = super().__array_wrap__(out_arr, context, return_scalar)
 
-        # Workaround for a numpy.ma footgun: ma.MaskedArray.__array_wrap__
-        # copies the input's raw `_fill_value` onto the ufunc output
-        # without checking it is still valid for the output's dtype.  This
-        # matters for ufuncs that change dtype.  So for example,
-        # np.strings.find, on a string masked column returns an int array
-        # but keeps the original string fill_value.  That stale fill_value
-        # doesn't fail immediately, but blows up later (e.g. when
-        # MaskedColumn.data calls self.view()).  Detect that case here and
-        # reset to the dtype-appropriate default instead.
-        fill_value = getattr(out_arr, "_fill_value", None)
-        if fill_value is not None and hasattr(out_arr, "dtype"):
-            try:
-                ma.core._check_fill_value(fill_value, out_arr.dtype)
-            except (TypeError, ValueError):
-                out_arr._fill_value = None
+        if NUMPY_LT_2_6:
+            # Workaround for a numpy.ma bug, fixed upstream by
+            # https://github.com/numpy/numpy/pull/32423: MaskedArray's
+            # _update_from copied the input's raw `_fill_value` into the
+            # output without checking it was still valid for the output's
+            # dtype.  Mirror the fix numpy made to _update_from here.
+            fill_value = getattr(out_arr, "_fill_value", None)
+            out_dtype = getattr(out_arr, "dtype", None)
+            if (
+                fill_value is not None
+                and out_dtype is not None
+                and out_dtype != self.dtype
+            ):
+                try:
+                    out_arr._fill_value = ma.core._check_fill_value(
+                        fill_value, out_dtype
+                    )
+                except (TypeError, ValueError, OverflowError):
+                    out_arr._fill_value = None
 
         return out_arr
 
