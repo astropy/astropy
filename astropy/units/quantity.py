@@ -527,10 +527,9 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
-        # Neither sentinel is a dtype numpy can use, so replace both with None,
-        # keeping the original to decide below whether integer input is upcast
-        # to float: np.inexact is an explicit request to upcast, np._NoValue
-        # means no dtype was given and it is up to the configuration.
+        # np._NoValue means no dtype was given so final type depends on configuration.
+        # np.inexact is a sentinel for floating-point types meaning preserve the
+        # existing dtype with dtype=None.
         dtype_arg = dtype
         if dtype is np._NoValue or dtype is np.inexact:
             dtype = None
