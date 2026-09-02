@@ -2216,7 +2216,7 @@ class TestQTableIntColumnWithUnit:
 
         The ``quantity_convert_int_to_float`` configuration item applies on
         reading as well as on writing, so ``always`` gives back the float column
-        of astropy 7.x and earlier.
+        of astropy 8.0 and earlier.
 
         Note that the value hidden underneath a mask is not stored by these
         formats, so only the unmasked values are compared.

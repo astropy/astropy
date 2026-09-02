@@ -567,7 +567,7 @@ in the :ref:`astropy_config`, which takes one of three values:
 
 ``always``
     Integer input is upcast to float and those overrides are ignored. This gives
-    the behavior of astropy 7.x and earlier, in which an integer column with a
+    the behavior of astropy 8.0 and earlier, in which an integer column with a
     unit became a float |Quantity| in a |QTable|.
 
 ``never``

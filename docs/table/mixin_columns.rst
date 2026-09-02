@@ -148,7 +148,7 @@ You can conveniently convert |Table| to |QTable| and vice-versa::
    a count does not silently lose precision. This is controlled by the
    :ref:`quantity_convert_int_to_float <quantity-convert-int-to-float>`
    configuration item; setting it to ``always`` gives the conversion to ``float``
-   of astropy 7.x and earlier.
+   of astropy 8.0 and earlier.
 
    .. versionchanged:: 8.1
       Integer columns were previously converted to ``float``.
