@@ -43,7 +43,7 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "astropy-iers-data>=0.2026.7.27.0.56.29",
+    "astropy-iers-data>=0.2026.8.31.0.57.9",
     "numpy>=1.24, <2.7",
     "packaging>=22.0.0",
     "pyerfa>=2.0.1.1",  # For >=2.0.1.7, adjust structured_units.rst and doctest-requires
