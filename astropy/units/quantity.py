@@ -506,18 +506,13 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
-        if dtype is np._NoValue:
-            # No dtype was given, so whether integer input is upcast to float is
-            # up to the configuration.
+        # Neither sentinel is a dtype numpy can use, so replace both with None,
+        # keeping the original to decide below whether integer input is upcast
+        # to float: np.inexact is an explicit request to upcast, np._NoValue
+        # means no dtype was given and it is up to the configuration.
+        dtype_arg = dtype
+        if dtype is np._NoValue or dtype is np.inexact:
             dtype = None
-            float_default = conf.quantity_convert_int_to_float != "never"
-        elif dtype is np.inexact:
-            # An explicit request to upcast integer input to float.  This is not
-            # a dtype numpy can use, so it has to be replaced.
-            dtype = None
-            float_default = True
-        else:
-            float_default = False
 
         # optimize speed for Quantity with no dtype given, copy=None
         if isinstance(value, Quantity):
@@ -529,7 +524,15 @@ class Quantity(np.ndarray):
             if type(value) is not cls and not (subok and isinstance(value, cls)):
                 value = value.view(cls)
 
-            if float_default and value.dtype.kind in "iu":
+            if value.dtype.kind in "iu" and (
+                dtype_arg is np.inexact
+                # Reading a ConfigItem is far from free (~1 us), so only ask it
+                # for input that is actually integer and might thus be upcast.
+                or (
+                    dtype_arg is np._NoValue
+                    and conf.quantity_convert_int_to_float != "never"
+                )
+            ):
                 dtype = float
 
             return np.array(
@@ -617,7 +620,13 @@ class Quantity(np.ndarray):
             raise TypeError("The value must be a valid Python or Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if float_default and value.dtype.kind in "iuO":
+        if value.dtype.kind in "iuO" and (
+            dtype_arg is np.inexact
+            or (
+                dtype_arg is np._NoValue
+                and conf.quantity_convert_int_to_float != "never"
+            )
+        ):
             value = value.astype(float)
 
         # if we allow subclasses, allow a class from the unit.
