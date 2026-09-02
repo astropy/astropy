@@ -1,0 +1,3 @@
+Prevent overflow on 32 bits systems and web-assembly when reading long integers in
+binary votables by changing the type of the long int ``null_value`` from ``long`` to
+the more explicit ``int64_t``.ensures compatibility with 32 bits systems and web-assembly.
