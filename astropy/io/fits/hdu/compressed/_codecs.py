@@ -119,9 +119,7 @@ class Gzip1(Codec):
         buf : np.ndarray
             The decompressed buffer.
         """
-        # In principle we should be able to not have .tobytes() here and avoid
-        # the copy but this does not work correctly in Python 3.11.
-        cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
+        cbytes = np.frombuffer(buf, dtype=np.uint8)
         dbytes = gzip_decompress(cbytes)
         return np.frombuffer(dbytes, dtype=np.uint8)
 
@@ -140,9 +138,7 @@ class Gzip1(Codec):
             The compressed bytes.
         """
         # Data bytes should be stored as big endian in files
-        # In principle we should be able to not have .tobytes() here and avoid
-        # the copy but this does not work correctly in Python 3.11.
-        dbytes = _as_big_endian_array(buf).tobytes()
+        dbytes = np.ascontiguousarray(_as_big_endian_array(buf))
         return gzip_compress(dbytes)
 
 
