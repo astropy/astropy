@@ -19,10 +19,13 @@ of data to another.
 import threading
 from warnings import warn
 
+import erfa
 import numpy as np
 
 from astropy import units as u
+from astropy.time.formats import _format_template
 from astropy.utils import parsing
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_1
 
 from .errors import (
     IllegalHourError,
@@ -375,12 +378,52 @@ def _decimal_to_sexagesimal(a, /):
     return np.floor(sign * d), sign * np.floor(m), sign * s
 
 
+# ERFA's fields are 32-bit, so it cannot take more than 9 decimals of a second
+# nor an angle past this many degrees or hours.
+_ERFA_MAX_FIELD = 2**31
+
+# ERFA resolves to ``ndp`` decimals of a second, and negative values give
+# coarser resolutions: -2 is a whole minute and -4 a whole degree or hour,
+# which is what the hidden fields need.
+_COARSE_RESOLUTION = {2: -2, 1: -4}
+
+
 def _decimal_to_sexagesimal_string(
     angle, precision=None, pad=False, sep=(":",), fields=3
 ):
     """
     Given a floating point angle, convert it to string
     """
+    if fields < 1 or fields > 3:
+        raise ValueError("fields must be 1, 2, or 3")
+
+    sep = _normalize_sep(sep, fields)
+    ndp = 8 if precision is None else precision
+
+    # ERFA does the decomposition, the rounding and the carrying between the
+    # fields.  It cannot handle more than 9 decimals of a second or angles too
+    # large for its 32-bit fields, and its integer fields have no room for the
+    # non-finite values, all of which are left to the slower code below.
+    if 0 <= ndp <= 9 and abs(angle) < _ERFA_MAX_FIELD:
+        _, parts = erfa.d2tf(_COARSE_RESOLUTION.get(fields, ndp), angle / 24.0)
+        d, m, s, f = (int(parts[name]) for name in ("h", "m", "s", "f"))
+        # The sign comes from the angle rather than from ERFA, so that a
+        # negative zero keeps the "-" it has always been given.
+        sign = "-" if np.signbit(angle) else ""
+        literal = f"{sign}{d:0{2 if pad else 1}d}{sep[0]}"
+        if fields >= 2:
+            literal += f"{m:02d}{sep[1]}"
+        if fields == 3:
+            literal += f"{s:02d}"
+            if precision is None:
+                fraction = f"{f:08d}".rstrip("0")
+                if fraction:
+                    literal += f".{fraction}"
+            elif precision:
+                literal += f".{f:0{precision}d}"
+            literal += sep[2]
+        return literal
+
     values = _decimal_to_sexagesimal(angle)
     # Check to see if values[0] is negative, using np.copysign to handle -0
     sign = np.copysign(1.0, values[0])
@@ -393,28 +436,6 @@ def _decimal_to_sexagesimal_string(
         pad = 3 if sign == -1 else 2
     else:
         pad = 0
-
-    if not isinstance(sep, tuple):
-        sep = tuple(sep)
-
-    if fields < 1 or fields > 3:
-        raise ValueError("fields must be 1, 2, or 3")
-
-    if not sep:  # empty string, False, or None, etc.
-        sep = ("", "", "")
-    elif len(sep) == 1:
-        if fields == 3:
-            sep = sep + (sep[0], "")
-        elif fields == 2:
-            sep = sep + ("", "")
-        else:
-            sep = ("", "", "")
-    elif len(sep) == 2:
-        sep = sep + ("",)
-    elif len(sep) != 3:
-        raise ValueError(
-            "Invalid separator specification for converting angle to string."
-        )
 
     # Simplify the expression based on the requested precision.  For
     # example, if the seconds will round up to 60, we should convert
@@ -450,3 +471,100 @@ def _decimal_to_sexagesimal_string(
             last_value = "0" + last_value
         literal += f"{last_value}{sep[2]}"
     return literal
+
+
+def _normalize_sep(sep, fields):
+    """Expand ``sep`` to the three separators that follow each field."""
+    if not isinstance(sep, tuple):
+        sep = tuple(sep)
+    if not sep:  # empty string, False, or None, etc.
+        return ("", "", "")
+    if len(sep) == 1:
+        if fields == 3:
+            return sep + (sep[0], "")
+        if fields == 2:
+            return sep + ("", "")
+        return ("", "", "")
+    if len(sep) == 2:
+        return sep + ("",)
+    if len(sep) != 3:
+        raise ValueError(
+            "Invalid separator specification for converting angle to string."
+        )
+    return sep
+
+
+def _decimal_to_sexagesimal_string_array(
+    angle, precision=None, pad=False, sep=(":",), fields=3
+):
+    """Vectorized equivalent of `_decimal_to_sexagesimal_string`.
+
+    The sexagesimal fields come from ERFA, which rounds them and carries
+    between them, and the strings are then assembled from a format template
+    with array operations.  This is much faster than looping
+    `_decimal_to_sexagesimal_string` over the elements.
+
+    Returns ``None`` when the array cannot be handled this way, so that the
+    caller can fall back to the per-element path: on NumPy < 2.1 (where
+    ``np.strings.zfill`` is buggy), for a precision beyond the 9 digits ERFA
+    can give, and for angles too large for its 32-bit fields.
+    """
+    if NUMPY_LT_2_1:
+        return None
+
+    if fields < 1 or fields > 3:
+        raise ValueError("fields must be 1, 2, or 3")
+
+    sep = _normalize_sep(sep, fields)
+    ndp = 8 if precision is None else precision
+    if ndp > 9 or ndp < 0:
+        return None
+
+    angle = np.asarray(angle, dtype=float)
+    negative = np.signbit(angle)
+    finite = np.isfinite(angle)
+    if not finite.all():
+        angle = np.where(finite, angle, 0.0)
+    if angle.size and np.abs(angle).max() >= _ERFA_MAX_FIELD:
+        return None
+
+    _, parts = erfa.d2tf(_COARSE_RESOLUTION.get(fields, ndp), angle / 24.0)
+
+    # The leading field has a variable number of digits, so it is written to
+    # its own column and stripped, rather than going into the template.
+    degrees = parts["h"]
+    width = len(str(int(degrees.max()))) if degrees.size else 1
+    out = _format_template(f"{{deg:0{width}d}}", {"deg": degrees}, degrees.shape)
+    # np.asarray: the string operations give a scalar for 0-d input.
+    out = np.asarray(np.strings.lstrip(out, "0"))
+    if pad:
+        # A minimum width of two digits, not a fixed one, so that larger
+        # values keep all of theirs.
+        out = np.strings.zfill(out, 2)
+    else:
+        out[out == ""] = "0"
+    if not finite.all():
+        # Not in place: "inf" needs a wider dtype.
+        out = np.where(finite, out, "inf")
+    out = np.where(negative, "-", "") + out
+
+    template = sep[0]
+    if fields >= 2:
+        template += "{min:02d}" + sep[1]
+    if fields == 3:
+        template += "{sec:02d}"
+        if ndp:
+            template += f".{{frac:0{ndp}d}}"
+    tail = _format_template(
+        template,
+        {"min": parts["m"], "sec": parts["s"], "frac": parts["f"]},
+        degrees.shape,
+    )
+    if fields == 3:
+        if precision is None:
+            # Drop trailing zeros of the fraction, and the point if all of them
+            # went.  This cannot eat into the seconds, since the strip stops at
+            # the point.
+            tail = np.strings.rstrip(np.strings.rstrip(tail, "0"), ".")
+        tail = tail + sep[2]
+    return out + tail
