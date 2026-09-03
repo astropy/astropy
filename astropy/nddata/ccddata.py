@@ -57,9 +57,12 @@ def _arithmetic(op):
         def inner(self, operand, operand2=None, **kwargs):
             global _config_ccd_requires_unit
             _config_ccd_requires_unit = False
-            result = self._prepare_then_do_arithmetic(op, operand, operand2, **kwargs)
+            try:
+                result = self._prepare_then_do_arithmetic(op, operand, operand2, **kwargs)
+            finally:
+                # Restore the unit check even when arithmetic raises.
+                _config_ccd_requires_unit = True
             # Wrap it again as CCDData so it checks the final unit.
-            _config_ccd_requires_unit = True
             return result.__class__(result)
 
         inner.__doc__ = f"See `astropy.nddata.NDArithmeticMixin.{func.__name__}`."
