@@ -71,12 +71,12 @@ jobs:
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       if: matrix.language == 'cpp'
       with:
-        python-version: '3.11'
+        python-version: '3.12'
 
     - name: Manual build
       if: matrix.language == 'cpp'
       run: |
-       pip install -U pip setuptools_scm setuptools packaging wheel
+       pip install -U pip setuptools_scm setuptools packaging
        pip install extension-helpers cython numpy pyerfa
        python setup.py build_ext --inplace
 

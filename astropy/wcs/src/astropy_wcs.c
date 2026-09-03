@@ -529,8 +529,7 @@ Wcs_get_wcs(
     return self->py_wcsprm;
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 static int
@@ -567,8 +566,7 @@ Wcs_get_cpdis1(
     return self->py_distortion_lookup[0];
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 static int
@@ -605,8 +603,7 @@ Wcs_get_cpdis2(
     return self->py_distortion_lookup[1];
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 static int
@@ -643,8 +640,7 @@ Wcs_get_det2im1(
     return self->py_det2im[0];
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 static int
@@ -681,8 +677,7 @@ Wcs_get_det2im2(
     return self->py_det2im[1];
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 static int
@@ -719,8 +714,7 @@ Wcs_get_sip(
     return self->py_sip;
   }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 static int
