@@ -40,6 +40,7 @@ from astropy.utils.compat.optional_deps import (
     HAS_LZMA,
     HAS_UNCOMPRESSPY,
 )
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import find_current_module
 
@@ -162,7 +163,7 @@ class CacheMissingWarning(AstropyWarning):
     """
 
 
-def is_url(string):
+def is_url(string: str) -> bool:
     """
     Test whether a string is a valid URL for :func:`download_file`.
 
@@ -185,7 +186,9 @@ def is_url(string):
 
 
 # Backward compatibility because some downstream packages allegedly use it.
-_is_url = is_url
+@deprecated(since="8.1.0", alternative="astropy.utils.data.is_url")
+def _is_url(string: str) -> bool:
+    return is_url(string)
 
 
 def _requires_fsspec(url):
@@ -377,8 +380,7 @@ def get_readable_fileobj(
             close_fds.append(fileobj)
 
         else:
-            is_url = _is_url(name_or_obj)
-            if is_url:
+            if name_is_url := is_url(name_or_obj):
                 name_or_obj = download_file(
                     name_or_obj,
                     cache=cache,
@@ -388,7 +390,7 @@ def get_readable_fileobj(
                     http_headers=http_headers,
                 )
             fileobj = io.FileIO(name_or_obj, "r")
-            if is_url and not cache:
+            if name_is_url and not cache:
                 delete_fds.append(fileobj)
             close_fds.append(fileobj)
     else:
@@ -1953,7 +1955,7 @@ def clear_download_cache(
         if hashorurl is None:
             # Optional: delete old incompatible caches too
             _rmtree(dldir)
-        elif _is_url(hashorurl):
+        elif is_url(hashorurl):
             filepath = dldir / _url_to_dirname(hashorurl)
             _rmtree(filepath)
         else:
@@ -2047,7 +2049,7 @@ def _get_download_cache_loc(
 
 
 def _url_to_dirname(url: str) -> str:
-    if not _is_url(url):
+    if not is_url(url):
         raise ValueError(f"Malformed URL: '{url}'")
     # Make domain names case-insensitive
     # Also makes the http:// case-insensitive
@@ -2146,7 +2148,7 @@ def check_download_cache(
                     messages.add(f"Problem with URL file f{urlf}")
                 else:
                     url = get_file_contents(urlf, encoding="utf-8")
-                    if not _is_url(url):
+                    if not is_url(url):
                         bad_files.add(f)
                         messages.add(f"Malformed URL: {url}")
                     else:
