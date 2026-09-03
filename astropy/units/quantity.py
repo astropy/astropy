@@ -6,6 +6,7 @@ but will deal with unit conversions internally.
 """
 
 import builtins
+import contextlib
 import numbers
 import operator
 import re
@@ -42,6 +43,7 @@ __all__ = [
     "SpecificTypeQuantity",
     "allclose",
     "isclose",
+    "preserve_dtype_by_default",
 ]
 
 
@@ -65,9 +67,68 @@ class Conf(_config.ConfigNamespace):
         "negative number means that the value will instead be whatever numpy "
         "gets from get_printoptions.",
     )
+    quantity_convert_int_to_float = _config.ConfigItem(
+        ["default", "always", "never"],
+        "Whether integer values are converted to float when a Quantity is "
+        "created without an explicit ``dtype``. With ``default`` the conversion "
+        "is done, but a particular context may override it, as when a column is "
+        "added to a QTable. With ``always`` the conversion is done and such "
+        "overrides are ignored. With ``never`` integer values keep their dtype.",
+    )
 
 
 conf = Conf()
+
+
+@contextlib.contextmanager
+def preserve_dtype_by_default():
+    """Context in which integer input keeps its dtype when creating a Quantity.
+
+    Use this for an operation that should not change the dtype of what it is
+    given.  Inside astropy, adding a column to a `~astropy.table.QTable` and
+    reconstructing a serialized column both do so, which is why an integer
+    column with a unit keeps its dtype.
+
+    An explicit ``dtype`` argument is still honored inside the context, and
+    setting the ``quantity_convert_int_to_float`` configuration item to
+    ``always`` overrides the context, giving the conversion to float of astropy
+    7.x and earlier.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> with u.preserve_dtype_by_default():
+    ...     q = u.Quantity([1, 2], u.ct)
+    >>> q.dtype
+    dtype('int64')
+    """
+    convert = conf.quantity_convert_int_to_float
+    with conf.set_temp(
+        "quantity_convert_int_to_float", "never" if convert == "default" else convert
+    ):
+        yield
+
+
+def _upcast_int_to_float(dtype_arg):
+    """Whether integer or object input should be upcast to float.
+
+    Parameters
+    ----------
+    dtype_arg : object
+        The ``dtype`` argument as passed to `Quantity`.  `numpy.inexact` is an
+        explicit request to upcast; ``np._NoValue`` means no dtype was given
+        and it is up to the ``quantity_convert_int_to_float`` configuration
+        item; anything else is a real dtype and settles the question itself.
+
+    Notes
+    -----
+    Call this only for input that is actually integer or object and might thus
+    be upcast, since reading a ``ConfigItem`` is far from free (~1 us).
+    """
+    return dtype_arg is np.inexact or (
+        dtype_arg is np._NoValue and conf.quantity_convert_int_to_float != "never"
+    )
 
 
 class QuantityIterator:
@@ -311,9 +372,11 @@ class Quantity(np.ndarray):
         The dtype of the resulting Numpy array or scalar that will
         hold the value.  If not provided, it is determined from the input,
         except that any integer and (non-Quantity) object inputs are converted
-        to float by default.
+        to float by default, as set by the ``quantity_convert_int_to_float``
+        configuration item.
         If `None`, the normal `numpy.dtype` introspection is used, e.g.
-        preventing upcasting of integers.
+        preventing upcasting of integers.  If `numpy.inexact`, integer and
+        object inputs are converted to float whatever the configuration says.
 
     copy : bool, optional
         If `True` (default), then the value is copied.  Otherwise, a copy will
@@ -454,7 +517,7 @@ class Quantity(np.ndarray):
         cls: type[Self],
         value: QuantityLike,
         unit=None,
-        dtype=np.inexact,
+        dtype=np._NoValue,
         copy=True,
         order=None,
         subok=False,
@@ -464,9 +527,11 @@ class Quantity(np.ndarray):
             # convert unit first, to avoid multiple string->unit conversions
             unit = Unit(unit)
 
-        # inexact -> upcast to float dtype
-        float_default = dtype is np.inexact
-        if float_default:
+        # np._NoValue means no dtype was given so final type depends on configuration.
+        # np.inexact is a sentinel for floating-point types meaning preserve the
+        # existing dtype with dtype=None.
+        dtype_arg = dtype
+        if dtype is np._NoValue or dtype is np.inexact:
             dtype = None
 
         # optimize speed for Quantity with no dtype given, copy=None
@@ -479,7 +544,7 @@ class Quantity(np.ndarray):
             if type(value) is not cls and not (subok and isinstance(value, cls)):
                 value = value.view(cls)
 
-            if float_default and value.dtype.kind in "iu":
+            if value.dtype.kind in "iu" and _upcast_int_to_float(dtype_arg):
                 dtype = float
 
             return np.array(
@@ -567,7 +632,7 @@ class Quantity(np.ndarray):
             raise TypeError("The value must be a valid Python or Numpy numeric type.")
 
         # by default, cast any integer, boolean, etc., to float
-        if float_default and value.dtype.kind in "iuO":
+        if value.dtype.kind in "iuO" and _upcast_int_to_float(dtype_arg):
             value = value.astype(float)
 
         # if we allow subclasses, allow a class from the unit.

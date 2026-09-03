@@ -14,6 +14,9 @@ In particular, this release includes:
 
 * :ref:`whatsnew-8.1-time-string-formats`
 * :ref:`whatsnew-8.1-faster-table-joins`
+* :ref:`whatsnew-8.1-quantity-int-config`
+* :ref:`whatsnew-8.1-qtable-int-columns`
+* :ref:`whatsnew-8.1-reading-int-columns`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -58,6 +61,78 @@ if it is available and otherwise falls back to the built-in astropy join impleme
 
 In addition, the built-in astropy join was sped up by a factor of ~2x for the common
 case of a single join column.
+
+.. _whatsnew-8.1-quantity-int-config:
+
+Controlling the conversion of integers by Quantity
+==================================================
+
+Creating a |Quantity| from integer input without giving a ``dtype`` upcasts the values
+to float. That is often what you want since most physical quantities are continuous, but
+sometimes this is not desired and in the worst case it silently loses precision for
+large values that ``float64`` cannot represent exactly.
+
+This is now controlled by a new configuration item,
+`astropy.units.quantity.conf.quantity_convert_int_to_float
+<astropy.units.quantity.Conf.quantity_convert_int_to_float>`, which takes one of three values: ``default``,
+``always``, or ``never``. An explicit ``dtype`` argument is always honored regardless of
+the configuration.
+
+For example::
+
+    >>> import astropy.units as u
+    >>> from astropy.units.quantity import conf
+    >>> with conf.set_temp("quantity_convert_int_to_float", "never"):
+    ...     q = [1, 2] * u.ct
+    >>> q.dtype
+    dtype('int64')
+
+There is also a :func:`~astropy.units.preserve_dtype_by_default` context manager to
+preserve the input ``dtype`` unless the ``quantity_convert_int_to_float``
+configuration is set to ``always``.
+
+See :ref:`quantity-convert-int-to-float` for details.
+
+.. _whatsnew-8.1-qtable-int-columns:
+
+Integer columns with a unit keep their dtype in a QTable
+========================================================
+
+An integer |Column| with a unit added to a |QTable| is converted to a |Quantity|,
+and that conversion used to cast the values to float. It now keeps the integer
+``dtype``::
+
+    >>> from astropy.table import QTable, Column
+    >>> t = QTable({"source_id": Column([2741100559643251862], unit="")})
+    >>> t["source_id"].dtype
+    dtype('int64')
+    >>> t["source_id"][0]
+    <Quantity 2741100559643251862>
+
+Previously the identifier above came back as ``<Quantity 2.74110056e+18>``, a
+different number from the one that went in. This is an API change: code that relied on such a column
+being float may need updating, and integer division or overflow behavior now
+applies where floating point behavior did before.
+
+To restore the previous behavior, set the `astropy.units.quantity.conf.quantity_convert_int_to_float
+<astropy.units.quantity.Conf.quantity_convert_int_to_float>`
+configuration value to ``always``, either in your configuration file or for a block of
+code with :meth:`~astropy.config.ConfigNamespace.set_temp`.
+
+.. _whatsnew-8.1-reading-int-columns:
+
+Reading files with integer columns that have units
+==================================================
+
+Reading a file into a |QTable| goes through the same conversion, so an integer
+column with a unit read from VOTable, FITS, ECSV, HDF5 or parquet now keeps its
+``dtype`` rather than being cast to float.
+
+This is strictly speaking an API change, but it is really a bug fix: the previous
+behavior corrupted values that the file itself stored exactly, with nothing to indicate
+that anything had been lost. Setting `astropy.units.quantity.conf.quantity_convert_int_to_float
+<astropy.units.quantity.Conf.quantity_convert_int_to_float>`
+to ``always`` restores the previous behavior if needed.
 
 Contributors to the 8.1 release
 ===============================
