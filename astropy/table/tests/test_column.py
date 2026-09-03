@@ -502,18 +502,16 @@ class TestColumn:
         """
         Regression test for a ufunc that changes the dtype of a
         MaskedColumn (e.g. np.strings.find applied to a string column,
-        which returns an int array).  The output used to retain the
-        original (string) fill_value, which is invalid for the new
-        (int) dtype.  See https://github.com/astropy/astropy/issues/20257
+        which returns an int array).
+        See https://github.com/astropy/astropy/issues/20257
         """
         col = table.MaskedColumn(
             ["foo", "bar", "baz"], mask=False, fill_value="N/A", dtype="U3"
         )
-        # The following used to blow up with TypeError
-        result = np.strings.find(col, "foo")
-
         assert col.fill_value == "N/A"
         assert col.dtype.kind == "U"
+        # The following used to blow up with TypeError
+        result = np.strings.find(col, "foo")
 
         assert result.fill_value != "N/A"
         assert result.dtype.kind == "i"
