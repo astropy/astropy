@@ -1,0 +1,1 @@
+Add a new ``impose_frame_attributes`` context manager which overrides the value of any coordinate frame attribute.
