@@ -602,9 +602,11 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         else:
             # In the special case where value_min is the same as value_max, we
             # don't locate any ticks. This can occur for example when taking a
-            # slice for a cube (along the dimension sliced).
+            # slice for a cube (along the dimension sliced). We return a
+            # non-zero spacing in case the caller needs to format a single
+            # coordinate, e.g. for mouseover.
             if value_min == value_max:
-                return [] * self._unit, 0 * self._unit
+                return [] * self._unit, 1 * self._unit
 
             if self.spacing is not None:
                 # spacing was manually specified

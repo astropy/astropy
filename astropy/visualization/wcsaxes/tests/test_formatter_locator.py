@@ -676,6 +676,16 @@ def test_set_ticks_number_zero_scalar():
     canvas.draw()
 
 
+def test_scalar_degenerate_range_formatter():
+    # Regression test for a bug where the locator returned zero spacing for
+    # a degenerate (zero-size) coordinate range, which crashed the formatter
+    # with an OverflowError, e.g. in the mouseover coordinate display.
+    fl = ScalarFormatterLocator(unit=u.m)
+    values, spacing = fl.locator(5, 5)
+    assert len(values) == 0
+    assert fl.formatter([5] * u.m, spacing) == ["5"]
+
+
 def test_scalar_percent_format_uses_format_unit():
     # Regression test for a bug where a '%'-style format ignored the format
     # unit and instead formatted the coordinate's native unit.
