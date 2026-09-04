@@ -1,0 +1,8 @@
+The ``ZQUANTIZ`` keyword is no longer written to the header of compressed
+image HDUs when no quantization is applied (i.e. for integer data, or
+floating point data compressed with ``quantize_method=NO_DITHER``). A few
+FITS readers, including DS9 and ``fv``, currently treat the mere presence
+of ``ZQUANTIZ`` as an indication that the data are quantized, regardless
+of its value, and cannot read the files.  Omitting the keyword when it is
+not needed is fully standards-compliant, as a missing ``ZQUANTIZ`` is
+already interpreted as ``NO_DITHER``.
