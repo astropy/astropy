@@ -1442,6 +1442,8 @@ class CoordinateHelper:
             self._grid.remove()
 
     def _update_grid_contour(self):
+        self._grid = None
+
         if self.coord_index is None:
             return
 
@@ -1498,8 +1500,6 @@ class CoordinateHelper:
                     field.transpose(),
                     levels=np.sort(tick_world_coordinates_values),
                 )
-        else:
-            self._grid = None
 
     def tick_params(self, which="both", **kwargs):
         """

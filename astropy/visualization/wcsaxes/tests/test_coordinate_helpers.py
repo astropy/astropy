@@ -419,6 +419,25 @@ def test_grid_contour_few_ticks(n_ticks):
     canvas.draw()
 
 
+def test_grid_contour_sliced_coord():
+    # Regression test for an AttributeError when drawing a contour-type grid
+    # for a coordinate that has been sliced out of the plot.
+    wcs = WCS(naxis=3)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "FREQ"]
+    wcs.wcs.crval = [10, 20, 1.42e9]
+    wcs.wcs.crpix = [30, 40, 5]
+    wcs.wcs.cdelt = [-0.1, 0.1, 1e7]
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=("x", "y", 5))
+    fig.add_axes(ax)
+
+    ax.coords[2].grid(grid_type="contours")
+
+    canvas.draw()
+
+
 def test_grid_contour_one_tick_crossing_wrap():
     # A single longitude tick on a field of view that crosses the longitude
     # wrap should produce one gridline, not an additional spurious line
