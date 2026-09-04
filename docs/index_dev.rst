@@ -63,6 +63,7 @@ Details
    development/development_details
    development/codeguide
    development/testguide
+   development/testing_extensions
    development/docguide
    development/style-guide
    development/git_resources
