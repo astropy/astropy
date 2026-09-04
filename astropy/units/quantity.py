@@ -101,7 +101,7 @@ def preserve_dtype_by_default():
     >>> with u.preserve_dtype_by_default():
     ...     q = u.Quantity([1, 2], u.ct)
     >>> q.dtype
-    dtype('int64')
+    dtype('int...')
     """
     convert = conf.quantity_convert_int_to_float
     with conf.set_temp(
