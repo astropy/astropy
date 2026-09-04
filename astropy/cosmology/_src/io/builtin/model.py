@@ -31,7 +31,7 @@ import abc
 import copy
 import inspect
 from dataclasses import replace
-from typing import Generic
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -45,10 +45,13 @@ from astropy.cosmology._src.typing import _CosmoT
 
 from .utils import convert_parameter_to_model_parameter
 
+if TYPE_CHECKING:
+    import astropy.cosmology
+
 __all__: list[str] = []  # nothing is publicly scoped
 
 
-class _CosmologyModel(FittableModel, Generic[_CosmoT]):
+class _CosmologyModel[C: "astropy.cosmology.Cosmology"](FittableModel):
     """Base class for Cosmology redshift-method Models.
 
     .. note::
@@ -69,7 +72,7 @@ class _CosmologyModel(FittableModel, Generic[_CosmoT]):
     """
 
     @abc.abstractmethod
-    def _cosmology_class(self) -> type[_CosmoT]:
+    def _cosmology_class(self) -> type[C]:
         """Cosmology class as a private attribute.
 
         Set in subclasses.
@@ -83,7 +86,7 @@ class _CosmologyModel(FittableModel, Generic[_CosmoT]):
         """
 
     @classproperty
-    def cosmology_class(cls) -> type[_CosmoT]:
+    def cosmology_class(cls) -> type[C]:
         """|Cosmology| class."""
         return cls._cosmology_class
 
@@ -93,7 +96,7 @@ class _CosmologyModel(FittableModel, Generic[_CosmoT]):
         return inspect.signature(cls._cosmology_class)
 
     @property
-    def cosmology(self) -> _CosmoT:
+    def cosmology(self) -> C:
         """Return |Cosmology| using `~astropy.modeling.Parameter` values."""
         return self._cosmology_class(
             name=self.name,
