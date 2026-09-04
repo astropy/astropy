@@ -231,13 +231,20 @@ def test_write_read_roundtrip(format_engine):
                 assert np.all(t[name] == t2[name])
 
 
-def test_write_read_roundtrip_empty_table(tmp_path):
+def test_write_read_roundtrip_empty_table(tmp_path, format_engine):
+    # A table with no columns has no CSV data section, so every reader must
+    # round-trip it from the header alone.
     # see https://github.com/astropy/astropy/issues/13191
+    # and https://github.com/astropy/astropy/issues/19895 (meta-only, "ecsv" engines)
     sfile = tmp_path / "x.ecsv"
-    Table().write(sfile)
-    t = Table.read(sfile)
-    assert len(t) == 0
-    assert len(t.colnames) == 0
+    t = Table()
+    t.meta["foo"] = 1
+    t.meta["bar"] = "example"
+    t.write(sfile, **patch_format_write(format_engine))
+    t2 = Table.read(sfile, **format_engine)
+    assert len(t2) == 0
+    assert len(t2.colnames) == 0
+    assert t2.meta == t.meta
 
 
 def test_bad_delimiter():
