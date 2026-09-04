@@ -527,16 +527,13 @@ def _image_header_to_empty_bintable(
                 )
                 quantize_method = DEFAULT_QUANTIZE_METHOD
 
-            if quantize_method == NO_DITHER:
-                # A few FITS readers (e.g. DS9, fv) incorrectly treat
-                # the presence of ZQUANTIZ as meaning that the data are
-                # quantized, regardless of its value.  Omit the keyword
-                # entirely in this case to maximize compatibility; readers
-                # (including astropy) already treat a missing ZQUANTIZ as
-                # NO_DITHER.
-                if "ZQUANTIZ" in bintable.header:
-                    del bintable.header["ZQUANTIZ"]
-            else:
+            # A few FITS readers (e.g. DS9, fv) incorrectly treat the
+            # presence of ZQUANTIZ as meaning that the data are quantized,
+            # regardless of its value.  Omit the keyword entirely when no
+            # dithering is used, to maximize compatibility; readers
+            # (including astropy) already treat a missing ZQUANTIZ as
+            # NO_DITHER.
+            if quantize_method != NO_DITHER:
                 bintable.header.set(
                     "ZQUANTIZ",
                     QUANTIZE_METHOD_NAMES[quantize_method],
