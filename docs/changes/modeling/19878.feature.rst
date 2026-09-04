@@ -1,0 +1,5 @@
+Refactor the core astropy ``Model`` class to use explicitly defined arithmetic
+operators rather than defining them via the metaclass. This is part of a larger
+effort to simplify and/or eliminate the use of the ``astropy.modeling.core._ModelMeta``
+metaclass, which creates a lot of code complexity and interferes with things like
+the doc building.
