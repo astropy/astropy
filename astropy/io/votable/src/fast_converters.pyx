@@ -151,7 +151,7 @@ def fast_binparse_float(const unsigned char[::1] data,
     return value, is_null
 
 def fast_binparse_long(const unsigned char[::1] data,
-        int offset=0, long null_value=0, bint has_custom_null=False):
+        int offset=0, int64_t null_value=0, bint has_custom_null=False):
     """Parse 8-byte signed integer."""
     cdef int64_t value
     cdef unsigned char temp_data[8]
