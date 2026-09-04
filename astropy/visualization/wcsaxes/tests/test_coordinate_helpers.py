@@ -3,9 +3,11 @@
 from unittest.mock import MagicMock, patch
 
 import matplotlib.transforms as transforms
+import numpy as np
 import pytest
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
+from matplotlib.path import Path
 
 from astropy import units as u
 from astropy.io import fits
@@ -396,3 +398,123 @@ def test_set_ticks_values():
     lbl_locations = u.Quantity(lbl_world1, unit=u.deg)
     assert u.allclose(lbl_locations, ax.coords[0]._formatter_locator.values)
     assert u.Quantity(lbl_world).unit is xticks.unit
+
+
+@pytest.mark.parametrize("n_ticks", [0, 1])
+def test_grid_contour_few_ticks(n_ticks):
+    # Regression test for an IndexError when drawing a contour-type grid
+    # for a longitude coordinate that has 0 or 1 major ticks.
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    if n_ticks == 0:
+        ax.coords[0].set_ticks(number=0)
+    else:
+        ax.coords[0].set_ticks(values=[320] * u.deg)
+
+    ax.coords[0].grid(grid_type="contours")
+
+    canvas.draw()
+
+
+def test_grid_contour_sliced_coord():
+    # Regression test for an AttributeError when drawing a contour-type grid
+    # for a coordinate that has been sliced out of the plot.
+    wcs = WCS(naxis=3)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "FREQ"]
+    wcs.wcs.crval = [10, 20, 1.42e9]
+    wcs.wcs.crpix = [30, 40, 5]
+    wcs.wcs.cdelt = [-0.1, 0.1, 1e7]
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=("x", "y", 5))
+    fig.add_axes(ax)
+
+    ax.coords[2].grid(grid_type="contours")
+
+    canvas.draw()
+
+
+def test_grid_contour_one_tick_crossing_wrap():
+    # A single longitude tick on a field of view that crosses the longitude
+    # wrap should produce one gridline, not an additional spurious line
+    # along the wrap discontinuity.
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.crval = [0, 0]
+    wcs.wcs.crpix = [50, 50]
+    wcs.wcs.cdelt = [-0.1, 0.1]
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    fig.add_axes(ax)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+
+    ax.coords[0].set_ticks(values=[358] * u.deg)
+    ax.coords[0].grid(grid_type="contours")
+
+    canvas.draw()
+
+    n_lines = sum(
+        np.sum(path.codes == Path.MOVETO) for path in ax.coords[0]._grid.get_paths()
+    )
+    assert n_lines == 1
+
+
+def test_ticks_multiple_intersections_non_degree_longitude():
+    # Regression test for a bug where, for a longitude coordinate whose unit
+    # is not degrees, a tick with more than one intersection along a single
+    # spine would get corrupted world coordinates (and could raise) for all
+    # but the first intersection, because the loop variable was rescaled to
+    # degrees in place instead of using a separate variable.
+    class OscillatingTransform(transforms.Transform):
+        input_dims = 2
+        output_dims = 2
+        is_separable = False
+        has_inverse = False
+
+        def transform(self, values):
+            x = values[:, 0]
+            y = values[:, 1]
+            lon = 0.05 + 0.02 * np.sin(x / 3.0)
+            lat = y * 0.001
+            return np.column_stack([lon, lat])
+
+        def transform_path(self, path):
+            from matplotlib.path import Path
+
+            return Path(self.transform(path.vertices), path.codes)
+
+        transform_path_non_affine = transform_path
+
+    coord_meta = {
+        "type": ("longitude", "latitude"),
+        "unit": (u.rad, u.rad),
+        "wrap": (360 * u.deg, None),
+        "name": ("lon", "lat"),
+    }
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(
+        fig,
+        [0.1, 0.1, 0.8, 0.8],
+        transform=OscillatingTransform(),
+        coord_meta=coord_meta,
+    )
+    fig.add_axes(ax)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+
+    # This tick value is crossed many times along the bottom spine because
+    # the custom transform oscillates the longitude as a function of x.
+    ax.coords[0].set_ticks(values=[0.05] * u.rad)
+
+    # Should not raise (previously corrupted intermediate tick values could
+    # produce huge/garbage numbers that broke text rendering).
+    canvas.draw()

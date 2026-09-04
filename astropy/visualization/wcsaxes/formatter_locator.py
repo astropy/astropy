@@ -19,12 +19,12 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.units import UnitsError
 
-DMS_RE = re.compile("^dd(:mm(:ss(.(s)+)?)?)?$")
-HMS_RE = re.compile("^hh(:mm(:ss(.(s)+)?)?)?$")
-DDEC_RE = re.compile("^d(.(d)+)?$")
-DMIN_RE = re.compile("^m(.(m)+)?$")
-DSEC_RE = re.compile("^s(.(s)+)?$")
-SCAL_RE = re.compile("^x(.(x)+)?$")
+DMS_RE = re.compile(r"^dd(:mm(:ss(\.(s)+)?)?)?$")
+HMS_RE = re.compile(r"^hh(:mm(:ss(\.(s)+)?)?)?$")
+DDEC_RE = re.compile(r"^d(\.(d)+)?$")
+DMIN_RE = re.compile(r"^m(\.(m)+)?$")
+DSEC_RE = re.compile(r"^s(\.(s)+)?$")
+SCAL_RE = re.compile(r"^x(\.(x)+)?$")
 
 
 # Units with custom representations - see the note where it is used inside
@@ -134,7 +134,7 @@ class BaseFormatterLocator:
         self._values = None
 
     def minor_locator(self, spacing, frequency, value_min, value_max):
-        if self.values is not None:
+        if self.values is not None or self.number == 0:
             return [] * self._unit
 
         minor_spacing = spacing.value / frequency
@@ -366,7 +366,9 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 spacing_value = self.spacing.to_value(self._unit)
 
             elif self.number == 0:
-                return [] * self._unit, np.nan * self._unit
+                # Return a finite spacing in case the caller needs to format
+                # a single coordinate, e.g. for the mouseover display.
+                return [] * self._unit, 1 * u.arcsec
 
             elif self.number is not None:
                 # number of ticks was specified, work out optimal spacing
@@ -600,13 +602,20 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         else:
             # In the special case where value_min is the same as value_max, we
             # don't locate any ticks. This can occur for example when taking a
-            # slice for a cube (along the dimension sliced).
+            # slice for a cube (along the dimension sliced). We return a
+            # non-zero spacing in case the caller needs to format a single
+            # coordinate, e.g. for mouseover.
             if value_min == value_max:
-                return [] * self._unit, 0 * self._unit
+                return [] * self._unit, 1 * self._unit
 
             if self.spacing is not None:
                 # spacing was manually specified
                 spacing = self.spacing.to_value(self._unit)
+
+            elif self.number == 0:
+                # Return a finite spacing in case the caller needs to format
+                # a single coordinate, e.g. for the mouseover display.
+                return [] * self._unit, 1 * self._unit
 
             elif self.number is not None:
                 # number of ticks was specified, work out optimal spacing
@@ -643,7 +652,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 else:
                     precision = 0
             elif self.format.startswith("%"):
-                return [(self.format % x.value) for x in values]
+                return [(self.format % x.to_value(self._format_unit)) for x in values]
             else:
                 precision = self._precision
 

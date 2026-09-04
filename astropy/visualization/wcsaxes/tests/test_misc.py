@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import matplotlib as mpl
 import numpy as np
 import pytest
+from matplotlib.backend_bases import KeyEvent
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.contour import QuadContourSet
 from matplotlib.figure import Figure
@@ -790,6 +791,19 @@ def test_simplify_cases(before, after):
     assert ticklabels.text["axis"] == after
 
 
+def test_simplify_labels_prefix(ignore_matplotlibrc):
+    # Regression test for crashes in simplify_labels (IndexError or
+    # UnboundLocalError/NameError) when one tick label is a prefix of an
+    # adjacent one, which can happen with tick labels of varying length.
+    ticklabels = TickLabels(frame=MagicMock())
+    for i, label in enumerate(["10d30m", "10d3"]):
+        ticklabels.add(
+            axis="axis", world=0, angle=0, text=label, axis_displacement=i, data=(i, i)
+        )
+    ticklabels.simplify_labels()
+    assert ticklabels.text["axis"] == ["10d30m", "10d3"]
+
+
 def test_get_transform_unit_mismatch():
     """
     Regression test for a bug that caused get_transform to ignore differences
@@ -826,6 +840,28 @@ def test_get_transform_unit_mismatch():
     assert_allclose(transform1.transform(pixels), transform2.transform(pixels))
 
 
+def test_get_coords_overlay_wcs_honors_coord_meta(ignore_matplotlibrc):
+    # Regression test for a bug where get_coords_overlay silently discarded
+    # a caller-supplied coord_meta when the frame passed in was a WCS,
+    # unlike every other frame type.
+    wcs = WCS(TARGET_HEADER)
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
+    custom_coord_meta = {
+        "type": ("scalar", "scalar"),
+        "wrap": (None, None),
+        "unit": (u.deg, u.deg),
+        "name": ("x", "y"),
+    }
+
+    overlay = ax.get_coords_overlay(WCS(TARGET_HEADER), coord_meta=custom_coord_meta)
+
+    assert overlay[0].coord_type == "scalar"
+    assert overlay[1].coord_type == "scalar"
+
+
 def test_get_coords_overlay_elliptical_frame(ignore_matplotlibrc):
     """
     Regression test for calling get_coords_overlay on axes with a
@@ -846,3 +882,58 @@ def test_get_coords_overlay_elliptical_frame(ignore_matplotlibrc):
     # This should not raise an AstropyDeprecationWarning
     overlay = ax.get_coords_overlay("icrs")
     assert overlay is not None
+
+
+def test_reset_wcs_resets_display_coords_index(ignore_matplotlibrc):
+    # Regression test for a bug where reset_wcs dropped overlays from
+    # _all_coords without resetting _display_coords_index, so that if the
+    # cursor display had been advanced to an overlay (by pressing "w"),
+    # format_coord would later raise an IndexError.
+    wcs = WCS(TARGET_HEADER)
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    canvas.draw()
+
+    ax.get_coords_overlay("icrs")
+
+    # Simulate the user pressing "w" to advance the cursor display to the
+    # overlay coordinates.
+    event = KeyEvent("key_press_event", canvas, "w")
+    canvas.callbacks.process("key_press_event", event)
+
+    ax.reset_wcs(wcs=wcs)
+
+    # This should not raise an IndexError.
+    assert ax.format_coord(10, 10) != ""
+
+    # Pressing "w" once more cycles past the world coordinates to the pixel
+    # display mode, which is still valid after reset_wcs and should survive it.
+    canvas.callbacks.process("key_press_event", event)
+    assert "pixel" in ax.format_coord(10, 10)
+
+    ax.reset_wcs(wcs=wcs)
+    assert "pixel" in ax.format_coord(10, 10)
+
+
+def test_auto_assign_coord_positions_no_consistent_option(
+    ignore_matplotlibrc, tmp_path
+):
+    # Regression test for a bug where auto_assign_coord_positions crashed
+    # with a TypeError if no assignment of spines to coordinates was
+    # consistent with fixed tick positions (best_option stayed None).
+    wcs = WCS(TARGET_HEADER)
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
+    # Coordinate 0 has fixed tick label position on 'b', so 'b' is excluded
+    # from the spines available for automatic placement.
+    ax.coords[0].set_ticklabel_position("b")
+    ax.coords[0].set_ticks_position("b")
+
+    # Coordinate 1 has fixed tick position on 'b' but automatic tick labels,
+    # so every candidate spine assignment is inconsistent.
+    ax.coords[1].set_ticks_position("b")
+    ax.coords[1].set_ticklabel_position("#")
+
+    fig.savefig(tmp_path / "plot.png")

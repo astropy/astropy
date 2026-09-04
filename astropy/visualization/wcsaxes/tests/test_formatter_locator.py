@@ -3,15 +3,23 @@
 import numpy as np
 import pytest
 from matplotlib import rc_context
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 from numpy.testing import assert_almost_equal
 
 from astropy import units as u
+from astropy.io import fits
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
+from astropy.utils.data import get_pkg_data_filename
+from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.formatter_locator import (
     AngleFormatterLocator,
     ScalarFormatterLocator,
 )
+from astropy.wcs import WCS
+
+MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename("data/msx_header"))
 
 
 class TestAngleFormatterLocator:
@@ -643,3 +651,59 @@ class TestScalarFormatterLocator:
         fl = ScalarFormatterLocator(unit=u.cm, format_unit=u.m)
         fl.format = "x.x"
         assert_quantity_allclose(fl.locator(1, 19)[0], [10] * u.cm)
+
+
+def test_angle_number_zero_finite_spacing():
+    # Regression test for a bug where the locator returned NaN spacing when
+    # the number of ticks was set to zero, which crashed the formatter,
+    # e.g. in the mouseover coordinate display.
+    fl = AngleFormatterLocator(number=0)
+    values, spacing = fl.locator(30, 40)
+    assert len(values) == 0
+    assert fl.formatter([32.5] * u.deg, spacing) == ["32°30'00\""]
+
+
+def test_set_ticks_number_zero_scalar():
+    # Regression test for a bug that caused a ZeroDivisionError when
+    # set_ticks(number=0) was used on a scalar (non-angle) coordinate.
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(naxis=1))
+    fig.add_axes(ax)
+
+    ax.coords[0].set_ticks(number=0)
+    ax.coords[0].display_minor_ticks(True)
+    canvas.draw()
+
+
+def test_scalar_degenerate_range_formatter():
+    # Regression test for a bug where the locator returned zero spacing for
+    # a degenerate (zero-size) coordinate range, which crashed the formatter
+    # with an OverflowError, e.g. in the mouseover coordinate display.
+    fl = ScalarFormatterLocator(unit=u.m)
+    values, spacing = fl.locator(5, 5)
+    assert len(values) == 0
+    assert fl.formatter([5] * u.m, spacing) == ["5"]
+
+
+def test_scalar_percent_format_uses_format_unit():
+    # Regression test for a bug where a '%'-style format ignored the format
+    # unit and instead formatted the coordinate's native unit.
+    fl = ScalarFormatterLocator(number=5, format="%.2f", unit=u.m)
+    fl.format_unit = u.km
+    assert fl.formatter([2000.0] * u.m, None)[0] == "2.00"
+
+
+def test_set_major_formatter_rejects_malformed_separator():
+    # Regression test for a bug where the format-string regexes used an
+    # unescaped '.', so a non-dot separator before the fractional field was
+    # silently accepted (and the fractional field silently dropped) instead
+    # of raising a ValueError.
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+    canvas.draw()
+
+    with pytest.raises(ValueError, match="Invalid format"):
+        ax.coords[1].set_major_formatter("dd:mm:ssXs")

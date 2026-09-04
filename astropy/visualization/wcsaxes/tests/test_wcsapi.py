@@ -168,6 +168,81 @@ def test_3d():
     np.testing.assert_allclose(world[:, 1], world_2[:, 1])
 
 
+def test_world2pixel_transform_empty_input_1d_wcs():
+    # Regression test: transforming an empty array of world coordinates
+    # should not crash for a 1-d WCS (e.g. RectangularFrame1D axes).
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.crpix = [256.0]
+    wcs.wcs.cdelt = [-0.05]
+    wcs.wcs.crval = [50.0]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    transform = ax.get_transform("world")
+
+    result = transform.transform_non_affine(np.zeros((0, 2)))
+    assert result.shape == (0, 2)
+
+
+def test_pixel2world_transform_empty_input_shape():
+    # Regression test: the empty-input branch of the pixel->world transform
+    # should return the same (N, dims) shape convention as the non-empty
+    # branch, instead of a transposed (dims, N) shape.
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.crpix = [256.0, 256.0]
+    wcs.wcs.cdelt = [-0.05, 0.05]
+    wcs.wcs.crval = [120.0, -19.0]
+
+    fig = Figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    transform = ax.get_transform("world").inverted()
+
+    result = transform.transform_non_affine(np.zeros((0, 2)))
+    assert result.shape == (0, 2)
+
+
+def test_pixel2world_transform_empty_input_1d_wcs():
+    # Regression test: the pixel->world transform for a 1-d WCS should
+    # return a 2-d (0, 1) shaped array for empty input, not a 3-d array.
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.crpix = [256.0]
+    wcs.wcs.cdelt = [-0.05]
+    wcs.wcs.crval = [50.0]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    # ax.coords[i].transform is the documented public transform for a given
+    # coordinate, and for a 1-d WCS is the bare pixel-to-world transform.
+    transform = ax.coords[0].transform
+
+    result = transform.transform_non_affine(np.zeros((0, 1)))
+    assert result.shape == (0, 1)
+
+
+def test_pixel2world_transform_wrong_dimension_message():
+    # Regression test: the pixel->world transform validates the number of
+    # *pixel* coordinates, so the error message should refer to pixel
+    # coordinates, not world coordinates.
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.crpix = [256.0]
+    wcs.wcs.cdelt = [-0.05]
+    wcs.wcs.crval = [50.0]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(111, projection=wcs)
+    transform = ax.get_transform("world").inverted()
+
+    with pytest.raises(ValueError, match=r"Expected 1 pixel coordinates, got 2"):
+        transform.transform_non_affine(np.ones((3, 2)))
+
+
 def test_coord_type_from_ctype(cube_wcs):
     _, coord_meta = transform_coord_meta_from_wcs(
         cube_wcs, RectangularFrame, slices=(50, "y", "x")
@@ -435,6 +510,97 @@ def test_custom_coord_type_1d_2d_wcs_overwrite():
     assert coord_meta["type"] == ["latitude", "latitude"]
     assert coord_meta["format_unit"] == [u.arcsec, u.deg]
     assert coord_meta["wrap"] == [None, None]
+
+
+def test_custom_ucd_coord_meta_mapping_partial_conflict():
+    # Regression test: if a later key in the mapping conflicts with an
+    # existing entry and overwrite=False, no keys from the mapping should
+    # be added, including ones that come before the conflicting key.
+    custom_meta = {
+        "pos.newkey": {"coord_type": "longitude"},
+        "pos.heliographic.stonyhurst.lon": {"coord_type": "latitude"},
+    }
+
+    with pytest.raises(
+        ValueError, match="pos.heliographic.stonyhurst.lon already exists"
+    ):
+        with custom_ucd_coord_meta_mapping(custom_meta):
+            pass
+
+    # If the failed call above had already registered "pos.newkey", then
+    # registering it again with overwrite=False would raise; it must not.
+    with custom_ucd_coord_meta_mapping({"pos.newkey": {"coord_type": "longitude"}}):
+        pass
+
+
+def test_custom_ucd_coord_meta_mapping_duplicate_key():
+    # A mapping containing both 'custom:X' and 'X' defines the same UCD
+    # twice and should raise instead of silently keeping the last value.
+    custom_meta = {
+        "custom:pos.eggs": {"coord_type": "longitude"},
+        "pos.eggs": {"coord_type": "latitude"},
+    }
+
+    with pytest.raises(ValueError, match="specified more than once"):
+        with custom_ucd_coord_meta_mapping(custom_meta):
+            pass
+
+
+class LowLevelWCSRANonInternedDeg(BaseLowLevelWCS):
+    # APE 14 WCS whose RA axis unit is equal to but not the interned u.deg
+    # singleton, to test that the hourangle format-unit override does not
+    # rely on object identity.
+
+    @property
+    def pixel_n_dim(self):
+        return 2
+
+    @property
+    def world_n_dim(self):
+        return 2
+
+    @property
+    def world_axis_physical_types(self):
+        return ["pos.eq.ra", "pos.eq.dec"]
+
+    @property
+    def world_axis_units(self):
+        return ["1 deg", "1 deg"]
+
+    @property
+    def world_axis_names(self):
+        return ["RA", "DEC"]
+
+    def pixel_to_world_values(self, *pixel_arrays):
+        return pixel_arrays
+
+    def world_to_pixel_values(self, *world_arrays):
+        return world_arrays
+
+    @property
+    def world_axis_object_components(self):
+        return [
+            ("celestial", 0, "spherical.lon.degree"),
+            ("celestial", 1, "spherical.lat.degree"),
+        ]
+
+    @property
+    def world_axis_object_classes(self):
+        return {"celestial": (SkyCoord, (), {"unit": "deg"})}
+
+
+def test_coord_type_ra_non_interned_deg_unit():
+    # Regression test: the RA -> hourangle format-unit override should not
+    # rely on axis_unit being the interned u.deg singleton.
+    assert u.Unit("1 deg") == u.deg
+    assert u.Unit("1 deg") is not u.deg
+
+    _, coord_meta = transform_coord_meta_from_wcs(
+        LowLevelWCSRANonInternedDeg(), RectangularFrame
+    )
+
+    assert coord_meta["type"] == ["longitude", "latitude"]
+    assert coord_meta["format_unit"] == [u.hourangle, u.Unit("1 deg")]
 
 
 def test_coord_type_1d_1d_wcs():
