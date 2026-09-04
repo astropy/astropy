@@ -58,7 +58,9 @@ def _arithmetic(op):
             global _config_ccd_requires_unit
             _config_ccd_requires_unit = False
             try:
-                result = self._prepare_then_do_arithmetic(op, operand, operand2, **kwargs)
+                result = self._prepare_then_do_arithmetic(
+                    op, operand, operand2, **kwargs
+                )
             finally:
                 # Restore the unit check even when arithmetic raises.
                 _config_ccd_requires_unit = True
