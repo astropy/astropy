@@ -653,6 +653,16 @@ class TestScalarFormatterLocator:
         assert_quantity_allclose(fl.locator(1, 19)[0], [10] * u.cm)
 
 
+def test_angle_number_zero_finite_spacing():
+    # Regression test for a bug where the locator returned NaN spacing when
+    # the number of ticks was set to zero, which crashed the formatter,
+    # e.g. in the mouseover coordinate display.
+    fl = AngleFormatterLocator(number=0)
+    values, spacing = fl.locator(30, 40)
+    assert len(values) == 0
+    assert fl.formatter([32.5] * u.deg, spacing) == ["32°30'00\""]
+
+
 def test_set_ticks_number_zero_scalar():
     # Regression test for a bug that caused a ZeroDivisionError when
     # set_ticks(number=0) was used on a scalar (non-angle) coordinate.
