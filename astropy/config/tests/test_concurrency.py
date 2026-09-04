@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from threading import Barrier
-from typing import Generic, TypeVar
 from uuid import uuid4
 
 import pytest
@@ -14,11 +13,9 @@ from astropy.config.paths import _DirType
 
 N_THREADS = 10
 
-T = TypeVar("T")
-
 
 @dataclass(slots=True, frozen=True, kw_only=True)
-class Result(Generic[T]):
+class Result[T]:
     actual: T
     expected: T
 
@@ -42,7 +39,7 @@ def closure_base(
     return Result(actual=res, expected=local_path / "astropy")
 
 
-def assert_valid_results(results: list[Result[T]]) -> None:
+def assert_valid_results[T](results: list[Result[T]]) -> None:
     __tracebackhide__ = True
     assert len(results) == N_THREADS
     assert len(set(results)) == N_THREADS
