@@ -396,6 +396,22 @@ class TestNonLinearFitters:
         self.ydata = func(self.initial_values, self.xdata) + yerror
         self.gauss = models.Gaussian1D(100, 5, stddev=1)
 
+    def test_trf_x_scale_forwarded(self):
+        with mk.patch.object(
+            optimize, "least_squares", wraps=optimize.least_squares
+        ) as least_squares:
+            TRFLSQFitter(x_scale="jac")(self.gauss, self.xdata, self.ydata)
+
+        assert least_squares.call_args.kwargs["x_scale"] == "jac"
+
+    def test_trf_default_x_scale_not_forwarded(self):
+        with mk.patch.object(
+            optimize, "least_squares", wraps=optimize.least_squares
+        ) as least_squares:
+            TRFLSQFitter()(self.gauss, self.xdata, self.ydata)
+
+        assert "x_scale" not in least_squares.call_args.kwargs
+
     @pytest.mark.parametrize("fitter0", non_linear_fitters_bounds)
     @pytest.mark.parametrize("fitter1", non_linear_fitters_bounds)
     def test_estimated_vs_analytic_deriv(self, fitter0, fitter1):

@@ -1562,9 +1562,17 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         the most recent fit information
     """
 
-    def __init__(self, method, calc_uncertainties=False, use_min_max_bounds=False):
+    def __init__(
+        self,
+        method,
+        calc_uncertainties=False,
+        use_min_max_bounds=False,
+        *,
+        x_scale=None,
+    ):
         super().__init__(calc_uncertainties, use_min_max_bounds)
         self._method = method
+        self._x_scale = x_scale
 
     def _run_fitter(
         self, model, farg, fkwarg, maxiter, acc, epsilon, estimate_jacobian
@@ -1600,6 +1608,8 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         if self._use_min_max_bounds:
             bounds = (-np.inf, np.inf)
 
+        x_scale_kwargs = {} if self._x_scale is None else {"x_scale": self._x_scale}
+
         self.fit_info = optimize.least_squares(
             self.objective_function,
             init_values,
@@ -1611,6 +1621,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
             xtol=acc,
             method=self._method,
             bounds=bounds,
+            **x_scale_kwargs,
         )
 
         # Adapted from ~scipy.optimize.minpack, see:
@@ -1641,17 +1652,24 @@ class TRFLSQFitter(_NLLSQFitter):
     calc_uncertainties : bool
         If the covariance matrix should be computed and set in the fit_info.
         Default: False
+    x_scale : array-like or {"jac"}, optional
+        Characteristic scale of each fitted parameter passed to
+        `scipy.optimize.least_squares`. If "jac", the scale is iteratively
+        updated using the inverse norms of the Jacobian columns. If `None`,
+        the existing optimizer default is retained.
 
     Attributes
     ----------
     fit_info :
         A `scipy.optimize.OptimizeResult` class which contains all of
-        the most recent fit information
+        the most recent fit information.
     """
 
     @deprecated_renamed_argument("use_min_max_bounds", None, "7.0")
-    def __init__(self, calc_uncertainties=False, use_min_max_bounds=False):
-        super().__init__("trf", calc_uncertainties, use_min_max_bounds)
+    def __init__(
+        self, calc_uncertainties=False, use_min_max_bounds=False, *, x_scale=None
+    ):
+        super().__init__("trf", calc_uncertainties, use_min_max_bounds, x_scale=x_scale)
 
 
 class DogBoxLSQFitter(_NLLSQFitter):
