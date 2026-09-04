@@ -19,6 +19,7 @@ from astropy.io import fits
 from astropy.io.fits.hdu.compressed import (
     COMPRESSION_TYPES,
     DITHER_SEED_CHECKSUM,
+    NO_DITHER,
     SUBTRACTIVE_DITHER_1,
 )
 from astropy.io.fits.tests.conftest import FitsTestCase
@@ -196,6 +197,25 @@ class TestCompressedImage(FitsTestCase):
             assert "ZDITHER0" in comp_header
             assert comp_header["ZDITHER0"] == csum
             assert np.all(hdul[1].data == array)
+
+    def test_no_dither_no_zquantiz(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/20136
+
+        ZQUANTIZ should not be written to the header at all when no
+        quantization is used, since some FITS readers (e.g. DS9, fv)
+        incorrectly treat its mere presence as meaning the data are
+        quantized, regardless of its value.
+        """
+
+        array = np.arange(100.0).reshape(10, 10)
+        hdu = fits.CompImageHDU(data=array, quantize_method=NO_DITHER)
+        hdu.writeto(self.temp("test.fits"))
+
+        with fits.open(self.temp("test.fits")) as hdul:
+            comp_header = hdul[1]._bintable.header
+            assert "ZQUANTIZ" not in comp_header
+            assert "ZDITHER0" not in comp_header
 
     def test_disable_image_compression(self):
         with fits.open(self.data("comp.fits"), disable_image_compression=True) as hdul:
@@ -1406,7 +1426,6 @@ def test_hdu_lazy_loading(tmp_path):
                 "ZNAME3": "NOISEBIT",
                 "ZVAL3": -32,
                 "ZCMPTYPE": "RICE_1",
-                "ZQUANTIZ": "NO_DITHER",
             },
             id="quantize_level_w_data",
         ),
@@ -1420,7 +1439,6 @@ def test_hdu_lazy_loading(tmp_path):
                 "ZNAME3": "NOISEBIT",
                 "ZVAL3": -32,
                 "ZCMPTYPE": "RICE_1",
-                "ZQUANTIZ": "NO_DITHER",
             },
             id="quantize_level_wo_data",
         ),
