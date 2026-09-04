@@ -232,7 +232,7 @@ class Angle(SpecificTypeQuantity):
             np.sign(self.degree), *formats._decimal_to_sexagesimal(np.abs(self.degree))
         )
 
-    def to_string(
+    def to_string(  # ruff: ignore[PLR0917] historical API
         self,
         unit=None,
         decimal: bool = False,

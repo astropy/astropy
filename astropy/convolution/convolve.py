@@ -75,7 +75,7 @@ def _next_fast_lengths(shape):
     return newshape
 
 
-def _copy_input_if_needed(
+def _copy_input_if_needed(  # ruff: ignore[PLR0917] historical API
     input, dtype=float, order="C", nan_treatment=None, mask=None, fill_value=None
 ):
     # Alias input
@@ -121,7 +121,7 @@ def _copy_input_if_needed(
 
 
 @support_nddata(data="array")
-def convolve(
+def convolve(  # ruff: ignore[PLR0917] historical API
     array,
     kernel,
     boundary="fill",
@@ -471,7 +471,7 @@ def convolve(
 
 
 @support_nddata(data="array")
-def convolve_fft(
+def convolve_fft(  # ruff: ignore[PLR0917] historical API
     array,
     kernel,
     boundary="fill",

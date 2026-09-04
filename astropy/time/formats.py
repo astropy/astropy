@@ -154,7 +154,7 @@ class TimeFormat:
     # subclasses in which nan and inf are valid inputs.
     _check_finite = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self, val1, val2, scale, precision, in_subfmt, out_subfmt, from_jd=False
     ):
         self.scale = scale  # validation of scale done later with _check_scale
@@ -1065,7 +1065,7 @@ class TimeAstropyTime(TimeUnique):
 
     name = "astropy_time"
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls, val1, val2, scale, precision, in_subfmt, out_subfmt, from_jd=False
     ):
         """

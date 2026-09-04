@@ -174,7 +174,7 @@ class SpectralCoord(SpectralQuantity):
     """
 
     @u.quantity_input(radial_velocity=u.km / u.s)
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls,
         value,
         unit=None,
@@ -296,7 +296,7 @@ class SpectralCoord(SpectralQuantity):
 
         return coord
 
-    def replicate(
+    def replicate(  # ruff: ignore[PLR0917] historical API
         self,
         value=None,
         unit=None,

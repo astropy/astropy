@@ -392,7 +392,6 @@ lint.extend-select = [
     "C4",    # flake8-comprehensions
     "C90",   # mccabe
     "COM",   # flake8-commas
-    # "CPY",   # flake8-copyright  # TODO: enable when out of preview
     "D",     # pydocstyle
     "DJ",    # flake8-django
     # "DOC",   # pydocstyle  # TODO: enable when out of preview
@@ -526,6 +525,7 @@ exclude = [
     "B018",  # UselessExpression
     "D",  # pydocstyle
     "S101",  # Use of assert detected
+    "PLR0917", # too-many-positional-arguments, not relevant for pytest fixtures
 ]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
 "conftest.py" = ["INP001"]  # Part of configuration, not a package.

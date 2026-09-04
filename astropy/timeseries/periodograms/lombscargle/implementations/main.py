@@ -75,7 +75,7 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
     return frequency[0], frequency[1] - frequency[0], len(frequency)
 
 
-def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):
+def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):  # ruff: ignore[PLR0917] historical API
     """
     Validate the method argument, and if method='auto'
     choose the appropriate method.
@@ -106,7 +106,7 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     return method
 
 
-def lombscargle(
+def lombscargle(  # ruff: ignore[PLR0917] historical API
     t,
     y,
     dy=None,

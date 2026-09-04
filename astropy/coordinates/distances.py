@@ -100,7 +100,7 @@ class Distance(u.SpecificTypeQuantity):
     _equivalent_unit = u.m
     _include_easy_conversion_members = True
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls,
         value=None,
         unit=None,

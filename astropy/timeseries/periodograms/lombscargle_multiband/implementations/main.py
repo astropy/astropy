@@ -16,7 +16,7 @@ def available_methods():
     return methods
 
 
-def lombscargle_multiband(
+def lombscargle_multiband(  # ruff: ignore[PLR0917] historical API
     t,
     y,
     bands,

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def lombscargle_slow(
+def lombscargle_slow(  # ruff: ignore[PLR0917] historical API
     t, y, dy, frequency, normalization="standard", fit_mean=True, center_data=True
 ):
     """Lomb-Scargle Periodogram.
