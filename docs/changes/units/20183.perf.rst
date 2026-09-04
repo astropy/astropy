@@ -1,0 +1,5 @@
+Astropy unit conversions have been sped up by about 10% for scalars and small
+arrays with the introduction of a C-based class that does the actual scale
+conversion.  ``Unit.get_converter()`` now produces instances of this class
+when no equivalencies are involved. E.g., the ``repr`` of
+``u.km.get_converter(u.m)`` is ``Scaler(1000.0)``.
