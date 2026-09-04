@@ -1127,6 +1127,18 @@ def test_spectralcoord_with_spectral_equivalency():
     with u.set_enabled_equivalencies(u.spectral()):
         assert_quantity_allclose(sc.to_rest(), 250.835306 * u.MHz)
 
+def test_spectralcoord_concatenate_preserves_metadata():
+    from astropy.coordinates import SpectralCoord
+    import astropy.units as u
+    import numpy as np
 
+    sc1 = SpectralCoord([1, 2] * u.GHz, radial_velocity=[10, 20]*u.km/u.s)
+    sc2 = SpectralCoord([3, 4] * u.GHz, radial_velocity=[30, 40]*u.km/u.s)
+
+    sc = np.concatenate([sc1, sc2])
+
+    assert isinstance(sc, SpectralCoord)
+    assert len(sc) == 4
+    assert sc.radial_velocity.shape == (4,)
 # TODO: add test when target is not ICRS
 # TODO: add test when SpectralCoord is in velocity to start with
