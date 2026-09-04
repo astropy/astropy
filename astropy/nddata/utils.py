@@ -6,7 +6,7 @@ This module includes helper functions for array operations.
 import functools
 from collections.abc import Callable
 from copy import deepcopy
-from typing import Literal, TypeAlias, TypeVar, overload
+from typing import Literal, TypeVar, overload
 
 import numpy as np
 from numpy.typing import NDArray
@@ -30,7 +30,7 @@ __all__ = [
 
 
 DT = TypeVar("DT", bound=np.generic)
-LimitRoundingMethod: TypeAlias = Callable[[float], float]
+type LimitRoundingMethod = Callable[[float], float]
 
 
 class NoOverlapError(ValueError):
