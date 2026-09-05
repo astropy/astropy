@@ -1,0 +1,6 @@
+``aggregate_downsample`` now works for a time series with a masked ``time``
+column, including one obtained by folding on a ``transit_time`` from a
+``BoxLeastSquares`` periodogram. Rows with a masked time are excluded from all
+bins, and masked bin edges raise ``ValueError``. In addition, the
+``transit_time`` in ``BoxLeastSquares`` results is no longer masked when none
+of the values need to be masked.
