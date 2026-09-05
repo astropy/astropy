@@ -264,6 +264,27 @@ def test_slice_getitem():
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.1, 0.2]))
 
 
+def test_slice_getitem_negative_start_raises():
+    # Regression test for #8771: a negative slice start (e.g. ``wcs[-6:]``)
+    # was silently misinterpreted as a pixel offset into the unsliced WCS,
+    # producing nonsensical world coordinates; it must be rejected instead.
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.crval = [0.0, 1.0]
+    mywcs.wcs.cdelt = [1.0, 1.0]
+    mywcs.wcs.crpix = [5, 5]
+
+    with pytest.raises(IndexError, match="Negative indices"):
+        mywcs[-6:, -6:]
+    with pytest.raises(IndexError, match="Negative indices"):
+        mywcs[4:, -6:]
+    with pytest.raises(IndexError, match="Negative indices"):
+        mywcs.slice([slice(-6, None), slice(-6, None)])
+
+    # A positive start still works and gives the expected world value.
+    sliced = mywcs[4:, 4:]
+    assert np.allclose(sliced.all_pix2world([[0, 0]], 0), mywcs.wcs.crval)
+
+
 def test_slice_fitsorder():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]

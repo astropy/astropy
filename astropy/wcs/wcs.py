@@ -3515,6 +3515,14 @@ reduce these to 2 dimensions using the naxis kwarg.
         # create a full WCS object with updated WCS parameters which is faster
         # for this specific case and also backward-compatible.
 
+        for iview in view:
+            if iview.start is not None and iview.start < 0:
+                raise IndexError(
+                    "Negative indices are not supported when slicing a WCS; "
+                    "a negative start would be misinterpreted as a pixel "
+                    "offset into the (unsliced) WCS."
+                )
+
         wcs_new = self.deepcopy()
         if wcs_new.sip is not None:
             sip_crpix = wcs_new.sip.crpix.tolist()
