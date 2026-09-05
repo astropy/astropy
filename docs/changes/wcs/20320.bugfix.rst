@@ -1,0 +1,4 @@
+Fixing the slicing of ``SlicedLowLevelWCS`` now raises ``IndexError`` when a
+negative slice start or a negative integer index is passed, instead of
+silently computing incorrect world coordinates. Negative slice stops remain
+supported as before.
