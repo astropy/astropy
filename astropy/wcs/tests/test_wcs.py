@@ -893,6 +893,25 @@ def test_sub_3d_with_sip():
     assert w.naxis == 2
 
 
+def test_sub_0d_deepcopy():
+    # Regression test for #16298: deep-copying a 0-d WCS (produced by
+    # ``WCS.sub`` dropping all axes) raised an obscure "NULL error object
+    # in wcslib" RuntimeError because a ``Wcsprm`` with no axes cannot be
+    # deep-copied by wcslib. The 0-d ``Wcsprm`` is now passed through by
+    # reference (it holds no axis data, so this is equivalent).
+    w = wcs.WCS(naxis=2)
+    w_sub = w.sub([wcs.WCSSUB_SPECTRAL])
+    assert w_sub.naxis == 0
+    w_copy = w_sub.deepcopy()
+    assert w_copy.naxis == 0
+    assert w_copy is not w_sub
+    # sanity: a regular N-d deepcopy is unaffected
+    w2 = wcs.WCS(naxis=2)
+    w2_copy = w2.deepcopy()
+    assert w2_copy.naxis == 2
+    assert w2_copy is not w2
+
+
 def test_printwcs(capsys):
     """
     Just make sure that it runs

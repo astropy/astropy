@@ -736,11 +736,20 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         new_copy = self.__class__()
         new_copy.naxis = deepcopy(self.naxis, memo)
+        if self.naxis == 0:
+            # A 0-d WCS (e.g. produced by ``WCS.sub``) has an underlying
+            # ``Wcsprm`` with no axes, whose C structure wcslib cannot
+            # deep-copy (it raises "NULL error object in wcslib"). Since it
+            # holds no axis data, passing the ``Wcsprm`` by reference is
+            # equivalent to a deep copy here.
+            wcs_copy = self.wcs
+        else:
+            wcs_copy = deepcopy(self.wcs, memo)
         WCSBase.__init__(
             new_copy,
             deepcopy(self.sip, memo),
             (deepcopy(self.cpdis1, memo), deepcopy(self.cpdis2, memo)),
-            deepcopy(self.wcs, memo),
+            wcs_copy,
             (deepcopy(self.det2im1, memo), deepcopy(self.det2im2, memo)),
         )
         for key, val in self.__dict__.items():
