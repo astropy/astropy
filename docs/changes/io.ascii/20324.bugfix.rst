@@ -1,0 +1,1 @@
+The LaTeX table reader no longer treats an ampersand (``&``) that occurs inside a braced ``{...}`` argument (such as a bib code in ``\cite{...}``) as a column separator, so tables with a reference column now read as expected (see #6360).
