@@ -54,7 +54,7 @@ AMPERSAND_MASK = "\x1f"
 
 
 def _mask_ampersands_in_braces(line: str) -> str:
-    """Replace ``&`` characters that appear inside braced ``{...}`` groups with
+    r"""Replace ``&`` characters that appear inside braced ``{...}`` groups with
     ``AMPERSAND_MASK``.
 
     A ``&`` inside braces is cell content (e.g. a bib code in ``\cite``) rather
@@ -70,7 +70,6 @@ def _mask_ampersands_in_braces(line: str) -> str:
             depth = max(depth - 1, 0)
         out.append(AMPERSAND_MASK if ch == "&" and depth > 0 else ch)
     return "".join(out)
-
 
 
 def add_dictval_to_list(adict, key, alist):

@@ -1708,7 +1708,7 @@ a & b & c \\
 
 
 def test_latex_cite_with_ampersand():
-    """
+    r"""
     A ``&`` inside a braced argument (e.g. a bib code in ``\cite{...}``) is
     cell content, not a column separator, so the table must read (#6360).
     """
