@@ -1,0 +1,4 @@
+Deep-copying a 0-d ``WCS`` (for example one produced by ``WCS.sub``) no longer
+raises ``RuntimeError: NULL error object in wcslib``. The underlying
+``Wcsprm`` of a 0-d ``WCS`` holds no per-axis data, so it is now passed
+through by reference instead of being deep-copied by wcslib.
