@@ -46,6 +46,32 @@ latexdicts = {
 
 RE_COMMENT: Final[Pattern[str]] = re.compile(r"(?<!\\)%")  # % character but not \%
 
+# Sentinel used to shield ``&`` characters that occur inside braced arguments
+# (e.g. ``\cite{Smith&Jones}``) so that they are not treated as column
+# separators when splitting a LaTeX table (#6360).  The sentinel is inserted in
+# ``LatexSplitter.process_line`` and restored in ``LatexSplitter.process_val``.
+AMPERSAND_MASK = "\x1f"
+
+
+def _mask_ampersands_in_braces(line: str) -> str:
+    """Replace ``&`` characters that appear inside braced ``{...}`` groups with
+    ``AMPERSAND_MASK``.
+
+    A ``&`` inside braces is cell content (e.g. a bib code in ``\cite``) rather
+    than a column delimiter, while an unbraced ``&`` keeps its role as the
+    LaTeX column separator.
+    """
+    out = []
+    depth = 0
+    for ch in line:
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth = max(depth - 1, 0)
+        out.append(AMPERSAND_MASK if ch == "&" and depth > 0 else ch)
+    return "".join(out)
+
+
 
 def add_dictval_to_list(adict, key, alist):
     """
@@ -115,14 +141,14 @@ class LatexSplitter(core.BaseSplitter):
             raise core.InconsistentTableError(
                 r"Lines in LaTeX table have to end with \\"
             )
-        return line.removesuffix(r"\\")
+        return _mask_ampersands_in_braces(line.removesuffix(r"\\"))
 
     def process_val(self, val: str) -> str:
         """Remove whitespace and {} at the beginning or end of value."""
         val = val.strip()
         if val and (val[0] == "{") and (val[-1] == "}"):
             val = val[1:-1]
-        return val
+        return val.replace(AMPERSAND_MASK, "&")
 
     def join(self, vals: list[str]) -> str:
         """Join values together and add a few extra spaces for readability."""

@@ -1707,6 +1707,26 @@ a & b & c \\
     assert np.all(dat["c"] == ["c", "e"])
 
 
+def test_latex_cite_with_ampersand():
+    """
+    A ``&`` inside a braced argument (e.g. a bib code in ``\cite{...}``) is
+    cell content, not a column separator, so the table must read (#6360).
+    """
+    lines = r"""
+\begin{table}
+\begin{tabular}{ccc}
+First & Second & Ref\\
+1 & 2 & \cite{other_ref}\\
+11 & 22 & \cite{2013A&A...558A..33A}\\
+\end{tabular}
+\end{table}
+"""
+    dat = ascii.read(lines, format="latex")
+    assert dat.colnames == ["First", "Second", "Ref"]
+    assert len(dat) == 2
+    assert np.all(dat["Ref"] == [r"\cite{other_ref}", r"\cite{2013A&A...558A..33A}"])
+
+
 def text_aastex_no_trailing_backslash():
     lines = r"""
 \begin{deluxetable}{ccc}
