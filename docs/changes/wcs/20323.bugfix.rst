@@ -1,0 +1,5 @@
+Fixing the slicing of a high-level ``WCS`` with a negative slice start (for
+example ``wcs[-6:]``) now raises ``IndexError`` instead of silently
+misinterpreting the negative start as a pixel offset into the unsliced WCS
+and producing incorrect world coordinates, consistent with the behaviour of
+the ``SlicedLowLevelWCS`` wrapper.
