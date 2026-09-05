@@ -66,6 +66,30 @@ def test_invalid_slices():
         SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, 1000.100])
 
 
+def test_negative_indices_not_supported():
+    # A negative slice start (or a negative integer index) would be silently
+    # misinterpreted by the transform as a pixel offset into the unsliced WCS,
+    # producing wrong world values. These must be rejected up front (see
+    # #15557). A negative *stop* is harmless (the transform never reads
+    # slice.stop) and must keep working. Placeholders are slice(None), not
+    # None (a bare None is an invalid slice item on its own).
+    with pytest.raises(IndexError, match="Negative indices"):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(-3, None), slice(None), slice(None)])
+
+    with pytest.raises(IndexError, match="Negative indices"):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(-3, -1), slice(None), slice(None)])
+
+    with pytest.raises(IndexError, match="Negative indices"):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(None), -5, slice(None)])
+
+    with pytest.raises(IndexError, match="Negative indices"):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, -5)
+
+    # Negative stop is still accepted (unchanged behaviour).
+    wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(1, -1), slice(None), slice(None)])
+    assert isinstance(wcs, SlicedLowLevelWCS)
+
+
 @pytest.mark.parametrize(
     "item, ndim, expected",
     (

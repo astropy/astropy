@@ -50,7 +50,18 @@ def sanitize_slices(slices, ndim):
             if isinstance(slc, slice):
                 if slc.step and slc.step != 1:
                     raise IndexError("Slicing WCS with a step is not supported.")
-            elif not isinstance(slc, numbers.Integral):
+                if slc.start is not None and slc.start < 0:
+                    raise IndexError(
+                        "Negative indices are not supported when slicing a WCS; "
+                        "a negative start would be misinterpreted as a pixel "
+                        "offset into the (unsliced) WCS."
+                    )
+            elif isinstance(slc, numbers.Integral):
+                if slc < 0:
+                    raise IndexError(
+                        "Negative indices are not supported when slicing a WCS."
+                    )
+            else:
                 raise IndexError("Only integer or range slices are accepted.")
         else:
             slices.append(slice(None))
