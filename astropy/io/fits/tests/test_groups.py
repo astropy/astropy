@@ -123,6 +123,26 @@ class TestGroupsFunctions(FitsTestCase):
             assert len(s) == 2
             assert hdul[0].data.parnames == s.parnames
 
+    def test_groupdata_slice_from_scratch(self):
+        """
+        Slicing a GroupData created from a raw ndarray (not read from a file)
+        must work like slicing a loaded one.  Regression test for gh-6688,
+        where ``GroupData.__new__`` left every column's ``.array`` unset so
+        ``coldefs._arrays`` was a list of ``None`` and ``data[:2]`` raised
+        ``TypeError: 'NoneType' object is not subscriptable``.
+        """
+        imdata = np.arange(100.0).reshape((10, 1, 1, 2, 5))
+        pdata1 = np.arange(10, dtype=np.float32) + 0.1
+        x = fits.hdu.groups.GroupData(
+            imdata, parnames=["abc", "xyz"], pardata=[pdata1, 42.0], bitpix=-32
+        )
+        s = x[:2]
+        assert isinstance(s, fits.GroupData)
+        assert len(s) == 2
+        assert s.parnames == x.parnames
+        np.testing.assert_allclose(s.par("abc"), pdata1[:2])
+        np.testing.assert_allclose(s[0].data, imdata[0])
+
     def test_group_slice(self):
         """
         Tests basic slicing a single group record.
