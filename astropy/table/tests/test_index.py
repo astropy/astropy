@@ -452,6 +452,22 @@ class TestIndex(SetupData):
         for t2 in (t.loc[:], t.iloc[:]):
             assert_col_equal(t2["a"], [1, 2, 3, 4, 5])
 
+    def test_column_subset_keeps_primary_key(self, main_col, table_types, engine):
+        # Regression test for #12028: a column subset that contains the
+        # primary key column must carry the key over so that ``.loc``
+        # keeps working on the result.
+        self._setup(main_col, table_types)
+        t = self.t
+        t.add_index("a", engine=engine)
+
+        t2 = t[("a", "c")]
+        assert t2.primary_key == t.primary_key
+        assert t2.loc[self.make_val(3)]["a"] == self.make_val(3)
+
+        # A subset without the primary key column must not carry it over.
+        t3 = t[("b", "c")]
+        assert t3.primary_key is None
+
     def test_table_loc_indices(self, main_col, table_types, engine):
         self._setup(main_col, table_types)
         t = self.t

@@ -2118,6 +2118,8 @@ class Table:
                 out, indices=self.groups._indices, keys=self.groups._keys
             )
             out.meta = self.meta.copy()  # Shallow copy for meta
+            if self.primary_key and all(pk in item for pk in self.primary_key):
+                out.primary_key = self.primary_key
             return out
         elif (isinstance(item, np.ndarray) and item.size == 0) or (
             isinstance(item, (tuple, list)) and not item
