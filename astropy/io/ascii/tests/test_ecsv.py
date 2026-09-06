@@ -1267,6 +1267,41 @@ def test_write_masked_time_ymdhms_mixin(format_engine):
     assert (qt2["t"].mask == t.mask).all()
 
 
+@pytest.mark.parametrize("masked", [False, True])
+def test_read_include_exclude_names_serialized_columns(masked):
+    # Regression test for gh-12237
+    # A Time column serializes into multiple physical subcolumns
+    # (t.year, t.month, ...); include_names/exclude_names use the logical
+    # column name "t" and must apply to all of its subcolumns, not raise.
+    t = Time({"year": [2000, 2001], "month": [1, 2], "day": [1, 3]}, format="ymdhms")
+    if masked:
+        t[0] = np.ma.masked
+    qt = QTable([t], names=["t"])
+    qt["b"] = np.array([1, 2])
+    out = StringIO()
+    qt.write(out, format="ascii.ecsv")
+    txt = out.getvalue()
+
+    # Including "t" keeps the whole Time column.
+    qt2 = QTable.read(txt, format="ascii.ecsv", include_names=["t"])
+    assert qt2.colnames == ["t"]
+    assert type(qt2["t"]) is type(t)
+    assert (qt2["t"] == t).all()
+
+    # Including only the plain column drops the Time subcolumns.
+    qt2 = QTable.read(txt, format="ascii.ecsv", include_names=["b"])
+    assert qt2.colnames == ["b"]
+
+    # Excluding "t" removes the whole Time column.
+    qt2 = QTable.read(txt, format="ascii.ecsv", exclude_names=["t"])
+    assert qt2.colnames == ["b"]
+
+    # Excluding only the plain column keeps the Time column.
+    qt2 = QTable.read(txt, format="ascii.ecsv", exclude_names=["b"])
+    assert qt2.colnames == ["t"]
+    assert type(qt2["t"]) is type(t)
+
+
 def test_register_bad_engine():
     msg = "Subclasses of ECSVEngine must define a class attribute 'name' as a string, got <class 'int'>."
     with pytest.raises(TypeError, match=msg):

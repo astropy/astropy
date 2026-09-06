@@ -1268,6 +1268,37 @@ def _is_number(x) -> TypeGuard[SupportsFloat]:
     return False
 
 
+def _expand_serialized_names(table, names):
+    """Expand logical column names to their serialized physical subcolumn names.
+
+    Serialized mixin columns (e.g. a `~astropy.time.Time` column stored as
+    ``jd1``/``jd2``) are split into multiple physical columns named
+    ``<logical>.<component>``.  A user's ``include_names``/``exclude_names``
+    refers to the logical column name, so each given name maps to itself plus
+    any physical subcolumn whose name starts with ``<name>.``.  Plain
+    (non-serialized) tables have no such subcolumns, so names map to themselves
+    and behaviour is unchanged (gh-12237).
+
+    Parameters
+    ----------
+    table : `~astropy.table.Table`, `~astropy.io.ascii.BaseHeader`
+        Input table or header, providing ``colnames``.
+    names : list
+        Logical column names to expand.
+
+    Returns
+    -------
+    set
+        The given names plus any physical subcolumn names derived from them.
+    """
+    colnames = set(table.colnames)
+    expanded = set(names)
+    for name in names:
+        prefix = f"{name}."
+        expanded.update(col for col in colnames if col.startswith(prefix))
+    return expanded
+
+
 def _apply_include_exclude_names(table, names, include_names, exclude_names):
     """
     Apply names, include_names and exclude_names to a table or BaseHeader.
@@ -1309,9 +1340,9 @@ def _apply_include_exclude_names(table, names, include_names, exclude_names):
     names_set = set(table.colnames)
 
     if include_names is not None:
-        names_set.intersection_update(include_names)
+        names_set.intersection_update(_expand_serialized_names(table, include_names))
     if exclude_names is not None:
-        names_set.difference_update(exclude_names)
+        names_set.difference_update(_expand_serialized_names(table, exclude_names))
     if names_set != set(table.colnames):
         remove_names = set(table.colnames) - names_set
         table.remove_columns(remove_names)

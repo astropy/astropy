@@ -1,0 +1,5 @@
+Fixed a bug where reading an ECSV file with ``include_names`` or
+``exclude_names`` raised an error or silently ignored the filter when the
+file contains a serialized mixin column (e.g. ``Time``), which is stored
+under multiple physical subcolumns. The logical column name now applies to
+all of its subcolumns.

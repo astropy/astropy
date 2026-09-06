@@ -453,6 +453,27 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
     out.add_column(col, index=idx)
 
 
+def _mixin_physical_columns(new_name, obj_attrs):
+    """Return the physical (serialized) column names referenced by ``obj_attrs``.
+
+    Mirrors the (recursive) name resolution in `_construct_mixin_from_columns`
+    so a caller can check that a mixin is fully present in a (possibly
+    name-filtered) table before reconstructing it (gh-12237).  Serialized
+    subcolumns can be nested (e.g. a masked Time column resolves through
+    ``t.value.data.data.<component>``), so this recurses down to the leaf
+    entries that carry an explicit ``name``.
+    """
+    cols = set()
+    for name, val in obj_attrs.items():
+        if not isinstance(val, SerializedColumn):
+            continue
+        if "name" in val and isinstance(val["name"], str):
+            cols.add(val["name"])
+        else:
+            cols |= _mixin_physical_columns(f"{new_name}.{name}", val)
+    return cols
+
+
 def _construct_mixins_from_columns(tbl):
     if "__serialized_columns__" not in tbl.meta:
         return tbl
@@ -468,6 +489,11 @@ def _construct_mixins_from_columns(tbl):
     # ``units.quantity.conf.quantity_convert_int_to_float`` configuration item.
     with preserve_dtype_by_default():
         for new_name, obj_attrs in mixin_cols.items():
+            # Name filtering (include_names/exclude_names) may have removed some of
+            # the physical subcolumns of a serialized mixin.  Skip any mixin that is
+            # not fully present so we do not raise on a missing subcolumn (gh-12237).
+            if not _mixin_physical_columns(new_name, obj_attrs).issubset(out.colnames):
+                continue
             _construct_mixin_from_columns(new_name, obj_attrs, out)
 
     # If no quantity subclasses are in the output then output as Table.
