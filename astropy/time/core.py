@@ -79,22 +79,26 @@ TIME_TYPES = {
     scale: scales for scales in (STANDARD_TIME_SCALES, LOCAL_SCALES) for scale in scales
 }
 TIME_SCALES = STANDARD_TIME_SCALES + LOCAL_SCALES
+# Intermediate scales needed for transformations between non-adjacent scales.
+# Note that UT1 is attached to TAI rather than UTC: UT1 - TAI is continuous
+# across leap seconds, while UT1 - UTC and TAI - UTC both jump, so going via
+# UTC is ambiguous right at leap seconds (see gh-13517).
 MULTI_HOPS = {
     ("tai", "tcb"): ("tt", "tdb"),
     ("tai", "tcg"): ("tt",),
-    ("tai", "ut1"): ("utc",),
     ("tai", "tdb"): ("tt",),
     ("tcb", "tcg"): ("tdb", "tt"),
     ("tcb", "tt"): ("tdb",),
-    ("tcb", "ut1"): ("tdb", "tt", "tai", "utc"),
+    ("tcb", "ut1"): ("tdb", "tt", "tai"),
     ("tcb", "utc"): ("tdb", "tt", "tai"),
     ("tcg", "tdb"): ("tt",),
-    ("tcg", "ut1"): ("tt", "tai", "utc"),
+    ("tcg", "ut1"): ("tt", "tai"),
     ("tcg", "utc"): ("tt", "tai"),
-    ("tdb", "ut1"): ("tt", "tai", "utc"),
+    ("tdb", "ut1"): ("tt", "tai"),
     ("tdb", "utc"): ("tt", "tai"),
-    ("tt", "ut1"): ("tai", "utc"),
+    ("tt", "ut1"): ("tai",),
     ("tt", "utc"): ("tai",),
+    ("ut1", "utc"): ("tai",),
 }
 GEOCENTRIC_SCALES = ("tai", "tt", "tcg")
 BARYCENTRIC_SCALES = ("tcb", "tdb")
@@ -796,9 +800,9 @@ class TimeBase(MaskableShapedLikeNDArray):
                 f"Scale {scale!r} is not in the allowed scales {sorted(self.SCALES)}"
             )
 
-        if scale == "utc" or self.scale == "utc":
-            # If doing a transform involving UTC then check that the leap
-            # seconds table is up to date.
+        if {"utc", "ut1"} & {scale, self.scale}:
+            # If doing a transform involving UTC or UT1 (which needs TAI - UTC)
+            # then check that the leap seconds table is up to date.
             _check_leapsec()
 
         # Determine the chain of scale transformations to get from the current
@@ -2548,41 +2552,75 @@ class Time(TimeBase):
         return iers_table.ut1_utc(self.utc, return_status=return_status)
 
     # Property for ERFA DUT arg = UT1 - UTC
-    def _get_delta_ut1_utc(self, jd1=None, jd2=None):
+    def _get_delta_ut1_utc(self):
         """
-        Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
-        jd2 args because it gets called that way when converting time scales.
-        If delta_ut1_utc is not yet set, this will interpolate them from the
-        the IERS table.
+        Get ERFA DUT arg = UT1 - UTC.  If delta_ut1_utc has not been set,
+        this interpolates it from the IERS table at the UTC of ``self`` and
+        stores the result.
         """
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.
         if not hasattr(self, "_delta_ut1_utc"):
-            from astropy.utils.iers import earth_orientation_table
-
-            iers_table = earth_orientation_table.get()
-            # jd1, jd2 are normally set (see above), except if delta_ut1_utc
-            # is access directly; ensure we behave as expected for that case
-            if jd1 is None:
-                self_utc = self.utc
-                jd1, jd2 = self_utc._time.jd1, self_utc._time.jd2
-                scale = "utc"
-            else:
-                scale = self.scale
-            # interpolate UT1-UTC in IERS table
-            delta = iers_table.ut1_utc(jd1, jd2)
-            # if we interpolated using UT1 jds, we may be off by one
-            # second near leap seconds (and very slightly off elsewhere)
-            if scale == "ut1":
-                # calculate UTC using the offset we got; the ERFA routine
-                # is tolerant of leap seconds, so will do this right
-                jd1_utc, jd2_utc = erfa.ut1utc(jd1, jd2, delta.to_value(u.s))
-                # calculate a better estimate using the nearly correct UTC
-                delta = iers_table.ut1_utc(jd1_utc, jd2_utc)
-
-            self._set_delta_ut1_utc(delta)
+            self_utc = self.utc
+            self._set_delta_ut1_utc(
+                self._interpolate_delta_ut1_utc(self_utc._time.jd1, self_utc._time.jd2)
+            )
 
         return self._delta_ut1_utc
+
+    @staticmethod
+    def _interpolate_delta_ut1_utc(utc1, utc2):
+        """Interpolate UT1 - UTC in seconds from the IERS table at the given UTC."""
+        from astropy.utils.iers import earth_orientation_table
+
+        iers_table = earth_orientation_table.get()
+        return iers_table.ut1_utc(utc1, utc2).to_value(u.s)
+
+    # ERFA DTA arg = UT1 - TAI, used in the TAI <-> UT1 scale transformation
+    def _get_delta_ut1_tai(self, jd1, jd2):
+        """
+        Get ERFA DTA arg = UT1 - TAI.  This getter takes jd1 and jd2 args
+        because it gets called that way when converting time scales.  These
+        are in the UT1 scale if ``self.scale`` is ``'ut1'`` and otherwise in
+        the TAI scale (UT1 is an end point of any chain of transformations, so
+        the TAI <-> UT1 step is the first or the last one).
+
+        UT1 - TAI is evaluated as (UT1 - UTC) - (TAI - UTC) with both terms
+        taken at the same UTC.  Since both terms jump by the same amount at a
+        leap second, their difference is continuous, which avoids the
+        leap-second ambiguities of transforming via UTC (see gh-13517).
+
+        If ``delta_ut1_utc`` has been set explicitly, its sign is used to decide
+        whether it is the value from before or after a nearby leap second (see
+        `_get_delta_tai_utc_for_dut1`).  Otherwise, UT1 - UTC is interpolated
+        from the IERS table and the result is stored in ``delta_ut1_utc``.
+        """
+        if hasattr(self, "_delta_ut1_utc"):
+            dut1 = self._delta_ut1_utc
+            if self.scale == "ut1":
+                # UTC up to the labelling of leap seconds, which is all that
+                # is needed to determine TAI - UTC given UT1 - UTC.
+                utc1, utc2 = jd1, jd2 - dut1 / erfa.DAYSEC
+            else:
+                utc1, utc2 = erfa.taiutc(jd1, jd2)
+            return dut1 - _get_delta_tai_utc_for_dut1(utc1, utc2, dut1)
+
+        if self.scale == "ut1":
+            # UTC is not yet known, but since |UT1 - UTC| < 1 s, the UT1 jds
+            # are a good approximation to it for evaluating both offsets (right
+            # at a leap second one may end up on the other side, but the
+            # offsets are then still consistent with each other).  Use the
+            # resulting estimate of UT1 - TAI to get the actual UTC.
+            dta = self._interpolate_delta_ut1_utc(jd1, jd2) - _get_delta_tai_utc(
+                jd1, jd2
+            )
+            utc1, utc2 = erfa.taiutc(*erfa.ut1tai(jd1, jd2, dta))
+        else:
+            utc1, utc2 = erfa.taiutc(jd1, jd2)
+
+        dut1 = self._interpolate_delta_ut1_utc(utc1, utc2)
+        self._set_delta_ut1_utc(dut1)
+        return dut1 - _get_delta_tai_utc(utc1, utc2)
 
     def _set_delta_ut1_utc(self, val):
         del self.cache
@@ -2591,8 +2629,6 @@ class Time(TimeBase):
         val = self._match_shape(val)
         self._delta_ut1_utc = val
 
-    # Note can't use @property because _get_delta_tdb_tt is explicitly
-    # called with the optional jd1 and jd2 args.
     delta_ut1_utc = property(_get_delta_ut1_utc, _set_delta_ut1_utc)
     """UT1 - UTC time scale offset"""
 
@@ -3388,6 +3424,43 @@ class OperandTypeError(TypeError):
             f"Unsupported operand type(s){op_string}: '{type(left).__name__}' "
             f"and '{type(right).__name__}'"
         )
+
+
+def _get_delta_tai_utc(utc1, utc2):
+    """Get TAI - UTC in seconds at the given two-part UTC (quasi-)julian dates."""
+    return erfa.dat(*erfa.jd2cal(utc1, utc2))
+
+
+def _get_delta_tai_utc_for_dut1(utc1, utc2, dut1):
+    """Get TAI - UTC in seconds for given UTC julian dates and UT1 - UTC.
+
+    Near a leap second, TAI - UTC depends on whether ``dut1`` is the value from
+    before or after the leap second.  Like ``erfa.ut1utc``, this uses that a
+    positive leap second increases UT1 - UTC by one second, while |UT1 - UTC|
+    is always less than 0.9 s, so UT1 - UTC is negative before and positive
+    after a positive leap second (and vice versa for a negative one).  Hence,
+    on the day that ends with a leap second, a ``dut1`` with the same sign as
+    the jump in TAI - UTC (or zero) is taken to be the value from after the leap
+    second, and TAI - UTC of the next day is returned.  Conversely, on the day
+    after a leap second, a ``dut1`` with the opposite sign is taken to be the
+    value from before, and TAI - UTC of the previous day is returned.
+
+    The UTC only needs to be approximate to within the labelling of the leap
+    second (e.g., UT1 - dut1 is fine).
+    """
+    iy, im, id, fd = erfa.jd2cal(utc1, utc2)
+    dat = erfa.dat(iy, im, id, fd)
+    dat_prev = erfa.dat(*erfa.jd2cal(utc1 - 1.0, utc2))
+    dat_next = erfa.dat(*erfa.jd2cal(utc1 + 1.0, utc2))
+    # Jumps in TAI - UTC at the start and end of the day (the fractional
+    # changes before 1972 are ignored).
+    ddat_prev = dat - dat_prev
+    ddat_next = dat_next - dat
+    is_after_next = (np.abs(ddat_next) >= 0.5) & (dut1 * ddat_next >= 0)
+    is_before_prev = (np.abs(ddat_prev) >= 0.5) & (dut1 * ddat_prev < 0)
+    dat = np.where(is_after_next, dat_next, dat)
+    dat = np.where(is_before_prev, dat_prev, dat)
+    return dat
 
 
 def _check_leapsec():

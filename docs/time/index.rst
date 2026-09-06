@@ -1113,6 +1113,14 @@ UT1 - UTC and TDB - TT, respectively. As an example::
   >>> t.ut1.iso    # ISO representation of time in UT1 scale
   '2010-01-01 00:00:00.334'
 
+.. note:: A positive leap second increases UT1 - UTC by one second, while
+   |UT1 - UTC| is always less than 0.9 s.  Hence, following ``erfa.ut1utc``, an
+   explicitly set :attr:`~astropy.time.Time.delta_ut1_utc` that is non-negative
+   is taken to be the value from *after* the leap second on the day that ends
+   with a leap second (so that before the leap second UT1 - UTC is one second
+   less), and a negative value on the day after a leap second is taken to be
+   the value from *before* it.
+
 For the UT1 to UTC offset, you have to interpolate the observed values provided
 by the `International Earth Rotation and Reference Systems (IERS) Service
 <https://www.iers.org>`_. ``astropy`` will automatically download and use values
