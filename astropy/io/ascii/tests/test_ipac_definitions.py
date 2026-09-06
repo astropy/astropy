@@ -75,7 +75,6 @@ def test_long_colname_notstrict():
     assert back[long_name][0] == 3
 
 
-
 @pytest.mark.parametrize(
     ("strict_", "Err"), [(True, IpacFormatErrorDBMS), (False, IpacFormatError)]
 )
