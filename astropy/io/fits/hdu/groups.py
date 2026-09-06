@@ -2,6 +2,7 @@
 
 import math
 import sys
+import weakref
 
 import numpy as np
 
@@ -193,6 +194,17 @@ class GroupData(FITS_rec):
 
             self._coldefs = coldefs
             self.parnames = parnames
+
+            # Work around the same chicken-egg problem as in
+            # FITS_rec.__array_finalize__: each Column's ``array`` is lazily
+            # resolved through a weakref back to this FITS_rec.  Without this,
+            # ``col.array`` stays ``None`` (as initialised in ``Column``), so
+            # ``coldefs._arrays`` is a list of ``None`` and slicing a
+            # from-scratch GroupData (``data[:2]``) fails with
+            # "NoneType object is not subscriptable" (gh-6688).
+            for col in coldefs:
+                del col.array
+                col._parent_fits_rec = weakref.ref(self)
 
             for idx, name in enumerate(unique_parnames[:-1]):
                 column = coldefs[idx]
