@@ -74,7 +74,9 @@ def test_negative_indices_not_supported():
     # slice.stop) and must keep working. Placeholders are slice(None), not
     # None (a bare None is an invalid slice item on its own).
     with pytest.raises(IndexError, match="Negative indices"):
-        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(-3, None), slice(None), slice(None)])
+        SlicedLowLevelWCS(
+            WCS_SPECTRAL_CUBE, [slice(-3, None), slice(None), slice(None)]
+        )
 
     with pytest.raises(IndexError, match="Negative indices"):
         SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(-3, -1), slice(None), slice(None)])
