@@ -48,12 +48,13 @@ def test_long_colname_default():
     # name limit, so a non-DBMS IPAC table may use column names longer than
     # 40 characters (write and read back cleanly).
     long_name = "a1234567890123456789012345678901234567890"  # 41 chars
-    table = Table([[3]], names=[long_name])
+    value = 3
+    table = Table([[value]], names=[long_name])
     out = StringIO()
     ascii.write(table, out, format="ipac")
     back = ascii.read(out.getvalue(), format="ipac")
     assert long_name in back.colnames
-    assert back[long_name][0] == 3
+    assert back[long_name][0] == value
 
 
 def test_too_long_colname_strict():
@@ -67,12 +68,13 @@ def test_long_colname_notstrict():
     # Regression test for #17637: with DBMS=False the 40-character column
     # name limit is lifted; longer names write and read back cleanly.
     long_name = "a1234567890123456789012345678901234567890"  # 41 chars
-    table = Table([[3]], names=[long_name])
+    value = 3
+    table = Table([[value]], names=[long_name])
     out = StringIO()
     ascii.write(table, out, format="ipac", DBMS=False)
     back = ascii.read(out.getvalue(), format="ipac")
     assert long_name in back.colnames
-    assert back[long_name][0] == 3
+    assert back[long_name][0] == value
 
 
 @pytest.mark.parametrize(
@@ -109,10 +111,10 @@ def test_reserved_colname_strict(colname):
 
 def test_too_long_comment():
     msg = "Wrapping comment lines > 78 characters produced 1 extra line(s)"
+    table = Table([[3]])
+    table.meta["comments"] = ["a" * 79]
+    out = StringIO()
     with pytest.warns(UserWarning, match=re.escape(msg)):
-        table = Table([[3]])
-        table.meta["comments"] = ["a" * 79]
-        out = StringIO()
         ascii.write(table, out, format="ipac")
 
     expected_out = """\
