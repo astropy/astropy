@@ -555,6 +555,21 @@ def _guess(table, read_kwargs, format, fast_reader):
     filtered_guess_kwargs = []
     fast_reader = read_kwargs.get("fast_reader")
 
+    # If the user forces the fast reader while naming a slow format that has a fast
+    # version (e.g. format='basic' with fast_reader='force'), the requested
+    # reader_cls is the slow class.  Treat the fast counterpart's reader_cls as
+    # consistent with it below so that the fast reader's delimiter/quotechar probe
+    # entries are kept.  Otherwise every fast probe entry is filtered out as
+    # inconsistent with the slow reader_cls, the guess list collapses to the single
+    # fast entry, and _guess() returns None; the non-guessing read that follows then
+    # silently accepts a wrong single-column table whenever the C tokenizer's
+    # automatic delimiter detection fails (see gh-6742).
+    fast_counterpart = (
+        core.FAST_CLASSES.get(f"fast_{format}")
+        if fast_reader["enable"] == "force" and format is not None
+        else None
+    )
+
     for guess_kwargs in full_list_guess:
         # If user specified slow reader then skip all fast readers
         if (
@@ -589,10 +604,21 @@ def _guess(table, read_kwargs, format, fast_reader):
         guess_kwargs_ok = True  # guess_kwargs are consistent with user_kwargs?
         for key, val in read_kwargs.items():
             # Do guess_kwargs.update(read_kwargs) except that if guess_args has
-            # a conflicting key/val pair then skip this guess entirely.
+            # a conflicting key/val pair then skip this guess entirely.  The one
+            # deliberate exception is the fast counterpart's reader_cls when the
+            # user forced the fast reader on a slow format name; see the
+            # fast_counterpart note above (gh-6742).
             if key not in guess_kwargs:
                 guess_kwargs[key] = copy.deepcopy(val)
-            elif val != guess_kwargs[key] and guess_kwargs != fast_kwargs:
+            elif (
+                val != guess_kwargs[key]
+                and guess_kwargs != fast_kwargs
+                and not (
+                    key == "reader_cls"
+                    and fast_counterpart is not None
+                    and guess_kwargs[key] is fast_counterpart
+                )
+            ):
                 guess_kwargs_ok = False
                 break
 

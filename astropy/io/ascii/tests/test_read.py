@@ -192,6 +192,24 @@ def test_read_with_names_arg(fast_reader):
         ascii.read(["c d", "e f"], names=("a",), guess=False, fast_reader=fast_reader)
 
 
+@pytest.mark.parametrize("format", ["basic", "fast_basic"])
+def test_fast_reader_force_delimiter_guessing(format):
+    # Regression test for gh-6742.  With fast_reader='force' the C tokenizer's
+    # automatic delimiter detection can fail on small tables, in which case the
+    # guessing machinery must still probe the fast reader's delimiters instead
+    # of silently accepting a wrong single-column table.
+    table = ascii.read("a,b\n1,2", format=format, fast_reader="force")
+    assert list(table.colnames) == ["a", "b"]
+    assert table["a"].tolist() == [1]
+
+
+def test_fast_reader_force_unreadable_raises():
+    # With fast_reader='force' an unreadable table must raise, not return a
+    # wrong single-column table (gh-6742).
+    with pytest.raises((ascii.InconsistentTableError, ValueError)):
+        ascii.read("a\n1\n", format="basic", fast_reader="force")
+
+
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
 @pytest.mark.parametrize("path_format", ["plain", "tilde-str", "tilde-pathlib"])
 def test_read_all_files(fast_reader, path_format, home_is_data):
