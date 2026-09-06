@@ -53,6 +53,30 @@ __doctest_skip__ = ["Quantity.*"]
 _UNIT_NOT_INITIALISED = "(Unit not initialised)"
 _UFUNCS_FILTER_WARNINGS = {np.arcsin, np.arccos, np.arccosh, np.arctanh}
 
+# ``astropy.units.function`` imports from ``astropy.units``, which is still
+# being initialised when this module is loaded, so ``FunctionUnitBase`` can
+# only be resolved lazily (gh-6319).
+_FunctionUnitBase = None
+
+
+def _is_function_unit(unit):
+    """Return True if unit is a `~astropy.units.function.FunctionUnitBase`.
+
+    A concrete function unit (e.g. ``DecibelUnit``) is a ``FunctionUnitBase``
+    but not a ``UnitBase``; the reverse is true for ``RegularFunctionUnit``.
+    ``UnitBase`` and ``StructuredUnit`` are never function units, so they are
+    short-circuited before the (lazy) class lookup, which also keeps this safe
+    during the initial import of ``astropy.units`` (gh-6319).
+    """
+    if isinstance(unit, (UnitBase, StructuredUnit)):
+        return False
+    global _FunctionUnitBase
+    if _FunctionUnitBase is None:
+        from .function.core import FunctionUnitBase
+
+        _FunctionUnitBase = FunctionUnitBase
+    return isinstance(unit, _FunctionUnitBase)
+
 
 class Conf(_config.ConfigNamespace):
     """
@@ -642,7 +666,19 @@ class Quantity(np.ndarray):
                 cls = qcls
 
         value = value.view(cls)
-        value._set_unit(value_unit)
+        if (
+            _is_function_unit(value_unit)
+            and getattr(value_unit, "physical_unit", None) is dimensionless_unscaled
+        ):
+            # Keep a dimensionless concrete function unit (e.g. DecibelUnit)
+            # as is, rather than normalising it to the generic registered
+            # function unit via ``_set_unit``, which would lose the
+            # conversion to the physical unit (gh-6319).  Function units with
+            # a physical dimension still go through ``_set_unit``, which
+            # rejects them for a plain Quantity (issue #5851).
+            value._unit = value_unit
+        else:
+            value._set_unit(value_unit)
         if unit is value_unit:
             return value
         else:

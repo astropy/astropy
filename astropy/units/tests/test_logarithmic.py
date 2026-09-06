@@ -562,6 +562,26 @@ class TestLogQuantityCreation:
             unit, "physical_unit", u.dimensionless_unscaled
         )
 
+    def test_quantity_creation_with_concrete_function_unit(self):
+        # gh-6319: a Quantity created with a concrete function unit keeps
+        # that unit (and its conversion to the physical unit), instead of
+        # being normalised to the generic registered function unit.
+        db = u.dB(u.dimensionless_unscaled)
+        arr = np.array([1.0, 3.0, 5.0])
+        q = u.Quantity(arr, db)
+        assert type(q.unit) is u.DecibelUnit
+        np.testing.assert_allclose(
+            q.to(u.dimensionless_unscaled).value,
+            (arr * db).to(u.dimensionless_unscaled).value,
+        )
+        # the generic registered function unit stays as it is
+        q2 = u.Quantity(arr, u.dB)
+        assert q2.unit is u.dB
+        # a function unit with a physical dimension is still rejected for
+        # a plain Quantity (issue #5851)
+        with pytest.raises(u.UnitTypeError):
+            u.Quantity(1.0, u.dB(u.mW))
+
     @pytest.mark.parametrize(
         "value, unit",
         (
