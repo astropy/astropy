@@ -746,6 +746,35 @@ def _guess(table, read_kwargs, format, fast_reader):
             }
         )
         failed_kwargs.append(read_kwargs)
+
+        # If the user forced the fast reader while naming a slow format (e.g.
+        # format='basic' with fast_reader='force'), the fast probe entries above
+        # were all rejected (the C reader requires at least two columns while
+        # guessing) and the slow reader_cls is unusable with fast_reader='force'.
+        # As a last resort read with the fast counterpart itself, outside
+        # guessing semantics (see gh-6742).
+        if fast_counterpart is not None:
+            fast_final_kwargs = copy.deepcopy(read_kwargs)
+            fast_final_kwargs["reader_cls"] = fast_counterpart
+            try:
+                reader = get_reader(**fast_final_kwargs)
+                dat = reader.read(table)
+                _read_trace.append(
+                    {
+                        "kwargs": copy.deepcopy(fast_final_kwargs),
+                        "reader_cls": reader.__class__,
+                        "status": "Success with fast counterpart (guessing)",
+                    }
+                )
+                return dat
+            except guess_exception_classes as err2:
+                _read_trace.append(
+                    {
+                        "kwargs": copy.deepcopy(fast_final_kwargs),
+                        "status": f"{err2.__class__.__name__}: {str(err2)}",
+                    }
+                )
+
         lines = ["\nERROR: Unable to guess table format with the guesses listed below:"]
         for kwargs in failed_kwargs:
             sorted_keys = sorted(
