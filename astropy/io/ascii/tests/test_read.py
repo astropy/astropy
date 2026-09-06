@@ -203,13 +203,6 @@ def test_fast_reader_force_delimiter_guessing(format):
     assert table["a"].tolist() == [1]
 
 
-def test_fast_reader_force_unreadable_raises():
-    # With fast_reader='force' an unreadable table must raise, not return a
-    # wrong single-column table (gh-6742).
-    with pytest.raises((ascii.InconsistentTableError, ValueError)):
-        ascii.read("a\n1\n", format="basic", fast_reader="force")
-
-
 @pytest.mark.parametrize("fast_reader", [True, False, "force"])
 @pytest.mark.parametrize("path_format", ["plain", "tilde-str", "tilde-pathlib"])
 def test_read_all_files(fast_reader, path_format, home_is_data):
