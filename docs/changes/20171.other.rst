@@ -1,0 +1,2 @@
+WebAssembly (Pyodide) wheels are now built and published, so ``astropy`` can be
+installed with ``pip`` under Pyodide and PyScript.
