@@ -8,7 +8,7 @@ import pytest
 import astropy.units as u
 from astropy.coordinates import Angle, Latitude, Longitude
 from astropy.units import Quantity
-from astropy.utils.masked import Masked
+from astropy.utils.masked import Masked, MaskedNDArray
 
 
 @pytest.mark.parametrize(
@@ -20,6 +20,7 @@ from astropy.utils.masked import Masked
         Longitude([1, 2, 3], u.deg),
     ],
 )
+
 def test_masked_pickle(data):
     mask = [True, False, False]
     m = Masked(data, mask=mask)
@@ -35,3 +36,14 @@ def test_masked_pickle(data):
     assert m.unit == m2.unit
     assert type(m) is type(m2)
     assert type(m.info) is type(m2.info)
+
+def test_masked_ndarray_pickle_preserves_mask():
+    data = MaskedNDArray([1, 2, 3], mask=[True, False, False])
+
+    result = pickle.loads(pickle.dumps(data))
+
+    np.testing.assert_array_equal(result.unmasked, data.unmasked)
+    np.testing.assert_array_equal(result.mask, data.mask)
+    assert type(result) is type(data)
+    
+
