@@ -145,6 +145,7 @@ Core Package Contributors
 * David Shiga
 * David Shupe
 * David Stansby
+* Debajeet Mandal
 * Deen-Dot
 * Demitri Muna
 * Derek Homeier
@@ -623,6 +624,7 @@ Core Package Contributors
 * Yash Nandwana
 * Yash Sharma
 * Yingqi Ying
+* yuxinghang
 * Zac Hatfield-Dodds
 * Zach Burnett
 * Zach Edwards
