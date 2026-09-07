@@ -335,11 +335,6 @@ def _cosmology_not_equal(
         The objects to compare. Must be convertible to |Cosmology|, as specified
         by ``format``.
 
-    out : ndarray, None, optional
-        A location into which the result is stored. If provided, it must have a
-        shape that the inputs broadcast to. If not provided or None, a
-        freshly-allocated array is returned.
-
     format : bool or None or str or tuple thereof, optional keyword-only
         Whether to allow the arguments to be converted to a |Cosmology|. This
         allows, e.g. a |Table| to be given instead a Cosmology. `False`
