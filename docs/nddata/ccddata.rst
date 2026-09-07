@@ -44,6 +44,12 @@ or URL:
     >>> ccd = CCDData.read('my_file.fits', unit="adu")  # doctest: +SKIP
     >>> ccd = CCDData.read(get_pkg_data_filename('tutorials/FITS-images/HorseHead.fits'), unit="adu", cache=True)  # doctest: +REMOTE_DATA +IGNORE_WARNINGS
 
+In the second example above, `~astropy.utils.data.get_pkg_data_filename`
+downloads the example file ``HorseHead.fits`` from the Astropy data server and
+returns the path to the cached local copy (the ``cache=True`` argument keeps it
+for reuse). For your own data, please pass the path to your FITS file directly,
+as in the first example.
+
 If there is a unit in the FITS file (in the ``BUNIT`` keyword), that will be
 used, but explicitly providing a unit in ``read`` will override any unit in the
 FITS file.
