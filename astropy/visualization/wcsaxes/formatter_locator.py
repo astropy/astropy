@@ -78,12 +78,14 @@ class BaseFormatterLocator:
         format=None,
         unit=None,
         format_unit=None,
+        equivalencies=None,
     ):
         if len([x for x in (values, number, spacing) if x is None]) < 2:
             raise ValueError("At most one of values/number/spacing can be specified")
 
         self._unit = unit
         self._format_unit = format_unit or unit
+        self._equivalencies = equivalencies if equivalencies is not None else []
 
         if values is not None:
             self.values = values
@@ -151,6 +153,14 @@ class BaseFormatterLocator:
     @format_unit.setter
     def format_unit(self, unit):
         self._format_unit = u.Unit(unit)
+
+    @property
+    def equivalencies(self):
+        return self._equivalencies
+
+    @equivalencies.setter
+    def equivalencies(self, equivalencies):
+        self._equivalencies = equivalencies if equivalencies is not None else []
 
     @staticmethod
     def _locate_values(value_min, value_max, spacing):
@@ -523,6 +533,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         format=None,
         unit=None,
         format_unit=None,
+        equivalencies=None,
     ):
         if unit is None:
             if spacing is not None:
@@ -538,6 +549,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             format=format,
             unit=unit,
             format_unit=format_unit,
+            equivalencies=equivalencies,
         )
 
     @property
@@ -626,8 +638,13 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                     from .utils import select_step_scalar
 
                     spacing = select_step_scalar(
-                        dv.to_value(self._format_unit)
-                    ) * self._format_unit.to(self._unit)
+                        dv.to_value(
+                            self._format_unit,
+                            equivalencies=self._equivalencies,
+                        )
+                    ) * self._format_unit.to(
+                        self._unit, equivalencies=self._equivalencies
+                    )
 
             # We now find the interval values as multiples of the spacing and
             # generate the tick positions from this
@@ -650,7 +667,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
             return _fix_minus(
                 [
                     ("{0:." + str(precision) + "f}").format(
-                        x.to_value(self._format_unit)
+                        x.to_value(self._format_unit, equivalencies=self._equivalencies)
                     )
                     for x in values
                 ]

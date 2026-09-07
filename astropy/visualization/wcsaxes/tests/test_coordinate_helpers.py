@@ -377,6 +377,30 @@ def test_set_position_invalid_gridline():
         ax.coords[1].set_ticks_position("my-grid-line")
 
 
+def test_format_unit_with_equivalencies(ignore_matplotlibrc):
+    """Test set_format_unit with spectral equivalency (nm -> Hz)."""
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.cunit = ["nm"]
+    wcs.wcs.crpix = [1]
+    wcs.wcs.crval = [500.0]
+    wcs.wcs.cdelt = [10.0]
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    fig.add_axes(ax)
+    canvas.draw()
+
+    # With spectral equivalency, conversion should work
+    ax.coords[0].set_format_unit("Hz", equivalencies=u.spectral())
+    assert ax.coords[0].get_format_unit() == u.Hz
+
+    canvas.draw()
+    label = ax.coords[0].format_coord(500.0)
+    assert label != ""
+
+
 def test_set_ticks_values():
     fig = Figure()
     _canvas = FigureCanvasAgg(fig)
