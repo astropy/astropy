@@ -1,15 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from contextlib import ContextDecorator
+from contextlib import ContextDecorator, contextmanager
 
 import numpy as np
 
 from astropy import units as u
 from astropy.utils.compat.optional_deps import HAS_MATPLOTLIB
 
-__all__ = ["MplQuantityConverter", "quantity_support"]
-
-__doctest_skip__ = ["quantity_support"]
+__all__ = ["MplQuantityConverter", "astropy_support", "quantity_support"]
+__doctest_skip__ = ["quantity_support", "astropy_support"]
 
 _default_format = "latex_inline"
 
@@ -158,3 +157,27 @@ def quantity_support(format=None):
             return MplQuantityConverter.axisinfo(unit, axis, format)
 
     return MplQuantityConverterFormatted()
+
+
+@contextmanager
+def astropy_support():
+    """
+    Enable support for plotting both `astropy.units.Quantity` and
+    `astropy.time.Time` instances in matplotlib.
+
+    May be (optionally) used with a ``with`` statement.
+
+      >>> import matplotlib.pyplot as plt
+      >>> from astropy import units as u, time
+      >>> from astropy import visualization
+      >>> with visualization.astropy_support():
+      ...     fig, ax = plt.subplots()
+      ...     ax.plot(time.Time(['2016-03-22T12:30:31', '2016-03-22T12:30:38']),
+      ...             [1, 2] * u.m)
+      [...]
+      ...     plt.draw()
+    """
+    from .time import time_support
+
+    with quantity_support(), time_support():
+        yield
