@@ -395,7 +395,7 @@ class TestNonLinearFitters:
 
         self.ydata = func(self.initial_values, self.xdata) + yerror
         self.gauss = models.Gaussian1D(100, 5, stddev=1)
-        
+
     @pytest.mark.parametrize("fitter0", non_linear_fitters_bounds)
     @pytest.mark.parametrize("fitter1", non_linear_fitters_bounds)
     def test_estimated_vs_analytic_deriv(self, fitter0, fitter1):
