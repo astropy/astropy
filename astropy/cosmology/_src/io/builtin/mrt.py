@@ -47,7 +47,7 @@ __all__ = ("mrt_identify", "read_mrt", "write_mrt")
 
 import contextlib
 import json
-from typing import Any, TypeVar
+from typing import Any
 
 import astropy.cosmology.units as cu
 import astropy.units as u
@@ -58,8 +58,6 @@ from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
 from astropy.table import Column, QTable, Table
 
 from .table import from_table, to_table
-
-_TableT = TypeVar("_TableT", bound=Table)
 
 
 def read_mrt(
@@ -175,13 +173,13 @@ def read_mrt(
     )
 
 
-def write_mrt(
+def write_mrt[T: Table](
     cosmo: Cosmology,
     /,
-    file: PathLike | WriteableFileLike[_TableT],
+    file: PathLike | WriteableFileLike[T],
     *,
     overwrite: bool = False,
-    cls: type[_TableT] = QTable,
+    cls: type[T] = QTable,
     **kwargs: Any,
 ):
     r"""Serialize the |Cosmology| into a MRT table.
