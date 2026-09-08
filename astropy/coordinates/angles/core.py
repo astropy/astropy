@@ -370,7 +370,7 @@ class Angle(SpecificTypeQuantity):
                 )
                 if result is not None:
                     if format == "latex":
-                        result = np.strings.add("$", np.strings.add(result, "$"))
+                        result = "$" + result + "$"
                     is_nan = np.isnan(values)
                     if is_nan.any():
                         result = np.where(is_nan, "nan", result)
