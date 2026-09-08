@@ -1707,7 +1707,7 @@ a & b & c \\
     assert np.all(dat["c"] == ["c", "e"])
 
 
-def text_aastex_no_trailing_backslash():
+def test_aastex_no_trailing_backslash():
     lines = r"""
 \begin{deluxetable}{ccc}
 \tablehead{\colhead{a} & \colhead{b} & \colhead{c}}
@@ -1720,8 +1720,8 @@ def text_aastex_no_trailing_backslash():
 """
     dat = ascii.read(lines, format="aastex")
     assert dat.colnames == ["a", "b", "c"]
-    assert np.all(dat["a"] == ["1", r"3\%"])
-    assert np.all(dat["c"] == ["c", "e"])
+    assert np.all(dat["a"] == ["1", "2", r"3\%"])
+    assert np.all(dat["c"] == ["c", "d", "e"])
 
 
 @pytest.mark.parametrize("encoding", ["utf8", "latin1", "cp1252"])
