@@ -2,7 +2,7 @@
 
 import os
 import sys
-from typing import TypeVar, overload
+from typing import overload
 
 from .base import IORegistryError, _UnifiedIORegistryBase
 
@@ -10,14 +10,12 @@ __all__ = ["UnifiedIORegistry", "UnifiedInputRegistry", "UnifiedOutputRegistry"]
 
 
 PATH_TYPES = (str, os.PathLike)  # TODO! include bytes
-T = TypeVar("T", bound=str)
-U = TypeError("U")
 
 
 @overload
-def _expand_user_in_arg0(arg0: os.PathLike[T]) -> T: ...
+def _expand_user_in_arg0[T: str](arg0: os.PathLike[T]) -> T: ...
 @overload
-def _expand_user_in_arg0(arg0: U) -> U: ...
+def _expand_user_in_arg0[T](arg0: T) -> T: ...
 def _expand_user_in_arg0(arg0):
     # Conservatively attempt to apply `os.path.expanduser` to the first
     # argument, which can be either a path or the contents of a table.
