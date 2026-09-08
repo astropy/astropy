@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from itertools import zip_longest
 from math import prod
 from types import EllipsisType
-from typing import Self, TypeVar
+from typing import Self
 
 import numpy as np
 import numpy._core as np_core
@@ -24,9 +24,6 @@ __all__ = [
     "simplify_basic_index",
     "unbroadcast",
 ]
-
-
-DT = TypeVar("DT", bound=np.generic)
 
 
 class NDArrayShapeMethods:
@@ -436,7 +433,7 @@ def check_broadcast(*shapes: tuple[int, ...]) -> tuple[int, ...]:
     return tuple(full_shape[::-1])
 
 
-def unbroadcast(array: NDArray[DT]) -> NDArray[DT]:
+def unbroadcast[DT: np.generic](array: NDArray[DT]) -> NDArray[DT]:
     """
     Given an array, return a new array that is the smallest subset of the
     original array that can be re-broadcasted back to the original array.
