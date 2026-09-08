@@ -371,13 +371,11 @@ class Angle(SpecificTypeQuantity):
                 if result is not None:
                     if format == "latex":
                         result = "$" + result + "$"
-                    is_nan = np.isnan(values)
-                    if is_nan.any():
-                        result = np.where(is_nan, "nan", result)
-                    # NumPy string ops can collapse a scalar to a 0-d string; make
-                    # sure we return a bare Python string in that case, as before.
-                    result = np.asarray(result)
-                    return result if result.ndim else result[()]
+                    # A non-finite value was formatted as "inf", which is right
+                    # for the infinities but not for NaN.  There is room for
+                    # the shorter string, so this can be done in place.
+                    result[np.isnan(values)] = "nan"
+                    return result
 
             # Cannot do vectorized formatting, continue on with per-element formatting
             func = functools.partial(
