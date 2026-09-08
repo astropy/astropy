@@ -66,32 +66,6 @@ def test_invalid_slices():
         SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, 1000.100])
 
 
-def test_negative_indices_not_supported():
-    # A negative slice start (or a negative integer index) would be silently
-    # misinterpreted by the transform as a pixel offset into the unsliced WCS,
-    # producing wrong world values. These must be rejected up front (see
-    # #15557). A negative *stop* is harmless (the transform never reads
-    # slice.stop) and must keep working. Placeholders are slice(None), not
-    # None (a bare None is an invalid slice item on its own).
-    with pytest.raises(IndexError, match="Negative indices"):
-        SlicedLowLevelWCS(
-            WCS_SPECTRAL_CUBE, [slice(-3, None), slice(None), slice(None)]
-        )
-
-    with pytest.raises(IndexError, match="Negative indices"):
-        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(-3, -1), slice(None), slice(None)])
-
-    with pytest.raises(IndexError, match="Negative indices"):
-        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(None), -5, slice(None)])
-
-    with pytest.raises(IndexError, match="Negative indices"):
-        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, -5)
-
-    # Negative stop is still accepted (unchanged behaviour).
-    wcs = SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(1, -1), slice(None), slice(None)])
-    assert isinstance(wcs, SlicedLowLevelWCS)
-
-
 @pytest.mark.parametrize(
     "item, ndim, expected",
     (
@@ -223,6 +197,64 @@ World Dim    0    1
         0  yes  yes
         1  yes  yes
 """
+
+
+def test_negative_indices():
+    # Negative slice starts/stops and negative integer indices must be
+    # resolved against the wrapped WCS's array shape (numpy semantics)
+    # instead of being misinterpreted as pixel offsets into the unsliced
+    # WCS (see #15557). WCS_SPECTRAL_CUBE has array_shape (30, 20, 10).
+    cube = WCS_SPECTRAL_CUBE
+
+    # Negative slice start: equivalent to the corresponding positive slice.
+    wcs_neg = SlicedLowLevelWCS(cube, [slice(-3, None), slice(None), slice(None)])
+    wcs_pos = SlicedLowLevelWCS(cube, [slice(27, 30), slice(None), slice(None)])
+    assert wcs_neg.array_shape == wcs_pos.array_shape
+    assert wcs_neg.array_shape == (3, 20, 10)
+    assert_allclose(
+        wcs_neg.pixel_to_world_values(2, 5, 7), wcs_pos.pixel_to_world_values(2, 5, 7)
+    )
+    assert_allclose(
+        wcs_neg.world_to_pixel_values(10, 20, 25),
+        wcs_pos.world_to_pixel_values(10, 20, 25),
+    )
+
+    # Negative slice stop: now resolved against the array shape as well.
+    wcs_negstop = SlicedLowLevelWCS(cube, [slice(1, -1), slice(None), slice(None)])
+    wcs_posstop = SlicedLowLevelWCS(cube, [slice(1, 29), slice(None), slice(None)])
+    assert wcs_negstop.array_shape == wcs_posstop.array_shape
+    assert wcs_negstop.array_shape == (28, 20, 10)
+
+    # Negative integer index (dropped axis): equivalent to its positive twin.
+    wcs_ninti = SlicedLowLevelWCS(cube, [slice(None), slice(None), -1])
+    wcs_posi = SlicedLowLevelWCS(cube, [slice(None), slice(None), 9])
+    assert_allclose(
+        wcs_ninti.pixel_to_world_values(2, 5), wcs_posi.pixel_to_world_values(2, 5)
+    )
+
+    # Out-of-bounds negative integer index is rejected like numpy.
+    with pytest.raises(IndexError, match="out of bounds"):
+        SlicedLowLevelWCS(cube, [-31])
+
+    # A WCS without array_shape cannot resolve negative values.
+    with pytest.raises(IndexError, match="Negative indices"):
+        SlicedLowLevelWCS(
+            WCS_NO_SHAPE_CUBE, [slice(None), slice(None), slice(-3, None)]
+        )
+    with pytest.raises(IndexError, match="Negative indices"):
+        SlicedLowLevelWCS(WCS_NO_SHAPE_CUBE, [slice(None), slice(None), -5])
+
+
+def test_nested_negative_stop_array_shape():
+    # Nested slicing with a negative stop must combine into the correct
+    # absolute slice rather than collapsing to an empty window (see #15557).
+    inner = SlicedLowLevelWCS(
+        WCS_SPECTRAL_CUBE, [slice(10, 30), slice(2, 17), slice(None)]
+    )
+    assert inner.array_shape == (20, 15, 10)
+    outer = SlicedLowLevelWCS(inner, [slice(1, -1), slice(1, -1), slice(None)])
+    # [1:-1] of the inner (20, 15) window is absolute [11:29] and [3:16].
+    assert outer.array_shape == (18, 13, 10)
 
 
 def test_spectral_slice():

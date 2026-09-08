@@ -50,18 +50,7 @@ def sanitize_slices(slices, ndim):
             if isinstance(slc, slice):
                 if slc.step and slc.step != 1:
                     raise IndexError("Slicing WCS with a step is not supported.")
-                if slc.start is not None and slc.start < 0:
-                    raise IndexError(
-                        "Negative indices are not supported when slicing a WCS; "
-                        "a negative start would be misinterpreted as a pixel "
-                        "offset into the (unsliced) WCS."
-                    )
-            elif isinstance(slc, numbers.Integral):
-                if slc < 0:
-                    raise IndexError(
-                        "Negative indices are not supported when slicing a WCS."
-                    )
-            else:
+            elif not isinstance(slc, numbers.Integral):
                 raise IndexError("Only integer or range slices are accepted.")
         else:
             slices.append(slice(None))
@@ -112,6 +101,50 @@ def combine_slices(slice1, slice2):
     return slice(start, stop)
 
 
+def _normalize_slices(slices, array_shape):
+    """
+    Resolve negative slice starts/stops and negative integer indices against
+    the wrapped WCS's ``array_shape``.
+
+    The slice transforms treat ``slice.start`` and integer indices as absolute
+    pixel offsets into the underlying (unsliced) WCS, so negative values would
+    be silently misinterpreted. When the wrapped WCS knows its
+    ``array_shape`` the values are resolved with numpy semantics: slices via
+    ``slice(*slc.indices(n))`` and negative integer indices as ``i + n``
+    (out-of-bounds raises ``IndexError``). Resolving before the slices are
+    combined also keeps ``combine_slices`` correct for nested slicing with
+    negative stops. When ``array_shape`` is None the negative values cannot be
+    resolved and are rejected.
+    """
+    if array_shape is None:
+        for slc in slices:
+            if isinstance(slc, slice):
+                if slc.start is not None and slc.start < 0:
+                    raise IndexError(
+                        "Negative indices are not supported when slicing a WCS; "
+                        "a negative start would be misinterpreted as a pixel "
+                        "offset into the (unsliced) WCS."
+                    )
+            elif isinstance(slc, numbers.Integral) and slc < 0:
+                raise IndexError(
+                    "Negative indices are not supported when slicing a WCS."
+                )
+        return slices
+
+    normalized = []
+    for n, slc in zip(array_shape, slices):
+        if isinstance(slc, slice):
+            normalized.append(slice(*slc.indices(n)[:2]))
+        elif isinstance(slc, numbers.Integral) and slc < 0:
+            value = slc + n
+            if not 0 <= value < n:
+                raise IndexError(f"index {slc} is out of bounds for axis with size {n}")
+            normalized.append(value)
+        else:
+            normalized.append(slc)
+    return normalized
+
+
 class SlicedLowLevelWCS(BaseWCSWrapper):
     """
     A Low Level WCS wrapper which applies an array slice to a WCS.
@@ -132,6 +165,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
 
     def __init__(self, wcs, slices):
         slices = sanitize_slices(slices, wcs.pixel_n_dim)
+        slices = _normalize_slices(slices, wcs.array_shape)
 
         if isinstance(wcs, SlicedLowLevelWCS):
             # Here we combine the current slices with the previous slices

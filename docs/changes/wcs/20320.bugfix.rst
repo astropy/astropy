@@ -1,4 +1,6 @@
-Fixing the slicing of ``SlicedLowLevelWCS`` now raises ``IndexError`` when a
-negative slice start or a negative integer index is passed, instead of
-silently computing incorrect world coordinates. Negative slice stops remain
-supported as before.
+Slicing a WCS now resolves negative slice starts, negative slice stops,
+and negative integer indices against the wrapped WCS's ``array_shape``
+(numpy indexing semantics) instead of silently misinterpreting them as
+pixel offsets into the unsliced WCS. When the wrapped WCS has no
+``array_shape``, negative values still raise ``IndexError``, and
+out-of-bounds negative integer indices raise ``IndexError``.
