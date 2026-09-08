@@ -1,0 +1,1 @@
+``world_to_pixel`` on a sliced FITS WCS with a single remaining pixel axis now accepts a single high-level world object when the corresponding world axis is linear, instead of requiring every coupled world object.
