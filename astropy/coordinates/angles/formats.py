@@ -495,14 +495,16 @@ def _normalize_sep(sep, fields):
 
 
 def _decimal_to_sexagesimal_string_array(
-    angle, precision=None, pad=False, sep=(":",), fields=3
+    angle, precision=None, pad=False, sep=(":",), fields=3, alwayssign=False
 ):
     """Vectorized equivalent of `_decimal_to_sexagesimal_string`.
 
     The sexagesimal fields come from ERFA, which rounds them and carries
     between them, and the strings are then assembled from a format template
     with array operations.  This is much faster than looping
-    `_decimal_to_sexagesimal_string` over the elements.
+    `_decimal_to_sexagesimal_string` over the elements.  The sign comes from
+    ERFA along with the fields, so ``alwayssign`` is dealt with here rather
+    than with another pass over the strings.
 
     Returns ``None`` when the array cannot be handled this way, so that the
     caller can fall back to the per-element path: on NumPy < 2.1 (where
@@ -528,7 +530,12 @@ def _decimal_to_sexagesimal_string_array(
     if angle.size and np.abs(angle).max() >= _ERFA_MAX_FIELD:
         return None
 
-    _, parts = erfa.d2tf(_COARSE_RESOLUTION.get(fields, ndp), angle / 24.0)
+    sign, parts = erfa.d2tf(_COARSE_RESOLUTION.get(fields, ndp), angle / 24.0)
+    sign = np.asarray(sign).astype("U1")
+    # ERFA gives "+" for a negative zero, which has always been given a "-".
+    sign[negative] = "-"
+    if not alwayssign:
+        sign[sign == "+"] = ""
 
     # The leading field has a variable number of digits, so it is written to
     # its own column and stripped, rather than going into the template.
@@ -546,7 +553,7 @@ def _decimal_to_sexagesimal_string_array(
     if not finite.all():
         # Not in place: "inf" needs a wider dtype.
         out = np.where(finite, out, "inf")
-    out = np.where(negative, "-", "") + out
+    out = sign + out
 
     template = sep[0]
     if fields >= 2:

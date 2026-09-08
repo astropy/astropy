@@ -361,15 +361,14 @@ class Angle(SpecificTypeQuantity):
             # handful of values the plain loop is quicker.
             if values.size > _VECTORIZE_MIN_SIZE:
                 result = formats._decimal_to_sexagesimal_string_array(
-                    values, precision=precision, sep=sep, pad=pad, fields=fields
+                    values,
+                    precision=precision,
+                    sep=sep,
+                    pad=pad,
+                    fields=fields,
+                    alwayssign=alwayssign,
                 )
                 if result is not None:
-                    if alwayssign:
-                        result = np.where(
-                            np.strings.startswith(result, "-"),
-                            result,
-                            np.strings.add("+", result),
-                        )
                     if format == "latex":
                         result = np.strings.add("$", np.strings.add(result, "$"))
                     is_nan = np.isnan(values)
