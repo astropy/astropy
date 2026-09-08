@@ -116,13 +116,6 @@ def _split_outside_braces(line: str, delimiter: str = "&") -> list[str]:
     do not open or close a group and ``\&`` is not a separator.  An unmatched
     ``}`` is ignored rather than driving the nesting depth negative.
     """
-    # Fast path: a plain split is correct unless the delimiter is escaped or
-    # could occur after an opening brace.
-    if "\\" + delimiter not in line:
-        first_brace = line.find("{")
-        if first_brace == -1 or line.find(delimiter, first_brace) == -1:
-            return line.split(delimiter)
-
     vals = []
     start = 0
     depth = 0
