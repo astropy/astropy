@@ -210,9 +210,10 @@ class TestCompressedImage(FitsTestCase):
 
         array = np.arange(100.0).reshape(10, 10)
         hdu = fits.CompImageHDU(data=array, quantize_method=NO_DITHER)
-        hdu.writeto(self.temp("test.fits"))
+        outfile = self.temp("test.fits")
+        hdu.writeto(outfile)
 
-        with fits.open(self.temp("test.fits")) as hdul:
+        with fits.open(outfile) as hdul:
             comp_header = hdul[1]._bintable.header
             assert "ZQUANTIZ" not in comp_header
             assert "ZDITHER0" not in comp_header
