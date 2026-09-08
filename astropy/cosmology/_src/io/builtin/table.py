@@ -151,7 +151,6 @@ not match the class' parameter names.
 """
 
 from collections.abc import Mapping
-from typing import TypeVar
 
 import numpy as np
 
@@ -163,8 +162,6 @@ from astropy.table import Column, QTable, Table
 from .mapping import to_mapping
 from .row import from_row
 from .utils import convert_parameter_to_column
-
-_TableT = TypeVar("_TableT", bound=Table)
 
 
 def from_table(
@@ -336,13 +333,13 @@ def from_table(
     return from_row(row, move_to_meta=move_to_meta, cosmology=cosmology, rename=rename)
 
 
-def to_table(
+def to_table[T: Table](
     cosmology: Cosmology,
     *args: object,
-    cls: type[_TableT] = QTable,
+    cls: type[T] = QTable,
     cosmology_in_meta: bool = True,
     rename: Mapping[str, str] | None = None,
-) -> _TableT:
+) -> T:
     """Serialize the cosmology into a `~astropy.table.QTable`.
 
     Parameters

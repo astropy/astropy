@@ -5,7 +5,7 @@ __all__: tuple[str, ...] = ()  # nothing is publicly scoped
 import functools
 from collections.abc import Callable
 from numbers import Number
-from typing import Any, Final, ParamSpec, Protocol, TypeVar, overload
+from typing import Any, Final, ParamSpec, Protocol, overload
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -19,7 +19,6 @@ import astropy.cosmology._src.units as cu
 from .signature_deprecations import _depr_kws_wrap
 
 P = ParamSpec("P")
-R = TypeVar("R")
 
 type ScalarTypes = Number | np.generic
 SCALAR_TYPES: Final = (float, int, np.generic, Number)  # arranged for speed
@@ -114,7 +113,7 @@ def aszarr(
 # ===================================================================
 
 
-def deprecated_keywords(
+def deprecated_keywords[R](
     *kws: str, since: str | tuple[str, ...]
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Deprecate calling one or more arguments as keywords.
@@ -131,7 +130,7 @@ def deprecated_keywords(
     return functools.partial(_depr_kws, kws=kws, since=since)
 
 
-def _depr_kws(
+def _depr_kws[R](
     func: Callable[P, R], /, kws: tuple[str, ...], since: str | tuple[str, ...]
 ) -> Callable[P, R]:
     wrapper = _depr_kws_wrap(func, kws, since)

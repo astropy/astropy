@@ -131,13 +131,11 @@ __all__: list[str] = []  # nothing is publicly scoped
 import copy
 import inspect
 from collections.abc import Mapping, MutableMapping
-from typing import Any, TypeVar
+from typing import Any
 
 from astropy.cosmology._src.core import _COSMOLOGY_CLASSES, Cosmology
 from astropy.cosmology._src.io.connect import convert_registry
 from astropy.cosmology._src.typing import _CosmoT
-
-_MapT = TypeVar("_MapT", bound=MutableMapping[str, Any])
 
 
 def _rename_map(
@@ -296,14 +294,14 @@ def from_mapping(
     return cosmology(*ba.args, **ba.kwargs)
 
 
-def to_mapping(
+def to_mapping[T: MutableMapping[str, Any]](
     cosmology: Cosmology,
     *args: object,
-    cls: type[_MapT] = dict,
+    cls: type[T] = dict,
     cosmology_as_str: bool = False,
     move_from_meta: bool = False,
     rename: Mapping[str, str] | None = None,
-) -> _MapT:
+) -> T:
     """Return the cosmology class, parameters, and metadata as a `dict`.
 
     Parameters
