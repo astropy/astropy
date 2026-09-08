@@ -1559,6 +1559,11 @@ class _NLLSQFitter(_NonLinearLSQFitter):
         parameter while fitting via a simple min/max condition. A True setting
         will replicate how LevMarLSQFitter enforces bounds.
         Default: False
+    x_scale : array-like or {"jac"}, optional
+        Characteristic scale of each fitted parameter passed to 
+        'scipy.optimize.least_squares'. If "jac", the scale is iteratively
+        updated using the inverse norms of the Jacobian columns. If 'None',
+        the existing optimizer default is retained.
 
     Attributes
     ----------
@@ -1657,11 +1662,6 @@ class TRFLSQFitter(_NLLSQFitter):
     calc_uncertainties : bool
         If the covariance matrix should be computed and set in the fit_info.
         Default: False
-    x_scale : array-like or {"jac"}, optional
-        Characteristic scale of each fitted parameter passed to
-        `scipy.optimize.least_squares`. If "jac", the scale is iteratively
-        updated using the inverse norms of the Jacobian columns. If `None`,
-        the existing optimizer default is retained.
 
     Attributes
     ----------
