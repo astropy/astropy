@@ -1724,6 +1724,98 @@ def test_aastex_no_trailing_backslash():
     assert np.all(dat["c"] == ["c", "d", "e"])
 
 
+def test_latex_ampersand_in_braces():
+    """
+    Ampersand inside a {...} group is not a column separator (issue #6360).
+    """
+    lines = r"""
+\begin{table}
+\begin{tabular}{ccc}
+First & Second & Ref\\
+1 & 2 & \cite{other_ref}\\
+11 & 22 & \cite{2013A&A...558A..33A}\\
+\end{tabular}
+\end{table}
+"""
+    dat = ascii.read(lines, format="latex")
+    assert dat.colnames == ["First", "Second", "Ref"]
+    assert np.all(dat["First"] == [1, 11])
+    assert np.all(dat["Second"] == [2, 22])
+    assert np.all(dat["Ref"] == [r"\cite{other_ref}", r"\cite{2013A&A...558A..33A}"])
+
+
+def test_latex_ampersand_in_braces_header_and_nested():
+    """
+    Braced ampersand in a header cell, nested braces, and a braced group that
+    spans the whole cell (outer braces are stripped as before).
+    """
+    lines = r"""
+\begin{tabular}{ccc}
+{A & B} & \textbf{\cite{A&B}} & C\\
+1 & \textbf{\cite{X&Y}} & {x & y}\\
+\end{tabular}
+"""
+    dat = ascii.read(lines, format="latex")
+    assert dat.colnames == ["A & B", r"\textbf{\cite{A&B}}", "C"]
+    assert dat[r"\textbf{\cite{A&B}}"][0] == r"\textbf{\cite{X&Y}}"
+    assert dat["C"][0] == "x & y"
+
+
+def test_aastex_ampersand_in_braces():
+    r"""
+    Braced ampersand in an AASTex \colhead{} and in a data cell.
+    """
+    lines = r"""
+\begin{deluxetable}{cc}
+\tablehead{\colhead{\cite{A&B}} & \colhead{Ref}}
+\startdata
+1 & \cite{2013A&A...558A..33A}\\
+\enddata
+\end{deluxetable}
+"""
+    dat = ascii.read(lines, format="aastex")
+    assert dat.colnames == [r"\cite{A&B}", "Ref"]
+    assert dat["Ref"][0] == r"\cite{2013A&A...558A..33A}"
+
+
+def test_latex_escaped_braces_and_ampersand():
+    r"""
+    Escaped \{ and \} do not open or close a group, and escaped \& is not a
+    separator.
+    """
+    lines = r"""
+\begin{tabular}{cc}
+a & b\\
+x \{ & y\\
+\} x & y\\
+x \& y & z\\
+\end{tabular}
+"""
+    dat = ascii.read(lines, format="latex")
+    assert dat.colnames == ["a", "b"]
+    assert np.all(dat["a"] == [r"x \{", r"\} x", r"x \& y"])
+    assert np.all(dat["b"] == ["y", "y", "z"])
+
+
+def test_latex_process_val_none_keeps_ampersand():
+    """
+    With the documented ``process_val`` hook disabled, values are the raw split
+    text with any braced ampersand intact.
+    """
+    lines = r"""
+\begin{tabular}{cc}
+a & b\\
+\cite{A&B} & xy\\
+\end{tabular}
+"""
+    reader = ascii.get_reader(reader_cls=ascii.Latex)
+    reader.data.splitter.process_val = None
+    dat = reader.read(lines)
+    assert dat.colnames == ["a", "b"]
+    assert dat["a"][0] == r"\cite{A&B} "
+    assert dat["b"][0] == " xy"
+
+
 @pytest.mark.parametrize("encoding", ["utf8", "latin1", "cp1252"])
 def test_read_with_encoding(tmp_path, encoding):
     data = {"commented_header": "# à b è \n 1 2 héllo", "csv": "à,b,è\n1,2,héllo"}
