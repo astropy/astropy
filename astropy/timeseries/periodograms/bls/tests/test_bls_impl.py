@@ -1,7 +1,6 @@
 """Tests for the BLS C-extension."""
 
 from dataclasses import dataclass
-from typing import TypeAlias
 
 import numpy as np
 import numpy.typing as npt
@@ -9,7 +8,7 @@ import pytest
 
 from astropy.timeseries.periodograms.bls._impl import bls_impl
 
-_F64Array: TypeAlias = npt.NDArray[np.float64]
+type _F64Array = npt.NDArray[np.float64]
 
 
 @dataclass(kw_only=True, slots=True, frozen=True)

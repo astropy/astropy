@@ -5,7 +5,7 @@ __all__: tuple[str, ...] = ()  # nothing is publicly scoped
 import functools
 from collections.abc import Callable
 from numbers import Number
-from typing import Any, Final, ParamSpec, Protocol, TypeAlias, TypeVar, overload
+from typing import Any, Final, ParamSpec, Protocol, TypeVar, overload
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -21,10 +21,10 @@ from .signature_deprecations import _depr_kws_wrap
 P = ParamSpec("P")
 R = TypeVar("R")
 
-ScalarTypes: TypeAlias = Number | np.generic
+type ScalarTypes = Number | np.generic
 SCALAR_TYPES: Final = (float, int, np.generic, Number)  # arranged for speed
 
-RedshiftMethod: TypeAlias = Callable[P, FArray]
+type RedshiftMethod[**P] = Callable[P, FArray]
 
 
 @overload  # Method
