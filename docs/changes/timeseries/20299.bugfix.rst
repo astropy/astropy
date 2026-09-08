@@ -1,0 +1,2 @@
+Fixed ``aggregate_downsample()`` when the TimeSeries object is a subset of
+columns in the form of ``ts["time", "col1", "col2", ...]``.
