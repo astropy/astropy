@@ -252,7 +252,7 @@ class Attribute:
 
                 converted = True
 
-            if converted:
+            if converted and not imposed_value:
                 setattr(instance, "_" + self.name, out)
 
         return out
