@@ -6,7 +6,7 @@ This module includes helper functions for array operations.
 import functools
 from collections.abc import Callable
 from copy import deepcopy
-from typing import Literal, TypeVar, overload
+from typing import Literal, overload
 
 import numpy as np
 from numpy.typing import NDArray
@@ -28,8 +28,6 @@ __all__ = [
     "subpixel_indices",
 ]
 
-
-DT = TypeVar("DT", bound=np.generic)
 type LimitRoundingMethod = Callable[[float], float]
 
 
@@ -180,7 +178,7 @@ def overlap_slices(
 
 
 @overload
-def extract_array(
+def extract_array[DT: np.generic](
     array_large: NDArray[DT],
     shape: int | tuple[int, ...],
     position: float | tuple[float, ...],
@@ -193,7 +191,7 @@ def extract_array(
 
 
 @overload
-def extract_array(
+def extract_array[DT: np.generic](
     array_large: NDArray[DT],
     shape: int | tuple[int, ...],
     position: float | tuple[float, ...],
@@ -328,7 +326,7 @@ def extract_array(
         return extracted_array
 
 
-def add_array(
+def add_array[DT: np.generic](
     array_large: NDArray[DT],
     array_small: NDArray[DT],
     position: tuple[float, ...],
