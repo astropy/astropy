@@ -1062,6 +1062,8 @@ class TableIndices(list):
         item : int, str, tuple, or list
             Position in list or name(s) of indexed column(s)
         """
+        if item is None:
+            raise ValueError("Table has no primary key or index specified")
         if isinstance(item, str):
             item = [item]
         if isinstance(item, (list, tuple)):
@@ -1152,6 +1154,8 @@ class TableLoc:
                 index_id, item = interpret_item_as_index_id_and_item(item)
             else:
                 index_id = self.table.primary_key
+                if index_id is None and len(self.indices) == 1:
+                    index_id = tuple(col.info.name for col in self.indices[0].columns)
         return index_id, item
 
     def _get_row_idxs_as_list(

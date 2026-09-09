@@ -1,0 +1,1 @@
+Fix `aggregate_downsample` failing with `TypeError` on `TimeSeries` sliced by column names, and preserve `primary_key` when slicing tables with all key columns retained.
