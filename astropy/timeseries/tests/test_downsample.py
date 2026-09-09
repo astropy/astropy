@@ -434,3 +434,55 @@ def test_time_precision_limit(diff_from_base):
     # ensure in the converted relative time,
     # t2 and t3 can still be correctly compared
     assert r_t3 > r_t2
+
+
+@pytest.mark.parametrize(
+    "bin_kwargs",
+    [
+        dict(time_bin_start=INPUT_TIME[:-1:2], time_bin_end=INPUT_TIME[1::2]),
+        dict(time_bin_size=2 * u.s),
+    ],
+    ids=["explicit_bins", "auto_bins"],
+)
+@pytest.mark.parametrize(
+    "masked_index", [None, 0, 2, -1], ids=["nomask", "first", "mid", "last"]
+)
+def test_downsample_with_masked_time(masked_index, bin_kwargs):
+    """Downsampling works for a masked ``time`` column.
+
+    Rows with a masked time must not fall in any bin, nor affect the automatic
+    bin edges. A masked ``Time`` in which nothing is actually masked gives the
+    same result as a plain ``Time``.
+    """
+    mask = np.zeros(len(INPUT_TIME), dtype=bool)
+    if masked_index is not None:
+        mask[masked_index] = True
+    # Setting elements to np.ma.masked gives a masked Time, even if the
+    # index selects nothing (this is how BoxLeastSquares ends up returning
+    # a masked transit_time in which nothing is masked).
+    time = INPUT_TIME.copy()
+    time[mask] = np.ma.masked
+    assert time.masked
+    assert_equal(time.mask, mask)
+
+    values = np.arange(len(INPUT_TIME), dtype=float)
+    ts = TimeSeries(time=time, data=[values], names=["a"])
+    down = aggregate_downsample(ts, **bin_kwargs)
+
+    # Reference result from the same data with the masked row removed.
+    ts_ref = TimeSeries(time=INPUT_TIME[~mask], data=[values[~mask]], names=["a"])
+    down_ref = aggregate_downsample(ts_ref, **bin_kwargs)
+    assert len(down) == len(down_ref)
+    assert_masked_equal(down["a"], down_ref["a"])
+    assert_equal(down.time_bin_start.jd, down_ref.time_bin_start.jd)
+    assert_equal(down.time_bin_size, down_ref.time_bin_size)
+
+
+def test_downsample_with_masked_bin_edges():
+    ts = TimeSeries(time=INPUT_TIME, data=[np.ones(len(INPUT_TIME))], names=["a"])
+    time_bin_start = INPUT_TIME[:-1:2].copy()
+    time_bin_start[1] = np.ma.masked
+    with pytest.raises(ValueError, match="'time_bin_start' must not contain masked"):
+        aggregate_downsample(
+            ts, time_bin_start=time_bin_start, time_bin_end=INPUT_TIME[1::2]
+        )
