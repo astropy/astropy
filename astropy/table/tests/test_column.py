@@ -467,9 +467,11 @@ class TestColumn:
         assert col.fill_value == "N/A"
         assert col.dtype.kind == "U"
         # The following used to blow up with TypeError
-        result = np.strings.find(col, "foo")
-
-        assert result.fill_value != "N/A"
+        if NUMPY_LT_2_0:
+            result = np.char.find(col, "foo")
+        else:
+            result = np.strings.find(col, "foo")
+            assert result.fill_value != "N/A"
         assert result.dtype.kind == "i"
         assert result[0] == 0  # "foo" is found at index 0
 
