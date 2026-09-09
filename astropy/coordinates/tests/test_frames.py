@@ -102,13 +102,16 @@ def test_frame_attribute_descriptor():
 def test_impose_nested_obstime():
     imposed_obstime = Time("2012-01-01T00:00:00")
 
-    coo1 = GCRS(obstime="2026-01-01T00:00:00")
+    ori_obstime = "2026-01-01T00:00:00"
+    coo1 = GCRS(obstime=ori_obstime)
 
     assert coo1 != imposed_obstime
 
     with impose_frame_attributes(obstime="2020-01-01T00:00:00"):
         with impose_frame_attributes(obstime=imposed_obstime):
             assert coo1.obstime == imposed_obstime
+
+    assert coo1.obstime == ori_obstime
 
 
 def test_altaz_transform_with_imposed_obstime():
@@ -162,6 +165,16 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.equinox.value == "J1980.000"
     assert mfk4.obstime.value == "J1990.000"
     assert mfk4.newattr == "world"
+
+
+def test_impose_restores_frame_attribute():
+    coo = GCRS(obstime="2026-01-01T00:00:00")
+    original_obstime = coo.obstime
+
+    with impose_frame_attributes(obstime="2020-01-01T00:00:00"):
+        assert coo.obstime == Time("2020-01-01T00:00:00")
+
+    assert coo.obstime == original_obstime
 
 
 def test_frame_multiple_inheritance_attribute_descriptor():
