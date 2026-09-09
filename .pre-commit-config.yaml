@@ -15,7 +15,7 @@ repos:
             cextern/expat/lib/xmlparse.c|\
             cextern/wcslib/C/flexed/.*|\
             CHANGES.rst|\
-        )$"
+          )$"
         # Prevent giant files from being committed.
       - id: check-case-conflict
         # Check for files with names that would conflict on a case-insensitive
@@ -59,7 +59,7 @@ repos:
         # Forbid files which have a UTF-8 Unicode replacement character.
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.29.0
+    rev: v1.30.1
     hooks:
     - id: zizmor
 
