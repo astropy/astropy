@@ -448,3 +448,19 @@ def test_downsample_subset_columns():
     assert ts_sub.primary_key == ("time",)
     binned = aggregate_downsample(ts_sub, n_bins=2)
     assert len(binned) == 2
+
+
+def test_downsample_folded_timeseries_with_new_columns():
+    # Verify downsample works on a folded timeseries after adding/modifying columns
+    ts = TimeSeries(
+        time=Time(np.arange(2450000, 2450005), format="jd"),
+        data=[[1, 2, 3, 4, 5]],
+        names=["a"],
+    )
+    ts_folded = ts.fold(period=1 * u.day)
+    ts_folded["norm_a"] = ts_folded["a"] / 2.0
+    assert len(ts_folded.indices) == 1
+    assert ts_folded.primary_key == ("time",)
+    binned = aggregate_downsample(ts_folded, n_bins=2)
+    assert len(binned) == 2
+
