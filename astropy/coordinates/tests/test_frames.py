@@ -1793,3 +1793,13 @@ def test_base_coordinate_frame_annotations():
     assert "default_differential" in hints
     assert "frame_specific_representation_info" in hints
     assert "frame_attributes" in hints
+
+
+def test_replicate_without_data():
+    location = EarthLocation(0 * u.deg, 0 * u.deg, 0 * u.m)
+    frame = AltAz(location=location)
+
+    obstime = Time("2010-01-01T00:00:00")
+    frame_at_obstime = frame.replicate(obstime=obstime, copy=False)
+    assert frame_at_obstime.location == location
+    assert frame_at_obstime.obstime == obstime
