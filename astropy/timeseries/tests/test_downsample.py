@@ -463,4 +463,3 @@ def test_downsample_folded_timeseries_with_new_columns():
     assert ts_folded.primary_key == ("time",)
     binned = aggregate_downsample(ts_folded, n_bins=2)
     assert len(binned) == 2
-
