@@ -14,6 +14,7 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
 from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.modeling.fitting import _verify_dims_in_fitting
 
 # Fitting should be as intuitive as possible to the user. Essentially, models
 # and fitting should work without units, but if one has units, the other should
@@ -305,3 +306,20 @@ def test_fitting_model_pipe_with_units(fitter):
     res = fit(comb, e, fake_data)
     for name in comb.param_names:
         assert getattr(comb, name) == getattr(res, name)
+
+def test_verify_dims_in_fitting_survives_unit_stripping():
+    """
+    ``CompoundModel.without_units_for_data`` rebuilds the compound node, so an
+    opt-out is only preserved because it is resolved from the leaves.
+    """
+
+    class OptOutGaussian1D(models.Gaussian1D):
+        verify_dims_in_fitting = False
+
+    compound = OptOutGaussian1D(1 * u.Jy, 1 * u.um, 0.1 * u.um) * models.Const1D(1.0)
+    assert not _verify_dims_in_fitting(compound)
+
+    stripped = compound.without_units_for_data(x=[1, 2] * u.um, y=[1, 2] * u.Jy, z=None)
+    if isinstance(stripped, tuple):  # compound models also return the leaf kwargs
+        stripped = stripped[0]
+    assert not _verify_dims_in_fitting(stripped)
