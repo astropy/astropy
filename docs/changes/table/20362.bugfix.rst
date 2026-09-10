@@ -1,0 +1,5 @@
+A table built from columns that carry an index, such as a column-name slice
+``t[["a", "b"]]`` or ``Table([t["a"]])``, now gets that index as its primary key,
+so that ``loc`` and ``iloc`` work as they do on the original table. As a
+consequence, ``to_pandas`` on such a table uses the primary key column as the
+``DataFrame`` index by default, as it already did for the original table.
