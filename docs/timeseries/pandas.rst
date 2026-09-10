@@ -36,7 +36,7 @@ Consider a concise example starting from a :class:`~pandas.DataFrame`:
     >>> df = pandas.DataFrame()
     >>> df['a'] = [1, 2, 3]
     >>> times = np.array(['2015-07-04', '2015-07-05', '2015-07-06'], dtype=np.datetime64)
-    >>> df.set_index(pandas.DatetimeIndex(times), inplace=True)
+    >>> df = df.set_index(pandas.DatetimeIndex(times))
     >>> df
         a
     2015-07-04  1
