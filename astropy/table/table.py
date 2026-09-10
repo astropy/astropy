@@ -1523,6 +1523,13 @@ class Table:
                 else:
                     index_dict[names] = index
 
+        # Columns that were copied from an indexed table carry their indices
+        # along (e.g. ``t[["a", "b"]]`` or ``Table([t["a"]])``), but nothing has
+        # set the primary key yet.  Follow ``add_index()`` and make the first
+        # index the primary one so that ``loc``, ``iloc`` etc. work.
+        if self.primary_key is None and index_dict:
+            self.primary_key = next(iter(index_dict))
+
     def _new_from_slice(self, slice_):
         """Create a new table as a referenced slice from self."""
         table = self.__class__(masked=self.masked)
@@ -2118,6 +2125,10 @@ class Table:
                 out, indices=self.groups._indices, keys=self.groups._keys
             )
             out.meta = self.meta.copy()  # Shallow copy for meta
+            # Keep the primary key if its index survived the slice, otherwise
+            # the first remaining index (if any) has been made primary.
+            if self.primary_key in [index.id for index in out.indices]:
+                out.primary_key = self.primary_key
             return out
         elif (isinstance(item, np.ndarray) and item.size == 0) or (
             isinstance(item, (tuple, list)) and not item

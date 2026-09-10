@@ -1176,3 +1176,38 @@ def test_loc_range_sorted_after_add_row(engine):
     assert t.loc[2:8]["a"].tolist() == [2, 3, 4, 5, 6, 7, 8]
     assert t.loc[2:8]["b"].tolist() == [20, 30, 40, 50, 60, 70, 80]
     assert t.loc[:]["a"].tolist() == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+
+def test_primary_key_from_copied_indices():
+    """Test that a table built from indexed columns gets a primary key.
+
+    Column slices and ``Table([col])`` copy the indices of the input columns
+    but did not set ``primary_key``, so ``loc``/``iloc`` failed with a
+    TypeError (see #20297).
+    """
+    t = Table({"a": [3, 1, 2], "b": [4, 5, 6]})
+    t.add_index("a")
+
+    t2 = t[["a", "b"]]
+    assert [index.id for index in t2.indices] == [("a",)]
+    assert t2.primary_key == ("a",)
+    assert t2.loc[1]["b"] == 5
+    assert list(t2.iloc[:]["a"]) == [1, 2, 3]
+
+    # No index survives when the indexed column is dropped
+    t3 = t[["b"]]
+    assert len(t3.indices) == 0
+    assert t3.primary_key is None
+
+    t4 = Table([t["a"]])
+    assert t4.primary_key == ("a",)
+    assert t4.loc[2]["a"] == 2
+    assert repr(t4.loc) == f"<TableLoc index_id='a' id(table)={id(t4)}>"
+
+    # A column slice keeps the primary key of the parent table if that index
+    # survived; otherwise the first remaining index becomes primary as in
+    # add_index().
+    t.add_index("b")
+    assert t[["b", "a"]].primary_key == ("a",)
+    assert t[["b"]].primary_key == ("b",)
+    assert Table([t["b"], t["a"]]).primary_key == ("b",)
