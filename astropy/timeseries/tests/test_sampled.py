@@ -323,7 +323,7 @@ def test_pandas():
 
     df1 = pandas.DataFrame()
     df1["a"] = [1, 2, 3]
-    df1.set_index(pandas.DatetimeIndex(INPUT_TIME.datetime64), inplace=True)
+    df1 = df1.set_index(pandas.DatetimeIndex(INPUT_TIME.datetime64))
 
     ts = TimeSeries.from_pandas(df1)
     assert_equal(ts.time.isot, INPUT_TIME.isot)
