@@ -2,11 +2,12 @@
 
 from datetime import datetime
 
+import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
-from astropy.table import Column, Table
+from astropy.table import Column, QTable, Table
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms import BoxLeastSquares, LombScargle
@@ -517,3 +518,50 @@ def test_periodogram(cls):
 
     p3 = cls.from_timeseries(ts, "a", uncertainty=0.1)
     assert_allclose(p3.dy, 0.1)
+
+
+def test_time_index_from_indexed_time_column():
+    # Regression test for #11704: initializing from the ``time`` column of
+    # another TimeSeries carries that column's index along, which must not
+    # prevent it from becoming the primary key.
+    ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3]], names=["a"])
+
+    ts2 = TimeSeries(time=ts.time)
+    assert [index.id for index in ts2.indices] == [("time",)]
+    assert ts2.primary_key == ("time",)
+    assert_equal(ts2.iloc[:].time.isot, np.sort(INPUT_TIME.isot))
+
+    ts3 = TimeSeries(QTable([ts["time"], ts["a"]]))
+    assert [index.id for index in ts3.indices] == [("time",)]
+    assert ts3.primary_key == ("time",)
+    assert_equal(ts3.iloc[:]["a"], [2, 10, 3])
+
+
+def test_time_index_with_indexed_data_column():
+    # A data column carrying its own index does not stop a time index from
+    # being created, and time is still the primary key.
+    qt = QTable({"time": INPUT_TIME, "a": [10, 2, 3]})
+    qt.add_index("a")
+
+    ts = TimeSeries([qt["time"], qt["a"]])
+    assert [index.id for index in ts.indices] == [("time",), ("a",)]
+    assert ts.primary_key == ("time",)
+    assert_equal(ts.iloc[:]["a"], [2, 10, 3])
+
+    # Folding rebuilds the time column and its index; the second index
+    # must not get in the way.
+    ts_folded = ts.fold(period=1 * u.day)
+    assert [index.id for index in ts_folded.indices] == [("time",), ("a",)]
+    assert ts_folded.primary_key == ("time",)
+
+
+def test_column_slice_with_multi_column_time_index():
+    # A multi-column index involving ``time`` is carried along by a column
+    # slice; the slice must still get a single-column primary index on time.
+    ts = TimeSeries(time=INPUT_TIME, data=[[10, 2, 3]], names=["a"])
+    ts.add_index(["time", "a"])
+
+    ts_sub = ts["time", "a"]
+    assert ts_sub.primary_key == ("time",)
+    assert ("time",) in [index.id for index in ts_sub.indices]
+    assert_equal(ts_sub.iloc[:]["a"], [2, 10, 3])

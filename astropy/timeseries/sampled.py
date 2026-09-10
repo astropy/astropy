@@ -298,8 +298,8 @@ class TimeSeries(BaseTimeSeries):
         """
         # Note that the docstring is inherited from QTable
         result = super().add_column(*args, **kwargs)
-        if len(self.indices) == 0 and "time" in self.colnames:
-            self.add_index("time")
+        if "time" in self.colnames:
+            self._add_primary_index("time")
         return result
 
     def add_columns(self, *args, **kwargs):
@@ -308,8 +308,8 @@ class TimeSeries(BaseTimeSeries):
         """
         # Note that the docstring is inherited from QTable
         result = super().add_columns(*args, **kwargs)
-        if len(self.indices) == 0 and "time" in self.colnames:
-            self.add_index("time")
+        if "time" in self.colnames:
+            self._add_primary_index("time")
         return result
 
     @classmethod
