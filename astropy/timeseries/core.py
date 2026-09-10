@@ -53,6 +53,20 @@ class BaseTimeSeries(QTable):
     # are all present, we toggle this to False
     _required_columns_relax = False
 
+    def _add_primary_index(self, colname):
+        """
+        Make sure ``colname`` has an index and that it is the primary key.
+
+        A column copied from an indexed table (e.g. by ``ts["time", "a"]`` or
+        ``TimeSeries(time=ts.time)``) might carry its index along, so this checks
+        for an index on this column rather than for no indices at all.  The
+        primary key is set explicitly since ``add_index`` only does that when
+        the table has no other indices.
+        """
+        if (colname,) not in [index.id for index in self.indices]:
+            self.add_index(colname)
+        self.primary_key = (colname,)
+
     def _check_required_columns(self):
         def as_scalar_or_list_str(obj):
             if not hasattr(obj, "__len__"):

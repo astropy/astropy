@@ -1,0 +1,5 @@
+Fixed ``aggregate_downsample``, ``iloc`` and ``loc`` failing with ``TypeError`` on a
+``TimeSeries`` that was sliced by column names (e.g. ``ts["time", "a"]``) or built
+from the ``time`` column of another ``TimeSeries``. Such objects had an index on
+``time`` but no primary key. ``BinnedTimeSeries`` no longer ends up with two
+identical indices on ``time_bin_start`` in the same situations.
