@@ -449,4 +449,3 @@ def test_downsample_subset_columns():
     assert len(down) == 3
     assert down.colnames == ["time_bin_start", "time_bin_size", "a"]
     assert_equal(down["a"].data.data, np.array([1, 3, 5]))
-

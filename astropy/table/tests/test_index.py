@@ -1201,4 +1201,3 @@ def test_table_init_from_indexed_column():
     t_from_col = Table([t["a"], t["b"]])
     assert t_from_col.primary_key == ("a",)
     assert t_from_col.loc[2]["b"] == 5
-

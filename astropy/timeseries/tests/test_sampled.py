@@ -533,4 +533,3 @@ def test_timeseries_init_from_timeseries_or_qtable():
     assert len(ts3.indices) == 1
     assert ts3.primary_key == ("time",)
     assert len(ts3.iloc[:]) == len(ts3)
-

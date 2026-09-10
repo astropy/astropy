@@ -511,4 +511,3 @@ def test_binned_timeseries_column_slice_single_index():
     assert len(reconstructed.indices) == 1
     assert reconstructed.primary_key == ("time_bin_start",)
     assert reconstructed.indices[0].columns[0].info.name == "time_bin_start"
-
