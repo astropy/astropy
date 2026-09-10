@@ -1,0 +1,1 @@
+Fixed file handles being left open by ``BinTableHDU.load()`` and ``dump()`` when parsing of the ASCII dump files fails partway through.
