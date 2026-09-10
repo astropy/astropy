@@ -70,6 +70,7 @@ repos:
         args: ["--write-changes"]
         additional_dependencies:
           - tomli
+        exclude: ^astropy/utils/iers/src/interp\.f$ # external FORTRAN source
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.20
