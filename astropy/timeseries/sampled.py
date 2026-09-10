@@ -142,6 +142,7 @@ class TimeSeries(BaseTimeSeries):
 
         with self._delay_required_column_checks():
             if "time" in self.colnames:
+                self.remove_indices("time")
                 self.remove_column("time")
             self.add_column(time, index=0, name="time")
 
@@ -292,14 +293,23 @@ class TimeSeries(BaseTimeSeries):
                 return out
         return super().__getitem__(item)
 
+    def _check_time_index(self):
+        if "time" in self.colnames:
+            try:
+                self.indices["time"]
+            except (IndexError, KeyError):
+                self.add_index("time")
+            else:
+                if self.primary_key is None:
+                    self.primary_key = ("time",)
+
     def add_column(self, *args, **kwargs):
         """
         See :meth:`~astropy.table.Table.add_column`.
         """
         # Note that the docstring is inherited from QTable
         result = super().add_column(*args, **kwargs)
-        if len(self.indices) == 0 and "time" in self.colnames:
-            self.add_index("time")
+        self._check_time_index()
         return result
 
     def add_columns(self, *args, **kwargs):
@@ -308,8 +318,7 @@ class TimeSeries(BaseTimeSeries):
         """
         # Note that the docstring is inherited from QTable
         result = super().add_columns(*args, **kwargs)
-        if len(self.indices) == 0 and "time" in self.colnames:
-            self.add_index("time")
+        self._check_time_index()
         return result
 
     @classmethod

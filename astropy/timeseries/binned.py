@@ -199,6 +199,7 @@ class BinnedTimeSeries(BaseTimeSeries):
 
         with self._delay_required_column_checks():
             if "time_bin_start" in self.colnames:
+                self.remove_indices("time_bin_start")
                 self.remove_column("time_bin_start")
 
             if "time_bin_size" in self.colnames:

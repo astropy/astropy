@@ -1176,3 +1176,29 @@ def test_loc_range_sorted_after_add_row(engine):
     assert t.loc[2:8]["a"].tolist() == [2, 3, 4, 5, 6, 7, 8]
     assert t.loc[2:8]["b"].tolist() == [20, 30, 40, 50, 60, 70, 80]
     assert t.loc[:]["a"].tolist() == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+
+def test_column_slice_preserves_primary_key():
+    t = Table({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
+    t.add_index("a")
+    assert t.primary_key == ("a",)
+
+    # Column slice containing the primary key preserves it
+    tslice = t[["a", "b"]]
+    assert tslice.primary_key == ("a",)
+    assert tslice.loc[1]["b"] == 4
+
+    # Column slice not containing the primary key drops it
+    tslice_no_pk = t[["b", "c"]]
+    assert tslice_no_pk.primary_key is None
+
+
+def test_table_init_from_indexed_column():
+    t = Table({"a": [1, 2, 3], "b": [4, 5, 6]})
+    t.add_index("a")
+
+    # Creating a Table from an indexed column preserves index and sets primary_key
+    t_from_col = Table([t["a"], t["b"]])
+    assert t_from_col.primary_key == ("a",)
+    assert t_from_col.loc[2]["b"] == 5
+

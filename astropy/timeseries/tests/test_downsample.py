@@ -434,3 +434,19 @@ def test_time_precision_limit(diff_from_base):
     # ensure in the converted relative time,
     # t2 and t3 can still be correctly compared
     assert r_t3 > r_t2
+
+
+def test_downsample_subset_columns():
+    # Regression test for #20297: downsampling a TimeSeries with a subset of columns
+    # whose primary key was preserved
+    ts = TimeSeries(
+        time=INPUT_TIME,
+        data=[[1, 2, 3, 4, 5], [10, 20, 30, 40, 50]],
+        names=["a", "b"],
+    )
+    subset = ts[["time", "a"]]
+    down = aggregate_downsample(subset, time_bin_size=2 * u.s)
+    assert len(down) == 3
+    assert down.colnames == ["time_bin_start", "time_bin_size", "a"]
+    assert_equal(down["a"].data.data, np.array([1, 3, 5]))
+

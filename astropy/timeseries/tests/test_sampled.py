@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy import units as u
-from astropy.table import Column, Table
+from astropy.table import Column, QTable, Table
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms import BoxLeastSquares, LombScargle
@@ -517,3 +517,20 @@ def test_periodogram(cls):
 
     p3 = cls.from_timeseries(ts, "a", uncertainty=0.1)
     assert_allclose(p3.dy, 0.1)
+
+
+def test_timeseries_init_from_timeseries_or_qtable():
+    # Regression test for #11704: TimeSeries initialized from an existing
+    # TimeSeries time or QTable
+    ts = TimeSeries(time=INPUT_TIME, data=[[1, 2, 3]], names=["a"])
+    ts2 = TimeSeries(time=ts.time)
+    assert len(ts2.indices) == 1
+    assert ts2.primary_key == ("time",)
+    assert len(ts2.iloc[:]) == len(ts2)
+
+    qt = QTable([ts["time"], ts["a"]])
+    ts3 = TimeSeries(qt)
+    assert len(ts3.indices) == 1
+    assert ts3.primary_key == ("time",)
+    assert len(ts3.iloc[:]) == len(ts3)
+

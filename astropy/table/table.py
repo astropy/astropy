@@ -909,6 +909,9 @@ class Table:
         # Finally do the real initialization
         init_func(data, names, dtype, n_cols, copy)
 
+        if self.primary_key is None and self.indices:
+            self.primary_key = self.indices[0].id
+
         # Set table meta.  If copy=True then deepcopy meta otherwise use the
         # user-supplied meta directly.
         if meta is not None:
@@ -2118,6 +2121,8 @@ class Table:
                 out, indices=self.groups._indices, keys=self.groups._keys
             )
             out.meta = self.meta.copy()  # Shallow copy for meta
+            if self.primary_key and set(self.primary_key) <= set(item):
+                out.primary_key = self.primary_key
             return out
         elif (isinstance(item, np.ndarray) and item.size == 0) or (
             isinstance(item, (tuple, list)) and not item

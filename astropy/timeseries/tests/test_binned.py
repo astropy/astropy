@@ -496,3 +496,19 @@ def test_periodogram(cls):
 
     p3 = cls.from_timeseries(ts, "a", uncertainty=0.1)
     assert_allclose(p3.dy, 0.1)
+
+
+def test_binned_timeseries_column_slice_single_index():
+    # Verify that a column-sliced BinnedTimeSeries has exactly one index on time_bin_start
+    ts = BinnedTimeSeries(
+        time_bin_start="2016-03-22T12:30:31",
+        time_bin_size=3 * u.s,
+        data=[[1, 4, 3], [3, 4, 3]],
+        names=["a", "b"],
+    )
+    sliced = ts[["time_bin_start", "time_bin_size", "a"]]
+    reconstructed = BinnedTimeSeries(sliced)
+    assert len(reconstructed.indices) == 1
+    assert reconstructed.primary_key == ("time_bin_start",)
+    assert reconstructed.indices[0].columns[0].info.name == "time_bin_start"
+
