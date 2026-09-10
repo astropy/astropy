@@ -3,8 +3,8 @@
 BinTableHDU.load() must not leave file handles open when parsing of the
 ASCII dump files fails partway through.
 """
+
 import os
-import tempfile
 
 from astropy.io.fits.hdu.table import BinTableHDU
 
@@ -17,7 +17,9 @@ def test_load_closes_files_on_parse_error(tmp_path):
     # Malformed column definition: a single word where five are expected.
     cdfile.write_text("ONLY_ONE_WORD\n")
 
-    handles_before = set(os.listdir("/proc/self/fd")) if os.path.isdir("/proc/self/fd") else None
+    handles_before = (
+        set(os.listdir("/proc/self/fd")) if os.path.isdir("/proc/self/fd") else None
+    )
 
     try:
         BinTableHDU.load(datafile=str(datafile), cdfile=str(cdfile))

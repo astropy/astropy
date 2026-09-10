@@ -1250,7 +1250,6 @@ class BinTableHDU(_TableBaseHDU):
             fileobj = open(fileobj, "w")
             close_file = True
         try:
-
             linewriter = csv.writer(fileobj, dialect=FITSTableDumpDialect)
 
             # Process each row of the table and output one row at a time
@@ -1320,7 +1319,6 @@ class BinTableHDU(_TableBaseHDU):
             fileobj = open(fileobj, "w")
             close_file = True
         try:
-
             # Process each column of the table and output the result to the
             # file one at a time
             for column in self.columns:
@@ -1349,7 +1347,6 @@ class BinTableHDU(_TableBaseHDU):
             fileobj = open(fileobj)
             close_file = True
         try:
-
             initialpos = fileobj.tell()  # We'll be returning here later
             linereader = csv.reader(fileobj, dialect=FITSTableDumpDialect)
 
@@ -1498,7 +1495,6 @@ class BinTableHDU(_TableBaseHDU):
             fileobj = open(fileobj)
             close_file = True
         try:
-
             columns = []
 
             for line in fileobj:
