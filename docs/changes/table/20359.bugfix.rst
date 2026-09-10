@@ -1,0 +1,7 @@
+Fixed an issue where a ``Table`` created from indexed columns or column-sliced
+from an indexed table had ``primary_key`` set to ``None``. ``Table.__init__`` now
+assigns the primary key to the first copied index if ``primary_key`` is not
+explicitly set, and column slicing with ``table[['a', 'b']]`` preserves
+``primary_key`` when the primary key columns are retained in the slice.
+As a consequence, ``table[['a', 'b']].to_pandas()`` now properly sets the
+DataFrame index when the primary key is preserved.

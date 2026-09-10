@@ -1,0 +1,4 @@
+Fixed an issue where initializing a ``TimeSeries`` or ``BinnedTimeSeries`` from
+existing indexed columns or tables resulted in stale or duplicate indices and
+a ``None`` primary key, preventing methods such as ``aggregate_downsample`` and
+``.iloc[:]`` from functioning.
