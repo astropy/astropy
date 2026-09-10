@@ -11,7 +11,7 @@ __all__ = [
 
 
 from fractions import Fraction
-from typing import TYPE_CHECKING, TypeAlias, Union
+from typing import TYPE_CHECKING, TypeAlias
 
 import numpy as np
 import numpy.typing as npt
@@ -19,7 +19,7 @@ import numpy.typing as npt
 if TYPE_CHECKING:
     import astropy.units
 
-UnitLike: TypeAlias = Union["astropy.units.UnitBase", str, "astropy.units.Quantity"]
+type UnitLike = "astropy.units.UnitBase" | str | "astropy.units.Quantity"
 """Type alias for input that can be converted to a Unit.
 
 See :term:`unit-like`. Note that this includes only scalar quantities.
@@ -28,7 +28,7 @@ See :term:`unit-like`. Note that this includes only scalar quantities.
 # Note: Quantity is technically covered by npt.ArrayLike, but we want to
 # explicitly include it here so that it is clear that we are also including
 # Quantity objects in the definition of QuantityLike.
-QuantityLike: TypeAlias = Union["astropy.units.Quantity", npt.ArrayLike]
+type QuantityLike = "astropy.units.Quantity" | npt.ArrayLike
 """Type alias for a quantity-like object.
 
 This is an object that can be converted to a :class:`~astropy.units.Quantity` object
@@ -77,15 +77,18 @@ For more examples see the :mod:`numpy.typing` definition of
 """
 
 
-UnitPower: TypeAlias = int | float | Fraction
+type UnitPower = int | float | Fraction
 """Alias for types that can be powers of the components of a
 `~astropy.units.UnitBase` instance"""
-UnitPowerLike: TypeAlias = UnitPower | np.integer | np.floating
+type UnitPowerLike = UnitPower | np.integer | np.floating
 """Alias for types that can be used to create powers of the components of a
 `~astropy.units.UnitBase` instance"""
-UnitScale: TypeAlias = float | complex
+type PhysicalTypeID = tuple[tuple[str, UnitPower], ...]
+
+# UnitScaleLike must be runtime-checkable with isinstance, so we cannot
+# use the `type` keyword here
+UnitScale: TypeAlias = float | complex  # noqa: UP040
 "Alias for types that can be scale factors of a `~astropy.units.CompositeUnit`"
-UnitScaleLike: TypeAlias = UnitScale | int | Fraction | np.number
+UnitScaleLike: TypeAlias = UnitScale | int | Fraction | np.number  # noqa: UP040
 """Alias for types that can be used to create scale factors of a
 `~astropy.units.CompositeUnit`"""
-PhysicalTypeID: TypeAlias = tuple[tuple[str, UnitPower], ...]

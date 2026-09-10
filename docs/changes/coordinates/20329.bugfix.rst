@@ -1,0 +1,2 @@
+Fix ``BaseFrame.replicate`` to allow replicating ``BaseFrame`` instances
+that hold no data.

@@ -702,21 +702,37 @@ class FunctionQuantity(Quantity):
         return super().__array_ufunc__(function, method, *inputs, **kwargs)
 
     def _maybe_new_view(self, result):
-        """View as function quantity if the unit is unchanged.
+        """View as function quantity if the function unit is unchanged.
 
         Used for the case that self.unit.physical_unit is dimensionless,
         where multiplication and division is done using the Quantity
         equivalent, to transform them back to a FunctionQuantity if possible.
         """
-        if isinstance(result, Quantity) and result.unit == self.unit:
-            return self._new_view(result)
+        if isinstance(result, Quantity) and result.unit == self.unit.function_unit:
+            return self._new_view(result, self.unit.function_unit())
         else:
             return result
 
+    @property
+    def _in_function_unit(self):
+        """Convert to a dimensionless unscaled version of oneself.
+
+        Here, the physical unit is already dimensionless and we
+        wish to have a Quantity with just the function unit.
+        If the physical unit is unscaled, we can just take a
+        view, but if not, we first have to convert.
+
+        Used in multiplication and division below.
+        """
+        if self.unit.physical_unit == dimensionless_unscaled:
+            return self._function_view
+        else:
+            return self.to(self.unit.function_unit)
+
     # ↓↓↓ methods overridden to change behavior
     def __mul__(self, other):
-        if self.unit.physical_unit == dimensionless_unscaled:
-            return self._maybe_new_view(self._function_view * other)
+        if self.unit.physical_unit.is_equivalent(dimensionless_unscaled):
+            return self._maybe_new_view(self._in_function_unit * other)
 
         raise UnitTypeError(
             "Cannot multiply function quantities which are not dimensionless "
@@ -724,16 +740,16 @@ class FunctionQuantity(Quantity):
         )
 
     def __truediv__(self, other):
-        if self.unit.physical_unit == dimensionless_unscaled:
-            return self._maybe_new_view(self._function_view / other)
+        if self.unit.physical_unit.is_equivalent(dimensionless_unscaled):
+            return self._maybe_new_view(self._in_function_unit / other)
 
         raise UnitTypeError(
             "Cannot divide function quantities which are not dimensionless by anything."
         )
 
     def __rtruediv__(self, other):
-        if self.unit.physical_unit == dimensionless_unscaled:
-            return self._maybe_new_view(self._function_view.__rtruediv__(other))
+        if self.unit.physical_unit.is_equivalent(dimensionless_unscaled):
+            return self._maybe_new_view(other / self._in_function_unit)
 
         raise UnitTypeError(
             "Cannot divide function quantities which are not dimensionless "

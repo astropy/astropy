@@ -454,6 +454,28 @@ class TestDataFrameConversion:
         assert_array_equal(t2["col0"].mask, [False, True])
         assert_array_equal(t2["col0"], c)
 
+    @pytest.mark.parametrize("unsigned", ["u", ""])
+    def test_nullable_int_no_float_intermediate(
+        self, backend, use_legacy_pandas_api, unsigned
+    ):
+        """Masked 64-bit ints above 2**53 must not be converted via float64.
+
+        Regression test for gh-14442, where masked Gaia source ids came back
+        from ``to_pandas()`` silently rounded to the nearest float64.
+        """
+        np_dtype = f"{unsigned}int64"
+        # Values that a float64 (53-bit mantissa) cannot represent exactly.
+        values = [np.iinfo(np_dtype).max, 2**62 + 1, 3]
+        c = MaskedColumn(np.array(values, dtype=np_dtype), mask=[False, False, True])
+        t = Table([c])
+
+        df = self._to_dataframe(t, backend, use_legacy_pandas_api)
+
+        t2 = self._from_dataframe(df, backend, use_legacy_pandas_api)
+        assert str(t2["col0"].dtype) == np_dtype
+        assert_array_equal(t2["col0"].mask, [False, False, True])
+        assert_array_equal(t2["col0"][:2], values[:2])
+
     @pytest.mark.parametrize("ndim", [1, 2, 3])
     def test_nd_columns(self, backend, use_legacy_pandas_api, ndim):
         """Test handling of multidimensional columns."""

@@ -368,7 +368,6 @@ static PyObject *write_tabledata(PyObject *self, PyObject *args, PyObject *kwds)
         Py_DECREF(tmp);
     }
 
-    Py_INCREF(Py_None);
     result = Py_None;
 
 exit:

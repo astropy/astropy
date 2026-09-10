@@ -103,6 +103,18 @@ def test_median_absolute_deviation_nans():
     assert funcs.median_absolute_deviation(array) == 1
 
 
+def test_median_absolute_deviation_nans_with_np_ma_median():
+    # Check that if we use np.ma.median, we do not get MaskedArray back. See
+    # https://github.com/astropy/astropy/pull/19858#pullrequestreview-4426259506
+    array = np.array([[1, 4, 3, np.nan], [2, 5, np.nan, 4]])
+    got = funcs.median_absolute_deviation(array, func=np.ma.median, axis=1)
+    assert type(got) is np.ndarray
+    assert_equal(got, [np.nan, np.nan])
+    got = funcs.median_absolute_deviation(array, func=np.ma.median)
+    assert type(got) is np.float64
+    assert np.isnan(got)
+
+
 def test_median_absolute_deviation_nans_masked():
     """
     Regression test to ensure ignore_nan=True gives same results for

@@ -322,8 +322,7 @@ Sip_get_a(
   npy_intp dims[2];
 
   if (self->x.a == NULL) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   }
 
   dims[0] = (npy_intp)self->x.a_order + 1;
@@ -340,8 +339,7 @@ Sip_get_b(
   npy_intp dims[2];
 
   if (self->x.b == NULL) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   }
 
   dims[0] = (npy_intp)self->x.b_order + 1;
@@ -358,8 +356,7 @@ Sip_get_ap(
   npy_intp dims[2];
 
   if (self->x.ap == NULL) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   }
 
   dims[0] = (npy_intp)self->x.ap_order + 1;
@@ -376,8 +373,7 @@ Sip_get_bp(
   npy_intp dims[2];
 
   if (self->x.bp == NULL) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   }
 
   dims[0] = (npy_intp)self->x.bp_order + 1;

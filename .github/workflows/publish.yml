@@ -26,7 +26,7 @@ jobs:
     # or if triggered manually via the workflow dispatch, or for a tag.
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@8c8bb6c6c962542921f993d47d26df38dccd50b1 # v3.0.2
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a # v3.0.3
     if: |
       github.repository == 'astropy/astropy' && (
         startsWith(github.ref, 'refs/tags/v') ||
@@ -44,7 +44,7 @@ jobs:
       anaconda_package: astropy
       anaconda_keep_n_latest: 10
       env: |
-        EXTENSION_HELPERS_PY_LIMITED_API: 'cp311'
+        EXTENSION_HELPERS_PY_LIMITED_API: 'cp312'
 
       test_extras: test
       # FIXME: we exclude the test_data_out_of_range test since it
@@ -91,4 +91,4 @@ jobs:
           pattern: dist-*
           path: dist
       - name: Upload to PyPI
-        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2

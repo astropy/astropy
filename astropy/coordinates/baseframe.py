@@ -1206,7 +1206,7 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         frameobj : `~astropy.coordinates.BaseCoordinateFrame` subclass instance
             Replica of this object, but possibly with new frame attributes.
         """
-        return self._replicate(self.data, copy=copy, **kwargs)
+        return self._replicate(self._data, copy=copy, **kwargs)
 
     def replicate_without_data(self, copy=False, **kwargs):
         """

@@ -29,3 +29,11 @@ Reference/API
 .. automodapi:: astropy.units.format
 
 .. automodapi:: astropy.units.required_by_vounit
+
+Configuration
+-------------
+
+.. currentmodule:: astropy.units.quantity
+
+.. autoclass:: Conf
+   :members:

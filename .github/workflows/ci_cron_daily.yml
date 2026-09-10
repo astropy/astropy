@@ -49,7 +49,7 @@ jobs:
         include:
           - name: Bundling with pyinstaller
             os: ubuntu-latest
-            python: '3.11'
+            python: '3.12'
             toxenv: pyinstaller
 
           - name: Python 3.12 with all optional dependencies and pre-releases

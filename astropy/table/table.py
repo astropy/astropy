@@ -16,6 +16,7 @@ from numpy import ma
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
+from astropy.units.quantity import preserve_dtype_by_default
 from astropy.utils import deprecated
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
@@ -91,6 +92,7 @@ __doctest_skip__ = [
 
 __doctest_requires__ = {
     ("Table.from_df", "Table.to_df"): ["pandas", "polars"],
+    ("Table.from_pandas", "Table.to_pandas"): ["pandas"],
 }
 
 _pprint_docs = """
@@ -4408,7 +4410,10 @@ class QTable(Table):
             # Quantity subclasses identified in the unit (such as u.mag()).
             q_cls = Masked(Quantity) if isinstance(col, MaskedColumn) else Quantity
             try:
-                qcol = q_cls(col.data, col.unit, copy=None, subok=True)
+                # An integer column keeps its dtype by default but can be modified by
+                # the ``quantity_convert_int_to_float`` configuration item.
+                with preserve_dtype_by_default():
+                    qcol = q_cls(col.data, col.unit, copy=None, subok=True)
             except Exception as exc:
                 warnings.warn(
                     f"column {col.info.name} has a unit but is kept as "

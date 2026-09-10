@@ -162,8 +162,7 @@ DistLookup_get_data(
     /*@unused@*/ void* closure) {
 
   if (self->py_data == NULL) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   } else {
     Py_INCREF((PyObject*)self->py_data);
     return (PyObject*)self->py_data;

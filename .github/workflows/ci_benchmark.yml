@@ -33,8 +33,12 @@ jobs:
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         name: Install Python
+        # historically, we run benchmarks against our oldest supported Python version
+        # it could make more sense to run against newest stable versions instead,
+        # as they are generally faster, and more representative of what users can expect
+        # now or in the future.
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Setup some dependencies
         shell: bash -l {0}

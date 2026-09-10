@@ -10,14 +10,13 @@ authors = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE.rst", "licenses/*.rst"]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: C",
     "Programming Language :: Cython",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -47,7 +46,7 @@ dependencies = [
     "numpy>=2.0",
     "packaging>=25.0",
     "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
-    "PyYAML>=6.0.0",
+    "PyYAML>=6.0.1",
 ]
 
 [project.optional-dependencies]
@@ -64,21 +63,25 @@ recommended = [
 ipython = [
     "ipython>=8.1.0",
 ]
+pandas = [
+    "pandas[html]>=2.2.2", # keep in sync with astropy[typing]
+]
 jupyter = [  # these are optional dependencies for utils.console and table
     "astropy[ipython]",
+    "astropy[pandas]",
     "ipywidgets>=7.7.3",
     "ipykernel>=6.16.0",
     "ipydatagrid>=1.1.13",
     # jupyter-core is a transitive dependency via ipykernel, we declare it as
     # a direct dependency in order to set a lower bound for oldest-deps testing
     "jupyter-core>=4.11.2",
-    "pandas>=2.2.2",
 ]
 # This is ALL the run-time optional dependencies.
 all = [
     # Install grouped optional dependencies
     "astropy[recommended]",
     "astropy[ipython]",
+    "astropy[pandas]",
     "astropy[jupyter]",
     # Install all remaining optional dependencies
     "certifi>=2022.6.15.1",
@@ -86,13 +89,12 @@ all = [
     "h5py>=3.11.0",
     "pyarrow>=16.0",
     "beautifulsoup4>=4.11.2", # imposed by pandas==2.2.2
-    "html5lib>=1.1",
-    "bleach>=3.2.1",
+    "bleach>=6.2.0",
     "sortedcontainers>=2.1.0", # imposed by testing with hypothesis
     "pytz>=2016.10", # (older versions may work)
     "jplephem>=2.17.0",
     "mpmath>=1.2.1",
-    "asdf-astropy>=0.7.0",
+    "asdf-astropy>=0.11.0",
     "bottleneck>=1.4.0",
     "fsspec[http,s3]>=2023.4.0",  # keep in sync with dependency-groups.dataframe
     "s3fs>=2023.4.0",
@@ -101,7 +103,7 @@ all = [
 # The base set of test-time dependencies.
 test = [
     "setuptools>=77.0.0",  # can be removed once the astropy.wcs C API tests are removed
-    "coverage>=7.2.0",
+    "coverage>=7.2.7",
     "hypothesis>=6.84.0",
     "pytest>=8.0.1",
     "pytest-astropy-header>=0.2.2",
@@ -120,9 +122,8 @@ test_all = [
     # Install all remaining dependencies
     "objgraph>=3.1.2",
     "skyfield>=1.42.0",
-    "sgp4>=2.22",
+    "sgp4>=2.23",
     "array-api-strict>=1.0",
-    "array-api-strict<2.4;python_version<'3.12'",  # PYTHON_LT_3_12
 
     # 0.2.2 works on *some* platforms we support, though not all
     # 1.0.0 would be a more universal lower bound, but it also
@@ -133,7 +134,7 @@ test_all = [
     "numpy-quaddtype>=0.2.2",
 ]
 typing = [
-    "pandas-stubs>=2.0.2",
+    "pandas-stubs>=2.2.2", # keep in sync with astropy[pandas]
     "scipy-stubs>=1.14.1.6",
     "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
 ]
@@ -184,13 +185,21 @@ dataframe = [
     # keep in sync with project.optional-dependencies.recommended
     # and project.optional-dependencies.all
     # and project.optional-dependencies.typing
+    "astropy[pandas]",
     "narwhals>=1.42.0",
     "pyarrow>=16.0",
-    "pandas>=2.2.2",
     "polars>=1.18.0",
     "duckdb>=1.1.0",
     "dask[dataframe]>=2024.8.0", # keep in sync with other declarations
 ]
+image_tests = [
+    "pytest-mpl>=0.18",
+]
+pyinstaller = [
+    "pyinstaller>=6.16.0",
+    {include-group = "image_tests"},
+]
+
 # re-define historical optional dependencies (a.k.a. 'extras') as
 # user-invisible, PEP 735 dependency groups
 # These group together all the dependencies needed for developing in Astropy.
@@ -203,8 +212,13 @@ dev = [
 dev_all = [
     {include-group = "dev"},
     {include-group = "dataframe"},
+    {include-group = "image_tests"},
     "astropy[test_all]",
     "tox>=4.33.0", # keep in sync with tox.minversion in tox.ini
+]
+imagetest = [
+    "latex>=0.7.0",
+    "scipy>=1.13",
 ]
 
 [tool.setuptools]
@@ -268,6 +282,8 @@ filterwarnings = [
     "ignore:invalid value encountered in do_format:RuntimeWarning",
     # Remove this when we delete samp subpackage
     "ignore:astropy\\.samp was deprecated:astropy.utils.exceptions.AstropyDeprecationWarning",
+    # https://github.com/astropy/astropy/issues/20164
+    "ignore:.*matrix.*is being replaced:DeprecationWarning",
     # https://github.com/astropy/astropy/issues/19511
     "ignore:Implicitly cleaning up <HTTPError 404:ResourceWarning",
     "ignore:unclosed <socket:ResourceWarning",
@@ -278,10 +294,6 @@ doctest_norecursedirs = [
     "*/tests/command.py",
 ]
 doctest_subpackage_requires = [
-    "astropy/cosmology/_src/io/builtin/mapping.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
-    "astropy/cosmology/_src/io/builtin/row.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
-    "astropy/cosmology/_src/io/builtin/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
-    "astropy/table/table.py = python>=3.12",  # not PYTHON_LT_3_12 (PR 17277)
     "astropy/table/mixins/dask.py = dask",
     "docs/units/type_hints.rst = python<=3.13",  # PYTHON_LT_3_14 (PR 18140)
     "docs/units/structured_units.rst = pyerfa<2.0.1.7",  # PYERFA_LT_2_0_1_7
@@ -306,7 +318,6 @@ test-skip = "*-musllinux_x86_64"
 enable = ["cpython-prerelease"]
 skip = [
     "cp*t-*",  # https://github.com/astropy/astropy/issues/16916
-    "cp315*-win*",  # https://github.com/astropy/astropy/issues/20049
 ]
 environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
@@ -699,14 +710,14 @@ ignore = [
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
 
-    [tool.gilesbot.circleci_artifacts.py311-test-image-mpl380]
-        url = ".tmp/py311-test-image-mpl380/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py311-test-image-mpl380."
+    [tool.gilesbot.circleci_artifacts.py312-test-image-mpl380]
+        url = ".tmp/py312-test-image-mpl380/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py312-test-image-mpl380."
         report_on_fail = true
 
-    [tool.gilesbot.circleci_artifacts.py311-test-image-mpldev]
-        url = ".tmp/py311-test-image-mpldev/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons for py311-test-image-mpldev."
+    [tool.gilesbot.circleci_artifacts.py312-test-image-mpldev]
+        url = ".tmp/py312-test-image-mpldev/results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons for py312-test-image-mpldev."
         report_on_fail = true
 
 [tool.codespell]
@@ -751,12 +762,89 @@ ignore-words-list = """
     wirth,
 """
 
+[tool.numpydoc_validation]
+checks = [
+    "all",  # Report on all checks, except the below
+    "ES01", # No extended summary found
+    "EX01", # No examples section found
+    "GL01", # Docstring text (summary) should start in the line immediately after the opening quotes
+    "GL02", # Closing quotes should be placed in the line after the last text in the docstring
+    "GL08", # The object does not have a docstring
+    "PR09", # Parameter description should finish with a period
+    "RT01", # No Returns section found
+    "RT02", # First line of return should contain only the type
+    "RT05", # Return value description should finish with a period
+    "SA01", # See Also section not found
+    "SA04", # Missing description for See Also
+    "SS05", # Summary must start with infinitive verb
+    "SS06", # Summary should fit in a single line
+    "YD01", # No Yields section found
+]
+# NOTE: Remember to use single quotes for regex in TOML
+exclude = [  # Don't report on objects that match any of these regex
+    '\.__str__$',
+    '\.__repr__$',
+]
+exclude_files = [ # don't process filepaths that match these regex
+    '^astropy/.*/setup_package.py',
+    '^astropy/.*/tests/.*',
+    '^astropy/__init__.py',
+    '^astropy/config/.*',
+    '^astropy/conftest.py',
+    '^astropy/constants/.*',
+    '^astropy/convolution/.*',
+    '^astropy/coordinates/.*',
+    '^astropy/cosmology/.*',
+    '^astropy/extern/.*',
+    '^astropy/io/ascii/.*',
+    '^astropy/io/fits/.*',
+    '^astropy/io/misc/.*',
+    '^astropy/io/registry/.*',
+    '^astropy/io/votable/.*',
+    '^astropy/logger.py',
+    '^astropy/modeling/.*',
+    '^astropy/nddata/.*',
+    '^astropy/samp/.*',
+    '^astropy/stats/.*',
+    '^astropy/table/.*',
+    '^astropy/tests/.*',
+    '^astropy/time/.*',
+    '^astropy/timeseries/.*',
+    '^astropy/uncertainty/.*',
+    '^astropy/units/.*',
+    '^astropy/utils/.*',
+    '^astropy/visualization/.*',
+    '^astropy/wcs/.*',
+    '^docs/.*',
+    '^scripts/.*',
+]
+
 [tool.uv]
 # always allow arbitrarily new versions of astropy-iers-data
 exclude-newer-package = { "astropy-iers-data" = false }
 
-# never build the following packages from source. Prefer more recent versions
+# ensure that uv resolves envs that are compatible with macOS arm64,
+# even in drastic conditions like --resolution=lowest[-direct],
+# taking into account tool.uv.no-build-package
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+# The following tools (no-build-package and constraint-dependencies) serve as guiding
+# rules for uv as a resolver. Effectively, we provide metadata that's either missing
+# or incorrect for packages we require directly or indirectly, in order to consolidate
+# resolution in constrained conditions (e.g. using --resolution=lowest[-direct])
+
+# TLDR; never build the following packages from source. Prefer more recent versions
 # with binary distributions even with --resolution=lowest[-direct]
+#
+# no-build-package is the best tool available (at the time of writing) to exclude
+# source installs for packages that are either complex or expensive to build, as well
+# as a security measure against arbitrary code running in build backends we do not
+# control. Ideally, we would like to whitelist packages that are allowed to install
+# from source instead, though this isn't supported as of uv 0.12.6
+# See https://github.com/astral-sh/uv/issues/12607
+
 no-build-package = [
     "bottleneck",
     "coverage",
@@ -765,12 +853,10 @@ no-build-package = [
     "numpy",
     "pandas",
     "polars",
+    "pyyaml",
     "requests",
     "scipy",
     "sgp4",
-
-    # via jsonschema v4.0.1 via asdf v2.15.0 via asdf-astropy v0.8.0
-    "pyrsistent", # can be removed once we drop asdf-astropy<=0.8 https://github.com/astropy/asdf-astropy/pull/297
 
     # via fsspec
     "aiohttp",
@@ -823,19 +909,32 @@ no-build-package = [
     # even with --resolution=lowest
     "cffi",
     "joblib",
+
+    # via pyinstaller
+    "altgraph",
+
+    # via latex
+    "future",
+
+    # via pandas[html]
+    "lxml",
 ]
 
-# ensure that uv resolves envs that are compatible with macOS arm64,
-# even in drastic conditions like --resolution=lowest[-direct],
-# taking into account tool.uv.no-build-package
-required-environments = [
-    "sys_platform == 'darwin' and platform_machine == 'arm64'",
-]
-
-# constrain acceptable versions of some known-problematic, indirect dependencies
+# TLDR; Constrain acceptable versions of some known-problematic, indirect dependencies.
+#
+# Ideally, all of the content should be upstreamed and eventually cleaned up here as
+# it becomes redundant with metadata from oldest versions of our direct dependencies.
+# Reader, beware that this is a long game: the only way to reliably remove these
+# settings entirely would be to thoroughly outsource minimum dependency testing
+# throughout our entire dependency tree (including several layers of indirect,
+# optional or indirect optional dependencies), *and* make sure every upstream package
+# actively curates deprecation warnings for years on-end. Still, we should aim towards
+# this goal and progressively simplify this list.
 constraint-dependencies = [
     "asdf>=2.15.1",
     "asdf-coordinates-schemas>=0.2.0",
+    "six>=1.16.0", # for Python 3.12+ compat
+    "urllib3>=1.26.5", # via requests, upgraded vendored six to 1.16.0
 
     # via pytest
     # iniconfig 1.0.1 is the first version with proper wheels
@@ -856,10 +955,12 @@ constraint-dependencies = [
     "pygments>=2.11.0",
     "stack_data>=0.6.0",
     "traitlets>=5.13.0",
-    "typing_extensions>=4.6; python_version<'3.12'",
 
     # via ipython (can be removed once ipython<8.17 is dropped)
     "pickleshare>=0.7.5",
+
+    # via ipython (indirect)
+    "asttokens>=3.0.0", # via stack-data 0.17
 
     # via ipykernel (indirect) oldestdeps
     "py>=v1.11.0", # workaround a portability issue with oldestdeps resolution
@@ -870,15 +971,12 @@ constraint-dependencies = [
     "soupsieve>=1.6.1",
 
     # via matplotlib
-    # can be removed once mpl>=3.10.7 is min
-    "pyparsing>=2.4.0",
+    "pyparsing>=2.4.0", # can be removed once mpl>=3.10.7 is min
+    "cycler>=0.12.0", # https://github.com/matplotlib/matplotlib/pull/32188
 
     # via dask
     "toolz>=0.12.0", # can be removed once dask<=2025.11.0 is dropped
     "cloudpickle>=2.1.0", # can be removed once dask<2024.8.1 is dropped
-
-    # see https://github.com/astropy/astropy/issues/18292
-    "array-api-strict<2.4 ; python_version<'3.12'",
 ]
 
 # uv sync's default behavior includes the 'dev' group.
