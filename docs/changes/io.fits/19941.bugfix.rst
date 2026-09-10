@@ -1,0 +1,10 @@
+Fixed a bug where a logical (``'L'``) column read without ``logical_as_bytes=True``
+did not round-trip the boolean array it returned. Although reading the column
+warned that its NULL (``b'\x00'``) values would be converted to ``False``,
+``_scale_back`` preserved the original NULL bytes on write, so explicitly
+assigning ``False`` to a row that was NULL on disk was silently dropped and the
+``contains NULL`` warning kept firing on every read. Once a logical column
+containing NULL has been read as a bool array, it is now written back as
+``b'T'``/``b'F'``, matching the warning. NULL is still preserved when the column
+is accessed with ``logical_as_bytes=True``, supplied as a ``|S1`` array, or
+never read as bool.
