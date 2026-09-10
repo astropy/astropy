@@ -1249,63 +1249,65 @@ class BinTableHDU(_TableBaseHDU):
         if isinstance(fileobj, str):
             fileobj = open(fileobj, "w")
             close_file = True
+        try:
 
-        linewriter = csv.writer(fileobj, dialect=FITSTableDumpDialect)
+            linewriter = csv.writer(fileobj, dialect=FITSTableDumpDialect)
 
-        # Process each row of the table and output one row at a time
-        def format_value(val, format):
-            if format[0] == "S":
-                itemsize = int(format[1:])
-                return "{:{size}}".format(val, size=itemsize)
-            elif format in np.typecodes["AllInteger"]:
-                # output integer
-                return f"{val:21d}"
-            elif format in np.typecodes["Complex"]:
-                return f"{val.real:21.15g}+{val.imag:.15g}j"
-            elif format in np.typecodes["Float"]:
-                # output floating point
-                return f"{val:#21.15g}"
+            # Process each row of the table and output one row at a time
+            def format_value(val, format):
+                if format[0] == "S":
+                    itemsize = int(format[1:])
+                    return "{:{size}}".format(val, size=itemsize)
+                elif format in np.typecodes["AllInteger"]:
+                    # output integer
+                    return f"{val:21d}"
+                elif format in np.typecodes["Complex"]:
+                    return f"{val.real:21.15g}+{val.imag:.15g}j"
+                elif format in np.typecodes["Float"]:
+                    # output floating point
+                    return f"{val:#21.15g}"
 
-        for row in self.data:
-            line = []  # the line for this row of the table
+            for row in self.data:
+                line = []  # the line for this row of the table
 
-            # Process each column of the row.
-            for column in self.columns:
-                # format of data in a variable length array
-                # where None means it is not a VLA:
-                vla_format = None
-                format = _convert_format(column.format)
+                # Process each column of the row.
+                for column in self.columns:
+                    # format of data in a variable length array
+                    # where None means it is not a VLA:
+                    vla_format = None
+                    format = _convert_format(column.format)
 
-                if isinstance(format, _FormatP):
-                    # P format means this is a variable length array so output
-                    # the length of the array for this row and set the format
-                    # for the VLA data
-                    line.append("VLA_Length=")
-                    line.append(f"{len(row[column.name]):21d}")
-                    _, dtype, option = _parse_tformat(column.format)
-                    vla_format = FITS2NUMPY[option[0]][0]
+                    if isinstance(format, _FormatP):
+                        # P format means this is a variable length array so output
+                        # the length of the array for this row and set the format
+                        # for the VLA data
+                        line.append("VLA_Length=")
+                        line.append(f"{len(row[column.name]):21d}")
+                        _, dtype, option = _parse_tformat(column.format)
+                        vla_format = FITS2NUMPY[option[0]][0]
 
-                if vla_format:
-                    # Output the data for each element in the array
-                    for val in row[column.name].flat:
-                        line.append(format_value(val, vla_format))
-                else:
-                    # The column data is a single element
-                    dtype = self.data.dtype.fields[column.name][0]
-                    array_format = dtype.char
-                    if array_format == "V":
-                        array_format = dtype.base.char
-                    if array_format == "S":
-                        array_format += str(dtype.itemsize)
-
-                    if dtype.char == "V":
-                        for value in row[column.name].flat:
-                            line.append(format_value(value, array_format))
+                    if vla_format:
+                        # Output the data for each element in the array
+                        for val in row[column.name].flat:
+                            line.append(format_value(val, vla_format))
                     else:
-                        line.append(format_value(row[column.name], array_format))
-            linewriter.writerow(line)
-        if close_file:
-            fileobj.close()
+                        # The column data is a single element
+                        dtype = self.data.dtype.fields[column.name][0]
+                        array_format = dtype.char
+                        if array_format == "V":
+                            array_format = dtype.base.char
+                        if array_format == "S":
+                            array_format += str(dtype.itemsize)
+
+                        if dtype.char == "V":
+                            for value in row[column.name].flat:
+                                line.append(format_value(value, array_format))
+                        else:
+                            line.append(format_value(row[column.name], array_format))
+                linewriter.writerow(line)
+        finally:
+            if close_file:
+                fileobj.close()
 
     def _dump_coldefs(self, fileobj):
         """
@@ -1317,21 +1319,23 @@ class BinTableHDU(_TableBaseHDU):
         if isinstance(fileobj, str):
             fileobj = open(fileobj, "w")
             close_file = True
+        try:
 
-        # Process each column of the table and output the result to the
-        # file one at a time
-        for column in self.columns:
-            line = [column.name, column.format]
-            attrs = ["disp", "unit", "dim", "null", "bscale", "bzero"]
-            line += [
-                "{!s:16s}".format(value or '""')
-                for value in (getattr(column, attr) for attr in attrs)
-            ]
-            fileobj.write(" ".join(line))
-            fileobj.write("\n")
+            # Process each column of the table and output the result to the
+            # file one at a time
+            for column in self.columns:
+                line = [column.name, column.format]
+                attrs = ["disp", "unit", "dim", "null", "bscale", "bzero"]
+                line += [
+                    "{!s:16s}".format(value or '""')
+                    for value in (getattr(column, attr) for attr in attrs)
+                ]
+                fileobj.write(" ".join(line))
+                fileobj.write("\n")
 
-        if close_file:
-            fileobj.close()
+        finally:
+            if close_file:
+                fileobj.close()
 
     @classmethod
     def _load_data(cls, fileobj, coldefs=None):
@@ -1344,138 +1348,140 @@ class BinTableHDU(_TableBaseHDU):
             fileobj = os.path.expanduser(fileobj)
             fileobj = open(fileobj)
             close_file = True
+        try:
 
-        initialpos = fileobj.tell()  # We'll be returning here later
-        linereader = csv.reader(fileobj, dialect=FITSTableDumpDialect)
+            initialpos = fileobj.tell()  # We'll be returning here later
+            linereader = csv.reader(fileobj, dialect=FITSTableDumpDialect)
 
-        # First we need to do some preprocessing on the file to find out how
-        # much memory we'll need to reserve for the table.  This is necessary
-        # even if we already have the coldefs in order to determine how many
-        # rows to reserve memory for
-        vla_lengths = []
-        recformats = []
-        names = []
-        nrows = 0
-        if coldefs is not None:
-            recformats = coldefs._recformats
-            names = coldefs.names
-
-        def update_recformats(value, idx):
-            fitsformat = _scalar_to_format(value)
-            recformat = _convert_format(fitsformat)
-            if idx >= len(recformats):
-                recformats.append(recformat)
-            else:
-                if _cmp_recformats(recformats[idx], recformat) < 0:
-                    recformats[idx] = recformat
-
-        # TODO: The handling of VLAs could probably be simplified a bit
-        for row in linereader:
-            nrows += 1
+            # First we need to do some preprocessing on the file to find out how
+            # much memory we'll need to reserve for the table.  This is necessary
+            # even if we already have the coldefs in order to determine how many
+            # rows to reserve memory for
+            vla_lengths = []
+            recformats = []
+            names = []
+            nrows = 0
             if coldefs is not None:
-                continue
-            col = 0
-            idx = 0
-            while idx < len(row):
-                if row[idx] == "VLA_Length=":
-                    if col < len(vla_lengths):
-                        vla_length = vla_lengths[col]
+                recformats = coldefs._recformats
+                names = coldefs.names
+
+            def update_recformats(value, idx):
+                fitsformat = _scalar_to_format(value)
+                recformat = _convert_format(fitsformat)
+                if idx >= len(recformats):
+                    recformats.append(recformat)
+                else:
+                    if _cmp_recformats(recformats[idx], recformat) < 0:
+                        recformats[idx] = recformat
+
+            # TODO: The handling of VLAs could probably be simplified a bit
+            for row in linereader:
+                nrows += 1
+                if coldefs is not None:
+                    continue
+                col = 0
+                idx = 0
+                while idx < len(row):
+                    if row[idx] == "VLA_Length=":
+                        if col < len(vla_lengths):
+                            vla_length = vla_lengths[col]
+                        else:
+                            vla_length = int(row[idx + 1])
+                            vla_lengths.append(vla_length)
+                        idx += 2
+                        while vla_length:
+                            update_recformats(row[idx], col)
+                            vla_length -= 1
+                            idx += 1
+                        col += 1
                     else:
-                        vla_length = int(row[idx + 1])
-                        vla_lengths.append(vla_length)
-                    idx += 2
-                    while vla_length:
+                        if col >= len(vla_lengths):
+                            vla_lengths.append(None)
                         update_recformats(row[idx], col)
-                        vla_length -= 1
+                        col += 1
                         idx += 1
+
+            # Update the recformats for any VLAs
+            for idx, length in enumerate(vla_lengths):
+                if length is not None:
+                    recformats[idx] = str(length) + recformats[idx]
+
+            dtype = np.rec.format_parser(recformats, names, None).dtype
+
+            # TODO: In the future maybe enable loading a bit at a time so that we
+            # can convert from this format to an actual FITS file on disk without
+            # needing enough physical memory to hold the entire thing at once
+            hdu = BinTableHDU.from_columns(
+                np.zeros(1, dtype=dtype).view(np.recarray),
+                nrows=nrows,
+                fill=True,
+            )
+
+            # TODO: It seems to me a lot of this could/should be handled from
+            # within the FITS_rec class rather than here.
+            data = hdu.data
+            for idx, length in enumerate(vla_lengths):
+                if length is not None:
+                    arr = data.columns._arrays[idx]
+                    dt = recformats[idx][len(str(length)) :]
+
+                    # NOTE: FormatQ not supported here; it's hard to determine
+                    # whether or not it will be necessary to use a wider descriptor
+                    # type. The function documentation will have to serve as a
+                    # warning that this is not supported.
+                    recformats[idx] = _FormatP(dt, max=length)
+                    data.columns._recformats[idx] = recformats[idx]
+                    name = data.columns.names[idx]
+                    data._cache_field(name, _makep(arr, arr, recformats[idx]))
+
+            def format_value(col, val):
+                # Special formatting for a couple particular data types
+                if recformats[col] == FITS2NUMPY["L"]:
+                    return bool(int(val))
+                elif recformats[col] == FITS2NUMPY["M"]:
+                    # For some reason, in arrays/fields where numpy expects a
+                    # complex it's not happy to take a string representation
+                    # (though it's happy to do that in other contexts), so we have
+                    # to convert the string representation for it:
+                    return complex(val)
+                else:
+                    return val
+
+            # Jump back to the start of the data and create a new line reader
+            fileobj.seek(initialpos)
+            linereader = csv.reader(fileobj, dialect=FITSTableDumpDialect)
+            for row, line in enumerate(linereader):
+                col = 0
+                idx = 0
+                while idx < len(line):
+                    if line[idx] == "VLA_Length=":
+                        vla_len = vla_lengths[col]
+                        idx += 2
+                        slice_ = slice(idx, idx + vla_len)
+                        data[row][col][:] = line[idx : idx + vla_len]
+                        idx += vla_len
+                    elif dtype[col].shape:
+                        # This is an array column
+                        array_size = math.prod(dtype[col].shape)
+                        slice_ = slice(idx, idx + array_size)
+                        idx += array_size
+                    else:
+                        slice_ = None
+
+                    if slice_ is None:
+                        # This is a scalar row element
+                        data[row][col] = format_value(col, line[idx])
+                        idx += 1
+                    else:
+                        data[row][col].flat[:] = [
+                            format_value(col, val) for val in line[slice_]
+                        ]
+
                     col += 1
-                else:
-                    if col >= len(vla_lengths):
-                        vla_lengths.append(None)
-                    update_recformats(row[idx], col)
-                    col += 1
-                    idx += 1
 
-        # Update the recformats for any VLAs
-        for idx, length in enumerate(vla_lengths):
-            if length is not None:
-                recformats[idx] = str(length) + recformats[idx]
-
-        dtype = np.rec.format_parser(recformats, names, None).dtype
-
-        # TODO: In the future maybe enable loading a bit at a time so that we
-        # can convert from this format to an actual FITS file on disk without
-        # needing enough physical memory to hold the entire thing at once
-        hdu = BinTableHDU.from_columns(
-            np.zeros(1, dtype=dtype).view(np.recarray),
-            nrows=nrows,
-            fill=True,
-        )
-
-        # TODO: It seems to me a lot of this could/should be handled from
-        # within the FITS_rec class rather than here.
-        data = hdu.data
-        for idx, length in enumerate(vla_lengths):
-            if length is not None:
-                arr = data.columns._arrays[idx]
-                dt = recformats[idx][len(str(length)) :]
-
-                # NOTE: FormatQ not supported here; it's hard to determine
-                # whether or not it will be necessary to use a wider descriptor
-                # type. The function documentation will have to serve as a
-                # warning that this is not supported.
-                recformats[idx] = _FormatP(dt, max=length)
-                data.columns._recformats[idx] = recformats[idx]
-                name = data.columns.names[idx]
-                data._cache_field(name, _makep(arr, arr, recformats[idx]))
-
-        def format_value(col, val):
-            # Special formatting for a couple particular data types
-            if recformats[col] == FITS2NUMPY["L"]:
-                return bool(int(val))
-            elif recformats[col] == FITS2NUMPY["M"]:
-                # For some reason, in arrays/fields where numpy expects a
-                # complex it's not happy to take a string representation
-                # (though it's happy to do that in other contexts), so we have
-                # to convert the string representation for it:
-                return complex(val)
-            else:
-                return val
-
-        # Jump back to the start of the data and create a new line reader
-        fileobj.seek(initialpos)
-        linereader = csv.reader(fileobj, dialect=FITSTableDumpDialect)
-        for row, line in enumerate(linereader):
-            col = 0
-            idx = 0
-            while idx < len(line):
-                if line[idx] == "VLA_Length=":
-                    vla_len = vla_lengths[col]
-                    idx += 2
-                    slice_ = slice(idx, idx + vla_len)
-                    data[row][col][:] = line[idx : idx + vla_len]
-                    idx += vla_len
-                elif dtype[col].shape:
-                    # This is an array column
-                    array_size = math.prod(dtype[col].shape)
-                    slice_ = slice(idx, idx + array_size)
-                    idx += array_size
-                else:
-                    slice_ = None
-
-                if slice_ is None:
-                    # This is a scalar row element
-                    data[row][col] = format_value(col, line[idx])
-                    idx += 1
-                else:
-                    data[row][col].flat[:] = [
-                        format_value(col, val) for val in line[slice_]
-                    ]
-
-                col += 1
-
-        if close_file:
-            fileobj.close()
+        finally:
+            if close_file:
+                fileobj.close()
 
         return data
 
@@ -1491,24 +1497,25 @@ class BinTableHDU(_TableBaseHDU):
             fileobj = os.path.expanduser(fileobj)
             fileobj = open(fileobj)
             close_file = True
+        try:
 
-        columns = []
+            columns = []
 
-        for line in fileobj:
-            words = line[:-1].split()
-            kwargs = {}
-            for key in ["name", "format", "disp", "unit", "dim"]:
-                kwargs[key] = words.pop(0).replace('""', "")
+            for line in fileobj:
+                words = line[:-1].split()
+                kwargs = {}
+                for key in ["name", "format", "disp", "unit", "dim"]:
+                    kwargs[key] = words.pop(0).replace('""', "")
 
-            for key in ["null", "bscale", "bzero"]:
-                word = words.pop(0).replace('""', "")
-                if word:
-                    word = _str_to_num(word)
-                kwargs[key] = word
-            columns.append(Column(**kwargs))
-
-        if close_file:
-            fileobj.close()
+                for key in ["null", "bscale", "bzero"]:
+                    word = words.pop(0).replace('""', "")
+                    if word:
+                        word = _str_to_num(word)
+                    kwargs[key] = word
+                columns.append(Column(**kwargs))
+        finally:
+            if close_file:
+                fileobj.close()
 
         return ColDefs(columns)
 
