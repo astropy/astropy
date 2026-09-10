@@ -19,6 +19,7 @@ from astropy.coordinates import (
     Latitude,
     Longitude,
 )
+from astropy.coordinates.angles.formats import _MIN_ARRAY_SIZE
 
 
 def test_create_angles():
@@ -679,6 +680,45 @@ def test_angle_string():
         Angle("00h00m10sN")
     with pytest.raises(ValueError):
         Angle("45°55′12″NS")
+
+
+@pytest.mark.parametrize(
+    "string",
+    [
+        "12h34m56.7s",
+        "12d34m56.7s",
+        "-0d01m02.3s",
+        "12h34m",
+        "1.5d",
+        "1\N{DEGREE SIGN}2\N{PRIME}3\N{DOUBLE PRIME}",
+        "00:00:59W",
+        "12 34 56.7",
+        "25h",
+    ],
+)
+def test_angle_array_parsing(string):
+    """Arrays big enough to be parsed in one go agree with parsing one by one."""
+    values = np.array([string] * _MIN_ARRAY_SIZE)
+    parsed = Angle(values, unit=u.deg)
+    expected = u.Quantity([Angle(value, u.deg) for value in values])
+    assert parsed.unit == expected.unit
+    assert_array_equal(parsed.value, expected.value)
+
+
+def test_angle_array_parsing_fallback():
+    """Spellings the array parser does not recognise still get parsed."""
+    values = np.array(["12h34m56.7s"] * _MIN_ARRAY_SIZE)
+    values[3] = "3.5 rad"
+    parsed = Angle(values)
+    assert_array_equal(parsed, u.Quantity([Angle(value) for value in values]))
+
+
+def test_angle_array_parsing_ranges():
+    """Out-of-range fields are reported for arrays as they are for strings."""
+    with pytest.raises(IllegalHourError):
+        Angle(np.array(["25h0m0s"] * _MIN_ARRAY_SIZE))
+    with pytest.warns(IllegalSecondWarning):
+        Angle(np.array(["1d2m60s"] * _MIN_ARRAY_SIZE))
 
 
 def test_angle_repr():
