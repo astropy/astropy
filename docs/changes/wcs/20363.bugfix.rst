@@ -1,0 +1,4 @@
+``WCS.pixel_to_world`` now accepts a single ``(N, pixel_n_dim)`` pixel
+array and splits it into one array per axis, matching
+``pixel_to_world_values``. Previously those stacked inputs were unpacked
+as rows and a celestial WCS could raise in ``Latitude``.
