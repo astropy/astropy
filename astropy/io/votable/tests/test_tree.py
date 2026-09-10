@@ -235,26 +235,29 @@ def test_min_max_with_arrays(testvals):
 
 def test_version():
     """
-    VOTableFile.__init__ allows versions of '1.1' through '1.5'.
+    VOTableFile.__init__ allows versions of '1.1' through '1.6'.
     VOTableFile.__init__ does not allow version of '1.0' anymore and now raises a ValueError as it does to other versions not supported.
     """
     # Exercise the checks in __init__
-    for version in ("1.1", "1.2", "1.3", "1.4", "1.5"):
+    for version in ("1.1", "1.2", "1.3", "1.4", "1.5", "1.6"):
         VOTableFile(version=version)
-    for version in ("0.9", "1.0", "1.6", "2.0"):
+    for version in ("0.9", "1.0", "1.7", "2.0"):
         with pytest.raises(
-            ValueError, match=r"should be in \('1.1', '1.2', '1.3', '1.4', '1.5'\)."
+            ValueError,
+            match=r"should be in \('1.1', '1.2', '1.3', '1.4', "
+            r"'1.5', '1.6'\).",
         ):
             VOTableFile(version=version)
 
     # Exercise the checks in the setter
     vot = VOTableFile()
-    for version in ("1.1", "1.2", "1.3", "1.4", "1.5"):
+    for version in ("1.1", "1.2", "1.3", "1.4", "1.5", "1.6"):
         vot.version = version
-    for version in ("1.0", "1.6", "2.0"):
+    for version in ("1.0", "1.7", "2.0"):
         with pytest.raises(
             ValueError,
-            match=r"version should be in \('1.1', '1.2', '1.3', '1.4', '1.5'\).",
+            match=r"version should be in \('1.1', '1.2', '1.3', '1.4', "
+            r"'1.5', '1.6'\).",
         ):
             vot.version = version
 
