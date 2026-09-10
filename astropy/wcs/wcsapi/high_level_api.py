@@ -110,7 +110,8 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         as-is (not in a tuple/list), otherwise a tuple of high-level objects is
         returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` for pixel
-        indexing and ordering conventions.
+        indexing and ordering conventions. A single ``(N, pixel_n_dim)`` array
+        is split into one array per pixel axis before the conversion.
         """
 
     def array_index_to_world(self, *index_arrays):
@@ -417,6 +418,14 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
 
     def pixel_to_world(self, *pixel_arrays):
         values, masks = MaskedNDArray._get_data_and_masks(pixel_arrays)
+        # A single (N, pixel_n_dim) array is the low-level pix2world layout.
+        # Split it into one array per axis so values_to_high_level_objects
+        # receives world axes, not rows (#19230).
+        if len(values) == 1:
+            arr = np.asanyarray(values[0])
+            nax = self.low_level_wcs.pixel_n_dim
+            if arr.ndim == 2 and arr.shape[-1] == nax:
+                values = tuple(np.moveaxis(arr, -1, 0))
         # Compute the world coordinate values
         world_values = self.low_level_wcs.pixel_to_world_values(*values)
 

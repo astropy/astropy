@@ -1672,6 +1672,18 @@ def test_array_index_conversions_scalars_2d():
     assert isinstance(y, np.ndarray) and y.ndim == 0
 
 
+def test_pixel_to_world_accepts_nxndim_array():
+    # Regression for #19230: a single (N, pixel_n_dim) array must match
+    # passing one 1-D array per axis, not feed rows into SkyCoord.
+    wcs = WCS_SIMPLE_CELESTIAL
+    xy = np.array([[30.0, 40.0], [30.0, 40.0], [30.0, 40.0]])
+    split = wcs.pixel_to_world(xy[:, 0], xy[:, 1])
+    stacked = wcs.pixel_to_world(xy)
+    assert stacked.shape == split.shape
+    assert_allclose(stacked.ra.deg, split.ra.deg)
+    assert_allclose(stacked.dec.deg, split.dec.deg)
+
+
 class TestMaskedData:
     wcs = WCS_SIMPLE_CELESTIAL
 
