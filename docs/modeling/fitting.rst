@@ -191,3 +191,42 @@ background in an image.
     ax3.imshow(z - p(x, y), origin='lower', interpolation='nearest', vmin=-1e4,
                vmax=5e4)
     ax3.set_title("Residual")
+
+.. _modeling-getting-started-verify-dims:
+
+Fitting models that change the shape of the data
+------------------------------------------------
+
+Before fitting, the input coordinates and the data are checked against each
+other, and a `ValueError` is raised if they do not have the same shape. Some
+models legitimately return an array with a different shape from their input,
+for example a model that convolves with an instrument response and returns
+the result on a coarser grid. Such a model can opt out of this check by
+setting ``verify_dims_in_fitting`` to `False`::
+
+    import numpy as np
+    from astropy.modeling import Fittable1DModel, Parameter, fitting
+
+    class RebinnedLinear1D(Fittable1DModel):
+        # x and the model output deliberately have different shapes
+        verify_dims_in_fitting = False
+
+        intercept = Parameter(default=0.)
+        slope = Parameter(default=1.)
+
+        @staticmethod
+        def evaluate(x, intercept, slope):
+            y = intercept + slope * x
+            return np.interp(np.linspace(x.min(), x.max(), 7), x, y)
+
+    # Generate fake data on a 25 point grid, rebinned onto 7 points
+    x = np.linspace(0., 10., 200)
+    y = RebinnedLinear1D(intercept=3., slope=2.)(x)
+
+    # Fit the data, which would otherwise raise a ValueError
+    fit = fitting.TRFLSQFitter()
+    m = fit(RebinnedLinear1D(), x, y)
+
+For compound models the attribute must be set on one of the component models
+rather than on the compound model itself. An opt-out on any component
+disables the check for the whole compound model.
