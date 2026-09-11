@@ -103,3 +103,17 @@ def test_pickle_builtin_realizations(name, pickle_protocol):
     unpickled = pickle.loads(f)
     assert unpickled == original
     assert unpickled.meta != original.meta
+
+
+def test_planck15_om0_matches_paper_xiii_minus_onu():
+    """Planck 2015 XIII Table 4 quotes Om = 0.3089 including neutrinos.
+
+    Astropy stores massive neutrinos in ``m_nu`` / ``Onu0``, so
+    ``Planck15.Om0`` is 0.3075. Adding ``Onu0`` recovers Table 4 to
+    four decimals (regression for astropy/astropy#16674).
+    """
+    from astropy.cosmology import Planck15
+
+    assert Planck15.Om0 == 0.3075
+    assert round(float(Planck15.Om0 + Planck15.Onu0), 4) == 0.3089
+
