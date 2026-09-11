@@ -2097,15 +2097,12 @@ class JointFitter(Fitter):
 def _verify_dims_in_fitting(model):
     """
     Resolve the ``verify_dims_in_fitting`` opt-out flag for ``model``.
-
-    The flag is resolved over the whole model tree: if *any* node opts out,
-    the coordinate/data shape check in `_convert_input` is skipped.
     """
     if model is None:
         return True
-    try:
+    if hasattr(model, "traverse_postorder"):  # i.e. a CompoundModel
         nodes = model.traverse_postorder()
-    except AttributeError:
+    else:
         nodes = [model]
     return not any(
         getattr(node, "verify_dims_in_fitting", True) is False for node in nodes
