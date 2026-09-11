@@ -1816,6 +1816,77 @@ a & b\\
     assert dat["b"][0] == " xy"
 
 
+def test_latex_ignore_commands_not_in_comments():
+    """Test that LaTeX commands like \\hline and \\toprule are not treated as comments (#18531)."""
+    text = r"""
+% First real comment
+\begin{tabular}{cc}
+\hline
+a & b\\
+\hline
+1 & 2\\
+\hline
+\end{tabular}
+% Trailing real comment
+"""
+    reader = ascii.get_reader(reader_cls=ascii.Latex)
+    table = reader.read(text)
+    assert table.meta.get("comments") == ["First real comment", "Trailing real comment"]
+    assert reader.comment_lines == ["% First real comment", "% Trailing real comment"]
+
+    # Table with only formatting commands and no % comments should have no comments
+    text_no_comments = r"""
+\begin{tabular}{cc}
+\hline
+a & b\\
+\hline
+1 & 2\\
+\hline
+\end{tabular}
+"""
+    reader2 = ascii.get_reader(reader_cls=ascii.Latex)
+    table2 = reader2.read(text_no_comments)
+    assert "comments" not in table2.meta
+    assert reader2.comment_lines == []
+
+    # Writing table2 with format="ascii" should not produce empty "# " lines
+    out = StringIO()
+    table2.write(out, format="ascii")
+    assert not any(line.startswith("#") for line in out.getvalue().splitlines())
+
+    # AASTex format test
+    text_aastex = r"""
+\begin{deluxetable}{cc}
+%\tabletypesize{\scriptsize}
+\tablecaption{Sample\label{tab:sample}}
+\tablehead{\colhead{a} & \colhead{b}}
+\startdata
+\toprule
+1 & 2\\
+\midrule
+3 & 4\\
+\bottomrule
+\enddata
+\end{deluxetable}
+"""
+    reader3 = ascii.get_reader(reader_cls=ascii.AASTex)
+    table3 = reader3.read(text_aastex)
+    assert table3.meta.get("comments") == [r"\tabletypesize{\scriptsize}"]
+    assert reader3.comment_lines == [r"%\tabletypesize{\scriptsize}"]
+
+    # Direct reproduction test from #18531 using data/latex1.tex
+    from astropy.utils.data import get_pkg_data_filename
+
+    latex_file = get_pkg_data_filename(
+        "data/latex1.tex", package="astropy.io.ascii.tests"
+    )
+    t = Table.read(latex_file, format="ascii")
+    assert "comments" not in t.meta
+    out = StringIO()
+    t.write(out, format="ascii")
+    assert not any(line.startswith("#") for line in out.getvalue().splitlines())
+
+
 @pytest.mark.parametrize("encoding", ["utf8", "latin1", "cp1252"])
 def test_read_with_encoding(tmp_path, encoding):
     data = {"commented_header": "# à b è \n 1 2 héllo", "csv": "à,b,è\n1,2,héllo"}

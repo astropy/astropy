@@ -216,6 +216,21 @@ class LatexHeader(core.BaseHeader):
                     units[name] = unit
         return units
 
+    def update_meta(self, lines, meta):
+        """
+        Extract table-level metadata from the table ``lines`` and update the
+        OrderedDict ``meta`` in place.
+
+        Only lines starting with LaTeX comment character '%' are extracted as comments,
+        ignoring table formatting commands like \\hline, \\toprule, etc.
+        """
+        re_comment = re.compile(r"^\s*%")
+        comment_lines = [
+            re.sub(r"^\s*%\s*", "", x).strip() for x in lines if re_comment.match(x)
+        ]
+        if comment_lines:
+            meta.setdefault("table", {})["comments"] = comment_lines
+
     def write(self, lines):
         if "col_align" not in self.latex:
             self.latex["col_align"] = len(self.cols) * "c"
@@ -482,6 +497,16 @@ class Latex(core.BaseReader):
         self.header.start_line = None
         self.data.start_line = None
         return core.BaseReader.write(self, table=table)
+
+    @property
+    def comment_lines(self) -> list[str]:
+        """Return lines in the table that are comments (starting with '%')."""
+        if not hasattr(self, "lines"):
+            raise ValueError(
+                "Table must be read prior to accessing the header comment lines"
+            )
+        re_comment = re.compile(r"^\s*%")
+        return [x for x in self.lines if re_comment.match(x)]
 
 
 class AASTexHeaderSplitter(LatexSplitter):
