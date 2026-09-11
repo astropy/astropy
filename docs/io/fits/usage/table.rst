@@ -472,6 +472,22 @@ process will not be necessary.
 ..
   EXAMPLE END
 
+.. _fits_tunit_after_data:
+
+Updating column units (TUNIT)
+=============================
+
+The FITS ``TUNITn`` keyword is the on-disk unit of column *n*.  In
+``astropy.io.fits`` that value is stored on the :class:`~astropy.io.fits.Column`
+inside :attr:`~astropy.io.fits.BinTableHDU.columns`.  After the table data is
+loaded, the header is no longer the source of truth for those cards: a later
+``hdu.header['TUNIT1'] = 'Jy'`` is overwritten from ``ColDefs`` on
+:meth:`~astropy.io.fits.HDUList.writeto` / flush.
+
+Change the unit on the column object (or call
+:meth:`~astropy.io.fits.ColDefs.change_unit`), or edit ``TUNIT`` in the header
+*before* accessing ``hdu.data``.  See also :ref:`fits-tunit-writeback-faq`.
+
 .. _fits_time_column:
 
 FITS Tables with Time Columns

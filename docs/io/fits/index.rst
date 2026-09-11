@@ -614,6 +614,15 @@ We can also get these properties individually; for example::
 
 returns a (Python) list of field names.
 
+.. warning::
+
+    After the table data is read, column keywords such as ``TUNIT`` are owned
+    by this :class:`~astropy.io.fits.ColDefs` object.  Assigning
+    ``hdul[1].header['TUNIT1']`` at that point does not survive
+    :meth:`~astropy.io.fits.HDUList.writeto`.  Set ``hdul[1].columns[0].unit``
+    (or :meth:`~astropy.io.fits.ColDefs.change_unit`) instead.  Details are in
+    :ref:`fits_tunit_after_data`.
+
 Since each field is a ``numpy`` object, we will have the entire arsenal of
 ``numpy`` tools to use. We can reassign (update) the values::
 
