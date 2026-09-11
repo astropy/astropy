@@ -1247,3 +1247,39 @@ def test_array_keys(key):
         setattr(w, key, ["foo", "bar"])
     with pytest.raises(ValueError):
         setattr(w, key, "foo")
+
+
+def test_wcsparameterarray_behaviour():
+    # The six UNDEFINED-capable auxiliary arrays are exposed through the
+    # WCSParameterArray subclass, which translates NaN <-> UNDEFINED and writes
+    # element assignments back into the wcsprm struct (GH-16409).
+    w = _wcs.Wcsprm()
+    assert isinstance(w.obsgeo, np.ndarray)
+
+    w.obsgeo = [1, 2, 3, 4, 5, 6]
+    # In-place element assignment is written back to the struct...
+    w.obsgeo[5] = 60
+    assert w.obsgeo[5] == 60
+    # ...including NaN, which round-trips through the UNDEFINED sentinel.
+    w.obsgeo[4] = np.nan
+    assert np.isnan(w.obsgeo[4])
+    assert_array_equal(w.obsgeo[:4], [1, 2, 3, 4])
+
+    # Reads decay to a plain ndarray so downstream code never sees the subclass.
+    assert type(w.obsgeo[:3]) is np.ndarray
+    assert type(w.obsgeo[0:0]) is np.ndarray
+
+
+def test_deleting_undefined_field_omits_from_header():
+    # Regression (GH-16409): deleting an UNDEFINED-capable field must store the
+    # WCSLIB UNDEFINED sentinel, not NaN -- otherwise the field leaks into the
+    # header as "... = NAN" instead of being omitted.  The getter maps both
+    # UNDEFINED and NaN back to NaN, so this can only be observed via to_header.
+    w = _wcs.Wcsprm()
+    w.equinox = 2000.0
+    w.mjdref = [1.0, 2.0]
+    w.obsgeo = [1, 2, 3, 4, 5, 6]
+    del w.equinox
+    del w.mjdref
+    del w.obsgeo
+    assert "NAN" not in w.to_header().upper()

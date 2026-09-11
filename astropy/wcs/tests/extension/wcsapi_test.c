@@ -3,7 +3,7 @@
  function-pointer table (discoverable from astropy.wcs.get_include()).  This is
  the same entry point a downstream package such as drizzlepac uses.  The module
  provides one Python-callable function per member, or group of members, of the
- table that astropy still supports, plus one that calls a deprecated member.
+ table that astropy still supports, plus some that call deprecated members.
 */
 
 #include "Python.h"
@@ -29,9 +29,10 @@ get_error_message(PyObject* self, PyObject* arg) {
     return PyUnicode_FromString(msg == NULL ? "" : msg);
 }
 
-/* Slots 1, 2, 20, 21: bracket wcsp2s / wcss2p with the wcsprm_python2c /
-   wcsprm_c2python pair (exactly as drizzlepac does) and round-trip a single
-   two-dimensional coordinate through pixel -> world -> pixel. */
+/* Slots 20, 21: round-trip a single two-dimensional coordinate through
+   pixel -> world -> pixel with wcsp2s / wcss2p.  The wcsprm struct is stored
+   canonically in WCSLIB form, so no conversion calls are needed around the
+   transforms. */
 static PyObject*
 roundtrip(PyObject* self, PyObject* args) {
     PyObject* wcsprm_obj;
@@ -50,10 +51,8 @@ roundtrip(PyObject* self, PyObject* args) {
     pixcrd[0] = x;
     pixcrd[1] = y;
 
-    wcsprm_python2c(w);
     s1 = wcsp2s(w, 1, 2, pixcrd, imgcrd, phi, theta, world, stat);
     s2 = wcss2p(w, 1, 2, world, phi, theta, imgcrd, pix2, stat);
-    wcsprm_c2python(w);
 
     if (s1 != 0 || s2 != 0) {
         PyErr_Format(PyExc_RuntimeError,
@@ -109,6 +108,37 @@ call_deprecated(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
+/* Slots 1 and 2: the deprecated wcsprm_python2c / wcsprm_c2python conversion
+   pair, called around wcsp2s exactly as drizzlepac does. */
+static PyObject*
+call_conversions(PyObject* self, PyObject* args) {
+    PyObject* wcsprm_obj;
+    double x, y;
+    struct wcsprm* w;
+    double pixcrd[2], imgcrd[2], world[2];
+    double phi[1], theta[1];
+    int stat[1];
+    int status;
+
+    if (!PyArg_ParseTuple(args, "Odd", &wcsprm_obj, &x, &y)) {
+        return NULL;
+    }
+    w = &((Wcsprm*)wcsprm_obj)->x;
+
+    pixcrd[0] = x;
+    pixcrd[1] = y;
+
+    wcsprm_python2c(w);
+    status = wcsp2s(w, 1, 2, pixcrd, imgcrd, phi, theta, world, stat);
+    wcsprm_c2python(w);
+
+    if (status != 0) {
+        PyErr_Format(PyExc_RuntimeError, "wcsp2s failed (status=%d)", status);
+        return NULL;
+    }
+    return Py_BuildValue("(dd)", world[0], world[1]);
+}
+
 static PyMethodDef module_methods[] = {
     {"get_c_version", get_c_version, METH_NOARGS, ""},
     {"get_error_message", get_error_message, METH_O, ""},
@@ -116,6 +146,7 @@ static PyMethodDef module_methods[] = {
     {"print_wcsprm", print_wcsprm, METH_O, ""},
     {"all_pix2world", all_pix2world, METH_VARARGS, ""},
     {"call_deprecated", call_deprecated, METH_NOARGS, ""},
+    {"call_conversions", call_conversions, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}  /* Sentinel */
 };
 
