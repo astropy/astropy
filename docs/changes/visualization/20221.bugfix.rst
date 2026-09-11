@@ -1,0 +1,30 @@
+Fixed a number of bugs in WCSAxes:
+
+* Setting the number of ticks to zero no longer crashes drawing, minor
+  ticks, or the mouseover coordinate display.
+* Contour-type grids no longer crash for a longitude coordinate with fewer
+  than two ticks or for a coordinate sliced out of the plot, and no longer
+  draw a spurious gridline along the longitude wrap for a single tick.
+* Drawing a gridline sampled with fewer than three points no longer crashes.
+* Transforming empty coordinate arrays no longer crashes for 1-d WCS and
+  now returns correctly shaped arrays.
+* Simplifying tick labels no longer crashes when one label is a prefix of
+  an adjacent one.
+* Tick values for longitude coordinates in non-degree units are no longer
+  corrupted when a tick intersects a spine more than once.
+* ``%``-style tick formats now use the format unit instead of the
+  coordinate's native unit.
+* Invalid tick format strings now raise a ``ValueError`` instead of being
+  silently accepted with reduced precision.
+* ``get_coords_overlay`` no longer ignores a supplied ``coord_meta`` when
+  passed a WCS.
+* The default conversion of right ascension format units to hourangle no
+  longer depends on unit object identity.
+* ``custom_ucd_coord_meta_mapping`` no longer applies earlier keys when a
+  later key conflicts, and now raises for keys specified more than once.
+* The cursor coordinate display no longer breaks after ``reset_wcs`` and
+  now preserves the pixel display mode.
+* Automatically-placed coordinates are now hidden instead of crashing when
+  no spine assignment is consistent with fixed tick positions.
+* Formatting a coordinate for the mouseover display no longer crashes for
+  a degenerate (zero-size) coordinate range.
