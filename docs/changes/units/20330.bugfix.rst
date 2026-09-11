@@ -1,6 +1,0 @@
-Creating a ``Quantity`` with a concrete logarithmic unit (for example
-``u.dB(u.dimensionless_unscaled)``) now preserves that unit instead of
-silently substituting the generic registered function unit (``u.dB``).
-The generic unit does not know the logarithmic conversion, so such a
-quantity previously could not be converted to its physical unit
-(``q.to(u.dimensionless_unscaled)`` raised a ``UnitConversionError``).
