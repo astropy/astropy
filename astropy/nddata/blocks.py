@@ -207,7 +207,8 @@ def block_replicate(data, block_size, conserve_sum=True):
         data = np.repeat(data, block_size[i], axis=i)
 
     if conserve_sum:
-        # in-place division can fail due to dtype casting rule
-        data = data / np.prod(block_size)
+        # in-place division can fail due to dtype casting rule;
+        # cast to Python int to avoid promoting float16/float32/complex64 under NEP 50
+        data = data / int(np.prod(block_size))
 
     return data
