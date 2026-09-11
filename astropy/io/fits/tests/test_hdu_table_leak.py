@@ -1,12 +1,22 @@
 """Regression for https://github.com/astropy/astropy/issues/20057.
 
-BinTableHDU.load() must not leave file handles open when parsing of the
-ASCII dump files fails partway through.
+BinTableHDU.load() and dump() must not leave file handles open when
+parsing or writing of the ASCII dump files fails partway through.
 """
 
-import os
+import psutil
+import pytest
 
 from astropy.io.fits.hdu.table import BinTableHDU
+
+
+def _open_paths():
+    return {f.path for f in psutil.Process().open_files()}
+
+
+def _assert_no_leak(marker):
+    leaked = [p for p in _open_paths() if marker in p]
+    assert not leaked, f"leaked handle(s): {leaked}"
 
 
 def test_load_closes_files_on_parse_error(tmp_path):
@@ -17,38 +27,17 @@ def test_load_closes_files_on_parse_error(tmp_path):
     # Malformed column definition: a single word where five are expected.
     cdfile.write_text("ONLY_ONE_WORD\n")
 
-    handles_before = (
-        set(os.listdir("/proc/self/fd")) if os.path.isdir("/proc/self/fd") else None
-    )
-
-    try:
+    with pytest.raises(IndexError):
         BinTableHDU.load(datafile=str(datafile), cdfile=str(cdfile))
-    except IndexError:
-        pass  # expected: words.pop(0) on an exhausted list
-    else:
-        raise AssertionError("malformed coldefs should fail parsing")
 
-    # The coldefs handle must have been closed even though parsing raised.
-    # On POSIX, verify no handle still points at the coldefs file.
-    if os.path.isdir("/proc/self/fd"):
-        handles_after = set(os.listdir("/proc/self/fd"))
-        leaked = handles_after - (handles_before or set())
-        for fd in leaked:
-            try:
-                target = os.readlink(f"/proc/self/fd/{fd}")
-            except OSError:
-                continue
-            assert "coldefs" not in target, f"leaked handle: {fd} -> {target}"
+    _assert_no_leak("coldefs")
 
 
 def test_dump_closes_files_on_error(tmp_path):
-    """Verify dump() closes file handles even when writing raises."""
     import numpy as np
 
     from astropy.io.fits import Column
-    from astropy.io.fits.hdu.table import BinTableHDU
 
-    # Create a tiny BinTable with one integer column
     c = Column(name="col", format="J", array=np.array([1, 2]))
     hdu = BinTableHDU.from_columns([c])
 
@@ -59,18 +48,7 @@ def test_dump_closes_files_on_error(tmp_path):
     datafile.touch()
     datafile.chmod(0o444)
 
-    try:
+    with pytest.raises(OSError):
         hdu.dump(datafile=str(datafile), cdfile=str(cdfile))
-    except (PermissionError, OSError):
-        pass  # expected: can't write to read-only file
-    else:
-        raise AssertionError("dump to read-only file should fail")
 
-    # Verify no leaked handles pointing at datafile
-    if os.path.isdir("/proc/self/fd"):
-        for fd in os.listdir("/proc/self/fd"):
-            try:
-                target = os.readlink(f"/proc/self/fd/{fd}")
-            except OSError:
-                continue
-            assert str(datafile) not in target, f"leaked handle: {fd} -> {target}"
+    _assert_no_leak(str(datafile))
