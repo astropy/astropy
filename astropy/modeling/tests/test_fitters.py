@@ -1565,6 +1565,7 @@ def test_inplace_fitting(fitter_cls):
     assert_almost_equal(m_ini.amplitude, 2.0)
     assert_almost_equal(m_fit.amplitude, 2.0)
 
+
 class RebinnedLinear1D(Fittable1DModel):
     """
     A model evaluated on ``x`` but returning a coarser grid, so that the input
