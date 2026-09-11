@@ -1552,6 +1552,7 @@ class TestUfuncReturnsNotImplemented:
                 match=(
                     r"(Unsupported operand type\(s\) for ufunc .*)|"
                     r"(unsupported operand type\(s\) for .*)|"
+                    r"(operand type\(s\) all returned NotImplemented from __array_ufunc__.*)|"
                     r"(Value not scalar compatible or convertible to an int, float, or complex array)"
                 ),
             ):
@@ -1690,6 +1691,52 @@ if HAS_SCIPY:
                 ),
             ):
                 function(1.0 * u.kg, 3.0 * u.m / u.s)
+
+
+class TestQuantityArrayUfuncUnknownTypes:
+    """Quantity.__array_ufunc__ must not treat unknown types as dimensionless.
+
+    Regression for https://github.com/astropy/astropy/issues/10776
+    """
+
+    def test_time_and_timedelta_return_not_implemented(self):
+        from astropy.time import Time, TimeDelta
+
+        q = 10 * u.one
+        qm = 10 * u.m
+        dt = TimeDelta(1.0, format="jd")
+        t = Time("2020-01-01")
+        assert q.__array_ufunc__(np.multiply, "__call__", q, dt) is NotImplemented
+        assert q.__array_ufunc__(np.multiply, "__call__", q, t) is NotImplemented
+        assert qm.__array_ufunc__(np.multiply, "__call__", qm, dt) is NotImplemented
+
+    def test_timedelta_operators_still_work(self):
+        from astropy.time import TimeDelta
+
+        dt = TimeDelta(1.0, format="jd")
+        assert (10 * u.m) * dt == 10 * u.m * u.day
+        assert (10 * u.one) * dt == TimeDelta(10.0, format="jd")
+
+    def test_plain_sequences_remain_dimensionless(self):
+        assert np.all(np.multiply(2 * u.m, [3, 4]) == [6, 8] * u.m)
+        assert np.all(np.add(1 * u.one, (2, 3)) == [3, 4] * u.one)
+
+    def test_unknown_class_returns_not_implemented(self):
+        class Other:
+            pass
+
+        q = 1 * u.m
+        assert q.__array_ufunc__(np.multiply, "__call__", q, Other()) is NotImplemented
+
+    def test_numeric_value_attr_is_not_treated_as_array(self):
+        # The old path stripped ``.value`` before validating the object, so a
+        # non-array type with a numeric value was treated as dimensionless.
+        class HasNumericValue:
+            value = 2.0
+
+        q = 10 * u.m
+        other = HasNumericValue()
+        assert q.__array_ufunc__(np.multiply, "__call__", q, other) is NotImplemented
 
 
 class TestLinalg:
