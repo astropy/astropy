@@ -177,6 +177,15 @@ def test_impose_restores_frame_attribute():
     assert coo.obstime == original_obstime
 
 
+def test_invalid_attribute_value():
+    with impose_frame_attributes(obstime="2020-01-01"):
+        # no error here, as attribute validation is done on get
+        frame = GCRS(obstime="hello")
+
+    with pytest.raises(ValueError):
+        frame.obstime  # Validation happens here
+
+
 def test_frame_multiple_inheritance_attribute_descriptor():
     """
     Ensure that all attributes are accumulated in case of inheritance from
