@@ -45,7 +45,7 @@ def fast_thread_switching():
     This makes it easier to provoke race conditions.
     """
     old = sys.getswitchinterval()
-    sys.setswitchinterval(1e-6)
+    sys.setswitchinterval(min(old, 1e-6))
     yield
     sys.setswitchinterval(old)
 
