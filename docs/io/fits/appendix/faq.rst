@@ -440,6 +440,28 @@ opening the file::
     >>> hdul.close()
 
 
+.. _fits-tunit-writeback-faq:
+
+Why are TUNIT changes to a binary table header not written out?
+---------------------------------------------------------------
+
+Once the table data has been accessed, column metadata such as ``TUNIT`` lives
+on the parsed :class:`~astropy.io.fits.ColDefs` object
+(``hdul[1].columns``). The header cards are rebuilt from that object when the
+file is written. Editing ``hdul[1].header['TUNIT1']`` after ``hdul[1].data``
+has been read therefore looks successful in memory, but the write path copies
+the original unit from ``ColDefs`` back over the card.
+
+Update the column definition instead, or change the header *before* touching
+the data::
+
+    >>> hdul[1].columns[0].unit = 'Jy'
+    >>> hdul[1].columns.change_unit('x', 'Jy')  # by column name
+
+The same ownership rule applies to other column keywords that ``ColDefs``
+tracks (``TTYPE``, ``TFORM``, ``TNULL``, ``TSCAL``, ``TZERO``, and so on).
+
+
 Why am I losing precision when I assign floating point values in the header?
 ----------------------------------------------------------------------------
 

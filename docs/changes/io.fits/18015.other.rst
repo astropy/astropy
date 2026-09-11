@@ -1,0 +1,3 @@
+The FITS table documentation now explains that ``TUNIT`` (and other column
+cards) edited in the header after the table data is loaded are overwritten
+from ``ColDefs`` on write.
