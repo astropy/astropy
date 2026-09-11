@@ -9,12 +9,12 @@ import pytest
 from astropy import units as u
 from astropy.modeling import fitting, models
 from astropy.modeling.core import Fittable1DModel, compose_models_with_units
+from astropy.modeling.fitting import _verify_dims_in_fitting
 from astropy.modeling.parameters import Parameter
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import UnitsError
 from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_SCIPY
-from astropy.modeling.fitting import _verify_dims_in_fitting
 
 # Fitting should be as intuitive as possible to the user. Essentially, models
 # and fitting should work without units, but if one has units, the other should
@@ -306,6 +306,7 @@ def test_fitting_model_pipe_with_units(fitter):
     res = fit(comb, e, fake_data)
     for name in comb.param_names:
         assert getattr(comb, name) == getattr(res, name)
+
 
 def test_verify_dims_in_fitting_survives_unit_stripping():
     """
