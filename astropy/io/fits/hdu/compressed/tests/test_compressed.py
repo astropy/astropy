@@ -1652,3 +1652,76 @@ def test_compressed_hdu_header_order():
         assert actual_key == expected_key
         if actual_key != "CHECKSUM":
             assert actual_value == expected_value
+
+
+@pytest.mark.parametrize(
+    ("bscale", "bzero", "dtype"),
+    [
+        (0.5, 0.0, np.int16),
+        (2.0, 100.0, np.int16),
+        (0.25, -3.0, np.int32),
+        (1.0, 0.0, np.int16),
+        (None, None, np.int16),
+        (None, None, np.float32),
+    ],
+)
+def test_scaled_compimage_survives_header_only_update(
+    tmp_path, bscale, bzero, dtype
+):
+    """A header-only update must not touch the data.
+
+    The update is repeated three times because the corruption is cumulative:
+    a single round trip could be mistaken for a rounding artefact, three
+    cannot.
+    """
+    path = tmp_path / "scaled.fits"
+    values = np.arange(1, 101, dtype=dtype).reshape(10, 10)
+
+    hdu = fits.CompImageHDU(values, name="SCI", compression_type="RICE_1")
+    if bscale is not None:
+        hdu.header["BSCALE"] = bscale
+    if bzero is not None:
+        hdu.header["BZERO"] = bzero
+    fits.HDUList([fits.PrimaryHDU(), hdu]).writeto(path)
+
+    with fits.open(path) as hdul:
+        expected = np.asarray(hdul["SCI"].data, dtype=float)
+
+    for i in range(3):
+        # deliberately do NOT touch .data: that is the trigger
+        with fits.open(path, mode="update") as hdul:
+            hdul["SCI"].header["COMMENT"] = f"header-only update {i}"
+
+        with fits.open(path) as hdul:
+            got = np.asarray(hdul["SCI"].data, dtype=float)
+        assert_allclose(
+            got,
+            expected,
+            err_msg=f"data changed after {i + 1} header-only update(s)",
+        )
+
+
+def test_scaled_compimage_header_keeps_bscale(tmp_path):
+    """The scaling keywords must survive a header-only update too.
+
+    Complementary to the test above: data could also be preserved by dropping
+    BSCALE and writing the physical values, which would be a different file
+    than the one the user wrote.
+    """
+    path = tmp_path / "keywords.fits"
+    hdu = fits.CompImageHDU(
+        np.arange(1, 101, dtype=np.int16).reshape(10, 10),
+        name="SCI",
+        compression_type="RICE_1",
+    )
+    hdu.header["BSCALE"] = 0.5
+    hdu.header["BZERO"] = 0.0
+    fits.HDUList([fits.PrimaryHDU(), hdu]).writeto(path)
+
+    with fits.open(path, mode="update") as hdul:
+        hdul["SCI"].header["COMMENT"] = "header-only update"
+
+    with fits.open(path, do_not_scale_image_data=True) as hdul:
+        header = hdul["SCI"].header
+        assert header["BSCALE"] == 0.5
+        assert np.asarray(hdul["SCI"].data).dtype.kind == "i"
