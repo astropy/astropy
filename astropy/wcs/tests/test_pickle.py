@@ -44,7 +44,7 @@ def test_dist():
         s = pickle.dumps(wcs1)
         wcs2 = pickle.loads(s)
 
-        with NumpyRNGContext(123456789):
+        with NumpyRNGContext(123_456_789):
             x = np.random.rand(2**16, wcs1.wcs.naxis)
             world1 = wcs1.all_pix2world(x, 1)
             world2 = wcs2.all_pix2world(x, 1)
@@ -63,7 +63,7 @@ def test_sip():
         s = pickle.dumps(wcs1)
         wcs2 = pickle.loads(s)
 
-        with NumpyRNGContext(123456789):
+        with NumpyRNGContext(123_456_789):
             x = np.random.rand(2**16, wcs1.wcs.naxis)
             world1 = wcs1.all_pix2world(x, 1)
             world2 = wcs2.all_pix2world(x, 1)
@@ -82,7 +82,7 @@ def test_sip2():
         s = pickle.dumps(wcs1)
         wcs2 = pickle.loads(s)
 
-        with NumpyRNGContext(123456789):
+        with NumpyRNGContext(123_456_789):
             x = np.random.rand(2**16, wcs1.wcs.naxis)
             world1 = wcs1.all_pix2world(x, 1)
             world2 = wcs2.all_pix2world(x, 1)
@@ -101,7 +101,7 @@ def test_wcs():
     s = pickle.dumps(wcs1)
     wcs2 = pickle.loads(s)
 
-    with NumpyRNGContext(123456789):
+    with NumpyRNGContext(123_456_789):
         x = np.random.rand(2**16, wcs1.wcs.naxis)
         world1 = wcs1.all_pix2world(x, 1)
         world2 = wcs2.all_pix2world(x, 1)
