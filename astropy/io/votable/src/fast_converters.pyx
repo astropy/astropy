@@ -105,7 +105,7 @@ cdef inline void swap_bytes_16(unsigned char* data) noexcept nogil:
     temp = data[0]; data[0] = data[1]; data[1] = temp
 
 def fast_binparse_double(const unsigned char[::1] data,
-        int offset=0, double null_value=0.0, bint has_custom_null=False):
+        int offset=0, float64_t null_value=0.0, bint has_custom_null=False):
     """Parse 8-byte double from big-endian VOTable data."""
     cdef float64_t value
     cdef unsigned char temp_data[8]
@@ -128,7 +128,7 @@ def fast_binparse_double(const unsigned char[::1] data,
     return value, is_null
 
 def fast_binparse_float(const unsigned char[::1] data,
-        int offset=0, float null_value=0.0, bint has_custom_null=False):
+        int offset=0, float32_t null_value=0.0, bint has_custom_null=False):
     """Parse 4-byte float."""
     cdef float32_t value
     cdef unsigned char temp_data[4]
@@ -151,7 +151,7 @@ def fast_binparse_float(const unsigned char[::1] data,
     return value, is_null
 
 def fast_binparse_long(const unsigned char[::1] data,
-        int offset=0, long null_value=0, bint has_custom_null=False):
+        int offset=0, int64_t null_value=0, bint has_custom_null=False):
     """Parse 8-byte signed integer."""
     cdef int64_t value
     cdef unsigned char temp_data[8]
@@ -172,7 +172,7 @@ def fast_binparse_long(const unsigned char[::1] data,
     return value, is_null
 
 def fast_binparse_int(const unsigned char[::1] data,
-        int offset=0, int null_value=0, bint has_custom_null=False):
+        int offset=0, int32_t null_value=0, bint has_custom_null=False):
     """Parse 4-byte signed int."""
     cdef int32_t value
     cdef unsigned char temp_data[4]
@@ -193,7 +193,7 @@ def fast_binparse_int(const unsigned char[::1] data,
     return value, is_null
 
 def fast_binparse_short(const unsigned char[::1] data, int offset=0,
-        short null_value=0, bint has_custom_null=False):
+        int16_t null_value=0, bint has_custom_null=False):
     """Parse 2-byte signed short."""
     cdef int16_t value
     cdef unsigned char temp_data[2]
