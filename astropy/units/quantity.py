@@ -259,62 +259,48 @@ NUM: Final = r"""
     [.+-]?
 """
 
-SEP_SPACE: Final = r"""\s*\]\s*\[\s*"""
-SEP_COMMA: Final = r"""\s*\]\s*,\s*\[\s*"""
+SEP_SPACE: Final = r"""\s*\]+\s*\[+\s*"""
+SEP_COMMA: Final = r"""\s*\]+\s*,\s*\[+\s*"""
 
-# List of numbers separated by "," or whitespace.
-NUMLST_COMMA: Final = rf"""
-    \s*
-    {NUM}
-    (?:(\s*,\s*){NUM})*
-    (\s*,\s*)?
-"""
-NUMLST_WSPACE: Final = rf"""
-    \s*
-    {NUM}
-    (?:(\s*){NUM})*
-"""
-TENSOR_COMMA: Final = rf"""
-    \[+
-    \s*
-    {NUMLST_COMMA}
-    (?: {SEP_COMMA}{NUMLST_COMMA})*
-    (\s*,\s*)?
-    \]+
-"""
-TENSOR_WSPACE: Final = rf"""
-    \[+
-    \s*
-    {NUMLST_WSPACE}
-    (?: {SEP_SPACE}{NUMLST_WSPACE})*
-    \]+
-"""
-
-TENSOR: Final = rf"{TENSOR_COMMA}|{TENSOR_WSPACE}"
-NUMBER_PATTERN: Final = re.compile(rf"\s*(?:{NUM}|{TENSOR})\s*", re.VERBOSE)
+NUMBER_PATTERN: Final = re.compile(rf"\s*(?:{NUM})\s*", re.VERBOSE)
 
 
 def _parse_quantity_string(
     string: str,
-) -> tuple[float | list[float] | list[list[float]], Unit]:
+):
     """Parse a string as a number or list of numbers or a list of list of numbers.
 
     Returns a tuple of value (float or array) and unit.
     Raises if not possible.
     """
-    v = re.match(NUMBER_PATTERN, string)
+    try:
+        last_rbracket = string.rindex("]") + 1
+    except ValueError:
+        v = re.match(NUMBER_PATTERN, string)
+        value_str = string[: v.end()]
+        unit_str = string[v.end() :]
+    else:
+        value_str = string[:last_rbracket]
+        unit_str = string[last_rbracket:].strip()
 
-    match = v.group().strip()
-    if "[" in match and "," not in match:
-        match = re.sub(rf"{SEP_SPACE}", "],[", match)
-        match = re.sub(r"\s+", ",", match)
+    unit = Unit(unit_str) if unit_str else None
 
-    value = (
-        np.array(ast.literal_eval(match), dtype=np.float64).tolist()
-        if "[" in match
-        else float(match)
-    )
-    unit = Unit(unit_str) if (unit_str := v.string[v.end() :].strip()) else None
+    try:
+        if "[" in value_str:
+            value = ast.literal_eval(value_str)
+            if not isinstance(
+                value[0], str
+            ):  # prevents likes of ['158'] from getting through
+                value = np.array(value, dtype=np.float64).tolist()
+        else:
+            value = float(value_str)
+    except SyntaxError as exc:
+        if "[" in value_str and "," not in value_str:
+            repaired = re.sub(rf"{SEP_SPACE}", "],[", value_str)
+            repaired = re.sub(r"\s+", ",", repaired)
+            value = np.array(ast.literal_eval(repaired), dtype=np.float64).tolist()
+        else:
+            raise exc
 
     return value, unit
 
