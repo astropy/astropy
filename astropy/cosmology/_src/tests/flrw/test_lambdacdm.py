@@ -842,6 +842,56 @@ def test_age():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
+    """High-z age must decrease with z and recover the radiation-era limit.
+
+    Regression for https://github.com/astropy/astropy/issues/17974.
+    ``quad(z, inf)`` emitted IntegrationWarning near z=25300 and the
+    returned age jumped upward (1.79e-8 → 1.16e-7 Gyr). That is a
+    quadrature failure, not a neutrino-density step: Komatsu
+    ``nu_relative_density`` varies by <1e-5 on this interval.
+
+    Radiation-era closed form (leading term):
+    ``t(z) = 1 / (2 H0 sqrt(Or_inf) (1+z)^2)`` with
+    ``Or_inf = Ogamma0 * (1 + nu_relative_density(z→∞))``.
+    """
+    import warnings
+
+    from astropy.cosmology import Planck18
+
+    z = np.linspace(10_000.0, 100_000.0, 101)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        age = Planck18.age(z)
+    assert not any("divergent" in str(w.message).lower() for w in caught)
+    age_gyr = age.to_value("Gyr")
+    assert np.all(np.diff(age_gyr) < 0)
+
+    # Komatsu fit itself is continuous on the reported interval.
+    nurd = Planck18.nu_relative_density(z)
+    assert np.max(np.abs(np.diff(nurd))) < 1e-5
+
+    z_hi = 100_000.0
+    or_inf = Planck18.Ogamma0 * (1.0 + float(Planck18.nu_relative_density(1e12)))
+    rad = Planck18.hubble_time.to_value("Gyr") / (
+        2.0 * (1.0 + z_hi) ** 2 * np.sqrt(or_inf)
+    )
+    # Matter leftover is ~1% at z=1e5 (z_eq ≈ 3387).
+    assert abs(Planck18.age(z_hi).to_value("Gyr") / rad - 1.0) < 0.02
+
+    # Low-z ages are unchanged at the level of the existing table.
+    tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0, m_nu=0.1 * u.eV)
+    assert u.allclose(tcos.age(4), 1.5546485439853412 * u.Gyr)
+
+    # No-photon cosmologies stay on the redshift-form integral:
+    # de Sitter age is infinite; a matter+Λ age is finite.
+    de_sitter = LambdaCDM(100, 0.0, 1.0, Tcmb0=0)
+    assert u.allclose(de_sitter.age(0), np.inf * u.Gyr)
+    matter_lambda = LambdaCDM(70.4, 0.272, 0.728, Tcmb0=0)
+    assert np.isfinite(matter_lambda.age(0).to_value("Gyr"))
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_distmod():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)

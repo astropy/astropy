@@ -1,0 +1,6 @@
+``FLRW.age`` is now integrated in the scale-factor coordinate
+``u = 1/(1+z)``, so the radiation-era endpoint is regular. The previous
+``quad(z, inf)`` form could warn as divergent near ``z ≈ 2.5e4`` and
+return a non-monotonic age (for example ``Planck18.age``). The jump was
+a quadrature failure, not a discontinuity in the Komatsu et al. 2011
+neutrino-density fit.

@@ -49,6 +49,30 @@ The parameters are from Planck Collaboration (2020) Table 2 (TT, TE, EE
   value in Planck18 differs slightly from the Planck 2018 paper but represents
   the same cosmological model.
 
+.. note::
+
+   ``Planck18.age`` at :math:`z \gtrsim 10^{4}` is the radiation-era
+   integral, not a jump in the Komatsu neutrino-density fit. The leading
+   term is :math:`t(z) = 1/(2 H_0 \sqrt{\Omega_{r,\infty}}\,(1+z)^2)`
+   with :math:`\Omega_{r,\infty} = \Omega_{\gamma 0}(1+f_\nu(\infty))`.
+   Age must decrease with redshift; a reported increase near
+   :math:`z \approx 2.53\times 10^{4}` was a ``quad(z, +\infty)`` failure
+   (astropy/astropy#17974). The live object is monotonic and recovers
+   that closed form to about one percent at :math:`z=10^{5}`:
+
+   .. doctest-requires:: scipy
+
+      >>> from astropy.cosmology import Planck18
+      >>> import numpy as np
+      >>> z = [2.0e4, 2.5e4, 3.0e4]
+      >>> t = Planck18.age(z)
+      >>> bool((t[0] > t[1]) and (t[1] > t[2]))
+      True
+      >>> or_inf = Planck18.Ogamma0 * (1.0 + float(Planck18.nu_relative_density(1e12)))
+      >>> rad = Planck18.hubble_time / (2.0 * (1.0 + 1.0e5)**2 * np.sqrt(or_inf))
+      >>> abs(float(Planck18.age(1.0e5) / rad) - 1.0) < 0.02
+      True
+
 Metadata
 --------
 

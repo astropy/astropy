@@ -740,7 +740,7 @@ class FLRW(
         return (self.lookback_time(z) * const.c).to(u.Mpc)
 
     def age(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
-        """Age of the universe in Gyr at redshift ``z``.
+        r"""Age of the universe in Gyr at redshift ``z``.
 
         Parameters
         ----------
@@ -761,6 +761,29 @@ class FLRW(
         See Also
         --------
         z_at_value : Find the redshift corresponding to an age.
+
+        Notes
+        -----
+        The integral is evaluated in the scale-factor coordinate
+        :math:`u = 1/(1+z)` so the radiation-era endpoint (the Big Bang) is
+        regular. Integrating the redshift form from ``z`` to ``+∞`` with
+        ``scipy.integrate.quad`` is not: around
+        :math:`z \approx 2.5\times 10^4` that quadrature can emit an
+        ``IntegrationWarning`` and return an age that *increases* with
+        redshift (see astropy/astropy#17974). That jump is a numerical
+        failure, not a discontinuity in
+        :meth:`~astropy.cosmology.FLRW.nu_relative_density` — the Komatsu
+        et al. 2011 fit is continuous, and the Cython ``nufunc`` used by
+        the scalar ``inv_efunc`` agrees with the Python implementation to
+        roundoff.
+
+        In the radiation era the leading term is the closed form
+        :math:`t(z) = 1 / (2 H_0 \sqrt{\Omega_{r,\infty}}\, (1+z)^2)`,
+        where :math:`\Omega_{r,\infty} = \Omega_{\gamma 0}\,(1 +
+        f_\nu(z\to\infty))` and :math:`f_\nu` is
+        :meth:`~astropy.cosmology.FLRW.nu_relative_density`.
+        Cosmologies with ``Tcmb0 = 0`` keep the redshift-form integral
+        to :math:`+\infty` so a pure de Sitter age remains infinite.
         """
         return self._age(z)
 
@@ -800,8 +823,32 @@ class FLRW(
         See Also
         --------
         z_at_value : Find the redshift corresponding to an age.
+
+        Notes
+        -----
+        When photons are present the substitution ``u = 1 / (1 + z)``
+        makes the radiation-era endpoint regular (see :meth:`age`).
+        Without radiation a pure-de Sitter integrand behaves as
+        ``1/u`` at the Big Bang, so the original ``(z, +∞)`` form is
+        kept and correctly diverges.
         """
-        return quad(self._lookback_time_integrand_scalar, z, inf)[0]
+        if self.Tcmb0.value == 0:
+            return quad(self._lookback_time_integrand_scalar, z, inf)[0]
+        return quad(self._age_integrand_scale_factor, 0.0, 1.0 / (z + 1.0))[0]
+
+    def _age_integrand_scale_factor(self, u: float, /) -> float:
+        """Age integrand after the substitution ``u = 1 / (1 + z)``.
+
+        The redshift form ``1 / ((1 + z) E(z))`` becomes
+        ``inv_efunc(1/u - 1) / u``. In the radiation era ``E(z) ~ u^{-2}``,
+        so the integrand vanishes linearly in ``u`` at the Big Bang
+        (``u = 0``). ``scipy.integrate.quad`` on ``(z, +∞)`` is not regular
+        there (astropy/astropy#17974).
+        """
+        if u <= 0.0:
+            return 0.0
+        z = 1.0 / u - 1.0
+        return self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args) / u
 
     # ---------------------------------------------------------------
     # Comoving distance

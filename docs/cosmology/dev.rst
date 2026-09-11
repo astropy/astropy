@@ -193,6 +193,14 @@ subclasses and ``scalar_inv_efuncs`` for the details.
 
 However, the important point is that it is *not* necessary to do this.
 
+Age integrals use a further substitution :math:`u = 1/(1+z)` so the
+radiation-era endpoint is regular. Do not restore
+``scipy.integrate.quad(..., z, inf)`` for :meth:`~astropy.cosmology.FLRW.age`:
+that form can warn as divergent near :math:`z \approx 2.5\times 10^4` and
+return a non-monotonic age (astropy/astropy#17974). The Komatsu et al. 2011
+neutrino-density fit is continuous; the jump was the quadrature, not
+:math:`f_\nu(z)`.
+
 .. _cosmology_mypackage:
 
 Astropy Interoperability: I/O and your Cosmology Package
