@@ -154,6 +154,12 @@ class EcsvHeader(basic.BasicHeader):
         in get_cols() for this reader.
         """
 
+    def check_column_names(self, names, strict_names, guessing):
+        # Not applicable to ECSV since the format has a well-defined header, and
+        # ``names`` applies to the output table columns which differ from the
+        # file columns for mixin columns. See ``Ecsv.read()``.
+        pass
+
     def get_cols(self, lines):
         """
         READ: Initialize the header Column objects from the table ``lines``.
@@ -548,6 +554,28 @@ class Ecsv(basic.Basic):
     outputter_class = EcsvOutputter
 
     max_ndim = None  # No limit on column dimensionality
+
+    def _filter_header_cols(self):
+        # ``names``, ``include_names`` and ``exclude_names`` all apply to the
+        # output table columns, so nothing is done here (see ``read()``).
+        pass
+
+    def read(self, table):
+        out = super().read(table)
+
+        # Mixin columns are stored in the file as one or more data columns (e.g.
+        # ``tm.jd1`` and ``tm.jd2`` for a Time column ``tm``), so ``names``,
+        # ``include_names`` and ``exclude_names`` are applied to the output table
+        # after the mixin columns are constructed (see gh-12237).
+        if self.names is not None and len(self.names) != len(out.colnames):
+            raise core.InconsistentTableError(
+                f"Length of names argument ({len(self.names)}) does not match "
+                f"number of table columns ({len(out.colnames)})"
+            )
+        core._apply_include_exclude_names(
+            out, self.names, self.include_names, self.exclude_names
+        )
+        return out
 
     def update_table_data(self, table):
         """

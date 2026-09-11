@@ -606,6 +606,63 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim, format_engine):
         assert t2[name]._time.jd2.__class__ is np.ndarray
 
 
+def test_ecsv_include_exclude_names_time_jd1_jd2():
+    """Exact scenario from gh-12237: Time columns serialized as jd1/jd2."""
+    t = Table()
+    t["a"] = Time([1, 2], format="cxcsec")
+    t["b"] = Time([3, 4], format="cxcsec")
+    out = StringIO()
+    t.write(out, format="ascii.ecsv", serialize_method="jd1_jd2")
+    txt = out.getvalue()
+
+    t2 = Table.read(txt, format="ascii.ecsv", include_names=["a"])
+    assert t2.colnames == ["a"]
+    assert isinstance(t2["a"], Time)
+    assert_array_equal(t2["a"].jd, t["a"].jd)
+
+    t2 = Table.read(txt, format="ascii.ecsv", exclude_names=["a"])
+    assert t2.colnames == ["b"]
+    assert isinstance(t2["b"], Time)
+    assert_array_equal(t2["b"].jd, t["b"].jd)
+
+
+def test_ecsv_names_refer_to_output_columns():
+    """The names, include_names and exclude_names refer to output table columns.
+
+    The data column names in the file for a mixin column (e.g. ``a.jd1``) are not
+    output column names and so are ignored for ``include_names`` and
+    ``exclude_names``, and ``names`` renames the output columns.
+    """
+    t = Table()
+    t["a"] = Time([1, 2], format="cxcsec")
+    t["b"] = [3, 4]
+    out = StringIO()
+    t.write(out, format="ascii.ecsv", serialize_method="jd1_jd2")
+    txt = out.getvalue()
+
+    t2 = Table.read(txt, format="ascii.ecsv", include_names=["a.jd1", "b"])
+    assert t2.colnames == ["b"]
+
+    t2 = Table.read(txt, format="ascii.ecsv", exclude_names=["a.jd2"])
+    assert t2.colnames == ["a", "b"]
+    assert isinstance(t2["a"], Time)
+
+    t2 = Table.read(txt, format="ascii.ecsv", names=["x", "y"])
+    assert t2.colnames == ["x", "y"]
+    assert isinstance(t2["x"], Time)
+    assert_array_equal(t2["x"].jd, t["a"].jd)
+
+    t2 = Table.read(txt, format="ascii.ecsv", names=["x", "y"], include_names=["y"])
+    assert t2.colnames == ["y"]
+
+    with pytest.raises(
+        ascii.InconsistentTableError,
+        match=r"Length of names argument \(3\) does not match number of table "
+        r"columns \(2\)",
+    ):
+        Table.read(txt, format="ascii.ecsv", names=["x", "y", "z"])
+
+
 def test_round_trip_masked_table_default(tmp_path):
     """Test (mostly) round-trip of MaskedColumn through ECSV using default serialization
     that uses an empty string "" to mark NULL values.  Note:
