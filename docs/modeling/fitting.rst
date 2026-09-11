@@ -197,7 +197,7 @@ background in an image.
 Fitting models that change the shape of the data
 ------------------------------------------------
 
-Before fitting, the coordinate arrays and the data are checked against each
+Before fitting, the input coordinates and the data are checked against each
 other, and a `ValueError` is raised if they do not have the same shape. Some
 models legitimately return an array with a different shape from their input,
 for example a model that convolves with an instrument response and returns

@@ -1,4 +1,4 @@
-Models can now opt out of the check that the coordinate arrays and the data
+Models can now opt out of the check that the input coordinates and the data
 have the same shape when fitting, by setting ``verify_dims_in_fitting`` to
 ``False``. This allows fitting models that return an array with a different
 shape from their input, such as a model that convolves with an instrument
