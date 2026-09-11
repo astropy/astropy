@@ -1,0 +1,2 @@
+The WCS user guide now documents ``fit_wcs_from_points`` for constructing a
+FITS WCS from matched detector and sky coordinates.

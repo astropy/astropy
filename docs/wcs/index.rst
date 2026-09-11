@@ -94,6 +94,11 @@ converting from world to pixel coordinates::
     30.00000214673885 39.999999958235094
     >>> f.close()
 
+To build a WCS from matched detector and sky coordinates (for example a
+star catalog measured on a CCD), use
+:func:`~astropy.wcs.utils.fit_wcs_from_points`.  A short example is in
+:ref:`wcstools`.
+
 Using `astropy.wcs`
 ===================
 

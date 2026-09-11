@@ -45,3 +45,41 @@ More information on using WCSAxes can be found :ref:`here <wcsaxes>`.
     fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, origin='lower', cmap='viridis')
     ax.set(xlabel='RA', ylabel='Dec')
+
+Fitting a WCS from matched pixel and sky coordinates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`~astropy.wcs.utils.fit_wcs_from_points` constructs a FITS WCS from two
+matched lists: detector pixel positions and their celestial coordinates.
+That is the usual path when a catalog of stars with known ICRS positions has
+been measured on a CCD and a TAN (or other standard FITS) projection is
+needed, optionally with a SIP polynomial for optical distortion.
+
+Pixel coordinates must follow the FITS convention: the center of the
+bottom-left pixel is ``(1, 1)``.  Units on the returned WCS are always
+degrees.  The fiducial point of the spherical projection defaults to the
+mean of the input sky coordinates (``proj_point='center'``); pass a
+`~astropy.coordinates.SkyCoord` to pin it.
+
+.. doctest-requires:: scipy
+
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy.wcs.utils import fit_wcs_from_points
+    >>> x, y = np.meshgrid([1.0, 2.0, 3.0], [1.0, 2.0, 3.0])
+    >>> x, y = x.ravel(), y.ravel()
+    >>> world = SkyCoord(
+    ...     (10.0 + (x - 2.0) * 0.01) * u.deg,
+    ...     (20.0 + (y - 2.0) * 0.01) * u.deg,
+    ...     frame="icrs",
+    ... )
+    >>> xy = (x, y)
+    >>> wcs = fit_wcs_from_points(xy, world, projection="TAN")
+    >>> list(wcs.wcs.ctype)
+    ['RA---TAN', 'DEC--TAN']
+
+See :func:`~astropy.wcs.utils.fit_wcs_from_points` for the full argument
+list, including ``sip_degree`` and passing an existing
+`~astropy.wcs.WCS` as ``projection`` to refit its CD/PC matrix.
+
