@@ -1,0 +1,1 @@
+Fixed a bug where creating a new ``Table`` from a subset of columns (for example ``t[("col0", "col2")]``) silently dropped the ``primary_key`` attribute, so ``.loc``/``.iloc`` on the resulting table raised a ``TypeError``.  The primary key is now carried over when all of its key columns are present in the subset.
