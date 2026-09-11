@@ -789,6 +789,9 @@ checks = [
 exclude = [  # Don't report on objects that match any of these regex
     '\.__str__$',
     '\.__repr__$',
+    # tick_params mirrors the matplotlib API and documents the keyword
+    # arguments it accepts individually rather than as **kwargs
+    '\.tick_params$',
 ]
 exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/setup_package.py',
@@ -818,7 +821,7 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/uncertainty/.*',
     '^astropy/units/.*',
     '^astropy/utils/.*',
-    '^astropy/visualization/.*',
+    '^astropy/visualization/(?!wcsaxes/).*',  # i.e., validate wcsaxes
     '^astropy/wcs/.*',
     '^docs/.*',
     '^scripts/.*',

@@ -103,6 +103,8 @@ class WCSAxes(Axes):
         The class for the frame, which should be a subclass of
         :class:`~astropy.visualization.wcsaxes.frame.BaseFrame`. The default is to use a
         :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
+    **kwargs
+        Additional keyword arguments are passed to `~matplotlib.axes.Axes`.
 
     Attributes
     ----------
@@ -122,8 +124,6 @@ class WCSAxes(Axes):
         frame_class=None,
         **kwargs,
     ):
-        """ """
-
         super().__init__(fig, *args, **kwargs)
         self._bboxes = []
 
@@ -210,7 +210,13 @@ class WCSAxes(Axes):
         left pixel of the image (whereas RGB images have the origin in the top
         left).
 
-        All arguments are passed to :meth:`~matplotlib.axes.Axes.imshow`.
+        Parameters
+        ----------
+        X : array-like or PIL image
+            The image data, as for :meth:`~matplotlib.axes.Axes.imshow`.
+        *args, **kwargs
+            All other arguments are passed to
+            :meth:`~matplotlib.axes.Axes.imshow`.
         """
         origin = kwargs.pop("origin", "lower")
 
@@ -231,9 +237,13 @@ class WCSAxes(Axes):
 
         This is a custom implementation of :meth:`~matplotlib.axes.Axes.contour`
         which applies the transform (if specified) to all contours in one go for
-        performance rather than to each contour line individually. All
-        positional and keyword arguments are the same as for
-        :meth:`~matplotlib.axes.Axes.contour`.
+        performance rather than to each contour line individually.
+
+        Parameters
+        ----------
+        *args, **kwargs
+            All positional and keyword arguments are the same as for
+            :meth:`~matplotlib.axes.Axes.contour`.
         """
         # In Matplotlib, when calling contour() with a transform, each
         # individual path in the contour map is transformed separately. However,
@@ -262,9 +272,13 @@ class WCSAxes(Axes):
 
         This is a custom implementation of :meth:`~matplotlib.axes.Axes.contourf`
         which applies the transform (if specified) to all contours in one go for
-        performance rather than to each contour line individually. All
-        positional and keyword arguments are the same as for
-        :meth:`~matplotlib.axes.Axes.contourf`.
+        performance rather than to each contour line individually.
+
+        Parameters
+        ----------
+        *args, **kwargs
+            All positional and keyword arguments are the same as for
+            :meth:`~matplotlib.axes.Axes.contourf`.
         """
         # See notes for contour above.
 
@@ -283,8 +297,17 @@ class WCSAxes(Axes):
 
     def _transform_plot_args(self, *args, **kwargs):
         """
-        Apply transformations to arguments to ``plot_coord`` and
-        ``scatter_coord``.
+        Apply transformations to arguments to ``plot_coord``, ``text_coord``,
+        and ``scatter_coord``.
+
+        Parameters
+        ----------
+        *args, **kwargs
+            The arguments passed to ``plot_coord``, ``text_coord``, or
+            ``scatter_coord``. If
+            the first positional argument is a coordinate object, it is
+            converted to plain plotting arguments and an appropriate
+            ``transform`` keyword argument is added.
         """
         if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
             # Extract the frame from the first argument.
@@ -341,15 +364,20 @@ class WCSAxes(Axes):
 
         Parameters
         ----------
-        coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate object to plot on the axes. This is converted to the
-            first two arguments to `matplotlib.axes.Axes.plot`.
+        *args
+            The first positional argument should be the coordinate object to
+            plot on the axes, as a `~astropy.coordinates.SkyCoord` or
+            `~astropy.coordinates.BaseCoordinateFrame` instance. This is
+            converted to the first two arguments to
+            `matplotlib.axes.Axes.plot`, and any remaining positional
+            arguments are passed on unchanged.
+        **kwargs
+            All keyword arguments are passed to `matplotlib.axes.Axes.plot`.
 
         See Also
         --------
         matplotlib.axes.Axes.plot :
             This method is called from this function with all arguments passed to it.
-
         """
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
@@ -369,15 +397,20 @@ class WCSAxes(Axes):
 
         Parameters
         ----------
-        coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate object to plot on the axes. This is converted to the
-            first two arguments to `matplotlib.axes.Axes.text`.
+        *args
+            The first positional argument should be the coordinate object to
+            plot on the axes, as a `~astropy.coordinates.SkyCoord` or
+            `~astropy.coordinates.BaseCoordinateFrame` instance. This is
+            converted to the first two arguments to
+            `matplotlib.axes.Axes.text`, and any remaining positional
+            arguments are passed on unchanged.
+        **kwargs
+            All keyword arguments are passed to `matplotlib.axes.Axes.text`.
 
         See Also
         --------
         matplotlib.axes.Axes.text :
             This method is called from this function with all arguments passed to it.
-
         """
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
@@ -397,9 +430,15 @@ class WCSAxes(Axes):
 
         Parameters
         ----------
-        coordinate : `~astropy.coordinates.SkyCoord` or `~astropy.coordinates.BaseCoordinateFrame`
-            The coordinate object to scatter on the axes. This is converted to
-            the first two arguments to `matplotlib.axes.Axes.scatter`.
+        *args
+            The first positional argument should be the coordinate object to
+            scatter on the axes, as a `~astropy.coordinates.SkyCoord` or
+            `~astropy.coordinates.BaseCoordinateFrame` instance. This is
+            converted to the first two arguments to
+            `matplotlib.axes.Axes.scatter`, and any remaining positional
+            arguments are passed on unchanged.
+        **kwargs
+            All keyword arguments are passed to `matplotlib.axes.Axes.scatter`.
 
         See Also
         --------
@@ -412,6 +451,22 @@ class WCSAxes(Axes):
     def reset_wcs(self, wcs=None, slices=None, transform=None, coord_meta=None):
         """
         Reset the current Axes, to use a new WCS object.
+
+        Parameters
+        ----------
+        wcs : :class:`~astropy.wcs.WCS`, optional
+            The new WCS for the data. See the
+            `~astropy.visualization.wcsaxes.WCSAxes` documentation for a full
+            description of this and the following arguments.
+        slices : tuple, optional
+            For WCS transformations with more than two dimensions, the
+            dimensions being shown in the 2D image.
+        transform : `~matplotlib.transforms.Transform`, optional
+            The transform for the data, as an alternative to ``wcs``.
+        coord_meta : dict, optional
+            A dictionary providing additional metadata when ``transform`` is
+            specified. See the `~astropy.visualization.wcsaxes.WCSAxes`
+            documentation for a full description of the accepted keys.
         """
         # Here determine all the coordinate axes that should be shown.
         if wcs is None and transform is None:
@@ -500,9 +555,11 @@ class WCSAxes(Axes):
         decide on which axes to show ticks/tick labels/axis labels on if in
         automatic mode.
 
-        The ``keep_coord_range`` argument is used to indicate whether to keep
-        coords._coord_range at the end of the method or whether to clean it
-        up.
+        Parameters
+        ----------
+        keep_coord_range : bool, optional
+            Whether to keep ``coords._coord_range`` at the end of the method
+            or whether to clean it up.
         """
         # Start off by updating the frame, pre-computing the coordinate range
         # in the figure, and updating the tick positions.
@@ -565,7 +622,13 @@ class WCSAxes(Axes):
         self.coords.frame.draw(renderer)
 
     def draw(self, renderer):
-        """Draw the axes."""
+        """Draw the axes.
+
+        Parameters
+        ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to draw with.
+        """
         # Before we do any drawing, we need to remove any existing grid lines
         # drawn with contours, otherwise if we try and remove the contours
         # part way through drawing, we end up with the issue mentioned in
@@ -601,7 +664,20 @@ class WCSAxes(Axes):
 
     # Matplotlib internally sometimes calls set_xlabel(label=...).
     def set_xlabel(self, xlabel=None, labelpad=1, loc=None, **kwargs):
-        """Set x-label."""
+        """Set x-label.
+
+        Parameters
+        ----------
+        xlabel : str
+            The label text.
+        labelpad : float, optional
+            The minimum distance between the label and the axis, in points.
+        loc : str, optional
+            Not supported by WCSAxes and ignored.
+        **kwargs
+            Additional keyword arguments are passed to
+            `~astropy.visualization.wcsaxes.CoordinateHelper.set_axislabel`.
+        """
         self._update_tick_and_label_positions()
         if xlabel is None:
             xlabel = kwargs.pop("label", None)
@@ -618,7 +694,20 @@ class WCSAxes(Axes):
                 break
 
     def set_ylabel(self, ylabel=None, labelpad=1, loc=None, **kwargs):
-        """Set y-label."""
+        """Set y-label.
+
+        Parameters
+        ----------
+        ylabel : str
+            The label text.
+        labelpad : float, optional
+            The minimum distance between the label and the axis, in points.
+        loc : str, optional
+            Not supported by WCSAxes and ignored.
+        **kwargs
+            Additional keyword arguments are passed to
+            `~astropy.visualization.wcsaxes.CoordinateHelper.set_axislabel`.
+        """
         self._update_tick_and_label_positions()
         if ylabel is None:
             ylabel = kwargs.pop("label", None)
@@ -759,6 +848,12 @@ class WCSAxes(Axes):
     def _get_transform_no_transdata(self, frame):
         """
         Return a transform from data to the specified frame.
+
+        Parameters
+        ----------
+        frame : :class:`~astropy.wcs.WCS` or :class:`~matplotlib.transforms.Transform` or str
+            The frame to transform to, as for
+            `~astropy.visualization.wcsaxes.WCSAxes.get_transform`.
         """
         if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)):
             if isinstance(frame, BaseHighLevelWCS):
@@ -843,6 +938,9 @@ class WCSAxes(Axes):
             Which axis to turn the gridlines on/off for.
         which : str
             Currently only ``'major'`` is supported.
+        **kwargs
+            Standard matplotlib appearance keyword arguments (color, alpha,
+            etc.) to use for the grid lines.
         """
         if not hasattr(self, "coords"):
             return

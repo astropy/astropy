@@ -118,6 +118,12 @@ class CoordinateTransform(CurvedTransform):
     def transform(self, input_coords):
         """
         Transform one set of coordinates to another.
+
+        Parameters
+        ----------
+        input_coords : (N, 2) array
+            The longitude and latitude values in the input coordinate system,
+            in the units given by ``input_units``.
         """
         if self.same_frames and self.same_units:
             return input_coords
@@ -183,6 +189,11 @@ class World2PixelTransform(CurvedTransform, metaclass=abc.ABCMeta):
         where N is the number of points to transform, and M is the number of
         dimensions. This then returns the (x, y) pixel coordinates
         as a Nx2 array.
+
+        Parameters
+        ----------
+        world : (N, M) array
+            The world coordinates to transform.
         """
 
     @abc.abstractmethod
@@ -213,6 +224,11 @@ class Pixel2WorldTransform(CurvedTransform, metaclass=abc.ABCMeta):
         Transform pixel to world coordinates. You should pass in a Nx2 array
         of (x, y) pixel coordinates to transform to world coordinates. This
         will then return an NxM array where M is the number of dimensions.
+
+        Parameters
+        ----------
+        pixel : (N, 2) array
+            The (x, y) pixel coordinates to transform.
         """
 
     @abc.abstractmethod

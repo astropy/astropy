@@ -31,6 +31,16 @@ class Ticks(Line2D):
     * `xtick.minor.size`
     * `xtick.color`
 
+    Parameters
+    ----------
+    frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
+        The frame instance to draw the ticks on.
+    ticksize : float, optional
+        The length of the ticks in points. If not given, this defaults to
+        the ``xtick.major.size`` matplotlib configuration value.
+    **kwargs
+        Additional arguments are passed to `~matplotlib.lines.Line2D`.
+
     Attributes
     ----------
     ticks_locs : dict
@@ -63,7 +73,13 @@ class Ticks(Line2D):
 
     def set_tick_out(self, tick_out):
         """
-        set True if tick need to be rotated by 180 degree.
+        Set whether ticks are drawn outside of the frame.
+
+        Parameters
+        ----------
+        tick_out : bool
+            If `True`, the ticks are rotated by 180 degrees so that they
+            point out of the frame.
         """
         self._tick_out = tick_out
 
@@ -75,7 +91,12 @@ class Ticks(Line2D):
 
     def set_ticksize(self, ticksize):
         """
-        set length of the ticks in points.
+        Set the length of the ticks in points.
+
+        Parameters
+        ----------
+        ticksize : float
+            The length of the ticks in points.
         """
         self._ticksize = ticksize
 
@@ -87,7 +108,12 @@ class Ticks(Line2D):
 
     def set_minor_ticksize(self, ticksize):
         """
-        set length of the minor ticks in points.
+        Set the length of the minor ticks in points.
+
+        Parameters
+        ----------
+        ticksize : float
+            The length of the minor ticks in points.
         """
         self._minor_ticksize = ticksize
 
@@ -148,6 +174,11 @@ class Ticks(Line2D):
     def draw(self, renderer):
         """
         Draw the ticks.
+
+        Parameters
+        ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to draw with.
         """
         self.ticks_locs = defaultdict(list)
 
@@ -162,7 +193,19 @@ class Ticks(Line2D):
 
     def _draw_ticks(self, renderer, pixel_array, angle_array, offset):
         """
-        Draw the minor ticks.
+        Draw a set of ticks.
+
+        Parameters
+        ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to draw with.
+        pixel_array : dict
+            A mapping from axis to the pixel positions of the ticks for
+            that axis.
+        angle_array : dict
+            A mapping from axis to the angles of the ticks for that axis.
+        offset : float
+            The length of the ticks in pixels.
         """
         path_trans = self.get_transform()
 

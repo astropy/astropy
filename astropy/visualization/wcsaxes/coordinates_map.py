@@ -150,6 +150,10 @@ class CoordinatesMap:
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
             is recommended. By default, 'lines' is used if the transform has
             an inverse, otherwise 'contours' is used.
+        **kwargs
+            Additional keyword arguments are passed to
+            `~astropy.visualization.wcsaxes.CoordinateHelper.grid` for each
+            coordinate.
         """
         for coord in self:
             coord.grid(draw_grid=draw_grid, grid_type=grid_type, **kwargs)

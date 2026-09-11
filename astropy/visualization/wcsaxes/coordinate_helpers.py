@@ -70,12 +70,12 @@ class CoordinateHelper:
         and do not wrap.
     coord_unit : `~astropy.units.Unit`
         The unit that this coordinate is in given the output of transform.
-    format_unit : `~astropy.units.Unit`, optional
-        The unit to use to display the coordinates.
     coord_wrap : `astropy.units.Quantity`
         The angle at which the longitude wraps (defaults to 360 degrees).
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use to display the coordinates.
     default_label : str, optional
         The axis label to show by default if none is set later.
     """
@@ -212,7 +212,7 @@ class CoordinateHelper:
     @property
     def coord_type(self):
         """
-        The type of this coordinate (e.g., ``'longitude'``)
+        The type of this coordinate (e.g., ``'longitude'``).
         """
         return self._coord_type
 
@@ -352,6 +352,9 @@ class CoordinateHelper:
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
             is recommended. By default, 'lines' is used if the transform has
             an inverse, otherwise 'contours' is used.
+        **kwargs
+            Standard matplotlib appearance keyword arguments (color, alpha,
+            etc.) to use for the grid lines.
         """
         if grid_type == "lines" and not self.transform.has_inverse:
             raise ValueError(
@@ -558,12 +561,18 @@ class CoordinateHelper:
             The approximate number of ticks shown.
         size : float, optional
             The length of the ticks in points
+        width : float, optional
+            The width of the ticks in points.
         color : str or tuple, optional
             A valid Matplotlib color for the ticks
         alpha : float, optional
             The alpha value (transparency) for the ticks.
         direction : {'in','out'}, optional
             Whether the ticks should point inwards or outwards.
+        exclude_overlapping : bool, optional
+            Deprecated, use the ``exclude_overlapping`` option of
+            `~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`
+            instead.
         """
         if sum([values is None, spacing is None, number is None]) < 2:
             raise ValueError(
@@ -659,10 +668,10 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        size : float, optional
-            The size of the ticks labels in points
         color : str or tuple, optional
             A valid Matplotlib color for the tick labels
+        size : float, optional
+            The size of the ticks labels in points
         pad : float, optional
             Distance in points between tick and label.
         exclude_overlapping : bool, optional
@@ -884,6 +893,11 @@ class CoordinateHelper:
     def get_axislabel_visibility_rule(self, rule):
         """
         Get the rule used to determine when the axis label is drawn.
+
+        Parameters
+        ----------
+        rule : str
+            Deprecated and has no effect.
         """
         return self._axislabels.get_visibility_rule()
 
@@ -926,6 +940,8 @@ class CoordinateHelper:
 
         Parameters
         ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to draw with.
         existing_bboxes : list[Bbox]
             All bboxes for ticks that have already been drawn by other
             coordinates.

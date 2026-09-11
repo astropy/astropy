@@ -156,6 +156,16 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     """
     Base class for frames, which are collections of
     :class:`~astropy.visualization.wcsaxes.frame.Spine` instances.
+
+    Parameters
+    ----------
+    parent_axes : `~astropy.visualization.wcsaxes.WCSAxes`
+        The axes the frame is attached to.
+    transform : `~matplotlib.transforms.Transform`
+        The transform from data to world coordinates.
+    path : `~matplotlib.path.Path`, optional
+        The path that makes up the frame, in data coordinates. If not
+        given, this is determined from the spine positions.
     """
 
     spine_class = Spine
@@ -276,6 +286,11 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
         Given a string with single character positions or an iterable with
         single or multi-character positions, emit a warning for any
         unrecognized positions and return a list of valid positions.
+
+        Parameters
+        ----------
+        positions : str or iterable of str
+            The spine positions to validate, or ``'all'``.
         """
         if positions == "all":
             return positions
@@ -429,6 +444,11 @@ class EllipticalFrame(BaseFrame):
 
         FIXME: we may want to add a general method to give the user control
         over which spines are drawn.
+
+        Parameters
+        ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to draw with.
         """
         axis = "c"
         pixel = self[axis]._get_pixel()

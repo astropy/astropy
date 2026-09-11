@@ -67,7 +67,7 @@ def add_beam(
         Border padding, in fraction of the font size. Default is 0.4.
     pad : float, optional
         Padding around the beam, in fraction of the font size. Default is 0.5.
-    kwargs
+    **kwargs
         Additional arguments are passed to :class:`matplotlib.patches.Ellipse`.
 
     Notes
@@ -79,7 +79,6 @@ def add_beam(
       the image extent and the projection is non-linear)
     - The pixel scales in the two directions are very different from each other
       (e.g., rectangular pixels)
-
     """
     if header and major:
         raise ValueError(
@@ -155,7 +154,7 @@ def add_scalebar(
         Border padding, in fraction of the font size. Default is 0.4.
     pad : float, optional
         Padding around the scale bar, in fraction of the font size. Default is 0.5.
-    kwargs
+    **kwargs
         Additional arguments are passed to
         :class:`mpl_toolkits.axes_grid1.anchored_artists.AnchoredSizeBar`.
 
@@ -168,7 +167,6 @@ def add_scalebar(
       the image extent and the projection is non-linear)
     - The pixel scales in the two directions are very different from each other
       (e.g., rectangular pixels)
-
     """
     if isinstance(length, u.Quantity):
         length = length.to(u.degree).value
