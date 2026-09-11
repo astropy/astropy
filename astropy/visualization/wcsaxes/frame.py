@@ -97,10 +97,8 @@ class Spine:
         self._world = value
         if value is None:
             self._data = None
-            self._pixel = None
         else:
             self._data = self.transform.transform(value)
-            self._pixel = self.parent_axes.transData.transform(self._data)
             self._update_normal()
 
     def _update_normal(self):
