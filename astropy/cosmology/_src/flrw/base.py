@@ -767,10 +767,11 @@ class FLRW(
         The integral is evaluated in the scale-factor coordinate
         :math:`u = 1/(1+z)` so the radiation-era endpoint (the Big Bang) is
         regular. Integrating the redshift form from ``z`` to ``+∞`` with
-        ``scipy.integrate.quad`` is not: on Astropy 8.0.1
-        ``Planck18.age`` first *increases* between
-        :math:`z = 4787` and :math:`z = 4788`
-        (``Δage = +3.6630782129745646\times 10^{-7}`` Gyr), and around
+        ``scipy.integrate.quad`` is not: on Astropy 8.0.1 every built-in
+        realization with ``Tcmb0 > 0`` first *increases* on a unit-step
+        grid in :math:`z \in [4787, 4809]` (``Planck18`` at 4787,
+        ``WMAP1`` at 4809;
+        ``Δage \approx +3.66\times 10^{-7}`` Gyr), and around
         :math:`z \approx 2.5\times 10^4` the same quadrature can emit an
         ``IntegrationWarning`` (see astropy/astropy#17974). Those jumps
         are numerical failures, not a discontinuity in

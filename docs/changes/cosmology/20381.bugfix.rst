@@ -1,9 +1,8 @@
 ``FLRW.age`` is now integrated in the scale-factor coordinate
 ``u = 1/(1+z)``, so the radiation-era endpoint is regular. The previous
-``quad(z, inf)`` form could return a non-monotonic age (for example
-``Planck18.age``). On Astropy 8.0.1 the first increase on a unit-step
-grid is between ``z = 4787`` and ``z = 4788``
-(``Δage = +3.6630782129745646e-7`` Gyr); a later
-``IntegrationWarning`` near ``z ≈ 2.5e4`` is the same class of
-quadrature failure, not a discontinuity in the Komatsu et al. 2011
-neutrino-density fit.
+``quad(z, inf)`` form could return a non-monotonic age. On Astropy 8.0.1
+every built-in realization with ``Tcmb0 > 0`` first increases on a
+unit-step grid in ``z ∈ [4787, 4809]`` (``Planck18`` at 4787,
+``WMAP1`` at 4809; ``Δage ≈ +3.66e-7`` Gyr) and again near
+``z ≈ 2.5e4``. Those jumps are quadrature failures, not a discontinuity
+in the Komatsu et al. 2011 neutrino-density fit.

@@ -841,6 +841,52 @@ def test_age():
     assert u.allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
 
 
+# First 8.0.1 unit-step increase of built-in radiation realizations
+# on z∈[4500, 5200] (data label: astropy_8.0.1_builtin_realizations_age_two_grids).
+# Software quadrature defect, not a cosmological discovery.
+_AGE_8_0_1_FIRST_INCREASE_Z = {
+    "WMAP1": 4809.0,
+    "WMAP3": 4803.0,
+    "WMAP5": 4800.0,
+    "WMAP7": 4805.0,
+    "WMAP9": 4797.0,
+    "Planck13": 4789.0,
+    "Planck15": 4789.0,
+    "Planck18": 4787.0,
+}
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+@pytest.mark.parametrize("name", list(_AGE_8_0_1_FIRST_INCREASE_Z))
+def test_age_high_redshift_monotonic_all_radiation_realizations(name):
+    """Every Tcmb0>0 built-in realization must stay monotonic at high z.
+
+    On Astropy 8.0.1 the redshift-form ``quad(z, ∞)`` age first *increases*
+    at a realization-dependent redshift in [4787, 4809] (Planck18 at 4787,
+    WMAP1 at 4809) and again on the coarse z=1e4..1e5 grid near z=25300.
+    The scale-factor substitution must remove both jumps for all eight
+    radiation realizations, not only Planck18.
+    """
+    import warnings
+
+    import astropy.cosmology as cosmology
+
+    cosmo = getattr(cosmology, name)
+    z_jump = np.arange(4500.0, 5201.0, 1.0)
+    age_jump = cosmo.age(z_jump).to_value("Gyr")
+    assert np.all(np.diff(age_jump) < 0)
+    z0 = _AGE_8_0_1_FIRST_INCREASE_Z[name]
+    a0, a1 = cosmo.age(np.array([z0, z0 + 1.0])).to_value("Gyr")
+    assert a1 < a0
+
+    z = np.linspace(10_000.0, 100_000.0, 101)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        age = cosmo.age(z)
+    assert not any("divergent" in str(w.message).lower() for w in caught)
+    assert np.all(np.diff(age.to_value("Gyr")) < 0)
+
+
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
     """High-z age must decrease with z and recover the radiation-era limit.
@@ -848,11 +894,13 @@ def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
     Regression for https://github.com/astropy/astropy/issues/17974.
     On Astropy 8.0.1 ``Planck18.age`` first increases between z=4787
     and z=4788 (2.7318309055033852e-05 → 2.7684616876331308e-05 Gyr).
-    ``quad(z, inf)`` also emitted IntegrationWarning near z=25300 and
-    the returned age jumped upward (1.79e-8 → 1.16e-7 Gyr). Those are
-    quadrature failures, not a neutrino-density step: Komatsu
-    ``nu_relative_density`` varies by <1e-5 on this interval. The
-    z=1e4..1e5 grid below does not cover the z=4787 jump.
+    The same 8.0.1 defect appears on every built-in realization with
+    ``Tcmb0 > 0`` (WMAP1/3/5/7/9, Planck13/15/18); first unit-step
+    increase is realization-dependent in z∈[4787, 4809]. ``quad(z, inf)``
+    also emitted IntegrationWarning near z=25300 and the returned age
+    jumped upward. Those are quadrature failures, not a neutrino-density
+    step: Komatsu ``nu_relative_density`` varies by <1e-5 on this
+    interval. The z=1e4..1e5 grid below does not cover the z=4787 jump.
 
     Radiation-era closed form (leading term):
     ``t(z) = 1 / (2 H0 sqrt(Or_inf) (1+z)^2)`` with
