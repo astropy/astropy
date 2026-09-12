@@ -10,7 +10,8 @@ from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.time import Time
 from astropy.units import Quantity
-from astropy.wcs.wcs import WCS, FITSFixedWarning
+from astropy.wcs.wcs import WCS, DistortionLookupTable, FITSFixedWarning
+from astropy.wcs.wcsapi import HighLevelWCSWrapper
 from astropy.wcs.wcsapi.tests.helpers import assert_celestial_component
 from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
     SlicedLowLevelWCS,
@@ -1047,3 +1048,89 @@ def test_coupled_world_slicing():
     out_pix = sl.world_to_pixel_values(world[0], world[1])
 
     assert np.allclose(out_pix[0], 0)
+
+
+def test_high_level_world_to_pixel_with_partial_coupled_world():
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "FREQ", "TIME"
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.crval = 10, 0
+    wcs.wcs.mjdref = 50000, 0
+    wcs.wcs.pc = np.array([[1, 0], [2, 3]])
+
+    for sliced_wcs in (
+        HighLevelWCSWrapper(SlicedLowLevelWCS(wcs, np.s_[0, 1:])),
+        wcs[np.s_[0, 1:]],
+    ):
+        frequency, time = sliced_wcs.pixel_to_world(3)
+        assert_allclose(sliced_wcs.world_to_pixel(frequency, time), 3)
+        assert_allclose(sliced_wcs.world_to_pixel(frequency), 3)
+        assert_allclose(sliced_wcs.world_to_pixel(time), 3)
+
+
+@pytest.mark.parametrize("kind", ["nonlinear", "bounded", "det2im1", "det2im2"])
+def test_high_level_world_to_pixel_rejects_unsupported_partial_world(kind):
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = "FREQ-LOG" if kind == "nonlinear" else "FREQ", "TIME"
+    wcs.wcs.crpix = 1, 1
+    wcs.wcs.crval = 10, 0
+    wcs.wcs.mjdref = 50000, 0
+    wcs.wcs.pc = np.array([[1, 0], [2, 3]])
+    if kind == "bounded":
+        wcs.pixel_bounds = [(2, 8), (-0.5, 4.5)]
+    elif kind.startswith("det2im"):
+        distortion = DistortionLookupTable(
+            np.zeros((2, 2), dtype=np.float32), (1, 1), (0, 0), (1, 1)
+        )
+        setattr(wcs, kind, distortion)
+
+    for sliced_wcs in (
+        HighLevelWCSWrapper(SlicedLowLevelWCS(wcs, np.s_[0, 1:])),
+        wcs[np.s_[0, 1:]],
+    ):
+        frequency, time = sliced_wcs.pixel_to_world(3)
+        assert_allclose(sliced_wcs.world_to_pixel(frequency, time), 3)
+        with pytest.raises(ValueError, match="Number of world inputs"):
+            sliced_wcs.world_to_pixel(frequency)
+
+
+@pytest.mark.parametrize(
+    ("object_index", "item", "pixels"),
+    [
+        pytest.param(
+            1,
+            np.s_[0, 0, :, :, 0],
+            (2, 3),
+            id="sky",
+            marks=pytest.mark.xfail(
+                strict=True,
+                raises=ValueError,
+                reason="SkyCoord constrains two pixel axes through a nonlinear TAN",
+            ),
+        ),
+        pytest.param(2, np.s_[0, 0, :, 0, 0], 3, id="time"),
+        pytest.param(3, np.s_[0, 0, :, 0, 0], 3, id="step"),
+    ],
+)
+def test_partial_world_to_pixel_raster(object_index, item, pixels):
+    wcs = WCS(naxis=5)
+    wcs.wcs.ctype = "FREQ", "RA---TAN", "DEC--TAN", "TIME", "LINEAR"
+    wcs.wcs.cunit = "Hz", "deg", "deg", "s", "pix"
+    wcs.wcs.crpix = np.ones(5)
+    wcs.wcs.crval = 10, 0, 0, 0, 0
+    wcs.wcs.mjdref = 50000, 0
+    # Pixel axes: wavelength, slit, step, and two dummy axes.
+    # Sky, time, and the explicit step coordinate all depend on the step pixel axis.
+    wcs.wcs.pc = [
+        [1, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0],
+        [0, 0, 1, 1, 0],
+        [0, 0, 1, 0, 1],
+    ]
+    world = wcs.pixel_to_world(0, 2, 3, 0, 0)
+    sliced = HighLevelWCSWrapper(SlicedLowLevelWCS(wcs, item))
+    assert_allclose(
+        sliced.world_to_pixel(*sliced.pixel_to_world(*np.atleast_1d(pixels))), pixels
+    )
+    assert_allclose(sliced.world_to_pixel(world[object_index]), pixels)
