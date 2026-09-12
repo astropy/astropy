@@ -8,4 +8,6 @@ unit-step grid in ``z ∈ [4787, 4809]`` (``Planck18`` at 4787,
 then fails by that same residual (Planck18 ``R(4788) =
 3.768436602769043e-7`` Gyr); lookback itself stays smooth. Those
 jumps are quadrature failures, not a discontinuity in the Komatsu
-et al. 2011 neutrino-density fit.
+et al. 2011 neutrino-density fit. The same non-injective age made
+``z_at_value(Planck18.age, Planck18.age(4788))`` return
+``z ≈ 4752.59`` instead of 4788.

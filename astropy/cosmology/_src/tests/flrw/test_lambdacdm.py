@@ -914,6 +914,26 @@ def test_age_lookback_clock_identity(name):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_z_at_value_age_roundtrip_through_8_0_1_jump():
+    """``z_at_value(age, age(z))`` must recover ``z`` through the 8.0.1 jump.
+
+    Data label: ``astropy_8.0.1_Planck18_z_at_value_age_noninjective``.
+    On Astropy 8.0.1 ``Planck18.age(4788)`` is the *increased* value
+    ``2.7684616876331308e-05`` Gyr. ``z_at_value`` with
+    ``zmin=4500, zmax=5200`` (or ``zmax=1e5``) then returns
+    ``z ≈ 4752.59``, not 4788: a silent wrong inverse. The jumped age
+    equals the true monotonic age at ``z ≈ 4752.6``. Default
+    ``zmax=1000`` cannot invert radiation-era ages at all (hits the
+    search wall). After the scale-factor substitution the live
+    ``age(4788)`` round-trips to 4788.
+    """
+    from astropy.cosmology import Planck18, z_at_value
+
+    zhat = z_at_value(Planck18.age, Planck18.age(4788.0), zmin=4500.0, zmax=5200.0)
+    assert abs(float(zhat) - 4788.0) < 1e-3
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
     """High-z age must decrease with z and recover the radiation-era limit.
 

@@ -789,6 +789,13 @@ class FLRW(
         (integral from 0 to ``z``) stays smooth; the residual *is* the
         age quadrature defect.
 
+        The same jump makes ``age`` non-injective.
+        :func:`~astropy.cosmology.z_at_value` applied to the 8.0.1
+        ``Planck18.age(4788)`` value then returns ``z \approx 4752.59``
+        (the true inverse of that number on the decreasing branch),
+        not 4788. Default ``zmax=1000`` cannot invert radiation-era
+        ages at all.
+
         In the radiation era the leading term is the closed form
         :math:`t(z) = 1 / (2 H_0 \sqrt{\Omega_{r,\infty}}\, (1+z)^2)`,
         where :math:`\Omega_{r,\infty} = \Omega_{\gamma 0}\,(1 +
