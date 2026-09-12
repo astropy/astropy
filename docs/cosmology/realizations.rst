@@ -92,6 +92,10 @@ Parameters are from Planck Collaboration (2016) Paper XIII, Table 4 (TT, TE, EE 
    >>> from astropy.cosmology import Planck15
    >>> Planck15.Om0
    0.3075
+   >>> float(Planck15.Onu0)
+   0.0014362758412881926
+   >>> float(Planck15.Om0 + Planck15.Onu0)
+   0.3089362758412882
    >>> round(float(Planck15.Om0 + Planck15.Onu0), 4)
    0.3089
 
