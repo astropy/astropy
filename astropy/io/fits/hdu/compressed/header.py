@@ -29,6 +29,7 @@ __all__ = [
     "CompImageHeader",
     "_bintable_header_to_image_header",
     "_image_header_to_empty_bintable",
+    "_update_bintable_header_from_image_header",
 ]
 
 ZDEF_RE = re.compile(r"(?P<label>^[Zz][a-zA-Z]*)(?P<num>[1-9][0-9 ]*$)?")
@@ -235,6 +236,159 @@ def _bintable_header_to_image_header(bintable_header):
         image_header.append()
 
     return image_header
+
+
+def _update_bintable_header_from_image_header(image_header, bintable_header):
+    """
+    Propagate header-only changes from ``image_header`` to the header of an
+    existing compressed binary table, without touching the compressed data.
+
+    ``image_header`` is the header the user sees and may have modified; the
+    unmodified baseline is recomputed from ``bintable_header`` with
+    ``_bintable_header_to_image_header``, which is the same translation that
+    produced the image header when the HDU was read in.  The differences are
+    then applied to ``bintable_header`` in place.
+
+    Returns `True` if every difference could be propagated.  Returns `False`,
+    leaving ``bintable_header`` unchanged, if a difference involves a keyword
+    that is structural, translated (e.g. ``BITPIX`` -> ``ZBITPIX``) or
+    otherwise tied to the compressed data: in that case the caller has to
+    rebuild the binary table, recompressing the data.
+
+    Added cards are inserted after the counterpart of the card they follow in
+    the image header, so that their position survives the round trip back to
+    an image header.
+    """
+    original = _bintable_header_to_image_header(bintable_header)
+
+    # Regular (non-commentary, non-blank) cards, by keyword.  A duplicated
+    # regular keyword has no reliable one-to-one diff, so refuse.
+    def _regular_cards(header):
+        cards = {}
+        for card in header.cards:
+            if card.keyword in ("", "COMMENT", "HISTORY"):
+                continue
+            if card.keyword in cards:
+                return None
+            cards[card.keyword] = card
+        return cards
+
+    new_cards = _regular_cards(image_header)
+    old_cards = _regular_cards(original)
+    if new_cards is None or old_cards is None:
+        return False
+
+    def _propagatable(keyword):
+        # CHECKSUM/DATASUM are owned by the checksum machinery at write time
+        # and are never propagated (nor a reason to refuse).  BLANK is tied
+        # to the compressed representation through ZBLANK, so a change to it
+        # requires a rebuild, as do the translated and reserved keywords.
+        return not (
+            _is_reserved_keyword(keyword)
+            or keyword in REMAPPED_KEYWORDS
+            or keyword == "BLANK"
+            or re.match(r"NAXIS[0-9]*$", keyword)
+        )
+
+    changes = {}
+    deletions = []
+
+    for keyword, card in new_cards.items():
+        old = old_cards.pop(keyword, None)
+        if old is not None and old.value == card.value and old.comment == card.comment:
+            continue
+        if keyword in ("CHECKSUM", "DATASUM"):
+            continue
+        if not _propagatable(keyword):
+            return False
+        changes[keyword] = (card.value, card.comment, old is None)
+
+    for keyword in old_cards:
+        if keyword in ("CHECKSUM", "DATASUM"):
+            continue
+        if not _propagatable(keyword):
+            return False
+        deletions.append(keyword)
+
+    # Commentary cards are compared as ordered value lists and, when they
+    # differ, replaced wholesale.  Blank cards are synchronized in _writeto.
+    commentary = []
+    for keyword in ("COMMENT", "HISTORY"):
+        new_values = list(image_header[keyword]) if keyword in image_header else []
+        old_values = list(original[keyword]) if keyword in original else []
+        if new_values != old_values:
+            commentary.append((keyword, new_values))
+
+    # Nothing vetoed the propagation: apply it.  Deletions and wholesale
+    # commentary removals first, then a single forward walk over the image
+    # header that changes cards in place and inserts added and commentary
+    # cards right after the counterpart of the card they follow, so that
+    # their position survives the round trip back to an image header.  The
+    # insertions use the useblanks default, consuming the trailing padding:
+    # inserting *after* it (e.g. with append(..., end=True)) would turn the
+    # padding into interior blank cards and grow the header spuriously once
+    # _writeto restores the padding to the image header count.
+    for keyword in deletions:
+        del bintable_header[keyword]
+
+    redo_commentary = {keyword for keyword, _ in commentary}
+    for keyword in redo_commentary:
+        if keyword in bintable_header:
+            del bintable_header[keyword]
+
+    position = None
+
+    def _position_before_next_anchor():
+        # No verbatim card precedes the one being inserted in the image
+        # header, so insert before the counterpart of the first verbatim
+        # card instead; `None` if there is none at all.
+        for other in image_header.cards:
+            if (
+                other.keyword not in ("", "COMMENT", "HISTORY", "CHECKSUM", "DATASUM")
+                and _propagatable(other.keyword)
+                and other.keyword in bintable_header
+            ):
+                return bintable_header.index(other.keyword)
+        return None
+
+    for card in image_header.cards:
+        keyword = card.keyword
+
+        if keyword == "" or keyword in ("CHECKSUM", "DATASUM"):
+            # Blank cards are synchronized in _writeto; the checksum cards
+            # are owned by the checksum machinery.
+            continue
+
+        if keyword in ("COMMENT", "HISTORY"):
+            if keyword in redo_commentary:
+                if position is None:
+                    position = _position_before_next_anchor()
+                if position is None:
+                    bintable_header.append((keyword, card.value))
+                else:
+                    bintable_header.insert(position, (keyword, card.value))
+                    position += 1
+            continue
+
+        if keyword in changes:
+            value, comment, is_new = changes[keyword]
+            if is_new:
+                if position is None:
+                    position = _position_before_next_anchor()
+                if position is None:
+                    bintable_header.set(keyword, value, comment)
+                else:
+                    bintable_header.insert(position, (keyword, value, comment))
+            else:
+                bintable_header.set(keyword, value, comment)
+
+        # Only a keyword stored verbatim in the table header can anchor the
+        # position: the translated ones (BITPIX, NAXIS, PCOUNT, ...) exist
+        # there too, but as table-structural cards in a different place.
+        if _propagatable(keyword) and keyword in bintable_header:
+            position = bintable_header.index(keyword) + 1
+
+    return True
 
 
 def _image_header_to_empty_bintable(
