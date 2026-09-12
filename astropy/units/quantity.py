@@ -21,7 +21,13 @@ from astropy import config as _config
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyWarning
 
-from .core import Unit, UnitBase, dimensionless_unscaled, get_current_unit_registry
+from .core import (
+    Unit,
+    UnitBase,
+    _condition_arg,
+    dimensionless_unscaled,
+    get_current_unit_registry,
+)
 from .errors import UnitConversionError, UnitsError, UnitTypeError
 from .format import Base, Latex
 from .quantity_helper import can_have_arbitrary_unit, check_output, converters_and_unit
@@ -735,7 +741,16 @@ class Quantity(np.ndarray):
             # Same for inputs, but here also convert if necessary.
             arrays = []
             for input_, converter in zip(inputs, converters):
-                input_ = getattr(input_, "value", input_)
+                if converter is None and not isinstance(input_, np.ndarray):
+                    # Ensure the input is numerical array-like. Apply this to
+                    # the original object so types with a numeric ``.value``
+                    # (e.g. Time, TimeDelta) are not treated as dimensionless.
+                    try:
+                        input_ = _condition_arg(input_)
+                    except (TypeError, ValueError):
+                        return NotImplemented
+                else:
+                    input_ = getattr(input_, "value", input_)
                 arrays.append(converter(input_) if converter else input_)
 
             # Call our superclass's __array_ufunc__

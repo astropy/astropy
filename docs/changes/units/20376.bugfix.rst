@@ -1,0 +1,3 @@
+``Quantity.__array_ufunc__`` now returns ``NotImplemented`` for inputs such as
+``Time`` and ``TimeDelta`` that are not numerical array-like, instead of
+silently treating them as dimensionless.
