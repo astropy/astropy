@@ -53,7 +53,7 @@ class CompositeTransform(CoordinateTransform):
 
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         transforms,
         fromsys,

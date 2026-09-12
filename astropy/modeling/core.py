@@ -4421,7 +4421,7 @@ def bind_bounding_box(modelinstance, bounding_box, ignored=None, order="C"):
     )
 
 
-def bind_compound_bounding_box(
+def bind_compound_bounding_box(  # ruff: ignore[PLR0917] historical API
     modelinstance,
     bounding_boxes,
     selector_args,

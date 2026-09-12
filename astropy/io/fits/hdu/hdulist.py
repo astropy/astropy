@@ -40,7 +40,7 @@ __all__ = ["HDUList", "fitsopen"]
 FITS_SIGNATURE = b"SIMPLE  =                    T"
 
 
-def fitsopen(
+def fitsopen(  # ruff: ignore[PLR0917] historical API
     name,
     mode="readonly",
     memmap=None,
@@ -470,7 +470,7 @@ class HDUList(list, _Verify):
         self.close(output_verify=output_verify)
 
     @classmethod
-    def fromfile(
+    def fromfile(  # ruff: ignore[PLR0917] historical API
         cls,
         fileobj,
         mode=None,
@@ -1167,7 +1167,7 @@ class HDUList(list, _Verify):
         return None
 
     @classmethod
-    def _readfrom(
+    def _readfrom(  # ruff: ignore[PLR0917] historical API
         cls,
         fileobj=None,
         data=None,

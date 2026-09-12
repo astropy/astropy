@@ -267,7 +267,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
     delta._validator = _delta_validator
 
     @staticmethod
-    def evaluate(x, amplitude, x_break, alpha_1, alpha_2, delta):
+    def evaluate(x, amplitude, x_break, alpha_1, alpha_2, delta):  # ruff: ignore[PLR0917] historical API
         """One dimensional smoothly broken power law model function."""
         # Pre-calculate `x/x_b`
         xx = x / x_break
@@ -322,7 +322,7 @@ class SmoothlyBrokenPowerLaw1D(Fittable1DModel):
         return f
 
     @staticmethod
-    def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, delta):
+    def fit_deriv(x, amplitude, x_break, alpha_1, alpha_2, delta):  # ruff: ignore[PLR0917] historical API
         """One dimensional smoothly broken power law derivative with respect
         to parameters.
         """

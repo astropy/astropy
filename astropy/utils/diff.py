@@ -53,7 +53,7 @@ def _ignore_astropy_terminal_size(func):
 
 
 @_ignore_astropy_terminal_size
-def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=0.0):
+def report_diff_values(a, b, fileobj=sys.stdout, indent_width=0, rtol=0.0, atol=0.0):  # ruff: ignore[PLR0917] historical API
     """
     Write a diff report between two values to the specified file-like object.
 

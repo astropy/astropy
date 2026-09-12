@@ -49,7 +49,7 @@ class CompImageHDU(ImageHDU):
 
     _default_name = "COMPRESSED_IMAGE"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data=None,
         header=None,

@@ -412,7 +412,7 @@ def delval(filename, keyword, *args, **kwargs):
         hdulist.close(closed=closed)
 
 
-def writeto(
+def writeto(  # ruff: ignore[PLR0917] historical API
     filename,
     data,
     header=None,
@@ -953,7 +953,7 @@ def printdiff(inputa, inputb, *args, **kwargs):
         print(FITSDiff(inputa, inputb, **kwargs).report())
 
 
-def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1, overwrite=False):
+def tabledump(filename, datafile=None, cdfile=None, hfile=None, ext=1, overwrite=False):  # ruff: ignore[PLR0917] historical API
     """
     Dump a table HDU to a file in ASCII format.  The table may be
     dumped in three separate files, one containing column definitions,

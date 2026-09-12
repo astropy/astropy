@@ -5,7 +5,7 @@ from astropy.timeseries.periodograms.lombscargle.implementations import lombscar
 __all__ = ["lombscargle_mbfast"]
 
 
-def lombscargle_mbfast(
+def lombscargle_mbfast(  # ruff: ignore[PLR0917] historical API
     t,
     y,
     bands,

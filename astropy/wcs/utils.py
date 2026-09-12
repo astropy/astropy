@@ -685,7 +685,7 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     return xp, yp
 
 
-def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
+def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):  # ruff: ignore[PLR0917] historical API
     """
     Convert a set of pixel coordinates into a `~astropy.coordinates.SkyCoord`
     coordinate.
@@ -981,7 +981,7 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
     return derivatives
 
 
-def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
+def _linear_wcs_fit(params, lon, lat, x, y, w_obj):  # ruff: ignore[PLR0917] historical API
     """
     Objective function for fitting linear terms.
 
@@ -1013,7 +1013,7 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
     return resids
 
 
-def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
+def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):  # ruff: ignore[PLR0917] historical API
     """Objective function for fitting SIP.
 
     Parameters

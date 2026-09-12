@@ -558,7 +558,7 @@ class Column(NotifierMixin):
     ``tform``, etc. and the array containing values for the column.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         name=None,
         format=None,
@@ -1028,7 +1028,7 @@ class Column(NotifierMixin):
         return format, recformat
 
     @classmethod
-    def _verify_keywords(
+    def _verify_keywords(  # ruff: ignore[PLR0917] historical API
         cls,
         name=None,
         format=None,

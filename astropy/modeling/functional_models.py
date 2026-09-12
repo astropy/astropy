@@ -351,7 +351,7 @@ class Gaussian2D(Fittable2DModel):
         ),
     )
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         amplitude=amplitude.default,
         x_mean=x_mean.default,
@@ -475,7 +475,7 @@ class Gaussian2D(Fittable2DModel):
         )
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
+    def evaluate(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Gaussian function."""
         cost2 = np.cos(theta) ** 2
         sint2 = np.sin(theta) ** 2
@@ -492,7 +492,7 @@ class Gaussian2D(Fittable2DModel):
         )
 
     @staticmethod
-    def fit_deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):
+    def fit_deriv(x, y, amplitude, x_mean, y_mean, x_stddev, y_stddev, theta):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Gaussian function derivative with respect to parameters."""
         cost = np.cos(theta)
         sint = np.sin(theta)
@@ -1749,14 +1749,14 @@ class Lorentz2D(Fittable2DModel):
     fwhm = Parameter(default=1, description="Full width at half maximum")
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, fwhm):
+    def evaluate(x, y, amplitude, x_0, y_0, fwhm):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Lorentzian model function."""
         return amplitude * (
             ((fwhm / 2.0) ** 2) / ((x - x_0) ** 2 + (y - y_0) ** 2 + (fwhm / 2.0) ** 2)
         )
 
     @staticmethod
-    def fit_deriv(x, y, amplitude, x_0, y_0, fwhm):
+    def fit_deriv(x, y, amplitude, x_0, y_0, fwhm):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Lorentzian model derivative with respect to parameters."""
         gamma = fwhm / 2.0
         r2 = (x - x_0) ** 2 + (y - y_0) ** 2
@@ -2255,7 +2255,7 @@ class Ellipse2D(Fittable2DModel):
     )
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):
+    def evaluate(x, y, amplitude, x_0, y_0, a, b, theta):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Ellipse model function."""
         xx = x - x_0
         yy = y - y_0
@@ -2348,7 +2348,7 @@ class Disk2D(Fittable2DModel):
     R_0 = Parameter(default=1, description="Radius of the disk")
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, R_0):
+    def evaluate(x, y, amplitude, x_0, y_0, R_0):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Disk model function."""
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         result = np.select([rr <= R_0**2], [amplitude])
@@ -2437,7 +2437,7 @@ class Ring2D(Fittable2DModel):
     r_in = Parameter(default=1, description="Inner radius of the ring")
     width = Parameter(default=1, description="Width of the ring")
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         amplitude=amplitude.default,
         x_0=x_0.default,
@@ -2473,7 +2473,7 @@ class Ring2D(Fittable2DModel):
         )
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, r_in, width):
+    def evaluate(x, y, amplitude, x_0, y_0, r_in, width):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Ring model function."""
         rr = (x - x_0) ** 2 + (y - y_0) ** 2
         r_range = np.logical_and(rr >= r_in**2, rr <= (r_in + width) ** 2)
@@ -2660,7 +2660,7 @@ class Box2D(Fittable2DModel):
     y_width = Parameter(default=1, description="Width in y direction of the box")
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):
+    def evaluate(x, y, amplitude, x_0, y_0, x_width, y_width):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Box model function."""
         x_range = np.logical_and(x >= x_0 - x_width / 2.0, x <= x_0 + x_width / 2.0)
         y_range = np.logical_and(y >= y_0 - y_width / 2.0, y <= y_0 + y_width / 2.0)
@@ -2829,7 +2829,7 @@ class TrapezoidDisk2D(Fittable2DModel):
     )
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):
+    def evaluate(x, y, amplitude, x_0, y_0, R_0, slope):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Trapezoid Disk model function."""
         r = np.sqrt((x - x_0) ** 2 + (y - y_0) ** 2)
         range_1 = r <= R_0
@@ -3015,7 +3015,7 @@ class RickerWavelet2D(Fittable2DModel):
     sigma = Parameter(default=1, description="Width of the Ricker wavelet")
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, sigma):
+    def evaluate(x, y, amplitude, x_0, y_0, sigma):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Ricker Wavelet model function."""
         rr_ww = ((x - x_0) ** 2 + (y - y_0) ** 2) / (2 * sigma**2)
         return amplitude * (1 - rr_ww) * np.exp(-rr_ww)
@@ -3113,7 +3113,7 @@ class AiryDisk2D(Fittable2DModel):
     _j1 = None
 
     @classmethod
-    def evaluate(cls, x, y, amplitude, x_0, y_0, radius):
+    def evaluate(cls, x, y, amplitude, x_0, y_0, radius):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Airy model function."""
         if cls._rz is None:
             from scipy.special import j1, jn_zeros
@@ -3313,13 +3313,13 @@ class Moffat2D(Fittable2DModel):
         return 2.0 * np.abs(self.gamma) * np.sqrt(2.0 ** (1.0 / self.alpha) - 1.0)
 
     @staticmethod
-    def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):
+    def evaluate(x, y, amplitude, x_0, y_0, gamma, alpha):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Moffat model function."""
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma**2
         return amplitude * (1 + rr_gg) ** (-alpha)
 
     @staticmethod
-    def fit_deriv(x, y, amplitude, x_0, y_0, gamma, alpha):
+    def fit_deriv(x, y, amplitude, x_0, y_0, gamma, alpha):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Moffat model derivative with respect to parameters."""
         rr_gg = ((x - x_0) ** 2 + (y - y_0) ** 2) / gamma**2
         d_A = (1 + rr_gg) ** (-alpha)
@@ -3475,7 +3475,7 @@ class Sersic2D(Fittable2DModel):
     )
 
     @classmethod
-    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta, c=0):
+    def evaluate(cls, x, y, amplitude, r_eff, n, x_0, y_0, ellip, theta, c=0):  # ruff: ignore[PLR0917] historical API
         """Two dimensional Sersic profile function."""
         from scipy.special import gammaincinv
 

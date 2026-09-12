@@ -121,7 +121,7 @@ class Constant(Quantity, metaclass=ConstantMeta):
     _registry = {}
     _has_incompatible_units = set()
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls, abbrev, name, value, unit, uncertainty, reference=None, system=None
     ):
         if reference is None:

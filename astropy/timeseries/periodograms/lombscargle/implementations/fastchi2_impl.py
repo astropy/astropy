@@ -5,7 +5,7 @@ import numpy as np
 from .utils import trig_sum
 
 
-def lombscargle_fastchi2(
+def lombscargle_fastchi2(  # ruff: ignore[PLR0917] historical API
     t,
     y,
     dy,

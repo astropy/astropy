@@ -85,7 +85,7 @@ class _TableLikeHDU(_ValidHDU):
         raise NotImplementedError
 
     @classmethod
-    def from_columns(
+    def from_columns(  # ruff: ignore[PLR0917] historical API
         cls,
         columns,
         header=None,
@@ -329,7 +329,7 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
     which perform their own heap maintenance.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data=None,
         header=None,
@@ -769,7 +769,7 @@ class TableHDU(_TableBaseHDU):
 
     __format_RE = re.compile(r"(?P<code>[ADEFIJ])(?P<width>\d+)(?:\.(?P<prec>\d+))?")
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data=None,
         header=None,
@@ -900,7 +900,7 @@ class BinTableHDU(_TableBaseHDU):
     _extension = "BINTABLE"
     _ext_comment = "binary table extension"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         data=None,
         header=None,
