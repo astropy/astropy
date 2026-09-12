@@ -491,11 +491,27 @@ class AstropyLogger(Logger):
         """
         Reset logger to its initial state.
         """
-        # Reset any previously installed hooks
+        # Reset any previously installed hooks. This runs at import time via
+        # ``_init_log()``, so it must not raise if another library (e.g. a
+        # coverage plugin such as pytest-cov) has replaced ``warnings.showwarning``
+        # or ``sys.excepthook`` after Astropy installed its own. In that case we
+        # relinquish Astropy's hook bookkeeping without clobbering the third
+        # party's hook, instead of letting the ``LoggingError`` propagate and
+        # make ``import astropy`` fail. See https://github.com/astropy/astropy/issues/20005
         if self.warnings_logging_enabled():
-            self.disable_warnings_logging()
+            try:
+                self.disable_warnings_logging()
+            except LoggingError:
+                # Another library overrode warnings.showwarning; leave it in
+                # place and just clear our own record of the original hook.
+                self._showwarning_orig = None
         if self.exception_logging_enabled():
-            self.disable_exception_logging()
+            try:
+                self.disable_exception_logging()
+            except LoggingError:
+                # Another library overrode sys.excepthook; leave it in place
+                # and just clear our own record of the original hook.
+                self._excepthook_orig = None
 
         # Remove all previous handlers
         for handler in self.handlers[:]:

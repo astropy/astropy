@@ -1,0 +1,5 @@
+Fixed a bug where ``import astropy`` could fail with a ``LoggingError`` if
+another library (such as the ``pytest-cov`` coverage plugin) had replaced
+``warnings.showwarning`` or ``sys.excepthook`` after Astropy installed its
+own. The logger reset performed at import time is now best-effort and leaves
+any third-party hook in place instead of raising.
