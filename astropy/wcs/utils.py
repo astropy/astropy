@@ -16,7 +16,7 @@ from astropy.coordinates import (
 )
 from astropy.utils import unbroadcast
 
-from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE, PRJ_CODES
+from .wcs import PRJ_CODES, WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
