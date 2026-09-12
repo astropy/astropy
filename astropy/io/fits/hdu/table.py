@@ -1161,9 +1161,10 @@ class BinTableHDU(_TableBaseHDU):
         # Process the data and the column definitions, closing the files we
         # opened here even if a write fails partway through; the header is
         # written by Header.tofile, which handles closing the file itself
-        with _open_dump_file(datafile, "w") as dataf, _open_dump_file(
-            cdfile, "w"
-        ) as cdf:
+        with (
+            _open_dump_file(datafile, "w") as dataf,
+            _open_dump_file(cdfile, "w") as cdf,
+        ):
             self._dump_data(dataf)
             if cdfile:
                 self._dump_coldefs(cdf)
