@@ -2719,6 +2719,13 @@ class Model(metaclass=_ModelMeta):
             param_metrics[name]["size"] = param_size
             total_size += param_size
         self._parameters = np.empty(total_size, dtype=np.float64)
+        # Populate the freshly allocated array with the actual parameter values
+        # immediately. Otherwise ``_parameters`` is left holding uninitialized
+        # memory until the first access of the ``parameters`` property, which
+        # makes operations that read it directly (e.g. pickling a pristine
+        # model) non-deterministic -- if the uninitialized memory happens to
+        # contain a NaN, equality comparisons of the raw array fail. See #18598.
+        self._parameters_to_array()
 
     def _parameters_to_array(self):
         # Now set the parameter values (this will also fill
