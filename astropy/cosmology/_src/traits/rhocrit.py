@@ -3,21 +3,19 @@
 
 __all__ = ("CriticalDensity",)
 
-from collections.abc import Callable
-from typing import Any
 
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 
 from astropy.units import Quantity
 
+from .hubble import _HasHoverH0
 
-class CriticalDensity:
+
+class CriticalDensity(_HasHoverH0):
     """The object has attributes and methods for the critical density."""
 
     critical_density0: Quantity
     """Critical density at redshift 0."""
-
-    efunc: Callable[[Any], NDArray[Any]]
 
     def critical_density(self, z: Quantity | ArrayLike, /) -> Quantity:
         """Critical density in grams per cubic cm at redshift ``z``.
