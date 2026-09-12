@@ -175,6 +175,15 @@ def test_cds_dimensionless():
     assert u.dimensionless_unscaled.to_string(format="cds") == "---"
 
 
+@pytest.mark.parametrize("unit", [u.solMass**1.5, u.Bi, u.V / u.Hz**0.5])
+def test_cds_fractional_power_raises(unit):
+    # The CDS standard forbids fractional exponents ("solMass_3/2_ ... cannot be
+    # a valid unit") and its parser only accepts integer powers, so writing one
+    # would emit a string that cannot be read back. It must raise instead.
+    with pytest.raises(ValueError, match="fractional powers"):
+        unit.to_string("cds")
+
+
 def test_cds_log10_dimensionless():
     assert u.Unit("[-]", format="cds") == u.dex(u.dimensionless_unscaled)
     assert u.dex(u.dimensionless_unscaled).to_string(format="cds") == "[-]"
