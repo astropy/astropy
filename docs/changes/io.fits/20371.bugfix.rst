@@ -1,0 +1,4 @@
+Fixed the silent, cumulative rescaling of the data of a ``CompImageHDU`` carrying
+``BSCALE``/``BZERO`` when a file opened with ``mode="update"`` was modified only in
+its header. Header-only updates now propagate the header changes to the stored
+binary table without decompressing and recompressing the data.
