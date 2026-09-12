@@ -1,0 +1,2 @@
+String column widths are now derived from the ``arraysize`` attributes of
+the VOTable ``<FIELD>`` elements when reading VOParquet files.
