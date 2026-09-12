@@ -846,10 +846,13 @@ def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
     """High-z age must decrease with z and recover the radiation-era limit.
 
     Regression for https://github.com/astropy/astropy/issues/17974.
-    ``quad(z, inf)`` emitted IntegrationWarning near z=25300 and the
-    returned age jumped upward (1.79e-8 → 1.16e-7 Gyr). That is a
-    quadrature failure, not a neutrino-density step: Komatsu
-    ``nu_relative_density`` varies by <1e-5 on this interval.
+    On Astropy 8.0.1 ``Planck18.age`` first increases between z=4787
+    and z=4788 (2.7318309055033852e-05 → 2.7684616876331308e-05 Gyr).
+    ``quad(z, inf)`` also emitted IntegrationWarning near z=25300 and
+    the returned age jumped upward (1.79e-8 → 1.16e-7 Gyr). Those are
+    quadrature failures, not a neutrino-density step: Komatsu
+    ``nu_relative_density`` varies by <1e-5 on this interval. The
+    z=1e4..1e5 grid below does not cover the z=4787 jump.
 
     Radiation-era closed form (leading term):
     ``t(z) = 1 / (2 H0 sqrt(Or_inf) (1+z)^2)`` with
@@ -866,6 +869,16 @@ def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
     assert not any("divergent" in str(w.message).lower() for w in caught)
     age_gyr = age.to_value("Gyr")
     assert np.all(np.diff(age_gyr) < 0)
+
+    # Astropy 8.0.1 Planck18.age first increases between z=4787 and
+    # z=4788 (2.7318309055033852e-05 → 2.7684616876331308e-05 Gyr).
+    # The z=1e4..1e5 grid above misses that jump. The scale-factor
+    # integrand is strictly decreasing on the measured interval.
+    z_jump = np.arange(4500.0, 5201.0, 1.0)
+    age_jump = Planck18.age(z_jump).to_value("Gyr")
+    assert np.all(np.diff(age_jump) < 0)
+    a4787, a4788 = Planck18.age(np.array([4787.0, 4788.0])).to_value("Gyr")
+    assert a4788 < a4787
 
     # Komatsu fit itself is continuous on the reported interval.
     nurd = Planck18.nu_relative_density(z)

@@ -51,19 +51,25 @@ The parameters are from Planck Collaboration (2020) Table 2 (TT, TE, EE
 
 .. note::
 
-   ``Planck18.age`` at :math:`z \gtrsim 10^{4}` is the radiation-era
-   integral, not a jump in the Komatsu neutrino-density fit. The leading
-   term is :math:`t(z) = 1/(2 H_0 \sqrt{\Omega_{r,\infty}}\,(1+z)^2)`
+   ``Planck18.age`` in the radiation era is an integral, not a jump in
+   the Komatsu neutrino-density fit. The leading term is
+   :math:`t(z) = 1/(2 H_0 \sqrt{\Omega_{r,\infty}}\,(1+z)^2)`
    with :math:`\Omega_{r,\infty} = \Omega_{\gamma 0}(1+f_\nu(\infty))`.
-   Age must decrease with redshift; a reported increase near
-   :math:`z \approx 2.53\times 10^{4}` was a ``quad(z, +\infty)`` failure
-   (astropy/astropy#17974). The live object is monotonic and recovers
-   that closed form to about one percent at :math:`z=10^{5}`:
+   Age must decrease with redshift. On Astropy 8.0.1 the first increase
+   on a unit-step grid is between :math:`z=4787` and :math:`z=4788`
+   (``Δage = +3.6630782129745646\times 10^{-7}`` Gyr); a later increase
+   near :math:`z \approx 2.53\times 10^{4}` is the same
+   ``quad(z, +\infty)`` failure (astropy/astropy#17974). The live object
+   is monotonic and recovers that closed form to about one percent at
+   :math:`z=10^{5}`:
 
    .. doctest-requires:: scipy
 
       >>> from astropy.cosmology import Planck18
       >>> import numpy as np
+      >>> t = Planck18.age([4787.0, 4788.0])
+      >>> bool(t[0] > t[1])
+      True
       >>> z = [2.0e4, 2.5e4, 3.0e4]
       >>> t = Planck18.age(z)
       >>> bool((t[0] > t[1]) and (t[1] > t[2]))
