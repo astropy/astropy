@@ -1,0 +1,6 @@
+Fixed a bug where ``ascii.read`` with ``fast_reader='force'`` and a slow
+format name (e.g. ``format='basic'``) silently returned a wrong
+single-column table when the C tokenizer's automatic delimiter detection
+failed on small tables. The fast reader's delimiter probing now runs
+during guessing in this case, and genuinely unreadable tables raise an
+exception instead of being misread.
