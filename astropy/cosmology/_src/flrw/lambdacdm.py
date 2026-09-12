@@ -56,7 +56,9 @@ class LambdaCDM(FLRW):
         of neutrino species (and hence the number of elements of m_nu if it is
         not scalar) must be the floor of Neff. Typically this means you should
         provide three neutrino masses unless you are considering something like
-        a sterile neutrino.
+        a sterile neutrino. If ``Tcmb0`` is 0 K (the default), ``m_nu`` is
+        ignored and stored as ``None``; a warning is issued when a positive
+        mass is requested.
 
     Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -650,7 +652,9 @@ class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
         of neutrino species (and hence the number of elements of m_nu if it is
         not scalar) must be the floor of Neff. Typically this means you should
         provide three neutrino masses unless you are considering something like
-        a sterile neutrino.
+        a sterile neutrino. If ``Tcmb0`` is 0 K (the default), ``m_nu`` is
+        ignored and stored as ``None``; a warning is issued when a positive
+        mass is requested.
 
     Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical

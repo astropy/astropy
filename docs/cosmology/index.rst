@@ -348,7 +348,26 @@ small bump in the neutrino energy spectrum due to electron-positron
 annihilation, but is also affected by weak interaction physics.) Setting the
 CMB temperature to 0 removes the contribution of both neutrinos and photons.
 This is the default to ensure these components are excluded unless the user
-explicitly requests them.
+explicitly requests them. The neutrino temperature is locked to the CMB
+by :math:`T_{\nu 0} = (4/11)^{1/3}\,T_{\mathrm{CMB}}` (Weinberg,
+*Cosmology*, p. 154). A vanishing ``Tcmb0`` therefore removes the
+neutrino background, including massive species: a positive ``m_nu``
+with the default ``Tcmb0 = 0 K`` is stored as ``None`` and
+``has_massive_nu`` is ``False``. An
+:class:`~astropy.utils.exceptions.AstropyUserWarning` is issued in
+that case (astropy/astropy#17982). Pass a positive ``Tcmb0``
+(2.725 K for the observed CMB) to keep massive neutrinos.
+
+.. doctest-requires:: scipy
+
+  >>> from astropy.cosmology import FlatLambdaCDM
+  >>> import astropy.units as u
+  >>> m_nu = [0.0, 0.05, 0.10] * u.eV
+  >>> cosmo = FlatLambdaCDM(67, 0.272, Tcmb0=2.725, m_nu=m_nu)
+  >>> float(cosmo.Tnu0 / cosmo.Tcmb0)  # doctest: +FLOAT_CMP
+  0.7137658555036082
+  >>> cosmo.has_massive_nu
+  True
 
 Massive neutrinos are treated using the approach described in the
 WMAP seven-year cosmology paper (Komatsu et al. 2011, ApJS, 192, 18, section

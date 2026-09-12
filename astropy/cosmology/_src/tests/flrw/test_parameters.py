@@ -14,6 +14,7 @@ from astropy.cosmology import Cosmology, FlatFLRWMixin, Parameter
 from astropy.cosmology._src.parameter import MISSING
 from astropy.cosmology._src.tests.test_core import ParameterTestMixin
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.utils.exceptions import AstropyUserWarning
 
 
 class ParameterH0TestMixin(ParameterTestMixin):
@@ -391,9 +392,20 @@ class Parameterm_nuTestMixin(ParameterTestMixin):
         # If Tcmb0 = 0, m_nu is None
         tba = copy.copy(ba)
         tba.arguments["Tcmb0"] = 0
-        cosmo = cosmo_cls(*ba.args, **ba.kwargs)
+        cosmo = cosmo_cls(*tba.args, **tba.kwargs)
         assert cosmo.m_nu is None
         assert not cosmo.has_massive_nu
+
+        # Positive m_nu with Tcmb0=0 is ignored and warns (astropy/astropy#17982).
+        tba = copy.copy(ba)
+        tba.arguments["Tcmb0"] = 0
+        tba.arguments["m_nu"] = u.Quantity([0.0, 0.05, 0.10], u.eV)
+        with pytest.warns(AstropyUserWarning, match="m_nu is ignored when Tcmb0 is 0"):
+            cosmo = cosmo_cls(*tba.args, **tba.kwargs)
+        assert cosmo.m_nu is None
+        assert not cosmo.has_massive_nu
+        assert cosmo.Onu0 == 0.0
+        assert cosmo.Ogamma0 == 0.0
 
 
 # =============================================================================
