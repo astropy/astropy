@@ -1,0 +1,4 @@
+Direct mutations of the ``fields`` attribute in a
+``astropy.io.votable.tree.TableElement`` object via, e.g., ``list.append`` or
+``list.extend`` are now deprecated. ``TableElement.add_field`` should be used
+instead.
