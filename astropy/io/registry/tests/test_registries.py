@@ -72,6 +72,12 @@ def empty_identifier(*args, **kwargs):
     return True
 
 
+def mock_identifier(origin, filepath, fileobj, *args, **kwargs):
+    if origin == "fail":
+        raise IORegistryError("Failed")
+    return True
+
+
 @pytest.fixture
 def fmtcls1():
     return ("test1", EmptyData)
@@ -217,10 +223,12 @@ class TestUnifiedIORegistryBase:
             == f"No identifier defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
-    def test_identify_format(self, registry, fmtcls1):
+    def test_identify_format(self, registry, fmtcls1, fmtcls2):
         """Test ``registry.identify_format()``."""
         fmt, cls = fmtcls1
+        fmt2, cls2 = fmtcls2
         args = (None, cls, None, None, (None,), {})
+        argsFail = ("fail", cls2, None, None, (None,), {})
 
         # test no formats to identify
         formats = registry.identify_format(*args)
@@ -230,6 +238,36 @@ class TestUnifiedIORegistryBase:
         registry.register_identifier(fmt, cls, empty_identifier)
         formats = registry.identify_format(*args)
         assert fmt in formats
+
+        # test with a identifier function that raises an error but a valid format could be found
+        registry.register_identifier(fmt2, cls2, mock_identifier)
+        with pytest.raises(RuntimeError) as exc:
+            formats = registry.identify_format(*argsFail)
+        assert type(exc.value.__cause__) == IORegistryError
+        assert "Failed" in str(exc.value.__cause__)
+        assert f"{fmt2!r}" in str(exc.value)
+        assert "'mock_identifier'" in str(exc.value)
+
+        # test with no successful format inference and one single exception raised
+        registry.unregister_identifier(fmt, cls2)
+        with pytest.raises(RuntimeError) as exc:
+            formats = registry.identify_format(*argsFail)
+        assert type(exc.value.__cause__) == IORegistryError
+        assert "Failed" in str(exc.value.__cause__)
+        assert f"{fmt2!r}" in str(exc.value)
+        assert "'mock_identifier'" in str(exc.value)
+
+        # test with no successful format inference and multiple possible exceptions raised
+        #
+        nTests = 9
+        for i in range(3, nTests):
+            registry.register_identifier(f"test{i}", cls2, mock_identifier)
+            with pytest.raises(RuntimeError) as exc:
+                formats = registry.identify_format(*argsFail)
+            assert type(exc.value.__cause__) == IORegistryError
+            assert "Failed" in str(exc.value.__cause__)
+            assert f"{fmt2!r}" in str(exc.value)
+            assert "'mock_identifier'" in str(exc.value)
 
     # ===========================================
     # Compat tests
