@@ -1,0 +1,1 @@
+Fixed a bug in ``fit_wcs_from_points`` that caused it to mix 0-indexed and 1-indexed pixel conventions leading to erroneous WCS including but not limited to ``CRPIX`` and ``pixel_shape`` in the constructed WCS to be computed using NumPy's 0-indexed pixel coordinates rather than the 1-indexed FITS WCS convention.
