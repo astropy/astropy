@@ -888,6 +888,32 @@ def test_age_high_redshift_monotonic_all_radiation_realizations(name):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+@pytest.mark.parametrize("name", list(_AGE_8_0_1_FIRST_INCREASE_Z))
+def test_age_lookback_clock_identity(name):
+    """``lookback_time(z)`` equals ``age(0) - age(z)``.
+
+    Data label: ``astropy_8.0.1_age0_minus_age_equals_lookback``.
+    On Astropy 8.0.1 the residual
+    ``R(z) = lookback(z) - (age(0) - age(z))`` is ~3e-14 Gyr at
+    ``z <= 4`` but jumps to ``+3.77e-7`` Gyr at the first age increase
+    (Planck18: ``R(4788) = 3.768436602769043e-7`` Gyr) and to
+    ``~8.4e-7`` Gyr near ``z = 28000``. That residual equals the age
+    quadrature defect; ``lookback_time`` (integral from 0 to z) stays
+    smooth. Software clock identity, not a cosmological discovery.
+    """
+    import astropy.cosmology as cosmology
+
+    cosmo = getattr(cosmology, name)
+    age0 = cosmo.age(0)
+    z0 = _AGE_8_0_1_FIRST_INCREASE_Z[name]
+    z = np.array([0.5, 1.0, 4.0, z0, z0 + 1.0, 28000.0])
+    residual = (cosmo.lookback_time(z) - (age0 - cosmo.age(z))).to_value("Gyr")
+    # Patched scale-factor age restores |R| ~ 1e-13 at the old jump
+    # and < 2e-11 at z=4. The 8.0.1 defect is 3.77e-7 Gyr.
+    assert np.max(np.abs(residual)) < 1e-9
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
     """High-z age must decrease with z and recover the radiation-era limit.
 

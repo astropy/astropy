@@ -780,6 +780,15 @@ class FLRW(
         the scalar ``inv_efunc`` agrees with the Python implementation to
         roundoff.
 
+        The FLRW clock identity is
+        :math:`t_{\mathrm{lookback}}(z) = t(0) - t(z)`. On Astropy 8.0.1
+        the residual ``R(z) = lookback(z) - (age(0) - age(z))`` is
+        :math:`\sim 3\times 10^{-14}` Gyr at ``z \le 4`` but equals the
+        age jump at the first increase (Planck18:
+        ``R(4788) = 3.768436602769043\times 10^{-7}`` Gyr). Lookback
+        (integral from 0 to ``z``) stays smooth; the residual *is* the
+        age quadrature defect.
+
         In the radiation era the leading term is the closed form
         :math:`t(z) = 1 / (2 H_0 \sqrt{\Omega_{r,\infty}}\, (1+z)^2)`,
         where :math:`\Omega_{r,\infty} = \Omega_{\gamma 0}\,(1 +
