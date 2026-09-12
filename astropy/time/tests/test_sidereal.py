@@ -31,8 +31,8 @@ class TestERFATestCases:
 
     def setup_class(cls):
         # Sidereal time tests use the following JD inputs.
-        cls.time_ut1 = Time(2400000.5, 53736.0, scale="ut1", format="jd")
-        cls.time_tt = Time(2400000.5, 53736.0, scale="tt", format="jd")
+        cls.time_ut1 = Time(2.4000005e6, 53736.0, scale="ut1", format="jd")
+        cls.time_tt = Time(2.4000005e6, 53736.0, scale="tt", format="jd")
         # but tt!=ut1 at these dates, unlike what is assumed, so we cannot
         # reproduce this exactly. Now it does not really matter,
         # but may as well fake this (and avoid IERS table lookup here)
@@ -57,13 +57,13 @@ class TestERFATestCases:
     @pytest.mark.parametrize(
         "erfa_test_input",
         (
-            (1.754174972210740592, 1e-12, "eraGmst00"),
-            (1.754174971870091203, 1e-12, "eraGmst06"),
-            (1.754174981860675096, 1e-12, "eraGmst82"),
-            (1.754166138018281369, 1e-12, "eraGst00a"),
-            (1.754166136510680589, 1e-12, "eraGst00b"),
-            (1.754166137675019159, 1e-12, "eraGst06a"),
-            (1.754166136020645203, 1e-12, "eraGst94"),
+            (1.7541749722107407, 1e-12, "eraGmst00"),
+            (1.7541749718700912, 1e-12, "eraGmst06"),
+            (1.754174981860675, 1e-12, "eraGmst82"),
+            (1.7541661380182814, 1e-12, "eraGst00a"),
+            (1.7541661365106807, 1e-12, "eraGst00b"),
+            (1.754166137675019, 1e-12, "eraGst06a"),
+            (1.7541661360206453, 1e-12, "eraGst94"),
         ),
     )
     def test_iau_models(self, erfa_test_input):
@@ -83,9 +83,9 @@ class TestERFATestCases:
 
     def test_era(self):
         # Separate since it does not use the same time.
-        time_ut1 = Time(2400000.5, 54388.0, format="jd", scale="ut1")
+        time_ut1 = Time(2.4000005e6, 54388.0, format="jd", scale="ut1")
         era = time_ut1.earth_rotation_angle("tio")
-        expected = 0.4022837240028158102
+        expected = 0.4022837240028158
         assert np.abs(era.to_value(u.radian) - expected) < 1e-12
 
 
@@ -123,7 +123,7 @@ class TestST:
                 18.629426164144697,
                 18.629704702452862,
                 18.629983240761003,
-                6.6628381828899643,
+                6.662838182889964,
             ]
         )
         gmst = self.t1.sidereal_time("mean", "greenwich")
@@ -133,11 +133,11 @@ class TestST:
         """Compare Greenwich Apparent Sidereal Time with what was found earlier"""
         gst_compare = np.array(
             [
-                6.5971168570494854,
+                6.597116857049485,
                 18.629694220878296,
                 18.62997275921186,
-                18.630251297545389,
-                6.6631074284018244,
+                18.63025129754539,
+                6.663107428401824,
             ]
         )
         gst = self.t1.sidereal_time("apparent", "greenwich")
@@ -145,9 +145,9 @@ class TestST:
 
     def test_era(self):
         """Compare ERA relative to erfa.era00 test case."""
-        t = Time(2400000.5, 54388.0, format="jd", location=(0, 0), scale="ut1")
+        t = Time(2.4000005e6, 54388.0, format="jd", location=(0, 0), scale="ut1")
         era = t.earth_rotation_angle()
-        expected = 0.4022837240028158102 * u.radian
+        expected = 0.4022837240028158 * u.radian
         # Without the TIO locator/polar motion, this should be close already.
         assert np.abs(era - expected) < 1e-10 * u.radian
         # And with it, one should reach full precision.
@@ -158,7 +158,7 @@ class TestST:
         expected1 = expected + (np.arctan2(r[0, 1], r[0, 0]) << u.radian)
         assert np.abs(era - expected1) < 1e-12 * u.radian
         # Now try at a longitude different from 0.
-        t2 = Time(2400000.5, 54388.0, format="jd", location=(45, 0), scale="ut1")
+        t2 = Time(2.4000005e6, 54388.0, format="jd", location=(45, 0), scale="ut1")
         era2 = t2.earth_rotation_angle()
         r2 = erfa.rz(np.deg2rad(45), r)
         expected2 = expected + (np.arctan2(r2[0, 1], r2[0, 0]) << u.radian)
@@ -199,7 +199,7 @@ class TestST:
                 [
                     14.596849789473058,
                     2.629426164144693,
-                    2.6297047024528588,
+                    2.629704702452859,
                     2.6299832407610033,
                     14.662838182889967,
                 ]
@@ -207,7 +207,7 @@ class TestST:
             "apparent": np.array(
                 [
                     14.597116857049487,
-                    2.6296942208782959,
+                    2.629694220878296,
                     2.6299727592118565,
                     2.6302512975453887,
                     14.663107428401826,

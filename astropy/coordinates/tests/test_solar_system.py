@@ -411,7 +411,7 @@ def test_get_body_accounts_for_location_on_Earth():
     t = Time(58973.534052125986, format="mjd")
     # GCRS position of ALMA at this time
     obs_p = CartesianRepresentation(
-        5724535.74068625, -1311071.58985697, -2492738.93017009, u.m
+        5.72453574068625e6, -1.31107158985697e6, -2.49273893017009e6, u.m
     )
 
     icrs_sun_from_alma = _get_apparent_body_position("sun", t, "builtin", obs_p)
@@ -430,7 +430,7 @@ def test_regression_15611():
     # type 3 SPICE kernel
     ephemeris_file = get_pkg_data_filename("coordinates/230965_2004XA192_nima_v6.bsp")
     # KBO 2004 XA192
-    pair = (10, 20230965)
+    pair = (10, 20_230_965)
     t = Time("2023-11-11T03:59:24")
     # get_body_barycentric should not raise an error
     get_body_barycentric([pair], t, ephemeris=ephemeris_file)

@@ -180,7 +180,7 @@ def split(a):
     http://www.cs.berkeley.edu/~jrs/papers/robustr.pdf
 
     """
-    c = 134217729.0 * a  # 2**27+1.
+    c = 1.34217729e8 * a  # 2**27+1.
     abig = c - a
     ah = c - abig
     al = a - ah
