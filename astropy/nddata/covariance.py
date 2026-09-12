@@ -16,7 +16,24 @@ from .nddata import NDUncertainty
 
 # Required scipy.sparse imports
 if HAS_SCIPY:
-    from scipy.sparse import coo_matrix, csr_matrix, find, isspmatrix_csr, triu
+    import scipy
+
+    from astropy.utils import minversion
+
+    SCIPY_LT_2_0 = not minversion(scipy, "2.0.0.dev")
+
+    if SCIPY_LT_2_0:
+        from scipy.sparse import coo_matrix as coo_array
+        from scipy.sparse import csr_matrix as csr_array
+        from scipy.sparse import find, isspmatrix_csr, triu
+    else:
+        from scipy.sparse import coo_array, csr_array, find, triu
+
+        def isspmatrix_csr(arr):
+            from scipy.sparse import issparse
+
+            return issparse(arr) and arr.format == "csr"
+
 else:
     err = "Use of 'astropy.nddata.Covariance' requires 'scipy.sparse' module!"
 
@@ -26,10 +43,10 @@ else:
     def triu(*args, **kwargs):
         raise ModuleNotFoundError(err)
 
-    def csr_matrix(*args, **kwargs):
+    def csr_array(*args, **kwargs):
         raise ModuleNotFoundError(err)
 
-    def coo_matrix(*args, **kwargs):
+    def coo_array(*args, **kwargs):
         raise ModuleNotFoundError(err)
 
     def isspmatrix_csr(*args, **kwargs):
@@ -63,7 +80,7 @@ def _get_csr(arr):
     if isspmatrix_csr(arr):
         return arr
     try:
-        return csr_matrix(arr)
+        return csr_array(arr)
     except ValueError:
         raise TypeError(
             "Input matrix is not a scipy.sparse.csr_matrix and could "
@@ -93,7 +110,7 @@ def _impose_sparse_value_threshold(arr, threshold):
     index = np.logical_not(np.absolute(aij) < threshold)
     if all(index):
         return arr
-    return coo_matrix((aij[index], (i[index], j[index])), shape=arr.shape).tocsr()
+    return coo_array((aij[index], (i[index], j[index])), shape=arr.shape).tocsr()
 
 
 def _parse_shape(shape):
@@ -480,7 +497,7 @@ class Covariance(NDUncertainty):
         #   ValueError: scipy.sparse does not support dtype float64. The only supported types are: bool, int8, uint8, int16, uint16, int32, uint32, int64, uint64, longlong, ulonglong, float32, float64, longdouble, complex64, complex128, clongdouble.
         #   >>> getdtype(np.dtype('<f8'))
         #   dtype('float64')
-        cov = coo_matrix((cij.astype(cij.dtype.type), (i, j)), shape=shape).tocsr()
+        cov = coo_array((cij.astype(cij.dtype.type), (i, j)), shape=shape).tocsr()
 
         # Instantiate.  Set assume_symmetric to true to avoid the warning from
         # the _ingest_matrix method
@@ -546,12 +563,12 @@ class Covariance(NDUncertainty):
                 f"Shape of input variance matrix must be either ({nx}, {nx}) or ({nx},)."
             )
         # If it isn't already, convert T to a csr_matrix
-        _T = T if isinstance(T, csr_matrix) else csr_matrix(T)
+        _T = T if isinstance(T, csr_array) else csr_array(T)
         # Set the covariance matrix in X
         _covar = (
-            coo_matrix((covar, (np.arange(nx), np.arange(nx))), shape=(nx, nx)).tocsr()
+            coo_array((covar, (np.arange(nx), np.arange(nx))), shape=(nx, nx)).tocsr()
             if covar.ndim == 1
-            else (covar if isinstance(covar, csr_matrix) else csr_matrix(covar))
+            else (covar if isinstance(covar, csr_array) else csr_array(covar))
         )
         # Construct the covariance matrix
         return cls(_T.dot(_covar.dot(_T.transpose())).tocsr(), **kwargs)
@@ -574,7 +591,7 @@ class Covariance(NDUncertainty):
         `Covariance`
             The diagonal covariance matrix.
         """
-        return cls(csr_matrix(np.diagflat(variance)), **kwargs)
+        return cls(csr_array(np.diagflat(variance)), **kwargs)
 
     def to_sparse(self, correlation=False):
         """
@@ -633,7 +650,7 @@ class Covariance(NDUncertainty):
                 f"found {_var.shape}."
             )
         i, j, cij = find(self._cov)
-        _cov = coo_matrix(
+        _cov = coo_array(
             (cij * np.sqrt(_var[i] / self._var[i] * _var[j] / self._var[j]), (i, j)),
             shape=self.shape,
         ).tocsr()
@@ -1025,7 +1042,7 @@ class Covariance(NDUncertainty):
         var = _cov.diagonal()
         # Find all the non-zero elements
         i, j, cij = find(_cov)
-        rho = coo_matrix(
+        rho = coo_array(
             (cij / np.sqrt(var[i] * var[j]), (i, j)), shape=_cov.shape
         ).tocsr()
         return var, rho
@@ -1058,6 +1075,6 @@ class Covariance(NDUncertainty):
         i, j, rhoij = find(
             Covariance._ingest_matrix(rho, assume_symmetric=assume_symmetric)
         )
-        return coo_matrix(
+        return coo_array(
             (rhoij * np.sqrt(var[i] * var[j]), (i, j)), shape=rho.shape
         ).tocsr()
