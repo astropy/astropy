@@ -1,0 +1,3 @@
+The Planck15 realization documentation now states that ``Om0 = 0.3075``
+excludes massive neutrinos, so ``Om0 + Onu0`` recovers the
+:math:`\Omega_m = 0.3089` value in Planck 2015 XIII Table 4.

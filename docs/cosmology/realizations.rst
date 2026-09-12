@@ -76,6 +76,29 @@ Planck 2015
 
 Parameters are from Planck Collaboration (2016) Paper XIII, Table 4 (TT, TE, EE + lowP + lensing + ext) [P15]_.
 
+.. note::
+
+   Table 4 of that paper quotes :math:`\Omega_m = 0.3089 \pm 0.0062`.
+   Planck 2015 XI Table 17 defines :math:`\Omega_m` as including
+   :math:`\Omega_\nu` [P15XI]_.  Astropy stores massive neutrinos in
+   ``m_nu`` / ``Onu0`` (same convention as |Planck18|), so the stored
+   baryon-plus-cold-dark-matter density is
+
+   ``Om0 = 0.3089 - 0.0014 = 0.3075``.
+
+   The live objects reproduce the published Table 4 value when the
+   neutrino density is added back:
+
+   >>> from astropy.cosmology import Planck15
+   >>> Planck15.Om0
+   0.3075
+   >>> float(Planck15.Onu0)
+   0.0014362758412881926
+   >>> float(Planck15.Om0 + Planck15.Onu0)
+   0.3089362758412882
+   >>> round(float(Planck15.Om0 + Planck15.Onu0), 4)
+   0.3089
+
 Metadata
 --------
 
@@ -94,6 +117,10 @@ References
 .. [P15] Planck Collaboration, et. al. (2016). Planck 2015 results. XIII.
     Cosmological parameters. Astronomy \& Astrophysics, 594, A13.
     `<https://ui.adsabs.harvard.edu/abs/2016A%26A...594A..13P/abstract>`_
+.. [P15XI] Planck Collaboration, et. al. (2016). Planck 2015 results. XI.
+    CMB power spectra, likelihoods, and robustness of cosmological
+    parameters. Astronomy \& Astrophysics, 594, A11.
+    `<https://ui.adsabs.harvard.edu/abs/2016A%26A...594A..11P/abstract>`_
 
 
 .. _astropy_cosmology_realizations_Planck13:
