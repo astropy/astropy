@@ -75,6 +75,23 @@ KOMATSU_P: Final = 1.83
 KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
 KOMATSU_K: Final = 0.3173
 
+
+def _positive_neutrino_mass_requested(value: Any) -> bool:
+    """Return True if ``value`` asks for at least one neutrino mass > 0.
+
+    Used to warn when ``Tcmb0 == 0`` silently drops ``m_nu``.
+    The default ``0 eV`` does not warn.
+    """
+    if value is None:
+        return False
+    try:
+        raw = getattr(value, "value", value)
+        arr = np.atleast_1d(np.asarray(raw, dtype=float))
+    except (TypeError, ValueError):
+        return False
+    return bool(np.any(arr > 0))
+
+
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")
 _FlatFLRWMixinT = TypeVar("_FlatFLRWMixinT", bound="FlatFLRWMixin")
@@ -180,7 +197,9 @@ class FLRW(
         of neutrino species (and hence the number of elements of m_nu if it is
         not scalar) must be the floor of Neff. Typically this means you should
         provide three neutrino masses unless you are considering something like
-        a sterile neutrino.
+        a sterile neutrino. If ``Tcmb0`` is 0 K (the default), ``m_nu`` is
+        ignored and stored as ``None``; a warning is issued when a positive
+        mass is requested.
 
     Ob0 : float, optional
         Omega baryons: density of baryonic matter in units of the critical
@@ -213,7 +232,7 @@ class FLRW(
     Ode0: Parameter = ParameterOde0.clone()
     Tcmb0: Parameter = Parameter(
         default=0.0 * u.K,
-        doc="Temperature of the CMB at z=0.",
+        doc="Temperature of the CMB at z=0. Zero switches off photons and neutrinos.",
         unit="Kelvin",
         fvalidate="scalar",
     )
@@ -224,7 +243,7 @@ class FLRW(
     )
     m_nu: Parameter = Parameter(
         default=0.0 * u.eV,
-        doc="Mass of neutrino species.",
+        doc="Mass of neutrino species. Ignored when Tcmb0 is 0 K.",
         unit="eV",
         equivalencies=u.mass_energy(),
     )
@@ -298,6 +317,16 @@ class FLRW(
         """
         # Check if there are any neutrinos
         if (n_nu := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
+            # Tcmb0 = 0 switches off photons and neutrinos. A requested
+            # positive mass is stored as None (has_massive_nu is False).
+            # Warn so ``m_nu`` is not silently dropped (astropy/astropy#17982).
+            if self.Tcmb0.value == 0 and _positive_neutrino_mass_requested(value):
+                warnings.warn(
+                    "m_nu is ignored when Tcmb0 is 0 K; photons and "
+                    "neutrinos (including massive species) are switched "
+                    "off. Pass a positive Tcmb0 to include them.",
+                    AstropyUserWarning,
+                )
             return None  # None, regardless of input
 
         # Validate / set units

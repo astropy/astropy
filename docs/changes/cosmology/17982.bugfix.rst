@@ -1,0 +1,6 @@
+``FLRW`` now warns when a positive ``m_nu`` is given but ``Tcmb0`` is
+0 K (the default). Neutrino temperature is
+:math:`T_{\nu 0}=(4/11)^{1/3} T_{\mathrm{CMB}}`, so a vanishing CMB
+temperature removes the neutrino background, including massive
+species. The masses are still stored as ``None``; pass a positive
+``Tcmb0`` to include them.

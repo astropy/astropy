@@ -4,6 +4,7 @@
 
 import pathlib
 import re
+import warnings
 
 import numpy as np
 import pytest
@@ -839,6 +840,47 @@ def test_age():
     tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0, m_nu=0.1 * u.eV)
     assert u.allclose(tcos.age(4), 1.5546485439853412 * u.Gyr)
     assert u.allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_m_nu_without_tcmb0_is_ignored_and_warns():
+    """Positive m_nu is dropped when Tcmb0 defaults to 0 K.
+
+    Regression for https://github.com/astropy/astropy/issues/17982.
+    Labels: age in Gyr, comoving_distance in Mpc, Onu0 dimensionless,
+    sum(m_nu)=0.15 eV. The silent-drop cosmology matches omitting m_nu;
+    enabling Tcmb0=2.725 K recovers Onu0 and makes the universe younger
+    by 57.4 Myr at z=0.
+    """
+    m_nu = [0.0, 0.05, 0.10] * u.eV
+    with pytest.warns(AstropyUserWarning, match="m_nu is ignored when Tcmb0 is 0"):
+        dropped = FlatLambdaCDM(67, 0.272, m_nu=m_nu)
+    bare = FlatLambdaCDM(67, 0.272)
+    included = FlatLambdaCDM(67, 0.272, Tcmb0=2.725, m_nu=m_nu)
+
+    assert dropped.m_nu is None
+    assert dropped.has_massive_nu is False
+    assert dropped.Onu0 == 0.0
+    assert dropped.Ogamma0 == 0.0
+    assert dropped.Onu0 == bare.Onu0
+    assert u.allclose(dropped.age(0), bare.age(0))
+
+    assert included.has_massive_nu is True
+    assert included.Onu0 == pytest.approx(0.0036104187877419327)
+    assert included.Ogamma0 == pytest.approx(5.504925669917584e-05)
+    assert u.allclose(included.age(0), 14.400358 * u.Gyr, rtol=1e-6)
+    # 57.4 Myr younger than the silently dropped case.
+    assert (dropped.age(0) - included.age(0)).to_value("Myr") == pytest.approx(
+        57.433, rel=1e-3
+    )
+    assert (
+        dropped.comoving_distance(1) - included.comoving_distance(1)
+    ).to_value("Mpc") == pytest.approx(8.1158, rel=1e-3)
+
+    # Default massless m_nu with Tcmb0=0 does not warn.
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", AstropyUserWarning)
+        FlatLambdaCDM(67, 0.272)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
