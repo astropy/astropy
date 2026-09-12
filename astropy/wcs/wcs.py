@@ -135,6 +135,7 @@ from ._wcs import (
     Wcsprm,
     Wtbarr,
     _sanity_check,
+    _setup_unit_class,
     set_wtbarr_fitsio_callback,
 )
 from ._wcs import _Wcs as WCSBase
@@ -142,6 +143,8 @@ from ._wcs import find_all_wcs as find_all_wcs_c
 
 # Mix-in class that provides the APE 14 API
 from .wcsapi.fitswcs import FITSWCSAPIMixin, SlicedFITSWCS
+
+_setup_unit_class(u.Unit)
 
 __all__ = [
     "PRJ_CODES",
