@@ -61,6 +61,46 @@ class TestHDUListFunctions(FitsTestCase):
             res = hdul.fileinfo(2)
             test_fileinfo(resized=1, datLoc=17280, hdrLoc=11520)
 
+    def test_hdulist_file_info_append_mode(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/19089
+
+        After appending an HDU to a file opened in ``append`` mode and flushing,
+        both ``HDU.fileinfo()`` and ``HDUList.fileinfo(index)`` should report the
+        byte locations of the freshly-written HDU rather than returning ``None``
+        (or, for ``HDUList.fileinfo``, raising ``UnboundLocalError``).
+        """
+        path = self.temp("append_fileinfo.fits")
+
+        with fits.open(path, mode="append") as hdul:
+            hdus = [
+                fits.PrimaryHDU(),
+                fits.ImageHDU(np.arange(12.0).reshape(3, 4)),
+                fits.BinTableHDU.from_columns([fits.Column("col1", "D", array=[1.0])]),
+            ]
+
+            for hdu in hdus:
+                index = len(hdul)
+                hdul.append(hdu)
+                hdul.flush()
+
+                info_from_hdu = hdu.fileinfo()
+                info_from_list = hdul.fileinfo(index)
+
+                # The written HDU is now tied to the file, so neither call
+                # returns None and the byte locations are populated.
+                assert info_from_hdu is not None
+                assert info_from_list is not None
+                for key in ("hdrLoc", "datLoc", "datSpan"):
+                    assert info_from_hdu[key] is not None
+                    assert info_from_list[key] is not None
+                    assert info_from_hdu[key] == info_from_list[key]
+
+                assert info_from_hdu["file"] is info_from_list["file"]
+                assert (
+                    info_from_hdu["filemode"] == info_from_list["filemode"] == "append"
+                )
+
     def test_create_from_multiple_primary(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/145
