@@ -1,0 +1,5 @@
+Slicing a `GroupData` object that was created from a raw array (rather
+than read from a FITS file) now works instead of raising a
+``TypeError``.  Constructing a `GroupData` from a raw array left each
+column's ``.array`` unset, so slicing (which reads ``coldefs._arrays``)
+failed with ``'NoneType' object is not subscriptable``.
