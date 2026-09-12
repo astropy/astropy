@@ -1462,7 +1462,8 @@ def test_fit_wcs_from_points(
     header_str, crval, sip_degree, user_proj_point, exp_max_dist, exp_std_dist
 ):
     header = fits.Header.fromstring(header_str, sep="\n")
-    header["CRVAL1"] = crval
+    if crval is not None:
+        header["CRVAL1"] = crval
 
     true_wcs = WCS(header, relax=True)
 
@@ -1484,7 +1485,7 @@ def test_fit_wcs_from_points(
 
     # Fitting the wcs
     fit_wcs = fit_wcs_from_points(
-        (x, y), world_pix, proj_point=proj_point, sip_degree=sip_degree
+        (x + 1, y + 1), world_pix, proj_point=proj_point, sip_degree=sip_degree
     )
 
     # Validate that the true sky coordinates
@@ -1550,7 +1551,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     ypix, xpix = (arr.flatten() for arr in np.mgrid[xi : xi + x, yi : yi + y])
     world_pix = SkyCoord(*ffi_wcs.all_pix2world(xpix, ypix, 0), unit="deg")
 
-    fit_wcs = fit_wcs_from_points((ypix, xpix), world_pix, proj_point="center")
+    fit_wcs = fit_wcs_from_points((ypix + 1, xpix + 1), world_pix, proj_point="center")
 
     assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1005]).all()
     assert fit_wcs.pixel_shape == (1199, 1009)
