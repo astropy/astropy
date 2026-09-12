@@ -8,7 +8,7 @@ import os
 import re
 import textwrap
 import warnings
-from contextlib import suppress
+from contextlib import contextmanager, suppress
 
 import numpy as np
 
@@ -52,6 +52,23 @@ class FITSTableDumpDialect(csv.excel):
     quotechar = '"'
     quoting = csv.QUOTE_ALL
     skipinitialspace = True
+
+
+@contextmanager
+def _open_dump_file(fileobj, mode="r"):
+    """
+    Open *fileobj* for the ASCII dump files used by `BinTableHDU.dump` and
+    `BinTableHDU.load`; yields a file object and closes it on exit if it was
+    opened here.
+    """
+    if isinstance(fileobj, path_like):
+        fileobj = open(os.path.expanduser(fileobj), mode)
+        try:
+            yield fileobj
+        finally:
+            fileobj.close()
+    else:
+        yield fileobj
 
 
 class _TableLikeHDU(_ValidHDU):
@@ -1137,16 +1154,22 @@ class BinTableHDU(_TableBaseHDU):
                 "'overwrite=True'."
             )
 
-        # Process the data
-        self._dump_data(datafile)
+        if not datafile and self._file:
+            root = os.path.splitext(self._file.name)[0]
+            datafile = root + ".txt"
 
-        # Process the column definitions
-        if cdfile:
-            self._dump_coldefs(cdfile)
-
-        # Process the header parameters
-        if hfile:
-            self._header.tofile(hfile, sep="\n", endcard=False, padding=False)
+        # Process the data and the column definitions, closing the files we
+        # opened here even if a write fails partway through; the header is
+        # written by Header.tofile, which handles closing the file itself
+        with (
+            _open_dump_file(datafile, "w") as dataf,
+            _open_dump_file(cdfile, "w") as cdf,
+        ):
+            self._dump_data(dataf)
+            if cdfile:
+                self._dump_coldefs(cdf)
+            if hfile:
+                self._header.tofile(hfile, sep="\n", endcard=False, padding=False)
 
     if isinstance(dump.__doc__, str):
         dump.__doc__ += _tdump_file_format.replace("\n", "\n        ")
@@ -1214,12 +1237,12 @@ class BinTableHDU(_TableBaseHDU):
                 )
 
         coldefs = None
-        # Process the column definitions file
-        if cdfile:
-            coldefs = cls._load_coldefs(cdfile)
-
-        # Process the data file
-        data = cls._load_data(datafile, coldefs)
+        # Process the column definitions file and the data file, closing the
+        # files we opened here even if parsing fails partway through
+        with _open_dump_file(cdfile) as cdf, _open_dump_file(datafile) as dataf:
+            if cdfile:
+                coldefs = cls._load_coldefs(cdf)
+            data = cls._load_data(dataf, coldefs)
         if coldefs is None:
             coldefs = ColDefs(data)
 
@@ -1240,16 +1263,6 @@ class BinTableHDU(_TableBaseHDU):
         Write the table data in the ASCII format read by BinTableHDU.load()
         to fileobj.
         """
-        if not fileobj and self._file:
-            root = os.path.splitext(self._file.name)[0]
-            fileobj = root + ".txt"
-
-        close_file = False
-
-        if isinstance(fileobj, str):
-            fileobj = open(fileobj, "w")
-            close_file = True
-
         linewriter = csv.writer(fileobj, dialect=FITSTableDumpDialect)
 
         # Process each row of the table and output one row at a time
@@ -1304,20 +1317,12 @@ class BinTableHDU(_TableBaseHDU):
                     else:
                         line.append(format_value(row[column.name], array_format))
             linewriter.writerow(line)
-        if close_file:
-            fileobj.close()
 
     def _dump_coldefs(self, fileobj):
         """
         Write the column definition parameters in the ASCII format read by
         BinTableHDU.load() to fileobj.
         """
-        close_file = False
-
-        if isinstance(fileobj, str):
-            fileobj = open(fileobj, "w")
-            close_file = True
-
         # Process each column of the table and output the result to the
         # file one at a time
         for column in self.columns:
@@ -1330,21 +1335,11 @@ class BinTableHDU(_TableBaseHDU):
             fileobj.write(" ".join(line))
             fileobj.write("\n")
 
-        if close_file:
-            fileobj.close()
-
     @classmethod
     def _load_data(cls, fileobj, coldefs=None):
         """
         Read the table data from the ASCII file output by BinTableHDU.dump().
         """
-        close_file = False
-
-        if isinstance(fileobj, path_like):
-            fileobj = os.path.expanduser(fileobj)
-            fileobj = open(fileobj)
-            close_file = True
-
         initialpos = fileobj.tell()  # We'll be returning here later
         linereader = csv.reader(fileobj, dialect=FITSTableDumpDialect)
 
@@ -1474,9 +1469,6 @@ class BinTableHDU(_TableBaseHDU):
 
                 col += 1
 
-        if close_file:
-            fileobj.close()
-
         return data
 
     @classmethod
@@ -1485,13 +1477,6 @@ class BinTableHDU(_TableBaseHDU):
         Read the table column definitions from the ASCII file output by
         BinTableHDU.dump().
         """
-        close_file = False
-
-        if isinstance(fileobj, path_like):
-            fileobj = os.path.expanduser(fileobj)
-            fileobj = open(fileobj)
-            close_file = True
-
         columns = []
 
         for line in fileobj:
@@ -1506,9 +1491,6 @@ class BinTableHDU(_TableBaseHDU):
                     word = _str_to_num(word)
                 kwargs[key] = word
             columns.append(Column(**kwargs))
-
-        if close_file:
-            fileobj.close()
 
         return ColDefs(columns)
 
