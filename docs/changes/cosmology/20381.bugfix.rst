@@ -1,0 +1,13 @@
+``FLRW.age`` is now integrated in the scale-factor coordinate
+``u = 1/(1+z)``, so the radiation-era endpoint is regular. The previous
+``quad(z, inf)`` form could return a non-monotonic age. On Astropy 8.0.1
+every built-in realization with ``Tcmb0 > 0`` first increases on a
+unit-step grid in ``z ∈ [4787, 4809]`` (``Planck18`` at 4787,
+``WMAP1`` at 4809; ``Δage ≈ +3.66e-7`` Gyr) and again near
+``z ≈ 2.5e4``. The FLRW identity ``lookback(z) = age(0) - age(z)``
+then fails by that same residual (Planck18 ``R(4788) =
+3.768436602769043e-7`` Gyr); lookback itself stays smooth. Those
+jumps are quadrature failures, not a discontinuity in the Komatsu
+et al. 2011 neutrino-density fit. The same non-injective age made
+``z_at_value(Planck18.age, Planck18.age(4788))`` return
+``z ≈ 4752.59`` instead of 4788.

@@ -740,7 +740,7 @@ class FLRW(
         return (self.lookback_time(z) * const.c).to(u.Mpc)
 
     def age(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
-        """Age of the universe in Gyr at redshift ``z``.
+        r"""Age of the universe in Gyr at redshift ``z``.
 
         Parameters
         ----------
@@ -761,6 +761,48 @@ class FLRW(
         See Also
         --------
         z_at_value : Find the redshift corresponding to an age.
+
+        Notes
+        -----
+        The integral is evaluated in the scale-factor coordinate
+        :math:`u = 1/(1+z)` so the radiation-era endpoint (the Big Bang) is
+        regular. Integrating the redshift form from ``z`` to ``+∞`` with
+        ``scipy.integrate.quad`` is not: on Astropy 8.0.1 every built-in
+        realization with ``Tcmb0 > 0`` first *increases* on a unit-step
+        grid in :math:`z \in [4787, 4809]` (``Planck18`` at 4787,
+        ``WMAP1`` at 4809;
+        ``Δage \approx +3.66\times 10^{-7}`` Gyr), and around
+        :math:`z \approx 2.5\times 10^4` the same quadrature can emit an
+        ``IntegrationWarning`` (see astropy/astropy#17974). Those jumps
+        are numerical failures, not a discontinuity in
+        :meth:`~astropy.cosmology.FLRW.nu_relative_density` — the Komatsu
+        et al. 2011 fit is continuous, and the Cython ``nufunc`` used by
+        the scalar ``inv_efunc`` agrees with the Python implementation to
+        roundoff.
+
+        The FLRW clock identity is
+        :math:`t_{\mathrm{lookback}}(z) = t(0) - t(z)`. On Astropy 8.0.1
+        the residual ``R(z) = lookback(z) - (age(0) - age(z))`` is
+        :math:`\sim 3\times 10^{-14}` Gyr at ``z \le 4`` but equals the
+        age jump at the first increase (Planck18:
+        ``R(4788) = 3.768436602769043\times 10^{-7}`` Gyr). Lookback
+        (integral from 0 to ``z``) stays smooth; the residual *is* the
+        age quadrature defect.
+
+        The same jump makes ``age`` non-injective.
+        :func:`~astropy.cosmology.z_at_value` applied to the 8.0.1
+        ``Planck18.age(4788)`` value then returns ``z \approx 4752.59``
+        (the true inverse of that number on the decreasing branch),
+        not 4788. Default ``zmax=1000`` cannot invert radiation-era
+        ages at all.
+
+        In the radiation era the leading term is the closed form
+        :math:`t(z) = 1 / (2 H_0 \sqrt{\Omega_{r,\infty}}\, (1+z)^2)`,
+        where :math:`\Omega_{r,\infty} = \Omega_{\gamma 0}\,(1 +
+        f_\nu(z\to\infty))` and :math:`f_\nu` is
+        :meth:`~astropy.cosmology.FLRW.nu_relative_density`.
+        Cosmologies with ``Tcmb0 = 0`` keep the redshift-form integral
+        to :math:`+\infty` so a pure de Sitter age remains infinite.
         """
         return self._age(z)
 
@@ -800,8 +842,32 @@ class FLRW(
         See Also
         --------
         z_at_value : Find the redshift corresponding to an age.
+
+        Notes
+        -----
+        When photons are present the substitution ``u = 1 / (1 + z)``
+        makes the radiation-era endpoint regular (see :meth:`age`).
+        Without radiation a pure-de Sitter integrand behaves as
+        ``1/u`` at the Big Bang, so the original ``(z, +∞)`` form is
+        kept and correctly diverges.
         """
-        return quad(self._lookback_time_integrand_scalar, z, inf)[0]
+        if self.Tcmb0.value == 0:
+            return quad(self._lookback_time_integrand_scalar, z, inf)[0]
+        return quad(self._age_integrand_scale_factor, 0.0, 1.0 / (z + 1.0))[0]
+
+    def _age_integrand_scale_factor(self, u: float, /) -> float:
+        """Age integrand after the substitution ``u = 1 / (1 + z)``.
+
+        The redshift form ``1 / ((1 + z) E(z))`` becomes
+        ``inv_efunc(1/u - 1) / u``. In the radiation era ``E(z) ~ u^{-2}``,
+        so the integrand vanishes linearly in ``u`` at the Big Bang
+        (``u = 0``). ``scipy.integrate.quad`` on ``(z, +∞)`` is not regular
+        there (astropy/astropy#17974).
+        """
+        if u <= 0.0:
+            return 0.0
+        z = 1.0 / u - 1.0
+        return self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args) / u
 
     # ---------------------------------------------------------------
     # Comoving distance
