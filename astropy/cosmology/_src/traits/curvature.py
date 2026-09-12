@@ -22,6 +22,29 @@ class CurvatureComponent:
     This is a trait class; it is not meant to be instantiated directly, but
     instead to be used as a mixin to other classes.
 
+    Examples
+    --------
+    For an example of a real cosmology that implements this trait, see
+    :class:`~astropy.cosmology.LambdaCDM`. Here we will define an illustrative example
+    class that meets the minimum API requirements, but is not cosmologically meaningful:
+
+    >>> from astropy.cosmology.traits import CurvatureComponent
+    >>> import dataclasses
+
+    >>> @dataclasses.dataclass(frozen=True)
+    ... class ExampleHasCurvature(CurvatureComponent):
+    ...     @property
+    ...     def Ok0(self): return 0.1
+    ...     def is_flat(self): return False
+    ...     def inv_efunc(self, z): return 1.0  # necessary for Ok(z)
+
+    >>> cosmo = ExampleHasCurvature()
+    >>> cosmo.Ok0
+    0.1
+
+    >>> cosmo.Ok([0.0, 1.0, 2.0])
+    array([0.1, 0.4, 0.9])
+
     """
 
     @property

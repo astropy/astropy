@@ -11,7 +11,33 @@ __all__ = ("MatterComponent",)
 
 
 class MatterComponent:
-    """The cosmology has attributes and methods for the matter density."""
+    """The cosmology has attributes and methods for the matter density.
+
+    This is a trait class; it is not meant to be instantiated directly, but instead to
+    be used as a mixin to other classes.
+
+    Examples
+    --------
+    For an example of a real cosmology that implements this trait, see
+    :class:`~astropy.cosmology.LambdaCDM`. Here we will define an illustrative example
+    class that meets the minimum API requirements, but is not cosmologically meaningful:
+
+    >>> from astropy.cosmology.traits import MatterComponent
+    >>> import dataclasses
+
+    >>> @dataclasses.dataclass(frozen=True)
+    ... class ExampleHasMatter(MatterComponent):
+    ...     Om0: float
+    ...     def inv_efunc(self, z): return 1.0  # necessary for Om(z)
+
+    >>> cosmo = ExampleHasMatter(Om0=0.3)
+    >>> cosmo.Om0
+    0.3
+
+    >>> cosmo.Om([0.0, 1.0, 2.0])
+    array([0.3, 2.4, 8.1])
+
+    """
 
     Om0: float | np.floating
     """Omega matter; matter density/critical density at z=0."""
