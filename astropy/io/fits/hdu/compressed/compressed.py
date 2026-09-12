@@ -24,6 +24,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .header import (
     _bintable_header_to_image_header,
     _image_header_to_empty_bintable,
+    _update_bintable_header_from_image_header,
 )
 from .section import CompImageSection
 from .settings import (
@@ -565,14 +566,25 @@ class CompImageHDU(ImageHDU):
         bintable.data = data
 
     def _prewriteto(self, inplace=False):
-        if (
-            self._bintable is not None
-            and not self._has_data
-            and not self.header._modified
-        ):
-            self._tmp_bintable = self._bintable
-            self._tmp_bintable._output_checksum = self._output_checksum
-            return self._tmp_bintable._prewriteto(inplace=inplace)
+        if self._bintable is not None and not self._has_data:
+            # The data was never loaded, so it cannot have changed: the stored
+            # binary table can be reused as-is, and a header-only change is
+            # propagated card by card into the table header.  This avoids the
+            # decompression + recompression cycle, which is not only wasted
+            # work: with scaled integer data it corrupted the values (the
+            # stale-BSCALE ordering problem described below), and with
+            # quantized floating-point data it would requantize the data at
+            # every header-only update.  If a change involves a structural or
+            # translated keyword the propagation refuses, and we fall through
+            # to the full rebuild below.
+            if not self.header._modified or (
+                _update_bintable_header_from_image_header(
+                    self.header, self._bintable.header
+                )
+            ):
+                self._tmp_bintable = self._bintable
+                self._tmp_bintable._output_checksum = self._output_checksum
+                return self._tmp_bintable._prewriteto(inplace=inplace)
 
         if self._scale_back:
             self._scale_internal(
@@ -584,22 +596,26 @@ class CompImageHDU(ImageHDU):
         # already scaled and, as a side effect, strips BSCALE/BZERO from the
         # image header -- correct bookkeeping, but it happens *after* the copy
         # when the data was not loaded yet, leaving a stale BSCALE in the table
-        # header that is applied a second time on the next read.  That silently
-        # corrupts the data on every mode="update" that only touches the
-        # header, and does so cumulatively.
-        #
-        # Load the data now, and restore the integer representation the file
-        # was written with, so that the on-disk form is preserved as well as
-        # the values.  _add_data_to_bintable() loads the data anyway.
-        if self._bintable is not None and not self._data_loaded:
+        # header that is applied a second time on the next read.  Load the
+        # data now, and restore the integer representation the file was
+        # written with, so that both the values and the on-disk form are
+        # preserved.  _add_data_to_bintable() loads the data anyway.  With
+        # do_not_scale_image_data the data is loaded raw and the header is
+        # left alone, so there is nothing to restore.
+        if (
+            self._bintable is not None
+            and not self._data_loaded
+            and not self._do_not_scale_image_data
+        ):
             bscale, bzero = self._orig_bscale, self._orig_bzero
             bitpix, blank = self._orig_bitpix, self._orig_blank
-            self.data
-            if self._data_loaded and self.data is not None and (
+            if self.data is not None and (
                 bscale not in (None, 1) or bzero not in (None, 0)
             ):
                 self._scale_internal(
-                    BITPIX2DTYPE[bitpix], bscale=bscale, bzero=bzero,
+                    BITPIX2DTYPE[bitpix],
+                    bscale=bscale,
+                    bzero=bzero,
                     blank=blank,
                 )
 
