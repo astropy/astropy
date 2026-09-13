@@ -72,7 +72,7 @@ void compute_sigma_clipped_bounds(
             }
         }
 
-        if (new_count == count) {
+        if (new_count == count || new_count == 0) {
             return;
         }
 
