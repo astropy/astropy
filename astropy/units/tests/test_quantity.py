@@ -1800,23 +1800,32 @@ def test_quantity_initialisation_from_string():
 
 @pytest.mark.parametrize("unit_str", ["", "eV", "  cm"])
 @pytest.mark.parametrize(
-    "array_str",
+    "array_str, expected",
     (
-        "[7,  8,  9]",
-        "[7,8,9]",
-        "[7,8,9,]",
-        "[7,  8,  9,]",
-        "[7. 8. 9.]",
-        "[7.  8.   9.]",
-        "[7 8 9]",
-        "[7  8  9]",
-        "[7   8     9]",
+        ("[7,  8,  9]", [7, 8, 9]),
+        ("[7,8,9]", [7, 8, 9]),
+        ("[7,8,9,]", [7, 8, 9]),
+        ("[7,  8,  9,]", [7, 8, 9]),
+        ("[7. 8. 9.]", [7, 8, 9]),
+        ("[7.  8.   9.]", [7, 8, 9]),
+        ("[7 8 9]", [7, 8, 9]),
+        ("[7  8  9]", [7, 8, 9]),
+        ("[7   8     9]", [7, 8, 9]),
+        ("[[7,  8,  9], [7,  8,  9]]", [[7, 8, 9], [7, 8, 9]]),
+        ("[[7,8,9]  , [7,8,9]]", [[7, 8, 9], [7, 8, 9]]),
+        ("[[7,8,9] , [7,8,9]]", [[7, 8, 9], [7, 8, 9]]),
+        ("[[7,  8,  9] ,  [7,  8,  9]]", [[7, 8, 9], [7, 8, 9]]),
+        ("[[7. 8. 9.]  [7. 8. 9.]]", [[7, 8, 9], [7, 8, 9]]),
+        ("[[7.  8.   9.]   [7.  8.   9.]]", [[7, 8, 9], [7, 8, 9]]),
+        ("[[7 8 9]   [7 8 9]]", [[7, 8, 9], [7, 8, 9]]),
+        ("[[7  8  9]   [7  8  9]]", [[7, 8, 9], [7, 8, 9]]),
+        ("[[7   8     9]   [7   8     9]]", [[7, 8, 9], [7, 8, 9]]),
     ),
 )
-def test_quantity_initialisation_string_array(array_str, unit_str):
+def test_quantity_initialisation_string_array(array_str, expected, unit_str):
     q = u.Quantity(array_str + unit_str)
     assert q.unit == unit_str
-    assert_array_equal(q.value, np.array([7.0, 8.0, 9.0]))
+    assert_array_equal(q.value, np.array(expected))
 
 
 def test_unsupported():

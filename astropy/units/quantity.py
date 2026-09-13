@@ -5,6 +5,7 @@ associated units. `Quantity` objects support operations like ordinary numbers,
 but will deal with unit conversions internally.
 """
 
+import ast
 import builtins
 import contextlib
 import numbers
@@ -319,34 +320,50 @@ NUM: Final = r"""
     ([eE][+-]?\d+)?
     [.+-]?
 """
-# List of numbers separated by "," or whitespace.
-VECTOR_COMMA: Final = rf"""
-    \[\s*
-    {NUM}
-    (?: (\s*,\s*){NUM})*
-    (\s*,\s*)?
-    \s*\]
-"""
-VECTOR_WSPACE: Final = rf"""
-    \[\s*
-    {NUM}
-    (?: (\s+){NUM})*
-    \s*\]
-"""
-VECTOR_1D: Final = rf"{VECTOR_COMMA} | {VECTOR_WSPACE}"
-NUMBER_PATTERN: Final = re.compile(rf"\s*(?:{NUM}|{VECTOR_1D})\s*", re.VERBOSE)
+
+SEP_SPACE: Final = r"""\s*\]+\s*\[+\s*"""
+SEP_COMMA: Final = r"""\s*\]+\s*,\s*\[+\s*"""
+
+NUMBER_PATTERN: Final = re.compile(rf"\s*(?:{NUM})\s*", re.VERBOSE)
 
 
-def _parse_quantity_string(string: str) -> tuple[float | list[float], Unit]:
-    """Parse a string as a number or list of numbers.
+def _parse_quantity_string(
+    string: str,
+):
+    """Parse a string as a number or list of numbers or a list of list of numbers.
 
     Returns a tuple of value (float or array) and unit.
     Raises if not possible.
     """
-    v = re.match(NUMBER_PATTERN, string)
-    items = v.group().replace(",", " ").strip().strip("[]").split()
-    value = [float(a) for a in items] if "[" in string else float(items[0])
-    unit = Unit(unit_str) if (unit_str := v.string[v.end() :].strip()) else None
+    try:
+        last_rbracket = string.rindex("]") + 1
+    except ValueError:
+        v = re.match(NUMBER_PATTERN, string)
+        value_str = string[: v.end()]
+        unit_str = string[v.end() :]
+    else:
+        value_str = string[:last_rbracket]
+        unit_str = string[last_rbracket:].strip()
+
+    unit = Unit(unit_str) if unit_str else None
+
+    try:
+        if "[" in value_str:
+            value = ast.literal_eval(value_str)
+            if not isinstance(
+                value[0], str
+            ):  # prevents likes of ['158'] from getting through
+                value = np.array(value, dtype=np.float64).tolist()
+        else:
+            value = float(value_str)
+    except SyntaxError as exc:
+        if "[" in value_str and "," not in value_str:
+            repaired = re.sub(rf"{SEP_SPACE}", "],[", value_str)
+            repaired = re.sub(r"\s+", ",", repaired)
+            value = np.array(ast.literal_eval(repaired), dtype=np.float64).tolist()
+        else:
+            raise exc
+
     return value, unit
 
 
