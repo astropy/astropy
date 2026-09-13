@@ -173,6 +173,11 @@ class TestQuantityTrigonometricFuncs:
         (
             testcase(
                 f=np.sin,
+                q_in=(0.5 * u.turn,),
+                q_out=(0.5 * u.dimensionless_unscaled,),
+            ),
+            testcase(
+                f=np.sin,
                 q_in=(30.0 * u.degree,),
                 q_out=(0.5 * u.dimensionless_unscaled,),
             ),

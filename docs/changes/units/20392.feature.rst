@@ -1,0 +1,2 @@
+Add ``turn`` unit, for the angle equivalent to one full rotation, 360 degrees,
+or 2 pi radians.

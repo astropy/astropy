@@ -31,11 +31,13 @@ def test_dimensionless_angles():
     rad1 = u.dimensionless_angles()
     assert u.radian.to(1, equivalencies=rad1) == 1.0
     assert u.deg.to(1, equivalencies=rad1) == u.deg.to(u.rad)
+    assert u.turn.to(1, equivalencies=rad1) == u.turn.to(u.rad)
     assert u.steradian.to(1, equivalencies=rad1) == 1.0
     assert u.dimensionless_unscaled.to(u.steradian, equivalencies=rad1) == 1.0
     # now quantities
     assert (1.0 * u.radian).to_value(1, equivalencies=rad1) == 1.0
     assert (1.0 * u.deg).to_value(1, equivalencies=rad1) == u.deg.to(u.rad)
+    assert (1.0 * u.turn).to_value(1, equivalencies=rad1) == u.turn.to(u.rad)
     assert (1.0 * u.steradian).to_value(1, equivalencies=rad1) == 1.0
     # more complicated example
     I = 1.0e45 * u.g * u.cm**2

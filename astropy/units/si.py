@@ -106,6 +106,13 @@ def_unit(
     ),
 )
 def_unit(
+    ["turn", "tr", "pla"],
+    2 * np.pi * rad,
+    namespace=_ns,
+    prefixes=True,
+    doc="turn: angular measurement equaling one full rotation",
+)
+def_unit(
     ["deg", "degree"],
     np.pi / 180.0 * rad,
     namespace=_ns,
