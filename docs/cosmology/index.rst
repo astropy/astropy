@@ -356,11 +356,9 @@ WMAP seven-year cosmology paper (Komatsu et al. 2011, ApJS, 192, 18, section
 :math:`\Omega_{\nu 0} h^2 = \sum_i m_{\nu\, i} / 93.04\,\mathrm{eV}`
 approximation. The Komatsu fitting formula for
 :meth:`~astropy.cosmology.FLRW.nu_relative_density` is continuous through
-matter-radiation equality; a jump in :meth:`~astropy.cosmology.FLRW.age` at
-:math:`z\sim 2.5\times 10^4` is a quadrature artefact of integrating
-:math:`dz/((1+z)E(z))` to :math:`+\infty`, not a neutrino-species
-transition (astropy/astropy#17974). Age is therefore integrated in
-:math:`u=1/(1+z)`. Also note that the values of :math:`\Omega_{\nu}(z)` include
+matter-radiation equality, so a jump in :meth:`~astropy.cosmology.FLRW.age`
+must not be read as a neutrino-species transition. Also note that the
+values of :math:`\Omega_{\nu}(z)` include
 both the kinetic energy and the rest mass energy components, and that the
 |Planck13| and |Planck15| cosmologies include a single species of neutrinos
 with non-zero mass (which is not included in :math:`\Omega_{m0}`).
