@@ -45,7 +45,7 @@ Fixes #<Issue Number>
 *If AI tools were used to develop this pull request, describe the tools including specific model and version, how they were used, and what content is AI generated. Otherwise enter "N/A".*
 
 <!-- REQUIRED -->
-- [ ] I certify that I am human and that I take full responsibility for this pull request including all interactions with reviewers.
+- [x] I certify that I am human and that I take full responsibility for this pull request including all interactions with reviewers.
 
 ### Merge method
 <!-- Optional opt-out -->
