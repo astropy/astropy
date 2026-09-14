@@ -292,6 +292,62 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
     def world_axis_object_components(self):
         return [self._wcs.world_axis_object_components[idx] for idx in self._world_keep]
 
+    def _high_level_world_to_pixel(self, *world_objects):
+        """
+        Convert one high-level object on a 1D slice of a FITS WCS.
+
+        The object must identify exactly one world axis, and that axis must be
+        linear in the remaining pixel axis. Distorted or bounded FITS WCSes are
+        not supported. Returns `NotImplemented` when not applicable.
+        """
+        from types import SimpleNamespace
+
+        from astropy.wcs import WCS
+        from astropy.wcs.wcsapi.high_level_api import high_level_objects_to_values
+
+        if (
+            self.pixel_n_dim != 1
+            or len(world_objects) != 1
+            or not isinstance(self._wcs, WCS)
+            or self.serialized_classes
+            or self._wcs.has_distortion
+            or self._wcs.det2im1 is not None
+            or self._wcs.det2im2 is not None
+            or self._wcs.pixel_bounds is not None
+        ):
+            return NotImplemented
+
+        components = self.world_axis_object_components
+        classes = self.world_axis_object_classes
+        if len(classes) < 2:
+            return NotImplemented
+
+        matches = [
+            index
+            for index, (key, *_) in enumerate(components)
+            if isinstance(world_objects[0], classes[key][0])
+        ]
+        if len(matches) != 1:
+            return NotImplemented
+
+        (index,) = matches
+        # wcslib axis type: hundreds digit 0 means linear (no projection/log/tab).
+        if (self._wcs.wcs.axis_types[self._world_keep[index]] // 100) % 10 != 0:
+            return NotImplemented
+        key = components[index][0]
+        (target,) = high_level_objects_to_values(
+            *world_objects,
+            low_level_wcs=SimpleNamespace(
+                world_axis_object_components=[components[index]],
+                world_axis_object_classes={key: classes[key]},
+            ),
+        )
+        value_0, value_1 = self.pixel_to_world_values([0, 1])[index]
+        if value_1 == value_0:
+            return NotImplemented
+        # The axis is linear in the pixel, so two samples define the inverse.
+        return (target - value_0) / (value_1 - value_0)
+
     @property
     def world_axis_object_classes(self):
         keys_keep = [item[0] for item in self.world_axis_object_components]
