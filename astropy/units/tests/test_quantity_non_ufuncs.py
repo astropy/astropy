@@ -63,7 +63,7 @@ def get_covered_functions(ns: dict) -> set[FunctionType]:
             for k, v in test_cls.__dict__.items()
             if inspect.isfunction(v)
             and k.startswith("test_")
-            and (function := getattr(module, k.replace("test_", ""), None)) is not None
+            and (function := getattr(module, k.removeprefix("test_"), None)) is not None
         }
     return covered
 
