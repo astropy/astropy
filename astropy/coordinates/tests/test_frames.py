@@ -1689,14 +1689,15 @@ def test_frame_coord_comparison():
     assert frame == coord
     assert frame != other
     assert not (frame == other)
-    error_msg = "objects must have equivalent frames"
-    with pytest.raises(TypeError, match=error_msg):
-        frame == SkyCoord(AltAz("0d", "1d"))  # noqa: B015
+
+    # A comparison involving a SkyCoord is done by SkyCoord, which gives False
+    # rather than raising when the two are not consistent.
+    assert (frame == SkyCoord(AltAz("0d", "1d"))) is np.False_
 
     coord = SkyCoord(ra=12 * u.hourangle, dec=5 * u.deg, frame=FK5(equinox="J1950"))
     frame = FK5(ra=12 * u.hourangle, dec=5 * u.deg, equinox="J2000")
-    with pytest.raises(TypeError, match=error_msg):
-        coord == frame  # noqa: B015
+    assert (coord == frame) is np.False_
+    assert (frame == coord) is np.False_
 
     frame = ICRS()
     coord = SkyCoord(0 * u.deg, 0 * u.deg, frame=frame)
