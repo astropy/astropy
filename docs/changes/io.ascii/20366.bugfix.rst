@@ -1,0 +1,5 @@
+Reading an ECSV file with ``names``, ``include_names`` or ``exclude_names`` using the
+``io.ascii`` reader now works for mixin columns (e.g. ``Time`` or ``SkyCoord``). These
+arguments now refer to the column names in the output table. Previously naming such a
+column raised ``ValueError`` for ``names`` and ``include_names`` and had no effect for
+``exclude_names``.

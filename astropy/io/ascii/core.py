@@ -1467,15 +1467,25 @@ class BaseReader(metaclass=MetaBaseReader):
         if hasattr(self.header, "table_meta"):
             self.meta["table"].update(self.header.table_meta)
 
-        _apply_include_exclude_names(
-            self.header, self.names, self.include_names, self.exclude_names
-        )
+        self._filter_header_cols()
         self.data.masks(cols)
 
         table = self.outputter(self.header.cols, self.meta)
         self.cols = self.header.cols
 
         return table
+
+    def _filter_header_cols(self) -> None:
+        """
+        Apply ``names``, ``include_names`` and ``exclude_names`` to ``self.header``.
+
+        This is a hook that format-specific readers can override when the column
+        names in the file differ from the column names in the output table (e.g.
+        ECSV files with serialized mixin columns).
+        """
+        _apply_include_exclude_names(
+            self.header, self.names, self.include_names, self.exclude_names
+        )
 
     def inconsistent_handler(self, str_vals: list[str], ncols: int) -> list[str]:
         """
