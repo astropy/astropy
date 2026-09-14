@@ -1283,3 +1283,54 @@ def test_deleting_undefined_field_omits_from_header():
     del w.mjdref
     del w.obsgeo
     assert "NAN" not in w.to_header().upper()
+
+
+def test_wcsparameterarray_setitem_does_not_call_set():
+
+    # The write-back in WCSParameterArray.__setitem__ only syncs the buffer
+    # into the wcsprm struct and marks it dirty; it must not invoke wcsset.
+    # We test this by putting some invalid values and making sure these only
+    # raise an exception once set() is called explicitly.
+
+    w = _wcs.Wcsprm()
+    w.ctype = ["RA---XXX", "DEC--XXX"]
+    w.obsgeo = [1, 2, 3, 4, 5, 6]
+    w.obsgeo[5] = np.nan
+    w.crder[0] = 0.1
+    w.csyer[1] = 0.2
+    w.mjdref[1] = np.nan
+    with pytest.raises(_wcs.InconsistentAxisTypesError):
+        w.set()
+
+
+def test_wcsparameterarray_batch_modification_then_set():
+
+    # Check that setting individual elements is equivalent to setting the whole arrays
+
+    def base_wcsprm():
+        w = _wcs.Wcsprm()
+        w.ctype = ["RA---TAN", "DEC--TAN"]
+        w.crval = [10, 20]
+        w.crpix = [256, 256]
+        w.cdelt = [-1e-3, 1e-3]
+        return w
+
+    w_elem = base_wcsprm()
+    w_elem.obsgeo[0] = 1000.0
+    w_elem.obsgeo[1] = 2000.0
+    w_elem.obsgeo[2] = 3000.0
+    w_elem.crder[0] = 0.1
+    w_elem.crder[1] = np.nan
+    w_elem.mjdref[0] = 50000.0
+    w_elem.set()
+
+    w_full = base_wcsprm()
+    w_full.obsgeo = [1000.0, 2000.0, 3000.0, np.nan, np.nan, np.nan]
+    w_full.crder = [0.1, np.nan]
+    w_full.mjdref = [50000.0, 0.0]
+    w_full.set()
+
+    assert_array_equal(w_elem.obsgeo, w_full.obsgeo)
+    assert_array_equal(w_elem.crder, w_full.crder)
+    assert_array_equal(w_elem.mjdref, w_full.mjdref)
+    assert w_elem.to_header() == w_full.to_header()
