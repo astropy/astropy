@@ -1,0 +1,9 @@
+Fixed a bug where converting a ``Time`` in the ``ut1`` scale to another scale
+could give a result that was off by one second right at a leap second.
+Conversions to and from ``ut1`` now go via ``tai`` rather than ``utc``, using
+UT1 - TAI, which is continuous across leap seconds.  As part of this, an
+explicitly set ``delta_ut1_utc`` is now interpreted consistently in both
+directions near a leap second: as in ``erfa.ut1utc``, on the day ending with a
+positive leap second a non-negative value is taken to be the value from after
+the leap second, and on the day after a negative value is taken to be the value
+from before it.
