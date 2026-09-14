@@ -1,0 +1,4 @@
+``Time`` (and ``TimeDelta``) now keeps a ``Masked`` or ``numpy.ma.MaskedArray``
+input marked as masked even if none of its elements are actually masked, so
+that, e.g., ``Time(Masked(["2001:001", "2002:002"])).masked`` is ``True``
+instead of silently reverting to an unmasked (plain ``ndarray``-backed) ``Time``.

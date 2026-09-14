@@ -222,7 +222,9 @@ def test_masked_input():
     t = Time(v0, format="cxcsec")
     assert np.ma.allclose(t.value, v0)
     assert np.all(t.mask == [[False, False], [False, False]])
-    assert t.masked is False
+    # Even though none of the elements are actually masked, v0 is a
+    # masked-type input, so that "masked-ness" should be kept (gh-20233).
+    assert t.masked is True
 
     t = Time(v1, format="cxcsec")
     assert np.ma.allclose(t.value, v1)
@@ -257,6 +259,38 @@ def test_masked_input():
     assert np.all(t2.value == t_iso)
     assert np.all(t2.mask == v2.mask)
     assert t2.masked is True
+
+
+@pytest.mark.parametrize("masked_cls", [np.ma.MaskedArray, Masked])
+def test_masked_input_no_masked_elements_stays_masked(masked_cls):
+    """Regression test for gh-20233.
+
+    A ``Time`` initialized from a masked-type input (``Masked`` or
+    ``np.ma.MaskedArray``) should keep its "masked-ness" -- i.e.,
+    ``Time.masked`` should be `True` and the internal ``jd1``/``jd2``
+    should be `~astropy.utils.masked.Masked` instances -- even if none
+    of the individual elements happen to be masked. Previously this
+    information was silently dropped whenever ``np.any(mask)`` was
+    `False`.
+    """
+    val = masked_cls(["2001:001", "2002:002"], mask=False)
+    t = Time(val)
+
+    assert t.masked is True
+    assert isinstance(t._time.jd1, Masked)
+    assert isinstance(t._time.jd2, Masked)
+    assert np.all(t.mask == [False, False])
+
+    # Sanity check: an actually-masked element still works as before.
+    val_masked = masked_cls(["2001:001", "2002:002"], mask=[False, True])
+    t_masked = Time(val_masked)
+    assert t_masked.masked is True
+    assert np.all(t_masked.mask == [False, True])
+
+    # And a plain, non-masked-type input should *not* become masked.
+    t_plain = Time(["2001:001", "2002:002"])
+    assert t_plain.masked is False
+    assert not isinstance(t_plain._time.jd1, Masked)
 
 
 @pytest.mark.parametrize("masked_cls", [np.ma.MaskedArray, Masked])
