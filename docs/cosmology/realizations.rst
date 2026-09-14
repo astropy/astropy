@@ -55,13 +55,8 @@ The parameters are from Planck Collaboration (2020) Table 2 (TT, TE, EE
    the Komatsu neutrino-density fit. The leading term is
    :math:`t(z) = 1/(2 H_0 \sqrt{\Omega_{r,\infty}}\,(1+z)^2)`
    with :math:`\Omega_{r,\infty} = \Omega_{\gamma 0}(1+f_\nu(\infty))`.
-   Age must decrease with redshift. On Astropy 8.0.1 the first increase
-   on a unit-step grid is between :math:`z=4787` and :math:`z=4788`
-   (``Δage = +3.6630782129745646\times 10^{-7}`` Gyr); a later increase
-   near :math:`z \approx 2.53\times 10^{4}` is the same
-   ``quad(z, +\infty)`` failure (astropy/astropy#17974). The live object
-   is monotonic and recovers that closed form to about one percent at
-   :math:`z=10^{5}`:
+   Age decreases with redshift and recovers that closed form to about
+   one percent at :math:`z=10^{5}`:
 
    .. doctest-requires:: scipy
 
