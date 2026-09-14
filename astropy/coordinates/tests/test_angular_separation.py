@@ -61,9 +61,7 @@ def test_angle_utilities_accept_table_columns():
     columns = tuple(table[name] for name in ("lon1", "lat1", "lon2", "lat2"))
     quantities = tuple(column.quantity for column in columns)
 
-    assert u.allclose(
-        angular_separation(*columns), angular_separation(*quantities)
-    )
+    assert u.allclose(angular_separation(*columns), angular_separation(*quantities))
     assert u.allclose(position_angle(*columns), position_angle(*quantities))
 
 
