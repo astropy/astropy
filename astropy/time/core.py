@@ -555,9 +555,13 @@ class TimeBase(MaskableShapedLikeNDArray):
                 )
 
         # If either of the input val, val2 are masked arrays then
-        # find the masked elements and fill them.
+        # find the masked elements and fill them.  ``get_data_and_mask`` gives a
+        # mask of `None` if and only if the input was not masked, so this tells
+        # us whether masking is in play at all, independently of whether any
+        # element is actually masked.
         data1, mask1 = get_data_and_mask(val)
         data2, mask2 = get_data_and_mask(val2)
+        masked_input = mask1 is not None or mask2 is not None
         mask = combine_masks([mask1, mask2])
 
         # Parse / convert input values into internal jd1, jd2 based on format
@@ -573,10 +577,12 @@ class TimeBase(MaskableShapedLikeNDArray):
             self._location = self._time._location
             del self._time._location
 
-        # If any inputs were masked then mask both jd1 and jd2 accordingly,
-        # using a shared mask.  From above, ``mask`` must be either Python
-        # bool False or an bool ndarray with the correct shape.
-        if mask is not False and np.any(mask):
+        # If any input was masked then mask both jd1 and jd2 accordingly, using a
+        # shared mask.  Note that we deliberately do not check whether any element
+        # is actually masked: masked input always gives masked output, so that the
+        # "maskedness" of the input is preserved.  From above, ``mask`` is either
+        # a bool scalar or a bool array broadcastable to the jd1/jd2 shape.
+        if masked_input:
             # Ensure that if the class is already masked, we do not lose it.
             self._time.jd1 = Masked(self._time.jd1, copy=False)
             self._time.jd1.mask |= mask
