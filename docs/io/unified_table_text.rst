@@ -140,8 +140,6 @@ column use:
 
   >>> import sys
   >>> t.write(sys.stdout, format='ascii', delimiter='|', formats={'colc': '%0.2f'})
-  #
-  #
   cola|colb|colc
   a|1|2.00
   b|3|4.00

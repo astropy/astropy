@@ -1,0 +1,4 @@
+The ``latex`` and ``aastex`` readers no longer treat ignored table commands
+such as ``\hline``, ``\toprule``, and ``\midrule`` as table comments,
+preventing extraneous empty comment lines from polluting metadata and being
+output when writing tables.
