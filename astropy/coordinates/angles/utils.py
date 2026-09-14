@@ -53,6 +53,10 @@ def angular_separation(lon1, lat1, lon2, lat2):
 
     .. [1] https://en.wikipedia.org/wiki/Great-circle_distance
     """
+    lon1, lat1, lon2, lat2 = (
+        getattr(angle, "quantity", angle)
+        for angle in (lon1, lat1, lon2, lat2)
+    )
     sdlon = np.sin(lon2 - lon1)
     cdlon = np.cos(lon2 - lon1)
     slat1 = np.sin(lat1)
@@ -85,6 +89,10 @@ def position_angle(lon1, lat1, lon2, lat2):
         following the appropriate `numpy` broadcasting rules.
 
     """
+    lon1, lat1, lon2, lat2 = (
+        getattr(angle, "quantity", angle)
+        for angle in (lon1, lat1, lon2, lat2)
+    )
     deltalon = lon2 - lon1
     colat = np.cos(lat2)
 

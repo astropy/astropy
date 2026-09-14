@@ -45,6 +45,28 @@ def test_angsep():
             assert np.fabs(angsep - conv(corrsep)) < conv(correctness_margin)
 
 
+def test_angle_utilities_accept_table_columns():
+    """Regression test for #14605."""
+    from astropy.coordinates import angular_separation, position_angle
+    from astropy.table import Table
+
+    table = Table(
+        {
+            "lon1": [1, 2] * u.deg,
+            "lat1": [1, 2] * u.deg,
+            "lon2": [0, 0] * u.deg,
+            "lat2": [50, 50] * u.deg,
+        }
+    )
+    columns = tuple(table[name] for name in ("lon1", "lat1", "lon2", "lat2"))
+    quantities = tuple(column.quantity for column in columns)
+
+    assert u.allclose(
+        angular_separation(*columns), angular_separation(*quantities)
+    )
+    assert u.allclose(position_angle(*columns), position_angle(*quantities))
+
+
 def test_proj_separations():
     """
     Test angular separation functionality
