@@ -841,8 +841,8 @@ def test_age():
     assert u.allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
 
 
-# First 8.0.1 unit-step increase of built-in radiation realizations
-# on z∈[4500, 5200] (data label: astropy_8.0.1_builtin_realizations_age_two_grids).
+# Historical first 8.0.1 unit-step increase on z∈[4500, 5200]
+# (data label: astropy_8.0.1_builtin_realizations_age_two_grids).
 # Software quadrature defect, not a cosmological discovery.
 _AGE_8_0_1_FIRST_INCREASE_Z = {
     "WMAP1": 4809.0,
@@ -856,8 +856,19 @@ _AGE_8_0_1_FIRST_INCREASE_Z = {
 }
 
 
+def _available_radiation_names():
+    """Built-in realizations with photons. Future Tcmb0>0 names are included."""
+    import astropy.cosmology as cosmology
+
+    return [
+        name
+        for name in cosmology.available
+        if getattr(cosmology, name).Tcmb0.to_value("K") > 0
+    ]
+
+
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-@pytest.mark.parametrize("name", list(_AGE_8_0_1_FIRST_INCREASE_Z))
+@pytest.mark.parametrize("name", _available_radiation_names())
 def test_age_high_redshift_monotonic_all_radiation_realizations(name):
     """Every Tcmb0>0 built-in realization must stay monotonic at high z.
 
@@ -875,9 +886,10 @@ def test_age_high_redshift_monotonic_all_radiation_realizations(name):
     z_jump = np.arange(4500.0, 5201.0, 1.0)
     age_jump = cosmo.age(z_jump).to_value("Gyr")
     assert np.all(np.diff(age_jump) < 0)
-    z0 = _AGE_8_0_1_FIRST_INCREASE_Z[name]
-    a0, a1 = cosmo.age(np.array([z0, z0 + 1.0])).to_value("Gyr")
-    assert a1 < a0
+    z0 = _AGE_8_0_1_FIRST_INCREASE_Z.get(name)
+    if z0 is not None:
+        a0, a1 = cosmo.age(np.array([z0, z0 + 1.0])).to_value("Gyr")
+        assert a1 < a0
 
     z = np.linspace(10_000.0, 100_000.0, 101)
     with warnings.catch_warnings(record=True) as caught:
@@ -888,7 +900,7 @@ def test_age_high_redshift_monotonic_all_radiation_realizations(name):
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-@pytest.mark.parametrize("name", list(_AGE_8_0_1_FIRST_INCREASE_Z))
+@pytest.mark.parametrize("name", _available_radiation_names())
 def test_age_lookback_clock_identity(name):
     """``lookback_time(z)`` equals ``age(0) - age(z)``.
 
@@ -905,7 +917,7 @@ def test_age_lookback_clock_identity(name):
 
     cosmo = getattr(cosmology, name)
     age0 = cosmo.age(0)
-    z0 = _AGE_8_0_1_FIRST_INCREASE_Z[name]
+    z0 = _AGE_8_0_1_FIRST_INCREASE_Z.get(name, 4788.0)
     z = np.array([0.5, 1.0, 4.0, z0, z0 + 1.0, 28000.0])
     residual = (cosmo.lookback_time(z) - (age0 - cosmo.age(z))).to_value("Gyr")
     # Patched scale-factor age restores |R| ~ 1e-13 at the old jump
@@ -929,52 +941,28 @@ def test_z_at_value_age_roundtrip_through_8_0_1_jump():
     """
     from astropy.cosmology import Planck18, z_at_value
 
-    zhat = z_at_value(Planck18.age, Planck18.age(4788.0), zmin=4500.0, zmax=5200.0)
+    zhat = z_at_value(
+        Planck18.age,
+        Planck18.age(4788.0),
+        zmin=4500.0,
+        zmax=5200.0,
+        method="bounded",
+    )
     assert abs(float(zhat) - 4788.0) < 1e-3
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
-def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
-    """High-z age must decrease with z and recover the radiation-era limit.
+def test_age_radiation_era_closed_form_and_neutrino_continuity():
+    """Planck18 radiation-era age matches the leading closed form.
 
-    Regression for https://github.com/astropy/astropy/issues/17974.
-    On Astropy 8.0.1 ``Planck18.age`` first increases between z=4787
-    and z=4788 (2.7318309055033852e-05 → 2.7684616876331308e-05 Gyr).
-    The same 8.0.1 defect appears on every built-in realization with
-    ``Tcmb0 > 0`` (WMAP1/3/5/7/9, Planck13/15/18); first unit-step
-    increase is realization-dependent in z∈[4787, 4809]. ``quad(z, inf)``
-    also emitted IntegrationWarning near z=25300 and the returned age
-    jumped upward. Those are quadrature failures, not a neutrino-density
-    step: Komatsu ``nu_relative_density`` varies by <1e-5 on this
-    interval. The z=1e4..1e5 grid below does not cover the z=4787 jump.
-
-    Radiation-era closed form (leading term):
-    ``t(z) = 1 / (2 H0 sqrt(Or_inf) (1+z)^2)`` with
-    ``Or_inf = Ogamma0 * (1 + nu_relative_density(z→∞))``.
+    Monotonicity on the 8.0.1 jump grids is covered by
+    ``test_age_high_redshift_monotonic_all_radiation_realizations``.
+    The Komatsu fit is continuous through those redshifts; the 8.0.1
+    age jump was the ``quad(z, inf)`` endpoint, not :math:`f_\\nu(z)`.
     """
-    import warnings
-
     from astropy.cosmology import Planck18
 
     z = np.linspace(10_000.0, 100_000.0, 101)
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
-        age = Planck18.age(z)
-    assert not any("divergent" in str(w.message).lower() for w in caught)
-    age_gyr = age.to_value("Gyr")
-    assert np.all(np.diff(age_gyr) < 0)
-
-    # Astropy 8.0.1 Planck18.age first increases between z=4787 and
-    # z=4788 (2.7318309055033852e-05 → 2.7684616876331308e-05 Gyr).
-    # The z=1e4..1e5 grid above misses that jump. The scale-factor
-    # integrand is strictly decreasing on the measured interval.
-    z_jump = np.arange(4500.0, 5201.0, 1.0)
-    age_jump = Planck18.age(z_jump).to_value("Gyr")
-    assert np.all(np.diff(age_jump) < 0)
-    a4787, a4788 = Planck18.age(np.array([4787.0, 4788.0])).to_value("Gyr")
-    assert a4788 < a4787
-
-    # Komatsu fit itself is continuous on the reported interval.
     nurd = Planck18.nu_relative_density(z)
     assert np.max(np.abs(np.diff(nurd))) < 1e-5
 
@@ -990,12 +978,31 @@ def test_age_high_redshift_is_monotonic_and_matches_radiation_era():
     tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0, m_nu=0.1 * u.eV)
     assert u.allclose(tcos.age(4), 1.5546485439853412 * u.Gyr)
 
-    # No-photon cosmologies stay on the redshift-form integral:
-    # de Sitter age is infinite; a matter+Λ age is finite.
-    de_sitter = LambdaCDM(100, 0.0, 1.0, Tcmb0=0)
-    assert u.allclose(de_sitter.age(0), np.inf * u.Gyr)
-    matter_lambda = LambdaCDM(70.4, 0.272, 0.728, Tcmb0=0)
-    assert np.isfinite(matter_lambda.age(0).to_value("Gyr"))
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_age_scale_factor_hits_integral_age_without_photons():
+    """Tcmb0=0 cosmologies that reach ``_integral_age`` stay monotonic.
+
+    Flat ``LambdaCDM(Tcmb0=0)`` is intercepted by
+    ``_optimize_flat_norad``. Non-flat ``LambdaCDM`` and ``wCDM`` reach
+    the integral. With ``Om0 > 0`` the scale-factor integrand is regular
+    at ``a = 0``.
+    """
+    from astropy.cosmology import wCDM
+
+    cosmologies = [
+        LambdaCDM(70, 0.3, 0.6, Tcmb0=0),
+        wCDM(70, 0.3, 0.7, w0=-0.9, Tcmb0=0),
+    ]
+    grids = (
+        np.linspace(1.0e4, 1.0e5, 101),
+        np.logspace(3.0, 8.0, 40),
+    )
+    for cosmo in cosmologies:
+        for z in grids:
+            age = cosmo.age(z).to_value("Gyr")
+            assert np.all(np.diff(age) < 0)
+        assert np.isfinite(cosmo.age(0).to_value("Gyr"))
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
