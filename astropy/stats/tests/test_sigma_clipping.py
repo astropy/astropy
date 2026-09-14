@@ -135,6 +135,21 @@ def test_sigma_clip_mean():
         assert_equal(sobj1(data, axis=0), sobj2(data, axis=0))
 
 
+def test_sigma_clip_fast_all_rejected():
+    # Regression test for gh-20331: when an iteration of the fast C
+    # implementation rejects every remaining value, the next iteration
+    # must not run on an empty buffer.
+    data = np.array([[0.0, 0.0, 1000.0], [1.0, 2.0, 3.0]])
+    sobj1 = SigmaClip(sigma=2, maxiters=3, cenfunc="mean", stdfunc="mad_std")
+    sobj2 = SigmaClip(sigma=2, maxiters=3, cenfunc=np.nanmean, stdfunc=mad_std)
+    result1, lower1, upper1 = sobj1(data, axis=1, return_bounds=True)
+    result2 = sobj2(data, axis=1)
+    assert_equal(result1.mask, [[True, True, True], [False, False, False]])
+    assert_equal(result1.mask, result2.mask)
+    assert np.all(np.isfinite(lower1))
+    assert np.all(np.isfinite(upper1))
+
+
 def test_sigma_clip_invalid_cenfunc_stdfunc():
     with pytest.raises(ValueError):
         SigmaClip(cenfunc="invalid")
