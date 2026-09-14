@@ -193,15 +193,13 @@ subclasses and ``scalar_inv_efuncs`` for the details.
 
 However, the important point is that it is *not* necessary to do this.
 
-Age integrals use a further substitution :math:`u = 1/(1+z)` so the
-radiation-era endpoint is regular. Do not restore
-``scipy.integrate.quad(..., z, inf)`` for :meth:`~astropy.cosmology.FLRW.age`:
-that form can return a non-monotonic age (astropy/astropy#17974). On
-Astropy 8.0.1 the first unit-step increase of ``Planck18.age`` is
-between :math:`z=4787` and :math:`z=4788`; a later
-``IntegrationWarning`` near :math:`z \approx 2.5\times 10^4` is the
-same quadrature failure. The Komatsu et al. 2011 neutrino-density fit
-is continuous; the jump was the quadrature, not :math:`f_\nu(z)`.
+Age integrals use a further substitution :math:`a = 1/(1+z)` so the
+Big Bang endpoint is regular, including when ``Tcmb0 = 0`` and
+``Om0 > 0``. Do not restore ``scipy.integrate.quad(..., z, inf)`` for
+:meth:`~astropy.cosmology.FLRW.age`: that form can return a
+non-monotonic age (astropy/astropy#17974). The Komatsu et al. 2011
+neutrino-density fit is continuous; an apparent high-z age jump is
+the quadrature, not :math:`f_\nu(z)`.
 
 .. _cosmology_mypackage:
 
