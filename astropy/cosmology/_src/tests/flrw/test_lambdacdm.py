@@ -630,12 +630,13 @@ def test_nu_relative_density_fermi_dirac_limits():
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_nu_density_k_matches_fermi_dirac_slope():
     # NU_DENSITY_K is 180 ζ(3)/(7 π⁴), not the four-digit Komatsu 0.3173.
+    from scipy.special import zeta
+
     from astropy.cosmology._src.flrw.base import (
         NU_DENSITY_INV_NR,
         NU_DENSITY_K,
         NU_DENSITY_R,
     )
-    from scipy.special import zeta
 
     k_exact = 180.0 * zeta(3) / (7.0 * np.pi**4)
     assert NU_DENSITY_K == pytest.approx(k_exact, rel=0, abs=1e-16)
@@ -657,9 +658,7 @@ def test_nu_relative_density_massless_independent_of_z():
 def test_nu_relative_density_python_matches_cython_inv_efunc():
     # FlatLambdaCDM.inv_efunc is the numpy path; _inv_efunc_scalar is the
     # Cython nufunc twin when the extension built.
-    tcos = FlatLambdaCDM(
-        80.0, 0.30, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(0.01, u.eV)
-    )
+    tcos = FlatLambdaCDM(80.0, 0.30, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(0.01, u.eV))
     z = 1.0
     numpy_inv = tcos.inv_efunc(z)
     scalar_inv = tcos._inv_efunc_scalar(z, *tcos._inv_efunc_scalar_args)
@@ -901,9 +900,7 @@ def test_age():
     # the degree-5 closed form shifts ages at ~1e-5 relative.
     tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0, m_nu=0.1 * u.eV)
     assert u.allclose(tcos.age(4), 1.5546485439853412 * u.Gyr, rtol=1e-4)
-    assert u.allclose(
-        tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr, rtol=1e-4
-    )
+    assert u.allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr, rtol=1e-4)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
