@@ -13,7 +13,7 @@ from functools import wraps
 from inspect import signature
 from string import Formatter
 from types import FunctionType
-from typing import Final
+from typing import Final, LiteralString, Protocol, overload
 
 from .exceptions import (
     AstropyDeprecationWarning,
@@ -23,6 +23,7 @@ from .exceptions import (
 
 __all__ = [
     "classproperty",
+    "deprecate_doc",
     "deprecated",
     "deprecated_attribute",
     "deprecated_renamed_argument",
@@ -43,6 +44,18 @@ def _fmt_specifiers(names: Iterable[str], /) -> str:
     return ", ".join(sorted("{" + name + "}" for name in names))
 
 
+# ``warnings.deprecated`` is typed as taking a ``LiteralString``, so a message
+# built only from literals must stay one; anything else degrades to ``str``.
+@overload
+def deprecation_msg(
+    name: LiteralString,
+    message: LiteralString = "",
+    alternative: LiteralString = "",
+    obj_type: LiteralString = "object",
+    *,
+    pending: bool = False,
+) -> LiteralString: ...
+@overload
 def deprecation_msg(
     name: str,
     message: str = "",
@@ -50,7 +63,15 @@ def deprecation_msg(
     obj_type: str = "object",
     *,
     pending: bool = False,
-) -> str:
+) -> str: ...
+def deprecation_msg(
+    name,
+    message="",
+    alternative="",
+    obj_type="object",
+    *,
+    pending=False,
+):
     """Build the deprecation message used by `deprecated`.
 
     This is exposed so the same message can be produced without the
@@ -83,7 +104,8 @@ def deprecation_msg(
     Returns
     -------
     str
-        The formatted deprecation message.
+        The formatted deprecation message. This is a `~typing.LiteralString`
+        when every argument is one, as `warnings.deprecated` requires.
 
     Raises
     ------
@@ -137,10 +159,98 @@ def deprecation_msg(
     )
 
 
+class _DeprecatedAndHasDocstring(Protocol):
+    __deprecated__: str
+    __doc__: str | None
+
+
+@overload
+def deprecate_doc[T: _DeprecatedAndHasDocstring](
+    obj: None = None, /, *, since: str
+) -> Callable[[T], T]: ...
+@overload
+def deprecate_doc[T: _DeprecatedAndHasDocstring](obj: T, /, *, since: str) -> T: ...
+def deprecate_doc(obj=None, /, *, since):
+    """Prepend a ``.. deprecated::`` directive to an object's docstring.
+
+    The deprecation message is taken from the object's ``__deprecated__`` attribute, as
+    set by `deprecated` or by `warnings.deprecated`, so this MUST be used as an outer decorator with one of those mechanisms.
+
+    Parameters
+    ----------
+    obj : function or class, optional positional-only
+        The deprecated object, which must have a ``__deprecated__`` attribute. If not
+        given a decorator is returned, so that both ``@deprecate_doc(since=...)`` and
+        ``deprecate_doc(obj, since=...)`` work.
+
+    since : str, keyword-only
+        The release at which this API became deprecated.
+
+    Returns
+    -------
+    object
+        ``obj``, with its ``__doc__`` updated in place, or a decorator that will do so
+        if ``obj`` was not given.
+
+    Raises
+    ------
+    TypeError
+        If ``obj`` has no ``__deprecated__`` attribute.
+
+    Examples
+    --------
+    >>> from astropy.utils.decorators import deprecate_doc
+    >>> def old_func():
+    ...     "Do a thing."
+    >>> old_func.__deprecated__ = "Use new_func instead."
+    >>> _ = deprecate_doc(old_func, since="7.2")
+    >>> print(old_func.__doc__)
+    <BLANKLINE>
+    .. deprecated:: 7.2
+        Use new_func instead.
+    <BLANKLINE>
+    Do a thing.
+    """
+    if obj is None:  # used as ``@deprecate_doc(since=...)``
+        return functools.partial(deprecate_doc, since=since)
+
+    try:
+        message = obj.__deprecated__
+    except AttributeError:
+        raise TypeError(
+            f"{obj!r} has no __deprecated__ attribute; deprecate it first, e.g."
+            " with `warnings.deprecated` or astropy's `deprecated`"
+        ) from None
+
+    old_doc = textwrap.dedent(obj.__doc__ or "").strip("\n")
+    new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
+    if not old_doc:
+        # This is to prevent a spurious 'unexpected unindent' warning from
+        # docutils when the original docstring was blank.
+        new_doc += r"\ "
+    obj.__doc__ = new_doc
+    return obj
+
+
 _METHOD_TYPES: Final = (classmethod, staticmethod, types.MethodType)
 
 
-def deprecated(
+# Passing a function as ``message`` deprecates it directly; every other call
+# returns a decorator that preserves the type of what it decorates.
+@overload
+def deprecated[T: FunctionType](
+    since: str,
+    message: T,
+    name: str = "",
+    alternative: str = "",
+    pending: bool = False,
+    obj_type: str | None = None,
+    warning_type: type[Warning] = AstropyDeprecationWarning,
+    *,
+    pending_warning_type: type[Warning] = AstropyPendingDeprecationWarning,
+) -> T: ...
+@overload
+def deprecated[T](
     since: str,
     message: str = "",
     name: str = "",
@@ -150,7 +260,18 @@ def deprecated(
     warning_type: type[Warning] = AstropyDeprecationWarning,
     *,
     pending_warning_type: type[Warning] = AstropyPendingDeprecationWarning,
-) -> Callable:
+) -> Callable[[T], T]: ...
+def deprecated(
+    since,
+    message="",
+    name="",
+    alternative="",
+    pending=False,
+    obj_type=None,
+    warning_type=AstropyDeprecationWarning,
+    *,
+    pending_warning_type=AstropyPendingDeprecationWarning,
+):
     """
     Used to mark a function or class as deprecated.
 
@@ -204,21 +325,6 @@ def deprecated(
         Default is `~astropy.utils.exceptions.AstropyPendingDeprecationWarning`.
     """
 
-    def deprecate_doc(old_doc, message):
-        """
-        Returns a given docstring with a deprecation message prepended
-        to it.
-        """
-        if not old_doc:
-            old_doc = ""
-        old_doc = textwrap.dedent(old_doc).strip("\n")
-        new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
-        if not old_doc:
-            # This is to prevent a spurious 'unexpected unindent' warning from
-            # docutils when the original docstring was blank.
-            new_doc += r"\ "
-        return new_doc
-
     def get_function(func):
         """
         Given a function or classmethod (or other function wrapper type), get
@@ -257,8 +363,8 @@ def deprecated(
         if type(func) is not type(str.__dict__["__add__"]):
             deprecated_func = functools.wraps(func)(deprecated_func)
 
-        deprecated_func.__doc__ = deprecate_doc(deprecated_func.__doc__, message)
         deprecated_func.__deprecated__ = message
+        deprecate_doc(deprecated_func, since=since)
 
         return func_wrapper(deprecated_func)
 
@@ -277,8 +383,8 @@ def deprecated(
         - Subclassing the class and return the subclass can lead to problems
           with pickle and will look weird in the Sphinx docs.
         """
-        cls.__doc__ = deprecate_doc(cls.__doc__, message)
         cls.__deprecated__ = message
+        deprecate_doc(cls, since=since)
         if cls.__new__ is object.__new__:
             cls.__init__ = deprecate_function(
                 get_function(cls.__init__), message, warning_type
