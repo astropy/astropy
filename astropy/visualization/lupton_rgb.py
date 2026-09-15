@@ -664,7 +664,7 @@ class RGBImageMappingLupton(RGBImageMapping):
         return np.asarray(image_rgb)
 
 
-def make_lupton_rgb(
+def make_lupton_rgb(  # ruff: ignore[PLR0917] historical API
     image_r,
     image_g,
     image_b,

@@ -3,7 +3,7 @@ import numpy as np
 from .utils import trig_sum
 
 
-def lombscargle_fast(
+def lombscargle_fast(  # ruff: ignore[PLR0917] historical API
     t,
     y,
     dy,

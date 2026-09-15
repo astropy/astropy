@@ -237,7 +237,7 @@ def _bintable_header_to_image_header(bintable_header):
     return image_header
 
 
-def _image_header_to_empty_bintable(
+def _image_header_to_empty_bintable(  # ruff: ignore[PLR0917] historical API
     image_header,
     name=None,
     huge_hdu=False,

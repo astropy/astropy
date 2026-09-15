@@ -9,7 +9,7 @@ __all__ = ["classic", "ipydatagrid"]
 
 # NOTE: The actual deprecation warning is emitted in show_in_notebook
 # method in table.py module.
-def classic(
+def classic(  # ruff: ignore[PLR0917] historical API
     table,
     tableid=None,
     css=None,

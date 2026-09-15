@@ -251,7 +251,7 @@ class BinnedTimeSeries(BaseTimeSeries):
         return super().__getitem__(item)
 
     @classmethod
-    def read(
+    def read(  # ruff: ignore[PLR0917] historical API
         cls,
         filename,
         time_bin_start_column=None,

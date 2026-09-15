@@ -20,7 +20,7 @@ class Group(FITS_record):
     One group of the random group data.
     """
 
-    def __init__(self, input, row=0, start=None, end=None, step=None, base=None):
+    def __init__(self, input, row=0, start=None, end=None, step=None, base=None):  # ruff: ignore[PLR0917] historical API
         super().__init__(input, row, start, end, step, base)
 
     @property
@@ -89,7 +89,7 @@ class GroupData(FITS_rec):
 
     _record_type = Group
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls,
         input=None,
         bitpix=None,

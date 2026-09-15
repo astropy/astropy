@@ -1050,7 +1050,7 @@ class _ValidHDU(_BaseHDU, _Verify):
 
     # TODO: Improve this API a little bit--for one, most of these arguments
     # could be optional
-    def req_cards(self, keyword, pos, test, fix_value, option, errlist):
+    def req_cards(self, keyword, pos, test, fix_value, option, errlist):  # ruff: ignore[PLR0917] historical API
         """
         Check the existence, location, and value of a required `Card`.
 
