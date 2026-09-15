@@ -1586,6 +1586,7 @@ class TestUfuncReturnsNotImplemented:
 def test_ufunc_unknown_and_time_returns_not_implemented():
     """Test for Issue #10776: Quantity.__array_ufunc__ should return NotImplemented
     for Time instances and other unknown classes."""
+
     class Unknown:
         pass
 
@@ -1635,12 +1636,8 @@ def test_ufunc_unknown_and_time_returns_not_implemented():
         q_dimless.__array_ufunc__(np.multiply, "__call__", dt, q_dimless)
         is NotImplemented
     )
-    assert (
-        q_dimless.__array_ufunc__(np.add, "__call__", q_dimless, t) is NotImplemented
-    )
-    assert (
-        q_dimless.__array_ufunc__(np.add, "__call__", t, q_dimless) is NotImplemented
-    )
+    assert q_dimless.__array_ufunc__(np.add, "__call__", q_dimless, t) is NotImplemented
+    assert q_dimless.__array_ufunc__(np.add, "__call__", t, q_dimless) is NotImplemented
 
     class TimeWithUfunc(Time):
         def __array_ufunc__(self, function, method, *inputs, **kwargs):
