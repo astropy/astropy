@@ -23,11 +23,9 @@ from .exceptions import (
 
 __all__ = [
     "classproperty",
-    "deprecate_doc",
     "deprecated",
     "deprecated_attribute",
     "deprecated_renamed_argument",
-    "deprecation_msg",
     "format_doc",
     "lazyproperty",
     "sharedmethod",

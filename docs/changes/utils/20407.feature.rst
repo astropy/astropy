@@ -7,13 +7,4 @@ A custom deprecation ``message`` is now validated: using an unsupported format
 specifier, or passing ``alternative`` without referencing ``{alternative}`` in
 the message (which silently dropped it), raises a ``ValueError``.
 
-Added ``astropy.utils.decorators.deprecate_doc``, a decorator that prepends a
-``.. deprecated::`` directive to an object's docstring, taking the message from
-the object's ``__deprecated__`` attribute. It can therefore document objects
-deprecated with ``warnings.deprecated``, which sets that attribute but leaves
-the docstring alone.
-
-All uses of ``@deprecated`` within ``astropy`` now use the standard library
-``warnings.deprecated`` decorator (PEP 702) together with these two helpers.
-The warning messages and categories are unchanged, but type checkers can now
-report uses of the deprecated objects.
+``astropy.cosmology`` now uses the standard library ``warnings.deprecated`` decorator.

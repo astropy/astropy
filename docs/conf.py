@@ -533,7 +533,7 @@ links_to_become_substitutions: dict[str, str] = {
     # packaging
     "packaging": "https://packaging.pypa.io",
     # typing_extensions
-    "typing_extensions": "https://typing-extensions.readthedocs.io/en/latest/",
+    "typing_extensions": "https://typing-extensions.readthedocs.io/",
     # IPython
     "IPython": "https://ipython.org",
     # pip
