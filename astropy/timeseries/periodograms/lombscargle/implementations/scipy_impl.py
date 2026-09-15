@@ -1,8 +1,11 @@
 import numpy as np
 
+from astropy.timeseries.periodograms.lombscargle.utils import (
+    compute_chi2_ref,
+    convert_normalization,
+)
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from ..utils import compute_chi2_ref, convert_normalization
 from .utils import scipy_lt_1_15
 
 
