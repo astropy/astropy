@@ -208,14 +208,8 @@ def lombscargle(
 
     # scipy doesn't support dy array; fit_mean=True requires >= 1.15
     if method == "scipy":
-        if kwds.get("fit_mean"):
-            if SCIPY_LT_1_15:
-                raise ValueError("`fit_mean=True` requires Scipy 1.15 or greater")
-            else:
-                # The other methods treat center_data always as True if fit_mean = True;
-                # scipy.signal.lombscargle treats this separately, but for consistent
-                # results set to True here as well.
-                kwds["center_data"] = True
+        if kwds.get("fit_mean") and SCIPY_LT_1_15:
+            raise ValueError("`fit_mean=True` requires Scipy 1.15 or greater")
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):
