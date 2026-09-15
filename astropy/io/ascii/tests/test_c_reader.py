@@ -1190,7 +1190,7 @@ def test_data_out_of_range(fast_reader, guess):
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
+    assert_allclose(read_values, values, rtol=rtol, atol=0.0)
 
     # Test some additional corner cases
     fields = [
@@ -1202,9 +1202,7 @@ def test_data_out_of_range(fast_reader, guess):
         "5200e-327",
         " 0.0000000000000000000001024E+330",
     ]
-    values = np.array(
-        [1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 4.94e-324, 1.024e308]
-    )
+    values = np.array([1.01e200, 3.14e307, 1.777e308, -np.inf, 0.0, 5e-324, 1.024e308])
     with ctx as w:
         t = ascii.read(
             StringIO(" ".join(fields)),
@@ -1222,7 +1220,7 @@ def test_data_out_of_range(fast_reader, guess):
                 w[i].message
             )
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
+    assert_allclose(read_values, values, rtol=rtol, atol=0.0)
 
     # Test corner cases again with non-standard exponent_style (auto-detection)
     if fast_reader and fast_reader.get("use_fast_converter"):
@@ -1254,7 +1252,7 @@ def test_data_out_of_range(fast_reader, guess):
         else:
             assert len(w) == 3
     read_values = np.array([col[0] for col in t.itercols()])
-    assert_allclose(read_values, values, rtol=rtol, atol=1.0e-324)
+    assert_allclose(read_values, values, rtol=rtol, atol=0.0)
 
 
 @pytest.mark.parametrize("guess", [True, False])
@@ -1298,7 +1296,7 @@ def test_data_at_range_limit(fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-        assert_allclose(t["col1"][0], 10.0 ** -(D + 1), rtol=rtol, atol=1.0e-324)
+        assert_allclose(t["col1"][0], 10.0 ** -(D + 1), rtol=rtol, atol=0.0)
     for D in 99, 202, 308:
         t = ascii.read(
             StringIO("1" + D * "0" + ".0"),
@@ -1306,7 +1304,7 @@ def test_data_at_range_limit(fast_reader, guess):
             guess=guess,
             fast_reader=fast_reader,
         )
-        assert_allclose(t["col1"][0], 10.0**D, rtol=rtol, atol=1.0e-324)
+        assert_allclose(t["col1"][0], 10.0**D, rtol=rtol, atol=0.0)
 
     # 0.0 is always exact (no Overflow warning)!
     for s in "0.0", "0.0e+0", 399 * "0" + "." + 365 * "0":
@@ -1333,7 +1331,7 @@ def test_data_at_range_limit(fast_reader, guess):
             "resulting in degraded precision" in str(w[0].message)
         )
 
-    assert_allclose(t["col1"][0], 1.0e-315, rtol=1.0e-10, atol=1.0e-324)
+    assert_allclose(t["col1"][0], 1.0e-315, rtol=1.0e-10, atol=0.0)
 
 
 @pytest.mark.parametrize("guess", [True, False])
