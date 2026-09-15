@@ -4,7 +4,6 @@
 import abc
 import functools
 import operator
-import sys
 import warnings
 from typing import ClassVar, Final
 
@@ -15,17 +14,9 @@ from astropy.coordinates.angles import Angle
 from astropy.utils import classproperty
 from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data_info import MixinInfo
-from astropy.utils.decorators import deprecate_doc, deprecation_msg
-from astropy.utils.exceptions import (
-    AstropyDeprecationWarning,
-    DuplicateRepresentationWarning,
-)
+from astropy.utils.decorators import deprecated
+from astropy.utils.exceptions import DuplicateRepresentationWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_masks
-
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
 
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
@@ -277,14 +268,8 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         if any(hasattr(attr, "mask") for attr in attrs):
             self._ensure_masked()
 
-    # ``classmethod`` must be the outer decorator: the stdlib ``deprecated``
-    # rejects a classmethod object, which is not callable.
+    @deprecated("v7.1", alternative="name")
     @classmethod
-    @deprecate_doc(since="v7.1")
-    @deprecated(
-        deprecation_msg("get_name", alternative="name", obj_type="method"),
-        category=AstropyDeprecationWarning,
-    )
     def get_name(cls):
         """Name of the representation or differential.
 

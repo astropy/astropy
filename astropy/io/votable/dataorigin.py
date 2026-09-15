@@ -27,17 +27,11 @@ Examples
 For more information, please see :ref:`DataOrigin documentation <astropy-io-votable-dataorigin>`.
 """
 
-import sys
 import warnings
 
 import astropy.io.votable.tree
-from astropy.utils.decorators import deprecate_doc, deprecation_msg
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning
-
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
 
 __all__ = [
     "DataOrigin",
@@ -237,40 +231,24 @@ class DatasetOrigin:
         self.journal = None
 
     @property
-    @deprecate_doc(since="8.0")
-    @deprecated(
-        deprecation_msg("ivoid", alternative="data_ivoid", obj_type="function"),
-        category=AstropyDeprecationWarning,
-    )
+    @deprecated("8.0", alternative="data_ivoid")
     def ivoid(self):
         """Compatibility with previous version (renamed to ``data_ivoid``)."""
         return self.data_ivoid
 
     @ivoid.setter
-    @deprecate_doc(since="8.0")
-    @deprecated(
-        deprecation_msg("ivoid", alternative="data_ivoid", obj_type="function"),
-        category=AstropyDeprecationWarning,
-    )
+    @deprecated("8.0", alternative="data_ivoid")
     def ivoid(self, value):
         self.data_ivoid = value
 
     @property
-    @deprecate_doc(since="8.0")
-    @deprecated(
-        deprecation_msg("editor", alternative="journal", obj_type="function"),
-        category=AstropyDeprecationWarning,
-    )
+    @deprecated("8.0", alternative="journal")
     def editor(self):
         """Compatibility with previous version (renamed to ``journal``)."""
         return self.journal
 
     @editor.setter
-    @deprecate_doc(since="8.0")
-    @deprecated(
-        deprecation_msg("editor", alternative="journal", obj_type="function"),
-        category=AstropyDeprecationWarning,
-    )
+    @deprecated("8.0", alternative="journal")
     def editor(self, value):
         self.journal = value
 

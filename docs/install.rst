@@ -134,10 +134,6 @@ Requirements
 
 - |packaging| |minimum_packaging_version| or later
 
-- |typing_extensions| |minimum_typing_extensions_version| or later:
-  Only required on Python 3.12; on Python 3.13 and later the standard
-  library is used instead.
-
 ``astropy`` also depends on a number of other packages for optional features.
 The following are particularly recommended:
 

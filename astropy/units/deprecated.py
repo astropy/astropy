@@ -17,10 +17,9 @@ To include them in `~astropy.units.UnitBase.compose` and the results of
 
 """
 
-import sys
 import warnings
 
-from astropy.utils.decorators import deprecate_doc, deprecation_msg
+from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from . import astrophys, cgs
@@ -30,11 +29,6 @@ from .docgen import (
     generate_prefixonly_unit_summary,
     generate_unit_summary,
 )
-
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
 
 local_units = {}
 
@@ -64,11 +58,7 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-@deprecate_doc(since="7.1")
-@deprecated(
-    deprecation_msg("enable", obj_type="function"),
-    category=AstropyDeprecationWarning,
-)
+@deprecated(since="7.1")
 def enable():
     """
     Enable deprecated units so they appear in results of
