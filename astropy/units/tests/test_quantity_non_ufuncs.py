@@ -1031,6 +1031,11 @@ class TestUfuncLikeTests:
 
 
 class TestReductionLikeFunctions(InvariantUnitTestSetup):
+    @pytest.mark.skipif(NUMPY_LT_2_6, reason="np.minmax is new in NumPy 2.6")
+    def test_minmax(self):
+        q1 = np.array([1.0, 2.0, 4.0, 5.0, 6.0]) * u.m
+        assert np.minmax(q1) == (1.0 * u.m, 6.0 * u.m)
+
     def test_average(self):
         q1 = np.arange(9.0).reshape(3, 3) * u.m
         q2 = np.eye(3) / u.s
