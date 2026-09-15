@@ -206,10 +206,9 @@ def lombscargle(
         assume_regular_frequency=assume_regular_frequency,
     )
 
-    # scipy doesn't support dy array; fit_mean=True requires >= 1.15
+    # scipy doesn't support a dy array; lombscargle_scipy itself checks the
+    # scipy version requirement for fit_mean=True
     if method == "scipy":
-        if kwds.get("fit_mean") and scipy_lt_1_15():
-            raise ValueError("`fit_mean=True` requires Scipy 1.15 or greater")
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):

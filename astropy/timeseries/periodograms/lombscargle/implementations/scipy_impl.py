@@ -65,13 +65,10 @@ def lombscargle_scipy(
     if center_data:
         y = y - y.mean()
 
-    if scipy_lt_1_15():
-        if fit_mean:
-            raise NotImplementedError("`fit_mean=True` requires Scipy 1.15+")
-        else:
-            kwargs = {}
-    else:
-        kwargs = {"floating_mean": fit_mean}
+    if fit_mean and scipy_lt_1_15():
+        raise ValueError("fit_mean=True requires scipy 1.15 or later")
+
+    kwargs = {"floating_mean": True} if fit_mean else {}
 
     # Note: scipy `freqs` input is in angular frequencies
     p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
