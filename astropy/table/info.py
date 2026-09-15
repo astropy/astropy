@@ -7,12 +7,39 @@ import os
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
 from contextlib import contextmanager
+from contextvars import ContextVar
 
 import numpy as np
 
 from astropy.utils.data_info import DataInfo
 
 __all__ = ["TableInfo", "serialize_method_as", "table_info"]
+
+_serialize_method_context = ContextVar("serialize_method", default=None)
+
+
+def _get_serialize_method(col):
+    """
+    Get the serialization method override for ``col`` in the current context.
+
+    A column-name match takes precedence over a class match.
+    """
+    serialize_method = _serialize_method_context.get()
+
+    if isinstance(serialize_method, str):
+        return serialize_method
+
+    if not serialize_method:
+        return None
+
+    if col.info.name in serialize_method:
+        return serialize_method[col.info.name]
+
+    for key in serialize_method:
+        if isinstance(key, type) and isinstance(col, key):
+            return serialize_method[key]
+
+    return None
 
 
 def table_info(tbl, option="attributes", out=""):
@@ -157,28 +184,6 @@ def serialize_method_as(tbl, serialize_method):
     -------
     None (context manager)
     """
-
-    def get_override_sm(col):
-        """
-        Determine if the ``serialize_method`` str or dict specifies an
-        override of column presets for ``col``.  Returns the matching
-        serialize_method value or ``None``.
-        """
-        # If a string then all columns match
-        if isinstance(serialize_method, str):
-            return serialize_method
-
-        # If column name then return that serialize_method
-        if col.info.name in serialize_method:
-            return serialize_method[col.info.name]
-
-        # Otherwise look for subclass matches
-        for key in serialize_method:
-            if isinstance(key, type) and isinstance(col, key):
-                return serialize_method[key]
-
-        return None
-
     # Setup for the context block.  Set individual column.info.serialize_method
     # values as appropriate and keep a backup copy.  If ``serialize_method``
     # is None or empty then don't do anything.
@@ -186,34 +191,38 @@ def serialize_method_as(tbl, serialize_method):
     # Original serialize_method dict, keyed by column name.  This only
     # gets used and set if there is an override.
     original_sms = {}
+    token = _serialize_method_context.set(serialize_method)
 
-    if serialize_method:
-        # Go through every column and if it has a serialize_method info
-        # attribute then potentially update it for the duration of the write.
-        for col in tbl.itercols():
-            if hasattr(col.info, "serialize_method"):
-                override_sm = get_override_sm(col)
-                if override_sm:
-                    # Make a reference copy of the column serialize_method
-                    # dict which maps format (e.g. 'fits') to the
-                    # appropriate method (e.g. 'data_mask').
-                    original_sms[col.info.name] = col.info.serialize_method
-
-                    # Set serialize method for *every* available format.  This is
-                    # brute force, but at this point the format ('fits', 'ecsv', etc)
-                    # is not actually known (this gets determined by the write function
-                    # in registry.py).  Note this creates a new temporary dict object
-                    # so that the restored version is the same original object.
-                    col.info.serialize_method = dict.fromkeys(
-                        col.info.serialize_method, override_sm
-                    )
-
-    # Finally yield for the context block
     try:
+        if serialize_method:
+            # Go through every column and if it has a serialize_method info
+            # attribute then potentially update it for the duration of the write.
+            for col in tbl.itercols():
+                if hasattr(col.info, "serialize_method"):
+                    override_sm = _get_serialize_method(col)
+                    if override_sm:
+                        # Make a reference copy of the column serialize_method
+                        # dict which maps format (e.g. 'fits') to the
+                        # appropriate method (e.g. 'data_mask').
+                        original_sms[col.info.name] = col.info.serialize_method
+
+                        # Set serialize method for *every* available format.  This is
+                        # brute force, but at this point the format ('fits', 'ecsv', etc)
+                        # is not actually known (this gets determined by the write
+                        # function in registry.py).  Note this creates a new temporary
+                        # dict object so that the restored version is the same original
+                        # object.
+                        col.info.serialize_method = dict.fromkeys(
+                            col.info.serialize_method, override_sm
+                        )
+
         yield
     finally:
         # Teardown (restore) for the context block.  Be sure to do this even
         # if an exception occurred.
-        if serialize_method:
-            for name, original_sm in original_sms.items():
-                tbl[name].info.serialize_method = original_sm
+        try:
+            if serialize_method:
+                for name, original_sm in original_sms.items():
+                    tbl[name].info.serialize_method = original_sm
+        finally:
+            _serialize_method_context.reset(token)
