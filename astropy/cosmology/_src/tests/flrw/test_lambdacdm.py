@@ -615,14 +615,55 @@ def test_nu_relative_density_fermi_dirac_limits():
     k_exact = 180.0 * zeta(3) / (7.0 * np.pi**4)
 
     tcos = FlatLambdaCDM(80.0, 0.30, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(0.01, u.eV))
+    # nuprefac is 7/8 (4/11)^(4/3); the implementation stores 0.22710731766,
+    # which differs at ~1e-12 relative, so do not use rtol tighter than that.
     assert u.allclose(
-        tcos.nu_relative_density(1.0e12), nuprefac * tcos.Neff, rtol=1e-12
+        tcos.nu_relative_density(1.0e12), nuprefac * tcos.Neff, rtol=1e-11
     )
 
     tcos = FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(100.0, u.eV))
     y = (tcos.m_nu[0] / (const.k_B * tcos.Tnu0)).to_value(u.one)
     f_mean = tcos.nu_relative_density(0.0) / (nuprefac * tcos.Neff)
     assert u.allclose(f_mean / y, k_exact, rtol=1e-8)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_nu_density_k_matches_fermi_dirac_slope():
+    # NU_DENSITY_K is 180 ζ(3)/(7 π⁴), not the four-digit Komatsu 0.3173.
+    from astropy.cosmology._src.flrw.base import (
+        NU_DENSITY_INV_NR,
+        NU_DENSITY_K,
+        NU_DENSITY_R,
+    )
+    from scipy.special import zeta
+
+    k_exact = 180.0 * zeta(3) / (7.0 * np.pi**4)
+    assert NU_DENSITY_K == pytest.approx(k_exact, rel=0, abs=1e-16)
+    assert NU_DENSITY_K != pytest.approx(0.3173, abs=0)
+    assert NU_DENSITY_INV_NR * 5.0 * NU_DENSITY_R == pytest.approx(1.0, rel=1e-15)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_nu_relative_density_massless_independent_of_z():
+    tcos = FlatLambdaCDM(70.0, 0.3, Tcmb0=2.725, m_nu=u.Quantity(0.0, u.eV))
+    assert not tcos.has_massive_nu
+    z = np.array([0.0, 1.0, 10.0, 1.0e6])
+    nurel = tcos.nu_relative_density(z)
+    assert nurel.shape == z.shape
+    assert u.allclose(nurel, nurel[0], rtol=0, atol=0)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_nu_relative_density_python_matches_cython_inv_efunc():
+    # FlatLambdaCDM.inv_efunc is the numpy path; _inv_efunc_scalar is the
+    # Cython nufunc twin when the extension built.
+    tcos = FlatLambdaCDM(
+        80.0, 0.30, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(0.01, u.eV)
+    )
+    z = 1.0
+    numpy_inv = tcos.inv_efunc(z)
+    scalar_inv = tcos._inv_efunc_scalar(z, *tcos._inv_efunc_scalar_args)
+    assert u.allclose(numpy_inv, scalar_inv, rtol=1e-12, atol=0)
 
 
 ##############################################################################
