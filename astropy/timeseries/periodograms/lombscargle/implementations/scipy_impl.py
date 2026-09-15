@@ -2,6 +2,7 @@ import numpy as np
 
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
+from ..utils import compute_chi2_ref, convert_normalization
 from .utils import scipy_lt_1_15
 
 
@@ -73,25 +74,8 @@ def lombscargle_scipy(
     # Note: scipy `freqs` input is in angular frequencies
     p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
 
-    if normalization not in ("psd", "standard", "log", "model"):
-        raise ValueError(f"normalization='{normalization}' not recognized")
-
     if normalization == "psd":
         return p
 
-    # With a floating mean and uncentered data, the reference chi2 is that of
-    # a model that includes the constant offset, i.e. the variance about the
-    # mean rather than about zero.
-    if center_data or not kwargs.get("floating_mean", False):
-        chi2_ref = 0.5 * t.size * np.mean(y**2)
-    else:
-        chi2_ref = 0.5 * t.size * np.mean((y - y.mean()) ** 2)
-
-    if normalization == "standard":
-        p /= chi2_ref
-    elif normalization == "log":
-        p = -np.log(1 - p / chi2_ref)
-    elif normalization == "model":
-        p /= chi2_ref - p
-
-    return p
+    chi2_ref = compute_chi2_ref(y, center_data=center_data, fit_mean=fit_mean)
+    return convert_normalization(p, t.size, "psd", normalization, chi2_ref=chi2_ref)
