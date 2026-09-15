@@ -76,7 +76,9 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
     return frequency[0], frequency[1] - frequency[0], len(frequency)
 
 
-def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):
+def validate_method(
+    method, dy, fit_mean, nterms, frequency, assume_regular_frequency, method_kwds=None
+):
     """
     Validate the method argument, and if method='auto'
     choose the appropriate method.
@@ -85,7 +87,14 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     prefer_fast = len(frequency) > 200 and (
         assume_regular_frequency or _is_regular(frequency)
     )
-    prefer_scipy = "scipy" in methods and dy is None and not (fit_mean and scipy_lt_1_15())
+    # the scipy method accepts no additional keywords, so never select it
+    # automatically when method_kwds are passed
+    prefer_scipy = (
+        "scipy" in methods
+        and dy is None
+        and not method_kwds
+        and not (fit_mean and scipy_lt_1_15())
+    )
 
     # automatically choose the appropriate method
     if method == "auto":
@@ -204,6 +213,7 @@ def lombscargle(
         nterms=nterms,
         frequency=frequency,
         assume_regular_frequency=assume_regular_frequency,
+        method_kwds=method_kwds,
     )
 
     # scipy doesn't support a dy array; lombscargle_scipy itself checks the
