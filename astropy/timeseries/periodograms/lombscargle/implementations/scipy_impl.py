@@ -76,14 +76,25 @@ def lombscargle_scipy(
     # Note: scipy `freqs` input is in angular frequencies
     p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
 
-    if normalization == "psd":
-        pass
-    elif normalization == "standard":
-        p *= 2 / (t.size * np.mean(y**2))
-    elif normalization == "log":
-        p = -np.log(1 - 2 * p / (t.size * np.mean(y**2)))
-    elif normalization == "model":
-        p /= 0.5 * t.size * np.mean(y**2) - p
-    else:
+    if normalization not in ("psd", "standard", "log", "model"):
         raise ValueError(f"normalization='{normalization}' not recognized")
+
+    if normalization == "psd":
+        return p
+
+    # With a floating mean and uncentered data, the reference chi2 is that of
+    # a model that includes the constant offset, i.e. the variance about the
+    # mean rather than about zero.
+    if center_data or not kwargs.get("floating_mean", False):
+        chi2_ref = 0.5 * t.size * np.mean(y**2)
+    else:
+        chi2_ref = 0.5 * t.size * np.mean((y - y.mean()) ** 2)
+
+    if normalization == "standard":
+        p /= chi2_ref
+    elif normalization == "log":
+        p = -np.log(1 - p / chi2_ref)
+    elif normalization == "model":
+        p /= chi2_ref - p
+
     return p
