@@ -13,6 +13,7 @@ from astropy.utils.decorators import (
     deprecated,
     deprecated_attribute,
     deprecated_renamed_argument,
+    deprecation_msg,
     format_doc,
     future_keyword_only,
     lazyproperty,
@@ -945,3 +946,126 @@ def test_format_doc_indexerrors():
 
     with pytest.raises(IndexError):
         format_doc(None)(_FUNC_WITH_TEMPLATE_DOCSTRING)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected"),
+    [
+        ({}, "The f object is deprecated and may be removed in a future version."),
+        (
+            {"obj_type": "function"},
+            "The f function is deprecated and may be removed in a future version.",
+        ),
+        (
+            {"alternative": "g"},
+            (
+                "The f object is deprecated and may be removed in a future version."
+                "\n        Use g instead."
+            ),
+        ),
+        ({"pending": True}, "The f object will be deprecated in a future version."),
+        (
+            {"pending": True, "alternative": "g"},
+            (
+                "The f object will be deprecated in a future version."
+                "\n        Use g instead."
+            ),
+        ),
+    ],
+)
+def test_deprecation_msg_default(kwargs, expected):
+    assert deprecation_msg("f", **kwargs) == expected
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("Just gone.", "Just gone."),  # no specifiers at all
+        ("The {func} is gone", "The f is gone"),
+        ("The {name} is gone", "The f is gone"),  # {name} is an alias of {func}
+        ("A {obj_type} is gone", "A widget is gone"),
+        ("{name!r} is gone", "'f' is gone"),  # conversion
+        ("{name[0]} is gone", "f is gone"),  # index access
+        ("Use {{braces}}", "Use {braces}"),  # escaped braces
+    ],
+)
+def test_deprecation_msg_custom(message, expected):
+    assert deprecation_msg("f", message, obj_type="widget") == expected
+
+
+def test_deprecation_msg_custom_has_no_alternative_suffix():
+    """A custom message is used verbatim; "Use ... instead." is not appended."""
+    assert deprecation_msg("f", "Use {alternative}.", alternative="g") == "Use g."
+
+
+def test_deprecation_msg_custom_ignores_pending():
+    """``pending`` only selects between the two default messages."""
+    assert deprecation_msg("f", "Gone.", pending=True) == "Gone."
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        ({"message": "The {bogus} thing"}, r"unknown format specifier\(s\) \{bogus\}"),
+        ({"message": "The {} thing"}, r"unknown format specifier\(s\) \{\}"),
+        ({"message": "{func} then {nope}"}, r"unknown format specifier\(s\) \{nope\}"),
+        ({"message": "Use {func}", "alternative": "g"}, "would be silently dropped"),
+        ({"message": "Unbalanced {func"}, None),  # stdlib wording varies
+    ],
+)
+def test_deprecation_msg_invalid(kwargs, match):
+    with pytest.raises(ValueError, match=match):
+        deprecation_msg("f", **kwargs)
+
+
+def test_deprecation_msg_invalid_lists_supported_specifiers():
+    match = (
+        r"supported specifiers are \{alternative\}, \{func\}, \{name\}, \{obj_type\}"
+    )
+    with pytest.raises(ValueError, match=match):
+        deprecation_msg("f", "The {bogus} thing")
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {},
+        {"alternative": "g"},
+        {"pending": True},
+        {"pending": True, "alternative": "g"},
+        {
+            "message": "The {func} {obj_type} is gone, use {alternative}",
+            "alternative": "g",
+        },
+    ],
+)
+def test_deprecation_msg_matches_deprecated(kwargs):
+    """``deprecation_msg`` reproduces exactly what ``@deprecated`` warns with."""
+
+    @deprecated("1.0", **kwargs)
+    def func():
+        pass
+
+    @deprecated("1.0", **kwargs)
+    class Klass:
+        pass
+
+    assert func.__deprecated__ == deprecation_msg("func", obj_type="function", **kwargs)
+    assert Klass.__deprecated__ == deprecation_msg("Klass", obj_type="class", **kwargs)
+
+
+def test_deprecation_msg_matches_deprecated_renamed():
+    @deprecated("1.0", name="old_func")
+    def func():
+        pass
+
+    assert func.__deprecated__ == deprecation_msg("old_func", obj_type="function")
+
+
+def test_deprecated_rejects_bad_message():
+    """The message checks fire at decoration time, through the decorator too."""
+    with pytest.raises(ValueError, match="unknown format specifier"):
+
+        @deprecated("1.0", message="The {bogus} thing")
+        def func():
+            pass
