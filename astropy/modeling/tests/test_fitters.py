@@ -189,6 +189,28 @@ class TestJointFitter:
         self.ny2 = y2 + 2 * n
         self.jf(self.x, self.ny1, self.x, self.ny2)
 
+        self.g3 = models.Gaussian1D(amplitude=10, mean=14.9, stddev=0.3)
+        self.g4 = models.Gaussian1D(amplitude=10, mean=13, stddev=0.4)
+        self.jf2_joint_param_guesses = [9.8, 14]
+        self.jf2 = JointFitter(
+            [self.g3, self.g4],
+            {self.g3: ["amplitude", "mean"], self.g4: ["amplitude", "mean"]},
+            self.jf2_joint_param_guesses,
+        )
+
+    def test_initial_parameter_values(self):
+        """
+        Tests that the correct initial values for fitting are obtained.
+        """
+        assert_allclose(
+            self.jf2.fitparams,
+            [
+                *self.jf2_joint_param_guesses,
+                self.g3.parameters[-1],
+                self.g4.parameters[-1],
+            ],
+        )
+
     def test_joint_parameter(self):
         """
         Tests that the amplitude of the two models is the same
