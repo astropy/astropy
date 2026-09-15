@@ -6,7 +6,7 @@ from .utils import SCIPY_LT_1_15
 
 
 def lombscargle_scipy(
-        t, y, frequency, normalization="standard", fit_mean=False, center_data=True
+    t, y, frequency, normalization="standard", center_data=True, *, fit_mean=False
 ):
     """Lomb-Scargle Periodogram.
 
@@ -24,14 +24,14 @@ def lombscargle_scipy(
     normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
+    center_data : bool, optional
+        if True, pre-center the data by subtracting the weighted mean
+        of the input data.
     fit_mean : bool, optional
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage. Requires Scipy 1.15 and corresponds
         to the ``floating_mean`` argument in `scipy.signal.lombscargle`.
-    center_data : bool, optional
-        if True, pre-center the data by subtracting the weighted mean
-        of the input data.
 
     Returns
     -------
