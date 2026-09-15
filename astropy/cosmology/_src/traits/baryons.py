@@ -15,7 +15,30 @@ from astropy.units import Quantity
 
 
 class BaryonComponent:
-    """The cosmology has attributes and methods for the baryon density."""
+    """The cosmology has attributes and methods for the baryon density.
+
+    Examples
+    --------
+    For an example of a real cosmology that implements this trait, see
+    :class:`~astropy.cosmology.LambdaCDM`. Here we will define an illustrative example
+    class that meets the minimum API requirements, but is not cosmologically meaningful:
+
+    >>> from astropy.cosmology.traits import BaryonComponent
+    >>> import dataclasses
+
+    >>> @dataclasses.dataclass(frozen=True)
+    ... class ExampleHasBaryons(BaryonComponent):
+    ...     Ob0: float
+    ...     def inv_efunc(self, z): return 1.0  # necessary for Ob(z)
+
+    >>> cosmo = ExampleHasBaryons(Ob0=0.05)
+    >>> cosmo.Ob0
+    0.05
+
+    >>> cosmo.Ob([0.0, 1.0, 2.0])
+    array([0.05, 0.4 , 1.35])
+
+    """
 
     Ob0: float | np.floating
     """Omega baryons: density of baryonic matter in units of the critical density at z=0."""
