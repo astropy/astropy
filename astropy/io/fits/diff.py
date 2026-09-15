@@ -50,6 +50,70 @@ _COL_ATTRS = [
     ("dim", "dimensions"),
 ]
 
+_TOLERANCE_CONTEXTS = {"header", "data"}
+_TOLERANCE_KEYS = {"rtol", "atol"}
+
+
+def _normalize_context_tolerances(tolerances):
+    if tolerances is None:
+        return {}
+    if not isinstance(tolerances, dict):
+        raise TypeError("tolerances must be a mapping")
+
+    normalized = {}
+    for context, values in tolerances.items():
+        context_name = context.lower()
+        if context_name not in _TOLERANCE_CONTEXTS:
+            raise ValueError("tolerance contexts must be 'header' or 'data'")
+        if not isinstance(values, dict):
+            raise TypeError(
+                f"tolerances for context {context_name!r} must be a mapping"
+            )
+
+        normalized[context_name] = {}
+        for key, value in values.items():
+            tolerance_name = key.lower()
+            if tolerance_name not in _TOLERANCE_KEYS:
+                raise ValueError("tolerance keys must be 'rtol' or 'atol'")
+            normalized[context_name][tolerance_name] = float(value)
+
+    return normalized
+
+
+def _normalize_fitsdiff_tolerances(tolerances):
+    if tolerances is None:
+        return {"default": {}, "extensions": {}}
+    if not isinstance(tolerances, dict):
+        raise TypeError("FITSDiff tolerances must be a mapping")
+
+    unknown_keys = set(tolerances).difference({"default", "extensions"})
+    if unknown_keys:
+        unknown = ", ".join(sorted(repr(key) for key in unknown_keys))
+        raise ValueError(f"unknown FITSDiff tolerance sections: {unknown}")
+
+    extensions = tolerances.get("extensions", {})
+    if not isinstance(extensions, dict):
+        raise TypeError("FITSDiff extension tolerances must be a mapping")
+
+    normalized_extensions = {}
+    for extension, values in extensions.items():
+        if not isinstance(extension, str):
+            raise TypeError("FITSDiff extension tolerance keys must be strings")
+        normalized_extensions[extension.upper()] = _normalize_context_tolerances(values)
+
+    return {
+        "default": _normalize_context_tolerances(tolerances.get("default")),
+        "extensions": normalized_extensions,
+    }
+
+
+def _merge_context_tolerances(base, override):
+    merged = {context: values.copy() for context, values in base.items()}
+    for context, values in override.items():
+        merged.setdefault(context, {})
+        merged[context].update(values)
+    return merged
+
 
 class _BaseDiff:
     """
@@ -218,6 +282,7 @@ class FITSDiff(_BaseDiff):
         atol=0.0,
         ignore_blanks=True,
         ignore_blank_cards=True,
+        tolerances=None,
     ):
         """
         Parameters
@@ -309,6 +374,7 @@ class FITSDiff(_BaseDiff):
         self.numdiffs = numdiffs
         self.rtol = rtol
         self.atol = atol
+        self.tolerances = _normalize_fitsdiff_tolerances(tolerances)
 
         self.ignore_blanks = ignore_blanks
         self.ignore_blank_cards = ignore_blank_cards
@@ -362,7 +428,19 @@ class FITSDiff(_BaseDiff):
         # TODO: Somehow or another simplify the passing around of diff
         # options--this will become important as the number of options grows
         for idx in range(min(len(self.a), len(self.b))):
-            hdu_diff = HDUDiff.fromdiff(self, self.a[idx], self.b[idx])
+            hdu_diff = HDUDiff(
+                self.a[idx],
+                self.b[idx],
+                ignore_keywords=self.ignore_keywords,
+                ignore_comments=self.ignore_comments,
+                ignore_fields=self.ignore_fields,
+                numdiffs=self.numdiffs,
+                rtol=self.rtol,
+                atol=self.atol,
+                ignore_blanks=self.ignore_blanks,
+                ignore_blank_cards=self.ignore_blank_cards,
+                tolerances=self._resolve_hdu_tolerances(idx, self.a[idx]),
+            )
 
             if not hdu_diff.identical:
                 if (
@@ -374,6 +452,17 @@ class FITSDiff(_BaseDiff):
                     )
                 else:
                     self.diff_hdus.append((idx, hdu_diff, "", self.a[idx].ver))
+
+    def _resolve_hdu_tolerances(self, idx, hdu):
+        resolved = {
+            "header": {"rtol": self.rtol, "atol": self.atol},
+            "data": {"rtol": self.rtol, "atol": self.atol},
+        }
+        resolved = _merge_context_tolerances(resolved, self.tolerances["default"])
+
+        extension_name = "PRIMARY" if idx == 0 else hdu.name.upper()
+        extension_tolerances = self.tolerances["extensions"].get(extension_name, {})
+        return _merge_context_tolerances(resolved, extension_tolerances)
 
     def _report(self):
         wrapper = textwrap.TextWrapper(initial_indent="  ", subsequent_indent="  ")
@@ -417,6 +506,8 @@ class FITSDiff(_BaseDiff):
         self._writeln(
             f" Relative tolerance: {self.rtol}, Absolute tolerance: {self.atol}"
         )
+        if self.tolerances["default"] or self.tolerances["extensions"]:
+            self._writeln(" Context-specific tolerances configured.")
 
         if self.diff_hdu_count:
             self._fileobj.write("\n")
@@ -487,6 +578,7 @@ class HDUDiff(_BaseDiff):
         atol=0.0,
         ignore_blanks=True,
         ignore_blank_cards=True,
+        tolerances=None,
     ):
         """
         Parameters
@@ -551,6 +643,11 @@ class HDUDiff(_BaseDiff):
 
         self.rtol = rtol
         self.atol = atol
+        self.tolerances = _normalize_context_tolerances(tolerances)
+        self.header_rtol = self.tolerances.get("header", {}).get("rtol", self.rtol)
+        self.header_atol = self.tolerances.get("header", {}).get("atol", self.atol)
+        self.data_rtol = self.tolerances.get("data", {}).get("rtol", self.rtol)
+        self.data_atol = self.tolerances.get("data", {}).get("atol", self.atol)
 
         self.numdiffs = numdiffs
         self.ignore_blanks = ignore_blanks
@@ -581,22 +678,42 @@ class HDUDiff(_BaseDiff):
                 self.b.header.get("XTENSION"),
             )
 
-        self.diff_headers = HeaderDiff.fromdiff(
-            self, self.a.header.copy(), self.b.header.copy()
+        self.diff_headers = HeaderDiff(
+            self.a.header.copy(),
+            self.b.header.copy(),
+            ignore_keywords=self.ignore_keywords,
+            ignore_comments=self.ignore_comments,
+            rtol=self.header_rtol,
+            atol=self.header_atol,
+            ignore_blanks=self.ignore_blanks,
+            ignore_blank_cards=self.ignore_blank_cards,
         )
 
         if self.a.data is None or self.b.data is None:
             # TODO: Perhaps have some means of marking this case
             pass
         elif self.a.is_image and self.b.is_image:
-            self.diff_data = ImageDataDiff.fromdiff(self, self.a.data, self.b.data)
+            self.diff_data = ImageDataDiff(
+                self.a.data,
+                self.b.data,
+                numdiffs=self.numdiffs,
+                rtol=self.data_rtol,
+                atol=self.data_atol,
+            )
             # Clean up references to (possibly) memmapped arrays so they can
             # be closed by .close()
             self.diff_data.a = None
             self.diff_data.b = None
         elif isinstance(self.a, _TableLikeHDU) and isinstance(self.b, _TableLikeHDU):
             # TODO: Replace this if/when _BaseHDU grows a .is_table property
-            self.diff_data = TableDataDiff.fromdiff(self, self.a.data, self.b.data)
+            self.diff_data = TableDataDiff(
+                self.a.data,
+                self.b.data,
+                ignore_fields=self.ignore_fields,
+                numdiffs=self.numdiffs,
+                rtol=self.data_rtol,
+                atol=self.data_atol,
+            )
             # Clean up references to (possibly) memmapped arrays so they can
             # be closed by .close()
             self.diff_data.a = None
@@ -604,7 +721,9 @@ class HDUDiff(_BaseDiff):
         elif not self.diff_extension_types:
             # Don't diff the data for unequal extension types that are not
             # recognized image or table types
-            self.diff_data = RawDataDiff.fromdiff(self, self.a.data, self.b.data)
+            self.diff_data = RawDataDiff(
+                self.a.data, self.b.data, numdiffs=self.numdiffs
+            )
             # Clean up references to (possibly) memmapped arrays so they can
             # be closed by .close()
             self.diff_data.a = None
