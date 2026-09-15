@@ -17,7 +17,7 @@ from numpy import linalg
 from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 from astropy.modeling import models
-from astropy.modeling.core import Fittable2DModel, Parameter
+from astropy.modeling.core import Fittable1DModel, Fittable2DModel, Parameter
 from astropy.modeling.fitting import (
     DogBoxLSQFitter,
     Fitter,
@@ -30,7 +30,9 @@ from astropy.modeling.fitting import (
     SimplexLSQFitter,
     SLSQPLSQFitter,
     TRFLSQFitter,
+    _convert_input,
     _NLLSQFitter,
+    _verify_dims_in_fitting,
     populate_entry_points,
 )
 from astropy.modeling.optimizers import Optimization
@@ -1562,3 +1564,83 @@ def test_inplace_fitting(fitter_cls):
     assert m_fit is m_ini
     assert_almost_equal(m_ini.amplitude, 2.0)
     assert_almost_equal(m_fit.amplitude, 2.0)
+
+
+class RebinnedLinear1D(Fittable1DModel):
+    """
+    A model evaluated on ``x`` but returning a coarser grid, so that the input
+    coordinates and the model output legitimately have different lengths.
+    """
+
+    verify_dims_in_fitting = False
+
+    intercept = Parameter(default=0.0)
+    slope = Parameter(default=1.0)
+
+    @staticmethod
+    def evaluate(x, intercept, slope):
+        y = intercept + slope * x
+        return np.interp(np.linspace(x.min(), x.max(), 7), x, y)
+
+
+def test_verify_dims_in_fitting_default():
+    assert _verify_dims_in_fitting(None)
+    assert _verify_dims_in_fitting(models.Linear1D())
+
+
+def test_verify_dims_in_fitting_leaf_wins():
+    """An opt-out on any leaf disables the check for the whole compound model."""
+    assert _verify_dims_in_fitting(models.Linear1D() | models.Shift())
+    assert not _verify_dims_in_fitting(RebinnedLinear1D() | models.Shift())
+
+
+def test_convert_input_verify_dims_1d():
+    x = np.arange(5.0)
+    y = np.arange(3.0)
+
+    MESSAGE = r"x and y should have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
+        _convert_input(x, y)
+
+    assert len(_convert_input(x, y, verify_dims=False)) == 2
+
+
+def test_convert_input_verify_dims_2d():
+    x = np.zeros((5, 4))
+    y = np.zeros((5, 4))
+    z = np.zeros((5, 3))
+
+    MESSAGE = r"x, y and z should have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
+        _convert_input(x, y, z)
+
+    assert len(_convert_input(x, y, z, verify_dims=False)) == 3
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
+def test_fitting_verifies_dims_by_default(fitter):
+    fitter = fitter()
+
+    x = np.linspace(0, 10, 25)
+    y = models.Lorentz1D(1.0, 5.0, 1.0)(x)
+
+    MESSAGE = r"x and y should have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
+        fitter(models.Lorentz1D(), x, y[:10])
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
+def test_fitting_with_mismatched_dims(fitter):
+    """Models that opt out are fit even though ``x`` and ``y`` differ in shape."""
+    fitter = fitter()
+
+    x = np.linspace(0, 10, 25)
+    y = RebinnedLinear1D(intercept=3.0, slope=2.0)(x)
+    assert x.shape != y.shape
+
+    model = fitter(RebinnedLinear1D(), x, y)
+
+    assert_allclose(model.intercept.value, 3.0, rtol=1e-4)
+    assert_allclose(model.slope.value, 2.0, rtol=1e-4)
