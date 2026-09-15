@@ -8,7 +8,12 @@ from astropy.utils import minversion
 
 @cache
 def scipy_lt_1_15():
-    return not minversion("scipy", "1.15.dev")
+    # Only called on code paths that have already checked that scipy is
+    # installed; passing the module keeps this working even when scipy's
+    # distribution metadata is unavailable, as in astropy.utils.compat
+    import scipy
+
+    return not minversion(scipy, "1.15.0.dev0")
 
 
 def bitceil(N):
