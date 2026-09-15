@@ -421,6 +421,12 @@ class SigmaClip:
                 (filtered_data >= self._min_value) & (filtered_data <= self._max_value)
             ]
             nchanged = size - filtered_data.size
+            if filtered_data.size == 0:
+                # Every remaining value was rejected. Keep the bounds
+                # from this iteration so that the masked output masks
+                # all values, instead of recomputing NaN bounds from
+                # the empty array (which would mask nothing).
+                break
 
         self._niterations = iteration
 
