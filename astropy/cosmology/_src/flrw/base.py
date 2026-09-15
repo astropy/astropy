@@ -3,7 +3,6 @@
 __all__ = ("FLRW", "FlatFLRWMixin")
 
 import inspect
-import sys
 import warnings
 from dataclasses import field
 from functools import cached_property
@@ -18,8 +17,8 @@ from numpy.typing import ArrayLike, NDArray
 import astropy.constants as const
 import astropy.units as u
 from astropy.cosmology._src.typing import CosmoMeta, FArray
-from astropy.utils.decorators import deprecate_doc, deprecation_msg, lazyproperty
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.decorators import deprecated, lazyproperty
+from astropy.utils.exceptions import AstropyUserWarning
 
 # isort: split
 from astropy.cosmology._src.core import (
@@ -48,11 +47,6 @@ from astropy.cosmology._src.traits import (
     TotalComponent,
 )
 from astropy.cosmology._src.utils import aszarr, vectorize_redshift_method
-
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
 
 __doctest_requires__ = {"*": ["scipy"]}
 _InputT = TypeVar("_InputT", bound=u.Quantity | ArrayLike)
@@ -999,14 +993,8 @@ class FLRW(
             )
         return self.comoving_transverse_distance(z1, z2_arr) / (z2_arr + 1.0)
 
-    @deprecate_doc(since="8.0")
     @deprecated(
-        deprecation_msg(
-            "angular_diameter_distance_z1z2",
-            message="Use ``angular_diameter_distance(z1, z2)`` instead.",
-            obj_type="function",
-        ),
-        category=AstropyDeprecationWarning,
+        since="8.0", message="Use ``angular_diameter_distance(z1, z2)`` instead."
     )
     def angular_diameter_distance_z1z2(
         self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike

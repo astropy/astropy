@@ -8,7 +8,6 @@ framework, but it is useful for some users who are used to more functional
 interfaces.
 """
 
-import sys
 import warnings
 from collections.abc import Sequence
 
@@ -18,18 +17,12 @@ import numpy as np
 from astropy import units as u
 from astropy.constants import c
 from astropy.io import ascii
-from astropy.utils import data, deprecate_doc, deprecation_msg
-from astropy.utils.exceptions import AstropyPendingDeprecationWarning
+from astropy.utils import data, deprecated
 
 from .builtin_frames import GCRS, PrecessedGeocentric
 from .builtin_frames.utils import get_jd12
 from .representation import CartesianRepresentation, SphericalRepresentation
 from .sky_coordinate import SkyCoord
-
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
 
 __all__ = [
     "cartesian_to_spherical",
@@ -293,16 +286,7 @@ def _concatenate_components(reps_difs, names):
     ]
 
 
-@deprecate_doc(since="7.2")
-@deprecated(
-    deprecation_msg(
-        "concatenate_representations",
-        alternative="np.concatenate",
-        obj_type="function",
-        pending=True,
-    ),
-    category=AstropyPendingDeprecationWarning,
-)
+@deprecated("7.2", alternative="np.concatenate", pending=True)
 def concatenate_representations(reps):
     """
     Combine multiple representation objects into a single instance by
@@ -378,13 +362,7 @@ def concatenate_representations(reps):
     return new_rep
 
 
-@deprecate_doc(since="7.2")
-@deprecated(
-    deprecation_msg(
-        "concatenate", alternative="np.concatenate", obj_type="function", pending=True
-    ),
-    category=AstropyPendingDeprecationWarning,
-)
+@deprecated("7.2", alternative="np.concatenate", pending=True)
 def concatenate(coords):
     """
     Combine multiple coordinate objects into a single

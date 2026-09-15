@@ -14,11 +14,6 @@ import threading
 import time
 from shutil import get_terminal_size
 
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
-
 # concurrent.futures imports moved inside functions using them to avoid
 # import failure when running in pyodide/Emscripten
 
@@ -36,8 +31,7 @@ import numpy as np
 from astropy import conf
 from astropy.utils.compat.optional_deps import HAS_IPYKERNEL, HAS_IPYWIDGETS
 
-from .decorators import deprecate_doc, deprecation_msg
-from .exceptions import AstropyDeprecationWarning
+from .decorators import deprecated
 
 __all__ = [
     "ProgressBar",
@@ -69,13 +63,7 @@ def isatty(file):
     return hasattr(file, "isatty") and file.isatty()
 
 
-@deprecate_doc(since="6.1")
-@deprecated(
-    deprecation_msg(
-        "terminal_size", alternative="shutil.get_terminal_size", obj_type="function"
-    ),
-    category=AstropyDeprecationWarning,
-)
+@deprecated("6.1", alternative="shutil.get_terminal_size")
 def terminal_size(file=None):
     """
     Returns a tuple (height, width) containing the height and width of

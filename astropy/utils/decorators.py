@@ -8,12 +8,9 @@ import textwrap
 import threading
 import types
 import warnings
-from collections.abc import Callable, Iterable
 from functools import wraps
 from inspect import signature
-from string import Formatter
 from types import FunctionType
-from typing import Final, LiteralString, Protocol, overload
 
 from .exceptions import (
     AstropyDeprecationWarning,
@@ -23,244 +20,17 @@ from .exceptions import (
 
 __all__ = [
     "classproperty",
-    "deprecate_doc",
     "deprecated",
     "deprecated_attribute",
     "deprecated_renamed_argument",
-    "deprecation_msg",
     "format_doc",
     "lazyproperty",
     "sharedmethod",
 ]
 
-_NotFound: Final = object()
-
-# The format specifiers a deprecation ``message`` may use.
-_MESSAGE_SPECIFIERS: Final = frozenset({"func", "name", "alternative", "obj_type"})
+_NotFound = object()
 
 
-def _fmt_specifiers(names: Iterable[str], /) -> str:
-    """Render specifier names as ``{a}, {b}`` for error messages."""
-    return ", ".join(sorted("{" + name + "}" for name in names))
-
-
-# ``warnings.deprecated`` is typed as taking a ``LiteralString``, so a message
-# built only from literals must stay one; anything else degrades to ``str``.
-@overload
-def deprecation_msg(
-    name: LiteralString,
-    message: LiteralString = "",
-    alternative: LiteralString = "",
-    obj_type: LiteralString = "object",
-    *,
-    pending: bool = False,
-) -> LiteralString: ...
-@overload
-def deprecation_msg(
-    name: str,
-    message: str = "",
-    alternative: str = "",
-    obj_type: str = "object",
-    *,
-    pending: bool = False,
-) -> str: ...
-def deprecation_msg(
-    name,
-    message="",
-    alternative="",
-    obj_type="object",
-    *,
-    pending=False,
-):
-    """Build the deprecation message used by `deprecated`.
-
-    This is exposed so the same message can be produced without the
-    `deprecated` decorator, e.g. ``warnings.deprecated(deprecation_msg(...))``.
-
-    Parameters
-    ----------
-    name : str
-        The name of the deprecated function or class.
-
-    message : str, optional
-        Override the default deprecation message.  The format
-        specifier ``func`` may be used for the name of the object,
-        and ``alternative`` may be used in the deprecation message
-        to insert the name of an alternative to the deprecated
-        object. ``obj_type`` may be used to insert a friendly name
-        for the type of object being deprecated.
-
-    alternative : str, optional
-        An alternative function or class name that the user may use in
-        place of the deprecated object.
-
-    obj_type : str, optional
-        The type of this object, e.g. "function", "class" or "method".
-
-    pending : bool, optional keyword-only
-        If True, the message says the object *will be* deprecated rather
-        than that it is deprecated.
-
-    Returns
-    -------
-    str
-        The formatted deprecation message. This is a `~typing.LiteralString`
-        when every argument is one, as `warnings.deprecated` requires.
-
-    Raises
-    ------
-    ValueError
-        If ``message`` uses a format specifier other than ``func``, ``name``,
-        ``alternative`` or ``obj_type``, or if ``alternative`` is given but
-        ``message`` does not use the ``alternative`` specifier (which would
-        silently drop it).
-
-    Examples
-    --------
-    >>> from astropy.utils.decorators import deprecation_msg
-    >>> deprecation_msg("old_func", obj_type="function")
-    'The old_func function is deprecated and may be removed in a future version.'
-    """
-    if not message:
-        if pending:
-            msg = f"The {name} {obj_type} will be deprecated in a future version."
-        else:
-            msg = (
-                f"The {name} {obj_type} is deprecated and may "
-                "be removed in a future version."
-            )
-        if alternative:
-            msg += f"\n        Use {alternative} instead."
-        return msg
-
-    # else:
-    # Without these checks an unsupported specifier fails with a bare KeyError
-    # and an alternative the message never interpolates is silently dropped.
-    fields = {
-        field.split(".")[0].split("[")[0]  # strip attribute/index access
-        for _, field, _, _ in Formatter().parse(message)
-        if field is not None
-    }
-    if unknown := fields - _MESSAGE_SPECIFIERS:
-        raise ValueError(
-            f"deprecation message {message!r} uses unknown format specifier(s) "
-            f"{_fmt_specifiers(unknown)}; supported specifiers are "
-            f"{_fmt_specifiers(_MESSAGE_SPECIFIERS)}"
-        )
-    if alternative and "alternative" not in fields:
-        raise ValueError(
-            f"deprecation message {message!r} does not use the {{alternative}} "
-            f"specifier, so alternative={alternative!r} would be silently dropped; "
-            "add {alternative} to the message or drop the argument"
-        )
-
-    return message.format(
-        func=name, name=name, alternative=alternative, obj_type=obj_type
-    )
-
-
-class _DeprecatedAndHasDocstring(Protocol):
-    __deprecated__: str
-    __doc__: str | None
-
-
-@overload
-def deprecate_doc[T: _DeprecatedAndHasDocstring](
-    obj: None = None, /, *, since: str
-) -> Callable[[T], T]: ...
-@overload
-def deprecate_doc[T: _DeprecatedAndHasDocstring](obj: T, /, *, since: str) -> T: ...
-def deprecate_doc(obj=None, /, *, since):
-    """Prepend a ``.. deprecated::`` directive to an object's docstring.
-
-    The deprecation message is taken from the object's ``__deprecated__`` attribute, as
-    set by `deprecated` or by `warnings.deprecated`, so this MUST be used as an outer decorator with one of those mechanisms.
-
-    Parameters
-    ----------
-    obj : function or class, optional positional-only
-        The deprecated object, which must have a ``__deprecated__`` attribute. If not
-        given a decorator is returned, so that both ``@deprecate_doc(since=...)`` and
-        ``deprecate_doc(obj, since=...)`` work.
-
-    since : str, keyword-only
-        The release at which this API became deprecated.
-
-    Returns
-    -------
-    object
-        ``obj``, with its ``__doc__`` updated in place, or a decorator that will do so
-        if ``obj`` was not given.
-
-    Raises
-    ------
-    TypeError
-        If ``obj`` has no ``__deprecated__`` attribute.
-
-    Examples
-    --------
-    >>> from astropy.utils.decorators import deprecate_doc
-    >>> def old_func():
-    ...     "Do a thing."
-    >>> old_func.__deprecated__ = "Use new_func instead."
-    >>> _ = deprecate_doc(old_func, since="7.2")
-    >>> print(old_func.__doc__)
-    <BLANKLINE>
-    .. deprecated:: 7.2
-        Use new_func instead.
-    <BLANKLINE>
-    Do a thing.
-    """
-    if obj is None:  # used as ``@deprecate_doc(since=...)``
-        return functools.partial(deprecate_doc, since=since)
-
-    try:
-        message = obj.__deprecated__
-    except AttributeError:
-        raise TypeError(
-            f"{obj!r} has no __deprecated__ attribute; deprecate it first, e.g."
-            " with `warnings.deprecated` or astropy's `deprecated`"
-        ) from None
-
-    old_doc = textwrap.dedent(obj.__doc__ or "").strip("\n")
-    new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
-    if not old_doc:
-        # This is to prevent a spurious 'unexpected unindent' warning from
-        # docutils when the original docstring was blank.
-        new_doc += r"\ "
-    obj.__doc__ = new_doc
-    return obj
-
-
-_METHOD_TYPES: Final = (classmethod, staticmethod, types.MethodType)
-
-
-# Passing a function as ``message`` deprecates it directly; every other call
-# returns a decorator that preserves the type of what it decorates.
-@overload
-def deprecated[T: FunctionType](
-    since: str,
-    message: T,
-    name: str = "",
-    alternative: str = "",
-    pending: bool = False,
-    obj_type: str | None = None,
-    warning_type: type[Warning] = AstropyDeprecationWarning,
-    *,
-    pending_warning_type: type[Warning] = AstropyPendingDeprecationWarning,
-) -> T: ...
-@overload
-def deprecated[T](
-    since: str,
-    message: str = "",
-    name: str = "",
-    alternative: str = "",
-    pending: bool = False,
-    obj_type: str | None = None,
-    warning_type: type[Warning] = AstropyDeprecationWarning,
-    *,
-    pending_warning_type: type[Warning] = AstropyPendingDeprecationWarning,
-) -> Callable[[T], T]: ...
 def deprecated(
     since,
     message="",
@@ -315,22 +85,38 @@ def deprecated(
         The type of this object, if the automatically determined one
         needs to be overridden.
 
-    warning_type : type[Warning]
+    warning_type : Warning
         Warning to be issued.
         Default is `~astropy.utils.exceptions.AstropyDeprecationWarning`.
 
-    pending_warning_type : type[Warning]
+    pending_warning_type : Warning
         Pending warning to be issued.
         This only works if ``pending`` is set to True.
         Default is `~astropy.utils.exceptions.AstropyPendingDeprecationWarning`.
     """
+    method_types = (classmethod, staticmethod, types.MethodType)
+
+    def deprecate_doc(old_doc, message):
+        """
+        Returns a given docstring with a deprecation message prepended
+        to it.
+        """
+        if not old_doc:
+            old_doc = ""
+        old_doc = textwrap.dedent(old_doc).strip("\n")
+        new_doc = f"\n.. deprecated:: {since}\n    {message.strip()}\n\n" + old_doc
+        if not old_doc:
+            # This is to prevent a spurious 'unexpected unindent' warning from
+            # docutils when the original docstring was blank.
+            new_doc += r"\ "
+        return new_doc
 
     def get_function(func):
         """
         Given a function or classmethod (or other function wrapper type), get
         the function object.
         """
-        if isinstance(func, _METHOD_TYPES):
+        if isinstance(func, method_types):
             func = func.__func__
         return func
 
@@ -339,7 +125,7 @@ def deprecated(
         Returns a wrapped function that displays ``warning_type``
         when it is called.
         """
-        if isinstance(func, _METHOD_TYPES):
+        if isinstance(func, method_types):
             func_wrapper = type(func)
         else:
             func_wrapper = lambda f: f
@@ -363,8 +149,8 @@ def deprecated(
         if type(func) is not type(str.__dict__["__add__"]):
             deprecated_func = functools.wraps(func)(deprecated_func)
 
+        deprecated_func.__doc__ = deprecate_doc(deprecated_func.__doc__, message)
         deprecated_func.__deprecated__ = message
-        deprecate_doc(deprecated_func, since=since)
 
         return func_wrapper(deprecated_func)
 
@@ -383,8 +169,8 @@ def deprecated(
         - Subclassing the class and return the subclass can lead to problems
           with pickle and will look weird in the Sphinx docs.
         """
+        cls.__doc__ = deprecate_doc(cls.__doc__, message)
         cls.__deprecated__ = message
-        deprecate_doc(cls, since=since)
         if cls.__new__ is object.__new__:
             cls.__init__ = deprecate_function(
                 get_function(cls.__init__), message, warning_type
@@ -408,7 +194,7 @@ def deprecated(
                 obj_type_name = "class"
             elif inspect.isfunction(obj):
                 obj_type_name = "function"
-            elif inspect.ismethod(obj) or isinstance(obj, _METHOD_TYPES):
+            elif inspect.ismethod(obj) or isinstance(obj, method_types):
                 obj_type_name = "method"
             else:
                 obj_type_name = "object"
@@ -418,14 +204,28 @@ def deprecated(
         if not name:
             name = get_function(obj).__name__
 
-        message = deprecation_msg(
-            name=name,
-            # a function here means ``deprecated`` was used as a bare decorator
-            message="" if type(message) is type(deprecate) else message,
-            alternative=alternative,
-            pending=pending,
-            obj_type=obj_type_name,
-        )
+        altmessage = ""
+        if not message or type(message) is type(deprecate):
+            if pending:
+                message = (
+                    "The {func} {obj_type} will be deprecated in a future version."
+                )
+            else:
+                message = (
+                    "The {func} {obj_type} is deprecated and may "
+                    "be removed in a future version."
+                )
+            if alternative:
+                altmessage = f"\n        Use {alternative} instead."
+
+        message = (
+            message.format(
+                func=name,
+                name=name,
+                alternative=alternative,
+                obj_type=obj_type_name,
+            )
+        ) + altmessage
 
         if isinstance(obj, type):
             return deprecate_class(obj, message, warning_type)
