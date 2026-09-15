@@ -1,0 +1,8 @@
+Added ``astropy.utils.decorators.deprecation_msg``, which builds the deprecation
+message used by the ``@deprecated`` decorator. This allows the identical message
+to be produced without the decorator, e.g.
+``warnings.deprecated(deprecation_msg(...))``.
+
+A custom deprecation ``message`` is now validated: using an unsupported format
+specifier, or passing ``alternative`` without referencing ``{alternative}`` in
+the message (which silently dropped it), raises a ``ValueError``.
