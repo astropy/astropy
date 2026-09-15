@@ -17,7 +17,7 @@ from .fast_impl import lombscargle_fast
 from .fastchi2_impl import lombscargle_fastchi2
 from .scipy_impl import lombscargle_scipy
 from .slow_impl import lombscargle_slow
-from .utils import SCIPY_LT_1_15
+from .utils import scipy_lt_1_15
 
 METHODS = {
     "slow": lombscargle_slow,
@@ -85,7 +85,7 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     prefer_fast = len(frequency) > 200 and (
         assume_regular_frequency or _is_regular(frequency)
     )
-    prefer_scipy = "scipy" in methods and dy is None and not (fit_mean and SCIPY_LT_1_15)
+    prefer_scipy = "scipy" in methods and dy is None and not (fit_mean and scipy_lt_1_15())
 
     # automatically choose the appropriate method
     if method == "auto":
@@ -208,7 +208,7 @@ def lombscargle(
 
     # scipy doesn't support dy array; fit_mean=True requires >= 1.15
     if method == "scipy":
-        if kwds.get("fit_mean") and SCIPY_LT_1_15:
+        if kwds.get("fit_mean") and scipy_lt_1_15():
             raise ValueError("`fit_mean=True` requires Scipy 1.15 or greater")
         if dy is not None:
             dy = np.ravel(np.asarray(dy))

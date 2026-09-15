@@ -2,7 +2,7 @@ import numpy as np
 
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .utils import SCIPY_LT_1_15
+from .utils import scipy_lt_1_15
 
 
 def lombscargle_scipy(
@@ -65,7 +65,7 @@ def lombscargle_scipy(
     if center_data:
         y = y - y.mean()
 
-    if SCIPY_LT_1_15:
+    if scipy_lt_1_15():
         if fit_mean:
             raise NotImplementedError("`fit_mean=True` requires Scipy 1.15+")
         else:
