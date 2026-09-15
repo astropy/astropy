@@ -1552,6 +1552,7 @@ class TestUfuncReturnsNotImplemented:
                 match=(
                     r"(Unsupported operand type\(s\) for ufunc .*)|"
                     r"(unsupported operand type\(s\) for .*)|"
+                    r"(operand type\(s\) all returned NotImplemented from __array_ufunc__.*)|"
                     r"(Value not scalar compatible or convertible to an int, float, or complex array)"
                 ),
             ):
@@ -1580,6 +1581,74 @@ class TestUfuncReturnsNotImplemented:
 
             result_expected = ufunc(quantity, duck_quantity.data, out=out_expected)
             assert np.all(result.data == result_expected)
+
+
+def test_ufunc_unknown_and_time_returns_not_implemented():
+    """Test for Issue #10776: Quantity.__array_ufunc__ should return NotImplemented
+    for Time instances and other unknown classes."""
+    class Unknown:
+        pass
+
+    class CustomWithUfunc:
+        def __array_ufunc__(self, function, method, *inputs, **kwargs):
+            return NotImplemented
+
+    class CustomOptOut:
+        __array_ufunc__ = None
+
+    q = 10 * u.m
+    unknown = Unknown()
+    custom_ufunc = CustomWithUfunc()
+    custom_optout = CustomOptOut()
+
+    # Test with unknown class
+    for func in (np.add, np.multiply, np.subtract, np.divide):
+        assert q.__array_ufunc__(func, "__call__", q, unknown) is NotImplemented
+        assert q.__array_ufunc__(func, "__call__", unknown, q) is NotImplemented
+
+    # Test with custom classes that have __array_ufunc__ or __array_ufunc__ = None
+    assert q.__array_ufunc__(np.add, "__call__", q, custom_ufunc) is NotImplemented
+    assert q.__array_ufunc__(np.add, "__call__", q, custom_optout) is NotImplemented
+
+    # Test with Time and TimeDelta if astropy.time is available (requires compiled C extension)
+    try:
+        from astropy.time import Time, TimeDelta
+    except ImportError:
+        return
+
+    t = Time("2020-01-01")
+    dt = TimeDelta(1.0, format="jd")
+
+    for func in (np.add, np.multiply, np.subtract, np.divide):
+        assert q.__array_ufunc__(func, "__call__", q, t) is NotImplemented
+        assert q.__array_ufunc__(func, "__call__", t, q) is NotImplemented
+        assert q.__array_ufunc__(func, "__call__", q, dt) is NotImplemented
+        assert q.__array_ufunc__(func, "__call__", dt, q) is NotImplemented
+
+    # Test dimensionless quantity with Time and TimeDelta
+    q_dimless = 10 * u.one
+    assert (
+        q_dimless.__array_ufunc__(np.multiply, "__call__", q_dimless, dt)
+        is NotImplemented
+    )
+    assert (
+        q_dimless.__array_ufunc__(np.multiply, "__call__", dt, q_dimless)
+        is NotImplemented
+    )
+    assert (
+        q_dimless.__array_ufunc__(np.add, "__call__", q_dimless, t) is NotImplemented
+    )
+    assert (
+        q_dimless.__array_ufunc__(np.add, "__call__", t, q_dimless) is NotImplemented
+    )
+
+    class TimeWithUfunc(Time):
+        def __array_ufunc__(self, function, method, *inputs, **kwargs):
+            return NotImplemented
+
+    t_ufunc = TimeWithUfunc("2020-01-01")
+    assert q.__array_ufunc__(np.add, "__call__", q, t_ufunc) is NotImplemented
+    assert q.__array_ufunc__(np.multiply, "__call__", q, t_ufunc) is NotImplemented
 
 
 if HAS_SCIPY:

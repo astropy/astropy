@@ -1,0 +1,1 @@
+``Quantity.__array_ufunc__`` now returns ``NotImplemented`` instead of raising an exception for ``Time`` instances and other unknown classes.
