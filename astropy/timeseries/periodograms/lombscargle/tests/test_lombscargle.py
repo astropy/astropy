@@ -9,9 +9,6 @@ from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._testing import (
     assert_not_strictly_equal,
 )
-from astropy.timeseries.periodograms.lombscargle.implementations.main import (
-    validate_method,
-)
 from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
     scipy_lt_1_15,
 )
@@ -109,14 +106,9 @@ def test_all_methods(
         fit_mean=fit_mean,
         normalization=normalization,
     )
-    # Use default method for reference unless it is identical to method tested
-    # (can be either "scipy" or "cython").
-    reference = validate_method("auto", dy, fit_mean, 1, frequency, True)
-    if reference == method:
-        if method == "scipy":
-            reference = "cython"
-        else:
-            reference = "slow"
+    # Compare against the exact pure-python reference implementation, which
+    # supports every combination exercised here
+    reference = "cython" if method == "slow" else "slow"
     P_expected = ls.power(frequency, method=reference)
 
     # don't use the lagrangian approximation here; we'll test this elsewhere
