@@ -136,7 +136,8 @@ test_all = [
 typing = [
     "pandas-stubs>=2.2.2", # keep in sync with astropy[pandas]
     "scipy-stubs>=1.14.1.6",
-    "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
+    "narwhals>=1.42.0", # keep in sync with dependency-groups.dataframe
+    "matplotlib>=3.8.4"
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
