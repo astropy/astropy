@@ -21,6 +21,7 @@ from astropy.coordinates.attributes import (
     EarthLocationAttribute,
     QuantityAttribute,
     TimeAttribute,
+    impose_frame_attributes,
 )
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
 from astropy.coordinates.builtin_frames import (
@@ -98,6 +99,53 @@ def test_frame_attribute_descriptor():
     assert "Cannot set frame attribute" in str(err.value)
 
 
+def test_impose_nested_obstime():
+    imposed_obstime = Time("2012-01-01T00:00:00")
+
+    ori_obstime = "2026-01-01T00:00:00"
+    coo1 = GCRS(obstime=ori_obstime)
+
+    assert coo1 != imposed_obstime
+
+    with impose_frame_attributes(obstime="2020-01-01T00:00:00"):
+        with impose_frame_attributes(obstime=imposed_obstime):
+            assert coo1.obstime == imposed_obstime
+
+    assert coo1.obstime == ori_obstime
+
+
+def test_altaz_transform_with_imposed_obstime():
+    location = EarthLocation(-5466045 * u.m, -2404388 * u.m, 2242133 * u.m)
+    coord1 = SkyCoord(
+        10,
+        20,
+        unit=u.deg,
+        obstime="2026-01-01T00:00:00",
+        location=location,
+        frame="altaz",
+    )
+    coord2 = SkyCoord(
+        10,
+        20,
+        unit=u.deg,
+        obstime="2026-01-01T00:01:00",
+        location=location,
+        frame="altaz",
+    )
+
+    out1 = coord1.transform_to("icrs")
+    out2 = coord2.transform_to("icrs")
+
+    assert not u.allclose(out1.ra, out2.dec)
+    assert not u.allclose(out1.ra, out2.dec)
+
+    with impose_frame_attributes(obstime="2026-01-01T00:00:00"):
+        out_imposed = coord2.transform_to("icrs")
+
+    assert not u.allclose(out2.ra, out_imposed.dec)
+    assert not u.allclose(out2.ra, out_imposed.dec)
+
+
 def test_frame_subclass_attribute_descriptor():
     """Unit test of the attribute descriptors in subclasses."""
     _EQUINOX_B1980 = Time("B1980", scale="tai")
@@ -117,6 +165,25 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.equinox.value == "J1980.000"
     assert mfk4.obstime.value == "J1990.000"
     assert mfk4.newattr == "world"
+
+
+def test_impose_restores_frame_attribute():
+    coo = GCRS(obstime="2026-01-01T00:00:00")
+    original_obstime = coo.obstime
+
+    with impose_frame_attributes(obstime="2020-01-01T00:00:00"):
+        assert coo.obstime == Time("2020-01-01T00:00:00")
+
+    assert coo.obstime == original_obstime
+
+
+def test_invalid_attribute_value():
+    with impose_frame_attributes(obstime="2020-01-01"):
+        # no error here, as attribute validation is done on get
+        frame = GCRS(obstime="hello")
+
+    with pytest.raises(ValueError):
+        frame.obstime  # Validation happens here
 
 
 def test_frame_multiple_inheritance_attribute_descriptor():
