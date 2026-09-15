@@ -10,6 +10,7 @@ import pytest
 from astropy.tests.helper import _skip_docstring_tests_with_optimized_python
 from astropy.utils.decorators import (
     classproperty,
+    deprecate_doc,
     deprecated,
     deprecated_attribute,
     deprecated_renamed_argument,
@@ -1069,3 +1070,83 @@ def test_deprecated_rejects_bad_message():
         @deprecated("1.0", message="The {bogus} thing")
         def func():
             pass
+
+
+@_skip_docstring_tests_with_optimized_python
+def test_deprecate_doc():
+    def func():
+        """Do a thing."""
+
+    func.__deprecated__ = "Use g instead."
+    assert deprecate_doc(func, since="7.2") is func
+    assert func.__doc__ == "\n.. deprecated:: 7.2\n    Use g instead.\n\nDo a thing."
+
+
+@_skip_docstring_tests_with_optimized_python
+def test_deprecate_doc_as_decorator():
+    def mark_deprecated(obj):  # stands in for ``warnings.deprecated``
+        obj.__deprecated__ = "Use g instead."
+        return obj
+
+    @deprecate_doc(since="7.2")
+    @mark_deprecated
+    def func():
+        """Do a thing."""
+
+    assert func.__doc__ == "\n.. deprecated:: 7.2\n    Use g instead.\n\nDo a thing."
+
+
+@_skip_docstring_tests_with_optimized_python
+def test_deprecate_doc_on_class():
+    class Klass:
+        """Do a thing."""
+
+    Klass.__deprecated__ = "Use D instead."
+    deprecate_doc(Klass, since="7.2")
+    assert Klass.__doc__ == "\n.. deprecated:: 7.2\n    Use D instead.\n\nDo a thing."
+
+
+@_skip_docstring_tests_with_optimized_python
+def test_deprecate_doc_blank_docstring():
+    def func():
+        pass
+
+    func.__deprecated__ = "Gone."
+    deprecate_doc(func, since="7.2")
+    # the trailing escaped space keeps docutils from warning on an empty body
+    assert func.__doc__ == "\n.. deprecated:: 7.2\n    Gone.\n\n" + "\\ "
+
+
+@_skip_docstring_tests_with_optimized_python
+@pytest.mark.parametrize("obj_type", ["function", "class"])
+def test_deprecate_doc_matches_deprecated(obj_type):
+    """The docstring is identical to the one ``@deprecated`` writes."""
+    if obj_type == "function":
+
+        @deprecated("7.2", alternative="g")
+        def by_decorator():
+            """Do a thing."""
+
+        def manual():
+            """Do a thing."""
+
+    else:
+
+        @deprecated("7.2", alternative="g")
+        class by_decorator:
+            """Do a thing."""
+
+        class manual:
+            """Do a thing."""
+
+    manual.__deprecated__ = by_decorator.__deprecated__
+    deprecate_doc(manual, since="7.2")
+    assert manual.__doc__ == by_decorator.__doc__
+
+
+def test_deprecate_doc_requires_deprecated_attribute():
+    def func():
+        pass
+
+    with pytest.raises(TypeError, match="has no __deprecated__ attribute"):
+        deprecate_doc(func, since="7.2")
