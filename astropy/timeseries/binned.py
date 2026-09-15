@@ -205,7 +205,7 @@ class BinnedTimeSeries(BaseTimeSeries):
                 self.remove_column("time_bin_size")
 
             self.add_column(time_bin_start, index=0, name="time_bin_start")
-            self.add_index("time_bin_start")
+            self._add_primary_index("time_bin_start")
             self.add_column(time_bin_size, index=1, name="time_bin_size")
 
     @property
