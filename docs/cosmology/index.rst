@@ -378,7 +378,7 @@ be found as a function of redshift::
 
   >>> from astropy.cosmology import WMAP7   # WMAP 7-year cosmology
   >>> WMAP7.Ogamma0, WMAP7.Onu0  # Current epoch values  # doctest: +FLOAT_CMP
-  (np.float64(4.985694972799396e-05), np.float64(3.442154948307989e-05))
+  (np.float64(4.986039863979377e-05), np.float64(3.4423930633327297e-05))
   >>> z = np.array([0, 1.0, 2.0])
   >>> WMAP7.Ogamma(z), WMAP7.Onu(z)  # doctest: +FLOAT_CMP
   (array([4.98603986e-05, 2.74593395e-04, 4.99915942e-04]),
@@ -428,9 +428,9 @@ assumed to be shared equally between each species.
   >>> cosmo.m_nu  # doctest: +FLOAT_CMP
   <Quantity [0.  , 0.05, 0.1 ] eV>
   >>> cosmo.Onu(np.array([0, 1.0, 15.0]))  # doctest: +FLOAT_CMP
-  array([0.00327011, 0.00896845, 0.01257946])
+  array([0.00327023, 0.00896823, 0.01256014])
   >>> cosmo.Onu(1) * cosmo.critical_density(1)  # doctest: +FLOAT_CMP
-  <Quantity 2.444380380370406e-31 g / cm3>
+  <Quantity 2.4443219408805825e-31 g / cm3>
 
 While these examples used |FlatLambdaCDM|, the above examples also apply for
 all of the other cosmology classes.
