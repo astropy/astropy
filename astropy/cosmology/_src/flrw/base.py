@@ -70,10 +70,21 @@ kB_evK: Final = const.k_B.to(u.eV / u.K)
 # what this does. However, this is modified to handle multiple neutrino masses by
 # computing the above for each mass, then summing
 NEUTRINO_FERMI_DIRAC_CORRECTION: Final = 0.22710731766  # 7/8 (4/11)^4/3
-# These are purely fitting constants -- see the Komatsu paper
-KOMATSU_P: Final = 1.83
-KOMATSU_INVP: Final = 0.54644808743  # 1.0 / p
-KOMATSU_K: Final = 0.3173
+# Constants of the closed form used for f(y) in ``nu_relative_density``.
+# The Komatsu et al. (2011) eq 26 form, (1 + (K y)**p)**(1/p), is the
+# degree-1 member of the same family with K rounded to 0.3173. NU_DENSITY_K
+# below is the exact large-y slope 180 zeta(3) / (7 pi**4), so the
+# non-relativistic limit is exact, and the degree-5 coefficients minimise
+# the worst relative error against arbitrary-precision quadrature.
+NU_DENSITY_K: Final = 0.31732186723604232  # 180 zeta(3) / (7 pi^4)
+NU_DENSITY_R: Final = 1.9795892776549544
+NU_DENSITY_INV_NR: Final = 0.10103105844103298  # 1 / (5 * NU_DENSITY_R)
+NU_DENSITY_C: Final = (
+    6.6496863101473158,
+    13.7264972750260803,
+    14.1626101584637798,
+    6.1856015772585220,
+)
 
 # typing
 _FLRWT = TypeVar("_FLRWT", bound="FLRW")
@@ -506,9 +517,16 @@ class FLRW(
 
         assuming that all neutrino species have the same mass.
         If they have different masses, a similar term is calculated for each
-        one. Note that ``f`` has the asymptotic behavior :math:`f(0) = 1`. This
-        method returns :math:`0.2271 f` using an analytical fitting formula
-        given in Komatsu et al. 2011, ApJS 192, 18.
+        one. Note that ``f`` has the asymptotic behavior :math:`f(0) = 1` and
+        :math:`f(y) \rightarrow 180 \zeta(3) y / (7 \pi^4)` for large
+        :math:`y`.
+
+        This method returns :math:`0.2271 f`, evaluating :math:`f` with a
+        closed form that is exact at both limits by construction and whose
+        worst relative error against arbitrary-precision quadrature is
+        7.2e-5. The Komatsu et al. 2011, ApJS 192, 18 eq 26 fitting
+        formula is the degree-1 member of the same family and has a worst
+        relative error of 3.4e-3.
         """
         # Note that there is also a scalar-z-only cython implementation of
         # this in scalar_inv_efuncs.pyx, so if you find a problem in this
@@ -521,7 +539,11 @@ class FLRW(
             return NEUTRINO_FERMI_DIRAC_CORRECTION * self.Neff * np.ones_like(z)
 
         curr_nu_y = self._nu_info.nu_y / (1.0 + np.expand_dims(z, axis=-1))
-        rel_mass_per = (1.0 + (KOMATSU_K * curr_nu_y) ** KOMATSU_P) ** KOMATSU_INVP
+        w = (NU_DENSITY_K * curr_nu_y) ** NU_DENSITY_R
+        c1, c2, c3, c4 = NU_DENSITY_C
+        rel_mass_per = (
+            1.0 + w * (c1 + w * (c2 + w * (c3 + w * (c4 + w))))
+        ) ** NU_DENSITY_INV_NR
         rel_mass = rel_mass_per.sum(-1) + self._nu_info.n_massless_nu
 
         return NEUTRINO_FERMI_DIRAC_CORRECTION * self._nu_info.neff_per_nu * rel_mass

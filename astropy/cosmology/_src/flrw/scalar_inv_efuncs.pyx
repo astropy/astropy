@@ -259,16 +259,20 @@ def fw0wzcdm_inv_efunc(double z, double Om0, double Ode0,
 # Briefly, this is just a numerical fitting function to the true relationship,
 #  which is too expensive to want to evaluate directly.  The
 #  constants which appear are:
-#    p = 1.83  -> numerical fitting constant from Komatsu et al.
-#  1/p = 0.54644... -> same constant
-#    k = 0.3173 -> another fitting constant
+#      K = 0.31732186723604232 -> 180 zeta(3) / (7 pi^4), the exact
+#                                   large-y slope of f
+#      r = 1.9795892776549544 -> inner exponent
+# 1/(5r) = 0.10103105844103298 -> outer exponent
+#  c1..c4 -> minimax coefficients of the degree-5 member
 #  7/8 (4/11)^(4/3) = 0.2271... -> fermion/boson constant for neutrino
 #                                   contribution -- see any cosmology book
 #  The Komatsu reference is: Komatsu et al. 2011, ApJS 192, 18
 cdef nufunc(double opz, double NeffPerNu, int nmasslessnu, list nu_y):
   cdef Py_ssize_t i, N = len(nu_y)
-  cdef double k = 0.3173 / opz
+  cdef double k = 0.31732186723604232 / opz
+  cdef double w
   cdef double rel_mass_sum = nmasslessnu
   for i in range(N):
-    rel_mass_sum += pow(1.0 + (k * <double>nu_y[i])**1.83, 0.54644808743)
+    w = pow(k * <double>nu_y[i], 1.9795892776549544)
+    rel_mass_sum += pow(1.0 + w * (6.6496863101473158 + w * (13.7264972750260803 + w * (14.1626101584637798 + w * (6.1856015772585220 + w)))), 0.10103105844103298)
   return 0.22710731766 * NeffPerNu * rel_mass_sum

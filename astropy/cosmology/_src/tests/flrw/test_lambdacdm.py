@@ -546,9 +546,10 @@ def test_massivenu_density():
 
     # Simple test cosmology, where we compare rho_nu and rho_gamma
     # against the exact formula (eq 24/25 of Komatsu et al. 2011)
-    # computed using Mathematica.  The approximation we use for f(y)
-    # is only good to ~ 0.5% (with some redshift dependence), so that's
-    # what we test to.
+    # computed using Mathematica. The degree-5 closed form is good to
+    # ~1e-4 on this table (see test_nu_relative_density_fermi_dirac_limits);
+    # Onu and efunc stay at the historical 5e-3 bound because those
+    # expected values were published to the Komatsu two-constant era.
     ztest = np.array([0.0, 1.0, 2.0, 10.0, 1000.0])
     nuprefac = 7.0 / 8.0 * (4.0 / 11.0) ** (4.0 / 3.0)
     #  First try 3 massive neutrinos, all 100 eV -- note this is a universe
@@ -559,7 +560,7 @@ def test_massivenu_density():
     nurel_exp = (
         nuprefac * tcos.Neff * np.array([171969, 85984.5, 57323, 15633.5, 171.801])
     )
-    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
+    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=1e-4)
     assert u.allclose(tcos.efunc([0.0, 1.0]), [1.0, 7.46144727668], rtol=5e-3)
 
     # Next, slightly less massive
@@ -567,7 +568,7 @@ def test_massivenu_density():
     nurel_exp = (
         nuprefac * tcos.Neff * np.array([429.924, 214.964, 143.312, 39.1005, 1.11086])
     )
-    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
+    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=1e-4)
 
     # For this one also test Onu directly
     onu_exp = np.array([0.01890217, 0.05244681, 0.0638236, 0.06999286, 0.1344951])
@@ -579,7 +580,7 @@ def test_massivenu_density():
     nurel_exp = (
         nuprefac * tcos.Neff * np.array([17.2347, 8.67345, 5.84348, 1.90671, 1.00021])
     )
-    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
+    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=1e-4)
     onu_exp = np.array([0.00066599, 0.00172677, 0.0020732, 0.00268404, 0.0978313])
     assert u.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
     assert u.allclose(tcos.efunc([1.0, 2.0]), [1.76225893, 2.97022048], rtol=1e-4)
@@ -594,14 +595,34 @@ def test_massivenu_density():
         * tcos.Neff
         * np.array([149.386233, 74.87915, 50.0518, 14.002403, 1.03702333])
     )
-    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
+    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=1e-4)
     onu_exp = np.array([0.00584959, 0.01493142, 0.01772291, 0.01963451, 0.10227728])
     assert u.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
 
     # Integer redshifts
     ztest = ztest.astype(int)
-    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=5e-3)
+    assert u.allclose(tcos.nu_relative_density(ztest), nurel_exp, rtol=1e-4)
     assert u.allclose(tcos.Onu(ztest), onu_exp, rtol=5e-3)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_nu_relative_density_fermi_dirac_limits():
+    # The closed form is constructed to be exact at both Fermi-Dirac
+    # limits of f(y): f(0) = 1, and f(y)/y -> 180 zeta(3)/(7 pi^4).
+    from scipy.special import zeta
+
+    nuprefac = 7.0 / 8.0 * (4.0 / 11.0) ** (4.0 / 3.0)
+    k_exact = 180.0 * zeta(3) / (7.0 * np.pi**4)
+
+    tcos = FlatLambdaCDM(80.0, 0.30, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(0.01, u.eV))
+    assert u.allclose(
+        tcos.nu_relative_density(1.0e12), nuprefac * tcos.Neff, rtol=1e-12
+    )
+
+    tcos = FlatLambdaCDM(75.0, 0.25, Tcmb0=3.0, Neff=3, m_nu=u.Quantity(100.0, u.eV))
+    y = (tcos.m_nu[0] / (const.k_B * tcos.Tnu0)).to_value(u.one)
+    f_mean = tcos.nu_relative_density(0.0) / (nuprefac * tcos.Neff)
+    assert u.allclose(f_mean / y, k_exact, rtol=1e-8)
 
 
 ##############################################################################

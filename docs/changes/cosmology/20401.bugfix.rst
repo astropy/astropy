@@ -1,0 +1,1 @@
+The closed form used by ``FLRW.nu_relative_density`` (and the matching Cython ``nufunc``) is now exact at both Fermi-Dirac limits and has a worst relative error of ``7.2e-5`` against the integral, replacing the Komatsu et al. (2011) two-constant fit (worst relative error ``3.4e-3``).
