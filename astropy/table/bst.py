@@ -1,11 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import operator
+import sys
 from collections.abc import Hashable, Mapping, Sequence
 from numbers import Integral
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 __all__ = ["BST"]
 
@@ -159,9 +166,14 @@ class Node:
         return str(self)
 
 
+@deprecate_doc(since="8.1")
 @deprecated(
-    since="8.1",
-    alternative="SortedArray (the default engine) or SCEngine",
+    deprecation_msg(
+        "BST",
+        alternative="SortedArray (the default engine) or SCEngine",
+        obj_type="class",
+    ),
+    category=AstropyDeprecationWarning,
 )
 class BST:
     """

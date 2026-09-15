@@ -206,14 +206,21 @@ reordering of indices - c[1:2] -> reference - array.view(Column) -> no indices
 
 from __future__ import annotations
 
+import sys
 from copy import deepcopy
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .sorted_array import SortedArray
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 if TYPE_CHECKING:
     from collections.abc import Hashable, Mapping, Sequence
@@ -496,7 +503,11 @@ class Index:
         """
         return self.data.find(key)
 
-    @deprecated(since="7.2.0")
+    @deprecate_doc(since="7.2.0")
+    @deprecated(
+        deprecation_msg("same_prefix", obj_type="function"),
+        category=AstropyDeprecationWarning,
+    )
     def same_prefix(self, key):
         """
         Return rows whose keys contain the supplied key as a prefix.
@@ -508,7 +519,11 @@ class Index:
         """
         return self.same_prefix_range(key, key, (True, True))
 
-    @deprecated(since="7.2.0")
+    @deprecate_doc(since="7.2.0")
+    @deprecated(
+        deprecation_msg("same_prefix_range", obj_type="function"),
+        category=AstropyDeprecationWarning,
+    )
     def same_prefix_range(self, lower, upper, bounds=(True, True)):
         """
         Return rows whose keys have a prefix in the given range.
@@ -1080,13 +1095,14 @@ class TableIndices(list):
         return super().__getitem__(item)
 
 
+@deprecate_doc(since="7.2.0")
 @deprecated(
-    since="7.2.0",
-    message="""\
-Calling `Table.loc/iloc/loc_indices[index_id, item]` to select `item` from index
-`index_id` is deprecated. Instead select the index using the syntax
-`Table.loc/iloc/loc_indices.with_index(index_id)[item]`.
-""",
+    deprecation_msg(
+        "interpret_item_as_index_id_and_item",
+        message="Calling `Table.loc/iloc/loc_indices[index_id, item]` to select `item` from index\n`index_id` is deprecated. Instead select the index using the syntax\n`Table.loc/iloc/loc_indices.with_index(index_id)[item]`.\n",
+        obj_type="function",
+    ),
+    category=AstropyDeprecationWarning,
 )
 def interpret_item_as_index_id_and_item(item: tuple) -> tuple:
     """Interpret the item as a (index_id, item) tuple."""

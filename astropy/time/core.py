@@ -10,6 +10,7 @@ import copy
 import enum
 import operator
 import os
+import sys
 import threading
 from collections import defaultdict
 from datetime import UTC, date, datetime
@@ -29,7 +30,7 @@ from astropy.units import UnitConversionError
 from astropy.utils import lazyproperty
 from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data_info import MixinInfo, data_info_factory
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import (
     MaskableShapedLikeNDArray,
@@ -53,6 +54,11 @@ from .formats import (
 )
 from .time_helper.function_helpers import CUSTOM_FUNCTIONS, UNSUPPORTED_FUNCTIONS
 from .utils import day_frac
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 if TYPE_CHECKING:
     import astropy.coordinates
@@ -1649,7 +1655,11 @@ class TimeBase(MaskableShapedLikeNDArray):
         else:
             return super().__array_function__(function, types, args, kwargs)
 
-    @deprecated("7.0", alternative="np.ptp")
+    @deprecate_doc(since="7.0")
+    @deprecated(
+        deprecation_msg("ptp", alternative="np.ptp", obj_type="function"),
+        category=AstropyDeprecationWarning,
+    )
     def ptp(self, axis=None, out=None, keepdims=False):
         """Peak to peak (maximum - minimum) along a given axis.
 

@@ -6,12 +6,20 @@ Utililies used for constructing and inspecting rotation matrices.
 
 __all__ = ["is_rotation_or_reflection", "rotation_matrix"]
 
+import sys
+
 import numpy as np
 
 from astropy import units as u
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .angles import Angle
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 
 def matrix_transpose(matrix):
@@ -92,7 +100,11 @@ def rotation_matrix(angle, axis="z", unit=None):
     return R
 
 
-@deprecated(since="7.2")
+@deprecate_doc(since="7.2")
+@deprecated(
+    deprecation_msg("angle_axis", obj_type="function"),
+    category=AstropyDeprecationWarning,
+)
 def angle_axis(matrix):
     """
     Angle of rotation and rotation axis for a given rotation matrix.
@@ -157,7 +169,13 @@ def is_rotation_or_reflection(matrix, atol=None):
     ).all(axis=(-2, -1))
 
 
-@deprecated(since="7.2", alternative="is_rotation_or_reflection")
+@deprecate_doc(since="7.2")
+@deprecated(
+    deprecation_msg(
+        "is_O3", alternative="is_rotation_or_reflection", obj_type="function"
+    ),
+    category=AstropyDeprecationWarning,
+)
 def is_O3(matrix, atol=None):
     """Check whether a matrix is in the length-preserving group O(3).
 
@@ -188,7 +206,11 @@ def is_O3(matrix, atol=None):
     return is_rotation_or_reflection(matrix, atol)
 
 
-@deprecated(since="7.2")
+@deprecate_doc(since="7.2")
+@deprecated(
+    deprecation_msg("is_rotation", obj_type="function"),
+    category=AstropyDeprecationWarning,
+)
 def is_rotation(matrix, allow_improper=False, atol=None):
     """Check whether a matrix is a rotation, proper or improper.
 

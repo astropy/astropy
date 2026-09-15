@@ -3,6 +3,7 @@
 
 import abc
 import numbers
+import sys
 from collections.abc import Sequence
 from itertools import zip_longest
 from math import prod
@@ -14,7 +15,13 @@ import numpy._core as np_core
 from numpy.lib.array_utils import normalize_axis_index
 from numpy.typing import NDArray
 
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 __all__ = [
     "IncompatibleShapeError",
@@ -384,7 +391,13 @@ class IncompatibleShapeError(ValueError):
         super().__init__(shape_a, shape_a_idx, shape_b, shape_b_idx)
 
 
-@deprecated("7.0", alternative="np.broadcast_shapes")
+@deprecate_doc(since="7.0")
+@deprecated(
+    deprecation_msg(
+        "check_broadcast", alternative="np.broadcast_shapes", obj_type="function"
+    ),
+    category=AstropyDeprecationWarning,
+)
 def check_broadcast(*shapes: tuple[int, ...]) -> tuple[int, ...]:
     """
     Determines whether two or more Numpy arrays can be broadcast with each

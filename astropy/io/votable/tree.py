@@ -9,6 +9,7 @@ import io
 import json
 import os
 import re
+import sys
 import urllib.request
 
 # THIRD-PARTY
@@ -18,7 +19,7 @@ from numpy import ma
 # LOCAL
 from astropy import __version__ as astropy_version
 from astropy.io import fits
-from astropy.utils import deprecated
+from astropy.utils import deprecate_doc, deprecation_msg
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.xml import iterparser
@@ -82,12 +83,18 @@ from .exceptions import (
     W54,
     W56,
     W57,
+    AstropyDeprecationWarning,
     vo_raise,
     vo_reraise,
     vo_warn,
     warn_or_raise,
     warn_unknown_attrs,
 )
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 try:
     from . import tablewriter
@@ -3804,7 +3811,11 @@ class MivotBlock(Element):
             return VOTableFile(config=config, pos=(1, 1)).parse(iterator, config)
 
 
-@deprecated("6.0", alternative="TableElement")
+@deprecate_doc(since="6.0")
+@deprecated(
+    deprecation_msg("Table", alternative="TableElement", obj_type="class"),
+    category=AstropyDeprecationWarning,
+)
 class Table(TableElement):
     pass
 

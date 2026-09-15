@@ -40,9 +40,14 @@ from astropy.utils.compat.optional_deps import (
     HAS_LZMA,
     HAS_UNCOMPRESSPY,
 )
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.introspection import find_current_module
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 # Order here determines order in the autosummary
 __all__ = [
@@ -186,7 +191,13 @@ def is_url(string: str) -> bool:
 
 
 # Backward compatibility because some downstream packages allegedly use it.
-@deprecated(since="8.1.0", alternative="astropy.utils.data.is_url")
+@deprecate_doc(since="8.1.0")
+@deprecated(
+    deprecation_msg(
+        "_is_url", alternative="astropy.utils.data.is_url", obj_type="function"
+    ),
+    category=AstropyDeprecationWarning,
+)
 def _is_url(string: str) -> bool:
     return is_url(string)
 

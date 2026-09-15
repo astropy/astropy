@@ -43,13 +43,19 @@ Example usage of ``showtable-astropy``:
 """
 
 import argparse
+import sys
 import textwrap
 import warnings
 
 from astropy import log
 from astropy.table import Table
-from astropy.utils.decorators import deprecated
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 
 def showtable(filename, args):
@@ -193,6 +199,10 @@ def main(args=None):
         showtable(filename, args)
 
 
-@deprecated("v7.1", name="showtable", alternative="showtable-astropy")
+@deprecate_doc(since="v7.1")
+@deprecated(
+    deprecation_msg("showtable", alternative="showtable-astropy", obj_type="function"),
+    category=AstropyDeprecationWarning,
+)
 def main_deprecated(args=None):
     main(args)

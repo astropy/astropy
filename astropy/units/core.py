@@ -6,6 +6,7 @@ Core units classes and functions.
 
 import inspect
 import operator
+import sys
 import textwrap
 import unicodedata
 import warnings
@@ -18,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, NamedTuple, Self, Union, 
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
 from .errors import UnitConversionError, UnitParserWarning, UnitsError, UnitsWarning
@@ -36,6 +37,11 @@ from .utils import (
     sanitize_power,
     sanitize_scale,
 )
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 if TYPE_CHECKING:
     import astropy.units
@@ -677,7 +683,11 @@ class UnitBase:
         else:
             return self.get_converter(other, equivalencies)(value)
 
-    @deprecated(since="7.0", alternative="to()")
+    @deprecate_doc(since="7.0")
+    @deprecated(
+        deprecation_msg("in_units", alternative="to()", obj_type="function"),
+        category=AstropyDeprecationWarning,
+    )
     def in_units(self, other, value=1.0, equivalencies=[]):
         """
         Alias for `to` for backward compatibility with pynbody.
@@ -1830,7 +1840,13 @@ class NamedUnit(UnitBase):
         else:
             return names[0]
 
-    @deprecated(since="7.0", alternative="to_string()")
+    @deprecate_doc(since="7.0")
+    @deprecated(
+        deprecation_msg(
+            "get_format_name", alternative="to_string()", obj_type="function"
+        ),
+        category=AstropyDeprecationWarning,
+    )
     def get_format_name(self, format):
         """
         Get a name for this unit that is specific to a particular

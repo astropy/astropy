@@ -5,13 +5,28 @@ part of a larger framework or standard.
 """
 
 import pickle
+import sys
 
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 __all__ = ["fnpickle", "fnunpickle"]
 
 
-@deprecated(since="6.0", message="Use pickle from standard library, if you must")
+@deprecate_doc(since="6.0")
+@deprecated(
+    deprecation_msg(
+        "fnunpickle",
+        message="Use pickle from standard library, if you must",
+        obj_type="function",
+    ),
+    category=AstropyDeprecationWarning,
+)
 def fnunpickle(fileorname, number=0):
     """Unpickle pickled objects from a specified file and return the contents.
 
@@ -71,7 +86,15 @@ def fnunpickle(fileorname, number=0):
     return res
 
 
-@deprecated(since="6.0", message="Use pickle from standard library, if you must")
+@deprecate_doc(since="6.0")
+@deprecated(
+    deprecation_msg(
+        "fnpickle",
+        message="Use pickle from standard library, if you must",
+        obj_type="function",
+    ),
+    category=AstropyDeprecationWarning,
+)
 def fnpickle(object, fileorname, protocol=None, append=False):
     """Pickle an object to a specified file.
 

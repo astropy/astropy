@@ -24,8 +24,14 @@ from urllib.parse import urlencode
 
 import numpy as np
 
-from astropy.utils import deprecated
+from astropy.utils import deprecate_doc, deprecation_msg
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.version import version as __version__
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 __all__ = [
     "JsonCustomEncoder",
@@ -51,7 +57,11 @@ _NOT_OVERWRITING_MSG_MATCH: Final = (
 )
 
 
-@deprecated(since="7.2", alternative="numpy.iterable()")
+@deprecate_doc(since="7.2")
+@deprecated(
+    deprecation_msg("isiterable", alternative="numpy.iterable()", obj_type="function"),
+    category=AstropyDeprecationWarning,
+)
 def isiterable(obj):
     """Returns `True` if the given object is iterable."""
     try:
@@ -61,7 +71,11 @@ def isiterable(obj):
         return False
 
 
-@deprecated(since="6.1", alternative="textwrap.indent()")
+@deprecate_doc(since="6.1")
+@deprecated(
+    deprecation_msg("indent", alternative="textwrap.indent()", obj_type="function"),
+    category=AstropyDeprecationWarning,
+)
 def indent(s, shift=1, width=4):
     """Indent a block of text.  The indentation is applied to each line."""
     indented = "\n".join(" " * (width * shift) + l if l else "" for l in s.splitlines())
@@ -96,7 +110,11 @@ def silence() -> Generator[None, None, None]:
     sys.stderr = old_stderr
 
 
-@deprecated(since="7.0")
+@deprecate_doc(since="7.0")
+@deprecated(
+    deprecation_msg("format_exception", obj_type="function"),
+    category=AstropyDeprecationWarning,
+)
 def format_exception(msg, *args, **kwargs):
     """Fill in information about the exception that occurred.
 

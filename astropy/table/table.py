@@ -17,11 +17,15 @@ from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
 from astropy.units.quantity import preserve_dtype_by_default
-from astropy.utils import deprecated
+from astropy.utils import deprecate_doc, deprecation_msg
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
 from astropy.utils.decorators import format_doc
-from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.exceptions import (
+    AstropyDeprecationWarning,
+    AstropyPendingDeprecationWarning,
+    AstropyUserWarning,
+)
 from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaAttribute, MetaData
 
@@ -51,6 +55,11 @@ from .mixins.registry import get_mixin_handler
 from .ndarray_mixin import NdarrayMixin  # noqa: F401
 from .pprint import TableFormatter
 from .row import Row
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 _implementation_notes = """
 This string has informal notes concerning Table implementation for developers.
@@ -375,13 +384,23 @@ class TableColumns(OrderedDict):
     # When the deprecation period of setdefault() and update() is over then they
     # need to be rewritten to raise an error, not removed.
 
+    @deprecate_doc(since="6.1")
     @deprecated(
-        since="6.1", alternative="t.setdefault()", name="t.columns.setdefault()"
+        deprecation_msg(
+            "t.columns.setdefault()", alternative="t.setdefault()", obj_type="function"
+        ),
+        category=AstropyDeprecationWarning,
     )
     def setdefault(self, key, default):
         return super().setdefault(key, default)
 
-    @deprecated(since="6.1", alternative="t.update()", name="t.columns.update()")
+    @deprecate_doc(since="6.1")
+    @deprecated(
+        deprecation_msg(
+            "t.columns.update()", alternative="t.update()", obj_type="function"
+        ),
+        category=AstropyDeprecationWarning,
+    )
     def update(self, *args, **kwargs):
         return super().update(*args, **kwargs)
 
@@ -1864,12 +1883,15 @@ class Table:
 
         return func(self, **kwargs)
 
+    @deprecate_doc(since="6.1")
     @deprecated(
-        "6.1",
-        pending=True,
-        message="""We are planning on deprecating show_in_browser in the future.
-                If you are actively using this method, please let us know
-                at https://github.com/astropy/astropy/issues/16067""",
+        deprecation_msg(
+            "show_in_browser",
+            message="We are planning on deprecating show_in_browser in the future.\n                If you are actively using this method, please let us know\n                at https://github.com/astropy/astropy/issues/16067",
+            obj_type="function",
+            pending=True,
+        ),
+        category=AstropyPendingDeprecationWarning,
     )
     def show_in_browser(
         self,
@@ -2011,7 +2033,13 @@ class Table:
 
         return lines
 
-    @deprecated(since="7.0", alternative="Table.pformat")
+    @deprecate_doc(since="7.0")
+    @deprecated(
+        deprecation_msg(
+            "pformat_all", alternative="Table.pformat", obj_type="function"
+        ),
+        category=AstropyDeprecationWarning,
+    )
     @format_doc(_pformat_docs, id="{id}")
     def pformat_all(
         self,

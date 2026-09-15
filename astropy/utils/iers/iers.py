@@ -11,6 +11,7 @@ celestial-to-terrestrial coordinate transformations
 
 import os
 import re
+import sys
 from datetime import UTC, datetime
 from typing import Self
 from urllib.parse import urlparse
@@ -41,9 +42,14 @@ from astropy.utils.data import (
     get_readable_fileobj,
     is_url_in_cache,
 )
-from astropy.utils.decorators import deprecated
+from astropy.utils.decorators import deprecate_doc, deprecation_msg
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.state import ScienceState
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 __all__ = [
     "FROM_IERS_A",
@@ -516,7 +522,11 @@ class IERS(QTable):
         return np.zeros_like(i)
 
     @property
-    @deprecated(since="8.0", alternative="Time.now()", obj_type="property")
+    @deprecate_doc(since="8.0")
+    @deprecated(
+        deprecation_msg("time_now", alternative="Time.now()", obj_type="property"),
+        category=AstropyDeprecationWarning,
+    )
     def time_now(self):
         """
         Property to provide the current time, but also allow for explicitly setting

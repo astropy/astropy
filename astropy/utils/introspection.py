@@ -13,15 +13,27 @@ from typing import Literal
 
 from packaging.version import Version
 
-from .decorators import deprecated
+from .decorators import deprecate_doc, deprecation_msg
+from .exceptions import AstropyDeprecationWarning
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
 
 __all__ = ["find_current_module", "isinstancemethod", "minversion", "resolve_name"]
 
 __doctest_skip__ = ["find_current_module"]
 
 
+@deprecate_doc(since="7.0")
 @deprecated(
-    since="7.0", alternative="importlib (e.g. importlib.import_module for modules)"
+    deprecation_msg(
+        "resolve_name",
+        alternative="importlib (e.g. importlib.import_module for modules)",
+        obj_type="function",
+    ),
+    category=AstropyDeprecationWarning,
 )
 def resolve_name(name: str, *additional_parts: str) -> object:
     """Resolve a name like ``module.object`` to an object and return it.
@@ -303,7 +315,11 @@ def _get_module_from_frame(frm: FrameType) -> ModuleType | None:
     return None
 
 
-@deprecated(since="6.1")
+@deprecate_doc(since="6.1")
+@deprecated(
+    deprecation_msg("find_mod_objs", obj_type="function"),
+    category=AstropyDeprecationWarning,
+)
 def find_mod_objs(modname, onlylocals=False):
     """Returns all the public attributes of a module referenced by name.
 
@@ -371,7 +387,11 @@ def find_mod_objs(modname, onlylocals=False):
 
 # Note: I would have preferred call this is_instancemethod, but this naming is
 # for consistency with other functions in the `inspect` module
-@deprecated(since="6.1")
+@deprecate_doc(since="6.1")
+@deprecated(
+    deprecation_msg("isinstancemethod", obj_type="function"),
+    category=AstropyDeprecationWarning,
+)
 def isinstancemethod(cls, obj):
     """
     Returns `True` if the given object is an instance method of the class
