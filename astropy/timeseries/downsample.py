@@ -78,7 +78,14 @@ def _to_relative_longdouble(time: Time, rel_base: Time) -> np.longdouble:
     # Relative time in seconds with np.longdouble type is used to:
     # - a consistent format for search, irrespective of the format/scale of the inputs,
     # - retain the best precision possible
-    return (time - rel_base).to_value(format="sec", subfmt="long")
+    rel = (time - rel_base).to_value(format="sec", subfmt="long")
+    # `np.searchsorted` does not support masked arrays, so for a masked ``time``
+    # return a plain ndarray. Callers ensure that no element is actually masked,
+    # but just in case, use NaN for masked elements: all comparisons with NaN are
+    # False, so such elements would not fall in any bin.
+    if isinstance(rel, Masked):
+        rel = rel.filled(np.nan)
+    return rel
 
 
 def aggregate_downsample(
@@ -150,6 +157,10 @@ def aggregate_downsample(
     if time_bin_end is not None and not isinstance(time_bin_end, (Time, TimeDelta)):
         time_bin_end = Time(time_bin_end)
 
+    # Rows with a masked time cannot be assigned to any bin, so drop them.
+    if time_series.time.masked and np.any(time_series.time.mask):
+        time_series = time_series[~time_series.time.mask]
+
     # Use the table sorted by time
     ts_sorted = time_series.iloc[:]
 
@@ -216,6 +227,9 @@ def aggregate_downsample(
     # Start and end times of the binned timeseries
     bin_start = binned.time_bin_start
     bin_end = binned.time_bin_end
+    for name, bin_edge in (("time_bin_start", bin_start), ("time_bin_end", bin_end)):
+        if bin_edge.masked and np.any(bin_edge.mask):
+            raise ValueError(f"'{name}' must not contain masked values")
 
     # Set `n_bins` to match the length of `time_bin_start` if
     # `n_bins` is unspecified or if `time_bin_start` is an iterable
