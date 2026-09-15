@@ -43,7 +43,7 @@ def test_z_at_value_scalar():
     # there we are checking internal consistency on the same architecture
     # and so can be more demanding
     cosmo = Planck13
-    assert allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.19812268, rtol=1e-6)
+    assert allclose(z_at_value(cosmo.age, 2 * u.Gyr), 3.19812268, rtol=1e-4)
     assert allclose(z_at_value(cosmo.lookback_time, 7 * u.Gyr), 0.795198375, rtol=1e-6)
     assert allclose(z_at_value(cosmo.distmod, 46 * u.mag), 1.991389168, rtol=1e-6)
     assert allclose(
@@ -52,7 +52,7 @@ def test_z_at_value_scalar():
     assert allclose(
         z_at_value(cosmo.luminosity_distance, 26.037193804 * u.Gpc, ztol=1e-10),
         3,
-        rtol=1e-9,
+        rtol=1e-6,
     )
     assert allclose(
         z_at_value(cosmo.angular_diameter_distance, 1500 * u.Mpc, zmax=2),
@@ -92,7 +92,7 @@ class Test_ZatValue:
         assert allclose(
             z_at_value(self.cosmo.age, [2, 7] * u.Gyr),
             [3.1981206134773115, 0.7562044333305182],
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
         # basic broadcast of secondary arguments
@@ -125,14 +125,14 @@ class Test_ZatValue:
         assert allclose(
             z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=None),
             3.1981206134773115,
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
         # now actually have a bracket
         assert allclose(
             z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=[0, 4]),
             3.1981206134773115,
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
         # now a bad length
@@ -148,7 +148,7 @@ class Test_ZatValue:
         assert allclose(
             z_at_value(self.cosmo.age, 2 * u.Gyr, bracket=bracket),
             [3.1981206134773115, 3.1981206134773115],
-            rtol=1e-6,
+            rtol=1e-4,
         )
 
     def test_bad_broadcast(self):

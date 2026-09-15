@@ -283,7 +283,7 @@ To find the redshift using ``z_at_value``:
   >>> import astropy.units as u
   >>> from astropy.cosmology import Planck13, z_at_value
   >>> z_at_value(Planck13.age, 2 * u.Gyr)  # doctest: +FLOAT_CMP
-  <Quantity 3.19812061 redshift>
+  <Quantity 3.19812723 redshift>
 
 ..
   EXAMPLE END

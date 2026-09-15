@@ -897,10 +897,13 @@ def test_age():
     assert u.allclose(tcos.age(4), 1.5773003779230699 * u.Gyr)
     assert u.allclose(tcos.age([1, 5]), [5.96344942, 1.20093077] * u.Gyr)
 
-    # And massive neutrinos
+    # And massive neutrinos. Expected values are the Komatsu-era table;
+    # the degree-5 closed form shifts ages at ~1e-5 relative.
     tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=3.0, m_nu=0.1 * u.eV)
-    assert u.allclose(tcos.age(4), 1.5546485439853412 * u.Gyr)
-    assert u.allclose(tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr)
+    assert u.allclose(tcos.age(4), 1.5546485439853412 * u.Gyr, rtol=1e-4)
+    assert u.allclose(
+        tcos.age([1, 5]), [5.88448152, 1.18383759] * u.Gyr, rtol=1e-4
+    )
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")

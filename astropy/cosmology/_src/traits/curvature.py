@@ -78,10 +78,10 @@ class CurvatureComponent:
         >>> cosmo = Planck18.clone(Ode0=0.71, to_nonflat=True)
 
         >>> cosmo.Ok0
-        np.float64(-0.021153694455455927)
+        np.float64(-0.02115373344630411)
 
         >>> cosmo.Ok(100)
-        np.float64(-0.0006557825253017665)
+        np.float64(-0.0006557825674951088)
 
         """
         z = aszarr(z)

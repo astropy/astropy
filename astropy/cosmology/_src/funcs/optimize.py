@@ -340,7 +340,7 @@ def z_at_value(
     unique solution can be found:
 
     >>> z_at_value(Planck13.age, 2 * u.Gyr)               # doctest: +FLOAT_CMP
-    <Quantity 3.19812268 redshift>
+    <Quantity 3.19812723 redshift>
 
     The angular diameter is not monotonic however, and there are two
     redshifts that give a value of 1500 Mpc. You can use the zmin and
@@ -348,10 +348,10 @@ def z_at_value(
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, zmax=1.5)                # doctest: +FLOAT_CMP
-    <Quantity 0.68044452 redshift>
+    <Quantity 0.6804445 redshift>
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, zmin=2.5)                # doctest: +FLOAT_CMP
-    <Quantity 3.7823268 redshift>
+    <Quantity 3.782329 redshift>
 
     Alternatively the ``bracket`` option may be used to initialize the
     function solver on a desired region, but one should be aware that this
@@ -362,32 +362,32 @@ def z_at_value(
 
     >>> z_at_value(Planck18.angular_diameter_distance, 1500 * u.Mpc,
     ...            method="Brent", bracket=(1.0, 1.2))  # doctest: +FLOAT_CMP +IGNORE_WARNINGS
-    <Quantity 0.68044452 redshift>
+    <Quantity 0.6804445 redshift>
 
     But this is not ascertained especially if the bracket is chosen too wide
     and/or too close to the turning point:
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(0.1, 1.5))           # doctest: +SKIP
-    <Quantity 3.7823268 redshift>                              # doctest: +SKIP
+    <Quantity 3.782329 redshift>                              # doctest: +SKIP
 
     Likewise, even for the same minimizer and same starting conditions different
     results can be found depending on architecture or library versions:
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(2.0, 2.5))           # doctest: +SKIP
-    <Quantity 3.7823268 redshift>                              # doctest: +SKIP
+    <Quantity 3.782329 redshift>                              # doctest: +SKIP
 
     >>> z_at_value(Planck18.angular_diameter_distance,
     ...            1500 * u.Mpc, bracket=(2.0, 2.5))           # doctest: +SKIP
-    <Quantity 0.68044452 redshift>                             # doctest: +SKIP
+    <Quantity 0.6804445 redshift>                             # doctest: +SKIP
 
     It is therefore generally safer to use the 3-parameter variant to ensure
     the solution stays within the bracketing limits:
 
     >>> z_at_value(Planck18.angular_diameter_distance, 1500 * u.Mpc, method="Brent",
     ...            bracket=(0.1, 1.0, 1.5))               # doctest: +FLOAT_CMP
-    <Quantity 0.68044452 redshift>
+    <Quantity 0.6804445 redshift>
 
     Also note that the luminosity distance and distance modulus (two
     other commonly inverted quantities) are monotonic in flat and open
@@ -402,20 +402,20 @@ def z_at_value(
     array of ``fval``:
 
     >>> z_at_value(Planck13.age, [2, 7] * u.Gyr)          # doctest: +FLOAT_CMP
-    <Quantity [3.19812061, 0.75620443] redshift>
+    <Quantity [3.19812723, 0.75620555] redshift>
 
     ``fval`` can be any shape:
 
     >>> z_at_value(Planck13.age, [[2, 7], [1, 3]]*u.Gyr)  # doctest: +FLOAT_CMP
-    <Quantity [[3.19812061, 0.75620443],
-               [5.67661227, 2.19131955]] redshift>
+    <Quantity [[3.19812723, 0.75620555],
+               [5.67662838, 2.19132334]] redshift>
 
     Other arguments can be arrays. For non-monotic functions  -- for example,
     the angular diameter distance -- this can be useful to find all solutions.
 
     >>> z_at_value(Planck13.angular_diameter_distance, 1500 * u.Mpc,
     ...            zmin=[0, 2.5], zmax=[2, 4])            # doctest: +FLOAT_CMP
-    <Quantity [0.68127747, 3.79149062] redshift>
+    <Quantity [0.68127745, 3.79149278] redshift>
 
     The ``bracket`` argument can likewise be be an array. However, since
     bracket must already be a sequence (or None), it MUST be given as an
