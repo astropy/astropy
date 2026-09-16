@@ -198,3 +198,17 @@ def test_intermediate_nutation_interpolation(frames, inverse, shape):
     if shape:
         # Ensure the transformation actually uses interpolated nutation.
         assert np.any(separation > 0.005 * u.microarcsecond)
+
+
+@pytest.mark.parametrize("shape", [(), (10,), (2, 5)])
+def test_nutation_matrices_match_erfa(shape):
+    time = Time("2025-01-01") + (
+        np.linspace(0, 365, np.prod(shape, dtype=int)).reshape(shape) * u.day
+    )
+    tt = time.tt
+    expected = erfa.pnm06a(tt.jd1, tt.jd2)
+    assert_array_equal(ErfaAstrom().pnm06a(time), expected)
+
+    interpolated = ErfaAstromInterpolator(5 * u.min).pnm06a(time)
+    atol = (1 * u.microarcsecond).to_value(u.rad)
+    assert_allclose(interpolated, expected, rtol=0, atol=atol)
