@@ -7,6 +7,7 @@ import erfa
 
 from astropy import units as u
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.erfa_astrom import erfa_astrom
 from astropy.coordinates.errors import UnitsError
 from astropy.coordinates.matrix_utilities import matrix_transpose, rotation_matrix
 from astropy.coordinates.transformations import (
@@ -51,7 +52,7 @@ def _true_ecliptic_rotation_matrix(equinox):
     # (ERFA names short for F-W's gamma_bar, phi_bar, psi_bar and epsilon_A).
     gamb, phib, psib, epsa = erfa.pfw06(jd1, jd2)
     # pnm06a: Nutation components (in longitude and obliquity).
-    dpsi, deps = erfa.nut06a(jd1, jd2)
+    dpsi, deps = erfa_astrom.get().nut06a(equinox)
     # pnm06a: Equinox based nutation x precession x bias matrix.
     rnpb = erfa.fw2m(gamb, phib, psib + dpsi, epsa + deps)
     # calculate the true obliquity of the ecliptic

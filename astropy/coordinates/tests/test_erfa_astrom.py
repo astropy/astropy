@@ -1,8 +1,17 @@
+import erfa
 import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.coordinates import CIRS, GCRS, AltAz, EarthLocation, SkyCoord
+from astropy.coordinates import (
+    CIRS,
+    GCRS,
+    ICRS,
+    AltAz,
+    EarthLocation,
+    GeocentricTrueEcliptic,
+    SkyCoord,
+)
 from astropy.coordinates.erfa_astrom import (
     ErfaAstrom,
     ErfaAstromInterpolator,
@@ -122,3 +131,39 @@ def test_interpolation_broadcasting():
 
     assert aa_coord.shape == aa_coord_interp.shape
     assert np.all(aa_coord.separation(aa_coord_interp) < 1 * u.microarcsecond)
+
+
+@pytest.mark.parametrize("shape", [(), (1,), (100,), (5, 20)])
+@pytest.mark.parametrize("scale", ["utc", "tt", "tdb"])
+def test_nut06a(shape, scale):
+    t0 = Time("2025-01-01", scale=scale)
+    times = t0 + np.linspace(0, 2, np.prod(shape, dtype=int)).reshape(shape) * u.hour
+    expected = erfa.nut06a(times.tt.jd1, times.tt.jd2)
+    direct = ErfaAstrom().nut06a(times)
+    interpolated = ErfaAstromInterpolator(300 * u.s).nut06a(times)
+    for ref, exact, interp in zip(expected, direct, interpolated):
+        assert np.shape(interp) == shape
+        np.testing.assert_array_equal(exact, ref)
+        np.testing.assert_allclose(
+            interp, ref, rtol=0, atol=(1 * u.microarcsecond).to_value(u.rad)
+        )
+
+
+@pytest.mark.parametrize("inverse", [False, True])
+def test_true_ecliptic_nutation_interpolation(inverse):
+    # Vary equinox independently of obstime, as in an ecliptic-of-date grid.
+    equinox = Time("2025-01-01") + np.linspace(0, 2, 1000) * u.hour
+    ecliptic = GeocentricTrueEcliptic(equinox=equinox)
+    coord = SkyCoord(
+        np.linspace(0, 360, 1000, endpoint=False) * u.deg,
+        0 * u.deg,
+        frame=ecliptic if inverse else ICRS(),
+    )
+    target = ICRS() if inverse else ecliptic
+    reference = coord.transform_to(target)
+    with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
+        interpolated = coord.transform_to(target)
+
+    separation = reference.separation(interpolated)
+    assert np.any(separation > 0.005 * u.microarcsecond)
+    assert np.all(separation < 1 * u.microarcsecond)
