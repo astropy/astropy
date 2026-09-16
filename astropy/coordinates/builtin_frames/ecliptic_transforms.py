@@ -53,10 +53,10 @@ def _true_ecliptic_rotation_matrix(equinox):
     gamb, phib, psib, epsa = erfa.pfw06(jd1, jd2)
     # pnm06a: Nutation components (in longitude and obliquity).
     dpsi, deps = erfa_astrom.get().nut06a(equinox)
-    # pnm06a: Equinox based nutation x precession x bias matrix.
-    rnpb = erfa.fw2m(gamb, phib, psib + dpsi, epsa + deps)
     # calculate the true obliquity of the ecliptic
-    obl = erfa.obl06(jd1, jd2) + deps
+    obl = epsa + deps
+    # pnm06a: Equinox based nutation x precession x bias matrix.
+    rnpb = erfa.fw2m(gamb, phib, psib + dpsi, obl)
     return rotation_matrix(obl << u.radian, "x") @ rnpb
 
 
