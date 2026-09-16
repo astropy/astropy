@@ -742,9 +742,10 @@ scaling is approximately :math:`O[NM]` for :math:`N` data points and
 
 The ``scipy`` method wraps the C implementation of the original Lomb-Scargle
 periodogram which is available in :func:`scipy.signal.lombscargle`. This is
-slightly faster than the ``slow`` method, but does not allow for errors in
-data or extensions such as the floating mean. The scaling is approximately
-:math:`O[NM]` for :math:`N` data points and :math:`M` frequencies.
+slightly faster than the ``slow`` method, but only allows for uniform errors
+in the data, and the floating mean (``fit_mean=True``) requires Scipy 1.15 or
+later. The scaling is approximately :math:`O[NM]` for :math:`N` data points
+and :math:`M` frequencies.
 
 ``method='fast'``
 -----------------
@@ -785,17 +786,17 @@ Summary
 
 The following table summarizes the features of the above algorithms:
 
-==============  ============================  =============  ===============  ========
-Method          Computational                 Observational  Bias Term        Multiple
-                Scaling                       Uncertainties  (Floating Mean)  Terms
-==============  ============================  =============  ===============  ========
-``"slow"``      :math:`O[NM]`                 Yes            Yes              No
-``"cython"``    :math:`O[NM]`                 Yes            Yes              No
-``"scipy"``     :math:`O[NM]`                 No             No               No
-``"fast"``      :math:`O[N\log M]`            Yes            Yes              No
-``"chi2"``      :math:`O[n_fNM]`              Yes            Yes              Yes
-``"fastchi2"``  :math:`O[n_f(M + N\log M)]`   Yes            Yes              Yes
-==============  ============================  =============  ===============  ========
+==============  ============================  =============  =================  ========
+Method          Computational                 Observational  Bias Term          Multiple
+                Scaling                       Uncertainties  (Floating Mean)    Terms
+==============  ============================  =============  =================  ========
+``"slow"``      :math:`O[NM]`                 Yes            Yes                No
+``"cython"``    :math:`O[NM]`                 Yes            Yes                No
+``"scipy"``     :math:`O[NM]`                 Uniform only   Yes (Scipy 1.15+)  No
+``"fast"``      :math:`O[N\log M]`            Yes            Yes                No
+``"chi2"``      :math:`O[n_fNM]`              Yes            Yes                Yes
+``"fastchi2"``  :math:`O[n_f(M + N\log M)]`   Yes            Yes                Yes
+==============  ============================  =============  =================  ========
 
 In the Computational Scaling column, :math:`N` is the number of data points,
 :math:`M` is the number of frequencies, and :math:`n_f` is the number of
