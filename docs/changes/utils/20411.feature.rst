@@ -1,0 +1,3 @@
+Added support for :func:
+umpy.repeat and :func:
+umpy.tile (as well as a new :meth:~astropy.utils.shapes.ShapedLikeNDArray.repeat method) across :class:~astropy.utils.shapes.ShapedLikeNDArray subclasses such as :class:~astropy.time.Time and :class:~astropy.coordinates.SkyCoord.

@@ -66,6 +66,29 @@ def test_take_out_raises():
         shaped.take((0, 1), out=np.empty(2, dtype=int))
 
 
+def test_repeat():
+    shaped = _ShapedDummy([[1, 2], [3, 4]])
+    rep_m = shaped.repeat(2, axis=0)
+    assert rep_m.shape == (4, 2)
+    assert_equal(rep_m._values, [[1, 2], [1, 2], [3, 4], [3, 4]])
+
+    rep_f = np.repeat(shaped, [1, 2], axis=1)
+    assert rep_f.shape == (2, 3)
+    assert_equal(rep_f._values, [[1, 2, 2], [3, 4, 4]])
+
+    # Flattened repeat
+    rep_flat = np.repeat(shaped, 2)
+    assert rep_flat.shape == (8,)
+    assert_equal(rep_flat._values, [1, 1, 2, 2, 3, 3, 4, 4])
+
+
+def test_tile():
+    shaped = _ShapedDummy([[1, 2], [3, 4]])
+    tiled = np.tile(shaped, (2, 3))
+    assert tiled.shape == (4, 6)
+    assert_equal(tiled._values, np.tile([[1, 2], [3, 4]], (2, 3)))
+
+
 TEST_SHAPE = (13, 16, 4, 90)
 
 

@@ -149,6 +149,13 @@ class NDArrayShapeMethods:
 
         return self._apply("take", indices, axis=axis, mode=mode)
 
+    def repeat(self, repeats, axis=None):
+        """Return an instance with repeated elements.
+
+        Parameters are as for :func:`~numpy.repeat` or :meth:`~numpy.ndarray.repeat`.
+        """
+        return self._apply("repeat", repeats, axis=axis)
+
 
 def _combine_helper(func, arrays, axis, out, dtype):
     """Get normalized axis and create empty output instance if needed."""
@@ -303,6 +310,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         np.rot90,
         np.roll,
         np.delete,
+        np.tile,
     }
     # TODO: use astropy.units.quantity_helpers.function_helpers.FunctionAssigner?
     # Maybe better after moving that to astropy.utils, since Masked uses it too.
@@ -331,7 +339,6 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
     # Could be made to work with a bit of effort:
     # np.where, np.compress, np.extract,
     # np.diag_indices_from, np.triu_indices_from, np.tril_indices_from
-    # np.tile, np.repeat (need .repeat method)
     # TODO: create a proper implementation.
     # Furthermore, some arithmetic functions such as np.mean, np.median,
     # could work for Time, and many more for TimeDelta, so those should
