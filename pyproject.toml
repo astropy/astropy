@@ -194,7 +194,6 @@ dataframe = [
 ]
 image_tests = [
     "pytest-mpl>=0.18",
-    "latex>=0.7.0",
     "scipy>=1.13",
 ]
 pyinstaller = [
@@ -911,7 +910,7 @@ no-build-package = [
     # via pyinstaller
     "altgraph",
 
-    # via latex
+    # via pytinstaller -> pefile
     "future",
 
     # via pandas[html]
