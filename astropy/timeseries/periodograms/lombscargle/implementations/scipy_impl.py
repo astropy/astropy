@@ -1,12 +1,16 @@
 import numpy as np
 
+from astropy.timeseries.periodograms.lombscargle.utils import (
+    compute_chi2_ref,
+    convert_normalization,
+)
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 from .utils import SCIPY_LT_1_15
 
 
 def lombscargle_scipy(
-        t, y, frequency, normalization="standard", fit_mean=False, center_data=True
+    t, y, frequency, normalization="standard", center_data=True, *, fit_mean=False
 ):
     """Lomb-Scargle Periodogram.
 
@@ -24,14 +28,14 @@ def lombscargle_scipy(
     normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
+    center_data : bool, optional
+        if True, pre-center the data by subtracting the weighted mean
+        of the input data.
     fit_mean : bool, optional
         if True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage. Requires Scipy 1.15 and corresponds
         to the ``floating_mean`` argument in `scipy.signal.lombscargle`.
-    center_data : bool, optional
-        if True, pre-center the data by subtracting the weighted mean
-        of the input data.
 
     Returns
     -------
@@ -65,36 +69,16 @@ def lombscargle_scipy(
     if center_data:
         y = y - y.mean()
 
-    if SCIPY_LT_1_15:
-        if fit_mean:
-            raise NotImplementedError("`fit_mean=True` requires Scipy 1.15+")
-        else:
-            kwargs = {}
-    else:
-        kwargs = {"floating_mean": fit_mean}
+    if fit_mean and SCIPY_LT_1_15:
+        raise ValueError("fit_mean=True requires scipy 1.15 or later")
+
+    kwargs = {"floating_mean": True} if fit_mean else {}
 
     # Note: scipy `freqs` input is in angular frequencies
     p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
 
-    if normalization not in ("psd", "standard", "log", "model"):
-        raise ValueError(f"normalization='{normalization}' not recognized")
-
     if normalization == "psd":
         return p
 
-    # With a floating mean and uncentered data, the reference chi2 is that of
-    # a model that includes the constant offset, i.e. the variance about the
-    # mean rather than about zero.
-    if center_data or not kwargs.get("floating_mean", False):
-        chi2_ref = 0.5 * t.size * np.mean(y**2)
-    else:
-        chi2_ref = 0.5 * t.size * np.mean((y - y.mean()) ** 2)
-
-    if normalization == "standard":
-        p /= chi2_ref
-    elif normalization == "log":
-        p = -np.log(1 - p / chi2_ref)
-    elif normalization == "model":
-        p /= chi2_ref - p
-
-    return p
+    chi2_ref = compute_chi2_ref(y, center_data=center_data, fit_mean=fit_mean)
+    return convert_normalization(p, t.size, "psd", normalization, chi2_ref=chi2_ref)
