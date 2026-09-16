@@ -703,6 +703,9 @@ class Model(metaclass=_ModelMeta):
     _cov_matrix = None
     _stds = None
 
+    # This class attribute allows users to skip the dimension check which ensures that input coordinates are the same dimensions as the data. It is set as True by default ensuring that the default setting is to perform the dimension check.
+    verify_dims_in_fitting = True
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__()
 
