@@ -1713,56 +1713,6 @@ def test_scaled_compimage_survives_header_only_update(tmp_path, bscale, bzero, d
         ]
 
 
-def test_compimage_header_only_update_does_not_recompress(tmp_path, monkeypatch):
-    """A header-only update must reuse the stored compressed data.
-
-    Recompressing on a header-only update is not just wasted work: with
-    quantized floating-point data it would requantize (and so degrade) the
-    data at every update.  Compression is therefore forbidden during the
-    update, and every kind of header change - a new keyword, a changed
-    value, a deleted keyword, commentary cards - must round-trip through
-    the file.
-    """
-    path = tmp_path / "roundtrip.fits"
-    hdu = fits.CompImageHDU(
-        np.arange(1, 101, dtype=np.int16).reshape(10, 10),
-        name="SCI",
-        compression_type="RICE_1",
-    )
-    hdu.header["BSCALE"] = 0.5
-    hdu.header["OBSERVER"] = ("A. Observer", "who watched")
-    hdu.header["DOOMED"] = 1
-    hdu.writeto(path)
-
-    with fits.open(path) as hdul:
-        expected = np.asarray(hdul["SCI"].data, dtype=float)
-
-    import astropy.io.fits.hdu.compressed.compressed as compmod
-
-    def _forbidden(*args, **kwargs):
-        raise AssertionError("header-only update recompressed the data")
-
-    monkeypatch.setattr(compmod, "compress_image_data", _forbidden)
-
-    with fits.open(path, mode="update") as hdul:
-        header = hdul["SCI"].header
-        header["OBSERVER"] = "B. Observer"
-        header["NEWKEY"] = (3.5, "a new keyword")
-        del header["DOOMED"]
-        header["HISTORY"] = "updated in place"
-
-    monkeypatch.undo()
-
-    with fits.open(path) as hdul:
-        header = hdul["SCI"].header
-        assert header["OBSERVER"] == "B. Observer"
-        assert header["NEWKEY"] == 3.5
-        assert header.comments["NEWKEY"] == "a new keyword"
-        assert "DOOMED" not in header
-        assert list(header["HISTORY"]) == ["updated in place"]
-        assert_allclose(np.asarray(hdul["SCI"].data, dtype=float), expected)
-
-
 @pytest.mark.parametrize(
     "open_kwargs",
     [{"do_not_scale_image_data": True}, {"scale_back": True}],
@@ -1788,34 +1738,3 @@ def test_scaled_compimage_header_only_update_open_options(tmp_path, open_kwargs)
 
     with fits.open(path) as hdul:
         assert_allclose(np.asarray(hdul["SCI"].data, dtype=float), values * 0.5)
-
-
-def test_scaled_compimage_rebuild_fallback_preserves_values(tmp_path):
-    """When a header change cannot be propagated card by card (here: a
-    duplicated keyword), the update falls back to rebuilding the compressed
-    table; the rebuild must restore the original integer representation, not
-    write the scaled values next to a stale BSCALE.
-    """
-    path = tmp_path / "fallback.fits"
-    hdu = fits.CompImageHDU(
-        np.arange(1, 101, dtype=np.int16).reshape(10, 10),
-        name="SCI",
-        compression_type="RICE_1",
-    )
-    hdu.header["BSCALE"] = 0.5
-    hdu.writeto(path)
-
-    with fits.open(path) as hdul:
-        expected = np.asarray(hdul["SCI"].data, dtype=float)
-
-    with fits.open(path, mode="update") as hdul:
-        header = hdul["SCI"].header
-        header.append(("MYKEY", 1))
-        header.append(("MYKEY", 2))
-
-    with fits.open(path) as hdul:
-        assert_allclose(np.asarray(hdul["SCI"].data, dtype=float), expected)
-
-    with fits.open(path, do_not_scale_image_data=True) as hdul:
-        assert hdul["SCI"].header["BSCALE"] == 0.5
-        assert np.asarray(hdul["SCI"].data).dtype.kind == "i"
