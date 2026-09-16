@@ -6,6 +6,7 @@ import warnings
 import erfa
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates import (
@@ -54,13 +55,13 @@ def test_nutation_matrices_match_erfa(shape):
         np.linspace(0, 365, np.prod(shape, dtype=int)).reshape(shape) * u.day
     )
     tt = get_jd12(time, "tt")
-    np.testing.assert_array_equal(_precession_nutation_matrix(time), erfa.pnm06a(*tt))
-    np.testing.assert_array_equal(gcrs_to_cirs_mat(time), erfa.c2i06a(*tt))
+    assert_array_equal(_precession_nutation_matrix(time), erfa.pnm06a(*tt))
+    assert_array_equal(gcrs_to_cirs_mat(time), erfa.c2i06a(*tt))
 
     pmmat = erfa.pom00(*get_polar_motion(time), erfa.sp00(*tt))
     gast = erfa.gst06a(*get_jd12(time, "ut1"), *tt)
     expected = erfa.c2tcio(np.eye(3), gast, pmmat)
-    np.testing.assert_array_equal(tete_to_itrs_mat(time), expected)
+    assert_array_equal(tete_to_itrs_mat(time), expected)
 
 
 def test_icrs_cirs():

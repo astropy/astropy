@@ -1,6 +1,7 @@
 import erfa
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
 from astropy.coordinates import (
@@ -19,6 +20,7 @@ from astropy.coordinates.erfa_astrom import (
     ErfaAstromInterpolator,
     erfa_astrom,
 )
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
 
@@ -140,15 +142,14 @@ def test_interpolation_broadcasting():
 def test_nut06a(shape, scale):
     t0 = Time("2025-01-01", scale=scale)
     times = t0 + np.linspace(0, 2, np.prod(shape, dtype=int)).reshape(shape) * u.hour
+
     expected = erfa.nut06a(times.tt.jd1, times.tt.jd2)
     direct = ErfaAstrom().nut06a(times)
+    assert_array_equal(expected, direct)
+
     interpolated = ErfaAstromInterpolator(300 * u.s).nut06a(times)
-    for ref, exact, interp in zip(expected, direct, interpolated):
-        assert np.shape(interp) == shape
-        np.testing.assert_array_equal(exact, ref)
-        np.testing.assert_allclose(
-            interp, ref, rtol=0, atol=(1 * u.microarcsecond).to_value(u.rad)
-        )
+    atol = (1 * u.microarcsecond).to_value(u.rad)
+    assert_allclose(interpolated, expected, rtol=0, atol=atol)
 
 
 @pytest.mark.parametrize("inverse", [False, True])
@@ -167,8 +168,8 @@ def test_true_ecliptic_nutation_interpolation(inverse):
         interpolated = coord.transform_to(target)
 
     separation = reference.separation(interpolated)
-    assert np.any(separation > 0.005 * u.microarcsecond)
-    assert np.all(separation < 1 * u.microarcsecond)
+    atol = 1 * u.microarcsecond
+    assert_quantity_allclose(separation, 0 * u.microarcsecond, rtol=0, atol=atol)
 
 
 @pytest.mark.parametrize("frames", [(GCRS, CIRS), (GCRS, TETE), (TETE, ITRS)])
@@ -192,7 +193,8 @@ def test_intermediate_nutation_interpolation(frames, inverse, shape):
 
     assert interpolated.shape == shape
     separation = reference.separation(interpolated)
-    assert np.all(separation < 1 * u.microarcsecond)
+    atol = 1 * u.microarcsecond
+    assert_quantity_allclose(separation, 0 * u.microarcsecond, rtol=0, atol=atol)
     if shape:
         # Ensure the transformation actually uses interpolated nutation.
         assert np.any(separation > 0.005 * u.microarcsecond)
