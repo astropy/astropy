@@ -1,0 +1,4 @@
+Fixed a bug that could cause a segmentation fault when using a WCS object with
+``preserve_units=True`` and where units has already been defined and the WCS
+had been set() but the scaling factors were found to be 1, and when cdelt or
+crval were subsequently set.
