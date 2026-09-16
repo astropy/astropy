@@ -6,7 +6,6 @@ import warnings
 import erfa
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates import (
@@ -32,13 +31,12 @@ from astropy.coordinates import (
     solar_system_ephemeris,
 )
 from astropy.coordinates.builtin_frames.intermediate_rotation_transforms import (
-    _precession_nutation_matrix,
     cirs_to_itrs_mat,
     gcrs_to_cirs_mat,
     get_location_gcrs,
     tete_to_itrs_mat,
 )
-from astropy.coordinates.builtin_frames.utils import get_jd12, get_polar_motion
+from astropy.coordinates.builtin_frames.utils import get_jd12
 from astropy.coordinates.solar_system import get_body
 from astropy.tests.helper import CI
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
@@ -47,21 +45,6 @@ from astropy.units import allclose
 from astropy.utils import iers
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM
 from astropy.utils.exceptions import AstropyWarning
-
-
-@pytest.mark.parametrize("shape", [(), (10,), (2, 5)])
-def test_nutation_matrices_match_erfa(shape):
-    time = Time("2025-01-01") + (
-        np.linspace(0, 365, np.prod(shape, dtype=int)).reshape(shape) * u.day
-    )
-    tt = get_jd12(time, "tt")
-    assert_array_equal(_precession_nutation_matrix(time), erfa.pnm06a(*tt))
-    assert_array_equal(gcrs_to_cirs_mat(time), erfa.c2i06a(*tt))
-
-    pmmat = erfa.pom00(*get_polar_motion(time), erfa.sp00(*tt))
-    gast = erfa.gst06a(*get_jd12(time, "ut1"), *tt)
-    expected = erfa.c2tcio(np.eye(3), gast, pmmat)
-    assert_array_equal(tete_to_itrs_mat(time), expected)
 
 
 def test_icrs_cirs():

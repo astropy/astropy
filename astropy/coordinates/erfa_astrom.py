@@ -201,6 +201,32 @@ class ErfaAstrom:
 
         return astrom
 
+    def pnm06a(self, time, return_obl=False):
+        """Compute the IAU 2006/2000A matrix.
+
+        If return_obl is True, the true obliquity is also returned.
+        """
+        # This code calls the same routines as done in pnm06a from ERFA, which
+        # retrieves the precession matrix (including frame bias) according to
+        # the IAU 2006 model, and including the nutation.
+        # This family of systems is less popular
+        # (see https://github.com/astropy/astropy/pull/6508).
+        # Here, we call the three routines from erfa.pnm06a separately,
+        # so that we can keep the nutation for calculating the true obliquity
+        # and so that its possible to use the ErfaAstromInterpolator for the nut06a
+        # computation.
+        # (which is a fairly expensive operation); see gh-11000.
+        # pnm06a: Fukushima-Williams angles for frame bias and precession.
+        # (ERFA names short for F-W's gamma_bar, phi_bar, psi_bar and epsilon_A).
+        gamb, phib, psib, epsa = erfa.pfw06(*get_jd12(time, "tt"))
+        dpsi, deps = self.nut06a(time)
+        obl = epsa + deps
+        rnpb = erfa.fw2m(gamb, phib, psib + dpsi, obl)
+
+        if return_obl:
+            return rnpb, obl
+        return rnpb
+
 
 class ErfaAstromInterpolator(ErfaAstrom):
     """
