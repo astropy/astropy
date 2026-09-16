@@ -1,10 +1,18 @@
+from importlib.metadata import PackageNotFoundError, version
 from math import factorial
 
 import numpy as np
+from packaging.version import Version
 
-from astropy.utils import minversion
+# The distribution metadata gives the scipy version without the cost of
+# importing scipy itself; if scipy is installed without metadata (e.g. in
+# some frozen applications) assume it is recent, and if it is not installed
+# at all this value is never consulted since HAS_SCIPY gates all uses.
+try:
+    SCIPY_LT_1_15 = Version(version("scipy")) < Version("1.15.0.dev0")
+except PackageNotFoundError:
+    SCIPY_LT_1_15 = False
 
-SCIPY_LT_1_15 = not minversion("scipy", "1.15.dev")
 
 def bitceil(N):
     """
