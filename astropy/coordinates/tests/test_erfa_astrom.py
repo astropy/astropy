@@ -7,6 +7,8 @@ from astropy.coordinates import (
     CIRS,
     GCRS,
     ICRS,
+    ITRS,
+    TETE,
     AltAz,
     EarthLocation,
     GeocentricTrueEcliptic,
@@ -167,3 +169,30 @@ def test_true_ecliptic_nutation_interpolation(inverse):
     separation = reference.separation(interpolated)
     assert np.any(separation > 0.005 * u.microarcsecond)
     assert np.all(separation < 1 * u.microarcsecond)
+
+
+@pytest.mark.parametrize("frames", [(GCRS, CIRS), (GCRS, TETE), (TETE, ITRS)])
+@pytest.mark.parametrize("inverse", [False, True])
+@pytest.mark.parametrize("shape", [(), (100,), (5, 20)])
+def test_intermediate_nutation_interpolation(frames, inverse, shape):
+    obstime = Time("2025-01-01") + (
+        np.linspace(0, 2, np.prod(shape, dtype=int)).reshape(shape) * u.hour
+    )
+    source, target = frames[::-1] if inverse else frames
+    coord = SkyCoord(
+        83 * u.deg,
+        22 * u.deg,
+        frame=source(obstime=obstime),
+        representation_type="unitspherical",
+    )
+    target = target(obstime=obstime)
+    reference = coord.transform_to(target)
+    with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
+        interpolated = coord.transform_to(target)
+
+    assert interpolated.shape == shape
+    separation = reference.separation(interpolated)
+    assert np.all(separation < 1 * u.microarcsecond)
+    if shape:
+        # Ensure the transformation actually uses interpolated nutation.
+        assert np.any(separation > 0.005 * u.microarcsecond)

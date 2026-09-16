@@ -1,3 +1,11 @@
-Added ``nut06a`` to ``ErfaAstrom`` and ``ErfaAstromInterpolator``. True-ecliptic
-transformations now use the selected astrometry provider for nutation, enabling
-interpolation when transforming coordinates with many different equinoxes.
+Added ``nut06a`` to ``ErfaAstrom`` and ``ErfaAstromInterpolator`` and
+use it in the following places:
+
+- True-ecliptic transformations
+- GCRS <-> CIRS
+- GCRS <-> TETE
+- TETE <-> ITRS
+- ``EarthLocation.get_gcrs_posvel``.
+
+This enables speeding up these transformations for arrays of densely sampled obstimes
+via ``ErfaAstromInterpolator``.
