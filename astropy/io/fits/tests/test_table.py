@@ -4529,3 +4529,17 @@ def test_zero_row_string_column(tmp_path):
     with fits.open(outfile) as hdul:
         table_data = hdul[1].data
     assert table_data.shape[0] == 0
+
+
+def test_bintable_load_exception_closes_files(tmp_path):
+    datafile = tmp_path / "data.txt"
+    cdfile = tmp_path / "coldefs.txt"
+    datafile.write_text("1 2.0\n", encoding="utf-8")
+    cdfile.write_text("MALFORMED_LINE\n", encoding="utf-8")
+
+    with pytest.raises(IndexError):
+        fits.BinTableHDU.load(datafile=datafile, cdfile=cdfile)
+
+    # Verify files are closed and can be unlinked immediately (prevents WinError 32 on Windows)
+    cdfile.unlink()
+    datafile.unlink()
