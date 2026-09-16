@@ -444,8 +444,12 @@ def test_downsample_subset_columns():
         data=[[1, 2, 3, 4, 5]],
         names=["a"],
     )
-    ts_sub = ts["time", "a"]
-    assert ts_sub.primary_key == ("time",)
-    binned = aggregate_downsample(ts_sub, n_bins=2)
-    assert len(binned) == 2
-    assert_equal(binned["a"], aggregate_downsample(ts, n_bins=2)["a"])
+
+    def do_test(ts_sub, label):
+        assert ts_sub.primary_key == ("time",), label
+        binned = aggregate_downsample(ts_sub, n_bins=2)
+        assert len(binned) == 2, label
+        assert_equal(binned["a"], aggregate_downsample(ts, n_bins=2)["a"], label)
+
+    do_test(ts["time", "a"], "subset by slicing")
+    do_test(TimeSeries(time=ts["time"], data={"a": ts["a"]}), "with new TimeSeries obj")
