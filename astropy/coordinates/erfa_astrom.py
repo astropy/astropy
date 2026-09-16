@@ -50,6 +50,22 @@ class ErfaAstrom:
     """
 
     @staticmethod
+    def nut06a(time):
+        """Compute IAU 2006/2000A nutation components.
+
+        Parameters
+        ----------
+        time : `~astropy.time.Time`
+            Time at which to calculate nutation, converted to TT internally.
+
+        Returns
+        -------
+        dpsi, deps : float or `~numpy.ndarray`
+            Nutation in longitude and obliquity, in radians.
+        """
+        return erfa.nut06a(*get_jd12(time, "tt"))
+
+    @staticmethod
     def apco(frame_or_coord):
         """
         Wrapper for ``erfa.apco``, used in conversions AltAz <-> ICRS and CIRS <-> ICRS.
@@ -279,6 +295,18 @@ class ErfaAstromInterpolator(ErfaAstrom):
             )
 
         return earth_pv, earth_heliocentric
+
+    def nut06a(self, time):
+        """Compute nutation by linearly interpolating support-point values.
+
+        Parameters and return values are as for `ErfaAstrom.nut06a`.
+        """
+        time = time.tt
+        support = self._get_support_points(time)
+        dpsi_support, deps_support = erfa.nut06a(*get_jd12(support, "tt"))
+        interp = functools.partial(np.interp, time.mjd, support.mjd)
+
+        return interp(dpsi_support), interp(deps_support)
 
     def apco(self, frame_or_coord):
         """

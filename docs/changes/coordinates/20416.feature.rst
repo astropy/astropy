@@ -1,0 +1,3 @@
+Added ``nut06a`` to ``ErfaAstrom`` and ``ErfaAstromInterpolator``. True-ecliptic
+transformations now use the selected astrometry provider for nutation, enabling
+interpolation when transforming coordinates with many different equinoxes.
