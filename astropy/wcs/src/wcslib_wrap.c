@@ -2709,7 +2709,7 @@ Wcsprm_set_cdelt(
 
   status = set_double_array("cdelt", value, 1, &dims, self->x.cdelt);
 
-  if (status == 0 && self->original_cunit != NULL) {
+  if (status == 0 && self->unit_scaling != NULL) {
     for (npy_intp i = 0; i < dims; ++i) {
       self->x.cdelt[i] *= self->unit_scaling[i];
     }
@@ -2975,7 +2975,7 @@ Wcsprm_set_crval(
 
   status = set_double_array("crval", value, 1, &naxis, self->x.crval);
 
-  if (status == 0 && self->original_cunit != NULL) {
+  if (status == 0 && self->unit_scaling != NULL) {
     for (npy_intp i = 0; i < naxis; ++i) {
       self->x.crval[i] *= self->unit_scaling[i];
     }
