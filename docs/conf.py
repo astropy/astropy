@@ -37,6 +37,7 @@ from pathlib import Path
 
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+from packaging.utils import canonicalize_name
 from sphinx.util import logging
 
 # from docs import global_substitutions
@@ -425,7 +426,7 @@ __minimum_python_version__ = pyproject["project"]["requires-python"].replace(">=
 min_versions = {}
 for line in metadata.requires("astropy"):
     req = Requirement(line.split(";")[0])
-    min_versions[req.name.lower()] = str(req.specifier)
+    min_versions[canonicalize_name(req.name)] = str(req.specifier)
 
 # The following global_substitutions can be used throughout the
 # documentation via sphinxcontrib-globalsubs. The key to the dictionary
@@ -500,6 +501,7 @@ global_substitutions: dict[str, str] = {
     "minimum_asdf_astropy_version": f"{min_versions['asdf-astropy']}",
     "minimum_packaging_version": f"{min_versions['packaging']}",
     "minimum_pyyaml_version": f"{min_versions['pyyaml']}",
+    "minimum_typing_extensions_version": f"{min_versions['typing-extensions']}",
     "minimum_ipython_version": f"{min_versions['ipython']}",
     "minimum_pyarrow_version": f"{min_versions['pyarrow']}",
     "minimum_fsspec_version": f"{min_versions['fsspec']}",
@@ -530,6 +532,8 @@ links_to_become_substitutions: dict[str, str] = {
     "SciPy": "https://www.scipy.org",
     # packaging
     "packaging": "https://packaging.pypa.io",
+    # typing_extensions
+    "typing_extensions": "https://typing-extensions.readthedocs.io/",
     # IPython
     "IPython": "https://ipython.org",
     # pip
