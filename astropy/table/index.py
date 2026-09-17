@@ -840,7 +840,7 @@ class SlicedIndex:
 
     def get_row_specifier(
         self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
-    ) -> list[int]:
+    ) -> list[Integral]:
         return [
             self.orig_coords(x) for x in self.index.get_row_specifier(row_specifier)
         ]
