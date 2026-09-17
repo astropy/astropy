@@ -124,6 +124,10 @@ class WCSAxes(Axes):
         frame_class=None,
         **kwargs,
     ):
+        # The empty docstring is deliberate: without it, Sphinx inherits the
+        # docstring from matplotlib's Axes.__init__, which contains references
+        # that do not resolve in the astropy documentation.
+        """ """
         super().__init__(fig, *args, **kwargs)
         self._bboxes = []
 
@@ -212,8 +216,9 @@ class WCSAxes(Axes):
 
         Parameters
         ----------
-        X : array-like or PIL image
-            The image data, as for :meth:`~matplotlib.axes.Axes.imshow`.
+        X : array-like
+            The image data, as for :meth:`~matplotlib.axes.Axes.imshow`. A PIL
+            image is also accepted.
         *args, **kwargs
             All other arguments are passed to
             :meth:`~matplotlib.axes.Axes.imshow`.
