@@ -27,9 +27,11 @@ from astropy.coordinates import (
     Distance,
     EarthLocation,
     Galactic,
+    Galactocentric,
     Latitude,
     RepresentationMapping,
     SkyCoord,
+    SkyOffsetFrame,
     SphericalRepresentation,
     UnitSphericalRepresentation,
     frame_transform_graph,
@@ -38,6 +40,7 @@ from astropy.coordinates.representation import (
     DUPLICATE_REPRESENTATIONS,
     REPRESENTATION_CLASSES,
 )
+from astropy.coordinates.sky_coordinate import _item_equal
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.transformations import FunctionTransform
 from astropy.io import fits
@@ -430,6 +433,77 @@ def test_equal():
     assert not v
 
 
+def test_equal_radial_velocity_broadcasting():
+    """Test equality comparison with broadcasting of radial_velocity."""
+    sc_scalar = SkyCoord(1 * u.deg, 3 * u.deg, radial_velocity=1 * u.km / u.s)
+    sc_array = SkyCoord(
+        [1, 1] * u.deg,
+        [3, 3] * u.deg,
+        radial_velocity=[1, 20] * u.km / u.s,
+    )
+
+    eq = sc_scalar == sc_array
+    ne = sc_scalar != sc_array
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+    eq = sc_array == sc_scalar
+    ne = sc_array != sc_scalar
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+
+def test_equal_fk4_frame_attribute_mismatch():
+    """A differing primary frame attribute gives False instead of raising."""
+    sc1 = SkyCoord(1 * u.deg, 3 * u.deg, frame="fk4", equinox="B1950")
+    sc2 = SkyCoord(1 * u.deg, 3 * u.deg, frame="fk4", equinox="B1951")
+
+    assert (sc1 == sc2) is np.False_
+    assert (sc1 != sc2) is np.True_
+
+    sc3 = SkyCoord(1 * u.deg, 3 * u.deg, frame="fk5")
+    assert (sc3 == sc1) is np.False_
+
+
+def test_equal_fk4_frame_attribute_arrays_default():
+    """FK4 equality works with shape-mismatched primary frame attributes."""
+    sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, frame="fk4", equinox="B1950")
+    sc2 = SkyCoord(
+        [1, 20] * u.deg, [3, 4] * u.deg, frame="fk4", equinox=["B1950", "B1950"]
+    )
+    assert sc1.equinox.shape == ()
+    assert sc2.equinox.shape == (2,)
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+
+def test_equal_fk4_frame_attribute_arrays():
+    """FK4 equality works with array-valued primary frame attributes."""
+    equinox = Time(["B1950", "B1951"])
+    obstime = Time(["B1960", "B1961"])
+    sc1 = SkyCoord(
+        [1, 2] * u.deg,
+        [3, 4] * u.deg,
+        frame="fk4",
+        equinox=equinox,
+        obstime=obstime,
+    )
+    sc2 = SkyCoord(
+        [1, 20] * u.deg,
+        [3, 4] * u.deg,
+        frame="fk4",
+        equinox=equinox,
+        obstime=obstime,
+    )
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+
 def test_equal_different_type():
     sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime="B1955")
     # Test equals and not equals operators against different types
@@ -437,19 +511,162 @@ def test_equal_different_type():
     assert not (sc1 == "a string")
 
 
-def test_equal_exceptions():
-    sc1 = SkyCoord(1 * u.deg, 2 * u.deg, obstime="B1955")
-    sc2 = SkyCoord(1 * u.deg, 2 * u.deg)
+def test_equal_extra_frame_attributes():
+    """Extra frame attributes contribute element-wise to equality results."""
+    obstime = Time(["B1955", "B1956"])
+    sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime=obstime)
+    sc2 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime="B1955")
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [True, False])
+    assert np.all(ne == [False, True])
+
+    sc3 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
+    eq = sc1 == sc3
+    ne = sc1 != sc3
+    assert np.all(eq == [False, False])
+    assert np.all(ne == [True, True])
+
+
+def test_equal_extra_frame_attribute_broadcasting_mismatch():
+    """Broadcast extra frame attributes to SkyCoord shape before comparison."""
+    sc1 = SkyCoord(
+        [[1, 2], [1, 2]] * u.deg,
+        [[3, 4], [3, 4]] * u.deg,
+        obstime=Time([["B1955"], ["B1956"]]),
+    )
+    sc2 = SkyCoord(
+        [[1, 2], [1, 2]] * u.deg,
+        [[3, 4], [3, 4]] * u.deg,
+        obstime="B1955",
+    )
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [[True, True], [False, False]])
+    assert np.all(ne == [[False, False], [True, True]])
+
+
+def test_equal_extra_frame_attribute_larger_than_coord_shape():
+    """Extra frame attributes are not broadcast against the data when they are set.
+
+    So unlike a frame attribute, an extra frame attribute can have a shape that
+    does not fit within the SkyCoord shape, and the comparison broadcasts against
+    it, giving a result larger than either input.
+    """
+    sc1 = SkyCoord(
+        [1, 2] * u.deg,
+        [3, 4] * u.deg,
+        obstime=Time([["B1955"], ["B1956"]]),
+    )
+    sc2 = SkyCoord(
+        [1, 2] * u.deg,
+        [3, 4] * u.deg,
+        obstime="B1955",
+    )
+    assert sc1.shape == (2,)
+    assert sc1.obstime.shape == (2, 1)
+
+    eq = sc1 == sc2
+    ne = sc1 != sc2
+    assert np.all(eq == [[True, True], [False, False]])
+    assert np.all(ne == [[False, False], [True, True]])
+
+    # A scalar SkyCoord carrying an array-valued extra frame attribute can be
+    # compared, giving the shape of the attribute.
+    sc3 = SkyCoord(1 * u.deg, 3 * u.deg, obstime=Time(["B1955", "B1956"]))
+    sc4 = SkyCoord(1 * u.deg, 3 * u.deg, obstime=Time(["B1955", "B1957"]))
+    assert sc3.shape == ()
+    assert np.all((sc3 == sc4) == [True, False])
+
+
+def test_equal_extra_frame_attribute_shape_mismatch():
+    """Raise when an extra frame attribute cannot broadcast to comparison shape."""
+    sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime=Time(["B1955", "B1956"]))
+    sc2 = SkyCoord(
+        [1, 2] * u.deg, [3, 4] * u.deg, obstime=Time(["B1955", "B1956", "B1957"])
+    )
+
     with pytest.raises(
         ValueError,
-        match=(
-            "cannot compare: extra frame attribute 'obstime' is not equivalent"
-            r" \(perhaps compare the frames directly to avoid this exception\)"
-        ),
+        match="cannot compare: extra frame attribute 'obstime' has shape mismatch",
     ):
         sc1 == sc2  # noqa: B015
-    # Note that this exception is the only one raised directly in SkyCoord.
-    # All others come from lower-level classes and are tested in test_frames.py.
+
+
+def test_equal_frame():
+    """Comparing to a bare frame goes through the same comparison as a SkyCoord.
+
+    A frame carries no "extra" frame attributes, so a |SkyCoord| that has any is
+    never equal to one.
+    """
+    frame = ICRS([1, 2] * u.deg, [3, 4] * u.deg)
+    sc = SkyCoord([1, 20] * u.deg, [3, 4] * u.deg)
+
+    assert np.all((sc == frame) == [True, False])
+    assert np.all((frame == sc) == [True, False])
+    assert np.all((sc != frame) == [False, True])
+
+    # An extra frame attribute makes the SkyCoord unequal to any bare frame.
+    sc_obstime = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg, obstime="B1955")
+    assert np.all((sc_obstime == frame) == [False, False])
+    assert np.all((frame == sc_obstime) == [False, False])
+
+    # A differing frame attribute or frame class gives False, not an exception.
+    assert (
+        SkyCoord(1 * u.deg, 2 * u.deg, frame="fk5", equinox="J1950")
+        == FK5(1 * u.deg, 2 * u.deg, equinox="J2000")
+    ) is np.False_
+    assert (SkyCoord(1 * u.deg, 2 * u.deg) == FK5(1 * u.deg, 2 * u.deg)) is np.False_
+
+    # But a frame without data cannot be compared at all.
+    with pytest.raises(
+        ValueError, match="Can only compare SkyCoord to Frame with data"
+    ):
+        sc == ICRS()  # noqa: B015
+
+
+def test_equal_coordinate_frame_attribute():
+    """A frame-valued attribute that cannot be compared is simply not equal.
+
+    Comparing two frames that are not equivalent, or one that has data with one
+    that does not, raises rather than giving `False`, so equality of a coordinate
+    frame attribute such as ``SkyOffsetFrame.origin`` has to allow for that.
+    """
+    origin1 = FK5(1 * u.deg, 2 * u.deg, equinox="J2000")
+    origin2 = FK5(1 * u.deg, 2 * u.deg, equinox="J1999")
+    # Comparing the two origins directly would raise.
+    with pytest.raises(TypeError, match="must have equivalent frames"):
+        origin1 == origin2  # noqa: B015
+
+    data = ICRS(3 * u.deg, 4 * u.deg).data
+    offset = lambda origin: SkyCoord(SkyOffsetFrame(origin=origin).realize_frame(data))
+    assert (offset(origin1) == offset(origin2)) is np.False_
+
+    # An equivalent origin still compares equal, and the data still matters.
+    assert (offset(origin1) == offset(FK5(1 * u.deg, 2 * u.deg))) is np.True_
+    other = SkyCoord(
+        SkyOffsetFrame(origin=origin1).realize_frame(ICRS(9 * u.deg, 4 * u.deg).data)
+    )
+    assert (offset(origin1) == other) is np.False_
+
+    # An error that is not the frame comparison declining to compare is not
+    # swallowed.
+    class Boom(FK5):
+        def __eq__(self, other):
+            raise TypeError("something else entirely")
+
+    with pytest.raises(TypeError, match="something else entirely"):
+        _item_equal(Boom(1 * u.deg, 2 * u.deg), origin1)
+
+    # Likewise when only one of the two attributes has data.
+    galcen = lambda coord: SkyCoord(
+        Galactocentric(
+            [1, 2] * u.kpc, [0, 0] * u.kpc, [0, 0] * u.kpc, galcen_coord=coord
+        )
+    )
+    assert np.all((galcen(ICRS(1 * u.deg, 2 * u.deg)) == galcen(ICRS())) == [False] * 2)
 
 
 def test_attr_inheritance():
