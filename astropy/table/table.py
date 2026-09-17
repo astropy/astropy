@@ -64,39 +64,13 @@ if TYPE_CHECKING:
         ValuesView,
     )
     from contextlib import AbstractContextManager
-    from typing import TypeAlias
 
     import numpy.typing as npt
 
     from astropy.units.typing import UnitLike
 
+    from ._typing import ColumnLike, DataLike, SortKind, TableLike
     from .groups import TableGroups
-
-    ColumnLike: TypeAlias = "Column | MaskedColumn | Any"
-    """An actual table column.
-
-    This is a `~astropy.table.Column`, a `~astropy.table.MaskedColumn`, or a mixin
-    column such as `~astropy.units.Quantity`, `~astropy.time.Time` or
-    `~astropy.coordinates.SkyCoord`.  Mixin columns share no common base class (the
-    only requirement is a working ``info`` attribute), hence the ``Any``.
-    """
-
-    DataLike: TypeAlias = Any
-    """Anything that can be turned into a table column.
-
-    This includes a `ColumnLike` object, a `~numpy.ndarray`, a plain sequence, or a
-    scalar / length-1 object that gets broadcast to the table length.
-    """
-
-    TableLike: TypeAlias = Any
-    """A `Table` or anything that can be used to initialize one.
-
-    For example a `dict` of columns, a list of rows, a structured
-    `~numpy.ndarray`, or an object implementing ``__astropy_table__``.
-    """
-
-    SortKind: TypeAlias = Literal["quicksort", "mergesort", "heapsort", "stable"]
-    """Sorting algorithm accepted by `numpy.argsort`."""
 
 _implementation_notes = """
 This string has informal notes concerning Table implementation for developers.
