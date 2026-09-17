@@ -68,7 +68,7 @@ class TickLabels(Text):
         self.text = defaultdict(list)
         self.disp = defaultdict(list)
 
-    def add(
+    def add(  # ruff: ignore[PLR0917] historical API
         self,
         axis=None,
         world=None,

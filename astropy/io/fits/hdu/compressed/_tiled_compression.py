@@ -288,7 +288,7 @@ def _get_data_from_heap(hdu, size, offset, dtype, heap_cache=None):
             return data
 
 
-def decompress_image_data_section(
+def decompress_image_data_section(  # ruff: ignore[PLR0917] historical API
     compressed_data,
     compression_type,
     compressed_header,

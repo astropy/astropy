@@ -30,6 +30,9 @@ lint.ignore = [
     # TODO: configure maximum allowed complexity.
     "C901",  # McCabeComplexity
 
+    # flake8-copyright
+    "CPY001", # missing-copyright-notice
+
     # pydocstyle (D)
     # Missing Docstrings
     "D100",  # undocumented-public-module
