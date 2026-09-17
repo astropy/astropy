@@ -1049,7 +1049,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         v: Any,
         side: Literal["left", "right"] = "left",
         sorter: npt.ArrayLike | None = None,
-    ) -> int | np.ndarray:
+    ) -> int | np.integer | np.ndarray:
         # For bytes type data, encode the `v` value as UTF-8 (if necessary) before
         # calling searchsorted. This prevents a factor of 1000 slowdown in
         # searchsorted in this case.
@@ -1452,7 +1452,10 @@ class Column(BaseColumn):
     __le__ = _make_compare("__le__")
 
     def insert(
-        self, obj: int | slice | Sequence[int], values: npt.ArrayLike, axis: int = 0
+        self,
+        obj: int | slice | Sequence[int],
+        values: npt.ArrayLike,
+        axis: int | None = 0,
     ) -> Self:
         """
         Insert values before the given indices in the column and return
@@ -1887,7 +1890,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         obj: int | slice | Sequence[int],
         values: npt.ArrayLike,
         mask: npt.ArrayLike | None = None,
-        axis: int = 0,
+        axis: int | None = 0,
     ) -> Self:
         """
         Insert values along the given axis before the given indices and return
