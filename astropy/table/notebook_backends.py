@@ -4,6 +4,14 @@ with Jupyter notebooks.
 
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ipydatagrid.datagrid import DataGrid
+    from IPython.core.display import HTML
+
 __all__ = ["classic", "ipydatagrid"]
 
 
@@ -13,10 +21,10 @@ def classic(
     table,
     tableid=None,
     css=None,
-    display_length=50,
-    table_class="astropy-default",
-    show_row_index="idx",
-):
+    display_length: int = 50,
+    table_class: str = "astropy-default",
+    show_row_index: str = "idx",
+) -> HTML:
     """Render the table in HTML and show it in the Jupyter notebook.
 
     .. deprecated:: 6.1
@@ -100,7 +108,7 @@ def classic(
     return HTML(html)
 
 
-def ipydatagrid(table, **kwargs):
+def ipydatagrid(table, **kwargs) -> DataGrid:
     """Render the table in HTML with ``ipydatagrid`` and show it in
     the Jupyter notebook.
 

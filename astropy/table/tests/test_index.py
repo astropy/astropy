@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 import numpy.testing as npt
 import pytest
+from numpy import ndarray
 
 from astropy import units as u
 from astropy.table import Column, QTable, Row, Table, hstack
@@ -56,7 +57,7 @@ def main_col(request):
     return request.param
 
 
-def assert_col_equal(col, array):
+def assert_col_equal(col, array: list[float] | list[int] | ndarray) -> None:
     __tracebackhide__ = True
     if isinstance(col, Time):
         assert np.all(col == Time(array, format="jyear"))
@@ -75,7 +76,7 @@ def assert_tables_equal(t1: Table, t2: Table) -> None:
 
 @pytest.mark.usefixtures("table_types")
 class TestIndex(SetupData):
-    def _setup(self, main_col, table_types):
+    def _setup(self, main_col: list[int], table_types) -> None:
         super()._setup(table_types)
         self.main_col = main_col
         if isinstance(main_col, u.Quantity):
@@ -87,7 +88,7 @@ class TestIndex(SetupData):
     def make_col(self, name, lst):
         return self._column_type(lst, name=name)
 
-    def make_val(self, val):
+    def make_val(self, val: int) -> Time | int:
         if isinstance(self.main_col, Time):
             return Time(val, format="jyear")
         return val
@@ -106,7 +107,7 @@ class TestIndex(SetupData):
         return self._t
 
     @pytest.mark.parametrize("composite", [False, True])
-    def test_table_index(self, main_col, table_types, composite, engine):
+    def test_table_index(self, main_col, table_types, composite, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t
         t.add_index(("a", "b") if composite else "a", engine=engine)
@@ -148,7 +149,7 @@ class TestIndex(SetupData):
         t.remove_indices("a")
         assert len(t.indices) == 0
 
-    def test_table_slicing(self, main_col, table_types, engine):
+    def test_table_slicing(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t
         t.add_index("a", engine=engine)
@@ -165,7 +166,7 @@ class TestIndex(SetupData):
             # however, this index should be a deep copy of t1's index
             assert np.all(t.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
-    def test_remove_rows(self, main_col, table_types, engine):
+    def test_remove_rows(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         if not self.mutable:
             return
@@ -188,7 +189,7 @@ class TestIndex(SetupData):
         with pytest.raises(ValueError):
             t.remove_rows((0, 2, 4))
 
-    def test_col_get_slice(self, main_col, table_types, engine):
+    def test_col_get_slice(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t
         t.add_index("a", engine=engine)
@@ -225,7 +226,7 @@ class TestIndex(SetupData):
             assert_col_equal(t2["a"], [1, 3, 5])
             assert np.all(t2.indices[0].sorted_data() == [0, 1, 2])
 
-    def test_col_set_slice(self, main_col, table_types, engine):
+    def test_col_set_slice(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         if not self.mutable:
             return
@@ -256,7 +257,7 @@ class TestIndex(SetupData):
         assert_col_equal(t2["a"], [0, 2, 0, 4, 0])
         assert np.all(t2.indices[0].sorted_data() == [0, 2, 4, 1, 3])
 
-    def test_multiple_slices(self, main_col, table_types, engine):
+    def test_multiple_slices(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
 
         if not self.mutable:
@@ -307,7 +308,7 @@ class TestIndex(SetupData):
         assert_col_equal(t4["a"], [14, 8, 2])
         assert np.all(t4.indices[0].sorted_data() == [2, 1, 0])
 
-    def test_sort(self, main_col, table_types, engine):
+    def test_sort(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t[::-1]  # reverse table
         assert_col_equal(t["a"], [5, 4, 3, 2, 1])
@@ -329,7 +330,7 @@ class TestIndex(SetupData):
         assert_col_equal(t2["a"], [1, 2, 3, 4, 5])
         assert np.all(t2.indices[0].sorted_data() == [0, 1, 2, 3, 4])
 
-    def test_insert_row(self, main_col, table_types, engine):
+    def test_insert_row(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
 
         if not self.mutable:
@@ -344,7 +345,7 @@ class TestIndex(SetupData):
         assert_col_equal(t["a"], [1, 0, 2, 6, 3, 4, 5])
         assert np.all(t.indices[0].sorted_data() == [1, 0, 2, 4, 5, 6, 3])
 
-    def test_index_modes(self, main_col, table_types, engine):
+    def test_index_modes(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t
         t.add_index("a", engine=engine)
@@ -397,7 +398,7 @@ class TestIndex(SetupData):
             assert len(t["a"][::-1].info.indices) == 0
             assert len(t2["a"][::-1].info.indices) == 0
 
-    def test_index_retrieval(self, main_col, table_types, engine):
+    def test_index_retrieval(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t
         t.add_index("a", engine=engine)
@@ -409,7 +410,7 @@ class TestIndex(SetupData):
         with pytest.raises(IndexError):
             t.indices["b"]
 
-    def test_col_rename(self, main_col, table_types, engine):
+    def test_col_rename(self, main_col, table_types, engine) -> None:
         """
         Checks for a previous bug in which copying a Table
         with different column names raised an exception.
@@ -420,7 +421,7 @@ class TestIndex(SetupData):
         t2 = self._table_type(self.t, names=["d", "e", "f"])
         assert len(t2.indices) == 1
 
-    def test_table_loc(self, main_col, table_types, engine):
+    def test_table_loc(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t
 
@@ -452,7 +453,7 @@ class TestIndex(SetupData):
         for t2 in (t.loc[:], t.iloc[:]):
             assert_col_equal(t2["a"], [1, 2, 3, 4, 5])
 
-    def test_table_loc_indices(self, main_col, table_types, engine):
+    def test_table_loc_indices(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t
 
@@ -467,7 +468,7 @@ class TestIndex(SetupData):
         for i, p in zip(t2, [1, 4, 2]):  # same order as input list
             assert i == p - 1
 
-    def test_invalid_search(self, main_col, table_types, engine):
+    def test_invalid_search(self, main_col, table_types, engine) -> None:
         # using .loc and .loc_indices with a value not present should raise an exception
         self._setup(main_col, table_types)
         t = self.t
@@ -478,7 +479,7 @@ class TestIndex(SetupData):
         with pytest.raises(KeyError):
             t.loc_indices[self.make_val(6)]
 
-    def test_copy_index_references(self, main_col, table_types, engine):
+    def test_copy_index_references(self, main_col, table_types, engine) -> None:
         # check against a bug in which indices were given an incorrect
         # column reference when copied
         self._setup(main_col, table_types)
@@ -490,7 +491,7 @@ class TestIndex(SetupData):
         assert t2.indices["a"].columns[0] is t2["a"]
         assert t2.indices["b"].columns[0] is t2["b"]
 
-    def test_unique_index(self, main_col, table_types, engine):
+    def test_unique_index(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = self.t
 
@@ -501,7 +502,7 @@ class TestIndex(SetupData):
             with pytest.raises(ValueError):
                 t.add_row((5.0, "9", 5))
 
-    def test_copy_indexed_table(self, table_types):
+    def test_copy_indexed_table(self, table_types) -> None:
         self._setup(_col, table_types)
         t = self.t
         t.add_index("a")
@@ -512,7 +513,7 @@ class TestIndex(SetupData):
                 assert np.all(index.data.data == indexp.data.data)
                 assert index.data.data.colnames == indexp.data.data.colnames
 
-    def test_updating_row_byindex(self, main_col, table_types, engine):
+    def test_updating_row_byindex(self, main_col, table_types, engine) -> None:
         self._setup(main_col, table_types)
         t = Table(
             [["a", "b", "c", "d"], [2, 3, 4, 5], [3, 4, 5, 6]],
@@ -533,7 +534,7 @@ class TestIndex(SetupData):
         for i, p in zip(t2, [1, 4, 2]):  # same order as input list
             assert list(t[p - 1]) == i
 
-    def test_invalid_updates(self, main_col, table_types, engine):
+    def test_invalid_updates(self, main_col, table_types, engine) -> None:
         # using .loc and .loc_indices with a value not present should raise an exception
         self._setup(main_col, table_types)
         t = Table(
@@ -553,7 +554,7 @@ class TestIndex(SetupData):
             t.loc[[1, 4, 2]] = [[1, 2, 3], [4, 5], [2, 3]]
 
 
-def test_get_index():
+def test_get_index() -> None:
     a = [1, 4, 5, 2, 7, 4, 45]
     b = [2.0, 5.0, 8.2, 3.7, 4.3, 6.5, 3.3]
     t = Table([a, b], names=("a", "b"), meta={"name": "first table"})
@@ -580,7 +581,7 @@ def test_get_index():
 
 
 @pytest.mark.parametrize("table_type", [Table, QTable])
-def test_index_loc_with_quantity(engine, table_type):
+def test_index_loc_with_quantity(engine, table_type) -> None:
     t = table_type()
     t["a"] = [3, 1, 2] * u.m
     t["b"] = [1, 2, 3]
@@ -597,7 +598,7 @@ def test_index_loc_with_quantity(engine, table_type):
         assert np.all(t_loc["b"] == [2, 3, 1])
 
 
-def test_index_loc_with_string(engine):
+def test_index_loc_with_string(engine) -> None:
     t = Table()
     t["a"] = ["z", "a", "m"]
     t["b"] = [1, 2, 3]
@@ -613,7 +614,7 @@ def test_index_loc_with_string(engine):
         assert np.all(t_loc["b"] == [2, 3, 1])
 
 
-def test_table_index_time_warning(engine):
+def test_table_index_time_warning(engine) -> None:
     # Make sure that no ERFA warnings are emitted when indexing a table by
     # a Time column with a non-default time scale
     tab = Table()
@@ -632,7 +633,7 @@ def test_table_index_time_warning(engine):
         Time(np.arange(50000, 50005), format="mjd"),
     ],
 )
-def test_table_index_does_not_propagate_to_column_slices(col):
+def test_table_index_does_not_propagate_to_column_slices(col) -> None:
     # They lost contact to the parent table, so they should also not have
     # information on the indices; this helps prevent large memory usage if,
     # e.g., a large time column is turned into an object array; see gh-10688.
@@ -648,7 +649,7 @@ def test_table_index_does_not_propagate_to_column_slices(col):
     assert t.info.indices
 
 
-def test_hstack_qtable_table():
+def test_hstack_qtable_table() -> None:
     # Check in particular that indices are initialized or copied correctly
     # for a Column that is being converted to a Quantity.
     qtab = QTable([np.arange(5.0) * u.m], names=["s"])
@@ -659,13 +660,13 @@ def test_hstack_qtable_table():
     assert qstack.indices == []
 
 
-def test_index_slice_exception():
+def test_index_slice_exception() -> None:
     with pytest.raises(TypeError, match="index_slice must be tuple or slice"):
         SlicedIndex(None, None)
 
 
 @pytest.fixture(scope="module")
-def simple_table():
+def simple_table() -> Table:
     """Simple table with an index on column 'a'."""
     t = Table()
     t["a"] = [3, 1, 2, 3]
@@ -688,7 +689,9 @@ def simple_table():
         (1, None, Row),  # scalar index with single row
     ],
 )
-def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length, cls):
+def test_index_zero_slice_or_sequence_or_scalar(
+    simple_table, key, item, length, cls
+) -> None:
     """Test that indexing with various types gives the expected result.
 
     Tests fix for #18037.
@@ -712,7 +715,7 @@ def test_index_zero_slice_or_sequence_or_scalar(simple_table, key, item, length,
         ("loc_indices", (2, 5)),
     ],
 )
-def test_index_id_item_deprecation_and_with_index(method, item):
+def test_index_id_item_deprecation_and_with_index(method, item) -> None:
     """t.loc/iloc/loc_indices[index_id, item] raises a deprecation warning.
 
     Also test that these methods
@@ -738,7 +741,7 @@ def test_index_id_item_deprecation_and_with_index(method, item):
     assert out_call_1 == out_call_2
 
 
-def test_engine_type_error():
+def test_engine_type_error() -> None:
     t = Table()
     t["a"] = [1, 2]
     t["b"] = [3, 4]
@@ -753,7 +756,7 @@ def test_engine_type_error():
     "masked",
     [pytest.param(False, id="raw-array"), pytest.param(True, id="masked array")],
 )
-def test_nd_columun_as_index(masked):
+def test_nd_columun_as_index(masked) -> None:
     # see https://github.com/astropy/astropy/issues/13292
     # and https://github.com/astropy/astropy/pull/16360
     t = Table()
@@ -767,7 +770,7 @@ def test_nd_columun_as_index(masked):
         t.add_index("arr")
 
 
-def test_indices_read_unknown_engine():
+def test_indices_read_unknown_engine() -> None:
     lines = [
         "# %ECSV 1.0",
         "# ---",
@@ -801,7 +804,7 @@ def test_indices_read_unknown_engine():
     assert t.loc_indices[2] == 2
 
 
-def test_indices_serialization_unique_representation():
+def test_indices_serialization_unique_representation() -> None:
     t = Table()
     t["a"] = [1, 3, 2]
     t.add_index("a", unique=True)
@@ -831,7 +834,7 @@ def test_indices_serialization_unique_representation():
 
 
 @pytest.mark.parametrize("engine", [SortedArray, SCEngine])
-def test_indices_serialization_representation_single(engine):
+def test_indices_serialization_representation_single(engine) -> None:
     """Add explicit test of serialization representation for single-index case.
 
     The `primary` key is not included in this case.
@@ -866,7 +869,7 @@ def test_indices_serialization_representation_single(engine):
     assert out.getvalue().splitlines() == exp
 
 
-def test_indices_serialization_representation_multiple():
+def test_indices_serialization_representation_multiple() -> None:
     """Add explicit test of serialization representation for single-index case.
 
     This includes the `primary` key and a collision.
@@ -905,7 +908,7 @@ def test_indices_serialization_representation_multiple():
 
 
 @pytest.mark.parametrize("dtype", [np.int16, np.float32, np.int64, np.float64])
-def test_indices_roundtrip_various_dtypes(dtype):
+def test_indices_roundtrip_various_dtypes(dtype) -> None:
     """Test that serialization round-trip works for various index dtypes."""
     t = Table()
     t["a"] = np.array([1, 3, 2], dtype=dtype)
@@ -932,7 +935,7 @@ def test_indices_roundtrip_various_dtypes(dtype):
 )
 def test_indices_roundtrip_through_file(
     single_index, fmt, read_kwargs, write_kwargs, engine, tmp_path
-):
+) -> None:
     if single_index and fmt != "ecsv":
         # Save a few compute cycles, since single_index is really impacting just the
         # serialization data and the engine and fmt don't matter.
@@ -969,7 +972,11 @@ def test_indices_roundtrip_through_file(
     assert_indices_equal(t, t2, indices_colnames)
 
 
-def assert_indices_equal(t, t2, indices_colnames):
+def assert_indices_equal(
+    t: QTable | Table,
+    t2,
+    indices_colnames: list[tuple[str] | tuple[str, str]] | list[list[str]],
+) -> None:
     assert len(t.indices) == len(t2.indices)
     assert t.primary_key == t2.primary_key
 
@@ -1002,7 +1009,7 @@ def assert_indices_equal(t, t2, indices_colnames):
 
 
 @pytest.mark.parametrize("index_first", [True, False])
-def test_slice_an_indexed_table(index_first):
+def test_slice_an_indexed_table(index_first) -> None:
     """Test slicing a table that is already indexed.
 
     Test of fix for https://github.com/astropy/astropy/issues/10732.
@@ -1090,7 +1097,7 @@ def test_slice_an_indexed_table(index_first):
     ]
 
 
-def test_unique_indices_after_multicol_index_slice():
+def test_unique_indices_after_multicol_index_slice() -> None:
     """Test that table indices after slicing are correct.
 
     This tests code in Table._new_from_slice() that ensures uniqueness of table index
@@ -1106,7 +1113,7 @@ def test_unique_indices_after_multicol_index_slice():
     assert t2.indices[0].id == ("a", "b")
 
 
-def test_index_not_corrupted_on_failed_row_assignment(engine):
+def test_index_not_corrupted_on_failed_row_assignment(engine) -> None:
     """Regression test: index must survive a failed row assignment.
 
     When ``table[row] = values`` raises because one of the values is
@@ -1142,7 +1149,7 @@ def test_index_not_corrupted_on_failed_row_assignment(engine):
 
 
 @pytest.mark.parametrize("table_type", [Table, QTable])
-def test_loc_range_with_duplicate_index_values(engine, table_type):
+def test_loc_range_with_duplicate_index_values(engine, table_type) -> None:
     """Regression test: a range query must return every row whose value equals
     an inclusive bound, even when that value is duplicated in the index.
 
@@ -1160,7 +1167,7 @@ def test_loc_range_with_duplicate_index_values(engine, table_type):
     assert sorted(t.loc[:]["b"].tolist()) == [10, 20, 21, 22, 30, 31]
 
 
-def test_loc_range_sorted_after_add_row(engine):
+def test_loc_range_sorted_after_add_row(engine) -> None:
     """Regression test: a range query must return rows in ascending key order,
     also for rows added after the index was created.
 

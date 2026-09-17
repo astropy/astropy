@@ -15,12 +15,12 @@ from astropy.table.table_helpers import ArrayWrapper
 ORIGINAL = {}
 
 
-def setup_function(function):
+def setup_function(function) -> None:
     ORIGINAL["handlers"] = copy(_handlers)
     _handlers.clear()
 
 
-def teardown_function(function):
+def teardown_function(function) -> None:
     _handlers.clear()
     _handlers.update(ORIGINAL["handlers"])
 
@@ -30,32 +30,32 @@ class SpamData:
 
 
 class SpamWrapper(ArrayWrapper):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__([0, 1, 3, 4, 5])
 
 
 FULL_QUALNAME = "astropy.table.mixins.tests.test_registry.SpamData"
 
 
-def handle_spam(obj):
+def handle_spam(obj) -> SpamWrapper:
     return SpamWrapper()
 
 
-def handle_spam_alt(obj):
+def handle_spam_alt(obj) -> SpamWrapper:
     return SpamWrapper()
 
 
-def test_no_handler():
+def test_no_handler() -> None:
     data = SpamData()
     assert get_mixin_handler(data) is None
 
 
-def test_register_handler():
+def test_register_handler() -> None:
     register_mixin_handler(FULL_QUALNAME, handle_spam)
     assert get_mixin_handler(SpamData()) is handle_spam
 
 
-def test_register_handler_override():
+def test_register_handler_override() -> None:
     register_mixin_handler(FULL_QUALNAME, handle_spam)
     with pytest.raises(MixinRegistryError) as exc:
         register_mixin_handler(FULL_QUALNAME, handle_spam_alt)
@@ -68,13 +68,13 @@ def test_register_handler_override():
     assert get_mixin_handler(SpamData()) is handle_spam_alt
 
 
-def test_get_mixin_handler_str():
+def test_get_mixin_handler_str() -> None:
     # Check that we can also pass a fully qualified name to get_mixin_handler
     register_mixin_handler(FULL_QUALNAME, handle_spam)
     assert get_mixin_handler(FULL_QUALNAME) is handle_spam
 
 
-def test_add_column_to_empty_table():
+def test_add_column_to_empty_table() -> None:
     t = Table()
     t["a"] = SpamData()
     # By default, we get an object column.
@@ -90,7 +90,7 @@ def test_add_column_to_empty_table():
     assert_equal(t["a"].data, [0, 1, 3, 4, 5])
 
 
-def test_add_column_to_existing_table():
+def test_add_column_to_existing_table() -> None:
     # As above, but for a table that already has a column
     # (addition used to depend on whether or a table was empty; gh-17102).
     t = Table([[5, 6, 7, 8, 9]], names=["x"])
@@ -107,11 +107,11 @@ def test_add_column_to_existing_table():
     assert_equal(t["a"].data, [0, 1, 3, 4, 5])
 
 
-def invalid_handler(obj):
+def invalid_handler(obj) -> str:
     return "invalid"
 
 
-def test_invalid_handler():
+def test_invalid_handler() -> None:
     t = Table()
 
     register_mixin_handler(FULL_QUALNAME, invalid_handler)

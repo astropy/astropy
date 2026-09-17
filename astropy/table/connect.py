@@ -60,7 +60,7 @@ class TableRead(registry.UnifiedReadWrite):
     -----
     """
 
-    def __init__(self, instance, cls):
+    def __init__(self, instance, cls) -> None:
         super().__init__(instance, cls, "read", registry=None)
         # uses default global registry
 
@@ -134,11 +134,13 @@ class TableWrite(registry.UnifiedReadWrite):
     -----
     """
 
-    def __init__(self, instance, cls):
+    def __init__(self, instance, cls) -> None:
         super().__init__(instance, cls, "write", registry=None)
         # uses default global registry
 
-    def __call__(self, *args, serialize_method=None, write_indices=False, **kwargs):
+    def __call__(
+        self, *args, serialize_method=None, write_indices=False, **kwargs
+    ) -> None:
         tbl = self._instance
         with serialize_method_as(tbl, serialize_method):
             if write_indices and tbl.indices:

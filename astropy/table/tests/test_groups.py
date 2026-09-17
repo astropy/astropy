@@ -14,11 +14,11 @@ from astropy.time import Time
 from astropy.utils.exceptions import AstropyUserWarning
 
 
-def sort_eq(list1, list2):
+def sort_eq(list1, list2) -> bool:
     return sorted(list1) == sorted(list2)
 
 
-def test_column_group_by(T1q):
+def test_column_group_by(T1q) -> None:
     """Test grouping a Column by various key types."""
     # T1q["a"] could be Column or Quantity, so force the object we want to group to be
     # Column. Then later we are using the "a" column as a grouping key.
@@ -43,7 +43,7 @@ def test_column_group_by(T1q):
         assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
 
-def test_column_group_by_no_argsort(T1b):
+def test_column_group_by_no_argsort(T1b) -> None:
     t1a = T1b["a"]
     with pytest.raises(
         TypeError, match=r"keys input \(list\) must have an `argsort` method"
@@ -52,7 +52,7 @@ def test_column_group_by_no_argsort(T1b):
         t1a.group_by(list(range(len(t1a))))
 
 
-def test_table_group_by(T1):
+def test_table_group_by(T1) -> None:
     """
     Test basic table group_by functionality for possible key types and for
     masked/unmasked tables.
@@ -132,7 +132,7 @@ def test_table_group_by(T1):
         ]
 
 
-def test_groups_keys(T1m: QTable):
+def test_groups_keys(T1m: QTable) -> None:
     tg = T1m.group_by("a")
     unit = T1m["a"].unit or 1
     keys = tg.groups.keys
@@ -151,7 +151,7 @@ def test_groups_keys(T1m: QTable):
     assert keys.dtype.names is None
 
 
-def test_groups_keys_time(T1b: QTable):
+def test_groups_keys_time(T1b: QTable) -> None:
     """Group a table with a time column using that column as a key."""
     T1b = T1b.copy()
     T1b["a"] = Time(T1b["a"], format="cxcsec")
@@ -168,14 +168,14 @@ def test_groups_keys_time(T1b: QTable):
     assert np.all(keys["b"] == np.array(["a", "a", "b", "a", "b", "c"]))
 
 
-def test_groups_iterator(T1):
+def test_groups_iterator(T1) -> None:
     tg = T1.group_by("a")
     for ii, group in enumerate(tg.groups):
         assert group.pformat() == tg.groups[ii].pformat()
         assert group["a"][0] == tg["a"][tg.groups.indices[ii]]
 
 
-def test_grouped_copy(T1):
+def test_grouped_copy(T1) -> None:
     """
     Test that copying a table or column copies the groups properly
     """
@@ -195,7 +195,7 @@ def test_grouped_copy(T1):
         assert np.all(gc1c.groups.indices == np.array([0, 1, 4, 8]))
 
 
-def test_grouped_slicing(T1):
+def test_grouped_slicing(T1) -> None:
     """
     Test that slicing a table removes previous grouping
     """
@@ -210,7 +210,7 @@ def test_grouped_slicing(T1):
         assert tg2.groups.keys is None
 
 
-def test_group_column_from_table(T1):
+def test_group_column_from_table(T1) -> None:
     """
     Group a column that is part of a table
     """
@@ -219,7 +219,7 @@ def test_group_column_from_table(T1):
     assert np.all(cg.groups.indices == np.array([0, 1, 4, 8]))
 
 
-def test_table_groups_mask_index(T1):
+def test_table_groups_mask_index(T1) -> None:
     """
     Use boolean mask as item in __getitem__ for groups
     """
@@ -233,7 +233,7 @@ def test_table_groups_mask_index(T1):
         assert np.all(t2.groups.keys["a"] == np.array([0, 2]))
 
 
-def test_table_groups_array_index(T1):
+def test_table_groups_array_index(T1) -> None:
     """
     Use numpy array as item in __getitem__ for groups
     """
@@ -247,7 +247,7 @@ def test_table_groups_array_index(T1):
         assert np.all(t2.groups.keys["a"] == np.array([0, 2]))
 
 
-def test_table_groups_slicing(T1):
+def test_table_groups_slicing(T1) -> None:
     """
     Test that slicing table groups works
     """
@@ -276,7 +276,7 @@ def test_table_groups_slicing(T1):
         assert np.all(t2.groups.keys["a"] == np.array([0, 2]))
 
 
-def test_grouped_item_access(T1):
+def test_grouped_item_access(T1) -> None:
     """
     Test that column slicing preserves grouping
     """
@@ -310,7 +310,7 @@ def test_grouped_item_access(T1):
         ]
 
 
-def test_mutable_operations(T1):
+def test_mutable_operations(T1) -> None:
     """
     Operations like adding or deleting a row should removing grouping,
     but adding or removing or renaming a column should retain grouping.
@@ -361,7 +361,7 @@ def test_mutable_operations(T1):
         assert np.all(tg["aa"].groups.indices == indices)
 
 
-def test_group_by_masked(T1):
+def test_group_by_masked(T1) -> None:
     t1m = QTable(T1, masked=True)
     t1m["c"].mask[4] = True
     t1m["d"].mask[5] = True
@@ -380,7 +380,7 @@ def test_group_by_masked(T1):
     ]
 
 
-def test_group_by_errors(T1):
+def test_group_by_errors(T1) -> None:
     """
     Appropriate errors get raised.
     """
@@ -407,7 +407,7 @@ def test_group_by_errors(T1):
         t1.group_by("a")
 
 
-def test_groups_keys_meta(T1):
+def test_groups_keys_meta(T1) -> None:
     """
     Make sure the keys meta['grouped_by_table_cols'] is working.
     """
@@ -440,7 +440,7 @@ def test_groups_keys_meta(T1):
     assert "grouped_by_table_cols" not in tg["c"].groups.keys.meta
 
 
-def test_table_aggregate(T1):
+def test_table_aggregate(T1) -> None:
     """
     Aggregate a table
     """
@@ -519,7 +519,7 @@ def test_table_aggregate(T1):
     ]
 
 
-def test_table_aggregate_reduceat(T1):
+def test_table_aggregate_reduceat(T1) -> None:
     """
     Aggregate table with functions which have a reduceat method
     """
@@ -572,7 +572,7 @@ def test_table_aggregate_reduceat(T1):
     assert tga.pformat() == [" a ", "---", "  0", "  1", "  2"]
 
 
-def test_table_aggregate_reduceat_empty():
+def test_table_aggregate_reduceat_empty() -> None:
     for masked in (False, True):
         tg = Table(
             {
@@ -593,14 +593,14 @@ def test_table_aggregate_reduceat_empty():
         assert tga.pformat() == ["action duration", "------ --------"]
 
 
-def test_groups_len_malformed_indices_raises_runtime_error():
+def test_groups_len_malformed_indices_raises_runtime_error() -> None:
     tg = Table({"a": [1, 2], "b": [3, 4]}).group_by("a")
     tg.groups._indices = np.array([1], dtype=int)
     with pytest.raises(RuntimeError, match="malformed groups.indices"):
         len(tg.groups)
 
 
-def test_column_aggregate(T1):
+def test_column_aggregate(T1) -> None:
     """
     Aggregate a single table column
     """
@@ -610,7 +610,7 @@ def test_column_aggregate(T1):
         assert tga.pformat() == [" c  ", "----", " 0.0", " 6.0", "22.0"]
 
 
-def test_column_aggregate_f8():
+def test_column_aggregate_f8() -> None:
     """https://github.com/astropy/astropy/issues/12706"""
     # Just want to make sure it does not crash again.
     for masked in (False, True):
@@ -619,7 +619,7 @@ def test_column_aggregate_f8():
         assert tga.pformat() == [" a ", "---", "0.0", "1.0"]
 
 
-def test_table_group_select_empty():
+def test_table_group_select_empty() -> None:
     """Test selecting no groups returns a table with empty keys and no indices"""
     tg = Table({"a": [1, 2], "b": [3, 4]}).group_by("a")
     tgs = tg.groups[[]]
@@ -630,12 +630,12 @@ def test_table_group_select_empty():
     assert tgs.groups.keys.colnames == ["a"]
 
 
-def test_table_filter():
+def test_table_filter() -> None:
     """
     Table groups filtering
     """
 
-    def all_positive(table, key_colnames):
+    def all_positive(table, key_colnames) -> bool:
         return all(
             np.all(table[colname] >= 0)
             for colname in table.colnames
@@ -669,7 +669,7 @@ def test_table_filter():
     assert t2.groups[1].pformat() == [" a   c   d ", "--- --- ---", "  0 0.0   4"]
 
 
-def test_column_filter():
+def test_column_filter() -> None:
     """
     Table groups filtering
     """
@@ -698,7 +698,7 @@ def test_column_filter():
     assert c2.groups[2].pformat() == [" c ", "---", "3.0", "2.0", "1.0"]
 
 
-def test_group_mixins():
+def test_group_mixins() -> None:
     """
     Test grouping a table with mixin columns
     """
@@ -756,7 +756,7 @@ def test_group_mixins():
         coordinates.SkyCoord([1, 2], [3, 4], unit="deg,deg"),
     ],
 )
-def test_group_mixins_unsupported(col):
+def test_group_mixins_unsupported(col) -> None:
     """Test that aggregating unsupported mixins produces a warning only"""
 
     t = Table([[1, 1], [3, 4], col], names=["a", "b", "mix"])
@@ -768,7 +768,7 @@ def test_group_mixins_unsupported(col):
 
 @pytest.mark.parametrize("add_index", [False, True])
 @given(arrays("int64", shape=1000, elements=integers(min_value=0, max_value=5)))
-def test_group_stable_sort(add_index, a):
+def test_group_stable_sort(add_index, a) -> None:
     """Test that group_by preserves the order of the table.
 
     This table has 5 groups with an average of 200 rows per group, so it is not

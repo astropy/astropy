@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
+from numpy import dtype, ndarray, signedinteger
 from numpy.testing import assert_array_equal
 
 from astropy.table._np_utils import join_inner
@@ -25,7 +26,14 @@ class ExpectedResults:
     right: ArrayMaskPair
 
 
-def _make_join_inputs(left_keys, right_keys):
+def _make_join_inputs(
+    left_keys: list[int]
+    | ndarray[tuple[int], dtype[signedinteger[np._NBitIntP]]]
+    | ndarray,
+    right_keys: list[int]
+    | ndarray[tuple[int], dtype[signedinteger[np._NBitIntP]]]
+    | ndarray,
+):
     """
     Reproduces the pre-processing from `operations.py` that prepares
     index arrays for `join_inner()`.
@@ -52,7 +60,13 @@ def _make_join_inputs(left_keys, right_keys):
     return idxs, idx_sort
 
 
-def _check_n_out_unique(n_out, join_type, left_keys, right_keys, expected=None):
+def _check_n_out_unique(
+    n_out,
+    join_type: int,
+    left_keys: list[int] | ndarray[tuple[int], dtype[signedinteger[np._NBitIntP]]],
+    right_keys: list[int] | ndarray[tuple[int], dtype[signedinteger[np._NBitIntP]]],
+    expected=None,
+) -> None:
     """
     Helper function to verify the output length using explicit set theory.
     NOTE: This logic is only mathematically valid when all keys within both
@@ -89,7 +103,7 @@ JOIN_TYPES = [
 
 class TestJoinInner:
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
-    def test_perfect_match(self, join_type):
+    def test_perfect_match(self, join_type) -> None:
         """A perfect match behaves identically across all join types."""
         keys = [1, 2, 3]
         idxs, idx_sort = _make_join_inputs(keys, keys)
@@ -149,7 +163,7 @@ class TestJoinInner:
             ),
         ],
     )
-    def test_partial_overlap(self, join_type, expected):
+    def test_partial_overlap(self, join_type, expected) -> None:
         """Tests left=[1, 2] and right=[2, 3] across all join types."""
         left = [1, 2]
         right = [2, 3]
@@ -207,7 +221,7 @@ class TestJoinInner:
             ),
         ],
     )
-    def test_no_overlap(self, join_type, expected):
+    def test_no_overlap(self, join_type, expected) -> None:
         """Tests disjoint arrays left=[1, 2] and right=[3, 4] across all join types."""
         left = [1, 2]
         right = [3, 4]
@@ -274,7 +288,7 @@ class TestJoinInner:
             ),
         ],
     )
-    def test_different_sizes(self, join_type, expected):
+    def test_different_sizes(self, join_type, expected) -> None:
         """Tests overlap with arrays of different lengths and partially disjoint keys."""
         left = [1, 2, 3]
         right = [0, 1, 2, 4]
@@ -290,7 +304,7 @@ class TestJoinInner:
         assert_array_equal(right_mask, expected.right.mask)
 
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
-    def test_duplicate_keys_cartesian(self, join_type):
+    def test_duplicate_keys_cartesian(self, join_type) -> None:
         """Cartesian expansion behaves identically across all join types."""
         keys = [1, 1]
         idxs, idx_sort = _make_join_inputs(keys, keys)
@@ -303,7 +317,7 @@ class TestJoinInner:
         assert len(right_indices) == n_out
 
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
-    def test_large_cartesian(self, join_type):
+    def test_large_cartesian(self, join_type) -> None:
         """Test Cartesian expansion with larger arrays."""
         keys = [7] * 5
         idxs, idx_sort = _make_join_inputs(keys, keys)
@@ -314,7 +328,7 @@ class TestJoinInner:
         assert n_out == 25
 
     @pytest.mark.parametrize("join_type", JOIN_TYPES)
-    def test_single_matching_row(self, join_type):
+    def test_single_matching_row(self, join_type) -> None:
         """Edge case: Arrays of length 1."""
         keys = [42]
         idxs, idx_sort = _make_join_inputs(keys, keys)
@@ -325,7 +339,7 @@ class TestJoinInner:
         _check_n_out_unique(n_out, join_type, keys, keys)
         assert masked == 0
 
-    def test_nan_handling(self):
+    def test_nan_handling(self) -> None:
         """
         Verify that NaNs are treated as unique, non-matching keys.
         Because np.nan != np.nan evaluates to True, `_make_join_inputs` correctly
@@ -346,7 +360,7 @@ class TestJoinInner:
         assert_array_equal(left_indices, [0])
         assert_array_equal(right_indices, [0])
 
-    def test_many_unique_keys_inner(self):
+    def test_many_unique_keys_inner(self) -> None:
         """Scale test for inner join specifically."""
         keys = np.arange(100)
         idxs, idx_sort = _make_join_inputs(keys, keys)

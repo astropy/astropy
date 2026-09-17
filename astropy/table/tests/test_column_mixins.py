@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import pytest
+from numpy import ndarray
 from numpy.typing import NDArray
 
 from astropy.table._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
@@ -11,7 +12,7 @@ class MinimalColumn(_ColumnGetitemShim, np.ndarray):
     """Minimal concrete class derived from _ColumnGetitemShim"""
 
     @property
-    def data(self):
+    def data(self) -> ndarray:
         return self.view(np.ndarray)
 
 
@@ -19,7 +20,7 @@ class MinimalMaskedColumn(_MaskedColumnGetitemShim, np.ma.MaskedArray):
     """Minimal concrete class derived from _MaskedColumnGetitemShim."""
 
     @property
-    def data(self):
+    def data(self) -> ndarray:
         return self.view(np.ndarray)
 
     def _copy_attrs_slice(self, value: np.ndarray) -> np.ndarray:
@@ -75,7 +76,7 @@ class MaskedMixinTestCase[DT: np.generic]:
         ),
     ],
 )
-def test_minimal_column_getitem_standard(case: MixinTestCase):
+def test_minimal_column_getitem_standard(case: MixinTestCase) -> None:
     minimal_col = case.input_array.view(MinimalColumn)
     result = minimal_col[case.index]
 
@@ -108,7 +109,7 @@ def test_minimal_column_getitem_standard(case: MixinTestCase):
         )
     ],
 )
-def test_minimal_column_getitem_byte_decode(case: MixinTestCase):
+def test_minimal_column_getitem_byte_decode(case: MixinTestCase) -> None:
     minimal_col = case.input_array.view(MinimalColumn)
     result = minimal_col[case.index]
 
@@ -133,7 +134,7 @@ def test_minimal_column_getitem_byte_decode(case: MixinTestCase):
         )
     ],
 )
-def test_minimal_masked_column_getitem(case: MaskedMixinTestCase):
+def test_minimal_masked_column_getitem(case: MaskedMixinTestCase) -> None:
     raw_masked = np.ma.MaskedArray(data=case.input_array, mask=case.input_mask)
     minimal_masked = raw_masked.view(MinimalMaskedColumn)
 

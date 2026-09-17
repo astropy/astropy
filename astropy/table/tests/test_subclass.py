@@ -6,7 +6,7 @@ from astropy.table import pprint
 
 
 class MyRow(table.Row):
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.as_void())
 
 
@@ -34,7 +34,7 @@ class MyTable(table.Table):
     TableFormatter = MyTableFormatter
 
 
-def test_simple_subclass():
+def test_simple_subclass() -> None:
     t = MyTable([[1, 2], [3, 4]])
     row = t[0]
     assert isinstance(row, MyRow)
@@ -85,7 +85,7 @@ class ParamsTable(table.Table):
     Row = ParamsRow
 
 
-def test_params_table():
+def test_params_table() -> None:
     t = ParamsTable(names=["a", "b", "params"], dtype=["i", "f", "O"])
     t.add_row((1, 2.0, {"x": 1.5, "y": 2.5}))
     t.add_row((2, 3.0, {"z": "hello", "id": 123123}))

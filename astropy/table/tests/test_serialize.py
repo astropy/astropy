@@ -11,26 +11,26 @@ from astropy.time import Time
 
 class TestRepresentNdColumnsAs1dColumns:
     @pytest.fixture
-    def tbl_1d(self):
+    def tbl_1d(self) -> Table:
         """Table with only 1-D columns."""
         return Table({"a": [1, 2, 3], "b": [4.0, 5.0, 6.0]})
 
     @pytest.fixture
-    def tbl_2d(self):
+    def tbl_2d(self) -> Table:
         """Table with a 2-D column (shape (3, 2)) and a 1-D column."""
         return Table({"data": np.arange(6).reshape(3, 2), "idx": [10, 20, 30]})
 
     @pytest.fixture
-    def tbl_3d(self):
+    def tbl_3d(self) -> Table:
         """Table with a 3-D column (shape (3, 2, 1)) and a 1-D column."""
         return Table({"cube": np.arange(6).reshape(3, 2, 1), "idx": [1, 2, 3]})
 
-    def test_all_1d_copy_false_returns_same_object(self, tbl_1d):
+    def test_all_1d_copy_false_returns_same_object(self, tbl_1d) -> None:
         """copy=False with all 1-D columns → the original table object is returned."""
         out = represent_nd_columns_as_1d_columns(tbl_1d, copy=False)
         assert out is tbl_1d
 
-    def test_all_1d_copy_true_returns_copy(self, tbl_1d):
+    def test_all_1d_copy_true_returns_copy(self, tbl_1d) -> None:
         """copy=True with all 1-D columns → a new table with equal contents."""
         out = represent_nd_columns_as_1d_columns(tbl_1d, copy=True)
         assert out is not tbl_1d
@@ -38,23 +38,23 @@ class TestRepresentNdColumnsAs1dColumns:
         np.testing.assert_array_equal(out["a"], tbl_1d["a"])
         np.testing.assert_array_equal(out["b"], tbl_1d["b"])
 
-    def test_3d_column_names(self, tbl_3d):
+    def test_3d_column_names(self, tbl_3d) -> None:
         """A (3, 2, 1) column 'cube' yields 'cube.0_0' and 'cube.1_0'."""
         out = represent_nd_columns_as_1d_columns(tbl_3d)
         assert out.colnames == ["cube.0_0", "cube.1_0", "idx"]
 
-    def test_3d_column_values(self, tbl_3d):
+    def test_3d_column_values(self, tbl_3d) -> None:
         """Flattened 3-D slices carry the correct values."""
         out = represent_nd_columns_as_1d_columns(tbl_3d)
         np.testing.assert_array_equal(out["cube.0_0"], tbl_3d["cube"][:, 0, 0])
         np.testing.assert_array_equal(out["cube.1_0"], tbl_3d["cube"][:, 1, 0])
 
-    def test_output_all_1d(self, tbl_3d):
+    def test_output_all_1d(self, tbl_3d) -> None:
         """Every column in the output must be 1-D."""
         out = represent_nd_columns_as_1d_columns(tbl_3d)
         assert all(len(col.shape) == 1 for col in out.itercols())
 
-    def test_collision_one_underscore(self):
+    def test_collision_one_underscore(self) -> None:
         """
         'a' (2-D) would produce 'a.0' / 'a.1', but 'a.0' is already a 1-D column.
         Base name should escalate to 'a_', giving 'a_.0' and 'a_.1'.
@@ -72,7 +72,7 @@ class TestRepresentNdColumnsAs1dColumns:
         np.testing.assert_array_equal(out["a_.0"], [0, 2, 4])
         np.testing.assert_array_equal(out["a_.1"], [1, 3, 5])
 
-    def test_collision_two_underscores(self):
+    def test_collision_two_underscores(self) -> None:
         """
         Both 'a.0' and 'a_.0' pre-exist → base escalates twice to 'a__'.
         """
@@ -91,7 +91,7 @@ class TestRepresentNdColumnsAs1dColumns:
         # No duplicate names
         assert len(set(out.colnames)) == len(out.colnames)
 
-    def test_collision_between_two_nd_columns(self):
+    def test_collision_between_two_nd_columns(self) -> None:
         """
         Two N-D columns where the second column's name ('a.0') would clash with
         the flattened output of the first → output has no duplicate names.
@@ -105,7 +105,7 @@ class TestRepresentNdColumnsAs1dColumns:
         out = represent_nd_columns_as_1d_columns(tbl)
         assert len(set(out.colnames)) == len(out.colnames)
 
-    def test_time_mixin_3d(self):
+    def test_time_mixin_3d(self) -> None:
         """
         A 3-D Time column of shape (3, 2, 1) should flatten to two 1-D Time
         columns named 'time.0_0' and 'time.1_0', with correct values.
@@ -130,7 +130,7 @@ class TestRepresentNdColumnsAs1dColumns:
         assert isinstance(out["time.0_0"], Time)
         assert isinstance(out["time.1_0"], Time)
 
-    def test_table_subclass_preserved(self):
+    def test_table_subclass_preserved(self) -> None:
         """QTable input should produce QTable output."""
         tbl = QTable({"v": np.arange(6).reshape(3, 2), "n": [1, 2, 3]})
         out = represent_nd_columns_as_1d_columns(tbl)

@@ -18,7 +18,7 @@ class BaseTestItems:
 
 @pytest.mark.usefixtures("table_data")
 class TestTableColumnsItems(BaseTestItems):
-    def test_by_name(self, table_data):
+    def test_by_name(self, table_data) -> None:
         """Access TableColumns by name and show that item access returns
         a Column that refers to underlying table data"""
         self.t = table_data.Table(table_data.COLS)
@@ -36,7 +36,7 @@ class TestTableColumnsItems(BaseTestItems):
         self.tc["b"][1] = 0
         assert self.t["b"][1] == 0
 
-    def test_by_position(self, table_data):
+    def test_by_position(self, table_data) -> None:
         """Access TableColumns by position and show that item access returns
         a Column that refers to underlying table data"""
         self.t = table_data.Table(table_data.COLS)
@@ -56,7 +56,7 @@ class TestTableColumnsItems(BaseTestItems):
         self.tc[1][1] = 0
         assert self.t["b"][1] == 0
 
-    def test_mult_columns(self, table_data):
+    def test_mult_columns(self, table_data) -> None:
         """Access TableColumns with "fancy indexing" and showed that returned
         TableColumns object still references original data"""
         self.t = table_data.Table(table_data.COLS)
@@ -72,7 +72,7 @@ class TestTableColumnsItems(BaseTestItems):
         assert self.tc["c"][1] == 0
         assert self.t["c"][1] == 0
 
-    def test_column_slice(self, table_data):
+    def test_column_slice(self, table_data) -> None:
         """Access TableColumns with slice and showed that returned
         TableColumns object still references original data"""
         self.t = table_data.Table(table_data.COLS)
@@ -92,7 +92,7 @@ class TestTableColumnsItems(BaseTestItems):
 @pytest.mark.usefixtures("table_data")
 class TestTableItems(BaseTestItems):
     @pytest.mark.parametrize("idx", [1, np.int64(1), np.array(1)])
-    def test_column(self, table_data, idx):
+    def test_column(self, table_data, idx) -> None:
         """Column access returns REFERENCE to data"""
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns
@@ -103,7 +103,7 @@ class TestTableItems(BaseTestItems):
         assert self.t["a"][idx] == 0
 
     @pytest.mark.parametrize("idx", [1, np.int64(1), np.array(1)])
-    def test_row(self, table_data, idx):
+    def test_row(self, table_data, idx) -> None:
         """Row  access returns REFERENCE to data"""
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns
@@ -129,7 +129,7 @@ class TestTableItems(BaseTestItems):
         assert self.t["a"][1] == 0
         assert self.t[1]["a"] == 0
 
-    def test_empty_iterable_item(self, table_data):
+    def test_empty_iterable_item(self, table_data) -> None:
         """
         Table item access with [], (), or np.array([]) returns the same table
         with no rows.
@@ -143,7 +143,7 @@ class TestTableItems(BaseTestItems):
             assert t2["b"].attrs_equal(table_data.COLS[1])
             assert t2["c"].attrs_equal(table_data.COLS[2])
 
-    def test_table_slice(self, table_data):
+    def test_table_slice(self, table_data) -> None:
         """Table slice returns REFERENCE to data"""
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns
@@ -159,7 +159,7 @@ class TestTableItems(BaseTestItems):
         assert t2._column_class == self.t._column_class
         assert isinstance(t2, table_data.Table)
 
-    def test_fancy_index_slice(self, table_data):
+    def test_fancy_index_slice(self, table_data) -> None:
         """Table fancy slice returns COPY of data"""
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns
@@ -178,7 +178,7 @@ class TestTableItems(BaseTestItems):
         assert t2._column_class == self.t._column_class
         assert isinstance(t2, table_data.Table)
 
-    def test_list_index_slice(self, table_data):
+    def test_list_index_slice(self, table_data) -> None:
         """Table list index slice returns COPY of data"""
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns
@@ -197,7 +197,7 @@ class TestTableItems(BaseTestItems):
         assert t2._column_class == self.t._column_class
         assert isinstance(t2, table_data.Table)
 
-    def test_select_columns(self, table_data):
+    def test_select_columns(self, table_data) -> None:
         """Select columns returns COPY of data and all column
         attributes"""
         self.t = table_data.Table(table_data.COLS)
@@ -216,7 +216,7 @@ class TestTableItems(BaseTestItems):
             assert t2.masked == self.t.masked
             assert t2._column_class == self.t._column_class
 
-    def test_select_columns_fail(self, table_data):
+    def test_select_columns_fail(self, table_data) -> None:
         """Selecting a column that doesn't exist fails"""
         self.t = table_data.Table(table_data.COLS)
 
@@ -228,7 +228,7 @@ class TestTableItems(BaseTestItems):
             self.t[["xxxx", "yyyy"]]
         assert "'xxxx'" in str(err.value)
 
-    def test_np_where(self, table_data):
+    def test_np_where(self, table_data) -> None:
         """Select rows using output of np.where"""
         t = table_data.Table(table_data.COLS)
         # Select last two rows
@@ -244,7 +244,7 @@ class TestTableItems(BaseTestItems):
         assert len(t2) == 0
         assert isinstance(t2, table_data.Table)
 
-    def test_np_integers(self, table_data):
+    def test_np_integers(self, table_data) -> None:
         """
         Select rows using numpy integers.  This is a regression test for a
         py 3.3 failure mode
@@ -252,7 +252,7 @@ class TestTableItems(BaseTestItems):
         t = table_data.Table(table_data.COLS)
         assert type(t[np.int64(0)]) is Row
 
-    def test_select_bad_column(self, table_data):
+    def test_select_bad_column(self, table_data) -> None:
         """Select column name that does not exist"""
         self.t = table_data.Table(table_data.COLS)
         self.tc = self.t.columns

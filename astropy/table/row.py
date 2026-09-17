@@ -5,6 +5,7 @@ from collections import OrderedDict
 from operator import index as operator_index
 
 import numpy as np
+from numpy import ndarray
 
 
 class Row:
@@ -29,7 +30,7 @@ class Row:
       np.int32(4)
     """
 
-    def __init__(self, table, index):
+    def __init__(self, table, index) -> None:
         # Ensure that the row index is a valid index (int)
         index = operator_index(index)
 
@@ -62,7 +63,7 @@ class Row:
                 out = self._table.columns[item][self._index]
         return out
 
-    def __setitem__(self, item, val):
+    def __setitem__(self, item, val) -> None:
         if self._table._is_list_or_tuple_of_str(item):
             self._table._set_row(self._index, colnames=item, vals=val)
         else:
@@ -88,7 +89,7 @@ class Row:
             )
         return self.as_void() != other
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self, dtype=None, copy=None) -> ndarray:
         """Support converting Row to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not
@@ -101,7 +102,7 @@ class Row:
 
         return np.array(self.as_void(), copy=copy)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._table.columns)
 
     def __iter__(self):
@@ -149,7 +150,7 @@ class Row:
         return self._table
 
     @property
-    def index(self):
+    def index(self) -> int:
         return self._index
 
     def as_void(self):
@@ -193,7 +194,7 @@ class Row:
     def dtype(self):
         return self._table.dtype
 
-    def _base_repr_(self, html=False):
+    def _base_repr_(self, html: bool = False):
         """
         Display row as a single-line table but with appropriate header line.
         """
@@ -217,7 +218,7 @@ class Row:
         index = self.index if (self.index >= 0) else self.index + len(self._table)
         return "\n".join(self.table[index : index + 1].pformat(max_width=-1))
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         return str(self).encode("utf-8")
 
 

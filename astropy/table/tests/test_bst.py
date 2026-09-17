@@ -6,7 +6,7 @@ from astropy.table.bst import BST
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
-def get_tree(TreeType):
+def get_tree(TreeType: type[BST]) -> BST:
     # BST is deprecated, so its constructor emits the warning here.
     with pytest.warns(AstropyDeprecationWarning, match="The BST class is deprecated"):
         b = TreeType([], [])
@@ -16,7 +16,7 @@ def get_tree(TreeType):
 
 
 @pytest.fixture
-def tree():
+def tree() -> BST | None:
     return get_tree(BST)
     r"""
          5
@@ -36,7 +36,7 @@ def bst(tree):
     return tree
 
 
-def test_bst_add(bst):
+def test_bst_add(bst) -> None:
     root = bst.root
     assert root.data == [5]
     assert root.left.data == [2]
@@ -50,12 +50,12 @@ def test_bst_add(bst):
     assert root.right.left.right.left.data == [7]
 
 
-def test_bst_dimensions(bst):
+def test_bst_dimensions(bst) -> None:
     assert bst.size == 10
     assert bst.height == 4
 
 
-def test_bst_find(tree):
+def test_bst_find(tree) -> None:
     bst = tree
     for i in range(1, 11):
         node = bst.find(i)
@@ -65,7 +65,7 @@ def test_bst_find(tree):
     assert bst.find("1") == []
 
 
-def test_bst_traverse(bst):
+def test_bst_traverse(bst) -> None:
     preord = [5, 2, 1, 3, 4, 9, 6, 8, 7, 10]
     inord = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     postord = [1, 4, 3, 2, 7, 8, 6, 10, 9, 5]
@@ -77,7 +77,7 @@ def test_bst_traverse(bst):
     assert traversals["postorder"] == postord
 
 
-def test_bst_remove(bst):
+def test_bst_remove(bst) -> None:
     order = (6, 9, 1, 3, 7, 2, 10, 5, 4, 8)
     vals = set(range(1, 11))
     for i, val in enumerate(order):
@@ -90,7 +90,7 @@ def test_bst_remove(bst):
         assert bst.remove(-val) is False
 
 
-def test_bst_duplicate(bst):
+def test_bst_duplicate(bst) -> None:
     bst.add(10, 11)
     assert bst.find(10) == [10, 11]
     assert bst.remove(10, data=10) is True
@@ -101,7 +101,7 @@ def test_bst_duplicate(bst):
     assert bst.remove(10) is False
 
 
-def test_bst_range(tree):
+def test_bst_range(tree) -> None:
     bst = tree
     lst = bst.range_nodes(4, 8)
     assert sorted(x.key for x in lst) == [4, 5, 6, 7, 8]

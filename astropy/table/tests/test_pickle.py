@@ -9,7 +9,7 @@ from astropy.time import Time
 from astropy.units import Quantity, deg
 
 
-def test_pickle_column(protocol):
+def test_pickle_column(protocol) -> None:
     c = Column(
         data=[1, 2],
         name="a",
@@ -26,7 +26,7 @@ def test_pickle_column(protocol):
     assert repr(c) == repr(cp)
 
 
-def test_pickle_masked_column(protocol):
+def test_pickle_masked_column(protocol) -> None:
     c = MaskedColumn(
         data=[1, 2],
         name="a",
@@ -49,7 +49,7 @@ def test_pickle_masked_column(protocol):
     assert repr(c) == repr(cp)
 
 
-def test_pickle_multidimensional_column(protocol):
+def test_pickle_multidimensional_column(protocol) -> None:
     """Regression test for https://github.com/astropy/astropy/issues/4098"""
 
     a = np.zeros((3, 2))
@@ -63,7 +63,7 @@ def test_pickle_multidimensional_column(protocol):
     assert repr(c) == repr(cp)
 
 
-def test_pickle_table(protocol):
+def test_pickle_table(protocol) -> None:
     a = Column(
         data=[1, 2],
         name="a",
@@ -108,7 +108,7 @@ def test_pickle_table(protocol):
         assert isinstance(tp["c"], Quantity if (table_class is QTable) else Column)
 
 
-def test_pickle_masked_table(protocol):
+def test_pickle_masked_table(protocol) -> None:
     a = Column(
         data=[1, 2],
         name="a",
@@ -141,7 +141,7 @@ def test_pickle_masked_table(protocol):
     assert tp.meta == t.meta
 
 
-def test_pickle_masked_qtable(protocol):
+def test_pickle_masked_qtable(protocol) -> None:
     t = QTable(meta={"a": 1}, masked=True)
     t["a"] = Quantity([1, 2], unit="m")
     t["b"] = Angle([1, 2], unit=deg)
@@ -164,7 +164,7 @@ def test_pickle_masked_qtable(protocol):
     assert type(tp) is type(t)
 
 
-def test_pickle_indexed_table(protocol):
+def test_pickle_indexed_table(protocol) -> None:
     """
     Ensure that any indices that have been added will survive pickling.
     """

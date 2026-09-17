@@ -8,37 +8,37 @@ da = pytest.importorskip("dask.array")
 
 
 class TestDaskHandler:
-    def setup_method(self, method):
+    def setup_method(self, method) -> None:
         self.t = Table()
         self.t["a"] = da.arange(10)
 
-    def test_add_row(self):
+    def test_add_row(self) -> None:
         self.t.add_row(self.t[0])
         assert_equal(self.t["a"].compute(), np.hstack([np.arange(10), 0]))
 
-    def test_get_column(self):
+    def test_get_column(self) -> None:
         assert isinstance(self.t["a"], da.Array)
         assert_equal(self.t["a"].compute(), np.arange(10))
 
-    def test_slicing_row_single(self):
+    def test_slicing_row_single(self) -> None:
         sub = self.t[5]
         assert isinstance(sub["a"], da.Array)
         assert not hasattr(sub["a"], "info")  # should be a plain dask array
         assert sub["a"].compute() == 5
 
-    def test_slicing_row_range(self):
+    def test_slicing_row_range(self) -> None:
         sub = self.t[5:]
         assert isinstance(sub["a"], da.Array)
         assert hasattr(sub["a"], "info")  # should be a mixin column
         assert_equal(sub["a"].compute(), np.arange(5, 10))
 
-    def test_slicing_column_range(self):
+    def test_slicing_column_range(self) -> None:
         sub = self.t[("a",)]
         assert isinstance(sub["a"], da.Array)
         assert hasattr(sub["a"], "info")  # should be a mixin column
         assert_equal(sub["a"].compute(), np.arange(10))
 
-    def test_pformat(self):
+    def test_pformat(self) -> None:
         assert self.t.pformat() == [
             " a ",
             "---",
@@ -54,7 +54,7 @@ class TestDaskHandler:
             "  9",
         ]
 
-    def test_info_preserved(self):
+    def test_info_preserved(self) -> None:
         self.t["a"].info.description = "A dask column"
 
         sub = self.t[1:3]

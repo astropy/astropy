@@ -1,15 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import annotations
+
 from collections.abc import Hashable, Mapping, Sequence
 from numbers import Integral
 from typing import TYPE_CHECKING
 
 import numpy as np
+from numpy import ndarray
 
 if TYPE_CHECKING:
     from .table import Column, Table
 
 
-def _searchsorted(array, val, side="left"):
+def _searchsorted(array: ndarray, val, side="left"):
     """
     Call np.searchsorted or use a custom binary
     search if necessary.
@@ -48,14 +51,14 @@ class SortedArray:
         Defaults to False.
     """
 
-    def __init__(self, data: "Table", row_index: "Column", unique: bool = False):
+    def __init__(self, data: Table, row_index: Column, unique: bool = False) -> None:
         self.data = data
         self.row_index = row_index
         self.num_cols = len(getattr(data, "colnames", []))
         self.unique = unique
 
     @property
-    def cols(self) -> list["Column"]:
+    def cols(self) -> list[Column]:
         return list(self.data.columns.values())
 
     def add(self, key: tuple, row: int) -> None:
@@ -81,7 +84,7 @@ class SortedArray:
         self.data.insert_row(pos, key)
         self.row_index = self.row_index.insert(pos, row)
 
-    def _get_key_slice(self, i, begin, end):
+    def _get_key_slice(self, i: int, begin, end) -> ndarray:
         """
         Retrieve the ith slice of the sorted array
         from begin to end.
@@ -91,7 +94,7 @@ class SortedArray:
         else:
             return self.row_index[begin:end]
 
-    def find_pos(self, key, data, exact=False):
+    def find_pos(self, key, data: int, exact=False):
         """
         Return the index of the first key in data greater than or
         equal to the given key, data pair.
@@ -192,11 +195,11 @@ class SortedArray:
         """
         n = len(self.row_index)
 
-        def bisect_left(key):
+        def bisect_left(key: tuple[Hashable, ...]):
             # Position of the first entry whose key is >= ``key``.
             return self.find_pos(key, 0)
 
-        def bisect_right(key):
+        def bisect_right(key: tuple[Hashable, ...]):
             # Position of the first entry whose key is > ``key`` (i.e. just
             # past the last entry equal to ``key``).
             if self.unique:
@@ -273,7 +276,7 @@ class SortedArray:
         """
         self.row_index[self.row_index >= row] += 1
 
-    def replace_rows(self, row_map: "Mapping[int, int]") -> None:
+    def replace_rows(self, row_map: Mapping[int, int]) -> None:
         """
         Replace all rows with the values they map to in the
         given dictionary. Any rows not present as keys in
@@ -325,7 +328,7 @@ class SortedArray:
         """
         return self.row_index
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> SortedArray:
         """
         Return a sliced reference to this sorted array.
 
@@ -336,7 +339,7 @@ class SortedArray:
         """
         return SortedArray(self.data[item], self.row_index[item])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         t = self.data.copy()
         t["rows"] = self.row_index
         return f"<{self.__class__.__name__} length={len(t)}>\n{t}"

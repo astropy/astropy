@@ -9,6 +9,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy import table
 from astropy import units as u
 from astropy.table import MaskedColumn, Table
+from astropy.table.table import QTable
 from astropy.time import Time, TimeDelta
 from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import (
@@ -82,7 +83,13 @@ from .conftest import MIXIN_COLS
 class TestDataFrameConversion:
     """Test DataFrame conversion functionality for both legacy pandas and generic backends."""
 
-    def _to_dataframe(self, table, backend, use_legacy_pandas_api, **kwargs):
+    def _to_dataframe(
+        self,
+        table: QTable | Table,
+        backend: str,
+        use_legacy_pandas_api,
+        **kwargs,
+    ):
         """Convert table to dataframe using appropriate method."""
         if use_legacy_pandas_api:
             if backend != "pandas":
@@ -97,7 +104,9 @@ class TestDataFrameConversion:
 
         return table.to_df(backend, **kwargs)
 
-    def _from_dataframe(self, df, backend, use_legacy_pandas_api, **kwargs):
+    def _from_dataframe(
+        self, df, backend: str, use_legacy_pandas_api, **kwargs
+    ) -> Table:
         """Convert dataframe to table using appropriate method."""
         if use_legacy_pandas_api:
             if backend != "pandas":
@@ -107,7 +116,7 @@ class TestDataFrameConversion:
             return table.Table.from_pandas(df, **kwargs)
         return table.Table.from_df(df, **kwargs)
 
-    def test_simple(self, backend, use_legacy_pandas_api):
+    def test_simple(self, backend, use_legacy_pandas_api) -> None:
         """Test basic endianness and data type handling."""
         t = table.Table()
 
@@ -193,7 +202,7 @@ class TestDataFrameConversion:
             else:
                 assert t2[column].dtype == t[column].dtype.newbyteorder()
 
-    def test_from_df_simple(self, backend, use_legacy_pandas_api):
+    def test_from_df_simple(self, backend, use_legacy_pandas_api) -> None:
         data = {"a": [1, 2, 3], "b": [4.0, 5.0, 6.0], "c": ["x", "y", "z"]}
         match backend:
             case "pandas":
@@ -244,7 +253,7 @@ class TestDataFrameConversion:
         for col in tb.colnames:
             assert_array_equal(tb[col], data[col])
 
-    def test_int128(self, backend, use_legacy_pandas_api):
+    def test_int128(self, backend, use_legacy_pandas_api) -> None:
         match backend:
             case "polars":
                 import polars as pl
@@ -266,13 +275,15 @@ class TestDataFrameConversion:
             _ = self._from_dataframe(df, backend, use_legacy_pandas_api)
 
     @pytest.mark.parametrize("use_IndexedTable", [False, True])
-    def test_to_df_index(self, backend, use_legacy_pandas_api, use_IndexedTable):
+    def test_to_df_index(
+        self, backend, use_legacy_pandas_api, use_IndexedTable
+    ) -> None:
         """Test indexing options for both legacy pandas and generic backends."""
 
         class IndexedTable(table.QTable):
             """Always index the first column"""
 
-            def __init__(self, *args, **kwargs):
+            def __init__(self, *args, **kwargs) -> None:
                 super().__init__(*args, **kwargs)
                 self.add_index(self.colnames[0])
 
@@ -330,7 +341,7 @@ class TestDataFrameConversion:
 
     def test_to_df_index_numpy_bool_true_without_primary_key(
         self, backend, use_legacy_pandas_api
-    ):
+    ) -> None:
         if backend != "pandas":
             pytest.skip("requires pandas")
 
@@ -346,7 +357,7 @@ class TestDataFrameConversion:
                 index=np.bool_(True),
             )
 
-    def test_from_df_index(self, backend, use_legacy_pandas_api):
+    def test_from_df_index(self, backend, use_legacy_pandas_api) -> None:
         """Test index handling in from_dataframe conversion."""
         tm = Time([1998, 2002], format="jyear")
         x = [1, 2]
@@ -376,7 +387,7 @@ class TestDataFrameConversion:
         assert t2.colnames == ["tm", "x"]
         assert np.allclose(t2["tm"].jyear, tm.jyear)
 
-    def test_units(self, backend, use_legacy_pandas_api):
+    def test_units(self, backend, use_legacy_pandas_api) -> None:
         """Test handling of units in from_dataframe conversion."""
         data = {"x": [1, 2, 3], "t": [1.3, 1.2, 1.8]}
         match backend:
@@ -442,7 +453,7 @@ class TestDataFrameConversion:
 
     @pytest.mark.parametrize("unsigned", ["u", ""])
     @pytest.mark.parametrize("bits", [8, 16, 32, 64])
-    def test_nullable_int(self, backend, use_legacy_pandas_api, unsigned, bits):
+    def test_nullable_int(self, backend, use_legacy_pandas_api, unsigned, bits) -> None:
         """Test nullable integer handling."""
         np_dtype = f"{unsigned}int{bits}"
         c = MaskedColumn([1, 2], mask=[False, True], dtype=np_dtype)
@@ -457,7 +468,7 @@ class TestDataFrameConversion:
     @pytest.mark.parametrize("unsigned", ["u", ""])
     def test_nullable_int_no_float_intermediate(
         self, backend, use_legacy_pandas_api, unsigned
-    ):
+    ) -> None:
         """Masked 64-bit ints above 2**53 must not be converted via float64.
 
         Regression test for gh-14442, where masked Gaia source ids came back
@@ -477,7 +488,7 @@ class TestDataFrameConversion:
         assert_array_equal(t2["col0"][:2], values[:2])
 
     @pytest.mark.parametrize("ndim", [1, 2, 3])
-    def test_nd_columns(self, backend, use_legacy_pandas_api, ndim):
+    def test_nd_columns(self, backend, use_legacy_pandas_api, ndim) -> None:
         """Test handling of multidimensional columns."""
         # Add one since we want the dimension of each entry to be ndim
         shape = (3,) * ndim
@@ -517,7 +528,7 @@ class TestDataFrameConversion:
             case _:
                 raise ValueError(f"Unknown backend: {backend}")
 
-    def test_mixin_columns(self, backend, use_legacy_pandas_api):
+    def test_mixin_columns(self, backend, use_legacy_pandas_api) -> None:
         """Test handling of astropy mixin columns."""
         t = table.QTable()
         for name in sorted(MIXIN_COLS):
@@ -559,7 +570,7 @@ class TestDataFrameConversion:
         assert np.allclose(t2["dt"].value, [0, 2, 4, 6])
         assert t2["dt"].format == "sec"
 
-    def test_mixin_masked(self, backend, use_legacy_pandas_api):
+    def test_mixin_masked(self, backend, use_legacy_pandas_api) -> None:
         """Test handling of masked mixin columns."""
         tm = Time([1, 2, 3], format="cxcsec")
         dt = TimeDelta([1, 2, 3], format="sec")
@@ -597,7 +608,7 @@ class TestDataFrameConversion:
         assert np.ma.allclose(t2["dt"].jd, dt.jd, rtol=1e-14, atol=1e-14)
 
     @pytest.mark.parametrize("use_nullable_int", [True, False])
-    def test_masking(self, backend, use_legacy_pandas_api, use_nullable_int):
+    def test_masking(self, backend, use_legacy_pandas_api, use_nullable_int) -> None:
         """Test handling of masked columns."""
         t = table.Table(masked=True)
 
@@ -648,7 +659,7 @@ class TestDataFrameConversion:
                 else:
                     assert t2[name].dtype == column.dtype.newbyteorder()
 
-    def test_basic_roundtrip(self, backend, use_legacy_pandas_api):
+    def test_basic_roundtrip(self, backend, use_legacy_pandas_api) -> None:
         """Test basic round-trip conversion for different backends."""
         t = table.Table()
         t["a"] = [1, 2, 3]
@@ -664,7 +675,7 @@ class TestDataFrameConversion:
         assert_allclose(t2["b"], t["b"])
         assert_array_equal(t2["c"], t["c"])
 
-    def test_units_preservation(self, backend, use_legacy_pandas_api):
+    def test_units_preservation(self, backend, use_legacy_pandas_api) -> None:
         """Test that units are handled correctly through DataFrame conversion."""
         t = table.QTable()
         t["x"] = [1, 2, 3] * u.m
@@ -686,7 +697,7 @@ class TestDataFrameConversion:
         assert_allclose(t2["x"], t["x"].value)
         assert_allclose(t2["y"], t["y"].value)
 
-    def test_masked_int_data(self, backend, use_legacy_pandas_api):
+    def test_masked_int_data(self, backend, use_legacy_pandas_api) -> None:
         """Test specific masked integer data handling."""
         data = {"data": [0, 1, 2]}
         t = table.Table(data=data, masked=True)
@@ -716,7 +727,7 @@ class TestDataFrameConversion:
     reason="requires pandas and narwhals",
 )
 @pytest.mark.parametrize("method", ["from_df", "from_pandas"])
-def test_from_pandas_df_with_qtable(method):
+def test_from_pandas_df_with_qtable(method) -> None:
     """Test fix for QTable.from_pandas / from_df returns Table not QTable #18909"""
     t = table.QTable()
     t["a"] = [1, 2]
@@ -728,7 +739,7 @@ def test_from_pandas_df_with_qtable(method):
 
 @pytest.mark.skipif(not HAS_PANDAS, reason="require pandas")
 @pytest.mark.parametrize("use_legacy_pandas_api", [True, False])
-def test_pandas_conversion_multidim_columns(use_legacy_pandas_api):
+def test_pandas_conversion_multidim_columns(use_legacy_pandas_api) -> None:
     """Test that Table with multidim columns converts successfully to pandas (#19173).
 
     This test only uses pandas since other backends do not support multidim columns.

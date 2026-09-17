@@ -135,8 +135,9 @@ test_all = [
 ]
 typing = [
     "pandas-stubs>=2.2.2", # keep in sync with astropy[pandas]
-    "scipy-stubs>=1.14.1.6",
-    "narwhals>=1.42.0" # keep in sync with dependency-groups.dataframe
+    "scipy-stubs>=1.14.1.6", # keep in sync with dependency-groups.dataframe
+    "narwhals>=1.42.0",
+    "astropy[pandas,recommended]",
 ]
 docs = [
     "astropy[recommended]",  # installs the [recommended] dependencies
@@ -982,3 +983,6 @@ constraint-dependencies = [
 # uv sync's default behavior includes the 'dev' group.
 # Disable this so we get lightweight envs by default.
 default-groups = []
+
+[tool.uv.sources]
+astropy = { workspace = true }

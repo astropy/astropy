@@ -10,6 +10,7 @@ import warnings
 from itertools import cycle
 
 import numpy as np
+from numpy import dtype
 
 from astropy.io.votable.table import parse
 from astropy.utils.data import get_pkg_data_filename
@@ -18,7 +19,9 @@ from astropy.utils.data_info import ParentDtypeInfo
 from .table import Column, Table
 
 
-def simple_table(size=3, cols=None, kinds="ifS", masked=False):
+def simple_table(
+    size: int = 3, cols=None, kinds: str = "ifS", masked: bool = False
+) -> Table:
     """
     Return a simple table for testing.
 
@@ -132,7 +135,7 @@ class ArrayWrapper:
 
     info = ArrayWrapperInfo()
 
-    def __init__(self, data, copy=True):
+    def __init__(self, data, copy=True) -> None:
         if isinstance(data, ArrayWrapper):
             # this is done to preserve byteorder through copies
             arr = data.data
@@ -151,10 +154,10 @@ class ArrayWrapper:
                 out.info = self.info
         return out
 
-    def __setitem__(self, item, value):
+    def __setitem__(self, item, value) -> None:
         self.data[item] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
     def __eq__(self, other):
@@ -165,12 +168,12 @@ class ArrayWrapper:
             return self.data == other
 
     @property
-    def dtype(self):
+    def dtype(self) -> dtype:
         return self.data.dtype
 
     @property
     def shape(self):
         return self.data.shape
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name='{self.info.name}' data={self.data}>"

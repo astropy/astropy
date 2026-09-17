@@ -2,20 +2,26 @@
 Table property for providing information about table.
 """
 
+from __future__ import annotations
+
 import os
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from astropy.utils.data_info import DataInfo
 
+if TYPE_CHECKING:
+    from astropy.table.table import Table
+
 __all__ = ["TableInfo", "serialize_method_as", "table_info"]
 
 
-def table_info(tbl, option="attributes", out=""):
+def table_info(tbl, option: str = "attributes", out: str = "") -> Table | None:
     """
     Write summary information about column to the ``out`` filehandle.
     By default this prints to standard output via sys.stdout.
@@ -121,7 +127,7 @@ def table_info(tbl, option="attributes", out=""):
 
 
 class TableInfo(DataInfo):
-    def __call__(self, option="attributes", out=""):
+    def __call__(self, option: str = "attributes", out: str = "") -> Table | None:
         return table_info(self._parent, option, out)
 
     __call__.__doc__ = table_info.__doc__

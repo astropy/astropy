@@ -131,7 +131,7 @@ class JSViewer:
 
     """
 
-    def __init__(self, use_local_files=False, display_length=50):
+    def __init__(self, use_local_files: bool = False, display_length: int = 50) -> None:
         if use_local_files:
             warn(
                 "`use_local_files` is deprecated and has no effect; for security reasons no static versions of the required js libraries are included in astropy.",
@@ -157,7 +157,7 @@ class JSViewer:
     def _jstable_file(self):
         return conf.datatables_url[:-3]
 
-    def ipynb(self, table_id, css=None, sort_columns="[]"):
+    def ipynb(self, table_id, css=None, sort_columns: str = "[]") -> str:
         html = f"<style>{css if css is not None else DEFAULT_CSS_NB}</style>"
         html += IPYNB_JS_SCRIPT.format(
             display_length=self.display_length,
@@ -168,7 +168,7 @@ class JSViewer:
         )
         return html
 
-    def html_js(self, table_id="table0", sort_columns="[]"):
+    def html_js(self, table_id: str = "table0", sort_columns: str = "[]") -> str:
         return HTML_JS_SCRIPT.format(
             display_length=self.display_length,
             display_length_menu=self.display_length_menu,
@@ -181,13 +181,13 @@ def write_table_jsviewer(
     table,
     filename,
     table_id=None,
-    max_lines=5000,
-    table_class="display compact",
+    max_lines: int = 5000,
+    table_class: str = "display compact",
     jskwargs=None,
-    css=DEFAULT_CSS,
+    css: str = DEFAULT_CSS,
     htmldict=None,
-    overwrite=False,
-):
+    overwrite: bool = False,
+) -> None:
     """
     Write an Astropy Table to an HTML file with JavaScript viewer.
 

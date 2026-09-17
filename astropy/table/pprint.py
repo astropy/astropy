@@ -15,7 +15,7 @@ from astropy.utils.data_info import dtype_info_name
 __all__ = []
 
 
-def default_format_func(format_, val):
+def default_format_func(format_, val) -> str:
     if isinstance(val, bytes):
         return val.decode("utf-8", errors="replace")
     else:
@@ -372,7 +372,7 @@ class TableFormatter:
 
         return col_strs, outs
 
-    def _name_and_structure(self, name, dtype, sep=" "):
+    def _name_and_structure(self, name: str, dtype, sep=" ") -> str:
         """Format a column name, including a possible structure.
 
         Normally, just returns the name, but if it has a structured dtype,
@@ -583,12 +583,12 @@ class TableFormatter:
     def _pformat_table(
         self,
         table,
-        max_lines=-1,
-        max_width=-1,
-        show_name=True,
+        max_lines: int = -1,
+        max_width: int = -1,
+        show_name: bool = True,
         show_unit=None,
-        show_dtype=False,
-        html=False,
+        show_dtype: bool = False,
+        html: bool = False,
         tableid=None,
         tableclass=None,
         align=None,
@@ -703,7 +703,7 @@ class TableFormatter:
 
         n_rows = len(cols[0])
 
-        def outwidth(cols):
+        def outwidth(cols) -> int:
             return sum(len(c[0]) for c in cols) + len(cols) - 1
 
         dots_col = ["..."] * n_rows
@@ -758,10 +758,10 @@ class TableFormatter:
         tabcol,
         max_lines=None,
         max_width=None,
-        show_name=True,
+        show_name: bool = True,
         show_unit=None,
-        show_dtype=False,
-    ):
+        show_dtype: bool = False,
+    ) -> None:
         """Interactive "more" of a table or column.
 
         Parameters

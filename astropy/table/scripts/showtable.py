@@ -45,6 +45,7 @@ Example usage of ``showtable-astropy``:
 import argparse
 import textwrap
 import warnings
+from argparse import Namespace
 
 from astropy import log
 from astropy.table import Table
@@ -52,7 +53,7 @@ from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyUserWarning
 
 
-def showtable(filename, args):
+def showtable(filename, args: Namespace) -> None:
     """
     Read a table and print to the standard output.
 
@@ -94,7 +95,7 @@ def showtable(filename, args):
         log.error(str(e))
 
 
-def main(args=None):
+def main(args=None) -> None:
     """The main function called by the ``showtable-astropy`` script."""
     parser = argparse.ArgumentParser(
         description=textwrap.dedent(
@@ -194,5 +195,5 @@ def main(args=None):
 
 
 @deprecated("v7.1", name="showtable", alternative="showtable-astropy")
-def main_deprecated(args=None):
+def main_deprecated(args=None) -> None:
     main(args)

@@ -22,7 +22,7 @@ SMALL_ARR = np.arange(18, dtype=np.int64).reshape(6, 3)
 
 @pytest.mark.usefixtures("table_type")
 class TestMultiD:
-    def test_multidim(self, table_type):
+    def test_multidim(self, table_type) -> None:
         """Test printing with multidimensional column"""
         arr = [
             np.array([[1, 2], [10, 20]], dtype=np.int64),
@@ -71,7 +71,7 @@ class TestMultiD:
             "   5 .. 60",
         ]
 
-    def test_fake_multidim(self, table_type):
+    def test_fake_multidim(self, table_type) -> None:
         """Test printing with 'fake' multidimensional column"""
         arr = [
             np.array([[(1,)], [(10,)]], dtype=np.int64),
@@ -121,7 +121,7 @@ class TestMultiD:
         ]
 
 
-def test_html_escaping():
+def test_html_escaping() -> None:
     t = table.Table([('<script>alert("gotcha");</script>', 2, 3)])
     nbclass = table.conf.default_notebook_table_class
     assert t._repr_html_().splitlines() == [
@@ -138,7 +138,7 @@ def test_html_escaping():
 
 @pytest.mark.usefixtures("table_type")
 class TestPprint:
-    def _setup(self, table_type):
+    def _setup(self, table_type) -> None:
         self.tb = table_type(BIG_WIDE_ARR)
         self.tb["col0"].format = "e"
         self.tb["col1"].format = ".6f"
@@ -147,7 +147,7 @@ class TestPprint:
         self.tb["col19"].unit = "kg s m**-2"
         self.ts = table_type(SMALL_ARR)
 
-    def test_empty_table(self, table_type):
+    def test_empty_table(self, table_type) -> None:
         t = table_type()
         lines = t.pformat()
         assert lines == ["<No columns>"]
@@ -158,7 +158,7 @@ class TestPprint:
             "<No columns>",
         ]
 
-    def test_format0(self, table_type):
+    def test_format0(self, table_type) -> None:
         """Try getting screen size but fail to defaults because testing doesn't
         have access to screen (fcntl.ioctl fails).
         """
@@ -174,7 +174,7 @@ class TestPprint:
         for line in lines[:-1]:  # skip last "Length = .. rows" line
             assert width - 10 < len(line) <= width
 
-    def test_format1(self, table_type):
+    def test_format1(self, table_type) -> None:
         """Basic test of formatting, unit header row included"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40)
@@ -189,7 +189,7 @@ class TestPprint:
             "Length = 100 rows",
         ]
 
-    def test_format2(self, table_type):
+    def test_format2(self, table_type) -> None:
         """Basic test of formatting, unit header row excluded"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40, show_unit=False)
@@ -204,7 +204,7 @@ class TestPprint:
             "Length = 100 rows",
         ]
 
-    def test_format3(self, table_type):
+    def test_format3(self, table_type) -> None:
         """Include the unit header row"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40, show_unit=True)
@@ -220,7 +220,7 @@ class TestPprint:
             "Length = 100 rows",
         ]
 
-    def test_format4(self, table_type):
+    def test_format4(self, table_type) -> None:
         """Do not include the name header row"""
         self._setup(table_type)
         lines = self.tb.pformat(max_lines=8, max_width=40, show_name=False)
@@ -235,7 +235,7 @@ class TestPprint:
             "Length = 100 rows",
         ]
 
-    def test_noclip(self, table_type):
+    def test_noclip(self, table_type) -> None:
         """Basic table print"""
         self._setup(table_type)
         lines = self.ts.pformat(max_lines=-1, max_width=-1)
@@ -250,7 +250,7 @@ class TestPprint:
             "  15   16   17",
         ]
 
-    def test_clip1(self, table_type):
+    def test_clip1(self, table_type) -> None:
         """max lines below hard limit of 8"""
         self._setup(table_type)
         lines = self.ts.pformat(max_lines=3, max_width=-1)
@@ -265,7 +265,7 @@ class TestPprint:
             "  15   16   17",
         ]
 
-    def test_clip2(self, table_type):
+    def test_clip2(self, table_type) -> None:
         """max lines below hard limit of 8 and output longer than 8"""
         self._setup(table_type)
         lines = self.ts.pformat(
@@ -282,7 +282,7 @@ class TestPprint:
             "Length = 6 rows",
         ]
 
-    def test_clip3(self, table_type):
+    def test_clip3(self, table_type) -> None:
         """Max lines below hard limit of 8 and max width below hard limit
         of 10
         """
@@ -299,14 +299,14 @@ class TestPprint:
             "Length = 6 rows",
         ]
 
-    def test_clip4(self, table_type):
+    def test_clip4(self, table_type) -> None:
         """Test a range of max_lines"""
         self._setup(table_type)
         for max_lines in (0, 1, 4, 5, 6, 7, 8, 100, 101, 102, 103, 104, 130):
             lines = self.tb.pformat(max_lines=max_lines, show_unit=False)
             assert len(lines) == max(8, min(102, max_lines))
 
-    def test_pformat_all(self, table_type):
+    def test_pformat_all(self, table_type) -> None:
         """Test that all rows are printed by default"""
         self._setup(table_type)
         with pytest.warns(
@@ -320,7 +320,7 @@ class TestPprint:
         # +3 accounts for the three header lines in this  table
         assert len(lines) == BIG_WIDE_ARR.shape[0] + 3
 
-    def test_pprint_all(self, table_type, capsys):
+    def test_pprint_all(self, table_type, capsys) -> None:
         """Test that all rows are printed by default"""
         self._setup(table_type)
         self.tb.pprint_all()
@@ -351,7 +351,7 @@ class TestPprintColumn:
             ),
         ],
     )
-    def test_pprint_scalar(self, scalar, exp):
+    def test_pprint_scalar(self, scalar, exp) -> None:
         # see https://github.com/astropy/astropy/issues/12584
         c = Column(scalar)
 
@@ -365,7 +365,7 @@ class TestPprintColumn:
 
 @pytest.mark.usefixtures("table_type")
 class TestFormat:
-    def test_column_format(self, table_type):
+    def test_column_format(self, table_type) -> None:
         t = table_type([[1, 2], [3, 4]], names=("a", "b"))
         # default (format=None)
         assert str(t["a"]) == " a \n---\n  1\n  2"
@@ -395,7 +395,7 @@ class TestFormat:
             t["a"].format = "fail"
         assert t["a"].format == "%4.2f {0:}"  # format did not change
 
-    def test_column_format_with_threshold(self, table_type):
+    def test_column_format_with_threshold(self, table_type) -> None:
         with console_conf.set_temp("max_lines", 8):
             t = table_type([np.arange(20)], names=["a"])
             t["a"].format = "%{0:}"
@@ -421,7 +421,7 @@ class TestFormat:
                 "Length = 20 rows",
             ]
 
-    def test_column_format_func(self, table_type):
+    def test_column_format_func(self, table_type) -> None:
         # run most of functions twice
         # 1) astropy.table.pprint._format_funcs gets populated
         # 2) astropy.table.pprint._format_funcs gets used
@@ -433,7 +433,7 @@ class TestFormat:
         assert str(t["a"]) == " a \n---\n3.0\n6.0"
         assert str(t["a"]) == " a \n---\n3.0\n6.0"
 
-    def test_column_format_callable(self, table_type):
+    def test_column_format_callable(self, table_type) -> None:
         # run most of functions twice
         # 1) astropy.table.pprint._format_funcs gets populated
         # 2) astropy.table.pprint._format_funcs gets used
@@ -442,24 +442,24 @@ class TestFormat:
 
         # mathematical function
         class format:
-            def __call__(self, x):
+            def __call__(self, x) -> str:
                 return str(x * 3.0)
 
         t["a"].format = format()
         assert str(t["a"]) == " a \n---\n3.0\n6.0"
         assert str(t["a"]) == " a \n---\n3.0\n6.0"
 
-    def test_column_format_func_wrong_number_args(self, table_type):
+    def test_column_format_func_wrong_number_args(self, table_type) -> None:
         t = table_type([[1.0, 2.0], [3, 4]], names=("a", "b"))
 
         # function that expects wrong number of arguments
-        def func(a, b):
+        def func(a, b) -> None:
             pass
 
         with pytest.raises(ValueError):
             t["a"].format = func
 
-    def test_column_format_func_multiD(self, table_type):
+    def test_column_format_func_multiD(self, table_type) -> None:
         arr = [np.array([[1, 2], [10, 20]], dtype="i8")]
         t = table_type(arr, names=["a"])
 
@@ -473,14 +473,14 @@ class TestFormat:
         ]
         assert str(t["a"]).splitlines() == outstr
 
-    def test_column_format_func_not_str(self, table_type):
+    def test_column_format_func_not_str(self, table_type) -> None:
         t = table_type([[1.0, 2.0], [3, 4]], names=("a", "b"))
 
         # mathematical function
         with pytest.raises(ValueError):
             t["a"].format = lambda x: x * 3
 
-    def test_column_alignment(self, table_type):
+    def test_column_alignment(self, table_type) -> None:
         t = table_type(
             [[1], [2], [3], [4]],
             names=("long title a", "long title b", "long title c", "long title d"),
@@ -496,7 +496,7 @@ class TestFormat:
 
 
 class TestFormatWithMaskedElements:
-    def test_column_format(self):
+    def test_column_format(self) -> None:
         t = Table([[1, 2, 3], [3, 4, 5]], names=("a", "b"), masked=True)
         t["a"].mask = [True, False, True]
         # default (format=None)
@@ -522,7 +522,7 @@ class TestFormatWithMaskedElements:
         t["a"].format = "%4.2f {0:}"
         assert str(t["a"]) == "   a   \n-------\n     --\n%4.2f 2\n     --"
 
-    def test_column_format_with_threshold_masked_table(self):
+    def test_column_format_with_threshold_masked_table(self) -> None:
         with console_conf.set_temp("max_lines", 8):
             t = Table([np.arange(20)], names=["a"], masked=True)
             t["a"].format = "%{0:}"
@@ -550,7 +550,7 @@ class TestFormatWithMaskedElements:
                 "Length = 20 rows",
             ]
 
-    def test_column_format_func(self):
+    def test_column_format_func(self) -> None:
         # run most of functions twice
         # 1) astropy.table.pprint._format_funcs gets populated
         # 2) astropy.table.pprint._format_funcs gets used
@@ -562,7 +562,7 @@ class TestFormatWithMaskedElements:
         assert str(t["a"]) == " a \n---\n --\n6.0\n --"
         assert str(t["a"]) == " a \n---\n --\n6.0\n --"
 
-    def test_column_format_func_with_special_masked(self):
+    def test_column_format_func_with_special_masked(self) -> None:
         # run most of functions twice
         # 1) astropy.table.pprint._format_funcs gets populated
         # 2) astropy.table.pprint._format_funcs gets used
@@ -571,7 +571,7 @@ class TestFormatWithMaskedElements:
         t["a"].mask = [True, False, True]
         # mathematical function
 
-        def format_func(x):
+        def format_func(x) -> str:
             if x is np.ma.masked:
                 return "!!"
             else:
@@ -581,7 +581,7 @@ class TestFormatWithMaskedElements:
         assert str(t["a"]) == " a \n---\n !!\n6.0\n !!"
         assert str(t["a"]) == " a \n---\n !!\n6.0\n !!"
 
-    def test_column_format_callable(self):
+    def test_column_format_callable(self) -> None:
         # run most of functions twice
         # 1) astropy.table.pprint._format_funcs gets populated
         # 2) astropy.table.pprint._format_funcs gets used
@@ -591,19 +591,19 @@ class TestFormatWithMaskedElements:
 
         # mathematical function
         class format:
-            def __call__(self, x):
+            def __call__(self, x) -> str:
                 return str(x * 3.0)
 
         t["a"].format = format()
         assert str(t["a"]) == " a \n---\n --\n6.0\n --"
         assert str(t["a"]) == " a \n---\n --\n6.0\n --"
 
-    def test_column_format_func_wrong_number_args(self):
+    def test_column_format_func_wrong_number_args(self) -> None:
         t = Table([[1.0, 2.0], [3, 4]], names=("a", "b"), masked=True)
         t["a"].mask = [True, False]
 
         # function that expects wrong number of arguments
-        def func(a, b):
+        def func(a, b) -> None:
             pass
 
         with pytest.raises(ValueError):
@@ -613,7 +613,7 @@ class TestFormatWithMaskedElements:
         t["a"].mask = [True, True]
         assert str(t["a"]) == " a \n---\n --\n --"
 
-    def test_column_format_func_multiD(self):
+    def test_column_format_func_multiD(self) -> None:
         arr = [np.array([[1, 2], [10, 20]], dtype="i8")]
         t = Table(arr, names=["a"], masked=True)
         t["a"].mask[0, 1] = True
@@ -630,7 +630,7 @@ class TestFormatWithMaskedElements:
         assert str(t["a"]).splitlines() == outstr
 
 
-def test_pprint_npfloat32():
+def test_pprint_npfloat32() -> None:
     """
     Test for #148, that np.float32 cannot by itself be formatted as float,
     but has to be converted to a python float.
@@ -641,7 +641,7 @@ def test_pprint_npfloat32():
     assert str(t["a"]) == "  a  \n-----\n 1.00\n 2.00"
 
 
-def test_pprint_py3_bytes():
+def test_pprint_py3_bytes() -> None:
     """
     Test for #1346 and #4944. Make sure a bytestring (dtype=S<N>) in Python 3
     is printed correctly (without the "b" prefix like b'string').
@@ -653,7 +653,7 @@ def test_pprint_py3_bytes():
     assert t["col"].pformat() == ["col ", "----", " val", "bläh"]
 
 
-def test_pprint_structured():
+def test_pprint_structured() -> None:
     su = table.Column(
         [
             (1, (1.5, [1.6, 1.7])),
@@ -683,7 +683,7 @@ def test_pprint_structured():
     ]
 
 
-def test_pprint_structured_with_format():
+def test_pprint_structured_with_format() -> None:
     dtype = np.dtype([("par", "f8"), ("min", "f8"), ("id", "i4"), ("name", "U4")])
     c = table.Column(
         [
@@ -705,7 +705,7 @@ def test_pprint_structured_with_format():
     assert t.pformat() == exp
 
 
-def test_pprint_nameless_col():
+def test_pprint_nameless_col() -> None:
     """Regression test for #2213, making sure a nameless column can be printed
     using None as the name.
     """
@@ -713,7 +713,7 @@ def test_pprint_nameless_col():
     assert str(col).startswith("None")
 
 
-def test_html():
+def test_html() -> None:
     """Test HTML printing"""
     dat = np.array([1.0, 2.0], dtype=np.float32)
     t = Table([dat], names=["a"])
@@ -746,7 +746,7 @@ def test_html():
     ]
 
 
-def test_align():
+def test_align() -> None:
     t = simple_table(2, kinds="iS")
     assert t.pformat() == [
         " a   b ",
@@ -866,7 +866,7 @@ def test_align():
         t.pprint(align="x=")
 
 
-def test_auto_format_func():
+def test_auto_format_func() -> None:
     """Test for #5802 (fix for #5800 where format_func key is not unique)"""
     t = Table([[1, 2] * u.m])
     t["col0"].format = "%f"
@@ -876,7 +876,7 @@ def test_auto_format_func():
     qt.pformat()  # Generates exception prior to #5802
 
 
-def test_decode_replace():
+def test_decode_replace() -> None:
     """
     Test printing a bytestring column with a value that fails
     decoding to utf-8 and gets replaced by U+FFFD.  See
@@ -893,11 +893,11 @@ def test_decode_replace():
 class TestColumnsShowHide:
     """Tests of show and hide table columns"""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         self.t = simple_table(size=1, cols=4, kinds="i")
 
     @pytest.mark.parametrize("attr", ("pprint_exclude_names", "pprint_include_names"))
-    def test_basic(self, attr):
+    def test_basic(self, attr) -> None:
         t = self.t
         assert (
             repr(getattr(Table, attr))
@@ -910,7 +910,7 @@ class TestColumnsShowHide:
         # Default value is None
         assert t_show_hide() is None
 
-    def test_slice(self):
+    def test_slice(self) -> None:
         t = self.t
         t.pprint_include_names = "a"
         t.pprint_exclude_names = "b"
@@ -918,7 +918,7 @@ class TestColumnsShowHide:
         assert t2.pprint_include_names() == ("a",)
         assert t2.pprint_exclude_names() == ("b",)
 
-    def test_copy(self):
+    def test_copy(self) -> None:
         t = self.t
         t.pprint_include_names = "a"
         t.pprint_exclude_names = "b"
@@ -936,7 +936,7 @@ class TestColumnsShowHide:
 
     @pytest.mark.parametrize("attr", ("pprint_exclude_names", "pprint_include_names"))
     @pytest.mark.parametrize("value", ("z", ["a", "z"]))
-    def test_setting(self, attr, value):
+    def test_setting(self, attr, value) -> None:
         t = self.t
         t_show_hide = getattr(t, attr)
 
@@ -971,7 +971,7 @@ class TestColumnsShowHide:
 
     @pytest.mark.parametrize("attr", ("pprint_exclude_names", "pprint_include_names"))
     @pytest.mark.parametrize("value", ("z", ["a", "z"], ("a", "z")))
-    def test_add_remove(self, attr, value):
+    def test_add_remove(self, attr, value) -> None:
         t = self.t
         t_show_hide = getattr(t, attr)
 
@@ -1002,7 +1002,7 @@ class TestColumnsShowHide:
             t_show_hide.remove(("x", "z"))
 
     @pytest.mark.parametrize("attr", ("pprint_exclude_names", "pprint_include_names"))
-    def test_rename(self, attr):
+    def test_rename(self, attr) -> None:
         t = self.t
         t_hide_show = getattr(t, attr)
         t_hide_show.set(["a", "b"])
@@ -1010,14 +1010,14 @@ class TestColumnsShowHide:
         assert t_hide_show() == ("aa", "b")
 
     @pytest.mark.parametrize("attr", ("pprint_exclude_names", "pprint_include_names"))
-    def test_remove(self, attr):
+    def test_remove(self, attr) -> None:
         t = self.t
         t_hide_show = getattr(t, attr)
         t_hide_show.set(["a", "b"])
         del t["a"]
         assert t_hide_show() == ("b",)
 
-    def test_serialization(self):
+    def test_serialization(self) -> None:
         # Serialization works for ECSV. Currently fails for FITS, works with
         # HDF5.
         t = self.t
@@ -1031,7 +1031,7 @@ class TestColumnsShowHide:
         assert t2.pprint_exclude_names() == ("a", "y")
         assert t2.pprint_include_names() == ("b", "z")
 
-    def test_output(self):
+    def test_output(self) -> None:
         """Test that pprint_include/exclude_names actually changes the print output"""
         t = self.t
         exp = [
@@ -1063,7 +1063,7 @@ class TestColumnsShowHide:
             out = t.pformat()
         assert out == exp
 
-    def test_output_globs(self):
+    def test_output_globs(self) -> None:
         """Test that pprint_include/exclude_names works with globs (fnmatch)"""
         t = self.t
         t["a2"] = 1
@@ -1100,7 +1100,7 @@ class TestColumnsShowHide:
         assert out == exp
 
 
-def test_embedded_newline_tab():
+def test_embedded_newline_tab() -> None:
     """Newlines and tabs are escaped in table repr"""
     t = Table(
         rows=[
@@ -1117,7 +1117,7 @@ def test_embedded_newline_tab():
     assert t.pformat() == exp
 
 
-def test_multidims_with_zero_dim():
+def test_multidims_with_zero_dim() -> None:
     """Test of fix for #13836 when a zero-dim column is present"""
     t = Table()
     t["a"] = ["a", "b"]
@@ -1132,7 +1132,7 @@ def test_multidims_with_zero_dim():
     assert t.pformat(show_dtype=True) == exp
 
 
-def test_zero_length_string():
+def test_zero_length_string() -> None:
     data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
     t = Table(data, copy=False)
     exp = [
@@ -1144,7 +1144,7 @@ def test_zero_length_string():
     assert t.pformat(show_dtype=True) == exp
 
 
-def test_multidim_threshold_default():
+def test_multidim_threshold_default() -> None:
     """Test default behavior (threshold=1) shows only first and last elements"""
     # Default threshold is 1, so size > 1 will show "first .. last"
     # Uses astropy.table.conf.format_size_threshold
@@ -1155,7 +1155,7 @@ def test_multidim_threshold_default():
         assert [line.strip() for line in lines] == ["1 .. 5", "6 .. 10"]
 
 
-def test_multidim_threshold_show_all():
+def test_multidim_threshold_show_all() -> None:
     """Test large threshold shows all elements"""
     # Use sys.maxsize or a large value to show all elements
     # Uses astropy.table.conf.format_size_threshold
@@ -1166,7 +1166,7 @@ def test_multidim_threshold_show_all():
         assert [line.strip() for line in lines] == ["[1 2 3 4 5]", "[6 7 8 9 10]"]
 
 
-def test_multidim_threshold_partial():
+def test_multidim_threshold_partial() -> None:
     """Test threshold shows elements with ellipsis when size > threshold"""
     # Size is 10 (10 elements in the array), threshold is 4
     # Since 10 > 4, should show "first .. last"
@@ -1178,7 +1178,7 @@ def test_multidim_threshold_partial():
         assert [line.strip() for line in lines] == ["0 .. 9"]
 
 
-def test_multidim_threshold_three_vectors():
+def test_multidim_threshold_three_vectors() -> None:
     """Test threshold=3 for 3-element vectors (common use case)"""
     # Uses astropy.table.conf.format_size_threshold
     with table.conf.set_temp("format_size_threshold", 3):
@@ -1188,7 +1188,7 @@ def test_multidim_threshold_three_vectors():
         assert lines == ["[1 2 3]", "[4 5 6]"]
 
 
-def test_multidim_threshold_with_formatting():
+def test_multidim_threshold_with_formatting() -> None:
     """Test threshold works with column formatting"""
     # Uses astropy.table.conf.format_size_threshold
     with table.conf.set_temp("format_size_threshold", sys.maxsize):
@@ -1198,7 +1198,7 @@ def test_multidim_threshold_with_formatting():
         assert lines == ["[1.23 2.35 3.46]"]
 
 
-def test_multidim_threshold_2x3_array():
+def test_multidim_threshold_2x3_array() -> None:
     """Test 2x3 array display with different thresholds"""
     # 2x3 array has size = 2*3 = 6
     data = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
@@ -1226,7 +1226,7 @@ def test_multidim_threshold_2x3_array():
         assert [line.strip() for line in lines] == ["1 .. 6", "7 .. 12"]
 
 
-def test_multidim_threshold_3d_array():
+def test_multidim_threshold_3d_array() -> None:
     """Test 3D array display.
 
     Each table element has shape (2, 3, 2); the full column shape is (2, 2, 3, 2)
@@ -1253,7 +1253,7 @@ def test_multidim_threshold_3d_array():
         ]
 
 
-def test_multidim_threshold_2x2_array_with_threshold_4():
+def test_multidim_threshold_2x2_array_with_threshold_4() -> None:
     """Test that 2x2 array (size=4) is fully shown when threshold=4"""
     data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     col = Column(data, name="test")
