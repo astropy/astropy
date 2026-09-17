@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
 import io
 import os
 import re
@@ -2890,3 +2891,23 @@ def test_to_header_concurrent_consistency():
 
     assert seen == {reference}
     assert not any("NAN" in h.upper() for h in seen)
+
+
+@pytest.fixture
+def shared_tan_wcs():
+    w = wcs.WCS(naxis=2)
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    w.wcs.set()
+    return w
+
+
+@pytest.mark.force_parallel_threads(8)
+@pytest.mark.iterations(25)
+def test_deepcopy_during_lazy_cache_population(shared_tan_wcs):
+    # Deepcopying a shared WCS while another thread's first pixel_to_world
+    # call lazily inserts _components_and_classes_cache into __dict__ raised
+    # RuntimeError; the pop re-arms that lazy insertion on every iteration.
+    shared_tan_wcs.__dict__.pop("_components_and_classes_cache", None)
+    copy.deepcopy(shared_tan_wcs)
+    shared_tan_wcs.pixel_to_world(0, 0)
+    copy.deepcopy(shared_tan_wcs)
