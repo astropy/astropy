@@ -64,6 +64,7 @@ if TYPE_CHECKING:
         ValuesView,
     )
     from contextlib import AbstractContextManager
+    from types import TracebackType
 
     import numpy.typing as npt
 
@@ -604,19 +605,24 @@ class PprintIncludeExclude(TableAttribute):
         """
 
         class _Context:
-            def __init__(self, descriptor_self):
+            def __init__(self, descriptor_self: PprintIncludeExclude) -> None:
                 self.descriptor_self = descriptor_self
                 self.names_orig = descriptor_self()
 
-            def __enter__(self):
+            def __enter__(self) -> None:
                 pass
 
-            def __exit__(self, type, value, tb):
+            def __exit__(
+                self,
+                type: type[BaseException] | None,
+                value: BaseException | None,
+                tb: TracebackType | None,
+            ) -> None:
                 descriptor_self = self.descriptor_self
                 instance = descriptor_self._instance_ref()
                 descriptor_self.__set__(instance, self.names_orig)
 
-            def __repr__(self):
+            def __repr__(self) -> str:
                 return repr(self.descriptor_self)
 
         ctx = _Context(descriptor_self=self)
