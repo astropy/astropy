@@ -1,8 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import annotations
+
 import itertools
 from collections import OrderedDict
 from copy import deepcopy
 from importlib import import_module
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -11,6 +14,11 @@ from astropy.utils.data_info import MixinInfo
 
 from .column import Column, MaskedColumn
 from .table import QTable, Table, has_info_class
+
+if TYPE_CHECKING:
+    from collections.abc import ValuesView
+
+    from ._typing import ColumnLike
 
 # TODO: some of this might be better done programmatically, through
 # code like
@@ -87,7 +95,7 @@ class SerializedColumnInfo(MixinInfo):
     Used to help create a dict of columns in ColumnInfo for structured data.
     """
 
-    def _represent_as_dict(self):
+    def _represent_as_dict(self) -> SerializedColumn:
         # SerializedColumn is already a `dict`, so we can return it directly.
         return self._parent
 
@@ -104,7 +112,7 @@ class SerializedColumn(dict):
     info = SerializedColumnInfo()
 
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, ...]:
         """Minimal shape implementation to allow use as a mixin column.
 
         Returns the shape of the first item that has a shape at all,
@@ -114,7 +122,7 @@ class SerializedColumn(dict):
             (value.shape for value in self.values() if hasattr(value, "shape")), ()
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Representation of SerializedColumn
 
         Examples
@@ -126,7 +134,13 @@ class SerializedColumn(dict):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
 
-def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=()):
+def _represent_mixin_as_column(
+    col: ColumnLike,
+    name: str,
+    new_cols: list[ColumnLike],
+    mixin_cols: dict[str, Any],
+    exclude_classes: tuple[type, ...] = (),
+) -> None:
     """Carry out processing needed to serialize ``col`` in an output table
     consisting purely of plain ``Column`` or ``MaskedColumn`` columns.  This
     relies on the object determine if any transformation is required and may
@@ -242,7 +256,9 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=
     mixin_cols[name] = obj_attrs
 
 
-def represent_mixins_as_columns(tbl, exclude_classes=()):
+def represent_mixins_as_columns(
+    tbl: Table, exclude_classes: tuple[type, ...] = ()
+) -> Table:
     """Represent input Table ``tbl`` using only `~astropy.table.Column`
     or  `~astropy.table.MaskedColumn` objects.
 
@@ -336,7 +352,9 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
     return out
 
 
-def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
+def _construct_mixin_from_obj_attrs_and_info(
+    obj_attrs: dict[str, Any], info: dict[str, Any]
+) -> ColumnLike:
     # If this is a supported class then import the class and run
     # the _construct_from_col method.  Prevent accidentally running
     # untrusted code by only importing known astropy classes.
@@ -363,7 +381,10 @@ def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
     cls = getattr(module, cls_name)
     for attr, value in info.items():
         if attr in cls.info.attrs_from_parent:
-            obj_attrs[attr] = value
+            # PERF403 only fires here now that obj_attrs is annotated as a dict, but
+            # its suggested comprehension does not apply: obj_attrs already exists and
+            # is only updated for a subset of keys.
+            obj_attrs[attr] = value  # noqa: PERF403
     mixin = cls.info._construct_from_dict(obj_attrs)
     for attr, value in info.items():
         if attr not in obj_attrs:
@@ -383,7 +404,7 @@ class _TableLite(OrderedDict):
     Masked and a warning is issued. This is not desirable.
     """
 
-    def add_column(self, col, index=0):
+    def add_column(self, col: ColumnLike, index: int = 0) -> None:
         colnames = self.colnames
         self[col.info.name] = col
         for ii, name in enumerate(colnames):
@@ -391,14 +412,16 @@ class _TableLite(OrderedDict):
                 self.move_to_end(name)
 
     @property
-    def colnames(self):
+    def colnames(self) -> list[str]:
         return list(self.keys())
 
-    def itercols(self):
+    def itercols(self) -> ValuesView[ColumnLike]:
         return self.values()
 
 
-def _construct_mixin_from_columns(new_name, obj_attrs, out):
+def _construct_mixin_from_columns(
+    new_name: str, obj_attrs: dict[str, Any], out: _TableLite
+) -> None:
     data_attrs_map = {}
     for name, val in obj_attrs.items():
         if isinstance(val, SerializedColumn):
@@ -453,7 +476,7 @@ def _construct_mixin_from_columns(new_name, obj_attrs, out):
     out.add_column(col, index=idx)
 
 
-def _construct_mixins_from_columns(tbl):
+def _construct_mixins_from_columns(tbl: Table) -> Table:
     if "__serialized_columns__" not in tbl.meta:
         return tbl
 
