@@ -31,41 +31,68 @@ import os
 import sys
 import tomllib
 import warnings
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+from packaging.utils import NormalizedName, canonicalize_name
+from packaging.version import Version
 from sphinx.util import logging
 
 # from docs import global_substitutions
 
 logger = logging.getLogger(__name__)
 
+
 # -- Check for missing dependencies -------------------------------------------
-missing_requirements = {}
-for line in metadata.requires("astropy"):
-    if 'extra == "docs"' in line:
-        req = Requirement(line.split(";")[0])
-        req_package = req.name.lower()
-        req_specifier = str(req.specifier)
+@dataclass(kw_only=True, slots=True, frozen=True)
+class PackageInfo:
+    name: NormalizedName
+    required: SpecifierSet
+    installed: Version | None = None
 
-        try:
-            version = metadata.version(req_package)
-        except metadata.PackageNotFoundError:
-            missing_requirements[req_package] = req_specifier
 
-        if version not in SpecifierSet(req_specifier, prereleases=True):
-            missing_requirements[req_package] = req_specifier
+unsatisfied_requirements: set[PackageInfo] = set()
+for req in filter(
+    lambda r: 'extra == "docs"' in str(r.marker),
+    map(Requirement, metadata.requires("astropy")),
+):
+    name = canonicalize_name(req.name)
 
-if missing_requirements:
+    try:
+        version = Version(metadata.version(name))
+    except metadata.PackageNotFoundError:
+        unsatisfied_requirements.add(
+            PackageInfo(
+                name=name,
+                required=req.specifier,
+            )
+        )
+        continue
+
+    if version not in SpecifierSet(req.specifier, prereleases=True):
+        unsatisfied_requirements.add(
+            PackageInfo(
+                name=name,
+                required=req.specifier,
+                installed=version,
+            )
+        )
+
+if unsatisfied_requirements:
     msg = (
         "The following packages could not be found and are required to "
         "build the documentation:\n"
-        "%s"
-        '\nPlease install the "docs" requirements.',
-        "\n".join([f"    * {key} {val}" for key, val in missing_requirements.items()]),
+        + "\n".join(
+            [
+                f"    * {p.name} {p.required}{f' (found incompatible version {p.installed})' if p.installed is not None else ''}"
+                for p in unsatisfied_requirements
+            ]
+        )
+        + '\nPlease install the "docs" optional dependencies.'
     )
     logger.error(msg)
     sys.exit(1)

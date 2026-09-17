@@ -246,9 +246,11 @@ def get_wcslib_cfg(cfg, wcslib_files, include_paths):
     if sys.platform.startswith("linux"):
         cfg["define_macros"].append(("HAVE_SINCOS", None))
 
-    # For 4.7+ enable C99 syntax in older compilers (need 'gnu99' std for gcc)
+    # The wcserr spinlock in WCSLIB 8.9+ requires C11 stdatomic; with an
+    # older -std it silently compiles to a no-op and error reporting is
+    # not thread-safe.
     if get_compiler() == "unix":
-        cfg["extra_compile_args"].extend(["-std=gnu99"])
+        cfg["extra_compile_args"].extend(["-std=gnu11"])
 
     # Squelch a few compilation warnings in WCSLIB
     if get_compiler() in ("unix", "mingw32"):
@@ -308,6 +310,7 @@ def get_extensions():
         "docstrings.c",
         "pipeline.c",
         "pyutil.c",
+        "wcsparam_array.c",
         "astropy_wcs.c",
         "astropy_wcs_api.c",
         "sip.c",

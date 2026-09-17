@@ -734,6 +734,12 @@ reduce these to 2 dimensions using the naxis kwarg.
     def __deepcopy__(self, memo):
         from copy import deepcopy
 
+        # Snapshot the instance dict up front so that we are not sensitive
+        # to it changing while this method runs (e.g. lazy caches inserted
+        # by another thread); unlike iteration, dict.copy() is atomic on
+        # free-threaded builds as it holds the dict's per-object lock
+        state = self.__dict__.copy()
+
         new_copy = self.__class__()
         new_copy.naxis = deepcopy(self.naxis, memo)
         WCSBase.__init__(
@@ -743,7 +749,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             deepcopy(self.wcs, memo),
             (deepcopy(self.det2im1, memo), deepcopy(self.det2im2, memo)),
         )
-        for key, val in self.__dict__.items():
+        for key, val in state.items():
             new_copy.__dict__[key] = deepcopy(val, memo)
         return new_copy
 
