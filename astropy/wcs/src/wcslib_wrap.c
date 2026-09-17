@@ -2422,7 +2422,7 @@ Wcsprm_to_header(
   // We need to make sure wcsset() has been called on the WCS in case
   // for example preserve_units is being used and units have been set
   // programmatically, otherwise unit_scaling will be uninitialized.
-  if (Wcsprm_cset(self)) {
+  if (Wcsprm_cset(self, 1)) {
     return NULL;
   }
 
