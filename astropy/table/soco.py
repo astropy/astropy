@@ -5,56 +5,62 @@ The SCEngine class uses the ``sortedcontainers`` package to implement an
 Index engine for Tables.
 """
 
+from __future__ import annotations
+
 from collections import OrderedDict
 from collections.abc import Hashable, Mapping, Sequence
 from numbers import Integral
+from typing import TYPE_CHECKING
 
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
 if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
 
+if TYPE_CHECKING:
+    from .table import Column, Table
+
 
 class Node:
     __slots__ = ("key", "value")
 
-    def __init__(self, key, value):
+    def __init__(self, key: tuple[Hashable, ...], value: int) -> None:
         self.key = key
         self.value = value
 
-    def __lt__(self, other):
+    def __lt__(self, other: Node | tuple[Hashable, ...]) -> bool:
         if other.__class__ is Node:
             return (self.key, self.value) < (other.key, other.value)
         return self.key < other
 
-    def __le__(self, other):
+    def __le__(self, other: Node | tuple[Hashable, ...]) -> bool:
         if other.__class__ is Node:
             return (self.key, self.value) <= (other.key, other.value)
         return self.key <= other
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if other.__class__ is Node:
             return (self.key, self.value) == (other.key, other.value)
         return self.key == other
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         if other.__class__ is Node:
             return (self.key, self.value) != (other.key, other.value)
         return self.key != other
 
-    def __gt__(self, other):
+    def __gt__(self, other: Node | tuple[Hashable, ...]) -> bool:
         if other.__class__ is Node:
             return (self.key, self.value) > (other.key, other.value)
         return self.key > other
 
-    def __ge__(self, other):
+    def __ge__(self, other: Node | tuple[Hashable, ...]) -> bool:
         if other.__class__ is Node:
             return (self.key, self.value) >= (other.key, other.value)
         return self.key >= other
 
     __hash__ = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Node({self.key!r}, {self.value!r})"
 
 
@@ -74,7 +80,7 @@ class SCEngine:
         Defaults to False.
     """
 
-    def __init__(self, data, row_index, unique=False):
+    def __init__(self, data: Table, row_index: Column, unique: bool = False) -> None:
         if not HAS_SORTEDCONTAINERS:
             raise ImportError("sortedcontainers is needed for using SCEngine")
 
@@ -148,7 +154,7 @@ class SCEngine:
         for index, node in enumerate(self._nodes):
             node.value = index
 
-    def sorted_data(self):
+    def sorted_data(self) -> list[int]:
         """
         Return a list of rows in order sorted by key.
         """
@@ -169,7 +175,7 @@ class SCEngine:
         iterator = self._nodes.irange(lower, upper, bounds)
         return [node.value for node in iterator]
 
-    def replace_rows(self, row_map: "Mapping[int, int]") -> None:
+    def replace_rows(self, row_map: Mapping[int, int]) -> None:
         """
         Replace rows with the values in row_map.
         """
@@ -179,7 +185,7 @@ class SCEngine:
         self._nodes.clear()
         self._nodes.update(nodes)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if len(self._nodes) > 6:
             nodes = list(self._nodes[:3]) + ["..."] + list(self._nodes[-3:])
         else:
@@ -188,7 +194,7 @@ class SCEngine:
         return f"<{self.__class__.__name__} nodes={nodes_str}>"
 
     @property
-    def unique(self):
+    def unique(self) -> bool:
         return self._unique
 
     def __len__(self) -> int:
