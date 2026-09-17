@@ -1975,7 +1975,7 @@ class JointFitter(Fitter):
             joints_to_remove = []
             for param_name in joint_params:
                 slice_ = param_metrics[param_name]["slice"]
-                joints_to_remove.append(slice_.start)
+                joints_to_remove.extend(np.arange(slice_.start, slice_.stop))
             params = np.delete(params, joints_to_remove)
             fparams.extend(params)
         return fparams
