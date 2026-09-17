@@ -4,19 +4,26 @@ with Jupyter notebooks.
 
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from .table import Table
+
 __all__ = ["classic", "ipydatagrid"]
 
 
 # NOTE: The actual deprecation warning is emitted in show_in_notebook
 # method in table.py module.
 def classic(
-    table,
-    tableid=None,
-    css=None,
-    display_length=50,
-    table_class="astropy-default",
-    show_row_index="idx",
-):
+    table: Table,
+    tableid: str | None = None,
+    css: str | None = None,
+    display_length: int = 50,
+    table_class: str | None = "astropy-default",
+    show_row_index: str | Literal[False] = "idx",
+) -> Any:
     """Render the table in HTML and show it in the Jupyter notebook.
 
     .. deprecated:: 6.1
@@ -100,7 +107,7 @@ def classic(
     return HTML(html)
 
 
-def ipydatagrid(table, **kwargs):
+def ipydatagrid(table: Table, **kwargs) -> Any:
     """Render the table in HTML with ``ipydatagrid`` and show it in
     the Jupyter notebook.
 
