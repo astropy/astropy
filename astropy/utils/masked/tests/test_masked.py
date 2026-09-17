@@ -132,6 +132,32 @@ class TestMaskedArrayInitialization(ArraySetup):
         assert_array_equal(mab.mask, self.mask_a | self.mask_b)
 
 
+def test_masked_mask_strips_nested_mask():
+    # Regression test for astropy/astropy#20246: passing a mask that is itself
+    # a Masked (or np.ma.MaskedArray) array used to store a *nested* mask
+    # rather than a plain boolean ndarray, making masked values disappear.
+    mask = Masked([False, False, True, True], mask=[False, True, False, True])
+    ma = Masked([0, 1, 2, 3], mask=mask)
+    # The mask-of-the-mask is ignored; only the plain boolean values matter.
+    assert not isinstance(ma.mask, Masked)
+    assert_array_equal(ma.mask, np.array([False, False, True, True]))
+    # Elements 2 and 3 are masked regardless of the nested mask.
+    assert repr(ma) == "MaskedNDArray([0, 1, —, —])"
+
+    # The same must hold when setting the mask after construction.
+    m2 = Masked([1.0, 2.0, 3.0])
+    m2.mask = Masked([True, False, True], mask=[False, True, False])
+    assert not isinstance(m2.mask, Masked)
+    assert_array_equal(m2.mask, np.array([True, False, True]))
+
+    # And for a mask given as an np.ma.MaskedArray.
+    m3 = Masked(
+        [0, 1, 2], mask=np.ma.array([False, True, False], mask=[True, False, True])
+    )
+    assert not isinstance(m3.mask, Masked)
+    assert_array_equal(m3.mask, np.array([False, True, False]))
+
+
 def test_masked_ndarray_init():
     # Note: as a straight ndarray subclass, MaskedNDArray passes on
     # the arguments relevant for np.ndarray, not np.array.
