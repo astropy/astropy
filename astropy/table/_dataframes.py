@@ -22,8 +22,13 @@ from .column import Column, MaskedColumn
 __all__ = ["from_df", "from_pandas", "to_df", "to_pandas"]
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
+    from narwhals import Implementation
     from narwhals.typing import EagerAllowed, IntoBackend
-    from units.typing import UnitLike
+    from pandas import DataFrame
+    from pandas.arrays import IntegerArray
+
+    from astropy.units.typing import UnitLike
 
     from .table import Table
 
@@ -35,7 +40,9 @@ PANDAS_LIKE: PandasLikeSentinel = PandasLikeSentinel(object())
 INTEGER_DTYPE_KINDS = frozenset({"u", "i"})
 
 
-def _pandas_nullable_int_array(data, mask):
+def _pandas_nullable_int_array(
+    data: npt.ArrayLike, mask: npt.ArrayLike
+) -> IntegerArray:
     """Make a pandas nullable integer array from integer ``data`` and ``mask``.
 
     The obvious ways of getting a masked integer column into pandas (letting
@@ -89,7 +96,7 @@ def _encode_mixins(tbl: Table) -> Table:
     return encode_tbl
 
 
-def _get_backend_impl(backend: str):
+def _get_backend_impl(backend: str) -> Implementation:
     """Get the narwhals backend implementation."""
     if not HAS_NARWHALS:
         raise ModuleNotFoundError(
@@ -203,7 +210,7 @@ def to_df(
     backend: str,
     index: bool | str | None = None,
     use_nullable_int: bool = True,
-):
+) -> Any:
     """Convert an Astropy Table to a DataFrame using the specified backend."""
     if not HAS_NARWHALS:
         raise ModuleNotFoundError(
@@ -404,7 +411,7 @@ def from_df(
 
 def to_pandas(
     table: Table, *, index: bool | str | None = None, use_nullable_int: bool = True
-):
+) -> DataFrame:
     """Convert an Astropy Table to a pandas DataFrame.
 
     This mirrors the previous DataFrameConverter.to_pandas method but as a
