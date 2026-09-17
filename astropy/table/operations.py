@@ -1102,7 +1102,7 @@ def result_type(cols: Sequence[Any]) -> np.dtype:
 
 
 def _get_join_sortable_arrays(
-    keys: list[str], left: Table, right: Table
+    keys: Sequence[str], left: Table, right: Table
 ) -> tuple[
     list[tuple[str, np.dtype]], list[str], dict[str, np.ndarray], dict[str, np.ndarray]
 ]:
@@ -1188,7 +1188,7 @@ def _get_join_sortable_arrays(
 
 
 def _get_join_sort_idxs(
-    keys: list[str], left: Table, right: Table
+    keys: Sequence[str], left: Table, right: Table
 ) -> tuple[np.ndarray, np.ndarray]:
     """Compute sorted-row and group-boundary indices for join keys.
 
