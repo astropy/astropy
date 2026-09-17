@@ -18,7 +18,7 @@ if HAS_SORTEDCONTAINERS:
 class Node:
     __slots__ = ("key", "value")
 
-    def __init__(self, key, value):
+    def __init__(self, key, value: int) -> None:
         self.key = key
         self.value = value
 
@@ -54,7 +54,7 @@ class Node:
 
     __hash__ = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Node({self.key!r}, {self.value!r})"
 
 
@@ -74,7 +74,7 @@ class SCEngine:
         Defaults to False.
     """
 
-    def __init__(self, data, row_index, unique=False):
+    def __init__(self, data, row_index, unique: bool = False) -> None:
         if not HAS_SORTEDCONTAINERS:
             raise ImportError("sortedcontainers is needed for using SCEngine")
 
@@ -179,7 +179,7 @@ class SCEngine:
         self._nodes.clear()
         self._nodes.update(nodes)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if len(self._nodes) > 6:
             nodes = list(self._nodes[:3]) + ["..."] + list(self._nodes[-3:])
         else:
@@ -188,7 +188,7 @@ class SCEngine:
         return f"<{self.__class__.__name__} nodes={nodes_str}>"
 
     @property
-    def unique(self):
+    def unique(self) -> bool:
         return self._unique
 
     def __len__(self) -> int:

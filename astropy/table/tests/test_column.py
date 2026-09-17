@@ -17,14 +17,14 @@ from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
 class TestColumn:
-    def test_subclass(self, Column):
+    def test_subclass(self, Column) -> None:
         c = Column(name="a")
         assert isinstance(c, np.ndarray)
         c2 = c * 2
         assert isinstance(c2, Column)
         assert isinstance(c2, np.ndarray)
 
-    def test_numpy_ops(self, Column):
+    def test_numpy_ops(self, Column) -> None:
         """Show that basic numpy operations with Column behave sensibly"""
 
         arr = np.array([1, 2, 3])
@@ -50,7 +50,7 @@ class TestColumn:
         lt = c - 1 < arr
         assert np.all(lt)
 
-    def test_numpy_boolean_ufuncs(self, Column):
+    def test_numpy_boolean_ufuncs(self, Column) -> None:
         """Show that basic numpy operations with Column behave sensibly"""
 
         arr = np.array([1, 2, 3])
@@ -73,11 +73,11 @@ class TestColumn:
                 if ufunc is not np.sign:
                     assert result.dtype.str == "|b1"
 
-    def test_view(self, Column):
+    def test_view(self, Column) -> None:
         c = np.array([1, 2, 3], dtype=np.int64).view(Column)
         assert repr(c) == f"<{Column.__name__} dtype='int64' length=3>\n1\n2\n3"
 
-    def test_format(self, Column):
+    def test_format(self, Column) -> None:
         """Show that the formatted output from str() works"""
         from astropy import conf
 
@@ -94,7 +94,7 @@ class TestColumn:
                 "Length = 2000 rows",
             ]
 
-    def test_convert_numpy_array(self, Column):
+    def test_convert_numpy_array(self, Column) -> None:
         d = Column([1, 2, 3], name="a", dtype="i8")
 
         np_data = np.array(d)
@@ -104,12 +104,12 @@ class TestColumn:
         np_data = np.array(d, dtype="i4")
         assert np.all(np_data == d)
 
-    def test_convert_unit(self, Column):
+    def test_convert_unit(self, Column) -> None:
         d = Column([1, 2, 3], name="a", dtype="f8", unit="m")
         d.convert_unit_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
 
-    def test_inplace_operation_with_unit(self, Column):
+    def test_inplace_operation_with_unit(self, Column) -> None:
         """Regression test for #20075 - in-place operations with a Quantity
         on a Column with a unit used to raise UnitTypeError."""
         d = Column([1.0, 2.0, 3.0], name="a", unit="deg")
@@ -149,7 +149,7 @@ class TestColumn:
                 out=d,
             )
 
-    def test_array_wrap(self):
+    def test_array_wrap(self) -> None:
         """Test that the __array_wrap__ method converts a reduction ufunc
         output that has a different shape into an ndarray view.  Without this a
         method call like c.mean() returns a Column array object with length=1."""
@@ -183,13 +183,13 @@ class TestColumn:
         assert np.allclose(c.sum(), 3.0)
         assert isinstance(c.sum(), (np.floating, float))
 
-    def test_name_none(self, Column):
+    def test_name_none(self, Column) -> None:
         """Can create a column without supplying name, which defaults to None"""
         c = Column([1, 2])
         assert c.name is None
         assert np.all(c == np.array([1, 2]))
 
-    def test_quantity_init(self, Column):
+    def test_quantity_init(self, Column) -> None:
         c = Column(data=np.array([1, 2, 3]) * u.m)
         assert np.all(c.data == np.array([1, 2, 3]))
         assert np.all(c.unit == u.m)
@@ -198,7 +198,7 @@ class TestColumn:
         assert np.all(c.data == np.array([100, 200, 300]))
         assert np.all(c.unit == u.cm)
 
-    def test_quantity_with_info_init(self, Column):
+    def test_quantity_with_info_init(self, Column) -> None:
         q = np.arange(3.0) * u.m
         q.info.name = "q"
         q.info.description = "an example"
@@ -211,7 +211,7 @@ class TestColumn:
         assert c.meta is not q.info.meta
         assert c.pformat() == " q \n---\n0.0\n1.0\n2.0".splitlines()
 
-    def test_quantity_comparison(self, Column):
+    def test_quantity_comparison(self, Column) -> None:
         # regression test for gh-6532
         c = Column([1, 2100, 3], unit="Hz")
         q = 2 * u.kHz
@@ -221,7 +221,7 @@ class TestColumn:
         check = q >= c
         assert np.all(check == [True, False, True])
 
-    def test_attrs_survive_getitem_after_change(self, Column):
+    def test_attrs_survive_getitem_after_change(self, Column) -> None:
         """
         Test for issue #3023: when calling getitem with a MaskedArray subclass
         the original object attributes are not copied.
@@ -254,7 +254,7 @@ class TestColumn:
         for attr in ("name", "unit", "format", "description", "meta"):
             assert not hasattr(val, attr)
 
-    def test_to_quantity(self, Column):
+    def test_to_quantity(self, Column) -> None:
         d = Column([1, 2, 3], name="a", dtype="f8", unit="m")
 
         assert np.all(d.quantity == ([1, 2, 3.0] * u.m))
@@ -304,7 +304,7 @@ class TestColumn:
         with pytest.raises(TypeError):
             d3.quantity
 
-    def test_to_funcunit_quantity(self, Column):
+    def test_to_funcunit_quantity(self, Column) -> None:
         """
         Tests for #8424, check if function-unit can be retrieved from column.
         """
@@ -319,7 +319,7 @@ class TestColumn:
         q = [10, 100, 1000] * u.AA
         np.testing.assert_allclose(d.to(u.AA), q)
 
-    def test_item_access_type(self, Column):
+    def test_item_access_type(self, Column) -> None:
         """
         Tests for #3095, which forces integer item access to always return a plain
         ndarray or MaskedArray, even in the case of a multi-dim column.
@@ -351,7 +351,7 @@ class TestColumn:
             assert isinstance(c01, Column)
             assert c01.shape == (1,)
 
-    def test_insert_basic(self, Column):
+    def test_insert_basic(self, Column) -> None:
         c = Column(
             [0, 1, 2],
             name="a",
@@ -389,7 +389,7 @@ class TestColumn:
         with pytest.raises((ValueError, IndexError)):
             c1 = c.insert(4, 100)
 
-    def test_insert_axis(self, Column):
+    def test_insert_axis(self, Column) -> None:
         """Insert with non-default axis kwarg"""
         c = Column([[1, 2], [3, 4]])
 
@@ -399,7 +399,7 @@ class TestColumn:
         c1 = c.insert(1, [5, 6], axis=1)
         assert np.all(c1 == [[1, 5, 2], [3, 6, 4]])
 
-    def test_insert_string_expand(self, Column):
+    def test_insert_string_expand(self, Column) -> None:
         c = Column(["a", "b"])
         c1 = c.insert(0, "abc")
         assert np.all(c1 == ["abc", "a", "b"])
@@ -408,7 +408,7 @@ class TestColumn:
         c1 = c.insert(0, ["c", "def"])
         assert np.all(c1 == ["c", "def", "a", "b"])
 
-    def test_insert_string_masked_values(self):
+    def test_insert_string_masked_values(self) -> None:
         c = table.MaskedColumn(["a", "b"])
         c1 = c.insert(0, np.ma.masked)
         assert np.all(c1 == ["", "a", "b"])
@@ -419,7 +419,7 @@ class TestColumn:
         assert np.all(c2.mask == [False, True, False, False])
         assert c2.dtype == "U3"
 
-    def test_insert_string_type_error(self, Column):
+    def test_insert_string_type_error(self, Column) -> None:
         c = Column([1, 2])
         with pytest.raises(ValueError, match="invalid literal for int"):
             c.insert(0, "string")
@@ -428,7 +428,7 @@ class TestColumn:
         with pytest.raises(TypeError, match="ufunc 'str_len' did not contain a loop"):
             c.insert(0, 1)
 
-    def test_insert_multidim(self, Column):
+    def test_insert_multidim(self, Column) -> None:
         c = Column([[1, 2], [3, 4]], name="a", dtype=int)
 
         # Basic insert
@@ -443,14 +443,14 @@ class TestColumn:
         with pytest.raises(ValueError):
             c1 = c.insert(1, [100, 200, 300])
 
-    def test_insert_object(self, Column):
+    def test_insert_object(self, Column) -> None:
         c = Column(["a", 1, None], name="a", dtype=object)
 
         # Basic insert
         c1 = c.insert(1, [100, 200])
         assert np.all(c1 == np.array(["a", [100, 200], 1, None], dtype=object))
 
-    def test_insert_masked(self):
+    def test_insert_masked(self) -> None:
         c = table.MaskedColumn(
             [0, 1, 2], name="a", fill_value=9999, mask=[False, True, False]
         )
@@ -467,24 +467,24 @@ class TestColumn:
             assert np.all(c1.data.data == [0, 100, 1, 2])
             assert np.all(c1.data.mask == [False, mask, True, False])
 
-    def test_masked_multidim_as_list(self):
+    def test_masked_multidim_as_list(self) -> None:
         data = np.ma.MaskedArray([1, 2], mask=[True, False])
         c = table.MaskedColumn([data])
         assert c.shape == (1, 2)
         assert np.all(c[0].mask == [True, False])
 
-    def test_masked_multidim_nested_list(self):
+    def test_masked_multidim_nested_list(self) -> None:
         data = [[1, np.ma.masked], [3, 4]]
         c = _convert_sequence_data_to_array(data)
         assert c.shape == (2, 2)
         assert np.all(c.mask == [[False, True], [False, False]])
 
-    def test_contains_ma_masked_scalar(self):
+    def test_contains_ma_masked_scalar(self) -> None:
         # Regression test: ndim=0 should not raise (scalar input)
         assert _contains_ma_masked(np.ma.masked, 0, np.ma.masked) is True
         assert _contains_ma_masked(42, 0, np.ma.masked) is False
 
-    def test_insert_masked_multidim(self):
+    def test_insert_masked_multidim(self) -> None:
         c = table.MaskedColumn([[1, 2], [3, 4]], name="a", dtype=int)
 
         c1 = c.insert(1, [100, 200], mask=True)
@@ -498,7 +498,7 @@ class TestColumn:
         with pytest.raises(ValueError):
             c1 = c.insert(1, [100, 200], mask=[True, False, True])
 
-    def test_masked_string_ufunc_dtype_change_fill_value(self):
+    def test_masked_string_ufunc_dtype_change_fill_value(self) -> None:
         """
         Regression test for a ufunc that changes the dtype of a
         MaskedColumn (e.g. np.strings.find applied to a string column,
@@ -517,7 +517,7 @@ class TestColumn:
         assert result.dtype.kind == "i"
         assert result[0] == 0  # "foo" is found at index 0
 
-    def test_mask_on_non_masked_table(self):
+    def test_mask_on_non_masked_table(self) -> None:
         """
         When table is not masked and trying to set mask on column then
         it's Raise AttributeError.
@@ -529,7 +529,7 @@ class TestColumn:
             t["a"].mask = [True, False]
 
     @pytest.mark.parametrize("scalar", [1, u.Quantity(0.6, "eV")])
-    def test_access_scalar(self, scalar):
+    def test_access_scalar(self, scalar) -> None:
         # see https://github.com/astropy/astropy/pull/15749#issuecomment-1867561072
         c = table.Column(scalar)
         if isinstance(scalar, u.Quantity):
@@ -545,7 +545,7 @@ class TestColumn:
     "data",
     [np.array([object()]), [object()]],
 )
-def test_deepcopy_object_column(data):
+def test_deepcopy_object_column(data) -> None:
     # see https://github.com/astropy/astropy/issues/13435
     c1 = table.Column(data, meta={"test": object()})
     c2 = copy.deepcopy(c1)
@@ -562,12 +562,12 @@ def test_deepcopy_object_column(data):
 class TestAttrEqual:
     """Bunch of tests originally from ATpy that test the attrs_equal method."""
 
-    def test_5(self, Column):
+    def test_5(self, Column) -> None:
         c1 = Column(name="a", dtype=int, unit="mJy")
         c2 = Column(name="a", dtype=int, unit="mJy")
         assert c1.attrs_equal(c2)
 
-    def test_6(self, Column):
+    def test_6(self, Column) -> None:
         c1 = Column(
             name="a",
             dtype=int,
@@ -586,7 +586,7 @@ class TestAttrEqual:
         )
         assert c1.attrs_equal(c2)
 
-    def test_7(self, Column):
+    def test_7(self, Column) -> None:
         c1 = Column(
             name="a",
             dtype=int,
@@ -605,7 +605,7 @@ class TestAttrEqual:
         )
         assert not c1.attrs_equal(c2)
 
-    def test_8(self, Column):
+    def test_8(self, Column) -> None:
         c1 = Column(
             name="a",
             dtype=int,
@@ -624,7 +624,7 @@ class TestAttrEqual:
         )
         assert not c1.attrs_equal(c2)
 
-    def test_9(self, Column):
+    def test_9(self, Column) -> None:
         c1 = Column(
             name="a",
             dtype=int,
@@ -643,7 +643,7 @@ class TestAttrEqual:
         )
         assert not c1.attrs_equal(c2)
 
-    def test_10(self, Column):
+    def test_10(self, Column) -> None:
         c1 = Column(
             name="a",
             dtype=int,
@@ -662,7 +662,7 @@ class TestAttrEqual:
         )
         assert not c1.attrs_equal(c2)
 
-    def test_11(self, Column):
+    def test_11(self, Column) -> None:
         c1 = Column(
             name="a",
             dtype=int,
@@ -681,7 +681,7 @@ class TestAttrEqual:
         )
         assert not c1.attrs_equal(c2)
 
-    def test_12(self, Column):
+    def test_12(self, Column) -> None:
         c1 = Column(
             name="a",
             dtype=int,
@@ -700,7 +700,7 @@ class TestAttrEqual:
         )
         assert not c1.attrs_equal(c2)
 
-    def test_13(self, Column):
+    def test_13(self, Column) -> None:
         c1 = Column(
             name="a",
             dtype=int,
@@ -719,7 +719,7 @@ class TestAttrEqual:
         )
         assert not c1.attrs_equal(c2)
 
-    def test_col_and_masked_col(self):
+    def test_col_and_masked_col(self) -> None:
         c1 = table.Column(
             name="a",
             dtype=int,
@@ -755,7 +755,7 @@ class TestMetaMaskedColumn(MetaBaseTest):
     args = ()
 
 
-def test_getitem_metadata_regression():
+def test_getitem_metadata_regression() -> None:
     """
     Regression test for #1471: MaskedArray does not call __array_finalize__ so
     the meta-data was not getting copied over. By overloading _update_from we
@@ -817,14 +817,14 @@ def test_getitem_metadata_regression():
         assert not isinstance(subset, table.MaskedColumn)
 
 
-def test_unicode_guidelines():
+def test_unicode_guidelines() -> None:
     arr = np.array([1, 2, 3])
     c = table.Column(arr, name="a")
 
     assert_follows_unicode_guidelines(c)
 
 
-def test_scalar_column():
+def test_scalar_column() -> None:
     """
     Column is not designed to hold scalars, but for numpy 1.6 this can happen:
 
@@ -836,7 +836,7 @@ def test_scalar_column():
     assert str(c) == "1.5"
 
 
-def test_qtable_column_conversion():
+def test_qtable_column_conversion() -> None:
     """
     Ensures that a QTable that gets assigned a unit switches to be Quantity-y
     """
@@ -862,7 +862,7 @@ def test_qtable_column_conversion():
 
 
 @pytest.mark.parametrize("masked", [True, False])
-def test_string_truncation_warning(masked):
+def test_string_truncation_warning(masked) -> None:
     """
     Test warnings associated with in-place assignment to a string
     column that results in truncation of the right hand side.
@@ -901,7 +901,7 @@ def test_string_truncation_warning(masked):
     assert np.all(t["a"] == ["f", "g"])
 
 
-def test_string_truncation_warning_masked():
+def test_string_truncation_warning_masked() -> None:
     """
     Test warnings associated with in-place assignment to a string
     to a masked column, specifically where the right hand side
@@ -935,7 +935,7 @@ def test_string_truncation_warning_masked():
 
 
 @pytest.mark.parametrize("Column", (table.Column, table.MaskedColumn))
-def test_col_unicode_sandwich_create_from_str(Column):
+def test_col_unicode_sandwich_create_from_str(Column) -> None:
     """
     Create a bytestring Column from strings (including unicode) in Py3.
     """
@@ -951,7 +951,7 @@ def test_col_unicode_sandwich_create_from_str(Column):
 
 
 @pytest.mark.parametrize("Column", (table.Column, table.MaskedColumn))
-def test_col_unicode_sandwich_bytes_obj(Column):
+def test_col_unicode_sandwich_bytes_obj(Column) -> None:
     """
     Create a Column of dtype object with bytestring in it and make sure
     it keeps the bytestring and not convert to str with accessed.
@@ -968,7 +968,7 @@ def test_col_unicode_sandwich_bytes_obj(Column):
 
 
 @pytest.mark.parametrize("Column", (table.Column, table.MaskedColumn))
-def test_col_unicode_sandwich_bytes(Column):
+def test_col_unicode_sandwich_bytes(Column) -> None:
     """
     Create a bytestring Column from bytes and ensure that it works in Python 3 in
     a convenient way like in Python 2.
@@ -1006,7 +1006,7 @@ def test_col_unicode_sandwich_bytes(Column):
         assert np.all(ok == [True, False])
 
 
-def test_col_unicode_sandwich_unicode():
+def test_col_unicode_sandwich_unicode() -> None:
     """
     Sanity check that Unicode Column behaves normally.
     """
@@ -1033,7 +1033,7 @@ def test_col_unicode_sandwich_unicode():
         assert np.all(c != [uba8, b"def"])
 
 
-def test_masked_col_unicode_sandwich():
+def test_masked_col_unicode_sandwich() -> None:
     """
     Create a bytestring MaskedColumn and ensure that it works in Python 3 in
     a convenient way like in Python 2.
@@ -1064,7 +1064,7 @@ def test_masked_col_unicode_sandwich():
 
 
 @pytest.mark.parametrize("Column", (table.Column, table.MaskedColumn))
-def test_unicode_sandwich_set(Column):
+def test_unicode_sandwich_set(Column) -> None:
     """
     Test setting
     """
@@ -1092,7 +1092,7 @@ def test_unicode_sandwich_set(Column):
 
 @pytest.mark.parametrize("class1", [table.MaskedColumn, table.Column])
 @pytest.mark.parametrize("class2", [table.MaskedColumn, table.Column, str, list])
-def test_unicode_sandwich_compare(class1, class2):
+def test_unicode_sandwich_compare(class1, class2) -> None:
     """Test that comparing a bytestring Column/MaskedColumn with various
     str (unicode) object types gives the expected result.  Tests #6838.
     """
@@ -1123,7 +1123,7 @@ def test_unicode_sandwich_compare(class1, class2):
     assert np.all((obj2 >= obj1) == [True, False])
 
 
-def test_unicode_sandwich_masked_compare():
+def test_unicode_sandwich_masked_compare() -> None:
     """Test the fix for #6839 from #6899."""
     c1 = table.MaskedColumn(["a", "b", "c", "d"], mask=[True, False, True, False])
     c2 = table.MaskedColumn([b"a", b"b", b"c", b"d"], mask=[True, True, False, False])
@@ -1144,7 +1144,7 @@ def test_unicode_sandwich_masked_compare():
     # see https://github.com/numpy/numpy/issues/10092.
 
 
-def test_structured_masked_column_roundtrip():
+def test_structured_masked_column_roundtrip() -> None:
     mc = table.MaskedColumn(
         [(1.0, 2.0), (3.0, 4.0)], mask=[(False, False), (False, False)], dtype="f8,f8"
     )
@@ -1154,14 +1154,14 @@ def test_structured_masked_column_roundtrip():
 
 
 @pytest.mark.parametrize("dtype", ["i4,f4", "f4,(2,)f8"])
-def test_structured_empty_column_init(dtype):
+def test_structured_empty_column_init(dtype) -> None:
     dtype = np.dtype(dtype)
     c = table.Column(length=5, shape=(2,), dtype=dtype)
     assert c.shape == (5, 2)
     assert c.dtype == dtype
 
 
-def test_column_value_access():
+def test_column_value_access() -> None:
     """Can a column's underlying data consistently be accessed via `.value`,
     whether it is a `Column`, `MaskedColumn`, `Quantity`, or `Time`?"""
     data = np.array([1, 2, 3])
@@ -1179,7 +1179,7 @@ def test_column_value_access():
     assert type(tbl["d"].value) == np.ndarray
 
 
-def test_masked_column_serialize_method_propagation():
+def test_masked_column_serialize_method_propagation() -> None:
     mc = table.MaskedColumn([1.0, 2.0, 3.0], mask=[True, False, True])
     assert mc.info.serialize_method["ecsv"] == "null_value"
     mc.info.serialize_method["ecsv"] = "data_mask"
@@ -1194,7 +1194,7 @@ def test_masked_column_serialize_method_propagation():
     assert mc5.info.serialize_method["ecsv"] == "data_mask"
 
 
-def test_masked_column_deepcopy_info_format_funcs():
+def test_masked_column_deepcopy_info_format_funcs() -> None:
     """Test the fix for #19412"""
     mc = table.MaskedColumn([1.0, 2.0, 3.0], mask=[True, False, True])
     # Set a non-default serialize method to make sure that gets copied over.
@@ -1208,7 +1208,7 @@ def test_masked_column_deepcopy_info_format_funcs():
 
 
 @pytest.mark.parametrize("dtype", ["S", "U", "i"])
-def test_searchsorted(Column, dtype):
+def test_searchsorted(Column, dtype) -> None:
     c = Column([1, 2, 2, 3], dtype=dtype)
     if isinstance(Column, table.MaskedColumn):
         # Searchsorted seems to ignore the mask
@@ -1227,7 +1227,7 @@ def test_searchsorted(Column, dtype):
         assert np.all(res == exp)
 
 
-def test_masked_unit_conversion():
+def test_masked_unit_conversion() -> None:
     # regression test for gh-9521
     c = table.MaskedColumn([3.5, 2.4, 1.7], name="test", unit=u.km)
     c.convert_unit_to(u.m)
@@ -1246,7 +1246,7 @@ def test_masked_unit_conversion():
         ),
     ],
 )
-def test_zero_length_strings(Column, copy):
+def test_zero_length_strings(Column, copy) -> None:
     # Easiest way to get a zero-sized byte string is with a structured dtype.
     data = np.array([("", 12)], dtype=[("a", "S"), ("b", "i4")])
     col = Column(data["a"], name="a", copy=copy)
@@ -1254,7 +1254,7 @@ def test_zero_length_strings(Column, copy):
     assert col.dtype == data.dtype["a"]
 
 
-def test_setting_column_name_to_with_invalid_type(Column):
+def test_setting_column_name_to_with_invalid_type(Column) -> None:
     # see https://github.com/astropy/astropy/issues/17449
     col = Column([1, 2], name="a")
     assert col.info.name == "a"

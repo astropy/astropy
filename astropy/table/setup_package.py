@@ -5,11 +5,12 @@ from pathlib import Path
 
 from numpy import get_include as get_numpy_include
 from setuptools import Extension
+from setuptools.extension import Extension
 
 ROOT = Path(__file__).parent.relative_to(Path.cwd())
 
 
-def get_extensions():
+def get_extensions() -> list[Extension]:
     sources = [ROOT / "_np_utils.pyx", ROOT / "_column_mixins.pyx"]
     include_dirs = [get_numpy_include()]
 

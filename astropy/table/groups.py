@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
+from typing import Self
 
 import numpy as np
 
@@ -178,7 +179,7 @@ class BaseGroups:
             self.parent_column if isinstance(self, ColumnGroups) else self.parent_table
         )
 
-    def __iter__(self):
+    def __iter__(self) -> Self:
         self._iter_index = 0
         return self
 
@@ -223,10 +224,10 @@ class BaseGroups:
 
         return out
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} indices={self.indices}>"
 
-    def __len__(self):
+    def __len__(self) -> int:
         _len = len(self.indices)
         if _len == 1:
             # Should never happen, indices should either have length = 0 or length >= 2.
@@ -235,7 +236,7 @@ class BaseGroups:
 
 
 class ColumnGroups(BaseGroups):
-    def __init__(self, parent_column, indices=None, keys=None):
+    def __init__(self, parent_column, indices=None, keys=None) -> None:
         self.parent_column = parent_column  # parent Column
         self.parent_table = parent_column.info.parent_table
         self._indices = indices
@@ -334,7 +335,7 @@ class ColumnGroups(BaseGroups):
 
 
 class TableGroups(BaseGroups):
-    def __init__(self, parent_table, indices=None, keys=None):
+    def __init__(self, parent_table, indices=None, keys=None) -> None:
         self.parent_table = parent_table  # parent Table
         self._indices = indices
         self._keys = keys

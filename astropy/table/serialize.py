@@ -114,7 +114,7 @@ class SerializedColumn(dict):
             (value.shape for value in self.values() if hasattr(value, "shape")), ()
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Representation of SerializedColumn
 
         Examples
@@ -126,7 +126,9 @@ class SerializedColumn(dict):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
 
-def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=()):
+def _represent_mixin_as_column(
+    col, name, new_cols, mixin_cols, exclude_classes=()
+) -> None:
     """Carry out processing needed to serialize ``col`` in an output table
     consisting purely of plain ``Column`` or ``MaskedColumn`` columns.  This
     relies on the object determine if any transformation is required and may
@@ -242,7 +244,7 @@ def _represent_mixin_as_column(col, name, new_cols, mixin_cols, exclude_classes=
     mixin_cols[name] = obj_attrs
 
 
-def represent_mixins_as_columns(tbl, exclude_classes=()):
+def represent_mixins_as_columns(tbl, exclude_classes: tuple[()] = ()):
     """Represent input Table ``tbl`` using only `~astropy.table.Column`
     or  `~astropy.table.MaskedColumn` objects.
 
@@ -336,7 +338,7 @@ def represent_mixins_as_columns(tbl, exclude_classes=()):
     return out
 
 
-def _construct_mixin_from_obj_attrs_and_info(obj_attrs, info):
+def _construct_mixin_from_obj_attrs_and_info(obj_attrs: SerializedColumn, info):
     # If this is a supported class then import the class and run
     # the _construct_from_col method.  Prevent accidentally running
     # untrusted code by only importing known astropy classes.
@@ -383,7 +385,7 @@ class _TableLite(OrderedDict):
     Masked and a warning is issued. This is not desirable.
     """
 
-    def add_column(self, col, index=0):
+    def add_column(self, col, index: int = 0) -> None:
         colnames = self.colnames
         self[col.info.name] = col
         for ii, name in enumerate(colnames):
@@ -398,7 +400,9 @@ class _TableLite(OrderedDict):
         return self.values()
 
 
-def _construct_mixin_from_columns(new_name, obj_attrs, out):
+def _construct_mixin_from_columns(
+    new_name: str, obj_attrs: SerializedColumn, out: _TableLite
+) -> None:
     data_attrs_map = {}
     for name, val in obj_attrs.items():
         if isinstance(val, SerializedColumn):

@@ -16,7 +16,9 @@ from collections.abc import Sequence
 from copy import deepcopy
 
 import numpy as np
+from numpy import dtype
 
+from astropy.table.table import Table
 from astropy.units import Quantity
 from astropy.utils import metadata
 from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
@@ -42,7 +44,7 @@ class TableMergeError(ValueError):
     pass
 
 
-def _merge_table_meta(out, tables, metadata_conflicts="warn"):
+def _merge_table_meta(out, tables, metadata_conflicts="warn") -> None:
     out_meta = deepcopy(tables[0].meta)
     for table in tables[1:]:
         out_meta = metadata.merge(
@@ -110,7 +112,7 @@ def _get_out_class(objs):
     return out_class
 
 
-def join_skycoord(distance, distance_func="search_around_sky"):
+def join_skycoord(distance, distance_func: str = "search_around_sky"):
     """Helper function to join on SkyCoord columns using distance matching.
 
     This function is intended for use in ``table.join()`` to allow performing a
@@ -360,7 +362,7 @@ def join(
     left,
     right,
     keys=None,
-    join_type="inner",
+    join_type: str = "inner",
     *,
     keys_left=None,
     keys_right=None,
@@ -574,7 +576,7 @@ def setdiff(table1, table2, keys=None):
     return t12_diff
 
 
-def dstack(tables, join_type="outer", metadata_conflicts="warn"):
+def dstack(tables, join_type: str = "outer", metadata_conflicts: str = "warn"):
     """
     Stack columns within tables depth-wise.
 
@@ -664,7 +666,7 @@ def dstack(tables, join_type="outer", metadata_conflicts="warn"):
     return out
 
 
-def vstack(tables, join_type="outer", metadata_conflicts="warn"):
+def vstack(tables, join_type: str = "outer", metadata_conflicts: str = "warn"):
     """
     Stack tables vertically (along rows).
 
@@ -733,10 +735,10 @@ def vstack(tables, join_type="outer", metadata_conflicts="warn"):
 
 def hstack(
     tables,
-    join_type="outer",
-    uniq_col_name="{col_name}_{table_name}",
+    join_type: str = "outer",
+    uniq_col_name: str = "{col_name}_{table_name}",
     table_names=None,
-    metadata_conflicts="warn",
+    metadata_conflicts: str = "warn",
 ):
     """
     Stack tables along columns (horizontally).
@@ -811,7 +813,7 @@ def hstack(
     return out
 
 
-def unique(input_table, keys=None, silent=False, keep="first"):
+def unique(input_table, keys=None, silent: bool = False, keep: str = "first"):
     """
     Return a new table with unique rows, sorted by ``keys``.
 
@@ -1041,7 +1043,7 @@ def get_descrs(arrays, col_name_map):
     return out_descrs
 
 
-def result_type(cols):
+def result_type(cols) -> dtype:
     """
     Use numpy to find the common dtype for a list of columns.
 
@@ -1196,7 +1198,7 @@ def _get_join_sort_idxs(keys, left, right):
     return idxs, idx_sort
 
 
-def _apply_join_funcs(left, right, keys, join_funcs):
+def _apply_join_funcs(left: Table, right: Table, keys, join_funcs):
     """Apply join_funcs."""
     # Make light copies of left and right, then add new index columns.
     left = left.copy(copy_data=False)
@@ -1253,10 +1255,10 @@ def _select_join_engine(engine: str):
 
 
 def _join(
-    left,
-    right,
+    left: Table,
+    right: Table,
     keys=None,
-    join_type="inner",
+    join_type: str = "inner",
     uniq_col_name="{col_name}_{table_name}",
     table_names=["1", "2"],
     metadata_conflicts="warn",
@@ -1592,7 +1594,9 @@ def _compute_join_indices_pandas(left, right, keys, join_type, len_left):
     return masked, n_out, left_out, left_mask, right_out, right_mask
 
 
-def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):
+def _join_keys_left_right(
+    left: Table, right: Table, keys, keys_left, keys_right, join_funcs
+) -> tuple[Table, Table, list[str]]:
     """Do processing to handle keys_left / keys_right args for join.
 
     This takes the keys_left/right inputs and turns them into a list of left/right
@@ -1601,7 +1605,7 @@ def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):
     of "1", "2", etc.) that correspond to the input keys.
     """
 
-    def _keys_to_cols(keys, table, label):
+    def _keys_to_cols(keys, table: Table, label: str):
         # Process input `keys`, which is a str or list of str column names in
         # `table` or a list of column-like objects. The `label` is just for
         # error reporting.
@@ -1649,7 +1653,7 @@ def _join_keys_left_right(left, right, keys, keys_left, keys_right, join_funcs):
     return left, right, keys
 
 
-def _check_join_type(join_type, func_name):
+def _check_join_type(join_type, func_name: str) -> None:
     """Check join_type arg in hstack and vstack.
 
     This specifically checks for the common mistake of call vstack(t1, t2)
@@ -1670,7 +1674,7 @@ def _check_join_type(join_type, func_name):
         raise ValueError("`join_type` arg must be one of 'inner', 'exact' or 'outer'")
 
 
-def _vstack(arrays, join_type="outer", metadata_conflicts="warn"):
+def _vstack(arrays, join_type="outer", metadata_conflicts: str = "warn"):
     """
     Stack Tables vertically (by rows).
 
@@ -1781,8 +1785,8 @@ def _vstack(arrays, join_type="outer", metadata_conflicts="warn"):
 
 def _hstack(
     arrays,
-    join_type="outer",
-    uniq_col_name="{col_name}_{table_name}",
+    join_type: str = "outer",
+    uniq_col_name: str = "{col_name}_{table_name}",
     table_names=None,
 ):
     """

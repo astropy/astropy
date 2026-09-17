@@ -16,7 +16,7 @@ from astropy.table.table_helpers import simple_table
 from astropy.utils.data_info import data_info_factory, dtype_info_name
 
 
-def test_table_info_attributes(table_types):
+def test_table_info_attributes(table_types) -> None:
     """
     Test the info() method of printing a summary of table column attributes
     """
@@ -71,7 +71,7 @@ def test_table_info_attributes(table_types):
     assert repr(t.info) == out.getvalue()
 
 
-def test_table_info_stats(table_types):
+def test_table_info_stats(table_types) -> None:
     """
     Test the info() method of printing a summary of table column statistics
     """
@@ -159,7 +159,7 @@ def test_table_info_stats(table_types):
     assert np.all(tinfo["first"] == ["1", "1", "a", "1.0"])
 
 
-def test_data_info():
+def test_data_info() -> None:
     """
     Test getting info for just a column.
     """
@@ -224,7 +224,7 @@ def test_data_info():
         )
 
 
-def test_data_info_subclass():
+def test_data_info_subclass() -> None:
     class Column(table.Column):
         """
         Confusingly named Column on purpose, but that is legal.
@@ -247,7 +247,7 @@ def test_data_info_subclass():
         )
 
 
-def test_scalar_info():
+def test_scalar_info() -> None:
     """
     Make sure info works with scalar values
     """
@@ -257,7 +257,7 @@ def test_scalar_info():
     assert "length" not in cinfo
 
 
-def test_empty_table():
+def test_empty_table() -> None:
     t = table.Table()
     out = StringIO()
     t.info(out=out)
@@ -265,7 +265,7 @@ def test_empty_table():
     assert out.getvalue().splitlines() == exp
 
 
-def test_class_attribute():
+def test_class_attribute() -> None:
     """
     Test that class info column is suppressed only for identical non-mixin
     columns.
@@ -295,14 +295,14 @@ def test_class_attribute():
         assert out.getvalue().splitlines() == exp
 
 
-def test_ignore_warnings():
+def test_ignore_warnings() -> None:
     t = table.Table([[np.nan, np.nan]])
     with warnings.catch_warnings(record=True) as warns:
         t.info("stats", out=None)
         assert len(warns) == 0
 
 
-def test_no_deprecation_warning():
+def test_no_deprecation_warning() -> None:
     # regression test for #5459, where numpy deprecation warnings were
     # emitted unnecessarily.
     t = simple_table()
@@ -311,13 +311,13 @@ def test_no_deprecation_warning():
         assert len(warns) == 0
 
 
-def test_lost_parent_error():
+def test_lost_parent_error() -> None:
     c = table.Column([1, 2, 3], name="a")
     with pytest.raises(AttributeError, match='failed to access "info" attribute'):
         c[:].info.name
 
 
-def test_info_serialize_method():
+def test_info_serialize_method() -> None:
     """
     Unit test of context manager to set info.serialize_method.  Normally just
     used to set this for writing a Table to file (FITS, ECSV, HDF5).
@@ -380,7 +380,7 @@ def test_info_serialize_method():
     assert not hasattr(t["sc"].info, "serialize_method")
 
 
-def test_info_serialize_method_exception():
+def test_info_serialize_method_exception() -> None:
     """
     Unit test of context manager to set info.serialize_method.  Normally just
     used to set this for writing a Table to file (FITS, ECSV, HDF5).

@@ -4,6 +4,7 @@ from collections.abc import Hashable, Mapping, Sequence
 from numbers import Integral
 
 import numpy as np
+from numpy import float64
 
 from astropy.utils.decorators import deprecated
 
@@ -16,22 +17,22 @@ class MaxValue:
     of tuple comparison.
     """
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return True
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         return True
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return False
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "MAX"
 
-    def to_value(self, unit):
+    def to_value(self, unit) -> float64:
         """Convert to a value of the given unit."""
         # This is needed to support Quantity comparisons, in particular
         # Quantity.searchsorted(MAX).
@@ -46,19 +47,19 @@ class MinValue:
     negative infinity.
     """
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return True
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         return True
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return False
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "MIN"
 
     __str__ = __repr__
@@ -79,7 +80,7 @@ class Epsilon:
 
     __slots__ = ("val",)
 
-    def __init__(self, val):
+    def __init__(self, val) -> None:
         self.val = val
 
     def __lt__(self, other):
@@ -92,10 +93,10 @@ class Epsilon:
             return True
         return self.val > other
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.val) + " + epsilon"
 
 
@@ -122,13 +123,13 @@ class Node:
     __slots__ = ("data", "key", "left", "right")
 
     # each node has a key and data list
-    def __init__(self, key, data):
+    def __init__(self, key, data: int | None) -> None:
         self.key = key
         self.data = data if isinstance(data, list) else [data]
         self.left = None
         self.right = None
 
-    def replace(self, child, new_child):
+    def replace(self, child, new_child) -> None:
         """
         Replace this node's child with a new child.
         """
@@ -139,23 +140,23 @@ class Node:
         else:
             raise ValueError("Cannot call replace() on non-child")
 
-    def remove(self, child):
+    def remove(self, child) -> None:
         """
         Remove the given child.
         """
         self.replace(child, None)
 
-    def set(self, other):
+    def set(self, other) -> None:
         """
         Copy the given node.
         """
         self.key = other.key
         self.data = other.data[:]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str((self.key, self.data))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
@@ -181,7 +182,7 @@ class BST:
 
     NodeClass = Node
 
-    def __init__(self, data, row_index, unique=False):
+    def __init__(self, data, row_index, unique: bool = False) -> None:
         self.root = None
         self.size = 0
         self.unique = unique
@@ -274,7 +275,7 @@ class BST:
         except TypeError:  # wrong key type
             return (None, None)
 
-    def traverse(self, order="inorder"):
+    def traverse(self, order: str = "inorder"):
         """
         Return nodes of the BST in the given order.
 
@@ -341,7 +342,7 @@ class BST:
         lst.append(node)
         return lst
 
-    def _substitute(self, node, parent, new_node):
+    def _substitute(self, node, parent, new_node) -> None:
         if node is self.root:
             self.root = new_node
         else:
@@ -435,7 +436,12 @@ class BST:
         nodes = self.range_nodes(lower, upper, bounds)
         return [x for node in nodes for x in node.data]
 
-    def range_nodes(self, lower, upper, bounds=(True, True)):
+    def range_nodes(
+        self,
+        lower: tuple[MinValue] | tuple[Hashable, ...],
+        upper: tuple[MaxValue] | tuple[Hashable, ...],
+        bounds: tuple[bool, bool] = (True, True),
+    ):
         """
         Return nodes in the given range.
         """
@@ -456,7 +462,15 @@ class BST:
         nodes = self._same_prefix(val, self.root, [])
         return [x for node in nodes for x in node.data]
 
-    def _range(self, lower, upper, op1, op2, node, lst):
+    def _range(
+        self,
+        lower: tuple[MinValue] | tuple[Hashable, ...],
+        upper: tuple[MaxValue] | tuple[Hashable, ...],
+        op1,
+        op2,
+        node,
+        lst,
+    ):
         # In-order traversal (left, node, right) so that matching nodes
         # are collected in ascending key order.
         if lower < node.key and node.left is not None:
@@ -479,7 +493,7 @@ class BST:
             self._same_prefix(val, node.right, lst)
         return lst
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
 
     def _print(self, node, level):

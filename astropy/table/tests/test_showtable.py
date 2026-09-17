@@ -13,13 +13,13 @@ FITS_ROOT = os.path.join(ROOT, "..", "..", "io", "fits", "tests")
 VOTABLE_ROOT = os.path.join(ROOT, "..", "..", "io", "votable", "tests")
 
 
-def test_missing_file(capsys):
+def test_missing_file(capsys) -> None:
     showtable.main(["foobar.fits"])
     out, err = capsys.readouterr()
     assert err.startswith("ERROR: [Errno 2] No such file or directory: 'foobar.fits'")
 
 
-def test_info(capsys):
+def test_info(capsys) -> None:
     showtable.main([os.path.join(FITS_ROOT, "data/table.fits"), "--info"])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
@@ -31,7 +31,7 @@ def test_info(capsys):
     ]
 
 
-def test_stats(capsys):
+def test_stats(capsys) -> None:
     showtable.main([os.path.join(FITS_ROOT, "data/table.fits"), "--stats"])
     out, err = capsys.readouterr()
     expected = [
@@ -49,7 +49,7 @@ def test_stats(capsys):
     assert re.match(expected[4], out[4]) is not None
 
 
-def test_fits(capsys):
+def test_fits(capsys) -> None:
     showtable.main([os.path.join(FITS_ROOT, "data/table.fits")])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
@@ -61,7 +61,7 @@ def test_fits(capsys):
     ]
 
 
-def test_fits_hdu(capsys):
+def test_fits_hdu(capsys) -> None:
     with pytest.warns(UnitsWarning):
         showtable.main(
             [
@@ -80,7 +80,7 @@ def test_fits_hdu(capsys):
     )
 
 
-def test_csv(capsys):
+def test_csv(capsys) -> None:
     showtable.main([os.path.join(ASCII_ROOT, "data/simple_csv.csv")])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
@@ -91,7 +91,7 @@ def test_csv(capsys):
     ]
 
 
-def test_ascii_format(capsys):
+def test_ascii_format(capsys) -> None:
     showtable.main(
         [
             os.path.join(ASCII_ROOT, "data/commented_header.dat"),
@@ -108,7 +108,7 @@ def test_ascii_format(capsys):
     ]
 
 
-def test_ascii_delimiter(capsys):
+def test_ascii_delimiter(capsys) -> None:
     showtable.main(
         [
             os.path.join(ASCII_ROOT, "data/simple2.txt"),
@@ -128,7 +128,7 @@ def test_ascii_delimiter(capsys):
     ]
 
 
-def test_votable(capsys):
+def test_votable(capsys) -> None:
     with np.errstate(over="ignore"):
         # https://github.com/astropy/astropy/issues/13341
         showtable.main(
@@ -152,7 +152,7 @@ def test_votable(capsys):
     ]
 
 
-def test_max_lines(capsys):
+def test_max_lines(capsys) -> None:
     showtable.main(
         [
             os.path.join(ASCII_ROOT, "data/cds2.dat"),
@@ -177,7 +177,7 @@ def test_max_lines(capsys):
     ]
 
 
-def test_show_dtype(capsys):
+def test_show_dtype(capsys) -> None:
     showtable.main([os.path.join(FITS_ROOT, "data/table.fits"), "--show-dtype"])
     out, err = capsys.readouterr()
     assert out.splitlines() == [
@@ -190,7 +190,7 @@ def test_show_dtype(capsys):
     ]
 
 
-def test_hide_unit(capsys):
+def test_hide_unit(capsys) -> None:
     showtable.main([os.path.join(ASCII_ROOT, "data/cds.dat"), "--format", "ascii.cds"])
     out, err = capsys.readouterr()
     assert out.splitlines() == [

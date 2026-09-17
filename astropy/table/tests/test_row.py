@@ -13,7 +13,7 @@ from astropy.table import Row
 from .conftest import MaskedTable
 
 
-def test_masked_row_with_object_col():
+def test_masked_row_with_object_col() -> None:
     """
     Numpy < 1.8 has a bug in masked array that prevents access a row if there is
     a column with object type.
@@ -27,7 +27,7 @@ def test_masked_row_with_object_col():
 
 @pytest.mark.usefixtures("table_types")
 class TestRow:
-    def _setup(self, table_types):
+    def _setup(self, table_types) -> None:
         self._table_type = table_types.Table
         self._column_type = table_types.Column
 
@@ -44,13 +44,13 @@ class TestRow:
             self._t = self._table_type([a, b])
         return self._t
 
-    def test_subclass(self, table_types):
+    def test_subclass(self, table_types) -> None:
         """Row is subclass of ndarray and Row"""
         self._setup(table_types)
         c = Row(self.t, 2)
         assert isinstance(c, Row)
 
-    def test_values(self, table_types):
+    def test_values(self, table_types) -> None:
         """Row accurately reflects table values and attributes"""
         self._setup(table_types)
         table = self.t
@@ -69,7 +69,7 @@ class TestRow:
         else:
             assert str(row.dtype) == "[('a', '>i8'), ('b', '>i8')]"
 
-    def test_ref(self, table_types):
+    def test_ref(self, table_types) -> None:
         """Row is a reference into original table data"""
         self._setup(table_types)
         table = self.t
@@ -78,7 +78,7 @@ class TestRow:
         if table_types.Table is not MaskedTable:
             assert table["a"][1] == 10
 
-    def test_left_equal(self, table_types):
+    def test_left_equal(self, table_types) -> None:
         """Compare a table row to the corresponding structured array row"""
         self._setup(table_types)
         np_t = self.t.as_array()
@@ -89,7 +89,7 @@ class TestRow:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(row == np_row)
 
-    def test_left_not_equal(self, table_types):
+    def test_left_not_equal(self, table_types) -> None:
         """Compare a table row to the corresponding structured array row"""
         self._setup(table_types)
         np_t = self.t.as_array()
@@ -101,7 +101,7 @@ class TestRow:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(row != np_row)
 
-    def test_right_equal(self, table_types):
+    def test_right_equal(self, table_types) -> None:
         """Test right equal"""
         self._setup(table_types)
         np_t = self.t.as_array()
@@ -112,7 +112,7 @@ class TestRow:
             for row, np_row in zip(self.t, np_t):
                 assert np.all(np_row == row)
 
-    def test_convert_numpy_array(self, table_types):
+    def test_convert_numpy_array(self, table_types) -> None:
         self._setup(table_types)
         d = self.t[1]
 
@@ -131,7 +131,7 @@ class TestRow:
         with pytest.raises(ValueError):
             np_data = np.array(d, dtype=[("c", "i8"), ("d", "i8")])
 
-    def test_format_row(self, table_types):
+    def test_format_row(self, table_types) -> None:
         """Test formatting row"""
         self._setup(table_types)
         table = self.t
@@ -162,7 +162,7 @@ class TestRow:
             "</table>",
         ]
 
-    def test_as_void(self, table_types):
+    def test_as_void(self, table_types) -> None:
         """Test the as_void() method"""
         self._setup(table_types)
         table = self.t
@@ -192,7 +192,7 @@ class TestRow:
             row_void = row.as_void()  # but row is a view
             assert row["a"] is np.ma.masked
 
-    def test_row_and_as_void_with_objects(self, table_types):
+    def test_row_and_as_void_with_objects(self, table_types) -> None:
         """Test the deprecated data property and as_void() method"""
         t = table_types.Table([[{"a": 1}, {"b": 2}]], names=("a",))
         assert t[0][0] == {"a": 1}
@@ -200,20 +200,20 @@ class TestRow:
         assert t[0].as_void()[0] == {"a": 1}
         assert t[0].as_void()["a"] == {"a": 1}
 
-    def test_bounds_checking(self, table_types):
+    def test_bounds_checking(self, table_types) -> None:
         """Row gives index error upon creation for out-of-bounds index"""
         self._setup(table_types)
         for ibad in (-5, -4, 3, 4):
             with pytest.raises(IndexError):
                 self.t[ibad]
 
-    def test_create_rows_from_list(self, table_types):
+    def test_create_rows_from_list(self, table_types) -> None:
         """https://github.com/astropy/astropy/issues/8976"""
         orig_tab = table_types.Table([[1, 2, 3], [4, 5, 6]], names=("a", "b"))
         new_tab = type(orig_tab)(rows=list(orig_tab), names=orig_tab.dtype.names)
         assert np.all(orig_tab == new_tab)
 
-    def test_row_keys_values(self, table_types):
+    def test_row_keys_values(self, table_types) -> None:
         self._setup(table_types)
         row = self.t[0]
         for row_key, col_key in zip(row.keys(), self.t.columns.keys()):
@@ -222,7 +222,7 @@ class TestRow:
         for row_value, col in zip(row.values(), self.t.columns.values()):
             assert row_value == col[0]
 
-    def test_row_as_mapping(self, table_types):
+    def test_row_as_mapping(self, table_types) -> None:
         self._setup(table_types)
         row = self.t[0]
         row_dict = dict(row)
@@ -236,7 +236,7 @@ class TestRow:
         for key, value in row_splatted.items():
             assert row[key] == value
 
-    def test_row_as_sequence(self, table_types):
+    def test_row_as_sequence(self, table_types) -> None:
         self._setup(table_types)
         row = self.t[0]
         row_tuple = tuple(row)
@@ -252,7 +252,7 @@ class TestRow:
             assert row[key] == value
 
 
-def test_row_tuple_column_slice():
+def test_row_tuple_column_slice() -> None:
     """
     Test getting and setting a row using a tuple or list of column names
     """
@@ -321,7 +321,7 @@ def test_row_tuple_column_slice():
     assert "right hand side must be a sequence" in str(err.value)
 
 
-def test_row_tuple_column_slice_transaction():
+def test_row_tuple_column_slice_transaction() -> None:
     """
     Test that setting a row that fails part way through does not
     change the table at all.
@@ -342,7 +342,7 @@ def test_row_tuple_column_slice_transaction():
     assert t[1] == tc[1]
 
 
-def test_uint_indexing():
+def test_uint_indexing() -> None:
     """
     Test that accessing a row with an unsigned integer
     works as with a signed integer.  Similarly tests
@@ -373,7 +373,7 @@ def test_uint_indexing():
     assert repr(t[np.uint64(1)]).splitlines() == trepr
 
 
-def test_row_get():
+def test_row_get() -> None:
     row = table.Table({"a": [2, 4], "b": [3, 9]})[0]
     assert row.get("a") == 2
     assert row.get("x") is None
@@ -381,7 +381,7 @@ def test_row_get():
     assert row.get("y", -1) == -1
 
 
-def test_table_row_slicing():
+def test_table_row_slicing() -> None:
     # see https://github.com/astropy/astropy/issues/14007
     t = table.Table({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
     first_row = t[0]

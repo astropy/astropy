@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 import numpy as np
 import yaml
+from yaml.nodes import MappingNode, SequenceNode
 
 __all__ = ["get_header_from_yaml", "get_yaml_from_header", "get_yaml_from_table"]
 
@@ -15,7 +16,7 @@ class ColumnOrderList(list):
     astropy table column attributes.
     """
 
-    def sort(self, *args, **kwargs):
+    def sort(self, *args, **kwargs) -> None:
         super().sort()
 
         column_keys = ["name", "unit", "datatype", "format", "description", "meta"]
@@ -42,7 +43,7 @@ class ColumnDict(dict):
     in generating a YAML map representation that has a fixed order.
     """
 
-    def items(self):
+    def items(self) -> ColumnOrderList:
         """
         Return items as a ColumnOrderList, which sorts in the preferred
         way for column attributes.
@@ -96,7 +97,7 @@ def _construct_odict(load, node):
         omap[key] = value
 
 
-def _repr_pairs(dump, tag, sequence, flow_style=None):
+def _repr_pairs(dump, tag: str, sequence, flow_style=None) -> SequenceNode:
     """
     This is the same code as BaseRepresenter.represent_sequence(),
     but the value passed to dump.represent_data() in the loop is a
@@ -123,7 +124,7 @@ def _repr_pairs(dump, tag, sequence, flow_style=None):
     return node
 
 
-def _repr_odict(dumper, data):
+def _repr_odict(dumper, data) -> SequenceNode:
     """
     Represent OrderedDict in yaml dump.
 
@@ -212,7 +213,7 @@ def _get_datatype_from_dtype(dtype):
     return datatype
 
 
-def _get_col_attributes(col):
+def _get_col_attributes(col) -> ColumnDict:
     """
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
@@ -272,7 +273,7 @@ def _get_col_attributes(col):
     return attrs
 
 
-def get_yaml_from_table(table):
+def get_yaml_from_table(table) -> list[str]:
     """
     Return lines with a YAML representation of header content from the ``table``.
 
@@ -293,7 +294,7 @@ def get_yaml_from_table(table):
     return get_yaml_from_header(header)
 
 
-def get_yaml_from_header(header):
+def get_yaml_from_header(header) -> list[str]:
     """
     Return lines with a YAML representation of header content from a Table.
 
@@ -322,7 +323,7 @@ def get_yaml_from_header(header):
         Custom Dumper that represents OrderedDict as an !!omap object.
         """
 
-        def represent_mapping(self, tag, mapping, flow_style=None):
+        def represent_mapping(self, tag, mapping, flow_style=None) -> MappingNode:
             """
             This is a combination of the Python 2 and 3 versions of this method
             in the PyYAML library to allow the required key ordering via the

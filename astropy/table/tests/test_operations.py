@@ -6,6 +6,7 @@ from contextlib import nullcontext
 
 import numpy as np
 import pytest
+from numpy import bool
 from numpy.testing import assert_array_equal
 
 import astropy.table.operations as ato
@@ -21,6 +22,9 @@ from astropy.coordinates import (
     search_around_3d,
 )
 from astropy.coordinates.earth import EarthLocation
+from astropy.coordinates.polarization import StokesCoord
+from astropy.coordinates.representation.base import BaseRepresentationOrDifferential
+from astropy.coordinates.sky_coordinate import SkyCoord
 from astropy.coordinates.tests.helper import skycoord_equal
 from astropy.coordinates.tests.test_representation import representation_equal
 from astropy.table import Column, MaskedColumn, QTable, Table, TableMergeError
@@ -30,7 +34,9 @@ from astropy.table.operations import (
     join_distance,
     join_skycoord,
 )
+from astropy.table.table import Table
 from astropy.time import Time, TimeDelta
+from astropy.time.core import Time, TimeDelta
 from astropy.timeseries import TimeSeries
 from astropy.units.quantity import Quantity
 from astropy.utils import metadata
@@ -56,11 +62,20 @@ if HAS_PANDAS:
     JOIN_ENGINES.append("pandas")
 
 
-def sort_eq(list1, list2):
+def sort_eq(list1, list2: list[str]) -> bool:
     return sorted(list1) == sorted(list2)
 
 
-def check_cols_equal(col1, col2):
+def check_cols_equal(
+    col1,
+    col2: BaseRepresentationOrDifferential
+    | EarthLocation
+    | Quantity
+    | SkyCoord
+    | StokesCoord
+    | Time
+    | TimeDelta,
+):
     """Check that col1 == col2, taking care of zero-length masked columns."""
     assert (
         type(col1) is type(col2)
@@ -71,7 +86,7 @@ def check_cols_equal(col1, col2):
     return eq or (isinstance(eq, Masked) and not eq.shape and eq.unmasked)
 
 
-def check_mask(col, exp_mask):
+def check_mask(col, exp_mask: list[bool]) -> numpy.bool:
     """Check that col.mask == exp_mask"""
     if hasattr(col, "mask"):
         # Coerce expected mask into dtype of col.mask. In particular this is
@@ -92,7 +107,7 @@ def join_engine(request):
     return request.param
 
 
-def test_select_join_engine():
+def test_select_join_engine() -> None:
     engine, compute_join_indices = ato._select_join_engine("astropy")
     assert engine == "astropy"
     assert compute_join_indices is ato._compute_join_indices_astropy
@@ -114,7 +129,7 @@ def test_select_join_engine():
             table.join(t1, t2, keys="a", engine="pandas")
 
 
-def test_join_engine_auto_smoke_test():
+def test_join_engine_auto_smoke_test() -> None:
     t1 = Table({"a": [1, 2], "b": ["x", "y"]})
     t2 = Table({"a": [2, 3], "c": [10, 11]})
 
@@ -125,7 +140,7 @@ def test_join_engine_auto_smoke_test():
 
 
 class TestJoin:
-    def _setup(self, t_cls=Table):
+    def _setup(self, t_cls: type[Table] = Table) -> None:
         lines1 = [
             " a   b   c ",
             "  0 foo  L1",
@@ -157,12 +172,12 @@ class TestJoin:
             ]
         )
 
-    def test_table_meta_merge(self, operation_table_type, join_engine):
+    def test_table_meta_merge(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         out = table.join(self.t1, self.t2, join_type="inner", engine=join_engine)
         assert out.meta == self.meta_merge
 
-    def test_table_meta_merge_conflict(self, operation_table_type, join_engine):
+    def test_table_meta_merge_conflict(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
 
         with pytest.warns(metadata.MergeConflictWarning) as w:
@@ -211,7 +226,7 @@ class TestJoin:
                 engine=join_engine,
             )
 
-    def test_both_unmasked_inner(self, operation_table_type, join_engine):
+    def test_both_unmasked_inner(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -237,7 +252,9 @@ class TestJoin:
         # Table meta merged properly
         assert t12.meta == self.meta_merge
 
-    def test_both_unmasked_left_right_outer(self, operation_table_type, join_engine):
+    def test_both_unmasked_left_right_outer(
+        self, operation_table_type, join_engine
+    ) -> None:
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -305,7 +322,9 @@ class TestJoin:
         )
         assert np.all(t12a.as_array() == t12b.as_array())
 
-    def test_both_unmasked_single_key_inner(self, operation_table_type, join_engine):
+    def test_both_unmasked_single_key_inner(
+        self, operation_table_type, join_engine
+    ) -> None:
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -334,7 +353,7 @@ class TestJoin:
 
     def test_both_unmasked_single_key_left_right_outer(
         self, operation_table_type, join_engine
-    ):
+    ) -> None:
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -393,7 +412,7 @@ class TestJoin:
             ],
         )
 
-    def test_masked_unmasked(self, operation_table_type, join_engine):
+    def test_masked_unmasked(self, operation_table_type, join_engine) -> None:
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -440,7 +459,7 @@ class TestJoin:
             ],
         )
 
-    def test_masked_masked(self, operation_table_type, join_engine):
+    def test_masked_masked(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         """Two masked tables"""
         if operation_table_type is QTable:
@@ -478,7 +497,7 @@ class TestJoin:
             ],
         )
 
-    def test_classes(self, join_engine):
+    def test_classes(self, join_engine) -> None:
         """Ensure that classes and subclasses get through as expected"""
 
         class MyCol(Column):
@@ -519,7 +538,7 @@ class TestJoin:
         ):
             assert type(t21[name]) is exp_type
 
-    def test_col_rename(self, operation_table_type, join_engine):
+    def test_col_rename(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         """
         Test auto col renaming when there is a conflict.  Use
@@ -537,7 +556,7 @@ class TestJoin:
         )
         assert t12.colnames == ["a", "x_L_b_y", "c", "x_R_b_y", "d"]
 
-    def test_rename_conflict(self, operation_table_type, join_engine):
+    def test_rename_conflict(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         """
         Test that auto-column rename fails because of a conflict
@@ -549,7 +568,7 @@ class TestJoin:
         with pytest.raises(TableMergeError):
             table.join(t1, t2, keys="a", engine=join_engine)
 
-    def test_missing_keys(self, operation_table_type, join_engine):
+    def test_missing_keys(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         """Merge on a key column that doesn't exist"""
         t1 = self.t1
@@ -557,7 +576,7 @@ class TestJoin:
         with pytest.raises(TableMergeError):
             table.join(t1, t2, keys=["a", "not there"], engine=join_engine)
 
-    def test_bad_join_type(self, operation_table_type, join_engine):
+    def test_bad_join_type(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         """Bad join_type input"""
         t1 = self.t1
@@ -565,7 +584,7 @@ class TestJoin:
         with pytest.raises(ValueError):
             table.join(t1, t2, join_type="illegal value", engine=join_engine)
 
-    def test_no_common_keys(self, operation_table_type, join_engine):
+    def test_no_common_keys(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         """Merge tables with no common keys"""
         t1 = self.t1
@@ -577,7 +596,7 @@ class TestJoin:
         with pytest.raises(TableMergeError):
             table.join(t1, t2, engine=join_engine)
 
-    def test_masked_key_column(self, operation_table_type, join_engine):
+    def test_masked_key_column(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         """Merge on a key column that has a masked element"""
         if operation_table_type is QTable:
@@ -589,7 +608,7 @@ class TestJoin:
         with pytest.raises(TableMergeError):
             table.join(t1, t2, engine=join_engine)
 
-    def test_col_meta_merge(self, operation_table_type, join_engine):
+    def test_col_meta_merge(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -641,7 +660,7 @@ class TestJoin:
         assert t12["c_2"].info.format == "%6s"
         assert t12["c_2"].info.description == "t2_c"
 
-    def test_join_multidimensional(self, operation_table_type, join_engine):
+    def test_join_multidimensional(self, operation_table_type, join_engine) -> None:
         self._setup(operation_table_type)
 
         # Regression test for #2984, which was an issue where join did not work
@@ -661,7 +680,9 @@ class TestJoin:
         np.testing.assert_allclose(t3["b"], t1["b"])
         np.testing.assert_allclose(t3["c"], t2["c"])
 
-    def test_join_multidimensional_masked(self, operation_table_type, join_engine):
+    def test_join_multidimensional_masked(
+        self, operation_table_type, join_engine
+    ) -> None:
         self._setup(operation_table_type)
         """
         Test for outer join with multidimensional columns where masking is required.
@@ -726,7 +747,7 @@ class TestJoin:
             ]
         )
 
-    def test_mixin_functionality(self, mixin_cols, join_engine):
+    def test_mixin_functionality(self, mixin_cols, join_engine) -> None:
         col = mixin_cols["m"]
         cls_name = type(col).__name__
         len_col = len(col)
@@ -788,7 +809,7 @@ class TestJoin:
                     err.value
                 ) or "join unavailable" in str(err.value)
 
-    def test_cartesian_join(self, operation_table_type, join_engine):
+    def test_cartesian_join(self, operation_table_type, join_engine) -> None:
         t1 = Table(rows=[(1, "a"), (2, "b")], names=["a", "b"])
         t2 = Table(rows=[(3, "c"), (4, "d")], names=["a", "c"])
         t12 = table.join(t1, t2, join_type="cartesian", engine=join_engine)
@@ -811,7 +832,7 @@ class TestJoin:
             )
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_skycoord_sky(self, join_engine):
+    def test_join_with_join_skycoord_sky(self, join_engine) -> None:
         sc1 = SkyCoord([0, 1, 1.1, 2], [0, 0, 0, 0], unit="deg")
         sc2 = SkyCoord([0.5, 1.05, 2.1], [0, 0, 0], unit="deg")
         t1 = Table([sc1], names=["sc"])
@@ -831,7 +852,7 @@ class TestJoin:
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
     @pytest.mark.parametrize("distance_func", ["search_around_3d", search_around_3d])
-    def test_join_with_join_skycoord_3d(self, distance_func, join_engine):
+    def test_join_with_join_skycoord_3d(self, distance_func, join_engine) -> None:
         sc1 = SkyCoord([0, 1, 1.1, 2] * u.deg, [0, 0, 0, 0] * u.deg, [1, 1, 2, 1] * u.m)
         sc2 = SkyCoord([0.5, 1.05, 2.1] * u.deg, [0, 0, 0] * u.deg, [1, 1, 1] * u.m)
         t1 = Table([sc1], names=["sc"])
@@ -848,7 +869,7 @@ class TestJoin:
         assert str(t12).splitlines() == exp
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_distance_1d(self, join_engine):
+    def test_join_with_join_distance_1d(self, join_engine) -> None:
         c1 = [0, 1, 1.1, 2]
         c2 = [0.5, 1.05, 2.1]
         t1 = Table([c1], names=["col"])
@@ -871,7 +892,7 @@ class TestJoin:
         assert str(t12).splitlines() == exp
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_distance_1d_multikey(self, join_engine):
+    def test_join_with_join_distance_1d_multikey(self, join_engine) -> None:
         c1 = [0, 1, 1.1, 1.2, 2]
         id1 = [0, 1, 2, 2, 3]
         o1 = ["a", "b", "c", "d", "e"]
@@ -902,7 +923,7 @@ class TestJoin:
         assert keys == ("col_id", "id")
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_distance_1d_quantity(self, join_engine):
+    def test_join_with_join_distance_1d_quantity(self, join_engine) -> None:
         c1 = [0, 1, 1.1, 2] * u.m
         c2 = [500, 1050, 2100] * u.mm
         t1 = QTable([c1], names=["col"])
@@ -934,7 +955,7 @@ class TestJoin:
         assert str(t12).splitlines() == exp
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    def test_join_with_join_distance_2d(self, join_engine):
+    def test_join_with_join_distance_2d(self, join_engine) -> None:
         c1 = np.array([[0, 1, 1.1, 2], [0, 0, 1, 0]]).transpose()
         c2 = np.array([[0.5, 1.05, 2.1], [0, 0, 0]]).transpose()
         t1 = Table([c1], names=["col"])
@@ -957,7 +978,7 @@ class TestJoin:
         ]
         assert t12.pformat(show_dtype=True) == exp
 
-    def test_keys_left_right_basic(self, join_engine):
+    def test_keys_left_right_basic(self, join_engine) -> None:
         """Test using the keys_left and keys_right args to specify different
         join keys. This takes the standard test case but renames column 'a'
         to 'x' and 'y' respectively for tables 1 and 2. Then it compares the
@@ -1000,7 +1021,7 @@ class TestJoin:
                     assert np.all(col)
                 assert t12_exp.meta == t12.meta
 
-    def test_keys_left_right_exceptions(self, join_engine):
+    def test_keys_left_right_exceptions(self, join_engine) -> None:
         """Test exceptions using the keys_left and keys_right args to specify
         different join keys.
         """
@@ -1043,7 +1064,7 @@ class TestJoin:
                 engine=join_engine,
             )
 
-    def test_join_structured_column(self, join_engine):
+    def test_join_structured_column(self, join_engine) -> None:
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
         t1 = Table(
@@ -1073,7 +1094,7 @@ class TestJoin:
 
 
 class TestSetdiff:
-    def _setup(self, t_cls=Table):
+    def _setup(self, t_cls: type[Table] = Table) -> None:
         lines1 = [" a   b ", "  0 foo ", "  1 foo ", "  1 bar ", "  2 bar "]
         lines2 = [" a   b ", "  0 foo ", "  3 foo ", "  4 bar ", "  2 bar "]
         lines3 = [
@@ -1087,14 +1108,14 @@ class TestSetdiff:
         self.t2 = t_cls.read(lines2, format="ascii")
         self.t3 = t_cls.read(lines3, format="ascii")
 
-    def test_default_same_columns(self, operation_table_type):
+    def test_default_same_columns(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t2)
         assert type(out["a"]) is type(self.t1["a"])
         assert type(out["b"]) is type(self.t1["b"])
         assert out.pformat() == [" a   b ", "--- ---", "  1 bar", "  1 foo"]
 
-    def test_default_same_tables(self, operation_table_type):
+    def test_default_same_tables(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t1)
 
@@ -1105,13 +1126,13 @@ class TestSetdiff:
             "--- ---",
         ]
 
-    def test_extra_col_left_table(self, operation_table_type):
+    def test_extra_col_left_table(self, operation_table_type) -> None:
         self._setup(operation_table_type)
 
         with pytest.raises(ValueError):
             table.setdiff(self.t3, self.t1)
 
-    def test_extra_col_right_table(self, operation_table_type):
+    def test_extra_col_right_table(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.setdiff(self.t1, self.t3)
 
@@ -1124,7 +1145,7 @@ class TestSetdiff:
             "  2 bar",
         ]
 
-    def test_keys(self, operation_table_type):
+    def test_keys(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.setdiff(self.t3, self.t1, keys=["a", "b"])
 
@@ -1137,7 +1158,7 @@ class TestSetdiff:
             "  8 foo  R2",
         ]
 
-    def test_missing_key(self, operation_table_type):
+    def test_missing_key(self, operation_table_type) -> None:
         self._setup(operation_table_type)
 
         with pytest.raises(ValueError):
@@ -1145,7 +1166,7 @@ class TestSetdiff:
 
 
 class TestVStack:
-    def _setup(self, t_cls=Table):
+    def _setup(self, t_cls: type[Table] = Table) -> None:
         self.t1 = t_cls.read(
             [
                 " a   b",
@@ -1192,12 +1213,12 @@ class TestVStack:
             ]
         )
 
-    def test_validate_join_type(self):
+    def test_validate_join_type(self) -> None:
         self._setup()
         with pytest.raises(TypeError, match="Did you accidentally call vstack"):
             table.vstack(self.t1, self.t2)
 
-    def test_stack_rows(self, operation_table_type):
+    def test_stack_rows(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t2 = self.t1.copy()
         t2.meta.clear()
@@ -1212,7 +1233,7 @@ class TestVStack:
             "1.0 bar",
         ]
 
-    def test_stack_table_column(self, operation_table_type):
+    def test_stack_table_column(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t2 = self.t1.copy()
         t2.meta.clear()
@@ -1227,12 +1248,12 @@ class TestVStack:
             "1.0  --",
         ]
 
-    def test_table_meta_merge(self, operation_table_type):
+    def test_table_meta_merge(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.vstack([self.t1, self.t2, self.t4], join_type="inner")
         assert out.meta == self.meta_merge
 
-    def test_table_meta_merge_conflict(self, operation_table_type):
+    def test_table_meta_merge_conflict(self, operation_table_type) -> None:
         self._setup(operation_table_type)
 
         with pytest.warns(metadata.MergeConflictWarning) as w:
@@ -1265,7 +1286,7 @@ class TestVStack:
                 [self.t1, self.t5], join_type="inner", metadata_conflicts="nonsense"
             )
 
-    def test_bad_input_type(self, operation_table_type):
+    def test_bad_input_type(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         with pytest.raises(ValueError):
             table.vstack([])
@@ -1276,7 +1297,7 @@ class TestVStack:
         with pytest.raises(ValueError):
             table.vstack([self.t1, self.t2], join_type="invalid join type")
 
-    def test_stack_basic_inner(self, operation_table_type):
+    def test_stack_basic_inner(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -1311,7 +1332,7 @@ class TestVStack:
             "1.0 bar",
         ]
 
-    def test_stack_basic_outer(self, operation_table_type):
+    def test_stack_basic_outer(self, operation_table_type) -> None:
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -1342,7 +1363,7 @@ class TestVStack:
             "1.0 bar  --",
         ]
 
-    def test_stack_incompatible(self, operation_table_type):
+    def test_stack_incompatible(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         with pytest.raises(TableMergeError) as excinfo:
             table.vstack([self.t1, self.t3], join_type="inner")
@@ -1363,7 +1384,7 @@ class TestVStack:
             table.vstack([self.t1, t1_reshape])
         assert "have different shape" in str(excinfo.value)
 
-    def test_vstack_one_masked(self, operation_table_type):
+    def test_vstack_one_masked(self, operation_table_type) -> None:
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -1381,7 +1402,7 @@ class TestVStack:
             "1.0  --",
         ]
 
-    def test_col_meta_merge_inner(self, operation_table_type):
+    def test_col_meta_merge_inner(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -1471,7 +1492,7 @@ class TestVStack:
             [("b", [3, 4]), ("c", {"b": 1}), ("a", 1)]
         )
 
-    def test_col_meta_merge_outer(self, operation_table_type):
+    def test_col_meta_merge_outer(self, operation_table_type) -> None:
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -1541,7 +1562,7 @@ class TestVStack:
         assert out["c"].info.description == "t2_c"
 
     @pytest.mark.parametrize("as_list", [False, True])
-    def test_vstack_one_table(self, operation_table_type, as_list):
+    def test_vstack_one_table(self, operation_table_type, as_list) -> None:
         """Regression tests for issues #3313 and #18910."""
         self._setup(operation_table_type)
         self.t1.meta["my_special_value"] = 42
@@ -1560,7 +1581,7 @@ class TestVStack:
 
     @pytest.mark.parametrize("empty_table1", [False, True])
     @pytest.mark.parametrize("empty_table2", [False, True])
-    def test_mixin_functionality(self, mixin_cols, empty_table1, empty_table2):
+    def test_mixin_functionality(self, mixin_cols, empty_table1, empty_table2) -> None:
         col1 = col2 = mixin_cols["m"]
         if empty_table1:
             col1 = col1[:0]
@@ -1603,7 +1624,7 @@ class TestVStack:
                 err.value
             ) or "vstack unavailable" in str(err.value)
 
-    def test_vstack_different_representation(self):
+    def test_vstack_different_representation(self) -> None:
         """Test that representations can be mixed together."""
         rep1 = CartesianRepresentation([1, 2] * u.km, [3, 4] * u.km, 1 * u.km)
         rep2 = SphericalRepresentation([0] * u.deg, [0] * u.deg, 10 * u.km)
@@ -1620,7 +1641,7 @@ class TestVStack:
         with pytest.raises(ValueError, match="representations are inconsistent"):
             table.vstack([t1, t3])
 
-    def test_vstack_different_sky_coordinates(self):
+    def test_vstack_different_sky_coordinates(self) -> None:
         """Test that SkyCoord can generally not be mixed together."""
         sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
         sc2 = SkyCoord([5, 6] * u.deg, [7, 8] * u.deg, frame="fk5")
@@ -1629,7 +1650,7 @@ class TestVStack:
         with pytest.raises(ValueError, match="coords are inconsistent"):
             table.vstack([t1, t2])
 
-    def test_vstack_structured_column(self):
+    def test_vstack_structured_column(self) -> None:
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
         t1 = Table(
@@ -1670,7 +1691,7 @@ class TestVStack:
             "               --   four",
         ]
 
-    def test_vstack_inputs_not_modified(self):
+    def test_vstack_inputs_not_modified(self) -> None:
         """Tests that inputs are not modified, see issue #16119"""
         t1 = Table(data=dict(x=[1, 2, 3], y=["a", "b", "c"]))
 
@@ -1685,7 +1706,7 @@ class TestVStack:
 
 
 class TestDStack:
-    def _setup(self, t_cls=Table):
+    def _setup(self, t_cls: type[Table] = Table) -> None:
         self.t1 = t_cls.read(
             [
                 " a   b",
@@ -1732,13 +1753,13 @@ class TestDStack:
             format="ascii",
         )
 
-    def test_validate_join_type(self):
+    def test_validate_join_type(self) -> None:
         self._setup()
         with pytest.raises(TypeError, match="Did you accidentally call dstack"):
             table.dstack(self.t1, self.t2)
 
     @staticmethod
-    def compare_dstack(tables, out):
+    def compare_dstack(tables, out) -> None:
         for ii, tbl in enumerate(tables):
             for name in out.columns:
                 if name in tbl.colnames:
@@ -1758,14 +1779,14 @@ class TestDStack:
                     # Column missing for this table, out must have a mask with all True.
                     assert np.all(out[name].mask[:, ii])
 
-    def test_dstack_table_column(self, operation_table_type):
+    def test_dstack_table_column(self, operation_table_type) -> None:
         """Stack a table with 3 cols and one column (gets auto-converted to Table)."""
         self._setup(operation_table_type)
         t2 = self.t1.copy()
         out = table.dstack([self.t1, t2["a"]])
         self.compare_dstack([self.t1, t2[("a",)]], out)
 
-    def test_dstack_basic_outer(self, operation_table_type):
+    def test_dstack_basic_outer(self, operation_table_type) -> None:
         if operation_table_type is QTable:
             pytest.xfail("Quantity columns do not support masking.")
         self._setup(operation_table_type)
@@ -1787,7 +1808,7 @@ class TestDStack:
         assert type(t124["b"]) is type(t4["b"])
         self.compare_dstack([t1, t2, t4], t124)
 
-    def test_dstack_basic_inner(self, operation_table_type):
+    def test_dstack_basic_inner(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -1800,7 +1821,7 @@ class TestDStack:
         assert type(t124["b"]) is type(t4["b"])
         self.compare_dstack([t1, t2, t4], t124)
 
-    def test_dstack_multi_dimension_column(self, operation_table_type):
+    def test_dstack_multi_dimension_column(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t3 = self.t3
         t5 = self.t5
@@ -1814,19 +1835,19 @@ class TestDStack:
         with pytest.raises(TableMergeError):
             table.dstack([t2, t3])
 
-    def test_dstack_different_length_table(self, operation_table_type):
+    def test_dstack_different_length_table(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t2 = self.t2
         t6 = self.t6
         with pytest.raises(ValueError):
             table.dstack([t2, t6])
 
-    def test_dstack_single_table(self):
+    def test_dstack_single_table(self) -> None:
         self._setup(Table)
         out = table.dstack(self.t1)
         assert np.all(out == self.t1)
 
-    def test_dstack_representation(self):
+    def test_dstack_representation(self) -> None:
         rep1 = SphericalRepresentation([1, 2] * u.deg, [3, 4] * u.deg, 1 * u.kpc)
         rep2 = SphericalRepresentation([10, 20] * u.deg, [30, 40] * u.deg, 10 * u.kpc)
         t1 = Table([rep1])
@@ -1835,7 +1856,7 @@ class TestDStack:
         assert np.all(representation_equal(t12["col0"][:, 0], rep1))
         assert np.all(representation_equal(t12["col0"][:, 1], rep2))
 
-    def test_dstack_skycoord(self):
+    def test_dstack_skycoord(self) -> None:
         sc1 = SkyCoord([1, 2] * u.deg, [3, 4] * u.deg)
         sc2 = SkyCoord([10, 20] * u.deg, [30, 40] * u.deg)
         t1 = Table([sc1])
@@ -1844,7 +1865,7 @@ class TestDStack:
         assert skycoord_equal(sc1, t12["col0"][:, 0])
         assert skycoord_equal(sc2, t12["col0"][:, 1])
 
-    def test_dstack_structured_column(self):
+    def test_dstack_structured_column(self) -> None:
         """Regression tests for gh-13271."""
         # Two tables with matching names, including a structured column.
         t1 = Table(
@@ -1883,7 +1904,7 @@ class TestDStack:
 
 
 class TestHStack:
-    def _setup(self, t_cls=Table):
+    def _setup(self, t_cls: type[Table] = Table) -> None:
         self.t1 = t_cls.read(
             [
                 " a    b",
@@ -1932,12 +1953,12 @@ class TestHStack:
             ]
         )
 
-    def test_validate_join_type(self):
+    def test_validate_join_type(self) -> None:
         self._setup()
         with pytest.raises(TypeError, match="Did you accidentally call hstack"):
             table.hstack(self.t1, self.t2)
 
-    def test_stack_same_table(self, operation_table_type):
+    def test_stack_same_table(self, operation_table_type) -> None:
         """
         From #2995, test that hstack'ing references to the same table has the
         expected output.
@@ -1952,7 +1973,7 @@ class TestHStack:
             "1.0 bar 1.0 bar",
         ]
 
-    def test_stack_rows(self, operation_table_type):
+    def test_stack_rows(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.hstack([self.t1[0], self.t2[1]])
         assert out.masked is False
@@ -1962,7 +1983,7 @@ class TestHStack:
             "0.0 foo 3.0 sez   5",
         ]
 
-    def test_stack_columns(self, operation_table_type):
+    def test_stack_columns(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2["c"]])
         assert type(out["a"]) is type(self.t1["a"])
@@ -1975,12 +1996,12 @@ class TestHStack:
             "1.0 bar   5",
         ]
 
-    def test_table_meta_merge(self, operation_table_type):
+    def test_table_meta_merge(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.hstack([self.t1, self.t2, self.t4], join_type="inner")
         assert out.meta == self.meta_merge
 
-    def test_table_meta_merge_conflict(self, operation_table_type):
+    def test_table_meta_merge_conflict(self, operation_table_type) -> None:
         self._setup(operation_table_type)
 
         with pytest.warns(metadata.MergeConflictWarning) as w:
@@ -2013,7 +2034,7 @@ class TestHStack:
                 [self.t1, self.t5], join_type="inner", metadata_conflicts="nonsense"
             )
 
-    def test_bad_input_type(self, operation_table_type):
+    def test_bad_input_type(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         with pytest.raises(ValueError):
             table.hstack([])
@@ -2024,7 +2045,7 @@ class TestHStack:
         with pytest.raises(ValueError):
             table.hstack([self.t1, self.t2], join_type="invalid join type")
 
-    def test_stack_basic(self, operation_table_type):
+    def test_stack_basic(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t1 = self.t1
         t2 = self.t2
@@ -2071,14 +2092,14 @@ class TestHStack:
             "1.0 bar 3.0 sez   5 5.0   8 1.0 bar",
         ]
 
-    def test_stack_incompatible(self, operation_table_type):
+    def test_stack_incompatible(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         # For join_type exact, which will fail here because n_rows
         # does not match
         with pytest.raises(TableMergeError):
             table.hstack([self.t1, self.t3], join_type="exact")
 
-    def test_hstack_one_masked(self, operation_table_type):
+    def test_hstack_one_masked(self, operation_table_type) -> None:
         if operation_table_type is QTable:
             pytest.xfail()
         self._setup(operation_table_type)
@@ -2094,7 +2115,7 @@ class TestHStack:
             "1.0 bar 1.0  --",
         ]
 
-    def test_table_col_rename(self, operation_table_type):
+    def test_table_col_rename(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         out = table.hstack(
             [self.t1, self.t2],
@@ -2110,7 +2131,7 @@ class TestHStack:
             "   1.0    bar     3.0     sez   5",
         ]
 
-    def test_col_meta_merge(self, operation_table_type):
+    def test_col_meta_merge(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         t1 = self.t1
         t3 = self.t3[:2]
@@ -2146,13 +2167,13 @@ class TestHStack:
         t1["b"].info.meta["b"] = None
         assert out["b"].info.meta["b"] == [1, 2]
 
-    def test_hstack_one_table(self, operation_table_type):
+    def test_hstack_one_table(self, operation_table_type) -> None:
         self._setup(operation_table_type)
         """Regression test for issue #3313"""
         assert (self.t1 == table.hstack(self.t1)).all()
         assert (self.t1 == table.hstack([self.t1])).all()
 
-    def test_mixin_functionality(self, mixin_cols):
+    def test_mixin_functionality(self, mixin_cols) -> None:
         col1 = mixin_cols["m"]
         col2 = col1[2:4]  # Shorter version of col1
         t1 = table.QTable([col1])
@@ -2194,7 +2215,7 @@ class TestHStack:
             assert "hstack requires masking" in str(err.value)
 
 
-def test_unique(operation_table_type):
+def test_unique(operation_table_type) -> None:
     t = operation_table_type.read(
         [
             " a b  c  d",
@@ -2351,7 +2372,7 @@ def test_unique(operation_table_type):
 
 
 @pytest.mark.parametrize("join_type", ["inner", "outer", "left", "right", "cartesian"])
-def test_join_keep_sort_order(join_type):
+def test_join_keep_sort_order(join_type) -> None:
     """Test the keep_order argument for table.join.
 
     See https://github.com/astropy/astropy/issues/11619.
@@ -2406,7 +2427,7 @@ def test_join_keep_sort_order(join_type):
     assert np.all(t12t[sort_key_true] == sorted([t12t[sort_key_true]]))
 
 
-def test_join_keep_sort_order_exception():
+def test_join_keep_sort_order_exception() -> None:
     """Test that exception in join(..., keep_order=True) leaves table unchanged"""
     t1 = Table([[1, 2]], names=["id"])
     t2 = Table([[2, 3]], names=["id"])
@@ -2418,7 +2439,7 @@ def test_join_keep_sort_order_exception():
     assert t2.colnames == ["id"]
 
 
-def test_vstack_bytes(operation_table_type):
+def test_vstack_bytes(operation_table_type) -> None:
     """
     Test for issue #5617 when vstack'ing bytes columns in Py3.
     This is really an upstream numpy issue numpy/numpy/#8403.
@@ -2431,7 +2452,7 @@ def test_vstack_bytes(operation_table_type):
     assert t2["a"].itemsize == 1
 
 
-def test_vstack_unicode():
+def test_vstack_unicode() -> None:
     """
     Test for problem related to issue #5617 when vstack'ing *unicode*
     columns.  In this case the character size gets multiplied by 4.
@@ -2444,7 +2465,7 @@ def test_vstack_unicode():
     assert t2["a"].itemsize == 4
 
 
-def test_join_mixins_time_quantity(join_engine):
+def test_join_mixins_time_quantity(join_engine) -> None:
     """
     Test for table join using non-ndarray key columns.
     """
@@ -2476,7 +2497,7 @@ def test_join_mixins_time_quantity(join_engine):
     assert np.all(t12["idx_2"] == np.ma.array([0, 0, 10, 20], mask=[1, 1, 0, 0]))
 
 
-def test_join_mixins_not_sortable(join_engine):
+def test_join_mixins_not_sortable(join_engine) -> None:
     """
     Test for table join using non-ndarray key columns that are not sortable.
     """
@@ -2488,7 +2509,7 @@ def test_join_mixins_not_sortable(join_engine):
         table.join(t1, t2, keys="sc", engine=join_engine)
 
 
-def test_join_non_1d_key_column():
+def test_join_non_1d_key_column() -> None:
     c1 = [[1, 2], [3, 4]]
     c2 = [1, 2]
     t1 = Table([c1, c2], names=["a", "b"])
@@ -2497,7 +2518,7 @@ def test_join_non_1d_key_column():
         table.join(t1, t2, keys="a")
 
 
-def test_argsort_time_column():
+def test_argsort_time_column() -> None:
     """Regression test for #10823."""
     times = Time(["2016-01-01", "2018-01-01", "2017-01-01"])
     t = Table([times], names=["time"])
@@ -2505,7 +2526,7 @@ def test_argsort_time_column():
     assert np.all(i == times.argsort())
 
 
-def test_argsort_multiple_keys_with_time_column():
+def test_argsort_multiple_keys_with_time_column() -> None:
     """Regression test for gh-14942.
 
     ``Table.argsort()`` uses ``col.info.get_sortable_arrays()`` for each key
@@ -2525,7 +2546,7 @@ def test_argsort_multiple_keys_with_time_column():
     assert np.all(i == [3, 1, 2, 0])
 
 
-def test_argsort_non_sortable_mixin_raises():
+def test_argsort_non_sortable_mixin_raises() -> None:
     """Columns without ``info.get_sortable_arrays()`` raise a clear TypeError."""
     sc = SkyCoord([1, 2, 3], [4, 5, 6], unit="deg,deg")
     t = Table([sc, [1, 2, 3]], names=["sc", "a"])
@@ -2533,7 +2554,7 @@ def test_argsort_non_sortable_mixin_raises():
         t.argsort("sc")
 
 
-def test_sort_indexed_table():
+def test_sort_indexed_table() -> None:
     """Test fix for #9473 and #6545 - and another regression test for #10823."""
     t = Table([[1, 3, 2], [6, 4, 5]], names=("a", "b"))
     t.add_index("a")
@@ -2564,7 +2585,7 @@ def test_sort_indexed_table():
     assert np.all(ts["time"] == tm[[0, 2, 1]])
 
 
-def test_get_out_class():
+def test_get_out_class() -> None:
     c = table.Column([1, 2])
     mc = table.MaskedColumn([1, 2])
     q = [1, 2] * u.m
@@ -2581,7 +2602,7 @@ def test_get_out_class():
         _get_out_class([q, c])
 
 
-def test_masking_required_exception():
+def test_masking_required_exception() -> None:
     """
     Test that outer join, hstack and vstack fail for a mixin column which
     does not support masking.
@@ -2603,7 +2624,7 @@ def test_masking_required_exception():
     assert "join requires masking" in str(err.value)
 
 
-def test_stack_columns():
+def test_stack_columns() -> None:
     c = table.Column([1, 2])
     mc = table.MaskedColumn([1, 2])
     q = [1, 2] * u.m
@@ -2646,7 +2667,7 @@ def test_stack_columns():
         t = table.vstack([q, cq])
 
 
-def test_mixin_join_regression():
+def test_mixin_join_regression() -> None:
     # This used to trigger a ValueError:
     # ValueError: NumPy boolean array indexing assignment cannot assign
     # 6 input values to the 4 output values where the mask is true
@@ -2706,7 +2727,7 @@ def test_mixin_join_regression():
         ),
     ],
 )
-def test_table_comp(t1, t2):
+def test_table_comp(t1, t2) -> None:
     # see https://github.com/astropy/astropy/issues/13421
     try:
         np.result_type(t1.dtype, t2.dtype)
@@ -2726,7 +2747,7 @@ def test_table_comp(t1, t2):
         assert all(t2 != t1)
 
 
-def test_empty_skycoord_vstack():
+def test_empty_skycoord_vstack() -> None:
     # Explicit regression test for gh-17378
     table1 = Table({"foo": SkyCoord([], [], unit="deg")})
     table2 = table.vstack([table1, table1])  # Used to fail.
@@ -2735,7 +2756,7 @@ def test_empty_skycoord_vstack():
 
 
 @pytest.mark.skipif(not HAS_NUMPY_QUADDTYPE, reason="Tests QuadDtype")
-def test_user_dtype_vstack():
+def test_user_dtype_vstack() -> None:
     # Regression test for gh-19197
     from numpy_quaddtype import QuadPrecDType
 

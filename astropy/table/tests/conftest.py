@@ -19,6 +19,7 @@ import pytest
 from astropy import coordinates, table, time
 from astropy import units as u
 from astropy.table import QTable, Table, pprint
+from astropy.table.table import Table
 from astropy.table.table_helpers import ArrayWrapper
 
 
@@ -30,7 +31,7 @@ def Column(request):
 
 
 class MaskedTable(table.Table):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         kwargs["masked"] = True
         table.Table.__init__(self, *args, **kwargs)
 
@@ -68,9 +69,9 @@ class MyTable(table.Table):
 
 
 @pytest.fixture(params=["unmasked", "masked", "subclass"])
-def table_types(request):
+def table_types(request) -> table_types.TableTypes:
     class TableTypes:
-        def __init__(self, request):
+        def __init__(self, request) -> None:
             if request.param == "unmasked":
                 self.Table = table.Table
                 self.Column = table.Column
@@ -87,9 +88,9 @@ def table_types(request):
 # Fixture to run all the Column tests for both an unmasked (ndarray)
 # and masked (MaskedArray) column.
 @pytest.fixture(params=[False, True])
-def table_data(request):
+def table_data(request) -> table_data.TableData:
     class TableData:
-        def __init__(self, request):
+        def __init__(self, request) -> None:
             self.Table = MaskedTable if request.param else table.Table
             self.Column = table.MaskedColumn if request.param else table.Column
             self.COLS = [
@@ -128,7 +129,7 @@ class SubclassTable(table.Table):
 
 
 @pytest.fixture(params=[True, False])
-def tableclass(request):
+def tableclass(request) -> type[SubclassTable] | type[Table]:
     return table.Table if request.param else SubclassTable
 
 
@@ -143,7 +144,7 @@ def protocol(request):
 # Fixture to run all tests for both an unmasked (ndarray) and masked
 # (MaskedArray) column.
 @pytest.fixture(params=[False, True])
-def table_type(request):
+def table_type(request) -> type[MaskedTable] | type[Table]:
     return MaskedTable if request.param else table.Table
 
 

@@ -26,6 +26,7 @@ from astropy.table import (
 )
 from astropy.table.column import BaseColumn
 from astropy.table.serialize import represent_mixins_as_columns
+from astropy.table.table import QTable, Table
 from astropy.table.table_helpers import ArrayWrapper
 from astropy.utils.data_info import ParentDtypeInfo
 from astropy.utils.exceptions import AstropyUserWarning
@@ -34,7 +35,7 @@ from astropy.utils.metadata import MergeConflictWarning
 from .conftest import MIXIN_COLS
 
 
-def test_attributes(mixin_cols):
+def test_attributes(mixin_cols) -> None:
     """
     Required attributes for a column can be set.
     """
@@ -76,7 +77,7 @@ def test_attributes(mixin_cols):
         m.info.bad_attr
 
 
-def check_mixin_type(table, table_col, in_col):
+def check_mixin_type(table, table_col, in_col) -> None:
     # We check for QuantityInfo rather than just isinstance(col, u.Quantity)
     # since we want to treat EarthLocation as a mixin, even though it is
     # a Quantity subclass.
@@ -91,7 +92,7 @@ def check_mixin_type(table, table_col, in_col):
     assert in_col.info.name is None
 
 
-def test_make_table(table_types, mixin_cols):
+def test_make_table(table_types, mixin_cols) -> None:
     """
     Make a table with the columns in mixin_cols, which is an ordered dict of
     three cols: 'a' and 'b' are table_types.Column type, and 'm' is a mixin.
@@ -107,7 +108,7 @@ def test_make_table(table_types, mixin_cols):
     check_mixin_type(t, t["col3"], mixin_cols["m"])
 
 
-def test_io_ascii_write():
+def test_io_ascii_write() -> None:
     """
     Test that table with mixin column can be written by io.ascii for
     every pure Python writer.  No validation of the output is done,
@@ -124,7 +125,7 @@ def test_io_ascii_write():
             t.write(out, format=fmt["Format"])
 
 
-def test_votable_quantity_write(tmp_path):
+def test_votable_quantity_write(tmp_path) -> None:
     """
     Test that table with Quantity mixin column can be round-tripped by
     io.votable.  Note that FITS and HDF5 mixin support are tested (much more
@@ -143,7 +144,7 @@ def test_votable_quantity_write(tmp_path):
 
 @pytest.mark.remote_data
 @pytest.mark.parametrize("table_types", (Table, QTable))
-def test_io_time_write_fits_standard(tmp_path, table_types):
+def test_io_time_write_fits_standard(tmp_path, table_types) -> None:
     """
     Test that table with Time mixin columns can be written by io.fits.
     Validation of the output is done. Test that io.fits writes a table
@@ -272,7 +273,7 @@ def test_io_time_write_fits_standard(tmp_path, table_types):
 
 
 @pytest.mark.parametrize("table_types", (Table, QTable))
-def test_io_time_write_fits_local(tmp_path, table_types):
+def test_io_time_write_fits_local(tmp_path, table_types) -> None:
     """
     Test that table with a Time mixin with scale local can also be written
     by io.fits. Like ``test_io_time_write_fits_standard`` above, but avoiding
@@ -346,7 +347,7 @@ def test_io_time_write_fits_local(tmp_path, table_types):
         assert (tm[name] == t[name].value).all()
 
 
-def test_votable_mixin_write_fail(mixin_cols):
+def test_votable_mixin_write_fail(mixin_cols) -> None:
     """
     Test that table with mixin columns (excluding Quantity) cannot be written by
     io.votable.
@@ -365,7 +366,7 @@ def test_votable_mixin_write_fail(mixin_cols):
     assert "cannot write table with mixin column(s)" in str(err.value)
 
 
-def test_join(table_types):
+def test_join(table_types) -> None:
     """
     Join tables with mixin cols.  Use column "i" as proxy for what the
     result should be for each mixin.
@@ -413,7 +414,7 @@ def test_join(table_types):
     assert np.all(t12["a_1"] == t1["a"])
 
 
-def test_hstack(table_types):
+def test_hstack(table_types) -> None:
     """
     Hstack tables with mixin cols.  Use column "i" as proxy for what the
     result should be for each mixin.
@@ -453,7 +454,7 @@ def test_hstack(table_types):
                     )
 
 
-def assert_table_name_col_equal(t, name, col):
+def assert_table_name_col_equal(t: QTable | Table, name: str, col) -> None:
     """
     Assert all(t[name] == col), with special handling for known mixin cols.
     """
@@ -472,7 +473,7 @@ def assert_table_name_col_equal(t, name, col):
         assert np.all(t[name] == col)
 
 
-def test_get_items(mixin_cols):
+def test_get_items(mixin_cols) -> None:
     """
     Test that slicing / indexing table gives right values and col attrs inherit
     """
@@ -492,7 +493,7 @@ def test_get_items(mixin_cols):
             assert getattr(m2.info, attr) == getattr(m.info, attr)
 
 
-def test_info_preserved_pickle_copy_init(mixin_cols):
+def test_info_preserved_pickle_copy_init(mixin_cols) -> None:
     """
     Test copy, pickle, and init from class roundtrip preserve info.  This
     tests not only the mixin classes but a regular column as well.
@@ -519,7 +520,7 @@ def test_info_preserved_pickle_copy_init(mixin_cols):
                 assert getattr(m2.info, attr) == getattr(m.info, attr)
 
 
-def check_share_memory(col1, col2, copy):
+def check_share_memory(col1, col2, copy) -> None:
     """Check whether data attributes in col1 and col2 share memory.
 
     If copy=True, this should not be the case for any, while
@@ -548,7 +549,7 @@ def check_share_memory(col1, col2, copy):
 
 
 @pytest.mark.parametrize("copy", [True, False])
-def test_add_column(mixin_cols, copy):
+def test_add_column(mixin_cols, copy) -> None:
     """
     Test that adding a column preserves values and attributes.
     For copy=True, the data should be independent;
@@ -614,7 +615,7 @@ def test_add_column(mixin_cols, copy):
                 assert getattr(t["m1"].info, attr) == getattr(t["s"].info, attr)
 
 
-def test_vstack():
+def test_vstack() -> None:
     """
     Vstack tables with mixin cols.
     """
@@ -625,7 +626,7 @@ def test_vstack():
 
 
 @pytest.mark.parametrize("empty_table", [False, True])
-def test_insert_row(mixin_cols, empty_table):
+def test_insert_row(mixin_cols, empty_table) -> None:
     """
     Test inserting a row, which works for Column, Quantity, Time and SkyCoord.
     """
@@ -655,7 +656,7 @@ def test_insert_row(mixin_cols, empty_table):
         assert "Unable to insert row" in str(exc.value)
 
 
-def test_insert_row_bad_unit():
+def test_insert_row_bad_unit() -> None:
     """
     Insert a row into a QTable with the wrong unit
     """
@@ -667,7 +668,7 @@ def test_insert_row_bad_unit():
     )
 
 
-def test_convert_np_array(mixin_cols):
+def test_convert_np_array(mixin_cols) -> None:
     """
     Test that converting to numpy array creates an object dtype and that
     each instance in the array has the expected type.
@@ -679,7 +680,7 @@ def test_convert_np_array(mixin_cols):
     assert ta["m"].dtype.kind == dtype_kind
 
 
-def test_assignment_and_copy():
+def test_assignment_and_copy() -> None:
     """
     Test that assignment of an int, slice, and fancy index works.
     Along the way test that copying table works.
@@ -704,7 +705,7 @@ def test_assignment_and_copy():
                 assert np.all(t0["m"][i0] != t["m"][i0])
 
 
-def test_conversion_qtable_table():
+def test_conversion_qtable_table() -> None:
     """
     Test that a table round trips from QTable => Table => QTable
     """
@@ -729,7 +730,7 @@ def test_conversion_qtable_table():
         assert_table_name_col_equal(qt2, name, qt[name])
 
 
-def test_setitem_as_column_name():
+def test_setitem_as_column_name() -> None:
     """
     Test for mixin-related regression described in #3321.
     """
@@ -740,7 +741,7 @@ def test_setitem_as_column_name():
     assert np.all(t["b"] == ["b", "b"])
 
 
-def test_quantity_representation():
+def test_quantity_representation() -> None:
     """
     Test that table representation of quantities does not have unit
     """
@@ -811,7 +812,7 @@ def test_quantity_representation():
         ),
     ],
 )
-def test_representation_representation(c, expected_pformat):
+def test_representation_representation(c, expected_pformat) -> None:
     """
     Test that Representations are represented correctly.
     """
@@ -819,7 +820,7 @@ def test_representation_representation(c, expected_pformat):
     assert t.pformat() == expected_pformat
 
 
-def test_skycoord_representation():
+def test_skycoord_representation() -> None:
     """
     Test that skycoord representation works, both in the way that the
     values are output and in changing the frame representation.
@@ -862,7 +863,7 @@ def test_skycoord_representation():
 
 
 @pytest.mark.parametrize("as_ndarray_mixin", [True, False])
-def test_ndarray_mixin(as_ndarray_mixin):
+def test_ndarray_mixin(as_ndarray_mixin) -> None:
     """
     Test directly adding various forms of structured ndarray columns to a table.
     Adding as NdarrayMixin is expected to be somewhat unusual after #12644
@@ -940,7 +941,7 @@ def test_ndarray_mixin(as_ndarray_mixin):
     )
 
 
-def test_possible_string_format_functions():
+def test_possible_string_format_functions() -> None:
     """
     The QuantityInfo info class for Quantity implements a
     possible_string_format_functions() method that overrides the
@@ -976,7 +977,7 @@ def test_possible_string_format_functions():
     ]
 
 
-def test_rename_mixin_columns(mixin_cols):
+def test_rename_mixin_columns(mixin_cols) -> None:
     """
     Rename a mixin column.
     """
@@ -995,7 +996,7 @@ def test_rename_mixin_columns(mixin_cols):
         assert np.all(t["mm"] == tc["m"])
 
 
-def test_represent_mixins_as_columns_unit_fix():
+def test_represent_mixins_as_columns_unit_fix() -> None:
     """
     If the unit is invalid for a column that gets serialized this would
     cause an exception.  Fixed in #7481.
@@ -1006,7 +1007,7 @@ def test_represent_mixins_as_columns_unit_fix():
     serialize.represent_mixins_as_columns(t)
 
 
-def test_primary_data_column_gets_description():
+def test_primary_data_column_gets_description() -> None:
     """
     If the mixin defines a primary data column, that should get the
     description, format, etc., so no __info__ should be needed.
@@ -1022,7 +1023,7 @@ def test_primary_data_column_gets_description():
 
 @pytest.mark.parametrize("copy", [True, False])
 @pytest.mark.parametrize("table_cls", [Table, QTable])
-def test_ensure_input_info_is_unchanged(table_cls, copy):
+def test_ensure_input_info_is_unchanged(table_cls, copy) -> None:
     """If a mixin input to a table has no info, it should stay that way.
 
     This since having 'info' slows down slicing, etc.
@@ -1043,7 +1044,7 @@ def test_ensure_input_info_is_unchanged(table_cls, copy):
     assert "info" not in sc.__dict__
 
 
-def test_bad_info_class():
+def test_bad_info_class() -> None:
     """Make a mixin column class that does not trigger the machinery to generate
     a pure column representation"""
 
