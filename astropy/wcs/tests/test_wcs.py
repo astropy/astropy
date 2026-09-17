@@ -2446,7 +2446,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             "all_world2pix",
         ),
     )
-    def test_programmatic(self, explicit_set, function):
+    def test_programmatic_conversions(self, explicit_set, function):
         # Make sure that things work fine if we make the WCS programmatically
         # and not from a header
 
@@ -2459,10 +2459,6 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         if explicit_set:
             wcs_prog.wcs.set()
-
-        # FIXME: the following fails if explicit_set is False because wcsset
-        # gets called implicitly during the coordinate conversion but we don't
-        # catch this and store the before/after units.
 
         if function == "p2s":
             assert_allclose(
@@ -2480,6 +2476,46 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             assert_allclose(wcs_prog.all_pix2world(1, 1, 1), [10, 20])
         elif function == "all_world2pix":
             assert_allclose(wcs_prog.all_world2pix(10, 20, 1), [1, 1])
+
+    @pytest.mark.parametrize("explicit_set", (False, True))
+    def test_programmatic_to_header(self, explicit_set):
+        # Make sure that to_header works fine if we make the WCS programmatically
+        # and not from a header
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        if explicit_set:
+            wcs_prog.wcs.set()
+
+        header = wcs_prog.to_header()
+
+        expected_header = """
+WCSAXES =                    2 / Number of coordinate axes
+CRPIX1  =                  1.0 / Pixel coordinate of reference point
+CRPIX2  =                  1.0 / Pixel coordinate of reference point
+CDELT1  =                  1.0 / [arcsec] Coordinate increment at reference poin
+CDELT2  =                  2.0 / [arcsec] Coordinate increment at reference poin
+CUNIT1  = 'arcsec'             / Units of coordinate increment and value
+CUNIT2  = 'arcsec'             / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection
+CRVAL1  =                 10.0 / [arcsec] Coordinate value at reference point
+CRVAL2  =                 20.0 / [arcsec] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =   0.0055555555555556 / [deg] Native latitude of celestial pole
+MJDREF  =                  0.0 / [d] MJD of fiducial time
+RADESYS = 'ICRS'               / Equatorial coordinate system
+END
+""".strip()
+
+        assert header.tostring(sep="\n") == fits.Header.fromstring(
+            expected_header, sep="\n"
+        ).tostring(sep="\n")
 
     def test_change_cunit(self):
         # Make sure that things work fine if we make the WCS programmatically
@@ -2823,6 +2859,19 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             self.wcs_preserve.sub([1, 2, 0, 3, 4, 5]).wcs._unit_scaling,
             np.array([1 / 3600, 1e9, 1.0, 1 / 3600, 1e-9, 1]),
         )
+
+    def test_safe_set_cdelt_crval(self):
+
+        simple_wcs = wcs.WCS(naxis=2, preserve_units=True)
+        simple_wcs.wcs.cunit = "arcsec", "arcsec"
+        simple_wcs.wcs.set()
+
+        # At this point original_cunit is set but cunit_scaling has been
+        # set then freed since all values in it are 1 (units only get
+        # converted to degrees once ctype is set)
+
+        simple_wcs.wcs.cdelt = -1, 2
+        simple_wcs.wcs.crval = 3, 4
 
 
 def test_thread_safe_conversions():

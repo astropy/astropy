@@ -2429,6 +2429,13 @@ Wcsprm_to_header(
     }
   }
 
+  // We need to make sure wcsset() has been called on the WCS in case
+  // for example preserve_units is being used and units have been set
+  // programmatically, otherwise unit_scaling will be uninitialized.
+  if (Wcsprm_cset(self)) {
+    return NULL;
+  }
+
   // If the user has requested to preserve the original units, then we
   // could try and edit the header returned by wcshdo - however, this
   // might be tricky and not robust to future WCSLIB changes. Instead,
@@ -2716,7 +2723,7 @@ Wcsprm_set_cdelt(
 
   status = set_double_array("cdelt", value, 1, &dims, self->x.cdelt);
 
-  if (status == 0 && self->original_cunit != NULL) {
+  if (status == 0 && self->unit_scaling != NULL) {
     for (npy_intp i = 0; i < dims; ++i) {
       self->x.cdelt[i] *= self->unit_scaling[i];
     }
@@ -2982,7 +2989,7 @@ Wcsprm_set_crval(
 
   status = set_double_array("crval", value, 1, &naxis, self->x.crval);
 
-  if (status == 0 && self->original_cunit != NULL) {
+  if (status == 0 && self->unit_scaling != NULL) {
     for (npy_intp i = 0; i < naxis; ++i) {
       self->x.crval[i] *= self->unit_scaling[i];
     }
