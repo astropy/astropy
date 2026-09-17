@@ -57,6 +57,7 @@ from .row import Row
 if TYPE_CHECKING:
     from collections.abc import (
         Callable,
+        Collection,
         ItemsView,
         Iterable,
         Iterator,
@@ -223,9 +224,7 @@ def has_info_class(obj: Any, cls: type) -> bool:
     return isinstance(getattr(obj.__class__, "info", None), cls)
 
 
-def _get_names_from_list_of_dict(
-    rows: Iterable[Mapping | Row] | None,
-) -> list[str] | None:
+def _get_names_from_list_of_dict(rows: Iterable[Any] | None) -> list[str] | None:
     """Return list of column names if ``rows`` is a list of dict that
     defines table data.
 
@@ -282,13 +281,13 @@ class TableColumns(OrderedDict):
     @overload
     def __getitem__(self, item: str) -> ColumnLike: ...
     @overload
-    def __getitem__(self, item: int | np.integer) -> ColumnLike: ...
+    def __getitem__(self, item: int | np.integer | np.ndarray) -> ColumnLike: ...
     @overload
-    def __getitem__(self, item: tuple[str, ...] | slice) -> TableColumns: ...
+    def __getitem__(self, item: tuple | slice) -> Self: ...
 
     def __getitem__(
-        self, item: str | int | np.integer | tuple[str, ...] | slice
-    ) -> ColumnLike | TableColumns:
+        self, item: str | int | np.integer | np.ndarray | tuple | slice
+    ) -> ColumnLike | Self:
         """Get items from a TableColumns object.
 
         ::
@@ -466,9 +465,7 @@ class PprintIncludeExclude(TableAttribute):
     attributes.
     """
 
-    def __get__(
-        self, instance: Table | None, owner_cls: type[Table]
-    ) -> PprintIncludeExclude:
+    def __get__(self, instance: Table | None, owner_cls: type[Table]) -> Self:
         """Get the attribute.
 
         This normally returns an instance of this class which is stored on the
@@ -763,12 +760,12 @@ class Table:
         masked: bool | None = False,
         names: Iterable[str | None] | None = None,
         dtype: npt.DTypeLike | Iterable[npt.DTypeLike] | None = None,
-        meta: Mapping[str, Any] | None = None,
+        meta: Mapping[Any, Any] | None = None,
         copy: bool = True,
         rows: TableLike | None = None,
         copy_indices: bool = True,
-        units: Mapping[str, UnitLike] | Iterable[UnitLike | None] | None = None,
-        descriptions: Mapping[str, str] | Iterable[str | None] | None = None,
+        units: Mapping[str, UnitLike] | Collection[UnitLike | None] | None = None,
+        descriptions: Mapping[str, str] | Collection[str | None] | None = None,
         **kwargs,
     ) -> None:
         # Set up a placeholder empty table
@@ -979,7 +976,7 @@ class Table:
         self._set_column_attribute("description", descriptions)
 
     def _set_column_attribute(
-        self, attr: str, values: Mapping[str, Any] | Iterable[Any] | Row | None
+        self, attr: str, values: Mapping[str, Any] | Collection[Any] | Row | None
     ) -> None:
         """Set ``attr`` for columns to ``values``, which can be either a dict (keyed by column
         name) or a dict of name: value pairs.  This is used for handling the ``units`` and
@@ -1017,7 +1014,7 @@ class Table:
                 else:
                     setattr(col.info, attr, value)
 
-    def __getstate__(self) -> tuple[OrderedDict[str, ColumnLike], Mapping[str, Any]]:
+    def __getstate__(self) -> tuple[OrderedDict[str, ColumnLike], Mapping[Any, Any]]:
         columns = OrderedDict(
             (key, col if isinstance(col, BaseColumn) else col_copy(col))
             for key, col in self.columns.items()
@@ -1025,7 +1022,7 @@ class Table:
         return (columns, self.meta)
 
     def __setstate__(
-        self, state: tuple[Mapping[str, ColumnLike], Mapping[str, Any]]
+        self, state: tuple[Mapping[str, ColumnLike], Mapping[Any, Any]]
     ) -> None:
         columns, meta = state
         self.__init__(columns, meta=meta)
@@ -1675,7 +1672,7 @@ class Table:
         table: Table,
         cols: Sequence[ColumnLike],
         verify: bool = True,
-        names: Iterable[str] | None = None,
+        names: Collection[str] | None = None,
     ) -> None:
         """
         Make ``table`` in-place so that it represents the given list of ``cols``.
@@ -1849,7 +1846,7 @@ class Table:
         show_name: bool = True,
         show_unit: bool | None = None,
         show_dtype: bool = False,
-        align: str | Iterable[str | None] | None = None,
+        align: str | list[str | None] | tuple[str | None, ...] | None = None,
     ) -> None:
         """Print a formatted string representation of the table.
 
@@ -1892,7 +1889,7 @@ class Table:
         show_name: bool = True,
         show_unit: bool | None = None,
         show_dtype: bool = False,
-        align: str | Iterable[str | None] | None = None,
+        align: str | list[str | None] | tuple[str | None, ...] | None = None,
     ) -> None:
         """Print a formatted string representation of the entire table.
 
@@ -2085,7 +2082,7 @@ class Table:
         show_dtype: bool = False,
         html: bool = False,
         tableid: str | None = None,
-        align: str | Iterable[str | None] | None = None,
+        align: str | list[str | None] | tuple[str | None, ...] | None = None,
         tableclass: str | list[str] | None = None,
     ) -> list[str]:
         """Return a list of lines for the formatted string representation of
@@ -2131,7 +2128,7 @@ class Table:
         show_dtype: bool = False,
         html: bool = False,
         tableid: str | None = None,
-        align: str | Iterable[str | None] | None = None,
+        align: str | list[str | None] | tuple[str | None, ...] | None = None,
         tableclass: str | list[str] | None = None,
     ) -> list[str]:
         """Return a list of lines for the formatted string representation of
@@ -2331,7 +2328,9 @@ class Table:
     def _ipython_key_completions_(self) -> list[str]:
         return self.colnames
 
-    def field(self, item: str) -> ColumnLike:
+    def field(
+        self, item: str | int | np.integer | np.ndarray | tuple | slice
+    ) -> ColumnLike | TableColumns:
         """Return column[item] for recarray compatibility."""
         return self.columns[item]
 
@@ -2410,7 +2409,7 @@ class Table:
             self._first_colname = next(iter(self.columns))
             return len(self.columns[self._first_colname])
 
-    def __or__(self, other: Table) -> Self:
+    def __or__(self, other: object) -> Self:
         if isinstance(other, Table):
             updated_table = self.copy()
             updated_table.update(other)
@@ -2835,7 +2834,7 @@ class Table:
 
         self.columns.__setitem__(name, col, validated=True)
 
-    def remove_row(self, index: int) -> None:
+    def remove_row(self, index: int | np.integer) -> None:
         """
         Remove a row from the table.
 
@@ -2874,7 +2873,7 @@ class Table:
         self.remove_rows(index)
 
     def remove_rows(
-        self, row_specifier: int | slice | Sequence[int] | np.ndarray
+        self, row_specifier: int | np.integer | slice | Sequence[int] | np.ndarray
     ) -> None:
         """
         Remove rows from the table.
@@ -3264,7 +3263,9 @@ class Table:
 
         self.columns[name].info.name = new_name
 
-    def rename_columns(self, names: Sequence[str], new_names: Sequence[str]) -> None:
+    def rename_columns(
+        self, names: list[str] | tuple[str, ...], new_names: list[str] | tuple[str, ...]
+    ) -> None:
         """
         Rename multiple columns.
 
@@ -4169,7 +4170,9 @@ class Table:
             self._groups = groups.TableGroups(self)
         return self._groups
 
-    def group_by(self, keys: str | Sequence[str] | np.ndarray | Table) -> Self:
+    def group_by(
+        self, keys: str | list[str] | tuple[str, ...] | np.ndarray | Table
+    ) -> Self:
         """
         Group this table by the specified ``keys``.
 
