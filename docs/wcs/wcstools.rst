@@ -45,3 +45,55 @@ More information on using WCSAxes can be found :ref:`here <wcsaxes>`.
     fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, origin='lower', cmap='viridis')
     ax.set(xlabel='RA', ylabel='Dec')
+
+
+Fitting a WCS from matched pixel and sky coordinates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Given a fiducial point and a celestial projection type,
+`~astropy.wcs.utils.fit_wcs_from_points` constructs a FITS WCS from two
+matched lists: detector pixel positions and their corresponding celestial
+coordinates. This is accomplished by fitting the WCS parameters (``CRPIX``,
+``CD`` matrix, and optionally SIP distortion coefficients) to the provided
+matched points.
+
+The fiducial point of the spherical projection can be specified as
+a `~astropy.coordinates.SkyCoord`; by default, it is set to the mean of the
+input sky coordinates (``proj_point='center'``). The projection type can be
+specified either as a three-letter projection code (for example, ``'TAN'``
+for the gnomonic projection) or as a WCS object with a defined projection
+type. If not provided, the projection defaults to ``'TAN'``.
+
+Pixel coordinates must follow the FITS convention: the center of the
+bottom-left pixel is ``(1, 1)``.  Units of the celestial coordinates of the
+returned WCS are always degrees.
+
+.. doctest-requires:: scipy
+
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy.wcs.utils import fit_wcs_from_points
+    >>> x, y = np.meshgrid([5.0, 10.0, 15.0], [2.0, 4.0, 6.0])
+    >>> x, y = x.ravel(), y.ravel()
+    >>> world = SkyCoord(
+    ...     (10.0 + x * 0.01) * u.deg,
+    ...     (20.0 + y * 0.01) * u.deg,
+    ...     frame="icrs",
+    ... )
+    >>> xy = (x, y)
+    >>> wcs = fit_wcs_from_points(xy, world, projection="TAN")
+    >>> list(wcs.wcs.ctype)
+    WCS Keywords
+
+    Number of WCS axes: 2
+    CTYPE : 'RA---TAN' 'DEC--TAN'
+    CUNIT : 'deg' 'deg'
+    CRVAL : 10.100006366283209 20.0400070233876
+    CRPIX : 10.000636628442498 4.0002341129981005
+    CD1_1 CD1_2  : 0.00939453813176144 3.807555317347415e-10
+    CD2_1 CD2_2  : -3.577033090976085e-10 0.010000002348464697
+    NAXIS : 14  5
+
+See :func:`~astropy.wcs.utils.fit_wcs_from_points` for the full argument
+list, including ``sip_degree`` and ``projection``.
