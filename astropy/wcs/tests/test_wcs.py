@@ -2579,6 +2579,19 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             np.array([1 / 3600, 1e9, 1.0, 1 / 3600, 1e-9, 1]),
         )
 
+    def test_safe_set_cdelt_crval(self):
+
+        simple_wcs = wcs.WCS(naxis=2, preserve_units=True)
+        simple_wcs.wcs.cunit = "arcsec", "arcsec"
+        simple_wcs.wcs.set()
+
+        # At this point original_cunit is set but cunit_scaling has been
+        # set then freed since all values in it are 1 (units only get
+        # converted to degrees once ctype is set)
+
+        simple_wcs.wcs.cdelt = -1, 2
+        simple_wcs.wcs.crval = 3, 4
+
 
 def test_thread_safe_conversions():
     # This is a regression test for a bug which caused wcsset to be called
