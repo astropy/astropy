@@ -1,0 +1,3 @@
+Replace expensive broadcast that is only used to check shape compatibility
+with broadcast_shapes in ``GCRS.__eq__``, improving the performance
+of large ``SkyCoord`` objects involving the ``GCRS`` frame.
