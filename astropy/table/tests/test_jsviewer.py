@@ -80,7 +80,7 @@ $(document).ready(function() {
 TPL = "   <tr>\n    <td>{0}</td>\n    <td>{1}</td>\n   </tr>"
 
 
-def format_lines(col1, col2):
+def format_lines(col1: list[int], col2: list[str]):
     col1_format = getattr(col1.info, "default_format", lambda x: x)
     col2_format = getattr(col2.info, "default_format", lambda x: x)
     return "\n".join(
@@ -88,7 +88,7 @@ def format_lines(col1, col2):
     )
 
 
-def test_write_jsviewer_default(tmp_path):
+def test_write_jsviewer_default(tmp_path) -> None:
     t = Table()
     t["a"] = [1, 2, 3, 4, 5]
     t["b"] = ["a", "b", "c", "d", "e"]
@@ -113,7 +113,7 @@ def test_write_jsviewer_default(tmp_path):
         assert f.read().strip() == ref.strip()
 
 
-def test_write_jsviewer_overwrite(tmp_path):
+def test_write_jsviewer_overwrite(tmp_path) -> None:
     t = Table()
     t["a"] = [1, 2, 3, 4, 5]
     t["b"] = ["a", "b", "c", "d", "e"]
@@ -137,7 +137,7 @@ def test_write_jsviewer_overwrite(tmp_path):
         SkyCoord(ra=[100.0, 110.0], dec=[-10.0, 10.0], unit="deg"),
     ],
 )
-def test_write_jsviewer_mixin(tmp_path, mixin):
+def test_write_jsviewer_mixin(tmp_path, mixin) -> None:
     t = Table()
     t["a"] = [1, 2]
     t["b"] = mixin
@@ -163,7 +163,7 @@ def test_write_jsviewer_mixin(tmp_path, mixin):
 
 
 @pytest.mark.skipif(not HAS_BLEACH, reason="requires bleach")
-def test_write_jsviewer_options(tmp_path):
+def test_write_jsviewer_options(tmp_path) -> None:
     t = Table()
     t["a"] = [1, 2, 3, 4, 5]
     t["b"] = ["<b>a</b>", "b", "c", "d", "e"]
@@ -197,7 +197,7 @@ def test_write_jsviewer_options(tmp_path):
 
 
 @pytest.mark.skipif(not HAS_IPYTHON, reason="requires IPython")
-def test_show_in_notebook_classic():
+def test_show_in_notebook_classic() -> None:
     t = Table()
     t["a"] = [1, 2, 3, 4, 5]
     t["b"] = ["b", "c", "a", "d", "e"]
@@ -240,7 +240,7 @@ def test_show_in_notebook_classic():
 )
 # https://github.com/bqplot/bqplot/issues/1624 and such
 @pytest.mark.filterwarnings(r"ignore:((.|\n)*)traitlets((.|\n)*):DeprecationWarning")
-def test_show_in_notebook_ipydatagrid():
+def test_show_in_notebook_ipydatagrid() -> None:
     from ipydatagrid import DataGrid
 
     t = Table()
@@ -248,7 +248,7 @@ def test_show_in_notebook_ipydatagrid():
     assert isinstance(dg, DataGrid)
 
 
-def test_show_in_notebook_invalid_backend():
+def test_show_in_notebook_invalid_backend() -> None:
     t = Table()
     with pytest.raises(NotImplementedError, match=".* backend is not supported"):
         t.show_in_notebook(backend="foo")

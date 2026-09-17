@@ -4,6 +4,8 @@
 # then add objects to tables that are not formally mixin columns and where
 # adding an info attribute is beyond our control.
 
+from astropy.table.mixins.dask import DaskColumn
+
 __all__ = ["MixinRegistryError", "get_mixin_handler", "register_mixin_handler"]
 
 # The internal dictionary of handlers maps fully qualified names of classes
@@ -15,7 +17,7 @@ class MixinRegistryError(Exception):
     pass
 
 
-def register_mixin_handler(fully_qualified_name, handler, force=False):
+def register_mixin_handler(fully_qualified_name: str, handler, force=False) -> None:
     """
     Register a mixin column 'handler'.
 
@@ -46,7 +48,7 @@ def register_mixin_handler(fully_qualified_name, handler, force=False):
         )
 
 
-def get_mixin_handler(obj):
+def get_mixin_handler(obj: str):
     """
     Given an arbitrary object, return the matching mixin handler (if any).
 
@@ -71,7 +73,7 @@ def get_mixin_handler(obj):
 # the imports until they are actually needed.
 
 
-def dask_handler(arr):
+def dask_handler(arr) -> DaskColumn:
     from astropy.table.mixins.dask import as_dask_column
 
     return as_dask_column(arr)

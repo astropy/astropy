@@ -15,11 +15,11 @@ try:
     html = display.Image(url=url)._repr_html_()
 
     class HTMLWithBackup(display.HTML):
-        def __init__(self, data, backup_text):
+        def __init__(self, data: str | None, backup_text: str) -> None:
             super().__init__(data)
             self.backup_text = backup_text
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             if self.backup_text is None:
                 return super().__repr__()
             else:

@@ -4,11 +4,16 @@ import itertools
 import warnings
 import weakref
 from copy import deepcopy
+from typing import Self
 
 import numpy as np
-from numpy import ma
+from numpy import ma, ndarray
+from numpy.ma.core import MaskedArray
 
+from astropy.table.groups import ColumnGroups
 from astropy.units import Quantity, StructuredUnit, Unit
+from astropy.units.quantity import Quantity
+from astropy.units.structured import StructuredUnit
 from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
@@ -41,7 +46,7 @@ class StringTruncateWarning(UserWarning):
 warnings.simplefilter("always", StringTruncateWarning)
 
 
-def _auto_names(n_cols):
+def _auto_names(n_cols) -> list[str]:
     from . import conf
 
     return [str(conf.auto_colname).format(i) for i in range(n_cols)]
@@ -65,7 +70,7 @@ _comparison_functions = {
 }
 
 
-def col_copy(col, copy_indices=True):
+def col_copy(col, copy_indices: bool = True):
     """
     Mixin-safe version of Column.copy() (with copy_data=True).
 
@@ -114,11 +119,11 @@ class FalseArray(np.ndarray):
         Data shape
     """
 
-    def __new__(cls, shape):
+    def __new__(cls, shape: BaseColumn) -> Self:
         obj = np.zeros(shape, dtype=bool).view(cls)
         return obj
 
-    def __setitem__(self, item, val):
+    def __setitem__(self, item, val) -> None:
         val = np.asarray(val)
         if np.any(val):
             raise ValueError(
@@ -126,7 +131,7 @@ class FalseArray(np.ndarray):
             )
 
 
-def _expand_string_array_for_values(arr, values):
+def _expand_string_array_for_values(arr: MaskedArray | Self, values):
     """
     For string-dtype return a version of ``arr`` that is wide enough for ``values``.
     If ``arr`` is not string-dtype or does not need expansion then return ``arr``.
@@ -312,7 +317,7 @@ def _convert_sequence_data_to_array(data, dtype=None):
     return np_data
 
 
-def _make_compare(oper):
+def _make_compare(oper: str):
     """
     Make Column comparison methods which encode the ``other`` object to utf-8
     in the case of a bytestring dtype for Py3+.
@@ -459,7 +464,7 @@ class ColumnInfo(BaseColumnInfo):
             result[name] = data[name]
         return result
 
-    def new_like(self, cols, length, metadata_conflicts="warn", name=None):
+    def new_like(self, cols, length, metadata_conflicts: str = "warn", name=None):
         """
         Return a new Column instance which is consistent with the
         input ``cols`` and has ``length`` rows.
@@ -514,7 +519,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     def __new__(
         cls,
         data=None,
-        name=None,
+        name: type[Column] | type[StructuredUnit] | str | None = None,
         dtype=None,
         shape=(),
         length=0,
@@ -524,7 +529,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         meta=None,
         copy=None,
         copy_indices=True,
-    ):
+    ) -> Self:
         if data is None:
             self_data = np.zeros((length,) + shape, dtype=dtype)
         elif isinstance(data, BaseColumn) and hasattr(data, "_name"):
@@ -579,11 +584,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         return self
 
     @property
-    def data(self):
+    def data(self) -> ndarray:
         return self.view(np.ndarray)
 
     @property
-    def value(self):
+    def value(self) -> ndarray:
         """
         An alias for the existing ``data`` attribute.
         """
@@ -600,7 +605,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             return self._parent_table()
 
     @parent_table.setter
-    def parent_table(self, table):
+    def parent_table(self, table) -> None:
         if table is None:
             self._parent_table = None
         else:
@@ -608,7 +613,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     info = ColumnInfo()
 
-    def copy(self, order="C", data=None, copy_data=True):
+    def copy(self, order: str = "C", data=None, copy_data: bool = True):
         """
         Return a copy of the current instance.
 
@@ -659,7 +664,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         return out
 
-    def __setstate__(self, state):
+    def __setstate__(self, state) -> None:
         """
         Restore the internal state of the Column/MaskedColumn for pickling
         purposes.  This requires that the last element of ``state`` is a
@@ -707,7 +712,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
-    def __array_finalize__(self, obj):
+    def __array_finalize__(self, obj) -> None:
         # Obj will be none for direct call to Column() creator
         if obj is None:
             return
@@ -724,7 +729,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         if "info" in getattr(obj, "__dict__", {}):
             self.info = obj.info
 
-    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
+    def __array_wrap__(self, out_arr, context=None, return_scalar: bool = False):
         """
         __array_wrap__ is called at the end of every ufunc.
 
@@ -756,14 +761,14 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             return out_arr
 
     @property
-    def name(self):
+    def name(self) -> str | None:
         """
         The name of this column.
         """
         return self._name
 
     @name.setter
-    def name(self, val: str | None):
+    def name(self, val: str | None) -> None:
         if isinstance(val, str):
             val = str(val)
         elif val is not None:
@@ -785,7 +790,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         return self._format
 
     @format.setter
-    def format(self, format_string):
+    def format(self, format_string) -> None:
         prev_format = getattr(self, "_format", None)
 
         self._format = format_string  # set new format string
@@ -827,7 +832,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self, -1, show_name=False, show_unit=False, show_dtype=False, outs={}
         )
 
-    def attrs_equal(self, col):
+    def attrs_equal(self, col) -> bool:
         """Compare the column attributes of ``col`` to this object.
 
         The comparison attributes are: ``name``, ``unit``, ``dtype``,
@@ -857,11 +862,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def pformat(
         self,
-        max_lines=-1,
-        show_name=True,
-        show_unit=False,
-        show_dtype=False,
-        html=False,
+        max_lines: int | type[Self] = -1,
+        show_name: bool = True,
+        show_unit: bool = False,
+        show_dtype: bool = False,
+        html: bool = False,
     ):
         """Return a list of formatted string representation of column values.
 
@@ -908,7 +913,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         )
         return lines
 
-    def pprint(self, max_lines=None, show_name=True, show_unit=False, show_dtype=False):
+    def pprint(
+        self,
+        max_lines=None,
+        show_name: bool = True,
+        show_unit: bool = False,
+        show_dtype: bool = False,
+    ) -> None:
         """Print a formatted string representation of column values.
 
         If ``max_lines=None`` (default) then the height of the
@@ -948,7 +959,9 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             else:
                 print(line)
 
-    def more(self, max_lines=None, show_name=True, show_unit=False):
+    def more(
+        self, max_lines=None, show_name: bool = True, show_unit: bool = False
+    ) -> None:
         """Interactively browse column with a paging interface.
 
         Supported keys::
@@ -992,17 +1005,17 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         return self._unit
 
     @unit.setter
-    def unit(self, unit):
+    def unit(self, unit) -> None:
         if unit is None:
             self._unit = None
         else:
             self._unit = Unit(unit, parse_strict="silent")
 
     @unit.deleter
-    def unit(self):
+    def unit(self) -> None:
         self._unit = None
 
-    def searchsorted(self, v, side="left", sorter=None):
+    def searchsorted(self, v, side: str = "left", sorter=None):
         # For bytes type data, encode the `v` value as UTF-8 (if necessary) before
         # calling searchsorted. This prevents a factor of 1000 slowdown in
         # searchsorted in this case.
@@ -1015,7 +1028,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     searchsorted.__doc__ = np.ndarray.searchsorted.__doc__
 
-    def convert_unit_to(self, new_unit, equivalencies=[]):
+    def convert_unit_to(self, new_unit, equivalencies=[]) -> None:
         """
         Converts the values of the column in-place from the current
         unit to the given unit.
@@ -1044,7 +1057,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         self.unit = new_unit
 
     @property
-    def groups(self):
+    def groups(self) -> ColumnGroups:
         if not hasattr(self, "_groups"):
             self._groups = groups.ColumnGroups(self)
         return self._groups
@@ -1073,7 +1086,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         return groups.column_group_by(self, keys)
 
-    def _copy_groups(self, out):
+    def _copy_groups(self, out) -> None:
         """
         Copy current groups into a copy of self ``out``.
         """
@@ -1088,11 +1101,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     # Strip off the BaseColumn-ness for repr and str so that
     # MaskedColumn.data __repr__ does not include masked_BaseColumn(data =
     # [1 2], ...).
-    def __repr__(self):
+    def __repr__(self) -> str:
         return np.asarray(self).__repr__()
 
     @property
-    def quantity(self):
+    def quantity(self) -> Quantity:
         """
         A view of this table column as a `~astropy.units.Quantity` object with
         units given by the Column's `unit` parameter.
@@ -1126,7 +1139,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         return self.quantity.to(unit, equivalencies)
 
-    def _copy_attrs(self, obj):
+    def _copy_attrs(self, obj: Self) -> None:
         """
         Copy key column attributes from ``obj`` to self.
         """
@@ -1245,18 +1258,18 @@ class Column(BaseColumn):
 
     def __new__(
         cls,
-        data=None,
-        name=None,
+        data: Self | None = None,
+        name: type[Column] | type[StructuredUnit] | str | None = None,
         dtype=None,
-        shape=(),
-        length=0,
+        shape: tuple[()] = (),
+        length: int = 0,
         description=None,
         unit=None,
         format=None,
         meta=None,
         copy=None,
-        copy_indices=True,
-    ):
+        copy_indices: bool = True,
+    ) -> Self:
         if isinstance(data, MaskedColumn) and np.any(data.mask):
             raise TypeError(
                 "Cannot convert a MaskedColumn with masked value to a Column"
@@ -1278,7 +1291,7 @@ class Column(BaseColumn):
         )
         return self
 
-    def __setattr__(self, item, value):
+    def __setattr__(self, item, value) -> None:
         if not isinstance(self, MaskedColumn) and item == "mask":
             raise AttributeError(
                 "cannot set mask value to a column in non-masked Table"
@@ -1306,7 +1319,7 @@ class Column(BaseColumn):
                 if converted is not self:
                     self.parent_table.replace_column(self.name, converted)
 
-    def _base_repr_(self, html=False):
+    def _base_repr_(self, html: bool = False) -> str:
         # If scalar then just convert to correct numpy type and use numpy repr
         if self.ndim == 0:
             return repr(self.item())
@@ -1341,13 +1354,13 @@ class Column(BaseColumn):
 
         return out
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         return self._base_repr_(html=True)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._base_repr_(html=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         # If scalar then just convert to correct numpy type and use numpy repr
         if self.ndim == 0:
             return str(self.item())
@@ -1355,10 +1368,10 @@ class Column(BaseColumn):
         lines, outs = self._formatter._pformat_col(self)
         return "\n".join(lines)
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         return str(self).encode("utf-8")
 
-    def _check_string_truncate(self, value):
+    def _check_string_truncate(self, value) -> None:
         """
         Emit a warning if any elements of ``value`` will be truncated when
         ``value`` is assigned to self.
@@ -1382,7 +1395,7 @@ class Column(BaseColumn):
                 stacklevel=3,
             )
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, index, value) -> None:
         if self.dtype.char == "S":
             value = self._encode_str(value)
 
@@ -1404,7 +1417,7 @@ class Column(BaseColumn):
     __ge__ = _make_compare("__ge__")
     __le__ = _make_compare("__le__")
 
-    def insert(self, obj, values, axis=0):
+    def insert(self, obj, values, axis: int = 0):
         """
         Insert values before the given indices in the column and return
         a new `~astropy.table.Column` object.
@@ -1480,7 +1493,7 @@ class MaskedColumnInfo(ColumnInfo):
 
     mask_val = np.ma.masked
 
-    def __init__(self, bound=False):
+    def __init__(self, bound: bool = False) -> None:
         super().__init__(bound)
 
         # If bound to a data object instance then create the dict of attributes
@@ -1620,20 +1633,20 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     def __new__(
         cls,
-        data=None,
-        name=None,
+        data: Self | None = None,
+        name: type[Column] | type[StructuredUnit] | str | None = None,
         mask=None,
         fill_value=None,
         dtype=None,
-        shape=(),
-        length=0,
+        shape: tuple[()] = (),
+        length: int = 0,
         description=None,
         unit=None,
         format=None,
         meta=None,
         copy=None,
-        copy_indices=True,
-    ):
+        copy_indices: bool = True,
+    ) -> Self:
         if mask is None:
             # If mask is None then we need to determine the mask (if any) from the data.
             # The naive method is looking for a mask attribute on data, but this can fail,
@@ -1700,7 +1713,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return self
 
-    def __deepcopy__(self, memo=None):
+    def __deepcopy__(self, memo=None) -> Self:
         out = super().__deepcopy__(memo)
 
         # MaskedArray.__deepcopy__ copies self.__dict__ entries directly via
@@ -1717,7 +1730,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return out
 
-    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
+    def __array_wrap__(self, out_arr, context=None, return_scalar: bool = False):
         out_arr = super().__array_wrap__(out_arr, context, return_scalar)
 
         if NUMPY_LT_2_6:
@@ -1747,7 +1760,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         return self.get_fill_value()  # defer to native ma.MaskedArray method
 
     @fill_value.setter
-    def fill_value(self, val):
+    def fill_value(self, val) -> None:
         """Set fill value both in the masked column view and in the parent table
         if it exists.  Setting one or the other alone doesn't work.
         """
@@ -1770,7 +1783,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         self.set_fill_value(val)  # defer to native ma.MaskedArray method
 
     @property
-    def data(self):
+    def data(self) -> MaskedArray:
         """The plain MaskedArray data held by this column."""
         out = self.view(np.ma.MaskedArray)
         # By default, a MaskedArray view will set the _baseclass to be the
@@ -1814,7 +1827,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         )
         return out
 
-    def insert(self, obj, values, mask=None, axis=0):
+    def insert(self, obj, values, mask=None, axis: int = 0) -> MaskedArray:
         """
         Insert values along the given axis before the given indices and return
         a new `~astropy.table.MaskedColumn` object.
@@ -1873,7 +1886,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return out
 
-    def convert_unit_to(self, new_unit, equivalencies=[]):
+    def convert_unit_to(self, new_unit, equivalencies=[]) -> None:
         # This is a workaround to fix gh-9521
         super().convert_unit_to(new_unit, equivalencies)
         self._basedict["_unit"] = new_unit
@@ -1895,7 +1908,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             out._copy_attrs(self)
         return out
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, index, value) -> None:
         # Issue warning for string assignment that truncates ``value``
         if self.dtype.char == "S":
             value = self._encode_str(value)
