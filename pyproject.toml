@@ -108,6 +108,7 @@ test = [
     "pytest-doctestplus>=1.4.0",
     "pytest-filter-subpackage>=0.2.0",
     "pytest-remotedata>=0.4.1",
+    "pytest-run-parallel>=0.10.0",
     "pytest-skip-slow==1.1.0",
     "pytest-xdist>=3.6.0",
     "threadpoolctl>=3.0.0",
@@ -296,6 +297,10 @@ doctest_subpackage_requires = [
 ]
 markers = [
     "mpl_image_compare",
+    # pytest-run-parallel markers, registered here so the tests using them
+    # also collect under --strict-markers when the plugin is not installed
+    "force_parallel_threads(n): force this test to run in n pytest-run-parallel threads",
+    "iterations(n): run this test n times per thread under pytest-run-parallel",
 ]
 
 [tool.cibuildwheel]
