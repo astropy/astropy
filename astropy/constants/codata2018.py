@@ -31,33 +31,25 @@ hbar = CODATA2018(
 k_B = CODATA2018("k_B", "Boltzmann constant", 1.380649e-23, "J / (K)", 0.0, system="si")
 
 c = CODATA2018(
-    "c", "Speed of light in vacuum", 299792458.0, "m / (s)", 0.0, system="si"
+    "c", "Speed of light in vacuum", 2.99792458e8, "m / (s)", 0.0, system="si"
 )
 
 
 G = CODATA2018(
-    "G", "Gravitational constant", 6.67430e-11, "m3 / (kg s2)", 0.00015e-11, system="si"
+    "G", "Gravitational constant", 6.67430e-11, "m3 / (kg s2)", 1.5e-15, system="si"
 )
 
 g0 = CODATA2018(
     "g0", "Standard acceleration of gravity", 9.80665, "m / s2", 0.0, system="si"
 )
 
-m_p = CODATA2018(
-    "m_p", "Proton mass", 1.67262192369e-27, "kg", 0.00000000051e-27, system="si"
-)
+m_p = CODATA2018("m_p", "Proton mass", 1.67262192369e-27, "kg", 5.1e-37, system="si")
 
-m_n = CODATA2018(
-    "m_n", "Neutron mass", 1.67492749804e-27, "kg", 0.00000000095e-27, system="si"
-)
+m_n = CODATA2018("m_n", "Neutron mass", 1.67492749804e-27, "kg", 9.5e-37, system="si")
 
-m_e = CODATA2018(
-    "m_e", "Electron mass", 9.1093837015e-31, "kg", 0.0000000028e-31, system="si"
-)
+m_e = CODATA2018("m_e", "Electron mass", 9.1093837015e-31, "kg", 2.8e-40, system="si")
 
-u = CODATA2018(
-    "u", "Atomic mass", 1.66053906660e-27, "kg", 0.00000000050e-27, system="si"
-)
+u = CODATA2018("u", "Atomic mass", 1.66053906660e-27, "kg", 5.0e-37, system="si")
 
 sigma_sb = CODATA2018(
     "sigma_sb",
@@ -75,7 +67,7 @@ eps0 = EMCODATA2018(
     "Vacuum electric permittivity",
     8.8541878128e-12,
     "F/m",
-    0.0000000013e-12,
+    1.3e-21,
     system="si",
 )
 
@@ -88,23 +80,19 @@ R = CODATA2018(
 )
 
 Ryd = CODATA2018(
-    "Ryd", "Rydberg constant", 10973731.568160, "1 / (m)", 0.000021, system="si"
+    "Ryd", "Rydberg constant", 1.097373156816e7, "1 / (m)", 0.000021, system="si"
 )
 
-a0 = CODATA2018(
-    "a0", "Bohr radius", 5.29177210903e-11, "m", 0.00000000080e-11, system="si"
-)
+a0 = CODATA2018("a0", "Bohr radius", 5.29177210903e-11, "m", 8.0e-21, system="si")
 
-muB = CODATA2018(
-    "muB", "Bohr magneton", 9.2740100783e-24, "J/T", 0.0000000028e-24, system="si"
-)
+muB = CODATA2018("muB", "Bohr magneton", 9.2740100783e-24, "J/T", 2.8e-33, system="si")
 
 alpha = CODATA2018(
     "alpha",
     "Fine-structure constant",
     7.2973525693e-3,
     "",
-    0.0000000011e-3,
+    1.1e-12,
     system="si",
 )
 
@@ -115,7 +103,7 @@ mu0 = CODATA2018(
     "Vacuum magnetic permeability",
     1.25663706212e-6,
     "N/A2",
-    0.00000000019e-6,
+    1.9e-16,
     system="si",
 )
 
@@ -124,7 +112,7 @@ sigma_T = CODATA2018(
     "Thomson scattering cross-section",
     6.6524587321e-29,
     "m2",
-    0.0000000060e-29,
+    6.0e-38,
     system="si",
 )
 

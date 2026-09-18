@@ -547,7 +547,7 @@ class TestStructuredUfuncs:
     def test_erfa_astrom(self):
         mask = np.array([True, False, False])
         jd2 = Masked([0, 0.401182685, 0.5], mask=mask)
-        astrom, eo = erfa_ufunc.apci13(2456165.5, jd2)
+        astrom, eo = erfa_ufunc.apci13(2.4561655e6, jd2)
         assert_array_equal(eo.mask, mask)
         for n in astrom.dtype.names:
             # .T for multi-element fields.
@@ -567,7 +567,7 @@ class TestStructuredUfuncs:
     def test_erfa_atioq(self):
         # Regression test for gh-16123, using test from erfa.
         astrom, _ = erfa_ufunc.apio13(
-            2456384.5,
+            2.4563845e6,
             0.969254051,
             0.1550675,
             -0.527800806,
@@ -581,17 +581,17 @@ class TestStructuredUfuncs:
             0.55,
         )
         astrom = Masked(astrom)
-        ri = 2.710121572969038991
-        di = 0.1729371367218230438
+        ri = 2.710121572969039
+        di = 0.17293713672182304
         aob, zob, hob, dob, rob = erfa_ufunc.atioq(ri, di, astrom)
         assert isinstance(aob, Masked)
         # Really should not need to check the values, since done
         # in units/tests/test_quantity_erfa_ufuncs, but why not...
-        assert_allclose(aob, 0.9233952224895122499e-1, atol=1e-12, rtol=0)
-        assert_allclose(zob, 1.407758704513549991, atol=1e-12, rtol=0)
-        assert_allclose(hob, -0.9247619879881698140e-1, atol=1e-12, rtol=0)
-        assert_allclose(dob, 0.1717653435756234676, atol=1e-12, rtol=0)
-        assert_allclose(rob, 2.710085107988480746, atol=1e-12, rtol=0)
+        assert_allclose(aob, 0.09233952224895123, atol=1e-12, rtol=0)
+        assert_allclose(zob, 1.40775870451355, atol=1e-12, rtol=0)
+        assert_allclose(hob, -0.09247619879881698, atol=1e-12, rtol=0)
+        assert_allclose(dob, 0.17176534357562348, atol=1e-12, rtol=0)
+        assert_allclose(rob, 2.7100851079884807, atol=1e-12, rtol=0)
 
 
 def test_erfa_no_warnings_on_masked_entries():
