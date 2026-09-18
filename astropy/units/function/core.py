@@ -18,7 +18,8 @@ from astropy.units import (
     UnitTypeError,
     dimensionless_unscaled,
 )
-from astropy.units.typing import PhysicalTypeID
+from astropy.units.core import _AnyEquivalencyTuple, _ScaleConverter
+from astropy.units.typing import PhysicalTypeID, UnitLike
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]
 
@@ -263,7 +264,11 @@ class FunctionUnitBase(metaclass=ABCMeta):
         """
         return self.get_converter(Unit(other), equivalencies)(value)
 
-    def get_converter(self, other, equivalencies=[]):
+    def get_converter(
+        self,
+        other: "UnitLike | FunctionUnitBase",
+        equivalencies: list[_AnyEquivalencyTuple] = [],
+    ) -> _ScaleConverter:
         """
         Create a function that converts values from this unit to another.
 
