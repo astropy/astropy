@@ -393,6 +393,10 @@ def temporary_cache_dir_path(
 
     Parameters
     ----------
+    dir_ : path-like or None, optional, positional-only
+        The directory in which to create the temporary directory. `None`
+        (default) uses the platform default, as in
+        :py:class:`tempfile.TemporaryDirectory`.
     namespace : str, keyword-only
         A mandatory unique identifier for the namespace associated to a temporary directory,
         which will used to name the directory itself.
@@ -400,10 +404,6 @@ def temporary_cache_dir_path(
         ``_``, ``-`` or ``.``.
         ``.`` is special cased to represent a path separator (see ``os.sep``) in the
         output directory.
-    dir_ : path-like or None, optional, positional-only
-        The directory in which to create the temporary directory. `None`
-        (default) uses the platform default, as in
-        :py:class:`tempfile.TemporaryDirectory`.
     suffix : str or None, optional, keyword-only
         Passed to :py:class:`tempfile.TemporaryDirectory`.
     prefix : str or None, optional, keyword-only
@@ -462,6 +462,10 @@ def temporary_config_dir_path(
 
     Parameters
     ----------
+    dir_ : path-like or None, optional, positional-only
+        The directory in which to create the temporary directory. `None`
+        (default) uses the platform default, as in
+        :py:class:`tempfile.TemporaryDirectory`.
     namespace : str, keyword-only
         A mandatory unique identifier for the namespace associated to a temporary directory,
         which will used to name the directory itself.
@@ -469,10 +473,6 @@ def temporary_config_dir_path(
         ``_``, ``-`` or ``.``.
         ``.`` is special cased to represent a path separator (see ``os.sep``) in the
         output directory.
-    dir_ : path-like or None, optional, positional-only
-        The directory in which to create the temporary directory. `None`
-        (default) uses the platform default, as in
-        :py:class:`tempfile.TemporaryDirectory`.
     suffix : str or None, optional, keyword-only
         Passed to :py:class:`tempfile.TemporaryDirectory`.
     prefix : str or None, optional, keyword-only
