@@ -476,17 +476,14 @@ def test_fallback_to_legacy_dir_if_found(dirtype: _DirType) -> None:
     assert df.find_namespaced_node(namespace) == legacy_node
 
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_set_temp_cache_resets_on_exception(tmp_path: Path) -> None:
     """Test for regression of  bug #9704"""
     t = paths.get_cache_dir()
     (a := tmp_path / "a").write_text("not a good cache\n")
     with pytest.raises(Exception) as _:
-        # we except the context manager itself to raise an exception
-        with paths.set_temp_cache(a):
-            # this line should never run. If it does,
-            # it'll raise an unexpected exception and fail the test
-            1 / 0
-    assert t == paths.get_cache_dir()
+        paths.set_temp_cache(a)
+    assert paths.get_cache_dir() == t
 
 
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
