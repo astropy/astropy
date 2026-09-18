@@ -34,18 +34,16 @@ def fix_id(ID):
     return ""
 
 
-_token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
-
-
 def check_token(token):
     """
     Returns `True` if *token* is a valid XML token, as defined by XML
     Schema Part 2.
     """
-    return (
-        token == ""
-        or re.match(r"[^\r\n\t ]?([^\r\n\t ]| [^\r\n\t ])*[^\r\n\t ]?$", token)
-        is not None
+    return token == "" or (
+        not token.startswith(" ")
+        and not token.endswith(" ")
+        and "  " not in token
+        and not any(character in "\r\n\t" for character in token)
     )
 
 
