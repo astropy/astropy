@@ -207,7 +207,7 @@ reordering of indices - c[1:2] -> reference - array.view(Column) -> no indices
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Literal, Protocol, Self, runtime_checkable
 
 import numpy as np
 
@@ -216,10 +216,12 @@ from astropy.utils.decorators import deprecated
 from .sorted_array import SortedArray
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Mapping, Sequence
+    from collections.abc import Hashable, Iterable, Mapping, Sequence
     from numbers import Integral
+    from types import TracebackType
 
-    from . import QTable, Table
+    from . import Column, QTable, Table
+    from ._typing import ColumnLike
 
 
 ENGINE_CLS_DEFAULT = SortedArray
@@ -230,7 +232,9 @@ class IndexEngine(Protocol):
     """Protocol defining an index engine class"""
 
     # Taken from soco.py
-    def __init__(self, data, row_index, unique=False): ...
+    def __init__(
+        self, data: Table, row_index: Column, unique: bool = False
+    ) -> None: ...
     # using *args and **kwargs here so existing implementations,
     # while slightly inconsistent with one another, remain conform without change.
     def add(self, key: tuple, *args: int | None, **kwargs: int | None) -> None: ...
@@ -243,7 +247,7 @@ class IndexEngine(Protocol):
     def shift_right(self, row: int) -> None: ...
     def items(self) -> list[tuple[Hashable, list[Integral]]]: ...
     def sort(self) -> None: ...
-    def sorted_data(self) -> None: ...
+    def sorted_data(self) -> Sequence[Integral]: ...
     def range(
         self,
         lower: tuple[Hashable, ...] | None,
@@ -279,7 +283,12 @@ class Index:
         Whether the values of the index must be unique
     """
 
-    def __init__(self, columns, engine=None, unique=False):
+    def __init__(
+        self,
+        columns: Iterable[ColumnLike] | None,
+        engine: type[IndexEngine] | IndexEngine | None = None,
+        unique: bool = False,
+    ) -> None:
         # Local imports to avoid import problems.
         from astropy.time import Time
 
@@ -347,7 +356,7 @@ class Index:
 
         self.data = self.engine(data, row_index, unique=unique)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Number of rows in index.
         """
@@ -365,7 +374,7 @@ class Index:
         has_quantity = any(isinstance(col, Quantity) for col in self.columns)
         return QTable if has_quantity else Table
 
-    def replace_col(self, prev_col, new_col):
+    def replace_col(self, prev_col: ColumnLike, new_col: ColumnLike) -> None:
         """
         Replace an indexed column with an updated reference.
 
@@ -378,13 +387,13 @@ class Index:
         """
         self.columns[self.col_position(prev_col.info.name)] = new_col
 
-    def reload(self):
+    def reload(self) -> None:
         """
         Recreate the index based on data in self.columns.
         """
         self.__init__(self.columns, engine=self.engine)
 
-    def col_position(self, col_name):
+    def col_position(self, col_name: str) -> int:
         """
         Return the position of col_name in self.columns.
 
@@ -398,7 +407,9 @@ class Index:
                 return i
         raise ValueError(f"Column does not belong to index: {col_name}")
 
-    def insert_row(self, pos, vals, columns):
+    def insert_row(
+        self, pos: int, vals: Sequence[Any], columns: Iterable[ColumnLike]
+    ) -> None:
         """
         Insert a new row from the given values.
 
@@ -423,7 +434,9 @@ class Index:
             self.data.shift_right(pos)
         self.data.add(tuple(key), pos)
 
-    def get_row_specifier(self, row_specifier):
+    def get_row_specifier(
+        self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
+    ) -> Sequence[Integral] | np.ndarray | range:
         """
         Return an iterable corresponding to the
         input row specifier.
@@ -445,7 +458,9 @@ class Index:
             "in remove_rows"
         )
 
-    def remove_rows(self, row_specifier):
+    def remove_rows(
+        self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
+    ) -> None:
         """
         Remove the given rows from the index.
 
@@ -466,7 +481,7 @@ class Index:
         for row in sorted(rows, reverse=True):
             self.data.shift_left(row)
 
-    def remove_row(self, row, reorder=True):
+    def remove_row(self, row: int, reorder: bool = True) -> None:
         """
         Remove the given row from the index.
 
@@ -485,7 +500,7 @@ class Index:
         if reorder:
             self.data.shift_left(row)
 
-    def find(self, key):
+    def find(self, key: tuple) -> Sequence[Integral]:
         """
         Return the row values corresponding to key, in sorted order.
 
@@ -497,7 +512,7 @@ class Index:
         return self.data.find(key)
 
     @deprecated(since="7.2.0")
-    def same_prefix(self, key):
+    def same_prefix(self, key: tuple) -> list[int]:
         """
         Return rows whose keys contain the supplied key as a prefix.
 
@@ -509,7 +524,9 @@ class Index:
         return self.same_prefix_range(key, key, (True, True))
 
     @deprecated(since="7.2.0")
-    def same_prefix_range(self, lower, upper, bounds=(True, True)):
+    def same_prefix_range(
+        self, lower: tuple, upper: tuple, bounds: tuple[bool, bool] = (True, True)
+    ) -> list[int]:
         """
         Return rows whose keys have a prefix in the given range.
 
@@ -560,7 +577,7 @@ class Index:
         """
         return self.data.range(lower, upper, bounds)
 
-    def replace(self, row, col_name, val):
+    def replace(self, row: int, col_name: str, val: Any) -> None:
         """
         Replace the value of a column at a given position.
 
@@ -596,7 +613,7 @@ class Index:
                 ) from exc
             raise
 
-    def replace_rows(self, col_slice):
+    def replace_rows(self, col_slice: Sequence[int]) -> None:
         """
         Modify rows in this index to agree with the specified
         slice. For example, given an index
@@ -612,21 +629,21 @@ class Index:
         row_map = {row: i for i, row in enumerate(col_slice)}
         self.data.replace_rows(row_map)
 
-    def sort(self):
+    def sort(self) -> None:
         """
         Make row numbers follow the same sort order as the keys
         of the index.
         """
         self.data.sort()
 
-    def sorted_data(self):
+    def sorted_data(self) -> Sequence[Integral]:
         """
         Returns a list of rows in sorted order based on keys;
         essentially acts as an argsort() on columns.
         """
         return self.data.sorted_data()
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: slice) -> SlicedIndex:
         """
         Returns a sliced version of this index.
 
@@ -642,11 +659,11 @@ class Index:
         """
         return SlicedIndex(self, item)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         col_names = tuple(col.info.name for col in self.columns)
         return f"<{self.__class__.__name__} columns={col_names} data={self.data}>"
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: dict[int, Any]) -> Index:
         """
         Return a deep copy of this index.
 
@@ -688,7 +705,12 @@ class SlicedIndex:
         slice retains the length of the actual index despite modification.
     """
 
-    def __init__(self, index: Index, index_slice, original=False):
+    def __init__(
+        self,
+        index: Index,
+        index_slice: tuple[int, int, int] | slice,
+        original: bool = False,
+    ) -> None:
         self.index = index
         self.original = original
         self._frozen = False
@@ -707,18 +729,18 @@ class SlicedIndex:
         return tuple(col.info.name for col in self.columns)
 
     @property
-    def length(self):
+    def length(self) -> int:
         return 1 + (self.stop - self.start - 1) // self.step
 
     @property
-    def stop(self):
+    def stop(self) -> int:
         """
         The stopping position of the slice, or the end of the
         index if this is an original slice.
         """
         return len(self.index) if self.original else self._stop
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: slice) -> SlicedIndex:
         """
         Returns another slice of this Index slice.
 
@@ -736,7 +758,9 @@ class SlicedIndex:
         new_step = self.step * step
         return SlicedIndex(self.index, (new_start, new_stop, new_step))
 
-    def sliced_coords(self, rows):
+    def sliced_coords(
+        self, rows: Sequence[Integral] | np.ndarray
+    ) -> Sequence[Integral] | np.ndarray:
         """
         Convert the input rows to the sliced coordinate system.
 
@@ -764,7 +788,7 @@ class SlicedIndex:
                 ok = (row0 <= 0) & (row0 > self.stop - self.start)
             return row0[ok] // self.step
 
-    def orig_coords(self, row):
+    def orig_coords(self, row: int) -> int:
         """
         Convert the input row from sliced coordinates back
         to original coordinates.
@@ -781,53 +805,61 @@ class SlicedIndex:
         """
         return row if self.original else self.start + row * self.step
 
-    def find(self, key):
+    def find(self, key: tuple) -> Sequence[Integral] | np.ndarray:
         return self.sliced_coords(self.index.find(key))
 
-    def where(self, col_map):
+    def where(self, col_map: Mapping[str, Any]) -> Sequence[Integral] | np.ndarray:
         return self.sliced_coords(self.index.where(col_map))
 
-    def range(self, lower, upper):
+    def range(
+        self, lower: tuple[Hashable, ...] | None, upper: tuple[Hashable, ...] | None
+    ) -> Sequence[Integral] | np.ndarray:
         return self.sliced_coords(self.index.range(lower, upper))
 
-    def same_prefix(self, key):
+    def same_prefix(self, key: tuple) -> Sequence[Integral] | np.ndarray:
         return self.sliced_coords(self.index.same_prefix(key))
 
-    def sorted_data(self):
+    def sorted_data(self) -> Sequence[Integral] | np.ndarray:
         return self.sliced_coords(self.index.sorted_data())
 
-    def replace(self, row, col, val):
+    def replace(self, row: int, col: str, val: Any) -> None:
         if not self._frozen:
             self.index.replace(self.orig_coords(row), col, val)
 
-    def get_index_or_copy(self):
+    def get_index_or_copy(self) -> Index:
         if not self.original:
             # replace self.index with a new object reference
             self.index = deepcopy(self.index)
         return self.index
 
-    def insert_row(self, pos, vals, columns):
+    def insert_row(
+        self, pos: int, vals: Sequence[Any], columns: Iterable[ColumnLike]
+    ) -> None:
         if not self._frozen:
             self.get_index_or_copy().insert_row(self.orig_coords(pos), vals, columns)
 
-    def get_row_specifier(self, row_specifier):
+    def get_row_specifier(
+        self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
+    ) -> list[Integral]:
         return [
             self.orig_coords(x) for x in self.index.get_row_specifier(row_specifier)
         ]
 
-    def remove_rows(self, row_specifier):
+    def remove_rows(
+        self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
+    ) -> None:
         if not self._frozen:
             self.get_index_or_copy().remove_rows(row_specifier)
 
-    def replace_rows(self, col_slice):
+    def replace_rows(self, col_slice: Sequence[int]) -> None:
         if not self._frozen:
             self.index.replace_rows([self.orig_coords(x) for x in col_slice])
 
-    def sort(self):
+    def sort(self) -> None:
         if not self._frozen:
             self.get_index_or_copy().sort()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         slice_str = (
             "" if self.original else f" slice={self.start}:{self.stop}:{self.step}"
         )
@@ -836,16 +868,18 @@ class SlicedIndex:
             f" index={self.index}>"
         )
 
-    def replace_col(self, prev_col, new_col):
+    def replace_col(self, prev_col: ColumnLike, new_col: ColumnLike) -> None:
         self.index.replace_col(prev_col, new_col)
 
-    def reload(self):
+    def reload(self) -> None:
         self.index.reload()
 
-    def col_position(self, col_name):
+    def col_position(self, col_name: str) -> int:
         return self.index.col_position(col_name)
 
-    def get_slice(self, col_slice, item):
+    def get_slice(
+        self, col_slice: ColumnLike, item: list[int] | np.ndarray
+    ) -> SlicedIndex:
         """
         Return a newly created index from the given slice.
 
@@ -867,15 +901,19 @@ class SlicedIndex:
         return self.__class__(index, slice(0, 0, None), original=True)
 
     @property
-    def columns(self):
+    def columns(self) -> list[ColumnLike]:
         return self.index.columns
 
     @property
-    def data(self):
+    def data(self) -> IndexEngine:
         return self.index.data
 
 
-def get_index(table, table_copy=None, names=None):
+def get_index(
+    table: Table,
+    table_copy: Table | None = None,
+    names: Sequence[str] | None = None,
+) -> SlicedIndex | None:
     """
     Inputs a table and some subset of its columns as table_copy.
     List or tuple containing names of columns as names,and returns an index
@@ -956,7 +994,11 @@ class _IndexModeContext:
 
     _col_subclasses = {}
 
-    def __init__(self, table, mode):
+    def __init__(
+        self,
+        table: Table,
+        mode: Literal["freeze", "copy_on_getitem", "discard_on_copy"],
+    ) -> None:
         """
         Parameters
         ----------
@@ -986,7 +1028,7 @@ class _IndexModeContext:
                 f"'{mode}'"
             )
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         if self.mode == "discard_on_copy":
             self.table._copy_indices = False
         elif self.mode == "copy_on_getitem":
@@ -997,7 +1039,12 @@ class _IndexModeContext:
             for index in self.table.indices:
                 index._frozen = True
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         if self.mode == "discard_on_copy":
             self.table._copy_indices = True
         elif self.mode == "copy_on_getitem":
@@ -1008,7 +1055,7 @@ class _IndexModeContext:
                 index._frozen = False
                 index.reload()
 
-    def _get_copy_on_getitem_shim(self, cls):
+    def _get_copy_on_getitem_shim(self, cls: type) -> type:
         """
         This creates a subclass of the column's class which overrides that
         class's ``__getitem__``, such that when returning a slice of the
@@ -1024,7 +1071,7 @@ class _IndexModeContext:
         if cls in self._col_subclasses:
             return self._col_subclasses[cls]
 
-        def __getitem__(self, item):
+        def __getitem__(self, item: Any) -> Any:
             value = cls.__getitem__(self, item)
             if type(value) is type(self):
                 value = self.info.slice_indices(value, item, len(self))
@@ -1050,10 +1097,10 @@ class TableIndices(list):
         List of indices
     """
 
-    def __init__(self, lst):
+    def __init__(self, lst: list[SlicedIndex]) -> None:
         super().__init__(lst)
 
-    def __getitem__(self, item) -> Index:
+    def __getitem__(self, item: int | str | tuple[str, ...] | list[str]) -> Index:
         """
         Retrieve an item from the list of indices.
 
@@ -1107,12 +1154,12 @@ class TableLoc:
         (default), the primary key index is used.
     """
 
-    def __init__(self, table: Table, index_id: tuple[str, ...] | None = None):
+    def __init__(self, table: Table, index_id: tuple[str, ...] | None = None) -> None:
         self.table = table
         self.indices = table.indices
         self.index_id = index_id
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         index_id = self.index_id
         if index_id is None:
             index_id = self.table.primary_key
@@ -1123,7 +1170,7 @@ class TableLoc:
             f"id(table)={id(self.table)}>"
         )
 
-    def with_index(self, *index_id):
+    def with_index(self, *index_id: str | tuple[str, ...] | list[str]) -> Self:
         """Return a new instance of this class for ``index_id``
 
         Parameters
@@ -1145,7 +1192,7 @@ class TableLoc:
             index_id = tuple(index_id[0])
         return self.__class__(self.table, index_id)
 
-    def _get_index_id_and_item(self, item):
+    def _get_index_id_and_item(self, item: Any) -> tuple[tuple[str, ...], Any]:
         index_id = self.index_id
         if self.index_id is None:
             if isinstance(item, tuple):
@@ -1157,7 +1204,7 @@ class TableLoc:
     def _get_row_idxs_as_list(
         self,
         index_id: tuple,
-        item,
+        item: Any,
         item_is_sequence: bool,
     ) -> list[int]:
         """
@@ -1207,7 +1254,7 @@ class TableLoc:
                     rows.extend(ii)
         return rows
 
-    def _get_row_idxs_as_list_or_int(self, item) -> list[int] | int:
+    def _get_row_idxs_as_list_or_int(self, item: Any) -> list[int] | int:
         """Internal function to retrieve row indices for ``item`` as a list or int.
 
         See ``__getitem__`` for details on the input item.
@@ -1233,7 +1280,7 @@ class TableLoc:
 
         return row_idxs
 
-    def __getitem__(self, item) -> Table | Table.Row:
+    def __getitem__(self, item: Any) -> Table | Table.Row:
         """
         Retrieve Table rows by value slice.
 
@@ -1254,7 +1301,7 @@ class TableLoc:
         rows = self._get_row_idxs_as_list_or_int(item)
         return self.table[rows]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
         """
         Assign Table row's by value slice.
 
@@ -1282,7 +1329,7 @@ class TableLoc:
 
 
 class TableLocIndices(TableLoc):
-    def __getitem__(self, item):
+    def __getitem__(self, item: Any) -> list[int] | int:
         """
         Retrieve Table row indices by value slice.
 
@@ -1310,7 +1357,7 @@ class TableILoc(TableLoc):
         Indexed table to use
     """
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Any) -> Table | Table.Row:
         if len(self.indices) == 0:
             raise ValueError("Can only use TableILoc for a table with indices")
 
