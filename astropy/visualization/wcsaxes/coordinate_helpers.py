@@ -342,7 +342,7 @@ class CoordinateHelper:
         Parameters
         ----------
         draw_grid : bool
-            Whether to show the gridlines
+            Whether to show the gridlines.
         grid_type : {'lines', 'contours'}
             Whether to plot the contours by determining the grid lines in
             world coordinates and then plotting them in world coordinates
@@ -386,7 +386,7 @@ class CoordinateHelper:
         Parameters
         ----------
         coord_type : str
-            One of 'longitude', 'latitude' or 'scalar'
+            One of 'longitude', 'latitude' or 'scalar'.
         coord_wrap : `~astropy.units.Quantity`, optional
             The value to wrap at for angular coordinates.
         """
@@ -463,7 +463,7 @@ class CoordinateHelper:
         Parameters
         ----------
         value : float
-            The value to format
+            The value to format.
         format : {'auto', 'ascii', 'latex'}, optional
             The format to use - by default the formatting will be adjusted
             depending on whether Matplotlib is using LaTeX or MathTex. To
@@ -560,19 +560,22 @@ class CoordinateHelper:
         number : float, optional
             The approximate number of ticks shown.
         size : float, optional
-            The length of the ticks in points
+            The length of the ticks in points.
         width : float, optional
             The width of the ticks in points.
         color : str or tuple, optional
-            A valid Matplotlib color for the ticks
+            A valid Matplotlib color for the ticks.
         alpha : float, optional
             The alpha value (transparency) for the ticks.
         direction : {'in','out'}, optional
             Whether the ticks should point inwards or outwards.
         exclude_overlapping : bool, optional
-            Deprecated, use the ``exclude_overlapping`` option of
-            `~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`
-            instead.
+            Whether to exclude tick labels that overlap.
+
+            .. deprecated:: 3.1
+                Use the ``exclude_overlapping`` option of
+                `~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`
+                instead.
         """
         if sum([values is None, spacing is None, number is None]) < 2:
             raise ValueError(
@@ -669,7 +672,7 @@ class CoordinateHelper:
         Parameters
         ----------
         color : str or tuple, optional
-            A valid Matplotlib color for the tick labels
+            A valid Matplotlib color for the tick labels.
         size : float, optional
             The size of the ticks labels in points.
         pad : float, optional
@@ -897,7 +900,11 @@ class CoordinateHelper:
         Parameters
         ----------
         rule : str
-            Deprecated and has no effect.
+            Has no effect.
+
+            .. deprecated:: 7.2.0
+                The ``rule`` argument is deprecated and will be removed in a
+                future version.
         """
         return self._axislabels.get_visibility_rule()
 
@@ -1347,9 +1354,9 @@ class CoordinateHelper:
         Parameters
         ----------
         name : str
-            The name for the gridline, usually a single character, but can be longer
+            The name for the gridline, usually a single character, but can be longer.
         constant : `~astropy.units.Quantity`
-            The constant coordinate value of the gridline
+            The constant coordinate value of the gridline.
 
         Notes
         -----
