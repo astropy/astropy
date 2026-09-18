@@ -2041,18 +2041,15 @@ class Quantity(np.ndarray):
         ----------
         function : callable
             Numpy function to wrap.
-        args : positional arguments
+        *args : positional arguments
             Any positional arguments to the function beyond the first argument
             (which will be set to ``self``).
-        kwargs : keyword arguments
-            Keyword arguments to the function.
-
-        If present, the following arguments are treated specially:
-
-        unit : `~astropy.units.Unit`
+        unit : `~astropy.units.Unit`, optional
             Unit of the output result.  If not given, the unit of ``self``.
-        out : `~astropy.units.Quantity`
+        out : `~astropy.units.Quantity`, optional
             A Quantity instance in which to store the output.
+        **kwargs : keyword arguments
+            Keyword arguments to the function.
 
         Notes
         -----

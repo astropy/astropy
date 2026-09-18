@@ -989,11 +989,11 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
     ----------
     params : array
         6 element array. First 4 elements are PC matrix, last 2 are CRPIX.
-    lon, lat: array
+    lon, lat : array
         Sky coordinates.
-    x, y: array
+    x, y : array
         Pixel coordinates
-    w_obj: `~astropy.wcs.WCS`
+    w_obj : `~astropy.wcs.WCS`
         WCS object
     """
     cd = params[0:4]
@@ -1020,12 +1020,18 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     ----------
     params : array
         Fittable parameters. First 4 elements are PC matrix, last 2 are CRPIX.
-    lon, lat: array
+    lon, lat : array
         Sky coordinates.
-    u, v: array
+    u, v : array
         Pixel coordinates
-    w_obj: `~astropy.wcs.WCS`
+    w_obj : `~astropy.wcs.WCS`
         WCS object
+    order : int
+        Order of the SIP polynomial.
+    coeff_names : list of str
+        Names of the SIP coefficients (e.g. ``"2_0"``), without the ``A_`` or
+        ``B_`` prefix. ``params[6:]`` holds the ``A`` coefficients followed by
+        the ``B`` coefficients, in this order.
     """
     from astropy.modeling.models import SIP  # here to avoid circular import
 

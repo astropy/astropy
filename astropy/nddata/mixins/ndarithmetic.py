@@ -220,7 +220,7 @@ class NDArithmeticMixin:
         axis : int or tuple of ints, optional
             axis or axes over which to perform collapse operations like min, max, sum or mean.
 
-        kwargs :
+        **kwds :
             Any other parameter that should be passed to the
             different :meth:`NDArithmeticMixin._arithmetic_mask` (or wcs, ...)
             methods.
@@ -540,7 +540,11 @@ class NDArithmeticMixin:
         handle_mask : callable
             see :meth:`NDArithmeticMixin.add`
 
-        kwds :
+        axis : int or tuple of ints, optional
+            axis or axes over which to perform collapse operations like min,
+            max, sum or mean.
+
+        **kwds :
             Additional parameters given to ``handle_mask``.
 
         Returns
@@ -773,15 +777,15 @@ class NDArithmeticMixin:
             instance (then this parameter is ``self``) but like a classmethod
             when called on the class (then this parameter is ``cls``).
 
-        operations : callable
+        operation : callable
             The operation (normally a numpy-ufunc) that represents the
             appropriate action.
 
-        operand, operand2, kwargs :
+        operand, operand2, **kwargs :
             See for example ``add``.
 
-        Result
-        ------
+        Returns
+        -------
         result : `~astropy.nddata.NDData`-like
             Depending how this method was called either ``self_or_cls``
             (called on class) or ``self_or_cls.__class__`` (called on instance)

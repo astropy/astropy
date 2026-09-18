@@ -47,6 +47,13 @@ def lombscargle_fastchi2(
         of the input data. This is especially important if ``fit_mean = False``
     nterms : int, optional
         Number of Fourier terms in the fit
+    use_fft : bool (default=True)
+        If True, then use the Press & Rybicki O[NlogN] algorithm to compute
+        the result. Otherwise, use a slower O[N^2] algorithm
+    trig_sum_kwds : dict or None, optional
+        extra keyword arguments to pass to the ``trig_sum`` utility.
+        Options are ``oversampling``, ``Mfft`` and ``eps``. See documentation
+        of ``trig_sum`` for details.
     algorithm : 'lra' (default), or 'fasper'
         This option is ignored if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.

@@ -2145,6 +2145,10 @@ class _VLF(np.ndarray):
         ----------
         input
             a sequence of variable-sized elements.
+        dtype : str or dtype, optional
+            The dtype of the elements. The default of ``"S"`` means the
+            elements are character arrays and each is converted to a
+            single-character ``chararray``.
         """
         if dtype == "S":
             try:
