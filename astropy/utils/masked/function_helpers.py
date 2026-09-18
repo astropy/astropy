@@ -163,7 +163,7 @@ IGNORED_FUNCTIONS |= {
     np.histogram, np.histogram2d, np.histogramdd, np.histogram_bin_edges,
     # TODO!!
     np.dot, np.vdot, np.inner, np.tensordot, np.cross,
-    np.einsum, np.einsum_path,
+    np.einsum_path,
 }  # fmt: skip
 
 # Explicitly unsupported functions
@@ -1443,6 +1443,145 @@ def setdiff1d(ar1, ar2, assume_unique=False):
         ar1 = np.unique(ar1)
         ar2 = np.unique(ar2)
     return ar1[np.isin(ar1, ar2, assume_unique=True, invert=True)], None, None
+
+
+@dispatched_function
+def einsum(*operands, out=None, **kwargs):
+    from astropy.utils.masked import Masked, MaskedNDArray
+
+    # input validation
+    subscripts, *operands = operands
+
+    if not isinstance(subscripts, str):
+        raise ValueError('only "subscripts" string mode supported for einsum.')
+
+    kwargs_with_out = kwargs.copy()
+    if out is not None:
+        if not isinstance(out, MaskedNDArray):
+            raise NotImplementedError
+
+        else:
+            kwargs_with_out["out"] = out.unmasked.view(np.ndarray)
+
+    # compute the unmasked result
+    # doing this first ensures that subscripts are validated by numpy
+
+    def as_masked_ndarray(input):
+        if hasattr(input, "mask"):
+            if hasattr(input.mask, "shape"):
+                return input
+            else:
+                mask = np.full_like(input.unmasked, fill_value=input.mask, dtype=bool)
+                return Masked(input.unmasked, mask=mask)
+        else:
+            mask = np.full_like(input, fill_value=False, dtype=bool)
+            return Masked(input, mask=mask)
+
+    mas = tuple(as_masked_ndarray(op) for op in operands)
+    arrays = tuple(ma.unmasked for ma in mas)
+    retv = np.einsum(subscripts, *arrays, **kwargs_with_out)
+
+    # now combine masks
+    # this complex operation is decomposed as
+    # 1) Compute intermediate masks
+    #   1.1) select diagonals (e.g. 'ii')
+    #   1.2) contract mask along summation axes
+    # 2) combine intermediate masks
+
+    masks = tuple(ma.mask for ma in mas)
+
+    from collections import Counter
+    from functools import reduce
+    from operator import add
+
+    # ellispis '...' is the only meaningful token that's not
+    # a single character, we replace it with an unused char ('?') to simplify parsing.
+    monochar_subscripts = subscripts.replace("...", "?")
+    input_subscripts, arrow_id, output_subscripts = monochar_subscripts.partition("->")
+    einsum_mode = "explicit" if arrow_id else "implicit"
+
+    input_labels = input_subscripts.split(",")
+    input_labels_counters = [Counter(labels) for labels in input_labels]
+
+    # diagonal indices are important for mask propagation in that we want
+    # to extract diagonals in masks too (this should be step one)
+    diagonal_labels = [
+        [label for label in c if label != "?" and c[label] > 1]
+        for c in input_labels_counters
+    ]
+
+    # preserves order of unique values
+    unique_input_labels = [list(c.keys()) for c in input_labels_counters]
+    unique_input_subscripts = ["".join(labels) for labels in unique_input_labels]
+    for labels in unique_input_labels:
+        # sanity check: no input should contain more than one ellispis
+        assert labels.count("?") <= 1
+
+    label_count: Counter[str] = reduce(add, input_labels_counters)
+    repeated_labels = {
+        char for char in label_count if char != "?" and label_count[char] > 1
+    }
+
+    if einsum_mode == "implicit":
+        summation_labels = repeated_labels
+    elif einsum_mode == "explicit":
+        if output_subscripts:
+            summation_labels = repeated_labels - set(output_subscripts)
+        else:
+            summation_labels = set(input_labels) - {"?"}
+    else:
+        raise RuntimeError
+
+    def extract_diagonal(mask, op_position: int):
+        input = input_labels[op_position]
+        output = unique_input_subscripts[op_position]
+        exp = f"{input}->{output}".replace("?", "...")
+        # use explicit mode to disable any summation here
+        return np.einsum(exp, mask)
+
+    def contract(mask, op_position: int):
+        labels = input_labels[op_position]
+        summation_axes = tuple(labels.index(L) for L in labels if L in summation_labels)
+        shape = list(mask.shape)
+        for n in range(len(shape)):
+            if n in summation_axes:
+                shape[n] = 1
+        ret_mask = mask.max(tuple(set(summation_axes)))
+        return ret_mask.reshape(shape)
+
+    def reduce_mask(mask, op_position: int):
+        if diagonal_labels[op_position]:
+            mask = extract_diagonal(mask, op_position)
+        return contract(mask, op_position)
+
+    def combine_masks(masks):
+        reduced_masks_inv = tuple(~reduce_mask(m, pos) for pos, m in enumerate(masks))
+        reduced_subscripts = ",".join(unique_input_subscripts)
+        if einsum_mode == "explicit":
+            reduced_subscripts += f"->{output_subscripts}"
+        reduced_subscripts = reduced_subscripts.replace("?", "...")
+        return ~np.einsum(reduced_subscripts, *reduced_masks_inv, **kwargs)
+
+    mask = combine_masks(masks)
+
+    # sanity check
+    # assert np.broadcast_shapes(mask.shape, retv.shape) == retv.shape
+
+    # reduce mask to a bool if it's uniform
+    if np.all(mask):
+        mask = True
+    elif not np.any(mask):
+        mask = False
+
+    if out is not None:
+        result = out
+        result.mask[:] = mask
+        mask = None
+    else:
+        result = retv
+
+    # TODO: understand what the third item is supposed to be
+    return result, mask, None
 
 
 # Add any dispatched or helper function that has a docstring to
