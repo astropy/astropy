@@ -17,7 +17,13 @@ import numpy._core as np_core
 from numpy.lib._function_base_impl import _quantile_is_valid, _ureduce
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4, NUMPY_LT_2_5
+from astropy.utils.compat import (
+    NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
+    NUMPY_LT_2_4,
+    NUMPY_LT_2_5,
+    NUMPY_LT_2_6,
+)
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -521,6 +527,45 @@ def bincount(x, /, weights=None, minlength=0):
             mask = np.bincount(x, w_mask.astype(int), minlength=minlength).astype(bool)
     result = np.bincount(x, weights, minlength=0)
     return result, mask, None
+
+
+if not NUMPY_LT_2_6:
+
+    @dispatched_function
+    def minmax(
+        a,
+        axis=None,
+        out=None,
+        keepdims=np._NoValue,
+        initial=np._NoValue,
+        where=np._NoValue,
+    ):
+        kwargs_min = {
+            "axis": axis,
+            "keepdims": keepdims,
+        }
+        if where is not np._NoValue:
+            kwargs_min["where"] = ~a.mask
+
+        kwargs_max = kwargs_min.copy()
+
+        if out is not None:
+            assert isinstance(out, tuple)
+            kwargs_min["out"], kwargs_max["out"] = out
+
+        if initial is np._NoValue:
+            kwargs_min["initial"] = np.nanmin(a.unmasked)
+            kwargs_max["initial"] = np.nanmax(a.unmasked)
+        elif isinstance(initial, tuple):
+            kwargs_min["initial"], kwargs_max["initial"] = initial
+        else:
+            kwargs_min["initial"] = kwargs_max["initial"] = initial
+
+        return (
+            (np.min(a, **kwargs_min), np.max(a, **kwargs_max)),
+            None,  # mask, temp
+            out,
+        )
 
 
 # Used to work via ptp method, but now need to override, otherwise
