@@ -1,0 +1,5 @@
+Added argument ``origin`` to ``fit_wcs_from_points`` to allow callers to
+specify the pixel origin (0-indexed or 1-indexed) for input pixel
+coordinates. Omitting ``origin`` is **deprecated** and will emit a
+``FutureWarning``. During the deprecation period, the function **will assume
+1-indexed pixel coordinates** when the ``origin`` argument is not provided.

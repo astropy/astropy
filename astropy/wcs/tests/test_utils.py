@@ -1427,6 +1427,7 @@ _simple_header_with_custom_prj_codes = [
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("origin", [0, 1])
 @pytest.mark.parametrize(
     "header_str,crval,sip_degree,user_proj_point,exp_max_dist,exp_std_dist,projection",
     _simple_header_with_custom_prj_codes
@@ -1511,9 +1512,9 @@ def test_fit_wcs_from_points(
     exp_max_dist,
     exp_std_dist,
     projection,
+    origin,
 ):
     header = fits.Header.fromstring(header_str, sep="\n")
-    print(f"\n\nTesting projection: {projection}\n")
 
     if crval is not None:
         header["CRVAL1"] = crval
@@ -1542,8 +1543,9 @@ def test_fit_wcs_from_points(
     # Fitting the wcs
     try:
         fit_wcs = fit_wcs_from_points(
-            (x + 1, y + 1),
+            (x + origin, y + origin),
             world_pix,
+            origin=origin,
             proj_point=proj_point,
             sip_degree=sip_degree,
             projection=projection,
@@ -1614,7 +1616,10 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     ypix, xpix = (arr.flatten() for arr in np.mgrid[xi : xi + x, yi : yi + y])
     world_pix = SkyCoord(*ffi_wcs.all_pix2world(xpix, ypix, 0), unit="deg")
 
-    fit_wcs = fit_wcs_from_points((ypix + 1, xpix + 1), world_pix, proj_point="center")
+    with pytest.warns(FutureWarning):
+        fit_wcs = fit_wcs_from_points(
+            (ypix + 1, xpix + 1), world_pix, proj_point="center"
+        )
 
     assert (fit_wcs.wcs.crpix.astype(int) == [1100, 1005]).all()
     assert fit_wcs.pixel_shape == (1199, 1009)
@@ -1642,7 +1647,11 @@ def test_issue10991():
     proj_point = SkyCoord(64.67514918, 19.63389538, frame="icrs", unit="deg")
 
     fit_wcs = fit_wcs_from_points(
-        xy=xy, world_coords=world_coords, proj_point=proj_point, projection="TAN"
+        xy=xy,
+        world_coords=world_coords,
+        origin=1,
+        proj_point=proj_point,
+        projection="TAN",
     )
     projlon = proj_point.data.lon.deg
     projlat = proj_point.data.lat.deg
@@ -1694,7 +1703,7 @@ def test_fit_wcs_from_points_returned_object_attributes():
     radec = SkyCoord(ra, dec, unit=(u.deg, u.deg))
 
     placeholder_wcs = celestial_frame_to_wcs(frame=radec.frame, projection="TAN")
-    estimated_wcs = fit_wcs_from_points(xy, radec, projection=placeholder_wcs)
+    estimated_wcs = fit_wcs_from_points(xy, radec, origin=1, projection=placeholder_wcs)
 
     estimated_wcs_attributes = sorted(dir(estimated_wcs))
     placeholder_wcs_attributes = sorted(dir(placeholder_wcs))

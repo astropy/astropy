@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -53,6 +54,8 @@ SOLAR_SYSTEM_OBJ_DICT = {
 _UNSUPPORTED_PRJ_CODES = {"ZPN", "BON", "COD", "COE", "COO", "COP"}
 
 SUPPORTED_PRJ_CODES = set(PRJ_CODES) - _UNSUPPORTED_PRJ_CODES
+
+_ARG_NOT_SET = object()
 
 
 @lru_cache(maxsize=100)
@@ -1065,7 +1068,12 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
 
 
 def fit_wcs_from_points(
-    xy, world_coords, proj_point="center", projection="TAN", sip_degree=None
+    xy,
+    world_coords,
+    origin=_ARG_NOT_SET,
+    proj_point="center",
+    projection="TAN",
+    sip_degree=None,
 ):
     """
     Given two matching sets of coordinates on detector and sky,
@@ -1104,19 +1112,27 @@ def fit_wcs_from_points(
     xy : (`numpy.ndarray`, `numpy.ndarray`) tuple
         x & y pixel coordinates.  These should be in FITS convention, starting
         from (1,1) as the center of the bottom-left pixel.
+
     world_coords : `~astropy.coordinates.SkyCoord`
         Skycoord object with world coordinates.
+
+    origin : int
+        Pixel origin convention: use 0 for zero-based indexing or 1 for
+        FITS-style 1-based indexing.
+
     proj_point : 'center' or ~astropy.coordinates.SkyCoord`
         Defaults to 'center', in which the geometric center of input world
         coordinates will be used as the projection point. To specify an exact
         point for the projection, a Skycoord object with a coordinate pair can
         be passed in. For consistency, the units and frame of these coordinates
         will be transformed to match ``world_coords`` if they don't.
+
     projection : str or `~astropy.wcs.WCS`
         Three letter projection code of most of standard projections defined
         in the FITS WCS standard. For a complete set of supported projections,
         see `astropy.wcs.utils.SUPPORTED_PRJ_CODES` in this module.
         Optionally, a WCS object with projection keywords set may be passed in.
+
     sip_degree : None or int
         If set to a non-zero integer value, will fit SIP of degree
         ``sip_degree`` to model geometric distortion. Defaults to None, meaning
@@ -1135,6 +1151,21 @@ def fit_wcs_from_points(
     from .wcs import Sip
 
     xp, yp = xy
+
+    if origin is _ARG_NOT_SET:
+        warnings.warn(
+            "Omitting argument 'origin' in "
+            "fit_wcs_from_points(..., origin=...) is deprecated and it will "
+            "be required in a future release. Defaulting to 1 for now.",
+            category=FutureWarning,
+            stacklevel=2,
+        )
+        origin = 1
+
+    elif origin == 0:
+        xp = xp + 1
+        yp = yp + 1
+
     try:
         lon, lat = world_coords.data.lon.deg, world_coords.data.lat.deg
     except AttributeError:
