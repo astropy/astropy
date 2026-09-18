@@ -50,6 +50,10 @@ SOLAR_SYSTEM_OBJ_DICT = {
     "NE": "Neptune",
 }
 
+_UNSUPPORTED_PRJ_CODES = {"ZPN", "BON", "COD", "COE", "COO", "COP"}
+
+SUPPORTED_PRJ_CODES = set(PRJ_CODES) - _UNSUPPORTED_PRJ_CODES
+
 
 @lru_cache(maxsize=100)
 def solar_system_body_frame(object_name, representation_type):
@@ -1109,9 +1113,10 @@ def fit_wcs_from_points(
         be passed in. For consistency, the units and frame of these coordinates
         will be transformed to match ``world_coords`` if they don't.
     projection : str or `~astropy.wcs.WCS`
-        Three letter projection code, of any of standard projections defined
-        in the FITS WCS standard. Optionally, a WCS object with projection
-        keywords set may be passed in.
+        Three letter projection code of most of standard projections defined
+        in the FITS WCS standard. For a complete set of supported projections,
+        see `astropy.wcs.utils.SUPPORTED_PRJ_CODES` in this module.
+        Optionally, a WCS object with projection keywords set may be passed in.
     sip_degree : None or int
         If set to a non-zero integer value, will fit SIP of degree
         ``sip_degree`` to model geometric distortion. Defaults to None, meaning
@@ -1150,10 +1155,10 @@ def fit_wcs_from_points(
         assert proj_point.size == 1
 
     if type(projection) == str:
-        if projection not in PRJ_CODES:
+        if projection not in SUPPORTED_PRJ_CODES:
             raise ValueError(
                 "Must specify valid projection code from list of supported types: ",
-                ", ".join(PRJ_CODES),
+                ", ".join(SUPPORTED_PRJ_CODES),
             )
         # empty wcs to fill in with fit values
         wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)

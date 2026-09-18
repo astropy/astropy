@@ -29,6 +29,7 @@ from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.wcs.utils import (
     FRAME_WCS_MAPPINGS,
+    SUPPORTED_PRJ_CODES,
     WCS_FRAME_MAPPINGS,
     _pixel_to_pixel_correlation_matrix,
     _pixel_to_world_correlation_matrix,
@@ -1407,24 +1408,49 @@ CRVAL1  =      5.8689341666667 / [deg] Coordinate value at reference point
 CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
 """
 
+_failing_projections = ["CSC", "TSC", "QSC", "XPH"]
+
+_simple_header_with_custom_prj_codes = [
+    # simple testset no distortions
+    (
+        header_str_linear,
+        250.3497414839765,
+        None,
+        False,
+        7e-5 * u.deg,
+        2.5e-5 * u.deg,
+        code,
+    )
+    for code in SUPPORTED_PRJ_CODES
+    if code not in _failing_projections
+]
+
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize(
-    "header_str,crval,sip_degree,user_proj_point,exp_max_dist,exp_std_dist",
-    [
-        # simple testset no distortions
+    "header_str,crval,sip_degree,user_proj_point,exp_max_dist,exp_std_dist,projection",
+    _simple_header_with_custom_prj_codes
+    + [
+        # simple testset with distortions
         (
-            header_str_linear,
+            header_str_sip,
             250.3497414839765,
+            2,
+            False,
+            7e-6 * u.deg,
+            2.5e-6 * u.deg,
+            "TAN",
+        ),
+        # testset with problematic WCS header that failed before
+        (
+            header_str_prob,
+            5.8689341666667,
             None,
             False,
-            7e-5 * u.deg,
-            2.5e-5 * u.deg,
+            7e-6 * u.deg,
+            2.5e-6 * u.deg,
+            "TAN",
         ),
-        # simple testset with distortions
-        (header_str_sip, 250.3497414839765, 2, False, 7e-6 * u.deg, 2.5e-6 * u.deg),
-        # testset with problematic WCS header that failed before
-        (header_str_prob, 5.8689341666667, None, False, 7e-6 * u.deg, 2.5e-6 * u.deg),
         # simple testset no distortions, user defined center
         (
             header_str_linear,
@@ -1433,6 +1459,7 @@ CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
             True,
             7e-5 * u.deg,
             2.5e-5 * u.deg,
+            "TAN",
         ),
         # 360->0 degree crossover, simple testset no distortions
         (
@@ -1442,11 +1469,28 @@ CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
             False,
             7e-5 * u.deg,
             2.5e-5 * u.deg,
+            "TAN",
         ),
         # 360->0 degree crossover, simple testset with distortions
-        (header_str_sip, 352.3497414839765, 2, False, 7e-6 * u.deg, 2.5e-6 * u.deg),
+        (
+            header_str_sip,
+            352.3497414839765,
+            2,
+            False,
+            7e-6 * u.deg,
+            2.5e-6 * u.deg,
+            "TAN",
+        ),
         # 360->0 degree crossover, testset with problematic WCS header that failed before
-        (header_str_prob, 352.3497414839765, None, False, 7e-6 * u.deg, 2.5e-6 * u.deg),
+        (
+            header_str_prob,
+            352.3497414839765,
+            None,
+            False,
+            7e-6 * u.deg,
+            2.5e-6 * u.deg,
+            "TAN",
+        ),
         # 360->0 degree crossover, simple testset no distortions, user defined center
         (
             header_str_linear,
@@ -1455,15 +1499,27 @@ CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
             True,
             7e-5 * u.deg,
             2.5e-5 * u.deg,
+            "TAN",
         ),
     ],
 )
 def test_fit_wcs_from_points(
-    header_str, crval, sip_degree, user_proj_point, exp_max_dist, exp_std_dist
+    header_str,
+    crval,
+    sip_degree,
+    user_proj_point,
+    exp_max_dist,
+    exp_std_dist,
+    projection,
 ):
     header = fits.Header.fromstring(header_str, sep="\n")
+    print(f"\n\nTesting projection: {projection}\n")
+
     if crval is not None:
         header["CRVAL1"] = crval
+
+    header["CTYPE1"] = header["CTYPE1"].replace("TAN", projection)
+    header["CTYPE2"] = header["CTYPE2"].replace("TAN", projection)
 
     true_wcs = WCS(header, relax=True)
 
@@ -1484,9 +1540,16 @@ def test_fit_wcs_from_points(
         proj_point = "center"
 
     # Fitting the wcs
-    fit_wcs = fit_wcs_from_points(
-        (x + 1, y + 1), world_pix, proj_point=proj_point, sip_degree=sip_degree
-    )
+    try:
+        fit_wcs = fit_wcs_from_points(
+            (x + 1, y + 1),
+            world_pix,
+            proj_point=proj_point,
+            sip_degree=sip_degree,
+            projection=projection,
+        )
+    except Exception as e:
+        pytest.fail(f"fit_wcs_from_points failed for projection {projection}: {e}")
 
     # Validate that the true sky coordinates
     # match sky coordinates calculated from the wcs fit
