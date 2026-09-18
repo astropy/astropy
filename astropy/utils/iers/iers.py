@@ -34,10 +34,11 @@ from astropy_iers_data import IERS_LEAP_SECOND_URL_MIRROR as IETF_LEAP_SECOND_UR
 from astropy import config as _config
 from astropy import units as u
 from astropy import utils
-from astropy.table import MaskedColumn, QTable
+from astropy.table import MaskedColumn, QTable, Table
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import (
     clear_download_cache,
+    get_pkg_data_contents,
     get_readable_fileobj,
     is_url_in_cache,
 )
@@ -201,6 +202,12 @@ class Conf(_config.ConfigNamespace):
     )
     ietf_leap_second_auto_url = _config.ConfigItem(
         IETF_LEAP_SECOND_URL, "Alternate URL for auto-downloading leap seconds."
+    )
+    ut1_utc_interpolation = _config.ConfigItem(
+        ["linear", "tides"],
+        "Interpolation method to use for UTC to UT1 conversion. "
+        "Options are 'linear' (default) or 'tides' "
+        "(Lagrange interpolation with tidal corrections).",
     )
 
 
@@ -438,6 +445,180 @@ class IERS(QTable):
                 warn(msg, IERSDegradedAccuracyWarning)
             # No IERS data covering the time(s) and user is OK with no warning.
 
+    def _lagrange_interp(self, x_vals, y_vals, xint):
+        val = np.zeros((y_vals.shape[1:]), dtype=y_vals.dtype)
+        n = len(x_vals)
+
+        for i in range(n):
+            term = y_vals[i]
+            for j in range(n):
+                if i != j:
+                    term *= (xint - x_vals[j]) / (x_vals[i] - x_vals[j])
+            val += term
+
+        return val
+
+    def _parse_interp_data_block(self, data):
+        # Get header into a single line
+        hdr, _, post = data.partition(")/\n")
+        # remove bits that are irrelevant
+        hdr = hdr.replace("     &", "").replace("),j=1,nlines", "").strip()
+        hdr = (
+            hdr.replace("(j,", "")
+            .replace("(j", "")
+            .replace("),", ",")
+            .replace("\n", "")
+        )
+        # Get value lines
+        values = post.partition("/\n")[0].replace("     &", "").replace(",\n", "\n")
+        return Table.read(f"{hdr}\n{values}", format="ascii.csv")
+
+    def _read_interp_oceans_data(self):
+        """The interp.f FORTRAN source file from IERS for the procedure
+        which we use for ocean tide corrections contains a data block
+        for the coefficients involved in the PMUT1_OCEANS procedure.
+        We parse the data block and return an astropy Table with the data.
+        See gh-1803 and gh-18036.
+        """
+        interp = get_pkg_data_contents("src/interp.f")
+        pre, _, gravi = interp.rpartition("data(")
+        oceans = pre.partition("data(")[2]
+
+        oceans = self._parse_interp_data_block(oceans)
+        gravi = self._parse_interp_data_block(gravi)
+
+        return oceans, gravi
+
+    def _pmut1_oceans(self, oceans, arg):
+        oceans_arg = np.stack(
+            [
+                oceans["NARG1"],
+                oceans["NARG2"],
+                oceans["NARG3"],
+                oceans["NARG4"],
+                oceans["NARG5"],
+                oceans["NARG6"],
+            ],
+            axis=1,
+        )
+
+        ag = oceans_arg @ arg
+        sin_ag = np.sin(ag)
+        cos_ag = np.cos(ag)
+
+        xsin, xcos = oceans["XSIN"], oceans["XCOS"]
+        ysin, ycos = oceans["YSIN"], oceans["YCOS"]
+        utsin, utcos = oceans["UTSIN"], oceans["UTCOS"]
+
+        cor_x = np.sum(
+            xsin[:, np.newaxis] * sin_ag + xcos[:, np.newaxis] * cos_ag, axis=0
+        )
+        cor_y = np.sum(
+            ysin[:, np.newaxis] * sin_ag + ycos[:, np.newaxis] * cos_ag, axis=0
+        )
+        cor_ut1 = np.sum(
+            utsin[:, np.newaxis] * sin_ag + utcos[:, np.newaxis] * cos_ag, axis=0
+        )
+
+        return cor_x * 1e-6, cor_y * 1e-6, cor_ut1 * 1e-6
+
+    def _gravi(self, gravi, arg):
+        gravi_arg = np.stack(
+            [
+                gravi["NARG1"],
+                gravi["NARG2"],
+                gravi["NARG3"],
+                gravi["NARG4"],
+                gravi["NARG5"],
+                gravi["NARG6"],
+            ],
+            axis=1,
+        )
+
+        ag = gravi_arg @ arg
+        ag = np.mod(ag, 2 * np.pi)
+        sinag, cosag = np.sin(ag), np.cos(ag)
+
+        xcos, ycos = gravi["XCOS"], gravi["YCOS"]
+        xsin, ysin = gravi["XSIN"], gravi["YSIN"]
+
+        cor_x = np.sum(
+            xsin[:, np.newaxis] * sinag + xcos[:, np.newaxis] * cosag, axis=0
+        )
+        cor_y = np.sum(
+            ysin[:, np.newaxis] * sinag + ycos[:, np.newaxis] * cosag, axis=0
+        )
+
+        return cor_x * 1e-6, cor_y * 1e-6
+
+    def _interp_tide_correction(self, rjd):
+        oceans, gravi = self._read_interp_oceans_data()
+        secrad = np.pi / (180 * 3600)
+
+        rjd_flat = np.ravel(rjd)
+        T = (rjd_flat - 51544.5) / 36525.0
+
+        chi = (
+            67310.54841
+            + (876600 * 3600 + 8640184.812866) * T
+            + 0.093104 * T**2
+            - 6.2e-6 * T**3
+        ) * 15.0 + 648000.0
+
+        L = (
+            -0.00024470 * T**4
+            + 0.051635 * T**3
+            + 31.8792 * T**2
+            + 1717915923.2178 * T
+            + 485868.249036
+        )
+
+        Lp = (
+            -0.00001149 * T**4
+            - 0.000136 * T**3
+            - 0.5532 * T**2
+            + 129596581.0481 * T
+            + 1287104.79305
+        )
+
+        cap_f = (
+            0.00000417 * T**4
+            - 0.001037 * T**3
+            - 12.7512 * T**2
+            + 1739527262.8478 * T
+            + 335779.526232
+        )
+
+        cap_d = (
+            -0.00003169 * T**4
+            + 0.006593 * T**3
+            - 6.3706 * T**2
+            + 1602961601.2090 * T
+            + 1072260.70369
+        )
+
+        omega = (
+            -0.00005939 * T**4
+            + 0.007702 * T**3
+            + 7.4722 * T**2
+            - 6962890.2665 * T
+            + 450160.398036
+        )
+
+        arg = np.array([chi, L, Lp, cap_f, cap_d, omega])
+        arg = np.mod(arg, 1296000) * secrad
+
+        oceans_corx, oceans_cory, corut1 = self._pmut1_oceans(oceans, arg)
+        gravi_corx, gravi_cory = self._gravi(gravi, arg)
+
+        corx, cory = oceans_corx + gravi_corx, oceans_cory + gravi_cory
+
+        corx = corx.reshape(rjd.shape)
+        cory = cory.reshape(rjd.shape)
+        corut1 = corut1.reshape(rjd.shape)
+
+        return corx, cory, corut1
+
     def _interpolate(self, jd1, jd2, columns, source=None):
         mjd, utc = self.mjd_utc(jd1, jd2)
         # enforce array
@@ -453,24 +634,68 @@ class IERS(QTable):
         # self['MJD'][i-1]<=mjd<self['MJD'][i]
         i = np.searchsorted(self["MJD"].value, mjd, side="right")
 
+        interpolation = conf.ut1_utc_interpolation
         # Get index to MJD at or just below given mjd, clipping to ensure we
         # stay in range of table (status will be set below for those outside)
         i1 = np.clip(i, 1, len(self) - 1)
         i0 = i1 - 1
-        mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
+
+        # For tides interpolation, we need 4 points, so we take the index
+        # just above the given mjd, and then take 3 points below that.
+        i1_tides = np.clip(i + 1, 3, len(self) - 1)
+        i0_tides = i1_tides - 3
+
+        tide_corr = {}
+        if interpolation == "tides":
+            dx, dy, dt = self._interp_tide_correction(mjd + utc)
+            tide_corr = {"PM_x": dx, "PM_y": dy, "UT1_UTC": dt}
+
         results = []
         for column in columns:
-            val_0, val_1 = self[column][i0], self[column][i1]
-            d_val = val_1 - val_0
-            if column == "UT1_UTC":
-                # Check & correct for possible leap second (correcting diff.,
-                # not 1st point, since jump can only happen right at 2nd point)
-                d_val -= d_val.round()
-            # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
-            # may want to follow IERS gazette #13 for more precise
-            # interpolation and correction for tidal effects;
-            # https://maia.usno.navy.mil/iers-gaz13)
-            val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
+            # TODO: expand tides interpolation to other columns than UT1_UTC
+            if column in tide_corr:
+                indices = (
+                    np.arange(4)[:, *([None] * len(i0_tides.shape))] + i0_tides[None]
+                )
+                mjds = self["MJD"][indices].value
+                vals = self[column][indices].value
+
+                if column == "UT1_UTC":
+                    # transform to ut1-tai by subtracting the leap seconds
+                    leap_seconds = np.round(np.diff(vals, axis=0, prepend=vals[:1]))
+                    leap_seconds = np.cumsum(leap_seconds, axis=0)
+                    vals -= leap_seconds
+
+                # Lagrange interpolation
+                vals = self._lagrange_interp(mjds, vals, mjd + utc)
+
+                # Correct for ocean tides
+                vals += tide_corr[column]
+
+                if column == "UT1_UTC":
+                    # transform back to ut1-utc by adding the leap seconds
+                    leap_seconds = np.take_along_axis(
+                        leap_seconds,
+                        (i - i0_tides - 1)[None],
+                        axis=0,
+                    )[0]
+                    vals += leap_seconds
+
+                val = vals * self[column].unit
+
+            else:
+                mjd_0, mjd_1 = self["MJD"][i0].value, self["MJD"][i1].value
+                val_0, val_1 = self[column][i0], self[column][i1]
+                d_val = val_1 - val_0
+
+                if column == "UT1_UTC":
+                    d_val -= np.round(d_val)
+
+                # Linearly interpolate (which is what TEMPO does for UT1-UTC, but
+                # may want to follow IERS gazette #13 for more precise
+                # interpolation and correction for tidal effects;
+                # https://maia.usno.navy.mil/iers-gaz13)
+                val = val_0 + (mjd - mjd_0 + utc) / (mjd_1 - mjd_0) * d_val
 
             # Do not extrapolate outside range, instead just propagate last values.
             val[i == 0] = self[column][0]
