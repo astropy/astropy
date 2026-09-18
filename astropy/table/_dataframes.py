@@ -23,7 +23,8 @@ __all__ = ["from_df", "from_pandas", "to_df", "to_pandas"]
 
 if TYPE_CHECKING:
     from narwhals.typing import EagerAllowed, IntoBackend
-    from units.typing import UnitLike
+
+    from astropy.units.typing import UnitLike
 
     from .table import Table
 
