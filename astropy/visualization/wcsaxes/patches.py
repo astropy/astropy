@@ -83,7 +83,7 @@ class SphericalCircle(Polygon):
         a single `~astropy.units.Quantity` array with two elements
         or a `~astropy.coordinates.SkyCoord` object.
     radius : `~astropy.units.Quantity` ['angle']
-        The radius of the circle
+        The radius of the circle.
     resolution : int, optional
         The number of points that make up the circle - increase this to get a
         smoother circle.
@@ -148,9 +148,9 @@ class Quadrangle(Polygon):
         This can be either a tuple of two `~astropy.units.Quantity` objects, or
         a single `~astropy.units.Quantity` array with two elements.
     width : `~astropy.units.Quantity` ['angle']
-        The width of the quadrangle in longitude (or, e.g., right ascension)
+        The width of the quadrangle in longitude (or, e.g., right ascension).
     height : `~astropy.units.Quantity` ['angle']
-        The height of the quadrangle in latitude (or, e.g., declination)
+        The height of the quadrangle in latitude (or, e.g., declination).
     resolution : int, optional
         The number of points that make up each side of the quadrangle -
         increase this to get a smoother quadrangle.

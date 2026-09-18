@@ -141,15 +141,15 @@ def add_scalebar(
         WCSAxes instance in which the scale bar is displayed. The WCS must be
         celestial.
     length : float or :class:`~astropy.units.Quantity`
-        The length of the scalebar in degrees or an angular quantity
+        The length of the scalebar in degrees or an angular quantity.
     label : str, optional
-        Label to place below the scale bar
+        Label to place below the scale bar.
     corner : str, optional
         Where to place the scale bar. Acceptable values are:, ``'left'``,
         ``'right'``, ``'top'``, ``'bottom'``, ``'top left'``, ``'top right'``,
-        ``'bottom left'`` and ``'bottom right'`` (default)
+        ``'bottom left'`` and ``'bottom right'`` (default).
     frame : bool, optional
-        Whether to display a frame behind the scale bar (default is ``False``)
+        Whether to display a frame behind the scale bar (default is ``False``).
     borderpad : float, optional
         Border padding, in fraction of the font size. Default is 0.4.
     pad : float, optional

@@ -55,7 +55,7 @@ class WCSAxes(Axes):
     Parameters
     ----------
     fig : `~matplotlib.figure.Figure`
-        The figure to add the axes to
+        The figure to add the axes to.
     *args
         ``*args`` can be a single ``(left, bottom, width, height)``
         rectangle or a single `matplotlib.transforms.Bbox`.  This specifies
@@ -98,11 +98,11 @@ class WCSAxes(Axes):
         an index of 50, the second WCS and Numpy dimension will be shown on the
         x axis, and the final WCS dimension (first Numpy dimension) will be
         shown on the y-axis (and therefore the data will be plotted using
-        ``data[:, :, 50].transpose()``)
+        ``data[:, :, 50].transpose()``).
     frame_class : type, optional
         The class for the frame, which should be a subclass of
         :class:`~astropy.visualization.wcsaxes.frame.BaseFrame`. The default is to use a
-        :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
+        :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`.
     **kwargs
         Additional keyword arguments are passed to `~matplotlib.axes.Axes`.
 

@@ -775,7 +775,6 @@ checks = [
     "GL01", # Docstring text (summary) should start in the line immediately after the opening quotes
     "GL02", # Closing quotes should be placed in the line after the last text in the docstring
     "GL08", # The object does not have a docstring
-    "PR09", # Parameter description should finish with a period
     "RT01", # No Returns section found
     "RT02", # First line of return should contain only the type
     "RT05", # Return value description should finish with a period

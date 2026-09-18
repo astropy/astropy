@@ -31,9 +31,9 @@ class Spine:
     Parameters
     ----------
     parent_axes : `~astropy.visualization.wcsaxes.WCSAxes`
-        The parent axes
+        The parent axes.
     transform : `~matplotlib.transforms.Transform`
-        The transform from data to world
+        The transform from data to world.
     data_func : callable
         If not ``None``, it should be a function that returns the appropriate spine
         data when called with this object as the sole argument.  If ``None``, the

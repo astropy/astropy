@@ -44,7 +44,7 @@ class CurvedTransform(Transform, metaclass=abc.ABCMeta):
         Parameters
         ----------
         path : :class:`~matplotlib.path.Path`
-            The path to transform
+            The path to transform.
 
         Returns
         -------
