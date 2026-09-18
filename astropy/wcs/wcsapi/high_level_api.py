@@ -138,6 +138,11 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         arrays is returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_pixel_values` for pixel
         indexing and ordering conventions.
+
+        Implementations may accept a subset of the world objects when the
+        remaining pixel axes are fully determined by them, for example a
+        `~astropy.wcs.wcsapi.wrappers.SlicedLowLevelWCS` with a single pixel
+        axis that is linear in the world axis of the supplied object.
         """
 
     def world_to_array_index(self, *world_objects):
@@ -404,6 +409,13 @@ class HighLevelWCSMixin(BaseHighLevelWCS):
         return self
 
     def world_to_pixel(self, *world_objects):
+        # Some low-level WCSes can invert a subset of the world objects.
+        partial = getattr(self.low_level_wcs, "_high_level_world_to_pixel", None)
+        if partial is not None:
+            result = partial(*world_objects)
+            if result is not NotImplemented:
+                return result
+
         values, masks = MaskedNDArray._get_data_and_masks(world_objects)
         world_values = high_level_objects_to_values(
             *values, low_level_wcs=self.low_level_wcs
