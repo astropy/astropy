@@ -2419,6 +2419,13 @@ Wcsprm_to_header(
     }
   }
 
+  // We need to make sure wcsset() has been called on the WCS in case
+  // for example preserve_units is being used and units have been set
+  // programmatically, otherwise unit_scaling will be uninitialized.
+  if (Wcsprm_cset(self, 1)) {
+    return NULL;
+  }
+
   // If the user has requested to preserve the original units, then we
   // could try and edit the header returned by wcshdo - however, this
   // might be tricky and not robust to future WCSLIB changes. Instead,
