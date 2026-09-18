@@ -111,6 +111,7 @@ test = [
     "pytest-doctestplus>=1.4.0",
     "pytest-filter-subpackage>=0.2.0",
     "pytest-remotedata>=0.4.1",
+    "pytest-run-parallel>=0.10.0",
     "pytest-skip-slow==1.1.0",
     "pytest-xdist>=3.6.0",
     "threadpoolctl>=3.0.0",
@@ -309,6 +310,10 @@ doctest_subpackage_requires = [
 ]
 markers = [
     "mpl_image_compare",
+    # pytest-run-parallel markers, registered here so the tests using them
+    # also collect under --strict-markers when the plugin is not installed
+    "force_parallel_threads(n): force this test to run in n pytest-run-parallel threads",
+    "iterations(n): run this test n times per thread under pytest-run-parallel",
 ]
 
 [tool.cibuildwheel]
@@ -1007,8 +1012,12 @@ exclude-newer-package = { "astropy-iers-data" = false }
 name = "sp-nightlies"
 url = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"
 exclude-newer = false
+# cache metadata for up to 10min (600s), and packages for 12h (43200s)
+cache-control = { api = "max-age=600", files = "max-age=43200, immutable" }
 
 [[tool.uv.index]]
 name = "erfa-nightlies"
 url = "https://pypi.anaconda.org/liberfa/simple"
 exclude-newer = false
+# cache metadata for up to 10min (600s), and packages for 12h (43200s)
+cache-control = { api = "max-age=600", files = "max-age=43200, immutable" }

@@ -434,3 +434,22 @@ def test_time_precision_limit(diff_from_base):
     # ensure in the converted relative time,
     # t2 and t3 can still be correctly compared
     assert r_t3 > r_t2
+
+
+def test_downsample_subset_columns():
+    # Regression test for #20297: aggregate_downsample on a TimeSeries sliced
+    # by column names failed because the slice had an index but no primary key.
+    ts = TimeSeries(
+        time=Time(np.arange(2450000, 2450005), format="jd"),
+        data=[[1, 2, 3, 4, 5]],
+        names=["a"],
+    )
+
+    def do_test(ts_sub, label):
+        assert ts_sub.primary_key == ("time",), label
+        binned = aggregate_downsample(ts_sub, n_bins=2)
+        assert len(binned) == 2, label
+        assert_equal(binned["a"], aggregate_downsample(ts, n_bins=2)["a"], label)
+
+    do_test(ts["time", "a"], "subset by slicing")
+    do_test(TimeSeries(time=ts["time"], data={"a": ts["a"]}), "with new TimeSeries obj")
