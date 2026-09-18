@@ -71,7 +71,7 @@ class BaseFormatterLocator:
 
     Parameters
     ----------
-    values : `~astropy.units.Quantity` array, optional
+    values : `~astropy.units.Quantity`, optional
         The locations of the ticks. At most one of ``values``, ``number``,
         and ``spacing`` can be specified.
     number : int, optional
@@ -189,7 +189,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
     spacing : `~astropy.units.Quantity` ['angle'], optional
         The spacing between ticks.
     format : str, optional
-        The format to use for the tick labels, e.g. ``'dd:mm:ss'`` or
+        The format to use for the tick labels, e.g., ``'dd:mm:ss'`` or
         ``'d.ddd'``.
     unit : `~astropy.units.Unit`, optional
         The unit of the coordinate values. Defaults to degrees.
@@ -561,7 +561,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
     spacing : `~astropy.units.Quantity`, optional
         The spacing between ticks.
     format : str, optional
-        The format to use for the tick labels, e.g. ``'x.xxx'``.
+        The format to use for the tick labels, e.g., ``'x.xxx'``.
     unit : `~astropy.units.Unit`, optional
         The unit of the coordinate values. If not given, this defaults to
         the unit of ``spacing`` or ``values`` if either is specified.

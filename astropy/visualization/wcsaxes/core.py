@@ -856,7 +856,7 @@ class WCSAxes(Axes):
 
         Parameters
         ----------
-        frame : :class:`~astropy.wcs.WCS` or :class:`~matplotlib.transforms.Transform` or str
+        frame : :class:`~astropy.wcs.WCS`, :class:`~matplotlib.transforms.Transform`, or str
             The frame to transform to, as for
             `~astropy.visualization.wcsaxes.WCSAxes.get_transform`.
         """

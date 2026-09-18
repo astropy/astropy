@@ -671,7 +671,7 @@ class CoordinateHelper:
         color : str or tuple, optional
             A valid Matplotlib color for the tick labels
         size : float, optional
-            The size of the ticks labels in points
+            The size of the ticks labels in points.
         pad : float, optional
             Distance in points between tick and label.
         exclude_overlapping : bool, optional
