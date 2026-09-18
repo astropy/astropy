@@ -111,6 +111,31 @@ class CompImageHDU(ImageHDU):
             range 1 to 1000 (inclusive), ``DITHER_SEED_CLOCK`` (0; default), or
             ``DITHER_SEED_CHECKSUM`` (-1); see note below
 
+        do_not_scale_image_data : bool, optional
+            If `True`, image data is not scaled using BSCALE/BZERO values
+            when read. (default: False)
+
+        uint : bool, optional
+            Interpret signed integer data where ``BZERO`` is the
+            central value and ``BSCALE == 1`` as unsigned integer
+            data.  For example, ``int16`` data with ``BZERO = 32768``
+            and ``BSCALE = 1`` would be treated as ``uint16`` data.
+            (default: True)
+
+        scale_back : bool, optional
+            If `True`, when saving changes to a file that contained scaled
+            image data, restore the data to the original type and reapply the
+            original BSCALE/BZERO values.  This could lead to loss of accuracy
+            if scaling back to integer values after performing floating point
+            operations on the data.  Pseudo-unsigned integers are automatically
+            rescaled unless scale_back is explicitly set to `False`.
+            (default: None)
+
+        bintable : `~astropy.io.fits.BinTableHDU`, optional
+            The binary table HDU holding the compressed data, used when
+            reading a compressed image from a file. Not normally given by
+            users.
+
         Notes
         -----
         The astropy.io.fits package supports 2 methods of image compression:

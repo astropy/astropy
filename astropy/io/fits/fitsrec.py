@@ -63,6 +63,13 @@ class FITS_record:
         end : int, optional
             The ending column in the row associated with this object.
             Used for subsetting the columns of the `FITS_rec` object.
+        step : int, optional
+            The step between columns in the row associated with this object.
+        base : `FITS_record`, optional
+            The record this one is a view of, if it was created by slicing
+            another `FITS_record`.
+        **kwargs
+            Ignored.
         """
         self.array = input
         self.row = row
