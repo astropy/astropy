@@ -1,0 +1,3 @@
+Fixed a race condition in which concurrent failing transforms on the same
+``WCS`` object could allocate the internal error buffer twice, leaking one
+allocation. The buffer is now allocated once when the object is created.
