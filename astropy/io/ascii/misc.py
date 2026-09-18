@@ -38,34 +38,28 @@ def sortmore(*args, **kw):
 
     Parameters
     ----------
-    One or more lists
-
-    Keywords
-    --------
-    globalkey : None
-        revert to sorting by key function
-    globalkey : callable
-        Sort by evaluated value for all items in the lists
-        (call signature of this function needs to be such that it accepts an
-        argument tuple of items from each list.
-        eg.: ``globalkey = lambda *l: sum(l)`` will order all the lists by the
-        sum of the items from each list
-
-    if key: None
-        sorting done by value of first input list
+    *args : list
+        One or more lists to sort.
+    globalkey : callable or None, optional
+        If `None` (default), sort by the ``key`` function. If a callable, sort
+        by its evaluated value for all items in the lists (its call signature
+        needs to be such that it accepts an argument tuple of items from each
+        list, e.g. ``globalkey = lambda *l: sum(l)`` will order all the lists
+        by the sum of the items from each list).
+    key : callable or tuple of callable or None, optional
+        If `None` (default), sorting is done by value of the first input list
         (in this case the objects in the first iterable need the comparison
-        methods __lt__ etc...)
-    if key: callable
-        sorting done by value of key(item) for items in first iterable
-    if key: tuple
-        sorting done by value of (key(item_0), ..., key(item_n)) for items in
-        the first n iterables (where n is the length of the key tuple)
-        i.e. the first callable is the primary sorting criterion, and the
-        rest act as tie-breakers.
+        methods ``__lt__`` etc.). If a callable, sorting is done by value of
+        ``key(item)`` for items in the first iterable. If a tuple, sorting is
+        done by value of ``(key(item_0), ..., key(item_n))`` for items in the
+        first n iterables (where n is the length of the key tuple), i.e. the
+        first callable is the primary sorting criterion, and the rest act as
+        tie-breakers.
 
     Returns
     -------
-    Sorted lists
+    sorted_lists : tuple of list
+        The sorted lists.
 
     Examples
     --------

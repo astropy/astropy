@@ -724,7 +724,7 @@ def read_data(
         List of string values to interpret as null/missing values in the data.
     encoding : str, optional
         The encoding to use when reading the file. Default is "utf-8".
-    engine_name: str, optional
+    engine_name : str, optional
         The backend engine to use for reading the data. Default is "io.ascii".
         Built-in options are "pyarrow", "pandas", and "io.ascii".
 

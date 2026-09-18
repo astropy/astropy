@@ -186,7 +186,7 @@ def write_mrt[T: Table](
 
     Parameters
     ----------
-    cosmology : |Cosmology| subclass instance
+    cosmo : |Cosmology| subclass instance, positional-only
         The cosmology to serialize.
     file : path-like or file-like
         Where to write the MRT table.

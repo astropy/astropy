@@ -2175,10 +2175,13 @@ def fitter_to_model_params_array(
         The model being fit
     fps :
         The fit parameter values to be assigned
-    use_min_max_bounds: bool
+    use_min_max_bounds : bool
         If set, the parameter bounds for the model will be enforced on each
         parameter with bounds.
         Default: True
+    fit_param_indices : array-like or None, optional, keyword-only
+        The indices of the fitted parameters, as returned by
+        `model_to_fit_params`. If `None` (default), they are computed here.
     """
     has_tied = model.has_tied
     has_bound = use_min_max_bounds and model.has_bounds
@@ -2249,7 +2252,7 @@ def fitter_to_model_params(model, fps, use_min_max_bounds=True):
         The model being fit
     fps :
         The fit parameter values to be assigned
-    use_min_max_bounds: bool
+    use_min_max_bounds : bool
         If set, the parameter bounds for the model will be enforced on each
         parameter with bounds.
         Default: True

@@ -52,8 +52,17 @@ def is_fits(origin, filepath, fileobj, *args, **kwargs):
 
     Parameters
     ----------
-    origin : str or readable file-like
-        Path or file object containing a potential FITS file.
+    origin : str
+        The I/O operation being performed, ``"read"`` or ``"write"``.
+    filepath : str or None
+        Path to the file, if available.
+    fileobj : readable file-like or None
+        File object, if available. If given, it is used in preference to
+        ``filepath``.
+    *args, **kwargs
+        Remaining arguments of the ``read`` or ``write`` call. Only the first
+        positional argument is used, and only when neither ``fileobj`` nor
+        ``filepath`` is available.
 
     Returns
     -------

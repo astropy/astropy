@@ -27,6 +27,9 @@ def _line_type(line, delimiter=None):
     ----------
     line : str
         a single line of the file
+    delimiter : str, optional
+        Any delimiter accepted by the `sep` argument of str.split(). If `None`
+        (default), split on whitespace.
 
     Returns
     -------
@@ -95,6 +98,9 @@ def _get_type_from_list_of_lines(lines, delimiter=None):
     ----------
     lines : list
         List containing one file line in each entry
+    delimiter : str, optional
+        Any delimiter accepted by the `sep` argument of str.split(). If `None`
+        (default), split on whitespace.
 
     Returns
     -------

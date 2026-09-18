@@ -926,6 +926,8 @@ class CoordinateHelper:
 
         Parameters
         ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to draw with.
         existing_bboxes : list[Bbox]
             All bboxes for ticks that have already been drawn by other
             coordinates.

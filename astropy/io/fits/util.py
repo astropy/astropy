@@ -517,6 +517,9 @@ def _array_to_file(arr, outfile):
     """
     Write a numpy array to a file or a file-like object.
 
+    If writing directly to an on-disk file this delegates directly to
+    `ndarray.tofile`.  Otherwise a slower Python implementation is used.
+
     Parameters
     ----------
     arr : ndarray
@@ -525,9 +528,6 @@ def _array_to_file(arr, outfile):
         A file-like object such as a Python file object, an `io.BytesIO`, or
         anything else with a ``write`` method.  The file object must support
         the buffer interface in its ``write``.
-
-    If writing directly to an on-disk file this delegates directly to
-    `ndarray.tofile`.  Otherwise a slower Python implementation is used.
     """
     try:
         seekable = outfile.seekable()

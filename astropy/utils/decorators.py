@@ -629,9 +629,9 @@ def future_keyword_only(names: list[str], *, since=list[str]) -> FunctionType:
 
     Parameters
     ----------
-    names: list[str]
+    names : list[str]
         names of parameters to be marked as future keyword-only
-    since: list[str]
+    since : list[str]
         versions in which each parameter was marked
 
     Examples

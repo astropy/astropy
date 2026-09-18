@@ -60,6 +60,8 @@ def showtable(filename, args):
     ----------
     filename : str
         The path to a FITS file.
+    args : argparse.Namespace
+        The parsed command-line arguments.
 
     """
     if args.info and args.stats:

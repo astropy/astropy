@@ -297,10 +297,10 @@ class Distribution:
         out : Distribution, tuple of Distribution or None
             Possible output |Distribution|. Should be `None` or a tuple if result
             is a tuple.
-        ncore_out: int or tuple thereof
+        ncore_out : int or tuple thereof
             The number of core dimensions for the output array for a gufunc.  This
             is used to determine which axis should be used for the samples.
-        axis: int or None
+        axis : int or None
             The axis a gufunc operated on.  Used only if ``ncore_out`` is given.
 
         Returns

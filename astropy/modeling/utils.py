@@ -302,9 +302,9 @@ class _SpecialOperatorsDict(UserDict):
 
         Parameters
         ----------
-        operator_name: str
+        operator_name : str
             the name for the operator
-        operator: function
+        operator : function
             the actual operator function which will be used
 
         Returns

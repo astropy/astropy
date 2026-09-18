@@ -120,7 +120,7 @@ def deprecated_keywords[R](
 
     Parameters
     ----------
-    *kws: str
+    *kws : str
         Names of the arguments that will become positional-only.
 
     since : str, float, or tuple of str or float

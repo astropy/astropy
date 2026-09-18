@@ -3138,6 +3138,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             If the user requested SIP distortion to be written out add "-SIP" to
             CTYPE if it is missing.
+        log_message : bool
+            Whether to log an informational message when "-SIP" is added.
         """
         _add_sip_to_ctype = """
         Inconsistent SIP distortion information is present in the current WCS:
