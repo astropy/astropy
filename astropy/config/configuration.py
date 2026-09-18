@@ -560,7 +560,11 @@ def get_config_filename(packageormod=None, rootname=None):
     return cfg.filename
 
 
-def get_config(packageormod=None, reload=False, rootname=None):
+def get_config(
+    packageormod: str | None = None,
+    reload: bool = False,
+    rootname: str | None = None,
+) -> configobj.ConfigObj | configobj.Section:
     """Gets the configuration object or section associated with a particular
     package or module.
 
