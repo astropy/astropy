@@ -666,6 +666,9 @@ def generate_config(pkgname="astropy", filename=None, verbose=False):
         The package for which to retrieve the configuration object.
     filename : str or file-like or None
         If None, the default configuration path is taken from `get_config`.
+    verbose : bool, optional
+        If `True`, do not silence the output or the deprecation warnings
+        raised while importing the subpackages. Default is `False`.
 
     """
     if verbose:

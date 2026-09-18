@@ -1204,6 +1204,12 @@ class TimeDatetime(TimeUnique):
             If ``raise`` (default), raise an exception if the time is within a leap
             second. If ``warn`` then issue a warning. If ``silent`` then silently
             handle the leap second.
+        parent : object, optional
+            Parent `~astropy.time.Time` object associated with this
+            `~astropy.time.TimeFormat` object. Not used by this format.
+        out_subfmt : str or None, optional
+            Output subformat. This format has no subformats, so any value other
+            than `None` raises an exception.
 
         Returns
         -------

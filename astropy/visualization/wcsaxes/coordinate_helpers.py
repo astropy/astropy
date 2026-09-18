@@ -558,12 +558,16 @@ class CoordinateHelper:
             The approximate number of ticks shown.
         size : float, optional
             The length of the ticks in points
+        width : float, optional
+            The width of the ticks in points
         color : str or tuple, optional
             A valid Matplotlib color for the ticks
         alpha : float, optional
             The alpha value (transparency) for the ticks.
         direction : {'in','out'}, optional
             Whether the ticks should point inwards or outwards.
+        exclude_overlapping : bool, optional
+            Deprecated; pass this to `set_ticklabel` instead.
         """
         if sum([values is None, spacing is None, number is None]) < 2:
             raise ValueError(

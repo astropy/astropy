@@ -47,11 +47,13 @@ def custom_stokes_symbol_mapping(
 
     Parameters
     ----------
-    mappings
-        A list of dictionaries with custom mappings between values (integers)
+    mapping : dict[int, StokesSymbol]
+        A dictionary with custom mappings between values (integers)
         and `.StokesSymbol` classes.
-    replace
-        Replace all mappings with this one.
+    replace : bool, optional
+        Replace all mappings with this one. Default is `False`, meaning the
+        custom mappings are added to (and take precedence over) the default
+        mappings.
     """
     global STOKES_VALUE_SYMBOL_MAP
 

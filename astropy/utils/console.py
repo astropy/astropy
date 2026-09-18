@@ -197,7 +197,7 @@ def color_print(*args, end="\n", **kwargs):
 
     Parameters
     ----------
-    positional args : str
+    *args : str
         The positional arguments come in pairs (*msg*, *color*), where
         *msg* is the string to display and *color* is the color to
         display it in.
