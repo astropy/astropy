@@ -68,6 +68,22 @@ def _fix_minus(labels: list[str], /) -> list[str]:
 class BaseFormatterLocator:
     """
     A joint formatter/locator.
+
+    Parameters
+    ----------
+    values : `~astropy.units.Quantity`, optional
+        The locations of the ticks. At most one of ``values``, ``number``,
+        and ``spacing`` can be specified.
+    number : int, optional
+        The approximate number of ticks.
+    spacing : `~astropy.units.Quantity`, optional
+        The spacing between ticks.
+    format : str, optional
+        The format to use for the tick labels.
+    unit : `~astropy.units.Unit`, optional
+        The unit of the coordinate values.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use for the tick labels. Defaults to ``unit``.
     """
 
     def __init__(
@@ -161,12 +177,31 @@ class BaseFormatterLocator:
 
 class AngleFormatterLocator(BaseFormatterLocator):
     """
-    A joint formatter/locator.
+    A joint formatter/locator for angular coordinates.
 
     Parameters
     ----------
+    values : `~astropy.units.Quantity`, optional
+        The locations of the ticks. At most one of ``values``, ``number``,
+        and ``spacing`` can be specified.
     number : int, optional
-        Number of ticks.
+        The approximate number of ticks.
+    spacing : `~astropy.units.Quantity` ['angle'], optional
+        The spacing between ticks.
+    format : str, optional
+        The format to use for the tick labels, e.g., ``'dd:mm:ss'`` or
+        ``'d.ddd'``.
+    unit : `~astropy.units.Unit`, optional
+        The unit of the coordinate values. Defaults to degrees.
+    decimal : bool, optional
+        Whether to use decimal formatting for the tick labels. By default,
+        this is `True` unless the format unit is degrees or hours, in which
+        case sexagesimal formatting is used.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use for the tick labels. Defaults to ``unit``.
+    show_decimal_unit : bool, optional
+        Whether to include the unit in the tick labels when using decimal
+        formatting.
     """
 
     def __init__(
@@ -514,7 +549,24 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
 class ScalarFormatterLocator(BaseFormatterLocator):
     """
-    A joint formatter/locator.
+    A joint formatter/locator for scalar (non-angular) coordinates.
+
+    Parameters
+    ----------
+    values : `~astropy.units.Quantity`, optional
+        The locations of the ticks. At most one of ``values``, ``number``,
+        and ``spacing`` can be specified.
+    number : int, optional
+        The approximate number of ticks.
+    spacing : `~astropy.units.Quantity`, optional
+        The spacing between ticks.
+    format : str, optional
+        The format to use for the tick labels, e.g., ``'x.xxx'``.
+    unit : `~astropy.units.Unit`, optional
+        The unit of the coordinate values. If not given, this defaults to
+        the unit of ``spacing`` or ``values`` if either is specified.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use for the tick labels. Defaults to ``unit``.
     """
 
     def __init__(

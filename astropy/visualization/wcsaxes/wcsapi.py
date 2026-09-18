@@ -297,6 +297,14 @@ def apply_slices(wcs, slices):
     """
     Take the input WCS and slices and return a sliced WCS for the transform and
     a mapping of world axes in the sliced WCS to the input WCS.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.wcsapi.BaseLowLevelWCS`
+        The WCS to slice.
+    slices : tuple or `None`
+        A tuple with one element for each pixel dimension of the WCS, where
+        the elements are either ``'x'``, ``'y'``, an integer, or a slice.
     """
     if isinstance(wcs, SlicedLowLevelWCS):
         world_keep = list(wcs._world_keep)
@@ -332,6 +340,14 @@ def wcsapi_to_celestial_frame(wcs):
 class WCSWorld2PixelTransform(CurvedTransform):
     """
     WCS transformation from world to pixel coordinates.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.wcsapi.BaseLowLevelWCS`
+        The WCS defining the transformation, which should have at most two
+        pixel dimensions.
+    invert_xy : bool, optional
+        Whether to swap the two pixel coordinates.
     """
 
     has_inverse = True
@@ -403,6 +419,14 @@ class WCSWorld2PixelTransform(CurvedTransform):
 class WCSPixel2WorldTransform(CurvedTransform):
     """
     WCS transformation from pixel to world coordinates.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.wcsapi.BaseLowLevelWCS`
+        The WCS defining the transformation, which should have at most two
+        pixel dimensions.
+    invert_xy : bool, optional
+        Whether to swap the two pixel coordinates.
     """
 
     has_inverse = True

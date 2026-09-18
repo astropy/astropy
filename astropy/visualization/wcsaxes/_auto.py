@@ -13,6 +13,11 @@ def auto_assign_coord_positions(ax):
     This function operates in-place on the axes and assumes that
     ``_update_ticks`` has already been called on all the ``CoordinateHelper``
     instances.
+
+    Parameters
+    ----------
+    ax : `~astropy.visualization.wcsaxes.WCSAxes`
+        The axes to update.
     """
     # Since ticks, tick labels and axis labels can all be auto or fixed, we need
     # a few rules to decide in what order to process things:
