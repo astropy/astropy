@@ -1,0 +1,1 @@
+``TRFLSQFitter`` now accepts an optional ``x_scale`` argument that is passed to ``scipy.optimize.least_squares``.
