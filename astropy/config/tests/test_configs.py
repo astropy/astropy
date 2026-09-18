@@ -10,7 +10,7 @@ from contextlib import chdir, suppress
 from inspect import cleandoc
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Literal
+from typing import Literal, NotRequired, TypedDict
 from uuid import uuid4
 
 import pytest
@@ -488,7 +488,7 @@ def test_set_temp_cache_resets_on_exception(tmp_path: Path) -> None:
 
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_file() -> None:
-    from astropy.config.configuration import get_config, reload_config
+    from astropy.config.configuration import get_config
 
     apycfg = get_config("astropy")
     assert apycfg.filename.endswith("astropy.cfg")
@@ -498,34 +498,44 @@ def test_config_file() -> None:
     assert cfgsec.name == "config"
     assert cfgsec.parent.filename.endswith("astropy.cfg")
 
-    # try with a different package name, still inside astropy config dir:
-    testcfg = get_config("testpkg", rootname="astropy")
-    parts = os.path.normpath(testcfg.filename).split(os.sep)
-    assert ".astropy" in parts or "astropy" in parts
-    assert parts[-1] == "testpkg.cfg"
-    configuration._cfgobjs["testpkg"] = None  # HACK
 
-    # try with a different package name, no specified root name (should
-    #   default to astropy):
-    testcfg = get_config("testpkg")
-    parts = os.path.normpath(testcfg.filename).split(os.sep)
-    assert ".astropy" in parts or "astropy" in parts
-    assert parts[-1] == "testpkg.cfg"
-    configuration._cfgobjs["testpkg"] = None  # HACK
+class RootNameKwarg(TypedDict):
+    rootname: NotRequired[str]
 
-    # try with a different package name, specified root name:
-    testcfg = get_config("testpkg", rootname="testpkg")
-    parts = os.path.normpath(testcfg.filename).split(os.sep)
-    assert ".testpkg" in parts or "testpkg" in parts
-    assert parts[-1] == "testpkg.cfg"
-    configuration._cfgobjs["testpkg"] = None  # HACK
 
-    # try with a subpackage with specified root name:
-    testcfg_sec = get_config("testpkg.somemodule", rootname="testpkg")
-    parts = os.path.normpath(testcfg_sec.parent.filename).split(os.sep)
-    assert ".testpkg" in parts or "testpkg" in parts
-    assert parts[-1] == "testpkg.cfg"
-    configuration._cfgobjs["testpkg"] = None  # HACK
+@pytest.mark.parametrize(
+    "module_name, kwargs",
+    [
+        # try with a different package name, still inside astropy config dir
+        pytest.param(
+            "test_pkg",
+            {"rootname": "astropy"},
+            id="internal-rootname",
+        ),
+        # specified root name; should default to astropy
+        pytest.param("test_pkg", {}, id="default-rootname"),
+        # try with a different package name, specified root name
+        pytest.param("test_pkg", {"rootname": "test_rootname"}, id="external-rootname"),
+        # try with a subpackage with specified root name
+        pytest.param(
+            "test_pkg.test_module",
+            {"rootname": "test_rootname"},
+            id="external-rootname-submodule",
+        ),
+    ],
+)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_config_file_edge_case(module_name, kwargs: RootNameKwarg):
+    from astropy.config.configuration import get_config, reload_config
+
+    cfg = get_config(module_name, **kwargs)
+    parts = os.path.normpath(cfg.filename).split(os.sep)
+    if (rp := kwargs.get("rootname")) is not None:
+        assert rp in parts
+    else:
+        assert module_name in parts
+
+    assert parts[-1] == f"{module_name}.cfg"
 
     reload_config("astropy")
 
