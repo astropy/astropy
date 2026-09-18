@@ -6,7 +6,9 @@ from astropy.cosmology._src.traits.darkenergy import DarkEnergyComponent
 from .helper import is_positional_only
 
 
-class MinimalDarkEnergy(DarkEnergyComponent):
+class FailingDarkEnergy(DarkEnergyComponent):
+    """A class that fails to implement the required inv_efunc method."""
+
     Ode0 = 0.7
 
     def w(self, z, /):
@@ -19,13 +21,8 @@ class ConcreteDarkEnergy(DarkEnergyComponent):
     def w(self, z, /):
         return -1.0
 
-    def inv_efunc(self, z):
+    def inv_efunc(self, z, /):
         return np.ones_like(np.asarray(z))
-
-
-@pytest.fixture
-def minimal_de():
-    return MinimalDarkEnergy()
 
 
 @pytest.fixture
@@ -33,12 +30,12 @@ def concrete_de():
     return ConcreteDarkEnergy()
 
 
-def test_darkenergy_signature_and_missing_inv_efunc_raises(minimal_de):
+def test_darkenergy_signature_and_missing_inv_efunc_raises():
     assert hasattr(DarkEnergyComponent, "w")
     assert is_positional_only(DarkEnergyComponent.w, "z")
-    # Ode requires inv_efunc; calling should raise NotImplementedError
-    with pytest.raises(NotImplementedError):
-        minimal_de.Ode(1)
+    # inv_efunc is abstract; FailingDarkEnergy (which lacks it) cannot be instantiated
+    with pytest.raises(TypeError, match="abstract"):
+        FailingDarkEnergy()
 
 
 def test_darkenergy_with_inv_efunc(concrete_de):
