@@ -181,7 +181,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
     Parameters
     ----------
-    values : `~astropy.units.Quantity` array, optional
+    values : `~astropy.units.Quantity`, optional
         The locations of the ticks. At most one of ``values``, ``number``,
         and ``spacing`` can be specified.
     number : int, optional
@@ -553,7 +553,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
 
     Parameters
     ----------
-    values : `~astropy.units.Quantity` array, optional
+    values : `~astropy.units.Quantity`, optional
         The locations of the ticks. At most one of ``values``, ``number``,
         and ``spacing`` can be specified.
     number : int, optional
