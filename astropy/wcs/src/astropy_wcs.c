@@ -23,6 +23,7 @@
 #include <time.h>
 
 #include <tab.h>
+#include <wcserr.h>
 #include <wtbarr.h>
 
 /***************************************************************************
@@ -107,6 +108,13 @@ Wcs_new(
   self = (Wcs*)alloc_func(type, 0);
   if (self != NULL) {
     pipeline_clear(&self->x);
+    /* Wcs_init fills the pipeline without calling pipeline_init, so
+     * the eager wcserr allocation has to happen here. */
+    self->x.err = calloc(1, sizeof(struct wcserr));
+    if (self->x.err == NULL) {
+      Py_DECREF(self);
+      return PyErr_NoMemory();
+    }
     self->py_det2im[0]            = NULL;
     self->py_det2im[1]            = NULL;
     self->py_sip                  = NULL;
