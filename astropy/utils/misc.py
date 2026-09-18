@@ -180,6 +180,7 @@ class NumpyRNGContext:
         np.random.set_state(self.startstate)
 
 
+@deprecated(since="8.1", alternative="online_help")
 def find_api_page(
     obj: object,
     version: str | None = None,
