@@ -1,13 +1,26 @@
+import erfa
 import numpy as np
 import pytest
+from numpy.testing import assert_allclose, assert_array_equal
 
 import astropy.units as u
-from astropy.coordinates import CIRS, GCRS, AltAz, EarthLocation, SkyCoord
+from astropy.coordinates import (
+    CIRS,
+    GCRS,
+    ICRS,
+    ITRS,
+    TETE,
+    AltAz,
+    EarthLocation,
+    GeocentricTrueEcliptic,
+    SkyCoord,
+)
 from astropy.coordinates.erfa_astrom import (
     ErfaAstrom,
     ErfaAstromInterpolator,
     erfa_astrom,
 )
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
 from astropy.utils.exceptions import AstropyWarning
 
@@ -122,3 +135,80 @@ def test_interpolation_broadcasting():
 
     assert aa_coord.shape == aa_coord_interp.shape
     assert np.all(aa_coord.separation(aa_coord_interp) < 1 * u.microarcsecond)
+
+
+@pytest.mark.parametrize("shape", [(), (1,), (100,), (5, 20)])
+@pytest.mark.parametrize("scale", ["utc", "tt", "tdb"])
+def test_nut06a(shape, scale):
+    t0 = Time("2025-01-01", scale=scale)
+    times = t0 + np.linspace(0, 2, np.prod(shape, dtype=int)).reshape(shape) * u.hour
+
+    expected = erfa.nut06a(times.tt.jd1, times.tt.jd2)
+    direct = ErfaAstrom().nut06a(times)
+    assert_array_equal(expected, direct)
+
+    interpolated = ErfaAstromInterpolator(300 * u.s).nut06a(times)
+    atol = (1 * u.microarcsecond).to_value(u.rad)
+    assert_allclose(interpolated, expected, rtol=0, atol=atol)
+
+
+@pytest.mark.parametrize("inverse", [False, True])
+def test_true_ecliptic_nutation_interpolation(inverse):
+    # Vary equinox independently of obstime, as in an ecliptic-of-date grid.
+    equinox = Time("2025-01-01") + np.linspace(0, 2, 1000) * u.hour
+    ecliptic = GeocentricTrueEcliptic(equinox=equinox)
+    coord = SkyCoord(
+        np.linspace(0, 360, 1000, endpoint=False) * u.deg,
+        0 * u.deg,
+        frame=ecliptic if inverse else ICRS(),
+    )
+    target = ICRS() if inverse else ecliptic
+    reference = coord.transform_to(target)
+    with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
+        interpolated = coord.transform_to(target)
+
+    separation = reference.separation(interpolated)
+    atol = 1 * u.microarcsecond
+    assert_quantity_allclose(separation, 0 * u.microarcsecond, rtol=0, atol=atol)
+
+
+@pytest.mark.parametrize("frames", [(GCRS, CIRS), (GCRS, TETE), (TETE, ITRS)])
+@pytest.mark.parametrize("inverse", [False, True])
+@pytest.mark.parametrize("shape", [(), (100,), (5, 20)])
+def test_intermediate_nutation_interpolation(frames, inverse, shape):
+    obstime = Time("2025-01-01") + (
+        np.linspace(0, 2, np.prod(shape, dtype=int)).reshape(shape) * u.hour
+    )
+    source, target = frames[::-1] if inverse else frames
+    coord = SkyCoord(
+        83 * u.deg,
+        22 * u.deg,
+        frame=source(obstime=obstime),
+        representation_type="unitspherical",
+    )
+    target = target(obstime=obstime)
+    reference = coord.transform_to(target)
+    with erfa_astrom.set(ErfaAstromInterpolator(300 * u.s)):
+        interpolated = coord.transform_to(target)
+
+    assert interpolated.shape == shape
+    separation = reference.separation(interpolated)
+    atol = 1 * u.microarcsecond
+    assert_quantity_allclose(separation, 0 * u.microarcsecond, rtol=0, atol=atol)
+    if shape:
+        # Ensure the transformation actually uses interpolated nutation.
+        assert np.any(separation > 0.005 * u.microarcsecond)
+
+
+@pytest.mark.parametrize("shape", [(), (10,), (2, 5)])
+def test_nutation_matrices_match_erfa(shape):
+    time = Time("2025-01-01") + (
+        np.linspace(0, 365, np.prod(shape, dtype=int)).reshape(shape) * u.day
+    )
+    tt = time.tt
+    expected = erfa.pnm06a(tt.jd1, tt.jd2)
+    assert_array_equal(ErfaAstrom().pnm06a(time), expected)
+
+    interpolated = ErfaAstromInterpolator(5 * u.min).pnm06a(time)
+    atol = (1 * u.microarcsecond).to_value(u.rad)
+    assert_allclose(interpolated, expected, rtol=0, atol=atol)
