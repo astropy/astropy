@@ -29,6 +29,61 @@ from astropy.utils.data import (
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 
+def test_c_tabledata_writer_buffer_overflow():
+    """
+    Regression test for Issue #20419:
+    https://github.com/astropy/astropy/issues/20419
+
+    Ensures the C tablewriter correctly calculates buffer allocations
+    when handling masked values and XML entity expansion (&, <, >),
+    preventing heap corruption and buffer overflows during serialization.
+    """
+    votable = tree.VOTableFile()
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    # Recreate the schema from the issue
+    col_names = ["ID", "access_url", "error_message", "description"]
+    for name in col_names:
+        table.fields.append(
+            tree.Field(votable, name=name, datatype="char", arraysize="*")
+        )
+    table.fields.append(tree.Field(votable, name="content_length", datatype="long"))
+
+    # Force XML entity expansion to test buffer length math
+    base_str = "x" * 150 + "&<>" * 10
+
+    data = []
+    mask = []
+    for i in range(10):
+        data.append(
+            (
+                base_str,
+                "http://example.com/test&param=1",
+                None,  # Masked string cell
+                "Description",
+                100,
+            )
+        )
+        mask.append((False, False, True, False, False))
+
+    table.create_arrays(10)
+    table.array = np.ma.array(
+        data,
+        mask=mask,
+        dtype=[(name, "O") for name in col_names] + [("content_length", "i8")],
+    )
+
+    out = io.BytesIO()
+    # Forces the C writer path
+    votable.to_xml(out, _debug_python_based_parser=False)
+
+    xml_output = out.getvalue().decode("utf-8")
+    assert "&amp;&lt;&gt;" in xml_output
+
+
 @pytest.fixture
 def home_is_data(monkeypatch):
     """
