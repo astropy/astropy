@@ -613,8 +613,17 @@ class LombScargle(BasePeriodogram):
             The periodogram value.
         method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
             The approximation method to use.
-        maximum_frequency : float
-            The maximum frequency of the periodogram.
+        samples_per_peak : float, optional
+            The approximate number of desired samples across the typical peak
+        nyquist_factor : float, optional
+            The multiple of the average nyquist frequency used to choose the
+            maximum frequency if maximum_frequency is not provided.
+        minimum_frequency : float, optional
+            If specified, then use this minimum frequency rather than one
+            chosen based on the size of the baseline.
+        maximum_frequency : float, optional
+            If specified, then use this maximum frequency rather than one
+            chosen based on the average nyquist frequency.
         method_kwds : dict, optional
             Additional method-specific keywords.
 
@@ -697,10 +706,19 @@ class LombScargle(BasePeriodogram):
         ----------
         false_alarm_probability : array-like
             The false alarm probability (0 < fap < 1).
-        maximum_frequency : float
-            The maximum frequency of the periodogram.
         method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
             The approximation method to use; default='baluev'.
+        samples_per_peak : float, optional
+            The approximate number of desired samples across the typical peak
+        nyquist_factor : float, optional
+            The multiple of the average nyquist frequency used to choose the
+            maximum frequency if maximum_frequency is not provided.
+        minimum_frequency : float, optional
+            If specified, then use this minimum frequency rather than one
+            chosen based on the size of the baseline.
+        maximum_frequency : float, optional
+            If specified, then use this maximum frequency rather than one
+            chosen based on the average nyquist frequency.
         method_kwds : dict, optional
             Additional method-specific keywords.
 

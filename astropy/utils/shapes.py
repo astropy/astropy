@@ -143,6 +143,22 @@ class NDArrayShapeMethods:
 
         Parameters are as for :meth:`~numpy.ndarray.take`, except that,
         obviously, no output array can be given.
+
+        Parameters
+        ----------
+        indices : array-like
+            The indices of the values to extract, as for
+            :meth:`~numpy.ndarray.take`.
+        axis : int or None, optional
+            The axis over which to select values.  By default, the flattened
+            input array is used.
+        out : None
+            Present only for compatibility with :meth:`~numpy.ndarray.take`;
+            an output array cannot be given, and any value other than `None`
+            raises `NotImplementedError`.
+        mode : {'raise', 'wrap', 'clip'}, optional
+            Specifies how out-of-bounds indices will behave, as for
+            :meth:`~numpy.ndarray.take`.
         """
         if out is not None:
             raise NotImplementedError("cannot pass 'out' argument to 'take.")

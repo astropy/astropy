@@ -1334,6 +1334,9 @@ class TimeBase(MaskableShapedLikeNDArray):
             Time format of the replica.
         copy : bool, optional
             Return a true copy instead of using references where possible.
+        cls : type, optional
+            Class of the replica.  If `None` (default), the class of this
+            object is used.
 
         Returns
         -------

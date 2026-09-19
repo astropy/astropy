@@ -3797,7 +3797,7 @@ class Table:
 
         Parameters
         ----------
-        decimals: int, dict
+        decimals : int or dict
             Number of decimals to round the columns to. If a dict is given,
             the columns will be rounded to the number specified as the value.
             If a certain column is not in the dict given, it will remain the

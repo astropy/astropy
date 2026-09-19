@@ -41,8 +41,8 @@ def normal(
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
-
-    Remaining keywords are passed into the constructor of the ``cls``
+    **kwargs
+        Remaining keywords are passed into the constructor of the ``cls``.
 
     Returns
     -------
@@ -99,8 +99,8 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
-
-    Remaining keywords are passed into the constructor of the ``cls``
+    **kwargs
+        Remaining keywords are passed into the constructor of the ``cls``.
 
     Returns
     -------
@@ -173,8 +173,8 @@ def uniform(
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
-
-    Remaining keywords are passed into the constructor of the ``cls``
+    **kwargs
+        Remaining keywords are passed into the constructor of the ``cls``.
 
     Returns
     -------

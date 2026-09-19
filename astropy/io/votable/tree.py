@@ -3498,6 +3498,11 @@ class TableElement(
         """
         Convert this VO Table to an `astropy.table.Table` instance.
 
+        .. warning::
+           Variable-length array fields may not be restored
+           identically when round-tripping through the
+           `astropy.table.Table` instance.
+
         Parameters
         ----------
         use_names_over_ids : bool, optional
@@ -3508,10 +3513,10 @@ class TableElement(
            Otherwise (default), use the ID attributes as the column
            names.
 
-        .. warning::
-           Variable-length array fields may not be restored
-           identically when round-tripping through the
-           `astropy.table.Table` instance.
+        Returns
+        -------
+        table : `astropy.table.Table`
+            The converted table.
         """
         from astropy.table import Table
 
@@ -4715,6 +4720,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         Parameters
         ----------
+        table : `astropy.table.Table`
+            The table to convert.
         table_id : str, optional
             Set the given ID attribute on the returned TableElement instance.
         """

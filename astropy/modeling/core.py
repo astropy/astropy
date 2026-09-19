@@ -4380,6 +4380,14 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
         A dictionary where the key identifies which input to fix
         and its value is the value to fix it at. The key may either be the
         name of the input or a number reflecting its order in the inputs.
+    bounding_boxes : dict, optional
+        A dictionary of bounding boxes for the fixed model, keyed on the fixed
+        input values, from which a `~astropy.modeling.bounding_box.CompoundBoundingBox`
+        is constructed. If not given, the returned model has no bounding box.
+    selector_args : list of tuple, optional
+        The selector arguments used to construct the compound bounding box from
+        ``bounding_boxes``. If not given, defaults to ``(key, True)`` for each
+        input named in ``values``.
 
     Examples
     --------
@@ -4494,13 +4502,16 @@ def custom_model(*args, fit_deriv=None):
 
     Parameters
     ----------
-    func : function
+    func : function, optional
         Function which defines the model.  It should take N positional
         arguments where ``N`` is dimensions of the model (the number of
         independent variable in the model), and any number of keyword arguments
         (the parameters).  It must return the value of the model (typically as
         an array, but can also be a scalar for scalar inputs).  This
         corresponds to the `~astropy.modeling.Model.evaluate` method.
+        This is the only positional argument accepted, and it is omitted when
+        `custom_model` is used as a decorator with keyword arguments (see the
+        examples below).
     fit_deriv : function, optional
         Function which defines the Jacobian derivative of the model. I.e., the
         derivative with respect to the *parameters* of the model.  It should
@@ -4805,14 +4816,14 @@ def compose_models_with_units(left, right):
 
     Parameters
     ----------
-    left: `~astropy.modeling.Model`
+    left : `~astropy.modeling.Model`
         The model to the left of the ``|`` operator.
-    right: `~astropy.modeling.Model`
+    right : `~astropy.modeling.Model`
         The model to the right of the ``|`` operator.
 
     Returns
     -------
-    model: `~astropy.modeling.CompoundModel`
+    model : `~astropy.modeling.CompoundModel`
         The composed left ``|`` right, with unit change through ``|`` enabled.
     """
     model = left | right
