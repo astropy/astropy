@@ -141,6 +141,9 @@ class NDArrayShapeMethods:
     def take(self, indices, axis=None, out=None, mode="raise"):
         """Return a new instance formed from the elements at the given indices.
 
+        Parameters are as for :meth:`~numpy.ndarray.take`, except that,
+        obviously, no output array can be given.
+
         Parameters
         ----------
         indices : array-like
