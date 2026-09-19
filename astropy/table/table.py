@@ -4217,7 +4217,7 @@ class Table:
         *,
         index: bool | str | None = None,
         use_nullable_int: bool = True,
-    ) -> Any:  # Returns a Dataframe of type depending on backend
+    ):  # Returns a Dataframe of type depending on backend
         """
         Convert the table to an eager DataFrame using the ``narwhals`` backend.
 
@@ -4250,7 +4250,7 @@ class Table:
 
         Returns
         -------
-        dataframe : Any
+        dataframe
             An eager DataFrame instance as specified by the backend.
 
         Raises
@@ -4291,7 +4291,7 @@ class Table:
 
     @classmethod
     def from_df(
-        cls, df: Any, /, *, index: bool = False, units: Mapping[str, Any] | None = None
+        cls, df, /, *, index: bool = False, units: Mapping[str, Any] | None = None
     ) -> Table:
         """
         Create a `~astropy.table.Table` from any ``narwhals``-compatible dataframe
@@ -4369,7 +4369,7 @@ class Table:
 
     def to_pandas(
         self, index: bool | str | None = None, use_nullable_int: bool = True
-    ) -> Any:  # Returns pandas.DataFrame but pandas may not be installed
+    ):  # Returns pandas.DataFrame but pandas may not be installed
         """
         Return a :class:`pandas.DataFrame` instance.
 
