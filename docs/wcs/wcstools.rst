@@ -83,17 +83,13 @@ returned WCS are always degrees.
     ... )
     >>> xy = (x, y)
     >>> wcs = fit_wcs_from_points(xy, world, origin=1, projection="TAN")
-    >>> print(wcs)
-    WCS Keywords
-    <BLANKLINE>
-    Number of WCS axes: 2
-    CTYPE : 'RA---TAN' 'DEC--TAN'
-    CUNIT : 'deg' 'deg'
-    CRVAL : 10.100006366283209 20.0400070233876
-    CRPIX : 10.000636628442498 4.0002341129981005
-    CD1_1 CD1_2  : 0.00939453813176144 3.807555317347415e-10
-    CD2_1 CD2_2  : -3.577033090976085e-10 0.010000002348464697
-    NAXIS : 14  5
+    >>> print(wcs.wcs.crpix)  # doctest: +FLOAT_CMP
+    [10.00063662  4.00023217]
+    >>> print(wcs.wcs.crval)  # doctest: +FLOAT_CMP
+    [10.10000637 20.04000702]
+    >>> print(wcs.wcs.cd)  # doctest: +FLOAT_CMP
+    [[ 9.39453810e-03  3.81283223e-10]
+    [-3.65083372e-10  1.00000023e-02]]
 
 See :func:`~astropy.wcs.utils.fit_wcs_from_points` for the full argument
 list, including ``sip_degree`` and ``projection``.
