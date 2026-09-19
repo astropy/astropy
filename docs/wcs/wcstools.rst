@@ -82,10 +82,10 @@ returned WCS are always degrees.
     ...     frame="icrs",
     ... )
     >>> xy = (x, y)
-    >>> wcs = fit_wcs_from_points(xy, world, projection="TAN")
-    >>> list(wcs.wcs.ctype)
+    >>> wcs = fit_wcs_from_points(xy, world, origin=1, projection="TAN")
+    >>> print(wcs)
     WCS Keywords
-
+    <BLANKLINE>
     Number of WCS axes: 2
     CTYPE : 'RA---TAN' 'DEC--TAN'
     CUNIT : 'deg' 'deg'
