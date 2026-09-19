@@ -148,7 +148,7 @@ class MetaAttribute:
 
     Parameters
     ----------
-    default : Any, optional
+    default , optional
         Default value for the attribute, by default `None`.
     """
 

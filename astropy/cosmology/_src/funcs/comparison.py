@@ -59,7 +59,7 @@ class _CosmologyWrapper:
 
 
 @functools.partial(np.frompyfunc, nin=2, nout=1)
-def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
+def _parse_format(cosmo, format: _FormatType, /) -> Cosmology:
     """Parse Cosmology-like input into Cosmologies, given a format hint.
 
     Parameters
@@ -183,7 +183,7 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
     # Make wrapper function that parses cosmology-like inputs
     @functools.wraps(pyfunc)
-    def wrapper(*cosmos: Any, format: _FormatsType = False, **kwargs: Any) -> bool:
+    def wrapper(*cosmos, format: _FormatsType = False, **kwargs) -> bool:
         if len(cosmos) > nin:
             raise TypeError(
                 f"{wrapper.__wrapped__.__name__} takes {nin} positional"
@@ -203,9 +203,7 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @_comparison_decorator
-def cosmology_equal(
-    cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False
-) -> bool:
+def cosmology_equal(cosmo1, cosmo2, /, *, allow_equivalent: bool = False) -> bool:
     r"""Return element-wise equality check on the cosmologies.
 
     .. note::
@@ -320,9 +318,7 @@ def cosmology_equal(
 
 
 @_comparison_decorator
-def _cosmology_not_equal(
-    cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False
-) -> bool:
+def _cosmology_not_equal(cosmo1, cosmo2, /, *, allow_equivalent: bool = False) -> bool:
     r"""Return element-wise cosmology non-equality check.
 
     .. note::

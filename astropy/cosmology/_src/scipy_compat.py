@@ -2,7 +2,7 @@
 
 __all__ = ("ellipkinc", "hyp2f1", "quad")
 
-from typing import Any, Never
+from typing import Never
 
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -12,11 +12,11 @@ if HAS_SCIPY:
 
 else:
 
-    def quad(*args: Any, **kwargs: Any) -> Never:
+    def quad(*args, **kwargs) -> Never:
         raise ModuleNotFoundError("No module named 'scipy.integrate'")
 
-    def ellipkinc(*args: Any, **kwargs: Any) -> Never:
+    def ellipkinc(*args, **kwargs) -> Never:
         raise ModuleNotFoundError("No module named 'scipy.special'")
 
-    def hyp2f1(*args: Any, **kwargs: Any) -> Never:
+    def hyp2f1(*args, **kwargs) -> Never:
         raise ModuleNotFoundError("No module named 'scipy.special'")
