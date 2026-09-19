@@ -45,3 +45,51 @@ More information on using WCSAxes can be found :ref:`here <wcsaxes>`.
     fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     ax.imshow(hdu.data, origin='lower', cmap='viridis')
     ax.set(xlabel='RA', ylabel='Dec')
+
+
+Fitting a WCS from matched pixel and sky coordinates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Given a fiducial point and a celestial projection type,
+`~astropy.wcs.utils.fit_wcs_from_points` constructs a FITS WCS from two
+matched lists: detector pixel positions and their corresponding celestial
+coordinates. This is accomplished by fitting the WCS parameters (``CRPIX``,
+``CD`` matrix, and optionally SIP distortion coefficients) to the provided
+matched points.
+
+The fiducial point of the spherical projection can be specified as
+a `~astropy.coordinates.SkyCoord`; by default, it is set to the mean of the
+input sky coordinates (``proj_point='center'``). The projection type can be
+specified either as a three-letter projection code (for example, ``'TAN'``
+for the gnomonic projection) or as a WCS object with a defined projection
+type. If not provided, the projection defaults to ``'TAN'``.
+
+Pixel coordinates must follow the FITS convention: the center of the
+bottom-left pixel is ``(1, 1)``.  Units of the celestial coordinates of the
+returned WCS are always degrees.
+
+.. doctest-requires:: scipy
+
+    >>> import numpy as np
+    >>> import astropy.units as u
+    >>> from astropy.coordinates import SkyCoord
+    >>> from astropy.wcs.utils import fit_wcs_from_points
+    >>> x, y = np.meshgrid([5.0, 10.0, 15.0], [2.0, 4.0, 6.0])
+    >>> x, y = x.ravel(), y.ravel()
+    >>> world = SkyCoord(
+    ...     (10.0 + x * 0.01) * u.deg,
+    ...     (20.0 + y * 0.01) * u.deg,
+    ...     frame="icrs",
+    ... )
+    >>> xy = (x, y)
+    >>> wcs = fit_wcs_from_points(xy, world, origin=1, projection="TAN")
+    >>> print(wcs.wcs.crpix)  # doctest: +FLOAT_CMP
+    [10.00063662  4.00023217]
+    >>> print(wcs.wcs.crval)  # doctest: +FLOAT_CMP
+    [10.10000637 20.04000702]
+    >>> print(wcs.wcs.cd)  # doctest: +FLOAT_CMP
+    [[ 9.39453810e-03  3.81283223e-10]
+    [-3.65083372e-10  1.00000023e-02]]
+
+See :func:`~astropy.wcs.utils.fit_wcs_from_points` for the full argument
+list, including ``sip_degree`` and ``projection``.

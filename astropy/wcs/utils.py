@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -16,7 +17,7 @@ from astropy.coordinates import (
 )
 from astropy.utils import unbroadcast
 
-from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+from .wcs import PRJ_CODES, WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
 
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
@@ -49,6 +50,12 @@ SOLAR_SYSTEM_OBJ_DICT = {
     "UR": "Uranus",
     "NE": "Neptune",
 }
+
+_UNSUPPORTED_PRJ_CODES = {"ZPN", "BON", "COD", "COE", "COO", "COP"}
+
+SUPPORTED_PRJ_CODES = set(PRJ_CODES) - _UNSUPPORTED_PRJ_CODES
+
+_ARG_NOT_SET = object()
 
 
 @lru_cache(maxsize=100)
@@ -1001,7 +1008,7 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
 
     w_obj.wcs.cd = ((cd[0], cd[1]), (cd[2], cd[3]))
     w_obj.wcs.crpix = crpix
-    lon2, lat2 = w_obj.wcs_pix2world(x, y, 0)
+    lon2, lat2 = w_obj.wcs_pix2world(x, y, 1)
 
     lat_resids = lat - lat2
     lon_resids = lon - lon2
@@ -1052,7 +1059,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     xo, yo = np.dot(cdx, np.array([u + fuv - crpix[0], v + guv - crpix[1]]))
 
     # use all pix2world in case `projection` contains distortion table
-    x, y = w_obj.all_world2pix(lon, lat, 0)
+    x, y = w_obj.all_world2pix(lon, lat, 1)
     x, y = np.dot(w_obj.wcs.cd, (x - w_obj.wcs.crpix[0], y - w_obj.wcs.crpix[1]))
 
     resids = np.concatenate((x - xo, y - yo))
@@ -1061,7 +1068,12 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
 
 
 def fit_wcs_from_points(
-    xy, world_coords, proj_point="center", projection="TAN", sip_degree=None
+    xy,
+    world_coords,
+    origin=_ARG_NOT_SET,
+    proj_point="center",
+    projection="TAN",
+    sip_degree=None,
 ):
     """
     Given two matching sets of coordinates on detector and sky,
@@ -1100,18 +1112,27 @@ def fit_wcs_from_points(
     xy : (`numpy.ndarray`, `numpy.ndarray`) tuple
         x & y pixel coordinates.  These should be in FITS convention, starting
         from (1,1) as the center of the bottom-left pixel.
+
     world_coords : `~astropy.coordinates.SkyCoord`
         Skycoord object with world coordinates.
+
+    origin : int
+        Pixel origin convention: use 0 for zero-based indexing or 1 for
+        FITS-style 1-based indexing.
+
     proj_point : 'center' or ~astropy.coordinates.SkyCoord`
         Defaults to 'center', in which the geometric center of input world
         coordinates will be used as the projection point. To specify an exact
         point for the projection, a Skycoord object with a coordinate pair can
         be passed in. For consistency, the units and frame of these coordinates
         will be transformed to match ``world_coords`` if they don't.
+
     projection : str or `~astropy.wcs.WCS`
-        Three letter projection code, of any of standard projections defined
-        in the FITS WCS standard. Optionally, a WCS object with projection
-        keywords set may be passed in.
+        Three letter projection code of most of standard projections defined
+        in the FITS WCS standard. For a complete set of supported projections,
+        see `astropy.wcs.utils.SUPPORTED_PRJ_CODES` in this module.
+        Optionally, a WCS object with projection keywords set may be passed in.
+
     sip_degree : None or int
         If set to a non-zero integer value, will fit SIP of degree
         ``sip_degree`` to model geometric distortion. Defaults to None, meaning
@@ -1130,6 +1151,21 @@ def fit_wcs_from_points(
     from .wcs import Sip
 
     xp, yp = xy
+
+    if origin is _ARG_NOT_SET:
+        warnings.warn(
+            "Omitting argument 'origin' in "
+            "fit_wcs_from_points(..., origin=...) is deprecated and it will "
+            "be required in a future release. Defaulting to 1 for now.",
+            category=FutureWarning,
+            stacklevel=2,
+        )
+        origin = 1
+
+    elif origin == 0:
+        xp = xp + 1
+        yp = yp + 1
+
     try:
         lon, lat = world_coords.data.lon.deg, world_coords.data.lat.deg
     except AttributeError:
@@ -1149,40 +1185,11 @@ def fit_wcs_from_points(
     if not use_center_as_proj_point:
         assert proj_point.size == 1
 
-    proj_codes = [
-        "AZP",
-        "SZP",
-        "TAN",
-        "STG",
-        "SIN",
-        "ARC",
-        "ZEA",
-        "AIR",
-        "CYP",
-        "CEA",
-        "CAR",
-        "MER",
-        "SFL",
-        "PAR",
-        "MOL",
-        "AIT",
-        "COP",
-        "COE",
-        "COD",
-        "COO",
-        "BON",
-        "PCO",
-        "TSC",
-        "CSC",
-        "QSC",
-        "HPX",
-        "XPH",
-    ]
     if type(projection) == str:
-        if projection not in proj_codes:
+        if projection not in SUPPORTED_PRJ_CODES:
             raise ValueError(
                 "Must specify valid projection code from list of supported types: ",
-                ", ".join(proj_codes),
+                ", ".join(SUPPORTED_PRJ_CODES),
             )
         # empty wcs to fill in with fit values
         wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)
@@ -1204,8 +1211,8 @@ def fit_wcs_from_points(
 
     # set pixel_shape to span of input points
     wcs.pixel_shape = (
-        1 if xpmax <= 0.0 else int(np.ceil(xpmax)),
-        1 if ypmax <= 0.0 else int(np.ceil(ypmax)),
+        1 if xpmax <= 1.0 else int(np.ceil(xpmax)) - 1,
+        1 if ypmax <= 1.0 else int(np.ceil(ypmax)) - 1,
     )
 
     # determine CRVAL from input
@@ -1222,8 +1229,8 @@ def fit_wcs_from_points(
         proj_point.transform_to(world_coords)
         wcs.wcs.crval = (proj_point.data.lon.deg, proj_point.data.lat.deg)
         wcs.wcs.crpix = (
-            close(lon - wcs.wcs.crval[0], xp + 1),
-            close(lon - wcs.wcs.crval[1], yp + 1),
+            close(lon - wcs.wcs.crval[0], xp),
+            close(lon - wcs.wcs.crval[1], yp),
         )
 
     # fit linear terms, assign to wcs
@@ -1241,8 +1248,8 @@ def fit_wcs_from_points(
         p0,
         args=(lon, lat, xp, yp, wcs),
         bounds=[
-            [-np.inf, -np.inf, -np.inf, -np.inf, xpmin + 1, ypmin + 1],
-            [np.inf, np.inf, np.inf, np.inf, xpmax + 1, ypmax + 1],
+            [-np.inf, -np.inf, -np.inf, -np.inf, xpmin, ypmin],
+            [np.inf, np.inf, np.inf, np.inf, xpmax, ypmax],
         ],
     )
     wcs.wcs.crpix = np.array(fit.x[4:6])
@@ -1273,8 +1280,8 @@ def fit_wcs_from_points(
             p0,
             args=(lon, lat, xp, yp, wcs, degree, coef_names),
             bounds=[
-                [xpmin + 1, ypmin + 1] + [-np.inf] * (4 + 2 * len(coef_names)),
-                [xpmax + 1, ypmax + 1] + [np.inf] * (4 + 2 * len(coef_names)),
+                [xpmin, ypmin] + [-np.inf] * (4 + 2 * len(coef_names)),
+                [xpmax, ypmax] + [np.inf] * (4 + 2 * len(coef_names)),
             ],
         )
         coef_fit = (
