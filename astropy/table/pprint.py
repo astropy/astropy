@@ -17,13 +17,13 @@ from astropy.utils.data_info import dtype_info_name
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
-    from ._typing import ColumnLike
+    from ._typing import ColumnFormat, ColumnLike
     from .table import Table
 
 __all__ = []
 
 
-def default_format_func(format_: Any, val: Any) -> str:
+def default_format_func(format_: ColumnFormat | None, val: Any) -> str:
     if isinstance(val, bytes):
         return val.decode("utf-8", errors="replace")
     else:
@@ -85,7 +85,7 @@ def get_auto_format_func(
     Wrapped ``auto_format_func`` function
     """
 
-    def _auto_format_func(format_: Any, val: Any) -> str:
+    def _auto_format_func(format_: ColumnFormat | None, val: Any) -> str:
         """Format ``val`` according to ``format_`` for a plain format specifier,
         old- or new-style format strings, or using a user supplied function.
         More importantly, determine and cache (in _format_funcs) a function
