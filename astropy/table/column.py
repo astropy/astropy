@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from astropy.units import UnitBase
     from astropy.units.typing import UnitLike
 
-    from ._typing import ColumnLike, DataLike
+    from ._typing import ColumnFormat, ColumnLike, DataLike
     from .table import Table
 
 # Create a generic TableFormatter object for use by bare columns with no
@@ -541,7 +541,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         length: int = 0,
         description: str | None = None,
         unit: UnitLike | None = None,
-        format: str | Callable[..., str] | None = None,
+        format: ColumnFormat | None = None,
         meta: Mapping[str, Any] | None = None,
         copy: bool | None = None,
         copy_indices: bool = True,
@@ -809,14 +809,14 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         self._name = val
 
     @property
-    def format(self) -> str | Callable[..., str] | None:
+    def format(self) -> ColumnFormat | None:
         """
         Format string for displaying values in this column.
         """
         return self._format
 
     @format.setter
-    def format(self, format_string: str | Callable[..., str] | None) -> None:
+    def format(self, format_string: ColumnFormat | None) -> None:
         prev_format = getattr(self, "_format", None)
 
         self._format = format_string  # set new format string
@@ -1299,7 +1299,7 @@ class Column(BaseColumn):
         length: int = 0,
         description: str | None = None,
         unit: UnitLike | None = None,
-        format: str | Callable[..., str] | None = None,
+        format: ColumnFormat | None = None,
         meta: Mapping[str, Any] | None = None,
         copy: bool | None = None,
         copy_indices: bool = True,
@@ -1681,7 +1681,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         length: int = 0,
         description: str | None = None,
         unit: UnitLike | None = None,
-        format: str | Callable[..., str] | None = None,
+        format: ColumnFormat | None = None,
         meta: Mapping[str, Any] | None = None,
         copy: bool | None = None,
         copy_indices: bool = True,

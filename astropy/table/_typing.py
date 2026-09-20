@@ -6,11 +6,13 @@ of the annotations in `astropy.table` and are not part of the public API.  They
 are meant to be imported inside an ``if TYPE_CHECKING:`` block.
 """
 
-__all__ = ["ColumnLike", "DataLike", "SortKind", "TableLike"]
+__all__ = ["ColumnFormat", "ColumnLike", "DataLike", "SortKind", "TableLike"]
 
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from .column import Column, MaskedColumn
 
 type ColumnLike = Column | MaskedColumn | Any
@@ -38,3 +40,11 @@ For example a `dict` of columns, a list of rows, a structured
 
 type SortKind = Literal["quicksort", "mergesort", "heapsort", "stable"]
 """Sorting algorithm accepted by `numpy.argsort`."""
+
+type ColumnFormat = str | Callable[..., str]
+"""A column ``info.format`` specification.
+
+Either a string (a `format` specifier, a new-style format string, or an
+old-style format string) or a callable that takes the value and returns a
+string.
+"""
