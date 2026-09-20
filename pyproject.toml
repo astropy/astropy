@@ -1039,12 +1039,15 @@ cache-control = { api = "max-age=600", files = "max-age=43200, immutable" }
 follow_imports = "silent"
 packages = [
     "astropy.coordinates.sites",
+    "astropy.cosmology",  # See `exclude` for skipped modules
 ]
-modules = [
-    # Specific cosmology modules. Move to `packages` when it's 100% covered.
-    "astropy.cosmology.io",
-    "astropy.cosmology.parameters",
-    "astropy.cosmology.realizations",
-    "astropy.cosmology.traits",
-    "astropy.cosmology.units",
+exclude = [
+    # Private `astropy.cosmology`, not type checked yet.
+    "^astropy/cosmology/_src/",
+    # Tests are out of scope for now. `test_scalar_inv_efuncs.py` additionally
+    # imports a Cython extension module, which has no stubs for Mypy to read.
+    "^astropy/cosmology/tests/",
+    # A directory of `.ecsv` files with no `__init__.py`, which Mypy would
+    # otherwise pick up as an implicit namespace package.
+    "^astropy/cosmology/data/",
 ]
