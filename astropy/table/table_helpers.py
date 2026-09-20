@@ -162,9 +162,7 @@ class ArrayWrapper:
                 out.info = self.info
         return out
 
-    def __setitem__(
-        self, item: int | np.integer | slice | np.ndarray, value: Any
-    ) -> None:
+    def __setitem__(self, item: int | np.integer | slice | np.ndarray, value) -> None:
         self.data[item] = value
 
     def __len__(self) -> int:

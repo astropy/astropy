@@ -577,7 +577,7 @@ class Index:
         """
         return self.data.range(lower, upper, bounds)
 
-    def replace(self, row: int, col_name: str, val: Any) -> None:
+    def replace(self, row: int, col_name: str, val) -> None:
         """
         Replace the value of a column at a given position.
 
@@ -822,7 +822,7 @@ class SlicedIndex:
     def sorted_data(self) -> Sequence[Integral] | np.ndarray:
         return self.sliced_coords(self.index.sorted_data())
 
-    def replace(self, row: int, col: str, val: Any) -> None:
+    def replace(self, row: int, col: str, val) -> None:
         if not self._frozen:
             self.index.replace(self.orig_coords(row), col, val)
 
@@ -1071,7 +1071,7 @@ class _IndexModeContext:
         if cls in self._col_subclasses:
             return self._col_subclasses[cls]
 
-        def __getitem__(self, item: Any) -> Any:
+        def __getitem__(self, item) -> Any:
             value = cls.__getitem__(self, item)
             if type(value) is type(self):
                 value = self.info.slice_indices(value, item, len(self))
@@ -1192,7 +1192,7 @@ class TableLoc:
             index_id = tuple(index_id[0])
         return self.__class__(self.table, index_id)
 
-    def _get_index_id_and_item(self, item: Any) -> tuple[tuple[str, ...], Any]:
+    def _get_index_id_and_item(self, item) -> tuple[tuple[str, ...], Any]:
         index_id = self.index_id
         if self.index_id is None:
             if isinstance(item, tuple):
@@ -1204,7 +1204,7 @@ class TableLoc:
     def _get_row_idxs_as_list(
         self,
         index_id: tuple,
-        item: Any,
+        item,
         item_is_sequence: bool,
     ) -> list[int]:
         """
@@ -1254,7 +1254,7 @@ class TableLoc:
                     rows.extend(ii)
         return rows
 
-    def _get_row_idxs_as_list_or_int(self, item: Any) -> list[int] | int:
+    def _get_row_idxs_as_list_or_int(self, item) -> list[int] | int:
         """Internal function to retrieve row indices for ``item`` as a list or int.
 
         See ``__getitem__`` for details on the input item.
@@ -1280,7 +1280,7 @@ class TableLoc:
 
         return row_idxs
 
-    def __getitem__(self, item: Any) -> Table | Table.Row:
+    def __getitem__(self, item) -> Table | Table.Row:
         """
         Retrieve Table rows by value slice.
 
@@ -1301,7 +1301,7 @@ class TableLoc:
         rows = self._get_row_idxs_as_list_or_int(item)
         return self.table[rows]
 
-    def __setitem__(self, key: Any, value: Any) -> None:
+    def __setitem__(self, key, value) -> None:
         """
         Assign Table row's by value slice.
 
@@ -1329,7 +1329,7 @@ class TableLoc:
 
 
 class TableLocIndices(TableLoc):
-    def __getitem__(self, item: Any) -> list[int] | int:
+    def __getitem__(self, item) -> list[int] | int:
         """
         Retrieve Table row indices by value slice.
 
@@ -1357,7 +1357,7 @@ class TableILoc(TableLoc):
         Indexed table to use
     """
 
-    def __getitem__(self, item: Any) -> Table | Table.Row:
+    def __getitem__(self, item) -> Table | Table.Row:
         if len(self.indices) == 0:
             raise ValueError("Can only use TableILoc for a table with indices")
 

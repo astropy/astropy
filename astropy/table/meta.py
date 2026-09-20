@@ -343,7 +343,7 @@ def get_yaml_from_header(header: dict[str, Any]) -> list[str]:
         def represent_mapping(
             self,
             tag: str,
-            mapping: Any,
+            mapping,
             flow_style: bool | None = None,
         ) -> yaml.MappingNode:
             """
