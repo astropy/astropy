@@ -1,28 +1,21 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# This module includes files automatically generated from ply (these end in
-# _lextab.py and _parsetab.py). To generate these files, remove them from this
-# folder, then build astropy and run the tests in-place:
-#
-#   python setup.py build_ext --inplace
-#   pytest astropy/coordinates
-#
-# You can then commit the changes to the re-generated _lextab.py and
-# _parsetab.py files.
-
 """
 This module contains formatting functions that are for internal use in
 astropy.coordinates.angles. Mainly they are conversions from one format
 of data to another.
 """
 
-import threading
+import functools
+import re
 from warnings import warn
 
 import numpy as np
+from lark import Lark, Token, Transformer, v_args
+from lark.exceptions import UnexpectedCharacters, UnexpectedInput
 
 from astropy import units as u
-from astropy.utils import parsing
+from astropy.utils.parsing import make_parser, token_values
 
 from .errors import (
     IllegalHourError,
@@ -32,6 +25,138 @@ from .errors import (
     IllegalSecondError,
     IllegalSecondWarning,
 )
+
+# The regular expression for SIMPLE_UNIT is inserted when the parser is made,
+# since it depends on the enabled units.
+_GRAMMAR = r"""
+angle: sign hms eastwest
+     | sign dms dir
+     | sign simple dir
+
+sign: SIGN?
+
+eastwest: EASTWEST?
+
+dir: (EASTWEST | NORTHSOUTH)?
+
+?ufloat: UFLOAT
+       | UINT
+
+generic: ufloat
+       | UINT ufloat
+       | UINT ":" ufloat
+       | UINT UINT ufloat
+       | UINT ":" UINT ":" ufloat
+
+hms: UINT _HOUR
+   | UINT _HOUR ufloat
+   | UINT _HOUR UINT _MINUTE
+   | UINT _HOUR UFLOAT _MINUTE
+   | UINT _HOUR UINT _MINUTE ufloat
+   | UINT _HOUR UINT _MINUTE ufloat _SECOND
+   | generic _HOUR
+
+dms: UINT _DEGREE
+   | UINT _DEGREE ufloat
+   | UINT _DEGREE UINT _MINUTE
+   | UINT _DEGREE UFLOAT _MINUTE
+   | UINT _DEGREE UINT _MINUTE ufloat
+   | UINT _DEGREE UINT _MINUTE ufloat _SECOND
+   | generic _DEGREE
+
+simple: generic
+      | generic _MINUTE       -> simple_arcmin
+      | generic _SECOND       -> simple_arcsec
+      | generic SIMPLE_UNIT   -> simple_unit
+
+// The relative priorities of the terminals matter for the ones that can
+// match the same text, since the first matching terminal is used.
+// Several terminals include Unicode "MINUS SIGN" −.  It is important
+// to include the hyphen last, or the regex will treat this as a range.
+UFLOAT.9: /((\d+\.\d*)|(\.\d+))([eE][+-−]?\d+)?/
+UINT.8: /\d+/
+SIGN.7: /[+−-]/
+EASTWEST.6: /[EW]$/
+// We cannot use lower-case letters otherwise we'll confuse
+// s[outh] with s[econd]
+NORTHSOUTH.5: /[NS]$/
+SIMPLE_UNIT.4: /__SIMPLE_UNIT__/
+_MINUTE.3: /m(in(ute(s)?)?)?|′|'|ᵐ/
+_SECOND.2: /s(ec(ond(s)?)?)?|″|"|ˢ/  // codespell:ignore ond
+_DEGREE.1: /d(eg(ree(s)?)?)?|°/
+_HOUR.1: /hour(s)?|h(r)?|ʰ/
+%ignore " "
+"""
+
+
+@v_args(wrapper=token_values)
+class _AngleTransformer(Transformer):
+    """Turn a parsed angle string into a ``(value, unit)`` tuple.
+
+    Terminal methods are applied as soon as a token is created and set its
+    value, rule methods are applied when the rule is reduced.
+    """
+
+    def t_UFLOAT(self, t: Token) -> Token:
+        t.value = float(t.replace("−", "-"))
+        return t
+
+    def t_UINT(self, t: Token) -> Token:
+        t.value = int(t)
+        return t
+
+    def t_SIGN(self, t: Token) -> Token:
+        t.value = 1.0 if t == "+" else -1.0
+        return t
+
+    def t_EASTWEST(self, t: Token) -> Token:
+        t.value = -1.0 if t == "W" else 1.0
+        return t
+
+    def t_NORTHSOUTH(self, t: Token) -> Token:
+        t.value = -1.0 if t == "S" else 1.0
+        return t
+
+    def t_SIMPLE_UNIT(self, t: Token) -> Token:
+        t.value = u.Unit(t.value)
+        return t
+
+    def angle(self, sign, value_unit, direction):
+        sign = sign * direction
+        value, unit = value_unit
+        if isinstance(value, tuple):
+            return ((sign * value[0],) + value[1:], unit)
+        else:
+            return (sign * value, unit)
+
+    def sign(self, sign=1.0):
+        return sign
+
+    def eastwest(self, direction=1.0):
+        return direction
+
+    dir = eastwest
+
+    def generic(self, *values):
+        return values[0] if len(values) == 1 else values
+
+    def hms(self, *values):
+        return (values[0] if len(values) == 1 else values, u.hourangle)
+
+    def dms(self, *values):
+        return (values[0] if len(values) == 1 else values, u.degree)
+
+    def simple(self, value):
+        return (value, None)
+
+    def simple_arcmin(self, value):
+        return (value, u.arcmin)
+
+    def simple_arcsec(self, value):
+        return (value, u.arcsec)
+
+    def simple_unit(self, value, unit):
+        return (value, unit)
 
 
 class _AngleParser:
@@ -49,25 +174,6 @@ class _AngleParser:
     instead.
     """
 
-    # For safe multi-threaded operation all class (but not instance)
-    # members that carry state should be thread-local. They are stored
-    # in the following class member
-    _thread_local = threading.local()
-
-    def __init__(self):
-        # TODO: in principle, the parser should be invalidated if we change unit
-        # system (from CDS to FITS, say).  Might want to keep a link to the
-        # unit_registry used, and regenerate the parser/lexer if it changes.
-        # Alternatively, perhaps one should not worry at all and just pre-
-        # generate the parser for each release (as done for unit formats).
-        # For some discussion of this problem, see
-        # https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
-        if "_parser" not in _AngleParser._thread_local.__dict__:
-            (
-                _AngleParser._thread_local._parser,
-                _AngleParser._thread_local._lexer,
-            ) = self._make_parser()
-
     @classmethod
     def _get_simple_unit_names(cls):
         simple_units = set(u.radian.find_equivalent_units(include_prefix_units=True))
@@ -80,206 +186,28 @@ class _AngleParser:
         return sorted(simple_unit_names)
 
     @classmethod
-    def _make_parser(cls):
-        # List of token names.
-        tokens = (
-            "SIGN",
-            "UINT",
-            "UFLOAT",
-            "COLON",
-            "DEGREE",
-            "HOUR",
-            "MINUTE",
-            "SECOND",
-            "SIMPLE_UNIT",
-            "EASTWEST",
-            "NORTHSOUTH",
+    @functools.cache
+    def _make_parser(cls) -> Lark:
+        # TODO: in principle, the parser should be invalidated if we change unit
+        # system (from CDS to FITS, say).  Might want to keep a link to the
+        # unit_registry used, and regenerate the parser if it changes.
+        # For some discussion of this problem, see
+        # https://github.com/astropy/astropy/issues/5350#issuecomment-248770151
+        simple_units = "|".join(
+            f"(?:{re.escape(x)})" for x in cls._get_simple_unit_names()
         )
-
-        # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
-        # Regular expression rules for simple tokens
-        def t_UFLOAT(t):
-            r"((\d+\.\d*)|(\.\d+))([eE][+-−]?\d+)?"
-            # The above includes Unicode "MINUS SIGN" \u2212.  It is
-            # important to include the hyphen last, or the regex will
-            # treat this as a range.
-            t.value = float(t.value.replace("−", "-"))
-            return t
-
-        def t_UINT(t):
-            r"\d+"
-            t.value = int(t.value)
-            return t
-
-        def t_SIGN(t):
-            r"[+−-]"
-            # The above include Unicode "MINUS SIGN" \u2212.  It is
-            # important to include the hyphen last, or the regex will
-            # treat this as a range.
-            if t.value == "+":
-                t.value = 1.0
-            else:
-                t.value = -1.0
-            return t
-
-        def t_EASTWEST(t):
-            r"[EW]$"
-            t.value = -1.0 if t.value == "W" else 1.0
-            return t
-
-        def t_NORTHSOUTH(t):
-            r"[NS]$"
-            # We cannot use lower-case letters otherwise we'll confuse
-            # s[outh] with s[econd]
-            t.value = -1.0 if t.value == "S" else 1.0
-            return t
-
-        def t_SIMPLE_UNIT(t):
-            t.value = u.Unit(t.value)
-            return t
-
-        t_SIMPLE_UNIT.__doc__ = "|".join(
-            f"(?:{x})" for x in cls._get_simple_unit_names()
-        )
-
-        def t_MINUTE(t):
-            r"m(in(ute(s)?)?)?|′|\'|ᵐ"
-            t.value = u.arcmin
-            return t
-
-        def t_SECOND(t):
-            r"s(ec(ond(s)?)?)?|″|\"|ˢ"  # codespell:ignore ond
-            t.value = u.arcsec
-            return t
-
-        t_COLON = ":"
-        t_DEGREE = r"d(eg(ree(s)?)?)?|°"
-        t_HOUR = r"hour(s)?|h(r)?|ʰ"
-
-        # A string containing ignored characters (spaces)
-        t_ignore = " "
-
-        # Error handling rule
-        def t_error(t):
-            raise ValueError(f"Invalid character at col {t.lexpos}")
-
-        lexer = parsing.lex(lextab="angle_lextab", package="astropy/coordinates/angles")
-
-        def p_angle(p):
-            """
-            angle : sign hms eastwest
-                  | sign dms dir
-                  | sign simple dir
-            """
-            sign = p[1] * p[3]
-            value, unit = p[2]
-            if isinstance(value, tuple):
-                p[0] = ((sign * value[0],) + value[1:], unit)
-            else:
-                p[0] = (sign * value, unit)
-
-        def p_sign(p):
-            """
-            sign : SIGN
-                 |
-            """
-            p[0] = p[1] if len(p) == 2 else 1.0
-
-        def p_eastwest(p):
-            """
-            eastwest : EASTWEST
-                     |
-            """
-            p[0] = p[1] if len(p) == 2 else 1.0
-
-        def p_dir(p):
-            """
-            dir : EASTWEST
-                | NORTHSOUTH
-                |
-            """
-            p[0] = p[1] if len(p) == 2 else 1.0
-
-        def p_ufloat(p):
-            """
-            ufloat : UFLOAT
-                   | UINT
-            """
-            p[0] = p[1]
-
-        def p_generic(p):
-            """
-            generic : ufloat
-                    | UINT ufloat
-                    | UINT COLON ufloat
-                    | UINT UINT ufloat
-                    | UINT COLON UINT COLON ufloat
-            """
-            match p[1:]:
-                case [p1]:
-                    p[0] = p1
-                case [p1, p2] | [p1, ":", p2]:
-                    p[0] = (p1, p2)
-                case [p1, p2, p3] | [p1, _, p2, _, p3]:
-                    p[0] = (p1, p2, p3)
-
-        def p_hms(p):
-            """
-            hms : UINT HOUR
-                | UINT HOUR ufloat
-                | UINT HOUR UINT MINUTE
-                | UINT HOUR UFLOAT MINUTE
-                | UINT HOUR UINT MINUTE ufloat
-                | UINT HOUR UINT MINUTE ufloat SECOND
-                | generic HOUR
-            """
-            if len(p) == 3:
-                p[0] = (p[1], u.hourangle)
-            elif len(p) in (4, 5):
-                p[0] = ((p[1], p[3]), u.hourangle)
-            elif len(p) in (6, 7):
-                p[0] = ((p[1], p[3], p[5]), u.hourangle)
-
-        def p_dms(p):
-            """
-            dms : UINT DEGREE
-                | UINT DEGREE ufloat
-                | UINT DEGREE UINT MINUTE
-                | UINT DEGREE UFLOAT MINUTE
-                | UINT DEGREE UINT MINUTE ufloat
-                | UINT DEGREE UINT MINUTE ufloat SECOND
-                | generic DEGREE
-            """
-            if len(p) == 3:
-                p[0] = (p[1], u.degree)
-            elif len(p) in (4, 5):
-                p[0] = ((p[1], p[3]), u.degree)
-            elif len(p) in (6, 7):
-                p[0] = ((p[1], p[3], p[5]), u.degree)
-
-        def p_simple(p):
-            """
-            simple : generic
-                   | generic MINUTE
-                   | generic SECOND
-                   | generic SIMPLE_UNIT
-            """
-            p[0] = (p[1], None if len(p) == 2 else p[2])
-
-        def p_error(p):
-            raise ValueError
-
-        parser = parsing.yacc(
-            tabmodule="angle_parsetab", package="astropy/coordinates/angles"
-        )
-
-        return parser, lexer
+        grammar = _GRAMMAR.replace("__SIMPLE_UNIT__", simple_units)
+        return make_parser(grammar, _AngleTransformer(), start="angle")
 
     def parse(self, angle, unit, debug=False):
         try:
-            found_angle, found_unit = self._thread_local._parser.parse(
-                angle, lexer=self._thread_local._lexer, debug=debug
-            )
+            found_angle, found_unit = self._make_parser().parse(angle)
+        except UnexpectedCharacters as e:
+            raise ValueError(
+                f"Invalid character at col {e.pos_in_stream} parsing angle {angle!r}"
+            ) from None
+        except UnexpectedInput:
+            raise ValueError(f"syntax error parsing angle {angle!r}") from None
         except ValueError as e:
             raise ValueError(
                 f"{str(e) or 'syntax error'} parsing angle {angle!r}"
@@ -345,7 +273,7 @@ def parse_angle(angle, unit=None, debug=False):
         string, either at the end or as number separators.
 
     debug : bool, optional
-        If `True`, print debugging information from the parser.
+        No longer has any effect; kept for backwards compatibility.
 
     Returns
     -------

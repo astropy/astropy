@@ -1,19 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-# This module includes files automatically generated from ply (these end in
-# _lextab.py and _parsetab.py). To generate these files, remove them from this
-# folder, then build astropy and run the tests in-place:
-#
-#   python setup.py build_ext --inplace
-#   pytest astropy/units
-#
-# You can then commit the changes to the re-generated _lextab.py and
-# _parsetab.py files.
-
 """
 Handles a "generic" string format for units
 """
 
+import functools
+import operator
 import re
 import unicodedata
 import warnings
@@ -22,380 +14,277 @@ from re import Match, Pattern
 from typing import ClassVar, Final
 
 import numpy as np
+from lark import Token, Transformer, v_args
 
-from astropy.extern.ply.lex import Lexer
 from astropy.units.core import CompositeUnit, Unit, UnitBase, get_current_unit_registry
 from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitsWarning
 from astropy.units.typing import UnitScale
-from astropy.utils import classproperty, parsing
-from astropy.utils.parsing import ThreadSafeParser
+from astropy.utils import classproperty
+from astropy.utils.parsing import token_values
 
 from .base import Base, _ParsingFormatMixin
 
+_GRAMMAR: Final[str] = r"""
+main: unit
+    | structured_unit
+    | structured_subunit
+
+structured_subunit: "(" structured_unit ")"
+
+structured_unit: subunit ","
+               | subunit "," subunit
+
+subunit: unit
+       | structured_unit
+       | structured_subunit
+
+unit: factor
+    | factor _PRODUCT? units
+    | units
+
+?units: product_of_units
+      | division_product_of_units
+      | inverse_unit
+
+division_product_of_units: product_of_units ("/" product_of_units)+
+
+inverse_unit: "/" unit_expression
+
+?factor: factor_fits
+       | factor_float
+       | factor_int
+
+factor_float: signed_float
+            | signed_float UINT signed_int
+            | signed_float UINT _POWER numeric_power
+
+factor_int: UINT
+          | UINT _POWER numeric_power         -> factor_int_power
+          | UINT UINT signed_int              -> factor_int_scaled_sign
+          | UINT UINT _POWER numeric_power    -> factor_int_scaled_power
+
+factor_fits: UINT _POWER "(" signed_int ")"
+           | UINT _POWER "(" UINT ")"
+           | UINT _POWER signed_int
+           | UINT _POWER UINT
+           | UINT "(" signed_int ")"
+           | UINT SIGN UINT                   -> factor_fits_sign
+
+product_of_units: unit_expression (_PRODUCT? unit_expression)*
+
+?unit_expression: function
+                | unit_with_power
+                | "(" product_of_units ")"
+
+unit_with_power: UNIT
+               | UNIT _POWER? numeric_power
+
+numeric_power: sign UINT
+             | "(" paren_expr ")"
+
+?paren_expr: signed_float
+           | frac
+
+frac: sign UINT "/" sign UINT
+
+sign: SIGN?
+
+signed_int: SIGN UINT
+
+signed_float: sign UINT
+            | sign UFLOAT
+
+function: FUNCNAME "(" main ")"
+
+// The relative priorities of the terminals matter for the ones that can
+// match the same text, since the first matching terminal is used.
+_POWER.2: "**" | "^"
+_PRODUCT: "*" | "."
+FUNCNAME.2: /(sqrt|ln|exp|log|mag|dB|dex)(?= *\()/
+UNIT: /[^\s\d+\-.\/*^(),]+/
+SIGN: /[+-](?=\d)/
+UFLOAT.2: /(\d+\.?\d*|\.\d+)[eE][+-]?\d+|\d+\.\d+|\.\d+/
+UINT: /\d+\.?/
+%ignore " "
+"""
+
+
+@v_args(wrapper=token_values)
+class _GenericTransformer(Transformer):
+    """Turn a parsed generic unit string into a unit.
+
+    Terminal methods are applied as soon as a token is created and set its
+    value, rule methods are applied when the rule is reduced.
+    """
+
+    def __init__(self, format_cls: type[_ParsingFormatMixin]) -> None:
+        super().__init__()
+        self._format = format_cls
+
+    def t_UINT(self, t: Token) -> Token:
+        t.value = int(t.rstrip("."))
+        return t
+
+    def t_UFLOAT(self, t: Token) -> Token:
+        t.value = float(t)
+        return t
+
+    def t_SIGN(self, t: Token) -> Token:
+        t.value = int(t + "1")
+        return t
+
+    def t_UNIT(self, t: Token) -> Token:
+        t.value = self._format._get_unit(t)
+        return t
+
+    def main(self, unit):
+        # Unpack possible StructuredUnit inside a tuple, ie., ignore any set
+        # of very outer parentheses.
+        return unit[0] if isinstance(unit, tuple) else unit
+
+    def structured_subunit(self, unit):
+        # We hide a structured unit enclosed by parentheses inside a tuple,
+        # so that we can easily distinguish units like "(au, au/day), yr"
+        # from "au, au/day, yr".
+        return (unit,)
+
+    def structured_unit(self, *inputs):
+        from astropy.units.structured import StructuredUnit
+
+        units = ()
+        for subunit in inputs:
+            if isinstance(subunit, tuple):
+                # Structured unit that should be its own entry in the
+                # new StructuredUnit (was enclosed in parentheses).
+                units += subunit
+            elif isinstance(subunit, StructuredUnit):
+                # Structured unit whose entries should be
+                # individually added to the new StructuredUnit.
+                units += subunit.values()
+            else:
+                # Regular unit to be added to the StructuredUnit.
+                units += (subunit,)
+
+        return StructuredUnit(units)
+
+    def subunit(self, unit):
+        return unit
+
+    def unit(self, *items):
+        match items:
+            case [unit]:
+                return Unit(unit)
+            case [factor, unit]:
+                return CompositeUnit(factor * unit.scale, unit.bases, unit.powers)
+
+    def division_product_of_units(self, *units):
+        return functools.reduce(operator.truediv, units)
+
+    def inverse_unit(self, unit):
+        return unit**-1
+
+    def factor_float(self, *items):
+        if self._format.name == "fits":
+            raise ValueError("Numeric factor not supported by FITS")
+        match items:
+            case [factor]:
+                return factor
+            case [factor, base, power]:
+                return factor * base ** float(power)
+
+    def _check_factor_int(self) -> None:
+        if self._format.name == "fits":
+            raise ValueError("Numeric factor not supported by FITS")
+
+    def factor_int(self, factor):
+        self._check_factor_int()
+        return factor
+
+    def factor_int_power(self, base, power):
+        self._check_factor_int()
+        return base ** float(power)
+
+    def factor_int_scaled_sign(self, factor, base, power):
+        self._check_factor_int()
+        return factor * base ** float(power)
+
+    def factor_int_scaled_power(self, factor, base, power):
+        self._check_factor_int()
+        return factor * base**power
+
+    def factor_fits(self, base, power):
+        if base != 10:
+            if self._format.name == "fits":
+                raise ValueError("Base must be 10")
+            else:
+                return None
+        return 10**power
+
+    def factor_fits_sign(self, base, sign, power):
+        return self.factor_fits(base, sign * power)
+
+    def product_of_units(self, *units):
+        # Multiply from the right, to get the same order as in the past.
+        return functools.reduce(lambda product, unit: unit * product, reversed(units))
+
+    def unit_with_power(self, unit, power=None):
+        return unit if power is None else unit**power
+
+    def numeric_power(self, *items):
+        match items:
+            case [sign, uint]:
+                return sign * uint
+            case [power]:
+                return power
+
+    def frac(self, sign1, uint1, sign2, uint2):
+        return Fraction(sign1 * uint1, sign2 * uint2)
+
+    def sign(self, sign=1):
+        return sign
+
+    def signed_int(self, sign, uint):
+        return sign * uint
+
+    def signed_float(self, sign, number):
+        return sign * number
+
+    def function(self, name, unit):
+        if name == "sqrt":
+            return unit**0.5
+        elif name in ("mag", "dB", "dex"):
+            try:
+                function_unit = self._format._validate_unit(name)
+            except KeyError:
+                raise ValueError(
+                    self._format._invalid_unit_error_message(name)
+                ) from None
+            # In Generic, this is callable, but that does not have to
+            # be the case in subclasses (e.g., in VOUnit it is not).
+            if callable(function_unit):
+                return function_unit(unit)
+
+        raise ValueError(f"'{name}' is not a recognized function")
+
 
 class _GenericParserMixin(_ParsingFormatMixin):
-    """Provide the parser used by Generic, FITS and VOUnit."""
+    """Provide the parser used by Generic, FITS and VOUnit.
 
-    _tokens: ClassVar[tuple[str, ...]] = (
-        "COMMA",
-        "POWER",
-        "PRODUCT",
-        "DIVISION",
-        "OPEN_PAREN",
-        "CLOSE_PAREN",
-        "FUNCNAME",
-        "UNIT",
-        "SIGN",
-        "UINT",
-        "UFLOAT",
-    )
+    The grammar here is based on the description in the `FITS
+    standard
+    <http://fits.gsfc.nasa.gov/standard30/fits_standard30aa.pdf>`_,
+    Section 4.3, which is not terribly precise.  The exact grammar
+    is here is based on the YACC grammar in the `unity library
+    <https://bitbucket.org/nxg/unity/>`_.
 
-    @classproperty(lazy=True)
-    def _lexer(cls) -> Lexer:
-        tokens = cls._tokens
+    This same grammar is used by the `"fits"` and `"vounit"`
+    formats, the only difference being the set of available unit
+    strings.
+    """
 
-        t_COMMA = r"\,"
-        t_PRODUCT = "[*.]"
-        t_DIVISION = "/"
-        t_POWER = r"\^|(\*\*)"
-        t_OPEN_PAREN = r"\("
-        t_CLOSE_PAREN = r"\)"
-
-        # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
-        # Regular expression rules for simple tokens
-        def t_UFLOAT(t):
-            r"((\d+\.?\d*)|(\.\d+))([eE][+-]?\d+)?"
-            if not re.search(r"[eE\.]", t.value):
-                t.type = "UINT"
-                t.value = int(t.value)
-            elif t.value.endswith("."):
-                t.type = "UINT"
-                t.value = int(t.value[:-1])
-            else:
-                t.value = float(t.value)
-            return t
-
-        def t_UINT(t):
-            r"\d+"
-            t.value = int(t.value)
-            return t
-
-        def t_SIGN(t):
-            r"[+-](?=\d)"
-            t.value = int(t.value + "1")
-            return t
-
-        # This needs to be a function so we can force it to happen
-        # before t_UNIT
-        def t_FUNCNAME(t):
-            r"((sqrt)|(ln)|(exp)|(log)|(mag)|(dB)|(dex))(?=\ *\()"
-            return t
-
-        # A possible unit is something that consists of characters not used
-        # for anything else: no spaces, no digits, signs, periods, stars,
-        # carets, parentheses or commas.
-        def t_UNIT(t):
-            r"[^\s\d+\-\./\*\^\(\)\,]+"
-            t.value = cls._get_unit(t)
-            return t
-
-        t_ignore = " "
-
-        # Error handling rule
-        def t_error(t):
-            raise ValueError(f"Invalid character at col {t.lexpos}")
-
-        return parsing.lex(
-            lextab="generic_lextab", package="astropy/units", reflags=int(re.UNICODE)
-        )
-
-    @classproperty(lazy=True)
-    def _parser(cls) -> ThreadSafeParser:
-        """
-        The grammar here is based on the description in the `FITS
-        standard
-        <http://fits.gsfc.nasa.gov/standard30/fits_standard30aa.pdf>`_,
-        Section 4.3, which is not terribly precise.  The exact grammar
-        is here is based on the YACC grammar in the `unity library
-        <https://bitbucket.org/nxg/unity/>`_.
-
-        This same grammar is used by the `"fits"` and `"vounit"`
-        formats, the only difference being the set of available unit
-        strings.
-        """
-        tokens = cls._tokens
-
-        def p_main(p):
-            """
-            main : unit
-                 | structured_unit
-                 | structured_subunit
-            """
-            if isinstance(p[1], tuple):
-                # Unpack possible StructuredUnit inside a tuple, ie.,
-                # ignore any set of very outer parentheses.
-                p[0] = p[1][0]
-            else:
-                p[0] = p[1]
-
-        def p_structured_subunit(p):
-            """
-            structured_subunit : OPEN_PAREN structured_unit CLOSE_PAREN
-            """
-            # We hide a structured unit enclosed by parentheses inside
-            # a tuple, so that we can easily distinguish units like
-            # "(au, au/day), yr" from "au, au/day, yr".
-            p[0] = (p[2],)
-
-        def p_structured_unit(p):
-            """
-            structured_unit : subunit COMMA
-                            | subunit COMMA subunit
-            """
-            from astropy.units.structured import StructuredUnit
-
-            inputs = (p[1],) if len(p) == 3 else (p[1], p[3])
-            units = ()
-            for subunit in inputs:
-                if isinstance(subunit, tuple):
-                    # Structured unit that should be its own entry in the
-                    # new StructuredUnit (was enclosed in parentheses).
-                    units += subunit
-                elif isinstance(subunit, StructuredUnit):
-                    # Structured unit whose entries should be
-                    # individually added to the new StructuredUnit.
-                    units += subunit.values()
-                else:
-                    # Regular unit to be added to the StructuredUnit.
-                    units += (subunit,)
-
-            p[0] = StructuredUnit(units)
-
-        def p_subunit(p):
-            """
-            subunit : unit
-                    | structured_unit
-                    | structured_subunit
-            """
-            p[0] = p[1]
-
-        def p_unit(p):
-            """
-            unit : product_of_units
-                 | factor product_of_units
-                 | factor PRODUCT product_of_units
-                 | division_product_of_units
-                 | factor division_product_of_units
-                 | factor PRODUCT division_product_of_units
-                 | inverse_unit
-                 | factor inverse_unit
-                 | factor PRODUCT inverse_unit
-                 | factor
-            """
-            if len(p) == 2:
-                p[0] = Unit(p[1])
-            elif len(p) == 3:
-                p[0] = CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
-            elif len(p) == 4:
-                p[0] = CompositeUnit(p[1] * p[3].scale, p[3].bases, p[3].powers)
-
-        def p_division_product_of_units(p):
-            """
-            division_product_of_units : division_product_of_units DIVISION product_of_units
-                                      | product_of_units
-            """
-            if len(p) == 4:
-                p[0] = Unit(p[1] / p[3])
-            else:
-                p[0] = p[1]
-
-        def p_inverse_unit(p):
-            """
-            inverse_unit : DIVISION unit_expression
-            """
-            p[0] = p[2] ** -1
-
-        def p_factor(p):
-            """
-            factor : factor_fits
-                   | factor_float
-                   | factor_int
-            """
-            p[0] = p[1]
-
-        def p_factor_float(p):
-            """
-            factor_float : signed_float
-                         | signed_float UINT signed_int
-                         | signed_float UINT POWER numeric_power
-            """
-            if cls.name == "fits":
-                raise ValueError("Numeric factor not supported by FITS")
-            if len(p) == 4:
-                p[0] = p[1] * p[2] ** float(p[3])
-            elif len(p) == 5:
-                p[0] = p[1] * p[2] ** float(p[4])
-            elif len(p) == 2:
-                p[0] = p[1]
-
-        def p_factor_int(p):
-            """
-            factor_int : UINT
-                       | UINT signed_int
-                       | UINT POWER numeric_power
-                       | UINT UINT signed_int
-                       | UINT UINT POWER numeric_power
-            """
-            if cls.name == "fits":
-                raise ValueError("Numeric factor not supported by FITS")
-            if len(p) == 2:
-                p[0] = p[1]
-            elif len(p) == 3:
-                p[0] = p[1] ** float(p[2])
-            elif len(p) == 4:
-                if isinstance(p[2], int):
-                    p[0] = p[1] * p[2] ** float(p[3])
-                else:
-                    p[0] = p[1] ** float(p[3])
-            elif len(p) == 5:
-                p[0] = p[1] * p[2] ** p[4]
-
-        def p_factor_fits(p):
-            """
-            factor_fits : UINT POWER OPEN_PAREN signed_int CLOSE_PAREN
-                        | UINT POWER OPEN_PAREN UINT CLOSE_PAREN
-                        | UINT POWER signed_int
-                        | UINT POWER UINT
-                        | UINT SIGN UINT
-                        | UINT OPEN_PAREN signed_int CLOSE_PAREN
-            """
-            if p[1] != 10:
-                if cls.name == "fits":
-                    raise ValueError("Base must be 10")
-                else:
-                    return
-            if len(p) == 4:
-                if p[2] in ("**", "^"):
-                    p[0] = 10 ** p[3]
-                else:
-                    p[0] = 10 ** (p[2] * p[3])
-            elif len(p) == 5:
-                p[0] = 10 ** p[3]
-            elif len(p) == 6:
-                p[0] = 10 ** p[4]
-
-        def p_product_of_units(p):
-            """
-            product_of_units : unit_expression PRODUCT product_of_units
-                             | unit_expression product_of_units
-                             | unit_expression
-            """
-            if len(p) == 2:
-                p[0] = p[1]
-            elif len(p) == 3:
-                p[0] = p[1] * p[2]
-            else:
-                p[0] = p[1] * p[3]
-
-        def p_unit_expression(p):
-            """
-            unit_expression : function
-                            | unit_with_power
-                            | OPEN_PAREN product_of_units CLOSE_PAREN
-            """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = p[2]
-
-        def p_unit_with_power(p):
-            """
-            unit_with_power : UNIT POWER numeric_power
-                            | UNIT numeric_power
-                            | UNIT
-            """
-            if len(p) == 2:
-                p[0] = p[1]
-            elif len(p) == 3:
-                p[0] = p[1] ** p[2]
-            else:
-                p[0] = p[1] ** p[3]
-
-        def p_numeric_power(p):
-            """
-            numeric_power : sign UINT
-                          | OPEN_PAREN paren_expr CLOSE_PAREN
-            """
-            if len(p) == 3:
-                p[0] = p[1] * p[2]
-            elif len(p) == 4:
-                p[0] = p[2]
-
-        def p_paren_expr(p):
-            """
-            paren_expr : sign UINT
-                       | signed_float
-                       | frac
-            """
-            if len(p) == 3:
-                p[0] = p[1] * p[2]
-            else:
-                p[0] = p[1]
-
-        def p_frac(p):
-            """
-            frac : sign UINT DIVISION sign UINT
-            """
-            p[0] = Fraction(p[1] * p[2], p[4] * p[5])
-
-        def p_sign(p):
-            """
-            sign : SIGN
-                 |
-            """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = 1
-
-        def p_signed_int(p):
-            """
-            signed_int : SIGN UINT
-            """
-            p[0] = p[1] * p[2]
-
-        def p_signed_float(p):
-            """
-            signed_float : sign UINT
-                         | sign UFLOAT
-            """
-            p[0] = p[1] * p[2]
-
-        def p_function(p):
-            """
-            function : FUNCNAME OPEN_PAREN main CLOSE_PAREN
-            """
-            if p[1] == "sqrt":
-                p[0] = p[3] ** 0.5
-                return
-            elif p[1] in ("mag", "dB", "dex"):
-                try:
-                    function_unit = cls._validate_unit(p[1])
-                except KeyError:
-                    raise ValueError(cls._invalid_unit_error_message(p[1])) from None
-                # In Generic, this is callable, but that does not have to
-                # be the case in subclasses (e.g., in VOUnit it is not).
-                if callable(function_unit):
-                    p[0] = function_unit(p[3])
-                    return
-
-            raise ValueError(f"'{p[1]}' is not a recognized function")
-
-        def p_error(p):
-            raise ValueError()
-
-        return parsing.yacc(tabmodule="generic_parsetab", package="astropy/units")
+    _grammar: ClassVar[str] = _GRAMMAR
+    _transformer: ClassVar[type[Transformer]] = _GenericTransformer
 
 
 class Generic(Base, _GenericParserMixin):

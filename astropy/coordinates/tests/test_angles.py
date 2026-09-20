@@ -1097,10 +1097,10 @@ def test_angle_with_cds_units_enabled():
     from astropy.coordinates.angles.formats import _AngleParser
     from astropy.units import cds
 
-    del _AngleParser._thread_local._parser
+    _AngleParser._make_parser.cache_clear()
     with cds.enable():
         Angle("5d")
-    del _AngleParser._thread_local._parser
+    _AngleParser._make_parser.cache_clear()
     Angle("5d")
 
 

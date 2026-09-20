@@ -39,9 +39,6 @@ Utility Functions/Classes
 .. automodapi:: astropy.utils.misc
     :no-inheritance-diagram:
 
-.. automodapi:: astropy.utils.parsing
-    :no-inheritance-diagram:
-
 .. automodapi:: astropy.utils.state
     :no-inheritance-diagram:
 

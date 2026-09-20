@@ -1,28 +1,122 @@
-# Licensed under a 3-clause BSD style license - see LICNSE.rst
-
-# This module includes files automatically generated from ply (these end in
-# _lextab.py and _parsetab.py). To generate these files, remove them from this
-# folder, then build astropy and run the tests in-place:
-#
-#   python setup.py build_ext --inplace
-#   pytest astropy/units
-#
-# You can then commit the changes to the re-generated _lextab.py and
-# _parsetab.py files.
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 """Handles the CDS string format for units."""
 
-import re
-from typing import ClassVar, Literal
+from typing import ClassVar, Final, Literal
 
-from astropy.extern.ply.lex import Lexer
+from lark import Token, Transformer, v_args
+
 from astropy.units.core import CompositeUnit, Unit, UnitBase
 from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.utils import is_effectively_unity
-from astropy.utils import classproperty, parsing
-from astropy.utils.parsing import ThreadSafeParser
+from astropy.utils import classproperty
+from astropy.utils.parsing import token_values
 
 from .base import Base, _ParsingFormatMixin
+
+_GRAMMAR: Final[str] = r"""
+main: factor combined_units             -> scaled_unit
+    | combined_units
+    | DIMENSIONLESS
+    | "[" combined_units "]"            -> dex_unit
+    | "[" DIMENSIONLESS "]"             -> dex_unit
+    | factor
+
+?combined_units: product_of_units
+               | division_of_units
+
+product_of_units: unit_expression _PRODUCT combined_units
+                | unit_expression
+
+division_of_units: _DIVISION unit_expression                  -> inverse_unit
+                 | combined_units _DIVISION unit_expression
+
+?unit_expression: unit_with_power
+                | "(" combined_units ")"
+
+factor: FLOAT _X INT INT    -> scaled_factor
+      | INT _X INT INT      -> scaled_factor
+      | INT INT             -> power_of_ten
+      | INT
+      | FLOAT
+
+unit_with_power: UNIT INT
+               | UNIT
+
+// The relative priorities of the terminals matter for the ones that can
+// match the same text, since the first matching terminal is used.
+_PRODUCT: "."
+_DIVISION: "/"
+FLOAT.5: /[+-]?((\d+\.\d+|\.\d+)([eE][+-]?\d+)?|\d{2,}[eE][+-]?\d+)/
+INT.4: /[+-]?\d+/
+_X.3: /[x×]/
+// Most units are just combinations of letters with no numbers, but there
+// are a few special ones (\h is Planck constant) and three that end in 0.
+UNIT.2: /%|°|\\h|(a|eps|mu)0|((?!\d)\w)+/
+// These are separate from UNIT since they cannot have a prefactor.
+DIMENSIONLESS.1: /---|-/
+"""
+
+
+@v_args(wrapper=token_values)
+class _CDSTransformer(Transformer):
+    """Turn a parsed CDS unit string into a unit.
+
+    Terminal methods are applied as soon as a token is created and set its
+    value, rule methods are applied when the rule is reduced.
+    """
+
+    def __init__(self, format_cls: type[_ParsingFormatMixin]) -> None:
+        super().__init__()
+        self._format = format_cls
+
+    def t_INT(self, t: Token) -> Token:
+        t.value = int(t)
+        return t
+
+    def t_FLOAT(self, t: Token) -> Token:
+        t.value = float(t)
+        return t
+
+    def t_UNIT(self, t: Token) -> Token:
+        t.value = self._format._get_unit(t)
+        return t
+
+    t_DIMENSIONLESS = t_UNIT
+
+    def main(self, unit):
+        return Unit(unit)
+
+    def scaled_unit(self, factor, unit):
+        return CompositeUnit(factor * unit.scale, unit.bases, unit.powers)
+
+    def dex_unit(self, unit):
+        from astropy.units import dex
+
+        return dex(unit)
+
+    def product_of_units(self, unit, *other):
+        return unit * other[0] if other else unit
+
+    def inverse_unit(self, unit):
+        return unit**-1
+
+    def division_of_units(self, numerator, denominator):
+        return numerator / denominator
+
+    def scaled_factor(self, factor, base, exponent):
+        return factor * self.power_of_ten(base, exponent)
+
+    def power_of_ten(self, base, exponent):
+        if base != 10:
+            raise ValueError("Only base ten exponents are allowed in CDS")
+        return 10.0**exponent
+
+    def factor(self, factor):
+        return factor
+
+    def unit_with_power(self, unit, power=None):
+        return unit if power is None else unit**power
 
 
 class CDS(Base, _ParsingFormatMixin):
@@ -39,20 +133,6 @@ class CDS(Base, _ParsingFormatMixin):
     _times: ClassVar[str] = "x"
     _scale_unit_separator: ClassVar[str] = ""
 
-    _tokens: ClassVar[tuple[str, ...]] = (
-        "PRODUCT",
-        "DIVISION",
-        "OPEN_PAREN",
-        "CLOSE_PAREN",
-        "OPEN_BRACKET",
-        "CLOSE_BRACKET",
-        "X",
-        "INT",
-        "FLOAT",
-        "UNIT",
-        "DIMENSIONLESS",
-    )
-
     @classproperty(lazy=True)
     def _units(cls) -> dict[str, UnitBase]:
         from astropy import units as u
@@ -60,161 +140,8 @@ class CDS(Base, _ParsingFormatMixin):
 
         return {k: v for k, v in cds.__dict__.items() if isinstance(v, u.UnitBase)}
 
-    @classproperty(lazy=True)
-    def _lexer(cls) -> Lexer:
-        tokens = cls._tokens
-
-        t_PRODUCT = r"\."
-        t_DIVISION = r"/"
-        t_OPEN_PAREN = r"\("
-        t_CLOSE_PAREN = r"\)"
-        t_OPEN_BRACKET = r"\["
-        t_CLOSE_BRACKET = r"\]"
-
-        # NOTE THE ORDERING OF THESE RULES IS IMPORTANT!!
-        # Regular expression rules for simple tokens
-
-        def t_FLOAT(t):
-            r"[+-]?((\d+\.?\d+)|(\.\d+))([eE][+-]?\d+)?"
-            if not re.search(r"[eE\.]", t.value):
-                t.type = "INT"
-                t.value = int(t.value)
-            else:
-                t.value = float(t.value)
-            return t
-
-        def t_INT(t):
-            r"[+-]?\d+"
-            t.value = int(t.value)
-            return t
-
-        def t_X(t):  # multiplication for factor in front of unit
-            r"[x×]"
-            return t
-
-        # Most units are just combinations of letters with no numbers, but there
-        # are a few special ones (\h is Planch constant) and three that end in 0.
-        def t_UNIT(t):
-            r"%|°|\\h|(a|eps|mu)0|((?!\d)\w)+"
-            t.value = cls._get_unit(t)
-            return t
-
-        def t_DIMENSIONLESS(t):
-            r"---|-"
-            # These are separate from t_UNIT since they cannot have a prefactor.
-            t.value = cls._get_unit(t)
-            return t
-
-        t_ignore = ""
-
-        # Error handling rule
-        def t_error(t):
-            raise ValueError(f"Invalid character at col {t.lexpos}")
-
-        return parsing.lex(
-            lextab="cds_lextab", package="astropy/units", reflags=int(re.UNICODE)
-        )
-
-    @classproperty(lazy=True)
-    def _parser(cls) -> ThreadSafeParser:
-        """
-        The grammar here is based on the description in the `Standards
-        for Astronomical Catalogues 2.0
-        <https://vizier.unistra.fr/vizier/doc/catstd-3.2.htx>`_, which is not
-        terribly precise.  The exact grammar is here is based on the
-        YACC grammar in the `unity library <https://purl.org/nxg/dist/unity/>`_.
-        """
-        tokens = cls._tokens
-
-        def p_main(p):
-            """
-            main : factor combined_units
-                 | combined_units
-                 | DIMENSIONLESS
-                 | OPEN_BRACKET combined_units CLOSE_BRACKET
-                 | OPEN_BRACKET DIMENSIONLESS CLOSE_BRACKET
-                 | factor
-            """
-            from astropy.units import dex
-
-            if len(p) == 3:
-                p[0] = CompositeUnit(p[1] * p[2].scale, p[2].bases, p[2].powers)
-            elif len(p) == 4:
-                p[0] = dex(p[2])
-            else:
-                p[0] = Unit(p[1])
-
-        def p_combined_units(p):
-            """
-            combined_units : product_of_units
-                           | division_of_units
-            """
-            p[0] = p[1]
-
-        def p_product_of_units(p):
-            """
-            product_of_units : unit_expression PRODUCT combined_units
-                             | unit_expression
-            """
-            if len(p) == 4:
-                p[0] = p[1] * p[3]
-            else:
-                p[0] = p[1]
-
-        def p_division_of_units(p):
-            """
-            division_of_units : DIVISION unit_expression
-                              | combined_units DIVISION unit_expression
-            """
-            if len(p) == 3:
-                p[0] = p[2] ** -1
-            else:
-                p[0] = p[1] / p[3]
-
-        def p_unit_expression(p):
-            """
-            unit_expression : unit_with_power
-                            | OPEN_PAREN combined_units CLOSE_PAREN
-            """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = p[2]
-
-        def p_factor(p):
-            """
-            factor : FLOAT X INT INT
-                   | INT X INT INT
-                   | INT INT
-                   | INT
-                   | FLOAT
-            """
-            match p[1:]:
-                case factor, _, 10, exponent:
-                    p[0] = factor * 10.0**exponent
-                case _, _, _, _:
-                    raise ValueError("Only base ten exponents are allowed in CDS")
-                case 10, exponent:
-                    p[0] = 10.0**exponent
-                case _, _:
-                    raise ValueError("Only base ten exponents are allowed in CDS")
-                case _:
-                    p[0] = p[1]
-
-        def p_unit_with_power(p):
-            """
-            unit_with_power : UNIT INT
-                            | UNIT
-            """
-            if len(p) == 2:
-                p[0] = p[1]
-            else:
-                p[0] = p[1] ** p[2]
-
-        def p_error(p):
-            raise ValueError()
-
-        return parsing.yacc(tabmodule="cds_parsetab", package="astropy/units")
+    _grammar: ClassVar[str] = _GRAMMAR
+    _transformer: ClassVar[type[Transformer]] = _CDSTransformer
 
     @classmethod
     def parse(cls, s: str, debug: bool = False) -> UnitBase:

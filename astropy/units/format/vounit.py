@@ -9,8 +9,8 @@ from re import Pattern
 from typing import ClassVar, Literal
 
 import numpy as np
+from lark import Token
 
-from astropy.extern.ply.lex import LexToken
 from astropy.units.core import (
     CompositeUnit,
     NamedUnit,
@@ -110,7 +110,7 @@ class VOUnit(Base, _GenericParserMixin):
         return result
 
     @classmethod
-    def _get_unit(cls, t: LexToken) -> UnitBase:
+    def _get_unit(cls, t: Token) -> UnitBase:
         try:
             return super()._get_unit(t)
         except ValueError:

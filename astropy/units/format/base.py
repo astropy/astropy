@@ -5,8 +5,9 @@ from collections.abc import Iterable
 from typing import ClassVar, Literal, assert_never
 
 import numpy as np
+from lark import Lark, Token, Transformer
+from lark.exceptions import UnexpectedCharacters, UnexpectedInput
 
-from astropy.extern.ply.lex import LexToken
 from astropy.units.core import (
     CompositeUnit,
     NamedUnit,
@@ -18,7 +19,9 @@ from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitsError, UnitsWarning
 from astropy.units.typing import UnitPower, UnitScale
 from astropy.units.utils import maybe_simple_fraction
+from astropy.utils import classproperty
 from astropy.utils.misc import did_you_mean
+from astropy.utils.parsing import make_parser
 
 
 class Base:
@@ -218,19 +221,26 @@ class _ParsingFormatMixin:
     """Provides private methods used in the formats that parse units."""
 
     _deprecated_units: ClassVar[frozenset[str]] = frozenset()
+    _grammar: ClassVar[str]
+    """The grammar of the format, in the syntax understood by `lark`."""
+    _transformer: ClassVar[type[Transformer]]
+    """Transformer turning parsed strings into units; instantiated with the format."""
+
+    @classproperty(lazy=True)
+    def _parser(cls) -> Lark:
+        return make_parser(cls._grammar, cls._transformer(cls), start="main")
 
     @classmethod
     def _do_parse(cls, s: str, debug: bool = False) -> UnitBase:
         try:
-            return cls._parser.parse(s, lexer=cls._lexer, debug=debug)
-        except ValueError as e:
-            if str(e):
-                raise
-            else:
-                raise ValueError(f"Syntax error parsing unit '{s}'")
+            return cls._parser.parse(s)
+        except UnexpectedCharacters as e:
+            raise ValueError(f"Invalid character at col {e.pos_in_stream}") from None
+        except UnexpectedInput:
+            raise ValueError(f"Syntax error parsing unit '{s}'") from None
 
     @classmethod
-    def _get_unit(cls, t: LexToken) -> UnitBase:
+    def _get_unit(cls, t: Token) -> UnitBase:
         try:
             return cls._validate_unit(t.value)
         except KeyError:
@@ -239,7 +249,7 @@ class _ParsingFormatMixin:
                 return registry.aliases[t.value]
 
             raise ValueError(
-                f"At col {t.lexpos}, {cls._invalid_unit_error_message(t.value)}"
+                f"At col {t.start_pos}, {cls._invalid_unit_error_message(t.value)}"
             ) from None
 
     @classmethod

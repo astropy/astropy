@@ -134,6 +134,8 @@ Requirements
 
 - |packaging| |minimum_packaging_version| or later
 
+- `lark <https://lark-parser.readthedocs.io>`_ |minimum_lark_version| or later
+
 ``astropy`` also depends on a number of other packages for optional features.
 The following are particularly recommended:
 

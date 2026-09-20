@@ -40,11 +40,11 @@ repos:
         # Checks for the existence of private keys.
       - id: end-of-file-fixer
         # Makes sure files end in a newline and only a newline.
-        exclude: ".*(data.*|extern.*|licenses.*|_static.*|_parsetab.py)$"
+        exclude: ".*(data.*|extern.*|licenses.*|_static.*)$"
       - id: mixed-line-ending
         args: ["--fix=lf"]
         # Forces all text files to use LF line endings.
-        exclude: ".*(data.*|extern.*|licenses.*|_static.*|_parsetab.py)$"
+        exclude: ".*(data.*|extern.*|licenses.*|_static.*)$"
       # - id: fix-encoding-pragma  # covered by pyupgrade
       - id: trailing-whitespace
         # Trims trailing whitespace.
@@ -111,7 +111,7 @@ repos:
     rev: v1.0.2
     hooks:
       - id: sphinx-lint
-        exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"
+        exclude: "(licenses/|docs/_build/|astropy/extern/)"
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: 'v23.1.0'

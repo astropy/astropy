@@ -526,6 +526,7 @@ global_substitutions: dict[str, str] = {
     "minimum_scipy_version": f"{min_versions['scipy']}",
     "minimum_asdf_astropy_version": f"{min_versions['asdf-astropy']}",
     "minimum_packaging_version": f"{min_versions['packaging']}",
+    "minimum_lark_version": f"{min_versions['lark']}",
     "minimum_pyyaml_version": f"{min_versions['pyyaml']}",
     "minimum_ipython_version": f"{min_versions['ipython']}",
     "minimum_pyarrow_version": f"{min_versions['pyarrow']}",
