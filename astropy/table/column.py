@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from astropy.units import UnitBase
     from astropy.units.typing import UnitLike
 
-    from ._typing import ColumnLike
+    from ._typing import ColumnLike, DataLike
     from .table import Table
 
 # Create a generic TableFormatter object for use by bare columns with no
@@ -534,7 +534,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def __new__(
         cls,
-        data: Any = None,
+        data: DataLike = None,
         name: str | None = None,
         dtype: npt.DTypeLike | None = None,
         shape: tuple[int, ...] = (),
@@ -1292,7 +1292,7 @@ class Column(BaseColumn):
 
     def __new__(
         cls,
-        data: Any = None,
+        data: DataLike = None,
         name: str | None = None,
         dtype: npt.DTypeLike | None = None,
         shape: tuple[int, ...] = (),
@@ -1672,7 +1672,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     def __new__(
         cls,
-        data: Any = None,
+        data: DataLike = None,
         name: str | None = None,
         mask: npt.ArrayLike | None = None,
         fill_value: Any = None,
