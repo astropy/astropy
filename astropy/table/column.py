@@ -131,7 +131,7 @@ class FalseArray(np.ndarray):
         obj = np.zeros(shape, dtype=bool).view(cls)
         return obj
 
-    def __setitem__(self, item: Any, val: Any) -> None:
+    def __setitem__(self, item, val) -> None:
         val = np.asarray(val)
         if np.any(val):
             raise ValueError(
@@ -139,7 +139,9 @@ class FalseArray(np.ndarray):
             )
 
 
-def _expand_string_array_for_values(arr: np.ndarray, values: Any) -> np.ndarray:
+def _expand_string_array_for_values(
+    arr: np.ndarray, values: npt.ArrayLike
+) -> np.ndarray:
     """
     For string-dtype return a version of ``arr`` that is wide enough for ``values``.
     If ``arr`` is not string-dtype or does not need expansion then return ``arr``.
@@ -338,7 +340,7 @@ def _make_compare(oper: str) -> Callable[[BaseColumn, Any], Any]:
         Operator name
     """
 
-    def _compare(self: BaseColumn, other: Any) -> Any:
+    def _compare(self: BaseColumn, other) -> Any:
         op = oper  # copy enclosed ref to allow swap below
 
         # If other is a Quantity, we should let it do the work, since
@@ -1046,7 +1048,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def searchsorted(
         self,
-        v: Any,
+        v,
         side: Literal["left", "right"] = "left",
         sorter: npt.ArrayLike | None = None,
     ) -> int | np.integer | np.ndarray:
@@ -1096,7 +1098,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self._groups = groups.ColumnGroups(self)
         return self._groups
 
-    def group_by(self, keys: Any) -> Self:
+    def group_by(self, keys: Table | np.ndarray) -> Self:
         """
         Group this column by the specified ``keys``.
 
@@ -1105,12 +1107,12 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         `Column` or `MaskedColumn` which contains a copy of this column but
         sorted by row according to ``keys``.
 
-        The ``keys`` input to ``group_by`` must be a numpy array with the
-        same length as this column.
+        The ``keys`` input to ``group_by`` must be a `~astropy.table.Table`
+        or numpy array with the same length as this column.
 
         Parameters
         ----------
-        keys : numpy array
+        keys : `~astropy.table.Table` or numpy array
             Key grouping object
 
         Returns
@@ -1173,7 +1175,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         """
         return self.quantity.to(unit, equivalencies)
 
-    def _copy_attrs(self, obj: Any) -> None:
+    def _copy_attrs(self, obj) -> None:
         """
         Copy key column attributes from ``obj`` to self.
         """
@@ -1187,7 +1189,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self.meta = obj_meta.copy()
 
     @staticmethod
-    def _encode_str(value: Any) -> Any:
+    def _encode_str(value) -> Any:
         """
         Encode anything that is unicode-ish as utf-8.  This method is only
         called for Py3+.
@@ -1325,7 +1327,7 @@ class Column(BaseColumn):
         )
         return self
 
-    def __setattr__(self, item: str, value: Any) -> None:
+    def __setattr__(self, item: str, value) -> None:
         if not isinstance(self, MaskedColumn) and item == "mask":
             raise AttributeError(
                 "cannot set mask value to a column in non-masked Table"
@@ -1405,7 +1407,7 @@ class Column(BaseColumn):
     def __bytes__(self) -> bytes:
         return str(self).encode("utf-8")
 
-    def _check_string_truncate(self, value: Any) -> None:
+    def _check_string_truncate(self, value) -> None:
         """
         Emit a warning if any elements of ``value`` will be truncated when
         ``value`` is assigned to self.
@@ -1429,7 +1431,7 @@ class Column(BaseColumn):
                 stacklevel=3,
             )
 
-    def __setitem__(self, index: Any, value: Any) -> None:
+    def __setitem__(self, index, value) -> None:
         if self.dtype.char == "S":
             value = self._encode_str(value)
 
@@ -1595,8 +1597,9 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         Column name and key for reference within Table
     mask : list, ndarray or None
         Boolean mask for which True indicates missing or invalid data
-    fill_value : float, int, str, or None
-        Value used when filling masked column elements
+    fill_value : scalar or None
+        Value used when filling masked column elements.  Must be compatible
+        with the column ``dtype``.
     dtype : `~numpy.dtype`-like
         Data type for column
     shape : tuple or ()
@@ -1675,7 +1678,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         data: DataLike = None,
         name: str | None = None,
         mask: npt.ArrayLike | None = None,
-        fill_value: Any = None,
+        fill_value=None,
         dtype: npt.DTypeLike | None = None,
         shape: tuple[int, ...] = (),
         length: int = 0,
@@ -1818,7 +1821,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         return self.get_fill_value()  # defer to native ma.MaskedArray method
 
     @fill_value.setter
-    def fill_value(self, val: Any) -> None:
+    def fill_value(self, val) -> None:
         """Set fill value both in the masked column view and in the parent table
         if it exists.  Setting one or the other alone doesn't work.
         """
@@ -1850,7 +1853,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         out._baseclass = np.ndarray
         return out
 
-    def filled(self, fill_value: Any = None) -> Column:
+    def filled(self, fill_value=None) -> Column:
         """Return a copy of self, with masked values filled with a given value.
 
         Parameters
@@ -1972,7 +1975,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             out._copy_attrs(self)
         return out
 
-    def __setitem__(self, index: Any, value: Any) -> None:
+    def __setitem__(self, index, value) -> None:
         # Issue warning for string assignment that truncates ``value``
         if self.dtype.char == "S":
             value = self._encode_str(value)

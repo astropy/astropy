@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 def _searchsorted(
     array: Column | np.ndarray | Sequence[Any],
-    val: Any,
+    val,
     side: Literal["left", "right"] = "left",
 ) -> int | np.integer:
     """

@@ -216,7 +216,7 @@ def descr(col: ColumnLike) -> tuple[str, npt.DTypeLike, tuple[int, ...]]:
     return (col.info.name, col_dtype, col_shape)
 
 
-def has_info_class(obj: Any, cls: type) -> bool:
+def has_info_class(obj, cls: type) -> bool:
     """Check if the object's info is an instance of cls."""
     # We check info on the class of the instance, since on the instance
     # itself accessing 'info' has side effects in that it sets
@@ -1050,7 +1050,7 @@ class Table:
         return mask_table
 
     @mask.setter
-    def mask(self, val: Any) -> None:
+    def mask(self, val) -> None:
         self.mask[:] = val
 
     @property
@@ -1061,7 +1061,7 @@ class Table:
         """
         return self.as_array().mask
 
-    def filled(self, fill_value: Any = None) -> Self:
+    def filled(self, fill_value=None) -> Self:
         """Return copy of self, with masked values filled.
 
         If input ``fill_value`` supplied then that value is used for all
@@ -1070,7 +1070,7 @@ class Table:
 
         Parameters
         ----------
-        fill_value : str
+        fill_value : object
             If supplied, this ``fill_value`` is used for all masked entries
             in the entire table.
 
@@ -2252,7 +2252,7 @@ class Table:
     def __setitem__(
         self,
         item: str | int | np.integer | slice | list | tuple | np.ndarray,
-        value: Any,
+        value,
     ) -> None:
         # If the item is a string then it must be the name of a column.
         # If that column doesn't already exist then create it now.
@@ -2377,7 +2377,7 @@ class Table:
         return list(self.columns.keys())
 
     @staticmethod
-    def _is_list_or_tuple_of_str(names: Any) -> bool:
+    def _is_list_or_tuple_of_str(names) -> bool:
         """Check that ``names`` is a tuple or list of strings."""
         return (
             isinstance(names, (tuple, list))

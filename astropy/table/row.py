@@ -74,7 +74,7 @@ class Row:
         return out
 
     def __setitem__(
-        self, item: str | int | np.integer | list[str] | tuple[str, ...], val: Any
+        self, item: str | int | np.integer | list[str] | tuple[str, ...], val
     ) -> None:
         if self._table._is_list_or_tuple_of_str(item):
             self._table._set_row(self._index, colnames=item, vals=val)
@@ -124,7 +124,7 @@ class Row:
         for col in self._table.columns.values():
             yield col[index]
 
-    def get(self, key: str, default: Any = None, /) -> Any:
+    def get(self, key: str, default=None, /) -> Any:
         """Return the value for key if key is in the columns, else default.
 
         Parameters
