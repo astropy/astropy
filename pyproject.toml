@@ -1027,3 +1027,11 @@ follow_imports = "silent"
 packages = [
     "astropy.coordinates.sites",
 ]
+modules = [
+    # Specific cosmology modules. Move to `packages` when it's 100% covered.
+    "astropy.cosmology.io",
+    "astropy.cosmology.parameters",
+    "astropy.cosmology.realizations",
+    "astropy.cosmology.traits",
+    "astropy.cosmology.units",
+]
