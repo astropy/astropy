@@ -2109,7 +2109,6 @@ def test_alternate_wcs_distortion_independent():
     )
 
 
-
 def _wcs_with_lookup_distortion(key):
     header = fits.Header()
     suffix = key.strip()
@@ -2180,6 +2179,7 @@ def test_alternate_wcs_distortion_to_fits_roundtrip(key):
     hdulist_b = w.to_fits(key="B")
     assert "CPDIS1B" in hdulist_b[0].header
     assert "DP1B.EXTVER" in hdulist_b[0].header
+
 
 def test_DistortionLookupTable():
     img_world_wcs = wcs.WCS(naxis=2)
