@@ -4137,7 +4137,7 @@ class Table:
 
         Parameters
         ----------
-        df
+        df : Any
             A dataframe-like object (e.g., a `pandas.DataFrame`, ``polars.DataFrame``,
             ``pyarrow.Table`` or other ``narwhals`` compatible dataframe).
         index : bool, optional
