@@ -263,6 +263,7 @@ html_theme_options = {
     },
     "github_url": "https://github.com/astropy/astropy",
     "use_edit_page_button": True,
+    "collapse_navigation": False
 }
 
 # The name for this set of Sphinx documents.  If None, it defaults to
