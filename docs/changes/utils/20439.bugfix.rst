@@ -1,1 +1,1 @@
-Replace regexp that can get bogged down in backtracking with simply Python function.
+Fix XML regex bugs and improve speed of token check.

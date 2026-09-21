@@ -43,7 +43,9 @@ def check_token(token):
         not token.startswith(" ")
         and not token.endswith(" ")
         and "  " not in token
-        and not any(character in "\r\n\t" for character in token)
+        and "\r" not in token
+        and "\n" not in token
+        and "\t" not in token
     )
 
 
