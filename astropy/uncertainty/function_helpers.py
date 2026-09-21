@@ -7,7 +7,6 @@ implementation of `~astropy.uncertainty.core.Distribution`.  They are not
 very useful on their own, but the ones with docstrings are included in
 the documentation so that there is a place to find out how the distributions
 are interpreted.
-
 """
 
 import numpy as np
@@ -84,6 +83,11 @@ def get_n_samples(*arrays):
     The logic of getting ``n_samples`` from the first |Distribution|
     is that the code will raise an appropriate exception later if
     distributions do not have the same ``n_samples``.
+
+    Parameters
+    ----------
+    *arrays : array-like
+        Arrays to inspect.  At least one should be a |Distribution|.
     """
     # TODO: add verification if another function needs it.
     for array in arrays:
@@ -115,9 +119,11 @@ def broadcast_arrays(*args, subok=False):
     *args : array-like
         The arrays to broadcast against each other.
     subok : bool, optional
-        Whether subclasses of |Distribution| are allowed in the result. If
-        `False` (default), `~astropy.uncertainty.NdarrayDistribution`
-        instances are returned.
+        If `True`, subclasses such as |Quantity| are preserved (as the
+        corresponding distribution classes).  If `False` (default),
+        distributions are returned as
+        `~astropy.uncertainty.NdarrayDistribution` and any other arrays as
+        plain |ndarray|.
     """
     if not subok:
         args = tuple(
@@ -136,9 +142,9 @@ def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
 
     Parameters
     ----------
-    arrays : sequence of array-like
-        The arrays to concatenate. Entries that are not distributions are
-        broadcast to distributions with identical samples.
+    arrays : sequence of |Distribution| or |ndarray|
+        The arrays to concatenate.  Array entries that are not distributions
+        are broadcast to distributions with identical samples.
     axis : int, optional
         The axis along which the arrays are joined. Note that this refers to
         the shape of the distribution, not to the trailing samples axis.
