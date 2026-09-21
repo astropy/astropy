@@ -130,3 +130,37 @@ To make sure support for plotting times is turned off afterward, you can use
     with time_support(format='mjd', scale='tai'):
         fig, ax = plt.subplots(figsize=(5, 3))
         ax.plot(Time([50000, 52000, 54000], format='mjd'))
+
+.. _plotting-combined:
+
+Combined support for quantities and times
+=========================================
+
+If you want to enable support for plotting both quantities and times
+simultaneously, you can use `~astropy.visualization.astropy_support`, which
+combines `~astropy.visualization.quantity_support` and
+`~astropy.visualization.time_support`:
+
+.. doctest-requires:: matplotlib
+
+    >>> from astropy.visualization import astropy_support
+    >>> astropy_support()  # doctest: +IGNORE_OUTPUT
+    <contextlib._GeneratorContextManager ...>
+
+This is particularly useful when creating plots that involve both |Time| on
+one axis and |Quantity| on the other:
+
+.. plot::
+   :include-source:
+   :context: reset
+
+    from matplotlib import pyplot as plt
+    from astropy import units as u
+    from astropy.time import Time
+    from astropy.visualization import astropy_support
+
+    with astropy_support():
+        fig, ax = plt.subplots(figsize=(5, 3))
+        times = Time(['2020-01-01', '2020-01-15', '2020-02-01'])
+        values = [1.2, 3.3, 2.3] * u.m
+        ax.plot(times, values)

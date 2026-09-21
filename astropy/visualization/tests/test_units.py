@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import importlib
 import io
 
 import pytest
@@ -12,9 +13,14 @@ if HAS_PLT:
 
 import numpy as np
 
+import astropy.visualization.units as visualization_units
 from astropy import units as u
 from astropy.coordinates import Angle
-from astropy.visualization.units import MplQuantityConverter, quantity_support
+from astropy.time import Time
+from astropy.visualization.units import (
+    MplQuantityConverter,
+    quantity_support,
+)
 
 
 @pytest.fixture
@@ -230,3 +236,27 @@ def test_convert(converter_class, val, expected):
 def test_default_units(converter_class, x, expected):
     result = converter_class.default_units(x, None)
     assert result == expected
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_astropy_support():
+    """Test that astropy_support enables both quantity and time support."""
+    units_module = importlib.reload(visualization_units)
+
+    fig = Figure()
+    ax = fig.add_subplot()
+
+    with units_module.astropy_support():
+        # Test that Quantity support works
+        ax.plot([1, 2, 3] * u.m, [3, 4, 5] * u.kg)
+        assert ax.xaxis.get_units() == u.m
+        assert ax.yaxis.get_units() == u.kg
+
+    # Test with Time on x-axis and Quantity on y-axis
+    fig2 = Figure()
+    ax2 = fig2.add_subplot()
+
+    with units_module.astropy_support():
+        times = Time(["2020-01-01", "2020-01-02", "2020-01-03"])
+        ax2.plot(times, [1, 2, 3] * u.m)
+        assert ax2.yaxis.get_units() == u.m
