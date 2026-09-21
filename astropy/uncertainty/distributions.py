@@ -49,7 +49,6 @@ def normal(
     distr : `~astropy.uncertainty.Distribution` or object
         The sampled Gaussian distribution.
         The type will be the same as the parameter ``cls``.
-
     """
     center = np.asanyarray(center)
     if var is not None:
