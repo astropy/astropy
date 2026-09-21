@@ -309,10 +309,9 @@ class WCSAxes(Axes):
         ----------
         *args, **kwargs
             The arguments passed to ``plot_coord``, ``text_coord``, or
-            ``scatter_coord``. If
-            the first positional argument is a coordinate object, it is
-            converted to plain plotting arguments and an appropriate
-            ``transform`` keyword argument is added.
+            ``scatter_coord``. If the first positional argument is a coordinate
+            object, it is converted to plain plotting arguments and an
+            appropriate ``transform`` keyword argument is added.
         """
         if isinstance(args[0], (SkyCoord, BaseCoordinateFrame)):
             # Extract the frame from the first argument.
