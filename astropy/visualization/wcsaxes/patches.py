@@ -40,6 +40,13 @@ def _rotate_polygon(lon, lat, lon0, lat0):
     such that the North pole of the spherical coordinates is now at (lon0,
     lat0). Therefore, to end up with a polygon centered on (lon0, lat0), the
     polygon should initially be drawn around the North pole.
+
+    Parameters
+    ----------
+    lon, lat : `~astropy.units.Quantity` ['angle']
+        The longitude and latitude of the polygon vertices.
+    lon0, lat0 : `~astropy.units.Quantity` ['angle']
+        The longitude and latitude to rotate the North pole to.
     """
     # Create a representation object
     polygon = UnitSphericalRepresentation(lon=lon, lat=lat)
@@ -76,7 +83,7 @@ class SphericalCircle(Polygon):
         a single `~astropy.units.Quantity` array with two elements
         or a `~astropy.coordinates.SkyCoord` object.
     radius : `~astropy.units.Quantity` ['angle']
-        The radius of the circle
+        The radius of the circle.
     resolution : int, optional
         The number of points that make up the circle - increase this to get a
         smoother circle.
@@ -84,10 +91,9 @@ class SphericalCircle(Polygon):
         The units in which the resulting polygon should be defined - this
         should match the unit that the transformation (e.g. the WCS
         transformation) expects as input.
-
-    Notes
-    -----
-    Additional keyword arguments are passed to `~matplotlib.patches.Polygon`
+    **kwargs
+        Additional keyword arguments are passed to
+        `~matplotlib.patches.Polygon`.
     """
 
     def __init__(self, center, radius, resolution=100, vertex_unit=u.degree, **kwargs):
@@ -142,9 +148,9 @@ class Quadrangle(Polygon):
         This can be either a tuple of two `~astropy.units.Quantity` objects, or
         a single `~astropy.units.Quantity` array with two elements.
     width : `~astropy.units.Quantity` ['angle']
-        The width of the quadrangle in longitude (or, e.g., right ascension)
+        The width of the quadrangle in longitude (or, e.g., right ascension).
     height : `~astropy.units.Quantity` ['angle']
-        The height of the quadrangle in latitude (or, e.g., declination)
+        The height of the quadrangle in latitude (or, e.g., declination).
     resolution : int, optional
         The number of points that make up each side of the quadrangle -
         increase this to get a smoother quadrangle.
@@ -152,10 +158,9 @@ class Quadrangle(Polygon):
         The units in which the resulting polygon should be defined - this
         should match the unit that the transformation (e.g. the WCS
         transformation) expects as input.
-
-    Notes
-    -----
-    Additional keyword arguments are passed to `~matplotlib.patches.Polygon`
+    **kwargs
+        Additional keyword arguments are passed to
+        `~matplotlib.patches.Polygon`.
     """
 
     def __init__(
