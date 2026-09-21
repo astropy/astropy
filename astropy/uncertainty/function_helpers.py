@@ -109,6 +109,15 @@ def broadcast_arrays(*args, subok=False):
     Note that ``subok`` is taken to mean whether or not subclasses of
     the distribution are allowed, i.e., for ``subok=False``,
     `~astropy.uncertainty.NdarrayDistribution` instances will be returned.
+
+    Parameters
+    ----------
+    *args : array-like
+        The arrays to broadcast against each other.
+    subok : bool, optional
+        Whether subclasses of |Distribution| are allowed in the result. If
+        `False` (default), `~astropy.uncertainty.NdarrayDistribution`
+        instances are returned.
     """
     if not subok:
         args = tuple(
@@ -124,6 +133,21 @@ def concatenate(arrays, axis=0, out=None, dtype=None, casting="same_kind"):
 
     Like `numpy.concatenate`, but any array that is not already a |Distribution|
     is turned into one with identical samples.
+
+    Parameters
+    ----------
+    arrays : sequence of array-like
+        The arrays to concatenate. Entries that are not distributions are
+        broadcast to distributions with identical samples.
+    axis : int, optional
+        The axis along which the arrays are joined. Note that this refers to
+        the shape of the distribution, not to the trailing samples axis.
+    out : |Distribution|, optional
+        Alternative output array in which to place the result.
+    dtype : dtype, optional
+        The type of the output array. See `numpy.concatenate`.
+    casting : str, optional
+        Controls what kind of data casting may occur. See `numpy.concatenate`.
     """
     n_samples = get_n_samples(*arrays, out)
     converted = tuple(
