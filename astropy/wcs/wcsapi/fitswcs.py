@@ -477,7 +477,10 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             # spacecraft far from earth. For now assume the obsgeo parameters,
             # if present, give the geocentric observer location.
 
-            if np.isnan(self.wcs.obsgeo[0]):
+            if (
+                np.isnan(self.wcs.obsgeo[0])
+                or (np.isnan(self.wcs.mjdobs) and np.isnan(self.wcs.mjdavg))
+            ):
                 observer = None
             else:
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
