@@ -6,7 +6,7 @@ import copy
 from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Self, Union
 
 import astropy.units as u
 
@@ -72,7 +72,7 @@ class _FValidateField:
 
 
 @dataclass(frozen=True)
-class Parameter:
+class Parameter[T]:
     r"""Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
@@ -111,7 +111,7 @@ class Parameter:
 
     _: KW_ONLY
 
-    default = MISSING
+    default: T | Sentinel = MISSING
     """Default value of the Parameter.
 
     By default set to ``MISSING``, which indicates the parameter must be set
@@ -162,7 +162,7 @@ class Parameter:
         self,
         cosmology: Union["astropy.cosmology.Cosmology", None],
         cosmo_cls: Union["type[astropy.cosmology.Cosmology]", None] = None,
-    ):
+    ) -> T:
         # Get from class
         if cosmology is None:
             # If the Parameter is being set as part of a dataclass constructor, then we
@@ -178,7 +178,9 @@ class Parameter:
         # Get from instance
         return cosmology.__dict__[self.name]
 
-    def __set__(self, cosmology: "astropy.cosmology.Cosmology", value) -> None:
+    def __set__(
+        self, cosmology: "astropy.cosmology.Cosmology", value: T | Self
+    ) -> None:
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
