@@ -802,6 +802,10 @@ exclude = [  # Don't report on objects that match any of these regex
     # references that do not resolve in the astropy documentation; the
     # parameters are documented in the class docstring
     '\.WCSAxes\.__init__$',
+    # Distribution documents its parameters in the class docstring, but takes
+    # them in __new__ rather than __init__, and the numpydoc pre-commit hook
+    # only reads signatures from __init__, so it reports "samples" as unknown.
+    '^core\.Distribution$',
 ]
 exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/setup_package.py',
