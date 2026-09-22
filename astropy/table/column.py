@@ -718,19 +718,8 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         # or viewcast e.g. obj.view(Column).  In either case we want to
         # init Column attributes for self from obj if possible.
         self.parent_table = None
-
-        # A derived column never inherits indices from ``obj``.  For MaskedColumn the
-        # super() call above (MaskedArray._update_from) has copied the attributes of
-        # ``obj`` into self.__dict__ *and* into ``self._optinfo``, a dict that numpy
-        # then re-applies to every MaskedArray derived from self.  If ``indices`` were
-        # left in there, a slice of a slice would silently pick up the original
-        # column's index and deep-copy it, including all the sorted data, on every
-        # further slice (see #16089).  MaskedColumn.__new__ sets indices explicitly.
-        self.indices = []
-        optinfo = self.__dict__.get("_optinfo")
-        if optinfo is not None:
-            optinfo.pop("indices", None)
-
+        if not hasattr(self, "indices"):  # may have been copied in __new__
+            self.indices = []
         self._copy_attrs(obj)
         if "info" in getattr(obj, "__dict__", {}):
             self.info = obj.info
@@ -1705,13 +1694,25 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         self.parent_table = None
 
-        # Indices are not inherited through __array_finalize__, so take them from the
-        # BaseColumn template (which applied ``copy_indices``) and point them at self.
-        self.indices = self_data.indices
+        # needs to be done here since self doesn't come from BaseColumn.__new__
         for index in self.indices:
             index.replace_col(self_data, self)
 
         return self
+
+    def __array_finalize__(self, obj):
+        super().__array_finalize__(obj)
+
+        # MaskedArray.__array_finalize__ (via _update_from) copies the attributes of
+        # ``obj`` into self.__dict__ and into ``self._optinfo``, a dict that numpy then
+        # re-applies to every MaskedArray derived from self, e.g. in __getitem__ and
+        # comparisons.  ``indices`` must not travel that way: a slice of a slice would
+        # silently pick up the original column's index and deep-copy it, sorted data
+        # and all, on every further slice (see #16089).  The ``indices`` attribute set
+        # on self above is fine: it is either a fresh [] or, in MaskedColumn.__new__,
+        # the list from the bare BaseColumn template.
+        if obj is not None:
+            self._optinfo.pop("indices", None)
 
     def __deepcopy__(self, memo=None):
         out = super().__deepcopy__(memo)
@@ -1902,6 +1903,9 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             if "info" in self.__dict__:
                 out.info = self.info
             out.parent_table = None
+            # we need this because __getitem__ does a shallow copy of indices
+            if out.indices is self.indices:
+                out.indices = []
             out._copy_attrs(self)
         return out
 
