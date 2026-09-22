@@ -13,6 +13,15 @@ from ._iterparser import escape_xml as xml_escape
 from ._iterparser import escape_xml_cdata as xml_escape_cdata
 
 
+def _validate_xml_chars(text):
+    """
+    Raise `ValueError` if *text* contains a character XML cannot represent.
+
+    Escaping enforces this, so escape the text and discard the result.
+    """
+    xml_escape_cdata(text)
+
+
 class XMLWriter:
     """
     A class to write well-formed and nicely indented XML.
@@ -50,9 +59,12 @@ class XMLWriter:
         self.xml_escape_cdata = xml_escape_cdata
         self.xml_escape = xml_escape
 
-    def _flush(self, indent=True, wrap=False):
+    def _flush(self, indent=True, wrap=False, tag=None):
         """
         Flush internal buffers.
+
+        ``tag`` names the element the buffered text belongs to, for error
+        messages.
         """
         if self._open:
             if indent:
@@ -62,17 +74,33 @@ class XMLWriter:
             self._open = 0
         if self._data:
             data = "".join(self._data)
-            if wrap:
-                indent = self.get_indentation_spaces(1)
-                data = textwrap.fill(
-                    data, initial_indent=indent, subsequent_indent=indent
-                )
-                self.write("\n")
-                self.write(self.xml_escape_cdata(data))
-                self.write("\n")
-                self.write(self.get_indentation_spaces())
-            else:
-                self.write(self.xml_escape_cdata(data))
+            # self.xml_escape_cdata is not necessarily an escaper at all:
+            # xml_cleaning_method() may have swapped in bleach.clean, or a
+            # passthrough for "none".  Only the real escaper rejects
+            # characters XML cannot represent, and only when it sees the text
+            # unaltered -- which it does not once textwrap.fill() below has
+            # turned a form feed into a space.  Either of those needs a check
+            # of its own; otherwise the call below does it.
+            uses_default_escaper = self.xml_escape_cdata is xml_escape_cdata
+            try:
+                if wrap or not uses_default_escaper:
+                    _validate_xml_chars(data)
+                if wrap:
+                    indent = self.get_indentation_spaces(1)
+                    data = textwrap.fill(
+                        data, initial_indent=indent, subsequent_indent=indent
+                    )
+                    self.write("\n")
+                    self.write(self.xml_escape_cdata(data))
+                    self.write("\n")
+                    self.write(self.get_indentation_spaces())
+                else:
+                    self.write(self.xml_escape_cdata(data))
+            except ValueError as exc:
+                if tag is None and self._tags:
+                    tag = self._tags[-1]
+                where = f"in text of element {tag!r}: " if tag else ""
+                raise ValueError(f"{where}{exc}") from exc
             self._data = []
 
     def start(self, tag, attrib={}, **extra):
@@ -98,8 +126,6 @@ class XMLWriter:
             Returns an element identifier.
         """
         self._flush()
-        # This is just busy work -- we know our tag names are clean
-        # tag = xml_escape_cdata(tag)
         self._data = []
         self._tags.append(tag)
         self.write(self.get_indentation_spaces(-1))
@@ -111,9 +137,12 @@ class XMLWriter:
             attrib.sort()
             for k, v in attrib:
                 if v is not None:
-                    # This is just busy work -- we know our keys are clean
-                    # k = xml_escape_cdata(k)
-                    v = self.xml_escape(v)
+                    try:
+                        v = self.xml_escape(v)
+                    except ValueError as exc:
+                        raise ValueError(
+                            f"in attribute {k!r} of element {tag!r}: {exc}"
+                        ) from exc
                     self.write(f' {k}="{v}"')
         self._open = 1
 
@@ -246,7 +275,7 @@ class XMLWriter:
                 raise ValueError("unbalanced end()")
         tag = self._tags.pop()
         if self._data:
-            self._flush(indent, wrap)
+            self._flush(indent, wrap, tag=tag)
         elif self._open:
             self._open = 0
             self.write("/>\n")
