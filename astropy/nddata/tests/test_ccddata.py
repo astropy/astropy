@@ -480,10 +480,7 @@ def test_arithmetic_error_restores_unit_requirement():
     with pytest.raises(u.UnitConversionError):
         ccd_adu.add(ccd_electron)
 
-    # A failed operation must not disable this process-wide validation.
-    from astropy.nddata import ccddata
-
-    assert ccddata._config_ccd_requires_unit is True
+    # A failed operation must not disable unit validation for later instances.
     with pytest.raises(ValueError, match="a unit for CCDData must be specified"):
         CCDData(np.ones((2, 2)))
 

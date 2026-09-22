@@ -62,7 +62,6 @@ def _arithmetic(op):
                     op, operand, operand2, **kwargs
                 )
             finally:
-                # Restore the unit check even when arithmetic raises.
                 _config_ccd_requires_unit = True
             # Wrap it again as CCDData so it checks the final unit.
             return result.__class__(result)
