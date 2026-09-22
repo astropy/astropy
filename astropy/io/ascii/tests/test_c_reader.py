@@ -1060,6 +1060,45 @@ a b c
     assert table.meta["comments"] == ["header comment", "comment 2", "comment 3"]
 
 
+def test_store_comments_long(read_basic):
+    """
+    Comment lines found after the header line must not corrupt the comments
+    already collected before it, even when those exceed the initial size of
+    the C tokenizer comment buffer (50 characters). [#8360]
+    """
+    text = """
+# key1 : val 1
+# key2 : extra long entry
+# key3 : also super long entry
+a b
+# unit1 unit2
+1 2
+"""
+    table = read_basic(text, check_meta=True)
+    assert table.meta["comments"] == [
+        "key1 : val 1",
+        "key2 : extra long entry",
+        "key3 : also super long entry",
+        "unit1 unit2",
+    ]
+
+
+def test_store_many_comments(read_basic):
+    """
+    Stress the growth of the C tokenizer comment buffer with many long comment
+    lines both before and after the header line. [#8360]
+    """
+    comments = [f"comment {i} " + "x" * (i + 1) for i in range(40)]
+    text = "\n".join(
+        ["# " + comment for comment in comments[:20]]
+        + ["a b"]
+        + ["# " + comment for comment in comments[20:]]
+        + ["1 2"]
+    )
+    table = read_basic(text, check_meta=True)
+    assert table.meta["comments"] == comments
+
+
 def test_empty_quotes(read_basic):
     """
     Make sure the C reader doesn't segfault when the
