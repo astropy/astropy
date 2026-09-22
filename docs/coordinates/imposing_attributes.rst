@@ -29,3 +29,5 @@ Given the very small difference in observer location assuming that they are equa
 
 The `~astropy.coordinates.impose_frame_attributes` decorator accepts keyword arguments which are any attribute on any frame class.
 So in our previous example of `~astropy.coordinates.HCRS` the ``obstime`` attribute.
+Note that all frame attributes with that name on all frames will be overridden with the value.
+For example if you impose ``equinox=`` then it will apply to both ``FK4`` and ``FK5`` and any other frames which define that attribute.
