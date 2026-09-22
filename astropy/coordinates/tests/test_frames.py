@@ -186,6 +186,14 @@ def test_invalid_attribute_value():
         frame.obstime  # Validation happens here
 
 
+def test_impose_attribute_only_on_frames():
+    out1 = SkyCoord(36.10412254, 80.47633131, unit=u.deg)
+    coord = FK5(out1.ra, out1.dec, equinox=Time("B1950"))
+    with impose_frame_attributes(equinox="J2000"):
+        assert out1.equinox is None
+        assert coord.equinox == Time("J2000")
+
+
 def test_frame_multiple_inheritance_attribute_descriptor():
     """
     Ensure that all attributes are accumulated in case of inheritance from
