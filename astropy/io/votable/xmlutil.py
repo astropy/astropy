@@ -51,9 +51,6 @@ def fix_id(ID, config=None, pos=None):
     return corrected
 
 
-_token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
-
-
 def check_token(token, attr_name, config=None, pos=None):
     """
     Raises a `ValueError` if *token* is not a valid XML token.
