@@ -450,6 +450,12 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # New ones should be avoided and is up to maintainers to enforce.
     "A00",
 
+    # flake8-annotations (ANN)
+    "ANN001",  # missing-type-function-argument
+    "ANN002",  # missing-type-args
+    "ANN201",  # missing-return-type-undocumented-public-function
+    "ANN205",  # missing-return-type-static-method
+
     # flake8-bugbear (B)
     "B008",  # FunctionCallArgumentDefault
 
