@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-
+import io
 import os
 
 import numpy as np
@@ -11,7 +11,7 @@ from astropy.table.column import BaseColumn
 from astropy.units import Quantity
 from astropy.utils.misc import NOT_OVERWRITING_MSG
 
-from . import from_table, parse
+from . import from_table, parse, validate
 from .tree import TableElement, VOTableFile
 
 
@@ -171,6 +171,12 @@ def write_table_votable(
 
     # Create a new VOTable file
     table_file = from_table(input, table_id=table_id)
+
+    # Avoid writing out invalid format
+    with io.BytesIO() as buff, io.StringIO() as errbuff:
+        table_file.to_xml(buff)
+        if not validate(buff, output=errbuff):
+            raise ValueError(errbuff.getvalue())
 
     # Write out file
     table_file.write(output, tabledata_format=tabledata_format)

@@ -268,6 +268,13 @@ def test_write_with_format():
     assert b"TABLEDATA" not in obuff
 
 
+def test_write_invalid_xml():
+    t = Table({"target": ["NGC\x0c1068"]})
+    buff = io.BytesIO()
+    with pytest.raises(ValueError, match=r"(.|\n)*invalid token"):
+        t.write(buff, format="votable")
+
+
 @pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow")
 @pytest.mark.parametrize("overwrite", [True, False])
 def test_read_write_votable_parquet(tmp_path, overwrite):

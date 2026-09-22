@@ -60,7 +60,9 @@ def check_token(token, attr_name, config=None, pos=None):
 
     As defined by XML Schema Part 2.
     """
-    return token is None or xml_check.check_token(token)
+    is_valid = token is None or xml_check.check_token(token)
+    if not is_valid:
+        raise ValueError(f"token='{token}' for '{attr_name}' is invalid.")
 
 
 def check_mime_content_type(content_type, config=None, pos=None):
