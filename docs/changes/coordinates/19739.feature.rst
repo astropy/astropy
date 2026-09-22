@@ -1,0 +1,3 @@
+Added ``separation_projected`` method to ``BaseCoordinateFrame`` (and ``SkyCoord``)
+for computing on-sky separation projected along a given position angle axis,
+with optional elliptical distance weighting.
