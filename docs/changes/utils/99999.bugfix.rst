@@ -1,0 +1,5 @@
+``XMLWriter`` and the XML escaping helpers now raise a ``ValueError`` when
+asked to write a character that XML does not allow anywhere in a document,
+such as a null or a form feed. Previously most were written out verbatim,
+producing a file that could not be parsed, while a null was silently deleted
+and, in wrapped text, a vertical tab or form feed silently became a space.

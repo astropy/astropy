@@ -1,0 +1,6 @@
+Writing a VOTable in the ``TABLEDATA`` serialization format now raises a
+``ValueError`` if a field name, attribute, description or table cell contains
+a character that XML does not allow, instead of writing a file that cannot be
+read back. Nulls, which were previously dropped without warning, are also
+refused. The ``BINARY`` and ``BINARY2`` formats are unaffected, since they
+store values base64 encoded rather than as XML text.
