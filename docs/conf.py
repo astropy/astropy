@@ -236,7 +236,25 @@ html_theme_options = {
     },
     "github_url": "https://github.com/astropy/astropy",
     "use_edit_page_button": True,
+    # Prune sibling branches in the sidebar toctree so each page only renders
+    # its own ancestry. Pydata defaults this to False; astropy's docs have
+    # 1400+ pages reachable from a single top-level section, so without this
+    # every page's sidebar would contain the entire user guide.
+    "collapse_navigation": True,
 }
+
+# If we are on RTD, and it's not a PR build we don't want to collapse
+# the navigation as it's nice to have the full nav tree on our actual
+# published docs, but it's a waste of time everywhere else.
+if rtd_version := os.environ.get("READTHEDOCS_VERSION"):
+    is_pr = False
+    try:
+        int(rtd_version)
+        is_pr = True
+    except Exception:
+        pass
+    if not is_pr:
+        html_theme_options["collapse_navigation"] = False
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
