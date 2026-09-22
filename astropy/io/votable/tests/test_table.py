@@ -61,7 +61,7 @@ def test_c_tabledata_writer_buffer_overflow():
         data.append(
             (
                 base_str,
-                "http://example.com/test&param=1",
+                "access_url_&_test",
                 None,  # Masked string cell
                 "Description",
                 100,
