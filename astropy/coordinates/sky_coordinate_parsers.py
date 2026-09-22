@@ -23,8 +23,11 @@ from .representation import (
 
 """
 This module contains utility functions to make the SkyCoord initializer more modular
-and maintainable. No functionality here should be in the public API, but rather used as
-part of creating SkyCoord objects.
+and maintainable.
+
+Most functions here are private implementation details of the SkyCoord initializer.
+The exception is ``get_frame_class``, which is re-exported as a public API symbol
+through ``astropy.coordinates`` (see ``funcs.py``).
 """
 
 PLUS_MINUS_RE = re.compile(r"(\+|\-)")
@@ -37,10 +40,49 @@ J_PREFIXED_RA_DEC_RE = re.compile(
 )
 
 
-def _get_frame_class(frame):
-    """
-    Get a frame class from the input `frame`, which could be a frame name
-    string, or frame class.
+def get_frame_class(frame):
+    """Return a coordinate frame class from a name string or frame class.
+
+    Accepts either a registered frame name (as a string) or a
+    `~astropy.coordinates.BaseCoordinateFrame` subclass and returns the
+    corresponding frame *class*.  This is useful for downstream packages that
+    need to validate and normalise frame inputs without instantiating a full
+    |SkyCoord| object.
+
+    Parameters
+    ----------
+    frame : str or type
+        Either the lower-case registered name of a coordinate frame (e.g.
+        ``'icrs'``, ``'fk5'``) *or* a `~astropy.coordinates.BaseCoordinateFrame`
+        **subclass** (not an instance).  Frame names are looked up in the global
+        :obj:`~astropy.coordinates.frame_transform_graph`.
+
+    Returns
+    -------
+    frame_cls : type
+        The `~astropy.coordinates.BaseCoordinateFrame` subclass corresponding to
+        the input.
+
+    Raises
+    ------
+    ValueError
+        If *frame* is a string that is not registered in
+        :obj:`~astropy.coordinates.frame_transform_graph`, or if *frame* is
+        neither a string nor a `~astropy.coordinates.BaseCoordinateFrame`
+        subclass (e.g. a frame *instance* or an unrelated object).
+
+    Examples
+    --------
+    Resolve a frame name string:
+
+    >>> from astropy.coordinates import get_frame_class, ICRS
+    >>> get_frame_class('icrs')
+    <class 'astropy.coordinates.builtin_frames.icrs.ICRS'>
+
+    Pass a frame class directly (idempotent):
+
+    >>> get_frame_class(ICRS)
+    <class 'astropy.coordinates.builtin_frames.icrs.ICRS'>
     """
     if isinstance(frame, str):
         frame_names = frame_transform_graph.get_names()
@@ -61,6 +103,9 @@ def _get_frame_class(frame):
         )
 
     return frame_cls
+
+
+_get_frame_class = get_frame_class
 
 
 _conflict_err_msg = (
