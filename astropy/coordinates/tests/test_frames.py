@@ -128,7 +128,7 @@ def test_altaz_transform_with_imposed_obstime():
         10,
         20,
         unit=u.deg,
-        obstime="2026-01-01T00:01:00",
+        obstime="2026-01-02T00:00:00",
         location=location,
         frame="altaz",
     )
