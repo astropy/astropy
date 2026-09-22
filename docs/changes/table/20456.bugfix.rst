@@ -1,0 +1,5 @@
+Fixed a memory leak when repeatedly slicing a table that has an index on a
+``MaskedColumn``, e.g. ``t[t["idx"] == value]``. Each such access used to make a
+deep copy of the whole index that was never freed, and any slice of a slice of an
+indexed ``MaskedColumn`` (or a derived array such as a comparison result) silently
+shared the original column's index.
