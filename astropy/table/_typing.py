@@ -6,7 +6,14 @@ of the annotations in `astropy.table` and are not part of the public API.  They
 are meant to be imported inside an ``if TYPE_CHECKING:`` block.
 """
 
-__all__ = ["ColumnFormat", "ColumnLike", "DataLike", "SortKind", "TableLike"]
+__all__ = [
+    "ColumnFormat",
+    "ColumnLike",
+    "DataLike",
+    "RowsLike",
+    "SortKind",
+    "TableLike",
+]
 
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -36,6 +43,16 @@ type TableLike = Any
 
 For example a `dict` of columns, a list of rows, a structured
 `~numpy.ndarray`, or an object implementing ``__astropy_table__``.
+"""
+
+type RowsLike = Any
+"""Row-oriented data, as accepted by the ``rows`` argument of `~astropy.table.Table`.
+
+An iterable of rows, where each row is a `~astropy.table.Row`, a mapping of
+column name to value, or a sequence of values; a single `~astropy.table.Row`;
+or a structured or two-dimensional `~numpy.ndarray`.  This is narrower than
+`TableLike`: a `dict` of columns initializes a table but is not row-oriented
+data.
 """
 
 type SortKind = Literal["quicksort", "mergesort", "heapsort", "stable"]

@@ -71,7 +71,7 @@ if TYPE_CHECKING:
 
     from astropy.units.typing import UnitLike
 
-    from ._typing import ColumnLike, DataLike, SortKind, TableLike
+    from ._typing import ColumnLike, DataLike, RowsLike, SortKind, TableLike
     from .groups import TableGroups
 
 _implementation_notes = """
@@ -762,7 +762,7 @@ class Table:
         dtype: npt.DTypeLike | Iterable[npt.DTypeLike] | None = None,
         meta: Mapping[Any, Any] | None = None,
         copy: bool = True,
-        rows: TableLike | None = None,
+        rows: RowsLike | None = None,
         copy_indices: bool = True,
         units: Mapping[str, UnitLike] | Collection[UnitLike | None] | None = None,
         descriptions: Mapping[str, str] | Collection[str | None] | None = None,
