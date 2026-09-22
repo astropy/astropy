@@ -102,8 +102,8 @@ def test_frame_attribute_descriptor():
 def test_impose_nested_obstime():
     imposed_obstime = Time("2012-01-01T00:00:00")
 
-    ori_obstime = "2026-01-01T00:00:00"
-    coo1 = GCRS(obstime=ori_obstime)
+    original_obstime = "2026-01-01T00:00:00"
+    coo1 = GCRS(obstime=original_obstime)
 
     assert coo1 != imposed_obstime
 
@@ -111,7 +111,7 @@ def test_impose_nested_obstime():
         with impose_frame_attributes(obstime=imposed_obstime):
             assert coo1.obstime == imposed_obstime
 
-    assert coo1.obstime == ori_obstime
+    assert coo1.obstime == original_obstime
 
 
 def test_altaz_transform_with_imposed_obstime():
@@ -136,14 +136,14 @@ def test_altaz_transform_with_imposed_obstime():
     out1 = coord1.transform_to("icrs")
     out2 = coord2.transform_to("icrs")
 
-    assert not u.allclose(out1.ra, out2.dec)
-    assert not u.allclose(out1.ra, out2.dec)
+    assert not u.allclose(out1.ra, out2.ra)
+    assert not u.allclose(out1.dec, out2.dec)
 
     with impose_frame_attributes(obstime="2026-01-01T00:00:00"):
         out_imposed = coord2.transform_to("icrs")
 
-    assert not u.allclose(out2.ra, out_imposed.dec)
-    assert not u.allclose(out2.ra, out_imposed.dec)
+    assert not u.allclose(out2.ra, out_imposed.ra)
+    assert not u.allclose(out2.dec, out_imposed.dec)
 
 
 def test_frame_subclass_attribute_descriptor():
