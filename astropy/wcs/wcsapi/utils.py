@@ -139,10 +139,13 @@ def _matrix_str(matrix, row_label, col_label):
     col_width = max(3, len(str(n_col)))  # wide enough for "yes"
     lines = [
         " " * row_width + "  " + f"{col_label:^{n_col * (col_width + 2) - 2}s}",
-        f"{row_label:{row_width}s}" + "".join(f"  {i:{col_width}d}" for i in range(n_col)),
+        f"{row_label:{row_width}s}"
+        + "".join(f"  {i:{col_width}d}" for i in range(n_col)),
     ]
     for irow, row in enumerate(np.where(matrix, "yes", "no")):
-        lines.append(f"{irow:{row_width}d}" + "".join(f"  {v:>{col_width}s}" for v in row))
+        lines.append(
+            f"{irow:{row_width}d}" + "".join(f"  {v:>{col_width}s}" for v in row)
+        )
     return "\n".join(lines) + "\n"
 
 
