@@ -353,12 +353,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # celestial world coordinates, so if a pixel coordinate depends on one
         # of them it depends on all of them.
         celestial = (self.wcs.axis_types // 1000) % 10 == 2
-        celestial_indices = np.nonzero(celestial)[0]
-        for world1 in celestial_indices:
-            for world2 in celestial_indices:
-                if world1 != world2:
-                    matrix[:, world1] |= matrix[:, world2]
-                    matrix[:, world2] |= matrix[:, world1]
+        matrix[:, celestial] = matrix[:, celestial].any(axis=1, keepdims=True)
 
         return matrix
 

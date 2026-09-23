@@ -53,19 +53,9 @@ class MatrixLowLevelWCS(BaseLowLevelWCS):
     def world_axis_units(self):
         return [""] * self.world_n_dim
 
-    def pixel_to_world_values(self, *pixel_arrays):
-        raise NotImplementedError
-
-    def world_to_pixel_values(self, *world_arrays):
-        raise NotImplementedError
-
-    @property
-    def world_axis_object_components(self):
-        raise NotImplementedError
-
-    @property
-    def world_axis_object_classes(self):
-        raise NotImplementedError
+    # Abstract members that are not needed for these tests
+    pixel_to_world_values = world_to_pixel_values = None
+    world_axis_object_components = world_axis_object_classes = None
 
 
 # Each tuple gives the forward axis correlation matrix and the expected default

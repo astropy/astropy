@@ -950,23 +950,20 @@ def test_reverse_axis_correlation_matrix(ctype, pc, expected):
     assert_equal(reverse, np.array(expected, dtype=bool))
 
 
-@pytest.mark.parametrize(("ctype", "pc", "expected"), REVERSE_MATRIX_CASES)
-def test_reverse_axis_correlation_matrix_numerical(ctype, pc, expected):
+@pytest.mark.parametrize(("ctype", "pc"), [case[:2] for case in REVERSE_MATRIX_CASES])
+def test_reverse_axis_correlation_matrix_numerical(ctype, pc):
     # Perturb each world coordinate in turn (away from the reference point,
     # where projections are locally diagonal) and check that every pixel
     # coordinate that responds is marked as depending on that world coordinate.
     wcs = _reverse_matrix_wcs(ctype, pc)
-    world = np.array(
-        wcs.pixel_to_world_values(*[300.0, 400.0, 500.0, 600.0][: len(ctype)])
-    )
+    world = np.array(wcs.pixel_to_world_values(*[300, 400, 500, 600][: len(ctype)]))
     pixel = np.array(wcs.world_to_pixel_values(*world))
-    for iworld in range(wcs.world_n_dim):
-        perturbed = world.copy()
-        perturbed[iworld] += 1e-3
-        changed = ~np.isclose(
-            wcs.world_to_pixel_values(*perturbed), pixel, rtol=0, atol=1e-9
-        )
-        assert not np.any(changed & ~wcs.reverse_axis_correlation_matrix[:, iworld])
+    # Column j of perturbed is the world position with coordinate j perturbed
+    perturbed = world[:, None] + 1e-3 * np.eye(wcs.world_n_dim)
+    changed = ~np.isclose(
+        wcs.world_to_pixel_values(*perturbed), pixel[:, None], rtol=0, atol=1e-9
+    )
+    assert not np.any(changed & ~wcs.reverse_axis_correlation_matrix)
 
 
 def test_custom_ctype_to_ucd_mappings():

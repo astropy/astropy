@@ -327,7 +327,8 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         Returns an (`~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`,
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim`) matrix that
         indicates using booleans whether a given pixel coordinate depends on a
-        given world coordinate.
+        given world coordinate in
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_pixel_values`.
 
         This is not in general the transpose of
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.axis_correlation_matrix`. By
@@ -335,17 +336,16 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         coordinate as requiring every world coordinate in the same independent
         group of axes, which may overstate but never understates the true
         dependencies. Implementations can override this to return a sparser
-        matrix when fewer world coordinates are needed.
+        matrix when fewer world coordinates are needed. Note that when world
+        coordinates carry redundant information there may be several equally
+        valid sparse matrices, and the one returned describes the choice made
+        by the implementation.
         """
-        forward = np.asarray(self.axis_correlation_matrix, dtype=bool)
-
-        # We then iterate over independent chunks of the original axis
-        # correlation matrix, and for each one we fill the resulting reverse
-        # matrix because there is no safe way to restrict it further.
-        reverse = np.zeros(forward.T.shape, dtype=bool)
-        for pixel, world in _split_matrix(forward):
+        # Fill in each independent group of axes, since there is no safe way
+        # to restrict the matrix further without knowing the transformation.
+        reverse = np.zeros((self.pixel_n_dim, self.world_n_dim), dtype=bool)
+        for pixel, world in _split_matrix(self.axis_correlation_matrix):
             reverse[np.ix_(pixel, world)] = True
-
         return reverse
 
     @property

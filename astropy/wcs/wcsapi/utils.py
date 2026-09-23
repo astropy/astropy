@@ -135,19 +135,15 @@ def _matrix_str(matrix, row_label, col_label):
     Format a boolean correlation matrix as a table with yes/no entries.
     """
     n_row, n_col = matrix.shape
-    row_width = max(9, len(str(n_row)))
-    col_width = max(3, len(str(n_col)))
-
-    matrix_str = np.where(matrix, "yes", "no")
-
-    s = " " * row_width + "  " + f"{col_label:^{n_col * 5 - 2}s}" + "\n"
-    s += f"{row_label:{row_width}s}"
-    s += "".join(f"  {icol:{col_width}d}" for icol in range(n_col)) + "\n"
-    for irow in range(n_row):
-        s += f"{irow:{row_width}d}"
-        s += "".join(f"  {matrix_str[irow, icol]:>{col_width}s}" for icol in range(n_col))
-        s += "\n"
-    return s
+    row_width = max(len(row_label), len(str(n_row)))
+    col_width = max(3, len(str(n_col)))  # wide enough for "yes"
+    lines = [
+        " " * row_width + "  " + f"{col_label:^{n_col * (col_width + 2) - 2}s}",
+        f"{row_label:{row_width}s}" + "".join(f"  {i:{col_width}d}" for i in range(n_col)),
+    ]
+    for irow, row in enumerate(np.where(matrix, "yes", "no")):
+        lines.append(f"{irow:{row_width}d}" + "".join(f"  {v:>{col_width}s}" for v in row))
+    return "\n".join(lines) + "\n"
 
 
 def _split_matrix(matrix):
