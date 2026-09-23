@@ -68,34 +68,33 @@ class MatrixLowLevelWCS(BaseLowLevelWCS):
         raise NotImplementedError
 
 
-T, F = True, False
-
-
+# Each tuple gives the forward axis correlation matrix and the expected default
+# inverse matrix (as 0/1, converted to bool in the test).
 @pytest.mark.parametrize(
     ("forward", "expected"),
     [
         # Independent axes: the transpose
-        ([[T, F], [F, T]], [[T, F], [F, T]]),
+        ([[1, 0], [0, 1]], [[1, 0], [0, 1]]),
         # Fully coupled celestial pair
-        ([[T, T], [T, T]], [[T, T], [T, T]]),
+        ([[1, 1], [1, 1]], [[1, 1], [1, 1]]),
         # Spectral cube: two independent blocks
-        ([[T, T, F], [T, T, F], [F, F, T]], [[T, T, F], [T, T, F], [F, F, T]]),
+        ([[1, 1, 0], [1, 1, 0], [0, 0, 1]], [[1, 1, 0], [1, 1, 0], [0, 0, 1]]),
         # Same cube with the world axes in a different order
-        ([[F, F, T], [T, T, F], [T, T, F]], [[F, T, T], [F, T, T], [T, F, F]]),
+        ([[0, 0, 1], [1, 1, 0], [1, 1, 0]], [[0, 1, 1], [0, 1, 1], [1, 0, 0]]),
         # Blocks scattered across non-contiguous rows and columns
-        ([[F, T, T], [T, F, F], [F, T, T]], [[F, T, F], [T, F, T], [T, F, T]]),
+        ([[0, 1, 1], [1, 0, 0], [0, 1, 1]], [[0, 1, 0], [1, 0, 1], [1, 0, 1]]),
         # Triangular: w0 = f(p0), w1 = g(p0, p1), so p1 needs w0 as well as w1
-        ([[T, F], [T, T]], [[T, T], [T, T]]),
+        ([[1, 0], [1, 1]], [[1, 1], [1, 1]]),
         # Two pixel, three world axes with a triangular structure
-        ([[T, F], [T, T], [T, T]], [[T, T, T], [T, T, T]]),
+        ([[1, 0], [1, 1], [1, 1]], [[1, 1, 1], [1, 1, 1]]),
         # Two pixel, three world axes, all coupled
-        ([[T, T], [T, T], [T, T]], [[T, T, T], [T, T, T]]),
+        ([[1, 1], [1, 1], [1, 1]], [[1, 1, 1], [1, 1, 1]]),
         # Triangular block interleaved with an independent axis
-        ([[T, T, F], [F, F, T], [F, T, F]], [[T, F, T], [T, F, T], [F, T, F]]),
+        ([[1, 1, 0], [0, 0, 1], [0, 1, 0]], [[1, 0, 1], [1, 0, 1], [0, 1, 0]]),
         # World axis that depends on no pixel axis is never required
-        ([[T, F], [F, T], [F, F]], [[T, F, F], [F, T, F]]),
+        ([[1, 0], [0, 1], [0, 0]], [[1, 0, 0], [0, 1, 0]]),
         # Pixel axis that no world axis depends on requires nothing
-        ([[T, F, F], [F, T, F]], [[T, F], [F, T], [F, F]]),
+        ([[1, 0, 0], [0, 1, 0]], [[1, 0], [0, 1], [0, 0]]),
     ],
 )
 def test_default_inverse_axis_correlation_matrix(forward, expected):
@@ -103,7 +102,7 @@ def test_default_inverse_axis_correlation_matrix(forward, expected):
     inverse = wcs.inverse_axis_correlation_matrix
     assert inverse.dtype == bool
     assert inverse.shape == (wcs.pixel_n_dim, wcs.world_n_dim)
-    assert_equal(inverse, expected)
+    assert_equal(inverse, np.array(expected, dtype=bool))
 
 
 def test_default_inverse_axis_correlation_matrix_all_true():
