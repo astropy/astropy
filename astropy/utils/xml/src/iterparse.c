@@ -716,7 +716,12 @@ static PyObject *IterParser_next(IterParser *self)
            if we've got one. */
         }
         else {
-            buflen = (Py_ssize_t)read(self->file, self->buffer, (size_t)self->buffersize);
+            /* On Windows this read() is Microsoft's _read(), which counts
+               in an unsigned int rather than the size_t that POSIX read()
+               takes, so cast to the narrower of the two.  buffersize is
+               clamped to 16MB when the parser is created, so it always
+               fits. */
+            buflen = (Py_ssize_t)read(self->file, self->buffer, (unsigned int)self->buffersize);
             if (buflen == -1) {
                 PyErr_SetFromErrno(PyExc_OSError);
                 goto fail;
