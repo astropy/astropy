@@ -909,13 +909,20 @@ INVERSE_MATRIX_CASES = [
         [[1, 0, 0.1], [0, 1, 0], [0, 0, 1]],
         [[1, 1, 1], [1, 1, 0], [0, 0, 1]],
     ),
+    # Rastered slit scan: time advances with the first pixel axis, so the time
+    # pixel needs the sky position, but the sky pixels never need the time
+    (
+        ("RA---TAN", "DEC--TAN", "WAVE", "UTC"),
+        [[1, 0, 0, 0], [0.2, 1, 0, 0], [0, 0, 1, 0], [-5.25, 0, 0, 1]],
+        [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [1, 1, 0, 1]],
+    ),
 ]
 
 
 def _inverse_matrix_wcs(ctype, pc):
     wcs = WCS(naxis=len(ctype))
     wcs.wcs.ctype = ctype
-    wcs.wcs.crval = [10, 20, 500][: len(ctype)]
+    wcs.wcs.crval = [10, 20, 500, 0][: len(ctype)]
     wcs.wcs.cdelt = [0.01] * len(ctype)
     wcs.wcs.pc = pc
     wcs.wcs.set()
@@ -937,7 +944,9 @@ def test_inverse_axis_correlation_matrix_never_understates(ctype, pc, expected):
     # where projections are locally diagonal) and check that every pixel
     # coordinate that responds is marked as depending on that world coordinate.
     wcs = _inverse_matrix_wcs(ctype, pc)
-    world = np.array(wcs.pixel_to_world_values(*[300.0, 400.0, 500.0][: len(ctype)]))
+    world = np.array(
+        wcs.pixel_to_world_values(*[300.0, 400.0, 500.0, 600.0][: len(ctype)])
+    )
     pixel = np.array(wcs.world_to_pixel_values(*world))
     for iworld in range(wcs.world_n_dim):
         perturbed = world.copy()
