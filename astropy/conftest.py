@@ -117,12 +117,6 @@ def _session_level_config_dir(tmp_path_factory):
 
 
 def pytest_configure(config):
-    # Ensure number of columns and lines is deterministic for testing
-    from astropy import conf
-
-    conf.max_width = 80
-    conf.max_lines = 24
-
     # Disable IERS auto download for testing
     from astropy.utils.iers import conf as iers_conf
 
@@ -178,12 +172,6 @@ def pytest_runtest_setup(item):
 
 
 def pytest_unconfigure(config):
-    # Undo settings related to number of lines/columns to show
-    from astropy import conf
-
-    conf.reset("max_width")
-    conf.reset("max_lines")
-
     # Undo IERS auto download setting for testing
     from astropy.utils.iers import conf as iers_conf
 
@@ -221,3 +209,12 @@ def pytest_terminal_summary(terminalreporter):
         yellow=True,
         bold=True,
     )
+
+
+@pytest.fixture(autouse=True)
+def _deterministic_table_size():
+    """Render tables at a fixed size, whatever the terminal or session state."""
+    from astropy import conf
+
+    with conf.set_temp("max_width", 80), conf.set_temp("max_lines", 24):
+        yield

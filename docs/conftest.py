@@ -47,3 +47,12 @@ def _docdir(request):
             yield
     else:
         yield
+
+
+@pytest.fixture(autouse=True)
+def _deterministic_table_size():
+    """Render tables at a fixed size, whatever the terminal or session state."""
+    from astropy import conf
+
+    with conf.set_temp("max_width", 80), conf.set_temp("max_lines", 24):
+        yield
