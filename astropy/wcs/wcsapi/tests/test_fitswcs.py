@@ -951,7 +951,7 @@ def test_inverse_axis_correlation_matrix(ctype, pc, expected):
 
 
 @pytest.mark.parametrize(("ctype", "pc", "expected"), INVERSE_MATRIX_CASES)
-def test_inverse_axis_correlation_matrix_never_understates(ctype, pc, expected):
+def test_inverse_axis_correlation_matrix_numerical(ctype, pc, expected):
     # Perturb each world coordinate in turn (away from the reference point,
     # where projections are locally diagonal) and check that every pixel
     # coordinate that responds is marked as depending on that world coordinate.
