@@ -27,7 +27,7 @@ def test_validate_physical_types():
 class MatrixLowLevelWCS(BaseLowLevelWCS):
     """
     Minimal low-level WCS whose only meaningful property is the axis
-    correlation matrix, used to test the default inverse matrix.
+    correlation matrix, used to test the default reverse matrix.
     """
 
     def __init__(self, matrix):
@@ -69,7 +69,7 @@ class MatrixLowLevelWCS(BaseLowLevelWCS):
 
 
 # Each tuple gives the forward axis correlation matrix and the expected default
-# inverse matrix (as 0/1, converted to bool in the test).
+# reverse matrix (as 0/1, converted to bool in the test).
 @pytest.mark.parametrize(
     ("forward", "expected"),
     [
@@ -97,18 +97,18 @@ class MatrixLowLevelWCS(BaseLowLevelWCS):
         ([[1, 0, 0], [0, 1, 0]], [[1, 0], [0, 1], [0, 0]]),
     ],
 )
-def test_default_inverse_axis_correlation_matrix(forward, expected):
+def test_default_reverse_axis_correlation_matrix(forward, expected):
     wcs = MatrixLowLevelWCS(forward)
-    inverse = wcs.inverse_axis_correlation_matrix
-    assert inverse.dtype == bool
-    assert inverse.shape == (wcs.pixel_n_dim, wcs.world_n_dim)
-    assert_equal(inverse, np.array(expected, dtype=bool))
+    reverse = wcs.reverse_axis_correlation_matrix
+    assert reverse.dtype == bool
+    assert reverse.shape == (wcs.pixel_n_dim, wcs.world_n_dim)
+    assert_equal(reverse, np.array(expected, dtype=bool))
 
 
-def test_default_inverse_axis_correlation_matrix_all_true():
+def test_default_reverse_axis_correlation_matrix_all_true():
     # With no information about the forward matrix, everything is required
     class AllTrueWCS(MatrixLowLevelWCS):
         axis_correlation_matrix = BaseLowLevelWCS.axis_correlation_matrix
 
     wcs = AllTrueWCS(np.ones((3, 2)))
-    assert_equal(wcs.inverse_axis_correlation_matrix, np.ones((2, 3), dtype=bool))
+    assert_equal(wcs.reverse_axis_correlation_matrix, np.ones((2, 3), dtype=bool))

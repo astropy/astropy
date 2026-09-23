@@ -334,7 +334,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         return matrix
 
     @property
-    def inverse_axis_correlation_matrix(self):
+    def reverse_axis_correlation_matrix(self):
         # As for the forward matrix, if there are any distortions present, we
         # assume that there may be correlations between all axes.
         if self.has_distortion:

@@ -370,7 +370,7 @@ def test_spectral_cube_nonaligned():
     # world axes but not the frequency, while the other two pixel axes are
     # mixed with each other by the PC matrix and need all three world axes.
     assert_equal(
-        wcs.inverse_axis_correlation_matrix,
+        wcs.reverse_axis_correlation_matrix,
         [
             [True, False, True],
             [True, True, True],
@@ -834,40 +834,40 @@ def test_distortion_correlations():
     with pytest.warns(FITSFixedWarning):
         w = WCS(filename)
     assert_equal(w.axis_correlation_matrix, True)
-    assert_equal(w.inverse_axis_correlation_matrix, True)
+    assert_equal(w.reverse_axis_correlation_matrix, True)
 
     # Changing PC to an identity matrix doesn't change anything since
     # distortions are still present.
     w.wcs.pc = [[1, 0], [0, 1]]
     assert_equal(w.axis_correlation_matrix, True)
-    assert_equal(w.inverse_axis_correlation_matrix, True)
+    assert_equal(w.reverse_axis_correlation_matrix, True)
 
     # Nor does changing the name of the axes to make them non-celestial
     w.wcs.ctype = ["X", "Y"]
     assert_equal(w.axis_correlation_matrix, True)
-    assert_equal(w.inverse_axis_correlation_matrix, True)
+    assert_equal(w.reverse_axis_correlation_matrix, True)
 
     # However once we turn off the distortions the matrix changes
     w.sip = None
     assert_equal(w.axis_correlation_matrix, [[True, False], [False, True]])
-    assert_equal(w.inverse_axis_correlation_matrix, [[True, False], [False, True]])
+    assert_equal(w.reverse_axis_correlation_matrix, [[True, False], [False, True]])
 
     # If we go back to celestial coordinates then the matrix is all True again
     w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     assert_equal(w.axis_correlation_matrix, True)
-    assert_equal(w.inverse_axis_correlation_matrix, True)
+    assert_equal(w.reverse_axis_correlation_matrix, True)
 
     # Or if we change to X/Y but have a non-identity PC
     w.wcs.pc = [[0.9, -0.1], [0.1, 0.9]]
     w.wcs.ctype = ["X", "Y"]
     assert_equal(w.axis_correlation_matrix, True)
-    assert_equal(w.inverse_axis_correlation_matrix, True)
+    assert_equal(w.reverse_axis_correlation_matrix, True)
 
 
-# Each tuple gives the CTYPE values, the PC matrix, and the expected inverse
+# Each tuple gives the CTYPE values, the PC matrix, and the expected reverse
 # axis correlation matrix (as 0/1, converted to bool in the tests).
 # fmt: off
-INVERSE_MATRIX_CASES = [
+REVERSE_MATRIX_CASES = [
     # Independent linear axes: the transpose of the forward matrix
     (("X", "Y"), [[1, 0], [0, 1]], [[1, 0], [0, 1]]),
 
@@ -931,7 +931,7 @@ INVERSE_MATRIX_CASES = [
 # fmt: on
 
 
-def _inverse_matrix_wcs(ctype, pc):
+def _reverse_matrix_wcs(ctype, pc):
     wcs = WCS(naxis=len(ctype))
     wcs.wcs.ctype = ctype
     wcs.wcs.crval = [10, 20, 500, 0][: len(ctype)]
@@ -941,21 +941,21 @@ def _inverse_matrix_wcs(ctype, pc):
     return wcs
 
 
-@pytest.mark.parametrize(("ctype", "pc", "expected"), INVERSE_MATRIX_CASES)
-def test_inverse_axis_correlation_matrix(ctype, pc, expected):
-    wcs = _inverse_matrix_wcs(ctype, pc)
-    inverse = wcs.inverse_axis_correlation_matrix
-    assert inverse.dtype == bool
-    assert inverse.shape == (wcs.pixel_n_dim, wcs.world_n_dim)
-    assert_equal(inverse, np.array(expected, dtype=bool))
+@pytest.mark.parametrize(("ctype", "pc", "expected"), REVERSE_MATRIX_CASES)
+def test_reverse_axis_correlation_matrix(ctype, pc, expected):
+    wcs = _reverse_matrix_wcs(ctype, pc)
+    reverse = wcs.reverse_axis_correlation_matrix
+    assert reverse.dtype == bool
+    assert reverse.shape == (wcs.pixel_n_dim, wcs.world_n_dim)
+    assert_equal(reverse, np.array(expected, dtype=bool))
 
 
-@pytest.mark.parametrize(("ctype", "pc", "expected"), INVERSE_MATRIX_CASES)
-def test_inverse_axis_correlation_matrix_numerical(ctype, pc, expected):
+@pytest.mark.parametrize(("ctype", "pc", "expected"), REVERSE_MATRIX_CASES)
+def test_reverse_axis_correlation_matrix_numerical(ctype, pc, expected):
     # Perturb each world coordinate in turn (away from the reference point,
     # where projections are locally diagonal) and check that every pixel
     # coordinate that responds is marked as depending on that world coordinate.
-    wcs = _inverse_matrix_wcs(ctype, pc)
+    wcs = _reverse_matrix_wcs(ctype, pc)
     world = np.array(
         wcs.pixel_to_world_values(*[300.0, 400.0, 500.0, 600.0][: len(ctype)])
     )
@@ -966,7 +966,7 @@ def test_inverse_axis_correlation_matrix_numerical(ctype, pc, expected):
         changed = ~np.isclose(
             wcs.world_to_pixel_values(*perturbed), pixel, rtol=0, atol=1e-9
         )
-        assert not np.any(changed & ~wcs.inverse_axis_correlation_matrix[:, iworld])
+        assert not np.any(changed & ~wcs.reverse_axis_correlation_matrix[:, iworld])
 
 
 def test_custom_ctype_to_ucd_mappings():

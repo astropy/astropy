@@ -322,7 +322,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         return np.ones((self.world_n_dim, self.pixel_n_dim), dtype=bool)
 
     @property
-    def inverse_axis_correlation_matrix(self):
+    def reverse_axis_correlation_matrix(self):
         """
         Returns an (`~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`,
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim`) matrix that
@@ -340,13 +340,13 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         forward = np.asarray(self.axis_correlation_matrix, dtype=bool)
 
         # We then iterate over independent chunks of the original axis
-        # correlation matrix, and for each one we fill the resulting inverse
+        # correlation matrix, and for each one we fill the resulting reverse
         # matrix because there is no safe way to restrict it further.
-        inverse = np.zeros(forward.T.shape, dtype=bool)
+        reverse = np.zeros(forward.T.shape, dtype=bool)
         for pixel, world in _split_matrix(forward):
-            inverse[np.ix_(pixel, world)] = True
+            reverse[np.ix_(pixel, world)] = True
 
-        return inverse
+        return reverse
 
     @property
     def serialized_classes(self):
