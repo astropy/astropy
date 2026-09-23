@@ -26,7 +26,7 @@ from astropy.units import Quantity
 from astropy.utils import unbroadcast
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.wcs.utils import (
     FRAME_WCS_MAPPINGS,
     WCS_FRAME_MAPPINGS,
@@ -880,21 +880,37 @@ def test_skycoord_to_pixel_swapped(mode):
     ref = SkyCoord(0.1 * u.deg, -89.0 * u.deg, frame="icrs")
 
     xp1, yp1 = skycoord_to_pixel(ref, wcs, mode=mode)
-    xp2, yp2 = skycoord_to_pixel(ref, wcs_swapped, mode=mode)
+    xp2, yp2 = skycoord_to_pixel(ref, wcs_swapped, mode=mode, native_pixel_order=True)
 
     assert_allclose(xp1, yp2)
     assert_allclose(yp1, xp2)
 
     # WCS is in FK5 so we need to transform back to ICRS
     new1 = pixel_to_skycoord(xp1, yp1, wcs, mode=mode).transform_to("icrs")
-    new2 = pixel_to_skycoord(yp1, xp1, wcs_swapped, mode=mode).transform_to("icrs")
+    new2 = pixel_to_skycoord(
+        yp1, xp1, wcs_swapped, mode=mode, native_pixel_order=True
+    ).transform_to("icrs")
 
     assert_allclose(new1.ra.degree, new2.ra.degree)
     assert_allclose(new1.dec.degree, new2.dec.degree)
 
 
+@pytest.fixture
+def wcs_lat_lon():
+    """
+    A WCS in which the latitude axis comes before the longitude axis.
+    """
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["DEC--TAN", "RA---TAN"]
+    wcs.wcs.crval = [0.5, 40.0]
+    wcs.wcs.crpix = [100.0, 200.0]
+    wcs.wcs.cdelt = [-0.01, 0.02]
+    return wcs
+
+
 @pytest.mark.parametrize("mode", ["all", "wcs"])
-def test_skycoord_to_pixel_lat_lon_order(mode):
+@pytest.mark.parametrize("native_pixel_order", [True, False, None])
+def test_skycoord_to_pixel_lat_lon_order(wcs_lat_lon, mode, native_pixel_order):
     # Regression test for a bug that caused skycoord_to_pixel and
     # pixel_to_skycoord to return swapped pixel coordinates for a WCS in which
     # the latitude axis comes before the longitude axis
@@ -904,23 +920,33 @@ def test_skycoord_to_pixel_lat_lon_order(mode):
     # Import astropy.coordinates here to avoid circular imports
     from astropy.coordinates import SkyCoord
 
-    wcs = WCS(naxis=2)
-    wcs.wcs.ctype = ["DEC--TAN", "RA---TAN"]
-    wcs.wcs.crval = [0.5, 40.0]
-    wcs.wcs.crpix = [100.0, 200.0]
-    wcs.wcs.cdelt = [-0.01, 0.02]
-
     ref = SkyCoord(39.9 * u.deg, 0.6 * u.deg, frame="icrs")
 
-    xp, yp = skycoord_to_pixel(ref, wcs, mode=mode)
+    if native_pixel_order is None:
+        ctx = pytest.warns(
+            AstropyDeprecationWarning, match="The WCS has latitude before longitude"
+        )
+    else:
+        ctx = nullcontext()
+
+    with ctx:
+        xp, yp = skycoord_to_pixel(
+            ref, wcs_lat_lon, mode=mode, native_pixel_order=native_pixel_order
+        )
 
     # The declination offset of +0.1 deg maps to -10 pixels along x, and the
-    # right ascension offset of -0.1 deg maps to -5 pixels along y
-    assert_allclose(xp, 89, atol=0.01)
-    assert_allclose(yp, 194, atol=0.01)
-    assert_allclose((xp, yp), wcs.world_to_pixel(ref))
+    # right ascension offset of -0.1 deg maps to -5 pixels along y. If not
+    # using the native pixel order, the pixel coordinates are swapped.
+    if native_pixel_order:
+        assert_allclose((xp, yp), (89, 194), atol=0.01)
+        assert_allclose((xp, yp), wcs_lat_lon.world_to_pixel(ref))
+    else:
+        assert_allclose((xp, yp), (194, 89), atol=0.01)
 
-    new = pixel_to_skycoord(xp, yp, wcs, mode=mode)
+    with ctx:
+        new = pixel_to_skycoord(
+            xp, yp, wcs_lat_lon, mode=mode, native_pixel_order=native_pixel_order
+        )
 
     assert_allclose(new.ra.degree, ref.ra.degree)
     assert_allclose(new.dec.degree, ref.dec.degree)

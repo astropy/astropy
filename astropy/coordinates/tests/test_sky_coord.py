@@ -6,6 +6,7 @@ test_api_ape5.py
 """
 
 import copy
+from contextlib import nullcontext
 from copy import deepcopy
 
 import numpy as np
@@ -45,6 +46,7 @@ from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.wcs import WCS
 
 RA = 1.0 * u.deg
@@ -1320,6 +1322,56 @@ def test_wcs_methods(mode, origin):
     assert scnew2.__class__ is SkyCoord2
 
 
+@pytest.mark.parametrize("native_pixel_order", [True, False, None])
+def test_wcs_methods_lat_lon_order(native_pixel_order):
+    # Regression test for a bug that caused SkyCoord.to_pixel and
+    # SkyCoord.from_pixel to swap the pixel coordinates for a WCS in which
+    # latitude comes before longitude
+    from astropy.utils.data import get_pkg_data_contents
+    from astropy.wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+
+    header = get_pkg_data_contents(
+        "../../wcs/tests/data/maps/1904-66_TAN.hdr", encoding="binary"
+    )
+    wcs = WCS(header)
+
+    # This swaps both the world and the pixel axes, so the pixel coordinates
+    # of a given position on the sky should be swapped too
+    wcs_swapped = wcs.sub([WCSSUB_LATITUDE, WCSSUB_LONGITUDE])
+
+    ref = SkyCoord(0.1 * u.deg, -89.0 * u.deg, frame="icrs")
+
+    xp, yp = ref.to_pixel(wcs)
+
+    if native_pixel_order is None:
+        ctx = pytest.warns(
+            AstropyDeprecationWarning, match="The WCS has latitude before longitude"
+        )
+    else:
+        ctx = nullcontext()
+
+    with ctx:
+        xp_swapped, yp_swapped = ref.to_pixel(
+            wcs_swapped, native_pixel_order=native_pixel_order
+        )
+
+    if native_pixel_order:
+        assert_allclose((xp_swapped, yp_swapped), (yp, xp))
+    else:
+        assert_allclose((xp_swapped, yp_swapped), (xp, yp))
+
+    with ctx:
+        new = SkyCoord.from_pixel(
+            xp_swapped, yp_swapped, wcs_swapped, native_pixel_order=native_pixel_order
+        )
+
+    # WCS is in FK5 so we need to transform back to ICRS
+    new = new.transform_to("icrs")
+
+    assert_allclose(new.ra.degree, ref.ra.degree)
+    assert_allclose(new.dec.degree, ref.dec.degree)
+
+
 def test_frame_attr_transform_inherit():
     """
     Test that frame attributes get inherited as expected during transform.
@@ -2014,6 +2066,18 @@ NAXIS2  =                 2078 / length of second array dimension
     img = np.zeros((2136, 2078))
     assert SkyCoord(250, 2, unit="deg").contained_by(test_wcs, img)
     assert not SkyCoord(240, 2, unit="deg").contained_by(test_wcs, img)
+
+    # Regression test for a bug that caused contained_by to use swapped pixel
+    # coordinates for a WCS in which latitude comes before longitude. The
+    # position below is inside the image in the native pixel order but would
+    # be outside if the pixel coordinates were swapped.
+    from astropy.wcs import WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+
+    test_wcs_swapped = test_wcs.sub([WCSSUB_LATITUDE, WCSSUB_LONGITUDE])
+    coord = test_wcs.pixel_to_world(2100, 100)
+    assert coord.contained_by(test_wcs)
+    assert coord.contained_by(test_wcs_swapped)
+    assert not coord.contained_by(test_wcs_swapped, native_pixel_order=False)
 
     ra = np.array([254.2, 254.1])
     dec = np.array([2, 12.1])

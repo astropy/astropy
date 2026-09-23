@@ -638,7 +638,9 @@ class Cutout2D:
         if isinstance(position, SkyCoord):
             if wcs is None:
                 raise ValueError("wcs must be input if position is a SkyCoord")
-            position = skycoord_to_pixel(position, wcs, mode="all")  # (x, y)
+            position = skycoord_to_pixel(
+                position, wcs, mode="all", native_pixel_order=True
+            )  # (x, y)
 
         if np.isscalar(size):
             size = np.repeat(size, 2)

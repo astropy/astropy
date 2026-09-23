@@ -1,0 +1,10 @@
+Added a ``native_pixel_order`` argument to ``skycoord_to_pixel`` and
+``pixel_to_skycoord`` (as well as ``SkyCoord.to_pixel`` and
+``SkyCoord.from_pixel``). For WCS objects in which the latitude axis comes
+before the longitude axis (e.g. ``CTYPE1='DEC--TAN'`` and
+``CTYPE2='RA---TAN'``), these functions have historically returned the pixel
+coordinates swapped relative to the native order of the WCS pixel axes. Passing
+``native_pixel_order=True`` opts in to using the native order, which will
+become the default in a future version, while ``native_pixel_order=False``
+keeps the historical behavior. If the argument is not specified, a deprecation
+warning is emitted for such WCS objects.

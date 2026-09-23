@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -15,6 +16,7 @@ from astropy.coordinates import (
     SphericalRepresentation,
 )
 from astropy.utils import unbroadcast
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 from .wcs import WCS
 from .wcsapi.high_level_api import (
@@ -618,11 +620,33 @@ def _has_distortion(wcs):
     )
 
 
+def _swap_pixel_order(wcs, native_pixel_order, function):
+    """
+    Whether pixel coordinates should be swapped relative to the native order of
+    the pixel axes of the (celestial) WCS, to preserve the historical behavior
+    of ``function`` for WCS objects in which latitude comes before longitude.
+    """
+    if wcs.wcs.lng < wcs.wcs.lat:
+        return False
+    if native_pixel_order is None:
+        warnings.warn(
+            f"The WCS has latitude before longitude, and {function} currently "
+            "treats pixel coordinates as being swapped (with x corresponding to "
+            "longitude and y to latitude) rather than in the native order of the "
+            "WCS pixel axes. In a future version, the native order will be used. "
+            "Pass native_pixel_order=True to opt in to the new behavior now, or "
+            "native_pixel_order=False to keep the current behavior.",
+            AstropyDeprecationWarning,
+        )
+        return True
+    return not native_pixel_order
+
+
 # TODO: in future, we should think about how the following two functions can be
 # integrated better into the WCS class.
 
 
-def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
+def skycoord_to_pixel(coords, wcs, origin=0, mode="all", *, native_pixel_order=None):
     """
     Convert a set of SkyCoord coordinates into pixels.
 
@@ -637,6 +661,15 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     mode : 'all' or 'wcs'
         Whether to do the transformation including distortions (``'all'``) or
         only including only the core WCS transformation (``'wcs'``).
+    native_pixel_order : bool or None, optional
+        Whether the pixel coordinates are in the native order of the WCS pixel
+        axes (`True`) or, for WCS objects in which latitude comes before
+        longitude, swapped such that ``xp`` corresponds to longitude and ``yp``
+        to latitude (`False`, the historical behavior). If `None` (the
+        default), the historical behavior is used and a deprecation warning is
+        emitted for WCS objects in which latitude comes before longitude. This
+        argument has no effect for WCS objects in which longitude comes before
+        latitude.
 
     Returns
     -------
@@ -669,10 +702,15 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
 
+    if _swap_pixel_order(wcs, native_pixel_order, "skycoord_to_pixel"):
+        xp, yp = yp, xp
+
     return xp, yp
 
 
-def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
+def pixel_to_skycoord(
+    xp, yp, wcs, origin=0, mode="all", cls=None, *, native_pixel_order=None
+):
     """
     Convert a set of pixel coordinates into a `~astropy.coordinates.SkyCoord`
     coordinate.
@@ -692,6 +730,15 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
         The class of object to create.  Should be a
         `~astropy.coordinates.SkyCoord` subclass.  If None, defaults to
         `~astropy.coordinates.SkyCoord`.
+    native_pixel_order : bool or None, optional
+        Whether the pixel coordinates are in the native order of the WCS pixel
+        axes (`True`) or, for WCS objects in which latitude comes before
+        longitude, swapped such that ``xp`` corresponds to longitude and ``yp``
+        to latitude (`False`, the historical behavior). If `None` (the
+        default), the historical behavior is used and a deprecation warning is
+        emitted for WCS objects in which latitude comes before longitude. This
+        argument has no effect for WCS objects in which longitude comes before
+        latitude.
 
     Returns
     -------
@@ -711,6 +758,9 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
+
+    if _swap_pixel_order(wcs, native_pixel_order, "pixel_to_skycoord"):
+        xp, yp = yp, xp
 
     # Convert pixel coordinates to celestial coordinates
     if mode == "all":
