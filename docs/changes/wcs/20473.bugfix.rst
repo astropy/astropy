@@ -1,0 +1,6 @@
+Fixed a bug that caused ``skycoord_to_pixel`` and ``pixel_to_skycoord`` (and
+therefore ``SkyCoord.to_pixel`` and ``SkyCoord.from_pixel``) to return swapped
+pixel coordinates for WCS objects in which the latitude axis comes before the
+longitude axis (e.g. ``CTYPE1='DEC--TAN'`` and ``CTYPE2='RA---TAN'``). These
+functions now make use of the same machinery as ``WCS.world_to_pixel`` and
+``WCS.pixel_to_world`` internally.

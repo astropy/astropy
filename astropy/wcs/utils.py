@@ -16,7 +16,11 @@ from astropy.coordinates import (
 )
 from astropy.utils import unbroadcast
 
-from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+from .wcs import WCS
+from .wcsapi.high_level_api import (
+    high_level_objects_to_values,
+    values_to_high_level_objects,
+)
 
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
@@ -642,43 +646,26 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     See Also
     --------
     astropy.coordinates.SkyCoord.from_pixel
+    astropy.wcs.WCS.world_to_pixel
     """
     if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
-    # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
+    # Keep only the celestial part of the axes, preserving the axis order
+    wcs = wcs.celestial
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
 
-    # Check which frame the WCS uses
-    frame = wcs_to_celestial_frame(wcs)
-
-    # Check what unit the WCS needs
-    xw_unit = u.Unit(wcs.wcs.cunit[0])
-    yw_unit = u.Unit(wcs.wcs.cunit[1])
-
-    # Convert positions to frame
-    coords = coords.transform_to(frame)
-
-    # Extract longitude and latitude. We first try and use lon/lat directly,
-    # but if the representation is not spherical or unit spherical this will
-    # fail. We should then force the use of the unit spherical
-    # representation. We don't do that directly to make sure that we preserve
-    # custom lon/lat representations if available.
-    try:
-        lon = coords.data.lon.to(xw_unit)
-        lat = coords.data.lat.to(yw_unit)
-    except AttributeError:
-        lon = coords.spherical.lon.to(xw_unit)
-        lat = coords.spherical.lat.to(yw_unit)
+    # Convert to the frame, units, and axis order (which may be lat/lon) of
+    # the WCS
+    world = high_level_objects_to_values(coords, low_level_wcs=wcs)
 
     # Convert to pixel coordinates
     if mode == "all":
-        xp, yp = wcs.all_world2pix(lon.value, lat.value, origin)
+        xp, yp = wcs.all_world2pix(*world, origin)
     elif mode == "wcs":
-        xp, yp = wcs.wcs_world2pix(lon.value, lat.value, origin)
+        xp, yp = wcs.wcs_world2pix(*world, origin)
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
 
@@ -714,49 +701,30 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
     See Also
     --------
     astropy.coordinates.SkyCoord.from_pixel
+    astropy.wcs.WCS.pixel_to_world
     """
-    # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import SkyCoord, UnitSphericalRepresentation
-
-    # we have to do this instead of actually setting the default to SkyCoord
-    # because importing SkyCoord at the module-level leads to circular
-    # dependencies.
-    if cls is None:
-        cls = SkyCoord
-
     if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
-    # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
+    # Keep only the celestial part of the axes, preserving the axis order
+    wcs = wcs.celestial
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
 
-    # Check which frame the WCS uses
-    frame = wcs_to_celestial_frame(wcs)
-
-    # Check what unit the WCS gives
-    lon_unit = u.Unit(wcs.wcs.cunit[0])
-    lat_unit = u.Unit(wcs.wcs.cunit[1])
-
     # Convert pixel coordinates to celestial coordinates
     if mode == "all":
-        lon, lat = wcs.all_pix2world(xp, yp, origin)
+        world = wcs.all_pix2world(xp, yp, origin)
     elif mode == "wcs":
-        lon, lat = wcs.wcs_pix2world(xp, yp, origin)
+        world = wcs.wcs_pix2world(xp, yp, origin)
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
 
-    # Add units to longitude/latitude
-    lon = lon * lon_unit
-    lat = lat * lat_unit
+    # Convert to a SkyCoord in the frame of the WCS, taking into account the
+    # units and axis order (which may be lat/lon) of the WCS
+    (coords,) = values_to_high_level_objects(*world, low_level_wcs=wcs)
 
-    # Create a SkyCoord-like object
-    data = UnitSphericalRepresentation(lon=lon, lat=lat)
-    coords = cls(frame.realize_frame(data))
-
-    return coords
+    return coords if cls is None else cls(coords)
 
 
 def _unique_with_order_preserved(items):
