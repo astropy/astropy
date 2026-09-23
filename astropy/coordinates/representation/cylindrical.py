@@ -7,8 +7,9 @@ import numpy as np
 
 import astropy.units as u
 from astropy.coordinates.angles import Angle
+from astropy.utils import classproperty
 
-from .base import BaseDifferential, BaseRepresentation
+from .base import BaseDifferential, BasePhysicalDifferential, BaseRepresentation
 from .cartesian import CartesianRepresentation
 from .spherical import PhysicsSphericalRepresentation, _spherical_op_funcs
 
@@ -74,6 +75,10 @@ class CylindricalRepresentation(BaseRepresentation):
         """
         return self._z
 
+    @classproperty
+    def _compatible_differentials(cls):
+        return [CylindricalDifferential, CylindricalPhysicalDifferential]
+
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         l = np.broadcast_to(1.0, self.shape)
@@ -114,6 +119,7 @@ class CylindricalRepresentation(BaseRepresentation):
     def _scale_operation(self, op, *args):
         if any(
             differential.base_representation is not self.__class__
+            or isinstance(differential, BasePhysicalDifferential)
             for differential in self.differentials.values()
         ):
             return super()._scale_operation(op, *args)
@@ -173,3 +179,26 @@ class CylindricalDifferential(BaseDifferential):
         super().__init__(d_rho, d_phi, d_z, copy=copy)
         if not self._d_rho.unit.is_equivalent(self._d_z.unit):
             raise u.UnitsError("d_rho and d_z should have equivalent units.")
+
+
+class CylindricalPhysicalDifferential(BasePhysicalDifferential):
+    """Differential(s) of points in cylindrical coordinates, in physical units.
+
+    Components are along the local unit vectors, so that, e.g., for a
+    velocity, ``d_phi = rho * dphi/dt``, in the same units as ``d_rho`` and
+    ``d_z`` (e.g., km/s).
+
+    Parameters
+    ----------
+    d_rho, d_phi, d_z : `~astropy.units.Quantity`
+        The differentials along the cylindrical radius, azimuth and height
+        unit vectors, all with equivalent units.
+    copy : bool, optional
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
+    """
+
+    base_representation = CylindricalRepresentation
+
+    def __init__(self, d_rho, d_phi=None, d_z=None, copy=True):
+        super().__init__(d_rho, d_phi, d_z, copy=copy)
