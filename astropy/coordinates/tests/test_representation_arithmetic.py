@@ -27,6 +27,9 @@ from astropy.coordinates import (
 )
 from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
+from astropy.coordinates.representation.cylindrical import (
+    CylindricalPhysicalDifferential,
+)
 from astropy.coordinates.representation.spherical import (
     PhysicsSphericalPhysicalDifferential,
     SphericalPhysicalDifferential,
@@ -1141,6 +1144,13 @@ PHYSICAL_DIFFERENTIAL_CASES = [
         PhysicsSphericalDifferential,
         PhysicsSphericalPhysicalDifferential,
     ),
+    (
+        CylindricalRepresentation(
+            rho=[1, 2, 3] * u.kpc, phi=[0.0, 90.0, 315.0] * u.deg, z=[3, 2, 1] * u.kpc
+        ),
+        CylindricalDifferential,
+        CylindricalPhysicalDifferential,
+    ),
 ]
 
 
@@ -1214,6 +1224,17 @@ class TestPhysicalDifferential:
     def test_init_errors(self, base, ang_cls, phys_cls):
         with pytest.raises(u.UnitsError, match="should have equivalent units"):
             phys_cls(1 * u.km / u.s, 1 * u.deg / u.s, 1 * u.km / u.s)
+
+
+def test_cylindrical_physical_circular_orbit():
+    phi = np.linspace(0, 360, 7) * u.deg
+    base = CylindricalRepresentation(8 * u.kpc, phi, 0.5 * u.kpc)
+    v = 220 * u.km / u.s
+    vel = CartesianDifferential(-v * np.sin(phi), v * np.cos(phi), 0 * v)
+    phys = vel.represent_as(CylindricalPhysicalDifferential, base)
+    assert_quantity_allclose(phys.d_rho, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
+    assert_quantity_allclose(phys.d_phi, 220 * u.km / u.s)
+    assert_quantity_allclose(phys.d_z, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
 
 
 class TestDifferentialConversion:
