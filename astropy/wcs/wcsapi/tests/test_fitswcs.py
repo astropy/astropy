@@ -864,50 +864,50 @@ def test_distortion_correlations():
     assert_equal(w.inverse_axis_correlation_matrix, True)
 
 
-T, F = True, False
-
+# Each tuple gives the CTYPE values, the PC matrix, and the expected inverse
+# axis correlation matrix (as 0/1, converted to bool in the tests).
 INVERSE_MATRIX_CASES = [
     # Independent linear axes: the transpose of the forward matrix
-    (("X", "Y"), [[1, 0], [0, 1]], [[T, F], [F, T]]),
+    (("X", "Y"), [[1, 0], [0, 1]], [[1, 0], [0, 1]]),
     # Lower triangular PC: w0 = p0 and w1 = p0 + p1, so p0 only needs w0
-    (("X", "Y"), [[1, 0], [1, 1]], [[T, F], [T, T]]),
+    (("X", "Y"), [[1, 0], [1, 1]], [[1, 0], [1, 1]]),
     # Upper triangular PC
-    (("X", "Y"), [[1, 1], [0, 1]], [[T, T], [F, T]]),
+    (("X", "Y"), [[1, 1], [0, 1]], [[1, 1], [0, 1]]),
     # Bidiagonal PC whose inverse fills in to a full lower triangle
     (
         ("X", "Y", "Z"),
         [[1, 0, 0], [1, 1, 0], [0, 1, 1]],
-        [[T, F, F], [T, T, F], [T, T, T]],
+        [[1, 0, 0], [1, 1, 0], [1, 1, 1]],
     ),
     # Dense lower triangular PC whose inverse is bidiagonal (exact cancellation)
     (
         ("X", "Y", "Z"),
         [[1, 0, 0], [-1, 1, 0], [1, -1, 1]],
-        [[T, F, F], [T, T, F], [F, T, T]],
+        [[1, 0, 0], [1, 1, 0], [0, 1, 1]],
     ),
     # Rotated linear axes
-    (("X", "Y"), [[0.9, -0.1], [0.1, 0.9]], [[T, T], [T, T]]),
+    (("X", "Y"), [[0.9, -0.1], [0.1, 0.9]], [[1, 1], [1, 1]]),
     # Celestial axes always need each other, even with a triangular PC
-    (("RA---TAN", "DEC--TAN"), [[1, 0], [0.3, 1]], [[T, T], [T, T]]),
+    (("RA---TAN", "DEC--TAN"), [[1, 0], [0.3, 1]], [[1, 1], [1, 1]]),
     # Aligned spectral cube
     (
         ("RA---TAN", "DEC--TAN", "WAVE"),
         [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-        [[T, T, F], [T, T, F], [F, F, T]],
+        [[1, 1, 0], [1, 1, 0], [0, 0, 1]],
     ),
     # Wavelength skewed by x: the sky pixels never need the wavelength, but
     # the wavelength pixel needs the sky position to undo the skew
     (
         ("RA---TAN", "DEC--TAN", "WAVE"),
         [[1, 0, 0], [0, 1, 0], [0.1, 0, 1]],
-        [[T, T, F], [T, T, F], [T, T, T]],
+        [[1, 1, 0], [1, 1, 0], [1, 1, 1]],
     ),
     # Sky skewed by z: the wavelength pixel never needs the sky position, and
     # only the skewed sky pixel needs the wavelength to undo the skew
     (
         ("RA---TAN", "DEC--TAN", "WAVE"),
         [[1, 0, 0.1], [0, 1, 0], [0, 0, 1]],
-        [[T, T, T], [T, T, F], [F, F, T]],
+        [[1, 1, 1], [1, 1, 0], [0, 0, 1]],
     ),
 ]
 
@@ -928,7 +928,7 @@ def test_inverse_axis_correlation_matrix(ctype, pc, expected):
     inverse = wcs.inverse_axis_correlation_matrix
     assert inverse.dtype == bool
     assert inverse.shape == (wcs.pixel_n_dim, wcs.world_n_dim)
-    assert_equal(inverse, expected)
+    assert_equal(inverse, np.array(expected, dtype=bool))
 
 
 @pytest.mark.parametrize(("ctype", "pc", "expected"), INVERSE_MATRIX_CASES)
