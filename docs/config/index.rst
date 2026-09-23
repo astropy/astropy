@@ -118,6 +118,11 @@ takes care of resetting the value you changed when you are done using it::
     >>> conf.remote_timeout
     10.0
 
+The temporary value is only seen by code running in the same thread (or
+``asyncio`` task), so other threads are not affected. Conversely, threads
+started inside the with-statement do not see the temporary value unless the
+context is passed on explicitly, e.g., with :func:`contextvars.copy_context`.
+
 You can also modify the values at runtime directly::
 
     >>> conf.dataurl

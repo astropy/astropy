@@ -1,10 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import contextvars
 import io
 import os
 import re
 import subprocess
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import chdir, suppress
 from inspect import cleandoc
 from pathlib import Path
@@ -839,6 +842,92 @@ def test_configitem_setters():
         pass
 
     assert conf.tstnm12 == 43
+
+
+def test_configitem_set_inside_set_temp():
+    """A permanent set (or reset) inside a set_temp block lasts only for the block."""
+
+    class Conf(ConfigNamespace):
+        tstnm13 = ConfigItem(42, "this is another Description")
+
+    conf = Conf()
+
+    with conf.set_temp("tstnm13", 45):
+        conf.tstnm13 = 46
+        assert conf.tstnm13 == 46
+        with conf.set_temp("tstnm13", 47):
+            assert conf.tstnm13 == 47
+            conf.reset("tstnm13")
+            assert conf.tstnm13 == 42
+        assert conf.tstnm13 == 46
+    assert conf.tstnm13 == 42
+
+    with pytest.raises(TypeError, match="not valid"):
+        with conf.set_temp("tstnm13", "not an int"):
+            pass
+    assert conf.tstnm13 == 42
+
+
+def test_configitem_set_temp_thread_isolation():
+    """A value set with set_temp is not seen by other threads."""
+
+    class Conf(ConfigNamespace):
+        tstnm14 = ConfigItem(42, "this is another Description")
+
+    conf = Conf()
+    a_inside = threading.Event()
+    b_inside = threading.Event()
+    a_done = threading.Event()
+    seen = {}
+
+    def thread_a():
+        with conf.set_temp("tstnm14", 1):
+            seen["a_start"] = conf.tstnm14
+            a_inside.set()
+            b_inside.wait(timeout=10)
+        # A exits while B is still inside its own block.
+        seen["a_after"] = conf.tstnm14
+        a_done.set()
+
+    def thread_b():
+        a_inside.wait(timeout=10)
+        seen["b_outside"] = conf.tstnm14
+        with conf.set_temp("tstnm14", 2):
+            b_inside.set()
+            a_done.wait(timeout=10)
+            seen["b_inside"] = conf.tstnm14
+        seen["b_after"] = conf.tstnm14
+
+    threads = [threading.Thread(target=thread_a), threading.Thread(target=thread_b)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert seen == {
+        "a_start": 1,
+        "b_outside": 42,
+        "a_after": 42,
+        "b_inside": 2,
+        "b_after": 42,
+    }
+    assert conf.tstnm14 == 42
+
+
+def test_configitem_set_temp_copy_context():
+    """The temporary value reaches another thread if the context is passed on."""
+
+    class Conf(ConfigNamespace):
+        tstnm15 = ConfigItem(42, "this is another Description")
+
+    conf = Conf()
+    seen = []
+    with conf.set_temp("tstnm15", 45):
+        ctx = contextvars.copy_context()
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            executor.submit(ctx.run, lambda: seen.append(conf.tstnm15)).result()
+    assert seen == [45]
+    assert conf.tstnm15 == 42
 
 
 def test_empty_config_file():
