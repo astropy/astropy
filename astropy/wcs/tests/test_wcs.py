@@ -1184,6 +1184,43 @@ def test_hst_wcs():
         wcs.WCS(hdulist[1].header, hdulist)
 
 
+@pytest.mark.parametrize(
+    ("minerr", "det2im1", "cpdis1", "cpdis2"),
+    [
+        (0.0, True, True, True),
+        (0.01, False, True, True),
+        (0.07, False, False, True),
+        (0.1, False, False, False),
+    ],
+)
+def test_minerr(minerr, det2im1, cpdis1, cpdis2):
+    # Regression test for https://github.com/astropy/astropy/issues/4801
+    #
+    # Distortion lookup tables whose maximum error (D2IMERRj, CPERRja) is
+    # below ``minerr`` should be skipped, and the associated header keywords
+    # should not be passed on to wcslib.
+
+    path = get_pkg_data_filename("data/dist_lookup.fits.gz")
+
+    with fits.open(path) as hdulist:
+        w = wcs.WCS(hdulist[1].header, hdulist, minerr=minerr)
+        w_ref = wcs.WCS(hdulist[1].header, hdulist)
+
+    assert (w.det2im1 is not None) is det2im1
+    assert (w.det2im2 is not None) is False
+    assert (w.cpdis1 is not None) is cpdis1
+    assert (w.cpdis2 is not None) is cpdis2
+
+    # The transformation should match one where the skipped tables are
+    # removed by hand.
+    w_ref.det2im1 = w.det2im1
+    w_ref.cpdis1 = w.cpdis1
+    w_ref.cpdis2 = w.cpdis2
+
+    pix = [[0, 0], [100, -100], [200, 200]]
+    assert_array_equal(w.all_pix2world(pix, 0), w_ref.all_pix2world(pix, 0))
+
+
 def test_cpdis_comments():
     path = get_pkg_data_filename("data/dist_lookup.fits.gz")
 
