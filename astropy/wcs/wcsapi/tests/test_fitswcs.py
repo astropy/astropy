@@ -866,35 +866,44 @@ def test_distortion_correlations():
 
 # Each tuple gives the CTYPE values, the PC matrix, and the expected inverse
 # axis correlation matrix (as 0/1, converted to bool in the tests).
+# fmt: off
 INVERSE_MATRIX_CASES = [
     # Independent linear axes: the transpose of the forward matrix
     (("X", "Y"), [[1, 0], [0, 1]], [[1, 0], [0, 1]]),
+
     # Lower triangular PC: w0 = p0 and w1 = p0 + p1, so p0 only needs w0
     (("X", "Y"), [[1, 0], [1, 1]], [[1, 0], [1, 1]]),
+
     # Upper triangular PC
     (("X", "Y"), [[1, 1], [0, 1]], [[1, 1], [0, 1]]),
+
     # Bidiagonal PC whose inverse fills in to a full lower triangle
     (
         ("X", "Y", "Z"),
         [[1, 0, 0], [1, 1, 0], [0, 1, 1]],
         [[1, 0, 0], [1, 1, 0], [1, 1, 1]],
     ),
+
     # Dense lower triangular PC whose inverse is bidiagonal (exact cancellation)
     (
         ("X", "Y", "Z"),
         [[1, 0, 0], [-1, 1, 0], [1, -1, 1]],
         [[1, 0, 0], [1, 1, 0], [0, 1, 1]],
     ),
+
     # Rotated linear axes
     (("X", "Y"), [[0.9, -0.1], [0.1, 0.9]], [[1, 1], [1, 1]]),
+
     # Celestial axes always need each other, even with a triangular PC
     (("RA---TAN", "DEC--TAN"), [[1, 0], [0.3, 1]], [[1, 1], [1, 1]]),
+
     # Aligned spectral cube
     (
         ("RA---TAN", "DEC--TAN", "WAVE"),
         [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
         [[1, 1, 0], [1, 1, 0], [0, 0, 1]],
     ),
+
     # Wavelength skewed by x: the sky pixels never need the wavelength, but
     # the wavelength pixel needs the sky position to undo the skew
     (
@@ -902,6 +911,7 @@ INVERSE_MATRIX_CASES = [
         [[1, 0, 0], [0, 1, 0], [0.1, 0, 1]],
         [[1, 1, 0], [1, 1, 0], [1, 1, 1]],
     ),
+
     # Sky skewed by z: the wavelength pixel never needs the sky position, and
     # only the skewed sky pixel needs the wavelength to undo the skew
     (
@@ -909,6 +919,7 @@ INVERSE_MATRIX_CASES = [
         [[1, 0, 0.1], [0, 1, 0], [0, 0, 1]],
         [[1, 1, 1], [1, 1, 0], [0, 0, 1]],
     ),
+
     # Rastered slit scan: time advances with the first pixel axis, so the time
     # pixel needs the sky position, but the sky pixels never need the time
     (
@@ -917,6 +928,7 @@ INVERSE_MATRIX_CASES = [
         [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 1, 0], [1, 1, 0, 1]],
     ),
 ]
+# fmt: on
 
 
 def _inverse_matrix_wcs(ctype, pc):
