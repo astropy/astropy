@@ -1350,6 +1350,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         # Don't do anything for base helper classes.
         if cls.__name__ in (
             "BaseDifferential",
+            "BasePhysicalDifferential",
             "BaseSphericalDifferential",
             "BaseSphericalCosLatDifferential",
         ):
@@ -1651,3 +1652,47 @@ class BaseDifferential(BaseRepresentationOrDifferential):
                 f" {type(self).__name__}"
             )
         return self.to_cartesian(base).norm()
+
+
+class BasePhysicalDifferential(BaseDifferential):
+    """Differentials along the local orthonormal unit vectors of the base.
+
+    Unlike other differentials, where angular components are given as angular
+    rates (e.g., ``d_phi`` for a velocity is literally ``d_phi/d_t``), the
+    components here are projections onto the unit vectors of the base
+    representation. So the component values have the same (physical) unit, e.g.,
+    ``d_phi = rho * dphi/dt`` in km/s.
+    """
+
+    def __init__(self, *args, copy=True, **kwargs):
+        super().__init__(*args, copy=copy, **kwargs)
+        unit0 = getattr(self, self.components[0]).unit
+        if not all(
+            getattr(self, c).unit.is_equivalent(unit0) for c in self.components[1:]
+        ):
+            raise u.UnitsError(
+                f"{', '.join(self.components)} should have equivalent units."
+            )
+
+    @classmethod
+    def _get_base_vectors(cls, base):
+        """Get unit vectors and (unity) scale factors from base."""
+        cls._check_base(base)
+        one = np.broadcast_to(1.0 * u.one, base.shape, subok=True)
+        # For the physical differentials, the unit vectors are things like ``r_hat``,
+        # ``theta_hat``, ``phi_hat`` but the scale factors are all 1.
+        return base.unit_vectors(), dict.fromkeys(base.components, one)
+
+    def _get_deriv_key(self, base):
+        # This is slightly brittle, but should work for existing differentials: grab the
+        # unit of the first non-angular component of the base
+        self._check_base(base)
+        for name in base.components:
+            comp = getattr(base, name)
+            if not isinstance(comp, Angle):
+                d_unit_si = (comp.unit / getattr(self, f"d_{name}").unit).decompose(
+                    u.si.bases  # NOTE: this is the convention with differentials
+                )
+                d_unit_si._scale = 1  # remove the scale from the unit
+                return str(d_unit_si)
+        return super()._get_deriv_key(base)
