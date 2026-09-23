@@ -12,7 +12,7 @@ from astropy.coordinates.distances import Distance
 from astropy.coordinates.matrix_utilities import is_rotation_or_reflection
 from astropy.utils import classproperty
 
-from .base import BaseDifferential, BaseRepresentation
+from .base import BaseDifferential, BasePhysicalDifferential, BaseRepresentation
 from .cartesian import CartesianRepresentation
 
 
@@ -465,6 +465,7 @@ class SphericalRepresentation(BaseRepresentation):
             SphericalDifferential,
             SphericalCosLatDifferential,
             RadialDifferential,
+            SphericalPhysicalDifferential,
         ]
 
     @property
@@ -611,6 +612,9 @@ class SphericalRepresentation(BaseRepresentation):
         # TODO: expand special-casing to UnitSpherical and RadialDifferential.
         if any(
             differential.base_representation is not self.__class__
+            or isinstance(
+                differential, BasePhysicalDifferential
+            )  # NOTE: this is a bit awkward to special-case
             for differential in self.differentials.values()
         ):
             return super()._scale_operation(op, *args)
@@ -704,6 +708,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         The distance from the origin to the point(s).
         """
         return self._r
+
+    @classproperty
+    def _compatible_differentials(cls):
+        return [PhysicsSphericalDifferential, PhysicsSphericalPhysicalDifferential]
 
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
@@ -849,6 +857,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def _scale_operation(self, op, *args):
         if any(
             differential.base_representation is not self.__class__
+            or isinstance(differential, BasePhysicalDifferential)
             for differential in self.differentials.values()
         ):
             return super()._scale_operation(op, *args)
@@ -1490,3 +1499,49 @@ class PhysicsSphericalDifferential(BaseDifferential):
             return self.__class__(self.d_phi, self.d_theta, op(self.d_r, *args))
         else:
             return super()._scale_operation(op, *args)
+
+
+class SphericalPhysicalDifferential(BasePhysicalDifferential):
+    """Differential(s) of points in 3D spherical coordinates, in physical units.
+
+    Components are along the local unit vectors, so that, e.g., for a
+    velocity, ``d_lon = distance * cos(lat) * d_lon/d_t`` and
+    ``d_lat = distance * d_lat/d_t``, all in the same units (e.g., km/s).
+
+    Parameters
+    ----------
+    d_lon, d_lat, d_distance : `~astropy.units.Quantity`
+        The differentials along the longitude, latitude and distance unit
+        vectors, all with equivalent units.
+    copy : bool, optional
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
+    """
+
+    base_representation = SphericalRepresentation
+
+    def __init__(self, d_lon, d_lat=None, d_distance=None, copy=True):
+        super().__init__(d_lon, d_lat, d_distance, copy=copy)
+
+
+class PhysicsSphericalPhysicalDifferential(BasePhysicalDifferential):
+    """Differential(s) of 3D physics-convention spherical coords., in physical units.
+
+    Components are along the local unit vectors, so that, e.g., for a
+    velocity, ``d_phi = r * sin(theta) * d_phi/d_t`` and
+    ``d_theta = r * d_theta/d_t``, all in the same units (e.g., km/s).
+
+    Parameters
+    ----------
+    d_phi, d_theta, d_r : `~astropy.units.Quantity`
+        The differentials along the azimuth, inclination and radial unit
+        vectors, all with equivalent units.
+    copy : bool, optional
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
+    """
+
+    base_representation = PhysicsSphericalRepresentation
+
+    def __init__(self, d_phi, d_theta=None, d_r=None, copy=True):
+        super().__init__(d_phi, d_theta, d_r, copy=copy)
