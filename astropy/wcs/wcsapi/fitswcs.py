@@ -333,6 +333,35 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
 
         return matrix
 
+    @property
+    def inverse_axis_correlation_matrix(self):
+        # As for the forward matrix, if there are any distortions present, we
+        # assume that there may be correlations between all axes.
+        if self.has_distortion:
+            return np.ones((self.pixel_n_dim, self.world_n_dim), dtype=bool)
+
+        # Assuming linear world coordinates along each axis, pixel coordinate i
+        # depends on intermediate world coordinate k if the inverse of the PC
+        # matrix is non-zero at (i, k). The numerical inverse of e.g. a rotation
+        # matrix can contain values that are not exactly zero, so we compare
+        # each element to the largest element in its column (all elements in a
+        # column have the same units).
+        inverse_pc = np.abs(np.linalg.inv(self.wcs.get_pc()))
+        matrix = inverse_pc > 1e-10 * inverse_pc.max(axis=0)
+
+        # Each intermediate celestial coordinate is a function of all the
+        # celestial world coordinates, so if a pixel coordinate depends on one
+        # of them it depends on all of them.
+        celestial = (self.wcs.axis_types // 1000) % 10 == 2
+        celestial_indices = np.nonzero(celestial)[0]
+        for world1 in celestial_indices:
+            for world2 in celestial_indices:
+                if world1 != world2:
+                    matrix[:, world1] |= matrix[:, world2]
+                    matrix[:, world2] |= matrix[:, world1]
+
+        return matrix
+
     def _out_of_bounds_to_nan(self, pixel_arrays):
         if self.pixel_bounds is not None:
             pixel_arrays = list(pixel_arrays)
