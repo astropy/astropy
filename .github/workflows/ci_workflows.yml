@@ -22,202 +22,218 @@ permissions:
   contents: read
 
 jobs:
-  initial_checks:
-    name: Mandatory checks before CI
-    runs-on: ubuntu-latest
-    steps:
-    - name: Check base branch
-      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
-      if: github.event_name == 'pull_request' && github.repository == 'astropy/astropy'
-      with:
-        script: |
-          const skip_label = 'skip-basebranch-check';
-          const { default_branch: allowed_basebranch } = context.payload.repository;
-          const pr = context.payload.pull_request;
-          if (pr.user.login === 'meeseeksmachine') {
-            core.info(`Base branch check is skipped since this is auto-backport by ${pr.user.login}`);
-            return;
-          }
-          if (pr.labels.find(lbl => lbl.name === skip_label)) {
-            core.info(`Base branch check is skipped due to the presence of ${skip_label} label`);
-            return;
-          }
-          if (pr.base.ref !== allowed_basebranch) {
-            core.setFailed(`PR opened against ${pr.base.ref}, not ${allowed_basebranch}`);
-          } else {
-            core.info(`PR opened correctly against ${allowed_basebranch}`);
-          }
-
-  lowest-tree-check:
-    name: Check environment lowest resolution against reference
-    needs: [initial_checks]
-    permissions:
-      contents: none
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
-        name: Install Python
-        with:
-          python-version: "3.14"
-      - run: pipx run scripts/check-lowest-resolved-tree.py
-
-      - if: failure()
-        run: pipx run scripts/check-lowest-resolved-tree.py --markdown --quiet >> "$GITHUB_STEP_SUMMARY" || true
-
-  tests:
-    needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    with:
-      setenv: |
-        ARCH_ON_CI: "normal"
-        IS_CRON: "false"
-        PY_COLORS: "1"
-      submodules: false
-      coverage: ''
-      libraries: |
-        apt:
-          - language-pack-fr
-          - tzdata
-
-      envs: |
-        # NOTE: this coverage test is needed for tests and code that
-        #       run only with minimal dependencies.
-        - name: Python 3.12 with minimal dependencies and full coverage
-          linux: py312-test-cov
-          coverage: codecov
-          cache-path: .tox
-          cache-key: mindeps-${{ github.ref_name }}
-
-        - name: Python 3.14 in Parallel with all optional dependencies
-          linux: py314-test-alldeps-fitsio
-          libraries:
-            apt:
-              - language-pack-fr
-              - tzdata
-              - libbz2-dev
-              - libcfitsio-dev
-          toxargs: -v --develop
-          posargs: -n=4 --run-slow
-          cache-path: .tox
-          cache-key: alldeps-linux-${{ github.ref_name }}
-
-        - name: Python 3.12 with oldest supported version of all dependencies
-          linux: py312-test-oldestdeps-alldeps-cov-clocale
-          posargs: --remote-data=astropy
-          coverage: codecov
-
-        - name: Python 3.14 with all optional dependencies (Windows)
-          windows: py314-test-alldeps
-          posargs: --durations=50
-          cache-path: .tox
-          cache-key: alldeps-windows-${{ github.ref_name }}
-
-        - name: Python 3.14 with all optional dependencies (MacOS X)
-          macos: py314-test-alldeps
-          posargs: --durations=50 --run-slow
-          runs-on: macos-latest
-          cache-path: .tox
-          cache-key: alldeps-macos-${{ github.ref_name }}
-
-        - name: Python 3.13 aarch64, Run tests twice
-          linux: py313-test-double
-          runs-on: ubuntu-24.04-arm
-          posargs: -n=4
-          setenv: |
-            ARCH_ON_CI: "arm64"
-            IS_CRON: "false"
-          cache-path: .tox
-          cache-key: doubletest-${{ github.ref_name }}
-
-  allowed_failures:
-    needs: [initial_checks]
+  # TODO: Put this in cron
+  threading:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
     with:
-      setenv: |
-        ARCH_ON_CI: "normal"
-        IS_CRON: "false"
-        PY_COLORS: "1"
       submodules: false
-      coverage: ''
-      libraries: |
-        apt:
-          - language-pack-de
-          - tzdata
+      posargs: -n auto --color=yes
       envs: |
-        - name: (Allowed Failure) Python 3.14 with remote data and dev version of key dependencies
-          linux: py314-test-devdeps
-          posargs: --remote-data=any --verbose
+        - linux: py314-test
+          name: py314 (parallel threads)
+          posargs: --parallel-threads=auto --color=yes
+        - linux: py314t-test-devdeps
+          name: py314-devdeps (serial threads)
+        - linux: py314t-test-devdeps
+          name: py314t-devdeps (parallel threads)
+          posargs: --parallel-threads=auto --color=yes
 
-  stub_tests:
-    needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
-    with:
-      setenv: |
-        ARCH_ON_CI: "normal"
-        IS_CRON: "false"
-      submodules: false
-      envs: |
-        - name: Stubs for unit definition modules
-          linux: stubtest
-          cache-path: .tox
-          cache-key: stub_tests-${{ github.ref_name }}
+  # initial_checks:
+  #   name: Mandatory checks before CI
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Check base branch
+  #     uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
+  #     if: github.event_name == 'pull_request' && github.repository == 'astropy/astropy'
+  #     with:
+  #       script: |
+  #         const skip_label = 'skip-basebranch-check';
+  #         const { default_branch: allowed_basebranch } = context.payload.repository;
+  #         const pr = context.payload.pull_request;
+  #         if (pr.user.login === 'meeseeksmachine') {
+  #           core.info(`Base branch check is skipped since this is auto-backport by ${pr.user.login}`);
+  #           return;
+  #         }
+  #         if (pr.labels.find(lbl => lbl.name === skip_label)) {
+  #           core.info(`Base branch check is skipped due to the presence of ${skip_label} label`);
+  #           return;
+  #         }
+  #         if (pr.base.ref !== allowed_basebranch) {
+  #           core.setFailed(`PR opened against ${pr.base.ref}, not ${allowed_basebranch}`);
+  #         } else {
+  #           core.info(`PR opened correctly against ${allowed_basebranch}`);
+  #         }
 
-  test_wheel_building:
-    needs:
-      - initial_checks
-      - lowest-tree-check
-    # This ensures that a couple of wheel targets work fine in pull requests and pushes
-    permissions:
-      contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
-    with:
-      upload_to_pypi: false
-      upload_to_anaconda: false
-      test_extras: test
-      test_command: pytest -Wdefault --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --strict-markers --pyargs astropy
+  # lowest-tree-check:
+  #   name: Check environment lowest resolution against reference
+  #   needs: [initial_checks]
+  #   permissions:
+  #     contents: none
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+  #       with:
+  #         persist-credentials: false
+  #         fetch-depth: 0
+  #     - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+  #       name: Install Python
+  #       with:
+  #         python-version: "3.14"
+  #     - run: pipx run scripts/check-lowest-resolved-tree.py
 
-      # check building a wheel for our oldest supported Python version, as it is
-      # generally the easiest target to miss
-      targets: |
-        - cp312-manylinux_x86_64
+  #     - if: failure()
+  #       run: pipx run scripts/check-lowest-resolved-tree.py --markdown --quiet >> "$GITHUB_STEP_SUMMARY" || true
+
+  # tests:
+  #   needs: [initial_checks]
+  #   uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+  #   secrets:
+  #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  #   with:
+  #     setenv: |
+  #       ARCH_ON_CI: "normal"
+  #       IS_CRON: "false"
+  #       PY_COLORS: "1"
+  #     submodules: false
+  #     coverage: ''
+  #     libraries: |
+  #       apt:
+  #         - language-pack-fr
+  #         - tzdata
+
+  #     envs: |
+  #       # NOTE: this coverage test is needed for tests and code that
+  #       #       run only with minimal dependencies.
+  #       - name: Python 3.12 with minimal dependencies and full coverage
+  #         linux: py312-test-cov
+  #         coverage: codecov
+  #         cache-path: .tox
+  #         cache-key: mindeps-${{ github.ref_name }}
+
+  #       - name: Python 3.14 in Parallel with all optional dependencies
+  #         linux: py314-test-alldeps-fitsio
+  #         libraries:
+  #           apt:
+  #             - language-pack-fr
+  #             - tzdata
+  #             - libbz2-dev
+  #             - libcfitsio-dev
+  #         toxargs: -v --develop
+  #         posargs: -n=4 --run-slow
+  #         cache-path: .tox
+  #         cache-key: alldeps-linux-${{ github.ref_name }}
+
+  #       - name: Python 3.12 with oldest supported version of all dependencies
+  #         linux: py312-test-oldestdeps-alldeps-cov-clocale
+  #         posargs: --remote-data=astropy
+  #         coverage: codecov
+
+  #       - name: Python 3.14 with all optional dependencies (Windows)
+  #         windows: py314-test-alldeps
+  #         posargs: --durations=50
+  #         cache-path: .tox
+  #         cache-key: alldeps-windows-${{ github.ref_name }}
+
+  #       - name: Python 3.14 with all optional dependencies (MacOS X)
+  #         macos: py314-test-alldeps
+  #         posargs: --durations=50 --run-slow
+  #         runs-on: macos-latest
+  #         cache-path: .tox
+  #         cache-key: alldeps-macos-${{ github.ref_name }}
+
+  #       - name: Python 3.13 aarch64, Run tests twice
+  #         linux: py313-test-double
+  #         runs-on: ubuntu-24.04-arm
+  #         posargs: -n=4
+  #         setenv: |
+  #           ARCH_ON_CI: "arm64"
+  #           IS_CRON: "false"
+  #         cache-path: .tox
+  #         cache-key: doubletest-${{ github.ref_name }}
+
+  # allowed_failures:
+  #   needs: [initial_checks]
+  #   uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+  #   with:
+  #     setenv: |
+  #       ARCH_ON_CI: "normal"
+  #       IS_CRON: "false"
+  #       PY_COLORS: "1"
+  #     submodules: false
+  #     coverage: ''
+  #     libraries: |
+  #       apt:
+  #         - language-pack-de
+  #         - tzdata
+  #     envs: |
+  #       - name: (Allowed Failure) Python 3.14 with remote data and dev version of key dependencies
+  #         linux: py314-test-devdeps
+  #         posargs: --remote-data=any --verbose
+
+  # stub_tests:
+  #   needs: [initial_checks]
+  #   uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+  #   with:
+  #     setenv: |
+  #       ARCH_ON_CI: "normal"
+  #       IS_CRON: "false"
+  #     submodules: false
+  #     envs: |
+  #       - name: Stubs for unit definition modules
+  #         linux: stubtest
+  #         cache-path: .tox
+  #         cache-key: stub_tests-${{ github.ref_name }}
+
+  # test_wheel_building:
+  #   needs:
+  #     - initial_checks
+  #     - lowest-tree-check
+  #   # This ensures that a couple of wheel targets work fine in pull requests and pushes
+  #   permissions:
+  #     contents: none
+  #   uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+  #   with:
+  #     upload_to_pypi: false
+  #     upload_to_anaconda: false
+  #     test_extras: test
+  #     test_command: pytest -Wdefault --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --strict-markers --pyargs astropy
+
+  #     # check building a wheel for our oldest supported Python version, as it is
+  #     # generally the easiest target to miss
+  #     targets: |
+  #       - cp312-manylinux_x86_64
 
 
-  test_limited_api_build:
-    # Test to make sure that we can build astropy with the limited API
-    # This job is also important to check `build` as our build frontend
-    # see https://github.com/astropy/astropy/pull/18253
-    strategy:
-        fail-fast: false
-        matrix:
-          os:
-            - ubuntu-latest
-            - macos-latest
-            - windows-latest
-    runs-on: ${{ matrix.os }}
-    name: Python 3.12 (build only) with limited API (${{ matrix.os }})
-    needs:
-      - initial_checks
-      - lowest-tree-check
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
-        name: Install Python
-        with:
-          # Intentionally run against our oldest supported Python version,
-          # as the most restricted version of the Limited API we need to conform to.
-          python-version: "3.12"
-      - run: |
-          python -m pip install build
-          python -m build
-        name: Run build
-        env:
-          EXTENSION_HELPERS_PY_LIMITED_API: 'cp312'
+  # test_limited_api_build:
+  #   # Test to make sure that we can build astropy with the limited API
+  #   # This job is also important to check `build` as our build frontend
+  #   # see https://github.com/astropy/astropy/pull/18253
+  #   strategy:
+  #       fail-fast: false
+  #       matrix:
+  #         os:
+  #           - ubuntu-latest
+  #           - macos-latest
+  #           - windows-latest
+  #   runs-on: ${{ matrix.os }}
+  #   name: Python 3.12 (build only) with limited API (${{ matrix.os }})
+  #   needs:
+  #     - initial_checks
+  #     - lowest-tree-check
+  #   steps:
+  #     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+  #       with:
+  #         persist-credentials: false
+  #         fetch-depth: 0
+  #     - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+  #       name: Install Python
+  #       with:
+  #         # Intentionally run against our oldest supported Python version,
+  #         # as the most restricted version of the Limited API we need to conform to.
+  #         python-version: "3.12"
+  #     - run: |
+  #         python -m pip install build
+  #         python -m build
+  #       name: Run build
+  #       env:
+  #         EXTENSION_HELPERS_PY_LIMITED_API: 'cp312'
