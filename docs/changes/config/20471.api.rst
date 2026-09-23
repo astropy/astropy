@@ -1,0 +1,9 @@
+``ConfigItem.set_temp`` and ``ConfigNamespace.set_temp`` are now thread-safe:
+the temporary value is stored per thread (or ``asyncio`` task) using a
+``contextvars.ContextVar`` instead of changing the process-wide configuration.
+Previously a temporary value set in one thread was visible to all other threads
+and could be undone by them, which caused spurious errors when, e.g.,
+``QTable`` construction ran concurrently with other ``Quantity`` code. Code that
+relied on threads started inside a ``set_temp`` block seeing the temporary value
+now needs to pass the context on explicitly, e.g., with
+``contextvars.copy_context().run``.
