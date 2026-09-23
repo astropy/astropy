@@ -150,3 +150,42 @@ def wcs_info_str(wcs):
 
     # Make sure we get rid of the extra whitespace at the end of some lines
     return "\n".join([l.rstrip() for l in s.splitlines()])
+
+
+def _split_matrix(matrix):
+    """
+    Given an axis correlation matrix from a WCS object, return information about
+    the individual WCS that can be split out.
+
+    The output is a list of tuples, where each tuple contains a list of
+    pixel dimensions and a list of world dimensions that can be extracted to
+    form a new WCS. For example, in the case of a spectral cube with the first
+    two world coordinates being the celestial coordinates and the third
+    coordinate being an uncorrelated spectral axis, the matrix would look like::
+
+        array([[ True,  True, False],
+               [ True,  True, False],
+               [False, False,  True]])
+
+    and this function will return ``[([0, 1], [0, 1]), ([2], [2])]``.
+    """
+    pixel_used = []
+
+    split_info = []
+
+    for ipix in range(matrix.shape[1]):
+        if ipix in pixel_used:
+            continue
+        pixel_include = np.zeros(matrix.shape[1], dtype=bool)
+        pixel_include[ipix] = True
+        n_pix_prev, n_pix = 0, 1
+        while n_pix > n_pix_prev:
+            world_include = matrix[:, pixel_include].any(axis=1)
+            pixel_include = matrix[world_include, :].any(axis=0)
+            n_pix_prev, n_pix = n_pix, np.sum(pixel_include)
+        pixel_indices = list(np.nonzero(pixel_include)[0])
+        world_indices = list(np.nonzero(world_include)[0])
+        pixel_used.extend(pixel_indices)
+        split_info.append((pixel_indices, world_indices))
+
+    return split_info

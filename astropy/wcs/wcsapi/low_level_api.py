@@ -2,7 +2,8 @@ import abc
 import os
 
 import numpy as np
-from astropy.wcs.utils import _split_matrix
+
+from .utils import _split_matrix
 
 __all__ = ["BaseLowLevelWCS", "validate_physical_types"]
 
@@ -336,7 +337,6 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         dependencies. Implementations can override this to return a sparser
         matrix when fewer world coordinates are needed.
         """
-
         forward = np.asarray(self.axis_correlation_matrix, dtype=bool)
 
         # We then iterate over independent chunks of the original axis
