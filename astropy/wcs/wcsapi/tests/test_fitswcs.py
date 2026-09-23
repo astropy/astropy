@@ -366,9 +366,17 @@ def test_spectral_cube_nonaligned():
         ],
     )
 
-    # The inverse PC matrix is dense in the frequency/longitude block, and the
-    # celestial axes are coupled, so all world axes are needed for all pixels.
-    assert_equal(wcs.inverse_axis_correlation_matrix, True)
+    # The first pixel axis maps only to latitude, so needs both celestial
+    # world axes but not the frequency, while the other two pixel axes are
+    # mixed with each other by the PC matrix and need all three world axes.
+    assert_equal(
+        wcs.inverse_axis_correlation_matrix,
+        [
+            [True, False, True],
+            [True, True, True],
+            [True, True, True],
+        ],
+    )
 
     # NOTE: we check world_axis_object_components and world_axis_object_classes
     # again here because in the past this failed when non-aligned axes were
@@ -894,11 +902,12 @@ INVERSE_MATRIX_CASES = [
         [[1, 0, 0], [0, 1, 0], [0.1, 0, 1]],
         [[T, T, F], [T, T, F], [T, T, T]],
     ),
-    # Sky skewed by z: the wavelength pixel never needs the sky position
+    # Sky skewed by z: the wavelength pixel never needs the sky position, and
+    # only the skewed sky pixel needs the wavelength to undo the skew
     (
         ("RA---TAN", "DEC--TAN", "WAVE"),
         [[1, 0, 0.1], [0, 1, 0], [0, 0, 1]],
-        [[T, T, T], [T, T, T], [F, F, T]],
+        [[T, T, T], [T, T, F], [F, F, T]],
     ),
 ]
 
