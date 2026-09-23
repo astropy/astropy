@@ -436,6 +436,9 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
 
       * ``pm_{lon}_cos{lat}``, ``pm_{lat}`` for `~astropy.coordinates.SphericalCosLatDifferential` velocity components
       * ``pm_{lon}``, ``pm_{lat}`` for `~astropy.coordinates.SphericalDifferential` velocity components
+      * ``v_{lon}``, ``v_{lat}`` for `~astropy.coordinates.SphericalPhysicalDifferential` velocity components
+      * ``v_{phi,theta,r}`` for `~astropy.coordinates.PhysicsSphericalPhysicalDifferential` velocity components
+      * ``v_{rho,phi,z}`` for `~astropy.coordinates.CylindricalPhysicalDifferential` velocity components
       * ``radial_velocity`` for any ``d_distance`` component
       * ``v_{x,y,z}`` for `~astropy.coordinates.CartesianDifferential` velocity components
 
@@ -778,7 +781,12 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             # with time-derivative of representation data.
             # NOTE: there is no dimensionless time while lengths can be
             # dimensionless (u.dimensionless_unscaled).
+            # Physical differentials have velocity units also for angular
+            # components, and we test for consistency on init.
+            physical = isinstance(differential_data, r.BasePhysicalDifferential)
             for comp in representation_data.components:
+                if physical and isinstance(getattr(representation_data, comp), Angle):
+                    continue
                 if (diff_comp := f"d_{comp}") in differential_data.components and (
                     differential_data._units[diff_comp].physical_type
                     != representation_data._units[comp].physical_type / u.physical.time
@@ -819,6 +827,11 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         #     `SphericalCosLatDifferential` proper motion components
         #   * ``pm_{lon}``, ``pm_{lat}`` for `SphericalDifferential` proper
         #     motion components
+        #   * ``v_{lon}``, ``v_{lat}`` for `SphericalPhysicalDifferential`
+        #     linear velocity components, and similarly ``v_{phi,theta,r}``
+        #     and ``v_{rho,phi,z}`` for
+        #     `PhysicsSphericalPhysicalDifferential` and
+        #     `CylindricalPhysicalDifferential`
         #   * ``radial_velocity`` for any `d_distance` component
         #   * ``v_{x,y,z}`` for `CartesianDifferential` velocity components
         # where `{lon}` and `{lat}` are the frame names of the angular
@@ -867,6 +880,26 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 RepresentationMapping("d_distance", "radial_velocity", lin_v_unit),
             ],
         )
+        repr_info.setdefault(
+            r.SphericalPhysicalDifferential,
+            [
+                RepresentationMapping("d_lon", f"v_{lon}", lin_v_unit),
+                RepresentationMapping("d_lat", f"v_{lat}", lin_v_unit),
+                RepresentationMapping("d_distance", "radial_velocity", lin_v_unit),
+            ],
+        )
+        for rep_cls, diff_cls in [
+            (r.PhysicsSphericalRepresentation, r.PhysicsSphericalPhysicalDifferential),
+            (r.CylindricalRepresentation, r.CylindricalPhysicalDifferential),
+        ]:
+            names = {m.reprname: m.framename for m in repr_info.get(rep_cls, [])}
+            repr_info.setdefault(
+                diff_cls,
+                [
+                    RepresentationMapping(f"d_{c}", f"v_{names.get(c, c)}", lin_v_unit)
+                    for c in rep_cls.attr_classes
+                ],
+            )
         repr_info.setdefault(
             r.RadialDifferential,
             [RepresentationMapping("d_distance", "radial_velocity", lin_v_unit)],
