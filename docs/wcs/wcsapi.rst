@@ -341,10 +341,17 @@ more succinctly as::
             0  None       pos.eq.ra      deg
             1  None       pos.eq.dec     deg
     <BLANKLINE>
-    Correlation between pixel and world axes:
+    Dependence of world axes on pixel axes (pixel to world):
     <BLANKLINE>
                Pixel Dim
     World Dim    0    1
+            0  yes  yes
+            1  yes  yes
+    <BLANKLINE>
+    Dependence of pixel axes on world axes (world to pixel):
+    <BLANKLINE>
+               World Dim
+    Pixel Dim    0    1
             0  yes  yes
             1  yes  yes
 
@@ -370,9 +377,15 @@ and two world dimensions (since both RA/Dec vary over the extracted 1D slice)::
             0  None       pos.eq.ra      deg
             1  None       pos.eq.dec     deg
     <BLANKLINE>
-    Correlation between pixel and world axes:
+    Dependence of world axes on pixel axes (pixel to world):
     <BLANKLINE>
                Pixel Dim
     World Dim    0
             0  yes
             1  yes
+    <BLANKLINE>
+    Dependence of pixel axes on world axes (world to pixel):
+    <BLANKLINE>
+                 World Dim
+    Pixel Dim    0    1
+            0  yes  yes

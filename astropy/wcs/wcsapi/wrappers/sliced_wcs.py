@@ -334,3 +334,7 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
     @property
     def axis_correlation_matrix(self):
         return self._wcs.axis_correlation_matrix[self._world_keep][:, self._pixel_keep]
+
+    @property
+    def reverse_axis_correlation_matrix(self):
+        return self._wcs.reverse_axis_correlation_matrix[self._pixel_keep][:, self._world_keep]

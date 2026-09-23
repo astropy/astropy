@@ -118,38 +118,36 @@ def wcs_info_str(wcs):
 
     s += "\n"
 
-    # Axis correlation matrix
+    # Axis correlation matrices
 
-    pixel_dim_width = max(3, len(str(wcs.world_n_dim)))
+    s += "Dependence of world axes on pixel axes (pixel to world):\n\n"
+    s += _matrix_str(wcs.axis_correlation_matrix, "World Dim", "Pixel Dim")
 
-    s += "Correlation between pixel and world axes:\n\n"
-
-    # fmt: off
-    s += (' ' * world_dim_width + '  ' +
-            ('{0:^' + str(wcs.pixel_n_dim * 5 - 2) + 's}').format('Pixel Dim') +
-            '\n')
-
-    s += (('{0:' + str(world_dim_width) + 's}').format('World Dim') +
-            ''.join(['  ' + ('{0:' + str(pixel_dim_width) + 'd}').format(ipix)
-                    for ipix in range(wcs.pixel_n_dim)]) +
-            '\n')
-    # fmt: on
-
-    matrix = wcs.axis_correlation_matrix
-    matrix_str = np.empty(matrix.shape, dtype="U3")
-    matrix_str[matrix] = "yes"
-    matrix_str[~matrix] = "no"
-
-    for iwrl in range(wcs.world_n_dim):
-        # fmt: off
-        s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) +
-                ''.join(['  ' + ('{0:>' + str(pixel_dim_width) + 's}').format(matrix_str[iwrl, ipix])
-                        for ipix in range(wcs.pixel_n_dim)]) +
-                '\n')
-        # fmt: on
+    s += "\nDependence of pixel axes on world axes (world to pixel):\n\n"
+    s += _matrix_str(wcs.reverse_axis_correlation_matrix, "Pixel Dim", "World Dim")
 
     # Make sure we get rid of the extra whitespace at the end of some lines
     return "\n".join([l.rstrip() for l in s.splitlines()])
+
+
+def _matrix_str(matrix, row_label, col_label):
+    """
+    Format a boolean correlation matrix as a table with yes/no entries.
+    """
+    n_row, n_col = matrix.shape
+    row_width = max(9, len(str(n_row)))
+    col_width = max(3, len(str(n_col)))
+
+    matrix_str = np.where(matrix, "yes", "no")
+
+    s = " " * row_width + "  " + f"{col_label:^{n_col * 5 - 2}s}" + "\n"
+    s += f"{row_label:{row_width}s}"
+    s += "".join(f"  {icol:{col_width}d}" for icol in range(n_col)) + "\n"
+    for irow in range(n_row):
+        s += f"{irow:{row_width}d}"
+        s += "".join(f"  {matrix_str[irow, icol]:>{col_width}s}" for icol in range(n_col))
+        s += "\n"
+    return s
 
 
 def _split_matrix(matrix):
