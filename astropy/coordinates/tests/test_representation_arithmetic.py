@@ -25,7 +25,12 @@ from astropy.coordinates import (
     UnitSphericalRepresentation,
     angular_separation,
 )
+from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
+from astropy.coordinates.representation.spherical import (
+    PhysicsSphericalPhysicalDifferential,
+    SphericalPhysicalDifferential,
+)
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
 
@@ -1115,6 +1120,100 @@ class TestCartesianDifferential:
             CartesianDifferential(1.0 * u.kpc / u.s, 2.0 * u.kpc, 3.0 * u.kpc)
         with pytest.raises(ValueError):
             CartesianDifferential(1.0 * u.kpc, 2.0 * u.kpc, 3.0 * u.kpc, xyz_axis=1)
+
+
+PHYSICAL_DIFFERENTIAL_CASES = [
+    (
+        SphericalRepresentation(
+            lon=[0.0, 6.0, 21.0] * u.hourangle,
+            lat=[0.0, -30.0, 85.0] * u.deg,
+            distance=[1, 2, 3] * u.kpc,
+        ),
+        SphericalDifferential,
+        SphericalPhysicalDifferential,
+    ),
+    (
+        PhysicsSphericalRepresentation(
+            phi=[0.0, 90.0, 315.0] * u.deg,
+            theta=[90.0, 120.0, 5.0] * u.deg,
+            r=[1, 2, 3] * u.kpc,
+        ),
+        PhysicsSphericalDifferential,
+        PhysicsSphericalPhysicalDifferential,
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "base, ang_cls, phys_cls",
+    PHYSICAL_DIFFERENTIAL_CASES,
+    ids=lambda x: getattr(x, "__name__", None),
+)
+class TestPhysicalDifferential:
+    def setup_method(self):
+        self.vel = CartesianDifferential(
+            [10.0, -200.0, 35.0], [220.0, 5.0, -80.0], [-3.0, 40.0, 150.0], u.km / u.s
+        )
+
+    def test_name(self, base, ang_cls, phys_cls):
+        assert DIFFERENTIAL_CLASSES[phys_cls.name] is phys_cls
+        assert phys_cls in base._compatible_differentials
+
+    def test_components_are_scaled_angular_rates(self, base, ang_cls, phys_cls):
+        phys = self.vel.represent_as(phys_cls, base)
+        ang = self.vel.represent_as(ang_cls, base)
+        sf = base.scale_factors()
+        for c, d_c in zip(base.components, phys.components):
+            assert_quantity_allclose(
+                getattr(phys, d_c),
+                (getattr(ang, d_c) * sf[c]).to(u.km / u.s, u.dimensionless_angles()),
+            )
+        # Round-trip back to Cartesian and between differential classes.
+        assert_quantity_allclose(phys.to_cartesian(base).xyz, self.vel.d_xyz)
+        assert_differential_allclose(phys.represent_as(ang_cls, base), ang)
+        assert_differential_allclose(ang.represent_as(phys_cls, base), phys)
+
+    def test_norm(self, base, ang_cls, phys_cls):
+        phys = self.vel.represent_as(phys_cls, base)
+        assert_quantity_allclose(phys.norm(base), self.vel.norm())
+        assert_quantity_allclose(
+            phys.norm(base),
+            np.sqrt(sum(getattr(phys, c) ** 2 for c in phys.components)),
+        )
+
+    def test_attach_to_base(self, base, ang_cls, phys_cls):
+        phys = self.vel.represent_as(phys_cls, base)
+        assert phys._get_deriv_key(base) == "s"
+        rep = base.with_differentials(phys)
+        assert rep.differentials["s"] is phys
+        cart = rep.represent_as(CartesianRepresentation, CartesianDifferential)
+        assert_quantity_allclose(cart.differentials["s"].d_xyz, self.vel.d_xyz)
+
+    def test_transform(self, base, ang_cls, phys_cls):
+        matrix = rotation_matrix(30 * u.deg, "z") @ rotation_matrix(40 * u.deg, "x")
+        phys = self.vel.represent_as(phys_cls, base)
+        new_base = base.transform(matrix)
+        new = phys.transform(matrix, base, new_base)
+        assert isinstance(new, phys_cls)
+        assert_quantity_allclose(new.norm(new_base), phys.norm(base))
+        assert_quantity_allclose(
+            new.to_cartesian(new_base).xyz, self.vel.transform(matrix).d_xyz
+        )
+
+    @pytest.mark.parametrize("factor", [2.0, -2.0])
+    def test_scale_with_base(self, base, ang_cls, phys_cls, factor):
+        phys = self.vel.represent_as(phys_cls, base)
+        rep = base.with_differentials(phys) * factor
+        expected = self.vel * factor
+        assert_quantity_allclose(
+            rep.differentials["s"].to_cartesian(rep).xyz,
+            expected.d_xyz,
+            atol=1e-10 * u.km / u.s,
+        )
+
+    def test_init_errors(self, base, ang_cls, phys_cls):
+        with pytest.raises(u.UnitsError, match="should have equivalent units"):
+            phys_cls(1 * u.km / u.s, 1 * u.deg / u.s, 1 * u.km / u.s)
 
 
 class TestDifferentialConversion:
