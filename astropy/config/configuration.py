@@ -21,6 +21,7 @@ import sys
 import warnings
 from collections.abc import Generator
 from contextlib import contextmanager, nullcontext
+from contextvars import ContextVar
 from functools import reduce
 from inspect import getdoc
 from pathlib import Path
@@ -45,6 +46,10 @@ __all__ = (
     "get_config",
     "reload_config",
 )
+
+
+# Sentinel for a ConfigItem with no temporary value set in the current context
+_UNSET: Final = object()
 
 
 class InvalidConfigurationItemWarning(AstropyWarning):
@@ -179,6 +184,9 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
     def set_temp(self, attr, value):
         """
         Temporarily set a configuration value.
+
+        The temporary value is seen only by code running in the current thread
+        (or asyncio task). See `ConfigItem.set_temp` for details.
 
         Parameters
         ----------
@@ -349,6 +357,12 @@ class ConfigItem:
         else:
             self.aliases = aliases
 
+        # Per-thread / per-task value set by ``set_temp``, which takes precedence
+        # over the value stored in the (process-global) configuration object.
+        self._temp_value = ContextVar(
+            f"astropy_config_item_{id(self):x}", default=_UNSET
+        )
+
     def __set__(self, obj, value):
         return self.set(value)
 
@@ -364,6 +378,9 @@ class ConfigItem:
         This also updates the comments that give the description and type
         information.
 
+        If called inside a `set_temp` block for this item, the new value
+        applies only within that block, in the current thread.
+
         Parameters
         ----------
         value
@@ -374,17 +391,25 @@ class ConfigItem:
         TypeError
             If the provided ``value`` is not valid for this ``ConfigItem``.
         """
+        value = self._validated(value)
+
+        if self._temp_value.get() is not _UNSET:
+            # Inside a set_temp block: the value is restored when the block exits.
+            self._temp_value.set(value)
+            return
+
+        sec = get_config(self.module, rootname=self.rootname)
+
+        sec[self.name] = value
+
+    def _validated(self, value):
         try:
-            value = self._validate_val(value)
+            return self._validate_val(value)
         except validate.ValidateError as e:
             raise TypeError(
                 f"Provided value for configuration item {self.name} not valid:"
                 f" {e.args[0]}"
             )
-
-        sec = get_config(self.module, rootname=self.rootname)
-
-        sec[self.name] = value
 
     @contextmanager
     def set_temp(self, value):
@@ -401,22 +426,33 @@ class ConfigItem:
 
             # ITEM is now 'default' after the with block
 
+        The temporary value is stored in a `contextvars.ContextVar`, so it is
+        seen only by code running in the current thread (or asyncio task);
+        other threads continue to see the permanent value. Threads started
+        inside the with block (including `concurrent.futures.ThreadPoolExecutor`
+        workers) do not inherit the temporary value, unless the context is
+        passed on explicitly, e.g. with ``contextvars.copy_context().run``, or
+        Python itself propagates it (``sys.flags.thread_inherit_context``,
+        which is on by default for free-threaded builds of Python 3.14+).
+
         Parameters
         ----------
         value
             The value to set this item to inside the with block.
 
         """
-        initval = self()
-        self.set(value)
+        token = self._temp_value.set(self._validated(value))
         try:
             yield
         finally:
-            self.set(initval)
+            self._temp_value.reset(token)
 
     def reload(self):
         """Reloads the value of this ``ConfigItem`` from the relevant
         configuration file.
+
+        This sets the permanent value, and does not affect a value set
+        temporarily with `set_temp`.
 
         Returns
         -------
@@ -424,7 +460,9 @@ class ConfigItem:
             The new value loaded from the configuration file.
 
         """
-        self.set(self.defaultvalue)
+        get_config(self.module, rootname=self.rootname)[self.name] = self._validated(
+            self.defaultvalue
+        )
         baseobj = get_config(self.module, True, rootname=self.rootname)
         secname = baseobj.name
 
@@ -476,6 +514,8 @@ class ConfigItem:
             If the configuration value as stored is not this item's type.
 
         """
+        if (val := self._temp_value.get()) is not _UNSET:
+            return val
 
         def section_name(section):
             if section == "":
