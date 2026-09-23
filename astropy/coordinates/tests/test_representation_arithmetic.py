@@ -10,15 +10,18 @@ from astropy.coordinates import (
     CartesianDifferential,
     CartesianRepresentation,
     CylindricalDifferential,
+    CylindricalPhysicalDifferential,
     CylindricalRepresentation,
     Latitude,
     Longitude,
     PhysicsSphericalDifferential,
+    PhysicsSphericalPhysicalDifferential,
     PhysicsSphericalRepresentation,
     RadialDifferential,
     RadialRepresentation,
     SphericalCosLatDifferential,
     SphericalDifferential,
+    SphericalPhysicalDifferential,
     SphericalRepresentation,
     UnitSphericalCosLatDifferential,
     UnitSphericalDifferential,
@@ -27,13 +30,6 @@ from astropy.coordinates import (
 )
 from astropy.coordinates.matrix_utilities import rotation_matrix
 from astropy.coordinates.representation import DIFFERENTIAL_CLASSES
-from astropy.coordinates.representation.cylindrical import (
-    CylindricalPhysicalDifferential,
-)
-from astropy.coordinates.representation.spherical import (
-    PhysicsSphericalPhysicalDifferential,
-    SphericalPhysicalDifferential,
-)
 from astropy.tests.helper import assert_quantity_allclose, quantity_allclose
 
 
