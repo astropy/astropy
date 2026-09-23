@@ -9,6 +9,7 @@ from astropy.coordinates import galactocentric_frame_defaults
 from astropy.coordinates import representation as r
 from astropy.coordinates.builtin_frames import CIRS, ICRS, Galactic, Galactocentric
 from astropy.coordinates.errors import ConvertError
+from astropy.coordinates.sky_coordinate import SkyCoord
 from astropy.units import allclose as quantity_allclose
 
 POSITION_ON_SKY = {"ra": 37.4 * u.deg, "dec": -55.8 * u.deg}
@@ -339,3 +340,132 @@ def test_velocity_units(equivalency):
 def test_frame_with_velocity_without_distance_can_be_transformed():
     rep = CIRS(**POSITION_ON_SKY, **PROPER_MOTION).transform_to(ICRS())
     assert "<ICRS Coordinate: (ra, dec, distance) in" in repr(rep)
+
+
+PHYSICAL_VELOCITY = {
+    "v_ra": -15.07 * u.km / u.s,
+    "v_dec": 12.16 * u.km / u.s,
+    "differential_type": "sphericalphysical",
+}
+
+
+@pytest.mark.parametrize(
+    "cls, lon, lat", [[bf.ICRS, "ra", "dec"], [bf.Galactic, "l", "b"]]
+)
+def test_physical_differential_arg_names(cls, lon, lat):
+    frame = cls(
+        **{lon: 37.4 * u.deg, lat: -55.8 * u.deg, f"v_{lon}": 10 * u.km / u.s},
+        **{f"v_{lat}": -5 * u.km / u.s},
+        **DISTANCE,
+        **RADIAL_VELOCITY,
+        differential_type=r.SphericalPhysicalDifferential,
+    )
+    assert getattr(frame, f"v_{lon}") == 10 * u.km / u.s
+    assert getattr(frame, f"v_{lat}") == -5 * u.km / u.s
+    assert frame.radial_velocity == RADIAL_VELOCITY["radial_velocity"]
+
+
+def test_physical_differential_matches_proper_motion():
+    icrs = ICRS(**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION, **RADIAL_VELOCITY)
+    rep = icrs.represent_as("spherical", s="sphericalphysical", in_frame_units=True)
+    dif = rep.differentials["s"]
+    assert isinstance(dif, r.SphericalPhysicalDifferential)
+    for pm, v in [(icrs.pm_ra_cosdec, dif.d_lon), (icrs.pm_dec, dif.d_lat)]:
+        assert v.unit == u.km / u.s
+        assert quantity_allclose(
+            v, (pm * icrs.distance).to(u.km / u.s, u.dimensionless_angles())
+        )
+    assert quantity_allclose(dif.d_distance, icrs.radial_velocity)
+
+    # And the other way around.
+    icrs2 = ICRS(
+        **POSITION_ON_SKY,
+        **DISTANCE,
+        v_ra=dif.d_lon,
+        v_dec=dif.d_lat,
+        **RADIAL_VELOCITY,
+        differential_type="sphericalphysical",
+    )
+    icrs2.set_representation_cls(s="sphericalcoslat")
+    assert quantity_allclose(icrs2.pm_ra_cosdec, icrs.pm_ra_cosdec)
+    assert quantity_allclose(icrs2.pm_dec, icrs.pm_dec)
+
+
+def test_physical_differential_transform_roundtrip():
+    icrs = ICRS(**POSITION_ON_SKY, **DISTANCE, **PHYSICAL_VELOCITY, **RADIAL_VELOCITY)
+    back = icrs.transform_to(Galactic()).transform_to(ICRS())
+    assert quantity_allclose(back.velocity.d_xyz, icrs.velocity.d_xyz)
+
+
+def test_physical_differential_skycoord():
+    sc = SkyCoord(**POSITION_ON_SKY, **DISTANCE, **PHYSICAL_VELOCITY, **RADIAL_VELOCITY)
+    assert sc.v_ra == PHYSICAL_VELOCITY["v_ra"]
+    assert sc.v_dec == PHYSICAL_VELOCITY["v_dec"]
+
+
+def test_physical_differential_galactocentric_cylindrical():
+    phi = np.linspace(0, 360, 7) * u.deg
+    v = 220 * u.km / u.s
+    with galactocentric_frame_defaults.set("latest"):
+        gc = Galactocentric(
+            x=8 * u.kpc * np.cos(phi),
+            y=8 * u.kpc * np.sin(phi),
+            z=np.zeros(phi.shape) * u.kpc,
+            v_x=-v * np.sin(phi),
+            v_y=v * np.cos(phi),
+            v_z=np.zeros(phi.shape) * v,
+        )
+    dif = gc.represent_as("cylindrical", s="cylindricalphysical").differentials["s"]
+    assert quantity_allclose(dif.d_rho, 0 * v, atol=1e-10 * v)
+    assert quantity_allclose(dif.d_phi, v)
+    assert quantity_allclose(dif.d_z, 0 * v, atol=1e-10 * v)
+
+
+@pytest.mark.parametrize(
+    "representation_type, differential_type, names",
+    [
+        ("cylindrical", "cylindricalphysical", ("v_rho", "v_phi", "v_z")),
+        ("physicsspherical", "physicssphericalphysical", ("v_phi", "v_theta", "v_r")),
+    ],
+)
+def test_physical_differential_frame_names(
+    representation_type, differential_type, names
+):
+    icrs = ICRS(**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION, **RADIAL_VELOCITY)
+    icrs.set_representation_cls(representation_type, s=differential_type)
+    assert tuple(icrs.get_representation_component_names("s")) == names
+    rep = icrs.represent_as(
+        representation_type, s=differential_type, in_frame_units=True
+    )
+    dif = rep.differentials["s"]
+    for name, comp in zip(names, dif.components):
+        assert getattr(dif, comp).unit == u.km / u.s
+        assert getattr(icrs, name) == getattr(dif, comp)
+    # Round-trip through initialization with the frame names.
+    icrs2 = ICRS(
+        **{name: getattr(icrs, name) for name in icrs.representation_component_names},
+        **{name: getattr(icrs, name) for name in names},
+        representation_type=representation_type,
+        differential_type=differential_type,
+    )
+    assert quantity_allclose(icrs2.velocity.d_xyz, icrs.velocity.d_xyz)
+
+
+def test_physical_differential_units_error():
+    with pytest.raises(u.UnitsError, match="should have equivalent units"):
+        ICRS(
+            **POSITION_ON_SKY,
+            **DISTANCE,
+            v_ra=1 * u.km / u.s,
+            v_dec=1 * u.mas / u.yr,
+            **RADIAL_VELOCITY,
+            differential_type="sphericalphysical",
+        )
+    # d_distance is still checked against distance.
+    with pytest.raises(ValueError, match="radial_velocity has incompatible unit"):
+        ICRS(
+            **POSITION_ON_SKY,
+            distance=1 * u.one,
+            **PHYSICAL_VELOCITY,
+            **RADIAL_VELOCITY,
+        )
