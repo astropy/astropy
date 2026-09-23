@@ -1202,13 +1202,11 @@ static const char *escapes[] = {
  */
 static int _check_xml_chars(PyObject *text)
 {
-    const Py_ssize_t len = PyUnicode_GET_LENGTH(text);
-    const int kind = PyUnicode_KIND(text);
-    const void *data = PyUnicode_DATA(text);
+    const Py_ssize_t len = PyUnicode_GetLength(text);
     Py_ssize_t i;
 
     for (i = 0; i < len; ++i) {
-        const Py_UCS4 c = PyUnicode_READ(kind, data, i);
+        const Py_UCS4 c = PyUnicode_ReadChar(text, i);
         if ((c < 0x20 && c != '\t' && c != '\n' && c != '\r') || (c >= 0xD800 && c <= 0xDFFF) ||
             c == 0xFFFE || c == 0xFFFF) {
             PyErr_Format(
