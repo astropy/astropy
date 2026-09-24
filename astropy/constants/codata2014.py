@@ -4,8 +4,10 @@ Astronomical and physics constants in SI units.  See :mod:`astropy.constants`
 for a complete listing of constants defined in Astropy.
 """
 
-import numpy as np
+import math
+from pathlib import Path
 
+from .codata_parser import parse_codata_file
 from .constant import Constant, EMConstant
 
 # PHYSICAL CONSTANTS
@@ -21,104 +23,195 @@ class EMCODATA2014(CODATA2014, EMConstant):
     _registry = CODATA2014._registry
 
 
+CODATA2014txt = parse_codata_file(Path(__file__).with_name("data") / "codata2014.txt")
+
+
+def get_codata2014_constant(name):
+    return CODATA2014txt[name]
+
+
+h_entry = get_codata2014_constant("Planck constant")
 h = CODATA2014(
-    "h", "Planck constant", 6.626070040e-34, "J s", 0.000000081e-34, system="si"
+    "h", h_entry.name, h_entry.value, h_entry.unit, h_entry.uncertainty, system="si"
 )
 
 hbar = CODATA2014(
-    "hbar",
-    "Reduced Planck constant",
-    1.054571800e-34,
-    "J s",
-    0.000000013e-34,
+    "hbar", "Reduced Planck constant", h.value / (2 * math.pi), "J s", 0.0, system="si"
+)
+
+k_B_entry = get_codata2014_constant("Boltzmann constant")
+k_B = CODATA2014(
+    "k_B",
+    k_B_entry.name,
+    k_B_entry.value,
+    k_B_entry.unit,
+    k_B_entry.uncertainty,
     system="si",
 )
 
-k_B = CODATA2014(
-    "k_B", "Boltzmann constant", 1.38064852e-23, "J / (K)", 0.00000079e-23, system="si"
-)
-
+c_entry = get_codata2014_constant("speed of light in vacuum")
 c = CODATA2014(
-    "c", "Speed of light in vacuum", 299792458.0, "m / (s)", 0.0, system="si"
+    "c", c_entry.name, c_entry.value, c_entry.unit, c_entry.uncertainty, system="si"
 )
 
 
+G_entry = get_codata2014_constant("Newtonian constant of gravitation")
 G = CODATA2014(
-    "G", "Gravitational constant", 6.67408e-11, "m3 / (kg s2)", 0.00031e-11, system="si"
+    "G", G_entry.name, G_entry.value, G_entry.unit, G_entry.uncertainty, system="si"
 )
 
+g0_entry = get_codata2014_constant("standard acceleration of gravity")
 g0 = CODATA2014(
-    "g0", "Standard acceleration of gravity", 9.80665, "m / s2", 0.0, system="si"
+    "g0",
+    g0_entry.name,
+    g0_entry.value,
+    g0_entry.unit,
+    g0_entry.uncertainty,
+    system="si",
 )
 
+m_p_entry = get_codata2014_constant("proton mass")
 m_p = CODATA2014(
-    "m_p", "Proton mass", 1.672621898e-27, "kg", 0.000000021e-27, system="si"
+    "m_p",
+    m_p_entry.name,
+    m_p_entry.value,
+    m_p_entry.unit,
+    m_p_entry.uncertainty,
+    system="si",
 )
 
+m_n_entry = get_codata2014_constant("neutron mass")
 m_n = CODATA2014(
-    "m_n", "Neutron mass", 1.674927471e-27, "kg", 0.000000021e-27, system="si"
+    "m_n",
+    m_n_entry.name,
+    m_n_entry.value,
+    m_n_entry.unit,
+    m_n_entry.uncertainty,
+    system="si",
 )
 
+m_e_entry = get_codata2014_constant("electron mass")
 m_e = CODATA2014(
-    "m_e", "Electron mass", 9.10938356e-31, "kg", 0.00000011e-31, system="si"
+    "m_e",
+    m_e_entry.name,
+    m_e_entry.value,
+    m_e_entry.unit,
+    m_e_entry.uncertainty,
+    system="si",
 )
 
-u = CODATA2014("u", "Atomic mass", 1.660539040e-27, "kg", 0.000000020e-27, system="si")
+u_entry = get_codata2014_constant("atomic mass constant")
+u = CODATA2014(
+    "u", u_entry.name, u_entry.value, u_entry.unit, u_entry.uncertainty, system="si"
+)
 
+sigma_sb_entry = get_codata2014_constant("Stefan-Boltzmann constant")
 sigma_sb = CODATA2014(
     "sigma_sb",
-    "Stefan-Boltzmann constant",
-    5.670367e-8,
-    "W / (K4 m2)",
-    0.000013e-8,
+    sigma_sb_entry.name,
+    sigma_sb_entry.value,
+    sigma_sb_entry.unit,
+    sigma_sb_entry.uncertainty,
     system="si",
 )
 
+e_entry = get_codata2014_constant("elementary charge")
 e = EMCODATA2014(
-    "e", "Electron charge", 1.6021766208e-19, "C", 0.0000000098e-19, system="si"
+    "e", e_entry.name, e_entry.value, e_entry.unit, e_entry.uncertainty, system="si"
 )
 
+eps0_entry = get_codata2014_constant("electric constant")
 eps0 = EMCODATA2014(
-    "eps0", "Electric constant", 8.854187817e-12, "F/m", 0.0, system="si"
+    "eps0",
+    eps0_entry.name,
+    eps0_entry.value,
+    eps0_entry.unit,
+    eps0_entry.uncertainty,
+    system="si",
 )
 
+N_A_entry = get_codata2014_constant("Avogadro constant")
 N_A = CODATA2014(
-    "N_A", "Avogadro's number", 6.022140857e23, "1 / (mol)", 0.000000074e23, system="si"
+    "N_A",
+    N_A_entry.name,
+    N_A_entry.value,
+    N_A_entry.unit,
+    N_A_entry.uncertainty,
+    system="si",
 )
 
-R = CODATA2014("R", "Gas constant", 8.3144598, "J / (K mol)", 0.0000048, system="si")
+R_entry = get_codata2014_constant("molar gas constant")
+R = CODATA2014(
+    "R", R_entry.name, R_entry.value, R_entry.unit, R_entry.uncertainty, system="si"
+)
 
+Ryd_entry = get_codata2014_constant("Rydberg constant")
 Ryd = CODATA2014(
-    "Ryd", "Rydberg constant", 10973731.568508, "1 / (m)", 0.000065, system="si"
+    "Ryd",
+    Ryd_entry.name,
+    Ryd_entry.value,
+    Ryd_entry.unit,
+    Ryd_entry.uncertainty,
+    system="si",
 )
 
+a0_entry = get_codata2014_constant("Bohr radius")
 a0 = CODATA2014(
-    "a0", "Bohr radius", 0.52917721067e-10, "m", 0.00000000012e-10, system="si"
+    "a0",
+    a0_entry.name,
+    a0_entry.value,
+    a0_entry.unit,
+    a0_entry.uncertainty,
+    system="si",
 )
 
+muB_entry = get_codata2014_constant("Bohr magneton")
 muB = CODATA2014(
-    "muB", "Bohr magneton", 927.4009994e-26, "J/T", 0.00002e-26, system="si"
+    "muB",
+    muB_entry.name,
+    muB_entry.value,
+    muB_entry.unit,
+    muB_entry.uncertainty,
+    system="si",
 )
 
+alpha_entry = get_codata2014_constant("fine-structure constant")
 alpha = CODATA2014(
     "alpha",
-    "Fine-structure constant",
-    7.2973525664e-3,
-    "",
-    0.0000000017e-3,
+    alpha_entry.name,
+    alpha_entry.value,
+    alpha_entry.unit,
+    alpha_entry.uncertainty,
     system="si",
 )
 
-atm = CODATA2014("atm", "Standard atmosphere", 101325, "Pa", 0.0, system="si")
+atm_entry = get_codata2014_constant("standard atmosphere")
+atm = CODATA2014(
+    "atm",
+    atm_entry.name,
+    atm_entry.value,
+    atm_entry.unit,
+    atm_entry.uncertainty,
+    system="si",
+)
 
-mu0 = CODATA2014("mu0", "Magnetic constant", 4.0e-7 * np.pi, "N/A2", 0.0, system="si")
+mu0_entry = get_codata2014_constant("mag. constant")
+mu0 = CODATA2014(
+    "mu0",
+    mu0_entry.name,
+    mu0_entry.value,
+    mu0_entry.unit,
+    mu0_entry.uncertainty,
+    system="si",
+)
 
+sigma_T_entry = get_codata2014_constant("Thomson cross section")
 sigma_T = CODATA2014(
     "sigma_T",
-    "Thomson scattering cross-section",
-    0.66524587158e-28,
-    "m2",
-    0.00000000091e-28,
+    sigma_T_entry.name,
+    sigma_T_entry.value,
+    sigma_T_entry.unit,
+    sigma_T_entry.uncertainty,
     system="si",
 )
 
