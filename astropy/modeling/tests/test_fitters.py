@@ -1644,3 +1644,34 @@ def test_fitting_with_mismatched_dims(fitter):
 
     assert_allclose(model.intercept.value, 3.0, rtol=1e-4)
     assert_allclose(model.slope.value, 2.0, rtol=1e-4)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
+def test_estimate_jacobian_large_parameter_value(fitter):
+    """
+    Regression test that a fit with a finite-difference Jacobian does
+    not depend on the size of the parameter values.
+
+    The finite-difference step is relative to the parameter value. A
+    narrow peak far from the coordinate origin therefore needs a small
+    relative step for the fit to reach the same minimum as the fit with
+    the analytic derivatives.
+    """
+    fitter = fitter()
+
+    results = []
+    for center in (3.3, 4003.3):
+        # The data are not Gaussian, so the fit has non-zero residuals
+        # at the minimum.
+        x = np.arange(np.floor(center) - 3, np.floor(center) + 4)
+        y = models.Lorentz1D(100.0, center, 1.2)(x)
+        m_init = models.Gaussian1D(80.0, center + 0.3, 0.7)
+
+        m_analytic = fitter(m_init, x, y)
+        m_estimated = fitter(m_init, x, y, estimate_jacobian=True)
+        assert_allclose(m_estimated.parameters, m_analytic.parameters, rtol=1e-5)
+        results.append(m_estimated.mean.value - center)
+
+    # The result should not depend on the coordinate value
+    assert_allclose(results[0], results[1], atol=1e-5)
