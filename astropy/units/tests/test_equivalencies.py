@@ -128,6 +128,20 @@ def test_doppler_energy_circle(function):
     np.testing.assert_almost_equal(en.value, shifted.value, decimal=7)
 
 
+@pytest.mark.parametrize("unit", [u.Hz, u.AA, u.eV])
+def test_doppler_relativistic_small_rest_value(unit):
+    """Avoid losing precision by squaring a subnormal rest value."""
+    rest_frequency = 1e-160 * u.Hz
+    shifted_frequency = rest_frequency * (1 - 3e-4)
+    rest = rest_frequency.to(unit, equivalencies=u.spectral())
+    shifted = shifted_frequency.to(unit, equivalencies=u.spectral())
+
+    velocity = shifted.to(u.km / u.s, equivalencies=u.doppler_relativistic(rest))
+
+    expected = 3e-4 * u.c.to(u.km / u.s)
+    assert_quantity_allclose(velocity, expected, rtol=2e-4)
+
+
 values_ghz = (999.899940784289, 999.8999307714406, 999.8999357778647)
 
 
