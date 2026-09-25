@@ -34,6 +34,7 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 """
 
+# ruff: file-ignore[PLR0917]
 import functools
 import operator
 

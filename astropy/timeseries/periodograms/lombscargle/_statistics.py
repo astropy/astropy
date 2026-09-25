@@ -234,7 +234,7 @@ def cdf_single(z, N, normalization, dH=1, dK=3):
     return 1 - fap_single(z, N, normalization=normalization, dH=dH, dK=dK)
 
 
-def tau_davies(Z, fmax, t, y, dy, normalization="standard", dH=1, dK=3):
+def tau_davies(Z, fmax, t, y, dy, normalization="standard", dH=1, dK=3):  # ruff: ignore[PLR0917] historical API
     """tau factor for estimating Davies bound (Baluev 2008, Table 1)."""
     N = len(t)
     NH = N - dH  # DOF for null hypothesis
@@ -264,7 +264,7 @@ def tau_davies(Z, fmax, t, y, dy, normalization="standard", dH=1, dK=3):
         raise NotImplementedError(f"normalization={normalization}")
 
 
-def fap_naive(Z, fmax, t, y, dy, normalization="standard"):
+def fap_naive(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917] historical API
     """False Alarm Probability based on estimated number of indep frequencies."""
     N = len(t)
     T = max(t) - min(t)
@@ -277,7 +277,7 @@ def fap_naive(Z, fmax, t, y, dy, normalization="standard"):
         return -np.expm1(N_eff * np.log1p(-fap_s))
 
 
-def inv_fap_naive(fap, fmax, t, y, dy, normalization="standard"):
+def inv_fap_naive(fap, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917] historical API
     """Inverse FAP based on estimated number of indep frequencies."""
     fap = np.asarray(fap)
     N = len(t)
@@ -290,7 +290,7 @@ def inv_fap_naive(fap, fmax, t, y, dy, normalization="standard"):
     return inv_fap_single(fap_s, N, normalization)
 
 
-def fap_davies(Z, fmax, t, y, dy, normalization="standard"):
+def fap_davies(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917] historical API
     """Davies upper-bound to the false alarm probability.
 
     (Eqn 5 of Baluev 2008)
@@ -302,7 +302,7 @@ def fap_davies(Z, fmax, t, y, dy, normalization="standard"):
 
 
 @vectorize_first_argument
-def inv_fap_davies(p, fmax, t, y, dy, normalization="standard"):
+def inv_fap_davies(p, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917] historical API
     """Inverse of the davies upper-bound."""
     from scipy import optimize
 
@@ -315,7 +315,7 @@ def inv_fap_davies(p, fmax, t, y, dy, normalization="standard"):
     return res.x
 
 
-def fap_baluev(Z, fmax, t, y, dy, normalization="standard"):
+def fap_baluev(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917] historical API
     """Alias-free approximation to false alarm probability.
 
     (Eqn 6 of Baluev 2008)
@@ -328,7 +328,7 @@ def fap_baluev(Z, fmax, t, y, dy, normalization="standard"):
 
 
 @vectorize_first_argument
-def inv_fap_baluev(p, fmax, t, y, dy, normalization="standard"):
+def inv_fap_baluev(p, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917] historical API
     """Inverse of the Baluev alias-free approximation."""
     from scipy import optimize
 
@@ -341,7 +341,7 @@ def inv_fap_baluev(p, fmax, t, y, dy, normalization="standard"):
     return res.x
 
 
-def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000):
+def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000):  # ruff: ignore[PLR0917] historical API
     """Generate a sequence of bootstrap estimates of the max."""
     from .core import LombScargle
 
@@ -361,7 +361,7 @@ def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000)
     return power_max
 
 
-def fap_bootstrap(
+def fap_bootstrap(  # ruff: ignore[PLR0917] historical API
     Z, fmax, t, y, dy, normalization="standard", n_bootstraps=1000, random_seed=None
 ):
     """Bootstrap estimate of the false alarm probability."""
@@ -370,7 +370,7 @@ def fap_bootstrap(
     return 1 - np.searchsorted(pmax, Z) / len(pmax)
 
 
-def inv_fap_bootstrap(
+def inv_fap_bootstrap(  # ruff: ignore[PLR0917] historical API
     fap, fmax, t, y, dy, normalization="standard", n_bootstraps=1000, random_seed=None
 ):
     """Bootstrap estimate of the inverse false alarm probability."""
@@ -389,7 +389,7 @@ METHODS = {
 }
 
 
-def false_alarm_probability(
+def false_alarm_probability(  # ruff: ignore[PLR0917] historical API
     Z, fmax, t, y, dy, normalization="standard", method="baluev", method_kwds=None
 ):
     """Compute the approximate false alarm probability for periodogram peaks Z.
@@ -451,7 +451,7 @@ INV_METHODS = {
 }
 
 
-def false_alarm_level(
+def false_alarm_level(  # ruff: ignore[PLR0917] historical API
     p, fmax, t, y, dy, normalization, method="baluev", method_kwds=None
 ):
     """Compute the approximate periodogram level given a false alarm probability.

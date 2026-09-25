@@ -58,7 +58,7 @@ class AxisLabels(Text):
     def get_visibility_rule(self):
         return self._visibility_rule
 
-    def draw(
+    def draw(  # ruff: ignore[PLR0917] historical API
         self,
         renderer,
         bboxes,
