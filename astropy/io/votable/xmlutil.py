@@ -62,7 +62,10 @@ def check_token(token, attr_name, config=None, pos=None):
     """
     is_valid = token is None or xml_check.check_token(token)
     if not is_valid:
-        raise ValueError(f"token='{token}' for '{attr_name}' is invalid.")
+    if token is not None and not xml_check.check_token(token):
+        warn_or_raise(W58, W58, (attr_name, token), config, pos)
+        return False
+    return True
 
 
 def check_mime_content_type(content_type, config=None, pos=None):
