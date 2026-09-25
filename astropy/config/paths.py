@@ -45,7 +45,12 @@ P = ParamSpec("P")
 
 
 class PathGetter(Protocol):
-    def __call__(self, p: str, /, *, ensure_exists: bool = False) -> Path: ...
+    def __call__(
+        self,
+        rootname: str = "astropy",
+        *,
+        ensure_exists: bool = False,
+    ) -> Path: ...
 
 
 class _DirType(Enum):
