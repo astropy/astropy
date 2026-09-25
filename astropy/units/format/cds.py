@@ -249,4 +249,14 @@ class CDS(Base, _ParsingFormatMixin):
             elif is_effectively_unity(unit.scale * 100.0):
                 return "%"
 
+        # The CDS standard only allows integer powers, so a unit with a
+        # fractional exponent has no valid CDS representation: emitting one
+        # produces a string this format's own parser cannot read back. Raise
+        # instead of writing an unparseable string.
+        if any(power != int(power) for power in getattr(unit, "powers", ())):
+            raise ValueError(
+                "The CDS format is not able to represent units with fractional "
+                f"powers, got {unit!r}."
+            )
+
         return super().to_string(unit, fraction=fraction)
