@@ -943,8 +943,12 @@ class FITS_rec(np.recarray):
                 dt = np.dtype(recformat.dtype)
                 arr_len = count * dt.itemsize
                 dummy[idx] = raw_data[offset : offset + arr_len].view(dt)
-                if column.dim and len(vla_shape) > 1:
-                    # The VLA is reshaped consistently with TDIM instructions
+                if column.dim and len(vla_shape) > 1 and count > 0:
+                    # The VLA is reshaped consistently with TDIM instructions.
+                    # Empty entries (count == 0) are skipped: per the FITS
+                    # standard the TDIMn keyword is not applicable when the VLA
+                    # descriptor has a size of zero, so such entries keep their
+                    # natural ``(0,)`` shape instead of being reshaped.
                     if vla_shape[0] == 1:
                         dummy[idx] = dummy[idx].reshape(1, len(dummy[idx]))
                     else:
