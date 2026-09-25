@@ -1,0 +1,5 @@
+Added docstring examples to cosmology traits (``BaryonComponent``, ``CriticalDensity``,
+``CurvatureComponent``, ``DarkEnergyComponent``, ``DarkMatterComponent``,
+``HubbleParameter``, ``MatterComponent``, ``PhotonComponent``, ``ScaleFactor``, and
+``TemperatureCMB``, ``TotalComponent``), improving documentation and demonstrating their
+usage.

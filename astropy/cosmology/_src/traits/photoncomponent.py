@@ -15,7 +15,33 @@ from astropy.units import Quantity
 
 
 class PhotonComponent:
-    """The cosmology has attributes and methods for the photon density."""
+    """The cosmology has attributes and methods for the photon density.
+
+    This is a trait class; it is not meant to be instantiated directly, but instead to
+    be used as a mixin to other classes.
+
+    Examples
+    --------
+    For an example of a real cosmology that implements this trait, see
+    :class:`~astropy.cosmology.LambdaCDM`. Here we will define an illustrative example
+    class that meets the minimum API requirements, but is not cosmologically meaningful:
+
+    >>> from astropy.cosmology.traits import MatterComponent
+    >>> import dataclasses
+
+    >>> @dataclasses.dataclass(frozen=True)
+    ... class ExampleHasPhotons(PhotonComponent):
+    ...     Ogamma0: float
+    ...     def inv_efunc(self, z): return 1.0  # necessary for Ogamma(z)
+
+    >>> cosmo = ExampleHasPhotons(Ogamma0=5e-5)
+    >>> cosmo.Ogamma0
+    5e-05
+
+    >>> cosmo.Ogamma([0.0, 1.0, 2.0])
+    array([5.00e-05, 8.00e-04, 4.05e-03])
+
+    """
 
     Ogamma0: float | np.floating
     """Omega gamma; the density/critical density of photons at z=0."""
