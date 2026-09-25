@@ -84,6 +84,18 @@ class TestSingleTable:
         t2 = Table.read(buff)
         assert equal_data(t2, t)
 
+    def test_write_maximum_number_of_columns(self):
+        table = Table({f"col{idx}": [idx] for idx in range(999)})
+        table.write(BytesIO(), format="fits")
+
+    def test_write_too_many_columns(self):
+        table = Table({f"col{idx}": [idx] for idx in range(1000)})
+        with pytest.raises(
+            fits.VerifyError,
+            match=r"FITS tables cannot contain more than 999 columns \(got 1000\)",
+        ):
+            table.write(BytesIO(), format="fits")
+
     def test_simple(self, tmp_path):
         filename = tmp_path / "test_simple.fts"
         t1 = Table(self.data)
