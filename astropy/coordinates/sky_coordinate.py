@@ -894,13 +894,16 @@ class SkyCoord(MaskableShapedLikeNDArray):
                 f" {sph_coord.lat.to_string(**latargs)}"
             )
         else:
-            coord_string = []
-            for lonangle, latangle in zip(sph_coord.lon.ravel(), sph_coord.lat.ravel()):
-                coord_string += [
-                    f"{lonangle.to_string(**lonargs)} {latangle.to_string(**latargs)}"
-                ]
+            # Format both angles for the whole array at once and join them,
+            # rather than looping element by element, so large coordinate
+            # arrays benefit from the vectorized Angle.to_string.
+            lon_string = np.asarray(sph_coord.lon.to_string(**lonargs)).ravel()
+            lat_string = np.asarray(sph_coord.lat.to_string(**latargs)).ravel()
+            coord_string = np.char.add(np.char.add(lon_string, " "), lat_string)
             if len(sph_coord.shape) > 1:
-                coord_string = np.array(coord_string).reshape(sph_coord.shape)
+                coord_string = coord_string.reshape(sph_coord.shape)
+            else:
+                coord_string = coord_string.tolist()
 
         return coord_string
 
