@@ -325,6 +325,33 @@ class TestManipulation(ShapeSetup):
         assert s0_take.shape == (2,)
         assert np.all(s0_take.data.lon == self.s0.data.lon.take((5, 2)))
 
+    def test_repeat(self):
+        s0_repeat = self.s0.repeat(2, axis=0)
+        assert s0_repeat.shape == (12, 7)
+        assert np.all(s0_repeat.data.lon == self.s0.data.lon.repeat(2, axis=0))
+        assert np.all(s0_repeat.data.lat == self.s0.data.lat.repeat(2, axis=0))
+
+        # Flattened repeat with np.repeat
+        s0_rep_flat = np.repeat(self.s0, 2)
+        assert s0_rep_flat.shape == (84,)
+        assert np.all(s0_rep_flat.data.lon == np.repeat(self.s0.data.lon, 2))
+
+        # SkyCoord repeat
+        sc_repeat = self.sc.repeat(2, axis=1)
+        assert sc_repeat.shape == (6, 14)
+        assert np.all(sc_repeat.data.lon == self.sc.data.lon.repeat(2, axis=1))
+
+    def test_tile(self):
+        s0_tile = np.tile(self.s0, (2, 3))
+        assert s0_tile.shape == (12, 21)
+        assert np.all(s0_tile.data.lon == np.tile(self.s0.data.lon, (2, 3)))
+        assert np.all(s0_tile.data.lat == np.tile(self.s0.data.lat, (2, 3)))
+
+        # SkyCoord tile
+        sc_tile = np.tile(self.sc, 2)
+        assert sc_tile.shape == (6, 14)
+        assert np.all(sc_tile.data.lon == np.tile(self.sc.data.lon, 2))
+
     # Much more detailed tests of shape manipulation via numpy functions done
     # in test_representation_methods.
     def test_broadcast_to(self):

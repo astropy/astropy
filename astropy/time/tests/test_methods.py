@@ -283,6 +283,59 @@ class TestManipulation(ShapeSetup):
         assert np.all(t2_take2.jd1 == self.t2.jd1.take((5, 15)))
         assert t2_take2.location.shape == t2_take2.shape
 
+    def test_repeat(self, use_mask):
+        self.create_data(use_mask)
+
+        # Method and numpy function without axis (flattens)
+        t0_repeat = self.t0.repeat(2)
+        assert t0_repeat.shape == (self.t0.size * 2,)
+        assert np.all(t0_repeat.jd1 == self.t0._time.jd1.repeat(2))
+        assert_time_all_equal(t0_repeat, np.repeat(self.t0, 2))
+        assert t0_repeat.location is None
+
+        # Repeat along axis 0
+        t1_repeat = self.t1.repeat(2, axis=0)
+        assert t1_repeat.shape == (20, 5)
+        assert np.all(t1_repeat.jd1 == self.t1.jd1.repeat(2, axis=0))
+        assert_time_all_equal(t1_repeat, np.repeat(self.t1, 2, axis=0))
+        assert t1_repeat.location is self.t1.location
+
+        # Repeat along axis 1 with sequence of repeats and array location
+        t2_repeat = self.t2.repeat([1, 2, 1, 2, 1], axis=1)
+        assert t2_repeat.shape == (10, 7)
+        assert np.all(t2_repeat.jd1 == self.t2.jd1.repeat([1, 2, 1, 2, 1], axis=1))
+        assert_time_all_equal(t2_repeat, np.repeat(self.t2, [1, 2, 1, 2, 1], axis=1))
+        assert t2_repeat.location.shape == t2_repeat.shape
+
+        # Scalar Time
+        t_scalar = self.t0[0, 0]
+        t_scalar_rep = t_scalar.repeat(3)
+        assert t_scalar_rep.shape == (3,)
+        assert_time_all_equal(t_scalar_rep, np.repeat(t_scalar, 3))
+
+    def test_tile(self, use_mask):
+        self.create_data(use_mask)
+
+        t0_tile = np.tile(self.t0, 2)
+        assert t0_tile.shape == (10, 10)
+        assert np.all(t0_tile.jd1 == np.tile(self.t0._time.jd1, 2))
+        assert t0_tile.location is None
+
+        t1_tile = np.tile(self.t1, (2, 3))
+        assert t1_tile.shape == (20, 15)
+        assert np.all(t1_tile.jd1 == np.tile(self.t1.jd1, (2, 3)))
+        assert t1_tile.location is self.t1.location
+
+        t2_tile = np.tile(self.t2, (2, 1))
+        assert t2_tile.shape == (20, 5)
+        assert np.all(t2_tile.jd1 == np.tile(self.t2.jd1, (2, 1)))
+        assert t2_tile.location.shape == t2_tile.shape
+
+        # Scalar Time
+        t_scalar = self.t0[0, 0]
+        t_scalar_tile = np.tile(t_scalar, 3)
+        assert t_scalar_tile.shape == (3,)
+
     def test_broadcast_via_apply(self, use_mask):
         """Test using a callable method."""
         self.create_data(use_mask)

@@ -1,0 +1,4 @@
+Added support for ``numpy.repeat`` and ``numpy.tile`` (as well as a
+new ``repeat`` method) across :class:`~astropy.utils.shapes.ShapedLikeNDArray`
+subclasses such as :class:`~astropy.time.Time` and
+:class:`~astropy.coordinates.SkyCoord`.
