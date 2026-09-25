@@ -11,7 +11,7 @@ from matplotlib.figure import Figure
 from matplotlib.transforms import Affine2D, IdentityTransform
 
 from astropy import units as u
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import FK5, ICRS, SkyCoord
 from astropy.io import fits
 from astropy.tests.figures import figure_test
 from astropy.tests.helper import assert_quantity_allclose
@@ -25,6 +25,7 @@ from astropy.visualization.wcsaxes.wcsapi import (
     apply_slices,
     custom_ucd_coord_meta_mapping,
     transform_coord_meta_from_wcs,
+    wcsapi_to_celestial_frame,
 )
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseLowLevelWCS, SlicedLowLevelWCS
@@ -968,3 +969,51 @@ def test_wcsapi_2d_celestial_arcsec():
         va="top",
     )
     return fig
+
+
+class CelestialLowLevelWCS(BaseLowLevelWCS):
+    """Minimal 2D celestial WCS with configurable SkyCoord keyword arguments."""
+
+    def __init__(self, skycoord_kwargs):
+        self.skycoord_kwargs = skycoord_kwargs
+
+    pixel_n_dim = world_n_dim = 2
+    world_axis_physical_types = ["pos.eq.ra", "pos.eq.dec"]
+    world_axis_units = ["deg", "deg"]
+    world_axis_object_components = [
+        ("celestial", 0, "spherical.lon.degree"),
+        ("celestial", 1, "spherical.lat.degree"),
+    ]
+
+    @property
+    def world_axis_object_classes(self):
+        return {"celestial": (SkyCoord, (), self.skycoord_kwargs)}
+
+    def pixel_to_world_values(self, *pixel_arrays):
+        return pixel_arrays
+
+    def world_to_pixel_values(self, *world_arrays):
+        return world_arrays
+
+
+@pytest.mark.parametrize(
+    "skycoord_kwargs, expected",
+    [
+        ({}, ICRS()),
+        ({"frame": "icrs"}, ICRS()),
+        ({"frame": ICRS}, ICRS()),
+        ({"frame": ICRS()}, ICRS()),
+        ({"frame": "fk5", "equinox": "J2005", "unit": "deg"}, FK5(equinox="J2005")),
+    ],
+)
+def test_wcsapi_to_celestial_frame(skycoord_kwargs, expected):
+    frame = wcsapi_to_celestial_frame(CelestialLowLevelWCS(skycoord_kwargs))
+    assert frame.is_equivalent_frame(expected)
+
+
+def test_scatter_coord_frame_class():
+    # Regression test for plot_coord/scatter_coord failing when the frame in
+    # world_axis_object_classes is given as a class rather than an instance.
+    fig = Figure()
+    ax = fig.add_subplot(projection=CelestialLowLevelWCS({"frame": ICRS}))
+    ax.scatter_coord(SkyCoord(1 * u.deg, 2 * u.deg, frame="galactic"))
