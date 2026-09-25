@@ -1,0 +1,3 @@
+``typing_extensions``, the official backport package for new ``typing`` functionality,
+is now a dependency of Astropy on Python 3.12. It is not required on Python 3.13 and
+later.
