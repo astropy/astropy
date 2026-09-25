@@ -1757,11 +1757,22 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             return data_repr
 
         data_repr_spl = data_repr.split("\n")
-        first, *middle, last = repr(data.differentials["s"]).split("\n")
+        diff = data.differentials["s"]
+        first, *middle, last = repr(diff).split("\n")
         if first.startswith("<"):
             first = " " + first.split(" ", 1)[1]
-        for frm_nm, rep_nm in self.get_representation_component_names("s").items():
-            first = first.replace(rep_nm, frm_nm)
+        # Swap in frame-specific component names for the differential shown,
+        # which may differ from the frame's differential class (e.g., for data
+        # without distance or radial velocity).
+        names = dict(
+            zip(diff.components, self.representation_info[type(diff)]["names"])
+        )
+        # String parsing to swap in the frame-specific names. This is a bit fragile, and
+        # would need to be updated if the repr format of the differential changes.
+        part1, _, remainder = first.partition("(")
+        comp_str, part2 = remainder.split(")", 1)
+        comp_names = (names.get(name, name) for name in comp_str.split(", "))
+        first = f"{part1}({', '.join(comp_names)}){part2}"
         data_repr_spl[-1] = "\n".join((first, *middle, last.removesuffix(">")))
         return "\n".join(data_repr_spl)
 

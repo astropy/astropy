@@ -520,3 +520,25 @@ def test_physical_differential_without_radial_velocity(
         )
     # The radial component is not determined, so it is not converted.
     assert getattr(dif, dif.components[2]).unit != u.km / u.s
+
+
+@pytest.mark.parametrize("differential_type", ["spherical", "sphericalphysical"])
+@pytest.mark.parametrize(
+    "extra, expected",
+    [
+        ({}, "(pm_ra_cosdec, pm_dec) in mas / yr"),
+        (
+            RADIAL_VELOCITY,
+            "(pm_ra_cosdec, pm_dec, radial_velocity) in (mas / yr, mas / yr, km / s)",
+        ),
+    ],
+)
+def test_repr_names_of_differential_shown(differential_type, extra, expected):
+    # Without a distance, the repr shows the data's own differential, and
+    # should use its frame names, not those of the frame's differential class
+    # (which previously gave, e.g., "pm_ra_coslat"). This is a regression test.
+    icrs = ICRS(**POSITION_ON_SKY, **PROPER_MOTION, **extra)
+    icrs.set_representation_cls(s=differential_type)
+    if differential_type == "spherical" and extra:
+        expected = expected.replace("pm_ra_cosdec", "pm_ra")
+    assert expected in repr(icrs)

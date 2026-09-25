@@ -591,6 +591,8 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         return f"{np.array2string(self._values, separator=', ')} {self._unitstr:s}"
 
     def __repr__(self):
+        # NOTE: if this is changed, we may need to change the string parsing in
+        # BaseCoordinateFrame._data_repr
         prefixstr = "    "
         arrstr = np.array2string(self._values, prefix=prefixstr, separator=", ")
 
