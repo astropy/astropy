@@ -278,7 +278,7 @@ def test_extra_kwarg():
     Issue #444
     """
     w = wcs.WCS()
-    with NumpyRNGContext(123456789):
+    with NumpyRNGContext(123_456_789):
         data = np.random.rand(100, 2)
         with pytest.raises(TypeError):
             w.wcs_pix2world(data, origin=1)
@@ -289,7 +289,7 @@ def test_3d_shapes():
     Issue #444
     """
     w = wcs.WCS(naxis=3)
-    with NumpyRNGContext(123456789):
+    with NumpyRNGContext(123_456_789):
         data = np.random.rand(100, 3)
         result = w.wcs_pix2world(data, 1)
         assert result.shape == (100, 3)
@@ -609,7 +609,7 @@ def test_all_world2pix():
     )[0]
 
     # Generate random data (in image coordinates):
-    with NumpyRNGContext(123456789):
+    with NumpyRNGContext(123_456_789):
         rnd_pix = np.random.rand(25_000, ncoord)
 
     # Scale random data to cover the central part of the image
@@ -2225,7 +2225,7 @@ class TestPreserveUnits:
         self.header = fits.Header.fromstring(HEADER_WITH_NON_SI_UNITS, sep="\n")
         self.wcs_default = wcs.WCS(self.header)
         self.wcs_preserve = wcs.WCS(self.header, preserve_units=True)
-        rsn = default_rng(1234567890)
+        rsn = default_rng(1_234_567_890)
         self.coords = rsn.uniform(-10, 10, (100, 5))
         self.scale = np.array([1 / 3600, 1e9, 1 / 3600, 1e-9, 1])
 
@@ -2763,7 +2763,7 @@ END
         wcs_default = wcs.WCS(hdul[0].header, hdul)
         wcs_preserve = wcs.WCS(hdul[0].header, hdul, preserve_units=True)
 
-        rsn = default_rng(1234567890)
+        rsn = default_rng(1_234_567_890)
         pixel = rsn.uniform(1, 99, 3)
         world = rsn.uniform(4000, 5000, 3)
 

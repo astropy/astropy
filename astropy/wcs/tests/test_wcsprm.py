@@ -153,10 +153,10 @@ def test_colnum():
     assert w.colnum == 42
 
     with pytest.raises(OverflowError):
-        w.colnum = 0xFFFFFFFFFFFFFFFFFFFF
+        w.colnum = 0xFFFF_FFFF_FFFF_FFFF_FFFF
 
     with pytest.raises(OverflowError):
-        w.colnum = 0xFFFFFFFF
+        w.colnum = 0xFFFF_FFFF
 
     with pytest.raises(TypeError):
         del w.colnum
