@@ -1,10 +1,19 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import annotations
 
 import collections
 from collections import OrderedDict
 from operator import index as operator_index
+from typing import TYPE_CHECKING, Any, SupportsIndex
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator, KeysView, MutableMapping
+
+    import numpy.typing as npt
+
+    from .table import Table, TableColumns
 
 
 class Row:
@@ -29,7 +38,7 @@ class Row:
       np.int32(4)
     """
 
-    def __init__(self, table, index):
+    def __init__(self, table: Table, index: SupportsIndex) -> None:
         # Ensure that the row index is a valid index (int)
         index = operator_index(index)
 
@@ -44,7 +53,9 @@ class Row:
         self._index = index % n
         self._table = table
 
-    def __getitem__(self, item):
+    def __getitem__(
+        self, item: str | int | np.integer | list[str] | tuple[str, ...] | slice
+    ) -> Any:
         try:
             # Try the most common use case of accessing a single column in the Row.
             # Bypass the TableColumns __getitem__ since that does more testing
@@ -62,16 +73,18 @@ class Row:
                 out = self._table.columns[item][self._index]
         return out
 
-    def __setitem__(self, item, val):
+    def __setitem__(
+        self, item: str | int | np.integer | list[str] | tuple[str, ...], val
+    ) -> None:
         if self._table._is_list_or_tuple_of_str(item):
             self._table._set_row(self._index, colnames=item, vals=val)
         else:
             self._table.columns[item][self._index] = val
 
-    def _ipython_key_completions_(self):
+    def _ipython_key_completions_(self) -> list[str]:
         return self.colnames
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> np.bool_ | np.ndarray:
         if self._table.masked:
             # Sent bug report to numpy-discussion group on 2012-Oct-21, subject:
             # "Comparing rows in a structured masked array raises exception"
@@ -81,14 +94,16 @@ class Row:
             )
         return self.as_void() == other
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> np.bool_ | np.ndarray:
         if self._table.masked:
             raise ValueError(
                 "Unable to compare rows for masked table due to numpy.ma bug"
             )
         return self.as_void() != other
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(
+        self, dtype: npt.DTypeLike | None = None, copy: bool | None = None
+    ) -> np.ndarray:
         """Support converting Row to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not
@@ -101,15 +116,15 @@ class Row:
 
         return np.array(self.as_void(), copy=copy)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._table.columns)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Any]:
         index = self._index
         for col in self._table.columns.values():
             yield col[index]
 
-    def get(self, key, default=None, /):
+    def get(self, key: str, default=None, /) -> Any:
         """Return the value for key if key is in the columns, else default.
 
         Parameters
@@ -138,21 +153,21 @@ class Row:
         """
         return self[key] if key in self._table.columns else default
 
-    def keys(self):
+    def keys(self) -> KeysView[str]:
         return self._table.columns.keys()
 
-    def values(self):
+    def values(self) -> Iterator[Any]:
         return self.__iter__()
 
     @property
-    def table(self):
+    def table(self) -> Table:
         return self._table
 
     @property
-    def index(self):
+    def index(self) -> int:
         return self._index
 
-    def as_void(self):
+    def as_void(self) -> np.void | np.ma.mvoid:
         """
         Returns a *read-only* copy of the row values in the form of np.void or
         np.ma.mvoid objects.  This corresponds to the object types returned for
@@ -178,22 +193,22 @@ class Row:
         return void_row
 
     @property
-    def meta(self):
+    def meta(self) -> MutableMapping[str, Any]:
         return self._table.meta
 
     @property
-    def columns(self):
+    def columns(self) -> TableColumns:
         return self._table.columns
 
     @property
-    def colnames(self):
+    def colnames(self) -> list[str]:
         return self._table.colnames
 
     @property
-    def dtype(self):
+    def dtype(self) -> np.dtype:
         return self._table.dtype
 
-    def _base_repr_(self, html=False):
+    def _base_repr_(self, html: bool = False) -> str:
         """
         Display row as a single-line table but with appropriate header line.
         """
@@ -207,17 +222,17 @@ class Row:
             html, descr_vals, max_width=-1, tableid=f"table{id(self._table)}"
         )
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         return self._base_repr_(html=True)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._base_repr_(html=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         index = self.index if (self.index >= 0) else self.index + len(self._table)
         return "\n".join(self.table[index : index + 1].pformat(max_width=-1))
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         return str(self).encode("utf-8")
 
 

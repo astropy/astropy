@@ -1,10 +1,19 @@
+from __future__ import annotations
+
 import copy
 import json
 import textwrap
 from collections import OrderedDict
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import yaml
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
+
+    from ._typing import ColumnLike
+    from .table import Table
 
 __all__ = ["get_header_from_yaml", "get_yaml_from_header", "get_yaml_from_table"]
 
@@ -15,7 +24,7 @@ class ColumnOrderList(list):
     astropy table column attributes.
     """
 
-    def sort(self, *args, **kwargs):
+    def sort(self, *args: Any, **kwargs) -> None:
         super().sort()
 
         column_keys = ["name", "unit", "datatype", "format", "description", "meta"]
@@ -42,7 +51,7 @@ class ColumnDict(dict):
     in generating a YAML map representation that has a fixed order.
     """
 
-    def items(self):
+    def items(self) -> ColumnOrderList:
         """
         Return items as a ColumnOrderList, which sorts in the preferred
         way for column attributes.
@@ -50,7 +59,9 @@ class ColumnDict(dict):
         return ColumnOrderList(super().items())
 
 
-def _construct_odict(load, node):
+def _construct_odict(
+    load: yaml.SafeLoader, node: yaml.Node
+) -> Iterator[dict[Any, Any]]:
     """
     Construct dict from !!omap in yaml safe load.
 
@@ -96,7 +107,12 @@ def _construct_odict(load, node):
         omap[key] = value
 
 
-def _repr_pairs(dump, tag, sequence, flow_style=None):
+def _repr_pairs(
+    dump: yaml.SafeDumper,
+    tag: str,
+    sequence: Iterable[tuple[Any, Any]],
+    flow_style: bool | None = None,
+) -> yaml.SequenceNode:
     """
     This is the same code as BaseRepresenter.represent_sequence(),
     but the value passed to dump.represent_data() in the loop is a
@@ -123,7 +139,7 @@ def _repr_pairs(dump, tag, sequence, flow_style=None):
     return node
 
 
-def _repr_odict(dumper, data):
+def _repr_odict(dumper: yaml.SafeDumper, data: OrderedDict) -> yaml.SequenceNode:
     """
     Represent OrderedDict in yaml dump.
 
@@ -139,7 +155,7 @@ def _repr_odict(dumper, data):
     return _repr_pairs(dumper, "tag:yaml.org,2002:omap", data.items())
 
 
-def _repr_column_dict(dumper, data):
+def _repr_column_dict(dumper: yaml.SafeDumper, data: ColumnDict) -> yaml.MappingNode:
     """
     Represent ColumnDict in yaml dump.
 
@@ -150,7 +166,9 @@ def _repr_column_dict(dumper, data):
     return dumper.represent_mapping("tag:yaml.org,2002:map", data)
 
 
-def _get_variable_length_array_shape(col):
+def _get_variable_length_array_shape(
+    col: ColumnLike,
+) -> tuple[tuple[int | None, ...], np.dtype]:
     """Check if object-type ``col`` is really a variable length list.
 
     That is true if the object consists purely of list of nested lists, where
@@ -203,7 +221,7 @@ def _get_variable_length_array_shape(col):
     return shape, dtype
 
 
-def _get_datatype_from_dtype(dtype):
+def _get_datatype_from_dtype(dtype: np.dtype) -> str:
     """Return string version of ``dtype`` for writing to ECSV ``datatype``."""
     datatype = dtype.name
     if datatype.startswith(("bytes", "str")):
@@ -212,7 +230,7 @@ def _get_datatype_from_dtype(dtype):
     return datatype
 
 
-def _get_col_attributes(col):
+def _get_col_attributes(col: ColumnLike) -> ColumnDict:
     """
     Extract information from a column (apart from the values) that is required
     to fully serialize the column.
@@ -272,7 +290,7 @@ def _get_col_attributes(col):
     return attrs
 
 
-def get_yaml_from_table(table):
+def get_yaml_from_table(table: Table) -> list[str]:
     """
     Return lines with a YAML representation of header content from the ``table``.
 
@@ -293,7 +311,7 @@ def get_yaml_from_table(table):
     return get_yaml_from_header(header)
 
 
-def get_yaml_from_header(header):
+def get_yaml_from_header(header: dict[str, Any]) -> list[str]:
     """
     Return lines with a YAML representation of header content from a Table.
 
@@ -322,7 +340,12 @@ def get_yaml_from_header(header):
         Custom Dumper that represents OrderedDict as an !!omap object.
         """
 
-        def represent_mapping(self, tag, mapping, flow_style=None):
+        def represent_mapping(
+            self,
+            tag: str,
+            mapping,
+            flow_style: bool | None = None,
+        ) -> yaml.MappingNode:
             """
             This is a combination of the Python 2 and 3 versions of this method
             in the PyYAML library to allow the required key ordering via the
@@ -380,7 +403,7 @@ class YamlParseError(Exception):
     pass
 
 
-def get_header_from_yaml(lines):
+def get_header_from_yaml(lines: list[str]) -> dict[str, Any]:
     """
     Get a header dict from input ``lines`` which should be valid YAML.  This
     input will typically be created by get_yaml_from_header.  The output is a
