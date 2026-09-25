@@ -304,6 +304,8 @@ class ConfigItem:
     Rootname sets the base path for all config files.
     """
 
+    name: str  # this attribute is set by the parent ConfigNamespace
+
     def __init__(
         self, defaultvalue="", description=None, cfgtype=None, module=None, aliases=None
     ):
