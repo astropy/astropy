@@ -1428,24 +1428,45 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                 new_attrs := self.representation_info.get(differential_cls)
             ):
                 diffkwargs = {comp: getattr(diff, comp) for comp in diff.components}
-                for comp, new_attr_unit in zip(diff.components, new_attrs["units"]):
-                    # Some special-casing to treat a situation where the
-                    # input data has a UnitSphericalDifferential or a
-                    # RadialDifferential. It is re-represented to the
-                    # frame's differential class (which might be, e.g., a
-                    # dimensional Differential), so we don't want to try to
-                    # convert the empty component units
-                    if (
-                        isinstance(
-                            data_diff,
-                            (
-                                r.UnitSphericalDifferential,
-                                r.UnitSphericalCosLatDifferential,
-                                r.RadialDifferential,
-                            ),
-                        )
-                        and comp not in data_diff.__class__.attr_classes
+                # Some special-casing to treat a situation where the input data
+                # has a UnitSphericalDifferential or a RadialDifferential. It is
+                # re-represented to the frame's differential class (which might
+                # be, e.g., a dimensional Differential), so we don't want to try
+                # to convert the units of the components that the input data
+                # does not determine.
+                undetermined = ()
+                if isinstance(
+                    data_diff,
+                    (
+                        r.UnitSphericalDifferential,
+                        r.UnitSphericalCosLatDifferential,
+                        r.RadialDifferential,
+                    ),
+                ):
+                    base_cls = diff.base_representation
+                    if base_cls in (
+                        r.SphericalRepresentation,
+                        r.PhysicsSphericalRepresentation,
                     ):
+                        # The angular components are determined only by the proper
+                        # motion and the radial one only by the radial velocity,
+                        # independent of the differential's names. The [-1] grabs the
+                        # last component of the base representation (r, distance, etc.).
+                        radial = f"d_{list(base_cls.attr_classes)[-1]}"
+                        if isinstance(data_diff, r.RadialDifferential):
+                            undetermined = set(diff.components) - {radial}
+                        else:
+                            undetermined = {radial}
+                    else:
+                        undetermined = set(diff.components) - set(
+                            data_diff.attr_classes
+                        )
+
+                for comp, new_attr_unit in zip(diff.components, new_attrs["units"]):
+                    # Only convert the units of the components that the input data
+                    # determines, so we skip on components that are undetermined from
+                    # the above checks.
+                    if comp in undetermined:
                         continue
 
                     # Try to convert to requested units. Since that might
@@ -1700,6 +1721,10 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                         r.UnitSphericalCosLatDifferential,
                         r.RadialDifferential,
                     ),
+                ) or (
+                    # Physical differentials need a distance.
+                    issubclass(dif_cls, r.BasePhysicalDifferential)
+                    and isinstance(self.data, r.UnitSphericalRepresentation)
                 ):
                     dif_cls = dif_data.__class__
 
