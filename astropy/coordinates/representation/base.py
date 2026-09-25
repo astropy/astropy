@@ -661,6 +661,11 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     ``represent_as`` method. If one wants to use an associated differential
     class, one should also define ``unit_vectors`` and ``scale_factors``
     methods (see those methods for details).
+
+    Also note that representations and differentials in astropy.coordinates
+    assume that the unit vectors returned by unit_vectors() are orthonormal
+    (i.e., the coordinate system is orthogonal) and custom representations that
+    do not satisfy this will not work correctly with differentials.
     """
 
     info = RepresentationInfo()
