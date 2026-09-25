@@ -486,24 +486,30 @@ def doppler_relativistic(rest):
     rest_in = functools.partial(rest.to_value, equivalencies=spectral())
 
     def to_vel_freq(x):
-        restfreq2 = rest_in(si.Hz) ** 2
-        return (restfreq2 - x**2) / (restfreq2 + x**2) * ckms
+        # Form the ratio before squaring to avoid underflow for very small
+        # rest frequencies.  The algebra is equivalent to the expression in
+        # the docstring, but keeps the intermediate values close to unity.
+        frequency_ratio = x / rest_in(si.Hz)
+        frequency_ratio2 = frequency_ratio**2
+        return (1 - frequency_ratio2) / (1 + frequency_ratio2) * ckms
 
     def from_vel_freq(x):
         voverc = x / ckms
         return rest_in(si.Hz) * ((1 - voverc) / (1 + voverc)) ** 0.5
 
     def to_vel_wav(x):
-        restwav2 = rest_in(si.AA) ** 2
-        return (x**2 - restwav2) / (restwav2 + x**2) * ckms
+        wavelength_ratio = x / rest_in(si.AA)
+        wavelength_ratio2 = wavelength_ratio**2
+        return (wavelength_ratio2 - 1) / (wavelength_ratio2 + 1) * ckms
 
     def from_vel_wav(x):
         voverc = x / ckms
         return rest_in(si.AA) * ((1 + voverc) / (1 - voverc)) ** 0.5
 
     def to_vel_en(x):
-        resten2 = rest_in(misc.eV) ** 2
-        return (resten2 - x**2) / (resten2 + x**2) * ckms
+        energy_ratio = x / rest_in(misc.eV)
+        energy_ratio2 = energy_ratio**2
+        return (1 - energy_ratio2) / (1 + energy_ratio2) * ckms
 
     def from_vel_en(x):
         voverc = x / ckms
