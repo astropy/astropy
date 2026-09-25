@@ -33,7 +33,7 @@ class _CustomSolverCallable(Protocol):
     """
 
     def __call__(
-        self, fun: Callable[..., Any], args: tuple[Any, ...], **kwargs: Any
+        self, fun: Callable[..., Any], args: tuple[Any, ...], **kwargs
     ) -> "scipy.optimize.OptimizeResult": ...
 
 

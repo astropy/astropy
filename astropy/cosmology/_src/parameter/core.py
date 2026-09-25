@@ -6,7 +6,7 @@ import copy
 from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Self, Union
 
 import astropy.units as u
 
@@ -40,7 +40,7 @@ class _UnitField:
             return None
         return getattr(obj, "_unit", None)
 
-    def __set__(self, obj: "Parameter", value: Any) -> None:
+    def __set__(self, obj: "Parameter", value) -> None:
         object.__setattr__(obj, "_unit", u.Unit(value) if value is not None else None)
 
 
@@ -55,7 +55,7 @@ class _FValidateField:
             return self.default
         return obj._fvalidate  # calling `Parameter.fvalidate` from an instance
 
-    def __set__(self, obj: "Parameter", value: Any) -> None:
+    def __set__(self, obj: "Parameter", value) -> None:
         # Always store input fvalidate.
         object.__setattr__(obj, "_fvalidate_in", value)
 
@@ -72,7 +72,7 @@ class _FValidateField:
 
 
 @dataclass(frozen=True)
-class Parameter:
+class Parameter[T]:
     r"""Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
@@ -111,7 +111,7 @@ class Parameter:
 
     _: KW_ONLY
 
-    default: Any = MISSING
+    default: T | Sentinel = MISSING
     """Default value of the Parameter.
 
     By default set to ``MISSING``, which indicates the parameter must be set
@@ -162,7 +162,7 @@ class Parameter:
         self,
         cosmology: Union["astropy.cosmology.Cosmology", None],
         cosmo_cls: Union["type[astropy.cosmology.Cosmology]", None] = None,
-    ) -> Any:
+    ) -> T:
         # Get from class
         if cosmology is None:
             # If the Parameter is being set as part of a dataclass constructor, then we
@@ -178,7 +178,9 @@ class Parameter:
         # Get from instance
         return cosmology.__dict__[self.name]
 
-    def __set__(self, cosmology: "astropy.cosmology.Cosmology", value: Any) -> None:
+    def __set__(
+        self, cosmology: "astropy.cosmology.Cosmology", value: T | Self
+    ) -> None:
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
@@ -226,13 +228,13 @@ class Parameter:
         """
         return self.clone(fvalidate=fvalidate)
 
-    def validate(self, cosmology: "astropy.cosmology.Cosmology", value: Any) -> Any:
+    def validate(self, cosmology: "astropy.cosmology.Cosmology", value: object):
         """Run the validator on this Parameter.
 
         Parameters
         ----------
         cosmology : `~astropy.cosmology.Cosmology` instance
-        value : Any
+        value : object
             The object to validate.
 
         Returns
@@ -244,7 +246,7 @@ class Parameter:
         return self._fvalidate(cosmology, self, value)
 
     @staticmethod
-    def register_validator(key, fvalidate: FValidateCallable | None = None) -> Any:
+    def register_validator(key, fvalidate: FValidateCallable | None = None):
         """Decorator to register a new kind of validator function.
 
         Parameters
@@ -264,7 +266,7 @@ class Parameter:
 
     # -------------------------------------------
 
-    def clone(self, **kw: Any) -> "Parameter":
+    def clone(self, **kw) -> "Parameter":
         """Clone this `Parameter`, changing any constructor argument.
 
         Parameters

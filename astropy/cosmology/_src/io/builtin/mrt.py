@@ -47,7 +47,6 @@ __all__ = ("mrt_identify", "read_mrt", "write_mrt")
 
 import contextlib
 import json
-from typing import Any
 
 import astropy.cosmology.units as cu
 import astropy.units as u
@@ -67,7 +66,7 @@ def read_mrt(
     *,
     move_to_meta: bool = False,
     cosmology: str | type[_CosmoT] | None = None,
-    **kwargs: Any,
+    **kwargs,
 ) -> _CosmoT:
     r"""Read a `~astropy.cosmology.Cosmology` from an MRT file.
 
@@ -180,7 +179,7 @@ def write_mrt[T: Table](
     *,
     overwrite: bool = False,
     cls: type[T] = QTable,
-    **kwargs: Any,
+    **kwargs,
 ):
     r"""Serialize the |Cosmology| into a MRT table.
 
@@ -194,7 +193,7 @@ def write_mrt[T: Table](
         Whether to overwrite the file, if it exists.
     cls : |Table| class, optional keyword-only
         Astropy |Table| (sub)class to use when writing. Default is |QTable| class.
-    **kwargs : Any
+    **kwargs
         Passed to ``cls.write``.
 
     Raises

@@ -85,8 +85,6 @@ enable this, set ``latex_names=True``.
     >>> temp_dir.cleanup()
 """
 
-from typing import Any
-
 import astropy.units as u
 from astropy.table import QTable, Table
 
@@ -125,7 +123,7 @@ def read_html_table(
     move_to_meta: bool = False,
     cosmology: str | type[_CosmoT] | None = None,
     latex_names: bool = True,
-    **kwargs: Any,
+    **kwargs,
 ) -> _CosmoT:
     r"""Read a |Cosmology| from an HTML file.
 
@@ -156,7 +154,7 @@ def read_html_table(
         `True` by default, but can be turned off (set to `False`) if there is a known
         name conflict (e.g. both an 'H0' and '$$H_{0}$$' column) as this will raise an
         error. In this case, the correct name ('H0') is preferred.
-    **kwargs : Any
+    **kwargs
         Passed to ``QTable.read``. ``format`` is set to 'ascii.html', regardless of
         input.
 
@@ -200,7 +198,7 @@ def write_html_table[T: Table](
     overwrite: bool = False,
     cls: type[T] = QTable,
     latex_names: bool = False,
-    **kwargs: Any,
+    **kwargs,
 ) -> None:
     r"""Serialize the |Cosmology| into a HTML table.
 
@@ -218,7 +216,7 @@ def write_html_table[T: Table](
     latex_names : bool, optional keyword-only
         Whether to format the parameters (column) names to latex -- e.g. 'H0' to
         $$H_{0}$$.
-    **kwargs : Any
+    **kwargs
         Passed to ``cls.write``.
 
     Raises

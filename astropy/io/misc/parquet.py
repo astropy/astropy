@@ -29,7 +29,7 @@ def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
 
     Parameters
     ----------
-    origin : Any
+    origin
     filepath : str or None
     fileobj : `~pyarrow.NativeFile` or None
     *args, **kwargs

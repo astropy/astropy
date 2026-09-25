@@ -221,7 +221,7 @@ def to_yaml(cosmology: Cosmology, *args: object) -> str:
     ----------
     cosmology : `~astropy.cosmology.Cosmology` subclass instance
         The cosmology to serialize.
-    *args : Any
+    *args
         Not used. Needed for compatibility with
         `~astropy.io.registry.UnifiedReadWriteMethod`
 
