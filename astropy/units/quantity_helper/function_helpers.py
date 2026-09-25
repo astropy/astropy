@@ -1274,6 +1274,20 @@ if NUMPY_LT_2_4:
         return (ar1, ar2) + args, kwargs, None, None
 
 
+if not NUMPY_LT_2_6:
+    # np.minmax was added numpy 2.6
+    @function_helper
+    def minmax(a, axis=None, out=None, *args, **kwargs):
+        a = _as_quantity(a)
+        out_array = None if out is None else _quantity_out_as_array(out)
+        return (
+            (a.view(np.ndarray), axis, out_array, *args),
+            kwargs,
+            (a.unit, a.unit),
+            out,
+        )
+
+
 @dispatched_function
 def apply_over_axes(func, a, axes):
     # Copied straight from numpy/lib/shape_base, just to omit its

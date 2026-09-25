@@ -1007,6 +1007,12 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         expected = np.count_nonzero(self.ma.filled(0), axis=axis)
         assert_array_equal(o, expected)
 
+    @pytest.mark.skipif(NUMPY_LT_2_6, reason="minmax is new in NumPy 2.6")
+    def test_minmax(self):
+        mamin, mamax = np.minmax(self.ma)
+        assert_masked_equal(mamin, np.min(self.ma))
+        assert_masked_equal(mamax, np.max(self.ma))
+
 
 @pytest.mark.filterwarnings("ignore:all-nan")
 class TestPartitionLikeFunctions:
