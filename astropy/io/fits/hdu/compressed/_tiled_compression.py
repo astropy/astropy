@@ -310,6 +310,8 @@ def decompress_image_data_section(
         The header of the compressed binary table
     bintable : `~astropy.io.fits.BinTableHDU`
         The binary table HDU, used to access the raw heap data
+    image_header : `~astropy.io.fits.Header`
+        The header of the decompressed image, used to look up ``BLANK``
     first_tile_index : iterable
         The indices of the first tile to decompress along each dimension
     last_tile_index : iterable

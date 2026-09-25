@@ -131,7 +131,7 @@ class Gzip1(Codec):
 
         Parameters
         ----------
-        buf _like
+        buf : bytes or array_like
             The buffer to compress.
 
         Returns

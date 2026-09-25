@@ -185,6 +185,11 @@ class Converter:
         ----------
         value : str
             value in TABLEDATA format
+        config : dict, optional
+            The parser configuration dictionary
+        pos : tuple, optional
+            The position in the XML file where the value was found.  Used
+            for error messages.
 
         Returns
         -------
@@ -206,6 +211,11 @@ class Converter:
         ----------
         value : str
             value in TABLEDATA format
+        config : dict, optional
+            The parser configuration dictionary
+        pos : tuple, optional
+            The position in the XML file where the value was found.  Used
+            for error messages.
 
         Returns
         -------

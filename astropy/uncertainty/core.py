@@ -456,8 +456,8 @@ class Distribution:
             `~astropy.units.Quantity` will be converted to percent, meaning
             that a ``dimensionless_unscaled`` `~astropy.units.Quantity` will
             be interpreted as a quantile.
-
-        Additional keywords are passed into `numpy.percentile`.
+        **kwargs
+            Additional keywords are passed into `numpy.percentile`.
 
         Returns
         -------
@@ -479,9 +479,10 @@ class Distribution:
 
         Parameters
         ----------
-        All keyword arguments are passed into `astropy.stats.histogram`. Note
-        That some of these options may not be valid for some multidimensional
-        distributions.
+        **kwargs
+            All keyword arguments are passed into `astropy.stats.histogram`.
+            Note that some of these options may not be valid for some
+            multidimensional distributions.
 
         Returns
         -------
