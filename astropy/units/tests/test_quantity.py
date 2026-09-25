@@ -6,8 +6,6 @@ import decimal
 import numbers
 import operator
 import pickle
-import threading
-import time
 from fractions import Fraction
 
 import numpy as np
@@ -2215,27 +2213,19 @@ class TestQuantityConvertIntToFloat:
             # The configuration is restored on exit.
             assert conf.quantity_convert_int_to_float == value
 
+    @pytest.mark.force_parallel_threads(8)
+    @pytest.mark.iterations(25)
     def test_preserve_dtype_by_default_other_thread(self):
         """preserve_dtype_by_default in one thread must not affect another.
 
         Regression test: ``conf.set_temp`` used to change the process-global
-        value, so an ``int * unit`` passed on with ``copy=False`` could be
-        created as int but then required to be float, raising ValueError.
+        value, so while one thread was inside ``preserve_dtype_by_default``,
+        an ``int * unit`` created in another thread could come out as int and
+        then fail when passed on with ``copy=False`` to a float consumer.
         """
-        stop = threading.Event()
-
-        def toggler():
-            while not stop.is_set():
-                with u.preserve_dtype_by_default():
-                    time.sleep(0)
-
-        thread = threading.Thread(target=toggler, daemon=True)
-        thread.start()
-        try:
-            for _ in range(1000):
-                q = 180 * u.deg
-                assert q.dtype.kind == "f"
-                Angle(q, copy=False)
-        finally:
-            stop.set()
-            thread.join()
+        with u.preserve_dtype_by_default():
+            assert (1 * u.deg).dtype.kind == "i"
+        for _ in range(100):
+            q = 180 * u.deg
+            assert q.dtype.kind == "f"
+            Angle(q, copy=False)
