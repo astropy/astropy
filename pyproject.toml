@@ -195,6 +195,7 @@ dataframe = [
 ]
 image_tests = [
     "pytest-mpl>=0.18",
+    "scipy>=1.13",
 ]
 pyinstaller = [
     "pyinstaller>=6.16.0",
@@ -216,10 +217,6 @@ dev_all = [
     {include-group = "image_tests"},
     "astropy[test_all]",
     "tox>=4.33.0", # keep in sync with tox.minversion in tox.ini
-]
-imagetest = [
-    "latex>=0.7.0",
-    "scipy>=1.13",
 ]
 
 [tool.setuptools]
@@ -931,7 +928,7 @@ no-build-package = [
     # via pyinstaller
     "altgraph",
 
-    # via latex
+    # via pytinstaller -> pefile
     "future",
 
     # via pandas[html]
