@@ -119,13 +119,20 @@ class CylindricalRepresentation(BaseRepresentation):
     def _scale_operation(self, op, *args):
         if any(
             differential.base_representation is not self.__class__
-            or isinstance(differential, BasePhysicalDifferential)
             for differential in self.differentials.values()
         ):
             return super()._scale_operation(op, *args)
 
         phi_op, _, rho_op = _spherical_op_funcs(op, *args)
         z_op = lambda x: op(x, *args)
+
+        # For a negative scale, the point is reflected to (phi + 180°, -z), which flips
+        # the rho and phi unit vectors. For a typical differential, d_rho then scales by
+        # |scale|, d_phi is unchanged, and d_z scales by the scale. For a physical
+        # differential, d_phi instead scales by |scale| (because it is actually v_phi =
+        # d_phi/d_t * rho). See SphericalRepresentation._scale_operation for details.
+        diff_ops = (rho_op, operator.pos, z_op)
+        phys_ops = (rho_op, rho_op, z_op)
 
         result = self.__class__(
             rho_op(self.rho), phi_op(self.phi), z_op(self.z), copy=None
@@ -134,7 +141,10 @@ class CylindricalRepresentation(BaseRepresentation):
             new_comps = (
                 op(getattr(differential, comp))
                 for op, comp in zip(
-                    (rho_op, operator.pos, z_op), differential.components
+                    phys_ops
+                    if isinstance(differential, BasePhysicalDifferential)
+                    else diff_ops,
+                    differential.components,
                 )
             )
             result.differentials[key] = differential.__class__(*new_comps, copy=False)

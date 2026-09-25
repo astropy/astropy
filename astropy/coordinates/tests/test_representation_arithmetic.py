@@ -1206,11 +1206,25 @@ class TestPhysicalDifferential:
             new.to_cartesian(new_base).xyz, self.vel.transform(matrix).d_xyz
         )
 
-    @pytest.mark.parametrize("factor", [2.0, -2.0])
-    def test_scale_with_base(self, base, ang_cls, phys_cls, factor):
+    @pytest.mark.parametrize(
+        "op, factor",
+        [
+            (lambda x: x * 2.0, 2.0),
+            (lambda x: x * -2.0, -2.0),
+            (lambda x: x / -4.0, -0.25),
+            (operator.neg, -1.0),
+        ],
+    )
+    def test_scale_with_base(self, base, ang_cls, phys_cls, op, factor):
         phys = self.vel.represent_as(phys_cls, base)
-        rep = base.with_differentials(phys) * factor
+        rep = op(base.with_differentials(phys))
+        # The position should be the same, canonical one as without
+        # differentials, i.e., with non-negative distance for factor < 0.
+        expected_base = op(base)
+        for c in base.components:
+            assert_quantity_allclose(getattr(rep, c), getattr(expected_base, c))
         expected = self.vel * factor
+        assert isinstance(rep.differentials["s"], phys_cls)
         assert_quantity_allclose(
             rep.differentials["s"].to_cartesian(rep).xyz,
             expected.d_xyz,

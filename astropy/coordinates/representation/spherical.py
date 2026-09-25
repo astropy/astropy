@@ -612,23 +612,41 @@ class SphericalRepresentation(BaseRepresentation):
         # TODO: expand special-casing to UnitSpherical and RadialDifferential.
         if any(
             differential.base_representation is not self.__class__
-            or isinstance(
-                differential, BasePhysicalDifferential
-            )  # NOTE: this is a bit awkward to special-case
             for differential in self.differentials.values()
         ):
             return super()._scale_operation(op, *args)
 
         lon_op, lat_op, distance_op = _spherical_op_funcs(op, *args)
 
+        # For a negative scale, the point is reflected to (lon + 180°, -lat), which
+        # flips the lon and distance unit vectors. For a typical differential, this
+        # means that d_lon is unchanged, d_lat changes sign with the scale (like lat),
+        # and d_distance scales by |scale| (like the distance).
+        diff_ops = (operator.pos, lat_op, distance_op)
+
+        # For a physical differential, all components scale by the scale (which comes
+        # from distance_op), and d_lat also changes sign with the scale, since the lat
+        # unit vector does not flip.
+        phys_ops = (
+            distance_op,
+            lambda x: lat_op(distance_op(x)),
+            distance_op,
+        )
+
         result = self.__class__(
-            lon_op(self.lon), lat_op(self.lat), distance_op(self.distance), copy=None
+            lon_op(self.lon),
+            lat_op(self.lat),
+            distance_op(self.distance),
+            copy=None,
         )
         for key, differential in self.differentials.items():
             new_comps = (
                 op(getattr(differential, comp))
                 for op, comp in zip(
-                    (operator.pos, lat_op, distance_op), differential.components
+                    phys_ops
+                    if isinstance(differential, BasePhysicalDifferential)
+                    else diff_ops,
+                    differential.components,
                 )
             )
             result.differentials[key] = differential.__class__(*new_comps, copy=False)
@@ -857,12 +875,16 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     def _scale_operation(self, op, *args):
         if any(
             differential.base_representation is not self.__class__
-            or isinstance(differential, BasePhysicalDifferential)
             for differential in self.differentials.values()
         ):
             return super()._scale_operation(op, *args)
 
         phi_op, adjust_theta_sign, r_op = _spherical_op_funcs(op, *args)
+
+        # See the description in SphericalRepresentation._scale_operation for details.
+        # We have to handle the typical and physical differentials differently:
+        diff_ops = (operator.pos, adjust_theta_sign, r_op)
+        phys_ops = (r_op, lambda x: adjust_theta_sign(r_op(x)), r_op)
         # Also run phi_op on theta to ensure theta remains between 0 and 180:
         # any time the scale is negative, we do -theta + 180 degrees.
         result = self.__class__(
@@ -875,7 +897,10 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
             new_comps = (
                 op(getattr(differential, comp))
                 for op, comp in zip(
-                    (operator.pos, adjust_theta_sign, r_op), differential.components
+                    phys_ops
+                    if isinstance(differential, BasePhysicalDifferential)
+                    else diff_ops,
+                    differential.components,
                 )
             )
             result.differentials[key] = differential.__class__(*new_comps, copy=False)
