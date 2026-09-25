@@ -92,7 +92,7 @@ class XMLWriter:
             Attribute dictionary.  Alternatively, attributes can
             be given as keyword arguments.
 
-        **extra : str
+        **extra : dict of str -> str
             Additional attributes, given as keyword arguments.
 
         Returns
@@ -200,7 +200,7 @@ class XMLWriter:
             Attribute dictionary.  Alternatively, attributes can
             be given as keyword arguments.
 
-        **extra : str
+        **extra : dict of str -> str
             Additional attributes, given as keyword arguments.
 
         Examples
