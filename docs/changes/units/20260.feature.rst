@@ -1,0 +1,1 @@
+Allow ``N-dimensional`` Tensor-like strings, with or without units, to be converted into ``Quantity``.
