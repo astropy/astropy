@@ -23,6 +23,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.utils import parsing
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_1
 
 from .errors import (
     IllegalHourError,
@@ -324,6 +325,39 @@ def _check_second_range(sec: float) -> None:
         warn(IllegalSecondWarning(sec, "Treating as 0 sec, +1 min"))
 
 
+def _check_hour_range_array(hrs):
+    """Vectorised `_check_hour_range`, reporting at most once for the array."""
+    outside = ~((hrs > -24.0) & (hrs < 24.0))
+    if not outside.any():
+        return
+    illegal = outside & (np.abs(hrs) != 24.0)
+    if illegal.any():
+        raise IllegalHourError(hrs[illegal][0])
+    warn(IllegalHourWarning(hrs[outside][0], "Treating as 24 hr"))
+
+
+def _check_minute_range_array(m):
+    """Vectorised `_check_minute_range`, reporting at most once for the array."""
+    outside = ~((m >= 0.0) & (m < 60.0))
+    if not outside.any():
+        return
+    illegal = outside & (m != 60.0)
+    if illegal.any():
+        raise IllegalMinuteError(m[illegal][0])
+    warn(IllegalMinuteWarning(m[outside][0], "Treating as 0 min, +1 hr/deg"))
+
+
+def _check_second_range_array(sec):
+    """Vectorised `_check_second_range`, reporting at most once for the array."""
+    outside = ~((sec >= 0.0) & (sec < 60.0))
+    if not outside.any():
+        return
+    illegal = outside & (sec != 60.0)
+    if illegal.any():
+        raise IllegalSecondError(sec[illegal][0])
+    warn(IllegalSecondWarning(sec[outside][0], "Treating as 0 sec, +1 min"))
+
+
 def parse_angle(angle, unit=None, debug=False):
     """
     Parses an input string value into an angle value.
@@ -356,6 +390,191 @@ def parse_angle(angle, unit=None, debug=False):
         string.
     """
     return _AngleParser().parse(angle, unit, debug=debug)
+
+
+# Designators the array parser understands, longest first so that "degrees" is
+# replaced before "deg", and "deg" before "d".
+_UNIT_DESIGNATORS = (
+    "hours", "hour", "hr", "h",
+    "degrees", "degree", "deg", "d",
+    "minutes", "minute", "min", "m",
+    "seconds", "second", "sec", "s",
+)  # fmt: skip
+
+# Non-ASCII spellings of a sign or a designator, mapped onto the ASCII ones.
+_SYMBOL_REPLACEMENTS = (
+    ("\N{MINUS SIGN}", "-"),
+    ("\N{DEGREE SIGN}", "d"),
+    ("\N{PRIME}", "m"),
+    ("\N{DOUBLE PRIME}", "s"),
+    ("'", "m"),
+    ('"', "s"),
+)
+
+# A trailing direction letter is a sign, not a designator.
+_DIRECTIONS = (("N", 1.0), ("S", -1.0), ("E", 1.0), ("W", -1.0))
+
+# Below this many elements, parsing one string at a time is quicker: the array
+# parser makes a fixed number of passes over the input whatever its length.
+# Keeping small inputs on the old path also leaves scalar behaviour untouched.
+_MIN_ARRAY_SIZE = 32
+
+
+def _partition(values, sep):
+    """Split each string on the first occurrence of ``sep``.
+
+    Wrapper around `numpy.strings.partition`, which only exists from numpy 2.1.
+    """
+    if NUMPY_LT_2_1:
+        parts = np.char.partition(values, sep)
+        return parts[..., 0], parts[..., 1], parts[..., 2]
+    return np.strings.partition(values, sep)
+
+
+def _contains(values, sub):
+    """Whether any element contains ``sub``.
+
+    Used to skip replacements that would not change anything: scanning for a
+    substring is cheaper than rewriting every string in the array.
+    """
+    return bool((np.strings.find(values, sub) >= 0).any())
+
+
+def parse_angles(values, unit=None):
+    """Parse an array of angle strings without looping over the elements.
+
+    This is a fast path for the common sexagesimal spellings. Anything it does
+    not recognise is reported back for `parse_angle` to handle instead, so the
+    result is the same either way.
+
+    Parameters
+    ----------
+    values : `~numpy.ndarray`
+        Array of strings, of at least `_MIN_ARRAY_SIZE` elements.
+    unit : `~astropy.units.UnitBase` or None
+        Unit to assume for strings that do not name one themselves.
+
+    Returns
+    -------
+    parsed : tuple or None
+        ``(angles, unit, unparsed)``, where ``angles`` holds the parsed values
+        in ``unit`` and ``unparsed`` flags the elements this parser could not
+        handle, which the caller must fill in itself. `None` if the array as a
+        whole is not something this parser can take on.
+    """
+    strings = np.strings.strip(values)
+
+    for symbol, ascii_ in _SYMBOL_REPLACEMENTS:
+        if _contains(strings, symbol):
+            strings = np.strings.replace(strings, symbol, ascii_)
+
+    # A trailing N/S/E/W flips the sign and is then removed, before the unit
+    # designators are touched (S would otherwise look like a seconds marker).
+    direction = None
+    for letter, sign in _DIRECTIONS:
+        if bool(np.strings.endswith(strings, letter).any()):
+            if direction is None:
+                direction = np.ones(strings.shape)
+            found = np.strings.endswith(strings, letter)
+            direction = np.where(found, sign, direction)
+            strings = np.where(found, np.strings.rstrip(strings, letter), strings)
+
+    # Each string names its own unit, so hours and degrees can be mixed. When
+    # they are, the result takes the first element's unit, which is what
+    # assembling the individual angles into one array does.
+    is_hour = np.strings.find(strings, "h") >= 0
+    is_degree = np.strings.find(strings, "d") >= 0
+    if is_hour.all():
+        found_unit = u.hourangle
+    elif is_degree.all():
+        found_unit = u.degree
+    elif not is_hour.any() and not is_degree.any():
+        if unit is None:
+            # Nothing names a unit and none was supplied. Hand the whole array
+            # back so the per-element parser raises, whatever the reason is.
+            return None
+        found_unit = unit
+    else:
+        found_unit = u.hourangle if is_hour[0] else u.degree
+
+    # Spaces are separators here but are ignored by the grammar, so a string
+    # mixing them with colons ("06 00:00") is a syntax error rather than
+    # something to interpret. Note it now, before both become ":".
+    mixed_separators = None
+    if _contains(strings, " ") and _contains(strings, ":"):
+        mixed_separators = (np.strings.count(strings, " ") > 0) & (
+            np.strings.count(strings, ":") > 0
+        )
+
+    for designator in _UNIT_DESIGNATORS:
+        if _contains(strings, designator):
+            strings = np.strings.replace(strings, designator, ":")
+    if _contains(strings, " "):
+        strings = np.strings.replace(strings, " ", ":")
+    strings = np.strings.rstrip(strings, ":")
+    while _contains(strings, "::"):
+        strings = np.strings.replace(strings, "::", ":")
+
+    # The range checks below depend on how many fields were given, so count
+    # them before the padding that follows.
+    n_fields = np.strings.count(strings, ":") + 1
+
+    first, _, rest = _partition(strings, ":")
+    second, _, rest = _partition(rest, ":")
+    third, _, trailing = _partition(rest, ":")
+
+    def _is_number(field):
+        # A sign is only allowed at the front, and only one of them, so that
+        # something like "12-34" is handed on rather than fed to numpy.
+        body = np.strings.lstrip(field, "+-")
+        one_sign = (np.strings.str_len(field) - np.strings.str_len(body)) <= 1
+        digits = np.strings.replace(body, ".", "")
+        return (np.strings.str_len(field) == 0) | (
+            one_sign & (np.strings.count(body, ".") <= 1) & np.strings.isdigit(digits)
+        )
+
+    parsed = (
+        _is_number(first)
+        & _is_number(second)
+        & _is_number(third)
+        & (np.strings.str_len(trailing) == 0)
+        & (np.strings.str_len(first) > 0)
+    )
+    if mixed_separators is not None:
+        parsed &= ~mixed_separators
+
+    angles = np.zeros(strings.shape)
+    if not parsed.any():
+        return angles, found_unit, ~parsed
+
+    # numpy.loadtxt wants the same number of columns on every line.
+    padded = np.where(
+        n_fields == 1,
+        np.strings.add(strings, ":0:0"),
+        np.where(n_fields == 2, np.strings.add(strings, ":0"), strings),
+    )
+    fields = np.loadtxt(padded[parsed].tolist(), delimiter=":", ndmin=2)
+    d, m, s = fields[:, 0], fields[:, 1], fields[:, 2]
+
+    # `parse_angle` only range checks the fields it was actually given.
+    given = n_fields[parsed]
+    _check_hour_range_array(d[(given > 1) & is_hour[parsed]])
+    _check_minute_range_array(m[given > 1])
+    _check_second_range_array(s[given > 2])
+
+    values_ = np.abs(d) + m / 60.0 + s / 3600.0
+    values_ = np.copysign(values_, d)
+    if direction is not None:
+        values_ = values_ * direction[parsed]
+    # Convert whichever elements did not name the unit the array ended up in.
+    other = (is_degree if found_unit is u.hourangle else is_hour)[parsed]
+    if other.any():
+        other_unit = u.degree if found_unit is u.hourangle else u.hourangle
+        converted = u.Quantity(values_, other_unit).to_value(found_unit)
+        values_ = np.where(other, converted, values_)
+
+    angles[parsed] = values_
+    return angles, found_unit, ~parsed
 
 
 def _decimal_to_sexagesimal(a, /):
