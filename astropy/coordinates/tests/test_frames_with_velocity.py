@@ -469,3 +469,54 @@ def test_physical_differential_units_error():
             **PHYSICAL_VELOCITY,
             **RADIAL_VELOCITY,
         )
+
+
+@pytest.mark.parametrize("extra", [{}, RADIAL_VELOCITY])
+@pytest.mark.parametrize(
+    "representation_type, differential_type",
+    [
+        ("spherical", "sphericalphysical"),
+        ("physicsspherical", "physicssphericalphysical"),
+        ("cylindrical", "cylindricalphysical"),
+    ],
+)
+def test_physical_differential_requires_distance(
+    representation_type, differential_type, extra
+):
+    icrs = ICRS(**POSITION_ON_SKY, **PROPER_MOTION, **extra)
+    with pytest.raises(ValueError, match="since it has no distance"):
+        icrs.represent_as(representation_type, s=differential_type, in_frame_units=True)
+
+
+@pytest.mark.parametrize("extra", [{}, RADIAL_VELOCITY])
+def test_physical_differential_type_without_distance(extra):
+    icrs = ICRS(**POSITION_ON_SKY, **PROPER_MOTION, **extra)
+    icrs.set_representation_cls(s="sphericalphysical")
+    with pytest.raises(ValueError, match="since it has no distance"):
+        icrs.v_ra
+    # The repr falls back to the data's own differential.
+    assert "mas / yr" in repr(icrs)
+
+
+@pytest.mark.parametrize(
+    "representation_type, differential_type, signs",
+    [
+        ("spherical", "sphericalphysical", (1, 1)),
+        ("physicsspherical", "physicssphericalphysical", (1, -1)),
+    ],
+)
+def test_physical_differential_without_radial_velocity(
+    representation_type, differential_type, signs
+):
+    icrs = ICRS(**POSITION_ON_SKY, **DISTANCE, **PROPER_MOTION)
+    dif = icrs.represent_as(
+        representation_type, s=differential_type, in_frame_units=True
+    ).differentials["s"]
+    for comp, pm, sign in zip(dif.components[:2], PROPER_MOTION.values(), signs):
+        assert getattr(dif, comp).unit == u.km / u.s
+        assert quantity_allclose(
+            getattr(dif, comp),
+            sign * (pm * DISTANCE["distance"]).to(u.km / u.s, u.dimensionless_angles()),
+        )
+    # The radial component is not determined, so it is not converted.
+    assert getattr(dif, dif.components[2]).unit != u.km / u.s
