@@ -6,7 +6,7 @@ from contextlib import contextmanager
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import ICRS, BaseCoordinateFrame, SkyCoord
+from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import SlicedLowLevelWCS
 
@@ -332,7 +332,12 @@ def apply_slices(wcs, slices):
 def wcsapi_to_celestial_frame(wcs):
     for cls, _, kwargs, *_ in wcs.world_axis_object_classes.values():
         if issubclass(cls, SkyCoord):
-            return kwargs.get("frame", ICRS())
+            # Let SkyCoord parse the frame (which may be a string, class or
+            # instance) along with any frame attributes such as equinox.
+            kwargs = {k: v for k, v in kwargs.items() if k != "unit"}
+            return SkyCoord(
+                0 * u.deg, 0 * u.deg, **kwargs
+            ).frame.replicate_without_data()
         elif issubclass(cls, BaseCoordinateFrame):
             return cls(**kwargs)
 
