@@ -48,7 +48,7 @@ __all__ = [
 
 
 # Initialize by calling _init_log()
-log = None
+log: logging.Logger
 
 
 class LoggingError(Exception):
@@ -109,7 +109,7 @@ class Conf(_config.ConfigNamespace):
 conf = Conf()
 
 
-def _init_log():
+def _init_log() -> logging.Logger:
     """Initializes the Astropy log--in most circumstances this is called
     automatically when importing astropy.
     """
