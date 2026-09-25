@@ -28,9 +28,10 @@ from textwrap import TextWrapper
 from typing import Final
 from warnings import warn
 
+import configobj
 import numpy as np
+from configobj import validate
 
-from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
