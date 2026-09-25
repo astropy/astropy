@@ -249,8 +249,11 @@ class XMLWriter:
             Element name.  If given, the tag must match the start tag.
             If omitted, the current element is closed.
         indent : bool, optional
-            If the start tag is still open, whether to write a newline after
-            closing it. Default is `True`.
+            Whether to indent the element over multiple lines: a newline
+            after the start tag, and the current indentation before the end
+            tag.  If `False` the element is written on a single line, e.g.
+            ``<tag>data</tag>``.  This has no effect on an empty element,
+            which is always written as ``<tag/>``.  Default is `True`.
         wrap : bool, optional
             Whether to wrap buffered character data onto indented lines of
             their own before closing the element. Default is `False`.
