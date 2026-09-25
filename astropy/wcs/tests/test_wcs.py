@@ -2109,6 +2109,78 @@ def test_alternate_wcs_distortion_independent():
     )
 
 
+def _wcs_with_lookup_distortion(key):
+    header = fits.Header()
+    suffix = key.strip()
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 1024
+    header["NAXIS2"] = 1024
+    header[f"CTYPE1{suffix}"] = "RA---TAN"
+    header[f"CTYPE2{suffix}"] = "DEC--TAN"
+    header[f"CRPIX1{suffix}"] = 512
+    header[f"CRPIX2{suffix}"] = 512
+    header[f"CRVAL1{suffix}"] = 150.0
+    header[f"CRVAL2{suffix}"] = -35.0
+    header[f"CDELT1{suffix}"] = -0.0002777778
+    header[f"CDELT2{suffix}"] = 0.0002777778
+    for axis in (1, 2):
+        header[f"CPDIS{axis}{suffix}"] = "LOOKUP"
+        header[f"DP{axis}{suffix}.EXTVER"] = axis
+        header[f"DP{axis}{suffix}.NAXES"] = 2
+        header[f"DP{axis}{suffix}.AXIS.1"] = 1
+        header[f"DP{axis}{suffix}.AXIS.2"] = 2
+
+    hdulist = fits.HDUList([fits.PrimaryHDU(np.zeros((1024, 1024), dtype=np.uint8))])
+    for axis in (1, 2):
+        data = (np.arange(129 * 129, dtype=np.float32) * axis).reshape(129, 129)
+        dist = fits.ImageHDU(data, name="WCSDVARR")
+        dist.ver = axis
+        dist.header["CRPIX1"] = 65.0
+        dist.header["CRPIX2"] = 65.0
+        dist.header["CRVAL1"] = 513.0
+        dist.header["CRVAL2"] = 1.0
+        dist.header["CDELT1"] = 8.0
+        dist.header["CDELT2"] = 8.0
+        hdulist.append(dist)
+    return wcs.WCS(header, hdulist, key=key)
+
+
+@pytest.mark.parametrize("key", [" ", "A"])
+def test_alternate_wcs_distortion_to_fits_roundtrip(key):
+    """
+    Regression test for #20441: to_fits() on a secondary WCS wrote the
+    distortion keywords without the WCS key suffix, so the lookup table
+    did not survive a round trip through to_fits() / WCS(..., key=key).
+    """
+    w = _wcs_with_lookup_distortion(key)
+    assert w.cpdis1 is not None and w.cpdis2 is not None
+
+    hdulist = w.to_fits()
+    suffix = key.strip()
+    header = hdulist[0].header
+    for axis in (1, 2):
+        assert header[f"CPDIS{axis}{suffix}"] == "LOOKUP"
+        assert header[f"DP{axis}{suffix}.EXTVER"] == axis
+        assert header[f"DP{axis}{suffix}.NAXES"] == 2
+    if suffix:
+        # No unsuffixed (primary) distortion keywords are written.
+        assert "CPDIS1" not in header
+        assert "DP1.EXTVER" not in header
+
+    with pytest.warns(wcs.FITSFixedWarning, match="more axes"):
+        # The round-tripped primary HDU carries no image data.
+        w2 = wcs.WCS(hdulist[0].header, hdulist, key=key)
+    assert w2.cpdis1 is not None and w2.cpdis2 is not None
+    assert_array_equal(w2.cpdis1.data, w.cpdis1.data)
+    assert_array_equal(w2.cpdis2.data, w.cpdis2.data)
+    assert_array_equal(w2.cpdis1.crpix, w.cpdis1.crpix)
+
+    # An explicit key on to_fits() takes precedence over the object's key.
+    hdulist_b = w.to_fits(key="B")
+    assert "CPDIS1B" in hdulist_b[0].header
+    assert "DP1B.EXTVER" in hdulist_b[0].header
+
+
 def test_DistortionLookupTable():
     img_world_wcs = wcs.WCS(naxis=2)
     # A simple "pixel coordinates are world coordinates" WCS, to which we'll
