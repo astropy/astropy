@@ -994,3 +994,77 @@ class TestVerifyOptions:
         with conf.set_temp("verify", "exception"):
             with pytest.raises(VOWarning):
                 parse(get_pkg_data_filename("data/gemini.xml"))
+
+
+# Some characters that XML forbids anywhere in a document.
+# See https://www.w3.org/TR/xml/#NT-Char
+FORBIDDEN_XML_CHARS = ["\x00", "\x0c", "\x1b", "\ufffe"]
+
+
+@pytest.mark.parametrize("char", FORBIDDEN_XML_CHARS)
+@pytest.mark.parametrize("attribute", ["name", "unit", "ucd", "description"])
+def test_write_refuses_forbidden_xml_chars_in_attribute(char, attribute):
+    votable = from_table(Table({"target": ["NGC 1068"]}))
+    field = votable.get_first_table().fields[0]
+    with warnings.catch_warnings():
+        # A non-parseable unit warns on its own.  Ignore it here.
+        warnings.simplefilter("ignore", W50)
+        setattr(field, attribute, f"NGC{char}1068")
+
+    with pytest.raises(ValueError, match="XML does not permit this character"):
+        votable.to_xml(io.BytesIO())
+
+
+@pytest.mark.parametrize("char", FORBIDDEN_XML_CHARS)
+def test_write_refuses_forbidden_xml_chars_in_cell(tmp_path, char):
+    t = Table({"target": [f"NGC{char}1068"]})
+
+    with pytest.raises(ValueError, match="XML does not permit this character"):
+        t.write(tmp_path / "test.vot", format="votable")
+
+
+@pytest.mark.parametrize("char", ["\t", " ", "\x7f", "\xa0", "\ufffd", "\U0001f600"])
+def test_write_allows_permitted_chars(tmp_path, char):
+    # These are legal XML characters and must keep round tripping.  U+007F in
+    # particular is inside [#x20-#xD7FF] and is easy to reject by mistake.
+    path = tmp_path / "test.vot"
+    value = f"NGC{char}1068"
+    Table({"target": [value]}).write(path, format="votable")
+
+    assert Table.read(path, format="votable")["target"][0] == value
+
+
+# A null is excluded.  from_table() gives this column a fixed arraysize, and
+# the fixed-length binary reader stops at the first null byte, so the value
+# comes back truncated.  A variable-length column keeps it.  Either way that
+# is the converter's doing, not XML's.
+@pytest.mark.parametrize("char", [c for c in FORBIDDEN_XML_CHARS if c != "\x00"])
+@pytest.mark.parametrize("fmt", ["binary", "binary2"])
+def test_write_allows_forbidden_xml_chars_in_binary(char, fmt):
+    # BINARY writes the data base64 encoded inside a STREAM element, so a
+    # character that cannot appear in XML text is still representable there.
+    # Only the TABLEDATA path, which writes the values as text, has to
+    # refuse it.
+    value = f"NGC{char}1068"
+    votable = from_table(Table({"target": [value]}))
+    votable.get_first_table().format = fmt
+    buf = io.BytesIO()
+    votable.to_xml(buf)
+
+    assert (
+        parse(io.BytesIO(buf.getvalue())).get_first_table().array["target"][0] == value
+    )
+
+
+def test_forbidden_xml_char_error_matches_on_both_paths():
+    # The C table writer and the Python fallback reach the error by different
+    # routes, so keep them reporting it identically.
+    table = Table({"foo": [1.0, 2.0, 3.0], "target": ["a", "b", "c\x0cd"]})
+
+    with pytest.raises(ValueError, match=r"in row 2, col 'target'") as c_path:
+        from_table(table).to_xml(io.BytesIO(), _debug_python_based_parser=False)
+
+    with pytest.raises(ValueError, match=r"in row 2, col 'target'") as python_path:
+        from_table(table).to_xml(io.BytesIO(), _debug_python_based_parser=True)
+
+    assert str(c_path.value) == str(python_path.value)

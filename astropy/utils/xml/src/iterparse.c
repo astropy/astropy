@@ -716,7 +716,12 @@ static PyObject *IterParser_next(IterParser *self)
            if we've got one. */
         }
         else {
-            buflen = (Py_ssize_t)read(self->file, self->buffer, (size_t)self->buffersize);
+            /* On Windows this read() is Microsoft's _read(), which counts
+               in an unsigned int rather than the size_t that POSIX read()
+               takes, so cast to the narrower of the two.  buffersize is
+               clamped to 16MB when the parser is created, so it always
+               fits. */
+            buflen = (Py_ssize_t)read(self->file, self->buffer, (unsigned int)self->buffersize);
             if (buflen == -1) {
                 PyErr_SetFromErrno(PyExc_OSError);
                 goto fail;
@@ -1142,7 +1147,10 @@ PyObject *IterParserType = NULL;
  * XML escaping
  ******************************************************************************/
 
-/* These are in reverse order by input character */
+/* These are in reverse order by input character, terminated by a "\0" entry.
+ * The terminator is only ever a terminator: the loops below test for it
+ * before comparing, so a null byte in the input falls through and is copied
+ * rather than matching it and being replaced by the empty string. */
 static const char *escapes_cdata[] = {
     ">",
     "&gt;",
@@ -1154,10 +1162,71 @@ static const char *escapes_cdata[] = {
     "\0",
 };
 
-/* These are in reverse order by input character */
+/* These are in reverse order by input character, terminated by a "\0" entry.
+ * The terminator is only ever a terminator: the loops below test for it
+ * before comparing, so a null byte in the input falls through and is copied
+ * rather than matching it and being replaced by the empty string. */
 static const char *escapes[] = {
     ">", "&gt;", "<", "&lt;", "'", "&apos;", "&", "&amp;", "\"", "&quot;", "\0", "\0"
 };
+
+/* Raise a ValueError if `text` holds a character XML does not allow.
+ *
+ * XML 1.0 does not allow every character to appear in a document.  The
+ * permitted ones are listed at https://www.w3.org/TR/xml/#NT-Char and come
+ * to:
+ *
+ *     allowed     tab, line feed, carriage return
+ *                 U+0020 - U+D7FF   (printable ASCII upwards, delete included)
+ *                 U+E000 - U+FFFD
+ *                 U+10000 - U+10FFFF
+ *     forbidden   the other control characters below U+0020
+ *                 U+D800 - U+DFFF   (the surrogates)
+ *                 U+FFFE, U+FFFF
+ *
+ * This looks at the string one character at a time, rather than at the
+ * bytes those characters encode to in UTF-8.  That lets the test below be
+ * written as the ranges above, and makes the position it reports one the
+ * caller can use to index the string.
+ *
+ * We refuse them because XML does not allow them.  Escaping is not an
+ * alternative: unlike `&` and `<` these have no escaped form.
+ *
+ * The specification separately discourages a further set.  These are
+ * still legal, and parsers accept them, so we accept them too:
+ *
+ *     discouraged   U+007F - U+0084
+ *                   U+0086 - U+009F
+ *                   U+FDD0 - U+FDEF
+ *                   U+1FFFE, U+1FFFF, U+2FFFE, U+2FFFF, and so on up to
+ *                     U+10FFFE, U+10FFFF
+ *
+ * The U+1FFFE and U+1FFFF entries there are easy to confuse with U+FFFE
+ * and U+FFFF, which we do refuse.  The allowed list above is what
+ * separates them.
+ */
+static int _check_xml_chars(PyObject *text)
+{
+    const Py_ssize_t len = PyUnicode_GetLength(text);
+    Py_ssize_t i;
+
+    for (i = 0; i < len; ++i) {
+        const Py_UCS4 c = PyUnicode_ReadChar(text, i);
+        if ((c < 0x20 && c != '\t' && c != '\n' && c != '\r') || (c >= 0xD800 && c <= 0xDFFF) ||
+            c == 0xFFFE || c == 0xFFFF) {
+            PyErr_Format(
+                PyExc_ValueError,
+                "cannot write U+%04X at position %zd: XML does not permit this "
+                "character anywhere in a document "
+                "(see https://www.w3.org/TR/xml/#NT-Char)",
+                (unsigned int)c,
+                i
+            );
+            return -1;
+        }
+    }
+    return 0;
+}
 
 /* Implementation of escape_xml.
  *
@@ -1178,7 +1247,8 @@ static Py_ssize_t _escape_xml_impl(
 
     for (i = 0; i < input_len; ++i) {
         for (esc = escapes;; esc += 2) {
-            if ((unsigned char)input[i] > **esc) {
+            if (**esc == '\0' || (unsigned char)input[i] > **esc) {
+                /* Past the end of the table, or sorted past this entry. */
                 break;
             }
             else if (input[i] == **esc) {
@@ -1201,7 +1271,8 @@ static Py_ssize_t _escape_xml_impl(
 
     for (i = 0; i < input_len; ++i) {
         for (esc = escapes;; esc += 2) {
-            if ((unsigned char)input[i] > **esc) {
+            if (**esc == '\0' || (unsigned char)input[i] > **esc) {
+                /* Past the end of the table, or sorted past this entry. */
                 *(p++) = input[i];
                 break;
             }
@@ -1219,11 +1290,14 @@ static Py_ssize_t _escape_xml_impl(
 }
 
 /*
- * Returns a copy of the given string (8-bit or Unicode) with the XML
- * control characters converted to XML character entities.
+ * Returns a copy of the given string with the XML control characters
+ * converted to XML character entities.
  *
- * If an 8-bit string is passed in, an 8-bit string is returned.  If a
- * Unicode string is passed in, a Unicode string is returned.
+ * Text input is also checked for characters that XML does not allow
+ * anywhere in a document, and a ValueError is raised if one is found.  These
+ * functions are meant for text; bytes are accepted for backwards
+ * compatibility, are escaped the same way, and are returned as bytes, but
+ * they are not checked, since their encoding is not known here.
  */
 static PyObject *_escape_xml(PyObject *self, PyObject *args, const char **escapes)
 {
@@ -1244,6 +1318,10 @@ static PyObject *_escape_xml(PyObject *self, PyObject *args, const char **escape
         input_coerce = PyObject_Str(input_obj);
     }
     if (input_coerce) {
+        if (_check_xml_chars(input_coerce) < 0) {
+            Py_DECREF(input_coerce);
+            return NULL;
+        }
         input = (char *)PyUnicode_AsUTF8AndSize(input_coerce, &input_len);
         if (input == NULL) {
             Py_DECREF(input_coerce);
@@ -1305,11 +1383,16 @@ static PyObject *escape_xml_cdata(PyObject *self, PyObject *args)
  ******************************************************************************/
 
 static PyMethodDef module_methods[] = {
-    {"escape_xml", (PyCFunction)escape_xml, METH_VARARGS, "Fast method to escape XML strings"},
+    {"escape_xml",
+     (PyCFunction)escape_xml,
+     METH_VARARGS,
+     "Fast method to escape XML text; raises ValueError on a character XML "
+     "cannot represent.  Bytes are escaped but not checked."},
     {"escape_xml_cdata",
      (PyCFunction)escape_xml_cdata,
      METH_VARARGS,
-     "Fast method to escape XML strings"},
+     "Fast method to escape XML text; raises ValueError on a character XML "
+     "cannot represent.  Bytes are escaped but not checked."},
     {NULL} /* Sentinel */
 };
 

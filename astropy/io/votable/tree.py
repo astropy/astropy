@@ -3388,6 +3388,25 @@ class TableElement(
                 for element in self._infos:
                     element.to_xml(w, **kwargs)
 
+    def _find_unwritable_cell(self, outputs):
+        """
+        Find the first cell that its converter refuses to write.
+
+        Called only after a write has already failed, to say where.  Returns
+        ``(row, field)``, or ``(None, None)`` if every cell converts cleanly
+        and the failure was something else.
+        """
+        array = self.array
+        for row in range(len(array)):
+            array_row = array.data[row]
+            mask_row = array.mask[row]
+            for i, output in enumerate(outputs):
+                try:
+                    output(array_row[i], mask_row[i])
+                except Exception:
+                    return row, self.fields[i]
+        return None, None
+
     def _write_tabledata(self, w, **kwargs):
         fields = self.fields
         array = self.array
@@ -3398,17 +3417,28 @@ class TableElement(
                 supports_empty_values = [
                     field.converter.supports_empty_values(kwargs) for field in fields
                 ]
-                fields = [field.converter.output for field in fields]
+                outputs = [field.converter.output for field in fields]
                 indent = len(w._tags) - 1
-                tablewriter.write_tabledata(
-                    w.write,
-                    array.data,
-                    array.mask,
-                    fields,
-                    supports_empty_values,
-                    indent,
-                    1 << 8,
-                )
+                try:
+                    tablewriter.write_tabledata(
+                        w.write,
+                        array.data,
+                        array.mask,
+                        outputs,
+                        supports_empty_values,
+                        indent,
+                        1 << 8,
+                    )
+                except Exception as e:
+                    # The C writer cannot say which cell it failed at writing, so find
+                    # the offending cell here to give the Exception a more useful message.
+                    row, field = self._find_unwritable_cell(outputs)
+                    additional = (
+                        f"(in row {row:d}, col '{field.ID}')"
+                        if field is not None
+                        else ""
+                    )
+                    vo_reraise(e, additional=additional)
             else:
                 write = w.write
                 indent_spaces = w.get_indentation_spaces()
