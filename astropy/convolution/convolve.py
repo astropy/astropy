@@ -970,7 +970,7 @@ def convolve_fft(
             else:
                 # Set anything with no weight to zero (taking into account
                 # slight offsets due to floating-point errors).
-                rifft[bigimwt < 10 * np.finfo(bigimwt.dtype).eps] = 0.0
+                rifft[np.abs(bigimwt) < 10 * np.finfo(bigimwt.dtype).eps] = 0.0
     else:
         rifft = ifftn(fftmult)
 

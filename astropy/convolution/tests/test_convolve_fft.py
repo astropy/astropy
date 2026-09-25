@@ -553,6 +553,29 @@ class TestConvolve1D:
 
 
 class TestConvolve2D:
+    def test_nan_interpolation_with_negative_kernel_weights(self):
+        """Interpolation must retain a valid negative normalization weight."""
+        image = np.arange(49.0).reshape(7, 7)
+        image[3, 3] = np.nan
+        kernel = np.array([[1, -2, 1], [-2, 5, -2], [1, -2, 2.0]])
+
+        direct = convolve(
+            image,
+            kernel,
+            boundary="wrap",
+            nan_treatment="interpolate",
+            normalize_kernel=True,
+        )
+        fft = convolve_fft(
+            image,
+            kernel,
+            boundary="wrap",
+            nan_treatment="interpolate",
+            normalize_kernel=True,
+        )
+
+        assert_allclose(fft[3, 3], direct[3, 3])
+
     @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
     @pytest.mark.parametrize("nan_treatment", NANTREATMENT_OPTIONS)
     @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
