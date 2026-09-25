@@ -37,10 +37,16 @@ Pixel Dim  Axis Name  Data size  Bounds
 World Dim  Axis Name  Physical Type  Units
         0  None       None           unknown
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
            Pixel Dim
 World Dim    0
+        0  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+           World Dim
+Pixel Dim    0
         0  yes
 """
 
