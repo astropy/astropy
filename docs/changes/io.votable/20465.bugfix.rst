@@ -1,1 +1,1 @@
-Astropy Table that violates VOTable standards will now raise ValueError on write; previously it would silently write a bad VOTable that cannot roundtrip.
+``check_token()`` now throws a W58; previously it only returned a boolean flag that VOTable parser does not check for.

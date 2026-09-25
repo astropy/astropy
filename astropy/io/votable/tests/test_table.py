@@ -15,9 +15,10 @@ import pytest
 from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
 from astropy.io.votable.converters import Char, UnicodeChar, get_converter
-from astropy.io.votable.exceptions import E01, E25, W39, W46, W50, VOWarning
+from astropy.io.votable.exceptions import E01, E25, W39, W46, W50, W58, VOWarning
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable.tree import Field, VOTableFile
+from astropy.io.votable.xmlutil import check_token
 from astropy.table import Column, Table
 from astropy.table.table_helpers import simple_table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
@@ -271,8 +272,9 @@ def test_write_with_format():
 @pytest.mark.parametrize("name", ["a\tb", "a\nb", "a\rb", " ab", "ab ", "a  b"])
 def test_invalid_token_name_warns(name):
     votable = from_table(Table({"target": ["x"]}))
-    assert not check.check_token(name)
-    with pytest.warns(W58, match="may not round trip"):
+    with pytest.warns(W58, match=".* may not round trip"):
+        assert not check_token(name, "name")
+    with pytest.warns(W58, match=".* may not round trip"):
         votable.get_first_table().fields[0].name = name
 
 
