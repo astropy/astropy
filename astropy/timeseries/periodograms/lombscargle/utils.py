@@ -64,7 +64,7 @@ def convert_normalization(Z, N, from_normalization, to_normalization, chi2_ref=N
 
     for norm in from_to:
         if norm not in NORMALIZATIONS:
-            raise ValueError(f"{from_normalization} is not a valid normalization")
+            raise ValueError(f"{norm} is not a valid normalization")
 
     if from_normalization == to_normalization:
         return Z
