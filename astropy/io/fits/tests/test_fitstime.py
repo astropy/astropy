@@ -212,7 +212,7 @@ class TestFitsTime(FitsTestCase):
             self.time,
             format="isot",
             scale="utc",
-            location=EarthLocation(-2446354, 4237210, 4077985, unit="m"),
+            location=EarthLocation(-2_446_354, 4_237_210, 4_077_985, unit="m"),
         )
         t["b"] = Time([1, 2], format="cxcsec", scale="tt")
 
@@ -465,7 +465,11 @@ class TestFitsTime(FitsTestCase):
         )
 
         # Observatory position in ITRS Cartesian coordinates (geocentric)
-        cards = [("OBSGEO-X", -2446354), ("OBSGEO-Y", 4237210), ("OBSGEO-Z", 4077985)]
+        cards = [
+            ("OBSGEO-X", -2_446_354),
+            ("OBSGEO-Y", 4_237_210),
+            ("OBSGEO-Z", 4_077_985),
+        ]
 
         # Explicitly create a FITS Binary Table
         bhdu = fits.BinTableHDU.from_columns([c], header=fits.Header(cards))
@@ -474,9 +478,9 @@ class TestFitsTime(FitsTestCase):
         tm = table_types.read(self.temp("time.fits"), astropy_native=True)
 
         assert isinstance(tm["datetime"], Time)
-        assert tm["datetime"].location.x.value == -2446354
-        assert tm["datetime"].location.y.value == 4237210
-        assert tm["datetime"].location.z.value == 4077985
+        assert tm["datetime"].location.x.value == -2_446_354
+        assert tm["datetime"].location.y.value == 4_237_210
+        assert tm["datetime"].location.z.value == 4_077_985
 
         # Observatory position in geodetic coordinates
         cards = [("OBSGEO-L", 0), ("OBSGEO-B", 0), ("OBSGEO-H", 0)]
@@ -499,7 +503,7 @@ class TestFitsTime(FitsTestCase):
         recognized by the FITS standard but are not native to astropy.
         """
         # GPS scale column
-        gps_time = np.array([630720013, 630720014])
+        gps_time = np.array([630_720_013, 630_720_014])
         c = fits.Column(
             name="gps_time",
             format="D",

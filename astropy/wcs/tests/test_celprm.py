@@ -6,7 +6,7 @@ import pytest
 
 from astropy import wcs
 
-_WCS_UNDEFINED = 987654321.0e99
+_WCS_UNDEFINED = 9.87654321e107
 
 
 def test_celprm_init():
