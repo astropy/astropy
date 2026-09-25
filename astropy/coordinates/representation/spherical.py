@@ -114,6 +114,24 @@ class UnitSphericalRepresentation(BaseRepresentation):
         return cls(*erfa_ufunc.c2s(p), copy=False)
 
     def represent_as(self, other_class, differential_class=None):
+        # Physical differentials are velocities along the unit vectors, which can't be
+        # computed without a distance.
+        if self.differentials and differential_class is not None:
+            for diff_cls in (
+                differential_class.values()
+                if isinstance(differential_class, dict)
+                else (differential_class,)
+            ):
+                if isinstance(diff_cls, type) and issubclass(
+                    diff_cls, BasePhysicalDifferential
+                ):
+                    raise ValueError(
+                        f"Cannot represent differentials as {diff_cls.__name__} "
+                        f"for a {type(self).__name__}, since it has no distance. "
+                        "Add a distance, or use an angular differential such as "
+                        "SphericalCosLatDifferential instead."
+                    )
+
         # Take a short cut if the other class is a spherical representation
         # TODO! for differential_class. This cannot (currently) be implemented
         # like in the other Representations since `_re_represent_differentials`
