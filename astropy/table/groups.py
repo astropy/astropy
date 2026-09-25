@@ -275,7 +275,16 @@ class ColumnGroups(BaseGroups):
                 and (hasattr(func, "reduceat") or func is np.sum or func is np.mean)
             ):
                 if func is np.mean:
-                    vals = np.add.reduceat(par_col, i0s) / np.diff(self.indices)
+                    # np.diff(self.indices) only accounts for the leading
+                    # (row) axis, so reshape it to broadcast correctly
+                    # against any trailing dimensions of a multidimensional
+                    # ``par_col`` instead of relying on numpy to line up the
+                    # last axis, which silently gives wrong results if the
+                    # number of groups happens to match a trailing
+                    # dimension size.
+                    counts = np.diff(self.indices)
+                    counts = counts.reshape(counts.shape + (1,) * (par_col.ndim - 1))
+                    vals = np.add.reduceat(par_col, i0s) / counts
                 else:
                     if func is np.sum:
                         func = np.add
