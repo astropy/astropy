@@ -11,7 +11,9 @@ extern PyObject* WcsprmType;
 
 typedef struct {
 
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   struct wcsprm x;
 
   // WCSLIB converts units to SI (for example nanometers for a specrtal axis to

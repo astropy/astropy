@@ -11,7 +11,9 @@
 #include "pipeline.h"
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   pipeline_t x;
   /*@shared@*/ PyObject*            py_det2im[2];
   /*@null@*/ /*@shared@*/ PyObject* py_sip;
