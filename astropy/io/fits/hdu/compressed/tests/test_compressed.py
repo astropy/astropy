@@ -1652,3 +1652,89 @@ def test_compressed_hdu_header_order():
         assert actual_key == expected_key
         if actual_key != "CHECKSUM":
             assert actual_value == expected_value
+
+
+@pytest.mark.parametrize(
+    ("bscale", "bzero", "dtype"),
+    [
+        (0.5, 0.0, np.int16),
+        (2.0, 100.0, np.int16),
+        (0.25, -3.0, np.int32),
+        (1.0, 0.0, np.int16),
+        (None, None, np.int16),
+        (None, None, np.float32),
+    ],
+)
+def test_scaled_compimage_survives_header_only_update(tmp_path, bscale, bzero, dtype):
+    """A header-only update must not touch the data.
+
+    The update is repeated three times because the corruption was cumulative:
+    a single round trip could be mistaken for a rounding artefact, three
+    cannot.  The scaling keywords and the stored integer representation must
+    survive as well: the data could also be "preserved" by dropping BSCALE
+    and writing the physical values, which would be a different file from
+    the one the user wrote.
+    """
+    path = tmp_path / "scaled.fits"
+    values = np.arange(1, 101, dtype=dtype).reshape(10, 10)
+
+    hdu = fits.CompImageHDU(values, name="SCI", compression_type="RICE_1")
+    if bscale is not None:
+        hdu.header["BSCALE"] = bscale
+    if bzero is not None:
+        hdu.header["BZERO"] = bzero
+    hdu.writeto(path)
+
+    with fits.open(path) as hdul:
+        expected = np.asarray(hdul["SCI"].data, dtype=float)
+
+    for i in range(3):
+        # deliberately do NOT touch .data: that is the trigger
+        with fits.open(path, mode="update") as hdul:
+            hdul["SCI"].header["COMMENT"] = f"header-only update {i}"
+
+        with fits.open(path) as hdul:
+            got = np.asarray(hdul["SCI"].data, dtype=float)
+        assert_allclose(
+            got,
+            expected,
+            err_msg=f"data changed after {i + 1} header-only update(s)",
+        )
+
+    with fits.open(path, do_not_scale_image_data=True) as hdul:
+        header = hdul["SCI"].header
+        if bscale is not None and bscale != 1.0:
+            assert header["BSCALE"] == bscale
+        if bzero is not None and bzero != 0.0:
+            assert header["BZERO"] == bzero
+        assert np.asarray(hdul["SCI"].data).dtype.kind == np.dtype(dtype).kind
+        assert [c.value for c in header.cards if c.keyword == "COMMENT"] == [
+            f"header-only update {i}" for i in range(3)
+        ]
+
+
+@pytest.mark.parametrize(
+    "open_kwargs",
+    [{"do_not_scale_image_data": True}, {"scale_back": True}],
+)
+def test_scaled_compimage_header_only_update_open_options(tmp_path, open_kwargs):
+    """Header-only updates must also be safe under the scaling-related open
+    options: with ``do_not_scale_image_data`` the data is loaded raw if at
+    all, and with ``scale_back`` the write path converts loaded data back to
+    the original representation.  Neither must change the stored values.
+    """
+    path = tmp_path / "options.fits"
+    values = np.arange(1, 101, dtype=np.int16).reshape(10, 10)
+    hdu = fits.CompImageHDU(values, name="SCI", compression_type="RICE_1")
+    hdu.header["BSCALE"] = 0.5
+    hdu.writeto(path)
+
+    with fits.open(path, mode="update", **open_kwargs) as hdul:
+        hdul["SCI"].header["COMMENT"] = "header-only update"
+
+    with fits.open(path, do_not_scale_image_data=True) as hdul:
+        assert hdul["SCI"].header["BSCALE"] == 0.5
+        assert_equal(np.asarray(hdul["SCI"].data), values)
+
+    with fits.open(path) as hdul:
+        assert_allclose(np.asarray(hdul["SCI"].data, dtype=float), values * 0.5)
