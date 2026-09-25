@@ -71,6 +71,10 @@ jobs:
         - cp3*-win_amd64
         - cp3*-win_arm64
 
+        # WebAssembly wheels (PEP 776, PEP 783), cross compiled on Linux.
+        # Note that these are not currently tested, see test-skip in pyproject.toml.
+        - cp3*-pyodide_wasm32
+
     secrets:
       anaconda_token: ${{ secrets.anaconda_token }}
 
