@@ -268,11 +268,12 @@ def test_write_with_format():
     assert b"TABLEDATA" not in obuff
 
 
-def test_write_invalid_xml():
-    t = Table({"target": ["NGC\x0c1068"]})
-    buff = io.BytesIO()
-    with pytest.raises(ValueError, match=r"(.|\n)*invalid token"):
-        t.write(buff, format="votable")
+@pytest.mark.parametrize("name", ["a\tb", "a\nb", "a\rb", " ab", "ab ", "a  b"])
+def test_invalid_token_name_warns(name):
+    votable = from_table(Table({"target": ["x"]}))
+    assert not check.check_token(name)
+    with pytest.warns(W58, match="may not round trip"):
+        votable.get_first_table().fields[0].name = name
 
 
 @pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow")
