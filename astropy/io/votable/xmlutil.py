@@ -10,7 +10,7 @@ from astropy.utils.xml import check as xml_check
 from astropy.utils.xml import validate
 
 # LOCAL
-from .exceptions import W02, W03, W04, W05, vo_warn, warn_or_raise
+from .exceptions import W02, W03, W04, W05, W58, vo_warn, warn_or_raise
 
 __all__ = [
     "check_anyuri",
@@ -56,11 +56,15 @@ _token_regex = r"(?![\r\l\t ])[^\r\l\t]*(?![\r\l\t ])"
 
 def check_token(token, attr_name, config=None, pos=None):
     """
-    Raises a `ValueError` if *token* is not a valid XML token.
+    Raises a `~astropy.io.votable.exceptions.VOTableSpecError` if
+    *token* is not a valid XML token.
 
     As defined by XML Schema Part 2.
     """
-    return token is None or xml_check.check_token(token)
+    if token is not None and not xml_check.check_token(token):
+        warn_or_raise(W58, W58, (attr_name, token), config, pos)
+        return False
+    return True
 
 
 def check_mime_content_type(content_type, config=None, pos=None):
