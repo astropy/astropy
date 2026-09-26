@@ -9,6 +9,7 @@ import erfa
 import numpy as np
 
 from astropy.coordinates.baseframe import frame_transform_graph
+from astropy.coordinates.erfa_astrom import erfa_astrom
 from astropy.coordinates.matrix_utilities import matrix_transpose
 from astropy.coordinates.transformations import FunctionTransformWithFiniteDifference
 
@@ -43,7 +44,13 @@ def teme_to_itrs_mat(time):
 
 def gcrs_to_cirs_mat(time):
     # celestial-to-intermediate matrix
-    return erfa.c2i06a(*get_jd12(time, "tt"))
+    # this code is identical to calling c2i06a, but allows using
+    # the erfa_astrom machinery for the expensive nut06a computation
+    # in pnm06a
+    rbpn = erfa_astrom.get().pnm06a(time)
+    x, y = erfa.bpn2xy(rbpn)
+    s = erfa.s06(*get_jd12(time, "tt"), x, y)
+    return erfa.c2ixys(x, y, s)
 
 
 def cirs_to_itrs_mat(time):
@@ -76,11 +83,8 @@ def tete_to_itrs_mat(time, rbpn=None):
     ujd1, ujd2 = get_jd12(time, "ut1")
     jd1, jd2 = get_jd12(time, "tt")
     if rbpn is None:
-        # erfa.gst06a calls pnm06a to calculate rbpn and then gst06. Use it in
-        # favour of getting rbpn with erfa.pnm06a to avoid a possibly large array.
-        gast = erfa.gst06a(ujd1, ujd2, jd1, jd2)
-    else:
-        gast = erfa.gst06(ujd1, ujd2, jd1, jd2, rbpn)
+        rbpn = erfa_astrom.get().pnm06a(time)
+    gast = erfa.gst06(ujd1, ujd2, jd1, jd2, rbpn)
 
     # c2tcio expects a GCRS->CIRS matrix, but we just set that to an I-matrix
     # because we're already in CIRS equivalent frame
@@ -115,7 +119,7 @@ def get_location_gcrs(location, obstime, ref_to_itrs, gcrs_to_ref):
 def gcrs_to_tete(gcrs_coo, tete_frame):
     # Classical NPB matrix, IAU 2006/2000A
     # (same as in builtin_frames.utils.get_cip).
-    rbpn = erfa.pnm06a(*get_jd12(tete_frame.obstime, "tt"))
+    rbpn = erfa_astrom.get().pnm06a(tete_frame.obstime)
     # Get GCRS coordinates for the target observer location and time.
     loc_gcrs = get_location_gcrs(
         tete_frame.location,
@@ -135,7 +139,7 @@ def gcrs_to_tete(gcrs_coo, tete_frame):
 @frame_transform_graph.transform(FunctionTransformWithFiniteDifference, TETE, GCRS)
 def tete_to_gcrs(tete_coo, gcrs_frame):
     # Compute the pn matrix, and then multiply by its transpose.
-    rbpn = erfa.pnm06a(*get_jd12(tete_coo.obstime, "tt"))
+    rbpn = erfa_astrom.get().pnm06a(tete_coo.obstime)
     newrepr = tete_coo.cartesian.transform(matrix_transpose(rbpn))
     # We now have a GCRS vector for the input location and obstime.
     # Turn it into a GCRS frame instance.
