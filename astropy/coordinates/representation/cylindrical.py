@@ -7,8 +7,9 @@ import numpy as np
 
 import astropy.units as u
 from astropy.coordinates.angles import Angle
+from astropy.utils import classproperty
 
-from .base import BaseDifferential, BaseRepresentation
+from .base import BaseDifferential, BasePhysicalDifferential, BaseRepresentation
 from .cartesian import CartesianRepresentation
 from .spherical import PhysicsSphericalRepresentation, _spherical_op_funcs
 
@@ -74,6 +75,10 @@ class CylindricalRepresentation(BaseRepresentation):
         """
         return self._z
 
+    @classproperty
+    def _compatible_differentials(cls):
+        return [CylindricalDifferential, CylindricalPhysicalDifferential]
+
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
         l = np.broadcast_to(1.0, self.shape)
@@ -121,6 +126,14 @@ class CylindricalRepresentation(BaseRepresentation):
         phi_op, _, rho_op = _spherical_op_funcs(op, *args)
         z_op = lambda x: op(x, *args)
 
+        # For a negative scale, the point is reflected to (phi + 180°, -z), which flips
+        # the rho and phi unit vectors. For a typical differential, d_rho then scales by
+        # |scale|, d_phi is unchanged, and d_z scales by the scale. For a physical
+        # differential, d_phi instead scales by |scale| (because it is actually v_phi =
+        # d_phi/d_t * rho). See SphericalRepresentation._scale_operation for details.
+        diff_ops = (rho_op, operator.pos, z_op)
+        phys_ops = (rho_op, rho_op, z_op)
+
         result = self.__class__(
             rho_op(self.rho), phi_op(self.phi), z_op(self.z), copy=None
         )
@@ -128,7 +141,10 @@ class CylindricalRepresentation(BaseRepresentation):
             new_comps = (
                 op(getattr(differential, comp))
                 for op, comp in zip(
-                    (rho_op, operator.pos, z_op), differential.components
+                    phys_ops
+                    if isinstance(differential, BasePhysicalDifferential)
+                    else diff_ops,
+                    differential.components,
                 )
             )
             result.differentials[key] = differential.__class__(*new_comps, copy=False)
@@ -173,3 +189,26 @@ class CylindricalDifferential(BaseDifferential):
         super().__init__(d_rho, d_phi, d_z, copy=copy)
         if not self._d_rho.unit.is_equivalent(self._d_z.unit):
             raise u.UnitsError("d_rho and d_z should have equivalent units.")
+
+
+class CylindricalPhysicalDifferential(BasePhysicalDifferential):
+    """Differential(s) of points in cylindrical coordinates, in physical units.
+
+    Components are along the local unit vectors, so that, e.g., for a
+    velocity, ``d_phi = rho * dphi/dt``, in the same units as ``d_rho`` and
+    ``d_z`` (e.g., km/s).
+
+    Parameters
+    ----------
+    d_rho, d_phi, d_z : `~astropy.units.Quantity`
+        The differentials along the cylindrical radius, azimuth and height
+        unit vectors, all with equivalent units.
+    copy : bool, optional
+        If `True` (default), arrays will be copied. If `False`, arrays will
+        be references, though possibly broadcast to ensure matching shapes.
+    """
+
+    base_representation = CylindricalRepresentation
+
+    def __init__(self, d_rho, d_phi=None, d_z=None, copy=True):
+        super().__init__(d_rho, d_phi, d_z, copy=copy)
