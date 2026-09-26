@@ -22,7 +22,7 @@ from astropy.utils.compat.numpycompat import (
     NUMPY_LT_2_6,
 )
 
-from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
+from .converters import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 
 
 def _d(unit):

@@ -10,7 +10,7 @@ import numpy as np
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitsError, UnitTypeError
 
-from . import UFUNC_HELPERS
+from .converters import UFUNC_HELPERS
 from .helpers import (
     get_converter,
     helper_dimensionless_to_dimensionless,

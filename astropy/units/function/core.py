@@ -9,15 +9,9 @@ from typing import Self
 import numpy as np
 from numpy._core import umath as np_umath
 
-from astropy.units import (
-    Quantity,
-    Unit,
-    UnitBase,
-    UnitConversionError,
-    UnitsError,
-    UnitTypeError,
-    dimensionless_unscaled,
-)
+from astropy.units.core import Unit, UnitBase, dimensionless_unscaled
+from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
+from astropy.units.quantity import Quantity
 from astropy.units.typing import PhysicalTypeID
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]

@@ -1,6 +1,7 @@
 import abc
 
-from astropy.wcs.wcsapi import BaseLowLevelWCS, wcs_info_str
+from astropy.wcs.wcsapi.low_level_api import BaseLowLevelWCS
+from astropy.wcs.wcsapi.utils import wcs_info_str
 
 
 class BaseWCSWrapper(BaseLowLevelWCS, metaclass=abc.ABCMeta):
