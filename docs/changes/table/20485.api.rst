@@ -1,13 +1,13 @@
 An operation on a ``Column`` that has a ``unit`` set now issues a new
-``ColumnUnitWarning`` if the result would have been different had the unit been taken
-into account. A ``Column`` unit is only a descriptive label, so ``col_m * col_s`` is
-labeled ``m`` rather than ``m s``, ``col_m + col_km`` adds the values without converting
-them, and ``np.sin(col_deg)`` treats the values as radians. Each of these now warns and
-suggests using ``QTable`` or ``Column.quantity`` instead.
+``ColumnUnitWarning`` if the unit the result is labeled with might not be the right one.
+A ``Column`` unit is only a descriptive label, so ``col_m * col_s`` comes back labeled
+``m`` rather than ``m s``, ``col_m + col_km`` adds the values without converting them, and
+``np.sin(col_deg)`` treats the values as radians. Each of these now warns and suggests
+using ``QTable`` or ``Column.quantity`` instead.
 
-Operations whose answer does not depend on the unit are unaffected and never warn, so
-common idioms such as ``col * 5``, ``col + 2``, ``-col``, ``col > 0`` and ``col.mean()``
-remain silent.
+Operations where the unit provably carries through unchanged are unaffected and never
+warn, so common idioms such as ``col * 5``, ``col + 2``, ``col / 5``, ``-col``,
+``col > 0``, ``col + col`` and ``col.mean()`` remain silent.
 
 Set the new ``table.conf.column_unit_policy`` configuration item to ``'silent'`` to
 suppress the warnings, or to ``'error'`` to raise ``ColumnUnitWarning`` instead, which is

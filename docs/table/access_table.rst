@@ -941,7 +941,7 @@ to this)::
     <Column name='angle' dtype='float64' unit='deg' length=2>
     -0.988031624093
      0.893996663601
-    ColumnUnitWarning: units are ignored in 'sin' on Column 'angle' (unit 'deg'): the values were not converted to a common unit. Use QTable or Column.quantity for unit-aware arithmetic, or set astropy.table.conf.column_unit_policy to 'silent' to suppress this warning.
+    ColumnUnitWarning: units are ignored in 'sin' on Column 'angle' (unit 'deg'): the result keeps the unit 'deg', which may be wrong. Use QTable or Column.quantity for unit-aware arithmetic, or set astropy.table.conf.column_unit_policy to 'silent' to suppress this warning.
 
   This is wrong both in that it says the result is in degrees, *and*
   `~numpy.sin` treated the values as radians rather than degrees. That is what
@@ -960,11 +960,11 @@ Warnings About Ignored Units
 
 Because a |Column| unit is only a label, an operation on a column that has a
 unit set can quietly give an answer that a |Quantity| would not. To make that
-visible, ``astropy`` issues a :class:`~astropy.table.ColumnUnitWarning` when the
-result would have been different had the unit been honored, either because the
-unit label on the result is wrong, because the values were combined without
-converting them to a common unit, or because the units are not compatible at
-all::
+visible, ``astropy`` issues a :class:`~astropy.table.ColumnUnitWarning` whenever
+the unit the result ends up labeled with might not be the right one. That happens
+for an operation that changes the unit, such as multiplying two columns or taking
+a square root or a sine, and for one that combines columns whose units differ and
+so would have needed converting::
 
   >>> t = Table()
   >>> t['distance'] = Column([1., 2., 3.], unit='m')
@@ -974,7 +974,7 @@ all::
   1.0
   1.0
   1.0
-  ColumnUnitWarning: units are ignored in 'divide' on Column 'distance' (unit 'm') and Column 'time' (unit 's'): the result is labeled 'm' but should be 'm / s'. Use QTable or Column.quantity for unit-aware arithmetic, or set astropy.table.conf.column_unit_policy to 'silent' to suppress this warning.
+  ColumnUnitWarning: units are ignored in 'divide' on Column 'distance' (unit 'm') and Column 'time' (unit 's'): the result keeps the unit 'm', which may be wrong. Use QTable or Column.quantity for unit-aware arithmetic, or set astropy.table.conf.column_unit_policy to 'silent' to suppress this warning.
 
 Operations whose answer does not depend on the unit never warn, so the common
 case of scaling a column by a plain number is unaffected::

@@ -11,14 +11,7 @@ from copy import deepcopy
 import numpy as np
 from numpy import ma
 
-from astropy.units import (
-    Quantity,
-    StructuredUnit,
-    Unit,
-    UnitsError,
-    UnrecognizedUnit,
-)
-from astropy.units.quantity_helper import converters_and_unit
+from astropy.units import Quantity, StructuredUnit, Unit, UnrecognizedUnit
 from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
@@ -109,24 +102,28 @@ def _describe_operand(operand):
 
 
 def _check_unit_consistency(col, context):
-    """Warn if ignoring ``col.unit`` in a ufunc gives a different answer.
+    """Warn if a ufunc on ``col`` may have given the wrong unit or wrong values.
 
-    ``Column`` arithmetic ignores ``unit`` and the output inherits the unit of
-    the input that numpy chose to wrap the result with. That is harmless for a
-    unit-agnostic operation like ``col * 2``, but ``col_m * col_s`` gets labeled
-    ``m`` instead of ``m s``, and ``col_m + col_km`` adds the values without
-    converting them.
+    ``Column`` arithmetic ignores ``unit``: the output simply inherits the unit
+    of the input that numpy chose to wrap the result with, and no operand is ever
+    converted. So ``col_m * col_s`` comes back labeled ``m`` instead of ``m s``,
+    ``col_m + col_km`` adds the values without converting them, and
+    ``np.sin(col_deg)`` treats the values as radians.
 
-    Rather than warn about every operation on a column that has a unit, ask
-    ``astropy.units`` what the answer *should* be and warn only when it differs
-    from what we are about to return. See ``context`` in the numpy docs for
-    ``__array_wrap__``; it is ``(ufunc, inputs, domain)``, where ``inputs``
-    also includes any ``out`` argument.
+    Warn whenever that inherited unit might not be the right one, based only on
+    which ufunc is being applied and which operands carry a unit. The unit-
+    agnostic operations are enumerated below; anything else warns. Note this is
+    deliberately not a check of whether the answer *is* wrong -- working that out
+    means asking ``astropy.units`` to resolve the operation, which costs more than
+    the operation being checked.
+
+    ``context`` is numpy's ``__array_wrap__`` context, ``(ufunc, inputs, domain)``,
+    where ``inputs`` also includes any ``out`` argument.
     """
     from . import conf
 
     # Read the policy up front so that 'silent' really is an early out: this
-    # check is otherwise the dominant cost of a ufunc on a short column.
+    # check is otherwise a noticeable cost for a ufunc on a short column.
     if (
         getattr(_unit_check, "suppressed", False)
         or (policy := conf.column_unit_policy) == "silent"
@@ -136,51 +133,46 @@ def _check_unit_consistency(col, context):
     ufunc = context[0]
     inputs = context[1][: ufunc.nin]
     units = [getattr(input_, "unit", None) for input_ in inputs]
+    set_units = [unit for unit in units if unit is not None]
 
-    if all(unit is None for unit in units):
+    if not set_units:
         # Nothing with a unit went in, so there is nothing to check. Notably
         # ``col += quantity`` lands here, with the inputs already converted and
         # unwrapped by ``Quantity.__array_ufunc__`` - a path that is correct.
         return
 
-    if any(isinstance(unit, (UnrecognizedUnit, StructuredUnit)) for unit in units):
-        # Neither of these can be reasoned about here. Arithmetic on an
-        # UnrecognizedUnit is undefined, and two *equal* UnrecognizedUnit
-        # instances still fail to convert to one another, while a StructuredUnit
-        # reports a conversion as being needed even between equal units. Either
-        # way a warning would be about a units limitation, not the user's code.
+    if any(isinstance(unit, UnrecognizedUnit) for unit in set_units):
+        # astropy could not parse this unit, so arithmetic on it is undefined and
+        # there is nothing useful to say. It also does not compare equal to the
+        # same unit parsed successfully elsewhere - a user-defined unit read back
+        # from ECSV without that unit enabled, say - which would otherwise look
+        # like a unit mismatch.
         return
 
-    try:
-        # ``converters_and_unit`` only looks at ``.unit`` on each input (plus the
-        # value of an exponent for ``power``), so the columns go through as-is.
-        converters, result_unit = converters_and_unit(ufunc, "__call__", *inputs)
-    except UnitsError as exc:
-        # An operand with no unit is taken to be unit-agnostic, so that the
-        # common ``col + 2`` stays quiet. Only complain when every operand has a
-        # unit and they are genuinely incompatible.
-        if any(unit is None for unit in units):
+    if (name := ufunc.__name__) in _UNIT_UNCHANGED_UFUNCS:
+        # The result takes the unit of its operands, so the inherited unit is
+        # right, but only if the operands that have one agree. Comparing two
+        # equal units is cheap; comparing unequal ones is not, but that is the
+        # path that is about to warn anyway.
+        if all(unit == set_units[0] for unit in set_units[1:]):
             return
-        reason = f"the units are not compatible ({exc})"
-    except Exception:
-        # This check must never break the operation it is inspecting.
-        return
+        reason = "the values were not converted to a common unit"
     else:
-        if any(converter is not None for converter in converters):
-            reason = "the values were not converted to a common unit"
-        elif result_unit is not None and result_unit != col.unit:
-            # ``result_unit`` is None for the comparison ufuncs, where returning
-            # a plain bool array without a unit is the right thing to do.
-            reason = (
-                f"the result is labeled {_unit_str(col.unit)} but should be "
-                f"{_unit_str(result_unit)}"
-            )
-        else:
-            return
+        if name in _UNIT_SCALING_UFUNCS:
+            # Result takes the unit of whichever operand has one.
+            if len(set_units) == 1:
+                return
+        elif name in _UNIT_DIVIDING_UFUNCS:
+            # Result takes the unit of the first operand, so ``col_m / 2`` is
+            # fine but ``2 / col_m`` is 1/m, not m.
+            if len(set_units) == 1 and units[0] is not None:
+                return
+        # Anything else changes the unit: sqrt, square, sin, exp, log, ...
+        reason = f"the result keeps the unit {_unit_str(col.unit)}, which may be wrong"
 
     operands = " and ".join(_describe_operand(input_) for input_ in inputs)
     msg = (
-        f"units are ignored in {ufunc.__name__!r} on {operands}: {reason}. Use "
+        f"units are ignored in {name!r} on {operands}: {reason}. Use "
         "QTable or Column.quantity for unit-aware arithmetic, or set "
         "astropy.table.conf.column_unit_policy to 'silent' to suppress this warning."
     )
@@ -224,6 +216,58 @@ _comparison_functions = {
     np.sign,
     np.signbit,
 }
+
+
+# Which ufuncs a Column result may safely keep the input unit for, used by
+# _check_unit_consistency above.  Anything not listed here changes the unit
+# (sqrt, square, sin, exp, log, ...), so keeping the input unit is wrong.
+#
+# Matched by ufunc *name*, which folds the aliases together (np.true_divide is
+# np.divide, np.mod is np.remainder) and reaches ``clip``, a ufunc that numpy only
+# exposes privately as numpy._core.umath.clip.
+#
+# The result has the same unit as the operands, so the inherited unit is right as
+# long as every operand that has a unit has the same one.  The comparison ufuncs
+# belong here too: they return bools, but the values are only right if no operand
+# needed converting.  ``remainder``/``fmod`` are here rather than below because a
+# remainder keeps the unit of what was divided, unlike a quotient.
+_UNIT_UNCHANGED_UFUNCS = frozenset(
+    {
+        "add",
+        "subtract",
+        "minimum",
+        "maximum",
+        "fmin",
+        "fmax",
+        "hypot",
+        "remainder",
+        "fmod",
+        "negative",
+        "positive",
+        "absolute",
+        "fabs",
+        "rint",
+        "floor",
+        "ceil",
+        "trunc",
+        "clip",
+        "conjugate",
+        "copysign",
+        "nextafter",
+        "spacing",
+        "ldexp",
+    }
+    | {ufunc.__name__ for ufunc in _comparison_functions}
+)
+
+# The result has the unit of whichever operand has one, so it is right when only
+# one of them does: ``col_m * 2`` and ``2 * col_m`` are both m, ``col_m * col_s``
+# is not m.
+_UNIT_SCALING_UFUNCS = frozenset({"multiply"})
+
+# The result has the unit of the *first* operand, so ``col_m / 2`` is m but
+# ``2 / col_m`` is 1/m and ``col_m / col_s`` is m/s.
+_UNIT_DIVIDING_UFUNCS = frozenset({"divide", "floor_divide", "divmod"})
 
 
 # Comparison operators, and the ufunc each one ends up applying.  MaskedColumn
