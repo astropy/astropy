@@ -44,7 +44,6 @@ class Distribution:
         If an |ndarray| or subclass, the data will not be copied unless it is not
         possible to take a view (generally, only when the strides of the last axis
         are negative).
-
     """
 
     _generated_subclasses = {}
@@ -297,15 +296,16 @@ class Distribution:
         out : Distribution, tuple of Distribution or None
             Possible output |Distribution|. Should be `None` or a tuple if result
             is a tuple.
-        ncore_out: int or tuple thereof
+        ncore_out : int or tuple thereof
             The number of core dimensions for the output array for a gufunc.  This
             is used to determine which axis should be used for the samples.
-        axis: int or None
+        axis : int or None
             The axis a gufunc operated on.  Used only if ``ncore_out`` is given.
 
         Returns
         -------
         out : Distribution
+            The input, viewed as a |Distribution| if it was not one already.
         """
         if isinstance(result, (tuple, list)):
             if out is None:
@@ -379,7 +379,14 @@ class Distribution:
         """
         The mean of this distribution.
 
-        Arguments are as for `numpy.mean`.
+        Parameters
+        ----------
+        dtype : dtype, optional
+            Type to use in computing the mean. See `numpy.mean`.
+        out : array, optional
+            Alternative output array in which to place the result. It must
+            have the same shape and buffer length as the expected output,
+            but the type (of the output) will be cast if necessary.
         """
         return self.distribution.mean(axis=-1, dtype=dtype, out=out)
 
@@ -387,7 +394,18 @@ class Distribution:
         """
         The standard deviation of this distribution.
 
-        Arguments are as for `numpy.std`.
+        Parameters
+        ----------
+        dtype : dtype, optional
+            Type to use in computing the standard deviation. See `numpy.std`.
+        out : array, optional
+            Alternative output array in which to place the result. It must
+            have the same shape and buffer length as the expected output,
+            but the type (of the output) will be cast if necessary.
+        ddof : int, optional
+            Means Delta Degrees of Freedom. The divisor used in calculations
+            is ``N - ddof``, where ``N`` is the number of samples. See
+            `numpy.std`.
         """
         return self.distribution.std(axis=-1, dtype=dtype, out=out, ddof=ddof)
 
@@ -395,7 +413,18 @@ class Distribution:
         """
         The variance of this distribution.
 
-        Arguments are as for `numpy.var`.
+        Parameters
+        ----------
+        dtype : dtype, optional
+            Type to use in computing the variance. See `numpy.var`.
+        out : array, optional
+            Alternative output array in which to place the result. It must
+            have the same shape and buffer length as the expected output,
+            but the type (of the output) will be cast if necessary.
+        ddof : int, optional
+            Means Delta Degrees of Freedom. The divisor used in calculations
+            is ``N - ddof``, where ``N`` is the number of samples. See
+            `numpy.var`.
         """
         return self.distribution.var(axis=-1, dtype=dtype, out=out, ddof=ddof)
 
@@ -461,8 +490,9 @@ class Distribution:
 
         Returns
         -------
-        percentiles : `~astropy.units.Quantity` ['dimensionless']
-            The ``fracs`` percentiles of this distribution.
+        percentiles : ndarray or `~astropy.units.Quantity`
+            The requested percentiles of this distribution, of the same type
+            and unit as the underlying samples.
         """
         percentile = u.Quantity(percentile, u.percent).value
         percs = np.percentile(self.distribution, percentile, axis=-1, **kwargs)
@@ -533,6 +563,16 @@ class ArrayDistribution(Distribution, np.ndarray):
         ``type`` is a `~astropy.uncertainty.Distribution`, then no change in
         ``dtype`` is allowed.
 
+        Parameters
+        ----------
+        dtype : data-type or ndarray subclass, optional
+            Data-type descriptor of the returned view, e.g. ``float32``.  If it
+            is an ndarray subclass, it is interpreted as ``type`` instead, and
+            the data-type is left unchanged.  Omitting it leaves the data-type
+            unchanged as well.
+        type : ndarray subclass, optional
+            Type the returned view should have, e.g. |ndarray| or |Quantity|.
+            The corresponding distribution class is used.
         """
         if type is None:
             if isinstance(dtype, builtins.type) and issubclass(dtype, np.ndarray):
