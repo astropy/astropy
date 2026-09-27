@@ -1158,16 +1158,14 @@ class BinTableHDU(_TableBaseHDU):
             root = os.path.splitext(self._file.name)[0]
             datafile = root + ".txt"
 
-        # Process the data and the column definitions, closing the files we
+        # Process the data, then the column definitions, closing the files we
         # opened here even if a write fails partway through; the header is
         # written by Header.tofile, which handles closing the file itself
-        with (
-            _open_dump_file(datafile, "w") as dataf,
-            _open_dump_file(cdfile, "w") as cdf,
-        ):
+        with _open_dump_file(datafile, "w") as dataf:
             self._dump_data(dataf)
             if cdfile:
-                self._dump_coldefs(cdf)
+                with _open_dump_file(cdfile, "w") as cdf:
+                    self._dump_coldefs(cdf)
             if hfile:
                 self._header.tofile(hfile, sep="\n", endcard=False, padding=False)
 
@@ -1237,11 +1235,13 @@ class BinTableHDU(_TableBaseHDU):
                 )
 
         coldefs = None
-        # Process the column definitions file and the data file, closing the
-        # files we opened here even if parsing fails partway through
-        with _open_dump_file(cdfile) as cdf, _open_dump_file(datafile) as dataf:
-            if cdfile:
+        # Process the column definitions file, then the data file, closing
+        # the files we opened here even if parsing fails partway through
+        if cdfile:
+            with _open_dump_file(cdfile) as cdf:
                 coldefs = cls._load_coldefs(cdf)
+
+        with _open_dump_file(datafile) as dataf:
             data = cls._load_data(dataf, coldefs)
         if coldefs is None:
             coldefs = ColDefs(data)

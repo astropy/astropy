@@ -3422,6 +3422,40 @@ class TestTableFunctions(FitsTestCase):
                 tbhdu.dump(datafile, cdfile, hfile)
             tbhdu.dump(datafile, cdfile, hfile, overwrite=True)
 
+    def test_load_closes_files_on_parse_error(self):
+        """Regression test for https://github.com/astropy/astropy/issues/20057.
+
+        The malformed column definition makes _load_coldefs fail with an
+        IndexError; the files it opened must be closed, otherwise pytest
+        turns the resulting ResourceWarning into an error.
+        """
+        datafile = self.temp("data.txt")
+        cdfile = self.temp("coldefs.txt")
+        with open(datafile, "w") as f:
+            f.write("1 2.0\n")
+        # Malformed column definition: a single word where five are expected.
+        with open(cdfile, "w") as f:
+            f.write("ONLY_ONE_WORD\n")
+
+        with pytest.raises(IndexError):
+            fits.BinTableHDU.load(datafile, cdfile)
+
+    def test_dump_closes_files_on_error(self):
+        """Regression test for https://github.com/astropy/astropy/issues/20057.
+
+        The column definitions reference a column missing from the data, so
+        _dump_data fails with a KeyError after the output files were opened.
+        """
+        hdu = fits.BinTableHDU.from_columns(
+            [fits.Column(name="col", format="J", array=[1, 2])]
+        )
+        hdu.columns = fits.ColDefs(
+            [hdu.columns[0], fits.Column(name="extra", format="J")]
+        )
+
+        with pytest.raises(KeyError, match="extra"):
+            hdu.dump(self.temp("data.txt"), self.temp("coldefs.txt"))
+
     def test_pseudo_unsigned_ints(self):
         """
         Tests updating a table column containing pseudo-unsigned ints.
