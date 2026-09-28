@@ -12,7 +12,9 @@
 extern PyObject* TabprmType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   struct tabprm* x;
   PyObject* owner;
 } Tabprm;

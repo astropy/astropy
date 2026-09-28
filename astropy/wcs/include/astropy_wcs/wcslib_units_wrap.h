@@ -12,7 +12,9 @@
 extern PyTypeObject PyUnitsType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   char have[80];
   char want[80];
   double scale;

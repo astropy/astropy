@@ -12,7 +12,9 @@
 extern PyObject* SipType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   sip_t x;
 } Sip;
 

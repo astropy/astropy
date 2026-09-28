@@ -7,7 +7,9 @@
 extern PyObject* CelprmType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
     PyObject_HEAD
+#endif
     struct celprm* x;
     int* prefcount;
     PyObject* owner;

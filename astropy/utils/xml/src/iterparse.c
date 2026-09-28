@@ -95,7 +95,9 @@ static Py_ssize_t next_power_of_2(Py_ssize_t n)
  * IterParser type
  ******************************************************************************/
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
     PyObject_HEAD
+#endif
     XML_Parser parser; /* The expat parser */
     int done;          /* True when expat parser has read to EOF */
 
