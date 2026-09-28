@@ -308,8 +308,15 @@ class IERS(QTable):
         except Exception:
             pass
 
-        mjd = np.floor(jd1 - MJD_ZERO + jd2)
-        utc = jd1 - (MJD_ZERO + mjd) + jd2
+        mjd1 = jd1 - MJD_ZERO
+        mjd = np.floor(mjd1 + jd2)
+        utc = (mjd1 - mjd) + jd2
+        # Right at a day boundary, rounding in the sum above can put mjd one
+        # day off relative to the exact two-part jd; correct for that so that
+        # 0 <= utc < 1 (this matters for consistency with the leap seconds).
+        utc_floor = np.floor(utc)
+        mjd = mjd + utc_floor
+        utc = utc - utc_floor
         return mjd, utc
 
     def ut1_utc(self, jd1, jd2=0.0, return_status=False):
