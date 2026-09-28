@@ -57,7 +57,12 @@ def auto_assign_coord_positions(ax):
         for coord in coords:
             pos = coord.get_ticklabel_position()
             if "#" in pos:
-                auto_coords.append(coord)
+                # Skip coordinates with both ticks and tick labels hidden. The
+                # search below maximizes the total tick count, so a hidden
+                # coordinate with many ticks could otherwise be assigned a spine
+                # and push a visible coordinate onto one where it has no ticks.
+                if coord._ticks.get_visible() or coord._ticklabels.get_visible():
+                    auto_coords.append(coord)
             else:
                 already_used += list(pos)
 
