@@ -35,8 +35,11 @@ def nanmean_reduceat(data, indices):
         counts = np.add.reduceat(~mask, indices)
         out_mask = counts <= 0
     else:
-        # Derive counts from indices
+        # Derive counts from indices. This only accounts for the leading
+        # (bin) axis, so reshape to broadcast against any trailing
+        # dimensions of a multidimensional ``data``.
         counts = np.diff(indices, append=len(data))
+        counts = counts.reshape(counts.shape + (1,) * (unmasked.ndim - 1))
         out_mask = None
 
     result = np.add.reduceat(unmasked, indices) / np.maximum(counts, 1)
@@ -56,7 +59,7 @@ def reduceat(array, indices, function):
     It will check if the input function has a reduceat and call that if it does.
     """
     if len(indices) == 0:
-        return np.zeros_like(array, shape=(0,))
+        return np.zeros_like(array, shape=(0,) + array.shape[1:])
     elif function is nanmean_reduceat:
         return function(array, indices)
     elif hasattr(function, "reduceat"):
@@ -66,7 +69,11 @@ def reduceat(array, indices, function):
             function(array[start:stop] if start < stop else array[start])
             for start, stop in pairwise(list(indices) + [len(array)])
         ]
-        return np.block(result)
+        # np.stack (rather than np.block) is needed so that a per-bin result
+        # with trailing dimensions (e.g. from a multidimensional column) is
+        # stacked along a new leading axis instead of being concatenated
+        # into a single flat array.
+        return np.stack(result)
 
 
 def _to_relative_longdouble(time: Time, rel_base: Time) -> np.longdouble:
@@ -291,8 +298,12 @@ def aggregate_downsample(
 
         # TODO: This was written before MaskedQuantity were possible.
         # Should we return that by default, instead of using np.nan?
+        # Preserve any trailing dimensions beyond the row axis (e.g. for a
+        # column that stores a spectrum or vector per row) instead of
+        # collapsing them; only the leading (time) axis is downsampled.
+        out_shape = (n_bins,) + values.shape[1:]
         if isinstance(values, u.Quantity):
-            data = np.full_like(values, np.nan, shape=(n_bins,))
+            data = np.full_like(values, np.nan, shape=out_shape)
             # Pass ndarray (`values.value`) instead of Quantity (`values`)
             # reduceat() to avoid significant performance hit for cases
             # aggregate_func does not have optimized reduceat, e.g., np.nanmean.
@@ -300,7 +311,7 @@ def aggregate_downsample(
                 reduceat(values.value, groups, aggregate_func), values.unit, copy=False
             )
         else:
-            data = np.ma.zeros(n_bins, dtype=values.dtype)
+            data = np.ma.zeros(out_shape, dtype=values.dtype)
             data[unique_indices] = reduceat(values, groups, aggregate_func)
 
         if hasattr(data, "mask"):
