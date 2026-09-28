@@ -1,0 +1,6 @@
+Added a new ``reverse_axis_correlation_matrix`` property to the APE 14 low-level
+WCS API, indicating which world coordinates each pixel coordinate depends on
+when converting from world to pixel coordinates. The default implementation is
+derived conservatively from ``axis_correlation_matrix``, and FITS WCS objects
+provide a more precise matrix based on the PC matrix. The string representation
+of low-level WCS objects now shows both matrices.

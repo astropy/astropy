@@ -3,6 +3,8 @@ import os
 
 import numpy as np
 
+from .utils import _split_matrix
+
 __all__ = ["BaseLowLevelWCS", "validate_physical_types"]
 
 
@@ -318,6 +320,33 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         diagonal would be `True` and all other entries `False`.
         """
         return np.ones((self.world_n_dim, self.pixel_n_dim), dtype=bool)
+
+    @property
+    def reverse_axis_correlation_matrix(self):
+        """
+        Returns an (`~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim`,
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim`) matrix that
+        indicates using booleans whether a given pixel coordinate depends on a
+        given world coordinate in
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_pixel_values`.
+
+        This is not in general the transpose of
+        `~astropy.wcs.wcsapi.BaseLowLevelWCS.axis_correlation_matrix`. By
+        default it is derived from that matrix by treating each pixel
+        coordinate as requiring every world coordinate in the same independent
+        group of axes, which may overstate but never understates the true
+        dependencies. Implementations can override this to return a sparser
+        matrix when fewer world coordinates are needed. Note that when world
+        coordinates carry redundant information there may be several equally
+        valid sparse matrices, and the one returned describes the choice made
+        by the implementation.
+        """
+        # Fill in each independent group of axes, since there is no safe way
+        # to restrict the matrix further without knowing the transformation.
+        reverse = np.zeros((self.pixel_n_dim, self.world_n_dim), dtype=bool)
+        for pixel, world in _split_matrix(self.axis_correlation_matrix):
+            reverse[np.ix_(pixel, world)] = True
+        return reverse
 
     @property
     def serialized_classes(self):
