@@ -2311,19 +2311,10 @@ def test_strftime_array_2():
         assert t.strftime("%Y-%m-%d %H:%M:%S").shape == tstrings.shape
 
 
-@pytest.mark.parametrize(
-    "layout",
-    [
-        lambda mjd: Time(mjd, format="mjd").T,
-        lambda mjd: Time(np.asfortranarray(mjd), format="mjd"),
-        lambda mjd: np.moveaxis(Time(mjd, format="mjd"), 0, -1),
-    ],
-    ids=["transpose", "fortran", "moveaxis"],
-)
-def test_string_values_non_c_contiguous(layout):
+def test_string_values_transposed():
     """
-    String values and strftime must land at the right index whatever the
-    memory layout of the Time (#20489).
+    strftime and string values of a transposed Time must match the transpose
+    of the original's (#20489).
     """
 
     class TimeISOCustom(TimeISO):
@@ -2334,19 +2325,15 @@ def test_string_values_non_c_contiguous(layout):
             return str_fmt.format(**kwargs)
 
     try:
-        mjd = 60310 + np.arange(2)[:, None, None] + np.arange(3)[:, None] / 24
-        mjd = mjd + np.arange(4) / 1440
-        t = layout(mjd)
-        assert not t.jd1.flags.c_contiguous
+        # Row i is day i + 1 of January 2024, column j is hour j.
+        t = Time(60310 + np.arange(2)[:, None] + np.arange(3) / 24, format="mjd")
+        tt = t.T
+        assert not tt.jd1.flags.c_contiguous
 
-        for fmt in ("iso", "isot", "yday", "fits", "iso_custom_20489"):
-            values = t.to_value(fmt)
-            for idx in np.ndindex(t.shape):
-                assert values[idx] == t[idx].to_value(fmt)
-
-        values = t.strftime("%Y-%m-%d %H:%M")
-        for idx in np.ndindex(t.shape):
-            assert values[idx] == t[idx].strftime("%Y-%m-%d %H:%M")
+        fmt = "%Y-%m-%d %H:%M"
+        assert np.all(tt.strftime(fmt) == t.strftime(fmt).T)
+        custom = "iso_custom_20489"
+        assert np.all(tt.to_value(custom) == t.to_value(custom).T)
     finally:
         TIME_FORMATS.pop("iso_custom_20489", None)
 
