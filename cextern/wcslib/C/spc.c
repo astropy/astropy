@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.9 - an implementation of the FITS WCS standard.
+  WCSLIB 8.10 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: spc.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
+  $Id: spc.c,v 8.10 2026/09/27 05:44:33 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -796,54 +796,54 @@ int spctype(
   snprintf(ctype, 9, "%-8.8s", ctypei);
   ctype[8] = '\0';
 
-  char sname_t[32], units_t[8], ptype_t;
+  char sname_t[22], units_t[8], ptype_t;
   int  restreq_t = 0;
   // Validate the S-type spectral variable.
   if (strncmp(ctype, "FREQ", 4) == 0) {
-    strncpy(sname_t, "Frequency", 32);
+    strncpy(sname_t, "Frequency", 22);
     strncpy(units_t, "Hz", 8);
     ptype_t = 'F';
   } else if (strncmp(ctype, "AFRQ", 4) == 0) {
-    strncpy(sname_t, "Angular frequency", 32);
+    strncpy(sname_t, "Angular frequency", 22);
     strncpy(units_t, "rad/s", 8);
     ptype_t = 'F';
   } else if (strncmp(ctype, "ENER", 4) == 0) {
-    strncpy(sname_t, "Photon energy", 32);
+    strncpy(sname_t, "Photon energy", 22);
     strncpy(units_t, "J", 8);
     ptype_t = 'F';
   } else if (strncmp(ctype, "WAVN", 4) == 0) {
-    strncpy(sname_t, "Wavenumber", 32);
+    strncpy(sname_t, "Wavenumber", 22);
     strncpy(units_t, "/m", 8);
     ptype_t = 'F';
   } else if (strncmp(ctype, "VRAD", 4) == 0) {
-    strncpy(sname_t, "Radio velocity", 32);
+    strncpy(sname_t, "Radio velocity", 22);
     strncpy(units_t, "m/s", 8);
     ptype_t = 'F';
     restreq_t = 1;
   } else if (strncmp(ctype, "WAVE", 4) == 0) {
-    strncpy(sname_t, "Vacuum wavelength", 32);
+    strncpy(sname_t, "Vacuum wavelength", 22);
     strncpy(units_t, "m", 8);
     ptype_t = 'W';
   } else if (strncmp(ctype, "VOPT", 4) == 0) {
-    strncpy(sname_t, "Optical velocity", 32);
+    strncpy(sname_t, "Optical velocity", 22);
     strncpy(units_t, "m/s", 8);
     ptype_t = 'W';
     restreq_t = 1;
   } else if (strncmp(ctype, "ZOPT", 4) == 0) {
-    strncpy(sname_t, "Redshift", 32);
+    strncpy(sname_t, "Redshift", 22);
     strncpy(units_t, "", 8);
     ptype_t = 'W';
     restreq_t = 1;
   } else if (strncmp(ctype, "AWAV", 4) == 0) {
-    strncpy(sname_t, "Air wavelength", 32);
+    strncpy(sname_t, "Air wavelength", 22);
     strncpy(units_t, "m", 8);
     ptype_t = 'A';
   } else if (strncmp(ctype, "VELO", 4) == 0) {
-    strncpy(sname_t, "Relativistic velocity", 32);
+    strncpy(sname_t, "Relativistic velocity", 22);
     strncpy(units_t, "m/s", 8);
     ptype_t = 'V';
   } else if (strncmp(ctype, "BETA", 4) == 0) {
-    strncpy(sname_t, "Velocity ratio (v/c)", 32);
+    strncpy(sname_t, "Velocity ratio (v/c)", 22);
     strncpy(units_t, "", 8);
     ptype_t = 'V';
   } else {
