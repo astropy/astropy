@@ -564,16 +564,21 @@ def _make_compare(oper):
         if self.dtype.char == "S":
             other = self._encode_str(other)
 
-        if self._unit is not None and op in _comparison_operator_ufuncs:
+        if (
+            self._unit is not None
+            and isinstance(self, ma.MaskedArray)
+            and op in _comparison_operator_ufuncs
+        ):
+            # A MaskedColumn comparison goes through ma.MaskedArray on the raw
+            # ``.data``, which never reaches BaseColumn.__array_wrap__, so check
+            # the units here instead.  An unmasked Column does reach it, and
+            # checking here as well would warn twice.
             _check_unit_consistency(
                 self, (_comparison_operator_ufuncs[op], (self, other))
             )
 
-        # Now just let the regular ndarray.__eq__, etc., take over.  The check
-        # above already covers this, with better context, so do not let the one
-        # in __array_wrap__ warn a second time.
-        with _suppress_unit_check():
-            result = getattr(super(Column, self), op)(other)
+        # Now just let the regular ndarray.__eq__, etc., take over.
+        result = getattr(super(Column, self), op)(other)
         # But we should not return Column instances for this case.
         return result.data if isinstance(result, Column) else result
 
