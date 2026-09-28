@@ -1786,7 +1786,9 @@ class TimeString(TimeUnique):
         isecs = ihmsfs["s"]
         ifracs = ihmsfs["f"]
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
-            [iys, ims, ids, ihrs, imins, isecs, ifracs], flags=["zerosize_ok"]
+            [iys, ims, ids, ihrs, imins, isecs, ifracs],
+            flags=["zerosize_ok"],
+            order="C",
         ):
             if has_yday:
                 yday = datetime.datetime(iy, im, id).timetuple().tm_yday
