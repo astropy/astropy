@@ -16,6 +16,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS
 
 MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename("data/msx_header"))
 
@@ -518,3 +519,60 @@ def test_ticks_multiple_intersections_non_degree_longitude():
     # Should not raise (previously corrupted intermediate tick values could
     # produce huge/garbage numbers that broke text rendering).
     canvas.draw()
+
+
+class _RasterLikeWCS(BaseLowLevelWCS):
+    # Two pixel axes and four world axes, as in a slit-spectrograph raster:
+    # latitude varies along x, while longitude, time and step number all vary
+    # along y (longitude also depends weakly on x).
+    pixel_n_dim = 2
+    world_n_dim = 4
+    world_axis_physical_types = [
+        "custom:pos.helioprojective.lon",
+        "custom:pos.helioprojective.lat",
+        "time",
+        "custom:step",
+    ]
+    world_axis_units = ["deg", "deg", "s", "pix"]
+    world_axis_names = ["lon", "lat", "time", "step"]
+    axis_correlation_matrix = np.array(
+        [[True, True], [True, False], [False, True], [False, True]]
+    )
+    world_axis_object_components = [
+        ("celestial", 0, "spherical.lon.degree"),
+        ("celestial", 1, "spherical.lat.degree"),
+        ("time", 0, "value"),
+        ("step", 0, "value"),
+    ]
+    world_axis_object_classes = {}
+
+    def pixel_to_world_values(self, x, y):
+        x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+        return -0.1 + 0.002 * y + 1e-5 * x, 0.05 + 0.002 * x, 100.0 * y, y
+
+    def world_to_pixel_values(self, lon, lat, time, step):
+        return (np.asarray(lat) - 0.05) / 0.002, np.asarray(step, dtype=float)
+
+
+def test_hidden_coordinates_do_not_take_a_spine():
+    # A coordinate with both ticks and tick labels hidden must be left out of
+    # the automatic placement. With more ticks than the visible coordinates,
+    # it would otherwise be assigned the spine they need and push them onto a
+    # spine where they have no ticks.
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=_RasterLikeWCS(), aspect="auto")
+    fig.add_axes(ax)
+    ax.set_xlim(-0.5, 29.5)
+    ax.set_ylim(-0.5, 39.5)
+    for name in ("time", "step"):
+        ax.coords[name].set_ticks(number=25)
+        ax.coords[name].set_ticks_visible(False)
+        ax.coords[name].set_ticklabel_visible(False)
+
+    fig.canvas.draw()
+
+    assert "l" in ax.coords["lon"].get_ticklabel_position()
+    assert "b" in ax.coords["lat"].get_ticklabel_position()
+    assert ax.coords["time"].get_ticklabel_position() == ["#"]
+    assert ax.coords["step"].get_ticklabel_position() == ["#"]
