@@ -1,0 +1,4 @@
+Fixed ``FLRW.age`` being non-monotonic at high redshift, for example between
+z = 4787 and 4788 for ``Planck18``. The age is now integrated over the scale
+factor instead of over redshift out to infinity. The age at ``z = -1`` is now
+infinite.
