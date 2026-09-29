@@ -1770,7 +1770,7 @@ class TimeString(TimeUnique):
     def str_kwargs(self):
         """
         Generator that yields a dict of values corresponding to the
-        calendar date and time for the internal JD values.
+        calendar date and time for internal JD values in flattened "C" order.
         """
         scale = (self.scale.upper().encode("ascii"),)
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision, self.jd1, self.jd2)
