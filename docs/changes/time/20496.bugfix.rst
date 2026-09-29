@@ -1,0 +1,4 @@
+Fixed ``Time.strftime`` and the string formats (``iso``, ``isot``, ``fits``,
+``yday``) returning values at the wrong index for a ``Time`` array that is not
+C-contiguous in memory, for example after ``.T`` or ``np.moveaxis``, or when
+built from a Fortran-ordered array.
