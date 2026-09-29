@@ -1,0 +1,3 @@
+``LombScargle`` with ``method="fast"`` now agrees with the exact methods to
+better than ``1e-6`` also for tightly clustered, non-uniformly sampled data,
+where the fitted sinusoid becomes nearly degenerate with the offset.

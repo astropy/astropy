@@ -286,6 +286,29 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
             assert_not_strictly_equal(P_fast, P_slow)
 
 
+def test_fast_clustered_sampling():
+    # Sampling that is tightly clustered in time makes the fitted sinusoid
+    # nearly degenerate with the offset at some frequencies, where the normal
+    # equations of the fit are a small difference of terms of order one. The
+    # 'fast' method has to tighten the approximation of the trigonometric sums
+    # there, otherwise their error is amplified by the division and dominates
+    # the periodogram.
+    rng = np.random.default_rng(0)
+    span = 1094.6
+    t = np.sort(np.r_[rng.normal(0, span * 1e-8, 154), span])
+    y = rng.normal(size=155)
+    frequency = 0.8 + 0.0037 * np.arange(791)
+
+    ls = LombScargle(t, y, fit_mean=True, normalization="standard")
+
+    P_slow = ls.power(frequency, method="slow")
+    P_fast = ls.power(frequency, method="fast", assume_regular_frequency=True)
+    P_cython = ls.power(frequency, method="cython", assume_regular_frequency=True)
+
+    assert_allclose(P_fast, P_slow, atol=1e-6)
+    assert_allclose(P_fast, P_cython, atol=1e-6)
+
+
 @pytest.mark.parametrize("method", LombScargle.available_methods)
 @pytest.mark.parametrize("shape", [(), (1,), (2,), (3,), (2, 3)])
 def test_output_shapes(method, shape, data):

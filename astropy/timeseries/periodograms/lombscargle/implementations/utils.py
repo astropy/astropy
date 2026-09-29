@@ -2,6 +2,13 @@ from math import factorial
 
 import numpy as np
 
+#: Default tolerance of the low rank approximation used by ``trig_sum``.
+DEFAULT_EPS = 5e-13
+
+#: Truncation order of the low rank approximation saturates below this, so
+#: asking for a smaller tolerance does not buy any further accuracy.
+LRA_EPS_FLOOR = 1e-15
+
 
 def bitceil(N):
     """
@@ -387,7 +394,7 @@ def trig_sum(
     use_fft=True,
     Mfft=4,
     algorithm="fasper",
-    eps=5e-13,
+    eps=DEFAULT_EPS,
 ):
     """Compute (approximate) trigonometric sums for a number of frequencies.
 

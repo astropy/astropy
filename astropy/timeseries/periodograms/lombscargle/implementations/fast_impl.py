@@ -1,6 +1,57 @@
 import numpy as np
 
-from .utils import trig_sum
+from .utils import DEFAULT_EPS, LRA_EPS_FLOOR, trig_sum
+
+# The power is divided by CC and SS, and both are obtained by subtracting
+# terms of order one. The error of the trigonometric sums therefore enters the
+# periodogram divided by the size of that difference, so wherever the
+# difference is small the sums have to be evaluated more accurately than the
+# periodogram itself. This is the absolute error of the power that the
+# approximation of the sums is allowed to contribute.
+SUM_ERROR_TARGET = 1e-8
+
+
+def _tau_terms(t, w, y, kwargs, fit_mean):
+    """Trigonometric sums needed for the power and for the time-shift tau.
+
+    Returns
+    -------
+    Sh, Ch : ndarray
+        Sine and cosine sums of the data.
+    S2w, C2w, Cw, Sw : ndarray
+        Sine and cosine of ``2 * omega * tau`` and of ``omega * tau``.
+    CC, SS : ndarray
+        Diagonal terms of the normal equations of the fit.
+    """
+    Sh, Ch = trig_sum(t, w * y, **kwargs)
+    S2, C2 = trig_sum(t, w, freq_factor=2, **kwargs)
+
+    if fit_mean:
+        S, C = trig_sum(t, w, **kwargs)
+        tan_2omega_tau = (S2 - 2 * S * C) / (C2 - (C * C - S * S))
+    else:
+        tan_2omega_tau = S2 / C2
+
+    # This is what we're computing below; the straightforward way is slower
+    # and less stable, so we use trig identities instead
+    #
+    # omega_tau = 0.5 * np.arctan(tan_2omega_tau)
+    # S2w, C2w = np.sin(2 * omega_tau), np.cos(2 * omega_tau)
+    # Sw, Cw = np.sin(omega_tau), np.cos(omega_tau)
+
+    S2w = tan_2omega_tau / np.sqrt(1 + tan_2omega_tau * tan_2omega_tau)
+    C2w = 1 / np.sqrt(1 + tan_2omega_tau * tan_2omega_tau)
+    Cw = np.sqrt(0.5) * np.sqrt(1 + C2w)
+    Sw = np.sqrt(0.5) * np.sign(S2w) * np.sqrt(1 - C2w)
+
+    CC = 0.5 * (1 + C2 * C2w + S2 * S2w)
+    SS = 0.5 * (1 - C2 * C2w - S2 * S2w)
+
+    if fit_mean:
+        CC = CC - (C * Cw + S * Sw) ** 2
+        SS = SS - (S * Cw - C * Sw) ** 2
+
+    return Sh, Ch, S2w, C2w, Cw, Sw, CC, SS
 
 
 def lombscargle_fast(
@@ -107,26 +158,22 @@ def lombscargle_fast(
 
     # ----------------------------------------------------------------------
     # 1. compute functions of the time-shift tau at each frequency
-    Sh, Ch = trig_sum(t, w * y, **kwargs)
-    S2, C2 = trig_sum(t, w, freq_factor=2, **kwargs)
+    Sh, Ch, S2w, C2w, Cw, Sw, CC, SS = _tau_terms(t, w, y, kwargs, fit_mean)
 
-    if fit_mean:
-        S, C = trig_sum(t, w, **kwargs)
-        tan_2omega_tau = (S2 - 2 * S * C) / (C2 - (C * C - S * S))
-    else:
-        tan_2omega_tau = S2 / C2
-
-    # This is what we're computing below; the straightforward way is slower
-    # and less stable, so we use trig identities instead
-    #
-    # omega_tau = 0.5 * np.arctan(tan_2omega_tau)
-    # S2w, C2w = np.sin(2 * omega_tau), np.cos(2 * omega_tau)
-    # Sw, Cw = np.sin(omega_tau), np.cos(omega_tau)
-
-    S2w = tan_2omega_tau / np.sqrt(1 + tan_2omega_tau * tan_2omega_tau)
-    C2w = 1 / np.sqrt(1 + tan_2omega_tau * tan_2omega_tau)
-    Cw = np.sqrt(0.5) * np.sqrt(1 + C2w)
-    Sw = np.sqrt(0.5) * np.sign(S2w) * np.sqrt(1 - C2w)
+    # CC and SS lose significant digits wherever they are much smaller than
+    # the sums they are formed from, which happens when the fitted sinusoid is
+    # nearly degenerate with the offset, as it is for tightly clustered
+    # sampling. The approximation error of the sums is then amplified by the
+    # division below and dominates the periodogram, so ask for a tolerance
+    # matched to the conditioning. This only ever tightens the tolerance, hence
+    # it is a single extra pass at worst and leaves well conditioned data
+    # untouched.
+    if use_fft and algorithm == "lra":
+        wanted = SUM_ERROR_TARGET * min(np.min(np.abs(CC)), np.min(np.abs(SS)))
+        eps = (trig_sum_kwds or {}).get("eps", DEFAULT_EPS)
+        if wanted < eps:
+            kwargs["eps"] = max(wanted, LRA_EPS_FLOOR)
+            Sh, Ch, S2w, C2w, Cw, Sw, CC, SS = _tau_terms(t, w, y, kwargs, fit_mean)
 
     # ----------------------------------------------------------------------
     # 2. Compute the periodogram, following Zechmeister & Kurster
@@ -134,12 +181,6 @@ def lombscargle_fast(
     YY = np.dot(w, y**2)
     YC = Ch * Cw + Sh * Sw
     YS = Sh * Cw - Ch * Sw
-    CC = 0.5 * (1 + C2 * C2w + S2 * S2w)
-    SS = 0.5 * (1 - C2 * C2w - S2 * S2w)
-
-    if fit_mean:
-        CC -= (C * Cw + S * Sw) ** 2
-        SS -= (S * Cw - C * Sw) ** 2
 
     power = YC * YC / CC + YS * YS / SS
 
