@@ -1,0 +1,1 @@
+Fixed a heap corruption / buffer overflow in the C-accelerated VOTable writer (``write_tabledata``) that occurred when a serialized row's byte length aligned exactly with internal buffer allocation boundaries.
