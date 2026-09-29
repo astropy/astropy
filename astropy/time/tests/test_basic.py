@@ -26,6 +26,7 @@ from astropy.time import (
     ScaleValueError,
     Time,
     TimeDelta,
+    TimeISO,
     TimeString,
     TimezoneInfo,
     conf,
@@ -2177,6 +2178,33 @@ def test_strftime_array_2():
         t.format = format
         assert np.all(t.strftime("%Y-%m-%d %H:%M:%S") == tstrings)
         assert t.strftime("%Y-%m-%d %H:%M:%S").shape == tstrings.shape
+
+
+def test_string_values_transposed():
+    """
+    strftime and string values of a transposed Time must match the transpose
+    of the original's (#20489).
+    """
+
+    class TimeISOCustom(TimeISO):
+        # A custom format_string forces the per-element path in TimeString.value
+        name = "iso_custom_20489"
+
+        def format_string(self, str_fmt, **kwargs):
+            return str_fmt.format(**kwargs)
+
+    try:
+        # Row i is day i + 1 of January 2024, column j is hour j.
+        t = Time(60310 + np.arange(2)[:, None] + np.arange(3) / 24, format="mjd")
+        tt = t.T
+        assert not tt.jd1.flags.c_contiguous
+
+        fmt = "%Y-%m-%d %H:%M"
+        assert np.all(tt.strftime(fmt) == t.strftime(fmt).T)
+        custom = "iso_custom_20489"
+        assert np.all(tt.to_value(custom) == t.to_value(custom).T)
+    finally:
+        TIME_FORMATS.pop("iso_custom_20489", None)
 
 
 def test_strftime_leapsecond():
