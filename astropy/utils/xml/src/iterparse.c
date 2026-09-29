@@ -140,9 +140,10 @@ typedef struct {
 PyObject *IterParserType = NULL;
 
 #if defined(Py_TARGET_ABI3T) || defined(ASTROPY_OPAQUE_OBJECTS)
-#define GET_IterParser_DATA(o) ((IterParser*)PyObject_GetTypeData(o, (PyTypeObject*)IterParserType))
+#define GET_IterParser_DATA(o) \
+    ((IterParser *)PyObject_GetTypeData(o, (PyTypeObject *)IterParserType))
 #else
-#define GET_IterParser_DATA(o) ((IterParser*)o)
+#define GET_IterParser_DATA(o) ((IterParser *)o)
 #endif
 
 /******************************************************************************
