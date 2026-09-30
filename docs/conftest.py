@@ -50,7 +50,7 @@ def _docdir(request):
 
 
 @pytest.fixture(autouse=True)
-def _deterministic_table_size():
+def _deterministic_terminal_size():
     """Render tables at a fixed size, whatever the terminal or session state."""
     from astropy import conf
 
