@@ -3,6 +3,7 @@
 
 # STDLIB
 import base64
+import binascii
 import codecs
 import gzip
 import io
@@ -3126,7 +3127,9 @@ class TableElement(
                     break
 
         if have_local_stream:
-            buffer = base64.b64decode(buffer.encode("ascii"))
+            # binascii reads the ASCII str in place without copying it, which
+            # keeps memory usage down for large files.
+            buffer = binascii.a2b_base64(buffer)
             string_io = io.BytesIO(buffer)
             string_io.seek(0)
             read = string_io.read

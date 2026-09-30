@@ -1,0 +1,3 @@
+In the events from ``astropy.utils.xml.iterparser.get_xml_iterator``, the end
+event of an element that contains other elements now has empty text, instead
+of repeating the text of the last element inside it.
