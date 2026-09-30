@@ -237,6 +237,13 @@ class BaseGroups:
         -------
         out : `~astropy.table.Table` or `~astropy.table.Column`
             The subset of the parent table or column corresponding to the group.
+
+        Raises
+        ------
+        KeyError
+            If no group matches ``key``.
+        ValueError
+            If ``key`` does not match the number of key columns.
         """
         mask = self._find_group_mask(key)
 
@@ -291,6 +298,15 @@ class ColumnGroups(BaseGroups):
             return self._keys
 
     def _find_group_mask(self, key):
+        """
+        Return a boolean mask of the group keys matching ``key``.
+
+        If the parent column is in a table then the group keys are a ``Table``
+        and the matching is delegated to the parent table groups.
+        """
+        if self.parent_table is not None:
+            return self.parent_table.groups._find_group_mask(key)
+
         return self.keys == key
 
     def aggregate(self, func):
@@ -469,6 +485,13 @@ class TableGroups(BaseGroups):
         return self._keys
 
     def _find_group_mask(self, key):
+        """
+        Return a boolean mask of the group keys matching ``key``.
+
+        For a table grouped by a single column, ``key`` can be a scalar value
+        or a length-1 tuple or list. For a table grouped by multiple columns,
+        ``key`` must be a tuple or list with one value per key column.
+        """
         keys = self.keys
         colnames = keys.colnames
         if not isinstance(key, (tuple, list)) and len(colnames) == 1:

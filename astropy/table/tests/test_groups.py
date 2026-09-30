@@ -836,3 +836,36 @@ def test_get_group_column(T1):
         "2.0",
         "1.0",
     ]
+
+
+def test_get_group_column_in_table(T1):
+    """Test get_group() on a column that is part of a grouped table.
+
+    In this case the group keys are a ``Table`` and matching is delegated to
+    the parent table groups.
+    """
+    tg = T1.group_by("a")
+    g = tg["c"].groups.get_group(1)
+    assert g.pformat() == [
+        " c ",
+        "---",
+        "3.0",
+        "2.0",
+        "1.0",
+    ]
+
+    # Multiple key columns, and error cases via the parent table groups.
+    tg2 = T1.group_by(["a", "b"])
+    g2 = tg2["c"].groups.get_group((2, "b"))
+    assert g2.pformat() == [
+        " c ",
+        "---",
+        "5.0",
+        "6.0",
+    ]
+
+    with pytest.raises(KeyError):
+        tg2["c"].groups.get_group((3, "b"))
+
+    with pytest.raises(ValueError):
+        tg2["c"].groups.get_group(2)
