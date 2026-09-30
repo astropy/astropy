@@ -11,8 +11,6 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 
 """
 
-import itertools
-
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -1734,21 +1732,42 @@ def test_testing_completeness():
 
 class TestFunctionHelpersCompleteness:
     @pytest.mark.parametrize(
-        "one, two",
-        list(
-            itertools.combinations(
-                (
-                    MASKED_SAFE_FUNCTIONS,
-                    UNSUPPORTED_FUNCTIONS,
-                    set(APPLY_TO_BOTH_FUNCTIONS.keys()),
-                    set(DISPATCHED_FUNCTIONS.keys()),
-                ),
-                2,
+        "a, b",
+        [
+            pytest.param(
+                MASKED_SAFE_FUNCTIONS,
+                UNSUPPORTED_FUNCTIONS,
+                id="masked-safe_unsupported",
             ),
-        ),
+            pytest.param(
+                MASKED_SAFE_FUNCTIONS,
+                set(APPLY_TO_BOTH_FUNCTIONS),
+                id="masked-safe_apply-to-both",
+            ),
+            pytest.param(
+                MASKED_SAFE_FUNCTIONS,
+                set(DISPATCHED_FUNCTIONS),
+                id="masked-safe_dispatched",
+            ),
+            pytest.param(
+                UNSUPPORTED_FUNCTIONS,
+                set(APPLY_TO_BOTH_FUNCTIONS),
+                id="unsupported_apply-to-both",
+            ),
+            pytest.param(
+                UNSUPPORTED_FUNCTIONS,
+                set(DISPATCHED_FUNCTIONS),
+                id="unsupported_dispatched",
+            ),
+            pytest.param(
+                set(APPLY_TO_BOTH_FUNCTIONS),
+                set(DISPATCHED_FUNCTIONS),
+                id="apply-to-both_dispatched",
+            ),
+        ],
     )
-    def test_no_duplicates(self, one, two):
-        assert not one.intersection(two)
+    def test_no_duplicates(self, a: set[object], b: set[object]) -> None:
+        assert a.isdisjoint(b)
 
     def test_all_included(self):
         included_in_helpers = (
