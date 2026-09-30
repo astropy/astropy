@@ -1043,11 +1043,11 @@ packages = [
 ]
 exclude = [
     # Private `astropy.cosmology`, not type checked yet.
-    "^astropy/cosmology/_src/",
+    "/astropy/cosmology/_src/",
     # Tests are out of scope for now. `test_scalar_inv_efuncs.py` additionally
     # imports a Cython extension module, which has no stubs for Mypy to read.
-    "^astropy/cosmology/tests/",
+    "/astropy/cosmology/tests/",
     # A directory of `.ecsv` files with no `__init__.py`, which Mypy would
     # otherwise pick up as an implicit namespace package.
-    "^astropy/cosmology/data/",
+    "/astropy/cosmology/data/",
 ]
