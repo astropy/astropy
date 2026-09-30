@@ -263,11 +263,6 @@ html_theme_options = {
     },
     "github_url": "https://github.com/astropy/astropy",
     "use_edit_page_button": True,
-    # Prune sibling branches in the sidebar toctree so each page only renders
-    # its own ancestry. Pydata defaults this to False; astropy's docs have
-    # 1400+ pages reachable from a single top-level section, so without this
-    # every page's sidebar would contain the entire user guide.
-    "collapse_navigation": True,
 }
 
 # If we are on RTD, and it's not a PR build we don't want to collapse
