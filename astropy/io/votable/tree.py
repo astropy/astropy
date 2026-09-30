@@ -2915,6 +2915,9 @@ class TableElement(
                     ) from None
             else:
                 raise TypeError("Invalid columns list")
+            # The array holds each selected column once, in file order, so
+            # they must be read in that order whatever order they were asked for
+            colnumbers = sorted(set(colnumbers))
 
         self.create_arrays(nrows=self._nrows, config=config, colnumbers=colnumbers)
 
