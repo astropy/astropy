@@ -1,0 +1,3 @@
+Reading a table stored as BINARY or BINARY2 with ``columns`` listed in a
+different order from the file no longer puts the values of one column into
+another, and a column listed twice is read once instead of raising an error.
