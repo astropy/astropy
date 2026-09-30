@@ -17,6 +17,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.1-quantity-int-config`
 * :ref:`whatsnew-8.1-qtable-int-columns`
 * :ref:`whatsnew-8.1-reading-int-columns`
+* :ref:`whatsnew-8.1-pyodide-wheels`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -133,6 +134,17 @@ behavior corrupted values that the file itself stored exactly, with nothing to i
 that anything had been lost. Setting `astropy.units.quantity.conf.quantity_convert_int_to_float
 <astropy.units.quantity.Conf.quantity_convert_int_to_float>`
 to ``always`` restores the previous behavior if needed.
+
+.. _whatsnew-8.1-pyodide-wheels:
+
+WebAssembly (Pyodide) wheels
+============================
+
+Astropy now builds and publishes WebAssembly wheels (``pyemscripten_*_wasm32``, see
+:pep:`776` and :pep:`783`) alongside its native wheels. This means ``astropy`` can be
+installed with ``pip`` (for example via ``micropip``) under `Pyodide
+<https://pyodide.org>`_ and PyScript, rather than relying on the copy vendored in the
+Pyodide distribution. Note that these wheels are not currently tested in CI.
 
 Contributors to the 8.1 release
 ===============================
