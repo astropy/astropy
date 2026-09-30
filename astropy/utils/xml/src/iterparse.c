@@ -95,7 +95,7 @@ static Py_ssize_t next_power_of_2(Py_ssize_t n)
  * IterParser type
  ******************************************************************************/
 typedef struct {
-#if !defined(Py_TARGET_ABI3T) && !defined(ASTROPY_OPAQUE_OBJECTS)
+#ifndef Py_TARGET_ABI3T
     PyObject_HEAD
 #endif
     XML_Parser parser; /* The expat parser */
@@ -139,7 +139,7 @@ typedef struct {
 
 PyObject *IterParserType = NULL;
 
-#if defined(Py_TARGET_ABI3T) || defined(ASTROPY_OPAQUE_OBJECTS)
+#ifdef Py_TARGET_ABI3T
 #define GET_IterParser_DATA(o) \
     ((IterParser *)PyObject_GetTypeData(o, (PyTypeObject *)IterParserType))
 #else
@@ -1135,11 +1135,11 @@ static PyMethodDef IterParser_methods[] = {
 
 static PyType_Spec IterParserType_spec = {
     .name = "astropy.utils.xml._iterparser.IterParser",
-    .basicsize =
-#if defined(Py_TARGET_ABI3T) || defined(ASTROPY_OPAQUE_OBJECTS)
-        -(Py_ssize_t) // negative size indicates opaque PyObject
+#ifdef Py_TARGET_ABI3T
+    .basicsize = -(Py_ssize_t)sizeof(IterParser), // negative size indicates opaque PyObject
+#else
+    .basicsize = sizeof(IterParser),
 #endif
-        sizeof(IterParser),
     .itemsize = 0,
     .flags =
         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
