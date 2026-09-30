@@ -152,14 +152,12 @@ def test_deprecated_class():
     orig_A = TA.__bases__[0]
 
     # The only thing that should be different about the new class
-    # is __doc__, __init__, __bases__, __subclasshook__,
-    # and __init_subclass__.
+    # is __doc__, __new__, __init__, __subclasshook__, and __init_subclass__.
     for x in dir(orig_A):
         if x not in (
             "__doc__",
+            "__new__",
             "__init__",
-            "__bases__",
-            "__dict__",
             "__subclasshook__",
             "__init_subclass__",
         ):
@@ -171,8 +169,6 @@ def test_deprecated_class():
     if TA.__doc__ is not None:
         assert "function" not in TA.__doc__
         assert "deprecated" in TA.__doc__
-        assert "function" not in TA.__init__.__doc__
-        assert "deprecated" in TA.__init__.__doc__
 
     # Test that the ``__deprecated__`` attribute is set
     # See https://peps.python.org/pep-0702/ for more information
@@ -239,8 +235,6 @@ def test_deprecated_class_with_super():
     if TB.__doc__ is not None:
         assert "function" not in TB.__doc__
         assert "deprecated" in TB.__doc__
-        assert "function" not in TB.__init__.__doc__
-        assert "deprecated" in TB.__init__.__doc__
 
 
 def test_deprecated_class_with_custom_metaclass():
@@ -289,9 +283,8 @@ def test_deprecated_static_and_classmethod():
         A.B.__deprecated__
         == "The B method is deprecated and may be removed in a future version."
     )
-    # And that it is not set on the original function which doesn't have
-    # the deprecation warning.
-    assert not hasattr(A.B.__wrapped__, "__deprecated__")
+    # PEP 702 also sets it on the wrapped function.
+    assert A.B.__wrapped__.__deprecated__ == A.B.__deprecated__
 
     with pytest.warns(AstropyDeprecationWarning) as w:
         A.C()
@@ -305,9 +298,8 @@ def test_deprecated_static_and_classmethod():
         A.C.__deprecated__
         == "The C method is deprecated and may be removed in a future version."
     )
-    # And that it is not set on the original function which doesn't have
-    # the deprecation warning.
-    assert not hasattr(A.C.__wrapped__, "__deprecated__")
+    # PEP 702 also sets it on the wrapped function.
+    assert A.C.__wrapped__.__deprecated__ == A.C.__deprecated__
 
 
 def test_deprecated_argument():

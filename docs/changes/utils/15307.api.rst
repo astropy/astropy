@@ -1,0 +1,4 @@
+``astropy.utils.decorators.deprecated`` now follows :pep:`702` semantics when applied to
+a class: the deprecation warning is raised when the class itself is instantiated and
+when it is subclassed, rather than whenever the class or any of its subclasses is
+instantiated.
