@@ -95,7 +95,7 @@ static Py_ssize_t next_power_of_2(Py_ssize_t n)
  * IterParser type
  ******************************************************************************/
 typedef struct {
-#ifndef _Py_OPAQUE_PYOBJECT
+#ifndef Py_TARGET_ABI3T
     PyObject_HEAD
 #endif
     XML_Parser parser; /* The expat parser */
@@ -136,6 +136,15 @@ typedef struct {
     PyObject *td_singleton;   /* String "TD" */
     PyObject *read_args;      /* (buffersize) */
 } IterParser;
+
+PyObject *IterParserType = NULL;
+
+#ifdef Py_TARGET_ABI3T
+#define GET_IterParser_DATA(o) \
+    ((IterParser *)PyObject_GetTypeData(o, (PyTypeObject *)IterParserType))
+#else
+#define GET_IterParser_DATA(o) ((IterParser *)o)
+#endif
 
 /******************************************************************************
  * Tuple queue
@@ -650,10 +659,10 @@ fail:
  * The object itself is an iterator, just return self for "iter(self)"
  * on the Python side.
  */
-static PyObject *IterParser_iter(IterParser *self)
+static PyObject *IterParser_iter(PyObject *self)
 {
-    Py_INCREF((PyObject *)self);
-    return (PyObject *)self;
+    Py_INCREF(self);
+    return self;
 }
 
 /*
@@ -667,11 +676,12 @@ static PyObject *IterParser_iter(IterParser *self)
  * later thrown once the queue is emptied, otherwise the exception is
  * raised "too early" in queue order.
  */
-static PyObject *IterParser_next(IterParser *self)
+static PyObject *IterParser_next(PyObject *selfO)
 {
     PyObject *data = NULL;
     XML_Char *buf;
     Py_ssize_t buflen;
+    IterParser *self = GET_IterParser_DATA(selfO);
 
     /* Is there anything in the queue to return? */
     if (self->queue_read_idx < self->queue_write_idx) {
@@ -801,14 +811,16 @@ fail:
 
 /* To support cyclical garbage collection, all PyObject's must be
    visited. */
-static int IterParser_traverse(IterParser *self, visitproc visit, void *arg)
+static int IterParser_traverse(PyObject *selfO, visitproc visit, void *arg)
 {
     int vret;
     Py_ssize_t read_index;
 
     // Heap types must visit their type
     // see https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_traverse
-    Py_VISIT((PyObject *)Py_TYPE((PyObject *)self));
+    Py_VISIT((PyObject *)Py_TYPE(selfO));
+
+    IterParser *self = GET_IterParser_DATA(selfO);
 
     read_index = self->queue_read_idx;
     while (read_index < self->queue_write_idx) {
@@ -878,9 +890,10 @@ static int IterParser_traverse(IterParser *self, visitproc visit, void *arg)
 }
 
 /* To support cyclical garbage collection */
-static int IterParser_clear(IterParser *self)
+static int IterParser_clear(PyObject *selfO)
 {
     PyObject *tmp;
+    IterParser *self = GET_IterParser_DATA(selfO);
 
     while (self->queue_read_idx < self->queue_write_idx) {
         tmp = self->queue[self->queue_read_idx];
@@ -928,9 +941,10 @@ static int IterParser_clear(IterParser *self)
  * Deallocate the IterParser object.  For the internal PyObject*, just
  * punt to IterParser_clear.
  */
-static void IterParser_dealloc(IterParser *self)
+static void IterParser_dealloc(PyObject *selfO)
 {
-    IterParser_clear(self);
+    IterParser_clear(selfO);
+    IterParser *self = GET_IterParser_DATA(selfO);
 
     free(self->buffer);
     self->buffer = NULL;
@@ -943,9 +957,9 @@ static void IterParser_dealloc(IterParser *self)
         self->parser = NULL;
     }
 
-    PyTypeObject *type = Py_TYPE((PyObject *)self);
+    PyTypeObject *type = Py_TYPE(selfO);
     freefunc free_func = PyType_GetSlot(type, Py_tp_free);
-    free_func((PyObject *)self);
+    free_func(selfO);
 }
 
 /*
@@ -954,11 +968,12 @@ static void IterParser_dealloc(IterParser *self)
 
 static PyObject *IterParser_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    IterParser *self = NULL;
+    PyObject *selfO = NULL;
 
     allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-    self = (IterParser *)alloc_func(type, 0);
-    if (self != NULL) {
+    selfO = alloc_func(type, 0);
+    if (selfO != NULL) {
+        IterParser *self = GET_IterParser_DATA(selfO);
         self->parser = NULL;
         self->fd = NULL;
         self->file = -1;
@@ -982,7 +997,7 @@ static PyObject *IterParser_new(PyTypeObject *type, PyObject *args, PyObject *kw
         self->error_traceback = NULL;
     }
 
-    return (PyObject *)self;
+    return selfO;
 }
 
 /*
@@ -993,11 +1008,12 @@ static PyObject *IterParser_new(PyTypeObject *type, PyObject *args, PyObject *kw
  *    *fd*: A Python file object or a callable object
  *    *buffersize*: The size of the read buffer
  */
-static int IterParser_init(IterParser *self, PyObject *args, PyObject *kwds)
+static int IterParser_init(PyObject *selfO, PyObject *args, PyObject *kwds)
 {
     PyObject *fd = NULL;
     PyObject *read = NULL;
     Py_ssize_t buffersize = 1 << 14;
+    IterParser *self = GET_IterParser_DATA(selfO);
 
     static char *kwlist[] = {"fd", "buffersize", NULL};
     if (!PyArg_ParseTupleAndKeywords(
@@ -1119,26 +1135,28 @@ static PyMethodDef IterParser_methods[] = {
 
 static PyType_Spec IterParserType_spec = {
     .name = "astropy.utils.xml._iterparser.IterParser",
+#ifdef Py_TARGET_ABI3T
+    .basicsize = -(Py_ssize_t)sizeof(IterParser), // negative size indicates opaque PyObject
+#else
     .basicsize = sizeof(IterParser),
+#endif
     .itemsize = 0,
     .flags =
         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
     .slots = (PyType_Slot[]){
-        {Py_tp_dealloc, (destructor)IterParser_dealloc},
+        {Py_tp_dealloc, IterParser_dealloc},
         {Py_tp_doc, "IterParser objects"},
-        {Py_tp_traverse, (traverseproc)IterParser_traverse},
-        {Py_tp_clear, (inquiry)IterParser_clear},
-        {Py_tp_iter, (getiterfunc)IterParser_iter},
-        {Py_tp_iternext, (iternextfunc)IterParser_next},
+        {Py_tp_traverse, IterParser_traverse},
+        {Py_tp_clear, IterParser_clear},
+        {Py_tp_iter, IterParser_iter},
+        {Py_tp_iternext, IterParser_next},
         {Py_tp_methods, IterParser_methods},
         {Py_tp_members, IterParser_members},
-        {Py_tp_init, (initproc)IterParser_init},
+        {Py_tp_init, IterParser_init},
         {Py_tp_new, IterParser_new},
         {0, NULL},
     },
 };
-
-PyObject *IterParserType = NULL;
 
 /******************************************************************************
  * XML escaping
