@@ -869,3 +869,24 @@ def test_get_group_column_in_table(T1):
 
     with pytest.raises(ValueError):
         tg2["c"].groups.get_group(2)
+
+
+@pytest.mark.parametrize("keys", ["a", ["a", "b"]])
+def test_get_group_row_key(T1, keys):
+    """Test get_group() with each key Row, as when iterating over the keys."""
+    tg = T1.group_by(keys)
+    for key, group in zip(tg.groups.keys, tg.groups):
+        assert np.all(tg.groups.get_group(key) == group)
+        assert np.all(tg["c"].groups.get_group(key) == group["c"])
+
+
+def test_get_group_column_grouped_by_table(T1):
+    """Test get_group() on a column grouped by a Table of keys."""
+    cg = T1["c"].group_by(T1["a", "b"])
+    assert cg.groups.get_group((2, "b")).tolist() == [5.0, 6.0]
+
+    for key, group in zip(cg.groups.keys, cg.groups):
+        assert np.all(cg.groups.get_group(key) == group)
+
+    with pytest.raises(KeyError):
+        cg.groups.get_group((3, "b"))
