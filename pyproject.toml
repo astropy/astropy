@@ -328,6 +328,7 @@ test-skip = ["*-musllinux_x86_64", "*-pyodide_wasm32"]
 enable = ["cpython-prerelease"]
 skip = [
     "cp*t-*",  # https://github.com/astropy/astropy/issues/16916
+    "cp315-pyodide_wasm32",   # numpy has no pyodide wheels for 3.15 yet
 ]
 environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
