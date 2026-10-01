@@ -11,7 +11,7 @@ from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitsError, UnitTypeError
 from astropy.units.structured import StructuredUnit
 
-from . import UFUNC_HELPERS
+from .converters import UFUNC_HELPERS
 from .helpers import (
     _d,
     get_converter,

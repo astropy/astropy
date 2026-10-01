@@ -5,15 +5,9 @@ from functools import cached_property
 
 import numpy as np
 
-from astropy.units import (
-    CompositeUnit,
-    Unit,
-    UnitConversionError,
-    UnitsError,
-    UnitTypeError,
-    dimensionless_unscaled,
-)
-from astropy.units.quantity_helper import check_output
+from astropy.units.core import CompositeUnit, Unit, dimensionless_unscaled
+from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
+from astropy.units.quantity_helper.converters import check_output
 from astropy.units.quantity_helper.helpers import get_converter
 
 from .core import FunctionQuantity, FunctionUnitBase

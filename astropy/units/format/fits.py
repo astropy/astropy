@@ -13,7 +13,7 @@ from astropy.units.enums import DeprecatedUnitAction
 from astropy.units.errors import UnitScaleError
 from astropy.utils import classproperty
 
-from . import Base
+from .base import Base
 from .generic import _GenericParserMixin
 
 
