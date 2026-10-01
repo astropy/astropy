@@ -178,8 +178,11 @@ def test_cython_irregular_frequency(data, fit_mean, center_data):
 def test_integer_inputs(
     data, method, center_data, fit_mean, with_errors, normalization
 ):
-    if method == "scipy" and (fit_mean or with_errors):
-        return
+    if method == "scipy":
+        if fit_mean and not _scipy_supports_floating_mean():
+            pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
+        elif with_errors:
+            pytest.skip("scipy method only supports uniform uncertainties dy")
 
     t, y, dy = data
 
