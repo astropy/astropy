@@ -1,10 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import annotations
 
 import fnmatch
 import os
 import re
 import sys
 from shutil import get_terminal_size
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -12,10 +14,16 @@ from astropy import log, table
 from astropy.utils.console import Getch, color_print, conf
 from astropy.utils.data_info import dtype_info_name
 
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Iterator
+
+    from ._typing import ColumnFormat, ColumnLike
+    from .table import Table
+
 __all__ = []
 
 
-def default_format_func(format_, val):
+def default_format_func(format_: ColumnFormat | None, val) -> str:
     if isinstance(val, bytes):
         return val.decode("utf-8", errors="replace")
     else:
@@ -25,7 +33,9 @@ def default_format_func(format_, val):
 # The first three functions are helpers for _auto_format_func
 
 
-def _use_str_for_masked_values(format_func):
+def _use_str_for_masked_values(
+    format_func: Callable[[Any, Any], str],
+) -> Callable[[Any, Any], str]:
     """Wrap format function to trap masked values.
 
     String format functions and most user functions will not be able to deal
@@ -36,7 +46,9 @@ def _use_str_for_masked_values(format_func):
     )
 
 
-def _possible_string_format_functions(format_):
+def _possible_string_format_functions(
+    format_: str,
+) -> Iterator[Callable[[Any, Any], str]]:
     """Iterate through possible string-derived format functions.
 
     A string can either be a format specifier for the format built-in,
@@ -49,8 +61,11 @@ def _possible_string_format_functions(format_):
 
 
 def get_auto_format_func(
-    col=None, possible_string_format_functions=_possible_string_format_functions
-):
+    col: ColumnLike | None = None,
+    possible_string_format_functions: Callable[
+        [str], Iterator[Callable[[Any, Any], str]]
+    ] = _possible_string_format_functions,
+) -> Callable[[Any, Any], str]:
     """
     Return a wrapped ``auto_format_func`` function which is used in
     formatting table columns.  This is primarily an internal function but
@@ -70,7 +85,7 @@ def get_auto_format_func(
     Wrapped ``auto_format_func`` function
     """
 
-    def _auto_format_func(format_, val):
+    def _auto_format_func(format_: ColumnFormat | None, val) -> str:
         """Format ``val`` according to ``format_`` for a plain format specifier,
         old- or new-style format strings, or using a user supplied function.
         More importantly, determine and cache (in _format_funcs) a function
@@ -142,14 +157,16 @@ def get_auto_format_func(
     return _auto_format_func
 
 
-def _get_pprint_include_names(table):
+def _get_pprint_include_names(table: Table) -> set[str]:
     """Get the set of names to show in pprint from the table pprint_include_names
     and pprint_exclude_names attributes.
 
     These may be fnmatch unix-style globs.
     """
 
-    def get_matches(name_globs, default):
+    def get_matches(
+        name_globs: Iterable[str] | None, default: Iterable[str]
+    ) -> set[str]:
         match_names = set()
         if name_globs:  # For None or () use the default
             for name in table.colnames:
@@ -169,7 +186,9 @@ def _get_pprint_include_names(table):
 
 class TableFormatter:
     @staticmethod
-    def _get_pprint_size(max_lines=None, max_width=None):
+    def _get_pprint_size(
+        max_lines: int | None = None, max_width: int | None = None
+    ) -> tuple[int, int]:
         """Get the output size (number of lines and character width) for Column and
         Table pformat/pprint methods.
 
@@ -227,15 +246,15 @@ class TableFormatter:
 
     def _pformat_col(
         self,
-        col,
-        max_lines=None,
-        show_name=True,
-        show_unit=None,
-        show_dtype=False,
-        show_length=None,
-        html=False,
-        align=None,
-    ):
+        col: ColumnLike,
+        max_lines: int | None = None,
+        show_name: bool = True,
+        show_unit: bool | None = None,
+        show_dtype: bool = False,
+        show_length: bool | None = None,
+        html: bool = False,
+        align: str | None = None,
+    ) -> tuple[list[str], dict[str, Any]]:
         """Return a list of formatted string representation of column values.
 
         Parameters
@@ -372,7 +391,9 @@ class TableFormatter:
 
         return col_strs, outs
 
-    def _name_and_structure(self, name, dtype, sep=" "):
+    def _name_and_structure(
+        self, name: str, dtype: np.dtype | None, sep: str = " "
+    ) -> str:
         """Format a column name, including a possible structure.
 
         Normally, just returns the name, but if it has a structured dtype,
@@ -392,14 +413,14 @@ class TableFormatter:
 
     def _pformat_col_iter(
         self,
-        col,
-        max_lines,
-        show_name,
-        show_unit,
-        outs,
-        show_dtype=False,
-        show_length=None,
-    ):
+        col: ColumnLike,
+        max_lines: int | None,
+        show_name: bool,
+        show_unit: bool,
+        outs: dict[str, Any],
+        show_dtype: bool = False,
+        show_length: bool | None = None,
+    ) -> Iterator[str]:
         """Iterator which yields formatted string representation of column values.
 
         Parameters
@@ -523,7 +544,7 @@ class TableFormatter:
             i0 = -1
             indices = np.arange(n_rows)
 
-        def format_col_str(idx):
+        def format_col_str(idx: int) -> str:
             if not multidims:
                 return format_func(col_format, col if is_scalar else col[idx])
 
@@ -548,7 +569,7 @@ class TableFormatter:
                 result = f"{left} .. {right}"
             else:
 
-                def format_multidim(arr):
+                def format_multidim(arr: np.ndarray) -> str:
                     """Recursively format multidimensional arrays."""
                     if arr.ndim == 0:
                         return format_func(col_format, arr)
@@ -582,17 +603,17 @@ class TableFormatter:
 
     def _pformat_table(
         self,
-        table,
-        max_lines=-1,
-        max_width=-1,
-        show_name=True,
-        show_unit=None,
-        show_dtype=False,
-        html=False,
-        tableid=None,
-        tableclass=None,
-        align=None,
-    ):
+        table: Table,
+        max_lines: int | None = -1,
+        max_width: int | None = -1,
+        show_name: bool = True,
+        show_unit: bool | None = None,
+        show_dtype: bool = False,
+        html: bool = False,
+        tableid: str | None = None,
+        tableclass: str | list[str] | None = None,
+        align: str | list[str] | tuple[str, ...] | None = None,
+    ) -> tuple[list[str], dict[str, Any]]:
         """Return a list of lines for the formatted string representation of
         the table.
 
@@ -703,7 +724,7 @@ class TableFormatter:
 
         n_rows = len(cols[0])
 
-        def outwidth(cols):
+        def outwidth(cols: list[list[str]]) -> int:
             return sum(len(c[0]) for c in cols) + len(cols) - 1
 
         dots_col = ["..."] * n_rows
@@ -755,13 +776,13 @@ class TableFormatter:
 
     def _more_tabcol(
         self,
-        tabcol,
-        max_lines=None,
-        max_width=None,
-        show_name=True,
-        show_unit=None,
-        show_dtype=False,
-    ):
+        tabcol: Table | ColumnLike,
+        max_lines: int | None = None,
+        max_width: int | None = None,
+        show_name: bool = True,
+        show_unit: bool | None = None,
+        show_dtype: bool = False,
+    ) -> None:
         """Interactive "more" of a table or column.
 
         Parameters

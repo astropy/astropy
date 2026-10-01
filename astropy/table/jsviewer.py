@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from warnings import warn
 
 import astropy.config as _config
@@ -131,7 +133,7 @@ class JSViewer:
 
     """
 
-    def __init__(self, use_local_files=False, display_length=50):
+    def __init__(self, use_local_files: bool = False, display_length: int = 50) -> None:
         if use_local_files:
             warn(
                 "`use_local_files` is deprecated and has no effect; for security reasons no static versions of the required js libraries are included in astropy.",
@@ -147,17 +149,22 @@ class JSViewer:
                 L.insert(0, display_length)
 
     @property
-    def jquery_urls(self):
+    def jquery_urls(self) -> list[str]:
         return [conf.jquery_url, conf.datatables_url]
 
     @property
-    def css_urls(self):
+    def css_urls(self) -> list[str]:
         return conf.css_urls
 
-    def _jstable_file(self):
+    def _jstable_file(self) -> str:
         return conf.datatables_url[:-3]
 
-    def ipynb(self, table_id, css=None, sort_columns="[]"):
+    def ipynb(
+        self,
+        table_id: str,
+        css: str | None = None,
+        sort_columns: str | list[int] = "[]",
+    ) -> str:
         html = f"<style>{css if css is not None else DEFAULT_CSS_NB}</style>"
         html += IPYNB_JS_SCRIPT.format(
             display_length=self.display_length,
@@ -168,7 +175,9 @@ class JSViewer:
         )
         return html
 
-    def html_js(self, table_id="table0", sort_columns="[]"):
+    def html_js(
+        self, table_id: str = "table0", sort_columns: str | list[int] = "[]"
+    ) -> str:
         return HTML_JS_SCRIPT.format(
             display_length=self.display_length,
             display_length_menu=self.display_length_menu,
@@ -178,16 +187,16 @@ class JSViewer:
 
 
 def write_table_jsviewer(
-    table,
-    filename,
-    table_id=None,
-    max_lines=5000,
-    table_class="display compact",
-    jskwargs=None,
-    css=DEFAULT_CSS,
-    htmldict=None,
-    overwrite=False,
-):
+    table: Table,
+    filename: str | Path,
+    table_id: str | None = None,
+    max_lines: int = 5000,
+    table_class: str = "display compact",
+    jskwargs: dict[str, Any] | None = None,
+    css: str = DEFAULT_CSS,
+    htmldict: dict[str, Any] | None = None,
+    overwrite: bool = False,
+) -> None:
     """
     Write an Astropy Table to an HTML file with JavaScript viewer.
 

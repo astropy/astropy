@@ -5,9 +5,12 @@ Helper functions for table development, mostly creating useful
 tables for testing.
 """
 
+from __future__ import annotations
+
 import string
 import warnings
 from itertools import cycle
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -17,8 +20,16 @@ from astropy.utils.data_info import ParentDtypeInfo
 
 from .table import Column, Table
 
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
-def simple_table(size=3, cols=None, kinds="ifS", masked=False):
+
+def simple_table(
+    size: int = 3,
+    cols: int | None = None,
+    kinds: str = "ifS",
+    masked: bool = False,
+) -> Table:
     """
     Return a simple table for testing.
 
@@ -86,7 +97,7 @@ def simple_table(size=3, cols=None, kinds="ifS", masked=False):
     return table
 
 
-def complex_table():
+def complex_table() -> Table:
     """
     Return a masked table from the io.votable test set that has a wide variety
     of stressing types.
@@ -106,13 +117,13 @@ def complex_table():
 class ArrayWrapperInfo(ParentDtypeInfo):
     _represent_as_dict_primary_data = "data"
 
-    def _represent_as_dict(self):
+    def _represent_as_dict(self) -> dict[str, Any]:
         """Represent Column as a dict that can be serialized."""
         col = self._parent
         out = {"data": col.data}
         return out
 
-    def _construct_from_dict(self, map):
+    def _construct_from_dict(self, map: dict[str, Any]) -> ArrayWrapper:
         """Construct Column from ``map``."""
         data = map.pop("data")
         out = self._parent_cls(data, **map)
@@ -132,7 +143,7 @@ class ArrayWrapper:
 
     info = ArrayWrapperInfo()
 
-    def __init__(self, data, copy=True):
+    def __init__(self, data: npt.ArrayLike | ArrayWrapper, copy: bool = True) -> None:
         if isinstance(data, ArrayWrapper):
             # this is done to preserve byteorder through copies
             arr = data.data
@@ -142,7 +153,7 @@ class ArrayWrapper:
         if "info" in getattr(data, "__dict__", ()):
             self.info = data.info
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int | np.integer | slice | np.ndarray) -> Any:
         if isinstance(item, (int, np.integer)):
             out = self.data[item]
         else:
@@ -151,13 +162,13 @@ class ArrayWrapper:
                 out.info = self.info
         return out
 
-    def __setitem__(self, item, value):
+    def __setitem__(self, item: int | np.integer | slice | np.ndarray, value) -> None:
         self.data[item] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> np.ndarray | np.bool_:
         """Minimal equality testing, mostly for mixin unit tests."""
         if isinstance(other, ArrayWrapper):
             return self.data == other.data
@@ -165,12 +176,12 @@ class ArrayWrapper:
             return self.data == other
 
     @property
-    def dtype(self):
+    def dtype(self) -> np.dtype:
         return self.data.dtype
 
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, ...]:
         return self.data.shape
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name='{self.info.name}' data={self.data}>"

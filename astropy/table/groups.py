@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import annotations
 
 import warnings
+from typing import TYPE_CHECKING, Any, Self
 
 import numpy as np
 
@@ -8,16 +10,26 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from .index import get_index_by_names
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from ._typing import ColumnLike
+    from .table import Table
+
 __all__ = ["ColumnGroups", "TableGroups"]
 
 
-def table_group_by(table, keys):
+def table_group_by(
+    table: Table, keys: str | list[str] | tuple[str, ...] | Table | np.ndarray
+) -> Table:
     # index copies are unnecessary and slow down _table_group_by
     with table.index_mode("discard_on_copy"):
         return _table_group_by(table, keys)
 
 
-def _table_group_by(table, keys):
+def _table_group_by(
+    table: Table, keys: str | list[str] | tuple[str, ...] | Table | np.ndarray
+) -> Table:
     """
     Get groups for ``table`` on specified ``keys``.
 
@@ -110,7 +122,7 @@ def _table_group_by(table, keys):
     return out
 
 
-def column_group_by(column, keys):
+def column_group_by(column: ColumnLike, keys: Table | np.ndarray) -> ColumnLike:
     """
     Get groups for ``column`` on specified ``keys``.
 
@@ -173,16 +185,16 @@ class BaseGroups:
     """
 
     @property
-    def parent(self):
+    def parent(self) -> ColumnLike | Table:
         return (
             self.parent_column if isinstance(self, ColumnGroups) else self.parent_table
         )
 
-    def __iter__(self):
+    def __iter__(self) -> Self:
         self._iter_index = 0
         return self
 
-    def next(self):
+    def next(self) -> ColumnLike | Table:
         ii = self._iter_index
         if ii < len(self.indices) - 1:
             i0, i1 = self.indices[ii], self.indices[ii + 1]
@@ -193,7 +205,9 @@ class BaseGroups:
 
     __next__ = next
 
-    def __getitem__(self, item):
+    def __getitem__(
+        self, item: int | np.integer | slice | np.ndarray
+    ) -> ColumnLike | Table:
         parent = self.parent
 
         if isinstance(item, (int, np.integer)):
@@ -223,10 +237,10 @@ class BaseGroups:
 
         return out
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} indices={self.indices}>"
 
-    def __len__(self):
+    def __len__(self) -> int:
         _len = len(self.indices)
         if _len == 1:
             # Should never happen, indices should either have length = 0 or length >= 2.
@@ -235,14 +249,19 @@ class BaseGroups:
 
 
 class ColumnGroups(BaseGroups):
-    def __init__(self, parent_column, indices=None, keys=None):
+    def __init__(
+        self,
+        parent_column: ColumnLike,
+        indices: np.ndarray | None = None,
+        keys: Table | np.ndarray | None = None,
+    ) -> None:
         self.parent_column = parent_column  # parent Column
         self.parent_table = parent_column.info.parent_table
         self._indices = indices
         self._keys = keys
 
     @property
-    def indices(self):
+    def indices(self) -> np.ndarray:
         # If the parent column is in a table then use group indices from table
         if self.parent_table is not None:
             return self.parent_table.groups.indices
@@ -257,14 +276,14 @@ class ColumnGroups(BaseGroups):
                 return self._indices
 
     @property
-    def keys(self):
+    def keys(self) -> Table | np.ndarray | None:
         # If the parent column is in a table then use group indices from table
         if self.parent_table is not None:
             return self.parent_table.groups.keys
         else:
             return self._keys
 
-    def aggregate(self, func):
+    def aggregate(self, func: Callable[..., Any]) -> ColumnLike:
         i0s, i1s = self.indices[:-1], self.indices[1:]
         par_col = self.parent_column
         try:
@@ -299,7 +318,7 @@ class ColumnGroups(BaseGroups):
 
         return out
 
-    def filter(self, func):
+    def filter(self, func: Callable[[ColumnLike], bool]) -> ColumnLike:
         """
         Filter groups in the Column based on evaluating function ``func`` on each
         group sub-table.
@@ -334,13 +353,18 @@ class ColumnGroups(BaseGroups):
 
 
 class TableGroups(BaseGroups):
-    def __init__(self, parent_table, indices=None, keys=None):
+    def __init__(
+        self,
+        parent_table: Table,
+        indices: np.ndarray | None = None,
+        keys: Table | np.ndarray | None = None,
+    ) -> None:
         self.parent_table = parent_table  # parent Table
         self._indices = indices
         self._keys = keys
 
     @property
-    def key_colnames(self):
+    def key_colnames(self) -> list[str] | tuple[str, ...]:
         """
         Return the names of columns in the parent table that were used for grouping.
         """
@@ -354,7 +378,7 @@ class TableGroups(BaseGroups):
         return self.keys.colnames if grouped_by_table_cols else ()
 
     @property
-    def indices(self):
+    def indices(self) -> np.ndarray:
         if self._indices is None:
             # No explicit groups have been defined so default to a single group if
             # the table has any rows, otherwise return an empty array of indices to
@@ -364,7 +388,7 @@ class TableGroups(BaseGroups):
         else:
             return self._indices
 
-    def aggregate(self, func):
+    def aggregate(self, func: Callable[..., Any]) -> Table:
         """
         Aggregate each group in the Table into a single row by applying the reduction
         function ``func`` to group values in each column.
@@ -398,7 +422,9 @@ class TableGroups(BaseGroups):
 
         return parent_table.__class__(out_cols, meta=parent_table.meta)
 
-    def filter(self, func):
+    def filter(
+        self, func: Callable[[Table, list[str] | tuple[str, ...]], bool]
+    ) -> Table:
         """
         Filter groups in the Table based on evaluating function ``func`` on each
         group sub-table.
@@ -436,5 +462,5 @@ class TableGroups(BaseGroups):
         return self[mask]
 
     @property
-    def keys(self):
+    def keys(self) -> Table | np.ndarray | None:
         return self._keys

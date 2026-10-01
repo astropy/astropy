@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import itertools
 import warnings
-from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict
 
 from astropy.io import registry
 from astropy.utils.exceptions import AstropyWarning
@@ -60,11 +60,11 @@ class TableRead(registry.UnifiedReadWrite):
     -----
     """
 
-    def __init__(self, instance, cls):
+    def __init__(self, instance: Table | None, cls: type[Table]) -> None:
         super().__init__(instance, cls, "read", registry=None)
         # uses default global registry
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs) -> Table:
         cls = self._cls
         units = kwargs.pop("units", None)
         descriptions = kwargs.pop("descriptions", None)
@@ -134,11 +134,17 @@ class TableWrite(registry.UnifiedReadWrite):
     -----
     """
 
-    def __init__(self, instance, cls):
+    def __init__(self, instance: Table | None, cls: type[Table]) -> None:
         super().__init__(instance, cls, "write", registry=None)
         # uses default global registry
 
-    def __call__(self, *args, serialize_method=None, write_indices=False, **kwargs):
+    def __call__(
+        self,
+        *args: Any,
+        serialize_method: str | dict[str | type, str] | None = None,
+        write_indices: bool = False,
+        **kwargs,
+    ) -> None:
         tbl = self._instance
         with serialize_method_as(tbl, serialize_method):
             if write_indices and tbl.indices:
