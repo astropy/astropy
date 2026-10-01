@@ -494,8 +494,9 @@ def test_set_temp_cache_resets_on_exception(tmp_path: Path) -> None:
 
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_file() -> None:
+    from configobj import ConfigObj, Section
+
     from astropy.config.configuration import get_config, reload_config
-    from astropy.extern.configobj.configobj import ConfigObj, Section
 
     apycfg = get_config("astropy")
     assert isinstance(apycfg, ConfigObj)
@@ -542,8 +543,9 @@ class RootNameKwarg(TypedDict):
 )
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_file_edge_case(module_name, kwargs: RootNameKwarg):
+    from configobj import ConfigObj, Section
+
     from astropy.config.configuration import get_config, reload_config
-    from astropy.extern.configobj.configobj import ConfigObj, Section
 
     cfg: ConfigObj
     match cfg_or_sec := get_config(module_name, reload=True, **kwargs):
