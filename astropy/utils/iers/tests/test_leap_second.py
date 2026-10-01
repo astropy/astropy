@@ -4,6 +4,7 @@ import os
 import pkgutil
 import platform
 import urllib.request
+import warnings
 
 import erfa
 import numpy as np
@@ -14,12 +15,15 @@ import astropy
 from astropy.tests.helper import CI
 from astropy.time import Time, TimeDelta
 from astropy.utils.data import get_pkg_data_filename
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.iers import iers
 
 # Import every astropy module as a test that the ERFA leap second
 # table is not updated for normal imports.
-for finder, name, _ in pkgutil.walk_packages(astropy.__path__, prefix="astropy."):
-    finder.find_spec(name)
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=AstropyDeprecationWarning)
+    for finder, name, _ in pkgutil.walk_packages(astropy.__path__, prefix="astropy."):
+        finder.find_spec(name)
 
 # Now test that the erfa leap_seconds table has not been updated. This must be
 # done at the module level, which unfortunately will abort the entire test run
