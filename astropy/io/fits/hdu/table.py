@@ -1338,12 +1338,9 @@ class BinTableHDU(_TableBaseHDU):
         """
         Read the table data from the ASCII file output by BinTableHDU.dump().
         """
-        close_file = False
-
         if isinstance(fileobj, path_like):
-            fileobj = os.path.expanduser(fileobj)
-            fileobj = open(fileobj)
-            close_file = True
+            with open(os.path.expanduser(fileobj)) as f:
+                return cls._load_data(f, coldefs=coldefs)
 
         initialpos = fileobj.tell()  # We'll be returning here later
         linereader = csv.reader(fileobj, dialect=FITSTableDumpDialect)
@@ -1474,9 +1471,6 @@ class BinTableHDU(_TableBaseHDU):
 
                 col += 1
 
-        if close_file:
-            fileobj.close()
-
         return data
 
     @classmethod
@@ -1485,12 +1479,9 @@ class BinTableHDU(_TableBaseHDU):
         Read the table column definitions from the ASCII file output by
         BinTableHDU.dump().
         """
-        close_file = False
-
         if isinstance(fileobj, path_like):
-            fileobj = os.path.expanduser(fileobj)
-            fileobj = open(fileobj)
-            close_file = True
+            with open(os.path.expanduser(fileobj)) as f:
+                return cls._load_coldefs(f)
 
         columns = []
 
@@ -1506,9 +1497,6 @@ class BinTableHDU(_TableBaseHDU):
                     word = _str_to_num(word)
                 kwargs[key] = word
             columns.append(Column(**kwargs))
-
-        if close_file:
-            fileobj.close()
 
         return ColDefs(columns)
 
