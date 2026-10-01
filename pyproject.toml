@@ -1050,4 +1050,6 @@ modules = [
     "astropy.cosmology.realizations",
     "astropy.cosmology.traits",
     "astropy.cosmology.units",
+    # Specific config modules
+    "astropy.config.configuration",
 ]
