@@ -324,7 +324,7 @@ markers = [
 # - MuslLinux (tests hang non-deterministically)
 # - Pyodide (the test command is shared with the other targets, and parts of the
 #   test suite need threads/sockets/subprocesses, which WebAssembly lacks)
-test-skip = ["*-musllinux_x86_64", "*-pyodide_wasm32"]
+test-skip = ["*-musllinux_x86_64"]
 enable = ["cpython-prerelease"]
 skip = [
     "cp*t-*",  # https://github.com/astropy/astropy/issues/16916
