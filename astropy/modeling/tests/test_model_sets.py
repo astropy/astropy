@@ -393,10 +393,7 @@ def test_linear_fit_model_set_common_weight():
     # ValueError: On entry to DLASCL parameter number 4 had an illegal value
 
     warn_ctx = (
-        pytest.warns(
-            RuntimeWarning,
-            match=r"divide by zero encountered|invalid value encountered in ceil",
-        )
+        pytest.warns(RuntimeWarning, match=r"invalid value encountered in.*divide")
         if sys.platform != "emscripten"
         else nullcontext()
     )
@@ -427,10 +424,7 @@ def test_linear_fit_model_set_weights():
     assert_allclose(fitted_model(x, model_set_axis=False), y_expected, rtol=1e-1)
 
     warn_ctx = (
-        pytest.warns(
-            RuntimeWarning,
-            match=r"divide by zero encountered|invalid value encountered in ceil",
-        )
+        pytest.warns(RuntimeWarning, match=r"invalid value encountered in.*divide")
         if sys.platform != "emscripten"
         else nullcontext()
     )
