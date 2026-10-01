@@ -9,8 +9,8 @@ from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._testing import (
     assert_not_strictly_equal,
 )
-from astropy.timeseries.periodograms.lombscargle.implementations.utils import (
-    SCIPY_LT_1_15,
+from astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl import (
+    _scipy_supports_floating_mean,
 )
 
 ALL_METHODS = LombScargle.available_methods
@@ -74,7 +74,7 @@ def test_all_methods(
     data, method, center_data, fit_mean, errors, with_units, normalization
 ):
     if method == "scipy":
-        if fit_mean and SCIPY_LT_1_15:
+        if fit_mean and not _scipy_supports_floating_mean():
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
         if errors == "full" or (errors == "partial" and normalization == "psd"):
             pytest.skip("scipy method only supports uniform uncertainties dy")

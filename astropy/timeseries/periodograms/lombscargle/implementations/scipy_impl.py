@@ -1,12 +1,24 @@
+from functools import cache
+
 import numpy as np
 
 from astropy.timeseries.periodograms.lombscargle.utils import (
     compute_chi2_ref,
     convert_normalization,
 )
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
-from .utils import SCIPY_LT_1_15
+
+@cache
+def _scipy_supports_floating_mean():
+    # Deferred so that scipy is only imported and its version only probed when
+    # the answer is needed; passing the module object lets minversion fall
+    # back to scipy.__version__ when the distribution metadata is missing
+    # (e.g. in some frozen applications).
+    import scipy
+
+    return minversion(scipy, "1.15.0.dev0")
 
 
 def lombscargle_scipy(
@@ -54,6 +66,9 @@ def lombscargle_scipy(
 
     from scipy import signal
 
+    if fit_mean and not _scipy_supports_floating_mean():
+        raise ValueError("fit_mean=True requires scipy 1.15 or later")
+
     t, y = np.broadcast_arrays(t, y)
 
     # Scipy requires floating-point input
@@ -68,9 +83,6 @@ def lombscargle_scipy(
 
     if center_data:
         y = y - y.mean()
-
-    if fit_mean and SCIPY_LT_1_15:
-        raise ValueError("fit_mean=True requires scipy 1.15 or later")
 
     kwargs = {"floating_mean": True} if fit_mean else {}
 

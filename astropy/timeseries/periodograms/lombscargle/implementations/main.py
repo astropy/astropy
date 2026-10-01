@@ -15,9 +15,8 @@ from .chi2_impl import lombscargle_chi2
 from .cython_impl import lombscargle_cython
 from .fast_impl import lombscargle_fast
 from .fastchi2_impl import lombscargle_fastchi2
-from .scipy_impl import lombscargle_scipy
+from .scipy_impl import _scipy_supports_floating_mean, lombscargle_scipy
 from .slow_impl import lombscargle_slow
-from .utils import SCIPY_LT_1_15
 
 METHODS = {
     "slow": lombscargle_slow,
@@ -114,7 +113,7 @@ def validate_method(  # ruff: ignore[PLR0917]
         "scipy" in methods
         and dy is None
         and method_kwds is None
-        and not (fit_mean and SCIPY_LT_1_15)
+        and (not fit_mean or _scipy_supports_floating_mean())
     )
 
     # automatically choose the appropriate method
