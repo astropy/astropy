@@ -191,11 +191,11 @@ def test_read_tdat():
     dtypes = [np.int32, np.int32, np.dtype("U3"), float, float, float]
     units = [None, None, None, "deg", "deg", None]
     meta = [
-        {"ucd": "meta.id", "index": "key"},
-        {"ucd": "meta.id", "index": "index"},
-        {"ucd": "meta.id;meta.main", "index": "index"},
-        {"ucd": "pos.eq.ra", "index": "index"},
-        {"ucd": "pos.eq.dec", "index": "index"},
+        {"ucd": "meta.id", "flag": "key"},
+        {"ucd": "meta.id", "flag": "index"},
+        {"ucd": "meta.id;meta.main", "flag": "index"},
+        {"ucd": "pos.eq.ra", "flag": "index"},
+        {"ucd": "pos.eq.dec", "flag": "index"},
         {"comment": "Comment"},
     ]
     for i, col in enumerate(test_table.itercols()):
@@ -255,12 +255,12 @@ def test_full_table_content():
         "Empty",
     ]
     ucds = ["meta.id", "meta.id", "meta.id;meta.main", "pos.eq.ra", "pos.eq.dec", None]
-    indices = ["key", "index", "index", "index", "index", None]
+    flags = ["key", "index", "index", "index", "index", None]
     for i, col in enumerate(test_table.columns):
         assert test_table[col].dtype == dtypes[i]
         assert test_table[col].description == descriptions[i]
         assert test_table[col].meta.get("ucd", None) == ucds[i]
-        assert test_table[col].meta.get("index", None) == indices[i]
+        assert test_table[col].meta.get("flag", None) == flags[i]
     assert test_table["ra"].unit == "deg"
     assert test_table["dec"].unit == "deg"
     assert test_table["ra"].format == ".4f"
@@ -756,6 +756,19 @@ def test_unsupported_delimiter():
             t = Table.read(lines, format="ascii.tdat")
 
 
+def test_ucd_errors():
+    """Test UCD errors"""
+    lines = SIMPLE_LINES.copy()
+    lines[5] += "[meta.main]"
+
+    with pytest.raises(TdatFormatError, match="is not valid as a primary word"):
+        t = Table.read(lines, format="ascii.tdat")
+
+    with pytest.raises(TdatFormatError, match="Unknown word"):
+        lines[5] = "field[a] = int4[garbage.ucd]"
+        t = Table.read(lines, format="ascii.tdat")
+
+
 def test_write_qtable():
     qt = QTable([np.arange(4) * u.m, ["a", "b", "c", "ddd"]], names=["a", "b"])
     qt.meta["table_name"] = "astropy_qtable"
@@ -794,7 +807,7 @@ def test_multiline_data():
 
 def test_comment_too_long():
     lines = SIMPLE_LINES.copy()
-    lines[5] += "# # " + "a" * 100
+    lines[5] += "// // " + "a" * 100
     with pytest.warns(TdatFormatWarning, match="Comments are limited"):
         t = Table.read(lines, format="ascii.tdat")
         assert len(t["a"].meta["comment"]) == 80
