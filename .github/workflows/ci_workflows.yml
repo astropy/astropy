@@ -168,6 +168,20 @@ jobs:
           cache-path: .tox
           cache-key: stub_tests-${{ github.ref_name }}
 
+  mypy:
+    needs: [initial_checks]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+      submodules: false
+      envs: |
+        - name: Type checking select modules
+          linux: mypy
+          cache-path: .tox
+          cache-key: mypy-${{ github.ref_name }}
+
   test_wheel_building:
     needs:
       - initial_checks

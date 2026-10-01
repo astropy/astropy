@@ -23,6 +23,7 @@
 #include <time.h>
 
 #include <tab.h>
+#include <wcserr.h>
 #include <wtbarr.h>
 
 /***************************************************************************
@@ -107,6 +108,13 @@ Wcs_new(
   self = (Wcs*)alloc_func(type, 0);
   if (self != NULL) {
     pipeline_clear(&self->x);
+    /* Wcs_init fills the pipeline without calling pipeline_init, so
+     * the eager wcserr allocation has to happen here. */
+    self->x.err = calloc(1, sizeof(struct wcserr));
+    if (self->x.err == NULL) {
+      Py_DECREF(self);
+      return PyErr_NoMemory();
+    }
     self->py_det2im[0]            = NULL;
     self->py_det2im[1]            = NULL;
     self->py_sip                  = NULL;
@@ -257,7 +265,7 @@ Wcs_all_pix2world(
   // under the GIL here (short-circuited by wcsenq on subsequent calls) we
   // can safely drop the wcsprm_python2c / wcsprm_c2python round-trip from
   // around pipeline_all_pixel2world.
-  if (Wcsprm_cset(((Wcsprm*)(self->py_wcsprm)), 1)) {
+  if (Wcsprm_cset(((Wcsprm*)(self->py_wcsprm)))) {
     return NULL;
   }
 
@@ -871,6 +879,7 @@ PyInit__wcs(void)
   if (_setup_api(m)                 ||
       _setup_str_list_proxy_type(m) ||
       _setup_unit_list_proxy_type(m)||
+      _setup_wcsparameter_array_type(m) ||
       _setup_wcsprm_type(m)         ||
       _setup_auxprm_type(m)         ||
       _setup_prjprm_type(m)         ||

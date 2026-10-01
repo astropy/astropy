@@ -1,0 +1,1 @@
+Fix ``block_replicate`` with ``conserve_sum=True`` inadvertently promoting ``float16``, ``float32``, and ``complex64`` input arrays to wider dtypes.

@@ -5,7 +5,7 @@ __all__ = ("z_at_value",)
 
 import warnings
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -37,7 +37,7 @@ class _CustomSolverCallable(Protocol):
     ) -> "scipy.optimize.OptimizeResult": ...
 
 
-_BracketSingle: TypeAlias = tuple[float, float] | tuple[float, float, float]
+type _BracketSingle = tuple[float, float] | tuple[float, float, float]
 
 
 class _ZAtValueKWArgs(TypedDict):  # noqa: PYI049

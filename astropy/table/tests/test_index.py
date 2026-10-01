@@ -1,6 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import gc
 import io
+import tracemalloc
 import warnings
 
 import numpy as np
@@ -8,7 +10,7 @@ import numpy.testing as npt
 import pytest
 
 from astropy import units as u
-from astropy.table import Column, QTable, Row, Table, hstack
+from astropy.table import Column, MaskedColumn, QTable, Row, Table, hstack
 from astropy.table.bst import BST
 from astropy.table.column import BaseColumn
 from astropy.table.index import SlicedIndex, get_index
@@ -646,6 +648,63 @@ def test_table_index_does_not_propagate_to_column_slices(col):
     tabx = tab[1:]
     t = tabx["t"]
     assert t.info.indices
+
+
+def test_masked_column_index_does_not_propagate_to_derived_columns():
+    # Regression test for gh-16089.  MaskedArray propagates the attributes of the
+    # source array to any derived array via its ``_optinfo`` dict.  Previously this
+    # carried the ``indices`` list along, so a slice of a slice (or a comparison
+    # result) of an indexed MaskedColumn silently shared the original column's index.
+    t = Table({"a": MaskedColumn([3, 1, 2])})
+    t.add_index("a")
+    col = t["a"]
+    assert col.indices
+    assert "indices" not in col._optinfo
+
+    for derived in (col[[0, 1]], col[[0, 1]][[0]], col[1:][:1], col + 1, col == 1):
+        assert isinstance(derived, np.ma.MaskedArray)
+        assert not getattr(derived, "indices", [])
+        assert "indices" not in derived._optinfo
+
+    # The original index is untouched.
+    assert col.indices[0].index.columns[0] is col
+    assert t.loc[1]["a"] == 1
+
+
+def test_indexed_masked_column_slicing_does_not_leak_memory():
+    # Regression test for gh-16089.  Repeatedly slicing a table with an index on a
+    # MaskedColumn used to deep-copy the whole index (including a copy of the sorted
+    # column data) on every access, and those copies were never freed.
+    size = 2000
+    n_iter = 20
+    vals = np.array([f"2000-01-01T00:00:{ii % 60:02d}.000" for ii in range(size)])
+    t = Table({"a": np.arange(size), "idx": MaskedColumn(vals)})
+    t.add_index("idx")
+    picks = t["idx"][:n_iter]
+
+    def access_rows():
+        for idx in picks:
+            t[t["idx"] == idx]
+
+    access_rows()  # Warm up so one-time allocations do not count.
+    gc.collect()
+
+    was_tracing = tracemalloc.is_tracing()
+    if not was_tracing:
+        tracemalloc.start()
+    try:
+        before = tracemalloc.take_snapshot()
+        access_rows()
+        gc.collect()
+        after = tracemalloc.take_snapshot()
+    finally:
+        if not was_tracing:
+            tracemalloc.stop()
+
+    growth = sum(stat.size_diff for stat in after.compare_to(before, "filename"))
+    # Before the fix each iteration leaked at least one full copy of the ``idx``
+    # column data (size * 92 bytes), i.e. several MB in total here.
+    assert growth < t["idx"].nbytes
 
 
 def test_hstack_qtable_table():

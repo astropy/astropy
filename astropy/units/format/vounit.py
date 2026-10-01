@@ -25,7 +25,7 @@ from astropy.units.errors import UnitParserWarning, UnitScaleError, UnitsError
 from astropy.units.typing import UnitScale
 from astropy.utils import classproperty
 
-from . import Base
+from .base import Base
 from .generic import _GenericParserMixin
 
 

@@ -85,7 +85,7 @@ enable this, set ``latex_names=True``.
     >>> temp_dir.cleanup()
 """
 
-from typing import Any, TypeVar
+from typing import Any
 
 import astropy.units as u
 from astropy.table import QTable, Table
@@ -99,8 +99,6 @@ from astropy.cosmology._src.typing import _CosmoT
 from astropy.io.typing import PathLike, ReadableFileLike, WriteableFileLike
 
 from .table import from_table, to_table
-
-_TableT = TypeVar("_TableT", bound=Table)
 
 # Format look-up for conversion, {original_name: new_name}
 # TODO! move this information into the Parameters themselves
@@ -195,12 +193,12 @@ def read_html_table(
     )
 
 
-def write_html_table(
+def write_html_table[T: Table](
     cosmology: Cosmology,
-    file: PathLike | WriteableFileLike[_TableT],
+    file: PathLike | WriteableFileLike[T],
     *,
     overwrite: bool = False,
-    cls: type[_TableT] = QTable,
+    cls: type[T] = QTable,
     latex_names: bool = False,
     **kwargs: Any,
 ) -> None:

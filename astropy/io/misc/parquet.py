@@ -58,7 +58,13 @@ def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
 
 
 def read_table_parquet(
-    input, include_names=None, exclude_names=None, schema_only=False, filters=None
+    input,
+    include_names=None,
+    exclude_names=None,
+    schema_only=False,
+    filters=None,
+    *,
+    string_lengths=None,
 ):
     """
     Read a Table object from a Parquet file.
@@ -110,6 +116,11 @@ def read_table_parquet(
     filters : list [tuple] or list [list [tuple] ] or None, optional
         Rows which do not match the filter predicate will be removed from
         scanned data.  See `pyarrow.parquet.read_table()` for details.
+    string_lengths : dict [str, int or None], optional
+        A mapping from column name to fixed string length. When provided for
+        a column, we use that instead of scanning and we do not emit a warning.
+        If not supplied, the length is determined from ``table::len`` parquet
+        metadata if present, otherwise by scanning the data with a warning.
 
     Returns
     -------
@@ -242,6 +253,14 @@ def read_table_parquet(
         if md_name in md:
             # String/bytes length from header.
             strlen = int(md[md_name])
+        elif string_lengths is not None and name in string_lengths:
+            if string_lengths[name] is not None:
+                strlen = string_lengths[name]
+            else:
+                # Explicitly variable-length (arraysize="*"): use object dtype
+                # to match the VOTable reader and avoid fixed-width truncation.
+                dtype.append("object" if shape is None else ("object", shape))
+                continue
         elif schema_only:  # Find the maximum string length.
             # Choose an arbitrary string length since
             # are not reading in the table.
@@ -680,10 +699,28 @@ def read_parquet_votable(filename):
     # Create an empty Astropy table inheriting all the column metadata
     # information.
     vot_blob = io.BytesIO(parquet_custom_metadata[b"IVOA.VOTable-Parquet.content"])
-    empty_table_with_columns_and_metadata = Table.read(votable.parse(vot_blob))
+    parsed_vot = votable.parse(vot_blob)
+
+    empty_table_with_columns_and_metadata = Table.read(parsed_vot)
+
+    # Build a string-length map from the VOTable field declarations so that
+    # read_table_parquet does not need to scan or warn about missing table::len keys.
+    # TODO: VOTable 1.6 adds field.width (character count) for char columns.
+    #       Prefer that over arraysize (byte count) once 1.6 is in wide use.
+    fields = parsed_vot.resources[0].tables[0].fields
+    string_lengths = {}
+    for field in fields:
+        if field.datatype not in ("char", "unicodeChar"):
+            continue
+        col_name = field.ID or field.name
+        size_str = field.arraysize.rstrip("*")
+        # None signals variable-length (arraysize="*"): use object dtype.
+        string_lengths[col_name] = int(size_str) if size_str else None
 
     # Load the data from the parquet table using the Table.read() functionality
-    data_table_with_no_metadata = Table.read(filename, format="parquet")
+    data_table_with_no_metadata = Table.read(
+        filename, format="parquet", string_lengths=string_lengths
+    )
 
     # Stitch the two tables together to create final table
     return vstack([empty_table_with_columns_and_metadata, data_table_with_no_metadata])

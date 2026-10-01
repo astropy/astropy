@@ -1,0 +1,1 @@
+Fix ``WCS.to_header()`` for cases where ``preserve_units=True``, units were set programmatically, and ``WCS.set()`` was not called.

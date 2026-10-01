@@ -1,0 +1,4 @@
+The ``latex`` and ``aastex`` readers no longer treat an ampersand inside a
+braced ``{...}`` group or an escaped ``\&`` as a column separator, so tables
+with a reference column such as ``\cite{2013A&A...558A..33A}`` now read
+correctly.

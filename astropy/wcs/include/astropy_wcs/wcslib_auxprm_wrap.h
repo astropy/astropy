@@ -7,7 +7,9 @@
 extern PyObject* AuxprmType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   struct auxprm* x;
   PyObject* owner;
 } Auxprm;

@@ -39,7 +39,10 @@ pipeline_init(
   pipeline->cpdis[0] = cpdis[0];
   pipeline->cpdis[1] = cpdis[1];
   pipeline->wcs = wcs;
-  pipeline->err = NULL;
+  /* Allocated eagerly: a lazy calloc in the error paths would race
+   * between threads.  Wcs_new does the same for pipelines set up
+   * without pipeline_init.  Freed by pipeline_free. */
+  pipeline->err = calloc(1, sizeof(struct wcserr));
 }
 
 void
@@ -150,9 +153,8 @@ pipeline_all_pixel2world(
 
     if ((status = wcsp2s(pipeline->wcs, (int)ncoord, (int)nelem, wcs_input, imgcrd,
                          phi, theta, wcs_output, stat))) {
-      if (pipeline->err == NULL) {
-        pipeline->err = calloc(1, sizeof(struct wcserr));
-      }
+      /* err is allocated eagerly in Wcs_new / pipeline_init; a lazy
+       * calloc here would race. */
       wcserr_copy(pipeline->wcs->err, pipeline->err);
     }
 
@@ -246,9 +248,8 @@ int pipeline_pix2foc(
   if (has_sip) {
     status = sip_pix2deltas(pipeline->sip, 2, ncoord, input, foc);
     if (status) {
-      if (pipeline->err == NULL) {
-        pipeline->err = calloc(1, sizeof(struct wcserr));
-      }
+      /* err is allocated eagerly in Wcs_new / pipeline_init; a lazy
+       * calloc here would race. */
       wcserr_copy(pipeline->sip->err, pipeline->err);
       goto exit;
     }

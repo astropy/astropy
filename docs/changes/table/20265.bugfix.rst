@@ -1,0 +1,6 @@
+Fixed a bug where a numpy function used on a ``MaskedColumn`` produced output
+with a different dtype than the input (e.g., ``np.strings.find``), which would
+later lead to a ``TypeError`` from a stale ``fill_value`` dtype. Now, when
+the fill_value is no longer valid for the output dtype, fall back to the
+default fill_value for that dtype instead of propagating the stale value.
+This can now raise a castings warnings following standard numpy casting rules.

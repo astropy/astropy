@@ -7,7 +7,9 @@
 extern PyObject* PrjprmType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
     PyObject_HEAD
+#endif
     struct prjprm* x;
     int* prefcount;
     PyObject* owner;

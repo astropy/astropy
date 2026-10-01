@@ -342,7 +342,7 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
             )
 
         try:
-            np.broadcast(self, value)
+            np.broadcast_shapes(self.shape, value.shape)
         except ValueError as exc:
             raise ValueError(f"cannot compare: {exc}") from exc
 

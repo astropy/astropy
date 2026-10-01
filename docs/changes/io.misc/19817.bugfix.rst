@@ -1,0 +1,2 @@
+Fixed ``read_parquet_votable`` emitting ``table::len`` warnings when
+reading IVOA-conformant VOParquet files from non-astropy writers.

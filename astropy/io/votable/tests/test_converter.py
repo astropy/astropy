@@ -334,3 +334,42 @@ def test_gemini_v1_2():
         == "http://www.cadc-ccda.hia-iha.nrc-cnrc.gc.ca/data/pub/GEMINI/"
         "S20120515S0064?runid=bx9b1o8cvk1qesrt"
     )
+
+
+def test_overflow_binary_converter():
+    """Regression for #20302: overflow for binary conversion
+    We test that we can parse a binary votable that contains all numeric types with
+    extreme values.
+    """
+    content = b"""<?xml version="1.0" encoding="utf-8"?>
+    <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.ivoa.net/xml/VOTable/v1.3 http://www.ivoa.net/xml/VOTable/VOTable-1.4.xsd">
+    <RESOURCE type="results">
+    <TABLE nrows="3">
+    <FIELD ID="bit_column" datatype="bit" name="bit_column"/>
+    <FIELD ID="unsignedByte_column" datatype="unsignedByte" name="unsignedByte_column"/>
+    <FIELD ID="short_column" datatype="short" name="short_column">
+        <VALUES null="-32768"/>
+    </FIELD>
+    <FIELD ID="int_column" datatype="int" name="int_column">
+        <VALUES null="-2147483648"/>
+    </FIELD>
+    <FIELD ID="long_column" datatype="long" name="long_column">
+        <VALUES null="-9223372036854775808"/>
+    </FIELD>
+    <FIELD ID="float_column" datatype="float" name="float_column">
+        <VALUES null="-3.4028235e+38"/>
+    </FIELD>
+    <FIELD ID="double_column" datatype="double" name="double_column">
+        <VALUES null="-1.7976931348623157e+308"/>
+    </FIELD>
+    <DATA>
+        <BINARY>
+        <STREAM encoding="base64">
+    AACAAIAAAACAAAAAAAAAAP9/////7////////wj/f/9/////f/////////9/f///f+////////8IgAPoAAAAKgAAAAJUC+QAQEj1w0AFvwqLFFdp     </STREAM>
+        </BINARY>
+    </DATA>
+    </TABLE>
+    </RESOURCE>
+    </VOTABLE>"""
+    table = parse_single_table(io.BytesIO(content))
+    assert list(table.to_table()["bit_column"]) == [False, True, True]

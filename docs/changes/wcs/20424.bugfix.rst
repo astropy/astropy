@@ -1,0 +1,3 @@
+The wcs extension is now compiled with ``-std=gnu11`` instead of
+``-std=gnu99``, so that the C11 spinlock which makes error handling in the
+bundled WCSLIB thread-safe is no longer silently compiled out as a no-op.

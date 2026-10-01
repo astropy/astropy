@@ -19,6 +19,11 @@ def _find_start_of_last_number(label):
     """
     Given a label, find the index of the start of the last numerical value
     in the label.
+
+    Parameters
+    ----------
+    label : str
+        The label to search.
     """
     numerical_chars = "0123456789.+"
     if rcParams["axes.unicode_minus"] and not rcParams["text.usetex"]:
@@ -163,10 +168,19 @@ class TickLabels(Text):
                     # non-number (and non-decimal place) character we can find.
                     start = _find_start_of_last_number(t2)
                 else:
-                    for j in range(len(t1)):
+                    start = 0
+                    for j in range(min(len(t1), len(t2))):
                         if t1[j] != t2[j]:
                             start = _find_start_of_last_number(t2[: j + 1])
                             break
+                    else:
+                        # One of the strings is a prefix of the other (up to
+                        # the length of the shorter one) without any
+                        # differing character, so the entire overlapping
+                        # part can be considered shared and only the extra
+                        # trailing part of t2 (if any) needs to be shown.
+                        if len(t2) > len(t1):
+                            start = _find_start_of_last_number(t2[: len(t1) + 1])
 
                 if start != 0:
                     starts_dollar = t2.startswith("$")
@@ -209,13 +223,17 @@ class TickLabels(Text):
         """
         Compute and set the x, y positions and the horizontal/vertical alignment of
         each label.
+
+        Parameters
+        ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to use to compute text sizes.
         """
         if not self._stale:
             return
 
         if self._simplify:
             self.simplify_labels()
-        text_size = renderer.points_to_pixels(self.get_size())
 
         visible_axes = self.get_visible_axes()
         self.xy = {axis: {} for axis in visible_axes}
@@ -294,6 +312,15 @@ class TickLabels(Text):
         """
         Get the bounding box of an individual label. n.b. _set_xy_alignment()
         must be called before this method.
+
+        Parameters
+        ----------
+        axis : str
+            The axis the label is on.
+        i : int
+            The index of the label along the axis.
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to use to compute text sizes.
         """
         if self.text[axis][i] == "":
             return

@@ -92,6 +92,9 @@ class XMLWriter:
             Attribute dictionary.  Alternatively, attributes can
             be given as keyword arguments.
 
+        **extra
+            Additional attributes, given as keyword arguments.
+
         Returns
         -------
         id : int
@@ -188,14 +191,24 @@ class XMLWriter:
         A convenience method for creating wrapper elements using the
         ``with`` statement.
 
+        Parameters
+        ----------
+        tag : str
+            The element name
+
+        attrib : dict of str -> str
+            Attribute dictionary.  Alternatively, attributes can
+            be given as keyword arguments.
+
+        **extra
+            Additional attributes, given as keyword arguments.
+
         Examples
         --------
         >>> with writer.tag('foo'):  # doctest: +SKIP
         ...     writer.element('bar')
         ... # </foo> is implicitly closed here
         ...
-
-        Parameters are the same as to `start`.
         """
         self.start(tag, attrib, **extra)
         yield
@@ -235,6 +248,15 @@ class XMLWriter:
         tag : str
             Element name.  If given, the tag must match the start tag.
             If omitted, the current element is closed.
+        indent : bool, optional
+            Whether to indent the element over multiple lines: a newline
+            after the start tag, and the current indentation before the end
+            tag.  If `False` the element is written on a single line, e.g.
+            ``<tag>data</tag>``.  This has no effect on an empty element,
+            which is always written as ``<tag/>``.  Default is `True`.
+        wrap : bool, optional
+            Whether to wrap buffered character data onto indented lines of
+            their own before closing the element. Default is `False`.
         """
         if tag:
             if not self._tags:

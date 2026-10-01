@@ -1,0 +1,1 @@
+Fixed an incorrect build-time definition for ``NPY_TARGET_VERSION`` .

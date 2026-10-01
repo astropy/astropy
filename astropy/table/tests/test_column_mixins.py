@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Generic, TypeVar
 
 import numpy as np
 import pytest
@@ -27,22 +26,19 @@ class MinimalMaskedColumn(_MaskedColumnGetitemShim, np.ma.MaskedArray):
         return value.copy()
 
 
-DType = TypeVar("DType", bound=np.generic)
-
-
 @dataclass(kw_only=True, slots=True, frozen=True)
-class MixinTestCase(Generic[DType]):
-    input_array: NDArray[DType]
+class MixinTestCase[DT: np.generic]:
+    input_array: NDArray[DT]
     index: int | str | slice | tuple[int, ...] | list[str]
-    expected_output: NDArray[DType] | str
+    expected_output: NDArray[DT] | str
 
 
 @dataclass(kw_only=True, slots=True, frozen=True)
-class MaskedMixinTestCase(Generic[DType]):
-    input_array: NDArray[DType]
+class MaskedMixinTestCase[DT: np.generic]:
+    input_array: NDArray[DT]
     input_mask: NDArray[np.bool_]
     index: slice
-    expected_data: NDArray[DType]
+    expected_data: NDArray[DT]
     expected_mask: NDArray[np.bool_]
 
 

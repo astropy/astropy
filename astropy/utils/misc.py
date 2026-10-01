@@ -24,7 +24,7 @@ from urllib.parse import urlencode
 
 import numpy as np
 
-from astropy.utils import deprecated
+from astropy.utils.decorators import deprecated
 from astropy.version import version as __version__
 
 __all__ = [
@@ -180,6 +180,7 @@ class NumpyRNGContext:
         np.random.set_state(self.startstate)
 
 
+@deprecated(since="8.1", alternative="online_help")
 def find_api_page(
     obj: object,
     version: str | None = None,

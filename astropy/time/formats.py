@@ -1204,6 +1204,12 @@ class TimeDatetime(TimeUnique):
             If ``raise`` (default), raise an exception if the time is within a leap
             second. If ``warn`` then issue a warning. If ``silent`` then silently
             handle the leap second.
+        parent : object, optional
+            Parent `~astropy.time.Time` object associated with this
+            `~astropy.time.TimeFormat` object. Not used by this format.
+        out_subfmt : str or None, optional
+            Output subformat. This format has no subformats, so any value other
+            than `None` raises an exception.
 
         Returns
         -------
@@ -1764,7 +1770,7 @@ class TimeString(TimeUnique):
     def str_kwargs(self):
         """
         Generator that yields a dict of values corresponding to the
-        calendar date and time for the internal JD values.
+        calendar date and time for internal JD values in flattened "C" order.
         """
         scale = (self.scale.upper().encode("ascii"),)
         iys, ims, ids, ihmsfs = erfa.d2dtf(scale, self.precision, self.jd1, self.jd2)
@@ -1780,7 +1786,9 @@ class TimeString(TimeUnique):
         isecs = ihmsfs["s"]
         ifracs = ihmsfs["f"]
         for iy, im, id, ihr, imin, isec, ifracsec in np.nditer(
-            [iys, ims, ids, ihrs, imins, isecs, ifracs], flags=["zerosize_ok"]
+            [iys, ims, ids, ihrs, imins, isecs, ifracs],
+            flags=["zerosize_ok"],
+            order="C",
         ):
             if has_yday:
                 yday = datetime.datetime(iy, im, id).timetuple().tm_yday

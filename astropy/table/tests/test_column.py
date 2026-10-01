@@ -498,6 +498,25 @@ class TestColumn:
         with pytest.raises(ValueError):
             c1 = c.insert(1, [100, 200], mask=[True, False, True])
 
+    def test_masked_string_ufunc_dtype_change_fill_value(self):
+        """
+        Regression test for a ufunc that changes the dtype of a
+        MaskedColumn (e.g. np.strings.find applied to a string column,
+        which returns an int array).
+        See https://github.com/astropy/astropy/issues/20257
+        """
+        col = table.MaskedColumn(
+            ["foo", "bar", "baz"], mask=False, fill_value="N/A", dtype="U3"
+        )
+        assert col.fill_value == "N/A"
+        assert col.dtype.kind == "U"
+        # The following used to blow up with TypeError
+        result = np.strings.find(col, "foo")
+
+        assert result.fill_value != "N/A"
+        assert result.dtype.kind == "i"
+        assert result[0] == 0  # "foo" is found at index 0
+
     def test_mask_on_non_masked_table(self):
         """
         When table is not masked and trying to set mask on column then

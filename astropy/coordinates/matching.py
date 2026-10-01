@@ -11,7 +11,7 @@ from numpy.typing import NDArray
 
 from astropy.units import Quantity
 
-from . import Angle
+from .angles import Angle
 from .representation import UnitSphericalRepresentation
 from .sky_coordinate import SkyCoord
 

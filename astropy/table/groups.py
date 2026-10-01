@@ -7,6 +7,7 @@ import numpy as np
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .index import get_index_by_names
+from .row import Row
 
 __all__ = ["ColumnGroups", "TableGroups"]
 
@@ -163,6 +164,34 @@ def column_group_by(column, keys):
     return out
 
 
+def _find_table_keys_mask(keys, key):
+    """
+    Return a boolean mask of the rows of the group ``keys`` table matching ``key``.
+
+    For keys with a single column, ``key`` can be a scalar value or a length-1
+    tuple or list. For keys with multiple columns, ``key`` must be a tuple or
+    list with one value per key column. In either case ``key`` can also be a
+    `~astropy.table.Row`, for instance one of the rows of ``keys``.
+    """
+    if isinstance(key, Row):
+        key = tuple(key)
+
+    colnames = keys.colnames
+    if not isinstance(key, (tuple, list)) and len(colnames) == 1:
+        mask = keys[colnames[0]] == key
+    elif isinstance(key, (tuple, list)):
+        if len(key) != len(colnames):
+            raise ValueError(
+                f"Key tuple must have length {len(colnames)} (number of key columns)"
+            )
+        mask = np.ones(len(keys), dtype=bool)
+        for col_name, val in zip(colnames, key):
+            mask &= keys[col_name] == val
+    else:
+        raise ValueError("Key must be a tuple or list when grouped by multiple columns")
+    return mask
+
+
 class BaseGroups:
     """
     A class to represent groups within a table of heterogeneous data.
@@ -223,6 +252,40 @@ class BaseGroups:
 
         return out
 
+    def get_group(self, key):
+        """
+        Find the group for a given key.
+
+        Parameters
+        ----------
+        key : tuple, list, `~astropy.table.Row`, or single value
+            The key to find. If the table was grouped by multiple columns,
+            a tuple, list, or `~astropy.table.Row` (e.g. one of the rows of
+            ``keys``) should be provided.
+
+        Returns
+        -------
+        out : `~astropy.table.Table` or `~astropy.table.Column`
+            The subset of the parent table or column corresponding to the group.
+
+        Raises
+        ------
+        KeyError
+            If no group matches ``key``.
+        ValueError
+            If ``key`` does not match the number of key columns.
+        """
+        mask = self._find_group_mask(key)
+
+        idx = np.flatnonzero(mask)
+        if len(idx) == 0:
+            raise KeyError(key)
+
+        return self[idx[0]]
+
+    def _find_group_mask(self, key):
+        raise NotImplementedError("Subclasses must implement _find_group_mask")
+
     def __repr__(self):
         return f"<{self.__class__.__name__} indices={self.indices}>"
 
@@ -263,6 +326,17 @@ class ColumnGroups(BaseGroups):
             return self.parent_table.groups.keys
         else:
             return self._keys
+
+    def _find_group_mask(self, key):
+        from .table import Table
+
+        # The keys are a Table if the column is in a grouped table or if it was
+        # grouped by a Table, otherwise they are an array of key values.
+        keys = self.keys
+        if isinstance(keys, Table):
+            return _find_table_keys_mask(keys, key)
+
+        return keys == key
 
     def aggregate(self, func):
         i0s, i1s = self.indices[:-1], self.indices[1:]
@@ -438,3 +512,6 @@ class TableGroups(BaseGroups):
     @property
     def keys(self):
         return self._keys
+
+    def _find_group_mask(self, key):
+        return _find_table_keys_mask(self.keys, key)

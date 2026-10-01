@@ -31,41 +31,68 @@ import os
 import sys
 import tomllib
 import warnings
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+from packaging.utils import NormalizedName, canonicalize_name
+from packaging.version import Version
 from sphinx.util import logging
 
 # from docs import global_substitutions
 
 logger = logging.getLogger(__name__)
 
+
 # -- Check for missing dependencies -------------------------------------------
-missing_requirements = {}
-for line in metadata.requires("astropy"):
-    if 'extra == "docs"' in line:
-        req = Requirement(line.split(";")[0])
-        req_package = req.name.lower()
-        req_specifier = str(req.specifier)
+@dataclass(kw_only=True, slots=True, frozen=True)
+class PackageInfo:
+    name: NormalizedName
+    required: SpecifierSet
+    installed: Version | None = None
 
-        try:
-            version = metadata.version(req_package)
-        except metadata.PackageNotFoundError:
-            missing_requirements[req_package] = req_specifier
 
-        if version not in SpecifierSet(req_specifier, prereleases=True):
-            missing_requirements[req_package] = req_specifier
+unsatisfied_requirements: set[PackageInfo] = set()
+for req in filter(
+    lambda r: 'extra == "docs"' in str(r.marker),
+    map(Requirement, metadata.requires("astropy")),
+):
+    name = canonicalize_name(req.name)
 
-if missing_requirements:
+    try:
+        version = Version(metadata.version(name))
+    except metadata.PackageNotFoundError:
+        unsatisfied_requirements.add(
+            PackageInfo(
+                name=name,
+                required=req.specifier,
+            )
+        )
+        continue
+
+    if version not in SpecifierSet(req.specifier, prereleases=True):
+        unsatisfied_requirements.add(
+            PackageInfo(
+                name=name,
+                required=req.specifier,
+                installed=version,
+            )
+        )
+
+if unsatisfied_requirements:
     msg = (
         "The following packages could not be found and are required to "
         "build the documentation:\n"
-        "%s"
-        '\nPlease install the "docs" requirements.',
-        "\n".join([f"    * {key} {val}" for key, val in missing_requirements.items()]),
+        + "\n".join(
+            [
+                f"    * {p.name} {p.required}{f' (found incompatible version {p.installed})' if p.installed is not None else ''}"
+                for p in unsatisfied_requirements
+            ]
+        )
+        + '\nPlease install the "docs" optional dependencies.'
     )
     logger.error(msg)
     sys.exit(1)
@@ -236,7 +263,25 @@ html_theme_options = {
     },
     "github_url": "https://github.com/astropy/astropy",
     "use_edit_page_button": True,
+    # Prune sibling branches in the sidebar toctree so each page only renders
+    # its own ancestry. Pydata defaults this to False; astropy's docs have
+    # 1400+ pages reachable from a single top-level section, so without this
+    # every page's sidebar would contain the entire user guide.
+    "collapse_navigation": True,
 }
+
+# If we are on RTD, and it's not a PR build we don't want to collapse
+# the navigation as it's nice to have the full nav tree on our actual
+# published docs, but it's a waste of time everywhere else.
+if rtd_version := os.environ.get("READTHEDOCS_VERSION"):
+    is_pr = False
+    try:
+        int(rtd_version)
+        is_pr = True
+    except Exception:
+        pass
+    if not is_pr:
+        html_theme_options["collapse_navigation"] = False
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

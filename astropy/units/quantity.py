@@ -98,8 +98,9 @@ def preserve_dtype_by_default():
     --------
     >>> import numpy as np
     >>> import astropy.units as u
+    >>> data = np.array([1, 2], dtype="int64")
     >>> with u.preserve_dtype_by_default():
-    ...     q = u.Quantity([1, 2], u.ct)
+    ...     q = u.Quantity(data, u.ct)
     >>> q.dtype
     dtype('int64')
     """

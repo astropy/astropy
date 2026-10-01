@@ -3,16 +3,12 @@
 """Configure the tests for :mod:`astropy.cosmology`."""
 
 from collections.abc import Iterable, Mapping, Sequence
-from typing import TypeVar
 
 from astropy.cosmology._src.tests.helper import clean_registry  # noqa: F401
 from astropy.tests.helper import pickle_protocol  # noqa: F401
 
-K = TypeVar("K")
-V = TypeVar("V")
 
-
-def filter_keys_from_items(
+def filter_keys_from_items[K, V](
     m: Mapping[K, V], /, filter_out: Sequence[K]
 ) -> Iterable[K, V]:
     """Filter ``m``, returning key-value pairs not including keys in ``filter``.

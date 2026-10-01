@@ -19,12 +19,12 @@ from astropy import units as u
 from astropy.coordinates import Angle
 from astropy.units import UnitsError
 
-DMS_RE = re.compile("^dd(:mm(:ss(.(s)+)?)?)?$")
-HMS_RE = re.compile("^hh(:mm(:ss(.(s)+)?)?)?$")
-DDEC_RE = re.compile("^d(.(d)+)?$")
-DMIN_RE = re.compile("^m(.(m)+)?$")
-DSEC_RE = re.compile("^s(.(s)+)?$")
-SCAL_RE = re.compile("^x(.(x)+)?$")
+DMS_RE = re.compile(r"^dd(:mm(:ss(\.(s)+)?)?)?$")
+HMS_RE = re.compile(r"^hh(:mm(:ss(\.(s)+)?)?)?$")
+DDEC_RE = re.compile(r"^d(\.(d)+)?$")
+DMIN_RE = re.compile(r"^m(\.(m)+)?$")
+DSEC_RE = re.compile(r"^s(\.(s)+)?$")
+SCAL_RE = re.compile(r"^x(\.(x)+)?$")
 
 
 # Units with custom representations - see the note where it is used inside
@@ -68,6 +68,22 @@ def _fix_minus(labels: list[str], /) -> list[str]:
 class BaseFormatterLocator:
     """
     A joint formatter/locator.
+
+    Parameters
+    ----------
+    values : `~astropy.units.Quantity`, optional
+        The locations of the ticks. At most one of ``values``, ``number``,
+        and ``spacing`` can be specified.
+    number : int, optional
+        The approximate number of ticks.
+    spacing : `~astropy.units.Quantity`, optional
+        The spacing between ticks.
+    format : str, optional
+        The format to use for the tick labels.
+    unit : `~astropy.units.Unit`, optional
+        The unit of the coordinate values.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use for the tick labels. Defaults to ``unit``.
     """
 
     def __init__(
@@ -134,7 +150,7 @@ class BaseFormatterLocator:
         self._values = None
 
     def minor_locator(self, spacing, frequency, value_min, value_max):
-        if self.values is not None:
+        if self.values is not None or self.number == 0:
             return [] * self._unit
 
         minor_spacing = spacing.value / frequency
@@ -161,12 +177,31 @@ class BaseFormatterLocator:
 
 class AngleFormatterLocator(BaseFormatterLocator):
     """
-    A joint formatter/locator.
+    A joint formatter/locator for angular coordinates.
 
     Parameters
     ----------
+    values : `~astropy.units.Quantity`, optional
+        The locations of the ticks. At most one of ``values``, ``number``,
+        and ``spacing`` can be specified.
     number : int, optional
-        Number of ticks.
+        The approximate number of ticks.
+    spacing : `~astropy.units.Quantity` ['angle'], optional
+        The spacing between ticks.
+    format : str, optional
+        The format to use for the tick labels, e.g., ``'dd:mm:ss'`` or
+        ``'d.ddd'``.
+    unit : `~astropy.units.Unit`, optional
+        The unit of the coordinate values. Defaults to degrees.
+    decimal : bool, optional
+        Whether to use decimal formatting for the tick labels. By default,
+        this is `True` unless the format unit is degrees or hours, in which
+        case sexagesimal formatting is used.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use for the tick labels. Defaults to ``unit``.
+    show_decimal_unit : bool, optional
+        Whether to include the unit in the tick labels when using decimal
+        formatting.
     """
 
     def __init__(
@@ -366,7 +401,9 @@ class AngleFormatterLocator(BaseFormatterLocator):
                 spacing_value = self.spacing.to_value(self._unit)
 
             elif self.number == 0:
-                return [] * self._unit, np.nan * self._unit
+                # Return a finite spacing in case the caller needs to format
+                # a single coordinate, e.g. for the mouseover display.
+                return [] * self._unit, 1 * u.arcsec
 
             elif self.number is not None:
                 # number of ticks was specified, work out optimal spacing
@@ -512,7 +549,24 @@ class AngleFormatterLocator(BaseFormatterLocator):
 
 class ScalarFormatterLocator(BaseFormatterLocator):
     """
-    A joint formatter/locator.
+    A joint formatter/locator for scalar (non-angular) coordinates.
+
+    Parameters
+    ----------
+    values : `~astropy.units.Quantity`, optional
+        The locations of the ticks. At most one of ``values``, ``number``,
+        and ``spacing`` can be specified.
+    number : int, optional
+        The approximate number of ticks.
+    spacing : `~astropy.units.Quantity`, optional
+        The spacing between ticks.
+    format : str, optional
+        The format to use for the tick labels, e.g., ``'x.xxx'``.
+    unit : `~astropy.units.Unit`, optional
+        The unit of the coordinate values. If not given, this defaults to
+        the unit of ``spacing`` or ``values`` if either is specified.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use for the tick labels. Defaults to ``unit``.
     """
 
     def __init__(
@@ -600,13 +654,20 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         else:
             # In the special case where value_min is the same as value_max, we
             # don't locate any ticks. This can occur for example when taking a
-            # slice for a cube (along the dimension sliced).
+            # slice for a cube (along the dimension sliced). We return a
+            # non-zero spacing in case the caller needs to format a single
+            # coordinate, e.g. for mouseover.
             if value_min == value_max:
-                return [] * self._unit, 0 * self._unit
+                return [] * self._unit, 1 * self._unit
 
             if self.spacing is not None:
                 # spacing was manually specified
                 spacing = self.spacing.to_value(self._unit)
+
+            elif self.number == 0:
+                # Return a finite spacing in case the caller needs to format
+                # a single coordinate, e.g. for the mouseover display.
+                return [] * self._unit, 1 * self._unit
 
             elif self.number is not None:
                 # number of ticks was specified, work out optimal spacing
@@ -643,7 +704,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
                 else:
                     precision = 0
             elif self.format.startswith("%"):
-                return [(self.format % x.value) for x in values]
+                return [(self.format % x.to_value(self._format_unit)) for x in values]
             else:
                 precision = self._precision
 

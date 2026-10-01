@@ -60,6 +60,11 @@ Apart from the delimiter, the only other applicable write arguments are
 ``names``, ``include_names``, and ``exclude_names``. All other arguments will be
 either ignored or raise an error.
 
+When reading, ``names``, ``include_names`` and ``exclude_names`` refer to the
+column names in the output table. A mixin column such as a `~astropy.time.Time`
+column ``tm`` that is stored in the file as multiple data columns (``tm.jd1`` and
+``tm.jd2``) is renamed, selected or excluded as the single column ``tm``.
+
 Simple Table
 ------------
 ..

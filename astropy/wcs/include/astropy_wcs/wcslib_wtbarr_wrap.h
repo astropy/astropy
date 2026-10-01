@@ -12,7 +12,9 @@
 extern PyObject* WtbarrType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   struct wtbarr* x;
   PyObject* owner;
 } Wtbarr;

@@ -9,7 +9,7 @@ import numpy as np
 from numpy import ma
 
 from astropy.units import Quantity, StructuredUnit, Unit
-from astropy.utils.compat import NUMPY_LT_2_5
+from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.exceptions import AstropyDeprecationWarning
@@ -1700,6 +1700,20 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return self
 
+    def __array_finalize__(self, obj):
+        super().__array_finalize__(obj)
+
+        # MaskedArray.__array_finalize__ (via _update_from) copies the attributes of
+        # ``obj`` into self.__dict__ and into ``self._optinfo``, a dict that numpy then
+        # re-applies to every MaskedArray derived from self, e.g. in __getitem__ and
+        # comparisons.  ``indices`` must not travel that way: a slice of a slice would
+        # silently pick up the original column's index and deep-copy it, sorted data
+        # and all, on every further slice (see #16089).  The ``indices`` attribute set
+        # on self above is fine: it is either a fresh [] or, in MaskedColumn.__new__,
+        # the list from the bare BaseColumn template.
+        if obj is not None:
+            self._optinfo.pop("indices", None)
+
     def __deepcopy__(self, memo=None):
         out = super().__deepcopy__(memo)
 
@@ -1716,6 +1730,31 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             out.info = self.info
 
         return out
+
+    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
+        out_arr = super().__array_wrap__(out_arr, context, return_scalar)
+
+        if NUMPY_LT_2_6:
+            # Workaround for a numpy.ma bug, fixed upstream by
+            # https://github.com/numpy/numpy/pull/32423: MaskedArray's
+            # _update_from copied the input's raw `_fill_value` into the
+            # output without checking it was still valid for the output's
+            # dtype.  Mirror the fix numpy made to _update_from here.
+            fill_value = getattr(out_arr, "_fill_value", None)
+            out_dtype = getattr(out_arr, "dtype", None)
+            if (
+                fill_value is not None
+                and out_dtype is not None
+                and out_dtype != self.dtype
+            ):
+                try:
+                    out_arr._fill_value = ma.core._check_fill_value(
+                        fill_value, out_dtype
+                    )
+                except (TypeError, ValueError, OverflowError):
+                    out_arr._fill_value = None
+
+        return out_arr
 
     @property
     def fill_value(self):

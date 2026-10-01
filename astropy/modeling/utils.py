@@ -10,7 +10,7 @@ import warnings
 from collections import UserDict
 from collections.abc import Sequence
 from inspect import signature
-from typing import TypeVar, overload
+from typing import overload
 
 import numpy as np
 from numpy.typing import NDArray
@@ -319,18 +319,15 @@ class _SpecialOperatorsDict(UserDict):
         return key
 
 
-DType = TypeVar("DType", bound=np.generic)
-
-
 @overload
 def quantity_asanyarray(a: Sequence[int]) -> NDArray[np.integer]: ...
 @overload
-def quantity_asanyarray(a: Sequence[int], dtype: DType) -> NDArray[DType]: ...
+def quantity_asanyarray[DT: np.generic](a: Sequence[int], dtype: DT) -> NDArray[DT]: ...
 @overload
 def quantity_asanyarray(a: Sequence[u.Quantity]) -> u.Quantity: ...
-def quantity_asanyarray(
-    a: Sequence[int] | Sequence[u.Quantity], dtype: DType | None = None
-) -> NDArray[np.integer] | NDArray[DType] | u.Quantity:
+def quantity_asanyarray[DT: np.generic](
+    a: Sequence[int] | Sequence[u.Quantity], dtype: DT | None = None
+) -> NDArray[np.integer] | NDArray[DT] | u.Quantity:
     if (
         not isinstance(a, np.ndarray)
         and not np.isscalar(a)

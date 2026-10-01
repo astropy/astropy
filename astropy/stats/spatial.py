@@ -4,7 +4,7 @@ This module implements functions and classes for spatial statistics.
 """
 
 import math
-from typing import Literal, TypeAlias
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -12,7 +12,7 @@ from numpy.typing import NDArray
 __all__ = ["RipleysKEstimator"]
 
 # TODO: consider replacing with `StrEnum`
-_ModeOps: TypeAlias = Literal["none", "translation", "ohser", "var-width", "ripley"]
+type _ModeOps = Literal["none", "translation", "ohser", "var-width", "ripley"]
 
 
 class RipleysKEstimator:

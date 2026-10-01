@@ -391,7 +391,7 @@ def join(
         column-like values with the same lengths as the left table.
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
-    keep_order: bool, optional
+    keep_order : bool, optional
         By default, rows are sorted by the join keys. If True, preserve the order of
         rows from the left table for "inner" or "left" joins, or from the right table
         for "right" joins. For other join types this argument is ignored except that a

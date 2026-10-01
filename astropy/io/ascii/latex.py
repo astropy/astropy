@@ -8,6 +8,7 @@ latex.py:
 :Author: Tom Aldcroft (aldcroft@head.cfa.harvard.edu)
 """
 
+import functools
 import re
 from collections.abc import Generator
 from re import Pattern
@@ -94,17 +95,78 @@ class LatexInputter(core.BaseInputter):
         return [lin.strip() for lin in lines]
 
 
+@functools.cache
+def _latex_split_regex(delimiter: str) -> Pattern[str]:
+    return re.compile(
+        rf"""
+        \\.                       # backslash-escaped char, consumed so it is never
+                                  # seen as a brace or delimiter below
+        | \{{                     # opening brace
+        | \}}                     # closing brace
+        | {re.escape(delimiter)}  # the column delimiter
+        """,
+        re.DOTALL | re.VERBOSE,
+    )
+
+
+def _split_outside_braces(line: str, delimiter: str = "&") -> list[str]:
+    r"""Split ``line`` on ``delimiter`` only where it is outside any ``{...}`` group.
+
+    A character preceded by a backslash is taken literally, so ``\{`` and ``\}``
+    do not open or close a group and ``\&`` is not a separator.  An unmatched
+    ``}`` is ignored rather than driving the nesting depth negative.
+    """
+    vals = []
+    start = 0
+    depth = 0
+    for match in _latex_split_regex(delimiter).finditer(line):
+        # regex match: an escaped pair (\&), a brace, or the delimiter
+        text = match[0]
+        if text == "{":
+            depth += 1
+        elif text == "}":
+            depth = max(depth - 1, 0)
+        elif text == delimiter and depth == 0:
+            vals.append(line[start : match.start()])
+            start = match.end()
+    vals.append(line[start:])
+    return vals
+
+
 class LatexSplitter(core.BaseSplitter):
-    """Split LaTeX table data. Default delimiter is `&`."""
+    """Split LaTeX table data. Default delimiter is `&`.
+
+    The delimiter is only recognised outside of ``{...}`` groups and when not
+    escaped as ``\\&``, so a value such as ``\\cite{2013A&A...558A..33A}`` is
+    kept intact.
+    """
 
     delimiter = "&"
 
     def __call__(self, lines: list[str]) -> Generator[list[str], None, None]:
+        # LaTeX does not require a trailing \\ on the last row of a table, but
+        # process_line insists on it, so add one there (after dropping any
+        # trailing comment) before the lines are processed.
         last_line = RE_COMMENT.split(lines[-1])[0].strip()
         if not last_line.endswith(r"\\"):
             lines[-1] = last_line + r"\\"
 
-        return super().__call__(lines)
+        return self._split_lines(lines)
+
+    def _split_lines(self, lines: list[str]) -> Generator[list[str], None, None]:
+        """Split lines for LaTeX tables.
+
+        Same as `core.BaseSplitter.__call__` but split with `_split_outside_braces`.
+        instead of line.split(self.delimiter).
+        """
+        if self.process_line:
+            lines = (self.process_line(x) for x in lines)
+        for line in lines:
+            vals = _split_outside_braces(line, self.delimiter)
+            if self.process_val:
+                yield [self.process_val(x) for x in vals]
+            else:
+                yield vals
 
     def process_line(self, line: str) -> str:
         """Remove whitespace at the beginning or end of line. Also remove
@@ -431,7 +493,9 @@ class AASTexHeaderSplitter(LatexSplitter):
     """
 
     def __call__(self, lines: list[str]) -> Generator[list[str], None, None]:
-        return super(LatexSplitter, self).__call__(lines)
+        # Skip the trailing-\\ handling in LatexSplitter.__call__; a \tablehead
+        # line does not end with \\.
+        return self._split_lines(lines)
 
     def process_line(self, line: str) -> str:
         """extract column names from tablehead."""

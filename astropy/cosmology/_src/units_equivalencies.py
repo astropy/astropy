@@ -13,7 +13,7 @@ __all__ = (
 )
 
 
-from typing import TYPE_CHECKING, Literal, TypeAlias, Union, Unpack
+from typing import TYPE_CHECKING, Literal, Union, Unpack
 
 import astropy.units as u
 from astropy.cosmology._src.funcs.optimize import _ZAtValueKWArgs
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     import astropy.cosmology
 
 
-_UnpackZAtValueKWArgs: TypeAlias = Unpack[_ZAtValueKWArgs]
+type _UnpackZAtValueKWArgs = Unpack[_ZAtValueKWArgs]
 
 
 __doctest_requires__ = {("with_redshift", "redshift_distance"): ["scipy"]}

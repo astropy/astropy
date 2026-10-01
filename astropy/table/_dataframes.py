@@ -281,7 +281,7 @@ def to_df(
 
     # Pandas-like index
     if index:
-        df_native.set_index(index, inplace=True, drop=True)
+        df_native = df_native.set_index(index, drop=True)
 
     return df_native
 
@@ -315,7 +315,7 @@ def from_df(
         index_name = str(df.index.name or "index")
         while index_name in df.columns:
             index_name = "_" + index_name + "_"
-        df.reset_index(index_name, inplace=True, drop=False)
+        df = df.reset_index(index_name, drop=False)
 
     # Narwhals layer, must convert to eager
     df_nw = nw.from_native(df)

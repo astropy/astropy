@@ -12,9 +12,13 @@ AstropyWcs_GetCVersion(void) {
  *
  * Of the symbols exported through the AstropyWcs_API function-pointer table
  * (and discoverable by downstream C/Cython code via astropy.wcs.get_include()),
- * only six are known to be used by a downstream package (drizzlepac):
- * wcsprm_python2c, wcsprm_c2python, pipeline_all_pixel2world, wcss2p, wcsprt
- * and wcslib_get_error_message.  wcsp2s is also kept, for symmetry with wcss2p.
+ * only four remain supported: pipeline_all_pixel2world, wcss2p, wcsprt and
+ * wcslib_get_error_message.  wcsp2s is also kept, for symmetry with wcss2p.
+ * wcsprm_python2c and wcsprm_c2python, although used by a downstream package
+ * (drizzlepac), are deprecated as well: the wcsprm struct is now stored
+ * canonically in WCSLIB's native UNDEFINED form, so the conversions they used
+ * to perform are no longer needed and both functions are no-ops (see
+ * pyutil.c).
  *
  * The remaining members are deprecated.  Rather than remove them (which would
  * break the ABI and the table layout that the REVISION check relies on), each
@@ -37,6 +41,20 @@ AstropyWcs_GetCVersion(void) {
 #define ASTROPY_WCS_DEPRECATE(name)                                     \
   DEPRECATE(name " is a deprecated part of the public astropy.wcs C "   \
                  "API and will be removed in a future version of astropy")
+
+/* pyutil.h */
+
+static void
+deprecated_wcsprm_python2c(struct wcsprm* x) {
+  ASTROPY_WCS_DEPRECATE("wcsprm_python2c");
+  wcsprm_python2c(x);
+}
+
+static void
+deprecated_wcsprm_c2python(struct wcsprm* x) {
+  ASTROPY_WCS_DEPRECATE("wcsprm_c2python");
+  wcsprm_c2python(x);
+}
 
 /* distortion.h */
 
@@ -200,8 +218,8 @@ deprecated_wcsprintf_buf(void) {
 void* AstropyWcs_API[] = {
   /*  0 */ (void *)AstropyWcs_GetCVersion,
   /* pyutil.h */
-  /*  1 */ (void *)wcsprm_python2c,
-  /*  2 */ (void *)wcsprm_c2python,
+  /*  1 */ (void *)deprecated_wcsprm_python2c,
+  /*  2 */ (void *)deprecated_wcsprm_c2python,
   /* distortion.h */
   /*  3 */ (void *)deprecated_distortion_lookup_t_init,
   /*  4 */ (void *)deprecated_distortion_lookup_t_free,

@@ -15,7 +15,9 @@
 static PyObject* StrListProxyType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   /*@null@*/ /*@shared@*/ PyObject* pyobject;
   Py_ssize_t size;
   Py_ssize_t maxsize;

@@ -1612,6 +1612,12 @@ class AffineTransformation2D(Model):
         ----------
         x, y : array, float
               x and y coordinates
+        matrix : array
+            A 2x2 matrix specifying the linear transformation to apply to the
+            inputs.
+        translation : array
+            A 2D vector (given as either a 2x1 or 1x2 array) specifying a
+            translation to apply to the inputs.
         """
         if x.shape != y.shape:
             raise ValueError("Expected input arrays to have the same shape")

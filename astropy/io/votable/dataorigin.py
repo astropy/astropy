@@ -210,8 +210,8 @@ class DatasetOrigin:
 
         Parameters
         ----------
-        votable_element: astropy.io.votable.tree.Element, optional
-                         indicates the VOTable element
+        votable_element : astropy.io.votable.tree.Element, optional
+            indicates the VOTable element
         """
         self.citation = None
         self.reference_url = None
