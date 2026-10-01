@@ -7,9 +7,6 @@ party JavaScript libraries used for browser-based features.
 
 In particular, this currently includes for Python:
 
-- ConfigObj_: This provides the core config file handling for Astropy's
-  configuration system.
-
 - PLY_: This is a parser generator providing lex/yacc-like tools in Python.
   It is used for Astropy's unit parsing and angle/coordinate string parsing.
 
@@ -52,7 +49,6 @@ remove them and update any imports in Astropy to import the system versions
 rather than the bundled copies.
 
 
-.. _ConfigObj: https://github.com/DiffSK/configobj
 .. _PLY: http://www.dabeaz.com/ply/
 .. _jQuery: http://jquery.com/
 .. _DataTables: http://www.datatables.net/
