@@ -253,7 +253,7 @@ class TestTableFunctions(FitsTestCase):
             "name": ["c1", "c2", "c3", "c4"],
             "format": ["1J", "3A", "1E", "1L"],
             "unit": ["", "", "", ""],
-            "null": [-2_147_483_647, "", "", ""],
+            "null": [-2147483647, "", "", ""],
             "bscale": ["", "", 3, ""],
             "bzero": ["", "", 0.4, ""],
             "disp": ["I11", "A3", "G15.7", "L6"],

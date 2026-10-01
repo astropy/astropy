@@ -442,7 +442,7 @@ class TestParse:
         assert issubclass(self.array["int"].dtype.type, np.int32)
         assert_array_equal(
             self.array["int"],
-            [268_435_456, 2_147_483_647, -268_435_456, 268_435_455, 123_456_789],
+            [268_435_456, 2147483647, -268_435_456, 268_435_455, 123456789],
         )
         assert_array_equal(self.mask["int"], [False, False, False, False, True])
 
@@ -452,10 +452,10 @@ class TestParse:
             self.array["long"],
             [
                 922_337_203_685_477,
-                123_456_789,
+                123456789,
                 -1_152_921_504_606_846_976,
                 1_152_921_504_606_846_975,
-                123_456_789,
+                123456789,
             ],
         )
         assert_array_equal(self.mask["long"], [False, True, False, False, True])

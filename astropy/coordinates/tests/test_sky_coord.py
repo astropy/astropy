@@ -1415,7 +1415,7 @@ def test_search_around():
     """
     from astropy.utils import NumpyRNGContext
 
-    with NumpyRNGContext(987_654_321):
+    with NumpyRNGContext(987654321):
         sc1 = SkyCoord(
             np.random.rand(20) * 360.0 * u.degree,
             (np.random.rand(20) * 180.0 - 90.0) * u.degree,
@@ -1460,7 +1460,7 @@ def test_guess_from_table():
     from astropy.utils import NumpyRNGContext
 
     tab = Table()
-    with NumpyRNGContext(987_654_321):
+    with NumpyRNGContext(987654321):
         tab.add_column(Column(data=np.random.rand(10), unit="deg", name="RA[J2000]"))
         tab.add_column(Column(data=np.random.rand(10), unit="deg", name="DEC[J2000]"))
 

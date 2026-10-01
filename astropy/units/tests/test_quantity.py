@@ -1112,7 +1112,7 @@ class TestQuantityDisplay:
                 id="zero_padding",
             ),
             pytest.param(
-                u.Quantity(1_234_567, "m"),
+                u.Quantity(1234567, "m"),
                 None,
                 ",",
                 "1,234,567.0 m",
@@ -1126,7 +1126,7 @@ class TestQuantityDisplay:
                 id="large_number_complex_format",
             ),
             pytest.param(
-                u.Quantity(1_234_567, "m"),
+                u.Quantity(1234567, "m"),
                 None,
                 "_",
                 "1_234_567.0 m",
