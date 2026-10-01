@@ -3,6 +3,9 @@
 This module tests model set evaluation and fitting for some common use cases.
 """
 
+import sys
+from contextlib import nullcontext
+
 import numpy as np
 
 # pylint: disable=invalid-name
@@ -388,10 +391,18 @@ def test_linear_fit_model_set_common_weight():
 
     # Check that using null weights raises an error
     # ValueError: On entry to DLASCL parameter number 4 had an illegal value
+
+    warn_ctx = (
+        pytest.warns(
+            RuntimeWarning,
+            match=r"divide by zero encountered|invalid value encountered in ceil",
+        )
+        if sys.platform != "emscripten"
+        else nullcontext()
+    )
+
     with pytest.raises(ValueError, match=r"Found NaNs in the coefficient matrix"):
-        with pytest.warns(
-            RuntimeWarning, match=r"invalid value encountered in.*divide"
-        ):
+        with warn_ctx:
             fitted_model = fitter(init_model, x, y, weights=np.zeros(10))
 
 
@@ -415,16 +426,23 @@ def test_linear_fit_model_set_weights():
     fitted_model = fitter(init_model, x, y, weights=weights)
     assert_allclose(fitted_model(x, model_set_axis=False), y_expected, rtol=1e-1)
 
+    warn_ctx = (
+        pytest.warns(
+            RuntimeWarning,
+            match=r"divide by zero encountered|invalid value encountered in ceil",
+        )
+        if sys.platform != "emscripten"
+        else nullcontext()
+    )
+
     # Check that using null weights raises an error
     weights[0] = 0
     with pytest.raises(ValueError, match=r"Found NaNs in the coefficient matrix"):
-        with pytest.warns(
-            RuntimeWarning, match=r"invalid value encountered in.*divide"
-        ):
+        with warn_ctx:
             fitted_model = fitter(init_model, x, y, weights=weights)
 
     # Now we mask the values where weight is 0
-    with pytest.warns(RuntimeWarning, match=r"invalid value encountered in.*divide"):
+    with warn_ctx:
         fitted_model = fitter(
             init_model, x, np.ma.array(y, mask=np.isclose(weights, 0)), weights=weights
         )

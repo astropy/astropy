@@ -2,6 +2,7 @@
 """Test initialization and other aspects of Angle and subclasses"""
 
 import pickle
+import sys
 import threading
 
 import numpy as np
@@ -1121,6 +1122,9 @@ def test_angle_wrap_at_nan():
     angle.wrap_at(180 * u.deg, inplace=True)
 
 
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
 def test_angle_multithreading():
     """
     Regression test for issue #7168

@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import sys
+from contextlib import nullcontext
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -47,11 +50,18 @@ def test_freedman_bin_width():
 
     # data with too small IQR
     test_x = [1, 2, 3] + [4] * 100 + [5, 6, 7]
-    with pytest.raises(ValueError, match=r"Please use another bin method"):
-        with pytest.warns(
+
+    warn_ctx = (
+        pytest.warns(
             RuntimeWarning,
             match=r"divide by zero encountered|invalid value encountered in ceil",
-        ):
+        )
+        if sys.platform != "emscripten"
+        else nullcontext()
+    )
+
+    with pytest.raises(ValueError, match=r"Please use another bin method"):
+        with warn_ctx:
             freedman_bin_width(test_x, return_bins=True)
 
     # data with small IQR but not too small

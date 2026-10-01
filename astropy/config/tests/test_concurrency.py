@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import partial
@@ -12,6 +13,11 @@ import pytest
 from astropy.config.paths import _DirType
 
 N_THREADS = 10
+
+pytestmark = pytest.mark.skipif(
+    sys.platform == "emscripten",
+    reason="concurrency not supported on emscripten platform",
+)
 
 
 @dataclass(slots=True, frozen=True, kw_only=True)

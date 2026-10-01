@@ -16,6 +16,9 @@ import astropy
     "subpkg",
     [subpkg.name for subpkg in pkgutil.walk_packages(astropy.__path__) if subpkg.ispkg],
 )
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
 def test_imports(subpkg):
     """
     This just imports all top-level sub-packages in astropy, making sure they don't have any
@@ -34,6 +37,9 @@ def test_toplevel_namespace():
     assert "sys" not in d
 
 
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
 def test_toplevel_lazy_imports():
     # Check that subpackages are loaded on demand.
     cmd = dedent("""

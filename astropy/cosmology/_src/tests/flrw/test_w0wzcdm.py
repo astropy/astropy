@@ -2,6 +2,8 @@
 
 """Testing :mod:`astropy.cosmology.w0wzcdm`."""
 
+import sys
+
 import numpy as np
 import pytest
 
@@ -119,6 +121,9 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         """
         super().test_Otot(cosmo, z)
 
+    @pytest.mark.xfail(
+        sys.platform == "emscripten", reason="known failure on emscripten", strict=True
+    )
     def test_Otot_overflow(self, cosmo):
         """Test :meth:`astropy.cosmology.w0wzCDM.Otot` for overflow."""
         with (

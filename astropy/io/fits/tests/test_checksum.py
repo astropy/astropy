@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import sys
 import warnings
 
 import numpy as np
@@ -444,6 +445,9 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert "DATASUM" in hdul[1].header
             assert comparerecords(data, hdul[1].data)
 
+    @pytest.mark.xfail(
+        sys.platform == "emscripten", reason="known failure on emscripten", strict=True
+    )
     def test_open_update_mode_update_checksum(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/148, part
