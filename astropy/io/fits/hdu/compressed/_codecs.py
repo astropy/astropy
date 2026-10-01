@@ -2,6 +2,7 @@
 This module contains the FITS compression algorithms in numcodecs style Codecs.
 """
 
+import sys
 from gzip import compress as gzip_compress
 from gzip import decompress as gzip_decompress
 
@@ -119,9 +120,9 @@ class Gzip1(Codec):
         buf : np.ndarray
             The decompressed buffer.
         """
-        # In principle we should be able to not have .tobytes() here and avoid
-        # the copy but this does not work correctly in Python 3.11.
-        cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
+        cbytes = np.frombuffer(buf, dtype=np.uint8)
+        if sys.version_info < (3, 13):
+            cbytes = cbytes.tobytes()
         dbytes = gzip_decompress(cbytes)
         return np.frombuffer(dbytes, dtype=np.uint8)
 
@@ -140,9 +141,11 @@ class Gzip1(Codec):
             The compressed bytes.
         """
         # Data bytes should be stored as big endian in files
-        # In principle we should be able to not have .tobytes() here and avoid
-        # the copy but this does not work correctly in Python 3.11.
-        dbytes = _as_big_endian_array(buf).tobytes()
+        be_arr = _as_big_endian_array(buf)
+        if sys.version_info >= (3, 13):
+            dbytes = np.ascontiguousarray(be_arr)
+        else:
+            dbytes = be_arr.tobytes()
         return gzip_compress(dbytes)
 
 
