@@ -440,7 +440,7 @@ def test_downsample_subset_columns():
     # Regression test for #20297: aggregate_downsample on a TimeSeries sliced
     # by column names failed because the slice had an index but no primary key.
     ts = TimeSeries(
-        time=Time(np.arange(2450000, 2450005), format="jd"),
+        time=Time(np.arange(2_450_000, 2_450_005), format="jd"),
         data=[[1, 2, 3, 4, 5]],
         names=["a"],
     )
