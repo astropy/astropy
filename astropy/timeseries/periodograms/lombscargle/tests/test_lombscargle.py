@@ -76,8 +76,13 @@ def test_all_methods(
     if method == "scipy":
         if fit_mean and not _scipy_supports_floating_mean():
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        if errors == "full" or (errors == "partial" and normalization == "psd"):
+        if errors == "full":
             pytest.skip("scipy method only supports uniform uncertainties dy")
+        elif errors == "partial" and normalization == "psd":
+            pytest.skip(
+                "scipy method drops the uniform dy, whose scale the psd "
+                "normalization depends on"
+            )
 
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
