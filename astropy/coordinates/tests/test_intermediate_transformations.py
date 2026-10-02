@@ -434,7 +434,9 @@ def test_gcrs_altaz():
     gcrs = GCRS(usph, obstime="J2000")[None]  # broadcast with times below
 
     # check array times sure N-d arrays work
-    times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day, format="jd")[:, None]
+    times = Time(np.linspace(2.45629325e6, 2.45665725e6, 51) * u.day, format="jd")[
+        :, None
+    ]
 
     loc = EarthLocation(lon=10 * u.deg, lat=80.0 * u.deg)
     aaframe = AltAz(obstime=times, location=loc)
@@ -460,7 +462,9 @@ def test_gcrs_hadec():
     gcrs = GCRS(usph, obstime="J2000")  # broadcast with times below
 
     # check array times sure N-d arrays work
-    times = Time(np.linspace(2456293.25, 2456657.25, 51) * u.day, format="jd")[:, None]
+    times = Time(np.linspace(2.45629325e6, 2.45665725e6, 51) * u.day, format="jd")[
+        :, None
+    ]
 
     loc = EarthLocation(lon=10 * u.deg, lat=80.0 * u.deg)
     hdframe = HADec(obstime=times, location=loc)
@@ -723,7 +727,7 @@ def test_gcrs_self_transform_closeby():
     )
 
     # this is the location of the Moon as seen from La Palma
-    obsgeoloc = [-5592982.59658935, -63054.1948592, 3059763.90102216] * u.m
+    obsgeoloc = [-5.59298259658935e6, -63054.1948592, 3.05976390102216e6] * u.m
     obsgeovel = [4.59798494, -407.84677071, 0.0] * u.m / u.s
     moon_lapalma = SkyCoord(
         GCRS(

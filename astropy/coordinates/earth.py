@@ -46,7 +46,7 @@ class GeodeticLocation(NamedTuple):
     """The height above the reference ellipsoid."""
 
 
-OMEGA_EARTH = (1.002_737_811_911_354_48 * u.cycle / u.day).to(
+OMEGA_EARTH = (1.002_737_811_911_354_6 * u.cycle / u.day).to(
     1 / u.s, u.dimensionless_angles()
 )
 """

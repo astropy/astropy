@@ -159,7 +159,7 @@ def test_io_time_write_fits_standard(tmp_path, table_types):
             [[1, 2], [3, 4]],
             format="cxcsec",
             scale=scale,
-            location=EarthLocation(-2446354, 4237210, 4077985, unit="m"),
+            location=EarthLocation(-2_446_354, 4_237_210, 4_077_985, unit="m"),
         )
         t["b" + scale] = time.Time(
             ["1999-01-01T00:00:00.123456789", "2010-01-01T00:00:00"], scale=scale
@@ -284,7 +284,7 @@ def test_io_time_write_fits_local(tmp_path, table_types):
         [[50001, 50002], [50003, 50004]],
         format="mjd",
         scale="local",
-        location=EarthLocation(-2446354, 4237210, 4077985, unit="m"),
+        location=EarthLocation(-2_446_354, 4_237_210, 4_077_985, unit="m"),
     )
     t["b_local"] = time.Time(
         ["1999-01-01T00:00:00.123456789", "2010-01-01T00:00:00"], scale="local"

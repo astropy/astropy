@@ -125,7 +125,7 @@ def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
 
 
 def test_matching_method():
-    with NumpyRNGContext(987654321):
+    with NumpyRNGContext(987_654_321):
         cmatch = ICRS(
             np.random.rand(20) * 360.0 * u.degree,
             (np.random.rand(20) * 180.0 - 90.0) * u.degree,

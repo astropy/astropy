@@ -65,11 +65,11 @@ class TestTimeUT1Remote:
         t_ut1_jd = t.ut1.jd
         t_comp = np.array(
             [
-                2456108.9999932079,
-                2456109.4999816339,
-                2456109.4999932083,
-                2456109.5000047823,
-                2456110.0000047833,
+                2.456108999993208e6,
+                2.456109499981634e6,
+                2.4561094999932083e6,
+                2.4561095000047823e6,
+                2.4561100000047833e6,
             ]
         )
         assert allclose_jd(t_ut1_jd, t_comp)
@@ -104,11 +104,11 @@ class TestTimeUT1:
             t_utc_jd = t.utc.jd
             t_comp = np.array(
                 [
-                    2456109.0000010049,
-                    2456109.4999836441,
-                    2456109.4999952177,
-                    2456109.5000067917,
-                    2456109.9999952167,
+                    2.456109000001005e6,
+                    2.456109499983644e6,
+                    2.4561094999952177e6,
+                    2.4561095000067917e6,
+                    2.4561099999952167e6,
                 ]
             )
             assert allclose_jd(t_utc_jd, t_comp)
@@ -134,9 +134,9 @@ class TestTimeUT1:
             t = Time("2012-06-30 12:00:00", scale="utc")
             assert not hasattr(t, "_delta_ut1_utc")
             # accessing delta_ut1_utc calculates it
-            assert allclose_sec(t.delta_ut1_utc, -0.58682110003124965)
+            assert allclose_sec(t.delta_ut1_utc, -0.5868211000312497)
             # and keeps it around
-            assert allclose_sec(t._delta_ut1_utc, -0.58682110003124965)
+            assert allclose_sec(t._delta_ut1_utc, -0.5868211000312497)
 
 
 class TestTimeUT1SpecificIERSTable:

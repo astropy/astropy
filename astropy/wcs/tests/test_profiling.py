@@ -41,7 +41,7 @@ def test_map(filename):
     header = get_pkg_data_contents(os.path.join("data/maps", filename))
     wcsobj = wcs.WCS(header)
 
-    with NumpyRNGContext(123456789):
+    with NumpyRNGContext(123_456_789):
         x = np.random.rand(2**12, wcsobj.wcs.naxis)
         wcsobj.wcs_pix2world(x, 1)
         wcsobj.wcs_world2pix(x, 1)
@@ -73,7 +73,7 @@ def test_spectrum(filename):
         wcsobj = wcs.WCS(header)
     for w in warning_lines:
         assert issubclass(w.category, FITSFixedWarning)
-    with NumpyRNGContext(123456789):
+    with NumpyRNGContext(123_456_789):
         x = np.random.rand(2**16, wcsobj.wcs.naxis)
         wcsobj.wcs_pix2world(x, 1)
         wcsobj.wcs_world2pix(x, 1)
