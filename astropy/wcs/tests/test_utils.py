@@ -293,6 +293,30 @@ def test_slice_step_non_si_units():
     assert_allclose(slice_wcs.wcs.cdelt, 0.2e-9)
 
 
+def test_slice_step_preserve_units():
+    # Regression test for a bug that caused slicing with a step to fail if
+    # the WCS was created with preserve_units=True and the units were not SI
+    # units.
+
+    mywcs = WCS(naxis=3, preserve_units=True)
+    mywcs.wcs.ctype = "RA---TAN", "DEC--TAN", "WAVE"
+    mywcs.wcs.cunit = "arcsec", "arcsec", "nm"
+    mywcs.wcs.crval = [10, 20, 500]
+    mywcs.wcs.cdelt = [-2, 2, 0.1]
+    mywcs.wcs.crpix = [1, 1, 1]
+
+    slice_wcs = mywcs[::2, ::4]
+    assert slice_wcs.preserve_units
+    assert [str(unit) for unit in slice_wcs.wcs.cunit] == ["arcsec", "arcsec", "nm"]
+    assert_allclose(slice_wcs.wcs.cdelt, [-2, 8, 0.2])
+    assert_allclose(slice_wcs.wcs.crpix, [1, 0.625, 0.75])
+
+    # Pixels 2 and 3 along the spectral axis in the original WCS are at 500.2
+    # and 500.3nm, so the second pixel in the sliced WCS is at 500.25nm.
+    assert_allclose(slice_wcs.pixel_to_world_values(0, 0, 1)[2], 500.25)
+    assert slice_wcs.world_axis_units == ["arcsec", "arcsec", "nm"]
+
+
 def test_slice_fitsorder():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]

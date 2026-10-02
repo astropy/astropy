@@ -3579,7 +3579,12 @@ reduce these to 2 dimensions using the naxis kwarg.
                         # If we stride an x axis, for example, x distortions
                         # should be adjusted in magnitude
                         table.data /= iview.step
-                    wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
+                    # We set the whole array rather than a single element,
+                    # since the array returned by wcs.cdelt is read-only if
+                    # the original units are being preserved.
+                    cdelt_new = wcs_new.wcs.cdelt.copy()
+                    cdelt_new[wcs_index] = cdelt * iview.step
+                    wcs_new.wcs.cdelt = cdelt_new
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
                     if wcs_new.sip is not None:
