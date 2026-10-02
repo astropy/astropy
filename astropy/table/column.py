@@ -511,7 +511,7 @@ class ColumnInfo(BaseColumnInfo):
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
     meta = MetaData(default_factory=dict)
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls,
         data=None,
         name=None,
@@ -1243,7 +1243,7 @@ class Column(BaseColumn):
         col.value
     """
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls,
         data=None,
         name=None,
@@ -1618,7 +1618,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     info = MaskedColumnInfo()
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917] historical API
         cls,
         data=None,
         name=None,

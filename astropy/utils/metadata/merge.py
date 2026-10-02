@@ -235,7 +235,7 @@ def _raise_merge_conflict_error(left, right):
     raise MergeConflictError
 
 
-def merge(
+def merge(  # ruff: ignore[PLR0917] historical API
     left,
     right,
     merge_func=None,

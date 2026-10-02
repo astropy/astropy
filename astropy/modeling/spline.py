@@ -32,7 +32,7 @@ class _Spline(FittableModel):
 
     optional_inputs = {}
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         knots=None,
         coeffs=None,
@@ -302,7 +302,7 @@ class Spline1D(_Spline):
 
     optional_inputs = {"nu": 0}
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         knots=None,
         coeffs=None,

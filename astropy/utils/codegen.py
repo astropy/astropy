@@ -20,7 +20,7 @@ the ASCII range and not beginning with '_' are allowed, currently.
 """
 
 
-def make_function_with_signature(
+def make_function_with_signature(  # ruff: ignore[PLR0917] historical API
     func, args=(), kwargs={}, varargs=None, varkwargs=None, name=None
 ):
     """

@@ -216,7 +216,7 @@ class BoxLeastSquares(BasePeriodogram):
         nf = 1 + int(np.round((maximum_frequency - minimum_frequency) / df))
         return 1.0 / (maximum_frequency - df * np.arange(nf)) * self._t_unit()
 
-    def autopower(
+    def autopower(  # ruff: ignore[PLR0917] historical API
         self,
         duration,
         objective=None,

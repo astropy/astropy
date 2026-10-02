@@ -86,7 +86,7 @@ class BaseFormatterLocator:
         The unit to use for the tick labels. Defaults to ``unit``.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         values=None,
         number=None,
@@ -204,7 +204,7 @@ class AngleFormatterLocator(BaseFormatterLocator):
         formatting.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         values=None,
         number=None,
@@ -569,7 +569,7 @@ class ScalarFormatterLocator(BaseFormatterLocator):
         The unit to use for the tick labels. Defaults to ``unit``.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         values=None,
         number=None,

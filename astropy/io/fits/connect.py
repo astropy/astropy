@@ -117,7 +117,7 @@ def _decode_mixins(tbl):
     return serialize._construct_mixins_from_columns(tbl)
 
 
-def read_table_fits(
+def read_table_fits(  # ruff: ignore[PLR0917] historical API
     input,
     hdu=None,
     astropy_native=False,

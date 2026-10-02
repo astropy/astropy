@@ -28,7 +28,7 @@ __all__ = [
 ]
 
 
-def parse(
+def parse(  # ruff: ignore[PLR0917] historical API
     source,
     columns=None,
     invalid="exception",

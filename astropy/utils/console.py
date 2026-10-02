@@ -542,7 +542,7 @@ class ProgressBar:
         pass
 
     @classmethod
-    def map(
+    def map(  # ruff: ignore[PLR0917] historical API
         cls,
         function,
         items,
@@ -623,7 +623,7 @@ class ProgressBar:
         return results
 
     @classmethod
-    def map_unordered(
+    def map_unordered(  # ruff: ignore[PLR0917] historical API
         cls,
         function,
         items,

@@ -39,7 +39,7 @@ def _get_allowed_units(targets):
     return allowed_units
 
 
-def _validate_arg_value(
+def _validate_arg_value(  # ruff: ignore[PLR0917] historical API
     param_name, func_name, arg, targets, equivalencies, strict_dimensionless=False
 ):
     """

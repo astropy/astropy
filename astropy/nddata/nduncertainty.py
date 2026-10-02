@@ -649,7 +649,7 @@ class _VariancePropagationMixin:
             preserve_axes,
         )
 
-    def _propagate_add_sub(
+    def _propagate_add_sub(  # ruff: ignore[PLR0917] historical API
         self,
         other_uncert,
         result_data,
@@ -742,7 +742,7 @@ class _VariancePropagationMixin:
 
         return from_variance(result)
 
-    def _propagate_multiply_divide(
+    def _propagate_multiply_divide(  # ruff: ignore[PLR0917] historical API
         self,
         other_uncert,
         result_data,

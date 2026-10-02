@@ -468,7 +468,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
     return bitmask
 
 
-def bitfield_to_boolean_mask(
+def bitfield_to_boolean_mask(  # ruff: ignore[PLR0917] historical API
     bitfield,
     ignore_flags=0,
     flip_bits=None,

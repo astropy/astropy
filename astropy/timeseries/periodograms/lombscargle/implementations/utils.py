@@ -376,7 +376,7 @@ def nufft1_lra(x, y, N, eps):
     return s[:N]
 
 
-def trig_sum(
+def trig_sum(  # ruff: ignore[PLR0917] historical API
     t,
     h,
     df,

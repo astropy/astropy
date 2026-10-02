@@ -191,7 +191,7 @@ class Parameter:
     fitters as of this writing.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         name="",
         description="",
@@ -610,7 +610,7 @@ class Parameter:
         if self._validator is not None and self._model is not None:
             self._validator(self._model, value)
 
-    def copy(
+    def copy(  # ruff: ignore[PLR0917] historical API
         self,
         name=None,
         description=None,

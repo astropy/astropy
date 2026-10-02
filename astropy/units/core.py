@@ -2062,7 +2062,7 @@ class _UnitMetaClass(type):
     can return an existing one.
     """
 
-    def __call__(
+    def __call__(  # ruff: ignore[PLR0917] historical API
         cls,
         s="",
         represents=None,
@@ -2691,7 +2691,7 @@ def def_unit(
     exclude_prefixes: Collection[str] = (),
     namespace: MutableMapping[str, object] | None = None,
 ) -> IrreducibleUnit: ...
-def def_unit(
+def def_unit(  # ruff: ignore[PLR0917] historical API
     s: str | list[str],
     represents: UnitLike | None = None,
     doc: str | None = None,

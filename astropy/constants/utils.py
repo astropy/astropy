@@ -35,7 +35,7 @@ def _get_c(codata, iaudata, module, not_in_module_only=True):
             yield _c
 
 
-def _set_c(
+def _set_c(  # ruff: ignore[PLR0917] historical API
     codata, iaudata, module, not_in_module_only=True, doclines=None, set_class=False
 ):
     """

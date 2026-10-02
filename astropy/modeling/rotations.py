@@ -178,7 +178,7 @@ class _EulerRotation:
 
     _separable = False
 
-    def evaluate(self, alpha, delta, phi, theta, psi, axes_order):
+    def evaluate(self, alpha, delta, phi, theta, psi, axes_order):  # ruff: ignore[PLR0917] historical API
         matrix = _create_matrix([phi, theta, psi], axes_order)
         inp = np.stack(np.atleast_1d(spherical2cartesian(alpha, delta)), axis=-2)
         result = np.matmul(matrix, inp)

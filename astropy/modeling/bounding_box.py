@@ -441,7 +441,7 @@ class _BoundingDomain(abc.ABC):
         if with_units:
             return getattr(valid_outputs, "unit", None)
 
-    def _evaluate_model(
+    def _evaluate_model(  # ruff: ignore[PLR0917] historical API
         self,
         evaluate: Callable,
         valid_inputs,
@@ -1339,7 +1339,7 @@ class CompoundBoundingBox(_BoundingDomain):
         bounding_boxes.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917] historical API
         self,
         bounding_boxes: dict[Any, ModelBoundingBox],
         model,
@@ -1447,7 +1447,7 @@ class CompoundBoundingBox(_BoundingDomain):
             return False
 
     @classmethod
-    def validate(
+    def validate(  # ruff: ignore[PLR0917] historical API
         cls,
         model,
         bounding_box: dict,

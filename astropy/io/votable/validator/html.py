@@ -270,7 +270,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
                 write_page_links(i)
 
 
-def add_subset(w, basename, name, subresults, inside=["p"], total=None):
+def add_subset(w, basename, name, subresults, inside=["p"], total=None):  # ruff: ignore[PLR0917] historical API
     with w.tag("tr"):
         subresults = list(subresults)
         if total is None:
@@ -302,7 +302,7 @@ def write_index(subsets, results, root="results"):
                     add_subset(w, *subset, total=len(results))
 
 
-def write_index_table(
+def write_index_table(  # ruff: ignore[PLR0917] historical API
     root, basename, name, subresults, inside=None, total=None, chunk_size=500
 ):
     if total is None:
