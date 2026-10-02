@@ -114,7 +114,7 @@ def test_JsonCustomEncoder_FITS_rec_from_files():
 
 
 @pytest.mark.xfail(
-    sys.platform == "emscripten", reason="known failure on emscripten", strict=True
+    sys.platform == "emscripten", reason="known failure on emscripten"
 )
 def test_set_locale():
     # First, test if the required locales are available

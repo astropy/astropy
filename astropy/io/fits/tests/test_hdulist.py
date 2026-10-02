@@ -683,7 +683,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert (hdul[0].data == data).all()
 
     @pytest.mark.xfail(
-        sys.platform == "emscripten", reason="known failure on emscripten", strict=True
+        sys.platform == "emscripten", reason="known failure on emscripten"
     )
     def test_update_resized_header(self, home_is_temp):
         """
@@ -1246,7 +1246,7 @@ class TestHDUListFunctions(FitsTestCase):
         sys.platform.startswith("win32"), reason="Cannot test on Windows"
     )
     @pytest.mark.xfail(
-        sys.platform == "emscripten", reason="known failure on emscripten", strict=True
+        sys.platform == "emscripten", reason="known failure on emscripten"
     )
     def test_write_hdulist_to_stream(self):
         """

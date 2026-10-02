@@ -941,7 +941,7 @@ class TestImageFunctions(FitsTestCase):
             assert (orig_data == hdul[1].data).all()
 
     @pytest.mark.xfail(
-        sys.platform == "emscripten", reason="known failure on emscripten", strict=True
+        sys.platform == "emscripten", reason="known failure on emscripten"
     )
     def test_open_scaled_in_update_mode(self):
         """

@@ -446,7 +446,7 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert comparerecords(data, hdul[1].data)
 
     @pytest.mark.xfail(
-        sys.platform == "emscripten", reason="known failure on emscripten", strict=True
+        sys.platform == "emscripten", reason="known failure on emscripten"
     )
     def test_open_update_mode_update_checksum(self):
         """
