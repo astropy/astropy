@@ -81,7 +81,6 @@ Core Package Contributors
 * Benjamin Winkel
 * Bernardo Sulzbach
 * Bernie Simon
-* bestdo77
 * Bharath Saiguhan
 * Bhavya Khandelwal
 * Bili Dong
