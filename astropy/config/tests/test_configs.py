@@ -7,6 +7,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from contextlib import chdir, suppress
+from copy import deepcopy
 from inspect import cleandoc
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -41,7 +42,9 @@ OLD_CONFIG = {}
 
 def setup_module() -> None:
     OLD_CONFIG.clear()
-    OLD_CONFIG.update(configuration._cfgobjs)
+    # deep copy: tests mutate the ConfigObj instances themselves, and a shallow
+    # snapshot would carry those mutations back out in teardown_module
+    OLD_CONFIG.update(deepcopy(configuration._cfgobjs))
 
 
 def teardown_module() -> None:
@@ -416,8 +419,7 @@ def test_env_variables_setup_file_exists(
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 @pytest.mark.parametrize("dirtype", _DirType)
 def test_set_temp_config(tmp_path: Path, dirtype: _DirType) -> None:
-    # Check that we start in an understood state.
-    assert configuration._cfgobjs == OLD_CONFIG
+    orig_cfgobjs = deepcopy(configuration._cfgobjs)
 
     orig_dir = dirtype.path_getter(rootname="astropy")
     (temp_dir := tmp_path / "test").mkdir()
@@ -441,7 +443,7 @@ def test_set_temp_config(tmp_path: Path, dirtype: _DirType) -> None:
 
     assert not temp_dir.exists()
     # Check that we have returned to our old configuration.
-    assert configuration._cfgobjs == OLD_CONFIG
+    assert configuration._cfgobjs == orig_cfgobjs
 
 
 class CreateKwargs(TypedDict):
