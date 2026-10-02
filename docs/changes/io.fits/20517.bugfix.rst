@@ -1,0 +1,4 @@
+Fix handling of ``ignore_blank`` keyword for uncompressed integer data.
+Set to True, will keep original integer data with 'BLANK' values,
+to False, convert to float with NaNs, for both signed and unsigned
+integers, and primary as well as extension HDUs.

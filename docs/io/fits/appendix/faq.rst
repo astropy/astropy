@@ -374,6 +374,12 @@ this FAQ might provide an example of how to do this.
 Why is an image containing integer data being converted unexpectedly to floats?
 -------------------------------------------------------------------------------
 
+This can be caused by the need to rescale the data (with the BZERO and BSCALE
+keywords) or by the handling of missing values (with the BLANK keyword).
+
+Scaling with BZERO/BSCALE
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 If the header for your image contains nontrivial values for the optional
 BSCALE and/or BZERO keywords (that is, BSCALE != 1 and/or BZERO != 0), then
 the raw data in the file must be rescaled to its physical values according to
@@ -439,6 +445,34 @@ opening the file::
     'int16'
     >>> hdul.close()
 
+Missing values with BLANK
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The BLANK keyword can be used to define an integer that specifies the value
+that is used within the integer array to represent pixels that have an
+undefined physical value.
+
+BLANK can be used only for integer data. However, since there is no good way to
+represent missing values in a Numpy array with integer data, `astropy.io.fits`
+converts the data to floating point values, and the missing values are set to
+NaN::
+
+    >>> blank_filename = fits.util.get_testdata_filepath("blank.fits")
+    >>> hdul = fits.open(blank_filename)
+    >>> hdul[0].header["BLANK"]
+    2
+    >>> hdul[0].data
+    array([[nan]])
+    >>> hdul.close()
+
+If this behavior is not desirable, it is possible to disable it with the
+``ignore_blank`` parameter::
+
+    >>> fits.getdata(blank_filename, ignore_blank=True)
+    array([[2]], dtype='>i8')
+
+In this case the data is returned with its original type, int64 in this
+example.
 
 Why am I losing precision when I assign floating point values in the header?
 ----------------------------------------------------------------------------
