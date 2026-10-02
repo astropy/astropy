@@ -52,8 +52,9 @@ def parse(
         If file, must be readable.
 
     columns : sequence of str or int, optional
-        List of field names, or column indices, to include
-        in the output.  The default is to include all fields.
+        List of field names, or column indices, to include in the output.
+        The fields are returned in the order they appear in the file, not
+        in the order given here.  The default is to include all fields.
 
     invalid : str, optional
         One of the following values:
