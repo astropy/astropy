@@ -3549,8 +3549,12 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             if iview.start is not None:
                 if iview.step not in (None, 1):
-                    crpix = self.wcs.crpix[wcs_index]
-                    cdelt = self.wcs.cdelt[wcs_index]
+                    # We need to get the values from the copy rather than the
+                    # original, since making the copy can cause the units to
+                    # be converted to SI, and cdelt needs to be in the same
+                    # units as in the WCS we are modifying.
+                    crpix = wcs_new.wcs.crpix[wcs_index]
+                    cdelt = wcs_new.wcs.cdelt[wcs_index]
                     # equivalently (keep this comment so you can compare eqns):
                     # wcs_new.wcs.crpix[wcs_index] =
                     # (crpix - iview.start)*iview.step + 0.5 - iview.step/2.

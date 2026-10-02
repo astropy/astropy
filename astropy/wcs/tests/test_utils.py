@@ -264,6 +264,35 @@ def test_slice_getitem():
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.1, 0.2]))
 
 
+def test_slice_step_non_si_units():
+    # Regression test for a bug that caused the increment along an axis to be
+    # incorrect when slicing with a step, if the units were not SI units and
+    # had not yet been converted to SI units in the original WCS.
+
+    def spectral_wcs():
+        mywcs = WCS(naxis=1)
+        mywcs.wcs.ctype = ["WAVE"]
+        mywcs.wcs.cunit = ["nm"]
+        mywcs.wcs.crval = [500]
+        mywcs.wcs.cdelt = [0.1]
+        mywcs.wcs.crpix = [1]
+        return mywcs
+
+    # In the original WCS, pixels 2 and 3 are at 500.2 and 500.3nm, so the
+    # second pixel when binning by a factor of two is at 500.25nm.
+    slice_wcs = spectral_wcs()[::2]
+    assert_allclose(slice_wcs.pixel_to_world_values(1), 500.25e-9)
+    assert_allclose(slice_wcs.wcs.cdelt, 0.2e-9)
+
+    # Check that this gives the same result as when the units of the original
+    # WCS have already been converted.
+    mywcs = spectral_wcs()
+    mywcs.wcs.set()
+    slice_wcs = mywcs[::2]
+    assert_allclose(slice_wcs.pixel_to_world_values(1), 500.25e-9)
+    assert_allclose(slice_wcs.wcs.cdelt, 0.2e-9)
+
+
 def test_slice_fitsorder():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]
