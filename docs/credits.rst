@@ -47,7 +47,7 @@ Core Package Contributors
 * Andreas Faisst
 * Andreas Michael Hermansen
 * Andrej Rode
-* Andrej730
+* Andrej Zhilenkov
 * Andrew Hearin
 * Andrii Oriekhov
 * Andy Casey
@@ -105,7 +105,6 @@ Core Package Contributors
 * Bryce Nordgren
 * Caden Gobat
 * CaioCoutinhoP
-* CAOShurong
 * Carl Osterwisch
 * Carl Schaffer
 * Caspar van Leeuwen
@@ -127,8 +126,6 @@ Core Package Contributors
 * Conor MacBride
 * Cristian Ardelean
 * Curtis McCully
-* Cyrus
-* da-woods
 * Damien LaRocque
 * Dan Foreman-Mackey
 * Dan P\. Cunningham
@@ -150,6 +147,7 @@ Core Package Contributors
 * David Shiga
 * David Shupe
 * David Stansby
+* David Woods
 * Debajeet Mandal
 * Deen-Dot
 * Demitri Muna
@@ -160,7 +158,7 @@ Core Package Contributors
 * Diego Alonso
 * Diego Asterio de Zaballa
 * disha
-* Dmitry
+* Dmitry Rantovov
 * Dominik Klaes
 * Doron Behar
 * Doug Branton
@@ -196,11 +194,11 @@ Core Package Contributors
 * Everett Schlawin
 * Evert Rol
 * Fazeel Usmani
-* fbourgey
 * Felipe Cybis Pereira
 * Felipe Gameleira
 * Felix Yan
 * Finn Womack
+* Florian Bourgey
 * fockez
 * Francesc Vilardell
 * Francesco Biscani
@@ -231,7 +229,6 @@ Core Package Contributors
 * Harmen Stoppels
 * Harry Ferguson
 * Harshada Raut
-* harshasiddartha
 * Heinz-Alexander Fuetterer
 * Helen Sherwood-Taylor
 * Hélvio Peixoto
@@ -247,13 +244,12 @@ Core Package Contributors
 * Igor Lemos
 * Ikbar Faiz
 * ikkamens
-* IMGillusion
 * Inada Naoki
 * J\. Berg
 * J\. Goutin
 * J\. Xavier Prochaska
 * Jackson Hayward
-* jajmitchell
+* Jake Mitchell
 * Jake VanderPlas
 * Jakob Maljaars
 * James Davies
@@ -428,7 +424,7 @@ Core Package Contributors
 * Miruna Oprescu
 * Moataz Hisham
 * Mohan Agrawal
-* Mohit-Ak
+* Mohit Arvind Khakharia
 * Mohsin Mehmood
 * Molly Peeples
 * Mridul Seth
@@ -438,6 +434,7 @@ Core Package Contributors
 * Nabil Freij
 * Nadia Dencheva
 * Naksh Yadav
+* Nallela Siddartha
 * Nathanial Hendler
 * Nathaniel Starkman
 * Naveen Selvadurai
@@ -619,7 +616,6 @@ Core Package Contributors
 * Varun Kasyap Pentamaraju
 * Varun Nikam
 * Vatsala Swaroop
-* veyron
 * Víctor Terrón
 * Víctor Zabalza
 * Victoria Dye
@@ -635,6 +631,7 @@ Core Package Contributors
 * William Jamieson
 * Wolfgang Kerzendorf
 * xbreak
+* Xinghang Yu
 * xuewc
 * Yannick Copin
 * Yaocheng Chen
@@ -642,7 +639,6 @@ Core Package Contributors
 * Yash Nandwana
 * Yash Sharma
 * Yingqi Ying
-* yuxinghang
 * Zac Hatfield-Dodds
 * Zach Burnett
 * Zach Edwards
