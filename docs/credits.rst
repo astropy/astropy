@@ -47,6 +47,7 @@ Core Package Contributors
 * Andreas Faisst
 * Andreas Michael Hermansen
 * Andrej Rode
+* Andrej730
 * Andrew Hearin
 * Andrii Oriekhov
 * Andy Casey
@@ -80,11 +81,13 @@ Core Package Contributors
 * Benjamin Winkel
 * Bernardo Sulzbach
 * Bernie Simon
+* bestdo77
 * Bharath Saiguhan
 * Bhavya Khandelwal
 * Bili Dong
 * Bill Cleveland
 * Bill Wolf
+* Bing Gao
 * Bodhi Silberling
 * Bogdan Nicula
 * Bojan Nikolic
@@ -102,6 +105,7 @@ Core Package Contributors
 * Bryce Nordgren
 * Caden Gobat
 * CaioCoutinhoP
+* CAOShurong
 * Carl Osterwisch
 * Carl Schaffer
 * Caspar van Leeuwen
@@ -124,6 +128,7 @@ Core Package Contributors
 * Cristian Ardelean
 * Curtis McCully
 * Cyrus
+* da-woods
 * Damien LaRocque
 * Dan Foreman-Mackey
 * Dan P\. Cunningham
@@ -145,14 +150,17 @@ Core Package Contributors
 * David Shiga
 * David Shupe
 * David Stansby
+* Debajeet Mandal
 * Deen-Dot
 * Demitri Muna
 * Derek Homeier
 * Devin Crichton
+* Dhevenddra K G
 * Dhruv Yadav
 * Diego Alonso
 * Diego Asterio de Zaballa
 * disha
+* Dmitry
 * Dominik Klaes
 * Doron Behar
 * Doug Branton
@@ -188,6 +196,7 @@ Core Package Contributors
 * Everett Schlawin
 * Evert Rol
 * Fazeel Usmani
+* fbourgey
 * Felipe Cybis Pereira
 * Felipe Gameleira
 * Felix Yan
@@ -219,8 +228,10 @@ Core Package Contributors
 * Gyanendra Shukla
 * Hannes Breytenbach
 * Hans Moritz Günther
+* Harmen Stoppels
 * Harry Ferguson
 * Harshada Raut
+* harshasiddartha
 * Heinz-Alexander Fuetterer
 * Helen Sherwood-Taylor
 * Hélvio Peixoto
@@ -236,11 +247,13 @@ Core Package Contributors
 * Igor Lemos
 * Ikbar Faiz
 * ikkamens
+* IMGillusion
 * Inada Naoki
 * J\. Berg
 * J\. Goutin
 * J\. Xavier Prochaska
 * Jackson Hayward
+* jajmitchell
 * Jake VanderPlas
 * Jakob Maljaars
 * James Davies
@@ -361,6 +374,7 @@ Core Package Contributors
 * Manodeep Sinha
 * Manon Marchand
 * Marcello Nascif
+* Marcin Juszkiewicz
 * Mark Fardal
 * Mark Taylor
 * Markus Demleitner
@@ -414,6 +428,7 @@ Core Package Contributors
 * Miruna Oprescu
 * Moataz Hisham
 * Mohan Agrawal
+* Mohit-Ak
 * Mohsin Mehmood
 * Molly Peeples
 * Mridul Seth
@@ -517,6 +532,7 @@ Core Package Contributors
 * Samruddhi Khandale
 * Samuel Brice
 * Sandeep Desai
+* Sanjay Santhanam
 * Sanjeev Dubey
 * Sara Ogaz
 * Sarah Graves
@@ -545,7 +561,9 @@ Core Package Contributors
 * Shresth Verma
 * Shreya Vernekar
 * Shreyas Bapat
+* Shridhar Panigrahi
 * Sigurd Næss
+* Simon Aguilera
 * Simon Alinder
 * Simon Conseil
 * Simon Gibbons
@@ -609,6 +627,7 @@ Core Package Contributors
 * Vishnunarayan K\. I\.
 * Vishwas
 * Vital Fernández
+* Vladimir Babin
 * Volodymyr Savchenko
 * VSN Reddy Janga
 * Wang Rui
@@ -623,6 +642,7 @@ Core Package Contributors
 * Yash Nandwana
 * Yash Sharma
 * Yingqi Ying
+* yuxinghang
 * Zac Hatfield-Dodds
 * Zach Burnett
 * Zach Edwards
