@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import sys
-from contextlib import nullcontext
 
 import numpy as np
 import pytest
@@ -32,7 +30,9 @@ def test_scott_bin_width():
         scott_bin_width(rng.random((2, 10)))
 
 
-@pytest.mark.filterwarnings(r"divide by zero encountered|invalid value encountered in ceil:RuntimeWarning")
+@pytest.mark.filterwarnings(
+    r"divide by zero encountered|invalid value encountered in ceil:RuntimeWarning"
+)
 def test_freedman_bin_width():
     rng = np.random.default_rng(0)
     N = 10_000

@@ -3,9 +3,6 @@
 This module tests model set evaluation and fitting for some common use cases.
 """
 
-import sys
-from contextlib import nullcontext
-
 import numpy as np
 
 # pylint: disable=invalid-name
@@ -371,7 +368,9 @@ def test_linear_fit_model_set_errors():
         fitter(init_model, x, y[:, :5])
 
 
-@pytest.mark.filterwarnings(r"ignore:invalid value encountered in.*divide:RuntimeWarning")
+@pytest.mark.filterwarnings(
+    r"ignore:invalid value encountered in.*divide:RuntimeWarning"
+)
 def test_linear_fit_model_set_common_weight():
     """Tests fitting multiple models simultaneously."""
 
