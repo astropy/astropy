@@ -42,7 +42,8 @@ jobs:
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        echo "BRANCH_NAME=update-astropy-iers-data-pin-$(date +'%s')" >> "$GITHUB_ENV"
+        BRANCH_NAME=update-astropy-iers-data-pin-"$(date +'%s')"
+        echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
         git switch -c "$BRANCH_NAME"
         git add --update
         if ! git diff --cached --exit-code; then
