@@ -26,7 +26,7 @@ jobs:
     # or if triggered manually via the workflow dispatch, or for a tag.
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a # v3.0.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@3a3dcf3ba6828dac29eba10334948ef38364ed14  # v3.1.0
     if: |
       github.repository == 'astropy/astropy' && (
         startsWith(github.ref, 'refs/tags/v') ||
@@ -70,6 +70,10 @@ jobs:
         - cp3*-win32
         - cp3*-win_amd64
         - cp3*-win_arm64
+
+        # WebAssembly wheels (PEP 776, PEP 783), cross compiled on Linux.
+        # Note that these are not currently tested, see test-skip in pyproject.toml.
+        - cp3*-pyodide_wasm32
 
     secrets:
       anaconda_token: ${{ secrets.anaconda_token }}

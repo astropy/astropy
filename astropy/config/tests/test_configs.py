@@ -959,6 +959,9 @@ def test_warning_move_to_top_level() -> None:
         conf.max_lines
 
 
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
 def test_no_home() -> None:
     # "import astropy" fails when neither $HOME or $XDG_CONFIG_HOME
     # are set.  To test, we unset those environment variables for a

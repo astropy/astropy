@@ -2,6 +2,7 @@
 
 import math
 import os
+import sys
 import time
 
 import numpy as np
@@ -939,6 +940,9 @@ class TestImageFunctions(FitsTestCase):
         with fits.open(testfile) as hdul:
             assert (orig_data == hdul[1].data).all()
 
+    @pytest.mark.xfail(
+        sys.platform == "emscripten", reason="known failure on emscripten"
+    )
     def test_open_scaled_in_update_mode(self):
         """
         Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/119
