@@ -42,12 +42,12 @@ keywords = [
     "ascii",
 ]
 dependencies = [
-    "astropy-iers-data>=0.2026.7.27.0.56.29",
     "numpy>=2.0",
     "packaging>=25.0",
     "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
     "PyYAML>=6.0.1",
     "configobj>=5.0.9",
+    "astropy-iers-data>=0.2026.9.21.0.56.25",
 ]
 
 [project.optional-dependencies]
@@ -322,10 +322,11 @@ markers = [
 [tool.cibuildwheel]
 # We disable testing for the following wheels:
 # - MuslLinux (tests hang non-deterministically)
-test-skip = "*-musllinux_x86_64"
+test-skip = ["*-musllinux_x86_64"]
 enable = ["cpython-prerelease"]
 skip = [
     "cp*t-*",  # https://github.com/astropy/astropy/issues/16916
+    "cp315-pyodide_wasm32",   # numpy has no pyodide wheels for 3.15 yet
 ]
 environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
@@ -1042,12 +1043,15 @@ cache-control = { api = "max-age=600", files = "max-age=43200, immutable" }
 follow_imports = "silent"
 packages = [
     "astropy.coordinates.sites",
+    "astropy.cosmology",  # See `exclude` for skipped modules
 ]
-modules = [
-    # Specific cosmology modules. Move to `packages` when it's 100% covered.
-    "astropy.cosmology.io",
-    "astropy.cosmology.parameters",
-    "astropy.cosmology.realizations",
-    "astropy.cosmology.traits",
-    "astropy.cosmology.units",
+exclude = [
+    # Private `astropy.cosmology`, not type checked yet.
+    "/astropy/cosmology/_src/",
+    # Tests are out of scope for now. `test_scalar_inv_efuncs.py` additionally
+    # imports a Cython extension module, which has no stubs for Mypy to read.
+    "/astropy/cosmology/tests/",
+    # A directory of `.ecsv` files with no `__init__.py`, which Mypy would
+    # otherwise pick up as an implicit namespace package.
+    "/astropy/cosmology/data/",
 ]

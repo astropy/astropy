@@ -4,6 +4,7 @@ import copy
 import io
 import os
 import re
+import sys
 from contextlib import nullcontext
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
@@ -2875,6 +2876,9 @@ END
         simple_wcs.wcs.crval = 3, 4
 
 
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
 def test_thread_safe_conversions():
     # This is a regression test for a bug which caused wcsset to be called
     # unnecessarily multiple times, including every time some attribute were
@@ -2918,6 +2922,9 @@ def test_nan_in_core_param_propagates():
     assert np.isnan(result[1])
 
 
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
 def test_to_header_concurrent_consistency():
     # Regression for the in-place NaN<->UNDEFINED conversion of the shared
     # struct: calling to_header() on one shared WCS from many threads must
@@ -2952,6 +2959,9 @@ def shared_tan_wcs():
 
 @pytest.mark.force_parallel_threads(8)
 @pytest.mark.iterations(25)
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
 def test_deepcopy_during_lazy_cache_population(shared_tan_wcs):
     # Deepcopying a shared WCS while another thread's first pixel_to_world
     # call lazily inserts _components_and_classes_cache into __dict__ raised

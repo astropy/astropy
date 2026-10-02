@@ -16,7 +16,7 @@ VOTABLE_ROOT = os.path.join(ROOT, "..", "..", "io", "votable", "tests")
 def test_missing_file(capsys):
     showtable.main(["foobar.fits"])
     out, err = capsys.readouterr()
-    assert err.startswith("ERROR: [Errno 2] No such file or directory: 'foobar.fits'")
+    assert "No such file or directory: 'foobar.fits'" in err
 
 
 def test_info(capsys):

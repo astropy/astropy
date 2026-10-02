@@ -156,6 +156,9 @@ def test_progress_bar_as_generator():
     assert sum == 1225
 
 
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="multiprocessing not supported on emscripten"
+)
 def test_progress_bar_map():
     items = list(range(100))
     result = console.ProgressBar.map(

@@ -83,6 +83,6 @@ def __getattr__(name: str) -> Cosmology:
     return getattr(realizations, name)
 
 
-def __dir__() -> list[str]:
+def __dir__() -> tuple[str, ...]:
     """Directory, including lazily-imported objects."""
     return __all__

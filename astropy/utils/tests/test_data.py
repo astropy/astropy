@@ -313,6 +313,9 @@ def test_download_with_sources_and_bogus_original(
     # version. I think the bug was that the parallel downloader didn't respect
     # temporary cache settings.
 
+    if sys.platform == "emscripten" and strategy == "parallel":
+        pytest.skip("multiprocessing not supported on emscripten")
+
     # Make a big list of test URLs
     u, c = next(valid_urls)
     # as tuples (URL, right_content, wrong_content)
@@ -353,6 +356,9 @@ def test_download_with_sources_and_bogus_original(
 @pytest.mark.skipif(
     (sys.platform.startswith("win") and CI), reason="flaky cache error on Windows CI"
 )
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
 def test_download_file_threaded_many(temp_cache, valid_urls):
     """Hammer download_file with multiple threaded requests.
 
@@ -373,6 +379,9 @@ def test_download_file_threaded_many(temp_cache, valid_urls):
 @pytest.mark.skipif(
     (sys.platform.startswith("win") and CI), reason="flaky cache error on Windows CI"
 )
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
 def test_threaded_segfault(valid_urls):
     """Demonstrate urllib's segfault."""
 
@@ -390,6 +399,9 @@ def test_threaded_segfault(valid_urls):
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.skipif(
     (sys.platform.startswith("win") and CI), reason="flaky cache error on Windows CI"
+)
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
 )
 def test_download_file_threaded_many_partial_success(
     temp_cache, valid_urls, invalid_urls
@@ -684,6 +696,9 @@ def test_download_parallel_from_internet_works(temp_cache):
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.parametrize("method", [None, "spawn"])
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="multiprocessing not supported on emscripten"
+)
 def test_download_parallel_fills_cache(valid_urls, method):
     urls = []
     with paths.temporary_cache_dir_path(namespace="astropy") as tmp_path:
@@ -708,6 +723,9 @@ def test_download_parallel_fills_cache(valid_urls, method):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="multiprocessing not supported on emscripten"
+)
 def test_download_parallel_with_empty_sources(valid_urls, temp_cache):
     urls = []
     sources = {}
@@ -724,6 +742,9 @@ def test_download_parallel_with_empty_sources(valid_urls, temp_cache):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="multiprocessing not supported on emscripten"
+)
 def test_download_parallel_with_sources_and_bogus_original(
     valid_urls, invalid_urls, temp_cache
 ):
@@ -746,6 +767,9 @@ def test_download_parallel_with_sources_and_bogus_original(
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="multiprocessing not supported on emscripten"
+)
 def test_download_parallel_many(temp_cache, valid_urls):
     td = list(islice(valid_urls, N_PARALLEL_HAMMER))
 
@@ -756,6 +780,9 @@ def test_download_parallel_many(temp_cache, valid_urls):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="multiprocessing not supported on emscripten"
+)
 def test_download_parallel_partial_success(temp_cache, valid_urls, invalid_urls):
     """Check that a partially successful download works.
 
@@ -803,6 +830,9 @@ def test_download_parallel_partial_success_lock_safe(
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="multiprocessing not supported on emscripten"
+)
 def test_download_parallel_update(temp_cache, tmp_path):
     td = []
     for i in range(N_PARALLEL_HAMMER):
@@ -844,6 +874,9 @@ def test_download_parallel_update(temp_cache, tmp_path):
 @pytest.mark.skipif(
     (sys.platform.startswith("win") and CI), reason="flaky cache error on Windows CI"
 )
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
 def test_update_parallel(temp_cache, valid_urls):
     u, c = next(valid_urls)
     u2, c2 = next(valid_urls)
@@ -865,6 +898,9 @@ def test_update_parallel(temp_cache, valid_urls):
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
 @pytest.mark.skipif(
     (sys.platform.startswith("win") and CI), reason="flaky cache error on Windows CI"
+)
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
 )
 def test_update_parallel_multi(temp_cache, valid_urls):
     u, c = next(valid_urls)
@@ -2141,6 +2177,9 @@ def test_transport_cache_via_zip(temp_cache, valid_urls):
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="multiprocessing not supported on emscripten"
+)
 def test_download_parallel_respects_pkgname(temp_cache, valid_urls):
     a = str(uuid4())
 

@@ -83,7 +83,7 @@ str
 """
 
 
-def yaml_representer(tag: str) -> Callable[[AstropyDumper, Cosmology], str]:
+def yaml_representer(tag: str) -> Callable[[AstropyDumper, Cosmology], MappingNode]:
     """`yaml <https://yaml.org>`_ representation of |Cosmology| object.
 
     Parameters
@@ -93,11 +93,11 @@ def yaml_representer(tag: str) -> Callable[[AstropyDumper, Cosmology], str]:
 
     Returns
     -------
-    representer : callable[[`~astropy.io.misc.yaml.AstropyDumper`, |Cosmology|], str]
+    representer : callable[[`~astropy.io.misc.yaml.AstropyDumper`, |Cosmology|], `~yaml.MappingNode`]
         Function to construct :mod:`yaml` representation of |Cosmology| object.
     """
 
-    def representer(dumper: AstropyDumper, obj: Cosmology) -> str:
+    def representer(dumper: AstropyDumper, obj: Cosmology) -> MappingNode:
         # convert to mapping
         map = obj.to_format("mapping")
         # remove the cosmology class info. It's already recorded in `tag`

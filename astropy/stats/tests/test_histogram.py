@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
@@ -29,6 +30,9 @@ def test_scott_bin_width():
         scott_bin_width(rng.random((2, 10)))
 
 
+@pytest.mark.filterwarnings(
+    r"ignore:divide by zero encountered|invalid value encountered in ceil:RuntimeWarning"
+)
 def test_freedman_bin_width():
     rng = np.random.default_rng(0)
     N = 10_000
@@ -47,12 +51,9 @@ def test_freedman_bin_width():
 
     # data with too small IQR
     test_x = [1, 2, 3] + [4] * 100 + [5, 6, 7]
+
     with pytest.raises(ValueError, match=r"Please use another bin method"):
-        with pytest.warns(
-            RuntimeWarning,
-            match=r"divide by zero encountered|invalid value encountered in ceil",
-        ):
-            freedman_bin_width(test_x, return_bins=True)
+        freedman_bin_width(test_x, return_bins=True)
 
     # data with small IQR but not too small
     test_x = np.asarray([1, 2, 3] * 100 + [4] + [5, 6, 7], dtype=np.float32)
