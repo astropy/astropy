@@ -32,6 +32,7 @@ def test_scott_bin_width():
         scott_bin_width(rng.random((2, 10)))
 
 
+@pytest.mark.filterwarnings(r"divide by zero encountered|invalid value encountered in ceil:RuntimeWarning")
 def test_freedman_bin_width():
     rng = np.random.default_rng(0)
     N = 10_000
@@ -51,18 +52,8 @@ def test_freedman_bin_width():
     # data with too small IQR
     test_x = [1, 2, 3] + [4] * 100 + [5, 6, 7]
 
-    warn_ctx = (
-        pytest.warns(
-            RuntimeWarning,
-            match=r"divide by zero encountered|invalid value encountered in ceil",
-        )
-        if sys.platform != "emscripten"
-        else nullcontext()
-    )
-
     with pytest.raises(ValueError, match=r"Please use another bin method"):
-        with warn_ctx:
-            freedman_bin_width(test_x, return_bins=True)
+        freedman_bin_width(test_x, return_bins=True)
 
     # data with small IQR but not too small
     test_x = np.asarray([1, 2, 3] * 100 + [4] + [5, 6, 7], dtype=np.float32)

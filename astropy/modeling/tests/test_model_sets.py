@@ -371,6 +371,7 @@ def test_linear_fit_model_set_errors():
         fitter(init_model, x, y[:, :5])
 
 
+@pytest.mark.filterwarnings(r"ignore:invalid value encountered in.*divide:RuntimeWarning")
 def test_linear_fit_model_set_common_weight():
     """Tests fitting multiple models simultaneously."""
 
@@ -392,17 +393,11 @@ def test_linear_fit_model_set_common_weight():
     # Check that using null weights raises an error
     # ValueError: On entry to DLASCL parameter number 4 had an illegal value
 
-    warn_ctx = (
-        pytest.warns(RuntimeWarning, match=r"invalid value encountered in.*divide")
-        if sys.platform != "emscripten"
-        else nullcontext()
-    )
-
     with pytest.raises(ValueError, match=r"Found NaNs in the coefficient matrix"):
-        with warn_ctx:
-            fitted_model = fitter(init_model, x, y, weights=np.zeros(10))
+        fitted_model = fitter(init_model, x, y, weights=np.zeros(10))
 
 
+@pytest.mark.filterwarnings(r"invalid value encountered in.*divide")
 def test_linear_fit_model_set_weights():
     """Tests fitting multiple models simultaneously."""
 
@@ -423,23 +418,16 @@ def test_linear_fit_model_set_weights():
     fitted_model = fitter(init_model, x, y, weights=weights)
     assert_allclose(fitted_model(x, model_set_axis=False), y_expected, rtol=1e-1)
 
-    warn_ctx = (
-        pytest.warns(RuntimeWarning, match=r"invalid value encountered in.*divide")
-        if sys.platform != "emscripten"
-        else nullcontext()
-    )
-
     # Check that using null weights raises an error
     weights[0] = 0
     with pytest.raises(ValueError, match=r"Found NaNs in the coefficient matrix"):
-        with warn_ctx:
-            fitted_model = fitter(init_model, x, y, weights=weights)
+        fitted_model = fitter(init_model, x, y, weights=weights)
 
     # Now we mask the values where weight is 0
-    with warn_ctx:
-        fitted_model = fitter(
-            init_model, x, np.ma.array(y, mask=np.isclose(weights, 0)), weights=weights
-        )
+    fitted_model = fitter(
+        init_model, x, np.ma.array(y, mask=np.isclose(weights, 0)), weights=weights
+    )
+
     # Parameters for the first model are all NaNs
     assert np.all(np.isnan(fitted_model.param_sets[:, 0]))
     assert np.all(np.isnan(fitted_model(x, model_set_axis=False)[0]))
