@@ -396,7 +396,7 @@ def test_linear_fit_model_set_common_weight():
         fitted_model = fitter(init_model, x, y, weights=np.zeros(10))
 
 
-@pytest.mark.filterwarnings(r"invalid value encountered in.*divide")
+@pytest.mark.filterwarnings(r"ignore:invalid value encountered in.*divide:RuntimeWarning")
 def test_linear_fit_model_set_weights():
     """Tests fitting multiple models simultaneously."""
 

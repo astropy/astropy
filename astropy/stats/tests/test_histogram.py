@@ -31,7 +31,7 @@ def test_scott_bin_width():
 
 
 @pytest.mark.filterwarnings(
-    r"divide by zero encountered|invalid value encountered in ceil:RuntimeWarning"
+    r"ignore:divide by zero encountered|invalid value encountered in ceil:RuntimeWarning"
 )
 def test_freedman_bin_width():
     rng = np.random.default_rng(0)
