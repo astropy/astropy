@@ -212,6 +212,11 @@ class GroupData(FITS_rec):
                 self._cache_field(self._data_field, input)
             else:
                 np.rec.recarray.field(self, npars)[:] = input
+
+            # Replace the column array references with the new fields, as in
+            # FITS_rec.from_columns; slicing needs them (see #6688).
+            for idx in range(len(coldefs)):
+                coldefs._arrays[idx] = self.field(idx)
         else:
             self = FITS_rec.__new__(cls, input)
             self.parnames = None

@@ -187,6 +187,49 @@ class TestGroupsFunctions(FitsTestCase):
             assert h[0].data.parnames == ["abc", "xyz"]
             assert comparerecords(h[0].data, x)
 
+    def test_create_groupdata_slice(self):
+        """
+        Test slicing GroupData created from scratch rather than read from a
+        file. Regression test for https://github.com/astropy/astropy/issues/6688
+        """
+
+        imdata = np.arange(100.0).reshape((10, 1, 1, 2, 5))
+        pdata1 = np.arange(10, dtype=np.float32) + 0.1
+        x = fits.hdu.groups.GroupData(
+            imdata, parnames=["abc", "xyz"], pardata=[pdata1, 42.0], bitpix=-32
+        )
+        for key in [slice(2, 5), slice(None, None, -3), [1, 3], pdata1 > 5]:
+            s = x[key]
+            assert isinstance(s, fits.GroupData)
+            assert s.parnames == ["abc", "xyz"]
+            assert (s.par("abc") == pdata1[key]).all()
+            assert (s.par("xyz") == 42.0).all()
+            assert (s.data == imdata[key]).all()
+
+        assert len(fits.GroupsHDU(data=x).data[:2]) == 2
+
+        filename = self.temp("test.fits")
+        fits.GroupsHDU(data=x[2:5]).writeto(filename)
+        with fits.open(filename) as h:
+            assert h[0].header["GCOUNT"] == 3
+            assert comparerecords(h[0].data, x[2:5])
+
+        # Scaled parameters and data
+        pdata1 = np.arange(10) + 0.5
+        x = fits.hdu.groups.GroupData(
+            imdata,
+            parnames=["abc", "xyz"],
+            pardata=[pdata1, 42.0],
+            bitpix=16,
+            parbscales=[0.5, 1.0],
+            parbzeros=[1.0, 0.0],
+            bscale=0.5,
+            bzero=1.0,
+        )
+        s = x[2:5]
+        assert (s.par("abc") == pdata1[2:5]).all()
+        assert (s.data == imdata[2:5]).all()
+
     def test_duplicate_parameter(self):
         """
         Tests support for multiple parameters of the same name, and ensures
