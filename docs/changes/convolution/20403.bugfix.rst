@@ -1,0 +1,2 @@
+Fixed ``convolve_fft`` returning zero instead of an interpolated value for NaN
+pixels when a normalized kernel contains negative coefficients.
