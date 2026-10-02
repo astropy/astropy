@@ -144,7 +144,7 @@ Astropy now builds and publishes WebAssembly wheels (``pyemscripten_*_wasm32``, 
 :pep:`776` and :pep:`783`) alongside its native wheels. This means ``astropy`` can be
 installed with ``pip`` (for example via ``micropip``) under `Pyodide
 <https://pyodide.org>`_ and PyScript, rather than relying on the copy vendored in the
-Pyodide distribution. Note that these wheels are not currently tested in CI.
+Pyodide distribution.
 
 Contributors to the 8.1 release
 ===============================
