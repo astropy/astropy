@@ -7,17 +7,53 @@ on:
     - cron: '30 5 * * *'
   workflow_dispatch:
 
-permissions:
-  pull-requests: write
+permissions: {}
 
 jobs:
-  stalebot:
+  stale:
+    permissions:
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
-    if: github.repository == 'astropy/astropy'
     steps:
-      - uses: pllim/action-astropy-stalebot@8a20289632f0d5068e9c129360b27b0a35e4d256  # main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          STALEBOT_MAX_ISSUES: -1
-          STALEBOT_MAX_PRS: -1
-          STALEBOT_SLEEP: 10
+    - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        operations-per-run: 200
+        ascending: true # Old stuff first
+        remove-stale-when-updated: false
+        ignore-issue-updates: true # Maintainer manually decide its fate
+        days-before-issue-stale: 99999999 # Never mark issues as stale automatically
+        days-before-issue-close: 7
+        stale-issue-label: 'Close?'
+        close-issue-label: 'closed-by-bot'
+        exempt-issue-labels: 'keep-open'
+        stale-issue-message: >-
+          Hi humans :wave: - this issue was labeled as **Close?**.
+          If you think this issue should not be closed, a maintainer should
+          remove the label - otherwise, I will close this issue in 7 days.
+        close-issue-message: >-
+          I am going to close this issue as per my previous message, but if you feel that
+          this issue should stay open, then feel free to request to be re-opened and
+          a maintainer should also remove the **Close?** label.
+        days-before-pr-stale: 150
+        days-before-close: 30
+        stale-pr-label: 'Close?'
+        close-pr-label: 'closed-by-bot'
+        exempt-pr-labels: 'keep-open'
+        stale-pr-message: >-
+          Hi humans :wave: - this pull request has not had any new commits for
+          approximately 5 months. **I plan to close this in a month if the pull
+          request does not have any new commits by then.**
+
+          In lieu of a stalled pull request, please consider closing this and open an
+          issue instead if a reminder is needed to revisit in the future. Maintainers
+          may also choose to add **keep-open** label to keep this PR open but it is
+          discouraged unless absolutely necessary.
+
+          If this PR still needs to be reviewed, as an author, you can rebase it
+          to reset the clock.
+        close-pr-message: >-
+          I am going to close this pull request as per my previous message. If you think
+          what is being added/fixed here is still important, please remember to open an
+          issue to keep track of it. Thanks!
