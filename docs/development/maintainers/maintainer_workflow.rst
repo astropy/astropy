@@ -264,7 +264,7 @@ Stale Policies
 ==============
 
 The ``astropy`` GitHub repository has the following stale policies, which are
-enforced by `action-astropy-stalebot <https://github.com/pllim/action-astropy-stalebot/>`_
+enforced by `stale <https://github.com/actions/stale>`_
 in `.github/workflows/stalebot.yml <https://github.com/astropy/astropy/blob/main/.github/workflows/stalebot.yml>`_
 that runs on a schedule. Hereafter, we refer to this automated enforcer as stale-bot.
 
