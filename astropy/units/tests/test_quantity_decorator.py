@@ -487,3 +487,15 @@ def test_annotated_not_unit():
     assert myfunc(1) == 1
     assert myfunc(1 * u.m) == 1 * u.m
     assert myfunc(1 * u.s) == 1 * u.s
+def test_quantity_input_column_conversion():
+    from astropy.table import Column
+
+    @u.quantity_input(angle=u.rad)
+    def foo(angle):
+        return angle
+
+    col = Column([1, 2, 3], name="a", unit=u.deg)
+    result = foo(col)
+
+    assert result.unit == u.rad
+    np.testing.assert_allclose(result.value, np.radians([1, 2, 3]))

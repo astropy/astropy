@@ -303,6 +303,11 @@ class QuantityInput:
                     self.equivalencies,
                     self.strict_dimensionless,
                 )
+            # Convert non-Quantity objects with units (such as Column) to the target unit
+            if valid_targets and not isinstance(arg, Quantity) and hasattr(arg, "to"):
+                target_unit = valid_targets[0]
+                if isinstance(target_unit, UnitBase):
+                    bound_args.arguments[param.name] = arg.to(target_unit)
 
             if self.equivalencies:
                 equiv_context = add_enabled_equivalencies(self.equivalencies)
@@ -313,7 +318,7 @@ class QuantityInput:
                 equiv_context = contextlib.nullcontext()
             # Call the original function with any equivalencies in force.
             with equiv_context:
-                return_ = wrapped_function(*func_args, **func_kwargs)
+               return_ = wrapped_function(*bound_args.args, **bound_args.kwargs)
 
             # Return
             ra = wrapped_signature.return_annotation
