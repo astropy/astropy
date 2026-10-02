@@ -264,14 +264,17 @@ class Parameter:
 
     # -------------------------------------------
 
-    def clone(self, **kw: Any) -> "Parameter":
-        """Clone this `Parameter`, changing any constructor argument.
+    def __replace__(self, /, **changes: Any) -> "Parameter":
+        """Return a copy of this `Parameter`, changing any constructor argument.
+
+        This supports :func:`copy.replace` (Python 3.13+).
 
         Parameters
         ----------
-        **kw
+        **changes
             Passed to constructor. The current values, eg. ``fvalidate`` are
-            used as the default values, so an empty ``**kw`` is an exact copy.
+            used as the default values, so an empty ``**changes`` is an exact
+            copy.
 
         Examples
         --------
@@ -280,17 +283,25 @@ class Parameter:
         Parameter(derived=False, unit=None, equivalencies=[],
                   fvalidate='default', doc=None)
 
-        >>> p.clone(unit="km")
+        >>> p.__replace__(unit="km")
         Parameter(derived=False, unit=Unit("km"), equivalencies=[],
                   fvalidate='default', doc=None)
         """
-        kw.setdefault("fvalidate", self._fvalidate_in)  # prefer the input fvalidate
-        cloned = replace(self, **kw)
-        # Transfer over the __set_name__ stuff. If `clone` is used to make a
+        changes.setdefault("fvalidate", self._fvalidate_in)  # prefer the input
+        new = replace(self, **changes)
+        # Transfer over the __set_name__ stuff. If `__replace__` is used to make a
         # new descriptor, __set_name__ will be called again, overwriting this.
-        cloned.__set_name__(None, self.name)
+        new.__set_name__(None, self.name)
+        return new
 
-        return cloned
+    def clone(self, **kw: Any) -> "Parameter":
+        """Clone this `Parameter`, changing any constructor argument.
+
+        Equivalent to ``Parameter.__replace__``. This
+        will be deprecated in favor of :func:`copy.replace` once astropy's
+        minimum supported Python is 3.13.
+        """
+        return self.__replace__(**kw)
 
     def __repr__(self) -> str:
         """Return repr(self)."""
