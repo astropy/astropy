@@ -487,6 +487,8 @@ def test_annotated_not_unit():
     assert myfunc(1) == 1
     assert myfunc(1 * u.m) == 1 * u.m
     assert myfunc(1 * u.s) == 1 * u.s
+
+
 def test_quantity_input_column_conversion():
     from astropy.table import Column
 

@@ -1,0 +1,1 @@
+Fixed ``@quantity_input`` to correctly convert non-Quantity inputs that support ``.to()`` (such as ``Column``) to the target unit.

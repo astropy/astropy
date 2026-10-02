@@ -318,7 +318,7 @@ class QuantityInput:
                 equiv_context = contextlib.nullcontext()
             # Call the original function with any equivalencies in force.
             with equiv_context:
-               return_ = wrapped_function(*bound_args.args, **bound_args.kwargs)
+                return_ = wrapped_function(*bound_args.args, **bound_args.kwargs)
 
             # Return
             ra = wrapped_signature.return_annotation
