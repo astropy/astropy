@@ -287,8 +287,8 @@ A maintainer can apply "keep-open" label or remove "Closed?" label to remove the
 stale status. Otherwise, stale-bot will close the issue after about a week and
 apply a "closed-by-bot" label.
 
-When both "keep-open" and "Close?" labels exist, the former will take precedence
-and the latter will be removed from the issue.
+When both "keep-open" and "Close?" labels exist, maintainers should be notified
+to clear the confusion by removing at least one of the labels.
 
 Pull Requests
 =============
