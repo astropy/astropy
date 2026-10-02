@@ -22,6 +22,7 @@ from astropy.io.votable import tree
 from astropy.io.votable.exceptions import W31, W39, VOTableSpecError, VOWarning
 from astropy.io.votable.table import parse, parse_single_table, validate
 from astropy.io.votable.xmlutil import validate_schema
+from astropy.table import Table
 from astropy.utils.data import get_pkg_data_filename, get_pkg_data_filenames
 
 # Determine the kind of float formatting in this build of Python
@@ -843,6 +844,45 @@ def test_select_columns_binary(format_):
     votable = parse(bio, columns=[0, 1, 2])
     table = votable.get_first_table().to_table()
     assert table.colnames == ["string_test", "string_test_2", "unicode_test"]
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_select_columns_out_of_file_order(tabledata_format):
+    """
+    parse_single_table with columns=["b", "a"] on a table stored with columns
+    a, b gives each column its own values.
+
+    Binary tables used to put the values of b in column a, and the reverse.
+    """
+    buffer = io.BytesIO()
+    Table({"a": [1.0, 2.0], "b": [3.0, 4.0]}).write(
+        buffer, format="votable", tabledata_format=tabledata_format
+    )
+    buffer.seek(0)
+
+    array = parse_single_table(buffer, columns=["b", "a"]).array
+
+    assert array["a"].tolist() == [1.0, 2.0]
+    assert array["b"].tolist() == [3.0, 4.0]
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_select_same_column_twice(tabledata_format):
+    """
+    parse_single_table with columns=["a", "a"] gives column a once.
+
+    Binary tables used to raise IndexError.
+    """
+    buffer = io.BytesIO()
+    Table({"a": [1.0, 2.0], "b": [3.0, 4.0]}).write(
+        buffer, format="votable", tabledata_format=tabledata_format
+    )
+    buffer.seek(0)
+
+    array = parse_single_table(buffer, columns=["a", "a"]).array
+
+    assert array.dtype.names == ("a",)
+    assert array["a"].tolist() == [1.0, 2.0]
 
 
 def table_from_scratch():

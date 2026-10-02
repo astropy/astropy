@@ -53,7 +53,8 @@ def parse(
 
     columns : sequence of str, optional
         List of field names to include in the output.  The default is
-        to include all fields.
+        to include all fields.  The fields are returned in the order they
+        appear in the file, not in the order given here.
 
     invalid : str, optional
         One of the following values:
