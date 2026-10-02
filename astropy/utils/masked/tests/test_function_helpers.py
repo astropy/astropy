@@ -11,8 +11,6 @@ TODO: finish full coverage (see also `~astropy.utils.masked.function_helpers`)
 
 """
 
-import itertools
-
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -1007,6 +1005,12 @@ class TestReductionLikeFunctions(MaskedArraySetup):
         expected = np.count_nonzero(self.ma.filled(0), axis=axis)
         assert_array_equal(o, expected)
 
+    @pytest.mark.skipif(NUMPY_LT_2_6, reason="minmax is new in NumPy 2.6")
+    def test_minmax(self):
+        mamin, mamax = np.minmax(self.ma)
+        assert_masked_equal(mamin, np.min(self.ma))
+        assert_masked_equal(mamax, np.max(self.ma))
+
 
 @pytest.mark.filterwarnings("ignore:all-nan")
 class TestPartitionLikeFunctions:
@@ -1728,21 +1732,42 @@ def test_testing_completeness():
 
 class TestFunctionHelpersCompleteness:
     @pytest.mark.parametrize(
-        "one, two",
-        list(
-            itertools.combinations(
-                (
-                    MASKED_SAFE_FUNCTIONS,
-                    UNSUPPORTED_FUNCTIONS,
-                    set(APPLY_TO_BOTH_FUNCTIONS.keys()),
-                    set(DISPATCHED_FUNCTIONS.keys()),
-                ),
-                2,
+        "a, b",
+        [
+            pytest.param(
+                MASKED_SAFE_FUNCTIONS,
+                UNSUPPORTED_FUNCTIONS,
+                id="masked-safe_unsupported",
             ),
-        ),
+            pytest.param(
+                MASKED_SAFE_FUNCTIONS,
+                set(APPLY_TO_BOTH_FUNCTIONS),
+                id="masked-safe_apply-to-both",
+            ),
+            pytest.param(
+                MASKED_SAFE_FUNCTIONS,
+                set(DISPATCHED_FUNCTIONS),
+                id="masked-safe_dispatched",
+            ),
+            pytest.param(
+                UNSUPPORTED_FUNCTIONS,
+                set(APPLY_TO_BOTH_FUNCTIONS),
+                id="unsupported_apply-to-both",
+            ),
+            pytest.param(
+                UNSUPPORTED_FUNCTIONS,
+                set(DISPATCHED_FUNCTIONS),
+                id="unsupported_dispatched",
+            ),
+            pytest.param(
+                set(APPLY_TO_BOTH_FUNCTIONS),
+                set(DISPATCHED_FUNCTIONS),
+                id="apply-to-both_dispatched",
+            ),
+        ],
     )
-    def test_no_duplicates(self, one, two):
-        assert not one.intersection(two)
+    def test_no_duplicates(self, a: set[object], b: set[object]) -> None:
+        assert a.isdisjoint(b)
 
     def test_all_included(self):
         included_in_helpers = (
