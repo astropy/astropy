@@ -260,6 +260,14 @@ To make a copy of a cosmological instance using the ``clone`` operation:
   >>> WMAP9.Ode0, newcosmo.Ode0  # Indirectly changed since this is flat  # doctest: +FLOAT_CMP
   (np.float64(0.7134130719051658), np.float64(0.6858130719051657))
 
+On Python 3.13+, :func:`copy.replace` does the same thing (except
+``to_nonflat``, which changes the class) and will replace ``clone`` once Python
+3.13 is astropy's minimum supported version:
+
+  >>> import copy
+  >>> copy.replace(WMAP9, Om0=0.3141) == WMAP9.clone(Om0=0.3141)  # doctest: +SKIP
+  True
+
 ..
   EXAMPLE END
 
