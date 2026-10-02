@@ -1,0 +1,5 @@
+Fixed ``CompoundModel.input_units`` returning a result that depended on the
+order of the operands for arithmetic operators. The units of an input that the
+left operand does not constrain are now taken from the right operand, so e.g.
+``Const1D() + Gaussian1D()`` and ``Gaussian1D() + Const1D()`` report the same
+input units.
