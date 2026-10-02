@@ -1,0 +1,4 @@
+Fixed ``SlicedLowLevelWCS`` rejecting an explicit ``step=1`` when slicing a
+previously sliced WCS. ``combine_slices`` now treats an explicit ``step=1``
+the same as the default ``step=None``, matching the behavior already accepted
+by ``sanitize_slices`` for the first slice.

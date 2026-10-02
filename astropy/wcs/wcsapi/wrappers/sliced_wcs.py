@@ -62,13 +62,20 @@ def combine_slices(slice1, slice2):
     """
     Given two slices that can be applied to a 1-d array, find the resulting
     slice that corresponds to the combination of both slices. We assume that
-    slice2 can be an integer, but slice1 cannot.
+    slice2 can be an integer, but slice1 cannot. The ``step`` of either slice
+    must be either ``None`` or ``1``; a step of ``1`` is treated the same as
+    the default ``None``.
     """
-    if isinstance(slice1, slice) and slice1.step is not None:
+    if isinstance(slice1, slice) and slice1.step is not None and slice1.step != 1:
         raise ValueError("Only slices with steps of 1 are supported")
 
-    if isinstance(slice2, slice) and slice2.step is not None:
+    if isinstance(slice2, slice) and slice2.step is not None and slice2.step != 1:
         raise ValueError("Only slices with steps of 1 are supported")
+
+    if isinstance(slice1, slice) and slice1.step == 1:
+        slice1 = slice(slice1.start, slice1.stop)
+    if isinstance(slice2, slice) and slice2.step == 1:
+        slice2 = slice(slice2.start, slice2.stop)
 
     if isinstance(slice2, numbers.Integral):
         if slice1.start is None:

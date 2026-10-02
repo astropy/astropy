@@ -761,6 +761,17 @@ CASES = [
     (slice(2, None), 3, 5),
     (slice(None, 10), 3, 3),
     (slice(2, 10), 3, 5),
+    # Regression tests for #20487: an explicit step of 1 must behave like
+    # the default step (None) so that two-step SlicedLowLevelWCS construction
+    # remains valid.
+    (slice(None, None, 1), slice(None), slice(None)),
+    (slice(None), slice(None, None, 1), slice(None)),
+    (slice(2, 10, 1), slice(3, 8), slice(5, 10)),
+    (slice(2, 10), slice(3, 8, 1), slice(5, 10)),
+    (slice(0, 2, 1), slice(1, None), slice(1, 2)),
+    (slice(None, 10, 1), 3, 3),
+    (slice(None), slice(0, 2, 1), slice(0, 2)),
+    (slice(None, None, 1), slice(None, None, 1), slice(None)),
 ]
 
 
