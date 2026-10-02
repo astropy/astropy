@@ -473,6 +473,18 @@ def test_arithmetic_overload_fails():
         ccd_data.subtract("five")
 
 
+def test_arithmetic_error_restores_unit_requirement():
+    ccd_adu = CCDData(np.ones((2, 2)), unit="adu")
+    ccd_electron = CCDData(np.ones((2, 2)), unit="electron")
+
+    with pytest.raises(u.UnitConversionError):
+        ccd_adu.add(ccd_electron)
+
+    # A failed operation must not disable unit validation for later instances.
+    with pytest.raises(ValueError, match="a unit for CCDData must be specified"):
+        CCDData(np.ones((2, 2)))
+
+
 def test_arithmetic_no_wcs_compare():
     ccd = CCDData(np.ones((10, 10)), unit="")
     assert ccd.add(ccd, compare_wcs=None).wcs is None
