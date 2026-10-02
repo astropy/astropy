@@ -160,7 +160,6 @@ Additional keyword arguments are passed to ``QTable.read`` and ``QTable.write``.
 """
 
 from collections.abc import Mapping
-from typing import Any
 
 import astropy.units as u
 from astropy.table import QTable, Table
@@ -182,7 +181,7 @@ def read_ecsv(
     move_to_meta: bool = False,
     cosmology: str | type[_CosmoT] | None = None,
     rename: Mapping[str, str] | None = None,
-    **kwargs: Any,
+    **kwargs,
 ) -> _CosmoT:
     r"""Read a `~astropy.cosmology.Cosmology` from an ECSV file.
 
@@ -361,7 +360,7 @@ def write_ecsv[T: Table](
     cls: type[T] = QTable,
     cosmology_in_meta: bool = True,
     rename: Mapping[str, str] | None = None,
-    **kwargs: Any,
+    **kwargs,
 ) -> None:
     """Serialize the cosmology into a ECSV.
 

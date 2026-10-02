@@ -48,7 +48,7 @@ class ParametersAttribute:
     _name: str = field(init=False)
     """The name of the descriptor on the containing class."""
 
-    def __set_name__(self, owner: Any, name: str) -> None:
+    def __set_name__(self, owner, name: str) -> None:
         object.__setattr__(self, "_name", name)
 
     def __get__(
@@ -64,6 +64,6 @@ class ParametersAttribute:
             {n: getattr(instance, n) for n in getattr(instance, self.attr_name)}
         )
 
-    def __set__(self, instance: Any, value: Any) -> NoReturn:
+    def __set__(self, instance, value) -> NoReturn:
         msg = f"cannot set {self._name!r} of {instance!r}."
         raise AttributeError(msg)

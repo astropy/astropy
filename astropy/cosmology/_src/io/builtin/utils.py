@@ -12,7 +12,7 @@ def convert_parameter_to_column(parameter, value, meta=None):
     Parameters
     ----------
     parameter : `astropy.cosmology._src.parameter.Parameter`
-    value : Any
+    value
     meta : dict or None, optional
         Information from the Cosmology's metadata.
 
@@ -38,7 +38,7 @@ def convert_parameter_to_model_parameter(parameter, value, meta=None):
     Parameters
     ----------
     parameter : `astropy.cosmology._src.parameter.Parameter`
-    value : Any
+    value
     meta : dict or None, optional
         Information from the Cosmology's metadata.
         This function will use any of: 'getter', 'setter', 'fixed', 'tied',
