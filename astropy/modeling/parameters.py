@@ -8,15 +8,26 @@ It is unlikely users will need to work with these classes directly,
 unless they define their own models.
 """
 
+from __future__ import annotations
+
 import functools
 import numbers
 import operator
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from astropy.units import MagUnit, Quantity, dimensionless_unscaled
+from astropy.units import MagUnit, Quantity, UnitsError, dimensionless_unscaled
 
 from .utils import array_repr_oneline, get_inputs_and_params
+
+if TYPE_CHECKING:
+    from numpy import typing as npt
+
+    from astropy.units import UnitBase
+    from astropy.units.typing import QuantityLike
+
+    from .core import Model
 
 __all__ = ["InputParameterError", "Parameter", "ParameterError"]
 
@@ -435,7 +446,7 @@ class Parameter:
             return None
 
     @property
-    def quantity(self):
+    def quantity(self) -> Quantity | None:
         """
         This parameter, as a :class:`~astropy.units.Quantity` instance.
         """
@@ -740,6 +751,118 @@ class Parameter:
 
     def __bool__(self):
         return bool(np.all(self.value))
+
+    def _decompose_initialize_value(
+        self, model: Model, value: float | QuantityLike | None
+    ) -> tuple[float | npt.ArrayLike, UnitBase | None]:
+        """
+        Decompose the value passed to a model's __init__ into a value and unit
+        """
+        # Handle the case where the default value for the parameter is being used by
+        #  the model
+        if value is None:
+            if self.default is None:
+                # No value was supplied for the parameter and the
+                # parameter does not have a default, therefore the model
+                # is under specified
+                raise TypeError(
+                    f"{type(model).__name__}.__init__() requires a value for "
+                    f"parameter {self.name!r}"
+                )
+
+            return self.default, self.unit
+
+        if isinstance(value, Quantity):
+            return value.value, value.unit
+
+        if self.unit is not None:
+            raise InputParameterError(
+                f"{type(model).__name__}.__init__() requires a Quantity for"
+                f" parameter {self.name!r}"
+            )
+
+        return value, None
+
+    def initialize_value(
+        self, model: Model, value: float | QuantityLike | None
+    ) -> None:
+        """
+        Interface for a model to initialize the value of this parameter during
+        model initialization based on the values passed to the model __init__.
+
+        Parameters
+        ----------
+        model : `~astropy.modeling.Model`
+            The model instance that this parameter is associated with.
+        value: float, array, or Quantity
+            The value to initialize this parameter to.  If a Quantity is passed
+            in, it must have units equivalent to the unit of this parameter.
+        """
+        value_, unit = self._decompose_initialize_value(model, value)
+
+        self._set_unit(unit, force=True)
+        self.internal_unit = None
+        if self._setter is None:
+            self.value = value_
+        else:
+            value_ = self._setter(value_ if unit is None else value_ * unit)
+
+            if isinstance(value_, Quantity):
+                self.internal_unit = value_.unit
+                self._internal_value = np.array(value_.value)
+
+            else:
+                self._internal_value = np.array(value_)
+
+    def model_set_value(self, model: Model, value: float | Quantity) -> None:
+        """
+        Interface for a model to set the value of this parameter
+
+        Parameters
+        ----------
+        model : `~astropy.modeling.Model`
+            The model instance that this parameter is associated with.
+
+        value: float, array, or Quantity
+            The value to set this parameter to.  If a Quantity is passed
+            in, it must have units equivalent to the unit of this parameter.
+        """
+        if self.unit is not None and not isinstance(value, Quantity):
+            raise UnitsError(
+                f"The '{self.name}' parameter of '{type(model).__name__}' should"
+                " be given as a Quantity because it was originally "
+                "initialized as a Quantity"
+            )
+
+        if isinstance(value, Quantity):
+            self._unit = value.unit
+            value = value.value
+
+        self.value = value
+
+    def strip_units(self, unit: UnitBase) -> None:
+        """
+        Strip the units from this parameter, if any.
+
+        Parameters
+        ----------
+        unit : `~astropy.units.Unit`
+            The unit to convert the parameter to before stripping the units.
+        """
+        if (value := self.quantity) is not None:
+            self.value = value.to(unit).value
+            self._set_unit(None, force=True)
+
+    def attach_unit(self, unit: UnitBase) -> None:
+        """
+        Attach a unit to this parameter, if it does not already have one.
+
+        Parameters
+        ----------
+        unit : `~astropy.units.Unit`
+            The unit to attach to the parameter.
+        """
+        self._set_unit(unit, force=True)
 
     __add__ = _binary_arithmetic_operation(operator.add)
     __radd__ = _binary_arithmetic_operation(operator.add, reflected=True)
