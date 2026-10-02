@@ -2,6 +2,7 @@
 
 import pickle
 
+import numpy as np
 import pytest
 
 import astropy.cosmology.units as cu
@@ -9,6 +10,7 @@ import astropy.units as u
 from astropy import cosmology
 from astropy.cosmology import parameters, realizations
 from astropy.cosmology.realizations import default_cosmology
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
 def test_realizations_in_toplevel_dir():
@@ -103,3 +105,15 @@ def test_pickle_builtin_realizations(name, pickle_protocol):
     unpickled = pickle.loads(f)
     assert unpickled == original
     assert unpickled.meta != original.meta
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+@pytest.mark.parametrize("name", parameters.available)
+def test_age_decreases_with_redshift(name):
+    """Test the age of built-in realizations decreases at high redshift.
+
+    Regression test for #17974.
+    """
+    cosmo = getattr(realizations, name)
+    z = np.geomspace(1e3, 1e8, 4000)
+    assert np.all(np.diff(cosmo.age(z).value) < 0)
