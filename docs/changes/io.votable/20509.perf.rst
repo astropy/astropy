@@ -1,0 +1,3 @@
+Reading a VOTable with an embedded BINARY or BINARY2 stream uses much less
+memory. A 2.5 GB table previously needed about 17 GB at its peak, and now needs
+about 6.8 GB, or 5.1 GB when reading only some of its columns.
