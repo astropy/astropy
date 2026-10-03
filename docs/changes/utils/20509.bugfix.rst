@@ -1,3 +1,5 @@
 In the events from ``astropy.utils.xml.iterparser.get_xml_iterator``, the end
-event of an element that contains other elements now has empty text, instead
-of repeating the text of the last element inside it.
+event of an element that contains other elements now has empty text instead
+of repeating the text of the last element inside it. Its position also now
+points to the line of its own closing tag rather than to that text, so line and
+column numbers in VOTable warnings and validation output may be more accurate.
