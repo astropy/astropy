@@ -1,0 +1,3 @@
+Passing ``include_names``, ``exclude_names``, ``schema_only``, or ``filters``
+positionally to the Parquet table reader is deprecated. These arguments must
+be passed as keywords in a future release.

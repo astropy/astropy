@@ -24,7 +24,7 @@ from astropy.time import Time, TimeDelta
 from astropy.units import allclose as quantity_allclose
 from astropy.units.quantity import QuantityInfo
 from astropy.utils.compat.optional_deps import HAS_PANDAS
-from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 # Skip all tests in this file if we cannot import pyarrow
@@ -96,6 +96,34 @@ def test_read_write_simple(tmp_path):
     t1.write(test_file)
     t2 = Table.read(test_file)
     assert np.all(t2["a"] == [1, 2, 3])
+
+
+@pytest.mark.parametrize("n_positional", [1, 2, 3, 4])
+@pytest.mark.parametrize("schema_only", [False, True])
+def test_read_positional_options_deprecated(tmp_path, n_positional, schema_only):
+    filename = tmp_path / "test.parquet"
+    Table({"a": [1, 2, 3], "b": [4, 5, 6]}).write(filename)
+    options = {
+        "include_names": ["a"],
+        "exclude_names": None,
+        "schema_only": schema_only,
+        "filters": [("a", ">", 1)],
+    }
+    expected = Table.read(filename, **options)
+    names = list(options)
+    with pytest.warns(
+        AstropyDeprecationWarning,
+        match="will be disallowed in a future release: "
+        + ", ".join(names[:n_positional]),
+    ):
+        actual = Table.read(
+            filename,
+            *list(options.values())[:n_positional],
+            **{name: options[name] for name in names[n_positional:]},
+        )
+    assert actual.colnames == expected.colnames == ["a"]
+    assert_array_equal(actual["a"], expected["a"])
+    assert_array_equal(expected["a"], [] if schema_only else [2, 3])
 
 
 def test_read_write_existing(tmp_path):
