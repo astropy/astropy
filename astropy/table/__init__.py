@@ -3,13 +3,20 @@
 import astropy.config as _config
 from astropy.utils.compat import optional_deps
 
-from .column import Column, ColumnInfo, MaskedColumn, StringTruncateWarning
+from .column import (
+    Column,
+    ColumnInfo,
+    ColumnUnitWarning,
+    MaskedColumn,
+    StringTruncateWarning,
+)
 
 __all__ = [
     "BST",
     "Column",
     "ColumnGroups",
     "ColumnInfo",
+    "ColumnUnitWarning",
     "Conf",
     "JSViewer",
     "MaskedColumn",
@@ -76,6 +83,17 @@ class Conf(_config.ConfigNamespace):
         "replacing the column entirely with the new value when possible. "
         "This configuration option will be deprecated and then removed in "
         "subsequent major releases.",
+    )
+
+    column_unit_policy = _config.ConfigItem(
+        ["warn", "silent", "error"],
+        "What to do when an operation on a Column with a unit set would have "
+        "given a different answer if the unit had been taken into account, e.g. "
+        "``col_m * col_s`` (labeled 'm' instead of 'm s') or ``col_m + col_km`` "
+        "(added without converting). Allowed values are 'warn' (issue a "
+        "ColumnUnitWarning), 'silent' (do nothing, and skip the check entirely) "
+        "and 'error' (raise ColumnUnitWarning). Operations that do not depend on "
+        "the unit, such as ``col * 2``, are never affected.",
     )
 
     format_size_threshold = _config.ConfigItem(

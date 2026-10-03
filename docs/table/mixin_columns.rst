@@ -94,8 +94,12 @@ attribute but does not have all of the features of a |Quantity|)::
   >>> t['velocity'].unit
   Unit("m / s")
 
-  >>> (t['velocity'] ** 2).unit  # WRONG because Column is not smart about unit
+  >>> (t['velocity'] ** 2).unit  # doctest: +SHOW_WARNINGS
   Unit("m / s")
+  ColumnUnitWarning: units are ignored in 'square' on Column 'velocity' (unit 'm / s'): the result keeps the unit 'm / s', which may be wrong. Use QTable or Column.quantity for unit-aware arithmetic, or set astropy.table.conf.column_unit_policy to 'silent' to suppress this warning.
+
+The unit is WRONG, because a |Column| is not smart about units. Since astropy
+8.1 this emits a :class:`~astropy.table.ColumnUnitWarning` to point that out.
 
 So instead let's do the same thing using a |QTable|::
 

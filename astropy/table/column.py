@@ -1,6 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import contextlib
 import itertools
+import sys
+import threading
 import warnings
 import weakref
 from copy import deepcopy
@@ -8,7 +11,7 @@ from copy import deepcopy
 import numpy as np
 from numpy import ma
 
-from astropy.units import Quantity, StructuredUnit, Unit
+from astropy.units import Quantity, StructuredUnit, Unit, UnrecognizedUnit
 from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
@@ -41,6 +44,156 @@ class StringTruncateWarning(UserWarning):
 warnings.simplefilter("always", StringTruncateWarning)
 
 
+class ColumnUnitWarning(UserWarning):
+    """
+    Warning class for an operation on a |Column| with a ``unit`` set where
+    taking the unit into account would have given a different answer.
+
+    ``Column.unit`` is only a descriptive label, so ufuncs applied to a
+    ``Column`` ignore it and the result simply inherits the unit of its input.
+    Use |QTable|, or `~astropy.table.Column.quantity`, for unit-aware
+    arithmetic.
+
+    This does not inherit from AstropyWarning because we want to use a
+    ``stacklevel`` that shows the user where the issue occurred in their code.
+    """
+
+
+# Set while astropy itself deliberately does unit-ignoring arithmetic on a Column,
+# e.g. the summary statistics in ColumnInfo.info_summary_stats below.  This is a
+# flag rather than a warnings filter so that it also covers policy='error', and it
+# is thread-local so that suppressing it in one thread cannot hide a warning that
+# another thread should have seen.
+_unit_check = threading.local()
+
+
+@contextlib.contextmanager
+def _suppress_unit_check():
+    """Do not warn about units being ignored in Column operations within this block."""
+    orig = getattr(_unit_check, "suppressed", False)
+    _unit_check.suppressed = True
+    try:
+        yield
+    finally:
+        _unit_check.suppressed = orig
+
+
+def _unit_str(unit):
+    """Unit as it should appear in a warning message, naming the dimensionless one."""
+    # Deliberately not ``unit == dimensionless_unscaled``: comparing two units
+    # that are *not* equal costs microseconds, since it goes looking for a
+    # conversion between them, while this is a couple of attribute lookups.
+    if not unit.bases and unit.scale == 1:
+        return "dimensionless"
+    return f"'{unit}'"
+
+
+def _describe_operand(operand):
+    """Short description of a ufunc operand for use in a warning message."""
+    # Which flavor of column numpy hands us mid-ufunc is an implementation
+    # detail (e.g. BaseColumn for some MaskedColumn operations), so do not
+    # expose it.
+    out = "Column" if isinstance(operand, BaseColumn) else type(operand).__name__
+    if (name := getattr(operand, "name", None)) is not None:
+        out += f" {name!r}"
+    if (unit := getattr(operand, "unit", None)) is not None:
+        out += f" (unit {_unit_str(unit)})"
+    return out
+
+
+def _check_unit_consistency(col, context):
+    """Warn if a ufunc on ``col`` may have given the wrong unit or wrong values.
+
+    ``Column`` arithmetic ignores ``unit``: the output simply inherits the unit
+    of the input that numpy chose to wrap the result with, and no operand is ever
+    converted. So ``col_m * col_s`` comes back labeled ``m`` instead of ``m s``,
+    ``col_m + col_km`` adds the values without converting them, and
+    ``np.sin(col_deg)`` treats the values as radians.
+
+    Warn whenever that inherited unit might not be the right one, based only on
+    which ufunc is being applied and which operands carry a unit. The unit-
+    agnostic operations are enumerated below; anything else warns. Note this is
+    deliberately not a check of whether the answer *is* wrong -- working that out
+    means asking ``astropy.units`` to resolve the operation, which costs more than
+    the operation being checked.
+
+    ``context`` is numpy's ``__array_wrap__`` context, ``(ufunc, inputs, domain)``,
+    where ``inputs`` also includes any ``out`` argument.
+    """
+    from . import conf
+
+    # Read the policy up front so that 'silent' really is an early out: this
+    # check is otherwise a noticeable cost for a ufunc on a short column.
+    if (
+        getattr(_unit_check, "suppressed", False)
+        or (policy := conf.column_unit_policy) == "silent"
+    ):
+        return
+
+    ufunc = context[0]
+    inputs = context[1][: ufunc.nin]
+    units = [getattr(input_, "unit", None) for input_ in inputs]
+    set_units = [unit for unit in units if unit is not None]
+
+    if not set_units:
+        # Nothing with a unit went in, so there is nothing to check. Notably
+        # ``col += quantity`` lands here, with the inputs already converted and
+        # unwrapped by ``Quantity.__array_ufunc__`` - a path that is correct.
+        return
+
+    if any(isinstance(unit, UnrecognizedUnit) for unit in set_units):
+        # astropy could not parse this unit, so arithmetic on it is undefined and
+        # there is nothing useful to say. It also does not compare equal to the
+        # same unit parsed successfully elsewhere - a user-defined unit read back
+        # from ECSV without that unit enabled, say - which would otherwise look
+        # like a unit mismatch.
+        return
+
+    if (name := ufunc.__name__) in _UNIT_UNCHANGED_UFUNCS:
+        # The result takes the unit of its operands, so the inherited unit is
+        # right, but only if the operands that have one agree. Comparing two
+        # equal units is cheap; comparing unequal ones is not, but that is the
+        # path that is about to warn anyway.
+        if all(unit == set_units[0] for unit in set_units[1:]):
+            return
+        reason = "the values were not converted to a common unit"
+    else:
+        if name in _UNIT_SCALING_UFUNCS:
+            # Result takes the unit of whichever operand has one.
+            if len(set_units) == 1:
+                return
+        elif name in _UNIT_DIVIDING_UFUNCS:
+            # Result takes the unit of the first operand, so ``col_m / 2`` is
+            # fine but ``2 / col_m`` is 1/m, not m.
+            if len(set_units) == 1 and units[0] is not None:
+                return
+        # Anything else changes the unit: sqrt, square, sin, exp, log, ...
+        reason = f"the result keeps the unit {_unit_str(col.unit)}, which may be wrong"
+
+    operands = " and ".join(_describe_operand(input_) for input_ in inputs)
+    msg = (
+        f"units are ignored in {name!r} on {operands}: {reason}. Use "
+        "QTable or Column.quantity for unit-aware arithmetic, or set "
+        "astropy.table.conf.column_unit_policy to 'silent' to suppress this warning."
+    )
+    if policy == "error":
+        raise ColumnUnitWarning(msg)
+
+    # Point at the user's code rather than at whatever got us here. The number
+    # of frames to skip varies: MaskedColumn.__array_wrap__ adds one over the
+    # BaseColumn version, _make_compare calls in from a different depth again,
+    # and a MaskedColumn operation comes in through numpy.ma in Python.
+    stacklevel = 1
+    frame = sys._getframe()
+    while frame is not None:
+        module = frame.f_globals.get("__name__", "")
+        if module != __name__ and module != "numpy" and not module.startswith("numpy."):
+            break
+        stacklevel += 1
+        frame = frame.f_back
+    warnings.warn(msg, ColumnUnitWarning, stacklevel=stacklevel)
+
+
 def _auto_names(n_cols):
     from . import conf
 
@@ -62,6 +215,71 @@ _comparison_functions = {
     np.isnan,
     np.sign,
     np.signbit,
+}
+
+
+# Which ufuncs a Column result may safely keep the input unit for, used by
+# _check_unit_consistency above.  Anything not listed here changes the unit
+# (sqrt, square, sin, exp, log, ...), so keeping the input unit is wrong.
+#
+# Matched by ufunc *name*, which folds the aliases together (np.true_divide is
+# np.divide, np.mod is np.remainder) and reaches ``clip``, a ufunc that numpy only
+# exposes privately as numpy._core.umath.clip.
+#
+# The result has the same unit as the operands, so the inherited unit is right as
+# long as every operand that has a unit has the same one.  The comparison ufuncs
+# belong here too: they return bools, but the values are only right if no operand
+# needed converting.  ``remainder``/``fmod`` are here rather than below because a
+# remainder keeps the unit of what was divided, unlike a quotient.
+_UNIT_UNCHANGED_UFUNCS = frozenset(
+    {
+        "add",
+        "subtract",
+        "minimum",
+        "maximum",
+        "fmin",
+        "fmax",
+        "hypot",
+        "remainder",
+        "fmod",
+        "negative",
+        "positive",
+        "absolute",
+        "fabs",
+        "rint",
+        "floor",
+        "ceil",
+        "trunc",
+        "clip",
+        "conjugate",
+        "copysign",
+        "nextafter",
+        "spacing",
+        "ldexp",
+    }
+    | {ufunc.__name__ for ufunc in _comparison_functions}
+)
+
+# The result has the unit of whichever operand has one, so it is right when only
+# one of them does: ``col_m * 2`` and ``2 * col_m`` are both m, ``col_m * col_s``
+# is not m.
+_UNIT_SCALING_UFUNCS = frozenset({"multiply"})
+
+# The result has the unit of the *first* operand, so ``col_m / 2`` is m but
+# ``2 / col_m`` is 1/m and ``col_m / col_s`` is m/s.
+_UNIT_DIVIDING_UFUNCS = frozenset({"divide", "floor_divide", "divmod"})
+
+
+# Comparison operators, and the ufunc each one ends up applying.  MaskedColumn
+# comparisons go through ma.MaskedArray on the raw ``.data``, which never reaches
+# BaseColumn.__array_wrap__, so _make_compare checks the units itself.
+_comparison_operator_ufuncs = {
+    "__eq__": np.equal,
+    "__ne__": np.not_equal,
+    "__gt__": np.greater,
+    "__lt__": np.less,
+    "__ge__": np.greater_equal,
+    "__le__": np.less_equal,
 }
 
 
@@ -346,6 +564,19 @@ def _make_compare(oper):
         if self.dtype.char == "S":
             other = self._encode_str(other)
 
+        if (
+            self._unit is not None
+            and isinstance(self, ma.MaskedArray)
+            and op in _comparison_operator_ufuncs
+        ):
+            # A MaskedColumn comparison goes through ma.MaskedArray on the raw
+            # ``.data``, which never reaches BaseColumn.__array_wrap__, so check
+            # the units here instead.  An unmasked Column does reach it, and
+            # checking here as well would warn twice.
+            _check_unit_consistency(
+                self, (_comparison_operator_ufuncs[op], (self, other))
+            )
+
         # Now just let the regular ndarray.__eq__, etc., take over.
         result = getattr(super(Column, self), op)(other)
         # But we should not return Column instances for this case.
@@ -369,6 +600,14 @@ class ColumnInfo(BaseColumnInfo):
     # For structured columns, data is used to store a dict of columns.
     # Store entries in that dict as name.key instead of name.data.key.
     _represent_as_dict_primary_data = "data"
+
+    @staticmethod
+    def info_summary_stats(dat):
+        # The statistics are of the column values, with the unit taken as a plain
+        # label, so do not warn that the arithmetic inside e.g. nanstd() ignores
+        # that unit (see #20474).
+        with _suppress_unit_check():
+            return BaseColumnInfo.info_summary_stats(dat)
 
     def _represent_as_dict(self):
         result = super()._represent_as_dict()
@@ -744,7 +983,13 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         2) When the output is created by any function that returns a boolean
            we also want to consistently return an array rather than a column
            (see #1446 and #1685)
+
+        This is also where we warn if the operation would have given a different
+        answer had ``unit`` been taken into account (see #20474).
         """
+        if self._unit is not None and context is not None:
+            _check_unit_consistency(self, context)
+
         out_arr = super().__array_wrap__(out_arr, context, return_scalar)
 
         if self.shape != out_arr.shape or (

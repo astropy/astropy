@@ -937,18 +937,66 @@ to this)::
     >>> data = [[30, 90]]
     >>> t = Table(data, names=('angle',))
     >>> t['angle'].unit = 'deg'
-    >>> np.sin(t['angle'])  # doctest: +FLOAT_CMP
+    >>> np.sin(t['angle'])  # doctest: +FLOAT_CMP +SHOW_WARNINGS
     <Column name='angle' dtype='float64' unit='deg' length=2>
     -0.988031624093
      0.893996663601
+    ColumnUnitWarning: units are ignored in 'sin' on Column 'angle' (unit 'deg'): the result keeps the unit 'deg', which may be wrong. Use QTable or Column.quantity for unit-aware arithmetic, or set astropy.table.conf.column_unit_policy to 'silent' to suppress this warning.
 
   This is wrong both in that it says the result is in degrees, *and*
-  `~numpy.sin` treated the values as radians rather than degrees. If at all in
-  doubt that you will get the right result, the safest choice is to either use
-  |QTable| or to explicitly convert to |Quantity|::
+  `~numpy.sin` treated the values as radians rather than degrees. That is what
+  the :class:`~astropy.table.ColumnUnitWarning` above is telling you: see
+  :ref:`column-unit-warnings`. If at all in doubt that you will get the right
+  result, the safest choice is to either use |QTable| or to explicitly convert
+  to |Quantity|::
 
     >>> np.sin(t['angle'].quantity)  # doctest: +FLOAT_CMP
     <Quantity [0.5, 1. ]>
+
+.. _column-unit-warnings:
+
+Warnings About Ignored Units
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Because a |Column| unit is only a label, an operation on a column that has a
+unit set can quietly give an answer that a |Quantity| would not. To make that
+visible, ``astropy`` issues a :class:`~astropy.table.ColumnUnitWarning` whenever
+the unit the result ends up labeled with might not be the right one. That happens
+for an operation that changes the unit, such as multiplying two columns or taking
+a square root or a sine, and for one that combines columns whose units differ and
+so would have needed converting::
+
+  >>> t = Table()
+  >>> t['distance'] = Column([1., 2., 3.], unit='m')
+  >>> t['time'] = Column([1., 2., 3.], unit='s')
+  >>> t['distance'] / t['time']  # doctest: +SHOW_WARNINGS
+  <Column name='distance' dtype='float64' unit='m' length=3>
+  1.0
+  1.0
+  1.0
+  ColumnUnitWarning: units are ignored in 'divide' on Column 'distance' (unit 'm') and Column 'time' (unit 's'): the result keeps the unit 'm', which may be wrong. Use QTable or Column.quantity for unit-aware arithmetic, or set astropy.table.conf.column_unit_policy to 'silent' to suppress this warning.
+
+Operations whose answer does not depend on the unit never warn, so the common
+case of scaling a column by a plain number is unaffected::
+
+  >>> t['distance'] * 1000
+  <Column name='distance' dtype='float64' unit='m' length=3>
+  1000.0
+  2000.0
+  3000.0
+
+If you are deliberately treating column units as labels and doing your own
+bookkeeping, silence the warnings with the ``column_unit_policy`` configuration
+item, either for a block of code or in your ``astropy`` configuration file::
+
+  >>> from astropy.table import conf
+  >>> with conf.set_temp('column_unit_policy', 'silent'):
+  ...     result = t['distance'] / t['time']
+
+Setting it to ``'error'`` instead raises
+:class:`~astropy.table.ColumnUnitWarning`, which is useful for finding these
+operations in an existing code base. See :ref:`astropy_config` for details on
+configuration items.
 
 .. _bytestring-columns-python-3:
 
