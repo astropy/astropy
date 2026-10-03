@@ -1282,13 +1282,27 @@ reduce these to 2 dimensions using the naxis kwarg.
         else:
             return (tables.get(1), tables.get(2))
 
-    def _write_distortion_kw(self, hdulist, dist="CPDIS"):
+    def _write_distortion_kw(self, hdulist, dist="CPDIS", key=" "):
         """
         Write out `distortion paper`_ keywords to the given
         `~astropy.io.fits.HDUList`.
+
+        Parameters
+        ----------
+        hdulist : `~astropy.io.fits.HDUList`
+            HDU list to write the keywords and lookup tables to.
+        dist : str, optional
+            Distortion type: "CPDIS" for prior or "CQDIS" for sequent.
+            Default is "CPDIS".
+        key : str, optional
+            WCS key character (e.g., ' ', 'A', 'B', etc.), appended to
+            the keyword names the same way `_read_distortion_kw` expects
+            them. Default is ' ' (primary WCS).
         """
         if self.cpdis1 is None and self.cpdis2 is None:
             return
+
+        key_suffix = key.strip().upper()
 
         if dist == "CPDIS":
             d_kw = "DP"
@@ -1299,22 +1313,23 @@ reduce these to 2 dimensions using the naxis kwarg.
             if cpdis is None:
                 return
 
-            hdulist[0].header[f"{dist}{num:d}"] = (
+            axis_key = f"{num:d}{key_suffix}"
+            hdulist[0].header[f"{dist}{axis_key}"] = (
                 "LOOKUP",
                 "Prior distortion function type",
             )
-            hdulist[0].header[f"{d_kw}{num:d}.EXTVER"] = (
+            hdulist[0].header[f"{d_kw}{axis_key}.EXTVER"] = (
                 num,
                 "Version number of WCSDVARR extension",
             )
-            hdulist[0].header[f"{d_kw}{num:d}.NAXES"] = (
+            hdulist[0].header[f"{d_kw}{axis_key}.NAXES"] = (
                 len(cpdis.data.shape),
                 f"Number of independent variables in {dist} function",
             )
 
             for i in range(cpdis.data.ndim):
                 jth = {1: "1st", 2: "2nd", 3: "3rd"}.get(i + 1, f"{i + 1}th")
-                hdulist[0].header[f"{d_kw}{num:d}.AXIS.{i + 1:d}"] = (
+                hdulist[0].header[f"{d_kw}{axis_key}.AXIS.{i + 1:d}"] = (
                     i + 1,
                     f"Axis number of the {jth} variable in a {dist} function",
                 )
@@ -1334,7 +1349,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             )
             header["CDELT1"] = (cpdis.cdelt[0], "Coordinate increment along axis")
             header["CDELT2"] = (cpdis.cdelt[1], "Coordinate increment along axis")
-            image.ver = int(hdulist[0].header[f"{d_kw}{num:d}.EXTVER"])
+            image.ver = int(hdulist[0].header[f"{d_kw}{num:d}{key_suffix}.EXTVER"])
             hdulist.append(image)
 
         write_dist(1, self.cpdis1)
@@ -2956,8 +2971,14 @@ reduce these to 2 dimensions using the naxis kwarg.
         hdu = fits.PrimaryHDU(header=header)
         hdulist = fits.HDUList(hdu)
 
+        # The distortion keywords carry the same alternate-WCS suffix as the
+        # rest of the header, so a secondary WCS round-trips through
+        # to_fits() / WCS(..., key=key).
+        if key is None:
+            key = self.wcs.alt if self.wcs is not None else " "
+
         self._write_det2im(hdulist)
-        self._write_distortion_kw(hdulist)
+        self._write_distortion_kw(hdulist, key=key)
 
         return hdulist
 

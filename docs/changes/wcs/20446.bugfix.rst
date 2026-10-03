@@ -1,0 +1,1 @@
+``WCS.to_fits()`` now writes the lookup-table distortion keywords (``CPDISia``, ``DPia.*``) with the alternate WCS key suffix, so the distortion of a secondary WCS survives a round trip through ``to_fits()`` and ``WCS(..., key=key)``.
