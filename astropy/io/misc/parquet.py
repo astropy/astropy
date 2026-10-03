@@ -13,6 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_PYARROW
+from astropy.utils.decorators import future_keyword_only
 
 # NOTE: Do not import anything from astropy.table here.
 # https://github.com/astropy/astropy/issues/6604
@@ -57,6 +58,9 @@ def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
         return False
 
 
+@future_keyword_only(
+    ["include_names", "exclude_names", "schema_only", "filters"], since=["8.1"] * 4
+)
 def read_table_parquet(
     input,
     include_names=None,
@@ -72,6 +76,11 @@ def read_table_parquet(
     This requires `pyarrow <https://arrow.apache.org/docs/python/>`_
     and `pandas <https://pandas.pydata.org/>`_
     to be installed.
+
+    .. deprecated:: 8.1
+        Passing ``include_names``, ``exclude_names``, ``schema_only``, or
+        ``filters`` positionally is deprecated. Pass these arguments as keywords
+        instead.
 
     The ``filters`` parameter consists of predicates that are expressed
     in disjunctive normal form (DNF), like ``[[('x', '=', 0), ...], ...]``.
