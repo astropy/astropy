@@ -166,3 +166,12 @@ def test_silence_stdout_file_protocol():
         assert sys.stdout.isatty() is False
         sys.stdout.flush()
         sys.stdout.write("ignored")
+
+
+def test_silence_restores_streams_on_exception():
+    stdout, stderr = sys.stdout, sys.stderr
+    with pytest.raises(ValueError, match="expected"):
+        with misc.silence():
+            raise ValueError("expected")
+    assert sys.stdout is stdout
+    assert sys.stderr is stderr

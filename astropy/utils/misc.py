@@ -91,9 +91,11 @@ def silence() -> Generator[None, None, None]:
     old_stderr = sys.stderr
     sys.stdout = _DummyFile()
     sys.stderr = _DummyFile()
-    yield
-    sys.stdout = old_stdout
-    sys.stderr = old_stderr
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
 
 
 @deprecated(since="7.0")
