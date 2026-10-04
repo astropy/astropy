@@ -322,7 +322,11 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
 
         bounds = []
         for idx in self._pixel_keep:
-            if self._slices_pixel[idx].start is None:
+            # Note that the bounds can be None for individual dimensions
+            if (
+                self._slices_pixel[idx].start is None
+                or self._wcs.pixel_bounds[idx] is None
+            ):
                 bounds.append(self._wcs.pixel_bounds[idx])
             else:
                 imin, imax = self._wcs.pixel_bounds[idx]

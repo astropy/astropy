@@ -3530,6 +3530,11 @@ reduce these to 2 dimensions using the naxis kwarg.
         y_tables = [t for t in (wcs_new.cpdis2, wcs_new.det2im2) if t is not None]
         distortion_tables = [*x_tables, *y_tables]
 
+        if self.pixel_bounds is None:
+            pixel_bounds = None
+        else:
+            pixel_bounds = list(self.pixel_bounds)
+
         for i, iview in enumerate(view):
             if iview.step is not None and iview.step < 0:
                 raise NotImplementedError("Reversing an axis is not implemented.")
@@ -3592,6 +3597,20 @@ reduce these to 2 dimensions using the naxis kwarg.
                     for table in distortion_tables:
                         table.crval[wcs_index] -= iview.start
 
+            if (
+                pixel_bounds is not None
+                and pixel_bounds[wcs_index] is not None
+                and iview.start is not None
+            ):
+                # The bounds are in pixel coordinates so these need to be
+                # converted to the pixel coordinates of the sliced WCS, taking
+                # into account that pixel centers are at integer values.
+                step = iview.step or 1
+                pixel_bounds[wcs_index] = tuple(
+                    (bound - iview.start + 0.5) / step - 0.5
+                    for bound in pixel_bounds[wcs_index]
+                )
+
             try:
                 # range requires integers but the other attributes can also
                 # handle arbitrary values, so this needs to be in a try/except.
@@ -3611,6 +3630,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             wcs_new.sip = Sip(
                 self.sip.a, self.sip.b, self.sip.ap, self.sip.bp, sip_crpix
             )
+
+        wcs_new.pixel_bounds = pixel_bounds
 
         return wcs_new
 
