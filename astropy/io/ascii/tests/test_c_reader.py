@@ -1066,12 +1066,18 @@ def test_store_comments_long(read_basic):
     already collected before it, even when those exceed the initial size of
     the C tokenizer comment buffer (50 characters). [#8360]
     """
+    unit_comment = (
+        "describing_the_physical_unit_of_column_1"
+        "   describing_the_physical_unit_of_column_2"
+    )
     text = """
 # key1 : val 1
 # key2 : extra long entry
 # key3 : also super long entry
+# key4 : actually really super long entry (exceeding the initial buffer of 50!)
 a b
 # unit1 unit2
+# describing_the_physical_unit_of_column_1   describing_the_physical_unit_of_column_2
 1 2
 """
     table = read_basic(text, check_meta=True)
@@ -1079,20 +1085,23 @@ a b
         "key1 : val 1",
         "key2 : extra long entry",
         "key3 : also super long entry",
+        "key4 : actually really super long entry (exceeding the initial buffer of 50!)",
         "unit1 unit2",
+        unit_comment,
     ]
 
 
 def test_store_many_comments(read_basic):
     """
-    Stress the growth of the C tokenizer comment buffer with many long comment
-    lines both before and after the header line. [#8360]
+    Stress the growth of the C tokenizer comment buffer with comment lines that
+    each more than double the length of the comment text collected so far, both
+    before and after the header line. [#8360]
     """
-    comments = [f"comment {i} " + "x" * (i + 1) for i in range(40)]
+    comments = [f"comment {i} " + "x" * 3 ** (i + 1) for i in range(6)]
     text = "\n".join(
-        ["# " + comment for comment in comments[:20]]
+        ["# " + comment for comment in comments[:3]]
         + ["a b"]
-        + ["# " + comment for comment in comments[20:]]
+        + ["# " + comment for comment in comments[3:]]
         + ["1 2"]
     )
     table = read_basic(text, check_meta=True)
