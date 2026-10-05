@@ -475,7 +475,7 @@ def unbroadcast[DT: np.generic](array: NDArray[DT]) -> NDArray[DT]:
 def simplify_basic_index(
     basic_index: int | slice | Sequence[int | slice | EllipsisType | None],
     *,
-    shape: Sequence[int],
+    shape: Sequence[int | None],
 ) -> tuple[int | slice, ...]:
     """
     Given a Numpy basic index, return a tuple of integers and slice objects
@@ -493,7 +493,10 @@ def simplify_basic_index(
     basic_index
         A valid Numpy basic index
     shape
-        The shape of the array being indexed
+        The shape of the array being indexed. Entries can be `None` if the
+        size along a dimension is not known, in which case the index for that
+        dimension is returned unchanged, except that a negative integer or
+        slice start raises an error since it cannot be interpreted.
     """
     ndim = len(shape)
 
@@ -502,17 +505,15 @@ def simplify_basic_index(
 
     new_index = list(basic_index)
 
-    if Ellipsis in new_index:
-        if new_index.count(Ellipsis) > 1:
-            raise IndexError("an index can only have a single ellipsis ('...')")
-
+    # Identity rather than equality checks are used here since the latter
+    # would fail if any of the elements were arrays.
+    ellipsis = [i for i, idx in enumerate(new_index) if idx is Ellipsis]
+    if len(ellipsis) > 1:
+        raise IndexError("an index can only have a single ellipsis ('...')")
+    if ellipsis:
         # Replace the Ellipsis with the correct number of slice(None)s
-        e_ind = new_index.index(Ellipsis)
-        new_index.remove(Ellipsis)
-        n_e = ndim - len(new_index)
-        for i in range(n_e):
-            ind = e_ind + i
-            new_index.insert(ind, slice(0, shape[ind], 1))
+        e_ind = ellipsis[0]
+        new_index[e_ind : e_ind + 1] = [slice(None)] * (ndim - len(new_index) + 1)
 
     if len(new_index) > ndim:
         raise ValueError(
@@ -520,22 +521,35 @@ def simplify_basic_index(
             f"than the dimensionality ({ndim}) of the data."
         )
 
-    for i in range(ndim):
-        if i < len(new_index):
-            slc = new_index[i]
-            if isinstance(slc, slice):
-                indices = list(slc.indices(shape[i]))
+    new_index += [slice(None)] * (ndim - len(new_index))
+
+    for i, (slc, size) in enumerate(zip(new_index, shape)):
+        if isinstance(slc, slice):
+            if size is None:
+                if slc.start is not None and slc.start < 0:
+                    raise ValueError(
+                        f"Cannot use a negative slice start for dimension {i} "
+                        "since its size is not known"
+                    )
+            else:
+                indices = list(slc.indices(size))
                 # The following case is the only one where slice(*indices) does
                 # not give the 'correct' answer because it will set stop to -1
                 # which means the last element in the array.
                 if indices[1] == -1:
                     indices[1] = None
                 new_index[i] = slice(*indices)
-            elif isinstance(slc, numbers.Integral):
-                new_index[i] = normalize_axis_index(int(slc), shape[i])
+        elif isinstance(slc, numbers.Integral):
+            if size is None:
+                if slc < 0:
+                    raise ValueError(
+                        f"Cannot use a negative index for dimension {i} since "
+                        "its size is not known"
+                    )
+                new_index[i] = int(slc)
             else:
-                raise ValueError(f"Unexpected index element in basic index: {slc}")
+                new_index[i] = normalize_axis_index(int(slc), size)
         else:
-            new_index.append(slice(0, shape[i], 1))
+            raise ValueError(f"Unexpected index element in basic index: {slc}")
 
     return tuple(new_index)
