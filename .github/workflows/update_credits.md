@@ -2,7 +2,7 @@ This is an automated update of the credits for the core package.
 
 Checklist:
 
-* [ ] Apply backport labels to any active backport branches
+* [ ] Apply backport labels to any active backport branches (v8.0.x or later only)
 * [ ] Check the resulting docs/credits.rst, and update the .mailmap file for any duplicates or missing names
 * [ ] If you update .mailmap, re-run:
 
