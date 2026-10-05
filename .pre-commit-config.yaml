@@ -75,7 +75,7 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.16.10
     hooks:
       - id: ruff-check
         args: ["--fix", "--show-fixes"]
@@ -114,12 +114,12 @@ repos:
         exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: 'v23.1.0'
+    rev: 'v23.1.2'
     hooks:
       - id: clang-format
         files: \.(c|h)$
 
   - repo: https://github.com/numpy/numpydoc
-    rev: v1.10.0
+    rev: v1.11.0
     hooks:
       - id: numpydoc-validation
