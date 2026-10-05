@@ -769,6 +769,59 @@ def test_combine_slices(slice1, slice2, expected):
     assert combine_slices(slice1, slice2) == expected
 
 
+@pytest.mark.parametrize(
+    ("negative", "positive"),
+    [
+        ((-1,), (29,)),
+        ((slice(None), -5), (slice(None), 15)),
+        ((slice(None), slice(None), -10), (slice(None), slice(None), 0)),
+        ((slice(-10, None),), (slice(20, None),)),
+        ((slice(-10, -2), slice(-15, -5)), (slice(20, 28), slice(5, 15))),
+        ((slice(None, -2), slice(3, -5)), (slice(None, 28), slice(3, 15))),
+        ((-3, slice(-15, None), slice(None, -4)), (27, slice(5, None), slice(None, 6))),
+    ],
+)
+def test_negative_indices(negative, positive):
+    # Regression test for a bug that caused negative values to not be
+    # interpreted relative to the end of each axis when the shape of the data
+    # is known.
+
+    wcs = WCS_SPECTRAL_CUBE.deepcopy()
+    wcs.array_shape = (30, 20, 10)
+
+    sub_negative = SlicedLowLevelWCS(wcs, negative)
+    sub_positive = SlicedLowLevelWCS(wcs, positive)
+    assert sub_negative.array_shape == sub_positive.array_shape
+    pixel = [1] * sub_negative.pixel_n_dim
+    world = sub_positive.pixel_to_world_values(*pixel)
+    assert_allclose(sub_negative.pixel_to_world_values(*pixel), world)
+    assert_allclose(sub_negative.world_to_pixel_values(*world), pixel)
+
+    # If the shape is not known, a negative integer or start cannot be
+    # interpreted, but a negative stop is fine since it only affects the
+    # (unknown) shape.
+    wcs.array_shape = None
+    if any((s if isinstance(s, int) else s.start or 0) < 0 for s in negative):
+        with pytest.raises(ValueError, match="size is not known"):
+            SlicedLowLevelWCS(wcs, negative)
+    else:
+        assert_allclose(
+            SlicedLowLevelWCS(wcs, negative).pixel_to_world_values(*pixel), world
+        )
+
+
+def test_negative_indices_nested():
+    # Negative values in nested slices are relative to the sliced WCS
+    wcs = WCS_SPECTRAL_CUBE.deepcopy()
+    wcs.array_shape = (30, 20, 10)
+    sub1 = SlicedLowLevelWCS(SlicedLowLevelWCS(wcs, slice(5, 25)), slice(-4, None))
+    sub2 = SlicedLowLevelWCS(wcs, slice(21, 25))
+    assert sub1.array_shape == sub2.array_shape == (4, 20, 10)
+    assert_allclose(
+        sub1.pixel_to_world_values(1, 2, 3), sub2.pixel_to_world_values(1, 2, 3)
+    )
+
+
 def test_nested_slicing():
     # Make sure that if we call slicing several times, the result is the same
     # as calling the slicing once with the final slice settings.
