@@ -177,7 +177,7 @@ class TdatHeader(basic.BasicHeader):
         "Data Format Specification",
     ]
     # keywords in the header: name = value
-    _keys = r"(?P<key>\w+)\s*=\s*(?P<value>.*?)(\s*(#|//)(?P<comment>.*$)|(\s*$))"
+    _keys = r"(?P<key>\w+)\s*=\s*(?P<value>.*?)(\s*(#|(?<!:)//)(?P<comment>.*$)|(\s*$))"
     # keywords in the header: name[text] = some_other_text;
     # names: relate|line
     _extra_keys = r"\s*(relate|line)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?"
@@ -349,7 +349,7 @@ class TdatHeader(basic.BasicHeader):
         keywords = getattr(self, "_keywords", {})
         for line in self.process_lines(lines):
             # look for field[..]= ... column definitions
-            cmatch = re.match(r"^field\[(.+?)\]\s*=\s*(.+)$", line)
+            cmatch = re.match(r"\s*field\[(.+?)\]\s*=\s*(.+)\s*", line)
             if cmatch:
                 name = cmatch.group(1)
                 definition = cmatch.group(2)
@@ -449,8 +449,18 @@ class TdatHeader(basic.BasicHeader):
                     # Check type
                     if ctype in self._dtype_dict_in:
                         col.dtype = self._dtype_dict_in[ctype]
-                    elif "char" in ctype:
+                    elif match := re.search(r"^char\(?(\d+)\)?$", ctype):
                         col.dtype = str
+                        # Special case for char, grab number and format
+                        # Format can be anything but don't want to set col.format
+                        char_len = match.group(1)
+                        if not (1 <= int(char_len) <= 9999):
+                            raise TdatFormatError(
+                                f"The character string length must be in the range of 1 to 9999: '{col.name}' has length '{char_len}'."
+                            )
+                        col.meta["char_len"] = char_len
+                        col.meta["char_fmt"] = col.format
+                        col.format = None
                     else:
                         raise TdatFormatError(
                             f"Unrecognized or unsupported data type '{ctype}' for '{col.name}'."
@@ -573,6 +583,7 @@ class TdatHeader(basic.BasicHeader):
         lines.append("# Table Parameters")
         lines.append("#")
         for col in self.cols:
+            col_info_meta = col.info.meta or {}
             if str(col_type := col.info.dtype) in self._dtype_dict_out:
                 ctype = self._dtype_dict_out[str(col_type)]
             elif col_type.kind == "i":
@@ -580,7 +591,10 @@ class TdatHeader(basic.BasicHeader):
             elif col_type.kind == "f":
                 ctype = "float8"
             elif col_type.kind == "U":
-                ctype = f"char{col_type.itemsize // 4}"
+                if "char_len" in col_info_meta:
+                    ctype = f"char{col_info_meta['char_len']}"
+                else:
+                    ctype = f"char{col_type.itemsize // 4}"
             else:
                 raise TdatFormatError(
                     f'Unrecognized data type `{col_type}` for column "{col.info.name}".'
@@ -594,9 +608,10 @@ class TdatHeader(basic.BasicHeader):
                 col_name = col_name[:23]
             field_line = f"field[{col_name}] = {ctype}"
 
-            col_info_meta = col.info.meta or {}
             if col.info.format is not None:
                 field_line += f":{col.info.format}"
+            if "char_fmt" in col_info_meta and "char" in ctype:
+                field_line += f":{col_info_meta['char_fmt']}"
             if col.info.unit is not None:
                 field_line += f"_{col.info.unit:cds}"
             if "ucd" in col_info_meta:
