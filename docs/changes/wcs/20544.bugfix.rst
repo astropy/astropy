@@ -1,0 +1,6 @@
+Fixed slicing of WCS objects with negative values, which were previously used
+as literal pixel offsets rather than being interpreted relative to the end of
+the axis as for Numpy arrays. Negative values are now resolved when the shape of
+the data is known, and a negative integer or slice start now raises a
+``ValueError`` when it is not. Also fixed nested ``SlicedLowLevelWCS`` objects
+rejecting slices with an explicit step of 1.
