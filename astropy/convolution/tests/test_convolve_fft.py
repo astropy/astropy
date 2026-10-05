@@ -11,6 +11,7 @@ from numpy.testing import (
 )
 
 from astropy import units as u
+from astropy.convolution import Gaussian2DKernel
 from astropy.convolution.convolve import convolve, convolve_fft
 from astropy.convolution.tests.test_convolve import MASKED_KERNEL_ERRORMESSAGE
 from astropy.utils.exceptions import AstropyUserWarning
@@ -553,6 +554,37 @@ class TestConvolve1D:
 
 
 class TestConvolve2D:
+    def test_nan_interpolation_with_negative_kernel_weights(self):
+        """Interpolation must retain a valid negative normalization weight."""
+        # 7x7 noise image around 100, center pixel NaN.
+        image = 100 + np.random.default_rng(3).normal(0, 1, (7, 7))
+        image[3, 3] = np.nan
+
+        # Build a 5x5 unsharp mask kernel that sums to 1.
+        a = 1.0
+        gaussian = Gaussian2DKernel(1.0, x_size=5, y_size=5).array
+        gaussian /= gaussian.sum()
+        delta = np.zeros_like(gaussian)
+        delta[2, 2] = 1
+        kernel = (1 + a) * delta - a * gaussian
+
+        direct = convolve(
+            image,
+            kernel,
+            boundary="wrap",
+            nan_treatment="interpolate",
+            normalize_kernel=True,
+        )
+        fft = convolve_fft(
+            image,
+            kernel,
+            boundary="wrap",
+            nan_treatment="interpolate",
+            normalize_kernel=True,
+        )
+
+        assert_allclose(fft, direct)
+
     @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
     @pytest.mark.parametrize("nan_treatment", NANTREATMENT_OPTIONS)
     @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
