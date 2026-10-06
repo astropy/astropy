@@ -1,0 +1,1 @@
+Fix a bug where exporting a column containing NaNs to MRT would raise

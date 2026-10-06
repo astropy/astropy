@@ -2928,7 +2928,6 @@ def test_table_attribute_ecsv():
     assert t2.baz == "baz"
 
 
-@pytest.mark.xfail(strict=True)
 @pytest.mark.parametrize(
     "data",
     [
