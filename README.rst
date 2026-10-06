@@ -31,6 +31,8 @@ For more detailed instructions, see the `install guide
 Contributing
 ============
 
+TEST
+
 |User Stats|
 
 The Astropy Project is made both by and for its users, so we welcome and
