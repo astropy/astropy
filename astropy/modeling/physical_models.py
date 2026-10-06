@@ -281,8 +281,11 @@ class CutoffBlackBody(BlackBody):
             1, & \lambda \geq \lambda_{\mathrm{cut}}.
             \end{cases}
 
-    This parameterization has been used to approximate the ultraviolet
-    suppression of hydrogen-poor superluminous supernova spectra [1]_.
+    This parameterization provides a phenomenological approximation to
+    ultraviolet flux suppression in supernova spectra, such as that produced
+    by line blanketing. The power-law cutoff form was introduced for
+    hydrogen-poor superluminous supernovae [1]_ and has since been applied to
+    "regular" supernovae as well [2]_.
 
     The inherited `lambda_max` and `nu_max` properties refer to the
     underlying unmodified blackbody and do not necessarily give the peak of
@@ -290,8 +293,10 @@ class CutoffBlackBody(BlackBody):
 
     References
     ----------
-    .. [1] Yan, L. et al. 2018, ApJ, 858, 91
-       https://doi.org/10.3847/1538-4357/aabad5
+    .. [1] Yan et al. 2018, ApJ, 858, 91
+       https://ui.adsabs.harvard.edu/abs/2018ApJ...858...91Y
+    .. [2] Ponte Pérez et al. 2026, MNRAS, 546, stag009
+       https://ui.adsabs.harvard.edu/abs/2026MNRAS.546g...9P
     """
 
     cutoff = Parameter(

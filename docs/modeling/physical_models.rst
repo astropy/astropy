@@ -102,9 +102,11 @@ In addition to the ``temperature`` and ``scale`` parameters inherited from
 ``cutoff`` wavelength and the non-negative power-law index ``beta``.  Setting
 ``beta=0`` recovers an ordinary blackbody.
 
-This form has been used to describe the ultraviolet continua of hydrogen-poor
-superluminous supernovae (Yan et al. 2018, ApJ, 858, 91,
-`doi:10.3847/1538-4357/aabad5 <https://doi.org/10.3847/1538-4357/aabad5>`_).
+This power-law cutoff form was introduced to describe ultraviolet suppression in
+hydrogen-poor superluminous supernovae (`Yan et al. 2018
+<https://ui.adsabs.harvard.edu/abs/2018ApJ...858...91Y>`_) and has since been
+applied to other supernova classes, including Type IIn supernovae (`Ponte
+Pérez et al. 2026 <https://ui.adsabs.harvard.edu/abs/2026MNRAS.546g...9P>`_).
 
 Drude1D
 =======
