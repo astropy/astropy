@@ -15,7 +15,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
 
-__all__ = ["NFW", "BlackBody", "Drude1D", "Plummer1D"]
+__all__ = ["NFW", "BlackBody", "CutoffBlackBody", "Drude1D", "Plummer1D"]
 
 
 class BlackBody(Fittable1DModel):
@@ -246,6 +246,112 @@ class BlackBody(Fittable1DModel):
     def nu_max(self):
         """Peak frequency when the curve is expressed as power density."""
         return 2.8214391 * const.k_B * self.temperature / const.h
+
+
+class CutoffBlackBody(BlackBody):
+    r"""
+    Blackbody model with power-law suppression below a cutoff wavelength.
+
+    Parameters
+    ----------
+    temperature : `~astropy.units.Quantity` ['temperature']
+        Blackbody temperature.
+
+    scale : float or `~astropy.units.Quantity` ['dimensionless']
+        Scale factor. The behavior and allowed units are the same as for
+        `BlackBody`.
+
+    cutoff : `~astropy.units.Quantity` ['length']
+        Wavelength below which the power-law suppression is applied.
+
+    beta : float
+        Power-law index of the suppression below ``cutoff``. Must be
+        non-negative. A value of zero is equivalent to `BlackBody`.
+
+    Notes
+    -----
+    Model formula:
+
+        .. math::
+
+            B_{\lambda}^{\mathrm{cut}}(T) = A B_{\lambda}(T)
+            \begin{cases}
+            (\lambda / \lambda_{\mathrm{cut}})^{\beta},
+                & \lambda < \lambda_{\mathrm{cut}} \\
+            1, & \lambda \geq \lambda_{\mathrm{cut}}.
+            \end{cases}
+
+    This parameterization has been used to approximate the ultraviolet
+    suppression of hydrogen-poor superluminous supernova spectra [1]_.
+
+    The inherited `lambda_max` and `nu_max` properties refer to the
+    underlying unmodified blackbody and do not necessarily give the peak of
+    the cutoff spectrum.
+
+    References
+    ----------
+    .. [1] Yan, L. et al. 2018, ApJ, 858, 91
+       https://doi.org/10.3847/1538-4357/aabad5
+    """
+
+    cutoff = Parameter(
+        default=3000.0, min=0, unit=u.AA, description="Cutoff wavelength"
+    )
+    beta = Parameter(
+        default=1.0,
+        min=0,
+        description="Power-law index below the cutoff wavelength",
+    )
+
+    def evaluate(self, x, temperature, scale, cutoff, beta):
+        """Evaluate the model."""
+        y = super().evaluate(x, temperature, scale)
+
+        if not isinstance(x, u.Quantity):
+            in_x = u.Quantity(x, self.input_units["x"])
+        else:
+            in_x = x
+
+        if not isinstance(cutoff, u.Quantity):
+            in_cutoff = u.Quantity(cutoff, u.AA)
+        else:
+            in_cutoff = cutoff
+
+        with u.add_enabled_equivalencies(u.spectral()):
+            wavelength = u.Quantity(in_x, u.AA, dtype=np.float64)
+            cutoff_wavelength = u.Quantity(in_cutoff, u.AA)
+
+        if np.any(cutoff_wavelength <= 0 * u.AA):
+            raise ValueError(f"Cutoff wavelength should be positive: {cutoff_wavelength}")
+
+        if isinstance(beta, u.Quantity):
+            beta = beta.to_value(u.dimensionless_unscaled)
+
+        pl_values = (wavelength/cutoff_wavelength).to_value(u.dimensionless_unscaled)**beta
+        suppression = np.where(wavelength < cutoff_wavelength, pl_values, 1.0)
+
+        return y*suppression
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        parameter_units = super()._parameter_units_for_data_units(
+            inputs_unit, outputs_unit
+        )
+        parameter_units["cutoff"] = u.AA
+        return parameter_units
+
+    @property
+    def bolometric_flux(self):
+        """Bolometric flux of the cutoff blackbody."""
+        cutoff = self.cutoff.quantity
+        if np.any(cutoff <= 0 * u.AA):
+            raise ValueError(f"Cutoff wavelength should be positive: {cutoff}")
+
+        temperature = self.temperature.quantity
+        zero_temperature = temperature.to_value(u.K) == 0
+
+        ...
+
+        return NotImplemented
 
 
 class Drude1D(Fittable1DModel):
