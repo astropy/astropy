@@ -51,9 +51,9 @@ def parse(
         Path or file-like object containing a VOTABLE_ xml file.
         If file, must be readable.
 
-    columns : sequence of str, optional
-        List of field names to include in the output.  The default is
-        to include all fields.
+    columns : sequence of str or int, optional
+        List of field names, or column indices, to include
+        in the output.  The default is to include all fields.
 
     invalid : str, optional
         One of the following values:

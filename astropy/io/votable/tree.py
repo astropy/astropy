@@ -2898,7 +2898,7 @@ class TableElement(
                 columns = [columns]
             columns = np.asarray(columns)
             if issubclass(columns.dtype.type, np.integer):
-                if np.any(columns < 0) or np.any(columns > len(fields)):
+                if np.any(columns < 0) or np.any(columns >= len(fields)):
                     raise ValueError("Some specified column numbers out of range")
                 colnumbers = columns
             elif issubclass(columns.dtype.type, np.character):
