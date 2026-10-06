@@ -845,6 +845,19 @@ def test_select_columns_binary(format_):
     assert table.colnames == ["string_test", "string_test_2", "unicode_test"]
 
 
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_select_columns_index_out_of_range(tabledata_format):
+    from astropy.table import Table
+
+    bio = io.BytesIO()
+    Table({"a": [1.0, 2.0], "b": [3.0, 4.0]}).write(
+        bio, format="votable", tabledata_format=tabledata_format
+    )
+    bio.seek(0)
+    with pytest.raises(ValueError, match="out of range"):
+        parse(bio, columns=[2])
+
+
 def table_from_scratch():
     from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
