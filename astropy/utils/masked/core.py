@@ -1183,15 +1183,16 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         axis : int or None, optional
             Axis along which to sort.  The default is -1 (the last axis).
             If None, the flattened array is used.
-        kind : str or None, ignored.
-            The kind of sort.  Present only to allow subclasses to work.
-        order : str or list of str.
+        kind : str or None, optional
+            The kind of sort.  Ignored; present only to allow subclasses to
+            work.
+        order : str or list of str, optional
             For an array with fields defined, the fields to compare first,
             second, etc.  A single field can be specified as a string, and not
             all fields need be specified, but unspecified fields will still be
             used, in dtype order, to break ties.
-        stable: bool, keyword-only, ignored
-            Sort stability. Present only to allow subclasses to work.
+        stable : bool or None, optional, keyword-only
+            Sort stability. Ignored; present only to allow subclasses to work.
 
         Returns
         -------

@@ -787,9 +787,14 @@ class ModelBoundingBox(_BoundingDomain):
             The model for which this will be a bounding_box
         bounding_box : dict, tuple
             A possible representation of the bounding box
+        ignored : list, optional
+            A list of the inputs (by name or index) which will be ignored by
+            the bounding box.
         order : optional, str
             The order that a tuple representation will be assumed to be
                 Default: 'C'
+        **kwargs
+            Ignored.
         """
         if isinstance(bounding_box, ModelBoundingBox):
             order = bounding_box.order
@@ -1466,9 +1471,14 @@ class CompoundBoundingBox(_BoundingDomain):
             Description of the selector arguments
         create_selector : optional, callable
             Method for generating new selectors
+        ignored : list, optional
+            A list of the inputs (by name or index) which will be ignored by
+            the bounding box.
         order : optional, str
             The order that a tuple representation will be assumed to be
                 Default: 'C'
+        **kwarg
+            Ignored.
         """
         if isinstance(bounding_box, CompoundBoundingBox):
             if selector_args is None:

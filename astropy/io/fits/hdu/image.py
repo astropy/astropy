@@ -8,13 +8,13 @@ import numpy as np
 
 from astropy.io.fits.header import Header
 from astropy.io.fits.util import (
-    _is_dask_array,
     _is_int,
     _is_pseudo_integer,
     _pseudo_zero,
 )
 from astropy.io.fits.verify import VerifyWarning
 from astropy.utils import lazyproperty
+from astropy.utils.compat.dask import _is_dask_array
 
 from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
 

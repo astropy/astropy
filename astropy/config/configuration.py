@@ -28,9 +28,10 @@ from textwrap import TextWrapper
 from typing import Final
 from warnings import warn
 
+import configobj
 import numpy as np
+from configobj import validate
 
-from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
@@ -560,7 +561,11 @@ def get_config_filename(packageormod=None, rootname=None):
     return cfg.filename
 
 
-def get_config(packageormod=None, reload=False, rootname=None):
+def get_config(
+    packageormod: str | None = None,
+    reload: bool = False,
+    rootname: str | None = None,
+) -> configobj.ConfigObj | configobj.Section:
     """Gets the configuration object or section associated with a particular
     package or module.
 
@@ -666,6 +671,9 @@ def generate_config(pkgname="astropy", filename=None, verbose=False):
         The package for which to retrieve the configuration object.
     filename : str or file-like or None
         If None, the default configuration path is taken from `get_config`.
+    verbose : bool, optional
+        If `True`, do not silence the output or the deprecation warnings
+        raised while importing the subpackages. Default is `False`.
 
     """
     if verbose:

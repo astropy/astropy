@@ -1513,7 +1513,7 @@ class LevMarLSQFitter(_NonLinearLSQFitter):
             Dfun=dfunc,
             col_deriv=model.col_fit_deriv,
             maxfev=maxiter,
-            epsfcn=epsilon,
+            epsfcn=epsilon**2,
             xtol=acc,
             full_output=True,
         )
@@ -1612,7 +1612,7 @@ class _NLLSQFitter(_NonLinearLSQFitter):
             kwargs=fkwarg,
             jac=dfunc,
             max_nfev=maxiter,
-            diff_step=np.sqrt(epsilon),
+            diff_step=epsilon,
             xtol=acc,
             method=self._method,
             bounds=bounds,

@@ -19,7 +19,9 @@
 static PyObject* UnitListProxyType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   /*@null@*/ /*@shared@*/ PyObject* pyobject;
   Py_ssize_t size;
   char (*array)[ARRAYSIZE];

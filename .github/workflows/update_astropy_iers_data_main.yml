@@ -31,7 +31,7 @@ jobs:
           - branch: "v7.2.x"
     steps:
       - name: Trigger workflow dispatch for auto-update
-        uses: benc-uk/workflow-dispatch@31e2b3319479a63f0ab15bf800eff9e913504e26 # v1.3.2
+        uses: benc-uk/workflow-dispatch@d004979be141727c7a17c28f603e2facc40d0855 # v1.3.3
         with:
           workflow: "Auto-update astropy-iers-data minimum version"
           ref: "${{ matrix.branch }}"

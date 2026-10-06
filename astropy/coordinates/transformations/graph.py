@@ -608,9 +608,9 @@ class TransformGraph:
         priority : float or int
             The priority if this transform when finding the shortest
             coordinate transform path - large numbers are lower priorities.
-
-        Additional keyword arguments are passed into the ``transcls``
-        constructor.
+        **kwargs
+            Additional keyword arguments are passed into the ``transcls``
+            constructor.
 
         Returns
         -------

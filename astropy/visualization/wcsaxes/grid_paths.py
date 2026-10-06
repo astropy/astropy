@@ -23,7 +23,7 @@ def get_lon_lat_path(lon_lat, pixel, lon_lat_check):
         The longitude and latitude values along the curve, given as a (n,2)
         array.
     pixel : ndarray
-        The pixel coordinates corresponding to ``lon_lat``
+        The pixel coordinates corresponding to ``lon_lat``.
     lon_lat_check : ndarray
         The world coordinates derived from converting from ``pixel``, which is
         used to ensure round-tripping.
@@ -98,7 +98,7 @@ def get_gridline_path(world, pixel):
         The longitude and latitude values along the curve, given as a (n,2)
         array.
     pixel : ndarray
-        The pixel coordinates corresponding to ``lon_lat``
+        The pixel coordinates corresponding to ``lon_lat``.
     """
     # Mask values with invalid pixel positions
     mask = np.isnan(pixel[:, 0]) | np.isnan(pixel[:, 1])

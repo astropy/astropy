@@ -61,6 +61,7 @@ import warnings
 
 import numpy as np
 
+from astropy.utils.compat.dask import _is_dask_array
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .diff import FITSDiff, HDUDiff
@@ -71,7 +72,6 @@ from .hdu.image import ImageHDU, PrimaryHDU
 from .hdu.table import BinTableHDU
 from .header import Header
 from .util import (
-    _is_dask_array,
     _is_int,
     fileobj_closed,
     fileobj_mode,

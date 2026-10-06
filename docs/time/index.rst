@@ -871,6 +871,13 @@ Second with the `astropy.utils.masked.Masked` class::
   >>> print(t)
   ['2001:020'        ——— '2001:060']
 
+Initializing from a masked array always gives a masked |Time| object, even if
+none of the input elements are actually masked. Being masked is a property of
+the input type, not of its values, so it is preserved on initialization::
+
+  >>> Time(np.ma.array(['2001:020', '2001:060'])).masked
+  True
+
 You can also use the special `numpy.ma.masked` to set a value as missing in an existing
 |Time| object::
 

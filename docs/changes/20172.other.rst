@@ -1,0 +1,3 @@
+Stopped bundling ``configobj`` in ``astropy.extern`` and switched to depending on
+the third party ``configobj>=5.0.9`` package instead. Note that importing from
+``astropy.extern.configobj`` is deprecated and will be removed in a future version.

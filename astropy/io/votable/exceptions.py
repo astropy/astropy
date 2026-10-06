@@ -1170,6 +1170,31 @@ class W57(VOTableSpecWarning):
     message_template = "refposition only allowed on VOTABLE v1.5 and greater"
 
 
+class W58(VOTableSpecWarning):
+    """
+    The value of an attribute declared as ``xs:token`` in the VOTable
+    schema, such as ``name``, may not be read back as it was written.
+
+    VOTable states that the blanks and spaces in such an attribute are not
+    meaningful: no leading or trailing space, and no two spaces in a row.
+    The underlying XML Schema type also excludes tabs, line feeds, and
+    carriage returns.  A value carrying any of this is not rejected and the
+    document still validates, but readers differ over whether they remove
+    it, so the value is not portable.
+
+    **References**: `1.5
+    <https://www.ivoa.net/documents/VOTable/20250116/REC-VOTable-1.5.html#tth_sEc3.2>`__,
+    `XML Schema Part 2 <https://www.w3.org/TR/xmlschema-2/#token>`__,
+    `XML 1.0 section 3.3.3 <https://www.w3.org/TR/xml/#AVNormalize>`__
+    """
+
+    message_template = (
+        "{} attribute '{}' may not round trip: whitespace is not "
+        "significant in an xs:token attribute"
+    )
+    default_args = ("name", "x")
+
+
 class E01(VOWarning, ValueError):
     """Invalid size specifier for a field.
 

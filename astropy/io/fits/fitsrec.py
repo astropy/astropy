@@ -63,6 +63,13 @@ class FITS_record:
         end : int, optional
             The ending column in the row associated with this object.
             Used for subsetting the columns of the `FITS_rec` object.
+        step : int, optional
+            The step between columns in the row associated with this object.
+        base : `FITS_record`, optional
+            The record this one is a view of, if it was created by slicing
+            another `FITS_record`.
+        **kwargs
+            Ignored.
         """
         self.array = input
         self.row = row
@@ -328,6 +335,18 @@ class FITS_rec(np.recarray):
             If `True`, will fill all cells with zeros or blanks.  If
             `False`, copy the data from input, undefined cells will still
             be filled with zeros/blanks.
+
+        character_as_bytes : bool
+            Whether to return bytes for string columns. By default this is
+            `False` and (unicode) strings are returned, but for large tables
+            this may use up a lot of memory.
+
+        logical_as_bytes : bool
+            Whether to return raw bytes for logical columns. By default this is
+            `False` and boolean values are returned. When `True`, columns with
+            format ``L`` are returned as single-byte string arrays (dtype
+            ``|S1``) whose elements are ``b'T'`` for True, ``b'F'`` for False,
+            and ``b'\x00'`` for undefined (NULL).
         """
         if not isinstance(columns, ColDefs):
             columns = ColDefs(columns)

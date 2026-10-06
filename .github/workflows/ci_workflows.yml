@@ -70,7 +70,7 @@ jobs:
 
   tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@3a3dcf3ba6828dac29eba10334948ef38364ed14  # v3.1.0
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
@@ -137,7 +137,7 @@ jobs:
 
   allowed_failures:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@3a3dcf3ba6828dac29eba10334948ef38364ed14  # v3.1.0
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -156,7 +156,7 @@ jobs:
 
   stub_tests:
     needs: [initial_checks]
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@3a3dcf3ba6828dac29eba10334948ef38364ed14  # v3.1.0
     with:
       setenv: |
         ARCH_ON_CI: "normal"
@@ -168,6 +168,20 @@ jobs:
           cache-path: .tox
           cache-key: stub_tests-${{ github.ref_name }}
 
+  mypy:
+    needs: [initial_checks]
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@3a3dcf3ba6828dac29eba10334948ef38364ed14  # v3.1.0
+    with:
+      setenv: |
+        ARCH_ON_CI: "normal"
+        IS_CRON: "false"
+      submodules: false
+      envs: |
+        - name: Type checking select modules
+          linux: mypy
+          cache-path: .tox
+          cache-key: mypy-${{ github.ref_name }}
+
   test_wheel_building:
     needs:
       - initial_checks
@@ -175,7 +189,7 @@ jobs:
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@22ddf09dfabb443adddfb9f861b7d41a787d6b1a  # v3.0.3
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@3a3dcf3ba6828dac29eba10334948ef38364ed14  # v3.1.0
     with:
       upload_to_pypi: false
       upload_to_anaconda: false

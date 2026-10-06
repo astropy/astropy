@@ -1,0 +1,1 @@
+New W58 warning for invalid token that is now issued by ``check_token()``.

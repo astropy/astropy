@@ -41,8 +41,11 @@ keywords = [
     "fitting",
     "ascii",
 ]
+# When adding a dependency here, make sure to preserve alphabetical sorting
+# so that cycling a dependency with uv add/uv remove doesn't change their order
 dependencies = [
-    "astropy-iers-data>=0.2026.7.27.0.56.29",
+    "astropy-iers-data>=0.2026.9.21.0.56.25",
+    "configobj>=5.0.9",
     "numpy>=2.0",
     "packaging>=25.0",
     "pyerfa>=2.0.1.3",  # for >=2.0.1.7, adjust structured_units.rst and doctest-requires
@@ -176,7 +179,9 @@ requires = ["setuptools>=77.0.0",
             "cython>=3.0.0, <4",
             "numpy>=2.0.0, <3",
             "extension-helpers>=1.4,<2",
-            "pyerfa>=2.0.1.3"]
+            "pyerfa>=2.0.1.3",
+            "configobj>=5.0.9",
+]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
@@ -319,10 +324,11 @@ markers = [
 [tool.cibuildwheel]
 # We disable testing for the following wheels:
 # - MuslLinux (tests hang non-deterministically)
-test-skip = "*-musllinux_x86_64"
+test-skip = ["*-musllinux_x86_64"]
 enable = ["cpython-prerelease"]
 skip = [
     "cp*t-*",  # https://github.com/astropy/astropy/issues/16916
+    "cp315-pyodide_wasm32",   # numpy has no pyodide wheels for 3.15 yet
 ]
 environment-pass = ["EXTENSION_HELPERS_PY_LIMITED_API"]
 
@@ -449,6 +455,12 @@ lint.ignore = [  # NOTE: non-permanent exclusions should be added to `.ruff.toml
     # flake8-builtins (A) : shadowing a Python built-in.
     # New ones should be avoided and is up to maintainers to enforce.
     "A00",
+
+    # flake8-annotations (ANN)
+    "ANN001",  # missing-type-function-argument
+    "ANN002",  # missing-type-args
+    "ANN201",  # missing-return-type-undocumented-public-function
+    "ANN205",  # missing-return-type-static-method
 
     # flake8-bugbear (B)
     "B008",  # FunctionCallArgumentDefault
@@ -699,14 +711,8 @@ ignore = [
         name = "astropy.wcs"
         path = "wcs"
 
-[tool.gilesbot]
-    [tool.gilesbot.circleci_artifacts]
-        enabled = true
-
-    [tool.gilesbot.pull_requests]
-        enabled = true
-
-    [tool.gilesbot.towncrier_changelog]
+[tool.changelog-bot]
+    [tool.changelog-bot.towncrier_changelog]
         enabled = true
         verify_pr_number = true
         changelog_skip_label = "no-changelog-entry-needed"
@@ -714,6 +720,13 @@ ignore = [
         changelog_missing_long = "There isn't a changelog file in this pull request. Please add a changelog file to the `changelog/` directory following the instructions in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)."
         type_incorrect_long = "The changelog file you added is not one of the allowed types. Please use one of the types described in the changelog [README](https://github.com/astropy/astropy/blob/main/docs/changes/README.rst)"
         number_incorrect_long = "The number in the changelog file you added does not match the number of this pull request. Please rename the file."
+
+[tool.gilesbot]
+    [tool.gilesbot.circleci_artifacts]
+        enabled = true
+
+    [tool.gilesbot.pull_requests]
+        enabled = true
 
     [tool.gilesbot.circleci_artifacts.py312-test-image-mpl380]
         url = ".tmp/py312-test-image-mpl380/results/fig_comparison.html"
@@ -775,7 +788,6 @@ checks = [
     "GL01", # Docstring text (summary) should start in the line immediately after the opening quotes
     "GL02", # Closing quotes should be placed in the line after the last text in the docstring
     "GL08", # The object does not have a docstring
-    "PR09", # Parameter description should finish with a period
     "RT01", # No Returns section found
     "RT02", # First line of return should contain only the type
     "RT05", # Return value description should finish with a period
@@ -789,6 +801,14 @@ checks = [
 exclude = [  # Don't report on objects that match any of these regex
     '\.__str__$',
     '\.__repr__$',
+    # tick_params mirrors the matplotlib API and documents the keyword
+    # arguments it accepts individually rather than as **kwargs
+    '\.tick_params$',
+    # WCSAxes.__init__ has a deliberately empty docstring that prevents Sphinx
+    # from inheriting the matplotlib Axes.__init__ docstring, which contains
+    # references that do not resolve in the astropy documentation; the
+    # parameters are documented in the class docstring
+    '\.WCSAxes\.__init__$',
 ]
 exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/setup_package.py',
@@ -818,7 +838,7 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/uncertainty/.*',
     '^astropy/units/.*',
     '^astropy/utils/.*',
-    '^astropy/visualization/.*',
+    '^astropy/visualization/(?!wcsaxes/).*',  # i.e., validate wcsaxes
     '^astropy/wcs/.*',
     '^docs/.*',
     '^scripts/.*',
@@ -1021,3 +1041,20 @@ url = "https://pypi.anaconda.org/liberfa/simple"
 exclude-newer = false
 # cache metadata for up to 10min (600s), and packages for 12h (43200s)
 cache-control = { api = "max-age=600", files = "max-age=43200, immutable" }
+
+[tool.mypy]
+follow_imports = "silent"
+packages = [
+    "astropy.coordinates.sites",
+    "astropy.cosmology",  # See `exclude` for skipped modules
+]
+exclude = [
+    # Private `astropy.cosmology`, not type checked yet.
+    "/astropy/cosmology/_src/",
+    # Tests are out of scope for now. `test_scalar_inv_efuncs.py` additionally
+    # imports a Cython extension module, which has no stubs for Mypy to read.
+    "/astropy/cosmology/tests/",
+    # A directory of `.ecsv` files with no `__init__.py`, which Mypy would
+    # otherwise pick up as an implicit namespace package.
+    "/astropy/cosmology/data/",
+]

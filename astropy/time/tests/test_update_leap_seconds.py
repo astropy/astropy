@@ -1,4 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -82,6 +84,9 @@ class TestUpdateLeapSeconds:
         with pytest.warns(iers.IERSStaleWarning):
             update_leap_seconds(["erfa", expired_file])
 
+    @pytest.mark.skipif(
+        sys.platform == "emscripten", reason="threads not supported on emscripten"
+    )
     def test_init_thread_safety(self, monkeypatch):
         # Set up expired ERFA leap seconds.
         expired = self.erfa_ls[self.erfa_ls["year"] < 2017]

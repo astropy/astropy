@@ -622,7 +622,7 @@ def convolve_fft(
     complex_dtype : complex type, optional
         Which complex dtype to use. `numpy` has a range of options, from
         64 to 256.
-    dealias: bool, optional
+    dealias : bool, optional
         Default off. Zero-pad image to enable explicit dealiasing of
         convolution. With ``boundary='wrap'``, this will be disabled.
         Note that for an input of nd dimensions this will increase the
@@ -970,7 +970,7 @@ def convolve_fft(
             else:
                 # Set anything with no weight to zero (taking into account
                 # slight offsets due to floating-point errors).
-                rifft[bigimwt < 10 * np.finfo(bigimwt.dtype).eps] = 0.0
+                rifft[np.abs(bigimwt) < 10 * np.finfo(bigimwt.dtype).eps] = 0.0
     else:
         rifft = ifftn(fftmult)
 

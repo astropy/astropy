@@ -19,6 +19,11 @@ def _find_start_of_last_number(label):
     """
     Given a label, find the index of the start of the last numerical value
     in the label.
+
+    Parameters
+    ----------
+    label : str
+        The label to search.
     """
     numerical_chars = "0123456789.+"
     if rcParams["axes.unicode_minus"] and not rcParams["text.usetex"]:
@@ -218,6 +223,11 @@ class TickLabels(Text):
         """
         Compute and set the x, y positions and the horizontal/vertical alignment of
         each label.
+
+        Parameters
+        ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to use to compute text sizes.
         """
         if not self._stale:
             return
@@ -302,6 +312,15 @@ class TickLabels(Text):
         """
         Get the bounding box of an individual label. n.b. _set_xy_alignment()
         must be called before this method.
+
+        Parameters
+        ----------
+        axis : str
+            The axis the label is on.
+        i : int
+            The index of the label along the axis.
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to use to compute text sizes.
         """
         if self.text[axis][i] == "":
             return

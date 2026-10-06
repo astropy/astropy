@@ -5,13 +5,13 @@ import numpy as np
 
 import astropy.units as u
 from astropy.constants import c
-from astropy.coordinates import (
-    ICRS,
+from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
+from astropy.coordinates.builtin_frames import ICRS
+from astropy.coordinates.representation import (
     CartesianDifferential,
     CartesianRepresentation,
-    SkyCoord,
 )
-from astropy.coordinates.baseframe import BaseCoordinateFrame, frame_transform_graph
+from astropy.coordinates.sky_coordinate import SkyCoord
 from astropy.coordinates.spectral_quantity import SpectralQuantity
 from astropy.utils.exceptions import AstropyUserWarning
 
