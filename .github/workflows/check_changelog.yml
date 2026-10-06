@@ -23,4 +23,4 @@ jobs:
     - uses: scientific-python/action-towncrier-changelog@f9c7df9a9f8b55cb0c12d94d14b281e9bcd101c0  # v2.0.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BOT_USERNAME: gilesbot
+        BOT_USERNAME: changelog-bot
