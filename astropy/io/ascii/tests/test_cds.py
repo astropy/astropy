@@ -153,6 +153,55 @@ def test_write_null_data_values():
     assert lines == exp_output
 
 
+@pytest.mark.xfail(strict=True)
+@pytest.mark.parametrize(
+    "val",
+    [float("nan"), np.nan, float("+inf"), np.inf, float("-inf"), -np.inf],
+)
+def test_write_non_finite_values_to_mrt(val):
+    # see https://github.com/astropy/astropy/issues/17840
+    out = StringIO()
+    data = {"A": [0, val], "B": [val, 1]}
+    t = Table(data)
+    expected = (
+        r"^The following columns contain NaNs or infs, "
+        r"which are not allowed in MRT\: {columns}\n"
+        r"Mask these values to write them as null \(blank\) entries\.$"
+    )
+    with pytest.raises(ValueError, match=expected.format(columns="A, B")):
+        t.write(out, format="ascii.mrt")
+
+    t_ma_a = Table(
+        data={
+            "A": MaskedColumn(data["A"], mask=[False, True]),
+            "B": data["B"],
+        }
+    )
+    with pytest.raises(ValueError, match=expected.format(columns="B")):
+        t_ma_a.write(out, format="ascii.mrt")
+
+    t_ma_b = Table(
+        data={
+            "A": data["A"],
+            "B": MaskedColumn(data["B"], mask=[True, False]),
+        }
+    )
+    with pytest.raises(ValueError, match=expected.format(columns="A")):
+        t_ma_b.write(out, format="ascii.mrt")
+
+    t_ma = Table(
+        data={
+            "A": MaskedColumn(data["A"], mask=[False, True]),
+            "B": MaskedColumn(data["B"], mask=[True, False]),
+        }
+    )
+    t_ma.write(out, format="ascii.mrt")
+    assert out.getvalue().splitlines()[-2:] == [
+        "0.0    ",
+        "    1.0",
+    ]
+
+
 def test_write_byte_by_byte_for_masked_column():
     """
     This test differs from the ``test_write_null_data_values``
