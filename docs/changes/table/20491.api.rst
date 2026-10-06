@@ -1,0 +1,14 @@
+An operation on a ``Column`` that has a ``unit`` set now issues a new
+``ColumnUnitWarning`` if the unit the result is labeled with might not be the right one.
+A ``Column`` unit is only a descriptive label, so ``col_m * col_s`` comes back labeled
+``m`` rather than ``m s``, ``col_m + col_km`` adds the values without converting them, and
+``np.sin(col_deg)`` treats the values as radians. Each of these now warns and suggests
+using ``QTable`` or ``Column.quantity`` instead.
+
+Operations where the unit provably carries through unchanged are unaffected and never
+warn, so common idioms such as ``col * 5``, ``col + 2``, ``col / 5``, ``-col``,
+``col > 0``, ``col + col`` and ``col.mean()`` remain silent.
+
+Set the new ``table.conf.column_unit_policy`` configuration item to ``'silent'`` to
+suppress the warnings, or to ``'error'`` to raise ``ColumnUnitWarning`` instead, which is
+useful for finding these operations in an existing code base.

@@ -6,6 +6,7 @@ import warnings
 from inspect import currentframe, getframeinfo
 
 import numpy as np
+import numpy._core.umath as np_umath
 import pytest
 from numpy.testing import assert_array_equal
 
@@ -1266,3 +1267,262 @@ def test_setting_column_name_to_with_invalid_type(Column):
         TypeError, match="Expected a str value, got 2.3 with type float"
     ):
         col.name = 2.3
+
+
+def _all_numpy_ufuncs():
+    """Every numpy ufunc, including the ones numpy only exposes privately.
+
+    ``clip`` lives in ``numpy._core.umath`` rather than the ``numpy`` namespace,
+    and it is one of the ufuncs ``column.py`` has to know about.
+    """
+    namespaces = (vars(np), vars(np_umath))
+    return sorted(
+        {
+            value
+            for namespace in namespaces
+            for value in namespace.values()
+            if isinstance(value, np.ufunc)
+        },
+        key=lambda ufunc: ufunc.__name__,
+    )
+
+
+class TestColumnUnitWarning:
+    """Operations on a Column with a unit that may give the wrong unit or values.
+
+    ``Column.unit`` is only a label, so ufuncs ignore it and the result inherits
+    the unit of its input. See https://github.com/astropy/astropy/issues/20474.
+    """
+
+    KEEPS_UNIT = "the result keeps the unit"
+    NOT_CONVERTED = "the values were not converted to a common unit"
+
+    # (operation, fragment of the expected message).
+    WARN_CASES = {
+        # More than one operand has a unit, and the ufunc combines units.
+        "multiply": (lambda m, s, km, deg: m * s, KEEPS_UNIT),
+        "multiply_same_unit": (lambda m, s, km, deg: m * m, KEEPS_UNIT),
+        "divide": (lambda m, s, km, deg: m / s, KEEPS_UNIT),
+        "divide_same_unit": (lambda m, s, km, deg: m / m, KEEPS_UNIT),
+        # The unit is on the second operand, so the result is 1/m, not m.
+        "reverse_divide": (lambda m, s, km, deg: 5 / m, KEEPS_UNIT),
+        # Ufuncs that change the unit no matter what the operands are.
+        "square": (lambda m, s, km, deg: m**2, KEEPS_UNIT),
+        "sqrt": (lambda m, s, km, deg: np.sqrt(m), KEEPS_UNIT),
+        "sin_of_degrees": (lambda m, s, km, deg: np.sin(deg), KEEPS_UNIT),
+        "sin_of_length": (lambda m, s, km, deg: np.sin(m), KEEPS_UNIT),
+        "exp": (lambda m, s, km, deg: np.exp(m), KEEPS_UNIT),
+        "log": (lambda m, s, km, deg: np.log(m), KEEPS_UNIT),
+        # Unit-preserving ufuncs, but the operand units disagree so the values
+        # needed converting and were not.
+        "add_convertible": (lambda m, s, km, deg: m + km, NOT_CONVERTED),
+        "add_incompatible": (lambda m, s, km, deg: m + s, NOT_CONVERTED),
+        "subtract_convertible": (lambda m, s, km, deg: m - km, NOT_CONVERTED),
+        "equal_convertible": (lambda m, s, km, deg: m == km, NOT_CONVERTED),
+        "equal_incompatible": (lambda m, s, km, deg: m == s, NOT_CONVERTED),
+        "less_convertible": (lambda m, s, km, deg: m < km, NOT_CONVERTED),
+        "minimum_convertible": (
+            lambda m, s, km, deg: np.minimum(m, km),
+            NOT_CONVERTED,
+        ),
+    }
+
+    # Operations whose answer does not depend on the unit, so they must stay
+    # quiet. In particular ``col * 5`` is a long-standing idiom for code that
+    # treats the unit purely as a label.
+    SILENT_CASES = {
+        "multiply_scalar": lambda m, s, km, deg: m * 5,
+        "reverse_multiply_scalar": lambda m, s, km, deg: 5 * m,
+        "divide_scalar": lambda m, s, km, deg: m / 5,
+        # A unit-less operand is taken to be unit-agnostic, so this stays quiet
+        # even though adding a dimensionless Quantity to a length would raise.
+        "add_scalar": lambda m, s, km, deg: m + 2,
+        "equal_scalar": lambda m, s, km, deg: m == 2,
+        "greater_scalar": lambda m, s, km, deg: m > 0,
+        "negative": lambda m, s, km, deg: -m,
+        "absolute": lambda m, s, km, deg: abs(m),
+        "floor": lambda m, s, km, deg: np.floor(m),
+        "clip": lambda m, s, km, deg: np.clip(m, 1, 2),
+        # Unit-preserving ufuncs where the operand units agree.
+        "add_same_unit": lambda m, s, km, deg: m + m,
+        "subtract_same_unit": lambda m, s, km, deg: m - m,
+        "equal_same_unit": lambda m, s, km, deg: m == m,
+        "less_same_unit": lambda m, s, km, deg: m < m,
+        "minimum_same_unit": lambda m, s, km, deg: np.minimum(m, m),
+        "isnan": lambda m, s, km, deg: np.isnan(m),
+        "add_unitless_column": lambda m, s, km, deg: m + table.Column([1.0, 2.0, 3.0]),
+        # Reductions arrive at __array_wrap__ with no ufunc context at all.
+        "sum": lambda m, s, km, deg: m.sum(),
+        "mean": lambda m, s, km, deg: m.mean(),
+        "cumsum": lambda m, s, km, deg: m.cumsum(),
+        "nanmean": lambda m, s, km, deg: np.nanmean(m),
+        # Quantity.__array_ufunc__ handles these and does honor the units, so
+        # the answer is already right.
+        "times_unit": lambda m, s, km, deg: m * u.s,
+        "times_quantity": lambda m, s, km, deg: m * ([1.0, 2.0, 3.0] * u.s),
+        "iadd_quantity": lambda m, s, km, deg: operator.iadd(
+            m.copy(), [1.0, 1.0, 1.0] * u.km
+        ),
+        # np.allclose() on a unit-bearing column is used widely inside astropy.
+        "allclose": lambda m, s, km, deg: np.allclose(m.value, m),
+    }
+
+    @staticmethod
+    def _columns(Column):
+        return (
+            Column([1.0, 2.0, 3.0], unit="m", name="dist"),
+            Column([1.0, 2.0, 3.0], unit="s", name="time"),
+            Column([1.0, 2.0, 3.0], unit="km", name="dist2"),
+            Column([1.0, 2.0, 3.0], unit="deg", name="angle"),
+        )
+
+    @pytest.mark.parametrize("case", list(WARN_CASES))
+    def test_warns(self, Column, case):
+        operation, match = self.WARN_CASES[case]
+        with pytest.warns(table.ColumnUnitWarning, match=match):
+            operation(*self._columns(Column))
+
+    @pytest.mark.parametrize("case", list(SILENT_CASES))
+    def test_silent(self, Column, case):
+        # filterwarnings = error in pyproject.toml already turns a stray warning
+        # into a failure, but be explicit so this test stands on its own.
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", table.ColumnUnitWarning)
+            self.SILENT_CASES[case](*self._columns(Column))
+
+    def test_no_unit_is_never_checked(self, Column):
+        col = Column([1.0, 2.0, 3.0])
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", table.ColumnUnitWarning)
+            col * col
+            np.sin(col)
+
+    @pytest.mark.parametrize("policy", ["silent", "warn", "error"])
+    def test_column_unit_policy(self, Column, policy):
+        dist, time_, _, _ = self._columns(Column)
+        with table.conf.set_temp("column_unit_policy", policy):
+            if policy == "silent":
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error", table.ColumnUnitWarning)
+                    dist * time_
+            elif policy == "warn":
+                with pytest.warns(table.ColumnUnitWarning):
+                    dist * time_
+            else:
+                with pytest.raises(table.ColumnUnitWarning, match=self.KEEPS_UNIT):
+                    dist * time_
+
+    def test_warning_points_at_the_caller(self, Column):
+        dist, time_, _, _ = self._columns(Column)
+        with pytest.warns(table.ColumnUnitWarning) as record:
+            dist * time_
+        assert record[0].filename == __file__
+
+    def test_message_names_the_operands(self, Column):
+        dist, time_, _, _ = self._columns(Column)
+        with pytest.warns(
+            table.ColumnUnitWarning,
+            # Always "Column", even for a MaskedColumn: which flavor of column
+            # numpy hands the check mid-ufunc is an implementation detail.
+            match=(
+                r"units are ignored in 'multiply' on "
+                r"Column 'dist' \(unit 'm'\) and Column 'time' \(unit 's'\)"
+            ),
+        ):
+            dist * time_
+
+    def test_unrecognized_unit_never_warns(self, Column):
+        # A unit astropy could not parse says nothing about the operation, and it
+        # does not compare equal to the same unit parsed successfully, which would
+        # otherwise read as a unit mismatch.  This is the shape of
+        # test_ecsv_round_trip_user_defined_unit: a user-defined unit written to
+        # ECSV and read back without that unit enabled.
+        real_unit = u.def_unit("test_column_unit_warning_unit")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", table.ColumnUnitWarning)
+            parsed = Column([1.0, 2.0], unit=real_unit)
+            unparsed = Column([1.0, 2.0], unit="test_column_unit_warning_unit")
+            assert isinstance(unparsed.unit, u.UnrecognizedUnit)
+            assert unparsed.unit != parsed.unit  # the reason a check would warn
+            assert np.all(parsed == unparsed)
+            parsed + unparsed
+            parsed * unparsed
+
+    def test_structured_unit_columns(self, Column):
+        # A StructuredUnit compares equal to itself, which is all the check needs.
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", table.ColumnUnitWarning)
+            data = np.array([(1.0, 2.0)], dtype=[("x", "f8"), ("y", "f8")])
+            col1 = Column(data, unit=u.Unit("m,s"))
+            col2 = Column(data.copy(), unit=u.Unit("m,s"))
+            assert isinstance(col1.unit, u.StructuredUnit)
+            assert np.all(col1 == col2)
+
+    def test_info_stats_does_not_warn(self, Column):
+        # info(option='stats') applies nanstd() etc. to the column values, with
+        # the unit taken as a plain label, so it must not warn (nor raise when
+        # the policy is 'error').
+        col = Column([1.0, 2.0, 3.0], unit="m", name="dist")
+        for policy in ("warn", "error"):
+            with table.conf.set_temp("column_unit_policy", policy):
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error", table.ColumnUnitWarning)
+                    stats = col.info("stats", out=None)
+        assert stats["mean"] == "2"
+
+    def test_bare_nanstd_still_warns(self, Column):
+        # Only info(option='stats') is exempt, not np.nanstd() in general.
+        col = Column([1.0, 2.0, 3.0], unit="m", name="dist")
+        with pytest.warns(table.ColumnUnitWarning, match=self.KEEPS_UNIT):
+            np.nanstd(col)
+
+    @pytest.mark.parametrize("other", ["unitless", "same_unit", "other_unit"])
+    def test_no_spurious_warnings_for_any_ufunc(self, other):
+        """The ufunc name sets must not warn where astropy.units sees no problem.
+
+        This guards the hand-maintained sets in ``column.py`` against a numpy
+        release that adds a ufunc or changes what one does to units.
+        """
+        from astropy.units import UnitsError
+        from astropy.units.quantity_helper import converters_and_unit
+
+        col = table.Column([1.0, 2.0, 3.0], unit="m")
+        second = {
+            "unitless": 2,
+            "same_unit": table.Column([1.0, 2.0, 3.0], unit="m"),
+            "other_unit": table.Column([1.0, 2.0, 3.0], unit="s"),
+        }[other]
+
+        spurious = []
+        for ufunc in _all_numpy_ufuncs():
+            if ufunc.nin == 1:
+                args = (col,)
+            elif ufunc.nin == 2:
+                args = (col, second)
+            else:
+                args = (col, second, second)
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                try:
+                    ufunc(*args)
+                except Exception:
+                    continue  # not applicable to this dtype
+                warned = any(w.category is table.ColumnUnitWarning for w in caught)
+            try:
+                converters, result_unit = converters_and_unit(ufunc, "__call__", *args)
+            except UnitsError:
+                naive_is_fine = False
+            except Exception:
+                continue  # astropy.units has no opinion on this ufunc
+            else:
+                naive_is_fine = not any(c is not None for c in converters) and (
+                    result_unit is None or result_unit == col.unit
+                )
+            if warned and naive_is_fine:
+                spurious.append(ufunc.__name__)
+
+        # copysign takes its magnitude from the first operand, so its result unit
+        # does not depend on the second operand's unit.  Treating a unit mismatch
+        # as suspect there is a deliberate false positive: erring towards warning
+        # is not worth a category of its own for this one ufunc.
+        assert spurious in ([], ["copysign"])
