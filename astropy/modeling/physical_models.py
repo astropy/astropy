@@ -327,15 +327,19 @@ class CutoffBlackBody(BlackBody):
             cutoff_wavelength = u.Quantity(in_cutoff, u.AA)
 
         if np.any(cutoff_wavelength <= 0 * u.AA):
-            raise ValueError(f"Cutoff wavelength should be positive: {cutoff_wavelength}")
+            raise ValueError(
+                f"Cutoff wavelength should be positive: {cutoff_wavelength}"
+            )
 
         if isinstance(beta, u.Quantity):
             beta = beta.to_value(u.dimensionless_unscaled)
 
-        pl_values = (wavelength/cutoff_wavelength).to_value(u.dimensionless_unscaled)**beta
+        pl_values = (wavelength / cutoff_wavelength).to_value(
+            u.dimensionless_unscaled
+        ) ** beta
         suppression = np.where(wavelength < cutoff_wavelength, pl_values, 1.0)
 
-        return y*suppression
+        return y * suppression
 
     def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
         parameter_units = super()._parameter_units_for_data_units(
