@@ -118,35 +118,71 @@ def wcs_info_str(wcs):
 
     s += "\n"
 
-    # Axis correlation matrix
+    # Axis correlation matrices
 
-    pixel_dim_width = max(3, len(str(wcs.world_n_dim)))
+    s += "Dependence of world axes on pixel axes (pixel to world):\n\n"
+    s += _matrix_str(wcs.axis_correlation_matrix, "World Dim", "Pixel Dim")
 
-    s += "Correlation between pixel and world axes:\n\n"
-
-    # fmt: off
-    s += (' ' * world_dim_width + '  ' +
-            ('{0:^' + str(wcs.pixel_n_dim * 5 - 2) + 's}').format('Pixel Dim') +
-            '\n')
-
-    s += (('{0:' + str(world_dim_width) + 's}').format('World Dim') +
-            ''.join(['  ' + ('{0:' + str(pixel_dim_width) + 'd}').format(ipix)
-                    for ipix in range(wcs.pixel_n_dim)]) +
-            '\n')
-    # fmt: on
-
-    matrix = wcs.axis_correlation_matrix
-    matrix_str = np.empty(matrix.shape, dtype="U3")
-    matrix_str[matrix] = "yes"
-    matrix_str[~matrix] = "no"
-
-    for iwrl in range(wcs.world_n_dim):
-        # fmt: off
-        s += (('{0:' + str(world_dim_width) + 'd}').format(iwrl) +
-                ''.join(['  ' + ('{0:>' + str(pixel_dim_width) + 's}').format(matrix_str[iwrl, ipix])
-                        for ipix in range(wcs.pixel_n_dim)]) +
-                '\n')
-        # fmt: on
+    s += "\nDependence of pixel axes on world axes (world to pixel):\n\n"
+    s += _matrix_str(wcs.reverse_axis_correlation_matrix, "Pixel Dim", "World Dim")
 
     # Make sure we get rid of the extra whitespace at the end of some lines
     return "\n".join([l.rstrip() for l in s.splitlines()])
+
+
+def _matrix_str(matrix, row_label, col_label):
+    """
+    Format a boolean correlation matrix as a table with yes/no entries.
+    """
+    n_row, n_col = matrix.shape
+    row_width = max(len(row_label), len(str(n_row)))
+    col_width = max(3, len(str(n_col)))  # wide enough for "yes"
+    lines = [
+        " " * row_width + "  " + f"{col_label:^{n_col * (col_width + 2) - 2}s}",
+        f"{row_label:{row_width}s}"
+        + "".join(f"  {i:{col_width}d}" for i in range(n_col)),
+    ]
+    for irow, row in enumerate(np.where(matrix, "yes", "no")):
+        lines.append(
+            f"{irow:{row_width}d}" + "".join(f"  {v:>{col_width}s}" for v in row)
+        )
+    return "\n".join(lines) + "\n"
+
+
+def _split_matrix(matrix):
+    """
+    Given an axis correlation matrix from a WCS object, return information about
+    the individual WCS that can be split out.
+
+    The output is a list of tuples, where each tuple contains a list of
+    pixel dimensions and a list of world dimensions that can be extracted to
+    form a new WCS. For example, in the case of a spectral cube with the first
+    two world coordinates being the celestial coordinates and the third
+    coordinate being an uncorrelated spectral axis, the matrix would look like::
+
+        array([[ True,  True, False],
+               [ True,  True, False],
+               [False, False,  True]])
+
+    and this function will return ``[([0, 1], [0, 1]), ([2], [2])]``.
+    """
+    pixel_used = []
+
+    split_info = []
+
+    for ipix in range(matrix.shape[1]):
+        if ipix in pixel_used:
+            continue
+        pixel_include = np.zeros(matrix.shape[1], dtype=bool)
+        pixel_include[ipix] = True
+        n_pix_prev, n_pix = 0, 1
+        while n_pix > n_pix_prev:
+            world_include = matrix[:, pixel_include].any(axis=1)
+            pixel_include = matrix[world_include, :].any(axis=0)
+            n_pix_prev, n_pix = n_pix, np.sum(pixel_include)
+        pixel_indices = list(np.nonzero(pixel_include)[0])
+        world_indices = list(np.nonzero(world_include)[0])
+        pixel_used.extend(pixel_indices)
+        split_info.append((pixel_indices, world_indices))
+
+    return split_info

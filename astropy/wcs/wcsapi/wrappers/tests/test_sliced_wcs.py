@@ -100,10 +100,18 @@ World Dim  Axis Name  Physical Type     Units
         1  Frequency  em.freq           Hz
         2  Longitude  pos.galactic.lon  deg
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
              Pixel Dim
 World Dim    0    1    2
+        0  yes   no  yes
+        1   no  yes   no
+        2  yes   no  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+             World Dim
+Pixel Dim    0    1    2
         0  yes   no  yes
         1   no  yes   no
         2  yes   no  yes
@@ -190,10 +198,17 @@ World Dim  Axis Name  Physical Type     Units
         0  Latitude   pos.galactic.lat  deg
         1  Longitude  pos.galactic.lon  deg
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
            Pixel Dim
 World Dim    0    1
+        0  yes  yes
+        1  yes  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+           World Dim
+Pixel Dim    0    1
         0  yes  yes
         1  yes  yes
 """
@@ -252,10 +267,18 @@ World Dim  Axis Name  Physical Type     Units
         1  Frequency  em.freq           Hz
         2  Longitude  pos.galactic.lon  deg
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
              Pixel Dim
 World Dim    0    1    2
+        0  yes   no  yes
+        1   no  yes   no
+        2  yes   no  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+             World Dim
+Pixel Dim    0    1    2
         0  yes   no  yes
         1   no  yes   no
         2  yes   no  yes
@@ -326,13 +349,20 @@ World Dim  Axis Name  Physical Type     Units
         1  Frequency  em.freq           Hz
         2  Longitude  pos.galactic.lon  deg
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
            Pixel Dim
 World Dim    0    1
         0   no  yes
         1  yes   no
         2   no  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+             World Dim
+Pixel Dim    0    1    2
+        0   no  yes   no
+        1  yes   no  yes
 """
 
 
@@ -400,10 +430,18 @@ World Dim  Axis Name  Physical Type     Units
         1  Frequency  em.freq           Hz
         2  Longitude  pos.galactic.lon  deg
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
              Pixel Dim
 World Dim    0    1    2
+        0  yes   no  yes
+        1   no  yes   no
+        2  yes   no  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+             World Dim
+Pixel Dim    0    1    2
         0  yes   no  yes
         1   no  yes   no
         2  yes   no  yes
@@ -484,10 +522,18 @@ World Dim  Axis Name  Physical Type     Units
         1  Frequency  em.freq           Hz
         2  Longitude  pos.galactic.lon  deg
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
              Pixel Dim
 World Dim    0    1    2
+        0  yes   no  yes
+        1   no  yes   no
+        2  yes   no  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+             World Dim
+Pixel Dim    0    1    2
         0  yes   no  yes
         1   no  yes   no
         2  yes   no  yes
@@ -582,10 +628,18 @@ World Dim  Axis Name  Physical Type     Units
         1  None       em.freq           Hz
         2  None       pos.galactic.lon  deg
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
              Pixel Dim
 World Dim    0    1    2
+        0  yes   no  yes
+        1   no  yes   no
+        2  yes   no  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+             World Dim
+Pixel Dim    0    1    2
         0  yes   no  yes
         1   no  yes   no
         2  yes   no  yes
@@ -684,10 +738,18 @@ World Dim  Axis Name  Physical Type     Units
         1  None       None              Hz
         2  None       pos.galactic.lon  deg
 
-Correlation between pixel and world axes:
+Dependence of world axes on pixel axes (pixel to world):
 
              Pixel Dim
 World Dim    0    1    2
+        0  yes   no  yes
+        1   no  yes   no
+        2  yes   no  yes
+
+Dependence of pixel axes on world axes (world to pixel):
+
+             World Dim
+Pixel Dim    0    1    2
         0  yes   no  yes
         1   no  yes   no
         2  yes   no  yes
