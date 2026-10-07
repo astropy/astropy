@@ -181,7 +181,8 @@ class TestFitsTime(FitsTestCase):
             masked_cls([[1, 2], [3, 4]], mask=np.broadcast_to(mask, (2, 2))),
             format="cxcsec",
         )
-        assert b.masked is a.masked is (mask is not False)
+        # Masked input always gives a masked Time, even if nothing is masked.
+        assert b.masked is a.masked is True
         t = QTable([a, b], names=["a", "b"])
         t.write(
             self.temp("time.fits"),

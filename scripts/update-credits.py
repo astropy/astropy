@@ -35,6 +35,8 @@ MANUAL_ADDITIONS = frozenset(
 MANUAL_EXCLUSIONS = frozenset(
     {
         "Matthias Bussonnier",  # per request
+        "IMGillusion",  # AI
+        "CAOShurong",  # AI
     }
 )
 

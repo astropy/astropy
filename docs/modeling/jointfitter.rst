@@ -128,7 +128,7 @@ AreaGaussian1 parameters
    >>> print(gjf1.param_names)
    ('area', 'mean', 'stddev')
    >>> print(gjf1.parameters)
-   [1.49823951 5.10494811 0.19918164]
+   [1.49824019 5.10494804 0.19918175]
 
 AreaGaussian2 parameters
 
@@ -137,7 +137,7 @@ AreaGaussian2 parameters
    >>> print(gjf1.param_names)
    ('area', 'mean', 'stddev')
    >>> print(gjf2.parameters)
-   [1.49823951 5.10494811 0.39860539]
+   [1.49824019 5.10494804 0.39860611]
 
 
 The simulated data and best fit models can be plotted showing good agreement
