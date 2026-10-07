@@ -13,7 +13,7 @@ from setuptools import Extension
 from extension_helpers import get_compiler, import_file, pkg_config, write_if_different
 
 WCSROOT = Path(__file__).parent
-WCSVERSION = "8.9"
+WCSVERSION = "8.10"
 
 
 def b(s):

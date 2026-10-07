@@ -1,3 +1,37 @@
+WCSLIB version 8.10 (2026/09/27)
+--------------------------------
+
+* C library
+
+  - In wcsprintf() and wcsfprintf(), use the return value from
+    vsnprintf() itself to decide whether to grow the output buffer,
+    rather than relying on all messages being within a certain length
+    (formerly 128 bytes).  Some messages from wcspih() did exceed that
+    length and could cause the buffer to be overrun, thereby corrupting
+    the heap and causing a segv.  The problem, which arose in Astropy,
+    was diagnosed and reported by Thomas Robitaille with patch.
+
+  - In szpx2s(), relaxed the bounds checking tolerance slightly to
+    accomodate spurious non-closures reported by test program tprj1 on
+    some 32-bit machines.  Reported by Ole Streicher (Debian
+    maintainer).
+
+  - In the C test suite, modified tprj1 to handle status returns from
+    the projection routines properly.  With diligent status reporting,
+    it was found necessary to change the latitude range of the SZP test
+    appropriately.
+
+* Fortran wrappers
+
+  - In the Fortran test suite, modified tprj1 to match the C version.
+
+* User manual
+
+  - Documentation generation moved to Doxygen 1.18.0 (was 1.17.0).
+    While the Doxygen bug reported in WCSLIB 8.5 has now been fixed,
+    the makefile patch has been left in place for the time being.
+
+
 WCSLIB version 8.9 (2026/06/18)
 -------------------------------
 
@@ -3860,4 +3894,4 @@ WCSLIB version 1.0 (1995/01/31)
   Initial release.
 
 ------------------------------------------------------------------------
-$Id: CHANGES,v 8.9 2026/06/18 13:00:04 mcalabre Exp $
+$Id: CHANGES,v 8.10 2026/09/27 05:44:34 mcalabre Exp $
