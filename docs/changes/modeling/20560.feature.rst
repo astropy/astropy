@@ -1,0 +1,4 @@
+Added a new :class:`~astropy.modeling.physical_models.CutoffBlackBody` model
+for blackbody spectra with a power-law suppression below a cutoff wavelength.
+The model supports fitting the cutoff wavelength and power-law index, as well
+as the temperature and scale factor.
