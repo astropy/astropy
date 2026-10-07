@@ -95,6 +95,7 @@ workflows:
           name: baseline-<< matrix.jobname >>
           matrix:
             parameters:
+              # NOTE: If you change these job names, the giles config in pyproject.toml needs updating.
               jobname:
                 - "py311-test-image-mpl380-cov"
                 - "py311-test-image-mpldev-cov"
