@@ -419,6 +419,67 @@ supply the ``base`` (representation)::
 ..
   EXAMPLE END
 
+For the angular components, the spherical and cylindrical differentials hold
+rates of change of the angles (e.g., ``d_phi`` in angular speed units). For
+physical velocities, i.e. velocities along the unit vectors, instead (e.g.,
+``v_phi = rho * dphi/dt`` in km/s), use the physical differential classes
+`~astropy.coordinates.SphericalPhysicalDifferential`,
+`~astropy.coordinates.PhysicsSphericalPhysicalDifferential` or
+`~astropy.coordinates.CylindricalPhysicalDifferential`, in which all components
+have the same units::
+
+  >>> from astropy.coordinates import (CartesianDifferential,
+  ...                                  CylindricalRepresentation,
+  ...                                  CylindricalDifferential,
+  ...                                  CylindricalPhysicalDifferential)
+  >>> cyl = CylindricalRepresentation(rho=8*u.kpc, phi=0*u.deg, z=0*u.kpc)
+  >>> vel = CartesianDifferential(0, 220, 10, unit=u.km/u.s)
+  >>> vel.represent_as(CylindricalDifferential, base=cyl)  # doctest: +FLOAT_CMP
+  <CylindricalDifferential (d_rho, d_phi, d_z) in (km / s, km rad / (kpc s), km / s)
+      (0., 27.5, 10.)>
+  >>> vel.represent_as(CylindricalPhysicalDifferential, base=cyl)  # doctest: +FLOAT_CMP
+  <CylindricalPhysicalDifferential (d_rho, d_phi, d_z) in km / s
+      (0., 220., 10.)>
+
+In coordinate frames, the components of
+`~astropy.coordinates.SphericalPhysicalDifferential` are named ``v_{lon}``,
+``v_{lat}`` and ``radial_velocity``, while those of the other two are
+``v_{phi,theta,r}`` and ``v_{rho,phi,z}``::
+
+  >>> from astropy.coordinates import SkyCoord
+  >>> icrs = SkyCoord(
+  ...     ra=37.4*u.deg,
+  ...     dec=-55.8*u.deg,
+  ...     distance=150*u.pc,
+  ...     pm_ra_cosdec=-21.2*u.mas/u.yr,
+  ...     pm_dec=17.1*u.mas/u.yr,
+  ...     radial_velocity=105.7*u.km/u.s
+  ... )
+  >>> icrs.set_representation_cls(s="sphericalphysical")
+  >>> icrs  # doctest: +FLOAT_CMP
+  <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, pc)
+      (37.4, -55.8, 150.)
+   (v_ra, v_dec, radial_velocity) in km / s
+      (-15.07469607, 12.15930674, 105.7)>
+
+Or, equivalently, you can pass the differential type when defining the
+``SkyCoord`` to use the physical differential names::
+
+  >>> SkyCoord(
+  ...     ra=37.4*u.deg,
+  ...     dec=-55.8*u.deg,
+  ...     distance=150*u.pc,
+  ...     v_ra=-15*u.km/u.s,
+  ...     v_dec=12*u.km/u.s,
+  ...     radial_velocity=105.7*u.km/u.s,
+  ...     differential_type="sphericalphysical"
+  ... )
+  <SkyCoord (ICRS): (ra, dec, distance) in (deg, deg, pc)
+      (37.4, -55.8, 150.)
+   (v_ra, v_dec, radial_velocity) in km / s
+      (-15., 12., 105.7)>
+
+
 Attaching ``Differential`` Objects to ``Representation`` Objects
 ================================================================
 

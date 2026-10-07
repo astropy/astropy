@@ -164,6 +164,34 @@ position and velocity components. For other frames, these are just ``x,y,z`` and
      (v_x, v_y, v_z) in km / s
         (31., -10., 75.)>
 
+To specify the velocity components along the directions of increasing
+longitude and latitude in physical units (i.e., the proper motions times the
+distance) instead of as proper motions, use
+`~astropy.coordinates.SphericalPhysicalDifferential`, for which the components
+are called ``v_{lon}``, ``v_{lat}``, and ``radial_velocity``::
+
+    >>> from astropy.coordinates import SphericalPhysicalDifferential
+    >>> Galactic(l=11.23*u.degree, b=58.13*u.degree, distance=150*u.pc,
+    ...          v_l=15.17*u.km/u.s, v_b=-39.73*u.km/u.s,
+    ...          radial_velocity=23.42*u.km/u.s,
+    ...          differential_type=SphericalPhysicalDifferential)  # doctest: +FLOAT_CMP
+    <Galactic Coordinate: (l, b, distance) in (deg, deg, pc)
+        (11.23, 58.13, 150.)
+     (v_l, v_b, radial_velocity) in km / s
+        (15.17, -39.73, 23.42)>
+
+This can also be used to convert proper motions to velocities::
+
+    >>> gal = Galactic(l=11.23*u.degree, b=58.13*u.degree, distance=150*u.pc,
+    ...                pm_l_cosb=21.34*u.mas/u.yr, pm_b=-55.89*u.mas/u.yr,
+    ...                radial_velocity=23.42*u.km/u.s)
+    >>> gal.set_representation_cls(s=SphericalPhysicalDifferential)
+    >>> gal  # doctest: +FLOAT_CMP
+    <Galactic Coordinate: (l, b, distance) in (deg, deg, pc)
+        (11.23, 58.13, 150.)
+     (v_l, v_b, radial_velocity) in km / s
+        (15.17424595, -39.74173413, 23.42)>
+
 ..
   EXAMPLE END
 
