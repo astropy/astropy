@@ -87,6 +87,7 @@ workflows:
           name: << matrix.jobname >>
           matrix:
             parameters:
+              # NOTE: If you change these job names, the giles config in pyproject.toml needs updating.
               jobname:
                 # image tests with oldest supported Python + matplotlib versions
                 - "py312-test-image-mpl380-cov"

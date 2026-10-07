@@ -728,14 +728,14 @@ ignore = [
     [tool.gilesbot.pull_requests]
         enabled = true
 
-    [tool.gilesbot.circleci_artifacts.py312-test-image-mpl380]
-        url = ".tmp/py312-test-image-mpl380/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons, for py312-test-image-mpl380."
+    [tool.gilesbot.circleci_artifacts.py312-test-image-mpl380-cov]
+        url = "results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons, for py312-test-image-mpl380-cov."
         report_on_fail = true
 
-    [tool.gilesbot.circleci_artifacts.py312-test-image-mpldev]
-        url = ".tmp/py312-test-image-mpldev/results/fig_comparison.html"
-        message = "Click details to see the figure test comparisons for py312-test-image-mpldev."
+    [tool.gilesbot.circleci_artifacts.py312-test-image-mpldev-cov]
+        url = "results/fig_comparison.html"
+        message = "Click details to see the figure test comparisons for py312-test-image-mpldev-cov."
         report_on_fail = true
 
 [tool.codespell]
@@ -1048,13 +1048,16 @@ packages = [
     "astropy.coordinates.sites",
     "astropy.cosmology",  # See `exclude` for skipped modules
 ]
+# Mypy searches these regexes in paths relative to the working directory, so
+# they must not start with `/`: the path is `astropy/...` from the repository
+# root, but `../../.tox/<...>/astropy/<...>` under tox.
 exclude = [
     # Private `astropy.cosmology`, not type checked yet.
-    "/astropy/cosmology/_src/",
+    "astropy/cosmology/_src/",
     # Tests are out of scope for now. `test_scalar_inv_efuncs.py` additionally
     # imports a Cython extension module, which has no stubs for Mypy to read.
-    "/astropy/cosmology/tests/",
+    "astropy/cosmology/tests/",
     # A directory of `.ecsv` files with no `__init__.py`, which Mypy would
     # otherwise pick up as an implicit namespace package.
-    "/astropy/cosmology/data/",
+    "astropy/cosmology/data/",
 ]
