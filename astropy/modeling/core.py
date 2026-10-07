@@ -3169,7 +3169,7 @@ class CompoundModel(Model):
             self.linear = False
         self.eqcons = []
         self.ineqcons = []
-        self.n_left_params = len(self.left.parameters)
+        self.n_left_params = len(self.left.param_names)
         self._map_parameters()
 
         # Initialize the cache for the constraints (used primarily when

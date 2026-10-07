@@ -981,6 +981,36 @@ def test_compound_evaluate_fix_inputs_by_position():
     )
 
 
+@pytest.mark.parametrize(
+    "model1, model2, x",
+    [
+        (
+            Const1D(np.ones((3, 4))),
+            Gaussian1D(np.ones((3, 4)), np.zeros((3, 4)), np.ones((3, 4))),
+            np.linspace(-1, 1, 5)[:, None, None],
+        ),
+        (
+            Const1D([1, 2], n_models=2),
+            Gaussian1D([1, 2], [0, 0.5], [1, 2], n_models=2),
+            np.linspace(-1, 1, 5)[:, None],
+        ),
+    ],
+)
+def test_compound_evaluate_array_parameters(model1, model2, x):
+    """
+    Regression test for issue #20554
+    """
+    p1 = [getattr(model1, name).value for name in model1.param_names]
+    p2 = [getattr(model2, name).value for name in model2.param_names]
+    compound = model1 + model2
+
+    assert compound.n_left_params == len(model1.param_names)
+    assert_array_equal(
+        compound.evaluate(x, *p1, *p2),
+        model1.evaluate(x, *p1) + model2.evaluate(x, *p2),
+    )
+
+
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_fit_multiplied_compound_model_with_mixed_units():
     """
