@@ -13,7 +13,7 @@ from astropy.modeling.fitting import (
     LMLSQFitter,
     TRFLSQFitter,
 )
-from astropy.modeling.physical_models import NFW, BlackBody
+from astropy.modeling.physical_models import NFW, BlackBody, CutoffBlackBody
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
@@ -219,6 +219,28 @@ def test_blackbody_dimensionless_fit():
     bb2_fit = fitter(bb2, wav, fnu, maxiter=1000)
 
     assert bb1_fit.temperature == bb2_fit.temperature
+
+
+def test_cutoff_blackbody_evaluate():
+    bb = BlackBody(temperature=10000 * u.K)
+    cutoff_bb = CutoffBlackBody(
+        temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2
+    )
+
+    assert_quantity_allclose(cutoff_bb(4000 * u.AA), bb(4000 * u.AA))
+    assert_quantity_allclose(
+        cutoff_bb(2000 * u.AA), bb(2000 * u.AA) * (2.0 / 3.0) ** 2
+    )
+
+    frequency = (2000 * u.AA).to(u.Hz, equivalencies=u.spectral())
+    assert_quantity_allclose(cutoff_bb(frequency), cutoff_bb(2000 * u.AA))
+
+
+def test_cutoff_blackbody_invalid_cutoff():
+    cutoff_bb = CutoffBlackBody(cutoff=0 * u.AA)
+
+    with pytest.raises(ValueError, match="Cutoff wavelength should be positive"):
+        cutoff_bb(5000 * u.AA)
 
 
 @pytest.mark.parametrize("mass", (2.0000000000000e15 * u.M_sun, 3.976819741e45 * u.kg))
