@@ -287,7 +287,7 @@ class CutoffBlackBody(BlackBody):
     hydrogen-poor superluminous supernovae [1]_ and has since been applied to
     "regular" supernovae as well [2]_.
 
-    The inherited `lambda_max` and `nu_max` properties refer to the
+    The inherited ``lambda_max`` and ``nu_max`` properties refer to the
     underlying unmodified blackbody and do not necessarily give the peak of
     the cutoff spectrum.
 
@@ -357,8 +357,6 @@ class CutoffBlackBody(BlackBody):
 
         temperature = self.temperature.quantity
         zero_temperature = temperature.to_value(u.K) == 0
-
-        ...
 
         return NotImplemented
 
