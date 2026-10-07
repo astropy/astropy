@@ -1050,7 +1050,7 @@ packages = [
 ]
 # Mypy searches these regexes in paths relative to the working directory, so
 # they must not start with `/`: the path is `astropy/...` from the repository
-# root, but `../../.tox/.../astropy/...` under tox.
+# root, but `../../.tox/<...>/astropy/<...>` under tox.
 exclude = [
     # Private `astropy.cosmology`, not type checked yet.
     "astropy/cosmology/_src/",
