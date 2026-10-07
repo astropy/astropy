@@ -223,14 +223,10 @@ def test_blackbody_dimensionless_fit():
 
 def test_cutoff_blackbody_evaluate():
     bb = BlackBody(temperature=10000 * u.K)
-    cutoff_bb = CutoffBlackBody(
-        temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2
-    )
+    cutoff_bb = CutoffBlackBody(temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2)
 
     assert_quantity_allclose(cutoff_bb(4000 * u.AA), bb(4000 * u.AA))
-    assert_quantity_allclose(
-        cutoff_bb(2000 * u.AA), bb(2000 * u.AA) * (2.0 / 3.0) ** 2
-    )
+    assert_quantity_allclose(cutoff_bb(2000 * u.AA), bb(2000 * u.AA) * (2.0 / 3.0) ** 2)
 
     frequency = (2000 * u.AA).to(u.Hz, equivalencies=u.spectral())
     assert_quantity_allclose(cutoff_bb(frequency), cutoff_bb(2000 * u.AA))
