@@ -1,0 +1,4 @@
+Creating an ``Angle`` or ``SkyCoord`` from an array of sexagesimal strings is now
+roughly 20x faster, since arrays of 32 elements or more are parsed with numpy
+string operations rather than one element at a time. Spellings the array parser
+does not recognise fall back to the existing parser, so results are unchanged.
