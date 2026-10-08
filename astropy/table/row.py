@@ -82,7 +82,7 @@ class Row:
     def _ipython_key_completions_(self) -> list[str]:
         return self.colnames
 
-    def __eq__(self, other: object) -> np.bool_ | np.ndarray:
+    def __eq__(self, other: object) -> np.bool_ | npt.NDArray:
         if self._table.masked:
             # Sent bug report to numpy-discussion group on 2012-Oct-21, subject:
             # "Comparing rows in a structured masked array raises exception"
@@ -92,7 +92,7 @@ class Row:
             )
         return self.as_void() == other
 
-    def __ne__(self, other: object) -> np.bool_ | np.ndarray:
+    def __ne__(self, other: object) -> np.bool_ | npt.NDArray:
         if self._table.masked:
             raise ValueError(
                 "Unable to compare rows for masked table due to numpy.ma bug"
@@ -101,7 +101,7 @@ class Row:
 
     def __array__(
         self, dtype: npt.DTypeLike | None = None, copy: bool | None = None
-    ) -> np.ndarray:
+    ) -> npt.NDArray:
         """Support converting Row to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not

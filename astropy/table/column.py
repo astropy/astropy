@@ -136,8 +136,8 @@ class FalseArray(np.ndarray):
 
 
 def _expand_string_array_for_values(
-    arr: np.ndarray, values: npt.ArrayLike
-) -> np.ndarray:
+    arr: npt.NDArray, values: npt.ArrayLike
+) -> npt.NDArray:
     """
     For string-dtype return a version of ``arr`` that is wide enough for ``values``.
     If ``arr`` is not string-dtype or does not need expansion then return ``arr``.
@@ -195,7 +195,7 @@ def _contains_ma_masked(
 
 def _convert_sequence_data_to_array(
     data: Sequence[Any], dtype: npt.DTypeLike | None = None
-) -> np.ndarray | np.ma.MaskedArray:
+) -> npt.NDArray | np.ma.MaskedArray:
     """Convert N-d sequence-like data to ndarray or MaskedArray.
 
     This is the core function for converting Python lists or list of lists to a
@@ -509,7 +509,7 @@ class ColumnInfo(BaseColumnInfo):
 
         return self._parent_cls(length=length, **attrs)
 
-    def get_sortable_arrays(self) -> list[np.ndarray]:
+    def get_sortable_arrays(self) -> list[npt.NDArray]:
         """
         Return a list of arrays which can be lexically sorted to represent
         the order of the parent column.
@@ -598,11 +598,11 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         return self
 
     @property
-    def data(self) -> np.ndarray:
+    def data(self) -> npt.NDArray:
         return self.view(np.ndarray)
 
     @property
-    def value(self) -> np.ndarray:
+    def value(self) -> npt.NDArray:
         """
         An alias for the existing ``data`` attribute.
         """
@@ -731,7 +731,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
         return reconstruct_func, reconstruct_func_args, state
 
-    def __array_finalize__(self, obj: np.ndarray | None) -> None:
+    def __array_finalize__(self, obj: npt.NDArray | None) -> None:
         # Obj will be none for direct call to Column() creator
         if obj is None:
             return
@@ -750,7 +750,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
 
     def __array_wrap__(
         self,
-        out_arr: np.ndarray,
+        out_arr: npt.NDArray,
         context: tuple | None = None,
         return_scalar: bool = False,
     ) -> Any:
@@ -1047,7 +1047,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         v,
         side: Literal["left", "right"] = "left",
         sorter: npt.ArrayLike | None = None,
-    ) -> int | np.integer | np.ndarray:
+    ) -> int | np.integer | npt.NDArray:
         # For bytes type data, encode the `v` value as UTF-8 (if necessary) before
         # calling searchsorted. This prevents a factor of 1000 slowdown in
         # searchsorted in this case.
@@ -1094,7 +1094,7 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             self._groups = groups.ColumnGroups(self)
         return self._groups
 
-    def group_by(self, keys: Table | np.ndarray) -> Self:
+    def group_by(self, keys: Table | npt.NDArray) -> Self:
         """
         Group this column by the specified ``keys``.
 
@@ -1751,7 +1751,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
         return self
 
-    def __array_finalize__(self, obj: np.ndarray | None) -> None:
+    def __array_finalize__(self, obj: npt.NDArray | None) -> None:
         super().__array_finalize__(obj)
 
         # MaskedArray.__array_finalize__ (via _update_from) copies the attributes of
@@ -1784,7 +1784,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     def __array_wrap__(
         self,
-        out_arr: np.ndarray,
+        out_arr: npt.NDArray,
         context: tuple | None = None,
         return_scalar: bool = False,
     ) -> Any:

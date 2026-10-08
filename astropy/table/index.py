@@ -213,6 +213,7 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Literal, Protocol, Self, runtime_checkable
 
 import numpy as np
+import numpy.typing as npt
 
 from astropy.utils.decorators import deprecated
 
@@ -434,8 +435,8 @@ class Index:
         self.data.add(tuple(key), pos)
 
     def get_row_specifier(
-        self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
-    ) -> Sequence[Integral] | np.ndarray | range:
+        self, row_specifier: int | np.integer | list[int] | npt.NDArray | slice
+    ) -> Sequence[Integral] | npt.NDArray | range:
         """
         Return an iterable corresponding to the
         input row specifier.
@@ -458,7 +459,7 @@ class Index:
         )
 
     def remove_rows(
-        self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
+        self, row_specifier: int | np.integer | list[int] | npt.NDArray | slice
     ) -> None:
         """
         Remove the given rows from the index.
@@ -758,8 +759,8 @@ class SlicedIndex:
         return SlicedIndex(self.index, (new_start, new_stop, new_step))
 
     def sliced_coords(
-        self, rows: Sequence[Integral] | np.ndarray
-    ) -> Sequence[Integral] | np.ndarray:
+        self, rows: Sequence[Integral] | npt.NDArray
+    ) -> Sequence[Integral] | npt.NDArray:
         """
         Convert the input rows to the sliced coordinate system.
 
@@ -804,21 +805,21 @@ class SlicedIndex:
         """
         return row if self.original else self.start + row * self.step
 
-    def find(self, key: tuple) -> Sequence[Integral] | np.ndarray:
+    def find(self, key: tuple) -> Sequence[Integral] | npt.NDArray:
         return self.sliced_coords(self.index.find(key))
 
-    def where(self, col_map: Mapping[str, Any]) -> Sequence[Integral] | np.ndarray:
+    def where(self, col_map: Mapping[str, Any]) -> Sequence[Integral] | npt.NDArray:
         return self.sliced_coords(self.index.where(col_map))
 
     def range(
         self, lower: tuple[Hashable, ...] | None, upper: tuple[Hashable, ...] | None
-    ) -> Sequence[Integral] | np.ndarray:
+    ) -> Sequence[Integral] | npt.NDArray:
         return self.sliced_coords(self.index.range(lower, upper))
 
-    def same_prefix(self, key: tuple) -> Sequence[Integral] | np.ndarray:
+    def same_prefix(self, key: tuple) -> Sequence[Integral] | npt.NDArray:
         return self.sliced_coords(self.index.same_prefix(key))
 
-    def sorted_data(self) -> Sequence[Integral] | np.ndarray:
+    def sorted_data(self) -> Sequence[Integral] | npt.NDArray:
         return self.sliced_coords(self.index.sorted_data())
 
     def replace(self, row: int, col: str, val) -> None:
@@ -838,14 +839,14 @@ class SlicedIndex:
             self.get_index_or_copy().insert_row(self.orig_coords(pos), vals, columns)
 
     def get_row_specifier(
-        self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
+        self, row_specifier: int | np.integer | list[int] | npt.NDArray | slice
     ) -> list[Integral]:
         return [
             self.orig_coords(x) for x in self.index.get_row_specifier(row_specifier)
         ]
 
     def remove_rows(
-        self, row_specifier: int | np.integer | list[int] | np.ndarray | slice
+        self, row_specifier: int | np.integer | list[int] | npt.NDArray | slice
     ) -> None:
         if not self._frozen:
             self.get_index_or_copy().remove_rows(row_specifier)
@@ -877,7 +878,7 @@ class SlicedIndex:
         return self.index.col_position(col_name)
 
     def get_slice(
-        self, col_slice: ColumnLike, item: list[int] | np.ndarray
+        self, col_slice: ColumnLike, item: list[int] | npt.NDArray
     ) -> SlicedIndex:
         """
         Return a newly created index from the given slice.

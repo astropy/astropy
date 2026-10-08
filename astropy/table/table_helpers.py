@@ -151,7 +151,7 @@ class ArrayWrapper:
         if "info" in getattr(data, "__dict__", ()):
             self.info = data.info
 
-    def __getitem__(self, item: int | np.integer | slice | np.ndarray) -> Any:
+    def __getitem__(self, item: int | np.integer | slice | npt.NDArray) -> Any:
         if isinstance(item, (int, np.integer)):
             out = self.data[item]
         else:
@@ -160,13 +160,13 @@ class ArrayWrapper:
                 out.info = self.info
         return out
 
-    def __setitem__(self, item: int | np.integer | slice | np.ndarray, value) -> None:
+    def __setitem__(self, item: int | np.integer | slice | npt.NDArray, value) -> None:
         self.data[item] = value
 
     def __len__(self) -> int:
         return len(self.data)
 
-    def __eq__(self, other: object) -> np.ndarray | np.bool_:
+    def __eq__(self, other: object) -> npt.NDArray | np.bool_:
         """Minimal equality testing, mostly for mixin unit tests."""
         if isinstance(other, ArrayWrapper):
             return self.data == other.data

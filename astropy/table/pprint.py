@@ -10,6 +10,7 @@ from shutil import get_terminal_size
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import numpy.typing as npt
 
 from astropy import log, table
 from astropy.utils.console import Getch, color_print, conf
@@ -569,7 +570,7 @@ class TableFormatter:
                 result = f"{left} .. {right}"
             else:
 
-                def format_multidim(arr: np.ndarray) -> str:
+                def format_multidim(arr: npt.NDArray) -> str:
                     """Recursively format multidimensional arrays."""
                     if arr.ndim == 0:
                         return format_func(col_format, arr)

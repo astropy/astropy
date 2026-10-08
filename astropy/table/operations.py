@@ -19,6 +19,7 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
+import numpy.typing as npt
 
 from astropy.units import Quantity
 from astropy.utils import metadata
@@ -130,7 +131,7 @@ def _get_out_class(objs: Sequence[Any]) -> type:
 
 def join_skycoord(
     distance: Quantity, distance_func: str | Callable[..., Any] = "search_around_sky"
-) -> Callable[[SkyCoord, SkyCoord], tuple[np.ndarray, np.ndarray]]:
+) -> Callable[[SkyCoord, SkyCoord], tuple[npt.NDArray, npt.NDArray]]:
     """Helper function to join on SkyCoord columns using distance matching.
 
     This function is intended for use in ``table.join()`` to allow performing a
@@ -210,7 +211,7 @@ def join_skycoord(
         if not isfunction(distance_func):
             raise ValueError("distance_func must be a str or function")
 
-    def join_func(sc1: SkyCoord, sc2: SkyCoord) -> tuple[np.ndarray, np.ndarray]:
+    def join_func(sc1: SkyCoord, sc2: SkyCoord) -> tuple[npt.NDArray, npt.NDArray]:
         # Call the appropriate SkyCoord method to find pairs within distance
         idxs1, idxs2, d2d, d3d = distance_func(sc1, sc2, distance)
 
@@ -254,7 +255,7 @@ def join_distance(
     distance: float | Quantity,
     kdtree_args: dict[str, Any] | None = None,
     query_args: dict[str, Any] | None = None,
-) -> Callable[[ColumnLike, ColumnLike], tuple[np.ndarray, np.ndarray]]:
+) -> Callable[[ColumnLike, ColumnLike], tuple[npt.NDArray, npt.NDArray]]:
     """Helper function to join table columns using distance matching.
 
     This function is intended for use in ``table.join()`` to allow performing
@@ -312,7 +313,9 @@ def join_distance(
     if query_args is None:
         query_args = {}
 
-    def join_func(col1: ColumnLike, col2: ColumnLike) -> tuple[np.ndarray, np.ndarray]:
+    def join_func(
+        col1: ColumnLike, col2: ColumnLike
+    ) -> tuple[npt.NDArray, npt.NDArray]:
         if col1.ndim > 2 or col2.ndim > 2:
             raise ValueError("columns for isclose_join must be 1- or 2-dimensional")
 
@@ -1101,7 +1104,10 @@ def result_type(cols: Sequence[Any]) -> np.dtype:
 def _get_join_sortable_arrays(
     keys: Sequence[str], left: Table, right: Table
 ) -> tuple[
-    list[tuple[str, np.dtype]], list[str], dict[str, np.ndarray], dict[str, np.ndarray]
+    list[tuple[str, np.dtype]],
+    list[str],
+    dict[str, npt.NDArray],
+    dict[str, npt.NDArray],
 ]:
     """Get sortable key arrays used to build join index inputs.
 
@@ -1186,7 +1192,7 @@ def _get_join_sortable_arrays(
 
 def _get_join_sort_idxs(
     keys: Sequence[str], left: Table, right: Table
-) -> tuple[np.ndarray, np.ndarray]:
+) -> tuple[npt.NDArray, npt.NDArray]:
     """Compute sorted-row and group-boundary indices for join keys.
 
     This helper builds sortable key arrays for ``left`` and ``right``, combines them
@@ -1533,7 +1539,7 @@ def _compute_join_indices_astropy(
     keys: tuple[str, ...],
     join_type: JoinType,
     len_left: int,
-) -> tuple[bool, int, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[bool, int, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray]:
     """Compute row index arrays and masks for joins using the astropy engine.
 
     This helper sorts the concatenated join keys from ``left`` and ``right`` to
@@ -1588,7 +1594,7 @@ def _compute_join_indices_pandas(
     keys: tuple[str, ...],
     join_type: JoinType,
     len_left: int,
-) -> tuple[bool, int, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[bool, int, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray]:
     """Compute row index arrays and masks for joins using the pandas engine.
 
     This helper uses pandas.merge() to do the work. It is typically faster than the

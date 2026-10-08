@@ -6,6 +6,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
 import numpy as np
+import numpy.typing as npt
 
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -20,7 +21,7 @@ __all__ = ["ColumnGroups", "TableGroups"]
 
 
 def table_group_by(
-    table: Table, keys: str | list[str] | tuple[str, ...] | Table | np.ndarray
+    table: Table, keys: str | list[str] | tuple[str, ...] | Table | npt.NDArray
 ) -> Table:
     # index copies are unnecessary and slow down _table_group_by
     with table.index_mode("discard_on_copy"):
@@ -28,7 +29,7 @@ def table_group_by(
 
 
 def _table_group_by(
-    table: Table, keys: str | list[str] | tuple[str, ...] | Table | np.ndarray
+    table: Table, keys: str | list[str] | tuple[str, ...] | Table | npt.NDArray
 ) -> Table:
     """
     Get groups for ``table`` on specified ``keys``.
@@ -122,7 +123,7 @@ def _table_group_by(
     return out
 
 
-def column_group_by(column: ColumnLike, keys: Table | np.ndarray) -> ColumnLike:
+def column_group_by(column: ColumnLike, keys: Table | npt.NDArray) -> ColumnLike:
     """
     Get groups for ``column`` on specified ``keys``.
 
@@ -175,7 +176,7 @@ def column_group_by(column: ColumnLike, keys: Table | np.ndarray) -> ColumnLike:
     return out
 
 
-def _find_table_keys_mask(keys: Table, key: Any) -> np.ndarray:
+def _find_table_keys_mask(keys: Table, key: Any) -> npt.NDArray:
     """
     Return a boolean mask of the rows of the group ``keys`` table matching ``key``.
 
@@ -234,7 +235,7 @@ class BaseGroups:
     __next__ = next
 
     def __getitem__(
-        self, item: int | np.integer | slice | np.ndarray
+        self, item: int | np.integer | slice | npt.NDArray
     ) -> ColumnLike | Table:
         parent = self.parent
 
@@ -296,7 +297,7 @@ class BaseGroups:
 
         return self[idx[0]]
 
-    def _find_group_mask(self, key: Any) -> np.ndarray:
+    def _find_group_mask(self, key: Any) -> npt.NDArray:
         raise NotImplementedError("Subclasses must implement _find_group_mask")
 
     def __repr__(self) -> str:
@@ -314,8 +315,8 @@ class ColumnGroups(BaseGroups):
     def __init__(
         self,
         parent_column: ColumnLike,
-        indices: np.ndarray | None = None,
-        keys: Table | np.ndarray | None = None,
+        indices: npt.NDArray | None = None,
+        keys: Table | npt.NDArray | None = None,
     ) -> None:
         self.parent_column = parent_column  # parent Column
         self.parent_table = parent_column.info.parent_table
@@ -323,7 +324,7 @@ class ColumnGroups(BaseGroups):
         self._keys = keys
 
     @property
-    def indices(self) -> np.ndarray:
+    def indices(self) -> npt.NDArray:
         # If the parent column is in a table then use group indices from table
         if self.parent_table is not None:
             return self.parent_table.groups.indices
@@ -338,14 +339,14 @@ class ColumnGroups(BaseGroups):
                 return self._indices
 
     @property
-    def keys(self) -> Table | np.ndarray | None:
+    def keys(self) -> Table | npt.NDArray | None:
         # If the parent column is in a table then use group indices from table
         if self.parent_table is not None:
             return self.parent_table.groups.keys
         else:
             return self._keys
 
-    def _find_group_mask(self, key: Any) -> np.ndarray:
+    def _find_group_mask(self, key: Any) -> npt.NDArray:
         from .table import Table
 
         # The keys are a Table if the column is in a grouped table or if it was
@@ -429,8 +430,8 @@ class TableGroups(BaseGroups):
     def __init__(
         self,
         parent_table: Table,
-        indices: np.ndarray | None = None,
-        keys: Table | np.ndarray | None = None,
+        indices: npt.NDArray | None = None,
+        keys: Table | npt.NDArray | None = None,
     ) -> None:
         self.parent_table = parent_table  # parent Table
         self._indices = indices
@@ -451,7 +452,7 @@ class TableGroups(BaseGroups):
         return self.keys.colnames if grouped_by_table_cols else ()
 
     @property
-    def indices(self) -> np.ndarray:
+    def indices(self) -> npt.NDArray:
         if self._indices is None:
             # No explicit groups have been defined so default to a single group if
             # the table has any rows, otherwise return an empty array of indices to
@@ -535,8 +536,8 @@ class TableGroups(BaseGroups):
         return self[mask]
 
     @property
-    def keys(self) -> Table | np.ndarray | None:
+    def keys(self) -> Table | npt.NDArray | None:
         return self._keys
 
-    def _find_group_mask(self, key: Any) -> np.ndarray:
+    def _find_group_mask(self, key: Any) -> npt.NDArray:
         return _find_table_keys_mask(self.keys, key)

@@ -6,13 +6,14 @@ from numbers import Integral
 from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
+import numpy.typing as npt
 
 if TYPE_CHECKING:
     from .table import Column, Table
 
 
 def _searchsorted(
-    array: Column | np.ndarray | Sequence[Any],
+    array: Column | npt.NDArray | Sequence[Any],
     val,
     side: Literal["left", "right"] = "left",
 ) -> int | np.integer:
@@ -87,7 +88,7 @@ class SortedArray:
         self.data.insert_row(pos, key)
         self.row_index = self.row_index.insert(pos, row)
 
-    def _get_key_slice(self, i: int, begin: int, end: int) -> Column | np.ndarray:
+    def _get_key_slice(self, i: int, begin: int, end: int) -> Column | npt.NDArray:
         """
         Retrieve the ith slice of the sorted array
         from begin to end.
@@ -333,7 +334,7 @@ class SortedArray:
         """
         return self.row_index
 
-    def __getitem__(self, item: slice | np.ndarray) -> SortedArray:
+    def __getitem__(self, item: slice | npt.NDArray) -> SortedArray:
         """
         Return a sliced reference to this sorted array.
 

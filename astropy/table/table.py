@@ -276,12 +276,12 @@ class TableColumns(OrderedDict):
     @overload
     def __getitem__(self, item: str) -> ColumnLike: ...
     @overload
-    def __getitem__(self, item: int | np.integer | np.ndarray) -> ColumnLike: ...
+    def __getitem__(self, item: int | np.integer | npt.NDArray) -> ColumnLike: ...
     @overload
     def __getitem__(self, item: tuple | slice) -> Self: ...
 
     def __getitem__(
-        self, item: str | int | np.integer | np.ndarray | tuple | slice
+        self, item: str | int | np.integer | npt.NDArray | tuple | slice
     ) -> ColumnLike | Self:
         """Get items from a TableColumns object.
 
@@ -687,7 +687,7 @@ class Table:
 
     def as_array(
         self, keep_byteorder: bool = False, names: Iterable[str] | None = None
-    ) -> np.ndarray | ma.MaskedArray:
+    ) -> npt.NDArray | ma.MaskedArray:
         """
         Return a new copy of the table in the form of a structured np.ndarray or
         np.ma.MaskedArray object (as appropriate).
@@ -1049,7 +1049,7 @@ class Table:
         self.mask[:] = val
 
     @property
-    def _mask(self) -> np.ndarray:
+    def _mask(self) -> npt.NDArray:
         """This is needed so that comparison of a masked Table and a
         MaskedArray works.  The requirement comes from numpy.ma.core
         so don't remove this property.
@@ -1227,7 +1227,7 @@ class Table:
 
     def __array__(
         self, dtype: npt.DTypeLike | None = None, copy: bool | None = None
-    ) -> np.ndarray:
+    ) -> npt.NDArray:
         """Support converting Table to np.array via np.array(table).
 
         Coercion to a different dtype via np.array(table, dtype) is not
@@ -1521,7 +1521,7 @@ class Table:
 
     def _init_from_ndarray(
         self,
-        data: np.ndarray,
+        data: npt.NDArray,
         names: Sequence[str | None],
         dtype: Sequence[npt.DTypeLike],
         n_cols: int,
@@ -1617,7 +1617,7 @@ class Table:
                 else:
                     index_dict[names] = index
 
-    def _new_from_slice(self, slice_: slice | np.ndarray | list | tuple) -> Self:
+    def _new_from_slice(self, slice_: slice | npt.NDArray | list | tuple) -> Self:
         """Create a new table as a referenced slice from self."""
         table = self.__class__(masked=self.masked)
         if self.meta:
@@ -2207,10 +2207,10 @@ class Table:
     @overload
     def __getitem__(self, item: int | np.integer) -> Row: ...
     @overload
-    def __getitem__(self, item: slice | list | tuple | np.ndarray) -> Self: ...
+    def __getitem__(self, item: slice | list | tuple | npt.NDArray) -> Self: ...
 
     def __getitem__(
-        self, item: str | int | np.integer | slice | list | tuple | np.ndarray
+        self, item: str | int | np.integer | slice | list | tuple | npt.NDArray
     ) -> ColumnLike | Row | Self:
         if isinstance(item, str):
             return self.columns[item]
@@ -2246,7 +2246,7 @@ class Table:
 
     def __setitem__(
         self,
-        item: str | int | np.integer | slice | list | tuple | np.ndarray,
+        item: str | int | np.integer | slice | list | tuple | npt.NDArray,
         value,
     ) -> None:
         # If the item is a string then it must be the name of a column.
@@ -2301,7 +2301,7 @@ class Table:
                 raise ValueError(f"Illegal type {type(item)} for table item access")
 
     def __delitem__(
-        self, item: str | int | np.integer | slice | list | tuple | np.ndarray
+        self, item: str | int | np.integer | slice | list | tuple | npt.NDArray
     ) -> None:
         if isinstance(item, str):
             self.remove_column(item)
@@ -2324,7 +2324,7 @@ class Table:
         return self.colnames
 
     def field(
-        self, item: str | int | np.integer | np.ndarray | tuple | slice
+        self, item: str | int | np.integer | npt.NDArray | tuple | slice
     ) -> ColumnLike | TableColumns:
         """Return column[item] for recarray compatibility."""
         return self.columns[item]
@@ -2868,7 +2868,7 @@ class Table:
         self.remove_rows(index)
 
     def remove_rows(
-        self, row_specifier: int | np.integer | slice | Sequence[int] | np.ndarray
+        self, row_specifier: int | np.integer | slice | Sequence[int] | npt.NDArray
     ) -> None:
         """
         Remove rows from the table.
@@ -3716,7 +3716,7 @@ class Table:
         keys: str | Sequence[str] | None = None,
         kind: SortKind | None = None,
         reverse: bool = False,
-    ) -> np.ndarray:
+    ) -> npt.NDArray:
         """
         Return the indices which would sort the table according to one or
         more key columns.
@@ -4004,10 +4004,10 @@ class Table:
     def __copy__(self) -> Self:
         return self.copy(False)
 
-    def __eq__(self, other: object) -> np.ndarray | bool:
+    def __eq__(self, other: object) -> npt.NDArray | bool:
         return self._rows_equal(other)
 
-    def __ne__(self, other: object) -> np.ndarray | bool:
+    def __ne__(self, other: object) -> npt.NDArray | bool:
         eq = self.__eq__(other)
         if isinstance(eq, bool):
             # bitwise operators on bool values not reliable (e.g. `bool(~True) == True`)
@@ -4017,7 +4017,7 @@ class Table:
         else:
             return ~eq
 
-    def _rows_equal(self, other: TableLike) -> np.ndarray | bool:
+    def _rows_equal(self, other: TableLike) -> npt.NDArray | bool:
         """
         Row-wise comparison of table with any other object.
 
@@ -4166,7 +4166,7 @@ class Table:
         return self._groups
 
     def group_by(
-        self, keys: str | list[str] | tuple[str, ...] | np.ndarray | Table
+        self, keys: str | list[str] | tuple[str, ...] | npt.NDArray | Table
     ) -> Self:
         """
         Group this table by the specified ``keys``.

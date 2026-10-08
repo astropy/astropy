@@ -40,7 +40,7 @@ class NdarrayMixin(np.ndarray):
             self.info = obj.info
         return self
 
-    def __array_finalize__(self, obj: np.ndarray | None) -> None:
+    def __array_finalize__(self, obj: npt.NDArray | None) -> None:
         if obj is None:
             return
 
