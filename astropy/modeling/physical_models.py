@@ -13,11 +13,6 @@ from astropy import units as u
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
-if HAS_SCIPY:
-    from scipy.integrate import quad
-else:
-    quad = None
-
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
 
@@ -369,10 +364,12 @@ class CutoffBlackBody(BlackBody):
         if np.all(zero_temperature) or np.all(beta == 0):
             return super().bolometric_flux
 
-        if not HAS_SCIPY:
+        if not HAS_SCIPY:  # pragma: no cover
             raise ModuleNotFoundError(
                 "Bolometric flux integration requires scipy."
             )
+
+        from scipy.integrate import quad
 
         # change of variables to x = h*c/(lambda*k_B*T) = h*nu/(k_B*T)
         with np.errstate(divide="ignore", invalid="ignore"):
