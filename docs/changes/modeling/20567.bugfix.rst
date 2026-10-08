@@ -1,0 +1,4 @@
+Fixed ``CompoundModel.evaluate`` splitting the parameters between the left
+and right models by the number of parameter values instead of the number of
+parameters, which raised a ``TypeError`` for compound models with
+array-valued parameters or model sets.

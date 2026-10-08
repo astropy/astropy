@@ -943,6 +943,49 @@ def test_compound_evaluate_or():
     )
 
 
+@pytest.mark.parametrize(
+    ("compound", "x"),
+    [
+        (
+            Const1D(np.ones((3, 4)))
+            + Gaussian1D(np.ones((3, 4)), np.zeros((3, 4)), np.ones((3, 4))),
+            np.linspace(-1, 1, 5)[:, None, None],
+        ),
+        (
+            Const1D([1.0, 2.0], n_models=2)
+            + Gaussian1D([1.0, 1.0], [0.0, 0.0], [1.0, 1.0], n_models=2),
+            np.linspace(-1, 1, 5)[:, None],
+        ),
+        (
+            Const1D(np.ones(3)) & Shift(np.ones(3)),
+            np.linspace(-1, 1, 5)[:, None],
+        ),
+    ],
+)
+def test_compound_evaluate_array_parameters(compound, x):
+    """
+    Test that compound evaluate splits the parameters between the left and
+    right models by parameter name when the parameter values are arrays
+    (regression test for gh-20554)
+    """
+    params = [getattr(compound, name).value for name in compound.param_names]
+    n_left = len(compound.left.param_names)
+    if compound.op == "&":
+        inputs = (x, x)
+        expected = (
+            compound.left.evaluate(x, *params[:n_left]),
+            compound.right.evaluate(x, *params[n_left:]),
+        )
+    else:
+        inputs = (x,)
+        expected = compound.left.evaluate(
+            x, *params[:n_left]
+        ) + compound.right.evaluate(x, *params[n_left:])
+
+    assert_allclose(compound.evaluate(*inputs, *params), expected)
+    assert compound.n_left_params == n_left
+
+
 def test_compound_evaluate_fix_inputs_by_keyword():
     """
     Tests that compound evaluate function produces the same
