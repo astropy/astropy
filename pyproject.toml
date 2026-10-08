@@ -154,6 +154,8 @@ docs = [
     "matplotlib!=3.9.0",  # https://github.com/matplotlib/matplotlib/issues/28234
     "dask[dataframe]>=2024.8.0", # keep in sync with dependency-groups.dataframe
     "fsspec[http,s3]>=2023.4.0",  # keep in sync with dependency-groups.dataframe
+    "pydata-sphinx-theme>=0.23.0rc0",
+    "sunpy-sphinx-theme@git+https://github.com/sunpy/sunpy-sphinx-theme",
 ]
 
 [project.urls]
