@@ -365,15 +365,13 @@ class CutoffBlackBody(BlackBody):
             return super().bolometric_flux
 
         if not HAS_SCIPY:  # pragma: no cover
-            raise ModuleNotFoundError(
-                "Bolometric flux integration requires scipy."
-            )
+            raise ModuleNotFoundError("Bolometric flux integration requires scipy.")
 
         from scipy.integrate import quad
 
         # change of variables to x = h*c/(lambda*k_B*T) = h*nu/(k_B*T)
         with np.errstate(divide="ignore", invalid="ignore"):
-            x_cutoff = (const.h * const.c / (cutoff * const.k_B * temperature))
+            x_cutoff = const.h * const.c / (cutoff * const.k_B * temperature)
             x_cutoff = x_cutoff.to_value(u.dimensionless_unscaled)
 
         def bolometric_correction(xc, index):
@@ -382,7 +380,7 @@ class CutoffBlackBody(BlackBody):
 
             def removed_flux_integrand(x):
                 with np.errstate(over="ignore"):
-                    return x**3 / np.expm1(x) * (1.0 - (xc / x)**index)
+                    return x**3 / np.expm1(x) * (1.0 - (xc / x) ** index)
 
             removed_flux = quad(removed_flux_integrand, xc, np.inf)[0]
             return 1.0 - 15.0 / np.pi**4 * removed_flux
