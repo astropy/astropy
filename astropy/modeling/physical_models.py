@@ -10,7 +10,13 @@ import numpy as np
 
 from astropy import constants as const
 from astropy import units as u
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
+
+if HAS_SCIPY:
+    from scipy.integrate import quad
+else:
+    quad = None
 
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
@@ -358,8 +364,37 @@ class CutoffBlackBody(BlackBody):
         temperature = self.temperature.quantity
         zero_temperature = temperature.to_value(u.K) == 0
 
-        return NotImplemented
+        beta = self.beta.value
 
+        if np.all(zero_temperature) or np.all(beta == 0):
+            return super().bolometric_flux
+
+        if not HAS_SCIPY:
+            raise ModuleNotFoundError(
+                "Bolometric flux integration requires scipy."
+            )
+
+        # change of variables to x = h*c/(lambda*k_B*T) = h*nu/(k_B*T)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            x_cutoff = (const.h * const.c / (cutoff * const.k_B * temperature))
+            x_cutoff = x_cutoff.to_value(u.dimensionless_unscaled)
+
+        def bolometric_correction(xc, index):
+            if not np.isfinite(xc) or index == 0:
+                return 1.0
+
+            def removed_flux_integrand(x):
+                with np.errstate(over="ignore"):
+                    return x**3 / np.expm1(x) * (1.0 - (xc / x)**index)
+
+            removed_flux = quad(removed_flux_integrand, xc, np.inf)[0]
+            return 1.0 - 15.0 / np.pi**4 * removed_flux
+
+        bol_corr_vec = np.vectorize(bolometric_correction, otypes=[float])
+        correction = bol_corr_vec(x_cutoff, beta)
+
+        return super().bolometric_flux * correction
+ 
 
 class Drude1D(Fittable1DModel):
     """
