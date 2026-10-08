@@ -232,11 +232,41 @@ def test_cutoff_blackbody_evaluate():
     assert_quantity_allclose(cutoff_bb(frequency), cutoff_bb(2000 * u.AA))
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_cutoff_blackbody_bolometric_flux():
+    cutoff_bb = CutoffBlackBody(
+        temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2
+    )
+    assert_quantity_allclose(
+        cutoff_bb.bolometric_flux,
+        1.6191176238154042e8 * u.W / u.m**2,
+    )
+
+    bb = BlackBody(temperature=10000 * u.K)
+    cutoff_bb.beta = 0
+    assert_quantity_allclose(cutoff_bb.bolometric_flux, bb.bolometric_flux)
+
+
+def test_cutoff_blackbody_bolometric_flux_without_scipy(monkeypatch):
+    cutoff_bb = CutoffBlackBody(
+        temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2
+    )
+    monkeypatch.setattr("astropy.modeling.physical_models.HAS_SCIPY", False)
+
+    with pytest.raises(
+        ModuleNotFoundError,
+        match=r"CutoffBlackBody\.bolometric_flux requires scipy",
+    ):
+        cutoff_bb.bolometric_flux
+
+
 def test_cutoff_blackbody_invalid_cutoff():
     cutoff_bb = CutoffBlackBody(cutoff=0 * u.AA)
 
     with pytest.raises(ValueError, match="Cutoff wavelength should be positive"):
         cutoff_bb(5000 * u.AA)
+    with pytest.raises(ValueError, match="Cutoff wavelength should be positive"):
+        cutoff_bb.bolometric_flux
 
 
 @pytest.mark.parametrize("mass", (2.0000000000000e15 * u.M_sun, 3.976819741e45 * u.kg))

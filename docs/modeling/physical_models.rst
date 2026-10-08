@@ -100,7 +100,8 @@ ultraviolet line blanketing in supernova spectra.  The model is
 In addition to the ``temperature`` and ``scale`` parameters inherited from
 :class:`~astropy.modeling.physical_models.BlackBody`, the model has the
 ``cutoff`` wavelength and the non-negative power-law index ``beta``.  Setting
-``beta=0`` recovers an ordinary blackbody.
+``beta=0`` recovers an ordinary blackbody.  Computing ``bolometric_flux`` for a
+cutoff blackbody requires SciPy.
 
 This power-law cutoff form was introduced to describe ultraviolet suppression in
 hydrogen-poor superluminous supernovae (`Yan et al. 2018
