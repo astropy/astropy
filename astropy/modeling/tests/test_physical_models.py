@@ -234,9 +234,7 @@ def test_cutoff_blackbody_evaluate():
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_cutoff_blackbody_bolometric_flux():
-    cutoff_bb = CutoffBlackBody(
-        temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2
-    )
+    cutoff_bb = CutoffBlackBody(temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2)
     assert_quantity_allclose(
         cutoff_bb.bolometric_flux,
         1.6191176238154042e8 * u.W / u.m**2,
@@ -248,13 +246,12 @@ def test_cutoff_blackbody_bolometric_flux():
 
 
 def test_cutoff_blackbody_bolometric_flux_without_scipy(monkeypatch):
-    cutoff_bb = CutoffBlackBody(
-        temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2
-    )
+    cutoff_bb = CutoffBlackBody(temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2)
     monkeypatch.setattr("astropy.modeling.physical_models.HAS_SCIPY", False)
 
     with pytest.raises(
-        ModuleNotFoundError, match="Bolometric flux integration requires scipy",
+        ModuleNotFoundError,
+        match="Bolometric flux integration requires scipy",
     ):
         cutoff_bb.bolometric_flux
 
