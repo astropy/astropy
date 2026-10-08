@@ -394,7 +394,7 @@ class CutoffBlackBody(BlackBody):
         correction = bol_corr_vec(x_cutoff, beta)
 
         return super().bolometric_flux * correction
- 
+
 
 class Drude1D(Fittable1DModel):
     """
