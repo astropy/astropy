@@ -254,8 +254,7 @@ def test_cutoff_blackbody_bolometric_flux_without_scipy(monkeypatch):
     monkeypatch.setattr("astropy.modeling.physical_models.HAS_SCIPY", False)
 
     with pytest.raises(
-        ModuleNotFoundError,
-        match=r"CutoffBlackBody\.bolometric_flux requires scipy",
+        ModuleNotFoundError, match="Bolometric flux integration requires scipy",
     ):
         cutoff_bb.bolometric_flux
 
