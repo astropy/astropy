@@ -231,6 +231,11 @@ def test_cutoff_blackbody_evaluate():
     frequency = (2000 * u.AA).to(u.Hz, equivalencies=u.spectral())
     assert_quantity_allclose(cutoff_bb(frequency), cutoff_bb(2000 * u.AA))
 
+    np.testing.assert_allclose(
+        cutoff_bb.evaluate(frequency.value, 10000, 1, 3000, 2),
+        cutoff_bb(frequency).value,
+    )
+
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_cutoff_blackbody_bolometric_flux():
