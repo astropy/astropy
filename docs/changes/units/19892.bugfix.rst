@@ -1,0 +1,3 @@
+Initializing a ``Quantity`` from a logarithmic quantity whose function unit has a
+non-default scale (e.g. ``Magnitude(5.0 * u.m, 2 * u.mag)``) now correctly raises
+``UnitTypeError`` instead of silently producing a nonsensical unit.
