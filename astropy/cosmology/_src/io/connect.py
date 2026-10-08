@@ -86,7 +86,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
     ) -> None:
         super().__init__(instance, cosmo_cls, "read", registry=readwrite_registry)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> "astropy.cosmology.Cosmology":
+    def __call__(self, *args, **kwargs) -> "astropy.cosmology.Cosmology":
         from astropy.cosmology._src.core import Cosmology
 
         # so subclasses can override, also pass the class as a kwarg.
@@ -145,7 +145,7 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
     ) -> None:
         super().__init__(instance, cls, "write", registry=readwrite_registry)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> None:
+    def __call__(self, *args, **kwargs) -> None:
         self.registry.write(self._instance, *args, **kwargs)
 
 
@@ -216,55 +216,55 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     def __call__(
         self,
         obj: _CosmoT,
-        *args: Any,
+        *args,
         format: Literal["astropy.cosmology"] | None,
-        **kwargs: Any,
+        **kwargs,
     ) -> _CosmoT: ...
 
     @overload
     def __call__(
         self,
         obj: "astropy.cosmology._src.io.builtin.model._CosmologyModel",
-        *args: Any,
+        *args,
         format: Literal["astropy.model"] | None,
-        **kwargs: Any,
+        **kwargs,
     ) -> "astropy.cosmology.Cosmology": ...
 
     @overload
     def __call__(
-        self, obj: Row, *args: Any, format: Literal["astropy.row"] | None, **kwargs: Any
+        self, obj: Row, *args, format: Literal["astropy.row"] | None, **kwargs
     ) -> "astropy.cosmology.Cosmology": ...
 
     @overload
     def __call__(
         self,
         obj: Table,
-        *args: Any,
+        *args,
         format: Literal["astropy.table"] | None,
-        **kwargs: Any,
+        **kwargs,
     ) -> "astropy.cosmology.Cosmology": ...
 
     @overload
     def __call__(
         self,
         obj: Mapping[str, Any],
-        *args: Any,
+        *args,
         format: Literal["mapping"] | None,
-        **kwargs: Any,
+        **kwargs,
     ) -> "astropy.cosmology.Cosmology": ...
 
     @overload
     def __call__(
-        self, obj: str, *args: Any, format: Literal["yaml"], **kwargs: Any
+        self, obj: str, *args, format: Literal["yaml"], **kwargs
     ) -> "astropy.cosmology.Cosmology": ...
 
     @overload
     def __call__(
-        self, obj: Any, *args: Any, format: str | None = None, **kwargs: Any
+        self, obj, *args, format: str | None = None, **kwargs
     ) -> "astropy.cosmology.Cosmology": ...
 
     def __call__(
-        self, obj: Any, *args: Any, format: str | None = None, **kwargs: Any
+        self, obj, *args, format: str | None = None, **kwargs
     ) -> "astropy.cosmology.Cosmology":
         from astropy.cosmology._src.core import Cosmology
 
@@ -331,39 +331,35 @@ class CosmologyToFormat(io_registry.UnifiedReadWrite):
 
     @overload
     def __call__(
-        self, format: Literal["astropy.cosmology"], *args: Any, **kwargs: Any
+        self, format: Literal["astropy.cosmology"], *args, **kwargs
     ) -> "astropy.cosmology.Cosmology": ...
 
     @overload
     def __call__(
-        self, format: Literal["astropy.model"], *args: Any, **kwargs: Any
+        self, format: Literal["astropy.model"], *args, **kwargs
     ) -> "astropy.cosmology._src.io.builtin.model._CosmologyModel": ...
 
     @overload
-    def __call__(
-        self, format: Literal["astropy.row"], *args: Any, **kwargs: Any
-    ) -> Row: ...
+    def __call__(self, format: Literal["astropy.row"], *args, **kwargs) -> Row: ...
 
     @overload
-    def __call__(
-        self, format: Literal["astropy.table"], *args: Any, **kwargs: Any
-    ) -> Table: ...
+    def __call__(self, format: Literal["astropy.table"], *args, **kwargs) -> Table: ...
 
     @overload  # specific mapping option, where the mapping class is specified.
     def __call__(
-        self, format: Literal["mapping"], *args: Any, cls: _MT, **kwargs: Any
+        self, format: Literal["mapping"], *args, cls: _MT, **kwargs
     ) -> _MT: ...
 
     @overload
     def __call__(
-        self, format: Literal["mapping"], *args: Any, **kwargs: Any
+        self, format: Literal["mapping"], *args, **kwargs
     ) -> dict[str, Any]: ...
 
     @overload
-    def __call__(self, format: Literal["yaml"], *args: Any, **kwargs: Any) -> str: ...
+    def __call__(self, format: Literal["yaml"], *args, **kwargs) -> str: ...
 
     @overload
-    def __call__(self, format: str, *args: Any, **kwargs: Any) -> Any: ...
+    def __call__(self, format: str, *args, **kwargs): ...
 
-    def __call__(self, format: str, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, format: str, *args, **kwargs):
         return self.registry.write(self._instance, None, *args, format=format, **kwargs)

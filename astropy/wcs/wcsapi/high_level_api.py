@@ -162,7 +162,7 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
 
 
 def high_level_objects_to_values(
-    *world_objects: Any, low_level_wcs: _WorldAxisMetadata
+    *world_objects, low_level_wcs: _WorldAxisMetadata
 ) -> list[float | int | np.ndarray]:
     """
     Convert the input high level object to low level values.

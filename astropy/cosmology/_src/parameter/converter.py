@@ -73,8 +73,8 @@ def _register_validator(
 def validate_with_unit(
     cosmology: "astropy.cosmology.Cosmology",
     param: "astropy.cosmology.Parameter",
-    value: Any,
-) -> Any:
+    value,
+):
     """Default Parameter value validator.
 
     Adds/converts units if Parameter has a unit.
@@ -89,7 +89,7 @@ def validate_with_unit(
 def validate_to_float(
     cosmology: "astropy.cosmology.Cosmology",
     param: "astropy.cosmology.Parameter",
-    value: Any,
+    value,
 ) -> float:
     """Parameter value validator with units, and converted to float."""
     value = validate_with_unit(cosmology, param, value)
@@ -100,7 +100,7 @@ def validate_to_float(
 def validate_to_scalar(
     cosmology: "astropy.cosmology.Cosmology",
     param: "astropy.cosmology.Parameter",
-    value: Any,
+    value,
 ) -> NDArray:
     """Parameter value validator where value is a scalar."""
     value = validate_with_unit(cosmology, param, value)
@@ -113,7 +113,7 @@ def validate_to_scalar(
 def validate_non_negative(
     cosmology: "astropy.cosmology.Cosmology",
     param: "astropy.cosmology.Parameter",
-    value: Any,
+    value,
 ) -> float:
     """Parameter value validator where value is a positive float."""
     value = validate_to_float(cosmology, param, value)
