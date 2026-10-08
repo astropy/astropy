@@ -4,13 +4,16 @@ from __future__ import annotations
 import itertools
 import warnings
 import weakref
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Literal, Self
 
 import numpy as np
+import numpy.typing as npt
 from numpy import ma
 
-from astropy.units import Quantity, StructuredUnit, Unit
+from astropy.units import Quantity, StructuredUnit, Unit, UnitBase
+from astropy.units.typing import UnitLike
 from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
@@ -22,16 +25,9 @@ from . import groups, pprint
 
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
 from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
+from ._typing import ColumnFormat, ColumnLike, DataLike
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Mapping, Sequence
-
-    import numpy.typing as npt
-
-    from astropy.units import UnitBase
-    from astropy.units.typing import UnitLike
-
-    from ._typing import ColumnFormat, ColumnLike, DataLike
     from .table import Table
 
 # Create a generic TableFormatter object for use by bare columns with no

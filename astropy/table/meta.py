@@ -4,16 +4,14 @@ import copy
 import json
 import textwrap
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Any
+from collections.abc import Iterable, Iterator
+from typing import Any
 
 import numpy as np
 import yaml
 
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator
-
-    from ._typing import ColumnLike
-    from .table import Table
+from ._typing import ColumnLike
+from .table import Table
 
 __all__ = ["get_header_from_yaml", "get_yaml_from_header", "get_yaml_from_table"]
 

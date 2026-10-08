@@ -2,19 +2,18 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
 import numpy as np
 
 from astropy.utils.exceptions import AstropyUserWarning
 
+from ._typing import ColumnLike
 from .index import get_index_by_names
 from .row import Row
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from ._typing import ColumnLike
     from .table import Table
 
 __all__ = ["ColumnGroups", "TableGroups"]

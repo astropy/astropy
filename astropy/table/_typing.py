@@ -3,7 +3,7 @@
 
 This module is private.  The aliases defined here are an implementation detail
 of the annotations in `astropy.table` and are not part of the public API.  They
-are meant to be imported inside an ``if TYPE_CHECKING:`` block.
+are safe to import at runtime because ``type`` statements are evaluated lazily.
 """
 
 __all__ = [
@@ -15,11 +15,10 @@ __all__ = [
     "TableLike",
 ]
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from .column import Column, MaskedColumn
 
 type ColumnLike = Column | MaskedColumn | Any

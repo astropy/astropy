@@ -1,14 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self
+from typing import Any, Self
 
 import numpy as np
+import numpy.typing as npt
 
 from astropy.utils.data_info import ParentDtypeInfo
-
-if TYPE_CHECKING:
-    import numpy.typing as npt
 
 
 class NdarrayMixinInfo(ParentDtypeInfo):

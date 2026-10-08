@@ -6,10 +6,9 @@ with Jupyter notebooks.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 
-if TYPE_CHECKING:
-    from .table import Table
+from .table import Table
 
 __all__ = ["classic", "ipydatagrid"]
 

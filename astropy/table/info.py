@@ -8,6 +8,7 @@ import os
 
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import sys
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from typing import IO, TYPE_CHECKING, Any, Literal
 
@@ -15,10 +16,9 @@ import numpy as np
 
 from astropy.utils.data_info import DataInfo
 
-if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
+from ._typing import ColumnLike
 
-    from ._typing import ColumnLike
+if TYPE_CHECKING:
     from .table import Table
 
 __all__ = ["TableInfo", "serialize_method_as", "table_info"]

@@ -206,22 +206,21 @@ reordering of indices - c[1:2] -> reference - array.view(Column) -> no indices
 
 from __future__ import annotations
 
+from collections.abc import Hashable, Iterable, Mapping, Sequence
 from copy import deepcopy
+from numbers import Integral
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, Literal, Protocol, Self, runtime_checkable
 
 import numpy as np
 
 from astropy.utils.decorators import deprecated
 
+from ._typing import ColumnLike
 from .sorted_array import SortedArray
 
 if TYPE_CHECKING:
-    from collections.abc import Hashable, Iterable, Mapping, Sequence
-    from numbers import Integral
-    from types import TracebackType
-
     from . import Column, QTable, Table
-    from ._typing import ColumnLike
 
 
 ENGINE_CLS_DEFAULT = SortedArray

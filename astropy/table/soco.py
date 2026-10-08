@@ -10,15 +10,13 @@ from __future__ import annotations
 from collections import OrderedDict
 from collections.abc import Hashable, Mapping, Sequence
 from numbers import Integral
-from typing import TYPE_CHECKING
 
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 
 if HAS_SORTEDCONTAINERS:
     from sortedcontainers import SortedList
 
-if TYPE_CHECKING:
-    from .table import Column, Table
+from .table import Column, Table
 
 
 class Node:

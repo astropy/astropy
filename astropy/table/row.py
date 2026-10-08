@@ -3,16 +3,14 @@ from __future__ import annotations
 
 import collections
 from collections import OrderedDict
+from collections.abc import Iterator, KeysView, MutableMapping
 from operator import index as operator_index
 from typing import TYPE_CHECKING, Any, SupportsIndex
 
 import numpy as np
+import numpy.typing as npt
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, KeysView, MutableMapping
-
-    import numpy.typing as npt
-
     from .table import Table, TableColumns
 
 

@@ -3,22 +3,19 @@ from __future__ import annotations
 
 import itertools
 from collections import OrderedDict
+from collections.abc import ValuesView
 from copy import deepcopy
 from importlib import import_module
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 
 from astropy.units.quantity import QuantityInfo, preserve_dtype_by_default
 from astropy.utils.data_info import MixinInfo
 
+from ._typing import ColumnLike
 from .column import Column, MaskedColumn
 from .table import QTable, Table, has_info_class
-
-if TYPE_CHECKING:
-    from collections.abc import ValuesView
-
-    from ._typing import ColumnLike
 
 # TODO: some of this might be better done programmatically, through
 # code like

@@ -14,7 +14,7 @@ import collections
 import itertools
 import warnings
 from collections import Counter, OrderedDict
-from collections.abc import Sequence
+from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -26,23 +26,20 @@ from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 from astropy.utils.masked import Masked
 
 from . import _np_utils
+from ._typing import ColumnLike, TableLike
 from .table import Column, MaskedColumn, QTable, Row, Table
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
-
     from astropy.coordinates import SkyCoord
 
-    from ._typing import ColumnLike, TableLike
+type JoinType = Literal["inner", "outer", "left", "right", "cartesian"]
+"""Join type accepted by `join`."""
 
-    type JoinType = Literal["inner", "outer", "left", "right", "cartesian"]
-    """Join type accepted by `join`."""
+type StackJoinType = Literal["inner", "exact", "outer"]
+"""Join type accepted by `vstack`, `hstack` and `dstack`."""
 
-    type StackJoinType = Literal["inner", "exact", "outer"]
-    """Join type accepted by `vstack`, `hstack` and `dstack`."""
-
-    type MetadataConflicts = Literal["warn", "error", "silent"]
-    """How `~astropy.utils.metadata.merge` reports conflicting meta keys."""
+type MetadataConflicts = Literal["warn", "error", "silent"]
+"""How `~astropy.utils.metadata.merge` reports conflicting meta keys."""
 
 __all__ = [
     "hstack",

@@ -5,6 +5,7 @@ import fnmatch
 import os
 import re
 import sys
+from collections.abc import Callable, Iterable, Iterator
 from shutil import get_terminal_size
 from typing import TYPE_CHECKING, Any
 
@@ -14,10 +15,9 @@ from astropy import log, table
 from astropy.utils.console import Getch, color_print, conf
 from astropy.utils.data_info import dtype_info_name
 
-if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Iterator
+from ._typing import ColumnFormat, ColumnLike
 
-    from ._typing import ColumnFormat, ColumnLike
+if TYPE_CHECKING:
     from .table import Table
 
 __all__ = []

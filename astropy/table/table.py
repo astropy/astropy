@@ -7,18 +7,31 @@ import types
 import warnings
 import weakref
 from collections import OrderedDict, defaultdict
-from collections.abc import Mapping
+from collections.abc import (
+    Callable,
+    Collection,
+    ItemsView,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+    ValuesView,
+)
+from contextlib import AbstractContextManager
 from copy import deepcopy
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self, overload
+from types import TracebackType
+from typing import Any, Literal, Self, overload
 
 import numpy as np
+import numpy.typing as npt
 from numpy import ma
 
 from astropy import log
 from astropy.io.registry import UnifiedReadWriteMethod
 from astropy.units import Quantity, QuantityInfo
 from astropy.units.quantity import preserve_dtype_by_default
+from astropy.units.typing import UnitLike
 from astropy.utils import deprecated
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, DataInfo, MixinInfo
@@ -28,6 +41,7 @@ from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaAttribute, MetaData
 
 from . import conf, groups
+from ._typing import ColumnLike, DataLike, RowsLike, SortKind, TableLike
 from .column import (
     BaseColumn,
     Column,
@@ -38,6 +52,7 @@ from .column import (
     col_copy,
 )
 from .connect import TableRead, TableWrite
+from .groups import TableGroups
 from .index import (
     Index,
     SlicedIndex,
@@ -53,26 +68,6 @@ from .mixins.registry import get_mixin_handler
 from .ndarray_mixin import NdarrayMixin  # noqa: F401
 from .pprint import TableFormatter
 from .row import Row
-
-if TYPE_CHECKING:
-    from collections.abc import (
-        Callable,
-        Collection,
-        ItemsView,
-        Iterable,
-        Iterator,
-        Sequence,
-        ValuesView,
-    )
-    from contextlib import AbstractContextManager
-    from types import TracebackType
-
-    import numpy.typing as npt
-
-    from astropy.units.typing import UnitLike
-
-    from ._typing import ColumnLike, DataLike, RowsLike, SortKind, TableLike
-    from .groups import TableGroups
 
 _implementation_notes = """
 This string has informal notes concerning Table implementation for developers.

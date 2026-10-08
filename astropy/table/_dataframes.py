@@ -14,23 +14,21 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, NewType
 
 import numpy as np
+import numpy.typing as npt
 
+from astropy.units.typing import UnitLike
 from astropy.utils.compat.optional_deps import HAS_NARWHALS, HAS_PANDAS
 
 from .column import Column, MaskedColumn
+from .table import Table
 
 __all__ = ["from_df", "from_pandas", "to_df", "to_pandas"]
 
 if TYPE_CHECKING:
-    import numpy.typing as npt
     from narwhals import Implementation
     from narwhals.typing import EagerAllowed, IntoBackend
     from pandas import DataFrame
     from pandas.arrays import IntegerArray
-
-    from astropy.units.typing import UnitLike
-
-    from .table import Table
 
 # Sentinel value to indicate pandas-like backend validation
 PandasLikeSentinel = NewType("PandasLikeSentinel", object)  # Custom type

@@ -10,18 +10,16 @@ from __future__ import annotations
 import string
 import warnings
 from itertools import cycle
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 from astropy.io.votable.table import parse
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.data_info import ParentDtypeInfo
 
 from .table import Column, Table
-
-if TYPE_CHECKING:
-    import numpy.typing as npt
 
 
 def simple_table(
