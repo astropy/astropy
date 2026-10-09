@@ -317,10 +317,16 @@ class _UnifiedIORegistryBase:
         valid_formats = []
         for data_format, data_class in self._identifiers:
             if self._is_best_match(data_class_required, data_class, self._identifiers):
-                if self._identifiers[(data_format, data_class)](
-                    origin, path, fileobj, *args, **kwargs
-                ):
-                    valid_formats.append(data_format)
+                identify_func = self._identifiers[(data_format, data_class)]
+                try:
+                    if identify_func(origin, path, fileobj, *args, **kwargs):
+                        valid_formats.append(data_format)
+                except Exception as e:
+                    raise RuntimeError(
+                        f"Unexpected exception identifying format {data_format!r} "
+                        f"in function {identify_func.__name__!r}.\n\n"
+                        "Try specifying the file format using the 'format' argument to avoid this error."
+                    ) from e
 
         return valid_formats
 
