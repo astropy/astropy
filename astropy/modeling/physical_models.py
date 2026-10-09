@@ -386,7 +386,7 @@ class CutoffBlackBody(BlackBody):
             return 1.0 - 15.0 / np.pi**4 * removed_flux
 
         bol_corr_vec = np.vectorize(bolometric_correction, otypes=[float])
-        correction = bol_corr_vec(x_cutoff, beta)
+        correction = np.clip(bol_corr_vec(x_cutoff, beta), 0.0, 1.0)
 
         return super().bolometric_flux * correction
 
