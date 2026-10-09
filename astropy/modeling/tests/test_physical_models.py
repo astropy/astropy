@@ -237,6 +237,9 @@ def test_cutoff_blackbody_evaluate():
         cutoff_bb(frequency).value,
     )
 
+    cutoff_bb.cutoff = 0 * u.AA
+    assert_quantity_allclose(cutoff_bb(2000 * u.AA), bb(2000 * u.AA))
+
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_cutoff_blackbody_bolometric_flux():
@@ -248,6 +251,10 @@ def test_cutoff_blackbody_bolometric_flux():
 
     bb = BlackBody(temperature=10000 * u.K)
     cutoff_bb.beta = 0
+    assert_quantity_allclose(cutoff_bb.bolometric_flux, bb.bolometric_flux)
+
+    cutoff_bb.beta = 2
+    cutoff_bb.cutoff = 0 * u.AA
     assert_quantity_allclose(cutoff_bb.bolometric_flux, bb.bolometric_flux)
 
 
@@ -338,11 +345,11 @@ def test_cutoff_blackbody_bolometric_flux_without_scipy(monkeypatch):
 
 
 def test_cutoff_blackbody_invalid_cutoff():
-    cutoff_bb = CutoffBlackBody(cutoff=0 * u.AA)
+    cutoff_bb = CutoffBlackBody(cutoff=-1 * u.AA)
 
-    with pytest.raises(ValueError, match="Cutoff wavelength should be positive"):
+    with pytest.raises(ValueError, match="Cutoff wavelength should be non-negative"):
         cutoff_bb(5000 * u.AA)
-    with pytest.raises(ValueError, match="Cutoff wavelength should be positive"):
+    with pytest.raises(ValueError, match="Cutoff wavelength should be non-negative"):
         cutoff_bb.bolometric_flux
 
 
