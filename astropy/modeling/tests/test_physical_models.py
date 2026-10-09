@@ -279,7 +279,7 @@ def test_cutoff_blackbody_bolometric_flux_wavelength_integration(
         if wavelength_ratio == 0:
             return 0.0
         with np.errstate(over="ignore"):
-            planck = wavelength_ratio ** -5 / np.expm1(a / wavelength_ratio)
+            planck = wavelength_ratio**-5 / np.expm1(a / wavelength_ratio)
         suppression = wavelength_ratio**beta if wavelength_ratio < 1 else 1.0
         return planck * suppression
 
@@ -296,19 +296,13 @@ def test_cutoff_blackbody_bolometric_flux_wavelength_integration(
 def test_cutoff_blackbody_bolometric_flux_limits():
     """Test the expected behavior for negligible and nearly complete cutoffs."""
     blackbody = BlackBody(temperature=10000 * u.K)
-    small_cutoff = CutoffBlackBody(
-        temperature=10000 * u.K, cutoff=1e-6 * u.AA, beta=2
-    )
-    large_cutoff = CutoffBlackBody(
-        temperature=10000 * u.K, cutoff=1e12 * u.AA, beta=2
-    )
+    small_cutoff = CutoffBlackBody(temperature=10000 * u.K, cutoff=1e-6 * u.AA, beta=2)
+    large_cutoff = CutoffBlackBody(temperature=10000 * u.K, cutoff=1e12 * u.AA, beta=2)
 
     assert_quantity_allclose(
         small_cutoff.bolometric_flux, blackbody.bolometric_flux, rtol=1e-10
     )
-    large_correction = (
-        large_cutoff.bolometric_flux / blackbody.bolometric_flux
-    ).value
+    large_correction = (large_cutoff.bolometric_flux / blackbody.bolometric_flux).value
     assert 0 <= large_correction < 1e-12
 
 

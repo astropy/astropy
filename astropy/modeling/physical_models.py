@@ -339,7 +339,7 @@ class CutoffBlackBody(BlackBody):
         with np.errstate(divide="ignore", invalid="ignore"):
             pl_values = (wavelength / cutoff_wavelength).to_value(
                 u.dimensionless_unscaled
-            )**beta
+            ) ** beta
         suppression = np.where(wavelength < cutoff_wavelength, pl_values, 1.0)
 
         return y * suppression
