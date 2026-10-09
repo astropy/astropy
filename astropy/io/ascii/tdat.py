@@ -5,6 +5,7 @@ not meant to be used directly, but instead are available as readers/writers in
 
 :Author: Daniel Giles (daniel.k.giles@gmail.com)
          Abdu Zoghbi
+         James Runge
 
 """
 
@@ -14,6 +15,7 @@ from warnings import warn
 
 import numpy as np
 
+from astropy.io.votable import ucd
 from astropy.utils.exceptions import AstropyWarning
 
 from . import basic, core
@@ -175,7 +177,7 @@ class TdatHeader(basic.BasicHeader):
         "Data Format Specification",
     ]
     # keywords in the header: name = value
-    _keys = r"(?P<key>\w+)\s*=\s*(?P<value>.*?)(\s*(#|//)(?P<comment>.*$)|(\s*$))"
+    _keys = r"(?P<key>\w+)\s*=\s*(?P<value>.*?)(\s*(#|(?<!:)//)(?P<comment>.*$)|(\s*$))"
     # keywords in the header: name[text] = some_other_text;
     # names: relate|line
     _extra_keys = r"\s*(relate|line)\[(\w+)\]\s*=\s*([\w\s]+)(?:\((\w+)\))?"
@@ -343,31 +345,14 @@ class TdatHeader(basic.BasicHeader):
         """Initialize the header Column objects from TDAT field lines
         READ: Overrides default get_cols
         """
-        col_parser = re.compile(
-            r"""
-            \s*field
-            \[(?P<name>\w+)\]\s*=\s*
-            (?P<ctype>[^\W\s_]+(\(\d+\))?)
-            (?:\:(?P<fmt>[^_\s\[\(/#]+))?
-            (?:_(?P<unit>[^\[\(#]+))?\s*
-            (?:\[(?P<ucd>[\w\.\;]+)\])?
-            \s*
-            (?:\((?P<index>\w+)\))?
-            \s*
-            (?:(//|\#)\s*(?P<desc>[^/#]*))?
-            (?:(//|\#)\s*(?P<comment>.*))?
-            \s*
-            """,
-            re.VERBOSE,
-        )
-
         cols = {}
         keywords = getattr(self, "_keywords", {})
         for line in self.process_lines(lines):
             # look for field[..]= ... column definitions
-            cmatch = col_parser.match(line)
+            cmatch = re.match(r"\s*field\[(.+?)\]\s*=\s*(.+)\s*", line)
             if cmatch:
-                name = cmatch.group("name")
+                name = cmatch.group(1)
+                definition = cmatch.group(2)
                 if len(name) > 24:
                     warn(
                         "The field name must be shorter than 24 characters.",
@@ -376,36 +361,121 @@ class TdatHeader(basic.BasicHeader):
                 col = core.Column(name=name)
                 col.meta = {}
 
-                ctype = cmatch.group("ctype")
-                if ctype in self._dtype_dict_in:
-                    col.dtype = self._dtype_dict_in[ctype]
-                elif "char" in ctype:
-                    col.dtype = str
-                else:
-                    raise TdatFormatError(
-                        f"Unrecognized or unsupported data type {ctype} for {col.name}."
-                    )
-                col.unit = cmatch.group("unit")
-                col.format = cmatch.group("fmt")
-                if len(str(ctype) + str(col.format)) > 23:
-                    # max 24 characters with ":" separator
-                    raise TdatFormatError(
-                        "The type:fmt specifier has a\
-                        maximum length of 24 characters. The offending line is:\
-                            \n{line}\n"
-                        + _STD_MSG
-                    )
-                col.description = f"{cmatch.group('desc')}".strip()
-                for val in ["comment", "ucd", "index"]:
-                    if cmatch.group(val) is not None:
-                        text = cmatch.group(val).strip()
-                        if (val == "comment") and (len(text) > 80):
+                # Work backwards
+                # Description and comments
+                parts = definition.split("//")
+                if len(parts) > 1:
+                    definition = parts[0].strip()
+                    description = parts[1].strip()
+                    if len(description) > 80:
+                        warn(
+                            TdatFormatWarning(
+                                "Descriptions are limited to 80 characters or less, truncating."
+                            )
+                        )
+                    col.description = description[:80]
+                    if len(parts) > 2:
+                        comment = parts[2].strip()
+                        if len(comment) > 80:
                             warn(
                                 TdatFormatWarning(
                                     "Comments are limited to 80 characters or less, truncating."
                                 )
                             )
-                        col.meta[val] = text[:80]
+                        col.meta["comment"] = comment[:80]
+
+                # Flags
+                flag_match = list(re.finditer(r" \((.*?)\)", definition))
+                if flag_match:
+                    flag = flag_match[0].group(1)
+                    if len(flag_match) > 1:
+                        raise TdatFormatError(
+                            f"{col.name} has multiple flags (index/key are mutually exclusive)."
+                        )
+                    elif flag not in ["index", "key"]:
+                        raise TdatFormatError(
+                            f"{col.name} has flag '({flag})' which is neither 'index' nor 'key'."
+                        )
+                    col.meta["flag"] = flag
+                    definition = definition[: flag_match[0].start()].strip()
+
+                # UCD validation
+                ucd_match = re.search(r"\[(.+?)\]", definition)
+                if ucd_match:
+                    ucd_text = ucd_match.group(1)
+                    definition = definition[: ucd_match.start()].strip()
+                    if len(ucd_text) > 120:
+                        raise TdatFormatError(
+                            f"The UCD of {col.name}: '{ucd_text}' exceeds 120 characters. \
+                            The offending line is:\
+                                \n{line}\n"
+                        )
+                    try:
+                        parts = ucd.parse_ucd(
+                            ucd_text, check_controlled_vocabulary=True
+                        )
+                    except Exception as e:
+                        raise TdatFormatError(
+                            f"Validation of the UCD for '{col.name}' failed with the following error: {e}"
+                        )
+                    col.meta["ucd"] = ucd_text
+
+                # Extract type, format, and unit
+                # Pattern: type[:fmt][_unit]
+                type_parts = definition.split()
+                if type_parts:
+                    type_str = type_parts[0]
+
+                    # Split by underscore for unit
+                    if "_" in type_str:
+                        type_str, unit = type_str.rsplit("_", 1)
+                        if len(unit) > 80:
+                            warn(
+                                TdatFormatWarning(
+                                    "Units are limited to 80 characters or less, truncating."
+                                )
+                            )
+                        col.unit = unit[:80]
+
+                    # Split by colon for format
+                    if ":" in type_str:
+                        type_name, fmt = type_str.split(":", 1)
+                        ctype = type_name
+                        col.format = fmt
+                    else:
+                        ctype = type_str
+                        col.format = None
+
+                    # Check type
+                    if ctype in self._dtype_dict_in:
+                        col.dtype = self._dtype_dict_in[ctype]
+                    elif match := re.search(r"^char\(?(\d+)\)?$", ctype):
+                        col.dtype = str
+                        # Special case for char, grab number and format
+                        # Format can be anything but don't want to set col.format
+                        char_len = match.group(1)
+                        if not (1 <= int(char_len) <= 9999):
+                            raise TdatFormatError(
+                                f"The character string length must be in the range of 1 to 9999: '{col.name}' has length '{char_len}'."
+                            )
+                        col.meta["char_len"] = char_len
+                        col.meta["char_fmt"] = col.format
+                        col.format = None
+                    else:
+                        raise TdatFormatError(
+                            f"Unrecognized or unsupported data type '{ctype}' for '{col.name}'."
+                        )
+
+                    # Check length of type:fmt
+                    if len(str(ctype) + str(col.format)) > 23:
+                        # max 24 characters with ":" separator
+                        raise TdatFormatError(
+                            "The type:fmt specifier has a\
+                            maximum length of 24 characters. The offending line is:\
+                                \n{line}\n"
+                            + _STD_MSG
+                        )
+
                 cols[col.name] = col
 
         self.names = [
@@ -513,6 +583,7 @@ class TdatHeader(basic.BasicHeader):
         lines.append("# Table Parameters")
         lines.append("#")
         for col in self.cols:
+            col_info_meta = col.info.meta or {}
             if str(col_type := col.info.dtype) in self._dtype_dict_out:
                 ctype = self._dtype_dict_out[str(col_type)]
             elif col_type.kind == "i":
@@ -520,7 +591,10 @@ class TdatHeader(basic.BasicHeader):
             elif col_type.kind == "f":
                 ctype = "float8"
             elif col_type.kind == "U":
-                ctype = f"char{col_type.itemsize // 4}"
+                if "char_len" in col_info_meta:
+                    ctype = f"char{col_info_meta['char_len']}"
+                else:
+                    ctype = f"char{col_type.itemsize // 4}"
             else:
                 raise TdatFormatError(
                     f'Unrecognized data type `{col_type}` for column "{col.info.name}".'
@@ -534,15 +608,16 @@ class TdatHeader(basic.BasicHeader):
                 col_name = col_name[:23]
             field_line = f"field[{col_name}] = {ctype}"
 
-            col_info_meta = col.info.meta or {}
             if col.info.format is not None:
                 field_line += f":{col.info.format}"
+            if "char_fmt" in col_info_meta and "char" in ctype:
+                field_line += f":{col_info_meta['char_fmt']}"
             if col.info.unit is not None:
                 field_line += f"_{col.info.unit:cds}"
             if "ucd" in col_info_meta:
                 field_line += f" [{col_info_meta['ucd']}]"
-            if "index" in col_info_meta:
-                field_line += f" ({col_info_meta['index']})"
+            if "flag" in col_info_meta:
+                field_line += f" ({col_info_meta['flag']})"
             elif (indices != []) and (col.info.name == indices[0]):
                 field_line += " (key)"
             elif col.info.name in indices:
@@ -699,8 +774,8 @@ class TdatOutputter(core.TableOutputter):
                     setattr(out_col, attr, getattr(col, attr))
             if hasattr(col, "meta"):
                 out_col.meta.update(col.meta)
-                if "index" in col.meta:
-                    if col.meta["index"] == "key":
+                if "flag" in col.meta:
+                    if col.meta["flag"] == "key":
                         indices.insert(0, col.name)
                     else:
                         indices.append(col.name)
