@@ -7,10 +7,12 @@ from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
+from .hubble import _HasH0overH
+
 __all__ = ("MatterComponent",)
 
 
-class MatterComponent:
+class MatterComponent(_HasH0overH):
     """The cosmology has attributes and methods for the matter density."""
 
     Om0: float | np.floating
