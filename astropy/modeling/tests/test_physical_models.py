@@ -236,6 +236,16 @@ def test_cutoff_blackbody_evaluate():
         cutoff_bb.evaluate(frequency.value, 10000, 1, 3000, 2),
         cutoff_bb(frequency).value,
     )
+    assert_quantity_allclose(
+        cutoff_bb.evaluate(
+            2000 * u.AA,
+            10000 * u.K,
+            1,
+            3000 * u.AA,
+            2 * u.dimensionless_unscaled,
+        ),
+        cutoff_bb(2000 * u.AA),
+    )
 
     cutoff_bb.cutoff = 0 * u.AA
     assert_quantity_allclose(cutoff_bb(2000 * u.AA), bb(2000 * u.AA))
@@ -306,6 +316,18 @@ def test_cutoff_blackbody_bolometric_flux_limits():
     assert 0 <= large_correction < 1e-12
 
 
+def test_cutoff_blackbody_bolometric_flux_zero_temperature_and_beta():
+    """Test zero-temperature and mixed zero-beta array parameters."""
+    model = CutoffBlackBody(
+        temperature=np.array([0, 10000]) * u.K,
+        cutoff=np.array([3000, 3000]) * u.AA,
+        beta=np.array([2, 0]),
+    )
+    expected = BlackBody(temperature=model.temperature.quantity).bolometric_flux
+
+    assert_quantity_allclose(model.bolometric_flux, expected)
+
+
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_cutoff_blackbody_bolometric_flux_broadcasting_and_units():
     """Test broadcasted parameters and equivalent cutoff wavelength units."""
@@ -325,6 +347,15 @@ def test_cutoff_blackbody_bolometric_flux_broadcasting_and_units():
             beta=model.beta[index],
         )
         assert_quantity_allclose(flux[index], scalar_model.bolometric_flux)
+
+
+def test_cutoff_blackbody_parameter_units():
+    model = CutoffBlackBody()
+
+    parameter_units = model._parameter_units_for_data_units(
+        {"x": u.Hz}, {"y": u.erg / (u.cm**2 * u.s * u.Hz * u.sr)}
+    )
+    assert parameter_units["cutoff"] == u.AA
 
 
 def test_cutoff_blackbody_bolometric_flux_without_scipy(monkeypatch):
