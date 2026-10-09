@@ -1,0 +1,4 @@
+Reading a VOTable grows its result arrays in place, instead of copying the
+whole table each time they fill up and once more at the end. This lowers the
+peak memory needed to read a large table by up to the size of the table, and
+makes reading about 15% faster.
