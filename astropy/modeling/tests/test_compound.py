@@ -1313,3 +1313,29 @@ def test_fit_compound_polynomial2d():
 
     # We just make sure the fitting works, as it previously crashed
     fit_p(p_init, x, y, z)
+
+
+def test_n_left_params_array_parameters():
+    """
+    Regression test for issue #20554: CompoundModel.n_left_params counted
+    parameter *values* (via left.parameters), so array-valued parameters or
+    model sets inflated it and evaluate() mis-split its arguments.
+    """
+    model = Const1D(np.ones((3, 4))) + Gaussian1D(
+        np.ones((3, 4)), np.zeros((3, 4)), np.ones((3, 4))
+    )
+    assert model.n_left_params == len(model.left.param_names) == 1
+
+    x = np.linspace(-1, 1, 5)
+    params = [getattr(model, name).value for name in model.param_names]
+    out = model.evaluate(x[:, None, None], *params)
+    assert_allclose(out, model(x[:, None, None]))
+
+    # A model set (n_models > 1) has multidimensional parameter values too
+    model_set = Const1D([1.0, 2.0], n_models=2) + Gaussian1D(
+        [1.0, 1.0], [0.0, 0.0], [1.0, 1.0], n_models=2
+    )
+    assert model_set.n_left_params == len(model_set.left.param_names) == 1
+    params = [getattr(model_set, name).value for name in model_set.param_names]
+    out = model_set.evaluate(x[:, None], *params)
+    assert np.isfinite(out).all()
