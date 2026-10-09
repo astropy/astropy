@@ -19,8 +19,9 @@ from astropy.io.votable.exceptions import (
     W54,
     W57,
 )
-from astropy.io.votable.table import parse
+from astropy.io.votable.table import parse, parse_single_table
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
+from astropy.table import Table
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -708,3 +709,25 @@ def test_votablefile_write(tmp_path):
 
     # format kwarg should be accepted and ignored for API compatibility
     vot.write(str(out), format="votable")
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_read_table_longer_than_first_allocation(tabledata_format):
+    """
+    Test that parse on 1000-row table written in each serialization gives back
+    every value and mask.
+
+    Reading starts with room for 512 rows, so this grows the result arrays and
+    then trims them to the number of rows read.
+    """
+    values = np.ma.array(np.arange(1000.0), mask=np.arange(1000) % 7 == 0)
+    buffer = io.BytesIO()
+    Table({"a": values}).write(
+        buffer, format="votable", tabledata_format=tabledata_format
+    )
+    buffer.seek(0)
+
+    column = parse_single_table(buffer).array["a"]
+
+    assert np.array_equal(column.mask, values.mask)
+    assert np.array_equal(column.filled(-1), values.filled(-1))
