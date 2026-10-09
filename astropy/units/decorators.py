@@ -1,8 +1,12 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__ = ["quantity_input"]
+__all__ = [
+    "quantity_input",
+    "quantity_overload",
+]
 
 import contextlib
+import functools
 import inspect
 import typing as T
 from collections.abc import Sequence
@@ -345,3 +349,153 @@ class QuantityInput:
 
 
 quantity_input = QuantityInput.as_decorator
+
+
+def quantity_overload(
+    function: None | T.Callable = None,
+    equivalencies: None | list = None,
+) -> T.Callable:
+    r"""
+    A decorator which allows functions designed to operate on
+    instances of :class:`numpy.ndarray` to accept instances of
+    :class:`~astropy.units.Quantity` instead.
+
+    Unit specifications must be provided using function annotation syntax,
+    similar to the :deco:`quantity_input` decorator.
+    A `~astropy.units.UnitConversionError` will be raised if the unit attribute of
+    the argument is not equivalent to the unit specified in the annotation.
+
+    Notes
+    -----
+    The motivation for this decorator is to allow the :class:`~numpy.ufunc` instances
+    created by :func:`numba.vectorize` to be unit-aware and convert the
+    inputs/outputs to the appropriate units.
+    This allows the user to take advantage of Numba's just-in-time
+    compiler and accelerate numerically-intensive calculations while still being
+    able to convert and validate the units of the inputs/outputs.
+
+    Examples
+    --------
+    Create an accelerated version of the
+    `grating equation <https://en.wikipedia.org/wiki/Diffraction_grating#Theory_of_operation>`_
+    for normally-incident light.
+
+    .. code-block:: python
+
+        import math
+        import numpy as np
+        import numba
+        import astropy.units as u
+
+        @u.quantity_overload
+        @numba.vectorize
+        def grating_equation(
+            m: float | np.ndarray | u.Quantity[u.one],
+            wavelength: u.Quantity[u.um],
+            d: u.Quantity[u.um],
+        ) -> u.Quantity[u.rad]:
+            return math.asin(m * wavelength / d)
+
+    You can also specify equivalencies by passing an argument into the decorator.
+    For example, if you wanted to be able to specify the wavelength in terms
+    of length units or energy units, we can use the :func:`spectral` equivalency.
+
+    .. code-block:: python
+
+        import math
+        import numpy as np
+        import numba
+        import astropy.units as u
+
+        @u.quantity_ufunc_overload(equivalencies=u.spectral())
+        @numba.vectorize
+        def grating_equation(
+            m: float | np.ndarray | u.Quantity[u.one],
+            wavelength: u.Quantity[u.um],
+            d: u.Quantity[u.um],
+        ) -> u.Quantity[u.rad]:
+            return math.asin(m * wavelength / d)
+
+    """
+    eq = equivalencies
+
+    def decorator(func):
+        signature = inspect.signature(func)
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            arguments = signature.bind(*args, **kwargs).arguments
+
+            args_new = []
+            kwargs_new = {}
+
+            for name in arguments:
+                param = signature.parameters[name]
+                argument = arguments[name]
+
+                if param.kind is inspect.Parameter.VAR_POSITIONAL:
+                    args_new.extend(argument)
+                    continue
+
+                if param.kind is inspect.Parameter.VAR_KEYWORD:
+                    kwargs_new = kwargs_new | argument
+                    continue
+
+                unit = _parse_annotation(param.annotation)
+
+                if unit:
+                    if isinstance(unit, T.Sequence):
+                        unit = [un for un in unit if un]
+                        if len(unit) == 1:
+                            unit = unit[0]
+                        else:
+                            raise TypeError(
+                                f"Only one unit specification allowed, got {unit}."
+                            )
+
+                    try:
+                        value = argument.to_value(unit, equivalencies=eq)
+                    except AttributeError:
+                        value = (argument << unit).to_value(
+                            dimensionless_unscaled, equivalencies=eq
+                        )
+
+                else:
+                    if hasattr(argument, "unit"):
+                        value = argument.to_value(
+                            dimensionless_unscaled, equivalencies=eq
+                        )
+                    else:
+                        value = argument
+
+                if param.kind is inspect.Parameter.KEYWORD_ONLY:
+                    kwargs_new[name] = value
+                else:
+                    args_new.append(value)
+
+            result = func(*args_new, **kwargs_new)
+
+            return_annotation = signature.return_annotation
+
+            units_out = _parse_annotation(return_annotation)
+
+            if units_out:
+                result = result << units_out
+            else:
+                cls = T.get_origin(return_annotation)
+                if issubclass(cls, T.Sequence):
+                    units_out = [
+                        _parse_annotation(t) for t in T.get_args(return_annotation)
+                    ]
+                    result = cls(
+                        r << unit if unit else r for r, unit in zip(result, units_out)
+                    )
+
+            return result
+
+        return wrapper
+
+    if function is not None:
+        decorator = decorator(function)
+
+    return decorator

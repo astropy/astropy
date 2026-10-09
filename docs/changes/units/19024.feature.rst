@@ -1,0 +1,3 @@
+Added ``@units.quantity_overload`` decorator which allows instances of
+`~astropy.units.Quantity` to be used with functions designed to use instances
+of `numpy.ndarray`.
