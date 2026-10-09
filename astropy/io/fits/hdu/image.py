@@ -765,29 +765,6 @@ class _ImageBaseHDU(_ValidHDU):
         elif bitpix > 0:  # scale integers to Float32
             return np.dtype("float32")
 
-    def _convert_pseudo_integer(self, data):
-        """
-        Handle "pseudo-unsigned" integers, if the user requested it.  Returns
-        the converted data array if so; otherwise returns None.
-
-        In this case case, we don't need to handle BLANK to convert it to NAN,
-        since we can't do NaNs with integers, anyway, i.e. the user is
-        responsible for managing blanks.
-        """
-        dtype = self._dtype_for_bitpix()
-        # bool(dtype) is always False--have to explicitly compare to None; this
-        # caused a fair amount of hair loss
-        if dtype is not None and dtype.kind == "u":
-            # Convert the input raw data into an unsigned integer array and
-            # then scale the data adjusting for the value of BZERO.  Note that
-            # we subtract the value of BZERO instead of adding because of the
-            # way numpy converts the raw signed array into an unsigned array.
-            bits = dtype.itemsize * 8
-            data = np.array(data, dtype=dtype)
-            data -= np.uint64(1 << (bits - 1))
-
-            return data
-
     def _get_scaled_image_data(self, offset, shape):
         """
         Internal function for reading image data from a file and apply scale
@@ -818,50 +795,70 @@ class _ImageBaseHDU(_ValidHDU):
         except AttributeError:  # strict_memmap not set
             pass
 
-        data = None
-        if not (self._orig_bzero == 0 and self._orig_bscale == 1):
-            data = self._convert_pseudo_integer(raw_data)
+        # In these cases, we end up with floating-point arrays and have to
+        # apply bscale and bzero. We may have to handle BLANK and convert
+        # to NaN in the resulting floating-point arrays.
+        # The BLANK keyword should only be applied for integer data (this
+        # is checked in __init__ but it can't hurt to double check here)
+        blanks = None
 
-        if data is None:
-            # In these cases, we end up with floating-point arrays and have to
-            # apply bscale and bzero. We may have to handle BLANK and convert
-            # to NaN in the resulting floating-point arrays.
-            # The BLANK keyword should only be applied for integer data (this
-            # is checked in __init__ but it can't hurt to double check here)
-            blanks = None
+        if self._blank is not None and self._bitpix > 0:
+            blanks = raw_data.flat == self._blank
+            # The size of blanks in bytes is the number of elements in
+            # raw_data.flat.  However, if we use np.where instead we will
+            # only use 8 bytes for each index where the condition is true.
+            # So if the number of blank items is fewer than
+            # len(raw_data.flat) / 8, using np.where will use less memory
+            if blanks.sum() < len(blanks) / 8:
+                blanks = np.where(blanks)
 
-            if self._blank is not None and self._bitpix > 0:
-                blanks = raw_data.flat == self._blank
-                # The size of blanks in bytes is the number of elements in
-                # raw_data.flat.  However, if we use np.where instead we will
-                # only use 8 bytes for each index where the condition is true.
-                # So if the number of blank items is fewer than
-                # len(raw_data.flat) / 8, using np.where will use less memory
-                if blanks.sum() < len(blanks) / 8:
-                    blanks = np.where(blanks)
+        new_dtype = self._dtype_for_bitpix()
+        is_uint = False
 
-            new_dtype = self._dtype_for_bitpix()
-            if new_dtype is not None:
-                data = np.array(raw_data, dtype=new_dtype)
-            else:  # floating point cases
-                if self._file is not None and self._file.memmap:
-                    data = raw_data.copy()
-                elif not raw_data.flags.writeable:
-                    # create a writeable copy if needed
-                    data = raw_data.copy()
-                # if not memmap, use the space already in memory
-                else:
-                    data = raw_data
+        if new_dtype is not None:
+            data = np.array(raw_data, dtype=new_dtype)
+            if new_dtype.kind == "u":
+                # Handle "pseudo-unsigned" integers.
+                # Convert the input raw data into an unsigned integer array
+                # and then scale the data adjusting for the value of BZERO.
+                # Note that we subtract the value of BZERO instead of adding
+                # because of the way numpy converts the raw signed array into
+                # an unsigned array.
+                is_uint = True
+                bits = new_dtype.itemsize * 8
+                data -= np.uint64(1 << (bits - 1))
 
-            del raw_data
+                if self._blank is not None:
+                    # For BLANK we need to convert to output array to float,
+                    # using the same logic as _dtype_for_bitpix for the
+                    # integer case. Since there are two conversions here
+                    # (-> uint -> float) we cannot rely on _dtype_for_bitpix
+                    # for the second one. This could be improved.
+                    new_dtype = np.dtype(
+                        "float64" if self._orig_bitpix > 16 else "float32"
+                    )
+                    data = np.array(raw_data, dtype=new_dtype)
 
+        else:  # floating point cases
+            if self._file is not None and self._file.memmap:
+                data = raw_data.copy()
+            elif not raw_data.flags.writeable:
+                # create a writeable copy if needed
+                data = raw_data.copy()
+            # if not memmap, use the space already in memory
+            else:
+                data = raw_data
+
+        del raw_data
+
+        if not is_uint:
             if self._orig_bscale != 1:
                 np.multiply(data, self._orig_bscale, data)
             if self._orig_bzero != 0:
                 data += self._orig_bzero
 
-            if self._blank:
-                data.flat[blanks] = np.nan
+        if self._blank:
+            data.flat[blanks] = np.nan
 
         return data
 
@@ -1106,8 +1103,9 @@ class PrimaryHDU(_ImageBaseHDU):
 
         ignore_blank : bool, optional
             If `True`, the BLANK header keyword will be ignored if present.
-            Otherwise, pixels equal to this value will be replaced with
-            NaNs. (default: False)
+            Otherwise, integer data will be converted to float and pixels
+            originally equal to this value will be replaced with NaNs.
+            (default: False)
 
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
@@ -1192,6 +1190,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         name=None,
         do_not_scale_image_data=False,
         uint=True,
+        ignore_blank=False,
         scale_back=None,
         ver=None,
     ):
@@ -1214,6 +1213,12 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
         do_not_scale_image_data : bool, optional
             If `True`, image data is not scaled using BSCALE/BZERO values
             when read. (default: False)
+
+        ignore_blank : bool, optional
+            If `True`, the BLANK header keyword will be ignored if present.
+            Otherwise, integer data will be converted to float and pixels
+            originally equal to this value will be replaced with NaNs.
+            (default: False)
 
         uint : bool, optional
             Interpret signed integer data where ``BZERO`` is the
@@ -1246,6 +1251,7 @@ class ImageHDU(_ImageBaseHDU, ExtensionHDU):
             name=name,
             do_not_scale_image_data=do_not_scale_image_data,
             uint=uint,
+            ignore_blank=ignore_blank,
             scale_back=scale_back,
             ver=ver,
         )
