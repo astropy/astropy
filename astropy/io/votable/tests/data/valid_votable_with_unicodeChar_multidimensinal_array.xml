@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+    <RESOURCE name="myFavouriteGalaxies">
+        <COOSYS ID="sys" equinox="J2000" epoch="J2000" system="eq_FK5"/>
+        <TABLE name="results">
+            <DESCRIPTION>Velocities and Distance estimations</DESCRIPTION>
+            <FIELD name="xxx" ID="col6" ucd="pos.distance;pos.heliocentric"
+                   datatype="unicodeChar" arraysize="10*" unit="Mpc">
+                <DESCRIPTION>Distance of Galaxy, assuming H=75km/s/Mpc</DESCRIPTION>
+            </FIELD>
+            <FIELD name="vary_char_array" ID="col7" ucd="pos.distance;pos.heliocentric"
+                   datatype="unicodeChar" arraysize="5x4x*">
+                <DESCRIPTION>Char array of variable length</DESCRIPTION>
+            </FIELD>
+            <FIELD name="fix_char_array" ID="col8" ucd="pos.distance;pos.heliocentric"
+                   datatype="unicodeChar" arraysize="5x4x2">
+                <DESCRIPTION>Char array of fix length</DESCRIPTION>
+            </FIELD>
+            <FIELD name="fix_char_array_blanks" ID="col9" ucd="pos.distance;pos.heliocentric"
+                   datatype="unicodeChar" arraysize="5x4x2">
+                <DESCRIPTION>Char array of fix length</DESCRIPTION>
+            </FIELD>
+            <DATA>
+                <TABLEDATA>
+                    <TR>
+                        <TD>  αβγδε   </TD>
+                        <TD>áéíóúáéíóúúÁÉÍÓEspañαβγδε你好12309876abcde</TD>
+                        <TD>áéíóúáéíóúúÁÉÍÓEspañαβγδε你好12309876abcde</TD>
+                        <TD>áéíóú éíó  ÁÉÍ  spañ βγδ 你好12 09876abcde</TD>
+                    </TR>
+                </TABLEDATA>
+            </DATA>
+        </TABLE>
+    </RESOURCE>
+</VOTABLE>
