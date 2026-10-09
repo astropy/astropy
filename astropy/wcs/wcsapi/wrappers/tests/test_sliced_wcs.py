@@ -10,6 +10,7 @@ from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.time import Time
 from astropy.units import Quantity
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.tests.helpers import assert_celestial_component
 from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
@@ -56,14 +57,18 @@ WCS_SPECTRAL_CUBE.pixel_bounds = [(-1, 50), (-2, 60), (-5, 70)]
 
 
 def test_invalid_slices():
-    with pytest.raises(IndexError):
-        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, [False, False, False]])
+    with pytest.raises(IndexError, match="Only integer or range slices"):
+        SlicedLowLevelWCS(
+            WCS_SPECTRAL_CUBE, [slice(None), slice(None), [False, False, False]]
+        )
 
-    with pytest.raises(IndexError):
-        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, slice(None, None, 2)])
+    with pytest.raises(IndexError, match="step is not supported"):
+        SlicedLowLevelWCS(
+            WCS_SPECTRAL_CUBE, [slice(None), slice(None), slice(None, None, 2)]
+        )
 
-    with pytest.raises(IndexError):
-        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [None, None, 1000.100])
+    with pytest.raises(IndexError, match="Only integer or range slices"):
+        SlicedLowLevelWCS(WCS_SPECTRAL_CUBE, [slice(None), slice(None), 1000.100])
 
 
 @pytest.mark.parametrize(
@@ -75,7 +80,8 @@ def test_invalid_slices():
     ),
 )
 def test_sanitize_slice(item, ndim, expected):
-    new_item = sanitize_slices(item, ndim)
+    with pytest.warns(AstropyDeprecationWarning):
+        new_item = sanitize_slices(item, ndim)
     # FIXME: do we still need the first two since the third assert
     # should cover it all?
     assert len(new_item) == ndim
@@ -761,12 +767,68 @@ CASES = [
     (slice(2, None), 3, 5),
     (slice(None, 10), 3, 3),
     (slice(2, 10), 3, 5),
+    # Explicit steps of 1 are equivalent to no step
+    (slice(2, 10, 1), slice(3, 8, 1), slice(5, 10)),
+    (slice(None, None, 1), 3, 3),
 ]
 
 
 @pytest.mark.parametrize(("slice1", "slice2", "expected"), CASES)
 def test_combine_slices(slice1, slice2, expected):
     assert combine_slices(slice1, slice2) == expected
+
+
+@pytest.mark.parametrize(
+    ("negative", "positive"),
+    [
+        ((-1,), (29,)),
+        ((slice(None), -5), (slice(None), 15)),
+        ((slice(None), slice(None), -10), (slice(None), slice(None), 0)),
+        ((slice(-10, None),), (slice(20, None),)),
+        ((slice(-10, -2), slice(-15, -5)), (slice(20, 28), slice(5, 15))),
+        ((slice(None, -2), slice(3, -5)), (slice(None, 28), slice(3, 15))),
+        ((-3, slice(-15, None), slice(None, -4)), (27, slice(5, None), slice(None, 6))),
+    ],
+)
+def test_negative_indices(negative, positive):
+    # Regression test for a bug that caused negative values to not be
+    # interpreted relative to the end of each axis when the shape of the data
+    # is known.
+
+    wcs = WCS_SPECTRAL_CUBE.deepcopy()
+    wcs.array_shape = (30, 20, 10)
+
+    sub_negative = SlicedLowLevelWCS(wcs, negative)
+    sub_positive = SlicedLowLevelWCS(wcs, positive)
+    assert sub_negative.array_shape == sub_positive.array_shape
+    pixel = [1] * sub_negative.pixel_n_dim
+    world = sub_positive.pixel_to_world_values(*pixel)
+    assert_allclose(sub_negative.pixel_to_world_values(*pixel), world)
+    assert_allclose(sub_negative.world_to_pixel_values(*world), pixel)
+
+    # If the shape is not known, a negative integer or start cannot be
+    # interpreted, but a negative stop is fine since it only affects the
+    # (unknown) shape.
+    wcs.array_shape = None
+    if any((s if isinstance(s, int) else s.start or 0) < 0 for s in negative):
+        with pytest.raises(ValueError, match="size is not known"):
+            SlicedLowLevelWCS(wcs, negative)
+    else:
+        assert_allclose(
+            SlicedLowLevelWCS(wcs, negative).pixel_to_world_values(*pixel), world
+        )
+
+
+def test_negative_indices_nested():
+    # Negative values in nested slices are relative to the sliced WCS
+    wcs = WCS_SPECTRAL_CUBE.deepcopy()
+    wcs.array_shape = (30, 20, 10)
+    sub1 = SlicedLowLevelWCS(SlicedLowLevelWCS(wcs, slice(5, 25)), slice(-4, None))
+    sub2 = SlicedLowLevelWCS(wcs, slice(21, 25))
+    assert sub1.array_shape == sub2.array_shape == (4, 20, 10)
+    assert_allclose(
+        sub1.pixel_to_world_values(1, 2, 3), sub2.pixel_to_world_values(1, 2, 3)
+    )
 
 
 def test_nested_slicing():
@@ -927,7 +989,7 @@ def test_dropped_dimensions():
     assert isinstance(wao_classes["celestial"][2]["frame"], Galactic)
     assert wao_classes["celestial"][2]["unit"] == (u.deg, u.deg)
 
-    sub = SlicedLowLevelWCS(wcs, np.s_[5, :5, 12])
+    sub = SlicedLowLevelWCS(wcs, np.s_[5, :5, 7])
 
     dwd = sub.dropped_world_dimensions
     wao_classes = dwd.pop("world_axis_object_classes")
@@ -935,7 +997,7 @@ def test_dropped_dimensions():
     validate_info_dict(
         dwd,
         {
-            "value": [11.67648267, 21.01921192],
+            "value": [12.17644624, 21.01304306],
             "world_axis_physical_types": ["pos.galactic.lat", "pos.galactic.lon"],
             "world_axis_names": ["Latitude", "Longitude"],
             "world_axis_units": ["deg", "deg"],
