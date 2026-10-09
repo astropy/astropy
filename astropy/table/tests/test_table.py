@@ -2928,6 +2928,24 @@ def test_table_attribute_ecsv():
     assert t2.baz == "baz"
 
 
+@pytest.mark.parametrize(
+    "data",
+    [
+        pytest.param([np.nan], id="1-nan_no-number"),
+        pytest.param([np.nan, np.nan], id="2-nan_no-number"),
+        pytest.param([np.nan, 1.0, np.nan], id="2-nan_1-number"),
+    ],
+)
+def test_write_nans_mrt(data):
+    # see https://github.com/astropy/astropy/issues/17840
+    out = StringIO()
+    col = Column(data)
+    t1 = Table(data={"a": col})
+    t1.write(out, format="ascii.mrt")
+    t2 = Table.read(out.getvalue(), format="ascii.mrt")
+    np.testing.assert_array_equal(t2["a"], t1["a"])
+
+
 def test_table_attribute_fail():
     with pytest.raises(ValueError, match=".* not allowed as TableAttribute"):
 
