@@ -98,10 +98,10 @@ ultraviolet line blanketing in supernova spectra.  The model is
    \end{cases}
 
 In addition to the ``temperature`` and ``scale`` parameters inherited from
-:class:`~astropy.modeling.physical_models.BlackBody`, the model has the
-``cutoff`` wavelength and the non-negative power-law index ``beta``.  Setting
-``beta=0`` recovers an ordinary blackbody.  Computing ``bolometric_flux`` for a
-cutoff blackbody requires SciPy.
+:class:`~astropy.modeling.physical_models.BlackBody`, the model has a
+non-negative ``cutoff`` wavelength and power-law index ``beta``. Setting
+``cutoff=0`` and/or ``beta=0`` recovers an ordinary blackbody. Computing
+``bolometric_flux`` when both are nonzero requires SciPy.
 
 This power-law cutoff form was introduced to describe ultraviolet suppression in
 hydrogen-poor superluminous supernovae (`Yan et al. 2018

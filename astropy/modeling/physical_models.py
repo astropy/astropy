@@ -263,7 +263,8 @@ class CutoffBlackBody(BlackBody):
         `BlackBody`.
 
     cutoff : `~astropy.units.Quantity` ['length']
-        Wavelength below which the power-law suppression is applied.
+        Wavelength below which the power-law suppression is applied. Must be
+        non-negative. A value of zero is equivalent to `BlackBody`.
 
     beta : float
         Power-law index of the suppression below ``cutoff``. Must be
@@ -327,17 +328,18 @@ class CutoffBlackBody(BlackBody):
             wavelength = u.Quantity(in_x, u.AA, dtype=np.float64)
             cutoff_wavelength = u.Quantity(in_cutoff, u.AA)
 
-        if np.any(cutoff_wavelength <= 0 * u.AA):
+        if np.any(cutoff_wavelength < 0 * u.AA):
             raise ValueError(
-                f"Cutoff wavelength should be positive: {cutoff_wavelength}"
+                f"Cutoff wavelength should be non-negative: {cutoff_wavelength}"
             )
 
         if isinstance(beta, u.Quantity):
             beta = beta.to_value(u.dimensionless_unscaled)
 
-        pl_values = (wavelength / cutoff_wavelength).to_value(
-            u.dimensionless_unscaled
-        ) ** beta
+        with np.errstate(divide="ignore", invalid="ignore"):
+            pl_values = (wavelength / cutoff_wavelength).to_value(
+                u.dimensionless_unscaled
+            )**beta
         suppression = np.where(wavelength < cutoff_wavelength, pl_values, 1.0)
 
         return y * suppression
@@ -353,15 +355,15 @@ class CutoffBlackBody(BlackBody):
     def bolometric_flux(self):
         """Bolometric flux of the cutoff blackbody."""
         cutoff = self.cutoff.quantity
-        if np.any(cutoff <= 0 * u.AA):
-            raise ValueError(f"Cutoff wavelength should be positive: {cutoff}")
+        if np.any(cutoff < 0 * u.AA):
+            raise ValueError(f"Cutoff wavelength should be non-negative: {cutoff}")
 
         temperature = self.temperature.quantity
         zero_temperature = temperature.to_value(u.K) == 0
 
         beta = self.beta.value
 
-        if np.all(zero_temperature) or np.all(beta == 0):
+        if np.all(zero_temperature) or np.all((beta == 0) | (cutoff == 0 * u.AA)):
             return super().bolometric_flux
 
         if not HAS_SCIPY:  # pragma: no cover
