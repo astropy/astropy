@@ -1,0 +1,4 @@
+Tables stored as BINARY or BINARY2 inside a VOTable are read a column at a
+time when all their columns are scalar numbers, booleans, bits or strings,
+which is about six times faster. Tables with other columns, or with values
+that need a warning or error, are still read value by value.
