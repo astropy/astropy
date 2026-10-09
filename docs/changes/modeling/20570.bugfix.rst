@@ -1,0 +1,3 @@
+Fix ``CompoundModel.n_left_params`` counting flattened parameter values rather
+than parameters, which broke ``evaluate`` for compound models with
+array-valued parameters or model sets.
