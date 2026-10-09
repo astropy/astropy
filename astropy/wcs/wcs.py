@@ -3530,6 +3530,11 @@ reduce these to 2 dimensions using the naxis kwarg.
         y_tables = [t for t in (wcs_new.cpdis2, wcs_new.det2im2) if t is not None]
         distortion_tables = [*x_tables, *y_tables]
 
+        if self.pixel_bounds is None:
+            pixel_bounds = None
+        else:
+            pixel_bounds = list(self.pixel_bounds)
+
         for i, iview in enumerate(view):
             if iview.step is not None and iview.step < 0:
                 raise NotImplementedError("Reversing an axis is not implemented.")
@@ -3549,8 +3554,12 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             if iview.start is not None:
                 if iview.step not in (None, 1):
-                    crpix = self.wcs.crpix[wcs_index]
-                    cdelt = self.wcs.cdelt[wcs_index]
+                    # We need to get the values from the copy rather than the
+                    # original, since making the copy can cause the units to
+                    # be converted to SI, and cdelt needs to be in the same
+                    # units as in the WCS we are modifying.
+                    crpix = wcs_new.wcs.crpix[wcs_index]
+                    cdelt = wcs_new.wcs.cdelt[wcs_index]
                     # equivalently (keep this comment so you can compare eqns):
                     # wcs_new.wcs.crpix[wcs_index] =
                     # (crpix - iview.start)*iview.step + 0.5 - iview.step/2.
@@ -3575,13 +3584,32 @@ reduce these to 2 dimensions using the naxis kwarg.
                         # If we stride an x axis, for example, x distortions
                         # should be adjusted in magnitude
                         table.data /= iview.step
-                    wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
+                    # We set the whole array rather than a single element,
+                    # since the array returned by wcs.cdelt is read-only if
+                    # the original units are being preserved.
+                    cdelt_new = wcs_new.wcs.cdelt.copy()
+                    cdelt_new[wcs_index] = cdelt * iview.step
+                    wcs_new.wcs.cdelt = cdelt_new
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
                     if wcs_new.sip is not None:
                         sip_crpix[wcs_index] -= iview.start
                     for table in distortion_tables:
                         table.crval[wcs_index] -= iview.start
+
+            if (
+                pixel_bounds is not None
+                and pixel_bounds[wcs_index] is not None
+                and iview.start is not None
+            ):
+                # The bounds are in pixel coordinates so these need to be
+                # converted to the pixel coordinates of the sliced WCS, taking
+                # into account that pixel centers are at integer values.
+                step = iview.step or 1
+                pixel_bounds[wcs_index] = tuple(
+                    (bound - iview.start + 0.5) / step - 0.5
+                    for bound in pixel_bounds[wcs_index]
+                )
 
             try:
                 # range requires integers but the other attributes can also
@@ -3602,6 +3630,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             wcs_new.sip = Sip(
                 self.sip.a, self.sip.b, self.sip.ap, self.sip.bp, sip_crpix
             )
+
+        wcs_new.pixel_bounds = pixel_bounds
 
         return wcs_new
 
