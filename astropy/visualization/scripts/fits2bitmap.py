@@ -9,7 +9,7 @@ from astropy.visualization.mpl_normalize import simple_norm
 __all__ = ["fits2bitmap", "main"]
 
 
-def fits2bitmap(
+def fits2bitmap(  # ruff: ignore[PLR0917]
     filename,
     ext=0,
     out_fn=None,

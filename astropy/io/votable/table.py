@@ -28,7 +28,7 @@ __all__ = [
 ]
 
 
-def parse(
+def parse(  # ruff: ignore[PLR0917]
     source,
     columns=None,
     invalid="exception",
