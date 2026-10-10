@@ -1,0 +1,4 @@
+Opening a truncated or corrupt gzip-compressed FITS file with ``mode="update"``
+now raises an ``OSError``. Previously the file was opened without error, and
+closing it rewrote the file with only the HDUs that could be read, silently
+discarding the rest of its contents (or all of it, if no HDU could be read).

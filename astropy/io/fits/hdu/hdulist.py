@@ -12,7 +12,7 @@ from textwrap import indent
 import numpy as np
 
 from astropy.io.fits.file import FILE_MODES, _File
-from astropy.io.fits.header import _pad_length
+from astropy.io.fits.header import BLOCK_SIZE, _pad_length
 from astropy.io.fits.util import (
     _free_space_check,
     _get_array_mmap,
@@ -1271,6 +1271,20 @@ class HDUList(list, _Verify):
 
             raise OSError("Empty or corrupt FITS file")
 
+        if fileobj is not None and mode == "update" and fileobj.compression:
+            # Compressed files are rewritten from the HDUs in memory when they
+            # are flushed, so any part of the file that cannot be read would be
+            # silently lost (and a file that cannot be read at all emptied)
+            hdulist.readall()
+            if not hdulist._compressed_file_fully_read():
+                if fileobj.close_on_error:
+                    fileobj.close()
+
+                raise OSError(
+                    "Compressed FITS file is truncated or corrupt and cannot be "
+                    "opened in update mode without losing data"
+                )
+
         if not lazy_load_hdus or kwargs.get("checksum") is True:
             # Go ahead and load all HDUs
             while hdulist._read_next_hdu():
@@ -1386,6 +1400,34 @@ class HDUList(list, _Verify):
                 return False
         finally:
             self._in_read_next_hdu = False
+
+        return True
+
+    def _compressed_file_fully_read(self):
+        """
+        Check that the HDUs read from a compressed file account for all of its
+        decompressed contents, apart from any zero padding at the end.
+        """
+        fileobj = self._file
+        end = 0
+        if len(self) > 0:
+            last = self[-1]
+            if last._data_offset is not None:
+                end = last._data_offset + last._data_size
+
+        try:
+            fileobj.seek(end)
+            if fileobj.tell() < end:
+                # The data of the last HDU is cut short
+                return False
+
+            while block := fileobj.read(BLOCK_SIZE):
+                if block.strip(b"\0"):
+                    # Data that could not be read as an HDU
+                    return False
+        except EOFError:
+            # The compressed stream ends before its end-of-stream marker
+            return False
 
         return True
 
