@@ -1027,31 +1027,27 @@ reduce these to 2 dimensions using the naxis kwarg.
         tables = {}
         for i in range(1, self.naxis + 1):
             d_error = header.get(err_kw + str(i), 0.0)
-            if d_error < err:
-                tables[i] = None
-                continue
             distortion = dist + str(i)
             if distortion in header:
                 dis = header[distortion].lower()
                 if dis == "lookup":
                     del header[distortion]
+                    dp = (d_kw + str(i)).strip()
+                    d_extver = header.get(dp + ".EXTVER", 1)
+                    d_axis = header[dp + f".AXIS.{i:d}"]
+                    for key in set(header):
+                        if key.startswith(dp + "."):
+                            del header[key]
+                    if d_error < err:
+                        tables[i] = None
+                        continue
                     assert isinstance(fobj, fits.HDUList), (
                         "An astropy.io.fits.HDUList"
                         "is required for Lookup table distortion."
                     )
-                    dp = (d_kw + str(i)).strip()
-                    dp_extver_key = dp + ".EXTVER"
-                    if dp_extver_key in header:
-                        d_extver = header[dp_extver_key]
-                        del header[dp_extver_key]
-                    else:
-                        d_extver = 1
-                    dp_axis_key = dp + f".AXIS.{i:d}"
-                    if i == header[dp_axis_key]:
-                        d_data = fobj["D2IMARR", d_extver].data
-                    else:
-                        d_data = (fobj["D2IMARR", d_extver].data).transpose()
-                    del header[dp_axis_key]
+                    d_data = fobj["D2IMARR", d_extver].data
+                    if i != d_axis:
+                        d_data = d_data.transpose()
                     d_header = fobj["D2IMARR", d_extver].header
                     d_crpix = (d_header.get("CRPIX1", 0.0), d_header.get("CRPIX2", 0.0))
                     d_crval = (d_header.get("CRVAL1", 0.0), d_header.get("CRVAL2", 0.0))
@@ -1063,9 +1059,6 @@ reduce these to 2 dimensions using the naxis kwarg.
                         "Polynomial distortion is not implemented.\n",
                         AstropyUserWarning,
                     )
-                for key in set(header):
-                    if key.startswith(dp + "."):
-                        del header[key]
             else:
                 tables[i] = None
         if not tables:
@@ -1222,10 +1215,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             else:
                 d_error = 0.0
 
-            if d_error < err:
-                tables[i] = None
-                continue
-
             distortion = dist + axis_key_suffix
 
             if distortion in header:
@@ -1233,31 +1222,29 @@ reduce these to 2 dimensions using the naxis kwarg.
                 del header[distortion]
 
                 if dis == "lookup":
+                    # Read and remove the DPja/DQia keywords regardless of
+                    # whether the table is used, so that they are not passed
+                    # on to wcslib, which does not support lookup tables.
+                    dp = d_kw + axis_key_suffix
+                    d_extver = header.get(dp + ".EXTVER", 1)
+                    d_axis = header.get(dp + f".AXIS.{i:d}", i)
+                    for key in set(header):
+                        if key.startswith(dp + "."):
+                            del header[key]
+
+                    if d_error < err:
+                        tables[i] = None
+                        continue
+
                     if not isinstance(fobj, fits.HDUList):
                         raise ValueError(
                             "an astropy.io.fits.HDUList is "
                             "required for Lookup table distortion."
                         )
 
-                    dp = d_kw + axis_key_suffix
-
-                    dp_extver_key = dp + ".EXTVER"
-                    if dp_extver_key in header:
-                        d_extver = header[dp_extver_key]
-                        del header[dp_extver_key]
-                    else:
-                        d_extver = 1
-
-                    dp_axis_key = dp + f".AXIS.{i:d}"
-                    if dp_axis_key in header:
-                        axis_val = header[dp_axis_key]
-                        if i == axis_val:
-                            d_data = fobj["WCSDVARR", d_extver].data
-                        else:
-                            d_data = (fobj["WCSDVARR", d_extver].data).transpose()
-                        del header[dp_axis_key]
-                    else:
-                        d_data = fobj["WCSDVARR", d_extver].data
+                    d_data = fobj["WCSDVARR", d_extver].data
+                    if i != d_axis:
+                        d_data = d_data.transpose()
 
                     d_header = fobj["WCSDVARR", d_extver].header
                     d_crpix = (d_header.get("CRPIX1", 0.0), d_header.get("CRPIX2", 0.0))
@@ -1265,10 +1252,6 @@ reduce these to 2 dimensions using the naxis kwarg.
                     d_cdelt = (d_header.get("CDELT1", 1.0), d_header.get("CDELT2", 1.0))
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
-
-                    for key in set(header):
-                        if key.startswith(dp + "."):
-                            del header[key]
                 else:
                     warnings.warn(
                         "Polynomial distortion is not implemented.\n",
