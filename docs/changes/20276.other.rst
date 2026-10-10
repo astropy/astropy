@@ -1,0 +1,6 @@
+Type annotations have been added to every module in ``astropy.table``.  They are
+intended as documentation for human readers, for example so that an editor can
+show what a parameter accepts on hover.  The annotations are not intended for static
+type checkers and they are only as precise as the docstrings they were derived from.
+Since ``astropy`` ships no ``py.typed`` marker, under PEP 561 downstream type checkers
+ignore them entirely.  There is no change in behavior.
