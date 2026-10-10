@@ -78,6 +78,37 @@ give the wavelength and frequency of the maximum for :math:`B_\lambda`
 and :math:`B_\nu`, respectively, calculated using `Wien's Law
 <https://en.wikipedia.org/wiki/Wien%27s_displacement_law>`_.
 
+
+CutoffBlackBody
+===============
+
+The :class:`~astropy.modeling.physical_models.CutoffBlackBody` model extends
+:class:`~astropy.modeling.physical_models.BlackBody` with a power-law
+suppression below a cutoff wavelength.  It is useful for thermal spectra whose
+short-wavelength flux is suppressed relative to a pure blackbody, such as
+ultraviolet line blanketing in supernova spectra.  The model is
+
+.. math::
+
+   B_{\lambda}^{\mathrm{cut}}(T) = A B_{\lambda}(T)
+   \begin{cases}
+   (\lambda / \lambda_{\mathrm{cut}})^{\beta},
+       & \lambda < \lambda_{\mathrm{cut}} \\
+   1, & \lambda \geq \lambda_{\mathrm{cut}}.
+   \end{cases}
+
+In addition to the ``temperature`` and ``scale`` parameters inherited from
+:class:`~astropy.modeling.physical_models.BlackBody`, the model has a
+non-negative ``cutoff`` wavelength and power-law index ``beta``. Setting
+``cutoff=0`` and/or ``beta=0`` recovers an ordinary blackbody. Computing
+``bolometric_flux`` when both are nonzero requires SciPy.
+
+This power-law cutoff form was introduced to describe ultraviolet suppression in
+hydrogen-poor superluminous supernovae (`Yan et al. 2018
+<https://ui.adsabs.harvard.edu/abs/2018ApJ...858...91Y>`_) and has since been
+applied to other supernova classes, including Type IIn supernovae (`Ponte
+Pérez et al. 2026 <https://ui.adsabs.harvard.edu/abs/2026MNRAS.546g...9P>`_).
+
 Drude1D
 =======
 

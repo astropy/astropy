@@ -5,6 +5,7 @@
 import numpy as np
 import pytest
 
+from astropy import constants as const
 from astropy import cosmology
 from astropy import units as u
 from astropy.modeling.fitting import (
@@ -13,7 +14,7 @@ from astropy.modeling.fitting import (
     LMLSQFitter,
     TRFLSQFitter,
 )
-from astropy.modeling.physical_models import NFW, BlackBody
+from astropy.modeling.physical_models import NFW, BlackBody, CutoffBlackBody
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
@@ -219,6 +220,162 @@ def test_blackbody_dimensionless_fit():
     bb2_fit = fitter(bb2, wav, fnu, maxiter=1000)
 
     assert bb1_fit.temperature == bb2_fit.temperature
+
+
+def test_cutoff_blackbody_evaluate():
+    bb = BlackBody(temperature=10000 * u.K)
+    cutoff_bb = CutoffBlackBody(temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2)
+
+    assert_quantity_allclose(cutoff_bb(4000 * u.AA), bb(4000 * u.AA))
+    assert_quantity_allclose(cutoff_bb(2000 * u.AA), bb(2000 * u.AA) * (2.0 / 3.0) ** 2)
+
+    frequency = (2000 * u.AA).to(u.Hz, equivalencies=u.spectral())
+    assert_quantity_allclose(cutoff_bb(frequency), cutoff_bb(2000 * u.AA))
+
+    np.testing.assert_allclose(
+        cutoff_bb.evaluate(frequency.value, 10000, 1, 3000, 2),
+        cutoff_bb(frequency).value,
+    )
+    assert_quantity_allclose(
+        cutoff_bb.evaluate(
+            2000 * u.AA,
+            10000 * u.K,
+            1,
+            3000 * u.AA,
+            2 * u.dimensionless_unscaled,
+        ),
+        cutoff_bb(2000 * u.AA),
+    )
+
+    cutoff_bb.cutoff = 0 * u.AA
+    assert_quantity_allclose(cutoff_bb(2000 * u.AA), bb(2000 * u.AA))
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_cutoff_blackbody_bolometric_flux():
+    cutoff_bb = CutoffBlackBody(temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2)
+    assert_quantity_allclose(
+        cutoff_bb.bolometric_flux,
+        1.6191176238154042e8 * u.W / u.m**2,
+    )
+
+    bb = BlackBody(temperature=10000 * u.K)
+    cutoff_bb.beta = 0
+    assert_quantity_allclose(cutoff_bb.bolometric_flux, bb.bolometric_flux)
+
+    cutoff_bb.beta = 2
+    cutoff_bb.cutoff = 0 * u.AA
+    assert_quantity_allclose(cutoff_bb.bolometric_flux, bb.bolometric_flux)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize(
+    "temperature, cutoff, beta",
+    [(5000, 1000, 0.5), (10000, 3000, 2), (20000, 7000, 8)],
+)
+def test_cutoff_blackbody_bolometric_flux_wavelength_integration(
+    temperature, cutoff, beta
+):
+    """Test the bolometric correction against wavelength-space integration."""
+    from scipy.integrate import quad
+
+    temperature *= u.K
+    cutoff *= u.AA
+    model = CutoffBlackBody(temperature=temperature, cutoff=cutoff, beta=beta)
+
+    a = (const.h * const.c / (cutoff * const.k_B * temperature)).decompose().value
+
+    def integrand(wavelength_ratio):
+        if wavelength_ratio == 0:
+            return 0.0
+        with np.errstate(over="ignore"):
+            planck = wavelength_ratio**-5 / np.expm1(a / wavelength_ratio)
+        suppression = wavelength_ratio**beta if wavelength_ratio < 1 else 1.0
+        return planck * suppression
+
+    integral = quad(integrand, 0, 1)[0] + quad(integrand, 1, np.inf)[0]
+    expected_correction = 15 * a**4 / np.pi**4 * integral
+    actual_correction = (
+        model.bolometric_flux / BlackBody(temperature=temperature).bolometric_flux
+    ).value
+
+    np.testing.assert_allclose(actual_correction, expected_correction, rtol=1e-9)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_cutoff_blackbody_bolometric_flux_limits():
+    """Test the expected behavior for negligible and nearly complete cutoffs."""
+    blackbody = BlackBody(temperature=10000 * u.K)
+    small_cutoff = CutoffBlackBody(temperature=10000 * u.K, cutoff=1e-6 * u.AA, beta=2)
+    large_cutoff = CutoffBlackBody(temperature=10000 * u.K, cutoff=1e12 * u.AA, beta=2)
+
+    assert_quantity_allclose(
+        small_cutoff.bolometric_flux, blackbody.bolometric_flux, rtol=1e-10
+    )
+    large_correction = (large_cutoff.bolometric_flux / blackbody.bolometric_flux).value
+    assert 0 <= large_correction < 1e-12
+
+
+def test_cutoff_blackbody_bolometric_flux_zero_temperature_and_beta():
+    """Test zero-temperature and mixed zero-beta array parameters."""
+    model = CutoffBlackBody(
+        temperature=np.array([0, 10000]) * u.K,
+        cutoff=np.array([3000, 3000]) * u.AA,
+        beta=np.array([2, 0]),
+    )
+    expected = BlackBody(temperature=model.temperature.quantity).bolometric_flux
+
+    assert_quantity_allclose(model.bolometric_flux, expected)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_cutoff_blackbody_bolometric_flux_broadcasting_and_units():
+    """Test broadcasted parameters and equivalent cutoff wavelength units."""
+    model = CutoffBlackBody(
+        temperature=np.array([5000, 10000]) * u.K,
+        cutoff=np.array([300, 600]) * u.nm,
+        beta=np.array([0.5, 2]),
+    )
+
+    flux = model.bolometric_flux
+    assert flux.shape == (2,)
+    assert flux.unit.is_equivalent(u.erg / (u.cm**2 * u.s))
+    for index in range(2):
+        scalar_model = CutoffBlackBody(
+            temperature=model.temperature.quantity[index],
+            cutoff=model.cutoff.quantity[index].to(u.AA),
+            beta=model.beta[index],
+        )
+        assert_quantity_allclose(flux[index], scalar_model.bolometric_flux)
+
+
+def test_cutoff_blackbody_parameter_units():
+    model = CutoffBlackBody()
+
+    parameter_units = model._parameter_units_for_data_units(
+        {"x": u.Hz}, {"y": u.erg / (u.cm**2 * u.s * u.Hz * u.sr)}
+    )
+    assert parameter_units["cutoff"] == u.AA
+
+
+def test_cutoff_blackbody_bolometric_flux_without_scipy(monkeypatch):
+    cutoff_bb = CutoffBlackBody(temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2)
+    monkeypatch.setattr("astropy.modeling.physical_models.HAS_SCIPY", False)
+
+    with pytest.raises(
+        ModuleNotFoundError,
+        match="Bolometric flux integration requires scipy",
+    ):
+        cutoff_bb.bolometric_flux
+
+
+def test_cutoff_blackbody_invalid_cutoff():
+    cutoff_bb = CutoffBlackBody(cutoff=-1 * u.AA)
+
+    with pytest.raises(ValueError, match="Cutoff wavelength should be non-negative"):
+        cutoff_bb(5000 * u.AA)
+    with pytest.raises(ValueError, match="Cutoff wavelength should be non-negative"):
+        cutoff_bb.bolometric_flux
 
 
 @pytest.mark.parametrize("mass", (2.0000000000000e15 * u.M_sun, 3.976819741e45 * u.kg))

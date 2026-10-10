@@ -10,12 +10,13 @@ import numpy as np
 
 from astropy import constants as const
 from astropy import units as u
+from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .core import Fittable1DModel
 from .parameters import InputParameterError, Parameter
 
-__all__ = ["NFW", "BlackBody", "Drude1D", "Plummer1D"]
+__all__ = ["NFW", "BlackBody", "CutoffBlackBody", "Drude1D", "Plummer1D"]
 
 
 class BlackBody(Fittable1DModel):
@@ -246,6 +247,150 @@ class BlackBody(Fittable1DModel):
     def nu_max(self):
         """Peak frequency when the curve is expressed as power density."""
         return 2.8214391 * const.k_B * self.temperature / const.h
+
+
+class CutoffBlackBody(BlackBody):
+    r"""
+    Blackbody model with power-law suppression below a cutoff wavelength.
+
+    Parameters
+    ----------
+    temperature : `~astropy.units.Quantity` ['temperature']
+        Blackbody temperature.
+
+    scale : float or `~astropy.units.Quantity` ['dimensionless']
+        Scale factor. The behavior and allowed units are the same as for
+        `BlackBody`.
+
+    cutoff : `~astropy.units.Quantity` ['length']
+        Wavelength below which the power-law suppression is applied. Must be
+        non-negative. A value of zero is equivalent to `BlackBody`.
+
+    beta : float
+        Power-law index of the suppression below ``cutoff``. Must be
+        non-negative. A value of zero is equivalent to `BlackBody`.
+
+    Notes
+    -----
+    Model formula:
+
+        .. math::
+
+            B_{\lambda}^{\mathrm{cut}}(T) = A B_{\lambda}(T)
+            \begin{cases}
+            (\lambda / \lambda_{\mathrm{cut}})^{\beta},
+                & \lambda < \lambda_{\mathrm{cut}} \\
+            1, & \lambda \geq \lambda_{\mathrm{cut}}.
+            \end{cases}
+
+    This parameterization provides a phenomenological approximation to
+    ultraviolet flux suppression in supernova spectra, such as that produced
+    by line blanketing. The power-law cutoff form was introduced for
+    hydrogen-poor superluminous supernovae [1]_ and has since been applied to
+    "regular" supernovae as well [2]_.
+
+    The inherited ``lambda_max`` and ``nu_max`` properties refer to the
+    underlying unmodified blackbody and do not necessarily give the peak of
+    the cutoff spectrum.
+
+    References
+    ----------
+    .. [1] Yan et al. 2018, ApJ, 858, 91
+       https://ui.adsabs.harvard.edu/abs/2018ApJ...858...91Y
+    .. [2] Ponte Pérez et al. 2026, MNRAS, 546, stag009
+       https://ui.adsabs.harvard.edu/abs/2026MNRAS.546g...9P
+    """
+
+    cutoff = Parameter(
+        default=3000.0, min=0, unit=u.AA, description="Cutoff wavelength"
+    )
+    beta = Parameter(
+        default=1.0,
+        min=0,
+        description="Power-law index below the cutoff wavelength",
+    )
+
+    def evaluate(self, x, temperature, scale, cutoff, beta):
+        """Evaluate the model."""
+        y = super().evaluate(x, temperature, scale)
+
+        if not isinstance(x, u.Quantity):
+            in_x = u.Quantity(x, self.input_units["x"])
+        else:
+            in_x = x
+
+        if not isinstance(cutoff, u.Quantity):
+            in_cutoff = u.Quantity(cutoff, u.AA)
+        else:
+            in_cutoff = cutoff
+
+        with u.add_enabled_equivalencies(u.spectral()):
+            wavelength = u.Quantity(in_x, u.AA, dtype=np.float64)
+            cutoff_wavelength = u.Quantity(in_cutoff, u.AA)
+
+        if np.any(cutoff_wavelength < 0 * u.AA):
+            raise ValueError(
+                f"Cutoff wavelength should be non-negative: {cutoff_wavelength}"
+            )
+
+        if isinstance(beta, u.Quantity):
+            beta = beta.to_value(u.dimensionless_unscaled)
+
+        with np.errstate(divide="ignore", invalid="ignore"):
+            pl_values = (wavelength / cutoff_wavelength).to_value(
+                u.dimensionless_unscaled
+            ) ** beta
+        suppression = np.where(wavelength < cutoff_wavelength, pl_values, 1.0)
+
+        return y * suppression
+
+    def _parameter_units_for_data_units(self, inputs_unit, outputs_unit):
+        parameter_units = super()._parameter_units_for_data_units(
+            inputs_unit, outputs_unit
+        )
+        parameter_units["cutoff"] = u.AA
+        return parameter_units
+
+    @property
+    def bolometric_flux(self):
+        """Bolometric flux of the cutoff blackbody."""
+        cutoff = self.cutoff.quantity
+        if np.any(cutoff < 0 * u.AA):
+            raise ValueError(f"Cutoff wavelength should be non-negative: {cutoff}")
+
+        temperature = self.temperature.quantity
+        zero_temperature = temperature.to_value(u.K) == 0
+
+        beta = self.beta.value
+
+        if np.all(zero_temperature | (beta == 0) | (cutoff == 0 * u.AA)):
+            return super().bolometric_flux
+
+        if not HAS_SCIPY:  # pragma: no cover
+            raise ModuleNotFoundError("Bolometric flux integration requires scipy.")
+
+        from scipy.integrate import quad
+
+        # change of variables to x = h*c/(lambda*k_B*T) = h*nu/(k_B*T)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            x_cutoff = const.h * const.c / (cutoff * const.k_B * temperature)
+            x_cutoff = x_cutoff.to_value(u.dimensionless_unscaled)
+
+        def bolometric_correction(xc, index):
+            if not np.isfinite(xc) or index == 0:
+                return 1.0
+
+            def removed_flux_integrand(x):
+                with np.errstate(over="ignore"):
+                    return x**3 / np.expm1(x) * (1.0 - (xc / x) ** index)
+
+            removed_flux = quad(removed_flux_integrand, xc, np.inf)[0]
+            return 1.0 - 15.0 / np.pi**4 * removed_flux
+
+        bol_corr_vec = np.vectorize(bolometric_correction, otypes=[float])
+        correction = np.clip(bol_corr_vec(x_cutoff, beta), 0.0, 1.0)
+
+        return super().bolometric_flux * correction
 
 
 class Drude1D(Fittable1DModel):
