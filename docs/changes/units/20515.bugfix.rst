@@ -1,0 +1,1 @@
+Fixed :func:`~astropy.units.quantity_input` to correctly convert non-Quantity inputs that support ``.to()`` (such as :class:`~astropy.table.Column`) to the target unit.
