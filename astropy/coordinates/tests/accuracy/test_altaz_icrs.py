@@ -56,7 +56,7 @@ def test_against_hor2eq():
         lon=Angle("-111d36.0m"), lat=Angle("31d57.8m"), height=2120.0 * u.m
     )
 
-    obstime = Time(2451545.0, format="jd", scale="ut1")
+    obstime = Time(2.451545e6, format="jd", scale="ut1")
 
     altaz_frame = AltAz(
         obstime=obstime,
@@ -102,7 +102,7 @@ def run_pyephem():
     observer.lon = -1 * np.radians(109 + 24 / 60.0 + 53.1 / 60**2)
     observer.lat = np.radians(33 + 41 / 60.0 + 46.0 / 60.0**2)
     observer.elevation = 300
-    observer.date = 2455822.868055556 - ephem.julian_date(0)
+    observer.date = 2.455822868055556e6 - ephem.julian_date(0)
 
     ra, dec = observer.radec_of(np.radians(6.8927), np.radians(60.7665))
     print(f"EPHEM: {observer.date}: {np.degrees(ra)}, {np.degrees(dec)}")

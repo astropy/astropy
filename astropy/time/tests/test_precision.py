@@ -115,7 +115,7 @@ mjd0 = Time(0, format="mjd")
 
 
 def reasonable_ordinary_jd():
-    return tuples(floats(2440000, 2470000), floats(-0.5, 0.5))
+    return tuples(floats(2_440_000, 2_470_000), floats(-0.5, 0.5))
 
 
 @composite
@@ -140,7 +140,7 @@ def reasonable_jd():
     reasonable date) so that hypothesis' example simplification produces
     obviously simple examples when they trigger problems.
     """
-    moments = [(2455000.0, 0.0), (mjd0.jd1, mjd0.jd2), (today.jd1, today.jd2)]
+    moments = [(2.455e6, 0.0), (mjd0.jd1, mjd0.jd2), (today.jd1, today.jd2)]
     return one_of(sampled_from(moments), reasonable_ordinary_jd(), leap_second_tricky())
 
 
@@ -178,11 +178,11 @@ def reasonable_delta():
 # redundant?
 def test_abs_jd2_always_less_than_half():
     """Make jd2 approach +/-0.5, and check that it doesn't go over."""
-    t1 = Time(2400000.5, [-tiny, +tiny], format="jd")
+    t1 = Time(2.4000005e6, [-tiny, +tiny], format="jd")
     assert np.all(t1.jd1 % 1 == 0)
     assert np.all(abs(t1.jd2) < 0.5)
     t2 = Time(
-        2400000.0, [[0.5 - tiny, 0.5 + tiny], [-0.5 - tiny, -0.5 + tiny]], format="jd"
+        2.4e6, [[0.5 - tiny, 0.5 + tiny], [-0.5 - tiny, -0.5 + tiny]], format="jd"
     )
     assert np.all(t2.jd1 % 1 == 0)
     assert np.all(abs(t2.jd2) < 0.5)
@@ -206,7 +206,7 @@ def test_round_to_even(jd1, jd2):
 
 def test_addition():
     """Check that an addition at the limit of precision (2^-52) is seen"""
-    t = Time(2455555.0, 0.5, format="jd", scale="utc")
+    t = Time(2.455555e6, 0.5, format="jd", scale="utc")
 
     t_dt = t + dt_tiny
     assert t_dt.jd1 == t.jd1 and t_dt.jd2 != t.jd2
@@ -274,7 +274,7 @@ def test_jd1_is_mult_of_one():
     """
     t1 = Time("2000:001:00:00:00.00000001", scale="tai")
     assert np.round(t1.jd1) == t1.jd1
-    t1 = Time(1.23456789, 12345678.90123456, format="jd", scale="tai")
+    t1 = Time(1.23456789, 1.234567890123456e7, format="jd", scale="tai")
     assert np.round(t1.jd1) == t1.jd1
 
 
@@ -420,7 +420,7 @@ def test_resolution_never_decreases(scale, jds):
 
 
 @given(reasonable_jd())
-@example(jds=(2442777.5, 0.9999999999999999))
+@example(jds=(2.4427775e6, 0.9999999999999999))
 def test_resolution_never_decreases_utc(jds):
     """UTC is very unhappy with unreasonable times,
 
@@ -441,8 +441,8 @@ def test_resolution_never_decreases_utc(jds):
     scale2=sampled_from(STANDARD_TIME_SCALES),
     jds=unreasonable_jd(),
 )
-@example(scale1="tcg", scale2="ut1", jds=(2445149.5, 0.47187700984387526))
-@example(scale1="tai", scale2="tcb", jds=(2441316.5, 0.0))
+@example(scale1="tcg", scale2="ut1", jds=(2.4451495e6, 0.47187700984387526))
+@example(scale1="tai", scale2="tcb", jds=(2.4413165e6, 0.0))
 @example(scale1="tai", scale2="tcb", jds=(0.0, 0.0))
 def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
     jd1, jd2 = jds
@@ -465,8 +465,8 @@ def test_conversion_preserves_jd1_jd2_invariant(iers_b, scale1, scale2, jds):
     jds=unreasonable_jd(),
 )
 @example(scale1="tai", scale2="utc", jds=(0.0, 0.0))
-@example(scale1="utc", scale2="ut1", jds=(2441316.5, 0.9999999999999991))
-@example(scale1="ut1", scale2="tai", jds=(2441498.5, 0.9999999999999999))
+@example(scale1="utc", scale2="ut1", jds=(2.4413165e6, 0.9999999999999991))
+@example(scale1="ut1", scale2="tai", jds=(2.4414985e6, 0.9999999999999999))
 def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
     """Check that time ordering remains if we convert to another scale.
 
@@ -489,8 +489,8 @@ def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
             t2_scale2 = getattr(t2, scale2)
             assert t_scale2 < t2_scale2
     except iers.IERSRangeError:  # UT1 conversion needs IERS data
-        assume(scale1 != "ut1" or 2440000 < jd1 + jd2 < 2458000)
-        assume(scale2 != "ut1" or 2440000 < jd1 + jd2 < 2458000)
+        assume(scale1 != "ut1" or 2_440_000 < jd1 + jd2 < 2_458_000)
+        assume(scale2 != "ut1" or 2_440_000 < jd1 + jd2 < 2_458_000)
         raise
     except ErfaError:
         # If the generated date is too early to compute a UTC julian date,
@@ -512,7 +512,7 @@ def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
         if "ut1" in (scale1, scale2):
             if abs(t_scale2 - t2_scale2 - 1 * u.s) < 1 * u.ms:
                 pytest.xfail()
-            assume(t.jd > 2441317.5 or t.jd2 < 0.4999999)
+            assume(t.jd > 2.4413175e6 or t.jd2 < 0.4999999)
         raise
 
 
@@ -534,12 +534,12 @@ def test_leap_stretch_mjd(d, f):
 )
 @example(scale="utc", jds=(0.0, 2.2204460492503136e-13), delta=6.661338147750941e-13)
 @example(
-    scale="utc", jds=(2441682.5, 2.2204460492503136e-16), delta=7.327471962526035e-12
+    scale="utc", jds=(2.4416825e6, 2.2204460492503136e-16), delta=7.327471962526035e-12
 )
 @example(scale="utc", jds=(0.0, 5.787592627370942e-13), delta=0.0)
 @example(scale="utc", jds=(1.0, 0.25000000023283064), delta=-1.0)
 @example(scale="utc", jds=(0.0, 0.0), delta=2 * 2.220446049250313e-16)
-@example(scale="utc", jds=(2442778.5, 0.0), delta=-2.220446049250313e-16)
+@example(scale="utc", jds=(2.4427785e6, 0.0), delta=-2.220446049250313e-16)
 def test_jd_add_subtract_round_trip(scale, jds, delta):
     jd1, jd2 = jds
     minimum_for_change = np.finfo(float).eps
@@ -563,7 +563,7 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
             t3 = t2 - delta * u.day
             assert_almost_equal(t3, t, atol=thresh, rtol=0)
     except ErfaError:
-        assume(scale != "utc" or 2440000 < jd1 + jd2 < 2460000)
+        assume(scale != "utc" or 2_440_000 < jd1 + jd2 < 2_460_000)
         raise
 
 
@@ -573,9 +573,11 @@ def test_jd_add_subtract_round_trip(scale, jds, delta):
     delta=floats(-3 * tiny, 3 * tiny),
 )
 @example(scale="tai", jds=(0.0, 3.5762786865234384), delta=2.220446049250313e-16)
-@example(scale="tai", jds=(2441316.5, 0.0), delta=6.938893903907228e-17)
-@example(scale="tai", jds=(2441317.5, 0.0), delta=-6.938893903907228e-17)
-@example(scale="tai", jds=(2440001.0, 0.49999999999999994), delta=5.551115123125783e-17)
+@example(scale="tai", jds=(2.4413165e6, 0.0), delta=6.938893903907228e-17)
+@example(scale="tai", jds=(2.4413175e6, 0.0), delta=-6.938893903907228e-17)
+@example(
+    scale="tai", jds=(2.440001e6, 0.49999999999999994), delta=5.551115123125783e-17
+)
 def test_time_argminmaxsort(scale, jds, delta):
     jd1, jd2 = jds
     t = Time(jd1, jd2, scale=scale, format="jd") + TimeDelta(
@@ -601,18 +603,21 @@ def test_time_argminmaxsort(scale, jds, delta):
 
 
 @given(sampled_from(STANDARD_TIME_SCALES), unreasonable_jd(), unreasonable_jd())
-@example(scale="utc", jds_a=(2455000.0, 0.0), jds_b=(2443144.5, 0.5000462962962965))
+@example(scale="utc", jds_a=(2.455e6, 0.0), jds_b=(2.4431445e6, 0.5000462962962965))
 @example(
     scale="utc",
-    jds_a=(2459003.0, 0.267502885949074),
-    jds_b=(2454657.001045462, 0.49895453779026877),
+    jds_a=(2.459003e6, 0.267502885949074),
+    jds_b=(2.454657001045462e6, 0.49895453779026877),
 )
 def test_timedelta_full_precision(scale, jds_a, jds_b):
     jd1_a, jd2_a = jds_a
     jd1_b, jd2_b = jds_b
     assume(
         scale != "utc"
-        or (2440000 < jd1_a + jd2_a < 2460000 and 2440000 < jd1_b + jd2_b < 2460000)
+        or (
+            2_440_000 < jd1_a + jd2_a < 2_460_000
+            and 2_440_000 < jd1_b + jd2_b < 2_460_000
+        )
     )
     if scale == "utc":
         # UTC subtraction implies a scale change, so possible rounding errors.
@@ -658,8 +663,8 @@ def test_timedelta_full_precision_arithmetic(scale, jds_a, jds_b, x, y):
             assume(
                 scale != "utc"
                 or (
-                    2440000 < jd1_a + jd2_a < 2460000
-                    and 2440000 < jd1_b + jd2_b < 2460000
+                    2_440_000 < jd1_a + jd2_a < 2_460_000
+                    and 2_440_000 < jd1_b + jd2_b < 2_460_000
                 )
             )
             raise
@@ -716,7 +721,7 @@ def test_datetime_difference_agrees_with_timedelta(scale, dt1, dt2):
 
 @given(
     days=integers(-3000 * 365, 3000 * 365),
-    microseconds=integers(0, 24 * 60 * 60 * 1000000),
+    microseconds=integers(0, 24 * 60 * 60 * 1_000_000),
 )
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_to_timedelta(scale, days, microseconds):
@@ -728,7 +733,7 @@ def test_datetime_to_timedelta(scale, days, microseconds):
 
 @given(
     days=integers(-3000 * 365, 3000 * 365),
-    microseconds=integers(0, 24 * 60 * 60 * 1000000),
+    microseconds=integers(0, 24 * 60 * 60 * 1_000_000),
 )
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_timedelta_roundtrip(scale, days, microseconds):
@@ -738,7 +743,7 @@ def test_datetime_timedelta_roundtrip(scale, days, microseconds):
 
 @given(days=integers(-3000 * 365, 3000 * 365), day_frac=floats(0, 1))
 @example(days=262144, day_frac=2.314815006343452e-11)
-@example(days=1048576, day_frac=1.157407503171726e-10)
+@example(days=1_048_576, day_frac=1.157407503171726e-10)
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_timedelta_datetime_roundtrip(scale, days, day_frac):
     td = TimeDelta(days, day_frac, format="jd", scale=scale)
@@ -778,13 +783,13 @@ def test_datetime_difference_agrees_with_timedelta_no_hypothesis():
 )
 @example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=-397683, microseconds=2))
 @example(dt=datetime(2179, 1, 1, 0, 0), td=timedelta(days=-795365, microseconds=53))
-@example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=1590729, microseconds=10))
+@example(dt=datetime(2000, 1, 1, 0, 0), td=timedelta(days=1_590_729, microseconds=10))
 @example(
-    dt=datetime(4357, 1, 1, 0, 0), td=timedelta(days=-1590729, microseconds=107770)
+    dt=datetime(4357, 1, 1, 0, 0), td=timedelta(days=-1_590_729, microseconds=107770)
 )
 @example(
     dt=datetime(4357, 1, 1, 0, 0, 0, 29),
-    td=timedelta(days=-1590729, microseconds=746292),
+    td=timedelta(days=-1_590_729, microseconds=746292),
 )
 @pytest.mark.parametrize("scale", _utc_bad)
 def test_datetime_timedelta_sum(scale, dt, td):
