@@ -150,7 +150,7 @@ issues. The bot makes use of the pre-commit hook described in detail in :ref:`pr
 
 By default the bot will run a code-style check on every push to a pull request with the
 results reported in the checks section of the pull request.  The bot will skip running
-its check if a commit message contains ``[skip ci]``, ``[ci skip]``, ``[skip pre-commit.ci]``,
+its check if a commit message contains ``[skip pre-commit.ci]``
 or ``[pre-commit.ci skip]``.
 
 One can control the bot by making comments on the pull request:
