@@ -6,7 +6,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.table import QTable, Table, groups
-from astropy.time import Time, TimeDelta
+from astropy.time import NormalizedPhaseTimeDelta, Time, TimeDelta
 from astropy.timeseries.core import BaseTimeSeries, autocheck_required_columns
 from astropy.units import Quantity, UnitsError
 
@@ -270,7 +270,14 @@ class TimeSeries(BaseTimeSeries):
 
         if normalize_phase:
             folded_time = (folded_time / period).decompose()
-            period = period_sec = 1
+            folded_time = NormalizedPhaseTimeDelta(
+                folded_time.value,  # the raw normalized phase value
+                period.to_value(u.d),
+                format="jd",
+                # ^^^ TODO: for now, always convert the period to day / jd;
+                #           should support seconds
+            )
+            period = period_sec = 1  # TODO: this seems to be existing dead code
 
         with folded._delay_required_column_checks():
             folded.remove_column("time")
