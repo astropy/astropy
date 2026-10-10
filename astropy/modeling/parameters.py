@@ -161,11 +161,13 @@ class Parameter:
         the user as degrees). The internal value is what is used for
         computations while the proxy value is what users will interact
         with (passing and viewing). If ``getter`` is not `None`, then a
-        ``setter`` must also be input.
+        ``setter`` must also be input. The function takes up to two arguments:
+        the raw value and, optionally, the owning `Model` object.
     setter : callable or `None`, optional
         A function that wraps any values assigned to this parameter; should
         be the inverse of ``getter``.  If ``setter`` is not `None`, then a
-        ``getter`` must also be input.
+        ``getter`` must also be input. The function takes up to two arguments:
+        the raw value and, optionally, the owning `Model` object.
     fixed : bool
         if True the parameter is not varied during fitting
     tied : callable or False
