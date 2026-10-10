@@ -95,6 +95,10 @@ def match_coordinates_3d(
         raise ValueError(
             "The catalog for coordinate matching cannot be a scalar or length-0."
         )
+    # The KD-tree query below does not validate this itself and can crash the
+    # interpreter for values below 1.
+    if nthneighbor < 1 or nthneighbor != int(nthneighbor):
+        raise ValueError("nthneighbor must be a positive integer.")
 
     kdt = _get_cartesian_kdtree(catalogcoord, storekdtree)
 
@@ -112,11 +116,11 @@ def match_coordinates_3d(
     # Querying NaN returns garbage
     if np.isnan(matchflatxyz.value).any():
         raise ValueError("Matching coordinates cannot contain NaN entries.")
-    dist, idx = kdt.query(matchflatxyz.T, nthneighbor)
-
-    if nthneighbor > 1:  # query gives 1D arrays if k=1, 2D arrays otherwise
-        dist = dist[:, -1]
-        idx = idx[:, -1]
+    # Passing k as a list returns only that neighbor, which avoids allocating
+    # (n, nthneighbor) arrays for the closer ones.
+    dist, idx = kdt.query(matchflatxyz.T, [nthneighbor])
+    dist = dist[:, 0]
+    idx = idx[:, 0]
 
     sep2d = catalogcoord[idx].separation(matchcoord)
     return CoordinateMatchResult(

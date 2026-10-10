@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import tracemalloc
+
 import numpy as np
 import pytest
 from numpy import testing as npt
@@ -151,6 +153,79 @@ def test_matching_method():
     assert_allclose(d3d1, results.physical_separation)
 
     assert len(idx1) == len(d2d1) == len(d3d1) == 20
+
+
+@pytest.mark.parametrize("nthneighbor", [1, 2, 7, 40])
+@pytest.mark.parametrize("match_shape", [(), (30,)], ids=["scalar", "1d"])
+def test_matching_nthneighbor_against_brute_force(nthneighbor, match_shape):
+    with NumpyRNGContext(987654321):
+        cmatch = ICRS(
+            np.random.rand(*match_shape) * 360.0 * u.degree,
+            (np.random.rand(*match_shape) * 180.0 - 90.0) * u.degree,
+            distance=(1 + 9 * np.random.rand(*match_shape)) * u.kpc,
+        )
+        ccatalog = ICRS(
+            np.random.rand(300) * 360.0 * u.degree,
+            (np.random.rand(300) * 180.0 - 90.0) * u.degree,
+            distance=(1 + 9 * np.random.rand(300)) * u.kpc,
+        )
+
+    matchxyz = cmatch.cartesian.xyz.to_value(u.kpc).reshape(3, -1)
+    catxyz = ccatalog.cartesian.xyz.to_value(u.kpc)
+    pairwise = np.linalg.norm(
+        matchxyz[:, :, np.newaxis] - catxyz[:, np.newaxis, :], axis=0
+    )
+    expected_idx = np.argsort(pairwise, axis=1)[:, nthneighbor - 1]
+    expected_dist = np.sort(pairwise, axis=1)[:, nthneighbor - 1]
+
+    idx, _, d3d = match_coordinates_3d(cmatch, ccatalog, nthneighbor)
+
+    assert idx.shape == d3d.shape == match_shape
+    npt.assert_array_equal(idx, expected_idx.reshape(match_shape))
+    assert_allclose(d3d, expected_dist.reshape(match_shape) * u.kpc)
+
+
+def test_matching_large_nthneighbor_memory():
+    # Only the requested neighbor should be returned by the KD-tree query, so
+    # no temporary array of shape (n, nthneighbor) may be allocated.
+    n_match = n_catalog = 1500
+    nthneighbor = 1000
+    with NumpyRNGContext(987654321):
+        cmatch = ICRS(
+            np.random.rand(n_match) * 360.0 * u.degree,
+            (np.random.rand(n_match) * 180.0 - 90.0) * u.degree,
+        )
+        ccatalog = ICRS(
+            np.random.rand(n_catalog) * 360.0 * u.degree,
+            (np.random.rand(n_catalog) * 180.0 - 90.0) * u.degree,
+        )
+
+    if tracemalloc.is_tracing():
+        pytest.skip("Measuring the peak would reset that of the active tracer.")
+
+    # Warm up so the cached KD-tree and one-time allocations do not count.
+    match_coordinates_3d(cmatch, ccatalog, nthneighbor)
+
+    tracemalloc.start()
+    try:
+        match_coordinates_3d(cmatch, ccatalog, nthneighbor)
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+
+    # One (n, nthneighbor) float64 array is 12 MB here, and the previous
+    # implementation held two of them (distances and indices) at once.
+    assert peak < n_match * nthneighbor * 8
+
+
+@pytest.mark.parametrize("nthneighbor", [0, -1, 2.5])
+@pytest.mark.parametrize("function", [match_coordinates_3d, match_coordinates_sky])
+def test_matching_invalid_nthneighbor(function, nthneighbor):
+    cmatch = ICRS([4, 2.1] * u.degree, [0, 0] * u.degree)
+    ccatalog = ICRS([1, 2, 3, 4] * u.degree, [0, 0, 0, 0] * u.degree)
+
+    with pytest.raises(ValueError, match="nthneighbor must be a positive integer"):
+        function(cmatch, ccatalog, nthneighbor)
 
 
 @pytest.mark.parametrize(
