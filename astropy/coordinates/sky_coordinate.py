@@ -1421,7 +1421,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
         # return get_constellation(self, short_name, constellation_list)
 
     # WCS pixel to/from sky conversions
-    def to_pixel(self, wcs, origin=0, mode="all"):
+    def to_pixel(self, wcs, origin=0, mode="all", *, native_pixel_order=None):
         """
         Convert this coordinate to pixel coordinates using a `~astropy.wcs.WCS`
         object.
@@ -1435,6 +1435,15 @@ class SkyCoord(MaskableShapedLikeNDArray):
         mode : 'all' or 'wcs'
             Whether to do the transformation including distortions (``'all'``) or
             only including only the core WCS transformation (``'wcs'``).
+        native_pixel_order : bool or None, optional
+            Whether the pixel coordinates are in the native order of the WCS
+            pixel axes (`True`) or, for WCS objects in which latitude comes
+            before longitude, swapped such that ``xp`` corresponds to longitude
+            and ``yp`` to latitude (`False`, the historical behavior). If `None`
+            (the default), the historical behavior is used and a deprecation
+            warning is emitted for WCS objects in which latitude comes before
+            longitude. This argument has no effect for WCS objects in which
+            longitude comes before latitude.
 
         Returns
         -------
@@ -1447,10 +1456,16 @@ class SkyCoord(MaskableShapedLikeNDArray):
         """
         from astropy.wcs.utils import skycoord_to_pixel
 
-        return skycoord_to_pixel(self, wcs=wcs, origin=origin, mode=mode)
+        return skycoord_to_pixel(
+            self,
+            wcs=wcs,
+            origin=origin,
+            mode=mode,
+            native_pixel_order=native_pixel_order,
+        )
 
     @classmethod
-    def from_pixel(cls, xp, yp, wcs, origin=0, mode="all"):
+    def from_pixel(cls, xp, yp, wcs, origin=0, mode="all", *, native_pixel_order=None):
         """
         Create a new SkyCoord from pixel coordinates using a World Coordinate System.
 
@@ -1465,6 +1480,15 @@ class SkyCoord(MaskableShapedLikeNDArray):
         mode : 'all' or 'wcs'
             Whether to do the transformation including distortions (``'all'``) or
             only including only the core WCS transformation (``'wcs'``).
+        native_pixel_order : bool or None, optional
+            Whether the pixel coordinates are in the native order of the WCS
+            pixel axes (`True`) or, for WCS objects in which latitude comes
+            before longitude, swapped such that ``xp`` corresponds to longitude
+            and ``yp`` to latitude (`False`, the historical behavior). If `None`
+            (the default), the historical behavior is used and a deprecation
+            warning is emitted for WCS objects in which latitude comes before
+            longitude. This argument has no effect for WCS objects in which
+            longitude comes before latitude.
 
         Returns
         -------
@@ -1479,7 +1503,15 @@ class SkyCoord(MaskableShapedLikeNDArray):
         """
         from astropy.wcs.utils import pixel_to_skycoord
 
-        return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
+        return pixel_to_skycoord(
+            xp,
+            yp,
+            wcs=wcs,
+            origin=origin,
+            mode=mode,
+            cls=cls,
+            native_pixel_order=native_pixel_order,
+        )
 
     def contained_by(self, wcs, image=None, **kwargs):
         """
@@ -1510,6 +1542,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
             #  Suppress warnings since they just mean we didn't find the coordinate
             warnings.simplefilter("ignore")
             try:
+                kwargs.setdefault("native_pixel_order", True)
                 x, y = self.to_pixel(wcs, **kwargs)
             except Exception:
                 return False

@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -15,8 +16,13 @@ from astropy.coordinates import (
     SphericalRepresentation,
 )
 from astropy.utils import unbroadcast
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+from .wcs import WCS
+from .wcsapi.high_level_api import (
+    high_level_objects_to_values,
+    values_to_high_level_objects,
+)
 
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
@@ -614,11 +620,33 @@ def _has_distortion(wcs):
     )
 
 
+def _swap_pixel_order(wcs, native_pixel_order, function):
+    """
+    Whether pixel coordinates should be swapped relative to the native order of
+    the pixel axes of the (celestial) WCS, to preserve the historical behavior
+    of ``function`` for WCS objects in which latitude comes before longitude.
+    """
+    if wcs.wcs.lng < wcs.wcs.lat:
+        return False
+    if native_pixel_order is None:
+        warnings.warn(
+            f"The WCS has latitude before longitude, and {function} currently "
+            "treats pixel coordinates as being swapped (with x corresponding to "
+            "longitude and y to latitude) rather than in the native order of the "
+            "WCS pixel axes. In a future version, the native order will be used. "
+            "Pass native_pixel_order=True to opt in to the new behavior now, or "
+            "native_pixel_order=False to keep the current behavior.",
+            AstropyDeprecationWarning,
+        )
+        return True
+    return not native_pixel_order
+
+
 # TODO: in future, we should think about how the following two functions can be
 # integrated better into the WCS class.
 
 
-def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
+def skycoord_to_pixel(coords, wcs, origin=0, mode="all", *, native_pixel_order=None):
     """
     Convert a set of SkyCoord coordinates into pixels.
 
@@ -633,6 +661,15 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     mode : 'all' or 'wcs'
         Whether to do the transformation including distortions (``'all'``) or
         only including only the core WCS transformation (``'wcs'``).
+    native_pixel_order : bool or None, optional
+        Whether the pixel coordinates are in the native order of the WCS pixel
+        axes (`True`) or, for WCS objects in which latitude comes before
+        longitude, swapped such that ``xp`` corresponds to longitude and ``yp``
+        to latitude (`False`, the historical behavior). If `None` (the
+        default), the historical behavior is used and a deprecation warning is
+        emitted for WCS objects in which latitude comes before longitude. This
+        argument has no effect for WCS objects in which longitude comes before
+        latitude.
 
     Returns
     -------
@@ -642,50 +679,38 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     See Also
     --------
     astropy.coordinates.SkyCoord.from_pixel
+    astropy.wcs.WCS.world_to_pixel
     """
     if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
-    # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
+    # Keep only the celestial part of the axes, preserving the axis order
+    wcs = wcs.celestial
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
 
-    # Check which frame the WCS uses
-    frame = wcs_to_celestial_frame(wcs)
-
-    # Check what unit the WCS needs
-    xw_unit = u.Unit(wcs.wcs.cunit[0])
-    yw_unit = u.Unit(wcs.wcs.cunit[1])
-
-    # Convert positions to frame
-    coords = coords.transform_to(frame)
-
-    # Extract longitude and latitude. We first try and use lon/lat directly,
-    # but if the representation is not spherical or unit spherical this will
-    # fail. We should then force the use of the unit spherical
-    # representation. We don't do that directly to make sure that we preserve
-    # custom lon/lat representations if available.
-    try:
-        lon = coords.data.lon.to(xw_unit)
-        lat = coords.data.lat.to(yw_unit)
-    except AttributeError:
-        lon = coords.spherical.lon.to(xw_unit)
-        lat = coords.spherical.lat.to(yw_unit)
+    # Convert to the frame, units, and axis order (which may be lat/lon) of
+    # the WCS
+    world = high_level_objects_to_values(coords, low_level_wcs=wcs)
 
     # Convert to pixel coordinates
     if mode == "all":
-        xp, yp = wcs.all_world2pix(lon.value, lat.value, origin)
+        xp, yp = wcs.all_world2pix(*world, origin)
     elif mode == "wcs":
-        xp, yp = wcs.wcs_world2pix(lon.value, lat.value, origin)
+        xp, yp = wcs.wcs_world2pix(*world, origin)
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
+
+    if _swap_pixel_order(wcs, native_pixel_order, "skycoord_to_pixel"):
+        xp, yp = yp, xp
 
     return xp, yp
 
 
-def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
+def pixel_to_skycoord(
+    xp, yp, wcs, origin=0, mode="all", cls=None, *, native_pixel_order=None
+):
     """
     Convert a set of pixel coordinates into a `~astropy.coordinates.SkyCoord`
     coordinate.
@@ -705,6 +730,15 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
         The class of object to create.  Should be a
         `~astropy.coordinates.SkyCoord` subclass.  If None, defaults to
         `~astropy.coordinates.SkyCoord`.
+    native_pixel_order : bool or None, optional
+        Whether the pixel coordinates are in the native order of the WCS pixel
+        axes (`True`) or, for WCS objects in which latitude comes before
+        longitude, swapped such that ``xp`` corresponds to longitude and ``yp``
+        to latitude (`False`, the historical behavior). If `None` (the
+        default), the historical behavior is used and a deprecation warning is
+        emitted for WCS objects in which latitude comes before longitude. This
+        argument has no effect for WCS objects in which longitude comes before
+        latitude.
 
     Returns
     -------
@@ -714,49 +748,33 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
     See Also
     --------
     astropy.coordinates.SkyCoord.from_pixel
+    astropy.wcs.WCS.pixel_to_world
     """
-    # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import SkyCoord, UnitSphericalRepresentation
-
-    # we have to do this instead of actually setting the default to SkyCoord
-    # because importing SkyCoord at the module-level leads to circular
-    # dependencies.
-    if cls is None:
-        cls = SkyCoord
-
     if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
-    # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
+    # Keep only the celestial part of the axes, preserving the axis order
+    wcs = wcs.celestial
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
 
-    # Check which frame the WCS uses
-    frame = wcs_to_celestial_frame(wcs)
-
-    # Check what unit the WCS gives
-    lon_unit = u.Unit(wcs.wcs.cunit[0])
-    lat_unit = u.Unit(wcs.wcs.cunit[1])
+    if _swap_pixel_order(wcs, native_pixel_order, "pixel_to_skycoord"):
+        xp, yp = yp, xp
 
     # Convert pixel coordinates to celestial coordinates
     if mode == "all":
-        lon, lat = wcs.all_pix2world(xp, yp, origin)
+        world = wcs.all_pix2world(xp, yp, origin)
     elif mode == "wcs":
-        lon, lat = wcs.wcs_pix2world(xp, yp, origin)
+        world = wcs.wcs_pix2world(xp, yp, origin)
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
 
-    # Add units to longitude/latitude
-    lon = lon * lon_unit
-    lat = lat * lat_unit
+    # Convert to a SkyCoord in the frame of the WCS, taking into account the
+    # units and axis order (which may be lat/lon) of the WCS
+    (coords,) = values_to_high_level_objects(*world, low_level_wcs=wcs)
 
-    # Create a SkyCoord-like object
-    data = UnitSphericalRepresentation(lon=lon, lat=lat)
-    coords = cls(frame.realize_frame(data))
-
-    return coords
+    return coords if cls is None else cls(coords)
 
 
 def _unique_with_order_preserved(items):
