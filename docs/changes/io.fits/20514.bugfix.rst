@@ -1,0 +1,2 @@
+Fixed slicing of a ``GroupData`` object created from arrays rather than read
+from a file, which raised ``TypeError: 'NoneType' object is not subscriptable``.
