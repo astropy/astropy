@@ -706,6 +706,15 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
                 ) from None
 
         return result
+    
+    def __reduce__(self):
+        pickled_state = super().__reduce__()
+        new_state = pickled_state[2] + (self._mask,)
+        return (pickled_state[0], pickled_state[1], new_state)
+    
+    def __setstate__(self, state):
+        super().__setstate__(state[:-1])
+        self._set_mask(state[-1])
 
     def __array_finalize__(self, obj):
         # If we're a new object or viewing an ndarray, nothing has to be done.
