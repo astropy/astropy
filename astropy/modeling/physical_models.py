@@ -363,7 +363,7 @@ class CutoffBlackBody(BlackBody):
 
         beta = self.beta.value
 
-        if np.all(zero_temperature) or np.all((beta == 0) | (cutoff == 0 * u.AA)):
+        if np.all(zero_temperature | (beta == 0) | (cutoff == 0 * u.AA)):
             return super().bolometric_flux
 
         if not HAS_SCIPY:  # pragma: no cover
