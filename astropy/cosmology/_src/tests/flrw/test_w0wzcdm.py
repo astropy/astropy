@@ -121,11 +121,18 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         """
         super().test_Otot(cosmo, z)
 
-    @pytest.mark.xfail(
-        sys.platform == "emscripten", reason="known failure on emscripten"
-    )
     def test_Otot_overflow(self, cosmo):
         """Test :meth:`astropy.cosmology.w0wzCDM.Otot` for overflow."""
+        # The dark energy density overflows to inf, so Ode = inf / inf = nan.
+        with np.errstate(invalid="ignore", over="ignore"):
+            assert np.isnan(cosmo.Otot(1e3))
+
+    @pytest.mark.skipif(
+        sys.platform == "emscripten",
+        reason="floating-point exceptions not supported on emscripten",
+    )
+    def test_Otot_overflow_warning(self, cosmo):
+        """Test :meth:`astropy.cosmology.w0wzCDM.Otot` warns on overflow."""
         with (
             np.errstate(invalid="ignore", over="warn"),
             pytest.warns(RuntimeWarning, match="overflow encountered in exp"),
@@ -223,7 +230,12 @@ class TestFlatw0wzCDM(FlatFLRWMixinTest, Testw0wzCDM):
 
     def test_Otot_overflow(self, cosmo):
         """Test :meth:`astropy.cosmology.Flatw0wzCDM.Otot` for NOT overflowing."""
-        cosmo.Otot(1e5)
+        assert cosmo.Otot(1e5) == 1
+
+    def test_Otot_overflow_warning(self, cosmo):
+        """Test :meth:`astropy.cosmology.Flatw0wzCDM.Otot` does NOT warn."""
+        with np.errstate(over="raise"):
+            cosmo.Otot(1e5)
 
     # ---------------------------------------------------------------
 
