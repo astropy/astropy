@@ -60,3 +60,31 @@ def test_jackknife_stats_conf_interval():
 def test_jackknife_stats_exceptions():
     with pytest.raises(ValueError):
         jackknife_stats(np.arange(2), np.mean, confidence_level=42)
+
+
+def test_jackknife_resampling_masked_array():
+    data = np.ma.array([1, 2, 3, 4, 999], mask=[0, 0, 0, 0, 1])
+    expected = jackknife_resampling(np.array([1, 2, 3, 4]))
+    assert_equal(expected, jackknife_resampling(data))
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_jackknife_stats_masked_array():
+    data = np.ma.array([1.0, 2.0, 3.0, 4.0, 1000.0], mask=[0, 0, 0, 0, 1])
+    est, bias, se, ci = jackknife_stats(data, np.mean)
+    expected_est, expected_bias, expected_se, expected_ci = jackknife_stats(
+        data.compressed(), np.mean
+    )
+    assert_allclose(est, expected_est)
+    assert_allclose(bias, expected_bias)
+    assert_allclose(se, expected_se)
+    assert_allclose(ci, expected_ci)
+
+
+def test_jackknife_masked_all_masked_raises():
+    data = np.ma.array([1.0, 2.0], mask=[1, 1])
+    with pytest.raises(ValueError, match="data must contain at least one measurement"):
+        jackknife_resampling(data)
+    with pytest.raises(ValueError, match="data must contain at least one measurement"):
+        jackknife_stats(data, np.mean)
+

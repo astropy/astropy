@@ -44,6 +44,11 @@ def jackknife_resampling(
 
     .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
     """
+    if isinstance(data, np.ma.MaskedArray):
+        data = data.compressed()
+    elif hasattr(data, "unmasked") and hasattr(data, "mask"):
+        data = data[~data.mask].unmasked
+
     n = data.shape[0]
     if n <= 0:
         raise ValueError("data must contain at least one measurement.")
@@ -155,6 +160,11 @@ def jackknife_stats(
         raise ValueError("confidence level must be in (0, 1).")
 
     # make sure original data is proper
+    if isinstance(data, np.ma.MaskedArray):
+        data = data.compressed()
+    elif hasattr(data, "unmasked") and hasattr(data, "mask"):
+        data = data[~data.mask].unmasked
+
     n = data.shape[0]
     if n <= 0:
         raise ValueError("data must contain at least one measurement.")
