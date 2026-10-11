@@ -3702,7 +3702,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             self.sip is not None
             or self.cpdis1 is not None
             or self.cpdis2 is not None
-            or (self.det2im1 is not None and self.det2im2 is not None)
+            or self.det2im1 is not None
+            or self.det2im2 is not None
         )
 
     @property

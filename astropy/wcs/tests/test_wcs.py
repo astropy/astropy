@@ -2110,6 +2110,27 @@ def test_alternate_wcs_distortion_independent():
     )
 
 
+@pytest.mark.parametrize("axes", [(), (1,), (2,), (1, 2)])
+@pytest.mark.parametrize("origin", [0, 1])
+def test_detector_distortion_roundtrip(axes, origin):
+    image_wcs = wcs.WCS(naxis=2)
+    image_wcs.wcs.crpix = 1, 1
+    offsets = np.zeros(2)
+    for axis in axes:
+        offset = axis / 4
+        distortion = wcs.DistortionLookupTable(
+            np.full((2, 2), offset, dtype=np.float32), (1, 1), (1, 1), (1, 1)
+        )
+        setattr(image_wcs, f"det2im{axis}", distortion)
+        offsets[axis - 1] = offset
+
+    pixels = np.array([[0.25, 0.75], [1.5, 2.25]]) + origin
+    world = image_wcs.all_pix2world(pixels, origin)
+    assert_allclose(world, pixels - origin + offsets)
+    assert_allclose(image_wcs.all_world2pix(world, origin), pixels, atol=1e-7)
+    assert image_wcs.has_distortion == bool(axes)
+
+
 def test_DistortionLookupTable():
     img_world_wcs = wcs.WCS(naxis=2)
     # A simple "pixel coordinates are world coordinates" WCS, to which we'll
