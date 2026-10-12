@@ -18,6 +18,7 @@ from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaData
 from astropy.utils.misc import dtype_bytes_or_chars
 
@@ -1848,6 +1849,17 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         # to return a plain MaskedArray, we reset the baseclass accordingly.
         out._baseclass = np.ndarray
         return out
+
+    @property
+    def quantity(self) -> Quantity:
+        """
+        Return view of this table column as a masked `~astropy.units.Quantity`.
+
+        The result is a `~astropy.utils.masked.Masked` quantity that shares
+        the unit, data, and the mask with this column, even if no elements are
+        masked.
+        """
+        return Masked(super().quantity, mask=self.mask, copy=False)
 
     def filled(self, fill_value=None) -> Column:
         """Return a copy of self, with masked values filled with a given value.
