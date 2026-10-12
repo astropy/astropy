@@ -45,10 +45,22 @@ This section describes writing table data in the VOTable format using the
 the :ref:`Unified I/O VOTable <table_io_votable>` section for details.
 
 To save a VOTable file, call the
-`~astropy.io.votable.tree.VOTableFile.to_xml` method. It accepts
-either a string or Unicode path, or a Python file-like object::
+`~astropy.io.votable.tree.VOTableFile.to_xml` method, or equivalently
+the ``write`` convenience method. Both accept either a string or
+Unicode path, or a Python file-like object::
 
   votable.to_xml('output.xml')
+
+  # Equivalently:
+  votable.write('output.xml')
+
+.. note::
+
+  ``VOTableFile.write()`` serialises the existing ``VOTableFile`` object
+  as-is, preserving all metadata including PARAMs and INFOs. This is
+  different from ``Table.write(format='votable')``, which converts an
+  `~astropy.table.Table` into a new VOTable and does not preserve
+  VOTable-specific metadata such as PARAMs and INFOs.
 
 There are a number of data storage formats supported by
 `astropy.io.votable`. The ``TABLEDATA`` format is XML-based and

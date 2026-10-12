@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,8 +18,8 @@
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-  http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcstrig.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
+  http://www.atnf.csiro.au/computing/software/wcs
+  $Id: wcstrig.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -43,6 +43,9 @@ double cosd(double angle)
       return -1.0;
     case 3:
       return 0.0;
+    default:
+      // Fall-through.
+      break;
     }
   }
 
@@ -67,6 +70,9 @@ double sind(double angle)
       return -1.0;
     case 3:
       return 0.0;
+    default:
+      // Fall-through.
+      break;
     }
   }
 
@@ -99,6 +105,9 @@ void sincosd(double angle, double *s, double *c)
       *s = (angle > 0.0) ? -1.0 : 1.0;
       *c = 0.0;
       return;
+    default:
+      // Fall-through.
+      break;
     }
   }
 

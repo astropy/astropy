@@ -8,15 +8,17 @@ from .fk5 import FK5
 from .icrs import ICRS
 from .utils import EQUINOX_J2000
 
+_MAS_PER_DEG = 3.6e6  # 3600 arcseconds * 1000 milliarcseconds
+
 
 def _icrs_to_fk5_matrix():
     """
     B-matrix from USNO circular 179.  Used by the ICRS->FK5 transformation
     functions.
     """
-    eta0 = -19.9 / 3600000.0
-    xi0 = 9.1 / 3600000.0
-    da0 = -22.9 / 3600000.0
+    eta0 = -19.9 / _MAS_PER_DEG
+    xi0 = 9.1 / _MAS_PER_DEG
+    da0 = -22.9 / _MAS_PER_DEG
 
     return (
         rotation_matrix(-eta0, "x")

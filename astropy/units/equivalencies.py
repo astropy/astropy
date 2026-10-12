@@ -17,8 +17,8 @@ import numpy as np
 from astropy.constants import si as _si
 from astropy.utils import deprecated_renamed_argument
 
-from . import astrophys, cgs, dimensionless_unscaled, misc, si
-from .core import Unit
+from . import astrophys, cgs, misc, si
+from .core import Unit, dimensionless_unscaled
 from .errors import UnitsError
 from .function import units as function_units
 from .photometric import maggy

@@ -13,7 +13,6 @@ from typing import Any, NamedTuple, Self
 import numpy as np
 
 from astropy.units import Quantity, UnitBase
-from astropy.utils.compat import COPY_IF_NEEDED
 
 __all__ = ["CompoundBoundingBox", "ModelBoundingBox"]
 
@@ -495,11 +494,9 @@ class _BoundingDomain(abc.ABC):
         ----------
         evaluate : Callable
             callable which takes in the valid inputs to evaluate model
-        valid_inputs : list of numpy arrays
-            The inputs reduced to just those inputs which are all inside
-            their respective bounding box intervals
-        valid_index : numpy array
-            array of all indices inside the bounding box
+        inputs : list of numpy arrays
+            The inputs to reduce to those inside their respective bounding
+            box intervals
         input_shape : tuple
             The shape that all inputs have be reshaped/broadcasted into
         fill_value : float
@@ -542,9 +539,7 @@ class _BoundingDomain(abc.ABC):
         List containing filled in output values and units
         """
         if valid_outputs_unit is not None:
-            return Quantity(
-                outputs, valid_outputs_unit, copy=COPY_IF_NEEDED, subok=True
-            )
+            return Quantity(outputs, valid_outputs_unit, copy=None, subok=True)
 
         return outputs
 
@@ -557,11 +552,9 @@ class _BoundingDomain(abc.ABC):
         ----------
         evaluate : callable
             callable which takes in the valid inputs to evaluate model
-        valid_inputs : list
-            The inputs reduced to just those inputs which are all inside
-            their respective bounding box intervals
-        valid_index : array_like
-            array of all indices inside the bounding box
+        inputs : list
+            The inputs to reduce to those inside their respective bounding
+            box intervals
         fill_value : float
             The value which will be assigned to inputs which are outside
             the bounding box
@@ -794,9 +787,14 @@ class ModelBoundingBox(_BoundingDomain):
             The model for which this will be a bounding_box
         bounding_box : dict, tuple
             A possible representation of the bounding box
+        ignored : list, optional
+            A list of the inputs (by name or index) which will be ignored by
+            the bounding box.
         order : optional, str
             The order that a tuple representation will be assumed to be
                 Default: 'C'
+        **kwargs
+            Ignored.
         """
         if isinstance(bounding_box, ModelBoundingBox):
             order = bounding_box.order
@@ -819,7 +817,7 @@ class ModelBoundingBox(_BoundingDomain):
             The new model for which this will be a bounding_box
         fixed_inputs : dict
             Dictionary of inputs which have been fixed by this bounding box.
-        keep_ignored : bool
+        _keep_ignored : bool
             Keep the ignored inputs of the bounding box (internal argument only)
         """
         new = self.copy()
@@ -1473,9 +1471,14 @@ class CompoundBoundingBox(_BoundingDomain):
             Description of the selector arguments
         create_selector : optional, callable
             Method for generating new selectors
+        ignored : list, optional
+            A list of the inputs (by name or index) which will be ignored by
+            the bounding box.
         order : optional, str
             The order that a tuple representation will be assumed to be
                 Default: 'C'
+        **kwarg
+            Ignored.
         """
         if isinstance(bounding_box, CompoundBoundingBox):
             if selector_args is None:

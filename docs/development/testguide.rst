@@ -18,7 +18,7 @@ Testing Dependencies
 Most commonly, you should install the full suite of testing and development
 dependencies::
 
-    python -m pip install --editable '.[dev_all]'
+    python -m pip install --editable . --group dev_all
 
 This will provide all dependencies for running the full test suite using `tox <https://tox.wiki/>`__
 and |pytest|. It will also allow running tests via any IDE which
@@ -94,7 +94,7 @@ in an :ref:`isolated development environment<create-isolated-env>`.
 In the uncommon situation that one or more compiled extensions have changed, you will
 need to rebuild them by re-running the usual editable install command::
 
-    python -m pip install --editable '.[dev_all]'
+    python -m pip install --editable . --group dev_all
 
 It is possible to run only the tests for a particular subpackage or set of
 subpackages.  For example, to run only the ``wcs`` and ``utils`` tests from the
@@ -138,7 +138,8 @@ Test coverage reports
 
 Coverage reports can be generated using the `pytest-cov
 <https://pypi.org/project/pytest-cov/>`_ plugin (which is installed
-automatically when installing pytest-astropy) by using e.g.::
+automatically when installing astropy with ``test`` extra dependencies)
+by using e.g.::
 
     pytest --cov astropy --cov-report html
 
@@ -329,13 +330,13 @@ Tests that use the file cache
 By default, Astropy's test configuration sets up a clean file cache in a temporary
 directory that is used only for that test run and then destroyed.  This is to
 ensure consistency between test runs, as well as to not clutter users' caches
-(i.e., the cache directory returned by `~astropy.config.get_cache_dir`) with
+(i.e., the cache directory returned by `~astropy.config.get_cache_dir_path`) with
 test files.
 
 However, some test authors (especially for affiliated packages) may find it
 desirable to cache files downloaded during a test run in a more permanent
 location (e.g., for large data sets).  To this end the
-`~astropy.config.set_temp_cache` helper may be used.  It can be used either as
+`~astropy.config.temporary_cache_dir_path` helper may be used.  It can be used either as
 a context manager within a test to temporarily set the cache to a custom
 location, or as a *decorator* that takes effect for an entire test function
 (not including setup or teardown, which would have to be decorated separately).
@@ -494,7 +495,7 @@ Imagine if random testing gave you minimal, non-flaky failing examples,
 and a clean way to describe even the most complicated data - that's
 property-based testing!
 
-``pytest-astropy`` includes a dependency on `Hypothesis
+astropy's ``test`` extra includes a dependency on `Hypothesis
 <https://hypothesis.readthedocs.io/>`_, so installation is easy -
 you can just read the docs or `work through the tutorial
 <https://github.com/Zac-HD/escape-from-automanual-testing/>`_
@@ -680,7 +681,7 @@ hashes and images.
 
 To run the Astropy tests with the image comparison, use e.g.::
 
-    tox -e py311-test-image-mpl380-cov
+    tox -e py312-test-image-mpl380-cov
 
 However, note that the output can be sensitive to the operating system and
 specific version of libraries such as freetype. In general, using tox will
@@ -738,21 +739,8 @@ New hash libraries
 ------------------
 
 When adding a new tox environment for image testing, such as for a new Matplotlib
-or Python version, the tests will fail as the hash library does not exist yet. To
-generate it, you should run the tests the first time with::
-
-    tox -e <envname> -- --mpl-generate-hash-library=astropy/tests/figures/<envname>.json
-
-for example::
-
-    tox -e py311-test-image-mpl380-cov -- --mpl-generate-hash-library=astropy/tests/figures/py311-test-image-mpl380-cov.json
-
-Then add and commit the new JSON file and try running the tests again. The tests
-may fail in the continuous integration if e.g. the freetype version does not
-match or if you generated the JSON file on a Mac or Windows machine - if that is
-the case, follow the instructions in `Failing tests`_ to update the hashes.
-
-As an alternative to generating the JSON file above, you can also simply copy a
+or Python version, the tests will fail as the hash library does not exist yet.
+Instead of generating it from scratch, you can simply copy a
 previous version of the JSON file and update any failing hashes as described
 in `Failing tests`_.
 

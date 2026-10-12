@@ -6,6 +6,9 @@ from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time, TimeDelta
 from astropy.timeseries.periodograms.lombscargle import LombScargle
+from astropy.timeseries.periodograms.lombscargle._testing import (
+    assert_not_strictly_equal,
+)
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != "auto"]
@@ -99,9 +102,9 @@ def test_all_methods(
     )
     P_expected = ls.power(frequency)
 
-    # don't use the fft approximation here; we'll test this elsewhere
+    # don't use the lagrangian approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
-        kwds["method_kwds"] = dict(use_fft=False)
+        kwds["method_kwds"] = dict(algorithm="lra")
     P_method = ls.power(frequency, method=method, **kwds)
 
     if with_units:
@@ -113,6 +116,44 @@ def test_all_methods(
         assert not hasattr(P_method, "unit")
 
     assert_quantity_allclose(P_expected, P_method)
+
+
+@pytest.mark.parametrize("assume_regular_frequency", [True, False])
+@pytest.mark.parametrize("center_data", [True, False])
+@pytest.mark.parametrize("fit_mean", [True, False])
+def test_cython_regular_frequency(
+    data, fit_mean, center_data, assume_regular_frequency
+):
+    # The cython method has a fast path for regular frequency grids that updates
+    # the trigonometric terms recursively. Check that it matches the reference
+    # 'slow' implementation, both when the regularity is assumed and when it is
+    # detected automatically. The grid has more than 64 points so that the
+    # periodic re-seeding of the recursion is exercised.
+    t, y, dy = data
+    frequency = 0.1 + 0.01 * np.arange(200)
+
+    ls = LombScargle(t, y, dy, fit_mean=fit_mean, center_data=center_data)
+    P_cython = ls.power(
+        frequency, method="cython", assume_regular_frequency=assume_regular_frequency
+    )
+    P_slow = ls.power(frequency, method="slow")
+    assert_allclose(P_cython, P_slow)
+
+
+@pytest.mark.parametrize("center_data", [True, False])
+@pytest.mark.parametrize("fit_mean", [True, False])
+def test_cython_irregular_frequency(data, fit_mean, center_data):
+    # On an irregular grid the cython method falls back to evaluating the
+    # trigonometric terms directly at every frequency; check that this path
+    # also matches the reference 'slow' implementation.
+    t, y, dy = data
+    rng = np.random.default_rng(1)
+    frequency = np.sort(0.1 + 5 * rng.random(200))
+
+    ls = LombScargle(t, y, dy, fit_mean=fit_mean, center_data=center_data)
+    P_cython = ls.power(frequency, method="cython")
+    P_slow = ls.power(frequency, method="slow")
+    assert_allclose(P_cython, P_slow)
 
 
 @pytest.mark.parametrize("method", ALL_METHODS_NO_AUTO)
@@ -186,10 +227,11 @@ def test_nterms_methods(
     else:
         P_expected = ls.power(frequency)
 
-        # don't use fast fft approximations here
+        # don't use the Lagrange polynomial approximation here
         kwds = {}
         if "fast" in method:
-            kwds["method_kwds"] = dict(use_fft=False)
+            kwds["method_kwds"] = dict(algorithm="lra")
+
         P_method = ls.power(frequency, method=method, **kwds)
 
         assert_allclose(P_expected, P_method, rtol=1e-7, atol=1e-25)
@@ -224,7 +266,7 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
     )
 
     # use only standard normalization because we compare via absolute tolerance
-    kwds = dict(method=method)
+    kwds = dict(method=method, method_kwds={})
 
     if method == "fast" and nterms != 1:
         with pytest.raises(ValueError, match=r"nterms"):
@@ -240,6 +282,8 @@ def test_fast_approximations(method, center_data, fit_mean, errors, nterms, data
         P_slow = ls.power(frequency, **kwds)
 
         assert_allclose(P_fast, P_slow, atol=0.008)
+        if nterms != 0:
+            assert_not_strictly_equal(P_fast, P_slow)
 
 
 @pytest.mark.parametrize("method", LombScargle.available_methods)

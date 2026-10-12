@@ -7,20 +7,13 @@ Distribution class and associated machinery.
 import builtins
 
 import numpy as np
+from numpy.lib._function_base_impl import _parse_gufunc_signature
+from numpy.lib._stride_tricks_impl import DummyArray
+from numpy.lib.array_utils import normalize_axis_index
 
 from astropy import stats
 from astropy import units as u
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
-
-if NUMPY_LT_2_0:
-    from numpy.core.multiarray import normalize_axis_index
-    from numpy.lib.function_base import _parse_gufunc_signature
-    from numpy.lib.stride_tricks import DummyArray
-else:
-    from numpy.lib._function_base_impl import _parse_gufunc_signature
-    from numpy.lib._stride_tricks_impl import DummyArray
-    from numpy.lib.array_utils import normalize_axis_index
-
+from astropy.utils.compat import NUMPY_LT_2_5
 
 from .function_helpers import FUNCTION_HELPERS
 
@@ -100,9 +93,15 @@ class Distribution:
             interface["strides"] = samples.strides[:-1]
             structured = np.asarray(DummyArray(interface, base=samples))
         # Set our new structured dtype.
-        structured.dtype = new_dtype
+        if NUMPY_LT_2_5:
+            structured.dtype = new_dtype
+        else:
+            structured._set_dtype(new_dtype)
         # Get rid of trailing dimension of 1.
-        structured.shape = samples.shape[:-1]
+        if NUMPY_LT_2_5:
+            structured.shape = samples.shape[:-1]
+        else:
+            structured._set_shape(samples.shape[:-1])
 
         # Now view as the Distribution subclass, and finalize based on the
         # original samples (e.g., to set the unit for QuantityDistribution).
@@ -457,8 +456,8 @@ class Distribution:
             `~astropy.units.Quantity` will be converted to percent, meaning
             that a ``dimensionless_unscaled`` `~astropy.units.Quantity` will
             be interpreted as a quantile.
-
-        Additional keywords are passed into `numpy.percentile`.
+        **kwargs
+            Additional keywords are passed into `numpy.percentile`.
 
         Returns
         -------
@@ -480,9 +479,10 @@ class Distribution:
 
         Parameters
         ----------
-        All keyword arguments are passed into `astropy.stats.histogram`. Note
-        That some of these options may not be valid for some multidimensional
-        distributions.
+        **kwargs
+            All keyword arguments are passed into `astropy.stats.histogram`.
+            Note that some of these options may not be valid for some
+            multidimensional distributions.
 
         Returns
         -------

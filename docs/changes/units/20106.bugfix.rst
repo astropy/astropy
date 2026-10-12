@@ -1,0 +1,3 @@
+The ``get_converter`` method of units now takes any argument that can
+be converted to a unit (like a string), making it consistent with what
+was advertised in its docstring.

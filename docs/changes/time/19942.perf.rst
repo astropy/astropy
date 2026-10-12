@@ -1,0 +1,4 @@
+Representing a ``Time`` object in any of the formats ``iso``, ``isot``, ``yday``,
+``fits`` or ``datetime64`` is now done with array operations instead of a
+Python loop over the elements. This makes it over ten times faster for large
+arrays and can speed up printing and writing to a table file.

@@ -1,0 +1,6 @@
+Fixed ``Table.to_pandas()`` and ``Table.to_df()`` silently corrupting masked
+integer columns whose values are too large to be represented exactly as a
+float64, e.g. Gaia source ids. The nullable integer column is now built
+directly from the integer data and the mask instead of via a float64
+intermediate. Only the pandas backend was affected; polars and pyarrow already
+round-tripped these values exactly.

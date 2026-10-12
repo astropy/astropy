@@ -1,0 +1,18 @@
+Added a new configuration item ``units.quantity.conf.quantity_convert_int_to_float``
+controlling whether integer values are converted to float when a ``Quantity`` is created
+without an explicit ``dtype``. The allowed values are ``default`` (convert, but allow a
+particular context such as adding a column to a ``QTable`` to override), ``always``
+(convert and ignore such overrides) and ``never`` (keep the integer ``dtype``)::
+
+    with conf.set_temp("quantity_convert_int_to_float", "never"):
+        q = [1, 2] * u.ct  # int64 rather than float64
+
+An explicit ``dtype`` argument is always honored regardless of the configuration.
+
+Also added a :func:`~astropy.units.preserve_dtype_by_default` context manager to
+preserve the input ``dtype`` unless the ``quantity_convert_int_to_float``
+configuration is set to ``always``.
+
+Note that ``Quantity`` subclasses in astropy such as ``Angle``, ``Distance`` and
+``Magnitude`` are unaffected by the configuration. They always default to floating-point
+``dtype``.

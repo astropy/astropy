@@ -5,6 +5,7 @@ from collections.abc import Callable
 from typing import Literal
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_index
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats._fast_sigma_clip import _sigma_clip_fast
@@ -21,15 +22,19 @@ from astropy.stats.nanfunctions import (
     nanvar,
 )
 from astropy.units import Quantity
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.exceptions import AstropyUserWarning
-
-if NUMPY_LT_2_0:
-    from numpy.core.multiarray import normalize_axis_index
-else:
-    from numpy.lib.array_utils import normalize_axis_index
+from astropy.utils.masked import Masked, get_data_and_mask
 
 __all__ = ["SigmaClip", "SigmaClippedStats", "sigma_clip", "sigma_clipped_stats"]
+
+
+def _make_masked(data, mask, **kwargs):
+    if isinstance(data, (Masked, Quantity)):
+        # TODO: really a bug in Masked that it lets masked masks
+        # through; see https://github.com/astropy/astropy/issues/20246
+        return Masked(data, np.asarray(mask), **kwargs)
+    else:
+        return np.ma.MaskedArray(data, mask, **kwargs)
 
 
 class SigmaClip:
@@ -315,6 +320,7 @@ class SigmaClip:
         if data_reshaped.dtype.kind != "f" or data_reshaped.dtype.itemsize > 8:
             data_reshaped = data_reshaped.astype(float)
 
+        # Any unmasked infinities or nans?
         mask = ~np.isfinite(data_reshaped)
         if np.any(mask):
             warnings.warn(
@@ -323,11 +329,11 @@ class SigmaClip:
                 AstropyUserWarning,
             )
 
-        if isinstance(data_reshaped, np.ma.MaskedArray):
-            mask |= data_reshaped.mask
-            data = data.view(np.ndarray)
-            data_reshaped = data_reshaped.view(np.ndarray)
-            mask = np.broadcast_to(mask, data_reshaped.shape).copy()
+        # Get unmasked data and its possible mask.
+        data_reshaped, mask_reshaped = get_data_and_mask(data_reshaped)
+        if mask_reshaped is not None:
+            # If the data was masked, mask must be too. Just fill it.
+            mask = mask.filled(True)
 
         bound_lo, bound_hi = _sigma_clip_fast(
             data_reshaped,
@@ -352,8 +358,9 @@ class SigmaClip:
             )
 
         if masked:
-            result = np.ma.array(data, mask=mask, copy=copy)
+            result = _make_masked(data, mask, copy=copy)
         else:
+            data, _ = get_data_and_mask(data)
             if data.dtype.kind != "f":
                 # float array type is needed to insert nans into the array
                 result = data.astype(np.float32)  # also makes a copy
@@ -387,11 +394,12 @@ class SigmaClip:
         In this simple case, we remove clipped elements from the
         flattened array during each iteration.
         """
-        filtered_data = data.ravel()
-
         # remove masked values and convert to ndarray
-        if isinstance(filtered_data, np.ma.MaskedArray):
-            filtered_data = filtered_data._data[~filtered_data.mask]
+        filtered_data, mask = get_data_and_mask(data)
+        if mask is None:
+            filtered_data = filtered_data.ravel()
+        else:
+            filtered_data = filtered_data[~mask]
 
         # remove invalid values
         good_mask = np.isfinite(filtered_data)
@@ -417,15 +425,17 @@ class SigmaClip:
         self._niterations = iteration
 
         if masked:
-            # return a masked array and optional bounds
-            filtered_data = np.ma.masked_invalid(data, copy=copy)
-
-            # update the mask in place, ignoring RuntimeWarnings for
-            # comparisons with NaN data values
+            # For masked output, calculate the new mask. Since filtered_data
+            # was shrunk, we need to redo the value comparisons, taking care
+            # to ignore RuntimeWarnings for comparisons with NaN.
+            # TODO: move np.isfinite call above before reshape for reuse here.
             with np.errstate(invalid="ignore"):
-                filtered_data.mask |= np.logical_or(
-                    data < self._min_value, data > self._max_value
+                clip_mask = (
+                    ~np.isfinite(data)
+                    | (data < self._min_value)
+                    | (data > self._max_value)
                 )
+            filtered_data = _make_masked(data, clip_mask, copy=copy)
 
         if return_bounds:
             return filtered_data, self._min_value, self._max_value
@@ -451,26 +461,26 @@ class SigmaClip:
         In this case, we replace clipped values with NaNs as placeholder
         values.
         """
+        data, mask = get_data_and_mask(data)
         if data.dtype.kind != "f":
             # float array type is needed to insert nans into the array
             filtered_data = data.astype(np.float32)  # also makes a copy
         else:
             filtered_data = data.copy()
 
-        # remove invalid values
-        bad_mask = ~np.isfinite(filtered_data)
+        # Set bad values and possible existing masked ones to NaN
+        bad_mask = ~np.isfinite(data)
+        if mask is not None:
+            bad_mask |= mask
         if np.any(bad_mask):
             filtered_data[bad_mask] = np.nan
-            warnings.warn(
-                "Input data contains invalid values (NaNs or "
-                "infs), which were automatically clipped.",
-                AstropyUserWarning,
-            )
-
-        # remove masked values and convert to plain ndarray
-        if isinstance(filtered_data, np.ma.MaskedArray):
-            filtered_data = np.ma.masked_invalid(filtered_data).astype(float)
-            filtered_data = filtered_data.filled(np.nan)
+            # Warn if any bad values were *not* masked.
+            if mask is None or np.any(bad_mask & ~mask):
+                warnings.warn(
+                    "Input data contains invalid values (NaNs or "
+                    "infs), which were automatically clipped.",
+                    AstropyUserWarning,
+                )
 
         if axis is not None:
             # convert negative axis/axes
@@ -529,20 +539,8 @@ class SigmaClip:
 
         if masked:
             # create an output masked array
-            if copy:
-                filtered_data = np.ma.MaskedArray(
-                    data, ~np.isfinite(filtered_data), copy=True
-                )
-            else:
-                # ignore RuntimeWarnings for comparisons with NaN data values
-                with np.errstate(invalid="ignore"):
-                    out = np.ma.masked_invalid(data, copy=False)
-
-                    filtered_data = np.ma.masked_where(
-                        np.logical_or(out < self._min_value, out > self._max_value),
-                        out,
-                        copy=False,
-                    )
+            result_mask = ~np.isfinite(filtered_data)
+            filtered_data = _make_masked(filtered_data, result_mask, copy=copy)
 
         if return_bounds:
             return filtered_data, self._min_value, self._max_value
@@ -623,20 +621,9 @@ class SigmaClip:
         """
         data = np.asanyarray(data)
 
-        if data.size == 0:
+        if data.size == 0 or np.all(getattr(data, "mask", np.False_)):
             if masked:
-                result = np.ma.MaskedArray(data)
-            else:
-                result = data
-
-            if return_bounds:
-                return result, self._min_value, self._max_value
-            else:
-                return result
-
-        if isinstance(data, np.ma.MaskedArray) and data.mask.all():
-            if masked:
-                result = data
+                result = _make_masked(data, True)
             else:
                 result = np.full(data.shape, np.nan)
 
@@ -867,6 +854,26 @@ def sigma_clip(
 
     Note that along the other axis, no points would be clipped, as the
     standard deviation is higher.
+
+    The behavior of ``masked=False`` depends on whether ``axis`` is
+    specified. When ``axis=None`` (the default), clipped values are
+    *removed* from the output, so the returned array may be shorter
+    than the input::
+
+        >>> import numpy as np
+        >>> from astropy.stats import sigma_clip
+        >>> x = np.ones(10)
+        >>> x[5] = 1000.0
+        >>> clipped = sigma_clip(x, masked=False)
+        >>> len(clipped)  # shorter than input: outlier was removed
+        9
+
+    When ``axis`` is specified, clipped values are replaced with
+    ``np.nan`` instead::
+
+        >>> clipped_nan = sigma_clip(x, masked=False, axis=0)
+        >>> bool(np.isnan(clipped_nan[5]))  # outlier replaced with nan
+        True
     """
     sigclip = SigmaClip(
         sigma=sigma,
@@ -995,12 +1002,14 @@ class SigmaClippedStats:
             grow=grow,
         )
 
-        if mask is not None:
-            data = np.ma.MaskedArray(data, mask)
         if mask_value is not None:
-            data = np.ma.masked_values(data, mask_value)
+            value_mask = np.ma.masked_values(data, mask_value).mask
+            mask = value_mask if mask is None else value_mask | mask
 
-        if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+        if mask is not None:
+            data = _make_masked(data, mask)
+
+        if getattr(data, "mask", np.False_).all():
             raise ValueError("input data is all masked")
 
         self.data = sigclip(
@@ -1320,12 +1329,14 @@ def sigma_clipped_stats(
     --------
     SigmaClippedStats, SigmaClip, sigma_clip
     """
-    if mask is not None:
-        data = np.ma.MaskedArray(data, mask)
     if mask_value is not None:
-        data = np.ma.masked_values(data, mask_value)
+        value_mask = np.ma.masked_values(data, mask_value).mask
+        mask = value_mask if mask is None else value_mask | mask
 
-    if isinstance(data, np.ma.MaskedArray) and data.mask.all():
+    if mask is not None:
+        data = _make_masked(data, mask)
+
+    if getattr(data, "mask", np.False_).all():
         return np.ma.masked, np.ma.masked, np.ma.masked
 
     stats = SigmaClippedStats(

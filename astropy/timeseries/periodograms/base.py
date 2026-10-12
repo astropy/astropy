@@ -26,6 +26,8 @@ class BasePeriodogram:
 
         Parameters
         ----------
+        timeseries : `~astropy.timeseries.TimeSeries` or `~astropy.timeseries.BinnedTimeSeries`
+            The time series from which to initialize the periodogram.
         signal_column_name : str
             The name of the column containing the signal values to use.
         uncertainty : str or float or `~astropy.units.Quantity`, optional

@@ -1,0 +1,1 @@
+Passing an integer column index equal to the number of fields in ``columns`` now raises the intended ``ValueError``.

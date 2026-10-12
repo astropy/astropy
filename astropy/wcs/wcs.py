@@ -529,6 +529,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         self._init_kwargs = {
             "keysel": copy.copy(keysel),
             "colsel": copy.copy(colsel),
+            "preserve_units": preserve_units,
         }
 
         if header is None:
@@ -619,7 +620,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
                         tmp_wcsprm = tmp_wcsprm.sub(naxis)
                     except ValueError:
                         pass
-                    est_naxis = tmp_wcsprm.naxis if tmp_wcsprm.naxis else 2
+                    est_naxis = tmp_wcsprm.naxis or 2
 
             except NoWcsKeywordsFoundError:
                 pass
@@ -629,7 +630,9 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             header = fits.Header.fromstring(header_string)
 
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
-            cpdis = self._read_distortion_kw(header, fobj, dist="CPDIS", err=minerr)
+            cpdis = self._read_distortion_kw(
+                header, fobj, dist="CPDIS", err=minerr, key=key
+            )
             self._fix_pre2012_scamp_tpv(header)
 
             sip = self._read_sip_kw(header, wcskey=key)
@@ -731,6 +734,12 @@ reduce these to 2 dimensions using the naxis kwarg.
     def __deepcopy__(self, memo):
         from copy import deepcopy
 
+        # Snapshot the instance dict up front so that we are not sensitive
+        # to it changing while this method runs (e.g. lazy caches inserted
+        # by another thread); unlike iteration, dict.copy() is atomic on
+        # free-threaded builds as it holds the dict's per-object lock
+        state = self.__dict__.copy()
+
         new_copy = self.__class__()
         new_copy.naxis = deepcopy(self.naxis, memo)
         WCSBase.__init__(
@@ -740,7 +749,7 @@ reduce these to 2 dimensions using the naxis kwarg.
             deepcopy(self.wcs, memo),
             (deepcopy(self.det2im1, memo), deepcopy(self.det2im2, memo)),
         )
-        for key, val in self.__dict__.items():
+        for key, val in state.items():
             new_copy.__dict__[key] = deepcopy(val, memo)
         return new_copy
 
@@ -1156,17 +1165,44 @@ reduce these to 2 dimensions using the naxis kwarg.
         write_d2i(1, self.det2im1)
         write_d2i(2, self.det2im2)
 
-    def _read_distortion_kw(self, header, fobj, dist="CPDIS", err=0.0):
+    def _read_distortion_kw(self, header, fobj, dist="CPDIS", err=0.0, key=" "):
         """
         Reads `distortion paper`_ table-lookup keywords and data, and
         returns a 2-tuple of `~astropy.wcs.DistortionLookupTable`
         objects.
-
         If no `distortion paper`_ keywords are found, ``(None, None)``
         is returned.
+
+        Parameters
+        ----------
+        header : `~astropy.io.fits.Header` or str or bytes
+            FITS header containing distortion keywords
+        fobj : `~astropy.io.fits.HDUList` or None
+            FITS file object for lookup table data
+        dist : str, optional
+            Distortion type: "CPDIS" for prior or "CQDIS" for sequent.
+            Default is "CPDIS".
+        err : float, optional
+            Minimum error threshold. Distortions with maximum error less
+            than this value will be ignored. Default is 0.0.
+        key : str, optional
+            WCS key character (e.g., ' ', 'A', 'B', etc.). This is used
+            to construct the proper keyword names with the appropriate
+            suffix. Default is ' ' (primary WCS).
+
+        Returns
+        -------
+        tuple
+            A 2-tuple of `~astropy.wcs.DistortionLookupTable` objects
+            for axes 1 and 2, or ``(None, None)`` if no distortion
+            keywords are found.
         """
         if isinstance(header, (str, bytes)):
             return (None, None)
+
+        key = key.strip().upper()
+
+        key_suffix = key
 
         if dist == "CPDIS":
             d_kw = "DP"
@@ -1177,38 +1213,52 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         tables = {}
         for i in range(1, self.naxis + 1):
-            d_error_key = err_kw + str(i)
+            axis_key_suffix = str(i) + key_suffix
+            d_error_key = err_kw + axis_key_suffix
+
             if d_error_key in header:
                 d_error = header[d_error_key]
                 del header[d_error_key]
             else:
                 d_error = 0.0
+
             if d_error < err:
                 tables[i] = None
                 continue
-            distortion = dist + str(i)
+
+            distortion = dist + axis_key_suffix
+
             if distortion in header:
                 dis = header[distortion].lower()
                 del header[distortion]
+
                 if dis == "lookup":
                     if not isinstance(fobj, fits.HDUList):
                         raise ValueError(
                             "an astropy.io.fits.HDUList is "
                             "required for Lookup table distortion."
                         )
-                    dp = (d_kw + str(i)).strip()
+
+                    dp = d_kw + axis_key_suffix
+
                     dp_extver_key = dp + ".EXTVER"
                     if dp_extver_key in header:
                         d_extver = header[dp_extver_key]
                         del header[dp_extver_key]
                     else:
                         d_extver = 1
+
                     dp_axis_key = dp + f".AXIS.{i:d}"
-                    if i == header[dp_axis_key]:
-                        d_data = fobj["WCSDVARR", d_extver].data
+                    if dp_axis_key in header:
+                        axis_val = header[dp_axis_key]
+                        if i == axis_val:
+                            d_data = fobj["WCSDVARR", d_extver].data
+                        else:
+                            d_data = (fobj["WCSDVARR", d_extver].data).transpose()
+                        del header[dp_axis_key]
                     else:
-                        d_data = (fobj["WCSDVARR", d_extver].data).transpose()
-                    del header[dp_axis_key]
+                        d_data = fobj["WCSDVARR", d_extver].data
+
                     d_header = fobj["WCSDVARR", d_extver].header
                     d_crpix = (d_header.get("CRPIX1", 0.0), d_header.get("CRPIX2", 0.0))
                     d_crval = (d_header.get("CRVAL1", 0.0), d_header.get("CRVAL2", 0.0))
@@ -3352,7 +3402,11 @@ reduce these to 2 dimensions using the naxis kwarg.
         buffer = io.BytesIO()
         hdulist.writeto(buffer)
 
-        dct = self.__dict__.copy()
+        # Exclude lazily-populated caches: they are pure functions of the
+        # WCS state, so unpickling can regenerate them on demand. Keeping
+        # them out of the pickle avoids bloating the payload and prevents
+        # non-picklable cache contents (e.g. closures) from breaking pickle.
+        dct = {k: v for k, v in self.__dict__.items() if not k.endswith("_cache")}
         dct["_alt_wcskey"] = self.wcs.alt
 
         return (
@@ -3370,8 +3424,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        wcs : `~astropy.wcs.WCS`
-            The WCS with naxis to be chopped to naxis-1
         dropax : int
             The index of the WCS to drop, counting from 0 (i.e., python convention,
             not FITS convention)
@@ -3395,8 +3447,6 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        wcs : `~astropy.wcs.WCS`
-            The WCS to have its axes swapped
         ax0 : int
         ax1 : int
             The indices of the WCS to be swapped, counting from 0 (i.e., python

@@ -1,1 +1,0 @@
-Fixed a bug when writing ``Table`` to FITS files, if the table contained masked arrays of integers.

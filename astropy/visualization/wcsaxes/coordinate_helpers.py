@@ -11,7 +11,6 @@ import numpy as np
 from matplotlib import rcParams
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
-from matplotlib.transforms import Affine2D, ScaledTranslation
 
 from astropy import units as u
 from astropy.utils.decorators import deprecated_renamed_argument
@@ -71,12 +70,12 @@ class CoordinateHelper:
         and do not wrap.
     coord_unit : `~astropy.units.Unit`
         The unit that this coordinate is in given the output of transform.
-    format_unit : `~astropy.units.Unit`, optional
-        The unit to use to display the coordinates.
     coord_wrap : `astropy.units.Quantity`
         The angle at which the longitude wraps (defaults to 360 degrees).
     frame : `~astropy.visualization.wcsaxes.frame.BaseFrame`
         The frame of the :class:`~astropy.visualization.wcsaxes.WCSAxes`.
+    format_unit : `~astropy.units.Unit`, optional
+        The unit to use to display the coordinates.
     default_label : str, optional
         The axis label to show by default if none is set later.
     """
@@ -115,11 +114,7 @@ class CoordinateHelper:
         self.set_coord_type(coord_type, coord_wrap)
 
         # Initialize ticks
-        self.dpi_transform = Affine2D()
-        self.offset_transform = ScaledTranslation(0, 0, self.dpi_transform)
-        self._ticks = Ticks(
-            frame=self.frame, transform=parent_axes.transData + self.offset_transform
-        )
+        self._ticks = Ticks(frame=self.frame, transform=parent_axes.transData)
 
         # Initialize tick labels
         self._ticklabels = TickLabels(
@@ -217,7 +212,7 @@ class CoordinateHelper:
     @property
     def coord_type(self):
         """
-        The type of this coordinate (e.g., ``'longitude'``)
+        The type of this coordinate (e.g., ``'longitude'``).
         """
         return self._coord_type
 
@@ -347,7 +342,7 @@ class CoordinateHelper:
         Parameters
         ----------
         draw_grid : bool
-            Whether to show the gridlines
+            Whether to show the gridlines.
         grid_type : {'lines', 'contours'}
             Whether to plot the contours by determining the grid lines in
             world coordinates and then plotting them in world coordinates
@@ -357,6 +352,9 @@ class CoordinateHelper:
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
             is recommended. By default, 'lines' is used if the transform has
             an inverse, otherwise 'contours' is used.
+        **kwargs
+            Standard matplotlib appearance keyword arguments (color, alpha,
+            etc.) to use for the grid lines.
         """
         if grid_type == "lines" and not self.transform.has_inverse:
             raise ValueError(
@@ -388,7 +386,7 @@ class CoordinateHelper:
         Parameters
         ----------
         coord_type : str
-            One of 'longitude', 'latitude' or 'scalar'
+            One of 'longitude', 'latitude' or 'scalar'.
         coord_wrap : `~astropy.units.Quantity`, optional
             The value to wrap at for angular coordinates.
         """
@@ -465,7 +463,7 @@ class CoordinateHelper:
         Parameters
         ----------
         value : float
-            The value to format
+            The value to format.
         format : {'auto', 'ascii', 'latex'}, optional
             The format to use - by default the formatting will be adjusted
             depending on whether Matplotlib is using LaTeX or MathTex. To
@@ -562,13 +560,22 @@ class CoordinateHelper:
         number : float, optional
             The approximate number of ticks shown.
         size : float, optional
-            The length of the ticks in points
+            The length of the ticks in points.
+        width : float, optional
+            The width of the ticks in points.
         color : str or tuple, optional
-            A valid Matplotlib color for the ticks
+            A valid Matplotlib color for the ticks.
         alpha : float, optional
             The alpha value (transparency) for the ticks.
         direction : {'in','out'}, optional
             Whether the ticks should point inwards or outwards.
+        exclude_overlapping : bool, optional
+            Whether to exclude tick labels that overlap.
+
+            .. deprecated:: 3.1
+                Use the ``exclude_overlapping`` option of
+                `~astropy.visualization.wcsaxes.CoordinateHelper.set_ticklabel`
+                instead.
         """
         if sum([values is None, spacing is None, number is None]) < 2:
             raise ValueError(
@@ -664,10 +671,10 @@ class CoordinateHelper:
 
         Parameters
         ----------
-        size : float, optional
-            The size of the ticks labels in points
         color : str or tuple, optional
-            A valid Matplotlib color for the tick labels
+            A valid Matplotlib color for the tick labels.
+        size : float, optional
+            The size of the ticks labels in points.
         pad : float, optional
             Distance in points between tick and label.
         exclude_overlapping : bool, optional
@@ -889,6 +896,15 @@ class CoordinateHelper:
     def get_axislabel_visibility_rule(self, rule):
         """
         Get the rule used to determine when the axis label is drawn.
+
+        Parameters
+        ----------
+        rule : str
+            Has no effect.
+
+            .. deprecated:: 7.2.0
+                The ``rule`` argument is deprecated and will be removed in a
+                future version.
         """
         return self._axislabels.get_visibility_rule()
 
@@ -931,6 +947,8 @@ class CoordinateHelper:
 
         Parameters
         ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to draw with.
         existing_bboxes : list[Bbox]
             All bboxes for ticks that have already been drawn by other
             coordinates.
@@ -1019,22 +1037,34 @@ class CoordinateHelper:
                     continue
                 axes0 = transData.transform(pixel0)
 
-                # Advance 2 pixels in figure coordinates
-                pixel1 = axes0.copy()
-                pixel1[:, 0] += 2.0
-                pixel1 = invertedTransLimits.transform(pixel1)
-                with np.errstate(invalid="ignore"):
-                    world1 = self.transform.transform(pixel1)[:, self.coord_index]
+                # Define a helper function to minimize code repetition
+                def shifted_pixel_to_world(index, shift):
+                    pixel = axes0.copy()
+                    pixel[:, index] += shift
+                    pixel = invertedTransLimits.transform(pixel)
+                    with np.errstate(invalid="ignore"):
+                        return self.transform.transform(pixel)[:, self.coord_index]
 
-                # Advance 2 pixels in figure coordinates
-                pixel2 = axes0.copy()
-                pixel2[:, 1] += 2.0 if self.frame.origin == "lower" else -2.0
-                pixel2 = invertedTransLimits.transform(pixel2)
-                with np.errstate(invalid="ignore"):
-                    world2 = self.transform.transform(pixel2)[:, self.coord_index]
-
+                # Advance 2 pixels to the right in figure coordinates
+                world1 = shifted_pixel_to_world(0, 2)
                 dx = world1 - world0
+
+                # Where advancing to the right results in NaN, advance to the left instead
+                invalid1 = np.isnan(world1)
+                if invalid1.any():
+                    world1 = shifted_pixel_to_world(0, -2)
+                    dx[invalid1] = (world0 - world1)[invalid1]
+
+                # Advance 2 pixels up in figure coordinates
+                amount = 2.0 if self.frame.origin == "lower" else -2.0
+                world2 = shifted_pixel_to_world(1, amount)
                 dy = world2 - world0
+
+                # Where advancing up results in NaN, advance down instead
+                invalid2 = np.isnan(world2)
+                if invalid2.any():
+                    world2 = shifted_pixel_to_world(1, -amount)
+                    dy[invalid2] = (world0 - world2)[invalid2]
 
                 # Rotate by 90 degrees
                 dx, dy = -dy, dx
@@ -1163,9 +1193,11 @@ class CoordinateHelper:
 
                 if self.coord_type == "longitude":
                     if self._coord_scale_to_deg is not None:
-                        t *= self._coord_scale_to_deg
+                        world = t * self._coord_scale_to_deg
+                    else:
+                        world = t
 
-                    world = wrap_angle_at(t, self.coord_wrap.to_value(u.deg))
+                    world = wrap_angle_at(world, self.coord_wrap.to_value(u.deg))
 
                     if self._coord_scale_to_deg is not None:
                         world /= self._coord_scale_to_deg
@@ -1191,6 +1223,7 @@ class CoordinateHelper:
                             data=(x_data_i, y_data_i),
                             world=world,
                             angle=spine.normal_angle[imin],
+                            tick_angle=angle_i,
                             axis_displacement=imin + frac,
                         )
                     )
@@ -1321,9 +1354,9 @@ class CoordinateHelper:
         Parameters
         ----------
         name : str
-            The name for the gridline, usually a single character, but can be longer
+            The name for the gridline, usually a single character, but can be longer.
         constant : `~astropy.units.Quantity`
-            The constant coordinate value of the gridline
+            The constant coordinate value of the gridline.
 
         Notes
         -----
@@ -1432,6 +1465,8 @@ class CoordinateHelper:
             self._grid.remove()
 
     def _update_grid_contour(self):
+        self._grid = None
+
         if self.coord_index is None:
             return
 
@@ -1454,12 +1489,17 @@ class CoordinateHelper:
         # tick_world_coordinates is a Quantities array and we only needs its values
         tick_world_coordinates_values = tick_world_coordinates.value
 
-        if self.coord_type == "longitude":
-            # Find biggest gap in tick_world_coordinates and wrap in middle
-            # For now just assume spacing is equal, so any mid-point will do
-            mid = 0.5 * (
-                tick_world_coordinates_values[0] + tick_world_coordinates_values[1]
-            )
+        if self.coord_type == "longitude" and len(tick_world_coordinates_values) > 0:
+            if len(tick_world_coordinates_values) > 1:
+                # Find biggest gap in tick_world_coordinates and wrap in middle
+                # For now just assume spacing is equal, so any mid-point will do
+                mid = 0.5 * (
+                    tick_world_coordinates_values[0] + tick_world_coordinates_values[1]
+                )
+            else:
+                # With a single tick, wrap on the opposite side of the sphere
+                # so the discontinuity cannot cross the contour level
+                mid = tick_world_coordinates_values[0] + 180.0
             field = wrap_angle_at(field, mid)
             tick_world_coordinates_values = wrap_angle_at(
                 tick_world_coordinates_values, mid
@@ -1483,8 +1523,6 @@ class CoordinateHelper:
                     field.transpose(),
                     levels=np.sort(tick_world_coordinates_values),
                 )
-        else:
-            self._grid = None
 
     def tick_params(self, which="both", **kwargs):
         """

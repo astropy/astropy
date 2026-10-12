@@ -58,7 +58,13 @@ def parquet_identify(origin, filepath, fileobj, *args, **kwargs):
 
 
 def read_table_parquet(
-    input, include_names=None, exclude_names=None, schema_only=False, filters=None
+    input,
+    include_names=None,
+    exclude_names=None,
+    schema_only=False,
+    filters=None,
+    *,
+    string_lengths=None,
 ):
     """
     Read a Table object from a Parquet file.
@@ -110,6 +116,11 @@ def read_table_parquet(
     filters : list [tuple] or list [list [tuple] ] or None, optional
         Rows which do not match the filter predicate will be removed from
         scanned data.  See `pyarrow.parquet.read_table()` for details.
+    string_lengths : dict [str, int or None], optional
+        A mapping from column name to fixed string length. When provided for
+        a column, we use that instead of scanning and we do not emit a warning.
+        If not supplied, the length is determined from ``table::len`` parquet
+        metadata if present, otherwise by scanning the data with a warning.
 
     Returns
     -------
@@ -118,6 +129,20 @@ def read_table_parquet(
         if schema_only is True.
     """
     pa, parquet = get_pyarrow()
+
+    def _is_string(t):
+        return (
+            pa.types.is_string(t)
+            or pa.types.is_large_string(t)
+            or pa.types.is_string_view(t)
+        )
+
+    def _is_binary(t):
+        return (
+            pa.types.is_binary(t)
+            or pa.types.is_large_binary(t)
+            or pa.types.is_binary_view(t)
+        )
 
     if not HAS_PANDAS:
         raise ModuleNotFoundError("pandas is required to read parquet files")
@@ -213,7 +238,7 @@ def read_table_parquet(
             # All other arrow column types are the value_type.
             value_type = t
 
-        if value_type not in (pa.string(), pa.binary()):
+        if not (_is_string(value_type) or _is_binary(value_type)):
             # Convert the pyarrow value type into a numpy dtype (which is returned
             # by the to_pandas_type() method).
             # If this is an array column, the numpy dtype needs the shape as well.
@@ -228,6 +253,14 @@ def read_table_parquet(
         if md_name in md:
             # String/bytes length from header.
             strlen = int(md[md_name])
+        elif string_lengths is not None and name in string_lengths:
+            if string_lengths[name] is not None:
+                strlen = string_lengths[name]
+            else:
+                # Explicitly variable-length (arraysize="*"): use object dtype
+                # to match the VOTable reader and avoid fixed-width truncation.
+                dtype.append("object" if shape is None else ("object", shape))
+                continue
         elif schema_only:  # Find the maximum string length.
             # Choose an arbitrary string length since
             # are not reading in the table.
@@ -243,7 +276,7 @@ def read_table_parquet(
                 f" ({strlen} characters).",
                 AstropyUserWarning,
             )
-        strname = f"U{strlen}" if value_type == pa.string() else f"|S{strlen}"
+        strname = f"U{strlen}" if _is_string(value_type) else f"|S{strlen}"
 
         # If this is an array column, the numpy dtype needs the shape as well.
         if shape is None:
@@ -265,7 +298,7 @@ def read_table_parquet(
             col = pa_table[name].to_numpy()
 
             t = schema.field(name).type
-            if t in (pa.string(), pa.binary()):
+            if _is_string(t) or _is_binary(t):
                 # If it is a string/binary type, coerce it to the correct type.
                 col = col.astype(dt)
             elif isinstance(t, pa.FixedSizeListType):
@@ -275,7 +308,7 @@ def read_table_parquet(
                 if len(col) > 0:
                     col = np.stack(col)
 
-                    if t.value_type in (pa.string(), pa.binary()):
+                    if _is_string(t.value_type) or _is_binary(t.value_type):
                         # If it is a string/binary type, coerce it to the
                         # correct type.
                         # The conversion dtype is only the first element
@@ -288,7 +321,7 @@ def read_table_parquet(
             elif isinstance(t, pa.ListType):
                 # If we have a variable length string/binary column,
                 # we need to convert each row to the proper type.
-                if t.value_type in (pa.string(), pa.binary()):
+                if _is_string(t.value_type) or _is_binary(t.value_type):
                     col = np.array([row.astype(dt) for row in col], dtype=np.object_)
 
             table.add_column(Column(name=name, data=col))
@@ -526,7 +559,7 @@ def write_parquet_votable(
     metadata : dict
         Nested dictionary (keys = column names; sub-keys = meta keys) for each
         of the columns containing a dictionary with metadata. Existing metadata
-        takes precedent, use ``overwrite_metadata`` to ensure this dictionary is
+        takes precedence, use ``overwrite_metadata`` to ensure this dictionary is
         being used in all cases.
     overwrite : bool, optional
         If `True`, overwrite the output file if it exists. Raises an
@@ -666,10 +699,28 @@ def read_parquet_votable(filename):
     # Create an empty Astropy table inheriting all the column metadata
     # information.
     vot_blob = io.BytesIO(parquet_custom_metadata[b"IVOA.VOTable-Parquet.content"])
-    empty_table_with_columns_and_metadata = Table.read(votable.parse(vot_blob))
+    parsed_vot = votable.parse(vot_blob)
+
+    empty_table_with_columns_and_metadata = Table.read(parsed_vot)
+
+    # Build a string-length map from the VOTable field declarations so that
+    # read_table_parquet does not need to scan or warn about missing table::len keys.
+    # TODO: VOTable 1.6 adds field.width (character count) for char columns.
+    #       Prefer that over arraysize (byte count) once 1.6 is in wide use.
+    fields = parsed_vot.resources[0].tables[0].fields
+    string_lengths = {}
+    for field in fields:
+        if field.datatype not in ("char", "unicodeChar"):
+            continue
+        col_name = field.ID or field.name
+        size_str = field.arraysize.rstrip("*")
+        # None signals variable-length (arraysize="*"): use object dtype.
+        string_lengths[col_name] = int(size_str) if size_str else None
 
     # Load the data from the parquet table using the Table.read() functionality
-    data_table_with_no_metadata = Table.read(filename, format="parquet")
+    data_table_with_no_metadata = Table.read(
+        filename, format="parquet", string_lengths=string_lengths
+    )
 
     # Stitch the two tables together to create final table
     return vstack([empty_table_with_columns_and_metadata, data_table_with_no_metadata])

@@ -61,6 +61,7 @@ unit_physical_type_pairs = [
     (u.kg * u.m**2 / u.s, "angular momentum"),
     (u.rad / u.s, "angular speed"),
     (u.rad / u.s**2, "angular acceleration"),
+    (u.rad / u.s**3, "angular jerk"),
     (u.g / (u.m * u.s), "dynamic viscosity"),
     (u.m**2 / u.s, "kinematic viscosity"),
     (u.m**-1, "wavenumber"),

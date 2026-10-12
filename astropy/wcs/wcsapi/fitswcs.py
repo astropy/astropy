@@ -7,8 +7,8 @@ import warnings
 
 import numpy as np
 
+import astropy.constants
 from astropy import units as u
-from astropy.constants import c
 from astropy.coordinates import ICRS, Galactic, SpectralCoord
 from astropy.coordinates.spectral_coordinate import (
     attach_zero_velocities,
@@ -23,7 +23,7 @@ from .wrappers import SlicedLowLevelWCS
 
 __all__ = ["FITSWCSAPIMixin", "SlicedFITSWCS", "custom_ctype_to_ucd_mapping"]
 
-C_SI = c.si.value
+C_SI = astropy.constants.c.si.value
 
 VELOCITY_FRAMES = {
     "GEOCENT": "gcrs",
@@ -99,7 +99,7 @@ VELOCITY_FRAMES["CMBDIPOL"] = Galactic(
     l=263.85 * u.deg,
     b=48.25 * u.deg,
     distance=0 * u.km,
-    radial_velocity=-(3.346e-3 / 2.725 * c).to(u.km / u.s),
+    radial_velocity=-(3.346e-3 / 2.725 * astropy.constants.c).to(u.km / u.s),
 )
 
 
@@ -284,7 +284,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         types.append(custom_mapping[ctype_name])
                         break
                 else:
-                    types.append(CTYPE_TO_UCD1.get(ctype_name.upper(), None))
+                    types.append(CTYPE_TO_UCD1.get(ctype_name.upper()))
         return types
 
     @property
@@ -397,13 +397,16 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # it. We start off by defining a hash based on the attributes of the
         # WCS that matter here (we can't just use the WCS object as a hash since
         # it is mutable)
+        # NaN values must be normalized since NaN != NaN would otherwise
+        # defeat the cache comparison below.
+        equinox = self.wcs.equinox
         wcs_hash = (
             self.naxis,
             list(self.wcs.ctype),
             list(self.wcs.cunit),
             self.wcs.radesys,
             self.wcs.specsys,
-            self.wcs.equinox,
+            None if np.isnan(equinox) else equinox,
             self.wcs.dateobs,
             self.wcs.lng,
             self.wcs.lat,
@@ -438,16 +441,25 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             else:
                 kwargs = {}
                 kwargs["frame"] = celestial_frame
-                # Very occasionally (i.e. with TAB) wcs does not convert the units to degrees
+                # Very occasionally (i.e. with TAB) wcs does not convert the units
+                lon_unit = u.Unit(self.wcs.cunit[self.wcs.lng])
+                lat_unit = u.Unit(self.wcs.cunit[self.wcs.lat])
                 kwargs["unit"] = (
-                    u.Unit(self.wcs.cunit[self.wcs.lng]),
-                    u.Unit(self.wcs.cunit[self.wcs.lat]),
+                    lon_unit,
+                    lat_unit,
                 )
 
                 classes["celestial"] = (SkyCoord, (), kwargs)
-
-                components[self.wcs.lng] = ("celestial", 0, "spherical.lon.degree")
-                components[self.wcs.lat] = ("celestial", 1, "spherical.lat.degree")
+                components[self.wcs.lng] = (
+                    "celestial",
+                    0,
+                    lambda c: c.spherical.lon.to_value(lon_unit),
+                )
+                components[self.wcs.lat] = (
+                    "celestial",
+                    1,
+                    lambda c: c.spherical.lat.to_value(lat_unit),
+                )
 
         # Next, we check for spectral components
 
@@ -563,6 +575,31 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             # of SpectralCoord - this is because we want to also be able to
             # accept plain quantities.
 
+            def apply_velocity_frame_change(spectralcoord):
+                if observer is None and spectralcoord.observer is None:
+                    # When both observers are missing we silently skip the frame
+                    # change since this is a common case and not worth warning
+                    # about.
+                    return spectralcoord
+
+                if observer is None:
+                    msg = "No observer defined on WCS"
+                elif spectralcoord.observer is None:
+                    msg = "No observer defined on SpectralCoord"
+                elif spectralcoord.target is None:
+                    msg = "No target defined on SpectralCoord"
+                else:
+                    return spectralcoord.with_observer_stationary_relative_to(observer)
+
+                warnings.warn(
+                    f"{msg}, SpectralCoord "
+                    "will be converted without any velocity "
+                    "frame change",
+                    AstropyUserWarning,
+                )
+
+                return spectralcoord
+
             if ctype == "ZOPT":
 
                 def spectralcoord_from_redshift(redshift):
@@ -578,32 +615,11 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 def redshift_from_spectralcoord(spectralcoord):
                     # TODO: check target is consistent between WCS and SpectralCoord,
                     # if they are not the transformation doesn't make conceptual sense.
-                    if (
-                        observer is None
-                        or spectralcoord.observer is None
-                        or spectralcoord.target is None
-                    ):
-                        if observer is None:
-                            msg = "No observer defined on WCS"
-                        elif spectralcoord.observer is None:
-                            msg = "No observer defined on SpectralCoord"
-                        else:
-                            msg = "No target defined on SpectralCoord"
-                        warnings.warn(
-                            f"{msg}, SpectralCoord "
-                            "will be converted without any velocity "
-                            "frame change",
-                            AstropyUserWarning,
-                        )
-                        return spectralcoord.to_value(u.m) / self.wcs.restwav - 1.0
-                    else:
-                        return (
-                            spectralcoord.with_observer_stationary_relative_to(
-                                observer
-                            ).to_value(u.m)
-                            / self.wcs.restwav
-                            - 1.0
-                        )
+                    return (
+                        apply_velocity_frame_change(spectralcoord).to_value(u.m)
+                        / self.wcs.restwav
+                        - 1.0
+                    )
 
                 classes["spectral"] = (u.Quantity, (), {}, spectralcoord_from_redshift)
                 components[self.wcs.spec] = ("spectral", 0, redshift_from_spectralcoord)
@@ -626,31 +642,12 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                     # TODO: check target is consistent between WCS and SpectralCoord,
                     # if they are not the transformation doesn't make conceptual sense.
                     doppler_equiv = u.doppler_relativistic(self.wcs.restwav * u.m)
-                    if (
-                        observer is None
-                        or spectralcoord.observer is None
-                        or spectralcoord.target is None
-                    ):
-                        if observer is None:
-                            msg = "No observer defined on WCS"
-                        elif spectralcoord.observer is None:
-                            msg = "No observer defined on SpectralCoord"
-                        else:
-                            msg = "No target defined on SpectralCoord"
-                        warnings.warn(
-                            f"{msg}, SpectralCoord "
-                            "will be converted without any velocity "
-                            "frame change",
-                            AstropyUserWarning,
+                    return (
+                        apply_velocity_frame_change(spectralcoord).to_value(
+                            u.m / u.s, doppler_equiv
                         )
-                        return spectralcoord.to_value(u.m / u.s, doppler_equiv) / C_SI
-                    else:
-                        return (
-                            spectralcoord.with_observer_stationary_relative_to(
-                                observer
-                            ).to_value(u.m / u.s, doppler_equiv)
-                            / C_SI
-                        )
+                        / C_SI
+                    )
 
                 classes["spectral"] = (u.Quantity, (), {}, spectralcoord_from_beta)
                 components[self.wcs.spec] = ("spectral", 0, beta_from_spectralcoord)
@@ -709,28 +706,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 def value_from_spectralcoord(spectralcoord):
                     # TODO: check target is consistent between WCS and SpectralCoord,
                     # if they are not the transformation doesn't make conceptual sense.
-                    if (
-                        observer is None
-                        or spectralcoord.observer is None
-                        or spectralcoord.target is None
-                    ):
-                        if observer is None:
-                            msg = "No observer defined on WCS"
-                        elif spectralcoord.observer is None:
-                            msg = "No observer defined on SpectralCoord"
-                        else:
-                            msg = "No target defined on SpectralCoord"
-                        warnings.warn(
-                            f"{msg}, SpectralCoord "
-                            "will be converted without any velocity "
-                            "frame change",
-                            AstropyUserWarning,
-                        )
-                        return spectralcoord.to_value(**kwargs)
-                    else:
-                        return spectralcoord.with_observer_stationary_relative_to(
-                            observer
-                        ).to_value(**kwargs)
+                    return apply_velocity_frame_change(spectralcoord).to_value(**kwargs)
 
                 classes["spectral"] = (u.Quantity, (), {}, spectralcoord_from_value)
                 components[self.wcs.spec] = ("spectral", 0, value_from_spectralcoord)

@@ -8,12 +8,12 @@ objects can also be used as runtime-checkable :class:`~typing.Protocol` objects.
 __all__ = ["PathLike", "ReadableFileLike", "WriteableFileLike"]
 
 import os
-from typing import Protocol, TypeAlias, TypeVar, runtime_checkable
+from typing import Protocol, TypeVar, runtime_checkable
 
 _T_co = TypeVar("_T_co", covariant=True)
 _T_contra = TypeVar("_T_contra", contravariant=True)
 
-PathLike: TypeAlias = str | bytes | os.PathLike
+type PathLike = str | bytes | os.PathLike
 """Type alias for a path-like object.
 
 This is a union of :class:`str`, :class:`bytes`, and :class:`~os.PathLike`.

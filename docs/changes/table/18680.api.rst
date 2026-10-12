@@ -1,5 +1,0 @@
-Selecting a table index in the ``.loc``, ``.iloc``, or ``.loc_indices`` properties by
-passing the index identifier as the first element of the item is deprecated and is
-planned for removal in astropy 9.0. For example, if a table ``t`` has two indices on
-columns ``"a"`` and ``"b"`` respectively, then ``t.loc["b", 2]`` (to find table rows
-where ``t["b"] == 2``) is deprecated. This is replaced by ``t.loc.with_index("b")[2]``.

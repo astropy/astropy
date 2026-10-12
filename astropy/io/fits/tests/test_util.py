@@ -39,7 +39,8 @@ class TestUtils(FitsTestCase):
                 str(w[0].message) == "KeyboardInterrupt ignored until test is complete!"
             )
 
-        pytest.raises(KeyboardInterrupt, runme)
+        with pytest.raises(KeyboardInterrupt):
+            runme()
 
     def test_realign_dtype(self):
         """

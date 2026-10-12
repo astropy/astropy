@@ -9,6 +9,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import Quantity, UnitsError
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
@@ -380,6 +381,15 @@ class Gaussian2D(Fittable2DModel):
                 raise ValueError("Covariance matrix must be 2x2")
 
             eig_vals, eig_vecs = np.linalg.eig(cov_matrix)
+            if not NUMPY_LT_2_5 or eig_vals.dtype.kind == "c":
+                # in numpy 2.5+, return values are *always* complex
+                if np.any(eig_vals.imag != 0) or np.any(eig_vecs.imag != 0):
+                    raise TypeError(
+                        "Expected cov_matrix's eigen values to be real. Complex values were found."
+                    )
+                eig_vals = eig_vals.real
+                eig_vecs = eig_vecs.real
+
             x_stddev, y_stddev = np.sqrt(eig_vals)
             y_vec = eig_vecs[:, 0]
             theta = np.arctan2(y_vec[1], y_vec[0])

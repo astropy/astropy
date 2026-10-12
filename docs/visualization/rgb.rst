@@ -86,7 +86,7 @@ of the galaxies show up. Compare with Fig. 1 of `Lupton et al. (2004)`_ or the
 `SDSS Skyserver image`_.
 
 .. plot::
-   :context:
+   :context: close-figs
    :include-source:
    :align: center
 
@@ -175,7 +175,7 @@ can be beneficial. In this case, the a stretch instance of
 :class:`~astropy.visualization.LogStretch` is directly passed:
 
 .. plot::
-   :context:
+   :context: close-figs
    :include-source:
    :align: center
 
@@ -200,7 +200,7 @@ By specifying per-filter maximum values, it is possible to emphasize
 certain objects, such as the very reddest sources:
 
 .. plot::
-   :context:
+   :context: close-figs
    :include-source:
    :align: center
 
@@ -217,7 +217,7 @@ certain objects, such as the very reddest sources:
 Other stretches, such as square root, can also be used:
 
 .. plot::
-   :context:
+   :context: close-figs
    :include-source:
    :align: center
 

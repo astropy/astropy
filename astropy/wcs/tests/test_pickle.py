@@ -170,3 +170,35 @@ def test_alt_wcskey():
     w2 = pickle.loads(pickle.dumps(w))
 
     assert w2.wcs.alt == "A"
+
+
+@pytest.mark.parametrize("preserve_units", [False, True])
+def test_preserve_units(preserve_units):
+    # Use non-SI units so that the world coordinates returned by
+    # ``wcs_pix2world`` differ between ``preserve_units=True`` (arcsec) and
+    # ``preserve_units=False`` (converted to deg). This ensures the pickle
+    # round-trip is exercising the actual transformation behavior, not just
+    # the stored flag.
+    header = fits.Header.fromstring(
+        "WCSAXES = 2\n"
+        "CTYPE1  = 'RA---TAN'\n"
+        "CTYPE2  = 'DEC--TAN'\n"
+        "CUNIT1  = 'arcsec'\n"
+        "CUNIT2  = 'arcsec'\n"
+        "CRVAL1  = 4\n"
+        "CRVAL2  = 6\n"
+        "CRPIX1  = 1\n"
+        "CRPIX2  = 1\n"
+        "CDELT1  = 4\n"
+        "CDELT2  = 2\n",
+        sep="\n",
+    )
+    w = wcs.WCS(header, preserve_units=preserve_units)
+    assert w._preserve_units is preserve_units
+
+    coords = np.array([[1.0, 2.0], [3.0, 4.0]])
+    expected = w.wcs_pix2world(coords, 0)
+
+    w2 = pickle.loads(pickle.dumps(w))
+    assert w2._preserve_units is preserve_units
+    assert_array_almost_equal(w2.wcs_pix2world(coords, 0), expected)

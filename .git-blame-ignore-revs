@@ -49,3 +49,7 @@ fa2df9f32e5c041d74f7d1ef3d5a188c521cbc79
 d2165fa02c1a2d79f4a6cb69a5cebeee0b073033
 # DOC: Moved dev docs around
 f5a1738f32d4920ac853c7c0ec6c941ccec47555
+# clang-format for most sub-packages except astropy.wcs
+933e3e6eadff215165c838fd91c21e8615d0cf88
+# clang-format for astropy.wcs
+616797e13c0b926ad48ea9e9aac22a0421b74d73

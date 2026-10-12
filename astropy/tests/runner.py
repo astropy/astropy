@@ -10,7 +10,6 @@ import tempfile
 import warnings
 from functools import wraps
 from importlib.util import find_spec
-from pathlib import Path
 
 from astropy.utils import deprecated, find_current_module
 from astropy.utils.exceptions import (
@@ -180,12 +179,7 @@ class TestRunnerBase:
         "pytest_doctestplus",
         "pytest_astropy_header",
     ]
-    _missing_dependancy_error = (
-        "Test dependencies are missing: {}. You should install the "
-        "'pytest-astropy' package (you may need to update the package if you "
-        "have a previous version installed, e.g., "
-        "'pip install pytest-astropy --upgrade' or the equivalent with conda)."
-    )
+    _missing_dependency_error = "Test dependencies are missing: {}. "
 
     @classmethod
     def _has_test_dependencies(cls):  # pragma: no cover
@@ -202,8 +196,10 @@ class TestRunnerBase:
                 pluginmanager = pytest.PytestPluginManager()
                 try:
                     pluginmanager.import_plugin(module)
-                except ImportError:
-                    raise RuntimeError(cls._missing_dependancy_error.format(module))
+                except ImportError as exc:
+                    raise RuntimeError(
+                        cls._missing_dependency_error.format(module)
+                    ) from exc
 
     def run_tests(self, **kwargs):
         # This method is weirdly hooked into various things with docstring
@@ -257,17 +253,16 @@ class TestRunnerBase:
         # don't know about the temporary config/cache.
         # Note, this is superfluous if the config_dir option to pytest is in use,
         # but it's also harmless
-        orig_xdg_config = os.environ.get("XDG_CONFIG_HOME")
+        orig_astropy_config = os.environ.get("ASTROPY_CONFIG_DIR")
         with tempfile.TemporaryDirectory("astropy_config") as astropy_config:
-            Path(astropy_config, "astropy").mkdir()
-            os.environ["XDG_CONFIG_HOME"] = astropy_config
+            os.environ["ASTROPY_CONFIG_DIR"] = astropy_config
             try:
                 return pytest.main(args=args, plugins=plugins)
             finally:
-                if orig_xdg_config is None:
-                    os.environ.pop("XDG_CONFIG_HOME", None)
+                if orig_astropy_config is None:
+                    os.environ.pop("ASTROPY_CONFIG_DIR", None)
                 else:
-                    os.environ["XDG_CONFIG_HOME"] = orig_xdg_config
+                    os.environ["ASTROPY_CONFIG_DIR"] = orig_astropy_config
 
     @classmethod
     def make_test_runner_in(cls, path):

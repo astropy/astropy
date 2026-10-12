@@ -410,7 +410,7 @@ Working with Image Data
     This section describes reading and writing image data in the FITS format using the
     `~astropy.io.fits` package directly. For CCD image data with a unit, you should
     consider using the :ref:`Unified Image Data<io_unified_image>` interface with the
-    :ref:`CCDData class <ccddata>`. This provides the the capability to load data,
+    :ref:`CCDData class <ccddata>`. This provides the capability to load data,
     uncertainty and mask from a multi-extension FITS (MEF) file.
 
 If an HDU's data is an image, the data attribute of the HDU object will return

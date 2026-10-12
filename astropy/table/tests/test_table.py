@@ -29,8 +29,11 @@ from astropy.table import (
 )
 from astropy.tests.helper import assert_follows_unicode_guidelines
 from astropy.time import Time
+from astropy.units.quantity import conf as quantity_conf
+from astropy.utils.compat.optional_deps import HAS_H5PY, HAS_PYARROW
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.masked import Masked
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 from .conftest import MaskedTable
@@ -1498,6 +1501,20 @@ def test_sort_kind(kwargs):
     assert np.all(t.as_array() == np.sort(t_struct, **kwargs))
 
 
+@pytest.mark.parametrize("kind", [None, "stable", "mergesort", "quicksort", "heapsort"])
+def test_sort_kind_single_key(kind):
+    """A single key column with a single sortable array passes ``kind``
+    through directly to `numpy.argsort`, for any valid `numpy.argsort`
+    ``kind`` value.
+    """
+    t = Table()
+    t["a"] = [2, 1, 3, 2, 3, 1]
+    a_struct = t["a"].copy()
+    i = t.argsort("a", kind=kind)
+    kwargs = {"kind": kind} if kind else {}
+    assert np.all(i == np.argsort(a_struct, **kwargs))
+
+
 @pytest.mark.usefixtures("table_types")
 class TestIterator:
     def test_iterator(self, table_types):
@@ -2137,6 +2154,104 @@ class TestQTableColumnConversionCornerCases:
         assert isinstance(t["a"], Column)
 
 
+class TestQTableIntColumnWithUnit:
+    """An integer column with a unit keeps its dtype in a QTable (#17963)."""
+
+    # Integers that are not exactly representable as float64.
+    VALS = [2741100559643251862, 2733456478647137226]
+
+    def get_table(self):
+        return Table(
+            [
+                Column(self.VALS, name="a", unit="ct"),
+                MaskedColumn(self.VALS, name="b", unit="ct", mask=[False, True]),
+            ]
+        )
+
+    def test_default_keeps_int(self):
+        t = QTable(self.get_table())
+        assert t["a"].dtype == np.int64
+        assert isinstance(t["a"], u.Quantity)
+        assert t["a"].unit == u.ct
+        assert np.all(t["a"].value == self.VALS)
+
+    def test_masked_column(self):
+        col = QTable(self.get_table())["b"]
+        assert col.dtype == np.int64
+        assert isinstance(col, Masked)
+        assert np.all(col.mask == [False, True])
+        # Values are exact under the mask as well as outside it.
+        assert np.all(col.unmasked.value == self.VALS)
+
+    def test_add_column_later(self):
+        t = QTable()
+        t["a"] = Column(self.VALS, unit="ct")
+        assert t["a"].dtype == np.int64
+        assert np.all(t["a"].value == self.VALS)
+
+    def test_conf_always_converts_to_float(self):
+        """``always`` gives the behavior of astropy 7.x and earlier."""
+        with quantity_conf.set_temp("quantity_convert_int_to_float", "always"):
+            t = QTable(self.get_table())
+        assert t["a"].dtype.kind == "f"
+        assert t["b"].dtype.kind == "f"
+
+    def test_conf_never_keeps_int(self):
+        with quantity_conf.set_temp("quantity_convert_int_to_float", "never"):
+            t = QTable(self.get_table())
+        assert t["a"].dtype == np.int64
+
+    def test_float_column_unaffected(self):
+        vals = [1.5, 2.5]
+        t = QTable([Column(vals, name="a", unit="m", dtype=np.float32)])
+        assert t["a"].dtype == np.float32
+        assert np.all(t["a"].value == vals)
+
+    @pytest.mark.parametrize("conf_value", ["default", "always", "never"])
+    @pytest.mark.parametrize(
+        "fmt", ["ascii.ecsv", "fits", "hdf5", "parquet", "votable"]
+    )
+    def test_round_trip(self, tmp_path, fmt, conf_value):
+        """The dtype and the exact values survive a write/read round trip.
+
+        The ``quantity_convert_int_to_float`` configuration item applies on
+        reading as well as on writing, so ``always`` gives back the float column
+        of astropy 8.0 and earlier.
+
+        Note that the value hidden underneath a mask is not stored by these
+        formats, so only the unmasked values are compared.
+        """
+        if fmt == "hdf5" and not HAS_H5PY:
+            pytest.skip("hdf5 tests require h5py")
+        if fmt == "parquet" and not HAS_PYARROW:
+            pytest.skip("parquet tests require pyarrow")
+
+        hdf5_kwargs = {"path": "the_table"} if fmt == "hdf5" else {}
+
+        t = QTable(self.get_table())
+        filename = tmp_path / "test_file"
+        t.write(
+            filename,
+            format=fmt,
+            **hdf5_kwargs,
+            **({"serialize_meta": True} if fmt == "hdf5" else {}),
+        )
+        with quantity_conf.set_temp("quantity_convert_int_to_float", conf_value):
+            t2 = QTable.read(filename, format=fmt, **hdf5_kwargs)
+
+        expected_kind = "f" if conf_value == "always" else "i"
+        for name in ("a", "b"):
+            col = t2[name]
+            assert col.dtype.kind == expected_kind
+            assert col.unit == u.ct
+            if expected_kind == "i":
+                # Only an integer dtype can hold these values exactly.
+                mask = getattr(col, "mask", np.zeros(len(col), dtype=bool))
+                vals = getattr(col, "unmasked", col).value
+                assert np.all(vals[~mask] == np.array(self.VALS)[~mask])
+        assert np.all(t2["b"].mask == [False, True])
+
+
 class Test__Astropy_Table__:
     """
     Test initializing a Table subclass from a table-like object that
@@ -2473,6 +2588,40 @@ def test_deepcopy_object_column(data):
     assert t3.meta["test"] is not t1.meta["test"]
 
 
+@pytest.mark.parametrize("masked", [False, True], ids=["unmasked", "masked"])
+def test_deepcopy_rename_columns(masked):
+    # Regression test for #20087 for unmasked and masked tables: renaming
+    # columns of a deep-copied Table must keep column mapping in sync.
+    t = Table({"px": [1.0, 2.0], "py": [3.0, 4.0]}, masked=masked)
+    if masked:
+        t["px"].mask = [False, True]
+
+    td = copy.deepcopy(t)
+
+    # Deep-copied columns must be linked to the copied table.
+    for name in td.colnames:
+        assert td[name].info.parent_table is td
+        assert td[name].parent_table is td
+
+    td.rename_columns(["px", "py"], ["x", "y"])
+    assert td.colnames == ["x", "y"]
+    assert_array_equal(td["x"].data, [1.0, 2.0])
+    assert_array_equal(td["y"].data, [3.0, 4.0])
+    if masked:
+        assert_array_equal(td["x"].mask, [False, True])
+        assert_array_equal(td["y"].mask, [False, False])
+
+    # renaming via the info name setter works too
+    td["x"].info.name = "xx"
+    assert td.colnames == ["xx", "y"]
+
+    # the original table is unaffected
+    assert t.colnames == ["px", "py"]
+    assert_array_equal(t["px"].data, [1.0, 2.0])
+    if masked:
+        assert_array_equal(t["px"].mask, [False, True])
+
+
 def test_replace_column_qtable():
     """Replace existing Quantity column with a new column in a QTable"""
     a = [1, 2, 3] * u.m
@@ -2780,19 +2929,12 @@ def test_table_attribute_ecsv():
 
 
 def test_table_attribute_fail():
-    if sys.version_info[:2] >= (3, 12):
-        ctx = pytest.raises(ValueError, match=".* not allowed as TableAttribute")
-    else:
-        # Code raises ValueError(f'{attr} not allowed as TableAttribute') but in this
-        # context it gets re-raised as a RuntimeError during class definition.
-        ctx = pytest.raises(RuntimeError, match="Error calling __set_name__")
-
-    with ctx:
+    with pytest.raises(ValueError, match=".* not allowed as TableAttribute"):
 
         class MyTable2(Table):
             descriptions = TableAttribute()  # Conflicts with init arg
 
-    with ctx:
+    with pytest.raises(ValueError, match=".* not allowed as TableAttribute"):
 
         class MyTable3(Table):
             colnames = TableAttribute()  # Conflicts with built-in property

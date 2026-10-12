@@ -1,0 +1,4 @@
+Fixed an incorrect ``DATASUM`` (and therefore ``CHECKSUM``) being written for
+byte-swapped binary tables larger than 64 kB. The data was checksummed in
+chunks that were not aligned to 4-byte word boundaries, so the stored value was
+valid in memory but failed to verify once the file was read back.

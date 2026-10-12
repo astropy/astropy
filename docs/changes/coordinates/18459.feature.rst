@@ -1,3 +1,0 @@
-The results of ``match_coordinates_3d()``, ``match_coordinates_sky()``,
-``search_around_3d()`` and ``search_around_sky()`` and the corresponding
-``SkyCoord`` methods now have named attributes.

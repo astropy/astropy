@@ -13,8 +13,8 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_almost_equal, assert_array_equal
 
 from astropy import units as u
-from astropy.units.quantity import _UNIT_NOT_INITIALISED
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.coordinates import Angle, Distance
+from astropy.units.quantity import _UNIT_NOT_INITIALISED, conf
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
@@ -701,14 +701,6 @@ class TestQuantityOperations:
             q5.__index__()
         assert exc.value.args[0] == index_err_msg
 
-    # See https://github.com/numpy/numpy/issues/5074
-    # It seems unlikely this will be resolved, so xfail'ing it.
-    @pytest.mark.xfail(reason="list multiplication only works for numpy <=1.10")
-    def test_numeric_converter_to_index_in_practice(self):
-        """Test that use of __index__ actually works."""
-        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
-        assert q4 * ["a", "b", "c"] == ["a", "b", "c", "a", "b", "c"]
-
     def test_array_converters(self):
         # Scalar quantity
         q = u.Quantity(1.23, u.m)
@@ -725,6 +717,13 @@ class TestQuantityOperations:
 
         with pytest.raises(TypeError):
             operator.index(u.Quantity(val, u.m, dtype=int))
+
+    def test__index_fails_for_list_multiplication(self):
+        # This used to work for numpy <= 1.10, but that's not coming back.
+        # See https://github.com/numpy/numpy/issues/5074
+        q4 = u.Quantity(2, u.dimensionless_unscaled, dtype=int)
+        with pytest.raises(TypeError):
+            q4 * ["a", "b", "c"]
 
 
 def test_quantity_conversion():
@@ -1681,7 +1680,8 @@ def test_quantity_iterability():
     q2 = next(iter(q1))
     assert q2 == 15.0 * u.m
     assert not np.iterable(q2)
-    pytest.raises(TypeError, iter, q2)
+    with pytest.raises(TypeError):
+        iter(q2)
 
 
 def test_copy():
@@ -1786,10 +1786,37 @@ def test_quantity_initialisation_from_string():
         u.Quantity(["5"])
     with pytest.raises(TypeError):
         u.Quantity(np.array(["5"]))
+    with pytest.raises(TypeError):
+        u.Quantity("['1' '5' '8']")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 'two', 9]")
+    with pytest.raises(TypeError):
+        u.Quantity("[1, 4 9]")
     with pytest.raises(ValueError):
         u.Quantity("5E")
     with pytest.raises(ValueError):
         u.Quantity("5 foo")
+
+
+@pytest.mark.parametrize("unit_str", ["", "eV", "  cm"])
+@pytest.mark.parametrize(
+    "array_str",
+    (
+        "[7,  8,  9]",
+        "[7,8,9]",
+        "[7,8,9,]",
+        "[7,  8,  9,]",
+        "[7. 8. 9.]",
+        "[7.  8.   9.]",
+        "[7 8 9]",
+        "[7  8  9]",
+        "[7   8     9]",
+    ),
+)
+def test_quantity_initialisation_string_array(array_str, unit_str):
+    q = u.Quantity(array_str + unit_str)
+    assert q.unit == unit_str
+    assert_array_equal(q.value, np.array([7.0, 8.0, 9.0]))
 
 
 def test_unsupported():
@@ -2015,7 +2042,7 @@ class QuantityMimic:
         self.value = value
         self.unit = unit
 
-    def __array__(self, dtype=None, copy=COPY_IF_NEEDED):
+    def __array__(self, dtype=None, copy=None):
         return np.array(self.value, dtype=dtype, copy=copy)
 
 
@@ -2109,3 +2136,79 @@ class TestQuantitySubclassAboveAndBelow:
         assert not isinstance(mq21, self.MyQuantity2)
         assert mq21.my_attr == "2"
         assert mq21.unit is u.m
+
+
+class TestQuantityConvertIntToFloat:
+    """Test the ``quantity_convert_int_to_float`` configuration item."""
+
+    # Integers that are not exactly representable as float64.
+    VALS = [2741100559643251862, 2733456478647137226]
+
+    @pytest.mark.parametrize("value", ["default", "always"])
+    def test_int_is_converted_to_float(self, value):
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            q = u.Quantity(self.VALS, u.ct)
+        assert q.dtype.kind == "f"
+
+    def test_never_keeps_int(self):
+        with conf.set_temp("quantity_convert_int_to_float", "never"):
+            q = u.Quantity(self.VALS, u.ct)
+        assert q.dtype == np.int64
+        assert np.all(q.value == self.VALS)
+
+    def test_never_applies_to_multiplication(self):
+        """The ``value * unit`` idiom goes through the same code path."""
+        with conf.set_temp("quantity_convert_int_to_float", "never"):
+            assert (np.array(self.VALS) * u.ct).dtype == np.int64
+
+    def test_never_keeps_int_from_quantity(self):
+        """The fast path for Quantity input is also covered."""
+        with conf.set_temp("quantity_convert_int_to_float", "never"):
+            q = u.Quantity(np.array(self.VALS, dtype=np.int64), u.ct)
+            assert u.Quantity(q).dtype == np.int64
+            assert u.Quantity(q, u.ct).dtype == np.int64
+
+    @pytest.mark.parametrize("value", ["default", "always", "never"])
+    def test_explicit_dtype_wins(self, value):
+        """An explicit ``dtype`` is honored whatever the configuration says."""
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            assert u.Quantity(self.VALS, u.ct, dtype=float).dtype.kind == "f"
+            assert u.Quantity([1.5, 2.5], u.ct, dtype=int).dtype.kind == "i"
+            assert u.Quantity(self.VALS, u.ct, dtype=None).dtype == np.int64
+            # ``np.inexact`` is an explicit request to upcast, distinct from
+            # not giving a dtype at all.
+            assert u.Quantity(self.VALS, u.ct, dtype=np.inexact).dtype.kind == "f"
+
+    @pytest.mark.parametrize("value", ["default", "always", "never"])
+    @pytest.mark.parametrize(("cls", "unit"), [(Angle, u.deg), (Distance, u.kpc)])
+    def test_inherently_float_subclasses(self, cls, unit, value):
+        """Subclasses that declare ``dtype=np.inexact`` stay floating point.
+
+        An angle or a distance is inherently a floating point quantity, so these
+        request the conversion explicitly and are unaffected by the setting.
+        """
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            assert cls([1, 2], unit).dtype.kind == "f"
+
+    @pytest.mark.parametrize("value", ["default", "always", "never"])
+    @pytest.mark.parametrize("dtype", [np.float32, np.float64, np.complex64, bool])
+    def test_non_integer_input_unaffected(self, value, dtype):
+        """Only integer input is affected, since the default is ``np.inexact``."""
+        arr = np.ones(2, dtype=dtype)
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            assert u.Quantity(arr, u.ct).dtype == arr.dtype
+
+    def test_invalid_value(self):
+        with pytest.raises(TypeError, match="Provided value for configuration item"):
+            conf.quantity_convert_int_to_float = "sometimes"
+
+    @pytest.mark.parametrize(
+        ("value", "kind"), [("default", "i"), ("always", "f"), ("never", "i")]
+    )
+    def test_preserve_dtype_by_default_context(self, value, kind):
+        """``always`` overrides a context that would otherwise keep integers."""
+        with conf.set_temp("quantity_convert_int_to_float", value):
+            with u.preserve_dtype_by_default():
+                assert u.Quantity(self.VALS, u.ct).dtype.kind == kind
+            # The configuration is restored on exit.
+            assert conf.quantity_convert_int_to_float == value

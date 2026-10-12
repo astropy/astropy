@@ -308,8 +308,10 @@ def _image_header_to_empty_bintable(
     except (AttributeError, KeyError):
         naxis_comment = "dimension of original image"
 
+    # To ensure that the TFIELDS exists (and therefore the after="TFIELDS")
+    # produces the correct ordering, we need to set it first, before TTYPE1
+    bintable.header.set("TFIELDS", 1, "number of fields in each row", after="GCOUNT")
     # Set the label for the first column in the table
-
     bintable.header.set(
         "TTYPE1", "COMPRESSED_DATA", "label for field 1", after="TFIELDS"
     )
@@ -342,7 +344,7 @@ def _image_header_to_empty_bintable(
         # floating point image has 'COMPRESSED_DATA',
         # 'GZIP_COMPRESSED_DATA', 'ZSCALE', and 'ZZERO' columns (unless using
         # lossless compression, per CFITSIO)
-        ncols = 4
+        bintable.header["TFIELDS"] = 4
 
         ttype2 = "GZIP_COMPRESSED_DATA"
 
@@ -385,7 +387,6 @@ def _image_header_to_empty_bintable(
         cols = ColDefs([col1, col2, col3, col4])
     else:
         # default table has just one 'COMPRESSED_DATA' column
-        ncols = 1
         after = "TFORM1"
 
         # Create the ColDefs object for the table
@@ -396,9 +397,7 @@ def _image_header_to_empty_bintable(
     # image HDU, the data type of the image data and the number of
     # dimensions in the image data array.
     bintable.header.set("NAXIS1", cols.dtype.itemsize, "width of table in bytes")
-    bintable.header.set(
-        "TFIELDS", ncols, "number of fields in each row", after="GCOUNT"
-    )
+
     bintable.header.set(
         "ZIMAGE", True, "extension contains compressed image", after=after
     )
@@ -528,17 +527,19 @@ def _image_header_to_empty_bintable(
                 )
                 quantize_method = DEFAULT_QUANTIZE_METHOD
 
-            if quantize_method == NO_DITHER:
-                zquantiz_comment = "No dithering during quantization"
-            else:
-                zquantiz_comment = "Pixel Quantization Algorithm"
-
-            bintable.header.set(
-                "ZQUANTIZ",
-                QUANTIZE_METHOD_NAMES[quantize_method],
-                zquantiz_comment,
-                after="ZVAL" + str(idx),
-            )
+            # A few FITS readers (e.g. DS9, fv) incorrectly treat the
+            # presence of ZQUANTIZ as meaning that the data are quantized,
+            # regardless of its value.  Omit the keyword entirely when no
+            # dithering is used, to maximize compatibility; readers
+            # (including astropy) already treat a missing ZQUANTIZ as
+            # NO_DITHER.
+            if quantize_method != NO_DITHER:
+                bintable.header.set(
+                    "ZQUANTIZ",
+                    QUANTIZE_METHOD_NAMES[quantize_method],
+                    "Pixel Quantization Algorithm",
+                    after="ZVAL" + str(idx),
+                )
         else:
             # If the ZQUANTIZ keyword is missing the default is to assume
             # no dithering, rather than whatever DEFAULT_QUANTIZE_METHOD
@@ -583,6 +584,21 @@ def _image_header_to_empty_bintable(
             image_header.comments["SIMPLE"],
             before="ZBITPIX",
         )
+    # Only move the XTENSION card from the image header to the
+    # table header as ZTENSION card if this was not a primary header.
+    # There are cases when the skeleton header inherits the XTENSION card from
+    # the super class initialization and the SIMPLE card from the incoming header,
+    # so we want to protect against both existing simultanenously.
+    elif "XTENSION" in image_header:
+        # Since we only handle compressed IMAGEs, ZTENSION should
+        # always be IMAGE, even if the caller has passed in a header
+        # for some other type of extension.
+        bintable.header.set(
+            "ZTENSION",
+            "IMAGE",
+            image_header.comments["XTENSION"],
+            before="ZBITPIX",
+        )
 
     # Move EXTEND card from the image header to the
     # table header as ZEXTEND card.
@@ -600,20 +616,6 @@ def _image_header_to_empty_bintable(
             "ZBLOCKED",
             image_header["BLOCKED"],
             image_header.comments["BLOCKED"],
-        )
-
-    # Move XTENSION card from the image header to the
-    # table header as ZTENSION card.
-
-    # Since we only handle compressed IMAGEs, ZTENSION should
-    # always be IMAGE, even if the caller has passed in a header
-    # for some other type of extension.
-    if "XTENSION" in image_header:
-        bintable.header.set(
-            "ZTENSION",
-            "IMAGE",
-            image_header.comments["XTENSION"],
-            before="ZBITPIX",
         )
 
     # Move PCOUNT and GCOUNT cards from image header to the table

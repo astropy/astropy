@@ -1,0 +1,3 @@
+Writing a table to ECSV format with ``Table.write(format="ascii.ecsv")`` is now
+roughly 10x faster for masked 1-D numeric, boolean, and string columns, and about
+20% faster for normal (unmasked) columns.

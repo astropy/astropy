@@ -4,16 +4,18 @@
 #include "pyutil.h"
 #include "wcs.h"
 
-extern PyObject* PyAuxprmType;
+extern PyObject* AuxprmType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   struct auxprm* x;
   PyObject* owner;
-} PyAuxprm;
+} Auxprm;
 
-PyAuxprm*
-PyAuxprm_cnew(PyObject* wcsprm, struct auxprm* x);
+Auxprm*
+Auxprm_cnew(PyObject* wcsprm, struct auxprm* x);
 
 int _setup_auxprm_type(PyObject* m);
 

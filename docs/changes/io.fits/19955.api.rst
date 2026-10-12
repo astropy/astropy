@@ -1,0 +1,7 @@
+A table opened with ``mode='denywrite'`` is now read-only throughout, matching
+image data and plain (unscaled) table columns. Scaled (``TSCALn``/``TZEROn``),
+logical (``'L'``) and bit (``'X'``) columns -- whose in-memory representation is
+a converted array rather than a view of the raw buffer -- are now exposed as
+read-only arrays, so an in-place edit raises ``ValueError`` instead of being
+silently accepted. As a result, writing such a table to a new file no longer
+fails with ``assignment destination is read-only``.

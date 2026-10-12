@@ -9,16 +9,18 @@
 #include "pyutil.h"
 #include "wcs.h"
 
-extern PyObject* PyWtbarrType;
+extern PyObject* WtbarrType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   struct wtbarr* x;
   PyObject* owner;
-} PyWtbarr;
+} Wtbarr;
 
-PyWtbarr*
-PyWtbarr_cnew(PyObject* wcsprm, struct wtbarr* x);
+Wtbarr*
+Wtbarr_cnew(PyObject* wcsprm, struct wtbarr* x);
 
 int _setup_wtbarr_type(PyObject* m);
 

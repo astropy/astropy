@@ -1,5 +1,0 @@
-``astropy.utils.metadata.MergeStrategy`` no longer modifies the ``merge()``
-methods of its subclasses at runtime to re-raise all exceptions as
-``MergeConflictError``.
-This does not affect the functionality of ``MergeStrategy`` subclasses within
-the ``astropy`` metadata merging machinery.

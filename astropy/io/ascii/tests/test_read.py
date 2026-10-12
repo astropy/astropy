@@ -1,5 +1,4 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-
 import locale
 import pathlib
 import platform
@@ -1708,7 +1707,7 @@ a & b & c \\
     assert np.all(dat["c"] == ["c", "e"])
 
 
-def text_aastex_no_trailing_backslash():
+def test_aastex_no_trailing_backslash():
     lines = r"""
 \begin{deluxetable}{ccc}
 \tablehead{\colhead{a} & \colhead{b} & \colhead{c}}
@@ -1721,8 +1720,100 @@ def text_aastex_no_trailing_backslash():
 """
     dat = ascii.read(lines, format="aastex")
     assert dat.colnames == ["a", "b", "c"]
-    assert np.all(dat["a"] == ["1", r"3\%"])
-    assert np.all(dat["c"] == ["c", "e"])
+    assert np.all(dat["a"] == ["1", "2", r"3\%"])
+    assert np.all(dat["c"] == ["c", "d", "e"])
+
+
+def test_latex_ampersand_in_braces():
+    """
+    Ampersand inside a {...} group is not a column separator (issue #6360).
+    """
+    lines = r"""
+\begin{table}
+\begin{tabular}{ccc}
+First & Second & Ref\\
+1 & 2 & \cite{other_ref}\\
+11 & 22 & \cite{2013A&A...558A..33A}\\
+\end{tabular}
+\end{table}
+"""
+    dat = ascii.read(lines, format="latex")
+    assert dat.colnames == ["First", "Second", "Ref"]
+    assert np.all(dat["First"] == [1, 11])
+    assert np.all(dat["Second"] == [2, 22])
+    assert np.all(dat["Ref"] == [r"\cite{other_ref}", r"\cite{2013A&A...558A..33A}"])
+
+
+def test_latex_ampersand_in_braces_header_and_nested():
+    """
+    Braced ampersand in a header cell, nested braces, and a braced group that
+    spans the whole cell (outer braces are stripped as before).
+    """
+    lines = r"""
+\begin{tabular}{ccc}
+{A & B} & \textbf{\cite{A&B}} & C\\
+1 & \textbf{\cite{X&Y}} & {x & y}\\
+\end{tabular}
+"""
+    dat = ascii.read(lines, format="latex")
+    assert dat.colnames == ["A & B", r"\textbf{\cite{A&B}}", "C"]
+    assert dat[r"\textbf{\cite{A&B}}"][0] == r"\textbf{\cite{X&Y}}"
+    assert dat["C"][0] == "x & y"
+
+
+def test_aastex_ampersand_in_braces():
+    r"""
+    Braced ampersand in an AASTex \colhead{} and in a data cell.
+    """
+    lines = r"""
+\begin{deluxetable}{cc}
+\tablehead{\colhead{\cite{A&B}} & \colhead{Ref}}
+\startdata
+1 & \cite{2013A&A...558A..33A}\\
+\enddata
+\end{deluxetable}
+"""
+    dat = ascii.read(lines, format="aastex")
+    assert dat.colnames == [r"\cite{A&B}", "Ref"]
+    assert dat["Ref"][0] == r"\cite{2013A&A...558A..33A}"
+
+
+def test_latex_escaped_braces_and_ampersand():
+    r"""
+    Escaped \{ and \} do not open or close a group, and escaped \& is not a
+    separator.
+    """
+    lines = r"""
+\begin{tabular}{cc}
+a & b\\
+x \{ & y\\
+\} x & y\\
+x \& y & z\\
+\end{tabular}
+"""
+    dat = ascii.read(lines, format="latex")
+    assert dat.colnames == ["a", "b"]
+    assert np.all(dat["a"] == [r"x \{", r"\} x", r"x \& y"])
+    assert np.all(dat["b"] == ["y", "y", "z"])
+
+
+def test_latex_process_val_none_keeps_ampersand():
+    """
+    With the documented ``process_val`` hook disabled, values are the raw split
+    text with any braced ampersand intact.
+    """
+    lines = r"""
+\begin{tabular}{cc}
+a & b\\
+\cite{A&B} & xy\\
+\end{tabular}
+"""
+    reader = ascii.get_reader(reader_cls=ascii.Latex)
+    reader.data.splitter.process_val = None
+    dat = reader.read(lines)
+    assert dat.colnames == ["a", "b"]
+    assert dat["a"][0] == r"\cite{A&B} "
+    assert dat["b"][0] == " xy"
 
 
 @pytest.mark.parametrize("encoding", ["utf8", "latin1", "cp1252"])
@@ -2089,6 +2180,7 @@ def test_read_converters_simplified():
             )
 
 
+@pytest.mark.no_optimized_interpreter
 def test_table_read_help_ascii():
     """
     Test dynamically created documentation help via the I/O registry for 'ascii'.
@@ -2103,6 +2195,7 @@ def test_table_read_help_ascii():
     assert "Character-delimited table with a single header line" in doc
 
 
+@pytest.mark.no_optimized_interpreter
 def test_table_read_help_ascii_html():
     """
     Test dynamically created documentation help via the I/O registry for 'ascii.html'.
@@ -2117,6 +2210,7 @@ def test_table_read_help_ascii_html():
     assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
 
 
+@pytest.mark.no_optimized_interpreter
 def test_table_write_help_ascii():
     """
     Test dynamically created documentation help via the I/O registry for 'ascii'.
@@ -2131,6 +2225,7 @@ def test_table_write_help_ascii():
     assert "Character-delimited table with a single header line" in doc
 
 
+@pytest.mark.no_optimized_interpreter
 def test_table_write_help_ascii_html():
     """
     Test dynamically created documentation help via the I/O registry for 'ascii.html'.
@@ -2143,6 +2238,19 @@ def test_table_write_help_ascii_html():
     assert "Parameters" in doc
     assert "ASCII writer 'ascii.html' details" in doc
     assert "**htmldict** : Dictionary of parameters for HTML input/output." in doc
+
+
+@pytest.mark.only_optimized_interpreter
+@pytest.mark.parametrize("method", [ascii.read, ascii.write])
+@pytest.mark.parametrize("format", ["ascii", "html"])
+def test_table_read_write_help_ascii_optimized_mode(method, format):
+    out = StringIO()
+    with pytest.raises(
+        RuntimeError,
+        match="The help method is not available under Python's optimized mode.",
+    ):
+        method.help(format, out=out)
+    assert out.getvalue() == ""
 
 
 @pytest.mark.parametrize(

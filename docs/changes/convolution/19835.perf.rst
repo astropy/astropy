@@ -1,0 +1,4 @@
+``convolve()`` now releases the GIL around the underlying C call,
+restoring behaviour added in #3950 that was lost when the per-boundary
+Cython kernels were replaced with a single C backend in #7293. Threaded
+executors can again run multiple ``convolve`` calls in parallel.

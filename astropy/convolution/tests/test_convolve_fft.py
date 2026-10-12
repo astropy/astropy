@@ -11,7 +11,9 @@ from numpy.testing import (
 )
 
 from astropy import units as u
+from astropy.convolution import Gaussian2DKernel
 from astropy.convolution.convolve import convolve, convolve_fft
+from astropy.convolution.tests.test_convolve import MASKED_KERNEL_ERRORMESSAGE
 from astropy.utils.exceptions import AstropyUserWarning
 
 VALID_DTYPES = (">f4", "<f4", ">f8", "<f8")
@@ -20,6 +22,7 @@ BOUNDARY_OPTIONS = [None, "fill", "wrap"]
 NANTREATMENT_OPTIONS = ("interpolate", "fill")
 NORMALIZE_OPTIONS = [True, False]
 PRESERVE_NAN_OPTIONS = [True, False]
+
 
 """
 What does convolution mean?  We use the 'same size' assumption here (i.e.,
@@ -483,12 +486,23 @@ class TestConvolve1D:
         array = np.array([1.0, 2.0, 3.0], dtype="float64")
         kernel = np.array([1, 1, 1])
         masked_kernel = np.ma.masked_array(kernel, mask=[0, 1, 0])
-        result = convolve_fft(array, masked_kernel, boundary="fill", fill_value=0.0)
+        with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+            result = convolve_fft(array, masked_kernel, boundary="fill", fill_value=0.0)
+
+        filled_masked_kernel = masked_kernel.filled(0.0)
+        result = convolve_fft(
+            array, filled_masked_kernel, boundary="fill", fill_value=0.0
+        )
         assert_floatclose(result, [1, 2, 1])
 
-        # Now test against convolve()
+        with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+            # Now test against convolve()
+            convolve_result = convolve(
+                array, masked_kernel, boundary="fill", fill_value=0.0
+            )
+
         convolve_result = convolve(
-            array, masked_kernel, boundary="fill", fill_value=0.0
+            array, filled_masked_kernel, boundary="fill", fill_value=0.0
         )
         assert_floatclose(convolve_result, result)
 
@@ -540,6 +554,37 @@ class TestConvolve1D:
 
 
 class TestConvolve2D:
+    def test_nan_interpolation_with_negative_kernel_weights(self):
+        """Interpolation must retain a valid negative normalization weight."""
+        # 7x7 noise image around 100, center pixel NaN.
+        image = 100 + np.random.default_rng(3).normal(0, 1, (7, 7))
+        image[3, 3] = np.nan
+
+        # Build a 5x5 unsharp mask kernel that sums to 1.
+        a = 1.0
+        gaussian = Gaussian2DKernel(1.0, x_size=5, y_size=5).array
+        gaussian /= gaussian.sum()
+        delta = np.zeros_like(gaussian)
+        delta[2, 2] = 1
+        kernel = (1 + a) * delta - a * gaussian
+
+        direct = convolve(
+            image,
+            kernel,
+            boundary="wrap",
+            nan_treatment="interpolate",
+            normalize_kernel=True,
+        )
+        fft = convolve_fft(
+            image,
+            kernel,
+            boundary="wrap",
+            nan_treatment="interpolate",
+            normalize_kernel=True,
+        )
+
+        assert_allclose(fft, direct)
+
     @pytest.mark.parametrize("boundary", BOUNDARY_OPTIONS)
     @pytest.mark.parametrize("nan_treatment", NANTREATMENT_OPTIONS)
     @pytest.mark.parametrize("normalize_kernel", NORMALIZE_OPTIONS)
@@ -999,3 +1044,67 @@ def test_convolve_fft_boundary_extend_error():
         match=r"The 'extend' option is not implemented for fft-based convolution",
     ):
         convolve_fft(x, y, boundary="extend")
+
+
+def test_convolve_fft_masked_kernel_raises():
+    """
+    Test that convolve_fft raises ValueError when passed a masked kernel
+    with actual masked values.
+
+    This addresses issue #7543 - masked kernels should not be silently
+    filled, as it can lead to unexpected behavior.
+    """
+    # Test with 1D masked kernel with masked values
+    array = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    masked_kernel = np.ma.array([1, 1, 1], mask=[0, 1, 0])
+
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+        convolve_fft(array, masked_kernel, boundary="fill")
+
+    # Test with 2D masked kernel with masked values
+    array_2d = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    masked_kernel_2d = np.ma.array(
+        [[1, 1, 1], [1, 1, 1], [1, 1, 1]], mask=[[0, 0, 0], [0, 1, 0], [0, 0, 0]]
+    )
+
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+        convolve_fft(array_2d, masked_kernel_2d, boundary="fill")
+
+    # Test with all values masked
+    all_masked_kernel = np.ma.array([1, 1, 1], mask=[1, 1, 1])
+
+    with pytest.raises(ValueError, match=MASKED_KERNEL_ERRORMESSAGE):
+        convolve_fft(array, all_masked_kernel, boundary="fill")
+
+
+def test_convolve_fft_unmasked_masked_array_kernel():
+    """
+    Test that convolve_fft works correctly when passed a masked array kernel
+    with no actual masked values (i.e., all mask values are False).
+
+    This should work without raising an error since there are no masked values.
+    """
+    array = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    # Masked array with no actual masked values
+    unmasked_kernel = np.ma.array([1, 2, 1], mask=[0, 0, 0])
+
+    # This should work without error
+    result = convolve_fft(
+        array, unmasked_kernel, boundary="fill", normalize_kernel=True
+    )
+
+    # Verify result is reasonable (not testing exact values, just that it runs)
+    assert result.shape == array.shape
+    assert not np.any(np.isnan(result))
+
+    # Test with 2D as well
+    array_2d = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    unmasked_kernel_2d = np.ma.array(
+        [[0, 1, 0], [1, 1, 1], [0, 1, 0]], mask=[[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    )
+
+    result_2d = convolve_fft(
+        array_2d, unmasked_kernel_2d, boundary="fill", normalize_kernel=True
+    )
+    assert result_2d.shape == array_2d.shape
+    assert not np.any(np.isnan(result_2d))

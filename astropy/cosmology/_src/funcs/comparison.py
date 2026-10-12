@@ -10,7 +10,7 @@ import functools
 import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, TypeAlias
+from typing import Any
 
 import numpy as np
 from numpy import False_, True_, ndarray
@@ -20,14 +20,14 @@ from astropy import table
 # isort: split
 from astropy.cosmology._src.core import Cosmology
 
-__all__: list[str] = []  # Nothing is scoped here
+__all__ = ("cosmology_equal",)
 
 
 ##############################################################################
 # PARAMETERS
 
-_FormatType: TypeAlias = bool | None | str
-_FormatsType: TypeAlias = _FormatType | tuple[_FormatType, ...]
+type _FormatType = bool | str | None
+type _FormatsType = _FormatType | tuple[_FormatType, ...]
 
 _COSMO_AOK: set[Any] = {None, True_, False_, "astropy.cosmology"}
 # The numpy bool also catches real bool for ops "==" and "in"

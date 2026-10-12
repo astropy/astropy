@@ -2309,7 +2309,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
 
     def get_ref(self):
         """
-        Lookup the :class:`Param` instance that this :class:``PARAMref``
+        Lookup the :class:`Param` instance that this ``PARAMref``
         references.
         """
         for param in self._table._votable.iter_fields_and_params():
@@ -2898,7 +2898,7 @@ class TableElement(
                 columns = [columns]
             columns = np.asarray(columns)
             if issubclass(columns.dtype.type, np.integer):
-                if np.any(columns < 0) or np.any(columns > len(fields)):
+                if np.any(columns < 0) or np.any(columns >= len(fields)):
                     raise ValueError("Some specified column numbers out of range")
                 colnumbers = columns
             elif issubclass(columns.dtype.type, np.character):
@@ -3498,6 +3498,11 @@ class TableElement(
         """
         Convert this VO Table to an `astropy.table.Table` instance.
 
+        .. warning::
+           Variable-length array fields may not be restored
+           identically when round-tripping through the
+           `astropy.table.Table` instance.
+
         Parameters
         ----------
         use_names_over_ids : bool, optional
@@ -3508,10 +3513,10 @@ class TableElement(
            Otherwise (default), use the ID attributes as the column
            names.
 
-        .. warning::
-           Variable-length array fields may not be restored
-           identically when round-tripping through the
-           `astropy.table.Table` instance.
+        Returns
+        -------
+        table : `astropy.table.Table`
+            The converted table.
         """
         from astropy.table import Table
 
@@ -4487,6 +4492,28 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
                     for element in element_set:
                         element.to_xml(w, **kwargs)
 
+    def write(self, output, **kwargs):
+        """
+        Write the VOTable to a file.
+
+        This is a wrapper around
+        `~astropy.io.votable.tree.VOTableFile.to_xml` that accepts the same
+        ``output`` argument as `~astropy.table.Table.write`, allowing
+        `~astropy.io.votable.tree.VOTableFile` objects to be passed directly
+        to code that expects a ``write`` method with a compatible signature.
+
+        Parameters
+        ----------
+        output : str or file-like
+            Where to write the file. If a file-like object, must be writable.
+        **kwargs
+            Additional keyword arguments are passed on to
+            `~astropy.io.votable.tree.VOTableFile.to_xml`. The ``format``
+            keyword is accepted for API compatibility but ignored.
+        """
+        kwargs.pop("format", None)
+        self.to_xml(output, **kwargs)
+
     def iter_tables(self):
         """
         Iterates over all tables in the VOTable file in a "flat" way,
@@ -4693,6 +4720,8 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
 
         Parameters
         ----------
+        table : `astropy.table.Table`
+            The table to convert.
         table_id : str, optional
             Set the given ID attribute on the returned TableElement instance.
         """

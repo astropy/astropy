@@ -13,7 +13,8 @@ from collections import OrderedDict
 import numpy as np
 
 from astropy.io.ascii.core import convert_numpy
-from astropy.table import meta, serialize
+from astropy.io.misc.ecsv import table_meta_as_dict
+from astropy.table import Column, MaskedColumn, meta, serialize
 from astropy.utils.data_info import serialize_context_as
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -153,6 +154,12 @@ class EcsvHeader(basic.BasicHeader):
         in get_cols() for this reader.
         """
 
+    def check_column_names(self, names, strict_names, guessing):
+        # Not applicable to ECSV since the format has a well-defined header, and
+        # ``names`` applies to the output table columns which differ from the
+        # file columns for mixin columns. See ``Ecsv.read()``.
+        pass
+
     def get_cols(self, lines):
         """
         READ: Initialize the header Column objects from the table ``lines``.
@@ -194,8 +201,7 @@ class EcsvHeader(basic.BasicHeader):
                 "unable to parse yaml in meta header"
             ) from e
 
-        if "meta" in header:
-            self.table_meta = header["meta"]
+        self.table_meta = table_meta_as_dict(header)
 
         if "delimiter" in header:
             delimiter = header["delimiter"]
@@ -411,6 +417,38 @@ class EcsvOutputter(core.TableOutputter):
                 raise ValueError(f"column {col.name!r} failed to convert: {exc}")
 
 
+# Formatting helper functions for EcsvData.str_vals() to convert column values to
+# strings for writing.
+def _format_col_item(obj) -> str:
+    # For multi-dim or object data, use JSON to convert an item to a string.
+    try:
+        obj = obj.tolist()
+    except AttributeError:
+        pass
+    return json.dumps(obj, separators=(",", ":"))
+
+
+def _format_col_nd_or_object(col: Column | MaskedColumn) -> list[str]:
+    # For multi-dim or object columns, use JSON to convert each item to a string.
+    return [_format_col_item(item) for item in col]
+
+
+def _format_col_1d_non_object(col: Column | MaskedColumn) -> list[str]:
+    # Fast path for 1-d non-object columns: iterate over the plain
+    # ndarray rather than indexing the column, which avoids the
+    # significant per-item overhead of (Masked)Column.__getitem__.
+    data = col.data
+    if isinstance(data, np.ma.MaskedArray):
+        data = data.data
+
+    if data.dtype.kind == "S":
+        # Column.__getitem__ decodes bytes scalars to str; match
+        # that here so bytes columns are not written as b'...'.
+        return [val.decode("utf-8", errors="replace") for val in data]
+    else:
+        return [str(val) for val in data]
+
+
 class EcsvData(basic.BasicData):
     def _set_fill_values(self, cols):
         """READ: Set the fill values of the individual cols based on fill_values of BaseData.
@@ -455,23 +493,13 @@ class EcsvData(basic.BasicData):
         - Only replace masked values with "", not the generalized filling
         """
         for col in self.cols:
-            if len(col.shape) > 1 or col.info.dtype.kind == "O":
-
-                def format_col_item(idx):
-                    obj = col[idx]
-                    try:
-                        obj = obj.tolist()
-                    except AttributeError:
-                        pass
-                    return json.dumps(obj, separators=(",", ":"))
-
-            else:
-
-                def format_col_item(idx):
-                    return str(col[idx])
-
+            format_col = (
+                _format_col_nd_or_object
+                if len(col.shape) > 1 or col.info.dtype.kind == "O"
+                else _format_col_1d_non_object
+            )
             try:
-                col.str_vals = [format_col_item(idx) for idx in range(len(col))]
+                col.str_vals = format_col(col)
             except TypeError as exc:
                 raise TypeError(
                     f"could not convert column {col.info.name!r} to string: {exc}"
@@ -515,7 +543,6 @@ class Ecsv(basic.Basic):
     ----- -----
       001     2
       004     3
-
     """
 
     _format_name = "ecsv"
@@ -527,6 +554,28 @@ class Ecsv(basic.Basic):
     outputter_class = EcsvOutputter
 
     max_ndim = None  # No limit on column dimensionality
+
+    def _filter_header_cols(self):
+        # ``names``, ``include_names`` and ``exclude_names`` all apply to the
+        # output table columns, so nothing is done here (see ``read()``).
+        pass
+
+    def read(self, table):
+        out = super().read(table)
+
+        # Mixin columns are stored in the file as one or more data columns (e.g.
+        # ``tm.jd1`` and ``tm.jd2`` for a Time column ``tm``), so ``names``,
+        # ``include_names`` and ``exclude_names`` are applied to the output table
+        # after the mixin columns are constructed (see gh-12237).
+        if self.names is not None and len(self.names) != len(out.colnames):
+            raise core.InconsistentTableError(
+                f"Length of names argument ({len(self.names)}) does not match "
+                f"number of table columns ({len(out.colnames)})"
+            )
+        core._apply_include_exclude_names(
+            out, self.names, self.include_names, self.exclude_names
+        )
+        return out
 
     def update_table_data(self, table):
         """

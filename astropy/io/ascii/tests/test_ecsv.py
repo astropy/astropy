@@ -231,13 +231,20 @@ def test_write_read_roundtrip(format_engine):
                 assert np.all(t[name] == t2[name])
 
 
-def test_write_read_roundtrip_empty_table(tmp_path):
+def test_write_read_roundtrip_empty_table(tmp_path, format_engine):
+    # A table with no columns has no CSV data section, so every reader must
+    # round-trip it from the header alone.
     # see https://github.com/astropy/astropy/issues/13191
+    # and https://github.com/astropy/astropy/issues/19895 (meta-only, "ecsv" engines)
     sfile = tmp_path / "x.ecsv"
-    Table().write(sfile)
-    t = Table.read(sfile)
-    assert len(t) == 0
-    assert len(t.colnames) == 0
+    t = Table()
+    t.meta["foo"] = 1
+    t.meta["bar"] = "example"
+    t.write(sfile, **patch_format_write(format_engine))
+    t2 = Table.read(sfile, **format_engine)
+    assert len(t2) == 0
+    assert len(t2.colnames) == 0
+    assert t2.meta == t.meta
 
 
 def test_bad_delimiter():
@@ -597,6 +604,63 @@ def test_ecsv_mixins_per_column(table_cls, name_col, ndim, format_engine):
     if name.startswith("tm"):
         assert t2[name]._time.jd1.__class__ is np.ndarray
         assert t2[name]._time.jd2.__class__ is np.ndarray
+
+
+def test_ecsv_include_exclude_names_time_jd1_jd2():
+    """Exact scenario from gh-12237: Time columns serialized as jd1/jd2."""
+    t = Table()
+    t["a"] = Time([1, 2], format="cxcsec")
+    t["b"] = Time([3, 4], format="cxcsec")
+    out = StringIO()
+    t.write(out, format="ascii.ecsv", serialize_method="jd1_jd2")
+    txt = out.getvalue()
+
+    t2 = Table.read(txt, format="ascii.ecsv", include_names=["a"])
+    assert t2.colnames == ["a"]
+    assert isinstance(t2["a"], Time)
+    assert_array_equal(t2["a"].jd, t["a"].jd)
+
+    t2 = Table.read(txt, format="ascii.ecsv", exclude_names=["a"])
+    assert t2.colnames == ["b"]
+    assert isinstance(t2["b"], Time)
+    assert_array_equal(t2["b"].jd, t["b"].jd)
+
+
+def test_ecsv_names_refer_to_output_columns():
+    """The names, include_names and exclude_names refer to output table columns.
+
+    The data column names in the file for a mixin column (e.g. ``a.jd1``) are not
+    output column names and so are ignored for ``include_names`` and
+    ``exclude_names``, and ``names`` renames the output columns.
+    """
+    t = Table()
+    t["a"] = Time([1, 2], format="cxcsec")
+    t["b"] = [3, 4]
+    out = StringIO()
+    t.write(out, format="ascii.ecsv", serialize_method="jd1_jd2")
+    txt = out.getvalue()
+
+    t2 = Table.read(txt, format="ascii.ecsv", include_names=["a.jd1", "b"])
+    assert t2.colnames == ["b"]
+
+    t2 = Table.read(txt, format="ascii.ecsv", exclude_names=["a.jd2"])
+    assert t2.colnames == ["a", "b"]
+    assert isinstance(t2["a"], Time)
+
+    t2 = Table.read(txt, format="ascii.ecsv", names=["x", "y"])
+    assert t2.colnames == ["x", "y"]
+    assert isinstance(t2["x"], Time)
+    assert_array_equal(t2["x"].jd, t["a"].jd)
+
+    t2 = Table.read(txt, format="ascii.ecsv", names=["x", "y"], include_names=["y"])
+    assert t2.colnames == ["y"]
+
+    with pytest.raises(
+        ascii.InconsistentTableError,
+        match=r"Length of names argument \(3\) does not match number of table "
+        r"columns \(2\)",
+    ):
+        Table.read(txt, format="ascii.ecsv", names=["x", "y", "z"])
 
 
 def test_round_trip_masked_table_default(tmp_path):
@@ -1236,6 +1300,21 @@ def test_write_structured_masked_column(masked, format_engine):
     assert (t2["mc"].mask == mc.mask).all()
 
 
+@pytest.mark.parametrize("masked", [Column, MaskedColumn])
+def test_write_read_bytes_string_column(masked, format_engine):
+    # Special case bytes roundtrip test. Make sure b'abc' is encoded
+    # as 'abc' and not "b'abc'"
+    kwargs = {"mask": [False, True, False]} if masked is MaskedColumn else {}
+    col = masked(np.array([b"abc", b"de", b"f"], dtype="S3"), **kwargs)
+    t = Table([col], names=["s"])
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    t2 = Table.read(out.getvalue(), **format_engine)
+    assert np.all(t2["s"] == col.astype("U"))
+    if masked is MaskedColumn:
+        assert np.all(t2["s"].mask == col.mask)
+
+
 def test_write_masked_time_ymdhms_mixin(format_engine):
     # Regression test for gh-16370
     # Make a masked time,
@@ -1305,3 +1384,77 @@ def test_compressed_files(tmp_path, format_engine, compressed_filename):
     # Open compressed file and compare to ensure it's read correctly
     t_comp = Table.read(compressed_filename, **format_engine)
     assert_array_equal(t, t_comp)
+
+
+def test_meta_not_omap_but_list(format_engine):
+    """The ecsv spec allows that header meta to be any valid safe YAML.
+
+    Though astropy's writer writes with an !!omap tag, and all examples
+    in the ecsv spec (https://github.com/astropy/astropy-APEs/blob/main/APE6.rst)
+    use that extra (non standard) tag, the spec specifically says
+    that the header meta
+    'an arbitrary data structure consisting purely of data types that can be encoded
+    and decoded with the YAML "safe" dumper and loader'.
+
+    See one example in https://github.com/astropy/astropy/issues/5990
+    """
+    txt = """
+# %ECSV 1.0
+# ---
+# meta:
+# - keywords:
+#   - {z_key1: val1}
+#   - {a_key2: val2}
+# - comments: [Comment 1, Comment 2, Comment 3]
+# datatype:
+# - name: fake
+#   datatype: string
+fake
+0"""
+    with pytest.warns(
+        UserWarning,
+        match="Found ECSV table meta of type list instead of",
+    ):
+        t = Table.read(txt, **format_engine)
+    assert len(t.meta) == 1
+    assert len(t.meta["meta"]) == 2
+    assert t.meta["meta"][0] == {"keywords": [{"z_key1": "val1"}, {"a_key2": "val2"}]}
+    assert t.meta["meta"][1] == {"comments": ["Comment 1", "Comment 2", "Comment 3"]}
+
+
+MAP_BUT_NOT_OMAP_LINES = [
+    "# %ECSV 1.0",
+    "# ---",
+    "# datatype:",
+    "# - {name: fake, datatype: string}",
+    "# meta: !!omap",
+    "# - {hr: 65}",
+    "# - {avg: 0.278}",
+    "# - {rbi: 147}",
+    "# schema: astropy-2.0",
+    "fake",
+    "0",
+]
+
+
+def test_meta_not_omap_but_map(format_engine):
+    """Like test_meta_not_omap_but_list but for a mapping"""
+    txt = """
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: fake, datatype: string}
+# meta:
+#   hr:  65    # Home runs
+#   avg: 0.278 # Batting average
+#   rbi: 147   # Runs Batted In
+# schema: astropy-2.0
+fake
+0"""
+    t = Table.read(txt, **format_engine)
+    assert t.meta["hr"] == 65
+    assert t.meta["avg"] == 0.278
+    assert t.meta["rbi"] == 147
+    out = StringIO()
+    t.write(out, format="ascii.ecsv")
+    assert out.getvalue().splitlines() == MAP_BUT_NOT_OMAP_LINES

@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +18,11 @@
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-  http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.h,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
+  http://www.atnf.csiro.au/computing/software/wcs
+  $Id: lin.h,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.9 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -213,7 +213,7 @@
 * PLEASE NOTE: linfree() must not be invoked on a linprm struct that was not
 * initialized by lininit().
 *
-* Given:
+* Given and returned:
 *   lin       struct linprm*
 *                       Linear transformation parameters.
 *
@@ -709,10 +709,11 @@ enum lin_errmsg_enum {
   LINERR_SUCCESS      = 0,	// Success.
   LINERR_NULL_POINTER = 1,	// Null linprm pointer passed.
   LINERR_MEMORY       = 2,	// Memory allocation failed.
-  LINERR_SINGULAR_MTX = 3,	// PCi_ja matrix is singular.
-  LINERR_DISTORT_INIT = 4,	// Failed to initialise distortions.
-  LINERR_DISTORT      = 5,	// Distort error.
-  LINERR_DEDISTORT    = 6	// De-distort error.
+  LINERR_BAD_PARAM    = 3,	// Invalid parameter value.
+  LINERR_SINGULAR_MTX = 4,	// PCi_ja matrix is singular.
+  LINERR_DISTORT_INIT = 5,	// Failed to initialise distortions.
+  LINERR_DISTORT      = 6,	// Distort error.
+  LINERR_DEDISTORT    = 7	// De-distort error.
 };
 
 struct linprm {

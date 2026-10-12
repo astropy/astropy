@@ -6,6 +6,7 @@ import os
 import pickle
 import re
 import time
+import warnings
 from io import BytesIO
 
 import numpy as np
@@ -18,6 +19,7 @@ from astropy.io import fits
 from astropy.io.fits.hdu.compressed import (
     COMPRESSION_TYPES,
     DITHER_SEED_CHECKSUM,
+    NO_DITHER,
     SUBTRACTIVE_DITHER_1,
 )
 from astropy.io.fits.tests.conftest import FitsTestCase
@@ -95,7 +97,9 @@ class TestCompressedImage(FitsTestCase):
 
         # Basically what scipy.datasets.ascent() does.
         fname = download_file(
-            "https://github.com/scipy/dataset-ascent/blob/main/ascent.dat?raw=true"
+            "https://raw.githubusercontent.com/scipy/dataset-ascent/main/ascent.dat",
+            cache=True,
+            show_progress=False,
         )
         with open(fname, "rb") as f:
             scipy_data = np.array(pickle.load(f))
@@ -134,15 +138,14 @@ class TestCompressedImage(FitsTestCase):
         not 2D and has a non-2D tile size.
         """
 
-        pytest.raises(
-            ValueError,
-            fits.CompImageHDU,
-            np.zeros((2, 10, 10), dtype=np.float32),
-            name="SCI",
-            compression_type="HCOMPRESS_1",
-            quantize_level=16,
-            tile_shape=(2, 10, 10),
-        )
+        with pytest.raises(ValueError):
+            fits.CompImageHDU(
+                np.zeros((2, 10, 10), dtype=np.float32),
+                name="SCI",
+                compression_type="HCOMPRESS_1",
+                quantize_level=16,
+                tile_shape=(2, 10, 10),
+            )
 
     def test_comp_image_hcompress_image_stack(self):
         """
@@ -195,6 +198,26 @@ class TestCompressedImage(FitsTestCase):
             assert comp_header["ZDITHER0"] == csum
             assert np.all(hdul[1].data == array)
 
+    def test_no_dither_no_zquantiz(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/20136
+
+        ZQUANTIZ should not be written to the header at all when no
+        quantization is used, since some FITS readers (e.g. DS9, fv)
+        incorrectly treat its mere presence as meaning the data are
+        quantized, regardless of its value.
+        """
+
+        array = np.arange(100.0).reshape(10, 10)
+        hdu = fits.CompImageHDU(data=array, quantize_method=NO_DITHER)
+        outfile = self.temp("test.fits")
+        hdu.writeto(outfile)
+
+        with fits.open(outfile) as hdul:
+            comp_header = hdul[1]._bintable.header
+            assert "ZQUANTIZ" not in comp_header
+            assert "ZDITHER0" not in comp_header
+
     def test_disable_image_compression(self):
         with fits.open(self.data("comp.fits"), disable_image_compression=True) as hdul:
             # The compressed image HDU should show up as a BinTableHDU, but
@@ -224,6 +247,33 @@ class TestCompressedImage(FitsTestCase):
         # Ensure that no changes were made to the file merely by immediately
         # opening and closing it.
         assert mtime == os.stat(testfile).st_mtime
+
+    def test_update_comp_image_header(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/18612
+
+        Test that modifying the header of a compressed image in update mode
+        does not corrupt the file.
+        """
+        data = np.arange(100, dtype=np.float32).reshape(10, 10)
+
+        # Create a compressed FITS file
+        primary = fits.PrimaryHDU()
+        comp_hdu = fits.CompImageHDU(data, name="SCI", compression_type="RICE_1")
+        hdul = fits.HDUList([primary, comp_hdu])
+        hdul.writeto(self.temp("test_comp_header.fits"))
+
+        # Open in update mode and modify header
+        with fits.open(self.temp("test_comp_header.fits"), mode="update") as hdul:
+            hdul[1].header["TEST"] = (1, "Test keyword")
+            # The bug is triggered if a user explicitly flushes the file - which
+            # unnecessary but not wrong
+            hdul.flush()
+
+        # Verify the file can be read and changes are present
+        with fits.open(self.temp("test_comp_header.fits")) as hdul:
+            assert hdul[1].header.get("TEST") == 1
+            np.testing.assert_array_equal(hdul[1].data, data)
 
     @pytest.mark.slow
     def test_open_scaled_in_update_mode_compressed(self):
@@ -276,7 +326,7 @@ class TestCompressedImage(FitsTestCase):
 
         # Try reshaping the data, then closing and reopening the file; let's
         # see if all the changes are preserved properly
-        hdul[1].data.shape = (42, 10)
+        hdul[1].data = hdul[1].data.reshape(42, 10)
         hdul.close()
 
         hdul = fits.open(self.temp("scale.fits"))
@@ -1377,7 +1427,6 @@ def test_hdu_lazy_loading(tmp_path):
                 "ZNAME3": "NOISEBIT",
                 "ZVAL3": -32,
                 "ZCMPTYPE": "RICE_1",
-                "ZQUANTIZ": "NO_DITHER",
             },
             id="quantize_level_w_data",
         ),
@@ -1391,7 +1440,6 @@ def test_hdu_lazy_loading(tmp_path):
                 "ZNAME3": "NOISEBIT",
                 "ZVAL3": -32,
                 "ZCMPTYPE": "RICE_1",
-                "ZQUANTIZ": "NO_DITHER",
             },
             id="quantize_level_wo_data",
         ),
@@ -1451,7 +1499,7 @@ def test_reserved_keywords_stripped(tmp_path):
     #
     # See also https://github.com/astropy/astropy/issues/18067
 
-    data = np.arange(6).reshape((2, 3))
+    data = np.arange(6, dtype="int32").reshape((2, 3))
 
     hdu = fits.CompImageHDU(data)
     hdu.writeto(tmp_path / "compressed.fits")
@@ -1470,3 +1518,137 @@ def test_reserved_keywords_stripped(tmp_path):
         assert "ZBLANK" not in hdud[1].header
         assert "ZSCALE" not in hdud[1].header
         assert "ZZERO" not in hdud[1].header
+
+
+def test_compimghdu_with_primary_header_verify_fix():
+    """
+    Test that CompImageHDU created from a PrimaryHDU header can be verified
+    with 'fix' option without corrupting the header.
+
+    When a CompImageHDU has SIMPLE in its header (indicating it came from a
+    primary HDU), verification should not try to insert XTENSION, PCOUNT,
+    or GCOUNT.
+    """
+
+    # Create a CompImageHDU using a PrimaryHDU's header
+    primary = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32).reshape(10, 10))
+    comp_hdu = fits.CompImageHDU(
+        data=np.arange(100, dtype=np.int32).reshape(10, 10),
+        header=primary.header,
+    )
+
+    # Header should have SIMPLE, not XTENSION
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+
+    # Run verify('fix') - this should not modify the header or emit warnings
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        comp_hdu.verify("fix")
+        verify_warnings = [
+            warning for warning in w if issubclass(warning.category, VerifyWarning)
+        ]
+        assert len(verify_warnings) == 0, f"Got warnings: {verify_warnings}"
+
+    # Header should still have SIMPLE, not XTENSION (no corruption)
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+    assert "PCOUNT" not in comp_hdu.header
+    assert "GCOUNT" not in comp_hdu.header
+
+
+def test_compimghdu_with_primary_header_no_dual_keywords(tmp_path):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/19361
+
+    When creating a CompImageHDU using a PrimaryHDU's header, the resulting
+    header should not contain both SIMPLE/ZSIMPLE and XTENSION/ZTENSION.
+    According to the FITS standard, a header must have either SIMPLE or
+    XTENSION, never both. Additionally, PCOUNT/GCOUNT are extension-only
+    keywords and should not appear in a primary-style header.
+    """
+    # Create a PrimaryHDU with some data
+    hdu = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32).reshape(10, 10))
+
+    # Create a CompImageHDU using the PrimaryHDU's header
+    comp_hdu = fits.CompImageHDU(
+        data=np.arange(100, dtype=np.int32).reshape(10, 10),
+        header=hdu.header,
+    )
+
+    # The image header should have SIMPLE (not XTENSION) when created from PrimaryHDU
+    assert "SIMPLE" in comp_hdu.header
+    assert "XTENSION" not in comp_hdu.header
+    # PCOUNT/GCOUNT are extension-only keywords
+    assert "PCOUNT" not in comp_hdu.header
+    assert "GCOUNT" not in comp_hdu.header
+
+    # Write to file and check the raw bintable header
+    hdul = fits.HDUList([fits.PrimaryHDU(), comp_hdu])
+    hdul.writeto(tmp_path / "test.fits")
+
+    # Check the underlying bintable header has ZSIMPLE but not ZTENSION
+    with fits.open(tmp_path / "test.fits", disable_image_compression=True) as hdul:
+        bintable_header = hdul[1].header
+        assert "ZSIMPLE" in bintable_header
+        assert "ZTENSION" not in bintable_header
+
+
+def test_compressed_hdu_header_order():
+    """Test that the headers cards end up in the correct order for the
+    compressed image HDU."""
+
+    rng = np.random.default_rng(seed=5301753)
+    header = fits.Header()
+    header["a"] = "b"
+    header["c"] = "d"
+    nx, ny = 52, 57
+    compressed_hdu = fits.CompImageHDU(
+        data=rng.poisson(1000, size=(ny, nx)).astype(np.int16),
+        header=header,
+    )
+
+    expected_header = [
+        ("XTENSION", "BINTABLE"),
+        ("BITPIX", 8),
+        ("NAXIS", 2),
+        ("NAXIS1", 8),
+        ("NAXIS2", 57),
+        ("PCOUNT", 3003),
+        ("GCOUNT", 1),
+        ("TFIELDS", 1),
+        ("TTYPE1", "COMPRESSED_DATA"),
+        ("TFORM1", "1PB(55)"),
+        ("ZIMAGE", True),
+        ("ZTENSION", "IMAGE"),
+        ("ZBITPIX", 16),
+        ("ZNAXIS", 2),
+        ("ZNAXIS1", 52),
+        ("ZNAXIS2", 57),
+        ("ZPCOUNT", 0),
+        ("ZGCOUNT", 1),
+        ("ZTILE1", 52),
+        ("ZTILE2", 1),
+        ("ZCMPTYPE", "RICE_1"),
+        ("ZNAME1", "BLOCKSIZE"),
+        ("ZVAL1", 32),
+        ("ZNAME2", "BYTEPIX"),
+        ("ZVAL2", 2),
+        ("EXTNAME", "COMPRESSED_IMAGE"),
+        ("A", "b"),
+        ("C", "d"),
+    ]
+    hdulist = fits.HDUList([fits.PrimaryHDU(), compressed_hdu])
+    buffer = io.BytesIO()
+    hdulist.writeto(buffer)
+    buffer.seek(0)
+
+    hdulist = fits.open(buffer, disable_image_compression=True)
+
+    actual_header = hdulist[1].header.cards
+    for actual, expected in zip(actual_header, expected_header):
+        actual_key, actual_value, _ = actual
+        expected_key, expected_value = expected
+        assert actual_key == expected_key
+        if actual_key != "CHECKSUM":
+            assert actual_value == expected_value

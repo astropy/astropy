@@ -14,18 +14,21 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, NewType
 
 import numpy as np
+import numpy.typing as npt
 
+from astropy.units.typing import UnitLike
 from astropy.utils.compat.optional_deps import HAS_NARWHALS, HAS_PANDAS
 
 from .column import Column, MaskedColumn
+from .table import Table
 
 __all__ = ["from_df", "from_pandas", "to_df", "to_pandas"]
 
 if TYPE_CHECKING:
+    from narwhals import Implementation
     from narwhals.typing import EagerAllowed, IntoBackend
-    from units.typing import UnitLike
-
-    from .table import Table
+    from pandas import DataFrame
+    from pandas.arrays import IntegerArray
 
 # Sentinel value to indicate pandas-like backend validation
 PandasLikeSentinel = NewType("PandasLikeSentinel", object)  # Custom type
@@ -35,13 +38,26 @@ PANDAS_LIKE: PandasLikeSentinel = PandasLikeSentinel(object())
 INTEGER_DTYPE_KINDS = frozenset({"u", "i"})
 
 
-def _numpy_to_pandas_dtype(dtype: np.dtype) -> str:
-    """Convert a numpy dtype to a pandas dtype string, handling nullable integers."""
-    dtype_name = dtype.name
-    # Special case needed for uint -> UInt
-    if dtype_name.startswith("uint"):
-        return "UInt" + dtype_name.removeprefix("uint")
-    return dtype.name.title()
+def _pandas_nullable_int_array(
+    data: npt.ArrayLike, mask: npt.ArrayLike
+) -> IntegerArray:
+    """Make a pandas nullable integer array from integer ``data`` and ``mask``.
+
+    The obvious ways of getting a masked integer column into pandas (letting
+    pandas apply the mask and then casting to a nullable dtype, or passing a
+    masked array to ``Series(..., dtype="Int64")``) both go through a float64
+    intermediate.  That silently corrupts integers which are not exactly
+    representable as float64, i.e. those above 2**53, such as Gaia source ids
+    (gh-14442).  Building the nullable array from the integer values and the
+    mask directly avoids the float intermediate entirely.
+    """
+    from pandas.arrays import IntegerArray
+
+    data = np.asarray(data)
+    if not data.dtype.isnative:
+        data = data.byteswap().view(data.dtype.newbyteorder("="))
+    # copy=True since ``data`` and ``mask`` are generally views on the table.
+    return IntegerArray(data, np.asarray(mask), copy=True)
 
 
 def _encode_mixins(tbl: Table) -> Table:
@@ -65,10 +81,10 @@ def _encode_mixins(tbl: Table) -> Table:
         for col in time_cols:
             if isinstance(col, TimeDelta):
                 new_col = (col.sec * 1e9).astype("timedelta64[ns]")
-                nat = np.timedelta64("NaT")
+                nat = np.timedelta64("NaT", "ns")
             else:
                 new_col = col.datetime64.copy()
-                nat = np.datetime64("NaT")
+                nat = np.datetime64("NaT", "ns")
             if col.masked:
                 new_col[col.mask] = nat
             tbl[col.info.name] = new_col
@@ -78,7 +94,7 @@ def _encode_mixins(tbl: Table) -> Table:
     return encode_tbl
 
 
-def _get_backend_impl(backend: str):
+def _get_backend_impl(backend: str) -> Implementation:
     """Get the narwhals backend implementation."""
     if not HAS_NARWHALS:
         raise ModuleNotFoundError(
@@ -154,7 +170,6 @@ def _handle_index_argument(
         elif index is None:
             return False
         else:
-            assert index is True
             raise ValueError("index=True requires a single-column primary key.")
 
     elif isinstance(index, str):
@@ -169,13 +184,31 @@ def _handle_index_argument(
         )
 
 
+def _convert_multidim_columns_to_object(table: Table) -> Table:
+    """
+    Convert any multidimensional columns in the table to 1D object arrays.
+
+    If there are no multidimensional columns, the table is returned unchanged.
+    """
+    if not any(col.ndim > 1 for col in table.itercols()):
+        return table
+
+    out = table.copy(copy_data=False)
+    for name, col in table.columns.items():
+        if col.ndim > 1:
+            # Convert to 1D object array (e.g. list of lists for ndim=2).
+            out[name] = np.empty(len(col), dtype=object)
+            out[name][:] = col.tolist()
+    return out
+
+
 def to_df(
     table: Table,
     *,
     backend: str,
     index: bool | str | None = None,
     use_nullable_int: bool = True,
-):
+) -> Any:
     """Convert an Astropy Table to a DataFrame using the specified backend."""
     if not HAS_NARWHALS:
         raise ModuleNotFoundError(
@@ -186,8 +219,14 @@ def to_df(
 
     backend_impl = _get_backend_impl(backend)
 
-    # Using private API while narwhals-dev/narwhals#3150 is not merged
-    if not nw._utils.is_eager_allowed(backend_impl):
+    # Ensure eager-compatible backend
+    if backend_impl not in {
+        nw.Implementation.CUDF,
+        nw.Implementation.MODIN,
+        nw.Implementation.PANDAS,
+        nw.Implementation.POLARS,
+        nw.Implementation.PYARROW,
+    }:
         raise ValueError("Must export to eager compatible DataFrame")
 
     # Handle index argument
@@ -195,6 +234,9 @@ def to_df(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
+    # Support numpy multidimensional arrays in columns for pandas-like backend
+    if backend_impl.is_pandas_like():
+        tbl = _convert_multidim_columns_to_object(tbl)
     _validate_columns_for_backend(tbl, backend_impl=backend_impl)
 
     # Convert to narwhals DataFrame
@@ -230,18 +272,21 @@ def to_df(
     # Convert to dataframe
     df_native = df_nw.to_native()
 
-    # Fix pandas-like nullable integers
+    # Fix pandas-like nullable integers.  These are rebuilt from the original
+    # integer data and mask rather than cast from the masked (hence float64)
+    # column in ``df_native``, which would corrupt values above 2**53.
     if backend_impl.is_pandas_like() and tbl.has_masked_columns and use_nullable_int:
         for name in masked_cols:
-            dtype = array[name].dtype
-            if (dtype := array[name].dtype).kind not in INTEGER_DTYPE_KINDS:
+            if array[name].dtype.kind not in INTEGER_DTYPE_KINDS:
                 continue
 
-            df_native[name] = df_native[name].astype(_numpy_to_pandas_dtype(dtype))
+            df_native[name] = _pandas_nullable_int_array(
+                array[name].data, array[name].mask
+            )
 
     # Pandas-like index
     if index:
-        df_native.set_index(index, inplace=True, drop=True)
+        df_native = df_native.set_index(index, drop=True)
 
     return df_native
 
@@ -275,7 +320,7 @@ def from_df(
         index_name = str(df.index.name or "index")
         while index_name in df.columns:
             index_name = "_" + index_name + "_"
-        df.reset_index(index_name, inplace=True, drop=False)
+        df = df.reset_index(index_name, drop=False)
 
     # Narwhals layer, must convert to eager
     df_nw = nw.from_native(df)
@@ -364,7 +409,7 @@ def from_df(
 
 def to_pandas(
     table: Table, *, index: bool | str | None = None, use_nullable_int: bool = True
-):
+) -> DataFrame:
     """Convert an Astropy Table to a pandas DataFrame.
 
     This mirrors the previous DataFrameConverter.to_pandas method but as a
@@ -384,6 +429,8 @@ def to_pandas(
 
     # Encode mixins and validate columns
     tbl = _encode_mixins(table)
+    # Support numpy multidimensional arrays in columns
+    tbl = _convert_multidim_columns_to_object(tbl)
     _validate_columns_for_backend(tbl, backend_impl=PANDAS_LIKE)  # pandas validation
 
     out = {}
@@ -396,18 +443,15 @@ def to_pandas(
 
         if isinstance(column, MaskedColumn) and np.any(column.mask):
             if column.dtype.kind in ["i", "u"]:
-                pd_dtype = column.dtype.name
-                if use_nullable_int:
-                    # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
-                    pd_dtype = pd_dtype.replace("i", "I").replace("u", "U")
-                else:
+                if not use_nullable_int:
                     from pandas.errors import IntCastingNaNError
 
                     raise IntCastingNaNError(
                         "Cannot convert masked integer columns to DataFrame without using nullable integers. "
                         f"Set use_nullable_int=True or remove the offending column: {name}."
                     )
-                out[name] = Series(out[name], dtype=pd_dtype)
+                # Convert int64 to Int64, uint32 to UInt32, etc for nullable types
+                out[name] = Series(_pandas_nullable_int_array(out[name], column.mask))
 
             elif column.dtype.kind not in ["f", "c"]:
                 out[name] = column.astype(object).filled(np.nan)

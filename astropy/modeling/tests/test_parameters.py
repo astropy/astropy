@@ -743,6 +743,10 @@ class TestParameters:
         assert not isinstance(param.value, np.ndarray)
         assert param.value == 1
 
+        param = Parameter(name="test", setter=setter1, getter=getter1)
+        assert not isinstance(param.value, np.ndarray)
+        assert np.isnan(param.value)
+
     def test_raw_value(self):
         param = Parameter(name="test", default=[1, 2, 3, 4])
 
@@ -847,6 +851,11 @@ class TestParameters:
         # Vector value units
         param = Parameter(name="test", default=[1, 2, 3, 4] * u.m)
         assert param_repr_oneline(param) == "[1., 2., 3., 4.] m"
+
+    def test_param_repr_getter_no_value(self):
+        """Regression test for #19963"""
+        param = Parameter(name="test", getter=np.deg2rad, setter=np.rad2deg)
+        assert repr(param) == "Parameter('test', value=nan)"
 
     def test_getter_setter(self):
         msg = "setter and getter must both be input"
@@ -1248,3 +1257,17 @@ def test_setter():
 
     for x, y in pars:
         np.testing.assert_almost_equal(model(x, y), (x + 1) ** 2 + (y - np.pi * 3) ** 2)
+
+
+def test_none_parameter():
+    """
+    When Parameter internal value is None, the value property should also be
+    NaN.
+
+    See issue #19188
+    """
+    param = Parameter()
+    # Internal value is None
+    assert param._value is None
+
+    assert np.isnan(param.value)

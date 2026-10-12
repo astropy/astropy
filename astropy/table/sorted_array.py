@@ -1,15 +1,22 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
+from __future__ import annotations
+
 from collections.abc import Hashable, Mapping, Sequence
 from numbers import Integral
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
+import numpy.typing as npt
 
 if TYPE_CHECKING:
     from .table import Column, Table
 
 
-def _searchsorted(array, val, side="left"):
+def _searchsorted(
+    array: Column | npt.NDArray | Sequence[Any],
+    val,
+    side: Literal["left", "right"] = "left",
+) -> int | np.integer:
     """
     Call np.searchsorted or use a custom binary
     search if necessary.
@@ -48,14 +55,14 @@ class SortedArray:
         Defaults to False.
     """
 
-    def __init__(self, data: "Table", row_index: "Column", unique: bool = False):
+    def __init__(self, data: Table, row_index: Column, unique: bool = False) -> None:
         self.data = data
         self.row_index = row_index
         self.num_cols = len(getattr(data, "colnames", []))
         self.unique = unique
 
     @property
-    def cols(self) -> list["Column"]:
+    def cols(self) -> list[Column]:
         return list(self.data.columns.values())
 
     def add(self, key: tuple, row: int) -> None:
@@ -81,7 +88,7 @@ class SortedArray:
         self.data.insert_row(pos, key)
         self.row_index = self.row_index.insert(pos, row)
 
-    def _get_key_slice(self, i, begin, end):
+    def _get_key_slice(self, i: int, begin: int, end: int) -> Column | npt.NDArray:
         """
         Retrieve the ith slice of the sorted array
         from begin to end.
@@ -91,9 +98,11 @@ class SortedArray:
         else:
             return self.row_index[begin:end]
 
-    def find_pos(self, key, data, exact=False):
+    def find_pos(
+        self, key: tuple[Hashable, ...], data: int, exact: bool = False
+    ) -> int:
         """
-        Return the index of the largest key in data greater than or
+        Return the index of the first key in data greater than or
         equal to the given key, data pair.
 
         Parameters
@@ -190,27 +199,40 @@ class SortedArray:
             argument corresponds to an inclusive lower bound,
             and the second argument to an inclusive upper bound.
         """
-        # Find initial positions for lower and upper bounds. Just like a slice object,
-        # None values for `lower` or `upper` correspond to no bound in that direction.
-        lower_pos = 0 if lower is None else self.find_pos(lower, 0)
-        upper_pos = len(self.row_index) if upper is None else self.find_pos(upper, 0)
+        n = len(self.row_index)
 
-        if lower_pos == len(self.row_index):
-            return []
+        def bisect_left(key: tuple[Hashable, ...]) -> int:
+            # Position of the first entry whose key is >= ``key``.
+            return self.find_pos(key, 0)
 
-        lower_bound = tuple(col[lower_pos] for col in self.cols)
-        if not bounds[0] and lower_bound == lower:
-            lower_pos += 1  # data[lower_pos] > lower
+        def bisect_right(key: tuple[Hashable, ...]) -> int:
+            # Position of the first entry whose key is > ``key`` (i.e. just
+            # past the last entry equal to ``key``).
+            if self.unique:
+                pos = self.find_pos(key, 0)
+                if pos < n and tuple(col[pos] for col in self.cols) == key:
+                    pos += 1
+                return pos
+            # For a non-unique index the stored keys include the row number, so
+            # searching with a row number larger than any real row lands just
+            # past the last entry equal to ``key`` (and thus past all duplicates).
+            return self.find_pos(key, n)
 
-        # data[lower_pos] >= lower
-        # data[upper_pos] >= upper
-        if upper_pos < len(self.row_index):
-            upper_bound = tuple(col[upper_pos] for col in self.cols)
-            if not bounds[1] and upper_bound == upper:
-                upper_pos -= 1  # data[upper_pos] < upper
-            elif upper_bound > upper:
-                upper_pos -= 1  # data[upper_pos] <= upper
-        return self.row_index[lower_pos : upper_pos + 1]
+        # Compute a half-open range [lower_pos, upper_pos). Just like a slice
+        # object, a None value for `lower` or `upper` means no bound in that
+        # direction. Using bisect_left/bisect_right ensures all entries that
+        # share a value with an inclusive bound are included, even duplicates.
+        if lower is None:
+            lower_pos = 0
+        else:
+            lower_pos = bisect_left(lower) if bounds[0] else bisect_right(lower)
+
+        if upper is None:
+            upper_pos = n
+        else:
+            upper_pos = bisect_right(upper) if bounds[1] else bisect_left(upper)
+
+        return self.row_index[lower_pos:upper_pos]
 
     def remove(self, key: tuple, data: int) -> bool:
         """
@@ -260,7 +282,7 @@ class SortedArray:
         """
         self.row_index[self.row_index >= row] += 1
 
-    def replace_rows(self, row_map: "Mapping[int, int]") -> None:
+    def replace_rows(self, row_map: Mapping[int, int]) -> None:
         """
         Replace all rows with the values they map to in the
         given dictionary. Any rows not present as keys in
@@ -306,13 +328,13 @@ class SortedArray:
         """
         self.row_index = np.arange(len(self.row_index))
 
-    def sorted_data(self) -> None:
+    def sorted_data(self) -> Sequence[Integral]:
         """
         Return rows in sorted order.
         """
         return self.row_index
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: slice | npt.NDArray) -> SortedArray:
         """
         Return a sliced reference to this sorted array.
 
@@ -323,7 +345,10 @@ class SortedArray:
         """
         return SortedArray(self.data[item], self.row_index[item])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         t = self.data.copy()
         t["rows"] = self.row_index
         return f"<{self.__class__.__name__} length={len(t)}>\n{t}"
+
+    def __len__(self) -> int:
+        return len(self.row_index)

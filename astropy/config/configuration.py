@@ -17,6 +17,7 @@ import io
 import operator
 import os
 import pkgutil
+import sys
 import warnings
 from collections.abc import Generator
 from contextlib import contextmanager, nullcontext
@@ -27,9 +28,10 @@ from textwrap import TextWrapper
 from typing import Final
 from warnings import warn
 
+import configobj
 import numpy as np
+from configobj import validate
 
-from astropy.extern.configobj import configobj, validate
 from astropy.utils import find_current_module, silence
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 
@@ -140,6 +142,15 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
             provided then info about all the configuration items will be
             printed.
 
+        Raises
+        ------
+        KeyError
+           If name is not a valid configuration item.
+
+        RuntimeError
+            If called within a python runtime running with optimization level >= 2
+            (-OO CLI flag).
+
         Examples
         --------
         >>> from astropy import conf
@@ -151,6 +162,11 @@ class ConfigNamespace(metaclass=_ConfigNamespaceMeta):
           module=astropy
           value=False
         """
+        if sys.flags.optimize >= 2:
+            raise RuntimeError(
+                "The help method is not available under Python's optimized mode."
+            )
+
         if name is None:
             print(self)
         else:
@@ -545,13 +561,11 @@ def get_config_filename(packageormod=None, rootname=None):
     return cfg.filename
 
 
-# This is used by testing to override the config file, so we can test
-# with various config files that exercise different features of the
-# config system.
-_override_config_file = None
-
-
-def get_config(packageormod=None, reload=False, rootname=None):
+def get_config(
+    packageormod: str | None = None,
+    reload: bool = False,
+    rootname: str | None = None,
+) -> configobj.ConfigObj | configobj.Section:
     """Gets the configuration object or section associated with a particular
     package or module.
 
@@ -611,18 +625,13 @@ def get_config(packageormod=None, reload=False, rootname=None):
     cobj = _cfgobjs.get(pkgname)
 
     if cobj is None or reload:
-        cfgfn = None
+        cfgfile = str(
+            get_config_dir_path(rootname, ensure_exists=False)
+            .joinpath(pkgname)
+            .with_suffix(".cfg")
+        )
         try:
-            # This feature is intended only for use by the unit tests
-            if _override_config_file is not None:
-                cfgfn = Path(_override_config_file)
-            else:
-                cfgfn = (
-                    get_config_dir_path(rootname=rootname)
-                    .joinpath(pkgname)
-                    .with_suffix(".cfg")
-                )
-            cobj = configobj.ConfigObj(str(cfgfn), interpolation=False)
+            cobj = configobj.ConfigObj(cfgfile, interpolation=False)
         except OSError:
             # This can happen when HOME is not set
             cobj = configobj.ConfigObj(interpolation=False)
@@ -662,6 +671,9 @@ def generate_config(pkgname="astropy", filename=None, verbose=False):
         The package for which to retrieve the configuration object.
     filename : str or file-like or None
         If None, the default configuration path is taken from `get_config`.
+    verbose : bool, optional
+        If `True`, do not silence the output or the deprecation warnings
+        raised while importing the subpackages. Default is `False`.
 
     """
     if verbose:
@@ -696,6 +708,7 @@ def generate_config(pkgname="astropy", filename=None, verbose=False):
 
     with contextlib.ExitStack() as stack:
         if isinstance(filename, (str, os.PathLike)):
+            Path(filename).parent.mkdir(parents=True, exist_ok=True)
             fp = stack.enter_context(open(filename, "w"))
         else:
             # assume it's a file object, or io.StringIO
@@ -816,13 +829,14 @@ def create_config_file(pkg, rootname="astropy", overwrite=False):
     doupdate = True
 
     # if the file already exists, check that it has not been modified
-    if cfgfn is not None and cfgfn.is_file():
+    if cfgfn.is_file():
         with open(cfgfn, encoding="latin-1") as fd:
             content = fd.read()
 
         doupdate = is_unedited_config_file(content, template_content)
 
     if doupdate or overwrite:
+        cfgfn.parent.mkdir(parents=True, exist_ok=True)
         with open(cfgfn, "w", encoding="latin-1") as fw:
             fw.write(template_content)
         log.info(f"The configuration file has been successfully written to {cfgfn}")

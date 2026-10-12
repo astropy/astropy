@@ -54,7 +54,7 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     >>> temp_dir.cleanup()
 """
 
-from typing import Any, TypeVar
+from typing import Any
 
 import astropy.units as u
 from astropy.cosmology._src.core import Cosmology
@@ -64,8 +64,6 @@ from astropy.io.typing import PathLike, WriteableFileLike
 from astropy.table import QTable, Table
 
 from .table import to_table
-
-_TableT = TypeVar("_TableT", bound=Table)
 
 _FORMAT_TABLE = {
     "H0": "$H_0$",
@@ -83,12 +81,12 @@ _FORMAT_TABLE = {
 }
 
 
-def write_latex(
+def write_latex[T: Table](
     cosmology: Cosmology,
-    file: PathLike | WriteableFileLike[_TableT],
+    file: PathLike | WriteableFileLike[T],
     *,
     overwrite: bool = False,
-    cls: type[_TableT] = QTable,
+    cls: type[T] = QTable,
     latex_names: bool = True,
     **kwargs: Any,
 ) -> None:

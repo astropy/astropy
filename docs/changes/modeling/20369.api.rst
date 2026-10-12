@@ -1,0 +1,4 @@
+``Model`` now has a ``verify_dims_in_fitting`` attribute, defaulting to ``True``.
+Setting it to ``False`` on a model, or on any component of a compound model,
+skips the check that the input coordinates and the data have the same shape
+when fitting.

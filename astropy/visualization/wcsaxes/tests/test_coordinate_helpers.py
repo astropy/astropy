@@ -3,9 +3,11 @@
 from unittest.mock import MagicMock, patch
 
 import matplotlib.transforms as transforms
+import numpy as np
 import pytest
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
+from matplotlib.path import Path
 
 from astropy import units as u
 from astropy.io import fits
@@ -14,6 +16,7 @@ from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
+from astropy.wcs.wcsapi import BaseLowLevelWCS
 
 MSX_HEADER = fits.Header.fromtextfile(get_pkg_data_filename("data/msx_header"))
 
@@ -396,3 +399,180 @@ def test_set_ticks_values():
     lbl_locations = u.Quantity(lbl_world1, unit=u.deg)
     assert u.allclose(lbl_locations, ax.coords[0]._formatter_locator.values)
     assert u.Quantity(lbl_world).unit is xticks.unit
+
+
+@pytest.mark.parametrize("n_ticks", [0, 1])
+def test_grid_contour_few_ticks(n_ticks):
+    # Regression test for an IndexError when drawing a contour-type grid
+    # for a longitude coordinate that has 0 or 1 major ticks.
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=WCS(MSX_HEADER))
+    fig.add_axes(ax)
+
+    if n_ticks == 0:
+        ax.coords[0].set_ticks(number=0)
+    else:
+        ax.coords[0].set_ticks(values=[320] * u.deg)
+
+    ax.coords[0].grid(grid_type="contours")
+
+    canvas.draw()
+
+
+def test_grid_contour_sliced_coord():
+    # Regression test for an AttributeError when drawing a contour-type grid
+    # for a coordinate that has been sliced out of the plot.
+    wcs = WCS(naxis=3)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "FREQ"]
+    wcs.wcs.crval = [10, 20, 1.42e9]
+    wcs.wcs.crpix = [30, 40, 5]
+    wcs.wcs.cdelt = [-0.1, 0.1, 1e7]
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs, slices=("x", "y", 5))
+    fig.add_axes(ax)
+
+    ax.coords[2].grid(grid_type="contours")
+
+    canvas.draw()
+
+
+def test_grid_contour_one_tick_crossing_wrap():
+    # A single longitude tick on a field of view that crosses the longitude
+    # wrap should produce one gridline, not an additional spurious line
+    # along the wrap discontinuity.
+    wcs = WCS(naxis=2)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.crval = [0, 0]
+    wcs.wcs.crpix = [50, 50]
+    wcs.wcs.cdelt = [-0.1, 0.1]
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+    fig.add_axes(ax)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+
+    ax.coords[0].set_ticks(values=[358] * u.deg)
+    ax.coords[0].grid(grid_type="contours")
+
+    canvas.draw()
+
+    n_lines = sum(
+        np.sum(path.codes == Path.MOVETO) for path in ax.coords[0]._grid.get_paths()
+    )
+    assert n_lines == 1
+
+
+def test_ticks_multiple_intersections_non_degree_longitude():
+    # Regression test for a bug where, for a longitude coordinate whose unit
+    # is not degrees, a tick with more than one intersection along a single
+    # spine would get corrupted world coordinates (and could raise) for all
+    # but the first intersection, because the loop variable was rescaled to
+    # degrees in place instead of using a separate variable.
+    class OscillatingTransform(transforms.Transform):
+        input_dims = 2
+        output_dims = 2
+        is_separable = False
+        has_inverse = False
+
+        def transform(self, values):
+            x = values[:, 0]
+            y = values[:, 1]
+            lon = 0.05 + 0.02 * np.sin(x / 3.0)
+            lat = y * 0.001
+            return np.column_stack([lon, lat])
+
+        def transform_path(self, path):
+            from matplotlib.path import Path
+
+            return Path(self.transform(path.vertices), path.codes)
+
+        transform_path_non_affine = transform_path
+
+    coord_meta = {
+        "type": ("longitude", "latitude"),
+        "unit": (u.rad, u.rad),
+        "wrap": (360 * u.deg, None),
+        "name": ("lon", "lat"),
+    }
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(
+        fig,
+        [0.1, 0.1, 0.8, 0.8],
+        transform=OscillatingTransform(),
+        coord_meta=coord_meta,
+    )
+    fig.add_axes(ax)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+
+    # This tick value is crossed many times along the bottom spine because
+    # the custom transform oscillates the longitude as a function of x.
+    ax.coords[0].set_ticks(values=[0.05] * u.rad)
+
+    # Should not raise (previously corrupted intermediate tick values could
+    # produce huge/garbage numbers that broke text rendering).
+    canvas.draw()
+
+
+class _RasterLikeWCS(BaseLowLevelWCS):
+    # Two pixel axes and four world axes, as in a slit-spectrograph raster:
+    # latitude varies along x, while longitude, time and step number all vary
+    # along y (longitude also depends weakly on x).
+    pixel_n_dim = 2
+    world_n_dim = 4
+    world_axis_physical_types = [
+        "custom:pos.helioprojective.lon",
+        "custom:pos.helioprojective.lat",
+        "time",
+        "custom:step",
+    ]
+    world_axis_units = ["deg", "deg", "s", "pix"]
+    world_axis_names = ["lon", "lat", "time", "step"]
+    axis_correlation_matrix = np.array(
+        [[True, True], [True, False], [False, True], [False, True]]
+    )
+    world_axis_object_components = [
+        ("celestial", 0, "spherical.lon.degree"),
+        ("celestial", 1, "spherical.lat.degree"),
+        ("time", 0, "value"),
+        ("step", 0, "value"),
+    ]
+    world_axis_object_classes = {}
+
+    def pixel_to_world_values(self, x, y):
+        x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+        return -0.1 + 0.002 * y + 1e-5 * x, 0.05 + 0.002 * x, 100.0 * y, y
+
+    def world_to_pixel_values(self, lon, lat, time, step):
+        return (np.asarray(lat) - 0.05) / 0.002, np.asarray(step, dtype=float)
+
+
+def test_hidden_coordinates_do_not_take_a_spine():
+    # A coordinate with both ticks and tick labels hidden must be left out of
+    # the automatic placement. With more ticks than the visible coordinates,
+    # it would otherwise be assigned the spine they need and push them onto a
+    # spine where they have no ticks.
+    fig = Figure()
+    _canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=_RasterLikeWCS(), aspect="auto")
+    fig.add_axes(ax)
+    ax.set_xlim(-0.5, 29.5)
+    ax.set_ylim(-0.5, 39.5)
+    for name in ("time", "step"):
+        ax.coords[name].set_ticks(number=25)
+        ax.coords[name].set_ticks_visible(False)
+        ax.coords[name].set_ticklabel_visible(False)
+
+    fig.canvas.draw()
+
+    assert "l" in ax.coords["lon"].get_ticklabel_position()
+    assert "b" in ax.coords["lat"].get_ticklabel_position()
+    assert ax.coords["time"].get_ticklabel_position() == ["#"]
+    assert ax.coords["step"].get_ticklabel_position() == ["#"]

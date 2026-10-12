@@ -11,6 +11,7 @@ from astropy.io.fits.verify import VerifyWarning
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.wcs.wcs import WCS, FITSFixedWarning
+from astropy.wcs.wcsapi.tests.helpers import assert_celestial_component
 from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
     SlicedLowLevelWCS,
     combine_slices,
@@ -130,18 +131,11 @@ def test_ellipsis():
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
-    assert len(wcs.world_axis_object_components) == 3
-    assert wcs.world_axis_object_components[0] == (
-        "celestial",
-        1,
-        "spherical.lat.degree",
-    )
-    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
-    assert wcs.world_axis_object_components[2] == (
-        "celestial",
-        0,
-        "spherical.lon.degree",
-    )
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1][:2] == ("spectral", 0)
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -219,10 +213,10 @@ def test_spectral_slice():
 
     assert_equal(wcs.axis_correlation_matrix, [[True, True], [True, True]])
 
-    assert wcs.world_axis_object_components == [
-        ("celestial", 1, "spherical.lat.degree"),
-        ("celestial", 0, "spherical.lon.degree"),
-    ]
+    components = wcs.world_axis_object_components
+    assert len(components) == 2
+    assert_celestial_component(components[0], 1)
+    assert_celestial_component(components[1], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -289,18 +283,11 @@ def test_spectral_range():
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
-    assert len(wcs.world_axis_object_components) == 3
-    assert wcs.world_axis_object_components[0] == (
-        "celestial",
-        1,
-        "spherical.lat.degree",
-    )
-    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
-    assert wcs.world_axis_object_components[2] == (
-        "celestial",
-        0,
-        "spherical.lon.degree",
-    )
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1][:2] == ("spectral", 0)
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -369,18 +356,11 @@ def test_celestial_slice():
         wcs.axis_correlation_matrix, [[False, True], [True, False], [False, True]]
     )
 
-    assert len(wcs.world_axis_object_components) == 3
-    assert wcs.world_axis_object_components[0] == (
-        "celestial",
-        1,
-        "spherical.lat.degree",
-    )
-    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
-    assert wcs.world_axis_object_components[2] == (
-        "celestial",
-        0,
-        "spherical.lon.degree",
-    )
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1][:2] == ("spectral", 0)
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -451,18 +431,11 @@ def test_celestial_range():
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
-    assert len(wcs.world_axis_object_components) == 3
-    assert wcs.world_axis_object_components[0] == (
-        "celestial",
-        1,
-        "spherical.lat.degree",
-    )
-    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
-    assert wcs.world_axis_object_components[2] == (
-        "celestial",
-        0,
-        "spherical.lon.degree",
-    )
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1][:2] == ("spectral", 0)
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -542,18 +515,11 @@ def test_celestial_range_rot():
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
-    assert len(wcs.world_axis_object_components) == 3
-    assert wcs.world_axis_object_components[0] == (
-        "celestial",
-        1,
-        "spherical.lat.degree",
-    )
-    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
-    assert wcs.world_axis_object_components[2] == (
-        "celestial",
-        0,
-        "spherical.lon.degree",
-    )
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1][:2] == ("spectral", 0)
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -645,18 +611,11 @@ def test_no_array_shape():
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
-    assert len(wcs.world_axis_object_components) == 3
-    assert wcs.world_axis_object_components[0] == (
-        "celestial",
-        1,
-        "spherical.lat.degree",
-    )
-    assert wcs.world_axis_object_components[1][:2] == ("spectral", 0)
-    assert wcs.world_axis_object_components[2] == (
-        "celestial",
-        0,
-        "spherical.lon.degree",
-    )
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1][:2] == ("spectral", 0)
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -754,11 +713,11 @@ def test_ellipsis_none_types():
         [[True, False, True], [False, True, False], [True, False, True]],
     )
 
-    assert wcs.world_axis_object_components == [
-        ("celestial", 1, "spherical.lat.degree"),
-        ("world", 0, "value"),
-        ("celestial", 0, "spherical.lon.degree"),
-    ]
+    components = wcs.world_axis_object_components
+    assert len(components) == 3
+    assert_celestial_component(components[0], 1)
+    assert components[1] == ("world", 0, "value")
+    assert_celestial_component(components[2], 0)
 
     assert wcs.world_axis_object_classes["celestial"][0] is SkyCoord
     assert wcs.world_axis_object_classes["celestial"][1] == ()
@@ -948,6 +907,7 @@ def test_dropped_dimensions():
 
     dwd = sub.dropped_world_dimensions
     wao_classes = dwd.pop("world_axis_object_classes")
+    wao_components = dwd.pop("world_axis_object_components")
     validate_info_dict(
         dwd,
         {
@@ -956,12 +916,11 @@ def test_dropped_dimensions():
             "world_axis_names": ["Latitude", "Longitude"],
             "world_axis_units": ["deg", "deg"],
             "serialized_classes": False,
-            "world_axis_object_components": [
-                ("celestial", 1, "spherical.lat.degree"),
-                ("celestial", 0, "spherical.lon.degree"),
-            ],
         },
     )
+    assert len(wao_components) == 2
+    assert_celestial_component(wao_components[0], 1)
+    assert_celestial_component(wao_components[1], 0)
 
     assert wao_classes["celestial"][0] is SkyCoord
     assert wao_classes["celestial"][1] == ()
@@ -972,6 +931,7 @@ def test_dropped_dimensions():
 
     dwd = sub.dropped_world_dimensions
     wao_classes = dwd.pop("world_axis_object_classes")
+    wao_components = dwd.pop("world_axis_object_components")
     validate_info_dict(
         dwd,
         {
@@ -980,12 +940,11 @@ def test_dropped_dimensions():
             "world_axis_names": ["Latitude", "Longitude"],
             "world_axis_units": ["deg", "deg"],
             "serialized_classes": False,
-            "world_axis_object_components": [
-                ("celestial", 1, "spherical.lat.degree"),
-                ("celestial", 0, "spherical.lon.degree"),
-            ],
         },
     )
+    assert len(wao_components) == 2
+    assert_celestial_component(wao_components[0], 1)
+    assert_celestial_component(wao_components[1], 0)
 
     assert wao_classes["celestial"][0] is SkyCoord
     assert wao_classes["celestial"][1] == ()
@@ -1017,8 +976,8 @@ def test_dropped_dimensions_4d(cube_4d_fitswcs):
     assert wao_classes["celestial"][2]["unit"] == (u.deg, u.deg)
     assert wao_classes["spectral"][0:3] == (u.Quantity, (), {})
 
-    assert wao_components[0] == ("celestial", 0, "spherical.lon.degree")
-    assert wao_components[1] == ("celestial", 1, "spherical.lat.degree")
+    assert_celestial_component(wao_components[0], 0)
+    assert_celestial_component(wao_components[1], 1)
     assert wao_components[2][0:2] == ("spectral", 0)
 
     sub = SlicedLowLevelWCS(cube_4d_fitswcs, np.s_[12, 12])

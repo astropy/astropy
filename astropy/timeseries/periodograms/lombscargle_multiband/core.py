@@ -149,6 +149,8 @@ class LombScargleMultiband(LombScargle):
 
         Parameters
         ----------
+        timeseries : `~astropy.timeseries.TimeSeries` or `~astropy.timeseries.BinnedTimeSeries`
+            The time series from which to initialize the periodogram.
         signal_column : list
             The names of columns containing the signal values to use.
         uncertainty_column : list, optional

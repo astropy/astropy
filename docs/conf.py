@@ -31,60 +31,76 @@ import os
 import sys
 import tomllib
 import warnings
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
-import sphinx
 from packaging.requirements import Requirement
 from packaging.specifiers import SpecifierSet
+from packaging.utils import NormalizedName, canonicalize_name
+from packaging.version import Version
 from sphinx.util import logging
-
-# xref: https://github.com/sphinx-doc/sphinx/issues/13232#issuecomment-2608708175
-if sys.version_info[:2] >= (3, 13) and sphinx.version_info[:2] < (8, 2):
-    import pathlib
-
-    from sphinx.util.typing import _INVALID_BUILTIN_CLASSES
-
-    _INVALID_BUILTIN_CLASSES[pathlib.Path] = "pathlib.Path"
-
 
 # from docs import global_substitutions
 
 logger = logging.getLogger(__name__)
 
+
 # -- Check for missing dependencies -------------------------------------------
-missing_requirements = {}
-for line in metadata.requires("astropy"):
-    if 'extra == "docs"' in line:
-        req = Requirement(line.split(";")[0])
-        req_package = req.name.lower()
-        req_specifier = str(req.specifier)
+@dataclass(kw_only=True, slots=True, frozen=True)
+class PackageInfo:
+    name: NormalizedName
+    required: SpecifierSet
+    installed: Version | None = None
 
-        try:
-            version = metadata.version(req_package)
-        except metadata.PackageNotFoundError:
-            missing_requirements[req_package] = req_specifier
 
-        if version not in SpecifierSet(req_specifier, prereleases=True):
-            missing_requirements[req_package] = req_specifier
+unsatisfied_requirements: set[PackageInfo] = set()
+for req in filter(
+    lambda r: 'extra == "docs"' in str(r.marker),
+    map(Requirement, metadata.requires("astropy")),
+):
+    name = canonicalize_name(req.name)
 
-if missing_requirements:
+    try:
+        version = Version(metadata.version(name))
+    except metadata.PackageNotFoundError:
+        unsatisfied_requirements.add(
+            PackageInfo(
+                name=name,
+                required=req.specifier,
+            )
+        )
+        continue
+
+    if version not in SpecifierSet(req.specifier, prereleases=True):
+        unsatisfied_requirements.add(
+            PackageInfo(
+                name=name,
+                required=req.specifier,
+                installed=version,
+            )
+        )
+
+if unsatisfied_requirements:
     msg = (
         "The following packages could not be found and are required to "
         "build the documentation:\n"
-        "%s"
-        '\nPlease install the "docs" requirements.',
-        "\n".join([f"    * {key} {val}" for key, val in missing_requirements.items()]),
+        + "\n".join(
+            [
+                f"    * {p.name} {p.required}{f' (found incompatible version {p.installed})' if p.installed is not None else ''}"
+                for p in unsatisfied_requirements
+            ]
+        )
+        + '\nPlease install the "docs" optional dependencies.'
     )
     logger.error(msg)
     sys.exit(1)
 
-from sphinx_astropy.conf.v2 import *  # noqa: E402, F403
-from sphinx_astropy.conf.v2 import (  # noqa: E402
+from sphinx_astropy.conf.v3 import *  # noqa: E402, F403
+from sphinx_astropy.conf.v3 import (  # noqa: E402
     exclude_patterns,
     extensions,
-    html_theme_options,
     intersphinx_mapping,
     numpydoc_xref_aliases,
     numpydoc_xref_astropy_aliases,
@@ -117,7 +133,7 @@ intersphinx_mapping.update(
         "pyerfa": ("https://pyerfa.readthedocs.io/en/stable/", None),
         "pytest": ("https://docs.pytest.org/en/stable/", None),
         "ipython": ("https://ipython.readthedocs.io/en/stable/", None),
-        "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+        "pandas": ("https://pandas.pydata.org/docs/", None),
         "sphinx_automodapi": (
             "https://sphinx-automodapi.readthedocs.io/en/stable/",
             None,
@@ -241,33 +257,36 @@ modindex_common_prefix = ["astropy."]
 
 # -- Options for HTML output ---------------------------------------------------
 
-html_theme_options.update(
-    {
-        "analytics": {
-            "google_analytics_id": "G-R0510VK4B6",
-        },
-        "github_url": "https://github.com/astropy/astropy",
-        "external_links": [
-            {"name": "Learn", "url": "https://learn.astropy.org/"},
-            {"name": "Packages", "url": "https://www.astropy.org/affiliated/"},
-        ],
-        "use_edit_page_button": True,
-        "logo": {
-            "image_light": "_static/astropy_banner_96.png",
-            "image_dark": "_static/astropy_banner_96_dark.png",
-        },
-        # https://github.com/pydata/pydata-sphinx-theme/issues/1492
-        "navigation_with_keys": False,
-        "announcement": "https://www.astropy.org/annoucement_banner.html",
-        "header_links_before_dropdown": 6,
-    }
-)
+html_theme_options = {
+    "analytics": {
+        "google_analytics_id": "G-R0510VK4B6",
+    },
+    "github_url": "https://github.com/astropy/astropy",
+    "use_edit_page_button": True,
+    # Prune sibling branches in the sidebar toctree so each page only renders
+    # its own ancestry. Pydata defaults this to False; astropy's docs have
+    # 1400+ pages reachable from a single top-level section, so without this
+    # every page's sidebar would contain the entire user guide.
+    "collapse_navigation": True,
+}
+
+# If we are on RTD, and it's not a PR build we don't want to collapse
+# the navigation as it's nice to have the full nav tree on our actual
+# published docs, but it's a waste of time everywhere else.
+if rtd_version := os.environ.get("READTHEDOCS_VERSION"):
+    is_pr = False
+    try:
+        int(rtd_version)
+        is_pr = True
+    except Exception:
+        pass
+    if not is_pr:
+        html_theme_options["collapse_navigation"] = False
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = f"{project} v{release}"
 
-html_favicon = "_static/astropy_logo.ico"
 html_static_path = ["_static"]
 html_css_files = ["astropy.css"]
 html_copy_source = False
@@ -395,6 +414,11 @@ for line in open("nitpick-exceptions"):
     dtype, target = line.split(None, 1)
     nitpick_ignore.append((dtype, target.strip()))
 
+# NumPy frequently relocates its private typing namespace between releases
+# (e.g. numpy._typing.ArrayLike -> numpy._typing._array_like.ArrayLike), so
+# match the whole private namespace rather than tracking individual paths.
+nitpick_ignore_regex = [("py:obj", r"numpy\._typing\..*")]
+
 suppress_warnings = [
     "config.cache",  # our rebuild is okay
 ]
@@ -407,11 +431,15 @@ linkcheck_ignore = [
     "https://www.usno.navy.mil/USNO/time/gps/usno-gps-time-transfer",
     "https://aa.usno.navy.mil/publications/docs/Circular_179.php",
     "http://data.astropy.org",
+    "https://astropy-dei.orgmycology.com/",  # 403 Client Error: Forbidden
     "https://doi.org/",  # CI blocked by service provider
+    "https://codata.org/",  # CI blocked by service provider
+    "https://zenodo.org/",  # 403 Client Error: Forbidden
     "https://ui.adsabs.harvard.edu",  # CI blocked by service provider
     "https://hst-docs.stsci.edu",  # CI blocked by service provider
     "https://www.tandfonline.com/",  # 403 Client Error: Forbidden
     "https://stackoverflow.com/",  # 403 Client Error: Forbidden
+    "https://docutils.sourceforge.io",  # 403 Client Error: Forbidden
     "https://ieeexplore.ieee.org/",  # 418 Client Error: I'm a teapot
     "https://pyfits.readthedocs.io/en/v3.2.1/",  # defunct page in CHANGES.rst
     "https://pkgs.dev.azure.com/astropy-project",  # defunct page in CHANGES.rst
@@ -561,7 +589,6 @@ links_to_become_substitutions: dict[str, str] = {
     "miniconda": "https://docs.conda.io/en/latest/miniconda.html",
     # pytest
     "pytest": "https://pytest.org/en/latest/index.html",
-    "pytest-astropy": "https://github.com/astropy/pytest-astropy",
     "pytest-doctestplus": "https://github.com/astropy/pytest-doctestplus",
     "pytest-remotedata": "https://github.com/astropy/pytest-remotedata",
     # fsspec

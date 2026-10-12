@@ -1,17 +1,23 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
 import copy
-import operator
+import math
 import warnings
 import weakref
 from contextlib import suppress
-from functools import reduce
 
 import numpy as np
-from numpy import char as chararray
 
 from astropy.utils import lazyproperty
+from astropy.utils.compat import chararray, get_chararray
+from astropy.utils.exceptions import AstropyUserWarning
 
+from ._logical_helpers import (
+    _VALID_LOGICAL_BYTES,
+    _detect_legacy_logical_vla_heap,
+    _logical_to_fits_bytes,
+    _logical_vla_heap_has_null,
+)
 from .column import (
     _VLF,
     ASCII2NUMPY,
@@ -57,6 +63,13 @@ class FITS_record:
         end : int, optional
             The ending column in the row associated with this object.
             Used for subsetting the columns of the `FITS_rec` object.
+        step : int, optional
+            The step between columns in the row associated with this object.
+        base : `FITS_record`, optional
+            The record this one is a view of, if it was created by slicing
+            another `FITS_record`.
+        **kwargs
+            Ignored.
         """
         self.array = input
         self.row = row
@@ -159,6 +172,7 @@ class FITS_rec(np.recarray):
 
     _record_type = FITS_record
     _character_as_bytes = False
+    _logical_as_bytes = False
     _load_variable_length_data = True
 
     def __new__(cls, input):
@@ -233,6 +247,7 @@ class FITS_rec(np.recarray):
 
         if isinstance(obj, FITS_rec):
             self._character_as_bytes = obj._character_as_bytes
+            self._logical_as_bytes = obj._logical_as_bytes
 
         if isinstance(obj, FITS_rec) and obj.dtype == self.dtype:
             self._converted = obj._converted
@@ -282,7 +297,14 @@ class FITS_rec(np.recarray):
         self._uint = False
 
     @classmethod
-    def from_columns(cls, columns, nrows=0, fill=False, character_as_bytes=False):
+    def from_columns(
+        cls,
+        columns,
+        nrows=0,
+        fill=False,
+        character_as_bytes=False,
+        logical_as_bytes=False,
+    ):
         """
         Given a `ColDefs` object of unknown origin, initialize a new `FITS_rec`
         object.
@@ -313,6 +335,18 @@ class FITS_rec(np.recarray):
             If `True`, will fill all cells with zeros or blanks.  If
             `False`, copy the data from input, undefined cells will still
             be filled with zeros/blanks.
+
+        character_as_bytes : bool
+            Whether to return bytes for string columns. By default this is
+            `False` and (unicode) strings are returned, but for large tables
+            this may use up a lot of memory.
+
+        logical_as_bytes : bool
+            Whether to return raw bytes for logical columns. By default this is
+            `False` and boolean values are returned. When `True`, columns with
+            format ``L`` are returned as single-byte string arrays (dtype
+            ``|S1``) whose elements are ``b'T'`` for True, ``b'F'`` for False,
+            and ``b'\x00'`` for undefined (NULL).
         """
         if not isinstance(columns, ColDefs):
             columns = ColDefs(columns)
@@ -342,6 +376,7 @@ class FITS_rec(np.recarray):
         raw_data.fill(ord(columns._padding_byte))
         data = np.recarray(nrows, dtype=columns.dtype, buf=raw_data).view(cls)
         data._character_as_bytes = character_as_bytes
+        data._logical_as_bytes = logical_as_bytes
 
         # Previously this assignment was made from hdu.columns, but that's a
         # bug since if a _TableBaseHDU has a FITS_rec in its .data attribute
@@ -371,7 +406,17 @@ class FITS_rec(np.recarray):
 
             if arr is None:
                 # The input column had an empty array, so just use the fill
-                # value
+                # value.  For a binary-table logical ('L') column the fill
+                # byte is 0x00, which the FITS standard reserves for NULL
+                # (undefined); a column created without data should instead
+                # default to False (b'F'), matching the ``field[:] = ord("F")``
+                # default applied below when an explicit bool array is given.
+                recformat = column.format.recformat
+                if (
+                    not isinstance(recformat, _FormatP)
+                    and recformat[-2:] == FITS2NUMPY["L"]
+                ):
+                    _get_recarray_field(data, idx)[:] = ord("F")
                 continue
 
             n = min(len(arr), nrows)
@@ -411,6 +456,12 @@ class FITS_rec(np.recarray):
                 # TODO: Maybe this step isn't necessary at all if _scale_back
                 # will handle it?
                 inarr = np.where(inarr == np.False_, ord("F"), ord("T"))
+            elif recformat[-2:] == FITS2NUMPY["L"] and inarr.dtype.kind == "S":
+                # column is a logical column provided as raw bytes (e.g. via
+                # `logical_as_bytes=True`). View as int8 so the assignment
+                # below preserves the raw byte values — including NULL
+                # (b'\x00') — verbatim.
+                inarr = inarr.view(np.int8)
             elif column._physical_values and column._pseudo_unsigned_ints:
                 # Temporary hack...
                 bzero = column.bzero
@@ -472,8 +523,18 @@ class FITS_rec(np.recarray):
         # fields
         # This is required to prevent the issue reported in
         # https://github.com/spacetelescope/PyFITS/issues/99
-        for idx in range(len(columns)):
-            columns._arrays[idx] = data.field(idx)
+        # Suppress the NULL-values warning emitted by ``_convert_other`` /
+        # ``_convert_p`` during this internal plumbing: the user has not yet
+        # accessed the data, so a warning issued here would be spurious. The
+        # warning is still emitted the next time the user reads the column.
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=r".*[Cc]olumn '.*' contains NULL",
+                category=AstropyUserWarning,
+            )
+            for idx in range(len(columns)):
+                columns._arrays[idx] = data.field(idx)
 
         return data
 
@@ -575,13 +636,9 @@ class FITS_rec(np.recarray):
             return
 
         if isinstance(key, slice):
-            end = min(len(self), key.stop or len(self))
-            end = max(0, end)
-            start = max(0, key.start or 0)
-            end = min(end, start + len(value))
-
-            for idx in range(start, end):
-                self.__setitem__(idx, value[idx - start])
+            start, stop, step = key.indices(len(self))
+            for idx, val in zip(range(start, stop, step), value, strict=True):
+                self.__setitem__(idx, val)
             return
 
         if isinstance(value, FITS_record):
@@ -742,6 +799,15 @@ class FITS_rec(np.recarray):
                 # fields
                 converted = self._convert_other(column, field, recformat)
 
+            # If the underlying data is read-only (e.g. opened with
+            # mode='denywrite'), hand out a read-only array so that editing a
+            # scaled/logical/bit column raises rather than being silently
+            # dropped on write -- matching plain columns and image data, which
+            # are direct views of the read-only buffer.
+            if converted is not field and not field.flags.writeable:
+                with suppress(ValueError):
+                    converted.flags.writeable = False
+
             # Note: Never assign values directly into the self._converted dict;
             # always go through self._cache_field; this way self._converted is
             # only used to store arrays that are not already direct views of
@@ -814,13 +880,56 @@ class FITS_rec(np.recarray):
             vla_shape = tuple(
                 reversed(tuple(map(int, column.dim.strip("()").split(","))))
             )
-        dummy = _VLF([None] * len(self), dtype=recformat.dtype)
+
+        # Logical VLAs are exposed as bool arrays; the on-heap bytes are
+        # FITS L wire format (ord('T') / ord('F') / 0x00). The fixed-length
+        # L codepath does the same conversion in _convert_other, but for
+        # VLAs we have to do it here — the int8 → element_dtype coercion
+        # that _VLF.__setitem__ would apply to the intermediate value views
+        # any non-zero byte (incl. ord('F') = 70) as True, which would
+        # silently corrupt False values.
+        # When ``_logical_as_bytes`` is True the raw heap bytes are exposed
+        # as a |S1 chararray instead, so NULL (b'\x00') is distinguishable
+        # from False (b'F').
+        is_logical_vla = not column.ascii and recformat.format == "L"
+        if is_logical_vla:
+            element_dtype = "S1" if self._logical_as_bytes else "b1"
+        else:
+            element_dtype = recformat.dtype
+
+        dummy = _VLF([None] * len(self), dtype=element_dtype)
         raw_data = self._get_raw_data()
 
         if raw_data is None:
             raise OSError(
                 f"Could not find heap data for the {column.name!r} variable-length "
                 "array column."
+            )
+
+        legacy_logical_vla = is_logical_vla and _detect_legacy_logical_vla_heap(
+            raw_data, field, self._heapoffset
+        )
+        if legacy_logical_vla:
+            warnings.warn(
+                f"Logical variable-length array column {column.name!r} appears to "
+                "have been written by an older astropy version (<= 7.2.0) that "
+                "stored boolean values as 0x00/0x01 bytes instead of the FITS L "
+                "wire format ord('T')/ord('F'). Reading 0x01 as True and 0x00 as "
+                "False.",
+                AstropyUserWarning,
+            )
+        elif (
+            is_logical_vla
+            and not self._logical_as_bytes
+            and _logical_vla_heap_has_null(raw_data, field, self._heapoffset)
+        ):
+            warnings.warn(
+                f"Variable-length array column {column.name!r} contains NULL "
+                "(undefined) values which will be converted to False. To "
+                "preserve NULL information, reopen the file with "
+                "logical_as_bytes=True and check for bytes values of "
+                "b'\\x00' (NULL), b'T' (True), and b'F' (False).",
+                AstropyUserWarning,
             )
 
         for idx in range(len(self)):
@@ -831,8 +940,24 @@ class FITS_rec(np.recarray):
                 dt = np.dtype(recformat.dtype + str(1))
                 arr_len = count * dt.itemsize
                 da = raw_data[offset : offset + arr_len].view(dt)
-                da = np.char.array(da.view(dtype=dt), itemsize=count)
+                da = get_chararray(da.view(dtype=dt), itemsize=count)
                 dummy[idx] = decode_ascii(da)
+            elif is_logical_vla:
+                buf = raw_data[offset : offset + count]
+                if self._logical_as_bytes:
+                    # Expose raw heap bytes so NULL (b'\x00') is
+                    # distinguishable from False (b'F'). Legacy 0x00/0x01
+                    # heaps are also returned verbatim; the warning
+                    # above tells the user the file is non-standard.
+                    dummy[idx] = buf.view("S1")
+                elif legacy_logical_vla:
+                    # astropy <= 7.2.0 wrote 0x00/0x01; non-zero is True.
+                    dummy[idx] = buf.view(np.uint8) != 0
+                else:
+                    # NULL bytes (0x00) collapse to False — they are
+                    # indistinguishable from False without a wider
+                    # raw-bytes API.
+                    dummy[idx] = buf == ord("T")
             else:
                 dt = np.dtype(recformat.dtype)
                 arr_len = count * dt.itemsize
@@ -842,9 +967,7 @@ class FITS_rec(np.recarray):
                     if vla_shape[0] == 1:
                         dummy[idx] = dummy[idx].reshape(1, len(dummy[idx]))
                     else:
-                        vla_dim = vla_shape[1:]
-                        vla_first = int(len(dummy[idx]) / np.prod(vla_dim))
-                        dummy[idx] = dummy[idx].reshape((vla_first,) + vla_dim)
+                        dummy[idx] = dummy[idx].reshape((-1,) + vla_shape[1:])
 
                 dummy[idx] = dummy[idx].view(dummy[idx].dtype.newbyteorder(">"))
                 # Each array in the field may now require additional
@@ -878,11 +1001,14 @@ class FITS_rec(np.recarray):
         # array buffer.
         dummy = np.char.ljust(field, format.width)
         dummy = np.char.replace(dummy, encode_ascii("D"), encode_ascii("E"))
-        null_fill = encode_ascii(str(ASCIITNULL).rjust(format.width))
 
-        # Convert all fields equal to the TNULL value (nullval) to empty fields.
-        # TODO: These fields really should be converted to NaN or something else undefined.
-        # Currently they are converted to empty fields, which are then set to zero.
+        # Convert all fields equal to the TNULL value (nullval) to either NaN
+        # for float columns or 0 for the other fields.
+        if format.format in "DEF":
+            null_fill = "nan"
+        else:
+            null_fill = str(ASCIITNULL)
+        null_fill = encode_ascii(null_fill.rjust(format.width))
         dummy = np.where(np.char.strip(dummy) == nullval, null_fill, dummy)
 
         # always replace empty fields, see https://github.com/astropy/astropy/pull/5394
@@ -942,7 +1068,7 @@ class FITS_rec(np.recarray):
                 # ignore dim and don't convert
                 dim = None
             else:
-                nitems = reduce(operator.mul, dim)
+                nitems = math.prod(dim)
                 if _str:
                     actual_nitems = field.itemsize
                 elif len(field.shape) == 1:
@@ -1012,7 +1138,23 @@ class FITS_rec(np.recarray):
             column._physical_values = True
 
         elif _bool and field.dtype != bool:
-            field = np.equal(field, ord("T"))
+            if self._logical_as_bytes:
+                # Return a view of the raw bytes so that NULL (b'\x00') values
+                # can be distinguished from False (b'F') and True (b'T').
+                field = field.view("S1")
+            else:
+                # Check for NULL values (0x00) before converting
+                null_mask = field == 0
+                if np.any(null_mask):
+                    warnings.warn(
+                        f"Column '{column.name}' contains NULL (undefined) values "
+                        "which will be converted to False. To preserve NULL "
+                        "information, reopen the file with logical_as_bytes=True "
+                        "and check for bytes values of b'\\x00' (NULL), "
+                        "b'T' (True), and b'F' (False).",
+                        AstropyUserWarning,
+                    )
+                field = np.equal(field, ord("T"))
         elif _str:
             if not self._character_as_bytes:
                 with suppress(UnicodeDecodeError):
@@ -1020,7 +1162,7 @@ class FITS_rec(np.recarray):
 
         if dim and not isinstance(recformat, _FormatP):
             # Apply the new field item dimensions
-            nitems = reduce(operator.mul, dim)
+            nitems = math.prod(dim)
             if field.ndim > 1:
                 field = field[:, :nitems]
             if _str:
@@ -1038,7 +1180,8 @@ class FITS_rec(np.recarray):
 
         If ``try_from_disk=True`` and if data is read from a file, heap data
         is a pointer into the table's raw data.
-        Otherwise it is computed from the in-memory arrays.
+        Otherwise it is computed from the in-memory arrays, converting
+        arrays to bigendian as needed.
 
         This is returned as a numpy byte array.
         """
@@ -1058,13 +1201,20 @@ class FITS_rec(np.recarray):
             # previous heap offset listed)
             data = []
             for idx in range(self._nfields):
-                # data should already be byteswapped from the caller
-                # using _binary_table_byte_swap
-                if not isinstance(self.columns._recformats[idx], _FormatP):
+                recformat = self.columns._recformats[idx]
+                if not isinstance(recformat, _FormatP):
                     continue
 
+                # Logical VLAs hold their user-facing representation
+                # (bool); translate back to FITS L wire bytes here.
+                is_logical = recformat.format == "L"
                 for row in self.field(idx):
                     if len(row) > 0:
+                        if is_logical:
+                            row = _logical_to_fits_bytes(row)
+                        elif row.dtype != row.dtype.newbyteorder(">"):
+                            row = row.copy()
+                            row.byteswap(True)
                         data.append(row.view(type=np.ndarray, dtype=np.ubyte))
 
             if data:
@@ -1078,7 +1228,7 @@ class FITS_rec(np.recarray):
         array in the format that it was first read from a file before it was
         sliced or viewed as a different type in any way.
 
-        This is determined by walking through the bases until finding one that
+        This is determined by walking through and finding the last base that
         has at least the same number of bytes as self, plus the heapsize.  This
         may be the immediate .base but is not always.  This is used primarily
         for variable-length array support which needs to be able to find the
@@ -1090,17 +1240,20 @@ class FITS_rec(np.recarray):
         """
         raw_data_bytes = self._tbsize + self._heapsize
         base = self
+        result = None
         while hasattr(base, "base") and base.base is not None:
             base = base.base
             # Variable-length-arrays: should take into account the case of
             # empty arrays
             if hasattr(base, "_heapoffset"):
                 if hasattr(base, "nbytes") and base.nbytes > raw_data_bytes:
-                    return base
+                    result = base
             # non variable-length-arrays
             else:
                 if hasattr(base, "nbytes") and base.nbytes >= raw_data_bytes:
-                    return base
+                    result = base
+
+        return result
 
     def _get_scale_factors(self, column):
         """Get all the scaling flags and factors for one column."""
@@ -1139,6 +1292,12 @@ class FITS_rec(np.recarray):
         the heap.  Currently this is only used as an optimization for
         CompImageHDU that does its own handling of the heap.
         """
+        # Read-only data (e.g. opened with mode='denywrite') cannot have been
+        # modified -- field() hands out read-only arrays -- so the raw bytes are
+        # already the correct on-disk form and must not (and cannot) be written
+        # back. We still walk the columns to recompute the heap size.
+        read_only = not self.flags.writeable
+
         # Running total for the new heap size
         heapsize = 0
 
@@ -1156,11 +1315,11 @@ class FITS_rec(np.recarray):
                 # an array of characters.
                 dtype = np.array([], dtype=recformat.dtype).dtype
 
-                if update_heap_pointers and name in self._converted:
+                if update_heap_pointers and name in self._converted and not read_only:
                     # The VLA has potentially been updated, so we need to
                     # update the array descriptors
                     raw_field[:] = 0  # reset
-                    npts = [np.prod(arr.shape) for arr in self._converted[name]]
+                    npts = [arr.size for arr in self._converted[name]]
 
                     raw_field[: len(npts), 0] = npts
                     raw_field[1:, 1] = (
@@ -1172,6 +1331,11 @@ class FITS_rec(np.recarray):
                 # Even if this VLA has not been read or updated, we need to
                 # include the size of its constituent arrays in the heap size
                 # total
+
+            # Read-only data was not modified and its buffer cannot be written,
+            # so skip all the column write-back below (heap size is done above).
+            if read_only:
+                continue
 
             if isinstance(recformat, _FormatX) and name in self._converted:
                 _wrapx(self._converted[name], raw_field, recformat.repeat)
@@ -1204,7 +1368,7 @@ class FITS_rec(np.recarray):
                 if isinstance(self._coldefs, _AsciiColDefs):
                     self._scale_back_ascii(index, dummy, raw_field)
                 # binary table string column
-                elif isinstance(raw_field, chararray.chararray):
+                elif isinstance(raw_field, chararray):
                     self._scale_back_strings(index, dummy, raw_field)
                 # all other binary table columns
                 else:
@@ -1227,7 +1391,34 @@ class FITS_rec(np.recarray):
                     np.array([ord("F")], dtype=np.int8)[0],
                     np.array([ord("T")], dtype=np.int8)[0],
                 )
-                raw_field[:] = np.choose(field, choices)
+                # Only overwrite raw bytes where the cached bool disagrees
+                # with the raw byte's implied bool value (b'T'==True,
+                # anything else==False). This preserves NULL (b'\x00') and
+                # other non-T/F raw bytes where the user has not modified
+                # the corresponding boolean value.
+                current_as_bool = raw_field == ord("T")
+                needs_update = field != current_as_bool
+                raw_field[needs_update] = np.choose(field[needs_update], choices)
+
+            # Validate the on-disk bytes of a fixed-length logical ('L')
+            # column: only b'T', b'F', and b'\x00' are legal. This catches
+            # invalid bytes assigned directly into a logical_as_bytes view,
+            # which aliases the raw data and so bypasses the validation applied
+            # to |S1 column input at construction time.
+            if (
+                _bool
+                and not isinstance(recformat, _FormatP)
+                and not isinstance(self._coldefs, _AsciiColDefs)
+            ):
+                invalid = ~np.isin(raw_field, _VALID_LOGICAL_BYTES)
+                if invalid.any():
+                    bad = ", ".join(
+                        repr(bytes([int(b)])) for b in np.unique(raw_field[invalid])
+                    )
+                    raise ValueError(
+                        f"FITS logical ('L') column {name!r} contains invalid "
+                        f"byte(s) {bad}; only b'T', b'F', and b'\\x00' are allowed."
+                    )
 
         # Store the updated heapsize
         self._heapsize = heapsize
@@ -1341,7 +1532,7 @@ class FITS_rec(np.recarray):
 
         # Replace exponent separator in floating point numbers
         if "D" in format:
-            output_field[:] = output_field.replace(b"E", b"D")
+            output_field[:] = np.strings.replace(output_field, b"E", b"D")
 
     def tolist(self):
         # Override .tolist to take care of special case of VLF
@@ -1361,8 +1552,8 @@ def _get_recarray_field(array, key):
     # This is currently needed for backwards-compatibility and for
     # automatic truncation of trailing whitespace
     field = np.recarray.field(array, key)
-    if field.dtype.char in ("S", "U") and not isinstance(field, chararray.chararray):
-        field = field.view(chararray.chararray)
+    if field.dtype.char in ("S", "U") and not isinstance(field, chararray):
+        field = field.view(chararray)
     return field
 
 
@@ -1378,7 +1569,7 @@ def _ascii_encode(inarray, out=None):
     encodings (if possible) of the elements of the input array.  The two arrays
     must be the same size (though not necessarily the same shape).
 
-    This is like an inplace version of `np.char.encode` though simpler since
+    This is like an inplace version of `np.strings.encode` though simpler since
     it's only limited to ASCII, and hence the size of each character is
     guaranteed to be 1 byte.
 

@@ -12,6 +12,7 @@ import numpy as np
 import astropy.units as u
 from astropy.coordinates.angles import Angle
 from astropy.utils import classproperty
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data_info import MixinInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import DuplicateRepresentationWarning
@@ -20,8 +21,8 @@ from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_mask
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
 # Differential classes so that they are all registered automatically.
-REPRESENTATION_CLASSES = {}
-DIFFERENTIAL_CLASSES = {}
+REPRESENTATION_CLASSES: dict[str, type["BaseRepresentation"]] = {}
+DIFFERENTIAL_CLASSES: dict[str, type["BaseDifferential"]] = {}
 # set for tracking duplicates
 DUPLICATE_REPRESENTATIONS = set()
 
@@ -152,7 +153,7 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
     """Name of the representation or differential.
 
     When a subclass is defined, by default, the name is the lower-cased name of the
-    class with with any trailing 'representation' or 'differential' removed. (E.g.,
+    class with any trailing 'representation' or 'differential' removed. (E.g.,
     'spherical' for `~astropy.coordinates.SphericalRepresentation` or
     `~astropy.coordinates.SphericalDifferential`.)
 
@@ -341,7 +342,7 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
             )
 
         try:
-            np.broadcast(self, value)
+            np.broadcast_shapes(self.shape, value.shape)
         except ValueError as exc:
             raise ValueError(f"cannot compare: {exc}") from exc
 
@@ -461,15 +462,23 @@ class BaseRepresentationOrDifferential(MaskableShapedLikeNDArray):
         oldshape = self.shape
         for component in self.components:
             val = getattr(self, component)
-            if val.size > 1:
-                try:
+            if val.size <= 1:
+                continue
+
+            try:
+                if NUMPY_LT_2_5:
                     val.shape = shape
-                except Exception:
-                    for val2 in reshaped:
-                        val2.shape = oldshape
-                    raise
                 else:
-                    reshaped.append(val)
+                    val._set_shape(shape)
+            except Exception:
+                for val2 in reshaped:
+                    if NUMPY_LT_2_5:
+                        val2.shape = oldshape
+                    else:
+                        val2._set_shape(oldshape)
+                raise
+            else:
+                reshaped.append(val)
 
     @property
     def masked(self):
@@ -654,7 +663,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
 
     info = RepresentationInfo()
     # Ensure _differentials always exists.
-    _differentials = {}
+    _differentials: dict[str, "BaseDifferential"] = {}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)  # sets `cls.name`
@@ -939,7 +948,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
                 # The default is to convert via cartesian coordinates
                 new_rep = other_class.from_cartesian(self.to_cartesian())
             else:
-                new_rep = self
+                new_rep = self.without_differentials()
 
             new_rep._differentials = self._re_represent_differentials(
                 new_rep, differential_class

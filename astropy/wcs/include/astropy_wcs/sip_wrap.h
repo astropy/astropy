@@ -9,12 +9,14 @@
 #include "pyutil.h"
 #include "sip.h"
 
-extern PyObject* PySipType;
+extern PyObject* SipType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   sip_t x;
-} PySip;
+} Sip;
 
 int
 _setup_sip_type(

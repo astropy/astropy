@@ -1,0 +1,2 @@
+Add support for ``np.add``, ``np.subtract`` and ``np.linspace`` for
+function units like ``Magnitude`` and ``Dex``.

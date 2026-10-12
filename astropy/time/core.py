@@ -27,7 +27,7 @@ from astropy import units as u
 from astropy.extern import _strptime
 from astropy.units import UnitConversionError
 from astropy.utils import lazyproperty
-from astropy.utils.compat import COPY_IF_NEEDED
+from astropy.utils.compat import NUMPY_LT_2_5
 from astropy.utils.data_info import MixinInfo, data_info_factory
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
@@ -265,9 +265,14 @@ class TimeInfoBase(MixinInfo):
         -------
         arrays : list of ndarray
         """
+        # Same approach as Time.argsort(): split the full jd1 + jd2 precision
+        # into an approximate value and a remainder, both of which are plain
+        # float arrays that can be lexically sorted. This avoids the far more
+        # expensive approach of creating a new Time object and subtracting.
         parent = self._parent
-        jd_approx = parent.jd
-        jd_remainder = (parent - parent.__class__(jd_approx, format="jd")).jd
+        jd1, jd2 = parent.jd1, parent.jd2
+        jd_approx = jd1 + jd2
+        jd_remainder = (jd1 - jd_approx) + jd2
         return [jd_approx, jd_remainder]
 
     @property
@@ -550,9 +555,13 @@ class TimeBase(MaskableShapedLikeNDArray):
                 )
 
         # If either of the input val, val2 are masked arrays then
-        # find the masked elements and fill them.
+        # find the masked elements and fill them.  ``get_data_and_mask`` gives a
+        # mask of `None` if and only if the input was not masked, so this tells
+        # us whether masking is in play at all, independently of whether any
+        # element is actually masked.
         data1, mask1 = get_data_and_mask(val)
         data2, mask2 = get_data_and_mask(val2)
+        masked_input = mask1 is not None or mask2 is not None
         mask = combine_masks([mask1, mask2])
 
         # Parse / convert input values into internal jd1, jd2 based on format
@@ -568,10 +577,12 @@ class TimeBase(MaskableShapedLikeNDArray):
             self._location = self._time._location
             del self._time._location
 
-        # If any inputs were masked then mask both jd1 and jd2 accordingly,
-        # using a shared mask.  From above, ``mask`` must be either Python
-        # bool False or an bool ndarray with the correct shape.
-        if mask is not False and np.any(mask):
+        # If any input was masked then mask both jd1 and jd2 accordingly, using a
+        # shared mask.  Note that we deliberately do not check whether any element
+        # is actually masked: masked input always gives masked output, so that the
+        # "maskedness" of the input is preserved.  From above, ``mask`` is either
+        # a bool scalar or a bool array broadcastable to the jd1/jd2 shape.
+        if masked_input:
             # Ensure that if the class is already masked, we do not lose it.
             self._time.jd1 = Masked(self._time.jd1, copy=False)
             self._time.jd1.mask |= mask
@@ -926,15 +937,22 @@ class TimeBase(MaskableShapedLikeNDArray):
             (self, "location"),
         ):
             val = getattr(obj, attr, None)
-            if val is not None and val.size > 1:
-                try:
+            if val is None or val.size <= 1:
+                continue
+            try:
+                if NUMPY_LT_2_5:
                     val.shape = shape
-                except Exception:
-                    for val2 in reshaped:
-                        val2.shape = oldshape
-                    raise
                 else:
-                    reshaped.append(val)
+                    val._set_shape(shape)
+            except Exception:
+                for val2 in reshaped:
+                    if NUMPY_LT_2_5:
+                        val2.shape = oldshape
+                    else:
+                        val2._set_shape(oldshape)
+                raise
+            else:
+                reshaped.append(val)
 
     def _shaped_like_input(self, value):
         if self.masked:
@@ -1156,7 +1174,8 @@ class TimeBase(MaskableShapedLikeNDArray):
         # For non-Time object, use numpy to help figure out the length.  (Note annoying
         # case of a string input that has a length which is not the length we want).
         if not isinstance(values, self.__class__):
-            values = np.asarray(values)
+            # asanyarray, not asarray, so that a Masked input keeps its mask.
+            values = np.asanyarray(values)
         n_values = len(values) if values.shape else 1
 
         # Finally make the new object with the correct length and set values for the
@@ -1165,12 +1184,17 @@ class TimeBase(MaskableShapedLikeNDArray):
             [self], len(self) + n_values, name=self.info.name
         )
 
-        out._time.jd1[:idx0] = self._time.jd1[:idx0]
-        out._time.jd2[:idx0] = self._time.jd2[:idx0]
+        # Copy the initial elements of self to out. ``new_like`` always makes an
+        # unmasked object, but copying `self` here using the full Time slice will
+        # upgrade ``out`` as needed.
+        out[:idx0] = self[:idx0]
 
         # This uses the Time setting machinery to coerce and validate as necessary.
         out[idx0 : idx0 + n_values] = values
 
+        # Finally we can just do a direct copy of the jd1/2 values since we know the
+        # masking is already handled.  This is more efficient than using the Time
+        # setting machinery.
         out._time.jd1[idx0 + n_values :] = self._time.jd1[idx0:]
         out._time.jd2[idx0 + n_values :] = self._time.jd2[idx0:]
 
@@ -1196,12 +1220,12 @@ class TimeBase(MaskableShapedLikeNDArray):
             if hasattr(self, attr):
                 delattr(self, attr)
 
+        # "is np.nan" check is intentional: we really want to encourage the use of
+        # setting with np.ma.masked to set the mask; using np.nan is a leftover from
+        # when nan was used internally to indicate a value was masked.
+        # So this is just for backwards compatibility; we do not want to extend it.
         if value is np.ma.masked or value is np.nan:  # noqa: PLW0177, RUF100
-            if not isinstance(self._time.jd2, Masked):
-                self._time.jd1 = Masked(self._time.jd1, copy=False)
-                self._time.jd2 = Masked(
-                    self._time.jd2, mask=self._time.jd1.mask, copy=False
-                )
+            self._time._ensure_masked()
             self._time.jd2.mask[item] = True
             return
 
@@ -1215,6 +1239,13 @@ class TimeBase(MaskableShapedLikeNDArray):
         # Finally directly set the jd1/2 values.  Locations are known to match.
         if self.scale is not None:
             value = getattr(value, self.scale)
+
+        # If the value carries a mask but we do not, we have to upgrade our
+        # internal jd1/jd2 to Masked first, otherwise the mask of the value
+        # would be silently dropped (gh-20173).
+        if value.masked:
+            self._time._ensure_masked()
+
         self._time.jd1[item] = value._time.jd1
         self._time.jd2[item] = value._time.jd2
 
@@ -1309,6 +1340,9 @@ class TimeBase(MaskableShapedLikeNDArray):
             Time format of the replica.
         copy : bool, optional
             Return a true copy instead of using references where possible.
+        cls : type, optional
+            Class of the replica.  If `None` (default), the class of this
+            object is used.
 
         Returns
         -------
@@ -1333,10 +1367,14 @@ class TimeBase(MaskableShapedLikeNDArray):
             Examples: 'copy', '__getitem__', 'reshape', `~numpy.broadcast_to`.
         args : tuple
             Any positional arguments for ``method``.
+        format : str, optional
+            Time format of the replica.  If `None` (default), the format of
+            this object is used.
+        cls : type, optional
+            Class of the replica.  If `None` (default), the class of this
+            object is used.
         kwargs : dict
-            Any keyword arguments for ``method``.  If the ``format`` keyword
-            argument is present, this will be used as the Time format of the
-            replica.
+            Any keyword arguments for ``method``.
 
         Examples
         --------
@@ -1723,7 +1761,7 @@ class TimeBase(MaskableShapedLikeNDArray):
             val2=jd2,
             format="jd",
             scale=self.scale,
-            copy=COPY_IF_NEEDED,
+            copy=None,
         )
         result.format = self.format
         return result
@@ -1955,7 +1993,7 @@ class Time(TimeBase):
         in_subfmt=None,
         out_subfmt=None,
         location=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
     ):
         if location is not None:
             from astropy.coordinates import EarthLocation
@@ -2369,7 +2407,7 @@ class Time(TimeBase):
         available_models = SIDEREAL_TIME_MODELS[kind.lower()]
 
         if model is None:
-            model = sorted(available_models)[-1]
+            model = max(available_models)
         elif model.upper() not in available_models:
             raise ValueError(
                 f"Model {model} not implemented for {kind} sidereal time; "
@@ -2430,7 +2468,7 @@ class Time(TimeBase):
             longitude = longitude.lon
         else:
             # Sanity check on input; default unit is degree.
-            longitude = Longitude(longitude, u.degree, copy=COPY_IF_NEEDED)
+            longitude = Longitude(longitude, u.degree, copy=None)
 
         theta = self._call_erfa(function, scales)
 
@@ -2891,7 +2929,6 @@ class TimeDelta(TimeBase):
         precision=None,
         in_subfmt=None,
         out_subfmt=None,
-        location=None,
         copy=False,
     ):
         if isinstance(val, TimeDelta):
@@ -2911,7 +2948,7 @@ class TimeDelta(TimeBase):
         precision=None,
         in_subfmt=None,
         out_subfmt=None,
-        copy=COPY_IF_NEEDED,
+        copy=None,
     ):
         if isinstance(val, TimeDelta):
             if scale is not None:
@@ -3070,7 +3107,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just multiple in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=None)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3103,7 +3140,7 @@ class TimeDelta(TimeBase):
         # If other is something consistent with a dimensionless quantity
         # (could just be a float or an array), then we can just divide in.
         try:
-            other = u.Quantity(other, u.dimensionless_unscaled, copy=COPY_IF_NEEDED)
+            other = u.Quantity(other, u.dimensionless_unscaled, copy=None)
         except Exception:
             # If not consistent with a dimensionless quantity, try downgrading
             # self to a quantity and see if things work.
@@ -3323,7 +3360,7 @@ class ScaleValueError(Exception):
     pass
 
 
-def _make_array(val, copy=COPY_IF_NEEDED):
+def _make_array(val, copy=None):
     """
     Take ``val`` and convert/reshape to an array.  If ``copy`` is `True`
     then copy input values.

@@ -30,7 +30,6 @@ from astropy.table import Table
 from astropy.units import Quantity, UnitsError, dimensionless_unscaled
 from astropy.utils import find_current_module, metadata, sharedmethod
 from astropy.utils.codegen import make_function_with_signature
-from astropy.utils.compat import COPY_IF_NEEDED
 
 from .bounding_box import CompoundBoundingBox, ModelBoundingBox
 from .parameters import InputParameterError, Parameter, _tofloat, param_repr_oneline
@@ -437,9 +436,7 @@ class _ModelMeta(abc.ABCMeta):
                     # default is not a Quantity, attach the unit to the
                     # default.
                     if unit is not None:
-                        default = Quantity(
-                            default, unit, copy=COPY_IF_NEEDED, subok=True
-                        )
+                        default = Quantity(default, unit, copy=None, subok=True)
                     kwargs.append((param_name, default))
             else:
                 args = ("self",) + tuple(pdict.keys())
@@ -705,6 +702,11 @@ class Model(metaclass=_ModelMeta):
     # If cov_matrix is available, then std will set as well
     _cov_matrix = None
     _stds = None
+
+    # This class attribute allows users to skip the dimension check which ensures
+    # that input coordinates are the same dimensions as the data. It is set as True
+    # by default ensuring that the default setting is to perform the dimension check.
+    verify_dims_in_fitting = True
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__()
@@ -2742,9 +2744,10 @@ class Model(metaclass=_ModelMeta):
         param_metrics = self._param_metrics
         for name in self.param_names:
             param = getattr(self, name)
-            value = self._parameters[param_metrics[name]["slice"]]
-            value.shape = param_metrics[name]["shape"]
-            param.value = value
+            param.value = np.reshape(
+                self._parameters[param_metrics[name]["slice"]],
+                param_metrics[name]["shape"],
+            )
 
     def _check_param_broadcast(self, max_ndim):
         """
@@ -4377,6 +4380,14 @@ def fix_inputs(modelinstance, values, bounding_boxes=None, selector_args=None):
         A dictionary where the key identifies which input to fix
         and its value is the value to fix it at. The key may either be the
         name of the input or a number reflecting its order in the inputs.
+    bounding_boxes : dict, optional
+        A dictionary of bounding boxes for the fixed model, keyed on the fixed
+        input values, from which a `~astropy.modeling.bounding_box.CompoundBoundingBox`
+        is constructed. If not given, the returned model has no bounding box.
+    selector_args : list of tuple, optional
+        The selector arguments used to construct the compound bounding box from
+        ``bounding_boxes``. If not given, defaults to ``(key, True)`` for each
+        input named in ``values``.
 
     Examples
     --------
@@ -4491,13 +4502,16 @@ def custom_model(*args, fit_deriv=None):
 
     Parameters
     ----------
-    func : function
+    func : function, optional
         Function which defines the model.  It should take N positional
         arguments where ``N`` is dimensions of the model (the number of
         independent variable in the model), and any number of keyword arguments
         (the parameters).  It must return the value of the model (typically as
         an array, but can also be a scalar for scalar inputs).  This
         corresponds to the `~astropy.modeling.Model.evaluate` method.
+        This is the only positional argument accepted, and it is omitted when
+        `custom_model` is used as a decorator with keyword arguments (see the
+        examples below).
     fit_deriv : function, optional
         Function which defines the Jacobian derivative of the model. I.e., the
         derivative with respect to the *parameters* of the model.  It should
@@ -4802,14 +4816,14 @@ def compose_models_with_units(left, right):
 
     Parameters
     ----------
-    left: `~astropy.modeling.Model`
+    left : `~astropy.modeling.Model`
         The model to the left of the ``|`` operator.
-    right: `~astropy.modeling.Model`
+    right : `~astropy.modeling.Model`
         The model to the right of the ``|`` operator.
 
     Returns
     -------
-    model: `~astropy.modeling.CompoundModel`
+    model : `~astropy.modeling.CompoundModel`
         The composed left ``|`` right, with unit change through ``|`` enabled.
     """
     model = left | right

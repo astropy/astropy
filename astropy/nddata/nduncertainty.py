@@ -556,10 +556,6 @@ class _VariancePropagationMixin:
         numpy_op : function
             Numpy operation like `np.sum` or `np.max` to use in the collapse
 
-        subtract : bool, optional
-            If ``True``, propagate for subtraction, otherwise propagate for
-            addition.
-
         axis : tuple, optional
             Axis on which to compute collapsing operations.
         """

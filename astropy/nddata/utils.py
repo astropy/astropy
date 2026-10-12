@@ -6,7 +6,7 @@ This module includes helper functions for array operations.
 import functools
 from collections.abc import Callable
 from copy import deepcopy
-from typing import Literal, TypeAlias, TypeVar, overload
+from typing import Literal, overload
 
 import numpy as np
 from numpy.typing import NDArray
@@ -28,9 +28,7 @@ __all__ = [
     "subpixel_indices",
 ]
 
-
-DT = TypeVar("DT", bound=np.generic)
-LimitRoundingMethod: TypeAlias = Callable[[float], float]
+type LimitRoundingMethod = Callable[[float], float]
 
 
 class NoOverlapError(ValueError):
@@ -180,7 +178,7 @@ def overlap_slices(
 
 
 @overload
-def extract_array(
+def extract_array[DT: np.generic](
     array_large: NDArray[DT],
     shape: int | tuple[int, ...],
     position: float | tuple[float, ...],
@@ -193,7 +191,7 @@ def extract_array(
 
 
 @overload
-def extract_array(
+def extract_array[DT: np.generic](
     array_large: NDArray[DT],
     shape: int | tuple[int, ...],
     position: float | tuple[float, ...],
@@ -309,12 +307,12 @@ def extract_array(
         try:
             extracted_array_large[:] = fill_value
         except ValueError as exc:
-            exc.args += (
+            exc.add_note(
                 "fill_value is inconsistent with the data type of "
                 "the input array (e.g., fill_value cannot be set to "
                 "np.nan if the input array has integer type). Please "
                 "change either the input array dtype or the "
-                "fill_value.",
+                "fill_value."
             )
             raise exc
 
@@ -328,7 +326,7 @@ def extract_array(
         return extracted_array
 
 
-def add_array(
+def add_array[DT: np.generic](
     array_large: NDArray[DT],
     array_small: NDArray[DT],
     position: tuple[float, ...],
@@ -824,11 +822,19 @@ class Cutout2D:
         if ax is None:
             ax = plt.gca()
 
-        height, width = self.shape
-        hw, hh = width / 2.0, height / 2.0
-        pos_xy = self.position_original - np.array([hw, hh])
+        xmin = self.xmin_original - 0.5
+        xmax = self.xmax_original + 0.5
+
+        ymin = self.ymin_original - 0.5
+        ymax = self.ymax_original + 0.5
+
+        pos_xy = (xmin, ymin)
+        width = xmax - xmin
+        height = ymax - ymin
+
         patch = mpatches.Rectangle(pos_xy, width, height, angle=0.0, **kwargs)
         ax.add_patch(patch)
+
         return ax
 
     @staticmethod

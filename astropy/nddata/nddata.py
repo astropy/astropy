@@ -8,7 +8,7 @@ import numpy as np
 
 from astropy import log
 from astropy.units import Quantity, Unit
-from astropy.utils.compat.optional_deps import HAS_DASK
+from astropy.utils.compat.dask import _is_dask_array
 from astropy.utils.masked import Masked, MaskedNDArray
 from astropy.utils.metadata import MetaData
 from astropy.wcs.wcsapi import (
@@ -308,20 +308,12 @@ class NDData(NDDataBase):
 
     def __repr__(self):
         prefix = self.__class__.__name__ + "("
-        # to support reprs for other non-ndarray `data` attributes,
-        # add more cases here:
-        if HAS_DASK:
-            import dask.array as da
-
-            is_dask = isinstance(self.data, da.Array)
-        else:
-            is_dask = False
 
         if (
             isinstance(self.data, (int, float, np.ndarray))
             or np.issubdtype(float, self.data)
             or np.issubdtype(int, self.data)
-        ) and not is_dask:
+        ) and not _is_dask_array(self.data):
             # if data is an ndarray, get build a repr via Masked:
             ma = Masked(self.data, mask=self.mask)
             data_repr = repr(ma)

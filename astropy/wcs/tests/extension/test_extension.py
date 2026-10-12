@@ -1,0 +1,198 @@
+# Licensed under a 3-clause BSD style license - see LICENSE.rst
+"""Build a small C extension against the public ``astropy.wcs`` C API.
+
+The extension links against the headers published by ``astropy.wcs.get_include()``,
+exactly as a downstream package such as drizzlepac does.  It is used to check
+that the members of the C API still in downstream use keep working when called
+through the function-pointer table, and that the deprecated members emit a
+``DeprecationWarning``.
+"""
+
+import importlib
+import os
+import shutil
+import subprocess
+import sys
+import sysconfig
+import warnings
+
+import pytest
+
+from astropy.wcs import WCS, NoWcslibHeadersError, get_include
+
+HERE = os.path.dirname(__file__)
+
+pytestmark = [
+    pytest.mark.skipif(
+        not os.path.exists(os.path.join(sysconfig.get_path("include"), "Python.h")),
+        reason="CPython development headers are required to build the test extension",
+    ),
+    # Environments that build astropy against a system WCSLIB (the same
+    # condition setup_package.py checks) must opt out explicitly: such builds
+    # do not ship the headers needed to compile the extension.  Anywhere else,
+    # missing headers are a packaging bug and the build failure below is real.
+    pytest.mark.skipif(
+        int(os.environ.get("ASTROPY_USE_SYSTEM_WCSLIB", "0"))
+        or int(os.environ.get("ASTROPY_USE_SYSTEM_ALL", "0")),
+        reason="astropy was built against a system WCSLIB, which does not ship "
+        "the headers needed to build extensions against the astropy.wcs C API",
+    ),
+]
+
+# Built at test time against the headers published by astropy.wcs.get_include(),
+# with the same include directories a downstream package such as drizzlepac uses.
+SETUP_PY = """\
+import os
+import sys
+
+import numpy as np
+from setuptools import Extension, setup
+
+from astropy import wcs
+
+if sys.platform == "win32":
+    define_macros = [
+        ("YY_NO_UNISTD_H", None),
+        ("_CRT_SECURE_NO_WARNINGS", None),
+        ("_NO_OLDNAMES", None),
+        ("NO_OLDNAMES", None),
+        ("__STDC__", None),
+    ]
+else:
+    define_macros = []
+
+setup(
+    name="wcsapi_test",
+    ext_modules=[
+        Extension(
+            "wcsapi_test",
+            sources=["wcsapi_test.c"],
+            include_dirs=[
+                np.get_include(),
+                os.path.join(wcs.get_include(), "astropy_wcs"),
+                os.path.join(wcs.get_include(), "wcslib"),
+            ],
+            define_macros=define_macros,
+        )
+    ],
+)
+"""
+
+
+@pytest.fixture(scope="module")
+def wcsapi_test(tmp_path_factory):
+    # Build the extension in a scratch directory so we don't leave artifacts in
+    # the source tree.
+    build_dir = tmp_path_factory.mktemp("wcsapi_test")
+    shutil.copy(os.path.join(HERE, "wcsapi_test.c"), build_dir)
+    (build_dir / "setup.py").write_text(SETUP_PY)
+
+    proc = subprocess.run(
+        [sys.executable, "setup.py", "build_ext", "--inplace"],
+        cwd=build_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        message = (
+            f"building the wcsapi_test extension failed:\n{proc.stdout}\n{proc.stderr}"
+        )
+        # On CI we want to know if this breaks; elsewhere a missing compiler or
+        # development headers should not fail the suite.
+        if os.environ.get("CI") or os.environ.get("CONTINUOUS_INTEGRATION"):
+            raise AssertionError(message)
+        pytest.skip(message)
+
+    sys.path.insert(0, str(build_dir))
+    try:
+        yield importlib.import_module("wcsapi_test")
+    finally:
+        sys.path.remove(str(build_dir))
+        sys.modules.pop("wcsapi_test", None)
+
+
+def _make_wcs():
+    w = WCS(naxis=2)
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    w.wcs.crval = [10.0, 20.0]
+    w.wcs.crpix = [128.0, 128.0]
+    w.wcs.cdelt = [-0.001, 0.001]
+    w.wcs.set()
+    return w
+
+
+def test_get_c_version(wcsapi_test):
+    # Slot 0: the version read back through the table is the one import checked.
+    assert wcsapi_test.get_c_version() > 0
+
+
+def test_error_message(wcsapi_test):
+    # Slot 23: wcslib_get_error_message returns a string for a known code.
+    assert wcsapi_test.get_error_message(1) != ""
+
+
+def test_roundtrip(wcsapi_test):
+    # Slots 20, 21: wcsp2s and wcss2p.
+    w = _make_wcs()
+    x, y = 200.0, 150.0
+    rx, ry = wcsapi_test.roundtrip(w.wcs, x, y)
+    assert rx == pytest.approx(x, abs=1e-6)
+    assert ry == pytest.approx(y, abs=1e-6)
+
+
+def test_print_wcsprm(wcsapi_test):
+    # Slot 22: wcsprt returns 0 for a valid, set wcsprm.
+    w = _make_wcs()
+    assert wcsapi_test.print_wcsprm(w.wcs) == 0
+
+
+def test_all_pix2world(wcsapi_test):
+    # Slot 18: pipeline_all_pixel2world agrees with WCS.all_pix2world.
+    w = _make_wcs()
+    x, y, origin = 200.0, 150.0, 1
+    cx, cy = wcsapi_test.all_pix2world(w, x, y, origin)
+    ((ex, ey),) = w.all_pix2world([[x, y]], origin)
+    assert cx == pytest.approx(ex, abs=1e-9)
+    assert cy == pytest.approx(ey, abs=1e-9)
+
+
+def test_supported_slots_do_not_warn(wcsapi_test):
+    # None of the kept members of the table warn.
+    w = _make_wcs()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        wcsapi_test.get_c_version()
+        wcsapi_test.get_error_message(1)
+        wcsapi_test.roundtrip(w.wcs, 200.0, 150.0)
+        wcsapi_test.print_wcsprm(w.wcs)
+        wcsapi_test.all_pix2world(w, 200.0, 150.0, 1)
+
+
+def test_deprecated_slot_warns(wcsapi_test):
+    # A deprecated member of the table (pipeline_clear) warns when used.
+    with pytest.warns(DeprecationWarning, match="pipeline_clear"):
+        wcsapi_test.call_deprecated()
+
+
+def test_get_include_missing_headers(monkeypatch):
+    # Simulate an installation built against a system WCSLIB, which does not
+    # ship wcsconfig.h or the WCSLIB headers.
+    monkeypatch.setattr("os.path.exists", lambda path: False)
+    with pytest.raises(NoWcslibHeadersError, match="system installation of WCSLIB"):
+        get_include()
+
+
+def test_deprecated_conversion_slots_warn(wcsapi_test):
+    # Slots 1 and 2: wcsprm_python2c and wcsprm_c2python are deprecated no-ops
+    # now that the wcsprm struct is stored canonically in WCSLIB form, but
+    # calling wcsp2s bracketed by them (as drizzlepac does) still works.
+    w = _make_wcs()
+    with pytest.warns(DeprecationWarning) as record:
+        wx, wy = wcsapi_test.call_conversions(w.wcs, 200.0, 150.0)
+    messages = [str(r.message) for r in record]
+    assert any("wcsprm_python2c" in m for m in messages)
+    assert any("wcsprm_c2python" in m for m in messages)
+    ((ex, ey),) = w.wcs.p2s([[200.0, 150.0]], 1)["world"]
+    assert wx == pytest.approx(ex, abs=1e-9)
+    assert wy == pytest.approx(ey, abs=1e-9)

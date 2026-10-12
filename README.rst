@@ -1,10 +1,9 @@
 |Astropy Logo|
 
-----
-
-|Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Supported Python Versions| |Documentation Status| |Pre-Commit| |Ruff| |Zenodo|
-
-----
+:Versions:   |Zenodo| |PyPI Status| |Supported Python Versions|
+:Status:     |Coverage Status| |Actions Status| |CircleCI Status| |Documentation Status|
+:Tools:      |Pre-Commit| |Ruff|
+:Community:  |pyOpenSci Peer-Reviewed|
 
 The Astropy Project is a community effort to develop a
 single core package for astronomy in Python and foster interoperability between
@@ -44,7 +43,8 @@ For guidance on contributing to or submitting feedback for the Astropy Project,
 see the `contributions page <https://www.astropy.org/contribute.html>`_.
 For contributing code specifically, the developer docs have a
 `guide <https://docs.astropy.org/en/latest/index_dev.html>`_ with a quickstart.
-There's also a `summary of contribution guidelines <CONTRIBUTING.md>`_.
+There's also a `summary of contribution guidelines <CONTRIBUTING.md>`_, and
+Astropy's `AI Policy <https://github.com/astropy/astropy-project/blob/main/policies/ai-policy.md>`_.
 
 Developing with Codespaces
 ==========================
@@ -135,3 +135,7 @@ Astropy is licensed under a 3-clause BSD style license - see the
 .. |Codespaces| image:: https://github.com/codespaces/badge.svg
     :target: https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=2081289
     :alt: Open in GitHub Codespaces
+
+.. |pyOpenSci Peer-Reviewed| image:: https://pyopensci.org/badges/peer-reviewed.svg
+    :target: https://github.com/pyOpenSci/software-review/issues/251
+    :alt: pyOpenSci Peer-Reviewed

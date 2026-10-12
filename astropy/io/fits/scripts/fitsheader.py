@@ -285,7 +285,7 @@ def print_headers_traditional(args):
             print(
                 formatter.parse(args.extensions, args.keyword, args.compressed), end=""
             )
-        except OSError as e:
+        except Exception as e:
             log.error(str(e))
         finally:
             if formatter:
@@ -309,7 +309,7 @@ def print_headers_as_table(args):
             tbl = formatter.parse(args.extensions, args.keyword, args.compressed)
             if tbl:
                 tables.append(tbl)
-        except OSError as e:
+        except Exception as e:
             log.error(str(e))  # file not found or unreadable
         finally:
             if formatter:
@@ -353,7 +353,7 @@ def print_headers_as_comparison(args):
             else:
                 tbl = table.Table([[filename]], names=("filename",))
             tables.append(tbl)
-        except OSError as e:
+        except Exception as e:
             log.error(str(e))  # file not found or unreadable
         finally:
             if formatter:

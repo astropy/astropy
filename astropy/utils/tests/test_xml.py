@@ -33,7 +33,11 @@ def test_fix_id():
 
 def test_check_token():
     assert check.check_token("token")
+    assert check.check_token("t o k e n")
+    assert not check.check_token("t  oken")
     assert not check.check_token("token\rtoken")
+    assert not check.check_token(" foo")
+    assert not check.check_token("bar\n")
 
 
 def test_check_mime_content_type():

@@ -28,9 +28,58 @@ def internet_on():
             return True
 
 
-__all__ = ["SAMPMsgReplierWrapper"]
+__all__ = ["SAMPMsgReplierWrapper", "SAMPXXEServerProxy", "safe_xmlrpc_loads"]
 
-__doctest_skip__ = ["."]
+
+def get_safe_parser(use_datetime=False, use_builtin_types=False):
+    """
+    Return a safe XML parser and its associated unmarshaller.
+    """
+    unmarshaller = xmlrpc.Unmarshaller(use_datetime, use_builtin_types)
+    parser = xmlrpc.ExpatParser(unmarshaller)
+    if hasattr(parser, "_parser"):
+        # Explicitly disable external entities to prevent XXE.
+        # While None is often the default, being explicit ensures security
+        # across different environments and expat builds.
+        parser._parser.ExternalEntityRefHandler = None
+    return parser, unmarshaller
+
+
+def safe_xmlrpc_loads(data, use_datetime=False, use_builtin_types=False):
+    """
+    A secure replacement for `xmlrpc.client.loads` that prevents XXE.
+    """
+    parser, unmarshaller = get_safe_parser(use_datetime, use_builtin_types)
+    parser.feed(data)
+    parser.close()
+    return unmarshaller.close(), unmarshaller.getmethodname()
+
+
+class SAMPXXEServerProxy(xmlrpc.ServerProxy):
+    """
+    An XML-RPC server proxy that uses a safe transport to prevent XXE.
+    """
+
+    def __init__(self, uri, *args, **kwargs):
+        if "transport" not in kwargs:
+            from urllib.parse import urlparse
+
+            parsed_uri = urlparse(uri)
+            base_class = (
+                xmlrpc.SafeTransport
+                if parsed_uri.scheme == "https"
+                else xmlrpc.Transport
+            )
+
+            class XXESafeTransport(base_class):
+                def getparser(self):
+                    return get_safe_parser(self._use_datetime, self._use_builtin_types)
+
+            kwargs["transport"] = XXESafeTransport(
+                use_datetime=kwargs.get("use_datetime", False),
+                use_builtin_types=kwargs.get("use_builtin_types", False),
+            )
+        super().__init__(uri, *args, **kwargs)
 
 
 def getattr_recursive(variable, attribute):

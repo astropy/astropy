@@ -10,10 +10,10 @@ _WCS_UNDEFINED = 987654321.0e99
 
 
 def test_celprm_init():
-    # test PyCelprm_cnew
+    # test Celprm_cnew
     assert wcs.WCS().wcs.cel
 
-    # test PyCelprm_new
+    # test Celprm_new
     assert wcs.Celprm()
 
     with pytest.raises(wcs.InvalidPrjParametersError):

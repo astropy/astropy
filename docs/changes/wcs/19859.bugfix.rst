@@ -1,0 +1,5 @@
+Fixed ``wcs_pix2world`` (and the underlying ``Wcsprm.p2s``) modifying the
+input pixel array in place to apply the 0-based to 1-based offset, which
+corrupted results when the same array was transformed concurrently from
+multiple threads. The offset is now applied to a bounded scratch buffer,
+leaving the input untouched without growing peak memory with the array size.

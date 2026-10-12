@@ -336,14 +336,15 @@ class TestSingleTable:
     @pytest.mark.parametrize("character_as_bytes", (False, True))
     def test_strip_spaces(self, tmp_path, character_as_bytes):
         filename = get_pkg_data_filename("data/tb.fits")
-        t = Table.read(
-            filename, character_as_bytes=character_as_bytes, strip_spaces=True
-        )
+        t = Table.read(filename, character_as_bytes=character_as_bytes)
         assert t["c2"].tolist() == ["abc", "xy"]
 
-        t = Table.read(filename, character_as_bytes=character_as_bytes)
+        t = Table.read(
+            filename, character_as_bytes=character_as_bytes, strip_spaces=False
+        )
         assert t["c2"].tolist() == ["abc", "xy "]
 
+        # strip_spaces automatically deactivated when memmap is enabled.
         t = Table.read(filename, character_as_bytes=character_as_bytes, memmap=True)
         assert t["c2"].tolist() == ["abc", "xy "]
         del t
@@ -731,7 +732,7 @@ def test_masking_regression_1795():
     Regression test for #1795 - this bug originally caused columns where TNULL
     was not defined to have their first element masked.
     """
-    t = Table.read(get_pkg_data_filename("data/tb.fits"))
+    t = Table.read(get_pkg_data_filename("data/tb.fits"), strip_spaces=False)
     assert np.all(t["c1"].mask == np.array([False, False]))
     assert not hasattr(t["c2"], "mask")
     assert not hasattr(t["c3"], "mask")
@@ -1036,13 +1037,32 @@ def test_fits_mixins_per_column(table_cls, name_col, tmp_path):
 
 
 @pytest.mark.parametrize("name_col", unsupported_cols.items())
-@pytest.mark.xfail(reason="column type unsupported")
-def test_fits_unsupported_mixin(self, name_col, tmp_path):
-    # Check that we actually fail in writing unsupported columns defined
-    # on top.
+def test_fits_unsupported_mixin(name_col, tmp_path):
+    """Check that we actually fail in writing unsupported columns defined
+    on top.
+    """
     filename = tmp_path / "test_simple.fits"
     name, col = name_col
-    Table([col], names=[name]).write(filename, format="fits")
+    t = Table([col], names=[name])
+    if isinstance(col, Time):
+        # Time with different locations can in principle be supported, but
+        # not if there is another time column which has yet another location.
+        t["t2"] = Time(col.jd, format="jd", location=None)
+        ctx = pytest.warns(
+            AstropyUserWarning, match="Time Column .* has no specified location"
+        )
+    elif name == "obj":
+        ctx = pytest.raises(
+            TypeError, match="Column .* contains unsupported object types"
+        )
+    else:
+        ctx = pytest.warns(
+            AstropyUserWarning,
+            match="The unit .* could not be saved in native FITS format",
+        )
+
+    with ctx:
+        t.write(filename, format="fits", overwrite=True)
 
 
 def test_info_attributes_with_no_mixins(tmp_path):
@@ -1060,6 +1080,15 @@ def test_info_attributes_with_no_mixins(tmp_path):
     assert t2["col0"].description == "hello" * 40
     assert t2["col0"].format == "{:8.4f}"
     assert t2["col0"].meta["a"] == {"b": "c"}
+
+
+def test_round_trip_complex(tmp_path):
+    """FITS portion of https://github.com/astropy/astropy/issues/19775"""
+    filename = tmp_path / "test.fits"
+    t = Table({"a": [1 + 4.3j, 2.2 + 6.1j, 3 + 7.2j]})
+    t.write(filename, format="fits")
+    t2 = Table.read(filename, format="fits")
+    assert np.allclose(t["a"], t2["a"], rtol=1e-5, atol=1e-8)
 
 
 @pytest.mark.parametrize("method", ["set_cols", "names", "class"])

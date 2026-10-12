@@ -54,26 +54,30 @@ jobs:
           # that gives too many false positives due to URL timeouts. We also
           # install all dependencies via pip here so we pick up the latest
           # releases.
-          - name: Python 3.11 with dev version of key dependencies
+          # The intention here is to check our latest-supported Python with
+          # dev versions of third party dependencies
+          - name: Python 3.14 with dev version of key dependencies
             os: ubuntu-latest
-            python: '3.11'
-            toxenv: py311-test-devdeps
+            python: '3.14'
+            toxenv: py314-test-devdeps
 
+          # On why we exclude scipy, see
           # https://github.com/astropy/astropy/issues/15701
-          - name: Python 3.11 with dev version of key dependencies without scipy
+          - name: Python 3.14 with dev version of key dependencies without scipy
             os: ubuntu-latest
-            python: '3.11'
-            toxenv: py311-test-devdeps-noscipy
+            python: '3.14'
+            toxenv: py314-test-devdeps-noscipy
 
-          - name: Python 3.13 with dev version of infrastructure dependencies
+          - name: Python 3.14 with dev version of infrastructure dependencies
             os: ubuntu-latest
-            python: '3.13'
-            toxenv: py313-test-devinfra
+            python: '3.14'
+            toxenv: py314-test-devpytest
 
-          - name: Python 3.13t (free-threading) with recommended dependencies
+          - name: Python 3.14t (free-threading) with recommended dependencies
             os: ubuntu-latest
-            python: '3.13t'
-            toxenv: py313t-test-recdeps
+            python: '3.14t'
+            toxenv: py314t-test-recdeps
+            PYTHON_GIL: 0
 
           - name: Documentation link check
             os: ubuntu-latest
@@ -83,12 +87,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         persist-credentials: false
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c  # v6.0.0
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       with:
         python-version: ${{ matrix.python }}
     - name: Install language-pack-de and tzdata
@@ -103,6 +107,8 @@ jobs:
       run: python -m pip install --upgrade tox
     - name: Run tests
       run: tox ${{ matrix.toxargs}} -e ${{ matrix.toxenv}} -- ${{ matrix.toxposargs}}
+      env:
+        PYTHON_GIL: ${{ matrix.PYTHON_GIL }}
 
 
   tests_more_architectures:
@@ -135,11 +141,11 @@ jobs:
           - arch: armv7
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: uraimo/run-on-arch-action@d94c13912ea685de38fccc1109385b83fd79427d # v3.0.1
+      - uses: uraimo/run-on-arch-action@460cb8e6d9f726a588fc9b5e681c8a6cab09ae41 # v3.2.0
         name: Run tests
         id: build
         with:
@@ -150,6 +156,9 @@ jobs:
           env: |
             ARCH_ON_CI: ${{ env.ARCH_ON_CI }}
             IS_CRON: ${{ env.IS_CRON }}
+            # Exported for the whole run, not just the build, so that the
+            # tests that need the bundled WCSLIB headers know to skip.
+            ASTROPY_USE_SYSTEM_ALL: 1
 
           install: |
             apt-get update -q -y
@@ -166,9 +175,12 @@ jobs:
                                   python3 \
                                   python3-erfa \
                                   python3-extension-helpers \
+                                  python3-hypothesis \
                                   python3-jinja2 \
                                   python3-numpy \
-                                  python3-pytest-astropy \
+                                  python3-pytest-astropy-header \
+                                  python3-pytest-cov \
+                                  python3-pytest-remotedata \
                                   python3-setuptools-scm \
                                   python3-yaml \
                                   python3-venv \
@@ -180,9 +192,13 @@ jobs:
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
-            # cython and pyerfa versions in ubuntu repos are too old currently
-            pip install -U cython setuptools packaging
+            # cython, pyerfa, configobj versions in ubuntu repos are too old currently
+            pip install -U cython setuptools packaging configobj
             pip install -U --no-build-isolation pyerfa
-            ASTROPY_USE_SYSTEM_ALL=1 pip install -v --no-build-isolation -e .[test]
+            pip install -v --no-build-isolation -e .[test]
             pip list
+            # A fresh CI runner has no ~/.astropy directory, but developer
+            # machines usually do. Create empty cache and config directories
+            # so we catch failures that only show up when they already exist.
+            python3 -c "from pathlib import Path; [(Path.home() / '.astropy' / d).mkdir(parents=True, exist_ok=True) for d in ('cache', 'config')]"
             python3 -m pytest --strict-markers --pyargs astropy -m "not hypothesis"

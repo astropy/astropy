@@ -293,7 +293,8 @@ def _separable(transform):
     transform : `astropy.modeling.Model`
         A transform (usually a compound model).
 
-    Returns :
+    Returns
+    -------
     is_separable : ndarray of dtype np.bool
         An array of shape (transform.n_outputs,) of boolean type
         Each element represents the separablity of the corresponding output.

@@ -1,0 +1,2 @@
+Support for Python 3.11 has been dropped.
+Astropy now requires Python 3.12 or newer.

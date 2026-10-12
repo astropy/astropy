@@ -95,7 +95,8 @@ class ReadWriteJSONTestMixin(ReadWriteTestMixinBase):
     """
 
     @pytest.fixture(scope="class", autouse=True)
-    def register_and_unregister_json(self):
+    @classmethod
+    def register_and_unregister_json(cls):
         """Setup & teardown for JSON read/write tests."""
         # Register
         readwrite_registry.register_reader("json", Cosmology, read_json, force=True)

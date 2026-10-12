@@ -6,7 +6,7 @@ FITS WCS keywords.
 Note that the default value of ``relax`` is `True` for reading (to
 accept all non standard keywords), and `False` for writing (to write
 out only standard keywords), in accordance with `Postel's prescription
-<http://catb.org/jargon/html/P/Postels-Prescription.html>`_:
+<https://en.wikipedia.org/wiki/Robustness_principle>`_:
 
     “Be liberal in what you accept, and conservative in what you send.”
 

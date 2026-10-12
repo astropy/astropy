@@ -57,7 +57,7 @@ def spherical2cartesian(alpha, delta):
     x = np.cos(alpha) * cosd
     y = cosd * np.sin(alpha)
     z = np.sin(delta)
-    return np.array([x, y, z])
+    return x, y, z
 
 
 def cartesian2spherical(x, y, z):
@@ -127,14 +127,11 @@ class RotationSequence3D(Model):
         """
         if x.shape != y.shape or x.shape != z.shape:
             raise ValueError("Expected input arrays to have the same shape")
-        # Note: If the original shape was () (an array scalar) convert to a
-        # 1-element 1-D array on output for consistency with most other models
-        orig_shape = x.shape or (1,)
-        inarr = np.array([x.ravel(), y.ravel(), z.ravel()])
-        result = np.dot(_create_matrix(angles[0], self.axes_order), inarr)
-        x, y, z = result[0], result[1], result[2]
-        x.shape = y.shape = z.shape = orig_shape
-        return x, y, z
+
+        xyz = np.stack([x, y, z], axis=-1)
+        rotmat = _create_matrix(angles[0], self.axes_order)
+        rxyz = np.einsum("ij,...j->...i", rotmat, xyz)
+        return rxyz[..., 0], rxyz[..., 1], rxyz[..., 2]
 
 
 class SphericalRotationSequence(RotationSequence3D):
@@ -182,19 +179,10 @@ class _EulerRotation:
     _separable = False
 
     def evaluate(self, alpha, delta, phi, theta, psi, axes_order):
-        shape = None
-        if isinstance(alpha, np.ndarray):
-            alpha = alpha.ravel()
-            delta = delta.ravel()
-            shape = alpha.shape
-        inp = spherical2cartesian(alpha, delta)
         matrix = _create_matrix([phi, theta, psi], axes_order)
-        result = np.dot(matrix, inp)
-        a, b = cartesian2spherical(*result)
-        if shape is not None:
-            a = a.reshape(shape)
-            b = b.reshape(shape)
-        return a, b
+        inp = np.stack(np.atleast_1d(spherical2cartesian(alpha, delta)), axis=-2)
+        result = np.matmul(matrix, inp)
+        return cartesian2spherical(*np.moveaxis(result, -2, 0))
 
     _input_units_strict = True
 
@@ -523,33 +511,10 @@ class Rotation2D(Model):
             If float, assumed in degrees.
 
         """
-        if x.shape != y.shape:
-            raise ValueError("Expected input arrays to have the same shape")
-
-        # If one argument has units, enforce they both have units and they are compatible.
-        x_unit = getattr(x, "unit", None)
-        y_unit = getattr(y, "unit", None)
-        has_units = x_unit is not None and y_unit is not None
-        if x_unit != y_unit:
-            if has_units and y_unit.is_equivalent(x_unit):
-                y = y.to(x_unit)
-                y_unit = x_unit
-            else:
-                raise u.UnitsError("x and y must have compatible units")
-
-        # Note: If the original shape was () (an array scalar) convert to a
-        # 1-element 1-D array on output for consistency with most other models
-        orig_shape = x.shape or (1,)
-        inarr = np.array([x.ravel(), y.ravel()])
+        inarr = np.stack(np.atleast_1d(x, y), axis=-2)
         if isinstance(angle, u.Quantity):
             angle = angle.to_value(u.rad)
-        result = np.dot(cls._compute_matrix(angle), inarr)
-        x, y = result[0], result[1]
-        x.shape = y.shape = orig_shape
-        if has_units:
-            return u.Quantity(x, unit=x_unit, subok=True), u.Quantity(
-                y, unit=y_unit, subok=True
-            )
+        x, y = np.moveaxis(np.matmul(cls._compute_matrix(angle), inarr), -2, 0)
         return x, y
 
     @staticmethod

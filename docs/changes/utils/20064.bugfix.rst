@@ -1,0 +1,2 @@
+Fixed an issue where, in a multi-threaded context, astropy's logger could race with
+imports, leading to an exception being raised.

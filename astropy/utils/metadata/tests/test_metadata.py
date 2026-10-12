@@ -13,6 +13,7 @@ from astropy.utils.metadata import (
     enable_merge_strategies,
     merge,
 )
+from astropy.utils.metadata.utils import result_type
 
 
 class OrderedDictSubclass(OrderedDict):
@@ -244,23 +245,123 @@ def test_metadata_merging_new_strategy():
     metadata.MERGE_STRATEGIES = original_merge_strategies
 
 
-def test_common_dtype_string():
+def test_result_type_string():
     u3 = np.array(["123"])
     u4 = np.array(["1234"])
     b3 = np.array([b"123"])
     b5 = np.array([b"12345"])
-    assert common_dtype([u3, u4]).endswith("U4")
-    assert common_dtype([b5, u4]).endswith("U5")
-    assert common_dtype([b3, b5]).endswith("S5")
+    assert result_type([u3, u4]) == np.dtype("U4")
+    assert result_type([b5, u4]) == np.dtype("U5")
+    assert result_type([b3, b5]) == np.dtype("S5")
 
 
-def test_common_dtype_basic():
+def test_result_type_basic():
     i8 = np.array(1, dtype=np.int64)
     f8 = np.array(1, dtype=np.float64)
     u3 = np.array("123")
 
     with pytest.raises(MergeConflictError):
-        common_dtype([i8, u3])
+        result_type([i8, u3])
 
-    assert common_dtype([i8, i8]).endswith("i8")
-    assert common_dtype([i8, f8]).endswith("f8")
+    assert result_type([i8, i8]) == np.dtype("i8")
+    assert result_type([i8, f8]) == np.dtype("f8")
+
+
+@pytest.mark.parametrize("function", [result_type, common_dtype])
+def test_finding_common_type_exhaustive(function):
+    """
+    Test that allowed combinations are those expected.
+    """
+    dtype = [
+        ("int", int),
+        ("uint8", np.uint8),
+        ("float32", np.float32),
+        ("float64", np.float64),
+        ("str", "S2"),
+        ("uni", "U2"),
+        ("bool", bool),
+        ("object", np.object_),
+    ]
+    arr = np.empty(1, dtype=dtype)
+    fail = set()
+    succeed = set()
+    for name1, _ in dtype:
+        for name2, _ in dtype:
+            try:
+                function([arr[name1], arr[name2]])
+                succeed.add(f"{name1} {name2}")
+            except MergeConflictError:
+                fail.add(f"{name1} {name2}")
+
+    # known bad combinations
+    bad = {
+        "str int",
+        "str bool",
+        "uint8 bool",
+        "uint8 str",
+        "object float32",
+        "bool object",
+        "uni uint8",
+        "int str",
+        "bool str",
+        "bool float64",
+        "bool uni",
+        "str float32",
+        "uni float64",
+        "uni object",
+        "bool uint8",
+        "object float64",
+        "float32 bool",
+        "str uint8",
+        "uni bool",
+        "float64 bool",
+        "float64 object",
+        "int bool",
+        "uni int",
+        "uint8 object",
+        "int uni",
+        "uint8 uni",
+        "float32 uni",
+        "object uni",
+        "bool float32",
+        "uni float32",
+        "object str",
+        "int object",
+        "str float64",
+        "object int",
+        "float64 uni",
+        "bool int",
+        "object bool",
+        "object uint8",
+        "float32 object",
+        "str object",
+        "float64 str",
+        "float32 str",
+    }
+    assert fail == bad
+
+    good = {
+        "float64 int",
+        "int int",
+        "uint8 float64",
+        "uint8 int",
+        "str uni",
+        "float32 float32",
+        "float64 float64",
+        "float64 uint8",
+        "float64 float32",
+        "int uint8",
+        "int float32",
+        "uni str",
+        "int float64",
+        "uint8 float32",
+        "float32 int",
+        "float32 uint8",
+        "bool bool",
+        "uint8 uint8",
+        "str str",
+        "float32 float64",
+        "object object",
+        "uni uni",
+    }
+    assert succeed == good

@@ -10,13 +10,13 @@ from astropy.coordinates import SkyCoord
 from astropy.io import ascii
 from astropy.io.misc.pandas import connect
 from astropy.table import QTable, Table
+from astropy.utils.compat.optional_deps import HAS_BS4, HAS_HTML5LIB, HAS_LXML
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 # Check dependencies
 pandas = pytest.importorskip("pandas")
 
-connect.import_html_libs()
-HAS_HTML_DEPS = connect._HAS_LXML or (connect._HAS_BS4 and connect._HAS_HTML5LIB)
+HAS_HTML_DEPS = HAS_LXML or (HAS_BS4 and HAS_HTML5LIB)
 
 
 WRITE_FMTS = [fmt for fmt in connect.PANDAS_FMTS if "write" in connect.PANDAS_FMTS[fmt]]

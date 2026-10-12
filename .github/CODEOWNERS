@@ -26,7 +26,7 @@ astropy/modeling            @astropy/modeling
 # astropy/nddata
 # astropy/samp
 astropy/stats               @larrybradley
-astropy/table               @taldcroft    @neutrinoceros
+astropy/table               @taldcroft
 astropy/time                @taldcroft
 # astropy/timeseries
 # astropy/uncertainty
@@ -56,6 +56,7 @@ docs/time                   @taldcroft
 docs/visualization          @astrofrog      @larrybradley
 docs/wcs                    @mcara
 
+scripts/*                   @neutrinoceros
 pyproject.toml              @neutrinoceros
 setup.py                    @neutrinoceros
 MANIFEST.in                 @neutrinoceros

@@ -1,1 +1,0 @@
-Updated the bundled CFITSIO library to 4.6.3.

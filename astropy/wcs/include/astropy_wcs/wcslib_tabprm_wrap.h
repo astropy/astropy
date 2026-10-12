@@ -9,16 +9,18 @@
 #include "pyutil.h"
 #include "wcs.h"
 
-extern PyObject* PyTabprmType;
+extern PyObject* TabprmType;
 
 typedef struct {
+#ifndef _Py_OPAQUE_PYOBJECT
   PyObject_HEAD
+#endif
   struct tabprm* x;
   PyObject* owner;
-} PyTabprm;
+} Tabprm;
 
-PyTabprm*
-PyTabprm_cnew(PyObject* wcsprm, struct tabprm* x);
+Tabprm*
+Tabprm_cnew(PyObject* wcsprm, struct tabprm* x);
 
 int _setup_tabprm_type(PyObject* m);
 

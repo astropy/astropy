@@ -1,0 +1,3 @@
+Fixed a race condition in which deepcopying a ``WCS`` object while another
+thread used it could raise ``RuntimeError: dictionary changed size during
+iteration``.

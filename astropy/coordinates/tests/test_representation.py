@@ -31,7 +31,6 @@ from astropy.coordinates.representation import (
     UnitSphericalRepresentation,
 )
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose_quantity
-from astropy.utils.compat import COPY_IF_NEEDED
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 
 # create matrices for use in testing ``.transform()`` methods
@@ -1810,7 +1809,7 @@ class TestCartesianRepresentationWithDifferential:
 
         # make sure other kwargs are handled properly
         s1 = CartesianRepresentation(
-            x=1, y=2, z=3, differentials=diff, copy=COPY_IF_NEEDED, unit=u.kpc
+            x=1, y=2, z=3, differentials=diff, copy=None, unit=u.kpc
         )
         assert len(s1.differentials) == 1
         assert s1.differentials["s"] is diff
@@ -1964,6 +1963,34 @@ class TestCartesianRepresentationWithDifferential:
         with pytest.raises(ValueError) as excinfo:
             rep1.represent_as("name")
         assert "use frame object" in str(excinfo.value)
+
+    def test_represent_as_same_class_does_not_modify_differential(self):
+        diff = SphericalCosLatDifferential(
+            d_lon_coslat=1 * u.mas / u.yr,
+            d_lat=2 * u.mas / u.yr,
+            d_distance=3 * u.km / u.s,
+        )
+        rep = SphericalRepresentation(
+            lon=15 * u.deg,
+            lat=30 * u.deg,
+            distance=1 * u.pc,
+            differentials=diff,
+        )
+
+        new_rep = rep.represent_as(SphericalRepresentation, SphericalDifferential)
+
+        assert new_rep is not rep
+        assert rep.differentials["s"] is diff
+        assert isinstance(new_rep.differentials["s"], SphericalDifferential)
+        assert_allclose_quantity(
+            new_rep.differentials["s"].d_lon * np.cos(rep.lat),
+            diff.d_lon_coslat,
+        )
+        assert_allclose_quantity(new_rep.differentials["s"].d_lat, diff.d_lat)
+        assert_allclose_quantity(
+            new_rep.differentials["s"].d_distance,
+            diff.d_distance,
+        )
 
     @pytest.mark.parametrize(
         "sph_diff,usph_diff",

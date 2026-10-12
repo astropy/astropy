@@ -6,18 +6,16 @@
 #ifndef __PYUTIL_H__
 #define __PYUTIL_H__
 
+#include <Python.h>
 #include "util.h"
 
 #define PY_ARRAY_UNIQUE_SYMBOL astropy_wcs_numpy_api
 
-#include <Python.h>
-
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
 
 PyObject*
-PyArrayProxy_New(
+ArrayProxy_New(
     PyObject* self,
     int nd,
     const npy_intp* dims,
@@ -25,7 +23,7 @@ PyArrayProxy_New(
     const void* data);
 
 PyObject*
-PyArrayReadOnlyProxy_New(
+ArrayReadOnlyProxy_New(
     PyObject* self,
     int nd,
     const npy_intp* dims,
@@ -33,7 +31,7 @@ PyArrayReadOnlyProxy_New(
     const void* data);
 
 /*@null@*/ PyObject *
-PyStrListProxy_New(
+StrListProxy_New(
     PyObject* owner,
     Py_ssize_t size,
     Py_ssize_t maxsize,
@@ -110,8 +108,13 @@ copy_array_to_c_int(
 int
 is_null(/*@null@*/ void *);
 
-typedef void (*value_fixer_t)(double*, unsigned int);
 
+/* DEPRECATED (GH-16409): the wcsprm struct is now stored canonically in
+ * WCSLIB's native UNDEFINED form, with NaN<->UNDEFINED translation done at the
+ * Python attribute boundary, so no in-place conversion is ever needed.  These
+ * two functions are now no-ops, retained only for C-API (AstropyWcs_API slots
+ * 1 and 2) backwards compatibility; the exported slots emit a
+ * DeprecationWarning when called.  Do not call them in new code. */
 void
 wcsprm_c2python(
     /*@null@*/ struct wcsprm* x);
@@ -224,6 +227,11 @@ get_double(
     const char* propname,
     double value) {
 
+  /* The struct stores values in WCSLIB's native UNDEFINED form (GH-16409);
+   * present undefined scalars to Python as NaN. */
+  if (undefined(value)) {
+    return PyFloat_FromDouble((double)NPY_NAN);
+  }
   return PyFloat_FromDouble(value);
 }
 
@@ -233,6 +241,25 @@ set_double(
     PyObject* value,
     double* dest);
 
+/* WCSParameterArray: a writeable ndarray subclass that exposes a wcsprm
+ * double array with UNDEFINED<->NaN translation and writes element
+ * assignments back into the owning struct (GH-16409).  Used ONLY for the
+ * auxiliary fields that WCSLIB represents with the UNDEFINED sentinel
+ * (obsgeo, crder, csyer, cperi, czphs, mjdref).  The core linear parameters
+ * (crpix/crval/cdelt/pc/cd/crota) are never UNDEFINED in WCSLIB, so they are
+ * exposed as ordinary writeable views with no translation (see
+ * get_double_array below) -- this keeps live-view semantics and makes a
+ * user-supplied NaN propagate honestly instead of becoming a sentinel. */
+/*@null@*/ PyObject*
+WCSParameterArray_New(
+    PyObject* owner,
+    int ndims,
+    const npy_intp* dims,
+    double* value);
+
+int _setup_wcsparameter_array_type(PyObject* m);
+
+/* Core/derived double arrays: plain writeable view, no UNDEFINED translation. */
 /*@null@*/ static INLINE PyObject*
 get_double_array(
     /*@unused@*/ const char* propname,
@@ -241,7 +268,7 @@ get_double_array(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
+  return ArrayProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
 }
 
 /*@null@*/ static INLINE PyObject*
@@ -252,11 +279,32 @@ get_double_array_readonly(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayReadOnlyProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
+  return ArrayReadOnlyProxy_New(owner, ndims, dims, NPY_DOUBLE, value);
+}
+
+/* Auxiliary UNDEFINED-capable double arrays: translating write-back array. */
+/*@null@*/ static INLINE PyObject*
+get_double_array_undefined(
+    /*@unused@*/ const char* propname,
+    double* value,
+    int ndims,
+    const npy_intp* dims,
+    /*@shared@*/ PyObject* owner) {
+
+  return WCSParameterArray_New(owner, ndims, dims, value);
 }
 
 int
 set_double_array(
+    const char* propname,
+    PyObject* value,
+    int ndims,
+    const npy_intp* dims,
+    double* dest);
+
+/* As set_double_array, but translates NaN -> WCSLIB UNDEFINED (aux fields). */
+int
+set_double_array_undefined(
     const char* propname,
     PyObject* value,
     int ndims,
@@ -271,7 +319,7 @@ get_int_array(
     const npy_intp* dims,
     /*@shared@*/ PyObject* owner) {
 
-  return PyArrayProxy_New(owner, ndims, dims, NPY_INT, value);
+  return ArrayProxy_New(owner, ndims, dims, NPY_INT, value);
 }
 
 int
@@ -290,7 +338,7 @@ get_str_list(
     Py_ssize_t maxlen,
     PyObject* owner) {
 
-  return PyStrListProxy_New(owner, len, maxlen, array);
+  return StrListProxy_New(owner, len, maxlen, array);
 }
 
 int

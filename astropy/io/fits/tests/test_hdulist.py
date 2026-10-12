@@ -13,7 +13,6 @@ import pytest
 from astropy.io import fits
 from astropy.io.fits.hdu.base import _NonstandardHDU, _ValidHDU
 from astropy.io.fits.verify import VerifyError, VerifyWarning
-from astropy.utils.compat import NUMPY_LT_2_0
 from astropy.utils.data import get_pkg_data_filenames
 from astropy.utils.exceptions import AstropyUserWarning
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
@@ -71,9 +70,8 @@ class TestHDUListFunctions(FitsTestCase):
         """
 
         hdul = fits.HDUList([fits.PrimaryHDU(), fits.PrimaryHDU()])
-        pytest.raises(
-            VerifyError, hdul.writeto, self.temp("temp.fits"), output_verify="exception"
-        )
+        with pytest.raises(VerifyError):
+            hdul.writeto(self.temp("temp.fits"), output_verify="exception")
 
     def test_append_primary_to_empty_list(self):
         # Tests appending a Simple PrimaryHDU to an empty HDUList.
@@ -684,6 +682,9 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp("temp.fits")) as hdul:
             assert (hdul[0].data == data).all()
 
+    @pytest.mark.xfail(
+        sys.platform == "emscripten", reason="known failure on emscripten"
+    )
     def test_update_resized_header(self, home_is_temp):
         """
         Test saving updates to a file where the header is one block smaller
@@ -708,11 +709,7 @@ class TestHDUListFunctions(FitsTestCase):
             assert hdul[0].header == orig_header[:-1]
             assert (hdul[0].data == data).all()
 
-        if (
-            sys.platform.startswith("win")
-            and sys.version_info < (3, 14)
-            and not NUMPY_LT_2_0
-        ):
+        if sys.platform.startswith("win") and sys.version_info < (3, 14):
             ctx = pytest.warns(
                 UserWarning,
                 match="Memory map object was closed but appears to still be referenced",
@@ -765,6 +762,9 @@ class TestHDUListFunctions(FitsTestCase):
             assert (hdul[1].data == data2).all()
             assert (hdul[2].data == data2).all()
 
+    @pytest.mark.filterwarnings(
+        "ignore:.*[Cc]olumn '.*' contains NULL:astropy.utils.exceptions.AstropyUserWarning"
+    )
     def test_hdul_fromstring(self):
         """
         Test creating the HDUList structure in memory from a string containing
@@ -791,7 +791,7 @@ class TestHDUListFunctions(FitsTestCase):
                         for n in hdul[idx].data.names:
                             c1 = hdul[idx].data[n]
                             c2 = hdul2[idx].data[n]
-                            assert (c1 == c2).all()
+                            np.testing.assert_array_equal(c1, c2)
                     elif any(dim == 0 for dim in hdul[idx].data.shape) or any(
                         dim == 0 for dim in hdul2[idx].data.shape
                     ):
@@ -810,7 +810,15 @@ class TestHDUListFunctions(FitsTestCase):
                 # versions of Numpy on Windows.  See ticket:
                 # https://aeon.stsci.edu/ssb/trac/pyfits/ticket/174
                 continue
-            elif filename.endswith(("variable_length_table.fits", "theap-gap.fits")):
+            elif filename.endswith(
+                (
+                    "variable_length_table.fits",
+                    "theap-gap.fits",
+                    "vla_logical_pre_fix.fits",
+                    "vla_logical_null.fits",
+                    "vla_logical_all_zero.fits",
+                )
+            ):
                 # Comparing variable length arrays is non-trivial and thus
                 # skipped at this point.
                 # TODO: That's probably possible, so one could make it work.
@@ -818,7 +826,8 @@ class TestHDUListFunctions(FitsTestCase):
             test_fromstring(filename)
 
         # Test that creating an HDUList from something silly raises a TypeError
-        pytest.raises(TypeError, fits.HDUList.fromstring, ["a", "b", "c"])
+        with pytest.raises(TypeError):
+            fits.HDUList.fromstring(["a", "b", "c"])
 
     @pytest.mark.filterwarnings("ignore:Saving a backup")
     def test_save_backup(self, home_is_temp):
@@ -1235,6 +1244,9 @@ class TestHDUListFunctions(FitsTestCase):
     # Skip due to https://github.com/astropy/astropy/issues/8916
     @pytest.mark.skipif(
         sys.platform.startswith("win32"), reason="Cannot test on Windows"
+    )
+    @pytest.mark.xfail(
+        sys.platform == "emscripten", reason="known failure on emscripten"
     )
     def test_write_hdulist_to_stream(self):
         """

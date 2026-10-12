@@ -1,3 +1,0 @@
-So far only the ``"cds"`` unit format has been capable of parsing the string
-``"as"`` as the attosecond, but now the other unit formats recognize that
-string too.

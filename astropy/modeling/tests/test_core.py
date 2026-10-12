@@ -605,6 +605,9 @@ Fittable parameters: ('amplitude', 'mean', 'stddev')
 """.strip()
 
 
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
 def test_rename_path(tmp_path):
     # Regression test for a bug that caused the path to the class to be
     # incorrect in a renamed model's __repr__.

@@ -1,1 +1,0 @@
-The trait ``astropy.cosmology.traits.DarkEnergyComponent`` has been added to work with objects that have attributes and methods related to the Dark Energy component.

@@ -1,7 +1,0 @@
-Fixed unexpected upcasting to 64 bits when doing arithmetic with Python scalars
-on ``numpy`` 2.
-
-Don't upcast ``NDData`` unnecessarily when doing arithmetic involving a single
-unit (consistent with the behaviour when there are no units). Upcasting still
-occurs if an operand's unit gets converted to match the other, or where
-required by the other operand's dtype.

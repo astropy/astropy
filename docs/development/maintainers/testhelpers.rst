@@ -11,15 +11,16 @@ overview of running or writing the tests.
 Details
 =======
 
-The dependencies used by the Astropy test suite are provided by a separate
-package called |pytest-astropy|. This package provides the ``pytest``
-dependency itself, in addition to several ``pytest`` plugins that are used by
-Astropy, and will also be of general use to other packages.
+The dependencies used by the Astropy test suite are optional and encapsulated
+with the ``test`` extra. This extra provides the ``pytest`` dependency itself,
+in addition to several ``pytest`` plugins that are used by Astropy.
 
 Since the testing dependencies are not actually required to install or use
 Astropy, in the ``pyproject.toml`` file they are not included under the
 ``[project]`` section in ``dependencies``. Instead, they are listed under the
-``[project.optional-dependences]`` in named sections such as ``test`` or ``dev_all``.
+``[project.optional-dependences]`` in named sections such as ``test``.
+Furthermore, dev-only dependencies are listed under ``[dependency-groups]``, which for
+instance defines a ``dev`` and a ``dev_all`` group.
 
 In particular the ``test`` dependencies are the minimal set of dependencies for running
 astropy tests and you would use this primarily to check that tests pass *without* the

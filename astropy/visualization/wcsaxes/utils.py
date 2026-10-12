@@ -124,6 +124,13 @@ def transform_contour_set_inplace(cset, transform):
     WCS/SkyCoord transforms) since the transform is called for each individual
     contour line. It is more efficient to stack all the contour lines together
     temporarily and transform them in one go.
+
+    Parameters
+    ----------
+    cset : `~matplotlib.contour.ContourSet`
+        The contour set to transform.
+    transform : `~matplotlib.transforms.Transform`
+        The transform to apply to the contour set.
     """
     # The contours are represented as paths grouped into levels. Each can have
     # one or more paths. The approach we take here is to stack the vertices of

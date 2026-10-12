@@ -1,0 +1,4 @@
+The IPAC writer no longer enforces a hard 40-character limit on column names
+for non-DBMS IPAC tables; that limit is not part of the IPAC format
+specification. The 16-character limit that applies to DBMS tables is
+unchanged.

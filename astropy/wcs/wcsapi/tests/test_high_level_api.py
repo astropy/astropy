@@ -209,6 +209,55 @@ def test_values_to_objects():
     assert c2.b == c2_out.b
 
 
+def test_low_level_wcs_duck_typed():
+    # Anything exposing world_axis_object_classes and world_axis_object_components
+    # should be accepted as low_level_wcs; serialized_classes is optional.
+    from types import SimpleNamespace
+    from typing import NamedTuple
+
+    wcs = SkyCoordDuplicateWCS()
+    c1, c2 = wcs.pixel_to_world(1, 2, 3, 4)
+
+    ns = SimpleNamespace(
+        world_axis_object_classes=wcs.world_axis_object_classes,
+        world_axis_object_components=wcs.world_axis_object_components,
+    )
+    assert np.allclose(
+        high_level_objects_to_values(c1, c2, low_level_wcs=ns), [2, 4, 6, 8]
+    )
+    c1_out, c2_out = values_to_high_level_objects(*[2, 4, 6, 8], low_level_wcs=ns)
+    assert c1.ra == c1_out.ra and c1.dec == c1_out.dec
+    assert c2.l == c2_out.l and c2.b == c2_out.b
+
+    class Frame(NamedTuple):
+        world_axis_object_classes: dict
+        world_axis_object_components: list
+
+    nt = Frame(wcs.world_axis_object_classes, wcs.world_axis_object_components)
+    assert np.allclose(
+        high_level_objects_to_values(c1, c2, low_level_wcs=nt), [2, 4, 6, 8]
+    )
+
+
+def test_low_level_wcs_duck_typed_serialized():
+    # serialized_classes=True on a duck-typed object still triggers deserialization.
+    from types import SimpleNamespace
+
+    wcs = SerializedWCS()
+    q = wcs.pixel_to_world(1)
+
+    ns = SimpleNamespace(
+        world_axis_object_classes=wcs.world_axis_object_classes,
+        world_axis_object_components=wcs.world_axis_object_components,
+        serialized_classes=True,
+    )
+    (value,) = high_level_objects_to_values(q, low_level_wcs=ns)
+    assert_allclose(value, 2)
+    (q_out,) = values_to_high_level_objects(2.0, low_level_wcs=ns)
+    assert isinstance(q_out, Quantity)
+    assert_allclose(q_out.to_value(u.deg), 2.0)
+
+
 class InvalidWCSQuantity(SkyCoordDuplicateWCS):
     """
     WCS which defines ``world_axis_object_components`` which returns Quantity

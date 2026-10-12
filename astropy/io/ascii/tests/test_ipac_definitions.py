@@ -43,11 +43,22 @@ def test_ipac_right():
     assert table["b"][0] == "ABBBBBBB"
 
 
-def test_too_long_colname_default():
-    table = Table([[3]], names=["a1234567890123456789012345678901234567890"])
+@pytest.mark.parametrize(
+    "kwargs",
+    [pytest.param({}, id="default"), pytest.param({"DBMS": False}, id="notstrict")],
+)
+def test_long_colname(kwargs):
+    # Regression test for #17637: the IPAC format has no 40-character column
+    # name limit, so a non-DBMS IPAC table may use column names longer than
+    # 40 characters (write and read back cleanly).
+    long_name = "a1234567890123456789012345678901234567890"  # 41 chars
+    value = 3
+    table = Table([[value]], names=[long_name])
     out = StringIO()
-    with pytest.raises(IpacFormatError):
-        ascii.write(table, out, format="ipac")
+    ascii.write(table, out, format="ipac", **kwargs)
+    back = ascii.read(out.getvalue(), format="ipac")
+    assert long_name in back.colnames
+    assert back[long_name][0] == value
 
 
 def test_too_long_colname_strict():
@@ -55,13 +66,6 @@ def test_too_long_colname_strict():
     out = StringIO()
     with pytest.raises(IpacFormatErrorDBMS):
         ascii.write(table, out, format="ipac", DBMS=True)
-
-
-def test_too_long_colname_notstrict():
-    table = Table([[3]], names=["a1234567890123456789012345678901234567890"])
-    out = StringIO()
-    with pytest.raises(IpacFormatError):
-        ascii.write(table, out, format="ipac", DBMS=False)
 
 
 @pytest.mark.parametrize(
@@ -98,10 +102,10 @@ def test_reserved_colname_strict(colname):
 
 def test_too_long_comment():
     msg = "Wrapping comment lines > 78 characters produced 1 extra line(s)"
+    table = Table([[3]])
+    table.meta["comments"] = ["a" * 79]
+    out = StringIO()
     with pytest.warns(UserWarning, match=re.escape(msg)):
-        table = Table([[3]])
-        table.meta["comments"] = ["a" * 79]
-        out = StringIO()
         ascii.write(table, out, format="ipac")
 
     expected_out = """\

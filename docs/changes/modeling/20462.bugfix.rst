@@ -1,0 +1,8 @@
+Fixed the step size used by the non-linear least-squares fitters
+(``LevMarLSQFitter``, ``TRFLSQFitter``, ``DogBoxLSQFitter``, and
+``LMLSQFitter``) to estimate the Jacobian by finite differences when
+a model has no ``fit_deriv`` or when ``estimate_jacobian=True``. The
+relative step was the fourth root of the machine precision (about
+1.2e-4) instead of the square root (about 1.5e-8), so fits could stop
+short of the minimum for parameters with large values, such as a
+position far from the coordinate origin.

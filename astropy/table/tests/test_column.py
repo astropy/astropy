@@ -11,8 +11,8 @@ from numpy.testing import assert_array_equal
 
 from astropy import table, time
 from astropy import units as u
+from astropy.table.column import _contains_ma_masked, _convert_sequence_data_to_array
 from astropy.tests.helper import assert_follows_unicode_guidelines
-from astropy.utils.compat.numpycompat import NUMPY_LT_2_0
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
@@ -108,6 +108,46 @@ class TestColumn:
         d = Column([1, 2, 3], name="a", dtype="f8", unit="m")
         d.convert_unit_to("km")
         assert np.all(d.data == [0.001, 0.002, 0.003])
+
+    def test_inplace_operation_with_unit(self, Column):
+        """Regression test for #20075 - in-place operations with a Quantity
+        on a Column with a unit used to raise UnitTypeError."""
+        d = Column([1.0, 2.0, 3.0], name="a", unit="deg")
+        d += np.array([0.0, 1.0, 2.0]) * u.deg
+        assert np.all(d == [1.0, 3.0, 5.0])
+        assert d.unit == u.deg
+        assert isinstance(d, Column)
+
+        # units are converted for in-place operations
+        d = Column([1.0, 2.0, 3.0], name="a", unit="deg")
+        d += np.array([0.0, 60.0, 120.0]) * u.arcmin
+        assert np.allclose(d, [1.0, 3.0, 5.0])
+        assert d.unit == u.deg
+
+        d -= np.array([1.0, 1.0, 1.0]) * u.deg
+        assert np.allclose(d, [0.0, 2.0, 4.0])
+        d *= 2.0
+        assert np.allclose(d, [0.0, 4.0, 8.0])
+        d /= 2.0
+        assert np.allclose(d, [0.0, 2.0, 4.0])
+
+        # incompatible units still raise
+        with pytest.raises(u.UnitsError):
+            d += np.array([1.0, 1.0, 1.0]) * u.m
+
+        # a plain column without unit cannot accept a quantity in-place
+        d = Column([1.0, 2.0], name="b")
+        with pytest.raises(u.UnitsError):
+            d += np.array([1.0, 1.0]) * u.deg
+
+        # a result unit that differs from the column's unit is still rejected
+        d = Column([1.0, 2.0], name="c", unit="deg")
+        with pytest.raises(u.UnitTypeError):
+            np.add(
+                np.array([60.0, 120.0]) * u.arcmin,
+                np.array([1.0, 1.0]) * u.deg,
+                out=d,
+            )
 
     def test_array_wrap(self):
         """Test that the __array_wrap__ method converts a reduction ufunc
@@ -385,14 +425,7 @@ class TestColumn:
             c.insert(0, "string")
 
         c = Column(["a", "b"])
-        with pytest.raises(
-            TypeError,
-            match=(
-                "string operation on non-string array"
-                if NUMPY_LT_2_0
-                else "ufunc 'str_len' did not contain a loop"
-            ),
-        ):
+        with pytest.raises(TypeError, match="ufunc 'str_len' did not contain a loop"):
             c.insert(0, 1)
 
     def test_insert_multidim(self, Column):
@@ -440,6 +473,17 @@ class TestColumn:
         assert c.shape == (1, 2)
         assert np.all(c[0].mask == [True, False])
 
+    def test_masked_multidim_nested_list(self):
+        data = [[1, np.ma.masked], [3, 4]]
+        c = _convert_sequence_data_to_array(data)
+        assert c.shape == (2, 2)
+        assert np.all(c.mask == [[False, True], [False, False]])
+
+    def test_contains_ma_masked_scalar(self):
+        # Regression test: ndim=0 should not raise (scalar input)
+        assert _contains_ma_masked(np.ma.masked, 0, np.ma.masked) is True
+        assert _contains_ma_masked(42, 0, np.ma.masked) is False
+
     def test_insert_masked_multidim(self):
         c = table.MaskedColumn([[1, 2], [3, 4]], name="a", dtype=int)
 
@@ -453,6 +497,25 @@ class TestColumn:
 
         with pytest.raises(ValueError):
             c1 = c.insert(1, [100, 200], mask=[True, False, True])
+
+    def test_masked_string_ufunc_dtype_change_fill_value(self):
+        """
+        Regression test for a ufunc that changes the dtype of a
+        MaskedColumn (e.g. np.strings.find applied to a string column,
+        which returns an int array).
+        See https://github.com/astropy/astropy/issues/20257
+        """
+        col = table.MaskedColumn(
+            ["foo", "bar", "baz"], mask=False, fill_value="N/A", dtype="U3"
+        )
+        assert col.fill_value == "N/A"
+        assert col.dtype.kind == "U"
+        # The following used to blow up with TypeError
+        result = np.strings.find(col, "foo")
+
+        assert result.fill_value != "N/A"
+        assert result.dtype.kind == "i"
+        assert result[0] == 0  # "foo" is found at index 0
 
     def test_mask_on_non_masked_table(self):
         """
@@ -1129,6 +1192,19 @@ def test_masked_column_serialize_method_propagation():
     assert mc4.info.serialize_method["ecsv"] == "data_mask"
     mc5 = mc[1:]
     assert mc5.info.serialize_method["ecsv"] == "data_mask"
+
+
+def test_masked_column_deepcopy_info_format_funcs():
+    """Test the fix for #19412"""
+    mc = table.MaskedColumn([1.0, 2.0, 3.0], mask=[True, False, True])
+    # Set a non-default serialize method to make sure that gets copied over.
+    mc.info.serialize_method["ecsv"] = "data_mask"
+
+    mc_copy = copy.deepcopy(mc)
+
+    assert mc_copy.info.serialize_method["ecsv"] == "data_mask"
+    # Prior to the fix, the _format_funcs did not exist on the info object.
+    assert mc_copy.info._format_funcs == {}
 
 
 @pytest.mark.parametrize("dtype", ["S", "U", "i"])

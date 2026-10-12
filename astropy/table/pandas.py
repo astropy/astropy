@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 ascii_coded = (
     "Ò♙♙♙♙♙♙♙♙♌♐♐♌♙♙♙♙♙♙♌♌♙♙Ò♙♙♙♙♙♙♙♘♐♐♐♈♙♙♙♙♙♌♐♐♐♔Ò♙♙♌♈♙♙♌♐♈♈♙♙♙♙♙♙♙♙♈♐♐♙Ò♙♐♙♙♙♐♐♙♙♙"
     "♙♙♙♙♙♙♙♙♙♙♙♙Ò♐♔♙♙♘♐♐♙♙♌♐♐♔♙♙♌♌♌♙♙♙♌Ò♐♐♙♙♘♐♐♌♙♈♐♈♙♙♙♈♐♐♙♙♘♔Ò♐♐♌♙♘♐♐♐♌♌♙♙♌♌♌♙♈♈♙♌♐"
@@ -15,11 +17,11 @@ try:
     html = display.Image(url=url)._repr_html_()
 
     class HTMLWithBackup(display.HTML):
-        def __init__(self, data, backup_text):
+        def __init__(self, data: str, backup_text: str | None) -> None:
             super().__init__(data)
             self.backup_text = backup_text
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             if self.backup_text is None:
                 return super().__repr__()
             else:

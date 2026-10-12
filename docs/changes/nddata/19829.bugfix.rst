@@ -1,0 +1,1 @@
+Fix unexpected behavior in ``Cutout2D.plot_on_original()``. The displayed region spanned pixels not included in the cutout array.

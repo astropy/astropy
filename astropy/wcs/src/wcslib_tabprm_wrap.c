@@ -24,12 +24,12 @@
  ***************************************************************************/
 
 static INLINE void
-note_change(PyTabprm* self) {
+note_change(Tabprm* self) {
   self->x->flag = 0;
 }
 
 static int
-make_fancy_dims(PyTabprm* self, int* ndims, npy_intp* dims) {
+make_fancy_dims(Tabprm* self, int* ndims, npy_intp* dims) {
   int i, M;
 
   M = self->x->M;
@@ -63,20 +63,20 @@ wcslib_tab_to_python_exc(int status) {
 }
 
 /***************************************************************************
- * PyTabprm methods
+ * Tabprm methods
  */
 
 static int
-PyTabprm_traverse(
-    PyTabprm* self, visitproc visit, void *arg) {
+Tabprm_traverse(
+    Tabprm* self, visitproc visit, void *arg) {
   Py_VISIT(self->owner);
   Py_VISIT(Py_TYPE((PyObject*)self));
   return 0;
 }
 
 static int
-PyTabprm_clear(
-    PyTabprm* self) {
+Tabprm_clear(
+    Tabprm* self) {
 
   Py_CLEAR(self->owner);
 
@@ -84,22 +84,22 @@ PyTabprm_clear(
 }
 
 static void
-PyTabprm_dealloc(
-    PyTabprm* self) {
+Tabprm_dealloc(
+    Tabprm* self) {
 
-  PyTabprm_clear(self);
+  Tabprm_clear(self);
   PyTypeObject *tp = Py_TYPE((PyObject*)self);
   freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
   free_func((PyObject*)self);
   Py_DECREF(tp);
 }
 
-PyTabprm*
-PyTabprm_cnew(PyObject* wcsprm, struct tabprm* x) {
-  PyTabprm* self;
-  PyTypeObject* type = (PyTypeObject*)PyTabprmType;
+Tabprm*
+Tabprm_cnew(PyObject* wcsprm, struct tabprm* x) {
+  Tabprm* self;
+  PyTypeObject* type = (PyTypeObject*)TabprmType;
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
-  self = (PyTabprm*)alloc_func(type, 0);
+  self = (Tabprm*)alloc_func(type, 0);
   if (self == NULL) return NULL;
   self->x = x;
   Py_INCREF(wcsprm);
@@ -108,8 +108,8 @@ PyTabprm_cnew(PyObject* wcsprm, struct tabprm* x) {
 }
 
 static int
-PyTabprm_cset(
-    PyTabprm* self) {
+Tabprm_cset(
+    Tabprm* self) {
 
   int status = 0;
 
@@ -124,10 +124,10 @@ PyTabprm_cset(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_set(
-    PyTabprm* self) {
+Tabprm_set(
+    Tabprm* self) {
 
-  if (PyTabprm_cset(self)) {
+  if (Tabprm_cset(self)) {
     return NULL;
   }
 
@@ -135,10 +135,10 @@ PyTabprm_set(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_print_contents(
-    PyTabprm* self) {
+Tabprm_print_contents(
+    Tabprm* self) {
 
-  if (PyTabprm_cset(self)) {
+  if (Tabprm_cset(self)) {
     return NULL;
   }
 
@@ -152,10 +152,10 @@ PyTabprm_print_contents(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm___str__(
-    PyTabprm* self) {
+Tabprm___str__(
+    Tabprm* self) {
 
-  if (PyTabprm_cset(self)) {
+  if (Tabprm_cset(self)) {
     return NULL;
   }
 
@@ -173,8 +173,8 @@ PyTabprm___str__(
  */
 
 /*@null@*/ static PyObject*
-PyTabprm_get_coord(
-    PyTabprm* self,
+Tabprm_get_coord(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   int ndims;
@@ -192,8 +192,8 @@ PyTabprm_get_coord(
 }
 
 /*@null@*/ static int
-PyTabprm_set_coord(
-    PyTabprm* self,
+Tabprm_set_coord(
+    Tabprm* self,
     PyObject* value,
     /*@unused@*/ void* closure) {
 
@@ -212,8 +212,8 @@ PyTabprm_set_coord(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_crval(
-    PyTabprm* self,
+Tabprm_get_crval(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t M = 0;
@@ -228,8 +228,8 @@ PyTabprm_get_crval(
 }
 
 static int
-PyTabprm_set_crval(
-    PyTabprm* self,
+Tabprm_set_crval(
+    Tabprm* self,
     PyObject* value,
     /*@unused@*/ void* closure) {
 
@@ -247,8 +247,8 @@ PyTabprm_set_crval(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_delta(
-    PyTabprm* self,
+Tabprm_get_delta(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t M = 0;
@@ -263,8 +263,8 @@ PyTabprm_get_delta(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_extrema(
-    PyTabprm* self,
+Tabprm_get_extrema(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   int ndims;
@@ -284,8 +284,8 @@ PyTabprm_get_extrema(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_K(
-    PyTabprm* self,
+Tabprm_get_K(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t M = 0;
@@ -300,16 +300,16 @@ PyTabprm_get_K(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_M(
-    PyTabprm* self,
+Tabprm_get_M(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   return get_int("M", self->x->M);
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_map(
-    PyTabprm* self,
+Tabprm_get_map(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t M = 0;
@@ -324,8 +324,8 @@ PyTabprm_get_map(
 }
 
 static int
-PyTabprm_set_map(
-    PyTabprm* self,
+Tabprm_set_map(
+    Tabprm* self,
     PyObject* value,
     /*@unused@*/ void* closure) {
 
@@ -343,16 +343,16 @@ PyTabprm_set_map(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_nc(
-    PyTabprm* self,
+Tabprm_get_nc(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   return get_int("nc", self->x->nc);
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_p0(
-    PyTabprm* self,
+Tabprm_get_p0(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t M = 0;
@@ -367,8 +367,8 @@ PyTabprm_get_p0(
 }
 
 /*@null@*/ static PyObject*
-PyTabprm_get_sense(
-    PyTabprm* self,
+Tabprm_get_sense(
+    Tabprm* self,
     /*@unused@*/ void* closure) {
 
   Py_ssize_t M = 0;
@@ -383,58 +383,58 @@ PyTabprm_get_sense(
 }
 
 /***************************************************************************
- * PyTabprm definition structures
+ * Tabprm definition structures
  */
 
-static PyGetSetDef PyTabprm_getset[] = {
-  {"coord", (getter)PyTabprm_get_coord, (setter)PyTabprm_set_coord, (char *)doc_coord},
-  {"crval", (getter)PyTabprm_get_crval, (setter)PyTabprm_set_crval, (char *)doc_crval_tabprm},
-  {"delta", (getter)PyTabprm_get_delta, NULL, (char *)doc_delta},
-  {"extrema", (getter)PyTabprm_get_extrema, NULL, (char *)doc_extrema},
-  {"K", (getter)PyTabprm_get_K, NULL, (char *)doc_K},
-  {"M", (getter)PyTabprm_get_M, NULL, (char *)doc_M},
-  {"map", (getter)PyTabprm_get_map, (setter)PyTabprm_set_map, (char *)doc_map},
-  {"nc", (getter)PyTabprm_get_nc, NULL, (char *)doc_nc},
-  {"p0", (getter)PyTabprm_get_p0, NULL, (char *)doc_p0},
-  {"sense", (getter)PyTabprm_get_sense, NULL, (char *)doc_sense},
+static PyGetSetDef Tabprm_getset[] = {
+  {"coord", (getter)Tabprm_get_coord, (setter)Tabprm_set_coord, (char *)doc_coord},
+  {"crval", (getter)Tabprm_get_crval, (setter)Tabprm_set_crval, (char *)doc_crval_tabprm},
+  {"delta", (getter)Tabprm_get_delta, NULL, (char *)doc_delta},
+  {"extrema", (getter)Tabprm_get_extrema, NULL, (char *)doc_extrema},
+  {"K", (getter)Tabprm_get_K, NULL, (char *)doc_K},
+  {"M", (getter)Tabprm_get_M, NULL, (char *)doc_M},
+  {"map", (getter)Tabprm_get_map, (setter)Tabprm_set_map, (char *)doc_map},
+  {"nc", (getter)Tabprm_get_nc, NULL, (char *)doc_nc},
+  {"p0", (getter)Tabprm_get_p0, NULL, (char *)doc_p0},
+  {"sense", (getter)Tabprm_get_sense, NULL, (char *)doc_sense},
   {NULL}
 };
 
-static PyMethodDef PyTabprm_methods[] = {
-  {"print_contents", (PyCFunction)PyTabprm_print_contents, METH_NOARGS, doc_print_contents_tabprm},
-  {"set", (PyCFunction)PyTabprm_set, METH_NOARGS, doc_set_tabprm},
+static PyMethodDef Tabprm_methods[] = {
+  {"print_contents", (PyCFunction)Tabprm_print_contents, METH_NOARGS, doc_print_contents_tabprm},
+  {"set", (PyCFunction)Tabprm_set, METH_NOARGS, doc_set_tabprm},
   {NULL}
 };
 
-static PyType_Spec PyTabprmType_spec = {
+static PyType_Spec TabprmType_spec = {
   .name = "astropy.wcs.Tabprm",
-  .basicsize = sizeof(PyTabprm),
+  .basicsize = sizeof(Tabprm),
   .itemsize = 0,
   .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_IMMUTABLETYPE,
   .slots = (PyType_Slot[]) {
-    {Py_tp_dealloc, (destructor)PyTabprm_dealloc},
-    {Py_tp_str, (reprfunc)PyTabprm___str__},
+    {Py_tp_dealloc, (destructor)Tabprm_dealloc},
+    {Py_tp_str, (reprfunc)Tabprm___str__},
     {Py_tp_doc, doc_Tabprm},
-    {Py_tp_traverse, (traverseproc)PyTabprm_traverse},
-    {Py_tp_clear, (inquiry)PyTabprm_clear},
-    {Py_tp_getset, PyTabprm_getset},
-    {Py_tp_methods, PyTabprm_methods},
+    {Py_tp_traverse, (traverseproc)Tabprm_traverse},
+    {Py_tp_clear, (inquiry)Tabprm_clear},
+    {Py_tp_getset, Tabprm_getset},
+    {Py_tp_methods, Tabprm_methods},
     {0, NULL},
   },
 };
 
-PyObject* PyTabprmType = NULL;
+PyObject* TabprmType = NULL;
 
 int
 _setup_tabprm_type(
     PyObject* m) {
 
-  PyTabprmType = PyType_FromSpec(&PyTabprmType_spec);
-  if (PyTabprmType == NULL) {
+  TabprmType = PyType_FromSpec(&TabprmType_spec);
+  if (TabprmType == NULL) {
     return -1;
   }
 
-  PyModule_AddObject(m, "Tabprm", PyTabprmType);
+  PyModule_AddObject(m, "Tabprm", TabprmType);
 
   tab_errexc[0] = NULL;                         /* Success */
   tab_errexc[1] = &PyExc_MemoryError;           /* Null wcsprm pointer passed */

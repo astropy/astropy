@@ -1,7 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from collections.abc import Callable
-from typing import TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
@@ -9,10 +8,10 @@ from numpy.typing import NDArray
 __all__ = ["jackknife_resampling", "jackknife_stats"]
 __doctest_requires__ = {"jackknife_stats": ["scipy"]}
 
-DT = TypeVar("DT", bound=np.generic)
 
-
-def jackknife_resampling(data: NDArray[DT]) -> NDArray[DT]:
+def jackknife_resampling(
+    data: np.ndarray[tuple[int], np.dtype[np.number]],
+) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
     """Performs jackknife resampling on numpy arrays.
 
     Jackknife resampling is a technique to generate 'n' deterministic samples

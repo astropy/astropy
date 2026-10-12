@@ -13,6 +13,7 @@ import subprocess
 from collections import defaultdict
 from contextlib import contextmanager
 from itertools import pairwise
+from typing import Final
 
 from astropy.coordinates.transformations.affine import (
     AffineTransform,
@@ -29,12 +30,13 @@ __all__ = ["TransformGraph"]
 
 
 # map class names to colorblind-safe colors
-trans_to_color = {}
-trans_to_color[AffineTransform] = "#555555"  # gray
-trans_to_color[FunctionTransform] = "#783001"  # dark red-ish/brown
-trans_to_color[FunctionTransformWithFiniteDifference] = "#d95f02"  # red-ish
-trans_to_color[StaticMatrixTransform] = "#7570b3"  # blue-ish
-trans_to_color[DynamicMatrixTransform] = "#1b9e77"  # green-ish
+trans_to_color: Final = {
+    AffineTransform: "#555555",  # gray
+    FunctionTransform: "#783001",  # dark red-ish/brown
+    FunctionTransformWithFiniteDifference: "#d95f02",  # red-ish
+    StaticMatrixTransform: "#7570b3",  # blue-ish
+    DynamicMatrixTransform: "#1b9e77",  # green-ish
+}
 
 
 def frame_attrs_from_set(frame_set):
@@ -606,9 +608,9 @@ class TransformGraph:
         priority : float or int
             The priority if this transform when finding the shortest
             coordinate transform path - large numbers are lower priorities.
-
-        Additional keyword arguments are passed into the ``transcls``
-        constructor.
+        **kwargs
+            Additional keyword arguments are passed into the ``transcls``
+            constructor.
 
         Returns
         -------

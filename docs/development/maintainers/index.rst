@@ -1,3 +1,5 @@
+.. _maintainers-index:
+
 Maintaining astropy and affiliated packages
 -------------------------------------------
 
@@ -6,5 +8,6 @@ Maintaining astropy and affiliated packages
 
    astropy-package-template
    maintainer_workflow
+   managing-dependencies
    releasing
    testhelpers

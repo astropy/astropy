@@ -171,3 +171,91 @@ class TestCompressionFunction(FitsTestCase):
             compress_image_data(
                 hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
+
+    @pytest.mark.parametrize(
+        ("numpy_dtype", "fits_format", "big_endian_dtype"),
+        [
+            (np.int16, "1PI", ">i2"),
+            (np.float32, "1PE", ">f4"),
+        ],
+    )
+    def test_uncompressed_data_column(
+        self, tmp_path, numpy_dtype, fits_format, big_endian_dtype
+    ):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/15477
+
+        Test that data stored in UNCOMPRESSED_DATA column is correctly read.
+        UNCOMPRESSED_DATA columns can have integer (PI, PJ) or floating-point
+        (PE, PD) formats. This tests the case where some tiles have their data
+        in UNCOMPRESSED_DATA instead of COMPRESSED_DATA (which can happen when
+        compression fails for certain tiles).
+        """
+        tile_size = 5
+        original_data = np.arange(100, dtype=numpy_dtype).reshape((10, 10))
+        hdu = fits.CompImageHDU(
+            data=original_data,
+            compression_type="RICE_1",
+            tile_shape=(tile_size, tile_size),
+        )
+
+        filename = tmp_path / "test_uncompressed_tiles.fits"
+        hdu.writeto(filename)
+
+        # Read and modify: put first tile's data in UNCOMPRESSED_DATA instead.
+        # This simulates a file created by another tool (like cfitsio directly).
+        with fits.open(filename, disable_image_compression=True) as hdul:
+            orig_table = hdul[1].data
+            orig_header = hdul[1].header.copy()
+            orig_cols = hdul[1].columns
+            n_tiles = len(orig_table)
+
+            compressed_col_data = np.empty(n_tiles, dtype=object)
+            uncompressed_col_data = np.empty(n_tiles, dtype=object)
+
+            for i in range(n_tiles):
+                if i == 0:
+                    # First tile: put in UNCOMPRESSED_DATA, leave COMPRESSED_DATA empty
+                    compressed_col_data[i] = np.array([], dtype=np.uint8)
+                    tile_data = original_data[:tile_size, :tile_size].flatten()
+                    uncompressed_col_data[i] = tile_data.astype(big_endian_dtype)
+                else:
+                    # Other tiles: keep in COMPRESSED_DATA
+                    compressed_col_data[i] = orig_table["COMPRESSED_DATA"][i]
+                    uncompressed_col_data[i] = np.array([], dtype=numpy_dtype)
+
+            # Build column list: COMPRESSED_DATA, UNCOMPRESSED_DATA, plus any
+            # other columns from the original (ZSCALE, ZZERO for float data)
+            new_col_list = [
+                fits.Column(
+                    name="COMPRESSED_DATA",
+                    format=orig_cols["COMPRESSED_DATA"].format,
+                    array=compressed_col_data,
+                ),
+                fits.Column(
+                    name="UNCOMPRESSED_DATA",
+                    format=f"{fits_format}({tile_size * tile_size})",
+                    array=uncompressed_col_data,
+                ),
+            ]
+
+            # Preserve other columns (ZSCALE, ZZERO, etc.) needed for quantized data
+            for col in orig_cols:
+                if col.name not in ("COMPRESSED_DATA", "GZIP_COMPRESSED_DATA"):
+                    new_col_list.append(
+                        fits.Column(
+                            name=col.name,
+                            format=col.format,
+                            array=orig_table[col.name],
+                        )
+                    )
+
+            new_cols = fits.ColDefs(new_col_list)
+            new_table = fits.BinTableHDU.from_columns(new_cols, header=orig_header)
+            modified_filename = tmp_path / "test_uncompressed_tiles_modified.fits"
+            fits.HDUList([hdul[0].copy(), new_table]).writeto(modified_filename)
+
+        # Verify the data is correctly read. Use atol=0.1 to account for
+        # quantization noise in float data (ZSCALE is typically ~0.13 for this data)
+        with fits.open(modified_filename) as hdul:
+            np.testing.assert_allclose(hdul[1].data, original_data, atol=0.1)

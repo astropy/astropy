@@ -33,7 +33,7 @@ doc_footer_lsr = """
         The velocity of the solar system barycenter with respect to the LSR, in
         Galactic cartesian velocity components.
 
-    .. versionchanged :: 8.0
+    .. versionchanged:: 8.0
        ``v_bary`` is now a `~astropy.coordinates.CartesianRepresentation`
        rather than a `~astropy.coordinates.CartesianDifferential`.
 """

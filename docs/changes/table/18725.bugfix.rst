@@ -1,2 +1,0 @@
-Fix bugs when indexing a ``QTable`` with a ``Quantity`` column. Previously, after adding
-the index then indexed item access via with a ``Quantity`` or slicing was failing.

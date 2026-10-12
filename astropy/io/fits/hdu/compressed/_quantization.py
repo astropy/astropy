@@ -55,6 +55,10 @@ class Quantize:
         ----------
         buf : bytes or array_like
             The buffer to unquantize.
+        scale : float
+            The scale factor (``ZSCALE``) to apply to the quantized values.
+        zero : float
+            The zero offset (``ZZERO``) to add to the scaled values.
 
         Returns
         -------

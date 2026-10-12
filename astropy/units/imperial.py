@@ -171,7 +171,7 @@ def enable() -> _UnitContext:
     `~astropy.units.UnitBase.find_equivalent_units` and
     `~astropy.units.UnitBase.compose`.
 
-    This may be used with the ``with`` statement to enable Imperial
-    units only temporarily.
+    This may be used with the ``with`` statement or as a decorator
+    to enable Imperial units only temporarily.
     """
     return add_enabled_units(globals())

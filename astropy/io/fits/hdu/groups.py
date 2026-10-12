@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 
+import math
 import sys
 
 import numpy as np
@@ -339,7 +340,7 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         bscales.append(self._header.get("BSCALE"))
         bzeros.append(self._header.get("BZEROS"))
         data_shape = self.shape[:-1]
-        formats.append(str(int(np.prod(data_shape))) + format)
+        formats.append(str(math.prod(data_shape)) + format)
         dim.append(data_shape)
         parnames = _unique_parnames(parnames)
 
@@ -508,16 +509,16 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
 
         # Verify locations and values of mandatory keywords.
         self.req_cards(
-            "NAXIS", 2, lambda v: (_is_int(v) and 1 <= v <= 999), 1, option, errs
+            "NAXIS", 2, lambda v: _is_int(v) and 1 <= v <= 999, 1, option, errs
         )
-        self.req_cards("NAXIS1", 3, lambda v: (_is_int(v) and v == 0), 0, option, errs)
+        self.req_cards("NAXIS1", 3, lambda v: _is_int(v) and v == 0, 0, option, errs)
 
         after = self._header["NAXIS"] + 3
         pos = lambda x: x >= after
 
         self.req_cards("GCOUNT", pos, _is_int, 1, option, errs)
         self.req_cards("PCOUNT", pos, _is_int, 0, option, errs)
-        self.req_cards("GROUPS", pos, lambda v: (v is True), True, option, errs)
+        self.req_cards("GROUPS", pos, lambda v: v is True, True, option, errs)
         return errs
 
     def _calculate_datasum(self):

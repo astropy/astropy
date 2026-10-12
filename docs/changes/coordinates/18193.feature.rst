@@ -1,7 +1,0 @@
-Allow ``np.concatenate``, ``np.stack`` and similar numpy functions to
-be applied on representations and differentials.
-
-They can also be applied to coordinate frames and ``SkyCoord``, though
-with the same limitation as for setting elements of frames and
-coordinates: all frame attributes have to be scalars (or arrays with
-only identical elements).

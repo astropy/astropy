@@ -1,1 +1,0 @@
-Enable color and suggestion-on-typos in ``samp_hub`` CLI for Python 3.14

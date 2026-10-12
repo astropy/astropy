@@ -496,3 +496,25 @@ def test_periodogram(cls):
 
     p3 = cls.from_timeseries(ts, "a", uncertainty=0.1)
     assert_allclose(p3.dy, 0.1)
+
+
+def test_time_bin_start_index_from_indexed_column():
+    # A BinnedTimeSeries built from columns that already carry an index on
+    # ``time_bin_start`` (a column slice, or the column of another series)
+    # gets exactly one index, and it is the primary key.
+    ts = BinnedTimeSeries(
+        time_bin_start=Time([1, 2, 3], format="mjd"),
+        time_bin_size=1 * u.d,
+        data=[[1, 4, 3]],
+        names=["a"],
+    )
+
+    ts_sub = ts["time_bin_start", "time_bin_size", "a"]
+    assert [index.id for index in ts_sub.indices] == [("time_bin_start",)]
+    assert ts_sub.primary_key == ("time_bin_start",)
+
+    ts2 = BinnedTimeSeries(
+        time_bin_start=ts.time_bin_start, time_bin_size=ts.time_bin_size
+    )
+    assert [index.id for index in ts2.indices] == [("time_bin_start",)]
+    assert ts2.primary_key == ("time_bin_start",)

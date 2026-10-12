@@ -2,7 +2,7 @@
 
 import json
 import locale
-import os
+import sys
 import urllib.error
 from datetime import datetime
 
@@ -11,7 +11,7 @@ import pytest
 
 from astropy.io import fits
 from astropy.tests.helper import CI
-from astropy.utils import data, misc
+from astropy.utils import misc
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -35,8 +35,10 @@ def test_isiterable(obj, expectation):
 @pytest.mark.remote_data
 def test_api_lookup():
     try:
-        strurl = misc.find_api_page("astropy.utils.misc", "dev", False, timeout=5)
-        objurl = misc.find_api_page(misc, "dev", False, timeout=5)
+        with pytest.warns(AstropyDeprecationWarning, match="Use online_help instead.$"):
+            strurl = misc.find_api_page("astropy.utils.misc", "dev", False, timeout=5)
+        with pytest.warns(AstropyDeprecationWarning, match="Use online_help instead.$"):
+            objurl = misc.find_api_page(misc, "dev", False, timeout=5)
     except (urllib.error.URLError, TimeoutError):
         if CI:
             pytest.xfail("Timed out in CI")
@@ -50,36 +52,12 @@ def test_api_lookup():
     )
 
     # Try a non-dev version
-    objurl = misc.find_api_page(misc, "stable", False, timeout=3)
+    with pytest.warns(AstropyDeprecationWarning, match="Use online_help instead.$"):
+        objurl = misc.find_api_page(misc, "stable", False, timeout=3)
     assert (
         objurl
         == "https://docs.astropy.org/en/stable/utils/ref_api.html#module-astropy.utils.misc"
     )
-
-
-def test_is_path_hidden_deprecation():
-    with pytest.warns(
-        AstropyDeprecationWarning, match="^The is_path_hidden function is deprecated"
-    ):
-        misc.is_path_hidden("data")
-
-
-# This is the only test that uses astropy/utils/tests/data/.hidden_file.txt
-def test_skip_hidden():
-    path = data.get_pkg_data_path("data")
-    for _, _, files in os.walk(path):
-        assert ".hidden_file.txt" in files
-        assert "local.dat" in files
-        # break after the first level since the data dir contains some other
-        # subdirectories that don't have these files
-        break
-    with pytest.warns(
-        AstropyDeprecationWarning, match="^The .*_hidden function is deprecated"
-    ):
-        for _, _, files in misc.walk_skip_hidden(path):
-            assert ".hidden_file.txt" not in files
-            assert "local.dat" in files
-            break
 
 
 def test_JsonCustomEncoder():
@@ -135,6 +113,7 @@ def test_JsonCustomEncoder_FITS_rec_from_files():
         )
 
 
+@pytest.mark.xfail(sys.platform == "emscripten", reason="known failure on emscripten")
 def test_set_locale():
     # First, test if the required locales are available
     current = locale.setlocale(locale.LC_ALL)
@@ -178,3 +157,12 @@ def test_indent_deprecation():
 def test_format_exception_deprecation():
     with pytest.warns(AstropyDeprecationWarning):
         misc.format_exception("this is deprecated")
+
+
+def test_silence_stdout_file_protocol():
+    import sys
+
+    with misc.silence():
+        assert sys.stdout.isatty() is False
+        sys.stdout.flush()
+        sys.stdout.write("ignored")

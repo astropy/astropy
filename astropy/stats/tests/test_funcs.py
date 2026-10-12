@@ -60,7 +60,7 @@ def test_median_absolute_deviation():
 
 
 def test_median_absolute_deviation_masked():
-    # Based on the changes introduces in #4658
+    # Based on the changes introduced in #4658
 
     # normal masked arrays without masked values are handled like normal
     # numpy arrays
@@ -101,6 +101,18 @@ def test_median_absolute_deviation_nans():
 
     array = np.ma.masked_invalid(array)
     assert funcs.median_absolute_deviation(array) == 1
+
+
+def test_median_absolute_deviation_nans_with_np_ma_median():
+    # Check that if we use np.ma.median, we do not get MaskedArray back. See
+    # https://github.com/astropy/astropy/pull/19858#pullrequestreview-4426259506
+    array = np.array([[1, 4, 3, np.nan], [2, 5, np.nan, 4]])
+    got = funcs.median_absolute_deviation(array, func=np.ma.median, axis=1)
+    assert type(got) is np.ndarray
+    assert_equal(got, [np.nan, np.nan])
+    got = funcs.median_absolute_deviation(array, func=np.ma.median)
+    assert type(got) is np.float64
+    assert np.isnan(got)
 
 
 def test_median_absolute_deviation_nans_masked():

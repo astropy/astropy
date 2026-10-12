@@ -1,1 +1,0 @@
-Bundled ``expat`` is updated to version 2.7.3.

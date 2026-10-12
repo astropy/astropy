@@ -41,8 +41,8 @@ def normal(
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
-
-    Remaining keywords are passed into the constructor of the ``cls``
+    **kwargs
+        Remaining keywords are passed into the constructor of the ``cls``.
 
     Returns
     -------
@@ -61,7 +61,7 @@ def normal(
         if std is None:
             std = np.asanyarray(ivar) ** -0.5
         else:
-            raise ValueError("normal cannot take both ivar and and std or var")
+            raise ValueError("normal cannot take both ivar and std or var")
     if std is None:
         raise ValueError("normal requires one of std, var, or ivar")
     else:
@@ -99,8 +99,8 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
-
-    Remaining keywords are passed into the constructor of the ``cls``
+    **kwargs
+        Remaining keywords are passed into the constructor of the ``cls``.
 
     Returns
     -------
@@ -173,8 +173,8 @@ def uniform(
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
-
-    Remaining keywords are passed into the constructor of the ``cls``
+    **kwargs
+        Remaining keywords are passed into the constructor of the ``cls``.
 
     Returns
     -------
@@ -199,11 +199,8 @@ def uniform(
         )
 
     newshape = lower.shape + (n_samples,)
-    if lower.shape == () and upper.shape == ():
-        width = upper - lower  # scalar
-    else:
-        width = (upper - lower)[:, np.newaxis]
-        lower = lower[:, np.newaxis]
+    width = (upper - lower)[..., np.newaxis]
+    lower = lower[..., np.newaxis]
     samples = lower + width * np.random.uniform(size=newshape)
 
     return cls(samples, **kwargs)

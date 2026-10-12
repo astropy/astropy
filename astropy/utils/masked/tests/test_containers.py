@@ -8,7 +8,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import representation as r
 from astropy.time import Time
-from astropy.utils.masked import Masked
+from astropy.utils.masked import Masked, get_data_and_mask
 
 
 class TestRepresentations:
@@ -30,6 +30,14 @@ class TestRepresentations:
         assert_array_equal(self.mc.x, self.mx)
         assert_array_equal(self.mc.y, self.my)
         assert_array_equal(self.mc.z, self.mz)
+
+    def test_get_data_and_mask(self):
+        c, m = get_data_and_mask(self.c)
+        assert m is None
+        assert c is self.c
+        c, m = get_data_and_mask(self.mc)
+        assert_array_equal(m, self.mask)
+        assert not c.masked
 
     def test_norm(self):
         # Need stacking and erfa override.
@@ -73,6 +81,14 @@ class TestSkyCoord:
         assert_array_equal(check.mask, self.mask)
         assert_array_equal(self.msc.data.lon, self.mra)
         assert_array_equal(self.msc.data.lat, self.mdec)
+
+    def test_get_data_and_mask(self):
+        sc, m = get_data_and_mask(self.sc)
+        assert m is None
+        assert sc is self.sc
+        sc, m = get_data_and_mask(self.msc)
+        assert_array_equal(m, self.mask)
+        assert not sc.masked
 
     def test_transformation(self):
         gcrs = self.sc.gcrs
@@ -128,6 +144,14 @@ class TestTime:
         assert_array_equal(self.mt.jd2.mask, self.mask)
         assert_array_equal(self.mt.jd1.unmasked, self.t.jd1)
         assert_array_equal(self.mt.jd2.unmasked, self.t.jd2)
+
+    def test_get_data_and_mask(self):
+        t, m = get_data_and_mask(self.t)
+        assert m is None
+        assert t is self.t
+        t, m = get_data_and_mask(self.mt)
+        assert_array_equal(m, self.mask)
+        assert not t.masked
 
     @pytest.mark.parametrize("format_", ["jd", "cxcsec", "jyear"])
     def test_different_formats(self, format_):

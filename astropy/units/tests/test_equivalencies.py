@@ -836,6 +836,25 @@ def test_equivalency_context_manager():
     assert base_registry is u.get_current_unit_registry()
 
 
+def test_equivalency_context_decorator():
+    def tangential_velocity(distance, proper_motion):
+        return (distance * proper_motion).to("km/s")
+
+    @u.set_enabled_equivalencies(u.dimensionless_angles())
+    def decorated_tangential_velocity(distance, proper_motion):
+        return tangential_velocity(distance, proper_motion)
+
+    distance = 1 * u.kpc
+    proper_motion = 1.0 * u.mas / u.yr
+
+    # Decorated function should work with the equivalency enabled
+    decorated_tangential_velocity(distance, proper_motion)
+
+    # Decorator of other function should not affect any global state
+    with pytest.raises(u.UnitConversionError):
+        tangential_velocity(distance, proper_motion)
+
+
 def test_temperature():
     from astropy.units.imperial import deg_F, deg_R
 

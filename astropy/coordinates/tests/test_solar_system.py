@@ -24,7 +24,6 @@ from astropy.coordinates.solar_system import (
 from astropy.tests.helper import CI, assert_quantity_allclose
 from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
-from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_JPLEPHEM, HAS_SKYFIELD
 from astropy.utils.data import download_file, get_pkg_data_filename
 
@@ -358,12 +357,12 @@ def test_ephemeris_non_existing_url(monkeypatch):
         raise HTTPError(code=404, msg="Not Found", fp=None, hdrs=None, url="")
 
     monkeypatch.setattr("urllib.request.OpenerDirector.open", request_invalid_url)
-    with pytest.raises(HTTPError, match="^HTTP Error 404: Not Found$"):
-        get_body(
-            "earth",
-            time=Time("1960-01-12 00:00"),
-            ephemeris="https://www.astropy.org/path/to/nonexisting/file.bsp",
-        )
+    url = "https://www.astropy.org/path/to/nonexisting/file.bsp"
+    with pytest.raises(
+        HTTPError,
+        match=f"^HTTP Error 404: Not Found\nrequested URL: {url}$",
+    ):
+        get_body("earth", time=Time("1960-01-12 00:00"), ephemeris=url)
 
 
 @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
@@ -372,7 +371,10 @@ def test_ephemeris_non_existing_url(monkeypatch):
     [
         pytest.param(
             "de001",
-            pytest.raises(HTTPError, match="^HTTP Error 404: Not Found$"),
+            pytest.raises(
+                HTTPError,
+                match="^HTTP Error 404: Not Found\nrequested URL: https://",
+            ),
             marks=pytest.mark.remote_data,
             id="non_existing_JPL_ephemeris_version",
         ),
@@ -396,10 +398,8 @@ def test_ephemeris_wrong_input(ephemeris, expected_error):
         get_body("earth", Time("1960-01-12 00:00"), ephemeris=ephemeris)
 
 
-# jplephem<2.23 leaves the file open (a ResourceWarning is emitted)
-@pytest.mark.filterwarnings(
-    "error" if minversion("jplephem", "2.23") else "ignore", category=ResourceWarning
-)
+# jplephem failure to open file emits a ResourceWarning
+@pytest.mark.filterwarnings("ignore", category=ResourceWarning)
 @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
 def test_ephemeris_local_file_not_ephemeris():
     with pytest.raises(ValueError, match="^file starts"):

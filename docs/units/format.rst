@@ -204,12 +204,12 @@ formats:
     `Office of Guest Investigator Programs (OGIP)
     <https://heasarc.gsfc.nasa.gov/docs/heasarc/ofwg/docs/general/ogip_93_001/>`_.
 
-`astropy.units` is also able to write, but not read, units in the
-following formats:
+`astropy.units` is also able to write units in the following formats, but
+parsing depends on the format, see details below:
 
   - ``"latex"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
+    <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_
     recommendations for unit presentation. This format is
     automatically used when printing a unit in the |IPython| notebook::
 
@@ -224,7 +224,7 @@ following formats:
 
   - ``"latex_inline"``: Writes units out using LaTeX math syntax using the
     `IAU Style Manual
-    <https://www.iau.org/static/publications/stylemanual1989.pdf>`_
+    <https://iauarchive.eso.org/static/publications/stylemanual1989.pdf>`_
     recommendations for unit presentation, using negative powers instead of
     fractions, as required by some journals (e.g., `Apj and AJ
     <https://journals.aas.org/manuscript-preparation/>`_).
@@ -257,8 +257,12 @@ following formats:
       ------
       s cm^2
 
-  - ``"unicode"``: Same as ``"console"``, except uses Unicode
-    characters::
+    The ``"console"`` format is not meant to be parsed back to |Unit| objects, even
+    though it does generally work as long as no scale factors are present and one
+    does not use ``fraction="multiline"``.
+
+  - ``"unicode"``: Same as ``"console"``, except uses Unicode characters.
+    Similar restrictions for parsing the output back apply::
 
       >>> print(u.Ry.decompose().to_string('unicode'))  # doctest: +FLOAT_CMP
       2.1798724×10⁻¹⁸ m² kg s⁻²

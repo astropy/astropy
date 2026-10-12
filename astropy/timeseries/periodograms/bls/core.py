@@ -392,7 +392,11 @@ class BoxLeastSquares(BasePeriodogram):
             reset = np.abs(times.to_value(u.year)) > 100000
             times[reset] = 0
             times = self._tstart + times
-            times[reset] = np.nan
+            # Setting to NaN masks the elements, which turns ``times`` into a
+            # masked Time. Only do so if there is something to mask, so that
+            # the result is masked only if it needs to be.
+            if np.any(reset):
+                times[reset] = np.nan
         return times
 
     def model(self, t_model, period, duration, transit_time):

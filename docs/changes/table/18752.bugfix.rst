@@ -1,5 +1,0 @@
-Fix a bug where the ECSV writer was not correctly quoting column names if the first name
-starts with the "#" character or any names contain leading/trailing whitespace. In this
-situation, all column names are now surrounded by double quotes per the ECSV standard.
-Likewise the ECSV reader was incorrectly stripping surrounding whitespace from column
-names, leading to a consistency check failure when reading.

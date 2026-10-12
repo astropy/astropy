@@ -1,0 +1,1 @@
+Flipped ``astropy.utils.data.conf.dataurl`` and ``astropy.utils.data.conf.dataurl_mirror`` to reduce URL redirect, in hope to reduce service denial.

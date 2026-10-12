@@ -360,6 +360,12 @@ class StructuredUnit:
         if not isinstance(other, type(self)):
             other = self.__class__(other, names=self)
 
+        return self._get_converter(other, equivalencies=equivalencies)
+
+    get_converter.__doc__ = UnitBase.get_converter.__doc__
+
+    def _get_converter(self, other, equivalencies=[]):
+        # Private function of above that requires other to be a StructuredUnit.
         converters = [
             self_part.get_converter(other_part, equivalencies=equivalencies)
             for (self_part, other_part) in zip(self.values(), other.values())
@@ -375,8 +381,6 @@ class StructuredUnit:
             return result if result.shape else result[()]
 
         return converter
-
-    get_converter.__doc__ = UnitBase.get_converter.__doc__
 
     def to(self, other, value=np._NoValue, equivalencies=[]):
         """Return values converted to the specified unit.

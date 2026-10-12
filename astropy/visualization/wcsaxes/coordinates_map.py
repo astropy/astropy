@@ -35,7 +35,7 @@ class CoordinatesMap:
     frame_class : type, optional
         The class for the frame, which should be a subclass of
         :class:`~astropy.visualization.wcsaxes.frame.BaseFrame`. The default is to use a
-        :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`
+        :class:`~astropy.visualization.wcsaxes.frame.RectangularFrame`.
     previous_frame_path : `~matplotlib.path.Path`, optional
         When changing the WCS of the axes, the frame instance will change but
         we might want to keep reusing the same underlying matplotlib
@@ -140,7 +140,7 @@ class CoordinatesMap:
         Parameters
         ----------
         draw_grid : bool
-            Whether to show the gridlines
+            Whether to show the gridlines.
         grid_type : { 'lines' | 'contours' }
             Whether to plot the contours by determining the grid lines in
             world coordinates and then plotting them in world coordinates
@@ -150,6 +150,10 @@ class CoordinatesMap:
             for 3-d (or higher dimensional) cubes, the ``'contours'`` option
             is recommended. By default, 'lines' is used if the transform has
             an inverse, otherwise 'contours' is used.
+        **kwargs
+            Additional keyword arguments are passed to
+            `~astropy.visualization.wcsaxes.CoordinateHelper.grid` for each
+            coordinate.
         """
         for coord in self:
             coord.grid(draw_grid=draw_grid, grid_type=grid_type, **kwargs)

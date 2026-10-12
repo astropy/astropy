@@ -17,7 +17,7 @@ from numpy import linalg
 from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 
 from astropy.modeling import models
-from astropy.modeling.core import Fittable2DModel, Parameter
+from astropy.modeling.core import Fittable1DModel, Fittable2DModel, Parameter
 from astropy.modeling.fitting import (
     DogBoxLSQFitter,
     Fitter,
@@ -30,7 +30,9 @@ from astropy.modeling.fitting import (
     SimplexLSQFitter,
     SLSQPLSQFitter,
     TRFLSQFitter,
+    _convert_input,
     _NLLSQFitter,
+    _verify_dims_in_fitting,
     populate_entry_points,
 )
 from astropy.modeling.optimizers import Optimization
@@ -189,6 +191,28 @@ class TestJointFitter:
         self.ny2 = y2 + 2 * n
         self.jf(self.x, self.ny1, self.x, self.ny2)
 
+        self.g3 = models.Gaussian1D(amplitude=10, mean=14.9, stddev=0.3)
+        self.g4 = models.Gaussian1D(amplitude=10, mean=13, stddev=0.4)
+        self.jf2_joint_param_guesses = [9.8, 14]
+        self.jf2 = JointFitter(
+            [self.g3, self.g4],
+            {self.g3: ["amplitude", "mean"], self.g4: ["amplitude", "mean"]},
+            self.jf2_joint_param_guesses,
+        )
+
+    def test_initial_parameter_values(self):
+        """
+        Tests that the correct initial values for fitting are obtained.
+        """
+        assert_allclose(
+            self.jf2.fitparams,
+            [
+                *self.jf2_joint_param_guesses,
+                self.g3.parameters[-1],
+                self.g4.parameters[-1],
+            ],
+        )
+
     def test_joint_parameter(self):
         """
         Tests that the amplitude of the two models is the same
@@ -249,7 +273,7 @@ class TestLinearLSQFitter:
         fitter = LinearLSQFitter()
 
         fitted_model = fitter(initial_model, record.x, record.z)
-        assert_allclose(fitted_model.parameters, np.array(coeffs), rtol=10e-2)
+        assert_allclose(fitted_model.parameters, np.array(coeffs), rtol=1e-1)
 
     def test_linear_fit_model_set(self):
         """Tests fitting multiple models simultaneously."""
@@ -1562,3 +1586,114 @@ def test_inplace_fitting(fitter_cls):
     assert m_fit is m_ini
     assert_almost_equal(m_ini.amplitude, 2.0)
     assert_almost_equal(m_fit.amplitude, 2.0)
+
+
+class RebinnedLinear1D(Fittable1DModel):
+    """
+    A model evaluated on ``x`` but returning a coarser grid, so that the input
+    coordinates and the model output legitimately have different lengths.
+    """
+
+    verify_dims_in_fitting = False
+
+    intercept = Parameter(default=0.0)
+    slope = Parameter(default=1.0)
+
+    @staticmethod
+    def evaluate(x, intercept, slope):
+        y = intercept + slope * x
+        return np.interp(np.linspace(x.min(), x.max(), 7), x, y)
+
+
+def test_verify_dims_in_fitting_default():
+    assert _verify_dims_in_fitting(None)
+    assert _verify_dims_in_fitting(models.Linear1D())
+
+
+def test_verify_dims_in_fitting_leaf_wins():
+    """An opt-out on any leaf disables the check for the whole compound model."""
+    assert _verify_dims_in_fitting(models.Linear1D() | models.Shift())
+    assert not _verify_dims_in_fitting(RebinnedLinear1D() | models.Shift())
+
+
+def test_convert_input_verify_dims_1d():
+    x = np.arange(5.0)
+    y = np.arange(3.0)
+
+    MESSAGE = r"x and y should have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
+        _convert_input(x, y)
+
+    assert len(_convert_input(x, y, verify_dims=False)) == 2
+
+
+def test_convert_input_verify_dims_2d():
+    x = np.zeros((5, 4))
+    y = np.zeros((5, 4))
+    z = np.zeros((5, 3))
+
+    MESSAGE = r"x, y and z should have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
+        _convert_input(x, y, z)
+
+    assert len(_convert_input(x, y, z, verify_dims=False)) == 3
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
+def test_fitting_verifies_dims_by_default(fitter):
+    fitter = fitter()
+
+    x = np.linspace(0, 10, 25)
+    y = models.Lorentz1D(1.0, 5.0, 1.0)(x)
+
+    MESSAGE = r"x and y should have the same shape"
+    with pytest.raises(ValueError, match=MESSAGE):
+        fitter(models.Lorentz1D(), x, y[:10])
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("fitter", non_linear_fitters + fitters)
+def test_fitting_with_mismatched_dims(fitter):
+    """Models that opt out are fit even though ``x`` and ``y`` differ in shape."""
+    fitter = fitter()
+
+    x = np.linspace(0, 10, 25)
+    y = RebinnedLinear1D(intercept=3.0, slope=2.0)(x)
+    assert x.shape != y.shape
+
+    model = fitter(RebinnedLinear1D(), x, y)
+
+    assert_allclose(model.intercept.value, 3.0, rtol=1e-4)
+    assert_allclose(model.slope.value, 2.0, rtol=1e-4)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("fitter", non_linear_fitters_bounds)
+def test_estimate_jacobian_large_parameter_value(fitter):
+    """
+    Regression test that a fit with a finite-difference Jacobian does
+    not depend on the size of the parameter values.
+
+    The finite-difference step is relative to the parameter value. A
+    narrow peak far from the coordinate origin therefore needs a small
+    relative step for the fit to reach the same minimum as the fit with
+    the analytic derivatives.
+    """
+    fitter = fitter()
+
+    results = []
+    for center in (3.3, 4003.3):
+        # The data are not Gaussian, so the fit has non-zero residuals
+        # at the minimum.
+        x = np.arange(np.floor(center) - 3, np.floor(center) + 4)
+        y = models.Lorentz1D(100.0, center, 1.2)(x)
+        m_init = models.Gaussian1D(80.0, center + 0.3, 0.7)
+
+        m_analytic = fitter(m_init, x, y)
+        m_estimated = fitter(m_init, x, y, estimate_jacobian=True)
+        assert_allclose(m_estimated.parameters, m_analytic.parameters, rtol=1e-5)
+        results.append(m_estimated.mean.value - center)
+
+    # The result should not depend on the coordinate value
+    assert_allclose(results[0], results[1], atol=1e-5)

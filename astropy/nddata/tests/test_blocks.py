@@ -171,3 +171,21 @@ class TestBlockReplicate:
         data = np.arange(5)
         with pytest.raises(ValueError):
             block_replicate(data, (2, 2))
+
+    @pytest.mark.parametrize(
+        ("in_dtype", "expected_dtype"),
+        [
+            (np.float16, np.float16),
+            (np.float32, np.float32),
+            (np.float64, np.float64),
+            (np.complex64, np.complex64),
+            (np.complex128, np.complex128),
+            (np.int32, np.float64),
+        ],
+    )
+    def test_conserve_sum_dtype(self, in_dtype, expected_dtype):
+        # Regression test for #20360: conserve_sum=True should preserve float/complex dtypes
+        data = np.ones((2, 2), dtype=in_dtype)
+        result = block_replicate(data, 2, conserve_sum=True)
+        assert result.dtype == expected_dtype
+        assert block_replicate(data, 2, conserve_sum=False).dtype == in_dtype

@@ -5,57 +5,301 @@ import os
 import re
 import subprocess
 import sys
-from contextlib import nullcontext
+from collections.abc import Callable
+from contextlib import chdir, suppress
+from copy import deepcopy
 from inspect import cleandoc
 from pathlib import Path
-from threading import Lock
+from tempfile import TemporaryDirectory
+from typing import Literal, NotRequired, TypedDict, assert_never
+from uuid import uuid4
 
 import pytest
 
-from astropy.config import configuration, create_config_file, paths, set_temp_config
+from astropy import conf
+from astropy.config import (
+    configuration,
+    create_config_file,
+    paths,
+    set_temp_config,
+    temporary_cache_dir_path,
+    temporary_config_dir_path,
+)
+from astropy.config.configuration import ConfigItem, ConfigNamespace
+from astropy.config.paths import (
+    _DirectoryFinder,
+    _DirType,
+    _Envvar,
+    _Namespace,
+    _resolve,
+    _SpecSource,
+)
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
 OLD_CONFIG = {}
 
-_IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK = Lock()
 
-
-@pytest.fixture
-def ignore_config_paths_global_state(monkeypatch, tmp_path_factory):
-    # ignore global state of the test session
-    # and preserve thread safety across all users of this fixture
-    with _IGNORE_CONFIG_PATHS_GLOBAL_STATE_LOCK:
-        monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
-        monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-
-        monkeypatch.setattr(paths.set_temp_cache, "_temp_path", None)
-        monkeypatch.setattr(paths.set_temp_config, "_temp_path", None)
-
-        # also mock $HOME as it's part of the global state taken into account
-        # for path detection
-        mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME")
-
-        def mock_home():
-            return mock_home_dir
-
-        monkeypatch.setattr(Path, "home", mock_home)
-
-        yield
-
-
-def setup_module():
+def setup_module() -> None:
     OLD_CONFIG.clear()
-    OLD_CONFIG.update(configuration._cfgobjs)
+    # deep copy: tests mutate the ConfigObj instances themselves, and a shallow
+    # snapshot would carry those mutations back out in teardown_module
+    OLD_CONFIG.update(deepcopy(configuration._cfgobjs))
 
 
-def teardown_module():
+def teardown_module() -> None:
     configuration._cfgobjs.clear()
     configuration._cfgobjs.update(OLD_CONFIG)
 
 
+@pytest.mark.parametrize(
+    "s, expected",
+    [
+        ("foo", _Namespace(root="foo", fragments=())),
+        ("foo.bar", _Namespace(root="foo", fragments=("bar",))),
+        ("foo.bar.baz", _Namespace(root="foo", fragments=("bar", "baz"))),
+        ("foo_bar.baz", _Namespace(root="foo_bar", fragments=("baz",))),
+        ("foo.bar_baz", _Namespace(root="foo", fragments=("bar_baz",))),
+        ("foo-bar.baz", _Namespace(root="foo-bar", fragments=("baz",))),
+        ("foo.bar-baz", _Namespace(root="foo", fragments=("bar-baz",))),
+        ("0.1.2", _Namespace(root="0", fragments=("1", "2"))),
+    ],
+)
+def test_namespace_from_str(s: str, expected: _Namespace) -> None:
+    ns = _Namespace.from_str(s)
+    assert ns == expected
+
+    # check roundtrips
+    assert ns.join() == s
+
+
+@pytest.mark.parametrize("s", ["", "()", "foo/", "foo\\", "foo/bar", "foo\\bar"])
+def test_namespace_from_invalid_str(s: str) -> None:
+    with pytest.raises(ValueError, match=r"^Found invalid namespace elements\.$"):
+        _Namespace.from_str(s)
+
+
+@pytest.mark.parametrize(
+    "spec, regexp",
+    [
+        pytest.param(
+            _SpecSource.ASTROPY, r"^ASTROPY_(?P<dirtype>[A-Z]+)_DIR$", id="ASTROPY_"
+        ),
+        pytest.param(_SpecSource.XDG, r"^XDG_(?P<dirtype>[A-Z]+)_HOME$", id="XDG_"),
+    ],
+)
+@pytest.mark.parametrize("dirtype", _DirType)
+def test_direnvvar_impl(spec: _SpecSource, regexp: str, dirtype: _DirType) -> None:
+    ev = _Envvar(spec=spec, dirtype=dirtype)
+    assert (m := re.match(regexp, ev.name)) is not None
+    assert m.group("dirtype") == dirtype.name
+
+
+# TODO: split into smaller tests
+def test_resolve_envvar(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    uid = str(uuid4())
+    d1 = tmp_path / uid
+    value = str(d1)
+    monkeypatch.setenv("TEST_ENV_VAR", value)
+    err_template = "TEST_ENV_VAR is set to {value}, {reason}. This environment variable will be ignored."
+
+    err1 = _resolve("TEST_ENV_VAR")
+    assert isinstance(err1, str)
+    assert err1 == err_template.format(
+        value=value,
+        reason="but no such file or directory was found",
+    )
+
+    d1.touch()  # create a file
+    err2 = _resolve("TEST_ENV_VAR")
+    assert isinstance(err2, str)
+    assert err2 == err_template.format(
+        value=value,
+        reason="which is a file (expected a directory)",
+    )
+    d1.unlink()
+
+    d1.mkdir()
+    p = _resolve("TEST_ENV_VAR")
+    assert isinstance(p, Path) and p.is_absolute()
+    assert p == d1
+
+    with chdir(tmp_path):
+        d2 = d1.relative_to(Path.cwd())
+        monkeypatch.setenv("TEST_ENV_VAR", str(d2))
+        err3 = _resolve("TEST_ENV_VAR")
+    assert isinstance(err3, str)
+    assert err3 == err_template.format(
+        value=str(d2),
+        reason="which is relative (expected an absolute path)",
+    )
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+def test_xdgenvvar_resolve_not_found(
+    dirtype: _DirType, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    envvar = _Envvar(spec=_SpecSource.XDG, dirtype=dirtype)
+    uid = str(uuid4())
+    missing_path = tmp_path / uid
+    monkeypatch.setenv(envvar.name, str(missing_path))
+
+    err = envvar.resolve()
+    assert isinstance(err, str)
+    assert err == (
+        f"{envvar.name} is set to {str(missing_path)}, "
+        "but no such file or directory was found. "
+        "This environment variable will be ignored."
+    )
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+def test_xdgenvvar_resolve_success(
+    dirtype: _DirType,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    envvar = _Envvar(spec=_SpecSource.XDG, dirtype=dirtype)
+    expected = tmp_path
+    monkeypatch.setenv(envvar.name, str(expected))
+
+    p = envvar.resolve()
+    assert isinstance(p, Path)
+    assert p.is_absolute()
+    assert p == expected
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_paths():
+def test_directoryfinder_find_default(dirtype) -> None:
+    df = _DirectoryFinder(dirtype)
+    de = df.find_directory_elements("mynamespace")
+    assert de.base_node == df.default_base_node()
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_override_success(dirtype, tmp_path: Path) -> None:
+    namespace = "bacon"
+    df = _DirectoryFinder(dirtype, overrides={_Namespace.from_str(namespace): tmp_path})
+    assert df.find_namespaced_node(namespace) == tmp_path / namespace
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.parametrize("var_kind", ["astropy", "xdg"])
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_find_from_envvars_single_set(
+    var_kind: Literal["astropy", "xdg"],
+    dirtype: _DirType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    df = _DirectoryFinder(dirtype)
+    p = tmp_path / "spam"
+
+    envvar_name = getattr(df.envvars, var_kind).name
+    monkeypatch.setenv(envvar_name, str(p))
+
+    err_template = "{var} is set to {val}, which is a file (expected a directory)."
+
+    # file
+    p.touch()
+    with pytest.warns(
+        AstropyUserWarning,
+        match=re.escape(
+            err_template.format(
+                var=envvar_name,
+                val=str(p),
+            )
+        ),
+    ):
+        res = df.find_directory_elements("astropy")
+    assert res.base_node == df.default_base_node()
+    p.unlink()
+
+    # dir
+    p.mkdir()
+    res = df.find_directory_elements("astropy")
+    assert res.base_node == p
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_directoryfinder_find_from_envvars_double_set(
+    dirtype: _DirType,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    df = _DirectoryFinder(dirtype)
+    p0 = tmp_path / "spam"
+    p1 = tmp_path / "bacon"
+
+    monkeypatch.setenv(df.envvars.astropy.name, str(p0))
+    monkeypatch.setenv(df.envvars.xdg.name, str(p1))
+
+    err_template = "{var} is set to {val}, which is a file (expected a directory)."
+    # file + file
+    p0.touch()
+    p1.touch()
+    with (
+        pytest.warns(
+            AstropyUserWarning,
+            match=re.escape(
+                err_template.format(
+                    var=df.envvars.astropy.name,
+                    val=str(p0),
+                )
+            ),
+        ),
+        pytest.warns(
+            AstropyUserWarning,
+            match=re.escape(
+                err_template.format(
+                    var=df.envvars.xdg.name,
+                    val=str(p1),
+                )
+            ),
+        ),
+    ):
+        res = df.find_directory_elements("astropy")
+    assert res.base_node == df.default_base_node()
+    p0.unlink()
+    p1.unlink()
+
+    # file + dir
+    p0.touch()
+    p1.mkdir()
+    with pytest.warns(
+        AstropyUserWarning,
+        match=re.escape(
+            err_template.format(
+                var=df.envvars.astropy.name,
+                val=str(p0),
+            )
+        ),
+    ):
+        res = df.find_directory_elements("astropy")
+    assert res.base_node == p1
+    p0.unlink()
+    p1.rmdir()
+
+    # dir + file
+    p0.mkdir()
+    p1.touch()
+    res = df.find_directory_elements("astropy")
+    assert res.base_node == p0
+    p0.rmdir()
+    p1.unlink()
+
+    # dir + dir
+    p0.mkdir()
+    p1.mkdir()
+    res = df.find_directory_elements("astropy")
+    assert res.base_node == p0
+
+
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_paths() -> None:
     assert "astropy" in paths.get_config_dir()
     assert "astropy" in paths.get_cache_dir()
     assert str(paths.get_config_dir_path()) == paths.get_config_dir()
@@ -67,289 +311,264 @@ def test_paths():
     assert "testpkg" in paths.get_cache_dir(rootname="testpkg")
 
 
-ENV_VAR_AND_FUNC = [
-    pytest.param(
-        "XDG_CACHE_HOME",
-        paths.get_cache_dir_path,
-        id="xdg-cache",
-    ),
-    pytest.param(
-        "XDG_CONFIG_HOME",
-        paths.get_config_dir_path,
-        id="xdg-config",
-    ),
-]
-
-
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_xdg_variables(monkeypatch, tmp_path, env_var, func):
+def test_xdg_variables(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    dirtype: _DirType,
+) -> None:
     # Regression test for #17514 - XDG_CACHE_HOME had no effect
     target_dir = tmp_path / "astropy"
-    target_dir.mkdir()
-    monkeypatch.setenv(env_var, str(tmp_path))
-    assert func() == target_dir
+    monkeypatch.setenv(f"XDG_{dirtype.name}_HOME", str(tmp_path))
+
+    assert dirtype.path_getter() == target_dir
 
 
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_env_variables_missing_dir(monkeypatch, tmp_path, env_var, func):
-    default_path = func()
+def test_env_variables_missing_dir(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    dirtype: _DirType,
+) -> None:
+    default_path = dirtype.path_getter()
     target_dir = tmp_path / "nonexistent"
+    env_var = f"XDG_{dirtype.name}_HOME"
     monkeypatch.setenv(env_var, str(target_dir))
 
     expected_msg = (
-        rf"^{env_var} is set to '{re.escape(str(target_dir))}', "
-        rf"but no such directory was found\. "
+        rf"^{env_var} is set to {re.escape(str(target_dir))}, "
+        rf"but no such file or directory was found\. "
         r"This environment variable will be ignored\.$"
     )
     with pytest.warns(AstropyUserWarning, match=expected_msg):
-        new_path = func()
+        new_path = dirtype.path_getter()
 
     assert new_path == default_path
 
 
-def get_directory_type(func) -> str:
-    for t in ["cache", "config"]:
-        if t in func.__name__:
-            return t
-    raise RuntimeError
-
-
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.parametrize(
+    "setup",
+    [
+        pytest.param(lambda defloc: None, id="default-missing"),
+        pytest.param(lambda defloc: defloc.mkdir(parents=True), id="default-exists"),
+    ],
+)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_env_variables_missing_subdir_and_default(monkeypatch, tmp_path, env_var, func):
+def test_env_variables_missing_subdir_and_default(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path_factory: pytest.TempPathFactory,
+    dirtype: _DirType,
+    setup: Callable[[Path], None],
+) -> None:
+    mock_home_dir = tmp_path_factory.mktemp("MOCK_HOME_LOCAL")
+
+    def mock_home():
+        return mock_home_dir
+
+    monkeypatch.setattr(Path, "home", mock_home)
+
     # have the env var point to a writable location,
     # where an 'astropy' subdir is missing, but can be created silently
     default_parent_dir = Path.home() / ".astropy"
     assert not default_parent_dir.exists()
 
-    target_dir = tmp_path
+    target_dir = tmp_path_factory.mktemp("target")
+    env_var = f"XDG_{dirtype.name}_HOME"
     monkeypatch.setenv(env_var, str(target_dir))
 
     expected_location = target_dir / "astropy"
-    default_location = default_parent_dir / get_directory_type(func)
+    default_location = default_parent_dir
+
+    setup(default_location)
+    previous_state = default_location.exists()
 
     assert not expected_location.exists()
-
-    if sys.platform.startswith("win"):
-        # FIXME: legacy behavior is to never symlink on windows...
-        # should we never symlink anywhere instead for consistency
-        # (not to mention simplicity) ?
-        expected_msg = (
-            rf"^{env_var} is set to '{re.escape(str(target_dir))}', "
-            rf"but is not supported on Windows\. "
-            r"This environment variable will be ignored\.$"
-        )
-        ctx = pytest.warns(AstropyUserWarning, match=expected_msg)
-    else:
-        ctx = nullcontext()
-
-    with ctx:
-        ret = func()
+    ret = dirtype.path_getter()
 
     assert ret.is_dir()
-
-    # FIXME: should the environment variable *completely* take precedence here,
-    # and should we *avoid* silently creating (and linking) the default location ?
-    # see https://github.com/astropy/astropy/issues/18791
-    assert ret == default_location
-
-    if sys.platform.startswith("win"):
-        assert not expected_location.exists()
-        return
-
-    assert expected_location.is_dir()
-    assert default_location.is_dir()
-    assert expected_location.exists()
-    assert expected_location.is_dir()
-    assert expected_location.is_symlink()
-    assert expected_location.resolve() == default_location
+    assert ret.is_absolute()
+    assert not ret.is_symlink()
+    assert ret == expected_location
+    assert default_location.exists() is previous_state
 
 
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
+@pytest.mark.parametrize("dirtype", _DirType)
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_env_variables_missing_subdir_but_default_exists(
-    monkeypatch, tmp_path, env_var, func
-):
-    # have the env var point to a writable location,
-    # where an 'astropy' subdir is missing, but can be created silently
-    default_parent_dir = Path.home() / ".astropy"
-
-    target_dir = tmp_path
-    monkeypatch.setenv(env_var, str(target_dir))
-
-    expected_location = target_dir / "astropy"
-    default_location = default_parent_dir / get_directory_type(func)
-
-    # this is the crucial variation in setup
-    # as compared to test_env_variables_missing_subdir_and_default
-    default_location.mkdir(parents=True)
-
-    assert not expected_location.exists()
-
-    expected_msg_template = (
-        rf"^{env_var} is set to '{re.escape(str(target_dir))}', "
-        r"but {reason}. "
-        r"This environment variable will be ignored\.$"
-    )
-    if sys.platform.startswith("win"):
-        # FIXME: legacy behavior is to never symlink on windows...
-        # should we never symlink anywhere instead for consistency
-        # (not to mention simplicity) ?
-        reason = "is not supported on Windows"
-    else:
-        reason = (
-            rf"the default location, {re.escape(str(default_location))}, "
-            "already exists, and takes precedence"
-        )
-
-    expected_msg = expected_msg_template.format(reason=reason)
-
-    with pytest.warns(AstropyUserWarning, match=expected_msg):
-        ret = func()
-
-    assert ret.is_dir()
-
-    # FIXME: should the environment variable *completely* take precedent here,
-    # ignoring the existence of default_parent_dir ?
-    # see https://github.com/astropy/astropy/issues/18791
-    assert not expected_location.exists()
-
-
-@pytest.mark.parametrize("env_var, func", ENV_VAR_AND_FUNC)
-@pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_env_variables_setup_file_exists(monkeypatch, tmp_path, env_var, func):
+def test_env_variables_setup_file_exists(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    dirtype: _DirType,
+) -> None:
     # check what happens if we request a location that's already
     # taken, but is a file
-    default_path = func()
+    default_path = dirtype.path_getter()
     target_dir = tmp_path / "subdir"
     target_dir.mkdir()
     expected_path = target_dir / "astropy"
     expected_path.touch()  # create a file
-
+    env_var = f"XDG_{dirtype.name}_HOME"
     monkeypatch.setenv(env_var, str(target_dir))
 
-    expected_msg = (
-        rf"^{env_var} is set to '{re.escape(str(target_dir))}', "
-        rf"but this directory already contains a file under '{expected_path.name}', "
-        r"where a directory was expected\. "
-        r"This environment variable will be ignored\.$"
-    )
-    with pytest.warns(AstropyUserWarning, match=expected_msg):
-        new_path = func()
-    assert new_path == default_path
+    with pytest.raises(FileExistsError):
+        dirtype.path_getter()
 
 
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_set_temp_config(tmp_path):
-    # Check that we start in an understood state.
-    assert configuration._cfgobjs == OLD_CONFIG
+@pytest.mark.parametrize("dirtype", _DirType)
+def test_set_temp_config(tmp_path: Path, dirtype: _DirType) -> None:
+    orig_cfgobjs = deepcopy(configuration._cfgobjs)
 
-    orig_config_dir = paths.get_config_dir(rootname="astropy")
-    (temp_config_dir := tmp_path / "config").mkdir()
-    temp_astropy_config = temp_config_dir / "astropy"
+    orig_dir = dirtype.path_getter(rootname="astropy")
+    (temp_dir := tmp_path / "test").mkdir()
+    temp_astropy_subdir = temp_dir / "astropy"
 
     # Test decorator mode
-    @paths.set_temp_config(temp_config_dir)
-    def test_func():
-        assert paths.get_config_dir(rootname="astropy") == str(temp_astropy_config)
-        assert paths.get_config_dir_path(rootname="astropy") == temp_astropy_config
+    @dirtype.legacy_context_manager(temp_dir)
+    def test_func() -> None:
+        assert dirtype.path_getter(rootname="astropy") == temp_astropy_subdir
 
         # Test temporary restoration of original default
-        with paths.set_temp_config() as d:
-            assert d == orig_config_dir == paths.get_config_dir(rootname="astropy")
+        with dirtype.legacy_context_manager() as d:
+            assert str(dirtype.path_getter(rootname="astropy")) == str(orig_dir)
+            assert Path(d) == orig_dir
 
     test_func()
 
     # Test context manager mode (with cleanup)
-    with paths.set_temp_config(temp_config_dir, delete=True):
-        assert paths.get_config_dir(rootname="astropy") == str(temp_astropy_config)
-        assert paths.get_config_dir_path(rootname="astropy") == temp_astropy_config
+    with dirtype.legacy_context_manager(temp_dir, delete=True):
+        assert dirtype.path_getter(rootname="astropy") == temp_astropy_subdir
 
-    assert not temp_config_dir.exists()
+    assert not temp_dir.exists()
     # Check that we have returned to our old configuration.
-    assert configuration._cfgobjs == OLD_CONFIG
+    assert configuration._cfgobjs == orig_cfgobjs
+
+
+class CreateKwargs(TypedDict):
+    ensure_exists: NotRequired[bool]
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.parametrize(
+    "create_kwargs",
+    [
+        pytest.param({}, id="implicit"),
+        pytest.param({"ensure_exists": True}, id="explicit"),
+    ],
+)
+def test_get_path_without_creation(
+    dirtype: _DirType,
+    create_kwargs: CreateKwargs,
+    tmp_path: Path,
+) -> None:
+    with dirtype.legacy_context_manager(tmp_path) as tmp_dir:
+        assert not os.path.exists(tmp_dir)
+        dirtype.path_getter("astropy", ensure_exists=False)
+        assert not os.path.exists(tmp_dir)
+        dirtype.path_getter("astropy", **create_kwargs)
+        assert os.path.exists(tmp_dir)
+
+
+@pytest.mark.parametrize("dirtype", _DirType)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_fallback_to_legacy_dir_if_found(dirtype: _DirType) -> None:
+    df = _DirectoryFinder(dirtype)
+    namespace = str(uuid4())
+    node = df.find_namespaced_node(namespace)
+    legacy_node = df.legacy_default_base_node(namespace)
+    assert node != legacy_node
+
+    legacy_node.mkdir(parents=True)
+    assert df.find_namespaced_node(namespace) == legacy_node
 
 
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_set_temp_cache(tmp_path):
-    orig_cache_dir = paths.get_cache_dir(rootname="astropy")
-    (temp_cache_dir := tmp_path / "cache").mkdir()
-    temp_astropy_cache = temp_cache_dir / "astropy"
-
-    # Test decorator mode
-    @paths.set_temp_cache(temp_cache_dir)
-    def test_func():
-        assert paths.get_cache_dir(rootname="astropy") == str(temp_astropy_cache)
-
-        # Test temporary restoration of original default
-        with paths.set_temp_cache() as d:
-            assert d == orig_cache_dir == paths.get_cache_dir(rootname="astropy")
-
-    test_func()
-
-    # Test context manager mode (with cleanup)
-    with paths.set_temp_cache(temp_cache_dir, delete=True):
-        assert paths.get_cache_dir(rootname="astropy") == str(temp_astropy_cache)
-
-    assert not temp_cache_dir.exists()
-
-
-def test_set_temp_cache_resets_on_exception(tmp_path):
+def test_set_temp_cache_resets_on_exception(tmp_path: Path) -> None:
     """Test for regression of  bug #9704"""
     t = paths.get_cache_dir()
     (a := tmp_path / "a").write_text("not a good cache\n")
-    with pytest.raises(OSError), paths.set_temp_cache(a):
-        pass
-    assert t == paths.get_cache_dir()
+    with pytest.raises(Exception) as _:
+        paths.set_temp_cache(a)
+    assert paths.get_cache_dir() == t
 
 
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_config_file():
+def test_config_file() -> None:
+    from configobj import ConfigObj, Section
+
     from astropy.config.configuration import get_config, reload_config
 
     apycfg = get_config("astropy")
+    assert isinstance(apycfg, ConfigObj)
+    assert apycfg.filename is not None
     assert apycfg.filename.endswith("astropy.cfg")
 
     cfgsec = get_config("astropy.config")
+    assert isinstance(cfgsec, Section)
     assert cfgsec.depth == 1
     assert cfgsec.name == "config"
     assert cfgsec.parent.filename.endswith("astropy.cfg")
 
-    # try with a different package name, still inside astropy config dir:
-    testcfg = get_config("testpkg", rootname="astropy")
-    parts = os.path.normpath(testcfg.filename).split(os.sep)
-    assert ".astropy" in parts or "astropy" in parts
-    assert parts[-1] == "testpkg.cfg"
-    configuration._cfgobjs["testpkg"] = None  # HACK
+    reload_config("astropy")
 
-    # try with a different package name, no specified root name (should
-    #   default to astropy):
-    testcfg = get_config("testpkg")
-    parts = os.path.normpath(testcfg.filename).split(os.sep)
-    assert ".astropy" in parts or "astropy" in parts
-    assert parts[-1] == "testpkg.cfg"
-    configuration._cfgobjs["testpkg"] = None  # HACK
 
-    # try with a different package name, specified root name:
-    testcfg = get_config("testpkg", rootname="testpkg")
-    parts = os.path.normpath(testcfg.filename).split(os.sep)
-    assert ".testpkg" in parts or "testpkg" in parts
-    assert parts[-1] == "testpkg.cfg"
-    configuration._cfgobjs["testpkg"] = None  # HACK
+class RootNameKwarg(TypedDict):
+    rootname: NotRequired[str]
 
-    # try with a subpackage with specified root name:
-    testcfg_sec = get_config("testpkg.somemodule", rootname="testpkg")
-    parts = os.path.normpath(testcfg_sec.parent.filename).split(os.sep)
-    assert ".testpkg" in parts or "testpkg" in parts
-    assert parts[-1] == "testpkg.cfg"
-    configuration._cfgobjs["testpkg"] = None  # HACK
+
+@pytest.mark.parametrize(
+    "module_name, kwargs",
+    [
+        # try with a different package name, still inside astropy config dir
+        pytest.param(
+            f"test_pkg_{uuid4()}",
+            {"rootname": "astropy"},
+            id="internal-rootname",
+        ),
+        # specified root name; should default to astropy
+        pytest.param(f"test_pkg_{uuid4()}", {}, id="default-rootname"),
+        # try with a different package name, specified root name
+        pytest.param(
+            f"test_pkg_{uuid4()}",
+            {"rootname": f"test_rootname_{uuid4()}"},
+            id="external-rootname",
+        ),
+        # try with a subpackage with specified root name
+        pytest.param(
+            f"test_pkg.test_module_{uuid4()}",
+            {"rootname": f"test_rootname_{uuid4()}"},
+            id="external-rootname-submodule",
+        ),
+    ],
+)
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_config_file_edge_case(module_name, kwargs: RootNameKwarg):
+    from configobj import ConfigObj, Section
+
+    from astropy.config.configuration import get_config, reload_config
+
+    cfg: ConfigObj
+    match cfg_or_sec := get_config(module_name, reload=True, **kwargs):
+        case ConfigObj() as cfg:
+            pass
+        case Section() as sec:
+            cfg = sec.parent
+        case _ as unreachable:
+            assert_never(unreachable)
+
+    assert cfg.filename is not None
+    parts = os.path.normpath(cfg.filename).split(os.sep)
+    assert kwargs.get("rootname", "astropy") in parts
+
+    pkg_name, _, _mod_name = module_name.partition(".")
+    assert parts[-1] == f"{pkg_name}.cfg"
 
     reload_config("astropy")
 
 
-def check_config(conf):
+def check_config(conf: str) -> None:
     # test that the output contains some lines that we expect
     assert "# unicode_output = False" in conf
     assert "[io.fits]" in conf
@@ -362,7 +581,7 @@ def check_config(conf):
     assert "# log_exceptions = False" in conf
 
 
-def test_generate_config(tmp_path):
+def test_generate_config(tmp_path: Path) -> None:
     from astropy.config.configuration import generate_config
 
     out = io.StringIO()
@@ -378,89 +597,110 @@ def test_generate_config(tmp_path):
         check_config(c)
 
 
-def test_generate_config2(tmp_path):
+def test_generate_config2(tmp_path: Path) -> None:
     """Test that generate_config works with the default filename."""
 
-    with set_temp_config(tmp_path):
+    conf_file = tmp_path / "astropy" / "astropy.cfg"
+    with set_temp_config(tmp_path) as foo:
         from astropy.config.configuration import generate_config
 
         generate_config("astropy")
 
-    assert os.path.exists(tmp_path / "astropy" / "astropy.cfg")
-
-    with open(tmp_path / "astropy" / "astropy.cfg") as fp:
-        conf = fp.read()
-
-    check_config(conf)
+    assert conf_file.is_file()
+    check_config(conf_file.read_text())
 
 
-def test_generate_config_subclasses(tmp_path):
+class _MyPackageNamespace(ConfigNamespace):
+    pass
+
+
+class _RecursiveTestConf(_MyPackageNamespace):
+    ti = ConfigItem(5, "this is a Description")
+
+
+def test_generate_config_subclasses(tmp_path: Path) -> None:
     """Test that generate_config works with subclasses of ConfigNamespace."""
-    from astropy.config.configuration import ConfigItem, ConfigNamespace
 
-    class MyPackageNamespace(ConfigNamespace):
-        pass
-
-    class RecursiveTestConf(MyPackageNamespace):
-        ti = ConfigItem(5, "this is a Description")
-
+    conf_file = tmp_path / "astropy" / "astropy.cfg"
     with set_temp_config(tmp_path):
         from astropy.config.configuration import generate_config
 
         generate_config("astropy")
 
-    assert os.path.exists(tmp_path / "astropy" / "astropy.cfg")
-
-    with open(tmp_path / "astropy" / "astropy.cfg") as fp:
-        conf = fp.read()
-
-    assert "# ti = 5" in conf
+    assert conf_file.is_file()
+    assert "# ti = 5" in conf_file.read_text()
 
 
-def test_create_config_file(tmp_path, caplog):
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_create_config_file_1(tmp_path: Path, caplog) -> None:
+    conf_file = tmp_path / "astropy" / "astropy.cfg"
     with set_temp_config(tmp_path):
         create_config_file("astropy")
 
     # check that the config file has been created
+    assert conf_file.is_file()
+    check_config(conf_file.read_text())
     assert (
         "The configuration file has been successfully written"
         in caplog.records[0].message
     )
-    assert os.path.exists(tmp_path / "astropy" / "astropy.cfg")
 
-    with open(tmp_path / "astropy" / "astropy.cfg") as fp:
-        conf = fp.read()
-    check_config(conf)
 
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_create_config_file_no_overwrite(tmp_path: Path, caplog) -> None:
+    conf_file = tmp_path / "astropy" / "astropy.cfg"
+    with set_temp_config(tmp_path):
+        create_config_file("astropy")
     caplog.clear()
 
+    # check that the config file has been created
+    assert conf_file.is_file()
+    check_config(conf1 := conf_file.read_text())
+
     # now modify the config file
-    conf = conf.replace("# unicode_output = False", "unicode_output = True")
-    with open(tmp_path / "astropy" / "astropy.cfg", mode="w") as fp:
-        fp.write(conf)
+    conf2 = conf1.replace("# unicode_output = False", "unicode_output = True")
+    assert conf2 != conf1
+    conf_file.write_text(conf2)
 
     with set_temp_config(tmp_path):
         create_config_file("astropy")
 
     # check that the config file has not been overwritten since it was modified
+    assert conf_file.read_text() == conf2
     assert (
         "The configuration file already exists and seems to have been customized"
         in caplog.records[0].message
     )
 
+
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+def test_create_config_file_overwrite(tmp_path: Path, caplog) -> None:
+    conf_file = tmp_path / "astropy" / "astropy.cfg"
+    with set_temp_config(tmp_path):
+        create_config_file("astropy")
     caplog.clear()
+
+    # check that the config file has been created
+    assert conf_file.is_file()
+    check_config(conf1 := conf_file.read_text())
+
+    # now modify the config file
+    conf2 = conf1.replace("# unicode_output = False", "unicode_output = True")
+    assert conf2 != conf1
+    conf_file.write_text(conf2)
 
     with set_temp_config(tmp_path):
         create_config_file("astropy", overwrite=True)
 
     # check that the config file has been overwritten
+    assert conf_file.read_text() == conf1
     assert (
         "The configuration file has been successfully written"
         in caplog.records[0].message
     )
 
 
-def test_configitem():
+def test_configitem() -> None:
     from astropy.config.configuration import ConfigItem, ConfigNamespace, get_config
 
     ci = ConfigItem(34, "this is a Description")
@@ -513,7 +753,7 @@ def test_configitem():
     assert result == [("tstnm", ci)]
 
 
-def test_configitem_types():
+def test_configitem_types() -> None:
     from astropy.config.configuration import ConfigItem, ConfigNamespace
 
     ci1 = ConfigItem(34)
@@ -558,7 +798,7 @@ def test_configitem_types():
     ]
 
 
-def test_configitem_options(tmp_path):
+def test_configitem_options(tmp_path: Path) -> None:
     from astropy.config.configuration import ConfigItem, ConfigNamespace, get_config
 
     cio = ConfigItem(["op1", "op2", "op3"])
@@ -588,8 +828,8 @@ def test_configitem_options(tmp_path):
     assert "tstnmo = op2" in f.read_text().splitlines()
 
 
-def test_help(capsys):
-    from astropy import conf
+@pytest.mark.no_optimized_interpreter
+def test_help(capsys) -> None:
 
     use_color_msg = cleandoc(
         """
@@ -612,8 +852,8 @@ def test_help(capsys):
     assert use_color_msg in help_text
 
 
-def test_help_invalid_config_item():
-    from astropy import conf
+@pytest.mark.no_optimized_interpreter
+def test_help_invalid_config_item() -> None:
 
     with pytest.raises(
         KeyError,
@@ -625,37 +865,18 @@ def test_help_invalid_config_item():
         conf.help("bad_name")
 
 
-@pytest.mark.usefixtures("ignore_config_paths_global_state")
-def test_config_noastropy_fallback(monkeypatch):
-    """
-    Tests to make sure configuration items fall back to their defaults when
-    there's a problem accessing the astropy directory
-    """
+@pytest.mark.only_optimized_interpreter
+def test_help_in_optimized_python() -> None:
+    from astropy import conf
 
-    # make sure the _find_or_create_root_dir function fails as though the
-    # astropy dir could not be accessed
-    @classmethod
-    def osraiser(cls, linkto, pkgname=None):
-        raise OSError
-
-    monkeypatch.setattr(paths._SetTempPath, "_find_or_create_root_dir", osraiser)
-
-    # also have to make sure the stored configuration objects are cleared
-    monkeypatch.setattr(configuration, "_cfgobjs", {})
-
-    # make sure the config dir search fails
-    with pytest.raises(OSError):
-        paths.get_config_dir(rootname="astropy")
-
-    with pytest.raises(OSError):
-        paths.get_config_dir_path(rootname="astropy")
-
-    # now run the basic tests, and make sure the warning about no astropy
-    # is present
-    test_configitem()
+    with pytest.raises(
+        RuntimeError,
+        match=("The help method is not available under Python's optimized mode."),
+    ):
+        conf.help()
 
 
-def test_configitem_setters():
+def test_configitem_setters() -> None:
     from astropy.config.configuration import ConfigItem, ConfigNamespace
 
     class Conf(ConfigNamespace):
@@ -684,10 +905,10 @@ def test_configitem_setters():
     assert conf.tstnm12 == 43
 
 
-def test_empty_config_file():
+def test_empty_config_file() -> None:
     from astropy.config.configuration import is_unedited_config_file
 
-    def get_content(fn):
+    def get_content(fn: str) -> str:
         with open(get_pkg_data_filename(fn), encoding="latin-1") as fd:
             return fd.read()
 
@@ -698,31 +919,23 @@ def test_empty_config_file():
     assert not is_unedited_config_file(content)
 
 
-class TestAliasRead:
-    def setup_class(self):
-        configuration._override_config_file = get_pkg_data_filename("data/alias.cfg")
+def test_alias_read() -> None:
+    from astropy.utils.data import conf
 
-    def test_alias_read(self):
-        from astropy.utils.data import conf
-
-        with pytest.warns(
+    with (
+        set_temp_config(Path(__file__).with_name("data") / "alias"),
+        pytest.warns(
             AstropyDeprecationWarning,
-            match=r"Config parameter 'name_resolve_timeout' in section "
-            r"\[coordinates.name_resolve\].*",
-        ) as w:
-            conf.reload()
-            assert conf.remote_timeout == 42
-
-        assert len(w) == 1
-
-    def teardown_class(self):
-        from astropy.utils.data import conf
-
-        configuration._override_config_file = None
-        conf.reload()
+            match=(
+                "^Config parameter 'name_resolve_timeout' in section "
+                r"\[coordinates\.name_resolve\].*"
+            ),
+        ),
+    ):
+        assert conf.remote_timeout == 42
 
 
-def test_configitem_unicode():
+def test_configitem_unicode() -> None:
     from astropy.config.configuration import ConfigItem, ConfigNamespace, get_config
 
     cio = ConfigItem("ასტრონომიის")
@@ -737,24 +950,21 @@ def test_configitem_unicode():
     assert sec["tstunicode"] == "ასტრონომიის"
 
 
-def test_warning_move_to_top_level():
+def test_warning_move_to_top_level() -> None:
     # Check that the warning about deprecation config items in the
     # file works.  See #2514
-    from astropy import conf
 
-    configuration._override_config_file = get_pkg_data_filename("data/deprecated.cfg")
-
-    try:
-        with pytest.warns(AstropyDeprecationWarning) as w:
-            conf.reload()
-            conf.max_lines
-        assert len(w) == 1
-    finally:
-        configuration._override_config_file = None
-        conf.reload()
+    with (
+        set_temp_config(Path(__file__).with_name("data") / "deprecated"),
+        pytest.warns(AstropyDeprecationWarning),
+    ):
+        conf.max_lines
 
 
-def test_no_home():
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
+def test_no_home() -> None:
     # "import astropy" fails when neither $HOME or $XDG_CONFIG_HOME
     # are set.  To test, we unset those environment variables for a
     # subprocess and try to import astropy.
@@ -764,8 +974,8 @@ def test_no_home():
 
     env = os.environ.copy()
     paths = [astropy_path]
-    if env.get("PYTHONPATH"):
-        paths.append(env.get("PYTHONPATH"))
+    if (previous_pythonpath := os.getenv("PYTHONPATH")) is not None:
+        paths.append(previous_pythonpath)
     env["PYTHONPATH"] = os.pathsep.join(paths)
 
     for val in ["HOME", "XDG_CONFIG_HOME"]:
@@ -775,3 +985,101 @@ def test_no_home():
     retcode = subprocess.check_call([sys.executable, "-c", "import astropy"], env=env)
 
     assert retcode == 0
+
+
+@pytest.mark.parametrize(
+    "ctx_manager", [temporary_cache_dir_path, temporary_config_dir_path]
+)
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        pytest.param({}, id="delete-implicit"),
+        pytest.param({"delete": True}, id="delete-explicit"),
+        pytest.param({"delete": False}, id="no-delete"),
+    ],
+)
+def test_set_temp_dir_delete(ctx_manager, kwargs) -> None:
+    # reason: old impl allows using existing directories, which creates all sorts of quirks:
+    # - pre-existing content may be deleted
+    # - multiple threads may use the same dir, which may get pulled from under them
+    with ctx_manager(namespace="my.namespace", **kwargs) as tmp_path:
+        target = tmp_path / "test"
+        target.touch()
+
+    expect_deletion = kwargs.get("delete", True)
+    assert target.exists() is not expect_deletion
+    assert tmp_path.exists() is not expect_deletion
+
+
+@pytest.mark.usefixtures("ignore_config_paths_global_state")
+class TestEnvvarRegressions:
+    def test_astropy_cache_defined_but_invalid(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ) -> None:
+        tmp_file = tmp_path / "file"
+        tmp_file.touch()
+        monkeypatch.setenv("ASTROPY_CACHE_DIR", str(tmp_file))
+        monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
+
+        with pytest.warns(
+            AstropyUserWarning,
+            match=(
+                rf"^ASTROPY_CACHE_DIR is set to {re.escape(str(tmp_file))}, "
+                r"which is a file \(expected a directory\)\. "
+                r"This environment variable will be ignored\.$"
+            ),
+        ):
+            res = paths.get_cache_dir_path()
+
+        assert res == tmp_path / "astropy"
+
+    @pytest.mark.usefixtures("ignore_config_paths_global_state")
+    def test_config_objs_leak(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ) -> None:
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+
+        ref = 0x4D3D3D3
+        conf.max_width = ref
+
+        with TemporaryDirectory() as td, set_temp_config(td):
+            assert conf.max_width == None
+
+        with temporary_config_dir_path(namespace="astropy"):
+            assert conf.max_width == None
+
+    @pytest.mark.usefixtures("ignore_config_paths_global_state")
+    def test_resources_cleanup_overrides(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ) -> None:
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+
+        ref = paths.get_cache_dir()
+
+        class UniqueException(Exception): ...
+
+        with suppress(UniqueException), temporary_cache_dir_path(namespace="astropy"):
+            raise UniqueException
+
+        assert paths.get_cache_dir() == ref
+
+    @pytest.mark.usefixtures("ignore_config_paths_global_state")
+    def test_resources_cleanup_cfgobjs(self) -> None:
+
+        _ = conf.max_width  # populate _cfgobjs once
+        ref = sorted(configuration._cfgobjs)
+
+        class UniqueException(Exception):
+            pass
+
+        with suppress(UniqueException), temporary_config_dir_path(namespace="astropy"):
+            raise UniqueException("simulated failure inside the with-block")
+
+        res = sorted(configuration._cfgobjs)
+        assert res == ref

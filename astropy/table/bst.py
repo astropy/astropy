@@ -5,6 +5,8 @@ from numbers import Integral
 
 import numpy as np
 
+from astropy.utils.decorators import deprecated
+
 __all__ = ["BST"]
 
 
@@ -157,6 +159,10 @@ class Node:
         return str(self)
 
 
+@deprecated(
+    since="8.1",
+    alternative="SortedArray (the default engine) or SCEngine",
+)
 class BST:
     """
     A basic binary search tree in pure Python, used
@@ -451,22 +457,26 @@ class BST:
         return [x for node in nodes for x in node.data]
 
     def _range(self, lower, upper, op1, op2, node, lst):
+        # In-order traversal (left, node, right) so that matching nodes
+        # are collected in ascending key order.
+        if lower < node.key and node.left is not None:
+            self._range(lower, upper, op1, op2, node.left, lst)
         if op1(lower, node.key) and op2(upper, node.key):
             lst.append(node)
         if upper > node.key and node.right is not None:
             self._range(lower, upper, op1, op2, node.right, lst)
-        if lower < node.key and node.left is not None:
-            self._range(lower, upper, op1, op2, node.left, lst)
         return lst
 
     def _same_prefix(self, val, node, lst):
+        # In-order traversal (left, node, right) so that matching nodes
+        # are collected in ascending key order.
         prefix = node.key[: len(val)]
+        if prefix >= val and node.left is not None:
+            self._same_prefix(val, node.left, lst)
         if prefix == val:
             lst.append(node)
         if prefix <= val and node.right is not None:
             self._same_prefix(val, node.right, lst)
-        if prefix >= val and node.left is not None:
-            self._same_prefix(val, node.left, lst)
         return lst
 
     def __repr__(self):

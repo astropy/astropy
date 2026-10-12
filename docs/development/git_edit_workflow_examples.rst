@@ -50,7 +50,7 @@ Set up an isolated workspace
 + Install our branch of ``astropy`` along with all development dependencies in this
   environment with::
 
-    python -m pip install --editable ".[dev_all]"
+    python -m pip install --editable . --group dev_all
 
 If installation fails, try to upgrade ``pip`` using ``python -m pip install pip
 --upgrade`` command. It is also a good practice to occasionally keep your ``conda``

@@ -685,6 +685,7 @@ preferred-citation:
   issue: 2
   pages: 20
   year: 2022
+  doi: 10.3847/1538-4357/ac7c74
   identifiers:
     - description: ADS bibcode
       type: url

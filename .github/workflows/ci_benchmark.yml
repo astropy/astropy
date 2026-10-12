@@ -26,15 +26,19 @@ jobs:
       CCACHE_MAXSIZE: 400M
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c  # v6.0.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         name: Install Python
+        # historically, we run benchmarks against our oldest supported Python version
+        # it could make more sense to run against newest stable versions instead,
+        # as they are generally faster, and more representative of what users can expect
+        # now or in the future.
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Setup some dependencies
         shell: bash -l {0}
@@ -54,7 +58,7 @@ jobs:
           ccache -z
 
       - name: "Restore ccache"
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4.3.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: .ccache
           key: ccache-${{ secrets.CACHE_VERSION }}-${{ steps.prepare-ccache.outputs.key }}-${{ steps.prepare-ccache.outputs.timestamp }}
@@ -74,7 +78,7 @@ jobs:
           BASE_LABEL: ${{ github.event.pull_request.base.label }}
         run: |
           set -x
-          python -m pip install asv virtualenv packaging
+          python -m pip install "asv==0.6.5"
 
           git clone -b main https://github.com/astropy/astropy-benchmarks.git --single-branch
 
@@ -93,7 +97,7 @@ jobs:
         run: ccache -s
         if: always()
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         if: always()
         with:
           name: asv-benchmark-results

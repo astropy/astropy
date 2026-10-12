@@ -1,6 +1,0 @@
-Updated IVOA UCD1+ controlled vocabulary from version 1.5 to 1.6. This adds
-support for new atmospheric observation terms including ``obs.atmos.wind``,
-``obs.atmos.humidity``, ``obs.atmos.rain``, ``obs.atmos.turbulence``,
-``obs.atmos.turbulence.isoplanatic``, ``obs.atmos.water``, and
-``phys.temperature.dew`` which are now recognized when parsing UCDs with
-``check_controlled_vocabulary=True``.

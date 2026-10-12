@@ -13,6 +13,11 @@ def auto_assign_coord_positions(ax):
     This function operates in-place on the axes and assumes that
     ``_update_ticks`` has already been called on all the ``CoordinateHelper``
     instances.
+
+    Parameters
+    ----------
+    ax : `~astropy.visualization.wcsaxes.WCSAxes`
+        The axes to update.
     """
     # Since ticks, tick labels and axis labels can all be auto or fixed, we need
     # a few rules to decide in what order to process things:
@@ -52,7 +57,12 @@ def auto_assign_coord_positions(ax):
         for coord in coords:
             pos = coord.get_ticklabel_position()
             if "#" in pos:
-                auto_coords.append(coord)
+                # Skip coordinates with both ticks and tick labels hidden. The
+                # condition below maximizes the total tick count, so a hidden
+                # coordinate with many ticks could otherwise be assigned a spine
+                # and push a visible coordinate onto one where it has no ticks.
+                if coord._ticks.get_visible() or coord._ticklabels.get_visible():
+                    auto_coords.append(coord)
             else:
                 already_used += list(pos)
 
@@ -61,7 +71,7 @@ def auto_assign_coord_positions(ax):
         return
 
     # Extract the spines for the frame
-    spines = coords.frame._spine_auto_position_order
+    spines = ax.coords.frame._spine_auto_position_order
 
     # Construct a new list of spines taking into account excluded ones
     spines = "".join(s for s in spines if s not in already_used)
@@ -111,6 +121,12 @@ def auto_assign_coord_positions(ax):
         if n_tick > n_tick_max:
             n_tick_max = n_tick
             best_option = option
+
+    # If no option was found to be consistent with fixed tick positions,
+    # fall back to not showing any of the automatically-placed coordinates
+    # rather than crashing.
+    if best_option is None:
+        best_option = (" ",) * len(auto_coords)
 
     # Finalize assignments
     for coord, spine in zip(auto_coords, best_option):

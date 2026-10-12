@@ -1,0 +1,2 @@
+Always annotate exceptions with requested url in
+``astropy.utils.data.download_file``.

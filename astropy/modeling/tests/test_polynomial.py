@@ -618,7 +618,10 @@ def test_2d_orthopolynomial_in_compound_model(fitter):
     with pytest.warns(AstropyUserWarning, match="Model is linear in parameters"):
         compound_fit = fitter(compound_model, x, y, z)
 
-    assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-11)
+    # The simple model is fit with its analytic derivatives and the
+    # compound model with a finite-difference Jacobian, so the two fits
+    # agree only to the tolerance of the fitter.
+    assert_allclose(simple_fit(x, y), compound_fit(x, y), atol=1e-7)
 
 
 def test_Hermite1D_clenshaw():

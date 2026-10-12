@@ -1,8 +1,10 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
 import io
 import os
 import re
+import sys
 from contextlib import nullcontext
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
@@ -1863,6 +1865,251 @@ def test_swapaxes_same_val_roundtrip():
     assert np.allclose(w.wcs_world2pix([val_ref], 0)[0], imcoord, rtol=0, atol=1e-8)
 
 
+def test_alternate_wcs_distortion_primary():
+    """
+    Test that primary WCS (key=' ') loads distortion correctly.
+    Regression test for issue with WCS key suffixes on distortion keywords.
+    """
+    # Create primary HDU with WCS
+    primary = fits.PrimaryHDU()
+    header = primary.header
+
+    # Basic WCS keywords
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 1024
+    header["NAXIS2"] = 1024
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CRPIX1"] = 512
+    header["CRPIX2"] = 512
+    header["CRVAL1"] = 150.0
+    header["CRVAL2"] = -35.0
+    header["CDELT1"] = -0.0002777778
+    header["CDELT2"] = 0.0002777778
+
+    # Primary WCS distortion keywords (no suffix)
+    header["CPDIS1"] = "LOOKUP"
+    header["CPDIS2"] = "LOOKUP"
+    header["DP1.EXTVER"] = 1
+    header["DP1.NAXES"] = 2
+    header["DP1.AXIS.1"] = 1
+    header["DP1.AXIS.2"] = 2
+    header["DP2.EXTVER"] = 1
+    header["DP2.NAXES"] = 2
+    header["DP2.AXIS.1"] = 1
+    header["DP2.AXIS.2"] = 2
+
+    # Create distortion array
+    dist_data = np.random.randn(129, 129).astype(np.float32) * 0.01
+    dist_hdu = fits.ImageHDU(dist_data, name="WCSDVARR")
+    dist_hdu.ver = 1
+    dist_hdu.header["CRPIX1"] = 65.0
+    dist_hdu.header["CRPIX2"] = 65.0
+    dist_hdu.header["CRVAL1"] = 513.0
+    dist_hdu.header["CRVAL2"] = 1.0
+    dist_hdu.header["CDELT1"] = 8.0
+    dist_hdu.header["CDELT2"] = 8.0
+
+    # Create HDUList
+    hdulist = fits.HDUList([primary, dist_hdu])
+
+    # Load WCS with default key (primary WCS)
+    w = wcs.WCS(header, hdulist)
+
+    # Verify distortion was loaded
+    assert w.cpdis1 is not None, "Primary WCS should load CPDIS1"
+    assert w.cpdis2 is not None, "Primary WCS should load CPDIS2"
+    assert isinstance(w.cpdis1, wcs.DistortionLookupTable)
+    assert isinstance(w.cpdis2, wcs.DistortionLookupTable)
+
+
+def test_alternate_wcs_distortion_key_isolation():
+    """
+    Test that secondary WCS (key='A') does NOT load primary distortion.
+    Regression test for bug where secondary WCS would incorrectly load
+    the primary WCS's distortion when the secondary had no distortion
+    keywords with the appropriate suffix.
+    """
+    # Create primary HDU with WCS and distortion for PRIMARY only
+    primary = fits.PrimaryHDU()
+    header = primary.header
+
+    # Basic WCS keywords for PRIMARY
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 1024
+    header["NAXIS2"] = 1024
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CRPIX1"] = 512
+    header["CRPIX2"] = 512
+    header["CRVAL1"] = 150.0
+    header["CRVAL2"] = -35.0
+    header["CDELT1"] = -0.0002777778
+    header["CDELT2"] = 0.0002777778
+
+    # Basic WCS keywords for SECONDARY (key='A')
+    header["CTYPE1A"] = "HPLN-TAN"
+    header["CTYPE2A"] = "HPLT-TAN"
+    header["CRPIX1A"] = 512
+    header["CRPIX2A"] = 512
+    header["CRVAL1A"] = 0.0
+    header["CRVAL2A"] = 0.0
+    header["CDELT1A"] = 0.5
+    header["CDELT2A"] = 0.5
+
+    # Primary WCS distortion keywords (no suffix) - ONLY for primary
+    header["CPDIS1"] = "LOOKUP"
+    header["CPDIS2"] = "LOOKUP"
+    header["DP1.EXTVER"] = 1
+    header["DP1.NAXES"] = 2
+    header["DP1.AXIS.1"] = 1
+    header["DP1.AXIS.2"] = 2
+    header["DP2.EXTVER"] = 1
+    header["DP2.NAXES"] = 2
+    header["DP2.AXIS.1"] = 1
+    header["DP2.AXIS.2"] = 2
+
+    # NOTE: No CPDIS1A, CPDIS2A keywords - secondary has no distortion
+
+    # Create distortion array for primary
+    dist_data = np.random.randn(129, 129).astype(np.float32) * 0.01
+    dist_hdu = fits.ImageHDU(dist_data, name="WCSDVARR")
+    dist_hdu.ver = 1
+    dist_hdu.header["CRPIX1"] = 65.0
+    dist_hdu.header["CRPIX2"] = 65.0
+    dist_hdu.header["CRVAL1"] = 513.0
+    dist_hdu.header["CRVAL2"] = 1.0
+    dist_hdu.header["CDELT1"] = 8.0
+    dist_hdu.header["CDELT2"] = 8.0
+
+    # Create HDUList
+    hdulist = fits.HDUList([primary, dist_hdu])
+
+    # Load PRIMARY WCS - should have distortion
+    wcs_primary = wcs.WCS(header, hdulist, key=" ")
+    assert wcs_primary.cpdis1 is not None, "Primary WCS should have distortion"
+    assert wcs_primary.cpdis2 is not None, "Primary WCS should have distortion"
+
+    # Load SECONDARY WCS - should NOT have distortion
+    wcs_secondary = wcs.WCS(header, hdulist, key="A")
+
+    # THE FIX: Secondary WCS should NOT load primary's distortion
+    assert wcs_secondary.cpdis1 is None, (
+        "Secondary WCS should NOT load primary WCS distortion when CPDIS1A is missing"
+    )
+    assert wcs_secondary.cpdis2 is None, (
+        "Secondary WCS should NOT load primary WCS distortion when CPDIS2A is missing"
+    )
+
+
+def test_alternate_wcs_distortion_independent():
+    """
+    Test that secondary WCS (key='A') loads its own distortion when present.
+    Verifies that the corrected keyword names (with 'A' suffix) are
+    properly recognized and loaded independently from primary WCS.
+    """
+    # Create primary HDU
+    primary = fits.PrimaryHDU()
+    header = primary.header
+
+    # Basic WCS keywords for both primary and secondary
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 1024
+    header["NAXIS2"] = 1024
+
+    # Primary WCS
+    header["CTYPE1"] = "RA---TAN"
+    header["CTYPE2"] = "DEC--TAN"
+    header["CRPIX1"] = 512
+    header["CRPIX2"] = 512
+    header["CRVAL1"] = 150.0
+    header["CRVAL2"] = -35.0
+    header["CDELT1"] = -0.0002777778
+    header["CDELT2"] = 0.0002777778
+
+    # Secondary WCS (key='A')
+    header["CTYPE1A"] = "HPLN-TAN"
+    header["CTYPE2A"] = "HPLT-TAN"
+    header["CRPIX1A"] = 512
+    header["CRPIX2A"] = 512
+    header["CRVAL1A"] = 0.0
+    header["CRVAL2A"] = 0.0
+    header["CDELT1A"] = 0.5
+    header["CDELT2A"] = 0.5
+
+    # Primary WCS distortion keywords
+    header["CPDIS1"] = "LOOKUP"
+    header["CPDIS2"] = "LOOKUP"
+    header["DP1.EXTVER"] = 1
+    header["DP1.NAXES"] = 2
+    header["DP1.AXIS.1"] = 1
+    header["DP1.AXIS.2"] = 2
+    header["DP2.EXTVER"] = 1
+    header["DP2.NAXES"] = 2
+    header["DP2.AXIS.1"] = 1
+    header["DP2.AXIS.2"] = 2
+
+    # Secondary WCS distortion keywords (with 'A' suffix)
+    header["CPDIS1A"] = "LOOKUP"
+    header["CPDIS2A"] = "LOOKUP"
+    header["DP1A.EXTVER"] = 2  # Different EXTVER for secondary
+    header["DP1A.NAXES"] = 2
+    header["DP1A.AXIS.1"] = 1
+    header["DP1A.AXIS.2"] = 2
+    header["DP2A.EXTVER"] = 2
+    header["DP2A.NAXES"] = 2
+    header["DP2A.AXIS.1"] = 1
+    header["DP2A.AXIS.2"] = 2
+
+    # Create two different distortion arrays
+    dist_data_primary = np.random.randn(129, 129).astype(np.float32) * 0.01
+    dist_hdu_primary = fits.ImageHDU(dist_data_primary, name="WCSDVARR")
+    dist_hdu_primary.ver = 1
+    dist_hdu_primary.header["CRPIX1"] = 65.0
+    dist_hdu_primary.header["CRPIX2"] = 65.0
+    dist_hdu_primary.header["CRVAL1"] = 513.0
+    dist_hdu_primary.header["CRVAL2"] = 1.0
+    dist_hdu_primary.header["CDELT1"] = 8.0
+    dist_hdu_primary.header["CDELT2"] = 8.0
+
+    dist_data_secondary = np.random.randn(129, 129).astype(np.float32) * 0.02
+    dist_hdu_secondary = fits.ImageHDU(dist_data_secondary, name="WCSDVARR")
+    dist_hdu_secondary.ver = 2
+    dist_hdu_secondary.header["CRPIX1"] = 65.0
+    dist_hdu_secondary.header["CRPIX2"] = 65.0
+    dist_hdu_secondary.header["CRVAL1"] = 513.0
+    dist_hdu_secondary.header["CRVAL2"] = 1.0
+    dist_hdu_secondary.header["CDELT1"] = 8.0
+    dist_hdu_secondary.header["CDELT2"] = 8.0
+
+    # Create HDUList with both distortion arrays
+    hdulist = fits.HDUList([primary, dist_hdu_primary, dist_hdu_secondary])
+
+    # Load PRIMARY WCS
+    wcs_primary = wcs.WCS(header, hdulist, key=" ")
+    assert wcs_primary.cpdis1 is not None
+    assert wcs_primary.cpdis2 is not None
+
+    # Load SECONDARY WCS
+    wcs_secondary = wcs.WCS(header, hdulist, key="A")
+    assert wcs_secondary.cpdis1 is not None, (
+        "Secondary WCS should load its own distortion from CPDIS1A"
+    )
+    assert wcs_secondary.cpdis2 is not None, (
+        "Secondary WCS should load its own distortion from CPDIS2A"
+    )
+
+    # Verify they loaded different distortion data
+    assert wcs_primary.cpdis1 is not wcs_secondary.cpdis1, (
+        "Primary and secondary should have independent distortion objects"
+    )
+
+    # Verify the data is different
+    assert not np.array_equal(wcs_primary.cpdis1.data, wcs_secondary.cpdis1.data), (
+        "Primary and secondary should use different distortion data"
+    )
+
+
 def test_DistortionLookupTable():
     img_world_wcs = wcs.WCS(naxis=2)
     # A simple "pixel coordinates are world coordinates" WCS, to which we'll
@@ -2201,7 +2448,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             "all_world2pix",
         ),
     )
-    def test_programmatic(self, explicit_set, function):
+    def test_programmatic_conversions(self, explicit_set, function):
         # Make sure that things work fine if we make the WCS programmatically
         # and not from a header
 
@@ -2214,10 +2461,6 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
         if explicit_set:
             wcs_prog.wcs.set()
-
-        # FIXME: the following fails if explicit_set is False because wcsset
-        # gets called implicitly during the coordinate conversion but we don't
-        # catch this and store the before/after units.
 
         if function == "p2s":
             assert_allclose(
@@ -2235,6 +2478,46 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             assert_allclose(wcs_prog.all_pix2world(1, 1, 1), [10, 20])
         elif function == "all_world2pix":
             assert_allclose(wcs_prog.all_world2pix(10, 20, 1), [1, 1])
+
+    @pytest.mark.parametrize("explicit_set", (False, True))
+    def test_programmatic_to_header(self, explicit_set):
+        # Make sure that to_header works fine if we make the WCS programmatically
+        # and not from a header
+
+        wcs_prog = wcs.WCS(naxis=2, preserve_units=True)
+        wcs_prog.wcs.ctype = "RA---TAN", "DEC--TAN"
+        wcs_prog.wcs.cunit = "arcsec", "arcsec"
+        wcs_prog.wcs.crval = 10, 20
+        wcs_prog.wcs.cdelt = 1, 2
+        wcs_prog.wcs.crpix = 1, 1
+
+        if explicit_set:
+            wcs_prog.wcs.set()
+
+        header = wcs_prog.to_header()
+
+        expected_header = """
+WCSAXES =                    2 / Number of coordinate axes
+CRPIX1  =                  1.0 / Pixel coordinate of reference point
+CRPIX2  =                  1.0 / Pixel coordinate of reference point
+CDELT1  =                  1.0 / [arcsec] Coordinate increment at reference poin
+CDELT2  =                  2.0 / [arcsec] Coordinate increment at reference poin
+CUNIT1  = 'arcsec'             / Units of coordinate increment and value
+CUNIT2  = 'arcsec'             / Units of coordinate increment and value
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection
+CRVAL1  =                 10.0 / [arcsec] Coordinate value at reference point
+CRVAL2  =                 20.0 / [arcsec] Coordinate value at reference point
+LONPOLE =                180.0 / [deg] Native longitude of celestial pole
+LATPOLE =   0.0055555555555556 / [deg] Native latitude of celestial pole
+MJDREF  =                  0.0 / [d] MJD of fiducial time
+RADESYS = 'ICRS'               / Equatorial coordinate system
+END
+""".strip()
+
+        assert header.tostring(sep="\n") == fits.Header.fromstring(
+            expected_header, sep="\n"
+        ).tostring(sep="\n")
 
     def test_change_cunit(self):
         # Make sure that things work fine if we make the WCS programmatically
@@ -2417,7 +2700,7 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
     def test_no_scaling_if_no_unit_changes(self):
         # This checks that if a WCS doesn't actually have units changing in
         # WCSLIB, that we aren't using the unit scaling machinery with scales
-        # all set to 1 since this would have an unecessary impact on performance.
+        # all set to 1 since this would have an unnecessary impact on performance.
 
         simple_wcs = wcs.WCS(naxis=3, preserve_units=True)
         simple_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
@@ -2579,7 +2862,23 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
             np.array([1 / 3600, 1e9, 1.0, 1 / 3600, 1e-9, 1]),
         )
 
+    def test_safe_set_cdelt_crval(self):
 
+        simple_wcs = wcs.WCS(naxis=2, preserve_units=True)
+        simple_wcs.wcs.cunit = "arcsec", "arcsec"
+        simple_wcs.wcs.set()
+
+        # At this point original_cunit is set but cunit_scaling has been
+        # set then freed since all values in it are 1 (units only get
+        # converted to degrees once ctype is set)
+
+        simple_wcs.wcs.cdelt = -1, 2
+        simple_wcs.wcs.crval = 3, 4
+
+
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
 def test_thread_safe_conversions():
     # This is a regression test for a bug which caused wcsset to be called
     # unnecessarily multiple times, including every time some attribute were
@@ -2610,3 +2909,64 @@ def test_thread_safe_conversions():
         results = pool.map(round_trip_transform, (pixel,) * 8)
         for pixel2 in results:
             assert_allclose(pixel, pixel2, atol=1e-7)
+
+
+def test_nan_in_core_param_propagates():
+    # Core linear parameters (crval/crpix/cdelt/pc/...) are not UNDEFINED-capable
+    # in WCSLIB, so a user-supplied NaN is passed straight through rather than
+    # turned into the UNDEFINED sentinel (which would surface as ~9.9e107). See
+    # GH-16409 / the "Much better!" example in the PR description.
+    w = wcs.WCS(naxis=2)
+    w.wcs.crval[1] = np.nan
+    result = w.wcs_pix2world(1, 2, 0)
+    assert np.isnan(result[1])
+
+
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
+def test_to_header_concurrent_consistency():
+    # Regression for the in-place NaN<->UNDEFINED conversion of the shared
+    # struct: calling to_header() on one shared WCS from many threads must
+    # always produce the single correct header, never a torn one containing
+    # "NAN" cards. This has real teeth only on a free-threaded interpreter; on
+    # a GIL build it still exercises the path and can never fail spuriously.
+    w = wcs.WCS(naxis=2)
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    w.wcs.crval = [10.0, 20.0]
+    w.wcs.crpix = [256.0, 256.0]
+    w.wcs.cdelt = [-1e-3, 1e-3]
+    w.wcs.set()
+    reference = w.wcs.to_header()
+
+    def make_headers(_):
+        return {w.wcs.to_header() for _ in range(200)}
+
+    with ThreadPool(8) as pool:
+        seen = set().union(*pool.map(make_headers, range(8)))
+
+    assert seen == {reference}
+    assert not any("NAN" in h.upper() for h in seen)
+
+
+@pytest.fixture
+def shared_tan_wcs():
+    w = wcs.WCS(naxis=2)
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    w.wcs.set()
+    return w
+
+
+@pytest.mark.force_parallel_threads(8)
+@pytest.mark.iterations(25)
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
+def test_deepcopy_during_lazy_cache_population(shared_tan_wcs):
+    # Deepcopying a shared WCS while another thread's first pixel_to_world
+    # call lazily inserts _components_and_classes_cache into __dict__ raised
+    # RuntimeError; the pop re-arms that lazy insertion on every iteration.
+    shared_tan_wcs.__dict__.pop("_components_and_classes_cache", None)
+    copy.deepcopy(shared_tan_wcs)
+    shared_tan_wcs.pixel_to_world(0, 0)
+    copy.deepcopy(shared_tan_wcs)

@@ -1,18 +1,24 @@
 ci:
+  autofix_commit_msg: "chore: pre-commit fixes"
   autofix_prs: false
   autoupdate_schedule: 'monthly'
+
+exclude: "^cextern"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # prevent accidental commits to main
+      # to override, pass --no-verify to git commit
+      - id: no-commit-to-branch
       - id: check-added-large-files
         args: ["--enforce-all", "--maxkb=300"]
         exclude: "^(\
             cextern/expat/lib/xmlparse.c|\
             cextern/wcslib/C/flexed/.*|\
             CHANGES.rst|\
-        )$"
+          )$"
         # Prevent giant files from being committed.
       - id: check-case-conflict
         # Check for files with names that would conflict on a case-insensitive
@@ -35,6 +41,10 @@ repos:
       - id: end-of-file-fixer
         # Makes sure files end in a newline and only a newline.
         exclude: ".*(data.*|extern.*|licenses.*|_static.*|_parsetab.py)$"
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        # Forces all text files to use LF line endings.
+        exclude: ".*(data.*|extern.*|licenses.*|_static.*|_parsetab.py)$"
       # - id: fix-encoding-pragma  # covered by pyupgrade
       - id: trailing-whitespace
         # Trims trailing whitespace.
@@ -51,13 +61,13 @@ repos:
       - id: text-unicode-replacement-char
         # Forbid files which have a UTF-8 Unicode replacement character.
 
-  - repo: https://github.com/woodruffw/zizmor-pre-commit
-    rev: v1.16.2
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.30.1
     hooks:
     - id: zizmor
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.3
     hooks:
       - id: codespell
         args: ["--write-changes"]
@@ -65,14 +75,14 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.3
+    rev: v0.15.20
     hooks:
       - id: ruff-check
         args: ["--fix", "--show-fixes"]
       - id: ruff-format
 
   - repo: https://github.com/scientific-python/cookie
-    rev: 2025.10.20
+    rev: 2026.08.14
     hooks:
       - id: sp-repo-review
 
@@ -98,8 +108,18 @@ repos:
 
   # Linting hook for stylistic issues in rst doc files.
   - repo: https://github.com/sphinx-contrib/sphinx-lint
-    rev: v1.0.1
+    rev: v1.0.2
     hooks:
       - id: sphinx-lint
-        args: ["--disable", "missing-underscore-after-hyperlink"]
         exclude: "(licenses/|docs/_build/|.*parsetab.py|astropy/extern/)"
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: 'v23.1.0'
+    hooks:
+      - id: clang-format
+        files: \.(c|h)$
+
+  - repo: https://github.com/numpy/numpydoc
+    rev: v1.10.0
+    hooks:
+      - id: numpydoc-validation

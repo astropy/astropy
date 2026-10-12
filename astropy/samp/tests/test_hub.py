@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import platform
 import time
 
 import pytest
@@ -12,11 +13,13 @@ def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 def test_SAMPHubServer():
     """Test that SAMPHub can be instantiated"""
     SAMPHubServer(web_profile=False, mode="multiple", pool_size=1)
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 @pytest.mark.slow
 def test_SAMPHubServer_run():
     """Test that SAMPHub can be run"""
@@ -26,6 +29,7 @@ def test_SAMPHubServer_run():
     hub.stop()
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 @pytest.mark.slow
 def test_SAMPHubServer_run_repeated():
     """

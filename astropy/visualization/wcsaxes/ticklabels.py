@@ -10,8 +10,6 @@ from matplotlib.text import Text
 from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .frame import RectangularFrame
-
 
 def sort_using(X, Y):
     return [x for (y, x) in sorted(zip(Y, X))]
@@ -21,6 +19,11 @@ def _find_start_of_last_number(label):
     """
     Given a label, find the index of the start of the last numerical value
     in the label.
+
+    Parameters
+    ----------
+    label : str
+        The label to search.
     """
     numerical_chars = "0123456789.+"
     if rcParams["axes.unicode_minus"] and not rcParams["text.usetex"]:
@@ -66,6 +69,7 @@ class TickLabels(Text):
         self.world = defaultdict(list)
         self.data = defaultdict(list)
         self.angle = defaultdict(list)
+        self.tick_angle = defaultdict(list)
         self.text = defaultdict(list)
         self.disp = defaultdict(list)
 
@@ -78,6 +82,7 @@ class TickLabels(Text):
         text=None,
         axis_displacement=None,
         data=None,
+        tick_angle=None,
     ):
         """
         Add a label.
@@ -98,6 +103,8 @@ class TickLabels(Text):
             Displacement from axis.
         data : [float, float]
             Data coordinates of the label.
+        tick_angle : float
+            Angle of the corresponding tick. Defaults to be equal to ``angle``.
         """
         required_args = ["axis", "world", "angle", "text", "axis_displacement", "data"]
         if pixel is not None:
@@ -123,6 +130,7 @@ class TickLabels(Text):
         self.world[axis].append(world)
         self.data[axis].append(data)
         self.angle[axis].append(angle)
+        self.tick_angle[axis].append(tick_angle if tick_angle is not None else angle)
         self.text[axis].append(text)
         self.disp[axis].append(axis_displacement)
 
@@ -137,6 +145,7 @@ class TickLabels(Text):
             self.world[axis] = sort_using(self.world[axis], self.disp[axis])
             self.data[axis] = sort_using(self.data[axis], self.disp[axis])
             self.angle[axis] = sort_using(self.angle[axis], self.disp[axis])
+            self.tick_angle[axis] = sort_using(self.tick_angle[axis], self.disp[axis])
             self.text[axis] = sort_using(self.text[axis], self.disp[axis])
             self.disp[axis] = sort_using(self.disp[axis], self.disp[axis])
         self._stale = True
@@ -159,10 +168,19 @@ class TickLabels(Text):
                     # non-number (and non-decimal place) character we can find.
                     start = _find_start_of_last_number(t2)
                 else:
-                    for j in range(len(t1)):
+                    start = 0
+                    for j in range(min(len(t1), len(t2))):
                         if t1[j] != t2[j]:
                             start = _find_start_of_last_number(t2[: j + 1])
                             break
+                    else:
+                        # One of the strings is a prefix of the other (up to
+                        # the length of the shorter one) without any
+                        # differing character, so the entire overlapping
+                        # part can be considered shared and only the extra
+                        # trailing part of t2 (if any) needs to be shown.
+                        if len(t2) > len(t1):
+                            start = _find_start_of_last_number(t2[: len(t1) + 1])
 
                 if start != 0:
                     starts_dollar = t2.startswith("$")
@@ -205,13 +223,17 @@ class TickLabels(Text):
         """
         Compute and set the x, y positions and the horizontal/vertical alignment of
         each label.
+
+        Parameters
+        ----------
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to use to compute text sizes.
         """
         if not self._stale:
             return
 
         if self._simplify:
             self.simplify_labels()
-        text_size = renderer.points_to_pixels(self.get_size())
 
         visible_axes = self.get_visible_axes()
         self.xy = {axis: {} for axis in visible_axes}
@@ -229,89 +251,60 @@ class TickLabels(Text):
                 x, y = self._frame.parent_axes.transData.transform(self.data[axis][i])
                 pad = renderer.points_to_pixels(self.get_pad() + self._tick_out_size)
 
-                if isinstance(self._frame, RectangularFrame):
-                    # This is just to preserve the current results, but can be
-                    # removed next time the reference images are re-generated.
-                    if np.abs(self.angle[axis][i]) < 45.0:
-                        ha = "right"
-                        va = "bottom"
-                        dx = -pad
-                        dy = -text_size * 0.5
-                    elif np.abs(self.angle[axis][i] - 90.0) < 45:
-                        ha = "center"
-                        va = "bottom"
-                        dx = 0
-                        dy = -text_size - pad
-                    elif np.abs(self.angle[axis][i] - 180.0) < 45:
-                        ha = "left"
-                        va = "bottom"
-                        dx = pad
-                        dy = -text_size * 0.5
+                # Set initial position and find bounding box
+                self.set_text(self.text[axis][i])
+                self.set_position((x, y))
+                bb = super().get_window_extent(renderer)
+
+                width = bb.width
+                height = bb.height
+
+                # The pad direction (typically perpendicular to the spine)
+                pad_angle = np.radians(self.angle[axis][i])
+                px = np.cos(pad_angle)
+                py = np.sin(pad_angle)
+
+                # If the tick angle is NaN, use the pad angle for the tick angle
+                tick_angle = (
+                    np.radians(self.tick_angle[axis][i])
+                    if not np.isnan(self.tick_angle[axis][i])
+                    else pad_angle
+                )
+                tx = np.cos(tick_angle)
+                ty = np.sin(tick_angle)
+
+                # Set anchor point for label where the pad direction intersects bounding box
+                with np.errstate(divide="ignore"):
+                    if np.abs(py / px) < np.abs(height / width):
+                        ax = width / 2 * np.sign(px)
+                        ay = width / 2 * py / np.abs(px)
                     else:
-                        ha = "center"
-                        va = "bottom"
-                        dx = 0
-                        dy = pad
+                        ax = height / 2 * px / np.abs(py)
+                        ay = height / 2 * np.sign(py)
 
-                    x = x + dx
-                    y = y + dy
+                # Extract the component of the tick direction perpendicular to the pad direction
+                scale = tx * px + ty * py
+                vx = tx - px * scale
+                vy = ty - py * scale
 
-                else:
-                    # This is the more general code for arbitrarily oriented
-                    # axes
+                # We scale the above vector for adding to the pad direction to get a combined
+                # displacement.  When the tick direction is close to the pad direction, the scaling
+                # is such that the displacement direction is exactly the tick direction.  When the
+                # tick direction is close to perpendicular to the pad direction, we cap the scaling,
+                # which means that the effective tick direction is never more than 60 degrees
+                # perpendicular to the pad direction.  This prevents pushing the tick label too far
+                # away from the tick.
+                scale = np.max([scale, 0.5])  # 0.5 == cos(60 deg)
+                vx /= scale
+                vy /= scale
 
-                    # Set initial position and find bounding box
-                    self.set_text(self.text[axis][i])
-                    self.set_position((x, y))
-                    bb = super().get_window_extent(renderer)
+                # Pad the anchor point in the combined displacement direction
+                dx = ax + (vx + px) * pad
+                dy = ay + (vy + py) * pad
 
-                    # Find width and height, as well as angle at which we
-                    # transition which side of the label we use to anchor the
-                    # label.
-                    width = bb.width
-                    height = bb.height
-
-                    # Project axis angle onto bounding box
-                    ax = np.cos(np.radians(self.angle[axis][i]))
-                    ay = np.sin(np.radians(self.angle[axis][i]))
-
-                    # Set anchor point for label
-                    if np.abs(self.angle[axis][i]) < 45.0:
-                        dx = width
-                        dy = ay * height
-                    elif np.abs(self.angle[axis][i] - 90.0) < 45:
-                        dx = ax * width
-                        dy = height
-                    elif np.abs(self.angle[axis][i] - 180.0) < 45:
-                        dx = -width
-                        dy = ay * height
-                    else:
-                        dx = ax * width
-                        dy = -height
-
-                    dx *= 0.5
-                    dy *= 0.5
-
-                    # Find normalized vector along axis normal, so as to be
-                    # able to nudge the label away by a constant padding factor
-
-                    dist = np.hypot(dx, dy)
-
-                    ddx = dx / dist
-                    ddy = dy / dist
-
-                    dx += ddx * pad
-                    dy += ddy * pad
-
-                    x = x - dx
-                    y = y - dy
-
-                    ha = "center"
-                    va = "center"
-
-                self.xy[axis][i] = (x, y)
-                self.ha[axis][i] = ha
-                self.va[axis][i] = va
+                self.xy[axis][i] = (x - dx, y - dy)
+                self.ha[axis][i] = "center"
+                self.va[axis][i] = "center"
 
         self._stale = False
 
@@ -319,6 +312,15 @@ class TickLabels(Text):
         """
         Get the bounding box of an individual label. n.b. _set_xy_alignment()
         must be called before this method.
+
+        Parameters
+        ----------
+        axis : str
+            The axis the label is on.
+        i : int
+            The index of the label along the axis.
+        renderer : `~matplotlib.backend_bases.RendererBase`
+            The renderer to use to compute text sizes.
         """
         if self.text[axis][i] == "":
             return

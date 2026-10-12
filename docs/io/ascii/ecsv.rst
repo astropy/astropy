@@ -60,6 +60,11 @@ Apart from the delimiter, the only other applicable write arguments are
 ``names``, ``include_names``, and ``exclude_names``. All other arguments will be
 either ignored or raise an error.
 
+When reading, ``names``, ``include_names`` and ``exclude_names`` refer to the
+column names in the output table. A mixin column such as a `~astropy.time.Time`
+column ``tm`` that is stored in the file as multiple data columns (``tm.jd1`` and
+``tm.jd2``) is renamed, selected or excluded as the single column ``tm``.
+
 Simple Table
 ------------
 ..
@@ -496,3 +501,16 @@ representation.
 
 ..
   EXAMPLE END
+
+Meta data
+---------
+
+The ECSV format allows for different data structures in the header "meta" element.
+Typically, this will be a mapping (what Python calls a dict), but it could also be a list or
+nested structure.
+Astropy's `~astropy.table.Table` requires a `dict` for table meta data. Thus,
+the reader will attempt to convert the ECSV header "meta" to a dict or store the entire structure
+in a single entry in the table meta.
+On writing, that dict will be written back in astropy's form, so ECSV files that were not
+originally written by astropy will preserve the content, but not the formatting of the
+header "meta" element.

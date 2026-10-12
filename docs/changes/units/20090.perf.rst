@@ -1,0 +1,4 @@
+Conversions of strings to units (as in ``Unit("km/s")`` are now cached,
+leading to substantial speed-up when strings are used repeatedly, removing a
+downside of this arguably most readable way to create units over constructing
+them via unit module attributes (as in ``u.km / u.s``).

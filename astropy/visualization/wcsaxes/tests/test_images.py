@@ -723,7 +723,7 @@ class TestBasic(BaseImageTests):
         return fig
 
     @figure_test(savefig_kwargs={"bbox_inches": "tight"})
-    def test_noncelestial_angular(self, tmp_path):
+    def test_noncelestial_angular(self):
         # Regression test for a bug that meant that when passing a WCS that had
         # angular axes and using set_coord_type to set the coordinates to
         # longitude/latitude, but where the WCS wasn't recognized as celestial,
@@ -753,7 +753,7 @@ class TestBasic(BaseImageTests):
         ax.grid(color="white", ls="solid")
 
         # Force drawing (needed for format_coord)
-        fig.savefig(tmp_path / "nothing")
+        fig.canvas.draw()
 
         assert ax.format_coord(512, 512) == "513.0 513.0 (world)"
 

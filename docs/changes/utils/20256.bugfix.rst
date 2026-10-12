@@ -1,0 +1,4 @@
+Fixed an issue where ``iers_degraded_accuracy`` did not apply to stale
+predictive values in the co-installed IERS-A data used by
+``IERS_Auto``, so setting it to ``"warn"`` or ``"ignore"`` raised a
+``ValueError`` instead of warning or being silent.

@@ -1,0 +1,5 @@
+Bugfix for a ``Parameter`` with a custom ``getter`` / ``setter`` pair raising an
+``AttributeError`` when accessing the ``value`` of the ``Parameter`` before any
+value for the parameter has been set. The ``Parameter`` will now return the result
+of the ``getter`` applied to a ``nan`` value in this case which is consistent
+with the behavior of a ``Parameter`` without a custom ``getter`` / ``setter`` pair.

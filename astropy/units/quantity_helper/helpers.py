@@ -10,22 +10,19 @@ units for a given ufunc, given input units.
 from fractions import Fraction
 
 import numpy as np
+from numpy._core import umath as np_umath
 
-from astropy.units.core import dimensionless_unscaled, unit_scale_converter
+from astropy.units.core import dimensionless_unscaled, one, unit_scale_converter
 from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
 from astropy.utils.compat.numpycompat import (
-    NUMPY_LT_2_0,
     NUMPY_LT_2_1,
     NUMPY_LT_2_2,
     NUMPY_LT_2_3,
+    NUMPY_LT_2_5,
+    NUMPY_LT_2_6,
 )
 
-if NUMPY_LT_2_0:
-    from numpy.core import umath as np_umath
-else:
-    from numpy._core import umath as np_umath
-
-from . import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
+from .converters import UFUNC_HELPERS, UNSUPPORTED_UFUNCS
 
 
 def _d(unit):
@@ -40,7 +37,7 @@ def get_converter(from_unit, to_unit):
     i.e., if the inferred scale is unity.
     """
     try:
-        converter = from_unit.get_converter(to_unit)
+        converter = from_unit._get_converter(to_unit)
     except AttributeError as exc:
         # Check for lack of unit only now, to avoid delay for cases where a unit
         # was present. Note that cases where dimensionless is expected are
@@ -49,7 +46,7 @@ def get_converter(from_unit, to_unit):
         if from_unit is not None:  # pragma: no cover
             raise
         try:
-            converter = dimensionless_unscaled.get_converter(to_unit)
+            converter = dimensionless_unscaled._get_converter(to_unit)
         except UnitsError:
             exc.add_note(
                 "Input without a 'unit' attribute? Such input is treated "
@@ -116,26 +113,6 @@ def helper_onearg_test(f, unit):
 
 def helper_invariant(f, unit):
     return ([None], _d(unit))
-
-
-def helper_square(f, unit):
-    return ([None], unit**2 if unit is not None else dimensionless_unscaled)
-
-
-def helper_reciprocal(f, unit):
-    return ([None], unit**-1 if unit is not None else dimensionless_unscaled)
-
-
-one_half = 0.5  # faster than Fraction(1, 2)
-one_third = Fraction(1, 3)
-
-
-def helper_sqrt(f, unit):
-    return ([None], unit**one_half if unit is not None else dimensionless_unscaled)
-
-
-def helper_cbrt(f, unit):
-    return ([None], (unit**one_third if unit is not None else dimensionless_unscaled))
 
 
 def helper_modf(f, unit):
@@ -372,6 +349,22 @@ def helper_clip(f, unit1, unit2, unit3):
     return converters, result_unit
 
 
+def helper_unwrap(f, unit1, unit2, unit3):
+    """Support the private numpy ufunc np._core.umath._unwrap.
+
+    This ufunc is used internally in `~numpy.unwrap`, and like for clip, the
+    first array is the primary one, and discont and period should simply be
+    converted to its unit.
+
+    A tricky part is that `~numpy.unwrap` has dimensionless defaults for
+    discont and period, which are simply passed on.  Rather than deal with
+    these here, we just continue to override `~numpy.unwrap` in
+    ``astropy.units.quantity_helpers.function_helpers``.
+
+    """
+    return helper_clip(f, unit1, unit2, unit3)
+
+
 # list of ufuncs:
 # https://numpy.org/doc/stable/reference/ufuncs.html#available-ufuncs
 
@@ -391,37 +384,36 @@ UNSUPPORTED_UFUNCS |= {
     np.lcm,
 }
 
-if not NUMPY_LT_2_0:
-    # string utilities - make no sense for Quantity.
-    UNSUPPORTED_UFUNCS |= {
-        np.bitwise_count,
-        np._core.umath.count,
-        np._core.umath.isalpha,
-        np._core.umath.isdigit,
-        np._core.umath.isspace,
-        np._core.umath.isnumeric,
-        np._core.umath.isdecimal,
-        np._core.umath.isalnum,
-        np._core.umath.istitle,
-        np._core.umath.islower,
-        np._core.umath.isupper,
-        np._core.umath.index,
-        np._core.umath.rindex,
-        np._core.umath.startswith,
-        np._core.umath.endswith,
-        np._core.umath.find,
-        np._core.umath.rfind,
-        np._core.umath.str_len,
-        np._core.umath._strip_chars,
-        np._core.umath._lstrip_chars,
-        np._core.umath._rstrip_chars,
-        np._core.umath._strip_whitespace,
-        np._core.umath._lstrip_whitespace,
-        np._core.umath._rstrip_whitespace,
-        np._core.umath._replace,
-        np._core.umath._expandtabs,
-        np._core.umath._expandtabs_length,
-    }
+# string utilities - make no sense for Quantity.
+UNSUPPORTED_UFUNCS |= {
+    np.bitwise_count,
+    np._core.umath.count,
+    np._core.umath.isalpha,
+    np._core.umath.isdigit,
+    np._core.umath.isspace,
+    np._core.umath.isnumeric,
+    np._core.umath.isdecimal,
+    np._core.umath.isalnum,
+    np._core.umath.istitle,
+    np._core.umath.islower,
+    np._core.umath.isupper,
+    np._core.umath.index,
+    np._core.umath.rindex,
+    np._core.umath.startswith,
+    np._core.umath.endswith,
+    np._core.umath.find,
+    np._core.umath.rfind,
+    np._core.umath.str_len,
+    np._core.umath._strip_chars,
+    np._core.umath._lstrip_chars,
+    np._core.umath._rstrip_chars,
+    np._core.umath._strip_whitespace,
+    np._core.umath._lstrip_whitespace,
+    np._core.umath._rstrip_whitespace,
+    np._core.umath._replace,
+    np._core.umath._expandtabs,
+    np._core.umath._expandtabs_length,
+}
 if not NUMPY_LT_2_1:
     UNSUPPORTED_UFUNCS |= {
         np._core.umath._ljust,
@@ -460,6 +452,9 @@ invariant_ufuncs = (
     np.trunc,
     np.positive,
 )
+if not NUMPY_LT_2_5:
+    invariant_ufuncs += (np_umath.imag, np_umath.real)
+
 for ufunc in invariant_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_invariant
 
@@ -509,11 +504,11 @@ radian_to_dimensionless_ufuncs = (np.cos, np.sin, np.tan, np.cosh, np.sinh, np.t
 for ufunc in radian_to_dimensionless_ufuncs:
     UFUNC_HELPERS[ufunc] = helper_radian_to_dimensionless
 
-# ufuncs handled as special cases
-UFUNC_HELPERS[np.sqrt] = helper_sqrt
-UFUNC_HELPERS[np.square] = helper_square
-UFUNC_HELPERS[np.reciprocal] = helper_reciprocal
-UFUNC_HELPERS[np.cbrt] = helper_cbrt
+power_funcs = {np.reciprocal: -1, np.cbrt: Fraction(1, 3), np.sqrt: 0.5, np.square: 2}
+UFUNC_HELPERS |= {
+    f: lambda f, unit, p=power: ([None], one if unit is None else unit**p)
+    for f, power in power_funcs.items()
+}
 UFUNC_HELPERS[np_umath._ones_like] = helper__ones_like
 UFUNC_HELPERS[np.modf] = helper_modf
 UFUNC_HELPERS[np.frexp] = helper_frexp
@@ -567,8 +562,7 @@ for ufunc in twoarg_invtrig_ufuncs:
 # ufuncs handled as special cases
 UFUNC_HELPERS[np.multiply] = helper_multiplication
 UFUNC_HELPERS[np.matmul] = helper_multiplication
-if not NUMPY_LT_2_0:
-    UFUNC_HELPERS[np.vecdot] = helper_multiplication
+UFUNC_HELPERS[np.vecdot] = helper_multiplication
 if not NUMPY_LT_2_2:
     UFUNC_HELPERS[np.vecmat] = helper_multiplication
     UFUNC_HELPERS[np.matvec] = helper_multiplication
@@ -584,5 +578,9 @@ UFUNC_HELPERS[np.divmod] = helper_divmod
 # Check for clip ufunc; note that np.clip is a wrapper function, not the ufunc.
 if isinstance(getattr(np_umath, "clip", None), np.ufunc):
     UFUNC_HELPERS[np_umath.clip] = helper_clip
+
+if not NUMPY_LT_2_6:
+    # See docstring of helper_unwrap about this private numpy ufunc.
+    UFUNC_HELPERS[np_umath._unwrap] = helper_unwrap
 
 del ufunc

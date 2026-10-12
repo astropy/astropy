@@ -1,0 +1,3 @@
+Fixed ``BaseRepresentation.represent_as`` mutating a source representation when
+converting attached differentials to another class, which could cause a repeated
+``SkyCoord.apply_space_motion`` call after displaying the coordinate to fail.

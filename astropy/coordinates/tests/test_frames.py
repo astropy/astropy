@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import re
+import typing
 from copy import deepcopy
 
 import numpy as np
@@ -20,6 +21,7 @@ from astropy.coordinates.attributes import (
     EarthLocationAttribute,
     QuantityAttribute,
     TimeAttribute,
+    impose_frame_attributes,
 )
 from astropy.coordinates.baseframe import BaseCoordinateFrame, RepresentationMapping
 from astropy.coordinates.builtin_frames import (
@@ -40,6 +42,7 @@ from astropy.coordinates.representation import (
     CartesianDifferential,
 )
 from astropy.coordinates.tests.helper import skycoord_equal
+from astropy.tests.helper import CI, IS_CRON
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
 from astropy.units import allclose
@@ -96,6 +99,53 @@ def test_frame_attribute_descriptor():
     assert "Cannot set frame attribute" in str(err.value)
 
 
+def test_impose_nested_obstime():
+    imposed_obstime = Time("2012-01-01T00:00:00")
+
+    original_obstime = "2026-01-01T00:00:00"
+    coo1 = GCRS(obstime=original_obstime)
+
+    assert coo1 != imposed_obstime
+
+    with impose_frame_attributes(obstime="2020-01-01T00:00:00"):
+        with impose_frame_attributes(obstime=imposed_obstime):
+            assert coo1.obstime == imposed_obstime
+
+    assert coo1.obstime == original_obstime
+
+
+def test_altaz_transform_with_imposed_obstime():
+    location = EarthLocation(-5466045 * u.m, -2404388 * u.m, 2242133 * u.m)
+    coord1 = SkyCoord(
+        10,
+        20,
+        unit=u.deg,
+        obstime="2026-01-01T00:00:00",
+        location=location,
+        frame="altaz",
+    )
+    coord2 = SkyCoord(
+        10,
+        20,
+        unit=u.deg,
+        obstime="2026-01-02T00:00:00",
+        location=location,
+        frame="altaz",
+    )
+
+    out1 = coord1.transform_to("icrs")
+    out2 = coord2.transform_to("icrs")
+
+    assert not u.allclose(out1.ra, out2.ra)
+    assert not u.allclose(out1.dec, out2.dec)
+
+    with impose_frame_attributes(obstime="2026-01-01T00:00:00"):
+        out_imposed = coord2.transform_to("icrs")
+
+    assert not u.allclose(out2.ra, out_imposed.ra)
+    assert not u.allclose(out2.dec, out_imposed.dec)
+
+
 def test_frame_subclass_attribute_descriptor():
     """Unit test of the attribute descriptors in subclasses."""
     _EQUINOX_B1980 = Time("B1980", scale="tai")
@@ -115,6 +165,33 @@ def test_frame_subclass_attribute_descriptor():
     assert mfk4.equinox.value == "J1980.000"
     assert mfk4.obstime.value == "J1990.000"
     assert mfk4.newattr == "world"
+
+
+def test_impose_restores_frame_attribute():
+    coo = GCRS(obstime="2026-01-01T00:00:00")
+    original_obstime = coo.obstime
+
+    with impose_frame_attributes(obstime="2020-01-01T00:00:00"):
+        assert coo.obstime == Time("2020-01-01T00:00:00")
+
+    assert coo.obstime == original_obstime
+
+
+def test_invalid_attribute_value():
+    with impose_frame_attributes(obstime="2020-01-01"):
+        # no error here, as attribute validation is done on get
+        frame = GCRS(obstime="hello")
+
+    with pytest.raises(ValueError):
+        frame.obstime  # Validation happens here
+
+
+def test_impose_attribute_only_on_frames():
+    out1 = SkyCoord(36.10412254, 80.47633131, unit=u.deg)
+    coord = FK5(out1.ra, out1.dec, equinox=Time("B1950"))
+    with impose_frame_attributes(equinox="J2000"):
+        assert out1.equinox is None
+        assert coord.equinox == Time("J2000")
 
 
 def test_frame_multiple_inheritance_attribute_descriptor():
@@ -1778,3 +1855,26 @@ def test_insert():
     # Insert length=2 array at end of array
     c = c0.insert(2, c3)
     assert skycoord_equal(c, ICRS([1, 2, 10, 20] * u.deg, [3, 4, 30, 40] * u.deg))
+
+
+@pytest.mark.skipif(
+    CI and not IS_CRON,
+    reason="Docs-only concern, skip in regular CI",
+)
+def test_base_coordinate_frame_annotations():
+    # Ensure annotations resolve at runtime without NameError
+    hints = typing.get_type_hints(BaseCoordinateFrame)
+    assert "default_representation" in hints
+    assert "default_differential" in hints
+    assert "frame_specific_representation_info" in hints
+    assert "frame_attributes" in hints
+
+
+def test_replicate_without_data():
+    location = EarthLocation(0 * u.deg, 0 * u.deg, 0 * u.m)
+    frame = AltAz(location=location)
+
+    obstime = Time("2010-01-01T00:00:00")
+    frame_at_obstime = frame.replicate(obstime=obstime, copy=False)
+    assert frame_at_obstime.location == location
+    assert frame_at_obstime.obstime == obstime

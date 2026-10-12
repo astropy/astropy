@@ -57,15 +57,12 @@ the file format, for instance ``'ascii.daophot'``:
   Reading a Table directly from the Internet
 
 It is possible to load tables directly from the Internet using URLs. For
-example, download tables from Vizier catalogues in CDS format
-(``'ascii.cds'``):
+example, download an example Spitzer catalog (a :ref:`VOTable <astropy-io-votable>`):
 
 .. doctest-remote-data::
 
     >>> from astropy.table import Table
-    >>> t = Table.read("ftp://cdsarc.unistra.fr/pub/cats/VII/253/snrs.dat",
-    ...         readme="ftp://cdsarc.unistra.fr/pub/cats/VII/253/ReadMe",
-    ...         format="ascii.cds")
+    >>> t = Table.read("http://www.astropy.org/astropy-data/photometry/spitzer_example_catalog.xml", format="votable")
 
 For certain file formats the format can be automatically detected, for
 example, from the filename extension::
@@ -140,6 +137,7 @@ ascii.fixed_width_no_header    Yes          :class:`~astropy.io.ascii.FixedWidth
                  ascii.html    Yes   .html  :class:`~astropy.io.ascii.HTML`: HTML table
                  ascii.ipac    Yes          :class:`~astropy.io.ascii.Ipac`: IPAC format table
                 ascii.latex    Yes    .tex  :class:`~astropy.io.ascii.Latex`: LaTeX table
+                 ascii.mesa     No   .data  :class:`~astropy.io.ascii.Mesa`: MESA stellar evolution code output format
                   ascii.mrt    Yes          :class:`~astropy.io.ascii.Mrt`: AAS Machine-Readable Table format
             ascii.no_header    Yes          :class:`~astropy.io.ascii.NoHeader`: Basic table with no headers
                   ascii.qdp    Yes    .qdp   :class:`~astropy.io.ascii.QDP`: Quick and Dandy Plotter files

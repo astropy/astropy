@@ -3,6 +3,7 @@
 import pytest
 
 from astropy import __version__ as version
+from astropy.io import fits
 from astropy.io.fits.scripts import fitsheader
 
 from .conftest import FitsTestCase
@@ -28,6 +29,18 @@ class TestFITSheader_script(FitsTestCase):
             "SIMPLE  =                    T / conforms to FITS standard"
         )
         assert err == ""
+
+    def test_missing_optional_dependency(self, caplog, monkeypatch):
+        # Regression test for #19852: fitsheader on a .Z file used to raise an
+        # uncaught ``ModuleNotFoundError`` when the optional ``uncompresspy``
+        # dependency was not installed, producing a long traceback instead of a
+        # clean error message.
+        monkeypatch.setattr(fits.file, "HAS_UNCOMPRESSPY", False)
+        Zfile = self.data("lzw.fits.Z")
+
+        fitsheader.main([Zfile])
+
+        assert "optional package uncompresspy is necessary" in caplog.records[0].message
 
     def test_by_keyword(self, capsys):
         fitsheader.main(["-k", "NAXIS", self.data("arange.fits")])

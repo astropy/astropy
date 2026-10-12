@@ -1,0 +1,4 @@
+``FLRW.comoving_transverse_distance`` now accepts an optional second redshift argument
+``z2``, so that calling ``cosmo.comoving_transverse_distance(z1, z2)`` returns the
+distance :math:`d(z_1, z_2)` between two redshifts, consistent with the existing
+two-argument form of ``FLRW.comoving_distance``.

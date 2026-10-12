@@ -16,6 +16,7 @@ from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA, HAS_PYARROW
 
 if HAS_PYARROW:
     import pyarrow as pa
+    import pyarrow.csv
 else:
     pytest.skip("pyarrow is not available", allow_module_level=True)
 

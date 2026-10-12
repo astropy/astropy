@@ -374,8 +374,14 @@ def check_output(output, unit, inputs, function=None):
         return output.view(np.ndarray)
 
     else:
-        # output is not a Quantity, so cannot obtain a unit.
-        if not (unit is None or unit == dimensionless_unscaled):
+        # output is not a Quantity. Some ndarray subclasses (such as astropy
+        # ``Column``) carry a ``unit`` attribute; for those, storing is fine
+        # if the result unit is identical to the output's unit.  For anything
+        # else (like ndarray proper), we require the output to be
+        # dimensionless.
+        if not (
+            unit is None or unit == getattr(output, "unit", dimensionless_unscaled)
+        ):
             raise UnitTypeError(
                 "Cannot store quantity with dimension "
                 "{}in a non-Quantity instance.".format(

@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,8 +18,8 @@
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-  http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: lin.c,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
+  http://www.atnf.csiro.au/computing/software/wcs
+  $Id: lin.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "wcserr.h"
+#include "wcslimits.h"
 #include "wcsprintf.h"
 #include "lin.h"
 #include "dis.h"
@@ -37,6 +38,7 @@ const char *lin_errmsg[] = {
   "Success",
   "Null linprm pointer passed",
   "Memory allocation failed",
+  "Invalid parameter value",
   "PCi_ja matrix is singular",
   "Failed to initialize distortion functions",
   "Distort error",
@@ -99,9 +101,15 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
     lin->m_disseq = 0x0;
   }
 
+  // Sanity check on naxis.
   if (naxis < 0) {
-    return wcserr_set(WCSERR_SET(LINERR_MEMORY),
+    return wcserr_set(WCSERR_SET(LINERR_BAD_PARAM),
       "naxis must not be negative (got %d)", naxis);
+  }
+
+  if (NAXMAX < naxis) {
+    return wcserr_set(WCSERR_SET(LINERR_BAD_PARAM),
+      "naxis exceeds %d (got %d)", NAXMAX, naxis);
   }
 
 
@@ -139,7 +147,8 @@ int lininit(int alloc, int naxis, struct linprm *lin, int ndpmax)
         lin->pc = lin->m_pc;
 
       } else {
-        if ((lin->pc = calloc(naxis*naxis, sizeof(double))) == 0x0) {
+        size_t naxszt = naxis;
+        if ((lin->pc = calloc(naxszt*naxszt, sizeof(double))) == 0x0) {
           linfree(lin);
           return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
         }
@@ -441,15 +450,16 @@ int linsize(const struct linprm *lin, int sizes[2])
   sizes[1] = 0;
 
   int naxis = lin->naxis;
+  int naxsiz = naxis * (int)(sizeof(double));
 
   // linprm::crpix[].
-  sizes[1] += naxis * sizeof(double);
+  sizes[1] += naxsiz;
 
   // linprm::pc[].
-  sizes[1] += naxis*naxis * sizeof(double);
+  sizes[1] += naxis*naxsiz;
 
   // linprm::cdelt[].
-  sizes[1] += naxis * sizeof(double);
+  sizes[1] += naxsiz;
 
   // linprm::dispre[].
   int exsizes[2];
@@ -470,10 +480,10 @@ int linsize(const struct linprm *lin, int sizes[2])
   }
 
   // linprm::piximg[].
-  sizes[1] += naxis*naxis * sizeof(double);
+  sizes[1] += naxis*naxsiz;
 
   // linprm::imgpix[].
-  sizes[1] += naxis*naxis * sizeof(double);
+  sizes[1] += naxis*naxsiz;
 
   return 0;
 }
@@ -701,11 +711,12 @@ int linset(struct linprm *lin)
       }
 
       // Allocate memory for internal arrays.
-      if ((lin->piximg = calloc(naxis*naxis, sizeof(double))) == 0x0) {
+      size_t naxszt = naxis;
+      if ((lin->piximg = calloc(naxszt*naxszt, sizeof(double))) == 0x0) {
         return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
       }
 
-      if ((lin->imgpix = calloc(naxis*naxis, sizeof(double))) == 0x0) {
+      if ((lin->imgpix = calloc(naxszt*naxszt, sizeof(double))) == 0x0) {
         free(lin->piximg);
         return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
       }
@@ -810,10 +821,10 @@ int linp2x(
 
   } else if (lin->affine) {
     // No distortions.
-    int ndbl   = naxis * sizeof(double);
+    size_t naxsiz = naxis * sizeof(double);
     int nelemn = nelem - naxis;
     for (int k = 0; k < ncoord; k++) {
-      memset(img, 0, ndbl);
+      memset(img, 0, naxsiz);
 
       for (int j = 0; j < naxis; j++) {
         // cdelt will have been incorporated into piximg.
@@ -822,7 +833,13 @@ int linp2x(
         // Column-wise multiplication allows this to be cached.
         double temp = *(pix++) - lin->crpix[j];
         for (int i = 0; i < naxis; i++, piximg += naxis) {
-          img[i] += *piximg * temp;
+          if (*piximg != 0.0) {
+            // Skipped if *piximg == 0.0 in case temp is NaN, noting that
+            // zero * NaN = NaN.  Thus, if the PCij matrix is diagonal, this
+            // quarantines NaN coordinate elements of pixcrd[] from infecting
+            // non-NaN elements.
+            img[i] += *piximg * temp;
+          }
         }
       }
 
@@ -832,7 +849,7 @@ int linp2x(
 
   } else {
     // Distortions are present.
-    int ndbl = naxis * sizeof(double);
+    size_t naxsiz = naxis * sizeof(double);
     double *tmp = calloc(naxis, sizeof(double));
     if (tmp == 0x0) {
       return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
@@ -845,7 +862,7 @@ int linp2x(
           return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
         }
       } else {
-        memcpy(tmp, pix, ndbl);
+        memcpy(tmp, pix, naxsiz);
       }
 
       if (lin->unity) {
@@ -862,7 +879,11 @@ int linp2x(
         for (int i = 0; i < naxis; i++) {
           img[i] = 0.0;
           for (int j = 0; j < naxis; j++) {
-            img[i] += *(piximg++) * tmp[j];
+            if (*piximg != 0.0) {
+              // See comment above.
+              img[i] += *piximg * tmp[j];
+            }
+            piximg++;
           }
         }
       }
@@ -870,7 +891,7 @@ int linp2x(
       if (lin->disseq) {
         int status = disp2x(lin->disseq, img, tmp);
         if (status) {
-	  free(tmp);
+          free(tmp);
           return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
         }
 
@@ -949,7 +970,13 @@ int linx2p(
       for (int j = 0; j < naxis; j++) {
         *pix = 0.0;
         for (int i = 0; i < naxis; i++) {
-          *pix += *imgpix * img[i];
+          if (*imgpix != 0.0) {
+            // Skipped if *imgpix == 0.0 in case img[i] is NaN, noting that
+            // zero * NaN = NaN.  Thus, if the PCij matrix is diagonal, this
+            // quarantines NaN coordinate elements of imgcrd[] from infecting
+            // non-NaN elements.
+            *pix += *imgpix * img[i];
+          }
           imgpix++;
         }
 
@@ -962,7 +989,7 @@ int linx2p(
 
   } else {
     // Distortions are present.
-    int ndbl = naxis * sizeof(double);
+    size_t naxsiz = naxis * sizeof(double);
     double *tmp = calloc(naxis, sizeof(double));
     if (tmp == 0x0) {
       return wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
@@ -976,11 +1003,11 @@ int linx2p(
         }
 
         if ((status = disx2p(lin->disseq, tmp, pix))) {
-          wcserr_set(LIN_ERRMSG(lin_diserr[status]));
-          goto cleanup;
+          free(tmp);
+          return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
         }
 
-        memcpy(tmp, pix, ndbl);
+        memcpy(tmp, pix, naxsiz);
 
       } else if (lin->unity) {
         // ...nor if the matrix is unity.
@@ -990,7 +1017,7 @@ int linx2p(
 
       } else {
         // cdelt will have been incorporated into imgpix.
-        memcpy(tmp, img, ndbl);
+        memcpy(tmp, img, naxsiz);
       }
 
       if (lin->unity) {
@@ -1003,17 +1030,21 @@ int linx2p(
         for (int j = 0; j < naxis; j++) {
           pix[j] = lin->crpix[j];
           for (int i = 0; i < naxis; i++) {
-            pix[j] += *(imgpix++) * tmp[i];
+            if (*imgpix != 0.0) {
+              // See comment above.
+              pix[j] += *imgpix * tmp[i];
+            }
+            imgpix++;
           }
         }
       }
 
       if (lin->dispre) {
-        memcpy(tmp, pix, ndbl);
+        memcpy(tmp, pix, naxsiz);
 
         if ((status = disx2p(lin->dispre, tmp, pix))) {
-          wcserr_set(LIN_ERRMSG(lin_diserr[status]));
-          goto cleanup;
+          free(tmp);
+          return wcserr_set(LIN_ERRMSG(lin_diserr[status]));
         }
       }
 
@@ -1021,11 +1052,10 @@ int linx2p(
       pix += nelem;
     }
 
-    cleanup:
     free(tmp);
   }
 
-  return status;
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -1101,14 +1131,16 @@ int linwarp(
 
     if (pixsamp == 0x0) {
       pixinc[j] = 1.0;
-    } else if (pixsamp[j] == 0.0) {
-      pixinc[j] = 1.0;
-    } else if (pixsamp[j] > 0.0) {
-      pixinc[j] = pixsamp[j];
-    } else if (pixsamp[j] > -1.5) {
-      pixinc[j] = 2.0*pixspan;
     } else {
-      pixinc[j] = pixspan / ((int)(-pixsamp[j] - 0.5));
+      if (pixsamp[j] == 0.0) {
+        pixinc[j] = 1.0;
+      } else if (pixsamp[j] > 0.0) {
+        pixinc[j] = pixsamp[j];
+      } else if (pixsamp[j] > -1.5) {
+        pixinc[j] = 2.0*pixspan;
+      } else {
+        pixinc[j] = pixspan / ((int)(-pixsamp[j] - 0.5));
+      }
     }
 
     if (j == 0) {
@@ -1118,15 +1150,17 @@ int linwarp(
   }
 
   // Allocate memory in bulk for processing the image row by row.
-  if ((pix0 = calloc((3*ncoord+3)*naxis, sizeof(double))) == 0x0) {
+  size_t naxcrd = (size_t)naxis * (size_t)ncoord;
+  size_t nelem = 3*(naxcrd + naxis);
+  if ((pix0 = calloc(nelem, sizeof(double))) == 0x0) {
     status = wcserr_set(LIN_ERRMSG(LINERR_MEMORY));
     goto cleanup;
   }
 
   // Carve up the allocated memory.
-  double *img    = pix0 + naxis*ncoord;
-  double *pix1   = img  + naxis*ncoord;
-  double *pixend = pix1 + naxis*ncoord;
+  double *img    = pix0 + naxcrd;
+  double *pix1   = img  + naxcrd;
+  double *pixend = pix1 + naxcrd;
   double *sumdis = pixend + naxis;
   double *ssqdis = sumdis + naxis;
 
@@ -1239,26 +1273,29 @@ cleanup:
 int matinv(int n, const double mat[], double inv[])
 
 {
+  // To appease static code analysers.
+  size_t nszt = n;
+
   // Allocate memory for internal arrays.
-  int *mxl = calloc(n, sizeof(int));
+  int *mxl = calloc(nszt, sizeof(int));
   if (mxl == 0x0) {
     return LINERR_MEMORY;
   }
 
-  int *lxm = calloc(n, sizeof(int));
+  int *lxm = calloc(nszt, sizeof(int));
   if (lxm == 0x0) {
     free(mxl);
     return LINERR_MEMORY;
   }
 
-  double *rowmax = calloc(n, sizeof(double));
+  double *rowmax = calloc(nszt, sizeof(double));
   if (rowmax == 0x0) {
     free(mxl);
     free(lxm);
     return LINERR_MEMORY;
   }
 
-  double *lu = calloc(n*n, sizeof(double));
+  double *lu = calloc(nszt*nszt, sizeof(double));
   if (lu == 0x0) {
     free(mxl);
     free(lxm);

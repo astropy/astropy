@@ -7,23 +7,12 @@ from functools import cached_property
 from typing import Self
 
 import numpy as np
+from numpy._core import umath as np_umath
 
-from astropy.units import (
-    Quantity,
-    Unit,
-    UnitBase,
-    UnitConversionError,
-    UnitsError,
-    UnitTypeError,
-    dimensionless_unscaled,
-)
+from astropy.units.core import Unit, UnitBase, dimensionless_unscaled
+from astropy.units.errors import UnitConversionError, UnitsError, UnitTypeError
+from astropy.units.quantity import Quantity
 from astropy.units.typing import PhysicalTypeID
-from astropy.utils.compat import COPY_IF_NEEDED, NUMPY_LT_2_0
-
-if NUMPY_LT_2_0:
-    from numpy.core import umath as np_umath
-else:
-    from numpy._core import umath as np_umath
 
 __all__ = ["FunctionQuantity", "FunctionUnitBase"]
 
@@ -263,45 +252,84 @@ class FunctionUnitBase(metaclass=ABCMeta):
 
         Raises
         ------
-        `~astropy.units.UnitsError`
+        UnitsError
             If units are inconsistent.
         """
+        return self.get_converter(Unit(other), equivalencies)(value)
+
+    def get_converter(self, other, equivalencies=[]):
+        """
+        Create a function that converts values from this unit to another.
+
+        Parameters
+        ----------
+        other : unit-like
+            The unit to convert to.
+
+        equivalencies : list of tuple
+            A list of equivalence pairs to try if the units are not
+            directly convertible.  See :ref:`astropy:unit_equivalencies`.
+            This list is in meant to treat only equivalencies between different
+            physical units; the built-in equivalency between the function
+            unit and the physical one is automatically taken into account.
+
+        Returns
+        -------
+        func : callable
+            A callable that takes an array-like argument and returns
+            it converted from units of self to units of other.
+
+        Raises
+        ------
+        UnitsError
+            If units are inconsistent.
+
+        Notes
+        -----
+        This method is used internally in `FunctionQuantity` to convert to
+        different units. Note that the function returned takes
+        and returns values, not quantities.
+        """
+        return self._get_converter(Unit(other), equivalencies=equivalencies)
+
+    def _get_converter(self, other, equivalencies=[]):
+        # Private function of above that requires other to be a (Function)Unit.
         # conversion to one's own physical unit should be fastest
         if other is self.physical_unit:
-            return self.to_physical(value)
+            return self.to_physical
 
         other_function_unit = getattr(other, "function_unit", other)
         if self.function_unit.is_equivalent(other_function_unit):
             # when other is an equivalent function unit:
-            # first convert physical units to other's physical units
+            # First get the function unit converter.
+            fu_converter = self.function_unit.get_converter(other_function_unit)
+            # Next, check whether we need to convert physical units.
             other_physical_unit = getattr(
                 other, "physical_unit", dimensionless_unscaled
             )
-            if self.physical_unit != other_physical_unit:
-                value_other_physical = self.physical_unit.to(
-                    other_physical_unit, self.to_physical(value), equivalencies
-                )
-                # make function unit again, in own system
-                value = self.from_physical(value_other_physical)
+            if self.physical_unit == other_physical_unit:
+                return fu_converter
 
-            # convert possible difference in function unit (e.g., dex->dB)
-            return self.function_unit.to(other_function_unit, value)
+            pu_converter = self.physical_unit.get_converter(
+                other_physical_unit, equivalencies
+            )
+            return lambda value: fu_converter(
+                self.from_physical(pu_converter(self.to_physical(value)))
+            )
 
         else:
             try:
                 # when other is not a function unit
-                return self.physical_unit.to(
-                    other, self.to_physical(value), equivalencies
-                )
+                pu_converter = self.physical_unit.get_converter(other, equivalencies)
             except UnitConversionError as e:
                 if self.function_unit == Unit("mag"):
                     # One can get to raw magnitudes via math that strips the dimensions off.
                     # Include extra information in the exception to remind users of this.
                     msg = "Did you perhaps subtract magnitudes so the unit got lost?"
-                    e.args += (msg,)
-                    raise e
-                else:
-                    raise
+                    e.add_note(msg)
+                raise e
+
+            return lambda value: pu_converter(self.to_physical(value))
 
     def is_unity(self):
         return False
@@ -317,7 +345,7 @@ class FunctionUnitBase(metaclass=ABCMeta):
     def __rlshift__(self, other):
         """Unit conversion operator ``<<``."""
         try:
-            return self._quantity_class(other, self, copy=COPY_IF_NEEDED, subok=True)
+            return self._quantity_class(other, self, copy=None, subok=True)
         except Exception:
             return NotImplemented
 
@@ -668,21 +696,37 @@ class FunctionQuantity(Quantity):
         return super().__array_ufunc__(function, method, *inputs, **kwargs)
 
     def _maybe_new_view(self, result):
-        """View as function quantity if the unit is unchanged.
+        """View as function quantity if the function unit is unchanged.
 
         Used for the case that self.unit.physical_unit is dimensionless,
         where multiplication and division is done using the Quantity
         equivalent, to transform them back to a FunctionQuantity if possible.
         """
-        if isinstance(result, Quantity) and result.unit == self.unit:
-            return self._new_view(result)
+        if isinstance(result, Quantity) and result.unit == self.unit.function_unit:
+            return self._new_view(result, self.unit.function_unit())
         else:
             return result
 
+    @property
+    def _in_function_unit(self):
+        """Convert to a dimensionless unscaled version of oneself.
+
+        Here, the physical unit is already dimensionless and we
+        wish to have a Quantity with just the function unit.
+        If the physical unit is unscaled, we can just take a
+        view, but if not, we first have to convert.
+
+        Used in multiplication and division below.
+        """
+        if self.unit.physical_unit == dimensionless_unscaled:
+            return self._function_view
+        else:
+            return self.to(self.unit.function_unit)
+
     # ↓↓↓ methods overridden to change behavior
     def __mul__(self, other):
-        if self.unit.physical_unit == dimensionless_unscaled:
-            return self._maybe_new_view(self._function_view * other)
+        if self.unit.physical_unit.is_equivalent(dimensionless_unscaled):
+            return self._maybe_new_view(self._in_function_unit * other)
 
         raise UnitTypeError(
             "Cannot multiply function quantities which are not dimensionless "
@@ -690,16 +734,16 @@ class FunctionQuantity(Quantity):
         )
 
     def __truediv__(self, other):
-        if self.unit.physical_unit == dimensionless_unscaled:
-            return self._maybe_new_view(self._function_view / other)
+        if self.unit.physical_unit.is_equivalent(dimensionless_unscaled):
+            return self._maybe_new_view(self._in_function_unit / other)
 
         raise UnitTypeError(
             "Cannot divide function quantities which are not dimensionless by anything."
         )
 
     def __rtruediv__(self, other):
-        if self.unit.physical_unit == dimensionless_unscaled:
-            return self._maybe_new_view(self._function_view.__rtruediv__(other))
+        if self.unit.physical_unit.is_equivalent(dimensionless_unscaled):
+            return self._maybe_new_view(other / self._in_function_unit)
 
         raise UnitTypeError(
             "Cannot divide function quantities which are not dimensionless "

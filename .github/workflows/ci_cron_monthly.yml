@@ -59,11 +59,11 @@ jobs:
           - arch: s390x
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: uraimo/run-on-arch-action@d94c13912ea685de38fccc1109385b83fd79427d # v3.0.1
+      - uses: uraimo/run-on-arch-action@460cb8e6d9f726a588fc9b5e681c8a6cab09ae41 # v3.2.0
         name: Run tests
         id: build
         with:
@@ -83,12 +83,16 @@ jobs:
                                   git \
                                   g++ \
                                   pkg-config \
+                                  cython3 \
                                   python3 \
                                   python3-erfa \
                                   python3-extension-helpers \
+                                  python3-hypothesis \
                                   python3-jinja2 \
                                   python3-numpy \
-                                  python3-pytest-astropy \
+                                  python3-pytest-astropy-header \
+                                  python3-pytest-cov \
+                                  python3-pytest-remotedata \
                                   python3-setuptools-scm \
                                   python3-yaml \
                                   python3-venv \
@@ -99,9 +103,8 @@ jobs:
             echo "LONG_BIT="$(getconf LONG_BIT)
             python3 -m venv --system-site-packages tests
             source tests/bin/activate
-            # cython and pyerfa versions in ubuntu repos are too old currently
-            pip install -U cython setuptools packaging
-            pip install -U --no-build-isolation pyerfa
+            # configobj version in ubuntu repos is too old currently
+            pip install -U configobj
             pip install -v --no-build-isolation -e .[test]
             pip list
             python3 -m pytest --strict-markers --pyargs astropy -m "not hypothesis"

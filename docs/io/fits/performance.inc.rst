@@ -8,6 +8,9 @@
 Performance Tips
 ================
 
+Use dask for lazy compute
+-------------------------
+
 It is possible to set the data array for :class:`~astropy.io.fits.PrimaryHDU`
 and :class:`~astropy.io.fits.ImageHDU` to a `dask <https://dask.org/>`_ array.
 If this is written to disk, the dask array will be computed as it is being
@@ -21,11 +24,22 @@ written, which will avoid using excessive memory:
     >>> hdu = fits.PrimaryHDU(data=array)
     >>> hdu.writeto('test_dask.fits')
 
+Arbitrary padding end of file will degrade performance
+------------------------------------------------------
+
+As discussed in detail in
+`GitHub issue 19296 <https://github.com/astropy/astropy/pull/19296>`_,
+arbitrary padding at the end of a FITS file might cause the parser
+to inefficiently search for the END card of the next header.
+Therefore, we recommend that astropy users to not blindly open
+untrusted large FITS files without independently verifying their fidelity
+first.
+
 .. TODO: determine whether the following is quantitatively true, and either
 .. uncomment or remove.
 
-.. Performance Tips
-.. ================
+.. Turn off memmap to run faster but use more memory
+.. -------------------------------------------------
 ..
 .. By default, :func:`astropy.io.fits.open` will open files using memory-mapping,
 .. which means that the data is not necessarily read into memory until it is

@@ -1,3 +1,0 @@
-The ``Ob0=None`` parameter value for cosmology classes is no longer supported.
-This deprecation was started in v7.0. Use ``Ob0=0`` instead to indicate zero
-baryonic matter density.

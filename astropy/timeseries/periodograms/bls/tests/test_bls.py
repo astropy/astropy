@@ -510,3 +510,27 @@ def test_transit_time_in_range(data):
     assert np.all(results1.transit_time <= t.max())
     assert np.all(results2.transit_time >= t2.min())
     assert np.all(results2.transit_time <= t2.max())
+
+
+def test_absolute_times_masked_only_if_needed(data):
+    # Transit times far off from the present are masked. When nothing needs
+    # masking, the result should not be a masked Time (gh-20291).
+    t, y, dy, params = data
+    start = Time("2019-05-04T12:34:56")
+    bls = BoxLeastSquares(t * u.day + start, y * u.mag, dy * u.mag)
+
+    results = bls.autopower(0.16 * u.day)
+    assert isinstance(results.transit_time, Time)
+    assert not results.transit_time.masked
+
+    # Directly check the conversion to absolute times, both without and with
+    # an out-of-range value. Relative times are with respect to the first time.
+    tstart = bls.t[0]
+    times = bls._as_absolute_time_if_needed("transit_time", [1.0, 2.0] * u.day)
+    assert not times.masked
+    assert_allclose((times - tstart).to_value(u.day), [1.0, 2.0])
+
+    times = bls._as_absolute_time_if_needed("transit_time", [1.0, 1e9] * u.day)
+    assert times.masked
+    assert_equal(times.mask, [False, True])
+    assert_allclose((times[0] - tstart).to_value(u.day), 1.0)

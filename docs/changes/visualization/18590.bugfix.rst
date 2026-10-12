@@ -1,2 +1,0 @@
-Fixed an image-normalization bug where the interval on a ``ImageNormalize``
-instance could be ignored when plotting.

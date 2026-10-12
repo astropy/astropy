@@ -29,13 +29,13 @@ of the default values commented out::
     >>> create_config_file('astropy')  # doctest: +SKIP
 
 The exact location of this file can be obtained with
-:func:`~astropy.config.get_config_dir`::
+:func:`~astropy.config.get_config_dir_path`::
 
-    >>> from astropy.config import get_config_dir
-    >>> get_config_dir()  # doctest: +SKIP
+    >>> from astropy.config import get_config_dir_path
+    >>> get_config_dir_path()  # doctest: +SKIP
 
 And you should see the location of your configuration directory. The default
-configuration directory is ``$HOME/.astropy/config``, but this can be
+configuration directory is ``$XDG_CONFIG_HOME/astropy``, but this can be
 customized with :ref:`environment_variables`.
 
 .. note::
@@ -72,7 +72,7 @@ configuration parameters. For instance, to get the default URL for
 
     >>> from astropy.utils.data import conf
     >>> conf.dataurl
-    'http://data.astropy.org/'
+    'http://www.astropy.org/astropy-data/'
 
 Changing Values at Runtime
 --------------------------
@@ -121,7 +121,7 @@ takes care of resetting the value you changed when you are done using it::
 You can also modify the values at runtime directly::
 
     >>> conf.dataurl
-    'http://data.astropy.org/'
+    'http://www.astropy.org/astropy-data/'
     >>> conf.dataurl = 'http://astropydata.mywebsite.com'
     >>> conf.dataurl
     'http://astropydata.mywebsite.com'
@@ -194,7 +194,7 @@ value in the configuration file::
 
     >>> conf.reset('dataurl')
     >>> conf.dataurl
-    'http://data.astropy.org/'
+    'http://www.astropy.org/astropy-data/'
 
 ..
   EXAMPLE END

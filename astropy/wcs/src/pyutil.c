@@ -5,13 +5,12 @@
 
 #define NO_IMPORT_ARRAY
 
-#include <stdlib.h> // malloc, free
-#include <string.h> // memcpy
-
 /* util.h must be imported first */
 #include "astropy_wcs/pyutil.h"
-
 #include "astropy_wcs/docstrings.h"
+
+#include <stdlib.h> // malloc, free
+#include <string.h> // memcpy
 
 #include "wcsfix.h"
 #include "wcshdr.h"
@@ -19,7 +18,7 @@
 #include "wcsunits.h"
 
 /*@null@*/ static INLINE PyObject*
-_PyArrayProxy_New(
+_ArrayProxy_New(
     /*@shared@*/ PyObject* self,
     int nd,
     const npy_intp* dims,
@@ -53,25 +52,25 @@ _PyArrayProxy_New(
 }
 
 /*@null@*/ PyObject*
-PyArrayProxy_New(
+ArrayProxy_New(
     /*@shared@*/ PyObject* self,
     int nd,
     const npy_intp* dims,
     int typenum,
     const void* data) {
 
-  return _PyArrayProxy_New(self, nd, dims, typenum, data, NPY_ARRAY_WRITEABLE);
+  return _ArrayProxy_New(self, nd, dims, typenum, data, NPY_ARRAY_WRITEABLE);
 }
 
 /*@null@*/ PyObject*
-PyArrayReadOnlyProxy_New(
+ArrayReadOnlyProxy_New(
     /*@shared@*/ PyObject* self,
     int nd,
     const npy_intp* dims,
     int typenum,
     const void* data) {
 
-  return _PyArrayProxy_New(self, nd, dims, typenum, data, 0);
+  return _ArrayProxy_New(self, nd, dims, typenum, data, 0);
 }
 
 void
@@ -148,77 +147,31 @@ is_null(
 }
 
 /* wcslib represents undefined values using its own special constant,
-   UNDEFINED.  To be consistent with the Pythonic way of doing things,
-   it's nicer to represent undefined values using NaN.  Unfortunately,
-   in order to get nice mutable arrays in Python, Python must be able
-   to edit the wcsprm values directly.  The solution is to store NaNs
-   in the struct "canonically", but convert those NaNs to/from
-   UNDEFINED around every call into a wcslib function.  It's not as
-   computationally expensive as it sounds, as all these arrays are
-   quite small.
+   UNDEFINED, and to be consistent with NumPy/Python we expose them as NaN.
+
+   Historically the struct was stored "canonically" in NaN form and these two
+   functions flipped the whole struct to/from UNDEFINED in place around every
+   wcslib call.  That in-place flip of a shared struct is not thread-safe
+   (GH-16409).  The struct is now stored canonically in wcslib's native
+   UNDEFINED form, and the NaN<->UNDEFINED translation happens at the Python
+   attribute boundary (the getters/setters and WCSParameterArray) instead.
+
+   These two functions are retained as no-ops only because they are part of
+   astropy's exported WCS C API (see astropy_wcs_api.c).  They no longer
+   mutate the struct, and the exported table slots are deprecated and emit a
+   DeprecationWarning when called.
 */
-
-static INLINE void
-wcsprm_fix_values(
-    struct wcsprm* x,
-    value_fixer_t value_fixer) {
-
-  unsigned int naxis = (unsigned int)x->naxis;
-
-  value_fixer(x->cd, naxis * naxis);
-  value_fixer(x->cdelt, naxis);
-  value_fixer(x->crder, naxis);
-  value_fixer(x->crota, naxis);
-  value_fixer(x->crpix, naxis);
-  value_fixer(x->crval, naxis);
-  value_fixer(x->csyer, naxis);
-  value_fixer(&x->equinox, 1);
-  value_fixer(&x->latpole, 1);
-  value_fixer(&x->lonpole, 1);
-  value_fixer(&x->mjdavg, 1);
-  value_fixer(&x->mjdobs, 1);
-  value_fixer(x->obsgeo, 6);
-  value_fixer(&x->cel.phi0, 1);
-  value_fixer(&x->restfrq, 1);
-  value_fixer(&x->restwav, 1);
-  value_fixer(&x->cel.theta0, 1);
-  value_fixer(&x->velangl, 1);
-  value_fixer(&x->velosys, 1);
-  value_fixer(&x->zsource, 1);
-  value_fixer(x->czphs, naxis);
-  value_fixer(x->cperi, naxis);
-  value_fixer(x->mjdref, 2);
-  value_fixer(&x->mjdbeg, 1);
-  value_fixer(&x->mjdend, 1);
-  value_fixer(&x->jepoch, 1);
-  value_fixer(&x->bepoch, 1);
-  value_fixer(&x->tstart, 1);
-  value_fixer(&x->tstop, 1);
-  value_fixer(&x->xposure, 1);
-  value_fixer(&x->timsyer, 1);
-  value_fixer(&x->timrder, 1);
-  value_fixer(&x->timedel, 1);
-  value_fixer(&x->timepixr, 1);
-  value_fixer(&x->timeoffs, 1);
-  value_fixer(&x->telapse, 1);
-}
 
 void
 wcsprm_c2python(
     /*@null@*/ struct wcsprm* x) {
-
-  if (x != NULL) {
-    wcsprm_fix_values(x, &undefined2nan);
-  }
+  (void)x;
 }
 
 void
 wcsprm_python2c(
     /*@null@*/ struct wcsprm* x) {
-
-  if (x != NULL) {
-    wcsprm_fix_values(x, &nan2undefined);
-  }
+  (void)x;
 }
 
 /***************************************************************************
@@ -506,24 +459,27 @@ set_double(
     return -1;
   }
 
-  *dest = PyFloat_AsDouble(value);
+  double v = PyFloat_AsDouble(value);
 
-  if (PyErr_Occurred()) {
+  if (v == -1.0 && PyErr_Occurred()) {
     return -1;
-  } else {
-    return 0;
   }
+
+  /* Store NaN as WCSLIB's native UNDEFINED (GH-16409). */
+  *dest = npy_isnan(v) ? UNDEFINED : v;
+  return 0;
 }
 
 /* get_double_array is inlined */
 
-int
-set_double_array(
+static int
+_set_double_array(
     const char* propname,
     PyObject* value,
     int ndims,
     const npy_intp* dims,
-    double* dest) {
+    double* dest,
+    int to_undefined) {
 
   PyArrayObject* value_array = NULL;
   npy_int        i           = 0;
@@ -554,10 +510,35 @@ set_double_array(
   }
 
   copy_array_to_c_double(value_array, dest);
+  if (to_undefined) {
+    /* Auxiliary UNDEFINED-capable field: translate NaN -> UNDEFINED. */
+    nan2undefined(dest, (unsigned int)PyArray_SIZE(value_array));
+  }
+  /* else: core/derived field, stored verbatim (NaN stays NaN). */
 
   Py_DECREF(value_array);
 
   return 0;
+}
+
+int
+set_double_array(
+    const char* propname,
+    PyObject* value,
+    int ndims,
+    const npy_intp* dims,
+    double* dest) {
+  return _set_double_array(propname, value, ndims, dims, dest, 0);
+}
+
+int
+set_double_array_undefined(
+    const char* propname,
+    PyObject* value,
+    int ndims,
+    const npy_intp* dims,
+    double* dest) {
+  return _set_double_array(propname, value, ndims, dims, dest, 1);
 }
 
 int
@@ -736,7 +717,6 @@ get_pscards(
     }
 
     if (PyList_SetItem(result, i, subresult)) {
-      Py_DECREF(subresult);
       Py_DECREF(result);
       return NULL;
     }
@@ -847,7 +827,6 @@ get_pvcards(
     }
 
     if (PyList_SetItem(result, i, subresult)) {
-      Py_DECREF(subresult);
       Py_DECREF(result);
       return NULL;
     }

@@ -1,3 +1,7 @@
+import platform
+
+import pytest
+
 from astropy.samp import conf
 from astropy.samp.hub import SAMPHubServer
 from astropy.samp.hub_proxy import SAMPHubProxy
@@ -7,6 +11,7 @@ def setup_module(module):
     conf.use_internet = False
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 class TestHubProxy:
     def setup_method(self, method):
         self.hub = SAMPHubServer(web_profile=False, mode="multiple", pool_size=1)
@@ -35,6 +40,7 @@ class TestHubProxy:
         self.proxy.unregister(result["samp.private-key"])
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="Takes too long on OSX")
 def test_custom_lockfile(tmp_path):
     lockfile = str(tmp_path / ".samptest")
 

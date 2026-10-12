@@ -1,0 +1,3 @@
+Fixed in-place operations (such as ``col += quantity``) on a ``Column`` with a unit,
+which previously raised ``UnitTypeError``. In-place operations are now allowed when the
+result unit matches the column's unit, with unit conversion applied as usual.

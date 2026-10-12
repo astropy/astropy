@@ -229,7 +229,7 @@ class AstropyLogger(Logger):
         # name.  The module.__file__ is the original source file name.
         mod_name = None
         mod_path = Path(mod_path).with_suffix("")
-        for mod in sys.modules.values():
+        for mod in list(sys.modules.values()):
             try:
                 # Believe it or not this can fail in some cases:
                 # https://github.com/astropy/astropy/issues/2671
@@ -435,7 +435,7 @@ class AstropyLogger(Logger):
             with logger.log_to_file('myfile.log'):
                 # your code here
         """
-        encoding = conf.log_file_encoding if conf.log_file_encoding else None
+        encoding = conf.log_file_encoding or None
         fh = logging.FileHandler(filename, encoding=encoding)
         if filter_level is not None:
             fh.setLevel(filter_level)
@@ -455,8 +455,6 @@ class AstropyLogger(Logger):
 
         Parameters
         ----------
-        filename : str
-            The file to log messages to.
         filter_level : str
             If set, any log messages less important than ``filter_level`` will
             not be output to the file. Note that this is in addition to the
@@ -530,7 +528,7 @@ class AstropyLogger(Logger):
                 else:
                     log_file_path = Path(log_file_path).expanduser()
 
-                encoding = conf.log_file_encoding if conf.log_file_encoding else None
+                encoding = conf.log_file_encoding or None
                 fh = logging.FileHandler(log_file_path, encoding=encoding)
             except OSError as e:
                 warnings.warn(

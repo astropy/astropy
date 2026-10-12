@@ -6,7 +6,7 @@
 .. testsetup::
 
     >>> from astropy.coordinates import EarthLocation
-    >>> EarthLocation._get_site_registry(force_download=True)  #doctest: +REMOTE_DATA +IGNORE_OUTPUT
+    >>> EarthLocation._get_site_registry(refresh_cache=True)  #doctest: +REMOTE_DATA +IGNORE_OUTPUT
 
 .. _astropy-coordinates:
 
@@ -547,6 +547,7 @@ listed below.
    common_errors
    definitions
    inplace
+   imposing_attributes
    example_gallery_index
 
 In addition, another resource for the capabilities of this package is the
@@ -579,7 +580,7 @@ coordinate systems implemented here include:
     The definitive implementation of IAU-defined algorithms. The "SOFA Tools
     for Earth Attitude" document is particularly valuable for understanding
     the latest IAU standards in detail.
-* `IERS Conventions (2010) <https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html>`_
+* `IERS Conventions (2010) <https://iers-conventions.obspm.fr/conventions_material.php>`_
     An exhaustive reference covering the ITRS, the IAU2000 celestial coordinates
     framework, and other related details of modern coordinate conventions.
 * Meeus, J. "Astronomical Algorithms"

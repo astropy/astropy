@@ -40,7 +40,7 @@ class GCRS(BaseRADecFrame):
     """
     A coordinate or frame in the Geocentric Celestial Reference System (GCRS).
 
-    GCRS is distinct form ICRS mainly in that it is relative to the Earth's
+    GCRS is distinct from ICRS mainly in that it is relative to the Earth's
     center-of-mass rather than the solar system Barycenter.  That means this
     frame includes the effects of aberration (unlike ICRS). For more background
     on the GCRS, see the references provided in the

@@ -1,6 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-__all__: tuple[str, ...] = ()  # nothing is publicly scoped
+__all__ = ("all_parameters",)
 
 import functools
 import operator

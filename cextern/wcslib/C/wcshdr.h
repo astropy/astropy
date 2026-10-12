@@ -1,6 +1,6 @@
 /*============================================================================
-  WCSLIB 8.4 - an implementation of the FITS WCS standard.
-  Copyright (C) 1995-2024, Mark Calabretta
+  WCSLIB 8.9 - an implementation of the FITS WCS standard.
+  Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
 
@@ -18,11 +18,11 @@
   along with WCSLIB.  If not, see http://www.gnu.org/licenses.
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
-  http://www.atnf.csiro.au/people/Mark.Calabretta
-  $Id: wcshdr.h,v 8.4 2024/10/28 13:56:16 mcalabre Exp $
+  http://www.atnf.csiro.au/computing/software/wcs
+  $Id: wcshdr.h,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.4 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.9 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -44,7 +44,7 @@
 =
 =   "Representations of distortions in FITS world coordinate systems",
 =   Calabretta, M.R. et al. (WCS Paper IV, draft dated 2004/04/22),
-=   available from http://www.atnf.csiro.au/people/Mark.Calabretta
+=   available from http://www.atnf.csiro.au/computing/software/wcs
 =
 =   "Representations of time coordinates in FITS -
 =    Time and relative dimension in space",

@@ -7,8 +7,8 @@ from types import MappingProxyType
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import Angle
 from astropy.coordinates import representation as r
+from astropy.coordinates.angles import Angle
 from astropy.coordinates.attributes import (
     CartesianRepresentationAttribute,
     CoordinateAttribute,
@@ -362,7 +362,7 @@ doc_footer = """
         plane. Unless you really know what this means, you probably should
         not change this!
 
-    .. versionchanged :: 8.0
+    .. versionchanged:: 8.0
        ``galcen_v_sun`` is now a `~astropy.coordinates.CartesianRepresentation`
        rather than a `~astropy.coordinates.CartesianDifferential`.
 
