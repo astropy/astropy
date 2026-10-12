@@ -109,7 +109,7 @@ hydrogen-poor superluminous supernovae (`Yan et al. 2018
 applied to other supernova classes, including Type IIn supernovae (`Ponte
 Pérez et al. 2026 <https://ui.adsabs.harvard.edu/abs/2026MNRAS.546g...9P>`_).
 
-An example comparison with an ordinary 10,000 K blackbody illustrates how the
+An example comparison with an ordinary 16,000 K blackbody illustrates how the
 ``cutoff`` and ``beta`` parameters affect the spectrum.
 
 .. plot::
