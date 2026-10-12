@@ -1,0 +1,6 @@
+Fixed indices when converting between ``Table`` and ``QTable``. Previously
+``QTable(t)`` from an indexed ``Table`` with a unit column kept an index that
+ignored units, so ``loc`` lookups with a ``Quantity`` gave wrong results or
+failed, and setting a value in the indexed column raised ``UnitConversionError``.
+``Table(qt)`` from an indexed ``QTable`` dropped the index but kept the primary
+key. The indices are now rebuilt on the new table's columns.
