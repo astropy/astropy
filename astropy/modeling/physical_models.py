@@ -364,7 +364,7 @@ class CutoffBlackBody(BlackBody):
         if isinstance(beta, u.Quantity):
             beta = beta.to_value(u.dimensionless_unscaled)
 
-        with np.errstate(divide="ignore", invalid="ignore"):
+        with np.errstate(divide="ignore"):
             pl_values = (wavelength / cutoff_wavelength).to_value(
                 u.dimensionless_unscaled
             ) ** beta
@@ -400,7 +400,7 @@ class CutoffBlackBody(BlackBody):
         from scipy.integrate import quad
 
         # change of variables to x = h*c/(lambda*k_B*T) = h*nu/(k_B*T)
-        with np.errstate(divide="ignore", invalid="ignore"):
+        with np.errstate(divide="ignore"):
             x_cutoff = const.h * const.c / (cutoff * const.k_B * temperature)
             x_cutoff = x_cutoff.to_value(u.dimensionless_unscaled)
 
