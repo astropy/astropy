@@ -1557,6 +1557,34 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_fit_wcs_from_points_proj_point_frame():
+    # proj_point in a different frame from world_coords must be converted to
+    # the world_coords frame before being used as CRVAL
+
+    crval = [12.0, 34.0]
+
+    true_wcs = WCS(naxis=2)
+    true_wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    true_wcs.wcs.crval = crval
+    true_wcs.wcs.crpix = [50.5, 50.5]
+    true_wcs.wcs.cdelt = [-0.01, 0.01]
+
+    x, y = np.meshgrid(np.arange(0, 100, 10), np.arange(0, 100, 10))
+    x, y = x.flatten(), y.flatten()
+    world_coords = true_wcs.pixel_to_world(x, y)  # ICRS
+
+    proj_point_icrs = SkyCoord(crval[0] * u.deg, crval[1] * u.deg, frame="icrs")
+    proj_point = proj_point_icrs.galactic
+
+    fit_wcs = fit_wcs_from_points((x, y), world_coords, proj_point=proj_point)
+
+    np.testing.assert_allclose(
+        fit_wcs.wcs.crval, [proj_point_icrs.ra.deg, proj_point_icrs.dec.deg]
+    )
+    assert world_coords.separation(fit_wcs.pixel_to_world(x, y)).max() < 1 * u.mas
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_issue10991():
     # test issue #10991 (it just needs to run and set the user defined crval)
     xy = np.array(
