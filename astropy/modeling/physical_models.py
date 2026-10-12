@@ -381,7 +381,15 @@ class CutoffBlackBody(BlackBody):
 
     @property
     def bolometric_flux(self):
-        """Bolometric flux of the cutoff blackbody."""
+        """Bolometric flux of the cutoff blackbody.
+
+        Notes
+        -----
+        Computing the bolometric flux requires `SciPy <https://www.scipy.org/>`_
+        unless the result is equivalent to an ordinary blackbody, in which case
+        no numerical integration is needed.
+        """
+
         cutoff = self.cutoff.quantity
         if np.any(cutoff < 0 * u.AA):
             raise ValueError(f"Cutoff wavelength should be non-negative: {cutoff}")
