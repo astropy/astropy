@@ -599,6 +599,30 @@ def test_index_loc_with_quantity(engine, table_type):
         assert np.all(t_loc["b"] == [2, 3, 1])
 
 
+def test_index_loc_quantity_slice_sorted_array():
+    """A Quantity slice on a Table SortedArray index raises instead of
+    silently comparing raw numbers and ignoring the unit.
+    """
+    t = Table()
+    t["a"] = [1.0, 2.0, 3.0] * u.m
+    t.add_index("a", engine=SortedArray)
+    # Plain numbers still work.
+    assert len(t.loc[1.5:2.5]) == 1
+    for key in (slice(1.5 * u.km, 2.5 * u.km), slice(1.5 * u.m, 2.5 * u.m)):
+        with pytest.raises(
+            ValueError, match="cannot search Column 'a' with a Quantity"
+        ):
+            t.loc[key]
+
+    # A QTable index is unit-aware.
+    qt = QTable()
+    qt["a"] = [1.0, 2.0, 3.0] * u.m
+    qt.add_index("a", engine=SortedArray)
+    assert len(qt.loc[1.5 * u.m : 2.5 * u.m]) == 1
+    assert len(qt.loc[1.5 * u.km : 2.5 * u.km]) == 0
+    assert np.all(qt.loc[1500 * u.mm : 2500 * u.mm]["a"] == [2.0] * u.m)
+
+
 def test_index_loc_with_string(engine):
     t = Table()
     t["a"] = ["z", "a", "m"]

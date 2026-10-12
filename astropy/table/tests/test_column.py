@@ -1282,6 +1282,38 @@ def test_searchsorted(Column, dtype):
         assert np.all(res == exp)
 
 
+@pytest.mark.parametrize("name", ["a", None])
+@pytest.mark.parametrize(
+    "v", [2 * u.km, [0.5, 2.5] * u.m, np.float64(2) * u.one], ids=str
+)
+def test_searchsorted_quantity_raises(Column, name, v):
+    """Searching a Column with a Quantity raises instead of ignoring the unit."""
+    c = Column([1.0, 2.0, 3.0], name=name, unit="m")
+    match = "cannot search Column 'a' with a Quantity" if name else "cannot search"
+    with pytest.raises(ValueError, match=match):
+        c.searchsorted(v)
+    with pytest.raises(ValueError, match=match):
+        np.searchsorted(c, v)
+
+
+def test_searchsorted_masked_quantity_raises(Column):
+    from astropy.utils.masked import Masked
+
+    c = Column([1.0, 2.0, 3.0], unit="m")
+    with pytest.raises(ValueError, match="cannot search"):
+        c.searchsorted(Masked([1.0, 2.5] * u.m, mask=[False, True]))
+
+
+def test_searchsorted_with_unit_plain_values(Column):
+    """A column with a unit still accepts plain numbers and arrays."""
+    c = Column([1.0, 2.0, 3.0], unit="m")
+    assert c.searchsorted(2.0) == 1
+    assert np.all(c.searchsorted([0.5, 2.5], side="right") == [0, 2])
+    assert np.all(np.searchsorted(c, np.array([3.5])) == [3])
+    # The documented alternative for a unit-aware search.
+    assert c.quantity.searchsorted(2 * u.km) == 3
+
+
 def test_masked_unit_conversion():
     # regression test for gh-9521
     c = table.MaskedColumn([3.5, 2.4, 1.7], name="test", unit=u.km)
