@@ -782,6 +782,9 @@ class Table:
         # a list of dict. If data are not list of dict then this is None.
         names_from_list_of_dict = None
 
+        # Input Table whose indices may need rebuilding after initialization.
+        src_table = None
+
         # Row-oriented input, e.g. list of lists or list of tuples, list of
         # dict, Row instance.  Set data to something that the subsequent code
         # will parse correctly.
@@ -892,6 +895,7 @@ class Table:
             # if the input Table is in non-copy mode.
             self.primary_key = data.primary_key
             self._init_indices = self._init_indices and data._copy_indices
+            src_table = data
 
             # Extract default names, n_cols, and then overwrite ``data`` to be the
             # table columns so we can use _init_from_list.
@@ -952,6 +956,9 @@ class Table:
         # Finally do the real initialization
         init_func(data, names, dtype, n_cols, copy)
 
+        if src_table is not None and self._init_indices:
+            self._rebuild_indices_on_converted_cols(src_table)
+
         # Set table meta.  If copy=True then deepcopy meta otherwise use the
         # user-supplied meta directly.
         if meta is not None:
@@ -969,6 +976,33 @@ class Table:
 
         self._set_column_attribute("unit", units)
         self._set_column_attribute("description", descriptions)
+
+    def _rebuild_indices_on_converted_cols(self, src_table: Table) -> None:
+        """Rebuild indices from ``src_table`` if an indexed column changed kind.
+
+        Converting a ``Column`` with a unit to ``Quantity`` (``QTable(t)``), or the
+        reverse (``Table(qt)``), leaves an index whose engine holds keys of the old
+        kind, or no index at all. In that case re-create each index of
+        ``src_table``, keeping engine and uniqueness.
+        """
+        src_indices = src_table.indices
+        if not src_indices or self.colnames != src_table.colnames:
+            return
+
+        if all(
+            isinstance(src_table[name], Quantity) == isinstance(self[name], Quantity)
+            for index in src_indices
+            for name in index.id
+        ):
+            return
+
+        for col in self.itercols():
+            col.info.indices = []
+        for index in src_indices:
+            self.add_index(
+                index.id, engine=index.index.engine, unique=index.data.unique
+            )
+        self.primary_key = src_table.primary_key
 
     def _set_column_attribute(
         self, attr: str, values: Mapping[str, Any] | Collection[Any] | Row | None

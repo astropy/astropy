@@ -599,6 +599,104 @@ def test_index_loc_with_quantity(engine, table_type):
         assert np.all(t_loc["b"] == [2, 3, 1])
 
 
+def _assert_indices_on_own_columns(t):
+    for index in t.indices:
+        for col in index.columns:
+            assert col is t[col.info.name]
+
+
+@pytest.mark.parametrize("masked", [False, True])
+def test_qtable_from_indexed_table_with_unit(engine, masked):
+    """QTable(t) rebuilds an index whose column becomes a Quantity."""
+    t = Table(masked=masked)
+    t["a"] = [3.0, 1.0, 2.0] * u.m
+    t["b"] = [10, 20, 30]
+    t["c"] = [1, 2, 3]
+    t.add_index("a", engine=engine)
+    t.add_index(["c", "a"], engine=engine, unique=True)
+
+    qt = QTable(t)
+    assert isinstance(qt["a"], u.Quantity)
+    assert qt.primary_key == ("a",)
+    assert [index.id for index in qt.indices] == [("a",), ("c", "a")]
+    assert [type(index.data) for index in qt.indices] == [engine, engine]
+    assert [index.data.unique for index in qt.indices] == [False, True]
+    _assert_indices_on_own_columns(qt)
+
+    assert tuple(qt.loc[2 * u.m]) == (2 * u.m, 30, 3)
+    assert np.all(qt.loc[1500 * u.mm : 2500 * u.mm]["b"] == [30])
+    assert len(qt.loc[1.5 * u.km : 2.5 * u.km]) == 0
+
+    # Updating the indexed column goes through the unit-aware index.
+    qt["a"][0] = 0.5 * u.m
+    assert tuple(qt.loc[0.5 * u.m]) == (0.5 * u.m, 10, 1)
+    qt.add_row([5 * u.m, 40, 4])
+    assert tuple(qt.loc[5 * u.m]) == (5 * u.m, 40, 4)
+    with pytest.raises(ValueError, match="duplicate|non-unique"):
+        qt.add_row([5 * u.m, 50, 4])
+
+    # The input table is not affected.
+    assert tuple(t.loc[3.0]) == (3.0, 10, 1)
+
+
+def test_qtable_from_indexed_table_options():
+    t = Table()
+    t["a"] = [3.0, 1.0, 2.0] * u.m
+    t["b"] = [10, 20, 30]
+    t.add_index("b")
+    t.add_index("a")
+
+    # The primary key is preserved even though "a" is the first column.
+    qt = QTable(t)
+    assert qt.primary_key == ("b",)
+    _assert_indices_on_own_columns(qt)
+
+    qt = QTable(t, copy=False)
+    _assert_indices_on_own_columns(qt)
+    assert tuple(qt.loc.with_index("a")[2 * u.m]) == (2 * u.m, 30)
+
+    assert not QTable(t, copy_indices=False).indices
+
+    qt = QTable(t[1:])
+    _assert_indices_on_own_columns(qt)
+    assert tuple(qt.loc.with_index("a")[2 * u.m]) == (2 * u.m, 30)
+
+
+def test_qtable_from_table_unitless_index_untouched():
+    """An index not involving a converted column is kept as is."""
+    t = Table()
+    t["a"] = [3.0, 1.0, 2.0] * u.m
+    t["b"] = [10, 20, 30]
+    t.add_index("b")
+    qt = QTable(t)
+    assert isinstance(qt["a"], u.Quantity)
+    assert qt.indices[0] is qt["b"].info.indices[0]
+    assert tuple(qt.loc[20]) == (1 * u.m, 20)
+
+
+def test_table_from_indexed_qtable(engine):
+    """Table(qt) rebuilds an index whose Quantity column becomes a Column."""
+    qt = QTable()
+    qt["a"] = [3.0, 1.0, 2.0] * u.m
+    qt["b"] = [10, 20, 30]
+    qt["c"] = [1, 2, 3]
+    qt.add_index("a", engine=engine)
+    qt.add_index(["c", "a"], engine=engine, unique=True)
+
+    t = Table(qt)
+    assert isinstance(t["a"], Column)
+    assert t.primary_key == ("a",)
+    assert [index.id for index in t.indices] == [("a",), ("c", "a")]
+    assert [type(index.data) for index in t.indices] == [engine, engine]
+    assert [index.data.unique for index in t.indices] == [False, True]
+    _assert_indices_on_own_columns(t)
+
+    assert tuple(t.loc[2.0]) == (2.0, 30, 3)
+    assert np.all(t.loc[1.5:2.5]["b"] == [30])
+    t["a"][0] = 0.5
+    assert tuple(t.loc[0.5]) == (0.5, 10, 1)
+
+
 def test_index_loc_with_string(engine):
     t = Table()
     t["a"] = ["z", "a", "m"]
