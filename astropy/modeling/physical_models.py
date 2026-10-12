@@ -293,6 +293,34 @@ class CutoffBlackBody(BlackBody):
     underlying unmodified blackbody and do not necessarily give the peak of
     the cutoff spectrum.
 
+    Examples
+    --------
+    .. plot::
+        :include-source:
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        from astropy import units as u
+        from astropy.modeling.models import BlackBody, CutoffBlackBody
+        from astropy.visualization import quantity_support
+
+        wavelength = np.linspace(1000, 10000, 500) * u.AA
+        bb = BlackBody(temperature=10000 * u.K)
+
+        with quantity_support():
+            plt.figure()
+            plt.plot(wavelength, bb(wavelength), label="BlackBody")
+            for cutoff, beta in [(4000, 2), (3000, 3)]:
+                model = CutoffBlackBody(
+                    temperature=10000 * u.K, cutoff=cutoff * u.AA, beta=beta
+                )
+                plt.plot(
+                    wavelength, model(wavelength), label=f"cutoff={cutoff} Å, beta={beta}"
+                )
+            plt.legend()
+            plt.show()
+
     References
     ----------
     .. [1] Yan et al. 2018, ApJ, 858, 91
