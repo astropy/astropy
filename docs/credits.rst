@@ -215,6 +215,7 @@ Core Package Contributors
 * Giang Nguyen
 * Gilles Landais
 * Giorgio Calderone
+* gitpsii
 * Gordon Gibb
 * Graham Kanarek
 * Grant Jenks
@@ -320,6 +321,7 @@ Core Package Contributors
 * Kieran Leschinski
 * Kim Searle
 * Kirill Tchernyshyov
+* Kris Cooper
 * Kris Stern
 * Kristin Berry
 * Kunam Balaram Reddy
@@ -395,6 +397,7 @@ Core Package Contributors
 * Max Voronkov
 * Maximilian Linhoff
 * Maximillian Weber
+* Mayank SIngh
 * Médéric Boquien
 * Megan Sosey
 * Melissa Weber Mendonça
