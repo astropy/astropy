@@ -404,15 +404,15 @@ class CutoffBlackBody(BlackBody):
             x_cutoff = const.h * const.c / (cutoff * const.k_B * temperature)
             x_cutoff = x_cutoff.to_value(u.dimensionless_unscaled)
 
+        def removed_flux_integrand(x, xc, index):
+            with np.errstate(over="ignore"):
+                return x**3 / np.expm1(x) * (1.0 - (xc / x) ** index)
+
         def bolometric_correction(xc, index):
             if not np.isfinite(xc) or index == 0:
                 return 1.0
 
-            def removed_flux_integrand(x):
-                with np.errstate(over="ignore"):
-                    return x**3 / np.expm1(x) * (1.0 - (xc / x) ** index)
-
-            removed_flux = quad(removed_flux_integrand, xc, np.inf)[0]
+            removed_flux = quad(removed_flux_integrand, xc, np.inf, args=(xc, index))[0]
             return 1.0 - 15.0 / np.pi**4 * removed_flux
 
         bol_corr_vec = np.vectorize(bolometric_correction, otypes=[float])
