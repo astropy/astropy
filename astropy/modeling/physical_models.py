@@ -402,7 +402,7 @@ class CutoffBlackBody(BlackBody):
         if np.all(zero_temperature | (beta == 0) | (cutoff == 0 * u.AA)):
             return super().bolometric_flux
 
-        if not HAS_SCIPY:  # pragma: no cover
+        if not HAS_SCIPY:
             raise ModuleNotFoundError("Bolometric flux integration requires scipy.")
 
         from scipy.integrate import quad
