@@ -123,14 +123,14 @@ An example comparison with an ordinary 10,000 K blackbody illustrates how the
     from astropy.visualization import quantity_support
 
     wavelength = np.linspace(1000, 10000, 500) * u.AA
-    bb = BlackBody(temperature=10000 * u.K)
+    bb = BlackBody(temperature=16000 * u.K)
 
     with quantity_support():
         plt.figure()
         plt.plot(wavelength, bb(wavelength), label="BlackBody")
-        for cutoff, beta in [(4000, 2), (3000, 3)]:
+        for cutoff, beta in [(4000, 1), (3000, 2)]:
             model = CutoffBlackBody(
-                temperature=10000 * u.K, cutoff=cutoff * u.AA, beta=beta
+                temperature=16000 * u.K, cutoff=cutoff * u.AA, beta=beta
             )
             plt.plot(
                 wavelength, model(wavelength), label=f"cutoff={cutoff} Å, beta={beta}"
