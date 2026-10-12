@@ -8,13 +8,14 @@ import unittest.mock as mk
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose, assert_almost_equal
+from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal
 
 from astropy import units as u
 from astropy import wcs
 from astropy.io import fits
 from astropy.modeling import projections
 from astropy.modeling.parameters import InputParameterError
+from astropy.modeling.separable import separability_matrix
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.data import get_pkg_data_filename
 
@@ -31,6 +32,29 @@ def test_Projection_properties():
     projection = projections.Sky2Pix_PlateCarree()
     assert projection.n_inputs == 2
     assert projection.n_outputs == 2
+
+
+@pytest.mark.parametrize("direction", ["Pix2Sky", "Sky2Pix"])
+@pytest.mark.parametrize(
+    ("name", "kwargs", "expected"),
+    [
+        pytest.param("PlateCarree", {}, [[True, False], [False, True]], id="CAR"),
+        pytest.param("SansonFlamsteed", {}, [[True, True], [False, True]], id="SFL"),
+        pytest.param("Parabolic", {}, [[True, True], [False, True]], id="PAR"),
+        pytest.param("Molleweide", {}, [[True, True], [False, True]], id="MOL"),
+        pytest.param("HammerAitoff", {}, [[True, True], [True, True]], id="AIT"),
+        pytest.param(
+            "BonneEqualArea", {"theta1": 45}, [[True, True], [True, True]], id="BON"
+        ),
+        pytest.param("HEALPix", {}, [[True, True], [False, True]], id="HPX"),
+        pytest.param(
+            "HEALPix", {"H": 6, "X": 2}, [[True, True], [False, True]], id="HPX-H6-X2"
+        ),
+    ],
+)
+def test_separability_matrix(direction, name, kwargs, expected):
+    projection = getattr(projections, f"{direction}_{name}")(**kwargs)
+    assert_array_equal(separability_matrix(projection), expected)
 
 
 PIX_COORDINATES = [-10, 30]

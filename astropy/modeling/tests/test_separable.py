@@ -100,6 +100,19 @@ compound_models = {
             ),
         ),
     ),
+    "cm12": (
+        sh1 & sh2 & sh1 | models.Pix2Sky_SansonFlamsteed() & scl1,
+        (
+            np.array([False, True, True]),
+            np.array(
+                [
+                    [True, True, False],
+                    [False, True, False],
+                    [False, False, True],
+                ]
+            ),
+        ),
+    ),
 }
 
 

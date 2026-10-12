@@ -889,7 +889,10 @@ class PseudoCylindrical(Projection):
     distortion there.  Consequently, the meridians are curved.
     """
 
-    _separable = True
+    def _calculate_separability_matrix(self):
+        # The curved meridians make the first output depend on both inputs,
+        # while the second output depends on the second input alone.
+        return np.array([[True, True], [False, True]])
 
 
 class Pix2Sky_SansonFlamsteed(Pix2SkyProjection, PseudoCylindrical):
@@ -985,6 +988,10 @@ class Pix2Sky_HammerAitoff(Pix2SkyProjection, PseudoCylindrical):
         \theta &= \sin^{-1}\left(\frac{\pi}{180^\circ}yZ\right)
     """
 
+    def _calculate_separability_matrix(self):
+        # Z depends on both x and y, so both outputs depend on both inputs.
+        return np.ones((2, 2), dtype=bool)
+
 
 class Sky2Pix_HammerAitoff(Sky2PixProjection, PseudoCylindrical):
     r"""
@@ -1001,6 +1008,10 @@ class Sky2Pix_HammerAitoff(Sky2PixProjection, PseudoCylindrical):
     .. math::
         \gamma = \frac{180^\circ}{\pi} \sqrt{\frac{2}{1 + \cos \theta \cos(\phi / 2)}}
     """
+
+    def _calculate_separability_matrix(self):
+        # gamma depends on both phi and theta, so y also depends on phi.
+        return np.ones((2, 2), dtype=bool)
 
 
 class Conic(Projection):
@@ -1331,8 +1342,6 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
         Bonne conformal latitude, in degrees.
     """
 
-    _separable = True
-
     theta1 = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
 
@@ -1358,8 +1367,6 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
-
-    _separable = True
 
     theta1 = _ParameterDS(
         default=0.0,
@@ -1470,14 +1477,16 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
 
     """
 
-    _separable = True
-
     H = _ParameterDS(
         default=4.0, description="The number of facets in longitude direction."
     )
     X = _ParameterDS(
         default=3.0, description="The number of facets in latitude direction."
     )
+
+    def _calculate_separability_matrix(self):
+        # In the polar facets the first output also depends on the second input.
+        return np.array([[True, True], [False, True]])
 
 
 class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
@@ -1496,14 +1505,16 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
 
     """
 
-    _separable = True
-
     H = _ParameterDS(
         default=4.0, description="The number of facets in longitude direction."
     )
     X = _ParameterDS(
         default=3.0, description="The number of facets in latitude direction."
     )
+
+    def _calculate_separability_matrix(self):
+        # In the polar facets the first output also depends on the second input.
+        return np.array([[True, True], [False, True]])
 
 
 class Pix2Sky_HEALPixPolar(Pix2SkyProjection, HEALPix):
