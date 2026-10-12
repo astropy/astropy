@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any, Literal
 import numpy as np
 import numpy.typing as npt
 
-from astropy.units import Quantity
+from astropy.units import Quantity, UnitConversionError
 from astropy.utils import metadata
 from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 from astropy.utils.masked import Masked
@@ -1158,9 +1158,27 @@ def _get_join_sortable_arrays(
         # get_sortable_arrays() returns a list of ndarrays that can be lexically
         # sorted to represent the order of the column. In most cases this is just
         # a single element of the column itself.
+        left_col = left[key]
+        right_col = right[key]
+
+        # Quantity keys are compared as raw values, so express the right key in the
+        # unit of the left key. Otherwise 1 m would match 1 km.
+        if (
+            isinstance(left_col, Quantity)
+            and isinstance(right_col, Quantity)
+            and right_col.unit != left_col.unit
+        ):
+            try:
+                right_col = right_col.to(left_col.unit)
+            except UnitConversionError as err:
+                raise TableMergeError(
+                    f"key column {key!r} has incompatible units in left and right "
+                    f"tables ({left_col.unit} and {right_col.unit})"
+                ) from err
+
         try:
-            left_sort_cols = left[key].info.get_sortable_arrays()
-            right_sort_cols = right[key].info.get_sortable_arrays()
+            left_sort_cols = left_col.info.get_sortable_arrays()
+            right_sort_cols = right_col.info.get_sortable_arrays()
         except NotImplementedError as err:
             raise TypeError("one or more key columns are not sortable") from err
 
