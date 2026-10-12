@@ -358,9 +358,9 @@ def test_cutoff_blackbody_parameter_units():
     assert parameter_units["cutoff"] == u.AA
 
 
-def test_cutoff_blackbody_bolometric_flux_without_scipy(monkeypatch):
+@pytest.mark.skipif(HAS_SCIPY, reason="requires scipy to be absent")
+def test_cutoff_blackbody_bolometric_flux_without_scipy():
     cutoff_bb = CutoffBlackBody(temperature=10000 * u.K, cutoff=3000 * u.AA, beta=2)
-    monkeypatch.setattr("astropy.modeling.physical_models.HAS_SCIPY", False)
 
     with pytest.raises(
         ModuleNotFoundError,
