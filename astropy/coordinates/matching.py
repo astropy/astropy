@@ -491,16 +491,16 @@ def _get_cartesian_kdtree(coord, attrname_or_kdt="kdtree", forceunit=None):
 
     return kdt
 
+
 def nearest_neighbour_sky(
     coords1: SkyCoord,
     coords2: SkyCoord,
     nthneighbor_max: int,
-    storekdtree: str="kdtree_nn",
+    storekdtree: str = "kdtree_nn",
 ) -> CoordinateSearchResult:
     """
     Searches for pairs of points that are at most ``nthneighbor_max+1`` nearest neighbours.
     For finding _just_ the nearest neighbour see ``match_coordinates_sky``.
-
 
     ``nthneighbor_max+1`` is needed to find ``nthneighbor_max`` neighbours excluding a self-match.
 
@@ -511,7 +511,7 @@ def nearest_neighbour_sky(
         ``coords2`` within ``nthneighbor_max+1`` neighbours.
         Must be a one-dimensional coordinate array.
     coords2 : SkyCoord
-        The first set of coordinates, which will be searched for matches from
+        The second set of coordinates, which will be searched for matches from
         ``coords1`` within ``nthneighbor_max+1`` neighbours.
         Must be a one-dimensional coordinate array.
     nthneighbor_max : int
@@ -520,7 +520,7 @@ def nearest_neighbour_sky(
         If a string, will store the KD-Tree used in the search with the name
         ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
         to this function. If False, the KD-Trees are not saved.
-        
+
     Returns
     -------
     CoordinateSearchResult
@@ -530,7 +530,6 @@ def nearest_neighbour_sky(
         lack distances, the physical separation is the 3D distance on
         the unit sphere, rather than a true distance.
     """
-
     if coords1.ndim != 1 or coords2.ndim != 1:
         msg = "nearest_neighbour_sky only supports 1-dimensional coordinate arrays."
         if coords1.isscalar or coords2.isscalar:
@@ -542,10 +541,7 @@ def nearest_neighbour_sky(
 
     # tree = KDTree(xyz2, compact_nodes=False, balanced_tree=False)
     tree = _get_cartesian_kdtree(
-        coord=coords2,
-        attrname_or_kdt=storekdtree,
-        forceunit=xyz_unit
-
+        coord=coords2, attrname_or_kdt=storekdtree, forceunit=xyz_unit
     )
     # Increase nthneighbor_max by one since the nearest neighbour may be itself
     dist, idx2 = tree.query(xyz1, k=nthneighbor_max + 1)

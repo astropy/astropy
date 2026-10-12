@@ -25,6 +25,7 @@ from .baseframe import (
 from .builtin_frames import SkyOffsetFrame
 from .distances import Distance
 from .errors import ConvertError
+from .matching import CoordinateSearchResult
 from .representation import (
     SphericalDifferential,
     SphericalRepresentation,
@@ -1352,6 +1353,46 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
         return search_around_3d(
             searcharoundcoords, self, distlimit, storekdtree="_kdtree_3d"
+        )
+
+    def nearest_neighbour_sky(
+        self, searchcoords: "SkyCoord", nthneighbor_max: int
+    ) -> CoordinateSearchResult:
+        """
+        Searches for pairs of points that are at most ``nthneighbor_max+1`` nearest neighbours.
+        For finding _just_ the nearest neighbour see ``match_coordinates_sky``.
+
+        ``nthneighbor_max+1`` is needed to find ``nthneighbor_max`` neighbours excluding a self-match.
+
+        Parameters
+        ----------
+        searchcoords : SkyCoord
+            The set of coordinates, which will be searched for matches within
+            ``nthneighbor_max+1`` neighbours.
+            Must be a one-dimensional coordinate array.
+        nthneighbor_max : int
+            The maximum nearest neighbour to be searched.
+        storekdtree : str, optional
+            If a string, will store the KD-Tree used in the search with the name
+            ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
+            to this function. If False, the KD-Trees are not saved.
+
+        Returns
+        -------
+        CoordinateSearchResult
+            A `~typing.NamedTuple` with attributes representing the indices
+            of the elements of found pairs in both source sets and angular
+            and physical separations of the pairs. If either set of sources
+            lack distances, the physical separation is the 3D distance on
+            the unit sphere, rather than a true distance.
+        """
+        from .matching import nearest_neighbour_sky
+
+        return nearest_neighbour_sky(
+            self,
+            searchcoords,
+            nthneighbor_max=nthneighbor_max,
+            storekdtree="_kdtree_nn",
         )
 
     def skyoffset_frame(self, rotation=None):
