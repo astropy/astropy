@@ -571,7 +571,7 @@ def nearest_neighbour_sky(
     idx2 = idx2.ravel()
 
     # Convert cartesian distance to angular separation
-    sep = Angle(2 * np.arcsin(dist.ravel() / 2), unit="rad")
+    sep = Angle(2 * np.arcsin(dist.ravel() / 2), unit="rad").to("deg")
     try:
         dist3d = coords1[idx1].separation_3d(coords2[idx2])
     except ValueError:
