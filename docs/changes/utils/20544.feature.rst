@@ -1,0 +1,3 @@
+``simplify_basic_index`` now accepts `None` entries in ``shape`` for dimensions
+whose size is not known, in which case the index for that dimension is returned
+unchanged, except that a negative integer or slice start raises a ``ValueError``.
