@@ -397,6 +397,7 @@ def test_nearest_neighbour_sky_no_dist_input():
     idx1, idx2, d2d, d3d = coo.nearest_neighbour_sky(coo, 1)
     npt.assert_array_equal(idx1, [0, 1, 2])
     npt.assert_array_equal(idx2, [0, 1, 2])
+    assert d2d.unit == u.deg
     assert d3d.unit == u.dimensionless_unscaled
 
 
