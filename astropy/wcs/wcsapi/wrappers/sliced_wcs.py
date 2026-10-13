@@ -3,58 +3,24 @@ from collections import defaultdict
 
 import numpy as np
 
-from astropy.utils.decorators import lazyproperty
+from astropy.utils.decorators import deprecated, lazyproperty
+from astropy.utils.shapes import simplify_basic_index
 
 from .base import BaseWCSWrapper
 
 __all__ = ["SlicedLowLevelWCS", "sanitize_slices"]
 
 
+@deprecated(since="8.1", alternative="astropy.utils.shapes.simplify_basic_index")
 def sanitize_slices(slices, ndim):
     """
     Given a slice as input sanitise it to an easier to parse format.format.
 
     This function returns a list ``ndim`` long containing slice objects (or ints).
     """
-    if not isinstance(slices, (tuple, list)):  # We just have a single int
-        slices = (slices,)
-
-    if len(slices) > ndim:
-        raise ValueError(
-            f"The dimensionality of the specified slice {slices} can not be greater "
-            f"than the dimensionality ({ndim}) of the wcs."
-        )
-
-    if any(np.iterable(s) for s in slices):
-        raise IndexError(
-            "This slice is invalid, only integer or range slices are supported."
-        )
-
-    slices = list(slices)
-
-    if Ellipsis in slices:
-        if slices.count(Ellipsis) > 1:
-            raise IndexError("an index can only have a single ellipsis ('...')")
-
-        # Replace the Ellipsis with the correct number of slice(None)s
-        e_ind = slices.index(Ellipsis)
-        slices.remove(Ellipsis)
-        n_e = ndim - len(slices)
-        for i in range(n_e):
-            ind = e_ind + i
-            slices.insert(ind, slice(None))
-
-    for i in range(ndim):
-        if i < len(slices):
-            slc = slices[i]
-            if isinstance(slc, slice):
-                if slc.step and slc.step != 1:
-                    raise IndexError("Slicing WCS with a step is not supported.")
-            elif not isinstance(slc, numbers.Integral):
-                raise IndexError("Only integer or range slices are accepted.")
-        else:
-            slices.append(slice(None))
-
+    slices = list(simplify_basic_index(slices, shape=[None] * ndim))
+    if any(isinstance(slc, slice) and slc.step not in (None, 1) for slc in slices):
+        raise IndexError("Slicing WCS with a step is not supported.")
     return slices
 
 
@@ -64,10 +30,10 @@ def combine_slices(slice1, slice2):
     slice that corresponds to the combination of both slices. We assume that
     slice2 can be an integer, but slice1 cannot.
     """
-    if isinstance(slice1, slice) and slice1.step is not None:
+    if isinstance(slice1, slice) and slice1.step not in (None, 1):
         raise ValueError("Only slices with steps of 1 are supported")
 
-    if isinstance(slice2, slice) and slice2.step is not None:
+    if isinstance(slice2, slice) and slice2.step not in (None, 1):
         raise ValueError("Only slices with steps of 1 are supported")
 
     if isinstance(slice2, numbers.Integral):
@@ -120,7 +86,28 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
     """
 
     def __init__(self, wcs, slices):
-        slices = sanitize_slices(slices, wcs.pixel_n_dim)
+        if not isinstance(slices, (tuple, list)):
+            slices = (slices,)
+
+        # This check is done here rather than relying on simplify_basic_index
+        # to preserve the exception type that was raised previously.
+        if not all(
+            isinstance(slc, (numbers.Integral, slice)) or slc is Ellipsis
+            for slc in slices
+        ):
+            raise IndexError("Only integer or range slices are accepted.")
+
+        # If the shape of the data is known, this resolves negative values and
+        # default values in the slices, otherwise it just checks the slices
+        # and fills in any missing dimensions.
+        slices = list(
+            simplify_basic_index(
+                slices, shape=wcs.array_shape or [None] * wcs.pixel_n_dim
+            )
+        )
+
+        if any(isinstance(slc, slice) and slc.step not in (None, 1) for slc in slices):
+            raise IndexError("Slicing WCS with a step is not supported.")
 
         if isinstance(wcs, SlicedLowLevelWCS):
             # Here we combine the current slices with the previous slices
