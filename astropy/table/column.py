@@ -18,6 +18,7 @@ from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaData
 from astropy.utils.misc import dtype_bytes_or_chars
 
@@ -1048,6 +1049,45 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         side: Literal["left", "right"] = "left",
         sorter: npt.ArrayLike | None = None,
     ) -> int | np.integer | npt.NDArray:
+        """
+        Find indices where elements of ``v`` should be inserted to maintain order.
+
+        This is equivalent to `numpy.searchsorted` applied to the column data.
+
+        Parameters
+        ----------
+        v : array-like
+            Values to insert into the column. A `~astropy.units.Quantity` is not
+            allowed, since the column ``unit`` is not used in the comparison.
+        side : {'left', 'right'}, optional
+            If 'left', the index of the first suitable location found is given.
+            If 'right', return the last such index.
+        sorter : 1-D array-like, optional
+            Optional array of integer indices that sort the column into
+            ascending order.
+
+        Returns
+        -------
+        indices : int or array of ints
+            Array of insertion points with the same shape as ``v``, or an
+            integer if ``v`` is a scalar.
+
+        Raises
+        ------
+        ValueError
+            If ``v`` is a `~astropy.units.Quantity`. For a unit-aware search use
+            ``col.quantity.searchsorted(v)`` or a `~astropy.table.QTable`.
+        """
+        # Not TypeError: np.searchsorted(col, v) calls this method via numpy's
+        # _wrapfunc, which catches TypeError and silently retries on plain arrays.
+        if isinstance(v, Quantity):
+            name = f" {self.info.name!r}" if self.info.name is not None else ""
+            raise ValueError(
+                f"cannot search Column{name} with a Quantity, since the column unit "
+                "is not used in the comparison; use col.quantity.searchsorted(...) "
+                "or a QTable for a unit-aware search"
+            )
+
         # For bytes type data, encode the `v` value as UTF-8 (if necessary) before
         # calling searchsorted. This prevents a factor of 1000 slowdown in
         # searchsorted in this case.
@@ -1057,8 +1097,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             if v.dtype.kind == "U":
                 v = np.strings.encode(v, "utf-8")
         return np.searchsorted(a, v, side=side, sorter=sorter)
-
-    searchsorted.__doc__ = np.ndarray.searchsorted.__doc__
 
     def convert_unit_to(self, new_unit: UnitLike, equivalencies: list = []) -> None:
         """
@@ -1848,6 +1886,17 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         # to return a plain MaskedArray, we reset the baseclass accordingly.
         out._baseclass = np.ndarray
         return out
+
+    @property
+    def quantity(self) -> Quantity:
+        """
+        Return view of this table column as a masked `~astropy.units.Quantity`.
+
+        The result is a `~astropy.utils.masked.Masked` quantity that shares
+        the unit, data, and the mask with this column, even if no elements are
+        masked.
+        """
+        return Masked(super().quantity, mask=self.mask, copy=False)
 
     def filled(self, fill_value=None) -> Column:
         """Return a copy of self, with masked values filled with a given value.

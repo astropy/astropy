@@ -916,6 +916,19 @@ changes to the :attr:`~astropy.table.Column.quantity` property::
   50000.0
   60000.0
 
+For a |MaskedColumn|, the :attr:`~astropy.table.MaskedColumn.quantity` property
+and the :meth:`~astropy.table.Column.to` method return a masked |Quantity|
+(see :ref:`utils-masked`), so masked elements stay masked. The
+:attr:`~astropy.table.MaskedColumn.quantity` view shares the mask as well as
+the data with the column::
+
+  >>> from astropy.table import MaskedColumn
+  >>> mc = MaskedColumn([1., 2., 3.], unit=u.m, mask=[False, False, True])
+  >>> mc.quantity
+  <MaskedQuantity [1., 2., ——] m>
+  >>> mc.to(u.cm)
+  <MaskedQuantity [100., 200.,  ———] cm>
+
 Even without explicit conversion, columns with units can be treated like a
 |Quantity| in *some* arithmetic expressions (see the warning below for caveats
 to this)::

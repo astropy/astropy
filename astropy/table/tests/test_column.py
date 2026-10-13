@@ -13,6 +13,7 @@ from astropy import table, time
 from astropy import units as u
 from astropy.table.column import _contains_ma_masked, _convert_sequence_data_to_array
 from astropy.tests.helper import assert_follows_unicode_guidelines
+from astropy.utils.masked import Masked
 from astropy.utils.metadata.tests.test_metadata import MetaBaseTest
 
 
@@ -539,6 +540,60 @@ class TestColumn:
 
         with pytest.raises(IndexError):
             c[0]
+
+
+def test_masked_column_to_quantity():
+    """Converting a MaskedColumn to Quantity keeps the mask."""
+    mc = table.MaskedColumn(
+        [1.0, 2.0, 3.0], name="a", unit="m", mask=[False, False, True]
+    )
+
+    q = mc.quantity
+    assert isinstance(q, Masked) and isinstance(q, u.Quantity)
+    assert q.unit == u.m
+    assert_array_equal(q.unmasked.value, [1.0, 2.0, 3.0])
+    assert_array_equal(q.mask, [False, False, True])
+
+    q_km = mc.to(u.km)
+    assert isinstance(q_km, Masked)
+    assert q_km.unit == u.km
+    np.testing.assert_allclose(q_km.unmasked.value, [0.001, 0.002, 0.003])
+    assert_array_equal(q_km.mask, [False, False, True])
+
+    # to() is a copy: neither data nor mask changes reach the column.
+    q_km[0] = 5 * u.km
+    q_km.mask[1] = True
+    assert_array_equal(mc.data.data, [1.0, 2.0, 3.0])
+    assert_array_equal(mc.mask, [False, False, True])
+
+    # quantity is a view of both the data and the mask.
+    q = mc.quantity
+    q[0] = 1 * u.km
+    assert_array_equal(mc.data.data, [1000.0, 2.0, 3.0])
+    q.mask[1] = True
+    assert_array_equal(mc.mask, [False, True, True])
+    mc.mask[2] = False
+    assert_array_equal(q.mask, [False, True, False])
+
+    # Still a MaskedQuantity with no elements masked, as in QTable.
+    mc_nomask = table.MaskedColumn([1.0, 2.0], unit="m")
+    assert isinstance(mc_nomask.quantity, Masked)
+    assert not mc_nomask.quantity.mask.any()
+
+    # A shrunk mask (nomask) gives an all-False mask.
+    mc_nomask.shrink_mask()
+    assert_array_equal(mc_nomask.quantity.mask, [False, False])
+
+    # Integer dtype is kept.
+    d_int = table.MaskedColumn([1, 2, 3], unit="m", mask=[True, False, False])
+    assert d_int.quantity.dtype == d_int.dtype
+    assert_array_equal(d_int.quantity.mask, [True, False, False])
+
+    # Function units give the masked function-quantity subclass.
+    d_dex = table.MaskedColumn([1.0, 2.0], unit="dex(AA)", mask=[True, False])
+    assert isinstance(d_dex.quantity, Masked)
+    assert isinstance(d_dex.quantity, u.Dex)
+    assert_array_equal(d_dex.quantity.mask, [True, False])
 
 
 @pytest.mark.parametrize(
@@ -1225,6 +1280,38 @@ def test_searchsorted(Column, dtype):
         assert np.all(res == exp)
         res = np.searchsorted(c, v, side="right")
         assert np.all(res == exp)
+
+
+@pytest.mark.parametrize("name", ["a", None])
+@pytest.mark.parametrize(
+    "v", [2 * u.km, [0.5, 2.5] * u.m, np.float64(2) * u.one], ids=str
+)
+def test_searchsorted_quantity_raises(Column, name, v):
+    """Searching a Column with a Quantity raises instead of ignoring the unit."""
+    c = Column([1.0, 2.0, 3.0], name=name, unit="m")
+    match = "cannot search Column 'a' with a Quantity" if name else "cannot search"
+    with pytest.raises(ValueError, match=match):
+        c.searchsorted(v)
+    with pytest.raises(ValueError, match=match):
+        np.searchsorted(c, v)
+
+
+def test_searchsorted_masked_quantity_raises(Column):
+    from astropy.utils.masked import Masked
+
+    c = Column([1.0, 2.0, 3.0], unit="m")
+    with pytest.raises(ValueError, match="cannot search"):
+        c.searchsorted(Masked([1.0, 2.5] * u.m, mask=[False, True]))
+
+
+def test_searchsorted_with_unit_plain_values(Column):
+    """A column with a unit still accepts plain numbers and arrays."""
+    c = Column([1.0, 2.0, 3.0], unit="m")
+    assert c.searchsorted(2.0) == 1
+    assert np.all(c.searchsorted([0.5, 2.5], side="right") == [0, 2])
+    assert np.all(np.searchsorted(c, np.array([3.5])) == [3])
+    # The documented alternative for a unit-aware search.
+    assert c.quantity.searchsorted(2 * u.km) == 3
 
 
 def test_masked_unit_conversion():
