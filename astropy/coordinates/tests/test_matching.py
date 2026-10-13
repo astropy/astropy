@@ -13,6 +13,7 @@ from astropy.coordinates import (
     SkyCoord,
     match_coordinates_3d,
     match_coordinates_sky,
+    nearest_neighbour_sky,
     search_around_3d,
     search_around_sky,
 )
@@ -76,6 +77,7 @@ def test_matching_function_3d_and_sky():
         (match_coordinates_sky, [], "kdtree_sky", False),
         (search_around_3d, [1 * u.kpc], "kdtree_3d", True),
         (search_around_sky, [1 * u.deg], "kdtree_sky", False),
+        (nearest_neighbour_sky, [2], "kdtree_nn", False),
     ],
 )
 def test_kdtree_storage(functocheck, args, defaultkdtname, bothsaved):
@@ -195,6 +197,29 @@ def test_search_around_sky(
     npt.assert_array_equal(idx2, expected_idx2)
     assert_allclose(d2d, expected_d2d)
     assert_allclose(d3d, expected_d3d)
+
+
+def test_nearest_neighbour_sky():
+    idx1, idx2, d2d, d3d = nearest_neighbour_sky(
+        ICRS([4, 2.1] * u.deg, [0, 0] * u.deg, distance=[1, 5] * u.kpc),
+        ICRS([1, 2, 3, 4] * u.deg, [0, 0, 0, 0] * u.deg, distance=[1, 1, 1, 5] * u.kpc),
+        2,
+    )
+    npt.assert_array_equal(idx1, [0, 0, 1, 1])
+    npt.assert_array_equal(idx2, [3, 2, 1, 2])
+    assert_allclose(d2d, [0, 1, 0.1, 0.9] * u.deg)
+    assert_allclose(d3d, [4.0, 0.01745307, 4.0000019, 4.00015421] * u.kpc)
+
+
+def test_nearest_neighbour_sky_errors():
+    coo = SkyCoord([1, 2, 3], [0, 0, 0], unit="deg")
+    with pytest.raises(ValueError, match="nthneighbor_max must be between 1 and"):
+        nearest_neighbour_sky(coo, coo, 4)
+    with pytest.raises(
+        ValueError,
+        match="nearest_neighbour_sky only supports 1-dimensional coordinate arrays",
+    ):
+        nearest_neighbour_sky(coo.reshape(1, 3), coo, 1)
 
 
 @pytest.mark.parametrize(
