@@ -20,6 +20,7 @@ __all__ = [
     "CoordinateSearchResult",
     "match_coordinates_3d",
     "match_coordinates_sky",
+    "nearest_neighbour_sky",
     "search_around_3d",
     "search_around_sky",
 ]
@@ -499,23 +500,23 @@ def nearest_neighbour_sky(
     storekdtree: str = "kdtree_nn",
 ) -> CoordinateSearchResult:
     """
-    Searches for pairs of points that are at most ``nthneighbor_max+1`` nearest neighbours.
+    Searches for the ``nthneighbor_max`` nearest neighbours in ``coords2`` of each point in ``coords1``.
     For finding _just_ the nearest neighbour see ``match_coordinates_sky``.
-
-    ``nthneighbor_max+1`` is needed to find ``nthneighbor_max`` neighbours excluding a self-match.
 
     Parameters
     ----------
     coords1 : SkyCoord
         The first set of coordinates, which will be searched for matches from
-        ``coords2`` within ``nthneighbor_max+1`` neighbours.
+        ``coords2`` within ``nthneighbor_max`` neighbours.
         Must be a one-dimensional coordinate array.
     coords2 : SkyCoord
         The second set of coordinates, which will be searched for matches from
-        ``coords1`` within ``nthneighbor_max+1`` neighbours.
+        ``coords1`` within ``nthneighbor_max`` neighbours.
         Must be a one-dimensional coordinate array.
     nthneighbor_max : int
         The maximum nearest neighbour to be searched.
+        If ``coords1`` and ``coords2`` are the same, each point is its own
+        nearest neighbour, so use ``nthneighbor_max+1``.
     storekdtree : str, optional
         If a string, will store the KD-Tree used in the search with the name
         ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
@@ -536,18 +537,29 @@ def nearest_neighbour_sky(
             msg += " The catalog for coordinate matching cannot be a scalar or length-0"
         raise ValueError(msg)
 
-    xyz1 = coords1.cartesian.xyz.value.T
-    xyz_unit = coords2.cartesian.xyz.unit
+    if not 1 <= nthneighbor_max <= len(coords2):
+        raise ValueError("nthneighbor_max must be between 1 and the length of coords2.")
 
-    # tree = KDTree(xyz2, compact_nodes=False, balanced_tree=False)
-    tree = _get_cartesian_kdtree(
-        coord=coords2, attrname_or_kdt=storekdtree, forceunit=xyz_unit
+    # match frames and strip distances so the search is on-sky
+    coords1 = coords1.transform_to(coords2)
+    xyz1 = (
+        coords1.data.represent_as(UnitSphericalRepresentation)
+        .to_cartesian()
+        .xyz.value.T
     )
-    # Increase nthneighbor_max by one since the nearest neighbour may be itself
-    dist, idx2 = tree.query(xyz1, k=nthneighbor_max + 1)
+    urepr2 = coords2.data.represent_as(UnitSphericalRepresentation)
+
+    tree = _get_cartesian_kdtree(
+        coord=coords2.realize_frame(urepr2),
+        attrname_or_kdt=coords2.cache.get(storekdtree, storekdtree),
+    )
+    if storekdtree:
+        coords2.cache["kdtree" if storekdtree is True else storekdtree] = tree
+
+    dist, idx2 = tree.query(xyz1, k=nthneighbor_max)
 
     # ensure 2D arrays if k=1
-    if nthneighbor_max + 1 == 1:
+    if nthneighbor_max == 1:
         dist = dist[:, None]
         idx2 = idx2[:, None]
 
@@ -559,6 +571,11 @@ def nearest_neighbour_sky(
     idx2 = idx2.ravel()
 
     # Convert cartesian distance to angular separation
-    sep = Angle(2 * np.arcsin(dist.ravel() / 2) * u.rad)
+    sep = Angle(2 * np.arcsin(dist.ravel() / 2), unit="rad")
+    try:
+        dist3d = coords1[idx1].separation_3d(coords2[idx2])
+    except ValueError:
+        # no distances, so use the distance on the unit sphere
+        dist3d = Quantity(dist.ravel())
 
-    return CoordinateSearchResult(idx1, idx2, sep, dist * xyz_unit)
+    return CoordinateSearchResult(idx1, idx2, sep, dist3d)
