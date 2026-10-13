@@ -3,7 +3,7 @@ import operator
 import re
 import warnings
 from collections.abc import Callable
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 import erfa
 import numpy as np
@@ -25,7 +25,6 @@ from .baseframe import (
 from .builtin_frames import SkyOffsetFrame
 from .distances import Distance
 from .errors import ConvertError
-from .matching import CoordinateSearchResult
 from .representation import (
     SphericalDifferential,
     SphericalRepresentation,
@@ -36,6 +35,9 @@ from .sky_coordinate_parsers import (
     _get_frame_without_data,
     _parse_coordinate_data,
 )
+
+if TYPE_CHECKING:
+    from .matching import CoordinateSearchResult
 
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
@@ -1357,25 +1359,21 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
     def nearest_neighbour_sky(
         self, searchcoords: "SkyCoord", nthneighbor_max: int
-    ) -> CoordinateSearchResult:
+    ) -> "CoordinateSearchResult":
         """
-        Searches for pairs of points that are at most ``nthneighbor_max+1`` nearest neighbours.
+        Searches for pairs of points that are at most ``nthneighbor_max`` nearest neighbours.
         For finding _just_ the nearest neighbour see ``match_coordinates_sky``.
-
-        ``nthneighbor_max+1`` is needed to find ``nthneighbor_max`` neighbours excluding a self-match.
 
         Parameters
         ----------
         searchcoords : SkyCoord
             The set of coordinates, which will be searched for matches within
-            ``nthneighbor_max+1`` neighbours.
+            ``nthneighbor_max`` neighbours.
             Must be a one-dimensional coordinate array.
         nthneighbor_max : int
             The maximum nearest neighbour to be searched.
-        storekdtree : str, optional
-            If a string, will store the KD-Tree used in the search with the name
-            ``storekdtree`` in ``coords2.cache``. This speeds up subsequent calls
-            to this function. If False, the KD-Trees are not saved.
+            If ``searchcoords`` is this |SkyCoord|, each point is its own
+            nearest neighbour, so use ``nthneighbor_max+1``.
 
         Returns
         -------
