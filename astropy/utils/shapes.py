@@ -495,7 +495,7 @@ def simplify_basic_index(
     shape
         The shape of the array being indexed. Entries can be `None` if the
         size along a dimension is not known, in which case the index for that
-        dimension is returned unchanged, except that a negative integer or
+        dimension is returned unchanged, except that a negative integer for
         slice start raises an error since it cannot be interpreted.
     """
     ndim = len(shape)
