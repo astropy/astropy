@@ -220,6 +220,11 @@ def test_nearest_neighbour_sky_errors():
         match="nearest_neighbour_sky only supports 1-dimensional coordinate arrays",
     ):
         nearest_neighbour_sky(coo.reshape(1, 3), coo, 1)
+    with pytest.raises(
+        ValueError,
+        match="The catalog for coordinate matching cannot be a scalar",
+    ):
+        nearest_neighbour_sky(coo, coo[0], 1)
 
 
 @pytest.mark.parametrize(
@@ -382,6 +387,16 @@ def test_search_around_sky_no_dist_input():
     empty_sc = SkyCoord([], [], unit=u.deg)
     idx1, idx2, d2d, d3d = search_around_sky(empty_sc, empty_sc[:], 1 * u.deg)
     assert d2d.unit == u.deg
+    assert d3d.unit == u.dimensionless_unscaled
+
+
+def test_nearest_neighbour_sky_no_dist_input():
+    # Test that input without distance units results in a
+    # 'dimensionless_unscaled' unit
+    coo = SkyCoord([1, 2, 3], [0, 0, 0], unit="deg")
+    idx1, idx2, d2d, d3d = coo.nearest_neighbour_sky(coo, 1)
+    npt.assert_array_equal(idx1, [0, 1, 2])
+    npt.assert_array_equal(idx2, [0, 1, 2])
     assert d3d.unit == u.dimensionless_unscaled
 
 
