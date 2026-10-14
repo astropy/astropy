@@ -1,0 +1,1 @@
+Fixed ``WCSAxes.get_transform`` dropping the unit conversion when given a coordinate frame that matches the frame of the axes' WCS.
