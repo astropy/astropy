@@ -347,7 +347,7 @@ class WCSAxes(Axes):
                     " as it is automatically determined by the input coordinate frame."
                 )
 
-            transform = self.get_transform(native_frame)
+            transform = self.get_transform("world")
             kwargs.update({"transform": transform})
 
             args = tuple(plot_data) + args[1:]
