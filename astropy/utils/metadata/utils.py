@@ -67,7 +67,7 @@ def result_type(arrs):
         raise tme
 
     if {dt.kind for dt in dtypes} == {"S", "U"}:
-        # Tables treat bytes and Unicode as text. Preserve the character widths
+        # Preserve the existing character widths when combining bytes and text
         # without relying on NumPy's implicit bytes/text promotion.
         dtypes = [
             np.dtype(f"U{dt.itemsize}") if dt.kind == "S" else dt for dt in dtypes

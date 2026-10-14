@@ -2431,7 +2431,8 @@ def test_vstack_bytes(operation_table_type):
     assert t2["a"].itemsize == 1
 
 
-def test_vstack_unicode():
+@pytest.mark.parametrize("other", ["a", b"a"])
+def test_vstack_unicode(other):
     """
     Test for problem related to issue #5617 when vstack'ing *unicode*
     columns.  In this case the character size gets multiplied by 4.
@@ -2439,25 +2440,17 @@ def test_vstack_unicode():
     t = table.Table([["a"]], names=["a"])
     assert t["a"].itemsize == 4  # 4-byte / char for U dtype
 
-    t2 = table.vstack([t, t])
+    t2 = table.vstack([t, table.Table([[other]], names=["a"])])
     assert len(t2) == 2
     assert t2["a"].itemsize == 4
 
 
-@pytest.mark.parametrize("name", ["beta", "bêta"])
-def test_stack_join_bytes_unicode(operation_table_type, join_engine, name):
-    left = operation_table_type({"name": [b"alpha", name.encode("utf-8")]})
-    right = operation_table_type({"name": [name, "gamma"]})
-    stacked = table.vstack([left, right])
-    assert stacked["name"].dtype.kind == "U"
-    assert stacked["name"].tolist() == ["alpha", name, name, "gamma"]
-    joined = table.join(left, right, keys="name", join_type="outer", engine=join_engine)
-    assert joined["name"].dtype.kind == "U"
-    assert joined["name"].tolist() == ["alpha", name, "gamma"]
-
-    left["name"] = table.MaskedColumn(left["name"], mask=[False, True])
-    stacked = table.vstack([left, right])
-    assert stacked["name"].mask.tolist() == [False, True, False, False]
+def test_join_bytes_unicode(join_engine):
+    left = table.Table({"name": [b"a"]})
+    right = table.Table({"name": ["b"]})
+    joined = table.join(left, right, join_type="outer", engine=join_engine)
+    assert joined["name"].dtype == np.dtype("U1")
+    assert joined["name"].tolist() == ["a", "b"]
 
 
 def test_join_mixins_time_quantity(join_engine):

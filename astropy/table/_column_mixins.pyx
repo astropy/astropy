@@ -27,6 +27,7 @@ import sys
 import numpy as np
 cimport numpy as np
 from cpython.ref cimport PyTypeObject
+from libc.math cimport isnan
 
 np.import_array()
 
@@ -87,3 +88,54 @@ cdef inline object masked_column_getitem(object self, object item):
 cdef class _MaskedColumnGetitemShim(_ColumnGetitemShim):
     def __getitem__(self, item):
         return base_getitem(self, item, masked_column_getitem)
+
+
+def _get_string_dtype(value):
+    """Identify flat bytes-only or Unicode sequences without promotion."""
+    cdef bint has_text = False
+    cdef bint all_bytes = True
+    cdef type scalar_type = None
+
+    if not isinstance(value, (list, tuple)):
+        return None
+    for item in value:
+        if isinstance(item, bytes) or type(item) is scalar_type:
+            continue
+        if isinstance(item, str):
+            has_text = True
+        elif (
+            not isinstance(item, (int, float, complex, np.number))
+            and not isinstance(item, np.bool_)
+        ):
+            # Let NumPy handle nested sequences and other types.
+            return None
+        scalar_type = type(item)
+        all_bytes = False
+    if has_text:
+        return "U"
+    return "S" if all_bytes else None
+
+
+def _get_string_fill_value(data, *, bint legacy_pandas=False):
+    """
+    Match missing values to the column's string type. Go via a list
+    to avoid modifying a view of the dataframe's array and let
+    NumPy infer a string or bytes dtype.
+
+    Return None if the column is not string-like. The legacy pandas API
+    accepts only the np.nan singleton as a missing value; from_df also
+    accepts None and other NaNs.
+    """
+    cdef object fill = None
+    cdef object nan = np.nan
+
+    for value in data:
+        if isinstance(value, (str, bytes)):
+            if fill is None:
+                fill = "" if isinstance(value, str) else b""
+        elif legacy_pandas:
+            if value is not nan:
+                return None
+        elif value is not None and not isnan(value):
+            return None
+    return b"" if fill is None else fill

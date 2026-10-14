@@ -1101,16 +1101,6 @@ def result_type(cols: Sequence[Any]) -> np.dtype:
         raise tme from err
 
 
-def _decode_bytes(col: ColumnLike) -> ColumnLike:
-    """Decode byte strings as UTF-8, preserving any mask."""
-    if col.dtype.kind != "S":
-        return col
-    decoded = np.strings.decode(col, "utf-8")
-    if isinstance(col, np.ma.MaskedArray):
-        decoded = np.ma.array(decoded, mask=col.mask, copy=False)
-    return decoded
-
-
 def _get_join_sortable_arrays(
     keys: Sequence[str], left: Table, right: Table
 ) -> tuple[
@@ -1207,15 +1197,12 @@ def _get_join_sortable_arrays(
 
             sort_key = str(ii)
             sort_keys.append(sort_key)
+            sort_left[sort_key] = left_sort_col
+            sort_right[sort_key] = right_sort_col
 
             # Build up dtypes for the structured array that gets sorted.
             dtype_str = result_type([left_sort_col, right_sort_col])
             sort_keys_dtypes.append((sort_key, dtype_str))
-            if dtype_str.kind == "U":
-                left_sort_col = _decode_bytes(left_sort_col)
-                right_sort_col = _decode_bytes(right_sort_col)
-            sort_left[sort_key] = left_sort_col
-            sort_right[sort_key] = right_sort_col
             ii += 1
 
     return sort_keys_dtypes, sort_keys, sort_left, sort_right
@@ -1509,13 +1496,17 @@ def _join(  # ruff: ignore[PLR0917]
             out[out_name] = col_cls.info.new_like(
                 cols, n_out, metadata_conflicts, out_name
             )
-            if _dtype.kind == "U":
-                cols = [_decode_bytes(col) for col in cols]
-            out[out_name][:] = np.where(
-                right_mask,
-                cols[0].take(left_out),
-                cols[1].take(right_out),
-            )
+            for col, indices, mask in zip(
+                cols, (left_out, right_out), (right_mask, ~right_mask)
+            ):
+                indices = indices[mask]
+                if len(indices) == 0:
+                    continue
+                values = col.take(indices)
+                if _dtype.kind == "U" and col.dtype.kind == "S":
+                    # Avoid repeating the ASCII conversion during assignment.
+                    values = values.astype("U")
+                out[out_name][mask] = values
             continue
         elif left_name:  # out_name came from the left table
             name, array, array_out, array_mask = left_name, left, left_out, left_mask
@@ -1872,10 +1863,7 @@ def _vstack(
         for name, array in zip(in_names, arrays):
             idx1 = idx0 + len(array)
             if name in array.colnames:
-                values = array[name]
-                if isinstance(col, Column) and col.dtype.kind == "U":
-                    values = _decode_bytes(values)
-                col[idx0:idx1] = values
+                col[idx0:idx1] = array[name]
             else:
                 # If col is a Column but not MaskedColumn then upgrade at this point
                 # because masking is required.
