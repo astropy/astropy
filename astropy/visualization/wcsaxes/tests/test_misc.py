@@ -608,6 +608,30 @@ def test_wcs_type_transform_regression():
     ax.get_transform(sliced_wcs)
 
 
+@pytest.mark.parametrize(("cunit", "cdelt"), [("deg", 10 / 3600), ("arcsec", 10)])
+def test_get_transform_frame_with_non_degree_world_units(cunit, cdelt):
+    # A transform from a coordinate frame must agree with the WCS it was built
+    # from, despite different units in the WCS.
+    wcs = WCS(naxis=2, preserve_units=True)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.cunit = [cunit, cunit]
+    wcs.wcs.crpix = [50.5, 50.5]
+    wcs.wcs.crval = [0, 0]
+    wcs.wcs.cdelt = [cdelt, cdelt]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    # get_transform ends in display coordinates, removing transData leaves pixels
+    world_to_pixel = ax.get_transform("icrs") - ax.transData
+
+    coord = SkyCoord(0.05, 0, unit="deg")
+    assert_allclose(
+        world_to_pixel.transform(np.array([[0.05, 0.0]])),
+        [wcs.world_to_pixel(coord)],
+    )
+
+
 def test_multiple_draws_grid_contours(tmp_path):
     fig = Figure()
     ax = fig.add_subplot(1, 1, 1, projection=WCS())
