@@ -30,14 +30,14 @@ from astropy.utils.compat.optional_deps import HAS_BS4
 cosmo_instances = cosmology.realizations.available
 
 # Collect the registered read/write formats.
-#   (format, supports_metadata, has_all_required_dependencies)
+#   (format, supports_metadata, has_all_required_dependencies, supports_units)
 readwrite_formats = [
-    ("ascii.ecsv", True, True),
-    ("ascii.html", False, HAS_BS4),
-    ("ascii.latex", False, True),
-    ("ascii.mrt", False, True),
-    ("json", True, True),
-    ("latex", False, True),
+    ("ascii.ecsv", True, True, False),
+    ("ascii.html", False, HAS_BS4, False),
+    ("ascii.latex", False, True, False),
+    ("ascii.mrt", False, True, False),
+    ("json", True, True, False),
+    ("latex", False, True, False),
 ]
 
 
@@ -60,7 +60,7 @@ class ReadWriteTestMixin(
     test_ecsv.ReadWriteECSVTestMixin,
     test_html.ReadWriteHTMLTestMixin,
     test_json.ReadWriteJSONTestMixin,
-    test_latex.WriteLATEXTestMixin,
+    test_latex.ReadWriteLATEXTestMixin,
     test_mrt.ReadWriteMRTTestMixin,
 ):
     """
@@ -72,8 +72,12 @@ class ReadWriteTestMixin(
     See ``TestReadWriteCosmology`` or ``TestCosmology`` for examples.
     """
 
-    @pytest.mark.parametrize("format, metaio, has_deps", readwrite_formats)
-    def test_readwrite_complete_info(self, cosmo, tmp_path, format, metaio, has_deps):
+    @pytest.mark.parametrize(
+        "format, metaio, has_deps, supports_units", readwrite_formats
+    )
+    def test_readwrite_complete_info(
+        self, cosmo, tmp_path, format, metaio, has_deps, supports_units
+    ):
         """
         Test writing from an instance and reading from the base class.
         This requires full information.
@@ -88,6 +92,10 @@ class ReadWriteTestMixin(
         fname = tmp_path / f"{cosmo.name}.{format}"
         cosmo.write(fname, format=format)
 
+        rkw = {"format": format}
+        if not supports_units:
+            rkw |= {"units": {}}
+
         # Also test kwarg "overwrite"
         assert fname.is_file()
         with pytest.raises(IOError):
@@ -97,14 +105,16 @@ class ReadWriteTestMixin(
         cosmo.write(fname, format=format, overwrite=True)
 
         # Read back
-        got = Cosmology.read(fname, format=format)
+        got = Cosmology.read(fname, **rkw)
 
         assert got == cosmo
         assert (not metaio) ^ (dict(got.meta) == dict(cosmo.meta))
 
-    @pytest.mark.parametrize("format, metaio, has_deps", readwrite_formats)
+    @pytest.mark.parametrize(
+        "format, metaio, has_deps, supports_units", readwrite_formats
+    )
     def test_readwrite_from_subclass_complete_info(
-        self, cosmo_cls, cosmo, tmp_path, format, metaio, has_deps
+        self, cosmo_cls, cosmo, tmp_path, format, metaio, has_deps, supports_units
     ):
         """
         Test writing from an instance and reading from that class, when there's
@@ -118,18 +128,22 @@ class ReadWriteTestMixin(
         fname = str(tmp_path / f"{cosmo.name}.{format}")
         cosmo.write(fname, format=format)
 
+        rkw = {"format": format}
+        if not supports_units:
+            rkw |= {"units": {}}
+
         # read with the same class that wrote.
-        got = cosmo_cls.read(fname, format=format)
+        got = cosmo_cls.read(fname, **rkw)
         assert got == cosmo
         assert (not metaio) ^ (dict(got.meta) == dict(cosmo.meta))
 
         # this should be equivalent to
-        got = Cosmology.read(fname, format=format, cosmology=cosmo_cls)
+        got = Cosmology.read(fname, **rkw, cosmology=cosmo_cls)
         assert got == cosmo
         assert (not metaio) ^ (dict(got.meta) == dict(cosmo.meta))
 
         # and also
-        got = Cosmology.read(fname, format=format, cosmology=cosmo_cls.__qualname__)
+        got = Cosmology.read(fname, **rkw, cosmology=cosmo_cls.__qualname__)
         assert got == cosmo
         assert (not metaio) ^ (dict(got.meta) == dict(cosmo.meta))
 
@@ -149,8 +163,8 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
 
     # ==============================================================
 
-    @pytest.mark.parametrize("format, _, has_deps", readwrite_formats)
-    def test_write_methods_have_explicit_kwarg_overwrite(self, format, _, has_deps):
+    @pytest.mark.parametrize("format, _, has_deps, __", readwrite_formats)
+    def test_write_methods_have_explicit_kwarg_overwrite(self, format, _, has_deps, __):
         if not has_deps:
             pytest.skip("missing a dependency")
         if (format, Cosmology) not in readwrite_registry._readers:
@@ -165,9 +179,9 @@ class TestCosmologyReadWrite(ReadWriteTestMixin):
         if not sys.flags.optimize:
             assert "overwrite : bool" in writer.__doc__
 
-    @pytest.mark.parametrize("format, _, has_deps", readwrite_formats)
+    @pytest.mark.parametrize("format, _, has_deps, __", readwrite_formats)
     def test_readwrite_reader_class_mismatch(
-        self, cosmo, tmp_path, format, _, has_deps
+        self, cosmo, tmp_path, format, _, has_deps, __
     ):
         """Test when the reader class doesn't match the file."""
         if not has_deps:
