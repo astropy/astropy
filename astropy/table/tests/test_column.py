@@ -1144,6 +1144,9 @@ def test_unicode_sandwich_set(Column):
     c[:] = [uba, b"def"]
     assert np.all(c == [uba, b"def"])
 
+    c[:] = [uba, uba.encode("utf-8")]
+    assert c.tolist() == [uba, uba]
+
 
 @pytest.mark.parametrize("class1", [table.MaskedColumn, table.Column])
 @pytest.mark.parametrize("class2", [table.MaskedColumn, table.Column, str, list])
