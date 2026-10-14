@@ -971,11 +971,16 @@ def test_wcsapi_2d_celestial_arcsec():
     return fig
 
 
+def make_skycoord(*args, extra=None, **kwargs):
+    return SkyCoord(*args, **kwargs)
+
+
 class CelestialLowLevelWCS(BaseLowLevelWCS):
     """Minimal 2D celestial WCS with configurable SkyCoord keyword arguments."""
 
-    def __init__(self, skycoord_kwargs):
+    def __init__(self, skycoord_kwargs, generator=None):
         self.skycoord_kwargs = skycoord_kwargs
+        self.generator = generator
 
     pixel_n_dim = world_n_dim = 2
     world_axis_physical_types = ["pos.eq.ra", "pos.eq.dec"]
@@ -987,7 +992,10 @@ class CelestialLowLevelWCS(BaseLowLevelWCS):
 
     @property
     def world_axis_object_classes(self):
-        return {"celestial": (SkyCoord, (), self.skycoord_kwargs)}
+        if self.generator is None:
+            return {"celestial": (SkyCoord, (), self.skycoord_kwargs)}
+        else:
+            return {"celestial": (SkyCoord, (), self.skycoord_kwargs, self.generator)}
 
     def pixel_to_world_values(self, *pixel_arrays):
         return pixel_arrays
@@ -1009,6 +1017,20 @@ class CelestialLowLevelWCS(BaseLowLevelWCS):
 def test_wcsapi_to_celestial_frame(skycoord_kwargs, expected):
     frame = wcsapi_to_celestial_frame(CelestialLowLevelWCS(skycoord_kwargs))
     assert frame.is_equivalent_frame(expected)
+
+
+def test_wcsapi_to_celestial_frame_generator():
+    # Keyword arguments for a custom generator function may not all be valid
+    # SkyCoord arguments, and should not prevent the frame from being parsed.
+    wcs = CelestialLowLevelWCS(
+        {"frame": "fk5", "equinox": "J2005", "unit": "deg", "extra": 1},
+        generator=make_skycoord,
+    )
+    frame = wcsapi_to_celestial_frame(wcs)
+    assert frame.is_equivalent_frame(FK5(equinox="J2005"))
+    fig = Figure()
+    ax = fig.add_subplot(projection=wcs)
+    ax.scatter_coord(SkyCoord(1 * u.deg, 2 * u.deg, frame="galactic"))
 
 
 def test_scatter_coord_frame_class():
