@@ -322,6 +322,47 @@ def test_slice_drop_dimensions_order():
     assert wcs_sliced_2.world_axis_physical_types == ["pos.eq.ra", "pos.eq.dec"]
 
 
+@pytest.mark.parametrize(
+    ("negative", "positive"),
+    [
+        ((slice(-3, None),), (slice(7, None),)),
+        ((slice(-3, -1),), (slice(7, 9),)),
+        ((slice(None), slice(-15, -5)), (slice(None), slice(5, 15))),
+        ((slice(-6, None, 2), slice(-15, None)), (slice(4, None, 2), slice(5, None))),
+        ((slice(2, -3), slice(None, -5, 3)), (slice(2, 7), slice(None, 15, 3))),
+        # A start before the beginning of the axis is the same as no start
+        ((slice(-30, 5),), (slice(0, 5),)),
+    ],
+)
+def test_slice_negative_values(negative, positive):
+    # Regression test for a bug that caused negative values to not be
+    # interpreted relative to the end of the axis when the shape of the data is
+    # known, which resulted in a WCS that was not consistent with its shape.
+
+    mywcs = WCS(naxis=2)
+    mywcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+    mywcs.wcs.crval = [10, 20]
+    mywcs.wcs.cdelt = [-0.1, 0.1]
+    mywcs.wcs.crpix = [5, 7]
+    mywcs.array_shape = (10, 20)
+
+    wcs_negative = mywcs[negative]
+    wcs_positive = mywcs[positive]
+    assert isinstance(wcs_negative, WCS)
+    assert wcs_negative.array_shape == wcs_positive.array_shape
+    assert_allclose(wcs_negative.wcs.crpix, wcs_positive.wcs.crpix)
+    assert_allclose(wcs_negative.wcs.cdelt, wcs_positive.wcs.cdelt)
+
+    # If the shape is not known, a negative start cannot be interpreted, but a
+    # negative stop is fine since it only affects the (unknown) shape.
+    mywcs.array_shape = None
+    if any((view.start or 0) < 0 for view in negative):
+        with pytest.raises(ValueError, match="size is not known"):
+            mywcs[negative]
+    else:
+        assert_allclose(mywcs[negative].wcs.crpix, mywcs[positive].wcs.crpix)
+
+
 def test_axis_names():
     mywcs = WCS(naxis=4)
     mywcs.wcs.ctype = ["RA---TAN", "DEC--TAN", "VOPT-LSR", "STOKES"]

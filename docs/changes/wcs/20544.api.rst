@@ -1,0 +1,4 @@
+``astropy.wcs.wcsapi.wrappers.sanitize_slices`` is deprecated in favor of
+``astropy.utils.shapes.simplify_basic_index``. Integer indices beyond the size
+of an axis are now rejected when slicing a ``SlicedLowLevelWCS`` with a known
+shape, as for Numpy arrays.
