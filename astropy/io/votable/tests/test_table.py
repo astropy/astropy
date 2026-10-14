@@ -7,6 +7,8 @@ import io
 import os
 import pathlib
 import struct
+import subprocess
+import sys
 import warnings
 
 import numpy as np
@@ -30,59 +32,53 @@ from astropy.utils.data import (
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 
-def test_c_tabledata_writer_buffer_overflow():
-    """
-    Regression test for Issue #20419:
-    https://github.com/astropy/astropy/issues/20419
+def test_c_tabledata_writer_null_terminator_lands_on_power_of_two_boundary():
+    """Deterministic regression test for astropy/astropy#20419 (PR #20428)."""
+    # Byte accounting for a single row / single column, indent=0, with the
+    # default 256-byte initial buffer (`1 << 8`, hardcoded in tree.py's
+    # call into the C writer):
+    #
+    #   " <TR>\n"   ->  6
+    #   "  <TD>"    ->  6
+    #   <cell>      ->  CELL_LEN
+    #   "</TD>\n"   ->  6
+    #   " </TR>\n"  ->  7
+    #   --------------------
+    #   total       ->  25 + CELL_LEN
+    #
+    # CELL_LEN = 231 makes the total exactly 256: the offset right before
+    # the row's NUL terminator write equals the buffer's current capacity,
+    # with no row ever having needed to grow past it beforehand.
+    cell_len = 231
+    assert 25 + cell_len == 256
 
-    Ensures the C tablewriter correctly calculates buffer allocations
-    when handling masked values and XML entity expansion (&, <, >),
-    preventing heap corruption and buffer overflows during serialization.
-    """
-    votable = tree.VOTableFile()
-    resource = tree.Resource()
-    votable.resources.append(resource)
-    table = tree.TableElement(votable)
-    resource.tables.append(table)
+    repro = f"""
+from astropy.io.votable import tablewriter
 
-    # Recreate the schema from the issue
-    col_names = ["ID", "access_url", "error_message", "description"]
-    for name in col_names:
-        table.fields.append(
-            tree.Field(votable, name=name, datatype="char", arraysize="*")
-        )
-    table.fields.append(tree.Field(votable, name="content_length", datatype="long"))
-
-    # Force XML entity expansion to test buffer length math
-    base_str = "x" * 150 + "&<>" * 10
-
-    data = []
-    mask = []
-    for i in range(10):
-        data.append(
-            (
-                base_str,
-                "access_url_&_test",
-                None,  # Masked string cell
-                "Description",
-                100,
-            )
-        )
-        mask.append((False, False, True, False, False))
-
-    table.create_arrays(10)
-    table.array = np.ma.array(
-        data,
-        mask=mask,
-        dtype=[(name, "O") for name in col_names] + [("content_length", "i8")],
+chunks = []
+tablewriter.write_tabledata(
+    chunks.append,
+    [["x" * {cell_len}]],
+    [[False]],
+    [lambda value, masked: value],
+    [False],
+    0,       # indent
+    1 << 8,  # buf_size, matches tree.py's call site
+)
+assert len("".join(chunks)) == 256
+"""
+    result = subprocess.run(
+        [sys.executable, "-X", "dev", "-c", repro],
+        env={**os.environ, "PYTHONMALLOC": "debug"},
+        capture_output=True,
+        text=True,
+        check=True,
     )
-
-    out = io.BytesIO()
-    # Forces the C writer path
-    votable.to_xml(out, _debug_python_based_parser=False)
-
-    xml_output = out.getvalue().decode("utf-8")
-    assert "&amp;&lt;&gt;" in xml_output
+    assert result.returncode == 0, (
+        "write_tabledata corrupted the heap when the row length landed "
+        f"exactly on the buffer's power-of-two boundary:\n{result.stderr}"
+    )
+    assert "Fatal Python error" not in result.stderr
 
 
 @pytest.fixture
