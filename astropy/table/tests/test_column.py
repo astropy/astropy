@@ -468,9 +468,10 @@ class TestColumn:
             assert np.all(c1.data.data == [0, 100, 1, 2])
             assert np.all(c1.data.mask == [False, mask, True, False])
 
-    def test_masked_multidim_as_list(self):
-        data = np.ma.MaskedArray([1, 2], mask=[True, False])
-        c = table.MaskedColumn([data])
+    @pytest.mark.parametrize("dtype", [None, "S", "U", object])
+    def test_masked_multidim_as_list(self, dtype):
+        data = np.ma.MaskedArray([1, 2], mask=[True, False], dtype=dtype)
+        c = table.MaskedColumn([data], dtype=dtype)
         assert c.shape == (1, 2)
         assert np.all(c[0].mask == [True, False])
 
@@ -990,14 +991,16 @@ def test_string_truncation_warning_masked():
 
 
 @pytest.mark.parametrize("Column", (table.Column, table.MaskedColumn))
-def test_col_unicode_sandwich_create_from_str(Column):
+@pytest.mark.parametrize("second", ["def", b"def"])
+def test_col_unicode_sandwich_create_from_str(Column, second):
     """
     Create a bytestring Column from strings (including unicode) in Py3.
     """
     # a-umlaut is a 2-byte character in utf-8, test fails with ascii encoding.
     # Stress the system by injecting non-ASCII characters.
     uba = "bä"
-    c = Column([uba, "def"], dtype="S")
+    c = Column([uba, second], dtype="S")
+    assert not np.any(np.ma.getmaskarray(c))
     assert c.dtype.char == "S"
     assert c[0] == uba
     assert isinstance(c[0], str)
@@ -1020,6 +1023,11 @@ def test_col_unicode_sandwich_bytes_obj(Column):
     assert isinstance(c[:0], table.Column)
     assert np.all(c[:2] == np.array([None, b"def"]))
     assert not np.all(c[:2] == np.array([None, "def"]))
+
+    c = Column([b"\xff", "a"], dtype=object)
+    assert c.dtype.char == "O"
+    assert c.tolist() == [b"\xff", "a"]
+    assert not np.any(np.ma.getmaskarray(c))
 
 
 @pytest.mark.parametrize("Column", (table.Column, table.MaskedColumn))
@@ -1144,8 +1152,8 @@ def test_unicode_sandwich_set(Column):
     c[:] = [uba, b"def"]
     assert np.all(c == [uba, b"def"])
 
-    c[:] = [uba, uba.encode("utf-8")]
-    assert c.tolist() == [uba, uba]
+    with pytest.raises(UnicodeDecodeError):
+        c[:] = [uba, uba.encode("utf-8")]
 
 
 @pytest.mark.parametrize("class1", [table.MaskedColumn, table.Column])

@@ -702,7 +702,6 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             # unicode gets stored as bytes.  So, we just check safe casting, to
             # ensure we do not, e.g., accidentally change integer to float, etc.
             if a1.names is not None:
-                # Compare against the stored bytes representation of text fields.
                 expected = Table(np.empty(0, dtype=a1))
                 expected.convert_unicode_to_bytestring()
                 a1 = expected.as_array().dtype

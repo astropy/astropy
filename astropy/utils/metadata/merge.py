@@ -131,8 +131,7 @@ class MergeNpConcatenate(MergeStrategy):
     def merge(cls, left, right):
         left, right = np.asanyarray(left), np.asanyarray(right)
         dtype = result_type([left, right])  # Ensure compatible dtype
-        # Explicit dtype and casting retain the legacy ASCII conversion between
-        # bytes and text when NumPy no longer promotes them.
+        # Intentionally opt into NumPy's legacy implicit bytes/text coercion.
         return np.concatenate([left, right], dtype=dtype, casting="unsafe")
 
 

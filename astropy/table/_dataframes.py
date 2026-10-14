@@ -8,7 +8,6 @@ library.
 
 from __future__ import annotations
 
-import math
 import warnings
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, NewType
@@ -19,6 +18,7 @@ import numpy.typing as npt
 from astropy.units.typing import UnitLike
 from astropy.utils.compat.optional_deps import HAS_NARWHALS, HAS_PANDAS
 
+from ._column_mixins import _get_string_fill_value
 from .column import Column, MaskedColumn
 from .table import Table
 
@@ -385,14 +385,8 @@ def from_df(
         # Handle string-like columns
         elif isinstance(dtype, (nw.String, nw.Binary, nw.Object)):
             if data.dtype.kind == "O":
-                ts = (str, bytes)
-                # If all elements of an object array are string-like or None or np.nan
-                # then coerce back to a native numpy str/unicode array.
-                if all((x is None) or isinstance(x, ts) or math.isnan(x) for x in data):
-                    # Match missing values to the column's string type. Go via a list to
-                    # avoid replacing objects in a view of the pandas array and
-                    # to ensure numpy initializes to string or bytes correctly.
-                    fill = "" if any(isinstance(x, str) for x in data) else b""
+                fill = _get_string_fill_value(data)
+                if fill is not None:
                     data = np.array(
                         [fill if m else d for (d, m) in zip(data, nw_mask.to_numpy())]
                     )
@@ -526,15 +520,8 @@ def from_pandas(
             continue
 
         if data.dtype.kind == "O":
-            # If all elements of an object array are string-like or np.nan
-            # then coerce back to a native numpy str/unicode array.
-            string_types = (str, bytes)
-            nan = np.nan
-            if all(isinstance(x, string_types) or x is nan for x in data):
-                # Match missing values to the column's string type. Go via a list to
-                # avoid replacing objects in a view of the pandas array and
-                # to ensure numpy initializes to string or bytes correctly.
-                fill = "" if any(isinstance(x, str) for x in data) else b""
+            fill = _get_string_fill_value(data, legacy_pandas=True)
+            if fill is not None:
                 data = np.array([fill if m else d for (d, m) in zip(data, mask)])
 
         # Numpy datetime64
