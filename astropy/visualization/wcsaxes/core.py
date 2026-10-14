@@ -320,7 +320,7 @@ class WCSAxes(Axes):
                     " as it is automatically determined by the input coordinate frame."
                 )
 
-            transform = self.get_transform(native_frame)
+            transform = self.get_transform("world")
             kwargs.update({"transform": transform})
 
             args = tuple(plot_data) + args[1:]
@@ -786,7 +786,8 @@ class WCSAxes(Axes):
                     ["deg", "deg"],
                 )
 
-                if coordinate_transform.same_frames:
+                # The frame and the units both have to match, the world units are not necessarily in degrees.
+                if coordinate_transform.same_frames and coordinate_transform.same_units:
                     return self._transform_pixel2world
                 else:
                     return self._transform_pixel2world + coordinate_transform
