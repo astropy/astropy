@@ -6,7 +6,7 @@ from contextlib import contextmanager
 import numpy as np
 
 from astropy import units as u
-from astropy.coordinates import ICRS, BaseCoordinateFrame, SkyCoord
+from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.coordinates.sky_coordinate_parsers import _get_frame_without_data
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import SlicedLowLevelWCS
@@ -335,11 +335,11 @@ def wcsapi_to_celestial_frame(wcs):
         if issubclass(cls, SkyCoord):
             # Parse the frame (which may be a string, class or instance) along
             # with any frame attributes such as equinox in the same way as
-            # SkyCoord. Other keyword arguments are left alone since they may
-            # be intended for a custom generator function. This pops items so
-            # we pass a copy of the keyword arguments.
+            # SkyCoord, defaulting to ICRS. Other keyword arguments are left
+            # alone since they may be intended for a custom generator function.
+            # This pops items so we pass a copy of the keyword arguments.
             frame_cls, frame_kwargs = _get_frame_without_data([], dict(kwargs))
-            return (frame_cls or ICRS)(**frame_kwargs)
+            return frame_cls(**frame_kwargs)
         elif issubclass(cls, BaseCoordinateFrame):
             return cls(**kwargs)
 
