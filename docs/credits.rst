@@ -397,7 +397,7 @@ Core Package Contributors
 * Max Voronkov
 * Maximilian Linhoff
 * Maximillian Weber
-* Mayank SIngh
+* Mayank Singh
 * Médéric Boquien
 * Megan Sosey
 * Melissa Weber Mendonça
