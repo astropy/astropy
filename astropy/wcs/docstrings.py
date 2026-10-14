@@ -2463,8 +2463,10 @@ number of respects:
        translated to standard (this is partially dependent on whether
        ``fix`` was applied).
 
-    3. Quantities will be converted to the units used internally,
-       basically SI with the addition of degrees.
+    3. Unless ``preserve_units=True`` was used, quantities will be
+       converted to the units used internally, basically SI with the
+       addition of degrees. If ``preserve_units=True``, quantities are
+       written in the original units given by ``CUNITia``.
 
     4. Floating-point quantities may be given to a different decimal
        precision.
