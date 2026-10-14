@@ -66,4 +66,11 @@ def result_type(arrs):
         tme._incompat_types = incompat_types
         raise tme
 
+    if {dt.kind for dt in dtypes} == {"S", "U"}:
+        # Tables treat bytes and Unicode as text. Preserve the character widths
+        # without relying on NumPy's implicit bytes/text promotion.
+        dtypes = [
+            np.dtype(f"U{dt.itemsize}") if dt.kind == "S" else dt for dt in dtypes
+        ]
+
     return np.result_type(*dtypes)

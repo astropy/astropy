@@ -2444,6 +2444,22 @@ def test_vstack_unicode():
     assert t2["a"].itemsize == 4
 
 
+@pytest.mark.parametrize("name", ["beta", "bêta"])
+def test_stack_join_bytes_unicode(operation_table_type, join_engine, name):
+    left = operation_table_type({"name": [b"alpha", name.encode("utf-8")]})
+    right = operation_table_type({"name": [name, "gamma"]})
+    stacked = table.vstack([left, right])
+    assert stacked["name"].dtype.kind == "U"
+    assert stacked["name"].tolist() == ["alpha", name, name, "gamma"]
+    joined = table.join(left, right, keys="name", join_type="outer", engine=join_engine)
+    assert joined["name"].dtype.kind == "U"
+    assert joined["name"].tolist() == ["alpha", name, "gamma"]
+
+    left["name"] = table.MaskedColumn(left["name"], mask=[False, True])
+    stacked = table.vstack([left, right])
+    assert stacked["name"].mask.tolist() == [False, True, False, False]
+
+
 def test_join_mixins_time_quantity(join_engine):
     """
     Test for table join using non-ndarray key columns.

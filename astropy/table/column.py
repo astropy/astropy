@@ -1232,6 +1232,9 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             value = value.encode("utf-8")
         elif isinstance(value, bytes) or value is np.ma.masked:
             pass
+        elif isinstance(value, (list, tuple)):
+            # Encode before NumPy can coerce mixed bytes and text using ASCII.
+            value = [BaseColumn._encode_str(val) for val in value]
         else:
             arr = np.asarray(value)
             if arr.dtype.char == "U":
