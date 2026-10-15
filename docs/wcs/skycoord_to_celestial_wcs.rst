@@ -3,7 +3,7 @@
 Create a WCS from a center and field of view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This example demonstrate how a WCS can be instantiated with a center coordinate
+This example demonstrates how a WCS can be instantiated with a center coordinate
 and field of view values:
 
 >>> from astropy.coordinates import Angle, SkyCoord

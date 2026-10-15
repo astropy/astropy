@@ -70,8 +70,8 @@ Initialization from a center and field of view
 **********************************************
 
 When displaying artificial data, we can use
-:func:`~astropy.wcs.WCS.skycoord_to_celestial_wcs` to inittialize a WCS from a center and
-a field of view.
+:func:`~astropy.wcs.utils.skycoord_to_celestial_wcs` to initialize a WCS from a
+center and a field of view.
 
 .. plot::
    :context: reset
@@ -81,14 +81,16 @@ a field of view.
     import matplotlib.pyplot as plt
     import numpy as np
 
-    from astropy.wcs import WCS
     from astropy.coordinates import Angle, SkyCoord
+    from astropy.wcs.utils import skycoord_to_celestial_wcs
 
     center = SkyCoord(266.4, -29, unit="deg")
-    fov = Angle([0.4, 0.2], unit="deg")
-    wcs = WCS.skycoord_to_celestial_wcs(center, fov=fov, pixel_size=0.005)
+    fov = Angle([0.2, 0.4], unit="deg")
+    wcs = skycoord_to_celestial_wcs(
+        center, fov=fov, pixel_angular_size=Angle(0.005, unit="deg")
+    )
 
-    data = np.random.rand(40, 80)
+    data = np.random.rand(*wcs.array_shape)
 
     fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
     plt.imshow(data, origin="lower")
