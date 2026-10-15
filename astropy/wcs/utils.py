@@ -449,7 +449,7 @@ def skycoord_to_celestial_wcs(
         The pixel angular size along the x and y axis. It is either of length 2 for each
         axis or of length 1. Then ``cdelt`` will be set to
         ``[-pixel_angular_size, pixel_angular_size]``
-    reference_pixel : Sequence[int, int], optional
+    reference_pixel : Sequence[float, float], optional
         Reference pixel for the projection. In zero-indexed (Python convention) numpy
         order (swapped with respect to the WCS convention). If ``None``, it will be set
         to the center of the view.
@@ -492,9 +492,10 @@ def skycoord_to_celestial_wcs(
     NAXIS : 40  80
 
     You can also use ``shape`` instead of ``fov``:
-    >>> shape = (80, 40)
+
+    >>> shape = (40, 80)
     >>> wcs = skycoord_to_celestial_wcs(
-    ...           center, fov=fov,
+    ...           center, shape=shape,
     ...           pixel_angular_size=Angle([-0.1, 0.1], unit="deg")
     ...           )
     >>> print(wcs)
@@ -528,11 +529,11 @@ def skycoord_to_celestial_wcs(
         )
 
     if frame is None:
-        frame = ICRS()
+        frame = reference_position.frame.replicate_without_data()
     wcs = celestial_frame_to_wcs(frame=frame, projection=projection)
 
     if pixel_angular_size.isscalar:
-        pixel_angular_size_in_deg = float(pixel_angular_size.to_value("deg"))
+        pixel_angular_size_in_deg = abs(float(pixel_angular_size.to_value("deg")))
         wcs.wcs.cdelt = [-pixel_angular_size_in_deg, pixel_angular_size_in_deg]
     elif len(pixel_angular_size) == 2:
         wcs.wcs.cdelt = pixel_angular_size.to_value("deg")
@@ -543,7 +544,7 @@ def skycoord_to_celestial_wcs(
         )
 
     coo_for_frame = reference_position.transform_to(frame)
-    wcs.wcs.crval = [coo_for_frame.data.lon.deg, coo_for_frame.data.lat.deg]
+    wcs.wcs.crval = [coo_for_frame.spherical.lon.deg, coo_for_frame.spherical.lat.deg]
 
     if fov is not None:  # field of view as an Angle or quantity
         wcs.array_shape = [
@@ -560,10 +561,10 @@ def skycoord_to_celestial_wcs(
             )
         wcs.wcs.crpix = [reference_pixel[1] + 1, reference_pixel[0] + 1]
     else:
-        wcs.wcs.crpix = [wcs.array_shape[0] / 2.0 + 0.5, wcs.array_shape[1] / 2.0 + 0.5]
+        wcs.wcs.crpix = [wcs.pixel_shape[0] / 2.0 + 0.5, wcs.pixel_shape[1] / 2.0 + 0.5]
 
     if rotation is not None:
-        theta = rotation.radian
+        theta = u.Quantity(rotation, u.rad).value
         ratio = wcs.wcs.cdelt[1] / wcs.wcs.cdelt[0]  # case of rectangular pixels
         wcs.wcs.pc = [
             [np.cos(theta), -ratio * np.sin(theta)],
