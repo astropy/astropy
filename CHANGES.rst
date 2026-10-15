@@ -147,14 +147,6 @@ astropy.wcs
 
 - Fix bug in ``astropy.wcs.utils.fit_wcs_from_points`` so the ``proj_point`` will be transformed to the ``world_coords`` coordinate frame. [#20588]
 
-
-Performance Improvements
-------------------------
-
-
-Other Changes and Additions
----------------------------
-
 Version v7.2.2 (2026-07-03)
 ===========================
 
