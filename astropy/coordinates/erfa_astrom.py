@@ -201,10 +201,20 @@ class ErfaAstrom:
 
         return astrom
 
-    def pnm06a(self, time, return_obl=False):
-        """Compute the IAU 2006/2000A matrix.
+    def precession_nutation_obliquity(self, time):
+        """Compute precession/nutation matrix and true obliquity.
 
-        If return_obl is True, the true obliquity is also returned.
+        This is equivalent to pnm06a but allows returning the
+        true obloquity without additional computations and overriding
+        the expensive nut06a computation in ErfaAstromInterpolator.
+
+        Returns
+        -------
+        rnpb : np.ndarray
+            the precession/nutation matrix including frame bias
+            equivalent to calling erfa.pnm06a
+        obl : np.ndarray
+            true obliquity of date
         """
         # This code calls the same routines as done in pnm06a from ERFA, which
         # retrieves the precession matrix (including frame bias) according to
@@ -222,10 +232,7 @@ class ErfaAstrom:
         dpsi, deps = self.nut06a(time)
         obl = epsa + deps
         rnpb = erfa.fw2m(gamb, phib, psib + dpsi, obl)
-
-        if return_obl:
-            return rnpb, obl
-        return rnpb
+        return rnpb, obl
 
 
 class ErfaAstromInterpolator(ErfaAstrom):

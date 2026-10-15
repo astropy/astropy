@@ -207,8 +207,10 @@ def test_nutation_matrices_match_erfa(shape):
     )
     tt = time.tt
     expected = erfa.pnm06a(tt.jd1, tt.jd2)
-    assert_array_equal(ErfaAstrom().pnm06a(time), expected)
+    actual, _ = ErfaAstrom().precession_nutation_obliquity(time)
+    assert_array_equal(actual, expected)
 
-    interpolated = ErfaAstromInterpolator(5 * u.min).pnm06a(time)
+    interpolator = ErfaAstromInterpolator(5 * u.min)
+    interpolated, _ = interpolator.precession_nutation_obliquity(time)
     atol = (1 * u.microarcsecond).to_value(u.rad)
     assert_allclose(interpolated, expected, rtol=0, atol=atol)

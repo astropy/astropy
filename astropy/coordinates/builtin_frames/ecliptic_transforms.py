@@ -39,7 +39,7 @@ def _mean_ecliptic_rotation_matrix(equinox):
 
 
 def _true_ecliptic_rotation_matrix(equinox):
-    rnpb, obl = erfa_astrom.get().pnm06a(equinox, return_obl=True)
+    rnpb, obl = erfa_astrom.get().precession_nutation_obliquity(equinox)
     return rotation_matrix(obl << u.radian, "x") @ rnpb
 
 
