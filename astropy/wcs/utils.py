@@ -459,9 +459,10 @@ def skycoord_to_celestial_wcs(
     projection : str, optional
         Any valid WCS projection code (see the list with ``from astropy.wcs
         import PRJ_CODES``), by default "TAN"
-    rotation : `~astropy.coordinates.Angle`, optional
-        The angle of rotation. It will be converted to a ``PC_ij`` matrix. By
-        default no rotation.
+    rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`, optional
+        The angle of rotation between the image's second pixel axis and the projection
+        latitude axis, measured counter-clockwise. It will be converted to a rotation
+        matrix and stored in the``PC_ij`` matrix. By default no rotation.
 
     Returns
     -------
@@ -505,11 +506,11 @@ def skycoord_to_celestial_wcs(
     CTYPE : 'RA---TAN' 'DEC--TAN'
     CUNIT : '' ''
     CRVAL : 266.4 -29.0
-    CRPIX : 40.5 20.5
+    CRPIX : 20.5 40.5
     PC1_1 PC1_2  : 1.0 0.0
     PC2_1 PC2_2  : 0.0 1.0
     CDELT : -0.1 0.1
-    NAXIS : 40  80
+    NAXIS : 80  40
     """
     if not reference_position.isscalar:
         raise ValueError(
