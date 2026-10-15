@@ -1,3 +1,254 @@
+Version 8.0.2 (2026-10-15)
+==========================
+
+
+New Features
+------------
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- ``simplify_basic_index`` now accepts `None` entries in ``shape`` for dimensions
+  whose size is not known, in which case the index for that dimension is returned
+  unchanged, except that a negative integer or slice start raises a ``ValueError``. [#20544]
+
+
+API Changes
+-----------
+
+astropy.wcs
+^^^^^^^^^^^
+
+- ``astropy.wcs.wcsapi.wrappers.sanitize_slices`` is deprecated in favor of
+  ``astropy.utils.shapes.simplify_basic_index``. Integer indices beyond the size
+  of an axis are now rejected when slicing a ``SlicedLowLevelWCS`` with a known
+  shape, as for Numpy arrays. [#20544]
+
+
+Bug Fixes
+---------
+
+astropy.coordinates
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed ``BaseRepresentation.represent_as`` mutating a source representation when
+  converting attached differentials to another class, which could cause a repeated
+  ``SkyCoord.apply_space_motion`` call after displaying the coordinate to fail. [#20095]
+
+- Fixed two rounding errors in ``Angle.to_string``. The seconds were carried into
+  the next minute half a unit too early, so that, e.g.,
+  ``Angle("1d2m59.49999s").to_string(precision=0)`` gave ``1d03m00s`` instead of
+  ``1d02m59s``. And with ``fields=1`` the seconds were rounded into the minutes
+  before the minutes were rounded into the degrees, rounding twice, so that, e.g.,
+  ``Angle("285d29m41.76s").to_string(fields=1)`` gave ``286d`` instead of ``285d``. [#20227]
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- The ``latex`` and ``aastex`` readers no longer treat an ampersand inside a
+  braced ``{...}`` group or an escaped ``\&`` as a column separator, so tables
+  with a reference column such as ``\cite{2013A&A...558A..33A}`` now read
+  correctly. [#20333]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fixed ``fitsinfo`` and ``fitsheader`` crashing with a traceback when run on
+  an LZW-compressed ``.Z`` file while the optional ``uncompresspy`` dependency
+  is not installed. The scripts now broadly catch exceptions and report a
+  clean error message, matching the behaviour of the ``fitscheck`` and
+  ``fitsdiff`` scripts. [#19869]
+
+- The ``ZQUANTIZ`` keyword is no longer written to the header of compressed
+  image HDUs when no quantization is applied (i.e., for integer data, or
+  floating point data compressed with ``quantize_method=NO_DITHER``). A few
+  FITS readers, including DS9 and ``fv``, currently treat the mere presence
+  of ``ZQUANTIZ`` as an indication that the data are quantized, regardless
+  of its value, and cannot read the files.  Omitting the keyword when it is
+  not needed is fully standards-compliant, as a missing ``ZQUANTIZ`` is
+  already interpreted as ``NO_DITHER``. [#20313]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Fixed the ``format="ecsv"`` ECSV reader to correctly read an empty table that has
+  no columns. Previously this was raising an ``InconsistentTableError``. The legacy
+  ``format="ascii.ecsv"`` ECSV reader was already handling this case correctly. [#19909]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Prevent overflow on 32-bit systems and WebAssembly when reading binary VOTables by
+  changing the ambiguous types of ``null_value`` to fixed-width equivalents (e.g., from
+  ``long`` to ``int64_t``). [#20302]
+
+- Passing an integer column index equal to the number of fields in ``columns`` now raises the intended ``ValueError``. [#20547]
+
+astropy.modeling
+^^^^^^^^^^^^^^^^
+
+- Fixed the step size used by the non-linear least-squares fitters
+  (``LevMarLSQFitter``, ``TRFLSQFitter``, ``DogBoxLSQFitter``, and
+  ``LMLSQFitter``) to estimate the Jacobian by finite differences when
+  a model has no ``fit_deriv`` or when ``estimate_jacobian=True``. The
+  relative step was the fourth root of the machine precision (about
+  1.2e-4) instead of the square root (about 1.5e-8), so fits could stop
+  short of the minimum for parameters with large values, such as a
+  position far from the coordinate origin. [#20462]
+
+astropy.nddata
+^^^^^^^^^^^^^^
+
+- Fix ``block_replicate`` with ``conserve_sum=True`` inadvertently promoting ``float16``, ``float32``, and ``complex64`` input arrays to wider dtypes. [#20364]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fixed a bug where ``astropy.stats.histogram()`` raised a ``ValueError`` when both ``range`` and ``weights`` were provided with a scalar number of bins. For scalar bin counts, ``calculate_bin_edges()`` now delegates range filtering directly to ``numpy.histogram_bin_edges()``, avoiding an array shape mismatch between data and weights while reserving manual range filtering for Astropy's string-based bin width estimators. [#20008]
+
+- Fixed an out-of-bounds memory read in the C implementation of ``sigma_clip`` (used when ``axis`` is given with ``cenfunc``/``stdfunc`` set to their string values) that occurred when a clipping iteration rejected all remaining values. This could cause a crash or return incorrect (unmasked) results; the fast path now returns the same result as the pure-python implementation in this case. [#20393]
+
+astropy.table
+^^^^^^^^^^^^^
+
+- Fixed issue with table groups for zero-length tables in ``astropy.table``. Previously
+  operations like ``len(tbl.group_by("a").groups)`` or ``len(tbl.groups)`` would fail or
+  give inconsistent results if the table ``tbl`` had no rows. [#20031]
+
+- Fixed an issue when deep-copying a ``Table`` where the copied columns lost their link to
+  the new parent table. This led to problems in ``rename_columns`` and ``info.name``
+  assignment. Other potential problems included table-aware unit conversion/replacement in
+  QTable, grouped-column linkage to table group metadata, and synchronized pprint
+  include/exclude name bookkeeping on rename or delete. [#20088]
+
+- Fixed an issue where ``vstack`` was returning the input table itself when given
+  a single table. It now returns a copy of that table, consistent with the documented
+  behavior of always returning a new table. [#20097]
+
+- Fixed ``Table.to_pandas()`` and ``Table.to_df()`` silently corrupting masked
+  integer columns whose values are too large to be represented exactly as a
+  float64, e.g. Gaia source ids. The nullable integer column is now built
+  directly from the integer data and the mask instead of via a float64
+  intermediate. Only the pandas backend was affected; polars and pyarrow already
+  round-tripped these values exactly. [#20240]
+
+- Fixed a bug where a numpy function used on a ``MaskedColumn`` produced output
+  with a different dtype than the input (e.g., ``np.strings.find``), which would
+  later lead to a ``TypeError`` from a stale ``fill_value`` dtype. Now, when
+  the fill_value is no longer valid for the output dtype, fall back to the
+  default fill_value for that dtype instead of propagating the stale value.
+  This can now raise a castings warnings following standard numpy casting rules. [#20265]
+
+- Fixed a memory leak when repeatedly slicing a table that has an index on a
+  ``MaskedColumn``, e.g. ``t[t["idx"] == value]``. Each such access used to make a
+  deep copy of the whole index that was never freed, and any slice of a slice of an
+  indexed ``MaskedColumn`` (or a derived array such as a comparison result) silently
+  shared the original column's index. [#20456]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Fixed ``Time.__setitem__`` silently dropping the mask when a masked ``Time`` was
+  assigned into an unmasked one. As a result, ``vstack`` no longer loses the mask
+  on ``Time`` mixin columns. [#20178]
+
+- Fixed a bug where ``Time.insert`` (and therefore ``Table.add_row`` for a ``Time``
+  column) silently dropped the mask, exposing values that should have stayed
+  masked.  This affected both the mask of the original object and the mask of the
+  inserted values. [#20232]
+
+- Fixed ``Time.strftime`` and the string formats (``iso``, ``isot``, ``fits``,
+  ``yday``) returning values at the wrong index for a ``Time`` array that is not
+  C-contiguous in memory, for example after ``.T`` or ``np.moveaxis``, or when
+  built from a Fortran-ordered array. [#20496]
+
+astropy.utils
+^^^^^^^^^^^^^
+
+- Fixed an issue where, in a multi-threaded context, astropy's logger could race with
+  imports, leading to an exception being raised. [#20064]
+
+- Flipped ``astropy.utils.data.conf.dataurl`` and ``astropy.utils.data.conf.dataurl_mirror`` to reduce URL redirect, in hope to reduce service denial. [#20169]
+
+- Fix XML regex bugs and improve speed of token check. [#20439]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed a number of bugs in WCSAxes:
+
+  * Setting the number of ticks to zero no longer crashes drawing, minor
+    ticks, or the mouseover coordinate display.
+  * Contour-type grids no longer crash for a longitude coordinate with fewer
+    than two ticks or for a coordinate sliced out of the plot, and no longer
+    draw a spurious gridline along the longitude wrap for a single tick.
+  * Drawing a gridline sampled with fewer than three points no longer crashes.
+  * Transforming empty coordinate arrays no longer crashes for 1-d WCS and
+    now returns correctly shaped arrays.
+  * Simplifying tick labels no longer crashes when one label is a prefix of
+    an adjacent one.
+  * Tick values for longitude coordinates in non-degree units are no longer
+    corrupted when a tick intersects a spine more than once.
+  * ``%``-style tick formats now use the format unit instead of the
+    coordinate's native unit.
+  * Invalid tick format strings now raise a ``ValueError`` instead of being
+    silently accepted with reduced precision.
+  * ``get_coords_overlay`` no longer ignores a supplied ``coord_meta`` when
+    passed a WCS.
+  * The default conversion of right ascension format units to hourangle no
+    longer depends on unit object identity.
+  * ``custom_ucd_coord_meta_mapping`` no longer applies earlier keys when a
+    later key conflicts, and now raises for keys specified more than once.
+  * The cursor coordinate display no longer breaks after ``reset_wcs`` and
+    now preserves the pixel display mode.
+  * Automatically-placed coordinates are now hidden instead of crashing when
+    no spine assignment is consistent with fixed tick positions.
+  * Formatting a coordinate for the mouseover display no longer crashes for
+    a degenerate (zero-size) coordinate range. [#20221]
+
+- Fixed a bug which caused WCSAxes to fail when having to transform coordinate frames
+  in the case where APE 14 WCS implementations used frame names or non-instantiated
+  classes in ``world_axis_object_classes`` (which is valid). [#20480]
+
+- Fixed ``WCSAxes.get_transform`` dropping the unit conversion when given a coordinate frame that matches the frame of the axes' WCS. [#20600]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fixed a bug that could cause a segmentation fault when using a WCS object with
+  ``preserve_units=True`` and where units has already been defined and the WCS
+  had been ``set()`` but the scaling factors were found to be 1, and when cdelt or
+  crval were subsequently set. [#20418]
+
+- Fix ``WCS.to_header()`` for cases where ``preserve_units=True``, units were set programmatically, and ``WCS.set()`` was not called. [#20422]
+
+- Fixed a race condition in which concurrent failing transforms on the same
+  ``WCS`` object could allocate the internal error buffer twice, leaking one
+  allocation. The buffer is now allocated once when the object is created. [#20423]
+
+- Fixed a race condition in which deepcopying a ``WCS`` object while another
+  thread used it could raise ``RuntimeError: dictionary changed size during
+  iteration``. [#20425]
+
+- Fixed slicing of WCS objects with negative values, which were previously used
+  as literal pixel offsets rather than being interpreted relative to the end of
+  the axis as for Numpy arrays. Negative values are now resolved when the shape of
+  the data is known, and a negative integer or slice start now raises a
+  ``ValueError`` when it is not. Also fixed nested ``SlicedLowLevelWCS`` objects
+  rejecting slices with an explicit step of 1. [#20544]
+
+- Fix bug in ``astropy.wcs.utils.fit_wcs_from_points`` so the ``proj_point`` will be transformed to the ``world_coords`` coordinate frame. [#20588]
+
+
+Performance Improvements
+------------------------
+
+
+Other Changes and Additions
+---------------------------
+
+- Fixed an incorrect build-time definition for ``NPY_TARGET_VERSION`` . [#20481]
+
 Version 8.0.1 (2026-07-03)
 ==========================
 
