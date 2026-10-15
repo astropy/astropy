@@ -1137,7 +1137,7 @@ def fit_wcs_from_points(
         Pixel origin convention: use 0 for zero-based indexing or 1 for
         FITS-style 1-based indexing.
 
-    proj_point : 'center' or ~astropy.coordinates.SkyCoord`
+    proj_point : 'center' or `~astropy.coordinates.SkyCoord`
         Defaults to 'center', in which the geometric center of input world
         coordinates will be used as the projection point. To specify an exact
         point for the projection, a Skycoord object with a coordinate pair can
@@ -1147,7 +1147,7 @@ def fit_wcs_from_points(
     projection : str or `~astropy.wcs.WCS`
         Three letter projection code of most of standard projections defined
         in the FITS WCS standard. For a complete set of supported projections,
-        see `astropy.wcs.utils.SUPPORTED_PRJ_CODES` in this module.
+        see ``astropy.wcs.utils.SUPPORTED_PRJ_CODES`` in this module.
         Optionally, a WCS object with projection keywords set may be passed in.
 
     sip_degree : None or int
