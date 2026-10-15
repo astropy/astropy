@@ -298,10 +298,15 @@ htmlhelp_basename = project + "doc"
 html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
 
 
+@dataclass(kw_only=True, slots=True, frozen=True)
+class GithubContext:
+    user: str
+    repo: str
+    ref: str
+
+
 def _custom_edit_url(
-    github_user,
-    github_repo,
-    github_version,
+    gh: GithubContext,
     doc_path,
     file_name,
     default_edit_page_url_template,
@@ -350,13 +355,15 @@ def _custom_edit_url(
                 file_name = astropy_path.replace(".", "/")
 
     return default_edit_page_url_template.format(
-        github_user=github_user,
-        github_repo=github_repo,
-        github_version=github_version,
+        github_user=gh.user,
+        github_repo=gh.repo,
+        github_ref=gh.ref,
         doc_path=doc_path,
         file_name=file_name,
     )
 
+
+gh_context = GithubContext(user="astropy", repo="astropy", ref="main")
 
 # A dictionary of values to pass into the template engine's context for all pages.
 html_context = {
@@ -364,12 +371,10 @@ html_context = {
     "version_slug": os.environ.get("READTHEDOCS_VERSION") or "",
     "to_be_indexed": ["stable", "latest"],
     "is_development": dev,
-    "github_user": "astropy",
-    "github_repo": "astropy",
-    "github_version": "main",
+    "gh_context": gh_context,
     "doc_path": "docs",
-    "edit_page_url_template": "{{ astropy_custom_edit_url(github_user, github_repo, github_version, doc_path, file_name, default_edit_page_url_template) }}",
-    "default_edit_page_url_template": "https://github.com/{github_user}/{github_repo}/edit/{github_version}/{doc_path}{file_name}",
+    "edit_page_url_template": "{{ astropy_custom_edit_url(gh_context, doc_path, file_name, default_edit_page_url_template) }}",
+    "default_edit_page_url_template": "https://github.com/{github_user}/{github_repo}/edit/{github_ref}/{doc_path}{file_name}",
     "astropy_custom_edit_url": _custom_edit_url,
     # Tell Jinja2 templates the build is running on Read the Docs
     "READTHEDOCS": os.environ.get("READTHEDOCS", "") == "True",

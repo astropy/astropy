@@ -1329,7 +1329,7 @@ def _select_join_engine(engine: str) -> tuple[str, Callable[..., Any]]:
     return engine, compute_join_indices
 
 
-def _join(
+def _join(  # ruff: ignore[PLR0917]
     left: Table,
     right: Table,
     keys: str | list[str] | None = None,
@@ -1681,7 +1681,7 @@ def _compute_join_indices_pandas(
     return masked, n_out, left_out, left_mask, right_out, right_mask
 
 
-def _join_keys_left_right(
+def _join_keys_left_right(  # ruff: ignore[PLR0917]
     left: Table,
     right: Table,
     keys: str | list[str] | None,

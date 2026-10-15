@@ -92,7 +92,7 @@ class SAMPHubServer:
         clients.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         secret=None,
         addr=None,

@@ -29,6 +29,9 @@ lint.ignore = [
     # TODO: configure maximum allowed complexity.
     "C901",  # McCabeComplexity
 
+    # flake8-copyright
+    "CPY001", # missing-copyright-notice
+
     # pydocstyle (D)
     # Missing Docstrings
     "D100",  # undocumented-public-module
@@ -246,6 +249,7 @@ lint.unfixable = [
 "astropy/io/fits/*" = [
     "B007",  # UnusedLoopControlVariable
     "PLC0415",  # import-outside-top-level
+    "PLR0917",  # max-positional-args
     "PT031",  # pytest-warns-with-multiple-statements
     "PTH",
 ]

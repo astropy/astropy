@@ -83,7 +83,7 @@ class LombScargleMultiband(LombScargle):
 
     available_methods = available_methods()
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         t,
         y,
@@ -310,7 +310,7 @@ class LombScargleMultiband(LombScargle):
         else:
             return minimum_frequency + df * np.arange(n_freq)
 
-    def autopower(
+    def autopower(  # ruff: ignore[PLR0917]
         self,
         method="flexible",
         sb_method="auto",

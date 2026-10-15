@@ -512,7 +512,7 @@ class TimeBase(MaskableShapedLikeNDArray):
         state.pop("cache", None)
         return state
 
-    def _init_from_vals(
+    def _init_from_vals(  # ruff: ignore[PLR0917]
         self,
         val,
         val2,
@@ -591,7 +591,7 @@ class TimeBase(MaskableShapedLikeNDArray):
                 self._time.jd2, mask=self._time.jd1.mask, copy=False
             )
 
-    def _get_time_fmt(
+    def _get_time_fmt(  # ruff: ignore[PLR0917]
         self, val, val2, format, scale, precision, in_subfmt, out_subfmt, mask
     ):
         """
@@ -1964,7 +1964,7 @@ class Time(TimeBase):
     FORMATS = TIME_FORMATS
     """Dict of time formats"""
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917]
         cls,
         val,
         val2=None,
@@ -1983,7 +1983,7 @@ class Time(TimeBase):
 
         return self
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         val,
         val2=None,
@@ -2920,7 +2920,7 @@ class TimeDelta(TimeBase):
 
     info = TimeDeltaInfo()
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917]
         cls,
         val,
         val2=None,
