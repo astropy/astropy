@@ -383,7 +383,11 @@ class Angle(SpecificTypeQuantity):
             return f"${s}$" if format == "latex" else s
 
         format_ufunc = np.vectorize(do_format, otypes=["U"])
-        result = format_ufunc(self.to_value(unit))
+        # A vectorized function warns about floating-point flags that the Python
+        # formatting code leaves set, which some Python builds do even though
+        # nothing is wrong (astropy/astropy#18989, numpy/numpy#27760).
+        with np.errstate(invalid="ignore"):
+            result = format_ufunc(self.to_value(unit))
         return result if result.ndim else result[()]
 
     def _wrap_at(self, wrap_angle):
