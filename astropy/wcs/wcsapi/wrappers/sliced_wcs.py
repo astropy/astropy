@@ -3,7 +3,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from astropy.utils.decorators import deprecated, lazyproperty
+from astropy.utils.decorators import lazyproperty
 from astropy.utils.shapes import simplify_basic_index
 
 from .base import BaseWCSWrapper
@@ -11,7 +11,6 @@ from .base import BaseWCSWrapper
 __all__ = ["SlicedLowLevelWCS", "sanitize_slices"]
 
 
-@deprecated(since="8.1", alternative="astropy.utils.shapes.simplify_basic_index")
 def sanitize_slices(slices, ndim):
     """
     Given a slice as input sanitise it to an easier to parse format.format.
