@@ -1,29 +1,18 @@
 Version 8.0.2 (2026-10-15)
 ==========================
 
-
-New Features
-------------
-
-astropy.utils
-^^^^^^^^^^^^^
-
-- ``simplify_basic_index`` now accepts `None` entries in ``shape`` for dimensions
-  whose size is not known, in which case the index for that dimension is returned
-  unchanged, except that a negative integer or slice start raises a ``ValueError``. [#20544]
-
-
 API Changes
 -----------
 
 astropy.wcs
 ^^^^^^^^^^^
 
-- ``astropy.wcs.wcsapi.wrappers.sanitize_slices`` is deprecated in favor of
-  ``astropy.utils.shapes.simplify_basic_index``. Integer indices beyond the size
-  of an axis are now rejected when slicing a ``SlicedLowLevelWCS`` with a known
-  shape, as for Numpy arrays. [#20544]
-
+- Integer indices beyond the size of an axis are now rejected when slicing a
+  ``SlicedLowLevelWCS`` with a known shape, as for Numpy arrays. In addition,
+  `simplify_basic_index`` now accepts `None` entries in ``shape`` for dimensions
+  whose size is not known, in which case the index for that dimension is
+  returned unchanged, except that a negative integer or slice start raises a
+  ``ValueError``. [#20544]
 
 Bug Fixes
 ---------
@@ -238,11 +227,6 @@ astropy.wcs
   rejecting slices with an explicit step of 1. [#20544]
 
 - Fix bug in ``astropy.wcs.utils.fit_wcs_from_points`` so the ``proj_point`` will be transformed to the ``world_coords`` coordinate frame. [#20588]
-
-
-Performance Improvements
-------------------------
-
 
 Other Changes and Additions
 ---------------------------
