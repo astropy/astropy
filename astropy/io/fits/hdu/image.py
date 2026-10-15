@@ -837,7 +837,7 @@ class _ImageBaseHDU(_ValidHDU):
                     new_dtype = np.dtype(
                         "float64" if self._orig_bitpix > 16 else "float32"
                     )
-                    data = np.array(raw_data, dtype=new_dtype)
+                    data = np.array(data, dtype=new_dtype)
 
         else:  # floating point cases
             if self._file is not None and self._file.memmap:
@@ -857,7 +857,7 @@ class _ImageBaseHDU(_ValidHDU):
             if self._orig_bzero != 0:
                 data += self._orig_bzero
 
-        if self._blank:
+        if self._blank is not None:
             data.flat[blanks] = np.nan
 
         return data
