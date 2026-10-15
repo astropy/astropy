@@ -1,5 +1,2 @@
 ``Table.from_pandas`` and ``Table.from_df`` are faster when importing string
 columns with missing values.
-
-Byte-string ``Column`` and ``MaskedColumn`` operations with flat bytes-only
-sequences avoid an unnecessary temporary array conversion.
