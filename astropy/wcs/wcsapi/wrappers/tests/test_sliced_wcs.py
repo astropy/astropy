@@ -10,7 +10,6 @@ from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.time import Time
 from astropy.units import Quantity
-from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.wcs.wcs import WCS, FITSFixedWarning
 from astropy.wcs.wcsapi.tests.helpers import assert_celestial_component
 from astropy.wcs.wcsapi.wrappers.sliced_wcs import (
@@ -80,8 +79,7 @@ def test_invalid_slices():
     ),
 )
 def test_sanitize_slice(item, ndim, expected):
-    with pytest.warns(AstropyDeprecationWarning):
-        new_item = sanitize_slices(item, ndim)
+    new_item = sanitize_slices(item, ndim)
     # FIXME: do we still need the first two since the third assert
     # should cover it all?
     assert len(new_item) == ndim
