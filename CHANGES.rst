@@ -8,7 +8,11 @@ astropy.wcs
 ^^^^^^^^^^^
 
 - Integer indices beyond the size of an axis are now rejected when slicing a
-  ``SlicedLowLevelWCS`` with a known shape, as for Numpy arrays. [#20544]
+  ``SlicedLowLevelWCS`` with a known shape, as for Numpy arrays. In addition,
+  ``simplify_basic_index`` now accepts `None` entries in ``shape`` for dimensions
+  whose size is not known, in which case the index for that dimension is
+  returned unchanged, except that a negative integer or slice start raises a
+  ``ValueError``. [#20544]
 
 Bug Fixes
 ---------
