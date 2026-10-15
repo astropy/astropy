@@ -506,12 +506,7 @@ def test_conversion_never_loses_precision(iers_b, scale1, scale2, jds):
         # consistently; this can cause trouble on day boundaries for UTC to
         # UT1; it is not clear whether this will ever be resolved (and is
         # unlikely ever to matter).
-        # Furthermore, exactly at leap-second boundaries, it is possible to
-        # get the wrong leap-second correction due to rounding errors.
-        # The latter is xfail'd for now, but should be fixed; see gh-13517.
         if "ut1" in (scale1, scale2):
-            if abs(t_scale2 - t2_scale2 - 1 * u.s) < 1 * u.ms:
-                pytest.xfail()
             assume(t.jd > 2441317.5 or t.jd2 < 0.4999999)
         raise
 

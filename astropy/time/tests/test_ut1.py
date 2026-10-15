@@ -4,6 +4,7 @@ import functools
 import numpy as np
 import pytest
 
+import astropy.units as u
 from astropy.time import Time
 from astropy.utils.iers import conf as iers_conf
 from astropy.utils.iers import iers  # used in testing
@@ -118,14 +119,113 @@ class TestTimeUT1:
     def test_empty_ut1(self):
         """Testing for a zero-length Time object from UTC to UT1
         when an empty array is passed"""
-        from astropy import units as u
-
         with iers_conf.set_temp("auto_download", False):
             t = Time(["2012-06-30 12:00:00"]) + np.arange(24) * u.hour
             t_empty = t[[]].ut1
             assert isinstance(t_empty, Time)
             assert t_empty.scale == "ut1"
             assert t_empty.size == 0
+
+    @pytest.mark.parametrize(
+        "jd1",
+        [2441498.5, 2456108.5],  # Leap seconds of 1972-07-01 and 2012-07-01
+    )
+    @pytest.mark.parametrize("scale", ["tai", "utc", "tt", "tcb"])
+    def test_ut1_conversion_at_leap_second(self, jd1, scale):
+        """Regression test for gh-13517: right at a leap second, conversion
+        from UT1 (then via UTC) could be off by a second due to rounding."""
+        jd2 = np.array([0.9999999999999999, 1.0, 1.0000000000000002])
+        # Use the bundled IERS-B table, which has data for 1972 as well.
+        with iers.earth_orientation_table.set(iers.IERS_B.open()):
+            t = Time(jd1, jd2, format="jd", scale="ut1")
+            t2 = getattr(t, scale)
+            assert t2[0] < t2[1] < t2[2]
+            assert (t2[2] - t2[0]).sec < 1e-9
+            # Round trip back to UT1.
+            assert np.all(np.abs((t2.ut1 - t).sec) < 1e-9)
+            # And the same for the other direction, i.e., starting with the
+            # other scale, going to UT1 and back (the way back uses the
+            # UT1 - UTC stored in the intermediate UT1 time, which needs care
+            # within the leap second).
+            t3 = Time(jd1, jd2, format="jd", scale=scale)
+            t3_ut1 = t3.ut1
+            assert t3_ut1[0] < t3_ut1[1] < t3_ut1[2]
+            assert (t3_ut1[2] - t3_ut1[0]).sec < 1e-9
+            assert np.all(np.abs((getattr(t3_ut1, scale) - t3).sec) < 1e-9)
+
+    def test_ut1_tai_continuous_across_leap_second(self):
+        """UT1 - TAI is continuous through a leap second, unlike UT1 - UTC
+        and TAI - UTC (gh-13517)."""
+        with iers_conf.set_temp("auto_download", False):
+            t = Time("2012-07-01 00:00:00", scale="ut1") + np.arange(-20, 21) * (
+                0.1 * u.s
+            )
+            tai = t.tai
+            assert np.allclose((tai[1:] - tai[:-1]).sec, 0.1, rtol=0, atol=1e-8)
+            # The leap second is present in UTC (UT1 - UTC is about -0.59 s
+            # before it and +0.41 s after), i.e., UT1 - UTC jumps by 1 s.
+            utc = t.utc
+            assert utc.iso[20] == "2012-06-30 23:59:60.587"
+            assert utc.iso[24] == "2012-06-30 23:59:60.987"
+            assert utc.iso[25] == "2012-07-01 00:00:00.087"
+            assert np.all(utc.delta_ut1_utc[:25] < 0)
+            assert np.all(utc.delta_ut1_utc[25:] > 0)
+            assert np.allclose(
+                utc.delta_ut1_utc[25:] - utc.delta_ut1_utc[24], 1.0, atol=1e-6
+            )
+            assert np.all(np.abs((utc.ut1 - t).sec) < 1e-9)
+
+    def test_ut1_to_utc_explicit_delta_at_leap_second(self):
+        """With an explicitly set delta_ut1_utc, its sign is used to determine
+        whether it is the value from before or after a nearby leap second
+        (like in erfa.ut1utc): a positive leap second increases UT1 - UTC by
+        one second, so UT1 - UTC is negative before and positive after it."""
+        t = Time(
+            ["2012-06-30 23:59:59", "2012-07-01 00:00:00", "2012-07-01 00:00:01"],
+            scale="ut1",
+        )
+        # A non-negative value is the value from after the leap second, i.e.,
+        # UT1 - UTC = -1 before it.
+        t.delta_ut1_utc = 0.0
+        assert np.all(
+            t.utc.iso
+            == [
+                "2012-06-30 23:59:60.000",
+                "2012-07-01 00:00:00.000",
+                "2012-07-01 00:00:01.000",
+            ]
+        )
+        # UT1 - UTC = -0.5 before the leap second and thus +0.5 after it, or,
+        # equivalently, +0.5 after and -0.5 before, so both give the same.
+        expected = [
+            "2012-06-30 23:59:59.500",
+            "2012-06-30 23:59:60.500",
+            "2012-07-01 00:00:00.500",
+        ]
+        t.delta_ut1_utc = -0.5
+        assert np.all(t.utc.iso == expected)
+        t.delta_ut1_utc = 0.5
+        assert np.all(t.utc.iso == expected)
+        # Going to other scales gives consistent results.
+        assert np.all(t.utc.tai.iso == t.tai.iso)
+        assert np.all(t.tai.ut1.iso == t.iso)
+        # UTC in and around the leap second, going to UT1 and back.
+        t_utc = Time(
+            ["2012-06-30 23:59:59.5", "2012-06-30 23:59:60.5", "2012-07-01 00:00:00.5"],
+            scale="utc",
+        )
+        t_utc.delta_ut1_utc = -0.25
+        assert np.all(
+            t_utc.ut1.iso
+            == [
+                "2012-06-30 23:59:59.250",
+                "2012-07-01 00:00:00.250",
+                "2012-07-01 00:00:01.250",
+            ]
+        )
+        assert np.all(t_utc.ut1.utc.iso == t_utc.iso)
+        t_utc.delta_ut1_utc = 0.75  # Same as -0.25 before the leap second.
+        assert np.all(t_utc.ut1.utc.iso == t_utc.iso)
 
     def test_delta_ut1_utc(self):
         """Accessing delta_ut1_utc should try to get it from IERS
