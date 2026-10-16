@@ -1673,3 +1673,55 @@ def test_components_and_classes_cache():
     wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     wcs.wcs.set()
     assert wcs.world_axis_object_components is wcs.world_axis_object_components
+
+
+@pytest.mark.parametrize("specsys", (None, "TOPOCENT"))
+def test_obsgeo_without_observation_time(specsys):
+    """
+    Regression test: WCS with OBSGEO-X/Y/Z defined but no MJD-OBS or MJD-AVG
+    (both default to NaN) must not crash when accessing world_axis_object_classes
+    or performing pixel_to_world conversions.
+
+    Previously, the code fell through to ``Time(np.nan, format="mjd")`` which
+    raised ``ValueError: Input values for mjd class must be finite doubles``.
+    The fix sets observer=None when no finite time is available.
+    """
+    hdr = fits.Header()
+    hdr["NAXIS"] = 1
+    hdr["CTYPE1"] = "FREQ"
+    hdr["CUNIT1"] = "Hz"
+    hdr["CRPIX1"] = 1
+    hdr["CRVAL1"] = 1.4e9
+    hdr["CDELT1"] = 1e6
+    # Observatory position defined — but no MJD-OBS / MJD-AVG
+    hdr["OBSGEO-X"] = 3828764.0
+    hdr["OBSGEO-Y"] = 442449.0
+    hdr["OBSGEO-Z"] = 5064921.0
+
+    if specsys is not None:
+        hdr["SPECSYS"] = specsys
+
+    with pytest.warns(FITSFixedWarning):
+        w = WCS(hdr)
+
+    # Confirm both time keywords are indeed NaN (the default wcslib value)
+    assert np.isnan(w.wcs.mjdobs)
+    assert np.isnan(w.wcs.mjdavg)
+
+    # world_axis_object_classes must not raise
+    with pytest.warns(UserWarning, match=r"OBSGEO is set but no observation time"):
+        classes = w.world_axis_object_classes
+    assert "spectral" in classes
+
+    # pixel_to_world must also work end-to-end
+    result = w.pixel_to_world(0)
+    assert result is not None
+
+    # Check that setting mjdobs invalidates the cache
+    w.wcs.mjdobs = 54746.0
+
+    if specsys is None:
+        with pytest.warns(UserWarning, match=r"OBSGEO is set but SPECSYS is not set"):
+            w.world_axis_object_classes
+    else:
+        w.world_axis_object_classes
