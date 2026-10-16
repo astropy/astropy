@@ -1,0 +1,3 @@
+Fix a bug that caused a crash if observer information was present in a ``WCS`` but
+``mjdobs`` or ``mjdavg`` or ``specsys`` were not set. A warning is now emitted if this
+is the case and the observer is ignored.

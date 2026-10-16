@@ -403,7 +403,6 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
         # it is mutable)
         # NaN values must be normalized since NaN != NaN would otherwise
         # defeat the cache comparison below.
-        equinox = self.wcs.equinox
         wcs_hash = (
             self.naxis,
             list(self.wcs.ctype),
@@ -529,7 +528,12 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                 elif self.wcs.specsys == "TOPOCENT":
                     observer = attach_zero_velocities(observer_location)
                 elif self.wcs.specsys == "":
-                    raise ValueError("SPECSYS is not set")
+                    warnings.warn(
+                        "OBSGEO is set but SPECSYS is not set, so the observer will "
+                        "not be set on SpectralCoord",
+                        AstropyUserWarning,
+                    )
+                    observer = None
                 else:
                     raise NotImplementedError(
                         f"SPECSYS={self.wcs.specsys} not yet supported"

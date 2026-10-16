@@ -1703,7 +1703,7 @@ def test_components_and_classes_cache():
     assert wcs.world_axis_object_components is wcs.world_axis_object_components
 
 
-@pytest.mark.parametrize('specsys', (None, 'TOPOCENT'))
+@pytest.mark.parametrize("specsys", (None, "TOPOCENT"))
 def test_obsgeo_without_observation_time(specsys):
     """
     Regression test: WCS with OBSGEO-X/Y/Z defined but no MJD-OBS or MJD-AVG
@@ -1749,7 +1749,7 @@ def test_obsgeo_without_observation_time(specsys):
     w.wcs.mjdobs = 54746.0
 
     if specsys is None:
-        with pytest.raises(ValueError, match=r"SPECSYS is not set"):
+        with pytest.warns(UserWarning, match=r"OBSGEO is set but SPECSYS is not set"):
             w.world_axis_object_classes
     else:
         w.world_axis_object_classes
