@@ -1,0 +1,3 @@
+Fixed the ``minerr`` argument to ``WCS`` which would raise an error when it
+caused a ``CPDISja`` lookup table distortion to be skipped, because the
+associated header keywords were still passed on to WCSLIB.
