@@ -264,6 +264,104 @@ def test_slice_getitem():
     assert np.all(slice_wcs.wcs.cdelt == np.array([0.1, 0.2]))
 
 
+def test_slice_step_non_si_units():
+    # Regression test for a bug that caused the increment along an axis to be
+    # incorrect when slicing with a step, if the units were not SI units and
+    # had not yet been converted to SI units in the original WCS.
+
+    def spectral_wcs():
+        mywcs = WCS(naxis=1)
+        mywcs.wcs.ctype = ["WAVE"]
+        mywcs.wcs.cunit = ["nm"]
+        mywcs.wcs.crval = [500]
+        mywcs.wcs.cdelt = [0.1]
+        mywcs.wcs.crpix = [1]
+        return mywcs
+
+    # In the original WCS, pixels 2 and 3 are at 500.2 and 500.3nm, so the
+    # second pixel when binning by a factor of two is at 500.25nm.
+    slice_wcs = spectral_wcs()[::2]
+    assert_allclose(slice_wcs.pixel_to_world_values(1), 500.25e-9)
+    assert_allclose(slice_wcs.wcs.cdelt, 0.2e-9)
+
+    # Check that this gives the same result as when the units of the original
+    # WCS have already been converted.
+    mywcs = spectral_wcs()
+    mywcs.wcs.set()
+    slice_wcs = mywcs[::2]
+    assert_allclose(slice_wcs.pixel_to_world_values(1), 500.25e-9)
+    assert_allclose(slice_wcs.wcs.cdelt, 0.2e-9)
+
+
+def test_slice_step_preserve_units():
+    # Regression test for a bug that caused slicing with a step to fail if
+    # the WCS was created with preserve_units=True and the units were not SI
+    # units.
+
+    mywcs = WCS(naxis=3, preserve_units=True)
+    mywcs.wcs.ctype = "RA---TAN", "DEC--TAN", "WAVE"
+    mywcs.wcs.cunit = "arcsec", "arcsec", "nm"
+    mywcs.wcs.crval = [10, 20, 500]
+    mywcs.wcs.cdelt = [-2, 2, 0.1]
+    mywcs.wcs.crpix = [1, 1, 1]
+
+    slice_wcs = mywcs[::2, ::4]
+    assert slice_wcs.preserve_units
+    assert [str(unit) for unit in slice_wcs.wcs.cunit] == ["arcsec", "arcsec", "nm"]
+    assert_allclose(slice_wcs.wcs.cdelt, [-2, 8, 0.2])
+    assert_allclose(slice_wcs.wcs.crpix, [1, 0.625, 0.75])
+
+    # Pixels 2 and 3 along the spectral axis in the original WCS are at 500.2
+    # and 500.3nm, so the second pixel in the sliced WCS is at 500.25nm.
+    assert_allclose(slice_wcs.pixel_to_world_values(0, 0, 1)[2], 500.25)
+    assert slice_wcs.world_axis_units == ["arcsec", "arcsec", "nm"]
+
+
+def test_slice_pixel_bounds():
+    # Regression test for a bug that caused pixel_bounds to not be updated
+    # when slicing a WCS without dropping any dimensions.
+
+    mywcs = WCS(naxis=3)
+    mywcs.wcs.ctype = "RA---TAN", "DEC--TAN", "FREQ"
+    mywcs.wcs.crval = [10, 20, 30]
+    mywcs.wcs.cdelt = [-0.1, 0.1, 2]
+    mywcs.wcs.crpix = [5, 7, 3]
+    mywcs.pixel_bounds = [(-1, 11), (-2, 18), (5, 15)]
+
+    slice_wcs = mywcs[2:5, :, 3:]
+    assert isinstance(slice_wcs, WCS)
+    assert slice_wcs.pixel_bounds == [(-4, 8), (-2, 18), (3, 13)]
+
+    # Positions that are inside and outside the bounds in the original WCS
+    # should still be inside and outside the bounds in the sliced WCS.
+    assert not np.any(np.isnan(slice_wcs.pixel_to_world_values(8, 18, 13)))
+    assert np.isnan(slice_wcs.pixel_to_world_values(8, 18, 2)[2])
+    assert np.all(np.isnan(slice_wcs.pixel_to_world_values(9, 18, 13)[:2]))
+
+    # The bounds should be consistent with the ones obtained when also
+    # dropping a dimension.
+    assert mywcs[2:5, 4, 3:].pixel_bounds == ((-4, 8), (3, 13))
+
+    # When slicing with a step, the bounds should refer to the same positions,
+    # so for example the center of the pixel with index 15 is 0.75 pixels from
+    # the lower edge of the binned pixel with index 5, which covers the pixels
+    # with indices 15 and 16.
+    slice_wcs = mywcs[5::2]
+    assert slice_wcs.pixel_bounds == [(-1, 11), (-2, 18), (-0.25, 4.75)]
+
+    # The bounds can be None for individual dimensions
+    mywcs.pixel_bounds = [(-1, 11), None, (5, 15)]
+    assert mywcs[2:5, 6:, 3:].pixel_bounds == [(-4, 8), None, (3, 13)]
+    assert mywcs[2:5, 4, 3:].pixel_bounds == ((-4, 8), (3, 13))
+    assert mywcs[3, 6:, 3:].pixel_bounds == ((-4, 8), None)
+
+    # The original WCS should not be modified
+    assert mywcs.pixel_bounds == [(-1, 11), None, (5, 15)]
+
+    mywcs.pixel_bounds = None
+    assert mywcs[2:5, :, 3:].pixel_bounds is None
+
+
 def test_slice_fitsorder():
     mywcs = WCS(naxis=2)
     mywcs.wcs.crval = [1, 1]
