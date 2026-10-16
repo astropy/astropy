@@ -97,6 +97,8 @@ def _slow_iterparse(fd, buffersize=2**10):
                 (parser.CurrentLineNumber, parser.CurrentColumnNumber),
             )
         )
+        # The text belongs to this element alone, not to its ancestors
+        del text[:]
 
     parser = expat.ParserCreate()
     parser.specified_attributes = True
