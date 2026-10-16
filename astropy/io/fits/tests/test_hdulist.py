@@ -682,9 +682,6 @@ class TestHDUListFunctions(FitsTestCase):
         with fits.open(self.temp("temp.fits")) as hdul:
             assert (hdul[0].data == data).all()
 
-    @pytest.mark.xfail(
-        sys.platform == "emscripten", reason="known failure on emscripten"
-    )
     def test_update_resized_header(self, home_is_temp):
         """
         Test saving updates to a file where the header is one block smaller
@@ -1245,8 +1242,8 @@ class TestHDUListFunctions(FitsTestCase):
     @pytest.mark.skipif(
         sys.platform.startswith("win32"), reason="Cannot test on Windows"
     )
-    @pytest.mark.xfail(
-        sys.platform == "emscripten", reason="known failure on emscripten"
+    @pytest.mark.skipif(
+        sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
     )
     def test_write_hdulist_to_stream(self):
         """
