@@ -1,0 +1,6 @@
+Fixed corruption of FITS files opened in update mode under Pyodide/Emscripten
+when a header changed size and the file had to be rewritten. Emscripten's
+``munmap`` writes a memory map back to whichever file currently holds the
+file descriptor number the map was created with, so the stale map of the
+original file could overwrite part of the rewritten one. Writeable memory
+maps are now not used on Emscripten.
