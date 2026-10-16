@@ -1,0 +1,6 @@
+Fixed several bugs related to slicing WCS objects:
+
+* Slicing with a step gave a wrong ``cdelt`` for WCS objects with non-SI units on which ``wcs.set()`` had not yet been called
+* Slicing with a step failed with ``ValueError: assignment destination is read-only`` for WCS objects created with ``preserve_units=True`` and non-SI units
+* ``pixel_bounds`` were not updated when all items were slices (e.g. ``wcs[2:5]``)
+* ``SlicedLowLevelWCS.pixel_bounds`` failed when the bounds were `None` for only some dimensions
