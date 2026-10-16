@@ -202,6 +202,10 @@ class custom_ctype_to_ucd_mapping:
         CTYPE_TO_UCD1_CUSTOM.remove(self.mapping)
 
 
+def _nan_to_none(value):
+    return None if np.isnan(value) else value
+
+
 class SlicedFITSWCS(SlicedLowLevelWCS, HighLevelWCSMixin):
     pass
 
@@ -406,10 +410,12 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             list(self.wcs.cunit),
             self.wcs.radesys,
             self.wcs.specsys,
-            None if np.isnan(equinox) else equinox,
+            _nan_to_none(self.wcs.equinox),
             self.wcs.dateobs,
             self.wcs.lng,
             self.wcs.lat,
+            _nan_to_none(self.wcs.mjdobs),
+            _nan_to_none(self.wcs.mjdavg),
         )
 
         # If the cache is present, we need to check that the 'hash' matches.
@@ -477,10 +483,15 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             # spacecraft far from earth. For now assume the obsgeo parameters,
             # if present, give the geocentric observer location.
 
-            if (
-                np.isnan(self.wcs.obsgeo[0])
-                or (np.isnan(self.wcs.mjdobs) and np.isnan(self.wcs.mjdavg))
-            ):
+            if np.isnan(self.wcs.obsgeo[0]):
+                observer = None
+            elif np.isnan(self.wcs.mjdobs) and np.isnan(self.wcs.mjdavg):
+                warnings.warn(
+                    "OBSGEO is set but no observation time (MJD-OBS/DATE-OBS or "
+                    "MJD-AVG/DATE-AVG) is available, so the observer will "
+                    "not be set on SpectralCoord",
+                    AstropyUserWarning,
+                )
                 observer = None
             else:
                 earth_location = EarthLocation(*self.wcs.obsgeo[:3], unit=u.m)
@@ -517,6 +528,8 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
                         )
                 elif self.wcs.specsys == "TOPOCENT":
                     observer = attach_zero_velocities(observer_location)
+                elif self.wcs.specsys == "":
+                    raise ValueError("SPECSYS is not set")
                 else:
                     raise NotImplementedError(
                         f"SPECSYS={self.wcs.specsys} not yet supported"

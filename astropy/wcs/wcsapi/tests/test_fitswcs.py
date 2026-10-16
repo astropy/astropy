@@ -1703,7 +1703,8 @@ def test_components_and_classes_cache():
     assert wcs.world_axis_object_components is wcs.world_axis_object_components
 
 
-def test_obsgeo_without_observation_time():
+@pytest.mark.parametrize('specsys', (None, 'TOPOCENT'))
+def test_obsgeo_without_observation_time(specsys):
     """
     Regression test: WCS with OBSGEO-X/Y/Z defined but no MJD-OBS or MJD-AVG
     (both default to NaN) must not crash when accessing world_axis_object_classes
@@ -1725,46 +1726,30 @@ def test_obsgeo_without_observation_time():
     hdr["OBSGEO-Y"] = 442449.0
     hdr["OBSGEO-Z"] = 5064921.0
 
-    w = WCS(hdr)
+    if specsys is not None:
+        hdr["SPECSYS"] = specsys
+
+    with pytest.warns(FITSFixedWarning):
+        w = WCS(hdr)
 
     # Confirm both time keywords are indeed NaN (the default wcslib value)
     assert np.isnan(w.wcs.mjdobs)
     assert np.isnan(w.wcs.mjdavg)
 
     # world_axis_object_classes must not raise
-    classes = w.world_axis_object_classes
+    with pytest.warns(UserWarning, match=r"OBSGEO is set but no observation time"):
+        classes = w.world_axis_object_classes
     assert "spectral" in classes
 
     # pixel_to_world must also work end-to-end
     result = w.pixel_to_world(0)
     assert result is not None
 
+    # Check that setting mjdobs invalidates the cache
+    w.wcs.mjdobs = 54746.0
 
-def test_obsgeo_without_observation_time_topocent():
-    """
-    Same regression as test_obsgeo_without_observation_time but with
-    SPECSYS=TOPOCENT, which normally requires a geocentric observer.
-    When no finite MJD is available the observer is set to None and the
-    call must not raise.
-    """
-    hdr = fits.Header()
-    hdr["NAXIS"] = 1
-    hdr["CTYPE1"] = "FREQ"
-    hdr["CUNIT1"] = "Hz"
-    hdr["CRPIX1"] = 1
-    hdr["CRVAL1"] = 1.4e9
-    hdr["CDELT1"] = 1e6
-    hdr["SPECSYS"] = "TOPOCENT"
-    hdr["OBSGEO-X"] = 3828764.0
-    hdr["OBSGEO-Y"] = 442449.0
-    hdr["OBSGEO-Z"] = 5064921.0
-    # No MJD-OBS / MJD-AVG
-
-    w = WCS(hdr)
-
-    assert np.isnan(w.wcs.mjdobs)
-    assert np.isnan(w.wcs.mjdavg)
-
-    # Must not raise ValueError
-    classes = w.world_axis_object_classes
-    assert "spectral" in classes
+    if specsys is None:
+        with pytest.raises(ValueError, match=r"SPECSYS is not set"):
+            w.world_axis_object_classes
+    else:
+        w.world_axis_object_classes
