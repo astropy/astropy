@@ -1084,7 +1084,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):  # ruff: ignore
     return resids
 
 
-def fit_wcs_from_points(
+def fit_wcs_from_points(  # noqa: PLR0917
     xy,
     world_coords,
     origin=_ARG_NOT_SET,
