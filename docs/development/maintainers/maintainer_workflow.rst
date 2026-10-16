@@ -264,7 +264,7 @@ Stale Policies
 ==============
 
 The ``astropy`` GitHub repository has the following stale policies, which are
-enforced by `action-astropy-stalebot <https://github.com/pllim/action-astropy-stalebot/>`_
+enforced by `stale <https://github.com/actions/stale>`_
 in `.github/workflows/stalebot.yml <https://github.com/astropy/astropy/blob/main/.github/workflows/stalebot.yml>`_
 that runs on a schedule. Hereafter, we refer to this automated enforcer as stale-bot.
 
@@ -290,24 +290,24 @@ apply a "closed-by-bot" label.
 Pull Requests
 =============
 
-A pull request becomes stale after about 4-5 months since the last commit (stale-bot
-counts in seconds and naively assumes 30 days per month). When this happens, stale-bot
+A pull request becomes stale after about 4-5 months since the last update (stale-bot
+counts in days and naively assumes 30 days per month). When this happens, stale-bot
 applies the "Close?" label to it. A maintainer can also fast-track its staleness by
 manually applying the "Close?" label. Once marked as stale, a warning will be issued.
 
-A maintainer can remove "Closed?" label to remove the
-stale status. The pull request author (or maintainer) can reset the stale timer by
-pushing out a commit (e.g., by rebasing). Otherwise, stale-bot will close the
-pull request after about a month and apply a "closed-by-bot" label.
+Anyone can reset the stale timer by updating it either via a push
+(i.e., rebasing or adding new commit) or a comment.
+When an update happens, the "Close?" label would be automatically removed,
+thus resetting the clock.
+Otherwise, after about another month of staleness, stale-bot will close the
+pull request and apply a "closed-by-bot" label.
 
-If maintainer removes "Close?"
-without pushing a new commit, stale-bot will mark it as
+If maintainer manually removes "Close?"
+without pushing a new commit or a new comment, stale-bot will mark it as
 stale again in the next run.
 
-If a new commit is pushed but the "Close?" label remains, stale-bot will close
-it without another warning after another 4-5 months.
-
-In short, to truly reset the stale timer for a pull request, it is recommended
-that a new commit be pushed *and* the "Close?" label be removed.
+If a new update happened but a maintainer manually reapplies
+the "Close?" label, stale-bot will still close
+it after a month from the last update.
 
 .. include:: ../links.inc
