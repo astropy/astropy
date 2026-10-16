@@ -1,0 +1,5 @@
+Fixed ``separability_matrix`` and ``is_separable`` for pseudocylindrical
+projections (such as Sanson-Flamsteed, Parabolic, and Molleweide),
+Hammer-Aitoff, Bonne, and HEALPix. These projections were previously
+misreported as separable despite curved meridians causing projected x
+to depend on both longitude and latitude.

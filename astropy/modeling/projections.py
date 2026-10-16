@@ -889,7 +889,8 @@ class PseudoCylindrical(Projection):
     distortion there.  Consequently, the meridians are curved.
     """
 
-    _separable = True
+    def _calculate_separability_matrix(self):
+        return np.array([[True, True], [False, True]])
 
 
 class Pix2Sky_SansonFlamsteed(Pix2SkyProjection, PseudoCylindrical):
@@ -985,6 +986,9 @@ class Pix2Sky_HammerAitoff(Pix2SkyProjection, PseudoCylindrical):
         \theta &= \sin^{-1}\left(\frac{\pi}{180^\circ}yZ\right)
     """
 
+    def _calculate_separability_matrix(self):
+        return np.array([[True, True], [True, True]])
+
 
 class Sky2Pix_HammerAitoff(Sky2PixProjection, PseudoCylindrical):
     r"""
@@ -1001,6 +1005,9 @@ class Sky2Pix_HammerAitoff(Sky2PixProjection, PseudoCylindrical):
     .. math::
         \gamma = \frac{180^\circ}{\pi} \sqrt{\frac{2}{1 + \cos \theta \cos(\phi / 2)}}
     """
+
+    def _calculate_separability_matrix(self):
+        return np.array([[True, True], [True, True]])
 
 
 class Conic(Projection):
@@ -1331,8 +1338,6 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
         Bonne conformal latitude, in degrees.
     """
 
-    _separable = True
-
     theta1 = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
 
@@ -1358,8 +1363,6 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
-
-    _separable = True
 
     theta1 = _ParameterDS(
         default=0.0,
@@ -1470,8 +1473,6 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
 
     """
 
-    _separable = True
-
     H = _ParameterDS(
         default=4.0, description="The number of facets in longitude direction."
     )
@@ -1495,8 +1496,6 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
         The number of facets in latitude direction.
 
     """
-
-    _separable = True
 
     H = _ParameterDS(
         default=4.0, description="The number of facets in longitude direction."

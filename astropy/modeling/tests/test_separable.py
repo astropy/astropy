@@ -191,3 +191,58 @@ def test_custom_model_separable():
 
     assert not model_c().separable
     assert np.all(separability_matrix(model_c()) == [True, True])
+
+
+@pytest.mark.parametrize(
+    "model_cls",
+    [
+        models.Sky2Pix_SansonFlamsteed,
+        models.Pix2Sky_SansonFlamsteed,
+        models.Sky2Pix_Parabolic,
+        models.Pix2Sky_Parabolic,
+        models.Sky2Pix_Molleweide,
+        models.Pix2Sky_Molleweide,
+    ],
+)
+def test_pseudocylindrical_separable(model_cls):
+    """
+    On standard pseudocylindrical projections, meridians are curved so projected
+    x depends on both longitude and latitude (and vice versa on pixel-to-sky),
+    while projected y depends only on latitude.
+    """
+    model = model_cls()
+    assert not model.separable
+    expected_matrix = np.array([[True, True], [False, True]])
+    assert np.array_equal(separability_matrix(model), expected_matrix)
+    assert np.array_equal(is_separable(model), np.array([False, True]))
+
+
+@pytest.mark.parametrize(
+    "model_cls",
+    [
+        models.Sky2Pix_HammerAitoff,
+        models.Pix2Sky_HammerAitoff,
+        models.Sky2Pix_BonneEqualArea,
+        models.Pix2Sky_BonneEqualArea,
+        models.Sky2Pix_HEALPix,
+        models.Pix2Sky_HEALPix,
+    ],
+)
+def test_full_coupling_projections_separable(model_cls):
+    """
+    Projections where both output coordinates depend on both input coordinates
+    are non-separable and report a full 2x2 True matrix.
+    """
+    model = model_cls()
+    assert not model.separable
+    expected_matrix = np.array([[True, True], [True, True]])
+    assert np.array_equal(separability_matrix(model), expected_matrix)
+    assert np.array_equal(is_separable(model), np.array([False, False]))
+
+
+def test_pseudocylindrical_compound_separable():
+    """Verify separability propagation through compound models."""
+    compound = models.Shift(1) & models.Shift(2) | models.Sky2Pix_SansonFlamsteed()
+    expected_matrix = np.array([[True, True], [False, True]])
+    assert np.array_equal(separability_matrix(compound), expected_matrix)
+    assert np.array_equal(is_separable(compound), np.array([False, True]))
