@@ -21,3 +21,4 @@ jobs:
           STALEBOT_MAX_ISSUES: -1
           STALEBOT_MAX_PRS: -1
           STALEBOT_SLEEP: 10
+          STALEBOT_KEEP_OPEN_LABEL: ''
