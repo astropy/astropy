@@ -1,0 +1,61 @@
+name: Downstream
+
+# Run the main-branch dev tests of downstream packages (the downstream-* tox
+# environments) against this astropy. On a pull request, add the
+# 'needs-downstream-testing' label to run them; they rerun on every push while
+# the label is there. "Run workflow" in the Actions tab runs them on a branch.
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  list_envs:
+    name: List downstream tox environments
+    if: |
+      github.event_name == 'workflow_dispatch' || (
+        github.repository == 'astropy/astropy' &&
+        contains(github.event.pull_request.labels.*.name, 'needs-downstream-testing')
+      )
+    runs-on: ubuntu-latest
+    outputs:
+      envs: ${{ steps.list.outputs.envs }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      with:
+        python-version: '3.x'
+    - name: Install tox
+      run: python -m pip install --upgrade tox
+    - name: List the downstream-* tox environments
+      id: list
+      # Write YAML like "- linux: downstream-pyvo", one line per env. The tox
+      # workflow pastes envs into a double-quoted shell argument, so it cannot
+      # take JSON. tox also prints its provisioning messages to stdout, so keep
+      # only the env names.
+      run: |
+        {
+          echo "envs<<EOF"
+          tox list -f downstream --no-desc | sed -n 's/^\(downstream-.*\)$/- linux: \1/p'
+          echo "EOF"
+        } >> "${GITHUB_OUTPUT}"
+
+  tests:
+    needs: list_envs
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@3a3dcf3ba6828dac29eba10334948ef38364ed14  # v3.1.0
+    with:
+      submodules: false
+      coverage: ''
+      envs: ${{ needs.list_envs.outputs.envs }}
+      # The downstream tests run on this Python too
+      default_python: '3.14'
