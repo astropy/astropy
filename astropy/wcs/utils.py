@@ -439,7 +439,7 @@ def skycoord_to_celestial_wcs(
     ----------
     reference_position : `~astropy.coordinates.SkyCoord` of length 1
         The coordinates of the center of the WCS. It should be scalar.
-    fov : `~astropy.coordinates.Angle` of length 2
+    fov : `~astropy.coordinates.Angle` of length 1 or 2
         The field of view in physical units. ``fov`` and ``shape`` are mutually
         exclusive and one of them must be provided.
     shape : Sequence[int, int]
@@ -486,7 +486,7 @@ def skycoord_to_celestial_wcs(
     CTYPE : 'RA---TAN' 'DEC--TAN'
     CUNIT : '' ''
     CRVAL : 266.4 -29.0
-    CRPIX : 40.5 20.5
+    CRPIX : 20.5 40.5
     PC1_1 PC1_2  : 1.0 0.0
     PC2_1 PC2_2  : 0.0 1.0
     CDELT : -0.1 0.1
@@ -506,7 +506,7 @@ def skycoord_to_celestial_wcs(
     CTYPE : 'RA---TAN' 'DEC--TAN'
     CUNIT : '' ''
     CRVAL : 266.4 -29.0
-    CRPIX : 20.5 40.5
+    CRPIX : 40.5 20.5
     PC1_1 PC1_2  : 1.0 0.0
     PC2_1 PC2_2  : 0.0 1.0
     CDELT : -0.1 0.1
@@ -548,11 +548,21 @@ def skycoord_to_celestial_wcs(
     wcs.wcs.crval = [coo_for_frame.spherical.lon.deg, coo_for_frame.spherical.lat.deg]
 
     if fov is not None:  # field of view as an Angle or quantity
-        wcs.array_shape = [
-            abs(round(angle.to_value("deg") / cdelt))
-            for angle, cdelt in zip(fov, wcs.wcs.cdelt)
-        ]
+        if fov.isscalar:
+            shape = [abs(round(fov.to_value("deg") / cdelt)) for cdelt in wcs.wcs.cdelt]
+        elif len(fov) != 2:
+            raise ValueError(f"'fov' should be of length 1 or 2, but is {len(fov)}.")
+        else:
+            shape = [
+                abs(round(angle.to_value("deg") / cdelt))
+                for angle, cdelt in zip(fov, wcs.wcs.cdelt)
+            ]
+        wcs.array_shape = [1 if s == 0 else s for s in shape]
     else:  # image size
+        if len(shape) != 2:
+            raise ValueError(
+                f"'shape' should be of length 1 or 2, but is {len(shape)}."
+            )
         wcs.array_shape = shape
 
     if reference_pixel is not None:

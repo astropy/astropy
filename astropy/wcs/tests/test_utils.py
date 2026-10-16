@@ -806,12 +806,23 @@ def test_skycoord_to_celestial_wcs():
     assert_allclose(wcs_optional.wcs.crpix, [11, 16])
     assert_allclose(wcs_optional.wcs.pc, [[0, 2], [-0.5, 0]], atol=1e-10)
 
+    # field of view smaller than cdelt: image shape should be one pixel
+    wcs = skycoord_to_celestial_wcs(
+        center, fov=Angle(0.1, "arcmin"), pixel_angular_size=pixel_size
+    )
+    assert wcs.array_shape == (1, 1)
+
 
 def test_skycoord_to_celestial_wcs_errors():
     center = SkyCoord(0, 0, unit="deg", frame="galactic")
     fov = Angle([8, 4], unit="deg")
     pixel_size = Angle(1, unit="deg")
     shape = (100, 200)
+
+    with pytest.raises(ValueError, match="Must specify valid projection code"):
+        skycoord_to_celestial_wcs(
+            center, shape=shape, pixel_angular_size=pixel_size, projection="ABC"
+        )
 
     with pytest.raises(ValueError, match="'reference_position' should be scalar*"):
         center_non_scalar = SkyCoord([0, 0], [0, 0], unit="deg", frame="galactic")
@@ -836,6 +847,16 @@ def test_skycoord_to_celestial_wcs_errors():
             reference_pixel=scalar_ref_pixel,
         )
 
+    with pytest.raises(ValueError, match="'fov' should be of length 1 or 2"):
+        skycoord_to_celestial_wcs(
+            center, fov=Angle([1, 2, 3], "arcmin"), pixel_angular_size=pixel_size
+        )
+
+    with pytest.raises(ValueError, match="'shape' should be of length 1 or 2"):
+        skycoord_to_celestial_wcs(
+            center, shape=[1, 2, 3], pixel_angular_size=pixel_size
+        )
+
 
 def test_crota_vs_pc_in_skycoord_to_celestial_wcs():
     # see https://github.com/astropy/astropy/pull/19985#discussion_r3596900938
@@ -852,7 +873,7 @@ def test_crota_vs_pc_in_skycoord_to_celestial_wcs():
     wcs_crota.wcs.cdelt = pixel_size.to_value("deg")
     wcs_crota.wcs.crval = [0, 0]
     wcs_crota.array_shape = shape
-    wcs_crota.wcs.crpix = [50.5, 100.5]
+    wcs_crota.wcs.crpix = [100.5, 50.5]
     wcs_crota.wcs.crota = 0, 30
 
     y, x = np.mgrid[0:200:20, 0:100:10]
