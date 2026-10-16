@@ -9,12 +9,18 @@ from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.mpl_normalize import (
     ImageNormalize,
+    ImShowNormResults,
     SimpleNorm,
     imshow_norm,
     imshow_simple_norm,
     simple_norm,
 )
-from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
+from astropy.visualization.stretch import (
+    LogStretch,
+    PowerStretch,
+    SinhStretch,
+    SqrtStretch,
+)
 
 DATA = np.linspace(0.0, 15.0, 6)
 DATA2 = np.arange(3)
@@ -320,59 +326,266 @@ def test_simplenorm_imshow():
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
-def test_imshow_norm():
+def test_imshow_norm_image_axis():
+    from matplotlib.figure import Figure
+    from matplotlib.image import AxesImage
+
+    image = np.random.randn(10, 10)
+    imageCopy = image.copy()
+
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_norm")
+    imNorm = imshow_norm(image, ax=ax)
+
+    # Check if return has the correct type and not null
+    assert isinstance(imNorm, ImShowNormResults)
+    assert isinstance(imNorm.im, AxesImage)
+    assert isinstance(imNorm.norm, ImageNormalize)
+
+    # Check if image was added to the axis
+    assert imNorm.im in ax.images
+    # Check if the image is on the correct axis
+    assert imNorm.im.axes == ax
+
+    # Check if original data was not modified
+    assert np.all(image == imageCopy)
+
+    # Check if the return of the function is the same as original imshow with the same parameters
+    assert np.all(ax.imshow(image, vmin=0, vmax=1).get_array() == imNorm.im.get_array())
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_norm_normalization():
     from matplotlib.figure import Figure
 
     image = np.random.randn(10, 10)
 
     fig = Figure()
     ax = fig.add_subplot(label="test_imshow_norm")
-    imshow_norm(image, ax=ax)
-
     with pytest.raises(ValueError):
         # illegal to manually pass in normalization since that defeats the point
         imshow_norm(image, ax=ax, norm=ImageNormalize())
 
-    fig.clear()
-    imshow_norm(image, ax=ax, vmin=0, vmax=1)
 
-    # make sure the matplotlib version works
-    fig.clear()
-    imres, norm = imshow_norm(image, ax=None)
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_norm_interval():
+    from matplotlib.figure import Figure
+    from matplotlib.image import AxesImage
 
-    assert isinstance(norm, ImageNormalize)
+    image = np.random.randn(10, 10)
+    imageCopy = image.copy()
+
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_norm")
+    imNorm = imshow_norm(image, ax=ax, vmin=0, vmax=1)
+
+    # Check if return has the correct type and not null
+    assert isinstance(imNorm, ImShowNormResults)
+    assert isinstance(imNorm.im, AxesImage)
+    assert isinstance(imNorm.norm, ImageNormalize)
+
+    # Check if image was added to the axis
+    assert imNorm.im in ax.images
+    # Check if the image is on the correct axis
+    assert imNorm.im.axes == ax
+
+    # Check if parameters were passed to the normalization correctly
+    assert imNorm.norm.vmin == 0
+    assert imNorm.norm.vmax == 1
+
+    # Check if original data was not modified
+    assert np.all(image == imageCopy)
+
+    # Check if the return of the function is the same as original imshow with the same parameters
+    assert np.all(ax.imshow(image, vmin=0, vmax=1).get_array() == imNorm.im.get_array())
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
-def test_imshow_simple_norm():
+def test_imshow_norm_no_ax():
+    from matplotlib.image import AxesImage
+    from matplotlib.pyplot import gca
+
+    image = np.random.randn(10, 10)
+    imageCopy = image.copy()
+
+    imNorm = imshow_norm(image, ax=None)
+
+    # Check if return has the correct type and not null
+    assert isinstance(imNorm, ImShowNormResults)
+    assert isinstance(imNorm.im, AxesImage)
+    assert isinstance(imNorm.norm, ImageNormalize)
+
+    # Check if image was added to the axis
+    assert imNorm.im in gca().images
+    # Check if the image is on the correct axis
+    assert imNorm.im.axes == gca()
+
+    # Check if original data was not modified
+    assert np.all(image == imageCopy)
+
+    # Check if the return of the function is the same as original imshow with the same parameters
+    assert np.all(gca().imshow(image).get_array() == imNorm.im.get_array())
+
+
+def test_imshow_norm_no_PLT(monkeypatch):
+    image = np.random.randn(10, 10)
+
+    monkeypatch.setattr("astropy.visualization.mpl_normalize.HAS_MATPLOTLIB", False)
+
+    # Check if correct error is raised when matplotlib is not available
+    with pytest.raises(ModuleNotFoundError):
+        imshow_norm(image, ax=None)
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_image_axis():
+    from matplotlib.figure import Figure
+    from matplotlib.image import AxesImage
+
+    image = np.arange(100).reshape(10, 10)
+    imageCopy = image.copy()
+
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_simple_norm")
+    imNorm = imshow_simple_norm(image, ax=ax)
+
+    # Check if return has the correct type and not null
+    assert isinstance(imNorm, ImShowNormResults)
+    assert isinstance(imNorm.im, AxesImage)
+    assert isinstance(imNorm.norm, ImageNormalize)
+
+    # Check if image was added to the axis
+    assert imNorm.im in ax.images
+    # Check if the image is on the correct axis
+    assert imNorm.im.axes == ax
+
+    # Check if original data was not modified
+    assert np.all(image == imageCopy)
+
+    # Check if the return of the function is the same as original imshow with the same parameters
+    assert np.all(ax.imshow(image).get_array() == imNorm.im.get_array())
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_normalization():
     from matplotlib.figure import Figure
 
     image = np.arange(100).reshape(10, 10)
 
     fig = Figure()
     ax = fig.add_subplot(label="test_imshow_simple_norm")
-    imshow_simple_norm(image, ax=ax)
-
     with pytest.raises(ValueError):
         # illegal to manually pass in normalization since that defeats the point
         imshow_simple_norm(image, ax=ax, norm=ImageNormalize())
 
-    fig.clear()
-    imshow_simple_norm(image, ax=ax, vmin=0, vmax=1)
 
-    fig.clear()
-    imshow_simple_norm(image, ax=ax, min_percent=1, max_percent=99.9, stretch="sinh")
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_interval():
+    from matplotlib.figure import Figure
+    from matplotlib.image import AxesImage
 
-    # make sure the matplotlib version works
-    fig.clear()
-    imres, norm = imshow_simple_norm(image, ax=None)
+    image = np.arange(100).reshape(10, 10)
+    imageCopy = image.copy()
 
-    assert np.all(imres.get_array() == image)
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_simple_norm")
+    imNorm = imshow_simple_norm(image, ax=ax, vmin=0, vmax=1)
+
+    # Check if return has the correct type and not null
+    assert isinstance(imNorm, ImShowNormResults)
+    assert isinstance(imNorm.im, AxesImage)
+    assert isinstance(imNorm.norm, ImageNormalize)
+
+    # Check if image was added to the axis
+    assert imNorm.im in ax.images
+    # Check if the image is on the correct axis
+    assert imNorm.im.axes == ax
+
+    # Check if parameters were passed to the normalization correctly
+    assert imNorm.norm.vmin == 0
+    assert imNorm.norm.vmax == 1
+
+    # Check if original data was not modified
+    assert np.all(image == imageCopy)
+
+    # Check if the return of the function is the same as original imshow with the same parameters
+    assert np.all(ax.imshow(image, vmin=0, vmax=1).get_array() == imNorm.im.get_array())
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_percent():
+    from matplotlib.figure import Figure
+    from matplotlib.image import AxesImage
+
+    image = np.arange(100).reshape(10, 10)
+    imageCopy = image.copy()
+
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_simple_norm")
+    imNorm = imshow_simple_norm(
+        image, ax=ax, min_percent=1, max_percent=99.9, stretch="sinh"
+    )
+
+    # Check if return has the correct type and not null
+    assert isinstance(imNorm, ImShowNormResults)
+    assert isinstance(imNorm.im, AxesImage)
+    assert isinstance(imNorm.norm, ImageNormalize)
+
+    # Check if image was added to the axis
+    assert imNorm.im in ax.images
+    # Check if the image is on the correct axis
+    assert imNorm.im.axes == ax
+
+    # Check if parameters were passed to the normalization correctly
+    assert isinstance(imNorm.norm.stretch, SinhStretch)
+
+    # Check if original data was not modified
+    assert np.all(image == imageCopy)
+
+    # Check if the return of the function is the same as original imshow with the same parameters
+    assert np.all(ax.imshow(image).get_array() == imNorm.im.get_array())
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_no_ax():
+    from matplotlib.image import AxesImage
+    from matplotlib.pyplot import gca
+
+    image = np.arange(100).reshape(10, 10)
+    imageCopy = image.copy()
+
+    imNorm = imshow_simple_norm(image, ax=None)
+
+    assert np.all(imNorm.im.get_array() == image)
 
     # ensure the normalization is *not* just minmax like default imshow
-    assert (image.min(), image.max()) == imres.get_clim()
+    assert (image.min(), image.max()) == imNorm.im.get_clim()
 
-    assert isinstance(norm, ImageNormalize)
+    # Check if return has the correct type and not null
+    assert isinstance(imNorm, ImShowNormResults)
+    assert isinstance(imNorm.im, AxesImage)
+    assert isinstance(imNorm.norm, ImageNormalize)
+
+    # Check if image was added to the axis
+    assert imNorm.im in gca().images
+    # Check if the image is on the correct axis
+    assert imNorm.im.axes == gca()
+
+    # Check if original data was not modified
+    assert np.all(image == imageCopy)
+
+    # Check if the return of the function is the same as original imshow with the same parameters
+    assert np.all(gca().imshow(image).get_array() == imNorm.im.get_array())
+
+
+def test_imshow_simple_norm_no_PLT(monkeypatch):
+    image = np.arange(100).reshape(10, 10)
+
+    monkeypatch.setattr("astropy.visualization.mpl_normalize.HAS_MATPLOTLIB", False)
+
+    # Check if correct error is raised when matplotlib is not available
+    with pytest.raises(ModuleNotFoundError):
+        imshow_simple_norm(image, ax=None)
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
