@@ -15,7 +15,33 @@ from astropy.units import Quantity
 
 
 class TemperatureCMB:
-    """The trait for computing the cosmological background temperature."""
+    """The trait for computing the cosmological background temperature.
+
+    This is a trait class; it is not meant to be instantiated directly, but instead to
+    be used as a mixin to other classes.
+
+    Examples
+    --------
+    For an example of a real cosmology that implements this trait, see
+    :class:`~astropy.cosmology.LambdaCDM`. Here we will define an illustrative example
+    class that meets the minimum API requirements, but is not cosmologically meaningful:
+
+    >>> import astropy.units as u
+    >>> from astropy.cosmology.traits import TemperatureCMB
+    >>> import dataclasses
+
+    >>> @dataclasses.dataclass(frozen=True)
+    ... class ExampleHasTcmb(TemperatureCMB):
+    ...     Tcmb0: u.Quantity
+
+    >>> cosmo = ExampleHasTcmb(Tcmb0=2.7255 * u.K)
+    >>> cosmo.Tcmb0
+    <Quantity 2.7255 K>
+
+    >>> cosmo.Tcmb([0.0, 1.0, 2.0])
+    <Quantity [2.7255, 5.451 , 8.1765] K>
+
+    """
 
     Tcmb0: Quantity
     """Temperature of the CMB at z=0."""
