@@ -1,0 +1,7 @@
+Equality comparison of ``SkyCoord`` objects now compares the frame attributes and the
+"extra" frame attributes element-wise, in the same way as the coordinate data, instead
+of requiring them to be equivalent. Array-valued attributes that agree for only some
+elements now give a partially `True` result, and a mismatch gives `False` rather than
+raising ``TypeError`` or ``ValueError``. The same attribute is treated the same way
+whether or not it belongs to the coordinate's own frame, so ``obstime`` on an ICRS
+coordinate now behaves like ``obstime`` on an FK4 one.
