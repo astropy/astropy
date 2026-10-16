@@ -15,7 +15,14 @@ import warnings
 import numpy as np
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_2_0, NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4
+from astropy.utils.compat import (
+    NUMPY_LT_2_0,
+    NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
+    NUMPY_LT_2_4,
+    NUMPY_LT_2_5,
+    NUMPY_LT_2_6,
+)
 
 if NUMPY_LT_2_0:
     import numpy.core as np_core
@@ -23,8 +30,6 @@ if NUMPY_LT_2_0:
 else:
     import numpy._core as np_core
     from numpy.lib._function_base_impl import _quantile_is_valid, _ureduce
-
-from astropy.utils.compat import NUMPY_LT_2_5
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -108,7 +113,8 @@ if not NUMPY_LT_2_2:
 MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name)
     for name in np_core.fromnumeric.__all__
-    if name not in {"choose", "put", "resize", "searchsorted", "where", "alen", "ptp"}
+    if name
+    not in {"choose", "put", "resize", "searchsorted", "where", "alen", "ptp", "minmax"}
 }
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
@@ -620,6 +626,47 @@ else:
         result = a.max(axis=axis, out=out, keepdims=keepdims)
         result -= a.min(axis=axis, keepdims=keepdims)
         return result, None, None
+
+
+if not NUMPY_LT_2_6:
+
+    @dispatched_function
+    def minmax(
+        a,
+        axis=None,
+        out=None,
+        keepdims=np._NoValue,
+        initial=np._NoValue,
+        where=np._NoValue,
+    ):
+        if where is np._NoValue:
+            where = ~a.mask
+
+        kwargs_min = {"axis": axis, "keepdims": keepdims, "where": where}
+        kwargs_max = kwargs_min.copy()
+
+        match initial:
+            case tuple(imin, imax):
+                pass
+            case np._NoValue:
+                imin = np.nanmax(a.unmasked)
+                imax = np.nanmin(a.unmasked)
+            case _:
+                imin = imax = initial
+        kwargs_min["initial"] = imin
+        kwargs_max["initial"] = imax
+
+        match out:
+            case tuple(omin, omax):
+                pass
+            case None:
+                omin = omax = None
+            case _:
+                raise TypeError
+        kwargs_min["out"] = omin
+        kwargs_max["out"] = omax
+
+        return (np.min(a, **kwargs_min), np.max(a, **kwargs_max)), None, None
 
 
 @dispatched_function
