@@ -1846,7 +1846,7 @@ def test_fit_wcs_from_points_proj_point_frame():
     proj_point_icrs = SkyCoord(crval[0] * u.deg, crval[1] * u.deg, frame="icrs")
     proj_point = proj_point_icrs.galactic
 
-    fit_wcs = fit_wcs_from_points((x, y), world_coords, proj_point=proj_point)
+    fit_wcs = fit_wcs_from_points((x, y), world_coords, origin=0, proj_point=proj_point)
 
     np.testing.assert_allclose(
         fit_wcs.wcs.crval, [proj_point_icrs.ra.deg, proj_point_icrs.dec.deg]
