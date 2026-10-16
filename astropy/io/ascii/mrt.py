@@ -11,7 +11,7 @@ Ref: https://journals.aas.org/mrt-standards
 import re
 import warnings
 from io import StringIO
-from math import ceil, floor
+from math import ceil, floor, isnan
 from string import Template
 from textwrap import wrap
 
@@ -339,24 +339,27 @@ class MrtHeader(cds.CdsHeader):
             # Add col limit values to col description
             lim_vals = ""
             if (
-                col.min
-                and col.max
+                not callable(cmin := col.min)
+                and cmin != 0.0
+                and not isnan(cmin)
+                and not callable(cmax := col.max)
+                and cmax != 0.0
+                and not isnan(cmax)
                 and not any(
                     x in col.name for x in ["RA", "DE", "LON", "LAT", "PLN", "PLT"]
                 )
             ):
                 # No col limit values for coordinate columns.
                 if col.fortran_format[0] == "I":
-                    if (
-                        abs(col.min) < MAX_COL_INTLIMIT
-                        and abs(col.max) < MAX_COL_INTLIMIT
-                    ):
-                        if col.min == col.max:
-                            lim_vals = f"[{col.min}]"
+                    if abs(cmin) < MAX_COL_INTLIMIT and abs(cmax) < MAX_COL_INTLIMIT:
+                        if cmin == cmax:
+                            lim_vals = f"[{cmin}]"
                         else:
-                            lim_vals = f"[{col.min}/{col.max}]"
+                            lim_vals = f"[{cmin}/{cmax}]"
                 elif col.fortran_format[0] in ("E", "F"):
-                    lim_vals = f"[{floor(col.min * 100) / 100.0}/{ceil(col.max * 100) / 100.0}]"
+                    lim_vals = (
+                        f"[{floor(cmin * 100) / 100.0}/{ceil(cmax * 100) / 100.0}]"
+                    )
 
             if lim_vals != "" or nullflag != "":
                 description = f"{lim_vals}{nullflag} {description}"
