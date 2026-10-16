@@ -385,6 +385,11 @@ def helper_unwrap(f, unit1, unit2, unit3):
     return helper_clip(f, unit1, unit2, unit3)
 
 
+def helper_minimummaximum(f, unit1, unit2):
+    converters, unit = get_converters_and_unit(f, unit1, unit2)
+    return converters, (unit, unit)
+
+
 # list of ufuncs:
 # https://numpy.org/doc/stable/reference/ufuncs.html#available-ufuncs
 
@@ -602,5 +607,6 @@ if isinstance(getattr(np_umath, "clip", None), np.ufunc):
 if not NUMPY_LT_2_6:
     # See docstring of helper_unwrap about this private numpy ufunc.
     UFUNC_HELPERS[np_umath._unwrap] = helper_unwrap
+    UFUNC_HELPERS[np_umath.minimummaximum] = helper_minimummaximum
 
 del ufunc
