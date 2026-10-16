@@ -2970,3 +2970,32 @@ def test_deepcopy_during_lazy_cache_population(shared_tan_wcs):
     copy.deepcopy(shared_tan_wcs)
     shared_tan_wcs.pixel_to_world(0, 0)
     copy.deepcopy(shared_tan_wcs)
+
+
+def test_all_world2pix_single_axis_det2im():
+    # Regression test for issue #20577 where WCS.all_world2pix ignored
+    # detector-to-image (D2IM) corrections present on only one axis.
+    lut = wcs.DistortionLookupTable(
+        np.full((5, 5), 0.5, np.float32), (1, 1), (1, 1), (1, 1)
+    )
+
+    # Test single-axis D2IM on axis 1 (det2im1)
+    w1 = wcs.WCS(naxis=2)
+    w1.wcs.crpix = [1, 1]
+    w1.det2im1 = lut
+    assert w1.has_distortion is True
+    pix = np.array([[2.0, 2.0]])
+    world1 = w1.all_pix2world(pix, 0)
+    assert_allclose(world1, [[2.5, 2.0]])
+    round_trip1 = w1.all_world2pix(world1, 0, tolerance=1e-12)
+    assert_allclose(round_trip1, pix, atol=1e-10)
+
+    # Test single-axis D2IM on axis 2 (det2im2)
+    w2 = wcs.WCS(naxis=2)
+    w2.wcs.crpix = [1, 1]
+    w2.det2im2 = lut
+    assert w2.has_distortion is True
+    world2 = w2.all_pix2world(pix, 0)
+    assert_allclose(world2, [[2.0, 2.5]])
+    round_trip2 = w2.all_world2pix(world2, 0, tolerance=1e-12)
+    assert_allclose(round_trip2, pix, atol=1e-10)
