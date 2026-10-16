@@ -4,7 +4,7 @@
 from numpy.testing import assert_almost_equal
 
 from astropy import units as u
-from astropy.coordinates import Angle, Galactic, HADec
+from astropy.coordinates import Angle, Galactic, HADec, SkyCoord, SkyOffsetFrame
 from astropy.tests.helper import (
     assert_quantity_allclose as assert_almost_equal_quantity,
 )
@@ -86,3 +86,14 @@ def test_get_coord_meta():
     assert hadec_meta["wrap"] == (Angle(180 * u.deg), None)
     assert hadec_meta["unit"] == (u.deg, u.deg)
     assert hadec_meta["format_unit"] == (u.hourangle, u.deg)
+
+
+def test_get_coord_meta_skyoffset():
+    origin = SkyCoord(15 * u.deg, 20 * u.deg)
+
+    for frame in (origin.skyoffset_frame(), SkyOffsetFrame(origin=origin)):
+        meta = get_coord_meta(frame)
+        assert meta["name"] == ["lon", "lat"]
+        assert meta["wrap"] == (Angle(180 * u.deg), None)
+        assert meta["unit"] == (u.deg, u.deg)
+        assert meta["format_unit"] == (u.deg, u.deg)

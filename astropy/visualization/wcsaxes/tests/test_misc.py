@@ -961,3 +961,28 @@ def test_auto_assign_coord_positions_no_consistent_option(
     ax.coords[1].set_ticklabel_position("#")
 
     fig.savefig(tmp_path / "plot.png")
+
+
+def test_get_coords_overlay_skyoffset_frame(ignore_matplotlibrc):
+    # The longitude of a SkyOffsetFrame overlay should be wrapped at 180 degrees
+    # (so that it is symmetric around zero) without any manual set_coord_type.
+    header = {
+        "CRVAL1": 15.0,
+        "CRVAL2": 20.0,
+        "CUNIT1": "deg",
+        "CUNIT2": "deg",
+        "CRPIX1": 16,
+        "CRPIX2": 16,
+        "CTYPE1": "RA---TAN",
+        "CTYPE2": "DEC--TAN",
+    }
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS(header))
+    ax.imshow(np.zeros((32, 32)))
+    overlay = ax.get_coords_overlay(SkyCoord(15 * u.deg, 20 * u.deg).skyoffset_frame())
+
+    assert overlay[0].coord_type == "longitude"
+    assert overlay[0].coord_wrap == 180 * u.deg
+    assert overlay[1].coord_type == "latitude"
+
+    fig.canvas.draw()
