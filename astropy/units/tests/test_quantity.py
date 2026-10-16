@@ -1119,7 +1119,7 @@ class TestQuantityDisplay:
                 id="thousands_separator",
             ),
             pytest.param(
-                u.Quantity(137000000, "lyr"),
+                u.Quantity(137_000_000, "lyr"),
                 None,
                 ">+30,.2e",
                 "                     +1.37e+08 lyr",
@@ -1204,7 +1204,7 @@ class TestQuantityDisplay:
                 id="complex_number_latex_positive_alignment",
             ),
             pytest.param(
-                u.Quantity(137000000, "lyr"),
+                u.Quantity(137_000_000, "lyr"),
                 None,
                 ">+30,.2e",
                 "latex",
@@ -1252,7 +1252,7 @@ class TestQuantityDisplay:
                 id="scientific_notation_inline_latex_format",
             ),
             pytest.param(
-                u.Quantity(1239999123, "m/s"),
+                u.Quantity(1_239_999_123, "m/s"),
                 None,
                 None,
                 "latex",
@@ -2142,7 +2142,7 @@ class TestQuantityConvertIntToFloat:
     """Test the ``quantity_convert_int_to_float`` configuration item."""
 
     # Integers that are not exactly representable as float64.
-    VALS = [2741100559643251862, 2733456478647137226]
+    VALS = [2_741_100_559_643_251_862, 2_733_456_478_647_137_226]
 
     @pytest.mark.parametrize("value", ["default", "always"])
     def test_int_is_converted_to_float(self, value):
