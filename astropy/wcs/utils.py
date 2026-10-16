@@ -708,9 +708,9 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all", *, native_pixel_order=N
     return xp, yp
 
 
-def pixel_to_skycoord(
+def pixel_to_skycoord(  # ruff: ignore[PLR0917]
     xp, yp, wcs, origin=0, mode="all", cls=None, *, native_pixel_order=None
-):  # ruff: ignore[PLR0917]
+):
     """
     Convert a set of pixel coordinates into a `~astropy.coordinates.SkyCoord`
     coordinate.
