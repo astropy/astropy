@@ -3809,6 +3809,36 @@ class TestVLATables(FitsTestCase):
                     hdu[1].data["empty"][i], np.array([], dtype=np.int32)
                 )
 
+    def test_empty_vla_entry_with_dim(self):
+        """
+        Regression test for
+        https://github.com/astropy/astropy/issues/15105
+
+        A variable-length array column may set a ``dim`` (TDIMn) so that its
+        non-empty entries are reshaped multidimensionally.  An entry with zero
+        elements must still be read back with the natural ``(0,)`` shape: per
+        the FITS standard the TDIMn keyword is not applicable when the VLA
+        descriptor has a size of zero.  Previously the empty entry was reshaped
+        using the column dimension and came back with a spurious shape such as
+        ``(0, 5)``.
+        """
+
+        array = np.array([np.arange(20).reshape((4, 5)), np.array([])], dtype=object)
+        col = fits.Column(name="col", format="PI", array=array, dim="(5, 4)")
+        fits.BinTableHDU.from_columns([col]).writeto(self.temp("empty_dim_vla.fits"))
+        with fits.open(self.temp("empty_dim_vla.fits")) as hdus:
+            # The non-empty entry is still reshaped according to TDIM ...
+            assert hdus[1].data["col"][0].shape == (4, 5)
+            # ... while the empty entry keeps its natural (0,) shape.
+            assert hdus[1].data["col"][1].shape == (0,)
+
+        # Same expectation for the Q (64-bit descriptor) variant.
+        col_q = fits.Column(name="qcol", format="QI", array=array, dim="(5, 4)")
+        fits.BinTableHDU.from_columns([col_q]).writeto(self.temp("empty_dim_qvla.fits"))
+        with fits.open(self.temp("empty_dim_qvla.fits")) as hdus:
+            assert hdus[1].data["qcol"][0].shape == (4, 5)
+            assert hdus[1].data["qcol"][1].shape == (0,)
+
     def test_multidim_VLA_tables(self):
         """
         Check if multidimensional VLF are correctly write and read.
