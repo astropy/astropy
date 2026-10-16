@@ -80,11 +80,22 @@ We can then transform to this frame instead, with our custom parameters:
 It is sometimes useful to specify the solar motion using the
 `proper motion of Sgr A* <https://arxiv.org/abs/astro-ph/0408107>`_
 instead of Cartesian velocity components. With an assumed distance, we can convert
-proper motion components to Cartesian velocity components using `astropy.units`:
+the proper motion components to velocities in km/s by representing them with a
+`~astropy.coordinates.SphericalPhysicalDifferential` (here, we approximate the
+position of Sgr A* as exactly the direction to the Galactic center):
 
 >>> galcen_distance = 8 * u.kpc
 >>> pm_gal_sgrA = [-6.379, -0.202] * (u.mas / u.yr)  # from Reid & Brunthaler 2004
->>> vy, vz = -(galcen_distance * pm_gal_sgrA).to(u.km / u.s, u.dimensionless_angles())
+>>> sgrA = coord.Galactic(
+...     l=0 * u.deg,
+...     b=0 * u.deg,
+...     distance=galcen_distance,
+...     pm_l_cosb=pm_gal_sgrA[0],
+...     pm_b=pm_gal_sgrA[1],
+...     radial_velocity=0 * u.km / u.s,
+... )
+>>> sgrA.set_representation_cls(s="sphericalphysical")
+>>> vy, vz = -sgrA.v_l, -sgrA.v_b
 
 We still have to assume a line-of-sight velocity for the Galactic center,
 which we will again take to be 11 km/s:
@@ -119,13 +130,9 @@ Heliocentric coordinates:
     ...     phi=phi_grid[np.newaxis],
     ...     z=np.zeros_like(ring_distances)[:, np.newaxis],
     ... )
-    >>> angular_velocity = (-circ_velocity / ring_distances).to(
-    ...     u.mas / u.yr, u.dimensionless_angles()
-    ... )
-    >>> ring_dif = coord.CylindricalDifferential(
-    ...     d_rho=np.zeros(phi_grid.shape)[np.newaxis] * (u.km / u.s),
-    ...     d_phi=angular_velocity[:, np.newaxis],
-    ...     d_z=np.zeros(phi_grid.shape)[np.newaxis] * (u.km / u.s),
+    >>> zeros = np.zeros(ring_rep.shape) * (u.km / u.s)
+    >>> ring_dif = coord.CylindricalPhysicalDifferential(
+    ...     d_rho=zeros, d_phi=zeros - circ_velocity, d_z=zeros
     ... )
     >>> ring_rep = ring_rep.with_differentials(ring_dif)
     >>> gc_rings = coord.SkyCoord(ring_rep, frame=coord.Galactocentric)
