@@ -7,10 +7,8 @@ astronomy.
 """
 
 import copy
-import enum
 import operator
 import os
-import threading
 from collections import defaultdict
 from datetime import UTC, date, datetime
 from itertools import pairwise
@@ -146,16 +144,6 @@ SIDEREAL_TIME_MODELS = {
         "IAU1994": {"function": erfa.gst94, "scales": ("ut1",), "include_tio": False},
     },
 }
-
-
-class _LeapSecondsCheck(enum.Enum):
-    NOT_STARTED = 0  # No thread has reached the check
-    RUNNING = 1  # A thread is running update_leap_seconds (_LEAP_SECONDS_LOCK is held)
-    DONE = 2  # update_leap_seconds has completed
-
-
-_LEAP_SECONDS_CHECK = _LeapSecondsCheck.NOT_STARTED
-_LEAP_SECONDS_LOCK = threading.RLock()
 
 
 def _compress_array_dims(arr):
@@ -801,11 +789,6 @@ class TimeBase(MaskableShapedLikeNDArray):
             raise ValueError(
                 f"Scale {scale!r} is not in the allowed scales {sorted(self.SCALES)}"
             )
-
-        if scale == "utc" or self.scale == "utc":
-            # If doing a transform involving UTC then check that the leap
-            # seconds table is up to date.
-            _check_leapsec()
 
         # Determine the chain of scale transformations to get from the current
         # scale to the new scale.  MULTI_HOPS contains a dict of all
@@ -3399,25 +3382,12 @@ class OperandTypeError(TypeError):
         )
 
 
-def _check_leapsec():
-    global _LEAP_SECONDS_CHECK
-    if _LEAP_SECONDS_CHECK != _LeapSecondsCheck.DONE:
-        with _LEAP_SECONDS_LOCK:
-            # There are three ways we can get here:
-            # 1. First call (NOT_STARTED).
-            # 2. Re-entrant call (RUNNING). We skip the initialisation
-            #    and don't worry about leap second errors.
-            # 3. Another thread which raced with the first call
-            #    (RUNNING). The first thread has relinquished the
-            #    lock to us, so initialization is complete.
-            if _LEAP_SECONDS_CHECK == _LeapSecondsCheck.NOT_STARTED:
-                _LEAP_SECONDS_CHECK = _LeapSecondsCheck.RUNNING
-                update_leap_seconds()
-                _LEAP_SECONDS_CHECK = _LeapSecondsCheck.DONE
-
-
 def update_leap_seconds(files=None):
     """If the current ERFA leap second table is out of date, try to update it.
+
+    Leap seconds have been discontinued and the table built into ERFA already
+    includes the last one (2017 January 1), so this is not normally needed,
+    and `~astropy.time.Time` no longer calls it automatically.
 
     Uses `astropy.utils.iers.LeapSeconds.auto_open` to try to find an
     up-to-date table.  See that routine for the definition of "out of date".
