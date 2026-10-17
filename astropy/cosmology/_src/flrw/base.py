@@ -785,7 +785,10 @@ class FLRW(
     def _integral_age(self, z: u.Quantity | ArrayLike, /) -> FArray:
         """Age of the universe at redshift ``z``. Value in units of Hubble time.
 
-        Calculated using explicit integration.
+        Calculated using explicit integration over the scale factor
+        :math:`a = 1 / (1 + z)`, from the Big Bang at :math:`a = 0`. This keeps
+        the integration interval finite, unlike integrating over redshift out
+        to infinity, which loses accuracy at high redshift.
 
         Parameters
         ----------
@@ -796,12 +799,32 @@ class FLRW(
         -------
         t : array
             The age of the universe at each input redshift in Hubble time units.
+            At ``z = -1`` (the infinite future) the age is infinite.
 
         See Also
         --------
         z_at_value : Find the redshift corresponding to an age.
         """
-        return quad(self._lookback_time_integrand_scalar, z, inf)[0]
+        if z == -1:
+            return inf
+        return quad(self._age_integrand_scalar, 0, 1.0 / (z + 1.0))[0]
+
+    def _age_integrand_scalar(self, a: float, /) -> float:
+        """Integrand of the age as a function of the scale factor ``a``.
+
+        This is :math:`1 / (a E(z))` with :math:`z = 1 / a - 1`.
+
+        Parameters
+        ----------
+        a : float
+            Scale factor.
+
+        Returns
+        -------
+        I : float
+            The integrand for the age.
+        """
+        return self._inv_efunc_scalar(1.0 / a - 1.0, *self._inv_efunc_scalar_args) / a
 
     # ---------------------------------------------------------------
     # Comoving distance
