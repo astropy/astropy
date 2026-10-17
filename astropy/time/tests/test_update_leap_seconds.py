@@ -1,107 +1,70 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import subprocess
 import sys
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
-from pathlib import Path
+from textwrap import dedent
 
 import erfa
 import pytest
 
-import astropy.time.core
-from astropy.time import Time, update_leap_seconds
-from astropy.utils import iers
-from astropy.utils.exceptions import AstropyWarning
+from astropy.time import update_leap_seconds
+from astropy.utils.exceptions import AstropyDeprecationWarning
+
+
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
+def test_utc_conversion_does_not_update_erfa():
+    """Leap seconds were discontinued, so Time no longer updates ERFA's table.
+
+    Getting the table with LeapSeconds.from_erfa() ensures that the ERFA
+    table is not considered expired, also for pyerfa versions that do not
+    know leap seconds were discontinued.  This needs a fresh process, since
+    the test process has already done UTC conversions and other tests change
+    the ERFA table.
+    """
+    cmd = dedent("""
+    from datetime import datetime, timedelta
+
+    import erfa
+    import numpy as np
+
+    built_in = erfa.leap_seconds.get().copy()
+    expires = erfa.leap_seconds._expires
+
+    from astropy.time import Time
+    from astropy.utils.iers import LeapSeconds
+
+    assert Time("2020-01-01", scale="utc").tai.iso == "2020-01-01 00:00:37.000"
+    assert Time("2020-01-01", scale="tai").utc.iso == "2019-12-31 23:59:23.000"
+    assert erfa.leap_seconds._expires is expires
+    assert np.all(erfa.leap_seconds.get() == built_in)
+
+    ls = LeapSeconds.from_erfa()
+    assert not erfa.leap_seconds.expired
+    assert erfa.leap_seconds.expires > datetime.now() + timedelta(179)
+    assert ls.expires.datetime.date() == erfa.leap_seconds.expires.date()
+    assert np.all(erfa.leap_seconds.get() == built_in)
+    """)
+    subprocess.check_call([sys.executable, "-c", cmd])
 
 
 class TestUpdateLeapSeconds:
     def setup_method(self):
-        self.built_in = iers.LeapSeconds.from_iers_leap_seconds()
-        self.erfa_ls = iers.LeapSeconds.from_erfa()
-        now = datetime.now()
-        self.good_enough = now + timedelta(150)
+        self.erfa_ls = erfa.leap_seconds.get()
+        self.erfa_expires = erfa.leap_seconds._expires
 
     def teardown_method(self):
-        self.erfa_ls.update_erfa_leap_seconds(initialize_erfa=True)
+        erfa.leap_seconds.set(self.erfa_ls)
+        erfa.leap_seconds._expires = self.erfa_expires
 
-    def test_auto_update_leap_seconds(self):
-        # Sanity check.
-        assert erfa.dat(2018, 1, 1, 0.0) == 37.0
-        # Set expired leap seconds
+    def test_deprecated_but_still_updates(self):
+        # Remove the 2017 leap second from ERFA.
         expired = self.erfa_ls[self.erfa_ls["year"] < 2017]
-        expired.update_erfa_leap_seconds(initialize_erfa="empty")
-        # Check the 2017 leap second is indeed missing.
+        erfa.leap_seconds.set(expired)
         assert erfa.dat(2018, 1, 1, 0.0) == 36.0
 
-        # Update with missing leap seconds.
-        n_update = update_leap_seconds([iers.IERS_LEAP_SECOND_FILE])
-        assert n_update >= 1
-        assert erfa.leap_seconds.expires == self.built_in.expires
+        with pytest.warns(AstropyDeprecationWarning, match="discontinued"):
+            n_update = update_leap_seconds()
+        assert n_update == 1
         assert erfa.dat(2018, 1, 1, 0.0) == 37.0
-
-        # Doing it again does not change anything
-        n_update2 = update_leap_seconds([iers.IERS_LEAP_SECOND_FILE])
-        assert n_update2 == 0
-        assert erfa.dat(2018, 1, 1, 0.0) == 37.0
-
-    @pytest.mark.remote_data
-    def test_never_expired_if_connected(self):
-        assert self.erfa_ls.expires > datetime.now()
-        assert self.erfa_ls.expires >= self.good_enough
-
-    @pytest.mark.remote_data
-    def test_auto_update_always_good(self):
-        self.erfa_ls.update_erfa_leap_seconds(initialize_erfa="only")
-        update_leap_seconds()
-        assert not erfa.leap_seconds.expired
-        assert erfa.leap_seconds.expires > self.good_enough
-
-    def test_auto_update_bad_file(self):
-        with pytest.warns(AstropyWarning, match="FileNotFound"):
-            update_leap_seconds(["nonsense"])
-
-    def test_auto_update_corrupt_file(self, tmp_path):
-        bad_file = tmp_path / "no_expiration"
-        lines = Path(iers.IERS_LEAP_SECOND_FILE).read_text().splitlines()
-        bad_file.write_text(
-            "\n".join(line for line in lines if not line.startswith("#"))
-        )
-
-        with pytest.warns(AstropyWarning, match="ValueError.*did not find expiration"):
-            update_leap_seconds([bad_file])
-
-    def test_auto_update_expired_file(self, tmp_path):
-        # Set up expired ERFA leap seconds.
-        expired = self.erfa_ls[self.erfa_ls["year"] < 2017]
-        expired.update_erfa_leap_seconds(initialize_erfa="empty")
-        # Create similarly expired file.
-        expired_file = str(tmp_path / "expired.dat")
-        Path(expired_file).write_text(
-            "\n".join(
-                ["# File expires on 28 June 2010"] + [str(item) for item in expired]
-            )
-        )
-        with pytest.warns(iers.IERSStaleWarning):
-            update_leap_seconds(["erfa", expired_file])
-
-    @pytest.mark.skipif(
-        sys.platform == "emscripten", reason="threads not supported on emscripten"
-    )
-    def test_init_thread_safety(self, monkeypatch):
-        # Set up expired ERFA leap seconds.
-        expired = self.erfa_ls[self.erfa_ls["year"] < 2017]
-        expired.update_erfa_leap_seconds(initialize_erfa="empty")
-        # Force re-initialization, even if another test already did it
-        monkeypatch.setattr(
-            astropy.time.core,
-            "_LEAP_SECONDS_CHECK",
-            astropy.time.core._LeapSecondsCheck.NOT_STARTED,
-        )
-        workers = 4
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = [
-                executor.submit(lambda: str(Time("2019-01-01 00:00:00.000").tai))
-                for i in range(workers)
-            ]
-            results = [future.result() for future in futures]
-            assert results == ["2019-01-01 00:00:37.000"] * workers

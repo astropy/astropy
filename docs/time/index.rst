@@ -1150,6 +1150,16 @@ scale along with the auto-download feature::
     request ``UT1-UTC`` for times beyond the range of IERS table data then the
     nearest available values will be provided.
 
+.. _time-leap-seconds:
+
+The UTC to TAI offset is the number of leap seconds inserted since 1972, which
+`astropy.time` takes from the table built into |PyERFA|. Leap seconds have been
+discontinued: `Resolution 5 of the 28th CGPM (2026)
+<https://www.bipm.org/en/cgpm-2026/resolution-5>`_ makes UTC continuous from
+2027 May 20, and IERS Bulletin C 72 had already ruled out a leap second before
+2027 June 28. The table, whose last entry is 2017 January 1 (TAI - UTC = 37 s),
+is therefore final and needs no updates.
+
 In the case of the TDB to TT offset, most users need only provide the
 ``location`` when creating the |Time| object. If the
 :attr:`~astropy.time.Time.delta_tdb_tt` attribute is not explicitly set, then

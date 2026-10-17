@@ -16,10 +16,11 @@ times.  The UT1-UTC values are used in :ref:`astropy-time` to provide UT1 values
 the polar motions are used in `astropy.coordinates` to determine Earth
 orientation for celestial-to-terrestrial coordinate transformations.
 
-.. note:: The package also provides machinery to track leap seconds.  Since it
-          generally should not be necessary to deal with those by hand, this
-          is not discussed below.  For details, see the documentation of
-          `~astropy.utils.iers.LeapSeconds`.
+.. note:: Leap seconds have been discontinued (see :ref:`time-leap-seconds`),
+          so the leap-second table built into |PyERFA| is final and astropy no
+          longer updates it.  `astropy.utils.iers.LeapSeconds.from_erfa` gives
+          that table as an astropy table; reading leap-second files is
+          deprecated.
 
 There are two IERS data products that we discuss here:
 
@@ -96,9 +97,7 @@ important to consider are the following:
   auto_download:
     Enable auto-downloading of the latest IERS-A data.  If set to ``False`` then
     the bundled IERS-A file will be used by default (even if a newer
-    versions of the IERS-A file was already downloaded and cached).  This
-    parameter also controls whether internet resources will be queried to update
-    the leap second table if the installed version is out of date.
+    versions of the IERS-A file was already downloaded and cached).
 
   auto_max_age:
     Maximum age of predictive data before auto-downloading (days).  See
@@ -153,8 +152,7 @@ that require IERS data, there are a couple of options.
 
 If you are planning to work without an internet connection, we recommend updating
 the astropy-iers-data package to the latest available version, using e.g., ``pip``
-or ``conda``, as this will ensure that you have the most recent IERS and leap
-second data.
+or ``conda``, as this will ensure that you have the most recent IERS data.
 
 **Disable auto downloading**
 
