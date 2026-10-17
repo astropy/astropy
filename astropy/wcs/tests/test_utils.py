@@ -1609,7 +1609,7 @@ CRVAL1  =      5.8689341666667 / [deg] Coordinate value at reference point
 CRVAL2  =     -71.995508583333 / [deg] Coordinate value at reference point
 """
 
-_failing_projections = ["CSC", "TSC", "QSC", "XPH"]
+_failing_projections = {"CSC", "TSC", "QSC", "XPH"}
 
 _simple_header_with_custom_prj_codes = [
     # simple testset no distortions
@@ -1622,8 +1622,7 @@ _simple_header_with_custom_prj_codes = [
         2.5e-5 * u.deg,
         code,
     )
-    for code in SUPPORTED_PRJ_CODES
-    if code not in _failing_projections
+    for code in sorted(SUPPORTED_PRJ_CODES - _failing_projections)
 ]
 
 
