@@ -1,0 +1,6 @@
+Since leap seconds have been discontinued, ``LeapSeconds.auto_open()`` and
+calling ``LeapSeconds.open()`` without a file are deprecated, as are the
+``system_leap_second_file``, ``iers_leap_second_auto_url`` and
+``ietf_leap_second_auto_url`` items of ``astropy.utils.iers.conf``, which are no
+longer used. ``IERSStaleWarning`` is no longer emitted for an expired
+leap-second file.

@@ -1,0 +1,2 @@
+Since leap seconds have been discontinued and the leap-second table built into
+ERFA is final, the ``update_leap_seconds()`` function is deprecated.
