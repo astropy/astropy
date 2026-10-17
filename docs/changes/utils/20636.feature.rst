@@ -1,0 +1,2 @@
+``LeapSeconds.from_erfa()`` now also returns ``day`` and ``mjd`` columns, like
+the tables read from leap-second files.

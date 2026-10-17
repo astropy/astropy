@@ -8,7 +8,6 @@ import erfa
 import pytest
 
 from astropy.time import update_leap_seconds
-from astropy.utils import iers
 from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
@@ -52,15 +51,17 @@ def test_utc_conversion_does_not_update_erfa():
 
 class TestUpdateLeapSeconds:
     def setup_method(self):
-        self.erfa_ls = iers.LeapSeconds.from_erfa()
+        self.erfa_ls = erfa.leap_seconds.get()
+        self.erfa_expires = erfa.leap_seconds._expires
 
     def teardown_method(self):
-        self.erfa_ls.update_erfa_leap_seconds(initialize_erfa=True)
+        erfa.leap_seconds.set(self.erfa_ls)
+        erfa.leap_seconds._expires = self.erfa_expires
 
     def test_deprecated_but_still_updates(self):
         # Remove the 2017 leap second from ERFA.
         expired = self.erfa_ls[self.erfa_ls["year"] < 2017]
-        expired.update_erfa_leap_seconds(initialize_erfa="empty")
+        erfa.leap_seconds.set(expired)
         assert erfa.dat(2018, 1, 1, 0.0) == 36.0
 
         with pytest.warns(AstropyDeprecationWarning, match="discontinued"):

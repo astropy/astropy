@@ -163,12 +163,25 @@ Astropy no longer checks whether that table is up to date the first time a
 a file and could try to download a newer one, giving a warning when offline;
 both are gone. Conversion results do not change.
 
-The functions that existed only to find and load a newer table,
-:func:`~astropy.time.update_leap_seconds` and
-:meth:`~astropy.utils.iers.LeapSeconds.auto_open`, are deprecated, as are the
-``system_leap_second_file``, ``iers_leap_second_auto_url`` and
-``ietf_leap_second_auto_url`` configuration items in
-:class:`astropy.utils.iers.Conf`.
+Everything that existed only to find, read or load leap-second tables other
+than the one built into ERFA is deprecated, and will be removed in a future
+version:
+
+- :func:`~astropy.time.update_leap_seconds`;
+- the :class:`~astropy.utils.iers.LeapSeconds` methods ``auto_open``,
+  ``from_iers_leap_seconds``, ``from_leap_seconds_list`` and
+  ``update_erfa_leap_seconds``, and calling ``open`` with anything other than
+  ``'erfa'``;
+- the ``IERS_LEAP_SECOND_FILE``, ``IERS_LEAP_SECOND_URL`` and
+  ``IETF_LEAP_SECOND_URL`` constants in `astropy.utils.iers`;
+- the ``system_leap_second_file``, ``iers_leap_second_auto_url`` and
+  ``ietf_leap_second_auto_url`` configuration items in
+  :class:`astropy.utils.iers.Conf`.
+
+To get the leap-second table as an astropy table, use
+:meth:`~astropy.utils.iers.LeapSeconds.from_erfa`, which now also has the
+``day`` and ``mjd`` columns of the tables read from files. ``LeapSeconds.open()``
+now returns the same table.
 
 Contributors to the 8.1 release
 ===============================
