@@ -1,0 +1,4 @@
+Consolidate the ``Parameter`` value handling in the model to use purely public
+methods on the ``Parameter`` instead of having the model reach into the private
+attributes of the ``Parameter``. This is a step towards simplifying the ``Parameter``
+object.
