@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import erfa
 import numpy as np
 import pytest
+from astropy_iers_data import IERS_LEAP_SECOND_FILE
 from numpy.testing import assert_array_equal
 
 from astropy.time import Time
@@ -21,6 +22,10 @@ SYSTEM_FILE = "/usr/share/zoneinfo/leap-seconds.list"
 LEAP_SECOND_LIST = get_pkg_data_filename("data/leap-seconds.list")
 
 
+# Reading leap-second files is deprecated, but still tested until removal.
+@pytest.mark.filterwarnings(
+    "ignore::astropy.utils.exceptions.AstropyDeprecationWarning"
+)
 class TestReading:
     """Basic tests that leap seconds can be read."""
 
@@ -35,7 +40,7 @@ class TestReading:
         assert np.all(t == Time(ls["mjd"], format="mjd"))
 
     def test_read_leap_second_dat(self):
-        ls = iers.LeapSeconds.from_iers_leap_seconds(iers.IERS_LEAP_SECOND_FILE)
+        ls = iers.LeapSeconds.from_iers_leap_seconds(IERS_LEAP_SECOND_FILE)
         # Below, >= to take into account we might ship and updated file.
         assert ls.expires >= Time("2020-06-28", scale="tai")
         assert ls["mjd"][0] == 41317
@@ -52,7 +57,7 @@ class TestReading:
             else:
                 locale.setlocale(locale.LC_ALL, "fr_FR.utf8")
 
-            ls = iers.LeapSeconds.from_iers_leap_seconds(iers.IERS_LEAP_SECOND_FILE)
+            ls = iers.LeapSeconds.from_iers_leap_seconds(IERS_LEAP_SECOND_FILE)
         except locale.Error as e:
             pytest.skip(f"Locale error: {e}")
         finally:
@@ -62,8 +67,8 @@ class TestReading:
         assert ls.expires >= Time("2020-06-28", scale="tai")
 
     def test_open_leap_second_dat(self):
-        ls = iers.LeapSeconds.from_iers_leap_seconds(iers.IERS_LEAP_SECOND_FILE)
-        ls2 = iers.LeapSeconds.open(iers.IERS_LEAP_SECOND_FILE)
+        ls = iers.LeapSeconds.from_iers_leap_seconds(IERS_LEAP_SECOND_FILE)
+        ls2 = iers.LeapSeconds.open(IERS_LEAP_SECOND_FILE)
         assert np.all(ls == ls2)
 
     @pytest.mark.parametrize(
@@ -99,7 +104,7 @@ class TestReading:
 
 def make_fake_file(expiration, tmp_path):
     """copy the built-in IERS file but set a different expiration date."""
-    ls = iers.LeapSeconds.from_iers_leap_seconds()
+    ls = iers.LeapSeconds._from_iers_leap_seconds()
     fake_file = str(tmp_path / "fake_leap_seconds.dat")
     with open(fake_file, "w") as fh:
         fh.write(
@@ -108,6 +113,9 @@ def make_fake_file(expiration, tmp_path):
         return fake_file
 
 
+@pytest.mark.filterwarnings(
+    "ignore::astropy.utils.exceptions.AstropyDeprecationWarning"
+)
 def test_fake_file(tmp_path):
     fake_file = make_fake_file("28 June 2345", tmp_path)
     fake = iers.LeapSeconds.from_iers_leap_seconds(fake_file)
@@ -120,19 +128,19 @@ class TestDeprecatedAutoOpen:
     def test_auto_open_default(self):
         with pytest.warns(AstropyDeprecationWarning, match="auto_open is deprecated"):
             ls = iers.LeapSeconds.auto_open()
-        assert ls.meta["data_url"] == iers.IERS_LEAP_SECOND_FILE
-        assert np.all(ls == iers.LeapSeconds.from_iers_leap_seconds())
+        assert ls.meta["data_url"] == IERS_LEAP_SECOND_FILE
+        assert np.all(ls == iers.LeapSeconds._from_iers_leap_seconds())
 
-    def test_open_without_file(self):
-        with pytest.warns(AstropyDeprecationWarning, match="without a file"):
-            ls = iers.LeapSeconds.open()
-        assert ls.meta["data_url"] == iers.IERS_LEAP_SECOND_FILE
+    def test_open_none(self):
+        with pytest.warns(AstropyDeprecationWarning, match="other than 'erfa'"):
+            ls = iers.LeapSeconds.open(None)
+        assert ls.meta["data_url"] == IERS_LEAP_SECOND_FILE
 
     def test_auto_open_picks_latest_expiration(self, tmp_path):
         fake_file = make_fake_file("28 June 2345", tmp_path)
         with pytest.warns(AstropyDeprecationWarning, match="auto_open is deprecated"):
             ls = iers.LeapSeconds.auto_open(
-                ["nonsense", iers.IERS_LEAP_SECOND_FILE, fake_file]
+                ["nonsense", IERS_LEAP_SECOND_FILE, fake_file]
             )
         assert ls.meta["data_url"] == fake_file
         assert ls.expires == Time("2345-06-28", scale="tai")
@@ -172,7 +180,7 @@ class ERFALeapSecondsSafe:
 class TestFromERFA(ERFALeapSecondsSafe):
     def test_get_erfa_ls(self):
         ls = iers.LeapSeconds.from_erfa()
-        assert ls.colnames == ["year", "month", "tai_utc"]
+        assert ls.colnames == ["year", "month", "tai_utc", "day", "mjd"]
         assert isinstance(ls.expires, Time)
         assert ls.expires.datetime.date() == self.erfa_expires
         ls_array = np.array(ls["year", "month", "tai_utc"])
@@ -180,7 +188,7 @@ class TestFromERFA(ERFALeapSecondsSafe):
 
     def test_get_built_in_erfa_ls(self):
         ls = iers.LeapSeconds.from_erfa(built_in=True)
-        assert ls.colnames == ["year", "month", "tai_utc"]
+        assert ls.colnames == ["year", "month", "tai_utc", "day", "mjd"]
         assert isinstance(ls.expires, Time)
         ls_array = np.array(ls["year", "month", "tai_utc"])
         assert np.all(ls_array == self.erfa_ls[: len(ls_array)])
@@ -206,7 +214,74 @@ class TestFromERFA(ERFALeapSecondsSafe):
         ls_array = np.array(ls["year", "month", "tai_utc"])
         assert np.all(ls_array == self.erfa_ls)
 
+    def test_day_mjd_columns(self):
+        ls = iers.LeapSeconds.from_erfa()
+        assert np.all(ls["day"] == 1)
+        t = Time(
+            {"year": ls["year"], "month": ls["month"], "day": ls["day"]},
+            format="ymdhms",
+            scale="tai",
+        )
+        assert np.all(ls["mjd"] == t.mjd)
+        # From 1972 on, the table matches that in the bundled IERS file.
+        ls_file = iers.LeapSeconds._from_iers_leap_seconds()
+        ls_1972 = ls[ls["year"] >= 1972]
+        for name in ("year", "month", "day", "mjd", "tai_utc"):
+            assert np.all(ls_1972[name] == ls_file[name])
 
+    def test_open_erfa_is_default(self):
+        ls = iers.LeapSeconds.open()
+        assert np.all(ls == iers.LeapSeconds.from_erfa())
+
+
+class TestDeprecations(ERFALeapSecondsSafe):
+    """Leap seconds were discontinued, so only the ERFA table remains."""
+
+    @pytest.mark.parametrize(
+        "method", ["from_iers_leap_seconds", "from_leap_seconds_list", "open"]
+    )
+    def test_reading_files(self, method):
+        file = LEAP_SECOND_LIST if method == "from_leap_seconds_list" else None
+        file = file or IERS_LEAP_SECOND_FILE
+        with pytest.warns(AstropyDeprecationWarning, match="from_erfa"):
+            ls = getattr(iers.LeapSeconds, method)(file)
+        assert ls["tai_utc"][-1] == 37
+
+    def test_update_erfa_leap_seconds(self):
+        ls = iers.LeapSeconds.from_erfa()
+        with pytest.warns(AstropyDeprecationWarning, match="erfa.leap_seconds.set"):
+            assert ls.update_erfa_leap_seconds() == 0
+
+    @pytest.mark.parametrize(
+        "name",
+        ["IERS_LEAP_SECOND_FILE", "IERS_LEAP_SECOND_URL", "IETF_LEAP_SECOND_URL"],
+    )
+    def test_constants(self, name):
+        import astropy_iers_data
+
+        from astropy.utils import iers as iers_package
+
+        expected = getattr(
+            astropy_iers_data,
+            "IERS_LEAP_SECOND_URL_MIRROR" if name.startswith("IETF") else name,
+        )
+        for module in (iers, iers_package):
+            with pytest.warns(AstropyDeprecationWarning, match=f"{name} is deprecated"):
+                assert getattr(module, name) == expected
+        assert name not in iers.__all__
+
+    def test_missing_attribute(self):
+        from astropy.utils import iers as iers_package
+
+        for module in (iers, iers_package):
+            with pytest.raises(AttributeError, match="no attribute 'nonsense'"):
+                module.nonsense
+
+
+# Updating ERFA from a LeapSeconds table is deprecated, but still tested.
+@pytest.mark.filterwarnings(
+    "ignore::astropy.utils.exceptions.AstropyDeprecationWarning"
+)
 class TestUpdateLeapSeconds(ERFALeapSecondsSafe):
     def setup_method(self):
         super().setup_method()

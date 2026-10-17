@@ -79,8 +79,9 @@ _dataurls_to_alias = {}
 
 
 _IERS_DATA_REDIRECTS = {
+    # Leap seconds were discontinued, so no longer point to the file itself.
     "Leap_Second.dat": (
-        "IERS_LEAP_SECOND_FILE",
+        "LeapSeconds.from_erfa()",
         astropy_iers_data.IERS_LEAP_SECOND_FILE,
     ),
     "ReadMe.finals2000A": ("IERS_A_README", astropy_iers_data.IERS_A_README),

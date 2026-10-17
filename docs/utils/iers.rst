@@ -19,8 +19,8 @@ orientation for celestial-to-terrestrial coordinate transformations.
 .. note:: Leap seconds have been discontinued (see
           :ref:`leap seconds in astropy.time <time-leap-seconds>`), so the
           leap-second table built into |PyERFA| is final and astropy no longer
-          updates it.  The `~astropy.utils.iers.LeapSeconds` class remains
-          available for reading leap-second files.
+          updates it.  `astropy.utils.iers.LeapSeconds.from_erfa` gives that
+          table as an astropy table; reading leap-second files is deprecated.
 
 There are two IERS data products that we discuss here:
 
