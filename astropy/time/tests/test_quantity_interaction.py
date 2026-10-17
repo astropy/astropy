@@ -18,13 +18,13 @@ class TestTimeQuantity:
 
     def test_valid_quantity_input(self):
         """Test Time formats that are allowed to take quantity input."""
-        q = 2450000.125 * u.day
+        q = 2.450000125e6 * u.day
         t1 = Time(q, format="jd", scale="utc")
         assert t1.value == q.value
         q2 = q.to(u.second)
         t2 = Time(q2, format="jd", scale="utc")
         assert t2.value == q.value == q2.to_value(u.day)
-        q3 = q - 2400000.5 * u.day
+        q3 = q - 2.4000005e6 * u.day
         t3 = Time(q3, format="mjd", scale="utc")
         assert t3.value == q3.value
         # test we can deal with two quantity arguments, with different units
@@ -50,10 +50,10 @@ class TestTimeQuantity:
 
     def test_invalid_quantity_input(self):
         with pytest.raises(u.UnitsError):
-            Time(2450000.0 * u.m, format="jd", scale="utc")
+            Time(2.45e6 * u.m, format="jd", scale="utc")
 
         with pytest.raises(u.UnitsError):
-            Time(2450000.0 * u.dimensionless_unscaled, format="jd", scale="utc")
+            Time(2.45e6 * u.dimensionless_unscaled, format="jd", scale="utc")
 
     def test_column_with_and_without_units(self):
         """Ensure a Column without a unit is treated as an array [#3648]"""
@@ -116,10 +116,10 @@ class TestTimeDeltaQuantity:
 
     def test_invalid_quantity_input(self):
         with pytest.raises(u.UnitsError):
-            TimeDelta(2450000.0 * u.m, format="jd")
+            TimeDelta(2.45e6 * u.m, format="jd")
 
         with pytest.raises(u.UnitsError):
-            Time(2450000.0 * u.dimensionless_unscaled, format="jd", scale="utc")
+            Time(2.45e6 * u.dimensionless_unscaled, format="jd", scale="utc")
 
         with pytest.raises(TypeError):
             TimeDelta(100, format="sec") > 10.0 * u.m  # noqa: B015

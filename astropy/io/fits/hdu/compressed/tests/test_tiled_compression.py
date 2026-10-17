@@ -52,7 +52,7 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
         canonical_data_base_path / "compressed_with_nan.fits",
         disable_image_compression=True,
     ) as hduc:
-        assert hduc[1].header["ZBLANK"] == -2147483647
+        assert hduc[1].header["ZBLANK"] == -2_147_483_647
 
     reference = np.arange(144).reshape((12, 12)).astype(float)
     reference[1, 1] = np.nan
@@ -74,7 +74,7 @@ def test_zblank_support(canonical_data_base_path, tmp_path):
     ) as hduc:
         # The ZBLANK value is different from before as we don't preserve it,
         # instead we always write out with the default ZBLANK
-        assert hduc[1].header["ZBLANK"] == -2147483648
+        assert hduc[1].header["ZBLANK"] == -2_147_483_648
 
     with fits.open(tmp_path / "test_zblank.fits") as hdul:
         assert_equal(np.round(hdul[1].data), reference)

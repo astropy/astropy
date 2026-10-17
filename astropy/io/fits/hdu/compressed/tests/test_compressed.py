@@ -1508,7 +1508,7 @@ def test_reserved_keywords_stripped(tmp_path):
         tmp_path / "compressed.fits", disable_image_compression=True
     ) as hduc:
         hduc[1].header["THEAP"] = hduc[1].header["NAXIS1"] * hduc[1].header["NAXIS2"]
-        hduc[1].header["ZBLANK"] = 1231212
+        hduc[1].header["ZBLANK"] = 1_231_212
         hduc[1].header["ZSCALE"] = 2
         hduc[1].header["ZZERO"] = 10
         hduc[1].writeto(tmp_path / "compressed_with_extra.fits")
@@ -1598,7 +1598,7 @@ def test_compressed_hdu_header_order():
     """Test that the headers cards end up in the correct order for the
     compressed image HDU."""
 
-    rng = np.random.default_rng(seed=5301753)
+    rng = np.random.default_rng(seed=5_301_753)
     header = fits.Header()
     header["a"] = "b"
     header["c"] = "d"

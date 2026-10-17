@@ -169,7 +169,7 @@ def test_Gaussian2D_theta():
 
 @pytest.mark.parametrize("gamma", (10, -10))
 def test_moffat_fwhm(gamma):
-    ans = 34.641016151377542
+    ans = 34.64101615137754
     kwargs = {"gamma": gamma, "alpha": 0.5}
     m1 = models.Moffat1D(**kwargs)
     m2 = models.Moffat2D(**kwargs)

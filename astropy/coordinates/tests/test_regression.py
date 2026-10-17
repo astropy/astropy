@@ -573,9 +573,9 @@ def test_regression_6697():
         348.63632871, -212.31704928, -0.60154936, unit=u.m / u.s
     )
     location = EarthLocation(
-        5327448.9957829, -1718665.73869569, 3051566.90295403, unit=u.m
+        5.3274489957829e6, -1.71866573869569e6, 3.05156690295403e6, unit=u.m
     )
-    t = Time(2458036.161966612, format="jd")
+    t = Time(2.458036161966612e6, format="jd")
     obsgeopos, obsgeovel = location.get_gcrs_posvel(t)
     delta = (obsgeovel - pint_vels).norm()
     assert delta < 1 * u.cm / u.s
@@ -687,7 +687,7 @@ def test_regression_10422(mjd):
     # Avoid trying to download new IERS data.
     with iers.conf.set_temp("auto_max_age", None):
         t = Time(mjd, format="mjd", scale="tai")
-        loc = EarthLocation(88258.0 * u.m, -4924882.2 * u.m, 3943729.0 * u.m)
+        loc = EarthLocation(88258.0 * u.m, -4.9248822e6 * u.m, 3.943729e6 * u.m)
         p, v = loc.get_gcrs_posvel(obstime=t)
         assert p.shape == v.shape == t.shape
 
