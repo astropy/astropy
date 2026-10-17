@@ -96,9 +96,7 @@ important to consider are the following:
   auto_download:
     Enable auto-downloading of the latest IERS-A data.  If set to ``False`` then
     the bundled IERS-A file will be used by default (even if a newer
-    versions of the IERS-A file was already downloaded and cached).  This
-    parameter also controls whether internet resources will be queried to update
-    the leap second table if the installed version is out of date.
+    versions of the IERS-A file was already downloaded and cached).
 
   auto_max_age:
     Maximum age of predictive data before auto-downloading (days).  See

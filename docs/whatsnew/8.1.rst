@@ -18,6 +18,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.1-qtable-int-columns`
 * :ref:`whatsnew-8.1-reading-int-columns`
 * :ref:`whatsnew-8.1-pyodide-wheels`
+* :ref:`whatsnew-8.1-leap-seconds`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -145,6 +146,29 @@ Astropy now builds and publishes WebAssembly wheels (``pyemscripten_*_wasm32``, 
 installed with ``pip`` (for example via ``micropip``) under `Pyodide
 <https://pyodide.org>`_ and PyScript, rather than relying on the copy vendored in the
 Pyodide distribution.
+
+.. _whatsnew-8.1-leap-seconds:
+
+No more leap-second updates
+===========================
+
+Leap seconds have been discontinued: `Resolution 5 of the 28th CGPM (2026)
+<https://www.bipm.org/en/cgpm-2026/resolution-5>`_ makes UTC continuous from
+2027 May 20, and IERS Bulletin C 72 had already ruled out a leap second before
+then. The table of leap seconds built into |PyERFA|, whose last entry is 2017
+January 1, is therefore final.
+
+Astropy no longer checks whether that table is up to date the first time a
+:class:`~astropy.time.Time` is converted to or from UTC. That check used to read
+a file and could try to download a newer one, giving a warning when offline;
+both are gone. Conversion results do not change.
+
+The functions that existed only to find and load a newer table,
+:func:`~astropy.time.update_leap_seconds` and
+:meth:`~astropy.utils.iers.LeapSeconds.auto_open`, are deprecated, as are the
+``system_leap_second_file``, ``iers_leap_second_auto_url`` and
+``ietf_leap_second_auto_url`` configuration items in
+:class:`astropy.utils.iers.Conf`.
 
 Contributors to the 8.1 release
 ===============================

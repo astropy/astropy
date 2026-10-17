@@ -53,11 +53,6 @@ for root, dirnames, files in os.walk(os.path.join(ROOT, "astropy")):
 with open(os.path.join("astropy_tests", "__init__.py"), "w") as f:
     f.write("#")
 
-# Remove test file that tries to import all sub-packages at collection time
-os.remove(
-    os.path.join("astropy_tests", "utils", "iers", "tests", "test_leap_second.py")
-)
-
 # Remove convolution tests for now as there are issues with the loading of the C extension.
 # FIXME: one way to fix this would be to migrate the convolution C extension away from using
 # ctypes and using the regular extension mechanism instead.
