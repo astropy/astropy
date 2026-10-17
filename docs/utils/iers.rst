@@ -16,10 +16,10 @@ times.  The UT1-UTC values are used in :ref:`astropy-time` to provide UT1 values
 the polar motions are used in `astropy.coordinates` to determine Earth
 orientation for celestial-to-terrestrial coordinate transformations.
 
-.. note:: The package also provides machinery to track leap seconds.  Since it
-          generally should not be necessary to deal with those by hand, this
-          is not discussed below.  For details, see the documentation of
-          `~astropy.utils.iers.LeapSeconds`.
+.. note:: Leap seconds have been discontinued (see :ref:`time-leap-seconds`),
+          so the leap-second table built into |PyERFA| is final and astropy no
+          longer updates it.  The `~astropy.utils.iers.LeapSeconds` class remains
+          available for reading leap-second files.
 
 There are two IERS data products that we discuss here:
 
@@ -153,8 +153,7 @@ that require IERS data, there are a couple of options.
 
 If you are planning to work without an internet connection, we recommend updating
 the astropy-iers-data package to the latest available version, using e.g., ``pip``
-or ``conda``, as this will ensure that you have the most recent IERS and leap
-second data.
+or ``conda``, as this will ensure that you have the most recent IERS data.
 
 **Disable auto downloading**
 
