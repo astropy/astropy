@@ -1,0 +1,2 @@
+Byte-string ``Column`` and ``MaskedColumn`` operations with flat bytes-only
+sequences avoid an unnecessary temporary array conversion.

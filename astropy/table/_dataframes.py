@@ -8,7 +8,6 @@ library.
 
 from __future__ import annotations
 
-import math
 import warnings
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, NewType
@@ -19,6 +18,7 @@ import numpy.typing as npt
 from astropy.units.typing import UnitLike
 from astropy.utils.compat.optional_deps import HAS_NARWHALS, HAS_PANDAS
 
+from ._column_mixins import _get_string_fill_value
 from .column import Column, MaskedColumn
 from .table import Table
 
@@ -385,16 +385,10 @@ def from_df(
         # Handle string-like columns
         elif isinstance(dtype, (nw.String, nw.Binary, nw.Object)):
             if data.dtype.kind == "O":
-                ts = (str, bytes)
-                # If all elements of an object array are string-like or None or np.nan
-                # then coerce back to a native numpy str/unicode array.
-                if all((x is None) or isinstance(x, ts) or math.isnan(x) for x in data):
-                    # Force any missing (null) values to b''.  Numpy will
-                    # upcast to str/unicode as needed. We go via a list to
-                    # avoid replacing objects in a view of the pandas array and
-                    # to ensure numpy initializes to string or bytes correctly.
+                fill = _get_string_fill_value(data)
+                if fill is not None:
                     data = np.array(
-                        [b"" if m else d for (d, m) in zip(data, nw_mask.to_numpy())]
+                        [fill if m else d for (d, m) in zip(data, nw_mask.to_numpy())]
                     )
 
         if nw_mask.any():
@@ -526,16 +520,9 @@ def from_pandas(
             continue
 
         if data.dtype.kind == "O":
-            # If all elements of an object array are string-like or np.nan
-            # then coerce back to a native numpy str/unicode array.
-            string_types = (str, bytes)
-            nan = np.nan
-            if all(isinstance(x, string_types) or x is nan for x in data):
-                # Force any missing (null) values to b''.  Numpy will
-                # upcast to str/unicode as needed. We go via a list to
-                # avoid replacing objects in a view of the pandas array and
-                # to ensure numpy initializes to string or bytes correctly.
-                data = np.array([b"" if m else d for (d, m) in zip(data, mask)])
+            fill = _get_string_fill_value(data, legacy_pandas=True)
+            if fill is not None:
+                data = np.array([fill if m else d for (d, m) in zip(data, mask)])
 
         # Numpy datetime64
         if data.dtype.kind == "M":

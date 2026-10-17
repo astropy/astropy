@@ -931,6 +931,10 @@ def assert_objects_equal(obj1, obj2, attrs, compare_class=True):
             # FITS does not perfectly preserve dtype: byte order can change, and
             # unicode gets stored as bytes.  So, we just check safe casting, to
             # ensure we do not, e.g., accidentally change integer to float, etc.
+            if a1.names is not None:
+                expected = Table(np.empty(0, dtype=a1))
+                expected.convert_unicode_to_bytestring()
+                a1 = expected.as_array().dtype
             assert np.can_cast(a2, a1, casting="safe")
         else:
             assert np.all(a1 == a2)

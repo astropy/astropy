@@ -25,7 +25,11 @@ from astropy.utils.misc import dtype_bytes_or_chars
 from . import groups, pprint
 
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
-from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
+from ._column_mixins import (
+    _ColumnGetitemShim,
+    _get_string_dtype,
+    _MaskedColumnGetitemShim,
+)
 from ._typing import ColumnFormat, ColumnLike, DataLike
 
 if TYPE_CHECKING:
@@ -1233,7 +1237,10 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         elif isinstance(value, bytes) or value is np.ma.masked:
             pass
         else:
-            arr = np.asarray(value)
+            dtype = _get_string_dtype(value)
+            if dtype == "S":
+                return value
+            arr = np.asarray(value, dtype=dtype)
             if arr.dtype.char == "U":
                 arr = np.strings.encode(arr, encoding="utf-8")
                 if isinstance(value, np.ma.MaskedArray):
@@ -1727,7 +1734,11 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             # If mask is None then we need to determine the mask (if any) from the data.
             # The naive method is looking for a mask attribute on data, but this can fail,
             # see #8816.  Instead use ``MaskedArray`` to do the work.
-            mask = ma.MaskedArray(data).mask
+            # Avoid converting strings and bytes while inferring the mask.
+            mask_dtype = None
+            if isinstance(data, (list, tuple)) and np.dtype(dtype).kind in "SUO":
+                mask_dtype = object
+            mask = ma.MaskedArray(data, dtype=mask_dtype).mask
             if mask is np.ma.nomask:
                 # Handle odd-ball issue with np.ma.nomask (numpy #13758), and see below.
                 mask = False
