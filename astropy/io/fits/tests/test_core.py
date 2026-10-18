@@ -784,54 +784,56 @@ class TestFileFunctions(FitsTestCase):
             assert len(new_handle) == 6
             assert (new_handle[-1].data == list(range(100))).all()
 
-    @pytest.mark.filterwarnings("ignore:Error validating header")
-    @pytest.mark.parametrize(
-        "corruption", ["truncated_gzip", "truncated_fits", "not_fits"]
-    )
-    def test_fits_update_mode_gzip_corrupt(self, corruption):
-        """Opening a truncated or corrupt gzipped file in update mode raises an
-        error, rather than the file being rewritten on close with only the HDUs
-        that could be read (or emptied if none could)."""
+    def _write_truncated_gzip(self):
         with open(self.data("test0.fits"), "rb") as f:
-            data = f.read()
+            content = gzip.compress(f.read())[:-100]
 
-        if corruption == "truncated_gzip":
-            content = gzip.compress(data)[:-100]
-        elif corruption == "truncated_fits":
-            content = gzip.compress(data[:-100])
-        else:
-            content = gzip.compress(b"a,b,c\n1,2,3\n" * 100)
-
-        filename = self.temp("corrupt.fits.gz")
+        filename = self.temp("truncated.fits.gz")
         with open(filename, "wb") as f:
             f.write(content)
 
-        with pytest.raises(OSError, match="truncated or corrupt"):
-            fits.open(filename, mode="update")
+        return filename
 
-        with open(filename, "rb") as f:
-            assert f.read() == content
+    def test_fits_truncated_gzip_warns(self):
+        """Reading a truncated gzipped file warns that it could not be read
+        completely, rather than silently ignoring the missing data."""
+        filename = self._write_truncated_gzip()
 
-    @pytest.mark.filterwarnings("ignore:Unexpected extra padding")
-    @pytest.mark.parametrize("content", ["empty", "zero_padded"])
-    def test_fits_update_mode_gzip_empty_or_padded(self, content):
-        """Empty gzipped files, and gzipped files with zero padding at the end,
-        can still be opened in update mode."""
-        if content == "empty":
-            data = b""
-        else:
-            with open(self.data("test0.fits"), "rb") as f:
-                data = f.read() + b"\0" * 2880
+        with pytest.warns(AstropyUserWarning, match="ended unexpectedly"):
+            with fits.open(filename) as fits_handle:
+                fits_handle.readall()
 
-        filename = self.temp("update.fits.gz")
-        with gzip.open(filename, "wb") as f:
-            f.write(data)
+    def test_fits_update_mode_truncated_gzip_warns(self):
+        """In update mode, the warning is issued as soon as the file is opened,
+        before any changes are made, since the parts of the file that could not
+        be read are lost when it is rewritten."""
+        filename = self._write_truncated_gzip()
 
-        with fits.open(filename, mode="update") as fits_handle:
-            fits_handle.append(fits.ImageHDU(data=list(range(100))))
+        with pytest.warns(
+            AstropyUserWarning, match="ended unexpectedly.*lost if it is saved"
+        ):
+            fits_handle = fits.open(filename, mode="update")
 
-        with fits.open(filename) as new_handle:
-            assert (new_handle[-1].data == list(range(100))).all()
+        fits_handle.close()
+
+    @pytest.mark.skipif(not HAS_BZ2, reason="Python built without bz2 module")
+    def test_fits_truncated_bzip2_warns(self):
+        """Truncated bzip2-compressed files also warn."""
+        # bzip2 compresses in blocks of up to 900 kB, so use a file large enough
+        # that the blocks before the truncated one can still be read
+        buf = io.BytesIO()
+        fits.HDUList(
+            [fits.PrimaryHDU(np.arange(250_000.0)), fits.ImageHDU(np.arange(250_000.0))]
+        ).writeto(buf)
+        content = bz2.compress(buf.getvalue())[:-100]
+
+        filename = self.temp("truncated.fits.bz2")
+        with open(filename, "wb") as f:
+            f.write(content)
+
+        with pytest.warns(AstropyUserWarning, match="ended unexpectedly"):
+            with fits.open(filename) as fits_handle:
+                fits_handle.readall()
 
     def test_fits_append_mode_gzip(self):
         """Make sure that attempting to open an existing GZipped FITS file in

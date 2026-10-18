@@ -12,7 +12,7 @@ from textwrap import indent
 import numpy as np
 
 from astropy.io.fits.file import FILE_MODES, _File
-from astropy.io.fits.header import BLOCK_SIZE, _pad_length
+from astropy.io.fits.header import _pad_length
 from astropy.io.fits.util import (
     _free_space_check,
     _get_array_mmap,
@@ -1273,17 +1273,9 @@ class HDUList(list, _Verify):
 
         if fileobj is not None and mode == "update" and fileobj.compression:
             # Compressed files are rewritten from the HDUs in memory when they
-            # are flushed, so any part of the file that cannot be read would be
-            # silently lost (and a file that cannot be read at all emptied)
+            # are flushed, so read them all now in order to warn about any part
+            # of the file that cannot be read before it is lost
             hdulist.readall()
-            if not hdulist._compressed_file_fully_read():
-                if fileobj.close_on_error:
-                    fileobj.close()
-
-                raise OSError(
-                    "Compressed FITS file is truncated or corrupt and cannot be "
-                    "opened in update mode without losing data"
-                )
 
         if not lazy_load_hdus or kwargs.get("checksum") is True:
             # Go ahead and load all HDUs
@@ -1343,7 +1335,22 @@ class HDUList(list, _Verify):
                                 fileobj.seek(offset, os.SEEK_SET)
 
                         hdu = _BaseHDU.readfrom(fileobj, **kwargs)
-                    except EOFError:
+                    except EOFError as exc:
+                        # A bare EOFError marks the normal end of the file, but
+                        # the decompressor raises one with a message when a
+                        # compressed file ends before its end-of-stream marker
+                        if fileobj.compression and exc.args:
+                            msg = (
+                                f"The compressed file ended unexpectedly ({exc}), "
+                                "so it may be truncated or corrupt. Only "
+                                f"{len(self)} HDU(s) could be read"
+                            )
+                            if fileobj.mode == "update":
+                                msg += (
+                                    ", and the rest of the file will be lost "
+                                    "if it is saved"
+                                )
+                            warnings.warn(f"{msg}.", AstropyUserWarning)
                         self._read_all = True
                         return False
                     except OSError:
@@ -1400,34 +1407,6 @@ class HDUList(list, _Verify):
                 return False
         finally:
             self._in_read_next_hdu = False
-
-        return True
-
-    def _compressed_file_fully_read(self):
-        """
-        Check that the HDUs read from a compressed file account for all of its
-        decompressed contents, apart from any zero padding at the end.
-        """
-        fileobj = self._file
-        end = 0
-        if len(self) > 0:
-            last = self[-1]
-            if last._data_offset is not None:
-                end = last._data_offset + last._data_size
-
-        try:
-            fileobj.seek(end)
-            if fileobj.tell() < end:
-                # The data of the last HDU is cut short
-                return False
-
-            while block := fileobj.read(BLOCK_SIZE):
-                if block.strip(b"\0"):
-                    # Data that could not be read as an HDU
-                    return False
-        except EOFError:
-            # The compressed stream ends before its end-of-stream marker
-            return False
 
         return True
 

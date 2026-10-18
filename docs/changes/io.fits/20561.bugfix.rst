@@ -1,4 +1,5 @@
-Opening a truncated or corrupt gzip-compressed FITS file with ``mode="update"``
-now raises an ``OSError``. Previously the file was opened without error, and
-closing it rewrote the file with only the HDUs that could be read, silently
-discarding the rest of its contents (or all of it, if no HDU could be read).
+A warning is now emitted when a compressed (gzip, bzip2 or lzma) FITS file ends
+unexpectedly, for example because it is truncated. Previously the missing data
+was silently ignored, and when such a file was opened with ``mode="update"``,
+saving it discarded the parts of the file that could not be read without any
+indication. In update mode the warning is emitted when the file is opened.
