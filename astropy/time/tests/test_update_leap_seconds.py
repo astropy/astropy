@@ -1,13 +1,15 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from concurrent.futures import ThreadPoolExecutor
+
+import subprocess
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from textwrap import dedent
 
 import erfa
 import pytest
 
-import astropy.time.core
-from astropy.time import Time, update_leap_seconds
+from astropy.time import update_leap_seconds
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
 
@@ -69,34 +71,54 @@ class TestUpdateLeapSeconds:
             update_leap_seconds([bad_file])
 
     def test_auto_update_expired_file(self, tmp_path):
-        # Set up expired ERFA leap seconds.
-        expired = self.erfa_ls[self.erfa_ls["year"] < 2017]
-        expired.update_erfa_leap_seconds(initialize_erfa="empty")
-        # Create similarly expired file.
-        expired_file = str(tmp_path / "expired.dat")
-        Path(expired_file).write_text(
+        # Copy the built-in file, but with an expiration date in the past.
+        # Leap seconds were discontinued, so the ERFA table itself is never
+        # treated as expired; only a file can be.
+        expired_file = tmp_path / "expired.dat"
+        lines = Path(iers.IERS_LEAP_SECOND_FILE).read_text().splitlines()
+        expired_file.write_text(
             "\n".join(
-                ["# File expires on 28 June 2010"] + [str(item) for item in expired]
+                "#  File expires on 28 June 2010" if "File expires" in line else line
+                for line in lines
             )
         )
         with pytest.warns(iers.IERSStaleWarning):
-            update_leap_seconds(["erfa", expired_file])
+            update_leap_seconds([expired_file])
 
-    def test_init_thread_safety(self, monkeypatch):
-        # Set up expired ERFA leap seconds.
-        expired = self.erfa_ls[self.erfa_ls["year"] < 2017]
-        expired.update_erfa_leap_seconds(initialize_erfa="empty")
-        # Force re-initialization, even if another test already did it
-        monkeypatch.setattr(
-            astropy.time.core,
-            "_LEAP_SECONDS_CHECK",
-            astropy.time.core._LeapSecondsCheck.NOT_STARTED,
-        )
-        workers = 4
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            futures = [
-                executor.submit(lambda: str(Time("2019-01-01 00:00:00.000").tai))
-                for i in range(workers)
-            ]
-            results = [future.result() for future in futures]
-            assert results == ["2019-01-01 00:00:37.000"] * workers
+
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
+def test_utc_conversion_does_not_update_erfa():
+    """Leap seconds were discontinued, so Time no longer updates ERFA's table.
+
+    Getting the table with LeapSeconds.from_erfa() ensures that the ERFA
+    table is not considered expired, also for pyerfa versions that do not
+    know leap seconds were discontinued.  This needs a fresh process, since
+    the test process has already done UTC conversions and other tests change
+    the ERFA table.
+    """
+    cmd = dedent("""
+    from datetime import datetime, timedelta
+
+    import erfa
+    import numpy as np
+
+    built_in = erfa.leap_seconds.get().copy()
+    expires = erfa.leap_seconds._expires
+
+    from astropy.time import Time
+    from astropy.utils.iers import LeapSeconds
+
+    assert Time("2020-01-01", scale="utc").tai.iso == "2020-01-01 00:00:37.000"
+    assert Time("2020-01-01", scale="tai").utc.iso == "2019-12-31 23:59:23.000"
+    assert erfa.leap_seconds._expires is expires
+    assert np.all(erfa.leap_seconds.get() == built_in)
+
+    ls = LeapSeconds.from_erfa()
+    assert not erfa.leap_seconds.expired
+    assert erfa.leap_seconds.expires > datetime.now() + timedelta(179)
+    assert ls.expires.datetime.date() == erfa.leap_seconds.expires.date()
+    assert np.all(erfa.leap_seconds.get() == built_in)
+    """)
+    subprocess.check_call([sys.executable, "-c", cmd])
