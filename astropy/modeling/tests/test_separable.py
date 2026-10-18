@@ -191,3 +191,41 @@ def test_custom_model_separable():
 
     assert not model_c().separable
     assert np.all(separability_matrix(model_c()) == [True, True])
+
+
+@pytest.mark.parametrize(
+    "model_cls",
+    [
+        models.Pix2Sky_SansonFlamsteed,
+        models.Sky2Pix_SansonFlamsteed,
+        models.Pix2Sky_BonneEqualArea,
+        models.Sky2Pix_BonneEqualArea,
+        models.Pix2Sky_HEALPix,
+        models.Sky2Pix_HEALPix,
+    ],
+)
+def test_non_separable_projections(model_cls):
+    """Test that pseudocylindrical, Bonne and HEALPix projections are not separable."""
+    m = model_cls()
+    assert not m.separable
+    assert np.all(separability_matrix(m) == [[True, True], [True, True]])
+    assert np.all(is_separable(m) == [False, False])
+
+
+@pytest.mark.parametrize(
+    "model_cls",
+    [
+        models.Pix2Sky_Mercator,
+        models.Sky2Pix_Mercator,
+        models.Pix2Sky_PlateCarree,
+        models.Sky2Pix_PlateCarree,
+        models.Pix2Sky_CylindricalEqualArea,
+        models.Sky2Pix_CylindricalEqualArea,
+    ],
+)
+def test_separable_cylindrical_projections(model_cls):
+    """Test that cylindrical projections remain separable."""
+    m = model_cls()
+    assert m.separable
+    assert np.all(separability_matrix(m) == [[True, False], [False, True]])
+    assert np.all(is_separable(m) == [True, True])

@@ -889,8 +889,6 @@ class PseudoCylindrical(Projection):
     distortion there.  Consequently, the meridians are curved.
     """
 
-    _separable = True
-
 
 class Pix2Sky_SansonFlamsteed(Pix2SkyProjection, PseudoCylindrical):
     r"""
@@ -1331,8 +1329,6 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
         Bonne conformal latitude, in degrees.
     """
 
-    _separable = True
-
     theta1 = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
 
 
@@ -1358,8 +1354,6 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
     theta1 : float
         Bonne conformal latitude, in degrees.
     """
-
-    _separable = True
 
     theta1 = _ParameterDS(
         default=0.0,
@@ -1470,8 +1464,6 @@ class Pix2Sky_HEALPix(Pix2SkyProjection, HEALPix):
 
     """
 
-    _separable = True
-
     H = _ParameterDS(
         default=4.0, description="The number of facets in longitude direction."
     )
@@ -1495,8 +1487,6 @@ class Sky2Pix_HEALPix(Sky2PixProjection, HEALPix):
         The number of facets in latitude direction.
 
     """
-
-    _separable = True
 
     H = _ParameterDS(
         default=4.0, description="The number of facets in longitude direction."

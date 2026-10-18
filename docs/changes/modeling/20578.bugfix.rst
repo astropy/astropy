@@ -1,0 +1,4 @@
+Fixed an issue where pseudocylindrical (e.g., Sanson-Flamsteed), Bonne,
+and HEALPix projections were incorrectly marked as separable (``_separable = True``),
+causing ``separability_matrix`` and ``is_separable`` to falsely report that
+projected coordinates depend on only one input.
