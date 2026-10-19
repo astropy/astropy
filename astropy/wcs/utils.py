@@ -443,8 +443,8 @@ def skycoord_to_celestial_wcs(
         The field of view in physical units. ``fov`` and ``shape`` are mutually
         exclusive and one of them must be provided.
     shape : Sequence[int, int]
-        The image size in pixels (NAXIS). ``fov`` and ``shape`` are mutually exclusive
-        and one of them must be provided.
+        The image size in pixels (NAXIS). It follows the WCS convention (x axis, y axis).
+        ``fov`` and ``shape`` are mutually exclusive and one of them must be provided.
     pixel_angular_size : `~astropy.coordinates.Angle` of length 1 or 2
         The pixel angular size along the x and y axis. It is either of length 2 for each
         axis or of length 1. Then ``cdelt`` will be set to
@@ -486,11 +486,11 @@ def skycoord_to_celestial_wcs(
     CTYPE : 'RA---TAN' 'DEC--TAN'
     CUNIT : '' ''
     CRVAL : 266.4 -29.0
-    CRPIX : 20.5 40.5
+    CRPIX : 40.5 20.5
     PC1_1 PC1_2  : 1.0 0.0
     PC2_1 PC2_2  : 0.0 1.0
     CDELT : -0.1 0.1
-    NAXIS : 40  80
+    NAXIS : 80  40
 
     You can also use ``shape`` instead of ``fov``:
 
@@ -506,11 +506,11 @@ def skycoord_to_celestial_wcs(
     CTYPE : 'RA---TAN' 'DEC--TAN'
     CUNIT : '' ''
     CRVAL : 266.4 -29.0
-    CRPIX : 40.5 20.5
+    CRPIX : 20.5 40.5
     PC1_1 PC1_2  : 1.0 0.0
     PC2_1 PC2_2  : 0.0 1.0
     CDELT : -0.1 0.1
-    NAXIS : 80  40
+    NAXIS : 40  80
     """
     if not reference_position.isscalar:
         raise ValueError(
@@ -557,13 +557,15 @@ def skycoord_to_celestial_wcs(
                 abs(round(angle.to_value("deg") / cdelt))
                 for angle, cdelt in zip(fov, wcs.wcs.cdelt)
             ]
-        wcs.array_shape = [1 if s == 0 else s for s in shape]
+        # reverse order for shape because `array_shape` is in numpy ordering (y/x)
+        # we replace zero values by one pixel in case the field of view was too small
+        wcs.array_shape = [1 if s == 0 else s for s in shape[::-1]]
     else:  # image size
         if len(shape) != 2:
             raise ValueError(
                 f"'shape' should be of length 1 or 2, but is {len(shape)}."
             )
-        wcs.array_shape = shape
+        wcs.array_shape = shape[::-1]  # array_shape is in numpy ordering
 
     if reference_pixel is not None:
         if len(reference_pixel) != 2:
