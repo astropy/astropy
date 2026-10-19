@@ -10,6 +10,18 @@ __all__ = ["deserialize_class", "wcs_info_str"]
 def deserialize_class(tpl, construct=True):
     """
     Deserialize classes recursively.
+
+    Parameters
+    ----------
+    tpl : tuple
+        A ``(class_name, args, kwargs)`` tuple, where ``class_name`` is the
+        fully qualified name of the class, and ``args`` and ``kwargs`` are the
+        positional and keyword arguments needed to construct it. Any of the
+        arguments which are themselves such tuples are deserialized
+        recursively.
+    construct : bool, optional
+        If `True` (default), return an instance of the class. If `False`,
+        return the ``(class, args, kwargs)`` tuple instead.
     """
     if not isinstance(tpl, tuple) or len(tpl) != 3:
         raise ValueError("Expected a tuple of three values")

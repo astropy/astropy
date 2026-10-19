@@ -72,6 +72,12 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         If `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim` is ``1``, this
         method returns a single scalar or array, otherwise a tuple of scalars or
         arrays is returned.
+
+        Parameters
+        ----------
+        *pixel_arrays : float or array-like
+            The pixel coordinates, one scalar or array for each pixel dimension,
+            in ``(x, y)`` order.
         """
 
     def array_index_to_world_values(self, *index_arrays):
@@ -86,6 +92,12 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         If `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_n_dim` is ``1``, this
         method returns a single scalar or array, otherwise a tuple of scalars or
         arrays is returned.
+
+        Parameters
+        ----------
+        *index_arrays : int or array-like
+            The array indices, one scalar or array for each pixel dimension,
+            in ``(i, j)`` order.
         """
         return self.pixel_to_world_values(*index_arrays[::-1])
 
@@ -106,6 +118,13 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         If `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` is ``1``, this
         method returns a single scalar or array, otherwise a tuple of scalars or
         arrays is returned.
+
+        Parameters
+        ----------
+        *world_arrays : float or array-like
+            The world coordinates, one scalar or array for each world dimension,
+            in units given by
+            `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_units`.
         """
 
     def world_to_array_index_values(self, *world_arrays):
@@ -121,6 +140,13 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         If `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_n_dim` is ``1``, this
         method returns a single scalar or array, otherwise a tuple of scalars or
         arrays is returned.
+
+        Parameters
+        ----------
+        *world_arrays : float or array-like
+            The world coordinates, one scalar or array for each world dimension,
+            in units given by
+            `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_units`.
         """
         pixel_arrays = self.world_to_pixel_values(*world_arrays)
         if self.pixel_n_dim == 1:
@@ -355,6 +381,17 @@ with open(UCDS_FILE) as f:
 def validate_physical_types(physical_types):
     """
     Validate a list of physical types against the UCD1+ standard.
+
+    Parameters
+    ----------
+    physical_types : iterable of str or None
+        The physical types to validate. Each must be `None`, a valid UCD1+
+        physical type, or a string starting with ``custom:``.
+
+    Raises
+    ------
+    ValueError
+        If any of the physical types is not valid.
     """
     for physical_type in physical_types:
         if (
