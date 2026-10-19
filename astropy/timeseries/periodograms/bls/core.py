@@ -233,7 +233,7 @@ class BoxLeastSquares(BasePeriodogram):
 
         Parameters
         ----------
-        duration : float, array-like, or `~astropy.units.Quantity` ['time']
+        duration : float, array-like, or `~astropy.units.Quantity`
             The set of durations to test.
         objective : {'likelihood', 'snr'}, optional
             The scalar that should be optimized to find the best fit phase,
@@ -247,7 +247,7 @@ class BoxLeastSquares(BasePeriodogram):
         minimum_n_transit : int, optional
             If ``maximum_period`` is not provided, this is used to compute the
             maximum period to search. See :func:`BoxLeastSquares.autoperiod`.
-        minimum_period, maximum_period : float or `~astropy.units.Quantity` ['time'], optional
+        minimum_period, maximum_period : float or `~astropy.units.Quantity`, optional
             The minimum/maximum periods to search. See
             :func:`BoxLeastSquares.autoperiod`.
         frequency_factor : float, optional
