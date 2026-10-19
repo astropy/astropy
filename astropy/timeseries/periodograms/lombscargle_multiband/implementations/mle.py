@@ -73,22 +73,36 @@ def periodic_fit(  # ruff: ignore[PLR0917]
     reg_band=1e-6,
     regularize_by_trace=True,
 ):
-    """Compute the Lomb-Scargle model fit at a given frequency
+    """Compute the Lomb-Scargle model fit at a given frequency.
 
     Parameters
     ----------
     t, y, dy : float or array-like
-        The times, observations, and uncertainties to fit
+        The times, observations, and uncertainties to fit.
     bands : str, or array-like
-        The bands of each observation
+        The bands of each observation.
     frequency : float
-        The frequency at which to compute the model
+        The frequency at which to compute the model.
     t_fit : float or array-like
-        The times at which the fit should be computed
+        The times at which the fit should be computed.
+    bands_fit : array-like
+        The bands at which the fit should be computed. These must be a subset
+        of the bands in ``bands``.
     center_data : bool (default=True)
-        If True, center the input data before applying the fit
-    nterms : int (default=1)
-        The number of Fourier terms to include in the fit
+        If True, center the input data before applying the fit.
+    nterms_base : int (default=1)
+        The number of Fourier terms to include in the base model common to all
+        bands.
+    nterms_band : int (default=1)
+        The number of Fourier terms to include in the model of the residuals
+        between the base model and each individual band.
+    reg_base : float or None (default=None)
+        Amount of regularization to use on the base model parameters.
+    reg_band : float or None (default=1e-6)
+        Amount of regularization to use on the band model parameters.
+    regularize_by_trace : bool (default=True)
+        If True, then regularization is expressed in units of the trace of
+        the normal matrix.
 
     Returns
     -------

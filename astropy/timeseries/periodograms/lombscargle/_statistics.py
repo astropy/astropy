@@ -235,7 +235,26 @@ def cdf_single(z, N, normalization, dH=1, dK=3):
 
 
 def tau_davies(Z, fmax, t, y, dy, normalization="standard", dH=1, dK=3):  # ruff: ignore[PLR0917]
-    """tau factor for estimating Davies bound (Baluev 2008, Table 1)."""
+    """Tau factor for estimating Davies bound (Baluev 2008, Table 1).
+
+    Parameters
+    ----------
+    Z : array-like
+        The periodogram value.
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+    dH, dK : int, optional
+        The number of parameters in the null hypothesis and the model.
+
+    Returns
+    -------
+    tau : np.ndarray
+        The tau factor.
+    """
     N = len(t)
     NH = N - dH  # DOF for null hypothesis
     NK = N - dK  # DOF for periodic hypothesis
@@ -265,7 +284,24 @@ def tau_davies(Z, fmax, t, y, dy, normalization="standard", dH=1, dK=3):  # ruff
 
 
 def fap_naive(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917]
-    """False Alarm Probability based on estimated number of indep frequencies."""
+    """False Alarm Probability based on estimated number of indep frequencies.
+
+    Parameters
+    ----------
+    Z : array-like
+        The periodogram value.
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+
+    Returns
+    -------
+    false_alarm_probability : np.ndarray
+        The false alarm probability.
+    """
     N = len(t)
     T = max(t) - min(t)
     N_eff = fmax * T
@@ -278,7 +314,24 @@ def fap_naive(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0
 
 
 def inv_fap_naive(fap, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917]
-    """Inverse FAP based on estimated number of indep frequencies."""
+    """Inverse FAP based on estimated number of indep frequencies.
+
+    Parameters
+    ----------
+    fap : array-like
+        The false alarm probability (0 < fap < 1).
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+
+    Returns
+    -------
+    z : np.ndarray
+        The periodogram level.
+    """
     fap = np.asarray(fap)
     N = len(t)
     T = max(t) - min(t)
@@ -294,6 +347,22 @@ def fap_davies(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR
     """Davies upper-bound to the false alarm probability.
 
     (Eqn 5 of Baluev 2008)
+
+    Parameters
+    ----------
+    Z : array-like
+        The periodogram value.
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+
+    Returns
+    -------
+    false_alarm_probability : np.ndarray
+        The false alarm probability.
     """
     N = len(t)
     fap_s = fap_single(Z, N, normalization=normalization)
@@ -303,7 +372,24 @@ def fap_davies(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR
 
 @vectorize_first_argument
 def inv_fap_davies(p, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917]
-    """Inverse of the davies upper-bound."""
+    """Inverse of the davies upper-bound.
+
+    Parameters
+    ----------
+    p : array-like
+        The false alarm probability (0 < p < 1).
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+
+    Returns
+    -------
+    z : np.ndarray
+        The periodogram level.
+    """
     from scipy import optimize
 
     args = (fmax, t, y, dy, normalization)
@@ -319,6 +405,22 @@ def fap_baluev(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR
     """Alias-free approximation to false alarm probability.
 
     (Eqn 6 of Baluev 2008)
+
+    Parameters
+    ----------
+    Z : array-like
+        The periodogram value.
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+
+    Returns
+    -------
+    false_alarm_probability : np.ndarray
+        The false alarm probability.
     """
     fap_s = fap_single(Z, len(t), normalization)
     tau = tau_davies(Z, fmax, t, y, dy, normalization=normalization)
@@ -329,7 +431,24 @@ def fap_baluev(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR
 
 @vectorize_first_argument
 def inv_fap_baluev(p, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0917]
-    """Inverse of the Baluev alias-free approximation."""
+    """Inverse of the Baluev alias-free approximation.
+
+    Parameters
+    ----------
+    p : array-like
+        The false alarm probability (0 < p < 1).
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+
+    Returns
+    -------
+    z : np.ndarray
+        The periodogram level.
+    """
     from scipy import optimize
 
     args = (fmax, t, y, dy, normalization)
@@ -342,7 +461,26 @@ def inv_fap_baluev(p, fmax, t, y, dy, normalization="standard"):  # ruff: ignore
 
 
 def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000):  # ruff: ignore[PLR0917]
-    """Generate a sequence of bootstrap estimates of the max."""
+    """Generate a sequence of bootstrap estimates of the max.
+
+    Parameters
+    ----------
+    t, y, dy : array-like
+        The data times, values, and errors.
+    fmax : float
+        The maximum frequency of the periodogram.
+    normalization : {'standard', 'model', 'log', 'psd'}
+        The periodogram normalization.
+    random_seed : int or None
+        The random seed to use for the bootstrap resampling.
+    n_bootstrap : int, optional
+        The number of bootstrap resamplings to compute.
+
+    Returns
+    -------
+    power_max : `~astropy.units.Quantity`
+        The sorted maximum periodogram power of each bootstrap resampling.
+    """
     from .core import LombScargle
 
     rng = np.random.default_rng(random_seed)
@@ -364,7 +502,28 @@ def _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstrap=1000)
 def fap_bootstrap(  # ruff: ignore[PLR0917]
     Z, fmax, t, y, dy, normalization="standard", n_bootstraps=1000, random_seed=None
 ):
-    """Bootstrap estimate of the false alarm probability."""
+    """Bootstrap estimate of the false alarm probability.
+
+    Parameters
+    ----------
+    Z : array-like
+        The periodogram value.
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+    n_bootstraps : int, optional
+        The number of bootstrap resamplings to compute.
+    random_seed : int, optional
+        The random seed to use for the bootstrap resampling.
+
+    Returns
+    -------
+    false_alarm_probability : np.ndarray
+        The false alarm probability.
+    """
     pmax = _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstraps)
 
     return 1 - np.searchsorted(pmax, Z) / len(pmax)
@@ -373,7 +532,28 @@ def fap_bootstrap(  # ruff: ignore[PLR0917]
 def inv_fap_bootstrap(  # ruff: ignore[PLR0917]
     fap, fmax, t, y, dy, normalization="standard", n_bootstraps=1000, random_seed=None
 ):
-    """Bootstrap estimate of the inverse false alarm probability."""
+    """Bootstrap estimate of the inverse false alarm probability.
+
+    Parameters
+    ----------
+    fap : array-like
+        The false alarm probability (0 < fap < 1).
+    fmax : float
+        The maximum frequency of the periodogram.
+    t, y, dy : array-like
+        The data times, values, and errors.
+    normalization : {'standard', 'model', 'log', 'psd'}, optional
+        The periodogram normalization.
+    n_bootstraps : int, optional
+        The number of bootstrap resamplings to compute.
+    random_seed : int, optional
+        The random seed to use for the bootstrap resampling.
+
+    Returns
+    -------
+    z : np.ndarray
+        The periodogram level.
+    """
     fap = np.asarray(fap)
     pmax = _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstraps)
 
@@ -426,7 +606,7 @@ def false_alarm_probability(  # ruff: ignore[PLR0917]
 
     See Also
     --------
-    false_alarm_level : compute the periodogram level for a particular fap
+    false_alarm_level : Compute the periodogram level for a particular fap.
 
     References
     ----------
@@ -489,7 +669,7 @@ def false_alarm_level(  # ruff: ignore[PLR0917]
 
     See Also
     --------
-    false_alarm_probability : compute the fap for a given periodogram level
+    false_alarm_probability : Compute the fap for a given periodogram level.
 
     References
     ----------

@@ -84,7 +84,6 @@ class BoxLeastSquares(BasePeriodogram):
         (arXiv:astro-ph/0206099)
     .. [2] Hartman & Bakos (2016), Astronomy & Computing, 17, 1
         (arXiv:1605.06811)
-
     """
 
     def __init__(self, t, y, dy=None):
@@ -171,7 +170,6 @@ class BoxLeastSquares(BasePeriodogram):
 
         so the grid can be made finer by decreasing ``frequency_factor`` or
         coarser by increasing ``frequency_factor``.
-
         """
         duration = self._validate_duration(duration)
         baseline = strip_units(self._trel.max() - self._trel.min())
@@ -231,8 +229,36 @@ class BoxLeastSquares(BasePeriodogram):
 
         This method calls :func:`BoxLeastSquares.autoperiod` to determine
         the period grid and then :func:`BoxLeastSquares.power` to compute
-        the periodogram. See those methods for documentation of the arguments.
+        the periodogram. See those methods for more details on the arguments.
 
+        Parameters
+        ----------
+        duration : float, array-like, or `~astropy.units.Quantity` ['time']
+            The set of durations to test.
+        objective : {'likelihood', 'snr'}, optional
+            The scalar that should be optimized to find the best fit phase,
+            duration, and depth. See :func:`BoxLeastSquares.power`.
+        method : {'fast', 'slow'}, optional
+            The computational method used to compute the periodogram. See
+            :func:`BoxLeastSquares.power`.
+        oversample : int, optional
+            The number of bins per duration that should be used. See
+            :func:`BoxLeastSquares.power`.
+        minimum_n_transit : int, optional
+            If ``maximum_period`` is not provided, this is used to compute the
+            maximum period to search. See :func:`BoxLeastSquares.autoperiod`.
+        minimum_period, maximum_period : float or `~astropy.units.Quantity` ['time'], optional
+            The minimum/maximum periods to search. See
+            :func:`BoxLeastSquares.autoperiod`.
+        frequency_factor : float, optional
+            A factor to control the frequency spacing. See
+            :func:`BoxLeastSquares.autoperiod`.
+
+        Returns
+        -------
+        results : BoxLeastSquaresResults
+            The periodogram results as a :class:`BoxLeastSquaresResults`
+            object.
         """
         period = self.autoperiod(
             duration,
@@ -251,9 +277,9 @@ class BoxLeastSquares(BasePeriodogram):
         Parameters
         ----------
         period : array-like or `~astropy.units.Quantity` ['time']
-            The periods where the power should be computed
+            The periods where the power should be computed.
         duration : float, array-like, or `~astropy.units.Quantity` ['time']
-            The set of durations to test
+            The set of durations to test.
         objective : {'likelihood', 'snr'}, optional
             The scalar that should be optimized to find the best fit phase,
             duration, and depth. This can be either ``'likelihood'`` (default)
@@ -282,7 +308,6 @@ class BoxLeastSquares(BasePeriodogram):
         ValueError
             If ``oversample`` is not an integer greater than 0 or if
             ``objective`` or ``method`` are not valid.
-
         """
         period, duration = self._validate_period_and_duration(period, duration)
 
@@ -354,6 +379,19 @@ class BoxLeastSquares(BasePeriodogram):
         Convert the provided times (if absolute) to relative times using the
         current _tstart value. If the times provided are relative, they are
         returned without conversion (though we still do some checks).
+
+        Parameters
+        ----------
+        name : str
+            The name of the argument the times were provided as, used in error
+            messages.
+        times : `~astropy.time.Time`, `~astropy.time.TimeDelta`, `~astropy.units.Quantity`, or array-like
+            The times to convert.
+
+        Returns
+        -------
+        times : `~astropy.units.Quantity` or array-like
+            The times relative to the reference time of the time series.
         """
         if isinstance(times, TimeDelta):
             times = times.to("day")
@@ -383,6 +421,20 @@ class BoxLeastSquares(BasePeriodogram):
         """
         Convert the provided times to absolute times using the current _tstart
         value, if needed.
+
+        Parameters
+        ----------
+        name : str
+            The name of the quantity the times correspond to. This is not
+            currently used.
+        times : `~astropy.units.Quantity`
+            The relative times to convert.
+
+        Returns
+        -------
+        times : `~astropy.time.Time` or `~astropy.units.Quantity`
+            The absolute times if the time series was initialized with
+            absolute times, otherwise the input relative times.
         """
         if self._tstart is not None:
             # Some time formats/scales can't represent dates/times too far
@@ -417,7 +469,6 @@ class BoxLeastSquares(BasePeriodogram):
         -------
         y_model : array-like or `~astropy.units.Quantity`
             The model evaluated at the times ``t_model`` with units of ``y``.
-
         """
         period, duration = self._validate_period_and_duration(period, duration)
 
@@ -494,7 +545,6 @@ class BoxLeastSquares(BasePeriodogram):
             - ``per_transit_log_likelihood``: An array with the value of the
                 log likelihood for each unique transit included in the
                 baseline.
-
         """
         period, duration = self._validate_period_and_duration(period, duration)
         transit_time = self._as_relative_time("transit_time", transit_time)
@@ -620,7 +670,6 @@ class BoxLeastSquares(BasePeriodogram):
         transit_mask : array-like
             A boolean array where ``True`` indicates and in transit point and
             ``False`` indicates and out-of-transit point.
-
         """
         period, duration = self._validate_period_and_duration(period, duration)
         transit_time = self._as_relative_time("transit_time", transit_time)
@@ -655,7 +704,6 @@ class BoxLeastSquares(BasePeriodogram):
         ValueError
             If the dimensions are incompatible or if the units of dy cannot be
             converted to the units of y.
-
         """
         # Validate shapes of inputs
         if dy is None:
@@ -688,7 +736,6 @@ class BoxLeastSquares(BasePeriodogram):
         ------
         ValueError
             If the units of duration cannot be converted to the units of t.
-
         """
         duration = np.atleast_1d(np.abs(duration))
         if duration.ndim != 1 or duration.size == 0:
@@ -715,7 +762,6 @@ class BoxLeastSquares(BasePeriodogram):
         ValueError
             If the units of period or duration cannot be converted to the
             units of t.
-
         """
         duration = self._validate_duration(duration)
         period = np.atleast_1d(np.abs(period))
@@ -743,7 +789,6 @@ class BoxLeastSquares(BasePeriodogram):
             The set of trial periods.
         results : tuple
             The output of one of the periodogram implementations.
-
         """
         (
             power,
@@ -807,6 +852,12 @@ class BoxLeastSquares(BasePeriodogram):
 class BoxLeastSquaresResults(dict):
     """The results of a BoxLeastSquares search.
 
+    Parameters
+    ----------
+    *args : tuple
+        The values of the attributes listed below, in the order in which they
+        are listed.
+
     Attributes
     ----------
     objective : str
@@ -838,7 +889,6 @@ class BoxLeastSquaresResults(dict):
         The signal-to-noise with which the depth is measured at maximum power.
     log_likelihood : array-like or `~astropy.units.Quantity`
         The log likelihood of the maximum power model.
-
     """
 
     def __init__(self, *args):

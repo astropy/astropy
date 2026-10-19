@@ -22,6 +22,18 @@ def nanmean_reduceat(data, indices):
 
     The output for any fully-masked pieces is set to nan (and will be masked
     if the input was masked).
+
+    Parameters
+    ----------
+    data : `~numpy.ndarray` or `~astropy.utils.masked.Masked`
+        The data to average, possibly masked.
+    indices : array-like
+        The indices at which each piece starts, as for `numpy.ufunc.reduceat`.
+
+    Returns
+    -------
+    result : `~numpy.ndarray` or `~astropy.utils.masked.Masked`
+        The mean of each piece, ignoring NaN and masked values.
     """
     unmasked, data_mask = get_data_and_mask(data)
     mask = np.isnan(unmasked)
@@ -54,6 +66,20 @@ def reduceat(array, indices, function):
     """
     Manual reduceat functionality for cases where Numpy functions don't have a reduceat.
     It will check if the input function has a reduceat and call that if it does.
+
+    Parameters
+    ----------
+    array : array-like
+        The data to reduce.
+    indices : array-like
+        The indices at which each piece starts, as for `numpy.ufunc.reduceat`.
+    function : callable
+        The function used to reduce each piece of ``array`` to a single value.
+
+    Returns
+    -------
+    result : `~numpy.ndarray`
+        The reduced value for each piece.
     """
     if len(indices) == 0:
         return np.zeros_like(array, shape=(0,))
