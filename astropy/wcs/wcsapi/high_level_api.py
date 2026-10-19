@@ -64,6 +64,12 @@ def _toindex(value):
     (0, 0), while the lower left corner is (-0.5, -0.5).
     The outputs are used to index the mask.
 
+    Parameters
+    ----------
+    value : float or array-like
+        The pixel coordinates to convert. NaN values are converted to the
+        minimum value of the integer type.
+
     Examples
     --------
     >>> _toindex(np.array([-0.5, 0.49999]))
@@ -111,6 +117,12 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.pixel_to_world_values` for pixel
         indexing and ordering conventions.
+
+        Parameters
+        ----------
+        *pixel_arrays : float or array-like
+            The pixel coordinates, one scalar or array for each pixel dimension,
+            in ``(x, y)`` order.
         """
 
     def array_index_to_world(self, *index_arrays):
@@ -124,6 +136,12 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.array_index_to_world_values` for
         pixel indexing and ordering conventions.
+
+        Parameters
+        ----------
+        *index_arrays : int or array-like
+            The array indices, one scalar or array for each pixel dimension,
+            in ``(i, j)`` order.
         """
         return self.pixel_to_world(*index_arrays[::-1])
 
@@ -138,6 +156,13 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         arrays is returned. See
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_pixel_values` for pixel
         indexing and ordering conventions.
+
+        Parameters
+        ----------
+        *world_objects : object
+            The world coordinates as high-level objects (e.g.
+            `~astropy.coordinates.SkyCoord`), as described by
+            `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes`.
         """
 
     def world_to_array_index(self, *world_objects):
@@ -151,6 +176,13 @@ class BaseHighLevelWCS(metaclass=abc.ABCMeta):
         `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_to_array_index_values` for
         pixel indexing and ordering conventions. The indices should be returned
         as rounded integers.
+
+        Parameters
+        ----------
+        *world_objects : object
+            The world coordinates as high-level objects (e.g.
+            `~astropy.coordinates.SkyCoord`), as described by
+            `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_classes`.
         """
         if self.low_level_wcs.pixel_n_dim == 1:
             return _toindex(self.world_to_pixel(*world_objects))

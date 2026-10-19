@@ -41,6 +41,17 @@ class _LookupTableMixin:
         """
         Create a `distortion paper`_ type lookup table for detector to
         image plane correction.
+
+        Parameters
+        ----------
+        header : `~astropy.io.fits.Header`
+            FITS header containing the detector to image correction keywords.
+        fobj : `~astropy.io.fits.HDUList` or None
+            FITS file object containing the lookup table data. If this is not
+            an `~astropy.io.fits.HDUList`, ``(None, None)`` is returned.
+        err : float, optional
+            Minimum error threshold. Corrections with maximum error less
+            than this value will be ignored. Default is 0.0.
         """
         if fobj is None:
             return (None, None)
@@ -157,6 +168,15 @@ class _LookupTableMixin:
         Write the detector-to-image lookup tables (``D2IMDISj``) to
         ``hdulist[ext]``. ``D2IMDISj`` keywords have no alternate WCS key:
         they are shared by all WCSs in a header.
+
+        Parameters
+        ----------
+        hdulist : `~astropy.io.fits.HDUList`
+            The HDU list to update in place. The lookup tables are written to
+            ``D2IMARR`` extensions.
+        ext : int or str, optional
+            Index or name of the HDU whose header receives the keywords.
+            Default is 0.
         """
         _write_lookup_tables(
             hdulist,
@@ -188,9 +208,9 @@ class _LookupTableMixin:
         Parameters
         ----------
         header : `~astropy.io.fits.Header` or str or bytes
-            FITS header containing distortion keywords
+            FITS header containing distortion keywords.
         fobj : `~astropy.io.fits.HDUList` or None
-            FITS file object for lookup table data
+            FITS file object for lookup table data.
         dist : str, optional
             Distortion type: "CPDIS" for prior or "CQDIS" for sequent.
             Default is "CPDIS".
@@ -308,6 +328,21 @@ class _LookupTableMixin:
         """
         Write the `distortion paper`_ lookup tables (``CPDISja``, or
         ``CQDISia`` for ``dist="CQDIS"``) for WCS ``key`` to ``hdulist[ext]``.
+
+        Parameters
+        ----------
+        hdulist : `~astropy.io.fits.HDUList`
+            The HDU list to update in place. The lookup tables are written to
+            ``WCSDVARR`` extensions.
+        dist : str, optional
+            Distortion type: "CPDIS" for prior or "CQDIS" for sequent.
+            Default is "CPDIS".
+        ext : int or str, optional
+            Index or name of the HDU whose header receives the keywords.
+            Default is 0.
+        key : str, optional
+            WCS key character (e.g., ' ', 'A', 'B', etc.) used as the suffix
+            of the keyword names. Default is ' ' (primary WCS).
         """
         if dist == "CPDIS":
             rec_kw = "DP"
@@ -447,6 +482,13 @@ class _LookupTableMixin:
         Return the detector-to-image lookup tables that the header of
         ``hdulist[ext]`` describes: ``(None, None)`` if there are none, or
         if they cannot be read.
+
+        Parameters
+        ----------
+        hdulist : `~astropy.io.fits.HDUList`
+            The HDU list to read from.
+        ext : int or str
+            Index or name of the HDU whose header is read.
         """
         header = hdulist[ext].header.copy()
         try:
@@ -466,6 +508,15 @@ class _LookupTableMixin:
         ``hdulist[ext]`` has for WCS ``key`` itself (not the tables that an
         alternate WCS shares with the primary WCS), or `None` if they cannot
         be read.
+
+        Parameters
+        ----------
+        hdulist : `~astropy.io.fits.HDUList`
+            The HDU list to read from.
+        ext : int or str
+            Index or name of the HDU whose header is read.
+        key : str
+            WCS key character (e.g., ' ', 'A', 'B', etc.).
         """
         header = hdulist[ext].header.copy()
         try:
@@ -483,6 +534,18 @@ def _inherit_primary_prior_distortion(header, fobj, key, shared_cpdis):
     Decide whether the alternate WCS ``key`` should use the unsuffixed
     (primary WCS) prior-distortion keywords. See the
     ``shared_cpdis`` parameter of `WCS` for details.
+
+    Parameters
+    ----------
+    header : `~astropy.io.fits.Header` or str or bytes
+        FITS header of the WCS. `False` is returned if this is not a
+        `~astropy.io.fits.Header`.
+    fobj : `~astropy.io.fits.HDUList` or None
+        FITS file object that the header belongs to.
+    key : str or None
+        WCS key character (e.g., ' ', 'A', 'B', etc.).
+    shared_cpdis : bool or None
+        The ``shared_cpdis`` argument given to `WCS`.
     """
     if not isinstance(header, fits.Header):
         return False
@@ -503,6 +566,11 @@ def _same_lookup_table(a, b):
     Return `True` if two `~astropy.wcs.DistortionLookupTable` objects (or
     `None`) describe the same correction. NaN values at the same positions
     count as equal.
+
+    Parameters
+    ----------
+    a, b : `~astropy.wcs.DistortionLookupTable` or None
+        The lookup tables to compare.
     """
     if a is None or b is None:
         return a is None and b is None
@@ -515,7 +583,14 @@ def _same_lookup_table(a, b):
 
 
 def _as_int(value):
-    """Return ``value`` as an `int` if it is a whole number, otherwise `None`."""
+    """
+    Return ``value`` as an `int` if it is a whole number, otherwise `None`.
+
+    Parameters
+    ----------
+    value : object
+        The value to convert, typically a FITS header value.
+    """
     try:
         f = float(value)
     except (TypeError, ValueError):
@@ -530,6 +605,11 @@ def _prior_distortion_keywords(header):
     ``'CPERR'`` or ``'DP'``; the axis number; the alternate WCS key (``''``
     for the primary WCS); and the record field of a ``DPja`` keyword (`None`
     otherwise, including for a ``DPja`` card whose value is not a record).
+
+    Parameters
+    ----------
+    header : `~astropy.io.fits.Header`
+        FITS header to search.
     """
     for keyword in header:
         match = _PRIOR_DIS_KW.fullmatch(str(keyword).strip().upper())
@@ -545,6 +625,13 @@ def _has_prior_distortion_kw(header, key):
     """
     Return `True` if ``header`` contains any ``CPDISja``, ``CPERRja`` or
     ``DPja`` keyword for WCS ``key`` (``''`` for the primary WCS).
+
+    Parameters
+    ----------
+    header : `~astropy.io.fits.Header`
+        FITS header to search.
+    key : str
+        WCS key character, or ``''`` for the primary WCS.
     """
     return any(k == key for _, _, _, k, _ in _prior_distortion_keywords(header))
 
@@ -553,6 +640,12 @@ def _is_hst_acs_wfc3(fobj):
     """
     Return `True` if the primary header of ``fobj`` has ``TELESCOP = 'HST'``
     and ``INSTRUME`` equal to ``'ACS'`` or ``'WFC3'``.
+
+    Parameters
+    ----------
+    fobj : `~astropy.io.fits.HDUList` or None
+        FITS file object to check. `False` is returned if this is not a
+        non-empty `~astropy.io.fits.HDUList`.
     """
     if not isinstance(fobj, fits.HDUList) or not len(fobj):
         return False
@@ -564,6 +657,8 @@ def _is_hst_acs_wfc3(fobj):
 
 def _is_stsci_prior_distortion(header):  # noqa: PLR0911
     """
+    Check for the HST/STScI layout of prior-distortion keywords.
+
     Return `True` if every prior-distortion keyword in ``header`` follows the
     layout written by STScI for HST non-polynomial (``NPOLFILE``) distortion
     corrections:
@@ -579,6 +674,11 @@ def _is_stsci_prior_distortion(header):  # noqa: PLR0911
 
     ``CPERRj`` and all other ``DPj`` record fields (``NAXES``, ``OFFSET``,
     ``SCALE``, ...) are ignored.
+
+    Parameters
+    ----------
+    header : `~astropy.io.fits.Header`
+        FITS header to check.
     """
     axes = {}
     for keyword, family, axis, key, field in _prior_distortion_keywords(header):
@@ -618,6 +718,11 @@ def _lookup_table_from_hdu(hdu):
     for keywords that list the axes of the table in their natural order
     (``AXIS.1`` is 1 and ``AXIS.2`` is 2). `_write_lookup_tables` always
     writes the keywords that way.
+
+    Parameters
+    ----------
+    hdu : `~astropy.io.fits.ImageHDU`
+        Image extension holding the lookup table.
     """
     header = hdu.header
     return DistortionLookupTable(
@@ -629,7 +734,17 @@ def _lookup_table_from_hdu(hdu):
 
 
 def _hdu_holds_lookup_table(hdu, table):
-    """Return `True` if the image extension ``hdu`` holds ``table``."""
+    """
+    Return `True` if the image extension ``hdu`` holds ``table``.
+
+    Parameters
+    ----------
+    hdu : HDU
+        The extension to check. `False` is returned if this is not an
+        `~astropy.io.fits.ImageHDU`.
+    table : `~astropy.wcs.DistortionLookupTable`
+        The lookup table to look for.
+    """
     if not isinstance(hdu, fits.ImageHDU):
         return False
     # Compare the shapes first: this does not load the data of the extension.
@@ -645,6 +760,11 @@ def _largest_correction(table):
     Largest absolute value in a lookup table. NaN and infinite values are
     ignored (a FITS header card cannot hold them); 0.0 is returned if the
     table has no finite value.
+
+    Parameters
+    ----------
+    table : `~astropy.wcs.DistortionLookupTable`
+        The lookup table.
     """
     magnitudes = np.abs(table.data)
     finite = magnitudes[np.isfinite(magnitudes)]
@@ -654,7 +774,16 @@ def _largest_correction(table):
 
 
 def _set_lookup_table_wcs(header, table):
-    """Write the reference pixel, value and increment of ``table``."""
+    """
+    Write the reference pixel, value and increment of ``table``.
+
+    Parameters
+    ----------
+    header : `~astropy.io.fits.Header`
+        Header of the image extension to update in place.
+    table : `~astropy.wcs.DistortionLookupTable`
+        The lookup table.
+    """
     header["CRPIX1"] = (table.crpix[0], "Coordinate system reference pixel")
     header["CRPIX2"] = (table.crpix[1], "Coordinate system reference pixel")
     header["CRVAL1"] = (table.crval[0], "Coordinate system value at reference pixel")
@@ -676,6 +805,24 @@ def _remove_lookup_keywords(
     if the axis is in ``axes_with_new_table`` (a table is about to be
     written for it, whatever the header has now). Keywords of another type
     of distortion (e.g. a ``TPD`` polynomial) are kept on all other axes.
+
+    Parameters
+    ----------
+    header : `~astropy.io.fits.Header`
+        FITS header to update in place.
+    dist : str
+        Name of the distortion type keyword without the axis number, e.g.
+        ``'CPDIS'`` or ``'D2IMDIS'``.
+    rec_kw : str
+        Name of the record-valued keyword without the axis number, e.g.
+        ``'DP'`` or ``'D2IM'``.
+    err_kw : str
+        Name of the maximum error keyword without the axis number, e.g.
+        ``'CPERR'`` or ``'D2IMERR'``.
+    suffix : str
+        WCS key character, or ``''`` for the primary WCS.
+    axes_with_new_table : iterable of int, optional
+        Axis numbers for which a lookup table is about to be written.
     """
     # Lookup tables that the header has for this key, by axis number.
     old_extvers = {}
@@ -710,6 +857,17 @@ def _referenced_lookup_extvers(hdulist, *, dist, rec_kw):
     Return the ``EXTVER`` of every lookup-table extension that a header in
     ``hdulist`` refers to: ``{dist}ja = 'LOOKUP'`` with ``{rec_kw}ja.EXTVER``
     (1 if absent), for any axis and WCS key.
+
+    Parameters
+    ----------
+    hdulist : `~astropy.io.fits.HDUList`
+        The HDU list whose headers are searched.
+    dist : str
+        Name of the distortion type keyword without the axis number, e.g.
+        ``'CPDIS'`` or ``'D2IMDIS'``.
+    rec_kw : str
+        Name of the record-valued keyword without the axis number, e.g.
+        ``'DP'`` or ``'D2IM'``.
     """
     pattern = re.compile(rf"{dist}([0-9]+[A-Z]?)")
     extvers = set()
@@ -736,6 +894,13 @@ def _free_extver(preferred, used):
     """
     Return ``preferred`` if it is not in ``used``, and the smallest positive
     integer that is not in ``used`` otherwise.
+
+    Parameters
+    ----------
+    preferred : int
+        The preferred ``EXTVER``.
+    used : set of int
+        The ``EXTVER`` values that are already in use.
     """
     if preferred not in used:
         return preferred
@@ -751,6 +916,13 @@ def _warn_shared_cpdis_changed(header, key):
     change what the alternate WCSs of ``header`` use. ``header`` followed
     the HST/STScI convention of sharing the prior-distortion tables of
     the primary WCS before they were written.
+
+    Parameters
+    ----------
+    header : `~astropy.io.fits.Header`
+        FITS header that the keywords were written to.
+    key : str
+        WCS key character of the WCS whose keywords were written.
     """
     if key != " ":
         warnings.warn(
@@ -824,6 +996,34 @@ def _write_lookup_tables(
       axis, with ``EXTVER`` equal to the axis number, and code that
       post-processes its output (e.g. ``stwcs``) relies on that.
       Extensions are never removed.
+
+    Parameters
+    ----------
+    hdulist : `~astropy.io.fits.HDUList`
+        The HDU list to update in place.
+    ext : int or str
+        Index or name of the HDU whose header receives the keywords.
+    tables : tuple of `~astropy.wcs.DistortionLookupTable` or None
+        The lookup tables for axes 1 and 2, `None` for an axis without one.
+    dist : str
+        Name of the distortion type keyword without the axis number, e.g.
+        ``'CPDIS'`` or ``'D2IMDIS'``.
+    rec_kw : str
+        Name of the record-valued keyword without the axis number, e.g.
+        ``'DP'`` or ``'D2IM'``.
+    err_kw : str
+        Name of the maximum error keyword without the axis number, e.g.
+        ``'CPERR'`` or ``'D2IMERR'``.
+    extname : str
+        ``EXTNAME`` of the extensions holding the tables, ``'WCSDVARR'`` or
+        ``'D2IMARR'``.
+    label : str
+        Name of the correction used in the keyword comments.
+    type_comment : str
+        Comment for the distortion type keyword.
+    key : str
+        WCS key character (e.g., ' ', 'A', 'B', etc.), or ``''`` for keywords
+        without a WCS key.
     """
     header = hdulist[ext].header
     suffix = key.strip().upper()

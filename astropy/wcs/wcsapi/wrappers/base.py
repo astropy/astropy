@@ -15,7 +15,9 @@ class BaseWCSWrapper(BaseLowLevelWCS, metaclass=abc.ABCMeta):
     Parameters
     ----------
     wcs : `astropy.wcs.wcsapi.BaseLowLevelWCS`
-        The WCS object to wrap
+        The WCS object to wrap.
+    *args, **kwargs
+        Additional arguments, which are ignored by this base class.
     """
 
     def __init__(self, wcs, *args, **kwargs):

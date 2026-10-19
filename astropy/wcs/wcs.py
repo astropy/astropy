@@ -309,6 +309,23 @@ class NoConvergence(Exception):
     iterative solution used by
     the :py:meth:`~astropy.wcs.WCS.all_world2pix`.
 
+    Parameters
+    ----------
+    *args
+        Positional arguments (typically the error message) passed to
+        `Exception`.
+    best_solution : `numpy.ndarray`, optional
+        Best solution achieved by the numerical method.
+    accuracy : `numpy.ndarray`, optional
+        Accuracy of the ``best_solution``.
+    niter : `int`, optional
+        Number of iterations performed by the numerical method.
+    divergent : `numpy.ndarray`, optional
+        Indices of the points for which the solution appears to be divergent.
+    slow_conv : `numpy.ndarray`, optional
+        Indices of the solutions that failed to converge within the
+        maximum number of iterations.
+
     Attributes
     ----------
     best_solution : `numpy.ndarray`
@@ -333,7 +350,6 @@ class NoConvergence(Exception):
         non-converging solutions (i.e., if the required accuracy
         has been achieved for all input data points)
         then ``slow_conv`` will be set to `None`.
-
     """
 
     def __init__(
@@ -364,6 +380,15 @@ def _scale_pixel_axis(wcsprm, index, factor):
     PCi_j has no off-diagonal terms in that row and column. With the CROTAi
     convention, CDELTj multiplies column j so can always be used. As in WCSLIB,
     PCi_j takes precedence over CDi_j, which takes precedence over CROTAi.
+
+    Parameters
+    ----------
+    wcsprm : `~astropy.wcs.Wcsprm`
+        The WCS parameters to update in place.
+    index : int
+        Index of the pixel axis to scale.
+    factor : float
+        Scale factor for the pixel axis.
     """
     if wcsprm.has_pc():
         pc = wcsprm.pc.copy()
@@ -394,6 +419,15 @@ def _scale_sip_coefficients(coeffs, factors, axis):
     If a polynomial gives the distortion f(u, v) in original pixels, the
     distortion in new pixels is f(su * u, sv * v) / s_axis, so the coefficient
     of u**p v**q is multiplied by su**p * sv**q / s_axis.
+
+    Parameters
+    ----------
+    coeffs : `~numpy.ndarray` or None
+        The SIP polynomial coefficients. If `None`, `None` is returned.
+    factors : tuple of float
+        Scale factors for the two pixel axes.
+    axis : int
+        Index of the axis along which the polynomial gives the distortion.
     """
     if coeffs is None:
         return None
@@ -494,6 +528,10 @@ class WCS(FITSWCSAPIMixin, _LookupTableMixin, WCSBase):
         unit strings to perform.  By default, performs none.  See
         `WCS.fix` for more information about this parameter.  Only
         effective when ``fix`` is `True`.
+
+    _do_set : bool, optional
+        For internal use only. If `False`, `~astropy.wcs.Wcsprm.set` is
+        not called after construction.
 
     preserve_units : bool, optional
         By default, some units are converted to SI, for example spectral
@@ -603,7 +641,6 @@ class WCS(FITSWCSAPIMixin, _LookupTableMixin, WCSBase):
        In all other cases (including when *fobj* is not provided, or when
        any keyed prior-distortion keyword is present), each WCS uses only
        its own keywords.
-
     """
 
     def __init__(  # ruff: ignore[PLR0917]
@@ -1065,7 +1102,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         undistort : bool, optional
             If `True`, take SIP and distortion lookup table into
-            account
+            account.
 
         axes : (int, int), optional
             If provided, use the given sequence as the shape of the
@@ -1132,6 +1169,15 @@ reduce these to 2 dimensions using the naxis kwarg.
         This is to deal with pre-2012 headers that may contain TPV with a
         CTYPE that ends in '-TAN' (post-2012 they should end in '-TPV' when
         SCAMP has adopted the new TPV convention).
+
+        Parameters
+        ----------
+        header : `~astropy.io.fits.Header` or str or bytes
+            FITS header to update in place. Strings and bytes are left
+            untouched.
+        wcskey : str, optional
+            WCS key character (e.g., ' ', 'A', 'B', etc.) used as the suffix
+            of the keyword names. Default is '' (primary WCS).
         """
         if isinstance(header, (str, bytes)):
             return
@@ -1182,6 +1228,14 @@ reduce these to 2 dimensions using the naxis kwarg.
     def _remove_sip_kw(header, del_order=False):
         """
         Remove SIP information from a header.
+
+        Parameters
+        ----------
+        header : `~astropy.io.fits.Header`
+            FITS header to update in place.
+        del_order : bool, optional
+            If `True`, also remove the ``A_ORDER``, ``B_ORDER``, ``AP_ORDER``
+            and ``BP_ORDER`` keywords. Default is `False`.
         """
         # Never pass SIP coefficients to wcslib
         # CTYPE must be passed with -SIP to wcslib
@@ -1201,6 +1255,16 @@ reduce these to 2 dimensions using the naxis kwarg.
         object.
 
         If no `SIP`_ header keywords are found, ``None`` is returned.
+
+        Parameters
+        ----------
+        header : `~astropy.io.fits.Header` or str or bytes
+            FITS header containing the SIP keywords. The SIP keywords that are
+            read are removed from the header. If a string or bytes is given,
+            ``None`` is returned.
+        wcskey : str, optional
+            WCS key character (e.g., ' ', 'A', 'B', etc.) used as the suffix
+            of the ``CTYPE`` keywords. Default is '' (primary WCS).
         """
         if isinstance(header, (str, bytes)):
             # TODO: Parse SIP from a string without pyfits around
@@ -1421,6 +1485,23 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         A helper function to support reading either a pair of arrays
         or a single Nx2 array.
+
+        Parameters
+        ----------
+        func : callable
+            The function performing the transformation. It is called with a
+            single ``(N, naxis)`` array and the origin.
+        sky : {'input', 'output'} or None
+            Whether the celestial coordinates are the input or the output of
+            ``func``, which determines where the reordering to
+            ``(ra, dec)`` is applied when ``ra_dec_order`` is `True`.
+        *args
+            Either an ``(N, naxis)`` array followed by the origin, or one
+            array per axis followed by the origin.
+        ra_dec_order : bool, optional
+            If `True`, celestial coordinates are given or returned in
+            ``(ra, dec)`` order regardless of the axis order of the WCS.
+            Default is `False`.
         """
 
         def _return_list_of_arrays(axes, origin):
@@ -2645,7 +2726,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         See Also
         --------
         astropy.wcs.utils.proj_plane_pixel_scales
-
         """
         from astropy.wcs.utils import proj_plane_pixel_scales  # Avoid circular import
 
@@ -2685,16 +2765,15 @@ reduce these to 2 dimensions using the naxis kwarg.
             `~astropy.wcs.Wcsprm.cd` matrix of the `~astropy.wcs.WCS.celestial`
             WCS is not a square matrix of second order.
 
+        See Also
+        --------
+        astropy.wcs.utils.proj_plane_pixel_area
+
         Notes
         -----
         Depending on the application, square root of the pixel area can be used to
         represent a single pixel scale of an equivalent square pixel
         whose area is equal to the area of a generally non-square pixel.
-
-        See Also
-        --------
-        astropy.wcs.utils.proj_plane_pixel_area
-
         """
         from astropy.wcs.utils import proj_plane_pixel_area  # Avoid circular import
 
@@ -2734,6 +2813,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
         hdulist : `~astropy.io.fits.HDUList`
+            An HDU list with the WCS header in the primary HDU and any
+            `distortion paper`_ lookup tables as image extensions.
 
         See Also
         --------
@@ -2794,6 +2875,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Returns
         -------
         header : `astropy.io.fits.Header`
+            A header containing the WCS (and, if requested, SIP) keywords.
 
         Notes
         -----
@@ -2829,7 +2911,6 @@ reduce these to 2 dimensions using the naxis kwarg.
              `to_header` tries hard to write meaningful comments.
 
           8. Keyword order may be changed.
-
         """
         # default precision for numerical WCS keywords
         precision = WCSHDO_P14  # Defined by C-ext
@@ -2920,6 +3001,8 @@ reduce these to 2 dimensions using the naxis kwarg.
 
     def _fix_ctype(self, header, add_sip=True, log_message=True):
         """
+        Add or remove the "-SIP" suffix of the ``CTYPE`` keywords in a header.
+
         Parameters
         ----------
         header : `~astropy.io.fits.Header`
@@ -2934,6 +3017,14 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             If the user requested SIP distortion to be written out add "-SIP" to
             CTYPE if it is missing.
+        log_message : bool
+            Whether to log a message explaining the inconsistency when "-SIP"
+            is added to CTYPE.
+
+        Returns
+        -------
+        header : `~astropy.io.fits.Header`
+            The input header, modified in place.
         """
         _add_sip_to_ctype = """
         Inconsistent SIP distortion information is present in the current WCS:
@@ -2972,6 +3063,11 @@ reduce these to 2 dimensions using the naxis kwarg.
         """
         Identical to `to_header`, but returns a string containing the
         header cards.
+
+        Parameters
+        ----------
+        relax : bool or int, optional
+            Degree of permissiveness. See `to_header` for details.
         """
         return str(self.to_header(relax))
 
@@ -2985,7 +3081,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         Parameters
         ----------
         filename : str, optional
-            Output file name - default is ``'footprint.reg'``
+            Output file name - default is ``'footprint.reg'``.
 
         color : str, optional
             Color to use when plotting the line.
@@ -2996,8 +3092,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         coordsys : str, optional
             Coordinate system. If not specified (default), the ``radesys``
             value is used. For all possible values, see
-            http://ds9.si.edu/doc/ref/region.html#RegionFileFormat
-
+            http://ds9.si.edu/doc/ref/region.html#RegionFileFormat.
         """
         comments = (
             "# Region file format: DS9 version 4.0 \n"
@@ -3222,7 +3317,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         ----------
         dropax : int
             The index of the WCS to drop, counting from 0 (i.e., python convention,
-            not FITS convention)
+            not FITS convention).
 
         Returns
         -------
@@ -3243,10 +3338,9 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         Parameters
         ----------
-        ax0 : int
-        ax1 : int
+        ax0, ax1 : int
             The indices of the WCS to be swapped, counting from 0 (i.e., python
-            convention, not FITS convention)
+            convention, not FITS convention).
 
         Returns
         -------
@@ -3594,8 +3688,8 @@ reduce these to 2 dimensions using the naxis kwarg.
         ----------
         coord : `~astropy.coordinates.SkyCoord`
             The coordinate to check if it is within the wcs coordinate.
-        **kwargs :
-           Additional arguments to pass to `~astropy.coordinates.SkyCoord.to_pixel`
+        **kwargs
+           Additional arguments to pass to `~astropy.coordinates.SkyCoord.to_pixel`.
 
         Returns
         -------
@@ -3608,6 +3702,17 @@ reduce these to 2 dimensions using the naxis kwarg.
 def __WCS_unpickle__(cls, dct, fits_data):
     """
     Unpickles a WCS object from a serialized FITS string.
+
+    Parameters
+    ----------
+    cls : type
+        The `WCS` class (or subclass) to instantiate.
+    dct : dict
+        The ``__dict__`` of the pickled object, which also stores the
+        alternate WCS key and the arguments needed to re-initialize it.
+    fits_data : bytes
+        The WCS (and any distortion lookup tables) serialized as an
+        in-memory FITS file by ``WCS.__reduce__``.
     """
     self = cls.__new__(cls)
 
@@ -3639,7 +3744,8 @@ def find_all_wcs(
 
     Parameters
     ----------
-    header : str or `~astropy.io.fits.Header` object.
+    header : str or `~astropy.io.fits.Header` object
+        The header to search for WCS transformations.
 
     relax : bool or int, optional
         Degree of permissiveness:
@@ -3685,9 +3791,14 @@ def find_all_wcs(
         `WCS.fix` for more information about this parameter.  Only
         effective when ``fix`` is `True`.
 
+    _do_set : bool, optional
+        For internal use only. If `False`, `~astropy.wcs.Wcsprm.set` is
+        not called on the resulting objects.
+
     Returns
     -------
     wcses : list of `WCS`
+        One `WCS` object for each WCS transformation found in the header.
     """
     if isinstance(header, (str, bytes)):
         header_string = header
@@ -3737,7 +3848,6 @@ def validate(source):
         an entry for each WCS found in that header.  The special
         subclass of list will pretty-print the results as a table when
         printed.
-
     """
 
     class _WcsValidateWcsResult(list):
