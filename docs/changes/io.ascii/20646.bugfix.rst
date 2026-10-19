@@ -1,0 +1,1 @@
+Fix a bug where exporting a Table containing NaNs to MRT would raise an exception

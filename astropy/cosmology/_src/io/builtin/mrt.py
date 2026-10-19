@@ -24,15 +24,14 @@ a column since MRT format does not preserve table metadata.
     --------------------------------------------------------------------------------
      1-13  A13          ---    cosmology Description of cosmology
     15-22  A8           ---    name      Description of name
-    24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
-    30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
-                                  density/critical density at z=0.
-    38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
-    45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
-                                  species.
+    24-28  F5.2   km.Mpc-1.s-1 H0        Hubble constant at z=0.
+    30-36  F7.5         ---    Om0       Omega matter; matter density/critical
+                                  density at z=0.
+    38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
+    45-49  F5.3         ---    Neff      Number of effective neutrino species.
     51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
                                   species.
-    66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
+    66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                   density/critical density at z=0.
     --------------------------------------------------------------------------------
     ...
@@ -129,15 +128,14 @@ def read_mrt(
         --------------------------------------------------------------------------------
          1-13  A13          ---    cosmology Description of cosmology
         15-22  A8           ---    name      Description of name
-        24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
-        30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
-                                      density/critical density at z=0.
-        38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
-        45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
-                                      species.
+        24-28  F5.2   km.Mpc-1.s-1 H0        Hubble constant at z=0.
+        30-36  F7.5         ---    Om0       Omega matter; matter density/critical
+                                      density at z=0.
+        38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
+        45-49  F5.3         ---    Neff      Number of effective neutrino species.
         51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
                                       species.
-        66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
+        66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                       density/critical density at z=0.
         --------------------------------------------------------------------------------
         ...
@@ -230,15 +228,14 @@ def write_mrt[T: Table](
         --------------------------------------------------------------------------------
         1-13  A13          ---    cosmology Description of cosmology
         15-22  A8           ---    name      Description of name
-        24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
-        30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
-                                    density/critical density at z=0.
-        38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
-        45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
-                                    species.
+        24-28  F5.2   km.Mpc-1.s-1 H0        Hubble constant at z=0.
+        30-36  F7.5         ---    Om0       Omega matter; matter density/critical
+                                      density at z=0.
+        38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
+        45-49  F5.3         ---    Neff      Number of effective neutrino species.
         51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
                                     species.
-        66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
+        66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                     density/critical density at z=0.
         --------------------------------------------------------------------------------
         ...

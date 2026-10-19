@@ -59,12 +59,12 @@ def test_roundtrip_mrt_table():
         "--------------------------------------------------------------------------------",
         " Bytes Format Units  Label     Explanations",
         "--------------------------------------------------------------------------------",
-        " 1- 7  A7       ---    ID       Star ID                              ",
-        " 9-12  I4       K      Teff     [4337/4654] Effective temperature    ",
-        "14-17  F4.2   [cm.s-2] logg     [0.77/1.28] Surface gravity          ",
-        "19-22  F4.2     km.s-1 vturb    [1.23/1.82] Micro-turbulence velocity",
-        "24-28  F5.2     [-]    [Fe/H]   [-2.11/-1.5] Metallicity             ",
-        "30-33  F4.2     [-]    e_[Fe/H] ? rms uncertainty on [Fe/H]          ",
+        " 1- 7  A7       ---    ID       Star ID                    ",
+        " 9-12  I4       K      Teff     Effective temperature      ",
+        "14-17  F4.2   [cm.s-2] logg     Surface gravity            ",
+        "19-22  F4.2     km.s-1 vturb    Micro-turbulence velocity  ",
+        "24-28  F5.2     [-]    [Fe/H]   Metallicity                ",
+        "30-33  F4.2     [-]    e_[Fe/H] ? rms uncertainty on [Fe/H]",
         "--------------------------------------------------------------------------------",
         "Notes:",
         "--------------------------------------------------------------------------------",
@@ -110,11 +110,11 @@ def test_write_readme_with_default_options():
         "--------------------------------------------------------------------------------",
         " Bytes Format Units  Label     Explanations",
         "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names   Description of names              ",
-        "10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e",
-        "16-23  F8.5   ---    d       [22.25/27.25] Description of d    ",
-        "25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     ",
-        "33-35  I3     ---    i       [-30/67] Description of i         ",
+        " 1- 8  A8     ---    names   Description of names",
+        "10-14  E5.1   ---    e       Description of e    ",
+        "16-23  F8.5   ---    d       Description of d    ",
+        "25-31  E7.1   ---    s       Description of s    ",
+        "33-35  I3     ---    i       Description of i    ",
         "--------------------------------------------------------------------------------",
         "Notes:",
         "--------------------------------------------------------------------------------",
@@ -164,13 +164,13 @@ def test_write_byte_by_byte_for_masked_column():
         "--------------------------------------------------------------------------------",
         " Bytes Format Units  Label     Explanations",
         "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names   Description of names          ",
-        "10-14  E5.1   ---    e       [0.0/0.01]? Description of e  ",
-        "16-17  F2.0   ---    d       ? Description of d            ",
-        "19-25  E7.1   ---    s       [-9e+34/2.0] Description of s ",
-        "27-29  I3     ---    i       [-30/67] Description of i     ",
-        "31-33  F3.1   ---    sameF   [5.0/5.0] Description of sameF",
-        "35-36  I2     ---    sameI   [20] Description of sameI     ",
+        " 1- 8  A8     ---    names   Description of names",
+        "10-14  E5.1   ---    e       ? Description of e  ",
+        "16-17  F2.0   ---    d       ? Description of d  ",
+        "19-25  E7.1   ---    s       Description of s    ",
+        "27-29  I3     ---    i       Description of i    ",
+        "31-33  F3.1   ---    sameF   Description of sameF",
+        "35-36  I2     ---    sameI   Description of sameI",
         "--------------------------------------------------------------------------------",
         "Notes:",
         "--------------------------------------------------------------------------------",
@@ -190,105 +190,132 @@ def test_write_byte_by_byte_for_masked_column():
     assert lines == exp_output
 
 
-exp_coord_cols_output = {
-    "generic": [
-        "================================================================================",
-        "Byte-by-byte Description of file: table.dat",
-        "--------------------------------------------------------------------------------",
-        " Bytes Format Units  Label     Explanations",
-        "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names   Description of names              ",
-        "10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e",
-        "16-23  F8.5   ---    d       [22.25/27.25] Description of d    ",
-        "25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     ",
-        "33-35  I3     ---    i       [-30/67] Description of i         ",
-        "37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ",
-        "41-42  I2     ---    sameI   [20] Description of sameI         ",
-        "44-45  I2     h      RAh     Right Ascension (hour)            ",
-        "47-48  I2     min    RAm     Right Ascension (minute)          ",
-        "50-62  F13.10 s      RAs     Right Ascension (second)          ",
-        "   64  A1     ---    DE-     Sign of Declination               ",
-        "65-66  I2     deg    DEd     Declination (degree)              ",
-        "68-69  I2     arcmin DEm     Declination (arcmin)              ",
-        "71-82  F12.9  arcsec DEs     Declination (arcsec)              ",
-        "--------------------------------------------------------------------------------",
-        "Notes:",
-        "--------------------------------------------------------------------------------",
-        "HD81809  1e-07  22.25608   2e+00  67 5.0 20 22 02 15.4500000000 -61 39 34.599996000",
-        "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
-    ],
-    "positive_de": [
-        "================================================================================",
-        "Byte-by-byte Description of file: table.dat",
-        "--------------------------------------------------------------------------------",
-        " Bytes Format Units  Label     Explanations",
-        "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names   Description of names              ",
-        "10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e",
-        "16-23  F8.5   ---    d       [22.25/27.25] Description of d    ",
-        "25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     ",
-        "33-35  I3     ---    i       [-30/67] Description of i         ",
-        "37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ",
-        "41-42  I2     ---    sameI   [20] Description of sameI         ",
-        "44-45  I2     h      RAh     Right Ascension (hour)            ",
-        "47-48  I2     min    RAm     Right Ascension (minute)          ",
-        "50-62  F13.10 s      RAs     Right Ascension (second)          ",
-        "   64  A1     ---    DE-     Sign of Declination               ",
-        "65-66  I2     deg    DEd     Declination (degree)              ",
-        "68-69  I2     arcmin DEm     Declination (arcmin)              ",
-        "71-82  F12.9  arcsec DEs     Declination (arcsec)              ",
-        "--------------------------------------------------------------------------------",
-        "Notes:",
-        "--------------------------------------------------------------------------------",
-        "HD81809  1e-07  22.25608   2e+00  67 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
-        "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
-    ],
-    "galactic": [
-        "================================================================================",
-        "Byte-by-byte Description of file: table.dat",
-        "--------------------------------------------------------------------------------",
-        " Bytes Format Units  Label     Explanations",
-        "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names   Description of names              ",
-        "10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e",
-        "16-23  F8.5   ---    d       [22.25/27.25] Description of d    ",
-        "25-31  E7.1   ---    s       [-9e+34/2.0] Description of s     ",
-        "33-35  I3     ---    i       [-30/67] Description of i         ",
-        "37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF    ",
-        "41-42  I2     ---    sameI   [20] Description of sameI         ",
-        "44-59  F16.12 deg    GLON    Galactic Longitude                ",
-        "61-76  F16.12 deg    GLAT    Galactic Latitude                 ",
-        "--------------------------------------------------------------------------------",
-        "Notes:",
-        "--------------------------------------------------------------------------------",
-        "HD81809  1e-07  22.25608   2e+00  67 5.0 20 330.071639591690 -45.548080484609",
-        "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 330.071639591690 -45.548080484609",
-    ],
-    "ecliptic": [
-        "================================================================================",
-        "Byte-by-byte Description of file: table.dat",
-        "--------------------------------------------------------------------------------",
-        " Bytes Format Units  Label     Explanations",
-        "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names   Description of names                       ",
-        "10-14  E5.1   ---    e       [-3160000.0/0.01] Description of e         ",
-        "16-23  F8.5   ---    d       [22.25/27.25] Description of d             ",
-        "25-31  E7.1   ---    s       [-9e+34/2.0] Description of s              ",
-        "33-35  I3     ---    i       [-30/67] Description of i                  ",
-        "37-39  F3.1   ---    sameF   [5.0/5.0] Description of sameF             ",
-        "41-42  I2     ---    sameI   [20] Description of sameI                  ",
-        "44-59  F16.12 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)",
-        "61-76  F16.12 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) ",
-        "--------------------------------------------------------------------------------",
-        "Notes:",
-        "--------------------------------------------------------------------------------",
-        "HD81809  1e-07  22.25608   2e+00  67 5.0 20 306.224208650096 -45.621789850825",
-        "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 306.224208650096 -45.621789850825",
-    ],
-}
+# Coordinates of ASASSN-15lh
+_coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
+# Coordinates of ASASSN-14li
+_coordp = SkyCoord(192.06343503, 17.77402684, unit=u.deg)
 
 
-def test_write_coord_cols():
+@pytest.mark.parametrize(
+    "col, exp_output",
+    [
+        pytest.param(
+            # Generic coordinate column
+            Column([_coord, _coordp]),
+            [
+                "================================================================================",
+                "Byte-by-byte Description of file: table.dat",
+                "--------------------------------------------------------------------------------",
+                " Bytes Format Units  Label     Explanations",
+                "--------------------------------------------------------------------------------",
+                " 1- 8  A8     ---    names   Description of names    ",
+                "10-14  E5.1   ---    e       Description of e        ",
+                "16-23  F8.5   ---    d       Description of d        ",
+                "25-31  E7.1   ---    s       Description of s        ",
+                "33-35  I3     ---    i       Description of i        ",
+                "37-39  F3.1   ---    sameF   Description of sameF    ",
+                "41-42  I2     ---    sameI   Description of sameI    ",
+                "44-45  I2     h      RAh     Right Ascension (hour)  ",
+                "47-48  I2     min    RAm     Right Ascension (minute)",
+                "50-62  F13.10 s      RAs     Right Ascension (second)",
+                "   64  A1     ---    DE-     Sign of Declination     ",
+                "65-66  I2     deg    DEd     Declination (degree)    ",
+                "68-69  I2     arcmin DEm     Declination (arcmin)    ",
+                "71-82  F12.9  arcsec DEs     Declination (arcsec)    ",
+                "--------------------------------------------------------------------------------",
+                "Notes:",
+                "--------------------------------------------------------------------------------",
+                "HD81809  1e-07  22.25608   2e+00  67 5.0 20 22 02 15.4500000000 -61 39 34.599996000",
+                "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
+            ],
+            id="generic",
+        ),
+        pytest.param(
+            # Coordinate column with positive DEC
+            _coordp,
+            [
+                "================================================================================",
+                "Byte-by-byte Description of file: table.dat",
+                "--------------------------------------------------------------------------------",
+                " Bytes Format Units  Label     Explanations",
+                "--------------------------------------------------------------------------------",
+                " 1- 8  A8     ---    names   Description of names    ",
+                "10-14  E5.1   ---    e       Description of e        ",
+                "16-23  F8.5   ---    d       Description of d        ",
+                "25-31  E7.1   ---    s       Description of s        ",
+                "33-35  I3     ---    i       Description of i        ",
+                "37-39  F3.1   ---    sameF   Description of sameF    ",
+                "41-42  I2     ---    sameI   Description of sameI    ",
+                "44-45  I2     h      RAh     Right Ascension (hour)  ",
+                "47-48  I2     min    RAm     Right Ascension (minute)",
+                "50-62  F13.10 s      RAs     Right Ascension (second)",
+                "   64  A1     ---    DE-     Sign of Declination     ",
+                "65-66  I2     deg    DEd     Declination (degree)    ",
+                "68-69  I2     arcmin DEm     Declination (arcmin)    ",
+                "71-82  F12.9  arcsec DEs     Declination (arcsec)    ",
+                "--------------------------------------------------------------------------------",
+                "Notes:",
+                "--------------------------------------------------------------------------------",
+                "HD81809  1e-07  22.25608   2e+00  67 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
+                "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 12 48 15.2244072000 +17 46 26.496624000",
+            ],
+            id="positive_de",
+        ),
+        pytest.param(
+            # Galactic coordinates
+            _coord.galactic,
+            [
+                "================================================================================",
+                "Byte-by-byte Description of file: table.dat",
+                "--------------------------------------------------------------------------------",
+                " Bytes Format Units  Label     Explanations",
+                "--------------------------------------------------------------------------------",
+                " 1- 8  A8     ---    names   Description of names",
+                "10-14  E5.1   ---    e       Description of e    ",
+                "16-23  F8.5   ---    d       Description of d    ",
+                "25-31  E7.1   ---    s       Description of s    ",
+                "33-35  I3     ---    i       Description of i    ",
+                "37-39  F3.1   ---    sameF   Description of sameF",
+                "41-42  I2     ---    sameI   Description of sameI",
+                "44-59  F16.12 deg    GLON    Galactic Longitude  ",
+                "61-76  F16.12 deg    GLAT    Galactic Latitude   ",
+                "--------------------------------------------------------------------------------",
+                "Notes:",
+                "--------------------------------------------------------------------------------",
+                "HD81809  1e-07  22.25608   2e+00  67 5.0 20 330.071639591690 -45.548080484609",
+                "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 330.071639591690 -45.548080484609",
+            ],
+            id="galactic",
+        ),
+        pytest.param(
+            # Ecliptic coordinates
+            _coord.geocentrictrueecliptic,
+            [
+                "================================================================================",
+                "Byte-by-byte Description of file: table.dat",
+                "--------------------------------------------------------------------------------",
+                " Bytes Format Units  Label     Explanations",
+                "--------------------------------------------------------------------------------",
+                " 1- 8  A8     ---    names   Description of names                       ",
+                "10-14  E5.1   ---    e       Description of e                           ",
+                "16-23  F8.5   ---    d       Description of d                           ",
+                "25-31  E7.1   ---    s       Description of s                           ",
+                "33-35  I3     ---    i       Description of i                           ",
+                "37-39  F3.1   ---    sameF   Description of sameF                       ",
+                "41-42  I2     ---    sameI   Description of sameI                       ",
+                "44-59  F16.12 deg    ELON    Ecliptic Longitude (geocentrictrueecliptic)",
+                "61-76  F16.12 deg    ELAT    Ecliptic Latitude (geocentrictrueecliptic) ",
+                "--------------------------------------------------------------------------------",
+                "Notes:",
+                "--------------------------------------------------------------------------------",
+                "HD81809  1e-07  22.25608   2e+00  67 5.0 20 306.224208650096 -45.621789850825",
+                "HD103095 -3e+06 27.25000  -9e+34 -30 5.0 20 306.224208650096 -45.621789850825",
+            ],
+            id="ecliptic",
+        ),
+    ],
+)
+def test_write_coord_cols(col, exp_output):
     """
     There can only be one such coordinate column in a single table,
     because division of columns into individual component columns requires
@@ -299,31 +326,17 @@ def test_write_coord_cols():
     t.add_column([5.0, 5.0], name="sameF")
     t.add_column([20, 20], name="sameI")
 
-    # Coordinates of ASASSN-15lh
-    coord = SkyCoord(330.564375, -61.65961111, unit=u.deg)
-    # Coordinates of ASASSN-14li
-    coordp = SkyCoord(192.06343503, 17.77402684, unit=u.deg)
-    cols = [
-        Column([coord, coordp]),  # Generic coordinate column
-        coordp,  # Coordinate column with positive DEC
-        coord.galactic,  # Galactic coordinates
-        coord.geocentrictrueecliptic,  # Ecliptic coordinates
-    ]
+    t["coord"] = col
+    out = StringIO()
+    t.write(out, format="ascii.mrt")
+    lines = out.getvalue().splitlines()
+    i_bbb = lines.index("=" * 80)
+    lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
+    # Check the written table.
+    assert lines == exp_output
 
-    # Loop through different types of coordinate columns.
-    for col, coord_type in zip(cols, exp_coord_cols_output):
-        exp_output = exp_coord_cols_output[coord_type]
-        t["coord"] = col
-        out = StringIO()
-        t.write(out, format="ascii.mrt")
-        lines = out.getvalue().splitlines()
-        i_bbb = lines.index("=" * 80)
-        lines = lines[i_bbb:]  # Select Byte-By-Byte section and later lines.
-        # Check the written table.
-        assert lines == exp_output
-
-        # Check if the original table columns remains unmodified.
-        assert t.colnames == ["names", "e", "d", "s", "i", "sameF", "sameI", "coord"]
+    # Check if the original table columns remains unmodified.
+    assert t.colnames == ["names", "e", "d", "s", "i", "sameF", "sameI", "coord"]
 
 
 def test_write_byte_by_byte_bytes_col_format():
@@ -340,21 +353,21 @@ def test_write_byte_by_byte_bytes_col_format():
         "--------------------------------------------------------------------------------",
         " Bytes Format Units  Label     Explanations",
         "--------------------------------------------------------------------------------",
-        " 1- 8  A8     ---    names         Description of names              ",
-        "10-21  E12.6  ---    e             [-3160000.0/0.01] Description of e",
-        "23-30  F8.5   ---    d             [22.25/27.25] Description of d    ",
-        "32-38  E7.1   ---    s             [-9e+34/2.0] Description of s     ",
-        "40-42  I3     ---    i             [-30/67] Description of i         ",
-        "44-46  F3.1   ---    sameF         [5.0/5.0] Description of sameF    ",
-        "48-49  I2     ---    sameI         [20] Description of sameI         ",
-        "   51  I1     ---    singleByteCol [2] Description of singleByteCol  ",
-        "53-54  I2     h      RAh           Right Ascension (hour)            ",
-        "56-57  I2     min    RAm           Right Ascension (minute)          ",
-        "59-71  F13.10 s      RAs           Right Ascension (second)          ",
-        "   73  A1     ---    DE-           Sign of Declination               ",
-        "74-75  I2     deg    DEd           Declination (degree)              ",
-        "77-78  I2     arcmin DEm           Declination (arcmin)              ",
-        "80-91  F12.9  arcsec DEs           Declination (arcsec)              ",
+        " 1- 8  A8     ---    names         Description of names        ",
+        "10-21  E12.6  ---    e             Description of e            ",
+        "23-30  F8.5   ---    d             Description of d            ",
+        "32-38  E7.1   ---    s             Description of s            ",
+        "40-42  I3     ---    i             Description of i            ",
+        "44-46  F3.1   ---    sameF         Description of sameF        ",
+        "48-49  I2     ---    sameI         Description of sameI        ",
+        "   51  I1     ---    singleByteCol Description of singleByteCol",
+        "53-54  I2     h      RAh           Right Ascension (hour)      ",
+        "56-57  I2     min    RAm           Right Ascension (minute)    ",
+        "59-71  F13.10 s      RAs           Right Ascension (second)    ",
+        "   73  A1     ---    DE-           Sign of Declination         ",
+        "74-75  I2     deg    DEd           Declination (degree)        ",
+        "77-78  I2     arcmin DEm           Declination (arcmin)        ",
+        "80-91  F12.9  arcsec DEs           Declination (arcsec)        ",
         "--------------------------------------------------------------------------------",
     ]
     t = ascii.read(test_dat)
@@ -391,8 +404,8 @@ Byte-by-byte Description of file: table.dat
                                            tediously long description. But they
                                            do sometimes have them. Better to put
                                            extra details in the notes.
-10-14  E5.1   ---    e                      [-3160000.0/0.01] Description of e
-16-23  F8.5   ---    d                      [22.25/27.25] Description of d
+10-14  E5.1   ---    e                      Description of e
+16-23  F8.5   ---    d                      Description of d
 --------------------------------------------------------------------------------
 """
     t = ascii.read(test_dat)
@@ -425,11 +438,11 @@ def test_write_mixin_and_broken_cols():
         "--------------------------------------------------------------------------------",
         " Bytes Format Units  Label     Explanations",
         "--------------------------------------------------------------------------------",
-        "  1-  7  A7     ---    name    Description of name       ",
-        "  9- 74  A66    ---    Unknown Description of Unknown    ",
-        " 76-114  A39    ---    cart    Description of cart       ",
-        "116-138  A23    ---    time    Description of time       ",
-        "140-142  F3.1   m      q       [1.0/1.0] Description of q",
+        "  1-  7  A7     ---    name    Description of name   ",
+        "  9- 74  A66    ---    Unknown Description of Unknown",
+        " 76-114  A39    ---    cart    Description of cart   ",
+        "116-138  A23    ---    time    Description of time   ",
+        "140-142  F3.1   m      q       Description of q      ",
         "--------------------------------------------------------------------------------",
         "Notes:",
         "--------------------------------------------------------------------------------",
