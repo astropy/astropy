@@ -768,9 +768,9 @@ def test_celestial_frame_to_wcs():
 
 
 def test_skycoord_to_celestial_wcs():
-    # default values
+    # default values, square fov
     center = SkyCoord(266.4, -29, unit="deg")
-    fov = Angle([4, 4], unit="arcmin")
+    fov = Angle(4, unit="arcmin")
     pixel_size = Angle(1, unit="arcmin")
     wcs_default = skycoord_to_celestial_wcs(
         center, fov=fov, pixel_angular_size=pixel_size
@@ -802,9 +802,20 @@ def test_skycoord_to_celestial_wcs():
     assert wcs_optional.wcs.ctype[0] == "GLON-TAN"
     assert wcs_optional.wcs.ctype[1] == "GLAT-TAN"
     assert_allclose(wcs_optional.wcs.crval, [0.0, 0.0])
-    assert_allclose(wcs_optional.array_shape, [150, 90])
+    assert_allclose(wcs_optional.array_shape, [90, 150])  # y/x
     assert_allclose(wcs_optional.wcs.crpix, [11, 16])
     assert_allclose(wcs_optional.wcs.pc, [[0, 2], [-0.5, 0]], atol=1e-10)
+
+    # rectangular fov
+    center = SkyCoord(10, 20, unit="deg")
+    wcs_rectangular_fov = skycoord_to_celestial_wcs(
+        center, fov=Angle([10, 5], "deg"), pixel_angular_size=Angle(1, "deg")
+    )
+    assert wcs_rectangular_fov.array_shape == (5, 10)  # y/x ordering
+    assert wcs_rectangular_fov.pixel_to_world(
+        (wcs_rectangular_fov.array_shape[1] - 1) / 2,
+        (wcs_rectangular_fov.array_shape[0] - 1) / 2,
+    ).separation(center) < Angle(0.01, "arcsec")
 
     # field of view smaller than cdelt: image shape should be one pixel
     wcs = skycoord_to_celestial_wcs(
@@ -872,8 +883,8 @@ def test_crota_vs_pc_in_skycoord_to_celestial_wcs():
     wcs_crota = celestial_frame_to_wcs(frame=ICRS(), projection="TAN")
     wcs_crota.wcs.cdelt = pixel_size.to_value("deg")
     wcs_crota.wcs.crval = [0, 0]
-    wcs_crota.array_shape = shape
-    wcs_crota.wcs.crpix = [100.5, 50.5]
+    wcs_crota.array_shape = shape[::-1]
+    wcs_crota.wcs.crpix = [50.5, 100.5]
     wcs_crota.wcs.crota = 0, 30
 
     y, x = np.mgrid[0:200:20, 0:100:10]
