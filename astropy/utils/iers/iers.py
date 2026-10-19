@@ -11,7 +11,7 @@ celestial-to-terrestrial coordinate transformations
 
 import os
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Self
 from urllib.parse import urlparse
 from warnings import warn
@@ -1032,10 +1032,17 @@ class LeapSeconds(QTable):
     of ``leap-seconds.list`` for use with ``ntp`` (e.g., on Debian/Ubuntu
     systems, ``/usr/share/zoneinfo/leap-seconds.list``).
 
-    To prevent querying internet resources if the available local leap second
-    file(s) are out of date, set ``iers.conf.auto_download = False``. This
-    must be done prior to performing any ``Time`` scale transformations related
-    to UTC (e.g. converting from UTC to TAI).
+    Leap seconds have been discontinued: under Resolution 5 of the 28th CGPM
+    (2026), UTC is continuous from 2027 May 20, and IERS Bulletin C 72 had
+    already ruled out a leap second before 2027 June 28.  The table built into
+    ERFA, which `~astropy.time.Time` uses, already includes the last leap
+    second (2017 January 1, TAI-UTC = 37 s), so `~astropy.time.Time` no longer
+    checks for or loads newer tables, and the expiration date of a table no
+    longer matters.
+
+    To prevent `~astropy.utils.iers.LeapSeconds.auto_open` from querying
+    internet resources if the available local leap second file(s) are out of
+    date, set ``iers.conf.auto_download = False``.
     """
 
     # Note: Time instances in this class should use scale='tai' to avoid
@@ -1287,11 +1294,26 @@ class LeapSeconds(QTable):
             with erfa.
         """
         current = cls(erfa.leap_seconds.get())
+        # Leap seconds were discontinued (CGPM 2026, Resolution 5), so the leap-second
+        # table built into ERFA is final and cannot expire.  pyerfa versions that
+        # include liberfa/pyerfa#359 report this themselves; for older ones, which
+        # consider the table expired 180 days after the last leap second, set the same
+        # expiration as pyerfa#359 (180 days ahead) so erfa.leap_seconds.expired is
+        # False either way.
+        if erfa.leap_seconds.expired:
+            # Setting this private module attribute is equivalent to the previous
+            # auto-update machinery. This code can be removed when #359 is required
+            # by astropy.
+            erfa.leap_seconds._expires = datetime.now().replace(
+                hour=0, minute=0, second=0, microsecond=0
+            ) + timedelta(180)
+
         expires = erfa.leap_seconds.expires
         current._expires = Time(
             f"{expires.year:04d}-{expires.month:02d}-{expires.day:02d}",
             scale="tai",
         )
+
         if not built_in:
             return current
 
