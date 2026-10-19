@@ -23,6 +23,7 @@ Core Package Contributors
 * Akeem
 * Akshat Dixit
 * Al Niessner
+* Alasdair Wilson
 * Albert Y\. Shih
 * Albert Zhang
 * Aleh Khvalko
@@ -528,6 +529,7 @@ Core Package Contributors
 * Sam Lee
 * Sam Van Kooten
 * Sam Verstocken
+* Samarth D N
 * Samruddhi Khandale
 * Samuel Brice
 * Sandeep Desai
