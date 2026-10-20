@@ -1112,7 +1112,7 @@ class Tangent1D(_Trigonometric1D):
         .. math:: f(x) = A \\tan(2 \\pi f x + 2 \\pi p)
 
     Note that the tangent function is undefined for inputs of the form
-    pi/2 + n*pi for all integers n. Thus thus the default bounding box
+    pi/2 + n*pi for all integers n. Thus the default bounding box
     has been restricted to:
 
         .. math:: [(-1/4 - p)/f, (1/4 - p)/f]

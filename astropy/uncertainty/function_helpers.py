@@ -51,7 +51,7 @@ for passing the distribution data to the numpy function, by returning
 ``args, kwargs, out``. Here, the former two are passed on, while ``out``
 is used to indicate whether there was an output argument.  If ``out`` is
 set to `True`, then no further processing should be done; otherwise, it
-it is assumed that the function operates on unwrapped distributions and
+is assumed that the function operates on unwrapped distributions and
 that the results need to be rewrapped as |Distribution|.
 
 The function should raise `NotImplementedError` if one of the arguments is a

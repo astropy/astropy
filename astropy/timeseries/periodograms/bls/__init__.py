@@ -5,7 +5,7 @@
 Box Least Squares
 =================
 
-AstroPy-compatible reference implementation of the transit periorogram used
+AstroPy-compatible reference implementation of the transit periodogram used
 to discover transiting exoplanets.
 
 """

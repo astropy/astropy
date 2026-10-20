@@ -179,7 +179,7 @@ Benchmarks
 If a pull request explicitly deals with a performance improvement, maintainers should
 use the ``benchmark`` label to run a comparative benchmark on the pull request. This
 will run a benchmark comparing the ``HEAD`` commit of the pull request branch with
-the ``main`` branch. The logs are uploaded as a action artifact and can be viewed
+the ``main`` branch. The logs are uploaded as an action artifact and can be viewed
 in the Actions tab. This workflow uses the benchmarks
 from `astropy-benchmarks <https://github.com/astropy/astropy-benchmarks/>`_.
 

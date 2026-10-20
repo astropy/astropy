@@ -688,7 +688,7 @@ specific version of libraries such as freetype. In general, using tox will
 result in the version of freetype being pinned, but the hashes will only be
 correct when running the tests on Linux. Therefore, if using another operating
 system, we do not recommend running the image tests locally and instead it is
-best to rely on these running in an controlled continuous integration
+best to rely on these running in a controlled continuous integration
 environment.
 
 Writing image tests

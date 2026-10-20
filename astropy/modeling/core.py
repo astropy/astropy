@@ -3762,7 +3762,7 @@ class CompoundModel(Model):
         expects for the Model class.
 
         The parameter objects that the attributes point to are the same
-        objects as in the constiutent models. Changes made to parameter
+        objects as in the constituent models. Changes made to parameter
         values to either are seen by both.
 
         Prior to calling this, none of the associated attributes will

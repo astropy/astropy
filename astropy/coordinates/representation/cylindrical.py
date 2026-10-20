@@ -33,7 +33,7 @@ class CylindricalRepresentation(BaseRepresentation):
     differentials : dict, `~astropy.coordinates.CylindricalDifferential`, optional
         Any differential classes that should be associated with this
         representation. The input must either be a single
-        `~astropy.coordinates.CylindricalDifferential` instance, or a dictionary of of differential
+        `~astropy.coordinates.CylindricalDifferential` instance, or a dictionary of differential
         instances with keys set to a string representation of the SI unit with
         which the differential (derivative) is taken. For example, for a
         velocity differential on a positional representation, the key would be

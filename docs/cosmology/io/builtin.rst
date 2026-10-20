@@ -4,7 +4,7 @@
 Built-in Cosmology To/From Formats
 **********************************
 
-To see the a list of the available conversion formats:
+To see the list of the available conversion formats:
 
 .. code-block:: python
 

@@ -215,7 +215,7 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
 
     def lookup_by_id_or_name(self, ref, before=None):
         """
-        Given an key *ref*, finds the first element in the iterator
+        Given a key *ref*, finds the first element in the iterator
         with the attribute ID == *ref* or name == *ref*.  If *before*
         is provided, will stop searching at the object *before*.  This
         is important, since "forward references" are not allowed in

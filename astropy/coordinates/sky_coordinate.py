@@ -124,7 +124,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
         Type of coordinate frame this |SkyCoord| should represent. Defaults to
-        to ICRS if not given or given as None.
+        ICRS if not given or given as None.
     unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
         Units for supplied coordinate values.
         If only one unit is supplied then it applies to all values.
@@ -153,7 +153,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
         pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity` ['angular speed'], optional
             Proper motion components, in angle per time units.
         l, b : angle-like, optional
-            Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
+            Galactic ``l`` and ``b`` for frames where ``l`` and ``b`` are
             keys in the frame's ``representation_component_names``, including
             the ``Galactic`` frame.
         pm_l_cosb, pm_b : `~astropy.units.Quantity` ['angular speed'], optional
@@ -849,7 +849,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
                     'lon': {'pad': True, 'unit': "hour"}
 
         See :meth:`~astropy.coordinates.Angle.to_string` for details and
-        keyword arguments (the two angles forming the coordinates are are
+        keyword arguments (the two angles forming the coordinates are
         both :class:`~astropy.coordinates.Angle` instances). Keyword
         arguments have precedence over the style defaults and are passed
         to :meth:`~astropy.coordinates.Angle.to_string`.

@@ -375,7 +375,7 @@ use new views of the data, with the data copied only if that is impossible
 Modifying Coordinate Objects In-place
 -------------------------------------
 
-Coordinate values in a array-valued |SkyCoord| object can be modified in-place
+Coordinate values in an array-valued |SkyCoord| object can be modified in-place
 (added in astropy 4.1). This requires that the new values be set from an
 another |SkyCoord| object that is equivalent in all ways except for the actual
 coordinate data values. In this way, no frame transformations are required and

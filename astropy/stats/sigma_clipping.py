@@ -617,7 +617,7 @@ class SigmaClip:
             was a masked array, then the output `~numpy.ndarray` will
             also contain ``np.nan`` where the input mask was `True`. If
             ``return_bounds=True`` then the returned minimum and maximum
-            clipping thresholds will be be `~numpy.ndarray`\\s.
+            clipping thresholds will be `~numpy.ndarray`\\s.
         """
         data = np.asanyarray(data)
 
@@ -1086,7 +1086,7 @@ class SigmaClippedStats:
         self, median_factor: float = 3.0, mean_factor: float = 2.0
     ) -> float | NDArray:
         """
-        Calculate the mode of the data using a estimator of the form
+        Calculate the mode of the data using an estimator of the form
         ``(median_factor * median) - (mean_factor * mean)``.
 
         NaN values are ignored.

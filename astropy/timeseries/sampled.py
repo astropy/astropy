@@ -23,7 +23,7 @@ class TimeSeries(BaseTimeSeries):
     points in time (for time series with finite time bins, see the
     `~astropy.timeseries.BinnedTimeSeries` class).
     `~astropy.timeseries.TimeSeries` is a sub-class of `~astropy.table.QTable`
-    and thus provides all the standard table maniplation methods available to
+    and thus provides all the standard table manipulation methods available to
     tables, but it also provides additional conveniences for dealing with time
     series, such as a flexible initializer for setting up the times, a method
     for folding time series, and a ``time`` attribute for easy access to the

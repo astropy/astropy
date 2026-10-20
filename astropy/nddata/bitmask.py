@@ -198,7 +198,7 @@ class BitFlagNameMeta(type):
 class BitFlagNameMap(metaclass=BitFlagNameMeta):
     """
     A base class for bit flag name maps used to describe data quality (DQ)
-    flags of images by provinding a mapping from a mnemonic flag name to a flag
+    flags of images by providing a mapping from a mnemonic flag name to a flag
     value.
 
     Mapping for a specific instrument should subclass this class.
@@ -310,7 +310,7 @@ def interpret_bit_flags(bit_flags, flip_bits=None, flag_name_map=None):
          A `BitFlagNameMap` object that provides mapping from mnemonic
          bit flag names to integer bit values in order to translate mnemonic
          flags to numeric values when ``bit_flags`` that are comma- or
-         '+'-separated list of menmonic bit flag names.
+         '+'-separated list of mnemonic bit flag names.
 
     Returns
     -------
@@ -617,7 +617,7 @@ good_mask_value=False, dtype=numpy.bool_)
          A `BitFlagNameMap` object that provides mapping from mnemonic
          bit flag names to integer bit values in order to translate mnemonic
          flags to numeric values when ``bit_flags`` that are comma- or
-         '+'-separated list of menmonic bit flag names.
+         '+'-separated list of mnemonic bit flag names.
 
     Returns
     -------

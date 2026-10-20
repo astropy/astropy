@@ -560,7 +560,7 @@ class QDP(basic.Basic):
         READ SERR 3
 
     which mean that after data column 1 there will be two error columns
-    containing its positive and engative error bars, then data column 2 without
+    containing its positive and negative error bars, then data column 2 without
     error bars, then column 3, then a column with the symmetric error of column
     3, then the remaining data columns.
 

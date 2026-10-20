@@ -105,7 +105,7 @@ class Mapping(FittableModel):
         Raises
         ------
         `NotImplementedError`
-            An inverse does no exist on mappings that drop some of its inputs
+            An inverse does not exist on mappings that drop some of its inputs
             (there is then no way to reconstruct the inputs that were dropped).
         """
         try:

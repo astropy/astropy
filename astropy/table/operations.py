@@ -414,7 +414,7 @@ def join(
         Join type ('inner' | 'outer' | 'left' | 'right' | 'cartesian'), default is 'inner'
     keys_left : str or list of str or list of column-like, optional
         Left column(s) used to match rows instead of ``keys`` arg. This can be
-        be a single left table column name or list of column names, or a list of
+        a single left table column name or list of column names, or a list of
         column-like values with the same lengths as the left table.
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
@@ -1372,7 +1372,7 @@ def _join(  # ruff: ignore[PLR0917]
         See `~astropy.table.join_skycoord` for an example and details.
     keys_left : str or list of str or list of column-like, optional
         Left column(s) used to match rows instead of ``keys`` arg. This can be
-        be a single left table column name or list of column names, or a list of
+        a single left table column name or list of column names, or a list of
         column-like values with the same lengths as the left table.
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
