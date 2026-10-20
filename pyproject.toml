@@ -1061,3 +1061,7 @@ exclude = [
     # otherwise pick up as an implicit namespace package.
     "astropy/cosmology/data/",
 ]
+modules = [
+    # Specific config modules
+    "astropy.config.configuration",
+]
