@@ -1496,11 +1496,19 @@ def _join(  # ruff: ignore[PLR0917]
             out[out_name] = col_cls.info.new_like(
                 cols, n_out, metadata_conflicts, out_name
             )
-            out[out_name][:] = np.where(
-                right_mask,
-                left[left_name].take(left_out),
-                right[right_name].take(right_out),
-            )
+            # Take unmatched rows from the left and the rest from the right.  Assign
+            # each side separately so that bytes and text keys are not promoted.
+            for col, indices, mask in zip(
+                cols, (left_out, right_out), (right_mask, ~right_mask)
+            ):
+                indices = indices[mask]
+                if len(indices) == 0:  # e.g., the left side of an inner join
+                    continue
+                values = col.take(indices)
+                if _dtype.kind == "U" and col.dtype.kind == "S":
+                    # Decode here so the setitem truncation check doesn't decode again.
+                    values = values.astype("U")
+                out[out_name][mask] = values
             continue
         elif left_name:  # out_name came from the left table
             name, array, array_out, array_mask = left_name, left, left_out, left_mask

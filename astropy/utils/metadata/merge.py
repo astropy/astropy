@@ -130,8 +130,10 @@ class MergeNpConcatenate(MergeStrategy):
     @classmethod
     def merge(cls, left, right):
         left, right = np.asanyarray(left), np.asanyarray(right)
-        result_type([left, right])  # Ensure left and right have compatible dtype
-        return np.concatenate([left, right])
+        dtype = result_type([left, right])  # Ensure compatible dtype
+        # "unsafe" keeps the legacy bytes to text conversion; other
+        # dtypes already cast safely to ``dtype``.
+        return np.concatenate([left, right], dtype=dtype, casting="unsafe")
 
 
 # ============================================================================
