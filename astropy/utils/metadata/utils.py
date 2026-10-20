@@ -43,8 +43,7 @@ def result_type(arrs):
     Hence, a mix like integer and string will raise instead of resulting
     in a string type.
 
-    A mix of bytes and text results in a text type with as many characters
-    as the widest of the bytes and text types.
+    A mix of bytes and text results in text, with one character per byte.
 
     Parameters
     ----------
@@ -70,9 +69,9 @@ def result_type(arrs):
         raise tme
 
     if {dt.kind for dt in dtypes} == {"S", "U"}:
-        # NumPy is deprecating the implicit promotion of bytes and text
-        # (numpy/numpy#32757).  Replace each bytes dtype by a text dtype with one
-        # character per byte, which gives the same result as that promotion.
+        # Coerce ASCII bytes to unicode, non-ASCII bytes will trigger a
+        # UnicodeDecodeError. NumPy used to do this automatically but that
+        # behavior is deprecated.
         dtypes = [
             np.dtype(f"U{dt.itemsize}") if dt.kind == "S" else dt for dt in dtypes
         ]
