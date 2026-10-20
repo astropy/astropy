@@ -385,6 +385,9 @@ def from_df(
         # Handle string-like columns
         elif isinstance(dtype, (nw.String, nw.Binary, nw.Object)):
             if data.dtype.kind == "O":
+                # If all elements are strings or missing, convert to a native string
+                # column, using a placeholder that matches the string type for
+                # missing values.  The mask is applied below.
                 fill = _get_string_fill_value(data)
                 if fill is not None:
                     data = np.array(
@@ -520,6 +523,9 @@ def from_pandas(
             continue
 
         if data.dtype.kind == "O":
+            # If all elements are strings or ``np.nan``, convert to a native string
+            # column, using a placeholder that matches the string type for missing
+            # values.  The mask is applied below.
             fill = _get_string_fill_value(data, legacy_pandas=True)
             if fill is not None:
                 data = np.array([fill if m else d for (d, m) in zip(data, mask)])

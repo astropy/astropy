@@ -43,6 +43,9 @@ def result_type(arrs):
     Hence, a mix like integer and string will raise instead of resulting
     in a string type.
 
+    A mix of bytes and text results in a text type with as many characters
+    as the widest of the bytes and text types.
+
     Parameters
     ----------
     arrs : list of ndarray
@@ -67,8 +70,9 @@ def result_type(arrs):
         raise tme
 
     if {dt.kind for dt in dtypes} == {"S", "U"}:
-        # Preserve the existing character widths when combining bytes and text
-        # without relying on NumPy's implicit bytes/text promotion.
+        # NumPy is deprecating the implicit promotion of bytes and text
+        # (numpy/numpy#32757).  Replace each bytes dtype by a text dtype with one
+        # character per byte, which gives the same result as that promotion.
         dtypes = [
             np.dtype(f"U{dt.itemsize}") if dt.kind == "S" else dt for dt in dtypes
         ]

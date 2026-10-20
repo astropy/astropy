@@ -1229,16 +1229,34 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     @staticmethod
     def _encode_str(value) -> Any:
         """
-        Encode anything that is unicode-ish as utf-8.  This method is only
-        called for Py3+.
+        Encode anything that is unicode-ish as utf-8.
+
+        This is used to prepare a value that is assigned to, compared with, or used
+        to create a bytes (``S``) column.
+
+        Parameters
+        ----------
+        value : object
+            Scalar, sequence or array to encode.
+
+        Returns
+        -------
+        value : object
+            ``bytes`` if ``value`` is a ``str``.  A bytes array (masked if
+            ``value`` is masked) if ``value`` contains text.  Otherwise ``value``
+            itself, unchanged.
         """
         if isinstance(value, str):
             value = value.encode("utf-8")
         elif isinstance(value, bytes) or value is np.ma.masked:
             pass
         else:
+            # Choose the dtype for flat lists and tuples here, so that a mix of bytes
+            # and text does not rely on NumPy's implicit bytes/text promotion.
             dtype = _get_string_dtype(value)
             if dtype == "S":
+                # Nothing to encode, so skip creating an array that would be
+                # discarded below.
                 return value
             arr = np.asarray(value, dtype=dtype)
             if arr.dtype.char == "U":
@@ -1734,7 +1752,11 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             # If mask is None then we need to determine the mask (if any) from the data.
             # The naive method is looking for a mask attribute on data, but this can fail,
             # see #8816.  Instead use ``MaskedArray`` to do the work.
-            # Avoid converting strings and bytes while inferring the mask.
+            # For a list or tuple with a string or object dtype, infer the mask from an
+            # object array.  Otherwise NumPy chooses a dtype from the elements, which
+            # can promote bytes and text together, or try to decode non-ASCII bytes
+            # and raise UnicodeDecodeError even though ``dtype=object`` was requested.
+            # Only the mask is used here; the data are converted below with ``dtype``.
             mask_dtype = None
             if isinstance(data, (list, tuple)) and np.dtype(dtype).kind in "SUO":
                 mask_dtype = object

@@ -1496,6 +1496,11 @@ def _join(  # ruff: ignore[PLR0917]
             out[out_name] = col_cls.info.new_like(
                 cols, n_out, metadata_conflicts, out_name
             )
+            # Fill output rows with no right-table match from the left key, and the
+            # other rows from the right key.  Each table's values are assigned
+            # separately, instead of combining them with ``np.where``, so that a
+            # bytes key and a text key are not promoted together by NumPy's
+            # implicit bytes/text promotion.
             for col, indices, mask in zip(
                 cols, (left_out, right_out), (right_mask, ~right_mask)
             ):
@@ -1504,7 +1509,10 @@ def _join(  # ruff: ignore[PLR0917]
                     continue
                 values = col.take(indices)
                 if _dtype.kind == "U" and col.dtype.kind == "S":
-                    # Avoid repeating the ASCII conversion during assignment.
+                    # Convert bytes to text once here (ASCII only, as before).
+                    # Otherwise the string truncation check in
+                    # ``Column.__setitem__`` and the assignment itself would each
+                    # do the conversion.
                     values = values.astype("U")
                 out[out_name][mask] = values
             continue

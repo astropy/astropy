@@ -130,8 +130,14 @@ class MergeNpConcatenate(MergeStrategy):
     @classmethod
     def merge(cls, left, right):
         left, right = np.asanyarray(left), np.asanyarray(right)
-        dtype = result_type([left, right])  # Ensure compatible dtype
-        # Intentionally opt into NumPy's legacy implicit bytes/text coercion.
+        # Raises MergeConflictError if the dtypes are incompatible.
+        dtype = result_type([left, right])
+        # NumPy is deprecating implicit bytes/text conversion with the default
+        # "same_kind" casting (numpy/numpy#32757).  Casting with "unsafe" keeps the
+        # existing conversion of bytes to text for metadata.  Other inputs are not
+        # affected because they can already be cast safely to the common dtype.
+        # A failed conversion, e.g. of non-ASCII bytes, raises an error that the
+        # merge machinery handles according to ``metadata_conflicts``.
         return np.concatenate([left, right], dtype=dtype, casting="unsafe")
 
 
