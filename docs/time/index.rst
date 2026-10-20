@@ -636,7 +636,7 @@ The ``precision`` setting affects string formats when outputting a value that
 includes seconds. It must be an integer between 0 and 9. There is no effect
 when inputting time values from strings. The default precision is 3. Note
 that the limit of 9 digits is driven by the way that |ERFA| handles fractional
-seconds. In practice this should should not be an issue.  ::
+seconds. In practice this should not be an issue.  ::
 
   >>> t = Time('B1950.0', precision=3)
   >>> t.byear_str
