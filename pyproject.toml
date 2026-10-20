@@ -1045,6 +1045,7 @@ cache-control = { api = "max-age=600", files = "max-age=43200, immutable" }
 [tool.mypy]
 follow_imports = "silent"
 packages = [
+    "astropy.config",
     "astropy.coordinates.sites",
     "astropy.cosmology",  # See `exclude` for skipped modules
 ]
@@ -1052,6 +1053,7 @@ packages = [
 # they must not start with `/`: the path is `astropy/...` from the repository
 # root, but `../../.tox/<...>/astropy/<...>` under tox.
 exclude = [
+    "astropy/config/_tempfile_shim.py", # backport module
     # Private `astropy.cosmology`, not type checked yet.
     "astropy/cosmology/_src/",
     # Tests are out of scope for now. `test_scalar_inv_efuncs.py` additionally
@@ -1060,8 +1062,4 @@ exclude = [
     # A directory of `.ecsv` files with no `__init__.py`, which Mypy would
     # otherwise pick up as an implicit namespace package.
     "astropy/cosmology/data/",
-]
-modules = [
-    # Specific config modules
-    "astropy.config.configuration",
 ]

@@ -28,7 +28,7 @@ from textwrap import TextWrapper
 from typing import Final
 from warnings import warn
 
-import configobj
+import configobj  # type: ignore[import-untyped]
 import numpy as np
 from configobj import validate
 
