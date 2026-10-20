@@ -37,7 +37,7 @@ from astropy.config.paths import (
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
-OLD_CONFIG = {}
+OLD_CONFIG = {}  # type: ignore[var-annotated]
 
 
 def setup_module() -> None:
@@ -496,7 +496,7 @@ def test_set_temp_cache_resets_on_exception(tmp_path: Path) -> None:
 
 @pytest.mark.usefixtures("ignore_config_paths_global_state")
 def test_config_file() -> None:
-    from configobj import ConfigObj, Section
+    from configobj import ConfigObj, Section  # type: ignore[import-untyped]
 
     from astropy.config.configuration import get_config, reload_config
 
@@ -743,14 +743,10 @@ def test_configitem() -> None:
     assert ci() == 34
 
     # Test iterator for one-item namespace
-    result = list(conf)
-    assert result == ["tstnm"]
-    result = list(conf.keys())
-    assert result == ["tstnm"]
-    result = list(conf.values())
-    assert result == [ci]
-    result = list(conf.items())
-    assert result == [("tstnm", ci)]
+    assert list(conf) == ["tstnm"]
+    assert list(conf.keys()) == ["tstnm"]
+    assert list(conf.values()) == [ci]
+    assert list(conf.items()) == [("tstnm", ci)]
 
 
 def test_configitem_types() -> None:
@@ -785,12 +781,9 @@ def test_configitem_types() -> None:
     # Test iterator for multi-item namespace. Assume ordered by insertion order.
     item_names = list(conf)
     assert item_names == ["tstnm1", "tstnm2", "tstnm3", "tstnm4"]
-    result = list(conf.keys())
-    assert result == item_names
-    result = list(conf.values())
-    assert result == [ci1, ci2, ci3, ci4]
-    result = list(conf.items())
-    assert result == [
+    assert list(conf.keys()) == item_names
+    assert list(conf.values()) == [ci1, ci2, ci3, ci4]
+    assert list(conf.items()) == [
         ("tstnm1", ci1),
         ("tstnm2", ci2),
         ("tstnm3", ci3),
