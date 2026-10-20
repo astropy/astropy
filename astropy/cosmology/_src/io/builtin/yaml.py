@@ -181,7 +181,7 @@ def from_yaml(yml: str, *, cosmology: type[_CosmoT] | None = None) -> _CosmoT:
         :mod:`yaml` representation of |Cosmology| object
     cosmology : str, |Cosmology| class, or None (optional, keyword-only)
         The expected cosmology class (or string name thereof). This argument is
-        is only checked for correctness if not `None`.
+        only checked for correctness if not `None`.
 
     Returns
     -------

@@ -340,7 +340,7 @@ Time from Epoch Formats
 The formats ``cxcsec``, ``gps``, ``unix``, and ``unix_tai`` are special in that
 they provide a floating point representation of the elapsed time in seconds
 (with the caveat that ``unix`` does not include leap seconds)
-since a particular reference date. These formats have a intrinsic time scale
+since a particular reference date. These formats have an intrinsic time scale
 which is used to compute the elapsed seconds since the reference date.
 
 ============ ====== ========================
@@ -636,7 +636,7 @@ The ``precision`` setting affects string formats when outputting a value that
 includes seconds. It must be an integer between 0 and 9. There is no effect
 when inputting time values from strings. The default precision is 3. Note
 that the limit of 9 digits is driven by the way that |ERFA| handles fractional
-seconds. In practice this should should not be an issue.  ::
+seconds. In practice this should not be an issue.  ::
 
   >>> t = Time('B1950.0', precision=3)
   >>> t.byear_str

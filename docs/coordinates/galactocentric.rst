@@ -32,7 +32,7 @@ This document describes the mathematics behind the transformation from
 coordinates. This is described in detail here on account of the mathematical
 subtleties and the fact that there is no official standard/definition for this
 frame. For examples of how to use this transformation in code, see the
-the *Examples* section of the `~astropy.coordinates.Galactocentric` class
+*Examples* section of the `~astropy.coordinates.Galactocentric` class
 documentation.
 
 We assume that we start with a 3D position in the ICRS reference frame:

@@ -1256,7 +1256,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
     multiple-inheritance so that this mixin's ``__init__`` proceeds the
     base class'. Note that all instances of ``FlatFLRWMixin`` are flat, but
     not all flat cosmologies are instances of ``FlatFLRWMixin``. As
-    example, ``LambdaCDM`` **may** be flat (for the a specific set of
+    example, ``LambdaCDM`` **may** be flat (for a specific set of
     parameter values), but ``FlatLambdaCDM`` **will** be flat.
     """
 

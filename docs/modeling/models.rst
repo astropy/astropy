@@ -498,7 +498,7 @@ dictionary of bounding boxes need to be specified as tuples of values ::
 Note that one can also specify the ordering for all the bounding boxes
 comprising the compound bounding using the ``order`` keyword argument.
 
-Another use case for this maybe a if one wants to use multiple bounding
+Another use case for this may be if one wants to use multiple bounding
 boxes for the same model, where the user chooses the bounding box when
 evaluating the model. In this case, one must still choose a selector
 argument as a fall back default for bounding box selection; however, this

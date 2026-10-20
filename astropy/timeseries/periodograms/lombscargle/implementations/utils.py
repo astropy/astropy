@@ -425,7 +425,7 @@ def trig_sum(  # ruff: ignore[PLR0917]
         The number of adjacent points to use in the FFT approximation.
         Not referenced if use_fft is False.
     algorithm : 'fasper' (default), or 'lra'
-        This option is ignored if if use_fft is False.
+        This option is ignored if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
         Currently there are two available options:
 

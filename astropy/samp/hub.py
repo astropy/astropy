@@ -34,7 +34,7 @@ class SAMPHubServer:
     Parameters
     ----------
     secret : str, optional
-        The secret code to use for the SAMP lockfile. If none is is specified,
+        The secret code to use for the SAMP lockfile. If none is specified,
         the :func:`uuid.uuid1` function is used to generate one.
 
     addr : str, optional

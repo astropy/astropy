@@ -314,7 +314,7 @@ def setval(
     """
     Set a keyword's value from a header in a FITS file.
 
-    If the keyword already exists, it's value/comment will be updated.
+    If the keyword already exists, its value/comment will be updated.
     If it does not exist, a new card will be created and it will be
     placed before or after the specified location.  If no ``before`` or
     ``after`` is specified, it will be appended at the end.
@@ -1169,7 +1169,7 @@ def _stat_filename_or_fileobj(filename):
 def _get_file_mode(filename, default="readonly"):
     """
     Allow file object to already be opened in any of the valid modes and
-    and leave the file in the same state (opened or closed) as when
+    leave the file in the same state (opened or closed) as when
     the function was called.
     """
     mode = default

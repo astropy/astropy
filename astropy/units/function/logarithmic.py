@@ -234,7 +234,7 @@ class LogQuantity(FunctionQuantity):
 
     dtype : `~numpy.dtype`, optional
         The ``dtype`` of the resulting Numpy array or scalar that will
-        hold the value.  If not provided, is is determined automatically
+        hold the value.  If not provided, it is determined automatically
         from the input value.
 
     copy : bool, optional

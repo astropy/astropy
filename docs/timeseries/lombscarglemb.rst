@@ -303,7 +303,7 @@ within :class:`~astropy.timeseries.LombScargleMultiband`, ``flexible`` and
 algorithm used in the gatspy `gatspy`_ package. It constructs a common model,
 and an offset model per individual band. It then applies regularization to the
 resulting model to constrain complexity, resulting in a flexible model for any
-given multiband timeseries dataset. As it's name implies, ``fast`` is
+given multiband timeseries dataset. As its name implies, ``fast`` is
 potentially quicker alternative that fits each band independently and combines
 them by weight. The independent band-by-band fits leverage
 :class:`~astropy.timeseries.LombScargle`. As a result the ``sb_method``

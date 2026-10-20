@@ -286,7 +286,7 @@ class Covariance(NDUncertainty):
     @property
     def quantity(self):
         """
-        The covariance matrix as an dense `~astropy.units.Quantity` object.
+        The covariance matrix as a dense `~astropy.units.Quantity` object.
         """
         return Quantity(self.to_dense(), self.unit, copy=False, dtype=self._cov.dtype)
 
@@ -905,7 +905,7 @@ class Covariance(NDUncertainty):
         Returns
         -------
         `~astropy.table.Table`
-            Table with the covoariance matrix in coordinate format and the
+            Table with the covariance matrix in coordinate format and the
             relevant metadata.
         """
         meta = {}

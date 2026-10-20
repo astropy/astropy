@@ -474,7 +474,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
     Do NOT instantiate directly. Note that all instances of
     ``FlatCosmologyMixin`` are flat, but not all flat cosmologies are
     instances of ``FlatCosmologyMixin``. As example, ``LambdaCDM`` **may**
-    be flat (for the a specific set of parameter values), but
+    be flat (for a specific set of parameter values), but
     ``FlatLambdaCDM`` **will** be flat.
     """
 

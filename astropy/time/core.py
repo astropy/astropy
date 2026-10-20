@@ -1930,7 +1930,7 @@ class Time(TimeBase):
     out_subfmt : str, optional
         Unix glob to select subformat for outputting times
     location : `~astropy.coordinates.EarthLocation` or tuple, optional
-        If given as an tuple, it should be able to initialize an
+        If given as a tuple, it should be able to initialize an
         an EarthLocation instance, i.e., either contain 3 items with units of
         length for geocentric coordinates, or contain a longitude, latitude,
         and an optional height for geodetic coordinates.
@@ -2545,7 +2545,7 @@ class Time(TimeBase):
         Get ERFA DUT arg = UT1 - UTC.  This getter takes optional jd1 and
         jd2 args because it gets called that way when converting time scales.
         If delta_ut1_utc is not yet set, this will interpolate them from the
-        the IERS table.
+        IERS table.
         """
         # Sec. 4.3.1: the arg DUT is the quantity delta_UT1 = UT1 - UTC in
         # seconds. It is obtained from tables published by the IERS.

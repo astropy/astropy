@@ -1168,7 +1168,7 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
         directions at once, so that S_min and S_max move similarly (see
         the article for details). Here, this is implemented differently:
         Treat S_max as the optimization parameters in func and then
-        calculate the matching s_min that has has eqn7(S_max) =
+        calculate the matching s_min that has eqn7(S_max) =
         eqn7(S_min) here.
         """
         y_S_max = eqn7(S_max, N, B)
@@ -1251,7 +1251,7 @@ def _mpmath_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, fl
         directions at once, so that S_min and S_max move similarly (see
         the article for details). Here, this is implemented differently:
         Treat S_max as the optimization parameters in func and then
-        calculate the matching s_min that has has eqn7(S_max) =
+        calculate the matching s_min that has eqn7(S_max) =
         eqn7(S_min) here.
         """
         y_S_max = eqn7(S_max, N, B)

@@ -366,7 +366,7 @@ class HCompress1(Codec):
     """
     The FITS HCompress compression and decompression algorithm.
 
-    Hcompress is an the image compression package written by Richard L. White
+    Hcompress is an image compression package written by Richard L. White
     for use at the Space Telescope Science Institute. Hcompress was used to
     compress the STScI Digitized Sky Survey and has also been used to compress
     the preview images in the Hubble Data Archive.
