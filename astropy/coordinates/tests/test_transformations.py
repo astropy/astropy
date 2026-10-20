@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import threading
+from concurrent.futures import ThreadPoolExecutor
+
 import numpy as np
 import pytest
 
@@ -694,3 +697,21 @@ def test_combine_affine_params(first, second, check):
         assert result[1] is None
     else:
         assert_allclose(result[1].xyz, check[1].xyz)
+
+
+def test_frame_set_concurrent_rebuild():
+    # After a cache invalidation, concurrent readers of frame_set must never
+    # see a partially rebuilt set (or a None cache reset by another thread).
+    expected = frame_transform_graph.frame_set
+    n_threads = 8
+
+    def get_frame_set(barrier):
+        barrier.wait()
+        return frame_transform_graph.frame_set
+
+    for _ in range(50):
+        frame_transform_graph.invalidate_cache()
+        barrier = threading.Barrier(n_threads)
+        with ThreadPoolExecutor(max_workers=n_threads) as executor:
+            results = list(executor.map(get_frame_set, [barrier] * n_threads))
+        assert all(result == expected for result in results)

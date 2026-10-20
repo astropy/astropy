@@ -96,14 +96,17 @@ class TransformGraph:
         """
         A `set` of all the frame classes present in this TransformGraph.
         """
-        if self._cached_frame_set is None:
-            self._cached_frame_set = set()
+        if (frame_set := self._cached_frame_set) is None:
+            # Build the set locally and cache it only once it is complete, so
+            # that other threads never see a partially built set.
+            frame_set = set()
             for a in self._graph:
-                self._cached_frame_set.add(a)
+                frame_set.add(a)
                 for b in self._graph[a]:
-                    self._cached_frame_set.add(b)
+                    frame_set.add(b)
+            self._cached_frame_set = frame_set
 
-        return self._cached_frame_set.copy()
+        return frame_set.copy()
 
     @functools.cached_property
     def frame_attributes(self):

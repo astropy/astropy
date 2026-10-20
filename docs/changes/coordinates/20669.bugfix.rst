@@ -1,0 +1,5 @@
+Fixed race conditions on free-threaded Python builds where creating the
+first sky offset frame for a frame class from several threads at once could
+raise ``RuntimeError: dictionary changed size during iteration`` or an
+``AttributeError``, and where threads reading the frames of the transform
+graph after it changed could see an incomplete set of frames.
