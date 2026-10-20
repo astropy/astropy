@@ -869,11 +869,17 @@ def test_skycoord_to_celestial_wcs_errors():
         )
 
 
-def test_crota_vs_pc_in_skycoord_to_celestial_wcs():
+test_pixel_sizes = [
+    (Angle([3, 0.3], unit="arcmin"), [0.05, 0.005]),
+    (Angle(3, unit="arcmin"), [-0.05, 0.05]),
+]
+
+
+@pytest.mark.parametrize("pixel_size,cdelt", test_pixel_sizes)
+def test_crota_vs_pc_in_skycoord_to_celestial_wcs(pixel_size, cdelt):
     # see https://github.com/astropy/astropy/pull/19985#discussion_r3596900938
     center = SkyCoord(0, 0, unit="deg")
     shape = (100, 200)
-    pixel_size = Angle([1, 0.5], unit="arcmin")
     rotation = Angle(30, unit="deg")
 
     wcs_pc = skycoord_to_celestial_wcs(
@@ -881,7 +887,7 @@ def test_crota_vs_pc_in_skycoord_to_celestial_wcs():
     )
 
     wcs_crota = celestial_frame_to_wcs(frame=ICRS(), projection="TAN")
-    wcs_crota.wcs.cdelt = pixel_size.to_value("deg")
+    wcs_crota.wcs.cdelt = cdelt
     wcs_crota.wcs.crval = [0, 0]
     wcs_crota.array_shape = shape[::-1]
     wcs_crota.wcs.crpix = [50.5, 100.5]
