@@ -469,9 +469,11 @@ class TestColumn:
             assert np.all(c1.data.mask == [False, mask, True, False])
 
     @pytest.mark.parametrize("dtype", [None, "S", "U", object])
-    def test_masked_multidim_as_list(self, dtype):
+    @pytest.mark.parametrize("explicit_dtype", [True, False])
+    def test_masked_multidim_as_list(self, dtype, explicit_dtype):
         data = np.ma.MaskedArray([1, 2], mask=[True, False], dtype=dtype)
-        c = table.MaskedColumn([data], dtype=dtype)
+        c = table.MaskedColumn([data], dtype=dtype if explicit_dtype else None)
+        assert c.dtype == data.dtype
         assert c.shape == (1, 2)
         assert np.all(c[0].mask == [True, False])
 

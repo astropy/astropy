@@ -103,10 +103,7 @@ def _get_string_dtype(value):
             continue
         if isinstance(item, str):
             has_text = True
-        elif (
-            not isinstance(item, (int, float, complex, np.number))
-            and not isinstance(item, np.bool_)
-        ):
+        elif not isinstance(item, (int, float, complex, np.number, np.bool_)):
             # Let NumPy handle nested sequences and other types.
             return None
         scalar_type = type(item)
