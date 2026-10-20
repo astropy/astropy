@@ -16,6 +16,7 @@ from numpy.testing import assert_allclose
 
 from astropy import units as u
 from astropy.constants import si
+from astropy.tests.helper import assert_quantity_allclose
 from astropy.units import (
     PrefixUnit,
     Unit,
@@ -211,6 +212,36 @@ def test_cds_solLum_str():
     assert u.solLum.to_string("cds") == "solLum"
     assert u.Lsun.to_string("cds") == "solLum"
     assert u.cds.solLum.to_string("cds") == "solLum"
+
+
+@pytest.mark.parametrize(
+    "unit",
+    # Names that the CDS format uses for another unit, see
+    # https://vizier.unistra.fr/viz-bin/Unit, e.g., "G" is gauss in
+    # astropy.units, but the gravitational constant in CDS.
+    [u.G, u.k, u.R, u.Gal, u.ha, u.EG, u.mGal],
+    ids=str,
+)
+def test_cds_roundtrip_unit_whose_name_is_taken(unit):
+    # Regression test: such units cannot be written with their name, since
+    # that would silently change the unit when read back.
+    string = unit.to_string("cds")
+    recovered = Unit(string, format="cds")
+    assert recovered.is_equivalent(unit)
+    assert_quantity_allclose(1.0 * recovered, 1.0 * unit, rtol=1e-6)
+
+
+def test_cds_gauss_str():
+    # CDS spells gauss as "gauss"; "G" is the gravitational constant there.
+    assert u.G.to_string("cds") == "gauss"
+    assert Unit("gauss", format="cds") == u.G
+    # Units with a prefix are written out with the corresponding scale.
+    assert u.EG.to_string("cds") == "10+18gauss"
+    assert Unit("10+18gauss", format="cds") == u.EG
+    # The CDS names still mean what the CDS format defines them to be.
+    assert Unit("G", format="cds") == cds.G
+    assert Unit("k", format="cds") == cds.k
+    assert Unit("R", format="cds") == cds.R
 
 
 # These examples are taken from the EXAMPLES section of

@@ -302,6 +302,24 @@ class _ParsingFormatMixin:
         )
 
     @classmethod
+    def _known_unit(
+        cls, unit: NamedUnit, name: str, deprecations: DeprecatedUnitAction
+    ) -> UnitBase | None:
+        """
+        Return the unit the format associates with ``name``, if that is
+        ``unit`` itself.
+
+        `None` is returned if the format does not know ``name`` at all, or if
+        the name stands for a different unit there, e.g. "G" is gauss in
+        `astropy.units`, but the gravitational constant in the CDS format.
+        """
+        try:
+            known_unit = cls._validate_unit(name, deprecations=deprecations)
+        except KeyError:
+            return None
+        return known_unit if known_unit == unit else None
+
+    @classmethod
     def _decompose_to_known_units(
         cls,
         unit: CompositeUnit | NamedUnit,
@@ -323,12 +341,18 @@ class _ParsingFormatMixin:
             )
         if isinstance(unit, NamedUnit):
             name = unit._get_format_name(cls.name)
-            try:
-                return cls._validate_unit(name, deprecations=deprecations)
-            except KeyError:
-                if isinstance(unit, Unit):
-                    return cls._decompose_to_known_units(unit._represents, deprecations)
-                raise ValueError(cls._invalid_unit_error_message(name)) from None
+            # The preferred name may be unknown to the format, or may stand for
+            # a different unit there (e.g. "G" is gauss in astropy, but the
+            # gravitational constant in CDS), in which case another name of the
+            # unit has to be used, e.g. "gauss" for CDS.
+            for candidate in dict.fromkeys((name, *unit.names)):
+                if (
+                    known_unit := cls._known_unit(unit, candidate, deprecations)
+                ) is not None:
+                    return known_unit
+            if isinstance(unit, Unit):
+                return cls._decompose_to_known_units(unit._represents, deprecations)
+            raise ValueError(cls._invalid_unit_error_message(name)) from None
         raise TypeError(
             f"unit argument must be a 'NamedUnit' or 'CompositeUnit', not {type(unit)}"
         )
