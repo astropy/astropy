@@ -8,7 +8,6 @@ import numpy as np
 
 import astropy.units as u
 from astropy.coordinates import (
-    ICRS,
     ITRS,
     BaseBodycentricRepresentation,
     BaseCoordinateFrame,
@@ -512,6 +511,11 @@ def skycoord_to_celestial_wcs(
     CDELT : -0.1 0.1
     NAXIS : 40  80
     """
+    if projection not in PRJ_CODES:
+        raise ValueError(
+            "Must specify valid projection code from list of supported types: ",
+            ", ".join(PRJ_CODES),
+        )
     if not reference_position.isscalar:
         raise ValueError(
             "'reference_position' should be scalar, "
