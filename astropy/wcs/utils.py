@@ -436,15 +436,15 @@ def skycoord_to_celestial_wcs(
 
     Parameters
     ----------
-    reference_position : `~astropy.coordinates.SkyCoord` of length 1
+    reference_position : `~astropy.coordinates.SkyCoord`
         The coordinates of the center of the WCS. It should be scalar.
-    fov : `~astropy.coordinates.Angle` of length 1 or 2
+    fov : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`
         The field of view in physical units, in x/y order. ``fov`` and ``shape`` are
         mutually exclusive and one of them must be provided.
     shape : Sequence[int, int]
         The image size in pixels (NAXIS), in x/y order.
         ``fov`` and ``shape`` are mutually exclusive and one of them must be provided.
-    pixel_angular_size : `~astropy.coordinates.Angle` of length 1 or 2
+    pixel_angular_size : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`
         The pixel angular size along the x and y axis, in x/y order. It is either of
         length 2 for each axis or of length 1. Then ``cdelt`` will be set to
         ``[-pixel_angular_size, pixel_angular_size]``.
@@ -454,14 +454,14 @@ def skycoord_to_celestial_wcs(
         to the center of the view.
     frame : `~astropy.coordinates.BaseCoordinateFrame`, optional
         An instance of `~astropy.coordinates.BaseCoordinateFrame` or subclass.
-        Defaults to `~astropy.coordinates.ICRS`.
+        Defaults to the frame of ``reference_position``.
     projection : str, optional
         Any valid WCS projection code (see the list with ``from astropy.wcs
         import PRJ_CODES``), by default "TAN"
     rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`, optional
-        The angle of rotation between the image's second pixel axis and the projection
-        latitude axis, measured counter-clockwise. It will be converted to a rotation
-        matrix and stored in the``PC_ij`` matrix. By default no rotation.
+        Angle from the +y pixel axis to the latitude axis at the reference pixel,
+        measured towards increasing longitude (as for ``CROTA2``). By default no
+        rotation.
 
     Returns
     -------
@@ -513,8 +513,8 @@ def skycoord_to_celestial_wcs(
     """
     if projection not in PRJ_CODES:
         raise ValueError(
-            "Must specify valid projection code from list of supported types: ",
-            ", ".join(PRJ_CODES),
+            "Must specify valid projection code from list of supported types: "
+            f"{', '.join(PRJ_CODES)}"
         )
     if not reference_position.isscalar:
         raise ValueError(
@@ -537,6 +537,7 @@ def skycoord_to_celestial_wcs(
         frame = reference_position.frame.replicate_without_data()
     wcs = celestial_frame_to_wcs(frame=frame, projection=projection)
 
+    pixel_angular_size = u.Quantity(pixel_angular_size)
     if pixel_angular_size.isscalar:
         pixel_angular_size_in_deg = abs(float(pixel_angular_size.to_value("deg")))
         wcs.wcs.cdelt = [-pixel_angular_size_in_deg, pixel_angular_size_in_deg]
@@ -552,6 +553,7 @@ def skycoord_to_celestial_wcs(
     wcs.wcs.crval = [coo_for_frame.spherical.lon.deg, coo_for_frame.spherical.lat.deg]
 
     if fov is not None:  # field of view as an Angle or quantity
+        fov = u.Quantity(fov)
         if fov.isscalar:
             shape = [abs(round(fov.to_value("deg") / cdelt)) for cdelt in wcs.wcs.cdelt]
         elif len(fov) != 2:
@@ -566,9 +568,7 @@ def skycoord_to_celestial_wcs(
         wcs.array_shape = [1 if s == 0 else s for s in shape[::-1]]
     else:  # image size
         if len(shape) != 2:
-            raise ValueError(
-                f"'shape' should be of length 1 or 2, but is {len(shape)}."
-            )
+            raise ValueError(f"'shape' should be of length 2, but is {len(shape)}.")
         wcs.array_shape = shape[::-1]  # array_shape is in numpy ordering
 
     if reference_pixel is not None:
@@ -581,7 +581,7 @@ def skycoord_to_celestial_wcs(
         wcs.wcs.crpix = [wcs.pixel_shape[0] / 2.0 + 0.5, wcs.pixel_shape[1] / 2.0 + 0.5]
 
     if rotation is not None:
-        theta = u.Quantity(rotation, u.rad).value
+        theta = u.Quantity(rotation).to_value(u.rad)
         ratio = wcs.wcs.cdelt[1] / wcs.wcs.cdelt[0]  # case of rectangular pixels
         wcs.wcs.pc = [
             [np.cos(theta), -ratio * np.sin(theta)],

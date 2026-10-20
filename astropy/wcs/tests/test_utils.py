@@ -863,7 +863,7 @@ def test_skycoord_to_celestial_wcs_errors():
             center, fov=Angle([1, 2, 3], "arcmin"), pixel_angular_size=pixel_size
         )
 
-    with pytest.raises(ValueError, match="'shape' should be of length 1 or 2"):
+    with pytest.raises(ValueError, match="'shape' should be of length 2"):
         skycoord_to_celestial_wcs(
             center, shape=[1, 2, 3], pixel_angular_size=pixel_size
         )
