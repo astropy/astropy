@@ -439,15 +439,15 @@ def skycoord_to_celestial_wcs(
     reference_position : `~astropy.coordinates.SkyCoord` of length 1
         The coordinates of the center of the WCS. It should be scalar.
     fov : `~astropy.coordinates.Angle` of length 1 or 2
-        The field of view in physical units. ``fov`` and ``shape`` are mutually
-        exclusive and one of them must be provided.
+        The field of view in physical units, in x/y order. ``fov`` and ``shape`` are
+        mutually exclusive and one of them must be provided.
     shape : Sequence[int, int]
-        The image size in pixels (NAXIS). It follows the WCS convention (x axis, y axis).
+        The image size in pixels (NAXIS), in x/y order.
         ``fov`` and ``shape`` are mutually exclusive and one of them must be provided.
     pixel_angular_size : `~astropy.coordinates.Angle` of length 1 or 2
-        The pixel angular size along the x and y axis. It is either of length 2 for each
-        axis or of length 1. Then ``cdelt`` will be set to
-        ``[-pixel_angular_size, pixel_angular_size]``
+        The pixel angular size along the x and y axis, in x/y order. It is either of
+        length 2 for each axis or of length 1. Then ``cdelt`` will be set to
+        ``[-pixel_angular_size, pixel_angular_size]``.
     reference_pixel : Sequence[float, float], optional
         Reference pixel for the projection. In zero-indexed (Python convention) numpy
         order (swapped with respect to the WCS convention). If ``None``, it will be set
