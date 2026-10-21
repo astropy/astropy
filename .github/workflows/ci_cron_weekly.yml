@@ -81,7 +81,7 @@ jobs:
 
           - name: Documentation link check
             os: ubuntu-latest
-            python: '3.x'
+            python: '3.14'
             toxenv: linkcheck
             toxposargs: --color
 
