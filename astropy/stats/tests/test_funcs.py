@@ -906,6 +906,27 @@ def test_histogram_intervals_known(ii, rr):
         assert_allclose(funcs.histogram_intervals(*ii), rr)
 
 
+@pytest.mark.parametrize(
+    "intervals,breaks,totals",
+    [
+        # Exactly one full period.
+        ([(0.0, 1.0, 1.0)], [0, 1], [1]),
+        # Upper limit falls exactly on a period boundary.
+        ([(0.2, 1.0, 1.0)], [0, 0.2, 1], [0, 1]),
+        ([(0.5, 2.0, 1.0)], [0, 0.5, 1], [1, 2]),
+        ([(0.0, 3.0, 0.5)], [0, 1], [1.5]),
+        # Mix of an interval with an integer upper limit and one without.
+        ([(0.25, 0.75, 1.0), (1.5, 3.0, 2.0)], [0, 0.25, 0.5, 0.75, 1], [2, 3, 5, 4]),
+    ],
+)
+def test_fold_intervals_integer_upper_limit(intervals, breaks, totals):
+    # Regression test: an interval ending exactly on a period boundary
+    # used to have one full period of weight subtracted.
+    b, t = funcs.fold_intervals(intervals)
+    assert_allclose(b, breaks)
+    assert_allclose(t, totals)
+
+
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 @pytest.mark.parametrize(
     "N,m,p",
