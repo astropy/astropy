@@ -1,12 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import copy
 import pickle
+import threading
 
 import numpy as np
 import pytest
 
 import astropy.units as u
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import Latitude, SkyCoord
 from astropy.table import QTable
 from astropy.table.index import SlicedIndex
 from astropy.time import Time
@@ -115,3 +117,48 @@ def test_pickle_unbound_data_info():
     di = DataInfo()
     di_rt = pickle.loads(pickle.dumps(di))
     assert isinstance(di_rt, DataInfo)
+
+
+def test_class_info_parent_class_per_thread():
+    # The info descriptor is shared by subclasses (Latitude inherits it from
+    # Quantity), so class-level access stores the class it was accessed from
+    # per thread. An access from another class in another thread must not
+    # change the class used in this thread.
+    lat_info = Latitude.info
+    thread = threading.Thread(target=lambda: u.Quantity.info)
+    thread.start()
+    thread.join()
+    assert lat_info._parent_cls is Latitude
+    lat = lat_info._construct_from_dict({"value": [10.0, 20.0], "unit": "deg"})
+    assert type(lat) is Latitude
+
+
+@pytest.mark.parametrize(
+    "copy_func",
+    [copy.copy, copy.deepcopy, lambda obj: pickle.loads(pickle.dumps(obj))],
+)
+def test_copied_class_info_is_usable_descriptor(copy_func):
+    # A copy of an unbound info descriptor gets its own thread-local storage,
+    # so it can still be accessed from a class.
+    info = copy_func(u.Quantity.__dict__["info"])
+    assert info.__get__(None, Latitude) is info
+    assert info._parent_cls is Latitude
+
+
+def test_class_info_used_in_other_thread():
+    # The class that info was accessed from is not available in another
+    # thread, which gives a clear error.
+    lat_info = Latitude.info
+    errors = []
+
+    def construct():
+        try:
+            lat_info._construct_from_dict({"value": [10.0], "unit": "deg"})
+        except AttributeError as err:
+            errors.append(err)
+
+    thread = threading.Thread(target=construct)
+    thread.start()
+    thread.join()
+    assert len(errors) == 1
+    assert "no data class is set for this info object" in str(errors[0])
