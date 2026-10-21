@@ -329,7 +329,7 @@ def inv_fap_naive(fap, fmax, t, y, dy, normalization="standard"):  # ruff: ignor
 
     Returns
     -------
-    z : np.ndarray
+    z : array-like
         The periodogram level.
     """
     fap = np.asarray(fap)
@@ -361,7 +361,7 @@ def fap_davies(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR
 
     Returns
     -------
-    false_alarm_probability : np.ndarray
+    false_alarm_probability : array-like
         The false alarm probability.
     """
     N = len(t)
@@ -387,7 +387,7 @@ def inv_fap_davies(p, fmax, t, y, dy, normalization="standard"):  # ruff: ignore
 
     Returns
     -------
-    z : np.ndarray
+    z : array-like
         The periodogram level.
     """
     from scipy import optimize
@@ -419,7 +419,7 @@ def fap_baluev(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR
 
     Returns
     -------
-    false_alarm_probability : np.ndarray
+    false_alarm_probability : array-like
         The false alarm probability.
     """
     fap_s = fap_single(Z, len(t), normalization)
@@ -446,7 +446,7 @@ def inv_fap_baluev(p, fmax, t, y, dy, normalization="standard"):  # ruff: ignore
 
     Returns
     -------
-    z : np.ndarray
+    z : array-like
         The periodogram level.
     """
     from scipy import optimize
@@ -521,7 +521,7 @@ def fap_bootstrap(  # ruff: ignore[PLR0917]
 
     Returns
     -------
-    false_alarm_probability : np.ndarray
+    false_alarm_probability : array-like
         The false alarm probability.
     """
     pmax = _bootstrap_max(t, y, dy, fmax, normalization, random_seed, n_bootstraps)
@@ -551,7 +551,7 @@ def inv_fap_bootstrap(  # ruff: ignore[PLR0917]
 
     Returns
     -------
-    z : np.ndarray
+    z : array-like
         The periodogram level.
     """
     fap = np.asarray(fap)
