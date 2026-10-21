@@ -26,12 +26,12 @@ def lombscargle_fast(  # ruff: ignore[PLR0917]
     Parameters
     ----------
     t, y, dy : array-like
-        times, values, and errors of the data points. These should be
+        Times, values, and errors of the data points. These should be
         broadcastable to the same shape. None should be `~astropy.units.Quantity`.
     f0, df, Nf : (float, float, int)
-        parameters describing the frequency grid, f = f0 + df * arange(Nf).
+        Parameters describing the frequency grid, f = f0 + df * arange(Nf).
     center_data : bool (default=True)
-        Specify whether to subtract the mean of the data before the fit
+        Specify whether to subtract the mean of the data before the fit.
     fit_mean : bool (default=True)
         If True, then compute the floating-mean periodogram; i.e. let the mean
         vary with the fit.
@@ -40,9 +40,9 @@ def lombscargle_fast(  # ruff: ignore[PLR0917]
         Options are 'standard', 'model', 'log', or 'psd'.
     use_fft : bool (default=True)
         If True, then use the Press & Rybicki O[NlogN] algorithm to compute
-        the result. Otherwise, use a slower O[N^2] algorithm
+        the result. Otherwise, use a slower O[N^2] algorithm.
     trig_sum_kwds : dict or None, optional
-        extra keyword arguments to pass to the ``trig_sum`` utility.
+        Extra keyword arguments to pass to the ``trig_sum`` utility.
         Options are ``oversampling``, ``Mfft`` and ``eps``. See documentation
         of ``trig_sum`` for details.
     algorithm : 'lra' (default), or 'fasper'

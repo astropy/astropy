@@ -10,15 +10,15 @@ def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
     Parameters
     ----------
     t : array-like, shape=(n_times,)
-        times at which to compute the design matrix
+        Times at which to compute the design matrix.
     frequency : float
-        frequency for the design matrix
+        Frequency for the design matrix.
     dy : float or array-like, optional
-        data uncertainties: should be broadcastable with `t`
+        Data uncertainties: should be broadcastable with `t`.
     bias : bool (default=True)
-        If true, include a bias column in the matrix
+        If true, include a bias column in the matrix.
     nterms : int (default=1)
-        Number of Fourier terms to include in the model
+        Number of Fourier terms to include in the model.
 
     Returns
     -------
@@ -58,17 +58,17 @@ def periodic_fit(t, y, dy, frequency, t_fit, center_data=True, fit_mean=True, nt
     Parameters
     ----------
     t, y, dy : float or array-like
-        The times, observations, and uncertainties to fit
+        The times, observations, and uncertainties to fit.
     frequency : float
-        The frequency at which to compute the model
+        The frequency at which to compute the model.
     t_fit : float or array-like
-        The times at which the fit should be computed
+        The times at which the fit should be computed.
     center_data : bool (default=True)
-        If True, center the input data before applying the fit
+        If True, center the input data before applying the fit.
     fit_mean : bool (default=True)
-        If True, include the bias as part of the model
+        If True, include the bias as part of the model.
     nterms : int (default=1)
-        The number of Fourier terms to include in the fit
+        The number of Fourier terms to include in the fit.
 
     Returns
     -------

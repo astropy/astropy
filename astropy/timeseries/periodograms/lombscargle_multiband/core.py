@@ -1,4 +1,4 @@
-"""Main Lomb-Scargle Multiband Implementation"""
+"""Main Lomb-Scargle Multiband Implementation."""
 
 import numpy as np
 
@@ -40,37 +40,37 @@ class LombScargleMultiband(LombScargle):
     Parameters
     ----------
     t : array-like or `~astropy.units.Quantity` ['time']
-        sequence of observation times
+        Sequence of observation times.
     y : array-like or `~astropy.units.Quantity`
-        sequence of observations associated with times t
+        Sequence of observations associated with times t.
     bands : array-like
-        sequence of passband labels associated with times t, each unique label
+        Sequence of passband labels associated with times t, each unique label
         defines a single band of data.
     dy : float, array-like, or `~astropy.units.Quantity`, optional
-        error or sequence of observational errors associated with times t
+        Error or sequence of observational errors associated with times t.
     normalization : {'standard', 'model', 'log', 'psd'}, optional
         Normalization to use for the periodogram.
     nterms_base : int, optional
-        number of frequency terms to use for the base model common to all bands.
+        Number of frequency terms to use for the base model common to all bands.
         In the case of the fast algorithm, this parameter is passed along to
         the single band LombScargle method as the ``nterms`` parameter.
     nterms_band : int, optional
-        number of frequency terms to use for the residuals between the base
-        model and each individual band
+        Number of frequency terms to use for the residuals between the base
+        model and each individual band.
     reg_base : float or None (default = None)
-        amount of regularization to use on the base model parameters
+        Amount of regularization to use on the base model parameters.
     reg_band : float or None (default = 1E-6)
-        amount of regularization to use on the band model parameters
+        Amount of regularization to use on the band model parameters.
     regularize_by_trace : bool (default = True)
-        if True, then regularization is expressed in units of the trace of
-        the normal matrix
+        If True, then regularization is expressed in units of the trace of
+        the normal matrix.
     center_data : bool, optional
-        if True, pre-center the data by subtracting the weighted mean
+        If True, pre-center the data by subtracting the weighted mean
         of the input data.
     fit_mean : bool, optional
-        if True, include a constant offset as part of the model at each
+        If True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
-        case of incomplete phase coverage. Only applicable to the "fast" method
+        case of incomplete phase coverage. Only applicable to the "fast" method.
 
     References
     ----------
@@ -261,7 +261,7 @@ class LombScargleMultiband(LombScargle):
         Parameters
         ----------
         samples_per_peak : float, optional
-            The approximate number of desired samples across the typical peak
+            The approximate number of desired samples across the typical peak.
         nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
@@ -272,7 +272,7 @@ class LombScargleMultiband(LombScargle):
             If specified, then use this maximum frequency rather than one
             chosen based on the average nyquist frequency.
         return_freq_limits : bool, optional
-            if True, return only the frequency limits rather than the full
+            If True, return only the frequency limits rather than the full
             frequency grid.
 
         Returns
@@ -325,7 +325,7 @@ class LombScargleMultiband(LombScargle):
         Parameters
         ----------
         method : str, optional
-            specify the multi-band lomb scargle implementation to use. Options are:
+            Specify the multi-band lomb scargle implementation to use. Options are:
 
             - 'flexible': Constructs a common model, and an offset model per individual
                 band. Applies regularization to the resulting model to constrain
@@ -335,7 +335,7 @@ class LombScargleMultiband(LombScargle):
                 method chosen in 'sb_method'.
 
         sb_method : str, optional
-            specify the single-band lomb scargle implementation to use, only in
+            Specify the single-band lomb scargle implementation to use, only in
             the case of using the 'fast' multiband method. Options are:
 
             - 'auto': choose the best method based on the input
@@ -356,7 +356,7 @@ class LombScargleMultiband(LombScargle):
         normalization : {'standard', 'model', 'log', 'psd'}, optional
             If specified, override the normalization specified at instantiation.
         samples_per_peak : float, optional
-            The approximate number of desired samples across the typical peak
+            The approximate number of desired samples across the typical peak.
         nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
@@ -394,11 +394,11 @@ class LombScargleMultiband(LombScargle):
         Parameters
         ----------
         frequency : array-like or `~astropy.units.Quantity` ['frequency']
-            frequencies (not angular frequencies) at which to evaluate the
+            Frequencies (not angular frequencies) at which to evaluate the
             periodogram. Note that in order to use method='fast', frequencies
             must be regularly-spaced.
         method : str, optional
-            specify the multi-band lomb scargle implementation to use. Options are:
+            Specify the multi-band lomb scargle implementation to use. Options are:
 
             - 'flexible': Constructs a common model, and an offset model per individual
                 band. Applies regularization to the resulting model to constrain
@@ -407,7 +407,7 @@ class LombScargleMultiband(LombScargle):
                 combines periodograms at the end by weight. Speed depends on single-band
                 method chosen in 'sb_method'.
         sb_method : str, optional
-            specify the single-band lomb scargle implementation to use, only in
+            Specify the single-band lomb scargle implementation to use, only in
             the case of using the 'fast' multiband method. Options can be found
             in `~astropy.timeseries.LombScargle`.
         normalization : {'standard', 'model', 'log', 'psd'}, optional
@@ -442,12 +442,12 @@ class LombScargleMultiband(LombScargle):
         return np.reshape(power * self._power_unit(normalization), f_shape)
 
     def design_matrix(self, frequency, t_fit=None, bands_fit=None):
-        """Compute the design matrix for a given frequency
+        """Compute the design matrix for a given frequency.
 
         Parameters
         ----------
         frequency : float
-            the frequency for the model
+            The frequency for the model.
         t_fit : array-like, `~astropy.units.Quantity`, or `~astropy.time.Time` (optional)
             Times (length ``n_samples``) at which to compute the model.
             If not specified, then the times and uncertainties of the input
@@ -510,9 +510,9 @@ class LombScargleMultiband(LombScargle):
         t : array-like or `~astropy.units.Quantity` ['time']
             Times (length ``n_samples``) at which to compute the model.
         frequency : float
-            the frequency for the model
+            The frequency for the model.
         bands_fit : list or array-like
-            the unique bands to fit in the model
+            The unique bands to fit in the model.
 
         Returns
         -------
@@ -548,7 +548,7 @@ class LombScargleMultiband(LombScargle):
         return y_fit * get_unit(self.y)
 
     def offset(self, t_fit=None, bands_fit=None):
-        """Return the offset array of the model
+        """Return the offset array of the model.
 
         The offset array of the model is the (weighted) mean of the y values in each band.
         Note that if self.center_data is False, the offset is 0 by definition.
@@ -564,7 +564,9 @@ class LombScargleMultiband(LombScargle):
 
         Returns
         -------
-        offset : array
+        offset : `~numpy.ndarray`, `~astropy.units.Quantity`, or int
+            The (weighted) mean of the y values in the band of each fit time,
+            in the units of ``y``, or 0 if ``center_data`` is False.
 
         See Also
         --------
@@ -635,7 +637,7 @@ class LombScargleMultiband(LombScargle):
         Parameters
         ----------
         frequency : float
-            the frequency for the model
+            The frequency for the model.
         units : bool
             If True (default), return design matrix with data units.
 
@@ -695,13 +697,13 @@ class LombScargleMultiband(LombScargle):
         return parameters
 
     def false_alarm_probability(self):
-        """Not Implemented"""
+        """Not implemented."""
         raise NotImplementedError
 
     def false_alarm_level(self):
-        """Not Implemented"""
+        """Not implemented."""
         raise NotImplementedError
 
     def distribution(self):
-        """Not Implemented"""
+        """Not implemented."""
         raise NotImplementedError

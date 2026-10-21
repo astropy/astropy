@@ -1,8 +1,8 @@
 """
-Main Lomb-Scargle Multiband Implementation
+Main Lomb-Scargle Multiband Implementation.
 
-The ``lombscarglemultiband`` function here is essentially a switch
-statement for the various implementations available in this submodule
+The ``lombscargle_multiband`` function here is essentially a switch
+statement for the various implementations available in this submodule.
 """
 
 __all__ = ["available_methods", "lombscargle_multiband"]
