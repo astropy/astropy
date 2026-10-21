@@ -712,6 +712,98 @@ class TestDataFrameConversion:
 
 
 @pytest.mark.skipif(
+    not HAS_NARWHALS or not HAS_POLARS, reason="requires narwhals and polars"
+)
+def test_from_polars_object_preserves_nan():
+    """Polars Object columns distinguish NaN values from nulls."""
+    import polars as pl
+
+    df = pl.DataFrame({"s": pl.Series(["a", np.nan, None], dtype=pl.Object)})
+
+    col = Table.from_df(df)["s"]
+
+    assert isinstance(col, MaskedColumn)
+    assert col.dtype.kind == "O"
+    assert_array_equal(col.mask, [False, False, True])
+    assert col[0] == "a"
+    assert np.isnan(col[1])
+
+
+@pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+@pytest.mark.parametrize(
+    "method",
+    [
+        "from_pandas",
+        pytest.param(
+            "from_df",
+            marks=pytest.mark.skipif(not HAS_NARWHALS, reason="requires narwhals"),
+        ),
+    ],
+)
+class TestPandasMissingStrings:
+    @pytest.mark.parametrize(
+        "dtype",
+        [
+            "object",
+            "string[python]",
+            pytest.param(
+                "string[pyarrow]",
+                marks=pytest.mark.skipif(not HAS_PYARROW, reason="requires pyarrow"),
+            ),
+        ],
+    )
+    @pytest.mark.parametrize("missing", ["NA", "None", "nan"])
+    def test_missing_values(self, method, dtype, missing):
+        """Missing pandas values must not prevent native string conversion (#20663)."""
+        import pandas as pd
+
+        missing = {"NA": pd.NA, "None": None, "nan": np.nan}[missing]
+        df = pd.DataFrame({"s": [missing, "α", missing, "longer"]}, dtype=dtype)
+        original = df.copy(deep=True)
+
+        col = getattr(Table, method)(df)["s"]
+
+        assert isinstance(col, MaskedColumn)
+        assert col.dtype == np.dtype("U6")
+        assert_array_equal(col.mask, [True, False, True, False])
+        assert_array_equal(col[~col.mask], ["α", "longer"])
+        pd.testing.assert_frame_equal(df, original)
+
+    @pytest.mark.parametrize(
+        "values,kind",
+        [
+            (["α", "longer"], "U"),
+            ([b"abc", b"def"], "S"),
+            (["a", 42], "O"),
+            (["a", {"a": 1}], "O"),
+            (["a", ["a"]], "O"),
+        ],
+    )
+    def test_object_columns(self, method, values, kind):
+        import pandas as pd
+
+        df = pd.DataFrame({"s": [pd.NA, *values]}, dtype=object)
+
+        col = getattr(Table, method)(df)["s"]
+
+        assert isinstance(col, MaskedColumn)
+        assert col.dtype.kind == kind
+        assert_array_equal(col.mask, [True, False, False])
+        assert col.data.tolist()[1:] == values
+
+    def test_all_missing(self, method):
+        import pandas as pd
+
+        df = pd.DataFrame({"s": [pd.NA, pd.NA]}, dtype="string")
+
+        col = getattr(Table, method)(df)["s"]
+
+        assert isinstance(col, MaskedColumn)
+        assert col.dtype.kind in "SU"
+        assert_array_equal(col.mask, [True, True])
+
+
+@pytest.mark.skipif(
     not HAS_PANDAS or not HAS_NARWHALS,
     reason="requires pandas and narwhals",
 )

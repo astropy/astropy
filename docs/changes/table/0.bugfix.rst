@@ -1,0 +1,5 @@
+Fixed conversion of pandas string columns containing missing values such as
+``pandas.NA`` with ``Table.from_df`` and ``Table.from_pandas``. String columns
+now use native NumPy string dtypes while preserving the missing-value mask,
+instead of raising ``TypeError`` or retaining an object dtype.
+Unmasked NaN values in Polars object columns are no longer converted to strings.

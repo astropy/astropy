@@ -386,11 +386,10 @@ def from_df(
         elif isinstance(dtype, (nw.String, nw.Binary, nw.Object)):
             if data.dtype.kind == "O":
                 # Build a new list since ``data`` may be a view of the dataframe.
-                fill = _get_string_fill_value(data)
+                mask = nw_mask.to_numpy()
+                fill = _get_string_fill_value(data, mask)
                 if fill is not None:
-                    data = np.array(
-                        [fill if m else d for (d, m) in zip(data, nw_mask.to_numpy())]
-                    )
+                    data = np.array([fill if m else d for (d, m) in zip(data, mask)])
 
         if nw_mask.any():
             out[name] = MaskedColumn(
@@ -522,7 +521,7 @@ def from_pandas(
 
         if data.dtype.kind == "O":
             # Build a new list since ``data`` may be a view of the dataframe.
-            fill = _get_string_fill_value(data, legacy_pandas=True)
+            fill = _get_string_fill_value(data, mask)
             if fill is not None:
                 data = np.array([fill if m else d for (d, m) in zip(data, mask)])
 
