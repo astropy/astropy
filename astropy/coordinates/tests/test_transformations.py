@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import threading
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -715,3 +716,108 @@ def test_frame_set_concurrent_rebuild():
         with ThreadPoolExecutor(max_workers=n_threads) as executor:
             results = list(executor.map(get_frame_set, [barrier] * n_threads))
         assert all(result == expected for result in results)
+
+
+class TCooThreadA(ICRS):
+    name = "tcoo_thread_a"
+
+
+class TCooThreadB(ICRS):
+    name = "tcoo_thread_b"
+
+
+class TCooThreadC(ICRS):
+    name = "tcoo_thread_c"
+    tcoo_thread_attr = Attribute(default=None)
+
+
+def _tfun(c, f):
+    pass
+
+
+def _start_writer_during_rebuild(graph, writer, n_iterations=1):
+    # Make ``graph`` start the ``writer`` thread once its transform dict has
+    # been iterated over ``n_iterations`` times, to reproduce another thread
+    # modifying the graph while a cache is being rebuilt. Without a lock the
+    # writer finishes during the rebuild. With one it waits until the rebuild
+    # is done, so the join timeout expires.
+    count = 0
+
+    class WriterStartingGraph(defaultdict):
+        def _iterated(self):
+            nonlocal count
+            count += 1
+            if count == n_iterations:
+                writer.start()
+                writer.join(timeout=0.2)
+
+        def __iter__(self):
+            keys = list(super().__iter__())
+            self._iterated()
+            return iter(keys)
+
+        def items(self):
+            items = list(super().items())
+            self._iterated()
+            return iter(items)
+
+    graph._graph = WriterStartingGraph(dict, graph._graph)
+    graph.invalidate_cache()
+
+
+@pytest.mark.parametrize(
+    "is_current",
+    [
+        pytest.param(lambda g: TCooThreadC in g.frame_set, id="frame_set"),
+        pytest.param(
+            lambda g: g.lookup_name("tcoo_thread_c") is TCooThreadC, id="lookup_name"
+        ),
+        pytest.param(
+            lambda g: "tcoo_thread_attr" in g.frame_attributes, id="frame_attributes"
+        ),
+    ],
+)
+def test_frame_cache_not_stale_after_concurrent_modification(is_current):
+    # If another thread adds a frame while a cache is being rebuilt, the cache
+    # built from the old graph must not be served afterward.
+    graph = TransformGraph()
+    graph.add_transform(
+        TCooThreadA, TCooThreadB, FunctionTransform(_tfun, TCooThreadA, TCooThreadB)
+    )
+    writer = threading.Thread(
+        target=graph.add_transform,
+        args=(
+            TCooThreadB,
+            TCooThreadC,
+            FunctionTransform(_tfun, TCooThreadB, TCooThreadC),
+        ),
+    )
+    _start_writer_during_rebuild(graph, writer)
+    is_current(graph)
+    writer.join()
+    assert is_current(graph)
+
+
+def test_shortest_path_cache_not_stale_after_concurrent_modification():
+    # If another thread adds a transform while a shortest path is being
+    # computed, the path computed from the old graph must not be cached.
+    graph = TransformGraph()
+    graph.add_transform(
+        TCooThreadA, TCooThreadB, FunctionTransform(_tfun, TCooThreadA, TCooThreadB)
+    )
+    graph.add_transform(
+        TCooThreadC, TCooThreadA, FunctionTransform(_tfun, TCooThreadC, TCooThreadA)
+    )
+    writer = threading.Thread(
+        target=graph.add_transform,
+        args=(
+            TCooThreadB,
+            TCooThreadC,
+            FunctionTransform(_tfun, TCooThreadB, TCooThreadC),
+        ),
+    )
+    # Dijkstra's algorithm iterates over the graph twice before caching.
+    _start_writer_during_rebuild(graph, writer, n_iterations=2)
+    graph.get_transform(TCooThreadA, TCooThreadC)
+    writer.join()
+    assert graph.get_transform(TCooThreadA, TCooThreadC) is not None

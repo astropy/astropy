@@ -10,6 +10,7 @@ wrapped in transformation objects.
 import functools
 import heapq
 import subprocess
+import threading
 from collections import defaultdict
 from contextlib import contextmanager
 from itertools import pairwise
@@ -74,16 +75,51 @@ def frame_comps_from_set(frame_set):
     return result
 
 
+def _synchronized(method):
+    """Run a `TransformGraph` method while holding the graph lock."""
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    return wrapper
+
+
+class _synchronized_cached_property(functools.cached_property):
+    """
+    A `functools.cached_property` of `TransformGraph` whose value is computed
+    and stored while holding the graph lock. Cache hits read the instance
+    ``__dict__`` directly and do not take the lock.
+    """
+
+    def __get__(self, instance, owner=None):
+        if instance is None:
+            return self
+        with instance._lock:
+            return super().__get__(instance, owner)
+
+
 class TransformGraph:
     """
     A graph representing the paths between coordinate frames.
     """
 
+    # For thread safety, the graph and its caches are only modified while
+    # holding ``_lock``, and each cache is rebuilt while holding it too.
+    # Writers hold the lock from modifying the graph until the caches are
+    # invalidated, so a cache can never be rebuilt from a partially modified
+    # graph or stored after it was invalidated. Cache hits do not take the
+    # lock.
+
     def __init__(self):
         self._graph = defaultdict(dict)
+        # Reentrant because methods that hold the lock call other methods
+        # that take it (e.g., add_transform uses frame_set).
+        self._lock = threading.RLock()
         self.invalidate_cache()  # generates cache entries
 
-    @functools.cached_property
+    @_synchronized_cached_property
     def _cached_names(self):
         dct = {}
         for c in self.frame_set:
@@ -97,18 +133,18 @@ class TransformGraph:
         A `set` of all the frame classes present in this TransformGraph.
         """
         if (frame_set := self._cached_frame_set) is None:
-            # Build the set locally and cache it only once it is complete, so
-            # that other threads never see a partially built set.
-            frame_set = set()
-            for a in self._graph:
-                frame_set.add(a)
-                for b in self._graph[a]:
-                    frame_set.add(b)
-            self._cached_frame_set = frame_set
+            with self._lock:
+                if (frame_set := self._cached_frame_set) is None:
+                    frame_set = set()
+                    for a in self._graph:
+                        frame_set.add(a)
+                        for b in self._graph[a]:
+                            frame_set.add(b)
+                    self._cached_frame_set = frame_set
 
         return frame_set.copy()
 
-    @functools.cached_property
+    @_synchronized_cached_property
     def frame_attributes(self):
         """
         A `dict` of all the attributes of all frame classes in this TransformGraph.
@@ -123,6 +159,7 @@ class TransformGraph:
         """
         return frame_comps_from_set(self.frame_set)
 
+    @_synchronized
     def invalidate_cache(self):
         """
         Invalidates the cache that stores optimizations for traversing the
@@ -136,6 +173,7 @@ class TransformGraph:
         self._shortestpaths = {}
         self._composite_cache = {}
 
+    @_synchronized
     def add_transform(self, fromsys, tosys, transform):
         """Add a new coordinate transformation to the graph.
 
@@ -194,6 +232,7 @@ class TransformGraph:
         self._graph[fromsys][tosys] = transform
         self.invalidate_cache()
 
+    @_synchronized
     def remove_transform(self, fromsys, tosys, transform):
         """
         Removes a coordinate transform from the graph.
@@ -246,6 +285,7 @@ class TransformGraph:
 
         self.invalidate_cache()
 
+    @_synchronized
     def find_shortest_path(self, fromsys, tosys):
         """
         Computes the shortest distance along the transform graph from
@@ -382,24 +422,28 @@ class TransformGraph:
         if not isinstance(tosys, type):
             raise TypeError("tosys is not a class")
 
-        path, distance = self.find_shortest_path(fromsys, tosys)
-
-        if path is None:
-            return None
-
-        transforms = []
-        currsys = fromsys
-        for p in path[1:]:  # first element is fromsys so we skip it
-            transforms.append(self._graph[currsys][p])
-            currsys = p
-
         fttuple = (fromsys, tosys)
-        if fttuple not in self._composite_cache:
-            comptrans = CompositeTransform(
-                transforms, fromsys, tosys, register_graph=False
-            )
-            self._composite_cache[fttuple] = comptrans
-        return self._composite_cache[fttuple]
+        if (comptrans := self._composite_cache.get(fttuple)) is not None:
+            return comptrans
+
+        with self._lock:
+            path, distance = self.find_shortest_path(fromsys, tosys)
+
+            if path is None:
+                return None
+
+            transforms = []
+            currsys = fromsys
+            for p in path[1:]:  # first element is fromsys so we skip it
+                transforms.append(self._graph[currsys][p])
+                currsys = p
+
+            if fttuple not in self._composite_cache:
+                comptrans = CompositeTransform(
+                    transforms, fromsys, tosys, register_graph=False
+                )
+                self._composite_cache[fttuple] = comptrans
+            return self._composite_cache[fttuple]
 
     def lookup_name(self, name):
         """
