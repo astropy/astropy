@@ -66,7 +66,7 @@ def pdf_single(z, N, normalization, dH=1, dK=3):
 
     Returns
     -------
-    pdf : np.ndarray
+    pdf : array-like
         The expected probability density function.
 
     Notes
@@ -116,7 +116,7 @@ def fap_single(z, N, normalization, dH=1, dK=3):
 
     Returns
     -------
-    false_alarm_probability : np.ndarray
+    false_alarm_probability : array-like
         The single-frequency false alarm probability.
 
     Notes
@@ -166,7 +166,7 @@ def inv_fap_single(fap, N, normalization, dH=1, dK=3):
 
     Returns
     -------
-    z : np.ndarray
+    z : array-like
         The periodogram power corresponding to the single-peak false alarm
         probability.
 
@@ -218,7 +218,7 @@ def cdf_single(z, N, normalization, dH=1, dK=3):
 
     Returns
     -------
-    cdf : np.ndarray
+    cdf : array-like
         The expected cumulative distribution function.
 
     Notes
@@ -596,7 +596,7 @@ def false_alarm_probability(  # ruff: ignore[PLR0917]
 
     Returns
     -------
-    false_alarm_probability : np.ndarray
+    false_alarm_probability : array-like
         The false alarm probability.
 
     Notes
@@ -659,7 +659,7 @@ def false_alarm_level(  # ruff: ignore[PLR0917]
 
     Returns
     -------
-    z : np.ndarray
+    z : array-like
         The periodogram level.
 
     Notes
