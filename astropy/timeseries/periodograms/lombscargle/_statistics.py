@@ -252,7 +252,7 @@ def tau_davies(Z, fmax, t, y, dy, normalization="standard", dH=1, dK=3):  # ruff
 
     Returns
     -------
-    tau : np.ndarray
+    tau : array-like
         The tau factor.
     """
     N = len(t)
@@ -299,7 +299,7 @@ def fap_naive(Z, fmax, t, y, dy, normalization="standard"):  # ruff: ignore[PLR0
 
     Returns
     -------
-    false_alarm_probability : np.ndarray
+    false_alarm_probability : array-like
         The false alarm probability.
     """
     N = len(t)

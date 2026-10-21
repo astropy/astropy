@@ -87,7 +87,7 @@ def extirpolate(x, y, N=None, M=4):
 
     Notes
     -----
-    This code is based on the C implementation of spread() presented in
+    This code is based on the C implementation of ``spread()`` presented in
     Numerical Recipes in C, Second Edition (Press et al. 1989; p.583).
 
     Examples

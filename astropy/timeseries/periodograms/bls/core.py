@@ -256,7 +256,7 @@ class BoxLeastSquares(BasePeriodogram):
 
         Returns
         -------
-        results : BoxLeastSquaresResults
+        results : `BoxLeastSquaresResults`
             The periodogram results as a :class:`BoxLeastSquaresResults`
             object.
         """
