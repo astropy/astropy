@@ -189,7 +189,7 @@ jobs:
     # This ensures that a couple of wheel targets work fine in pull requests and pushes
     permissions:
       contents: none
-    uses:OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@8d5ad7efc8e84a051639373f6ea0d10441eafee1  # v3.2.1
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@8d5ad7efc8e84a051639373f6ea0d10441eafee1  # v3.2.1
     with:
       upload_to_pypi: false
       upload_to_anaconda: false
