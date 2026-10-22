@@ -1,0 +1,5 @@
+A warning is now emitted when a compressed (gzip, bzip2 or lzma) FITS file ends
+unexpectedly, for example because it is truncated. Previously the missing data
+was silently ignored, and when such a file was opened with ``mode="update"``,
+saving it discarded the parts of the file that could not be read without any
+indication. In update mode the warning is emitted when the file is opened.
