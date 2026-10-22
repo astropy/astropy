@@ -1025,7 +1025,11 @@ url = "https://pypi.org/simple"
 # exclude packages published less than a week ago (ISO 8601)
 exclude-newer = "P7D"
 # always allow arbitrarily new versions of astropy-iers-data
-exclude-newer-package = { "astropy-iers-data" = false }
+exclude-newer-package.astropy-iers-data = false
+# eMudhra "we have a problem" was here
+exclude-newer-package.certify = false
+exclude-newer-package.pip = false # bundles certify
+exclude-newer-package.virtualenv = false # bundles pip (hence, bundles certify)
 
 [[tool.uv.index]]
 name = "sp-nightlies"
