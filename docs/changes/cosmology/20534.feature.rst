@@ -1,0 +1,4 @@
+``Cosmology`` now implements ``__replace__``, so it supports ``copy.replace``
+on Python 3.13+, with the same behavior as ``Cosmology.clone`` (except
+``to_nonflat``). ``Cosmology.clone`` will be deprecated in favor of
+``copy.replace`` once astropy's minimum supported Python version is 3.13.

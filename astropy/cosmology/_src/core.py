@@ -71,7 +71,13 @@ def dataclass_decorator(cls: type["Cosmology"], /) -> type["Cosmology"]:
         The ``__eq__`` method is custom (``eq=False``).
         The signature is precomputed and added to the class.
     """
-    return _with_signature(dataclass(frozen=True, repr=True, eq=False, init=True)(cls))
+    # Pin ``__replace__`` so `dataclass` (Python 3.13+) doesn't add its own, which
+    # would shadow `Cosmology.__replace__`. Needed for mixins, which are not
+    # `Cosmology` subclasses and so skip `Cosmology.__init_subclass__`.
+    if "__replace__" not in vars(cls):
+        cls.__replace__ = getattr(cls, "__replace__", Cosmology.__replace__)
+    cls = dataclass(frozen=True, repr=True, eq=False, init=True)(cls)
+    return _with_signature(cls)
 
 
 ##############################################################################
@@ -174,6 +180,11 @@ class Cosmology(metaclass=ABCMeta):
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
 
+        # Pin the inherited ``__replace__`` so a plain ``@dataclass`` (Python 3.13+)
+        # doesn't replace it with the generated one.
+        if "__replace__" not in vars(cls):
+            cls.__replace__ = cls.__replace__
+
         # -------------------
         # Parameters
 
@@ -257,6 +268,39 @@ class Cosmology(metaclass=ABCMeta):
 
             >>> Planck13.clone(Om0=0.35).name
             'Planck13 (modified)'
+        """
+        return self.__replace__(meta=meta, **kwargs)
+
+    def __replace__(
+        self, /, *, meta: CosmoMeta | None = None, **kwargs: Any
+    ) -> "Cosmology":
+        """Return a copy of this cosmology with updated parameters.
+
+        This supports :func:`copy.replace` (Python 3.13+) and has the same
+        behavior as :meth:`~astropy.cosmology.Cosmology.clone`, except that it
+        never changes the cosmology's class (e.g. no ``to_nonflat``).
+
+        Parameters
+        ----------
+        meta : mapping or None (optional, keyword-only)
+            Metadata that will update the current metadata.
+        **kwargs
+            Cosmology parameter (and name) modifications. If any parameter is
+            changed and a new name is not given, the name will be set to "[old
+            name] (modified)".
+
+        Returns
+        -------
+        newcosmo : `~astropy.cosmology.Cosmology` subclass instance
+            A new instance of this class with updated parameters as specified.
+            If no arguments are given, then a reference to this object is
+            returned instead of a copy.
+
+        Examples
+        --------
+        >>> from astropy.cosmology import Planck13
+        >>> Planck13.__replace__(Om0=0.35).name
+        'Planck13 (modified)'
         """
         # Quick return check, taking advantage of the Cosmology immutability.
         if meta is None and not kwargs:
