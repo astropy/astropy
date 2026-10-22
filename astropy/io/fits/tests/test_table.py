@@ -3000,6 +3000,61 @@ class TestTableFunctions(FitsTestCase):
                 with pytest.raises(ValueError, match="only b'T', b'F'"):
                     hdul.writeto(tmp_path / f"bad_{bad}.fits")
 
+    def test_logical_null_collapses_on_bool_write(self, tmp_path):
+        """Reading a logical ('L') column without ``logical_as_bytes`` is a
+        lossy view (NULL -> False, with a warning); writing it back stores only
+        b'T'/b'F', never NULL. NULL survives only via ``logical_as_bytes=True``.
+        """
+        # Source file with a genuine NULL in row 1 (raw bytes b'T', NUL, b'F').
+        src = np.array([b"T", b"\x00", b"F"], dtype="S1")
+        src_path = tmp_path / "src.fits"
+        fits.BinTableHDU.from_columns([fits.Column("flag", "L", array=src)]).writeto(
+            src_path
+        )
+
+        # Explicitly assigning False to the formerly-NULL row stores b'F'.
+        with pytest.warns(AstropyUserWarning, match="contains NULL"):
+            with fits.open(src_path) as hdul:
+                hdul[1].data["flag"][1] = False
+                out = tmp_path / "explicit_false.fits"
+                hdul.writeto(out)
+        with fits.open(out, logical_as_bytes=True) as hdul:
+            assert hdul[1].data["flag"].tobytes() == b"TFF"
+
+        # Merely reading the column as bool (no modification) and writing back
+        # also collapses NULL to b'F'.
+        with pytest.warns(AstropyUserWarning, match="contains NULL"):
+            with fits.open(src_path) as hdul:
+                list(hdul[1].data["flag"])
+                collapsed = tmp_path / "collapsed.fits"
+                hdul.writeto(collapsed)
+        with fits.open(collapsed, logical_as_bytes=True) as hdul:
+            assert hdul[1].data["flag"].tobytes() == b"TFF"
+
+        # logical_as_bytes is the documented way to preserve NULL on write.
+        with fits.open(src_path, logical_as_bytes=True) as hdul:
+            hdul[1].data["flag"][0] = b"\x00"
+            preserved = tmp_path / "preserved.fits"
+            hdul.writeto(preserved)
+        with fits.open(preserved, logical_as_bytes=True) as hdul:
+            assert hdul[1].data["flag"].tobytes() == b"\x00\x00F"
+
+        # A column that is never accessed as bool is written through verbatim,
+        # so its NULL survives even when another column is modified.
+        two_path = tmp_path / "two.fits"
+        fits.BinTableHDU.from_columns(
+            [
+                fits.Column("flag", "L", array=src),
+                fits.Column("num", "J", array=np.array([1, 2, 3])),
+            ]
+        ).writeto(two_path)
+        with fits.open(two_path) as hdul:
+            hdul[1].data["num"][0] = 99
+            untouched = tmp_path / "untouched.fits"
+            hdul.writeto(untouched)
+        with fits.open(untouched, logical_as_bytes=True) as hdul:
+            assert hdul[1].data["flag"].tobytes() == b"T\x00F"
+
     def test_missing_tnull(self):
         """Regression test for https://aeon.stsci.edu/ssb/trac/pyfits/ticket/197"""
 
