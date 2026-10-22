@@ -318,6 +318,53 @@ def test_slice_step_preserve_units():
     assert slice_wcs.world_axis_units == ["arcsec", "arcsec", "nm"]
 
 
+@pytest.mark.parametrize("linear", ["cdelt", "pc", "cd", "crota", "sip"])
+def test_slice_step_linear_transformation(linear):
+    # Regression test for a bug that caused slicing with a step to give
+    # incorrect coordinates if the PCi_j or CDi_j matrix mixed pixel axes, or
+    # if SIP distortions were present, since the step was applied to CDELTi,
+    # which scales a world axis rather than a pixel axis.
+
+    full_wcs = WCS(naxis=2)
+    full_wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+    full_wcs.wcs.crval = 30, 40
+    full_wcs.wcs.crpix = 4.3, -2.7
+    if linear == "cd":
+        full_wcs.wcs.cd = [[-0.008, 0.003], [0.002, 0.011]]
+    else:
+        full_wcs.wcs.cdelt = -0.01, 0.012
+    if linear == "pc":
+        full_wcs.wcs.pc = [[0.9, -0.4], [0.4, 0.9]]
+    elif linear == "crota":
+        full_wcs.wcs.crota = 0, 25
+    elif linear == "sip":
+        full_wcs.wcs.ctype = "RA---TAN-SIP", "DEC--TAN-SIP"
+        a = np.zeros((3, 3))
+        b = np.zeros((3, 3))
+        a[2, 0], a[1, 1], b[0, 2], b[2, 0] = 1e-3, 2e-3, 1.5e-3, -1e-3
+        full_wcs.sip = Sip(a, b, None, None, full_wcs.wcs.crpix)
+
+    # Use different starts and steps for x and y so that mixing up the axes
+    # gives incorrect results.
+    start_x, step_x = 2, 2
+    start_y, step_y = 1, 3
+    sliced_wcs = full_wcs[start_y::step_y, start_x::step_x]
+
+    # Slicing with a step means binning, so pixel x of the sliced WCS
+    # corresponds to the center of pixels start + step * x to
+    # start + step * (x + 1) - 1 of the original WCS, and likewise for y.
+    x, y = np.meshgrid(np.arange(5), np.arange(4))
+    assert_allclose(
+        sliced_wcs.pixel_to_world_values(x, y),
+        full_wcs.pixel_to_world_values(
+            start_x + step_x * x + (step_x - 1) / 2,
+            start_y + step_y * y + (step_y - 1) / 2,
+        ),
+        rtol=0,
+        atol=1e-10,
+    )
+
+
 def test_slice_pixel_bounds():
     # Regression test for a bug that caused pixel_bounds to not be updated
     # when slicing a WCS without dropping any dimensions.
