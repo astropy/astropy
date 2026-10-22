@@ -9,8 +9,6 @@ import copy
 import io
 import os
 import sys
-import threading
-from concurrent.futures import ThreadPoolExecutor
 from contextlib import nullcontext
 from io import StringIO
 from pprint import pformat
@@ -1464,31 +1462,31 @@ fake
     assert out.getvalue().splitlines() == MAP_BUT_NOT_OMAP_LINES
 
 
-def test_read_mixins_concurrently():
-    # Reading the same ECSV text from several threads at once must give each
-    # mixin column its own class and unit, not those of a column that another
-    # thread is reading.
+@pytest.fixture
+def mixin_ecsv():
     t = QTable(
         {"sky": SkyCoord([10, 20] * u.deg, [30, 40] * u.deg), "flux": [1, 2] * u.Jy}
     )
     out = StringIO()
     t.write(out, format="ascii.ecsv")
-    text = out.getvalue()
-    n_threads = 8
-
-    def read(barrier):
-        barrier.wait()
-        return QTable.read(text, format="ascii.ecsv")
-
     # Each read sets quantity_convert_int_to_float temporarily, which is not
     # thread-safe and can leave it changed after concurrent reads. Restore
     # it afterwards so that later tests are not affected.
     with quantity_conf.set_temp("quantity_convert_int_to_float", "default"):
-        for _ in range(20):
-            barrier = threading.Barrier(n_threads)
-            with ThreadPoolExecutor(max_workers=n_threads) as executor:
-                tables = list(executor.map(read, [barrier] * n_threads))
-            for t2 in tables:
-                assert t2["flux"].unit == u.Jy
-                assert np.all(t2["sky"].ra == t["sky"].ra)
-                assert np.all(t2["sky"].dec == t["sky"].dec)
+        yield t, out.getvalue()
+
+
+@pytest.mark.force_parallel_threads(8)
+@pytest.mark.iterations(50)
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
+def test_read_mixins_concurrently(mixin_ecsv):
+    # Reading the same ECSV text from several threads at once must give each
+    # mixin column its own class and unit, not those of a column that another
+    # thread is reading.
+    t, text = mixin_ecsv
+    t2 = QTable.read(text, format="ascii.ecsv")
+    assert t2["flux"].unit == u.Jy
+    assert np.all(t2["sky"].ra == t["sky"].ra)
+    assert np.all(t2["sky"].dec == t["sky"].dec)
