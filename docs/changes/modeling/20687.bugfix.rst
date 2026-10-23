@@ -1,0 +1,2 @@
+Fixed the derivative with respect to ``x_0`` in ``Drude1D.fit_deriv``, which
+was wrong and led to incorrect parameter uncertainties when fitting.
