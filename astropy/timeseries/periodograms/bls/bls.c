@@ -171,7 +171,7 @@ int run_bls(
 
         // To simplify calculations below, we wrap the binned values around and pad
         // the end of the array with the first ``oversample`` samples.
-        for (n = 1, ind = n_bins - oversample; n <= oversample; ++n, ++ind) {
+        for (n = 1, ind = n_bins - oversample + 1; n <= oversample; ++n, ++ind) {
             mean_y[ind] = mean_y[n];
             mean_ivar[ind] = mean_ivar[n];
         }

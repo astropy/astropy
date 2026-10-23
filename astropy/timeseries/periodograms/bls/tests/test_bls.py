@@ -72,12 +72,12 @@ def test_32bit_bug():
 
     model = BoxLeastSquares(t, y)
     results = model.autopower(0.16)
-    assert_allclose(results.period[np.argmax(results.power)], 2.000412388152837)
+    assert_allclose(results.period[np.argmax(results.power)], 1.9939489304290015)
     periods = np.linspace(1.9, 2.1, 5)
     results = model.power(periods, 0.16)
     assert_allclose(
         results.power,
-        [0.01723948, 0.0643028, 0.1338783, 0.09428816, 0.03577543],
+        [0.01723948, 0.0643028, 0.16629476, 0.09428816, 0.03577543],
         rtol=1.1e-7,
     )
 
@@ -115,6 +115,24 @@ def test_fast_method(data, objective, offset):
     assert_allclose_blsresults(
         results, model.power(periods, durations, method="slow", objective=objective)
     )
+
+
+@pytest.mark.parametrize("oversample", [1, 10])
+def test_fast_method_transit_in_last_phase_bin(oversample):
+    # A transit in the last phase bin before the period wraps around used to
+    # be dropped by the fast method, because that bin was overwritten when
+    # padding the binned data.
+    period = 1.0
+    duration = 0.125 if oversample == 1 else 0.1
+    t = np.arange(0, 20, 0.001)
+    y = np.ones_like(t)
+    y[t % period >= period - duration] -= 0.01
+
+    results = BoxLeastSquares(t, y).power(
+        period, duration, method="fast", oversample=oversample
+    )
+    assert_allclose(results.depth, 0.01)
+    assert_allclose(results.transit_time % period, period - duration / 2)
 
 
 def test_input_units(data):
