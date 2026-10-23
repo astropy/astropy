@@ -785,8 +785,10 @@ class Hermite2D(OrthoPolynomialBase):
         kfunc[x_terms + 1] = 2 * y.copy()
         for n in range(2, x_terms):
             kfunc[n] = 2 * x * kfunc[n - 1] - 2 * (n - 1) * kfunc[n - 2]
-        for n in range(x_terms + 2, x_terms + y_terms):
-            kfunc[n] = 2 * y * kfunc[n - 1] - 2 * (n - 1) * kfunc[n - 2]
+        for n in range(2, y_terms):
+            kfunc[n + x_terms] = (
+                2 * y * kfunc[n + x_terms - 1] - 2 * (n - 1) * kfunc[n + x_terms - 2]
+            )
         return kfunc
 
     def fit_deriv(self, x, y, *params):
@@ -1953,3 +1955,4 @@ class InverseSIP(Model):
         x1 = self.sip1d_ap.evaluate(x, y, *self.sip1d_ap.param_sets)
         y1 = self.sip1d_bp.evaluate(x, y, *self.sip1d_bp.param_sets)
         return x1, y1
+

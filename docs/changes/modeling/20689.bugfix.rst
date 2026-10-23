@@ -1,0 +1,2 @@
+Fixed ``Hermite2D`` evaluating incorrect Hermite polynomials in ``y`` for
+``y_degree`` of 2 or more.
