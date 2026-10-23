@@ -1,0 +1,3 @@
+Fixed the ``"fast"`` method of ``BoxLeastSquares`` ignoring data in the last
+phase bin before the period wraps around, which could cause transits there to
+be missed or their depth, transit time and power to be wrong.
