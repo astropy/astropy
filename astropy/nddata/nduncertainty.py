@@ -20,12 +20,6 @@ __all__ = [
     "VarianceUncertainty",
 ]
 
-# mapping from collapsing operations to the complementary methods used for `to_variance`
-collapse_to_variance_mapping = {
-    np.sum: np.square,
-    np.mean: np.square,
-}
-
 
 def _move_preserved_axes_first(arr, preserve_axes):
     # When collapsing an ND array and preserving M axes, move the
@@ -55,20 +49,19 @@ def _unravel_preserved_axes(arr, collapsed_arr, preserve_axes):
     return collapsed_arr
 
 
-def from_variance_for_mean(x, axis):
+def collapse_variance_for_mean(x, axis):
     if axis is None:
         # do operation on all dimensions:
         denom = np.ma.count(x)
     else:
         denom = np.ma.count(x, axis)
-    return np.sqrt(np.ma.sum(x, axis)) / denom
+    return np.ma.sum(x, axis) / denom**2
 
 
-# mapping from collapsing operations to the complementary methods used for `from_variance`
-collapse_from_variance_mapping = {
-    np.sum: lambda x, axis: np.sqrt(np.ma.sum(x, axis)),
-    np.mean: from_variance_for_mean,
-    np.median: None,
+# mapping from collapsing operations to the methods used to propagate the variance
+collapse_variance_mapping = {
+    np.sum: np.ma.sum,
+    np.mean: collapse_variance_for_mean,
 }
 
 
@@ -544,7 +537,13 @@ class _VariancePropagationMixin:
     variance).
     """
 
-    def _propagate_collapse(self, numpy_op, axis=None):
+    def _propagate_collapse(
+        self,
+        numpy_op,
+        axis=None,
+        to_variance=lambda x: x,
+        from_variance=lambda x: x,
+    ):
         """
         Error propagation for collapse operations on variance or
         variance-like uncertainties. Uncertainties are calculated using the
@@ -558,6 +557,14 @@ class _VariancePropagationMixin:
 
         axis : tuple, optional
             Axis on which to compute collapsing operations.
+
+        to_variance : function, optional
+            Function that will transform the input uncertainties to variance.
+            The default assumes the uncertainty is the variance.
+
+        from_variance : function, optional
+            Function that will convert from variance to the input uncertainty.
+            The default assumes the uncertainty is the variance.
         """
         try:
             result_unit_sq = self.parent_nddata.unit**2
@@ -575,10 +582,9 @@ class _VariancePropagationMixin:
             # np.sum and np.mean operations use similar pattern
             # to `_propagate_add_sub`, for example:
             else:
-                # lookup the mapping for to_variance and from_variance for this
+                # lookup the method to propagate the variance for this
                 # numpy operation:
-                to_variance = collapse_to_variance_mapping[numpy_op]
-                from_variance = collapse_from_variance_mapping[numpy_op]
+                collapse_variance = collapse_variance_mapping[numpy_op]
                 masked_uncertainty = np.ma.masked_array(
                     self.array, self.parent_nddata.mask
                 )
@@ -596,7 +602,7 @@ class _VariancePropagationMixin:
                 else:
                     this = to_variance(masked_uncertainty)
 
-                return from_variance(this, axis=axis)
+                return from_variance(collapse_variance(this, axis=axis))
 
     def _get_err_at_extremum(self, extremum, axis):
         """
@@ -984,7 +990,9 @@ class StdDevUncertainty(_VariancePropagationMixin, NDUncertainty):
 
     def _propagate_collapse(self, numpy_operation, axis):
         # defer to _VariancePropagationMixin
-        return super()._propagate_collapse(numpy_operation, axis=axis)
+        return super()._propagate_collapse(
+            numpy_operation, axis=axis, to_variance=np.square, from_variance=np.sqrt
+        )
 
     def _data_unit_to_uncertainty_unit(self, value):
         return value
@@ -1204,6 +1212,12 @@ class InverseVariance(_VariancePropagationMixin, NDUncertainty):
             divide=True,
             to_variance=_inverse,
             from_variance=_inverse,
+        )
+
+    def _propagate_collapse(self, numpy_operation, axis):
+        # defer to _VariancePropagationMixin
+        return super()._propagate_collapse(
+            numpy_operation, axis=axis, to_variance=_inverse, from_variance=_inverse
         )
 
     def _data_unit_to_uncertainty_unit(self, value):

@@ -7,13 +7,17 @@ from itertools import chain, permutations
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from astropy import units as u
 from astropy.nddata import NDDataArray
 from astropy.nddata import _testing as nd_testing
 from astropy.nddata.nddata import NDData
-from astropy.nddata.nduncertainty import StdDevUncertainty
+from astropy.nddata.nduncertainty import (
+    InverseVariance,
+    StdDevUncertainty,
+    VarianceUncertainty,
+)
 from astropy.utils import NumpyRNGContext
 from astropy.utils.compat.optional_deps import HAS_DASK
 from astropy.utils.masked import Masked
@@ -705,3 +709,28 @@ def test_collapse(mask, unit, propagate_uncertainties, operation_ignores_mask):
             # as the data array, so we can just check for equality:
             if method in ext_methods and propagate_uncertainties:
                 assert np.ma.all(np.ma.equal(astropy_method, nddata_method))
+
+
+@pytest.mark.parametrize(
+    "uncertainty_class", [StdDevUncertainty, VarianceUncertainty, InverseVariance]
+)
+@pytest.mark.parametrize("unit", [None, u.Jy])
+@pytest.mark.parametrize("axis", [None, 0, 1])
+def test_collapse_uncertainty_types(uncertainty_class, unit, axis):
+    # The propagated uncertainty of sum and mean should not depend on how
+    # the uncertainty is represented.
+    data = np.arange(1.0, 13.0).reshape(3, 4)
+    std = np.linspace(0.5, 2.0, 12).reshape(3, 4)
+    n = data.size if axis is None else data.shape[axis]
+    expected = {
+        "sum": np.sqrt(np.sum(std**2, axis=axis)),
+        "mean": np.sqrt(np.sum(std**2, axis=axis)) / n,
+    }
+    uncertainty = StdDevUncertainty(std, unit=unit).represent_as(uncertainty_class)
+    ndarr = NDDataArray(data, uncertainty=uncertainty, unit=unit)
+    for method, expected_std in expected.items():
+        result = getattr(ndarr, method)(axis=axis)
+        assert isinstance(result.uncertainty, uncertainty_class)
+        assert_allclose(
+            result.uncertainty.represent_as(StdDevUncertainty).array, expected_std
+        )
