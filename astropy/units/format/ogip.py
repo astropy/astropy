@@ -252,7 +252,7 @@ class OGIP(Base, _ParsingFormatMixin):
                          | number POWER numeric_power
             """
             if len(p) == 4:
-                p[0] = 10 ** p[3]
+                p[0] = p[1] ** p[3]
             else:
                 p[0] = p[1]
             # Can't use np.log10 here, because p[0] may be a Python long.

@@ -379,6 +379,15 @@ def test_ogip_negative_powers(string):
     assert u_format.OGIP.parse(string) == u.m**-0.5
 
 
+def test_ogip_scale_factor_base():
+    # The base of a scale factor was ignored, so that "100**2 m" was parsed
+    # as 100 m.
+    assert u_format.OGIP.parse("100**2 m") == 1e4 * u.m
+    assert u_format.OGIP.parse("10**(-3) m") == 1e-3 * u.m
+    with pytest.warns(UnitsWarning, match="power of 10"):
+        assert u_format.OGIP.parse("2**3 m") == 8 * u.m
+
+
 class RoundtripBase:
     def check_roundtrip(self, unit, output_format=None, **kwargs):
         if output_format is None:
