@@ -128,6 +128,13 @@ class Projection(Model):
         self._update_prj()
         return self._prj
 
+    def _inverse_parameters(self):
+        """Parameter values for the inverse projection, keeping their units."""
+        params = (getattr(self, name) for name in self.param_names)
+        return [
+            param.value if param.unit is None else param.quantity for param in params
+        ]
+
     def _update_prj(self):
         """
         A default updater for projection's pv.
@@ -151,7 +158,12 @@ class Projection(Model):
 
         for p in self.param_names:
             param = getattr(self, p)
-            pv.append(float(param.value))
+            # WCSLIB expects angles in degrees, but ``param.value`` is in the
+            # parameter's own unit.
+            if param.unit is not None and param.unit.physical_type == "angle":
+                pv.append(float(param.quantity.to_value(u.deg)))
+            else:
+                pv.append(float(param.value))
             dirty |= param.dirty
             param.dirty = False
 
@@ -213,8 +225,7 @@ class Pix2SkyProjection(Projection):
 
     @property
     def inverse(self):
-        pv = [getattr(self, param).value for param in self.param_names]
-        return self._inv_cls(*pv)
+        return self._inv_cls(*self._inverse_parameters())
 
 
 class Sky2PixProjection(Projection):
@@ -258,8 +269,7 @@ class Sky2PixProjection(Projection):
 
     @property
     def inverse(self):
-        pv = [getattr(self, param).value for param in self.param_names]
-        return self._inv_cls(*pv)
+        return self._inv_cls(*self._inverse_parameters())
 
 
 class Zenithal(Projection):
