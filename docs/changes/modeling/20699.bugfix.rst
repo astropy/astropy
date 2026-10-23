@@ -1,0 +1,4 @@
+Fixed the parameter covariance and standard deviations computed by
+``LinearLSQFitter`` and the non-linear least-squares fitters for 2D models
+with multi-dimensional inputs, which were scaled using the number of rows of
+the input arrays instead of the total number of data points.
