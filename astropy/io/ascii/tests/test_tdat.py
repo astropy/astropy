@@ -28,6 +28,7 @@ test_dat = [
     "#",
     "table_name=heasarc_simple",
     'table_description = "Test table"',
+    "table_document_url = https://example.com/docs",
     "table_security   =    public",
     "#",
     "# Table Parameters",
@@ -167,6 +168,7 @@ def test_read_tdat():
         [
             ("table_name", "heasarc_simple"),
             ("table_description", "Test table"),
+            ("table_document_url", "https://example.com/docs"),
             ("table_security", "public"),
             ("parameter_defaults", "name ra dec"),
             ("frequency_regime", "Gamma-ray"),
@@ -193,7 +195,7 @@ def test_read_tdat():
     meta = [
         {"ucd": "meta.id", "index": "key"},
         {"ucd": "meta.id", "index": "index"},
-        {"ucd": "meta.id;meta.main", "index": "index"},
+        {"ucd": "meta.id;meta.main", "index": "index", "char_len": 12},
         {"ucd": "pos.eq.ra", "index": "index"},
         {"ucd": "pos.eq.dec", "index": "index"},
         {"comment": "Comment"},
@@ -232,6 +234,7 @@ def test_full_table_content():
             [
                 ("table_name", "heasarc_simple"),
                 ("table_description", "Test table"),
+                ("table_document_url", "https://example.com/docs"),
                 ("table_security", "public"),
                 ("parameter_defaults", "name ra dec"),
                 ("frequency_regime", "Gamma-ray"),
@@ -276,8 +279,6 @@ def test_write_full():
     Differences between `lines` and `test_dat`:
     - Empty comment lines are dropped (except when demarcating a section header
     like "Table Parameters").
-    - The data type for string field "name" is downsized to char3 from char12
-    reflecting the actual maximum size in the column.
     - Extraneous spaces in the data are stripped
     These differences reflect flexibility in reading in from a tdat file, and
     writing out in a standardized way.
@@ -290,13 +291,14 @@ def test_write_full():
         "# TOTAL ROWS: 7",
         "table_name = heasarc_simple",
         "table_description = Test table",
+        "table_document_url = https://example.com/docs",
         "table_security = public",
         "#",
         "# Table Parameters",
         "#",
         "field[record_number] = int4 [meta.id] (key) // Unique Identifier for Entry",
         "field[id] = int4 [meta.id] (index) // Source ID Number",
-        "field[name] = char3 [meta.id;meta.main] (index) // String Name",
+        "field[name] = char12 [meta.id;meta.main] (index) // String Name",
         "field[ra] = float8:.4f_deg [pos.eq.ra] (index) // Right Ascension",
         "field[dec] = float8:.4f_deg [pos.eq.dec] (index) // Declination",
         "field[empty] = float8:.4f // Empty // Comment",
@@ -523,7 +525,7 @@ def test_supported_dtypes():
         assert all(t["c"].data == np.array(["c", "d", "e"]))
         out = StringIO()
         t.write(out, format="ascii.tdat")
-        assert "char1" in out.getvalue().splitlines()[7]  # downsizes to min length
+        assert "char3" in out.getvalue().splitlines()[7]  # retains number specified
 
 
 def test_mismatch_line_field():
@@ -659,13 +661,13 @@ def test_round_trip_masked_table_default(tmp_path):
 def test_deprecated_keyword():
     """Deprecated and obsolete keywords should raise warnings"""
     test_data = test_dat.copy()
-    data_lines = test_data[35:-1]
+    data_lines = test_data[36:-1]
     data_lines = "\123".join(data_lines)  # now a single string with a delimiter
     data_lines = data_lines.replace("|", "!")
-    del test_data[35:-1]
-    test_data.insert(35, data_lines)
-    test_data.insert(8, 'record_delimiter = "\123"')
-    test_data.insert(8, 'field_delimiter = "!"')
+    del test_data[36:-1]
+    test_data.insert(36, data_lines)
+    test_data.insert(9, 'record_delimiter = "\123"')
+    test_data.insert(9, 'field_delimiter = "!"')
     with pytest.warns(TdatFormatWarning, match="keyword is deprecated"):
         t = Table.read(test_data, format="ascii.tdat")
 
@@ -686,7 +688,7 @@ def test_deprecated_keyword():
             assert all(t == t2)
 
     test_data = test_dat.copy()
-    test_data.insert(8, "relate[ra] = dec")
+    test_data.insert(9, "relate[ra] = dec")
     with pytest.warns(TdatFormatWarning, match="keyword is obsolete"):
         t = Table.read(test_data, format="ascii.tdat")
 
@@ -723,19 +725,19 @@ def test_tdat_format_error():
 def test_delimiter_in_data():
     """Test escaped delimiters in data"""
     lines = copy.deepcopy(test_dat)
-    lines[38] = "4|20|\\|||||"
+    lines[39] = "4|20|\\|||||"
     t = Table.read(lines, format="ascii.tdat")
     assert t["name"][3] == "|"
 
-    lines.insert(8, 'field_delimiter = "|$"')
-    lines[39] = "4$20|\\|\\$||$|"
+    lines.insert(9, 'field_delimiter = "|$"')
+    lines[40] = "4$20|\\|\\$||$|"
     with pytest.warns(TdatFormatWarning, match="keyword is deprecated"):
         t = Table.read(lines, format="ascii.tdat")
         assert t["name"][3] == "|$"
         out = StringIO()
         t.write(out, format="ascii.tdat")
         # Windows uses carriage return (\r) and line feed (\n).
-        outval = out.getvalue().split("\n")[36].replace("\r", "")
+        outval = out.getvalue().split("\n")[37].replace("\r", "")
         assert outval == "4|20|\\|$||||"
 
 
@@ -754,6 +756,76 @@ def test_unsupported_delimiter():
         with pytest.raises(TdatFormatError, match="Unsupported field delimiter"):
             lines[2] = f'field_delimiter = "{chr(129)}"'
             t = Table.read(lines, format="ascii.tdat")
+
+
+def test_char_errors():
+    """Test dtype 'char' errors"""
+    lines = SIMPLE_LINES.copy()
+
+    with pytest.raises(
+        TdatFormatError, match="character string length must be in the range"
+    ):
+        lines[7] += "9999"
+        t = Table.read(lines, format="ascii.tdat")
+
+    with pytest.raises(
+        TdatFormatError, match="character string length must be in the range"
+    ):
+        lines[7] = "field[c] = char(19999)"
+        t = Table.read(lines, format="ascii.tdat")
+
+    with pytest.raises(
+        TdatFormatError, match="character string length must be in the range"
+    ):
+        lines[7] = "field[c] = char0"
+        t = Table.read(lines, format="ascii.tdat")
+
+    with pytest.raises(TdatFormatError, match="Unrecognized or unsupported data type"):
+        lines[7] = "field[c] = char(foo)"
+        t = Table.read(lines, format="ascii.tdat")
+
+
+def test_char_meta():
+    """Test dtype 'char' meta information"""
+    lines = SIMPLE_LINES.copy()
+
+    lines[7] = "field[c] = char200:html"
+    t = Table.read(lines, format="ascii.tdat")
+    assert t.columns["c"].format == None
+    assert t.columns["c"].meta.get("char_len", None) == 200
+    assert t.columns["c"].meta.get("char_fmt", None) == "html"
+
+    lines[7] = "field[c] = char(300)"
+    t = Table.read(lines, format="ascii.tdat")
+    assert t.columns["c"].format == None
+    assert t.columns["c"].meta.get("char_len", None) == 300
+    assert t.columns["c"].meta.get("char_fmt", None) == None
+
+
+def test_ucd_errors():
+    """Test UCD errors"""
+    lines = SIMPLE_LINES.copy()
+
+    with pytest.raises(TdatFormatWarning, match="is not valid as a primary word"):
+        lines[5] += "[meta.main]"
+        t = Table.read(lines, format="ascii.tdat")
+
+    with pytest.raises(TdatFormatWarning, match="Unknown word"):
+        lines[5] = "field[a] = int4 [garbage.ucd]"
+        t = Table.read(lines, format="ascii.tdat")
+
+
+def test_flag_errors():
+    """Test field flag errors"""
+    lines = SIMPLE_LINES.copy()
+
+    with pytest.raises(TdatFormatError, match="which is neither 'index' nor 'key'"):
+        lines[5] += " (foo)"
+        t = Table.read(lines, format="ascii.tdat")
+
+    with pytest.raises(TdatFormatError, match="has multiple flags"):
+        lines[5] = "field[a] = int4 (index) (key)"
+        t = Table.read(lines, format="ascii.tdat")
 
 
 def test_write_qtable():
@@ -794,7 +866,7 @@ def test_multiline_data():
 
 def test_comment_too_long():
     lines = SIMPLE_LINES.copy()
-    lines[5] += "# # " + "a" * 100
+    lines[5] += "// // " + "a" * 100
     with pytest.warns(TdatFormatWarning, match="Comments are limited"):
         t = Table.read(lines, format="ascii.tdat")
         assert len(t["a"].meta["comment"]) == 80
