@@ -1,0 +1,2 @@
+Fixed the ``"ogip"`` unit format parser ignoring the base of scale factors
+such as ``100**2``, which were always treated as powers of 10.
